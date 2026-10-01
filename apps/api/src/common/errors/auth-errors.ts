@@ -1,3 +1,5 @@
+import { SIGN_IN_ERRORS } from "@caseai-connect/api-contracts"
+
 export const AUTH_ERRORS = {
   NO_ACCESS_TOKEN: "No access token provided",
   INVALID_ACCESS_TOKEN: "Invalid access token",
@@ -6,7 +8,8 @@ export const AUTH_ERRORS = {
   NOT_MEMBER_OF_ORG: "Not a member of organization",
   SUB_NOT_FOUND: "Sub not found in request",
   USER_NOT_FOUND: "Could not ensure user exists",
-  SERVICE_USERS_CANNOT_AUTHENTICATE: "Service users cannot authenticate through Auth0",
+  SERVICE_USERS_CANNOT_AUTHENTICATE: "Service users cannot authenticate through OIDC",
+  ...SIGN_IN_ERRORS,
 
   UNAUTHORIZED_RESOURCE: "You are not authorized to access this resource",
 } as const

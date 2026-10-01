@@ -101,6 +101,7 @@ export const projectMembershipFactory = ProjectMembershipFactory.define(
         params.userEmail ??
         user?.email ??
         faker.internet.email({ firstName, lastName }).toLowerCase(),
+      userHasSignedIn: params.userHasSignedIn ?? true,
       createdAt: params.createdAt ?? faker.date.past().getTime(),
       role: params.role ?? "member",
     } satisfies ProjectMembershipDto
@@ -131,6 +132,7 @@ export const agentMembershipFactory = AgentMembershipFactory.define(
         params.userEmail ??
         user?.email ??
         faker.internet.email({ firstName, lastName }).toLowerCase(),
+      userHasSignedIn: params.userHasSignedIn ?? true,
       role: params.role ?? "member",
       createdAt: params.createdAt ?? faker.date.past().getTime(),
     } satisfies AgentMembershipDto

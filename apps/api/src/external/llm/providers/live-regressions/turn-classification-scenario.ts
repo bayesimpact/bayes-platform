@@ -1,4 +1,4 @@
-import { ToolName } from "@caseai-connect/api-contracts"
+import { AgentThinkingLevel, ToolName } from "@caseai-connect/api-contracts"
 import type {
   LLMConfig,
   LLMMetadata,
@@ -48,7 +48,13 @@ const passthroughRecalculator: SessionMetadataRecalculator = {
 }
 
 function buildConfig(model: string): (systemPrompt: string) => LLMConfig {
-  return (systemPrompt) => ({ model, temperature: 0, systemPrompt, serviceTier: undefined })
+  return (systemPrompt) => ({
+    model,
+    temperature: 0,
+    systemPrompt,
+    serviceTier: undefined,
+    thinkingLevel: AgentThinkingLevel.Auto,
+  })
 }
 
 function buildMetadata({ model, scenario }: { model: string; scenario: string }): LLMMetadata {
@@ -116,6 +122,7 @@ Always answer in English.`
       temperature: 0,
       tools: { [ToolName.LookupKnowledgeBase]: lookupTool },
       serviceTier: undefined,
+      thinkingLevel: AgentThinkingLevel.Auto,
     },
     metadata,
   })
@@ -181,7 +188,12 @@ export async function runFatPromptTurnScenario({
       ...earlierMessages,
       { role: "user", content: userMessage },
     ],
-    config: { model, temperature: 0, serviceTier: undefined },
+    config: {
+      model,
+      temperature: 0,
+      serviceTier: undefined,
+      thinkingLevel: AgentThinkingLevel.Auto,
+    },
     metadata,
   })
 

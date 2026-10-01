@@ -4,7 +4,7 @@ import type { StreamEventHandler } from "./agent-session-messages-streaming-even
 
 // The real client needs `window`, which vitest's node environment does not provide. Only the
 // token fetch is replaced: the SSE reading and parsing under test stay real.
-vi.mock("@/external/auth0Client", () => ({ getAccessToken: vi.fn().mockResolvedValue("token") }))
+vi.mock("@/external/oidcClient", () => ({ getAccessToken: vi.fn().mockResolvedValue("token") }))
 
 const params = {
   organizationId: "org-1",

@@ -1,4 +1,4 @@
-import { AgentModel } from "@caseai-connect/api-contracts"
+import { AgentModel, AgentThinkingLevel } from "@caseai-connect/api-contracts"
 import { Test } from "@nestjs/testing"
 import { tool } from "ai"
 import { z } from "zod"
@@ -48,6 +48,7 @@ describe("malformed tool call repair", () => {
           execute: async (input) => execute(input),
         }),
       },
+      thinkingLevel: AgentThinkingLevel.Auto,
     }) as LLMConfig
 
   const streamAll = async (config: LLMConfig) => {

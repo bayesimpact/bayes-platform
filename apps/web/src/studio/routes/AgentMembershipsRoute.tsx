@@ -49,7 +49,8 @@ function WithData() {
     void dispatch(
       revokeInvitation({
         invitationId,
-        refreshTarget: { targetType: "agent", targetId: agent.id },
+        targetType: "agent",
+        targetId: agent.id,
       }),
     )
   }

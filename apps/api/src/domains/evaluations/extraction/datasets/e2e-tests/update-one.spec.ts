@@ -50,13 +50,13 @@ describe("EvaluationExtractionDatasets - updateOne", () => {
   let documentId: string
   let datasetId: string
   let accessToken: string | undefined = "token"
-  let auth0Id = "auth0|123"
+  let authSubject = "oidc|123"
 
   beforeAll(async () => {
     setup = await setupTransactionalTestDatabase({
       additionalImports: [EvaluationsModule, ActivitiesModule],
       applyOverrides: (moduleBuilder) =>
-        setupUserGuardForTesting(moduleBuilder, () => auth0Id)
+        setupUserGuardForTesting(moduleBuilder, () => authSubject)
           .overrideProvider(FILE_STORAGE_SERVICE)
           .useValue(mockFileStorageService),
     })
@@ -74,7 +74,7 @@ describe("EvaluationExtractionDatasets - updateOne", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = "auth0|123"
+    authSubject = "oidc|123"
     mockFileStorageService.readFile.mockResolvedValue(Buffer.from(CSV_CONTENT))
   })
 
@@ -92,7 +92,7 @@ describe("EvaluationExtractionDatasets - updateOne", () => {
     const { user, organization, project } = await createOrganizationWithProject(repositories)
     organizationId = organization.id
     projectId = project.id
-    auth0Id = user.auth0Id
+    authSubject = user.authSubject!
 
     const document = evaluationExtractionDatasetDocumentFactory
       .transient({ organization, project })

@@ -27,7 +27,7 @@ describe("Documents - reprocessOne", () => {
   let projectId: string
   let documentId: string
   let accessToken: string | undefined = "token"
-  let auth0Id = "auth0|123"
+  let authSubject = "oidc|123"
   let userId: string
   let embeddingsBatchServiceMock: {
     enqueueCreateEmbeddingsForDocument: jest.MockedFunction<
@@ -39,7 +39,7 @@ describe("Documents - reprocessOne", () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [DocumentsModule],
       applyOverrides: (moduleBuilder) =>
-        withDocumentAuthAndEmbeddingsMocks(moduleBuilder, () => auth0Id),
+        withDocumentAuthAndEmbeddingsMocks(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
     embeddingsBatchServiceMock = setup.module.get(DOCUMENT_EMBEDDINGS_BATCH_SERVICE)
@@ -51,7 +51,7 @@ describe("Documents - reprocessOne", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = "auth0|123"
+    authSubject = "oidc|123"
     embeddingsBatchServiceMock.enqueueCreateEmbeddingsForDocument.mockClear()
   })
 
@@ -67,7 +67,7 @@ describe("Documents - reprocessOne", () => {
     const { user, organization, project, document } = await createOrganizationWithDocument(
       repositories,
       {
-        user: { auth0Id },
+        user: { authSubject },
         document: {
           embeddingStatus: overrides?.embeddingStatus ?? "failed",
           sourceType: overrides?.sourceType ?? "project",

@@ -8,7 +8,8 @@ export const userFactory = Factory.define<User>(({ sequence, params }) => {
   const now = new Date()
   return {
     id: params.id || randomUUID(),
-    auth0Id: params.auth0Id || `auth0|${randomUUID()}`,
+    // `authSubject: null` builds a person added by email who has not signed in yet.
+    authSubject: params.authSubject === undefined ? `oidc|${randomUUID()}` : params.authSubject,
     email: params.email || `user${sequence}@example.com`,
     type: params.type ?? USER_TYPE_HUMAN,
     name: params.name ?? `Test User ${sequence}`,

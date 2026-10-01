@@ -1,33 +1,35 @@
 ---
-title: Add an admin
+title: Invite an admin
 highlight: admin
-description: Invite people to your workspace by email so they can collaborate, and manage members and pending invitations.
+description: Invite people to your workspace by email so they can manage it with you, follow pending invitations, and remove members when needed.
 category: guides-team
 order: 2
-updated: 2026-07-22
+updated: 2026-10-01
 ---
 
 import MembersWalkthrough from "@/components/MembersWalkthrough.astro"
 
-Adding an admin means **inviting someone to your workspace** so they can work in it
-with you. You invite people by their **email address**; once they accept, they
-join as a **member** of the workspace.
+Inviting an admin gives someone access to **manage your workspace** with you. You
+invite people by their **email address**. Each one gets a **pending invitation**,
+which they accept in the platform after signing in. Access starts when they accept.
 
 Members are managed from the **Members** page in the left sidebar of **Studio**.
-Members belong to the **workspace** — everyone you invite can collaborate on the
-workspace's agents and resources.
+Members belong to the **workspace**: everyone who joins can work on the workspace's
+agents and resources.
 
-## How members and invitations work
+## How workspace members work
 
-You invite someone by entering their **email address** and sending the invitation.
-Until they accept, it stays listed under **Pending invitations**. Once accepted,
-the person appears in the members grid with a **role badge** — **Owner** for the
-workspace owner, **Admin** for the people you invite. You can remove a member, or
-cancel an invitation that hasn't been accepted yet, at any time.
+You enter one or more **email addresses** and click **Invite**. Each person gets a
+pending invitation, listed under **Pending invitations** below the members grid. The
+platform sends no email, so let them know: they sign in with your **organization's
+account** and accept the invitation on the home page. They then appear in the members
+grid as an **Admin** of the workspace. Each card shows a **role badge**: **Owner** for
+the workspace owner, **Admin** for the people who joined. You can delete a pending
+invitation or remove a member at any time.
 
-> **Roles are shown but not chosen here.** The invite dialog asks only for an email
-> address — there is no role picker. The **Owner** / **Admin** labels on the cards
-> are the platform's built-in role names and stay in English in every language.
+> **Roles are shown but not chosen here.** The **Invite admins** dialog asks only for
+> email addresses; there is no role picker. The **Owner** / **Admin** labels on the
+> cards are the platform's built-in role names and stay in English in every language.
 
 ## The full flow at a glance
 
@@ -41,69 +43,89 @@ and the area to watch.
 
 ### 1. Open Members
 
-In **Studio**, open the left sidebar and select **Members**. The page is titled
-**Members of** your workspace and lists everyone who already has access.
+In **Studio**, open the left sidebar and select **Members** (or click the **Members**
+card on the workspace overview). The page is titled **Members of** your workspace,
+with the description *Invite members to your workspace to collaborate together.* It
+lists everyone who already has access. Use the **Search by name or email…** box at
+the top right to find someone.
 
-### 2. Start an invitation
+### 2. Open the Invite admins dialog
 
-Find the **Invite an admin** card and click **Invite**. This opens the invitation
-dialog. (You can also search the existing members with the **Search by name or
-email…** box at the top-right.)
+At the end of the grid, the **Invite admins** card reads *Enter the email addresses
+of the people who should manage this workspace. They accept the invitation after
+signing in.* Click its **Invite** button to open the **Invite admins** dialog.
 
 ### 3. Add the email address
 
-1. In the **Invite an admin** dialog, type the person's address in the **Email
-   address** field.
-2. Click **Add**. The address appears as a chip below the field. Repeat to invite
-   several people at once; remove a chip with its **✕** if you added one by mistake.
+1. Type the person's address in the **Email address** field (placeholder **Enter
+   email address**).
+2. Click **Add** next to the field, or press **Enter**. This only puts the address in
+   the list: it appears as a chip below the field. Repeat to invite several people at
+   once; remove a chip with its **✕** if you added one by mistake.
 
-### 4. Send the invitation
+An invalid address shows **Invalid email address**, and an address already in the
+list shows **Email already added**.
 
-Click **Send**. Each address you added receives an invitation to join the
-workspace.
+### 4. Send the invitations
 
-### 5. Track pending invitations
+Click **Invite** at the bottom of the dialog. The dialog closes and a **People
+invited** notification confirms it. The button stays disabled until at least one
+address is in the list. Someone who is already a member, or already invited, is
+skipped.
 
-A sent invitation is listed under **Pending invitations** ("Invitations already
-sent for this project") until the person accepts it. Each entry shows the invited
-email and when it was sent.
+### 5. Follow pending invitations
 
-### 6. See who has joined
+Each person now appears under **Pending invitations**, below the members grid: *People
+invited to this project who have not answered yet.* Each card shows the email and
+when it was sent (for example *Invited 2 minutes ago*). They have no access yet. Tell
+them to sign in with their organization's account and accept the invitation (see
+[Sign in and accept your invitations](/en/sign-in-for-the-first-time)).
 
-Once someone accepts, they appear in the members grid with their email and a
-**role badge** — **Owner** (crown) for the workspace owner, **Admin** (star) for
-invited members. Click a member's card to open their detail page and review which
-agents they can access.
+### 6. See the new member
 
-### 7. Remove a member
+Once a person accepts, their invitation leaves the pending list and they appear in the
+members grid with their name and the **Admin** badge. The workspace **Owner** has a
+crown badge, admins a star. Click a member's card to open their detail page and
+review which agents they can access. If they decline, the invitation simply leaves
+the pending list.
 
-To remove someone, click the **trash** icon on their card. A confirmation dialog
-(**Remove *name*?**) explains the member will be removed from the project and that
-the action **cannot be undone** — click **Remove** to confirm. You can't remove the
-workspace **Owner** or yourself.
+### 7. Delete an invitation or remove a member
 
-### 8. Cancel a pending invitation
+To cancel an invitation that hasn't been answered, click the **trash** icon (**Delete
+invitation**) on its card. The **Delete invitation?** dialog warns that the person
+will no longer be able to accept it. Click **Confirm**.
 
-To withdraw an invitation before it's accepted, click the **trash** icon on its
-row under **Pending invitations** and confirm. This cancels the invitation that was
-sent to that email.
+To remove someone who already joined, click the **trash** icon on their card. A
+confirmation dialog (**Remove *name*?**) explains the member will be removed from the
+project and that the action **cannot be undone**. Click **Remove** to confirm. You
+can't remove the workspace **Owner** or yourself.
 
 ## Tips
 
-- Double-check each **Email address** before clicking **Add** — invitations go to
-  exactly what you type.
-- Invite several people in one go by adding multiple email chips before **Send**.
-- Use the **Search by name or email…** box to find a member quickly in a large
-  workspace.
+- Double-check each **Email address** before clicking **Invite**: the invitation goes
+  to exactly what you type, and it must match the email of the person's organization
+  account.
+- Invite several people in one go by adding multiple email chips before clicking
+  **Invite**.
+- To give someone access to a single agent only, use [Invite a user](/en/add-a-user)
+  instead.
 
 ## Troubleshooting
 
-- **The person hasn't joined yet** — their invitation is still under **Pending
-  invitations**. Ask them to check their inbox; if needed, cancel it and send a new
-  one to the correct address.
-- **I can't remove a member** — the **trash** icon isn't available for the workspace
+- **The invitation stays pending.** The person hasn't accepted yet. Remind them to
+  sign in with their organization's account, using the email you invited, and to
+  click **Accept** on the home page.
+- **The person sees No access yet.** They signed in with a different email than the
+  one you invited, or their identity provider hasn't verified it. Delete the
+  invitation and invite the address of their organization account.
+- **I invited the wrong address.** Click the **trash** icon on that pending invitation
+  and confirm, then invite the correct email.
+- **The person declined by mistake.** Invite them again; a new pending invitation
+  appears.
+- **Some cards show Never signed in.** These people were given access before
+  invitations existed and haven't signed in since. They already have access and
+  only need to sign in.
+- **I can't remove a member.** The **trash** icon isn't available for the workspace
   **Owner** or for your own account.
-- **I invited the wrong address** — cancel the entry under **Pending invitations**,
-  then invite the correct email.
-- **I don't see the Members page** — you need access to the workspace's settings;
-  ask the workspace **Owner** if it isn't visible.
+- **I don't see the Members page.** You need access to the workspace's settings; ask
+  the workspace **Owner** if it isn't visible.

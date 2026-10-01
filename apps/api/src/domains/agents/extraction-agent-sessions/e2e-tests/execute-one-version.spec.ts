@@ -41,13 +41,13 @@ describe("ExtractionAgentSessions - executeOne settings version", () => {
   let agentId: string
   let documentId: string
   let accessToken: string | undefined = "token"
-  let auth0Id = "auth0|123"
+  let authSubject = "oidc|123"
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [AgentsModule],
       applyOverrides: (moduleBuilder) =>
-        setupUserGuardForTesting(moduleBuilder, () => auth0Id)
+        setupUserGuardForTesting(moduleBuilder, () => authSubject)
           .overrideProvider("LLMProvider")
           .useValue(mockLlmProvider),
     })
@@ -60,7 +60,7 @@ describe("ExtractionAgentSessions - executeOne settings version", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = "auth0|123"
+    authSubject = "oidc|123"
     jest.clearAllMocks()
     mockLlmProvider.generateStructuredOutput.mockResolvedValue({ title: "Sample" })
   })
@@ -94,7 +94,7 @@ describe("ExtractionAgentSessions - executeOne settings version", () => {
     projectId = project.id
     agentId = agent.id
     documentId = document.id
-    auth0Id = context.user.auth0Id
+    authSubject = context.user.authSubject!
     return context
   }
 

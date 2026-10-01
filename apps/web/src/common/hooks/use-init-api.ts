@@ -1,15 +1,15 @@
-import { useAuth0 } from "@auth0/auth0-react"
 import { useEffect } from "react"
+import { useAuth } from "react-oidc-context"
 import { authActions } from "@/common/features/auth/auth.slice"
 import { useAppDispatch } from "@/common/store/hooks"
 
 /**
- * Hook to sync Auth0 authentication state with Redux.
+ * Hook to sync the OIDC authentication state with Redux.
  * This allows the listenerMiddleware to react to authentication changes
  * and automatically fetch user data when the user becomes authenticated.
  */
 export function useInitApi() {
-  const { isAuthenticated, isLoading } = useAuth0()
+  const { isAuthenticated, isLoading } = useAuth()
   const dispatch = useAppDispatch()
 
   useEffect(() => {

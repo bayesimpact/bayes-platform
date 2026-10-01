@@ -12,7 +12,7 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
-import { inviteUserToProject } from "@/domains/projects/memberships/project-membership.factory"
+import { addMemberByEmailToProject } from "@/domains/projects/memberships/project-membership.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { conversationAgentSessionFactory } from "../conversation-agent-session.factory"
@@ -28,12 +28,12 @@ describe("ConversationAgentSessionsRoutes.getAll", () => {
   let projectId: string
   let agentId: string
   let accessToken: string | undefined = "token"
-  let auth0Id = "auth0|123"
+  let authSubject = "oidc|123"
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [ConversationAgentSessionsModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
     app = setup.module.createNestApplication()
@@ -44,7 +44,7 @@ describe("ConversationAgentSessionsRoutes.getAll", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = "auth0|123"
+    authSubject = "oidc|123"
   })
 
   afterAll(async () => {
@@ -54,14 +54,19 @@ describe("ConversationAgentSessionsRoutes.getAll", () => {
 
   const createContext = async () => {
     const { organization, project, agent } = await createOrganizationWithAgent(repositories)
-    const { invitedUser } = await inviteUserToProject({ repositories, organization, project })
-    const { invitedUser: anotherUser } = await inviteUserToProject({
+    const { addedUser } = await addMemberByEmailToProject({
+      repositories,
+      organization,
+      project,
+      user: { email: "member@example.com", authSubject: "oidc|member" },
+    })
+    const { addedUser: anotherUser } = await addMemberByEmailToProject({
       repositories,
       organization,
       project,
       user: {
         email: "another-user@caseai.test",
-        auth0Id: "auth0|another-user",
+        authSubject: "oidc|another-user",
       },
     })
 
@@ -69,7 +74,7 @@ describe("ConversationAgentSessionsRoutes.getAll", () => {
       .transient({
         organization,
         project,
-        user: invitedUser,
+        user: addedUser,
         agent,
       })
       .live()
@@ -81,7 +86,7 @@ describe("ConversationAgentSessionsRoutes.getAll", () => {
       .transient({
         organization,
         project,
-        user: invitedUser,
+        user: addedUser,
         agent,
       })
       .live()
@@ -93,7 +98,7 @@ describe("ConversationAgentSessionsRoutes.getAll", () => {
       .transient({
         organization,
         project,
-        user: invitedUser,
+        user: addedUser,
         agent,
       })
       .playground()
@@ -119,7 +124,7 @@ describe("ConversationAgentSessionsRoutes.getAll", () => {
     organizationId = organization.id
     projectId = project.id
     agentId = agent.id
-    auth0Id = invitedUser.auth0Id
+    authSubject = addedUser.authSubject!
 
     return {
       oldestAppSession,

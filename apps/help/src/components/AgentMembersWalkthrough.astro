@@ -2,8 +2,15 @@
 /**
  * Animated, full-page walkthrough of the "add a user" (agent Members) flow,
  * mirroring the real Studio interface (same shell, exact Lucide icons, real brand
- * logo). Shares the exact FORM of the other help-center walkthroughs — only the
+ * logo). Shares the exact FORM of the other help-center walkthroughs; only the
  * content differs. Pass `lang="fr"` for the French copy.
+ *
+ * Source components (re-verified 2026-10-01): AgentMembershipsRoute.tsx,
+ * agent-memberships/components/MembersCreator.tsx (card + submit = actions:invite), AgentMembershipItem.tsx,
+ * invitations/components/PendingInvitationsSection.tsx, ConfirmDialog.tsx. Labels from the
+ * agentMembership, invitations and actions locales (EN + FR). People are invited by email:
+ * each gets a pending invitation (listed under the grid, revocable) and becomes a member
+ * once they accept it on their home page. No email is sent.
  */
 type Lang = "en" | "fr"
 const { lang = "en" } = Astro.props as { lang?: Lang }
@@ -18,27 +25,28 @@ const STRINGS = {
     agentType: "Conversation",
     goToApp: "App", edit: "Edit", membersBtn: "Members",
     newChat: "New Chat", newChatDesc: "Start a chat with your agent.",
-    listTitle: "Members of Bayes Assistant", listDesc: "Invite users to use your agent.",
-    inviteCardTitle: "Invite a user",
-    inviteCardDesc: "Enter the email address of the person you want to invite to join your agent.",
-    invite: "Invite", emailLabel: "Email address", emailPlaceholder: "Enter email address", add: "Add", send: "Send", cancel: "Cancel",
-    inviteEmail: "sam.rivera@example.com",
+    listTitle: "Members of Bayes Assistant", listDesc: "Invite users who can use your agent.",
+    addCardTitle: "Invite users",
+    addCardDesc: "Enter the email addresses of the people who should use this agent. They accept the invitation after signing in.",
+    emailLabel: "Email address", emailPlaceholder: "Enter email address", add: "Add", invite: "Invite", cancel: "Cancel",
+    newEmail: "sam.rivera@example.com", newName: "Sam Rivera", newEmail2: "casey.nguyen@example.com",
     member2Name: "Jordan Lee", member2Email: "jordan.lee@example.com",
     roleOwner: "owner", roleMember: "member",
-    pendingTitle: "Pending invitations", pendingDesc: "Invitations already sent for this agent.",
-    invitedAgo: "Invited less than a minute ago",
+    pendingTitle: "Pending invitations", pendingDesc: "People invited to this agent who have not answered yet.",
+    invitedAgo: "Invited less than a minute ago", deleteInvitation: "Delete invitation",
+    deleteInvTitle: "Delete invitation?", deleteInvDesc: "casey.nguyen@example.com will no longer be able to accept this invitation.", confirm: "Confirm",
     removeTitle: "Remove Jordan Lee?", removeDesc: "This will remove the member from the agent. This action cannot be undone.", remove: "Remove",
     prev: "Prev", next: "Next", step: "Step",
     steps: [
       "Open the agent you want to give access to.",
       "On the agent's page, click Members.",
-      "Open the Invite a user card and click Invite.",
-      "Enter the person's email address, then click Add.",
-      "Check the recipients, then click Send.",
-      "The invitation appears under Pending invitations until it's accepted.",
-      "Once accepted, the person appears as a member with a role badge.",
+      "On the Invite users card, click Invite.",
+      "Enter each email address, then click Add to put it in the list.",
+      "Check the addresses, then click Invite.",
+      "Each person appears under Pending invitations. They have no access until they accept.",
+      "Once a person accepts on their home page, they join the grid as a member.",
+      "To cancel a pending invitation, click its trash icon, then confirm.",
       "To remove a member, click the trash icon on their card, then confirm.",
-      "To cancel an invitation that hasn't been accepted, delete it from Pending invitations.",
     ],
   },
   fr: {
@@ -50,27 +58,28 @@ const STRINGS = {
     agentType: "Conversation",
     goToApp: "Application", edit: "Modifier", membersBtn: "Membres",
     newChat: "Nouvelle discussion", newChatDesc: "Démarrez une discussion avec votre agent.",
-    listTitle: "Membres de Bayes Assistant", listDesc: "Invitez des membres à utiliser votre agent.",
-    inviteCardTitle: "Inviter un utilisateur",
-    inviteCardDesc: "Entrez l'adresse email de la personne que vous souhaitez inviter à utiliser votre agent.",
-    invite: "Inviter", emailLabel: "Adresse email", emailPlaceholder: "Entrez l'adresse email", add: "Ajouter", send: "Envoyer", cancel: "Annuler",
-    inviteEmail: "sam.rivera@example.com",
+    listTitle: "Membres de Bayes Assistant", listDesc: "Invitez les personnes qui peuvent utiliser votre agent.",
+    addCardTitle: "Inviter des utilisateurs",
+    addCardDesc: "Entrez l'adresse email des personnes qui doivent utiliser cet agent. Elles acceptent l'invitation après s'être connectées.",
+    emailLabel: "Adresse email", emailPlaceholder: "Entrez l'adresse email", add: "Ajouter", invite: "Inviter", cancel: "Annuler",
+    newEmail: "sam.rivera@example.com", newName: "Sam Rivera", newEmail2: "casey.nguyen@example.com",
     member2Name: "Jordan Lee", member2Email: "jordan.lee@example.com",
     roleOwner: "owner", roleMember: "member",
-    pendingTitle: "Invitations en attente", pendingDesc: "Invitations déjà envoyées pour cet agent.",
-    invitedAgo: "Invité il y a moins d'une minute",
+    pendingTitle: "Invitations en attente", pendingDesc: "Personnes invitées sur cet agent qui n'ont pas encore répondu.",
+    invitedAgo: "Invité il y a moins d'une minute", deleteInvitation: "Supprimer l'invitation",
+    deleteInvTitle: "Supprimer l'invitation ?", deleteInvDesc: "casey.nguyen@example.com ne pourra plus accepter cette invitation.", confirm: "Confirmer",
     removeTitle: "Retirer Jordan Lee ?", removeDesc: "Ce membre sera retiré de l'agent. Cette action est irréversible.", remove: "Retirer",
     prev: "Précédent", next: "Suivant", step: "Étape",
     steps: [
       "Ouvrez l'agent auquel vous voulez donner accès.",
       "Sur la page de l'agent, cliquez sur Membres.",
-      "Ouvrez la carte Inviter un utilisateur et cliquez sur Inviter.",
-      "Saisissez l'adresse email de la personne, puis cliquez sur Ajouter.",
-      "Vérifiez les destinataires, puis cliquez sur Envoyer.",
-      "L'invitation apparaît dans Invitations en attente jusqu'à son acceptation.",
-      "Une fois acceptée, la personne apparaît comme membre avec un badge de rôle.",
+      "Sur la carte Inviter des utilisateurs, cliquez sur Inviter.",
+      "Saisissez chaque adresse email, puis cliquez sur Ajouter pour la mettre dans la liste.",
+      "Vérifiez les adresses, puis cliquez sur Inviter.",
+      "Chaque personne apparaît sous Invitations en attente. Elle n'a pas accès tant qu'elle n'a pas accepté.",
+      "Dès qu'une personne accepte sur sa page d'accueil, elle rejoint la grille comme membre.",
+      "Pour annuler une invitation en attente, cliquez sur sa corbeille, puis confirmez.",
       "Pour retirer un membre, cliquez sur l'icône corbeille de sa carte, puis confirmez.",
-      "Pour annuler une invitation non acceptée, supprimez-la dans Invitations en attente.",
     ],
   },
 } as const
@@ -80,13 +89,13 @@ const s = STRINGS[lang]
 const steps = [
   { page: "overview", sources: false, nav: "", spot: "cardAgent", observe: [] },
   { page: "agentPage", sources: false, nav: "agent", spot: "btnMembers", observe: [] },
-  { page: "membersList", sources: false, nav: "agent", spot: "btnInvite", observe: [] },
-  { page: "inviteDialog", sources: false, nav: "agent", spot: "btnAdd", observe: ["obsEmailField"] },
-  { page: "inviteDialog", sources: false, nav: "agent", spot: "btnSend", observe: ["obsChip"] },
-  { page: "membersFull", sources: false, nav: "agent", spot: "", observe: ["obsPending"] },
-  { page: "membersFull", sources: false, nav: "agent", spot: "", observe: ["obsRole"] },
+  { page: "membersList", sources: false, nav: "agent", spot: "btnOpenAdd", observe: [] },
+  { page: "addDialog", sources: false, nav: "agent", spot: "btnAdd", observe: ["obsEmailField"] },
+  { page: "addDialog", sources: false, nav: "agent", spot: "btnSubmit", observe: ["obsChip"] },
+  { page: "membersPending", sources: false, nav: "agent", spot: "", observe: ["obsPending"] },
+  { page: "membersFull", sources: false, nav: "agent", spot: "", observe: ["obsNewMember"] },
+  { page: "deleteInvDialog", sources: false, nav: "agent", spot: "btnDeleteInvConfirm", observe: ["obsDeleteInvModal"] },
   { page: "removeDialog", sources: false, nav: "agent", spot: "btnRemoveConfirm", observe: ["obsRemoveModal"] },
-  { page: "membersFull", sources: false, nav: "agent", spot: "btnRevoke", observe: ["obsPending"] },
 ].map((step, i) => ({ ...step, text: s.steps[i] }))
 
 const labels = { prev: s.prev, next: s.next, step: s.step }
@@ -162,7 +171,7 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
           </div>
         </div>
 
-        <!-- agent members list, owner + invite card (step 3) -->
+        <!-- agent members list, owner + Invite users card (step 3) -->
         <div class="page" data-page="membersList">
           <div class="page-head">
             <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
@@ -174,29 +183,62 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
               <p>{s.userEmail}</p>
             </div>
             <div class="ecard muted">
-              <b>{s.inviteCardTitle}</b>
-              <p>{s.inviteCardDesc}</p>
-              <span class="btn sm" id="btnInvite"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg> {s.invite}</span>
+              <b>{s.addCardTitle}</b>
+              <p>{s.addCardDesc}</p>
+              <span class="btn" id="btnOpenAdd">{s.invite} <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg></span>
             </div>
           </div>
         </div>
 
-        <!-- invite dialog (steps 4 & 5) -->
-        <div class="page" data-page="inviteDialog">
+        <!-- Invite users dialog (steps 4 & 5) -->
+        <div class="page" data-page="addDialog">
           <div class="scrim"></div>
           <div class="modal">
-            <div class="mhead"><b>{s.inviteCardTitle}</b><p>{s.inviteCardDesc}</p></div>
-            <p class="lbl">{s.emailLabel}</p>
-            <div class="row" id="obsEmailField">
-              <span class="input">{s.emailPlaceholder}</span>
-              <span class="btn outline sm" id="btnAdd">{s.add}</span>
+            <span class="mclose"><svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span>
+            <div class="mhead"><b>{s.addCardTitle}</b><p>{s.addCardDesc}</p></div>
+            <div id="obsEmailField">
+              <p class="lbl">{s.emailLabel}</p>
+              <div class="row">
+                <span class="input">{s.emailPlaceholder}</span>
+                <span class="btn outline sm" id="btnAdd">{s.add}</span>
+              </div>
             </div>
-            <div class="chips"><span class="chip email" id="obsChip">{s.inviteEmail} <svg class="chipx" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span></div>
-            <div class="row" style="justify-content:flex-end; margin-top:1rem; gap:0.5rem"><span class="btn ghost">{s.cancel}</span><span class="btn" id="btnSend">{s.send}</span></div>
+            <div class="chips" id="obsChip"><span class="chip email">{s.newEmail} <svg class="chipx" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span><span class="chip email">{s.newEmail2} <svg class="chipx" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span></div>
+            <div class="row" style="justify-content:flex-end; margin-top:1rem"><span class="btn" id="btnSubmit">{s.invite}</span></div>
           </div>
         </div>
 
-        <!-- agent members full: owner + member + invite card + pending (steps 6, 7, 9) -->
+        <!-- agent members + pending invitations section after inviting (step 6) -->
+        <div class="page" data-page="membersPending">
+          <div class="page-head">
+            <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
+            <span><span class="ttl">{s.listTitle}</span><span class="desc">{s.listDesc}</span></span>
+          </div>
+          <div class="cards3">
+            <div class="ecard">
+              <span class="mtop"><b>{s.userName}</b><span class="rolebadge">{s.roleOwner}</span></span>
+              <p>{s.userEmail}</p>
+            </div>
+            <div class="ecard">
+              <span class="mtop"><b>{s.member2Name}</b><span class="rolebadge">{s.roleMember}</span><span class="cardtrash"><svg viewBox="0 0 24 24"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span></span>
+              <p>{s.member2Email}</p>
+            </div>
+            <div class="ecard muted">
+              <b>{s.addCardTitle}</b>
+              <p>{s.addCardDesc}</p>
+              <span class="btn">{s.invite} <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg></span>
+            </div>
+          </div>
+          <div class="pending" id="obsPending">
+            <div class="phead"><b>{s.pendingTitle}</b><p>{s.pendingDesc}</p></div>
+            <div class="pgrid">
+              <div class="pitem"><span class="pbody"><b>{s.newEmail}</b><small>{s.invitedAgo}</small></span><span class="ptrash" aria-label={s.deleteInvitation}><svg viewBox="0 0 24 24"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span></div>
+              <div class="pitem"><span class="pbody"><b>{s.newEmail2}</b><small>{s.invitedAgo}</small></span><span class="ptrash" aria-label={s.deleteInvitation}><svg viewBox="0 0 24 24"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- after Sam accepts: new member in the grid, Casey still pending (steps 7 & 8 backdrop) -->
         <div class="page" data-page="membersFull">
           <div class="page-head">
             <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
@@ -208,26 +250,37 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
               <p>{s.userEmail}</p>
             </div>
             <div class="ecard">
-              <span class="mtop"><b>{s.member2Name}</b><span class="rolebadge" id="obsRole">{s.roleMember}</span><span class="cardtrash"><svg viewBox="0 0 24 24"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span></span>
+              <span class="mtop"><b>{s.member2Name}</b><span class="rolebadge">{s.roleMember}</span><span class="cardtrash"><svg viewBox="0 0 24 24"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span></span>
               <p>{s.member2Email}</p>
             </div>
+            <div class="ecard" id="obsNewMember">
+              <span class="mtop"><b>{s.newName}</b><span class="rolebadge">{s.roleMember}</span><span class="cardtrash"><svg viewBox="0 0 24 24"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span></span>
+              <p>{s.newEmail}</p>
+            </div>
             <div class="ecard muted">
-              <b>{s.inviteCardTitle}</b>
-              <p>{s.inviteCardDesc}</p>
-              <span class="btn sm"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg> {s.invite}</span>
+              <b>{s.addCardTitle}</b>
+              <p>{s.addCardDesc}</p>
+              <span class="btn">{s.invite} <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg></span>
             </div>
           </div>
-          <div class="section" id="obsPending">
-            <div class="sec-head"><b>{s.pendingTitle}</b><p>{s.pendingDesc}</p></div>
-            <div class="pending-card">
-              <span class="pemail"><svg viewBox="0 0 24 24"><path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="2"/></svg> {s.inviteEmail}</span>
-              <span class="muted-cell">{s.invitedAgo}</span>
-              <span class="cardtrash" id="btnRevoke"><svg viewBox="0 0 24 24"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span>
+          <div class="pending">
+            <div class="phead"><b>{s.pendingTitle}</b><p>{s.pendingDesc}</p></div>
+            <div class="pgrid">
+              <div class="pitem"><span class="pbody"><b>{s.newEmail2}</b><small>{s.invitedAgo}</small></span><span class="ptrash" aria-label={s.deleteInvitation}><svg viewBox="0 0 24 24"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span></div>
             </div>
           </div>
         </div>
 
-        <!-- remove member confirmation (step 8) -->
+        <!-- delete invitation confirmation (step 8) -->
+        <div class="page" data-page="deleteInvDialog">
+          <div class="scrim"></div>
+          <div class="modal" id="obsDeleteInvModal">
+            <div class="mhead"><b>{s.deleteInvTitle}</b><p>{s.deleteInvDesc}</p></div>
+            <div class="row" style="justify-content:flex-end; margin-top:1rem; gap:0.5rem"><span class="btn outline">{s.cancel}</span><span class="btn danger" id="btnDeleteInvConfirm">{s.confirm}</span></div>
+          </div>
+        </div>
+
+        <!-- remove member confirmation (step 9) -->
         <div class="page" data-page="removeDialog">
           <div class="scrim"></div>
           <div class="modal" id="obsRemoveModal">
@@ -429,15 +482,17 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
   .amw .mhead b { font-size: 0.98rem; font-weight: 600; }
   .amw .mhead p { font-size: 0.78rem; color: var(--muted-foreground); margin: 0.2rem 0 0; }
 
-  .amw .section { margin-top: 1.4rem; }
-  .amw .sec-head { margin-bottom: 0.6rem; }
-  .amw .sec-head b { font-size: 0.98rem; font-weight: 600; }
-  .amw .sec-head p { font-size: 0.78rem; color: var(--muted-foreground); margin: 0.15rem 0 0; }
-  .amw .pending-card { display: flex; align-items: center; gap: 0.6rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 0.6rem 0.8rem; }
-  .amw .pending-card .pemail { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; }
-  .amw .pending-card .pemail svg { color: var(--muted-foreground); font-size: 0.9rem; }
-  .amw .pending-card .muted-cell { color: var(--muted-foreground); font-size: 0.78rem; margin-left: 0.4rem; }
-  .amw .pending-card .cardtrash { margin-left: auto; }
+  .amw .pending { margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 0.9rem; background: color-mix(in oklab, var(--muted) 35%, transparent); border-radius: 0 0 var(--radius) var(--radius); }
+  .amw .phead b { font-size: 0.95rem; font-weight: 500; }
+  .amw .phead p { font-size: 0.76rem; color: var(--muted-foreground); margin: 0.15rem 0 0.7rem; }
+  .amw .pgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; }
+  .amw .pitem { display: flex; align-items: flex-start; gap: 0.5rem; border: 1px solid var(--border); border-radius: 12px; background: var(--card); padding: 0.7rem; }
+  .amw .pbody { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .amw .pbody b { font-size: 0.8rem; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .amw .pbody small { font-size: 0.7rem; color: var(--muted-foreground); margin-top: 0.2rem; }
+  .amw .ptrash { color: var(--muted-foreground); font-size: 0.85rem; display: inline-grid; place-items: center; width: 1.5rem; height: 1.5rem; }
+  .amw .hint { font-size: 0.74rem; color: var(--muted-foreground); margin: 0.45rem 0 0; }
+  .amw .modal .mclose { position: absolute; top: 0.7rem; right: 0.7rem; color: var(--muted-foreground); font-size: 0.9rem; }
 
   .amw .controls { display: flex; align-items: center; gap: 0.7rem; margin-top: 0.75rem; padding: 0.7rem 0.9rem; border: 1px solid var(--border); border-radius: 12px; background: var(--card); box-shadow: var(--shadow); }
   .amw .navbtn { display: inline-flex; align-items: center; gap: 0.35rem; border: 1px solid var(--border); background: var(--background); color: var(--foreground); border-radius: 8px; padding: 0.45rem 0.7rem; font-size: 0.83rem; font-weight: 500; cursor: pointer; }
@@ -458,7 +513,7 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
     .amw .shell { grid-template-columns: 1fr; height: 560px; }
     .amw .sb { display: none; }
     .amw .inset { margin: 0.5rem; }
-    .amw .cards3 { grid-template-columns: 1fr; }
+    .amw .cards3, .amw .pgrid { grid-template-columns: 1fr; }
   }
   @media (prefers-reduced-motion: reduce) {
     .amw .page, .amw .spot-on, .amw .progress i, .amw .subwrap { transition: none !important; animation: none !important; }

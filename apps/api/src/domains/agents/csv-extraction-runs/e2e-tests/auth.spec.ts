@@ -14,7 +14,7 @@ import {
 } from "@/common/test/test-transaction-manager"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
-import { mockForeignAuth0Id } from "../../../../../test/e2e.helpers"
+import { mockForeignAuthSubject } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { AgentCsvExtractionRunsModule } from "../agent-csv-extraction-runs.module"
 import { createCsvExtractionRun, createCsvExtractionRunContext } from "./csv-extraction-run.helpers"
@@ -36,7 +36,7 @@ describe("AgentCsvExtractionRuns - Auth", () => {
   let documentId: string = randomUUID()
   let agentCsvExtractionRunId: string | null = randomUUID()
   let accessToken: string | null = "token"
-  let auth0Id = `auth0|${randomUUID()}`
+  let authSubject = `oidc|${randomUUID()}`
 
   const mockBatchService = buildMockBatchService()
   const mockFileStorageService = buildMockFileStorageService()
@@ -45,7 +45,7 @@ describe("AgentCsvExtractionRuns - Auth", () => {
     setup = await setupTransactionalTestDatabase({
       additionalImports: [AgentCsvExtractionRunsModule, ActivitiesModule],
       applyOverrides: (moduleBuilder) =>
-        applyCsvExtractionRunOverrides(moduleBuilder, () => auth0Id, {
+        applyCsvExtractionRunOverrides(moduleBuilder, () => authSubject, {
           batchService: mockBatchService,
           fileStorageService: mockFileStorageService,
         }),
@@ -65,7 +65,7 @@ describe("AgentCsvExtractionRuns - Auth", () => {
     documentId = randomUUID()
     agentCsvExtractionRunId = randomUUID()
     accessToken = "token"
-    auth0Id = `auth0|${randomUUID()}`
+    authSubject = `oidc|${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -76,7 +76,7 @@ describe("AgentCsvExtractionRuns - Auth", () => {
   // Seeds an organization/project (membership at `role`) + agent + CSV document,
   // and a "running" run so update/delete/read routes have a resolvable target.
   const createContextForRole = async (role: ProjectMembershipRoleDto) => {
-    const context = await createCsvExtractionRunContext({ repositories, role, auth0Id })
+    const context = await createCsvExtractionRunContext({ repositories, role, authSubject })
     const run = await createCsvExtractionRun({ repositories, context, status: "running" })
     organizationId = context.organization.id
     projectId = context.project.id
@@ -107,7 +107,7 @@ describe("AgentCsvExtractionRuns - Auth", () => {
 
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = mockForeignAuth0Id()
+      authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
 
@@ -145,7 +145,7 @@ describe("AgentCsvExtractionRuns - Auth", () => {
 
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = mockForeignAuth0Id()
+      authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
 
@@ -176,7 +176,7 @@ describe("AgentCsvExtractionRuns - Auth", () => {
 
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = mockForeignAuth0Id()
+      authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
 
@@ -207,7 +207,7 @@ describe("AgentCsvExtractionRuns - Auth", () => {
 
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = mockForeignAuth0Id()
+      authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
 
@@ -238,7 +238,7 @@ describe("AgentCsvExtractionRuns - Auth", () => {
 
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = mockForeignAuth0Id()
+      authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
 
@@ -276,7 +276,7 @@ describe("AgentCsvExtractionRuns - Auth", () => {
 
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = mockForeignAuth0Id()
+      authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
 
@@ -311,7 +311,7 @@ describe("AgentCsvExtractionRuns - Auth", () => {
 
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = mockForeignAuth0Id()
+      authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
 
@@ -342,7 +342,7 @@ describe("AgentCsvExtractionRuns - Auth", () => {
 
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = mockForeignAuth0Id()
+      authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
 
@@ -373,7 +373,7 @@ describe("AgentCsvExtractionRuns - Auth", () => {
 
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = mockForeignAuth0Id()
+      authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
 

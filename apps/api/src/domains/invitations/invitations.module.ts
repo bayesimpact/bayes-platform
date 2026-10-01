@@ -1,58 +1,60 @@
-import { forwardRef, Global, Module } from "@nestjs/common"
+import { forwardRef, Module } from "@nestjs/common"
 import { TypeOrmModule } from "@nestjs/typeorm"
-import { InvitationScopeContextResolver } from "@/common/context/resolvers/invitation-scope-context.resolver"
+import { AgentContextResolver } from "@/common/context/resolvers/agent-context.resolver"
+import { OrganizationContextResolver } from "@/common/context/resolvers/organization-context.resolver"
+import { ProjectContextResolver } from "@/common/context/resolvers/project-context.resolver"
+import { ReviewCampaignContextResolver } from "@/common/context/resolvers/review-campaign-context.resolver"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { Agent } from "@/domains/agents/agent.entity"
 import { AgentsModule } from "@/domains/agents/agents.module"
 import { AuthModule } from "@/domains/auth/auth.module"
 import { MembershipsModule } from "@/domains/memberships/memberships.module"
-import { Organization } from "@/domains/organizations/organization.entity"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
 import { Project } from "@/domains/projects/project.entity"
 import { ProjectsModule } from "@/domains/projects/projects.module"
+import { RbacModule } from "@/domains/rbac/rbac.module"
 import { ReviewCampaignMembershipRepository } from "@/domains/review-campaigns/memberships/review-campaign-membership.repository"
 import { ReviewCampaignMembershipsService } from "@/domains/review-campaigns/memberships/review-campaign-memberships.service"
 import { ReviewCampaign } from "@/domains/review-campaigns/review-campaign.entity"
 import { UsersModule } from "@/domains/users/users.module"
-import { LlmModule } from "@/external/llm/llm.module"
-import { AgentInvitationHandler } from "./handlers/agent-invitation.handler"
-import { InvitationAcceptanceHelpersService } from "./handlers/invitation-acceptance-helpers.service"
-import { ProjectInvitationHandler } from "./handlers/project-invitation.handler"
-import { ReviewCampaignInvitationHandler } from "./handlers/review-campaign-invitation.handler"
+import { AgentInvitationsController } from "./agent-invitations.controller"
 import { Invitation } from "./invitation.entity"
-import { InvitationMapper } from "./invitation.mapper"
-import { InvitationsController } from "./invitations.controller"
-import { InvitationsGuard } from "./invitations.guard"
+import { InvitationRepository } from "./invitation.repository"
+import { InvitationAccessService } from "./invitation-access.service"
 import { InvitationsService } from "./invitations.service"
-import { InvitationsPersistenceModule } from "./invitations-persistence.module"
+import { MyInvitationsController } from "./my-invitations.controller"
+import { ProjectInvitationsController } from "./project-invitations.controller"
+import { ReviewCampaignInvitationsController } from "./review-campaign-invitations.controller"
 
-@Global()
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Invitation, Organization, Project, Agent, ReviewCampaign]),
-    InvitationsPersistenceModule,
-    LlmModule,
+    // Project, Agent and ReviewCampaign are read by the context resolvers of the routes.
+    TypeOrmModule.forFeature([Invitation, Project, Agent, ReviewCampaign]),
     MembershipsModule,
     UsersModule,
     AuthModule,
+    RbacModule,
     OrganizationsModule,
     forwardRef(() => ProjectsModule),
     forwardRef(() => AgentsModule),
   ],
   providers: [
-    InvitationAcceptanceHelpersService,
-    ProjectInvitationHandler,
-    AgentInvitationHandler,
-    ReviewCampaignInvitationHandler,
     ReviewCampaignMembershipRepository,
     ReviewCampaignMembershipsService,
     ResourceContextGuard,
-    InvitationScopeContextResolver,
-    InvitationsGuard,
+    OrganizationContextResolver,
+    ProjectContextResolver,
+    AgentContextResolver,
+    ReviewCampaignContextResolver,
+    InvitationRepository,
+    InvitationAccessService,
     InvitationsService,
-    InvitationMapper,
   ],
-  controllers: [InvitationsController],
-  exports: [InvitationsService],
+  controllers: [
+    ProjectInvitationsController,
+    AgentInvitationsController,
+    ReviewCampaignInvitationsController,
+    MyInvitationsController,
+  ],
 })
 export class InvitationsModule {}

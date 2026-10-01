@@ -1,0 +1,78 @@
+{
+  "realm": "platform",
+  "enabled": true,
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "clients": [
+    {
+      "clientId": "platform-web",
+      "name": "Platform web app",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": [
+        "https://connect.localhost:5173/*",
+        "https://connect.localhost:5174/*",
+        "http://localhost:5173/*",
+        "https://connect.localhost:3000/*"
+      ],
+      "webOrigins": ["+"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "+"
+      },
+      "defaultClientScopes": ["basic", "web-origins", "acr", "profile", "roles", "email"],
+      "optionalClientScopes": ["offline_access"]
+    },
+    {
+      "clientId": "bull-board",
+      "name": "Bull Board dashboard",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "local-bull-board-secret",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": ["https://connect.localhost:3000/api/internal/bull-board/oauth/callback"],
+      "defaultClientScopes": ["basic", "web-origins", "acr", "profile", "roles", "email"],
+      "attributes": {
+        "post.logout.redirect.uris": "https://connect.localhost:3000"
+      }
+    }
+  ],
+  "users": [
+    {
+      "username": "admin@example.org",
+      "email": "admin@example.org",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "Local",
+      "lastName": "Admin",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["default-roles-platform"]
+    },
+    {
+      "username": "member@example.org",
+      "email": "member@example.org",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "Local",
+      "lastName": "Member",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "member",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["default-roles-platform"]
+    }
+  ]
+}

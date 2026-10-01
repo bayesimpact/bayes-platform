@@ -22,7 +22,6 @@ export type ContextResource =
   | "reviewCampaign"
   | "reviewCampaignMembership"
   | "agentSessionInCampaign"
-  | "invitationScope"
   | "mcpServer"
 
 export const RequireContext = (...resources: ContextResource[]) =>

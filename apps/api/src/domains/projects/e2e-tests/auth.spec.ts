@@ -17,7 +17,7 @@ import {
   createOrganizationWithProject,
 } from "@/domains/organizations/organization.factory"
 import { ORGANIZATION_ROLES } from "@/domains/rbac/rbac.constants"
-import { mockForeignAuth0Id, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
+import { mockForeignAuthSubject, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { ProjectsModule } from "../projects.module"
@@ -32,12 +32,12 @@ describe("Projects - Auth", () => {
   let organizationId: string | null = RandomUuid.Organization
   let projectId: string | null = RandomUuid.Project
   let accessToken: string | null = "token"
-  let auth0Id = `auth0|${randomUUID()}`
+  let authSubject = `oidc|${randomUUID()}`
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [ProjectsModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
@@ -51,7 +51,7 @@ describe("Projects - Auth", () => {
     organizationId = RandomUuid.Organization
     projectId = RandomUuid.Project
     accessToken = "token"
-    auth0Id = `auth0|${randomUUID()}`
+    authSubject = `oidc|${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -61,7 +61,7 @@ describe("Projects - Auth", () => {
 
   const createContextForRole = async (role: "owner" | "admin" | "member" = "owner") => {
     const { organization, project } = await createOrganizationWithProject(repositories, {
-      user: { auth0Id },
+      user: { authSubject },
       projectMembership: { role },
     })
     organizationId = organization.id
@@ -88,7 +88,7 @@ describe("Projects - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = mockForeignAuth0Id()
+      authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("allows the owner to list projects", async () => {
@@ -121,7 +121,7 @@ describe("Projects - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = mockForeignAuth0Id()
+      authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to create projects", async () => {
@@ -132,7 +132,7 @@ describe("Projects - Auth", () => {
       // the user owns org A (which grants project.create there), but is only a member of org B
       await createContextForRole("owner")
       const { organization: otherOrganization } = await createOrganizationWithOwner(repositories)
-      const user = await repositories.userRepository.findOneOrFail({ where: { auth0Id } })
+      const user = await repositories.userRepository.findOneOrFail({ where: { authSubject } })
       const memberRole = await repositories.roleRepository.findOneOrFail({
         where: { key: ORGANIZATION_ROLES.member },
       })
@@ -174,7 +174,7 @@ describe("Projects - Auth", () => {
     })
     it("requires the user to belong to the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = mockForeignAuth0Id()
+      authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("requires an existing project ID", async () => {
@@ -208,7 +208,7 @@ describe("Projects - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = mockForeignAuth0Id()
+      authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("requires an existing project ID", async () => {

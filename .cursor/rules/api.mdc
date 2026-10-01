@@ -395,13 +395,13 @@ describe("Domain - actionName", () => {
   let organizationId: string
   let projectId: string
   let accessToken: string | undefined = "token"
-  let auth0Id = "auth0|123"
+  let authSubject = "oidc|123"
 
   // 3. LIFECYCLE HOOKS
   beforeAll(async () => {
     setup = await setupTransactionalTestDatabase({
       additionalImports: [DomainModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
     app = setup.module.createNestApplication()
@@ -412,7 +412,7 @@ describe("Domain - actionName", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = "auth0|123"
+    authSubject = "oidc|123"
   })
 
   afterAll(async () => {
@@ -425,7 +425,7 @@ describe("Domain - actionName", () => {
     const { user, organization, project } = await createOrganizationWithProject(repositories)
     organizationId = organization.id
     projectId = project.id
-    auth0Id = user.auth0Id
+    authSubject = user.authSubject!
     return { organization, project }
   }
 
@@ -734,7 +734,7 @@ Access is one permission string, granted on roles, checked on the route, and use
 **Rule**: All database column names MUST be in snake_case format.
 
 **Requirements**:
-- Multi-word column names MUST use snake_case (e.g., `organization_id`, `created_at`, `updated_at`, `auth0_id`)
+- Multi-word column names MUST use snake_case (e.g., `organization_id`, `created_at`, `updated_at`, `auth_subject`)
 - Single-word column names are acceptable as-is (e.g., `id`, `name`, `email`, `role`)
 - When defining columns in entities, use the `name` option in `@Column()` decorator to specify the snake_case column name
 
@@ -749,8 +749,8 @@ Access is one permission string, granted on roles, checked on the route, and use
 @Column({ type: "uuid", name: "organization_id" })
 organizationId!: string
 
-@Column({ type: "varchar", unique: true, name: "auth0_id" })
-auth0Id!: string
+@Column({ type: "varchar", unique: true, nullable: true, name: "auth_subject" })
+authSubject!: string
 
 @CreateDateColumn({ name: "created_at" })
 createdAt!: Date
@@ -770,7 +770,7 @@ email!: string
 organizationId!: string  // This would create "organizationId" column in DB
 
 @Column({ type: "varchar" })
-auth0Id!: string  // This would create "auth0Id" column in DB
+authSubject!: string  // This would create "authSubject" column in DB
 ```
 
 **Why this rule?**

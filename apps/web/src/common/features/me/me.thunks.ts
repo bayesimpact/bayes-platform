@@ -6,6 +6,8 @@ import type { Me } from "./me.models"
 
 type FetchMeRejectedValue = {
   status?: number
+  /** Error message of the API, when it sent one. */
+  message?: string
 }
 
 type ThunkConfig = {
@@ -21,7 +23,11 @@ export const fetchMe = createAsyncThunk<Me, void, ThunkConfig>(
       return await services.me.getMe()
     } catch (error) {
       if (isAxiosError(error)) {
-        return rejectWithValue({ status: error.response?.status })
+        const message: unknown = error.response?.data?.message
+        return rejectWithValue({
+          status: error.response?.status,
+          message: typeof message === "string" ? message : undefined,
+        })
       }
       throw error
     }
@@ -30,16 +36,7 @@ export const fetchMe = createAsyncThunk<Me, void, ThunkConfig>(
 
 export const fetchPendingInvitations = createAsyncThunk<PendingInvitations, void, ThunkConfig>(
   "me/fetchPendingInvitations",
-  async (_, { extra: { services }, rejectWithValue }) => {
-    try {
-      return await services.invitations.listPendingMine()
-    } catch (error) {
-      if (isAxiosError(error)) {
-        return rejectWithValue({ status: error.response?.status })
-      }
-      throw error
-    }
-  },
+  async (_, { extra: { services } }) => await services.invitations.listPendingMine(),
 )
 
 export const updateMe = createAsyncThunk<void, { name: string }, ThunkConfig>(

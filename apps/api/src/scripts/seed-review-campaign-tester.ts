@@ -12,9 +12,9 @@ import { ask, confirmDatabaseTarget } from "@/scripts/script-bootstrap"
 const logger = new Logger("SeedReviewCampaignTester")
 
 /**
- * Dev helper: create (or reuse) an active review campaign and seed an accepted
- * tester membership for the given user. Bypasses the Auth0 invite round-trip so
- * you can iterate on the tester UI without a real email flow.
+ * Dev helper: create (or reuse) an active review campaign and seed a tester
+ * membership for the given user, so you can iterate on the tester UI without
+ * going through the members screen.
  *
  * Run from apps/api: `npm run seed:review-campaign-tester`.
  *

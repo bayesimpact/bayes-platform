@@ -30,6 +30,7 @@ const fromDto = (dto: AgentMembershipDto): AgentMembership => ({
   userId: dto.userId,
   userName: dto.userName,
   userEmail: dto.userEmail,
+  userHasSignedIn: dto.userHasSignedIn,
   createdAt: dto.createdAt,
   role: dto.role,
 })

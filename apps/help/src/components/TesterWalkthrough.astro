@@ -6,8 +6,10 @@
  * testerCampaigns:shell.title), CampaignList.tsx, CampaignLanding.tsx,
  * TesterAgentSession.tsx, TesterFeedbackModal.tsx, DynamicQuestionField.tsx,
  * SessionCard.tsx, FinishParticipatingDialog.tsx, EndOfPhaseSurveyForm.tsx. Labels
- * verbatim from tester-campaigns / actions locales (EN + FR). Uses the PRODUCT
- * (coral) palette, pinned locally. Derived 2026-07-16.
+ * verbatim from tester-campaigns / actions locales (EN + FR). Step 1 (accepting the
+ * campaign invitation on the home page) mirrors home/PendingInvitationList.tsx with
+ * the me locale (re-verified 2026-10-01). Uses the PRODUCT (coral) palette, pinned
+ * locally. Derived 2026-07-16.
  */
 type Lang = "en" | "fr"
 const { lang = "en" } = Astro.props as { lang?: Lang }
@@ -17,8 +19,10 @@ const STRINGS = {
     appName: "Tester", workspaces: "Workspaces", org: "Bayes Impact Demo", projectName: "Demo",
     appStudio: "Studio", appApp: "App", appEval: "Evaluation", appTest: "Test",
     userName: "Alex Martin", userEmail: "alex.martin@example.com",
-    myTitle: "My review campaigns", mySubtitle: "Active campaigns you've been invited to test.",
-    invited: "Invited to evaluate this agent.",
+    invTitle: "Pending invitations", invDesc: "Accept an invitation to get access.",
+    invBadge: "Review campaign", roleLabel: "Role", accept: "Accept", decline: "Decline",
+    myTitle: "My review campaigns", mySubtitle: "Active campaigns you joined as a tester.",
+    invited: "You were invited to evaluate this agent.",
     campaignName: "Agent pilot", campaignDesc: "Help us evaluate the assistant before launch.",
     agentName: "Helpful Assistant", agentType: "Conversation agent",
     greeting: "Hi! How can I help you today?",
@@ -45,8 +49,9 @@ const STRINGS = {
     submitSurvey: "Submit survey",
     prev: "Prev", next: "Next", step: "Step",
     steps: [
-      "From the home page, open your workspace's menu and choose Test — the tester app.",
-      "My review campaigns lists the campaigns you were invited to. Open one.",
+      "On the home page, accept the review campaign invitation under Pending invitations.",
+      "Open your workspace's menu and choose Test, the tester app.",
+      "My review campaigns lists the campaigns you joined. Open one.",
       "On the campaign page, click Start a conversation to test the agent.",
       "Chat with the agent, then click End session & give feedback.",
       "Give an Overall rating, a comment, and answer the per-session questions, then Submit feedback.",
@@ -58,8 +63,10 @@ const STRINGS = {
     appName: "Testeur", workspaces: "Espaces de travail", org: "Bayes Impact Demo", projectName: "Demo",
     appStudio: "Studio", appApp: "Application", appEval: "Évaluation", appTest: "Test",
     userName: "Alex Martin", userEmail: "alex.martin@example.com",
-    myTitle: "Mes campagnes d'évaluation", mySubtitle: "Campagnes actives auxquelles vous avez été invité à participer.",
-    invited: "Invité à évaluer cet agent.",
+    invTitle: "Invitations en attente", invDesc: "Acceptez une invitation pour obtenir l'accès.",
+    invBadge: "Campagne de revue", roleLabel: "Rôle", accept: "Accepter", decline: "Refuser",
+    myTitle: "Mes campagnes d'évaluation", mySubtitle: "Campagnes actives que vous avez rejointes comme testeur.",
+    invited: "Vous avez été invité à évaluer cet agent.",
     campaignName: "Pilote agent", campaignDesc: "Aidez-nous à évaluer l'assistant avant son lancement.",
     agentName: "Helpful Assistant", agentType: "Agent conversationnel",
     greeting: "Bonjour ! Comment puis-je vous aider ?",
@@ -86,8 +93,9 @@ const STRINGS = {
     submitSurvey: "Envoyer le questionnaire",
     prev: "Précédent", next: "Suivant", step: "Étape",
     steps: [
-      "Sur la page d'accueil, ouvrez le menu de votre espace de travail et choisissez Test — l'application testeur.",
-      "Mes campagnes d'évaluation liste les campagnes auxquelles vous êtes invité. Ouvrez-en une.",
+      "Sur la page d'accueil, acceptez l'invitation à la campagne sous Invitations en attente.",
+      "Ouvrez le menu de votre espace de travail et choisissez Test, l'application testeur.",
+      "Mes campagnes d'évaluation liste les campagnes que vous avez rejointes. Ouvrez-en une.",
       "Sur la page de la campagne, cliquez sur Démarrer une conversation pour tester l'agent.",
       "Discutez avec l'agent, puis cliquez sur Terminer la session et donner un retour.",
       "Donnez une Note globale, un commentaire, répondez aux questions par session, puis Envoyez le retour.",
@@ -100,6 +108,7 @@ const STRINGS = {
 const s = STRINGS[lang]
 
 const steps = [
+  { page: "invite", spot: "btnAcceptInv", observe: ["obsInvite"] },
   { page: "home", spot: "btnTest", observe: [] },
   { page: "campaigns", spot: "cardOpen", observe: [] },
   { page: "landingEmpty", spot: "btnStart", observe: [] },
@@ -122,8 +131,21 @@ const labels = { prev: s.prev, next: s.next, step: s.step, navApp: s.appName, na
 
     <div class="panel">
       <div class="canvas">
-        <!-- Home: workspace app menu (step 1) -->
-        <div class="page" data-page="home" data-active="true">
+        <!-- Home: pending campaign invitation to accept (step 1) -->
+        <div class="page" data-page="invite" data-active="true">
+          <div class="page-head"><span><span class="ttl">{s.invTitle}</span><span class="desc">{s.invDesc}</span></span></div>
+          <div class="cards2">
+            <div class="ccard" id="obsInvite">
+              <span class="badge">{s.invBadge}</span>
+              <b>{s.campaignName}</b>
+              <p>{s.org} · {s.projectName} · {s.roleLabel}: tester</p>
+              <span class="invbtns"><span class="btn sm" id="btnAcceptInv">{s.accept} <svg viewBox="0 0 24 24"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg></span><span class="btn sm outline">{s.decline} <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Home: workspace app menu (step 2) -->
+        <div class="page" data-page="home">
           <div class="page-head"><span><span class="ttl">{s.workspaces}</span></span></div>
           <div class="wscard">
             <span class="ws-name">{s.projectName}</span>
@@ -139,7 +161,7 @@ const labels = { prev: s.prev, next: s.next, step: s.step, navApp: s.appName, na
           </div>
         </div>
 
-        <!-- My review campaigns (step 2) -->
+        <!-- My review campaigns (step 3) -->
         <div class="page" data-page="campaigns">
           <div class="page-head"><span><span class="ttl">{s.myTitle}</span><span class="desc">{s.mySubtitle}</span></span></div>
           <div class="cards2">
@@ -152,7 +174,7 @@ const labels = { prev: s.prev, next: s.next, step: s.step, navApp: s.appName, na
           </div>
         </div>
 
-        <!-- Campaign landing, no sessions yet (step 3) -->
+        <!-- Campaign landing, no sessions yet (step 4) -->
         <div class="page" data-page="landingEmpty">
           <div class="page-head"><span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span><span><span class="ttl">{s.campaignName}</span><span class="desc">{s.campaignDesc}</span></span></div>
           <div class="body">
@@ -172,7 +194,7 @@ const labels = { prev: s.prev, next: s.next, step: s.step, navApp: s.appName, na
           </div>
         </div>
 
-        <!-- Chat session (step 4) -->
+        <!-- Chat session (step 5) -->
         <div class="page" data-page="session">
           <div class="page-head">
             <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
@@ -186,7 +208,7 @@ const labels = { prev: s.prev, next: s.next, step: s.step, navApp: s.appName, na
           </div>
         </div>
 
-        <!-- Feedback modal (step 5) -->
+        <!-- Feedback modal (step 6) -->
         <div class="page center" data-page="feedback">
           <div class="scrim"></div>
           <div class="modal" id="obsFeedback">
@@ -201,7 +223,7 @@ const labels = { prev: s.prev, next: s.next, step: s.step, navApp: s.appName, na
           </div>
         </div>
 
-        <!-- Campaign landing with a submitted session (step 6) -->
+        <!-- Campaign landing with a submitted session (step 7) -->
         <div class="page" data-page="landingFilled">
           <div class="page-head"><span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span><span><span class="ttl">{s.campaignName}</span><span class="desc">{s.campaignDesc}</span></span></div>
           <div class="body">
@@ -223,7 +245,7 @@ const labels = { prev: s.prev, next: s.next, step: s.step, navApp: s.appName, na
           </div>
         </div>
 
-        <!-- End-of-phase survey (step 7) -->
+        <!-- End-of-phase survey (step 8) -->
         <div class="page" data-page="survey">
           <div class="page-head"><span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span><span><span class="ttl">{s.surveyTitle}</span><span class="desc">{s.surveyDesc}</span></span></div>
           <div class="body" id="obsSurvey">
@@ -364,6 +386,9 @@ const labels = { prev: s.prev, next: s.next, step: s.step, navApp: s.appName, na
   .tsw .italic { font-style: italic; }
 
   .tsw .btn { display: inline-flex; align-items: center; gap: 0.4rem; background: var(--primary); color: var(--primary-foreground); border-radius: 8px; font-size: 0.82rem; font-weight: 500; padding: 0.45rem 0.75rem; }
+  .tsw .btn.outline { background: var(--background); color: var(--foreground); border: 1px solid var(--border); }
+  .tsw .invbtns { display: flex; gap: 0.5rem; margin-top: auto; }
+  .tsw .ccard .badge { align-self: flex-start; margin-bottom: 0.2rem; }
   .tsw .btn.ghost { background: transparent; color: var(--foreground); }
   .tsw .btn.sm { padding: 0.3rem 0.55rem; font-size: 0.76rem; }
   .tsw .btn.wide { width: 100%; justify-content: center; }

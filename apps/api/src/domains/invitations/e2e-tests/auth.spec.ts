@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto"
-import { InvitationsRoutes } from "@caseai-connect/api-contracts"
+import { MyInvitationsRoutes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import { AUTH_ERRORS } from "@/common/errors/auth-errors"
@@ -9,47 +9,36 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
-import { agentFactory } from "@/domains/agents/agent.factory"
-import { addUserToAgent } from "@/domains/agents/memberships/agent-membership.factory"
-import {
-  organizationMembershipFactory,
-  saveOrgMembership,
-} from "@/domains/organizations/memberships/organization-membership.factory"
 import {
   createOrganizationWithAgent,
   createOrganizationWithProject,
 } from "@/domains/organizations/organization.factory"
-
 import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
 import { userFactory } from "@/domains/users/user.factory"
-import {
-  mockAuth0EmailForSub,
-  mockForeignAuth0Id,
-  setupUserGuardForTesting,
-} from "../../../../test/e2e.helpers"
+import { mockForeignAuthSubject, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
-import {
-  projectMembershipFactory,
-  saveProjectMembership,
-} from "../../projects/memberships/project-membership.factory"
+import { invitationFactory } from "../invitation.factory"
 import { InvitationsModule } from "../invitations.module"
+import { type InvitationRouteTarget, invitationRoutesFor } from "./invitation-routes.helpers"
 
-describe("Invitations — authorization", () => {
+type Role = "owner" | "admin" | "member"
+
+describe("Invitations - Auth", () => {
   let app: INestApplication<App>
   let request: Requester
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
   let repositories: AllRepositories
 
-  let accessToken: string | undefined = "token"
-  let auth0Id = `auth0|${randomUUID()}`
-  let projectId: string
-  let invitationId: string
+  let accessToken: string | null = "token"
+  let authSubject = `oidc|${randomUUID()}`
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [InvitationsModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
+    await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
     app = setup.module.createNestApplication()
     await app.init()
@@ -59,9 +48,7 @@ describe("Invitations — authorization", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = `auth0|${randomUUID()}`
-    projectId = randomUUID()
-    invitationId = randomUUID()
+    authSubject = `oidc|${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -69,327 +56,172 @@ describe("Invitations — authorization", () => {
     await app.close()
   })
 
-  const createContext = async () => {
-    const { user, organization, project } = await createOrganizationWithProject(repositories, {
-      user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
+  /** Calls the three admin routes of a target and returns their statuses. */
+  const callAdminRoutes = async (target: InvitationRouteTarget, invitationId: string) => {
+    const { routes, pathParams } = invitationRoutesFor(target)
+    const token = accessToken ?? undefined
+    const getAll = await request({ route: routes.getAll, pathParams, token })
+    const createMany = await request({
+      route: routes.createMany,
+      pathParams,
+      token,
+      request: { payload: { emails: ["invited@example.com"], role: "tester" } },
     })
-    projectId = project.id
-    auth0Id = user.auth0Id
-    return { user, organization, project }
+    const deleteOne = await request({
+      route: routes.deleteOne,
+      pathParams: { ...pathParams, invitationId },
+      token,
+    })
+    return { getAll, createMany, deleteOne }
   }
 
-  describe("InvitationsRoutes.revokeOne", () => {
-    const seedPendingProjectInvitation = async () => {
-      const { user, organization, project } = await createOrganizationWithProject(repositories, {
-        user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
+  const expectAllowed = (responses: Awaited<ReturnType<typeof callAdminRoutes>>) => {
+    expectResponse(responses.getAll, 200)
+    expectResponse(responses.createMany, 201)
+    expectResponse(responses.deleteOne, 200)
+  }
+
+  const expectAll = (
+    responses: Awaited<ReturnType<typeof callAdminRoutes>>,
+    status: number,
+    message?: string,
+  ) => {
+    expectResponse(responses.getAll, status, message)
+    expectResponse(responses.createMany, status, message)
+    expectResponse(responses.deleteOne, status, message)
+  }
+
+  const savePendingInvitation = async (
+    target: Parameters<typeof invitationFactory.transient>[0],
+  ) => {
+    const invitedUser = await repositories.userRepository.save(
+      userFactory.build({ authSubject: null }),
+    )
+    return repositories.invitationRepository.save(
+      invitationFactory.transient({ ...target, user: invitedUser }).build(),
+    )
+  }
+
+  describe("project invitations", () => {
+    const createContextForRole = async (role: Role) => {
+      const { project } = await createOrganizationWithProject(repositories, {
+        user: { authSubject },
+        projectMembership: { role },
       })
-      projectId = project.id
-      auth0Id = user.auth0Id
-      const invitation = await repositories.invitationRepository.save(
-        repositories.invitationRepository.create({
-          organizationId: organization.id,
-          projectId: project.id,
-          targetType: "project",
-          targetId: project.id,
-          userId: null,
-          invitedEmail: "revoke-auth@example.com",
-          invitationToken: `e2e-revoke-auth-${randomUUID()}`,
-          status: "pending",
-          role: "admin",
-          invitedAt: new Date(),
-          acceptedAt: null,
-        }),
-      )
-      invitationId = invitation.id
+      const invitation = await savePendingInvitation({ project })
+      return { target: { project }, invitationId: invitation.id }
     }
 
-    const subject = async () =>
-      request({
-        route: InvitationsRoutes.revokeOne,
-        pathParams: { invitationId },
-        token: accessToken,
-      })
-
-    it("rejects unauthenticated requests", async () => {
-      await seedPendingProjectInvitation()
-      accessToken = undefined
-      const response = await subject()
-      expectResponse(response, 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    it("requires an authentication token", async () => {
+      const { target, invitationId } = await createContextForRole("owner")
+      accessToken = null
+      expectAll(await callAdminRoutes(target, invitationId), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
     })
-
-    it("forbids a user who is not an organization member", async () => {
-      await seedPendingProjectInvitation()
-      auth0Id = mockForeignAuth0Id()
-      const response = await subject()
-      expectResponse(response, 403, "You do not have access to this organization")
+    it("requires the user to be a member of the organization", async () => {
+      const { target, invitationId } = await createContextForRole("owner")
+      authSubject = mockForeignAuthSubject()
+      expectAll(await callAdminRoutes(target, invitationId), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
+    it("doesn't allow a project member", async () => {
+      const { target, invitationId } = await createContextForRole("member")
+      expectAll(await callAdminRoutes(target, invitationId), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("allows a project admin", async () => {
+      const { target, invitationId } = await createContextForRole("admin")
+      expectAllowed(await callAdminRoutes(target, invitationId))
+    })
+    it("allows the project owner", async () => {
+      const { target, invitationId } = await createContextForRole("owner")
+      expectAllowed(await callAdminRoutes(target, invitationId))
+    })
+  })
 
-    it("forbids project member without admin role", async () => {
-      const { project, organization } = await createOrganizationWithProject(repositories, {
-        user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
+  describe("agent invitations", () => {
+    const createContextForRoles = async (roles: { project: Role; agent: Role }) => {
+      const { agent } = await createOrganizationWithAgent(repositories, {
+        user: { authSubject },
+        projectMembership: { role: roles.project },
+        agentMembership: { role: roles.agent },
       })
-      projectId = project.id
+      const invitation = await savePendingInvitation({ agent })
+      return { target: { agent }, invitationId: invitation.id }
+    }
 
-      const savedInvitation = await repositories.invitationRepository.save(
-        repositories.invitationRepository.create({
-          organizationId: organization.id,
-          projectId: project.id,
-          targetType: "project",
-          targetId: project.id,
-          userId: null,
-          invitedEmail: "revoke-member@example.com",
-          invitationToken: `e2e-revoke-member-${randomUUID()}`,
-          status: "pending",
-          role: "admin",
-          invitedAt: new Date(),
-          acceptedAt: null,
-        }),
+    it("doesn't allow an agent member", async () => {
+      const { target, invitationId } = await createContextForRoles({
+        project: "member",
+        agent: "member",
+      })
+      expectAll(await callAdminRoutes(target, invitationId), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("doesn't pass the right down from the project", async () => {
+      const { target, invitationId } = await createContextForRoles({
+        project: "owner",
+        agent: "member",
+      })
+      expectAll(await callAdminRoutes(target, invitationId), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("allows an agent admin", async () => {
+      const { target, invitationId } = await createContextForRoles({
+        project: "member",
+        agent: "admin",
+      })
+      expectAllowed(await callAdminRoutes(target, invitationId))
+    })
+    it("allows the agent owner", async () => {
+      const { target, invitationId } = await createContextForRoles({
+        project: "member",
+        agent: "owner",
+      })
+      expectAllowed(await callAdminRoutes(target, invitationId))
+    })
+  })
+
+  describe("review campaign invitations", () => {
+    const createContextForRole = async (role: Role) => {
+      const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
+        repositories,
+        { user: { authSubject }, projectMembership: { role } },
       )
-      invitationId = savedInvitation.id
-
-      const memberUser = userFactory.build()
-      await repositories.userRepository.save(memberUser)
-      await saveProjectMembership({
-        repositories,
-        membership: projectMembershipFactory
-          .member()
-          .transient({ project, user: memberUser })
+      const reviewCampaign = await repositories.reviewCampaignRepository.save(
+        reviewCampaignFactory
+          .active()
+          .transient({ organization, project, agent, agentSettings })
           .build(),
-      })
-      await saveOrgMembership({
-        repositories,
-        membership: organizationMembershipFactory
-          .member()
-          .transient({ user: memberUser, organization })
-          .build(),
-      })
+      )
+      const invitation = await savePendingInvitation({ reviewCampaign })
+      return { target: { reviewCampaign }, invitationId: invitation.id }
+    }
 
-      auth0Id = memberUser.auth0Id
-      const response = await subject()
-      expectResponse(response, 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    it("doesn't allow a project member", async () => {
+      const { target, invitationId } = await createContextForRole("member")
+      expectAll(await callAdminRoutes(target, invitationId), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("allows a project admin", async () => {
+      const { target, invitationId } = await createContextForRole("admin")
+      expectAllowed(await callAdminRoutes(target, invitationId))
     })
   })
 
-  describe("InvitationsRoutes.listPendingMine", () => {
-    it("rejects unauthenticated requests", async () => {
-      accessToken = undefined
-      const response = await request({
-        route: InvitationsRoutes.listPendingMine,
-        token: accessToken,
-      })
-      expectResponse(response, 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
-    })
-  })
-
-  describe("InvitationsRoutes.listForTarget", () => {
-    const subject = async (query: Record<string, string>) =>
-      request({
-        route: InvitationsRoutes.listForTarget,
-        token: accessToken,
-        query,
-      })
-
-    it("rejects unauthenticated requests", async () => {
-      await createContext()
-      accessToken = undefined
-      const response = await subject({ targetType: "project", targetId: projectId })
-      expectResponse(response, 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
-    })
-
-    it("returns 400 when query params are missing", async () => {
-      await createContext()
-      const response = await request({
-        route: InvitationsRoutes.listForTarget,
-        token: accessToken,
-        query: { targetType: "project" },
-      })
-      expectResponse(response, 400)
-    })
-
-    it("returns 400 for invalid targetType", async () => {
-      await createContext()
-      const response = await subject({ targetType: "not_a_type", targetId: projectId })
-      expectResponse(response, 400)
-    })
-
-    it("allows project admin to list pending invitations for the project", async () => {
-      await createContext()
-      const response = await subject({ targetType: "project", targetId: projectId })
-      expectResponse(response, 200)
-      expect(response.body.data.invitations).toEqual([])
-    })
-
-    it("forbids project member (non-admin) from listing invitations", async () => {
-      const { project, organization } = await createOrganizationWithProject(repositories, {
-        user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
-      })
-      projectId = project.id
-
-      const memberUser = userFactory.build()
-      await repositories.userRepository.save(memberUser)
-      await saveProjectMembership({
-        repositories,
-        membership: projectMembershipFactory
-          .member()
-          .transient({ project, user: memberUser })
-          .build(),
-      })
-      await saveOrgMembership({
-        repositories,
-        membership: organizationMembershipFactory
-          .member()
-          .transient({ user: memberUser, organization })
-          .build(),
-      })
-
-      auth0Id = memberUser.auth0Id
-      const response = await subject({ targetType: "project", targetId: projectId })
-      expectResponse(response, 403)
-    })
-
-    describe("agent target", () => {
-      it("allows agent admin to list invitations", async () => {
-        const { user, organization, project } = await createOrganizationWithProject(repositories, {
-          user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
-        })
-        auth0Id = user.auth0Id
-        const agent = await repositories.agentRepository.save(
-          agentFactory.transient({ organization, project }).build(),
-        )
-        await addUserToAgent({
-          repositories,
-          agent,
-          user,
-          membership: { role: "admin" },
-        })
-
-        const response = await subject({ targetType: "agent", targetId: agent.id })
-        expectResponse(response, 200)
-        expect(response.body.data.invitations).toEqual([])
-      })
-
-      it("forbids a user with no agent membership from listing invitations", async () => {
-        const { organization, project } = await createOrganizationWithProject(repositories, {
-          user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
-        })
-        const agent = await repositories.agentRepository.save(
-          agentFactory.transient({ organization, project }).build(),
-        )
-
-        const nonMemberUser = userFactory.build()
-        await repositories.userRepository.save(nonMemberUser)
-        await saveOrgMembership({
-          repositories,
-          membership: organizationMembershipFactory
-            .member()
-            .transient({ user: nonMemberUser, organization })
-            .build(),
-        })
-        await saveProjectMembership({
-          repositories,
-          membership: projectMembershipFactory
-            .member()
-            .transient({ project, user: nonMemberUser })
-            .build(),
-        })
-
-        auth0Id = nonMemberUser.auth0Id
-        const response = await subject({ targetType: "agent", targetId: agent.id })
-        expectResponse(response, 403)
-      })
-
-      it("forbids an agent member (non-admin) from listing invitations", async () => {
-        const { organization, project } = await createOrganizationWithProject(repositories, {
-          user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
-        })
-        const agent = await repositories.agentRepository.save(
-          agentFactory.transient({ organization, project }).build(),
-        )
-
-        const memberUser = userFactory.build()
-        await repositories.userRepository.save(memberUser)
-        await saveOrgMembership({
-          repositories,
-          membership: organizationMembershipFactory
-            .member()
-            .transient({ user: memberUser, organization })
-            .build(),
-        })
-        await saveProjectMembership({
-          repositories,
-          membership: projectMembershipFactory
-            .member()
-            .transient({ project, user: memberUser })
-            .build(),
-        })
-        await addUserToAgent({
-          repositories,
-          agent,
-          user: memberUser,
-          membership: { role: "member" },
-        })
-
-        auth0Id = memberUser.auth0Id
-        const response = await subject({ targetType: "agent", targetId: agent.id })
-        expectResponse(response, 403)
-      })
-    })
-
-    describe("review_campaign target", () => {
-      it("allows project admin to list invitations for a review campaign", async () => {
-        const { user, organization, project, agent, agentSettings } =
-          await createOrganizationWithAgent(repositories, {
-            user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
-          })
-        auth0Id = user.auth0Id
-        const reviewCampaign = await repositories.reviewCampaignRepository.save(
-          reviewCampaignFactory.transient({ organization, project, agent, agentSettings }).build(),
-        )
-
-        const response = await subject({
-          targetType: "review_campaign",
-          targetId: reviewCampaign.id,
-        })
-        expectResponse(response, 200)
-        expect(response.body.data.invitations).toEqual([])
-      })
-
-      it("forbids project member (non-admin) from listing review campaign invitations", async () => {
-        const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
-          repositories,
-          {
-            user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
-          },
-        )
-
-        const reviewCampaign = await repositories.reviewCampaignRepository.save(
-          reviewCampaignFactory.transient({ organization, project, agent, agentSettings }).build(),
-        )
-
-        const memberUser = userFactory.build()
-        await repositories.userRepository.save(memberUser)
-        await saveOrgMembership({
-          repositories,
-          membership: organizationMembershipFactory
-            .member()
-            .transient({ user: memberUser, organization })
-            .build(),
-        })
-        await saveProjectMembership({
-          repositories,
-          membership: projectMembershipFactory
-            .member()
-            .transient({ project, user: memberUser })
-            .build(),
-        })
-
-        auth0Id = memberUser.auth0Id
-        const response = await subject({
-          targetType: "review_campaign",
-          targetId: reviewCampaign.id,
-        })
-        expectResponse(response, 403)
-      })
+  describe("routes of the invited person", () => {
+    it("require an authentication token", async () => {
+      accessToken = null
+      const invitationId = randomUUID()
+      expectResponse(
+        await request({ route: MyInvitationsRoutes.getAll }),
+        401,
+        AUTH_ERRORS.NO_ACCESS_TOKEN,
+      )
+      expectResponse(
+        await request({ route: MyInvitationsRoutes.acceptOne, pathParams: { invitationId } }),
+        401,
+        AUTH_ERRORS.NO_ACCESS_TOKEN,
+      )
+      expectResponse(
+        await request({ route: MyInvitationsRoutes.declineOne, pathParams: { invitationId } }),
+        401,
+        AUTH_ERRORS.NO_ACCESS_TOKEN,
+      )
     })
   })
 })

@@ -16,7 +16,7 @@ import { streamChatResponse } from "./external/agent-session-messages-streaming"
 // gate `sendMessage` actually depends on — in the test path.
 vi.mock("@/studio/routes/helpers", () => ({ isStudioInterface: vi.fn() }))
 
-// The real module imports the Auth0 client transitively, which also needs `window`.
+// The real module imports the OIDC client transitively, which also needs `window`.
 vi.mock("./external/agent-session-messages-streaming", () => ({ streamChatResponse: vi.fn() }))
 
 const mockedIsStudioInterface = vi.mocked(isStudioInterface)

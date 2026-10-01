@@ -2,16 +2,16 @@
   "reviewCampaigns": {
     "reviewCampaigns": "Campagnes d'évaluation",
     "title": "Campagnes d'évaluation",
-    "subtitle": "Évaluez les agents avec des testeurs et des relecteurs invités.",
+    "subtitle": "Évaluez des agents avec des testeurs et des relecteurs.",
     "new": "Nouvelle campagne",
     "loading": "Chargement…",
     "dashboardCard": {
       "title": "Campagnes d'évaluation",
-      "description": "Invitez des testeurs et des relecteurs à évaluer un agent."
+      "description": "Faites évaluer un agent par des testeurs et des relecteurs."
     },
     "empty": {
       "title": "Aucune campagne d'évaluation pour le moment",
-      "description": "Créez une campagne pour inviter des testeurs et des relecteurs à évaluer un agent."
+      "description": "Créez une campagne pour faire évaluer un agent par des testeurs et des relecteurs."
     },
     "table": {
       "name": "Nom",
@@ -31,10 +31,10 @@
     "editor": {
       "createTitle": "Nouvelle campagne d'évaluation",
       "editTitle": "Modifier la campagne d'évaluation",
-      "createDescription": "Configurez l'agent, les questions et les invités avant d'activer.",
+      "createDescription": "Configurez l'agent, les questions et les participants avant d'activer.",
       "editDescription": "Gérez la configuration, les participants et le cycle de vie.",
-      "noticeSaveFirst": "Enregistrez d'abord la campagne — les invitations envoient un véritable e-mail et nécessitent une campagne persistée.",
-      "noticeActivateFirst": "Activez la campagne avant d'inviter des participants — sinon les invités accepteraient et arriveraient sur une campagne qui n'apparaît pas encore dans leur liste.",
+      "noticeSaveFirst": "Enregistrez d'abord la campagne, puis invitez des participants.",
+      "noticeActivateFirst": "Activez la campagne avant d'inviter des participants, pour qu'ils puissent accepter et la trouver dans leur liste.",
       "tabs": {
         "summary": "Synthèse",
         "general": "Général",
@@ -67,17 +67,27 @@
       "campaignNameNoAgent": "Nouvelle campagne d'évaluation — {{date}}",
       "description": "Évaluez les réponses de l'agent et partagez vos retours.",
       "perSession": {
-        "q1": { "prompt": "L'agent a-t-il été clair ?" },
+        "q1": {
+          "prompt": "L'agent a-t-il été clair ?"
+        },
         "q2": {
           "prompt": "L'agent a-t-il répondu à votre question ?",
-          "options": { "yes": "Oui", "partially": "Partiellement", "no": "Non" }
+          "options": {
+            "yes": "Oui",
+            "partially": "Partiellement",
+            "no": "Non"
+          }
         }
       },
       "endOfPhase": {
-        "q1": { "prompt": "Satisfaction globale vis-à-vis de l'agent ?" }
+        "q1": {
+          "prompt": "Satisfaction globale vis-à-vis de l'agent ?"
+        }
       },
       "reviewer": {
-        "q1": { "prompt": "Les réponses de l'agent étaient-elles factuellement correctes ?" }
+        "q1": {
+          "prompt": "Les réponses de l'agent étaient-elles factuellement correctes ?"
+        }
       }
     },
     "questions": {
@@ -120,23 +130,21 @@
       "roleLabel": "Rôle",
       "tester": "Testeur",
       "reviewer": "Relecteur",
-      "send": "Envoyer les invitations",
-      "empty": "Aucun participant invité pour le moment.",
+      "send": "Inviter",
+      "empty": "Aucun participant pour l'instant.",
       "email": "E-mail",
-      "invited": "Invité",
-      "accepted": "Accepté",
       "actions": "Actions",
-      "pending": "en attente",
       "revoke": "Révoquer",
       "pendingInvitations": {
         "title": "Invitations en attente",
-        "description": "Invitations déjà envoyées pour cette campagne de revue."
+        "description": "Personnes invitées sur cette campagne qui n'ont pas encore répondu."
       },
       "revokeDialog": {
         "title": "Révoquer {{email}} ?",
         "description": "Ce participant sera retiré de la campagne. Cette action est irréversible.",
         "confirm": "Révoquer"
-      }
+      },
+      "status": "Statut"
     },
     "preview": {
       "perSessionTitle": "Après chaque session",
@@ -167,7 +175,7 @@
     "dialogs": {
       "activate": {
         "title": "Activer « {{name}} » ?",
-        "description": "Une fois activée, la configuration (agent, questions) est verrouillée et la campagne est visible par les testeurs et relecteurs invités. Vous pouvez toujours inviter plus de participants.",
+        "description": "Une fois activée, la configuration (agent, questions) est verrouillée et la campagne est visible par ses testeurs et relecteurs. Vous pouvez toujours ajouter des participants.",
         "confirm": "Activer"
       },
       "close": {
@@ -189,8 +197,8 @@
       "updateError": "La mise à jour de la campagne d'évaluation a échoué",
       "deleteSuccess": "Campagne d'évaluation supprimée avec succès",
       "deleteError": "La suppression de la campagne d'évaluation a échoué",
-      "inviteSuccess": "Invitations envoyées",
-      "inviteError": "L'envoi des invitations a échoué",
+      "addParticipantsSuccess": "Participants ajoutés",
+      "addParticipantsError": "L'ajout des participants a échoué",
       "revokeSuccess": "Adhésion révoquée",
       "revokeError": "La révocation de l'adhésion a échoué"
     },

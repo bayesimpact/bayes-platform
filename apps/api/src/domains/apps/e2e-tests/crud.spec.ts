@@ -18,7 +18,7 @@ import {
   createOrganizationWithProject,
 } from "@/domains/organizations/organization.factory"
 import { RbacModule } from "@/domains/rbac/rbac.module"
-import { mockAuth0EmailForSub, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
+import { mockOidcEmailForSub, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import {
   assignPlatformSuperadminToUser,
   ensureRbacCatalog,
@@ -31,7 +31,7 @@ describe("Apps - CRUD", () => {
   let request: Requester
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
   let repositories: AllRepositories
-  let auth0Id = `auth0|${randomUUID()}`
+  let authSubject = `oidc|${randomUUID()}`
   let expectActivityCreated: ReturnType<typeof bindExpectActivityCreated>
 
   beforeAll(async () => {
@@ -40,7 +40,7 @@ describe("Apps - CRUD", () => {
       applyOverrides: (moduleBuilder) =>
         setupUserGuardForTesting(
           withDocumentEmbeddingsBatchServiceMock(moduleBuilder),
-          () => auth0Id,
+          () => authSubject,
         ),
     })
     await ensureRbacCatalog(setup.module)
@@ -53,9 +53,9 @@ describe("Apps - CRUD", () => {
 
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
-    auth0Id = `auth0|${randomUUID()}`
+    authSubject = `oidc|${randomUUID()}`
     const { user } = await createOrganizationWithOwner(repositories, {
-      user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
+      user: { authSubject, email: mockOidcEmailForSub(authSubject) },
     })
     await assignPlatformSuperadminToUser({ repositories, user })
   })

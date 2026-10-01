@@ -1,49 +1,62 @@
 import { createAsyncThunk } from "@reduxjs/toolkit"
+import { getCurrentId } from "@/common/features/helpers"
 import type { RootState, ThunkExtraArg } from "@/common/store"
-import type { PendingInvitations, PendingInvitationTargetType } from "./invitations.models"
+import type { PendingInvitations } from "./invitations.models"
 import type {
-  CreateInvitationsForTargetParams,
-  ListInvitationsForTargetParams,
+  CreateInvitationsParams,
+  InvitationTarget,
+  ScopedInvitationTarget,
 } from "./invitations.spi"
 
 type ThunkConfig = { state: RootState; extra: ThunkExtraArg }
 
-export type InvitationRefreshTarget = {
-  targetType: PendingInvitationTargetType
-  targetId: string
-}
-
-export const acceptInvitation = createAsyncThunk<void, { ticketId: string }, ThunkConfig>(
-  "invitations/accept",
-  async ({ ticketId }, { extra: { services } }) =>
-    await services.invitations.acceptInvitation(ticketId),
-)
-
-export const createInvitationsForTarget = createAsyncThunk<
-  PendingInvitations,
-  CreateInvitationsForTargetParams & { refreshTarget?: InvitationRefreshTarget },
-  ThunkConfig
->("invitations/createForTarget", async (params, { extra: { services } }) => {
-  return await services.invitations.createForTarget({
-    targetType: params.targetType,
-    targetId: params.targetId,
-    emails: params.emails,
-    role: params.role,
-  })
+/** The admin routes nest under the current organization and project. */
+const scopeTarget = (state: RootState, target: InvitationTarget): ScopedInvitationTarget => ({
+  targetType: target.targetType,
+  targetId: target.targetId,
+  organizationId: getCurrentId({ state, name: "organizationId" }),
+  projectId: getCurrentId({ state, name: "projectId" }),
 })
+
+export const createInvitations = createAsyncThunk<
+  PendingInvitations,
+  CreateInvitationsParams,
+  ThunkConfig
+>(
+  "invitations/createMany",
+  async ({ emails, role, ...target }, { extra: { services }, getState }) =>
+    await services.invitations.createMany({ ...scopeTarget(getState(), target), emails, role }),
+)
 
 export const listInvitationsForTarget = createAsyncThunk<
   PendingInvitations,
-  ListInvitationsForTargetParams,
+  InvitationTarget,
   ThunkConfig
->("invitations/listForTarget", async (params, { extra: { services } }) => {
-  return await services.invitations.listForTarget(params)
-})
+>(
+  "invitations/listForTarget",
+  async (target, { extra: { services }, getState }) =>
+    await services.invitations.listForTarget(scopeTarget(getState(), target)),
+)
 
+/** The target tells the listeners which list of pending invitations to refresh. */
 export const revokeInvitation = createAsyncThunk<
   void,
-  { invitationId: string; refreshTarget?: InvitationRefreshTarget },
+  InvitationTarget & { invitationId: string },
   ThunkConfig
->("invitations/revoke", async ({ invitationId }, { extra: { services } }) => {
-  await services.invitations.revokeInvitation(invitationId)
-})
+>(
+  "invitations/revokeOne",
+  async ({ invitationId, ...target }, { extra: { services }, getState }) =>
+    await services.invitations.revokeOne({ ...scopeTarget(getState(), target), invitationId }),
+)
+
+export const acceptInvitation = createAsyncThunk<void, { invitationId: string }, ThunkConfig>(
+  "invitations/acceptOne",
+  async ({ invitationId }, { extra: { services } }) =>
+    await services.invitations.acceptOne(invitationId),
+)
+
+export const declineInvitation = createAsyncThunk<void, { invitationId: string }, ThunkConfig>(
+  "invitations/declineOne",
+  async ({ invitationId }, { extra: { services } }) =>
+    await services.invitations.declineOne(invitationId),
+)

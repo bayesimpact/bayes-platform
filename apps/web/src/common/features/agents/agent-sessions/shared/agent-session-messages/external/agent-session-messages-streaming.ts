@@ -1,5 +1,5 @@
 import { runtimeConfig } from "@/config/runtime-config"
-import { getAccessToken } from "@/external/auth0Client"
+import { getAccessToken } from "@/external/oidcClient"
 import {
   processSSEChunk,
   type StreamContext,

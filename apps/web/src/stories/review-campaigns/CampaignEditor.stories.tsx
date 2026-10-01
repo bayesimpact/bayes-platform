@@ -20,6 +20,7 @@ const meta = {
     onClose: fn(),
     onDelete: fn(),
     onInviteMember: fn(),
+    onRevokeInvitation: fn(),
     onRevokeMember: fn(),
   },
 } satisfies Meta<typeof CampaignForm>

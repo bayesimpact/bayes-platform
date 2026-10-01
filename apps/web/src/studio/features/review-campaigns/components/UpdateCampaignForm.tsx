@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { ADS } from "@/common/store/async-data-status"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import {
-  createInvitationsForTarget,
+  createInvitations,
   listInvitationsForTarget,
   revokeInvitation,
 } from "@/studio/features/invitations/invitations.thunks"
@@ -100,12 +100,11 @@ export function UpdateCampaignForm({ campaign, agents, onSuccess, onDeleted }: P
 
   const handleInvite = (role: "tester" | "reviewer", emails: string[]) => {
     void dispatch(
-      createInvitationsForTarget({
+      createInvitations({
         targetType: "review_campaign",
         targetId: campaign.id,
         emails,
         role,
-        refreshTarget: { targetType: "review_campaign", targetId: campaign.id },
       }),
     )
   }
@@ -118,7 +117,8 @@ export function UpdateCampaignForm({ campaign, agents, onSuccess, onDeleted }: P
     void dispatch(
       revokeInvitation({
         invitationId,
-        refreshTarget: { targetType: "review_campaign", targetId: campaign.id },
+        targetType: "review_campaign",
+        targetId: campaign.id,
       }),
     )
   }

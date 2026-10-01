@@ -9,7 +9,7 @@
       "loading": "Loading…",
       "empty": {
         "title": "No review campaigns yet",
-        "description": "When you're invited to review an agent, the campaign will appear here."
+        "description": "When someone adds you as a reviewer, the campaign will appear here."
       },
       "card": {
         "description": "Review tester sessions and submit your own rating.",

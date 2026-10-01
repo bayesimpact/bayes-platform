@@ -21,7 +21,7 @@ import { createOrganizationWithProject } from "@/domains/organizations/organizat
 import { PermissionService } from "@/domains/rbac/permission.service"
 import { RbacModule } from "@/domains/rbac/rbac.module"
 import { USER_TYPE_SERVICE } from "@/domains/users/user.types"
-import { mockAuth0EmailForSub, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
+import { mockOidcEmailForSub, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import {
   assignPlatformStaffToUser,
   assignPlatformSuperadminToUser,
@@ -35,7 +35,7 @@ describe("Apps - Install", () => {
   let request: Requester
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
   let repositories: AllRepositories
-  let auth0Id = `auth0|${randomUUID()}`
+  let authSubject = `oidc|${randomUUID()}`
   let expectActivityCreated: ReturnType<typeof bindExpectActivityCreated>
 
   beforeAll(async () => {
@@ -44,7 +44,7 @@ describe("Apps - Install", () => {
       applyOverrides: (moduleBuilder) =>
         setupUserGuardForTesting(
           withDocumentEmbeddingsBatchServiceMock(moduleBuilder),
-          () => auth0Id,
+          () => authSubject,
         ),
     })
     await ensureRbacCatalog(setup.module)
@@ -57,7 +57,7 @@ describe("Apps - Install", () => {
 
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
-    auth0Id = `auth0|${randomUUID()}`
+    authSubject = `oidc|${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -67,18 +67,21 @@ describe("Apps - Install", () => {
 
   const createStaffInstaller = async () => {
     const { organization, project, user } = await createOrganizationWithProject(repositories, {
-      user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
+      user: { authSubject, email: mockOidcEmailForSub(authSubject) },
     })
     await assignPlatformStaffToUser({ repositories, user })
     return { organization, project, user }
   }
 
   const createManifest = async (token = "token") => {
-    const superadminAuth0Id = `auth0|${randomUUID()}`
-    const previousAuth0Id = auth0Id
-    auth0Id = superadminAuth0Id
+    const superadminAuthSubject = `oidc|${randomUUID()}`
+    const previousAuthSubject = authSubject
+    authSubject = superadminAuthSubject
     const { user } = await createOrganizationWithProject(repositories, {
-      user: { auth0Id: superadminAuth0Id, email: mockAuth0EmailForSub(superadminAuth0Id) },
+      user: {
+        authSubject: superadminAuthSubject,
+        email: mockOidcEmailForSub(superadminAuthSubject),
+      },
     })
     await assignPlatformSuperadminToUser({ repositories, user })
     const created = await request({
@@ -95,7 +98,7 @@ describe("Apps - Install", () => {
       },
     })
     expectResponse(created, 201)
-    auth0Id = previousAuth0Id
+    authSubject = previousAuthSubject
     return created.body.data
   }
 
@@ -113,7 +116,7 @@ describe("Apps - Install", () => {
 
     it("rejects users without app.install", async () => {
       await createOrganizationWithProject(repositories, {
-        user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
+        user: { authSubject, email: mockOidcEmailForSub(authSubject) },
       })
       expectResponse(
         await request({

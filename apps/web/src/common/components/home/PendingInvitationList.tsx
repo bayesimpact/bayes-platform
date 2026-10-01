@@ -1,14 +1,17 @@
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
-import { CheckCircleIcon, InboxIcon } from "lucide-react"
+import { CheckCircleIcon, InboxIcon, XIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Grid, GridCard, GridContent, GridHeader } from "@/common/components/grid/Grid"
 import { useAppDispatch } from "@/common/store/hooks"
 import type {
-  PendingInvitationItem as PendingInvitationEntry,
+  PendingInvitation,
   PendingInvitations,
 } from "@/studio/features/invitations/invitations.models"
-import { acceptInvitation } from "@/studio/features/invitations/invitations.thunks"
+import {
+  acceptInvitation,
+  declineInvitation,
+} from "@/studio/features/invitations/invitations.thunks"
 
 export function PendingInvitationList({ invitations }: { invitations: PendingInvitations }) {
   const { t } = useTranslation()
@@ -37,12 +40,9 @@ export function PendingInvitationList({ invitations }: { invitations: PendingInv
   )
 }
 
-function PendingInvitationRow({ invitation }: { invitation: PendingInvitationEntry }) {
+function PendingInvitationRow({ invitation }: { invitation: PendingInvitation }) {
   const dispatch = useAppDispatch()
   const { t } = useTranslation()
-  const handleClick = () => {
-    dispatch(acceptInvitation({ ticketId: invitation.invitationToken }))
-  }
 
   const badge =
     invitation.targetType === "project"
@@ -62,9 +62,17 @@ function PendingInvitationRow({ invitation }: { invitation: PendingInvitationEnt
       <GridCard.Body>
         <GridCard.Title>{invitation.targetName}</GridCard.Title>
         <GridCard.Description>{description}</GridCard.Description>
-        <Button onClick={handleClick}>
-          {t("actions:accept")} <CheckCircleIcon />
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={() => dispatch(acceptInvitation({ invitationId: invitation.id }))}>
+            {t("actions:accept")} <CheckCircleIcon />
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => dispatch(declineInvitation({ invitationId: invitation.id }))}
+          >
+            {t("actions:decline")} <XIcon />
+          </Button>
+        </div>
       </GridCard.Body>
     </GridCard>
   )

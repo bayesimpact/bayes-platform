@@ -8,7 +8,7 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
-import type { Auth0UserInfoResponse } from "@/domains/auth/auth0-userinfo.service"
+import type { OidcUserInfo } from "@/domains/auth/oidc-userinfo.service"
 import { MembershipsModule } from "@/domains/memberships/memberships.module"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { ORGANIZATION_ROLES } from "@/domains/rbac/rbac.constants"
@@ -18,7 +18,7 @@ import {
   findProjectMembershipRow,
 } from "../../../test/membership-test.helpers"
 import { ensureRbacCatalog } from "../../../test/rbac-test.helpers"
-import { buildServiceUserAuth0Id, buildServiceUserEmail } from "./service-user.helpers"
+import { buildServiceUserAuthSubject, buildServiceUserEmail } from "./service-user.helpers"
 import { User } from "./user.entity"
 import { userFactory } from "./user.factory"
 import { UserRepository } from "./user.repository"
@@ -50,23 +50,23 @@ describe("UsersService", () => {
     repositories = setup.getAllRepositories()
   })
 
-  describe("findByAuth0Id", () => {
+  describe("findByAuthSubject", () => {
     it("should return null when user does not exist", async () => {
-      const result = await service.findByAuth0Id("auth0|nonexistent")
+      const result = await service.findByAuthSubject("oidc|nonexistent")
       expect(result).toBeNull()
     })
 
     it("should return user when it exists", async () => {
       const user = userFactory.build({
-        auth0Id: "auth0|user-123",
+        authSubject: "oidc|user-123",
         email: "test@example.com",
       })
       await repository.save(user)
 
-      const result = await service.findByAuth0Id("auth0|user-123")
+      const result = await service.findByAuthSubject("oidc|user-123")
       expect(result).not.toBeNull()
       expect(result?.id).toBe(user.id)
-      expect(result?.auth0Id).toBe("auth0|user-123")
+      expect(result?.authSubject).toBe("oidc|user-123")
       expect(result?.email).toBe("test@example.com")
     })
   })
@@ -79,7 +79,7 @@ describe("UsersService", () => {
 
     it("should return user when it exists", async () => {
       const user = userFactory.build({
-        auth0Id: "auth0|user-findbyid-test",
+        authSubject: "oidc|user-findbyid-test",
         email: "test@example.com",
       })
       const savedUser = await repository.save(user)
@@ -91,61 +91,26 @@ describe("UsersService", () => {
     })
   })
 
-  describe("create", () => {
-    it("should create a new user", async () => {
-      const auth0UserInfo = {
-        sub: "auth0|user-new-user",
-        email: "newuser@example.com",
-        name: "New User",
-        picture: "https://example.com/picture.jpg",
-      }
+  describe("findOrCreateByEmail", () => {
+    it("creates a never-signed-in user for an unknown email", async () => {
+      const user = await service.findOrCreateByEmail({
+        email: " New.Member@Example.com ",
+        name: "New Member",
+      })
 
-      const user = await service.create(auth0UserInfo)
-
-      expect(user.id).toBeDefined()
-      expect(user.auth0Id).toBe("auth0|user-new-user")
-      expect(user.email).toBe("newuser@example.com")
-      expect(user.name).toBe("New User")
-      expect(user.pictureUrl).toBe("https://example.com/picture.jpg")
+      expect(user.authSubject).toBeNull()
+      expect(user.email).toBe("new.member@example.com")
+      expect(user.name).toBe("New Member")
       expect(user.type).toBe(USER_TYPE_HUMAN)
-      expect(user.createdAt).toBeInstanceOf(Date)
-      expect(user.updatedAt).toBeInstanceOf(Date)
     })
 
-    it("should throw error when email is not provided", async () => {
-      const auth0UserInfo = {
-        sub: "auth0|no-email",
-      }
+    it("returns the existing user for a known email", async () => {
+      const existingUser = await repository.save(userFactory.build({ email: "known@example.com" }))
 
-      await expect(service.create(auth0UserInfo)).rejects.toThrow(
-        "Email is required from Auth0 token",
-      )
-    })
+      const user = await service.findOrCreateByEmail({ email: "known@example.com" })
 
-    it("should create user with null values for optional fields", async () => {
-      const auth0UserInfo = {
-        sub: "auth0|minimal",
-        email: "minimal@example.com",
-      }
-
-      const user = await service.create(auth0UserInfo)
-
-      expect(user.name).toBeNull()
-      expect(user.pictureUrl).toBeNull()
-    })
-
-    it("should persist user to database", async () => {
-      const auth0UserInfo = {
-        sub: "auth0|persisted",
-        email: "persisted@example.com",
-      }
-
-      const user = await service.create(auth0UserInfo)
-
-      // Use service to find the user (both use the same transactional repository)
-      const foundUser = await service.findById(user.id)
-      expect(foundUser).not.toBeNull()
-      expect(foundUser?.auth0Id).toBe("auth0|persisted")
+      expect(user.id).toBe(existingUser.id)
+      expect(await repository.count({ where: { email: "known@example.com" } })).toBe(1)
     })
   })
 
@@ -171,120 +136,170 @@ describe("UsersService", () => {
   })
 
   describe("findOrCreate", () => {
-    it("should create user when it does not exist", async () => {
-      const auth0UserInfo = {
-        sub: "auth0|create-new",
-        email: "create@example.com",
-        name: "Create User",
-      }
+    const linkingAllowed = { allowEmailLinking: true, trustUnverifiedEmail: false }
 
-      const user = await service.findOrCreate({
-        sub: auth0UserInfo.sub,
-        getUserInfo: () =>
-          Promise.resolve({
-            sub: auth0UserInfo.sub,
-            email: auth0UserInfo.email,
-            name: auth0UserInfo.name,
-          } as Auth0UserInfoResponse),
+    const signIn = (
+      userInfo: OidcUserInfo,
+      emailLinkingPolicy: {
+        allowEmailLinking: boolean
+        trustUnverifiedEmail: boolean
+      } = linkingAllowed,
+    ) =>
+      service.findOrCreate({
+        sub: userInfo.sub,
+        getUserInfo: () => Promise.resolve(userInfo),
+        emailLinkingPolicy,
       })
 
-      expect(user.auth0Id).toBe("auth0|create-new")
+    it("creates a user without access on a first sign-in with an unknown email", async () => {
+      const user = await signIn({
+        sub: "oidc|create-new",
+        email: "Create@Example.com",
+        email_verified: true,
+        name: "Create User",
+      })
+
+      expect(user.authSubject).toBe("oidc|create-new")
       expect(user.email).toBe("create@example.com")
       expect(user.name).toBe("Create User")
-
-      // Verify it was saved - use service to query (both use same transaction)
-      const found = await service.findByAuth0Id("auth0|create-new")
-      expect(found).not.toBeNull()
-      expect(found?.id).toBe(user.id)
+      expect((await service.findByAuthSubject("oidc|create-new"))?.id).toBe(user.id)
     })
 
-    it("should return existing user when it exists", async () => {
-      const existingUser = userFactory.build({
-        auth0Id: "auth0|user-existing",
-        email: "existing@example.com",
-        name: "Existing User",
+    it("returns the known user without calling userinfo", async () => {
+      const existingUser = await repository.save(
+        userFactory.build({ authSubject: "oidc|user-existing", email: "existing@example.com" }),
+      )
+      const getUserInfo = jest.fn()
+
+      const user = await service.findOrCreate({ sub: "oidc|user-existing", getUserInfo })
+
+      expect(user.id).toBe(existingUser.id)
+      expect(getUserInfo).not.toHaveBeenCalled()
+    })
+
+    it("links a member added by email when the provider verified the email", async () => {
+      const addedUser = await repository.save(
+        userFactory.build({ authSubject: null, email: "added@example.com", name: "Set By Admin" }),
+      )
+
+      const user = await signIn({
+        sub: "oidc|real-subject",
+        email: "added@example.com",
+        email_verified: true,
+        picture: "https://example.com/picture.jpg",
       })
-      await repository.save(existingUser)
 
-      const auth0UserInfo = {
-        sub: "auth0|user-existing",
-        email: "existing@example.com",
-        name: "Existing User",
-      }
+      expect(user.id).toBe(addedUser.id)
+      expect(user.authSubject).toBe("oidc|real-subject")
+      expect(user.name).toBe("Set By Admin")
+      expect(user.pictureUrl).toBe("https://example.com/picture.jpg")
+    })
 
-      const user = await service.findOrCreate({
-        sub: auth0UserInfo.sub,
-        getUserInfo: () => Promise.resolve({} as Auth0UserInfoResponse),
+    it("links an account moved from another provider when the email is verified", async () => {
+      const existingUser = await repository.save(
+        userFactory.build({ authSubject: "oidc|previous-provider", email: "moved@example.com" }),
+      )
+
+      const user = await signIn({
+        sub: "oidc|new-provider",
+        email: "moved@example.com",
+        email_verified: true,
       })
 
       expect(user.id).toBe(existingUser.id)
-      expect(user.email).toBe("existing@example.com")
-
-      // Verify no duplicate was created
-      const count = await repository.count({ where: { auth0Id: "auth0|user-existing" } })
-      expect(count).toBe(1)
+      expect(user.authSubject).toBe("oidc|new-provider")
     })
 
-    it("links an existing human user found by email to the Auth0 subject", async () => {
-      const existingUser = userFactory.build({
-        auth0Id: "auth0|placeholder",
-        email: "invitee@example.com",
-        type: USER_TYPE_HUMAN,
-      })
-      await repository.save(existingUser)
-
-      const user = await service.findOrCreate({
-        sub: "auth0|real-subject",
-        getUserInfo: () =>
-          Promise.resolve({
-            sub: "auth0|real-subject",
-            email: "invitee@example.com",
-            name: "Invitee",
-          } as Auth0UserInfoResponse),
-      })
-
-      expect(user.id).toBe(existingUser.id)
-      expect(user.auth0Id).toBe("auth0|real-subject")
-    })
-
-    it("refuses to attach a real Auth0 subject to a service user with the same email", async () => {
-      const installationId = "22222222-2222-4222-8222-222222222222"
-      const serviceUser = userFactory.build({
-        auth0Id: buildServiceUserAuth0Id(installationId),
-        email: buildServiceUserEmail("helpful-assistant", installationId),
-        type: USER_TYPE_SERVICE,
-      })
-      await repository.save(serviceUser)
+    it("refuses to link when the provider does not report the email as verified", async () => {
+      const addedUser = await repository.save(
+        userFactory.build({ authSubject: null, email: "unverified@example.com" }),
+      )
 
       await expect(
+        signIn({ sub: "oidc|unverified", email: "unverified@example.com", email_verified: false }),
+      ).rejects.toThrow(AUTH_ERRORS.EMAIL_NOT_VERIFIED)
+      await expect(
+        signIn({ sub: "oidc|unverified", email: "unverified@example.com" }),
+      ).rejects.toThrow(AUTH_ERRORS.EMAIL_NOT_VERIFIED)
+
+      const persisted = await repository.findOneOrFail({ where: { id: addedUser.id } })
+      expect(persisted.authSubject).toBeNull()
+    })
+
+    it("links an unverified email when the instance trusts the provider", async () => {
+      const addedUser = await repository.save(
+        userFactory.build({ authSubject: null, email: "trusted@example.com" }),
+      )
+
+      const user = await signIn(
+        { sub: "oidc|trusted", email: "trusted@example.com" },
+        { allowEmailLinking: true, trustUnverifiedEmail: true },
+      )
+
+      expect(user.id).toBe(addedUser.id)
+    })
+
+    it("refuses to link when email linking is disabled", async () => {
+      await repository.save(userFactory.build({ authSubject: null, email: "nolink@example.com" }))
+
+      await expect(
+        signIn(
+          { sub: "oidc|nolink", email: "nolink@example.com", email_verified: true },
+          { allowEmailLinking: false, trustUnverifiedEmail: false },
+        ),
+      ).rejects.toThrow(AUTH_ERRORS.EMAIL_LINKING_DISABLED)
+    })
+
+    it("refuses a userinfo response for another subject", async () => {
+      await expect(
         service.findOrCreate({
-          sub: "auth0|human-subject",
+          sub: "oidc|token-subject",
           getUserInfo: () =>
             Promise.resolve({
-              sub: "auth0|human-subject",
-              email: serviceUser.email,
-              name: "Human",
-            } as Auth0UserInfoResponse),
+              sub: "oidc|other-subject",
+              email: "other@example.com",
+              email_verified: true,
+            }),
+          emailLinkingPolicy: linkingAllowed,
         }),
+      ).rejects.toThrow(AUTH_ERRORS.INVALID_ACCESS_TOKEN)
+    })
+
+    it("refuses a sign-in without email", async () => {
+      await expect(signIn({ sub: "oidc|no-email" })).rejects.toThrow(AUTH_ERRORS.EMAIL_REQUIRED)
+    })
+
+    it("refuses to attach a human subject to a service user with the same email", async () => {
+      const installationId = "22222222-2222-4222-8222-222222222222"
+      const serviceUser = await repository.save(
+        userFactory.build({
+          authSubject: buildServiceUserAuthSubject(installationId),
+          email: buildServiceUserEmail("helpful-assistant", installationId),
+          type: USER_TYPE_SERVICE,
+        }),
+      )
+
+      await expect(
+        signIn({ sub: "oidc|human-subject", email: serviceUser.email, email_verified: true }),
       ).rejects.toThrow(AUTH_ERRORS.SERVICE_USERS_CANNOT_AUTHENTICATE)
 
       const persisted = await repository.findOneOrFail({ where: { id: serviceUser.id } })
-      expect(persisted.auth0Id).toBe(serviceUser.auth0Id)
+      expect(persisted.authSubject).toBe(serviceUser.authSubject)
       expect(persisted.type).toBe(USER_TYPE_SERVICE)
     })
 
-    it("refuses Auth0 login when the subject is a service user identity", async () => {
+    it("refuses a sign-in whose subject is a service user identity", async () => {
       await expect(
         service.findOrCreate({
-          sub: buildServiceUserAuth0Id("33333333-3333-4333-8333-333333333333"),
-          getUserInfo: () => Promise.resolve({} as Auth0UserInfoResponse),
+          sub: buildServiceUserAuthSubject("33333333-3333-4333-8333-333333333333"),
+          getUserInfo: () => Promise.resolve({} as OidcUserInfo),
         }),
       ).rejects.toBeInstanceOf(UnauthorizedException)
     })
   })
 
   describe("createServiceUser", () => {
-    it("creates a service user with a synthetic email and auth0 id", async () => {
+    it("creates a service user with a synthetic email and subject", async () => {
       const installationId = "44444444-4444-4444-8444-444444444444"
       const user = await service.createServiceUser({
         appSlug: "Helpful-Assistant",
@@ -293,7 +308,7 @@ describe("UsersService", () => {
 
       expect(user.type).toBe(USER_TYPE_SERVICE)
       expect(user.email).toBe(buildServiceUserEmail("helpful-assistant", installationId))
-      expect(user.auth0Id).toBe(buildServiceUserAuth0Id(installationId))
+      expect(user.authSubject).toBe(buildServiceUserAuthSubject(installationId))
       expect(user.name).toBe("Helpful-Assistant")
     })
   })

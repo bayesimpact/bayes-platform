@@ -1,4 +1,9 @@
-import { AgentModel, AgentSettingsRoutes, DocumentsRagMode } from "@caseai-connect/api-contracts"
+import {
+  AgentModel,
+  AgentSettingsRoutes,
+  AgentThinkingLevel,
+  DocumentsRagMode,
+} from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
@@ -28,13 +33,13 @@ describe("Agent Settings - updateOne", () => {
   let projectId: string
   let agentId: string
   let accessToken: string | undefined = "token"
-  let auth0Id = "auth0|123"
+  let authSubject = "oidc|123"
   let expectActivityCreated: ReturnType<typeof bindExpectActivityCreated>
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [AgentsModule, ActivitiesModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
     expectActivityCreated = bindExpectActivityCreated(repositories.activityRepository)
@@ -46,7 +51,7 @@ describe("Agent Settings - updateOne", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = "auth0|123"
+    authSubject = "oidc|123"
   })
 
   afterAll(async () => {
@@ -60,7 +65,7 @@ describe("Agent Settings - updateOne", () => {
     organizationId = organization.id
     projectId = project.id
     agentId = agent.id
-    auth0Id = user.auth0Id
+    authSubject = user.authSubject!
     return { organization, project, agent, agentSettings, user }
   }
 
@@ -271,6 +276,35 @@ describe("Agent Settings - updateOne", () => {
     })
     expect(agentSessionCategories).toHaveLength(1)
     expect(agentSessionCategories[0]?.projectAgentSessionCategoryId).toBe(projectCategory.id)
+  })
+
+  it("should update priorityCallsEnabled", async () => {
+    await createContext()
+
+    const setResponse = await subject({
+      payload: { priorityCallsEnabled: true },
+    })
+    expectResponse(setResponse, 200)
+
+    const updatedAgentSettings = await repositories.agentSettingsRepository.findOne({
+      where: { agentId, revision: 2 },
+    })
+    expect(updatedAgentSettings?.isDraft).toBeTruthy()
+    expect(updatedAgentSettings?.priorityCallsEnabled).toBeTruthy()
+  })
+  it("should update thinkingLevel", async () => {
+    await createContext()
+
+    const setResponse = await subject({
+      payload: { thinkingLevel: AgentThinkingLevel.High },
+    })
+    expectResponse(setResponse, 200)
+
+    const updatedAgentSettings = await repositories.agentSettingsRepository.findOne({
+      where: { agentId, revision: 2 },
+    })
+    expect(updatedAgentSettings?.isDraft).toBeTruthy()
+    expect(updatedAgentSettings?.thinkingLevel).toBe(AgentThinkingLevel.High)
   })
 
   it("should preserve an existing soft-deleted project category while adding a new category", async () => {

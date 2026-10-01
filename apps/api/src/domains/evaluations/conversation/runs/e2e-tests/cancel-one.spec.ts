@@ -33,7 +33,7 @@ describe("EvaluationConversationRuns - cancelOne", () => {
   let projectId: string
   let evaluationConversationRunId: string
   let accessToken: string | undefined = "token"
-  let auth0Id = `auth0|${randomUUID()}`
+  let authSubject = `oidc|${randomUUID()}`
 
   const mockRemovePendingRunRecords = jest.fn().mockResolvedValue(undefined)
   const mockRemovePendingExecuteRun = jest.fn().mockResolvedValue(undefined)
@@ -42,7 +42,7 @@ describe("EvaluationConversationRuns - cancelOne", () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [EvaluationsModule, ActivitiesModule],
       applyOverrides: (moduleBuilder) =>
-        setupUserGuardForTesting(moduleBuilder, () => auth0Id)
+        setupUserGuardForTesting(moduleBuilder, () => authSubject)
           .overrideProvider(EVALUATION_CONVERSATION_RUN_BATCH_SERVICE)
           .useValue({
             enqueueExecuteRun: jest.fn().mockResolvedValue(undefined),
@@ -67,7 +67,7 @@ describe("EvaluationConversationRuns - cancelOne", () => {
     mockRemovePendingExecuteRun.mockClear()
     mockRemovePendingExecuteRun.mockResolvedValue(undefined)
     accessToken = "token"
-    auth0Id = `auth0|${randomUUID()}`
+    authSubject = `oidc|${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -79,14 +79,14 @@ describe("EvaluationConversationRuns - cancelOne", () => {
     const { user, organization, project, agent, agentSettings } = await createOrganizationWithAgent(
       repositories,
       {
-        user: { auth0Id },
+        user: { authSubject },
         agent: { type: "conversation" },
         agentSettings: { model: AgentModel._Mock },
       },
     )
     organizationId = organization.id
     projectId = project.id
-    auth0Id = user.auth0Id
+    authSubject = user.authSubject!
 
     const { run, datasetRecords } = await createRunWithConversationDataset({
       getRepository: setup.getRepository,

@@ -1,4 +1,4 @@
-import { AgentModel } from "@caseai-connect/api-contracts"
+import { AgentModel, AgentThinkingLevel } from "@caseai-connect/api-contracts"
 import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"
 import { CallOrigin } from "@/external/llm/ai-sdk-llm-common"
 import { CustomMedGemmaLanguageModel } from "./custom-med-gemma-language-model"
@@ -8,6 +8,7 @@ describe("CustomMedGemmaLanguageModel", () => {
     model: AgentModel.MedGemma10_27B,
     temperature: 0,
     serviceTier: undefined,
+    thinkingLevel: AgentThinkingLevel.Auto,
   })
 
   const buildModel = () =>

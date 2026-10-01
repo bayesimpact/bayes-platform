@@ -2,7 +2,7 @@ import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import type { AppDispatch, RootState } from "@/common/store/types"
 import {
-  createInvitationsForTarget,
+  createInvitations,
   listInvitationsForTarget,
   revokeInvitation,
 } from "@/studio/features/invitations/invitations.thunks"
@@ -63,37 +63,35 @@ function registerListeners() {
   listenerMiddleware.startListening({
     actionCreator: revokeInvitation.fulfilled,
     effect: async (action, listenerApi) => {
-      const refreshTarget = action.meta.arg.refreshTarget
-      if (refreshTarget?.targetType !== "review_campaign") return
-      await listenerApi.dispatch(listInvitationsForTarget(refreshTarget))
+      const { targetType, targetId } = action.meta.arg
+      if (targetType !== "review_campaign") return
+      await listenerApi.dispatch(listInvitationsForTarget({ targetType, targetId }))
     },
   })
 
   listenerMiddleware.startListening({
-    actionCreator: createInvitationsForTarget.fulfilled,
+    actionCreator: createInvitations.fulfilled,
     effect: async (action, listenerApi) => {
-      const refreshTarget = action.meta.arg.refreshTarget
-      if (refreshTarget?.targetType !== "review_campaign") return
-      await listenerApi.dispatch(listInvitationsForTarget(refreshTarget))
+      const { targetType, targetId } = action.meta.arg
+      if (targetType !== "review_campaign") return
+      await listenerApi.dispatch(listInvitationsForTarget({ targetType, targetId }))
     },
   })
 
   listenerMiddleware.startListening({
-    actionCreator: createInvitationsForTarget.fulfilled,
+    actionCreator: createInvitations.fulfilled,
     effect: async (action, listenerApi) => {
-      if (action.meta.arg.refreshTarget?.targetType !== "review_campaign") return
+      if (action.meta.arg.targetType !== "review_campaign") return
+      listenerApi.dispatch(notificationsActions.show({ title: "People invited", type: "success" }))
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: createInvitations.rejected,
+    effect: async (action, listenerApi) => {
+      if (action.meta.arg.targetType !== "review_campaign") return
       listenerApi.dispatch(
-        notificationsActions.show({ title: "Invitations sent", type: "success" }),
-      )
-    },
-  })
-
-  listenerMiddleware.startListening({
-    actionCreator: createInvitationsForTarget.rejected,
-    effect: async (action, listenerApi) => {
-      if (action.meta.arg.refreshTarget?.targetType !== "review_campaign") return
-      listenerApi.dispatch(
-        notificationsActions.show({ title: "Failed to send invitations", type: "error" }),
+        notificationsActions.show({ title: "Failed to invite people", type: "error" }),
       )
     },
   })

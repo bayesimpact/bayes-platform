@@ -1,4 +1,4 @@
-import { AgentModel } from "@caseai-connect/api-contracts"
+import { AgentModel, AgentThinkingLevel } from "@caseai-connect/api-contracts"
 import { Test } from "@nestjs/testing"
 import { tool } from "ai"
 import { z } from "zod"
@@ -55,6 +55,7 @@ describe("leaked tool call recovery", () => {
           execute: async (input) => execute(input),
         }),
       },
+      thinkingLevel: AgentThinkingLevel.Auto,
     }) as LLMConfig
 
   const streamAll = async (config: LLMConfig) => {

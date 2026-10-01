@@ -12,7 +12,6 @@ import { removeNullish } from "@/common/utils/remove-nullish"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
-import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
 import {
   organizationMembershipFactory,
   saveOrgMembership,
@@ -31,10 +30,6 @@ import {
 import { reviewCampaignFactory } from "../../review-campaign.factory"
 import { ReviewCampaignsModule } from "../../review-campaigns.module"
 
-const mockInvitationSender = {
-  sendInvitation: jest.fn().mockResolvedValue({ ticketId: "ticket-report-csv" }),
-}
-
 describe("ReviewCampaigns - Report CSV", () => {
   let app: INestApplication<App>
   let request: Requester
@@ -45,15 +40,12 @@ describe("ReviewCampaigns - Report CSV", () => {
   let projectId: string = randomUUID()
   let reviewCampaignId: string = randomUUID()
   let accessToken: string | null = "token"
-  let auth0Id = `auth0|csv-${randomUUID()}`
+  let authSubject = `oidc|csv-${randomUUID()}`
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [ReviewCampaignsModule],
-      applyOverrides: (moduleBuilder) =>
-        setupUserGuardForTesting(moduleBuilder, () => auth0Id)
-          .overrideProvider(INVITATION_SENDER)
-          .useValue(mockInvitationSender),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
     app = setup.module.createNestApplication()
@@ -64,7 +56,7 @@ describe("ReviewCampaigns - Report CSV", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = `auth0|csv-${randomUUID()}`
+    authSubject = `oidc|csv-${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -77,7 +69,7 @@ describe("ReviewCampaigns - Report CSV", () => {
       organization,
       project,
       user: owner,
-    } = await createOrganizationWithProject(repositories, { user: { auth0Id } })
+    } = await createOrganizationWithProject(repositories, { user: { authSubject } })
     const tester = await repositories.userRepository.save(
       userFactory.build({ email: `tester-csv-${randomUUID()}@example.com` }),
     )
@@ -173,7 +165,7 @@ describe("ReviewCampaigns - Report CSV", () => {
 
   it("returns just the header when there are no sessions", async () => {
     await createOrganizationWithAgent(repositories, {
-      user: { auth0Id },
+      user: { authSubject },
       agent: { type: "conversation" },
     }).then(async ({ organization, project, agent, agentSettings }) => {
       const campaign = reviewCampaignFactory
@@ -195,7 +187,7 @@ describe("ReviewCampaigns - Report CSV", () => {
 
   it("allows an accepted reviewer to download the CSV", async () => {
     const { reviewer } = await seedCampaignWithSession()
-    auth0Id = reviewer.auth0Id
+    authSubject = reviewer.authSubject!
 
     const response = await subject()
     expectResponse(response, 200)
@@ -207,7 +199,7 @@ describe("ReviewCampaigns - Report CSV", () => {
     const outsider = await repositories.userRepository.save(
       userFactory.build({ email: `outsider-csv-${randomUUID()}@example.com` }),
     )
-    auth0Id = outsider.auth0Id
+    authSubject = outsider.authSubject!
 
     const response = await subject()
     expectResponse(response, 401)

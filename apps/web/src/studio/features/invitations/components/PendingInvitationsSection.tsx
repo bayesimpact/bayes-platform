@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { ConfirmDialog } from "@/common/components/ConfirmDialog"
 import { buildSince } from "@/common/utils/build-date"
-import type { PendingInvitationItem, PendingInvitations } from "../invitations.models"
+import type { PendingInvitation, PendingInvitations } from "../invitations.models"
 
 export function PendingInvitationsSection({
   invitations,
@@ -38,12 +38,12 @@ function PendingInvitationCard({
   invitation,
   onRevoke,
 }: {
-  invitation: PendingInvitationItem
+  invitation: PendingInvitation
   onRevoke: (invitationId: string) => void
 }) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
-  const label = invitation.invitedEmail ?? invitation.targetName
+  const label = invitation.invitedEmail
 
   const handleConfirm = () => {
     onRevoke(invitation.id)

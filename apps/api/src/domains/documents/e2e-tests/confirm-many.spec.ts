@@ -28,14 +28,14 @@ describe("Documents - confirmMany", () => {
   let projectId: string
   let documentId: string
   let accessToken: string | undefined = "token"
-  let auth0Id = "auth0|123"
+  let authSubject = "oidc|123"
   let expectActivityCreated: ReturnType<typeof bindExpectActivityCreated>
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [DocumentsModule, ActivitiesModule],
       applyOverrides: (moduleBuilder) =>
-        withDocumentAuthAndEmbeddingsMocks(moduleBuilder, () => auth0Id),
+        withDocumentAuthAndEmbeddingsMocks(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
     expectActivityCreated = bindExpectActivityCreated(repositories.activityRepository)
@@ -47,7 +47,7 @@ describe("Documents - confirmMany", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = "auth0|123"
+    authSubject = "oidc|123"
   })
 
   afterAll(async () => {
@@ -59,7 +59,7 @@ describe("Documents - confirmMany", () => {
     const { user, organization, project } = await createOrganizationWithProject(repositories)
     organizationId = organization.id
     projectId = project.id
-    auth0Id = user.auth0Id
+    authSubject = user.authSubject!
 
     const pendingDocument = await createDocumentForProject({
       repositories,

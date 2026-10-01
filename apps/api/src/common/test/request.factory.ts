@@ -28,7 +28,7 @@ export const endpointRequestFactory = Factory.define<
   return {
     user,
     jwtPayload: {
-      sub: user.auth0Id,
+      sub: user.authSubject!,
       iss: "https://caseai.com",
       aud: ["https://caseai.com"],
       iat: Date.now(),

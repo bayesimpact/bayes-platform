@@ -36,12 +36,12 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
   let projectId: string
   let agentId: string
   let agentSessionId: string
-  let auth0Id = "auth0|123"
+  let authSubject = "oidc|123"
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [StreamingModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
     app = setup.module.createNestApplication()
@@ -50,7 +50,7 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
 
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
-    auth0Id = "auth0|123"
+    authSubject = "oidc|123"
   })
 
   afterAll(async () => {
@@ -90,7 +90,7 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
     projectId = project.id
     agentId = agent.id
     agentSessionId = session.id
-    auth0Id = user.auth0Id
+    authSubject = user.authSubject!
     const child = subAgents[0]
     if (!child) throw new Error("sub-agent not created")
     return { agent, agentSettings, session, child }
@@ -298,7 +298,7 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
     projectId = project.id
     agentId = agent.id
     agentSessionId = session.id
-    auth0Id = user.auth0Id
+    authSubject = user.authSubject!
     const [identity, needs] = subAgents
     if (!identity || !needs) throw new Error("sub-agents not created")
 
@@ -618,7 +618,7 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
     projectId = project.id
     agentId = agent.id
     agentSessionId = session.id
-    auth0Id = user.auth0Id
+    authSubject = user.authSubject!
     const [first, second] = subAgents
     if (!first || !second) throw new Error("sub-agents not created")
 

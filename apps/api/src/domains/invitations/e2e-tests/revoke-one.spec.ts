@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto"
-import { InvitationsRoutes } from "@caseai-connect/api-contracts"
+import { ProjectInvitationsRoutes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import { bindExpectActivityCreated } from "@/common/test/activity-test.helpers"
@@ -11,26 +11,28 @@ import {
 } from "@/common/test/test-database"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { userFactory } from "@/domains/users/user.factory"
 import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
+import { invitationFactory } from "../invitation.factory"
 import { InvitationsModule } from "../invitations.module"
 
-describe("Invitations — revokeOne", () => {
+describe("Invitations - revokeOne", () => {
   let app: INestApplication<App>
   let request: Requester
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
   let repositories: AllRepositories
-
-  let invitationId: string
-  let accessToken: string | undefined = "token"
-  let auth0Id = "auth0|123"
   let expectActivityCreated: ReturnType<typeof bindExpectActivityCreated>
+
+  let authSubject = `oidc|${randomUUID()}`
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [InvitationsModule, ActivitiesModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
+    await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
     expectActivityCreated = bindExpectActivityCreated(repositories.activityRepository)
     app = setup.module.createNestApplication()
@@ -40,9 +42,7 @@ describe("Invitations — revokeOne", () => {
 
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
-    accessToken = "token"
-    auth0Id = "auth0|123"
-    jest.clearAllMocks()
+    authSubject = `oidc|${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -50,65 +50,81 @@ describe("Invitations — revokeOne", () => {
     await app.close()
   })
 
-  const seedPendingProjectInvitation = async () => {
-    const { user, organization, project } = await createOrganizationWithProject(repositories)
-    auth0Id = user.auth0Id
+  let organizationId: string
+  let projectId: string
+
+  const subject = async (invitationId: string) =>
+    request({
+      route: ProjectInvitationsRoutes.deleteOne,
+      pathParams: { organizationId, projectId, invitationId },
+      token: "token",
+    })
+
+  const createContext = async (invitee: { authSubject: string | null }) => {
+    const { project } = await createOrganizationWithProject(repositories, {
+      user: { authSubject },
+    })
+    organizationId = project.organizationId
+    projectId = project.id
+    const invitedUser = await repositories.userRepository.save(userFactory.build(invitee))
     const invitation = await repositories.invitationRepository.save(
-      repositories.invitationRepository.create({
-        organizationId: organization.id,
-        projectId: project.id,
-        targetType: "project",
-        targetId: project.id,
-        userId: null,
-        invitedEmail: "pending-invitee@example.com",
-        invitationToken: `e2e-revoke-${randomUUID()}`,
-        status: "pending",
-        role: "admin",
-        invitedAt: new Date(),
-        acceptedAt: null,
-      }),
+      invitationFactory.transient({ user: invitedUser, project }).build(),
     )
-    invitationId = invitation.id
-    return { user, organization, project, invitation }
+    return { invitedUser, invitation }
   }
 
-  const subject = async () =>
-    request({
-      route: InvitationsRoutes.revokeOne,
-      pathParams: { invitationId },
-      token: accessToken,
-    })
+  it("revokes the invitation and removes the account of a person who never signed in", async () => {
+    const { invitedUser, invitation } = await createContext({ authSubject: null })
 
-  it("revokes a pending invitation and records activity", async () => {
-    await seedPendingProjectInvitation()
+    expectResponse(await subject(invitation.id), 200)
 
-    const response = await subject()
-
-    expectResponse(response, 200)
-    expect(response.body).toEqual({ data: { success: true } })
-
-    const updated = await repositories.invitationRepository.findOne({
-      where: { id: invitationId },
-    })
-    expect(updated!.status).toBe("revoked")
+    expect(
+      (await repositories.invitationRepository.findOneByOrFail({ id: invitation.id })).status,
+    ).toBe("revoked")
+    expect(await repositories.userRepository.findOneBy({ id: invitedUser.id })).toBeNull()
     await expectActivityCreated("invitation.revoke")
   })
 
-  it("returns 404 when the invitation does not exist", async () => {
-    await seedPendingProjectInvitation()
-    invitationId = randomUUID()
+  it("keeps the account of a person who already signed in", async () => {
+    const { invitedUser, invitation } = await createContext({ authSubject: `oidc|${randomUUID()}` })
 
-    const response = await subject()
+    expectResponse(await subject(invitation.id), 200)
 
-    expectResponse(response, 404)
+    expect(await repositories.userRepository.findOneBy({ id: invitedUser.id })).not.toBeNull()
   })
 
-  it("returns 404 when the invitation is not pending", async () => {
-    await seedPendingProjectInvitation()
-    await repositories.invitationRepository.update({ id: invitationId }, { status: "accepted" })
+  it("keeps the account of a person who never signed in while another invitation is pending", async () => {
+    const { invitedUser, invitation } = await createContext({ authSubject: null })
+    const { project: otherProject } = await createOrganizationWithProject(repositories)
+    await repositories.invitationRepository.save(
+      invitationFactory.transient({ user: invitedUser, project: otherProject }).build(),
+    )
 
-    const response = await subject()
+    expectResponse(await subject(invitation.id), 200)
 
-    expectResponse(response, 404)
+    expect(await repositories.userRepository.findOneBy({ id: invitedUser.id })).not.toBeNull()
+  })
+
+  it("answers 404 for an invitation that is no longer pending", async () => {
+    const { invitation } = await createContext({ authSubject: null })
+    await repositories.invitationRepository.update({ id: invitation.id }, { status: "accepted" })
+
+    expectResponse(await subject(invitation.id), 404)
+  })
+
+  it("answers 404 for an invitation to another project", async () => {
+    await createContext({ authSubject: null })
+    const { project: otherProject } = await createOrganizationWithProject(repositories)
+    const invitedUser = await repositories.userRepository.save(
+      userFactory.build({ authSubject: null }),
+    )
+    const otherInvitation = await repositories.invitationRepository.save(
+      invitationFactory.transient({ user: invitedUser, project: otherProject }).build(),
+    )
+
+    expectResponse(await subject(otherInvitation.id), 404)
+    expect(
+      (await repositories.invitationRepository.findOneByOrFail({ id: otherInvitation.id })).status,
+    ).toBe("pending")
   })
 })

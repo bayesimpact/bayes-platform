@@ -27,12 +27,12 @@ describe("McpServers - deleteOne", () => {
   let projectId: string
   let mcpServerId: string
   let accessToken: string | undefined = "token"
-  let auth0Id = "auth0|123"
+  let authSubject = "oidc|123"
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [McpServersModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
     app = setup.module.createNestApplication()
@@ -43,7 +43,7 @@ describe("McpServers - deleteOne", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = "auth0|123"
+    authSubject = "oidc|123"
   })
 
   afterAll(async () => {
@@ -55,7 +55,7 @@ describe("McpServers - deleteOne", () => {
     const { user, organization, project } = await createOrganizationWithProject(repositories)
     organizationId = organization.id
     projectId = project.id
-    auth0Id = user.auth0Id
+    authSubject = user.authSubject!
 
     const mcpServer = mcpServerFactory.build({ name: "Test Server", projectId: project.id })
     await repositories.mcpServerRepository.save(mcpServer)

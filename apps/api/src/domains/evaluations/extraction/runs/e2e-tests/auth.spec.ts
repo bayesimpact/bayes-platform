@@ -14,7 +14,7 @@ import { addUserToOrganization } from "@/domains/organizations/memberships/organ
 import type { Organization } from "@/domains/organizations/organization.entity"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import type { ProjectMembershipRole } from "@/domains/projects/memberships/project-membership.types"
-import { mockAuth0EmailForSub, setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
+import { mockOidcEmailForSub, setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../../test/request"
 import { EvaluationsModule } from "../../../evaluations.module"
@@ -33,12 +33,12 @@ describe("EvaluationExtractionRuns - Auth", () => {
   let projectId: string | null = randomUUID()
   let evaluationExtractionRunId: string | null = randomUUID()
   let accessToken: string | null = "token"
-  let auth0Id = "auth0|123"
+  let authSubject = "oidc|123"
 
   beforeAll(async () => {
     setup = await setupTransactionalTestDatabase({
       additionalImports: [EvaluationsModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
     await ensureRbacCatalog(setup.module)
@@ -53,7 +53,7 @@ describe("EvaluationExtractionRuns - Auth", () => {
     projectId = randomUUID()
     evaluationExtractionRunId = randomUUID()
     accessToken = "token"
-    auth0Id = "auth0|123"
+    authSubject = "oidc|123"
   })
 
   afterAll(async () => {
@@ -73,7 +73,7 @@ describe("EvaluationExtractionRuns - Auth", () => {
     organizationId = organization.id
     projectId = project.id
     accessToken = "token"
-    auth0Id = user.auth0Id
+    authSubject = user.authSubject!
 
     const dataset = evaluationExtractionDatasetFactory
       .transient({ organization, project })
@@ -97,17 +97,17 @@ describe("EvaluationExtractionRuns - Auth", () => {
 
   /** Switches the caller to an organization admin who holds no role on the project. */
   const switchToOrganizationAdminWithoutProjectRole = async (organization: Organization) => {
-    const organizationAdminAuth0Id = `auth0|${randomUUID()}`
+    const organizationAdminAuthSubject = `oidc|${randomUUID()}`
     await addUserToOrganization({
       repositories,
       organization,
       user: {
-        auth0Id: organizationAdminAuth0Id,
-        email: mockAuth0EmailForSub(organizationAdminAuth0Id),
+        authSubject: organizationAdminAuthSubject,
+        email: mockOidcEmailForSub(organizationAdminAuthSubject),
       },
       membership: { role: "admin" },
     })
-    auth0Id = organizationAdminAuth0Id
+    authSubject = organizationAdminAuthSubject
   }
 
   describe("EvaluationExtractionRunsRoutes.createOne", () => {
@@ -145,7 +145,7 @@ describe("EvaluationExtractionRuns - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = "another-auth0-id"
+      authSubject = "another-oidc-subject"
       expectResponse(await subject(payload), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to create an evaluation run", async () => {
@@ -182,7 +182,7 @@ describe("EvaluationExtractionRuns - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = "another-auth0-id"
+      authSubject = "another-oidc-subject"
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to list evaluation runs", async () => {
@@ -223,7 +223,7 @@ describe("EvaluationExtractionRuns - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = "another-auth0-id"
+      authSubject = "another-oidc-subject"
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to get an evaluation run", async () => {
@@ -259,7 +259,7 @@ describe("EvaluationExtractionRuns - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = "another-auth0-id"
+      authSubject = "another-oidc-subject"
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to execute an evaluation run", async () => {
@@ -291,7 +291,7 @@ describe("EvaluationExtractionRuns - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = "another-auth0-id"
+      authSubject = "another-oidc-subject"
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to cancel an evaluation run", async () => {
@@ -323,7 +323,7 @@ describe("EvaluationExtractionRuns - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = "another-auth0-id"
+      authSubject = "another-oidc-subject"
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to get evaluation run records", async () => {
@@ -355,7 +355,7 @@ describe("EvaluationExtractionRuns - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = "another-auth0-id"
+      authSubject = "another-oidc-subject"
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to delete an evaluation run", async () => {

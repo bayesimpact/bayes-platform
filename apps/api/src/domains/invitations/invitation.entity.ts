@@ -1,9 +1,6 @@
 import { Column, Entity, Index } from "typeorm"
 import { Base4AllEntity } from "@/common/entities/base4all.entity"
-
-export type InvitationTargetType = "project" | "agent" | "review_campaign"
-
-export type InvitationStatus = "pending" | "accepted" | "revoked" | "expired"
+import type { InvitationStatus, InvitationTargetType } from "./invitation.types"
 
 @Entity("invitation")
 @Index(["userId", "status"])
@@ -21,12 +18,14 @@ export class Invitation extends Base4AllEntity {
   @Column({ type: "uuid", name: "target_id" })
   targetId!: string
 
+  /** The invited account. An unknown email gets an account that has never signed in. */
   @Column({ type: "uuid", name: "user_id", nullable: true })
   userId!: string | null
 
   @Column({ type: "varchar", name: "invited_email", nullable: true })
   invitedEmail!: string | null
 
+  /** Legacy Auth0 ticket id. New invitations store a random value: acceptance goes through the invitation id. */
   @Column({ type: "varchar", name: "invitation_token", unique: true })
   invitationToken!: string
 

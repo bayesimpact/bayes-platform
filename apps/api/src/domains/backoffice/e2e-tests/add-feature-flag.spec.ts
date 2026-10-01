@@ -11,7 +11,7 @@ import {
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { projectFactory } from "@/domains/projects/project.factory"
 import { RbacModule } from "@/domains/rbac/rbac.module"
-import { mockAuth0EmailForSub, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
+import { mockOidcEmailForSub, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import {
   assignPlatformStaffToUser,
   assignPlatformSuperadminToUser,
@@ -26,12 +26,12 @@ describe("Backoffice - feature flag lifecycle", () => {
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
   let repositories: AllRepositories
 
-  let auth0Id = `auth0|${randomUUID()}`
+  let authSubject = `oidc|${randomUUID()}`
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [BackofficeModule, RbacModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
@@ -42,7 +42,7 @@ describe("Backoffice - feature flag lifecycle", () => {
 
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
-    auth0Id = `auth0|${randomUUID()}`
+    authSubject = `oidc|${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -51,9 +51,9 @@ describe("Backoffice - feature flag lifecycle", () => {
   })
 
   const createAuthorizedContext = async () => {
-    const email = mockAuth0EmailForSub(auth0Id)
+    const email = mockOidcEmailForSub(authSubject)
     const context = await createOrganizationWithProject(repositories, {
-      user: { auth0Id, email },
+      user: { authSubject, email },
     })
     await assignPlatformSuperadminToUser({ repositories, user: context.user })
     return context
@@ -118,9 +118,9 @@ describe("Backoffice - feature flag lifecycle", () => {
   })
 
   it("rejects org owners who lack a project membership (no backoffice.project.update)", async () => {
-    const email = mockAuth0EmailForSub(auth0Id)
+    const email = mockOidcEmailForSub(authSubject)
     const { organization, user } = await createOrganizationWithProject(repositories, {
-      user: { auth0Id, email },
+      user: { authSubject, email },
     })
     // staff can enter the backoffice; org role grants project *read* via inheritance
     // but not project *update*

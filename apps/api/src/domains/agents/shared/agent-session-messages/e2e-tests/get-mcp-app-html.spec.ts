@@ -29,13 +29,13 @@ describe("AgentSessionMessagesRoutes.getMcpAppHtml", () => {
   let agentId: string
   let agentSessionId: string
   const accessToken = "token"
-  let auth0Id = "auth0|123"
+  let authSubject = "oidc|123"
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [ConversationAgentSessionsModule],
       applyOverrides: (moduleBuilder) =>
-        setupUserGuardForTesting(moduleBuilder, () => auth0Id)
+        setupUserGuardForTesting(moduleBuilder, () => authSubject)
           .overrideProvider(McpAppHtmlService)
           .useValue({ readLiveHtml }),
     })
@@ -49,7 +49,7 @@ describe("AgentSessionMessagesRoutes.getMcpAppHtml", () => {
     await clearTestDatabase(setup.dataSource)
     readLiveHtml.mockReset()
     readLiveHtml.mockResolvedValue(new Map())
-    auth0Id = "auth0|123"
+    authSubject = "oidc|123"
   })
 
   afterAll(async () => {
@@ -69,7 +69,7 @@ describe("AgentSessionMessagesRoutes.getMcpAppHtml", () => {
     projectId = project.id
     agentId = agent.id
     agentSessionId = agentSession.id
-    auth0Id = user.auth0Id
+    authSubject = user.authSubject!
 
     return { organization, user, project, agent, agentSettings, agentSession }
   }

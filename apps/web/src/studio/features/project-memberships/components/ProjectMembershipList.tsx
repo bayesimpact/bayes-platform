@@ -46,7 +46,8 @@ export function ProjectMembershipList() {
     void dispatch(
       revokeInvitation({
         invitationId,
-        refreshTarget: { targetType: "project", targetId: project.id },
+        targetType: "project",
+        targetId: project.id,
       }),
     )
   }

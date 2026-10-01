@@ -9,6 +9,8 @@ export type AgentMembershipDto = {
   userId: string
   userName: string
   userEmail: string
+  /** False while the member was added by email and has never signed in. */
+  userHasSignedIn: boolean
   role: AgentMembershipRoleDto
   createdAt: TimeType
 }

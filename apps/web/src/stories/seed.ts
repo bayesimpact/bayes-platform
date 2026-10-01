@@ -375,11 +375,15 @@ export const seed = {
       return { agentMemberships: { data: ads.fulfilled(memberships) } }
     },
 
+    agentPendingInvitations(invitations: PendingInvitations): StoryPreloadedState {
+      return { agentMemberships: { pendingInvitations: ads.fulfilled(invitations) } }
+    },
+
     projectMemberships(memberships: ProjectMembership[]): StoryPreloadedState {
       return { projectMemberships: { data: ads.fulfilled(memberships) } }
     },
 
-    pendingInvitations(invitations: PendingInvitations): StoryPreloadedState {
+    projectPendingInvitations(invitations: PendingInvitations): StoryPreloadedState {
       return { projectMemberships: { pendingInvitations: ads.fulfilled(invitations) } }
     },
 

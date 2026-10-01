@@ -13,8 +13,6 @@ import type { AgentMembershipModel } from "./agent-membership.model"
 import { AgentMembershipRepository } from "./agent-membership.repository"
 import type { AgentMembershipRole } from "./agent-membership.types"
 
-export const PLACEHOLDER_AUTH0_ID_PREFIX = "00000000-0000-0000-0000-"
-
 @Injectable()
 export class AgentMembershipsService {
   constructor(
@@ -127,7 +125,8 @@ export class AgentMembershipsService {
 
   /**
    * Removes an agent membership.
-   * If the associated user is a placeholder (never accepted), also removes the user.
+   * If the user was added by email and never signed in, also removes the
+   * account once it has no membership left.
    */
   async removeAgentMembership({
     userId,
@@ -155,9 +154,7 @@ export class AgentMembershipsService {
         userId: membership.userId,
       })
 
-      if (membership.user.auth0Id.startsWith(PLACEHOLDER_AUTH0_ID_PREFIX)) {
-        await this.userRepository.deleteById({ userId: membership.userId })
-      }
+      await this.userRepository.deleteIfUnusedPlaceholder({ userId: membership.userId })
     })
   }
 

@@ -32,7 +32,7 @@ describe("AgentCsvExtractionRuns - cancelOne", () => {
   let agentId: string
   let agentCsvExtractionRunId: string
   let accessToken: string | undefined = "token"
-  let auth0Id = "auth0|123"
+  let authSubject = "oidc|123"
 
   const mockBatchService = buildMockBatchService()
   const mockFileStorageService = buildMockFileStorageService()
@@ -41,7 +41,7 @@ describe("AgentCsvExtractionRuns - cancelOne", () => {
     setup = await setupTransactionalTestDatabase({
       additionalImports: [AgentCsvExtractionRunsModule, ActivitiesModule],
       applyOverrides: (moduleBuilder) =>
-        applyCsvExtractionRunOverrides(moduleBuilder, () => auth0Id, {
+        applyCsvExtractionRunOverrides(moduleBuilder, () => authSubject, {
           batchService: mockBatchService,
           fileStorageService: mockFileStorageService,
         }),
@@ -57,7 +57,7 @@ describe("AgentCsvExtractionRuns - cancelOne", () => {
     await clearTestDatabase(setup.dataSource)
     jest.clearAllMocks()
     accessToken = "token"
-    auth0Id = "auth0|123"
+    authSubject = "oidc|123"
   })
 
   afterAll(async () => {
@@ -70,7 +70,7 @@ describe("AgentCsvExtractionRuns - cancelOne", () => {
   }: {
     status?: "pending" | "running" | "completed"
   } = {}) => {
-    const context = await createCsvExtractionRunContext({ repositories, auth0Id })
+    const context = await createCsvExtractionRunContext({ repositories, authSubject })
     const run = await createCsvExtractionRun({ repositories, context, status })
 
     // A still-running record so the cancel path has a pending job to remove.
@@ -87,7 +87,7 @@ describe("AgentCsvExtractionRuns - cancelOne", () => {
     projectId = context.project.id
     agentId = context.agent.id
     agentCsvExtractionRunId = run.id
-    auth0Id = context.user.auth0Id
+    authSubject = context.user.authSubject!
 
     return { runningRecord }
   }

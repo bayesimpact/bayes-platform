@@ -1,5 +1,5 @@
 import { runtimeConfig } from "@/config/runtime-config"
-import { getAccessToken } from "@/external/auth0Client"
+import { getAccessToken } from "@/external/oidcClient"
 
 function parseSSEEvent<TDto>(eventText: string, label: string): TDto | null {
   const dataLine = eventText.split("\n").find((line) => line.startsWith("data: "))

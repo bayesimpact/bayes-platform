@@ -1,18 +1,22 @@
-export type PendingInvitationTargetType = "project" | "agent" | "review_campaign"
+export type InvitationTargetType = "project" | "agent" | "review_campaign"
 
-export type PendingInvitationItem = {
+/**
+ * Access to a project, an agent or a review campaign offered by email. No
+ * email is sent: the invited person finds it in the app after signing in and
+ * accepts or declines it.
+ */
+export type PendingInvitation = {
   id: string
-  targetType: PendingInvitationTargetType
+  targetType: InvitationTargetType
   targetId: string
   organizationId: string
   projectId: string
-  invitedEmail: string | null
+  invitedEmail: string
   role: string
-  invitationToken: string
   invitedAt: number
   organizationName: string
   projectName: string
   targetName: string
 }
 
-export type PendingInvitations = PendingInvitationItem[]
+export type PendingInvitations = PendingInvitation[]

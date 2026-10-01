@@ -21,7 +21,7 @@
     },
     "invitations": {
       "title": "Invitations en attente",
-      "description": "Invitations qui attendent votre acceptation.",
+      "description": "Acceptez une invitation pour obtenir l'accès.",
       "projectBadge": "Projet",
       "agentBadge": "Agent",
       "reviewCampaignBadge": "Campagne de revue",

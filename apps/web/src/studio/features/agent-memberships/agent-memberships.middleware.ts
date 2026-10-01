@@ -3,7 +3,7 @@ import { selectCurrentAgentId } from "@/common/features/agents/agents.selectors"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import type { AppDispatch, RootState } from "@/common/store/types"
 import {
-  createInvitationsForTarget,
+  createInvitations,
   listInvitationsForTarget,
   revokeInvitation,
 } from "@/studio/features/invitations/invitations.thunks"
@@ -44,42 +44,42 @@ function registerListeners() {
   })
 
   listenerMiddleware.startListening({
-    actionCreator: createInvitationsForTarget.fulfilled,
+    actionCreator: createInvitations.fulfilled,
     effect: async (action, listenerApi) => {
-      const refreshTarget = action.meta.arg.refreshTarget
-      if (refreshTarget?.targetType !== "agent") return
-      await listenerApi.dispatch(listInvitationsForTarget(refreshTarget))
+      const { targetType, targetId } = action.meta.arg
+      if (targetType !== "agent") return
+      await listenerApi.dispatch(listInvitationsForTarget({ targetType, targetId }))
     },
   })
 
   listenerMiddleware.startListening({
     actionCreator: revokeInvitation.fulfilled,
     effect: async (action, listenerApi) => {
-      const refreshTarget = action.meta.arg.refreshTarget
-      if (refreshTarget?.targetType !== "agent") return
-      await listenerApi.dispatch(listInvitationsForTarget(refreshTarget))
+      const { targetType, targetId } = action.meta.arg
+      if (targetType !== "agent") return
+      await listenerApi.dispatch(listInvitationsForTarget({ targetType, targetId }))
     },
   })
 
   listenerMiddleware.startListening({
-    actionCreator: createInvitationsForTarget.fulfilled,
+    actionCreator: createInvitations.fulfilled,
     effect: async (action, listenerApi) => {
-      if (action.meta.arg.refreshTarget?.targetType !== "agent") return
+      if (action.meta.arg.targetType !== "agent") return
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Invitations sent successfully",
+          title: "People invited",
           type: "success",
         }),
       )
     },
   })
   listenerMiddleware.startListening({
-    actionCreator: createInvitationsForTarget.rejected,
+    actionCreator: createInvitations.rejected,
     effect: async (action, listenerApi) => {
-      if (action.meta.arg.refreshTarget?.targetType !== "agent") return
+      if (action.meta.arg.targetType !== "agent") return
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Failed to send invitations",
+          title: "Failed to invite people",
           type: "error",
         }),
       )

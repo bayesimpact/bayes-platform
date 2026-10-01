@@ -53,9 +53,9 @@ export type Services = {
   evaluationExtractionDatasets: IEvaluationExtractionDatasetsSpi
   evaluationExtractionRuns: IEvaluationExtractionRunsSpi
   extractionAgentSessions: IExtractionAgentSessionsSpi
-  invitations: IInvitationsSpi
   mcpServers: IMcpServersSpi
   me: IMeSpi
+  invitations: IInvitationsSpi
   organizations: IOrganizationsSpi
   projectAnalytics: IProjectAnalyticsSpi
   projectMemberships: IProjectMembershipsSpi

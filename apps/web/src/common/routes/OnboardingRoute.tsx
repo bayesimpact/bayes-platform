@@ -55,8 +55,7 @@ function WithData() {
   const organizations = useValue(selectOrganizationsWithProjectsData)
   const invitations = useValue(selectPendingInvitations)
   const orgsCount = organizations.length
-  const hasPendingInvitations = invitations.length > 0
-  if (orgsCount === 0 && !hasPendingInvitations) return <OrganizationCreator />
+  if (orgsCount === 0 && invitations.length === 0) return <OrganizationCreator />
 
   return (
     <SidebarLayout defaultOpen={false} hideIcon user={{ name: user.name, email: user.email }}>
@@ -83,8 +82,6 @@ function Main({
 }) {
   const { t } = useTranslation()
 
-  const hasPendingInvitations = invitations.length > 0
-
   return (
     <SearchWorkspaces organizations={organizations}>
       <div className="flex flex-col">
@@ -107,7 +104,7 @@ function Main({
           />
         </Wrap>
 
-        {hasPendingInvitations && (
+        {invitations.length > 0 && (
           <Wrap className="mb-0 md:mb-0">
             <PendingInvitationList invitations={invitations} />
           </Wrap>

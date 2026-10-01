@@ -1,5 +1,7 @@
 # Feature Specification: Project Memberships (External User Invitations)
 
+> **Superseded for invitations** by [ADR 0022](../adr/0022-in-app-invitations.md): people are invited by email and accept the invitation in the app, with no invitation email. The Auth0 parts below are historical.
+
 ## Overview
 
 Organization owners and administrators need the ability to invite external users to access the conversational agents of a specific project. This feature introduces a **Project Membership** system that ties a user to a project via an invitation workflow.

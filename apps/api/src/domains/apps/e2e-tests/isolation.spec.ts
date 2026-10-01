@@ -104,9 +104,9 @@ describe("Apps - JWT isolation", () => {
 
     const humanShapedToken = signAppJwt({
       privateKey,
-      issuer: process.env.AUTH0_ISSUER_URL ?? "https://example.eu.auth0.com/",
-      audience: process.env.AUTH0_AUDIENCE ?? DEFAULT_APPS_JWT_AUDIENCE,
-      subject: `auth0|${randomUUID()}`,
+      issuer: process.env.OIDC_ISSUER_URL ?? "https://idp.example.org/realms/acme",
+      audience: process.env.OIDC_AUDIENCE ?? DEFAULT_APPS_JWT_AUDIENCE,
+      subject: `oidc|${randomUUID()}`,
       projectId: randomUUID(),
       installationId: randomUUID(),
     })

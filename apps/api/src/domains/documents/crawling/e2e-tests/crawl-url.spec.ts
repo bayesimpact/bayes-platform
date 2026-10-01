@@ -28,7 +28,7 @@ describe("Documents - crawlUrl", () => {
   let projectId: string
   let userId: string
   let accessToken: string | undefined = "token"
-  let auth0Id = "auth0|123"
+  let authSubject = "oidc|123"
   let crawlingBatchServiceMock: {
     enqueueCrawlUrl: jest.MockedFunction<UrlCrawlingBatchService["enqueueCrawlUrl"]>
   }
@@ -36,7 +36,7 @@ describe("Documents - crawlUrl", () => {
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [DocumentsModule],
-      applyOverrides: (moduleBuilder) => withCrawlingAndAuthMocks(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) => withCrawlingAndAuthMocks(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
     crawlingBatchServiceMock = setup.module.get(URL_CRAWLING_BATCH_SERVICE)
@@ -48,7 +48,7 @@ describe("Documents - crawlUrl", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = "auth0|123"
+    authSubject = "oidc|123"
     crawlingBatchServiceMock.enqueueCrawlUrl.mockClear()
   })
 
@@ -59,7 +59,7 @@ describe("Documents - crawlUrl", () => {
 
   const createContext = async () => {
     const { user, organization, project } = await createOrganizationWithProject(repositories, {
-      user: { auth0Id },
+      user: { authSubject },
     })
     userId = user.id
     organizationId = organization.id

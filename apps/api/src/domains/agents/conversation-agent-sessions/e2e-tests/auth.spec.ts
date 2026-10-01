@@ -16,8 +16,8 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { createOrganizationWithAgentSession } from "@/domains/organizations/organization.factory"
 import {
-  mockAuth0EmailForSub,
-  mockForeignAuth0Id,
+  mockForeignAuthSubject,
+  mockOidcEmailForSub,
   setupUserGuardForTesting,
 } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
@@ -35,12 +35,12 @@ describe("Agent Sessions - Auth", () => {
   let agentId: string | null = randomUUID()
   let agentSessionId: string | null = randomUUID()
   let accessToken: string | null = "token"
-  let auth0Id = `auth0|${randomUUID()}`
+  let authSubject = `oidc|${randomUUID()}`
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [ConversationAgentSessionsModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
 
@@ -56,7 +56,7 @@ describe("Agent Sessions - Auth", () => {
     agentId = randomUUID()
     agentSessionId = randomUUID()
     accessToken = "token"
-    auth0Id = `auth0|${randomUUID()}`
+    authSubject = `oidc|${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -69,12 +69,12 @@ describe("Agent Sessions - Auth", () => {
       await createOrganizationWithAgentSession({
         repositories,
         params: {
-          user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
+          user: { authSubject, email: mockOidcEmailForSub(authSubject) },
           projectMembership: { role },
         },
         agentType: "conversation",
       })
-    auth0Id = user.auth0Id
+    authSubject = user.authSubject!
     organizationId = organization.id
     projectId = project.id
     agentId = agent.id
@@ -110,7 +110,7 @@ describe("Agent Sessions - Auth", () => {
 
       it("requires the user to be a member of the organization", async () => {
         await createContextForRole("member")
-        auth0Id = mockForeignAuth0Id()
+        authSubject = mockForeignAuthSubject()
         expectResponse(await subject(type), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
       })
 
@@ -174,7 +174,7 @@ describe("Agent Sessions - Auth", () => {
       })
       it("requires the user to be a member of the organization", async () => {
         await createContextForRole("owner")
-        auth0Id = mockForeignAuth0Id()
+        authSubject = mockForeignAuthSubject()
         expectResponse(await subject(type), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
       })
     })
@@ -206,7 +206,7 @@ describe("Agent Sessions - Auth", () => {
       })
       it("requires the user to be a member of the organization", async () => {
         await createContextForRole("owner")
-        auth0Id = mockForeignAuth0Id()
+        authSubject = mockForeignAuthSubject()
         expectResponse(await subject(type), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
       })
       if (type === "playground") {
@@ -253,7 +253,7 @@ describe("Agent Sessions - Auth", () => {
       })
       it("requires the user to be a member of the organization", async () => {
         await createContextForRole("owner")
-        auth0Id = mockForeignAuth0Id()
+        authSubject = mockForeignAuthSubject()
         expectResponse(await subject(type), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
       })
       if (type === "playground") {

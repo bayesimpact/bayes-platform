@@ -19,7 +19,7 @@ import {
   selectOrganizationsStatus,
 } from "@/common/features/organizations/organizations.selectors"
 import { createOrganization } from "@/common/features/organizations/organizations.thunks"
-import { ErrorRoute } from "@/common/routes/ErrorRoute"
+import { NoAccessRoute } from "@/common/routes/NoAccessRoute"
 import { ADS } from "@/common/store/async-data-status"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { FullPageCenterLayout } from "../layouts/FullPageCenterLayout"
@@ -51,7 +51,7 @@ export function OrganizationCreator() {
 
   const isLoading = ADS.isLoading(status)
   if (!canCreateOrganization) {
-    return <ErrorRoute error={t("notAllowed")} />
+    return <NoAccessRoute />
   }
   return (
     <FullPageCenterLayout className="min-h-screen">

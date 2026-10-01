@@ -62,6 +62,7 @@ function toDto(membership: AgentMembershipModel): AgentMembershipDto {
     userId: membership.userId,
     userName: membership.user.name ?? buildNameFromEmail(membership.user.email),
     userEmail: membership.user.email,
+    userHasSignedIn: membership.user.authSubject !== null,
     role: membership.role,
     createdAt: membership.createdAt.getTime(),
   }

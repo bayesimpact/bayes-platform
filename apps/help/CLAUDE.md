@@ -57,7 +57,7 @@ detail. Everything here was learned the hard way — don't skip a step.
    without re-verifying it against the code.
 6. **Model state consequences** (§Actions have consequences): the animation's state
    must change with the actions — a created agent appears (active) in the sidebar, an
-   uploaded document becomes a row, an invite becomes a Pending entry, etc.
+   uploaded document becomes a row, an invited member appears in the Pending invitations section, then in the members grid once they accept, etc.
 7. **Write both MDX** (EN + FR) on the skeleton (§MDX skeleton), importing the
    walkthrough; one `### n` sub-section per animation step. **Exhaustive by rule —
    no step omitted** (§Writing style → Level of detail): from the entry point to the
@@ -199,8 +199,8 @@ The animation's state must evolve with the actions, like the real app:
   **active** item from the editor steps on (see `navNewAgent` in the agent
   walkthroughs: a hidden nav item revealed + `.on` once `step.page` is an editor
   page).
-- Uploading a document → a new table row; sending an invite → a **Pending** entry
-  then a member card; etc.
+- Uploading a document → a new table row; inviting a member by email → a card in the
+  **Pending invitations** section, and a member card once they accept; etc.
 
 Model these per step (reveal/activate elements as the flow progresses) — a static
 sidebar/table through a create flow is a fidelity bug.
@@ -400,7 +400,7 @@ feature:
   yet.*
 - **`guides-sources`** — Sources & knowledge (Documents, Web sources, Resource
   libraries, tags).
-- **`guides-team`** — Team & access (members, invitations, roles, Admin settings).
+- **`guides-team`** — Team & access (members, access by email, roles, Admin settings).
 - **`guides-eval`** — Evaluation & insights (Evaluations, Review campaigns,
   Analytics). *Registered, no guide yet.*
 

@@ -13,7 +13,7 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { AgentsModule } from "@/domains/agents/agents.module"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
-import { mockForeignAuth0Id, setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
+import { mockForeignAuthSubject, setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 
 describe("ProjectAgentSessionCategories - Auth", () => {
@@ -26,12 +26,12 @@ describe("ProjectAgentSessionCategories - Auth", () => {
   let projectId: string | null = RandomUuid.Project
   let categoryId: string | null = randomUUID()
   let accessToken: string | null = "token"
-  let auth0Id = `auth0|${randomUUID()}`
+  let authSubject = `oidc|${randomUUID()}`
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [AgentsModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
     app = setup.module.createNestApplication()
@@ -45,7 +45,7 @@ describe("ProjectAgentSessionCategories - Auth", () => {
     projectId = RandomUuid.Project
     categoryId = randomUUID()
     accessToken = "token"
-    auth0Id = `auth0|${randomUUID()}`
+    authSubject = `oidc|${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -55,7 +55,7 @@ describe("ProjectAgentSessionCategories - Auth", () => {
 
   const createContextForRole = async (role: "owner" | "admin" | "member" = "owner") => {
     const { organization, project } = await createOrganizationWithProject(repositories, {
-      user: { auth0Id },
+      user: { authSubject },
       projectMembership: { role },
     })
     organizationId = organization.id
@@ -96,7 +96,7 @@ describe("ProjectAgentSessionCategories - Auth", () => {
 
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = mockForeignAuth0Id()
+      authSubject = mockForeignAuthSubject()
       expectResponse(
         await subject({ payload: { name: "Support", assignToAllConversationalAgents: false } }),
         401,
@@ -156,7 +156,7 @@ describe("ProjectAgentSessionCategories - Auth", () => {
 
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = mockForeignAuth0Id()
+      authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
 

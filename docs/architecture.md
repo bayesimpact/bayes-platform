@@ -9,7 +9,7 @@ graph TB
     end
 
     subgraph "Identity Provider"
-        AUTH0["Auth0<br/>your-tenant.auth0.com<br/>JWT / OIDC"]
+        IDP["OpenID Connect provider<br/>Keycloak, Dex, Auth0...<br/>JWT / OIDC"]
     end
 
     subgraph "GitHub"
@@ -44,7 +44,7 @@ graph TB
         end
 
         subgraph "Secret Manager"
-            SM["Secrets<br/>DB password, Redis URL,<br/>Auth0, Slack"]
+            SM["Secrets<br/>DB password, Redis URL,<br/>OIDC client secrets, Slack"]
         end
     end
 
@@ -58,7 +58,7 @@ graph TB
 
     %% Client flows
     WEB -- "HTTPS (JWT Bearer)" --> API
-    WEB -- "Auth0 SPA SDK<br/>Login / Token" --> AUTH0
+    WEB -- "oidc-client-ts<br/>Code flow + PKCE" --> IDP
 
     %% API flows
     API -- "TypeORM<br/>Cloud SQL Proxy (Unix Socket)" --> PG
@@ -66,8 +66,7 @@ graph TB
     API -- "GCS SDK<br/>File upload/download" --> GCS
     API -- "AI SDK<br/>LLM inference" --> VERTEX
     API -- "OTLP" --> OTEL
-    API -- "M2M Client Credentials<br/>User provisioning & invitations" --> AUTH0
-    API -- "JWKS verification" --> AUTH0
+    API -- "Discovery, JWKS, userinfo" --> IDP
 
     %% Workers flows
     WORKERS -- "TypeORM" --> PG
@@ -89,7 +88,7 @@ graph TB
     classDef cicd fill:#EA4335,stroke:#333,color:#fff
 
     class API,WORKERS,PG,REDIS,GCS,AR,SM,VERTEX gcp
-    class AUTH0,OTEL,SLACK external
+    class IDP,OTEL,SLACK external
     class WEB client
     class GH cicd
 ```
@@ -99,12 +98,12 @@ graph TB
 | Source | Destination | Protocol | Purpose |
 |--------|-------------|----------|---------|
 | Web App | API (Cloud Run) | HTTPS + JWT | All API requests |
-| Web App | Auth0 | HTTPS | Login, token refresh (SPA SDK) |
+| Web App | OIDC provider | HTTPS | Login, token refresh (authorization code + PKCE) |
 | API | PostgreSQL (Cloud SQL) | Unix Socket (Cloud SQL Proxy) | Data persistence |
 | API | Redis | TCP 6379 (TLS in prod) | BullMQ job enqueue |
 | API | GCS | HTTPS | File upload/download |
 | API | Vertex AI (europe-west1) | HTTPS (gRPC) | LLM inference |
-| API | Auth0 | HTTPS | JWKS, M2M provisioning |
+| API | OIDC provider | HTTPS | Discovery, JWKS, userinfo |
 | API | OpenTelemetry gateway | OTLP/HTTP | Traces and metrics |
 | Workers | PostgreSQL | Unix Socket | Read/write entities |
 | Workers | Redis | TCP 6379 | BullMQ job consume |
@@ -139,17 +138,17 @@ Allowed origins on the API:
 sequenceDiagram
     participant U as User
     participant W as Web App
-    participant A as Auth0
+    participant A as OIDC provider
     participant API as API (Cloud Run)
 
     U->>W: Open app
-    W->>A: Redirect to Auth0 login
+    W->>A: Redirect to the provider login
     A-->>W: Return JWT (access token)
     W->>API: API request + Bearer token
     API->>A: Verify JWT (JWKS endpoint)
     API->>API: JwtAuthGuard → UserGuard → ResourceContextGuard
     API-->>W: Response
-    Note over API: First login triggers<br/>user provisioning from Auth0 userinfo
+    Note over API: First login links the account<br/>invited by email (verified email)<br/>or creates one without access.<br/>Invitations are accepted in the app
 ```
 
 ## CI/CD Pipeline (publish-images.yml)

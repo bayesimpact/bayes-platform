@@ -12,7 +12,7 @@ import { removeNullish } from "@/common/utils/remove-nullish"
 import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
 import { createOrganizationWithOwner } from "@/domains/organizations/organization.factory"
 import { projectFactory } from "@/domains/projects/project.factory"
-import { mockForeignAuth0Id, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
+import { mockForeignAuthSubject, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { addUserToProject } from "../memberships/project-membership.factory"
@@ -26,12 +26,12 @@ describe("Projects - listProjects", () => {
 
   let organizationId: string
   let accessToken: string | undefined = "token"
-  let auth0Id = `auth0|${randomUUID()}`
+  let authSubject = `oidc|${randomUUID()}`
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [ProjectsModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
@@ -43,7 +43,7 @@ describe("Projects - listProjects", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = `auth0|${randomUUID()}`
+    authSubject = `oidc|${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -53,7 +53,7 @@ describe("Projects - listProjects", () => {
 
   const createContext = async () => {
     const { user, organization } = await createOrganizationWithOwner(repositories, {
-      user: { auth0Id },
+      user: { authSubject },
     })
     organizationId = organization.id
     return { organization, user }
@@ -103,7 +103,7 @@ describe("Projects - listProjects", () => {
     const { user } = await addUserToOrganization({
       repositories,
       organization,
-      user: { auth0Id: mockForeignAuth0Id() },
+      user: { authSubject: mockForeignAuthSubject() },
     })
 
     // create projects
@@ -115,7 +115,7 @@ describe("Projects - listProjects", () => {
     await addUserToProject({ repositories, project: project2, user })
 
     // user is the one who will make the request
-    auth0Id = user.auth0Id
+    authSubject = user.authSubject!
 
     const response = await subject()
 

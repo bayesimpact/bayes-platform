@@ -3,6 +3,7 @@ import {
   AgentModelMetadataMap,
   AgentModelToAgentProvider,
   AgentProvider,
+  AgentThinkingLevel,
 } from "@caseai-connect/api-contracts"
 import { afterAll, beforeAll } from "@jest/globals"
 import { BatchSpanProcessor, ConsoleSpanExporter } from "@opentelemetry/sdk-trace-base"
@@ -29,7 +30,12 @@ const testModels = Object.values(AgentModel)
 // runs everywhere — unlike the live generation specs below, which need credentials.
 describe("AISDKVertex3Provider location routing", () => {
   const locationOf = (model: AgentModel) =>
-    new AISDKVertex3Provider().getTags({ model, temperature: 0, serviceTier: undefined })[1]
+    new AISDKVertex3Provider().getTags({
+      model,
+      temperature: 0,
+      serviceTier: undefined,
+      thinkingLevel: AgentThinkingLevel.Auto,
+    })[1]
 
   it("keeps every vertex 3 model on the eu endpoint", () => {
     const vertex3Models = Object.values(AgentModel).filter(
@@ -65,18 +71,179 @@ describe("AISDKVertex3Provider service tier", () => {
 
   it("serviceTier : priority - should set vertex.sharedRequestType = priority", () => {
     expect(new TestableProvider().providerOptionsFor(buildConfig("priority"))).toEqual({
-      vertex: { sharedRequestType: "priority" },
+      vertex: {
+        sharedRequestType: "priority",
+        thinkingConfig: { includeThoughts: true, thinkingLevel: AgentThinkingLevel.Medium },
+      },
     })
   })
 
   it("serviceTier : flex - should set vertex.sharedRequestType = flex", () => {
     expect(new TestableProvider().providerOptionsFor(buildConfig("flex"))).toEqual({
-      vertex: { sharedRequestType: "flex" },
+      vertex: {
+        sharedRequestType: "flex",
+        thinkingConfig: { includeThoughts: true, thinkingLevel: AgentThinkingLevel.Medium },
+      },
     })
   })
 
   it("serviceTier : undefined - should NOT set vertex.sharedRequestType", () => {
-    expect(new TestableProvider().providerOptionsFor(buildConfig(undefined))).toEqual({})
+    expect(new TestableProvider().providerOptionsFor(buildConfig(undefined))).toEqual({
+      vertex: {
+        thinkingConfig: {
+          includeThoughts: true,
+          thinkingLevel: AgentThinkingLevel.Medium,
+        },
+      },
+    })
+  })
+})
+
+describe("AISDKVertex3Provider thinking level", () => {
+  class TestableProvider extends AISDKVertex3Provider {
+    public providerOptionsFor(config: LLMConfig) {
+      return this.buildNativeProviderOptions({ config })
+    }
+  }
+  const buildConfig = ({
+    agentModel,
+    thinkingLevel,
+  }: {
+    agentModel: AgentModel
+    thinkingLevel: AgentThinkingLevel
+  }): LLMConfig =>
+    ({
+      model: agentModel,
+      temperature: 0,
+      serviceTier: undefined,
+      thinkingLevel,
+    }) satisfies LLMConfig
+
+  it("thinkingLevel : auto - should set to default value for model (1)", () => {
+    expect(
+      new TestableProvider().providerOptionsFor(
+        buildConfig({
+          agentModel: AgentModel.Gemini35FlashLite,
+          thinkingLevel: AgentThinkingLevel.Auto,
+        }),
+      ),
+    ).toEqual({
+      vertex: {
+        thinkingConfig: {
+          includeThoughts: true,
+          thinkingLevel: AgentThinkingLevel.Minimal,
+        },
+      },
+    })
+  })
+  it("thinkingLevel : auto - should set to default value for model (2)", () => {
+    expect(
+      new TestableProvider().providerOptionsFor(
+        buildConfig({
+          agentModel: AgentModel.Gemini35Flash,
+          thinkingLevel: AgentThinkingLevel.Auto,
+        }),
+      ),
+    ).toEqual({
+      vertex: {
+        thinkingConfig: {
+          includeThoughts: true,
+          thinkingLevel: AgentThinkingLevel.Medium,
+        },
+      },
+    })
+  })
+  it("thinkingLevel : minimal - should set", () => {
+    expect(
+      new TestableProvider().providerOptionsFor(
+        buildConfig({
+          agentModel: AgentModel.Gemini35Flash,
+          thinkingLevel: AgentThinkingLevel.Minimal,
+        }),
+      ),
+    ).toEqual({
+      vertex: {
+        thinkingConfig: {
+          includeThoughts: true,
+          thinkingLevel: AgentThinkingLevel.Minimal,
+        },
+      },
+    })
+  })
+  it("thinkingLevel : low - should set", () => {
+    expect(
+      new TestableProvider().providerOptionsFor(
+        buildConfig({
+          agentModel: AgentModel.Gemini35Flash,
+          thinkingLevel: AgentThinkingLevel.Low,
+        }),
+      ),
+    ).toEqual({
+      vertex: {
+        thinkingConfig: {
+          includeThoughts: true,
+          thinkingLevel: AgentThinkingLevel.Low,
+        },
+      },
+    })
+  })
+  it("thinkingLevel : medium - should set", () => {
+    expect(
+      new TestableProvider().providerOptionsFor(
+        buildConfig({
+          agentModel: AgentModel.Gemini35Flash,
+          thinkingLevel: AgentThinkingLevel.Medium,
+        }),
+      ),
+    ).toEqual({
+      vertex: {
+        thinkingConfig: {
+          includeThoughts: true,
+          thinkingLevel: AgentThinkingLevel.Medium,
+        },
+      },
+    })
+  })
+  it("thinkingLevel : high - should set", () => {
+    expect(
+      new TestableProvider().providerOptionsFor(
+        buildConfig({
+          agentModel: AgentModel.Gemini35Flash,
+          thinkingLevel: AgentThinkingLevel.High,
+        }),
+      ),
+    ).toEqual({
+      vertex: {
+        thinkingConfig: {
+          includeThoughts: true,
+          thinkingLevel: AgentThinkingLevel.High,
+        },
+      },
+    })
+  })
+  it("thinkingLevel : minimal - should set low on unsupported model (3.7 and up)", () => {
+    expect(
+      new TestableProvider().providerOptionsFor(
+        buildConfig({
+          agentModel: AgentModel.Gemini37Flash,
+          thinkingLevel: AgentThinkingLevel.Minimal,
+        }),
+      ),
+    ).toEqual({
+      vertex: {
+        thinkingConfig: {
+          includeThoughts: true,
+          thinkingLevel: AgentThinkingLevel.Low,
+        },
+      },
+    })
+  })
+  it("thinkingLevel : should throw on unimplemented model", () => {
+    expect(() =>
+      new TestableProvider().providerOptionsFor(
+        buildConfig({ agentModel: AgentModel._Mock, thinkingLevel: AgentThinkingLevel.Minimal }),
+      ),
+    ).toThrow()
   })
 })
 

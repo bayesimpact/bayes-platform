@@ -5,6 +5,11 @@
       "hint": "The identity provider refused the sign-in. If the problem persists, contact the administrator of this platform with the message above.",
       "retry": "try again",
       "logout": "log out"
+    },
+    "noAccess": {
+      "title": "No access yet",
+      "description": "Your account is active, but you have no workspace and no pending invitation. Ask your administrator to invite you.",
+      "logout": "log out"
     }
   }
 }

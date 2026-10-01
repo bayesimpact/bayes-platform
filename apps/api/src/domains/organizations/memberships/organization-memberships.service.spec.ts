@@ -267,7 +267,7 @@ describe("OrganizationMembershipsService", () => {
         userFactory.build({
           type: USER_TYPE_SERVICE,
           email: "app+install@service.bayes.internal",
-          auth0Id: "service|install-list",
+          authSubject: "service|install-list",
         }),
       )
       await saveOrgMembership({

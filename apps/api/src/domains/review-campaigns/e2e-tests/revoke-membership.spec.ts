@@ -9,7 +9,6 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
-import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
@@ -19,10 +18,6 @@ import {
 } from "../memberships/review-campaign-membership.factory"
 import { reviewCampaignFactory } from "../review-campaign.factory"
 import { ReviewCampaignsModule } from "../review-campaigns.module"
-
-const mockInvitationSender = {
-  sendInvitation: jest.fn().mockResolvedValue({ ticketId: "ticket-revoke" }),
-}
 
 describe("ReviewCampaigns - revokeMembership", () => {
   let app: INestApplication<App>
@@ -35,15 +30,12 @@ describe("ReviewCampaigns - revokeMembership", () => {
   let reviewCampaignId: string = randomUUID()
   let membershipId: string = randomUUID()
   let accessToken: string = "token"
-  let auth0Id = `auth0|${randomUUID()}`
+  let authSubject = `oidc|${randomUUID()}`
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [ReviewCampaignsModule],
-      applyOverrides: (moduleBuilder) =>
-        setupUserGuardForTesting(moduleBuilder, () => auth0Id)
-          .overrideProvider(INVITATION_SENDER)
-          .useValue(mockInvitationSender),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
     app = setup.module.createNestApplication()
@@ -54,7 +46,7 @@ describe("ReviewCampaigns - revokeMembership", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = `auth0|${randomUUID()}`
+    authSubject = `oidc|${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -73,7 +65,7 @@ describe("ReviewCampaigns - revokeMembership", () => {
     const { organization, project, user, agent, agentSettings } = await createOrganizationWithAgent(
       repositories,
       {
-        user: { auth0Id },
+        user: { authSubject },
       },
     )
     const campaign = await repositories.reviewCampaignRepository.save(
@@ -105,7 +97,7 @@ describe("ReviewCampaigns - revokeMembership", () => {
     const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
       repositories,
       {
-        user: { auth0Id },
+        user: { authSubject },
       },
     )
     const campaign = await repositories.reviewCampaignRepository.save(

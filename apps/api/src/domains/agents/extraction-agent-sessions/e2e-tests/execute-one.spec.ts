@@ -35,13 +35,13 @@ describe.skip("ExtractionAgentSessions - executeOne", () => {
   let agentId: string
   let documentId: string
   let accessToken: string | undefined = "token"
-  let auth0Id = "auth0|123"
+  let authSubject = "oidc|123"
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [AgentsModule],
       applyOverrides: (moduleBuilder) =>
-        setupUserGuardForTesting(moduleBuilder, () => auth0Id)
+        setupUserGuardForTesting(moduleBuilder, () => authSubject)
           .overrideProvider("LLMProvider")
           .useValue(mockLlmProvider),
     })
@@ -54,7 +54,7 @@ describe.skip("ExtractionAgentSessions - executeOne", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = "auth0|123"
+    authSubject = "oidc|123"
     jest.clearAllMocks()
   })
 
@@ -92,7 +92,7 @@ describe.skip("ExtractionAgentSessions - executeOne", () => {
     projectId = project.id
     agentId = agent.id
     documentId = document.id
-    auth0Id = user.auth0Id
+    authSubject = user.authSubject!
   }
 
   const subjectExecutePlayground = async (

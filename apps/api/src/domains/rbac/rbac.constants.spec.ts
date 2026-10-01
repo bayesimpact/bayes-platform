@@ -1,5 +1,6 @@
 import {
   AGENT_ANALYTICS_READ_PERMISSION,
+  AGENT_MEMBER_INVITE_PERMISSION,
   AGENT_ROLE_PERMISSIONS,
   APP_GRANTABLE_PERMISSIONS,
   DOCUMENT_CREATE_PERMISSION,
@@ -32,6 +33,7 @@ import {
   PROJECT_ANALYTICS_READ_PERMISSION,
   PROJECT_CREATE_PERMISSION,
   PROJECT_DELETE_PERMISSION,
+  PROJECT_MEMBER_INVITE_PERMISSION,
   PROJECT_READ_PERMISSION,
   PROJECT_ROLE_PERMISSIONS,
   PROJECT_UPDATE_PERMISSION,
@@ -114,6 +116,41 @@ describe("analytics permissions", () => {
     ]
     expect(inheritable).not.toContain(PROJECT_ANALYTICS_READ_PERMISSION)
     expect(inheritable).not.toContain(AGENT_ANALYTICS_READ_PERMISSION)
+  })
+})
+
+describe("invitation permissions", () => {
+  const rolesHolding = (rolePermissions: Record<string, readonly string[]>, permission: string) =>
+    Object.entries(rolePermissions)
+      .filter(([_roleKey, permissions]) => permissions.includes(permission))
+      .map(([roleKey]) => roleKey)
+
+  it("lets project owners and admins invite to a project and its campaigns", () => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, PROJECT_MEMBER_INVITE_PERMISSION)).toEqual([
+      "project_owner",
+      "project_admin",
+    ])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, PROJECT_MEMBER_INVITE_PERMISSION)).toEqual(
+      [],
+    )
+  })
+
+  it("lets agent owners and admins invite to their agent only", () => {
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, AGENT_MEMBER_INVITE_PERMISSION)).toEqual([
+      "agent_owner",
+      "agent_admin",
+    ])
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, AGENT_MEMBER_INVITE_PERMISSION)).toEqual([])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, AGENT_MEMBER_INVITE_PERMISSION)).toEqual([])
+  })
+
+  it("never inherits the invitation permissions from a parent resource", () => {
+    const inheritable: readonly string[] = [
+      ...RESOURCE_TYPE_PERMISSIONS_MAP.project,
+      ...RESOURCE_TYPE_PERMISSIONS_MAP.agent,
+    ]
+    expect(inheritable).not.toContain(PROJECT_MEMBER_INVITE_PERMISSION)
+    expect(inheritable).not.toContain(AGENT_MEMBER_INVITE_PERMISSION)
   })
 })
 

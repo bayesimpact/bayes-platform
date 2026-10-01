@@ -16,7 +16,7 @@ import { useForm, useWatch } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import { z } from "zod"
 import { useAppDispatch } from "@/common/store/hooks"
-import { createInvitationsForTarget } from "@/studio/features/invitations/invitations.thunks"
+import { createInvitations } from "@/studio/features/invitations/invitations.thunks"
 
 export function MembersCreator({ projectId }: { projectId: string }) {
   const { t } = useTranslation()
@@ -124,11 +124,10 @@ function CreateForm({
   const handleFormSubmit = (data: FormValues) => {
     if (data.emails.length === 0) return
     dispatch(
-      createInvitationsForTarget({
+      createInvitations({
         targetType: "project",
         targetId: projectId,
         emails: data.emails,
-        refreshTarget: { targetType: "project", targetId: projectId },
       }),
     )
     onClose()
@@ -185,7 +184,7 @@ function CreateForm({
 
             <Field orientation="horizontal" className="justify-end">
               <Button type="submit" disabled={emails.length === 0}>
-                {t("actions:send", { count: emails.length })}
+                {t("actions:invite")}
               </Button>
             </Field>
           </FieldGroup>

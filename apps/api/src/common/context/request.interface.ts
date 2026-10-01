@@ -10,7 +10,6 @@ import type { EvaluationConversationRun } from "@/domains/evaluations/conversati
 import type { EvaluationExtractionDataset } from "@/domains/evaluations/extraction/datasets/evaluation-extraction-dataset.entity"
 import type { EvaluationExtractionDatasetDocument } from "@/domains/evaluations/extraction/datasets/evaluation-extraction-dataset-document.entity"
 import type { EvaluationExtractionRun } from "@/domains/evaluations/extraction/runs/evaluation-extraction-run.entity"
-import type { Invitation } from "@/domains/invitations/invitation.entity"
 import type { McpServer } from "@/domains/mcp-servers/mcp-server.entity"
 import type { OrganizationMembershipContextModel } from "@/domains/organizations/memberships/organization-membership.model"
 import type { ProjectMembershipModel } from "@/domains/projects/memberships/project-membership.model"
@@ -131,13 +130,4 @@ export interface EndpointRequestWithAgentSessionInCampaign extends EndpointReque
 
 export interface EndpointRequestWithMcpServer extends EndpointRequestWithProject {
   mcpServer: McpServer
-}
-
-export interface EndpointRequestWithInvitationScope extends EndpointRequestWithProject {
-  /** Set for revokeOne — the pending invitation being acted on. */
-  invitation?: Invitation
-  /** The target entity (Project, Agent, or ReviewCampaign) loaded by the resolver. */
-  invitationTarget?: Project | Agent | ReviewCampaign
-  /** Caller's agent membership, set only when targetType is "agent". */
-  invitationAgentMembership?: AgentMembershipModel
 }

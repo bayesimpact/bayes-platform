@@ -26,6 +26,7 @@ export const projectMembershipFactory = ProjectMembershipFactory.define(
       userId: params.userId ?? faker.string.uuid(),
       userName: params.userName ?? `${firstName} ${lastName}`,
       userEmail: params.userEmail ?? faker.internet.email({ firstName, lastName }).toLowerCase(),
+      userHasSignedIn: params.userHasSignedIn ?? true,
       createdAt: params.createdAt ?? faker.date.past().getTime(),
       role: params.role ?? "member",
     } satisfies ProjectMembership

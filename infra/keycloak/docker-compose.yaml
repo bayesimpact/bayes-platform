@@ -1,0 +1,15 @@
+# Local OpenID Connect provider for development. Not for production use.
+# docker compose -f infra/keycloak/docker-compose.yaml up -d
+# Admin console: http://localhost:8080 (admin / admin)
+name: "connect-keycloak"
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.2
+    command: ["start-dev", "--import-realm"]
+    ports:
+      - "${KEYCLOAK_PORT:-8080}:8080"
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+    volumes:
+      - ./realm-platform.json:/opt/keycloak/data/import/realm-platform.json:ro

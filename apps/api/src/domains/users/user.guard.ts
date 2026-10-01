@@ -8,8 +8,8 @@ import type { JwtPayload } from "@/common/context/request.interface"
 import { AUTH_ERRORS } from "@/common/errors/auth-errors"
 import { getAccessToken } from "@/common/utils/get-access-token"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { Auth0UserInfoService } from "@/domains/auth/auth0-userinfo.service"
-import { isServiceAuth0Id, isServiceUser } from "@/domains/users/service-user.helpers"
+import { OidcUserInfoService } from "@/domains/auth/oidc-userinfo.service"
+import { isServiceAuthSubject, isServiceUser } from "@/domains/users/service-user.helpers"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { UsersService } from "@/domains/users/users.service"
 
@@ -17,7 +17,7 @@ import { UsersService } from "@/domains/users/users.service"
 export class UserGuard implements CanActivate {
   constructor(
     private readonly usersService: UsersService,
-    private readonly auth0UserInfoService: Auth0UserInfoService,
+    private readonly oidcUserInfoService: OidcUserInfoService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -34,14 +34,14 @@ export class UserGuard implements CanActivate {
       throw new UnauthorizedException(AUTH_ERRORS.SUB_NOT_FOUND)
     }
 
-    if (isServiceAuth0Id(jwtPayload.sub)) {
+    if (isServiceAuthSubject(jwtPayload.sub)) {
       throw new UnauthorizedException(AUTH_ERRORS.SERVICE_USERS_CANNOT_AUTHENTICATE)
     }
 
     try {
       const user = await this.usersService.findOrCreate({
         sub: jwtPayload.sub,
-        getUserInfo: () => this.auth0UserInfoService.getUserInfo(accessToken),
+        getUserInfo: () => this.oidcUserInfoService.getUserInfo(accessToken),
       })
 
       if (isServiceUser(user)) {

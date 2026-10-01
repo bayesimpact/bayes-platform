@@ -10,7 +10,6 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
-import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
@@ -20,10 +19,6 @@ import {
 } from "../../memberships/review-campaign-membership.factory"
 import { reviewCampaignFactory } from "../../review-campaign.factory"
 import { ReviewCampaignsModule } from "../../review-campaigns.module"
-
-const mockInvitationSender = {
-  sendInvitation: jest.fn().mockResolvedValue({ ticketId: "ticket-tester-auth" }),
-}
 
 describe("ReviewCampaigns - Tester auth", () => {
   let app: INestApplication<App>
@@ -36,15 +31,12 @@ describe("ReviewCampaigns - Tester auth", () => {
   let reviewCampaignId: string | null = randomUUID()
   let sessionId: string = randomUUID()
   let accessToken: string | null = "token"
-  let auth0Id = `auth0|${randomUUID()}`
+  let authSubject = `oidc|${randomUUID()}`
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [ReviewCampaignsModule],
-      applyOverrides: (moduleBuilder) =>
-        setupUserGuardForTesting(moduleBuilder, () => auth0Id)
-          .overrideProvider(INVITATION_SENDER)
-          .useValue(mockInvitationSender),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
     app = setup.module.createNestApplication()
@@ -59,7 +51,7 @@ describe("ReviewCampaigns - Tester auth", () => {
     reviewCampaignId = randomUUID()
     sessionId = randomUUID()
     accessToken = "token"
-    auth0Id = `auth0|${randomUUID()}`
+    authSubject = `oidc|${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -71,7 +63,7 @@ describe("ReviewCampaigns - Tester auth", () => {
     const { organization, project, user, agent, agentSettings } = await createOrganizationWithAgent(
       repositories,
       {
-        user: { auth0Id },
+        user: { authSubject },
       },
     )
     const factory =
@@ -100,7 +92,7 @@ describe("ReviewCampaigns - Tester auth", () => {
     const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
       repositories,
       {
-        user: { auth0Id },
+        user: { authSubject },
       },
     )
     const campaign = await repositories.reviewCampaignRepository.save(
@@ -153,7 +145,7 @@ describe("ReviewCampaigns - Tester auth", () => {
     it("allows a reviewer-only member on an active campaign (200)", async () => {
       const { organization, project, user, agent, agentSettings } =
         await createOrganizationWithAgent(repositories, {
-          user: { auth0Id },
+          user: { authSubject },
         })
       const campaign = await repositories.reviewCampaignRepository.save(
         reviewCampaignFactory
@@ -177,7 +169,7 @@ describe("ReviewCampaigns - Tester auth", () => {
     it("allows a reviewer on a closed campaign (read access stays for closed)", async () => {
       const { organization, project, user, agent, agentSettings } =
         await createOrganizationWithAgent(repositories, {
-          user: { auth0Id },
+          user: { authSubject },
         })
       const campaign = await repositories.reviewCampaignRepository.save(
         reviewCampaignFactory

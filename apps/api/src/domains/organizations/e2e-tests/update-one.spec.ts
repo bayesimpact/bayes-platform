@@ -27,12 +27,12 @@ describe("Organizations - updateOne", () => {
 
   let organizationId: string
   let accessToken: string | undefined = "token"
-  let auth0Id = `auth0|${randomUUID()}`
+  let authSubject = `oidc|${randomUUID()}`
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [OrganizationsModule, RbacModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
@@ -44,7 +44,7 @@ describe("Organizations - updateOne", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = `auth0|${randomUUID()}`
+    authSubject = `oidc|${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -54,7 +54,7 @@ describe("Organizations - updateOne", () => {
 
   const createContext = async () => {
     const { organization, user } = await createOrganizationWithOwner(repositories, {
-      user: { auth0Id },
+      user: { authSubject },
     })
     organizationId = organization.id
     return { organization, user }
@@ -94,14 +94,14 @@ describe("Organizations - updateOne", () => {
     const { user: _owner } = await createContext()
     const otherUser = await repositories.userRepository.save({
       id: randomUUID(),
-      auth0Id: `auth0|other-${randomUUID()}`,
+      authSubject: `oidc|other-${randomUUID()}`,
       email: "other@example.com",
       name: "Other User",
       createdAt: new Date(),
       updatedAt: new Date(),
       deletedAt: null,
     })
-    auth0Id = otherUser.auth0Id
+    authSubject = otherUser.authSubject
 
     // non-members hold no role on the organization, so the RBAC permission check rejects them
     expectResponse(
@@ -118,7 +118,7 @@ describe("Organizations - updateOne", () => {
       organization,
       membership: { role: "member" },
     })
-    auth0Id = memberUser.auth0Id
+    authSubject = memberUser.authSubject!
 
     expectResponse(await subject({ payload: { name: "New Name" } }), 403)
   })
@@ -143,7 +143,7 @@ describe("Organizations - updateOne", () => {
       organization,
       membership: { role: "admin" },
     })
-    auth0Id = adminUser.auth0Id
+    authSubject = adminUser.authSubject!
 
     const response = await subject({ payload: { name: "Admin Renamed" } })
 

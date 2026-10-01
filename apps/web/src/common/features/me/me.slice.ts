@@ -45,16 +45,13 @@ const slice = createSlice({
 
     builder
       .addCase(fetchPendingInvitations.pending, (state) => {
-        if (!ADS.isFulfilled(state.pendingInvitations))
+        if (!ADS.isFulfilled(state.pendingInvitations)) {
           state.pendingInvitations.status = ADS.Loading
+        }
         state.pendingInvitations.error = null
       })
       .addCase(fetchPendingInvitations.fulfilled, (state, action) => {
-        state.pendingInvitations = {
-          status: ADS.Fulfilled,
-          error: null,
-          value: action.payload,
-        }
+        state.pendingInvitations = { status: ADS.Fulfilled, error: null, value: action.payload }
       })
       .addCase(fetchPendingInvitations.rejected, (state, action) => {
         state.pendingInvitations.status = ADS.Error
