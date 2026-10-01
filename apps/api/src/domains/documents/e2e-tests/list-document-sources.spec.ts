@@ -27,13 +27,13 @@ describe("Document sources - getAll", () => {
   let organizationId: string
   let projectId: string
   let accessToken: string | undefined = "token"
-  let auth0Id = "auth0|123"
+  let authSubject = "oidc|123"
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [DocumentsModule],
       applyOverrides: (moduleBuilder) =>
-        withDocumentAuthAndEmbeddingsMocks(moduleBuilder, () => auth0Id),
+        withDocumentAuthAndEmbeddingsMocks(moduleBuilder, () => authSubject),
     })
     await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
@@ -46,7 +46,7 @@ describe("Document sources - getAll", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = "auth0|123"
+    authSubject = "oidc|123"
   })
 
   afterAll(async () => {
@@ -60,7 +60,7 @@ describe("Document sources - getAll", () => {
     })
     organizationId = organization.id
     projectId = project.id
-    auth0Id = user.auth0Id
+    authSubject = user.authSubject!
     return { organization, project }
   }
 
