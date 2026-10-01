@@ -31,14 +31,14 @@ describe("EvaluationExtractionDatasets - getRecords", () => {
   let projectId: string
   let datasetId: string
   let accessToken: string | undefined = "token"
-  let auth0Id = "auth0|123"
+  let authSubject = "oidc|123"
 
   let queryParams: Record<string, string> = {}
 
   beforeAll(async () => {
     setup = await setupTransactionalTestDatabase({
       additionalImports: [EvaluationsModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
@@ -52,7 +52,7 @@ describe("EvaluationExtractionDatasets - getRecords", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = "auth0|123"
+    authSubject = "oidc|123"
     queryParams = {}
   })
 
@@ -65,7 +65,7 @@ describe("EvaluationExtractionDatasets - getRecords", () => {
     const { user, organization, project } = await createOrganizationWithDocument(repositories)
     organizationId = organization.id
     projectId = project.id
-    auth0Id = user.auth0Id
+    authSubject = user.authSubject!
 
     const schemaMapping = {
       col1: {

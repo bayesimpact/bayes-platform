@@ -1,32 +1,30 @@
-import { useAuth0 } from "@auth0/auth0-react"
 import { Button } from "@caseai-connect/ui/shad/button"
 import { useTranslation } from "react-i18next"
-import { useLocation, useNavigate } from "react-router-dom"
+import { useLocation } from "react-router-dom"
 import type { AuthCallbackError } from "@/common/auth/auth-callback-error"
 import { getAppUrl } from "@/config/runtime-config"
-import { RouteNames } from "./helpers"
+import { logout } from "@/external/oidcClient"
 
 /**
- * Shown when Auth0 comes back with an error instead of a session. Explains
- * the error and lets the user retry or log out, instead of bouncing to Auth0
- * again in a loop.
+ * Shown when the identity provider comes back with an error instead of a
+ * session. Explains the error and lets the user retry or log out, instead of
+ * bouncing to the provider again in a loop.
  */
 export function AuthErrorRoute({ error }: { error: AuthCallbackError }) {
   const { t } = useTranslation("auth", { keyPrefix: "callbackError" })
-  const { logout } = useAuth0()
-  const navigate = useNavigate()
   const location = useLocation()
 
   const retry = () => {
-    // Drop the error parameters, then let the home route start a clean login.
-    navigate({ pathname: RouteNames.HOME, search: "" }, { replace: true })
+    // A full reload drops the error parameters and the error the OIDC client
+    // keeps in memory, then the home route starts a clean login.
+    window.location.assign(getAppUrl())
   }
 
   const logOut = () => {
-    logout({ logoutParams: { returnTo: getAppUrl() } })
+    logout()
   }
 
-  console.error("Auth0 callback error:", error.code, error.description, location.pathname)
+  console.error("OIDC callback error:", error.code, error.description, location.pathname)
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-4 text-center">

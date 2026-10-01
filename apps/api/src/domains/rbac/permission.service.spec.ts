@@ -559,7 +559,7 @@ describe("PermissionService", () => {
       const serviceUser = userFactory.build({
         type: USER_TYPE_SERVICE,
         email: "app+install@service.bayes.internal",
-        auth0Id: "service|directory",
+        authSubject: "service|directory",
       })
       await repositories.userRepository.save(serviceUser)
       const memberRole = await repositories.roleRepository.findOneOrFail({

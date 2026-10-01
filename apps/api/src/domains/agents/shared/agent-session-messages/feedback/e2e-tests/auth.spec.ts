@@ -12,7 +12,10 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { createOrganizationWithAgentMessage } from "@/domains/organizations/organization.factory"
-import { mockForeignAuth0Id, setupUserGuardForTesting } from "../../../../../../../test/e2e.helpers"
+import {
+  mockForeignAuthSubject,
+  setupUserGuardForTesting,
+} from "../../../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../../../test/request"
 import { AgentMessageFeedbackModule } from "../agent-message-feedback.module"
 
@@ -28,12 +31,12 @@ describe("Agent Message Feedback - Auth", () => {
   let agentId: string | null = randomUUID()
   let agentMessageId: string | null = randomUUID()
   let accessToken: string | null = "token"
-  let auth0Id = `auth0|${randomUUID()}`
+  let authSubject = `oidc|${randomUUID()}`
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [AgentMessageFeedbackModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
 
@@ -49,7 +52,7 @@ describe("Agent Message Feedback - Auth", () => {
     agentId = randomUUID()
     agentMessageId = randomUUID()
     accessToken = "token"
-    auth0Id = `auth0|${randomUUID()}`
+    authSubject = `oidc|${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -62,7 +65,7 @@ describe("Agent Message Feedback - Auth", () => {
       {
         repositories,
         params: {
-          user: { auth0Id },
+          user: { authSubject },
           organizationMembership: { role: "member" },
           projectMembership: { role },
           agentMembership: { role: "member" },
@@ -103,7 +106,7 @@ describe("Agent Message Feedback - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("member")
-      auth0Id = mockForeignAuth0Id()
+      authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
   })
@@ -138,7 +141,7 @@ describe("Agent Message Feedback - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = mockForeignAuth0Id()
+      authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to get all feedback", async () => {

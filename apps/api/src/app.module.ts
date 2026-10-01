@@ -24,8 +24,8 @@ import { DocumentsModule } from "./domains/documents/documents.module"
 import { StorageModule } from "./domains/documents/storage/storage.module"
 import { DocumentTagsModule } from "./domains/documents/tags/document-tags.module"
 import { EvaluationsModule } from "./domains/evaluations/evaluations.module"
-import { InvitationsModule } from "./domains/invitations/invitations.module"
 import { MeModule } from "./domains/me/me.module"
+import { MemberGrantsModule } from "./domains/member-grants/member-grants.module"
 import { OrganizationsModule } from "./domains/organizations/organizations.module"
 import { ProjectsModule } from "./domains/projects/projects.module"
 import { AgentEmbedConfigsManagementModule } from "./domains/public-chat/agent-embed-configs/agent-embed-configs-management.module"
@@ -67,7 +67,7 @@ import { UsersModule } from "./domains/users/users.module"
     DocumentTagsModule,
     EvaluationsModule,
     ExtractionAgentSessionsModule,
-    InvitationsModule,
+    MemberGrantsModule,
     MeModule,
     OrganizationsModule,
     OrganizationsModule,

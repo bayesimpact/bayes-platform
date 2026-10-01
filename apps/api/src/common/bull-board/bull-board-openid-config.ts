@@ -2,6 +2,7 @@ import type { RequestHandler } from "express"
 import type { ConfigParams } from "express-openid-connect"
 import { requiresAuth } from "express-openid-connect"
 import { PRIVATE_API_PATH } from "@/config/api-prefix"
+import { getOidcAuthorizationParams } from "@/domains/auth/oidc-config"
 
 /** Public URL of the API (scheme + host + optional port), no trailing slash. Used for OIDC redirects. */
 export function normalizedBullBoardPublicBaseUrl(): string {
@@ -30,10 +31,6 @@ export function normalizedBullBoardAllowedEmailDomain(): string | undefined {
   const raw = process.env.BULL_BOARD_ALLOWED_EMAIL_DOMAIN?.trim()
   if (!raw) return undefined
   return raw.replace(/^@+/u, "").toLowerCase()
-}
-
-export function normalizedBullBoardAuth0Organization(): string {
-  return (process.env.BULL_BOARD_AUTH0_ORGANIZATION ?? "").trim()
 }
 
 export function buildBullBoardAccessMiddleware(): RequestHandler {
@@ -66,14 +63,17 @@ export function buildBullBoardAccessMiddleware(): RequestHandler {
   }
 }
 
-/** Auth0 + express-openid-connect settings for the Bull Board dashboard (when `BULL_BOARD_ENABLED=true`). */
+/**
+ * express-openid-connect settings for the Bull Board dashboard (when
+ * `BULL_BOARD_ENABLED=true`). Uses the same OIDC provider as the platform,
+ * with its own confidential client.
+ */
 export function buildBullBoardOpenIdConnectConfig(): ConfigParams {
   const baseURL = normalizedBullBoardPublicBaseUrl()
-  const clientID = process.env.BULL_BOARD_AUTH0_CLIENT_ID?.trim()
-  const clientSecret = process.env.BULL_BOARD_AUTH0_CLIENT_SECRET?.trim()
+  const clientID = process.env.BULL_BOARD_OIDC_CLIENT_ID?.trim()
+  const clientSecret = process.env.BULL_BOARD_OIDC_CLIENT_SECRET?.trim()
   const secret = process.env.BULL_BOARD_OIDC_SECRET?.trim()
-  const issuerBaseURL = (process.env.AUTH0_ISSUER_URL ?? "").trim().replace(/\/+$/u, "")
-  const organization = normalizedBullBoardAuth0Organization()
+  const issuerBaseURL = (process.env.OIDC_ISSUER_URL ?? "").trim().replace(/\/+$/u, "")
 
   if (!baseURL) {
     throw new Error(
@@ -82,12 +82,12 @@ export function buildBullBoardOpenIdConnectConfig(): ConfigParams {
   }
   if (!issuerBaseURL) {
     throw new Error(
-      "When BULL_BOARD_ENABLED=true, set AUTH0_ISSUER_URL (Auth0 tenant issuer, no trailing slash required).",
+      "When BULL_BOARD_ENABLED=true, set OIDC_ISSUER_URL (the OpenID Connect provider issuer).",
     )
   }
   if (!clientID || !clientSecret) {
     throw new Error(
-      "When BULL_BOARD_ENABLED=true, set BULL_BOARD_AUTH0_CLIENT_ID and BULL_BOARD_AUTH0_CLIENT_SECRET (Regular Web Application in Auth0).",
+      "When BULL_BOARD_ENABLED=true, set BULL_BOARD_OIDC_CLIENT_ID and BULL_BOARD_OIDC_CLIENT_SECRET (a confidential client of the OIDC provider).",
     )
   }
   if (!secret || secret.length < 8) {
@@ -100,17 +100,17 @@ export function buildBullBoardOpenIdConnectConfig(): ConfigParams {
 
   return {
     authRequired: false,
+    // RP-initiated logout through the provider's end_session_endpoint
     idpLogout: true,
-    auth0Logout: true,
     issuerBaseURL,
     baseURL,
     clientID,
     clientSecret,
     secret,
     authorizationParams: {
+      ...getOidcAuthorizationParams(),
       response_type: "code",
       scope: "openid profile email",
-      ...(organization ? { organization } : {}),
     },
     routes: {
       login: `${boardPath}/oauth/login`,

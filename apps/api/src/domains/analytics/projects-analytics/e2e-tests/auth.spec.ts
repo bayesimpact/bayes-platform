@@ -18,7 +18,7 @@ import {
 } from "@/domains/agents/memberships/agent-membership.factory"
 import type { AgentMembershipRole } from "@/domains/agents/memberships/agent-membership.types"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
-import { mockForeignAuth0Id, setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
+import { mockForeignAuthSubject, setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { ProjectsAnalyticsModule } from "../projects-analytics.module"
@@ -32,7 +32,7 @@ describe("Projects Analytics - Auth", () => {
   let organizationId: string | null = RandomUuid.Organization
   let projectId: string | null = RandomUuid.Project
   let accessToken: string | null = "token"
-  let auth0Id = `auth0|${randomUUID()}`
+  let authSubject = `oidc|${randomUUID()}`
 
   const dateRange = {
     startAt: new Date("2026-01-01T00:00:00.000Z").getTime(),
@@ -42,7 +42,7 @@ describe("Projects Analytics - Auth", () => {
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [ProjectsAnalyticsModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
@@ -56,7 +56,7 @@ describe("Projects Analytics - Auth", () => {
     organizationId = RandomUuid.Organization
     projectId = RandomUuid.Project
     accessToken = "token"
-    auth0Id = `auth0|${randomUUID()}`
+    authSubject = `oidc|${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -66,7 +66,7 @@ describe("Projects Analytics - Auth", () => {
 
   const createContextForRole = async (role: "owner" | "admin" | "member" = "owner") => {
     const { organization, project, user } = await createOrganizationWithProject(repositories, {
-      user: { auth0Id },
+      user: { authSubject },
       projectMembership: { role },
     })
     organizationId = organization.id
@@ -110,7 +110,7 @@ describe("Projects Analytics - Auth", () => {
 
   it("requires the user to be a member of the organization", async () => {
     await createContextForRole("owner")
-    auth0Id = mockForeignAuth0Id()
+    authSubject = mockForeignAuthSubject()
     expectResponse(await subjectConversations(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     expectResponse(await subjectAvg(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
   })

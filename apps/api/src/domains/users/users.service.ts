@@ -1,13 +1,13 @@
 import { BadRequestException, Injectable, UnauthorizedException } from "@nestjs/common"
 import { AUTH_ERRORS } from "@/common/errors/auth-errors"
-import { normalizeAuth0Name } from "@/domains/auth/auth0-userinfo.helper"
-import type { Auth0UserInfoResponse } from "@/domains/auth/auth0-userinfo.service"
+import { getOidcEmailLinkingPolicy, type OidcEmailLinkingPolicy } from "@/domains/auth/oidc-config"
+import { normalizeOidcName, type OidcUserInfo } from "@/domains/auth/oidc-userinfo.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { UserMembershipRepository } from "@/domains/memberships/user-membership.repository"
 import {
-  buildServiceUserAuth0Id,
+  buildServiceUserAuthSubject,
   buildServiceUserEmail,
-  isServiceAuth0Id,
+  isServiceAuthSubject,
   isServiceUser,
   isServiceUserEmail,
 } from "./service-user.helpers"
@@ -23,8 +23,8 @@ export class UsersService {
     private readonly userMembershipRepository: UserMembershipRepository,
   ) {}
 
-  async findByAuth0Id(auth0Id: string): Promise<User | null> {
-    return this.userRepository.findByAuth0Id(auth0Id)
+  async findByAuthSubject(authSubject: string): Promise<User | null> {
+    return this.userRepository.findByAuthSubject(authSubject)
   }
   async findByEmail(email: string): Promise<User | null> {
     return this.userRepository.findByEmail(email)
@@ -34,24 +34,27 @@ export class UsersService {
     return this.userRepository.findById(id)
   }
 
-  async create(auth0UserInfo: Auth0UserInfoResponse): Promise<User> {
-    if (!auth0UserInfo.email) {
-      throw new Error("Email is required from Auth0 token")
-    }
-    this.assertHumanAuth0Login({ sub: auth0UserInfo.sub, email: auth0UserInfo.email })
-
+  /**
+   * Returns the human account for this email, creating one that has never
+   * signed in when the email is unknown. Access given to it is picked up at
+   * the person's first OIDC sign-in with the same email.
+   */
+  async findOrCreateByEmail(params: { email: string; name?: string | null }): Promise<User> {
+    const email = normalizeEmail(params.email)
+    const existingUser = await this.userRepository.findByEmail(email)
+    if (existingUser) return existingUser
     return this.userRepository.createUser({
-      auth0Id: auth0UserInfo.sub,
-      email: auth0UserInfo.email,
-      name: auth0UserInfo.name || null,
-      pictureUrl: auth0UserInfo.picture || null,
+      authSubject: null,
+      email,
+      name: params.name?.trim() || null,
+      pictureUrl: null,
       type: USER_TYPE_HUMAN,
     })
   }
 
   async createServiceUser(params: { appSlug: string; installationId: string }): Promise<User> {
     return this.userRepository.createUser({
-      auth0Id: buildServiceUserAuth0Id(params.installationId),
+      authSubject: buildServiceUserAuthSubject(params.installationId),
       email: buildServiceUserEmail(params.appSlug, params.installationId),
       name: params.appSlug,
       pictureUrl: null,
@@ -84,55 +87,82 @@ export class UsersService {
     return updated
   }
 
+  /**
+   * Resolves the account behind an OIDC sign-in.
+   *
+   * A known `sub` is enough. On a first sign-in the userinfo claims decide:
+   * an existing account with the same email (someone added by email, or an
+   * account moved from another provider) is linked when the provider reports
+   * the email as verified and linking is allowed; otherwise a new account
+   * without any access is created.
+   */
   async findOrCreate({
     sub,
     getUserInfo,
+    emailLinkingPolicy = getOidcEmailLinkingPolicy(),
   }: {
-    sub: Auth0UserInfoResponse["sub"]
-    getUserInfo: () => Promise<Auth0UserInfoResponse>
+    sub: OidcUserInfo["sub"]
+    getUserInfo: () => Promise<OidcUserInfo>
+    emailLinkingPolicy?: OidcEmailLinkingPolicy
   }): Promise<User> {
-    this.assertHumanAuth0Login({ sub })
+    this.assertHumanLogin({ sub })
 
-    let user = await this.findByAuth0Id(sub)
-    this.assertHumanAuth0Login({ sub, user })
+    const knownUser = await this.findByAuthSubject(sub)
+    this.assertHumanLogin({ sub, user: knownUser })
+    if (knownUser) return knownUser
 
-    if (!user) {
-      const auth0UserInfo = await getUserInfo()
+    const oidcUserInfo = await getUserInfo()
+    if (oidcUserInfo.sub !== sub) {
+      // OpenID Connect Core 1.0, section 5.3.2: the userinfo `sub` must match the token's.
+      throw new UnauthorizedException(AUTH_ERRORS.INVALID_ACCESS_TOKEN)
+    }
+    if (!oidcUserInfo.email) {
+      throw new UnauthorizedException(AUTH_ERRORS.EMAIL_REQUIRED)
+    }
+    const email = normalizeEmail(oidcUserInfo.email)
+    this.assertHumanLogin({ sub, email })
 
-      if (!auth0UserInfo.email) {
-        throw new UnauthorizedException("Email is required from Auth0 token")
+    const name = normalizeOidcName(oidcUserInfo.name, email) ?? null
+    const pictureUrl = oidcUserInfo.picture || null
+
+    const userWithSameEmail = await this.findByEmail(email)
+    this.assertHumanLogin({ sub, email, user: userWithSameEmail })
+
+    if (userWithSameEmail) {
+      if (!emailLinkingPolicy.allowEmailLinking) {
+        throw new UnauthorizedException(AUTH_ERRORS.EMAIL_LINKING_DISABLED)
       }
-      this.assertHumanAuth0Login({ sub: auth0UserInfo.sub, email: auth0UserInfo.email })
-
-      user = await this.findByEmail(auth0UserInfo.email)
-      this.assertHumanAuth0Login({ sub: auth0UserInfo.sub, email: auth0UserInfo.email, user })
-
-      if (user) {
-        return this.userRepository.linkAuth0Identity({
-          user,
-          auth0Id: auth0UserInfo.sub,
-          name: normalizeAuth0Name(auth0UserInfo.name, auth0UserInfo.email) ?? null,
-          pictureUrl: auth0UserInfo.picture || null,
-        })
+      if (oidcUserInfo.email_verified !== true && !emailLinkingPolicy.trustUnverifiedEmail) {
+        throw new UnauthorizedException(AUTH_ERRORS.EMAIL_NOT_VERIFIED)
       }
-
-      user = await this.create({
-        sub: auth0UserInfo.sub,
-        email: auth0UserInfo.email,
-        name: normalizeAuth0Name(auth0UserInfo.name, auth0UserInfo.email),
-        picture: auth0UserInfo.picture,
+      return this.userRepository.linkIdentity({
+        user: userWithSameEmail,
+        authSubject: sub,
+        name,
+        pictureUrl,
       })
     }
-    return user
+
+    return this.userRepository.createUser({
+      authSubject: sub,
+      email,
+      name,
+      pictureUrl,
+      type: USER_TYPE_HUMAN,
+    })
   }
 
-  private assertHumanAuth0Login(params: { sub: string; email?: string; user?: User | null }): void {
+  private assertHumanLogin(params: { sub: string; email?: string; user?: User | null }): void {
     if (
-      isServiceAuth0Id(params.sub) ||
+      isServiceAuthSubject(params.sub) ||
       (params.email !== undefined && isServiceUserEmail(params.email)) ||
       (params.user != null && isServiceUser(params.user))
     ) {
       throw new UnauthorizedException(AUTH_ERRORS.SERVICE_USERS_CANNOT_AUTHENTICATE)
     }
   }
+}
+
+function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase()
 }

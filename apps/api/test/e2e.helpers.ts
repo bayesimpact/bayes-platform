@@ -2,27 +2,27 @@ import { randomUUID } from "node:crypto"
 import { UnauthorizedException } from "@nestjs/common"
 import type { TestingModuleBuilder } from "@nestjs/testing"
 import { AUTH_ERRORS } from "@/common/errors/auth-errors"
-import { Auth0UserInfoService } from "@/domains/auth/auth0-userinfo.service"
-import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
+import { OidcUserInfoService } from "@/domains/auth/oidc-userinfo.service"
 
-/** Email returned by the test Auth0UserInfo mock for a given `sub` (must match seeded invite / user rows). */
-export function mockAuth0EmailForSub(sub: string): string {
+/** Email returned by the test OidcUserInfoService mock for a given `sub` (must match seeded user rows). */
+export function mockOidcEmailForSub(sub: string): string {
   return `e2e+${sub.replaceAll("|", "-")}@example.com`
 }
 
-/** Distinct Auth0 `sub` for "wrong user" e2e cases (avoids duplicate rows under parallel workers). */
-export function mockForeignAuth0Id(): string {
-  return `auth0|foreign-${randomUUID()}`
+/** Distinct OIDC `sub` for "wrong user" e2e cases (avoids duplicate rows under parallel workers). */
+export function mockForeignAuthSubject(): string {
+  return `oidc|foreign-${randomUUID()}`
 }
 
-function createAuth0UserInfoServiceMock(buildAuth0Id: () => string) {
+function createOidcUserInfoServiceMock(buildAuthSubject: () => string) {
   return {
     getUserInfo: jest.fn().mockImplementation(() => {
-      const sub = buildAuth0Id()
+      const sub = buildAuthSubject()
       return Promise.resolve({
         sub,
-        email: mockAuth0EmailForSub(sub),
+        email: mockOidcEmailForSub(sub),
+        email_verified: true,
         name: "Test User",
         picture: "http://picture.url",
       })
@@ -30,22 +30,11 @@ function createAuth0UserInfoServiceMock(buildAuth0Id: () => string) {
   }
 }
 
-let mockTicketCounter = 0
-export const mockInvitationSender = {
-  sendInvitation: jest.fn().mockImplementation(() => {
-    mockTicketCounter += 1
-    return Promise.resolve({ ticketId: `ticket_${mockTicketCounter}` })
-  }),
-  resetTicketCounter: () => {
-    mockTicketCounter = 0
-  },
-}
-
 export const setupUserGuardForTesting = (
   moduleBuilder: TestingModuleBuilder,
-  buildAuth0Id: () => string,
+  buildAuthSubject: () => string,
 ): TestingModuleBuilder => {
-  const auth0UserInfoServiceMock = createAuth0UserInfoServiceMock(buildAuth0Id)
+  const oidcUserInfoServiceMock = createOidcUserInfoServiceMock(buildAuthSubject)
   return moduleBuilder
     .overrideGuard(JwtAuthGuard)
     .useValue({
@@ -56,12 +45,10 @@ export const setupUserGuardForTesting = (
         if (!accessToken) {
           throw new UnauthorizedException(AUTH_ERRORS.NO_ACCESS_TOKEN)
         }
-        request.user = { sub: buildAuth0Id() }
+        request.user = { sub: buildAuthSubject() }
         return true
       },
     })
-    .overrideProvider(Auth0UserInfoService)
-    .useValue(auth0UserInfoServiceMock)
-    .overrideProvider(INVITATION_SENDER)
-    .useValue(mockInvitationSender)
+    .overrideProvider(OidcUserInfoService)
+    .useValue(oidcUserInfoServiceMock)
 }

@@ -13,7 +13,6 @@ import type { User } from "@/domains/users/user.entity"
 import { userFactory } from "@/domains/users/user.factory"
 import type { Project } from "../project.entity"
 import type { ProjectMembershipFixture, ProjectMembershipRole } from "./project-membership.types"
-import { PLACEHOLDER_AUTH0_ID_PREFIX } from "./project-memberships.service"
 
 type ProjectMembershipTransientParams = {
   project: Project
@@ -112,7 +111,7 @@ export const addUserToProject = async ({
   return await createMembership(newUser)
 }
 
-export const inviteUserToProject = async ({
+export const addMemberByEmailToProject = async ({
   repositories,
   organization,
   project,
@@ -128,29 +127,28 @@ export const inviteUserToProject = async ({
   projectMembership?: Partial<ProjectMembershipFixture>
 }) => {
   user = user ?? {
-    email: "invited@example.com",
-    name: "Invited User",
-    auth0Id: `${PLACEHOLDER_AUTH0_ID_PREFIX}-test`,
+    email: "added@example.com",
+    name: "Added User",
+    authSubject: null,
   }
-  const invitedUser = userFactory.build(user)
-  await repositories.userRepository.save(invitedUser)
+  const addedUser = userFactory.build(user)
+  await repositories.userRepository.save(addedUser)
 
   if (organization) {
     await saveOrgMembership({
       repositories,
       membership: organizationMembershipFactory
-        .transient({ user: invitedUser, organization })
+        .transient({ user: addedUser, organization })
         .build(organizationMembership),
     })
   }
 
-  const invitationToken = randomUUID()
   const membership = await saveProjectMembership({
     repositories,
     membership: projectMembershipFactory
-      .transient({ project, user: invitedUser })
+      .transient({ project, user: addedUser })
       .build(projectMembership),
   })
 
-  return { membership, invitedUser, invitationToken }
+  return { membership, addedUser }
 }

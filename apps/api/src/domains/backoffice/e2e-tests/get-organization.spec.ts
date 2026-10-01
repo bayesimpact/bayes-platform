@@ -13,7 +13,7 @@ import {
   createOrganizationWithAgent,
 } from "@/domains/organizations/organization.factory"
 import { RbacModule } from "@/domains/rbac/rbac.module"
-import { mockAuth0EmailForSub, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
+import { mockOidcEmailForSub, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import {
   assignPlatformSuperadminToUser,
   ensureRbacCatalog,
@@ -27,12 +27,12 @@ describe("Backoffice - get organization", () => {
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
   let repositories: AllRepositories
 
-  let auth0Id = `auth0|${randomUUID()}`
+  let authSubject = `oidc|${randomUUID()}`
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [BackofficeModule, RbacModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
@@ -43,7 +43,7 @@ describe("Backoffice - get organization", () => {
 
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
-    auth0Id = `auth0|${randomUUID()}`
+    authSubject = `oidc|${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -52,9 +52,9 @@ describe("Backoffice - get organization", () => {
   })
 
   const createAuthorizedContext = async () => {
-    const email = mockAuth0EmailForSub(auth0Id)
+    const email = mockOidcEmailForSub(authSubject)
     const context = await createOrganizationWithAgent(repositories, {
-      user: { auth0Id, email },
+      user: { authSubject, email },
     })
     await assignPlatformSuperadminToUser({ repositories, user: context.user })
     return context

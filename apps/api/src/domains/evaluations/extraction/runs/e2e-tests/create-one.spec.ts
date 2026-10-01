@@ -32,12 +32,12 @@ describe("EvaluationExtractionRuns - createOne", () => {
   let organizationId: string
   let projectId: string
   let accessToken: string | undefined = "token"
-  let auth0Id = "auth0|123"
+  let authSubject = "oidc|123"
 
   beforeAll(async () => {
     setup = await setupTransactionalTestDatabase({
       additionalImports: [EvaluationsModule, ActivitiesModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
     evaluationExtractionRunRepository = setup.getRepository(EvaluationExtractionRun)
@@ -51,7 +51,7 @@ describe("EvaluationExtractionRuns - createOne", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = "auth0|123"
+    authSubject = "oidc|123"
   })
 
   afterAll(async () => {
@@ -72,7 +72,7 @@ describe("EvaluationExtractionRuns - createOne", () => {
     )
     organizationId = organization.id
     projectId = project.id
-    auth0Id = user.auth0Id
+    authSubject = user.authSubject!
 
     const dataset = evaluationExtractionDatasetFactory
       .transient({ organization, project })

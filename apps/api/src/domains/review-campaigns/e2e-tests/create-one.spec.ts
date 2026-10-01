@@ -10,7 +10,6 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { agentFactory } from "@/domains/agents/agent.factory"
-import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
 import {
   createOrganizationWithAgent,
   createOrganizationWithProject,
@@ -18,10 +17,6 @@ import {
 import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { ReviewCampaignsModule } from "../review-campaigns.module"
-
-const mockInvitationSender = {
-  sendInvitation: jest.fn().mockResolvedValue({ ticketId: "ticket-create" }),
-}
 
 describe("ReviewCampaigns - createOne", () => {
   let app: INestApplication<App>
@@ -32,15 +27,12 @@ describe("ReviewCampaigns - createOne", () => {
   let organizationId: string = randomUUID()
   let projectId: string = randomUUID()
   let accessToken: string = "token"
-  let auth0Id = `auth0|${randomUUID()}`
+  let authSubject = `oidc|${randomUUID()}`
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [ReviewCampaignsModule],
-      applyOverrides: (moduleBuilder) =>
-        setupUserGuardForTesting(moduleBuilder, () => auth0Id)
-          .overrideProvider(INVITATION_SENDER)
-          .useValue(mockInvitationSender),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
     app = setup.module.createNestApplication()
@@ -51,7 +43,7 @@ describe("ReviewCampaigns - createOne", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = `auth0|${randomUUID()}`
+    authSubject = `oidc|${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -61,7 +53,7 @@ describe("ReviewCampaigns - createOne", () => {
 
   const createContext = async () => {
     const { organization, project, agent } = await createOrganizationWithAgent(repositories, {
-      user: { auth0Id },
+      user: { authSubject },
     })
     organizationId = organization.id
     projectId = project.id

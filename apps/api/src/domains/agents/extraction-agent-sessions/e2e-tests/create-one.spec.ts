@@ -38,14 +38,14 @@ describe("ExtractionAgentSessionsRoutes.createOne", () => {
   let agentId: string
   let documentId: string
   let accessToken: string | undefined = "token"
-  let auth0Id = "auth0|123"
+  let authSubject = "oidc|123"
   let expectActivityCreated: ReturnType<typeof bindExpectActivityCreated>
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [AgentsModule, ActivitiesModule],
       applyOverrides: (moduleBuilder) =>
-        setupUserGuardForTesting(moduleBuilder, () => auth0Id)
+        setupUserGuardForTesting(moduleBuilder, () => authSubject)
           .overrideProvider("_MockLLMProvider")
           .useValue(mockLlmProvider)
           .overrideProvider(EXTRACTION_AGENT_SESSION_BATCH_SERVICE)
@@ -61,7 +61,7 @@ describe("ExtractionAgentSessionsRoutes.createOne", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = "auth0|123"
+    authSubject = "oidc|123"
     jest.clearAllMocks()
   })
 
@@ -96,7 +96,7 @@ describe("ExtractionAgentSessionsRoutes.createOne", () => {
     projectId = project.id
     agentId = agent.id
     documentId = document.id
-    auth0Id = user.auth0Id
+    authSubject = user.authSubject!
   }
 
   const subject = async (payload?: typeof ExtractionAgentSessionsRoutes.executeOne.request) =>

@@ -56,7 +56,7 @@ describe("registerWebApp", () => {
 
   beforeAll(async () => {
     process.env.WEB_APP_TITLE = "Acme Platform"
-    process.env.WEB_AUTH0_CLIENT_ID = "spa-client"
+    process.env.WEB_OIDC_CLIENT_ID = "spa-client"
     app = await createApp(buildDist())
   })
 
@@ -71,7 +71,7 @@ describe("registerWebApp", () => {
     expect(response.headers["content-type"]).toMatch(/text\/html/)
     expect(response.headers["cache-control"]).toBe("no-store")
     expect(response.headers["permissions-policy"]).toBe("microphone=(self)")
-    expect(response.text).toContain('"auth0ClientId":"spa-client"')
+    expect(response.text).toContain('"oidcClientId":"spa-client"')
     expect(response.text).toContain('"apiUrl":"/api"')
     expect(response.text).toContain("<title>Acme Platform</title>")
   })

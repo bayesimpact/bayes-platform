@@ -1,27 +1,38 @@
-import { Auth0Provider } from "@auth0/auth0-react"
 import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
+import { AuthProvider } from "react-oidc-context"
 import { Provider } from "react-redux"
 import App from "./App.tsx"
 import { RouteNames } from "./common/routes/helpers.ts"
 import { store } from "./common/store/index.ts"
-import { auth0ProviderConfig } from "./config/auth0.config.ts"
 import { getAppPathname } from "./config/runtime-config.ts"
+import { getUserManager } from "./external/oidcClient.ts"
 import "./i18n"
 import "./index.css"
+
+/** Drops `code` and `state` from the URL once the sign-in is complete. */
+function removeSigninParamsFromUrl(): void {
+  const url = new URL(window.location.href)
+  url.searchParams.delete("code")
+  url.searchParams.delete("state")
+  url.searchParams.delete("session_state")
+  url.searchParams.delete("iss")
+  window.history.replaceState(window.history.state, "", url.toString())
+}
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <Provider store={store}>
-      <Auth0Provider
-        {...auth0ProviderConfig}
-        // Auth0 also uses ?code=&state= in its callbacks, so by default the SDK
+      <AuthProvider
+        userManager={getUserManager()}
+        onSigninCallback={removeSigninParamsFromUrl}
+        // The OIDC callback uses ?code=&state=, so by default the provider
         // consumes those params on ANY page load. The MCP OAuth callback carries
         // a third-party code/state pair that must reach our own handler intact.
-        skipRedirectCallback={getAppPathname() === RouteNames.MCP_OAUTH_CALLBACK}
+        skipSigninCallback={getAppPathname() === RouteNames.MCP_OAUTH_CALLBACK}
       >
         <App />
-      </Auth0Provider>
+      </AuthProvider>
     </Provider>
   </StrictMode>,
 )

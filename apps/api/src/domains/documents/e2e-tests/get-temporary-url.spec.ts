@@ -28,13 +28,13 @@ describe("Documents - getTemporaryUrl", () => {
   let documentId: string
   let storagePath: string
   let accessToken: string | undefined = "token"
-  let auth0Id = "auth0|123"
+  let authSubject = "oidc|123"
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [DocumentsModule],
       applyOverrides: (moduleBuilder) =>
-        withDocumentAuthAndEmbeddingsMocks(moduleBuilder, () => auth0Id),
+        withDocumentAuthAndEmbeddingsMocks(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
     app = setup.module.createNestApplication()
@@ -45,7 +45,7 @@ describe("Documents - getTemporaryUrl", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = "auth0|123"
+    authSubject = "oidc|123"
   })
 
   afterAll(async () => {
@@ -73,7 +73,7 @@ describe("Documents - getTemporaryUrl", () => {
     projectId = project.id
     documentId = document.id
     storagePath = document.storageRelativePath
-    auth0Id = user.auth0Id
+    authSubject = user.authSubject!
 
     if (isPublic) {
       const documentTagRepository = setup.getRepository(DocumentTag)

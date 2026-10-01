@@ -31,7 +31,7 @@ describe("AgentCsvExtractionRuns - getAll", () => {
   let projectId: string
   let agentId: string
   let accessToken: string | undefined = "token"
-  let auth0Id = "auth0|123"
+  let authSubject = "oidc|123"
 
   const mockBatchService = buildMockBatchService()
   const mockFileStorageService = buildMockFileStorageService()
@@ -40,7 +40,7 @@ describe("AgentCsvExtractionRuns - getAll", () => {
     setup = await setupTransactionalTestDatabase({
       additionalImports: [AgentCsvExtractionRunsModule],
       applyOverrides: (moduleBuilder) =>
-        applyCsvExtractionRunOverrides(moduleBuilder, () => auth0Id, {
+        applyCsvExtractionRunOverrides(moduleBuilder, () => authSubject, {
           batchService: mockBatchService,
           fileStorageService: mockFileStorageService,
         }),
@@ -55,7 +55,7 @@ describe("AgentCsvExtractionRuns - getAll", () => {
     await clearTestDatabase(setup.dataSource)
     jest.clearAllMocks()
     accessToken = "token"
-    auth0Id = "auth0|123"
+    authSubject = "oidc|123"
   })
 
   afterAll(async () => {
@@ -72,11 +72,11 @@ describe("AgentCsvExtractionRuns - getAll", () => {
     })
 
   it("returns an empty list when the agent has no runs", async () => {
-    const context = await createCsvExtractionRunContext({ repositories, auth0Id })
+    const context = await createCsvExtractionRunContext({ repositories, authSubject })
     organizationId = context.organization.id
     projectId = context.project.id
     agentId = context.agent.id
-    auth0Id = context.user.auth0Id
+    authSubject = context.user.authSubject!
 
     const response = await subject("live")
 
@@ -87,11 +87,11 @@ describe("AgentCsvExtractionRuns - getAll", () => {
   it("returns only the runs of the requested type", async () => {
     // The Desk app lists live runs and the Studio playground its own: one surface's runs must
     // never leak into the other.
-    const context = await createCsvExtractionRunContext({ repositories, auth0Id })
+    const context = await createCsvExtractionRunContext({ repositories, authSubject })
     organizationId = context.organization.id
     projectId = context.project.id
     agentId = context.agent.id
-    auth0Id = context.user.auth0Id
+    authSubject = context.user.authSubject!
 
     const liveRun = await createCsvExtractionRun({ repositories, context, type: "live" })
     const playgroundRun = await createCsvExtractionRun({
@@ -114,11 +114,11 @@ describe("AgentCsvExtractionRuns - getAll", () => {
   it("returns only the requesting user's runs", async () => {
     // Extraction lists are per-user, exactly like extraction agent sessions: one member's runs
     // must not show up in a colleague's Desk app.
-    const context = await createCsvExtractionRunContext({ repositories, auth0Id })
+    const context = await createCsvExtractionRunContext({ repositories, authSubject })
     organizationId = context.organization.id
     projectId = context.project.id
     agentId = context.agent.id
-    auth0Id = context.user.auth0Id
+    authSubject = context.user.authSubject!
 
     const myRun = await createCsvExtractionRun({ repositories, context })
     const colleague = userFactory.build()
@@ -134,11 +134,11 @@ describe("AgentCsvExtractionRuns - getAll", () => {
   it("still lists runs created before ownership was tracked", async () => {
     // Rows predating the user_id column have no creator; they stay visible to every member
     // rather than vanishing from all lists.
-    const context = await createCsvExtractionRunContext({ repositories, auth0Id })
+    const context = await createCsvExtractionRunContext({ repositories, authSubject })
     organizationId = context.organization.id
     projectId = context.project.id
     agentId = context.agent.id
-    auth0Id = context.user.auth0Id
+    authSubject = context.user.authSubject!
 
     const legacyRun = await createCsvExtractionRun({ repositories, context, user: null })
 
@@ -149,31 +149,31 @@ describe("AgentCsvExtractionRuns - getAll", () => {
   })
 
   it("rejects a request that does not name a type", async () => {
-    const context = await createCsvExtractionRunContext({ repositories, auth0Id })
+    const context = await createCsvExtractionRunContext({ repositories, authSubject })
     organizationId = context.organization.id
     projectId = context.project.id
     agentId = context.agent.id
-    auth0Id = context.user.auth0Id
+    authSubject = context.user.authSubject!
 
     expectResponse(await subject(), 403)
   })
 
   it("rejects an unknown type", async () => {
-    const context = await createCsvExtractionRunContext({ repositories, auth0Id })
+    const context = await createCsvExtractionRunContext({ repositories, authSubject })
     organizationId = context.organization.id
     projectId = context.project.id
     agentId = context.agent.id
-    auth0Id = context.user.auth0Id
+    authSubject = context.user.authSubject!
 
     expectResponse(await subject("all"), 403)
   })
 
   it("returns only the runs belonging to the requested agent, newest first", async () => {
-    const context = await createCsvExtractionRunContext({ repositories, auth0Id })
+    const context = await createCsvExtractionRunContext({ repositories, authSubject })
     organizationId = context.organization.id
     projectId = context.project.id
     agentId = context.agent.id
-    auth0Id = context.user.auth0Id
+    authSubject = context.user.authSubject!
 
     const older = await createCsvExtractionRun({ repositories, context, status: "completed" })
     older.createdAt = new Date("2024-01-01T00:00:00Z")

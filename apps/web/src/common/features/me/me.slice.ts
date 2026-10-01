@@ -1,19 +1,16 @@
 import { createSlice } from "@reduxjs/toolkit"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
-import type { PendingInvitations } from "@/studio/features/invitations/invitations.models"
 import type { CurrentTerms, User } from "./me.models"
-import { fetchMe, fetchPendingInvitations } from "./me.thunks"
+import { fetchMe } from "./me.thunks"
 
 interface State {
   data: AsyncData<User>
   currentTerms: CurrentTerms | null
-  pendingInvitations: AsyncData<PendingInvitations>
 }
 
 const initialState: State = {
   data: defaultAsyncData,
   currentTerms: null,
-  pendingInvitations: defaultAsyncData,
 }
 
 const slice = createSlice({
@@ -44,23 +41,6 @@ const slice = createSlice({
       })
 
     builder
-      .addCase(fetchPendingInvitations.pending, (state) => {
-        if (!ADS.isFulfilled(state.pendingInvitations))
-          state.pendingInvitations.status = ADS.Loading
-        state.pendingInvitations.error = null
-      })
-      .addCase(fetchPendingInvitations.fulfilled, (state, action) => {
-        state.pendingInvitations = {
-          status: ADS.Fulfilled,
-          error: null,
-          value: action.payload,
-        }
-      })
-      .addCase(fetchPendingInvitations.rejected, (state, action) => {
-        state.pendingInvitations.status = ADS.Error
-        state.pendingInvitations.error =
-          action.error.message || "Failed to fetch pending invitations"
-      })
   },
 })
 

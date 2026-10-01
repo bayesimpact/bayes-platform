@@ -24,9 +24,12 @@ export function withDocumentEmbeddingsBatchServiceMock(
 
 export function withDocumentAuthAndEmbeddingsMocks(
   moduleBuilder: TestingModuleBuilder,
-  getAuth0Id: () => string,
+  getAuthSubject: () => string,
 ): TestingModuleBuilder {
-  return setupUserGuardForTesting(withDocumentEmbeddingsBatchServiceMock(moduleBuilder), getAuth0Id)
+  return setupUserGuardForTesting(
+    withDocumentEmbeddingsBatchServiceMock(moduleBuilder),
+    getAuthSubject,
+  )
 }
 
 function createUrlCrawlingBatchServiceMock() {
@@ -51,7 +54,7 @@ export function withDocumentEmbeddingStatusNotifierMock(
 
 export function withCrawlingAndAuthMocks(
   moduleBuilder: TestingModuleBuilder,
-  getAuth0Id: () => string,
+  getAuthSubject: () => string,
 ): TestingModuleBuilder {
   return setupUserGuardForTesting(
     withUrlCrawlingBatchServiceMock(
@@ -59,6 +62,6 @@ export function withCrawlingAndAuthMocks(
         withDocumentEmbeddingStatusNotifierMock(moduleBuilder),
       ),
     ),
-    getAuth0Id,
+    getAuthSubject,
   )
 }

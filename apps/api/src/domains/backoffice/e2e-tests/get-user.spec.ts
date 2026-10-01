@@ -24,7 +24,7 @@ import {
   saveReviewCampaignMembership,
 } from "@/domains/review-campaigns/memberships/review-campaign-membership.factory"
 import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
-import { mockAuth0EmailForSub, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
+import { mockOidcEmailForSub, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import {
   assignPlatformSuperadminToUser,
   ensureRbacCatalog,
@@ -38,12 +38,12 @@ describe("Backoffice - get user", () => {
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
   let repositories: AllRepositories
 
-  let auth0Id = `auth0|${randomUUID()}`
+  let authSubject = `oidc|${randomUUID()}`
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [BackofficeModule, RbacModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
@@ -54,7 +54,7 @@ describe("Backoffice - get user", () => {
 
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
-    auth0Id = `auth0|${randomUUID()}`
+    authSubject = `oidc|${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -63,9 +63,9 @@ describe("Backoffice - get user", () => {
   })
 
   const createAuthorizedContext = async () => {
-    const email = mockAuth0EmailForSub(auth0Id)
+    const email = mockOidcEmailForSub(authSubject)
     const context = await createOrganizationWithAgent(repositories, {
-      user: { auth0Id, email },
+      user: { authSubject, email },
     })
     await assignPlatformSuperadminToUser({ repositories, user: context.user })
     return context
@@ -152,7 +152,7 @@ describe("Backoffice - get user", () => {
     await createAuthorizedContext()
     const isolatedUser = await repositories.userRepository.save(
       repositories.userRepository.create({
-        auth0Id: `auth0|${randomUUID()}`,
+        authSubject: `oidc|${randomUUID()}`,
         email: `isolated-${randomUUID()}@example.com`,
         name: null,
         pictureUrl: null,

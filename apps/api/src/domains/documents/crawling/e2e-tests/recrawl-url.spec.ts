@@ -28,7 +28,7 @@ describe("Documents - reCrawlUrl", () => {
   let projectId: string
   let documentId: string
   let accessToken: string | undefined = "token"
-  let auth0Id = "auth0|123"
+  let authSubject = "oidc|123"
   let crawlingBatchServiceMock: {
     enqueueCrawlUrl: jest.MockedFunction<UrlCrawlingBatchService["enqueueCrawlUrl"]>
   }
@@ -41,7 +41,7 @@ describe("Documents - reCrawlUrl", () => {
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [DocumentsModule],
-      applyOverrides: (moduleBuilder) => withCrawlingAndAuthMocks(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) => withCrawlingAndAuthMocks(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
     crawlingBatchServiceMock = setup.module.get(URL_CRAWLING_BATCH_SERVICE)
@@ -54,7 +54,7 @@ describe("Documents - reCrawlUrl", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = "auth0|123"
+    authSubject = "oidc|123"
     crawlingBatchServiceMock.enqueueCrawlUrl.mockClear()
     notifierMock.notifyEmbeddingStatusChanged.mockClear()
   })
@@ -75,7 +75,7 @@ describe("Documents - reCrawlUrl", () => {
     const { user, organization, project, document } = await createOrganizationWithDocument(
       repositories,
       {
-        user: { auth0Id },
+        user: { authSubject },
         document: {
           sourceType: "webCrawl",
           sourceUrl:
@@ -127,7 +127,7 @@ describe("Documents - reCrawlUrl", () => {
 
   it("rejects documents that are not webCrawl type", async () => {
     const { organization, project } = await createOrganizationWithDocument(repositories, {
-      user: { auth0Id },
+      user: { authSubject },
       document: { sourceType: "project" },
     })
     organizationId = organization.id

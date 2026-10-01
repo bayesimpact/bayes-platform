@@ -11,10 +11,10 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
-import { mockInvitationSender, setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
+import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { ProjectsModule } from "../../projects.module"
-import { inviteUserToProject } from "../project-membership.factory"
+import { addMemberByEmailToProject } from "../project-membership.factory"
 
 describe("Project membership - deleteOne", () => {
   let app: INestApplication<App>
@@ -26,13 +26,13 @@ describe("Project membership - deleteOne", () => {
   let projectId: string
   let membershipId: string
   let accessToken: string | undefined = "token"
-  let auth0Id = "auth0|123"
+  let authSubject = "oidc|123"
   let expectActivityCreated: ReturnType<typeof bindExpectActivityCreated>
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [ProjectsModule, ActivitiesModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
     expectActivityCreated = bindExpectActivityCreated(repositories.activityRepository)
@@ -44,8 +44,7 @@ describe("Project membership - deleteOne", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = "auth0|123"
-    mockInvitationSender.resetTicketCounter()
+    authSubject = "oidc|123"
     jest.clearAllMocks()
   })
 
@@ -59,17 +58,18 @@ describe("Project membership - deleteOne", () => {
 
     organizationId = organization.id
     projectId = project.id
-    auth0Id = user.auth0Id
+    authSubject = user.authSubject!
 
-    // Create an invited user and membership
-    const { membership, invitedUser } = await inviteUserToProject({
+    // A member who has already signed in
+    const { membership, addedUser } = await addMemberByEmailToProject({
       repositories,
       project,
+      user: { email: "signed-in@example.com", authSubject: "oidc|signed-in" },
       projectMembership: { role: "member" },
     })
     membershipId = membership.id
 
-    return { organization, project, user, invitedUser, membership }
+    return { organization, project, user, addedUser, membership }
   }
 
   const subject = async () =>
@@ -95,36 +95,57 @@ describe("Project membership - deleteOne", () => {
     await expectActivityCreated("projectMembership.delete")
   })
 
-  it("should also delete the placeholder user when removing a pending invitation", async () => {
+  it("should also delete a never-signed-in user when removing their last membership", async () => {
     const { user, organization, project } = await createOrganizationWithProject(repositories)
     organizationId = organization.id
     projectId = project.id
-    auth0Id = user.auth0Id
+    authSubject = user.authSubject!
 
-    const { membership } = await inviteUserToProject({ repositories, project })
+    const { membership } = await addMemberByEmailToProject({ repositories, project })
     membershipId = membership.id
 
     // Now remove the membership
     const response = await subject()
     expectResponse(response, 200)
 
-    // Verify the placeholder user is also deleted
     const deletedUser = await repositories.userRepository.findOne({
       where: { id: membership.userId },
     })
     expect(deletedUser).toBeNull()
   })
 
-  it("should NOT delete a real user when removing their membership", async () => {
-    const { invitedUser } = await createContext()
+  it("should keep a never-signed-in user who still has another membership", async () => {
+    const { user, organization, project } = await createOrganizationWithProject(repositories)
+    organizationId = organization.id
+    projectId = project.id
+    authSubject = user.authSubject!
+
+    const { membership, addedUser } = await addMemberByEmailToProject({
+      repositories,
+      organization,
+      project,
+    })
+    membershipId = membership.id
 
     const response = await subject()
     expectResponse(response, 200)
 
-    // Verify the real user still exists (they have a non-placeholder auth0Id from userFactory)
-    const user = await repositories.userRepository.findOne({
-      where: { id: invitedUser.id },
+    // The organization membership is still there, so the account stays
+    const remainingUser = await repositories.userRepository.findOne({
+      where: { id: addedUser.id },
     })
-    expect(user).toBeDefined()
+    expect(remainingUser).not.toBeNull()
+  })
+
+  it("should NOT delete a real user when removing their membership", async () => {
+    const { addedUser } = await createContext()
+
+    const response = await subject()
+    expectResponse(response, 200)
+
+    const user = await repositories.userRepository.findOne({
+      where: { id: addedUser.id },
+    })
+    expect(user).not.toBeNull()
   })
 })

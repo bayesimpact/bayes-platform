@@ -31,6 +31,11 @@ export default defineConfig({
       redirectToDefaultLocale: false,
     },
   },
+  // Renamed pages keep their old URL working (static meta-refresh pages).
+  redirects: {
+    "/en/accept-an-invitation": "/en/sign-in-for-the-first-time",
+    "/fr/accept-an-invitation": "/fr/sign-in-for-the-first-time",
+  },
   integrations: [mdx(), sitemap()],
   // The site is light-only; Astro's default Shiki theme paints code blocks dark.
   markdown: {

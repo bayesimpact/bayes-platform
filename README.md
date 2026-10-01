@@ -8,7 +8,7 @@ As part of this work, we curate public and community resource datasets and make 
 ![Security](https://github.com/bayesimpact/caseai-connect/actions/workflows/security.yml/badge.svg)
 [![DOI](https://zenodo.org/badge/1198631787.svg?v=1)](https://doi.org/10.5281/zenodo.21533360)
 
-A SaaS platform for building multi-agent systems, built as a Turbo monorepo with a NestJS API and a React web frontend using Auth0 for authentication.
+A SaaS platform for building multi-agent systems, built as a Turbo monorepo with a NestJS API and a React web frontend. Users sign in through any OpenID Connect provider (Keycloak, Dex, Auth0, Okta...).
 
 ## Prerequisites
 
@@ -125,31 +125,24 @@ TRACE_URL_TEMPLATE=https://traces.example.org/redirects/sessions/{traceId}
 # Database
 DATABASE_URL=postgresql://admin:passpass@localhost:5432/caseai_connect
 
-# Auth0
-AUTH0_ISSUER_URL=https://your-tenant.auth0.com/
-AUTH0_AUDIENCE=https://your-tenant.auth0.com/api/v2/
-
-# Auth0 Invitations
-AUTH0_ORGANIZATION_ID=org_XXX
-AUTH0_CLIENT_ID=XXX
-AUTH0_M2M_CLIENT_ID=XXX
-AUTH0_M2M_CLIENT_SECRET=XXX
+# OpenID Connect provider (local Keycloak: see infra/keycloak/README.md)
+OIDC_ISSUER_URL=http://localhost:8080/realms/platform
+# OIDC_AUDIENCE=platform-api
+WEB_OIDC_CLIENT_ID=platform-web
 ```
 
 **Required variables:**
 - `DATABASE_URL` - PostgreSQL connection string
-- `AUTH0_ISSUER_URL` - Auth0 issuer URL
-- `AUTH0_AUDIENCE` - Auth0 API audience
-- `AUTH0_ORGANIZATION_ID` - Auth0 organization ID (single org, see ADR-0001)
-- `AUTH0_CLIENT_ID` - Auth0 web SPA application client ID (used in invitation links)
-- `AUTH0_M2M_CLIENT_ID` - Auth0 M2M application client ID (for Management API)
-- `AUTH0_M2M_CLIENT_SECRET` - Auth0 M2M application client secret
+- `OIDC_ISSUER_URL` - Issuer of the OpenID Connect provider, equal to the `iss` claim of the access tokens
+- `OIDC_AUDIENCE` - Expected `aud` claim, when the provider sets one
 - `APPS_JWT_PRIVATE_KEY` / `APPS_JWT_PUBLIC_KEY` - RS256 PEM pair used to sign App access tokens (literal `\n` is accepted)
 
 **Optional variables:**
 - `GOOGLE_APPLICATION_CREDENTIALS` - Path to Google Cloud service account key (for AI features)
 - `OTEL_EXPORTER_OTLP_ENDPOINT` - OpenTelemetry Collector that receives traces and metrics over OTLP (nothing is exported when unset)
 - `TRACE_URL_TEMPLATE` - Link to a trace in the trace backend, `{traceId}` is replaced by our trace id
+- `OIDC_ALLOW_EMAIL_LINKING` / `OIDC_TRUST_UNVERIFIED_EMAIL` - How a first sign-in is linked to the account of someone added by email (see [ADR 0021](docs/adr/0021-generic-oidc-and-access-by-email.md))
+- `OIDC_AUTHORIZATION_PARAMS` - Extra authorize parameters as a JSON object, for example `{"organization":"org_XXX"}` for an Auth0 organization
 
 #### Web Environment Variables
 
@@ -164,10 +157,9 @@ Edit `.env`:
 # The private API lives under /api on the API origin
 VITE_API_URL=http://localhost:3000/api
 
-# Auth0
-VITE_AUTH0_DOMAIN=your-tenant.auth0.com
-VITE_AUTH0_CLIENT_ID=XXX
-VITE_AUTH0_AUDIENCE=https://your-tenant.auth0.com/api/v2/
+# OpenID Connect provider and the public client of the web app
+VITE_OIDC_AUTHORITY=http://localhost:8080/realms/platform
+VITE_OIDC_CLIENT_ID=platform-web
 ```
 
 **Optional — in-platform help chat:**
@@ -279,7 +271,7 @@ make db-grant-createrole
 
 ### 5. Set Up HTTPS with `connect.localhost` (Recommended)
 
-The invitation flow requires Auth0 redirects that work best with a stable local domain and HTTPS. Both the API and web app auto-detect certificates and enable HTTPS when they are present.
+OIDC redirects work best with a stable local domain and HTTPS. Both the API and web app auto-detect certificates and enable HTTPS when they are present.
 
 #### 5.1 No hosts-file update needed
 
@@ -348,12 +340,7 @@ Once HTTPS is set up, update your `.env` files to use `https://connect.localhost
 VITE_API_URL=https://connect.localhost:3000/api
 ```
 
-**Auth0 Dashboard:**
-
-- Update **Application Login URI** to `https://connect.localhost:5173`
-- Update **Allowed Callback URLs** to include `https://connect.localhost:5173`
-- Update **Allowed Logout URLs** to include `https://connect.localhost:5173`
-- Update **Allowed Web Origins** to include `https://connect.localhost:5173`
+**Identity provider:** the web app client must allow `https://connect.localhost:5173` as redirect URI, post-logout redirect URI and web origin. The local Keycloak realm (`infra/keycloak`) already does.
 
 ### 6. Run the Projects Locally
 
@@ -658,7 +645,7 @@ If port 3000 is already in use:
 - [NestJS Documentation](https://docs.nestjs.com)
 - [TypeORM Documentation](https://typeorm.io)
 - [Turbo Documentation](https://turbo.build/repo/docs)
-- [Auth0 Documentation](https://auth0.com/docs)
+- [OpenID Connect Core 1.0](https://openid.net/specs/openid-connect-core-1_0.html)
 
 ## Citing & credit
 

@@ -28,7 +28,7 @@ describe("EvaluationConversationRuns - streamRunStatus", () => {
   let organizationId: string
   let projectId: string
   let accessToken: string | undefined = "token"
-  let auth0Id = "auth0|123"
+  let authSubject = "oidc|123"
 
   const statusStreamSubject = new Subject<EvaluationConversationRunStatusChangedEventPayload>()
 
@@ -36,7 +36,7 @@ describe("EvaluationConversationRuns - streamRunStatus", () => {
     setup = await setupTransactionalTestDatabase({
       additionalImports: [EvaluationsModule],
       applyOverrides: (moduleBuilder) =>
-        setupUserGuardForTesting(moduleBuilder, () => auth0Id)
+        setupUserGuardForTesting(moduleBuilder, () => authSubject)
           .overrideProvider(EvaluationConversationRunStatusStreamService)
           .useValue({ events$: statusStreamSubject.asObservable() }),
     })
@@ -53,7 +53,7 @@ describe("EvaluationConversationRuns - streamRunStatus", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = "auth0|123"
+    authSubject = "oidc|123"
   })
 
   afterAll(async () => {
@@ -65,7 +65,7 @@ describe("EvaluationConversationRuns - streamRunStatus", () => {
     const { user, organization, project } = await createOrganizationWithProject(repositories)
     organizationId = organization.id
     projectId = project.id
-    auth0Id = user.auth0Id
+    authSubject = user.authSubject!
     return { organization, project }
   }
 

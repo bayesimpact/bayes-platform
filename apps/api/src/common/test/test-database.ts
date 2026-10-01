@@ -259,9 +259,6 @@ SELECT 1;`)
       `)
       await queryRunner.query(`
 WITH
-  del_invitation AS (
-    DELETE FROM "invitation"
-  ),
   del_extraction_agent_session AS (
     DELETE FROM "extraction_agent_session"
   ),

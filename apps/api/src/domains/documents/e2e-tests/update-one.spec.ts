@@ -30,7 +30,7 @@ describe("Documents - updateOne", () => {
   let projectId: string
   let documentId: string
   let accessToken: string | undefined = "token"
-  let auth0Id = `auth0|${randomUUID()}`
+  let authSubject = `oidc|${randomUUID()}`
   let tagAId: string
   let tagBId: string
   let expectActivityCreated: ReturnType<typeof bindExpectActivityCreated>
@@ -39,7 +39,7 @@ describe("Documents - updateOne", () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [DocumentsModule, ActivitiesModule],
       applyOverrides: (moduleBuilder) =>
-        withDocumentAuthAndEmbeddingsMocks(moduleBuilder, () => auth0Id),
+        withDocumentAuthAndEmbeddingsMocks(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
     expectActivityCreated = bindExpectActivityCreated(repositories.activityRepository)
@@ -51,7 +51,7 @@ describe("Documents - updateOne", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = `auth0|${randomUUID()}`
+    authSubject = `oidc|${randomUUID()}`
     organizationId = randomUUID()
     projectId = randomUUID()
     documentId = randomUUID()
@@ -64,7 +64,7 @@ describe("Documents - updateOne", () => {
 
   const createContext = async () => {
     const { organization, project, document } = await createOrganizationWithDocument(repositories, {
-      user: { auth0Id },
+      user: { authSubject },
     })
     organizationId = organization.id
     projectId = project.id

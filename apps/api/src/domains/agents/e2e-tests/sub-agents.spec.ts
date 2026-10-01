@@ -25,12 +25,12 @@ describe("Agents - sub-agents", () => {
   let organizationId: string
   let projectId: string
   let agentId: string
-  let auth0Id = `auth0|${randomUUID()}`
+  let authSubject = `oidc|${randomUUID()}`
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [AgentsModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
     app = setup.module.createNestApplication()
@@ -40,7 +40,7 @@ describe("Agents - sub-agents", () => {
 
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
-    auth0Id = `auth0|${randomUUID()}`
+    authSubject = `oidc|${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -50,12 +50,12 @@ describe("Agents - sub-agents", () => {
 
   const createContext = async () => {
     const { user, organization, project, agent } = await createOrganizationWithAgent(repositories, {
-      user: { auth0Id },
+      user: { authSubject },
     })
     organizationId = organization.id
     projectId = project.id
     agentId = agent.id
-    auth0Id = user.auth0Id
+    authSubject = user.authSubject!
     return { organization, project, agent, user }
   }
 

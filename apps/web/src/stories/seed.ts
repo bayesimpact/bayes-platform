@@ -52,7 +52,6 @@ import type {
 } from "@/studio/features/analytics/project/analytics.models"
 import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"
 import type { Document } from "@/studio/features/documents/documents.models"
-import type { PendingInvitations } from "@/studio/features/invitations/invitations.models"
 import type { McpServer } from "@/studio/features/mcp-servers/mcp-servers.models"
 import type {
   ProjectMemberAgent,
@@ -163,10 +162,6 @@ export const seed = {
 
   me(user: User): StoryPreloadedState {
     return { me: { data: ads.fulfilled(user) } }
-  },
-
-  pendingInvitations(invitations: PendingInvitations): StoryPreloadedState {
-    return { me: { pendingInvitations: ads.fulfilled(invitations) } }
   },
 
   organizations(
@@ -372,10 +367,6 @@ export const seed = {
 
     projectMemberships(memberships: ProjectMembership[]): StoryPreloadedState {
       return { projectMemberships: { data: ads.fulfilled(memberships) } }
-    },
-
-    pendingInvitations(invitations: PendingInvitations): StoryPreloadedState {
-      return { projectMemberships: { pendingInvitations: ads.fulfilled(invitations) } }
     },
 
     projectMemberAgents(memberAgents: ProjectMemberAgent[]): StoryPreloadedState {

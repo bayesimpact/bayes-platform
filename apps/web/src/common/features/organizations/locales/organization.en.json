@@ -9,7 +9,6 @@
       "placeholderName": "Enter organization name",
       "submit": "Create organization",
       "submitting": "Creating organization...",
-      "notAllowed": "You are not allowed to create an organization. Please contact support.",
       "validation": {
         "minNameLength": "Organization name must be at least 3 characters"
       }

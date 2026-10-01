@@ -89,6 +89,7 @@ function toDto(model: ProjectMembershipModel): ProjectMembershipDto {
     userId: model.userId,
     userName: model.user.name,
     userEmail: model.user.email,
+    userHasSignedIn: model.user.authSubject !== null,
     createdAt: model.createdAt.getTime(),
     role: model.role,
   }

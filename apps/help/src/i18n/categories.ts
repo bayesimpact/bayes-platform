@@ -84,8 +84,8 @@ export const categories: Category[] = [
     icon: "users",
     label: { en: "Team & access", fr: "Équipe & accès" },
     description: {
-      en: "Invite people to your workspace and manage who has access.",
-      fr: "Invitez des personnes dans votre espace de travail et gérez les accès.",
+      en: "Add people to your workspace and manage who has access.",
+      fr: "Ajoutez des personnes à votre espace de travail et gérez les accès.",
     },
   },
   {

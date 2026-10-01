@@ -46,12 +46,11 @@ serviceAccount:
 #
 # Keys read by the API and the workers:
 #   MCP_ENCRYPTION_KEY           64 hex chars, encrypts MCP server credentials at rest
-#   AUTH0_M2M_CLIENT_SECRET      Auth0 machine-to-machine client secret
 #   APPS_JWT_PRIVATE_KEY         RSA private PEM, signs App access tokens (literal \n is accepted)
 #   APPS_JWT_PUBLIC_KEY          RSA public PEM, verifies App access tokens
 #   DIAGNOSTICS_SECRET           optional, protects the diagnostics endpoint
 #   SPIDER_API_KEY               optional, web crawling provider (cpu workers)
-#   BULL_BOARD_AUTH0_CLIENT_ID, BULL_BOARD_AUTH0_CLIENT_SECRET, BULL_BOARD_OIDC_SECRET
+#   BULL_BOARD_OIDC_CLIENT_ID, BULL_BOARD_OIDC_CLIENT_SECRET, BULL_BOARD_OIDC_SECRET
 #                                optional, Bull Board login
 #   VLLM_<MODEL>_URL, VLLM_<MODEL>_APIKEY
 #                                one pair per self-hosted model
@@ -68,13 +67,21 @@ secrets:
 config:
   TZ: UTC
   LOG_LEVEL: info
-  # Auth0 is the identity provider.
-  AUTH0_ISSUER_URL: https://example.eu.auth0.com/
-  AUTH0_AUDIENCE: https://example.eu.auth0.com/api/v2/
-  AUTH0_ORGANIZATION_ID: org_example
-  AUTH0_CLIENT_ID: example_client_id
-  AUTH0_M2M_CLIENT_ID: example_m2m_client_id
-  AUTH0_DB_CONNECTION_NAME: Username-Password-Authentication
+  # Any OpenID Connect provider (Keycloak, Dex, Auth0, Okta...). OIDC_ISSUER_URL
+  # must equal the `iss` claim of the access tokens; the JWKS and userinfo
+  # endpoints come from its discovery document.
+  OIDC_ISSUER_URL: https://idp.example.org/realms/platform
+  # Checked against the `aud` claim. Leave empty when the provider sets none.
+  OIDC_AUDIENCE: ""
+  # People added by email get their access at their first sign-in with that
+  # email, when the provider reports it as verified.
+  OIDC_ALLOW_EMAIL_LINKING: "true"
+  # Only for a single-tenant provider the customer fully controls.
+  OIDC_TRUST_UNVERIFIED_EMAIL: "false"
+  # Extra authorize parameters (JSON object of strings) sent by the web app and
+  # Bull Board. An Auth0 application restricted to an organization needs
+  # {"organization":"org_xxx"}.
+  OIDC_AUTHORIZATION_PARAMS: ""
   # Who can create organizations and open the back office. Both values are
   # required: the migrations use them to seed the platform staff and the
   # platform super admins (comma-separated emails).
@@ -341,14 +348,14 @@ phoenix:
       memory: 2Gi
 
 # Runtime configuration of the web front, handed to the browser by the API as
-# window.__CONFIG__ (apps/api/src/common/web-app). The API fills the Auth0
-# domain, audience and organization from its own AUTH0_* settings, and the API
-# URL is /api on the page origin. WEB_AGENT_EMBED_URL and WEB_HELP_CENTER_URL come from
-# `urls`. WEB_AUTH0_CLIENT_ID is the SPA application: always required.
+# window.__CONFIG__ (apps/api/src/common/web-app). The API fills the OIDC
+# authority and audience from its own OIDC_* settings, and the API URL is /api
+# on the page origin. WEB_AGENT_EMBED_URL and WEB_HELP_CENTER_URL come from
+# `urls`. WEB_OIDC_CLIENT_ID is the SPA public client: always required.
 web:
   env:
     WEB_APP_TITLE: Bayes platform
-    WEB_AUTH0_CLIENT_ID: example_spa_client_id
+    WEB_OIDC_CLIENT_ID: platform-web
     # Optional in-app help bubble (an agent of this platform, embedded).
     WEB_HELP_AGENT_EMBED_TOKEN: ""
     WEB_HELP_AGENT_EMBED_COLOR: ""

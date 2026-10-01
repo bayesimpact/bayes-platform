@@ -11,7 +11,6 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
-import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
@@ -22,10 +21,6 @@ import {
 } from "../../memberships/review-campaign-membership.factory"
 import { reviewCampaignFactory } from "../../review-campaign.factory"
 import { ReviewCampaignsModule } from "../../review-campaigns.module"
-
-const mockInvitationSender = {
-  sendInvitation: jest.fn().mockResolvedValue({ ticketId: "ticket-reviewer-auth" }),
-}
 
 describe("ReviewCampaigns - Reviewer auth", () => {
   let app: INestApplication<App>
@@ -38,15 +33,12 @@ describe("ReviewCampaigns - Reviewer auth", () => {
   let reviewCampaignId: string | null = randomUUID()
   let sessionId: string = randomUUID()
   let accessToken: string | null = "token"
-  let auth0Id = `auth0|${randomUUID()}`
+  let authSubject = `oidc|${randomUUID()}`
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [ReviewCampaignsModule],
-      applyOverrides: (moduleBuilder) =>
-        setupUserGuardForTesting(moduleBuilder, () => auth0Id)
-          .overrideProvider(INVITATION_SENDER)
-          .useValue(mockInvitationSender),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
     app = setup.module.createNestApplication()
@@ -61,7 +53,7 @@ describe("ReviewCampaigns - Reviewer auth", () => {
     reviewCampaignId = randomUUID()
     sessionId = randomUUID()
     accessToken = "token"
-    auth0Id = `auth0|${randomUUID()}`
+    authSubject = `oidc|${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -83,7 +75,7 @@ describe("ReviewCampaigns - Reviewer auth", () => {
       agentSettings,
       user: caller,
     } = await createOrganizationWithAgent(repositories, {
-      user: { auth0Id },
+      user: { authSubject },
       agent: { type: "conversation" },
     })
     const tester = await repositories.userRepository.save(

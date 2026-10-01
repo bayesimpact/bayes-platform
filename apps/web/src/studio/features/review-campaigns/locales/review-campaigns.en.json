@@ -2,16 +2,16 @@
   "reviewCampaigns": {
     "reviewCampaigns": "Review campaigns",
     "title": "Review campaigns",
-    "subtitle": "Evaluate agents with invited testers and reviewers.",
+    "subtitle": "Evaluate agents with testers and reviewers.",
     "new": "New campaign",
     "loading": "Loading…",
     "dashboardCard": {
       "title": "Review campaigns",
-      "description": "Invite testers and reviewers to evaluate an agent."
+      "description": "Ask testers and reviewers to evaluate an agent."
     },
     "empty": {
       "title": "No review campaigns yet",
-      "description": "Create a campaign to invite testers and reviewers to evaluate an agent."
+      "description": "Create a campaign so testers and reviewers can evaluate an agent."
     },
     "table": {
       "name": "Name",
@@ -31,10 +31,10 @@
     "editor": {
       "createTitle": "New review campaign",
       "editTitle": "Edit review campaign",
-      "createDescription": "Configure the agent, questions, and invitees before activating.",
+      "createDescription": "Configure the agent, questions, and participants before activating.",
       "editDescription": "Manage configuration, participants, and lifecycle.",
-      "noticeSaveFirst": "Save the campaign first — invitations send a real email and need a persisted campaign.",
-      "noticeActivateFirst": "Activate the campaign before inviting participants — otherwise invitees would accept and land on a campaign that doesn't yet appear in their list.",
+      "noticeSaveFirst": "Save the campaign first, then add participants.",
+      "noticeActivateFirst": "Activate the campaign before adding participants, so they find it in their list when they sign in.",
       "tabs": {
         "summary": "Summary",
         "general": "General",
@@ -67,17 +67,27 @@
       "campaignNameNoAgent": "New review campaign — {{date}}",
       "description": "Evaluate the agent's answers and share your feedback.",
       "perSession": {
-        "q1": { "prompt": "Was the agent's answer clear?" },
+        "q1": {
+          "prompt": "Was the agent's answer clear?"
+        },
         "q2": {
           "prompt": "Did the agent address your question?",
-          "options": { "yes": "Yes", "partially": "Partially", "no": "No" }
+          "options": {
+            "yes": "Yes",
+            "partially": "Partially",
+            "no": "No"
+          }
         }
       },
       "endOfPhase": {
-        "q1": { "prompt": "Overall satisfaction with this agent?" }
+        "q1": {
+          "prompt": "Overall satisfaction with this agent?"
+        }
       },
       "reviewer": {
-        "q1": { "prompt": "Were the agent's answers factually correct?" }
+        "q1": {
+          "prompt": "Were the agent's answers factually correct?"
+        }
       }
     },
     "questions": {
@@ -114,29 +124,23 @@
       "empty": "No questions yet."
     },
     "participants": {
-      "inviteTitle": "Invite participants",
       "emailsLabel": "Emails (comma or newline separated)",
       "emailsPlaceholder": "alice@example.com, bob@example.com",
       "roleLabel": "Role",
       "tester": "Tester",
       "reviewer": "Reviewer",
-      "send": "Send invitations",
-      "empty": "No participants invited yet.",
+      "empty": "No participants yet.",
       "email": "Email",
-      "invited": "Invited",
-      "accepted": "Accepted",
       "actions": "Actions",
-      "pending": "pending",
       "revoke": "Revoke",
-      "pendingInvitations": {
-        "title": "Pending invitations",
-        "description": "Invitations already sent for this review campaign."
-      },
       "revokeDialog": {
         "title": "Revoke {{email}}?",
         "description": "This will remove the participant from the campaign. This action cannot be undone.",
         "confirm": "Revoke"
-      }
+      },
+      "addTitle": "Add participants",
+      "accessHint": "People get access right away. They sign in with your organization's account.",
+      "status": "Status"
     },
     "preview": {
       "perSessionTitle": "After each session",
@@ -167,7 +171,7 @@
     "dialogs": {
       "activate": {
         "title": "Activate “{{name}}”?",
-        "description": "Once activated, the configuration (agent, questions) is locked and the campaign is visible to invited testers and reviewers. You can still invite more participants.",
+        "description": "Once activated, the configuration (agent, questions) is locked and the campaign is visible to its testers and reviewers. You can still add more participants.",
         "confirm": "Activate"
       },
       "close": {
@@ -189,8 +193,8 @@
       "updateError": "Review campaign update failed",
       "deleteSuccess": "Review campaign deleted successfully",
       "deleteError": "Review campaign deletion failed",
-      "inviteSuccess": "Invitations sent",
-      "inviteError": "Failed to send invitations",
+      "addParticipantsSuccess": "Participants added",
+      "addParticipantsError": "Failed to add participants",
       "revokeSuccess": "Membership revoked",
       "revokeError": "Failed to revoke membership"
     },

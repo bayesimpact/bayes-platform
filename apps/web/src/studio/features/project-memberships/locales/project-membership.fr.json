@@ -14,35 +14,28 @@
     },
     "profile": {
       "joined": "A rejoint {{date}}",
-      "invited": "Invité {{date}}",
       "remove": "Retirer le membre",
       "agent": "Agent",
       "agentRole": "Rôle",
       "noAccess": "Pas d'accès",
       "noAgents": "Ce projet n'a aucun agent."
     },
-    "statuses": {
-      "sent": "Envoyé",
-      "accepted": "Accepté"
-    },
     "create": {
-      "button": "Inviter un administrateur",
-      "title": "Inviter un administrateur",
-      "description": "Entrez l'adresse email de la personne que vous souhaitez inviter à rejoindre votre espace de travail.",
+      "button": "Ajouter des administrateurs",
+      "title": "Ajouter des administrateurs",
+      "description": "Entrez l'adresse email des personnes qui doivent gérer cet espace de travail.",
       "label": "Adresse email",
-      "placeholder": "Entrez l'adresse email"
-    },
-    "pendingInvitations": {
-      "title": "Invitations en attente",
-      "description": "Invitations déjà envoyées pour ce projet."
+      "placeholder": "Entrez une adresse email",
+      "accessHint": "Les personnes ont accès immédiatement. Elles se connectent avec le compte de votre organisation.",
+      "submit": "Donner l'accès"
     },
     "list": {
       "title": "Membres de {{projectName}}",
-      "description": "Invitez des membres à rejoindre votre espace de travail pour collaborer ensemble.",
+      "description": "Ajoutez des membres à votre espace de travail pour collaborer ensemble.",
       "searchPlaceholder": "Rechercher par nom ou email…",
       "empty": {
         "title": "Aucun membre",
-        "description": "Invitez des membres à rejoindre votre espace de travail pour collaborer ensemble."
+        "description": "Ajoutez des administrateurs à votre espace de travail pour collaborer ensemble."
       }
     },
     "remove": {

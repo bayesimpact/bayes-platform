@@ -32,7 +32,7 @@ describe("AgentCsvExtractionRuns - deleteOne", () => {
   let agentId: string
   let agentCsvExtractionRunId: string
   let accessToken: string | undefined = "token"
-  let auth0Id = "auth0|123"
+  let authSubject = "oidc|123"
 
   const mockBatchService = buildMockBatchService()
   const mockFileStorageService = buildMockFileStorageService()
@@ -41,7 +41,7 @@ describe("AgentCsvExtractionRuns - deleteOne", () => {
     setup = await setupTransactionalTestDatabase({
       additionalImports: [AgentCsvExtractionRunsModule, ActivitiesModule],
       applyOverrides: (moduleBuilder) =>
-        applyCsvExtractionRunOverrides(moduleBuilder, () => auth0Id, {
+        applyCsvExtractionRunOverrides(moduleBuilder, () => authSubject, {
           batchService: mockBatchService,
           fileStorageService: mockFileStorageService,
         }),
@@ -57,7 +57,7 @@ describe("AgentCsvExtractionRuns - deleteOne", () => {
     await clearTestDatabase(setup.dataSource)
     jest.clearAllMocks()
     accessToken = "token"
-    auth0Id = "auth0|123"
+    authSubject = "oidc|123"
   })
 
   afterAll(async () => {
@@ -66,7 +66,7 @@ describe("AgentCsvExtractionRuns - deleteOne", () => {
   })
 
   const createContext = async () => {
-    const context = await createCsvExtractionRunContext({ repositories, auth0Id })
+    const context = await createCsvExtractionRunContext({ repositories, authSubject })
     const run = await createCsvExtractionRun({ repositories, context, status: "completed" })
 
     const record = agentCsvExtractionRunRecordFactory
@@ -82,7 +82,7 @@ describe("AgentCsvExtractionRuns - deleteOne", () => {
     projectId = context.project.id
     agentId = context.agent.id
     agentCsvExtractionRunId = run.id
-    auth0Id = context.user.auth0Id
+    authSubject = context.user.authSubject!
   }
 
   const subject = async () =>

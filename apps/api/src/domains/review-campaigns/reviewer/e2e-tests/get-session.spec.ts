@@ -13,7 +13,6 @@ import { agentFactory } from "@/domains/agents/agent.factory"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { conversationFormFactory } from "@/domains/agents/shared/conversation-forms/conversation-form.factory"
-import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
 import {
   createOrganizationWithAgent,
   createOrganizationWithProject,
@@ -28,10 +27,6 @@ import {
 import { reviewCampaignFactory } from "../../review-campaign.factory"
 import { ReviewCampaignsModule } from "../../review-campaigns.module"
 
-const mockInvitationSender = {
-  sendInvitation: jest.fn().mockResolvedValue({ ticketId: "ticket-reviewer-get" }),
-}
-
 describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
   let app: INestApplication<App>
   let request: Requester
@@ -43,15 +38,12 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
   let reviewCampaignId: string = randomUUID()
   let sessionId: string = randomUUID()
   let accessToken: string = "token"
-  let auth0Id = `auth0|reviewer-${randomUUID()}`
+  let authSubject = `oidc|reviewer-${randomUUID()}`
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [ReviewCampaignsModule],
-      applyOverrides: (moduleBuilder) =>
-        setupUserGuardForTesting(moduleBuilder, () => auth0Id)
-          .overrideProvider(INVITATION_SENDER)
-          .useValue(mockInvitationSender),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
     app = setup.module.createNestApplication()
@@ -62,7 +54,7 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = `auth0|reviewer-${randomUUID()}`
+    authSubject = `oidc|reviewer-${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -86,7 +78,7 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
       organization,
       project,
       user: reviewer,
-    } = await createOrganizationWithProject(repositories, { user: { auth0Id } })
+    } = await createOrganizationWithProject(repositories, { user: { authSubject } })
     const tester = await repositories.userRepository.save(
       userFactory.build({ email: `tester-view-${randomUUID()}@example.com` }),
     )
@@ -279,7 +271,7 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
     const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
       repositories,
       {
-        user: { auth0Id },
+        user: { authSubject },
         agent: { type: "conversation" },
       },
     )
@@ -310,7 +302,7 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
           organization,
           project,
           campaign,
-          user: await repositories.userRepository.findOneByOrFail({ auth0Id }),
+          user: await repositories.userRepository.findOneByOrFail({ authSubject }),
         })
         .build(),
     })
@@ -361,7 +353,7 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
       agent: fillFormAgent,
       agentSettings: fillFormAgentSettings,
     } = await createOrganizationWithAgent(repositories, {
-      user: { auth0Id },
+      user: { authSubject },
       agent: { type: "conversation" },
       agentSettings: {
         fillFormEnabled: true,
@@ -389,7 +381,7 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
         })
         .build(),
     )
-    const callerUser = await repositories.userRepository.findOneByOrFail({ auth0Id })
+    const callerUser = await repositories.userRepository.findOneByOrFail({ authSubject })
     await saveReviewCampaignMembership({
       repositories,
       membership: reviewCampaignMembershipFactory

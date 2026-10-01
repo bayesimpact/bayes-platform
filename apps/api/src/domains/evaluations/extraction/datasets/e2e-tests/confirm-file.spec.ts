@@ -29,12 +29,12 @@ describe("EvaluationExtractionDatasets - confirmFile", () => {
   let projectId: string
   let documentId: string
   let accessToken: string | undefined = "token"
-  let auth0Id = "auth0|123"
+  let authSubject = "oidc|123"
 
   beforeAll(async () => {
     setup = await setupTransactionalTestDatabase({
       additionalImports: [EvaluationsModule, ActivitiesModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
@@ -47,7 +47,7 @@ describe("EvaluationExtractionDatasets - confirmFile", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = "auth0|123"
+    authSubject = "oidc|123"
   })
 
   afterAll(async () => {
@@ -59,7 +59,7 @@ describe("EvaluationExtractionDatasets - confirmFile", () => {
     const { user, organization, project } = await createOrganizationWithProject(repositories)
     organizationId = organization.id
     projectId = project.id
-    auth0Id = user.auth0Id
+    authSubject = user.authSubject!
 
     const pendingDocument = evaluationExtractionDatasetDocumentFactory
       .transient({ organization, project })

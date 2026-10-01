@@ -13,7 +13,6 @@ import { agentFactory } from "@/domains/agents/agent.factory"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { conversationFormFactory } from "@/domains/agents/shared/conversation-forms/conversation-form.factory"
-import { INVITATION_SENDER } from "@/domains/auth/invitation-sender.interface"
 import {
   organizationMembershipFactory,
   saveOrgMembership,
@@ -33,10 +32,6 @@ import {
 import { reviewCampaignFactory } from "../../review-campaign.factory"
 import { ReviewCampaignsModule } from "../../review-campaigns.module"
 
-const mockInvitationSender = {
-  sendInvitation: jest.fn().mockResolvedValue({ ticketId: "ticket-report" }),
-}
-
 describe("ReviewCampaigns - Report", () => {
   let app: INestApplication<App>
   let request: Requester
@@ -47,15 +42,12 @@ describe("ReviewCampaigns - Report", () => {
   let projectId: string = randomUUID()
   let reviewCampaignId: string = randomUUID()
   let accessToken: string | null = "token"
-  let auth0Id = `auth0|report-${randomUUID()}`
+  let authSubject = `oidc|report-${randomUUID()}`
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [ReviewCampaignsModule],
-      applyOverrides: (moduleBuilder) =>
-        setupUserGuardForTesting(moduleBuilder, () => auth0Id)
-          .overrideProvider(INVITATION_SENDER)
-          .useValue(mockInvitationSender),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
     app = setup.module.createNestApplication()
@@ -66,7 +58,7 @@ describe("ReviewCampaigns - Report", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = `auth0|report-${randomUUID()}`
+    authSubject = `oidc|report-${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -79,14 +71,14 @@ describe("ReviewCampaigns - Report", () => {
    * tester feedback + two reviewer reviews of differing ratings, one with no
    * feedback), one session from a fillForm-enabled conversation agent, plus
    * an end-of-phase survey. The caller is the project owner (admin). Tests
-   * override auth0Id to flip roles.
+   * override authSubject to flip roles.
    */
   const seedReportableCampaign = async () => {
     const {
       organization,
       project,
       user: owner,
-    } = await createOrganizationWithProject(repositories, { user: { auth0Id } })
+    } = await createOrganizationWithProject(repositories, { user: { authSubject } })
     const tester1 = await repositories.userRepository.save(
       userFactory.build({ email: `tester1-${randomUUID()}@example.com` }),
     )
@@ -374,8 +366,8 @@ describe("ReviewCampaigns - Report", () => {
   it("allows an accepted reviewer to fetch the report", async () => {
     const { reviewerA } = await seedReportableCampaign()
     // Caller is now reviewerA (non-admin). The userGuard override picks up
-    // auth0Id at request time.
-    auth0Id = reviewerA.auth0Id
+    // authSubject at request time.
+    authSubject = reviewerA.authSubject!
 
     const response = await subject()
     expectResponse(response, 200)
@@ -387,7 +379,7 @@ describe("ReviewCampaigns - Report", () => {
     const outsider = await repositories.userRepository.save(
       userFactory.build({ email: `outsider-${randomUUID()}@example.com` }),
     )
-    auth0Id = outsider.auth0Id
+    authSubject = outsider.authSubject!
 
     const response = await subject()
     expectResponse(response, 401)
@@ -416,7 +408,7 @@ describe("ReviewCampaigns - Report", () => {
         .transient({ organization, project, campaign, user: tester })
         .build(),
     })
-    auth0Id = tester.auth0Id
+    authSubject = tester.authSubject!
 
     const response = await subject()
     expectResponse(response, 403)

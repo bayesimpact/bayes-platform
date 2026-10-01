@@ -23,7 +23,6 @@ import { useEffect, useState } from "react"
 import { Controller, useForm, useWatch } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import { z } from "zod"
-import type { PendingInvitations } from "@/studio/features/invitations/invitations.models"
 import { CampaignStatusBadge } from "./CampaignStatusBadge"
 import { CampaignSummaryPanel } from "./CampaignSummaryPanel"
 import { computeAutoCampaignName } from "./campaign-form.shared"
@@ -51,15 +50,13 @@ type Props = {
   agents: CampaignFormAgentOption[]
   defaultValues?: Partial<CampaignFormValues>
   memberships?: ReviewCampaignMembershipDto[]
-  pendingInvitations?: PendingInvitations
   aggregates?: CampaignAggregatesDto | null
   onSubmit: (values: CampaignFormValues) => void
   onActivate?: () => void
   onClose?: () => void
   onDelete?: () => void
-  onInviteMember?: (role: ReviewCampaignMembershipRole, emails: string[]) => void
+  onAddParticipants?: (role: ReviewCampaignMembershipRole, emails: string[]) => void
   onRevokeMember?: (membershipId: string) => void
-  onRevokeInvitation?: (invitationId: string) => void
   onOpenReport?: () => void
 }
 
@@ -69,15 +66,13 @@ export function CampaignForm({
   agents,
   defaultValues,
   memberships = [],
-  pendingInvitations = [],
   aggregates = null,
   onSubmit,
   onActivate,
   onClose,
   onDelete,
-  onInviteMember,
+  onAddParticipants,
   onRevokeMember,
-  onRevokeInvitation,
   onOpenReport,
 }: Props) {
   const { t, i18n } = useTranslation()
@@ -304,11 +299,9 @@ export function CampaignForm({
           ) : (
             <ParticipantsList
               memberships={memberships}
-              pendingInvitations={pendingInvitations}
               disabled={isClosed}
-              onInvite={(role, emails) => onInviteMember?.(role, emails)}
+              onAdd={(role, emails) => onAddParticipants?.(role, emails)}
               onRevoke={(membershipId) => onRevokeMember?.(membershipId)}
-              onRevokeInvitation={(invitationId) => onRevokeInvitation?.(invitationId)}
             />
           )}
         </TabsContent>

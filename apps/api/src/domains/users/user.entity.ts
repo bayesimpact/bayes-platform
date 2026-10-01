@@ -9,8 +9,13 @@ import { USER_TYPE_HUMAN, type UserType } from "./user.types"
 
 @Entity("user")
 export class User extends Base4AllEntity {
-  @Column({ type: "varchar", unique: true, name: "auth0_id" })
-  auth0Id!: string
+  /**
+   * `sub` claim of the user's OIDC identity. Null for a person added by email
+   * who has not signed in yet: the first sign-in with that email links it.
+   * Service users (App installations) use a synthetic `service|...` value.
+   */
+  @Column({ type: "varchar", unique: true, nullable: true, name: "auth_subject" })
+  authSubject!: string | null
 
   @Column({ type: "varchar" })
   email!: string

@@ -11,7 +11,7 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
-import { inviteUserToProject } from "@/domains/projects/memberships/project-membership.factory"
+import { addMemberByEmailToProject } from "@/domains/projects/memberships/project-membership.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { ConversationAgentSessionsModule } from "../conversation-agent-sessions.module"
@@ -27,13 +27,13 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
   let agentId: string
   let agentSettingsId: string
   let accessToken: string | undefined = "token"
-  let auth0Id = "auth0|123"
+  let authSubject = "oidc|123"
   let expectActivityCreated: ReturnType<typeof bindExpectActivityCreated>
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [ConversationAgentSessionsModule, ActivitiesModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
     expectActivityCreated = bindExpectActivityCreated(repositories.activityRepository)
@@ -45,7 +45,7 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = "auth0|123"
+    authSubject = "oidc|123"
   })
 
   afterAll(async () => {
@@ -60,10 +60,11 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
         organizationMembership: { role },
       },
     )
-    const { invitedUser } = await inviteUserToProject({
+    const { addedUser } = await addMemberByEmailToProject({
       repositories,
       organization,
       project,
+      user: { email: "member@example.com", authSubject: "oidc|member" },
       projectMembership: { role },
     })
 
@@ -71,7 +72,7 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
     projectId = project.id
     agentId = agent.id
     agentSettingsId = agentSettings.id
-    auth0Id = invitedUser.auth0Id
+    authSubject = addedUser.authSubject!
   }
 
   const subject = async (payload?: typeof ConversationAgentSessionsRoutes.createOne.request) =>

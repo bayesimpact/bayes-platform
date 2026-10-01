@@ -52,7 +52,7 @@ export default defineConfig(({ mode }) => {
       allowedHosts: ["connect.localhost"],
     },
     // `vite preview` serves the production build locally. Same HTTPS certs
-    // and host as `server` so Auth0 callbacks (configured against
+    // and host as `server` so OIDC callbacks (configured against
     // connect.localhost) keep working when validating prod builds locally.
     // Port 5174 so dev (5173) and preview can run together.
     preview: {

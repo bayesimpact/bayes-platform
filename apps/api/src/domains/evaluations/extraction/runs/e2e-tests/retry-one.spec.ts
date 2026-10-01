@@ -31,7 +31,7 @@ describe("EvaluationExtractionRuns - retryOne", () => {
   let projectId: string
   let evaluationExtractionRunId: string
   let accessToken: string | undefined = "token"
-  let auth0Id = `auth0|${randomUUID()}`
+  let authSubject = `oidc|${randomUUID()}`
 
   const mockRetryRunRecords = jest.fn().mockResolvedValue(undefined)
 
@@ -39,7 +39,7 @@ describe("EvaluationExtractionRuns - retryOne", () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [EvaluationsModule, ActivitiesModule],
       applyOverrides: (moduleBuilder) =>
-        setupUserGuardForTesting(moduleBuilder, () => auth0Id)
+        setupUserGuardForTesting(moduleBuilder, () => authSubject)
           .overrideProvider(EVALUATION_EXTRACTION_RUN_BATCH_SERVICE)
           .useValue({
             enqueueExecuteRun: jest.fn().mockResolvedValue(undefined),
@@ -59,7 +59,7 @@ describe("EvaluationExtractionRuns - retryOne", () => {
     await clearTestDatabase(setup.dataSource)
     mockRetryRunRecords.mockClear()
     accessToken = "token"
-    auth0Id = `auth0|${randomUUID()}`
+    authSubject = `oidc|${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -72,7 +72,7 @@ describe("EvaluationExtractionRuns - retryOne", () => {
     const { user, organization, project, agent, agentSettings } = await createOrganizationWithAgent(
       repositories,
       {
-        user: { auth0Id },
+        user: { authSubject },
         agent: { type: "extraction" },
         agentSettings: {
           outputJsonSchema: { type: "object", properties: { answer: { type: "string" } } },
@@ -83,7 +83,7 @@ describe("EvaluationExtractionRuns - retryOne", () => {
     )
     organizationId = organization.id
     projectId = project.id
-    auth0Id = user.auth0Id
+    authSubject = user.authSubject!
 
     const { datasetRecords, run } = await createRunWithCsvDataset({
       getRepository: setup.getRepository,

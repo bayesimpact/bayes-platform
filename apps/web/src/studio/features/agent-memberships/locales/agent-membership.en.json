@@ -11,27 +11,21 @@
         "emailInvalid": "Invalid email address"
       }
     },
-    "statuses": {
-      "sent": "Sent",
-      "accepted": "Accepted"
-    },
     "create": {
-      "button": "Invite a user",
-      "title": "Invite a user",
-      "description": "Enter the email address of the person you want to invite to join your agent.",
+      "button": "Add users",
+      "title": "Add users",
+      "description": "Enter the email addresses of the people who should use this agent.",
       "label": "Email address",
-      "placeholder": "Enter email address"
-    },
-    "pendingInvitations": {
-      "title": "Pending invitations",
-      "description": "Invitations already sent for this agent."
+      "placeholder": "Enter email address",
+      "accessHint": "People get access right away. They sign in with your organization's account.",
+      "submit": "Give access"
     },
     "list": {
       "title": "Members of {{agentName}}",
-      "description": "Invite users to use your agent.",
+      "description": "Add users who can use your agent.",
       "empty": {
         "title": "No members",
-        "description": "Invite users to use your agent."
+        "description": "Add users who can use your agent."
       }
     },
     "remove": {

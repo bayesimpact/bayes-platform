@@ -26,13 +26,13 @@ describe("Organizations - createOrganization", () => {
   let repositories: AllRepositories
 
   let accessToken: string | undefined = "token"
-  let auth0Id = `auth0|${randomUUID()}`
+  let authSubject = `oidc|${randomUUID()}`
   let expectActivityCreated: ReturnType<typeof bindExpectActivityCreated>
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [OrganizationsModule, RbacModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
@@ -45,7 +45,7 @@ describe("Organizations - createOrganization", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = `auth0|${randomUUID()}`
+    authSubject = `oidc|${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -56,14 +56,14 @@ describe("Organizations - createOrganization", () => {
   const createContext = async (userParams?: Partial<{ email: string }>) => {
     const email = userParams?.email ?? "creator@bayesimpact.org"
     const user = userFactory.build({
-      auth0Id,
+      authSubject,
       email,
     })
     await repositories.userRepository.save(user)
     if (email.endsWith("@bayesimpact.org")) {
       await assignPlatformSuperadminToUser({ repositories, user })
     }
-    auth0Id = user.auth0Id
+    authSubject = user.authSubject!
     return { user }
   }
 
@@ -160,7 +160,7 @@ describe("Organizations - createOrganization", () => {
     expect(response1.body.data.id).not.toBe(response2.body.data.id)
 
     const users = await repositories.userRepository.find({
-      where: { auth0Id: user.auth0Id },
+      where: { authSubject: user.authSubject! },
     })
     expect(users).toHaveLength(1)
   })

@@ -9,9 +9,11 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 - Kubernetes: the Helm chart can install an optional Phoenix to read LLM traces.
+- Sign-in: any OpenID Connect provider, such as Keycloak, can now authenticate platform users.
 
 ### Changed
 - Trace links now open the conversation in Phoenix instead of Langfuse.
+- Members: people added by email get access right away, without an invitation to accept.
 
 ### Fixed
 - Review campaigns: changing the targeted agent of a draft campaign is now saved.

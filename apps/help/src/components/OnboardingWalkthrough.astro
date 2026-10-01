@@ -1,12 +1,15 @@
 ---
 /**
- * Walkthrough of first sign-in onboarding: the Terms acceptance gate, then the home
- * page with Pending invitations and your organizations. Derived from the real
- * components (verified, not copied blind): TermsRoute.tsx (3 checkboxes + Accept and
- * continue), OnboardingRoute.tsx (Welcome header, org cards, rename pencil),
- * PendingInvitationList.tsx (invitation cards + Accept). Labels verbatim from the
- * termsAcceptance / me:invitations / organization / actions locales (EN + FR). Uses
- * the PRODUCT (coral) palette, pinned locally. Derived 2026-07-16.
+ * Walkthrough of the first sign-in: the Terms acceptance gate, the home page with
+ * the workspaces you were given (grouped by organization), and the "No access yet"
+ * page shown to someone nobody has added yet. Derived from the real components
+ * (verified, not copied blind): TermsRoute.tsx (3 checkboxes + Accept and
+ * continue), OnboardingRoute.tsx (Welcome header, search, org cards, rename pencil),
+ * WorkspaceItem.tsx (open button), OrganizationCreator.tsx + NoAccessRoute.tsx
+ * (no access page). Labels verbatim from the termsAcceptance / organization / auth /
+ * actions locales (EN + FR). There are no invitations to accept: access is given
+ * by an admin who adds the person by email. Uses the PRODUCT (coral) palette,
+ * pinned locally. Derived 2026-07-16, re-verified 2026-09-28.
  */
 type Lang = "en" | "fr"
 const { lang = "en" } = Astro.props as { lang?: Lang }
@@ -20,18 +23,18 @@ const STRINGS = {
     cbPrivacy: "I accept the Privacy Policy (required)",
     cbAi: "I accept the AI Systems Usage Policy (optional)",
     open: "Open", termsSubmit: "Accept and continue",
-    welcome: "Welcome, Alex Martin!",
-    invTitle: "Pending invitations", invDesc: "Invitations waiting for you to accept.",
-    badgeProject: "Project", roleLabel: "Role", accept: "Accept",
-    invName: "Demo", invOrg: "Bayes Impact Demo", invRole: "member",
+    welcome: "Welcome, Alex Martin!", search: "Search",
     orgName: "Bayes Impact Demo", wsName: "Demo", openApp: "App",
+    noAccessTitle: "No access yet",
+    noAccessDesc: "Your account is active, but no one has given you access to a workspace. Ask your administrator to add you.",
+    logout: "log out",
     prev: "Prev", next: "Next", step: "Step",
     steps: [
-      "On your first sign-in, review and accept the Terms — the General Conditions and Privacy Policy are required.",
-      "On the home page, Pending invitations shows everything you've been invited to.",
-      "Click Accept on an invitation to join that workspace, agent or campaign.",
-      "The workspace then appears under your organizations, ready to open.",
+      "On your first sign-in, review and accept the Terms. The General Conditions and Privacy Policy are required.",
+      "The home page lists the workspaces you were given, grouped by organization.",
+      "Open a workspace with its app button.",
       "Organization owners and admins can rename the organization with the pencil.",
+      "Nobody has added you yet? You see No access yet. Ask your administrator to add you.",
     ],
   },
   fr: {
@@ -42,18 +45,18 @@ const STRINGS = {
     cbPrivacy: "J'accepte la Politique de Confidentialité (obligatoire)",
     cbAi: "J'accepte la Politique d'Utilisation des Systèmes d'Intelligence Artificielle (facultatif)",
     open: "Ouvrir", termsSubmit: "Valider et continuer",
-    welcome: "Bienvenue, Alex Martin !",
-    invTitle: "Invitations en attente", invDesc: "Invitations qui attendent votre acceptation.",
-    badgeProject: "Projet", roleLabel: "Rôle", accept: "Accepter",
-    invName: "Demo", invOrg: "Bayes Impact Demo", invRole: "member",
+    welcome: "Bienvenue, Alex Martin !", search: "Rechercher",
     orgName: "Bayes Impact Demo", wsName: "Demo", openApp: "Application",
+    noAccessTitle: "Pas encore d'accès",
+    noAccessDesc: "Votre compte est actif, mais personne ne vous a encore donné accès à un espace. Demandez à votre administrateur de vous ajouter.",
+    logout: "se déconnecter",
     prev: "Précédent", next: "Suivant", step: "Étape",
     steps: [
-      "À votre première connexion, prenez connaissance et acceptez les Conditions — les Conditions Générales et la Politique de Confidentialité sont obligatoires.",
-      "Sur la page d'accueil, Invitations en attente affiche tout ce à quoi vous êtes invité.",
-      "Cliquez sur Accepter sur une invitation pour rejoindre cet espace, cet agent ou cette campagne.",
-      "L'espace de travail apparaît alors sous vos organisations, prêt à ouvrir.",
+      "À votre première connexion, prenez connaissance et acceptez les Conditions. Les Conditions Générales et la Politique de Confidentialité sont obligatoires.",
+      "La page d'accueil liste les espaces de travail auxquels vous avez accès, regroupés par organisation.",
+      "Ouvrez un espace de travail avec son bouton d'application.",
       "Les propriétaires et admins d'organisation peuvent la renommer avec le crayon.",
+      "Personne ne vous a encore ajouté ? Vous voyez Pas encore d'accès. Demandez à votre administrateur de vous ajouter.",
     ],
   },
 } as const
@@ -62,10 +65,10 @@ const s = STRINGS[lang]
 
 const steps = [
   { page: "terms", spot: "btnAccept", observe: ["obsTerms"] },
-  { page: "home", spot: "", observe: ["obsInvites"] },
-  { page: "home", spot: "btnAcceptInvite", observe: [] },
   { page: "home", spot: "", observe: ["obsOrgs"] },
+  { page: "home", spot: "btnOpen", observe: [] },
   { page: "home", spot: "btnRename", observe: [] },
+  { page: "noAccess", spot: "", observe: ["obsNoAccess"] },
 ].map((step, i) => ({ ...step, text: s.steps[i] }))
 
 const labels = { prev: s.prev, next: s.next, step: s.step }
@@ -93,28 +96,27 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
         </div>
       </div>
 
-      <!-- Home: welcome + pending invitations + organizations (steps 2-5) -->
+      <!-- Home: welcome + search + organizations with their workspaces (steps 2-4) -->
       <div class="page" data-page="home">
-        <div class="welcome"><span class="wlogo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 410.85 405.35" aria-hidden="true"><path d="M366.77,161.43H247V41.61a41.37,41.37,0,1,0-82.74,0V161.43H44.39a41.37,41.37,0,0,0,0,82.74H164.21V364A41.37,41.37,0,1,0,247,364V244.17H366.77a41.37,41.37,0,1,0,0-82.74Z"/><circle cx="205.58" cy="364.27" r="41.05"/><circle cx="369.79" cy="202.64" r="41.05"/><circle cx="41.05" cy="202.64" r="41.05"/><circle cx="205.58" cy="41.05" r="41.05"/><circle cx="205.58" cy="202.64" r="41.05"/></svg></span><b>{s.welcome}</b></div>
-
-        <div class="sec" id="obsInvites">
-          <div class="sec-head"><span><b>{s.invTitle}</b><p>{s.invDesc}</p></span><span class="cbadge"><svg viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg> 1</span></div>
-          <div class="invcard">
-            <span class="badge">{s.badgeProject}</span>
-            <b>{s.invName}</b>
-            <small>{s.invOrg} · {s.roleLabel}: {s.invRole}</small>
-            <span class="btn" id="btnAcceptInvite">{s.accept} <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg></span>
-          </div>
-        </div>
+        <div class="welcome"><span class="wlogo"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 410.85 405.35" aria-hidden="true"><path d="M366.77,161.43H247V41.61a41.37,41.37,0,1,0-82.74,0V161.43H44.39a41.37,41.37,0,0,0,0,82.74H164.21V364A41.37,41.37,0,1,0,247,364V244.17H366.77a41.37,41.37,0,1,0,0-82.74Z"/><circle cx="205.58" cy="364.27" r="41.05"/><circle cx="369.79" cy="202.64" r="41.05"/><circle cx="41.05" cy="202.64" r="41.05"/><circle cx="205.58" cy="41.05" r="41.05"/><circle cx="205.58" cy="202.64" r="41.05"/></svg></span><b>{s.welcome}</b><span class="searchbox"><svg viewBox="0 0 24 24"><path d="m21 21-4.34-4.34"/><circle cx="11" cy="11" r="8"/></svg> {s.search}</span></div>
 
         <div class="orgcard" id="obsOrgs">
           <div class="org-head"><b>{s.orgName}</b><span class="iconbtn" id="btnRename"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span></div>
           <div class="ws-grid">
             <div class="wscard">
               <span class="ws-name">{s.wsName}</span>
-              <span class="btn outline sm"><svg viewBox="0 0 24 24"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg> {s.openApp} <svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
+              <span class="btn outline sm" id="btnOpen"><svg viewBox="0 0 24 24"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg> {s.openApp} <svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- No access yet: signed in, but nobody has added this person anywhere (step 5) -->
+      <div class="page center" data-page="noAccess">
+        <div class="noaccess" id="obsNoAccess">
+          <b>{s.noAccessTitle}</b>
+          <p>{s.noAccessDesc}</p>
+          <span class="btn outline"><span class="capfirst">{s.logout}</span></span>
         </div>
       </div>
     </div>
@@ -251,15 +253,12 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
   /* Home */
   .oiw .welcome { display: flex; align-items: center; gap: 0.7rem; margin-bottom: 1.2rem; }
   .oiw .welcome b { font-size: 1.3rem; font-weight: 600; }
-  .oiw .sec { border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); padding: 0.9rem; margin-bottom: 1.2rem; }
-  .oiw .sec-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.6rem; margin-bottom: 0.7rem; }
-  .oiw .sec-head b { font-size: 0.95rem; }
-  .oiw .sec-head p { font-size: 0.76rem; color: var(--muted-foreground); margin: 0.15rem 0 0; }
-  .oiw .cbadge { display: inline-flex; align-items: center; gap: 0.3rem; background: var(--primary); color: var(--primary-foreground); border-radius: 999px; padding: 0.1rem 0.5rem; font-size: 0.74rem; font-weight: 600; }
-  .oiw .invcard { border: 1px solid var(--border); border-radius: 10px; padding: 0.8rem; display: flex; flex-direction: column; gap: 0.3rem; align-items: flex-start; max-width: 22rem; }
-  .oiw .invcard b { font-size: 0.92rem; }
-  .oiw .invcard small { font-size: 0.76rem; color: var(--muted-foreground); }
-  .oiw .invcard .btn { margin-top: 0.4rem; }
+  .oiw .searchbox { margin-left: auto; display: inline-flex; align-items: center; gap: 0.4rem; border: 1px solid var(--input); border-radius: 8px; padding: 0.4rem 0.6rem; font-size: 0.78rem; color: var(--muted-foreground); background: var(--background); min-width: 180px; }
+  .oiw .noaccess { display: flex; flex-direction: column; align-items: center; gap: 1rem; text-align: center; max-width: 30rem; padding: 1rem; }
+  .oiw .noaccess b { font-size: 2rem; font-weight: 700; line-height: 1.1; }
+  .oiw .noaccess p { font-size: 0.9rem; color: var(--muted-foreground); margin: 0; }
+  .oiw .capfirst { display: inline-block; }
+  .oiw .capfirst::first-letter { text-transform: uppercase; }
 
   .oiw .orgcard { border: 1px solid var(--border); border-radius: var(--radius); background: color-mix(in oklab, var(--muted) 25%, var(--card)); padding: 0.9rem; }
   .oiw .org-head { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.7rem; }

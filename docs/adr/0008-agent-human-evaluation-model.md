@@ -144,6 +144,8 @@ A single user can hold both roles on the same campaign (useful for workspace adm
 
 **Invite flow:** workspace admins (per ADR 0004 §2.2) create campaigns and invite testers and reviewers by email, reusing the Auth0 invitation machinery already documented in `docs/specs/auth0-invitation-sending.md`. Invitees receive a link that lands them directly in the campaign — they do not need to navigate the workspace tree.
 
+> Superseded by [ADR 0021](0021-generic-oidc-and-access-by-email.md): admins add testers and reviewers by email and the access is immediate. There is no invitation or email any more; people sign in through the identity provider and find the campaign in their list.
+
 **Anonymous testers:** not supported in v1. Every tester must be an authenticated, invited user. Rationale: reviewer-to-tester attribution only makes sense with stable identities, and tester feedback quality is already a weak signal — anonymous feedback would be weaker still.
 
 ### 2.11 End-of-Phase Tester Survey

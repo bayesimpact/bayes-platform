@@ -28,7 +28,7 @@ describe("Agents Analytics - getConversationsByCategoryPerDay", () => {
   let projectId: string
   let agentId: string
   let accessToken: string | undefined = "token"
-  let auth0Id = `auth0|${randomUUID()}`
+  let authSubject = `oidc|${randomUUID()}`
 
   const day1Start = new Date("2026-01-01T00:00:00.000Z")
   const day2Start = new Date("2026-01-02T00:00:00.000Z")
@@ -37,7 +37,7 @@ describe("Agents Analytics - getConversationsByCategoryPerDay", () => {
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [AgentsAnalyticsModule],
-      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
+      applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
@@ -49,7 +49,7 @@ describe("Agents Analytics - getConversationsByCategoryPerDay", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = `auth0|${randomUUID()}`
+    authSubject = `oidc|${randomUUID()}`
   })
 
   afterAll(async () => {
@@ -59,7 +59,7 @@ describe("Agents Analytics - getConversationsByCategoryPerDay", () => {
 
   const createContext = async () => {
     const { organization, project, user, agent } = await createOrganizationWithAgent(repositories, {
-      user: { auth0Id },
+      user: { authSubject },
     })
     organizationId = organization.id
     projectId = project.id

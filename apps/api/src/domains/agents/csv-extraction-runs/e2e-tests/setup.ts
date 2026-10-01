@@ -34,13 +34,13 @@ export const buildMockFileStorageService = () => ({
  */
 export const applyCsvExtractionRunOverrides = (
   moduleBuilder: TestingModuleBuilder,
-  getAuth0Id: () => string,
+  getAuthSubject: () => string,
   mocks: {
     batchService: ReturnType<typeof buildMockBatchService>
     fileStorageService: ReturnType<typeof buildMockFileStorageService>
   },
 ): TestingModuleBuilder =>
-  setupUserGuardForTesting(moduleBuilder, getAuth0Id)
+  setupUserGuardForTesting(moduleBuilder, getAuthSubject)
     .overrideProvider(AGENT_CSV_EXTRACTION_RUN_BATCH_SERVICE)
     .useValue(mocks.batchService)
     .overrideProvider(FILE_STORAGE_SERVICE)

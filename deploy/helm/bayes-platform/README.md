@@ -23,7 +23,7 @@ Two ways to run it:
 - Kubernetes 1.27 or newer, `helm` 3.
 - An ingress controller (the chart writes Ingress resources for the `nginx` class) and, for TLS, cert-manager with a ClusterIssuer.
 - A StorageClass. The bundled Postgres and Redis use `ReadWriteOnce` volumes. The local document storage needs `ReadWriteMany` when the API and the workers run on different nodes.
-- An Auth0 tenant. Auth0 is the identity provider of the platform.
+- An OpenID Connect provider (Keycloak, Dex, Auth0, Okta...) with two clients: a public one for the web app (authorization code + PKCE) and, for Bull Board, a confidential one. Accounts must have a verified email. The web app asks for `openid profile email offline_access`: the provider must allow `offline_access` for its users, or set `web.env.WEB_OIDC_SCOPE` to `openid profile email`.
 - For embeddings: a Google Cloud project with Vertex AI (`gemini-embedding-001`). Self-hosted embedding models are not supported yet.
 - For the GPU workers: a node pool with NVIDIA GPUs and the device plugin installed (GKE does this for you).
 
@@ -71,7 +71,6 @@ The API and the workers read their secrets from one Kubernetes Secret. Create it
 kubectl create namespace platform
 kubectl -n platform create secret generic platform-secrets \
   --from-literal=MCP_ENCRYPTION_KEY=$(openssl rand -hex 32) \
-  --from-literal=AUTH0_M2M_CLIENT_SECRET=... \
   --from-file=APPS_JWT_PRIVATE_KEY=./apps-jwt-private.pem \
   --from-file=APPS_JWT_PUBLIC_KEY=./apps-jwt-public.pem \
   --from-literal=VLLM_MYMODEL_URL=https://... \
@@ -104,11 +103,9 @@ urls:
   help: https://help.platform.example.org
 
 config:
-  AUTH0_ISSUER_URL: https://your-tenant.eu.auth0.com/
-  AUTH0_AUDIENCE: https://your-tenant.eu.auth0.com/api/v2/
-  AUTH0_ORGANIZATION_ID: org_xxx
-  AUTH0_CLIENT_ID: xxx
-  AUTH0_M2M_CLIENT_ID: xxx
+  OIDC_ISSUER_URL: https://idp.example.org/realms/platform   # must equal the `iss` claim
+  OIDC_AUDIENCE: ""                                          # set when the provider puts one in `aud`
+  OIDC_AUTHORIZATION_PARAMS: ""                              # e.g. {"organization":"org_xxx"} for an Auth0 organization
   ORGANIZATION_CREATOR_EMAIL_DOMAIN: "@example.org"
   BACKOFFICE_AUTHORIZED_DOMAIN: "@example.org"
   BACKOFFICE_AUTHORIZED_EMAILS: "admin@example.org"
@@ -117,14 +114,14 @@ config:
 web:
   env:
     WEB_APP_TITLE: My platform
-    WEB_AUTH0_CLIENT_ID: xxx   # the SPA application of the Auth0 tenant
+    WEB_OIDC_CLIENT_ID: platform-web   # the public client of the web app
 
 ingress:
   clusterIssuer: letsencrypt-prod
   tls: true
 ```
 
-Point the three DNS names (`api`, `webEmbed`, `help`) at the ingress controller. `/api/healthz` is not reachable through it (403): the probes call the pod directly, and the endpoint queries the database on every call. Set `ingress.healthzAllowFrom` to the ranges of an uptime checker that must call it. In Auth0, add the `web` URL to the allowed callback, logout and web origins of the SPA application.
+Point the three DNS names (`api`, `webEmbed`, `help`) at the ingress controller. `/api/healthz` is not reachable through it (403): the probes call the pod directly, and the endpoint queries the database on every call. Set `ingress.healthzAllowFrom` to the ranges of an uptime checker that must call it. In the identity provider, add the `web` URL to the redirect URIs, post-logout redirect URIs and web origins of the web app client.
 
 The database migrations run as a Job after the first install and before every upgrade. The Job of the last run stays, succeeded or failed, until the next upgrade replaces it. To read its output:
 
@@ -240,7 +237,7 @@ See `values.yaml`. Every key is documented in place. The main sections:
 
 ## Limits of this version
 
-- Auth0 is the only identity provider.
+- One OpenID Connect provider per install. The platform sends no email: people are added by email in the members screens, and the customer creates their accounts in the identity provider.
 - Embeddings need Vertex AI. LLM calls can go to any OpenAI-compatible endpoint (`VLLM_*` secrets).
 - The local document storage has no S3 backend. Use the `gcs` mode or a `ReadWriteMany` volume.
 - The API has no health route yet, so its probes check the TCP port.

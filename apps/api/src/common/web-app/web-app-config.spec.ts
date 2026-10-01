@@ -24,38 +24,62 @@ describe("getWebAppSettings", () => {
 })
 
 describe("buildWebAppRuntimeConfig", () => {
-  it("defaults to /api on the page origin and the Auth0 tenant the API validates", () => {
+  it("defaults to /api on the page origin and the OIDC provider the API validates", () => {
     const config = buildWebAppRuntimeConfig({
-      AUTH0_ISSUER_URL: "https://tenant.eu.auth0.com/",
-      AUTH0_AUDIENCE: "https://tenant.eu.auth0.com/api/v2/",
-      AUTH0_ORGANIZATION_ID: "org_123",
+      OIDC_ISSUER_URL: "https://idp.example.org/realms/acme",
+      OIDC_AUDIENCE: "platform-api",
     })
     expect(config).toEqual({
       apiUrl: "/api",
-      auth0Domain: "tenant.eu.auth0.com",
-      auth0Audience: "https://tenant.eu.auth0.com/api/v2/",
-      auth0OrganizationId: "org_123",
+      oidcAuthority: "https://idp.example.org/realms/acme",
+      oidcAudience: "platform-api",
     })
   })
 
   it("maps WEB_* variables and lets them override the defaults", () => {
     const config = buildWebAppRuntimeConfig({
-      AUTH0_ISSUER_URL: "https://tenant.eu.auth0.com/",
-      WEB_AUTH0_DOMAIN: "login.example.org",
-      WEB_AUTH0_CLIENT_ID: "spa-client",
+      OIDC_ISSUER_URL: "https://idp.internal/realms/acme",
+      WEB_OIDC_AUTHORITY: "https://login.example.org/realms/acme",
+      WEB_OIDC_CLIENT_ID: "spa-client",
       WEB_API_URL: "https://api.example.org",
       WEB_APP_TITLE: "Acme",
       WEB_HELP_AGENT_EMBED_HINT: '{"en":"Need help?"}',
     })
-    expect(config.auth0Domain).toBe("login.example.org")
-    expect(config.auth0ClientId).toBe("spa-client")
+    expect(config.oidcAuthority).toBe("https://login.example.org/realms/acme")
+    expect(config.oidcClientId).toBe("spa-client")
     expect(config.apiUrl).toBe("https://api.example.org")
     expect(config.appTitle).toBe("Acme")
     expect(config.helpAgentEmbedHint).toBe('{"en":"Need help?"}')
   })
 
+  it("hands the authorization parameters to the browser, the WEB_ value winning", () => {
+    expect(
+      buildWebAppRuntimeConfig({ OIDC_AUTHORIZATION_PARAMS: '{"organization":"org_123"}' })
+        .oidcAuthorizationParams,
+    ).toBe('{"organization":"org_123"}')
+    expect(
+      buildWebAppRuntimeConfig({
+        OIDC_AUTHORIZATION_PARAMS: '{"organization":"org_123"}',
+        WEB_OIDC_AUTHORIZATION_PARAMS: '{"organization":"org_web"}',
+      }).oidcAuthorizationParams,
+    ).toBe('{"organization":"org_web"}')
+    expect(buildWebAppRuntimeConfig({}).oidcAuthorizationParams).toBeUndefined()
+  })
+
+  it("refuses malformed authorization parameters at boot", () => {
+    expect(() =>
+      buildWebAppRuntimeConfig({ OIDC_AUTHORIZATION_PARAMS: "organization=org_123" }),
+    ).toThrow("OIDC_AUTHORIZATION_PARAMS must be a JSON object")
+    expect(() =>
+      buildWebAppRuntimeConfig({ OIDC_AUTHORIZATION_PARAMS: '{"max_age":300}' }),
+    ).toThrow("values are strings")
+  })
+
   it("never copies unrelated environment variables", () => {
-    const config = buildWebAppRuntimeConfig({ AUTH0_CLIENT_SECRET: "secret", DATABASE_URL: "x" })
+    const config = buildWebAppRuntimeConfig({
+      BULL_BOARD_OIDC_CLIENT_SECRET: "secret",
+      DATABASE_URL: "x",
+    })
     expect(Object.values(config)).not.toContain("secret")
     expect(Object.values(config)).not.toContain("x")
   })

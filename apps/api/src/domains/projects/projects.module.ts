@@ -11,7 +11,6 @@ import { RbacModule } from "@/domains/rbac/rbac.module"
 import { UsersModule } from "@/domains/users/users.module"
 import { AgentsModule } from "../agents/agents.module"
 import { DocumentTagsModule } from "../documents/tags/document-tags.module"
-import { InvitationsModule } from "../invitations/invitations.module"
 import { ProjectMembershipRepository } from "./memberships/project-membership.repository"
 import { ProjectMembershipsController } from "./memberships/project-memberships.controller"
 import { ProjectMembershipsService } from "./memberships/project-memberships.service"
@@ -27,7 +26,6 @@ import { ProjectsService } from "./projects.service"
     OrganizationsModule,
     RbacModule,
     forwardRef(() => AgentsModule),
-    forwardRef(() => InvitationsModule),
     forwardRef(() => DocumentTagsModule),
     UsersModule,
     AuthModule,

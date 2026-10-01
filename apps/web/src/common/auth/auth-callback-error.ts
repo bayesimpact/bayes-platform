@@ -1,11 +1,12 @@
 /**
- * Auth0 reports a failed authorization by redirecting back to the app with
- * `error` and `error_description` in the query string, for example
- * `?error=invalid_request&error_description=parameter organization is not allowed for this client`.
+ * The identity provider reports a failed authorization by redirecting back to
+ * the app with `error` and `error_description` in the query string (OAuth 2.0,
+ * RFC 6749 section 4.1.2.1), for example
+ * `?error=access_denied&error_description=User is not allowed to use this client`.
  *
- * Without a guard, a route that calls loginWithRedirect whenever the user is
- * not authenticated sends the browser straight back to Auth0, which answers
- * with the same error: a redirect loop the user cannot escape.
+ * Without a guard, a route that starts a login whenever the user is not
+ * authenticated sends the browser straight back to the provider, which
+ * answers with the same error: a redirect loop the user cannot escape.
  */
 export type AuthCallbackError = {
   code: string
