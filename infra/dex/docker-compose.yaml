@@ -1,0 +1,12 @@
+# Lightweight local OpenID Connect provider for development. Not for production use.
+# docker compose -f infra/dex/docker-compose.yaml up -d
+name: "connect-dex"
+services:
+  dex:
+    image: ghcr.io/dexidp/dex:v2.44.0
+    command: ["dex", "serve", "/etc/dex/config.yaml"]
+    ports:
+      # Fixed: the port is part of the issuer in config.yaml.
+      - "5556:5556"
+    volumes:
+      - ./config.yaml:/etc/dex/config.yaml:ro

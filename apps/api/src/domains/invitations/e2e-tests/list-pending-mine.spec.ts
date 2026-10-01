@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto"
-import { InvitationsRoutes } from "@caseai-connect/api-contracts"
+import { MyInvitationsRoutes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import {
@@ -47,7 +47,7 @@ describe("Invitations - listPendingMine", () => {
     await app.close()
   })
 
-  const subject = async () => request({ route: InvitationsRoutes.listPendingMine, token: "token" })
+  const subject = async () => request({ route: MyInvitationsRoutes.getAll, token: "token" })
 
   it("lists the caller's pending invitations with the names to show", async () => {
     const { organization, project, agent } = await createOrganizationWithAgent(repositories, {

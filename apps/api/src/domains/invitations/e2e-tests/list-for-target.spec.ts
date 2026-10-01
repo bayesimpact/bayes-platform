@@ -1,5 +1,4 @@
 import { randomUUID } from "node:crypto"
-import { InvitationsRoutes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import {
@@ -9,11 +8,14 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
+import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { invitationFactory } from "../invitation.factory"
 import { InvitationsModule } from "../invitations.module"
+import { type InvitationRouteTarget, invitationRoutesFor } from "./invitation-routes.helpers"
 
 describe("Invitations - listForTarget", () => {
   let app: INestApplication<App>
@@ -28,6 +30,7 @@ describe("Invitations - listForTarget", () => {
       additionalImports: [InvitationsModule],
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
+    await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
     app = setup.module.createNestApplication()
     await app.init()
@@ -44,8 +47,10 @@ describe("Invitations - listForTarget", () => {
     await app.close()
   })
 
-  const subject = async (query: { targetType: string; targetId: string }) =>
-    request({ route: InvitationsRoutes.listForTarget, token: "token", query })
+  const subject = async (target: InvitationRouteTarget) => {
+    const { routes, pathParams } = invitationRoutesFor(target)
+    return request({ route: routes.getAll, pathParams, token: "token" })
+  }
 
   it("lists the pending invitations of the target only", async () => {
     const { project, agent } = await createOrganizationWithAgent(repositories, {
@@ -64,7 +69,7 @@ describe("Invitations - listForTarget", () => {
       invitationFactory.transient({ user: projectUser!, project }).build(),
     ])
 
-    const response = await subject({ targetType: "agent", targetId: agent.id })
+    const response = await subject({ agent })
 
     expectResponse(response, 200)
     expect(response.body.data.invitations).toEqual([
@@ -77,9 +82,29 @@ describe("Invitations - listForTarget", () => {
     ])
   })
 
-  it("requires targetType and targetId", async () => {
-    await createOrganizationWithAgent(repositories, { user: { authSubject } })
+  it("lists the pending invitations of a review campaign", async () => {
+    const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
+      repositories,
+      { user: { authSubject } },
+    )
+    const reviewCampaign = await repositories.reviewCampaignRepository.save(
+      reviewCampaignFactory
+        .active()
+        .transient({ organization, project, agent, agentSettings })
+        .build(),
+    )
+    const invitedUser = await repositories.userRepository.save(
+      userFactory.build({ authSubject: null }),
+    )
+    const invitation = await repositories.invitationRepository.save(
+      invitationFactory.transient({ user: invitedUser, reviewCampaign }).build(),
+    )
 
-    expectResponse(await request({ route: InvitationsRoutes.listForTarget, token: "token" }), 400)
+    const response = await subject({ reviewCampaign })
+
+    expectResponse(response, 200)
+    expect(response.body.data.invitations).toEqual([
+      expect.objectContaining({ id: invitation.id, targetName: reviewCampaign.name }),
+    ])
   })
 })

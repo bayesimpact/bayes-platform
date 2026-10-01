@@ -1,5 +1,9 @@
 import { randomUUID } from "node:crypto"
-import { InvitationsRoutes, MeRoutes } from "@caseai-connect/api-contracts"
+import {
+  MeRoutes,
+  MyInvitationsRoutes,
+  ProjectInvitationsRoutes,
+} from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import { bindExpectActivityCreated } from "@/common/test/activity-test.helpers"
@@ -24,6 +28,7 @@ import {
   findProjectMembershipRow,
   findReviewCampaignMembershipRow,
 } from "../../../../test/membership-test.helpers"
+import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { invitationFactory } from "../invitation.factory"
 import { InvitationsModule } from "../invitations.module"
@@ -43,6 +48,7 @@ describe("Invitations - acceptOne", () => {
       additionalImports: [InvitationsModule, MeModule, ActivitiesModule],
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
+    await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
     expectActivityCreated = bindExpectActivityCreated(repositories.activityRepository)
     app = setup.module.createNestApplication()
@@ -63,7 +69,7 @@ describe("Invitations - acceptOne", () => {
 
   const subject = async (invitationId: string) =>
     request({
-      route: InvitationsRoutes.acceptOne,
+      route: MyInvitationsRoutes.acceptOne,
       pathParams: { invitationId },
       token: "token",
     })
@@ -230,18 +236,17 @@ describe("Invitations - acceptOne", () => {
     authSubject = ownerSubject
     expectResponse(
       await request({
-        route: InvitationsRoutes.createMany,
+        route: ProjectInvitationsRoutes.createMany,
+        pathParams: { organizationId: project.organizationId, projectId: project.id },
         token: "token",
-        request: {
-          payload: { targetType: "project", targetId: project.id, emails: [newcomerEmail] },
-        },
+        request: { payload: { emails: [newcomerEmail] } },
       }),
       201,
     )
 
     authSubject = newcomerSubject
     expectResponse(await request({ route: MeRoutes.getMe, token: "token" }), 200)
-    const mine = await request({ route: InvitationsRoutes.listPendingMine, token: "token" })
+    const mine = await request({ route: MyInvitationsRoutes.getAll, token: "token" })
     expectResponse(mine, 200)
     expect(mine.body.data.invitations).toHaveLength(1)
 

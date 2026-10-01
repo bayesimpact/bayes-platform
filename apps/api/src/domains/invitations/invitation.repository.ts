@@ -52,8 +52,19 @@ export class InvitationRepository {
     return this.repo().findOne({ where: { id: invitationId } })
   }
 
-  async findPendingById(invitationId: string): Promise<Invitation | null> {
-    return this.repo().findOne({ where: { id: invitationId, status: "pending" } })
+  async findPendingByIdForTarget(params: {
+    invitationId: string
+    targetType: InvitationTargetType
+    targetId: string
+  }): Promise<Invitation | null> {
+    return this.repo().findOne({
+      where: {
+        id: params.invitationId,
+        targetType: params.targetType,
+        targetId: params.targetId,
+        status: "pending",
+      },
+    })
   }
 
   async findPendingForUserAndTarget(params: {

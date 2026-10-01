@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto"
-import { InvitationsRoutes } from "@caseai-connect/api-contracts"
+import { ProjectInvitationsRoutes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import { bindExpectActivityCreated } from "@/common/test/activity-test.helpers"
@@ -13,6 +13,7 @@ import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { invitationFactory } from "../invitation.factory"
 import { InvitationsModule } from "../invitations.module"
@@ -31,6 +32,7 @@ describe("Invitations - revokeOne", () => {
       additionalImports: [InvitationsModule, ActivitiesModule],
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
+    await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
     expectActivityCreated = bindExpectActivityCreated(repositories.activityRepository)
     app = setup.module.createNestApplication()
@@ -48,10 +50,13 @@ describe("Invitations - revokeOne", () => {
     await app.close()
   })
 
+  let organizationId: string
+  let projectId: string
+
   const subject = async (invitationId: string) =>
     request({
-      route: InvitationsRoutes.revokeOne,
-      pathParams: { invitationId },
+      route: ProjectInvitationsRoutes.deleteOne,
+      pathParams: { organizationId, projectId, invitationId },
       token: "token",
     })
 
@@ -59,6 +64,8 @@ describe("Invitations - revokeOne", () => {
     const { project } = await createOrganizationWithProject(repositories, {
       user: { authSubject },
     })
+    organizationId = project.organizationId
+    projectId = project.id
     const invitedUser = await repositories.userRepository.save(userFactory.build(invitee))
     const invitation = await repositories.invitationRepository.save(
       invitationFactory.transient({ user: invitedUser, project }).build(),
@@ -103,5 +110,21 @@ describe("Invitations - revokeOne", () => {
     await repositories.invitationRepository.update({ id: invitation.id }, { status: "accepted" })
 
     expectResponse(await subject(invitation.id), 404)
+  })
+
+  it("answers 404 for an invitation to another project", async () => {
+    await createContext({ authSubject: null })
+    const { project: otherProject } = await createOrganizationWithProject(repositories)
+    const invitedUser = await repositories.userRepository.save(
+      userFactory.build({ authSubject: null }),
+    )
+    const otherInvitation = await repositories.invitationRepository.save(
+      invitationFactory.transient({ user: invitedUser, project: otherProject }).build(),
+    )
+
+    expectResponse(await subject(otherInvitation.id), 404)
+    expect(
+      (await repositories.invitationRepository.findOneByOrFail({ id: otherInvitation.id })).status,
+    ).toBe("pending")
   })
 })

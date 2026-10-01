@@ -4,7 +4,7 @@
 * **Date**: 2026-10-01
 * **Deciders**: Jérémie
 * **Amends**: section 2.2 of [ADR 0021](0021-generic-oidc-and-access-by-email.md) (access by email)
-* **Scope**: `apps/api` (`domains/invitations`, `domains/users`), `apps/web` (onboarding, member screens), API contracts.
+* **Scope**: `apps/api` (`domains/invitations`, `domains/users`, `domains/rbac`), `apps/web` (onboarding, member screens), API contracts.
 
 ---
 
@@ -23,21 +23,29 @@ Auth0. The acceptance step was not.
 **Adding someone by email creates an invitation. The person accepts or
 declines it in the app after signing in. The platform still sends no email.**
 
-* `POST /invitations` creates one pending invitation per email and target
-  (project, agent or review campaign). It grants nothing. People who already
-  have the access, or a pending invitation for it, are skipped.
+* Each target has its invitation routes under its own path:
+  `.../projects/:projectId/invitations`, `.../agents/:agentId/invitations` and
+  `.../review-campaigns/:reviewCampaignId/invitations`. Creating makes one
+  pending invitation per email. It grants nothing. People who already have
+  the access, or a pending invitation for it, are skipped.
 * An unknown email gets an account with a NULL subject, as in ADR 0021. The
   first sign-in links it through the verified email (`email_verified`, same
   rules and settings). The invitation points to that account, so only the
   person whose verified email matches can see and accept it.
 * The onboarding page lists the caller's pending invitations
-  (`GET /invitations/mine`) with **Accept** and **Decline**. Accepting creates
+  (`GET /me/invitations`) with **Accept** and **Decline**. Accepting creates
   the memberships the old member grant created, in one transaction. A
   review campaign invitation can only be accepted while the campaign is
   active.
-* Admins see the pending invitations of a target (`GET /invitations`) and can
-  revoke them (`DELETE /invitations/:invitationId`). Revoking the last thing
-  an account that never signed in holds deletes that account.
+* Admins see the pending invitations of a target and can revoke them.
+  Revoking the last thing an account that never signed in holds deletes that
+  account.
+* The admin routes check RBAC permissions ([ADR 0019](0019-rbac-permission-catalog.md)):
+  `project.member.invite` for a project and its review campaigns (project
+  owner and admin), `agent.member.invite` for an agent (agent owner and
+  admin). Neither is inherited from a parent resource. The routes of the
+  invited person need no permission: they only reach the caller's own
+  invitations.
 * Everyone accepts, including people who already have an account.
 * The `invitation` table is reused. `invitation_token` keeps its unique
   constraint and gets a random value: acceptance goes through the invitation

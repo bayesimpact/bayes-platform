@@ -1,0 +1,47 @@
+# Dex configuration for local development. Not for production use.
+# Same clients and users as infra/keycloak/realm-platform.json.
+issuer: http://localhost:5556/dex
+
+storage:
+  type: memory
+
+web:
+  http: 0.0.0.0:5556
+  # The web app calls the discovery, token and userinfo endpoints from the browser.
+  allowedOrigins: ["*"]
+
+oauth2:
+  skipApprovalScreen: true
+  # Lets scripts and tests get a token with grant_type=password (see README).
+  passwordConnector: local
+
+enablePasswordDB: true
+
+# Dex matches redirect URIs exactly, without wildcards. The web app redirects
+# to its origin (plus VITE_BASE_PATH when set).
+staticClients:
+  - id: platform-web
+    name: Platform web app
+    public: true
+    redirectURIs:
+      - https://connect.localhost:5173
+      - https://connect.localhost:5174
+      - http://localhost:5173
+      - https://connect.localhost:3000
+  - id: bull-board
+    name: Bull Board dashboard
+    secret: local-bull-board-secret
+    redirectURIs:
+      - https://connect.localhost:3000/api/internal/bull-board/oauth/callback
+
+# Passwords are bcrypt hashes of "admin" and "member". The password database
+# reports every email as verified, so people added by email are linked.
+staticPasswords:
+  - email: admin@example.org
+    hash: "$2a$10$fZ2E2opdWmDR3LfrJiR9/Os/YIUArFMfo3PHdVc6ogQmey9zF2UHS"
+    username: admin
+    userID: 5f0c7a0e-1d1e-4b8a-9c41-0a6f1f0d0001
+  - email: member@example.org
+    hash: "$2a$10$cNLGoo3urd0rPr4uqMd8KePIlpWqt3aatFVI/O6Z4JslbeSPK51CO"
+    username: member
+    userID: 5f0c7a0e-1d1e-4b8a-9c41-0a6f1f0d0002
