@@ -1,4 +1,4 @@
-import { AgentModel, DocumentsRagMode } from "@caseai-connect/api-contracts"
+import { AgentModel, AgentThinkingLevel, DocumentsRagMode } from "@caseai-connect/api-contracts"
 import { afterAll, expect } from "@jest/globals"
 import { NotFoundException } from "@nestjs/common"
 import {
@@ -297,6 +297,38 @@ describe("AgentSettings", () => {
       // Creating an agent publishes its first revision right away.
       expect(savedSettings?.isDraft).toBeFalsy()
       expect(savedSettings?.revision).toBe(1)
+    })
+
+    it("createAgent should set default value for unset fields", async () => {
+      const { organization, project, user } = await createOrganizationWithProject(repositories)
+      const { agent, agentSettings } = await agentService.createAgent({
+        connectScope: {
+          organizationId: organization.id,
+          projectId: project.id,
+        },
+        fields: {
+          ...agentSettingsValuesRev1,
+          instructions: agentSettingsValuesRev1.instructions,
+          type: "conversation",
+          name: "My Template",
+        },
+        userId: user.id,
+      })
+
+      assertOnSettings(agentSettingsValuesRev1, agentSettings)
+
+      const savedSettings = await service.getLast({
+        connectScope: {
+          organizationId: organization.id,
+          projectId: project.id,
+        },
+        agentId: agent.id,
+        includesDraft: true,
+      })
+      assertOnSettings(agentSettingsValuesRev1, savedSettings)
+      expect(savedSettings?.revision).toBe(1)
+      //check that default value for thinking has been set to Auto
+      expect(savedSettings?.thinkingLevel).toBe(AgentThinkingLevel.Auto)
     })
     it("updateAllSettings should create draft settings with revision = last revision +1 - no existing draft", async () => {
       const { organization, project, agent } = await createAgentWithSettings(

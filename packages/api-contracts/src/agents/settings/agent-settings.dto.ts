@@ -93,6 +93,14 @@ export const AgentModelMetadataMap: Record<AgentModel, AgentModelMetadata> = {
   [AgentModel._Mock]: {},
 }
 
+export enum AgentThinkingLevel {
+  Auto = "auto",
+  Minimal = "minimal",
+  Low = "low",
+  Medium = "medium",
+  High = "high",
+}
+
 /** Model every newly created agent and eval judge run starts on. */
 export const DEFAULT_AGENT_MODEL = AgentModel.Gemini35FlashLite
 
@@ -164,6 +172,7 @@ export type AgentSettingsDto = {
   temperature: AgentTemperature
   updatedAt: TimeType
   usedProjectAgentSessionCategoryIds: string[]
+  thinkingLevel: AgentThinkingLevel
 }
 
 // Constraint keywords (enum/minimum/maximum/items) mirror the subset of JSON Schema
@@ -264,6 +273,7 @@ export const agentSettingsValidationSchema = z.object({
         temperatureValue >= 0 && temperatureValue <= 2 && Number.isFinite(temperatureValue),
       "Temperature must be between 0.0 and 2.0",
     ),
+  thinkingLevel: z.enum(AgentThinkingLevel),
 })
 
 export type AgentTemperature = z.infer<typeof agentSettingsValidationSchema.shape.temperature>
@@ -317,6 +327,7 @@ export const updateAgentSettingsSchema = agentSettingsValidationSchema
     projectAgentSessionCategoryIds: true,
     resourceLibraryIds: true,
     temperature: true,
+    thinkingLevel: true,
   })
   .extend({
     tagsToAdd: updateDocumentTagsSchema.required().shape.tagsToAdd,
