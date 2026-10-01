@@ -11,9 +11,16 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
+import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
+import type { Organization } from "@/domains/organizations/organization.entity"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { projectFactory } from "@/domains/projects/project.factory"
-import { mockForeignAuthSubject, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
+import {
+  mockForeignAuthSubject,
+  mockOidcEmailForSub,
+  setupUserGuardForTesting,
+} from "../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { ResourceLibrariesModule } from "../resource-libraries.module"
 import { ResourceLibrary } from "../resource-library.entity"
@@ -37,6 +44,7 @@ describe("ResourceLibraries - Auth", () => {
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)
@@ -70,6 +78,21 @@ describe("ResourceLibraries - Auth", () => {
     return { organization, project }
   }
 
+  /** Switches the caller to an organization admin who holds no role on the project. */
+  const switchToOrganizationAdminWithoutProjectRole = async (organization: Organization) => {
+    const organizationAdminAuthSubject = `oidc|${randomUUID()}`
+    await addUserToOrganization({
+      repositories,
+      organization,
+      user: {
+        authSubject: organizationAdminAuthSubject,
+        email: mockOidcEmailForSub(organizationAdminAuthSubject),
+      },
+      membership: { role: "admin" },
+    })
+    authSubject = organizationAdminAuthSubject
+  }
+
   describe("ResourceLibrariesRoutes.getAll", () => {
     const subject = async () =>
       request({
@@ -95,6 +118,15 @@ describe("ResourceLibraries - Auth", () => {
       await createContextForRole("member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
+    it("doesn't allow an organization admin without a project role to list resource libraries", async () => {
+      const { organization } = await createContextForRole("owner")
+      await switchToOrganizationAdminWithoutProjectRole(organization)
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("allows a project admin to list resource libraries", async () => {
+      await createContextForRole("admin")
+      expectResponse(await subject(), 200)
+    })
   })
 
   describe("ResourceLibrariesRoutes.createOne", () => {
@@ -113,6 +145,19 @@ describe("ResourceLibraries - Auth", () => {
     it("doesn't allow a simple member to create a resource library", async () => {
       await createContextForRole("member")
       expectResponse(await subject({ payload: { title: "Library" } }), 403)
+    })
+    it("doesn't allow an organization admin without a project role to create a resource library", async () => {
+      const { organization } = await createContextForRole("owner")
+      await switchToOrganizationAdminWithoutProjectRole(organization)
+      expectResponse(
+        await subject({ payload: { title: "Library" } }),
+        403,
+        AUTH_ERRORS.UNAUTHORIZED_RESOURCE,
+      )
+    })
+    it("allows a project admin to create a resource library", async () => {
+      await createContextForRole("admin")
+      expectResponse(await subject({ payload: { title: "Library" } }), 201)
     })
   })
 
@@ -157,6 +202,15 @@ describe("ResourceLibraries - Auth", () => {
     it("doesn't allow a simple member to delete a resource library", async () => {
       await createContextForRole("member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("doesn't allow an organization admin without a project role to delete a resource library", async () => {
+      const { organization } = await createContextForRole("owner")
+      await switchToOrganizationAdminWithoutProjectRole(organization)
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("allows a project admin to delete a resource library", async () => {
+      await createContextForRole("admin")
+      expectResponse(await subject(), 200)
     })
   })
 
