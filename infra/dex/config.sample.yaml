@@ -1,5 +1,5 @@
 # Dex configuration for local development. Not for production use.
-# Same clients and users as infra/keycloak/realm-platform.json.
+# Same clients and users as infra/keycloak/realm-platform.sample.json.
 issuer: http://localhost:5556/dex
 
 storage:

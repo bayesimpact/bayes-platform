@@ -1,12 +1,20 @@
 # Lightweight local OpenID Connect provider for development. Not for production use.
 # docker compose -f infra/dex/docker-compose.yaml up -d
+# Reads config.local.yaml when it exists (git-ignored), else config.sample.yaml.
 name: "connect-dex"
 services:
   dex:
     image: ghcr.io/dexidp/dex:v2.44.0
-    command: ["dex", "serve", "/etc/dex/config.yaml"]
+    entrypoint: ["sh", "-c"]
+    command:
+      - |
+        config=/srv/dex/config.local.yaml
+        [ -f "$$config" ] || config=/srv/dex/config.sample.yaml
+        echo "Dex configuration: $$config"
+        exec dex serve "$$config"
     ports:
-      # Fixed: the port is part of the issuer in config.yaml.
+      # Fixed: the port is part of the issuer in the configuration.
       - "5556:5556"
     volumes:
-      - ./config.yaml:/etc/dex/config.yaml:ro
+      # The folder, not a file: a missing file would be mounted as an empty folder.
+      - .:/srv/dex:ro
