@@ -10,17 +10,18 @@ import {
 import { ExternalLinkIcon, InfoIcon } from "lucide-react"
 import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
+import { AsyncContent } from "@/common/components/AsyncContent"
 import { findVersion } from "@/common/features/agents/agent-settings/agent-settings.functions"
 import {
   selectAgentSettingsDataByAgentId,
   selectAgentSettingsHistoryDataByAgentId,
 } from "@/common/features/agents/agent-settings/agent-settings.selectors"
+import type { Agent } from "@/common/features/agents/agents.models"
 import { selectAgentsData } from "@/common/features/agents/agents.selectors"
 import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
 import { useAbility } from "@/common/hooks/use-ability"
 import { useCurrentId, useValue } from "@/common/hooks/use-value"
-import { ADS } from "@/common/store/async-data-status"
 import { useAppSelector } from "@/common/store/hooks"
 import { StudioRoutes } from "@/studio/routes/helpers"
 
@@ -38,28 +39,49 @@ export function AgentMetadataDialog({
   revision?: number
   buttonProps?: React.ComponentProps<typeof Button>
 }) {
-  const { t } = useTranslation()
   const agentsData = useValue(selectAgentsData)
-  const organizationId = useCurrentId(selectCurrentOrganizationId)
-  const projectId = useCurrentId(selectCurrentProjectId)
-  const { abilities } = useAbility()
 
   const agent = useMemo(() => {
     return agentsData.find((entry) => entry.id === agentId) ?? null
   }, [agentsData, agentId])
 
-  const currentAgentSettings = useValue(
+  const currentAgentSettings = useAppSelector(
     selectAgentSettingsDataByAgentId({ agentId: agent?.id ?? "" }),
   )
   const historyData = useAppSelector(
     selectAgentSettingsHistoryDataByAgentId({ agentId: agent?.id ?? "", includeDraft: true }),
   )
+
+  if (!agent) return null
+  return (
+    <AsyncContent data={[currentAgentSettings, historyData]}>
+      <WithData agent={agent} revision={revision} buttonProps={buttonProps} />
+    </AsyncContent>
+  )
+}
+
+function WithData({
+  agent,
+  revision,
+  buttonProps,
+}: {
+  agent: Agent
+  revision?: number
+  buttonProps?: React.ComponentProps<typeof Button>
+}) {
+  const { t } = useTranslation()
+  const organizationId = useCurrentId(selectCurrentOrganizationId)
+  const projectId = useCurrentId(selectCurrentProjectId)
+  const { abilities } = useAbility()
+
+  const agentId = agent.id
+
+  const currentAgentSettings = useValue(selectAgentSettingsDataByAgentId({ agentId }))
+  const history = useValue(selectAgentSettingsHistoryDataByAgentId({ agentId, includeDraft: true }))
+
   // Falls back to the current settings when the pinned version is not in the
   // history anymore (e.g. it was archived).
-  const pinnedAgentSettings =
-    revision !== undefined && ADS.isFulfilled(historyData)
-      ? findVersion(historyData.value, revision)
-      : undefined
+  const pinnedAgentSettings = revision !== undefined ? findVersion(history, revision) : undefined
   const agentSettings = pinnedAgentSettings ?? currentAgentSettings
 
   const studioUrl = StudioRoutes.agent.build({ organizationId, projectId, agentId })
