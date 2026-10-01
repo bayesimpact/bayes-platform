@@ -63,7 +63,7 @@ export class AgentContextResolver implements ContextResolver {
     // from user_membership rows rather than a real entity instance, so the
     // `agent` and `user` relation fields are absent. TypeScript would reject
     // `satisfies AgentMembership` because of those missing fields. At runtime
-    // this is safe — AgentPolicy and MemberGrantPolicy only read
+    // this is safe — AgentPolicy and InvitationPolicy only read
     // `agentMembership.agentId` and `agentMembership.role`; the relation
     // fields are never accessed.
     const agentMembership: AgentMembershipFixture | undefined = userMembership

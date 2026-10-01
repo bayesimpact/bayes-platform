@@ -14,7 +14,9 @@ import {
 } from "@/common/features/organizations/organizations.selectors"
 import { useAppSelector } from "@/common/store/hooks"
 import { publicAssetUrl } from "@/config/runtime-config"
+import type { PendingInvitations } from "@/studio/features/invitations/invitations.models"
 import { ProjectCreatorButton } from "@/studio/features/projects/components/ProjectCreator"
+import { PendingInvitationList } from "../components/home/PendingInvitationList"
 import {
   SearchWorkspaces,
   SearchWorkspacesInput,
@@ -23,7 +25,7 @@ import {
 import { WorkspaceItem } from "../components/home/WorkspaceItem"
 import { Wrap } from "../components/layouts/Wrap"
 import type { User } from "../features/me/me.models"
-import { selectMe } from "../features/me/me.selectors"
+import { selectMe, selectPendingInvitations } from "../features/me/me.selectors"
 import { meActions } from "../features/me/me.slice"
 import { useAbility } from "../hooks/use-ability"
 import { useMount } from "../hooks/use-mount"
@@ -33,6 +35,7 @@ import { AsyncRoute } from "./AsyncRoute"
 export function OnboardingRoute() {
   const user = useAppSelector(selectMe)
   const organizations = useAppSelector(selectOrganizationsWithProjectsData)
+  const invitations = useAppSelector(selectPendingInvitations)
 
   useMount({
     actions: {
@@ -41,7 +44,7 @@ export function OnboardingRoute() {
     },
   })
   return (
-    <AsyncRoute data={[user, organizations]}>
+    <AsyncRoute data={[user, organizations, invitations]}>
       <WithData />
     </AsyncRoute>
   )
@@ -50,12 +53,18 @@ export function OnboardingRoute() {
 function WithData() {
   const user = useValue(selectMe)
   const organizations = useValue(selectOrganizationsWithProjectsData)
+  const invitations = useValue(selectPendingInvitations)
   const orgsCount = organizations.length
-  if (orgsCount === 0) return <OrganizationCreator />
+  if (orgsCount === 0 && invitations.length === 0) return <OrganizationCreator />
 
   return (
     <SidebarLayout defaultOpen={false} hideIcon user={{ name: user.name, email: user.email }}>
-      <Main organizations={organizations} user={user} orgsCount={orgsCount} />
+      <Main
+        organizations={organizations}
+        user={user}
+        orgsCount={orgsCount}
+        invitations={invitations}
+      />
     </SidebarLayout>
   )
 }
@@ -64,10 +73,12 @@ function Main({
   organizations,
   user,
   orgsCount: _orgsCount,
+  invitations,
 }: {
   organizations: OrganizationWithProjects[]
   user: User
   orgsCount: number
+  invitations: PendingInvitations
 }) {
   const { t } = useTranslation()
 
@@ -92,6 +103,12 @@ function Main({
             action={<SearchWorkspacesInput />}
           />
         </Wrap>
+
+        {invitations.length > 0 && (
+          <Wrap className="mb-0 md:mb-0">
+            <PendingInvitationList invitations={invitations} />
+          </Wrap>
+        )}
 
         <SearchWorkspacesResults>
           {(filteredOrganizations) => (

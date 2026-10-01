@@ -5,9 +5,11 @@
  * exact FORM of the other help-center walkthroughs; only the content differs.
  * Pass `lang="fr"` for the French copy.
  *
- * Participants tab re-verified 2026-09-28 against CampaignForm.tsx and
- * ParticipantsList.tsx (reviewCampaigns, actions and status locales, EN + FR):
- * people are added by email with a role and get access right away, no invitation.
+ * Participants tab re-verified 2026-10-01 against CampaignForm.tsx,
+ * ParticipantsList.tsx and invitations/components/PendingInvitationsSection.tsx
+ * (reviewCampaigns, invitations and actions locales, EN + FR): people are invited by
+ * email with a role, wait under Pending invitations (revocable), and join the
+ * participants table once they accept on their home page. No email is sent.
  */
 type Lang = "en" | "fr"
 const { lang = "en" } = Astro.props as { lang?: Lang }
@@ -23,7 +25,7 @@ const STRINGS = {
     timeAgo: "About 1 hour ago", create: "Create",
     newAgent: "New Agent", newAgentDesc: "An agent can perform specific tasks based on its type and configuration.",
     documentsDesc: "Enhance your agents' knowledge and capabilities by adding documents.",
-    membersDesc: "Add admins to your workspace to collaborate together.",
+    membersDesc: "Invite admins to your workspace to collaborate together.",
     reviewCampaigns: "Review campaigns", reviewDesc: "Ask testers and reviewers to evaluate an agent.",
     analyticsDesc: "View analytics for your project, including conversations, average questions per session, and more.",
     evalDesc: "Test the performance of your agents.",
@@ -45,12 +47,13 @@ const STRINGS = {
     qRequired: "Required", qFactual: "Factual", qFactualHint: "(visible to reviewers during blind)",
     qSample1: "Was the response clear?", qSample2: "Was the answer factually correct?", qSample3: "Any comments?",
     addQuestion: "Add question",
-    addTitle: "Add participants",
+    addTitle: "Invite participants",
     emailsLabel: "Emails (comma or newline separated)", emailsPh: "alice@example.com, bob@example.com",
-    accessHint: "People get access right away. They sign in with your organization's account.",
     roleLabel: "Role", roleTester: "Tester", roleReviewer: "Reviewer",
-    add: "Add",
-    colEmail: "Email", colRole: "Role", colStatus2: "Status", neverSignedIn: "Never signed in", revoke: "Revoke",
+    invite: "Invite",
+    colEmail: "Email", colRole: "Role", colStatus2: "Status", revoke: "Revoke",
+    pendingTitle: "Pending invitations", pendingDesc: "People invited to this campaign who have not answered yet.",
+    invitedAgo: "Invited less than a minute ago", deleteInvitation: "Delete invitation",
     stDraft: "Draft", stActive: "Active", stClosed: "Closed",
     colName: "Name", colStatus: "Status", colMembers: "Members", colCreated: "Created", colUpdated: "Updated", colActions: "Actions",
     campaignName: "Bayes Assistant — Q2 review", timeShort: "just now",
@@ -70,8 +73,8 @@ const STRINGS = {
       "Click Create campaign — it's saved as a Draft.",
       "Your campaign appears in the table with the Draft status.",
       "Open the draft and click Activate (top-right of the editor), then confirm.",
-      "In Participants, enter emails, choose Tester or Reviewer, then click Add.",
-      "Participants appear in the table right away. Never signed in marks who hasn't signed in yet.",
+      "In Participants, enter emails, choose Tester or Reviewer, then click Invite.",
+      "Invitations wait under Pending invitations. People join the table once they accept.",
       "To end it, open the campaign and click Close in the editor header.",
       "Confirm to close the campaign — it becomes read-only.",
       "Once closed, open the report to see aggregated results.",
@@ -87,7 +90,7 @@ const STRINGS = {
     timeAgo: "Il y a environ 1 heure", create: "Créer",
     newAgent: "Nouvel agent", newAgentDesc: "Un agent peut effectuer des tâches spécifiques selon son type et sa configuration.",
     documentsDesc: "Enrichissez les connaissances et capacités de vos agents en ajoutant des documents.",
-    membersDesc: "Ajoutez des administrateurs à votre espace de travail pour collaborer ensemble.",
+    membersDesc: "Invitez des administrateurs dans votre espace de travail pour collaborer ensemble.",
     reviewCampaigns: "Campagnes d'évaluation", reviewDesc: "Faites évaluer un agent par des testeurs et des relecteurs.",
     analyticsDesc: "Consultez les analyses de votre espace de travail : conversations, questions moyennes par session, et plus.",
     evalDesc: "Testez les performances de vos agents.",
@@ -109,12 +112,13 @@ const STRINGS = {
     qRequired: "Obligatoire", qFactual: "Factuelle", qFactualHint: "(visible aux relecteurs en mode aveugle)",
     qSample1: "La réponse était-elle claire ?", qSample2: "La réponse était-elle factuellement correcte ?", qSample3: "Des commentaires ?",
     addQuestion: "Ajouter une question",
-    addTitle: "Ajouter des participants",
+    addTitle: "Inviter des participants",
     emailsLabel: "E-mails (séparés par des virgules ou des retours à la ligne)", emailsPh: "alice@exemple.com, bob@exemple.com",
-    accessHint: "Les personnes ont accès immédiatement. Elles se connectent avec le compte de votre organisation.",
     roleLabel: "Rôle", roleTester: "Testeur", roleReviewer: "Relecteur",
-    add: "Ajouter",
-    colEmail: "E-mail", colRole: "Rôle", colStatus2: "Statut", neverSignedIn: "Jamais connecté", revoke: "Révoquer",
+    invite: "Inviter",
+    colEmail: "E-mail", colRole: "Rôle", colStatus2: "Statut", revoke: "Révoquer",
+    pendingTitle: "Invitations en attente", pendingDesc: "Personnes invitées sur cette campagne qui n'ont pas encore répondu.",
+    invitedAgo: "Invité il y a moins d'une minute", deleteInvitation: "Supprimer l'invitation",
     stDraft: "Brouillon", stActive: "Active", stClosed: "Clôturée",
     colName: "Nom", colStatus: "Statut", colMembers: "Membres", colCreated: "Créée", colUpdated: "Modifiée", colActions: "Actions",
     campaignName: "Bayes Assistant — revue T2", timeShort: "à l'instant",
@@ -134,8 +138,8 @@ const STRINGS = {
       "Cliquez sur Créer la campagne — elle est enregistrée en Brouillon.",
       "Votre campagne apparaît dans le tableau avec le statut Brouillon.",
       "Ouvrez le brouillon et cliquez sur Activer (en haut à droite de l'éditeur), puis confirmez.",
-      "Dans Participants, saisissez les e-mails, choisissez Testeur ou Relecteur, puis cliquez sur Ajouter.",
-      "Les participants apparaissent aussitôt dans le tableau. Jamais connecté signale qui ne s'est pas encore connecté.",
+      "Dans Participants, saisissez les e-mails, choisissez Testeur ou Relecteur, puis cliquez sur Inviter.",
+      "Les invitations attendent sous Invitations en attente. Les personnes rejoignent le tableau une fois l'invitation acceptée.",
       "Pour la terminer, ouvrez la campagne et cliquez sur Clôturer dans l'en-tête de l'éditeur.",
       "Confirmez pour clôturer la campagne — elle passe en lecture seule.",
       "Une fois clôturée, ouvrez le rapport pour voir les résultats agrégés.",
@@ -384,19 +388,24 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
               <div class="addbox" id="obsAddBox">
                 <b class="secttl">{s.addTitle}</b>
                 <div class="row" style="gap:0.6rem; align-items:flex-start">
-                  <span class="field" style="flex:1"><span class="lbl">{s.emailsLabel}</span><span class="textarea">{s.emailsPh}</span><span class="hint">{s.accessHint}</span></span>
+                  <span class="field" style="flex:1"><span class="lbl">{s.emailsLabel}</span><span class="textarea">{s.emailsPh}</span></span>
                   <span style="width:9rem"><span class="lbl">{s.roleLabel}</span><span class="select">{s.roleTester} <svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></span>
                 </div>
-                <div class="row" style="justify-content:flex-end"><span class="btn" id="btnAddParticipants">{s.add}</span></div>
+                <div class="row" style="justify-content:flex-end"><span class="btn" id="btnAddParticipants">{s.invite}</span></div>
               </div>
               <div class="section" id="obsParticipants">
                 <table class="res">
                   <thead><tr><th>{s.colEmail}</th><th>{s.colRole}</th><th>{s.colStatus2}</th><th class="ta-r">{s.colActions}</th></tr></thead>
                   <tbody>
-                    <tr><td><b>{s.email1}</b></td><td><span class="rolepill">{s.roleTester}</span></td><td><span class="nsbadge">{s.neverSignedIn}</span></td><td class="rowacts"><span class="linkbtn">{s.revoke}</span></td></tr>
                     <tr><td><b>{s.email2}</b></td><td><span class="rolepill">{s.roleReviewer}</span></td><td></td><td class="rowacts"><span class="linkbtn">{s.revoke}</span></td></tr>
                   </tbody>
                 </table>
+                <div class="pending">
+                  <div class="phead"><b>{s.pendingTitle}</b><p>{s.pendingDesc}</p></div>
+                  <div class="pgrid">
+                    <div class="pitem"><span class="pbody"><b>{s.email1}</b><small>{s.invitedAgo}</small></span><span class="ptrash" aria-label={s.deleteInvitation}><svg viewBox="0 0 24 24"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span></div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -625,6 +634,15 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
   .rcw .secttl { font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.5rem; }
   .rcw .addbox { border: 1px solid var(--border); border-radius: var(--radius); padding: 0.8rem; background: var(--card); }
   .rcw .addbox .hint { display: block; font-size: 0.72rem; color: var(--muted-foreground); margin-top: 0.35rem; }
+  .rcw .pending { border-top: 1px solid var(--border); padding: 0.9rem 0.6rem 0.6rem; background: color-mix(in oklab, var(--muted) 35%, transparent); }
+  .rcw .phead b { font-size: 0.92rem; font-weight: 500; }
+  .rcw .phead p { font-size: 0.74rem; color: var(--muted-foreground); margin: 0.15rem 0 0.6rem; }
+  .rcw .pgrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
+  .rcw .pitem { display: flex; align-items: flex-start; gap: 0.5rem; border: 1px solid var(--border); border-radius: 12px; background: var(--card); padding: 0.65rem; }
+  .rcw .pbody { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .rcw .pbody b { font-size: 0.78rem; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rcw .pbody small { font-size: 0.7rem; color: var(--muted-foreground); margin-top: 0.2rem; }
+  .rcw .ptrash { color: var(--muted-foreground); font-size: 0.85rem; display: inline-grid; place-items: center; width: 1.5rem; height: 1.5rem; }
   .rcw .rolepill, .rcw .nsbadge { display: inline-flex; align-items: center; font-size: 0.68rem; font-weight: 500; border-radius: 999px; padding: 0.1rem 0.45rem; border: 1px solid var(--border); color: var(--foreground); }
   .rcw .nsbadge { color: var(--muted-foreground); }
 

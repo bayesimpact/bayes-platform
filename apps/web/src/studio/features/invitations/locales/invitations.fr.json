@@ -1,0 +1,16 @@
+{
+  "invitations": {
+    "pendingSection": {
+      "title": "Invitations en attente",
+      "description": "Ces personnes auront accès une fois l'invitation acceptée dans l'application."
+    },
+    "pendingItem": {
+      "description": "Invité {{invitedAt}}",
+      "revoke": "Supprimer l'invitation"
+    },
+    "deleteDialog": {
+      "title": "Supprimer l'invitation ?",
+      "description": "{{email}} ne pourra plus accepter cette invitation."
+    }
+  }
+}

@@ -1,15 +1,15 @@
 ---
 title: Évaluer comme relecteur
 highlight: relecteur
-description: Vous avez été ajouté comme relecteur dans une campagne d'évaluation — ouvrez l'app Relecteur, lisez la session d'un testeur, donnez votre propre note indépendante (à l'aveugle), et consultez le rapport de la campagne.
+description: Vous avez été invité comme relecteur dans une campagne d'évaluation. Acceptez l'invitation, ouvrez l'app Relecteur, lisez la session d'un testeur, donnez votre propre note indépendante (à l'aveugle), et consultez le rapport de la campagne.
 category: guides-eval
 order: 6
-updated: 2026-09-28
+updated: 2026-10-01
 ---
 
 import ReviewerWalkthrough from "@/components/ReviewerWalkthrough.astro"
 
-Lorsqu'on vous ajoute comme **relecteur** à une **campagne d'évaluation**, vous lisez
+Lorsqu'on vous invite comme **relecteur** à une **campagne d'évaluation**, vous lisez
 les sessions que les **testeurs** ont eues avec un agent et vous donnez votre propre
 jugement indépendant. Les relectures sont **à l'aveugle** : la note et le commentaire
 du testeur restent masqués jusqu'à ce que vous soumettiez les vôtres, afin que votre
@@ -18,9 +18,10 @@ vous pouvez aussi consulter le **rapport** agrégé de la campagne.
 
 L'application **Relecteur** s'ouvre depuis la carte de votre **espace de travail** sur
 la page d'accueil. Son bouton (avec une icône de lunettes) n'apparaît qu'une fois que
-vous avez été ajouté comme relecteur à une campagne dans cet espace de travail.
+vous avez accepté une invitation comme relecteur à une campagne dans cet espace de
+travail.
 
-> Ce guide s'adresse aux **relecteurs**. Si vous avez été ajouté comme **testeur**
+> Ce guide s'adresse aux **relecteurs**. Si vous avez été invité comme **testeur**
 > (pour discuter avec l'agent), voir [Participer comme testeur](/fr/participate-as-a-tester).
 > Si vous **configurez** la campagne, voir [Campagnes de relecture](/fr/review-campaigns).
 
@@ -50,21 +51,31 @@ bouton à cliquer et la zone à observer.
 
 ## Étape par étape
 
-### 1. Ouvrir l'application Relecteur
+### 1. Accepter l'invitation
+
+Connectez-vous avec le compte de votre organisation, avec l'email invité par le
+propriétaire de la campagne. Sur la page d'accueil, le bloc **Invitations en
+attente** affiche une carte avec le badge **Campagne de revue**, le nom de la
+campagne et votre rôle (**reviewer**). Cliquez sur **Accepter**. La campagne doit
+être active pour que l'invitation puisse être acceptée. Voir
+[Se connecter et accepter vos invitations](/fr/sign-in-for-the-first-time).
+
+### 2. Ouvrir l'application Relecteur
 
 Sur la page d'accueil, repérez la carte de votre **espace de travail** et ouvrez son
 **menu d'applications** (le chevron à côté du bouton principal). Choisissez
-**Révision** — l'entrée avec l'icône de lunettes. (Si vous ne la voyez pas, c'est que
-vous n'avez pas encore été ajouté comme relecteur à une campagne dans cet espace de travail.)
+**Révision**, l'entrée avec l'icône de lunettes. (Si vous ne la voyez pas, c'est que
+vous n'avez pas encore accepté d'invitation comme relecteur à une campagne dans cet
+espace de travail.)
 
-### 2. Ouvrir votre campagne
+### 3. Ouvrir votre campagne
 
 La page **Mes campagnes d'évaluation** liste les campagnes où vous êtes relecteur,
 chacune avec la mention *Relisez les sessions des testeurs et soumettez votre propre
 évaluation*. Cliquez sur l'une d'elles. Si vous n'en avez aucune, la page affiche
 **Aucune campagne d'évaluation pour le moment**.
 
-### 3. Choisir une session à relire
+### 4. Choisir une session à relire
 
 La page de la campagne présente l'agent et **Sessions à relire** — un tableau avec les
 colonnes **Session**, **Démarrée**, **Messages**, **Relecteurs** et **Ma relecture**
@@ -72,7 +83,7 @@ colonnes **Session**, **Démarrée**, **Messages**, **Relecteurs** et **Ma relec
 (ou **Voir** pour une déjà faite). Les lignes marquées *votre session* sont
 désactivées — vous ne pouvez pas relire les vôtres.
 
-### 4. Lire et soumettre votre relecture (à l'aveugle)
+### 5. Lire et soumettre votre relecture (à l'aveugle)
 
 La session s'ouvre en deux volets :
 
@@ -85,19 +96,19 @@ La session s'ouvre en deux volets :
   campagne (note / choix unique / texte libre). Remplissez-la et cliquez sur
   **Soumettre la relecture**.
 
-### 5. Voir le retour révélé
+### 6. Voir le retour révélé
 
 Une fois soumise, la relecture n'est plus à l'aveugle. Le **Retour du testeur** (sa
 note globale et son commentaire) et les éventuels **Autres relecteurs** apparaissent à
 gauche. Votre propre relecture reste modifiable — ajustez-la et cliquez sur
 **Enregistrer les modifications** si besoin.
 
-### 6. Ouvrir le rapport de la campagne
+### 7. Ouvrir le rapport de la campagne
 
 Depuis la page de la campagne, cliquez sur **Rapport de la campagne** (en haut à
 droite) pour voir les résultats agrégés sur l'ensemble des sessions et des relecteurs.
 
-### 7. Lire le rapport
+### 8. Lire le rapport
 
 Le rapport affiche des chiffres clés — **Sessions**, **Note moyenne des testeurs**,
 **Note moyenne des relecteurs**, **Moyenne fin de phase** — une répartition par
@@ -117,10 +128,12 @@ brutes.
 
 ## Dépannage
 
-- **Je ne vois pas l'application Relecteur** — son bouton n'apparaît qu'après avoir été
-  **ajouté comme relecteur** à une campagne dans cet espace de travail. Demandez au
-  propriétaire de la campagne d'ajouter l'email avec lequel vous vous connectez. Contrairement aux testeurs, les relecteurs gardent
-  l'accès aux campagnes **clôturées**.
+- **Je ne vois pas l'application Relecteur.** Son bouton n'apparaît qu'après avoir
+  **accepté une invitation comme relecteur** à une campagne dans cet espace de
+  travail. Regardez le bloc **Invitations en attente** sur la page d'accueil. S'il
+  n'y en a pas, demandez au propriétaire de la campagne d'inviter l'email avec lequel
+  vous vous connectez. Contrairement aux testeurs, les relecteurs gardent l'accès aux
+  campagnes **clôturées**.
 - **Le bouton Relire est désactivé sur une ligne** — c'est **votre propre** session de
   testeur (marquée *votre session*) ; les relecteurs ne peuvent pas relire leurs
   propres sessions.

@@ -8,7 +8,7 @@
     },
     "noAccess": {
       "title": "No access yet",
-      "description": "Your account is active, but no one has given you access to a workspace. Ask your administrator to add you.",
+      "description": "Your account is active, but you have no workspace and no pending invitation. Ask your administrator to invite you.",
       "logout": "log out"
     }
   }

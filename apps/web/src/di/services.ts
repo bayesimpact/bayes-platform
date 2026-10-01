@@ -23,8 +23,8 @@ import type { IAgentAnalyticsSpi } from "@/studio/features/analytics/agent/agent
 import type { IProjectAnalyticsSpi } from "@/studio/features/analytics/project/analytics.spi"
 import type { IDocumentTagsSpi } from "@/studio/features/document-tags/document-tags.spi"
 import type { IDocumentsSpi } from "@/studio/features/documents/documents.spi"
+import type { IInvitationsSpi } from "@/studio/features/invitations/invitations.spi"
 import type { IMcpServersSpi } from "@/studio/features/mcp-servers/mcp-servers.spi"
-import type { IMemberGrantsSpi } from "@/studio/features/member-grants/member-grants.spi"
 import type { IProjectMembershipsSpi } from "@/studio/features/project-memberships/project-memberships.spi"
 import type { IResourceLibrariesSpi } from "@/studio/features/resource-libraries/resource-libraries.spi"
 import type { IReportsSpi } from "@/studio/features/review-campaigns/reports/reports.spi"
@@ -53,7 +53,7 @@ export type Services = {
   extractionAgentSessions: IExtractionAgentSessionsSpi
   mcpServers: IMcpServersSpi
   me: IMeSpi
-  memberGrants: IMemberGrantsSpi
+  invitations: IInvitationsSpi
   organizations: IOrganizationsSpi
   projectAnalytics: IProjectAnalyticsSpi
   projectMemberships: IProjectMembershipsSpi

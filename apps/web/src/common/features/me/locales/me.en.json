@@ -18,6 +18,14 @@
     "props": {
       "user": "User",
       "organizations": "Organizations"
+    },
+    "invitations": {
+      "title": "Pending invitations",
+      "description": "Accept an invitation to get access.",
+      "projectBadge": "Project",
+      "agentBadge": "Agent",
+      "reviewCampaignBadge": "Review campaign",
+      "roleLabel": "Role"
     }
   },
   "termsAcceptance": {

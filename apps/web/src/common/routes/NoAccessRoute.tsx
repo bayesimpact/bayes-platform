@@ -3,8 +3,8 @@ import { useTranslation } from "react-i18next"
 import { logout } from "@/external/oidcClient"
 
 /**
- * Shown to a signed-in user who has no workspace yet. Access is given by an
- * administrator who adds the person by email; nothing to accept here.
+ * Shown to a signed-in user who has no workspace and no pending invitation.
+ * Access comes from an invitation an administrator creates for the person's email.
  */
 export function NoAccessRoute() {
   const { t } = useTranslation("auth", { keyPrefix: "noAccess" })

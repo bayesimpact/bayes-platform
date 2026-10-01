@@ -7,17 +7,25 @@ import { Grid, GridCard, GridContent, GridHeader } from "@/common/components/gri
 import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
 import { useGetProjectRoute } from "@/common/hooks/use-get-path"
 import { useValue } from "@/common/hooks/use-value"
+import { useAppDispatch } from "@/common/store/hooks"
+import { PendingInvitationsSection } from "@/studio/features/invitations/components/PendingInvitationsSection"
+import { revokeInvitation } from "@/studio/features/invitations/invitations.thunks"
 import { MembersCreator } from "@/studio/features/project-memberships/components/MembersCreator"
 import { ProjectMembershipItem } from "@/studio/features/project-memberships/components/ProjectMembershipItem"
-import { selectProjectMemberships } from "@/studio/features/project-memberships/project-memberships.selectors"
+import {
+  selectProjectMemberships,
+  selectProjectPendingInvitations,
+} from "@/studio/features/project-memberships/project-memberships.selectors"
 
 export function ProjectMembershipList() {
   const outlet = useOutlet()
+  const dispatch = useAppDispatch()
   const { t } = useTranslation()
   const navigate = useNavigate()
 
   const project = useValue(selectCurrentProjectData)
   const memberships = useValue(selectProjectMemberships)
+  const pendingInvitations = useValue(selectProjectPendingInvitations)
 
   const [searchQuery, setSearchQuery] = useState("")
   const projectRoute = useGetProjectRoute()
@@ -34,35 +42,54 @@ export function ProjectMembershipList() {
   }, [memberships, searchQuery])
 
   const cols = filteredMemberships.length === 0 ? 0 : 3
+  const handleRevokeInvitation = (invitationId: string) => {
+    void dispatch(
+      revokeInvitation({
+        invitationId,
+        targetType: "project",
+        targetId: project.id,
+      }),
+    )
+  }
 
   if (outlet) return outlet
   return (
-    <Grid cols={cols}>
-      <GridHeader
-        onBack={handleBack}
-        title={t("projectMembership:list.title", { projectName: project.name })}
-        description={t("projectMembership:list.description")}
-        action={<Search value={searchQuery} onChange={setSearchQuery} />}
+    <>
+      <Grid cols={cols}>
+        <GridHeader
+          onBack={handleBack}
+          title={t("projectMembership:list.title", { projectName: project.name })}
+          description={t("projectMembership:list.description")}
+          action={<Search value={searchQuery} onChange={setSearchQuery} />}
+        />
+
+        <GridContent>
+          {filteredMemberships.map((membership) => (
+            <ProjectMembershipItem
+              organizationId={project.organizationId}
+              key={membership.id}
+              membership={membership}
+            />
+          ))}
+
+          <GridCard className="bg-muted/35">
+            <GridCard.Body>
+              <GridCard.Title>{t("projectMembership:create.title")}</GridCard.Title>
+              <GridCard.Description>
+                {t("projectMembership:create.description")}
+              </GridCard.Description>
+              <MembersCreator projectId={project.id} />
+            </GridCard.Body>
+          </GridCard>
+        </GridContent>
+      </Grid>
+      <PendingInvitationsSection
+        invitations={pendingInvitations}
+        title={t("projectMembership:pendingInvitations.title")}
+        description={t("projectMembership:pendingInvitations.description")}
+        onRevoke={handleRevokeInvitation}
       />
-
-      <GridContent>
-        {filteredMemberships.map((membership) => (
-          <ProjectMembershipItem
-            organizationId={project.organizationId}
-            key={membership.id}
-            membership={membership}
-          />
-        ))}
-
-        <GridCard className="bg-muted/35">
-          <GridCard.Body>
-            <GridCard.Title>{t("projectMembership:create.title")}</GridCard.Title>
-            <GridCard.Description>{t("projectMembership:create.description")}</GridCard.Description>
-            <MembersCreator projectId={project.id} />
-          </GridCard.Body>
-        </GridCard>
-      </GridContent>
-    </Grid>
+    </>
   )
 }
 

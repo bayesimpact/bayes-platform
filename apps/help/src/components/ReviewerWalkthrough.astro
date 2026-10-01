@@ -8,6 +8,8 @@
  * (blind → revealed), FactualAnswersPanel/TesterFeedbackPanel/OtherReviewersPanel,
  * BlindBanner.tsx, ReviewerReviewForm.tsx, and the shared studio CampaignReport.
  * Labels verbatim from reviewer-campaigns / reviewCampaigns:report locales (EN + FR).
+ * Step 1 (accepting the campaign invitation on the home page) mirrors
+ * home/PendingInvitationList.tsx with the me locale (re-verified 2026-10-01).
  * Uses the PRODUCT (coral) palette, pinned locally. Derived 2026-07-16.
  */
 type Lang = "en" | "fr"
@@ -18,6 +20,8 @@ const STRINGS = {
     appName: "Reviewer", workspaces: "Workspaces", org: "Bayes Impact Demo", projectName: "Demo",
     appStudio: "Studio", appApp: "App", appEval: "Evaluation", appReview: "Review",
     userName: "Alex Martin", userEmail: "alex.martin@example.com",
+    invTitle: "Pending invitations", invDesc: "Accept an invitation to get access.",
+    invBadge: "Review campaign", roleLabel: "Role", accept: "Accept", decline: "Decline",
     myTitle: "My review campaigns", mySubtitle: "Active campaigns where you're a reviewer.",
     cardDesc: "Review tester sessions and submit your own rating.",
     campaignName: "Agent pilot", campaignDesc: "Help us evaluate the assistant before launch.",
@@ -44,7 +48,8 @@ const STRINGS = {
     matrixTitle: "Session matrix", mxSession: "Session", mxStarted: "Started", mxTester: "Tester", mxReviewers: "Reviewers", mxMean: "Mean reviewer", mxSpread: "Spread",
     prev: "Prev", next: "Next", step: "Step",
     steps: [
-      "From the home page, open your workspace's menu and choose Review — the reviewer app.",
+      "On the home page, accept the review campaign invitation under Pending invitations.",
+      "Open your workspace's menu and choose Review, the reviewer app.",
       "My review campaigns lists the campaigns you review. Open one.",
       "Sessions to review lists testers' sessions. Click Review on one (you can't review your own).",
       "Read the transcript and answer Your review. The tester's rating is hidden — that's the blind review. Then Submit review.",
@@ -57,6 +62,8 @@ const STRINGS = {
     appName: "Relecteur", workspaces: "Espaces de travail", org: "Bayes Impact Demo", projectName: "Demo",
     appStudio: "Studio", appApp: "Application", appEval: "Évaluation", appReview: "Révision",
     userName: "Alex Martin", userEmail: "alex.martin@example.com",
+    invTitle: "Invitations en attente", invDesc: "Acceptez une invitation pour obtenir l'accès.",
+    invBadge: "Campagne de revue", roleLabel: "Rôle", accept: "Accepter", decline: "Refuser",
     myTitle: "Mes campagnes d'évaluation", mySubtitle: "Campagnes actives où vous êtes relecteur.",
     cardDesc: "Relisez les sessions des testeurs et soumettez votre propre évaluation.",
     campaignName: "Pilote agent", campaignDesc: "Aidez-nous à évaluer l'assistant avant son lancement.",
@@ -83,7 +90,8 @@ const STRINGS = {
     matrixTitle: "Matrice des sessions", mxSession: "Session", mxStarted: "Démarrée", mxTester: "Testeur", mxReviewers: "Relecteurs", mxMean: "Moyenne relecteurs", mxSpread: "Écart",
     prev: "Précédent", next: "Suivant", step: "Étape",
     steps: [
-      "Sur la page d'accueil, ouvrez le menu de votre espace de travail et choisissez Révision — l'application relecteur.",
+      "Sur la page d'accueil, acceptez l'invitation à la campagne sous Invitations en attente.",
+      "Ouvrez le menu de votre espace de travail et choisissez Révision, l'application relecteur.",
       "Mes campagnes d'évaluation liste les campagnes que vous relisez. Ouvrez-en une.",
       "Sessions à relire liste les sessions des testeurs. Cliquez sur Relire (vous ne pouvez pas relire la vôtre).",
       "Lisez la transcription et répondez à Votre relecture. La note du testeur est masquée — c'est la relecture à l'aveugle. Puis Soumettez la relecture.",
@@ -97,6 +105,7 @@ const STRINGS = {
 const s = STRINGS[lang]
 
 const steps = [
+  { page: "invite", spot: "btnAcceptInv", observe: ["obsInvite"] },
   { page: "home", spot: "btnReview", observe: [] },
   { page: "campaigns", spot: "cardOpen", observe: [] },
   { page: "landing", spot: "btnRowReview", observe: ["obsTable"] },
@@ -119,8 +128,21 @@ const labels = { prev: s.prev, next: s.next, step: s.step, navApp: s.appName, na
 
     <div class="panel">
       <div class="canvas">
-        <!-- Home: workspace app menu (step 1) -->
-        <div class="page" data-page="home" data-active="true">
+        <!-- Home: pending campaign invitation to accept (step 1) -->
+        <div class="page" data-page="invite" data-active="true">
+          <div class="page-head"><span><span class="ttl">{s.invTitle}</span><span class="desc">{s.invDesc}</span></span></div>
+          <div class="cards2">
+            <div class="ccard" id="obsInvite">
+              <span class="badge">{s.invBadge}</span>
+              <b>{s.campaignName}</b>
+              <p>{s.org} · {s.projectName} · {s.roleLabel}: reviewer</p>
+              <span class="invbtns"><span class="btn sm" id="btnAcceptInv">{s.accept} <svg viewBox="0 0 24 24"><path d="M21.801 10A10 10 0 1 1 17 3.335"/><path d="m9 11 3 3L22 4"/></svg></span><span class="btn sm outline">{s.decline} <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Home: workspace app menu (step 2) -->
+        <div class="page" data-page="home">
           <div class="page-head"><span><span class="ttl">{s.workspaces}</span></span></div>
           <div class="wscard">
             <span class="ws-name">{s.projectName}</span>
@@ -136,7 +158,7 @@ const labels = { prev: s.prev, next: s.next, step: s.step, navApp: s.appName, na
           </div>
         </div>
 
-        <!-- My review campaigns (step 2) -->
+        <!-- My review campaigns (step 3) -->
         <div class="page" data-page="campaigns">
           <div class="page-head"><span><span class="ttl">{s.myTitle}</span><span class="desc">{s.mySubtitle}</span></span></div>
           <div class="cards2">
@@ -149,7 +171,7 @@ const labels = { prev: s.prev, next: s.next, step: s.step, navApp: s.appName, na
           </div>
         </div>
 
-        <!-- Campaign landing / sessions table (steps 3, 6) -->
+        <!-- Campaign landing / sessions table (steps 4, 7) -->
         <div class="page" data-page="landing">
           <div class="page-head">
             <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
@@ -182,7 +204,7 @@ const labels = { prev: s.prev, next: s.next, step: s.step, navApp: s.appName, na
           </div>
         </div>
 
-        <!-- Session review — blind (step 4) -->
+        <!-- Session review — blind (step 5) -->
         <div class="page" data-page="sessionBlind">
           <div class="page-head">
             <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
@@ -213,7 +235,7 @@ const labels = { prev: s.prev, next: s.next, step: s.step, navApp: s.appName, na
           </div>
         </div>
 
-        <!-- Session review — revealed after submit (step 5) -->
+        <!-- Session review — revealed after submit (step 6) -->
         <div class="page" data-page="sessionRevealed">
           <div class="page-head">
             <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
@@ -241,7 +263,7 @@ const labels = { prev: s.prev, next: s.next, step: s.step, navApp: s.appName, na
           </div>
         </div>
 
-        <!-- Campaign report (step 7) -->
+        <!-- Campaign report (step 8) -->
         <div class="page" data-page="report">
           <div class="page-head">
             <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
@@ -391,6 +413,9 @@ const labels = { prev: s.prev, next: s.next, step: s.step, navApp: s.appName, na
 
   .rvw .btn { display: inline-flex; align-items: center; gap: 0.4rem; background: var(--primary); color: var(--primary-foreground); border-radius: 8px; font-size: 0.82rem; font-weight: 500; padding: 0.45rem 0.75rem; }
   .rvw .btn.outline { background: var(--background); color: var(--foreground); border: 1px solid var(--border); }
+  .rvw .btn.outline { background: var(--background); color: var(--foreground); border: 1px solid var(--border); }
+  .rvw .invbtns { display: flex; gap: 0.5rem; margin-top: auto; }
+  .rvw .ccard .badge { align-self: flex-start; margin-bottom: 0.2rem; }
   .rvw .btn.ghost { background: transparent; color: var(--foreground); }
   .rvw .btn.sm { padding: 0.3rem 0.55rem; font-size: 0.76rem; }
   .rvw .btn.disabled { opacity: 0.45; }

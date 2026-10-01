@@ -12,11 +12,13 @@ import { RouteNames } from "@/common/routes/helpers"
 import { onboardingRoute } from "@/common/routes/Router"
 import { buildDecorator, render } from "@/stories/decorators"
 import { mergeSeeds, seed } from "@/stories/seed"
+import { pendingInvitationFactory } from "@/studio/features/invitations/invitations.factory"
 import { type BaseStoryArgs, baseStoryArgs, baseStoryArgTypes } from "../helpers"
 
 type StoryArgs = BaseStoryArgs & {
   organizationCount: number
   projectsPerOrganization: number
+  withPendingInvitations: boolean
   withReviewCampaignMembershipsAsTester: boolean
   withReviewCampaignMembershipsAsReviewer: boolean
 }
@@ -27,6 +29,7 @@ function buildData(args: StoryArgs) {
     organizationMembershipRole,
     projectMembershipRole,
     projectsPerOrganization,
+    withPendingInvitations,
     withReviewCampaignMembershipsAsTester,
     withReviewCampaignMembershipsAsReviewer,
     featureFlags,
@@ -82,9 +85,16 @@ function buildData(args: StoryArgs) {
             : []),
         ]
       : []
+  const invitations = withPendingInvitations
+    ? [
+        pendingInvitationFactory.build({ targetType: "project" }),
+        pendingInvitationFactory.build({ targetType: "agent" }),
+      ]
+    : []
   return {
     organizations,
     myProjects,
+    invitations,
     organizationMemberships,
     projectMemberships,
     reviewCampaignMemberships,
@@ -98,6 +108,7 @@ const meta = {
     ...baseStoryArgTypes,
     organizationCount: { control: { type: "number", min: 0, max: 4 } },
     projectsPerOrganization: { control: { type: "number", min: 0, max: 4 } },
+    withPendingInvitations: { control: "boolean" },
     withReviewCampaignMembershipsAsTester: { control: "boolean" },
     withReviewCampaignMembershipsAsReviewer: { control: "boolean" },
   },
@@ -107,6 +118,7 @@ const meta = {
     projectMembershipRole: "member",
     organizationCount: 1,
     projectsPerOrganization: 1,
+    withPendingInvitations: false,
     withReviewCampaignMembershipsAsTester: false,
     withReviewCampaignMembershipsAsReviewer: false,
   },
@@ -126,6 +138,7 @@ const meta = {
           seed.me(user),
           seed.organizations(data.organizations),
           seed.myProjects(data.myProjects),
+          seed.pendingInvitations(data.invitations),
         ),
       }
     }),
@@ -145,7 +158,7 @@ export const Default: Story = {
   },
 }
 
-/** Signed in, but nobody gave this person access yet: the no-access page. */
+/** Signed in, with no workspace and no pending invitation: the no-access page. */
 export const Empty: Story = {
   args: {
     organizationMembershipRole: "member",
@@ -169,6 +182,23 @@ export const Single: Story = {
     projectsPerOrganization: 1,
     withReviewCampaignMembershipsAsTester: false,
     withReviewCampaignMembershipsAsReviewer: false,
+  },
+}
+
+/** Invited but not a member of anything yet: only the invitations to accept. */
+export const InvitedOnly: Story = {
+  args: {
+    organizationCount: 0,
+    projectsPerOrganization: 0,
+    withPendingInvitations: true,
+  },
+}
+
+export const SingleWithInvitations: Story = {
+  args: {
+    organizationCount: 1,
+    projectsPerOrganization: 1,
+    withPendingInvitations: true,
   },
 }
 

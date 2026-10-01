@@ -73,8 +73,8 @@ config:
   OIDC_ISSUER_URL: https://idp.example.org/realms/platform
   # Checked against the `aud` claim. Leave empty when the provider sets none.
   OIDC_AUDIENCE: ""
-  # People added by email get their access at their first sign-in with that
-  # email, when the provider reports it as verified.
+  # People invited by email find their invitations at their first sign-in with
+  # that email, when the provider reports it as verified.
   OIDC_ALLOW_EMAIL_LINKING: "true"
   # Only for a single-tenant provider the customer fully controls.
   OIDC_TRUST_UNVERIFIED_EMAIL: "false"

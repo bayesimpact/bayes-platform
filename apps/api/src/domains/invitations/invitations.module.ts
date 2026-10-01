@@ -1,6 +1,6 @@
 import { forwardRef, Module } from "@nestjs/common"
 import { TypeOrmModule } from "@nestjs/typeorm"
-import { MemberGrantScopeContextResolver } from "@/common/context/resolvers/member-grant-scope-context.resolver"
+import { InvitationScopeContextResolver } from "@/common/context/resolvers/invitation-scope-context.resolver"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { Agent } from "@/domains/agents/agent.entity"
 import { AgentsModule } from "@/domains/agents/agents.module"
@@ -13,13 +13,16 @@ import { ReviewCampaignMembershipRepository } from "@/domains/review-campaigns/m
 import { ReviewCampaignMembershipsService } from "@/domains/review-campaigns/memberships/review-campaign-memberships.service"
 import { ReviewCampaign } from "@/domains/review-campaigns/review-campaign.entity"
 import { UsersModule } from "@/domains/users/users.module"
-import { MemberGrantsController } from "./member-grants.controller"
-import { MemberGrantsGuard } from "./member-grants.guard"
-import { MemberGrantsService } from "./member-grants.service"
+import { Invitation } from "./invitation.entity"
+import { InvitationRepository } from "./invitation.repository"
+import { InvitationAccessService } from "./invitation-access.service"
+import { InvitationsController } from "./invitations.controller"
+import { InvitationsGuard } from "./invitations.guard"
+import { InvitationsService } from "./invitations.service"
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Project, Agent, ReviewCampaign]),
+    TypeOrmModule.forFeature([Invitation, Project, Agent, ReviewCampaign]),
     MembershipsModule,
     UsersModule,
     AuthModule,
@@ -31,10 +34,12 @@ import { MemberGrantsService } from "./member-grants.service"
     ReviewCampaignMembershipRepository,
     ReviewCampaignMembershipsService,
     ResourceContextGuard,
-    MemberGrantScopeContextResolver,
-    MemberGrantsGuard,
-    MemberGrantsService,
+    InvitationScopeContextResolver,
+    InvitationsGuard,
+    InvitationRepository,
+    InvitationAccessService,
+    InvitationsService,
   ],
-  controllers: [MemberGrantsController],
+  controllers: [InvitationsController],
 })
-export class MemberGrantsModule {}
+export class InvitationsModule {}

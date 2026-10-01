@@ -12,20 +12,22 @@
       }
     },
     "create": {
-      "button": "Ajouter des utilisateurs",
-      "title": "Ajouter des utilisateurs",
-      "description": "Entrez l'adresse email des personnes qui doivent utiliser cet agent.",
+      "button": "Inviter des utilisateurs",
+      "title": "Inviter des utilisateurs",
+      "description": "Entrez l'adresse email des personnes qui doivent utiliser cet agent. Elles acceptent l'invitation après s'être connectées.",
       "label": "Adresse email",
-      "placeholder": "Entrez l'adresse email",
-      "accessHint": "Les personnes ont accès immédiatement. Elles se connectent avec le compte de votre organisation.",
-      "submit": "Donner l'accès"
+      "placeholder": "Entrez l'adresse email"
+    },
+    "pendingInvitations": {
+      "title": "Invitations en attente",
+      "description": "Personnes invitées sur cet agent qui n'ont pas encore répondu."
     },
     "list": {
       "title": "Membres de {{agentName}}",
-      "description": "Ajoutez les personnes qui peuvent utiliser votre agent.",
+      "description": "Invitez les personnes qui peuvent utiliser votre agent.",
       "empty": {
         "title": "Aucun membre",
-        "description": "Ajoutez les personnes qui peuvent utiliser votre agent."
+        "description": "Invitez les personnes qui peuvent utiliser votre agent."
       }
     },
     "remove": {

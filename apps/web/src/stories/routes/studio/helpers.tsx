@@ -73,6 +73,8 @@ export function buildStudioData(input: StudioStoryArgs): {
     seed.organizations([organization], { currentId: organization.id }),
     seed.projects([seededProject], { currentId: seededProject.id }),
     seed.agents(agents),
+    seed.studio.projectPendingInvitations([]),
+    seed.studio.agentPendingInvitations([]),
   )
   return { user, organization, project, agents, baseSeeds }
 }

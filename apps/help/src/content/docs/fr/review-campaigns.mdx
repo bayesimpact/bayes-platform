@@ -4,13 +4,13 @@ highlight: Campagnes
 description: Créez une campagne pour faire évaluer un agent par des testeurs et des relecteurs, puis consultez les résultats agrégés.
 category: guides-eval
 order: 4
-updated: 2026-09-28
+updated: 2026-10-01
 ---
 
 import ReviewCampaignsWalkthrough from "@/components/ReviewCampaignsWalkthrough.astro"
 
 Une **campagne d'évaluation** vous permet d'évaluer un agent avec l'aide des
-personnes que vous y ajoutez. Les [**testeurs**](/fr/participate-as-a-tester) ont de vraies conversations avec l'agent et
+personnes que vous y invitez. Les [**testeurs**](/fr/participate-as-a-tester) ont de vraies conversations avec l'agent et
 répondent à des questions à leur sujet ; les [**relecteurs**](/fr/review-as-a-reviewer) relisent ensuite ces
 sessions et donnent leur propre jugement indépendant. À la clôture de la campagne,
 leurs retours sont agrégés dans un rapport.
@@ -23,7 +23,7 @@ travail**.
 
 Une campagne passe par trois états : **Brouillon** → **Active** → **Clôturée**.
 Vous la construisez en brouillon (agent, questions et, éventuellement, une
-description), puis vous l'**Activez** pour commencer à ajouter des participants et
+description), puis vous l'**Activez** pour commencer à inviter des participants et
 recueillir des retours. Une fois activée, la configuration est **verrouillée** afin
 que tout le monde évalue la même chose. Lorsque vous la **Clôturez**, les résultats
 sont agrégés et la campagne passe en lecture seule, prête à être consultée dans le
@@ -109,33 +109,43 @@ Depuis le tableau des campagnes, ouvrez le brouillon (icône **crayon** /
 la configuration (agent, questions) est **verrouillée** — activez uniquement lorsque
 tout vous convient.
 
-> Vous devez activer une campagne **avant** d'ajouter des participants. D'ici là,
-> l'onglet **Participants** affiche *Enregistrez d'abord la campagne, puis ajoutez des
-> participants.* (nouvelle campagne) ou *Activez la campagne avant d'ajouter des
-> participants, pour qu'ils la trouvent dans leur liste en se connectant.*
+> Vous devez activer une campagne **avant** d'inviter des participants. D'ici là,
+> l'onglet **Participants** affiche *Enregistrez d'abord la campagne, puis invitez des
+> participants.* (nouvelle campagne) ou *Activez la campagne avant d'inviter des
+> participants, pour qu'ils puissent accepter et la trouver dans leur liste.*
 > (brouillon).
 
-### 5. Ajouter des testeurs et des relecteurs
+### 5. Inviter des testeurs et des relecteurs
 
 Dans l'onglet **Participants** de l'éditeur (disponible une fois la campagne
-**Active**), l'encadré **Ajouter des participants** contient :
+**Active**), l'encadré **Inviter des participants** contient :
 
 1. **E-mails (séparés par des virgules ou des retours à la ligne)** : saisissez une
    ou plusieurs adresses.
 2. **Rôle** : choisissez **Testeur** ou **Relecteur**. Tout le lot reçoit le même
-   rôle, ajoutez donc testeurs et relecteurs en deux fois.
-3. **Ajouter** : cliquez pour donner l'accès. Une notification **Participants added**
-   (en anglais dans l'interface) le confirme.
+   rôle, invitez donc testeurs et relecteurs en deux fois.
+3. **Inviter** : cliquez pour envoyer les invitations. Une notification **People
+   invited** (en anglais dans l'interface) le confirme.
 
-L'aide sous le champ indique *Les personnes ont accès immédiatement. Elles se
-connectent avec le compte de votre organisation.* La plateforme n'envoie pas d'email,
-prévenez donc les participants que la campagne est prête. Chaque personne apparaît
-aussitôt dans le tableau des participants, avec les colonnes **E-mail**, **Rôle**,
-**Statut** et **Actions**. **Statut** affiche **Jamais connecté** jusqu'à sa première
-connexion (voir [Se connecter pour la première fois](/fr/sign-in-for-the-first-time)).
-Pour retirer l'accès, cliquez sur **Révoquer** sur la ligne et confirmez dans la boîte
-de dialogue **Révoquer *email* ?** ; le participant est retiré de la campagne et
-l'action est **irréversible**.
+Chaque personne reçoit une invitation en attente, listée sous **Invitations en
+attente**, sous le tableau des participants : *Personnes invitées sur cette campagne
+qui n'ont pas encore répondu.* Chaque carte indique l'email et la date d'envoi. La
+plateforme n'envoie pas d'email, prévenez donc les participants que la campagne est
+prête : ils se connectent avec le compte de votre organisation et acceptent
+l'invitation sur la page d'accueil (voir
+[Se connecter et accepter vos invitations](/fr/sign-in-for-the-first-time)). Ils ne
+peuvent accepter que pendant que la campagne est **Active**.
+
+Dès qu'une personne accepte, elle quitte la liste en attente et apparaît dans le
+tableau des participants, avec les colonnes **E-mail**, **Rôle**, **Statut** et
+**Actions**.
+
+Pour annuler une invitation sans réponse, cliquez sur l'icône **corbeille**
+(**Supprimer l'invitation**) de sa carte, puis sur **Confirmer** dans la boîte de
+dialogue **Supprimer l'invitation ?**. Pour retirer l'accès à un participant, cliquez
+sur **Révoquer** sur sa ligne et confirmez dans la boîte de dialogue **Révoquer
+*email* ?** ; le participant est retiré de la campagne et l'action est
+**irréversible**.
 
 ### 6. Gérer les campagnes depuis le tableau
 
@@ -161,7 +171,7 @@ l'éditeur**. Pour le trouver :
    **Clôturer la campagne**.
 
 Une campagne clôturée est en **lecture seule** : vous ne pouvez plus la modifier ni
-ajouter personne.
+inviter personne.
 
 ### 8. Lire le rapport
 
@@ -177,19 +187,20 @@ brutes.
   session.
 - Marquez une question comme **Factuelle** lorsqu'il existe une bonne réponse ; elle
   reste visible aux relecteurs pendant la relecture en aveugle.
-- Ajoutez quelques testeurs et relecteurs plutôt que beaucoup d'un coup, afin
+- Invitez quelques testeurs et relecteurs plutôt que beaucoup d'un coup, afin
   d'ajuster la campagne suivante selon ce que vous apprenez.
 - Les participants se connectent avec le compte de votre organisation, avec l'email
   que vous avez saisi. Vérifiez chaque adresse.
 
 ## Dépannage
 
-- **Je ne peux ajouter personne.** La campagne est encore un **Brouillon**.
+- **Je ne peux inviter personne.** La campagne est encore un **Brouillon**.
   **Activez**-la d'abord.
-- **Un participant affiche toujours Jamais connecté.** Il ne s'est pas encore
-  connecté. Rappelez-lui de se connecter avec le compte de son organisation, avec
-  l'email que vous avez ajouté. S'il voit **Pas encore d'accès**, il a utilisé un
-  autre email : **Révoquez** l'entrée et ajoutez la bonne adresse.
+- **Une invitation reste en attente.** La personne n'a pas encore accepté.
+  Rappelez-lui de se connecter avec le compte de son organisation, avec l'email que
+  vous avez invité, puis de cliquer sur **Accepter** sur la page d'accueil. Si elle
+  voit **Pas encore d'accès**, elle a utilisé un autre email : supprimez l'invitation
+  et invitez la bonne adresse.
 - **Je ne peux pas modifier les questions ou l'agent** — la configuration se
   verrouille dès que la campagne est **Active**. Créez une nouvelle campagne s'il
   vous faut une configuration différente.

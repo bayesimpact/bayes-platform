@@ -1,7 +1,11 @@
 import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import type { AppDispatch, RootState } from "@/common/store/types"
-import { createMemberGrants } from "@/studio/features/member-grants/member-grants.thunks"
+import {
+  createInvitations,
+  listInvitationsForTarget,
+  revokeInvitation,
+} from "@/studio/features/invitations/invitations.thunks"
 import { reviewCampaignsActions } from "./review-campaigns.slice"
 import {
   createReviewCampaign,
@@ -29,9 +33,17 @@ function registerListeners() {
   listenerMiddleware.startListening({
     actionCreator: reviewCampaignsActions.selectDetail,
     effect: async (action, listenerApi) => {
-      await listenerApi.dispatch(
-        getReviewCampaignDetail({ reviewCampaignId: action.payload.reviewCampaignId }),
-      )
+      await Promise.all([
+        listenerApi.dispatch(
+          getReviewCampaignDetail({ reviewCampaignId: action.payload.reviewCampaignId }),
+        ),
+        listenerApi.dispatch(
+          listInvitationsForTarget({
+            targetType: "review_campaign",
+            targetId: action.payload.reviewCampaignId,
+          }),
+        ),
+      ])
     },
   })
 
@@ -48,26 +60,38 @@ function registerListeners() {
     },
   })
 
-  // Participants added by email show up in the campaign detail right away
   listenerMiddleware.startListening({
-    actionCreator: createMemberGrants.fulfilled,
+    actionCreator: revokeInvitation.fulfilled,
     effect: async (action, listenerApi) => {
-      if (action.meta.arg.targetType !== "review_campaign") return
-      listenerApi.dispatch(
-        notificationsActions.show({ title: "Participants added", type: "success" }),
-      )
-      await listenerApi.dispatch(
-        getReviewCampaignDetail({ reviewCampaignId: action.meta.arg.targetId }),
-      )
+      const { targetType, targetId } = action.meta.arg
+      if (targetType !== "review_campaign") return
+      await listenerApi.dispatch(listInvitationsForTarget({ targetType, targetId }))
     },
   })
 
   listenerMiddleware.startListening({
-    actionCreator: createMemberGrants.rejected,
+    actionCreator: createInvitations.fulfilled,
+    effect: async (action, listenerApi) => {
+      const { targetType, targetId } = action.meta.arg
+      if (targetType !== "review_campaign") return
+      await listenerApi.dispatch(listInvitationsForTarget({ targetType, targetId }))
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: createInvitations.fulfilled,
+    effect: async (action, listenerApi) => {
+      if (action.meta.arg.targetType !== "review_campaign") return
+      listenerApi.dispatch(notificationsActions.show({ title: "People invited", type: "success" }))
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: createInvitations.rejected,
     effect: async (action, listenerApi) => {
       if (action.meta.arg.targetType !== "review_campaign") return
       listenerApi.dispatch(
-        notificationsActions.show({ title: "Failed to add participants", type: "error" }),
+        notificationsActions.show({ title: "Failed to invite people", type: "error" }),
       )
     },
   })

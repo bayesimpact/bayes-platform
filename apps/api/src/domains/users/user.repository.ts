@@ -68,8 +68,9 @@ export class UserRepository {
   }
 
   /**
-   * Deletes a person added by email who never signed in, once their last
-   * membership is gone, so removed members leave no orphan account behind.
+   * Deletes a person invited by email who never signed in, once their last
+   * membership and pending invitation are gone, so removed members leave no
+   * orphan account behind.
    */
   async deleteIfUnusedPlaceholder({ userId }: { userId: string }): Promise<void> {
     const user = await this.repo().findOne({
@@ -77,6 +78,13 @@ export class UserRepository {
       relations: { userMemberships: true },
     })
     if (!user || user.userMemberships.length > 0) return
+    const pendingInvitations: unknown[] = await this.transactionService
+      .getManager()
+      .query(
+        `SELECT 1 FROM invitation WHERE user_id = $1 AND status = 'pending' AND deleted_at IS NULL LIMIT 1`,
+        [userId],
+      )
+    if (pendingInvitations.length > 0) return
     await this.repo().delete({ id: userId })
   }
 

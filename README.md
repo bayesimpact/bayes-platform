@@ -141,7 +141,7 @@ WEB_OIDC_CLIENT_ID=platform-web
 - `GOOGLE_APPLICATION_CREDENTIALS` - Path to Google Cloud service account key (for AI features)
 - `OTEL_EXPORTER_OTLP_ENDPOINT` - OpenTelemetry Collector that receives traces and metrics over OTLP (nothing is exported when unset)
 - `TRACE_URL_TEMPLATE` - Link to a trace in the trace backend, `{traceId}` is replaced by our trace id
-- `OIDC_ALLOW_EMAIL_LINKING` / `OIDC_TRUST_UNVERIFIED_EMAIL` - How a first sign-in is linked to the account of someone added by email (see [ADR 0021](docs/adr/0021-generic-oidc-and-access-by-email.md))
+- `OIDC_ALLOW_EMAIL_LINKING` / `OIDC_TRUST_UNVERIFIED_EMAIL` - How a first sign-in is linked to the account of someone invited by email (see [ADR 0021](docs/adr/0021-generic-oidc-and-access-by-email.md))
 - `OIDC_AUTHORIZATION_PARAMS` - Extra authorize parameters as a JSON object, for example `{"organization":"org_XXX"}` for an Auth0 organization
 
 Upgrading a `.env` from Auth0: see [docs/upgrading/auth0-to-oidc.md](docs/upgrading/auth0-to-oidc.md).

@@ -4,20 +4,22 @@ highlight: Questions
 description: Réponses rapides aux questions les plus fréquentes.
 category: faq
 order: 1
-updated: 2026-07-22
+updated: 2026-10-01
 ---
 
 ## Comment réinitialiser mon mot de passe ?
 
-La connexion est gérée par notre fournisseur d'identité. Sur l'écran de
-connexion, sélectionnez **Mot de passe oublié** et suivez les instructions
-envoyées par e-mail.
+La plateforme n'a pas de mot de passe propre : vous vous connectez avec le compte
+de votre organisation. Réinitialisez-le comme d'habitude dans votre organisation,
+par exemple avec le lien **Mot de passe oublié** de son écran de connexion quand il
+existe. En cas de doute, demandez à votre équipe informatique ou à votre
+administrateur.
 
 ## Pourquoi je ne vois pas un espace de travail ?
 
-L'accès est accordé par espace de travail. Si un espace de travail est absent,
-demandez à un administrateur de l'espace de travail de vérifier que vous y avez
-bien été ajouté comme membre.
+L'accès est accordé par espace de travail, une fois l'invitation acceptée.
+Regardez le bloc **Invitations en attente** sur la page d'accueil. S'il est vide,
+demandez à un administrateur de l'espace de travail de vous inviter comme membre.
 
 ## Mes données sont-elles sécurisées ?
 

@@ -1,32 +1,33 @@
 ---
-title: Sign in for the first time
+title: Sign in and accept your invitations
 highlight: Sign in
-description: Sign in with your organization's account, accept the terms, and find the workspaces, agents and campaigns you were given.
+description: Sign in with your organization's account, accept the terms, accept the invitations waiting for you, and find your workspaces.
 category: getting-started
 order: 2
-updated: 2026-09-28
+updated: 2026-10-01
 ---
 
 import OnboardingWalkthrough from "@/components/OnboardingWalkthrough.astro"
 
-An administrator gives you access by adding your **email address** to a
-**workspace**, an **agent** or a [**review campaign**](/en/review-campaigns). Access
-is granted right away: there is no invitation email and nothing to accept. You just
-sign in and find what you were given.
+An administrator invites you by your **email address** to a **workspace**, an
+**agent** or a [**review campaign**](/en/review-campaigns). The invitation waits for
+you in the platform: you sign in, accept it on the home page, and get access.
 
 This guide covers your first sign-in: signing in with your organization's account,
-accepting the **terms**, then finding your workspaces on the home page.
+accepting the **terms**, accepting your **invitations**, then finding your workspaces
+on the home page.
 
 ## How access works
 
 - You sign in with **your organization's account**, the same one you use for your
   other work tools. The platform has no separate password.
-- An administrator adds you by email from a **Members** page or a campaign's
-  **Participants** tab. Until your first sign-in, they see a **Never signed in**
-  badge next to your email.
-- Sign in with the **same email address** the administrator used. That's how the
-  platform links your account to the access you were given.
-- The platform doesn't email you. Ask the person who added you for the platform's
+- An administrator invites you by email from a **Members** page or a campaign's
+  **Participants** tab. The invitation gives no access yet: you get it when you
+  accept.
+- Sign in with the **same email address** the administrator used. Your identity
+  provider must have verified that address. That's how the platform finds the
+  invitations meant for you.
+- The platform doesn't email you. Ask the person who invited you for the platform's
   address if you don't have it.
 
 ## The full flow at a glance
@@ -53,38 +54,55 @@ Use the **Open** link next to each to read the document. The **Accept and contin
 button stays disabled until both **required** boxes are ticked. Click it to enter the
 platform.
 
-### 2. Find your workspaces
+### 2. Accept your invitations
 
-You land on the home page (**Welcome, …!**). It lists every workspace you have access
-to, grouped under its **organization**. Use the **Search** box at the top right to
-filter them when you have many. Being added to an agent or a campaign also gives you
-access to its workspace, so it shows up here too.
+You land on the home page (**Welcome, …!**). If someone invited you, a **Pending
+invitations** block sits at the top: *Accept an invitation to get access.* Each
+invitation is a card with:
 
-### 3. Open a workspace
+- a badge for what you're invited to: **Project** (a workspace), **Agent** or
+  **Review campaign**;
+- its name;
+- the organization and your role (for example *Bayes Impact Demo · Role: admin*). Agents and
+  campaigns also show their workspace.
+
+Click **Accept** to get access right away: the workspace then appears on the home
+page. Click **Decline** if you don't want it; the invitation disappears. An
+invitation to a review campaign can only be accepted while the campaign is active.
+
+### 3. Find your workspaces
+
+Below, the home page lists every workspace you have access to, grouped under its
+**organization**. Use the **Search** box at the top right to filter them when you
+have many. Accepting an invitation to an agent or a campaign also gives you access
+to its workspace, so it shows up here too.
+
+### 4. Open a workspace
 
 Each workspace card has an open button named after your main app (for example
 **App** or **Studio**). Click it to enter the workspace. If you can use several apps,
 a chevron next to it lists them all. See [Apps overview](/en/apps-overview) for what
 each app does.
 
-### 4. Rename your organization (owners and admins)
+### 5. Rename your organization (owners and admins)
 
 If you **own or administer** an organization, its card shows a **pencil** next to its
 name. Click it to rename the organization. Members without that role don't see the
 pencil.
 
-### 5. If you see "No access yet"
+### 6. If you see "No access yet"
 
-If nobody has added you yet, you see a **No access yet** page instead of the home
-page: *Your account is active, but no one has given you access to a workspace. Ask
-your administrator to add you.* Your account works; it simply has no workspace yet.
-Ask your administrator to add your email, then sign in again. Use **Log out** to
-leave the page.
+If you have no workspace and no pending invitation, you see a **No access yet** page
+instead of the home page: *Your account is active, but you have no workspace and no
+pending invitation. Ask your administrator to invite you.* Your account works; it
+simply has nothing to open yet. Ask your administrator to invite your email, then
+sign in again. Use **log out** to leave the page.
 
 ## Tips
 
 - Give your administrator the exact email address of your organization's account, so
-  the access they add matches the account you sign in with.
+  the invitation matches the account you sign in with.
+- Declined an invitation by mistake? Ask the administrator to invite you again.
 - You can **edit your display name** later from the user menu. See
   [Manage your profile](/en/manage-your-profile).
 - Not sure which app to open? See [Apps overview](/en/apps-overview).
@@ -93,16 +111,21 @@ leave the page.
 
 - **The Accept and continue button is greyed out.** Tick both the **General
   Conditions** and the **Privacy Policy**. The AI usage policy is optional.
-- **I see No access yet.** Nobody has added your email yet, or they added a
-  different address. Check with your administrator which email they used, then sign
-  in again once they've added you.
+- **I see No access yet.** Nobody has invited your email yet, they invited a
+  different address, or you already declined the invitation. Check with your
+  administrator which email they used, then sign in again once they've invited you.
+- **I don't see the invitation I expected.** Make sure you signed in with the invited
+  email address, and that your identity provider has verified it. An invitation to a
+  campaign that isn't active yet can't be accepted; ask the campaign owner to
+  activate it.
 - **A workspace I expected is missing.** Access is given per workspace, agent or
-  campaign. Ask the workspace admin to add you from **Members**, or the campaign
-  owner to add you in **Participants**.
+  campaign, and only once you accept. Check the **Pending invitations** block, or ask
+  the workspace admin to invite you from **Members**, or the campaign owner to invite
+  you in **Participants**.
 - **I see Sign-in failed.** Your organization's sign-in service refused the
   sign-in. Click **try again**, or **log out** and sign in again. If it keeps
   happening, send the message shown on the page to the administrator of the
   platform.
 - **I see Create organization instead.** Your account can create its own
-  organization and hasn't been added anywhere yet. Create one, or ask to be added
+  organization and hasn't joined any workspace yet. Create one, or ask to be invited
   to an existing workspace.

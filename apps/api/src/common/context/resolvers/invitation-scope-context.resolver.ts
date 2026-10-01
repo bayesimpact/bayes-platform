@@ -9,10 +9,12 @@ import type { Repository } from "typeorm"
 import { Agent } from "@/domains/agents/agent.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentMembershipsService } from "@/domains/agents/memberships/agent-memberships.service"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { InvitationRepository } from "@/domains/invitations/invitation.repository"
 import {
-  isMemberGrantTargetType,
-  type MemberGrantTargetType,
-} from "@/domains/member-grants/member-grant.types"
+  type InvitationTargetType,
+  isInvitationTargetType,
+} from "@/domains/invitations/invitation.types"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { OrganizationMembershipsService } from "@/domains/organizations/memberships/organization-memberships.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -20,29 +22,33 @@ import { ProjectMembershipsService } from "@/domains/projects/memberships/projec
 import { Project } from "@/domains/projects/project.entity"
 import { ReviewCampaign } from "@/domains/review-campaigns/review-campaign.entity"
 import type { ContextResolver, ResolvableRequest } from "../context-resolver.interface"
-import type { EndpointRequestWithMemberGrantScope } from "../request.interface"
+import type { EndpointRequestWithInvitationScope } from "../request.interface"
 
-type MemberGrantScope = {
+type InvitationScope = {
   organizationId: string
   projectId: string
-  targetType: MemberGrantTargetType
+  targetType: InvitationTargetType
   targetId: string
 }
 
-type MemberGrantRequest = EndpointRequestWithMemberGrantScope & {
+type InvitationRequest = EndpointRequestWithInvitationScope & {
   body?: { payload?: { targetType?: string; targetId?: string } }
+  query?: Record<string, string | undefined>
+  params?: { invitationId?: string }
 }
 
 /**
  * Loads the project context and the target (project, agent or review
- * campaign) a member grant applies to, from `payload.targetType` and
- * `payload.targetId`.
+ * campaign) of an invitation. The target comes from the pending invitation
+ * named by the `invitationId` route param, or else from `targetType` and
+ * `targetId` in the payload or the query.
  */
 @Injectable()
-export class MemberGrantScopeContextResolver implements ContextResolver {
-  readonly resource = "memberGrantScope" as const
+export class InvitationScopeContextResolver implements ContextResolver {
+  readonly resource = "invitationScope" as const
 
   constructor(
+    private readonly invitationRepository: InvitationRepository,
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
     @InjectRepository(Agent)
@@ -55,7 +61,7 @@ export class MemberGrantScopeContextResolver implements ContextResolver {
   ) {}
 
   async resolve(request: ResolvableRequest): Promise<void> {
-    const typedRequest = request as MemberGrantRequest
+    const typedRequest = request as InvitationRequest
     const { scope, target } = await this.resolveScopeAndTarget(typedRequest)
 
     const project = await this.projectRepository.findOne({
@@ -82,10 +88,10 @@ export class MemberGrantScopeContextResolver implements ContextResolver {
         userId: request.user.id,
         projectId: scope.projectId,
       })) ?? undefined
-    typedRequest.memberGrantTarget = target
+    typedRequest.invitationTarget = target
 
     if (scope.targetType === "agent") {
-      typedRequest.memberGrantAgentMembership =
+      typedRequest.invitationAgentMembership =
         (await this.agentMembershipsService.findAgentMembership({
           agentId: scope.targetId,
           userId: request.user.id,
@@ -94,14 +100,27 @@ export class MemberGrantScopeContextResolver implements ContextResolver {
   }
 
   private async resolveScopeAndTarget(
-    request: MemberGrantRequest,
-  ): Promise<{ scope: MemberGrantScope; target: Project | Agent | ReviewCampaign }> {
-    const targetType = request.body?.payload?.targetType
-    const targetId = request.body?.payload?.targetId
+    request: InvitationRequest,
+  ): Promise<{ scope: InvitationScope; target: Project | Agent | ReviewCampaign }> {
+    const invitationId = request.params?.invitationId
+    if (invitationId) {
+      const invitation = await this.invitationRepository.findPendingById(invitationId)
+      if (!invitation) {
+        throw new NotFoundException(`Pending invitation ${invitationId} not found`)
+      }
+      request.invitation = invitation
+    }
+
+    const targetType =
+      request.invitation?.targetType ??
+      request.body?.payload?.targetType ??
+      request.query?.targetType
+    const targetId =
+      request.invitation?.targetId ?? request.body?.payload?.targetId ?? request.query?.targetId
     if (!targetType || !targetId) {
       throw new BadRequestException("targetType and targetId are required")
     }
-    if (!isMemberGrantTargetType(targetType)) {
+    if (!isInvitationTargetType(targetType)) {
       throw new BadRequestException(`Invalid targetType: ${targetType}`)
     }
 

@@ -1,0 +1,16 @@
+{
+  "invitations": {
+    "pendingSection": {
+      "title": "Pending invitations",
+      "description": "These people will get access once they accept the invitation in the app."
+    },
+    "pendingItem": {
+      "description": "Invited {{invitedAt}}",
+      "revoke": "Delete invitation"
+    },
+    "deleteDialog": {
+      "title": "Delete invitation?",
+      "description": "{{email}} will no longer be able to accept this invitation."
+    }
+  }
+}

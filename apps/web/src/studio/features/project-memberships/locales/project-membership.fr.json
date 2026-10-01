@@ -21,21 +21,23 @@
       "noAgents": "Ce projet n'a aucun agent."
     },
     "create": {
-      "button": "Ajouter des administrateurs",
-      "title": "Ajouter des administrateurs",
-      "description": "Entrez l'adresse email des personnes qui doivent gérer cet espace de travail.",
+      "button": "Inviter des administrateurs",
+      "title": "Inviter des administrateurs",
+      "description": "Entrez l'adresse email des personnes qui doivent gérer cet espace de travail. Elles acceptent l'invitation après s'être connectées.",
       "label": "Adresse email",
-      "placeholder": "Entrez une adresse email",
-      "accessHint": "Les personnes ont accès immédiatement. Elles se connectent avec le compte de votre organisation.",
-      "submit": "Donner l'accès"
+      "placeholder": "Entrez une adresse email"
+    },
+    "pendingInvitations": {
+      "title": "Invitations en attente",
+      "description": "Personnes invitées sur ce projet qui n'ont pas encore répondu."
     },
     "list": {
       "title": "Membres de {{projectName}}",
-      "description": "Ajoutez des membres à votre espace de travail pour collaborer ensemble.",
+      "description": "Invitez des membres dans votre espace de travail pour collaborer ensemble.",
       "searchPlaceholder": "Rechercher par nom ou email…",
       "empty": {
         "title": "Aucun membre",
-        "description": "Ajoutez des administrateurs à votre espace de travail pour collaborer ensemble."
+        "description": "Invitez des administrateurs dans votre espace de travail pour collaborer ensemble."
       }
     },
     "remove": {

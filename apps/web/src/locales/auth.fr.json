@@ -8,7 +8,7 @@
     },
     "noAccess": {
       "title": "Pas encore d'accès",
-      "description": "Votre compte est actif, mais personne ne vous a encore donné accès à un espace. Demandez à votre administrateur de vous ajouter.",
+      "description": "Votre compte est actif, mais vous n'avez ni espace ni invitation en attente. Demandez à votre administrateur de vous inviter.",
       "logout": "se déconnecter"
     }
   }

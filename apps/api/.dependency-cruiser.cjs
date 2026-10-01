@@ -80,7 +80,7 @@ module.exports = {
       name: "no-feature-imports-cross-domain",
       severity: "error",
       comment:
-        "Cross-domain read-model modules (me, analytics, member-grants) sit " +
+        "Cross-domain read-model modules (me, analytics, invitations) sit " +
         "*above* feature domains in the topology (ADR 0007 §2.1). Feature " +
         "domains must never import them — the dependency only flows the other " +
         "way.",
@@ -114,7 +114,7 @@ module.exports = {
       severity: "error",
       comment:
         "workers-app.module.ts and its transitive closure must not reach " +
-        "cross-domain read-models (me, analytics, member-grants). Importing them " +
+        "cross-domain read-models (me, analytics, invitations). Importing them " +
         "into a worker is the 'importing DocumentsModule pulls half the app' " +
         "pathology described in ADR 0007 §1.",
       from: {

@@ -1,13 +1,17 @@
 import { isSignInError } from "@caseai-connect/api-contracts"
-import { createListenerMiddleware } from "@reduxjs/toolkit"
+import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit"
 import { authActions } from "@/common/features/auth/auth.slice"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import { fetchOrganizations } from "@/common/features/organizations/organizations.thunks"
 import { fetchMyProjects } from "@/common/features/projects/projects.thunks"
 import type { AppDispatch, RootState } from "@/common/store/types"
 import { logout } from "@/external/oidcClient"
+import {
+  acceptInvitation,
+  declineInvitation,
+} from "@/studio/features/invitations/invitations.thunks"
 import { meActions } from "./me.slice"
-import { acceptTerms, fetchMe, updateMe } from "./me.thunks"
+import { acceptTerms, fetchMe, fetchPendingInvitations, updateMe } from "./me.thunks"
 
 const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()
 
@@ -17,6 +21,41 @@ listenerMiddleware.startListening({
     // both listings load in parallel; the grouping happens in a selector
     listenerApi.dispatch(fetchOrganizations())
     listenerApi.dispatch(fetchMyProjects())
+    listenerApi.dispatch(fetchPendingInvitations())
+  },
+})
+
+listenerMiddleware.startListening({
+  actionCreator: acceptInvitation.fulfilled,
+  effect: async (_, listenerApi) => {
+    // The new memberships show up in me, the organizations and the projects.
+    await Promise.all([
+      listenerApi.dispatch(fetchPendingInvitations()),
+      listenerApi.dispatch(fetchMe()),
+      listenerApi.dispatch(fetchOrganizations()),
+      listenerApi.dispatch(fetchMyProjects()),
+    ])
+  },
+})
+
+listenerMiddleware.startListening({
+  actionCreator: declineInvitation.fulfilled,
+  effect: (_, listenerApi) => {
+    listenerApi.dispatch(fetchPendingInvitations())
+  },
+})
+
+listenerMiddleware.startListening({
+  matcher: isAnyOf(acceptInvitation.rejected, declineInvitation.rejected),
+  effect: (_, listenerApi) => {
+    // The invitation may have been revoked meanwhile: refresh the list.
+    listenerApi.dispatch(fetchPendingInvitations())
+    listenerApi.dispatch(
+      notificationsActions.show({
+        title: "Failed to answer the invitation",
+        type: "error",
+      }),
+    )
   },
 })
 

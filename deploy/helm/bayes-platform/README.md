@@ -237,7 +237,7 @@ See `values.yaml`. Every key is documented in place. The main sections:
 
 ## Limits of this version
 
-- One OpenID Connect provider per install. The platform sends no email: people are added by email in the members screens, and the customer creates their accounts in the identity provider.
+- One OpenID Connect provider per install. The platform sends no email: people are invited by email in the members screens and accept in the app, and the customer creates their accounts in the identity provider.
 - Embeddings need Vertex AI. LLM calls can go to any OpenAI-compatible endpoint (`VLLM_*` secrets).
 - The local document storage has no S3 backend. Use the `gcs` mode or a `ReadWriteMany` volume.
 - The API has no health route yet, so its probes check the TCP port.
