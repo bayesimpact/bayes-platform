@@ -1,0 +1,92 @@
+{{- if .Values.otelCollector.enabled }}
+{{- $name := include "bayes-platform.componentName" (dict "root" . "component" "otel-collector") }}
+# OpenTelemetry Collector for the platform's traces (files/otel-collector.yaml):
+# the API and the workers send OTLP here, the collector keeps the LLM spans,
+# maps them to OpenInference and sends them to Phoenix.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "bayes-platform.labels" . | nindent 4 }}
+    app.kubernetes.io/component: otel-collector
+data:
+  collector.yaml: |-
+{{ .Files.Get "files/otel-collector.yaml" | indent 4 }}
+  {{- if .Values.otelCollector.phoenix.apiKeySecretKey }}
+  # Merged over collector.yaml: the API key of an external Phoenix.
+  phoenix-auth.yaml: |-
+    exporters:
+      otlphttp/phoenix:
+        headers:
+          authorization: Bearer ${env:PHOENIX_API_KEY}
+  {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "bayes-platform.labels" . | nindent 4 }}
+    app.kubernetes.io/component: otel-collector
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "bayes-platform.selectorLabels" (dict "root" . "component" "otel-collector") | nindent 4 }}
+  ports:
+    - name: otlp-http
+      port: 4318
+      targetPort: otlp-http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  labels:
+    {{- include "bayes-platform.labels" . | nindent 4 }}
+    app.kubernetes.io/component: otel-collector
+spec:
+  replicas: {{ .Values.otelCollector.replicas }}
+  selector:
+    matchLabels:
+      {{- include "bayes-platform.selectorLabels" (dict "root" . "component" "otel-collector") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "bayes-platform.selectorLabels" (dict "root" . "component" "otel-collector") | nindent 8 }}
+      annotations:
+        # The collector reads its config at startup only.
+        checksum/config: {{ .Files.Get "files/otel-collector.yaml" | sha256sum }}
+    spec:
+      containers:
+        - name: otel-collector
+          image: {{ .Values.otelCollector.image }}
+          args:
+            - --config=/etc/otelcol/collector.yaml
+            {{- if .Values.otelCollector.phoenix.apiKeySecretKey }}
+            - --config=/etc/otelcol/phoenix-auth.yaml
+            {{- end }}
+          env:
+            - name: PHOENIX_ENDPOINT
+              value: {{ include "bayes-platform.phoenixEndpoint" . | quote }}
+            {{- if .Values.otelCollector.phoenix.apiKeySecretKey }}
+            - name: PHOENIX_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "bayes-platform.secretName" . }}
+                  key: {{ .Values.otelCollector.phoenix.apiKeySecretKey }}
+            {{- end }}
+          ports:
+            - name: otlp-http
+              containerPort: 4318
+          resources:
+            {{- toYaml .Values.otelCollector.resources | nindent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: /etc/otelcol
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: {{ $name }}
+{{- end }}

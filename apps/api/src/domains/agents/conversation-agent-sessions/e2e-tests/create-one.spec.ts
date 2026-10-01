@@ -16,33 +16,6 @@ import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { ConversationAgentSessionsModule } from "../conversation-agent-sessions.module"
 
-// Mock Langfuse to avoid dynamic import issues in Jest
-jest.mock("langfuse", () => {
-  return {
-    Langfuse: class {
-      shutdownAsync() {
-        return Promise.resolve()
-      }
-      flushAsync() {
-        return Promise.resolve()
-      }
-      trace() {
-        return { update: jest.fn() }
-      }
-    },
-  }
-})
-jest.mock("langfuse-v2", () => ({
-  Langfuse: jest.fn().mockImplementation(() => ({
-    trace: jest.fn(),
-    span: jest.fn().mockReturnValue({ getTraceUrl: jest.fn() }),
-    generation: jest.fn(),
-    flushAsync: jest.fn().mockResolvedValue(undefined),
-    shutdownAsync: jest.fn().mockResolvedValue(undefined),
-    debug: jest.fn(),
-  })),
-}))
-
 describe("ConversationAgentSessionsRoutes.createOne", () => {
   let app: INestApplication<App>
   let request: Requester

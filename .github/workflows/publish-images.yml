@@ -57,13 +57,12 @@ jobs:
       group: tests-self-hosted
       cancel-in-progress: false
     steps:
-      # Containers and volumes of a previous run. The buildx builder
-      # containers stay: the persistent builder of the GPU image lives in one
-      # of them, with its cache volume.
+      # Only the connect-db project (infra/database) of a previous tests run.
+      # The runner has two instances on one Docker daemon: the workers smoke
+      # or the GPU image build of the other instance can run at this time.
       - name: Clean up Docker artifacts of a previous run
         run: |
-          docker ps -aq --format '{{.ID}} {{.Names}}' | awk '$2 !~ /^buildx_buildkit_/ { print $1 }' | xargs -r docker rm -f
-          docker volume prune -f
+          docker ps -aq --filter label=com.docker.compose.project=connect-db | xargs -r docker rm -f -v
           sudo rm -rf infra/database/dontsave 2>/dev/null || true
 
       - uses: actions/setup-node@v4
@@ -132,6 +131,14 @@ jobs:
             cache_from: |
               type=registry,ref=ghcr.io/bayesimpact/bayes-platform/cache:help
     steps:
+      # A tests job that ran earlier in this runner's workspace leaves the
+      # Postgres data of its containers there, owned by root: actions/checkout
+      # cannot clean it and fails with EACCES. Only that folder: the Docker
+      # containers may belong to a tests job running at the same time.
+      - name: Clean up the workspace of a previous run
+        if: matrix.runner == 'self-hosted'
+        run: sudo rm -rf infra/database/dontsave 2>/dev/null || true
+
       - uses: actions/checkout@v4
 
       - name: Free disk space on the runner

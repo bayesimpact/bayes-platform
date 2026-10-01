@@ -20,7 +20,7 @@ When NestJS requires runtime access to classes for dependency injection (service
 - Add a biome-ignore comment: `// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI`
 
 **When to use**:
-- Services injected via `@InjectRepository()`, `@Inject()`, or constructor injection
+- Services, custom repositories and `TransactionService` injected through the constructor or `@Inject()`
 - Controllers, Guards, Interceptors, Pipes
 - Any class that needs to be available at runtime for NestJS DI
 
@@ -626,54 +626,18 @@ it("should return membership when user is a member", async () => {
 - **Use helpers** (`createOrganizationWithOwner`) when you need entities saved to the database and want to reduce boilerplate
 - **Use factories** (`organizationFactory`, `userFactory`) when you need more control over the creation process or when building entities that don't need to be saved immediately
 
-## Organization-Based Resource Authorization
+## Authorization: RBAC permission catalog
 
-### Mandatory Authorization Checks
+Access is one permission string, granted on roles, checked on the route, and used to list what the caller can see. How to add one: `.claude/skills/rbac/SKILL.md` and ADR 0019 (`docs/adr/0019-rbac-permission-catalog.md`). ADR 0004 and ADR 0013 are superseded: no role enum checks in services, no org-wide `project.read`.
 
-**Rule**: When a resource belongs to an organization (has an `organizationId` or relationship to `Organization`), you MUST verify that the user performing operations on it:
-1. Is a member of the organization
-2. Has the appropriate role for the operation
+**Rules**:
+- Declare the permission string only in `packages/api-contracts/src/rbac/permissions.ts`. Grant it on a role in `apps/api/src/domains/rbac/rbac.constants.ts`. Mirror it in `docs/rbac-permission-matrix.md` in the same change (`.cursor/rules/permission-matrix.mdc`).
+- Production learns a grant from a data migration inserting `role_permission` rows (pattern: `src/migrations/1790269217250-analytics-read-permissions.ts`). `migration:generate` cannot emit it.
+- Protect the route with `@CheckPermission(permission)` or `@CheckPermission(permission, "organization" | "project" | "agent")` and `CheckPermissionGuard` after `JwtAuthGuard` and `UserGuard`. Keep the context resolver that puts the resource id on the request.
+- A service that lists resources calls `PermissionService.listResourceIds(userId, permission)` or `listResourcePermissions(userId, permission)`, then loads those ids through its custom repository.
+- Feature services do not query `user_membership` or `role_permission`, and do not compare `membership.role` against a list of allowed roles. Existing `@CheckPolicy` policies stay where they are. A new check uses `@CheckPermission`.
 
-**Implementation Pattern**:
-- Create verification methods in the service (e.g., `verifyUserCanCreateProject`, `verifyUserCanUpdateProject`)
-- Check membership first, then check role
-- Throw `ForbiddenException` with clear error messages if authorization fails
-- Query membership through a custom repository, not TypeORM `Repository<T>` in the service
-
-**Role Requirements**:
-- **If unsure about which role is required for an operation, ASK THE USER before implementing**
-- Common patterns:
-  - `owner` or `admin`: For create, update, delete operations
-  - `owner`, `admin`, or `member`: For read operations (may vary by resource)
-  - `owner` only: For sensitive operations like deletion or role changes
-
-**Example Implementation**:
-```typescript
-async verifyUserCanCreateProject(userId: string, organizationId: string): Promise<void> {
-  const membership = await this.userMembershipRepository.findByUserAndOrganization({
-    userId,
-    organizationId,
-  })
-
-  if (!membership) {
-    throw new ForbiddenException(`User does not have access to organization ${organizationId}`)
-  }
-
-  const allowedRoles: MembershipRole[] = ["owner", "admin"]
-  if (!allowedRoles.includes(membership.role)) {
-    throw new ForbiddenException(
-      `User must be an owner or admin of organization ${organizationId} to create projects`,
-    )
-  }
-}
-```
-
-**When to Apply**:
-- All CRUD operations on organization-scoped resources
-- Any operation that modifies organization data
-- Operations that affect other users in the organization
-
-**Important**: Never skip authorization checks, even for "simple" operations. Security must be enforced at the service layer.
+**If unsure which role should hold a permission, ASK THE USER before implementing.**
 
 ## TypeORM Database Migrations
 

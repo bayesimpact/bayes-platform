@@ -17,6 +17,8 @@ import {
 } from "@nestjs/common"
 import type { EndpointRequest } from "@/common/context/request.interface"
 import { ZodValidationPipe } from "@/common/zod-validation-pipe"
+import { attachTrackedActivity } from "@/domains/activities/attach-tracked-activity"
+import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
 import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
@@ -44,6 +46,7 @@ export class AppsInstallController {
 
   @CheckPermission(APP_INSTALL_PERMISSION)
   @Post(AppsRoutes.authorize.path)
+  @TrackActivity({ action: "appInstallation.authorize", entityFrom: "appInstallation" })
   async authorize(
     @Req() request: EndpointRequest,
     @Param("slug") slug: string,
@@ -58,7 +61,20 @@ export class AppsInstallController {
       redirectUri: body.payload.redirectUri,
       state: body.payload.state,
     })
-    return { data: result }
+    attachTrackedActivity(request, {
+      organizationId: result.organizationId,
+      projectId: result.projectId,
+      entityFrom: "appInstallation",
+      entityId: result.installationId,
+    })
+    return {
+      data: {
+        clientId: result.clientId,
+        clientSecret: result.clientSecret,
+        redirectUri: result.redirectUri,
+        state: result.state,
+      },
+    }
   }
 
   @CheckPermission(APP_INSTALL_PERMISSION)
@@ -73,13 +89,20 @@ export class AppsInstallController {
   @CheckPermission(APP_INSTALL_PERMISSION)
   @Post(AppsRoutes.revoke.path)
   @HttpCode(HttpStatus.OK)
+  @TrackActivity({ action: "appInstallation.revoke", entityFrom: "appInstallation" })
   async revoke(
     @Req() request: EndpointRequest,
     @Param("id") installationId: string,
   ): Promise<typeof AppsRoutes.revoke.response> {
-    await this.appsService.revokeInstallation({
+    const scope = await this.appsService.revokeInstallation({
       installationId,
       userId: request.user.id,
+    })
+    attachTrackedActivity(request, {
+      organizationId: scope.organizationId,
+      projectId: scope.projectId,
+      entityFrom: "appInstallation",
+      entityId: installationId,
     })
     return { data: { success: true } }
   }

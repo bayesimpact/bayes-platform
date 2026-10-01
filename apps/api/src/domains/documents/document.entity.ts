@@ -1,7 +1,7 @@
-import { Column, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany } from "typeorm"
+import { Column, JoinColumn, JoinTable, ManyToMany, ManyToOne } from "typeorm"
 import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
-import { EvaluationExtractionDatasetDocument } from "@/domains/evaluations/extraction/datasets/evaluation-extraction-dataset-document.entity"
 import { Project } from "@/domains/projects/project.entity"
+import { DocumentSource } from "./sources/document-source.entity"
 import type { DocumentTag } from "./tags/document-tag.entity"
 
 @ConnectEntity("document")
@@ -40,12 +40,11 @@ export class Document extends ConnectEntityBase {
   @Column({ name: "source_type", nullable: false })
   sourceType!:
     | "project"
-    | "agentSessionMessage"
-    | "extraction"
-    | "evaluationExtractionDataset"
+    | "extraction" // is the input an extraction run reads (pdf, csv...)
     | "evaluationExtractionRun"
-    | "agentCsvExtractionRun"
+    | "agentCsvExtractionRun" // is the output an extraction run produces (usually a CSV file).
     | "webCrawl"
+    | "app" // created through the apps documents API; retrieved with project documents, hidden from the studio library
 
   @Column({ type: "uuid", name: "user_id", nullable: true })
   userId!: string | null
@@ -74,10 +73,15 @@ export class Document extends ConnectEntityBase {
   })
   tags!: DocumentTag[]
 
-  @OneToMany(
-    () => EvaluationExtractionDatasetDocument,
-    (evaluationExtractionDatasetDocument: EvaluationExtractionDatasetDocument) =>
-      evaluationExtractionDatasetDocument.document,
+  @Column({ type: "uuid", name: "document_source_id", nullable: true })
+  documentSourceId!: string | null
+
+  // Nullable. Internal writers leave this unset. Deleting a source must not delete documents.
+  @ManyToOne(
+    () => DocumentSource,
+    (documentSource) => documentSource.documents,
+    { nullable: true, onDelete: "RESTRICT" },
   )
-  evaluationExtractionDatasetDocuments!: EvaluationExtractionDatasetDocument[]
+  @JoinColumn({ name: "document_source_id" })
+  documentSource!: DocumentSource | null
 }

@@ -151,6 +151,10 @@ export function buildMockExtractionDatasetsService(
     async getAllFiles() {
       return []
     },
+    async uploadFile() {
+      throw new Error("uploadFile is not seeded in stories")
+    },
+    async deleteFile() {},
     async getAll() {
       return datasets
     },

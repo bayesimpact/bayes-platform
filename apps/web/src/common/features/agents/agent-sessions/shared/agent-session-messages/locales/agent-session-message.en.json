@@ -4,8 +4,8 @@
     "navigator": {
       "title": "Jump to a message",
       "trigger": "Jump to a message",
-      "search": "Search prompts…",
-      "empty": "No matching prompt"
+      "search": "Search questions…",
+      "empty": "No matching question"
     },
     "thinking": [
       "Thinking…",

@@ -32,6 +32,14 @@ export const DOCUMENT_UPDATE_PERMISSION = "document.update" as const
 
 export const DOCUMENT_DELETE_PERMISSION = "document.delete" as const
 
+export const DOCUMENT_SOURCE_READ_PERMISSION = "document_source.read" as const
+
+export const DOCUMENT_SOURCE_CREATE_PERMISSION = "document_source.create" as const
+
+export const DOCUMENT_SOURCE_UPDATE_PERMISSION = "document_source.update" as const
+
+export const DOCUMENT_SOURCE_DELETE_PERMISSION = "document_source.delete" as const
+
 export const PROJECT_CREATE_PERMISSION = "project.create" as const
 
 export const PROJECT_READ_PERMISSION = "project.read" as const
@@ -40,9 +48,88 @@ export const PROJECT_UPDATE_PERMISSION = "project.update" as const
 
 export const PROJECT_DELETE_PERMISSION = "project.delete" as const
 
+/** Read a project's conversation analytics. Not inherited from the organization. */
+export const PROJECT_ANALYTICS_READ_PERMISSION = "project.analytics.read" as const
+
 /**
- * Permissions an App may be granted. Policy lives in code, not in the database.
- * Intersect this list with `AppManifest.grantable_permissions` on save and on authorize.
+ * Read an agent's conversation analytics. Held on the agent only: a project or
+ * organization role does not grant it.
+ */
+export const AGENT_ANALYTICS_READ_PERMISSION = "agent.analytics.read" as const
+
+/** Open the evaluation app of a project. Scoped to the project, never inherited from the organization. */
+export const EVALUATION_ACCESS_PERMISSION = "evaluation.access" as const
+
+/**
+ * Evaluation extraction datasets and the files they are built from. Scoped to the
+ * project and never inherited from the organization.
+ */
+export const EVALUATION_EXTRACTION_DATASET_READ_PERMISSION =
+  "evaluation.extraction.dataset.read" as const
+
+export const EVALUATION_EXTRACTION_DATASET_CREATE_PERMISSION =
+  "evaluation.extraction.dataset.create" as const
+
+export const EVALUATION_EXTRACTION_DATASET_UPDATE_PERMISSION =
+  "evaluation.extraction.dataset.update" as const
+
+export const EVALUATION_EXTRACTION_DATASET_DELETE_PERMISSION =
+  "evaluation.extraction.dataset.delete" as const
+
+/**
+ * Evaluation extraction runs: an extraction agent run against a dataset, and its
+ * records. Scoped to the project and never inherited from the organization.
+ */
+export const EVALUATION_EXTRACTION_RUN_READ_PERMISSION = "evaluation.extraction.run.read" as const
+
+export const EVALUATION_EXTRACTION_RUN_CREATE_PERMISSION =
+  "evaluation.extraction.run.create" as const
+
+/** Execute, retry or cancel an evaluation extraction run. */
+export const EVALUATION_EXTRACTION_RUN_UPDATE_PERMISSION =
+  "evaluation.extraction.run.update" as const
+
+export const EVALUATION_EXTRACTION_RUN_DELETE_PERMISSION =
+  "evaluation.extraction.run.delete" as const
+
+/**
+ * Evaluation conversation datasets and their records. Scoped to the project and
+ * never inherited from the organization.
+ */
+export const EVALUATION_CONVERSATION_DATASET_READ_PERMISSION =
+  "evaluation.conversation.dataset.read" as const
+
+export const EVALUATION_CONVERSATION_DATASET_CREATE_PERMISSION =
+  "evaluation.conversation.dataset.create" as const
+
+/** Rename an evaluation conversation dataset, or add, edit and remove its records. */
+export const EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION =
+  "evaluation.conversation.dataset.update" as const
+
+export const EVALUATION_CONVERSATION_DATASET_DELETE_PERMISSION =
+  "evaluation.conversation.dataset.delete" as const
+
+/**
+ * Evaluation conversation runs: a conversation agent run against a dataset, and its
+ * records. Scoped to the project and never inherited from the organization.
+ */
+export const EVALUATION_CONVERSATION_RUN_READ_PERMISSION =
+  "evaluation.conversation.run.read" as const
+
+export const EVALUATION_CONVERSATION_RUN_CREATE_PERMISSION =
+  "evaluation.conversation.run.create" as const
+
+/** Execute, retry or cancel an evaluation conversation run. */
+export const EVALUATION_CONVERSATION_RUN_UPDATE_PERMISSION =
+  "evaluation.conversation.run.update" as const
+
+export const EVALUATION_CONVERSATION_RUN_DELETE_PERMISSION =
+  "evaluation.conversation.run.delete" as const
+
+/**
+ * Permissions an App may be granted. Policy lives in code, not in the database:
+ * there is no Permission entity and no `app_grantable` column. Intersect this
+ * list with `AppManifest.grantable_permissions` on save and on authorize.
  * Grouped by resource type (document, project/workspace, agent, …).
  */
 export const APP_GRANTABLE_PERMISSIONS = [
@@ -50,6 +137,10 @@ export const APP_GRANTABLE_PERMISSIONS = [
   DOCUMENT_CREATE_PERMISSION,
   DOCUMENT_UPDATE_PERMISSION,
   DOCUMENT_DELETE_PERMISSION,
+  DOCUMENT_SOURCE_READ_PERMISSION,
+  DOCUMENT_SOURCE_CREATE_PERMISSION,
+  DOCUMENT_SOURCE_UPDATE_PERMISSION,
+  DOCUMENT_SOURCE_DELETE_PERMISSION,
   PROJECT_READ_PERMISSION,
   PROJECT_UPDATE_PERMISSION,
   PROJECT_DELETE_PERMISSION,
@@ -60,6 +151,7 @@ export type AppGrantablePermission = (typeof APP_GRANTABLE_PERMISSIONS)[number]
 /** Product labels for the resource-type prefix of an App-grantable permission. */
 export const APP_GRANTABLE_RESOURCE_LABELS = {
   document: "Document",
+  document_source: "Document source",
   project: "Workspace",
   agent: "Agent",
   organization: "Organization",
@@ -116,6 +208,19 @@ export const ORGANIZATION_SCOPED_PERMISSIONS = [
 ] as const
 
 export type OrganizationScopedPermission = (typeof ORGANIZATION_SCOPED_PERMISSIONS)[number]
+
+/** Project-scoped permissions exposed on `ProjectDto.permissions`. */
+export const PROJECT_SCOPED_PERMISSIONS = [EVALUATION_ACCESS_PERMISSION] as const
+
+export type ProjectScopedPermission = (typeof PROJECT_SCOPED_PERMISSIONS)[number]
+
+export type ProjectPermission = ProjectScopedPermission
+
+const PROJECT_SCOPED_PERMISSION_SET: ReadonlySet<string> = new Set(PROJECT_SCOPED_PERMISSIONS)
+
+export function isProjectPermission(permission: string): permission is ProjectPermission {
+  return PROJECT_SCOPED_PERMISSION_SET.has(permission)
+}
 
 export type GlobalPermission =
   | typeof ORGANIZATION_CREATE_PERMISSION

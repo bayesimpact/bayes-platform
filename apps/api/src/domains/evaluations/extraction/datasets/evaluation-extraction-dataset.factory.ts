@@ -5,6 +5,7 @@ import type {
   EvaluationExtractionDataset,
   EvaluationExtractionDatasetSchemaMapping,
 } from "./evaluation-extraction-dataset.entity"
+import type { EvaluationExtractionDatasetDocument } from "./evaluation-extraction-dataset-document.entity"
 
 type EvaluationExtractionDatasetTransientParams = RequiredScopeTransientParams
 
@@ -35,7 +36,11 @@ export const evaluationExtractionDatasetFactory = EvaluationExtractionDatasetFac
       updatedAt: params.updatedAt || now,
       deletedAt: params.deletedAt || null,
       records: params.records || [],
-      evaluationExtractionDatasetDocuments: params.evaluationExtractionDatasetDocuments || [],
+      evaluationExtractionDatasetDocumentId: params.evaluationExtractionDatasetDocumentId ?? null,
+      evaluationExtractionDatasetDocument:
+        (params.evaluationExtractionDatasetDocument as
+          | EvaluationExtractionDatasetDocument
+          | undefined) ?? null,
     } satisfies EvaluationExtractionDataset
   },
 )

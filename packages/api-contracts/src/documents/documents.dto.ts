@@ -6,12 +6,11 @@ export const DOCUMENT_CRAWL_PROGRESS_CHANGED_CHANNEL_DTO = "document_crawl_progr
 
 export type DocumentSourceType =
   | "project"
-  | "agentSessionMessage"
   | "extraction"
-  | "evaluationExtractionDataset"
   | "evaluationExtractionRun"
   | "agentCsvExtractionRun"
   | "webCrawl"
+  | "app"
 export type DocumentEmbeddingStatus = "pending" | "queued" | "processing" | "completed" | "failed"
 export type DocumentEmbeddingStatusChangedEventPayload = {
   type: typeof DOCUMENT_EMBEDDING_STATUS_CHANGED_CHANNEL_DTO
@@ -168,6 +167,18 @@ export enum MimeTypes {
   _3gp = "video/3gpp",
   _3g2 = "video/3gpp2",
   _7z = "application/x-7z-compressed",
+}
+
+/** Maximum document upload size in bytes. Matches the studio uploader (40 MiB). */
+export const DOCUMENT_UPLOAD_MAX_BYTES = 40 * 1024 * 1024
+
+/** Signed on the upload URL so storage rejects a body over {@link DOCUMENT_UPLOAD_MAX_BYTES}. */
+export const DOCUMENT_UPLOAD_CONTENT_LENGTH_RANGE_HEADER = "x-goog-content-length-range" as const
+
+export function documentUploadContentLengthRange(
+  maxBytes: number = DOCUMENT_UPLOAD_MAX_BYTES,
+): string {
+  return `0,${maxBytes}`
 }
 
 /** MIME types accepted for document upload (aligned with API + text extraction / Docling pipeline). */

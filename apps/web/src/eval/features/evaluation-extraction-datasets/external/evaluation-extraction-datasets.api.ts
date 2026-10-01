@@ -3,6 +3,7 @@ import {
   type EvaluationExtractionDatasetFileColumnDto,
   type EvaluationExtractionDatasetFileDto,
   EvaluationExtractionDatasetsRoutes,
+  type PresignEvaluationExtractionDatasetFileRequestDto,
 } from "@caseai-connect/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
 import type {
@@ -47,6 +48,36 @@ export default {
       typeof EvaluationExtractionDatasetsRoutes.getAllFiles.response
     >(EvaluationExtractionDatasetsRoutes.getAllFiles.getPath(params))
     return response.data.data.map(toEvaluationExtractionDatasetFile)
+  },
+  // Presign → upload directly to storage → confirm, like project documents.
+  uploadFile: async ({ file, ...params }) => {
+    const axios = getAxiosInstance()
+
+    const presignResponse = await axios.post<
+      typeof EvaluationExtractionDatasetsRoutes.presignFile.response
+    >(EvaluationExtractionDatasetsRoutes.presignFile.getPath(params), {
+      payload: {
+        fileName: file.name,
+        mimeType: file.type as PresignEvaluationExtractionDatasetFileRequestDto["mimeType"],
+        size: file.size,
+      },
+    } satisfies typeof EvaluationExtractionDatasetsRoutes.presignFile.request)
+    const { documentId, uploadUrl } = presignResponse.data.data
+
+    await fetch(uploadUrl, {
+      method: "PUT",
+      headers: { "Content-Type": file.type },
+      body: file,
+    })
+
+    const confirmResponse = await axios.post<
+      typeof EvaluationExtractionDatasetsRoutes.confirmFile.response
+    >(EvaluationExtractionDatasetsRoutes.confirmFile.getPath({ ...params, documentId }))
+    return toEvaluationExtractionDatasetFile(confirmResponse.data.data)
+  },
+  deleteFile: async (params) => {
+    const axios = getAxiosInstance()
+    await axios.delete(EvaluationExtractionDatasetsRoutes.deleteFile.getPath(params))
   },
   createOne: async ({ payload, ...params }) => {
     const axios = getAxiosInstance()
@@ -98,21 +129,18 @@ function toEvaluationExtractionDatasetFile(
     createdAt: dto.createdAt,
     fileName: dto.fileName,
     id: dto.id,
-    language: dto.language,
     mimeType: dto.mimeType,
     projectId: dto.projectId,
     size: dto.size,
     storageRelativePath: dto.storageRelativePath,
-    title: dto.title,
     updatedAt: dto.updatedAt,
-    sourceType: dto.sourceType,
   }
 }
 
 function toDataset(dto: EvaluationExtractionDatasetDto): EvaluationExtractionDataset {
   return {
     createdAt: dto.createdAt,
-    documentIds: dto.documentIds,
+    documentId: dto.documentId,
     id: dto.id,
     name: dto.name,
     projectId: dto.projectId,

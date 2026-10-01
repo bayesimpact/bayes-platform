@@ -5,20 +5,30 @@ const getTestContext = documentsServiceTestSetup()
 
 describe("createInlineProjectDocument", () => {
   it("stores the text, optional source URL, and marks embeddings queued", async () => {
-    const { service, repositories, fileStorageService } = getTestContext()
+    const { service, repositories, fileStorageService, documentSourcesService } = getTestContext()
     const { organization, project, user } = await createOrganizationWithProject(repositories)
+    const connectScope = { organizationId: organization.id, projectId: project.id }
+    const documentSource = await documentSourcesService.createOne(connectScope, {
+      name: "Site crawler",
+      type: null,
+      externalId: null,
+      baseUrl: null,
+      config: null,
+    })
 
     const document = await service.createInlineProjectDocument({
-      connectScope: { organizationId: organization.id, projectId: project.id },
+      connectScope,
       userId: user.id,
       title: "Helpful notes",
       content: "The assistant stored this page.",
       sourceUrl: "https://example.com/notes",
+      documentSourceId: documentSource.id,
     })
 
     expect(document.title).toBe("Helpful notes")
     expect(document.content).toBe("The assistant stored this page.")
     expect(document.sourceUrl).toBe("https://example.com/notes")
+    expect(document.documentSourceId).toBe(documentSource.id)
     expect(document.sourceType).toBe("project")
     expect(document.uploadStatus).toBe("uploaded")
     expect(document.mimeType).toBe("text/plain")

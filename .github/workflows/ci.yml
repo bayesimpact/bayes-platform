@@ -69,8 +69,7 @@ jobs:
     needs: changes
     runs-on: ${{ needs.changes.outputs.api-tests == 'true' && 'self-hosted' || 'ubuntu-latest' }}
     # One tests job at a time on the self-hosted runner, across workflows: the
-    # jobs share the Docker daemon, the database ports and the cleanup below.
-    # Two at once wipe each other's containers and overload the machine.
+    # jobs share the database ports and the connect-db compose project.
     # Queued, not cancelled.
     concurrency:
       group: tests-self-hosted
@@ -82,11 +81,11 @@ jobs:
 
       - name: Clean up Docker artifacts
         if: needs.changes.outputs.api-tests == 'true'
-        # The buildx builder containers stay: the persistent builder of the GPU
-        # image lives in one of them, with its cache volume.
+        # Only the connect-db project (infra/database) of a previous tests run.
+        # The runner has two instances on one Docker daemon: the workers smoke
+        # or the GPU image build of the other instance can run at this time.
         run: |
-          docker ps -aq --format '{{.ID}} {{.Names}}' | awk '$2 !~ /^buildx_buildkit_/ { print $1 }' | xargs -r docker rm -f
-          docker volume prune -f
+          docker ps -aq --filter label=com.docker.compose.project=connect-db | xargs -r docker rm -f -v
           sudo rm -rf infra/database/dontsave 2>/dev/null || true
 
       - name: Use Node.js

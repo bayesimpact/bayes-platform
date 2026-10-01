@@ -112,6 +112,19 @@ function registerListeners() {
   })
 
   listenerMiddleware.startListening({
+    actionCreator: executeOne.pending,
+    effect: async (action, listenerApi) => {
+      if (!("file" in action.meta.arg)) return
+      listenerApi.dispatch(
+        notificationsActions.show({
+          title: `Uploading ${action.meta.arg.file.name}...`,
+          type: "info",
+        }),
+      )
+    },
+  })
+
+  listenerMiddleware.startListening({
     actionCreator: executeOne.rejected,
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(

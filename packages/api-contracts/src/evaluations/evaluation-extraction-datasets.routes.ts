@@ -6,14 +6,38 @@ import type {
   EvaluationExtractionDatasetFileDto,
   EvaluationExtractionDatasetSchemaColumnDto,
   PaginatedEvaluationExtractionDatasetRecordsDto,
+  PresignEvaluationExtractionDatasetFileRequestDto,
+  PresignEvaluationExtractionDatasetFileResponseDto,
 } from "./evaluation-extraction-datasets.dto"
 
 const prefix = "organizations/:organizationId/projects/:projectId/evaluation-extraction-datasets"
 export const EvaluationExtractionDatasetsRoutes = {
+  // Files: presign → PUT to the signed URL → confirm, like project documents.
   getAllFiles: defineRoute<ResponseData<EvaluationExtractionDatasetFileDto[]>>({
     method: "get",
     path: `${prefix}/files`,
   }),
+  presignFile: defineRoute<
+    ResponseData<PresignEvaluationExtractionDatasetFileResponseDto>,
+    RequestPayload<PresignEvaluationExtractionDatasetFileRequestDto>
+  >({
+    method: "post",
+    path: `${prefix}/files/presign`,
+  }),
+  confirmFile: defineRoute<ResponseData<EvaluationExtractionDatasetFileDto>>({
+    method: "post",
+    path: `${prefix}/files/:documentId/confirm`,
+  }),
+  getFileColumns: defineRoute<ResponseData<EvaluationExtractionDatasetFileColumnDto[]>>({
+    method: "get",
+    path: `${prefix}/files/:documentId/columns`,
+  }),
+  deleteFile: defineRoute<ResponseData<SuccessResponseDTO>>({
+    method: "delete",
+    path: `${prefix}/files/:documentId`,
+  }),
+
+  // Datasets
   getAll: defineRoute<ResponseData<EvaluationExtractionDatasetDto[]>>({
     method: "get",
     path: prefix,
@@ -34,11 +58,7 @@ export const EvaluationExtractionDatasetsRoutes = {
     }>
   >({
     method: "patch",
-    path: `${prefix}/:datasetId/file/:documentId/update`,
-  }),
-  getFileColumns: defineRoute<ResponseData<EvaluationExtractionDatasetFileColumnDto[]>>({
-    method: "get",
-    path: `${prefix}/file/:documentId/columns`,
+    path: `${prefix}/:datasetId/files/:documentId/update`,
   }),
   renameOne: defineRoute<ResponseData<SuccessResponseDTO>, RequestPayload<{ name: string }>>({
     method: "patch",

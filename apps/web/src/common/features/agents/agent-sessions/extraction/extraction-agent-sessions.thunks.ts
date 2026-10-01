@@ -3,7 +3,6 @@ import { selectPlaygroundRevision } from "@/common/features/agents/agent-setting
 import { getCurrentId } from "@/common/features/helpers"
 import type { RootState, ThunkExtraArg } from "@/common/store"
 import type { Document } from "@/studio/features/documents/documents.models"
-import { uploadDocument } from "@/studio/features/documents/documents.thunks"
 import { isStudioInterface } from "@/studio/routes/helpers"
 import type { AgentCsvExtractionRun } from "../../csv-extraction-runs/agent-csv-extraction-runs.models"
 import { buildType } from "../shared/base-agent-session/base-agent-sessions.thunks"
@@ -49,7 +48,13 @@ const listMyDocuments = createAsyncThunk<Document[], void, ThunkConfig>(
     const state = getState()
     const organizationId = getCurrentId({ state, name: "organizationId" })
     const projectId = getCurrentId({ state, name: "projectId" })
-    return await services.documents.listMyExtractionDocuments({ organizationId, projectId })
+    const agentId = getCurrentId({ state, name: "agentId" })
+    return await services.extractionAgentSessions.listMyDocuments({
+      organizationId,
+      projectId,
+      agentId,
+      type: buildType(),
+    })
   },
 )
 
@@ -60,42 +65,39 @@ const executeOne = createAsyncThunk<
     | { document: Document }
   ),
   ThunkConfig
->(
-  "extractionAgentSessions/executeOne",
-  async (params, { extra: { services }, getState, dispatch }) => {
-    const state = getState()
-    const isStudio = isStudioInterface()
+>("extractionAgentSessions/executeOne", async (params, { extra: { services }, getState }) => {
+  const state = getState()
+  const isStudio = isStudioInterface()
+  const type = isStudio ? "playground" : "live"
 
-    const document =
-      "file" in params
-        ? await dispatch(
-            uploadDocument({
-              file: params.file,
-              sourceType: "extraction",
-            }),
-          ).unwrap()
-        : params.document
+  const organizationId = getCurrentId({ state, name: "organizationId" })
+  const projectId = getCurrentId({ state, name: "projectId" })
+  const agentId = getCurrentId({ state, name: "agentId" })
 
-    const organizationId = getCurrentId({ state, name: "organizationId" })
-    const projectId = getCurrentId({ state, name: "projectId" })
-    const agentId = getCurrentId({ state, name: "agentId" })
+  const document =
+    "file" in params
+      ? await services.extractionAgentSessions.uploadDocument({
+          organizationId,
+          projectId,
+          agentId,
+          type,
+          file: params.file,
+        })
+      : params.document
 
-    // Only Studio may name a version; a Desk run is a live run and the API rejects a revision on
-    // one. `undefined` while the history is loading, which lets the API apply its own default.
-    const agentSettingsRevision = isStudio
-      ? selectPlaygroundRevision({ agentId })(state)
-      : undefined
+  // Only Studio may name a version; a Desk run is a live run and the API rejects a revision on
+  // one. `undefined` while the history is loading, which lets the API apply its own default.
+  const agentSettingsRevision = isStudio ? selectPlaygroundRevision({ agentId })(state) : undefined
 
-    return await services.extractionAgentSessions.executeOne({
-      organizationId,
-      projectId,
-      agentId,
-      documentId: document.id,
-      type: isStudio ? "playground" : "live",
-      agentSettingsRevision,
-    })
-  },
-)
+  return await services.extractionAgentSessions.executeOne({
+    organizationId,
+    projectId,
+    agentId,
+    documentId: document.id,
+    type,
+    agentSettingsRevision,
+  })
+})
 
 const streamSessionStatus = createAsyncThunk<void, void, ThunkConfigWithSignal>(
   "extractionAgentSessions/streamSessionStatus",

@@ -1,21 +1,27 @@
-import type { DocumentDto } from "../documents/documents.dto"
+import type { MimeTypes } from "../documents/documents.dto"
 import type { TimeType } from "../generic"
 
 // DATASET FILE
-export type EvaluationExtractionDatasetFileDto = Pick<
-  DocumentDto,
-  | "createdAt"
-  | "fileName"
-  | "id"
-  | "language"
-  | "mimeType"
-  | "projectId"
-  | "size"
-  | "sourceType"
-  | "storageRelativePath"
-  | "title"
-  | "updatedAt"
->
+/** A CSV uploaded to build datasets from. Only confirmed uploads are listed. */
+export type EvaluationExtractionDatasetFileDto = {
+  createdAt: TimeType
+  fileName: string
+  id: string
+  mimeType: MimeTypes
+  projectId: string
+  size: number
+  storageRelativePath: string
+  updatedAt: TimeType
+}
+export type PresignEvaluationExtractionDatasetFileRequestDto = {
+  fileName: string
+  mimeType: MimeTypes
+  size: number
+}
+export type PresignEvaluationExtractionDatasetFileResponseDto = {
+  documentId: string
+  uploadUrl: string
+}
 export type EvaluationExtractionDatasetFileColumnDto = {
   id: string
   name: string
@@ -49,7 +55,8 @@ export type EvaluationExtractionDatasetRecordDto = {
 }
 export type EvaluationExtractionDatasetDto = {
   createdAt: TimeType
-  documentIds: string[]
+  /** The file the records were built from, null until the dataset is initialized. */
+  documentId: string | null
   id: string
   name: string
   projectId: string

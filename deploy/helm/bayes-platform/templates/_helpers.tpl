@@ -112,6 +112,20 @@ Is the pdf-converter deployed? "auto" follows the storage mode.
 {{- end -}}
 
 {{/*
+Phoenix the collector sends the traces to: otelCollector.phoenix.endpoint, or
+the bundled Phoenix.
+*/}}
+{{- define "bayes-platform.phoenixEndpoint" -}}
+{{- if .Values.otelCollector.phoenix.endpoint -}}
+{{- .Values.otelCollector.phoenix.endpoint -}}
+{{- else if .Values.phoenix.enabled -}}
+{{- printf "http://%s:6006" (include "bayes-platform.componentName" (dict "root" . "component" "phoenix")) -}}
+{{- else -}}
+{{- fail "otelCollector.phoenix.endpoint is required when phoenix.enabled is false" -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Environment shared by the API, the workers and the migration job.
 Non secret values come from the ConfigMap; here only the wiring that depends
 on other chart values.
@@ -179,6 +193,15 @@ on other chart values.
 {{- else }}
 - name: LOCAL_STORAGE_SERVER_BASE_URL
   value: {{ .Values.urls.api | quote }}
+{{- end }}
+{{- if .Values.otelCollector.enabled }}
+- name: OTEL_EXPORTER_OTLP_ENDPOINT
+  value: {{ printf "http://%s:4318" (include "bayes-platform.componentName" (dict "root" . "component" "otel-collector")) | quote }}
+{{- end }}
+{{- if and .Values.urls.phoenix (not .Values.config.TRACE_URL_TEMPLATE) }}
+# Trace links of the UI: the Phoenix session of one of our trace ids.
+- name: TRACE_URL_TEMPLATE
+  value: {{ printf "%s/redirects/sessions/{traceId}" (trimSuffix "/" .Values.urls.phoenix) | quote }}
 {{- end }}
 {{- if include "bayes-platform.pdfConverterEnabled" . }}
 - name: PDF_CONVERTER_URL

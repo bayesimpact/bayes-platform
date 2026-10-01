@@ -15,7 +15,7 @@ import type { AgentSettingsService } from "@/domains/agents/settings/agent-setti
 import type { AgentSubAgent } from "@/domains/agents/sub-agents/agent-sub-agent.entity"
 import type { AgentSubAgentsService } from "@/domains/agents/sub-agents/agent-sub-agents.service"
 import type { ProjectsService } from "@/domains/projects/projects.service"
-import { getTraceUrl } from "@/external/langfuse/langfuse-helper"
+import { getTraceUrl } from "@/external/llm/trace-url"
 import { isLLMVisibleMessage } from "./llm-visible-message.helper"
 import type { AgentSessionScope, OnExecute, StreamingSession } from "./streaming-session.types"
 import type { ActiveAgentController } from "./tools/active-agent-controller"
@@ -270,14 +270,15 @@ async function runSubAgentTool({
   // trace); any other sub-agent gets a fresh trace id per invocation.
   const subAgentTraceId = childSession.traceId
 
-  // Surface a direct link to the sub-agent's own langfuse trace on the parent's
-  // tool-call event. The AI SDK runs this tool inside an `ai.toolCall` span (the
-  // span the langfuse exporter turns into the `ai.toolCall …` event); any
-  // `ai.telemetry.metadata.*` attribute set on it is copied into that event's
-  // metadata, giving a copyable pointer from the parent trace to the child's.
-  trace
-    .getActiveSpan()
-    ?.setAttribute("ai.telemetry.metadata.subAgentTraceUrl", getTraceUrl(subAgentTraceId))
+  // Point from the parent's tool call to the sub-agent's own trace. The AI SDK
+  // runs this tool inside an `ai.toolCall` span; the attributes set on it give a
+  // copyable pointer from the parent trace to the child's.
+  const activeSpan = trace.getActiveSpan()
+  activeSpan?.setAttribute("ai.telemetry.metadata.subAgentTraceId", subAgentTraceId)
+  const subAgentTraceUrl = getTraceUrl(subAgentTraceId)
+  if (subAgentTraceUrl) {
+    activeSpan?.setAttribute("ai.telemetry.metadata.subAgentTraceUrl", subAgentTraceUrl)
+  }
 
   const { tools, mcpClose, toolDescriptions, fireAndForgetToolNames, turnClassification } =
     await buildTools({
@@ -323,15 +324,14 @@ async function runSubAgentTool({
     })
 
     logger.log(
-      `Sub-agent "${childAgent.name}" (${childAgent.id}) trace: ${getTraceUrl(subAgentTraceId)} ` +
-        `(parent "${agentSessionScope.agent.name}" trace: ${getTraceUrl(agentSessionScope.session.traceId)})`,
+      `Sub-agent "${childAgent.name}" (${childAgent.id}) trace: ${getTraceUrl(subAgentTraceId) ?? subAgentTraceId} ` +
+        `(parent "${agentSessionScope.agent.name}" trace: ${getTraceUrl(agentSessionScope.session.traceId) ?? agentSessionScope.session.traceId})`,
     )
 
     // Run the sub-agent's LLM call inside a fresh OTEL root span so its spans get
-    // their own OTEL trace id. The langfuse exporter groups by OTEL trace id and
-    // writes each group under a single langfuse trace id — detaching here lets the
-    // sub-agent's advertised trace id (subAgentTraceId) become its own trace
-    // instead of collapsing into the parent's.
+    // their own OTEL trace id. A trace backend attaches an OTEL trace to a single
+    // session; detaching here lets the sub-agent's advertised trace id
+    // (subAgentTraceId) group its own spans instead of collapsing into the parent's.
     return await tracer.startActiveSpan(
       `sub-agent ${childAgent.name}`,
       { root: true },
@@ -521,15 +521,13 @@ function buildSubAgentMetadata({
   } = agentSessionScope
 
   // The sub-agent runs inside a fresh OTEL root span (see runSubAgentTool), so its
-  // spans get their own OTEL trace id and the exporter writes them under this
-  // dedicated langfuse trace id rather than collapsing into the parent's trace.
-  // It is grouped under the parent's langfuse session (`langfuseSessionId`) so the
-  // parent and all its sub-agent traces share one session timeline, and a
-  // `parent-trace:` tag links back to the parent run for navigation.
+  // spans get their own OTEL trace id and group under this dedicated trace id
+  // rather than collapsing into the parent's. `parentSessionId` and the
+  // `parent-trace:` tag link back to the parent run for navigation.
   return {
     traceId: subAgentTraceId,
     agentSessionId: childSession.id,
-    langfuseSessionId: session.id,
+    parentSessionId: session.id,
     agentId: childAgent.id,
     revision: childAgentSettings.revision,
     projectId: childAgent.projectId,

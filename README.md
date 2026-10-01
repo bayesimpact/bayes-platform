@@ -71,6 +71,19 @@ docker compose up -d --no-recreate grafana   # --no-recreate keeps the running d
 cd ../.. && make analytics-dev-role          # once, after the migrations: the read-only role Grafana uses
 ```
 
+#### LLM traces in Phoenix (optional)
+
+An OpenTelemetry Collector (`deploy/helm/bayes-platform/files/otel-collector.yaml`, the same traces
+pipeline as the gateway of the clusters) and Phoenix at
+[http://localhost:6006](http://localhost:6006). Start them, then set in `apps/api/.env`:
+`OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318` and
+`TRACE_URL_TEMPLATE=http://localhost:6006/redirects/sessions/{traceId}`.
+
+```bash
+cd infra/database
+docker compose --profile traces up -d --no-recreate otel-collector phoenix
+```
+
 #### Stop the Database
 
 ```bash
@@ -105,10 +118,9 @@ TZ='UTC'
 # Google Cloud (optional, for AI features)
 GOOGLE_APPLICATION_CREDENTIALS=../../dontsave/caseai-connect-XXX.json
 
-# Langfuse (optional, for AI observability)
-LANGFUSE_SK=XXX
-LANGFUSE_PK=XXX
-LANGFUSE_BASE_URL=XXX
+# OpenTelemetry (optional, for traces and metrics)
+OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
+TRACE_URL_TEMPLATE=https://traces.example.org/redirects/sessions/{traceId}
 
 # Database
 DATABASE_URL=postgresql://admin:passpass@localhost:5432/caseai_connect
@@ -136,7 +148,8 @@ AUTH0_M2M_CLIENT_SECRET=XXX
 
 **Optional variables:**
 - `GOOGLE_APPLICATION_CREDENTIALS` - Path to Google Cloud service account key (for AI features)
-- `LANGFUSE_*` - Langfuse configuration (for AI observability)
+- `OTEL_EXPORTER_OTLP_ENDPOINT` - OpenTelemetry Collector that receives traces and metrics over OTLP (nothing is exported when unset)
+- `TRACE_URL_TEMPLATE` - Link to a trace in the trace backend, `{traceId}` is replaced by our trace id
 
 #### Web Environment Variables
 

@@ -1,10 +1,7 @@
 import {
-  type DocumentDto,
   type DocumentEmbeddingStatusChangedEventDto,
   type DocumentSourceType,
   DocumentsRoutes,
-  isAllowedMimeType,
-  type MimeTypes,
   type PresignFileResponseItemDto,
 } from "@caseai-connect/api-contracts"
 import {
@@ -40,11 +37,7 @@ import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { UserGuard } from "@/domains/users/user.guard"
 import type { Document } from "./document.entity"
 import { DocumentsGuard } from "./documents.guard"
-import {
-  extractFileExtension,
-  isPublicDocument,
-  normalizeUploadedFileName,
-} from "./documents.helpers"
+import { isPublicDocument, toDocumentDto } from "./documents.helpers"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentsService } from "./documents.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -86,56 +79,21 @@ export class DocumentsController {
     const connectScope = getRequiredConnectScope(req)
     const results: PresignFileResponseItemDto[] = []
 
-    for (const fileInfo of payload.files) {
-      if (!fileInfo.mimeType) {
-        throw new UnprocessableEntityException("File MIME type is required.")
-      }
-      if (!isAllowedMimeType(fileInfo.mimeType)) {
-        throw new UnprocessableEntityException(
-          `Invalid file type: ${fileInfo.mimeType}. Allowed types: PDF, Microsoft Office (Word, Excel, PowerPoint), images (PNG, JPEG, TIFF, BMP, WebP), CSV, plain text, or Markdown.`,
-        )
-      }
-
-      const normalizedFileName = normalizeUploadedFileName(fileInfo.fileName)
-      const extension = extractFileExtension(normalizedFileName)
-
-      const documentId = v4()
-      const storagePath = this.fileStorageService.buildStorageRelativePath({
-        connectScope,
-        documentId,
-        extension,
-      })
-
-      const uploadUrl = await this.fileStorageService.generateSignedUploadUrl({
-        storagePath,
-        mimeType: fileInfo.mimeType,
-        expiresInSeconds: 900, // 15 minutes
-      })
-
-      await this.documentsService.createDocument({
-        uploadStatus: "pending",
-        connectScope,
-        documentId,
-        fields: {
-          fileName: normalizedFileName,
-          mimeType: fileInfo.mimeType,
-          size: fileInfo.size,
-          storageRelativePath: storagePath,
-          title: normalizedFileName,
+    for (const file of payload.files) {
+      results.push(
+        await this.documentsService.presignUpload({
+          connectScope,
+          file,
           sourceType,
-        },
-        userId: req.user.id,
-      })
-
-      results.push({ documentId, uploadUrl })
+          userId: req.user.id,
+        }),
+      )
     }
 
     return { data: results }
   }
 
-  // FIXME: the polilcy is not correct here
-  // needed for /app/ (not admin/owner to upload doc in agent extraction)
-  @CheckPolicy((policy) => policy.canView())
+  @CheckPolicy((policy) => policy.canCreate())
   @Post(DocumentsRoutes.confirmMany.path)
   @TrackActivity({ action: "document.createMany" })
   @HttpCode(HttpStatus.CREATED)
@@ -229,18 +187,6 @@ export class DocumentsController {
     return { data: documents.map(toDocumentDto) }
   }
 
-  @CheckPolicy((policy) => policy.canView())
-  @Get(DocumentsRoutes.listMyExtractionDocuments.path)
-  async listMyExtractionDocuments(
-    @Request() req: EndpointRequestWithProject,
-  ): Promise<typeof DocumentsRoutes.listMyExtractionDocuments.response> {
-    const documents = await this.documentsService.listExtractionDocumentsForUser({
-      connectScope: getRequiredConnectScope(req),
-      userId: req.user.id,
-    })
-    return { data: documents.map(toDocumentDto) }
-  }
-
   @CheckPolicy((policy) => policy.canUpdate())
   @AddContext("document")
   @Patch(DocumentsRoutes.updateOne.path)
@@ -320,44 +266,5 @@ export class DocumentsController {
       ),
       map((event) => ({ ...event, data: JSON.stringify(event) })),
     )
-  }
-}
-
-// TODO(#421): temporary — page markdown is excluded from list responses to prevent OOM crashes.
-// Replace with a dedicated paginated endpoint that returns page content on demand.
-function parseCrawledPageUrls(content: string | null): { url: string }[] | undefined {
-  if (!content) return undefined
-  try {
-    const parsed: unknown = JSON.parse(content)
-    if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].url) {
-      return (parsed as { url: string }[]).map(({ url }) => ({ url }))
-    }
-  } catch {
-    // malformed content
-  }
-  return undefined
-}
-
-function toDocumentDto(entity: Document): DocumentDto {
-  const isWebCrawl = entity.sourceType === "webCrawl"
-  return {
-    content: isWebCrawl ? undefined : entity.content,
-    createdAt: entity.createdAt.getTime(),
-    deletedAt: entity.deletedAt?.getTime() || undefined,
-    embeddingError: entity.embeddingError ?? null,
-    embeddingStatus: entity.embeddingStatus,
-    fileName: entity.fileName,
-    id: entity.id,
-    language: entity.language === "fr" ? "fr" : "en",
-    mimeType: entity.mimeType as MimeTypes,
-    pages: isWebCrawl ? parseCrawledPageUrls(entity.content) : undefined,
-    projectId: entity.projectId,
-    size: entity.size,
-    sourceType: entity.sourceType,
-    sourceUrl: entity.sourceUrl ?? null,
-    storageRelativePath: entity.storageRelativePath,
-    tagIds: entity.tags?.map((tag) => tag.id) || [],
-    title: entity.title,
-    updatedAt: entity.updatedAt.getTime(),
   }
 }

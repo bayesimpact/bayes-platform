@@ -17,11 +17,19 @@ jobs:
     # (the Torch install alone is two minutes on a GitHub runner). Push events
     # fire for branches of this repository only, never for forks.
     runs-on: self-hosted
-    # One smoke at a time on the runner: the compose stack binds fixed ports.
+    # One smoke at a time on the runner: the compose stack binds fixed ports
+    # and uses one compose project, api-workers-smoke.
     concurrency:
       group: workers-smoke-self-hosted
       cancel-in-progress: false
     steps:
+      # Only the api-workers-smoke project of a smoke run that stopped before
+      # its own cleanup. The tests of the other runner instance can run at
+      # this time.
+      - name: Clean up Docker artifacts of a previous smoke run
+        run: |
+          docker ps -aq --filter label=com.docker.compose.project=api-workers-smoke | xargs -r docker rm -f -v
+
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
@@ -34,3 +42,7 @@ jobs:
 
       - name: Run workers startup smoke check
         run: make docker-workers-check
+
+      - name: Stop the smoke stack
+        if: always()
+        run: make docker-smoke-down

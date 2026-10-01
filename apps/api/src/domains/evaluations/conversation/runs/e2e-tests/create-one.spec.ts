@@ -18,6 +18,7 @@ import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../../test/request"
 import { EvaluationsModule } from "../../../evaluations.module"
 import { EvaluationConversationDataset } from "../../datasets/evaluation-conversation-dataset.entity"
@@ -43,6 +44,7 @@ describe("EvaluationConversationRuns - createOne", () => {
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     evaluationConversationRunRepository = setup.getRepository(EvaluationConversationRun)
     expectActivityCreated = bindExpectActivityCreated(repositories.activityRepository)
     app = setup.module.createNestApplication()

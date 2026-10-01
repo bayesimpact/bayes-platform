@@ -1,6 +1,6 @@
 # ADR 0004: Explicit Membership-Based Authorization
 
-* **Status**: Accepted
+* **Status**: Accepted (rights model superseded by [ADR 0019](0019-rbac-permission-catalog.md))
 * **Date**: 2026-03-23 (updated 2026-03-31)
 * **Deciders**: Jérémie
 

@@ -144,7 +144,7 @@ function useAvailableApps({
   if (abilities.canAccessStudio({ projectId: project.id }))
     apps.push(getAppData({ app: "studio", organizationId, projectId: project.id, t }))
 
-  if (hasFeature("evaluation"))
+  if (hasFeature("evaluation") && abilities.canAccessEvaluation({ projectId: project.id }))
     apps.push(getAppData({ app: "eval", organizationId, projectId: project.id, t }))
 
   if (hasTesterCampaignInProject)

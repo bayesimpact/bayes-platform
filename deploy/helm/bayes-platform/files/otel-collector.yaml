@@ -1,0 +1,104 @@
+# OpenTelemetry Collector for the platform's traces: keeps the LLM spans, maps
+# the AI SDK attributes to OpenInference and sends them to Phoenix. The one
+# copy of this mapping: the chart (otelCollector.enabled) and the local compose
+# (infra/database) mount this file; the gateway of our clusters
+# (bayesimpact/infra, base/observability/otel-gateway.yaml) copies its
+# processors. Metrics are accepted and dropped (no Prometheus here).
+#
+# PHOENIX_ENDPOINT: base URL of Phoenix (the exporter appends /v1/traces).
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  batch:
+    timeout: 1s
+  # LLM spans only: the AI SDK spans (scope `ai`).
+  filter/llm:
+    error_mode: ignore
+    traces:
+      span:
+        - instrumentation_scope.name != "ai"
+  # AI SDK attributes -> OpenInference (what Phoenix reads). The top AI SDK
+  # operation of a turn becomes a root: its parent (HTTP request, `sub-agent …`
+  # span) was dropped by the filter above. The side calls of a turn (post-turn
+  # classification, form consolidation) stay children, so the session shows the
+  # answer of the turn, not theirs.
+  transform/openinference:
+    error_mode: ignore
+    trace_statements:
+      - context: span
+        statements:
+          - set(span.parent_span_id, SpanID(0x0000000000000000)) where IsMatch(span.name, "^ai\\.(streamText|generateText|streamObject|generateObject|embed|embedMany)$") and not IsMatch(span.attributes["ai.telemetry.metadata.spanLabel"], "classification|consolidation")
+
+          # Name of the top operation: "Turn #4", or "Turn #4 · classification"
+          - 'set(span.name, Format("Turn #%d · %s", [span.attributes["ai.telemetry.metadata.currentTurn"], span.attributes["ai.telemetry.metadata.spanLabel"]])) where IsMatch(span.name, "^ai\\.(streamText|generateText|streamObject|generateObject)$") and span.attributes["ai.telemetry.metadata.currentTurn"] != nil and span.attributes["ai.telemetry.metadata.spanLabel"] != nil'
+          - 'set(span.name, Format("Turn #%d", [span.attributes["ai.telemetry.metadata.currentTurn"]])) where IsMatch(span.name, "^ai\\.(streamText|generateText|streamObject|generateObject)$") and span.attributes["ai.telemetry.metadata.currentTurn"] != nil'
+
+          # Kind of span
+          - set(span.attributes["openinference.span.kind"], "CHAIN")
+          - set(span.attributes["openinference.span.kind"], "LLM") where IsMatch(span.name, "\\.do(Stream|Generate)$")
+          - set(span.attributes["openinference.span.kind"], "EMBEDDING") where IsMatch(span.name, "\\.doEmbed$")
+          - set(span.attributes["openinference.span.kind"], "TOOL") where span.attributes["ai.toolCall.name"] != nil
+
+          # Session, user, tags (from ai.telemetry.metadata, set by the platform)
+          # The side calls of a turn stay out of the session: in a worker (no HTTP
+          # span) they are their own trace and would read as the last answer.
+          - set(span.attributes["session.id"], span.attributes["ai.telemetry.metadata.sessionId"]) where span.attributes["ai.telemetry.metadata.sessionId"] != nil and not IsMatch(span.attributes["ai.telemetry.metadata.spanLabel"], "classification|consolidation")
+          - set(span.attributes["user.id"], span.attributes["ai.telemetry.metadata.userId"]) where span.attributes["ai.telemetry.metadata.userId"] != nil
+          - set(span.attributes["tag.tags"], span.attributes["ai.telemetry.metadata.tags"]) where span.attributes["ai.telemetry.metadata.tags"] != nil
+
+          # Model and tokens (LLM spans)
+          - set(span.attributes["llm.model_name"], span.attributes["gen_ai.request.model"]) where span.attributes["gen_ai.request.model"] != nil
+          - set(span.attributes["llm.model_name"], span.attributes["gen_ai.response.model"]) where span.attributes["gen_ai.response.model"] != nil
+          - set(span.attributes["llm.provider"], span.attributes["ai.model.provider"]) where span.attributes["ai.model.provider"] != nil
+          - set(span.attributes["llm.token_count.prompt"], span.attributes["gen_ai.usage.input_tokens"]) where span.attributes["gen_ai.usage.input_tokens"] != nil
+          - set(span.attributes["llm.token_count.completion"], span.attributes["gen_ai.usage.output_tokens"]) where span.attributes["gen_ai.usage.output_tokens"] != nil
+          - set(span.attributes["llm.token_count.prompt_details.cache_read"], span.attributes["ai.usage.cachedInputTokens"]) where span.attributes["ai.usage.cachedInputTokens"] != nil
+          - set(span.attributes["llm.token_count.total"], Int(span.attributes["llm.token_count.prompt"]) + Int(span.attributes["llm.token_count.completion"])) where span.attributes["llm.token_count.prompt"] != nil and span.attributes["llm.token_count.completion"] != nil
+
+          # Input and output
+          - set(span.attributes["input.value"], span.attributes["ai.prompt"]) where span.attributes["ai.prompt"] != nil
+          - set(span.attributes["input.value"], span.attributes["ai.prompt.messages"]) where span.attributes["ai.prompt.messages"] != nil
+          - set(span.attributes["input.mime_type"], "application/json") where span.attributes["input.value"] != nil
+          # The top operation of a chat turn shows the user's message, not the whole prompt.
+          - set(span.attributes["input.value"], span.attributes["ai.telemetry.metadata.userMessage"]) where span.attributes["ai.telemetry.metadata.userMessage"] != nil and span.attributes["openinference.span.kind"] == "CHAIN"
+          - set(span.attributes["input.mime_type"], "text/plain") where span.attributes["ai.telemetry.metadata.userMessage"] != nil and span.attributes["openinference.span.kind"] == "CHAIN"
+          - set(span.attributes["output.value"], span.attributes["ai.response.text"]) where span.attributes["ai.response.text"] != nil
+          - set(span.attributes["output.mime_type"], "text/plain") where span.attributes["ai.response.text"] != nil
+          # Structured output: the text is the JSON of the schema.
+          - set(span.attributes["output.mime_type"], "application/json") where span.attributes["ai.response.text"] != nil and span.attributes["ai.telemetry.metadata.outputSchema"] != nil
+          # A step that only calls tools has an empty text: show the calls.
+          - set(span.attributes["output.value"], span.attributes["ai.response.toolCalls"]) where span.attributes["ai.response.toolCalls"] != nil and (span.attributes["ai.response.text"] == nil or span.attributes["ai.response.text"] == "")
+          - set(span.attributes["output.mime_type"], "application/json") where span.attributes["ai.response.toolCalls"] != nil and (span.attributes["ai.response.text"] == nil or span.attributes["ai.response.text"] == "")
+          - set(span.attributes["output.value"], span.attributes["ai.response.object"]) where span.attributes["ai.response.object"] != nil
+          - set(span.attributes["output.mime_type"], "application/json") where span.attributes["ai.response.object"] != nil
+
+          # Tool calls
+          - set(span.attributes["tool.name"], span.attributes["ai.toolCall.name"]) where span.attributes["ai.toolCall.name"] != nil
+          - set(span.attributes["input.value"], span.attributes["ai.toolCall.args"]) where span.attributes["ai.toolCall.args"] != nil
+          - set(span.attributes["output.value"], span.attributes["ai.toolCall.result"]) where span.attributes["ai.toolCall.result"] != nil
+  # The Phoenix project of the platform's traces.
+  resource/phoenix-project:
+    attributes:
+      - key: openinference.project.name
+        value: bayes-platform
+        action: upsert
+
+exporters:
+  otlphttp/phoenix:
+    endpoint: ${env:PHOENIX_ENDPOINT}
+  nop: {}
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [filter/llm, transform/openinference, resource/phoenix-project, batch]
+      exporters: [otlphttp/phoenix]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [nop]

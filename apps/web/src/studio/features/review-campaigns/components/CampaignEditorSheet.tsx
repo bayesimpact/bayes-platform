@@ -33,8 +33,10 @@ export function CampaignEditorSheet({ open, agents, mode, reviewCampaignId, onCl
     if (open && mode === "edit" && reviewCampaignId) {
       dispatch(reviewCampaignsActions.selectDetail({ reviewCampaignId }))
     }
+    // The sheet is unmounted rather than closed, so clear on every cleanup:
+    // a stale detail would seed the form's defaultValues on the next open.
     return () => {
-      if (!open) dispatch(reviewCampaignsActions.clearSelectedDetail())
+      dispatch(reviewCampaignsActions.clearSelectedDetail())
     }
   }, [dispatch, open, mode, reviewCampaignId])
 

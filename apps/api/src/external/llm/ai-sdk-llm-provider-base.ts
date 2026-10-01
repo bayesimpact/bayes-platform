@@ -18,6 +18,7 @@ import type {
   LLMMetadata,
   LLMProvider,
 } from "@/common/interfaces/llm-provider.interface"
+import { removeNullish } from "@/common/utils/remove-nullish"
 import {
   CallOrigin,
   extractTextFromContent,
@@ -113,7 +114,10 @@ export abstract class AISDKLLMProviderBase extends AISDKLLMToolsMgmt implements 
       experimental_telemetry: {
         isEnabled: true,
         functionId,
-        metadata: this.buildMetadata({ config, metadata, tags }),
+        metadata: removeNullish({
+          ...this.buildMetadata({ config, metadata, tags }),
+          userMessage: this.buildUserMessageForTelemetry(aiSDKMessages),
+        }),
       },
       providerOptions: this.buildProviderOptions({ config, callOrigin, metadata, tags }),
     })

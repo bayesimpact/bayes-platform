@@ -10,10 +10,12 @@ import {
 } from "@/common/test/test-transaction-manager"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { FILE_STORAGE_SERVICE } from "@/domains/documents/storage/file-storage.interface"
-import { createOrganizationWithDocument } from "@/domains/organizations/organization.factory"
+import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../../test/request"
 import { EvaluationsModule } from "../../../evaluations.module"
+import { evaluationExtractionDatasetDocumentFactory } from "../evaluation-extraction-dataset-document.factory"
 
 const CSV_CONTENT = "name,age,city\nAlice,30,Paris\nBob,25,London\nCharlie,35,Berlin"
 
@@ -46,6 +48,7 @@ describe("EvaluationExtractionDatasets - getFileColumns", () => {
           .overrideProvider(FILE_STORAGE_SERVICE)
           .useValue(mockFileStorageService),
     })
+    await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
     app = setup.module.createNestApplication()
     await app.init()
@@ -68,14 +71,17 @@ describe("EvaluationExtractionDatasets - getFileColumns", () => {
   })
 
   const createContext = async () => {
-    const { user, organization, project, document } = await createOrganizationWithDocument(
-      repositories,
-      { document: { sourceType: "evaluationExtractionDataset", fileName: "dataset.csv" } },
-    )
+    const { user, organization, project } = await createOrganizationWithProject(repositories)
     organizationId = organization.id
     projectId = project.id
-    documentId = document.id
     auth0Id = user.auth0Id
+
+    const document = evaluationExtractionDatasetDocumentFactory
+      .transient({ organization, project })
+      .build({ fileName: "dataset.csv" })
+    await repositories.evaluationExtractionDatasetDocumentRepository.save(document)
+    documentId = document.id
+
     return { organization, project, document }
   }
 

@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto"
-import { EvaluationExtractionDatasetsRoutes } from "@caseai-connect/api-contracts"
+import { EvaluationExtractionDatasetsRoutes, MimeTypes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import type { Repository } from "typeorm"
@@ -11,7 +11,9 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
-import { createOrganizationWithDocument } from "@/domains/organizations/organization.factory"
+import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
+import type { Organization } from "@/domains/organizations/organization.entity"
+import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import type { ProjectMembershipRole } from "@/domains/projects/memberships/project-membership.types"
 import { projectFactory } from "@/domains/projects/project.factory"
 import {
@@ -19,10 +21,12 @@ import {
   mockForeignAuth0Id,
   setupUserGuardForTesting,
 } from "../../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../../test/request"
 import { EvaluationsModule } from "../../../evaluations.module"
 import { EvaluationExtractionDataset } from "../evaluation-extraction-dataset.entity"
 import { evaluationExtractionDatasetFactory } from "../evaluation-extraction-dataset.factory"
+import { evaluationExtractionDatasetDocumentFactory } from "../evaluation-extraction-dataset-document.factory"
 
 describe("EvaluationExtractionDatasets - Auth", () => {
   let app: INestApplication<App>
@@ -44,6 +48,7 @@ describe("EvaluationExtractionDatasets - Auth", () => {
       additionalImports: [EvaluationsModule],
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
     })
+    await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
     datasetRepository = setup.getRepository(EvaluationExtractionDataset)
     app = setup.module.createNestApplication()
@@ -67,19 +72,37 @@ describe("EvaluationExtractionDatasets - Auth", () => {
   })
 
   const createContextForRole = async (role: ProjectMembershipRole = "owner") => {
-    const { user, organization, project, document } = await createOrganizationWithDocument(
-      repositories,
-      {
-        user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
-        projectMembership: { role },
-      },
-    )
+    const { user, organization, project } = await createOrganizationWithProject(repositories, {
+      user: { auth0Id, email: mockAuth0EmailForSub(auth0Id) },
+      projectMembership: { role },
+    })
     organizationId = organization.id
     projectId = project.id
-    documentId = document.id
     accessToken = "token"
     auth0Id = user.auth0Id
+
+    const document = evaluationExtractionDatasetDocumentFactory
+      .transient({ organization, project })
+      .build()
+    await repositories.evaluationExtractionDatasetDocumentRepository.save(document)
+    documentId = document.id
+
     return { organization, project, document }
+  }
+
+  /** Switches the caller to an organization admin who holds no role on the project. */
+  const switchToOrganizationAdminWithoutProjectRole = async (organization: Organization) => {
+    const organizationAdminAuth0Id = `auth0|${randomUUID()}`
+    await addUserToOrganization({
+      repositories,
+      organization,
+      user: {
+        auth0Id: organizationAdminAuth0Id,
+        email: mockAuth0EmailForSub(organizationAdminAuth0Id),
+      },
+      membership: { role: "admin" },
+    })
+    auth0Id = organizationAdminAuth0Id
   }
 
   describe("EvaluationExtractionDatasetsRoutes.getAll", () => {
@@ -111,6 +134,15 @@ describe("EvaluationExtractionDatasets - Auth", () => {
     it("doesn't allow a simple member to get all datasets", async () => {
       await createContextForRole("member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("doesn't allow an organization admin without a project role to get all datasets", async () => {
+      const { organization } = await createContextForRole("owner")
+      await switchToOrganizationAdminWithoutProjectRole(organization)
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("allows a project admin to get all datasets", async () => {
+      await createContextForRole("admin")
+      expectResponse(await subject(), 200)
     })
   })
 
@@ -173,6 +205,123 @@ describe("EvaluationExtractionDatasets - Auth", () => {
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to get all files", async () => {
+      await createContextForRole("member")
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+  })
+
+  describe("EvaluationExtractionDatasetsRoutes.presignFile", () => {
+    const payload: typeof EvaluationExtractionDatasetsRoutes.presignFile.request = {
+      payload: { fileName: "dataset.csv", mimeType: MimeTypes.csv, size: 1024 },
+    }
+
+    const subject = async () =>
+      request({
+        route: EvaluationExtractionDatasetsRoutes.presignFile,
+        pathParams: removeNullish({ organizationId, projectId }),
+        token: accessToken ?? undefined,
+        request: payload,
+      })
+
+    it("requires an authentication token", async () => {
+      accessToken = null
+      expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+    it("requires a valid organization ID", async () => {
+      organizationId = null
+      expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
+    })
+    it("requires a valid project ID", async () => {
+      await createContextForRole("owner")
+      projectId = null
+      expectResponse(await subject(), 404)
+    })
+    it("requires the user to be a member of the organization", async () => {
+      await createContextForRole("owner")
+      auth0Id = mockForeignAuth0Id()
+      expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
+    })
+    it("doesn't allow a simple member to upload a file", async () => {
+      await createContextForRole("member")
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+  })
+
+  describe("EvaluationExtractionDatasetsRoutes.confirmFile", () => {
+    const subject = async () =>
+      request({
+        route: EvaluationExtractionDatasetsRoutes.confirmFile,
+        pathParams: removeNullish({ organizationId, projectId, documentId }),
+        token: accessToken ?? undefined,
+      })
+
+    it("requires an authentication token", async () => {
+      accessToken = null
+      expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+    it("requires a valid organization ID", async () => {
+      organizationId = null
+      expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
+    })
+    it("requires a valid project ID", async () => {
+      await createContextForRole("owner")
+      projectId = null
+      expectResponse(await subject(), 404)
+    })
+    it("requires the user to be a member of the organization", async () => {
+      await createContextForRole("owner")
+      auth0Id = mockForeignAuth0Id()
+      expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
+    })
+    it("requires the file to be part of the project", async () => {
+      const { organization } = await createContextForRole("owner")
+      const project2 = await repositories.projectRepository.save(
+        projectFactory.transient({ organization }).build(),
+      )
+      projectId = project2.id
+      expectResponse(await subject(), 404)
+    })
+    it("doesn't allow a simple member to confirm a file", async () => {
+      await createContextForRole("member")
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+  })
+
+  describe("EvaluationExtractionDatasetsRoutes.deleteFile", () => {
+    const subject = async () =>
+      request({
+        route: EvaluationExtractionDatasetsRoutes.deleteFile,
+        pathParams: removeNullish({ organizationId, projectId, documentId }),
+        token: accessToken ?? undefined,
+      })
+
+    it("requires an authentication token", async () => {
+      accessToken = null
+      expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+    it("requires a valid organization ID", async () => {
+      organizationId = null
+      expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
+    })
+    it("requires a valid project ID", async () => {
+      await createContextForRole("owner")
+      projectId = null
+      expectResponse(await subject(), 404)
+    })
+    it("requires the user to be a member of the organization", async () => {
+      await createContextForRole("owner")
+      auth0Id = mockForeignAuth0Id()
+      expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
+    })
+    it("requires the file to be part of the project", async () => {
+      const { organization } = await createContextForRole("owner")
+      const project2 = await repositories.projectRepository.save(
+        projectFactory.transient({ organization }).build(),
+      )
+      projectId = project2.id
+      expectResponse(await subject(), 404)
+    })
+    it("doesn't allow a simple member to delete a file", async () => {
       await createContextForRole("member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
@@ -255,6 +404,15 @@ describe("EvaluationExtractionDatasets - Auth", () => {
       await createContextForRole("member")
       expectResponse(await subject(payload), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
+    it("doesn't allow an organization admin without a project role to create a dataset", async () => {
+      const { organization } = await createContextForRole("owner")
+      await switchToOrganizationAdminWithoutProjectRole(organization)
+      expectResponse(await subject(payload), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("allows a project admin to create a dataset", async () => {
+      await createContextForRole("admin")
+      expectResponse(await subject(payload), 201)
+    })
   })
 
   describe("EvaluationExtractionDatasetsRoutes.updateOne", () => {
@@ -295,16 +453,43 @@ describe("EvaluationExtractionDatasets - Auth", () => {
       auth0Id = mockForeignAuth0Id()
       expectResponse(await subject(payload), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
-    it("requires the document to be part of the project", async () => {
-      const { organization } = await createContextForRole("owner")
+    it("requires the dataset to be part of the project", async () => {
+      const { organization, project } = await createContextForRole("owner")
       const project2 = await repositories.projectRepository.save(
         projectFactory.transient({ organization }).build(),
       )
-      projectId = project2.id
+      const foreignDataset = evaluationExtractionDatasetFactory
+        .transient({ organization, project: project2 })
+        .build()
+      await datasetRepository.save(foreignDataset)
+      datasetId = foreignDataset.id
+      expect(project.id).toBe(projectId)
+      expectResponse(await subject(payload), 404)
+    })
+    it("requires the file to be part of the project", async () => {
+      const { organization, project } = await createContextForRole("owner")
+      const dataset = evaluationExtractionDatasetFactory
+        .transient({ organization, project })
+        .build()
+      await datasetRepository.save(dataset)
+      datasetId = dataset.id
+      const project2 = await repositories.projectRepository.save(
+        projectFactory.transient({ organization }).build(),
+      )
+      const foreignDocument = evaluationExtractionDatasetDocumentFactory
+        .transient({ organization, project: project2 })
+        .build()
+      await repositories.evaluationExtractionDatasetDocumentRepository.save(foreignDocument)
+      documentId = foreignDocument.id
       expectResponse(await subject(payload), 404)
     })
     it("doesn't allow a simple member to update a dataset", async () => {
-      await createContextForRole("member")
+      const { organization, project } = await createContextForRole("member")
+      const dataset = evaluationExtractionDatasetFactory
+        .transient({ organization, project })
+        .build()
+      await datasetRepository.save(dataset)
+      datasetId = dataset.id
       expectResponse(await subject(payload), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
   })
@@ -345,6 +530,15 @@ describe("EvaluationExtractionDatasets - Auth", () => {
     it("doesn't allow a simple member to rename a dataset", async () => {
       await createContextForRole("member")
       expectResponse(await subject(payload), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("allows a project admin to rename a dataset", async () => {
+      const { organization, project } = await createContextForRole("admin")
+      const dataset = evaluationExtractionDatasetFactory
+        .transient({ organization, project })
+        .build()
+      await datasetRepository.save(dataset)
+      datasetId = dataset.id
+      expectResponse(await subject(payload), 200)
     })
   })
 

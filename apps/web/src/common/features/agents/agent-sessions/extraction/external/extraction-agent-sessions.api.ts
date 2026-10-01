@@ -3,8 +3,13 @@ import {
   type ExtractionAgentSessionResultDto,
   type ExtractionAgentSessionSummaryDto,
   ExtractionAgentSessionsRoutes,
+  type PresignFileRequestItemDto,
 } from "@caseai-connect/api-contracts"
 import { getAxiosInstance } from "@/external/axios"
+import {
+  fromDocumentDto,
+  putFileToSignedUrl,
+} from "@/studio/features/documents/external/documents.mappers"
 import type {
   ExtractionAgentSession,
   ExtractionAgentSessionResult,
@@ -50,6 +55,41 @@ const api: IExtractionAgentSessionsSpi = {
   },
   streamSessionStatus: async (params) => {
     await streamExtractionAgentSessionStatus(params)
+  },
+  uploadDocument: async ({ file, type, ...params }) => {
+    const axios = getAxiosInstance()
+
+    const presignResponse = await axios.post<
+      typeof ExtractionAgentSessionsRoutes.presignDocument.response
+    >(ExtractionAgentSessionsRoutes.presignDocument.getPath(params), {
+      payload: {
+        type,
+        file: {
+          fileName: file.name,
+          mimeType: file.type as PresignFileRequestItemDto["mimeType"],
+          size: file.size,
+        },
+      },
+    } satisfies typeof ExtractionAgentSessionsRoutes.presignDocument.request)
+    const presigned = presignResponse.data.data
+
+    await putFileToSignedUrl({ uploadUrl: presigned.uploadUrl, file })
+
+    const confirmResponse = await axios.post<
+      typeof ExtractionAgentSessionsRoutes.confirmDocument.response
+    >(ExtractionAgentSessionsRoutes.confirmDocument.getPath(params), {
+      payload: { type, documentId: presigned.documentId },
+    } satisfies typeof ExtractionAgentSessionsRoutes.confirmDocument.request)
+    return fromDocumentDto(confirmResponse.data.data)
+  },
+  listMyDocuments: async ({ type, ...params }) => {
+    const axios = getAxiosInstance()
+    const response = await axios.post<
+      typeof ExtractionAgentSessionsRoutes.listMyDocuments.response
+    >(ExtractionAgentSessionsRoutes.listMyDocuments.getPath(params), {
+      payload: { type },
+    } satisfies typeof ExtractionAgentSessionsRoutes.listMyDocuments.request)
+    return response.data.data.map(fromDocumentDto)
   },
 }
 

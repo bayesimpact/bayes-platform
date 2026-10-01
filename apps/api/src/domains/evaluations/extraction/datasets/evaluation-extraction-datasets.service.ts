@@ -1,14 +1,24 @@
-import type { EvaluationExtractionDatasetSchemaColumnDto } from "@caseai-connect/api-contracts"
-import { Inject, Injectable, NotFoundException, UnprocessableEntityException } from "@nestjs/common"
+import {
+  type EvaluationExtractionDatasetSchemaColumnDto,
+  MimeTypes,
+} from "@caseai-connect/api-contracts"
+import {
+  Inject,
+  Injectable,
+  Logger,
+  NotFoundException,
+  UnprocessableEntityException,
+} from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import * as Papa from "papaparse"
 import type { Repository } from "typeorm"
 import { v4 } from "uuid"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
-import type { Document } from "@/domains/documents/document.entity"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { DocumentsService } from "@/domains/documents/documents.service"
+import {
+  extractFileExtension,
+  normalizeUploadedFileName,
+} from "@/domains/documents/documents.helpers"
 import {
   FILE_STORAGE_SERVICE,
   type IFileStorage,
@@ -20,7 +30,9 @@ import {
   EvaluationExtractionDataset,
   type EvaluationExtractionDatasetSchemaMapping,
 } from "./evaluation-extraction-dataset.entity"
-import { EvaluationExtractionDatasetDocument } from "./evaluation-extraction-dataset-document.entity"
+import type { EvaluationExtractionDatasetDocument } from "./evaluation-extraction-dataset-document.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { EvaluationExtractionDatasetDocumentRepository } from "./evaluation-extraction-dataset-document.repository"
 import {
   EvaluationExtractionDatasetRecord,
   type EvaluationExtractionDatasetRecordData,
@@ -32,20 +44,20 @@ export type EvaluationExtractionDatasetFileColumn = {
   values: unknown[]
 }
 
+const UPLOAD_URL_EXPIRES_IN_SECONDS = 900 // 15 minutes
+
 @Injectable()
 export class EvaluationExtractionDatasetsService {
+  private readonly logger = new Logger(EvaluationExtractionDatasetsService.name)
   private readonly datasetConnectRepository: ConnectRepository<EvaluationExtractionDataset>
   private readonly recordConnectRepository: ConnectRepository<EvaluationExtractionDatasetRecord>
-  private readonly evaluationExtractionDatasetDocumentRepository: Repository<EvaluationExtractionDatasetDocument>
 
   constructor(
-    @InjectRepository(EvaluationExtractionDatasetDocument)
-    evaluationExtractionDatasetDocumentRepository: Repository<EvaluationExtractionDatasetDocument>,
     @InjectRepository(EvaluationExtractionDataset)
     evaluationExtractionDatasetRepository: Repository<EvaluationExtractionDataset>,
     @InjectRepository(EvaluationExtractionDatasetRecord)
     evaluationExtractionDatasetRecordRepository: Repository<EvaluationExtractionDatasetRecord>,
-    private readonly documentsService: DocumentsService,
+    private readonly datasetDocumentRepository: EvaluationExtractionDatasetDocumentRepository,
     @Inject(FILE_STORAGE_SERVICE)
     private readonly fileStorageService: IFileStorage,
     private readonly evaluationExtractionRunsService: EvaluationExtractionRunsService,
@@ -58,15 +70,102 @@ export class EvaluationExtractionDatasetsService {
       evaluationExtractionDatasetRecordRepository,
       "evaluationExtractionDatasetRecords",
     )
-    this.evaluationExtractionDatasetDocumentRepository =
-      evaluationExtractionDatasetDocumentRepository
   }
 
-  async listFiles({ connectScope }: { connectScope: RequiredConnectScope }): Promise<Document[]> {
-    return this.documentsService.listBySourceType({
+  // FILES
+
+  async listFiles({
+    connectScope,
+  }: {
+    connectScope: RequiredConnectScope
+  }): Promise<EvaluationExtractionDatasetDocument[]> {
+    return this.datasetDocumentRepository.listUploaded(connectScope)
+  }
+
+  /**
+   * Creates the file row and a signed URL the browser uploads the CSV to. The row
+   * stays `pending` until `confirmFile` is called, so a failed upload never shows up
+   * in the file list.
+   */
+  async presignFile({
+    connectScope,
+    file,
+  }: {
+    connectScope: RequiredConnectScope
+    file: { fileName: string; mimeType: string; size: number }
+  }): Promise<{ document: EvaluationExtractionDatasetDocument; uploadUrl: string }> {
+    if (file.mimeType !== MimeTypes.csv) {
+      throw new UnprocessableEntityException(
+        `Invalid file type: ${file.mimeType}. Dataset files must be CSV.`,
+      )
+    }
+
+    const fileName = normalizeUploadedFileName(file.fileName)
+    const extension = extractFileExtension(fileName)
+    const documentId = v4()
+    const storageRelativePath = this.fileStorageService.buildStorageRelativePath({
       connectScope,
-      sourceType: "evaluationExtractionDataset",
+      documentId,
+      extension,
     })
+
+    const uploadUrl = await this.fileStorageService.generateSignedUploadUrl({
+      storagePath: storageRelativePath,
+      mimeType: file.mimeType,
+      expiresInSeconds: UPLOAD_URL_EXPIRES_IN_SECONDS,
+    })
+
+    const document = await this.datasetDocumentRepository.createPending(connectScope, {
+      id: documentId,
+      fileName,
+      mimeType: file.mimeType,
+      size: file.size,
+      storageRelativePath,
+    })
+
+    return { document, uploadUrl }
+  }
+
+  async confirmFile({
+    connectScope,
+    documentId,
+  }: {
+    connectScope: RequiredConnectScope
+    documentId: string
+  }): Promise<EvaluationExtractionDatasetDocument> {
+    const isMarked = await this.datasetDocumentRepository.markAsUploaded(connectScope, documentId)
+    if (!isMarked) {
+      throw new NotFoundException(`Dataset file with id ${documentId} not found`)
+    }
+    const document = await this.datasetDocumentRepository.findOne(connectScope, documentId)
+    if (!document) {
+      throw new NotFoundException(`Dataset file with id ${documentId} not found`)
+    }
+    return document
+  }
+
+  async deleteFile({
+    connectScope,
+    documentId,
+  }: {
+    connectScope: RequiredConnectScope
+    documentId: string
+  }): Promise<void> {
+    const document = await this.getFile({ connectScope, documentId })
+    const isDeleted = await this.datasetDocumentRepository.deleteOne(connectScope, documentId)
+    if (!isDeleted) {
+      throw new NotFoundException(`Dataset file with id ${documentId} not found`)
+    }
+
+    // Storage cleanup happens after the row is gone: a storage hiccup must not
+    // resurrect the file, and a missing object is not an error.
+    try {
+      await this.fileStorageService.deleteFile(document.storageRelativePath)
+    } catch (error) {
+      this.logger.warn(
+        `Could not delete stored file of dataset file ${document.id} (${document.storageRelativePath}): ${(error as Error).message}`,
+      )
+    }
   }
 
   async getFileColumns({
@@ -82,16 +181,25 @@ export class EvaluationExtractionDatasetsService {
       skipEmptyLines: boolean
     }
   }): Promise<EvaluationExtractionDatasetFileColumn[]> {
-    const document = await this.documentsService.findById({
-      connectScope,
-      documentId,
-    })
-    if (!document) {
-      throw new NotFoundException(`Document with id ${documentId} not found`)
-    }
-    const columns = await this.parseCsvColumns({ document, options })
-    return columns
+    const document = await this.getFile({ connectScope, documentId })
+    return this.parseCsvColumns({ storageRelativePath: document.storageRelativePath, options })
   }
+
+  private async getFile({
+    connectScope,
+    documentId,
+  }: {
+    connectScope: RequiredConnectScope
+    documentId: string
+  }): Promise<EvaluationExtractionDatasetDocument> {
+    const document = await this.datasetDocumentRepository.findOne(connectScope, documentId)
+    if (!document) {
+      throw new NotFoundException(`Dataset file with id ${documentId} not found`)
+    }
+    return document
+  }
+
+  // DATASETS
 
   private sortNewestFirst = (a: EvaluationExtractionDataset, b: EvaluationExtractionDataset) =>
     b.updatedAt.getTime() - a.updatedAt.getTime()
@@ -101,12 +209,7 @@ export class EvaluationExtractionDatasetsService {
   }: {
     connectScope: RequiredConnectScope
   }): Promise<EvaluationExtractionDataset[]> {
-    const datasets = await this.datasetConnectRepository.find(connectScope, {
-      relations: [
-        "evaluationExtractionDatasetDocuments",
-        "evaluationExtractionDatasetDocuments.document",
-      ],
-    })
+    const datasets = await this.datasetConnectRepository.find(connectScope, {})
     return datasets.sort(this.sortNewestFirst)
   }
 
@@ -226,28 +329,14 @@ export class EvaluationExtractionDatasetsService {
       throw new NotFoundException(`Evaluation dataset with id ${datasetId} not found`)
     }
 
-    const document = await this.documentsService.findById({
-      connectScope,
-      documentId,
-    })
-    if (!document) {
-      throw new NotFoundException(`Document with id ${documentId} not found`)
-    }
+    const document = await this.getFile({ connectScope, documentId })
 
-    const newValues = {
+    Object.assign(dataset, {
       name,
       schemaMapping: this.buildSchemaMapping(columns),
-    }
-    Object.assign(dataset, newValues)
-    await this.datasetConnectRepository.saveOne(dataset)
-
-    // Link dataset to document
-    await this.evaluationExtractionDatasetDocumentRepository.save({
-      evaluationExtractionDatasetId: dataset.id,
-      documentId,
-      organizationId: connectScope.organizationId,
-      projectId: connectScope.projectId,
+      evaluationExtractionDatasetDocumentId: document.id,
     })
+    await this.datasetConnectRepository.saveOne(dataset)
 
     return dataset
   }
@@ -266,17 +355,11 @@ export class EvaluationExtractionDatasetsService {
       throw new NotFoundException(`Evaluation dataset with id ${datasetId} not found`)
     }
 
-    const document = await this.documentsService.findById({
-      connectScope,
-      documentId,
-    })
-    if (!document) {
-      throw new NotFoundException(`Document with id ${documentId} not found`)
-    }
+    const document = await this.getFile({ connectScope, documentId })
 
     const rows = await this.parseCsvRows({
       schemaMapping: dataset.schemaMapping,
-      document,
+      storageRelativePath: document.storageRelativePath,
     })
 
     // Bulk insert in chunks instead of one INSERT per row: a 10k+ row dataset
@@ -349,11 +432,8 @@ export class EvaluationExtractionDatasetsService {
         ),
     )
 
-    await this.evaluationExtractionDatasetDocumentRepository.delete({
-      evaluationExtractionDatasetId: datasetId,
-    })
-
     // Dataset records are removed via the ON DELETE CASCADE FK when the dataset row is deleted.
+    // The source file is kept: it can be reused to build another dataset.
     const isDeleted = await this.datasetConnectRepository.deleteOneById({
       connectScope,
       id: datasetId,
@@ -386,18 +466,20 @@ export class EvaluationExtractionDatasetsService {
     return columns
   }
 
+  // CSV PARSING
+
   private parseCsvColumns({
-    document,
+    storageRelativePath,
     options,
   }: {
-    document: Document
+    storageRelativePath: string
     options: {
       header: boolean
       preview: number
       skipEmptyLines: boolean
     }
   }): Promise<EvaluationExtractionDatasetFileColumn[]> {
-    const sourceStream = this.fileStorageService.createReadStream(document.storageRelativePath)
+    const sourceStream = this.fileStorageService.createReadStream(storageRelativePath)
 
     return new Promise((resolve, reject) => {
       const previewRows: Record<string, unknown>[] = []
@@ -460,12 +542,12 @@ export class EvaluationExtractionDatasetsService {
 
   private async parseCsvRows({
     schemaMapping,
-    document,
+    storageRelativePath,
   }: {
     schemaMapping: EvaluationExtractionDatasetSchemaMapping
-    document: Document
+    storageRelativePath: string
   }): Promise<EvaluationExtractionDatasetRecordData[]> {
-    const buffer = await this.fileStorageService.readFile(document.storageRelativePath)
+    const buffer = await this.fileStorageService.readFile(storageRelativePath)
     const csvContent = buffer.toString("utf-8")
 
     const parsed = Papa.parse(csvContent, {

@@ -26,6 +26,7 @@ export const projectFactory = ProjectFactory.define(({ sequence, params, transie
     organization: transientParams.organization,
     agents: params.agents || [],
     documents: params.documents || [],
+    documentSources: params.documentSources || [],
     agentMessageFeedbacks: params.agentMessageFeedbacks || [],
     featureFlags: params.featureFlags || [],
     projectAgentSessionCategories: params.projectAgentSessionCategories || [],

@@ -15,6 +15,7 @@ import {
 } from "@/common/test/test-transaction-manager"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../../test/rbac-test.helpers"
 import { EvaluationsModule } from "../../../evaluations.module"
 import { EvaluationConversationRunStatusStreamService } from "../evaluation-conversation-run-status-stream.service"
 
@@ -40,6 +41,7 @@ describe("EvaluationConversationRuns - streamRunStatus", () => {
           .useValue({ events$: statusStreamSubject.asObservable() }),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
     await app.listen(0)

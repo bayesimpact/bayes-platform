@@ -174,7 +174,7 @@ describe("buildSubAgentTools", () => {
     const findOrCreateSubSession = jest.fn().mockResolvedValue(subSession)
     let capturedMessages: { role: string; content: string }[] = []
     let capturedMetadata:
-      | { traceId: string; agentSessionId: string; langfuseSessionId?: string; tags: string[] }
+      | { traceId: string; agentSessionId: string; parentSessionId?: string; tags: string[] }
       | undefined
 
     const { tools } = await buildSubAgentTools({
@@ -256,11 +256,10 @@ describe("buildSubAgentTools", () => {
     expect(capturedMessages[0]?.content).toContain("fillForm")
     expect(result.answer).toBe("form answer")
     // The fillForm-enabled sub-agent gets its own dedicated trace (the
-    // sub-session's), linked back to the parent trace via a tag, but is grouped
-    // under the parent's langfuse session so they share one session timeline.
+    // sub-session's), linked back to the parent run via a tag and parentSessionId.
     expect(capturedMetadata?.traceId).toBe("sub-trace-id")
     expect(capturedMetadata?.agentSessionId).toBe("sub-session-id")
-    expect(capturedMetadata?.langfuseSessionId).toBe("parent-session-id")
+    expect(capturedMetadata?.parentSessionId).toBe("parent-session-id")
     expect(capturedMetadata?.tags).toContain("parent-trace:parent-trace-id")
     expect(capturedMetadata?.tags).toContain("sub-agent")
   })
@@ -304,7 +303,7 @@ describe("buildSubAgentTools", () => {
     const findOrCreateSubSession = jest.fn().mockResolvedValue(subSession)
     let capturedMessages: { role: string; content: string }[] = []
     let capturedMetadata:
-      | { traceId: string; agentSessionId: string; langfuseSessionId?: string; tags: string[] }
+      | { traceId: string; agentSessionId: string; parentSessionId?: string; tags: string[] }
       | undefined
 
     const { tools } = await buildSubAgentTools({
@@ -385,11 +384,10 @@ describe("buildSubAgentTools", () => {
     expect(capturedMessages[0]?.content).toContain("How much is the pro plan?")
     expect(result.answer).toBe("pricing answer")
     // The conversation sub-agent gets its own dedicated trace (the sub-session's),
-    // linked back to the parent trace via a tag, but is grouped under the parent's
-    // langfuse session so they share one session timeline.
+    // linked back to the parent run via a tag and parentSessionId.
     expect(capturedMetadata?.traceId).toBe("sub-trace-id")
     expect(capturedMetadata?.agentSessionId).toBe("sub-session-id")
-    expect(capturedMetadata?.langfuseSessionId).toBe("parent-session-id")
+    expect(capturedMetadata?.parentSessionId).toBe("parent-session-id")
     expect(capturedMetadata?.tags).toContain("parent-trace:parent-trace-id")
     expect(capturedMetadata?.tags).toContain("sub-agent")
   })

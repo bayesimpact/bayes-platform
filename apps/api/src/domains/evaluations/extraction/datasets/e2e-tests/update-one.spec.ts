@@ -13,13 +13,16 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { FILE_STORAGE_SERVICE } from "@/domains/documents/storage/file-storage.interface"
-import { createOrganizationWithDocument } from "@/domains/organizations/organization.factory"
+import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { projectFactory } from "@/domains/projects/project.factory"
 import { setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../../test/request"
 import { EvaluationsModule } from "../../../evaluations.module"
 import { EvaluationExtractionDataset } from "../../datasets/evaluation-extraction-dataset.entity"
 import { evaluationExtractionDatasetFactory } from "../../datasets/evaluation-extraction-dataset.factory"
 import { EvaluationExtractionDatasetDocument } from "../../datasets/evaluation-extraction-dataset-document.entity"
+import { evaluationExtractionDatasetDocumentFactory } from "../../datasets/evaluation-extraction-dataset-document.factory"
 import { EvaluationExtractionDatasetRecord } from "../../datasets/records/evaluation-extraction-dataset-record.entity"
 
 const CSV_CONTENT = "question,answer\nWhat is 1+1?,2\nWhat is 2+2?,4"
@@ -57,6 +60,7 @@ describe("EvaluationExtractionDatasets - updateOne", () => {
           .overrideProvider(FILE_STORAGE_SERVICE)
           .useValue(mockFileStorageService),
     })
+    await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
     datasetRepository = setup.getRepository(EvaluationExtractionDataset)
     datasetDocumentRepository = setup.getRepository(EvaluationExtractionDatasetDocument)
@@ -85,14 +89,16 @@ describe("EvaluationExtractionDatasets - updateOne", () => {
   ]
 
   const createContext = async () => {
-    const { user, organization, project, document } = await createOrganizationWithDocument(
-      repositories,
-      { document: { sourceType: "evaluationExtractionDataset", fileName: "dataset.csv" } },
-    )
+    const { user, organization, project } = await createOrganizationWithProject(repositories)
     organizationId = organization.id
     projectId = project.id
-    documentId = document.id
     auth0Id = user.auth0Id
+
+    const document = evaluationExtractionDatasetDocumentFactory
+      .transient({ organization, project })
+      .build({ fileName: "dataset.csv" })
+    await datasetDocumentRepository.save(document)
+    documentId = document.id
 
     const dataset = evaluationExtractionDatasetFactory.transient({ organization, project }).build()
     await datasetRepository.save(dataset)
@@ -139,16 +145,27 @@ describe("EvaluationExtractionDatasets - updateOne", () => {
     await expectActivityCreated("evaluationExtractionDataset.update")
   })
 
-  it("should link the document to the dataset", async () => {
+  it("should link the file to the dataset", async () => {
     await createContext()
 
     await subject({ payload: { name: "Dataset with File", columns } })
 
-    const links = await datasetDocumentRepository.find({
-      where: { evaluationExtractionDatasetId: datasetId },
-    })
-    expect(links).toHaveLength(1)
-    expect(links[0]!.documentId).toBe(documentId)
+    const updatedDataset = await datasetRepository.findOneBy({ id: datasetId })
+    expect(updatedDataset!.evaluationExtractionDatasetDocumentId).toBe(documentId)
+  })
+
+  it("should return 404 when the file belongs to another project", async () => {
+    const { organization } = await createContext()
+    const otherProject = await repositories.projectRepository.save(
+      projectFactory.transient({ organization }).build(),
+    )
+    const foreignDocument = evaluationExtractionDatasetDocumentFactory
+      .transient({ organization, project: otherProject })
+      .build()
+    await datasetDocumentRepository.save(foreignDocument)
+    documentId = foreignDocument.id
+
+    expectResponse(await subject({ payload: { name: "Dataset", columns } }), 404)
   })
 
   it("should create records from the CSV file", async () => {

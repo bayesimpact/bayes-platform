@@ -17,11 +17,15 @@ export type TrackActivityEntityFrom =
   | "memberAgentMembership"
   | "document"
   | "documentTag"
+  | "documentSource"
+  | "appManifest"
+  | "appInstallation"
   | "resourceLibrary"
   | "agentSession"
   | "evaluationConversationDataset"
   | "evaluationConversationRun"
   | "evaluationExtractionDataset"
+  | "evaluationExtractionDatasetDocument"
 
 export type TrackActivityOptions = {
   action: string

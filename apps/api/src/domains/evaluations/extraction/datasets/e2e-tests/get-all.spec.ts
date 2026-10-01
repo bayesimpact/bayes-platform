@@ -9,8 +9,9 @@ import {
   teardownTestDatabase,
 } from "@/common/test/test-transaction-manager"
 import { removeNullish } from "@/common/utils/remove-nullish"
-import { createOrganizationWithDocument } from "@/domains/organizations/organization.factory"
+import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../../test/request"
 import { EvaluationsModule } from "../../../evaluations.module"
 import { EvaluationExtractionDataset } from "../../datasets/evaluation-extraction-dataset.entity"
@@ -39,6 +40,7 @@ describe("EvaluationExtractionDatasets - getAll", () => {
       additionalImports: [EvaluationsModule],
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => auth0Id),
     })
+    await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
     datasetRepository = setup.getRepository(EvaluationExtractionDataset)
     datasetDocumentRepository = setup.getRepository(EvaluationExtractionDatasetDocument)
@@ -60,11 +62,16 @@ describe("EvaluationExtractionDatasets - getAll", () => {
   })
 
   const createContext = async () => {
-    const { user, organization, project, document } =
-      await createOrganizationWithDocument(repositories)
+    const { user, organization, project } = await createOrganizationWithProject(repositories)
     organizationId = organization.id
     projectId = project.id
     auth0Id = user.auth0Id
+
+    const document = evaluationExtractionDatasetDocumentFactory
+      .transient({ organization, project })
+      .build()
+    await datasetDocumentRepository.save(document)
+
     return { organization, project, document }
   }
 
@@ -89,13 +96,8 @@ describe("EvaluationExtractionDatasets - getAll", () => {
 
     const dataset = evaluationExtractionDatasetFactory
       .transient({ organization, project })
-      .build({ name: "My Dataset" })
+      .build({ name: "My Dataset", evaluationExtractionDatasetDocumentId: document.id })
     await datasetRepository.save(dataset)
-
-    const datasetDocument = evaluationExtractionDatasetDocumentFactory
-      .transient({ evaluationExtractionDataset: dataset, document })
-      .build()
-    await datasetDocumentRepository.save(datasetDocument)
 
     const res = await subject()
 
@@ -105,8 +107,8 @@ describe("EvaluationExtractionDatasets - getAll", () => {
       id: dataset.id,
       name: "My Dataset",
       projectId,
+      documentId: document.id,
     })
-    expect(res.body.data[0]!.documentIds).toContain(document.id)
   })
 
   it("should return datasets with recordCount", async () => {
@@ -174,7 +176,7 @@ describe("EvaluationExtractionDatasets - getAll", () => {
       schemaMapping: expect.any(Object),
       createdAt: expect.any(Number),
       updatedAt: expect.any(Number),
-      documentIds: expect.any(Array),
+      documentId: null,
       recordCount: expect.any(Number),
     })
   })

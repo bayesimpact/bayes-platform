@@ -25,13 +25,16 @@ import { DocumentEmbeddingStatusNotifierService } from "./embeddings/document-em
 import { DocumentEmbeddingStatusStreamService } from "./embeddings/document-embedding-status-stream.service"
 import { DocumentEmbeddingsBatchModule } from "./embeddings/document-embeddings-batch.module"
 import { PdfPagesModule } from "./pdf-pages/pdf-pages.module"
+import { DocumentSource } from "./sources/document-source.entity"
+import { DocumentSourceRepository } from "./sources/document-source.repository"
+import { DocumentSourcesService } from "./sources/document-sources.service"
 import { LocalPresignUploadController } from "./storage/local-presign-upload.controller"
 import { StorageModule } from "./storage/storage.module"
 import { DocumentTagsModule } from "./tags/document-tags.module"
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Document, Project, Organization]),
+    TypeOrmModule.forFeature([Document, DocumentSource, Project, Organization]),
     forwardRef(() => DocumentTagsModule),
     // Only serve static files in development/local environment
     ...(process.env.NODE_ENV !== "production"
@@ -59,6 +62,8 @@ import { DocumentTagsModule } from "./tags/document-tags.module"
   ],
   providers: [
     DocumentsService,
+    DocumentSourcesService,
+    DocumentSourceRepository,
     DocumentEmbeddingStatusStreamService,
     DocumentEmbeddingStatusNotifierService,
     DocumentCrawlProgressStreamService,
@@ -74,6 +79,6 @@ import { DocumentTagsModule } from "./tags/document-tags.module"
     CrawlingController,
     ...(process.env.NODE_ENV !== "production" ? [LocalPresignUploadController] : []),
   ],
-  exports: [DocumentsService, DocumentChunkRetrievalService],
+  exports: [DocumentsService, DocumentSourcesService, DocumentChunkRetrievalService],
 })
 export class DocumentsModule {}
