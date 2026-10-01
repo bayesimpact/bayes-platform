@@ -12,7 +12,11 @@
     "test": "vitest run",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "harness": "vite --config harness/vite.config.ts",
+    "harness:build": "vite build --config harness/vite.config.ts",
+    "harness:preview": "vite preview --config harness/vite.config.ts",
+    "harness:probe": "node harness/probe.mjs"
   },
   "dependencies": {
     "@caseai-connect/api-contracts": "*",

@@ -1,0 +1,4 @@
+@import "../src/index.css";
+
+/* The harness root is apps/web/harness, so point Tailwind at the app sources. */
+@source "../src";
