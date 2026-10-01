@@ -74,10 +74,11 @@ export abstract class AISDKLLMProviderBase extends AISDKLLMToolsMgmt implements 
     // instead of emitting them. Collected by the raw-capture middleware and
     // recovered after the stream (see recoverLeakedToolCalls).
     const leakedToolCalls: LeakedToolCall[] = []
+    const temperature: number | undefined = this.applyTemperature(config.temperature)
 
     const agent = new ToolLoopAgent({
       model: this.getLanguageModelWithRawCapture({ config, callOrigin, leakedToolCalls }),
-      temperature: config.temperature,
+      ...(temperature !== undefined ? { temperature } : {}),
       tools: this.supportsStrictTools() ? withStrictTools(config.tools) : config.tools,
       // Keep the default step safety net, but skip the follow-up generation
       // when a step only ran fire-and-forget tools (their output is noise),
@@ -177,11 +178,12 @@ export abstract class AISDKLLMProviderBase extends AISDKLLMToolsMgmt implements 
     const callOrigin = CallOrigin.generateText
     this.checkConfigProviderAndModel(config)
     const tags = this.getTags(config)
+    const temperature: number | undefined = this.applyTemperature(config.temperature)
     const { text } = await generateText({
       model: this.getLanguageModelWithRawCapture({ config, callOrigin }),
       system: config.systemPrompt,
       prompt,
-      temperature: config.temperature,
+      ...(temperature !== undefined ? { temperature } : {}),
       experimental_telemetry: {
         isEnabled: true,
         functionId: "LLMProvider.generateText",
@@ -258,11 +260,12 @@ export abstract class AISDKLLMProviderBase extends AISDKLLMToolsMgmt implements 
       throw new Error("Cannot generate structured output: no valid messages provided")
     }
     const tags = this.getTags(config)
+    const temperature: number | undefined = this.applyTemperature(config.temperature)
     const result = await generateText({
       model: this.getLanguageModelWithRawCapture({ config, callOrigin }),
       messages: aiSDKMessages,
       system: config.systemPrompt,
-      temperature: config.temperature,
+      ...(temperature !== undefined ? { temperature } : {}),
       output: Output.object({
         schema: jsonSchema<Record<string, unknown>>(schema),
       }),
@@ -500,5 +503,9 @@ export abstract class AISDKLLMProviderBase extends AISDKLLMToolsMgmt implements 
     callOrigin: CallOrigin
   }): string {
     return systemPrompt
+  }
+
+  protected applyTemperature(temperature: number): number | undefined {
+    return temperature
   }
 }

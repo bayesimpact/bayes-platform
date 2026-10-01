@@ -1,4 +1,4 @@
-import type { AgentModel, AgentProvider } from "@caseai-connect/api-contracts"
+import type { AgentModel, AgentProvider, AgentThinkingLevel } from "@caseai-connect/api-contracts"
 import type { ModelMessage, ToolSet } from "ai"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 export type LLMChatMessage = ModelMessage
@@ -44,6 +44,7 @@ export type LLMConfig =
       terminalToolNames?: string[]
       useExtendedTimeouts?: never
       serviceTier: never
+      thinkingLevel: never
     }
   | {
       model: Exclude<string, MockModels>
@@ -70,6 +71,7 @@ export type LLMConfig =
        */
       useExtendedTimeouts?: boolean
       serviceTier: LLMServiceTier
+      thinkingLevel: AgentThinkingLevel
     }
 export type LLMServiceTier = "priority" | "flex" | undefined
 export type LLMMetadata = (

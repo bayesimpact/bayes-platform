@@ -1,5 +1,10 @@
 import { randomUUID } from "node:crypto"
-import { AgentLocale, AgentModel, DocumentsRagMode } from "@caseai-connect/api-contracts"
+import {
+  AgentLocale,
+  AgentModel,
+  AgentThinkingLevel,
+  DocumentsRagMode,
+} from "@caseai-connect/api-contracts"
 import { Factory } from "fishery"
 import type { RequiredScopeTransientParams } from "@/common/entities/connect-required-fields"
 import type { Agent } from "@/domains/agents/agent.entity"
@@ -43,6 +48,7 @@ export const agentSettingsFactory = AgentSettingsFactory.define(
       greetingMessage: params.greetingMessage ?? null,
       outputJsonSchema: params.outputJsonSchema ?? null,
       fillFormEnabled: params.fillFormEnabled ?? false,
+      thinkingLevel: params.thinkingLevel || AgentThinkingLevel.Auto,
       priorityCallsEnabled: params.priorityCallsEnabled ?? false,
       organizationId: transientParams.organization.id,
       projectId: transientParams.project.id,
