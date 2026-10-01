@@ -29,12 +29,14 @@ export function registerWebApp(
 ): void {
   if (!settings) return
   logger.log(`Serving the web front from ${settings.distDir} at /`)
+  // `path.relative` uses the platform separator: set HASHED_ASSETS_PREFIX to `assets\` on Windows.
+  const hashedAssetsPrefix = process.env.HASHED_ASSETS_PREFIX ?? "assets/"
 
   app.useStaticAssets(settings.distDir, {
     index: false,
     redirect: false,
     setHeaders: (response, filePath) => {
-      const isHashedAsset = relative(settings.distDir, filePath).startsWith("assets/")
+      const isHashedAsset = relative(settings.distDir, filePath).startsWith(hashedAssetsPrefix)
       const cacheControl = isHashedAsset
         ? "public, max-age=31536000, immutable"
         : "public, max-age=300"
