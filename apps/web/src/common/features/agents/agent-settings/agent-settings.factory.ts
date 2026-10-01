@@ -1,5 +1,6 @@
 import {
   AgentLocale,
+  AgentThinkingLevel,
   DEFAULT_AGENT_MODEL,
   DocumentsRagMode,
   type outputJsonSchemaSchema,
@@ -73,5 +74,6 @@ export const agentSettingsFactory = AgentSettingsFactory.define(({ params, trans
     updatedAt: params.updatedAt ?? faker.date.recent().getTime(),
     usedProjectAgentSessionCategoryIds: params.usedProjectAgentSessionCategoryIds ?? [],
     mcpServers: params.mcpServers ?? [],
+    thinkingLevel: AgentThinkingLevel.Auto,
   } satisfies AgentSettings
 })
