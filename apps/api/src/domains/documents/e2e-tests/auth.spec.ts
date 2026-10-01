@@ -326,7 +326,7 @@ describe("Documents - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextForRole("owner")
-      auth0Id = mockForeignAuth0Id()
+      authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to list the embedding models", async () => {
@@ -371,7 +371,7 @@ describe("Documents - Auth", () => {
     })
     it("requires the user to be a member of the organization", async () => {
       await createContextWithFeature("owner")
-      auth0Id = mockForeignAuth0Id()
+      authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to enable a model", async () => {
