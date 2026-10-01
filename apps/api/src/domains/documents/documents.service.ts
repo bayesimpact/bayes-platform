@@ -394,6 +394,23 @@ export class DocumentsService {
     return true
   }
 
+  async deleteDocumentsForSource(
+    connectScope: RequiredConnectScope,
+    documentSourceId: string,
+  ): Promise<void> {
+    const documents = await this.documentRepository.find({
+      select: { id: true },
+      where: {
+        documentSourceId,
+        organizationId: connectScope.organizationId,
+        projectId: connectScope.projectId,
+      },
+    })
+    for (const document of documents) {
+      await this.deleteDocument({ connectScope, documentId: document.id })
+    }
+  }
+
   async createInlineProjectDocument(params: {
     connectScope: RequiredConnectScope
     userId: string

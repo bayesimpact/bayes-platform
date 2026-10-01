@@ -20,6 +20,7 @@ import agentMessageFeedback from "@/studio/features/agent-message-feedback/exter
 import agentSubAgents from "@/studio/features/agent-sub-agents/external/agent-sub-agents.api"
 import agentAnalytics from "@/studio/features/analytics/agent/external/agent-analytics.api"
 import projectAnalytics from "@/studio/features/analytics/project/external/analytics.api"
+import documentSources from "@/studio/features/document-sources/external/document-sources.api"
 import documentTags from "@/studio/features/document-tags/external/document-tags.api"
 import documents from "@/studio/features/documents/external/documents.api"
 import invitations from "@/studio/features/invitations/external/invitations.api"
@@ -43,6 +44,7 @@ export const services = {
   appInstall,
   backoffice,
   conversationAgentSessions,
+  documentSources,
   documents,
   documentTags,
   evaluationConversationDatasets,

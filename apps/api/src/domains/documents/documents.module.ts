@@ -11,6 +11,7 @@ import { Organization } from "@/domains/organizations/organization.entity"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
 import { Project } from "@/domains/projects/project.entity"
 import { ProjectsModule } from "@/domains/projects/projects.module"
+import { RbacModule } from "@/domains/rbac/rbac.module"
 import { UsersModule } from "@/domains/users/users.module"
 import { CrawlingController } from "./crawling/crawling.controller"
 import { DocumentCrawlProgressStreamService } from "./crawling/document-crawl-progress-stream.service"
@@ -27,6 +28,7 @@ import { DocumentEmbeddingsBatchModule } from "./embeddings/document-embeddings-
 import { PdfPagesModule } from "./pdf-pages/pdf-pages.module"
 import { DocumentSource } from "./sources/document-source.entity"
 import { DocumentSourceRepository } from "./sources/document-source.repository"
+import { DocumentSourcesController } from "./sources/document-sources.controller"
 import { DocumentSourcesService } from "./sources/document-sources.service"
 import { LocalPresignUploadController } from "./storage/local-presign-upload.controller"
 import { StorageModule } from "./storage/storage.module"
@@ -54,6 +56,7 @@ import { DocumentTagsModule } from "./tags/document-tags.module"
     forwardRef(() => ProjectsModule),
     UsersModule,
     AuthModule,
+    RbacModule,
     StorageModule,
     DocumentEmbeddingsBatchModule,
     UrlCrawlingBatchModule,
@@ -76,6 +79,7 @@ import { DocumentTagsModule } from "./tags/document-tags.module"
   ],
   controllers: [
     DocumentsController,
+    DocumentSourcesController,
     CrawlingController,
     ...(process.env.NODE_ENV !== "production" ? [LocalPresignUploadController] : []),
   ],

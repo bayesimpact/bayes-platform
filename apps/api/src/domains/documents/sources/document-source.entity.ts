@@ -28,6 +28,14 @@ export class DocumentSource extends ConnectEntityBase {
   @Column({ name: "config", type: "jsonb", nullable: true })
   config!: Record<string, unknown> | null
 
+  /** Set when an installed app creates the source. Sources may exist without one. */
+  @Column({ type: "uuid", name: "app_installation_id", nullable: true })
+  appInstallationId!: string | null
+
+  @ManyToOne("AppInstallation", { nullable: true, onDelete: "SET NULL" })
+  @JoinColumn({ name: "app_installation_id" })
+  appInstallation!: { id: string } | null
+
   @ManyToOne(
     () => Project,
     (project) => project.documentSources,

@@ -1,0 +1,18 @@
+{
+  "documentSource": {
+    "title": "External",
+    "description": "Sync documents from external apps into your agents' knowledge base.",
+    "nav": "External",
+    "columns": {
+      "source": "Source",
+      "app": "App",
+      "docs": "Docs",
+      "lastSync": "Last sync",
+      "status": "Status"
+    },
+    "delete": {
+      "title": "Delete {{name}}?",
+      "description": "This deletes the source and the documents that belong to it."
+    }
+  }
+}

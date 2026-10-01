@@ -29,6 +29,7 @@ import { AgentAnalyticsRoute } from "./AgentAnalyticsRoute"
 import { AgentEditorRoute } from "./AgentEditorRoute"
 import { AgentMembershipsRoute } from "./AgentMembershipsRoute"
 import { ProjectDocumentsRoute } from "./DocumentsRoute"
+import { ExternalSourcesRoute } from "./ExternalSourcesRoute"
 import { FeedbackRoute } from "./FeedbackRoute"
 import { StudioRoutes } from "./helpers"
 import { McpServersRoute } from "./McpServersRoute"
@@ -76,6 +77,10 @@ export const studioRoutes = {
         {
           path: StudioRoutes.documents.path,
           element: <ProjectDocumentsRoute />,
+        },
+        {
+          path: StudioRoutes.externalSources.path,
+          element: <ExternalSourcesRoute />,
         },
         {
           path: StudioRoutes.webSources.path,

@@ -37,7 +37,7 @@ import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
 import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
 import { AppGuard } from "../app.guard"
 
-type AppRequest = EndpointRequest & { appProjectId: string }
+type AppRequest = EndpointRequest & { appProjectId: string; appInstallationId: string }
 
 @Controller()
 @UseGuards(AppGuard, CheckPermissionGuard)
@@ -101,6 +101,7 @@ export class AppsDocumentSourcesController {
       externalId: parsed.data.external_id ?? null,
       baseUrl: parsed.data.base_url ?? null,
       config: parsed.data.config ?? null,
+      appInstallationId: request.appInstallationId,
     })
     return { data: toDocumentSourceDto(documentSource) }
   }

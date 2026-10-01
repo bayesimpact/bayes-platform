@@ -32,6 +32,8 @@ import { agentSettingsMiddleware } from "../../common/features/agents/agent-sett
 import { agentSettingsSlice } from "../../common/features/agents/agent-settings/agent-settings.slice"
 import { createSliceManager } from "../../common/store/dynamic-middleware"
 import { studioAgentsMiddleware } from "../features/agents/agents.middleware"
+import { documentSourcesMiddleware } from "../features/document-sources/document-sources.middleware"
+import { documentSourcesSlice } from "../features/document-sources/document-sources.slice"
 import { documentsMiddleware } from "../features/documents/documents.middleware"
 import { documentsSlice } from "../features/documents/documents.slice"
 import { mcpServersMiddleware } from "../features/mcp-servers/mcp-servers.middleware"
@@ -55,6 +57,7 @@ const studioMiddlewareList = [
   agentSubAgentsMiddleware,
   baseAgentSessionsMiddleware,
   conversationAgentSessionsMiddleware,
+  documentSourcesMiddleware,
   documentsMiddleware,
   documentTagsMiddleware,
   extractionAgentSessionsMiddleware,
@@ -80,6 +83,7 @@ export const studioSliceList = [
   agentSubAgentsSlice,
   conversationAgentSessionsSlice,
   currentIdsSlice,
+  documentSourcesSlice,
   documentsSlice,
   documentTagsSlice,
   extractionAgentSessionsSlice,

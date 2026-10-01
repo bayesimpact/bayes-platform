@@ -236,7 +236,10 @@ export const ORGANIZATION_SCOPED_PERMISSIONS = [
 export type OrganizationScopedPermission = (typeof ORGANIZATION_SCOPED_PERMISSIONS)[number]
 
 /** Project-scoped permissions exposed on `ProjectDto.permissions`. */
-export const PROJECT_SCOPED_PERMISSIONS = [EVALUATION_ACCESS_PERMISSION] as const
+export const PROJECT_SCOPED_PERMISSIONS = [
+  EVALUATION_ACCESS_PERMISSION,
+  DOCUMENT_SOURCE_READ_PERMISSION,
+] as const
 
 export type ProjectScopedPermission = (typeof PROJECT_SCOPED_PERMISSIONS)[number]
 

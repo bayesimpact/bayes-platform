@@ -1,0 +1,18 @@
+{
+  "documentSource": {
+    "title": "Externe",
+    "description": "Synchronisez des documents depuis des applications externes vers la base de connaissances de vos agents.",
+    "nav": "Externe",
+    "columns": {
+      "source": "Source",
+      "app": "Application",
+      "docs": "Docs",
+      "lastSync": "Dernière synchro",
+      "status": "Statut"
+    },
+    "delete": {
+      "title": "Supprimer {{name}} ?",
+      "description": "Cela supprime la source et les documents qui lui appartiennent."
+    }
+  }
+}
