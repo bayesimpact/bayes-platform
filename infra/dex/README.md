@@ -27,13 +27,27 @@ values make the API refuse Dex tokens.
 
 ## What the configuration contains
 
-Same as the Keycloak realm, in [config.yaml](config.yaml):
+Same as the Keycloak realm, in [config.sample.yaml](config.sample.yaml):
 
 - `platform-web`: public client of the web app (authorization code + PKCE).
 - `bull-board`: confidential client of the Bull Board dashboard
   (`BULL_BOARD_OIDC_CLIENT_ID=bull-board`, `BULL_BOARD_OIDC_CLIENT_SECRET=local-bull-board-secret`).
 - Two users: `admin@example.org` / `admin` and `member@example.org` / `member`.
   Dex reports their emails as verified.
+
+## Your own users
+
+The repository is public: personal emails stay out of it. Copy the sample to
+`config.local.yaml` (git-ignored) and edit the copy. Dex reads it instead of
+the sample at the next start.
+
+```bash
+cp infra/dex/config.sample.yaml infra/dex/config.local.yaml
+```
+
+A password hash comes from `htpasswd -bnBC 10 "" <password> | tr -d ':\n'`.
+The copy does not follow later changes of the sample (new client, new
+redirect URI): copy it again when the sample changes.
 
 Give the first administrator a platform role:
 

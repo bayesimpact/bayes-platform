@@ -23,6 +23,8 @@ VITE_OIDC_CLIENT_ID=platform-web
 
 ## What the realm contains
 
+In [realm-platform.sample.json](realm-platform.sample.json):
+
 - `platform-web`: public client of the web app (authorization code + PKCE).
 - `bull-board`: confidential client of the Bull Board dashboard
   (`BULL_BOARD_OIDC_CLIENT_ID=bull-board`, `BULL_BOARD_OIDC_CLIENT_SECRET=local-bull-board-secret`).
@@ -39,6 +41,20 @@ npm run platform-role -w apps/api -- grant --email admin@example.org --role plat
 The admin console is at http://localhost:8080 (`admin` / `admin`). Accounts
 created there must have **Email verified** checked, or the platform refuses to
 link them to the access they were given by email.
+
+## Your own users
+
+The repository is public: personal emails stay out of it. Copy the sample to
+`realm-platform.local.json` (git-ignored) and edit the copy. Keycloak imports
+it instead of the sample when the container is created.
+
+```bash
+cp infra/keycloak/realm-platform.sample.json infra/keycloak/realm-platform.local.json
+```
+
+The realm is imported once: recreate the container to apply a change
+(`docker compose -f infra/keycloak/docker-compose.yaml up -d --force-recreate`).
+Copy the sample again when it changes.
 
 ## Troubleshooting
 
