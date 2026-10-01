@@ -596,6 +596,88 @@ describe("Documents - Auth", () => {
     })
   })
 
+  // Local embedding models are managed from the documents domain (same admin policy).
+  describe("ProjectEmbeddingModelsRoutes.getAll", () => {
+    const subject = async () =>
+      request({
+        route: ProjectEmbeddingModelsRoutes.getAll,
+        pathParams: removeNullish({ organizationId, projectId }),
+        token: accessToken ?? undefined,
+      })
+
+    it("requires an authentication token", async () => {
+      accessToken = null
+      expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+    it("requires a valid organization ID", async () => {
+      organizationId = null
+      expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
+    })
+    it("requires a valid project ID", async () => {
+      await createContextForRole("project_owner")
+      projectId = null
+      expectResponse(await subject(), 404)
+    })
+    it("requires the user to be a member of the organization", async () => {
+      await createContextForRole("project_owner")
+      authSubject = mockForeignAuthSubject()
+      expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
+    })
+    it("doesn't allow a simple member to list the embedding models", async () => {
+      await createContextForRole("project_member")
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it.each([["project_owner"], ["project_admin"]] as const)("allows a %s to list", async (role) => {
+      await createContextForRole(role)
+      expectResponse(await subject(), 200)
+    })
+  })
+
+  describe("ProjectEmbeddingModelsRoutes.createOne", () => {
+    const subject = async () =>
+      request({
+        route: ProjectEmbeddingModelsRoutes.createOne,
+        pathParams: removeNullish({ organizationId, projectId }),
+        token: accessToken ?? undefined,
+        request: { payload: { modelName: EmbeddingModel.BgeM3 } },
+      })
+    const createContextWithFeature = async (role: ProjectRoleKey) => {
+      const { project } = await createContextForRole(role)
+      await addFeature({
+        featureFlagRepository: repositories.featureFlagRepository,
+        projectId: project.id,
+        featureFlagKey: "local-embeddings",
+      })
+    }
+
+    it("requires an authentication token", async () => {
+      accessToken = null
+      expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+    it("requires a valid organization ID", async () => {
+      organizationId = null
+      expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
+    })
+    it("requires a valid project ID", async () => {
+      await createContextWithFeature("project_owner")
+      projectId = null
+      expectResponse(await subject(), 404)
+    })
+    it("requires the user to be a member of the organization", async () => {
+      await createContextWithFeature("project_owner")
+      authSubject = mockForeignAuthSubject()
+      expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
+    })
+    it("doesn't allow a simple member to enable a model", async () => {
+      await createContextWithFeature("project_member")
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it.each([["project_owner"], ["project_admin"]] as const)("allows a %s to enable a model", async (role) => {
+      await createContextWithFeature(role)
+      expectResponse(await subject(), 201)
+    })
+  })
+
   describe("DocumentSourcesRoutes.updateOne", () => {
     let documentSourceId: string | null = "random-document-source-id"
     let documentTagId = "random-document-tag-id"

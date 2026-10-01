@@ -1,6 +1,5 @@
 import { createListenerMiddleware } from "@reduxjs/toolkit"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
-import { startPolling } from "@/common/store/polling"
 import type { AppDispatch, RootState } from "@/common/store/types"
 import { selectHasProjectEmbeddingModelsInProgress } from "./project-embedding-models.selectors"
 import { projectEmbeddingModelsActions } from "./project-embedding-models.slice"
@@ -17,18 +16,21 @@ const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()
 function registerListeners() {
   listenerMiddleware.startListening({
     actionCreator: projectEmbeddingModelsActions.mount,
-    effect: (_, listenerApi) =>
-      startPolling(listenerApi, {
-        stopWhen: projectEmbeddingModelsActions.unmount.match,
-        intervalMs: PROGRESS_POLL_INTERVAL_MS,
-        poll: () => {
-          const state = listenerApi.getState()
-          const isFirstLoad = state.projectEmbeddingModels.data.value === null
-          if (isFirstLoad || selectHasProjectEmbeddingModelsInProgress(state)) {
+    effect: async (_, listenerApi) => {
+      // One loop per mount: a second mount cancels the previous loop.
+      listenerApi.cancelActiveListeners()
+      listenerApi.dispatch(listProjectEmbeddingModels())
+      const pollingTask = listenerApi.fork(async (forkApi) => {
+        while (true) {
+          await forkApi.delay(PROGRESS_POLL_INTERVAL_MS)
+          if (selectHasProjectEmbeddingModelsInProgress(listenerApi.getState())) {
             listenerApi.dispatch(listProjectEmbeddingModels())
           }
-        },
-      }),
+        }
+      })
+      await listenerApi.condition(projectEmbeddingModelsActions.unmount.match)
+      pollingTask.cancel()
+    },
   })
 
   listenerMiddleware.startListening({
