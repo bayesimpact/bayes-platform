@@ -128,7 +128,7 @@ function DocumentSourceAppCell({ app }: { app: DocumentSource["app"] }) {
   return (
     <div className="flex items-center gap-2">
       {app.logoUrl && <img src={app.logoUrl} alt="" className="size-6 rounded object-contain" />}
-      <span>{app.name}</span>
+      <span className="text-sm text-muted-foreground">{app.name}</span>
     </div>
   )
 }
