@@ -37,7 +37,6 @@ import type {
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
 import { AddContext, RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
-import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import type { MulterFile } from "@/common/types"
 import { ZodValidationPipe } from "@/common/zod-validation-pipe"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
@@ -46,6 +45,14 @@ import {
   FILE_STORAGE_SERVICE,
   type IFileStorage,
 } from "@/domains/documents/storage/file-storage.interface"
+import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
+import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
+import {
+  RESOURCE_LIBRARY_CREATE_PERMISSION,
+  RESOURCE_LIBRARY_DELETE_PERMISSION,
+  RESOURCE_LIBRARY_READ_PERMISSION,
+  RESOURCE_LIBRARY_UPDATE_PERMISSION,
+} from "@/domains/rbac/rbac.constants"
 import { UserGuard } from "@/domains/users/user.guard"
 import {
   extractResourceFileExtension,
@@ -54,12 +61,11 @@ import {
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ResourceLibrariesService } from "./resource-libraries.service"
 import type { ResourceLibrary } from "./resource-library.entity"
-import { ResourceLibraryGuard } from "./resource-library.guard"
 
 const MEGABYTE = 1024 * 1024
 const MAX_RESOURCE_FILE_SIZE = 25 * MEGABYTE
 
-@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, ResourceLibraryGuard)
+@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, CheckPermissionGuard)
 @RequireContext("organization", "project")
 @Controller()
 export class ResourceLibrariesController {
@@ -70,7 +76,7 @@ export class ResourceLibrariesController {
   ) {}
 
   @Post(ResourceLibrariesRoutes.createOne.path)
-  @CheckPolicy((policy) => policy.canCreate())
+  @CheckPermission(RESOURCE_LIBRARY_CREATE_PERMISSION, "project")
   @TrackActivity({ action: "resourceLibrary.create" })
   @UsePipes(new ZodValidationPipe(createResourceLibrarySchema))
   async createOne(
@@ -86,7 +92,7 @@ export class ResourceLibrariesController {
   }
 
   @Get(ResourceLibrariesRoutes.getAll.path)
-  @CheckPolicy((policy) => policy.canList())
+  @CheckPermission(RESOURCE_LIBRARY_READ_PERMISSION, "project")
   async getAll(
     @Req() request: EndpointRequestWithProject,
   ): Promise<typeof ResourceLibrariesRoutes.getAll.response> {
@@ -97,7 +103,7 @@ export class ResourceLibrariesController {
   }
 
   @Patch(ResourceLibrariesRoutes.updateOne.path)
-  @CheckPolicy((policy) => policy.canUpdate())
+  @CheckPermission(RESOURCE_LIBRARY_UPDATE_PERMISSION, "project")
   @AddContext("resourceLibrary")
   @TrackActivity({ action: "resourceLibrary.update", entityFrom: "resourceLibrary" })
   @UsePipes(new ZodValidationPipe(updateResourceLibrarySchema))
@@ -114,7 +120,7 @@ export class ResourceLibrariesController {
   }
 
   @Post(ResourceLibrariesRoutes.addResource.path)
-  @CheckPolicy((policy) => policy.canUpdate())
+  @CheckPermission(RESOURCE_LIBRARY_UPDATE_PERMISSION, "project")
   @AddContext("resourceLibrary")
   @TrackActivity({ action: "resourceLibrary.addResource", entityFrom: "resourceLibrary" })
   @UsePipes(new ZodValidationPipe(createResourceSchema))
@@ -131,7 +137,7 @@ export class ResourceLibrariesController {
   }
 
   @Patch(ResourceLibrariesRoutes.updateResource.path)
-  @CheckPolicy((policy) => policy.canUpdate())
+  @CheckPermission(RESOURCE_LIBRARY_UPDATE_PERMISSION, "project")
   @AddContext("resourceLibrary")
   @TrackActivity({ action: "resourceLibrary.updateResource", entityFrom: "resourceLibrary" })
   async updateResource(
@@ -151,7 +157,7 @@ export class ResourceLibrariesController {
   }
 
   @Delete(ResourceLibrariesRoutes.deleteResource.path)
-  @CheckPolicy((policy) => policy.canUpdate())
+  @CheckPermission(RESOURCE_LIBRARY_UPDATE_PERMISSION, "project")
   @AddContext("resourceLibrary")
   @TrackActivity({ action: "resourceLibrary.deleteResource", entityFrom: "resourceLibrary" })
   async deleteResource(
@@ -167,7 +173,7 @@ export class ResourceLibrariesController {
   }
 
   @Delete(ResourceLibrariesRoutes.deleteOne.path)
-  @CheckPolicy((policy) => policy.canDelete())
+  @CheckPermission(RESOURCE_LIBRARY_DELETE_PERMISSION, "project")
   @AddContext("resourceLibrary")
   @TrackActivity({ action: "resourceLibrary.delete", entityFrom: "resourceLibrary" })
   async deleteOne(
@@ -181,7 +187,7 @@ export class ResourceLibrariesController {
   }
 
   @Post(ResourceLibrariesRoutes.uploadResourceFile.path)
-  @CheckPolicy((policy) => policy.canCreate())
+  @CheckPermission(RESOURCE_LIBRARY_CREATE_PERMISSION, "project")
   @HttpCode(HttpStatus.CREATED)
   @UseInterceptors(FileInterceptor("file"))
   async uploadResourceFile(

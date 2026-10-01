@@ -48,6 +48,8 @@ The evaluation permissions are never inherited from the organization: an organiz
 
 `project.member.invite` is not inherited either: an organization role does not let anyone invite to a project.
 
+The `resource_library.*` permissions are not inherited either: an organization role does not open a project's resource libraries.
+
 | Permission | `project_owner` | `project_admin` | `project_member` |
 |---|---|---|---|
 | `project.read` | ✅ | ✅ | ✅ |
@@ -82,6 +84,10 @@ The evaluation permissions are never inherited from the organization: an organiz
 | `evaluation.conversation.run.create` — create an evaluation conversation run | ✅ | ✅ | — |
 | `evaluation.conversation.run.update` — execute, retry or cancel an evaluation conversation run | ✅ | ✅ | — |
 | `evaluation.conversation.run.delete` — delete an evaluation conversation run | ✅ | ✅ | — |
+| `resource_library.read` — see the project's resource libraries | ✅ | ✅ | — |
+| `resource_library.create` — create a resource library, or upload a file for one of its resources | ✅ | ✅ | — |
+| `resource_library.update` — rename a resource library, or add, edit and remove its resources | ✅ | ✅ | — |
+| `resource_library.delete` — delete a resource library | ✅ | ✅ | — |
 | `user.read` — see the project's members | ✅ | ✅ | — |
 | `backoffice.project.read` — see the project in the backoffice | ✅ | ✅ | — |
 | `backoffice.project.update` — mutate the project from the backoffice (e.g. feature flags) | ✅ | ✅ | — |

@@ -139,6 +139,20 @@ export const EVALUATION_CONVERSATION_RUN_DELETE_PERMISSION =
   "evaluation.conversation.run.delete" as const
 
 /**
+ * Resource libraries of a project and the resources they hold. Scoped to the
+ * project and never inherited from the organization.
+ */
+export const RESOURCE_LIBRARY_READ_PERMISSION = "resource_library.read" as const
+
+/** Create a resource library, or upload a file for one of its resources. */
+export const RESOURCE_LIBRARY_CREATE_PERMISSION = "resource_library.create" as const
+
+/** Rename a resource library, or add, edit and remove its resources. */
+export const RESOURCE_LIBRARY_UPDATE_PERMISSION = "resource_library.update" as const
+
+export const RESOURCE_LIBRARY_DELETE_PERMISSION = "resource_library.delete" as const
+
+/**
  * Permissions an App may be granted. Policy lives in code, not in the database:
  * there is no Permission entity and no `app_grantable` column. Intersect this
  * list with `AppManifest.grantable_permissions` on save and on authorize.

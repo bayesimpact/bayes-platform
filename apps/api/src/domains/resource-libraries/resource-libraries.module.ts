@@ -9,11 +9,11 @@ import { StorageModule } from "@/domains/documents/storage/storage.module"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
 import { Project } from "@/domains/projects/project.entity"
 import { ProjectsModule } from "@/domains/projects/projects.module"
+import { RbacModule } from "@/domains/rbac/rbac.module"
 import { UsersModule } from "@/domains/users/users.module"
 import { ResourceLibrariesController } from "./resource-libraries.controller"
 import { ResourceLibrariesService } from "./resource-libraries.service"
 import { ResourceLibrary } from "./resource-library.entity"
-import { ResourceLibraryGuard } from "./resource-library.guard"
 import { ResourceLibraryFilesController } from "./resource-library-files.controller"
 
 @Module({
@@ -24,10 +24,10 @@ import { ResourceLibraryFilesController } from "./resource-library-files.control
     UsersModule,
     AuthModule,
     StorageModule,
+    RbacModule,
   ],
   providers: [
     ResourceLibrariesService,
-    ResourceLibraryGuard,
     ResourceContextGuard,
     OrganizationContextResolver,
     ProjectContextResolver,

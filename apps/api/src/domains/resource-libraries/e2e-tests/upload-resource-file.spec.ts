@@ -11,6 +11,7 @@ import {
 } from "@/common/test/test-database"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { ResourceLibrariesModule } from "../resource-libraries.module"
 
 describe("ResourceLibraries - uploadResourceFile", () => {
@@ -28,6 +29,7 @@ describe("ResourceLibraries - uploadResourceFile", () => {
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
   })

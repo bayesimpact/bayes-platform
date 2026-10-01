@@ -37,6 +37,10 @@ import {
   PROJECT_READ_PERMISSION,
   PROJECT_ROLE_PERMISSIONS,
   PROJECT_UPDATE_PERMISSION,
+  RESOURCE_LIBRARY_CREATE_PERMISSION,
+  RESOURCE_LIBRARY_DELETE_PERMISSION,
+  RESOURCE_LIBRARY_READ_PERMISSION,
+  RESOURCE_LIBRARY_UPDATE_PERMISSION,
   RESOURCE_TYPE_PERMISSIONS_MAP,
 } from "./rbac.constants"
 
@@ -298,6 +302,38 @@ describe("evaluation conversation run permissions", () => {
   it("never inherits evaluation conversation runs from the organization", () => {
     const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
     for (const permission of evaluationConversationRunPermissions) {
+      expect(inheritable).not.toContain(permission)
+    }
+  })
+})
+
+describe("resource library permissions", () => {
+  const rolesHolding = (rolePermissions: Record<string, readonly string[]>, permission: string) =>
+    Object.entries(rolePermissions)
+      .filter(([_roleKey, permissions]) => permissions.includes(permission))
+      .map(([roleKey]) => roleKey)
+
+  const resourceLibraryPermissions = [
+    RESOURCE_LIBRARY_READ_PERMISSION,
+    RESOURCE_LIBRARY_CREATE_PERMISSION,
+    RESOURCE_LIBRARY_UPDATE_PERMISSION,
+    RESOURCE_LIBRARY_DELETE_PERMISSION,
+  ]
+
+  it.each(
+    resourceLibraryPermissions,
+  )("grants %s to project owners and admins only", (permission) => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
+      "project_owner",
+      "project_admin",
+    ])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
+  })
+
+  it("never inherits resource libraries from the organization", () => {
+    const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
+    for (const permission of resourceLibraryPermissions) {
       expect(inheritable).not.toContain(permission)
     }
   })
