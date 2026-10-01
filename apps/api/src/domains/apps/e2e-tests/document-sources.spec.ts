@@ -126,6 +126,11 @@ describe("Apps - Document sources", () => {
     expect(typeof created.body.data.createdAt).toBe("number")
 
     const sourceId = created.body.data.id as string
+    const installation = await repositories.appInstallationRepository.findOne({
+      where: { projectId: project.id },
+    })
+    const saved = await repositories.documentSourceRepository.findOne({ where: { id: sourceId } })
+    expect(saved?.appInstallationId).toBe(installation?.id)
     const listed = await call({
       method: "get",
       path: `${AppsDocumentSourcesRoutes.getAll.getPath({ projectId: project.id })}?external_id=example.com`,

@@ -15,6 +15,7 @@ export type CreateDocumentSourceFields = {
   externalId: string | null
   baseUrl: string | null
   config: Record<string, unknown> | null
+  appInstallationId?: string | null
 }
 
 export type UpdateDocumentSourceFields = {
@@ -105,6 +106,7 @@ export class DocumentSourceRepository {
           externalId: fields.externalId,
           baseUrl: fields.baseUrl,
           config: fields.config,
+          appInstallationId: fields.appInstallationId ?? null,
         }),
       )
     } catch (error) {
