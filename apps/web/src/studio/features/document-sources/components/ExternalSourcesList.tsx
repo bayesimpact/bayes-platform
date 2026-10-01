@@ -38,17 +38,6 @@ export function ExternalSourcesList() {
   const navigate = useNavigate()
   const projectRoute = useGetProjectRoute()
 
-  const indexed = documentSources.reduce(
-    (total, documentSource) => total + documentSource.indexedDocumentCount,
-    0,
-  )
-  const active = documentSources.filter(
-    (documentSource) => documentSource.status === "ready",
-  ).length
-  const errors = documentSources.filter(
-    (documentSource) => documentSource.status === "error",
-  ).length
-
   return (
     <>
       <GridHeader
@@ -56,7 +45,7 @@ export function ExternalSourcesList() {
         title={t("title")}
         description={t("description")}
       />
-      <div className="p-6 flex flex-col gap-3 bg-white">
+      <div className="bg-white p-6">
         <Table>
           <TableHeader>
             <TableRow>
@@ -76,13 +65,6 @@ export function ExternalSourcesList() {
             ))}
           </TableBody>
         </Table>
-        <p className="text-sm text-muted-foreground">
-          {t("summary", {
-            indexed: t("indexed", { count: indexed }),
-            active: t("active", { count: active }),
-            errors: t("errors", { count: errors }),
-          })}
-        </p>
       </div>
     </>
   )

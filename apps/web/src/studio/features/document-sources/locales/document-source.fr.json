@@ -10,13 +10,6 @@
       "lastSync": "Dernière synchro",
       "status": "Statut"
     },
-    "indexed_one": "{{count}} document indexé",
-    "indexed_other": "{{count}} documents indexés",
-    "active_one": "{{count}} connexion active",
-    "active_other": "{{count}} connexions actives",
-    "errors_one": "{{count}} erreur",
-    "errors_other": "{{count}} erreurs",
-    "summary": "{{indexed}} · {{active}} · {{errors}}",
     "delete": {
       "title": "Supprimer {{name}} ?",
       "description": "Cela supprime la source et les documents qui lui appartiennent."

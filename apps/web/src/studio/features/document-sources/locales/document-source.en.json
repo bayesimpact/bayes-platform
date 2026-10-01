@@ -10,13 +10,6 @@
       "lastSync": "Last sync",
       "status": "Status"
     },
-    "indexed_one": "{{count}} document indexed",
-    "indexed_other": "{{count}} documents indexed",
-    "active_one": "{{count}} active connection",
-    "active_other": "{{count}} active connections",
-    "errors_one": "{{count}} error",
-    "errors_other": "{{count}} errors",
-    "summary": "{{indexed}} · {{active}} · {{errors}}",
     "delete": {
       "title": "Delete {{name}}?",
       "description": "This deletes the source and the documents that belong to it."
