@@ -88,4 +88,5 @@ needed to replace Auth0.
   memberships their acceptance would have created, in SQL frozen at the time
   of writing, so every install converts them at upgrade without a manual step.
   The `invitation` table is kept for one release to allow a rollback, then a
-  later migration drops it.
+  later migration drops it. The steps for an existing install are in
+  [docs/upgrading/auth0-to-oidc.md](../upgrading/auth0-to-oidc.md).
