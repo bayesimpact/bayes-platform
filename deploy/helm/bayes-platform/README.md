@@ -23,7 +23,7 @@ Two ways to run it:
 - Kubernetes 1.27 or newer, `helm` 3.
 - An ingress controller (the chart writes Ingress resources for the `nginx` class) and, for TLS, cert-manager with a ClusterIssuer.
 - A StorageClass. The bundled Postgres and Redis use `ReadWriteOnce` volumes. The local document storage needs `ReadWriteMany` when the API and the workers run on different nodes.
-- An OpenID Connect provider (Keycloak, Dex, Auth0, Okta...) with two clients: a public one for the web app (authorization code + PKCE) and, for Bull Board, a confidential one. Accounts must have a verified email. The web app asks for `openid profile email offline_access`: the provider must allow `offline_access` for its users, or set `web.env.WEB_OIDC_SCOPE` to `openid profile email`.
+- An OpenID Connect provider (Keycloak, Dex, Auth0, Okta...) with two clients: a public one for the web app (authorization code + PKCE) and, for Bull Board, a confidential one. Accounts must have a verified email. The web app asks for `openid profile email offline_access`: the provider must allow `offline_access` for its users, or set `web.env.WEB_OIDC_SCOPE` to `openid profile email`. Coming from Auth0: [docs/upgrading/auth0-to-oidc.md](../../../docs/upgrading/auth0-to-oidc.md).
 - For embeddings: a Google Cloud project with Vertex AI (`gemini-embedding-001`). Self-hosted embedding models are not supported yet.
 - For the GPU workers: a node pool with NVIDIA GPUs and the device plugin installed (GKE does this for you).
 

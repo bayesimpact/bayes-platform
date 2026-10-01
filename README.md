@@ -144,6 +144,8 @@ WEB_OIDC_CLIENT_ID=platform-web
 - `OIDC_ALLOW_EMAIL_LINKING` / `OIDC_TRUST_UNVERIFIED_EMAIL` - How a first sign-in is linked to the account of someone added by email (see [ADR 0021](docs/adr/0021-generic-oidc-and-access-by-email.md))
 - `OIDC_AUTHORIZATION_PARAMS` - Extra authorize parameters as a JSON object, for example `{"organization":"org_XXX"}` for an Auth0 organization
 
+Upgrading a `.env` from Auth0: see [docs/upgrading/auth0-to-oidc.md](docs/upgrading/auth0-to-oidc.md).
+
 #### Web Environment Variables
 
 ```bash
