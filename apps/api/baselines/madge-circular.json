@@ -6,7 +6,6 @@
     "domains/documents/tags/document-tags.module.ts",
     "domains/projects/projects.module.ts"
   ],
-  ["domains/documents/tags/document-tags.module.ts", "domains/projects/projects.module.ts"],
   [
     "domains/agents/conversation-agent-sessions/conversation-agent-sessions.module.ts",
     "domains/agents/shared/agent-session-messages/streaming/streaming.module.ts"

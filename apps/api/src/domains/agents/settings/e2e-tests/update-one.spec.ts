@@ -1,4 +1,9 @@
-import { AgentModel, AgentSettingsRoutes, DocumentsRagMode } from "@caseai-connect/api-contracts"
+import {
+  AgentModel,
+  AgentSettingsRoutes,
+  AgentThinkingLevel,
+  DocumentsRagMode,
+} from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
@@ -271,6 +276,35 @@ describe("Agent Settings - updateOne", () => {
     })
     expect(agentSessionCategories).toHaveLength(1)
     expect(agentSessionCategories[0]?.projectAgentSessionCategoryId).toBe(projectCategory.id)
+  })
+
+  it("should update priorityCallsEnabled", async () => {
+    await createContext()
+
+    const setResponse = await subject({
+      payload: { priorityCallsEnabled: true },
+    })
+    expectResponse(setResponse, 200)
+
+    const updatedAgentSettings = await repositories.agentSettingsRepository.findOne({
+      where: { agentId, revision: 2 },
+    })
+    expect(updatedAgentSettings?.isDraft).toBeTruthy()
+    expect(updatedAgentSettings?.priorityCallsEnabled).toBeTruthy()
+  })
+  it("should update thinkingLevel", async () => {
+    await createContext()
+
+    const setResponse = await subject({
+      payload: { thinkingLevel: AgentThinkingLevel.High },
+    })
+    expectResponse(setResponse, 200)
+
+    const updatedAgentSettings = await repositories.agentSettingsRepository.findOne({
+      where: { agentId, revision: 2 },
+    })
+    expect(updatedAgentSettings?.isDraft).toBeTruthy()
+    expect(updatedAgentSettings?.thinkingLevel).toBe(AgentThinkingLevel.High)
   })
 
   it("should preserve an existing soft-deleted project category while adding a new category", async () => {

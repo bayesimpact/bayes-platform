@@ -285,5 +285,6 @@ function toAgentSettingsDto({
     temperature: Number(agentSettings.temperature),
     updatedAt: agentSettings.updatedAt.getTime(),
     usedProjectAgentSessionCategoryIds,
+    thinkingLevel: agentSettings.thinkingLevel,
   }
 }

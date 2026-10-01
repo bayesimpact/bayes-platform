@@ -1,7 +1,12 @@
 import { createVertex } from "@ai-sdk/google-vertex"
 import type { JSONValue } from "@ai-sdk/provider"
-import { AgentProvider, isAgentModelServedOutsideEu } from "@caseai-connect/api-contracts"
-import { Injectable } from "@nestjs/common"
+import {
+  AgentModel,
+  AgentProvider,
+  AgentThinkingLevel,
+  isAgentModelServedOutsideEu,
+} from "@caseai-connect/api-contracts"
+import { Injectable, NotImplementedException } from "@nestjs/common"
 import type { LanguageModel } from "ai"
 import { Agent, fetch as undiciFetch } from "undici"
 import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"
@@ -115,13 +120,104 @@ export class AISDKVertex3Provider extends AISDKLLMProviderBase {
   }: {
     config: LLMConfig
   }): Record<string, Record<string, JSONValue>> {
-    if (!config.serviceTier) return {}
-    return { vertex: { sharedRequestType: config.serviceTier } }
+    let vertexOptions: Record<string, JSONValue> = {}
+    if (config.serviceTier) vertexOptions = { sharedRequestType: config.serviceTier }
+    vertexOptions = {
+      ...vertexOptions,
+      ...this.normalizeThinkingLevelForModel({
+        agentModel: config.model,
+        thinkingLevel: config.thinkingLevel,
+      }),
+    }
+    return { vertex: vertexOptions }
+  }
+
+  normalizeThinkingLevelForModel({
+    agentModel,
+    thinkingLevel,
+  }: {
+    agentModel: string
+    thinkingLevel: AgentThinkingLevel
+  }): Record<string, JSONValue> {
+    let level: AgentThinkingLevel
+    switch (thinkingLevel) {
+      case AgentThinkingLevel.Minimal:
+        level = AgentThinkingLevel.Minimal
+        break
+      case AgentThinkingLevel.Low:
+        level = AgentThinkingLevel.Low
+        break
+      case AgentThinkingLevel.Medium:
+        level = AgentThinkingLevel.Medium
+        break
+      case AgentThinkingLevel.High:
+        level = AgentThinkingLevel.High
+        break
+      default:
+        level = this.getDefaultLevelForModel(agentModel)
+    }
+    level = this.checkLevelAvailabilityForModel({ agentModel, thinkingLevel: level })
+    return {
+      thinkingConfig: {
+        thinkingLevel: level,
+        includeThoughts: true,
+      },
+    }
+  }
+  getDefaultLevelForModel(agentModel: string): AgentThinkingLevel {
+    switch (agentModel) {
+      case AgentModel.Gemini31FlashLite:
+      case AgentModel.Gemini35FlashLite: {
+        return AgentThinkingLevel.Minimal //official default
+      }
+      case AgentModel.Gemini35Flash:
+      case AgentModel.Gemini36Flash:
+      case AgentModel.Gemini37Flash:
+      case AgentModel.Gemini38Flash: {
+        return AgentThinkingLevel.Medium //official default
+      }
+      default:
+        throw new NotImplementedException(
+          `DEV - missing default thinkingLevel for model : ${agentModel}`,
+        )
+    }
+  }
+  checkLevelAvailabilityForModel({
+    agentModel,
+    thinkingLevel,
+  }: {
+    agentModel: string
+    thinkingLevel: AgentThinkingLevel
+  }): AgentThinkingLevel {
+    switch (agentModel) {
+      case AgentModel.Gemini37Flash:
+      case AgentModel.Gemini38Flash: {
+        //!!! minimal has been removed for these models - switch to low
+        if (thinkingLevel === AgentThinkingLevel.Minimal) return AgentThinkingLevel.Low
+        return thinkingLevel
+      }
+      case AgentModel.Gemini31FlashLite:
+      case AgentModel.Gemini35FlashLite:
+      case AgentModel.Gemini35Flash:
+      case AgentModel.Gemini36Flash: {
+        return thinkingLevel
+      }
+      default:
+        throw new NotImplementedException(
+          `DEV - missing thinkingLevel rules for model : ${agentModel}`,
+        )
+    }
+  }
+  protected override applyTemperature(_temperature: number): number | undefined {
+    // temperature should not be set (also the case for topX settings) when using 3.x model :
+    // these parameters are not compatible with thinking level
+    return undefined
   }
 
   getTags(config: LLMConfig): string[] {
     const tags = [this.vertexProject, locationForModel(config.model), config.model]
     if (config.serviceTier) tags.push(config.serviceTier.toUpperCase())
+    tags.push(config.thinkingLevel.toUpperCase())
     return tags
   }
 }

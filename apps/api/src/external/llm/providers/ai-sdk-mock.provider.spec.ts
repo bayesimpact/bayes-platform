@@ -1,4 +1,4 @@
-import { AgentModel } from "@caseai-connect/api-contracts"
+import { AgentModel, AgentThinkingLevel } from "@caseai-connect/api-contracts"
 import { beforeAll, beforeEach } from "@jest/globals"
 import { tool } from "ai"
 import { v4 } from "uuid"
@@ -19,7 +19,13 @@ describe("AISDKMockProvider", () => {
   beforeAll(async () => {
     provider = new AISDKMockProvider()
     messages = [{ role: "user", content: "for test purpose" }]
-    config = { model: AgentModel._Mock, temperature: 1, systemPrompt: "", serviceTier: undefined }
+    config = {
+      model: AgentModel._Mock,
+      temperature: 1,
+      systemPrompt: "",
+      serviceTier: undefined,
+      thinkingLevel: AgentThinkingLevel.Auto,
+    }
     metadata = {
       agentId: "agentId",
       agentSessionId: "agentSessionId",
@@ -154,6 +160,7 @@ describe("AISDKMockProvider", () => {
           },
         }),
       },
+      thinkingLevel: AgentThinkingLevel.Auto,
     }
     provider.addToolCallTurn(metadata.agentId, "echo", { text: "hi" })
     provider.addTextTurn(metadata.agentId, "final answer")

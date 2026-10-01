@@ -1,4 +1,4 @@
-import { ToolName } from "@caseai-connect/api-contracts"
+import { AgentThinkingLevel, ToolName } from "@caseai-connect/api-contracts"
 import { wrapLanguageModel } from "ai"
 import type { LLMMetadata, LLMProvider } from "@/common/interfaces/llm-provider.interface"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
@@ -188,6 +188,7 @@ ${promptHelpers.now()}`
       tools,
       fireAndForgetToolNames: [ToolName.SurfaceResources],
       serviceTier: undefined,
+      thinkingLevel: AgentThinkingLevel.Auto,
     },
     metadata,
   })
