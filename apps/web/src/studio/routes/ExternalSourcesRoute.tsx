@@ -1,7 +1,7 @@
 import { DOCUMENT_SOURCE_READ_PERMISSION } from "@caseai-connect/api-contracts"
 import {
+  selectCurrentProjectData,
   selectCurrentProjectId,
-  selectMyProjectsData,
 } from "@/common/features/projects/projects.selectors"
 import { useMount } from "@/common/hooks/use-mount"
 import { LoadingRoute } from "@/common/routes/LoadingRoute"
@@ -15,14 +15,10 @@ import { AsyncRoute } from "../../common/routes/AsyncRoute"
 
 export function ExternalSourcesRoute() {
   const projectId = useAppSelector(selectCurrentProjectId)
-  const myProjects = useAppSelector(selectMyProjectsData)
+  const project = useAppSelector(selectCurrentProjectData)
   const documentSources = useAppSelector(selectDocumentSourcesData)
   const canRead =
-    ADS.isFulfilled(myProjects) &&
-    myProjects.value.some(
-      (project) =>
-        project.id === projectId && project.permissions.includes(DOCUMENT_SOURCE_READ_PERMISSION),
-    )
+    ADS.isFulfilled(project) && project.value.permissions.includes(DOCUMENT_SOURCE_READ_PERMISSION)
 
   useMount({
     actions: documentSourcesActions,
@@ -30,7 +26,7 @@ export function ExternalSourcesRoute() {
     refreshOn: [projectId],
   })
 
-  if (!ADS.isFulfilled(myProjects)) return <LoadingRoute />
+  if (!ADS.isFulfilled(project)) return <LoadingRoute />
   if (!canRead) return <NotFoundRoute />
 
   return (

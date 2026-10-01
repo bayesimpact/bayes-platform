@@ -1,6 +1,5 @@
 import { DOCUMENT_SOURCE_READ_PERMISSION } from "@caseai-connect/api-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { myProjectFactory } from "@/common/features/projects/projects.factory"
 import { buildDecorator, render } from "@/stories/decorators"
 import {
   buildStudioData,
@@ -35,15 +34,11 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 function studioState({ withSources, ...args }: StoryArgs) {
-  const { baseSeeds, organization, project } = buildStudioData(args)
-  const myProject = myProjectFactory.transient({ organization }).build({
-    id: project.id,
-    name: project.name,
-    permissions: [DOCUMENT_SOURCE_READ_PERMISSION],
-  })
+  const { baseSeeds, project } = buildStudioData(args)
+  const readableProject = { ...project, permissions: [DOCUMENT_SOURCE_READ_PERMISSION] }
   const documentSources = withSources
     ? [
-        documentSourceFactory.transient({ project }).build({
+        documentSourceFactory.transient({ project: readableProject }).build({
           name: "Helpful Assistant",
           type: "site-crawler",
           baseUrl: "https://example.com/docs",
@@ -51,7 +46,7 @@ function studioState({ withSources, ...args }: StoryArgs) {
           indexedDocumentCount: 12,
           status: "ready",
         }),
-        documentSourceFactory.transient({ project }).build({
+        documentSourceFactory.transient({ project: readableProject }).build({
           name: "Pricing notes",
           type: "folder",
           baseUrl: null,
@@ -65,7 +60,7 @@ function studioState({ withSources, ...args }: StoryArgs) {
   return {
     state: mergeSeeds(
       baseSeeds,
-      seed.myProjects([myProject]),
+      seed.projects([readableProject], { currentId: readableProject.id }),
       seed.studio.documentSources(documentSources),
     ),
   }

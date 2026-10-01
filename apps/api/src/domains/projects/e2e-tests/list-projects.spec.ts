@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto"
-import { ProjectsRoutes } from "@caseai-connect/api-contracts"
+import { DOCUMENT_SOURCE_READ_PERMISSION, ProjectsRoutes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import {
@@ -125,7 +125,7 @@ describe("Projects - listProjects", () => {
     expect(projects.map((project) => project.name)).toContain("Project 2")
   })
 
-  it("should expose evaluation.access to project admins but not to members", async () => {
+  it("should expose project permissions to project admins but not to members", async () => {
     const { organization, user } = await createContext()
 
     const adminProject = projectFactory.transient({ organization }).build({ name: "Admin" })
@@ -150,6 +150,9 @@ describe("Projects - listProjects", () => {
     const permissionsByName = Object.fromEntries(
       response.body.data.map((project) => [project.name, project.permissions]),
     )
-    expect(permissionsByName).toEqual({ Admin: ["evaluation.access"], Member: [] })
+    expect([...(permissionsByName.Admin ?? [])].sort()).toEqual(
+      [DOCUMENT_SOURCE_READ_PERMISSION, "evaluation.access"].sort(),
+    )
+    expect(permissionsByName.Member).toEqual([])
   })
 })

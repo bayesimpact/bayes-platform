@@ -36,10 +36,6 @@ import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 import { RestrictedFeature } from "@/common/components/RestrictedFeature"
 import type { Project } from "@/common/features/projects/projects.models"
-import {
-  selectCurrentProjectId,
-  selectMyProjectsList,
-} from "@/common/features/projects/projects.selectors"
 import { useIsRoute } from "@/common/hooks/use-is-route"
 import { ADS } from "@/common/store/async-data-status"
 import { useAppSelector } from "@/common/store/hooks"
@@ -62,7 +58,11 @@ export function SidebarFooterChildren({ project }: { project: Project }) {
           <RestrictedFeature feature="project-analytics">
             <NavAnalytics organizationId={project.organizationId} projectId={project.id} />
           </RestrictedFeature>
-          <NavSources organizationId={project.organizationId} projectId={project.id} />
+          <NavSources
+            organizationId={project.organizationId}
+            projectId={project.id}
+            permissions={project.permissions}
+          />
           <RestrictedFeature feature="agent-mcp">
             <NavMcpServers organizationId={project.organizationId} projectId={project.id} />
           </RestrictedFeature>
@@ -146,7 +146,15 @@ function NavAnalytics({
   )
 }
 
-function NavSources({ organizationId, projectId }: { organizationId: string; projectId: string }) {
+function NavSources({
+  organizationId,
+  projectId,
+  permissions,
+}: {
+  organizationId: string
+  projectId: string
+  permissions: Project["permissions"]
+}) {
   const { t } = useTranslation()
   return (
     <Collapsible asChild className="group/sources">
@@ -161,7 +169,11 @@ function NavSources({ organizationId, projectId }: { organizationId: string; pro
         <CollapsibleContent>
           <SidebarMenuSub>
             <NavDocumentsList organizationId={organizationId} projectId={projectId} />
-            <NavExternalSources organizationId={organizationId} projectId={projectId} />
+            <NavExternalSources
+              organizationId={organizationId}
+              projectId={projectId}
+              permissions={permissions}
+            />
             <RestrictedFeature feature="web-sources">
               <NavWebSources organizationId={organizationId} projectId={projectId} />
             </RestrictedFeature>
@@ -200,17 +212,16 @@ function NavDocumentsList({
 function NavExternalSources({
   organizationId,
   projectId,
+  permissions,
 }: {
   organizationId: string
   projectId: string
+  permissions: Project["permissions"]
 }) {
   const { t } = useTranslation("documentSource")
   const { isRoute } = useIsRoute()
-  const currentProjectId = useAppSelector(selectCurrentProjectId)
-  const myProjects = useAppSelector(selectMyProjectsList)
   const documentSources = useAppSelector(selectDocumentSourcesData)
-  const currentProject = myProjects?.find((project) => project.id === currentProjectId)
-  const canRead = currentProject?.permissions.includes(DOCUMENT_SOURCE_READ_PERMISSION) ?? false
+  const canRead = permissions.includes(DOCUMENT_SOURCE_READ_PERMISSION)
   const hasSources = ADS.isFulfilled(documentSources) && documentSources.value.length > 0
   if (!canRead || !hasSources) return null
 
