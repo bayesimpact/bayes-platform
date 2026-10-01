@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto"
-import { InvitationsRoutes } from "@caseai-connect/api-contracts"
+import { MyInvitationsRoutes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import { AUTH_ERRORS } from "@/common/errors/auth-errors"
@@ -16,9 +16,13 @@ import {
 import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import { mockForeignAuthSubject, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { invitationFactory } from "../invitation.factory"
 import { InvitationsModule } from "../invitations.module"
+import { type InvitationRouteTarget, invitationRoutesFor } from "./invitation-routes.helpers"
+
+type Role = "owner" | "admin" | "member"
 
 describe("Invitations - Auth", () => {
   let app: INestApplication<App>
@@ -34,6 +38,7 @@ describe("Invitations - Auth", () => {
       additionalImports: [InvitationsModule],
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
+    await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
     app = setup.module.createNestApplication()
     await app.init()
@@ -51,163 +56,150 @@ describe("Invitations - Auth", () => {
     await app.close()
   })
 
-  const subject = async (payload: typeof InvitationsRoutes.createMany.request.payload) =>
-    request({
-      route: InvitationsRoutes.createMany,
-      token: accessToken ?? undefined,
-      request: { payload },
+  /** Calls the three admin routes of a target and returns their statuses. */
+  const callAdminRoutes = async (target: InvitationRouteTarget, invitationId: string) => {
+    const { routes, pathParams } = invitationRoutesFor(target)
+    const token = accessToken ?? undefined
+    const getAll = await request({ route: routes.getAll, pathParams, token })
+    const createMany = await request({
+      route: routes.createMany,
+      pathParams,
+      token,
+      request: { payload: { emails: ["invited@example.com"], role: "tester" } },
     })
+    const deleteOne = await request({
+      route: routes.deleteOne,
+      pathParams: { ...pathParams, invitationId },
+      token,
+    })
+    return { getAll, createMany, deleteOne }
+  }
 
-  describe("project target", () => {
-    const createContextForRole = async (role: "owner" | "admin" | "member") => {
+  const expectAllowed = (responses: Awaited<ReturnType<typeof callAdminRoutes>>) => {
+    expectResponse(responses.getAll, 200)
+    expectResponse(responses.createMany, 201)
+    expectResponse(responses.deleteOne, 200)
+  }
+
+  const expectAll = (
+    responses: Awaited<ReturnType<typeof callAdminRoutes>>,
+    status: number,
+    message?: string,
+  ) => {
+    expectResponse(responses.getAll, status, message)
+    expectResponse(responses.createMany, status, message)
+    expectResponse(responses.deleteOne, status, message)
+  }
+
+  const savePendingInvitation = async (
+    target: Parameters<typeof invitationFactory.transient>[0],
+  ) => {
+    const invitedUser = await repositories.userRepository.save(
+      userFactory.build({ authSubject: null }),
+    )
+    return repositories.invitationRepository.save(
+      invitationFactory.transient({ ...target, user: invitedUser }).build(),
+    )
+  }
+
+  describe("project invitations", () => {
+    const createContextForRole = async (role: Role) => {
       const { project } = await createOrganizationWithProject(repositories, {
         user: { authSubject },
         projectMembership: { role },
       })
-      return {
-        targetType: "project" as const,
-        targetId: project.id,
-        emails: ["added@example.com"],
-      }
+      const invitation = await savePendingInvitation({ project })
+      return { target: { project }, invitationId: invitation.id }
     }
 
     it("requires an authentication token", async () => {
-      const payload = await createContextForRole("owner")
+      const { target, invitationId } = await createContextForRole("owner")
       accessToken = null
-      expectResponse(await subject(payload), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
-    })
-    it("returns 400 for an invalid targetType", async () => {
-      const payload = await createContextForRole("owner")
-      // @ts-expect-error deliberate invalid value for server validation
-      expectResponse(await subject({ ...payload, targetType: "not_a_valid_target" }), 400)
+      expectAll(await callAdminRoutes(target, invitationId), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
     })
     it("requires the user to be a member of the organization", async () => {
-      const payload = await createContextForRole("owner")
+      const { target, invitationId } = await createContextForRole("owner")
       authSubject = mockForeignAuthSubject()
-      expectResponse(await subject(payload), 403, "You do not have access to this organization")
+      expectAll(await callAdminRoutes(target, invitationId), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
-    it("requires an existing project", async () => {
-      const payload = await createContextForRole("owner")
-      expectResponse(await subject({ ...payload, targetId: randomUUID() }), 404)
+    it("doesn't allow a project member", async () => {
+      const { target, invitationId } = await createContextForRole("member")
+      expectAll(await callAdminRoutes(target, invitationId), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
-    it("doesn't allow a simple member to invite project members", async () => {
-      const payload = await createContextForRole("member")
-      expectResponse(await subject(payload), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    it("allows a project admin", async () => {
+      const { target, invitationId } = await createContextForRole("admin")
+      expectAllowed(await callAdminRoutes(target, invitationId))
     })
-    it("allows a project admin to invite project members", async () => {
-      const payload = await createContextForRole("admin")
-      expectResponse(await subject(payload), 201)
-    })
-    it("allows the project owner to invite project members", async () => {
-      const payload = await createContextForRole("owner")
-      expectResponse(await subject(payload), 201)
+    it("allows the project owner", async () => {
+      const { target, invitationId } = await createContextForRole("owner")
+      expectAllowed(await callAdminRoutes(target, invitationId))
     })
   })
 
-  describe("agent target", () => {
-    const createContextForAgentRole = async (role: "owner" | "admin" | "member") => {
+  describe("agent invitations", () => {
+    const createContextForRoles = async (roles: { project: Role; agent: Role }) => {
       const { agent } = await createOrganizationWithAgent(repositories, {
         user: { authSubject },
-        projectMembership: { role: "member" },
-        agentMembership: { role },
+        projectMembership: { role: roles.project },
+        agentMembership: { role: roles.agent },
       })
-      return { targetType: "agent" as const, targetId: agent.id, emails: ["added@example.com"] }
+      const invitation = await savePendingInvitation({ agent })
+      return { target: { agent }, invitationId: invitation.id }
     }
 
-    it("doesn't allow a simple agent member to invite agent members", async () => {
-      const payload = await createContextForAgentRole("member")
-      expectResponse(await subject(payload), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    it("doesn't allow an agent member", async () => {
+      const { target, invitationId } = await createContextForRoles({
+        project: "member",
+        agent: "member",
+      })
+      expectAll(await callAdminRoutes(target, invitationId), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
-    it("allows an agent admin to invite agent members", async () => {
-      const payload = await createContextForAgentRole("admin")
-      expectResponse(await subject(payload), 201)
+    it("doesn't pass the right down from the project", async () => {
+      const { target, invitationId } = await createContextForRoles({
+        project: "owner",
+        agent: "member",
+      })
+      expectAll(await callAdminRoutes(target, invitationId), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
-    it("requires an existing agent", async () => {
-      const payload = await createContextForAgentRole("owner")
-      expectResponse(await subject({ ...payload, targetId: randomUUID() }), 404)
+    it("allows an agent admin", async () => {
+      const { target, invitationId } = await createContextForRoles({
+        project: "member",
+        agent: "admin",
+      })
+      expectAllowed(await callAdminRoutes(target, invitationId))
+    })
+    it("allows the agent owner", async () => {
+      const { target, invitationId } = await createContextForRoles({
+        project: "member",
+        agent: "owner",
+      })
+      expectAllowed(await callAdminRoutes(target, invitationId))
     })
   })
 
-  describe("review campaign target", () => {
-    const createContextForRole = async (role: "owner" | "admin" | "member") => {
+  describe("review campaign invitations", () => {
+    const createContextForRole = async (role: Role) => {
       const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
         repositories,
         { user: { authSubject }, projectMembership: { role } },
       )
-      const campaign = await repositories.reviewCampaignRepository.save(
+      const reviewCampaign = await repositories.reviewCampaignRepository.save(
         reviewCampaignFactory
           .active()
           .transient({ organization, project, agent, agentSettings })
           .build(),
       )
-      return {
-        targetType: "review_campaign" as const,
-        targetId: campaign.id,
-        emails: ["tester@example.com"],
-        role: "tester",
-      }
+      const invitation = await savePendingInvitation({ reviewCampaign })
+      return { target: { reviewCampaign }, invitationId: invitation.id }
     }
 
-    it("doesn't allow a simple project member to invite campaign members", async () => {
-      const payload = await createContextForRole("member")
-      expectResponse(await subject(payload), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
-    })
-    it("allows a project admin to invite campaign members", async () => {
-      const payload = await createContextForRole("admin")
-      expectResponse(await subject(payload), 201)
-    })
-  })
-
-  describe("listForTarget and revokeOne", () => {
-    const createContextForRole = async (role: "owner" | "admin" | "member") => {
-      const { project } = await createOrganizationWithProject(repositories, {
-        user: { authSubject },
-        projectMembership: { role },
-      })
-      const invitedUser = await repositories.userRepository.save(
-        userFactory.build({ authSubject: null }),
-      )
-      const invitation = await repositories.invitationRepository.save(
-        invitationFactory.transient({ user: invitedUser, project }).build(),
-      )
-      return { project, invitation }
-    }
-
-    const listForTarget = (projectId: string) =>
-      request({
-        route: InvitationsRoutes.listForTarget,
-        token: accessToken ?? undefined,
-        query: { targetType: "project", targetId: projectId },
-      })
-
-    const revokeOne = (invitationId: string) =>
-      request({
-        route: InvitationsRoutes.revokeOne,
-        token: accessToken ?? undefined,
-        pathParams: { invitationId },
-      })
-
-    it("requires an authentication token", async () => {
-      const { project, invitation } = await createContextForRole("owner")
-      accessToken = null
-      expectResponse(await listForTarget(project.id), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
-      expectResponse(await revokeOne(invitation.id), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
-    })
-    it("requires the user to be a member of the organization", async () => {
-      const { project, invitation } = await createContextForRole("owner")
-      authSubject = mockForeignAuthSubject()
-      expectResponse(await listForTarget(project.id), 403)
-      expectResponse(await revokeOne(invitation.id), 403)
-    })
-    it("doesn't allow a simple member", async () => {
-      const { project, invitation } = await createContextForRole("member")
-      expectResponse(await listForTarget(project.id), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
-      expectResponse(await revokeOne(invitation.id), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    it("doesn't allow a project member", async () => {
+      const { target, invitationId } = await createContextForRole("member")
+      expectAll(await callAdminRoutes(target, invitationId), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
     it("allows a project admin", async () => {
-      const { project, invitation } = await createContextForRole("admin")
-      expectResponse(await listForTarget(project.id), 200)
-      expectResponse(await revokeOne(invitation.id), 200)
+      const { target, invitationId } = await createContextForRole("admin")
+      expectAllowed(await callAdminRoutes(target, invitationId))
     })
   })
 
@@ -216,17 +208,17 @@ describe("Invitations - Auth", () => {
       accessToken = null
       const invitationId = randomUUID()
       expectResponse(
-        await request({ route: InvitationsRoutes.listPendingMine }),
+        await request({ route: MyInvitationsRoutes.getAll }),
         401,
         AUTH_ERRORS.NO_ACCESS_TOKEN,
       )
       expectResponse(
-        await request({ route: InvitationsRoutes.acceptOne, pathParams: { invitationId } }),
+        await request({ route: MyInvitationsRoutes.acceptOne, pathParams: { invitationId } }),
         401,
         AUTH_ERRORS.NO_ACCESS_TOKEN,
       )
       expectResponse(
-        await request({ route: InvitationsRoutes.declineOne, pathParams: { invitationId } }),
+        await request({ route: MyInvitationsRoutes.declineOne, pathParams: { invitationId } }),
         401,
         AUTH_ERRORS.NO_ACCESS_TOKEN,
       )

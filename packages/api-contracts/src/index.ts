@@ -81,7 +81,12 @@ export type { ApiRoute } from "./helpers"
 export { defineRoute } from "./helpers"
 // Member grants
 export type * from "./invitations/invitations.dto"
-export { InvitationsRoutes } from "./invitations/invitations.routes"
+export {
+  AgentInvitationsRoutes,
+  MyInvitationsRoutes,
+  ProjectInvitationsRoutes,
+  ReviewCampaignInvitationsRoutes,
+} from "./invitations/invitations.routes"
 export { isAllowedOauthEndpointUrl } from "./mcp-servers/mcp-oauth-endpoint-url"
 // MCP Servers
 export * from "./mcp-servers/mcp-servers.dto"

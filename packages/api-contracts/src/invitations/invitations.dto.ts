@@ -26,10 +26,13 @@ export type InvitationDto = {
 }
 
 export type CreateInvitationsRequestDto = {
-  targetType: InvitationTargetTypeDto
-  targetId: string
   emails: string[]
-  role?: string
+}
+
+export type ReviewCampaignInvitationRoleDto = "tester" | "reviewer"
+
+export type CreateReviewCampaignInvitationsRequestDto = CreateInvitationsRequestDto & {
+  role: ReviewCampaignInvitationRoleDto
 }
 
 export type CreateInvitationsResponseDto = {

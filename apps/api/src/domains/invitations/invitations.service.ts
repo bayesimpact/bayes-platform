@@ -22,7 +22,7 @@ import type { InvitationTargetType } from "./invitation.types"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { InvitationAccessService, type InvitationAccessTarget } from "./invitation-access.service"
 
-/** The target an invitation is created for, as loaded by the invitation scope resolver. */
+/** The target of an invitation, built by the controllers from the resource of the route. */
 export type InvitationTarget = {
   targetType: InvitationTargetType
   targetId: string
@@ -103,11 +103,11 @@ export class InvitationsService {
     })
   }
 
-  async listForTarget(params: {
-    targetType: InvitationTargetType
-    targetId: string
-  }): Promise<Invitation[]> {
-    return this.invitationRepository.listPendingForTarget(params)
+  async listForTarget(target: InvitationTarget): Promise<Invitation[]> {
+    return this.invitationRepository.listPendingForTarget({
+      targetType: target.targetType,
+      targetId: target.targetId,
+    })
   }
 
   /** Pending invitations whose target still exists. */
@@ -119,7 +119,16 @@ export class InvitationsService {
     return invitations.filter((invitation) => detailsById.get(invitation.id)?.targetExists)
   }
 
-  async revokeOne(invitation: Invitation): Promise<void> {
+  /** An invitation that is not pending, or belongs to another target, answers 404. */
+  async revokeOne(params: { invitationId: string; target: InvitationTarget }): Promise<void> {
+    const invitation = await this.invitationRepository.findPendingByIdForTarget({
+      invitationId: params.invitationId,
+      targetType: params.target.targetType,
+      targetId: params.target.targetId,
+    })
+    if (!invitation) {
+      throw new NotFoundException(`Pending invitation ${params.invitationId} not found`)
+    }
     await this.transactionService.run(async () => {
       await this.invitationRepository.updateStatus({
         invitationId: invitation.id,

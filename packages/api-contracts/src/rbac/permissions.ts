@@ -57,6 +57,18 @@ export const PROJECT_ANALYTICS_READ_PERMISSION = "project.analytics.read" as con
  */
 export const AGENT_ANALYTICS_READ_PERMISSION = "agent.analytics.read" as const
 
+/**
+ * Invite people to a project or to one of its review campaigns, see the pending
+ * invitations and revoke them. Not inherited from the organization.
+ */
+export const PROJECT_MEMBER_INVITE_PERMISSION = "project.member.invite" as const
+
+/**
+ * Invite people to an agent, see its pending invitations and revoke them. Held
+ * on the agent only: a project or organization role does not grant it.
+ */
+export const AGENT_MEMBER_INVITE_PERMISSION = "agent.member.invite" as const
+
 /** Open the evaluation app of a project. Scoped to the project, never inherited from the organization. */
 export const EVALUATION_ACCESS_PERMISSION = "evaluation.access" as const
 

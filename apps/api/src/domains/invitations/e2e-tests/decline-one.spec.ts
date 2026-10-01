@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto"
-import { InvitationsRoutes } from "@caseai-connect/api-contracts"
+import { MyInvitationsRoutes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import {
@@ -47,7 +47,7 @@ describe("Invitations - declineOne", () => {
 
   const subject = async (invitationId: string) =>
     request({
-      route: InvitationsRoutes.declineOne,
+      route: MyInvitationsRoutes.declineOne,
       pathParams: { invitationId },
       token: "token",
     })
@@ -76,7 +76,7 @@ describe("Invitations - declineOne", () => {
     expect(
       await findProjectMembershipRow(repositories, { userId: invitee.id, projectId: project.id }),
     ).toBeNull()
-    const mine = await request({ route: InvitationsRoutes.listPendingMine, token: "token" })
+    const mine = await request({ route: MyInvitationsRoutes.getAll, token: "token" })
     expect(mine.body.data.invitations).toEqual([])
   })
 

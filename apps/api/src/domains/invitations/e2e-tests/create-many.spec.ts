@@ -1,5 +1,4 @@
 import { randomUUID } from "node:crypto"
-import { InvitationsRoutes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import { bindExpectActivityCreated } from "@/common/test/activity-test.helpers"
@@ -25,8 +24,10 @@ import {
   findProjectMembershipRow,
   findReviewCampaignMembershipRow,
 } from "../../../../test/membership-test.helpers"
+import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { InvitationsModule } from "../invitations.module"
+import { type InvitationRouteTarget, invitationRoutesFor } from "./invitation-routes.helpers"
 
 describe("Invitations - createMany", () => {
   let app: INestApplication<App>
@@ -42,6 +43,7 @@ describe("Invitations - createMany", () => {
       additionalImports: [InvitationsModule, ActivitiesModule],
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
+    await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
     expectActivityCreated = bindExpectActivityCreated(repositories.activityRepository)
     app = setup.module.createNestApplication()
@@ -59,8 +61,19 @@ describe("Invitations - createMany", () => {
     await app.close()
   })
 
-  const subject = async (payload: typeof InvitationsRoutes.createMany.request.payload) =>
-    request({ route: InvitationsRoutes.createMany, token: "token", request: { payload } })
+  const subject = async (
+    target: InvitationRouteTarget,
+    payload: { emails: string[]; role?: string },
+  ) => {
+    const { routes, pathParams } = invitationRoutesFor(target)
+    return request({
+      route: routes.createMany,
+      pathParams,
+      token: "token",
+      // `role` is checked by the API, so tests may send invalid values.
+      request: { payload: payload as { emails: string[]; role: "tester" } },
+    })
+  }
 
   const createProjectContext = async () =>
     createOrganizationWithProject(repositories, { user: { authSubject } })
@@ -72,11 +85,12 @@ describe("Invitations - createMany", () => {
     it("invites an unknown email without giving access yet, with a never-signed-in account", async () => {
       const { organization, project } = await createProjectContext()
 
-      const response = await subject({
-        targetType: "project",
-        targetId: project.id,
-        emails: [" New.Person@Example.com ", "new.person@example.com"],
-      })
+      const response = await subject(
+        { project },
+        {
+          emails: [" New.Person@Example.com ", "new.person@example.com"],
+        },
+      )
 
       expectResponse(response, 201)
       expect(response.body.data.invitations).toEqual([
@@ -119,11 +133,12 @@ describe("Invitations - createMany", () => {
         userFactory.build({ email: "existing@example.com" }),
       )
 
-      const response = await subject({
-        targetType: "project",
-        targetId: project.id,
-        emails: ["existing@example.com"],
-      })
+      const response = await subject(
+        { project },
+        {
+          emails: ["existing@example.com"],
+        },
+      )
 
       expectResponse(response, 201)
       expect(response.body.data.invitations).toHaveLength(1)
@@ -135,11 +150,12 @@ describe("Invitations - createMany", () => {
     it("skips people who are already project members", async () => {
       const { project, user } = await createProjectContext()
 
-      const response = await subject({
-        targetType: "project",
-        targetId: project.id,
-        emails: [user.email],
-      })
+      const response = await subject(
+        { project },
+        {
+          emails: [user.email],
+        },
+      )
 
       expectResponse(response, 201)
       expect(response.body.data.invitations).toEqual([])
@@ -147,14 +163,10 @@ describe("Invitations - createMany", () => {
 
     it("skips people who already have a pending invitation", async () => {
       const { project } = await createProjectContext()
-      const payload = {
-        targetType: "project" as const,
-        targetId: project.id,
-        emails: ["twice@example.com"],
-      }
-      expectResponse(await subject(payload), 201)
+      const payload = { emails: ["twice@example.com"] }
+      expectResponse(await subject({ project }, payload), 201)
 
-      const response = await subject(payload)
+      const response = await subject({ project }, payload)
 
       expectResponse(response, 201)
       expect(response.body.data.invitations).toEqual([])
@@ -170,11 +182,12 @@ describe("Invitations - createMany", () => {
         userFactory.build({ email: serviceEmail, type: USER_TYPE_SERVICE }),
       )
 
-      const response = await subject({
-        targetType: "project",
-        targetId: project.id,
-        emails: [serviceEmail, buildServiceUserEmail("other-app", randomUUID())],
-      })
+      const response = await subject(
+        { project },
+        {
+          emails: [serviceEmail, buildServiceUserEmail("other-app", randomUUID())],
+        },
+      )
 
       expectResponse(response, 201)
       expect(response.body.data.invitations).toEqual([])
@@ -187,11 +200,12 @@ describe("Invitations - createMany", () => {
         user: { authSubject },
       })
 
-      const response = await subject({
-        targetType: "agent",
-        targetId: agent.id,
-        emails: ["agent.member@example.com"],
-      })
+      const response = await subject(
+        { agent },
+        {
+          emails: ["agent.member@example.com"],
+        },
+      )
 
       expectResponse(response, 201)
       expect(response.body.data.invitations).toEqual([
@@ -228,12 +242,13 @@ describe("Invitations - createMany", () => {
     it("stores the requested campaign role, without giving access yet", async () => {
       const campaign = await createCampaign("active")
 
-      const response = await subject({
-        targetType: "review_campaign",
-        targetId: campaign.id,
-        emails: ["reviewer@example.com"],
-        role: "reviewer",
-      })
+      const response = await subject(
+        { reviewCampaign: campaign },
+        {
+          emails: ["reviewer@example.com"],
+          role: "reviewer",
+        },
+      )
 
       expectResponse(response, 201)
       expect(response.body.data.invitations).toEqual([
@@ -255,20 +270,22 @@ describe("Invitations - createMany", () => {
       const campaign = await createCampaign("active")
 
       expectResponse(
-        await subject({
-          targetType: "review_campaign",
-          targetId: campaign.id,
-          emails: ["reviewer@example.com"],
-        }),
+        await subject(
+          { reviewCampaign: campaign },
+          {
+            emails: ["reviewer@example.com"],
+          },
+        ),
         400,
       )
       expectResponse(
-        await subject({
-          targetType: "review_campaign",
-          targetId: campaign.id,
-          emails: ["reviewer@example.com"],
-          role: "owner",
-        }),
+        await subject(
+          { reviewCampaign: campaign },
+          {
+            emails: ["reviewer@example.com"],
+            role: "owner",
+          },
+        ),
         400,
       )
     })
@@ -277,12 +294,13 @@ describe("Invitations - createMany", () => {
       const campaign = await createCampaign("draft")
 
       expectResponse(
-        await subject({
-          targetType: "review_campaign",
-          targetId: campaign.id,
-          emails: ["tester@example.com"],
-          role: "tester",
-        }),
+        await subject(
+          { reviewCampaign: campaign },
+          {
+            emails: ["tester@example.com"],
+            role: "tester",
+          },
+        ),
         409,
       )
     })
