@@ -36,7 +36,7 @@ describe("Project Embedding Models", () => {
   let organizationId: string
   let projectId: string
   let accessToken: string | undefined = "token"
-  let auth0Id = "auth0|123"
+  let authSubject = "oidc|123"
   let reembedBatchServiceMock: {
     enqueueReembedProjectChunks: jest.MockedFunction<
       ProjectEmbeddingReembedBatchService["enqueueReembedProjectChunks"]
@@ -47,7 +47,7 @@ describe("Project Embedding Models", () => {
     setup = await setupE2eTestDatabase({
       additionalImports: [DocumentsModule],
       applyOverrides: (moduleBuilder) =>
-        withDocumentAuthAndEmbeddingsMocks(moduleBuilder, () => auth0Id),
+        withDocumentAuthAndEmbeddingsMocks(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
     reembedBatchServiceMock = setup.module.get(PROJECT_EMBEDDING_REEMBED_BATCH_SERVICE)
@@ -59,7 +59,7 @@ describe("Project Embedding Models", () => {
   beforeEach(async () => {
     await clearTestDatabase(setup.dataSource)
     accessToken = "token"
-    auth0Id = "auth0|123"
+    authSubject = "oidc|123"
     reembedBatchServiceMock.enqueueReembedProjectChunks.mockClear()
   })
 
@@ -70,7 +70,7 @@ describe("Project Embedding Models", () => {
 
   const createContext = async ({ withFeature = true }: { withFeature?: boolean } = {}) => {
     const { user, organization, project } = await createOrganizationWithProject(repositories, {
-      user: { auth0Id },
+      user: { authSubject },
     })
     if (withFeature) {
       await addFeature({
@@ -81,7 +81,7 @@ describe("Project Embedding Models", () => {
     }
     organizationId = organization.id
     projectId = project.id
-    auth0Id = user.auth0Id
+    authSubject = user.authSubject ?? authSubject
     return { organization, project }
   }
 
