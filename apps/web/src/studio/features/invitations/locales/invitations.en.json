@@ -2,11 +2,14 @@
   "invitations": {
     "pendingSection": {
       "title": "Pending invitations",
-      "description": "These people will get access once they accept the invitation in the app."
+      "description": "These people will get access once they accept the invitation in the app.",
+      "signInHint": "Send each person their invitation link. They must sign in, or sign up, with the exact email address shown on their invitation, otherwise they will not see it."
     },
     "pendingItem": {
       "description": "Invited {{invitedAt}}",
-      "revoke": "Delete invitation"
+      "revoke": "Delete invitation",
+      "copyLink": "Copy invitation link",
+      "linkCopied": "Invitation link copied"
     },
     "deleteDialog": {
       "title": "Delete invitation?",

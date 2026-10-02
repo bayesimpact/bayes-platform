@@ -53,6 +53,7 @@ const STRINGS = {
     invite: "Invite",
     colEmail: "Email", colRole: "Role", colStatus2: "Status", revoke: "Revoke",
     pendingTitle: "Pending invitations", pendingDesc: "People invited to this campaign who have not answered yet.",
+    pendingHint: "Send each person their invitation link. They must sign in, or sign up, with the exact email address shown on their invitation, otherwise they will not see it.", copyLink: "Copy invitation link",
     invitedAgo: "Invited less than a minute ago", deleteInvitation: "Delete invitation",
     stDraft: "Draft", stActive: "Active", stClosed: "Closed",
     colName: "Name", colStatus: "Status", colMembers: "Members", colCreated: "Created", colUpdated: "Updated", colActions: "Actions",
@@ -74,7 +75,7 @@ const STRINGS = {
       "Your campaign appears in the table with the Draft status.",
       "Open the draft and click Activate (top-right of the editor), then confirm.",
       "In Participants, enter emails, choose Tester or Reviewer, then click Invite.",
-      "Invitations wait under Pending invitations. People join the table once they accept.",
+      "Invitations wait under Pending invitations. Copy each invitation link with its link icon and send it. People join the table once they accept.",
       "To end it, open the campaign and click Close in the editor header.",
       "Confirm to close the campaign — it becomes read-only.",
       "Once closed, open the report to see aggregated results.",
@@ -118,6 +119,7 @@ const STRINGS = {
     invite: "Inviter",
     colEmail: "E-mail", colRole: "Rôle", colStatus2: "Statut", revoke: "Révoquer",
     pendingTitle: "Invitations en attente", pendingDesc: "Personnes invitées sur cette campagne qui n'ont pas encore répondu.",
+    pendingHint: "Envoyez à chaque personne son lien d'invitation. Elle doit se connecter, ou s'inscrire, avec exactement l'adresse email affichée sur son invitation, sinon elle ne la verra pas.", copyLink: "Copier le lien d'invitation",
     invitedAgo: "Invité il y a moins d'une minute", deleteInvitation: "Supprimer l'invitation",
     stDraft: "Brouillon", stActive: "Active", stClosed: "Clôturée",
     colName: "Nom", colStatus: "Statut", colMembers: "Membres", colCreated: "Créée", colUpdated: "Modifiée", colActions: "Actions",
@@ -139,7 +141,7 @@ const STRINGS = {
       "Votre campagne apparaît dans le tableau avec le statut Brouillon.",
       "Ouvrez le brouillon et cliquez sur Activer (en haut à droite de l'éditeur), puis confirmez.",
       "Dans Participants, saisissez les e-mails, choisissez Testeur ou Relecteur, puis cliquez sur Inviter.",
-      "Les invitations attendent sous Invitations en attente. Les personnes rejoignent le tableau une fois l'invitation acceptée.",
+      "Les invitations attendent sous Invitations en attente. Copiez chaque lien d'invitation avec son icône lien et envoyez-le. Les personnes rejoignent le tableau une fois l'invitation acceptée.",
       "Pour la terminer, ouvrez la campagne et cliquez sur Clôturer dans l'en-tête de l'éditeur.",
       "Confirmez pour clôturer la campagne — elle passe en lecture seule.",
       "Une fois clôturée, ouvrez le rapport pour voir les résultats agrégés.",
@@ -401,9 +403,9 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
                   </tbody>
                 </table>
                 <div class="pending">
-                  <div class="phead"><b>{s.pendingTitle}</b><p>{s.pendingDesc}</p></div>
+                  <div class="phead"><b>{s.pendingTitle}</b><p>{s.pendingDesc}</p><p class="phint">{s.pendingHint}</p></div>
                   <div class="pgrid">
-                    <div class="pitem"><span class="pbody"><b>{s.email1}</b><small>{s.invitedAgo}</small></span><span class="ptrash" aria-label={s.deleteInvitation}><svg viewBox="0 0 24 24"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span></div>
+                    <div class="pitem"><span class="pbody"><b>{s.email1}</b><small>{s.invitedAgo}</small></span><span class="ptrash" aria-label={s.copyLink}><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span><span class="ptrash" aria-label={s.deleteInvitation}><svg viewBox="0 0 24 24"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span></div>
                   </div>
                 </div>
               </div>
@@ -637,6 +639,7 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
   .rcw .pending { border-top: 1px solid var(--border); padding: 0.9rem 0.6rem 0.6rem; background: color-mix(in oklab, var(--muted) 35%, transparent); }
   .rcw .phead b { font-size: 0.92rem; font-weight: 500; }
   .rcw .phead p { font-size: 0.74rem; color: var(--muted-foreground); margin: 0.15rem 0 0.6rem; }
+  .rcw .phead p.phint { margin-top: -0.4rem; font-style: italic; }
   .rcw .pgrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
   .rcw .pitem { display: flex; align-items: flex-start; gap: 0.5rem; border: 1px solid var(--border); border-radius: 12px; background: var(--card); padding: 0.65rem; }
   .rcw .pbody { flex: 1; min-width: 0; display: flex; flex-direction: column; }

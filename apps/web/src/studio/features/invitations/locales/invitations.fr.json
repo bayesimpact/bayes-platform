@@ -2,11 +2,14 @@
   "invitations": {
     "pendingSection": {
       "title": "Invitations en attente",
-      "description": "Ces personnes auront accès une fois l'invitation acceptée dans l'application."
+      "description": "Ces personnes auront accès une fois l'invitation acceptée dans l'application.",
+      "signInHint": "Envoyez à chaque personne son lien d'invitation. Elle doit se connecter, ou s'inscrire, avec exactement l'adresse email affichée sur son invitation, sinon elle ne la verra pas."
     },
     "pendingItem": {
       "description": "Invité {{invitedAt}}",
-      "revoke": "Supprimer l'invitation"
+      "revoke": "Supprimer l'invitation",
+      "copyLink": "Copier le lien d'invitation",
+      "linkCopied": "Lien d'invitation copié"
     },
     "deleteDialog": {
       "title": "Supprimer l'invitation ?",

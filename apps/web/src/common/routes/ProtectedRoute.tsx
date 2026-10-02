@@ -1,5 +1,6 @@
 import { useEffect } from "react"
 import { useAuth } from "react-oidc-context"
+import { readLoginHint } from "@/common/auth/login-hint"
 import { useAuthCallbackError } from "@/common/auth/use-auth-callback-error"
 import { selectTermsAccepted } from "@/common/features/me/me.selectors"
 import { useAppSelector } from "@/common/store/hooks"
@@ -19,7 +20,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     if (callbackError) return
     if (!isLoading && !isAuthenticated) {
       // Redirect to the identity provider when not authenticated
-      login()
+      login({ loginHint: readLoginHint() })
     }
   }, [callbackError, isLoading, isAuthenticated])
 
