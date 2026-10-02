@@ -29,6 +29,8 @@ export class EvaluationConversationRunGraderLlmService extends LlmServiceBase {
     medGemmaLlmProvider: LLMProvider,
     @Inject("GemmaLLMProvider")
     gemmaLlmProvider: LLMProvider,
+    @Inject("QwenLLMProvider")
+    qwenLlmProvider: LLMProvider,
   ) {
     super({
       mockLlmProvider,
@@ -36,6 +38,7 @@ export class EvaluationConversationRunGraderLlmService extends LlmServiceBase {
       vertex3LlmProvider,
       medGemmaLlmProvider,
       gemmaLlmProvider,
+      qwenLlmProvider,
       mistralLlmProvider,
     })
   }

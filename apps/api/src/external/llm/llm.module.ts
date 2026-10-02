@@ -3,6 +3,7 @@ import { AISDKGemmaProvider } from "@/external/llm/providers/ai-sdk-gemma.provid
 import { AISDKMedGemmaProvider } from "@/external/llm/providers/ai-sdk-med-gemma.provider"
 import { AISDKMistralProvider } from "@/external/llm/providers/ai-sdk-mistral.provider"
 import { AISDKMockProvider } from "@/external/llm/providers/ai-sdk-mock.provider"
+import { AISDKQwenProvider } from "@/external/llm/providers/ai-sdk-qwen.provider"
 import { AISDKVertexProvider } from "@/external/llm/providers/ai-sdk-vertex.provider"
 import { AISDKVertex3Provider } from "@/external/llm/providers/ai-sdk-vertex3.provider"
 
@@ -29,6 +30,10 @@ import { AISDKVertex3Provider } from "@/external/llm/providers/ai-sdk-vertex3.pr
       useClass: AISDKGemmaProvider,
     },
     {
+      provide: "QwenLLMProvider",
+      useClass: AISDKQwenProvider,
+    },
+    {
       provide: "_MockLLMProvider",
       useClass: AISDKMockProvider,
     },
@@ -39,6 +44,7 @@ import { AISDKVertex3Provider } from "@/external/llm/providers/ai-sdk-vertex3.pr
     "VertexLLMProvider",
     "Vertex3LLMProvider",
     "MistralLLMProvider",
+    "QwenLLMProvider",
     "_MockLLMProvider",
   ],
 })

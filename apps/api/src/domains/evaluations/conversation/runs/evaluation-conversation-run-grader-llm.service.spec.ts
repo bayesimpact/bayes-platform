@@ -23,6 +23,7 @@ describe("EvaluationConversationRunGraderLLMService", () => {
       vertexProvider as unknown as LLMProvider,
       vertexProvider as unknown as LLMProvider,
       vertexProvider as unknown as LLMProvider,
+      vertexProvider as unknown as LLMProvider,
     )
   })
 
