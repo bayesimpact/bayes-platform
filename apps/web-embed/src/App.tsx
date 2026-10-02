@@ -156,6 +156,7 @@ function LiveChat({
       isStreaming={isStreaming}
       onSendMessage={send}
       onClose={onClose}
+      onNewConversation={reset}
     />
   )
 }
@@ -175,6 +176,11 @@ function SimulatedChat({
 }) {
   const [messages, setMessages] = useState<AgentSessionMessageDto[]>(shortConversation)
   const [isStreaming, setIsStreaming] = useState(false)
+
+  const handleNewConversation = () => {
+    setIsStreaming(false)
+    setMessages([])
+  }
 
   useEffect(() => {
     function onMessage(event: MessageEvent) {
@@ -230,6 +236,7 @@ function SimulatedChat({
       isStreaming={isStreaming}
       onSendMessage={handleSendMessage}
       onClose={onClose}
+      onNewConversation={handleNewConversation}
     />
   )
 }

@@ -2,7 +2,8 @@
   "chat": {
     "header": {
       "defaultAgentName": "Assistant",
-      "closeAriaLabel": "Close chat"
+      "closeAriaLabel": "Close chat",
+      "newConversationAriaLabel": "New conversation"
     },
     "input": {
       "placeholder": "Type a message…",
