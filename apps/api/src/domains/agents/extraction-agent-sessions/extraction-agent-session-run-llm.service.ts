@@ -143,6 +143,7 @@ export class ExtractionAgentSessionRunLlmService extends LlmServiceBase {
           useExtendedTimeouts: true,
           priorityCallsEnabled: agentSettings.priorityCallsEnabled,
           llmFeatures,
+          thinkingLevel: agentSettings.thinkingLevel,
         }),
         metadata: this.buildLLMMetadata({ agent, agentSettings, run, connectScope }),
       })

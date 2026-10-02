@@ -109,6 +109,7 @@ export class StructuredExtractionAgentRunLlmService extends LlmServiceBase {
       temperature: agentWithSettings.settings.temperature,
       priorityCallsEnabled: agentWithSettings.settings.priorityCallsEnabled,
       llmFeatures: agentWithSettings.llmFeatures,
+      thinkingLevel: agentWithSettings.settings.thinkingLevel,
     })
 
     const llmMetadata: LLMMetadata = {

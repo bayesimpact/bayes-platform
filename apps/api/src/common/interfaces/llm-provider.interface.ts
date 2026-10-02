@@ -33,6 +33,7 @@ export type BuildLLMConfigParams = {
   priorityCallsEnabled: boolean
   llmFeatures: LLMFeatures
   useExtendedTimeouts?: boolean
+  thinkingLevel?: AgentThinkingLevel
 }
 export type LLMConfig =
   | {
