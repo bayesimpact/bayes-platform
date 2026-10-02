@@ -33,6 +33,7 @@ const meta = {
     isStreaming: false,
     onSendMessage: (content) => console.log("send:", content),
     onClose: () => console.log("close"),
+    onNewConversation: () => console.log("new conversation"),
   },
 } satisfies Meta<typeof EmbedChat>
 

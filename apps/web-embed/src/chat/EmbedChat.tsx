@@ -50,7 +50,9 @@ export type EmbedChatProps = {
   placeholder?: string
   /** Called when the user clicks the close button in the header */
   onClose?: () => void
-  /** Hide the branded header (agent name, logo, close). Useful when the host already has chrome. */
+  /** Called when the user clicks the new conversation button in the header */
+  onNewConversation?: () => void
+  /** Hide the branded header (agent name, logo, new conversation, close). Useful when the host already has chrome. */
   hideHeader?: boolean
   /** Optional notice pinned above the conversation (e.g. "Test version, staff only"). */
   bannerText?: string
@@ -85,6 +87,7 @@ function EmbedChatInner({
   onSendMessage,
   placeholder,
   onClose,
+  onNewConversation,
   hideHeader = false,
   bannerText,
 }: EmbedChatProps) {
@@ -113,7 +116,12 @@ function EmbedChatInner({
   return (
     <Chat primaryColor={theme?.primaryColor} displayMode={displayMode}>
       {!hideHeader && (
-        <ChatHeader agentName={agentName} logoUrl={theme?.logoUrl} onClose={onClose} />
+        <ChatHeader
+          agentName={agentName}
+          logoUrl={theme?.logoUrl}
+          onClose={onClose}
+          onNewConversation={onNewConversation}
+        />
       )}
 
       {bannerText && <ChatBanner text={bannerText} />}

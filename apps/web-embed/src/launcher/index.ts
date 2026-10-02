@@ -14,6 +14,10 @@
  * data-hint:
  *   Optional short text shown next to the FAB for 5 seconds on page load
  *   and again whenever the user hovers the button.
+ *
+ * window.__agentStudioResetSession():
+ *   Starts a new conversation in the widget, for example when the visitor
+ *   logs out of the host site.
  */
 
 declare global {
@@ -24,6 +28,11 @@ declare global {
      * No-op if called before the launcher has initialised.
      */
     __agentStudioSetHint?: (text: string) => void
+    /**
+     * Drops the stored conversation and starts a new one in the widget.
+     * Exposed by the launcher once the iframe is injected.
+     */
+    __agentStudioResetSession?: () => void
   }
 }
 
@@ -134,6 +143,7 @@ function injectModalWidget({ position, color, iframeSrc, hint }: WidgetOptions) 
   container.appendChild(iframe)
   container.appendChild(row)
   document.body.appendChild(container)
+  exposeResetSession(iframe, iframeSrc)
 }
 
 // ─── Drawer (full-height side panel) ──────────────────────────────────────
@@ -233,9 +243,21 @@ function injectDrawerWidget({ position, color, iframeSrc, hint }: WidgetOptions)
 
   document.body.appendChild(overlay)
   document.body.appendChild(row)
+  exposeResetSession(iframe, iframeSrc)
 }
 
 // ─── Shared helpers ────────────────────────────────────────────────────────
+
+/**
+ * Lets the host page start a new conversation. The widget keeps the session
+ * in its own localStorage, which the host page cannot reach.
+ */
+function exposeResetSession(iframe: HTMLIFrameElement, iframeSrc: string) {
+  const targetOrigin = new URL(iframeSrc, window.location.href).origin
+  window.__agentStudioResetSession = () => {
+    iframe.contentWindow?.postMessage({ type: "agent-studio:reset-session" }, targetOrigin)
+  }
+}
 
 /**
  * Wraps the FAB button (and an optional hint bubble) in a flex row.

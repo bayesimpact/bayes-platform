@@ -1,4 +1,4 @@
-import { SparklesIcon, XIcon } from "lucide-react"
+import { SparklesIcon, SquarePenIcon, XIcon } from "lucide-react"
 import type * as React from "react"
 import { useTranslation } from "react-i18next"
 import { cn } from "../lib/cn"
@@ -7,12 +7,14 @@ export function ChatHeader({
   agentName,
   logoUrl,
   onClose,
+  onNewConversation,
   className,
   ...props
 }: React.ComponentProps<"div"> & {
   agentName?: string
   logoUrl?: string
   onClose?: () => void
+  onNewConversation?: () => void
 }) {
   const { t } = useTranslation("chat")
   const displayName = agentName ?? t("header.defaultAgentName")
@@ -32,6 +34,17 @@ export function ChatHeader({
         </div>
       )}
       <span className="flex-1 font-medium">{displayName}</span>
+      {onNewConversation && (
+        <button
+          type="button"
+          aria-label={t("header.newConversationAriaLabel")}
+          title={t("header.newConversationAriaLabel")}
+          onClick={onNewConversation}
+          className="flex size-8 items-center justify-center rounded-full text-white/60 transition-colors hover:bg-white/20 hover:text-white"
+        >
+          <SquarePenIcon className="size-4" />
+        </button>
+      )}
       {onClose && (
         <button
           type="button"
