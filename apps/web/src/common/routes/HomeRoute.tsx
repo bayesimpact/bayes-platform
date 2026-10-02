@@ -1,6 +1,7 @@
 import { useEffect } from "react"
 import { useAuth } from "react-oidc-context"
 import { useNavigate } from "react-router-dom"
+import { readLoginHint } from "@/common/auth/login-hint"
 import { useAuthCallbackError } from "@/common/auth/use-auth-callback-error"
 import { login } from "@/external/oidcClient"
 import { AuthErrorRoute } from "./AuthErrorRoute"
@@ -18,7 +19,7 @@ export function HomeRoute() {
     if (isAuthenticated) {
       navigate(RouteNames.ONBOARDING)
     } else {
-      login()
+      login({ loginHint: readLoginHint() })
     }
   }, [callbackError, isAuthenticated, isLoading, navigate])
 

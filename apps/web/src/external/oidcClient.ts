@@ -69,8 +69,9 @@ export async function getAccessToken(): Promise<string> {
   return tokenRefreshPromise
 }
 
-export async function login(): Promise<void> {
-  await getUserManager().signinRedirect()
+/** `loginHint` pre-fills the email on the provider's screens (OIDC `login_hint`). */
+export async function login({ loginHint }: { loginHint?: string } = {}): Promise<void> {
+  await getUserManager().signinRedirect(loginHint ? { login_hint: loginHint } : undefined)
 }
 
 /**
