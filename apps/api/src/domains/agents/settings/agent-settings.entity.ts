@@ -74,4 +74,7 @@ export class AgentSettings extends ConnectEntityBase {
 
   @Column({ type: "varchar", name: "thinking_level", nullable: false, default: "auto" })
   thinkingLevel!: AgentThinkingLevel
+
+  @Column({ type: "jsonb", nullable: true, name: "provider_options" })
+  providerOptions!: Record<string, unknown> | null
 }

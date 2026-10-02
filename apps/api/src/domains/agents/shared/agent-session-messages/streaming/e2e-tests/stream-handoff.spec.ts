@@ -16,7 +16,7 @@ import {
 } from "@/common/test/test-database"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
 import { createOrganizationWithAgentAndSubAgents } from "@/domains/organizations/organization.factory"
-import type { AISDKMockProvider } from "@/external/llm/providers/ai-sdk-mock.provider"
+import type { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.provider"
 import { setupUserGuardForTesting } from "../../../../../../../test/e2e.helpers"
 import { CHILD_FIRST_TURN_TRIGGER, PARENT_RESUME_TRIGGER } from "../handoff-turn-loop"
 import { StreamingModule } from "../streaming.module"

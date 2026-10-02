@@ -50,6 +50,7 @@ export const agentSettingsFactory = AgentSettingsFactory.define(
       fillFormEnabled: params.fillFormEnabled ?? false,
       thinkingLevel: params.thinkingLevel || AgentThinkingLevel.Auto,
       priorityCallsEnabled: params.priorityCallsEnabled ?? false,
+      providerOptions: params.providerOptions ?? null,
       organizationId: transientParams.organization.id,
       projectId: transientParams.project.id,
       agentId: transientParams.agent.id,

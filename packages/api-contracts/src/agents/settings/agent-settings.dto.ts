@@ -30,7 +30,7 @@ export enum AgentProvider {
   Vertex3 = "VERTEX-3",
   _Mock = "MOCK",
 }
-export const AgentModelToAgentProvider: Record<AgentModel, AgentProvider> = {
+export const AgentModelToAgentProvider = {
   [AgentModel.Gemini25Flash]: AgentProvider.Vertex,
   [AgentModel.Gemini25Pro]: AgentProvider.Vertex,
   [AgentModel.Gemini31FlashLite]: AgentProvider.Vertex3,
@@ -43,7 +43,16 @@ export const AgentModelToAgentProvider: Record<AgentModel, AgentProvider> = {
   [AgentModel.Gemma4_26B]: AgentProvider.Gemma,
   [AgentModel.MistralSmall31_24B]: AgentProvider.Mistral,
   [AgentModel._Mock]: AgentProvider._Mock,
-}
+} as const satisfies Record<AgentModel, AgentProvider>
+
+/**
+ * The models a provider serves, read from `AgentModelToAgentProvider`. A `Record` keyed on it
+ * fails to compile when a model is mapped to the provider without an entry.
+ */
+export type AgentModelOf<Provider extends AgentProvider> = {
+  [Model in AgentModel]: (typeof AgentModelToAgentProvider)[Model] extends Provider ? Model : never
+}[AgentModel]
+
 export type AgentModelDeprecation = {
   /** ISO date (YYYY-MM-DD) on which the provider retires the model. */
   deprecatedOn: string

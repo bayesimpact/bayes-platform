@@ -15,7 +15,7 @@ import { agentFactory } from "@/domains/agents/agent.factory"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { agentSubAgentFactory } from "@/domains/agents/sub-agents/agent-sub-agent.factory"
 import { addFeature } from "@/domains/organizations/organization.factory"
-import type { AISDKMockProvider } from "@/external/llm/providers/ai-sdk-mock.provider"
+import type { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.provider"
 import { createEmbedConfigWithSession } from "../../public-chat.factory"
 import { PublicChatModule } from "../../public-chat.module"
 

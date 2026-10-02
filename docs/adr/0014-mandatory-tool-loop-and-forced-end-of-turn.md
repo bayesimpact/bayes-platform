@@ -3,7 +3,7 @@
 * **Status**: Superseded by ADR 0016 (post-turn classification and inline citations)
 * **Date**: 2026-07-30
 * **Deciders**: Jérémie
-* **Scope**: Backend `apps/api` — streaming pipeline (`external/llm/ai-sdk-llm-provider-base.ts`, `domains/agents/.../streaming/tools.service.ts`, `tools/mandatory.tool.ts`).
+* **Scope**: Backend `apps/api` — streaming pipeline (`external/llm/ai-sdk/ai-sdk-llm-provider-base.ts`, `external/llm/ai-sdk/ai-sdk-llm-tools-mgmt.ts` for the stop conditions, `domains/agents/.../streaming/tools.service.ts`, `tools/mandatory.tool.ts`).
 
 ---
 
@@ -134,7 +134,7 @@ attempt, best-effort (a failure logs loudly and never breaks the stream).
 
 ## 5. References
 
-* Live regression suites: `apps/api/src/external/llm/providers/live-regressions/`
+* Live regression suites: `apps/api/src/external/llm/ai-sdk/providers/live-regressions/`
   (all providers, CI-excluded) and the raw-API suites in the infra repo
   (`vllm/gemma4-regressions/`, `vertex/gemini-regressions/`,
   `vertex/anthropic-regressions/`).

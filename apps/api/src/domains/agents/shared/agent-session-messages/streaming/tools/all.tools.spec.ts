@@ -28,7 +28,7 @@ import {
   addFeature,
   createOrganizationWithAgent,
 } from "@/domains/organizations/organization.factory"
-import type { AISDKMockProvider } from "@/external/llm/providers/ai-sdk-mock.provider"
+import type { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.provider"
 import { McpClientService } from "@/external/mcp"
 import { DEFAULT_TOP_K } from "./lookup-knowledge-base.tool"
 

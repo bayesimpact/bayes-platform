@@ -105,7 +105,7 @@ export async function buildSubAgentTools({
   tools: ToolSet
   toolDescriptions: Record<string, string>
   hasSubAgentTools: boolean
-  /** The handoff tools: a call ends the turn (see terminalToolsStopCondition). */
+  /** The handoff tools: a call ends the turn (see AISDKLLMToolsMgmt.terminalToolsStopCondition). */
   terminalToolNames: string[]
   /** The handoff links, for the post-turn check of a hand-over announced without its tool. */
   handoffCandidates: Array<{ toolName: string; agentId: string; agentName: string }>
