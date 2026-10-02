@@ -5,7 +5,17 @@ import {
   type McpServerDto,
   McpServersRoutes,
 } from "@caseai-connect/api-contracts"
-import { Body, Controller, Delete, Get, Post, Req, UseGuards, UsePipes } from "@nestjs/common"
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Post,
+  Req,
+  UseGuards,
+  UsePipes,
+} from "@nestjs/common"
 import type {
   EndpointRequestWithAgent,
   EndpointRequestWithMcpServer,
@@ -17,7 +27,7 @@ import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { ZodValidationPipe } from "@/common/zod-validation-pipe"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { UserGuard } from "@/domains/users/user.guard"
-import { isBuiltInMcpServer } from "./built-in/built-in-mcp-servers"
+import { getSupportedAgentTypes, isBuiltInMcpServer } from "./built-in/built-in-mcp-servers"
 import type { McpServer } from "./mcp-server.entity"
 import { McpServerGuard } from "./mcp-server.guard"
 import type { McpServerConfig } from "./mcp-servers.service"
@@ -95,6 +105,11 @@ export class McpServersController {
   async enableForAgent(
     @Req() request: EndpointRequestWithAgentAndMcpServer,
   ): Promise<typeof McpServersRoutes.enableForAgent.response> {
+    if (!getSupportedAgentTypes(request.mcpServer).includes(request.agent.type)) {
+      throw new BadRequestException(
+        `MCP server "${request.mcpServer.name}" cannot be enabled on ${request.agent.type} agents`,
+      )
+    }
     await this.mcpServersService.enableForAgent(request.agent.id, request.mcpServer.id)
     return { data: { success: true } }
   }
@@ -152,6 +167,7 @@ function toMcpServerDto(
     url: config.url,
     projectId: entity.projectId,
     isBuiltIn: isBuiltInMcpServer(entity),
+    agentTypes: getSupportedAgentTypes(entity),
     authStatus,
     createdAt: entity.createdAt.getTime(),
     updatedAt: entity.updatedAt.getTime(),

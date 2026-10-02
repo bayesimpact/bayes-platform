@@ -188,6 +188,39 @@ describe("McpServers - agent linking", () => {
     ).toBeNull()
   })
 
+  describe("with an extraction agent", () => {
+    const useExtractionAgent = async () => {
+      await repositories.agentRepository.update({ id: agentId }, { type: "extraction" })
+    }
+    const enable = () =>
+      request({
+        route: McpServersRoutes.enableForAgent,
+        pathParams: removeNullish({ organizationId, projectId, mcpServerId, agentId }),
+        token: accessToken,
+      })
+
+    it("should not enable the PDF export server", async () => {
+      await createContext()
+      await useExtractionAgent()
+      mcpServerId = (await createBuiltInServer()).id
+
+      expectResponse(await enable(), 400)
+      expect(
+        await repositories.agentMcpServerRepository.findOne({ where: { agentId, mcpServerId } }),
+      ).toBeNull()
+    })
+
+    it("should enable a project server", async () => {
+      await createContext()
+      await useExtractionAgent()
+
+      expectResponse(await enable(), 201)
+      expect(
+        await repositories.agentMcpServerRepository.findOne({ where: { agentId, mcpServerId } }),
+      ).not.toBeNull()
+    })
+  })
+
   describe("with an agent from another project", () => {
     const enable = () =>
       request({

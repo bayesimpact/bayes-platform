@@ -123,8 +123,13 @@ describe("McpServers - list", () => {
       url: "https://pdf-converter.example.test/mcp",
       projectId: null,
       isBuiltIn: true,
+      agentTypes: ["conversation"],
     })
-    expect(servers[1]).toMatchObject({ projectId, isBuiltIn: false })
+    expect(servers[1]).toMatchObject({
+      projectId,
+      isBuiltIn: false,
+      agentTypes: ["conversation", "extraction"],
+    })
   })
 
   it("should return the built-in server in every project", async () => {

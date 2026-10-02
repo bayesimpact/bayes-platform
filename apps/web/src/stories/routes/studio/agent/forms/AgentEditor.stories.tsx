@@ -197,3 +197,21 @@ export const ConversationWithFillFormAndMcpServers: Story = {
     agentSettings: { ...fillFormAgentSettings, mcpServers: enabledMcpServers },
   },
 }
+
+/** The MCP tab lists the custom servers only: PDF export needs a chat answer to attach to. */
+export const ExtractionWithMcpServers: Story = {
+  decorators: [
+    withRedux({
+      state: mergeSeeds(
+        seed.currentProject(projectWithMcp),
+        seed.studio.documentTags(documentTags),
+        seed.studio.mcpServers(mcpServers),
+        seed.agents([extractionAgent], { currentId: extractionAgent.id }),
+      ),
+    }),
+  ],
+  args: {
+    agent: extractionAgent,
+    agentSettings: { ...extractionAgentSettings, mcpServers: enabledMcpServers },
+  },
+}

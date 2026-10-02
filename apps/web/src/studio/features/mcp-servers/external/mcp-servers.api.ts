@@ -65,6 +65,7 @@ const toMcpServer = (dto: McpServerDto): McpServer => ({
   url: dto.url,
   projectId: dto.projectId,
   isBuiltIn: dto.isBuiltIn,
+  agentTypes: dto.agentTypes,
   authStatus: dto.authStatus,
   createdAt: dto.createdAt,
   updatedAt: dto.updatedAt,

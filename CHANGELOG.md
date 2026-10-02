@@ -19,6 +19,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Fixed
 - Review campaigns: changing the targeted agent of a draft campaign is now saved.
 - Evaluation: reloading an extraction dataset page no longer shows an error.
+- MCP servers: extraction agents no longer offer the PDF export server, which only fits chat answers.
 
 ### Security
 

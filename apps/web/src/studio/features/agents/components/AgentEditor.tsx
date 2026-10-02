@@ -164,12 +164,20 @@ export function AgentEditor({
       })
     }
 
-    if (hasFeature("agent-mcp") && projectMcpServers.length > 0) {
+    // Some built-in servers only fit one agent type, e.g. PDF export needs a chat answer
+    const agentTypeMcpServers = projectMcpServers.filter((server) =>
+      server.agentTypes.includes(agent.type),
+    )
+    if (hasFeature("agent-mcp") && agentTypeMcpServers.length > 0) {
       list.push({
         value: "mcpServers",
         label: t("agentSettings:tabs.mcpServers"),
         render: () => (
-          <McpServersTab agentId={agent.id} agentMcpServers={agentSettings.mcpServers} />
+          <McpServersTab
+            agentId={agent.id}
+            agentMcpServers={agentSettings.mcpServers}
+            projectMcpServers={agentTypeMcpServers}
+          />
         ),
       })
     }

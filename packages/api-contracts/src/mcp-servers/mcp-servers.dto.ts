@@ -1,4 +1,5 @@
 import { z } from "zod"
+import type { AgentType } from "../agents/agents.dto"
 import type { TimeType } from "../generic"
 
 export type McpServerDto = {
@@ -9,6 +10,8 @@ export type McpServerDto = {
   projectId: string | null
   /** Provided by the platform: cannot be edited or deleted, only toggled per agent. */
   isBuiltIn: boolean
+  /** Agent types the server can be enabled on: some built-in servers only fit conversation agents. */
+  agentTypes: AgentType[]
   authStatus: McpServerAuthStatus
   createdAt: TimeType
   updatedAt: TimeType
