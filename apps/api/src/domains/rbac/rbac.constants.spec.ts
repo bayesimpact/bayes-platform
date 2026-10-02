@@ -3,6 +3,7 @@ import {
   AGENT_MEMBER_INVITE_PERMISSION,
   AGENT_ROLE_PERMISSIONS,
   APP_GRANTABLE_PERMISSIONS,
+  DESK_UI_READ_PERMISSION,
   DOCUMENT_CREATE_PERMISSION,
   DOCUMENT_DELETE_PERMISSION,
   DOCUMENT_READ_PERMISSION,
@@ -11,7 +12,6 @@ import {
   DOCUMENT_SOURCE_READ_PERMISSION,
   DOCUMENT_SOURCE_UPDATE_PERMISSION,
   DOCUMENT_UPDATE_PERMISSION,
-  EVALUATION_ACCESS_PERMISSION,
   EVALUATION_CONVERSATION_DATASET_CREATE_PERMISSION,
   EVALUATION_CONVERSATION_DATASET_DELETE_PERMISSION,
   EVALUATION_CONVERSATION_DATASET_READ_PERMISSION,
@@ -28,6 +28,7 @@ import {
   EVALUATION_EXTRACTION_RUN_DELETE_PERMISSION,
   EVALUATION_EXTRACTION_RUN_READ_PERMISSION,
   EVALUATION_EXTRACTION_RUN_UPDATE_PERMISSION,
+  EVALUATION_UI_READ_PERMISSION,
   intersectWithAppGrantablePermissions,
   ORGANIZATION_ROLE_PERMISSIONS,
   PROJECT_ANALYTICS_READ_PERMISSION,
@@ -42,6 +43,7 @@ import {
   RESOURCE_LIBRARY_READ_PERMISSION,
   RESOURCE_LIBRARY_UPDATE_PERMISSION,
   RESOURCE_TYPE_PERMISSIONS_MAP,
+  STUDIO_UI_READ_PERMISSION,
 } from "./rbac.constants"
 
 describe("intersectWithAppGrantablePermissions", () => {
@@ -190,24 +192,39 @@ describe("evaluation extraction dataset permissions", () => {
   })
 })
 
-describe("evaluation access permission", () => {
+describe("user interface permissions", () => {
   const rolesHolding = (rolePermissions: Record<string, readonly string[]>, permission: string) =>
     Object.entries(rolePermissions)
       .filter(([_roleKey, permissions]) => permissions.includes(permission))
       .map(([roleKey]) => roleKey)
 
-  it("grants evaluation.access to project owners and admins only", () => {
-    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, EVALUATION_ACCESS_PERMISSION)).toEqual([
+  it("grants desk.ui.read to every project role", () => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, DESK_UI_READ_PERMISSION)).toEqual([
+      "project_owner",
+      "project_admin",
+      "project_member",
+    ])
+  })
+
+  it.each([
+    STUDIO_UI_READ_PERMISSION,
+    EVALUATION_UI_READ_PERMISSION,
+  ])("grants %s to project owners and admins only", (permission) => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
       "project_owner",
       "project_admin",
     ])
-    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, EVALUATION_ACCESS_PERMISSION)).toEqual([])
-    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, EVALUATION_ACCESS_PERMISSION)).toEqual([])
   })
 
-  it("never inherits evaluation.access from the organization", () => {
+  it.each([
+    DESK_UI_READ_PERMISSION,
+    STUDIO_UI_READ_PERMISSION,
+    EVALUATION_UI_READ_PERMISSION,
+  ])("never grants %s on an organization or agent role, nor inherits it", (permission) => {
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
     const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
-    expect(inheritable).not.toContain(EVALUATION_ACCESS_PERMISSION)
+    expect(inheritable).not.toContain(permission)
   })
 })
 

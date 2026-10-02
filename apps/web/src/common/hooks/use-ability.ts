@@ -2,7 +2,6 @@ import type { OrganizationPermission, ProjectPermission } from "@caseai-connect/
 import { useCallback, useMemo } from "react"
 import {
   selectAgentMemberships,
-  selectProjectMemberships,
   selectReviewCampaignMemberships,
 } from "@/common/features/me/me.selectors"
 import { selectOrganizationsList } from "@/common/features/organizations/organizations.selectors"
@@ -13,7 +12,6 @@ import { SUPER_ROLES } from "../features/me/me.models"
 export function useAbility() {
   const organizations = useAppSelector(selectOrganizationsList)
   const myProjects = useAppSelector(selectMyProjectsList)
-  const projectMemberships = useAppSelector(selectProjectMemberships)
   const agentMemberships = useAppSelector(selectAgentMemberships)
   const reviewCampaignMemberships = useAppSelector(selectReviewCampaignMemberships)
 
@@ -53,19 +51,21 @@ export function useAbility() {
     [hasOrganizationPermission],
   )
 
+  const canAccessDesk = useCallback(
+    ({ projectId }: { projectId: string | null }) =>
+      hasProjectPermission({ projectId, permission: "desk.ui.read" }),
+    [hasProjectPermission],
+  )
+
   const canAccessStudio = useCallback(
-    ({ projectId }: { projectId: string | null }) => {
-      const isProjectOwnerOrAdmin = [...(projectMemberships ?? [])].some(
-        (membership) => membership.projectId === projectId && SUPER_ROLES.includes(membership.role),
-      )
-      return isProjectOwnerOrAdmin
-    },
-    [projectMemberships],
+    ({ projectId }: { projectId: string | null }) =>
+      hasProjectPermission({ projectId, permission: "studio.ui.read" }),
+    [hasProjectPermission],
   )
 
   const canAccessEvaluation = useCallback(
     ({ projectId }: { projectId: string | null }) =>
-      hasProjectPermission({ projectId, permission: "evaluation.access" }),
+      hasProjectPermission({ projectId, permission: "evaluation.ui.read" }),
     [hasProjectPermission],
   )
 
@@ -104,6 +104,7 @@ export function useAbility() {
   return useMemo(
     () => ({
       abilities: {
+        canAccessDesk,
         canAccessStudio,
         canAccessEvaluation,
         canCreateProject,
@@ -114,6 +115,7 @@ export function useAbility() {
       },
     }),
     [
+      canAccessDesk,
       canAccessStudio,
       canAccessEvaluation,
       canCreateProject,

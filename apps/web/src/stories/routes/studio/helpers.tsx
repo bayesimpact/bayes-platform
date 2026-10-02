@@ -9,7 +9,7 @@ import {
 import type { User } from "@/common/features/me/me.models"
 import { organizationFactory } from "@/common/features/organizations/organization.factory"
 import type { Organization } from "@/common/features/organizations/organizations.models"
-import { projectFactory } from "@/common/features/projects/projects.factory"
+import { myProjectFactory, projectFactory } from "@/common/features/projects/projects.factory"
 import type { Project } from "@/common/features/projects/projects.models"
 import type { StoryPreloadedState } from "@/stories/decorators"
 import {
@@ -72,6 +72,13 @@ export function buildStudioData(input: StudioStoryArgs): {
     seed.me(user),
     seed.organizations([organization], { currentId: organization.id }),
     seed.projects([seededProject], { currentId: seededProject.id }),
+    seed.myProjects([
+      myProjectFactory.transient({ organization, role: projectMembershipRole }).build({
+        id: seededProject.id,
+        name: seededProject.name,
+        featureFlags: seededProject.featureFlags,
+      }),
+    ]),
     seed.agents(agents),
     seed.studio.projectPendingInvitations([]),
     seed.studio.agentPendingInvitations([]),

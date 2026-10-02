@@ -7,7 +7,7 @@ import {
 } from "@/common/features/me/me.factory"
 import type { User } from "@/common/features/me/me.models"
 import { organizationFactory } from "@/common/features/organizations/organization.factory"
-import { projectFactory } from "@/common/features/projects/projects.factory"
+import { myProjectFactory, projectFactory } from "@/common/features/projects/projects.factory"
 import { RouteNames } from "@/common/routes/helpers"
 import { onboardingRoute } from "@/common/routes/Router"
 import { buildDecorator, render } from "@/stories/decorators"
@@ -48,13 +48,17 @@ function buildData(args: StoryArgs) {
   const allProjects = [...fullProjectsByOrganizationId.values()].flat()
   const firstProject = allProjects[0]
 
-  const myProjects = allProjects.map((project) => ({
-    id: project.id,
-    name: project.name,
-    organizationId: project.organizationId,
-    featureFlags: project.featureFlags,
-    permissions: ["project.read"],
-  }))
+  const myProjects = allProjects.map((project) => {
+    const organization = organizations.find(
+      (organization) => organization.id === project.organizationId,
+    )
+    if (!organization) throw new Error("Project organization not found")
+    return myProjectFactory.transient({ organization, role: projectMembershipRole }).build({
+      id: project.id,
+      name: project.name,
+      featureFlags: project.featureFlags,
+    })
+  })
 
   const organizationMemberships = organizations.map((organization) =>
     organizationMembershipFactory

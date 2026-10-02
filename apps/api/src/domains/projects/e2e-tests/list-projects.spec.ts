@@ -125,7 +125,7 @@ describe("Projects - listProjects", () => {
     expect(projects.map((project) => project.name)).toContain("Project 2")
   })
 
-  it("should expose project permissions to project admins but not to members", async () => {
+  it("should expose admin permissions to project admins and desk access to members", async () => {
     const { organization, user } = await createContext()
 
     const adminProject = projectFactory.transient({ organization }).build({ name: "Admin" })
@@ -151,8 +151,13 @@ describe("Projects - listProjects", () => {
       response.body.data.map((project) => [project.name, project.permissions]),
     )
     expect([...(permissionsByName.Admin ?? [])].sort()).toEqual(
-      [DOCUMENT_SOURCE_READ_PERMISSION, "evaluation.access"].sort(),
+      [
+        DOCUMENT_SOURCE_READ_PERMISSION,
+        "desk.ui.read",
+        "studio.ui.read",
+        "evaluation.ui.read",
+      ].sort(),
     )
-    expect(permissionsByName.Member).toEqual([])
+    expect(permissionsByName.Member).toEqual(["desk.ui.read"])
   })
 })

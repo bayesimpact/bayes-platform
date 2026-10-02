@@ -76,11 +76,9 @@ function OpenButton({ apps }: { apps: AppData[] }) {
 
   const firstApp = canAccessStudio
     ? apps.find((app) => app.id === "studio")
-    : apps.find((app) => app.id === "desk")
+    : (apps.find((app) => app.id === "desk") ?? apps[0])
 
-  const filteredApps = canAccessStudio
-    ? apps.filter((app) => app.id !== "studio")
-    : apps.filter((app) => app.id !== "desk")
+  const filteredApps = apps.filter((app) => app !== firstApp)
 
   if (!firstApp) return null
   return (
@@ -138,8 +136,10 @@ function useAvailableApps({
     (membership) => membership.projectId === project.id,
   )
 
-  const desk = getAppData({ app: "desk", organizationId, projectId: project.id, t })
-  const apps: AppData[] = [desk]
+  const apps: AppData[] = []
+
+  if (abilities.canAccessDesk({ projectId: project.id }))
+    apps.push(getAppData({ app: "desk", organizationId, projectId: project.id, t }))
 
   if (abilities.canAccessStudio({ projectId: project.id }))
     apps.push(getAppData({ app: "studio", organizationId, projectId: project.id, t }))

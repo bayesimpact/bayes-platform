@@ -69,8 +69,15 @@ export const PROJECT_MEMBER_INVITE_PERMISSION = "project.member.invite" as const
  */
 export const AGENT_MEMBER_INVITE_PERMISSION = "agent.member.invite" as const
 
-/** Open the evaluation app of a project. Scoped to the project, never inherited from the organization. */
-export const EVALUATION_ACCESS_PERMISSION = "evaluation.access" as const
+/**
+ * Open a user interface of a project. One permission per app, scoped to the project
+ * and never inherited from the organization.
+ */
+export const DESK_UI_READ_PERMISSION = "desk.ui.read" as const
+
+export const STUDIO_UI_READ_PERMISSION = "studio.ui.read" as const
+
+export const EVALUATION_UI_READ_PERMISSION = "evaluation.ui.read" as const
 
 /**
  * Evaluation extraction datasets and the files they are built from. Scoped to the
@@ -237,7 +244,9 @@ export type OrganizationScopedPermission = (typeof ORGANIZATION_SCOPED_PERMISSIO
 
 /** Project-scoped permissions exposed on `ProjectDto.permissions`. */
 export const PROJECT_SCOPED_PERMISSIONS = [
-  EVALUATION_ACCESS_PERMISSION,
+  DESK_UI_READ_PERMISSION,
+  STUDIO_UI_READ_PERMISSION,
+  EVALUATION_UI_READ_PERMISSION,
   DOCUMENT_SOURCE_READ_PERMISSION,
 ] as const
 
