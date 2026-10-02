@@ -889,7 +889,13 @@ describe("PermissionService", () => {
         "project.read",
       )
 
-      expect(permissionsByProjectId.get(project.id)).toEqual([PROJECT_READ_PERMISSION])
+      expect(permissionsByProjectId.get(project.id)).toEqual([
+        PROJECT_READ_PERMISSION,
+        "csv_extraction_run.read",
+        "csv_extraction_run.create",
+        "csv_extraction_run.update",
+        "csv_extraction_run.delete",
+      ])
     })
 
     it("merges direct project permissions with inherited organization permissions", async () => {

@@ -5,14 +5,12 @@ import {
   ForbiddenException,
   Injectable,
 } from "@nestjs/common"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { Reflector } from "@nestjs/core"
 import type { EndpointRequestWithProject } from "@/common/context/request.interface"
 import { AUTH_ERRORS } from "@/common/errors/auth-errors"
-import { CHECK_POLICY_KEY, type PolicyHandler } from "@/common/policies/check-policy.decorator"
-import { requestToProjectPolicyContext } from "../../projects/helpers"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { PermissionService } from "@/domains/rbac/permission.service"
+import { CSV_EXTRACTION_RUN_PLAYGROUND_PERMISSION } from "@/domains/rbac/rbac.constants"
 import type { AgentCsvExtractionRun } from "./agent-csv-extraction-run.entity"
-import { AgentCsvExtractionRunPolicy } from "./agent-csv-extraction-run.policy"
 
 type GuardedRequest = EndpointRequestWithProject & {
   agentCsvExtractionRun?: AgentCsvExtractionRun
@@ -20,25 +18,26 @@ type GuardedRequest = EndpointRequestWithProject & {
   query?: unknown
 }
 
+/**
+ * Playground runs belong to the Studio surface, so on top of the route's `csv_extraction_run.*`
+ * permission they need `csv_extraction_run.playground` on the project. The run type comes from
+ * the request, which `@CheckPermission` cannot see, hence this guard after `CheckPermissionGuard`.
+ */
 @Injectable()
-export class AgentCsvExtractionRunGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+export class AgentCsvExtractionRunPlaygroundGuard implements CanActivate {
+  constructor(private readonly permissionService: PermissionService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest() as GuardedRequest
 
-    const policy = new AgentCsvExtractionRunPolicy(
-      requestToProjectPolicyContext(request),
-      request.agentCsvExtractionRun,
-      resolveRunType(request),
+    if (resolveRunType(request) !== "playground") return true
+
+    const isAllowed = await this.permissionService.has(
+      request.user.id,
+      CSV_EXTRACTION_RUN_PLAYGROUND_PERMISSION,
+      { type: "project", id: request.project.id },
     )
-
-    const policyHandler = this.reflector.getAllAndOverride<PolicyHandler>(CHECK_POLICY_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ])
-
-    if (!policyHandler || !policyHandler(policy)) {
+    if (!isAllowed) {
       throw new ForbiddenException(AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     }
 

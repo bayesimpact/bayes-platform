@@ -13,6 +13,7 @@ import {
   setupTransactionalTestDatabase,
   teardownTestDatabase,
 } from "@/common/test/test-transaction-manager"
+import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { AgentCsvExtractionRunStatusStreamService } from "../agent-csv-extraction-run-status-stream.service"
 import { AgentCsvExtractionRunsModule } from "../agent-csv-extraction-runs.module"
 import { createCsvExtractionRunContext } from "./csv-extraction-run.helpers"
@@ -51,6 +52,7 @@ describe("AgentCsvExtractionRuns.streamRunStatus", () => {
           .useValue({ events$: statusStreamSubject.asObservable() }),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
     await app.listen(0)

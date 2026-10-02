@@ -12,6 +12,7 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
+import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { AgentCsvExtractionRunsModule } from "../agent-csv-extraction-runs.module"
 import { createCsvExtractionRunContext } from "./csv-extraction-run.helpers"
@@ -48,6 +49,7 @@ describe("AgentCsvExtractionRuns - createOne", () => {
         }),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     expectActivityCreated = bindExpectActivityCreated(repositories.activityRepository)
     app = setup.module.createNestApplication()
     await app.init()
@@ -227,9 +229,9 @@ describe("AgentCsvExtractionRuns - createOne", () => {
   })
 
   it("lets a plain member create a run when asking for no revision", async () => {
-    // Positive control for the case above: `AgentCsvExtractionRunPolicy.canCreate()` is only
-    // `canAccess()`, so a plain member can create a run as long as they don't choose a version.
-    // Without this, a policy change that quietly blocked members here would go unnoticed while
+    // Positive control for the case above: project members hold `csv_extraction_run.create`, so a
+    // plain member can create a run as long as they don't choose a version.
+    // Without this, a grant change that quietly blocked members here would go unnoticed while
     // the 403 test above kept passing.
     await createContext("member")
 
