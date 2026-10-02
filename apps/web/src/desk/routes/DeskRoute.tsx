@@ -2,6 +2,7 @@ import { Outlet } from "react-router-dom"
 import { useInitStore } from "@/common/hooks/use-init-store"
 import { useSetCurrentIds } from "@/common/hooks/use-set-current-ids"
 import { LoadingRoute } from "@/common/routes/LoadingRoute"
+import { RestrictedAccess } from "@/studio/routes/RestrictedAccess"
 import { currentIdsActions } from "../store/currentIds.slice"
 import { injectDeskSlices, resetDeskSlices } from "../store/slices"
 
@@ -18,5 +19,9 @@ export function DeskRoute() {
 
 function Route() {
   useSetCurrentIds(currentIdsActions)
-  return <Outlet />
+  return (
+    <RestrictedAccess ability="canAccessDesk">
+      <Outlet />
+    </RestrictedAccess>
+  )
 }
