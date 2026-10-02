@@ -6,8 +6,15 @@
  * the contract sources change without a `PUBLIC_API_VERSION` bump, or when the
  * documentation does not carry the current version.
  *
- * Inputs (env): BASE_SHA, HEAD_SHA (default HEAD), PR_LABELS (comma-separated),
- * PR_NUMBER, PR_AUTHOR, GH_REPO, GH_TOKEN. Set SKIP_ACTOR_CHECK=1 for a local dry run.
+ * Inputs (env): BASE_SHA, HEAD_SHA (the pull request head; default: working tree),
+ * BASE_REF (base branch name, so the diff follows the current tip), PR_LABELS
+ * (comma-separated), PR_NUMBER, PR_AUTHOR, GH_REPO, GH_TOKEN.
+ * Set SKIP_ACTOR_CHECK=1 for a local dry run.
+ *
+ * On a pull_request, github.sha is a merge into the latest base, while
+ * pull_request.base.sha can stay at the commit from when the PR opened. Diffing
+ * those two includes files that already landed on the base. The gate diffs the
+ * PR head against the merge base with the current base branch instead.
  *
  * Local dry run (HEAD_SHA unset: the working tree is compared, untracked files included):
  *   BASE_SHA=$(git merge-base origin/main HEAD) PR_LABELS="" node .github/scripts/public-contract-check.mjs
@@ -48,6 +55,9 @@ const CHANGELOG_PAGES = DOC_PAGES.filter((page) => page.endsWith("public-chat-ap
 
 const baseSha = requireEnv("BASE_SHA")
 const headSha = process.env.HEAD_SHA || "HEAD"
+// Fork point of the PR head and the current base. Files changed only on the base
+// after that point are not changes by this pull request.
+const diffBase = resolveDiffBase(baseSha, headSha)
 const labels = (process.env.PR_LABELS ?? "")
   .split(",")
   .map((label) => label.trim())
@@ -58,7 +68,7 @@ const notes = []
 // Without HEAD_SHA (local dry run) the working tree is compared, untracked files included.
 const changedFiles = [
   ...(process.env.HEAD_SHA
-    ? git("diff", "--name-only", baseSha, headSha)
+    ? git("diff", "--name-only", diffBase, headSha)
     : git("diff", "--name-only", baseSha) + git("ls-files", "--others", "--exclude-standard")
   ).split("\n"),
 ]
@@ -73,7 +83,12 @@ const versionPathsTouched = touches(VERSION_PATHS)
 const headVersion = existsSync(VERSION_FILE)
   ? readVersion(readFileSync(VERSION_FILE, "utf8"))
   : null
-const baseVersion = readVersion(gitShowOrNull(`${baseSha}:${VERSION_FILE}`))
+const baseVersion = readVersion(gitShowOrNull(`${diffBase}:${VERSION_FILE}`))
+// Version bump is judged on the PR head, not the merge commit. A bump that
+// already landed on the base must not satisfy a pull request that did not bump.
+const prHeadVersion = process.env.HEAD_SHA
+  ? readVersion(gitShowOrNull(`${headSha}:${VERSION_FILE}`))
+  : headVersion
 if (!headVersion) failures.push(`${VERSION_FILE} does not define PUBLIC_API_VERSION.`)
 
 // Always on: the published documentation must carry the code version.
@@ -155,18 +170,19 @@ function checkVersionBump() {
   notes.push(
     `Contract sources changed:\n${versionPathsTouched.map((file) => `- ${file}`).join("\n")}`,
   )
-  if (headVersion && headVersion === baseVersion) {
+  if (prHeadVersion && prHeadVersion === baseVersion) {
     failures.push(
-      `The contract sources changed but PUBLIC_API_VERSION is still ${headVersion}. Bump it in ${VERSION_FILE}.`,
+      `The contract sources changed but PUBLIC_API_VERSION is still ${prHeadVersion}. Bump it in ${VERSION_FILE}.`,
     )
   } else {
-    notes.push(`PUBLIC_API_VERSION: ${baseVersion ?? "none"} -> ${headVersion}.`)
+    notes.push(`PUBLIC_API_VERSION: ${baseVersion ?? "none"} -> ${prHeadVersion}.`)
   }
   for (const page of CHANGELOG_PAGES) {
-    if (!existsSync(page)) continue
-    const heading = new RegExp(`^## ${escapeRegex(headVersion ?? "")} \\(`, "m")
-    if (!heading.test(readFileSync(page, "utf8"))) {
-      failures.push(`${page} has no "## ${headVersion} (<date>)" entry for this version.`)
+    const source = readRevisionFile(headSha, page)
+    if (!source) continue
+    const heading = new RegExp(`^## ${escapeRegex(prHeadVersion ?? "")} \\(`, "m")
+    if (!heading.test(source)) {
+      failures.push(`${page} has no "## ${prHeadVersion} (<date>)" entry for this version.`)
     }
   }
 }
@@ -183,6 +199,18 @@ function report() {
   const text = lines.join("\n")
   console.log(text)
   if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${text}\n`)
+}
+
+function resolveDiffBase(baseSha, headSha) {
+  if (!process.env.HEAD_SHA) return baseSha
+  const baseRef = process.env.BASE_REF?.trim()
+  const left = baseRef ? (baseRef.startsWith("origin/") ? baseRef : `origin/${baseRef}`) : baseSha
+  return git("merge-base", left, headSha).trim()
+}
+
+function readRevisionFile(revision, filePath) {
+  if (!process.env.HEAD_SHA) return existsSync(filePath) ? readFileSync(filePath, "utf8") : null
+  return gitShowOrNull(`${revision}:${filePath}`)
 }
 
 function requireEnv(name) {

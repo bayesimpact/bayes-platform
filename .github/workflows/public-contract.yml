@@ -29,10 +29,17 @@ jobs:
           node-version: '24.x'
 
       - name: Check the public API contract gate
-        run: node .github/scripts/public-contract-check.mjs
+        # Fetch the base tip, then diff the PR head against its merge base.
+        # github.sha is a merge into the latest base, and pull_request.base.sha
+        # can stay at the commit from when the PR opened. Diffing those two
+        # lists files that already landed on the base.
+        run: |
+          git fetch --no-tags origin "$BASE_REF"
+          node .github/scripts/public-contract-check.mjs
         env:
+          BASE_REF: ${{ github.base_ref }}
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           PR_AUTHOR: ${{ github.event.pull_request.user.login }}
           PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
