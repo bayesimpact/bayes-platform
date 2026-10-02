@@ -32,6 +32,7 @@ import { useForm } from "react-hook-form"
 import { useNavigate } from "react-router-dom"
 import type { z } from "zod"
 import { BackofficeOrganizationRoutes } from "@/backoffice/routes/helpers"
+import { selectCanCreateOrganization } from "@/common/features/me/me.selectors"
 import { useMount } from "@/common/hooks/use-mount"
 import { useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
@@ -70,6 +71,7 @@ function WithData() {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const query = useAppSelector(selectBackofficeOrganizationsQuery)
+  const canCreateOrganization = useAppSelector(selectCanCreateOrganization)
   const [searchInput, setSearchInput] = useState(query.search)
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -140,7 +142,7 @@ function WithData() {
             placeholder="Search by name or UUID…"
           />
         </div>
-        <CreateOrganizationDialog />
+        {canCreateOrganization && <CreateOrganizationDialog />}
       </div>
       <Table>
         <TableHeader className="bg-muted/50">

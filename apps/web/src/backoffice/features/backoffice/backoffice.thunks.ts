@@ -1,6 +1,7 @@
 import type { FeatureFlagKey } from "@caseai-connect/api-contracts"
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import type { RootState, ThunkExtraArg } from "@/common/store"
+import { getApiErrorMessage } from "@/common/utils/api-error"
 
 import type {
   AppManifest,
@@ -33,7 +34,12 @@ const listOrganizations = createAsyncThunk<
 const createOrganization = createAsyncThunk<BackofficeOrganization, { name: string }, ThunkConfig>(
   "backoffice/createOrganization",
   async (params, { extra: { services } }) => {
-    return services.backoffice.createOrganization(params)
+    try {
+      return await services.backoffice.createOrganization(params)
+    } catch (error) {
+      // Surface the API's message (e.g. a missing permission) instead of axios' raw status line.
+      throw new Error(getApiErrorMessage(error, "Something went wrong, please try again."))
+    }
   },
 )
 

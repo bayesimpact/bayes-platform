@@ -47,6 +47,7 @@ export type BackofficeStoryArgs = {
   isBackofficeAuthorized: boolean
   isTermsManagementAuthorized: boolean
   isAppManagementAuthorized: boolean
+  canCreateOrganization: boolean
   withOrganizations: boolean
   withAgents: boolean
   withProjects: boolean
@@ -59,6 +60,7 @@ export const backofficeStoryArgs = {
   isBackofficeAuthorized: true,
   isTermsManagementAuthorized: false,
   isAppManagementAuthorized: false,
+  canCreateOrganization: true,
   withOrganizations: true,
   withAgents: true,
   withProjects: true,
@@ -71,6 +73,7 @@ export const backofficeStoryArgTypes = {
   isBackofficeAuthorized: { control: "boolean" },
   isTermsManagementAuthorized: { control: "boolean" },
   isAppManagementAuthorized: { control: "boolean" },
+  canCreateOrganization: { control: "boolean" },
   withOrganizations: { control: "boolean" },
   withAgents: { control: "boolean" },
   withProjects: { control: "boolean" },
@@ -94,6 +97,7 @@ export function buildBackofficeData(args: BackofficeStoryArgs): {
       ...(args.isBackofficeAuthorized ? (["backoffice.read"] as const) : []),
       ...(args.isTermsManagementAuthorized ? (["backoffice.terms.update"] as const) : []),
       ...(args.isAppManagementAuthorized ? (["backoffice.app.manage"] as const) : []),
+      ...(args.canCreateOrganization ? (["organization.create"] as const) : []),
     ],
   })
 
