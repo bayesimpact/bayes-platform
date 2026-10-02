@@ -2,17 +2,20 @@ import { Button } from "@caseai-connect/ui/shad/button"
 import { useTranslation } from "react-i18next"
 import { useLocation } from "react-router-dom"
 import type { AuthCallbackError } from "@/common/auth/auth-callback-error"
+import { signInErrorKey } from "@/common/auth/sign-in-error-key"
 import { getAppUrl } from "@/config/runtime-config"
 import { logout } from "@/external/oidcClient"
 
 /**
  * Shown when the identity provider comes back with an error instead of a
- * session. Explains the error and lets the user retry or log out, instead of
- * bouncing to the provider again in a loop.
+ * session, or when the API refuses a first sign-in. Explains the error and lets
+ * the user retry or log out, instead of bouncing to the provider again in a loop.
+ * The refusals the API explains get their own message and what to do next.
  */
 export function AuthErrorRoute({ error }: { error: AuthCallbackError }) {
   const { t } = useTranslation("auth", { keyPrefix: "callbackError" })
   const location = useLocation()
+  const knownError = signInErrorKey(error.description)
 
   const retry = () => {
     // A full reload drops the error parameters and the error the OIDC client
@@ -28,9 +31,15 @@ export function AuthErrorRoute({ error }: { error: AuthCallbackError }) {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-4 text-center">
-      <p className="text-4xl font-bold">{t("title")}</p>
-      <p className="text-xl">{error.description ?? error.code}</p>
-      <p className="text-muted-foreground max-w-prose">{t("hint")}</p>
+      <p className="text-4xl font-bold">
+        {knownError ? t(`signInRefused.${knownError}.title`) : t("title")}
+      </p>
+      <p className="text-xl max-w-prose">
+        {knownError ? t(`signInRefused.${knownError}.message`) : (error.description ?? error.code)}
+      </p>
+      <p className="text-muted-foreground max-w-prose">
+        {knownError ? t(`signInRefused.${knownError}.hint`) : t("hint")}
+      </p>
       <div className="flex gap-2">
         <Button onClick={retry}>
           <span className="capitalize-first">{t("retry")}</span>
