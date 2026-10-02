@@ -4,7 +4,24 @@
       "title": "Connexion impossible",
       "hint": "Le fournisseur d'identité a refusé la connexion. Si le problème persiste, contactez l'administrateur de la plateforme avec le message ci-dessus.",
       "retry": "réessayer",
-      "logout": "se déconnecter"
+      "logout": "se déconnecter",
+      "signInRefused": {
+        "emailNotVerified": {
+          "title": "Vérifiez votre email",
+          "message": "Un compte attend votre adresse email, mais votre fournisseur d'identité ne l'a pas encore vérifiée.",
+          "hint": "Ouvrez l'email de vérification envoyé par votre fournisseur d'identité, en regardant aussi dans vos spams. Cliquez sur le lien qu'il contient, puis sur réessayer."
+        },
+        "emailRequired": {
+          "title": "Adresse email manquante",
+          "message": "Votre fournisseur d'identité n'a pas transmis votre adresse email à la plateforme.",
+          "hint": "La plateforme en a besoin pour retrouver vos invitations. Contactez l'administrateur de la plateforme."
+        },
+        "emailLinkingDisabled": {
+          "title": "Compte déjà existant",
+          "message": "Un compte existe déjà pour votre adresse email, et cette plateforme ne relie pas les connexions aux comptes existants.",
+          "hint": "Contactez l'administrateur de la plateforme."
+        }
+      }
     },
     "noAccess": {
       "title": "Pas encore d'accès",
