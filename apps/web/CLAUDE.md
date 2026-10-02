@@ -347,6 +347,10 @@ Each story passes both (a) the seeded state for the decorator AND (b) the matchi
 - Only add a feature key when the label is genuinely domain-specific (e.g. `"Surface resources"`), not a generic verb. When the same generic verb keeps recurring across features, promote it to the `actions`/`status` namespace instead of repeating it per feature.
 - A label like `"Enregistrer les modifications"` / `"Save changes"` should reuse `actions:save` (or `actions:update`) rather than introducing a new key.
 
+## Reproducing Loading and Timing Bugs
+
+Use the `web-harness` skill (`apps/web/harness/`) to run the real app without the identity provider or the API, with per-call latency, and drive it with headless Chromium. Stories cannot reproduce these bugs because they skip the listener middleware.
+
 ## Completion Criteria
 
 Before marking web work as completed:
