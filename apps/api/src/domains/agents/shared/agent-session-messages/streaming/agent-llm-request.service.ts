@@ -146,6 +146,7 @@ export class AgentLlmRequestService {
       terminalToolNames,
       priorityCallsEnabled: agentSettings.priorityCallsEnabled,
       llmFeatures,
+      thinkingLevel: agentSettings.thinkingLevel,
     })
 
     const metadata: LLMMetadata = this.buildLLMData({

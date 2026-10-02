@@ -53,16 +53,7 @@ export type BuiltTools = {
   terminalToolNames: string[]
 }
 
-type BuildLLMConfig = (params: {
-  model: AgentSettings["model"]
-  systemPrompt: string
-  temperature: AgentSettings["temperature"]
-  tools?: ToolSet
-  fireAndForgetToolNames?: string[]
-  terminalToolNames?: string[]
-  priorityCallsEnabled: boolean
-  llmFeatures: LLMFeatures
-}) => LLMConfig
+type BuildLLMConfig = (params: BuildLLMConfigParams) => LLMConfig
 
 type GenerateMasterPrompt = (params: {
   agent: Agent
@@ -313,6 +304,7 @@ async function runSubAgentTool({
       fireAndForgetToolNames,
       priorityCallsEnabled: childAgentSettings.priorityCallsEnabled,
       llmFeatures,
+      thinkingLevel: childAgentSettings.thinkingLevel,
     })
 
     const metadata = buildSubAgentMetadata({

@@ -13,7 +13,8 @@ type AgentWithSettingsRunJobPayloadBase = Pick<Agent, "id" | "name" | "type"> &
     | "locale"
     | "priorityCallsEnabled"
   > &
-  Partial<Pick<AgentSettings, "outputJsonSchema" | "greetingMessage">>
+  // thinkingLevel is optional: jobs queued before it existed still run, on Auto.
+  Partial<Pick<AgentSettings, "outputJsonSchema" | "greetingMessage" | "thinkingLevel">>
 
 export type AgentWithSettingsRunJobPayload = {
   settings: AgentWithSettingsRunJobPayloadBase
