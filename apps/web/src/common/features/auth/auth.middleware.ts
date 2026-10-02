@@ -4,6 +4,7 @@ import { meActions } from "@/common/features/me/me.slice"
 import { fetchMe } from "@/common/features/me/me.thunks"
 import { organizationsActions } from "@/common/features/organizations/organizations.slice"
 import { fetchOrganizations } from "@/common/features/organizations/organizations.thunks"
+import { fetchMyProjects } from "@/common/features/projects/projects.thunks"
 import type { AppDispatch, RootState } from "@/common/store/types"
 
 // Create typed listener middleware
@@ -24,9 +25,14 @@ listenerMiddleware.startListening({
 
     if (isAuthenticated) {
       // /me links a first sign-in to the account of a person added by email,
-      // so it runs before the organization list that depends on it.
+      // so it runs before the organization and project lists that depend on it.
+      // The project list carries the permissions that open each app, so it loads
+      // here and not only on the home page: a deep link would otherwise never get it.
       await listenerApi.dispatch(fetchMe())
-      await listenerApi.dispatch(fetchOrganizations())
+      await Promise.all([
+        listenerApi.dispatch(fetchOrganizations()),
+        listenerApi.dispatch(fetchMyProjects()),
+      ])
     } else {
       // User logged out - clear user and organizations state
       listenerApi.dispatch(meActions.reset())
