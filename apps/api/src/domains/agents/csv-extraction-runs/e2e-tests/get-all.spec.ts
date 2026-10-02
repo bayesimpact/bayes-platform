@@ -11,6 +11,7 @@ import { removeNullish } from "@/common/utils/remove-nullish"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { userFactory } from "@/domains/users/user.factory"
+import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { agentCsvExtractionRunFactory } from "../agent-csv-extraction-run.factory"
 import { AgentCsvExtractionRunsModule } from "../agent-csv-extraction-runs.module"
@@ -46,6 +47,7 @@ describe("AgentCsvExtractionRuns - getAll", () => {
         }),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)

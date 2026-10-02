@@ -33,7 +33,6 @@ import { getRequiredConnectScope } from "@/common/context/request-context.helper
 import { AddContext, RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
-import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -45,13 +44,21 @@ import {
   FILE_STORAGE_SERVICE,
   type IFileStorage,
 } from "@/domains/documents/storage/file-storage.interface"
+import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
+import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
+import {
+  CSV_EXTRACTION_RUN_CREATE_PERMISSION,
+  CSV_EXTRACTION_RUN_DELETE_PERMISSION,
+  CSV_EXTRACTION_RUN_READ_PERMISSION,
+  CSV_EXTRACTION_RUN_UPDATE_PERMISSION,
+} from "@/domains/rbac/rbac.constants"
 import { UserGuard } from "@/domains/users/user.guard"
 import { getTraceUrl } from "@/external/llm/trace-url"
 import type { BaseAgentSessionType } from "../base-agent-sessions/base-agent-sessions.types"
 import type { AgentCsvExtractionRun } from "./agent-csv-extraction-run.entity"
-import { AgentCsvExtractionRunGuard } from "./agent-csv-extraction-run.guard"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentCsvExtractionRunCsvExportService } from "./agent-csv-extraction-run-csv-export.service"
+import { AgentCsvExtractionRunPlaygroundGuard } from "./agent-csv-extraction-run-playground.guard"
 import type { AgentCsvExtractionRunRecord } from "./agent-csv-extraction-run-record.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentCsvExtractionRunStatusNotifierService } from "./agent-csv-extraction-run-status-notifier.service"
@@ -60,7 +67,13 @@ import { AgentCsvExtractionRunStatusStreamService } from "./agent-csv-extraction
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentCsvExtractionRunsService } from "./agent-csv-extraction-runs.service"
 
-@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, AgentCsvExtractionRunGuard)
+@UseGuards(
+  JwtAuthGuard,
+  UserGuard,
+  ResourceContextGuard,
+  CheckPermissionGuard,
+  AgentCsvExtractionRunPlaygroundGuard,
+)
 @RequireContext("organization", "project", "agent")
 @Controller()
 export class AgentCsvExtractionRunsController {
@@ -78,7 +91,7 @@ export class AgentCsvExtractionRunsController {
   ) {}
 
   @Post(AgentCsvExtractionRunsRoutes.createOne.path)
-  @CheckPolicy((policy) => policy.canCreate())
+  @CheckPermission(CSV_EXTRACTION_RUN_CREATE_PERMISSION, "project")
   @TrackActivity({ action: "agentCsvExtractionRun.create" })
   async createOne(
     @Req() request: EndpointRequestWithAgent,
@@ -149,7 +162,7 @@ export class AgentCsvExtractionRunsController {
 
   @Post(AgentCsvExtractionRunsRoutes.executeOne.path)
   @AddContext("agentCsvExtractionRun")
-  @CheckPolicy((policy) => policy.canUpdate())
+  @CheckPermission(CSV_EXTRACTION_RUN_UPDATE_PERMISSION, "project")
   @TrackActivity({ action: "agentCsvExtractionRun.execute" })
   async executeOne(
     @Req() request: EndpointRequestWithAgentCsvExtractionRun,
@@ -169,7 +182,7 @@ export class AgentCsvExtractionRunsController {
 
   @Post(AgentCsvExtractionRunsRoutes.retryOne.path)
   @AddContext("agentCsvExtractionRun")
-  @CheckPolicy((policy) => policy.canUpdate())
+  @CheckPermission(CSV_EXTRACTION_RUN_UPDATE_PERMISSION, "project")
   @TrackActivity({ action: "agentCsvExtractionRun.retry" })
   async retryOne(
     @Req() request: EndpointRequestWithAgentCsvExtractionRun,
@@ -197,7 +210,7 @@ export class AgentCsvExtractionRunsController {
 
   @Post(AgentCsvExtractionRunsRoutes.cancelOne.path)
   @AddContext("agentCsvExtractionRun")
-  @CheckPolicy((policy) => policy.canUpdate())
+  @CheckPermission(CSV_EXTRACTION_RUN_UPDATE_PERMISSION, "project")
   @TrackActivity({ action: "agentCsvExtractionRun.cancel" })
   async cancelOne(
     @Req() request: EndpointRequestWithAgentCsvExtractionRun,
@@ -239,7 +252,7 @@ export class AgentCsvExtractionRunsController {
 
   @Get(AgentCsvExtractionRunsRoutes.getOne.path)
   @AddContext("agentCsvExtractionRun")
-  @CheckPolicy((policy) => policy.canList())
+  @CheckPermission(CSV_EXTRACTION_RUN_READ_PERMISSION, "project")
   async getOne(
     @Req() request: EndpointRequestWithAgentCsvExtractionRun,
   ): Promise<typeof AgentCsvExtractionRunsRoutes.getOne.response> {
@@ -247,7 +260,7 @@ export class AgentCsvExtractionRunsController {
   }
 
   @Get(AgentCsvExtractionRunsRoutes.getAll.path)
-  @CheckPolicy((policy) => policy.canList())
+  @CheckPermission(CSV_EXTRACTION_RUN_READ_PERMISSION, "project")
   async getAll(
     @Req() request: EndpointRequestWithAgent,
     @Query("type") typeParam?: string,
@@ -263,7 +276,7 @@ export class AgentCsvExtractionRunsController {
 
   @Get(AgentCsvExtractionRunsRoutes.getRecords.path)
   @AddContext("agentCsvExtractionRun")
-  @CheckPolicy((policy) => policy.canList())
+  @CheckPermission(CSV_EXTRACTION_RUN_READ_PERMISSION, "project")
   async getRecords(
     @Req() request: EndpointRequestWithAgentCsvExtractionRun,
     @Query("page") pageParam?: string,
@@ -296,7 +309,7 @@ export class AgentCsvExtractionRunsController {
 
   @Delete(AgentCsvExtractionRunsRoutes.deleteOne.path)
   @AddContext("agentCsvExtractionRun")
-  @CheckPolicy((policy) => policy.canDelete())
+  @CheckPermission(CSV_EXTRACTION_RUN_DELETE_PERMISSION, "project")
   @TrackActivity({ action: "agentCsvExtractionRun.delete" })
   async deleteOne(
     @Req() request: EndpointRequestWithAgentCsvExtractionRun,
@@ -308,7 +321,7 @@ export class AgentCsvExtractionRunsController {
     return { data: { success: true } }
   }
 
-  @CheckPolicy((policy) => policy.canList())
+  @CheckPermission(CSV_EXTRACTION_RUN_READ_PERMISSION, "project")
   @Sse(AgentCsvExtractionRunsRoutes.streamRunStatus.path, { method: 0 /* GET */ })
   streamRunStatus(
     @Req() request: EndpointRequestWithAgent,
@@ -328,7 +341,7 @@ export class AgentCsvExtractionRunsController {
   @Get(
     "organizations/:organizationId/projects/:projectId/agents/:agentId/csv-extraction-runs/file/:documentId/columns",
   )
-  @CheckPolicy((policy) => policy.canList())
+  @CheckPermission(CSV_EXTRACTION_RUN_READ_PERMISSION, "project")
   async getFileColumns(
     @Req() request: EndpointRequestWithAgent & { params: { documentId?: string } },
   ): Promise<typeof AgentCsvExtractionRunsRoutes.getFileColumns.response> {

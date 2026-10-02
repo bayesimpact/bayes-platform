@@ -50,6 +50,8 @@ The evaluation permissions are never inherited from the organization: an organiz
 
 The `resource_library.*` permissions are not inherited either: an organization role does not open a project's resource libraries.
 
+The `csv_extraction_run.*` permissions are not inherited either: an organization role does not open a project's CSV extraction runs. Every project role holds the four run permissions. `csv_extraction_run.playground` is also needed to act on a playground run.
+
 | Permission | `project_owner` | `project_admin` | `project_member` |
 |---|---|---|---|
 | `project.read` | ✅ | ✅ | ✅ |
@@ -88,6 +90,11 @@ The `resource_library.*` permissions are not inherited either: an organization r
 | `resource_library.create` — create a resource library, or upload a file for one of its resources | ✅ | ✅ | — |
 | `resource_library.update` — rename a resource library, or add, edit and remove its resources | ✅ | ✅ | — |
 | `resource_library.delete` — delete a resource library | ✅ | ✅ | — |
+| `csv_extraction_run.read` — see the agents' CSV extraction runs and their results | ✅ | ✅ | ✅ |
+| `csv_extraction_run.create` — create a CSV extraction run | ✅ | ✅ | ✅ |
+| `csv_extraction_run.update` — execute, retry or cancel a CSV extraction run | ✅ | ✅ | ✅ |
+| `csv_extraction_run.delete` — delete a CSV extraction run | ✅ | ✅ | ✅ |
+| `csv_extraction_run.playground` — act on playground CSV extraction runs | ✅ | ✅ | — |
 | `user.read` — see the project's members | ✅ | ✅ | — |
 | `backoffice.project.read` — see the project in the backoffice | ✅ | ✅ | — |
 | `backoffice.project.update` — mutate the project from the backoffice (e.g. feature flags) | ✅ | ✅ | — |

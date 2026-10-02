@@ -168,7 +168,13 @@ describe("ProjectsService", () => {
       const result = await service.listUserProjects(memberUser.id)
 
       expect(result).toHaveLength(1)
-      expect(result[0]?.permissions).toEqual(["project.read"])
+      expect(result[0]?.permissions).toEqual([
+        "project.read",
+        "csv_extraction_run.read",
+        "csv_extraction_run.create",
+        "csv_extraction_run.update",
+        "csv_extraction_run.delete",
+      ])
     })
   })
 

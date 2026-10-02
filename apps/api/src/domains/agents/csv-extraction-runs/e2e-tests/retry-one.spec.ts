@@ -11,6 +11,7 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
+import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { agentCsvExtractionRunRecordFactory } from "../agent-csv-extraction-run-record.factory"
 import { AgentCsvExtractionRunsModule } from "../agent-csv-extraction-runs.module"
@@ -48,6 +49,7 @@ describe("AgentCsvExtractionRuns - retryOne", () => {
         }),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     expectActivityCreated = bindExpectActivityCreated(repositories.activityRepository)
     app = setup.module.createNestApplication()
     await app.init()
