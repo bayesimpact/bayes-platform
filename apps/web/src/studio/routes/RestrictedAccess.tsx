@@ -1,6 +1,9 @@
 import { Outlet } from "react-router-dom"
 import { selectCurrentAgentId } from "@/common/features/agents/agents.selectors"
-import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
+import {
+  selectCurrentProjectId,
+  selectMyProjectsList,
+} from "@/common/features/projects/projects.selectors"
 import { useAbility } from "@/common/hooks/use-ability"
 import { LoadingRoute } from "@/common/routes/LoadingRoute"
 import { NotFoundRoute } from "@/common/routes/NotFoundRoute"
@@ -15,6 +18,7 @@ export function RestrictedAccess({
 }) {
   const agentId = useAppSelector(selectCurrentAgentId)
   const projectId = useAppSelector(selectCurrentProjectId)
+  const myProjects = useAppSelector(selectMyProjectsList)
 
   const { abilities } = useAbility()
 
@@ -30,8 +34,12 @@ export function RestrictedAccess({
     switch (ability) {
       case "canManageAgent":
         return abilities.canManageAgent({ agentId })
+      case "canAccessDesk":
+        return abilities.canAccessDesk({ projectId })
       case "canAccessStudio":
         return abilities.canAccessStudio({ projectId })
+      case "canAccessEvaluation":
+        return abilities.canAccessEvaluation({ projectId })
       case "canAccessTester":
         return abilities.canAccessTester({ projectId })
       case "canAccessReviewer":
@@ -44,6 +52,7 @@ export function RestrictedAccess({
   const canAccess = build({ ability, agentId, projectId })
 
   if (canAccess) return <>{children || <Outlet />}</>
-  if (!projectId || !agentId) return <LoadingRoute />
+  const resourceId = ability === "canManageAgent" ? agentId : projectId
+  if (!resourceId || !myProjects) return <LoadingRoute />
   return <NotFoundRoute />
 }

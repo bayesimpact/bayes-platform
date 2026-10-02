@@ -146,7 +146,7 @@ describe("ProjectsService", () => {
       expect(result).toEqual([])
     })
 
-    it("returns project.read for a plain project member", async () => {
+    it("returns project.read and desk.ui.read for a plain project member", async () => {
       const { organization } = await createOrganizationWithOwner(repositories)
       const project = projectFactory.transient({ organization }).build()
       await repositories.projectRepository.save(project)
@@ -168,7 +168,7 @@ describe("ProjectsService", () => {
       const result = await service.listUserProjects(memberUser.id)
 
       expect(result).toHaveLength(1)
-      expect(result[0]?.permissions).toEqual(["project.read"])
+      expect(result[0]?.permissions).toEqual(["project.read", "desk.ui.read"])
     })
   })
 

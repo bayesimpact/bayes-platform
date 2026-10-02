@@ -50,11 +50,16 @@ The evaluation permissions are never inherited from the organization: an organiz
 
 The `resource_library.*` permissions are not inherited either: an organization role does not open a project's resource libraries.
 
+The `*.ui.read` permissions open one user interface of the project each and are not inherited from the organization. They are exposed on `ProjectDto.permissions`.
+
 | Permission | `project_owner` | `project_admin` | `project_member` |
 |---|---|---|---|
 | `project.read` | ✅ | ✅ | ✅ |
 | `project.update` | ✅ | ✅ | — |
 | `project.delete` | ✅ | ✅ | — |
+| `desk.ui.read` — open the project's desk app | ✅ | ✅ | ✅ |
+| `studio.ui.read` — open the project's studio app | ✅ | ✅ | — |
+| `evaluation.ui.read` — open the project's evaluation app | ✅ | ✅ | — |
 | `project.analytics.read` — see the project's conversation analytics | ✅ | ✅ | — |
 | `project.member.invite` — invite people to the project or its review campaigns, see and revoke pending invitations | ✅ | ✅ | — |
 | `agent.create` | ✅ | ✅ | — |
@@ -67,7 +72,6 @@ The `resource_library.*` permissions are not inherited either: an organization r
 | `document_source.create` | ✅ | ✅ | — |
 | `document_source.update` | ✅ | ✅ | — |
 | `document_source.delete` | ✅ | ✅ | — |
-| `evaluation.access` — open the project's evaluation app | ✅ | ✅ | — |
 | `evaluation.extraction.dataset.read` — see the project's evaluation extraction datasets and their files | ✅ | ✅ | — |
 | `evaluation.extraction.dataset.create` — create evaluation extraction datasets and upload their files | ✅ | ✅ | — |
 | `evaluation.extraction.dataset.update` — update an evaluation extraction dataset | ✅ | ✅ | — |

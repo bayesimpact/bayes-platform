@@ -1,3 +1,4 @@
+import type { ProjectMembershipRoleDto } from "@caseai-connect/api-contracts"
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
 import type { Organization } from "@/common/features/organizations/organizations.models"
@@ -36,12 +37,21 @@ export const projectFactory = ProjectFactory.define(({ params, transientParams }
 
 type MyProjectTransientParams = {
   organization: Organization
+  role: ProjectMembershipRoleDto
+}
+
+const MEMBER_PERMISSIONS = ["project.read", "desk.ui.read"]
+
+const ADMIN_PERMISSIONS = [...MEMBER_PERMISSIONS, "studio.ui.read", "evaluation.ui.read"]
+
+function permissionsForRole(role: ProjectMembershipRoleDto): string[] {
+  return role === "member" ? MEMBER_PERMISSIONS : ADMIN_PERMISSIONS
 }
 
 class MyProjectFactory extends Factory<MyProject, MyProjectTransientParams> {}
 
 export const myProjectFactory = MyProjectFactory.define(({ params, transientParams }) => {
-  const { organization } = transientParams
+  const { organization, role } = transientParams
 
   if (!organization) {
     throw new Error("Organization is required to create a project")
@@ -52,7 +62,7 @@ export const myProjectFactory = MyProjectFactory.define(({ params, transientPara
     name: params.name ?? faker.commerce.productName(),
     organizationId: organization.id,
     featureFlags: params.featureFlags ?? [],
-    permissions: params.permissions ?? ["project.read"],
+    permissions: params.permissions ?? permissionsForRole(role ?? "member"),
   }
 })
 

@@ -24,6 +24,7 @@ import {
   BACKOFFICE_TERMS_UPDATE_PERMISSION,
   BACKOFFICE_USER_READ_PERMISSION,
   CATALOG_ROLE_KEYS,
+  DESK_UI_READ_PERMISSION,
   DOCUMENT_CREATE_PERMISSION,
   DOCUMENT_DELETE_PERMISSION,
   DOCUMENT_READ_PERMISSION,
@@ -889,7 +890,10 @@ describe("PermissionService", () => {
         "project.read",
       )
 
-      expect(permissionsByProjectId.get(project.id)).toEqual([PROJECT_READ_PERMISSION])
+      expect(permissionsByProjectId.get(project.id)).toEqual([
+        PROJECT_READ_PERMISSION,
+        DESK_UI_READ_PERMISSION,
+      ])
     })
 
     it("merges direct project permissions with inherited organization permissions", async () => {
