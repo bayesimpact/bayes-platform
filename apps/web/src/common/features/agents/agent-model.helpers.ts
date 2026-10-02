@@ -24,6 +24,7 @@ export function buildAgentModelOptions(hasFeature: HasFeature): AgentModel[] {
   if (hasFeature("medgemma")) providers.push(AgentProvider.MedGemma)
   if (hasFeature("gemma")) providers.push(AgentProvider.Gemma)
   if (hasFeature("mistral")) providers.push(AgentProvider.Mistral)
+  if (hasFeature("qwen")) providers.push(AgentProvider.Qwen)
 
   // AgentModel._Mock drops out naturally — its provider is never in the list.
   return Object.values(AgentModel).filter((model) =>

@@ -19,6 +19,7 @@ export enum AgentModel {
   MedGemma10_27B = "google/medgemma-27b-it",
   Gemma4_26B = "google/gemma-4-26b-A4B-it",
   MistralSmall31_24B = "mistralai/Mistral-Small-3.1-24B-Instruct-2503",
+  Qwen38_27B = "Qwen/Qwen3.8-27B",
   _Mock = "mock-language-model-v3",
 }
 
@@ -28,6 +29,7 @@ export enum AgentProvider {
   Vertex = "VERTEX",
   Mistral = "MISTRAL",
   Vertex3 = "VERTEX-3",
+  Qwen = "QWEN",
   _Mock = "MOCK",
 }
 export const AgentModelToAgentProvider: Record<AgentModel, AgentProvider> = {
@@ -42,6 +44,7 @@ export const AgentModelToAgentProvider: Record<AgentModel, AgentProvider> = {
   [AgentModel.MedGemma10_27B]: AgentProvider.MedGemma,
   [AgentModel.Gemma4_26B]: AgentProvider.Gemma,
   [AgentModel.MistralSmall31_24B]: AgentProvider.Mistral,
+  [AgentModel.Qwen38_27B]: AgentProvider.Qwen,
   [AgentModel._Mock]: AgentProvider._Mock,
 }
 export type AgentModelDeprecation = {
@@ -90,6 +93,7 @@ export const AgentModelMetadataMap: Record<AgentModel, AgentModelMetadata> = {
   [AgentModel.MedGemma10_27B]: {},
   [AgentModel.Gemma4_26B]: {},
   [AgentModel.MistralSmall31_24B]: {},
+  [AgentModel.Qwen38_27B]: {},
   [AgentModel._Mock]: {},
 }
 

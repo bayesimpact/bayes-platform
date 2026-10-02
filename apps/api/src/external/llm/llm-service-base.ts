@@ -19,6 +19,7 @@ export abstract class LlmServiceBase {
     mistralLlmProvider,
     medGemmaLlmProvider,
     gemmaLlmProvider,
+    qwenLlmProvider,
   }: {
     mockLlmProvider: LLMProvider
     vertexLlmProvider: LLMProvider
@@ -26,6 +27,7 @@ export abstract class LlmServiceBase {
     mistralLlmProvider: LLMProvider
     medGemmaLlmProvider: LLMProvider
     gemmaLlmProvider: LLMProvider
+    qwenLlmProvider: LLMProvider
   }) {
     this._mockLlmProvider = mockLlmProvider
     this.vertexLlmProvider = vertexLlmProvider
@@ -33,6 +35,7 @@ export abstract class LlmServiceBase {
     this.mistralLlmProvider = mistralLlmProvider
     this.medGemmaLlmProvider = medGemmaLlmProvider
     this.gemmaLlmProvider = gemmaLlmProvider
+    this.qwenLlmProvider = qwenLlmProvider
   }
   private readonly _mockLlmProvider: LLMProvider
   private readonly vertexLlmProvider: LLMProvider
@@ -40,6 +43,7 @@ export abstract class LlmServiceBase {
   private readonly mistralLlmProvider: LLMProvider
   private readonly medGemmaLlmProvider: LLMProvider
   private readonly gemmaLlmProvider: LLMProvider
+  private readonly qwenLlmProvider: LLMProvider
 
   protected getProviderForModel: (model: string) => LLMProvider = (model) => {
     return this.getProviderForModelImpl(model)
@@ -59,6 +63,8 @@ export abstract class LlmServiceBase {
         return this.medGemmaLlmProvider
       case AgentProvider.Gemma:
         return this.gemmaLlmProvider
+      case AgentProvider.Qwen:
+        return this.qwenLlmProvider
       default:
         throw new NotImplementedException(`not supported llm provider: ${provider}`)
     }

@@ -44,6 +44,8 @@ export class StructuredExtractionAgentRunLlmService extends LlmServiceBase {
     medGemmaLlmProvider: LLMProvider,
     @Inject("GemmaLLMProvider")
     gemmaLlmProvider: LLMProvider,
+    @Inject("QwenLLMProvider")
+    qwenLlmProvider: LLMProvider,
   ) {
     super({
       mockLlmProvider,
@@ -51,6 +53,7 @@ export class StructuredExtractionAgentRunLlmService extends LlmServiceBase {
       vertex3LlmProvider,
       medGemmaLlmProvider,
       gemmaLlmProvider,
+      qwenLlmProvider,
       mistralLlmProvider,
     })
   }
