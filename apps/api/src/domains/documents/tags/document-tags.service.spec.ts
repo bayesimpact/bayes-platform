@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto"
 import { PUBLIC_DOCUMENTS_TAG_NAME } from "@caseai-connect/api-contracts"
 import { BadRequestException, NotFoundException } from "@nestjs/common"
 import {
@@ -9,6 +10,7 @@ import {
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { createDocumentForProject } from "@/domains/documents/document.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { projectFactory } from "@/domains/projects/project.factory"
 import { DocumentTagsModule } from "./document-tags.module"
 import { DocumentTagsService } from "./document-tags.service"
 
@@ -74,6 +76,121 @@ describe("DocumentTagsService", () => {
         fields: { name: "Child Tag", parentId: publicTag.id },
       }),
     ).rejects.toThrow(`Tag "${PUBLIC_DOCUMENTS_TAG_NAME}" cannot have children.`)
+  })
+
+  it("creates a child under a tag of the same project", async () => {
+    const { organization, project } = await createOrganizationWithProject(repositories)
+    const connectScope = { organizationId: organization.id, projectId: project.id }
+    const parent = await service.createDocumentTag({
+      connectScope,
+      fields: { name: "Parent" },
+    })
+
+    const child = await service.createDocumentTag({
+      connectScope,
+      fields: { name: "Child", parentId: parent.id },
+    })
+
+    expect(child.parentId).toBe(parent.id)
+  })
+
+  it("rejects a parent that is not a tag of the caller's project", async () => {
+    const { organization, project } = await createOrganizationWithProject(repositories)
+    const connectScope = { organizationId: organization.id, projectId: project.id }
+    const otherProject = projectFactory.transient({ organization }).build()
+    await repositories.projectRepository.save(otherProject)
+    const otherProjectTag = await service.createDocumentTag({
+      connectScope: { organizationId: organization.id, projectId: otherProject.id },
+      fields: { name: "Other project" },
+    })
+    const otherOrganization = await createOrganizationWithProject(repositories)
+    const otherOrganizationTag = await service.createDocumentTag({
+      connectScope: {
+        organizationId: otherOrganization.organization.id,
+        projectId: otherOrganization.project.id,
+      },
+      fields: { name: "Other organization" },
+    })
+    const missingParentId = randomUUID()
+
+    for (const parentId of [otherProjectTag.id, otherOrganizationTag.id, missingParentId]) {
+      await expect(
+        service.createDocumentTag({
+          connectScope,
+          fields: { name: "Child", parentId },
+        }),
+      ).rejects.toThrow(`DocumentTag with id ${parentId} not found`)
+    }
+
+    const listed = await service.listDocumentTags(connectScope)
+    expect(listed).toEqual([])
+  })
+
+  it("rejects a parent outside the project when updating a tag", async () => {
+    const { organization, project } = await createOrganizationWithProject(repositories)
+    const connectScope = { organizationId: organization.id, projectId: project.id }
+    const tag = await service.createDocumentTag({ connectScope, fields: { name: "Pricing" } })
+    const otherOrganization = await createOrganizationWithProject(repositories)
+    const foreignTag = await service.createDocumentTag({
+      connectScope: {
+        organizationId: otherOrganization.organization.id,
+        projectId: otherOrganization.project.id,
+      },
+      fields: { name: "Foreign" },
+    })
+
+    await expect(
+      service.updateDocumentTag({
+        connectScope,
+        documentTagId: tag.id,
+        fieldsToUpdate: { parentId: foreignTag.id },
+      }),
+    ).rejects.toBeInstanceOf(NotFoundException)
+
+    const reloaded = await service.findDocumentTagById({ connectScope, documentTagId: tag.id })
+    expect(reloaded?.parentId).toBeNull()
+  })
+
+  it("rejects a tag as its own parent", async () => {
+    const { organization, project } = await createOrganizationWithProject(repositories)
+    const connectScope = { organizationId: organization.id, projectId: project.id }
+    const tag = await service.createDocumentTag({ connectScope, fields: { name: "Pricing" } })
+
+    await expect(
+      service.updateDocumentTag({
+        connectScope,
+        documentTagId: tag.id,
+        fieldsToUpdate: { parentId: tag.id },
+      }),
+    ).rejects.toThrow("A tag cannot be its own parent.")
+
+    const reloaded = await service.findDocumentTagById({ connectScope, documentTagId: tag.id })
+    expect(reloaded?.parentId).toBeNull()
+  })
+
+  it("rejects a descendant as a parent so the tag tree cannot cycle", async () => {
+    const { organization, project } = await createOrganizationWithProject(repositories)
+    const connectScope = { organizationId: organization.id, projectId: project.id }
+    const root = await service.createDocumentTag({ connectScope, fields: { name: "Root" } })
+    const child = await service.createDocumentTag({
+      connectScope,
+      fields: { name: "Child", parentId: root.id },
+    })
+    const grandchild = await service.createDocumentTag({
+      connectScope,
+      fields: { name: "Grandchild", parentId: child.id },
+    })
+
+    await expect(
+      service.updateDocumentTag({
+        connectScope,
+        documentTagId: root.id,
+        fieldsToUpdate: { parentId: grandchild.id },
+      }),
+    ).rejects.toThrow("A tag cannot have a descendant as its parent.")
+
+    const reloaded = await service.findDocumentTagById({ connectScope, documentTagId: root.id })
+    expect(reloaded?.parentId).toBeNull()
   })
 
   it("refuses to edit or delete the public-documents tag", async () => {
@@ -150,12 +267,43 @@ describe("DocumentTagsService", () => {
     const added = await service.createDocumentTag({ connectScope, fields: { name: "Added" } })
 
     const nextTags = await service.resolveTagChanges({
+      connectScope,
       currentTags: [kept, removed],
       tagsToAdd: [added.id],
       tagsToRemove: [removed.id],
     })
 
     expect(nextTags.map((tag) => tag.id)).toEqual([kept.id, added.id])
+  })
+
+  it("rejects a tag from outside the project when attaching tags", async () => {
+    const { organization, project } = await createOrganizationWithProject(repositories)
+    const connectScope = { organizationId: organization.id, projectId: project.id }
+    const localTag = await service.createDocumentTag({ connectScope, fields: { name: "Local" } })
+    const otherProject = projectFactory.transient({ organization }).build()
+    await repositories.projectRepository.save(otherProject)
+    const otherProjectTag = await service.createDocumentTag({
+      connectScope: { organizationId: organization.id, projectId: otherProject.id },
+      fields: { name: "Other project" },
+    })
+    const otherOrganization = await createOrganizationWithProject(repositories)
+    const otherOrganizationTag = await service.createDocumentTag({
+      connectScope: {
+        organizationId: otherOrganization.organization.id,
+        projectId: otherOrganization.project.id,
+      },
+      fields: { name: "Other organization" },
+    })
+
+    for (const foreignTagId of [otherProjectTag.id, otherOrganizationTag.id, randomUUID()]) {
+      await expect(
+        service.resolveTagChanges({
+          connectScope,
+          currentTags: [localTag],
+          tagsToAdd: [foreignTagId],
+        }),
+      ).rejects.toThrow(`DocumentTag with id ${foreignTagId} not found`)
+    }
   })
 
   it("deletes a tag and its document and agent links", async () => {
