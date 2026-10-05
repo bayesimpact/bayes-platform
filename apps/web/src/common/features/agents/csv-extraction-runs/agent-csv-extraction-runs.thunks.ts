@@ -18,6 +18,7 @@ function getBaseParams(state: RootState) {
     organizationId: getCurrentId({ state, name: "organizationId" }),
     projectId: getCurrentId({ state, name: "projectId" }),
     agentId: getCurrentId({ state, name: "agentId" }),
+    type: buildType(),
   }
 }
 
@@ -113,7 +114,6 @@ const createAndExecute = createAsyncThunk<
       payload: {
         csvDocumentId: documentId,
         columnSchema,
-        type: buildType(),
         agentSettingsRevision,
       },
     })

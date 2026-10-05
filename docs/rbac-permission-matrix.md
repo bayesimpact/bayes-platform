@@ -52,6 +52,8 @@ The `resource_library.*` permissions are not inherited either: an organization r
 
 The `*.ui.read` permissions open one user interface of the project each and are not inherited from the organization. They are exposed on `ProjectDto.permissions`.
 
+The `csv_extraction_run.*` permissions are not inherited either: an organization role does not open a project's CSV extraction runs. Every project role holds the four live run permissions, while the `csv_extraction_run.playground.*` ones stay with owners and admins.
+
 | Permission | `project_owner` | `project_admin` | `project_member` |
 |---|---|---|---|
 | `project.read` | ✅ | ✅ | ✅ |
@@ -92,6 +94,14 @@ The `*.ui.read` permissions open one user interface of the project each and are 
 | `resource_library.create` — create a resource library, or upload a file for one of its resources | ✅ | ✅ | — |
 | `resource_library.update` — rename a resource library, or add, edit and remove its resources | ✅ | ✅ | — |
 | `resource_library.delete` — delete a resource library | ✅ | ✅ | — |
+| `csv_extraction_run.read` — see the agents' live CSV extraction runs and their results | ✅ | ✅ | ✅ |
+| `csv_extraction_run.create` — create a live CSV extraction run | ✅ | ✅ | ✅ |
+| `csv_extraction_run.update` — execute, retry or cancel a live CSV extraction run | ✅ | ✅ | ✅ |
+| `csv_extraction_run.delete` — delete a live CSV extraction run | ✅ | ✅ | ✅ |
+| `csv_extraction_run.playground.read` — see the agents' playground CSV extraction runs and their results | ✅ | ✅ | — |
+| `csv_extraction_run.playground.create` — create a playground CSV extraction run | ✅ | ✅ | — |
+| `csv_extraction_run.playground.update` — execute, retry or cancel a playground CSV extraction run | ✅ | ✅ | — |
+| `csv_extraction_run.playground.delete` — delete a playground CSV extraction run | ✅ | ✅ | — |
 | `user.read` — see the project's members | ✅ | ✅ | — |
 | `backoffice.project.read` — see the project in the backoffice | ✅ | ✅ | — |
 | `backoffice.project.update` — mutate the project from the backoffice (e.g. feature flags) | ✅ | ✅ | — |

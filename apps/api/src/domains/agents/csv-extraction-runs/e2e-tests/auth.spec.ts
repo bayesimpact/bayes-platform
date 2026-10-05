@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto"
 import {
   AgentCsvExtractionRunsRoutes,
+  type BaseAgentSessionTypeDto,
   type ProjectMembershipRoleDto,
 } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
@@ -14,7 +15,9 @@ import {
 } from "@/common/test/test-transaction-manager"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
-import { mockForeignAuthSubject } from "../../../../../test/e2e.helpers"
+import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
+import { mockForeignAuthSubject, mockOidcEmailForSub } from "../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { AgentCsvExtractionRunsModule } from "../agent-csv-extraction-runs.module"
 import { createCsvExtractionRun, createCsvExtractionRunContext } from "./csv-extraction-run.helpers"
@@ -35,6 +38,7 @@ describe("AgentCsvExtractionRuns - Auth", () => {
   let agentId: string | null = randomUUID()
   let documentId: string = randomUUID()
   let agentCsvExtractionRunId: string | null = randomUUID()
+  let runType: BaseAgentSessionTypeDto = "live"
   let accessToken: string | null = "token"
   let authSubject = `oidc|${randomUUID()}`
 
@@ -51,6 +55,7 @@ describe("AgentCsvExtractionRuns - Auth", () => {
         }),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)
@@ -64,6 +69,7 @@ describe("AgentCsvExtractionRuns - Auth", () => {
     agentId = randomUUID()
     documentId = randomUUID()
     agentCsvExtractionRunId = randomUUID()
+    runType = "live"
     accessToken = "token"
     authSubject = `oidc|${randomUUID()}`
   })
@@ -74,24 +80,47 @@ describe("AgentCsvExtractionRuns - Auth", () => {
   })
 
   // Seeds an organization/project (membership at `role`) + agent + CSV document,
-  // and a "running" run so update/delete/read routes have a resolvable target.
-  const createContextForRole = async (role: ProjectMembershipRoleDto) => {
+  // and a "running" run so update/delete/read routes have a resolvable target. The subjects call
+  // the route set of that run's type unless told otherwise.
+  const createContextForRole = async (
+    role: ProjectMembershipRoleDto,
+    type: BaseAgentSessionTypeDto = "live",
+  ) => {
     const context = await createCsvExtractionRunContext({ repositories, role, authSubject })
-    const run = await createCsvExtractionRun({ repositories, context, status: "running" })
+    const run = await createCsvExtractionRun({ repositories, context, status: "running", type })
     organizationId = context.organization.id
     projectId = context.project.id
     agentId = context.agent.id
     documentId = context.csvDocument.id
     agentCsvExtractionRunId = run.id
+    runType = type
+    return context
+  }
+
+  /** Switches the caller to an organization admin who holds no role on the project. */
+  const switchToOrganizationAdminWithoutProjectRole = async (
+    organization: Awaited<ReturnType<typeof createContextForRole>>["organization"],
+  ) => {
+    const organizationAdminAuthSubject = `oidc|${randomUUID()}`
+    await addUserToOrganization({
+      repositories,
+      organization,
+      user: {
+        authSubject: organizationAdminAuthSubject,
+        email: mockOidcEmailForSub(organizationAdminAuthSubject),
+      },
+      membership: { role: "admin" },
+    })
+    authSubject = organizationAdminAuthSubject
   }
 
   describe("createOne", () => {
-    const subject = async (type: "live" | "playground" = "live") =>
+    const subject = async (type: BaseAgentSessionTypeDto = runType) =>
       request({
-        route: AgentCsvExtractionRunsRoutes.createOne,
+        route: AgentCsvExtractionRunsRoutes[type].createOne,
         pathParams: removeNullish({ organizationId, projectId, agentId }),
         token: accessToken ?? undefined,
-        request: { payload: { csvDocumentId: documentId, columnSchema: {}, type } },
+        request: { payload: { csvDocumentId: documentId, columnSchema: {} } },
       })
 
     it("requires an authentication token", async () => {
@@ -120,19 +149,25 @@ describe("AgentCsvExtractionRuns - Auth", () => {
       // Playground runs mirror agent sessions: they belong to the Studio surface, which only
       // project admins and owners operate.
       await createContextForRole("member")
-      expectResponse(await subject("playground"), 403)
+      expectResponse(await subject("playground"), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
 
     it("allows a project admin to create a playground run", async () => {
       await createContextForRole("admin")
       expectResponse(await subject("playground"), 201)
     })
+
+    it("doesn't allow an organization admin without a project role to create a run", async () => {
+      const { organization } = await createContextForRole("owner")
+      await switchToOrganizationAdminWithoutProjectRole(organization)
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
   })
 
   describe("executeOne", () => {
-    const subject = async () =>
+    const subject = async (type: BaseAgentSessionTypeDto = runType) =>
       request({
-        route: AgentCsvExtractionRunsRoutes.executeOne,
+        route: AgentCsvExtractionRunsRoutes[type].executeOne,
         pathParams: removeNullish({ organizationId, projectId, agentId, agentCsvExtractionRunId }),
         token: accessToken ?? undefined,
         request: { payload: { recordLimit: null } },
@@ -159,12 +194,27 @@ describe("AgentCsvExtractionRuns - Auth", () => {
       await createContextForRole("member")
       expectResponse(await subject(), 201)
     })
+
+    it("forbids a plain member to execute a playground run", async () => {
+      await createContextForRole("member", "playground")
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+
+    it("allows a project admin to execute a playground run", async () => {
+      await createContextForRole("admin", "playground")
+      expectResponse(await subject(), 201)
+    })
+
+    it("answers 404 for a playground run on the live routes", async () => {
+      await createContextForRole("owner", "playground")
+      expectResponse(await subject("live"), 404)
+    })
   })
 
   describe("retryOne", () => {
-    const subject = async () =>
+    const subject = async (type: BaseAgentSessionTypeDto = runType) =>
       request({
-        route: AgentCsvExtractionRunsRoutes.retryOne,
+        route: AgentCsvExtractionRunsRoutes[type].retryOne,
         pathParams: removeNullish({ organizationId, projectId, agentId, agentCsvExtractionRunId }),
         token: accessToken ?? undefined,
       })
@@ -190,12 +240,27 @@ describe("AgentCsvExtractionRuns - Auth", () => {
       await createContextForRole("member")
       expectResponse(await subject(), 201)
     })
+
+    it("forbids a plain member to retry a playground run", async () => {
+      await createContextForRole("member", "playground")
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+
+    it("allows a project admin to retry a playground run", async () => {
+      await createContextForRole("admin", "playground")
+      expectResponse(await subject(), 201)
+    })
+
+    it("answers 404 for a playground run on the live routes", async () => {
+      await createContextForRole("owner", "playground")
+      expectResponse(await subject("live"), 404)
+    })
   })
 
   describe("cancelOne", () => {
-    const subject = async () =>
+    const subject = async (type: BaseAgentSessionTypeDto = runType) =>
       request({
-        route: AgentCsvExtractionRunsRoutes.cancelOne,
+        route: AgentCsvExtractionRunsRoutes[type].cancelOne,
         pathParams: removeNullish({ organizationId, projectId, agentId, agentCsvExtractionRunId }),
         token: accessToken ?? undefined,
       })
@@ -221,12 +286,27 @@ describe("AgentCsvExtractionRuns - Auth", () => {
       await createContextForRole("member")
       expectResponse(await subject(), 201)
     })
+
+    it("forbids a plain member to cancel a playground run", async () => {
+      await createContextForRole("member", "playground")
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+
+    it("allows a project admin to cancel a playground run", async () => {
+      await createContextForRole("admin", "playground")
+      expectResponse(await subject(), 201)
+    })
+
+    it("answers 404 for a playground run on the live routes", async () => {
+      await createContextForRole("owner", "playground")
+      expectResponse(await subject("live"), 404)
+    })
   })
 
   describe("getOne", () => {
-    const subject = async () =>
+    const subject = async (type: BaseAgentSessionTypeDto = runType) =>
       request({
-        route: AgentCsvExtractionRunsRoutes.getOne,
+        route: AgentCsvExtractionRunsRoutes[type].getOne,
         pathParams: removeNullish({ organizationId, projectId, agentId, agentCsvExtractionRunId }),
         token: accessToken ?? undefined,
       })
@@ -252,15 +332,35 @@ describe("AgentCsvExtractionRuns - Auth", () => {
       await createContextForRole("member")
       expectResponse(await subject(), 200)
     })
+
+    it("forbids a plain member to read a playground run", async () => {
+      await createContextForRole("member", "playground")
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+
+    it("allows a project admin to read a playground run", async () => {
+      await createContextForRole("admin", "playground")
+      expectResponse(await subject(), 200)
+    })
+
+    it("answers 404 for a playground run on the live routes", async () => {
+      await createContextForRole("owner", "playground")
+      expectResponse(await subject("live"), 404)
+    })
+
+    it("doesn't allow an organization admin without a project role to read a run", async () => {
+      const { organization } = await createContextForRole("owner")
+      await switchToOrganizationAdminWithoutProjectRole(organization)
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
   })
 
   describe("getAll", () => {
-    const subject = async (type: "live" | "playground" = "live") =>
+    const subject = async (type: BaseAgentSessionTypeDto = runType) =>
       request({
-        route: AgentCsvExtractionRunsRoutes.getAll,
+        route: AgentCsvExtractionRunsRoutes[type].getAll,
         pathParams: removeNullish({ organizationId, projectId, agentId }),
         token: accessToken ?? undefined,
-        query: { type },
       })
 
     it("requires an authentication token", async () => {
@@ -287,7 +387,7 @@ describe("AgentCsvExtractionRuns - Auth", () => {
 
     it("forbids a plain member to list playground runs", async () => {
       await createContextForRole("member")
-      expectResponse(await subject("playground"), 403)
+      expectResponse(await subject("playground"), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
 
     it("allows a project admin to list playground runs", async () => {
@@ -297,9 +397,9 @@ describe("AgentCsvExtractionRuns - Auth", () => {
   })
 
   describe("getRecords", () => {
-    const subject = async () =>
+    const subject = async (type: BaseAgentSessionTypeDto = runType) =>
       request({
-        route: AgentCsvExtractionRunsRoutes.getRecords,
+        route: AgentCsvExtractionRunsRoutes[type].getRecords,
         pathParams: removeNullish({ organizationId, projectId, agentId, agentCsvExtractionRunId }),
         token: accessToken ?? undefined,
       })
@@ -325,12 +425,22 @@ describe("AgentCsvExtractionRuns - Auth", () => {
       await createContextForRole("member")
       expectResponse(await subject(), 200)
     })
+
+    it("forbids a plain member to list the records of a playground run", async () => {
+      await createContextForRole("member", "playground")
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+
+    it("answers 404 for a playground run on the live routes", async () => {
+      await createContextForRole("owner", "playground")
+      expectResponse(await subject("live"), 404)
+    })
   })
 
   describe("deleteOne", () => {
-    const subject = async () =>
+    const subject = async (type: BaseAgentSessionTypeDto = runType) =>
       request({
-        route: AgentCsvExtractionRunsRoutes.deleteOne,
+        route: AgentCsvExtractionRunsRoutes[type].deleteOne,
         pathParams: removeNullish({ organizationId, projectId, agentId, agentCsvExtractionRunId }),
         token: accessToken ?? undefined,
       })
@@ -356,12 +466,27 @@ describe("AgentCsvExtractionRuns - Auth", () => {
       await createContextForRole("member")
       expectResponse(await subject(), 200)
     })
+
+    it("forbids a plain member to delete a playground run", async () => {
+      await createContextForRole("member", "playground")
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+
+    it("allows a project admin to delete a playground run", async () => {
+      await createContextForRole("admin", "playground")
+      expectResponse(await subject(), 200)
+    })
+
+    it("answers 404 for a playground run on the live routes", async () => {
+      await createContextForRole("owner", "playground")
+      expectResponse(await subject("live"), 404)
+    })
   })
 
   describe("getFileColumns", () => {
-    const subject = async () =>
+    const subject = async (type: BaseAgentSessionTypeDto = runType) =>
       request({
-        route: AgentCsvExtractionRunsRoutes.getFileColumns,
+        route: AgentCsvExtractionRunsRoutes[type].getFileColumns,
         pathParams: removeNullish({ organizationId, projectId, agentId, documentId }),
         token: accessToken ?? undefined,
       })
@@ -381,12 +506,17 @@ describe("AgentCsvExtractionRuns - Auth", () => {
       await createContextForRole("member")
       expectResponse(await subject(), 200)
     })
+
+    it("forbids a plain member to read file columns on the playground routes", async () => {
+      await createContextForRole("member")
+      expectResponse(await subject("playground"), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
   })
 
   describe("streamRunStatus", () => {
-    const subject = async () =>
+    const subject = async (type: BaseAgentSessionTypeDto = runType) =>
       request({
-        route: AgentCsvExtractionRunsRoutes.streamRunStatus,
+        route: AgentCsvExtractionRunsRoutes[type].streamRunStatus,
         pathParams: removeNullish({ organizationId, projectId, agentId }),
         token: accessToken ?? undefined,
       })
@@ -394,6 +524,11 @@ describe("AgentCsvExtractionRuns - Auth", () => {
     it("requires an authentication token", async () => {
       accessToken = null
       expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+
+    it("forbids a plain member to stream playground run statuses", async () => {
+      await createContextForRole("member")
+      expectResponse(await subject("playground"), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
   })
 })
