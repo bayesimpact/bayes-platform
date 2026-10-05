@@ -47,7 +47,7 @@ export function StudioAgentSessionRoute({ agentSession }: { agentSession: AgentS
     [agentSession.id],
   )
   const formSubSessions = useAppSelector(selectSubSessions)
-  const hasMemory = useAgentMemory({ agentId: agent.id })
+  useAgentMemory({ agentId: agent.id })
 
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -124,7 +124,7 @@ export function StudioAgentSessionRoute({ agentSession }: { agentSession: AgentS
         }
         action={
           <>
-            {hasMemory && <AgentMemoryPanel />}
+            <AgentMemoryPanel />
             <TraceUrlOpener
               buttonProps={{ variant: "secondary" }}
               traceUrl={agentSession.traceUrl}

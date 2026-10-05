@@ -567,19 +567,10 @@ describe("Tools execution", () => {
 
   const createMemoryContext = async ({
     memoryMode = AgentMemoryMode.Ask,
-    withFeature = true,
   }: {
     memoryMode?: AgentMemoryMode
-    withFeature?: boolean
   } = {}) => {
     const context = await createContextWithSession()
-    if (withFeature) {
-      await addFeature({
-        featureFlagRepository: repositories.featureFlagRepository,
-        projectId: context.project.id,
-        featureFlagKey: "agent-memory",
-      })
-    }
     return { ...context, agentSettings: { ...context.agentSettings, memoryMode } }
   }
 
@@ -667,7 +658,7 @@ describe("Tools execution", () => {
     expect(await repositories.agentMemoryRepository.count()).toBe(0)
   })
 
-  it("Memory tools - built only with the feature flag, a memory mode and a signed-in user", async () => {
+  it("Memory tools - built only with a memory mode and a signed-in user", async () => {
     const withMemory = await createMemoryContext()
     const scope = {
       agent: withMemory.agent,
@@ -706,18 +697,6 @@ describe("Tools execution", () => {
     const visitorBuild = await buildToolNames(embedVisitor)
     expect(visitorBuild.toolNames).not.toContain(ToolName.SaveMemory)
     expect(visitorBuild.promptSections.join("\n")).not.toContain("Your memory of this user")
-
-    const withoutFeature = await createMemoryContext({ withFeature: false })
-    expect(
-      (
-        await buildToolNames({
-          agent: withoutFeature.agent,
-          agentSettings: withoutFeature.agentSettings,
-          session: withoutFeature.session,
-          connectScope: withoutFeature.connectScope,
-        })
-      ).toolNames,
-    ).not.toContain(ToolName.SaveMemory)
   })
 
   it("ToolName.LookupKnowledgeBase - should works", async () => {

@@ -28,9 +28,10 @@ export function AgentMemoryPanel() {
   const dispatch = useAppDispatch()
   const data = useAppSelector(selectAgentMemoriesData)
   const [confirmingClear, setConfirmingClear] = useState(false)
-  if (!data) return null
-
-  const memories = ADS.isFulfilled(data) ? data.value : []
+  const memories = data && ADS.isFulfilled(data) ? data.value : []
+  // Nothing remembered (or an agent with memory off): no button, unless the
+  // confirmation of "forget everything" that just emptied the list is still open.
+  if (memories.length === 0 && !confirmingClear) return null
 
   const handleClear = () => {
     setConfirmingClear(false)

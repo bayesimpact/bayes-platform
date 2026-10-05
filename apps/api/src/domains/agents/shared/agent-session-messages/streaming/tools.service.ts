@@ -424,14 +424,13 @@ export class ToolsService {
       agentSettings.outputJsonSchema != null &&
       sessionPersistsForms(session)
     // Memory needs a signed-in user to remember things about, and the agent
-    // and the project to have it on (see ADR 0023).
+    // to have it on (see ADR 0023).
     const memoryOwner =
       agentSettings.memoryMode === AgentMemoryMode.Off
         ? null
         : memoryOwnerForSession({ agent, session })
     const [
       hasSourcesTool,
-      hasMemoryFeature,
       {
         tools: subAgentTools,
         toolDescriptions: subAgentToolDescriptions,
@@ -442,10 +441,6 @@ export class ToolsService {
     ] = await Promise.all([
       // Check if the agent has the sources tool enabled
       this.projectsService.hasFeature({ connectScope, feature: "sources-tool" }),
-
-      memoryOwner
-        ? this.projectsService.hasFeature({ connectScope, feature: "agent-memory" })
-        : Promise.resolve(false),
 
       // Build sub-agent tools if requested
       includeSubAgentTools
@@ -566,10 +561,9 @@ export class ToolsService {
       handoff,
       ownFormSchema: hasFillFormTool ? agentSettings.outputJsonSchema : null,
     })
-    const memory =
-      memoryOwner && hasMemoryFeature
-        ? await this.buildMemoryContext({ connectScope, owner: memoryOwner })
-        : null
+    const memory = memoryOwner
+      ? await this.buildMemoryContext({ connectScope, owner: memoryOwner })
+      : null
     if (memory) promptSections.push(memory.promptSection)
 
     // Sources are reported only when the agent can actually retrieve chunks:

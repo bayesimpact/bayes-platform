@@ -34,9 +34,10 @@ pick one of them.
   `externalVisitorId` chosen by the host page, so they get no memory, and the
   public contract does not change. Evaluation runs (no user) and
   review-campaign sessions (test material) get none either.
-* **A setting per agent, behind a project flag.** `memoryMode` on the settings
-  revision is `off` (default), `ask` or `auto`, and the `agent-memory` feature
-  flag gates the whole capability per project.
+* **A setting per agent, with no feature flag.** `memoryMode` on the settings
+  revision is `off` (default), `ask` or `auto`. Every project has it; an agent
+  remembers nothing until a builder turns it on, and the conversation view only
+  shows the memory button once the agent remembers something.
 * **Two tools.** `saveMemory` takes up to five short facts, each tagged
   `user_request` or `inferred`. `forgetMemory` deletes facts by the alias the
   prompt shows (`m1`, `m2`...), resolved server side like the resource

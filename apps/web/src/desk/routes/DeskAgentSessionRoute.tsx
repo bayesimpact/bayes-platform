@@ -21,7 +21,7 @@ export function DeskAgentSessionRoute({ agentSession }: { agentSession: AgentSes
   const agent = useValue(selectCurrentAgentData)
   const messages = useValue(selectCurrentMessagesData)
   const fillFormOutputJsonSchema = useAppSelector(selectFillFormOutputJsonSchema)
-  const hasMemory = useAgentMemory({ agentId: agent.id })
+  useAgentMemory({ agentId: agent.id })
 
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -47,7 +47,7 @@ export function DeskAgentSessionRoute({ agentSession }: { agentSession: AgentSes
         }
         action={
           <>
-            {hasMemory && <AgentMemoryPanel />}
+            <AgentMemoryPanel />
             <DeleteAgentSessionButton agent={agent} agentSession={agentSession} />
           </>
         }
