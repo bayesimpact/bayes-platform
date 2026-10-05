@@ -3,6 +3,8 @@ import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { GridHeader } from "@/common/components/grid/Grid"
+import { AgentMemoryPanel } from "@/common/features/agents/agent-memories/components/AgentMemoryPanel"
+import { useAgentMemory } from "@/common/features/agents/agent-memories/use-agent-memory"
 import type { ConversationAgentSession } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.models"
 import { selectConversationSubSessionsBySessionId } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.selectors"
 import type { AgentSessionMessage } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.models"
@@ -45,6 +47,7 @@ export function StudioAgentSessionRoute({ agentSession }: { agentSession: AgentS
     [agentSession.id],
   )
   const formSubSessions = useAppSelector(selectSubSessions)
+  const hasMemory = useAgentMemory({ agentId: agent.id })
 
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -121,6 +124,7 @@ export function StudioAgentSessionRoute({ agentSession }: { agentSession: AgentS
         }
         action={
           <>
+            {hasMemory && <AgentMemoryPanel />}
             <TraceUrlOpener
               buttonProps={{ variant: "secondary" }}
               traceUrl={agentSession.traceUrl}

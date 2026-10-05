@@ -224,6 +224,15 @@
         "title": "Form filling",
         "description": "Let the agent fill a structured form from the user's answers during the conversation.",
         "schemaDescription": "Define the form fields the agent should fill. The field order is the order in which the agent asks its questions."
+      },
+      "memory": {
+        "title": "Memory",
+        "description": "Let the agent remember facts about each signed-in user between conversations. Users see and delete what it remembers.",
+        "modes": {
+          "off": "Off",
+          "ask": "Ask before saving",
+          "auto": "Save automatically"
+        }
       }
     }
   }

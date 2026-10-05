@@ -1,4 +1,5 @@
 import type { IBackofficeSpi } from "@/backoffice/features/backoffice/backoffice.spi"
+import type { IAgentMemoriesSpi } from "@/common/features/agents/agent-memories/agent-memories.spi"
 import type { IConversationAgentSessionsSpi } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.spi"
 import type { IExtractionAgentSessionsSpi } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.spi"
 import type { IAgentSessionMessagesSpi } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.spi"
@@ -37,6 +38,7 @@ export type Services = {
   agentCsvExtractionRuns: IAgentCsvExtractionRunsSpi
   agentEmbedConfigs: IAgentEmbedConfigsSpi
   agentMemberships: IAgentMembershipsSpi
+  agentMemories: IAgentMemoriesSpi
   agentMessageFeedback: IAgentMessageFeedbackSpi
   agentSubAgents: IAgentSubAgentsSpi
   agents: IAgentsSpi

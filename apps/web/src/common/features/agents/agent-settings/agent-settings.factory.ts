@@ -1,5 +1,6 @@
 import {
   AgentLocale,
+  AgentMemoryMode,
   AgentThinkingLevel,
   DEFAULT_AGENT_MODEL,
   DocumentsRagMode,
@@ -43,6 +44,11 @@ class AgentSettingsFactory extends Factory<AgentSettings, AgentSettingsTransient
   priorityCalls() {
     return this.params({ priorityCallsEnabled: true })
   }
+
+  /** A conversation agent that asks before remembering what it infers. */
+  memory() {
+    return this.params({ memoryMode: AgentMemoryMode.Ask })
+  }
 }
 
 export const agentSettingsFactory = AgentSettingsFactory.define(({ params, transientParams }) => {
@@ -75,5 +81,6 @@ export const agentSettingsFactory = AgentSettingsFactory.define(({ params, trans
     usedProjectAgentSessionCategoryIds: params.usedProjectAgentSessionCategoryIds ?? [],
     mcpServers: params.mcpServers ?? [],
     thinkingLevel: AgentThinkingLevel.Auto,
+    memoryMode: params.memoryMode ?? AgentMemoryMode.Off,
   } satisfies AgentSettings
 })

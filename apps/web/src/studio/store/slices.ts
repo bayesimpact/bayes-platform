@@ -1,3 +1,5 @@
+import { agentMemoriesMiddleware } from "@/common/features/agents/agent-memories/agent-memories.middleware"
+import { agentMemoriesSlice } from "@/common/features/agents/agent-memories/agent-memories.slice"
 import { conversationAgentSessionsMiddleware } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.middleware"
 import { conversationAgentSessionsSlice } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.slice"
 import { extractionAgentSessionsMiddleware } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.middleware"
@@ -51,6 +53,7 @@ const studioMiddlewareList = [
   agentEmbedConfigsMiddleware,
   agentSettingsMiddleware,
   agentMembershipsMiddleware,
+  agentMemoriesMiddleware,
   agentMessageFeedbackMiddleware,
   agentSessionMessagesMiddleware,
   agentsMiddleware,
@@ -77,6 +80,7 @@ export const studioSliceList = [
   agentEmbedConfigsSlice,
   agentSettingsSlice,
   agentMembershipsSlice,
+  agentMemoriesSlice,
   agentMessageFeedbackSlice,
   agentSessionMessagesSlice,
   agentsSlice,

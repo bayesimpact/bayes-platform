@@ -1,4 +1,5 @@
 import backoffice from "@/backoffice/features/backoffice/external/backoffice.api"
+import agentMemories from "@/common/features/agents/agent-memories/external/agent-memories.api"
 import conversationAgentSessions from "@/common/features/agents/agent-sessions/conversation/external/conversation-agent-sessions.api"
 import extractionAgentSessions from "@/common/features/agents/agent-sessions/extraction/external/extraction-agent-sessions.api"
 import agentSessionMessages from "@/common/features/agents/agent-sessions/shared/agent-session-messages/external/agent-session-messages.api"
@@ -36,6 +37,7 @@ export const services = {
   agentCsvExtractionRuns,
   agentEmbedConfigs,
   agentMemberships,
+  agentMemories,
   agentMessageFeedback,
   agentSubAgents,
   agents,

@@ -15,6 +15,7 @@ import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { FeedbackCreator } from "@/common/components/FeedbackCreator"
 import { RestrictedFeature } from "@/common/components/RestrictedFeature"
+import { MemoryToolCard } from "@/common/features/agents/agent-memories/components/MemoryToolCard"
 import type { AgentSessionMessage as AgentSessionMessageType } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.models"
 import { useCopyToClipboard } from "@/common/hooks/use-copy-to-clipboard"
 import { ADS } from "@/common/store/async-data-status"
@@ -58,6 +59,9 @@ export function AgentSessionMessage({
       const sourcesTool = message.toolCalls?.find((call) => call.name === ToolName.Sources)
       const surfaceResourcesTool = message.toolCalls?.find(
         (call) => call.name === ToolName.SurfaceResources,
+      )
+      const saveMemoryTools = (message.toolCalls ?? []).filter(
+        (call) => call.name === ToolName.SaveMemory,
       )
       // Every card this reply shows, with its view once the HTML is here. A card without a view
       // is either still loading (placeholder) or unavailable (its text stands in).
@@ -113,6 +117,11 @@ export function AgentSessionMessage({
             {!isStreaming && surfaceResourcesTool && (
               <SurfaceResourcesTool toolCall={surfaceResourcesTool} />
             )}
+
+            {!isStreaming &&
+              saveMemoryTools.map((toolCall) => (
+                <MemoryToolCard key={toolCall.id} toolCall={toolCall} />
+              ))}
 
             {!isStreaming &&
               mcpAppCards.map(({ toolCall, view }) =>
@@ -228,6 +237,8 @@ const TOOL_ACTIVITY_KEY: Record<string, string> = {
   [ToolName.FillForm]: "activity.fillingForm",
   [ToolName.ConsolidateForm]: "activity.completingForm",
   [ToolName.ConcludeHandoff]: "activity.handingBack",
+  [ToolName.SaveMemory]: "activity.savingMemory",
+  [ToolName.ForgetMemory]: "activity.forgettingMemory",
   [ToolName.RecalculateConversationSessionMetadata]: "activity.recalculating",
 }
 

@@ -12,6 +12,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Kubernetes: the Helm chart can install an optional Phoenix to read LLM traces.
 - Sign-in: any OpenID Connect provider, such as Keycloak, can now authenticate platform users.
 - Embed widget: visitors and host sites can start a new conversation instead of resuming the stored one.
+- (beta) Agent memory: conversation agents can remember facts about signed-in users, with their approval.
 
 ### Changed
 - Trace links now open the conversation in Phoenix instead of Langfuse.

@@ -82,4 +82,5 @@ const toAgentSettings = (dto: AgentSettingsDto): AgentSettings => ({
   updatedAt: dto.updatedAt,
   usedProjectAgentSessionCategoryIds: dto.usedProjectAgentSessionCategoryIds,
   thinkingLevel: dto.thinkingLevel,
+  memoryMode: dto.memoryMode,
 })
