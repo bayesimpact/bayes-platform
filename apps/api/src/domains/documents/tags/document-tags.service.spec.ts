@@ -267,12 +267,43 @@ describe("DocumentTagsService", () => {
     const added = await service.createDocumentTag({ connectScope, fields: { name: "Added" } })
 
     const nextTags = await service.resolveTagChanges({
+      connectScope,
       currentTags: [kept, removed],
       tagsToAdd: [added.id],
       tagsToRemove: [removed.id],
     })
 
     expect(nextTags.map((tag) => tag.id)).toEqual([kept.id, added.id])
+  })
+
+  it("rejects a tag from outside the project when attaching tags", async () => {
+    const { organization, project } = await createOrganizationWithProject(repositories)
+    const connectScope = { organizationId: organization.id, projectId: project.id }
+    const localTag = await service.createDocumentTag({ connectScope, fields: { name: "Local" } })
+    const otherProject = projectFactory.transient({ organization }).build()
+    await repositories.projectRepository.save(otherProject)
+    const otherProjectTag = await service.createDocumentTag({
+      connectScope: { organizationId: organization.id, projectId: otherProject.id },
+      fields: { name: "Other project" },
+    })
+    const otherOrganization = await createOrganizationWithProject(repositories)
+    const otherOrganizationTag = await service.createDocumentTag({
+      connectScope: {
+        organizationId: otherOrganization.organization.id,
+        projectId: otherOrganization.project.id,
+      },
+      fields: { name: "Other organization" },
+    })
+
+    for (const foreignTagId of [otherProjectTag.id, otherOrganizationTag.id, randomUUID()]) {
+      await expect(
+        service.resolveTagChanges({
+          connectScope,
+          currentTags: [localTag],
+          tagsToAdd: [foreignTagId],
+        }),
+      ).rejects.toThrow(`DocumentTag with id ${foreignTagId} not found`)
+    }
   })
 
   it("deletes a tag and its document and agent links", async () => {

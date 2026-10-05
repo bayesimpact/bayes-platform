@@ -347,6 +347,7 @@ export class AgentSettingsService {
     if (needsTags) {
       const currentTags = agent.documentTags ?? []
       agent.documentTags = await this.resolveDocumentTags({
+        connectScope,
         currentTags,
         tagsToAdd,
         tagsToRemove,
@@ -419,15 +420,18 @@ export class AgentSettingsService {
   }
 
   async resolveDocumentTags({
+    connectScope,
     currentTags,
     tagsToAdd,
     tagsToRemove,
   }: {
+    connectScope: RequiredConnectScope
     currentTags: Agent["documentTags"]
     tagsToAdd?: string[]
     tagsToRemove?: string[]
   }) {
     return await this.documentTagsService.resolveTagChanges({
+      connectScope,
       currentTags,
       tagsToAdd,
       tagsToRemove,

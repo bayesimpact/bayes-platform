@@ -75,6 +75,7 @@ export class AgentsService {
 
     const { tagsToAdd, projectAgentSessionCategoryIds, resourceLibraryIds, ...agentFields } = fields
     const documentTags = await this.agentSettingsService.resolveDocumentTags({
+      connectScope,
       currentTags: [],
       tagsToAdd,
     })

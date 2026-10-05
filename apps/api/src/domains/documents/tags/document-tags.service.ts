@@ -11,13 +11,21 @@ export class DocumentTagsService {
   constructor(private readonly documentTagRepository: DocumentTagRepository) {}
 
   async resolveTagChanges({
+    connectScope,
     currentTags,
     tagsToAdd = [],
     tagsToRemove = [],
   }: {
+    connectScope: RequiredConnectScope
     currentTags: DocumentTag[]
   } & DocumentTagsUpdateFields): Promise<DocumentTag[]> {
-    const addedTags = await this.documentTagRepository.findByIds(tagsToAdd)
+    const uniqueTagIds = [...new Set(tagsToAdd)]
+    const addedTags = await this.documentTagRepository.findByIds(connectScope, uniqueTagIds)
+    if (addedTags.length !== uniqueTagIds.length) {
+      const foundIds = new Set(addedTags.map((tag) => tag.id))
+      const missingId = uniqueTagIds.find((tagId) => !foundIds.has(tagId))
+      throw new NotFoundException(`DocumentTag with id ${missingId} not found`)
+    }
     const tagsToRemoveSet = new Set(tagsToRemove)
     return [...currentTags.filter((tag) => !tagsToRemoveSet.has(tag.id)), ...addedTags]
   }
