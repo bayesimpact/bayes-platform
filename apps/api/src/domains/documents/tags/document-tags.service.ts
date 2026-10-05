@@ -29,13 +29,56 @@ export class DocumentTagsService {
     return name?.trim().toLowerCase() === PUBLIC_DOCUMENTS_TAG_NAME
   }
 
-  private async assertParentIsNotPublicDocumentsTag(parentId: string | null | undefined) {
+  private async assertParentIsInProject({
+    connectScope,
+    parentId,
+    documentTagId,
+  }: {
+    connectScope: RequiredConnectScope
+    parentId: string | null | undefined
+    documentTagId?: string
+  }) {
     if (!parentId) {
       return
     }
-    const parentTag = await this.documentTagRepository.findOneById(parentId)
-    if (parentTag?.name === PUBLIC_DOCUMENTS_TAG_NAME) {
+
+    if (documentTagId && parentId === documentTagId) {
+      throw new BadRequestException("A tag cannot be its own parent.")
+    }
+
+    const parentTag = await this.documentTagRepository.findOne(connectScope, parentId)
+    if (!parentTag) {
+      throw new NotFoundException(`DocumentTag with id ${parentId} not found`)
+    }
+
+    if (parentTag.name === PUBLIC_DOCUMENTS_TAG_NAME) {
       throw new BadRequestException(`Tag "${PUBLIC_DOCUMENTS_TAG_NAME}" cannot have children.`)
+    }
+
+    if (documentTagId) {
+      await this.assertParentIsNotDescendant(connectScope, parentTag, documentTagId)
+    }
+  }
+
+  private async assertParentIsNotDescendant(
+    connectScope: RequiredConnectScope,
+    parentTag: DocumentTag,
+    documentTagId: string,
+  ) {
+    const tags = await this.documentTagRepository.list(connectScope)
+    const parentIdByTagId = new Map(tags.map((tag) => [tag.id, tag.parentId]))
+    const seen = new Set<string>([parentTag.id])
+    let currentParentId = parentTag.parentId
+
+    while (currentParentId) {
+      if (currentParentId === documentTagId) {
+        throw new BadRequestException("A tag cannot have a descendant as its parent.")
+      }
+      if (seen.has(currentParentId)) {
+        return
+      }
+      seen.add(currentParentId)
+      currentParentId = parentIdByTagId.get(currentParentId) ?? null
     }
   }
 
@@ -49,7 +92,7 @@ export class DocumentTagsService {
     if (this.isReservedPublicDocumentsName(fields.name)) {
       throw new BadRequestException(`Tag name "${PUBLIC_DOCUMENTS_TAG_NAME}" is reserved.`)
     }
-    await this.assertParentIsNotPublicDocumentsTag(fields.parentId)
+    await this.assertParentIsInProject({ connectScope, parentId: fields.parentId })
     return this.documentTagRepository.createOne(connectScope, {
       name: fields.name,
       description: fields.description ?? null,
@@ -103,7 +146,11 @@ export class DocumentTagsService {
       throw new BadRequestException(`Tag name "${PUBLIC_DOCUMENTS_TAG_NAME}" is reserved.`)
     }
 
-    await this.assertParentIsNotPublicDocumentsTag(fieldsToUpdate.parentId)
+    await this.assertParentIsInProject({
+      connectScope,
+      parentId: fieldsToUpdate.parentId,
+      documentTagId,
+    })
 
     return this.documentTagRepository.updateOne(documentTag, fieldsToUpdate)
   }

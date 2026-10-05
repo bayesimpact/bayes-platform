@@ -12,6 +12,7 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { projectFactory } from "@/domains/projects/project.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { DocumentTag } from "../document-tag.entity"
@@ -133,6 +134,55 @@ describe("DocumentTags - createOne", () => {
     expectResponse(response, 400, `Tag "${PUBLIC_DOCUMENTS_TAG_NAME}" cannot have children.`)
 
     const childCount = await documentTagRepository.count({ where: { name: "Child Tag" } })
+    expect(childCount).toBe(0)
+  })
+
+  it("should create a tag under a parent in the same project", async () => {
+    const { organization, project } = await createContext()
+    const parent = await setup
+      .getRepository(DocumentTag)
+      .save(documentTagFactory.transient({ organization, project }).build({ name: "Parent" }))
+
+    const response = await subject({ payload: { name: "Child", parentId: parent.id } })
+
+    expectResponse(response, 201)
+    expect(response.body.data.parentId).toBe(parent.id)
+  })
+
+  it("should reject a parent from another project of the same organization", async () => {
+    const { organization } = await createContext()
+    const otherProject = projectFactory.transient({ organization }).build()
+    await repositories.projectRepository.save(otherProject)
+    const foreignTag = await setup
+      .getRepository(DocumentTag)
+      .save(
+        documentTagFactory
+          .transient({ organization, project: otherProject })
+          .build({ name: "Other project" }),
+      )
+
+    const response = await subject({ payload: { name: "Child", parentId: foreignTag.id } })
+
+    expectResponse(response, 404, `DocumentTag with id ${foreignTag.id} not found`)
+    const childCount = await setup.getRepository(DocumentTag).count({ where: { name: "Child" } })
+    expect(childCount).toBe(0)
+  })
+
+  it("should reject a parent from another organization", async () => {
+    await createContext()
+    const other = await createOrganizationWithProject(repositories)
+    const foreignTag = await setup
+      .getRepository(DocumentTag)
+      .save(
+        documentTagFactory
+          .transient({ organization: other.organization, project: other.project })
+          .build({ name: "Other organization" }),
+      )
+
+    const response = await subject({ payload: { name: "Child", parentId: foreignTag.id } })
+
+    expectResponse(response, 404, `DocumentTag with id ${foreignTag.id} not found`)
+    const childCount = await setup.getRepository(DocumentTag).count({ where: { name: "Child" } })
     expect(childCount).toBe(0)
   })
 })

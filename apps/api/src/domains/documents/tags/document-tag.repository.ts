@@ -29,11 +29,6 @@ export class DocumentTagRepository {
     return this.repo().findBy({ id: In(ids) })
   }
 
-  /** Parent lookup by id, not restricted to the caller's project. */
-  findOneById(id: string): Promise<DocumentTag | null> {
-    return this.repo().findOneBy({ id })
-  }
-
   createOne(
     connectScope: RequiredConnectScope,
     fields: CreateDocumentTagFields,
