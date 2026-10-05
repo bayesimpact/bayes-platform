@@ -210,6 +210,7 @@ export abstract class AgentCsvExtractionRunsController {
       projectId: run.projectId,
       agentId: run.agentSettings.agentId,
       runType: run.type,
+      userId: run.userId,
       status: run.status,
       summary: run.summary,
       updatedAt: run.updatedAt.getTime(),
@@ -284,7 +285,8 @@ export abstract class AgentCsvExtractionRunsController {
           event.organizationId === connectScope.organizationId &&
           event.projectId === connectScope.projectId &&
           event.agentId === request.agent.id &&
-          event.runType === this.type,
+          event.runType === this.type &&
+          isRunOpenTo(event, request.user.id),
       ),
       map((event) => ({ ...event, data: JSON.stringify(event) })),
     )
@@ -311,14 +313,16 @@ export abstract class AgentCsvExtractionRunsController {
   }
 
   /**
-   * Returns the run resolved from the path, as long as it is of this controller's type and
-   * belongs to the agent in the path. Any other run answers 404, as if it did not exist.
+   * Returns the run resolved from the path, as long as it is of this controller's type, belongs
+   * to the agent in the path and is open to the caller. Any other run answers 404, as if it did
+   * not exist.
    */
   private getRequestRun(request: EndpointRequestWithAgentCsvExtractionRun): AgentCsvExtractionRun {
     const { agent, agentCsvExtractionRun } = request as EndpointRequestWithAgentCsvExtractionRun &
       EndpointRequestWithAgent
     if (agentCsvExtractionRun.type !== this.type) throw new NotFoundException()
     if (agentCsvExtractionRun.agentSettings.agentId !== agent.id) throw new NotFoundException()
+    if (!isRunOpenTo(agentCsvExtractionRun, request.user.id)) throw new NotFoundException()
     return agentCsvExtractionRun
   }
 
@@ -374,6 +378,14 @@ export abstract class AgentCsvExtractionRunsController {
       sourceStream.pipe(parseStream as unknown as NodeJS.WritableStream)
     })
   }
+}
+
+/**
+ * A run is open to its creator only, whatever the caller's project role. A run created before
+ * ownership was tracked has no creator and stays open to every member, as in the list.
+ */
+function isRunOpenTo(run: { userId: string | null }, userId: string): boolean {
+  return run.userId === null || run.userId === userId
 }
 
 function toAgentCsvExtractionRunDto(run: AgentCsvExtractionRun): AgentCsvExtractionRunDto {

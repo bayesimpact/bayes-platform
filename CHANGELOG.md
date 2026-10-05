@@ -22,6 +22,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Evaluation: reloading an extraction dataset page no longer shows an error.
 
 ### Security
+- CSV extraction: only the member who created a run can now open it.
 
 ## [26.09.4] - 2026-09-29
 

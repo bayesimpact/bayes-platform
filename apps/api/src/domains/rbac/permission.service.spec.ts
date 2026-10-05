@@ -890,14 +890,17 @@ describe("PermissionService", () => {
         "project.read",
       )
 
-      expect(permissionsByProjectId.get(project.id)).toEqual([
-        PROJECT_READ_PERMISSION,
-        DESK_UI_READ_PERMISSION,
-        "csv_extraction_run.read",
-        "csv_extraction_run.create",
-        "csv_extraction_run.update",
-        "csv_extraction_run.delete",
-      ])
+      // the query has no ORDER BY, so the row order follows the join plan
+      expect(permissionsByProjectId.get(project.id)?.sort()).toEqual(
+        [
+          PROJECT_READ_PERMISSION,
+          DESK_UI_READ_PERMISSION,
+          "csv_extraction_run.read",
+          "csv_extraction_run.create",
+          "csv_extraction_run.update",
+          "csv_extraction_run.delete",
+        ].sort(),
+      )
     })
 
     it("merges direct project permissions with inherited organization permissions", async () => {

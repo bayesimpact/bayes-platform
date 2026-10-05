@@ -168,14 +168,17 @@ describe("ProjectsService", () => {
       const result = await service.listUserProjects(memberUser.id)
 
       expect(result).toHaveLength(1)
-      expect(result[0]?.permissions).toEqual([
-        "project.read",
-        "desk.ui.read",
-        "csv_extraction_run.read",
-        "csv_extraction_run.create",
-        "csv_extraction_run.update",
-        "csv_extraction_run.delete",
-      ])
+      // the permission query has no ORDER BY, so the row order follows the join plan
+      expect(result[0]?.permissions?.sort()).toEqual(
+        [
+          "project.read",
+          "desk.ui.read",
+          "csv_extraction_run.read",
+          "csv_extraction_run.create",
+          "csv_extraction_run.update",
+          "csv_extraction_run.delete",
+        ].sort(),
+      )
     })
   })
 

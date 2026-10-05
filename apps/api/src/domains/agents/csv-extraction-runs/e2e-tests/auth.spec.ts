@@ -16,6 +16,7 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
+import { userFactory } from "@/domains/users/user.factory"
 import { mockForeignAuthSubject, mockOidcEmailForSub } from "../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
@@ -107,6 +108,26 @@ describe("AgentCsvExtractionRuns - Auth", () => {
   ) => {
     const { agent } = await createOtherAgentInProject({ repositories, context })
     agentId = agent.id
+  }
+
+  /**
+   * Points the path at a run of the same agent and type created by a colleague, or by nobody
+   * (`null`, a run created before ownership was tracked).
+   */
+  const switchToRunCreatedBy = async (
+    creator: "colleague" | null,
+    context: Awaited<ReturnType<typeof createContextForRole>>,
+  ) => {
+    const user =
+      creator === "colleague" ? await repositories.userRepository.save(userFactory.build()) : null
+    const run = await createCsvExtractionRun({
+      repositories,
+      context,
+      status: "running",
+      type: runType,
+      user,
+    })
+    agentCsvExtractionRunId = run.id
   }
 
   /** Switches the caller to an organization admin who holds no role on the project. */
@@ -227,6 +248,18 @@ describe("AgentCsvExtractionRuns - Auth", () => {
       await switchToOtherAgentOfProject(context)
       expectResponse(await subject(), 404)
     })
+
+    it("answers 404 for a colleague's run to a plain member", async () => {
+      const context = await createContextForRole("member")
+      await switchToRunCreatedBy("colleague", context)
+      expectResponse(await subject(), 404)
+    })
+
+    it("answers 404 for a colleague's run to a project owner", async () => {
+      const context = await createContextForRole("owner")
+      await switchToRunCreatedBy("colleague", context)
+      expectResponse(await subject(), 404)
+    })
   })
 
   describe("retryOne", () => {
@@ -277,6 +310,18 @@ describe("AgentCsvExtractionRuns - Auth", () => {
     it("answers 404 for a run of another agent of the project", async () => {
       const context = await createContextForRole("owner")
       await switchToOtherAgentOfProject(context)
+      expectResponse(await subject(), 404)
+    })
+
+    it("answers 404 for a colleague's run to a plain member", async () => {
+      const context = await createContextForRole("member")
+      await switchToRunCreatedBy("colleague", context)
+      expectResponse(await subject(), 404)
+    })
+
+    it("answers 404 for a colleague's run to a project owner", async () => {
+      const context = await createContextForRole("owner")
+      await switchToRunCreatedBy("colleague", context)
       expectResponse(await subject(), 404)
     })
   })
@@ -331,6 +376,18 @@ describe("AgentCsvExtractionRuns - Auth", () => {
       await switchToOtherAgentOfProject(context)
       expectResponse(await subject(), 404)
     })
+
+    it("answers 404 for a colleague's run to a plain member", async () => {
+      const context = await createContextForRole("member")
+      await switchToRunCreatedBy("colleague", context)
+      expectResponse(await subject(), 404)
+    })
+
+    it("answers 404 for a colleague's run to a project owner", async () => {
+      const context = await createContextForRole("owner")
+      await switchToRunCreatedBy("colleague", context)
+      expectResponse(await subject(), 404)
+    })
   })
 
   describe("getOne", () => {
@@ -382,6 +439,24 @@ describe("AgentCsvExtractionRuns - Auth", () => {
       const context = await createContextForRole("owner")
       await switchToOtherAgentOfProject(context)
       expectResponse(await subject(), 404)
+    })
+
+    it("answers 404 for a colleague's run to a plain member", async () => {
+      const context = await createContextForRole("member")
+      await switchToRunCreatedBy("colleague", context)
+      expectResponse(await subject(), 404)
+    })
+
+    it("answers 404 for a colleague's run to a project owner", async () => {
+      const context = await createContextForRole("owner")
+      await switchToRunCreatedBy("colleague", context)
+      expectResponse(await subject(), 404)
+    })
+
+    it("allows a plain member to read a run created before ownership was tracked", async () => {
+      const context = await createContextForRole("member")
+      await switchToRunCreatedBy(null, context)
+      expectResponse(await subject(), 200)
     })
 
     it("doesn't allow an organization admin without a project role to read a run", async () => {
@@ -477,6 +552,18 @@ describe("AgentCsvExtractionRuns - Auth", () => {
       await switchToOtherAgentOfProject(context)
       expectResponse(await subject(), 404)
     })
+
+    it("answers 404 for a colleague's run to a plain member", async () => {
+      const context = await createContextForRole("member")
+      await switchToRunCreatedBy("colleague", context)
+      expectResponse(await subject(), 404)
+    })
+
+    it("answers 404 for a colleague's run to a project owner", async () => {
+      const context = await createContextForRole("owner")
+      await switchToRunCreatedBy("colleague", context)
+      expectResponse(await subject(), 404)
+    })
   })
 
   describe("deleteOne", () => {
@@ -527,6 +614,18 @@ describe("AgentCsvExtractionRuns - Auth", () => {
     it("answers 404 for a run of another agent of the project", async () => {
       const context = await createContextForRole("owner")
       await switchToOtherAgentOfProject(context)
+      expectResponse(await subject(), 404)
+    })
+
+    it("answers 404 for a colleague's run to a plain member", async () => {
+      const context = await createContextForRole("member")
+      await switchToRunCreatedBy("colleague", context)
+      expectResponse(await subject(), 404)
+    })
+
+    it("answers 404 for a colleague's run to a project owner", async () => {
+      const context = await createContextForRole("owner")
+      await switchToRunCreatedBy("colleague", context)
       expectResponse(await subject(), 404)
     })
   })
