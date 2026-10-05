@@ -4,6 +4,12 @@ import type { Agent } from "@/common/features/agents/agents.models"
 import type { Project } from "@/common/features/projects/projects.models"
 import type { ProjectMemberAgent, ProjectMembership } from "./project-memberships.models"
 
+const SAMPLE_PROJECT_ROLE_PERMISSIONS: Record<ProjectMembership["role"], string[]> = {
+  owner: ["project.read", "project.update", "project.delete", "agent.create", "document.read"],
+  admin: ["project.read", "project.update", "project.delete", "agent.create", "document.read"],
+  member: ["project.read", "desk.ui.read"],
+}
+
 type MembershipTransientParams = {
   project: Project
 }
@@ -20,6 +26,7 @@ export const projectMembershipFactory = ProjectMembershipFactory.define(
     }
     const firstName = faker.person.firstName()
     const lastName = faker.person.lastName()
+    const role = params.role ?? "member"
     return {
       id: params.id ?? faker.string.uuid(),
       projectId: project.id,
@@ -28,7 +35,9 @@ export const projectMembershipFactory = ProjectMembershipFactory.define(
       userEmail: params.userEmail ?? faker.internet.email({ firstName, lastName }).toLowerCase(),
       userHasSignedIn: params.userHasSignedIn ?? true,
       createdAt: params.createdAt ?? faker.date.past().getTime(),
-      role: params.role ?? "member",
+      role,
+      roleKey: params.roleKey === undefined ? `project_${role}` : params.roleKey,
+      permissions: params.permissions ?? SAMPLE_PROJECT_ROLE_PERMISSIONS[role],
     } satisfies ProjectMembership
   },
 )

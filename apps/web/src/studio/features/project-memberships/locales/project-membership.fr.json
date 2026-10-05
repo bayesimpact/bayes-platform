@@ -18,7 +18,10 @@
       "agent": "Agent",
       "agentRole": "Rôle",
       "noAccess": "Pas d'accès",
-      "noAgents": "Ce projet n'a aucun agent."
+      "noAgents": "Ce projet n'a aucun agent.",
+      "permissions": "Permissions",
+      "permissionsDescription": "Ce que le rôle {{role}} permet sur ce projet.",
+      "noPermissions": "Ce rôle n'accorde aucune permission."
     },
     "create": {
       "button": "Inviter des administrateurs",
@@ -33,11 +36,11 @@
     },
     "list": {
       "title": "Membres de {{projectName}}",
-      "description": "Invitez des membres dans votre espace de travail pour collaborer ensemble.",
+      "description": "Toutes les personnes qui ont accès à ce projet : propriétaires, administrateurs, et membres ajoutés via un agent ou une campagne de revue.",
       "searchPlaceholder": "Rechercher par nom ou email…",
       "empty": {
         "title": "Aucun membre",
-        "description": "Invitez des administrateurs dans votre espace de travail pour collaborer ensemble."
+        "description": "Invitez des personnes dans votre espace de travail pour collaborer ensemble."
       }
     },
     "remove": {

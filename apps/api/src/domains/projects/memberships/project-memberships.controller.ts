@@ -13,6 +13,7 @@ import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
+import type { RoleGrant } from "@/domains/rbac/permission.types"
 import { UserGuard } from "@/domains/users/user.guard"
 import type { ProjectMembershipModel } from "./project-membership.model"
 import { ProjectMembershipsGuard } from "./project-memberships.guard"
@@ -32,9 +33,17 @@ export class ProjectMembershipsController {
   ): Promise<typeof ProjectMembershipRoutes.getAll.response> {
     const { project } = request
 
-    const memberships = await this.projectMembershipsService.listProjectMemberships(project.id)
+    const { memberships, roleGrantsByRoleId } =
+      await this.projectMembershipsService.listProjectMembershipsWithRoleGrants(project.id)
 
-    return { data: memberships.map(toDto) }
+    return {
+      data: memberships.map((membership) =>
+        toDto(
+          membership,
+          membership.roleId ? roleGrantsByRoleId.get(membership.roleId) : undefined,
+        ),
+      ),
+    }
   }
 
   @Get(ProjectMembershipRoutes.getMemberAgents.path)
@@ -82,7 +91,10 @@ export class ProjectMembershipsController {
   }
 }
 
-function toDto(model: ProjectMembershipModel): ProjectMembershipDto {
+function toDto(
+  model: ProjectMembershipModel,
+  roleGrant: RoleGrant | undefined,
+): ProjectMembershipDto {
   return {
     id: model.id,
     projectId: model.projectId,
@@ -92,5 +104,7 @@ function toDto(model: ProjectMembershipModel): ProjectMembershipDto {
     userHasSignedIn: model.user.authSubject !== null,
     createdAt: model.createdAt.getTime(),
     role: model.role,
+    roleKey: roleGrant?.key ?? null,
+    permissions: roleGrant?.permissions ?? [],
   }
 }

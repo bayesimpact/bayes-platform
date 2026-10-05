@@ -21,6 +21,7 @@ import { studioRoutes } from "@/studio/routes/StudioRoutes"
 
 type StoryArgs = StudioStoryArgs & {
   withMemberAgents?: boolean
+  memberRole?: ProjectMembership["role"]
 }
 
 const FIXED_MEMBERSHIP_ID = "membership-fixture-1"
@@ -46,11 +47,13 @@ const meta = {
     ...studioStoryArgTypes,
     withAgents: { control: undefined },
     withMemberAgents: { control: "boolean" },
+    memberRole: { control: "select", options: ["owner", "admin", "member"] },
   },
   args: {
     ...studioStoryArgs,
     withAgents: true,
     withMemberAgents: false,
+    memberRole: "member",
   },
   render: render({
     routes: studioRoutes,
@@ -63,11 +66,11 @@ type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
   decorators: [
-    buildDecorator<StoryArgs>(({ withMemberAgents, ...args }) => {
+    buildDecorator<StoryArgs>(({ withMemberAgents, memberRole, ...args }) => {
       const { baseSeeds, project, agents } = buildStudioData(args)
       const membership = projectMembershipFactory
         .transient({ project })
-        .build({ id: FIXED_MEMBERSHIP_ID, role: "member" })
+        .build({ id: FIXED_MEMBERSHIP_ID, role: memberRole ?? "member" })
       const otherMemberships = [
         projectMembershipFactory.transient({ project }).build({ role: "owner" }),
       ]

@@ -28,7 +28,10 @@ import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { LoadingRoute } from "@/common/routes/LoadingRoute"
 import { useAppSelector } from "@/common/store/hooks"
 import { BadgeWithIcon } from "@/studio/features/project-memberships/components/ProjectMembershipItem"
-import type { ProjectMemberAgent } from "@/studio/features/project-memberships/project-memberships.models"
+import type {
+  ProjectMemberAgent,
+  ProjectMembership,
+} from "@/studio/features/project-memberships/project-memberships.models"
 import {
   selectCurrentProjectMembership,
   selectCurrentProjectMembershipId,
@@ -83,8 +86,48 @@ function WithData() {
           </div>
         </div>
 
+        <RolePermissions
+          role={membership.role}
+          roleKey={membership.roleKey}
+          permissions={membership.permissions}
+        />
+
         <MemberAgentsTable memberAgents={memberAgents} />
       </div>
+    </div>
+  )
+}
+
+function RolePermissions({
+  role,
+  roleKey,
+  permissions,
+}: Pick<ProjectMembership, "role" | "roleKey" | "permissions">) {
+  const { t } = useTranslation()
+  return (
+    <div className="flex flex-col gap-3 border rounded-lg p-4">
+      <div className="flex flex-col gap-0.5">
+        <div className="flex items-center gap-2">
+          <span className="font-medium">{t("projectMembership:profile.permissions")}</span>
+          {roleKey && <span className="font-mono text-xs text-muted-foreground">{roleKey}</span>}
+        </div>
+        <p className="text-sm text-muted-foreground">
+          {t("projectMembership:profile.permissionsDescription", { role })}
+        </p>
+      </div>
+      {permissions.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          {t("projectMembership:profile.noPermissions")}
+        </p>
+      ) : (
+        <ul className="grid gap-1 sm:grid-cols-2 lg:grid-cols-3">
+          {permissions.map((permission) => (
+            <li key={permission} className="font-mono text-xs">
+              {permission}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   )
 }
