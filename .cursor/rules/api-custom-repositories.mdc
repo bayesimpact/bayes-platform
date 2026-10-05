@@ -27,6 +27,7 @@ How to add a repository: `.claude/skills/custom-repository/SKILL.md` and ADR 002
 3. Expose named methods only (`createProject`, `findAllByIds`, `softDelete`). Do not leak TypeORM types in the public API.
 4. Inject the custom repository into the service. Register it in the module `providers` (and `exports` if other modules need it).
 5. For connect-scoped entities, keep `ConnectRepository` **inside** the custom repository. The service passes `connectScope` into named methods.
+6. A caller-supplied id of a connect-scoped row (`parentId`, `tagsToAdd`, a target, a link) is loaded with that `connectScope`. `findOneBy({ id })` or `findBy({ id: In(ids) })` is not an existence check, including when the caller is another service. Every requested id must be in that organization and project. Missing, another project, and another organization are the same 404. A parent id cannot be the row itself or a descendant.
 
 ```typescript
 // ✅ Service — no TypeORM
