@@ -93,33 +93,33 @@ describe("Agent Memories - Auth", () => {
   const pathParams = () => removeNullish({ organizationId, projectId, agentId, sessionType })
 
   // One request at a time: the user guard creates the user on first sight.
-  const subjects = async () => [
-    await request({
+  const subjects = async () => ({
+    getAll: await request({
       route: AgentMemoriesRoutes.getAll,
       pathParams: pathParams(),
       token: accessToken ?? undefined,
     }),
-    await request({
+    deleteAll: await request({
       route: AgentMemoriesRoutes.deleteAll,
       pathParams: pathParams(),
       token: accessToken ?? undefined,
     }),
-    await request({
+    deleteOne: await request({
       route: AgentMemoriesRoutes.deleteOne,
       pathParams: { ...pathParams(), memoryId: randomUUID() },
       token: accessToken ?? undefined,
     }),
-    await request({
+    resolve: await request({
       route: AgentMemoriesRoutes.resolveProposals,
       pathParams: pathParams(),
       token: accessToken ?? undefined,
       request: { payload: { decisions: [{ memoryId: randomUUID(), decision: "save" }] } },
     }),
-  ]
+  })
 
   /** deleteOne and resolveProposals target a memory that does not exist: 404 once authorized. */
   const expectAuthorized = async () => {
-    const [getAll, deleteAll, deleteOne, resolve] = await subjects()
+    const { getAll, deleteAll, deleteOne, resolve } = await subjects()
     expectResponse(getAll, 200)
     expectResponse(deleteAll, 200)
     expectResponse(deleteOne, 404)
@@ -127,7 +127,11 @@ describe("Agent Memories - Auth", () => {
   }
 
   const expectAll = async (status: number, error?: string) => {
-    for (const response of await subjects()) expectResponse(response, status, error)
+    const { getAll, deleteAll, deleteOne, resolve } = await subjects()
+    expectResponse(getAll, status, error)
+    expectResponse(deleteAll, status, error)
+    expectResponse(deleteOne, status, error)
+    expectResponse(resolve, status, error)
   }
 
   it("requires an authentication token", async () => {

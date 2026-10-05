@@ -71,11 +71,10 @@ describe("Agent Memories - resolveProposals", () => {
   it("saves approved proposals, with the user's rewording, and deletes rejected ones", async () => {
     const { organization, project, agent, user } = await createContext()
     const proposal = agentMemoryFactory.transient({ organization, project, agent, user }).pending()
-    const [kept, reworded, rejected] = await repositories.agentMemoryRepository.save([
-      proposal.build({ content: "Likes bullet points" }),
-      proposal.build({ content: "Works on weekends" }),
-      proposal.build({ content: "Has a cat" }),
-    ])
+    const kept = proposal.build({ content: "Likes bullet points" })
+    const reworded = proposal.build({ content: "Works on weekends" })
+    const rejected = proposal.build({ content: "Has a cat" })
+    await repositories.agentMemoryRepository.save([kept, reworded, rejected])
 
     const response = await subject({
       decisions: [
@@ -100,13 +99,14 @@ describe("Agent Memories - resolveProposals", () => {
   it("refuses a fact that is not one of the caller's pending proposals", async () => {
     const { organization, project, agent, user } = await createContext()
     const otherUser = await repositories.userRepository.save(userFactory.build())
-    const [alreadySaved, othersProposal] = await repositories.agentMemoryRepository.save([
-      agentMemoryFactory.transient({ organization, project, agent, user }).build(),
-      agentMemoryFactory
-        .transient({ organization, project, agent, user: otherUser })
-        .pending()
-        .build(),
-    ])
+    const alreadySaved = agentMemoryFactory
+      .transient({ organization, project, agent, user })
+      .build()
+    const othersProposal = agentMemoryFactory
+      .transient({ organization, project, agent, user: otherUser })
+      .pending()
+      .build()
+    await repositories.agentMemoryRepository.save([alreadySaved, othersProposal])
 
     expectResponse(
       await subject({ decisions: [{ memoryId: alreadySaved.id, decision: "reject" }] }),

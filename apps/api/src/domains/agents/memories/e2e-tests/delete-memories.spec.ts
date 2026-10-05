@@ -56,13 +56,17 @@ describe("Agent Memories - deleteOne and deleteAll", () => {
     agentId = agent.id
     authSubject = user.authSubject as string
     const otherUser = await repositories.userRepository.save(userFactory.build())
-    const [own, ownPlayground, others] = await repositories.agentMemoryRepository.save([
+    const own = await repositories.agentMemoryRepository.save(
       agentMemoryFactory.transient({ organization, project, agent, user }).build(),
+    )
+    const ownPlayground = await repositories.agentMemoryRepository.save(
       agentMemoryFactory
         .transient({ organization, project, agent, user })
         .build({ sessionType: "playground" }),
+    )
+    const others = await repositories.agentMemoryRepository.save(
       agentMemoryFactory.transient({ organization, project, agent, user: otherUser }).build(),
-    ])
+    )
     return { own, ownPlayground, others }
   }
 
