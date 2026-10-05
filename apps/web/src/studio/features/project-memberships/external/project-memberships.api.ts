@@ -43,7 +43,6 @@ const fromDto = (dto: ProjectMembershipDto): ProjectMembership => ({
   userHasSignedIn: dto.userHasSignedIn,
   createdAt: dto.createdAt,
   role: dto.role,
-  roleKey: dto.roleKey,
   permissions: dto.permissions,
 })
 

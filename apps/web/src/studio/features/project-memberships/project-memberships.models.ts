@@ -15,8 +15,6 @@ export type ProjectMembership = {
   userHasSignedIn: boolean
   createdAt: TimeType
   role: ProjectMembershipRoleDto
-  /** RBAC role key backing the membership, null when the catalog is not seeded. */
-  roleKey: string | null
   /** Permission keys the role grants on the project. */
   permissions: string[]
 }

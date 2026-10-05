@@ -104,7 +104,6 @@ function toDto(
     userHasSignedIn: model.user.authSubject !== null,
     createdAt: model.createdAt.getTime(),
     role: model.role,
-    roleKey: roleGrant?.key ?? null,
     permissions: roleGrant?.permissions ?? [],
   }
 }

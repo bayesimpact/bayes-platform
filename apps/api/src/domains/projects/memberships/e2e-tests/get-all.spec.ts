@@ -103,13 +103,11 @@ describe("Project membership - getAll", () => {
     ])
 
     const adminMembership = memberships.find((membership) => membership.userId === admin.id)
-    expect(adminMembership?.roleKey).toBe("project_admin")
     expect([...(adminMembership?.permissions ?? [])].sort()).toEqual(
       [...PROJECT_ROLE_PERMISSIONS.project_admin].sort(),
     )
 
     const memberMembership = memberships.find((membership) => membership.userId === member.id)
-    expect(memberMembership?.roleKey).toBe("project_member")
     expect([...(memberMembership?.permissions ?? [])].sort()).toEqual(
       [...PROJECT_ROLE_PERMISSIONS.project_member].sort(),
     )
