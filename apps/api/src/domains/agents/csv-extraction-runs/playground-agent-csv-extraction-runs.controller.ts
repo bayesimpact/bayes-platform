@@ -79,9 +79,7 @@ export class PlaygroundAgentCsvExtractionRunsController extends AgentCsvExtracti
   @Get(Routes.getOne.path)
   @AddContext("agentCsvExtractionRun")
   @CheckPermission(CSV_EXTRACTION_RUN_PLAYGROUND_READ_PERMISSION, "project")
-  getOne(
-    @Req() request: EndpointRequestWithAgentCsvExtractionRun,
-  ): Promise<typeof Routes.getOne.response> {
+  getOne(@Req() request: EndpointRequestWithAgentCsvExtractionRun): typeof Routes.getOne.response {
     return this.handleGetOne(request)
   }
 

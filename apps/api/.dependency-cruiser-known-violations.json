@@ -3896,15 +3896,6 @@
   },
   {
     "type": "dependency",
-    "from": "src/domains/agents/csv-extraction-runs/agent-csv-extraction-runs.controller.ts",
-    "to": "src/domains/rbac/permission.service.ts",
-    "rule": {
-      "severity": "warn",
-      "name": "no-cross-domain-service-reach"
-    }
-  },
-  {
-    "type": "dependency",
     "from": "src/domains/agents/extraction-agent-sessions/extraction-agent-session-run-llm.service.ts",
     "to": "src/domains/documents/documents.service.ts",
     "rule": {

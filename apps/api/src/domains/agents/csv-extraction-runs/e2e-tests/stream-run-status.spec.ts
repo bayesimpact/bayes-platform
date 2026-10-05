@@ -236,15 +236,21 @@ describe("AgentCsvExtractionRuns.streamRunStatus", () => {
     expect(receivedLegacy.agentCsvExtractionRunId).toBe("00000000-0000-0000-0000-000000000024")
   })
 
-  it("should stream a colleague's runs to a project admin", async () => {
+  it("should not stream a colleague's runs to a project admin", async () => {
     await createContext("admin")
 
     const colleagueEvent = buildEvent({
       userId: "00000000-0000-0000-0000-0000000000aa",
       agentCsvExtractionRunId: "00000000-0000-0000-0000-000000000015",
     })
-    const received = await streamFirstEvent(() => statusStreamSubject.next(colleagueEvent))
+    const ownEvent = buildEvent({
+      agentCsvExtractionRunId: "00000000-0000-0000-0000-000000000025",
+    })
+    const received = await streamFirstEvent(() => {
+      statusStreamSubject.next(colleagueEvent)
+      statusStreamSubject.next(ownEvent)
+    })
 
-    expect(received.agentCsvExtractionRunId).toBe("00000000-0000-0000-0000-000000000015")
+    expect(received.agentCsvExtractionRunId).toBe("00000000-0000-0000-0000-000000000025")
   })
 })

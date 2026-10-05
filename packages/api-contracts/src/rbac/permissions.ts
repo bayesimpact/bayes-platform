@@ -198,14 +198,6 @@ export const CSV_EXTRACTION_RUN_PLAYGROUND_DELETE_PERMISSION =
   "csv_extraction_run.playground.delete" as const
 
 /**
- * Open, execute, retry, cancel or delete a CSV extraction run another member created, live or
- * playground. Without it, a caller only reaches their own runs and the runs created before
- * ownership was tracked. Scoped to the project and never inherited from the organization.
- */
-export const CSV_EXTRACTION_RUN_OTHERS_MANAGE_PERMISSION =
-  "csv_extraction_run.others.manage" as const
-
-/**
  * Permissions an App may be granted. Policy lives in code, not in the database:
  * there is no Permission entity and no `app_grantable` column. Intersect this
  * list with `AppManifest.grantable_permissions` on save and on authorize.

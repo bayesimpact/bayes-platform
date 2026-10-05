@@ -25,10 +25,7 @@ import { AgentCsvExtractionRunsController } from "./agent-csv-extraction-runs.co
 
 const Routes = AgentCsvExtractionRunsRoutes.live
 
-/**
- * Live CSV extraction runs, open to every project role through the `csv_extraction_run.*` keys.
- * A member reaches the runs they created, owners and admins every run of the project.
- */
+/** Live CSV extraction runs, open to every project role through the `csv_extraction_run.*` keys. */
 @UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, CheckPermissionGuard)
 @RequireContext("organization", "project", "agent")
 @Controller()
@@ -79,9 +76,7 @@ export class LiveAgentCsvExtractionRunsController extends AgentCsvExtractionRuns
   @Get(Routes.getOne.path)
   @AddContext("agentCsvExtractionRun")
   @CheckPermission(CSV_EXTRACTION_RUN_READ_PERMISSION, "project")
-  getOne(
-    @Req() request: EndpointRequestWithAgentCsvExtractionRun,
-  ): Promise<typeof Routes.getOne.response> {
+  getOne(@Req() request: EndpointRequestWithAgentCsvExtractionRun): typeof Routes.getOne.response {
     return this.handleGetOne(request)
   }
 

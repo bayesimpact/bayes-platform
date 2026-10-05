@@ -15,12 +15,11 @@ import {
   UnprocessableEntityException,
 } from "@nestjs/common"
 import * as Papa from "papaparse"
-import { from, type Observable } from "rxjs"
-import { filter, map, switchMap } from "rxjs/operators"
+import type { Observable } from "rxjs"
+import { filter, map } from "rxjs/operators"
 import type {
   EndpointRequestWithAgent,
   EndpointRequestWithAgentCsvExtractionRun,
-  EndpointRequestWithProject,
 } from "@/common/context/request.interface"
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
@@ -33,9 +32,6 @@ import {
   FILE_STORAGE_SERVICE,
   type IFileStorage,
 } from "@/domains/documents/storage/file-storage.interface"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { PermissionService } from "@/domains/rbac/permission.service"
-import { CSV_EXTRACTION_RUN_OTHERS_MANAGE_PERMISSION } from "@/domains/rbac/rbac.constants"
 import { getTraceUrl } from "@/external/llm/trace-url"
 import type { BaseAgentSessionType } from "../base-agent-sessions/base-agent-sessions.types"
 import type { AgentCsvExtractionRun } from "./agent-csv-extraction-run.entity"
@@ -73,7 +69,6 @@ export abstract class AgentCsvExtractionRunsController {
     private readonly statusNotifierService: AgentCsvExtractionRunStatusNotifierService,
     private readonly documentsService: DocumentsService,
     private readonly agentSettingsService: AgentSettingsService,
-    private readonly permissionService: PermissionService,
     @Inject(FILE_STORAGE_SERVICE)
     private readonly fileStorageService: IFileStorage,
   ) {}
@@ -148,7 +143,7 @@ export abstract class AgentCsvExtractionRunsController {
     request: EndpointRequestWithAgentCsvExtractionRun,
     payload: Routes["executeOne"]["request"]["payload"] | undefined,
   ): Promise<Routes["executeOne"]["response"]> {
-    const agentCsvExtractionRun = await this.getRequestRun(request)
+    const agentCsvExtractionRun = this.getRequestRun(request)
 
     await this.agentCsvExtractionRunsService.enqueueExecuteRun({
       agentCsvExtractionRun,
@@ -163,7 +158,7 @@ export abstract class AgentCsvExtractionRunsController {
     request: EndpointRequestWithAgentCsvExtractionRun,
   ): Promise<Routes["retryOne"]["response"]> {
     const connectScope = getRequiredConnectScope(request)
-    const agentCsvExtractionRun = await this.getRequestRun(request)
+    const agentCsvExtractionRun = this.getRequestRun(request)
     const { agent } = request as EndpointRequestWithAgentCsvExtractionRun & EndpointRequestWithAgent
 
     // The run advertises its own revision, so a retry must use that one. Re-resolving the newest
@@ -187,7 +182,7 @@ export abstract class AgentCsvExtractionRunsController {
     request: EndpointRequestWithAgentCsvExtractionRun,
   ): Promise<Routes["cancelOne"]["response"]> {
     const connectScope = getRequiredConnectScope(request)
-    const agentCsvExtractionRun = await this.getRequestRun(request)
+    const agentCsvExtractionRun = this.getRequestRun(request)
     const agentCsvExtractionRunId = agentCsvExtractionRun.id
 
     await this.agentCsvExtractionRunsService.removePendingJobsForRun({
@@ -224,10 +219,10 @@ export abstract class AgentCsvExtractionRunsController {
     return { data: toAgentCsvExtractionRunDto(run) }
   }
 
-  protected async handleGetOne(
+  protected handleGetOne(
     request: EndpointRequestWithAgentCsvExtractionRun,
-  ): Promise<Routes["getOne"]["response"]> {
-    return { data: toAgentCsvExtractionRunDto(await this.getRequestRun(request)) }
+  ): Routes["getOne"]["response"] {
+    return { data: toAgentCsvExtractionRunDto(this.getRequestRun(request)) }
   }
 
   protected async handleGetAll(
@@ -251,10 +246,9 @@ export abstract class AgentCsvExtractionRunsController {
     const sortOrder =
       query.sortOrder === "asc" || query.sortOrder === "desc" ? query.sortOrder : undefined
 
-    const run = await this.getRequestRun(request)
     const { records, total } = await this.agentCsvExtractionRunsService.getRunRecordsPaginated({
       connectScope: getRequiredConnectScope(request),
-      runId: run.id,
+      runId: this.getRequestRun(request).id,
       page,
       limit,
       sortBy: query.sortBy || undefined,
@@ -274,10 +268,9 @@ export abstract class AgentCsvExtractionRunsController {
   protected async handleDeleteOne(
     request: EndpointRequestWithAgentCsvExtractionRun,
   ): Promise<Routes["deleteOne"]["response"]> {
-    const run = await this.getRequestRun(request)
     await this.agentCsvExtractionRunsService.deleteRun({
       connectScope: getRequiredConnectScope(request),
-      agentCsvExtractionRunId: run.id,
+      agentCsvExtractionRunId: this.getRequestRun(request).id,
     })
     return { data: { success: true } }
   }
@@ -286,18 +279,14 @@ export abstract class AgentCsvExtractionRunsController {
     request: EndpointRequestWithAgent,
   ): Observable<AgentCsvExtractionRunStatusChangedEventDto> {
     const connectScope = getRequiredConnectScope(request)
-    return from(this.canReachOthersRuns(request)).pipe(
-      switchMap((canReachOthersRuns) =>
-        this.runStatusStreamService.events$.pipe(
-          filter(
-            (event) =>
-              event.organizationId === connectScope.organizationId &&
-              event.projectId === connectScope.projectId &&
-              event.agentId === request.agent.id &&
-              event.runType === this.type &&
-              (canReachOthersRuns || isRunOpenTo(event, request.user.id)),
-          ),
-        ),
+    return this.runStatusStreamService.events$.pipe(
+      filter(
+        (event) =>
+          event.organizationId === connectScope.organizationId &&
+          event.projectId === connectScope.projectId &&
+          event.agentId === request.agent.id &&
+          event.runType === this.type &&
+          isRunOpenTo(event, request.user.id),
       ),
       map((event) => ({ ...event, data: JSON.stringify(event) })),
     )
@@ -325,35 +314,16 @@ export abstract class AgentCsvExtractionRunsController {
 
   /**
    * Returns the run resolved from the path, as long as it is of this controller's type, belongs
-   * to the agent in the path, and is open to the caller: their own run, a run created before
-   * ownership was tracked, or any run when they hold `csv_extraction_run.others.manage`. Any
-   * other run answers 404, as if it did not exist.
+   * to the agent in the path and is open to the caller. Any other run answers 404, as if it did
+   * not exist.
    */
-  private async getRequestRun(
-    request: EndpointRequestWithAgentCsvExtractionRun,
-  ): Promise<AgentCsvExtractionRun> {
+  private getRequestRun(request: EndpointRequestWithAgentCsvExtractionRun): AgentCsvExtractionRun {
     const { agent, agentCsvExtractionRun } = request as EndpointRequestWithAgentCsvExtractionRun &
       EndpointRequestWithAgent
     if (agentCsvExtractionRun.type !== this.type) throw new NotFoundException()
     if (agentCsvExtractionRun.agentSettings.agentId !== agent.id) throw new NotFoundException()
-    if (
-      !isRunOpenTo(agentCsvExtractionRun, request.user.id) &&
-      !(await this.canReachOthersRuns(request))
-    ) {
-      throw new NotFoundException()
-    }
+    if (!isRunOpenTo(agentCsvExtractionRun, request.user.id)) throw new NotFoundException()
     return agentCsvExtractionRun
-  }
-
-  private canReachOthersRuns(request: EndpointRequestWithProject): Promise<boolean> {
-    return this.permissionService.has(
-      request.user.id,
-      CSV_EXTRACTION_RUN_OTHERS_MANAGE_PERMISSION,
-      {
-        type: "project",
-        id: request.project.id,
-      },
-    )
   }
 
   private parseCsvColumns({
@@ -410,7 +380,10 @@ export abstract class AgentCsvExtractionRunsController {
   }
 }
 
-/** A run is open to its creator, and to every member when it predates ownership tracking. */
+/**
+ * A run is open to its creator only, whatever the caller's project role. A run created before
+ * ownership was tracked has no creator and stays open to every member, as in the list.
+ */
 function isRunOpenTo(run: { userId: string | null }, userId: string): boolean {
   return run.userId === null || run.userId === userId
 }
