@@ -1,4 +1,5 @@
 import {
+  AgentMemoryMode,
   DocumentsRagMode,
   type StreamEvent,
   type StreamEventPayload,
@@ -17,6 +18,7 @@ import {
 } from "@/common/test/test-database"
 import type { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
+import { agentMemoryFactory } from "@/domains/agents/memories/agent-memory.factory"
 import { StreamingModule } from "@/domains/agents/shared/agent-session-messages/streaming/streaming.module"
 import { StreamingLlmService } from "@/domains/agents/shared/agent-session-messages/streaming/streaming-llm.service"
 import type { AgentSessionScope } from "@/domains/agents/shared/agent-session-messages/streaming/streaming-session.types"
@@ -73,7 +75,7 @@ describe("Tools execution", () => {
   })
 
   const createContextWithSession = async () => {
-    const { organization, project, agent, agentSettings, conversationAgentSession } =
+    const { organization, project, agent, agentSettings, conversationAgentSession, user } =
       await createOrganizationWithAgent(repositories, {
         agent: { type: "conversation" },
         withLiveConversationAgentSession: true,
@@ -83,6 +85,7 @@ describe("Tools execution", () => {
       connectScope: { organizationId: organization.id, projectId: project.id },
       organization,
       project,
+      user,
       agent,
       agentSettings,
       session: conversationAgentSession as ConversationAgentSession,
@@ -560,6 +563,161 @@ describe("Tools execution", () => {
 
     expect(tools?.[ToolName.LookupKnowledgeBase]).toBeDefined()
     expect(tools?.[ToolName.FillForm]).toBeUndefined()
+  })
+
+  const createMemoryContext = async ({
+    memoryMode = AgentMemoryMode.Ask,
+    withFeature = true,
+  }: {
+    memoryMode?: AgentMemoryMode
+    withFeature?: boolean
+  } = {}) => {
+    const context = await createContextWithSession()
+    if (withFeature) {
+      await addFeature({
+        featureFlagRepository: repositories.featureFlagRepository,
+        projectId: context.project.id,
+        featureFlagKey: "agent-memory",
+      })
+    }
+    return { ...context, agentSettings: { ...context.agentSettings, memoryMode } }
+  }
+
+  const buildToolNames = async (
+    agentSessionScope: Parameters<ToolsService["buildTools"]>[0]["agentSessionScope"],
+  ) => {
+    const toolsService = setup.module.get<ToolsService>(ToolsService)
+    const { tools, promptSections } = await toolsService.buildTools({
+      agentSessionScope,
+      onExecute: () => undefined,
+      getProviderForModel: jest.fn().mockReturnValue({} as LLMProvider),
+      buildLLMConfig: jest.fn().mockReturnValue({} as LLMConfig),
+    })
+    return { toolNames: Object.keys(tools ?? {}), promptSections }
+  }
+
+  it("ToolName.SaveMemory - in ask mode, saves the user's request and proposes the inferred fact", async () => {
+    const { connectScope, agent, agentSettings, session } = await createMemoryContext()
+
+    await runWithToolCall({
+      agent,
+      agentSettings,
+      session,
+      connectScope,
+      toolName: ToolName.SaveMemory,
+      toolInput: {
+        items: [
+          { content: "Prefers short answers", origin: "user_request" },
+          { content: "Works on weekends", origin: "inferred" },
+        ],
+      },
+    })
+
+    const memories = await repositories.agentMemoryRepository.find({ order: { content: "ASC" } })
+    expect(memories.map((memory) => [memory.content, memory.status, memory.userId])).toEqual([
+      ["Prefers short answers", "saved", session.userId],
+      ["Works on weekends", "pending", session.userId],
+    ])
+    expect(memories[0]?.sessionType).toBe("live")
+    // The tool call carries the ids the approval form answers.
+    const [toolMessage] = await findToolMessages(session.id, ToolName.SaveMemory)
+    const result = toolMessage?.toolCalls?.[0]?.result as { memories: { id: string }[] }
+    expect(result.memories.map((memory) => memory.id).sort()).toEqual(
+      memories.map((memory) => memory.id).sort(),
+    )
+  })
+
+  it("ToolName.SaveMemory - saved facts reach the next prompt, proposals are listed apart", async () => {
+    const { connectScope, agent, agentSettings, session, organization, project, user } =
+      await createMemoryContext()
+    const memory = agentMemoryFactory.transient({ organization, project, agent, user })
+    await repositories.agentMemoryRepository.save([
+      memory.build({ content: "Prefers short answers" }),
+      memory.pending().build({ content: "Works on weekends" }),
+    ])
+
+    const { promptSections } = await buildToolNames({ agent, agentSettings, session, connectScope })
+
+    const section = promptSections.find((promptSection) =>
+      promptSection.startsWith("## Your memory of this user"),
+    )
+    expect(section).toContain("- m1: Prefers short answers")
+    expect(section).toContain("waiting for the user's approval")
+    expect(section).toContain("- m2: Works on weekends")
+  })
+
+  it("ToolName.ForgetMemory - resolves the prompt alias and deletes the fact", async () => {
+    const { connectScope, agent, agentSettings, session, organization, project, user } =
+      await createMemoryContext({ memoryMode: AgentMemoryMode.Auto })
+    await repositories.agentMemoryRepository.save([
+      agentMemoryFactory
+        .transient({ organization, project, agent, user })
+        .build({ content: "Lives in Lyon" }),
+    ])
+
+    await runWithToolCall({
+      agent,
+      agentSettings,
+      session,
+      connectScope,
+      toolName: ToolName.ForgetMemory,
+      toolInput: { memoryIds: ["m1"] },
+    })
+
+    expect(await repositories.agentMemoryRepository.count()).toBe(0)
+  })
+
+  it("Memory tools - built only with the feature flag, a memory mode and a signed-in user", async () => {
+    const withMemory = await createMemoryContext()
+    const scope = {
+      agent: withMemory.agent,
+      agentSettings: withMemory.agentSettings,
+      session: withMemory.session,
+      connectScope: withMemory.connectScope,
+    }
+    expect((await buildToolNames(scope)).toolNames).toEqual(
+      expect.arrayContaining([ToolName.SaveMemory, ToolName.ForgetMemory]),
+    )
+
+    const memoryOff = {
+      ...scope,
+      agentSettings: { ...scope.agentSettings, memoryMode: AgentMemoryMode.Off },
+    }
+    expect((await buildToolNames(memoryOff)).toolNames).not.toContain(ToolName.SaveMemory)
+
+    const reviewCampaignSession = {
+      ...scope,
+      session: { ...scope.session, campaignId: v4() } as ConversationAgentSession,
+    }
+    expect((await buildToolNames(reviewCampaignSession)).toolNames).not.toContain(
+      ToolName.SaveMemory,
+    )
+
+    const embedVisitor = {
+      ...scope,
+      session: {
+        id: v4(),
+        traceId: v4(),
+        organizationId: withMemory.organization.id,
+        messages: [],
+        persistsForms: true,
+      },
+    }
+    const visitorBuild = await buildToolNames(embedVisitor)
+    expect(visitorBuild.toolNames).not.toContain(ToolName.SaveMemory)
+    expect(visitorBuild.promptSections.join("\n")).not.toContain("Your memory of this user")
+
+    const withoutFeature = await createMemoryContext({ withFeature: false })
+    expect(
+      (
+        await buildToolNames({
+          agent: withoutFeature.agent,
+          agentSettings: withoutFeature.agentSettings,
+          session: withoutFeature.session,
+          connectScope: withoutFeature.connectScope,
+        })
+      ).toolNames,
+    ).not.toContain(ToolName.SaveMemory)
   })
 
   it("ToolName.LookupKnowledgeBase - should works", async () => {

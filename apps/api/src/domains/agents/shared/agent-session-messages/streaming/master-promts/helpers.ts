@@ -7,6 +7,10 @@ import { todaysDatePromptLine } from "@/common/utils/todays-date-prompt-line"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { lookupKnowledgeBaseInstruction } from "@/domains/agents/shared/agent-session-messages/streaming/tools/lookup-knowledge-base.tool"
 import {
+  forgetMemoryInstruction,
+  saveMemoryInstruction,
+} from "@/domains/agents/shared/agent-session-messages/streaming/tools/memory.tools"
+import {
   enumerateAgentResources,
   type SurfaceableLibrary,
 } from "@/domains/agents/shared/agent-session-messages/streaming/tools/surfaced-resources-registry"
@@ -21,6 +25,7 @@ export type SubAgentOutcome = {
 
 export type KnownFact = { agentName: string; state: Record<string, unknown> }
 export type OwnFormState = { filled: Record<string, unknown>; missingFields: string[] }
+export type MemoryLine = { alias: string; content: string }
 
 export const promptHelpers = {
   /**
@@ -84,6 +89,27 @@ Record each answer with fillForm as soon as the user gives it, before asking the
     `## Hand-over
 The agent "${parentAgentName}" handed this conversation to you. The earlier messages are what the user and "${parentAgentName}" said before; you now talk to the user directly. Do not introduce yourself as "${parentAgentName}" and do not repeat what it already asked or answered. Your task stops at your own scope: when it is done, call the concludeHandoff tool and write your closing message. Do not offer or start another step, another questionnaire or another topic, even one mentioned earlier in the conversation: "${parentAgentName}" decides what comes next once you hand back.
 `,
+  /**
+   * What the agent remembers about the user from earlier conversations, and
+   * the proposals still waiting for the user's approval. Rebuilt every turn,
+   * so a fact saved or approved shows up on the next message.
+   */
+  memory: ({ saved, pending }: { saved: MemoryLine[]; pending: MemoryLine[] }) =>
+    `## Your memory of this user
+${
+  saved.length === 0
+    ? "Nothing yet."
+    : `Facts saved in earlier conversations (id: fact). Use them when they help, without reciting them:
+${saved.map((line) => `- ${line.alias}: ${line.content}`).join("\n")}`
+}${
+  pending.length === 0
+    ? ""
+    : `
+Proposed, waiting for the user's approval (not saved yet, do not propose them again):
+${pending.map((line) => `- ${line.alias}: ${line.content}`).join("\n")}`
+}
+`,
+
   now: () => todaysDatePromptLine(),
 
   resourceLibraries: (libraries: SurfaceableLibrary[]) => {
@@ -177,6 +203,12 @@ ${orderedFields
 
       case ToolName.McpSmartSearch:
         return `[${name}]: AI-powered search across multiple workforce and social sources. Rewrites the query for better results and reranks by relevance. Use this when the user's question spans multiple resource types or when you want the best results across all sources.`
+
+      case ToolName.SaveMemory:
+        return `[${name}]: ${saveMemoryInstruction(agentSettings.memoryMode)}`
+
+      case ToolName.ForgetMemory:
+        return `[${name}]: ${forgetMemoryInstruction()}`
 
       case ToolName.SurfaceResources:
         return `[${name}]: Call ${name} tool whenever the user's request matches a resource in the resource libraries (by title or description or matchingHints). Pass the matching resources, copying their id, title, description, and link verbatim. Do not surface resources that are not relevant to the user's request.`

@@ -12,6 +12,7 @@ export type AgentSettingsCreateFields = Pick<
       | "fillFormEnabled"
       | "priorityCallsEnabled"
       | "thinkingLevel"
+      | "memoryMode"
     >
   >
 
@@ -28,5 +29,6 @@ export type AgentSettingsUpdateFields = Partial<
     | "fillFormEnabled"
     | "priorityCallsEnabled"
     | "thinkingLevel"
+    | "memoryMode"
   >
 >

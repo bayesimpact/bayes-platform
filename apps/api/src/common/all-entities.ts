@@ -10,6 +10,7 @@ import { ConversationRetentionSweepRun } from "@/domains/agents/conversation-age
 import { AgentCsvExtractionRun } from "@/domains/agents/csv-extraction-runs/agent-csv-extraction-run.entity"
 import { AgentCsvExtractionRunRecord } from "@/domains/agents/csv-extraction-runs/agent-csv-extraction-run-record.entity"
 import { ExtractionAgentSession } from "@/domains/agents/extraction-agent-sessions/extraction-agent-session.entity"
+import { AgentMemory } from "@/domains/agents/memories/agent-memory.entity"
 import { AgentSessionCategory } from "@/domains/agents/session-categories/agent-session-category.entity"
 import { ProjectAgentSessionCategory } from "@/domains/agents/session-categories/project-agent-session-category.entity"
 import { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
@@ -63,6 +64,7 @@ export const ALL_ENTITIES = [
   AgentSessionCategory,
   ProjectAgentSessionCategory,
   AgentMcpServer,
+  AgentMemory,
   AgentMessage,
   AgentMessageAttachmentDocument,
   AgentMessageFeedback,

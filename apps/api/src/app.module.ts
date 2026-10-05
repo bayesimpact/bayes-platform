@@ -13,6 +13,7 @@ import { AgentsModule } from "./domains/agents/agents.module"
 import { ConversationAgentSessionsModule } from "./domains/agents/conversation-agent-sessions/conversation-agent-sessions.module"
 import { AgentCsvExtractionRunsModule } from "./domains/agents/csv-extraction-runs/agent-csv-extraction-runs.module"
 import { ExtractionAgentSessionsModule } from "./domains/agents/extraction-agent-sessions/extraction-agent-sessions.module"
+import { AgentMemoriesModule } from "./domains/agents/memories/agent-memories.module"
 import { AgentMessageFeedbackModule } from "./domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.module"
 import { StreamingModule } from "./domains/agents/shared/agent-session-messages/streaming/streaming.module"
 import { AgentsAnalyticsModule } from "./domains/analytics/agents-analytics/agents-analytics.module"
@@ -56,6 +57,7 @@ import { UsersModule } from "./domains/users/users.module"
     AgentMessageFeedbackModule,
     AgentsAnalyticsModule,
     AgentCsvExtractionRunsModule,
+    AgentMemoriesModule,
     AgentsModule,
     AppsModule,
     AuthModule,

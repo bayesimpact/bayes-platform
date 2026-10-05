@@ -57,6 +57,10 @@ export const FeatureFlags = [
     key: "agent-orchestration",
     description: "Compose conversation agents with sub-agents.",
   }),
+  featureFlag({
+    key: "agent-memory",
+    description: "Let conversation agents remember facts about a user between conversations.",
+  }),
 ] as const
 export type FeatureFlagKey = (typeof FeatureFlags)[number]["key"]
 export type FeatureFlagsDto = FeatureFlagKey[]
