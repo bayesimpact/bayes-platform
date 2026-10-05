@@ -218,7 +218,7 @@ describe("Apps - Upload document", () => {
         origin: "document-upload",
       }),
     )
-    await expectActivityCreated("document.confirm", {
+    await expectActivityCreated("apps.document.confirm", {
       userId: stored.userId,
       organizationId: project.organizationId,
       projectId: project.id,

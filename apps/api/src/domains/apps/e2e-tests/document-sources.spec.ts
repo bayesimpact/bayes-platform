@@ -156,19 +156,19 @@ describe("Apps - Document sources", () => {
     })
     expectResponse(removed, 200)
     expect(removed.body.data).toEqual({ success: true })
-    await expectActivityCreated("documentSource.create", {
+    await expectActivityCreated("apps.documentSource.create", {
       organizationId: organization.id,
       projectId: project.id,
       entityId: null,
       entityType: null,
     })
-    await expectActivityCreated("documentSource.update", {
+    await expectActivityCreated("apps.documentSource.update", {
       organizationId: organization.id,
       projectId: project.id,
       entityId: sourceId,
       entityType: "documentSource",
     })
-    await expectActivityCreated("documentSource.delete", {
+    await expectActivityCreated("apps.documentSource.delete", {
       organizationId: organization.id,
       projectId: project.id,
       entityId: sourceId,
@@ -224,7 +224,7 @@ describe("Apps - Document sources", () => {
     )
     expect(
       await repositories.activityRepository.findOne({
-        where: { action: "documentSource.delete" },
+        where: { action: "apps.documentSource.delete" },
       }),
     ).toBeNull()
   })
