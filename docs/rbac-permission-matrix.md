@@ -52,7 +52,7 @@ The `resource_library.*` permissions are not inherited either: an organization r
 
 The `*.ui.read` permissions open one user interface of the project each and are not inherited from the organization. They are exposed on `ProjectDto.permissions`.
 
-The `csv_extraction_run.*` permissions are not inherited either: an organization role does not open a project's CSV extraction runs. Every project role holds the four live run permissions, while the `csv_extraction_run.playground.*` ones stay with owners and admins.
+The `csv_extraction_run.*` permissions are not inherited either: an organization role does not open a project's CSV extraction runs. Every project role holds the four live run permissions, while the `csv_extraction_run.playground.*` ones stay with owners and admins. A run is reached by its creator only, unless the caller holds `csv_extraction_run.others.manage`. Runs created before ownership was tracked stay open to every member who holds the run permission.
 
 | Permission | `project_owner` | `project_admin` | `project_member` |
 |---|---|---|---|
@@ -102,6 +102,7 @@ The `csv_extraction_run.*` permissions are not inherited either: an organization
 | `csv_extraction_run.playground.create` — create a playground CSV extraction run | ✅ | ✅ | — |
 | `csv_extraction_run.playground.update` — execute, retry or cancel a playground CSV extraction run | ✅ | ✅ | — |
 | `csv_extraction_run.playground.delete` — delete a playground CSV extraction run | ✅ | ✅ | — |
+| `csv_extraction_run.others.manage` — open, execute, retry, cancel or delete a CSV extraction run another member created | ✅ | ✅ | — |
 | `user.read` — see the project's members | ✅ | ✅ | — |
 | `backoffice.project.read` — see the project in the backoffice | ✅ | ✅ | — |
 | `backoffice.project.update` — mutate the project from the backoffice (e.g. feature flags) | ✅ | ✅ | — |

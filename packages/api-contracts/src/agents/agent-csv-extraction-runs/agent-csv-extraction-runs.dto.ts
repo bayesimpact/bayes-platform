@@ -97,6 +97,8 @@ export type AgentCsvExtractionRunStatusChangedEventPayload = {
   projectId: string
   agentId: string
   runType: BaseAgentSessionTypeDto
+  /** Creator of the run, `null` for a run created before ownership was tracked. */
+  userId: string | null
   status: AgentCsvExtractionRunStatusDto
   summary: AgentCsvExtractionRunSummaryDto | null
   updatedAt: TimeType
