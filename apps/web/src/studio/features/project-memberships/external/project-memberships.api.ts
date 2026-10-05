@@ -52,4 +52,5 @@ const memberAgentFromDto = (dto: ProjectMemberAgentDto): ProjectMemberAgent => (
   agentType: dto.agentType,
   membershipId: dto.membershipId,
   role: dto.role,
+  permissions: dto.permissions,
 })

@@ -25,4 +25,6 @@ export type ProjectMemberAgent = {
   agentType: AgentType
   membershipId: string | null
   role: AgentMembershipRoleDto | null
+  /** Permission keys the role grants on the agent, empty without a membership. */
+  permissions: string[]
 }

@@ -22,6 +22,7 @@
       "remove": "Remove member",
       "agent": "Agent",
       "agentRole": "Role",
+      "agentPermissions": "Permissions",
       "noAccess": "No access",
       "noAgents": "This project has no agents.",
       "permissionsDescription": "What this role allows on this project.",

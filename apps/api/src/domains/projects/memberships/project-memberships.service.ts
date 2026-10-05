@@ -75,8 +75,21 @@ export class ProjectMembershipsService {
     })
   }
 
+  /** Every agent of the project, with the user's membership and the permissions its role grants. */
   async listMemberAgents(params: { projectId: string; userId: string }) {
-    return this.agentMembershipsService.listProjectMemberAgents(params)
+    const entries = await this.agentMembershipsService.listProjectMemberAgents(params)
+    const roleGrantsByRoleId = await this.permissionService.listRoleGrants(
+      entries
+        .map(({ membership }) => membership?.roleId ?? null)
+        .filter((roleId): roleId is string => roleId !== null),
+    )
+    return entries.map(({ agent, membership }) => ({
+      agent,
+      membership,
+      permissions: membership?.roleId
+        ? (roleGrantsByRoleId.get(membership.roleId)?.permissions ?? [])
+        : [],
+    }))
   }
 
   async createProjectOwnerMembership({

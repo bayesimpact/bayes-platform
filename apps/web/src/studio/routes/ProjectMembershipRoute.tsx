@@ -113,19 +113,29 @@ function ProjectRoleCard({
           {t("projectMembership:profile.noPermissions")}
         </p>
       ) : (
-        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {permissions.map((permission) => {
-            const label = t(`permission:${permission}`, { defaultValue: "" })
-            return (
-              <li key={permission} className="flex flex-col">
-                <span className="font-mono text-xs">{permission}</span>
-                {label && <span className="text-xs text-muted-foreground">{label}</span>}
-              </li>
-            )
-          })}
-        </ul>
+        <PermissionList
+          permissions={permissions}
+          className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
+        />
       )}
     </div>
+  )
+}
+
+function PermissionList({ permissions, className }: { permissions: string[]; className?: string }) {
+  const { t } = useTranslation()
+  return (
+    <ul className={className}>
+      {permissions.map((permission) => {
+        const label = t(`permission:${permission}`, { defaultValue: "" })
+        return (
+          <li key={permission} className="flex flex-col">
+            <span className="font-mono text-xs">{permission}</span>
+            {label && <span className="text-xs text-muted-foreground">{label}</span>}
+          </li>
+        )
+      })}
+    </ul>
   )
 }
 
@@ -164,6 +174,23 @@ function MemberAgentsTable({ memberAgents }: { memberAgents: ProjectMemberAgent[
           if (b === null) return -1
           return ROLE_ORDER[a] - ROLE_ORDER[b]
         },
+      },
+      {
+        id: "permissions",
+        header: () => (
+          <span className="text-muted-foreground">
+            {t("projectMembership:profile.agentPermissions")}
+          </span>
+        ),
+        cell: ({ row }) =>
+          row.original.permissions.length === 0 ? (
+            <span className="text-muted-foreground">—</span>
+          ) : (
+            <PermissionList
+              permissions={row.original.permissions}
+              className="flex flex-col gap-2"
+            />
+          ),
       },
     ],
     [t],

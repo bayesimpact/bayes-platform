@@ -10,6 +10,12 @@ const SAMPLE_PROJECT_ROLE_PERMISSIONS: Record<ProjectMembership["role"], string[
   member: ["project.read", "desk.ui.read"],
 }
 
+const SAMPLE_AGENT_ROLE_PERMISSIONS: Record<NonNullable<ProjectMemberAgent["role"]>, string[]> = {
+  owner: ["agent.read", "agent.update", "agent.delete", "agent.member.invite"],
+  admin: ["agent.read", "agent.update", "agent.delete", "agent.member.invite"],
+  member: ["agent.read"],
+}
+
 type MembershipTransientParams = {
   project: Project
 }
@@ -54,12 +60,14 @@ export const projectMemberAgentFactory = ProjectMemberAgentFactory.define(
     if (!agent) {
       throw new Error("Agent must be provided in transient params to build a ProjectMemberAgent")
     }
+    const role = params.role === undefined ? "member" : params.role
     return {
       agentId: params.agentId ?? agent.id,
       agentName: params.agentName ?? agent.name,
       agentType: params.agentType ?? agent.type,
       membershipId: params.membershipId ?? membership?.id ?? null,
-      role: params.role ?? "member",
+      role,
+      permissions: params.permissions ?? (role ? SAMPLE_AGENT_ROLE_PERMISSIONS[role] : []),
     } satisfies ProjectMemberAgent
   },
 )

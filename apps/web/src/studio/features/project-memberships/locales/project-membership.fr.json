@@ -22,6 +22,7 @@
       "remove": "Retirer le membre",
       "agent": "Agent",
       "agentRole": "Rôle",
+      "agentPermissions": "Permissions",
       "noAccess": "Pas d'accès",
       "noAgents": "Ce projet n'a aucun agent.",
       "permissionsDescription": "Ce que ce rôle permet sur ce projet.",

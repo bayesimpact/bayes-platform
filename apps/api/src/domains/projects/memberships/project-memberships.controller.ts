@@ -59,12 +59,13 @@ export class ProjectMembershipsController {
       userId: memberProjectMembership.userId,
     })
 
-    const data: ProjectMemberAgentDto[] = entries.map(({ agent, membership }) => ({
+    const data: ProjectMemberAgentDto[] = entries.map(({ agent, membership, permissions }) => ({
       agentId: agent.id,
       agentName: agent.name,
       agentType: agent.type,
       membershipId: membership?.id ?? null,
       role: membership?.role ?? null,
+      permissions,
     }))
 
     return { data }
