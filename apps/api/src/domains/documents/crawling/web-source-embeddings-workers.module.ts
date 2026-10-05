@@ -12,6 +12,7 @@ import { PdfPagesModule } from "../pdf-pages/pdf-pages.module"
 import { DocumentSourceRepository } from "../sources/document-source.repository"
 import { DocumentSourcesService } from "../sources/document-sources.service"
 import { StorageModule } from "../storage/storage.module"
+import { DocumentTagRepository } from "../tags/document-tag.repository"
 import { DocumentTagsService } from "../tags/document-tags.service"
 import { WebPageEmbeddingsProcessorService } from "./web-page-embeddings-processor.service"
 import { WEB_SOURCE_EMBEDDINGS_QUEUE_NAME } from "./web-source-embeddings.constants"
@@ -43,6 +44,7 @@ import { WebSourceEmbeddingsQueueMetricsService } from "./web-source-embeddings-
     DocumentSourcesService,
     DocumentSourceRepository,
     DocumentTagsService,
+    DocumentTagRepository,
     WebSourceEmbeddingsQueueMetricsService,
   ],
 })

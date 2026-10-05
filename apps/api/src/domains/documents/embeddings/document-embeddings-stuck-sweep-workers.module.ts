@@ -7,6 +7,7 @@ import { PdfPagesModule } from "../pdf-pages/pdf-pages.module"
 import { DocumentSourceRepository } from "../sources/document-source.repository"
 import { DocumentSourcesService } from "../sources/document-sources.service"
 import { StorageModule } from "../storage/storage.module"
+import { DocumentTagRepository } from "../tags/document-tag.repository"
 import { DocumentTagsService } from "../tags/document-tags.service"
 import { DocumentEmbeddingStatusNotifierService } from "./document-embedding-status-notifier.service"
 import { DocumentEmbeddingsBatchModule } from "./document-embeddings-batch.module"
@@ -34,6 +35,7 @@ import { DocumentEmbeddingsStuckSweepSchedulerService } from "./document-embeddi
     DocumentSourcesService,
     DocumentSourceRepository,
     DocumentTagsService,
+    DocumentTagRepository,
   ],
 })
 export class DocumentEmbeddingsStuckSweepWorkersModule {}
