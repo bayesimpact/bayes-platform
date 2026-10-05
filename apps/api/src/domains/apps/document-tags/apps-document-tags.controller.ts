@@ -78,7 +78,7 @@ export class AppsDocumentTagsController {
   @CheckPermission(DOCUMENT_TAG_CREATE_PERMISSION, "project")
   @Post(AppsDocumentTagsRoutes.createOne.path)
   @HttpCode(HttpStatus.CREATED)
-  @TrackActivity({ action: "documentTag.create" })
+  @TrackActivity({ action: "apps.documentTag.create" })
   async createOne(
     @Param("projectId") projectId: string,
     @Req() request: AppRequest,
@@ -107,7 +107,7 @@ export class AppsDocumentTagsController {
 
   @CheckPermission(DOCUMENT_TAG_UPDATE_PERMISSION, "project")
   @Patch(AppsDocumentTagsRoutes.updateOne.path)
-  @TrackActivity({ action: "documentTag.update", entityFrom: "documentTag" })
+  @TrackActivity({ action: "apps.documentTag.update", entityFrom: "documentTag" })
   async updateOne(
     @Param("projectId") projectId: string,
     @Param("id") id: string,
@@ -141,7 +141,7 @@ export class AppsDocumentTagsController {
   @CheckPermission(DOCUMENT_TAG_DELETE_PERMISSION, "project")
   @Delete(AppsDocumentTagsRoutes.deleteOne.path)
   @HttpCode(HttpStatus.OK)
-  @TrackActivity({ action: "documentTag.delete", entityFrom: "documentTag" })
+  @TrackActivity({ action: "apps.documentTag.delete", entityFrom: "documentTag" })
   async deleteOne(
     @Param("projectId") projectId: string,
     @Param("id") id: string,

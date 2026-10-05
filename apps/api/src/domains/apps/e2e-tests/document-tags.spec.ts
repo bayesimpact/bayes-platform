@@ -166,19 +166,19 @@ describe("Apps - Document tags", () => {
     expect(removed.body.data).toEqual({ success: true })
     expect(await setup.getRepository(DocumentTag).findOne({ where: { id: tagId } })).toBeNull()
 
-    await expectActivityCreated("documentTag.create", {
+    await expectActivityCreated("apps.documentTag.create", {
       organizationId: organization.id,
       projectId: project.id,
       entityId: null,
       entityType: null,
     })
-    await expectActivityCreated("documentTag.update", {
+    await expectActivityCreated("apps.documentTag.update", {
       organizationId: organization.id,
       projectId: project.id,
       entityId: tagId,
       entityType: "documentTag",
     })
-    await expectActivityCreated("documentTag.delete", {
+    await expectActivityCreated("apps.documentTag.delete", {
       organizationId: organization.id,
       projectId: project.id,
       entityId: tagId,
