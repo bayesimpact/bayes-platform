@@ -100,7 +100,7 @@ export class DocumentTagsService {
   }: {
     connectScope: RequiredConnectScope
     documentTagId: string
-    fieldsToUpdate: Pick<DocumentTag, "name" | "description" | "parentId">
+    fieldsToUpdate: Partial<Pick<DocumentTag, "name" | "description" | "parentId">>
   }): Promise<DocumentTag> {
     const documentTag = await this.documentTagConnectRepository.getOneById(
       connectScope,

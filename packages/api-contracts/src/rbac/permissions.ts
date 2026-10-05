@@ -40,6 +40,14 @@ export const DOCUMENT_SOURCE_UPDATE_PERMISSION = "document_source.update" as con
 
 export const DOCUMENT_SOURCE_DELETE_PERMISSION = "document_source.delete" as const
 
+export const DOCUMENT_TAG_READ_PERMISSION = "document_tag.read" as const
+
+export const DOCUMENT_TAG_CREATE_PERMISSION = "document_tag.create" as const
+
+export const DOCUMENT_TAG_UPDATE_PERMISSION = "document_tag.update" as const
+
+export const DOCUMENT_TAG_DELETE_PERMISSION = "document_tag.delete" as const
+
 export const PROJECT_CREATE_PERMISSION = "project.create" as const
 
 export const PROJECT_READ_PERMISSION = "project.read" as const
@@ -163,7 +171,7 @@ export const RESOURCE_LIBRARY_DELETE_PERMISSION = "resource_library.delete" as c
  * Permissions an App may be granted. Policy lives in code, not in the database:
  * there is no Permission entity and no `app_grantable` column. Intersect this
  * list with `AppManifest.grantable_permissions` on save and on authorize.
- * Grouped by resource type (document, project/workspace, agent, …).
+ * Grouped by resource type (document, document source, document tag, project/workspace, agent, …).
  */
 export const APP_GRANTABLE_PERMISSIONS = [
   DOCUMENT_READ_PERMISSION,
@@ -174,6 +182,10 @@ export const APP_GRANTABLE_PERMISSIONS = [
   DOCUMENT_SOURCE_CREATE_PERMISSION,
   DOCUMENT_SOURCE_UPDATE_PERMISSION,
   DOCUMENT_SOURCE_DELETE_PERMISSION,
+  DOCUMENT_TAG_READ_PERMISSION,
+  DOCUMENT_TAG_CREATE_PERMISSION,
+  DOCUMENT_TAG_UPDATE_PERMISSION,
+  DOCUMENT_TAG_DELETE_PERMISSION,
   PROJECT_READ_PERMISSION,
   PROJECT_UPDATE_PERMISSION,
   PROJECT_DELETE_PERMISSION,
@@ -185,6 +197,7 @@ export type AppGrantablePermission = (typeof APP_GRANTABLE_PERMISSIONS)[number]
 export const APP_GRANTABLE_RESOURCE_LABELS = {
   document: "Document",
   document_source: "Document source",
+  document_tag: "Document tag",
   project: "Workspace",
   agent: "Agent",
   organization: "Organization",

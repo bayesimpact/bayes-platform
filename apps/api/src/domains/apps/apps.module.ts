@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common"
 import { TypeOrmModule } from "@nestjs/typeorm"
 import { AuthModule } from "@/domains/auth/auth.module"
 import { DocumentsModule } from "@/domains/documents/documents.module"
+import { DocumentTagsModule } from "@/domains/documents/tags/document-tags.module"
 import { ProjectRepository } from "@/domains/projects/project.repository"
 import { RbacModule } from "@/domains/rbac/rbac.module"
 import { UsersModule } from "@/domains/users/users.module"
@@ -16,6 +17,7 @@ import { AppsService } from "./apps.service"
 import { AppsInstallController } from "./apps-install.controller"
 import { AppsV1Controller } from "./apps-v1.controller"
 import { AppsDocumentSourcesController } from "./document-sources/apps-document-sources.controller"
+import { AppsDocumentTagsController } from "./document-tags/apps-document-tags.controller"
 import { AppsDocumentsController } from "./documents/apps-documents.controller"
 
 @Module({
@@ -25,12 +27,14 @@ import { AppsDocumentsController } from "./documents/apps-documents.controller"
     UsersModule,
     RbacModule,
     DocumentsModule,
+    DocumentTagsModule,
   ],
   controllers: [
     AppsController,
     AppsInstallController,
     AppsV1Controller,
     AppsDocumentSourcesController,
+    AppsDocumentTagsController,
     AppsDocumentsController,
   ],
   providers: [
