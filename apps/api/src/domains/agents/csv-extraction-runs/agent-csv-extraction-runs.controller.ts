@@ -311,12 +311,15 @@ export abstract class AgentCsvExtractionRunsController {
   }
 
   /**
-   * The run loaded from the route, which the context resolver finds by id whatever its type. A
-   * run of the other type answers 404, as if it were not there.
+   * Returns the run resolved from the path, as long as it is of this controller's type and
+   * belongs to the agent in the path. Any other run answers 404, as if it did not exist.
    */
   private getRequestRun(request: EndpointRequestWithAgentCsvExtractionRun): AgentCsvExtractionRun {
-    if (request.agentCsvExtractionRun.type !== this.type) throw new NotFoundException()
-    return request.agentCsvExtractionRun
+    const { agent, agentCsvExtractionRun } = request as EndpointRequestWithAgentCsvExtractionRun &
+      EndpointRequestWithAgent
+    if (agentCsvExtractionRun.type !== this.type) throw new NotFoundException()
+    if (agentCsvExtractionRun.agentSettings.agentId !== agent.id) throw new NotFoundException()
+    return agentCsvExtractionRun
   }
 
   private parseCsvColumns({

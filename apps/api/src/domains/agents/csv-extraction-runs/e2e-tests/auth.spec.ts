@@ -20,7 +20,11 @@ import { mockForeignAuthSubject, mockOidcEmailForSub } from "../../../../../test
 import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { AgentCsvExtractionRunsModule } from "../agent-csv-extraction-runs.module"
-import { createCsvExtractionRun, createCsvExtractionRunContext } from "./csv-extraction-run.helpers"
+import {
+  createCsvExtractionRun,
+  createCsvExtractionRunContext,
+  createOtherAgentInProject,
+} from "./csv-extraction-run.helpers"
 import {
   applyCsvExtractionRunOverrides,
   buildMockBatchService,
@@ -95,6 +99,14 @@ describe("AgentCsvExtractionRuns - Auth", () => {
     agentCsvExtractionRunId = run.id
     runType = type
     return context
+  }
+
+  /** Points the path at another agent of the same project, so the seeded run is not that agent's. */
+  const switchToOtherAgentOfProject = async (
+    context: Awaited<ReturnType<typeof createContextForRole>>,
+  ) => {
+    const { agent } = await createOtherAgentInProject({ repositories, context })
+    agentId = agent.id
   }
 
   /** Switches the caller to an organization admin who holds no role on the project. */
@@ -209,6 +221,12 @@ describe("AgentCsvExtractionRuns - Auth", () => {
       await createContextForRole("owner", "playground")
       expectResponse(await subject("live"), 404)
     })
+
+    it("answers 404 for a run of another agent of the project", async () => {
+      const context = await createContextForRole("owner")
+      await switchToOtherAgentOfProject(context)
+      expectResponse(await subject(), 404)
+    })
   })
 
   describe("retryOne", () => {
@@ -254,6 +272,12 @@ describe("AgentCsvExtractionRuns - Auth", () => {
     it("answers 404 for a playground run on the live routes", async () => {
       await createContextForRole("owner", "playground")
       expectResponse(await subject("live"), 404)
+    })
+
+    it("answers 404 for a run of another agent of the project", async () => {
+      const context = await createContextForRole("owner")
+      await switchToOtherAgentOfProject(context)
+      expectResponse(await subject(), 404)
     })
   })
 
@@ -301,6 +325,12 @@ describe("AgentCsvExtractionRuns - Auth", () => {
       await createContextForRole("owner", "playground")
       expectResponse(await subject("live"), 404)
     })
+
+    it("answers 404 for a run of another agent of the project", async () => {
+      const context = await createContextForRole("owner")
+      await switchToOtherAgentOfProject(context)
+      expectResponse(await subject(), 404)
+    })
   })
 
   describe("getOne", () => {
@@ -346,6 +376,12 @@ describe("AgentCsvExtractionRuns - Auth", () => {
     it("answers 404 for a playground run on the live routes", async () => {
       await createContextForRole("owner", "playground")
       expectResponse(await subject("live"), 404)
+    })
+
+    it("answers 404 for a run of another agent of the project", async () => {
+      const context = await createContextForRole("owner")
+      await switchToOtherAgentOfProject(context)
+      expectResponse(await subject(), 404)
     })
 
     it("doesn't allow an organization admin without a project role to read a run", async () => {
@@ -435,6 +471,12 @@ describe("AgentCsvExtractionRuns - Auth", () => {
       await createContextForRole("owner", "playground")
       expectResponse(await subject("live"), 404)
     })
+
+    it("answers 404 for a run of another agent of the project", async () => {
+      const context = await createContextForRole("owner")
+      await switchToOtherAgentOfProject(context)
+      expectResponse(await subject(), 404)
+    })
   })
 
   describe("deleteOne", () => {
@@ -480,6 +522,12 @@ describe("AgentCsvExtractionRuns - Auth", () => {
     it("answers 404 for a playground run on the live routes", async () => {
       await createContextForRole("owner", "playground")
       expectResponse(await subject("live"), 404)
+    })
+
+    it("answers 404 for a run of another agent of the project", async () => {
+      const context = await createContextForRole("owner")
+      await switchToOtherAgentOfProject(context)
+      expectResponse(await subject(), 404)
     })
   })
 

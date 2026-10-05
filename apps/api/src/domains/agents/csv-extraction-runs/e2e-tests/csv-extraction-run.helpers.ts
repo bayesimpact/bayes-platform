@@ -1,6 +1,8 @@
 import type { ProjectMembershipRoleDto } from "@caseai-connect/api-contracts"
 import type { AllRepositories } from "@/common/test/test-transaction-manager"
+import { agentFactory } from "@/domains/agents/agent.factory"
 import type { BaseAgentSessionType } from "@/domains/agents/base-agent-sessions/base-agent-sessions.types"
+import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { documentFactory } from "@/domains/documents/document.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import type { AgentCsvExtractionRunStatus } from "../agent-csv-extraction-run.entity"
@@ -69,4 +71,23 @@ export async function createCsvExtractionRun({
     .build({ status, type })
   await repositories.agentCsvExtractionRunRepository.save(run)
   return run
+}
+
+/** Creates and persists a second extraction agent, with its settings, in the project of `context`. */
+export async function createOtherAgentInProject({
+  repositories,
+  context,
+}: {
+  repositories: AllRepositories
+  context: Awaited<ReturnType<typeof createCsvExtractionRunContext>>
+}) {
+  const agent = agentFactory
+    .transient({ organization: context.organization, project: context.project })
+    .build({ type: "extraction" })
+  await repositories.agentRepository.save(agent)
+  const agentSettings = agentSettingsFactory
+    .transient({ organization: context.organization, project: context.project, agent })
+    .build()
+  await repositories.agentSettingsRepository.save(agentSettings)
+  return { agent, agentSettings }
 }
