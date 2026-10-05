@@ -3,6 +3,14 @@ import {
   AGENT_MEMBER_INVITE_PERMISSION,
   AGENT_ROLE_PERMISSIONS,
   APP_GRANTABLE_PERMISSIONS,
+  CSV_EXTRACTION_RUN_CREATE_PERMISSION,
+  CSV_EXTRACTION_RUN_DELETE_PERMISSION,
+  CSV_EXTRACTION_RUN_PLAYGROUND_CREATE_PERMISSION,
+  CSV_EXTRACTION_RUN_PLAYGROUND_DELETE_PERMISSION,
+  CSV_EXTRACTION_RUN_PLAYGROUND_READ_PERMISSION,
+  CSV_EXTRACTION_RUN_PLAYGROUND_UPDATE_PERMISSION,
+  CSV_EXTRACTION_RUN_READ_PERMISSION,
+  CSV_EXTRACTION_RUN_UPDATE_PERMISSION,
   DESK_UI_READ_PERMISSION,
   DOCUMENT_CREATE_PERMISSION,
   DOCUMENT_DELETE_PERMISSION,
@@ -359,6 +367,61 @@ describe("resource library permissions", () => {
   it("never inherits resource libraries from the organization", () => {
     const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
     for (const permission of resourceLibraryPermissions) {
+      expect(inheritable).not.toContain(permission)
+    }
+  })
+})
+
+describe("CSV extraction run permissions", () => {
+  const rolesHolding = (rolePermissions: Record<string, readonly string[]>, permission: string) =>
+    Object.entries(rolePermissions)
+      .filter(([_roleKey, permissions]) => permissions.includes(permission))
+      .map(([roleKey]) => roleKey)
+
+  const csvExtractionRunPermissions = [
+    CSV_EXTRACTION_RUN_READ_PERMISSION,
+    CSV_EXTRACTION_RUN_CREATE_PERMISSION,
+    CSV_EXTRACTION_RUN_UPDATE_PERMISSION,
+    CSV_EXTRACTION_RUN_DELETE_PERMISSION,
+  ]
+
+  it.each(csvExtractionRunPermissions)("grants %s to every project role only", (permission) => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
+      "project_owner",
+      "project_admin",
+      "project_member",
+    ])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
+  })
+
+  const playgroundCsvExtractionRunPermissions = [
+    CSV_EXTRACTION_RUN_PLAYGROUND_READ_PERMISSION,
+    CSV_EXTRACTION_RUN_PLAYGROUND_CREATE_PERMISSION,
+    CSV_EXTRACTION_RUN_PLAYGROUND_UPDATE_PERMISSION,
+    CSV_EXTRACTION_RUN_PLAYGROUND_DELETE_PERMISSION,
+  ]
+
+  it.each(
+    playgroundCsvExtractionRunPermissions,
+  )("grants %s to project owners and admins only", (permission) => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
+      "project_owner",
+      "project_admin",
+    ])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
+  })
+
+  it("never inherits CSV extraction runs from the organization", () => {
+    const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
+    for (const permission of [
+      ...csvExtractionRunPermissions,
+      CSV_EXTRACTION_RUN_PLAYGROUND_CREATE_PERMISSION,
+      CSV_EXTRACTION_RUN_PLAYGROUND_DELETE_PERMISSION,
+      CSV_EXTRACTION_RUN_PLAYGROUND_READ_PERMISSION,
+      CSV_EXTRACTION_RUN_PLAYGROUND_UPDATE_PERMISSION,
+    ]) {
       expect(inheritable).not.toContain(permission)
     }
   })

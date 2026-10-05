@@ -13,6 +13,7 @@ import {
   setupTransactionalTestDatabase,
   teardownTestDatabase,
 } from "@/common/test/test-transaction-manager"
+import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { AgentCsvExtractionRunStatusStreamService } from "../agent-csv-extraction-run-status-stream.service"
 import { AgentCsvExtractionRunsModule } from "../agent-csv-extraction-runs.module"
 import { createCsvExtractionRunContext } from "./csv-extraction-run.helpers"
@@ -51,6 +52,7 @@ describe("AgentCsvExtractionRuns.streamRunStatus", () => {
           .useValue({ events$: statusStreamSubject.asObservable() }),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
     await app.listen(0)
@@ -88,6 +90,7 @@ describe("AgentCsvExtractionRuns.streamRunStatus", () => {
     organizationId,
     projectId,
     agentId,
+    runType: "live",
     status: "completed",
     summary: null,
     updatedAt: 1_700_000_000_000,
@@ -98,7 +101,7 @@ describe("AgentCsvExtractionRuns.streamRunStatus", () => {
     emit: () => void,
   ): Promise<AgentCsvExtractionRunStatusChangedEventPayload> =>
     new Promise((resolve, reject) => {
-      const path = AgentCsvExtractionRunsRoutes.streamRunStatus.getPath({
+      const path = AgentCsvExtractionRunsRoutes.live.streamRunStatus.getPath({
         organizationId,
         projectId,
         agentId,
@@ -179,5 +182,25 @@ describe("AgentCsvExtractionRuns.streamRunStatus", () => {
 
     expect(received.agentId).toBe(agentId)
     expect(received.agentCsvExtractionRunId).toBe("00000000-0000-0000-0000-000000000021")
+  })
+
+  it("should stream only the status of the route's run type", async () => {
+    await createContext()
+
+    const playgroundEvent = buildEvent({
+      runType: "playground",
+      agentCsvExtractionRunId: "00000000-0000-0000-0000-000000000013",
+    })
+    const liveEvent = buildEvent({
+      agentCsvExtractionRunId: "00000000-0000-0000-0000-000000000022",
+    })
+
+    const received = await streamFirstEvent(() => {
+      statusStreamSubject.next(playgroundEvent)
+      statusStreamSubject.next(liveEvent)
+    })
+
+    expect(received.runType).toBe("live")
+    expect(received.agentCsvExtractionRunId).toBe("00000000-0000-0000-0000-000000000022")
   })
 })

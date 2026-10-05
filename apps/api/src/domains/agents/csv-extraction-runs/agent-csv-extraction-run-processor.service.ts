@@ -297,6 +297,7 @@ export class AgentCsvExtractionRunProcessorService {
       organizationId: agentCsvExtractionRun.organizationId,
       projectId: agentCsvExtractionRun.projectId,
       agentId: agentCsvExtractionRun.agentSettings.agentId,
+      runType: agentCsvExtractionRun.type,
       status: agentCsvExtractionRun.status,
       summary: agentCsvExtractionRun.summary,
       updatedAt: agentCsvExtractionRun.updatedAt.getTime(),

@@ -1,4 +1,7 @@
-import { AgentCsvExtractionRunsRoutes } from "@caseai-connect/api-contracts"
+import {
+  AgentCsvExtractionRunsRoutes,
+  type BaseAgentSessionTypeDto,
+} from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import { clearTestDatabase } from "@/common/test/test-database"
@@ -11,6 +14,7 @@ import { removeNullish } from "@/common/utils/remove-nullish"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { userFactory } from "@/domains/users/user.factory"
+import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { agentCsvExtractionRunFactory } from "../agent-csv-extraction-run.factory"
 import { AgentCsvExtractionRunsModule } from "../agent-csv-extraction-runs.module"
@@ -46,6 +50,7 @@ describe("AgentCsvExtractionRuns - getAll", () => {
         }),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)
@@ -63,12 +68,11 @@ describe("AgentCsvExtractionRuns - getAll", () => {
     await app.close()
   })
 
-  const subject = async (type?: string) =>
+  const subject = async (type: BaseAgentSessionTypeDto = "live") =>
     request({
-      route: AgentCsvExtractionRunsRoutes.getAll,
+      route: AgentCsvExtractionRunsRoutes[type].getAll,
       pathParams: removeNullish({ organizationId, projectId, agentId }),
       token: accessToken,
-      query: type === undefined ? undefined : { type },
     })
 
   it("returns an empty list when the agent has no runs", async () => {
@@ -84,7 +88,7 @@ describe("AgentCsvExtractionRuns - getAll", () => {
     expect(response.body.data).toEqual([])
   })
 
-  it("returns only the runs of the requested type", async () => {
+  it("returns only the runs of the route's type", async () => {
     // The Desk app lists live runs and the Studio playground its own: one surface's runs must
     // never leak into the other.
     const context = await createCsvExtractionRunContext({ repositories, authSubject })
@@ -146,26 +150,6 @@ describe("AgentCsvExtractionRuns - getAll", () => {
 
     expectResponse(response, 200)
     expect(response.body.data.map((run) => run.id)).toEqual([legacyRun.id])
-  })
-
-  it("rejects a request that does not name a type", async () => {
-    const context = await createCsvExtractionRunContext({ repositories, authSubject })
-    organizationId = context.organization.id
-    projectId = context.project.id
-    agentId = context.agent.id
-    authSubject = context.user.authSubject!
-
-    expectResponse(await subject(), 403)
-  })
-
-  it("rejects an unknown type", async () => {
-    const context = await createCsvExtractionRunContext({ repositories, authSubject })
-    organizationId = context.organization.id
-    projectId = context.project.id
-    agentId = context.agent.id
-    authSubject = context.user.authSubject!
-
-    expectResponse(await subject("all"), 403)
   })
 
   it("returns only the runs belonging to the requested agent, newest first", async () => {

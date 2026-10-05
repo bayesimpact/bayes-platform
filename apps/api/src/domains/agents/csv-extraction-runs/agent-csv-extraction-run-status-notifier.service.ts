@@ -1,6 +1,7 @@
 import type {
   AgentCsvExtractionRunStatusDto,
   AgentCsvExtractionRunSummaryDto,
+  BaseAgentSessionTypeDto,
 } from "@caseai-connect/api-contracts"
 import { Injectable } from "@nestjs/common"
 import { InjectDataSource } from "@nestjs/typeorm"
@@ -19,6 +20,7 @@ export class AgentCsvExtractionRunStatusNotifierService extends PostgresStatusNo
     organizationId: string
     projectId: string
     agentId: string
+    runType: BaseAgentSessionTypeDto
     status: AgentCsvExtractionRunStatusDto
     summary: AgentCsvExtractionRunSummaryDto | null
     updatedAt: number
@@ -29,6 +31,7 @@ export class AgentCsvExtractionRunStatusNotifierService extends PostgresStatusNo
       organizationId: params.organizationId,
       projectId: params.projectId,
       agentId: params.agentId,
+      runType: params.runType,
       status: params.status,
       summary: params.summary,
       updatedAt: params.updatedAt,
