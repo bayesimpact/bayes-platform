@@ -79,16 +79,9 @@ function WithData() {
       <GridHeader onBack={handleBack} title={displayName} description={membership.userEmail} />
 
       <div className="p-6 flex gap-6 flex-col">
-        <div className="flex items-center gap-6 border rounded-lg p-4 flex-wrap justify-between">
-          <div className="flex flex-col gap-2">
-            <div>{projectName}</div>
-            <div>{BadgeWithIcon({ role: membership.role })}</div>
-          </div>
-        </div>
-
-        <RolePermissions
+        <ProjectRoleCard
+          projectName={projectName}
           role={membership.role}
-          roleKey={membership.roleKey}
           permissions={membership.permissions}
         />
 
@@ -98,21 +91,21 @@ function WithData() {
   )
 }
 
-function RolePermissions({
+function ProjectRoleCard({
+  projectName,
   role,
-  roleKey,
   permissions,
-}: Pick<ProjectMembership, "role" | "roleKey" | "permissions">) {
+}: { projectName: string } & Pick<ProjectMembership, "role" | "permissions">) {
   const { t } = useTranslation()
   return (
-    <div className="flex flex-col gap-3 border rounded-lg p-4">
-      <div className="flex flex-col gap-0.5">
-        <div className="flex items-center gap-2">
-          <span className="font-medium">{t("projectMembership:profile.permissions")}</span>
-          {roleKey && <span className="font-mono text-xs text-muted-foreground">{roleKey}</span>}
+    <div className="flex flex-col gap-4 border rounded-lg p-4">
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="font-medium">{projectName}</span>
+          <BadgeWithIcon role={role} />
         </div>
         <p className="text-sm text-muted-foreground">
-          {t("projectMembership:profile.permissionsDescription", { role })}
+          {t("projectMembership:profile.permissionsDescription")}
         </p>
       </div>
       {permissions.length === 0 ? (
@@ -120,12 +113,16 @@ function RolePermissions({
           {t("projectMembership:profile.noPermissions")}
         </p>
       ) : (
-        <ul className="grid gap-1 sm:grid-cols-2 lg:grid-cols-3">
-          {permissions.map((permission) => (
-            <li key={permission} className="font-mono text-xs">
-              {permission}
-            </li>
-          ))}
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {permissions.map((permission) => {
+            const label = t(`permission:${permission}`, { defaultValue: "" })
+            return (
+              <li key={permission} className="flex flex-col">
+                <span className="font-mono text-xs">{permission}</span>
+                {label && <span className="text-xs text-muted-foreground">{label}</span>}
+              </li>
+            )
+          })}
         </ul>
       )}
     </div>

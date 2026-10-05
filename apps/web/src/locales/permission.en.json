@@ -1,0 +1,144 @@
+{
+  "permission": {
+    "organization": {
+      "create": "Create organizations",
+      "read": "See an organization",
+      "update": "Update an organization",
+      "delete": "Delete an organization"
+    },
+    "project": {
+      "create": "Create projects in an organization",
+      "read": "See a project",
+      "update": "Update a project",
+      "delete": "Delete a project",
+      "analytics": {
+        "read": "See a project's conversation analytics"
+      },
+      "member": {
+        "invite": "Invite people to a project or its review campaigns, and revoke pending invitations"
+      }
+    },
+    "agent": {
+      "create": "Create agents in a project",
+      "read": "See an agent",
+      "update": "Update an agent",
+      "delete": "Delete an agent",
+      "analytics": {
+        "read": "See an agent's conversation analytics"
+      },
+      "member": {
+        "invite": "Invite people to an agent, and revoke pending invitations"
+      }
+    },
+    "desk": {
+      "ui": {
+        "read": "Open a project's desk app"
+      }
+    },
+    "studio": {
+      "ui": {
+        "read": "Open a project's studio app"
+      }
+    },
+    "evaluation": {
+      "ui": {
+        "read": "Open a project's evaluation app"
+      },
+      "extraction": {
+        "dataset": {
+          "read": "See a project's evaluation extraction datasets and their files",
+          "create": "Create evaluation extraction datasets and upload their files",
+          "update": "Update an evaluation extraction dataset",
+          "delete": "Delete an evaluation extraction dataset or one of its files"
+        },
+        "run": {
+          "read": "See a project's evaluation extraction runs and their results",
+          "create": "Create an evaluation extraction run",
+          "update": "Execute, retry or cancel an evaluation extraction run",
+          "delete": "Delete an evaluation extraction run"
+        }
+      },
+      "conversation": {
+        "dataset": {
+          "read": "See a project's evaluation conversation datasets and their records",
+          "create": "Create an evaluation conversation dataset",
+          "update": "Rename an evaluation conversation dataset or edit its records",
+          "delete": "Delete an evaluation conversation dataset"
+        },
+        "run": {
+          "read": "See a project's evaluation conversation runs and their results",
+          "create": "Create an evaluation conversation run",
+          "update": "Execute, retry or cancel an evaluation conversation run",
+          "delete": "Delete an evaluation conversation run"
+        }
+      }
+    },
+    "document": {
+      "read": "See a document",
+      "create": "Create documents in a project",
+      "update": "Update a document",
+      "delete": "Delete a document"
+    },
+    "document_source": {
+      "read": "See document feeds in a project",
+      "create": "Register a document feed on a project",
+      "update": "Update a document feed",
+      "delete": "Delete a document feed"
+    },
+    "document_tag": {
+      "read": "See document tags in a project",
+      "create": "Create a document tag",
+      "update": "Update a document tag",
+      "delete": "Delete a document tag"
+    },
+    "resource_library": {
+      "read": "See a project's resource libraries",
+      "create": "Create a resource library, or upload a file for one of its resources",
+      "update": "Rename a resource library, or add, edit and remove its resources",
+      "delete": "Delete a resource library"
+    },
+    "csv_extraction_run": {
+      "read": "See an agent's live CSV extraction runs and their results",
+      "create": "Create a live CSV extraction run",
+      "update": "Execute, retry or cancel a live CSV extraction run",
+      "delete": "Delete a live CSV extraction run",
+      "playground": {
+        "read": "See an agent's playground CSV extraction runs and their results",
+        "create": "Create a playground CSV extraction run",
+        "update": "Execute, retry or cancel a playground CSV extraction run",
+        "delete": "Delete a playground CSV extraction run"
+      }
+    },
+    "user": {
+      "read": "See the users who are members of a resource"
+    },
+    "trace": {
+      "read": "See trace links"
+    },
+    "app": {
+      "install": "Install apps on a project"
+    },
+    "backoffice": {
+      "app": {
+        "manage": "Manage app definitions in the backoffice"
+      },
+      "read": "Access /backoffice routes",
+      "terms": {
+        "update": "Manage terms documents"
+      },
+      "organization": {
+        "read": "See organizations in the backoffice"
+      },
+      "project": {
+        "read": "See projects in the backoffice",
+        "update": "Mutate a project from the backoffice (e.g. feature flags)"
+      },
+      "agent": {
+        "read": "See agents in the backoffice"
+      },
+      "user": {
+        "read": "See every user in the backoffice"
+      }
+    }
+  }
+}

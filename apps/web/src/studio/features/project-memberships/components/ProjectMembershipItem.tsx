@@ -80,6 +80,7 @@ export function ProjectMembershipItem({
 }
 
 export function BadgeWithIcon({ role }: { role: ProjectMembershipRoleDto }) {
+  const { t } = useTranslation()
   const iconMap: Record<ProjectMembershipRoleDto, React.ReactNode> = {
     owner: <CrownIcon className="size-3.5 text-primary" />,
     admin: <StarIcon className="size-3.5 text-yellow-500" />,
@@ -88,9 +89,9 @@ export function BadgeWithIcon({ role }: { role: ProjectMembershipRoleDto }) {
   const variant = SUPER_ROLES.includes(role) ? "outline" : "secondary"
   const icon = iconMap[role]
   return (
-    <Badge className="flex gap-1 capitalize" variant={variant}>
+    <Badge className="flex gap-1" variant={variant}>
       {icon && <span>{icon}</span>}
-      {role}
+      {t(`projectMembership:roles.${role}`)}
     </Badge>
   )
 }

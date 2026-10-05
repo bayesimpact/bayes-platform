@@ -1,6 +1,11 @@
 {
   "projectMembership": {
     "members": "Members",
+    "roles": {
+      "owner": "Owner",
+      "admin": "Admin",
+      "member": "Member"
+    },
     "props": {
       "userName": "User Name",
       "userEmail": "User Email",
@@ -19,8 +24,7 @@
       "agentRole": "Role",
       "noAccess": "No access",
       "noAgents": "This project has no agents.",
-      "permissions": "Permissions",
-      "permissionsDescription": "What the {{role}} role allows on this project.",
+      "permissionsDescription": "What this role allows on this project.",
       "noPermissions": "This role grants no permission."
     },
     "create": {

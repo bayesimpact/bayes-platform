@@ -1,6 +1,11 @@
 {
   "projectMembership": {
     "members": "Membres",
+    "roles": {
+      "owner": "Propriétaire",
+      "admin": "Administrateur",
+      "member": "Membre"
+    },
     "props": {
       "userName": "Nom d'utilisateur",
       "userEmail": "Email d'utilisateur",
@@ -19,8 +24,7 @@
       "agentRole": "Rôle",
       "noAccess": "Pas d'accès",
       "noAgents": "Ce projet n'a aucun agent.",
-      "permissions": "Permissions",
-      "permissionsDescription": "Ce que le rôle {{role}} permet sur ce projet.",
+      "permissionsDescription": "Ce que ce rôle permet sur ce projet.",
       "noPermissions": "Ce rôle n'accorde aucune permission."
     },
     "create": {

@@ -1,0 +1,144 @@
+{
+  "permission": {
+    "organization": {
+      "create": "Créer des organisations",
+      "read": "Voir une organisation",
+      "update": "Modifier une organisation",
+      "delete": "Supprimer une organisation"
+    },
+    "project": {
+      "create": "Créer des projets dans une organisation",
+      "read": "Voir un projet",
+      "update": "Modifier un projet",
+      "delete": "Supprimer un projet",
+      "analytics": {
+        "read": "Voir l'analytique des conversations d'un projet"
+      },
+      "member": {
+        "invite": "Inviter des personnes sur un projet ou ses campagnes de revue, et révoquer les invitations en attente"
+      }
+    },
+    "agent": {
+      "create": "Créer des agents dans un projet",
+      "read": "Voir un agent",
+      "update": "Modifier un agent",
+      "delete": "Supprimer un agent",
+      "analytics": {
+        "read": "Voir l'analytique des conversations d'un agent"
+      },
+      "member": {
+        "invite": "Inviter des personnes sur un agent, et révoquer les invitations en attente"
+      }
+    },
+    "desk": {
+      "ui": {
+        "read": "Ouvrir l'application Desk d'un projet"
+      }
+    },
+    "studio": {
+      "ui": {
+        "read": "Ouvrir l'application Studio d'un projet"
+      }
+    },
+    "evaluation": {
+      "ui": {
+        "read": "Ouvrir l'application d'évaluation d'un projet"
+      },
+      "extraction": {
+        "dataset": {
+          "read": "Voir les jeux de données d'évaluation d'extraction d'un projet et leurs fichiers",
+          "create": "Créer des jeux de données d'évaluation d'extraction et importer leurs fichiers",
+          "update": "Modifier un jeu de données d'évaluation d'extraction",
+          "delete": "Supprimer un jeu de données d'évaluation d'extraction ou l'un de ses fichiers"
+        },
+        "run": {
+          "read": "Voir les exécutions d'évaluation d'extraction d'un projet et leurs résultats",
+          "create": "Créer une exécution d'évaluation d'extraction",
+          "update": "Lancer, relancer ou annuler une exécution d'évaluation d'extraction",
+          "delete": "Supprimer une exécution d'évaluation d'extraction"
+        }
+      },
+      "conversation": {
+        "dataset": {
+          "read": "Voir les jeux de données d'évaluation de conversation d'un projet et leurs enregistrements",
+          "create": "Créer un jeu de données d'évaluation de conversation",
+          "update": "Renommer un jeu de données d'évaluation de conversation ou modifier ses enregistrements",
+          "delete": "Supprimer un jeu de données d'évaluation de conversation"
+        },
+        "run": {
+          "read": "Voir les exécutions d'évaluation de conversation d'un projet et leurs résultats",
+          "create": "Créer une exécution d'évaluation de conversation",
+          "update": "Lancer, relancer ou annuler une exécution d'évaluation de conversation",
+          "delete": "Supprimer une exécution d'évaluation de conversation"
+        }
+      }
+    },
+    "document": {
+      "read": "Voir un document",
+      "create": "Créer des documents dans un projet",
+      "update": "Modifier un document",
+      "delete": "Supprimer un document"
+    },
+    "document_source": {
+      "read": "Voir les flux de documents d'un projet",
+      "create": "Enregistrer un flux de documents sur un projet",
+      "update": "Modifier un flux de documents",
+      "delete": "Supprimer un flux de documents"
+    },
+    "document_tag": {
+      "read": "Voir les étiquettes de documents d'un projet",
+      "create": "Créer une étiquette de document",
+      "update": "Modifier une étiquette de document",
+      "delete": "Supprimer une étiquette de document"
+    },
+    "resource_library": {
+      "read": "Voir les bibliothèques de ressources d'un projet",
+      "create": "Créer une bibliothèque de ressources, ou importer un fichier pour l'une de ses ressources",
+      "update": "Renommer une bibliothèque de ressources, ou ajouter, modifier et retirer ses ressources",
+      "delete": "Supprimer une bibliothèque de ressources"
+    },
+    "csv_extraction_run": {
+      "read": "Voir les extractions CSV d'un agent et leurs résultats",
+      "create": "Créer une extraction CSV",
+      "update": "Lancer, relancer ou annuler une extraction CSV",
+      "delete": "Supprimer une extraction CSV",
+      "playground": {
+        "read": "Voir les extractions CSV du bac à sable d'un agent et leurs résultats",
+        "create": "Créer une extraction CSV dans le bac à sable",
+        "update": "Lancer, relancer ou annuler une extraction CSV du bac à sable",
+        "delete": "Supprimer une extraction CSV du bac à sable"
+      }
+    },
+    "user": {
+      "read": "Voir les utilisateurs membres d'une ressource"
+    },
+    "trace": {
+      "read": "Voir les liens de trace"
+    },
+    "app": {
+      "install": "Installer des applications sur un projet"
+    },
+    "backoffice": {
+      "app": {
+        "manage": "Gérer les définitions d'applications dans le backoffice"
+      },
+      "read": "Accéder aux pages /backoffice",
+      "terms": {
+        "update": "Gérer les conditions d'utilisation"
+      },
+      "organization": {
+        "read": "Voir les organisations dans le backoffice"
+      },
+      "project": {
+        "read": "Voir les projets dans le backoffice",
+        "update": "Modifier un projet depuis le backoffice (par exemple les feature flags)"
+      },
+      "agent": {
+        "read": "Voir les agents dans le backoffice"
+      },
+      "user": {
+        "read": "Voir tous les utilisateurs dans le backoffice"
+      }
+    }
+  }
+}
