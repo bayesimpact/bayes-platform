@@ -165,6 +165,20 @@ const deleteOne = createAsyncThunk<void, { agentCsvExtractionRunId: string }, Th
   },
 )
 
+const getExportTemporaryUrl = createAsyncThunk<
+  { url: string },
+  { agentCsvExtractionRunId: string },
+  ThunkConfig
+>(
+  "agentCsvExtractionRuns/getExportTemporaryUrl",
+  async ({ agentCsvExtractionRunId }, { extra: { services }, getState }) => {
+    return await services.agentCsvExtractionRuns.getExportTemporaryUrl({
+      ...getBaseParams(getState()),
+      agentCsvExtractionRunId,
+    })
+  },
+)
+
 const streamRunStatus = createAsyncThunk<void, void, ThunkConfigWithSignal>(
   "agentCsvExtractionRuns/streamRunStatus",
   async (_, { extra: { services }, getState, dispatch, signal }) => {
@@ -190,6 +204,7 @@ export const agentCsvExtractionRunsThunks = {
   cancelOne,
   createAndExecute,
   deleteOne,
+  getExportTemporaryUrl,
   retryOne,
   getFileColumns,
   getRecords,

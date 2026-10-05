@@ -23,10 +23,11 @@ import { useCurrentId } from "@/common/hooks/use-value"
 import { useRoutesBuilder } from "@/common/routes/build-routes/context"
 import { useAppDispatch } from "@/common/store/hooks"
 import { buildDate, buildSince } from "@/common/utils/build-date"
-import { DocumentOpener } from "@/studio/features/documents/components/DocumentOpener"
+import { DocumentOpener, FileOpener } from "@/studio/features/documents/components/DocumentOpener"
 import { extractionAgentSessionsActions } from "../agent-sessions/extraction/extraction-agent-sessions.slice"
 import type { AgentCsvExtractionRun } from "../csv-extraction-runs/agent-csv-extraction-runs.models"
 import { agentCsvExtractionRunsActions } from "../csv-extraction-runs/agent-csv-extraction-runs.slice"
+import { agentCsvExtractionRunsThunks } from "../csv-extraction-runs/agent-csv-extraction-runs.thunks"
 
 export function ExtractionSessionItem({
   agentSession,
@@ -187,9 +188,15 @@ export function CsvExtractionSessionItem({
             {t("actions:open")}
           </Button>
           {agentSession.csvExportDocumentId && (
-            <DocumentOpener
+            <FileOpener
               buttonProps={{ size: "sm" }}
-              documentId={agentSession.csvExportDocumentId}
+              getUrl={() =>
+                dispatch(
+                  agentCsvExtractionRunsThunks.getExportTemporaryUrl({
+                    agentCsvExtractionRunId: agentSession.id,
+                  }),
+                ).unwrap()
+              }
             />
           )}
           {canDelete && (

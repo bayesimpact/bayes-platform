@@ -21,6 +21,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Fixed
 - Review campaigns: changing the targeted agent of a draft campaign is now saved.
 - Evaluation: reloading an extraction dataset page no longer shows an error.
+- CSV extraction: project members can now download the results file of their runs.
 
 ### Security
 

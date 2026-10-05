@@ -102,6 +102,15 @@ export class PlaygroundAgentCsvExtractionRunsController extends AgentCsvExtracti
     return this.handleGetRecords(request, { page, limit, sortBy, sortOrder })
   }
 
+  @Get(Routes.getExportTemporaryUrl.path)
+  @AddContext("agentCsvExtractionRun")
+  @CheckPermission(CSV_EXTRACTION_RUN_PLAYGROUND_READ_PERMISSION, "project")
+  getExportTemporaryUrl(
+    @Req() request: EndpointRequestWithAgentCsvExtractionRun,
+  ): Promise<typeof Routes.getExportTemporaryUrl.response> {
+    return this.handleGetExportTemporaryUrl(request)
+  }
+
   @Delete(Routes.deleteOne.path)
   @AddContext("agentCsvExtractionRun")
   @CheckPermission(CSV_EXTRACTION_RUN_PLAYGROUND_DELETE_PERMISSION, "project")

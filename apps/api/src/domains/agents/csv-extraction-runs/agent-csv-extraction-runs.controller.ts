@@ -264,6 +264,26 @@ export abstract class AgentCsvExtractionRunsController {
     }
   }
 
+  /**
+   * Served here rather than by the documents route, whose policy lets plain members download only
+   * documents tagged `public-documents`: whoever can read the run can download its export.
+   */
+  protected async handleGetExportTemporaryUrl(
+    request: EndpointRequestWithAgentCsvExtractionRun,
+  ): Promise<Routes["getExportTemporaryUrl"]["response"]> {
+    const { csvExportDocumentId } = this.getRequestRun(request)
+    if (!csvExportDocumentId) throw new NotFoundException("This run has no export yet.")
+
+    const exportDocument = await this.documentsService.findById({
+      connectScope: getRequiredConnectScope(request),
+      documentId: csvExportDocumentId,
+    })
+    if (!exportDocument) throw new NotFoundException("Export document not found.")
+
+    const url = await this.fileStorageService.getTemporaryUrl(exportDocument.storageRelativePath)
+    return { data: { url } }
+  }
+
   protected async handleDeleteOne(
     request: EndpointRequestWithAgentCsvExtractionRun,
   ): Promise<Routes["deleteOne"]["response"]> {

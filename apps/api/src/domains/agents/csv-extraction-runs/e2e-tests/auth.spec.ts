@@ -21,6 +21,7 @@ import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { AgentCsvExtractionRunsModule } from "../agent-csv-extraction-runs.module"
 import {
+  attachCsvExtractionRunExport,
   createCsvExtractionRun,
   createCsvExtractionRunContext,
   createOtherAgentInProject,
@@ -386,6 +387,77 @@ describe("AgentCsvExtractionRuns - Auth", () => {
 
     it("doesn't allow an organization admin without a project role to read a run", async () => {
       const { organization } = await createContextForRole("owner")
+      await switchToOrganizationAdminWithoutProjectRole(organization)
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+  })
+
+  describe("getExportTemporaryUrl", () => {
+    const subject = async (type: BaseAgentSessionTypeDto = runType) =>
+      request({
+        route: AgentCsvExtractionRunsRoutes[type].getExportTemporaryUrl,
+        pathParams: removeNullish({ organizationId, projectId, agentId, agentCsvExtractionRunId }),
+        token: accessToken ?? undefined,
+      })
+
+    // The seeded run has an export, so an allowed caller gets a 200 rather than a 404.
+    const createContextWithExport = async (
+      role: ProjectMembershipRoleDto,
+      type: BaseAgentSessionTypeDto = "live",
+    ) => {
+      const context = await createContextForRole(role, type)
+      const run = await repositories.agentCsvExtractionRunRepository.findOneByOrFail({
+        id: agentCsvExtractionRunId!,
+      })
+      await attachCsvExtractionRunExport({ repositories, context, run })
+      return context
+    }
+
+    it("requires an authentication token", async () => {
+      accessToken = null
+      expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+
+    it("requires the user to be a member of the organization", async () => {
+      await createContextWithExport("owner")
+      authSubject = mockForeignAuthSubject()
+      expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
+    })
+
+    it("returns 404 for an unknown run", async () => {
+      await createContextWithExport("owner")
+      agentCsvExtractionRunId = randomUUID()
+      expectResponse(await subject(), 404)
+    })
+
+    it("allows a project member to download the export of a run", async () => {
+      await createContextWithExport("member")
+      expectResponse(await subject(), 200)
+    })
+
+    it("forbids a plain member to download the export of a playground run", async () => {
+      await createContextWithExport("member", "playground")
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+
+    it("allows a project admin to download the export of a playground run", async () => {
+      await createContextWithExport("admin", "playground")
+      expectResponse(await subject(), 200)
+    })
+
+    it("answers 404 for a playground run on the live routes", async () => {
+      await createContextWithExport("owner", "playground")
+      expectResponse(await subject("live"), 404)
+    })
+
+    it("answers 404 for a run of another agent of the project", async () => {
+      const context = await createContextWithExport("owner")
+      await switchToOtherAgentOfProject(context)
+      expectResponse(await subject(), 404)
+    })
+
+    it("doesn't allow an organization admin without a project role to download an export", async () => {
+      const { organization } = await createContextWithExport("owner")
       await switchToOrganizationAdminWithoutProjectRole(organization)
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
