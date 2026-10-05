@@ -45,6 +45,22 @@
         "name": "Supprimer des sources de documents",
         "description": "Retirer une source de documents qui n'a aucun document attaché."
       },
+      "document_tag_read": {
+        "name": "Lire les tags de documents",
+        "description": "Voir les tags de documents de cet espace."
+      },
+      "document_tag_create": {
+        "name": "Créer des tags de documents",
+        "description": "Ajouter un tag de document à cet espace."
+      },
+      "document_tag_update": {
+        "name": "Modifier les tags de documents",
+        "description": "Renommer un tag de document ou changer sa description et son parent."
+      },
+      "document_tag_delete": {
+        "name": "Supprimer des tags de documents",
+        "description": "Retirer un tag de document de cet espace."
+      },
       "project_read": {
         "name": "Lire l'espace de travail",
         "description": "Voir cet espace de travail et ses paramètres."

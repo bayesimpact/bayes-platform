@@ -1,25 +1,14 @@
 import { PUBLIC_DOCUMENTS_TAG_NAME } from "@caseai-connect/api-contracts"
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common"
-import { InjectRepository } from "@nestjs/typeorm"
-import { In, type Repository } from "typeorm"
-import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
-import { DocumentTag } from "./document-tag.entity"
+import type { DocumentTag } from "./document-tag.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { DocumentTagRepository } from "./document-tag.repository"
 import type { DocumentTagsUpdateFields } from "./document-tags.types"
 
 @Injectable()
 export class DocumentTagsService {
-  constructor(
-    @InjectRepository(DocumentTag)
-    private readonly documentTagRepository: Repository<DocumentTag>,
-  ) {
-    this.documentTagConnectRepository = new ConnectRepository(
-      documentTagRepository,
-      "document-tags",
-    )
-  }
-
-  private readonly documentTagConnectRepository: ConnectRepository<DocumentTag>
+  constructor(private readonly documentTagRepository: DocumentTagRepository) {}
 
   async resolveTagChanges({
     currentTags,
@@ -28,8 +17,7 @@ export class DocumentTagsService {
   }: {
     currentTags: DocumentTag[]
   } & DocumentTagsUpdateFields): Promise<DocumentTag[]> {
-    const addedTags =
-      tagsToAdd.length > 0 ? await this.documentTagRepository.findBy({ id: In(tagsToAdd) }) : []
+    const addedTags = await this.documentTagRepository.findByIds(tagsToAdd)
     const tagsToRemoveSet = new Set(tagsToRemove)
     return [...currentTags.filter((tag) => !tagsToRemoveSet.has(tag.id)), ...addedTags]
   }
@@ -45,7 +33,7 @@ export class DocumentTagsService {
     if (!parentId) {
       return
     }
-    const parentTag = await this.documentTagRepository.findOneBy({ id: parentId })
+    const parentTag = await this.documentTagRepository.findOneById(parentId)
     if (parentTag?.name === PUBLIC_DOCUMENTS_TAG_NAME) {
       throw new BadRequestException(`Tag "${PUBLIC_DOCUMENTS_TAG_NAME}" cannot have children.`)
     }
@@ -62,15 +50,15 @@ export class DocumentTagsService {
       throw new BadRequestException(`Tag name "${PUBLIC_DOCUMENTS_TAG_NAME}" is reserved.`)
     }
     await this.assertParentIsNotPublicDocumentsTag(fields.parentId)
-    return await this.documentTagConnectRepository.createAndSave(connectScope, {
+    return this.documentTagRepository.createOne(connectScope, {
       name: fields.name,
       description: fields.description ?? null,
       parentId: fields.parentId ?? null,
     })
   }
 
-  async createPublicDocumentsTag(connectScope: RequiredConnectScope): Promise<DocumentTag> {
-    return this.documentTagConnectRepository.createAndSave(connectScope, {
+  createPublicDocumentsTag(connectScope: RequiredConnectScope): Promise<DocumentTag> {
+    return this.documentTagRepository.createOne(connectScope, {
       name: PUBLIC_DOCUMENTS_TAG_NAME,
       description: null,
       parentId: null,
@@ -78,19 +66,18 @@ export class DocumentTagsService {
   }
 
   async listDocumentTags(connectScope: RequiredConnectScope): Promise<DocumentTag[]> {
-    return (await this.documentTagConnectRepository.getMany(connectScope))?.sort((a, b) =>
-      a.name.localeCompare(b.name),
-    )
+    const documentTags = await this.documentTagRepository.list(connectScope)
+    return documentTags.sort((tag, otherTag) => tag.name.localeCompare(otherTag.name))
   }
 
-  async findDocumentTagById({
+  findDocumentTagById({
     connectScope,
     documentTagId,
   }: {
     connectScope: RequiredConnectScope
     documentTagId: string
   }): Promise<DocumentTag | null> {
-    return this.documentTagConnectRepository.getOneById(connectScope, documentTagId)
+    return this.documentTagRepository.findOne(connectScope, documentTagId)
   }
 
   async updateDocumentTag({
@@ -100,12 +87,9 @@ export class DocumentTagsService {
   }: {
     connectScope: RequiredConnectScope
     documentTagId: string
-    fieldsToUpdate: Pick<DocumentTag, "name" | "description" | "parentId">
+    fieldsToUpdate: Partial<Pick<DocumentTag, "name" | "description" | "parentId">>
   }): Promise<DocumentTag> {
-    const documentTag = await this.documentTagConnectRepository.getOneById(
-      connectScope,
-      documentTagId,
-    )
+    const documentTag = await this.documentTagRepository.findOne(connectScope, documentTagId)
 
     if (!documentTag) {
       throw new NotFoundException(`DocumentTag with id ${documentTagId} not found`)
@@ -121,9 +105,7 @@ export class DocumentTagsService {
 
     await this.assertParentIsNotPublicDocumentsTag(fieldsToUpdate.parentId)
 
-    Object.assign(documentTag, fieldsToUpdate)
-
-    return await this.documentTagConnectRepository.saveOne(documentTag)
+    return this.documentTagRepository.updateOne(documentTag, fieldsToUpdate)
   }
 
   async deleteDocumentTag({
@@ -133,10 +115,7 @@ export class DocumentTagsService {
     connectScope: RequiredConnectScope
     documentTagId: string
   }): Promise<void> {
-    const documentTag = await this.documentTagConnectRepository.getOneById(
-      connectScope,
-      documentTagId,
-    )
+    const documentTag = await this.documentTagRepository.findOne(connectScope, documentTagId)
 
     if (!documentTag) {
       throw new NotFoundException(`DocumentTag with id ${documentTagId} not found`)
@@ -146,18 +125,6 @@ export class DocumentTagsService {
       throw new BadRequestException(`Tag "${PUBLIC_DOCUMENTS_TAG_NAME}" cannot be deleted.`)
     }
 
-    // Manually delete relations in join tables before deleting the tag itself to avoid foreign key constraint errors
-    // Document-DocumentTag relation
-    await this.documentTagRepository.manager.query(
-      "DELETE FROM document_document_tag WHERE document_tag_id = $1",
-      [documentTag.id],
-    )
-    // Agent-DocumentTag relation
-    await this.documentTagRepository.manager.query(
-      "DELETE FROM agent_document_tag WHERE document_tag_id = $1",
-      [documentTag.id],
-    )
-
-    await this.documentTagConnectRepository.deleteOneById({ connectScope, id: documentTag.id })
+    await this.documentTagRepository.deleteOne(connectScope, documentTag.id)
   }
 }

@@ -79,7 +79,7 @@ export class AppsDocumentSourcesController {
   @CheckPermission(DOCUMENT_SOURCE_CREATE_PERMISSION, "project")
   @Post(AppsDocumentSourcesRoutes.createOne.path)
   @HttpCode(HttpStatus.CREATED)
-  @TrackActivity({ action: "documentSource.create" })
+  @TrackActivity({ action: "apps.documentSource.create" })
   async createOne(
     @Param("projectId") projectId: string,
     @Req() request: AppRequest,
@@ -108,7 +108,7 @@ export class AppsDocumentSourcesController {
 
   @CheckPermission(DOCUMENT_SOURCE_UPDATE_PERMISSION, "project")
   @Patch(AppsDocumentSourcesRoutes.updateOne.path)
-  @TrackActivity({ action: "documentSource.update", entityFrom: "documentSource" })
+  @TrackActivity({ action: "apps.documentSource.update", entityFrom: "documentSource" })
   async updateOne(
     @Param("projectId") projectId: string,
     @Param("id") id: string,
@@ -137,7 +137,7 @@ export class AppsDocumentSourcesController {
   @CheckPermission(DOCUMENT_SOURCE_DELETE_PERMISSION, "project")
   @Delete(AppsDocumentSourcesRoutes.deleteOne.path)
   @HttpCode(HttpStatus.OK)
-  @TrackActivity({ action: "documentSource.delete", entityFrom: "documentSource" })
+  @TrackActivity({ action: "apps.documentSource.delete", entityFrom: "documentSource" })
   async deleteOne(
     @Param("projectId") projectId: string,
     @Param("id") id: string,

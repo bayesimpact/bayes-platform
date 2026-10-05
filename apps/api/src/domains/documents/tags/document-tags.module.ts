@@ -11,6 +11,7 @@ import { ProjectsModule } from "@/domains/projects/projects.module"
 import { UsersModule } from "@/domains/users/users.module"
 import { DocumentTag } from "./document-tag.entity"
 import { DocumentTagGuard } from "./document-tag.guard"
+import { DocumentTagRepository } from "./document-tag.repository"
 import { DocumentTagsController } from "./document-tags.controller"
 import { DocumentTagsService } from "./document-tags.service"
 
@@ -24,6 +25,7 @@ import { DocumentTagsService } from "./document-tags.service"
   ],
   providers: [
     DocumentTagsService,
+    DocumentTagRepository,
     DocumentTagGuard,
     ResourceContextGuard,
     OrganizationContextResolver,

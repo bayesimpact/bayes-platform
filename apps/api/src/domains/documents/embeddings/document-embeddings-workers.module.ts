@@ -7,6 +7,7 @@ import { PdfPagesModule } from "../pdf-pages/pdf-pages.module"
 import { DocumentSourceRepository } from "../sources/document-source.repository"
 import { DocumentSourcesService } from "../sources/document-sources.service"
 import { StorageModule } from "../storage/storage.module"
+import { DocumentTagRepository } from "../tags/document-tag.repository"
 import { DocumentTagsService } from "../tags/document-tags.service"
 import { DocumentEmbeddingStatusNotifierService } from "./document-embedding-status-notifier.service"
 import { DOCUMENT_EMBEDDINGS_QUEUE_NAME } from "./document-embeddings.constants"
@@ -37,6 +38,7 @@ import { QueueMetricsService } from "./queue-metrics.service"
     DocumentSourcesService,
     DocumentSourceRepository,
     DocumentTagsService,
+    DocumentTagRepository,
     QueueMetricsService,
   ],
 })

@@ -7,6 +7,8 @@ import {
   LayoutGridIcon,
   PencilIcon,
   SettingsIcon,
+  TagIcon,
+  TagsIcon,
   Trash2Icon,
 } from "lucide-react"
 
@@ -19,6 +21,10 @@ const PERMISSION_ICONS: Record<AppGrantablePermission, typeof FileTextIcon> = {
   "document_source.create": FolderPlusIcon,
   "document_source.update": PencilIcon,
   "document_source.delete": Trash2Icon,
+  "document_tag.read": TagIcon,
+  "document_tag.create": TagsIcon,
+  "document_tag.update": PencilIcon,
+  "document_tag.delete": Trash2Icon,
   "project.read": LayoutGridIcon,
   "project.update": SettingsIcon,
   "project.delete": Trash2Icon,

@@ -44,7 +44,7 @@ export class AppsDocumentsController {
   @CheckPermission(DOCUMENT_CREATE_PERMISSION, "project")
   @Post(AppsDocumentsRoutes.createOne.path)
   @HttpCode(HttpStatus.CREATED)
-  @TrackActivity({ action: "document.create" })
+  @TrackActivity({ action: "apps.document.create" })
   async createOne(
     @Param("projectId") projectId: string,
     @Req() request: AppRequest,
@@ -96,7 +96,7 @@ export class AppsDocumentsController {
   @CheckPermission(DOCUMENT_CREATE_PERMISSION, "project")
   @Post(AppsDocumentsRoutes.confirmOne.path)
   @HttpCode(HttpStatus.CREATED)
-  @TrackActivity({ action: "document.confirm", entityFrom: "document" })
+  @TrackActivity({ action: "apps.document.confirm", entityFrom: "document" })
   async confirmOne(
     @Param("projectId") projectId: string,
     @Param("documentId") documentId: string,

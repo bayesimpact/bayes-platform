@@ -142,7 +142,7 @@ describe("Apps - Ingest document", () => {
     expect(stored.sourceType).toBe("app")
     expect(stored.sourceUrl).toBe("https://example.com/notes")
     expect(stored.documentSourceId).toBe(documentSource.id)
-    await expectActivityCreated("document.create", {
+    await expectActivityCreated("apps.document.create", {
       userId: stored.userId,
       organizationId: project.organizationId,
       projectId: project.id,

@@ -12,6 +12,7 @@ import { PdfPagesModule } from "../pdf-pages/pdf-pages.module"
 import { DocumentSourceRepository } from "../sources/document-source.repository"
 import { DocumentSourcesService } from "../sources/document-sources.service"
 import { StorageModule } from "../storage/storage.module"
+import { DocumentTagRepository } from "../tags/document-tag.repository"
 import { DocumentTagsService } from "../tags/document-tags.service"
 import { DocumentCrawlProgressNotifierService } from "./document-crawl-progress-notifier.service"
 import { URL_CRAWLING_QUEUE_NAME } from "./url-crawling.constants"
@@ -45,6 +46,7 @@ import { WebSourceEmbeddingsBatchModule } from "./web-source-embeddings-batch.mo
     DocumentSourcesService,
     DocumentSourceRepository,
     DocumentTagsService,
+    DocumentTagRepository,
     DocumentEmbeddingStatusNotifierService,
     DocumentCrawlProgressNotifierService,
     UrlCrawlingQueueMetricsService,

@@ -45,6 +45,22 @@
         "name": "Delete document sources",
         "description": "Remove a document source that has no documents attached."
       },
+      "document_tag_read": {
+        "name": "Read document tags",
+        "description": "See the document tags in this workspace."
+      },
+      "document_tag_create": {
+        "name": "Create document tags",
+        "description": "Add a document tag to this workspace."
+      },
+      "document_tag_update": {
+        "name": "Update document tags",
+        "description": "Rename a document tag or change its description and parent."
+      },
+      "document_tag_delete": {
+        "name": "Delete document tags",
+        "description": "Remove a document tag from this workspace."
+      },
       "project_read": {
         "name": "Read workspace",
         "description": "See this workspace and its settings."

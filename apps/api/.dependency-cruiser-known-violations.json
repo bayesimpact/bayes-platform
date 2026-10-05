@@ -4058,6 +4058,15 @@
   },
   {
     "type": "dependency",
+    "from": "src/domains/apps/document-tags/apps-document-tags.controller.ts",
+    "to": "src/domains/documents/tags/document-tags.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
     "from": "src/domains/apps/documents/apps-documents.controller.ts",
     "to": "src/domains/documents/documents.service.ts",
     "rule": {
