@@ -28,6 +28,12 @@
       "show": "Form state",
       "description": "The information the agent has collected so far.",
       "thisAgent": "This agent"
+    },
+    "delete": {
+      "confirm": {
+        "title": "Delete chat",
+        "description": "This chat and its messages will be permanently deleted. This action cannot be undone."
+      }
     }
   }
 }

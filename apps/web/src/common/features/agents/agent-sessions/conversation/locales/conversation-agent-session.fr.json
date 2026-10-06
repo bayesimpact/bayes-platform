@@ -28,6 +28,12 @@
       "show": "État du formulaire",
       "description": "Les informations que l'agent a collectées jusqu'à présent.",
       "thisAgent": "Cet agent"
+    },
+    "delete": {
+      "confirm": {
+        "title": "Supprimer la discussion",
+        "description": "Cette discussion et ses messages seront supprimés définitivement. Cette action est irréversible."
+      }
     }
   }
 }

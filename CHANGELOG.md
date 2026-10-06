@@ -18,6 +18,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Changed
 - Trace links open the conversation in Phoenix instead of Langfuse.
 - Members: people added by email get access right away, without an invitation to accept.
+- Chats: Studio and Desk ask for confirmation before deleting a chat.
 
 ### Fixed
 - Review campaigns: changing the targeted agent of a draft campaign is now saved.
