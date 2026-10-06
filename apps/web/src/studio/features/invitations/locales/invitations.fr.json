@@ -14,11 +14,6 @@
     "deleteDialog": {
       "title": "Supprimer l'invitation ?",
       "description": "{{email}} ne pourra plus accepter cette invitation."
-    },
-    "notifications": {
-      "invited": "Personnes invitées",
-      "emailed": "Invitations envoyées par email",
-      "failed": "L'invitation a échoué"
     }
   }
 }
