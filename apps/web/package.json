@@ -55,7 +55,8 @@
   },
   "devDependencies": {
     "@faker-js/faker": "^10.4.0",
-    "@storybook/react-vite": "^10.3.3",
+    "@storybook/addon-mcp": "^10.6.1",
+    "@storybook/react-vite": "^10.6.1",
     "@types/lodash": "^4.17.23",
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.5",
@@ -66,7 +67,7 @@
     "baseline-browser-mapping": "^2.9.11",
     "fishery": "^2.4.0",
     "globals": "^16.5.0",
-    "storybook": "^10.3.3",
+    "storybook": "^10.6.1",
     "storybook-addon-remix-react-router": "^6.0.0",
     "typescript": "~5.9.3",
     "vite": "^7.2.4",

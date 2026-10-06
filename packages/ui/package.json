@@ -16,17 +16,18 @@
   "scripts": {
     "generate:component": "turbo gen react-component",
     "typecheck": "tsc --noEmit",
-    "storybook": "storybook dev -p 6006",
+    "storybook": "storybook dev -p 6008",
     "build-storybook": "storybook build"
   },
   "devDependencies": {
     "@repo/typescript-config": "*",
-    "@storybook/react-vite": "^10.3.3",
+    "@storybook/addon-mcp": "^10.6.1",
+    "@storybook/react-vite": "^10.6.1",
     "@tailwindcss/postcss": "^4.1.13",
     "@types/node": "^22.15.3",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
-    "storybook": "^10.3.3",
+    "storybook": "^10.6.1",
     "typescript": "^5.3.3"
   },
   "dependencies": {
