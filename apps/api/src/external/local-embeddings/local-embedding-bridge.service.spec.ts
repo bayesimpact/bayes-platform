@@ -17,6 +17,13 @@ rl.on("line", (line) => {
     process.exit(3)
   }
   const embeddings = request.texts.map((text, index) => [text.length, index])
+  if (request.model === "sparse-model") {
+    const sparse_embeddings = request.texts.map((text) => ({ [String(text.length)]: 0.5 }))
+    process.stdout.write(
+      JSON.stringify({ id: request.id, model: request.model, dimensions: 2, embeddings, sparse_embeddings }) + "\\n",
+    )
+    return
+  }
   process.stdout.write(
     JSON.stringify({ id: request.id, model: request.model, dimensions: 2, embeddings }) + "\\n",
   )
@@ -74,11 +81,20 @@ describe("LocalEmbeddingBridgeService", () => {
       service.embed({ modelName: "m", texts: ["a"], inputType: "query" }),
     ])
 
-    expect(first).toEqual([
-      [2, 0],
-      [3, 1],
-    ])
-    expect(second).toEqual([[1, 0]])
+    expect(first).toEqual({
+      dense: [
+        [2, 0],
+        [3, 1],
+      ],
+      sparse: null,
+    })
+    expect(second).toEqual({ dense: [[1, 0]], sparse: null })
+  })
+
+  it("returns the lexical weights when the model produces them", async () => {
+    await expect(
+      service.embed({ modelName: "sparse-model", texts: ["abc"], inputType: "document" }),
+    ).resolves.toEqual({ dense: [[3, 0]], sparse: [{ "3": 0.5 }] })
   })
 
   it("rejects with the embedder error message", async () => {
@@ -94,12 +110,12 @@ describe("LocalEmbeddingBridgeService", () => {
 
     await expect(
       service.embed({ modelName: "m", texts: ["abcd"], inputType: "document" }),
-    ).resolves.toEqual([[4, 0]])
+    ).resolves.toEqual({ dense: [[4, 0]], sparse: null })
   })
 
   it("returns an empty list for no texts without touching the embedder", async () => {
     await expect(
       service.embed({ modelName: "m", texts: [], inputType: "document" }),
-    ).resolves.toEqual([])
+    ).resolves.toEqual({ dense: [], sparse: null })
   })
 })

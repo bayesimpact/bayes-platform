@@ -9,6 +9,15 @@ import {
 
 export type LocalEmbeddingInputType = "query" | "document"
 
+/** Lexical weights of one text: vocabulary token id (as a string) to weight. */
+export type SparseWeights = Record<string, number>
+
+/** One dense vector per text, plus lexical weights when the model has a sparse head. */
+export type LocalEmbeddings = {
+  dense: number[][]
+  sparse: SparseWeights[] | null
+}
+
 export type LocalEmbedRequest = {
   modelName: string
   texts: string[]
@@ -20,11 +29,12 @@ type EmbedderResponse = {
   model?: string
   dimensions?: number
   embeddings?: number[][]
+  sparse_embeddings?: SparseWeights[]
   error?: string
 }
 
 type PendingRequest = {
-  resolve: (embeddings: number[][]) => void
+  resolve: (embeddings: LocalEmbeddings) => void
   reject: (error: Error) => void
   timeoutHandle: NodeJS.Timeout
 }
@@ -63,16 +73,16 @@ export class LocalEmbeddingBridgeService implements OnModuleDestroy {
     }
   }
 
-  async embed({ modelName, texts, inputType }: LocalEmbedRequest): Promise<number[][]> {
+  async embed({ modelName, texts, inputType }: LocalEmbedRequest): Promise<LocalEmbeddings> {
     this.assertEnabled()
-    if (texts.length === 0) return []
+    if (texts.length === 0) return { dense: [], sparse: null }
 
     const child = this.getOrSpawnChild()
     const id = randomUUID()
     const request = JSON.stringify({ id, model: modelName, texts, input_type: inputType })
     const timeoutMs = getLocalEmbeddingRequestTimeoutMs()
 
-    return new Promise<number[][]>((resolve, reject) => {
+    return new Promise<LocalEmbeddings>((resolve, reject) => {
       const timeoutHandle = setTimeout(() => {
         this.pending.delete(id)
         reject(
@@ -157,7 +167,10 @@ export class LocalEmbeddingBridgeService implements OnModuleDestroy {
       )
       return
     }
-    pendingRequest.resolve(response.embeddings)
+    pendingRequest.resolve({
+      dense: response.embeddings,
+      sparse: response.sparse_embeddings ?? null,
+    })
   }
 
   private onChildGone(reason: string, error?: Error): void {

@@ -19,7 +19,7 @@ type SharedServiceInternals = {
   generateEmbeddingsByModel: (params: {
     chunks: string[]
     projectId: string
-  }) => Promise<Map<string, number[][]>>
+  }) => Promise<Map<string, { dense: number[][]; sparse: unknown }>>
 }
 
 function buildSharedService(): DocumentEmbeddingsSharedService {
@@ -67,7 +67,7 @@ describe("DocumentEmbeddingsSharedService", () => {
       chunks,
       projectId: "project-id",
     })
-    const embeddings = embeddingsByModelName.get("gemini-embedding-001")
+    const embeddings = embeddingsByModelName.get("gemini-embedding-001")?.dense
 
     expect(mockedEmbedMany).toHaveBeenCalledTimes(3)
     expect(mockedEmbedMany.mock.calls[0]?.[0].values).toHaveLength(250)

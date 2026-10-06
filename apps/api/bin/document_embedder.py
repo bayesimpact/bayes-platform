@@ -7,8 +7,12 @@ lines: one request object per line on stdin, one response object per line on std
 loaded on first use and kept in memory.
 
 Request:  {"id": "...", "model": "BAAI/bge-m3", "texts": ["..."], "input_type": "query"|"document"}
-Response: {"id": "...", "model": "...", "dimensions": 1024, "embeddings": [[...], ...]}
+Response: {"id": "...", "model": "...", "dimensions": 1024, "embeddings": [[...], ...],
+           "sparse_embeddings": [{"<token id>": weight, ...}, ...]}
       or  {"id": "...", "error": "..."}
+
+`sparse_embeddings` is present only for models with a lexical head (bge-m3): one map per text
+from vocabulary token id to weight, as defined in the BGE M3 paper (Chen et al., 2024).
 
 Usage:
   python3 document_embedder.py --version
@@ -30,6 +34,10 @@ MAX_SEQ_LENGTH_BY_MODEL = {"BAAI/bge-m3": 1024}
 # Silicon stay small to keep memory flat. LOCAL_EMBEDDING_ENCODE_BATCH_SIZE overrides both.
 ENCODE_BATCH_SIZE_BY_DEVICE = {"cuda": 128}
 DEFAULT_ENCODE_BATCH_SIZE = 32
+
+# Models shipping a lexical (sparse) head next to their dense encoder: file name of the head in
+# the HuggingFace repo. bge-m3 projects each token's last hidden state to a weight with it.
+SPARSE_HEAD_FILE_BY_MODEL = {"BAAI/bge-m3": "sparse_linear.pt"}
 
 
 def _resolve_encode_batch_size(device: str) -> int:
@@ -78,6 +86,23 @@ def _resolve_device() -> str:
     return "cpu"
 
 
+def pool_sparse_weights(
+    input_ids: list[int], token_weights: list[float], ignored_token_ids: set[int]
+) -> dict[str, float]:
+    """
+    Lexical weights of one text, as in BGE M3: keep each vocabulary token once with its highest
+    weight, drop special and padding tokens and non-positive weights. Keys are token ids as
+    strings (JSON object keys), sorted ascending as pgvector's sparsevec expects.
+    """
+    best_weight_by_token_id: dict[int, float] = {}
+    for token_id, weight in zip(input_ids, token_weights):
+        if token_id in ignored_token_ids or weight <= 0:
+            continue
+        if weight > best_weight_by_token_id.get(token_id, 0.0):
+            best_weight_by_token_id[token_id] = float(weight)
+    return {str(token_id): best_weight_by_token_id[token_id] for token_id in sorted(best_weight_by_token_id)}
+
+
 class ModelRegistry:
     """Loads each model once and encodes with the prompt matching the input type."""
 
@@ -85,6 +110,7 @@ class ModelRegistry:
         self._loader = loader
         self._device = device
         self._models: dict[str, Any] = {}
+        self._sparse_heads: dict[str, Any] = {}
         self._encode_batch_size = _resolve_encode_batch_size(device or _resolve_device())
 
     def get(self, model_name: str) -> Any:
@@ -106,6 +132,69 @@ class ModelRegistry:
             except Exception:  # noqa: BLE001
                 pass
         return model
+
+    def has_sparse_head(self, model_name: str) -> bool:
+        return model_name in SPARSE_HEAD_FILE_BY_MODEL
+
+    def _get_sparse_head(self, model_name: str, model: Any) -> Any:
+        head = self._sparse_heads.get(model_name)
+        if head is None:
+            import torch
+            from huggingface_hub import hf_hub_download
+
+            path = hf_hub_download(model_name, SPARSE_HEAD_FILE_BY_MODEL[model_name])
+            state = torch.load(path, map_location="cpu", weights_only=True)
+            head = torch.nn.Linear(state["weight"].shape[1], 1)
+            head.load_state_dict(state)
+            parameter = next(model.parameters())
+            head = head.to(parameter.device, dtype=parameter.dtype).eval()
+            self._sparse_heads[model_name] = head
+        return head
+
+    def encode_dense_and_sparse(
+        self, model_name: str, texts: list[str]
+    ) -> tuple[list[list[float]], list[dict[str, float]]]:
+        """
+        One forward pass gives both outputs: the normalised CLS vector (dense, what
+        sentence-transformers returns for bge-m3) and the lexical weights of the sparse head.
+        bge-m3 uses no instruction prompt, so queries and documents are encoded alike.
+        """
+        import torch
+
+        model = self.get(model_name)
+        head = self._get_sparse_head(model_name, model)
+        tokenizer = model[0].tokenizer
+        ignored_token_ids = {
+            token_id
+            for token_id in (
+                tokenizer.cls_token_id,
+                tokenizer.eos_token_id,
+                tokenizer.pad_token_id,
+                tokenizer.unk_token_id,
+            )
+            if token_id is not None
+        }
+        dense: list[list[float]] = []
+        sparse: list[dict[str, float]] = []
+        for start in range(0, len(texts), self._encode_batch_size):
+            batch = texts[start : start + self._encode_batch_size]
+            # sentence-transformers >= 5.2 renamed tokenize to preprocess.
+            preprocess = getattr(model, "preprocess", None) or model.tokenize
+            features = preprocess(batch)
+            features = {
+                key: value.to(model.device)
+                for key, value in features.items()
+                if isinstance(value, torch.Tensor)
+            }
+            with torch.inference_mode():
+                output = model(features)
+                token_weights = torch.relu(head(output["token_embeddings"])).squeeze(-1)
+            dense.extend(output["sentence_embedding"].float().cpu().tolist())
+            for input_ids, weights in zip(
+                features["input_ids"].tolist(), token_weights.float().cpu().tolist()
+            ):
+                sparse.append(pool_sparse_weights(input_ids, weights, ignored_token_ids))
+        return dense, sparse
 
     def encode(self, model_name: str, texts: list[str], input_type: str) -> list[list[float]]:
         model = self.get(model_name)
@@ -138,17 +227,24 @@ def handle_request(registry: ModelRegistry, request: dict[str, Any]) -> dict[str
         return {"id": request_id, "error": "texts must be a list of strings"}
     if input_type not in ("query", "document"):
         return {"id": request_id, "error": f"unknown input_type {input_type!r}"}
+    sparse_embeddings: list[dict[str, float]] | None = None
     try:
-        embeddings = registry.encode(model_name, texts, input_type)
+        if texts and registry.has_sparse_head(model_name):
+            embeddings, sparse_embeddings = registry.encode_dense_and_sparse(model_name, texts)
+        else:
+            embeddings = registry.encode(model_name, texts, input_type)
     except Exception as error:  # noqa: BLE001
         return {"id": request_id, "error": f"{type(error).__name__}: {error}"}
     dimensions = len(embeddings[0]) if embeddings else 0
-    return {
+    response: dict[str, Any] = {
         "id": request_id,
         "model": model_name,
         "dimensions": dimensions,
         "embeddings": embeddings,
     }
+    if sparse_embeddings is not None:
+        response["sparse_embeddings"] = sparse_embeddings
+    return response
 
 
 def serve(registry: ModelRegistry, stdin: Any, stdout: Any) -> None:
@@ -168,7 +264,12 @@ def serve(registry: ModelRegistry, stdin: Any, stdout: Any) -> None:
 
 def prewarm(registry: ModelRegistry, model_names: list[str]) -> None:
     for model_name in model_names:
-        registry.encode(model_name, ["warm up"], "document")
+        # Through handle_request so the sparse head is downloaded too.
+        response = handle_request(
+            registry, {"id": "prewarm", "model": model_name, "texts": ["warm up"]}
+        )
+        if "error" in response:
+            raise RuntimeError(f"Prewarm of {model_name} failed: {response['error']}")
         print(f"Prewarmed {model_name}", file=sys.stderr, flush=True)
 
 

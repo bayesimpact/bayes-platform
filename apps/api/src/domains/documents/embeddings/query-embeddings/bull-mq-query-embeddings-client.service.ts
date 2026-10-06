@@ -33,7 +33,7 @@ export class BullMqQueryEmbeddingsClientService implements OnModuleDestroy {
     private readonly queue: Queue<EmbedQueryJobPayload, EmbedQueryJobResult>,
   ) {}
 
-  async embedQuery(payload: EmbedQueryJobPayload): Promise<number[]> {
+  async embedQuery(payload: EmbedQueryJobPayload): Promise<EmbedQueryJobResult> {
     const timeoutMs = getLocalEmbeddingQueryTimeoutMs()
     const job = await this.queue.add(QUERY_EMBEDDINGS_JOB_NAME, payload, {
       removeOnComplete: true,
@@ -43,7 +43,7 @@ export class BullMqQueryEmbeddingsClientService implements OnModuleDestroy {
     if (!Array.isArray(result?.embedding)) {
       throw new Error(`Query embedding job ${job.id} returned no vector`)
     }
-    return result.embedding
+    return { embedding: result.embedding, sparseEmbedding: result.sparseEmbedding ?? null }
   }
 
   async onModuleDestroy(): Promise<void> {

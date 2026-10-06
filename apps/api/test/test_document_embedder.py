@@ -6,7 +6,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from document_embedder import ModelRegistry, handle_request, serve
+from document_embedder import ModelRegistry, handle_request, pool_sparse_weights, serve
 
 
 def build_fake_model(dimensions: int = 3, with_prompt_methods: bool = True) -> MagicMock:
@@ -67,12 +67,12 @@ def test_handle_request_returns_dimensions_and_embeddings():
 
     response = handle_request(
         registry,
-        {"id": "r1", "model": "BAAI/bge-m3", "texts": ["hello", "world"], "input_type": "document"},
+        {"id": "r1", "model": "vendor/dense-model", "texts": ["hello", "world"], "input_type": "document"},
     )
 
     assert response == {
         "id": "r1",
-        "model": "BAAI/bge-m3",
+        "model": "vendor/dense-model",
         "dimensions": 4,
         "embeddings": [[0.1] * 4, [0.1] * 4],
     }
@@ -107,10 +107,10 @@ def test_handle_request_reports_model_errors_instead_of_raising():
 def test_serve_answers_one_json_line_per_request_and_skips_blank_lines():
     registry, _loader = build_registry(build_fake_model(dimensions=2))
     stdin = io.StringIO(
-        '{"id": "a", "model": "BAAI/bge-m3", "texts": ["x"], "input_type": "query"}\n'
+        '{"id": "a", "model": "vendor/dense-model", "texts": ["x"], "input_type": "query"}\n'
         "\n"
         "not json\n"
-        '{"id": "b", "model": "BAAI/bge-m3", "texts": [], "input_type": "document"}\n'
+        '{"id": "b", "model": "vendor/dense-model", "texts": [], "input_type": "document"}\n'
     )
     stdout = io.StringIO()
 
@@ -120,4 +120,42 @@ def test_serve_answers_one_json_line_per_request_and_skips_blank_lines():
     assert [line["id"] for line in lines] == ["a", None, "b"]
     assert lines[0]["embeddings"] == [[0.1, 0.1]]
     assert lines[1]["error"].startswith("invalid JSON")
-    assert lines[2] == {"id": "b", "model": "BAAI/bge-m3", "dimensions": 0, "embeddings": []}
+    assert lines[2] == {"id": "b", "model": "vendor/dense-model", "dimensions": 0, "embeddings": []}
+
+
+def test_pool_sparse_weights_keeps_the_max_per_token_and_drops_special_tokens():
+    weights = pool_sparse_weights(
+        input_ids=[0, 42, 7, 42, 2, 1, 1],
+        token_weights=[0.9, 0.1, 0.3, 0.25, 0.8, 0.7, 0.7],
+        ignored_token_ids={0, 1, 2},
+    )
+
+    assert weights == {"7": 0.3, "42": 0.25}
+    assert list(weights) == ["7", "42"]
+
+
+def test_pool_sparse_weights_drops_non_positive_weights():
+    assert pool_sparse_weights([5, 6], [0.0, -0.2], set()) == {}
+
+
+def test_handle_request_adds_sparse_embeddings_for_models_with_a_lexical_head():
+    registry, _loader = build_registry(build_fake_model())
+    registry.encode_dense_and_sparse = MagicMock(return_value=([[0.1, 0.2]], [{"3": 0.5}]))
+
+    response = handle_request(
+        registry, {"id": "r", "model": "BAAI/bge-m3", "texts": ["x"], "input_type": "query"}
+    )
+
+    assert response["embeddings"] == [[0.1, 0.2]]
+    assert response["sparse_embeddings"] == [{"3": 0.5}]
+    assert response["dimensions"] == 2
+
+
+def test_handle_request_has_no_sparse_embeddings_for_dense_only_models():
+    registry, _loader = build_registry(build_fake_model(dimensions=2))
+
+    response = handle_request(
+        registry, {"id": "r", "model": "vendor/dense-model", "texts": ["x"], "input_type": "document"}
+    )
+
+    assert "sparse_embeddings" not in response

@@ -81,7 +81,7 @@ describe("DocumentChunkRetrievalService", () => {
     const innerQueryBuilder = buildInnerQueryBuilderMock()
     const outerQueryBuilder = buildOuterQueryBuilderMock(getRawMany)
     mockIsCompleted.mockResolvedValue(true)
-    mockEmbedQueryLocally.mockResolvedValue([0.4, 0.5])
+    mockEmbedQueryLocally.mockResolvedValue({ embedding: [0.4, 0.5], sparseEmbedding: null })
     const service = buildService({ innerQueryBuilder, outerQueryBuilder })
 
     await service.retrieveTopChunks({
@@ -98,6 +98,61 @@ describe("DocumentChunkRetrievalService", () => {
     expect(innerQueryBuilder.andWhere).toHaveBeenCalledWith("embedding.model_name = :modelName", {
       modelName: EmbeddingModel.BgeM3,
     })
+  })
+
+  it("ranks by dense plus 0.3 sparse when the query has lexical weights", async () => {
+    const getRawMany = jest.fn().mockResolvedValue([])
+    const innerQueryBuilder = buildInnerQueryBuilderMock()
+    const outerQueryBuilder = buildOuterQueryBuilderMock(getRawMany)
+    mockIsCompleted.mockResolvedValue(true)
+    mockEmbedQueryLocally.mockResolvedValue({
+      embedding: [0.4, 0.5],
+      sparseEmbedding: { "12": 0.2, "40": 0.7 },
+    })
+    const service = buildService({ innerQueryBuilder, outerQueryBuilder })
+
+    await service.retrieveTopChunks({
+      connectScope: { organizationId: "organization-1", projectId: "project-1" },
+      query: "question",
+      embeddingModel: EmbeddingModel.BgeM3,
+    })
+
+    const hybridDistance =
+      "((embedding.embedding <=> :queryEmbedding::vector) + 0.3 * COALESCE(sparse.sparse_embedding <#> :querySparseEmbedding::sparsevec, 0))"
+    expect(innerQueryBuilder.addSelect).toHaveBeenCalledWith(hybridDistance, "distance")
+    expect(innerQueryBuilder.addOrderBy).toHaveBeenCalledWith(hybridDistance, "ASC")
+    expect(innerQueryBuilder.leftJoin).toHaveBeenCalledWith(
+      "document_chunk_sparse_embedding",
+      "sparse",
+      "sparse.document_chunk_embedding_id = embedding.id",
+    )
+    expect(innerQueryBuilder.setParameters).toHaveBeenCalledWith(
+      expect.objectContaining({ querySparseEmbedding: "{13:0.2,41:0.7}/250002" }),
+    )
+  })
+
+  it("keeps the plain cosine distance for the default model", async () => {
+    const getRawMany = jest.fn().mockResolvedValue([])
+    const innerQueryBuilder = buildInnerQueryBuilderMock()
+    const outerQueryBuilder = buildOuterQueryBuilderMock(getRawMany)
+    const mockedEmbed = embed as jest.MockedFunction<typeof embed>
+    mockedEmbed.mockResolvedValue({ embedding: [0.1] } as never)
+    const service = buildService({ innerQueryBuilder, outerQueryBuilder })
+
+    await service.retrieveTopChunks({
+      connectScope: { organizationId: "organization-1", projectId: "project-1" },
+      query: "question",
+    })
+
+    expect(innerQueryBuilder.addSelect).toHaveBeenCalledWith(
+      "(embedding.embedding <=> :queryEmbedding::vector)",
+      "distance",
+    )
+    expect(innerQueryBuilder.leftJoin).not.toHaveBeenCalledWith(
+      "document_chunk_sparse_embedding",
+      expect.anything(),
+      expect.anything(),
+    )
   })
 
   it("falls back to the default model when the local model is not ready", async () => {

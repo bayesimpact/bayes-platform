@@ -1,4 +1,5 @@
 import type { EmbeddingModel } from "@caseai-connect/api-contracts"
+import type { SparseWeights } from "@/external/local-embeddings/local-embedding-bridge.service"
 
 export type EmbedQueryJobPayload = {
   modelName: EmbeddingModel
@@ -7,4 +8,6 @@ export type EmbedQueryJobPayload = {
 
 export type EmbedQueryJobResult = {
   embedding: number[]
+  /** Lexical weights of the query, for models with a sparse head. */
+  sparseEmbedding: SparseWeights | null
 }
