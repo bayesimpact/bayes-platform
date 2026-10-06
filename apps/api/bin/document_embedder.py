@@ -12,7 +12,7 @@ Response: {"id": "...", "model": "...", "dimensions": 1024, "embeddings": [[...]
 
 Usage:
   python3 document_embedder.py --version
-  python3 document_embedder.py --prewarm --model BAAI/bge-m3 --model google/embeddinggemma-300m
+  python3 document_embedder.py --prewarm --model BAAI/bge-m3
   python3 document_embedder.py --serve
 """
 
@@ -115,7 +115,7 @@ class ModelRegistry:
             "convert_to_numpy": True,
         }
         # sentence-transformers >= 5 exposes encode_query / encode_document, which apply the
-        # model's own prompts (EmbeddingGemma needs them). Older models simply ignore prompts.
+        # model's own prompts (prompt-trained models need them). Older models simply ignore prompts.
         if input_type == "query" and hasattr(model, "encode_query"):
             vectors = model.encode_query(texts, **encode_kwargs)
         elif input_type == "document" and hasattr(model, "encode_document"):

@@ -214,7 +214,7 @@ describe("Project Embedding Models", () => {
       projectEmbeddingModelFactory
         .completed()
         .transient({ organization, project: otherProject })
-        .build({ modelName: EmbeddingModel.EmbeddingGemma300m }),
+        .build({ modelName: EmbeddingModel.BgeM3 }),
     )
 
     const response = await subjectGetAll()

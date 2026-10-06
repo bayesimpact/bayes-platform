@@ -9,7 +9,7 @@
 
 Every project chunk is embedded with Google Vertex `gemini-embedding-001`, chosen by the
 `DOCUMENT_EMBEDDING_MODELS` environment variable, and retrieval always uses that model. Some
-deployments want open-weight models such as BAAI/bge-m3 or google/embeddinggemma-300m served
+deployments want open-weight models such as BAAI/bge-m3 served
 on their own hardware, for data residency and for retrieval quality on their language, and want
 to compare models on an agent before switching.
 
@@ -56,9 +56,8 @@ Constraints:
 
 ## Consequences
 
-- The GPU image grows by the model weights (about 2.3 GB for bge-m3, 0.6 GB for EmbeddingGemma).
-  EmbeddingGemma is gated on the HuggingFace hub: the build takes an optional `hf_token` secret,
-  otherwise the model downloads at first use with `HF_TOKEN` in the worker environment.
+- The GPU image grows by the model weights (about 2.3 GB for bge-m3). The catalog starts with
+  bge-m3 only; a gated model such as EmbeddingGemma would need a HuggingFace token at build time.
 - Chat turns on a local model add a Redis round trip (tens to a few hundred milliseconds when the
   worker is idle). The `query-embeddings` worker runs with its own concurrency so a long
   re-embedding job does not block it.
