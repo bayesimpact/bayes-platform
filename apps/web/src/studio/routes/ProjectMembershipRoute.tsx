@@ -28,7 +28,11 @@ import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { LoadingRoute } from "@/common/routes/LoadingRoute"
 import { useAppSelector } from "@/common/store/hooks"
 import { BadgeWithIcon } from "@/studio/features/project-memberships/components/ProjectMembershipItem"
-import type { ProjectMemberAgent } from "@/studio/features/project-memberships/project-memberships.models"
+import { groupPermissions } from "@/studio/features/project-memberships/permission-groups"
+import type {
+  ProjectMemberAgent,
+  ProjectMembership,
+} from "@/studio/features/project-memberships/project-memberships.models"
 import {
   selectCurrentProjectMembership,
   selectCurrentProjectMembershipId,
@@ -76,16 +80,86 @@ function WithData() {
       <GridHeader onBack={handleBack} title={displayName} description={membership.userEmail} />
 
       <div className="p-6 flex gap-6 flex-col">
-        <div className="flex items-center gap-6 border rounded-lg p-4 flex-wrap justify-between">
-          <div className="flex flex-col gap-2">
-            <div>{projectName}</div>
-            <div>{BadgeWithIcon({ role: membership.role })}</div>
-          </div>
-        </div>
+        <ProjectRoleCard
+          projectName={projectName}
+          role={membership.role}
+          permissions={membership.permissions}
+        />
 
         <MemberAgentsTable memberAgents={memberAgents} />
       </div>
     </div>
+  )
+}
+
+function ProjectRoleCard({
+  projectName,
+  role,
+  permissions,
+}: { projectName: string } & Pick<ProjectMembership, "role" | "permissions">) {
+  const { t } = useTranslation()
+  return (
+    <div className="flex flex-col gap-4 border rounded-lg p-4">
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-xl font-bold">{projectName}</span>
+          <BadgeWithIcon role={role} />
+        </div>
+        <p className="text-sm text-muted-foreground">
+          {t("projectMembership:profile.permissionsDescription")}
+        </p>
+      </div>
+      {permissions.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          {t("projectMembership:profile.noPermissions")}
+        </p>
+      ) : (
+        <GroupedPermissionList permissions={permissions} />
+      )}
+    </div>
+  )
+}
+
+/** `columns` spreads the groups over up to three columns, `stack` keeps them in one, for a table cell. */
+function GroupedPermissionList({
+  permissions,
+  layout = "columns",
+}: {
+  permissions: string[]
+  layout?: "columns" | "stack"
+}) {
+  const { t } = useTranslation()
+  return (
+    <div className={layout === "columns" ? "columns-1 gap-8 md:columns-2 xl:columns-3" : undefined}>
+      {groupPermissions(permissions).map((group) => (
+        <section key={group.key} className="mb-5 last:mb-0 break-inside-avoid flex flex-col gap-2">
+          <h3 className="text-base font-semibold">{t(`permissionGroup:${group.key}`)}</h3>
+          <PermissionList permissions={group.permissions} />
+        </section>
+      ))}
+    </div>
+  )
+}
+
+function PermissionList({ permissions }: { permissions: string[] }) {
+  return (
+    <ul className="flex flex-col gap-2">
+      {permissions.map((permission) => (
+        <PermissionItem key={permission} permission={permission} />
+      ))}
+    </ul>
+  )
+}
+
+function PermissionItem({ permission }: { permission: string }) {
+  const { t } = useTranslation()
+  const label = t(`permission:${permission}`, { keySeparator: false, defaultValue: "" })
+  if (!label) return <li className="font-mono text-xs">{permission}</li>
+  return (
+    <li className="flex flex-col">
+      <span className="text-sm">{label}</span>
+      <span className="font-mono text-xs text-muted-foreground">{permission}</span>
+    </li>
   )
 }
 
@@ -124,6 +198,20 @@ function MemberAgentsTable({ memberAgents }: { memberAgents: ProjectMemberAgent[
           if (b === null) return -1
           return ROLE_ORDER[a] - ROLE_ORDER[b]
         },
+      },
+      {
+        id: "permissions",
+        header: () => (
+          <span className="text-muted-foreground">
+            {t("projectMembership:profile.agentPermissions")}
+          </span>
+        ),
+        cell: ({ row }) =>
+          row.original.permissions.length === 0 ? (
+            <span className="text-muted-foreground">—</span>
+          ) : (
+            <GroupedPermissionList permissions={row.original.permissions} layout="stack" />
+          ),
       },
     ],
     [t],

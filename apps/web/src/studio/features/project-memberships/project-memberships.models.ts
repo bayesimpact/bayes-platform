@@ -15,6 +15,8 @@ export type ProjectMembership = {
   userHasSignedIn: boolean
   createdAt: TimeType
   role: ProjectMembershipRoleDto
+  /** Permission keys the role grants on the project. */
+  permissions: string[]
 }
 
 export type ProjectMemberAgent = {
@@ -23,4 +25,6 @@ export type ProjectMemberAgent = {
   agentType: AgentType
   membershipId: string | null
   role: AgentMembershipRoleDto | null
+  /** Permission keys the role grants on the agent, empty without a membership. */
+  permissions: string[]
 }

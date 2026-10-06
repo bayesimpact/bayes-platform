@@ -102,6 +102,13 @@ export default {
   streamRunStatus: async (params) => {
     await streamAgentCsvExtractionRunStatus(params)
   },
+  getExportTemporaryUrl: async ({ type, ...params }) => {
+    const axios = getAxiosInstance()
+    const response = await axios.get<
+      typeof AgentCsvExtractionRunsRoutes.live.getExportTemporaryUrl.response
+    >(AgentCsvExtractionRunsRoutes[type].getExportTemporaryUrl.getPath(params))
+    return response.data.data
+  },
   deleteOne: async ({ type, ...params }) => {
     const axios = getAxiosInstance()
     await axios.delete(AgentCsvExtractionRunsRoutes[type].deleteOne.getPath(params))

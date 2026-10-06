@@ -91,3 +91,27 @@ export async function createOtherAgentInProject({
   await repositories.agentSettingsRepository.save(agentSettings)
   return { agent, agentSettings }
 }
+
+/** Creates the results export document of `run` and links it, as the export service does once a run ends. */
+export async function attachCsvExtractionRunExport({
+  repositories,
+  context,
+  run,
+}: {
+  repositories: AllRepositories
+  context: Awaited<ReturnType<typeof createCsvExtractionRunContext>>
+  run: Awaited<ReturnType<typeof createCsvExtractionRun>>
+}) {
+  const exportDocument = documentFactory
+    .transient({ organization: context.organization, project: context.project })
+    .build({
+      mimeType: "text/csv",
+      fileName: "export.csv",
+      storageRelativePath: "documents/export.csv",
+    })
+  await repositories.documentRepository.save(exportDocument)
+  await repositories.agentCsvExtractionRunRepository.update(run.id, {
+    csvExportDocumentId: exportDocument.id,
+  })
+  return exportDocument
+}

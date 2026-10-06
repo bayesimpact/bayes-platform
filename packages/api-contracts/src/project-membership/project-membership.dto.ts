@@ -11,4 +11,6 @@ export type ProjectMembershipDto = {
   userHasSignedIn: boolean
   createdAt: TimeType
   role: ProjectMembershipRoleDto
+  /** Permission keys the role grants on the project. */
+  permissions: string[]
 }

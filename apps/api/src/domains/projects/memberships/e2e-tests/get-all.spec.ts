@@ -9,9 +9,11 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { PROJECT_ROLE_PERMISSIONS } from "@/domains/rbac/rbac.constants"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { ProjectsModule } from "../../projects.module"
+import { addUserToProject } from "../project-membership.factory"
 
 describe("Project membership - getAll", () => {
   let app: INestApplication<App>
@@ -75,5 +77,39 @@ describe("Project membership - getAll", () => {
     expect(memberships[0]!).toHaveProperty("projectId")
     expect(memberships[0]!).toHaveProperty("userId")
     expect(memberships[0]!).toHaveProperty("createdAt")
+  })
+
+  it("should return every member with the permissions of their role", async () => {
+    const { project } = await createContext()
+    const { user: admin } = await addUserToProject({
+      repositories,
+      project,
+      membership: { role: "admin" },
+    })
+    const { user: member } = await addUserToProject({
+      repositories,
+      project,
+      membership: { role: "member" },
+    })
+
+    const response = await subject()
+
+    expectResponse(response, 200)
+    const memberships = response.body.data
+    expect(memberships.map((membership) => membership.role).sort()).toEqual([
+      "admin",
+      "member",
+      "owner",
+    ])
+
+    const adminMembership = memberships.find((membership) => membership.userId === admin.id)
+    expect([...(adminMembership?.permissions ?? [])].sort()).toEqual(
+      [...PROJECT_ROLE_PERMISSIONS.project_admin].sort(),
+    )
+
+    const memberMembership = memberships.find((membership) => membership.userId === member.id)
+    expect([...(memberMembership?.permissions ?? [])].sort()).toEqual(
+      [...PROJECT_ROLE_PERMISSIONS.project_member].sort(),
+    )
   })
 })
