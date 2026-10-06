@@ -26,7 +26,8 @@
       "noAccess": "Pas d'accès",
       "noAgents": "Ce projet n'a aucun agent.",
       "permissionsDescription": "Ce que ce rôle permet sur ce projet.",
-      "noPermissions": "Ce rôle n'accorde aucune permission."
+      "noPermissions": "Ce rôle n'accorde aucune permission.",
+      "roleSelect": "Rôle sur le projet"
     },
     "create": {
       "button": "Inviter des administrateurs",
@@ -53,6 +54,12 @@
         "title": "Retirer {{name}} ?",
         "description": "Ce membre sera retiré du projet. Cette action est irréversible.",
         "confirm": "Retirer"
+      }
+    },
+    "roleChange": {
+      "dialog": {
+        "title": "Passer {{name}} au rôle {{role}} ?",
+        "description": "Ses permissions sur ce projet et ses agents changent immédiatement."
       }
     }
   }

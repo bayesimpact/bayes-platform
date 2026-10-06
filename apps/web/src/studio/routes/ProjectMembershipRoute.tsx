@@ -28,6 +28,7 @@ import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { LoadingRoute } from "@/common/routes/LoadingRoute"
 import { useAppSelector } from "@/common/store/hooks"
 import { BadgeWithIcon } from "@/studio/features/project-memberships/components/ProjectMembershipItem"
+import { ProjectRoleSelect } from "@/studio/features/project-memberships/components/ProjectRoleSelect"
 import { groupPermissions } from "@/studio/features/project-memberships/permission-groups"
 import type {
   ProjectMemberAgent,
@@ -80,11 +81,7 @@ function WithData() {
       <GridHeader onBack={handleBack} title={displayName} description={membership.userEmail} />
 
       <div className="p-6 flex gap-6 flex-col">
-        <ProjectRoleCard
-          projectName={projectName}
-          role={membership.role}
-          permissions={membership.permissions}
-        />
+        <ProjectRoleCard projectName={projectName} membership={membership} />
 
         <MemberAgentsTable memberAgents={memberAgents} />
       </div>
@@ -94,16 +91,19 @@ function WithData() {
 
 function ProjectRoleCard({
   projectName,
-  role,
-  permissions,
-}: { projectName: string } & Pick<ProjectMembership, "role" | "permissions">) {
+  membership,
+}: {
+  projectName: string
+  membership: ProjectMembership
+}) {
   const { t } = useTranslation()
+  const { permissions } = membership
   return (
     <div className="flex flex-col gap-4 border rounded-lg p-4">
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xl font-bold">{projectName}</span>
-          <BadgeWithIcon role={role} />
+          <ProjectRoleSelect membership={membership} />
         </div>
         <p className="text-sm text-muted-foreground">
           {t("projectMembership:profile.permissionsDescription")}

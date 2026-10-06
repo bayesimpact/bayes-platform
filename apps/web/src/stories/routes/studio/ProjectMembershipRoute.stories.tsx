@@ -33,6 +33,11 @@ function buildMockProjectMembershipsService(
     async getAll() {
       return overrides.memberships ?? []
     },
+    async updateOne({ membershipId, role }) {
+      const membership = overrides.memberships?.find((item) => item.id === membershipId)
+      if (!membership) throw new Error(`Unknown membership ${membershipId}`)
+      return { ...membership, role }
+    },
     async remove() {},
     async getMemberAgents() {
       return overrides.memberAgents ?? []

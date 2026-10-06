@@ -13,6 +13,7 @@ import {
   listProjectMemberAgents,
   listProjectMemberships,
   removeProjectMembership,
+  updateProjectMembershipRole,
 } from "./project-memberships.thunks"
 
 const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()
@@ -53,6 +54,14 @@ function registerListeners() {
           listInvitationsForTarget({ targetType: "project", targetId: projectId }),
         ),
       ])
+    },
+  })
+
+  // A role change moves the member's agent memberships too
+  listenerMiddleware.startListening({
+    actionCreator: updateProjectMembershipRole.fulfilled,
+    effect: async (action, listenerApi) => {
+      await listenerApi.dispatch(listProjectMemberAgents({ membershipId: action.payload.id }))
     },
   })
 
@@ -100,6 +109,18 @@ function registerListeners() {
     },
   })
 
+  listenerMiddleware.startListening({
+    actionCreator: updateProjectMembershipRole.fulfilled,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({
+          title: "Role updated",
+          type: "success",
+        }),
+      )
+    },
+  })
+
   // Error notifications
   listenerMiddleware.startListening({
     actionCreator: createInvitations.rejected,
@@ -108,6 +129,18 @@ function registerListeners() {
       listenerApi.dispatch(
         notificationsActions.show({
           title: "Failed to invite people",
+          type: "error",
+        }),
+      )
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: updateProjectMembershipRole.rejected,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({
+          title: "Failed to update role",
           type: "error",
         }),
       )

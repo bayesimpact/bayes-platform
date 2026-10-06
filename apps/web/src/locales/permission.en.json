@@ -10,6 +10,7 @@
     "project.delete": "Delete a project",
     "project.analytics.read": "See a project's conversation analytics",
     "project.member.invite": "Invite people to a project or its review campaigns, and revoke pending invitations",
+    "project.member.update": "Change another member's role between admin and member",
     "agent.create": "Create agents in a project",
     "agent.read": "See an agent",
     "agent.update": "Update an agent",
