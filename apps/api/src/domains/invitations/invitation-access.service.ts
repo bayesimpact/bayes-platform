@@ -30,16 +30,21 @@ export class InvitationAccessService {
     private readonly reviewCampaignMembershipsService: ReviewCampaignMembershipsService,
   ) {}
 
+  /**
+   * Whether the user already holds what the invitation would give. A project
+   * invitation makes an admin, so a project `member` (who joined through an
+   * agent or a campaign) can still be invited, and becomes admin on accepting.
+   */
   async hasAccess(params: { target: InvitationAccessTarget; userId: string }): Promise<boolean> {
     const { target, userId } = params
     switch (target.targetType) {
-      case "project":
-        return Boolean(
-          await this.projectMembershipsService.findProjectMembership({
-            userId,
-            projectId: target.targetId,
-          }),
-        )
+      case "project": {
+        const membership = await this.projectMembershipsService.findProjectMembership({
+          userId,
+          projectId: target.targetId,
+        })
+        return membership?.role === "admin" || membership?.role === "owner"
+      }
       case "agent":
         return Boolean(
           await this.agentMembershipsService.findAgentMembership({
