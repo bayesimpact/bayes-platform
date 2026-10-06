@@ -21,7 +21,7 @@ Auth0. The acceptance step was not.
 ## 2. Decision
 
 **Adding someone by email creates an invitation. The person accepts or
-declines it in the app after signing in. The platform still sends no email.**
+declines it in the app after signing in. Emailing the invitation is optional.**
 
 * Each target has its invitation routes under its own path:
   `.../projects/:projectId/invitations`, `.../agents/:agentId/invitations` and
@@ -47,6 +47,15 @@ declines it in the app after signing in. The platform still sends no email.**
   invited person need no permission: they only reach the caller's own
   invitations.
 * Everyone accepts, including people who already have an account.
+* Each pending invitation has a link to copy: `<app>/?login_hint=<email>`. The
+  app forwards `login_hint` (OIDC Core 1.0, section 3.1.2.1) to the provider,
+  which pre-fills the email on its sign-in and sign-up screens. The link
+  carries no token and grants nothing.
+* When `SMTP_HOST` is set, the platform also emails each new invitation with
+  that link, in English and French, over plain SMTP (any server). The email is
+  sent after the invitations are saved, and a failed email never fails the
+  invitation. Links use `APP_PUBLIC_URL`, or the first `FRONTEND_URL` entry.
+  Without SMTP nothing is sent and the admin copies the link.
 * The `invitation` table is reused. `invitation_token` keeps its unique
   constraint and gets a random value: acceptance goes through the invitation
   id and the caller's identity, never a token.
@@ -65,8 +74,9 @@ works with any provider, like the rest of ADR 0021.
 
 * **Positive:** people choose what they join, and admins see who has not
   answered yet.
-* **Negative:** nobody is told about an invitation outside the app. The admin
-  tells the person to sign in.
+* **Negative:** without SMTP, nobody is told about an invitation outside the
+  app: the admin sends the link. The platform does not create accounts in the
+  identity provider, so the person may still have to sign up there.
 * **Migration:** none. The memberships that ADR 0021's migration created from
   pending invitations stay. People added by email before this change keep
   their access without an invitation.

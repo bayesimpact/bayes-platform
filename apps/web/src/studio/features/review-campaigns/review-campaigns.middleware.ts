@@ -82,7 +82,12 @@ function registerListeners() {
     actionCreator: createInvitations.fulfilled,
     effect: async (action, listenerApi) => {
       if (action.meta.arg.targetType !== "review_campaign") return
-      listenerApi.dispatch(notificationsActions.show({ title: "People invited", type: "success" }))
+      listenerApi.dispatch(
+        notificationsActions.show({
+          title: action.payload.emailSent ? "Invitations sent by email" : "People invited",
+          type: "success",
+        }),
+      )
     },
   })
 

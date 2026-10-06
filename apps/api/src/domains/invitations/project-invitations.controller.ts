@@ -37,11 +37,14 @@ export class ProjectInvitationsController {
     @Req() request: EndpointRequestWithProject,
     @Body() body: typeof ProjectInvitationsRoutes.createMany.request,
   ): Promise<typeof ProjectInvitationsRoutes.createMany.response> {
-    const invitations = await this.invitationsService.createMany({
+    const { invitations, emailSent } = await this.invitationsService.createMany({
       target: projectInvitationTarget(request.project),
       emails: body.payload.emails ?? [],
+      inviter: { name: request.user.name, email: request.user.email },
     })
-    return { data: { invitations: await this.invitationsService.toDtos(invitations) } }
+    return {
+      data: { invitations: await this.invitationsService.toDtos(invitations), emailSent },
+    }
   }
 
   @Delete(ProjectInvitationsRoutes.deleteOne.path)

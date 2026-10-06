@@ -37,12 +37,15 @@ export class ReviewCampaignInvitationsController {
     @Req() request: EndpointRequestWithReviewCampaign,
     @Body() body: typeof ReviewCampaignInvitationsRoutes.createMany.request,
   ): Promise<typeof ReviewCampaignInvitationsRoutes.createMany.response> {
-    const invitations = await this.invitationsService.createMany({
+    const { invitations, emailSent } = await this.invitationsService.createMany({
       target: reviewCampaignInvitationTarget(request.reviewCampaign),
       emails: body.payload.emails ?? [],
       role: body.payload.role,
+      inviter: { name: request.user.name, email: request.user.email },
     })
-    return { data: { invitations: await this.invitationsService.toDtos(invitations) } }
+    return {
+      data: { invitations: await this.invitationsService.toDtos(invitations), emailSent },
+    }
   }
 
   @Delete(ReviewCampaignInvitationsRoutes.deleteOne.path)
