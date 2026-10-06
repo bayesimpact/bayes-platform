@@ -198,6 +198,36 @@ export class AgentMembershipsService {
   }
 
   /**
+   * Turns the user's admin agent memberships in a project into member ones, the
+   * reverse of createAdminAgentMembershipsForUserInProject. Agent ownership stays.
+   * Joins an outer transaction when called inside TransactionService.run().
+   */
+  async demoteAdminAgentMembershipsForUserInProject({
+    userId,
+    projectId,
+  }: {
+    userId: string
+    projectId: string
+  }): Promise<void> {
+    const agentIds = await this.agentRepository.findIdsByProject(projectId)
+    const memberships = await this.agentMembershipRepository.findByUserAndAgents({
+      userId,
+      agentIds,
+    })
+
+    for (const membership of memberships) {
+      if (membership.role !== "admin") continue
+
+      await this.agentMembershipRepository.updateRole({
+        membershipId: membership.id,
+        userId,
+        agentId: membership.agentId,
+        role: "member",
+      })
+    }
+  }
+
+  /**
    * Creates admin agent memberships for all project admins/owners except the
    * excluded user. Each admin is processed in its own transaction.
    */

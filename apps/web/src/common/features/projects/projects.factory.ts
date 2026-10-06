@@ -42,7 +42,12 @@ type MyProjectTransientParams = {
 
 const MEMBER_PERMISSIONS = ["project.read", "desk.ui.read"]
 
-const ADMIN_PERMISSIONS = [...MEMBER_PERMISSIONS, "studio.ui.read", "evaluation.ui.read"]
+const ADMIN_PERMISSIONS = [
+  ...MEMBER_PERMISSIONS,
+  "studio.ui.read",
+  "evaluation.ui.read",
+  "project.member.update",
+]
 
 function permissionsForRole(role: ProjectMembershipRoleDto): string[] {
   return role === "member" ? MEMBER_PERMISSIONS : ADMIN_PERMISSIONS

@@ -1,8 +1,4 @@
-import {
-  type ProjectMemberAgentDto,
-  type ProjectMembershipDto,
-  ProjectMembershipRoutes,
-} from "@caseai-connect/api-contracts"
+import { type ProjectMemberAgentDto, ProjectMembershipRoutes } from "@caseai-connect/api-contracts"
 import { Controller, Delete, Get, Req, UseGuards } from "@nestjs/common"
 import type {
   EndpointRequestWithProject,
@@ -13,9 +9,8 @@ import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
-import type { RoleGrant } from "@/domains/rbac/permission.types"
 import { UserGuard } from "@/domains/users/user.guard"
-import type { ProjectMembershipModel } from "./project-membership.model"
+import { toProjectMembershipDto } from "./project-membership.mapper"
 import { ProjectMembershipsGuard } from "./project-memberships.guard"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectMembershipsService } from "./project-memberships.service"
@@ -38,7 +33,7 @@ export class ProjectMembershipsController {
 
     return {
       data: memberships.map((membership) =>
-        toDto(
+        toProjectMembershipDto(
           membership,
           membership.roleId ? roleGrantsByRoleId.get(membership.roleId) : undefined,
         ),
@@ -71,8 +66,6 @@ export class ProjectMembershipsController {
     return { data }
   }
 
-  // TODO: edit role
-
   @Delete(ProjectMembershipRoutes.deleteOne.path)
   @CheckPolicy((policy) => policy.canDelete())
   @AddContext("projectMembership")
@@ -89,22 +82,5 @@ export class ProjectMembershipsController {
     })
 
     return { data: { success: true } }
-  }
-}
-
-function toDto(
-  model: ProjectMembershipModel,
-  roleGrant: RoleGrant | undefined,
-): ProjectMembershipDto {
-  return {
-    id: model.id,
-    projectId: model.projectId,
-    userId: model.userId,
-    userName: model.user.name,
-    userEmail: model.user.email,
-    userHasSignedIn: model.user.authSubject !== null,
-    createdAt: model.createdAt.getTime(),
-    role: model.role,
-    permissions: roleGrant?.permissions ?? [],
   }
 }

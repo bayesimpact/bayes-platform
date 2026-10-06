@@ -26,7 +26,8 @@
       "noAccess": "No access",
       "noAgents": "This project has no agents.",
       "permissionsDescription": "What this role allows on this project.",
-      "noPermissions": "This role grants no permission."
+      "noPermissions": "This role grants no permission.",
+      "roleSelect": "Project role"
     },
     "create": {
       "button": "Invite admins",

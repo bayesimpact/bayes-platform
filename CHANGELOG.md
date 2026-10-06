@@ -13,6 +13,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Sign-in: any OpenID Connect provider, such as Keycloak, can authenticate platform users.
 - Embed widget: visitors and host sites can start a new conversation instead of resuming the stored one.
 - Project members: each member's page lists every permission their project role grants.
+- Project members: owners and admins can switch another member between the admin and member roles.
 
 ### Changed
 - Trace links open the conversation in Phoenix instead of Langfuse.

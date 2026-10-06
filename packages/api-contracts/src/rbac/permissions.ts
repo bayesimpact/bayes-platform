@@ -72,6 +72,12 @@ export const AGENT_ANALYTICS_READ_PERMISSION = "agent.analytics.read" as const
 export const PROJECT_MEMBER_INVITE_PERMISSION = "project.member.invite" as const
 
 /**
+ * Change the role of another member of a project between admin and member. Not
+ * inherited from the organization.
+ */
+export const PROJECT_MEMBER_UPDATE_PERMISSION = "project.member.update" as const
+
+/**
  * Invite people to an agent, see its pending invitations and revoke them. Held
  * on the agent only: a project or organization role does not grant it.
  */
@@ -291,6 +297,7 @@ export const PROJECT_SCOPED_PERMISSIONS = [
   STUDIO_UI_READ_PERMISSION,
   EVALUATION_UI_READ_PERMISSION,
   DOCUMENT_SOURCE_READ_PERMISSION,
+  PROJECT_MEMBER_UPDATE_PERMISSION,
 ] as const
 
 export type ProjectScopedPermission = (typeof PROJECT_SCOPED_PERMISSIONS)[number]
