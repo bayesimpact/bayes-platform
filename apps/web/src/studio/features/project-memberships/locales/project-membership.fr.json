@@ -55,6 +55,12 @@
         "description": "Ce membre sera retiré du projet. Cette action est irréversible.",
         "confirm": "Retirer"
       }
+    },
+    "roleChange": {
+      "dialog": {
+        "title": "Passer {{name}} au rôle {{role}} ?",
+        "description": "Ses permissions sur ce projet et ses agents changent immédiatement."
+      }
     }
   }
 }

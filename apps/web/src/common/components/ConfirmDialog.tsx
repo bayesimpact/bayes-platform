@@ -15,6 +15,8 @@ type Props = {
   description?: string
   confirmLabel?: string
   confirmIcon?: React.ReactNode
+  /** Destructive by default, for deletions. Use `default` for a change that is not one. */
+  confirmVariant?: "destructive" | "default"
   onConfirm: () => void
   onCancel: () => void
 }
@@ -25,6 +27,7 @@ export function ConfirmDialog({
   description,
   confirmLabel,
   confirmIcon,
+  confirmVariant = "destructive",
   onConfirm,
   onCancel,
 }: Props) {
@@ -40,7 +43,7 @@ export function ConfirmDialog({
           <Button type="button" variant="outline" onClick={onCancel}>
             {t("actions:cancel")}
           </Button>
-          <Button type="button" variant="destructive" onClick={onConfirm}>
+          <Button type="button" variant={confirmVariant} onClick={onConfirm}>
             {confirmIcon} {confirmLabel ?? t("actions:delete")}
           </Button>
         </DialogFooter>
