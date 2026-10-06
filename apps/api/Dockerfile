@@ -206,22 +206,11 @@ RUN chmod +x /app/apps/api/bin/document_chunker /app/apps/api/bin/document_embed
     --max-nodes 1
 
 # Local embedding models (feature flag "local-embeddings"), baked into the image
-# so a worker never downloads weights at runtime. bge-m3 is public. EmbeddingGemma
-# is gated on the HuggingFace hub: pass `--secret id=hf_token,env=HF_TOKEN` (a
-# token whose account accepted the Gemma licence) to bake it too; without the
-# secret the build still succeeds and that model downloads on first use, which
-# then needs HF_TOKEN in the worker environment.
+# so a worker never downloads weights at runtime. bge-m3 is a public model.
 ENV HF_HOME=/opt/hf-cache \
     HF_HUB_DISABLE_TELEMETRY=1
-RUN --mount=type=secret,id=hf_token,env=HF_TOKEN,required=false \
-  LOCAL_EMBEDDING_DEVICE=cpu /opt/docling-venv/bin/python /app/apps/api/bin/document_embedder.py \
-    --prewarm --model BAAI/bge-m3 \
-  && if [ -n "${HF_TOKEN:-}" ]; then \
-       LOCAL_EMBEDDING_DEVICE=cpu /opt/docling-venv/bin/python /app/apps/api/bin/document_embedder.py \
-         --prewarm --model google/embeddinggemma-300m; \
-     else \
-       echo "HF_TOKEN secret not provided: google/embeddinggemma-300m will be downloaded at first use"; \
-     fi
+RUN LOCAL_EMBEDDING_DEVICE=cpu /opt/docling-venv/bin/python /app/apps/api/bin/document_embedder.py \
+    --prewarm --model BAAI/bge-m3
 
 #
 # 🚀 GPU Workers Runtime (Docling enabled)

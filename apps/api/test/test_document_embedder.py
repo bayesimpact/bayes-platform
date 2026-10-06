@@ -43,8 +43,8 @@ def test_routes_queries_and_documents_to_the_prompted_encoders():
     model = build_fake_model()
     registry, _loader = build_registry(model)
 
-    registry.encode("google/embeddinggemma-300m", ["q"], "query")
-    registry.encode("google/embeddinggemma-300m", ["d"], "document")
+    registry.encode("vendor/prompted-model", ["q"], "query")
+    registry.encode("vendor/prompted-model", ["d"], "document")
 
     model.encode_query.assert_called_once()
     model.encode_document.assert_called_once()
@@ -98,7 +98,7 @@ def test_handle_request_rejects_malformed_requests(request_body, expected_error)
 def test_handle_request_reports_model_errors_instead_of_raising():
     registry = ModelRegistry(loader=MagicMock(side_effect=OSError("gated repo")), device="cpu")
 
-    response = handle_request(registry, {"id": "r", "model": "google/embeddinggemma-300m", "texts": ["x"]})
+    response = handle_request(registry, {"id": "r", "model": "vendor/gated-model", "texts": ["x"]})
 
     assert response["id"] == "r"
     assert "OSError: gated repo" in response["error"]
