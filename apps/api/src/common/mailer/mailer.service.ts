@@ -33,6 +33,7 @@ export class MailerService {
       port: config.port,
       secure: config.secure,
       auth: config.auth,
+      name: config.heloName,
     })
     return this.transporter
   }

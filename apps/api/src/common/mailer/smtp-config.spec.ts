@@ -34,6 +34,14 @@ describe("getSmtpConfig", () => {
     ).toEqual({ user: "apikey", pass: "secret" })
   })
 
+  it("reads the EHLO name when set", () => {
+    const base = { SMTP_HOST: "smtp.example.org", SMTP_FROM: "no-reply@example.org" }
+    expect(getSmtpConfig({ ...base, SMTP_HELO_NAME: " example.org " })?.heloName).toBe(
+      "example.org",
+    )
+    expect(getSmtpConfig(base)).not.toHaveProperty("heloName")
+  })
+
   it("refuses a half-done configuration", () => {
     expect(() => getSmtpConfig({ SMTP_HOST: "smtp.example.org" })).toThrow("SMTP_FROM")
     expect(() =>

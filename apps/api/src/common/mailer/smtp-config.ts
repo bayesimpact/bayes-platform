@@ -7,6 +7,12 @@ export type SmtpConfig = {
   auth?: { user: string; pass: string }
   /** Sender of the emails, e.g. `Platform <no-reply@example.org>`. */
   from: string
+  /**
+   * Name announced in EHLO. Defaults to the machine host name, which in a
+   * cluster is the pod name. Some relays (Google Workspace) check it against the
+   * sender's domain.
+   */
+  heloName?: string
 }
 
 /**
@@ -34,5 +40,14 @@ export function getSmtpConfig(env: NodeJS.ProcessEnv = process.env): SmtpConfig 
   const rawSecure = env.SMTP_SECURE?.trim().toLowerCase()
   const secure = rawSecure ? rawSecure === "true" : port === 465
 
-  return { host, port, secure, ...(user ? { auth: { user, pass } } : {}), from }
+  const heloName = env.SMTP_HELO_NAME?.trim()
+
+  return {
+    host,
+    port,
+    secure,
+    ...(user ? { auth: { user, pass } } : {}),
+    from,
+    ...(heloName ? { heloName } : {}),
+  }
 }

@@ -89,6 +89,9 @@ config:
   SMTP_HOST: ""
   SMTP_PORT: "587"
   SMTP_FROM: ""
+  # Name announced in EHLO, defaults to the pod name. Set it to the sender's
+  # domain for relays that check it (Google Workspace).
+  SMTP_HELO_NAME: ""
   # Who can create organizations and open the back office. Both values are
   # required: the migrations use them to seed the platform staff and the
   # platform super admins (comma-separated emails).
