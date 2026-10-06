@@ -12,7 +12,6 @@ import type { TimeType } from "../generic"
 export enum EmbeddingModel {
   GeminiEmbedding001 = "gemini-embedding-001",
   BgeM3 = "BAAI/bge-m3",
-  EmbeddingGemma300m = "google/embeddinggemma-300m",
 }
 
 export enum EmbeddingProvider {
@@ -41,11 +40,6 @@ export const EmbeddingModelCatalog: Record<EmbeddingModel, EmbeddingModelMetadat
     provider: EmbeddingProvider.Local,
     dimensions: 1024,
     label: "BGE-M3 (local)",
-  },
-  [EmbeddingModel.EmbeddingGemma300m]: {
-    provider: EmbeddingProvider.Local,
-    dimensions: 768,
-    label: "EmbeddingGemma 300M (local)",
   },
 }
 
