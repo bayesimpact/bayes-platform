@@ -43,6 +43,33 @@ describe("groupPermissions", () => {
     ])
   })
 
+  it("lists the base keys of an area before its sub-areas, one sub-area at a time", () => {
+    const groups = groupPermissions([
+      "agent.member.invite",
+      "agent.analytics.read",
+      "agent.delete",
+      "agent.read",
+      "evaluation.extraction.run.read",
+      "evaluation.extraction.dataset.create",
+      "evaluation.extraction.dataset.read",
+    ])
+
+    expect(groups).toEqual([
+      {
+        key: "agent",
+        permissions: ["agent.read", "agent.delete", "agent.analytics.read", "agent.member.invite"],
+      },
+      {
+        key: "evaluationExtraction",
+        permissions: [
+          "evaluation.extraction.dataset.read",
+          "evaluation.extraction.dataset.create",
+          "evaluation.extraction.run.read",
+        ],
+      },
+    ])
+  })
+
   it("puts keys of an unknown area last, under other", () => {
     expect(groupPermissions(["something.new", "agent.read"])).toEqual([
       { key: "agent", permissions: ["agent.read"] },

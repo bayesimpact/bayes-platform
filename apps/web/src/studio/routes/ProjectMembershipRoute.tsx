@@ -120,12 +120,19 @@ function ProjectRoleCard({
   )
 }
 
-function GroupedPermissionList({ permissions }: { permissions: string[] }) {
+/** `columns` spreads the groups over up to three columns, `stack` keeps them in one, for a table cell. */
+function GroupedPermissionList({
+  permissions,
+  layout = "columns",
+}: {
+  permissions: string[]
+  layout?: "columns" | "stack"
+}) {
   const { t } = useTranslation()
   return (
-    <div className="columns-1 gap-8 md:columns-2 xl:columns-3">
+    <div className={layout === "columns" ? "columns-1 gap-8 md:columns-2 xl:columns-3" : undefined}>
       {groupPermissions(permissions).map((group) => (
-        <section key={group.key} className="mb-5 break-inside-avoid flex flex-col gap-2">
+        <section key={group.key} className="mb-5 last:mb-0 break-inside-avoid flex flex-col gap-2">
           <h3 className="text-base font-semibold">{t(`permissionGroup:${group.key}`)}</h3>
           <PermissionList permissions={group.permissions} />
         </section>
@@ -203,7 +210,7 @@ function MemberAgentsTable({ memberAgents }: { memberAgents: ProjectMemberAgent[
           row.original.permissions.length === 0 ? (
             <span className="text-muted-foreground">—</span>
           ) : (
-            <PermissionList permissions={row.original.permissions} />
+            <GroupedPermissionList permissions={row.original.permissions} layout="stack" />
           ),
       },
     ],

@@ -39,13 +39,29 @@ function findGroupKey(permission: string): PermissionGroupKey {
   return bestKey
 }
 
-function actionRank(permission: string): number {
-  const rank = ACTION_ORDER.indexOf(permission.slice(permission.lastIndexOf(".") + 1))
-  return rank === -1 ? ACTION_ORDER.length : rank
+/** `agent.analytics.read` → subject `agent.analytics`, action `read`. */
+function splitPermission(permission: string) {
+  const separatorIndex = permission.lastIndexOf(".")
+  const subject = permission.slice(0, separatorIndex)
+  const rank = ACTION_ORDER.indexOf(permission.slice(separatorIndex + 1))
+  return {
+    subject,
+    subjectDepth: subject.split(".").length,
+    actionRank: rank === -1 ? ACTION_ORDER.length : rank,
+  }
 }
 
+// Shallow subjects first (`agent.read` before `agent.analytics.read`), one subject at a time,
+// each in read, create, update, delete order.
 function comparePermissions(left: string, right: string): number {
-  return actionRank(left) - actionRank(right) || left.localeCompare(right)
+  const leftParts = splitPermission(left)
+  const rightParts = splitPermission(right)
+  return (
+    leftParts.subjectDepth - rightParts.subjectDepth ||
+    leftParts.subject.localeCompare(rightParts.subject) ||
+    leftParts.actionRank - rightParts.actionRank ||
+    left.localeCompare(right)
+  )
 }
 
 /** Splits permission keys into display areas, each sorted read, create, update, delete. */
