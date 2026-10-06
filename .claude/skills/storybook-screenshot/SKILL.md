@@ -55,12 +55,7 @@ Run every command from the repository root. Pick a port and use it everywhere be
 
 ## Storybook MCP server
 
-`@storybook/addon-mcp` (enabled in `apps/web` and `packages/ui`) serves an MCP server at `http://localhost:PORT/mcp` while that Storybook runs. If its tools are not in your tool list, ask the user to register it once, then to reconnect with `/mcp` after Storybook starts:
-
-```bash
-claude mcp add --transport http storybook-web http://localhost:6006/mcp
-claude mcp add --transport http storybook-ui http://localhost:6008/mcp
-```
+`@storybook/addon-mcp` (enabled in `apps/web` and `packages/ui`) serves an MCP server at `http://localhost:PORT/mcp` while that Storybook runs. `.mcp.json` registers both for the project: `storybook-web` on port 6006 and `storybook-ui` on port 6008, the main checkout's ports. If their tools are not in your tool list, the user has not approved them yet or their Storybook was not running when the session started: ask the user to start it and reconnect from `/mcp`. A Storybook on another port (in a worktree) is not reachable through them, so use the script there.
 
 When it is connected:
 
