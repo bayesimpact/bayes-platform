@@ -84,6 +84,19 @@ cd infra/database
 docker compose --profile traces up -d --no-recreate otel-collector phoenix
 ```
 
+#### Invitation emails in Mailpit (optional)
+
+Mailpit is a fake SMTP server: it catches every email and sends none. The
+invitation emails show up at [http://localhost:8025](http://localhost:8025).
+Start it, then set in `apps/api/.env`: `SMTP_HOST=localhost`, `SMTP_PORT=1025`
+and `SMTP_FROM=Platform <no-reply@connect.localhost>`. Without `SMTP_HOST` the
+API sends no email.
+
+```bash
+cd infra/database
+docker compose --profile mail up -d --no-recreate mailpit
+```
+
 #### Stop the Database
 
 ```bash

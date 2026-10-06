@@ -66,3 +66,17 @@ services:
       PHOENIX_WORKING_DIR: /mnt/data
     volumes:
       - ./dontsave/phoenix:/mnt/data
+  # Fake SMTP server for the invitation emails: catches every email, sends
+  # none, and shows them at http://localhost:8025. Set SMTP_HOST=localhost and
+  # SMTP_PORT=1025 in apps/api/.env to use it.
+  # Profile `mail`: start it with `docker compose --profile mail up -d`.
+  mailpit:
+    image: axllent/mailpit:v1.31.4
+    profiles: [mail]
+    ports:
+      - "${MAILPIT_SMTP_PORT:-1025}:1025"
+      - "${MAILPIT_UI_PORT:-8025}:8025"
+    environment:
+      # Accept any SMTP credentials, so an .env with SMTP_USER set still works.
+      MP_SMTP_AUTH_ACCEPT_ANY: "1"
+      MP_SMTP_AUTH_ALLOW_INSECURE: "1"
