@@ -23,15 +23,16 @@ export class QueryEmbeddingsWorker extends WorkerHost {
 
   async process(job: Job<EmbedQueryJobPayload>): Promise<EmbedQueryJobResult> {
     const { modelName, text } = job.data
-    const [embedding] = await this.localEmbeddingBridge.embed({
+    const { dense, sparse } = await this.localEmbeddingBridge.embed({
       modelName,
       texts: [text],
       inputType: "query",
     })
+    const [embedding] = dense
     if (!embedding) {
       throw new Error(`Local embedder returned no vector for model ${modelName}`)
     }
     this.logger.debug(`Embedded query with ${modelName} (job ${job.id})`)
-    return { embedding }
+    return { embedding, sparseEmbedding: sparse?.[0] ?? null }
   }
 }
