@@ -28,6 +28,7 @@ import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { LoadingRoute } from "@/common/routes/LoadingRoute"
 import { useAppSelector } from "@/common/store/hooks"
 import { BadgeWithIcon } from "@/studio/features/project-memberships/components/ProjectMembershipItem"
+import { groupPermissions } from "@/studio/features/project-memberships/permission-groups"
 import type {
   ProjectMemberAgent,
   ProjectMembership,
@@ -101,7 +102,7 @@ function ProjectRoleCard({
     <div className="flex flex-col gap-4 border rounded-lg p-4">
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="font-medium">{projectName}</span>
+          <span className="text-xl font-bold">{projectName}</span>
           <BadgeWithIcon role={role} />
         </div>
         <p className="text-sm text-muted-foreground">
@@ -113,29 +114,45 @@ function ProjectRoleCard({
           {t("projectMembership:profile.noPermissions")}
         </p>
       ) : (
-        <PermissionList
-          permissions={permissions}
-          className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
-        />
+        <GroupedPermissionList permissions={permissions} />
       )}
     </div>
   )
 }
 
-function PermissionList({ permissions, className }: { permissions: string[]; className?: string }) {
+function GroupedPermissionList({ permissions }: { permissions: string[] }) {
   const { t } = useTranslation()
   return (
-    <ul className={className}>
-      {permissions.map((permission) => {
-        const label = t(`permission:${permission}`, { defaultValue: "" })
-        return (
-          <li key={permission} className="flex flex-col">
-            <span className="font-mono text-xs">{permission}</span>
-            {label && <span className="text-xs text-muted-foreground">{label}</span>}
-          </li>
-        )
-      })}
+    <div className="columns-1 gap-8 md:columns-2 xl:columns-3">
+      {groupPermissions(permissions).map((group) => (
+        <section key={group.key} className="mb-5 break-inside-avoid flex flex-col gap-2">
+          <h3 className="text-base font-semibold">{t(`permissionGroup:${group.key}`)}</h3>
+          <PermissionList permissions={group.permissions} />
+        </section>
+      ))}
+    </div>
+  )
+}
+
+function PermissionList({ permissions }: { permissions: string[] }) {
+  return (
+    <ul className="flex flex-col gap-2">
+      {permissions.map((permission) => (
+        <PermissionItem key={permission} permission={permission} />
+      ))}
     </ul>
+  )
+}
+
+function PermissionItem({ permission }: { permission: string }) {
+  const { t } = useTranslation()
+  const label = t(`permission:${permission}`, { keySeparator: false, defaultValue: "" })
+  if (!label) return <li className="font-mono text-xs">{permission}</li>
+  return (
+    <li className="flex flex-col">
+      <span className="text-sm">{label}</span>
+      <span className="font-mono text-xs text-muted-foreground">{permission}</span>
+    </li>
   )
 }
 
@@ -186,10 +203,7 @@ function MemberAgentsTable({ memberAgents }: { memberAgents: ProjectMemberAgent[
           row.original.permissions.length === 0 ? (
             <span className="text-muted-foreground">—</span>
           ) : (
-            <PermissionList
-              permissions={row.original.permissions}
-              className="flex flex-col gap-2"
-            />
+            <PermissionList permissions={row.original.permissions} />
           ),
       },
     ],

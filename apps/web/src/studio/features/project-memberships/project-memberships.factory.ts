@@ -5,8 +5,40 @@ import type { Project } from "@/common/features/projects/projects.models"
 import type { ProjectMemberAgent, ProjectMembership } from "./project-memberships.models"
 
 const SAMPLE_PROJECT_ROLE_PERMISSIONS: Record<ProjectMembership["role"], string[]> = {
-  owner: ["project.read", "project.update", "project.delete", "agent.create", "document.read"],
-  admin: ["project.read", "project.update", "project.delete", "agent.create", "document.read"],
+  owner: [
+    "project.read",
+    "project.update",
+    "project.delete",
+    "project.member.invite",
+    "studio.ui.read",
+    "desk.ui.read",
+    "agent.create",
+    "document.read",
+    "document.create",
+    "document.update",
+    "document.delete",
+    "csv_extraction_run.read",
+    "csv_extraction_run.create",
+    "resource_library.read",
+    "user.read",
+  ],
+  admin: [
+    "project.read",
+    "project.update",
+    "project.delete",
+    "project.member.invite",
+    "studio.ui.read",
+    "desk.ui.read",
+    "agent.create",
+    "document.read",
+    "document.create",
+    "document.update",
+    "document.delete",
+    "csv_extraction_run.read",
+    "csv_extraction_run.create",
+    "resource_library.read",
+    "user.read",
+  ],
   member: ["project.read", "desk.ui.read"],
 }
 
