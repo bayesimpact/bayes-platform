@@ -167,7 +167,7 @@ That text is embedded using the **first model** from `DOCUMENT_EMBEDDING_MODELS`
 
 The service runs a SQL query over `document_chunk_embedding` with:
 
-- cosine distance operator `<=>`
+- cosine distance operator `<=>`, or for a model with lexical weights (bge-m3) the BGE M3 hybrid score `1 × dense cosine + 0.3 × sparse inner product`, read from `document_chunk_sparse_embedding` (a side table with no TypeORM entity, since TypeORM has no `sparsevec` type)
 - ascending order by distance
 - `limit topK`
 - scoped filters:

@@ -57,7 +57,7 @@ export class ProjectEmbeddingReembedService {
         })
         if (chunks.length === 0) break
 
-        const embeddings = await this.localEmbeddingBridge.embed({
+        const { dense, sparse } = await this.localEmbeddingBridge.embed({
           modelName,
           texts: chunks.map((chunk) => chunk.embedText),
           inputType: "document",
@@ -68,7 +68,8 @@ export class ProjectEmbeddingReembedService {
             projectId: chunk.projectId,
             chunkId: chunk.id,
             modelName,
-            embedding: embeddings[index] ?? [],
+            embedding: dense[index] ?? [],
+            sparseEmbedding: sparse?.[index] ?? null,
           })),
         )
         processedChunks += insertedCount

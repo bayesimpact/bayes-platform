@@ -44,6 +44,13 @@ Constraints:
 6. **The agent picks its retrieval model** (`agent_settings.embedding_model`, null meaning the
    default). A local model is only selectable once the project finished embedding with it, and
    only with the `local-embeddings` flag.
+7. **bge-m3 is used dense + sparse**, weighted 1 : 0.3 as in the BGE M3 paper. The embedder runs
+   one forward pass and returns the normalised CLS vector and the lexical weights of the model's
+   sparse head (`sparse_linear.pt`), computed without the FlagEmbedding library, whose pinned
+   dependencies clash with Docling; the output matches BAAI's published reference values. The
+   weights live in `document_chunk_sparse_embedding`, one `sparsevec` row per embedding row,
+   because TypeORM cannot map `sparsevec` and would drop such a column on every generated
+   migration, whereas it ignores tables without an entity.
 
 ## Alternatives
 
