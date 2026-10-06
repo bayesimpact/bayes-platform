@@ -1,4 +1,5 @@
 import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit"
+import i18next from "i18next"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import type { AppDispatch, RootState } from "@/common/store/types"
 import {
@@ -84,7 +85,11 @@ function registerListeners() {
       if (action.meta.arg.targetType !== "review_campaign") return
       listenerApi.dispatch(
         notificationsActions.show({
-          title: action.payload.emailSent ? "Invitations sent by email" : "People invited",
+          title: i18next.t(
+            action.payload.emailSent
+              ? "invitations:notifications.emailed"
+              : "invitations:notifications.invited",
+          ),
           type: "success",
         }),
       )
@@ -96,7 +101,10 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       if (action.meta.arg.targetType !== "review_campaign") return
       listenerApi.dispatch(
-        notificationsActions.show({ title: "Failed to invite people", type: "error" }),
+        notificationsActions.show({
+          title: i18next.t("invitations:notifications.failed"),
+          type: "error",
+        }),
       )
     },
   })

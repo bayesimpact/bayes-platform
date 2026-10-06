@@ -1,4 +1,5 @@
 import { createListenerMiddleware } from "@reduxjs/toolkit"
+import i18next from "i18next"
 import { selectCurrentAgentId } from "@/common/features/agents/agents.selectors"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import type { AppDispatch, RootState } from "@/common/store/types"
@@ -67,7 +68,11 @@ function registerListeners() {
       if (action.meta.arg.targetType !== "agent") return
       listenerApi.dispatch(
         notificationsActions.show({
-          title: action.payload.emailSent ? "Invitations sent by email" : "People invited",
+          title: i18next.t(
+            action.payload.emailSent
+              ? "invitations:notifications.emailed"
+              : "invitations:notifications.invited",
+          ),
           type: "success",
         }),
       )
@@ -79,7 +84,7 @@ function registerListeners() {
       if (action.meta.arg.targetType !== "agent") return
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Failed to invite people",
+          title: i18next.t("invitations:notifications.failed"),
           type: "error",
         }),
       )

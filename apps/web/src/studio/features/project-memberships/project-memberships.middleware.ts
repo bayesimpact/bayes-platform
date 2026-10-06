@@ -1,4 +1,5 @@
 import { createListenerMiddleware } from "@reduxjs/toolkit"
+import i18next from "i18next"
 import { getCurrentId } from "@/common/features/helpers"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
@@ -81,7 +82,11 @@ function registerListeners() {
       if (action.meta.arg.targetType !== "project") return
       listenerApi.dispatch(
         notificationsActions.show({
-          title: action.payload.emailSent ? "Invitations sent by email" : "People invited",
+          title: i18next.t(
+            action.payload.emailSent
+              ? "invitations:notifications.emailed"
+              : "invitations:notifications.invited",
+          ),
           type: "success",
         }),
       )
@@ -107,7 +112,7 @@ function registerListeners() {
       if (action.meta.arg.targetType !== "project") return
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Failed to invite people",
+          title: i18next.t("invitations:notifications.failed"),
           type: "error",
         }),
       )
