@@ -6,9 +6,11 @@ import { embedMany } from "ai"
 import { toSql } from "pgvector"
 import type { DataSource } from "typeorm"
 import type { DoclingChunk, DoclingParentChunk } from "@/external/docling/docling.types"
+import type { SparseWeights } from "@/external/local-embeddings/local-embedding-bridge.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { LocalEmbeddingBridgeService } from "@/external/local-embeddings/local-embedding-bridge.service"
 import { getLocalEmbeddingBatchSize } from "@/external/local-embeddings/local-embeddings.cli"
+import { toSparseVectorSql } from "@/external/local-embeddings/sparse-weights"
 import type { Document } from "../document.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentsService } from "../documents.service"
@@ -22,6 +24,12 @@ import {
 import type { CreateDocumentEmbeddingsJobPayload } from "./document-embeddings.types"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectEmbeddingModelRepository } from "./project-embedding-models/project-embedding-model.repository"
+
+/** Vectors of one model for every chunk of a document; `sparse` only for models with a lexical head. */
+export type ModelEmbeddings = {
+  dense: number[][]
+  sparse: SparseWeights[] | null
+}
 
 type ChunkInsertionScope = {
   documentId: string
@@ -74,7 +82,7 @@ export class DocumentEmbeddingsSharedService {
   }: {
     chunks: string[]
     projectId: string
-  }): Promise<Map<string, number[][]>> {
+  }): Promise<Map<string, ModelEmbeddings>> {
     const embeddingsByModelName = await this.generateVertexEmbeddingsByModel(chunks)
     const localModelNames =
       await this.projectEmbeddingModelRepository.listActiveModelNames(projectId)
@@ -93,29 +101,35 @@ export class DocumentEmbeddingsSharedService {
   }: {
     modelName: string
     chunks: string[]
-  }): Promise<number[][]> {
+  }): Promise<ModelEmbeddings> {
     this.logger.log(`Creating embeddings with local model ${modelName}`)
     const batchSize = getLocalEmbeddingBatchSize()
-    const embeddings: number[][] = []
+    const dense: number[][] = []
+    const sparse: SparseWeights[] = []
+    let hasSparse = false
     for (let batchStartIndex = 0; batchStartIndex < chunks.length; batchStartIndex += batchSize) {
-      const batchEmbeddings = await this.localEmbeddingBridge.embed({
+      const batch = await this.localEmbeddingBridge.embed({
         modelName,
         texts: chunks.slice(batchStartIndex, batchStartIndex + batchSize),
         inputType: "document",
       })
-      embeddings.push(...batchEmbeddings)
+      dense.push(...batch.dense)
+      if (batch.sparse) {
+        hasSparse = true
+        sparse.push(...batch.sparse)
+      }
     }
-    if (embeddings.length !== chunks.length) {
+    if (dense.length !== chunks.length || (hasSparse && sparse.length !== chunks.length)) {
       throw new Error(
-        `Local model ${modelName} returned ${embeddings.length} vectors for ${chunks.length} chunks`,
+        `Local model ${modelName} returned ${dense.length} vectors for ${chunks.length} chunks`,
       )
     }
-    return embeddings
+    return { dense, sparse: hasSparse ? sparse : null }
   }
 
   private async generateVertexEmbeddingsByModel(
     chunks: string[],
-  ): Promise<Map<string, number[][]>> {
+  ): Promise<Map<string, ModelEmbeddings>> {
     const { project, location } = resolveVertexConfig()
     const embeddingModelNames = resolveEmbeddingModelNames()
     const maxVertexEmbeddingBatchSize = resolveMaxVertexEmbeddingBatchSize()
@@ -124,7 +138,7 @@ export class DocumentEmbeddingsSharedService {
     )
 
     const vertexProvider = createVertex({ project, location })
-    const embeddingsByModelName = new Map<string, number[][]>()
+    const embeddingsByModelName = new Map<string, ModelEmbeddings>()
     for (const embeddingModelName of embeddingModelNames) {
       const embeddingModel = vertexProvider.textEmbeddingModel(embeddingModelName)
       const embeddings: number[][] = []
@@ -145,7 +159,7 @@ export class DocumentEmbeddingsSharedService {
         embeddings.push(...batchEmbeddings)
       }
 
-      embeddingsByModelName.set(embeddingModelName, embeddings)
+      embeddingsByModelName.set(embeddingModelName, { dense: embeddings, sparse: null })
     }
     return embeddingsByModelName
   }
@@ -161,7 +175,7 @@ export class DocumentEmbeddingsSharedService {
     chunks: string[]
     doclingChunks?: DoclingChunk[]
     doclingParentChunks?: DoclingParentChunk[]
-    embeddingsByModelName: Map<string, number[][]>
+    embeddingsByModelName: Map<string, ModelEmbeddings>
   }): Promise<void> {
     await this.deleteExistingChunks(scope.documentId)
     await this.insertChildChunks({ scope, chunks, doclingChunks, embeddingsByModelName })
@@ -201,7 +215,7 @@ export class DocumentEmbeddingsSharedService {
     scope: ChunkInsertionScope
     chunks: string[]
     doclingChunks?: DoclingChunk[]
-    embeddingsByModelName: Map<string, number[][]>
+    embeddingsByModelName: Map<string, ModelEmbeddings>
   }): Promise<void> {
     for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
       const doclingChunk = doclingChunks?.[chunkIndex]
@@ -264,7 +278,7 @@ export class DocumentEmbeddingsSharedService {
     scope: ChunkInsertionScope
     chunkId: string
     chunkIndex: number
-    embeddingsByModelName: Map<string, number[][]>
+    embeddingsByModelName: Map<string, ModelEmbeddings>
   }): Promise<void> {
     for (const [embeddingModelName, embeddings] of embeddingsByModelName.entries()) {
       // NOTE: raw SQL because TypeORM 0.3.28 does not support pgvector columns.
@@ -277,9 +291,19 @@ export class DocumentEmbeddingsSharedService {
           scope.projectId,
           chunkId,
           embeddingModelName,
-          toSql(embeddings[chunkIndex]),
+          toSql(embeddings.dense[chunkIndex]),
         ],
       )
+      const sparseEmbedding = toSparseVectorSql(embeddingModelName, embeddings.sparse?.[chunkIndex])
+      if (sparseEmbedding !== null) {
+        await this.dataSource.query(
+          `INSERT INTO document_chunk_sparse_embedding (document_chunk_embedding_id, sparse_embedding)
+           SELECT id, $3::sparsevec FROM document_chunk_embedding
+           WHERE document_chunk_id = $1 AND model_name = $2
+           ON CONFLICT (document_chunk_embedding_id) DO NOTHING`,
+          [chunkId, embeddingModelName, sparseEmbedding],
+        )
+      }
     }
   }
 
