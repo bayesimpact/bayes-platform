@@ -4,10 +4,14 @@ import {
   BadRequestException,
   ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
 } from "@nestjs/common"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { MailerService } from "@/common/mailer/mailer.service"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
+import { getAppPublicUrl } from "@/config/app-public-url"
 import type { ReviewCampaignMembershipRole } from "@/domains/review-campaigns/review-campaigns.types"
 import { isServiceIdentity } from "@/domains/users/service-user.helpers"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -21,6 +25,7 @@ import { InvitationRepository } from "./invitation.repository"
 import type { InvitationTargetType } from "./invitation.types"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { InvitationAccessService, type InvitationAccessTarget } from "./invitation-access.service"
+import { buildInvitationEmail, buildInvitationLink } from "./invitation-email"
 
 /** The target of an invitation, built by the controllers from the resource of the route. */
 export type InvitationTarget = {
@@ -52,20 +57,29 @@ export class InvitationsService {
     private readonly invitationAccessService: InvitationAccessService,
     private readonly usersService: UsersService,
     private readonly userRepository: UserRepository,
+    private readonly mailerService: MailerService,
   ) {}
 
-  /** Skips service identities, people who already have this access, and people already invited. */
+  private readonly logger = new Logger(InvitationsService.name)
+
+  /**
+   * Skips service identities, people who already have this access, and people
+   * already invited. When SMTP is configured, emails each new invitation with
+   * its link after the invitations are saved. `emailSent` is true only when
+   * every new invitation was emailed.
+   */
   async createMany(params: {
     target: InvitationTarget
     emails: string[]
     role?: string
-  }): Promise<Invitation[]> {
+    inviter: { name: string | null; email: string }
+  }): Promise<{ invitations: Invitation[]; emailSent: boolean }> {
     const role = this.resolveRole(params.target, params.role)
     const emails = [
       ...new Set(params.emails.map((email) => email.trim().toLowerCase()).filter(Boolean)),
     ]
 
-    return this.transactionService.run(async () => {
+    const invitations = await this.transactionService.run(async () => {
       const invitations: Invitation[] = []
       for (const email of emails) {
         const existingUser = await this.usersService.findByEmail(email)
@@ -101,6 +115,50 @@ export class InvitationsService {
       }
       return invitations
     })
+
+    const emailSent = await this.emailInvitations(invitations, params.inviter)
+    return { invitations, emailSent }
+  }
+
+  /** A failed email never fails the invitation: the admin can still copy its link. */
+  private async emailInvitations(
+    invitations: Invitation[],
+    inviter: { name: string | null; email: string },
+  ): Promise<boolean> {
+    if (invitations.length === 0 || !this.mailerService.isEnabled()) return false
+    const appUrl = getAppPublicUrl()
+    if (!appUrl) {
+      this.logger.warn("SMTP is configured but APP_PUBLIC_URL and FRONTEND_URL are not set")
+      return false
+    }
+
+    const detailsById = await this.invitationRepository.findDetailsByInvitationIds(
+      invitations.map((invitation) => invitation.id),
+    )
+    let allSent = true
+    for (const invitation of invitations) {
+      const details = detailsById.get(invitation.id)
+      const to = invitation.invitedEmail ?? ""
+      try {
+        await this.mailerService.send(
+          buildInvitationEmail({
+            to,
+            link: buildInvitationLink(appUrl, to),
+            inviterName: inviter.name || inviter.email,
+            targetType: invitation.targetType,
+            targetName: details?.targetName ?? "",
+            organizationName: details?.organizationName ?? "",
+          }),
+        )
+      } catch (error) {
+        allSent = false
+        this.logger.error(
+          `Invitation email to invitation ${invitation.id} failed`,
+          error instanceof Error ? error.stack : String(error),
+        )
+      }
+    }
+    return allSent
   }
 
   async listForTarget(target: InvitationTarget): Promise<Invitation[]> {

@@ -81,7 +81,7 @@ function registerListeners() {
       if (action.meta.arg.targetType !== "project") return
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "People invited",
+          title: action.payload.emailSent ? "Invitations sent by email" : "People invited",
           type: "success",
         }),
       )

@@ -1,4 +1,8 @@
-import type { InvitationTargetType, PendingInvitations } from "./invitations.models"
+import type {
+  CreatedInvitations,
+  InvitationTargetType,
+  PendingInvitations,
+} from "./invitations.models"
 
 export type InvitationTarget = {
   targetType: InvitationTargetType
@@ -20,7 +24,7 @@ export type CreateInvitationsParams = InvitationTarget & {
 export interface IInvitationsSpi {
   createMany: (
     params: ScopedInvitationTarget & Omit<CreateInvitationsParams, keyof InvitationTarget>,
-  ) => Promise<PendingInvitations>
+  ) => Promise<CreatedInvitations>
   listForTarget: (params: ScopedInvitationTarget) => Promise<PendingInvitations>
   revokeOne: (params: ScopedInvitationTarget & { invitationId: string }) => Promise<void>
   listPendingMine: () => Promise<PendingInvitations>

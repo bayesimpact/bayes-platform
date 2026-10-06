@@ -20,3 +20,9 @@ export type PendingInvitation = {
 }
 
 export type PendingInvitations = PendingInvitation[]
+
+/** Result of inviting people: the new invitations, and whether the platform emailed them all. */
+export type CreatedInvitations = {
+  invitations: PendingInvitations
+  emailSent: boolean
+}
