@@ -1,4 +1,4 @@
-import type { SuccessResponseDTO } from "@caseai-connect/api-contracts"
+import type { BaseAgentSessionTypeDto, SuccessResponseDTO } from "@caseai-connect/api-contracts"
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { getCurrentId } from "@/common/features/helpers"
@@ -62,6 +62,6 @@ export const deleteAgentSession = createAsyncThunk<
 )
 
 // FIXME: This is a temporary solution to avoid having to duplicate functions for live and playground agent sessions.
-export function buildType() {
+export function buildType(): BaseAgentSessionTypeDto {
   return isStudioInterface() ? "playground" : "live"
 }

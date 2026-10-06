@@ -336,6 +336,27 @@ export class DocumentsService {
 }
 ```
 
+### Caller-supplied ids
+
+An id of a connect-scoped row that arrives on the request (`parentId`, `tagsToAdd`, a target, a link) is loaded with the caller's `connectScope`. A lookup by id alone is not an existence check. An internal service calling that lookup is still the caller's scope.
+
+- The custom repository takes `connectScope` and loads the row through `ConnectRepository` (`organizationId` and `projectId`).
+- Every requested id is found in that scope. A missing id fails the call.
+- Missing, another project of the same organization, and another organization share one result: 404, with one message. The response does not reveal that the row exists elsewhere.
+- A parent id cannot be the row itself or a descendant of that row.
+
+```typescript
+// ❌ Another project's tag matches
+findByIds(ids: string[]): Promise<DocumentTag[]> {
+  return this.repo().findBy({ id: In(ids) })
+}
+
+// ✅ Caller's organization and project
+findByIds(connectScope: RequiredConnectScope, ids: string[]): Promise<DocumentTag[]> {
+  return this.connectRepo().find(connectScope, { where: { id: In(ids) } })
+}
+```
+
 ---
 
 ## Authorization: RBAC permission catalog

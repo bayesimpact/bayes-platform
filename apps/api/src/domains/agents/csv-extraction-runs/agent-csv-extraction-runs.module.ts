@@ -14,17 +14,18 @@ import { Organization } from "@/domains/organizations/organization.entity"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
 import { Project } from "@/domains/projects/project.entity"
 import { ProjectsModule } from "@/domains/projects/projects.module"
+import { RbacModule } from "@/domains/rbac/rbac.module"
 import { UsersModule } from "@/domains/users/users.module"
 import { Agent } from "../agent.entity"
 import { AgentCsvExtractionRun } from "./agent-csv-extraction-run.entity"
-import { AgentCsvExtractionRunGuard } from "./agent-csv-extraction-run.guard"
 import { AgentCsvExtractionRunBatchModule } from "./agent-csv-extraction-run-batch.module"
 import { AgentCsvExtractionRunCsvExportService } from "./agent-csv-extraction-run-csv-export.service"
 import { AgentCsvExtractionRunRecord } from "./agent-csv-extraction-run-record.entity"
 import { AgentCsvExtractionRunStatusNotifierService } from "./agent-csv-extraction-run-status-notifier.service"
 import { AgentCsvExtractionRunStatusStreamService } from "./agent-csv-extraction-run-status-stream.service"
-import { AgentCsvExtractionRunsController } from "./agent-csv-extraction-runs.controller"
 import { AgentCsvExtractionRunsService } from "./agent-csv-extraction-runs.service"
+import { LiveAgentCsvExtractionRunsController } from "./live-agent-csv-extraction-runs.controller"
+import { PlaygroundAgentCsvExtractionRunsController } from "./playground-agent-csv-extraction-runs.controller"
 
 @Module({
   imports: [
@@ -44,12 +45,12 @@ import { AgentCsvExtractionRunsService } from "./agent-csv-extraction-runs.servi
     ProjectsModule,
     UsersModule,
     AuthModule,
+    RbacModule,
   ],
   providers: [
     AgentContextResolver,
     AgentCsvExtractionRunContextResolver,
     AgentCsvExtractionRunCsvExportService,
-    AgentCsvExtractionRunGuard,
     AgentCsvExtractionRunStatusNotifierService,
     AgentCsvExtractionRunStatusStreamService,
     AgentCsvExtractionRunsService,
@@ -57,7 +58,7 @@ import { AgentCsvExtractionRunsService } from "./agent-csv-extraction-runs.servi
     ProjectContextResolver,
     ResourceContextGuard,
   ],
-  controllers: [AgentCsvExtractionRunsController],
+  controllers: [LiveAgentCsvExtractionRunsController, PlaygroundAgentCsvExtractionRunsController],
   exports: [AgentCsvExtractionRunsService],
 })
 export class AgentCsvExtractionRunsModule {}

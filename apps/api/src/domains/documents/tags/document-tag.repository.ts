@@ -20,18 +20,9 @@ export type UpdateDocumentTagFields = Partial<
 export class DocumentTagRepository {
   constructor(private readonly transactionService: TransactionService) {}
 
-  /**
-   * Tags matched by id, including tags outside the caller's project.
-   * Attaching an existing tag looks the row up the same way the previous query did.
-   */
-  findByIds(ids: string[]): Promise<DocumentTag[]> {
+  findByIds(connectScope: RequiredConnectScope, ids: string[]): Promise<DocumentTag[]> {
     if (ids.length === 0) return Promise.resolve([])
-    return this.repo().findBy({ id: In(ids) })
-  }
-
-  /** Parent lookup by id, not restricted to the caller's project. */
-  findOneById(id: string): Promise<DocumentTag | null> {
-    return this.repo().findOneBy({ id })
+    return this.connectRepo().find(connectScope, { where: { id: In(ids) } })
   }
 
   createOne(

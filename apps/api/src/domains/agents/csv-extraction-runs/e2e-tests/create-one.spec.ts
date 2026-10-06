@@ -1,4 +1,7 @@
-import type { ProjectMembershipRoleDto } from "@caseai-connect/api-contracts"
+import type {
+  BaseAgentSessionTypeDto,
+  ProjectMembershipRoleDto,
+} from "@caseai-connect/api-contracts"
 import { AgentCsvExtractionRunsRoutes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
@@ -12,6 +15,7 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
+import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { AgentCsvExtractionRunsModule } from "../agent-csv-extraction-runs.module"
 import { createCsvExtractionRunContext } from "./csv-extraction-run.helpers"
@@ -48,6 +52,7 @@ describe("AgentCsvExtractionRuns - createOne", () => {
         }),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     expectActivityCreated = bindExpectActivityCreated(repositories.activityRepository)
     app = setup.module.createNestApplication()
     await app.init()
@@ -107,12 +112,12 @@ describe("AgentCsvExtractionRuns - createOne", () => {
     },
   } as const
 
-  const subject = async (agentSettingsRevision?: number, type: "live" | "playground" = "live") =>
+  const subject = async (agentSettingsRevision?: number, type: BaseAgentSessionTypeDto = "live") =>
     request({
-      route: AgentCsvExtractionRunsRoutes.createOne,
+      route: AgentCsvExtractionRunsRoutes[type].createOne,
       pathParams: removeNullish({ organizationId, projectId, agentId }),
       token: accessToken,
-      request: { payload: { csvDocumentId, columnSchema, type, agentSettingsRevision } },
+      request: { payload: { csvDocumentId, columnSchema, agentSettingsRevision } },
     })
 
   it("creates a pending run and persists it", async () => {
@@ -151,7 +156,7 @@ describe("AgentCsvExtractionRuns - createOne", () => {
     expect(persisted?.userId).toBe(context.user.id)
   })
 
-  it("stores the requested type on the run", async () => {
+  it("stores the playground type on a run created on the playground routes", async () => {
     await createContext()
 
     const response = await subject(undefined, "playground")
@@ -163,36 +168,6 @@ describe("AgentCsvExtractionRuns - createOne", () => {
       where: { id: response.body.data.id },
     })
     expect(persisted?.type).toBe("playground")
-  })
-
-  it("rejects a payload that does not name a type", async () => {
-    await createContext()
-
-    const response = await request({
-      route: AgentCsvExtractionRunsRoutes.createOne,
-      pathParams: removeNullish({ organizationId, projectId, agentId }),
-      token: accessToken,
-      request: {
-        payload: { csvDocumentId, columnSchema },
-      } as unknown as typeof AgentCsvExtractionRunsRoutes.createOne.request,
-    })
-
-    expectResponse(response, 403)
-  })
-
-  it("rejects an unknown type", async () => {
-    await createContext()
-
-    const response = await request({
-      route: AgentCsvExtractionRunsRoutes.createOne,
-      pathParams: removeNullish({ organizationId, projectId, agentId }),
-      token: accessToken,
-      request: {
-        payload: { csvDocumentId, columnSchema, type: "all" },
-      } as unknown as typeof AgentCsvExtractionRunsRoutes.createOne.request,
-    })
-
-    expectResponse(response, 403)
   })
 
   it("pins the run to the draft when an admin asks for its revision", async () => {
@@ -227,9 +202,9 @@ describe("AgentCsvExtractionRuns - createOne", () => {
   })
 
   it("lets a plain member create a run when asking for no revision", async () => {
-    // Positive control for the case above: `AgentCsvExtractionRunPolicy.canCreate()` is only
-    // `canAccess()`, so a plain member can create a run as long as they don't choose a version.
-    // Without this, a policy change that quietly blocked members here would go unnoticed while
+    // Positive control for the case above: project members hold `csv_extraction_run.create`, so a
+    // plain member can create a run as long as they don't choose a version.
+    // Without this, a grant change that quietly blocked members here would go unnoticed while
     // the 403 test above kept passing.
     await createContext("member")
 
@@ -264,12 +239,12 @@ describe("AgentCsvExtractionRuns - createOne", () => {
     await createContext()
 
     const response = await request({
-      route: AgentCsvExtractionRunsRoutes.createOne,
+      route: AgentCsvExtractionRunsRoutes.live.createOne,
       pathParams: removeNullish({ organizationId, projectId, agentId }),
       token: accessToken,
       request: {
         payload: { csvDocumentId, columnSchema, agentSettingsRevision: "2" },
-      } as unknown as typeof AgentCsvExtractionRunsRoutes.createOne.request,
+      } as unknown as typeof AgentCsvExtractionRunsRoutes.live.createOne.request,
     })
 
     expectResponse(response, 403)

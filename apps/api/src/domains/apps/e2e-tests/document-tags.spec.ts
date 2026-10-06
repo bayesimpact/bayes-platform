@@ -23,6 +23,7 @@ import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { DocumentTag } from "@/domains/documents/tags/document-tag.entity"
 import { documentTagFactory } from "@/domains/documents/tags/document-tag.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { projectFactory } from "@/domains/projects/project.factory"
 import { RbacModule } from "@/domains/rbac/rbac.module"
 import { assignPlatformStaffToUser, ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse } from "../../../../test/request"
@@ -239,6 +240,84 @@ describe("Apps - Document tags", () => {
       400,
       `Tag "${PUBLIC_DOCUMENTS_TAG_NAME}" cannot be deleted.`,
     )
+  })
+
+  it("rejects a parent from another project of the same organization", async () => {
+    const { organization, project, accessToken } = await installAndIssueToken(ALL_TAG_PERMISSIONS)
+    const otherProject = projectFactory.transient({ organization }).build()
+    await repositories.projectRepository.save(otherProject)
+    const foreignTag = await setup
+      .getRepository(DocumentTag)
+      .save(
+        documentTagFactory
+          .transient({ organization, project: otherProject })
+          .build({ name: "Other project" }),
+      )
+
+    expectResponse(
+      await call({
+        method: "post",
+        path: AppsDocumentTagsRoutes.createOne.getPath({ projectId: project.id }),
+        token: accessToken,
+        body: { name: "Child", parent_id: foreignTag.id },
+      }),
+      404,
+      `DocumentTag with id ${foreignTag.id} not found`,
+    )
+    expect(
+      await setup
+        .getRepository(DocumentTag)
+        .findOne({ where: { name: "Child", projectId: project.id } }),
+    ).toBeNull()
+  })
+
+  it("rejects a parent from another organization", async () => {
+    const { project, accessToken } = await installAndIssueToken(ALL_TAG_PERMISSIONS)
+    const other = await createOrganizationWithProject(repositories)
+    const foreignTag = await setup
+      .getRepository(DocumentTag)
+      .save(
+        documentTagFactory
+          .transient({ organization: other.organization, project: other.project })
+          .build({ name: "Other organization" }),
+      )
+
+    expectResponse(
+      await call({
+        method: "post",
+        path: AppsDocumentTagsRoutes.createOne.getPath({ projectId: project.id }),
+        token: accessToken,
+        body: { name: "Child", parent_id: foreignTag.id },
+      }),
+      404,
+      `DocumentTag with id ${foreignTag.id} not found`,
+    )
+  })
+
+  it("rejects a tag as its own parent", async () => {
+    const { project, accessToken } = await installAndIssueToken(ALL_TAG_PERMISSIONS)
+    const created = await call({
+      method: "post",
+      path: AppsDocumentTagsRoutes.createOne.getPath({ projectId: project.id }),
+      token: accessToken,
+      body: { name: "Pricing" },
+    })
+    expectResponse(created, 201)
+    const tagId = created.body.data.id as string
+
+    expectResponse(
+      await call({
+        method: "patch",
+        path: AppsDocumentTagsRoutes.updateOne.getPath({ projectId: project.id, id: tagId }),
+        token: accessToken,
+        body: { parent_id: tagId },
+      }),
+      400,
+      "A tag cannot be its own parent.",
+    )
+    expect(
+      (await setup.getRepository(DocumentTag).findOne({ where: { id: tagId } }))?.parentId,
+    ).toBe(null)
   })
 
   it("hides a tag that belongs to another project", async () => {

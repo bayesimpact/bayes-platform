@@ -3,6 +3,7 @@ import {
   AGENT_CSV_EXTRACTION_RUN_STATUS_CHANGED_CHANNEL_DTO,
   type AgentCsvExtractionRunStatusChangedEventPayload,
   AgentCsvExtractionRunsRoutes,
+  type ProjectMembershipRoleDto,
 } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import { Subject } from "rxjs"
@@ -13,6 +14,7 @@ import {
   setupTransactionalTestDatabase,
   teardownTestDatabase,
 } from "@/common/test/test-transaction-manager"
+import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { AgentCsvExtractionRunStatusStreamService } from "../agent-csv-extraction-run-status-stream.service"
 import { AgentCsvExtractionRunsModule } from "../agent-csv-extraction-runs.module"
 import { createCsvExtractionRunContext } from "./csv-extraction-run.helpers"
@@ -31,6 +33,7 @@ describe("AgentCsvExtractionRuns.streamRunStatus", () => {
   let organizationId: string
   let projectId: string
   let agentId: string
+  let userId: string
   let accessToken: string | undefined = "token"
   let authSubject = "oidc|123"
 
@@ -51,6 +54,7 @@ describe("AgentCsvExtractionRuns.streamRunStatus", () => {
           .useValue({ events$: statusStreamSubject.asObservable() }),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
     await app.listen(0)
@@ -71,11 +75,12 @@ describe("AgentCsvExtractionRuns.streamRunStatus", () => {
     await app.close()
   })
 
-  const createContext = async () => {
-    const context = await createCsvExtractionRunContext({ repositories, authSubject })
+  const createContext = async (role: ProjectMembershipRoleDto = "owner") => {
+    const context = await createCsvExtractionRunContext({ repositories, role, authSubject })
     organizationId = context.organization.id
     projectId = context.project.id
     agentId = context.agent.id
+    userId = context.user.id
     authSubject = context.user.authSubject!
     return context
   }
@@ -88,6 +93,8 @@ describe("AgentCsvExtractionRuns.streamRunStatus", () => {
     organizationId,
     projectId,
     agentId,
+    runType: "live",
+    userId,
     status: "completed",
     summary: null,
     updatedAt: 1_700_000_000_000,
@@ -98,7 +105,7 @@ describe("AgentCsvExtractionRuns.streamRunStatus", () => {
     emit: () => void,
   ): Promise<AgentCsvExtractionRunStatusChangedEventPayload> =>
     new Promise((resolve, reject) => {
-      const path = AgentCsvExtractionRunsRoutes.streamRunStatus.getPath({
+      const path = AgentCsvExtractionRunsRoutes.live.streamRunStatus.getPath({
         organizationId,
         projectId,
         agentId,
@@ -179,5 +186,71 @@ describe("AgentCsvExtractionRuns.streamRunStatus", () => {
 
     expect(received.agentId).toBe(agentId)
     expect(received.agentCsvExtractionRunId).toBe("00000000-0000-0000-0000-000000000021")
+  })
+
+  it("should stream only the status of the route's run type", async () => {
+    await createContext()
+
+    const playgroundEvent = buildEvent({
+      runType: "playground",
+      agentCsvExtractionRunId: "00000000-0000-0000-0000-000000000013",
+    })
+    const liveEvent = buildEvent({
+      agentCsvExtractionRunId: "00000000-0000-0000-0000-000000000022",
+    })
+
+    const received = await streamFirstEvent(() => {
+      statusStreamSubject.next(playgroundEvent)
+      statusStreamSubject.next(liveEvent)
+    })
+
+    expect(received.runType).toBe("live")
+    expect(received.agentCsvExtractionRunId).toBe("00000000-0000-0000-0000-000000000022")
+  })
+
+  it("should stream to a plain member only their own runs and the runs without a creator", async () => {
+    await createContext("member")
+
+    const colleagueEvent = buildEvent({
+      userId: "00000000-0000-0000-0000-0000000000aa",
+      agentCsvExtractionRunId: "00000000-0000-0000-0000-000000000014",
+    })
+    const ownEvent = buildEvent({
+      agentCsvExtractionRunId: "00000000-0000-0000-0000-000000000023",
+    })
+    const legacyEvent = buildEvent({
+      userId: null,
+      agentCsvExtractionRunId: "00000000-0000-0000-0000-000000000024",
+    })
+
+    const received = await streamFirstEvent(() => {
+      statusStreamSubject.next(colleagueEvent)
+      statusStreamSubject.next(ownEvent)
+    })
+    expect(received.agentCsvExtractionRunId).toBe("00000000-0000-0000-0000-000000000023")
+
+    const receivedLegacy = await streamFirstEvent(() => {
+      statusStreamSubject.next(colleagueEvent)
+      statusStreamSubject.next(legacyEvent)
+    })
+    expect(receivedLegacy.agentCsvExtractionRunId).toBe("00000000-0000-0000-0000-000000000024")
+  })
+
+  it("should not stream a colleague's runs to a project admin", async () => {
+    await createContext("admin")
+
+    const colleagueEvent = buildEvent({
+      userId: "00000000-0000-0000-0000-0000000000aa",
+      agentCsvExtractionRunId: "00000000-0000-0000-0000-000000000015",
+    })
+    const ownEvent = buildEvent({
+      agentCsvExtractionRunId: "00000000-0000-0000-0000-000000000025",
+    })
+    const received = await streamFirstEvent(() => {
+      statusStreamSubject.next(colleagueEvent)
+      statusStreamSubject.next(ownEvent)
+    })
+
+    expect(received.agentCsvExtractionRunId).toBe("00000000-0000-0000-0000-000000000025")
   })
 })

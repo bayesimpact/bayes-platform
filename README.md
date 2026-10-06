@@ -84,6 +84,19 @@ cd infra/database
 docker compose --profile traces up -d --no-recreate otel-collector phoenix
 ```
 
+#### Invitation emails in Mailpit (optional)
+
+Mailpit is a fake SMTP server: it catches every email and sends none. The
+invitation emails show up at [http://localhost:8025](http://localhost:8025).
+Start it, then set in `apps/api/.env`: `SMTP_HOST=localhost`, `SMTP_PORT=1025`
+and `SMTP_FROM=Platform <no-reply@connect.localhost>`. Without `SMTP_HOST` the
+API sends no email.
+
+```bash
+cd infra/database
+docker compose --profile mail up -d --no-recreate mailpit
+```
+
 #### Stop the Database
 
 ```bash
@@ -377,6 +390,26 @@ npm run dev
 cd apps/web
 npm run dev
 ```
+
+#### Storybook
+
+Each front end has its own Storybook, which renders screens and components with sample data, without the API or a login:
+
+| Package | Command | URL |
+|---------|---------|-----|
+| `apps/web` | `cd apps/web && npm run storybook` | `http://localhost:6006` |
+| `apps/web-embed` | `cd apps/web-embed && npm run storybook` | `http://localhost:6007` |
+| `packages/ui` | `cd packages/ui && npm run storybook` | `http://localhost:6008` |
+
+#### Storybook MCP servers for Claude Code
+
+`.mcp.json` declares two MCP servers, served by the Storybook MCP addon: `storybook-web` (`apps/web`, port 6006) and `storybook-ui` (`packages/ui`, port 6008). They let Claude Code read component docs, find the stories of a changed file and link to a story. The `storybook-screenshot` skill uses them alongside its own screenshot script.
+
+1. Approve both servers when Claude Code asks, the first time you open the repo, or later from `/mcp`.
+2. Start the matching Storybook: a server only connects while its Storybook runs.
+3. If Storybook started after Claude Code, reconnect the server from `/mcp`.
+
+If you had registered them yourself with `claude mcp add`, remove those copies with `claude mcp remove storybook-web -s local` (and `storybook-ui`): a local entry overrides the shared one.
 
 ### Docker Smoke Test (API + Workers + PG + Redis)
 

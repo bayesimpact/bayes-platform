@@ -12,6 +12,7 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { projectFactory } from "@/domains/projects/project.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { DocumentTag } from "../document-tag.entity"
@@ -119,6 +120,71 @@ describe("DocumentTags - updateOne", () => {
     expectResponse(response, 400, `Tag "${PUBLIC_DOCUMENTS_TAG_NAME}" cannot have children.`)
 
     const updated = await documentTagRepository.findOne({ where: { id: documentTagId } })
+    expect(updated?.parentId).toBeNull()
+  })
+
+  it("should reject a parent from another project of the same organization", async () => {
+    const { organization, documentTag } = await createContext()
+    const otherProject = projectFactory.transient({ organization }).build()
+    await repositories.projectRepository.save(otherProject)
+    const foreignTag = await setup
+      .getRepository(DocumentTag)
+      .save(
+        documentTagFactory
+          .transient({ organization, project: otherProject })
+          .build({ name: "Other project" }),
+      )
+
+    const response = await subject({
+      payload: {
+        name: documentTag.name,
+        description: documentTag.description ?? undefined,
+        parentId: foreignTag.id,
+      },
+    })
+
+    expectResponse(response, 404, `DocumentTag with id ${foreignTag.id} not found`)
+    const updated = await setup.getRepository(DocumentTag).findOne({ where: { id: documentTagId } })
+    expect(updated?.parentId).toBeNull()
+  })
+
+  it("should reject a parent from another organization", async () => {
+    const { documentTag } = await createContext()
+    const other = await createOrganizationWithProject(repositories)
+    const foreignTag = await setup
+      .getRepository(DocumentTag)
+      .save(
+        documentTagFactory
+          .transient({ organization: other.organization, project: other.project })
+          .build({ name: "Other organization" }),
+      )
+
+    const response = await subject({
+      payload: {
+        name: documentTag.name,
+        description: documentTag.description ?? undefined,
+        parentId: foreignTag.id,
+      },
+    })
+
+    expectResponse(response, 404, `DocumentTag with id ${foreignTag.id} not found`)
+    const updated = await setup.getRepository(DocumentTag).findOne({ where: { id: documentTagId } })
+    expect(updated?.parentId).toBeNull()
+  })
+
+  it("should reject a tag as its own parent", async () => {
+    const { documentTag } = await createContext()
+
+    const response = await subject({
+      payload: {
+        name: documentTag.name,
+        description: documentTag.description ?? undefined,
+        parentId: documentTag.id,
+      },
+    })
+
+    expectResponse(response, 400, "A tag cannot be its own parent.")
+    const updated = await setup.getRepository(DocumentTag).findOne({ where: { id: documentTagId } })
     expect(updated?.parentId).toBeNull()
   })
 })

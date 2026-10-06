@@ -72,6 +72,15 @@ export class DocumentsService {
     uploadStatus: "pending" | "uploaded"
     tagIds?: string[]
   }): Promise<Document> {
+    const tags =
+      tagIds === undefined || tagIds.length === 0
+        ? []
+        : await this.documentTagsService.resolveTagChanges({
+            connectScope,
+            currentTags: [],
+            tagsToAdd: tagIds,
+          })
+
     const document = await this.documentConnectRepository.createAndSave(connectScope, {
       id: documentId,
       fileName: fields.fileName,
@@ -87,15 +96,11 @@ export class DocumentsService {
       userId: userId ?? null,
     })
 
-    if (tagIds === undefined || tagIds.length === 0) {
+    if (tags.length === 0) {
       return document
     }
 
-    document.tags = await this.documentTagsService.resolveTagChanges({
-      currentTags: [],
-      tagsToAdd: tagIds,
-    })
-
+    document.tags = tags
     return this.documentConnectRepository.saveOne(document)
   }
 
@@ -266,6 +271,7 @@ export class DocumentsService {
 
     if (needsTags) {
       document.tags = await this.documentTagsService.resolveTagChanges({
+        connectScope,
         currentTags: document.tags ?? [],
         tagsToAdd: fieldsToUpdate.tagsToAdd,
         tagsToRemove: fieldsToUpdate.tagsToRemove,

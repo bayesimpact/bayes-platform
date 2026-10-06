@@ -8,7 +8,12 @@ import type {
   PaginatedAgentCsvExtractionRunRecords,
 } from "./agent-csv-extraction-runs.models"
 
-type BaseParams = { organizationId: string; projectId: string; agentId: string }
+type BaseParams = {
+  organizationId: string
+  projectId: string
+  agentId: string
+  type: BaseAgentSessionTypeDto
+}
 
 export interface IAgentCsvExtractionRunsSpi {
   createOne(
@@ -16,7 +21,6 @@ export interface IAgentCsvExtractionRunsSpi {
       payload: {
         csvDocumentId: string
         columnSchema: AgentCsvExtractionRunColumnSchemaDto
-        type: BaseAgentSessionTypeDto
         agentSettingsRevision?: number
       }
     },
@@ -29,7 +33,7 @@ export interface IAgentCsvExtractionRunsSpi {
     params: BaseParams & { agentCsvExtractionRunId: string },
   ): Promise<AgentCsvExtractionRun>
   getOne(params: BaseParams & { agentCsvExtractionRunId: string }): Promise<AgentCsvExtractionRun>
-  getAll(params: BaseParams & { type: BaseAgentSessionTypeDto }): Promise<AgentCsvExtractionRun[]>
+  getAll(params: BaseParams): Promise<AgentCsvExtractionRun[]>
   getFileColumns(
     params: BaseParams & { documentId: string },
   ): Promise<{ id: string; name: string; values: unknown[] }[]>
@@ -43,12 +47,14 @@ export interface IAgentCsvExtractionRunsSpi {
       sortOrder?: "asc" | "desc"
     },
   ): Promise<PaginatedAgentCsvExtractionRunRecords>
-  streamRunStatus(params: {
-    organizationId: string
-    projectId: string
-    agentId: string
-    signal?: AbortSignal
-    onStatusChanged: (event: AgentCsvExtractionRunStatusChangedEvent) => void
-  }): Promise<void>
+  streamRunStatus(
+    params: BaseParams & {
+      signal?: AbortSignal
+      onStatusChanged: (event: AgentCsvExtractionRunStatusChangedEvent) => void
+    },
+  ): Promise<void>
+  getExportTemporaryUrl(
+    params: BaseParams & { agentCsvExtractionRunId: string },
+  ): Promise<{ url: string }>
   deleteOne(params: BaseParams & { agentCsvExtractionRunId: string }): Promise<void>
 }

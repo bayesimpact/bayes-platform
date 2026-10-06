@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "storybook-web": {
+      "type": "http",
+      "url": "http://localhost:6006/mcp"
+    },
+    "storybook-ui": {
+      "type": "http",
+      "url": "http://localhost:6008/mcp"
+    }
+  }
+}

@@ -72,6 +72,12 @@ export const AGENT_ANALYTICS_READ_PERMISSION = "agent.analytics.read" as const
 export const PROJECT_MEMBER_INVITE_PERMISSION = "project.member.invite" as const
 
 /**
+ * Change the role of another member of a project between admin and member. Not
+ * inherited from the organization.
+ */
+export const PROJECT_MEMBER_UPDATE_PERMISSION = "project.member.update" as const
+
+/**
  * Invite people to an agent, see its pending invitations and revoke them. Held
  * on the agent only: a project or organization role does not grant it.
  */
@@ -168,6 +174,36 @@ export const RESOURCE_LIBRARY_UPDATE_PERMISSION = "resource_library.update" as c
 export const RESOURCE_LIBRARY_DELETE_PERMISSION = "resource_library.delete" as const
 
 /**
+ * Live CSV extraction runs: an extraction agent run over the rows of a CSV document, and its
+ * records. Scoped to the project and never inherited from the organization.
+ */
+export const CSV_EXTRACTION_RUN_READ_PERMISSION = "csv_extraction_run.read" as const
+
+export const CSV_EXTRACTION_RUN_CREATE_PERMISSION = "csv_extraction_run.create" as const
+
+/** Execute, retry or cancel a CSV extraction run. */
+export const CSV_EXTRACTION_RUN_UPDATE_PERMISSION = "csv_extraction_run.update" as const
+
+export const CSV_EXTRACTION_RUN_DELETE_PERMISSION = "csv_extraction_run.delete" as const
+
+/**
+ * Playground CSV extraction runs. They belong to the Studio surface, so only project owners and
+ * admins hold these keys. Scoped to the project and never inherited from the organization.
+ */
+export const CSV_EXTRACTION_RUN_PLAYGROUND_READ_PERMISSION =
+  "csv_extraction_run.playground.read" as const
+
+export const CSV_EXTRACTION_RUN_PLAYGROUND_CREATE_PERMISSION =
+  "csv_extraction_run.playground.create" as const
+
+/** Execute, retry or cancel a playground CSV extraction run. */
+export const CSV_EXTRACTION_RUN_PLAYGROUND_UPDATE_PERMISSION =
+  "csv_extraction_run.playground.update" as const
+
+export const CSV_EXTRACTION_RUN_PLAYGROUND_DELETE_PERMISSION =
+  "csv_extraction_run.playground.delete" as const
+
+/**
  * Permissions an App may be granted. Policy lives in code, not in the database:
  * there is no Permission entity and no `app_grantable` column. Intersect this
  * list with `AppManifest.grantable_permissions` on save and on authorize.
@@ -261,6 +297,7 @@ export const PROJECT_SCOPED_PERMISSIONS = [
   STUDIO_UI_READ_PERMISSION,
   EVALUATION_UI_READ_PERMISSION,
   DOCUMENT_SOURCE_READ_PERMISSION,
+  PROJECT_MEMBER_UPDATE_PERMISSION,
 ] as const
 
 export type ProjectScopedPermission = (typeof PROJECT_SCOPED_PERMISSIONS)[number]

@@ -176,4 +176,60 @@ describe("AgentMembershipsService", () => {
       ).rejects.toThrow("Cannot remove owner from the agent")
     })
   })
+
+  describe("demoteAdminAgentMembershipsForUserInProject", () => {
+    it("turns admin agent memberships of the project into member ones and keeps the rest", async () => {
+      const { organization, project } = await createOrganizationWithProject(repositories)
+      const { organization: otherOrganization, project: otherProject } =
+        await createOrganizationWithProject(repositories)
+      const adminAgent = await repositories.agentRepository.save(
+        agentFactory.transient({ project, organization }).build(),
+      )
+      const ownedAgent = await repositories.agentRepository.save(
+        agentFactory.transient({ project, organization }).build(),
+      )
+      const otherProjectAgent = await repositories.agentRepository.save(
+        agentFactory.transient({ project: otherProject, organization: otherOrganization }).build(),
+      )
+      const { user: demotedUser } = await addUserToAgent({
+        repositories,
+        agent: adminAgent,
+        membership: { role: "admin" },
+      })
+      for (const [agent, role] of [
+        [ownedAgent, "owner"],
+        [otherProjectAgent, "admin"],
+      ] as const) {
+        await saveAgentMembership({
+          repositories,
+          membership: agentMembershipFactory
+            .transient({ agent, user: demotedUser })
+            .build({ role }),
+        })
+      }
+
+      await service.demoteAdminAgentMembershipsForUserInProject({
+        userId: demotedUser.id,
+        projectId: project.id,
+      })
+
+      const memberships = await repositories.userMembershipRepository.find({
+        where: { userId: demotedUser.id, resourceType: "agent" },
+      })
+      const roleByAgentId = new Map(
+        memberships.map((membership) => [membership.resourceId, membership.role]),
+      )
+      expect(roleByAgentId.get(adminAgent.id)).toBe("member")
+      expect(roleByAgentId.get(ownedAgent.id)).toBe("owner")
+      expect(roleByAgentId.get(otherProjectAgent.id)).toBe("admin")
+
+      const demotedMembership = memberships.find(
+        (membership) => membership.resourceId === adminAgent.id,
+      )
+      const agentMemberRole = await repositories.roleRepository.findOneOrFail({
+        where: { key: AGENT_ROLES.member },
+      })
+      expect(demotedMembership?.roleId).toBe(agentMemberRole.id)
+    })
+  })
 })

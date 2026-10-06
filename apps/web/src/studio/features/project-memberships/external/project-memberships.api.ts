@@ -15,6 +15,15 @@ export default {
     )
     return response.data.data.map(fromDto)
   },
+  updateOne: async ({ organizationId, projectId, membershipId, role }) => {
+    const axios = getAxiosInstance()
+    const payload: typeof ProjectMembershipRoutes.updateOne.request = { payload: { role } }
+    const response = await axios.patch<typeof ProjectMembershipRoutes.updateOne.response>(
+      ProjectMembershipRoutes.updateOne.getPath({ organizationId, projectId, membershipId }),
+      payload,
+    )
+    return fromDto(response.data.data)
+  },
   remove: async ({ organizationId, projectId, membershipId }) => {
     const axios = getAxiosInstance()
     await axios.delete(
@@ -43,6 +52,7 @@ const fromDto = (dto: ProjectMembershipDto): ProjectMembership => ({
   userHasSignedIn: dto.userHasSignedIn,
   createdAt: dto.createdAt,
   role: dto.role,
+  permissions: dto.permissions,
 })
 
 const memberAgentFromDto = (dto: ProjectMemberAgentDto): ProjectMemberAgent => ({
@@ -51,4 +61,5 @@ const memberAgentFromDto = (dto: ProjectMemberAgentDto): ProjectMemberAgent => (
   agentType: dto.agentType,
   membershipId: dto.membershipId,
   role: dto.role,
+  permissions: dto.permissions,
 })

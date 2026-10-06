@@ -1,8 +1,4 @@
-import {
-  type ProjectMemberAgentDto,
-  type ProjectMembershipDto,
-  ProjectMembershipRoutes,
-} from "@caseai-connect/api-contracts"
+import { type ProjectMemberAgentDto, ProjectMembershipRoutes } from "@caseai-connect/api-contracts"
 import { Controller, Delete, Get, Req, UseGuards } from "@nestjs/common"
 import type {
   EndpointRequestWithProject,
@@ -14,7 +10,7 @@ import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { UserGuard } from "@/domains/users/user.guard"
-import type { ProjectMembershipModel } from "./project-membership.model"
+import { toProjectMembershipDto } from "./project-membership.mapper"
 import { ProjectMembershipsGuard } from "./project-memberships.guard"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectMembershipsService } from "./project-memberships.service"
@@ -32,9 +28,17 @@ export class ProjectMembershipsController {
   ): Promise<typeof ProjectMembershipRoutes.getAll.response> {
     const { project } = request
 
-    const memberships = await this.projectMembershipsService.listProjectMemberships(project.id)
+    const { memberships, roleGrantsByRoleId } =
+      await this.projectMembershipsService.listProjectMembershipsWithRoleGrants(project.id)
 
-    return { data: memberships.map(toDto) }
+    return {
+      data: memberships.map((membership) =>
+        toProjectMembershipDto(
+          membership,
+          membership.roleId ? roleGrantsByRoleId.get(membership.roleId) : undefined,
+        ),
+      ),
+    }
   }
 
   @Get(ProjectMembershipRoutes.getMemberAgents.path)
@@ -50,18 +54,17 @@ export class ProjectMembershipsController {
       userId: memberProjectMembership.userId,
     })
 
-    const data: ProjectMemberAgentDto[] = entries.map(({ agent, membership }) => ({
+    const data: ProjectMemberAgentDto[] = entries.map(({ agent, membership, permissions }) => ({
       agentId: agent.id,
       agentName: agent.name,
       agentType: agent.type,
       membershipId: membership?.id ?? null,
       role: membership?.role ?? null,
+      permissions,
     }))
 
     return { data }
   }
-
-  // TODO: edit role
 
   @Delete(ProjectMembershipRoutes.deleteOne.path)
   @CheckPolicy((policy) => policy.canDelete())
@@ -79,18 +82,5 @@ export class ProjectMembershipsController {
     })
 
     return { data: { success: true } }
-  }
-}
-
-function toDto(model: ProjectMembershipModel): ProjectMembershipDto {
-  return {
-    id: model.id,
-    projectId: model.projectId,
-    userId: model.userId,
-    userName: model.user.name,
-    userEmail: model.user.email,
-    userHasSignedIn: model.user.authSubject !== null,
-    createdAt: model.createdAt.getTime(),
-    role: model.role,
   }
 }

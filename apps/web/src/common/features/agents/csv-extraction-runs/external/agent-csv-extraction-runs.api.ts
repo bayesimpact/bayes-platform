@@ -12,61 +12,61 @@ import type { IAgentCsvExtractionRunsSpi } from "../agent-csv-extraction-runs.sp
 import { streamAgentCsvExtractionRunStatus } from "./agent-csv-extraction-runs-streaming"
 
 export default {
-  createOne: async ({ payload, ...params }) => {
+  createOne: async ({ type, payload, ...params }) => {
     const axios = getAxiosInstance()
-    const response = await axios.post<typeof AgentCsvExtractionRunsRoutes.createOne.response>(
-      AgentCsvExtractionRunsRoutes.createOne.getPath(params),
-      { payload } satisfies typeof AgentCsvExtractionRunsRoutes.createOne.request,
+    const response = await axios.post<typeof AgentCsvExtractionRunsRoutes.live.createOne.response>(
+      AgentCsvExtractionRunsRoutes[type].createOne.getPath(params),
+      { payload } satisfies typeof AgentCsvExtractionRunsRoutes.live.createOne.request,
     )
     return toAgentCsvExtractionRun(response.data.data)
   },
-  executeOne: async ({ recordLimit, ...params }) => {
+  executeOne: async ({ type, recordLimit, ...params }) => {
     const axios = getAxiosInstance()
-    const response = await axios.post<typeof AgentCsvExtractionRunsRoutes.executeOne.response>(
-      AgentCsvExtractionRunsRoutes.executeOne.getPath(params),
+    const response = await axios.post<typeof AgentCsvExtractionRunsRoutes.live.executeOne.response>(
+      AgentCsvExtractionRunsRoutes[type].executeOne.getPath(params),
       {
         payload: { recordLimit },
-      } satisfies typeof AgentCsvExtractionRunsRoutes.executeOne.request,
+      } satisfies typeof AgentCsvExtractionRunsRoutes.live.executeOne.request,
     )
     return toAgentCsvExtractionRun(response.data.data)
   },
-  retryOne: async (params) => {
+  retryOne: async ({ type, ...params }) => {
     const axios = getAxiosInstance()
-    const response = await axios.post<typeof AgentCsvExtractionRunsRoutes.retryOne.response>(
-      AgentCsvExtractionRunsRoutes.retryOne.getPath(params),
+    const response = await axios.post<typeof AgentCsvExtractionRunsRoutes.live.retryOne.response>(
+      AgentCsvExtractionRunsRoutes[type].retryOne.getPath(params),
     )
     return toAgentCsvExtractionRun(response.data.data)
   },
-  cancelOne: async (params) => {
+  cancelOne: async ({ type, ...params }) => {
     const axios = getAxiosInstance()
-    const response = await axios.post<typeof AgentCsvExtractionRunsRoutes.cancelOne.response>(
-      AgentCsvExtractionRunsRoutes.cancelOne.getPath(params),
+    const response = await axios.post<typeof AgentCsvExtractionRunsRoutes.live.cancelOne.response>(
+      AgentCsvExtractionRunsRoutes[type].cancelOne.getPath(params),
     )
     return toAgentCsvExtractionRun(response.data.data)
   },
-  getOne: async (params) => {
+  getOne: async ({ type, ...params }) => {
     const axios = getAxiosInstance()
-    const response = await axios.get<typeof AgentCsvExtractionRunsRoutes.getOne.response>(
-      AgentCsvExtractionRunsRoutes.getOne.getPath(params),
+    const response = await axios.get<typeof AgentCsvExtractionRunsRoutes.live.getOne.response>(
+      AgentCsvExtractionRunsRoutes[type].getOne.getPath(params),
     )
     return toAgentCsvExtractionRun(response.data.data)
   },
   getAll: async ({ type, ...params }) => {
     const axios = getAxiosInstance()
-    const response = await axios.get<typeof AgentCsvExtractionRunsRoutes.getAll.response>(
-      AgentCsvExtractionRunsRoutes.getAll.getPath(params),
-      { params: { type } },
+    const response = await axios.get<typeof AgentCsvExtractionRunsRoutes.live.getAll.response>(
+      AgentCsvExtractionRunsRoutes[type].getAll.getPath(params),
     )
     return response.data.data.map(toAgentCsvExtractionRun)
   },
-  getFileColumns: async ({ documentId, ...params }) => {
+  getFileColumns: async ({ type, documentId, ...params }) => {
     const axios = getAxiosInstance()
-    const response = await axios.get<typeof AgentCsvExtractionRunsRoutes.getFileColumns.response>(
-      AgentCsvExtractionRunsRoutes.getFileColumns.getPath({ ...params, documentId }),
-    )
+    const response = await axios.get<
+      typeof AgentCsvExtractionRunsRoutes.live.getFileColumns.response
+    >(AgentCsvExtractionRunsRoutes[type].getFileColumns.getPath({ ...params, documentId }))
     return response.data.data
   },
   getRecords: async ({
+    type,
     agentCsvExtractionRunId,
     page,
     limit,
@@ -84,8 +84,8 @@ export default {
     if (sortBy) queryParams.sortBy = sortBy
     if (sortOrder) queryParams.sortOrder = sortOrder
 
-    const response = await axios.get<typeof AgentCsvExtractionRunsRoutes.getRecords.response>(
-      AgentCsvExtractionRunsRoutes.getRecords.getPath({
+    const response = await axios.get<typeof AgentCsvExtractionRunsRoutes.live.getRecords.response>(
+      AgentCsvExtractionRunsRoutes[type].getRecords.getPath({
         ...params,
         agentCsvExtractionRunId,
       }),
@@ -102,9 +102,16 @@ export default {
   streamRunStatus: async (params) => {
     await streamAgentCsvExtractionRunStatus(params)
   },
-  deleteOne: async (params) => {
+  getExportTemporaryUrl: async ({ type, ...params }) => {
     const axios = getAxiosInstance()
-    await axios.delete(AgentCsvExtractionRunsRoutes.deleteOne.getPath(params))
+    const response = await axios.get<
+      typeof AgentCsvExtractionRunsRoutes.live.getExportTemporaryUrl.response
+    >(AgentCsvExtractionRunsRoutes[type].getExportTemporaryUrl.getPath(params))
+    return response.data.data
+  },
+  deleteOne: async ({ type, ...params }) => {
+    const axios = getAxiosInstance()
+    await axios.delete(AgentCsvExtractionRunsRoutes[type].deleteOne.getPath(params))
   },
 } satisfies IAgentCsvExtractionRunsSpi
 

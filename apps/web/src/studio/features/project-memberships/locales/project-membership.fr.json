@@ -1,6 +1,11 @@
 {
   "projectMembership": {
     "members": "Membres",
+    "roles": {
+      "owner": "Propriétaire",
+      "admin": "Administrateur",
+      "member": "Membre"
+    },
     "props": {
       "userName": "Nom d'utilisateur",
       "userEmail": "Email d'utilisateur",
@@ -17,8 +22,12 @@
       "remove": "Retirer le membre",
       "agent": "Agent",
       "agentRole": "Rôle",
+      "agentPermissions": "Permissions",
       "noAccess": "Pas d'accès",
-      "noAgents": "Ce projet n'a aucun agent."
+      "noAgents": "Ce projet n'a aucun agent.",
+      "permissionsDescription": "Ce que ce rôle permet sur ce projet.",
+      "noPermissions": "Ce rôle n'accorde aucune permission.",
+      "roleSelect": "Rôle sur le projet"
     },
     "create": {
       "button": "Inviter des administrateurs",
@@ -33,11 +42,11 @@
     },
     "list": {
       "title": "Membres de {{projectName}}",
-      "description": "Invitez des membres dans votre espace de travail pour collaborer ensemble.",
+      "description": "Toutes les personnes qui ont accès à ce projet : propriétaires, administrateurs, et membres ajoutés via un agent ou une campagne de revue.",
       "searchPlaceholder": "Rechercher par nom ou email…",
       "empty": {
         "title": "Aucun membre",
-        "description": "Invitez des administrateurs dans votre espace de travail pour collaborer ensemble."
+        "description": "Invitez des personnes dans votre espace de travail pour collaborer ensemble."
       }
     },
     "remove": {
@@ -45,6 +54,12 @@
         "title": "Retirer {{name}} ?",
         "description": "Ce membre sera retiré du projet. Cette action est irréversible.",
         "confirm": "Retirer"
+      }
+    },
+    "roleChange": {
+      "dialog": {
+        "title": "Passer {{name}} au rôle {{role}} ?",
+        "description": "Ses permissions sur ce projet et ses agents changent immédiatement."
       }
     }
   }

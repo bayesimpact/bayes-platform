@@ -73,7 +73,6 @@ export type AgentCsvExtractionRunRecordDto = {
 export type CreateAgentCsvExtractionRunRequestDto = {
   csvDocumentId: string
   columnSchema: AgentCsvExtractionRunColumnSchemaDto
-  type: BaseAgentSessionTypeDto
   /** Settings version to pin the run to. Project admins and owners only. */
   agentSettingsRevision?: number
 }
@@ -97,6 +96,9 @@ export type AgentCsvExtractionRunStatusChangedEventPayload = {
   organizationId: string
   projectId: string
   agentId: string
+  runType: BaseAgentSessionTypeDto
+  /** Creator of the run, `null` for a run created before ownership was tracked. */
+  userId: string | null
   status: AgentCsvExtractionRunStatusDto
   summary: AgentCsvExtractionRunSummaryDto | null
   updatedAt: TimeType

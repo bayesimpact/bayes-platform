@@ -18,7 +18,10 @@ export default {
       routes.createMany.getPath(pathParams),
       { payload: { emails, role } },
     )
-    return toPendingInvitations(response.data.data)
+    return {
+      invitations: toPendingInvitations(response.data.data),
+      emailSent: response.data.data.emailSent,
+    }
   },
   listForTarget: async (target) => {
     const axios = getAxiosInstance()

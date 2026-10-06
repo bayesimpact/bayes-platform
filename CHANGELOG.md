@@ -10,12 +10,14 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Added
 - External sources: Studio lists each source with its app, and can delete the source and its documents.
 - Kubernetes: the Helm chart can install an optional Phoenix to read LLM traces.
-- Sign-in: any OpenID Connect provider, such as Keycloak, can now authenticate platform users.
+- Sign-in: any OpenID Connect provider, such as Keycloak, can authenticate platform users.
 - Embed widget: visitors and host sites can start a new conversation instead of resuming the stored one.
 - (beta) Agent memory: conversation agents can remember facts about signed-in users, with their approval.
+- Project members: each member's page lists every permission their project role grants.
+- Project members: owners and admins can switch another member between the admin and member roles.
 
 ### Changed
-- Trace links now open the conversation in Phoenix instead of Langfuse.
+- Trace links open the conversation in Phoenix instead of Langfuse.
 - Members: people added by email get access right away, without an invitation to accept.
 
 ### Fixed
@@ -23,6 +25,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Evaluation: reloading an extraction dataset page no longer shows an error.
 
 ### Security
+- CSV extraction: only the member who created a run can now open it.
 
 ## [26.09.4] - 2026-09-29
 

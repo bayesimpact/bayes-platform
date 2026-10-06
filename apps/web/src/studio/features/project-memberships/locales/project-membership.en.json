@@ -1,6 +1,11 @@
 {
   "projectMembership": {
     "members": "Members",
+    "roles": {
+      "owner": "Owner",
+      "admin": "Admin",
+      "member": "Member"
+    },
     "props": {
       "userName": "User Name",
       "userEmail": "User Email",
@@ -17,8 +22,12 @@
       "remove": "Remove member",
       "agent": "Agent",
       "agentRole": "Role",
+      "agentPermissions": "Permissions",
       "noAccess": "No access",
-      "noAgents": "This project has no agents."
+      "noAgents": "This project has no agents.",
+      "permissionsDescription": "What this role allows on this project.",
+      "noPermissions": "This role grants no permission.",
+      "roleSelect": "Project role"
     },
     "create": {
       "button": "Invite admins",
@@ -33,11 +42,11 @@
     },
     "list": {
       "title": "Members of {{projectName}}",
-      "description": "Invite members to your workspace to collaborate together.",
+      "description": "Everyone with access to this project: owners, admins, and members added through an agent or a review campaign.",
       "searchPlaceholder": "Search by name or email…",
       "empty": {
         "title": "No members",
-        "description": "Invite admins to your workspace to collaborate together."
+        "description": "Invite people to your workspace to collaborate together."
       }
     },
     "remove": {
@@ -45,6 +54,12 @@
         "title": "Remove {{name}}?",
         "description": "This will remove the member from the project. This action cannot be undone.",
         "confirm": "Remove"
+      }
+    },
+    "roleChange": {
+      "dialog": {
+        "title": "Change {{name}}'s role to {{role}}?",
+        "description": "Their permissions on this project and its agents change right away."
       }
     }
   }

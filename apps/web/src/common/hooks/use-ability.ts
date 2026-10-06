@@ -69,6 +69,12 @@ export function useAbility() {
     [hasProjectPermission],
   )
 
+  const canUpdateProjectMemberRole = useCallback(
+    ({ projectId }: { projectId: string | null }) =>
+      hasProjectPermission({ projectId, permission: "project.member.update" }),
+    [hasProjectPermission],
+  )
+
   const canAccessTester = useCallback(
     ({ projectId }: { projectId: string | null }) =>
       !!reviewCampaignMemberships?.some(
@@ -112,6 +118,7 @@ export function useAbility() {
         canAccessTester,
         canAccessReviewer,
         canRenameOrganization,
+        canUpdateProjectMemberRole,
       },
     }),
     [
@@ -123,6 +130,7 @@ export function useAbility() {
       canAccessTester,
       canAccessReviewer,
       canRenameOrganization,
+      canUpdateProjectMemberRole,
     ],
   )
 }

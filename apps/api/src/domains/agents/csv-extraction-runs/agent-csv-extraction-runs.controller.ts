@@ -1,26 +1,18 @@
 import { randomUUID } from "node:crypto"
-import {
-  type AgentCsvExtractionRunDto,
-  type AgentCsvExtractionRunRecordDto,
-  type AgentCsvExtractionRunStatusChangedEventDto,
+import type {
+  AgentCsvExtractionRunDto,
+  AgentCsvExtractionRunRecordDto,
+  AgentCsvExtractionRunStatusChangedEventDto,
   AgentCsvExtractionRunsRoutes,
-  type ProjectMembershipRoleDto,
+  ProjectMembershipRoleDto,
 } from "@caseai-connect/api-contracts"
 import {
-  Body,
-  Controller,
-  Delete,
   ForbiddenException,
-  Get,
   Inject,
+  Injectable,
   Logger,
   NotFoundException,
-  Post,
-  Query,
-  Req,
-  Sse,
   UnprocessableEntityException,
-  UseGuards,
 } from "@nestjs/common"
 import * as Papa from "papaparse"
 import type { Observable } from "rxjs"
@@ -30,26 +22,19 @@ import type {
   EndpointRequestWithAgentCsvExtractionRun,
 } from "@/common/context/request.interface"
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
-import { AddContext, RequireContext } from "@/common/context/require-context.decorator"
-import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
-import { CheckPolicy } from "@/common/policies/check-policy.decorator"
-import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
-import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentsService } from "@/domains/documents/documents.service"
 import {
   FILE_STORAGE_SERVICE,
   type IFileStorage,
 } from "@/domains/documents/storage/file-storage.interface"
-import { UserGuard } from "@/domains/users/user.guard"
 import { getTraceUrl } from "@/external/llm/trace-url"
 import type { BaseAgentSessionType } from "../base-agent-sessions/base-agent-sessions.types"
 import type { AgentCsvExtractionRun } from "./agent-csv-extraction-run.entity"
-import { AgentCsvExtractionRunGuard } from "./agent-csv-extraction-run.guard"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentCsvExtractionRunCsvExportService } from "./agent-csv-extraction-run-csv-export.service"
 import type { AgentCsvExtractionRunRecord } from "./agent-csv-extraction-run-record.entity"
@@ -60,10 +45,21 @@ import { AgentCsvExtractionRunStatusStreamService } from "./agent-csv-extraction
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentCsvExtractionRunsService } from "./agent-csv-extraction-runs.service"
 
-@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, AgentCsvExtractionRunGuard)
-@RequireContext("organization", "project", "agent")
-@Controller()
-export class AgentCsvExtractionRunsController {
+type Routes = (typeof AgentCsvExtractionRunsRoutes)[BaseAgentSessionType]
+
+/**
+ * Base of the live and playground CSV extraction run controllers. Each subclass serves one run
+ * type on its own route set and checks its own permissions, and the handlers here only ever see
+ * runs of that type, so a live permission never opens a playground run.
+ *
+ * This class declares no routes and no guards and is not registered in the module.
+ * `@Injectable()` only makes TypeScript emit the constructor metadata the subclasses inherit for
+ * dependency injection.
+ */
+@Injectable()
+export abstract class AgentCsvExtractionRunsController {
+  protected abstract readonly type: BaseAgentSessionType
+
   private readonly logger = new Logger(AgentCsvExtractionRunsController.name)
 
   constructor(
@@ -77,14 +73,10 @@ export class AgentCsvExtractionRunsController {
     private readonly fileStorageService: IFileStorage,
   ) {}
 
-  @Post(AgentCsvExtractionRunsRoutes.createOne.path)
-  @CheckPolicy((policy) => policy.canCreate())
-  @TrackActivity({ action: "agentCsvExtractionRun.create" })
-  async createOne(
-    @Req() request: EndpointRequestWithAgent,
-    @Body() { payload }: typeof AgentCsvExtractionRunsRoutes.createOne.request,
-  ): Promise<typeof AgentCsvExtractionRunsRoutes.createOne.response> {
-    const type = toBaseAgentSessionType(payload.type)
+  protected async handleCreateOne(
+    request: EndpointRequestWithAgent,
+    payload: Routes["createOne"]["request"]["payload"],
+  ): Promise<Routes["createOne"]["response"]> {
     const connectScope = getRequiredConnectScope(request)
     const agentSettings = await this.resolveAgentSettings({
       connectScope,
@@ -99,7 +91,7 @@ export class AgentCsvExtractionRunsController {
         agentSettingsId: agentSettings.id,
         csvDocumentId: payload.csvDocumentId,
         columnSchema: payload.columnSchema,
-        type,
+        type: this.type,
         userId: request.user.id,
       },
     })
@@ -147,36 +139,27 @@ export class AgentCsvExtractionRunsController {
     return agentSettings
   }
 
-  @Post(AgentCsvExtractionRunsRoutes.executeOne.path)
-  @AddContext("agentCsvExtractionRun")
-  @CheckPolicy((policy) => policy.canUpdate())
-  @TrackActivity({ action: "agentCsvExtractionRun.execute" })
-  async executeOne(
-    @Req() request: EndpointRequestWithAgentCsvExtractionRun,
-    @Body() { payload }: typeof AgentCsvExtractionRunsRoutes.executeOne.request,
-  ): Promise<typeof AgentCsvExtractionRunsRoutes.executeOne.response> {
-    const connectScope = getRequiredConnectScope(request)
-    const { agentCsvExtractionRun } = request
+  protected async handleExecuteOne(
+    request: EndpointRequestWithAgentCsvExtractionRun,
+    payload: Routes["executeOne"]["request"]["payload"] | undefined,
+  ): Promise<Routes["executeOne"]["response"]> {
+    const agentCsvExtractionRun = this.getRequestRun(request)
 
     await this.agentCsvExtractionRunsService.enqueueExecuteRun({
       agentCsvExtractionRun,
-      connectScope,
+      connectScope: getRequiredConnectScope(request),
       recordLimit: payload?.recordLimit ?? null,
     })
 
     return { data: toAgentCsvExtractionRunDto(agentCsvExtractionRun) }
   }
 
-  @Post(AgentCsvExtractionRunsRoutes.retryOne.path)
-  @AddContext("agentCsvExtractionRun")
-  @CheckPolicy((policy) => policy.canUpdate())
-  @TrackActivity({ action: "agentCsvExtractionRun.retry" })
-  async retryOne(
-    @Req() request: EndpointRequestWithAgentCsvExtractionRun,
-  ): Promise<typeof AgentCsvExtractionRunsRoutes.retryOne.response> {
+  protected async handleRetryOne(
+    request: EndpointRequestWithAgentCsvExtractionRun,
+  ): Promise<Routes["retryOne"]["response"]> {
     const connectScope = getRequiredConnectScope(request)
-    const { agentCsvExtractionRun, agent } = request as EndpointRequestWithAgentCsvExtractionRun &
-      EndpointRequestWithAgent
+    const agentCsvExtractionRun = this.getRequestRun(request)
+    const { agent } = request as EndpointRequestWithAgentCsvExtractionRun & EndpointRequestWithAgent
 
     // The run advertises its own revision, so a retry must use that one. Re-resolving the newest
     // published version here would silently change what a retried run executes.
@@ -195,15 +178,12 @@ export class AgentCsvExtractionRunsController {
     return { data: toAgentCsvExtractionRunDto(agentCsvExtractionRun) }
   }
 
-  @Post(AgentCsvExtractionRunsRoutes.cancelOne.path)
-  @AddContext("agentCsvExtractionRun")
-  @CheckPolicy((policy) => policy.canUpdate())
-  @TrackActivity({ action: "agentCsvExtractionRun.cancel" })
-  async cancelOne(
-    @Req() request: EndpointRequestWithAgentCsvExtractionRun,
-  ): Promise<typeof AgentCsvExtractionRunsRoutes.cancelOne.response> {
+  protected async handleCancelOne(
+    request: EndpointRequestWithAgentCsvExtractionRun,
+  ): Promise<Routes["cancelOne"]["response"]> {
     const connectScope = getRequiredConnectScope(request)
-    const agentCsvExtractionRunId = request.agentCsvExtractionRun.id
+    const agentCsvExtractionRun = this.getRequestRun(request)
+    const agentCsvExtractionRunId = agentCsvExtractionRun.id
 
     await this.agentCsvExtractionRunsService.removePendingJobsForRun({
       agentCsvExtractionRunId,
@@ -211,7 +191,7 @@ export class AgentCsvExtractionRunsController {
     })
 
     const run = await this.agentCsvExtractionRunsService.markRunCancelled({
-      agentCsvExtractionRun: request.agentCsvExtractionRun,
+      agentCsvExtractionRun,
       connectScope,
     })
 
@@ -229,6 +209,8 @@ export class AgentCsvExtractionRunsController {
       organizationId: run.organizationId,
       projectId: run.projectId,
       agentId: run.agentSettings.agentId,
+      runType: run.type,
+      userId: run.userId,
       status: run.status,
       summary: run.summary,
       updatedAt: run.updatedAt.getTime(),
@@ -237,51 +219,40 @@ export class AgentCsvExtractionRunsController {
     return { data: toAgentCsvExtractionRunDto(run) }
   }
 
-  @Get(AgentCsvExtractionRunsRoutes.getOne.path)
-  @AddContext("agentCsvExtractionRun")
-  @CheckPolicy((policy) => policy.canList())
-  async getOne(
-    @Req() request: EndpointRequestWithAgentCsvExtractionRun,
-  ): Promise<typeof AgentCsvExtractionRunsRoutes.getOne.response> {
-    return { data: toAgentCsvExtractionRunDto(request.agentCsvExtractionRun) }
+  protected handleGetOne(
+    request: EndpointRequestWithAgentCsvExtractionRun,
+  ): Routes["getOne"]["response"] {
+    return { data: toAgentCsvExtractionRunDto(this.getRequestRun(request)) }
   }
 
-  @Get(AgentCsvExtractionRunsRoutes.getAll.path)
-  @CheckPolicy((policy) => policy.canList())
-  async getAll(
-    @Req() request: EndpointRequestWithAgent,
-    @Query("type") typeParam?: string,
-  ): Promise<typeof AgentCsvExtractionRunsRoutes.getAll.response> {
+  protected async handleGetAll(
+    request: EndpointRequestWithAgent,
+  ): Promise<Routes["getAll"]["response"]> {
     const runs = await this.agentCsvExtractionRunsService.listRuns({
       connectScope: getRequiredConnectScope(request),
       agentId: request.agent.id,
-      type: toBaseAgentSessionType(typeParam),
+      type: this.type,
       userId: request.user.id,
     })
     return { data: runs.map(toAgentCsvExtractionRunDto) }
   }
 
-  @Get(AgentCsvExtractionRunsRoutes.getRecords.path)
-  @AddContext("agentCsvExtractionRun")
-  @CheckPolicy((policy) => policy.canList())
-  async getRecords(
-    @Req() request: EndpointRequestWithAgentCsvExtractionRun,
-    @Query("page") pageParam?: string,
-    @Query("limit") limitParam?: string,
-    @Query("sortBy") sortBy?: string,
-    @Query("sortOrder") sortOrder?: string,
-  ): Promise<typeof AgentCsvExtractionRunsRoutes.getRecords.response> {
-    const page = Math.max(0, Number(pageParam) || 0)
-    const limit = Math.min(100, Math.max(1, Number(limitParam) || 10))
-    const validSortOrder = sortOrder === "asc" || sortOrder === "desc" ? sortOrder : undefined
+  protected async handleGetRecords(
+    request: EndpointRequestWithAgentCsvExtractionRun,
+    query: { page?: string; limit?: string; sortBy?: string; sortOrder?: string },
+  ): Promise<Routes["getRecords"]["response"]> {
+    const page = Math.max(0, Number(query.page) || 0)
+    const limit = Math.min(100, Math.max(1, Number(query.limit) || 10))
+    const sortOrder =
+      query.sortOrder === "asc" || query.sortOrder === "desc" ? query.sortOrder : undefined
 
     const { records, total } = await this.agentCsvExtractionRunsService.getRunRecordsPaginated({
       connectScope: getRequiredConnectScope(request),
-      runId: request.agentCsvExtractionRun.id,
+      runId: this.getRequestRun(request).id,
       page,
       limit,
-      sortBy: sortBy || undefined,
-      sortOrder: validSortOrder,
+      sortBy: query.sortBy || undefined,
+      sortOrder,
     })
 
     return {
@@ -294,24 +265,38 @@ export class AgentCsvExtractionRunsController {
     }
   }
 
-  @Delete(AgentCsvExtractionRunsRoutes.deleteOne.path)
-  @AddContext("agentCsvExtractionRun")
-  @CheckPolicy((policy) => policy.canDelete())
-  @TrackActivity({ action: "agentCsvExtractionRun.delete" })
-  async deleteOne(
-    @Req() request: EndpointRequestWithAgentCsvExtractionRun,
-  ): Promise<typeof AgentCsvExtractionRunsRoutes.deleteOne.response> {
+  /**
+   * Served here rather than by the documents route, whose policy lets plain members download only
+   * documents tagged `public-documents`: whoever can read the run can download its export.
+   */
+  protected async handleGetExportTemporaryUrl(
+    request: EndpointRequestWithAgentCsvExtractionRun,
+  ): Promise<Routes["getExportTemporaryUrl"]["response"]> {
+    const { csvExportDocumentId } = this.getRequestRun(request)
+    if (!csvExportDocumentId) throw new NotFoundException("This run has no export yet.")
+
+    const exportDocument = await this.documentsService.findById({
+      connectScope: getRequiredConnectScope(request),
+      documentId: csvExportDocumentId,
+    })
+    if (!exportDocument) throw new NotFoundException("Export document not found.")
+
+    const url = await this.fileStorageService.getTemporaryUrl(exportDocument.storageRelativePath)
+    return { data: { url } }
+  }
+
+  protected async handleDeleteOne(
+    request: EndpointRequestWithAgentCsvExtractionRun,
+  ): Promise<Routes["deleteOne"]["response"]> {
     await this.agentCsvExtractionRunsService.deleteRun({
       connectScope: getRequiredConnectScope(request),
-      agentCsvExtractionRunId: request.agentCsvExtractionRun.id,
+      agentCsvExtractionRunId: this.getRequestRun(request).id,
     })
     return { data: { success: true } }
   }
 
-  @CheckPolicy((policy) => policy.canList())
-  @Sse(AgentCsvExtractionRunsRoutes.streamRunStatus.path, { method: 0 /* GET */ })
-  streamRunStatus(
-    @Req() request: EndpointRequestWithAgent,
+  protected handleStreamRunStatus(
+    request: EndpointRequestWithAgent,
   ): Observable<AgentCsvExtractionRunStatusChangedEventDto> {
     const connectScope = getRequiredConnectScope(request)
     return this.runStatusStreamService.events$.pipe(
@@ -319,19 +304,17 @@ export class AgentCsvExtractionRunsController {
         (event) =>
           event.organizationId === connectScope.organizationId &&
           event.projectId === connectScope.projectId &&
-          event.agentId === request.agent.id,
+          event.agentId === request.agent.id &&
+          event.runType === this.type &&
+          isRunOpenTo(event, request.user.id),
       ),
       map((event) => ({ ...event, data: JSON.stringify(event) })),
     )
   }
 
-  @Get(
-    "organizations/:organizationId/projects/:projectId/agents/:agentId/csv-extraction-runs/file/:documentId/columns",
-  )
-  @CheckPolicy((policy) => policy.canList())
-  async getFileColumns(
-    @Req() request: EndpointRequestWithAgent & { params: { documentId?: string } },
-  ): Promise<typeof AgentCsvExtractionRunsRoutes.getFileColumns.response> {
+  protected async handleGetFileColumns(
+    request: EndpointRequestWithAgent & { params: { documentId?: string } },
+  ): Promise<Routes["getFileColumns"]["response"]> {
     const connectScope = getRequiredConnectScope(request)
     const docId = request.params?.documentId
     if (!docId) {
@@ -347,6 +330,20 @@ export class AgentCsvExtractionRunsController {
       storageRelativePath: document.storageRelativePath,
     })
     return { data: columns }
+  }
+
+  /**
+   * Returns the run resolved from the path, as long as it is of this controller's type, belongs
+   * to the agent in the path and is open to the caller. Any other run answers 404, as if it did
+   * not exist.
+   */
+  private getRequestRun(request: EndpointRequestWithAgentCsvExtractionRun): AgentCsvExtractionRun {
+    const { agent, agentCsvExtractionRun } = request as EndpointRequestWithAgentCsvExtractionRun &
+      EndpointRequestWithAgent
+    if (agentCsvExtractionRun.type !== this.type) throw new NotFoundException()
+    if (agentCsvExtractionRun.agentSettings.agentId !== agent.id) throw new NotFoundException()
+    if (!isRunOpenTo(agentCsvExtractionRun, request.user.id)) throw new NotFoundException()
+    return agentCsvExtractionRun
   }
 
   private parseCsvColumns({
@@ -404,15 +401,11 @@ export class AgentCsvExtractionRunsController {
 }
 
 /**
- * The requests carrying a type (createOne payload, getAll query) reach the handler even when the
- * field is missing or garbled — the guard only rejects a *named* unknown type — so the handlers
- * narrow it themselves before acting on it.
+ * A run is open to its creator only, whatever the caller's project role. A run created before
+ * ownership was tracked has no creator and stays open to every member, as in the list.
  */
-function toBaseAgentSessionType(type: string | undefined): BaseAgentSessionType {
-  if (type !== "live" && type !== "playground") {
-    throw new ForbiddenException("A run type of live or playground is required")
-  }
-  return type
+function isRunOpenTo(run: { userId: string | null }, userId: string): boolean {
+  return run.userId === null || run.userId === userId
 }
 
 function toAgentCsvExtractionRunDto(run: AgentCsvExtractionRun): AgentCsvExtractionRunDto {

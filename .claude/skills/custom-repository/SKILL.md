@@ -108,6 +108,7 @@ await this.transactionService.run(async () => {
 - `@InjectRepository`, `Repository<T>`, `find` / `save` / `create` / `In()`, or a query builder in a service
 - `new ConnectRepository(...)` in a service
 - A public repository method whose parameters or return type are TypeORM types
+- A method that loads a connect-scoped entity by id alone (`findOneBy({ id })`, `findBy({ id: In(ids) })`). Take `connectScope` and use `ConnectRepository`. An id from the request must be found in that organization and project. Missing, another project, and another organization are the same 404. A parent id cannot be the row itself or a descendant. An internal caller does not skip this.
 
 ## References
 

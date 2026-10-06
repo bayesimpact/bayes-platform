@@ -22,6 +22,8 @@ Default repo: `bayesimpact/bayes-platform`.
 
 Override only if the user explicitly names another repo in the invocation (e.g. `/new-issue --repo owner/name ...` or "sur le repo X"). Otherwise always use the default — do NOT infer the repo from the current working directory.
 
+**Security issues always go to the private `bayesimpact/internal-issues` repo**, never to bayes-platform, even when the user did not name a repo. This covers access-control gaps, permission bypasses, vulnerabilities, data exposure, and anything describing how to reach data a caller should not see. Use `--repo bayesimpact/internal-issues` for both the duplicate search and the creation. If you are unsure whether an issue is security-related, treat it as one.
+
 ## Inputs
 
 The arguments are the raw description of the issue, in any language, however terse (e.g. `/new-issue le bouton upload plante au-delà de 10Mo`). There is no fixed format — interpret intent.

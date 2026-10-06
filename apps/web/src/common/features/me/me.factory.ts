@@ -104,6 +104,7 @@ export const projectMembershipFactory = ProjectMembershipFactory.define(
       userHasSignedIn: params.userHasSignedIn ?? true,
       createdAt: params.createdAt ?? faker.date.past().getTime(),
       role: params.role ?? "member",
+      permissions: params.permissions ?? [],
     } satisfies ProjectMembershipDto
   },
 )
