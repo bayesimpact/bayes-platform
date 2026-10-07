@@ -74,4 +74,68 @@ describe("LlmServiceBase.buildLLMConfig", () => {
 
     expect(config.thinkingLevel).toBe(AgentThinkingLevel.Auto)
   })
+
+  it("carries the call settings through", () => {
+    const config = new TestLlmService().build({
+      ...baseParams,
+      fireAndForgetToolNames: ["sources"],
+      terminalToolNames: ["take_over_form"],
+      useExtendedTimeouts: true,
+    })
+
+    expect(config).toMatchObject({
+      model: AgentModel.Gemini35FlashLite,
+      systemPrompt: "You are a helpful assistant.",
+      temperature: 0,
+      fireAndForgetToolNames: ["sources"],
+      terminalToolNames: ["take_over_form"],
+      useExtendedTimeouts: true,
+    })
+  })
+
+  it("reads a temperature stored as a decimal string", () => {
+    const config = new TestLlmService().build({
+      ...baseParams,
+      temperature: "0.7" as unknown as number,
+    })
+
+    expect(config.temperature).toBe(0.7)
+  })
+
+  it.each([0, 2])("accepts the boundary temperature %s", (temperature) => {
+    expect(new TestLlmService().build({ ...baseParams, temperature }).temperature).toBe(temperature)
+  })
+
+  it.each([
+    [-0.1, "-0.1"],
+    [2.1, "2.1"],
+    ["warm" as unknown as number, "NaN"],
+  ])("rejects the temperature %s", (temperature, shown) => {
+    expect(() => new TestLlmService().build({ ...baseParams, temperature })).toThrow(
+      `Invalid temperature value: ${shown}. Temperature must be a number between 0 and 2.`,
+    )
+  })
+
+  describe("service tier", () => {
+    const priorityParams: BuildLLMConfigParams = {
+      ...baseParams,
+      model: AgentModel.Gemini35FlashLite,
+      priorityCallsEnabled: true,
+      llmFeatures: { priorityCalls: true },
+    }
+
+    it("asks for priority on a Vertex3 model when the agent and the feature allow it", () => {
+      expect(new TestLlmService().build(priorityParams).serviceTier).toBe("priority")
+    })
+
+    it.each<[string, Partial<BuildLLMConfigParams>]>([
+      ["the agent does not enable it", { priorityCallsEnabled: false }],
+      ["the feature is off", { llmFeatures: {} }],
+      ["the model is not served by Vertex3", { model: AgentModel.Gemini25Flash }],
+    ])("asks for no tier when %s", (_case, overrides) => {
+      expect(
+        new TestLlmService().build({ ...priorityParams, ...overrides }).serviceTier,
+      ).toBeUndefined()
+    })
+  })
 })

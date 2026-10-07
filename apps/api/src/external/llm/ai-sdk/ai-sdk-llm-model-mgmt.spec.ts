@@ -1,6 +1,22 @@
+import type {
+  LanguageModelV3,
+  LanguageModelV3CallOptions,
+  LanguageModelV3Content,
+  LanguageModelV3GenerateResult,
+  LanguageModelV3StreamPart,
+} from "@ai-sdk/provider"
 import { AgentModel, AgentProvider, AgentThinkingLevel } from "@caseai-connect/api-contracts"
+import { type Span, trace } from "@opentelemetry/api"
+import { simulateReadableStream } from "ai"
+import { MockLanguageModelV3 } from "ai/test"
 import { z } from "zod"
 import type { LLMChatMessage, LLMConfig } from "@/common/interfaces/llm-provider.interface"
+import {
+  CallOrigin,
+  RAW_LLM_REQUEST_ATTR,
+  RAW_LLM_RESPONSE_ATTR,
+  RAW_LLM_RESPONSE_STRIPPED_ATTR,
+} from "@/external/llm/ai-sdk/ai-sdk-llm-common"
 import {
   AISDKLLMModelMgmt,
   defineModelOptions,
@@ -9,6 +25,7 @@ import {
   type StreamPartLike,
   type StreamSanitizer,
 } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
+import type { LeakedToolCall } from "@/external/llm/ai-sdk/ai-sdk-llm-tools-mgmt"
 
 // A leak captured from gemini-3.5-flash-lite: the model verbalizes its tool
 // call as pseudo-XML in the user-visible text instead of emitting a
@@ -46,11 +63,24 @@ class TestModelMgmt extends AISDKLLMModelMgmt<AgentProvider._Mock> {
     ),
   }
 
+  constructor(private readonly model?: LanguageModelV3) {
+    super()
+  }
+
   getAgentProvider(): AgentProvider._Mock {
     return AgentProvider._Mock
   }
-  getLanguageModel(): never {
-    throw new Error("TestModelMgmt does not call a model")
+  getLanguageModel(): LanguageModelV3 {
+    if (!this.model) throw new Error("TestModelMgmt was built without a model")
+    return this.model
+  }
+
+  rawCaptureModelFor(leakedToolCalls?: LeakedToolCall[]): LanguageModelV3 {
+    return this.getLanguageModelWithRawCapture({
+      config: mockConfig,
+      callOrigin: CallOrigin.streamChatResponse_withTools,
+      leakedToolCalls,
+    })
   }
   getTags(_config: LLMConfig): string[] {
     return []
@@ -467,6 +497,213 @@ describe("AISDKLLMModelMgmt", () => {
           { type: "text-delta", id: "text-1", delta: "lo" },
         ]),
       ).toEqual([{ type: "text-stream-collapsed", id: "text-1", text: "Hello" }])
+    })
+  })
+
+  describe("getLanguageModelWithRawCapture", () => {
+    const LEAKED_CALL_TEXT = "Done.\n\n<call:default_api:notify_operator{severity:high}/>"
+    const usage = {
+      inputTokens: { total: 0, noCache: 0, cacheRead: undefined, cacheWrite: undefined },
+      outputTokens: { total: 0, text: 0, reasoning: undefined },
+    }
+    const callOptions = {
+      prompt: [{ role: "user", content: [{ type: "text", text: "Hi" }] }],
+    } as LanguageModelV3CallOptions
+
+    let span: { setAttribute: jest.Mock }
+
+    beforeEach(() => {
+      span = { setAttribute: jest.fn() }
+      jest.spyOn(trace, "getActiveSpan").mockReturnValue(span as unknown as Span)
+    })
+
+    afterEach(() => {
+      jest.restoreAllMocks()
+    })
+
+    const attribute = (name: string) =>
+      span.setAttribute.mock.calls.find(([attributeName]) => attributeName === name)?.[1]
+
+    const generateModel = (content: LanguageModelV3Content[]) =>
+      new MockLanguageModelV3({
+        doGenerate: async (): Promise<LanguageModelV3GenerateResult> => ({
+          content,
+          finishReason: { unified: "stop", raw: undefined },
+          usage,
+          warnings: [],
+          request: { body: '{"messages":[]}' },
+          response: {
+            id: "response-1",
+            timestamp: new Date(0),
+            modelId: "mock",
+            body: { id: "raw-1" },
+          },
+        }),
+      })
+
+    const streamModel = (chunks: LanguageModelV3StreamPart[]) =>
+      new MockLanguageModelV3({
+        doStream: async () => ({
+          stream: simulateReadableStream({ chunks }),
+          request: { body: '{"messages":[]}' },
+        }),
+      })
+
+    const textChunks = (text: string, size = 7): LanguageModelV3StreamPart[] => {
+      const deltas: LanguageModelV3StreamPart[] = []
+      for (let index = 0; index < text.length; index += size) {
+        deltas.push({ type: "text-delta", id: "text-1", delta: text.slice(index, index + size) })
+      }
+      return [
+        { type: "text-start", id: "text-1" },
+        ...deltas,
+        { type: "text-end", id: "text-1" },
+        { type: "finish", finishReason: { unified: "stop", raw: undefined }, usage },
+      ]
+    }
+
+    const collect = async (model: LanguageModelV3) => {
+      const { stream } = await model.doStream(callOptions)
+      const streamParts: LanguageModelV3StreamPart[] = []
+      const reader = stream.getReader()
+      for (;;) {
+        const { done, value } = await reader.read()
+        if (done) return streamParts
+        streamParts.push(value)
+      }
+    }
+
+    const streamedText = (streamParts: LanguageModelV3StreamPart[]) =>
+      streamParts.map((part) => (part.type === "text-delta" ? part.delta : "")).join("")
+
+    describe("generate", () => {
+      it("cleans the text the model wrote and keeps the other parts", async () => {
+        const toolCall: LanguageModelV3Content = {
+          type: "tool-call",
+          toolCallId: "call-1",
+          toolName: "lookup_knowledge_base",
+          input: "{}",
+        }
+        const model = new TestModelMgmt(
+          generateModel([
+            {
+              type: "text",
+              text: "<|channel>thought Plan the answer<channel|>Our plans start at 10.",
+            },
+            toolCall,
+          ]),
+        ).rawCaptureModelFor()
+
+        const result = await model.doGenerate(callOptions)
+
+        expect(result.content).toEqual([{ type: "text", text: "Our plans start at 10." }, toolCall])
+      })
+
+      it("records the raw request, the raw response and the cleaned text on the span", async () => {
+        const model = new TestModelMgmt(
+          generateModel([{ type: "text", text: "<|channel>thought Plan<channel|>Hello" }]),
+        ).rawCaptureModelFor()
+
+        await model.doGenerate(callOptions)
+
+        expect(attribute(RAW_LLM_REQUEST_ATTR)).toBe('{"messages":[]}')
+        expect(attribute(RAW_LLM_RESPONSE_ATTR)).toBe('{"id":"raw-1"}')
+        expect(attribute(RAW_LLM_RESPONSE_STRIPPED_ATTR)).toBe("Hello")
+      })
+
+      it("records no cleaned text when there was nothing to clean", async () => {
+        const model = new TestModelMgmt(
+          generateModel([{ type: "text", text: "Hello" }]),
+        ).rawCaptureModelFor()
+
+        await model.doGenerate(callOptions)
+
+        expect(attribute(RAW_LLM_RESPONSE_STRIPPED_ATTR)).toBeUndefined()
+      })
+
+      it("collects the tool calls the model verbalized in its text", async () => {
+        const leakedToolCalls: LeakedToolCall[] = []
+        const model = new TestModelMgmt(
+          generateModel([{ type: "text", text: LEAKED_CALL_TEXT }]),
+        ).rawCaptureModelFor(leakedToolCalls)
+
+        const result = await model.doGenerate(callOptions)
+
+        expect(leakedToolCalls.map((leakedCall) => leakedCall.name)).toEqual(["notify_operator"])
+        expect(JSON.stringify(result.content)).not.toContain("<call:")
+      })
+
+      it("returns the cleaned result even when the span cannot be written", async () => {
+        span.setAttribute.mockImplementation(() => {
+          throw new Error("exporter down")
+        })
+        const model = new TestModelMgmt(
+          generateModel([{ type: "text", text: "<|channel>thought Plan<channel|>Hello" }]),
+        ).rawCaptureModelFor()
+
+        const result = await model.doGenerate(callOptions)
+
+        expect(result.content).toEqual([{ type: "text", text: "Hello" }])
+      })
+    })
+
+    describe("stream", () => {
+      const LONG_ANSWER =
+        "Our plans start at 10 euros a month, with a yearly discount for teams of five or more. "
+
+      it("cleans a verbalized tool call split across many deltas", async () => {
+        const model = new TestModelMgmt(
+          streamModel(textChunks(`${LONG_ANSWER}${LEAKED_CALL_TEXT}`)),
+        ).rawCaptureModelFor()
+
+        const text = streamedText(await collect(model))
+
+        expect(text).toContain("Our plans start at 10 euros a month")
+        expect(text).not.toContain("<call:")
+        expect(text).not.toContain("notify_operator")
+      })
+
+      it("records the request, the grouped response and the cleaned text, and collects leaked calls", async () => {
+        const leakedToolCalls: LeakedToolCall[] = []
+        const model = new TestModelMgmt(
+          streamModel(textChunks(`${LONG_ANSWER}${LEAKED_CALL_TEXT}`)),
+        ).rawCaptureModelFor(leakedToolCalls)
+
+        await collect(model)
+
+        expect(attribute(RAW_LLM_REQUEST_ATTR)).toBe('{"messages":[]}')
+        expect(JSON.parse(attribute(RAW_LLM_RESPONSE_ATTR))).toEqual([
+          {
+            type: "text-stream-collapsed",
+            id: "text-1",
+            text: `${LONG_ANSWER}${LEAKED_CALL_TEXT}`,
+          },
+          { type: "finish", finishReason: { unified: "stop" }, usage },
+        ])
+        expect(attribute(RAW_LLM_RESPONSE_STRIPPED_ATTR)).not.toContain("<call:")
+        expect(leakedToolCalls.map((leakedCall) => leakedCall.name)).toEqual(["notify_operator"])
+      })
+
+      it("emits a tool call the provider dropped for malformed arguments", async () => {
+        const model = new TestModelMgmt(
+          streamModel([
+            { type: "tool-input-start", id: "call-1", toolName: "record_answer" },
+            { type: "tool-input-delta", id: "call-1", delta: '{"answer": "Yes"Yes"}' },
+            { type: "finish", finishReason: { unified: "tool-calls", raw: undefined }, usage },
+          ]),
+        ).rawCaptureModelFor()
+
+        const streamParts = await collect(model)
+
+        expect(streamParts.map((part) => part.type)).toEqual([
+          "tool-input-start",
+          "tool-input-delta",
+          "tool-input-end",
+          "tool-call",
+          "finish",
+        ])
+        expect(attribute("llm.tool_call.emitted_from_unfinished_input")).toBe("record_answer")
+      })
     })
   })
 })
