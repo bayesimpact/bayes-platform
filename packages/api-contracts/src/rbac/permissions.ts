@@ -84,6 +84,20 @@ export const PROJECT_MEMBER_UPDATE_PERMISSION = "project.member.update" as const
 export const AGENT_MEMBER_INVITE_PERMISSION = "agent.member.invite" as const
 
 /**
+ * List the project's agents with their unpublished draft settings, as the studio and
+ * evaluation apps do. Scoped to the project and never inherited from the organization.
+ */
+export const AGENT_DRAFT_READ_PERMISSION = "agent.draft.read" as const
+
+/**
+ * See and replace the sub-agents an agent can call. Held on the agent only: a project
+ * or organization role does not grant them.
+ */
+export const AGENT_SUB_AGENT_READ_PERMISSION = "agent.sub_agent.read" as const
+
+export const AGENT_SUB_AGENT_UPDATE_PERMISSION = "agent.sub_agent.update" as const
+
+/**
  * Open a user interface of a project. One permission per app, scoped to the project
  * and never inherited from the organization.
  */
