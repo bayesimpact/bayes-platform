@@ -46,7 +46,7 @@ export class AISDKMedGemmaProvider extends AISDKVllmProviderBase<AgentProvider.M
         throw new NotImplementedException(`DEV - Unknown callOrigin: ${callOrigin}`)
     }
   }
-  override applySpecificToSystemPrompt({
+  protected override applySpecificToSystemPrompt({
     config,
     systemPrompt,
     callOrigin,

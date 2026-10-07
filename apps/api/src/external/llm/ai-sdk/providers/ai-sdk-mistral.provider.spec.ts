@@ -3,7 +3,7 @@ import { afterAll, beforeAll } from "@jest/globals"
 import { NodeTracerProvider } from "@opentelemetry/sdk-trace-node"
 import { jsonSchema, tool } from "ai"
 import type { LLMChatMessage, LLMConfig } from "@/common/interfaces/llm-provider.interface"
-import { GetAgentModelKeyFromValue } from "@/external/llm/agent-provider"
+import { getAgentModelKey } from "@/external/llm/agent-provider"
 import { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
 import { AISDKMistralProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mistral.provider"
 import { ProviderSpecs } from "@/external/llm/ai-sdk/providers/provider-specs"
@@ -13,7 +13,7 @@ import { sdk } from "@/external/llm/open-telemetry-init"
 const testModels = Object.values(AgentModel)
   .filter((am) => AgentModelToAgentProvider[am] === AgentProvider.Mistral)
   .map((m) => ({
-    name: GetAgentModelKeyFromValue(m),
+    name: getAgentModelKey(m),
     model: m,
   }))
 
@@ -107,6 +107,9 @@ if (process.env.IS_TEST === "true" && process.env.MISTRAL_TEST === "true") {
 }
 
 class TestAISDKMistralProvider extends AISDKMistralProvider {
+  systemPromptFor(args: { config: LLMConfig; systemPrompt: string; callOrigin: CallOrigin }) {
+    return this.applySpecificToSystemPrompt(args)
+  }
   structuredOutputMessageFor(message: LLMChatMessage): LLMChatMessage {
     return this.applySpecificToStructuredOutputMessage({ message, config: {} as LLMConfig })
   }
@@ -140,7 +143,7 @@ describe("AISDKMistralProvider.applySpecificToStructuredOutputMessage", () => {
 })
 
 describe("AISDKMistralProvider.applySpecificToSystemPrompt", () => {
-  const provider = new AISDKMistralProvider()
+  const provider = new TestAISDKMistralProvider()
   const config = {
     model: AgentModel.MistralSmall31_24B,
     tools: {
@@ -156,7 +159,7 @@ describe("AISDKMistralProvider.applySpecificToSystemPrompt", () => {
   } as unknown as LLMConfig
 
   it("appends the tools and their parameters to the system prompt of a turn with tools", () => {
-    const prompt = provider.applySpecificToSystemPrompt({
+    const prompt = provider.systemPromptFor({
       config,
       systemPrompt: "You answer pricing questions.",
       callOrigin: CallOrigin.streamChatResponse_withTools,
@@ -174,7 +177,7 @@ You have access to the following tools:
 
   it("keeps the system prompt of a call without tools", () => {
     expect(
-      provider.applySpecificToSystemPrompt({
+      provider.systemPromptFor({
         config,
         systemPrompt: "You answer pricing questions.",
         callOrigin: CallOrigin.generateText,

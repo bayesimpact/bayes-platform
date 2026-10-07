@@ -10,7 +10,7 @@ import { NodeTracerProvider } from "@opentelemetry/sdk-trace-node"
 import { jsonSchema, tool } from "ai"
 import { z } from "zod"
 import type { LLMConfig, LLMMetadata } from "@/common/interfaces/llm-provider.interface"
-import { GetAgentModelKeyFromValue } from "@/external/llm/agent-provider"
+import { getAgentModelKey } from "@/external/llm/agent-provider"
 import { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
 import { AISDKMedGemmaProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-med-gemma.provider"
 import { ProviderSpecs } from "@/external/llm/ai-sdk/providers/provider-specs"
@@ -22,7 +22,7 @@ const testModels = Object.values(AgentModel)
       AgentModelToAgentProvider[am] === AgentProvider.MedGemma && am === AgentModel.MedGemma10_27B,
   )
   .map((m) => ({
-    name: GetAgentModelKeyFromValue(m),
+    name: getAgentModelKey(m),
     model: m,
   }))
 
@@ -110,6 +110,9 @@ if (process.env.IS_TEST === "true" && process.env.MEDGEMMA_TEST === "true") {
 }
 
 class TestAISDKMedGemmaProvider extends AISDKMedGemmaProvider {
+  systemPromptFor(args: { config: LLMConfig; systemPrompt: string; callOrigin: CallOrigin }) {
+    return this.applySpecificToSystemPrompt(args)
+  }
   readStructuredOutputFor(text: string): Record<string, unknown> {
     return this.readStructuredOutput({
       text,
@@ -267,7 +270,7 @@ describe("AISDKMedGemmaProvider through the AI SDK (vLLM simulated)", () => {
 
 describe("AISDKMedGemmaProvider.applySpecificToSystemPrompt", () => {
   it("lists the tools and their parameters, including an MCP tool, in a turn with tools", () => {
-    const prompt = new AISDKMedGemmaProvider().applySpecificToSystemPrompt({
+    const prompt = new TestAISDKMedGemmaProvider().systemPromptFor({
       config: {
         model: AgentModel.MedGemma10_27B,
         tools: {

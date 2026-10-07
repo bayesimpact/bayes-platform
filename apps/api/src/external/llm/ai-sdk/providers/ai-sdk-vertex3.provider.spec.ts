@@ -9,7 +9,7 @@ import { afterAll, beforeAll } from "@jest/globals"
 import { BatchSpanProcessor, ConsoleSpanExporter } from "@opentelemetry/sdk-trace-base"
 import { NodeTracerProvider } from "@opentelemetry/sdk-trace-node"
 import type { LLMConfig, LLMServiceTier } from "@/common/interfaces/llm-provider.interface"
-import { GetAgentModelKeyFromValue } from "@/external/llm/agent-provider"
+import { getAgentModelKey } from "@/external/llm/agent-provider"
 import { AISDKVertex3Provider } from "@/external/llm/ai-sdk/providers/ai-sdk-vertex3.provider"
 import { ProviderSpecs } from "@/external/llm/ai-sdk/providers/provider-specs"
 import { gcpCredentialsCheck } from "@/external/llm/ai-sdk/providers/spec-gcp-tools"
@@ -22,7 +22,7 @@ const testModels = Object.values(AgentModel)
       process.env.VERTEX3_TEST === "true",
   )
   .map((m) => ({
-    name: GetAgentModelKeyFromValue(m),
+    name: getAgentModelKey(m),
     model: m,
   }))
 

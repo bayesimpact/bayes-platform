@@ -47,7 +47,7 @@ class TestProvider<
 }
 
 class TestProviderWithOverrides extends TestProvider {
-  applySpecificToSystemPrompt({ systemPrompt }: { systemPrompt: string }): string {
+  protected applySpecificToSystemPrompt({ systemPrompt }: { systemPrompt: string }): string {
     return `${systemPrompt} Answer briefly.`
   }
   protected applyTemperature(): number | undefined {

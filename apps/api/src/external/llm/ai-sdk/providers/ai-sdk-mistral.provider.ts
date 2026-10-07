@@ -24,7 +24,7 @@ export class AISDKMistralProvider extends AISDKVllmProviderBase<AgentProvider.Mi
     return AgentProvider.Mistral
   }
 
-  override applySpecificToSystemPrompt({
+  protected override applySpecificToSystemPrompt({
     config,
     systemPrompt,
     callOrigin,

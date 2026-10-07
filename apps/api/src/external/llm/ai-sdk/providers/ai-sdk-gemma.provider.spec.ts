@@ -2,7 +2,7 @@ import { AgentModel, AgentModelToAgentProvider, AgentProvider } from "@caseai-co
 import { afterAll, beforeAll } from "@jest/globals"
 import { BatchSpanProcessor, ConsoleSpanExporter } from "@opentelemetry/sdk-trace-base"
 import { NodeTracerProvider } from "@opentelemetry/sdk-trace-node"
-import { GetAgentModelKeyFromValue } from "@/external/llm/agent-provider"
+import { getAgentModelKey } from "@/external/llm/agent-provider"
 import { AISDKGemmaProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-gemma.provider"
 import { ProviderSpecs } from "@/external/llm/ai-sdk/providers/provider-specs"
 import { gcpCredentialsCheck } from "@/external/llm/ai-sdk/providers/spec-gcp-tools"
@@ -11,7 +11,7 @@ import { sdk } from "@/external/llm/open-telemetry-init"
 const testModels = Object.values(AgentModel)
   .filter((am) => AgentModelToAgentProvider[am] === AgentProvider.Gemma)
   .map((m) => ({
-    name: GetAgentModelKeyFromValue(m),
+    name: getAgentModelKey(m),
     model: m,
   }))
 

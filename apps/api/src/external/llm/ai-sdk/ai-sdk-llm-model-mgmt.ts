@@ -555,12 +555,8 @@ export abstract class AISDKLLMModelMgmt<
     })
   }
 
-  applySpecificToSystemPrompt({
-    // biome-ignore lint/correctness/noUnusedFunctionParameters: used in override
-    config,
+  protected applySpecificToSystemPrompt({
     systemPrompt,
-    // biome-ignore lint/correctness/noUnusedFunctionParameters: used in override
-    callOrigin,
   }: {
     config: LLMConfig
     systemPrompt: string

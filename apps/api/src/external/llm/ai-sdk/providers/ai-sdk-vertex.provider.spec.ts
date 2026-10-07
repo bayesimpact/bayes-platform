@@ -2,7 +2,7 @@ import { AgentModel, AgentModelToAgentProvider, AgentProvider } from "@caseai-co
 import { afterAll, beforeAll } from "@jest/globals"
 import { BatchSpanProcessor, ConsoleSpanExporter } from "@opentelemetry/sdk-trace-base"
 import { NodeTracerProvider } from "@opentelemetry/sdk-trace-node"
-import { GetAgentModelKeyFromValue } from "@/external/llm/agent-provider"
+import { getAgentModelKey } from "@/external/llm/agent-provider"
 import { AISDKVertexProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-vertex.provider"
 import { ProviderSpecs } from "@/external/llm/ai-sdk/providers/provider-specs"
 import { gcpCredentialsCheck } from "@/external/llm/ai-sdk/providers/spec-gcp-tools"
@@ -14,7 +14,7 @@ const testModels = Object.values(AgentModel)
       AgentModelToAgentProvider[am] === AgentProvider.Vertex && process.env.VERTEX_TEST === "true",
   )
   .map((m) => ({
-    name: GetAgentModelKeyFromValue(m),
+    name: getAgentModelKey(m),
     model: m,
   }))
 

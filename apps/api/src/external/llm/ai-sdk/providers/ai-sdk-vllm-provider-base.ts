@@ -6,7 +6,7 @@ import { NotImplementedException } from "@nestjs/common"
 import { asSchema, type ToolSet } from "ai"
 import { GoogleAuth } from "google-auth-library"
 import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"
-import { GetAgentModelKeyFromValue } from "@/external/llm/agent-provider"
+import { getAgentModelKey } from "@/external/llm/agent-provider"
 import type { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
 import { AISDKLLMProviderBase } from "@/external/llm/ai-sdk/ai-sdk-llm-provider-base"
 
@@ -68,7 +68,7 @@ export abstract class AISDKVllmProviderBase<
   }
 
   protected getModelEnvSettings(model: string): { url: string; apiKey: string } {
-    const agentModelKey = GetAgentModelKeyFromValue(model)
+    const agentModelKey = getAgentModelKey(model)
     if (!agentModelKey) throw new NotImplementedException(`DEV - Unknown model: ${model}`)
     const envKeyUrl = `VLLM_${agentModelKey.toUpperCase()}_URL`
     const url = process.env[envKeyUrl]
