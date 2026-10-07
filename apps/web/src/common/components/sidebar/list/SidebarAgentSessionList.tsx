@@ -24,7 +24,6 @@ import { deleteAgentSession } from "@/common/features/agents/agent-sessions/shar
 import { BaseAgentSessionCreator } from "@/common/features/agents/agent-sessions/shared/base-agent-session/components/BaseAgentSessionCreator"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { selectCurrentAgentId } from "@/common/features/agents/agents.selectors"
-import { useGetAgentRoute } from "@/common/hooks/use-get-path"
 import { useRoutesBuilder } from "@/common/routes/build-routes/context"
 import { ADS } from "@/common/store/async-data-status"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
@@ -107,8 +106,7 @@ function SessionList({
 
       {/* Outside the session links, so clicks in the dialog do not navigate to a session. */}
       <ConfirmDeleteSessionDialog
-        agentId={agentSessionProps.agentId}
-        agentType={agentSessionProps.agentType}
+        agentSessionProps={agentSessionProps}
         agentSessionId={sessionIdToDelete}
         onClose={() => setSessionIdToDelete(null)}
       />
@@ -150,21 +148,20 @@ function OptionsMenu({ onDelete }: { onDelete: () => void }) {
 }
 
 function ConfirmDeleteSessionDialog({
-  agentId,
-  agentType,
+  agentSessionProps,
   agentSessionId,
   onClose,
 }: {
-  agentId: string
-  agentType: Agent["type"]
+  agentSessionProps: AgentSessionProps
   agentSessionId: string | null
   onClose: () => void
 }) {
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const { t } = useTranslation()
-  const agentRoute = useGetAgentRoute()
-  const handleSuccess = () => navigate(agentRoute)
+  const { build } = useRoutesBuilder()
+  const { organizationId, projectId, agentId, agentType } = agentSessionProps
+  const handleSuccess = () => navigate(build.agentRoute({ organizationId, projectId, agentId }))
   const handleDelete = () => {
     if (agentSessionId) {
       dispatch(deleteAgentSession({ agentType, agentId, agentSessionId, onSuccess: handleSuccess }))

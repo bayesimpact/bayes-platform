@@ -1,4 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
+import { agentFactory } from "@/common/features/agents/agent.factory"
+import { conversationAgentSessionFactory } from "@/common/features/agents/agent-sessions/agent-session.factory"
 import { buildDecorator, render } from "@/stories/decorators"
 import {
   buildStudioData,
@@ -150,6 +152,38 @@ export const WithMembers: Story = {
                   })
                 : [],
             ),
+          ),
+        }
+      },
+    ),
+  ],
+}
+
+/**
+ * Reached from an agent page: that agent's sessions are still cached while the URL no
+ * longer has an agent id. The sidebar must render without a current agent.
+ */
+export const WithCachedAgentSessions: Story = {
+  args: { withAgents: true },
+  decorators: [
+    buildDecorator<StoryArgs>(
+      ({ withMemberships, withNeverSignedInMembers, withPendingInvitations, ...args }) => {
+        const { baseSeeds, project, agents } = buildStudioData(args)
+        const [firstAgent, ...restAgents] = agents
+        const conversationAgent = agentFactory
+          .transient({ project })
+          .build({ ...firstAgent, type: "conversation" })
+        const sessions = conversationAgentSessionFactory
+          .transient({ agent: conversationAgent })
+          .buildList(2)
+        return {
+          state: mergeSeeds(
+            baseSeeds,
+            seed.agents([conversationAgent, ...restAgents]),
+            seed.conversationAgentSessions({ [conversationAgent.id]: sessions }),
+            seed.studio.projectMemberships([
+              projectMembershipFactory.transient({ project }).build({ role: "owner" }),
+            ]),
           ),
         }
       },
