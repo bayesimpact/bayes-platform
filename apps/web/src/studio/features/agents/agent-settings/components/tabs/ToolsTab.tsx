@@ -24,6 +24,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
+import { RestrictedFeature } from "@/common/components/RestrictedFeature"
 import { updateAgentSettingsTools } from "@/common/features/agents/agent-settings/agent-settings.thunks"
 import { useAppDispatch } from "@/common/store/hooks"
 import { type AgentTabFormProps, pickDirtyFields, useReportDirty } from "../agent-tab-form.shared"
@@ -117,34 +118,36 @@ export function ToolsTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
           )}
         </div>
 
-        <div className="rounded-lg border p-4">
-          <FormField
-            control={form.control}
-            name="memoryMode"
-            render={({ field }) => (
-              <FormItem className="flex items-center justify-between gap-4">
-                <div className="space-y-1">
-                  <FormLabel>{t("agentSettings:tools.memory.title")}</FormLabel>
-                  <FormDescription>{t("agentSettings:tools.memory.description")}</FormDescription>
-                </div>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger className="w-56 shrink-0">
-                      <SelectValue />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {Object.values(AgentMemoryMode).map((memoryMode) => (
-                      <SelectItem key={memoryMode} value={memoryMode}>
-                        {t(`agentSettings:tools.memory.modes.${memoryMode}`)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormItem>
-            )}
-          />
-        </div>
+        <RestrictedFeature feature="agent-memory">
+          <div className="rounded-lg border p-4">
+            <FormField
+              control={form.control}
+              name="memoryMode"
+              render={({ field }) => (
+                <FormItem className="flex items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <FormLabel>{t("agentSettings:tools.memory.title")}</FormLabel>
+                    <FormDescription>{t("agentSettings:tools.memory.description")}</FormDescription>
+                  </div>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="w-56 shrink-0">
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {Object.values(AgentMemoryMode).map((memoryMode) => (
+                        <SelectItem key={memoryMode} value={memoryMode}>
+                          {t(`agentSettings:tools.memory.modes.${memoryMode}`)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )}
+            />
+          </div>
+        </RestrictedFeature>
 
         <TabSaveButton
           isSubmitting={form.formState.isSubmitting}

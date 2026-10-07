@@ -423,14 +423,9 @@ export class ToolsService {
       agentSettings.fillFormEnabled &&
       agentSettings.outputJsonSchema != null &&
       sessionPersistsForms(session)
-    // Memory needs a signed-in user to remember things about, and the agent
-    // to have it on (see ADR 0023).
-    const memoryOwner =
-      agentSettings.memoryMode === AgentMemoryMode.Off
-        ? null
-        : memoryOwnerForSession({ agent, session })
     const [
       hasSourcesTool,
+      memoryEnabled,
       {
         tools: subAgentTools,
         toolDescriptions: subAgentToolDescriptions,
@@ -441,6 +436,11 @@ export class ToolsService {
     ] = await Promise.all([
       // Check if the agent has the sources tool enabled
       this.projectsService.hasFeature({ connectScope, feature: "sources-tool" }),
+
+      // Memory is on for this agent and its project has the feature
+      agentSettings.memoryMode === AgentMemoryMode.Off
+        ? Promise.resolve(false)
+        : this.projectsService.hasFeature({ connectScope, feature: "agent-memory" }),
 
       // Build sub-agent tools if requested
       includeSubAgentTools
@@ -471,6 +471,8 @@ export class ToolsService {
             handoffTurnState: {} as HandoffTurnState,
           }),
     ])
+    // Memory also needs a signed-in user to remember things about (see ADR 0023).
+    const memoryOwner = memoryEnabled ? memoryOwnerForSession({ agent, session }) : null
     // A sub-agent answering as the active agent of a handoff hands the
     // conversation back itself, with this tool; the post-turn step also reads
     // its reply for a conclusion it forgot to signal, and summarizes its part.

@@ -571,6 +571,11 @@ describe("Tools execution", () => {
     memoryMode?: AgentMemoryMode
   } = {}) => {
     const context = await createContextWithSession()
+    await addFeature({
+      featureFlagRepository: repositories.featureFlagRepository,
+      projectId: context.project.id,
+      featureFlagKey: "agent-memory",
+    })
     return { ...context, agentSettings: { ...context.agentSettings, memoryMode } }
   }
 
@@ -656,6 +661,18 @@ describe("Tools execution", () => {
     })
 
     expect(await repositories.agentMemoryRepository.count()).toBe(0)
+  })
+
+  it("Memory tools - built only when the project has the agent-memory feature", async () => {
+    const { connectScope, agent, agentSettings, session } = await createContextWithSession()
+    const { toolNames, promptSections } = await buildToolNames({
+      agent,
+      agentSettings: { ...agentSettings, memoryMode: AgentMemoryMode.Ask },
+      session,
+      connectScope,
+    })
+    expect(toolNames).not.toContain(ToolName.SaveMemory)
+    expect(promptSections.join("\n")).not.toContain("Your memory of this user")
   })
 
   it("Memory tools - built only with a memory mode and a signed-in user", async () => {
