@@ -20,7 +20,7 @@ function registerListeners() {
       deleteDocumentTag.fulfilled,
     ),
     effect: async (_, listenerApi) => {
-      listenerApi.dispatch(listAgents())
+      listenerApi.dispatch(listAgents({ includeDrafts: true }))
     },
   })
 
@@ -28,7 +28,7 @@ function registerListeners() {
     actionCreator: updateAgent.fulfilled,
     effect: async (action, listenerApi) => {
       const agentId = action.meta.arg.agentId
-      await listenerApi.dispatch(listAgents())
+      await listenerApi.dispatch(listAgents({ includeDrafts: true }))
       await listenerApi.dispatch(listAgentSettingsWithDraft({ agentId }))
 
       listenerApi.dispatch(
@@ -54,7 +54,7 @@ function registerListeners() {
   listenerMiddleware.startListening({
     actionCreator: deleteAgent.fulfilled,
     effect: async (_, listenerApi) => {
-      await listenerApi.dispatch(listAgents())
+      await listenerApi.dispatch(listAgents({ includeDrafts: true }))
 
       listenerApi.dispatch(
         notificationsActions.show({
@@ -80,7 +80,7 @@ function registerListeners() {
     actionCreator: createAgent.fulfilled,
     effect: async (action, listenerApi) => {
       const agentId = action.payload.id
-      await listenerApi.dispatch(listAgents())
+      await listenerApi.dispatch(listAgents({ includeDrafts: true }))
       await listenerApi.dispatch(listAgentSettingsWithDraft({ agentId }))
 
       listenerApi.dispatch(
