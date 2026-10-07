@@ -12,6 +12,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Changed
 
 ### Fixed
+- Studio: opening a project page after visiting an agent no longer shows an error.
 
 ### Security
 
