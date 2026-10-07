@@ -14,6 +14,7 @@ import { PermissionService } from "@/domains/rbac/permission.service"
 import {
   AGENT_ROLE_PERMISSIONS,
   AGENT_ROLES,
+  AGENT_SETTINGS_DRAFT_READ_PERMISSION,
   APP_INSTALL_PERMISSION,
   BACKOFFICE_AGENT_READ_PERMISSION,
   BACKOFFICE_APP_MANAGE_PERMISSION,
@@ -1206,7 +1207,11 @@ describe("PermissionService", () => {
 
       expect([...permissionsByAgentId.keys()]).toEqual([agent.id])
       expect(permissionsByAgentId.get(agent.id)?.sort()).toEqual(
-        ["agent.read", BACKOFFICE_AGENT_READ_PERMISSION].sort(),
+        [
+          "agent.read",
+          AGENT_SETTINGS_DRAFT_READ_PERMISSION,
+          BACKOFFICE_AGENT_READ_PERMISSION,
+        ].sort(),
       )
     })
 
@@ -1288,7 +1293,11 @@ describe("PermissionService", () => {
         const permissionsByAgentId = await service.listResourcePermissions(user.id, "agent.read")
         expect([...permissionsByAgentId.keys()].sort()).toEqual([agentA.id, agentB.id].sort())
         expect(permissionsByAgentId.get(agentB.id)?.sort()).toEqual(
-          ["agent.read", BACKOFFICE_AGENT_READ_PERMISSION].sort(),
+          [
+            "agent.read",
+            AGENT_SETTINGS_DRAFT_READ_PERMISSION,
+            BACKOFFICE_AGENT_READ_PERMISSION,
+          ].sort(),
         )
       } finally {
         const testRole = await repositories.roleRepository.findOne({

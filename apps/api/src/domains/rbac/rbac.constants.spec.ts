@@ -3,6 +3,11 @@ import {
   AGENT_DRAFT_READ_PERMISSION,
   AGENT_MEMBER_INVITE_PERMISSION,
   AGENT_ROLE_PERMISSIONS,
+  AGENT_SETTINGS_ARCHIVE_PERMISSION,
+  AGENT_SETTINGS_DRAFT_PUBLISH_PERMISSION,
+  AGENT_SETTINGS_DRAFT_READ_PERMISSION,
+  AGENT_SETTINGS_DRAFT_UPDATE_PERMISSION,
+  AGENT_SETTINGS_RESTORE_PERMISSION,
   AGENT_SUB_AGENT_READ_PERMISSION,
   AGENT_SUB_AGENT_UPDATE_PERMISSION,
   APP_GRANTABLE_PERMISSIONS,
@@ -175,6 +180,52 @@ describe("agent draft and sub-agent permissions", () => {
     expect(inheritable).not.toContain(AGENT_DRAFT_READ_PERMISSION)
     expect(inheritable).not.toContain(AGENT_SUB_AGENT_READ_PERMISSION)
     expect(inheritable).not.toContain(AGENT_SUB_AGENT_UPDATE_PERMISSION)
+  })
+})
+
+describe("agent settings permissions", () => {
+  const rolesHolding = (rolePermissions: Record<string, readonly string[]>, permission: string) =>
+    Object.entries(rolePermissions)
+      .filter(([_roleKey, permissions]) => permissions.includes(permission))
+      .map(([roleKey]) => roleKey)
+
+  const agentSettingsChangePermissions = [
+    AGENT_SETTINGS_DRAFT_UPDATE_PERMISSION,
+    AGENT_SETTINGS_DRAFT_PUBLISH_PERMISSION,
+    AGENT_SETTINGS_RESTORE_PERMISSION,
+    AGENT_SETTINGS_ARCHIVE_PERMISSION,
+  ]
+
+  it("grants the settings history to project owners and admins only", () => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, AGENT_SETTINGS_DRAFT_READ_PERMISSION)).toEqual([
+      "project_owner",
+      "project_admin",
+    ])
+    expect(
+      rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, AGENT_SETTINGS_DRAFT_READ_PERMISSION),
+    ).toEqual([])
+  })
+
+  it.each(
+    agentSettingsChangePermissions,
+  )("grants %s to agent owners and admins only", (permission) => {
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual(["agent_owner", "agent_admin"])
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
+  })
+
+  it("passes the settings history down from the project to its agents", () => {
+    expect(RESOURCE_TYPE_PERMISSIONS_MAP.agent).toContain(AGENT_SETTINGS_DRAFT_READ_PERMISSION)
+  })
+
+  it("never inherits the settings changes from a parent resource", () => {
+    const inheritable: readonly string[] = [
+      ...RESOURCE_TYPE_PERMISSIONS_MAP.project,
+      ...RESOURCE_TYPE_PERMISSIONS_MAP.agent,
+    ]
+    for (const permission of agentSettingsChangePermissions) {
+      expect(inheritable).not.toContain(permission)
+    }
   })
 })
 

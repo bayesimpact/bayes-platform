@@ -20,6 +20,7 @@ The code no longer matches either description. Access is a permission string gra
 ### 2.1 Catalog
 
 * Permission strings are declared only in `packages/api-contracts/src/rbac/permissions.ts`. `GlobalPermission` lists the strings that are not tied to a resource id.
+* Every permission string has an exported constant named after it: `project.update` is `PROJECT_UPDATE_PERMISSION`, `agent.settings.draft.read` is `AGENT_SETTINGS_DRAFT_READ_PERMISSION`. Code always uses the constant, in `@CheckPermission`, in role grants and maps, and in `PermissionService` calls. It never writes the string itself, so a typo fails the typecheck instead of silently denying access. Literals such as `"project.update"` or `"agent.read"` that remain in older code are replaced by their constant when that code changes.
 * Role keys and which role receives which permission live in `apps/api/src/domains/rbac/rbac.constants.ts`: `ORGANIZATION_ROLE_PERMISSIONS` (org roles plus `platform_staff` and `platform_superadmin`), `PROJECT_ROLE_PERMISSIONS`, and `AGENT_ROLE_PERMISSIONS`. The API file imports the strings. It does not declare them again.
 * `docs/rbac-permission-matrix.md` mirrors that catalog and changes in the same commit. `.cursor/rules/permission-matrix.mdc` and the `check-permission-matrix` skill keep the mirror honest.
 * `RbacService` seeds `role` and `role_permission` for tests and local `seed:rbac`. Production receives the same rows from a data migration. The process does not re-read the constants at startup.
@@ -32,7 +33,7 @@ There is still no read-time guess of the form "an org owner may do everything in
 
 ### 2.3 Endpoint check
 
-`@CheckPermission(permission)` marks a route. `CheckPermissionGuard` runs after `JwtAuthGuard` and `UserGuard`.
+`@CheckPermission(permission)` marks a route, for example `@CheckPermission(PROJECT_UPDATE_PERMISSION, "project")`. `CheckPermissionGuard` runs after `JwtAuthGuard` and `UserGuard`.
 
 * Without a resource type, the guard calls `PermissionService.hasGlobal`.
 * With `"organization"`, `"project"`, or `"agent"`, it resolves the id from the request context or the route param and calls `PermissionService.has`. A global grant of the same key also passes.

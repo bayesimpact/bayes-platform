@@ -68,6 +68,7 @@ The `csv_extraction_run.*` permissions are not inherited either: an organization
 | `agent.create` | ✅ | ✅ | — |
 | `agent.read` | ✅ | ✅ | — |
 | `agent.draft.read` — list the project's agents with their draft settings | ✅ | ✅ | — |
+| `agent.settings.draft.read` — see the revision history of an agent's settings, drafts included | ✅ | ✅ | — |
 | `document.read` | ✅ | ✅ | — |
 | `document.create` | ✅ | ✅ | — |
 | `document.update` | ✅ | ✅ | — |
@@ -119,6 +120,10 @@ The two analytics permissions are never inherited from a parent resource: an org
 
 `agent.sub_agent.read` and `agent.sub_agent.update` are held on the agent only as well: a project or organization role does not open an agent's sub-agents.
 
+The same goes for `agent.settings.draft.update`, `agent.settings.draft.publish`, `agent.settings.restore` and `agent.settings.archive`: only an agent role lets someone change an agent's settings.
+
+`agent.settings.draft.read` works the other way: it is checked on the agent but granted on project owners and admins, and passes down to every agent of the project.
+
 | Permission | `agent_owner` | `agent_admin` | `agent_member` |
 |---|---|---|---|
 | `agent.read` | ✅ | ✅ | ✅ |
@@ -128,6 +133,10 @@ The two analytics permissions are never inherited from a parent resource: an org
 | `agent.member.invite` — invite people to the agent, see and revoke pending invitations | ✅ | ✅ | — |
 | `agent.sub_agent.read` — see the sub-agents the agent can call | ✅ | ✅ | — |
 | `agent.sub_agent.update` — replace the sub-agents the agent can call | ✅ | ✅ | — |
+| `agent.settings.draft.update` — edit the draft settings | ✅ | ✅ | — |
+| `agent.settings.draft.publish` — publish the draft settings as a new revision | ✅ | ✅ | — |
+| `agent.settings.restore` — restore an older revision of the settings into the draft | ✅ | ✅ | — |
+| `agent.settings.archive` — archive a revision of the settings | ✅ | ✅ | — |
 | `user.read` — see the agent's members | ✅ | ✅ | — |
 | `backoffice.agent.read` — see the agent in the backoffice | ✅ | ✅ | — |
 

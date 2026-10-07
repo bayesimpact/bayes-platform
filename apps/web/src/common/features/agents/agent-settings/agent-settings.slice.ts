@@ -2,7 +2,7 @@ import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
 import { ADS, type AsyncData } from "@/common/store/async-data-status"
 import type { Agent } from "../agents.models"
 import type { AgentSettings } from "./agent-settings.models"
-import { listAgentSettings } from "./agent-settings.thunks"
+import { listAgentSettingsWithDraft } from "./agent-settings.thunks"
 
 type DataType = Record<Agent["id"], AsyncData<AgentSettings[]>> // keyed by agentId
 
@@ -36,7 +36,7 @@ const slice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(listAgentSettings.pending, (state, action) => {
+      .addCase(listAgentSettingsWithDraft.pending, (state, action) => {
         const agentId = action.meta.arg.agentId
         if (!state.history[agentId])
           state.history[agentId] = {
@@ -45,7 +45,7 @@ const slice = createSlice({
             error: null,
           }
       })
-      .addCase(listAgentSettings.fulfilled, (state, action) => {
+      .addCase(listAgentSettingsWithDraft.fulfilled, (state, action) => {
         const agentId = action.meta.arg.agentId
         state.history[agentId] = {
           status: ADS.Fulfilled,
@@ -53,7 +53,7 @@ const slice = createSlice({
           value: action.payload,
         }
       })
-      .addCase(listAgentSettings.rejected, (state, action) => {
+      .addCase(listAgentSettingsWithDraft.rejected, (state, action) => {
         const agentId = action.meta.arg.agentId
         state.history[agentId] = {
           status: ADS.Error,

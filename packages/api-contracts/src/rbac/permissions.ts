@@ -59,6 +59,14 @@ export const PROJECT_DELETE_PERMISSION = "project.delete" as const
 /** Read a project's conversation analytics. Not inherited from the organization. */
 export const PROJECT_ANALYTICS_READ_PERMISSION = "project.analytics.read" as const
 
+export const AGENT_CREATE_PERMISSION = "agent.create" as const
+
+export const AGENT_READ_PERMISSION = "agent.read" as const
+
+export const AGENT_UPDATE_PERMISSION = "agent.update" as const
+
+export const AGENT_DELETE_PERMISSION = "agent.delete" as const
+
 /**
  * Read an agent's conversation analytics. Held on the agent only: a project or
  * organization role does not grant it.
@@ -96,6 +104,25 @@ export const AGENT_DRAFT_READ_PERMISSION = "agent.draft.read" as const
 export const AGENT_SUB_AGENT_READ_PERMISSION = "agent.sub_agent.read" as const
 
 export const AGENT_SUB_AGENT_UPDATE_PERMISSION = "agent.sub_agent.update" as const
+
+/**
+ * See the revision history of an agent's settings, drafts included. Checked on the
+ * agent, and granted on project roles that pass it down to every agent of the project.
+ */
+export const AGENT_SETTINGS_DRAFT_READ_PERMISSION = "agent.settings.draft.read" as const
+
+/**
+ * Edit an agent's draft settings, publish the draft as a new revision, restore an older
+ * revision into the draft, or archive a revision. Held on the agent only: a project
+ * or organization role does not grant them.
+ */
+export const AGENT_SETTINGS_DRAFT_UPDATE_PERMISSION = "agent.settings.draft.update" as const
+
+export const AGENT_SETTINGS_DRAFT_PUBLISH_PERMISSION = "agent.settings.draft.publish" as const
+
+export const AGENT_SETTINGS_RESTORE_PERMISSION = "agent.settings.restore" as const
+
+export const AGENT_SETTINGS_ARCHIVE_PERMISSION = "agent.settings.archive" as const
 
 /**
  * Open a user interface of a project. One permission per app, scoped to the project
