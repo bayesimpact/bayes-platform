@@ -260,7 +260,7 @@ LOCAL_EMBEDDINGS_ENABLED=true
 WORKER_QUEUE_NAMES=...,project-embedding-reembed,query-embeddings
 ```
 
-Models download from the HuggingFace hub on first use. CUDA, Apple Silicon (`mps`) and CPU are auto-detected; `LOCAL_EMBEDDING_DEVICE` overrides it. Then toggle the `local-embeddings` flag on the project in the back-office and enable a model from an agent's Model tab. See ADR 0019.
+Models download from the HuggingFace hub on first use. CUDA, Apple Silicon (`mps`) and CPU are auto-detected; `LOCAL_EMBEDDING_DEVICE` overrides it. Then toggle the `local-embeddings` flag on the project in the back-office and enable a model from an agent's Model tab. See ADR 0023.
 
 Docling-related environment variables:
 

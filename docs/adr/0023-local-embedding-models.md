@@ -1,4 +1,4 @@
-# ADR 0019: Local embedding models behind a feature flag
+# ADR 0023: Local embedding models behind a feature flag
 
 - Status: Accepted
 - Date: 2026-09-28
