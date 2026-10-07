@@ -85,7 +85,8 @@ config:
   OIDC_AUTHORIZATION_PARAMS: ""
   # Invitation emails (optional). Without SMTP_HOST the platform sends no email
   # and admins copy each invitation link. Any SMTP server works. The links point
-  # at urls.web (set APP_PUBLIC_URL to override).
+  # at urls.web, passed to the API as APP_PUBLIC_URL (set config.APP_PUBLIC_URL
+  # to override).
   SMTP_HOST: ""
   SMTP_PORT: "587"
   SMTP_FROM: ""
