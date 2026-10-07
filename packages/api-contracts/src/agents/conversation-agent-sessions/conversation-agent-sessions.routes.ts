@@ -1,4 +1,4 @@
-import type { RequestPayload, ResponseData, SuccessResponseDTO } from "../../generic"
+import type { ResponseData, SuccessResponseDTO } from "../../generic"
 import { defineRoute } from "../../helpers"
 import type {
   BaseAgentSessionTypeDto,
@@ -6,25 +6,34 @@ import type {
   ConversationSubSessionDto,
 } from "./conversation-agent-sessions.dto"
 
-type Request = RequestPayload<{ type: BaseAgentSessionTypeDto }>
+/** Live and playground sessions each get their own route set, so each has its own permissions. */
+function defineConversationAgentSessionsRoutes(type: BaseAgentSessionTypeDto) {
+  const prefix = `/organizations/:organizationId/projects/:projectId/agents/:agentId/conversation-agent-sessions/${type}`
+
+  return {
+    getAll: defineRoute<ResponseData<ConversationAgentSessionDto[]>>({
+      method: "post",
+      path: prefix,
+    }),
+    createOne: defineRoute<ResponseData<ConversationAgentSessionDto>>({
+      method: "post",
+      path: `${prefix}/create`,
+    }),
+    deleteOne: defineRoute<ResponseData<SuccessResponseDTO>>({
+      method: "post",
+      path: `${prefix}/:agentSessionId/delete`,
+    }),
+    // Lists the sub-sessions spawned by a parent agent session for fillForm-enabled
+    // sub-agents. `:agentId` is the parent agent and `:agentSessionId` is the parent
+    // session.
+    listSubSessions: defineRoute<ResponseData<ConversationSubSessionDto[]>>({
+      method: "post",
+      path: `${prefix}/:agentSessionId/sub-sessions`,
+    }),
+  }
+}
+
 export const ConversationAgentSessionsRoutes = {
-  getAll: defineRoute<ResponseData<ConversationAgentSessionDto[]>, Request>({
-    method: "post",
-    path: "/organizations/:organizationId/projects/:projectId/agents/:agentId/conversation-agent-sessions",
-  }),
-  createOne: defineRoute<ResponseData<ConversationAgentSessionDto>, Request>({
-    method: "post",
-    path: "/organizations/:organizationId/projects/:projectId/agents/:agentId/conversation-agent-sessions/create",
-  }),
-  deleteOne: defineRoute<ResponseData<SuccessResponseDTO>, Request>({
-    method: "post",
-    path: "/organizations/:organizationId/projects/:projectId/agents/:agentId/conversation-agent-sessions/:agentSessionId/delete",
-  }),
-  // Lists the sub-sessions spawned by a parent agent session for fillForm-enabled
-  // sub-agents. `:agentId` is the parent agent and `:agentSessionId` is the parent
-  // session.
-  listSubSessions: defineRoute<ResponseData<ConversationSubSessionDto[]>, Request>({
-    method: "post",
-    path: "/organizations/:organizationId/projects/:projectId/agents/:agentId/agent-sessions/:agentSessionId/sub-sessions",
-  }),
+  live: defineConversationAgentSessionsRoutes("live"),
+  playground: defineConversationAgentSessionsRoutes("playground"),
 }

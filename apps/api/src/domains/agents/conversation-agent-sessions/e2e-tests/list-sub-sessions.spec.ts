@@ -14,6 +14,7 @@ import { conversationFormFactory } from "@/domains/agents/shared/conversation-fo
 import { agentSubAgentFactory } from "@/domains/agents/sub-agents/agent-sub-agent.factory"
 import { createOrganizationWithAgentSession } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { conversationAgentSessionFactory } from "../conversation-agent-session.factory"
 import { ConversationAgentSessionsModule } from "../conversation-agent-sessions.module"
@@ -41,6 +42,7 @@ describe("ConversationAgentSessionsRoutes.listSubSessions", () => {
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)
@@ -131,7 +133,7 @@ describe("ConversationAgentSessionsRoutes.listSubSessions", () => {
 
   const subject = async (agentSessionId: string) =>
     request({
-      route: ConversationAgentSessionsRoutes.listSubSessions,
+      route: ConversationAgentSessionsRoutes.playground.listSubSessions,
       pathParams: removeNullish({
         organizationId,
         projectId,
@@ -139,7 +141,6 @@ describe("ConversationAgentSessionsRoutes.listSubSessions", () => {
         agentSessionId,
       }),
       token: "token",
-      request: { payload: { type: "playground" } },
     })
 
   it("returns only the fillForm-enabled sub-sessions delegated by the parent session", async () => {
