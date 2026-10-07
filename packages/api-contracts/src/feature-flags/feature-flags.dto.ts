@@ -57,6 +57,11 @@ export const FeatureFlags = [
     key: "agent-orchestration",
     description: "Compose conversation agents with sub-agents.",
   }),
+  featureFlag({
+    key: "local-embeddings",
+    description:
+      "(beta) Embed project documents with local HuggingFace models (bge-m3) and pick the retrieval model per agent.",
+  }),
 ] as const
 export type FeatureFlagKey = (typeof FeatureFlags)[number]["key"]
 export type FeatureFlagsDto = FeatureFlagKey[]

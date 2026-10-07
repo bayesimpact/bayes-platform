@@ -104,6 +104,9 @@ export { OrganizationsRoutes } from "./organizations/organizations.routes"
 // Project Session Categories
 export type * from "./project-agent-session-categories/project-agent-session-categories.dto"
 export { ProjectAgentSessionCategoriesRoutes } from "./project-agent-session-categories/project-agent-session-categories.routes"
+// Project Embedding Models
+export * from "./project-embedding-models/project-embedding-models.dto"
+export { ProjectEmbeddingModelsRoutes } from "./project-embedding-models/project-embedding-models.routes"
 // Project Membership
 export type * from "./project-membership/project-membership.dto"
 export { ProjectMembershipRoutes } from "./project-membership/project-membership.routes"

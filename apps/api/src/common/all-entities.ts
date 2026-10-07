@@ -23,6 +23,7 @@ import { Document } from "@/domains/documents/document.entity"
 import { DocumentChunk } from "@/domains/documents/embeddings/document-chunk.entity"
 import { DocumentChunkEmbedding } from "@/domains/documents/embeddings/document-chunk-embedding.entity"
 import { DocumentParentChunk } from "@/domains/documents/embeddings/document-parent-chunk.entity"
+import { ProjectEmbeddingModel } from "@/domains/documents/embeddings/project-embedding-models/project-embedding-model.entity"
 import { DocumentSource } from "@/domains/documents/sources/document-source.entity"
 import { DocumentTag } from "@/domains/documents/tags/document-tag.entity"
 import { EvaluationConversationDataset } from "@/domains/evaluations/conversation/datasets/evaluation-conversation-dataset.entity"
@@ -81,6 +82,7 @@ export const ALL_ENTITIES = [
   DocumentChunk,
   DocumentChunkEmbedding,
   DocumentParentChunk,
+  ProjectEmbeddingModel,
   DocumentTag,
   EvaluationConversationDataset,
   EvaluationConversationDatasetRecord,

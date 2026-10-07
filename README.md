@@ -249,6 +249,19 @@ docling --version
 
 If `docling` is not recognized, restart the terminal and make sure your Python Scripts directory is in `PATH`.
 
+### Local embedding models (optional, feature flag `local-embeddings`)
+
+Projects with the flag can embed their documents with open-weight models (BAAI/bge-m3 for now) served by the workers themselves through `apps/api/bin/document_embedder`. To run it locally, install sentence-transformers in the repo venv and enable the bridge on the workers process:
+
+```bash
+.venv/bin/pip install -r apps/api/requirements-embeddings.txt
+# apps/api/.env
+LOCAL_EMBEDDINGS_ENABLED=true
+WORKER_QUEUE_NAMES=...,project-embedding-reembed,query-embeddings
+```
+
+Models download from the HuggingFace hub on first use. CUDA, Apple Silicon (`mps`) and CPU are auto-detected; `LOCAL_EMBEDDING_DEVICE` overrides it. Then toggle the `local-embeddings` flag on the project in the back-office and enable a model from an agent's Model tab. See ADR 0023.
+
 Docling-related environment variables:
 
 - `DOCUMENT_EXTRACTOR_DOCLING_ENABLED` (default: `true`)

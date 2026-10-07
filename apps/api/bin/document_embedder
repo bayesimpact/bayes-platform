@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
+
+PYTHON_BIN_DOCKER="/opt/docling-venv/bin/python"
+PYTHON_BIN_REPO="${REPO_ROOT}/.venv/bin/python"
+PYTHON_BIN=""
+
+if [[ -x "${PYTHON_BIN_DOCKER}" ]]; then
+  PYTHON_BIN="${PYTHON_BIN_DOCKER}"
+elif [[ -x "${PYTHON_BIN_REPO}" ]]; then
+  PYTHON_BIN="${PYTHON_BIN_REPO}"
+else
+  PYTHON_BIN=""
+fi
+
+SCRIPT_PATH="${REPO_ROOT}/apps/api/bin/document_embedder.py"
+
+if [[ -z "${PYTHON_BIN}" || ! -x "${PYTHON_BIN}" ]]; then
+  echo "Error: no suitable python venv found for document_embedder." >&2
+  echo "Looked for:" >&2
+  echo "  - ${PYTHON_BIN_DOCKER}" >&2
+  echo "  - ${PYTHON_BIN_REPO}" >&2
+  echo "Create the repo venv (.venv) locally, or run inside the Docker gpu-workers-runtime image." >&2
+  exit 1
+fi
+
+if [[ ! -f "${SCRIPT_PATH}" ]]; then
+  echo "Error: script not found: ${SCRIPT_PATH}" >&2
+  exit 1
+fi
+
+if ! "${PYTHON_BIN}" -c "import sentence_transformers" >/dev/null 2>&1; then
+  echo "Error: sentence-transformers is not installed in the selected venv." >&2
+  echo "Install with:" >&2
+  echo "  ${PYTHON_BIN%/bin/python}/bin/pip install -r ${REPO_ROOT}/apps/api/requirements-embeddings.txt" >&2
+  exit 1
+fi
+
+exec "${PYTHON_BIN}" "${SCRIPT_PATH}" "$@"

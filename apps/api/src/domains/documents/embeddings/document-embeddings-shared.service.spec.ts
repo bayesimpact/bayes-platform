@@ -1,9 +1,11 @@
 import { createVertex } from "@ai-sdk/google-vertex"
 import { embedMany } from "ai"
 import type { DataSource } from "typeorm"
+import type { LocalEmbeddingBridgeService } from "@/external/local-embeddings/local-embedding-bridge.service"
 import type { DocumentsService } from "../documents.service"
 import type { DocumentEmbeddingStatusNotifierService } from "./document-embedding-status-notifier.service"
 import { DocumentEmbeddingsSharedService } from "./document-embeddings-shared.service"
+import type { ProjectEmbeddingModelRepository } from "./project-embedding-models/project-embedding-model.repository"
 
 jest.mock("@ai-sdk/google-vertex", () => ({
   createVertex: jest.fn(),
@@ -14,17 +16,26 @@ jest.mock("ai", () => ({
 }))
 
 type SharedServiceInternals = {
-  generateEmbeddingsByModel: (chunks: string[]) => Promise<Map<string, number[][]>>
+  generateEmbeddingsByModel: (params: {
+    chunks: string[]
+    projectId: string
+  }) => Promise<Map<string, { dense: number[][]; sparse: unknown }>>
 }
 
 function buildSharedService(): DocumentEmbeddingsSharedService {
   const documentsService = {} as DocumentsService
   const embeddingStatusNotifierService = {} as DocumentEmbeddingStatusNotifierService
   const dataSource = { query: jest.fn() } as unknown as DataSource
+  const projectEmbeddingModelRepository = {
+    listActiveModelNames: jest.fn().mockResolvedValue([]),
+  } as unknown as ProjectEmbeddingModelRepository
+  const localEmbeddingBridge = { embed: jest.fn() } as unknown as LocalEmbeddingBridgeService
   return new DocumentEmbeddingsSharedService(
     documentsService,
     embeddingStatusNotifierService,
     dataSource,
+    projectEmbeddingModelRepository,
+    localEmbeddingBridge,
   )
 }
 
@@ -52,8 +63,11 @@ describe("DocumentEmbeddingsSharedService", () => {
     const serviceInternals = service as unknown as SharedServiceInternals
 
     const chunks = Array.from({ length: 501 }, (_, index) => `chunk-${index}`)
-    const embeddingsByModelName = await serviceInternals.generateEmbeddingsByModel(chunks)
-    const embeddings = embeddingsByModelName.get("gemini-embedding-001")
+    const embeddingsByModelName = await serviceInternals.generateEmbeddingsByModel({
+      chunks,
+      projectId: "project-id",
+    })
+    const embeddings = embeddingsByModelName.get("gemini-embedding-001")?.dense
 
     expect(mockedEmbedMany).toHaveBeenCalledTimes(3)
     expect(mockedEmbedMany.mock.calls[0]?.[0].values).toHaveLength(250)

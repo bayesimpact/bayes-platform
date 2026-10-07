@@ -27,7 +27,10 @@ export class WebPageEmbeddingsProcessorService {
       const chunks = this.splitWebCrawlContent(document.content ?? "")
       this.logger.log(`Split document ${document.id} (from content) into ${chunks.length} chunks`)
 
-      const embeddingsByModelName = await this.sharedService.generateEmbeddingsByModel(chunks)
+      const embeddingsByModelName = await this.sharedService.generateEmbeddingsByModel({
+        chunks,
+        projectId: payload.projectId,
+      })
 
       await this.sharedService.insertChunks({
         scope: {

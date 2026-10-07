@@ -177,12 +177,13 @@ RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack 
 # Python dependencies are pinned in the requirements files (single source of
 # truth for both this image and local testing). Torch must be installed first
 # from the CUDA index, see requirements-torch.txt.
-COPY apps/api/requirements-torch.txt apps/api/requirements-docling.txt /app/apps/api/
+COPY apps/api/requirements-torch.txt apps/api/requirements-docling.txt apps/api/requirements-embeddings.txt /app/apps/api/
 
 RUN python3 -m venv /opt/docling-venv \
   && /opt/docling-venv/bin/pip install --no-cache-dir --upgrade pip setuptools \
   && /opt/docling-venv/bin/pip install --no-cache-dir -r /app/apps/api/requirements-torch.txt \
   && /opt/docling-venv/bin/pip install --no-cache-dir -r /app/apps/api/requirements-docling.txt \
+  && /opt/docling-venv/bin/pip install --no-cache-dir -r /app/apps/api/requirements-embeddings.txt \
   # pip is build-time only. Its vendored msgpack/setuptools copies carry HIGH CVEs
   # that trivy reports, so remove it from the runtime venv once installs are done.
   && /opt/docling-venv/bin/pip uninstall -y pip \
@@ -198,11 +199,18 @@ COPY apps/api/test/fixtures/sample.pdf /app/apps/api/bin/sample.pdf
 
 # Pre-warm: downloads the Docling models into the image. Depends on the
 # chunker script and the fixture only.
-RUN chmod +x /app/apps/api/bin/document_chunker || true \
+RUN chmod +x /app/apps/api/bin/document_chunker /app/apps/api/bin/document_embedder || true \
   && /opt/docling-venv/bin/python /app/apps/api/bin/document_chunker.py \
     --doc-path /app/apps/api/bin/sample.pdf \
     --output-json /tmp/docling-prewarm.json \
     --max-nodes 1
+
+# Local embedding models (feature flag "local-embeddings"), baked into the image
+# so a worker never downloads weights at runtime. bge-m3 is a public model.
+ENV HF_HOME=/opt/hf-cache \
+    HF_HUB_DISABLE_TELEMETRY=1
+RUN LOCAL_EMBEDDING_DEVICE=cpu /opt/docling-venv/bin/python /app/apps/api/bin/document_embedder.py \
+    --prewarm --model BAAI/bge-m3
 
 #
 # 🚀 GPU Workers Runtime (Docling enabled)

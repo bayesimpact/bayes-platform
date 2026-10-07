@@ -5,6 +5,7 @@ import {
   updateDocumentTagsSchema,
 } from "../../document-tags/document-tag.dto"
 import type { TimeType } from "../../generic"
+import { EmbeddingModel } from "../../project-embedding-models/project-embedding-models.dto"
 import type { AgentDto, AgentType } from "../agents.dto"
 
 export enum AgentModel {
@@ -153,6 +154,8 @@ export type AgentSettingsDto = {
   description?: string
   documentsRagMode: DocumentsRagMode
   documentTagIds: DocumentTagDto["id"][]
+  /** Embedding model the knowledge base lookup retrieves with. Absent means the Vertex default. */
+  embeddingModel?: EmbeddingModel
   fillFormEnabled: boolean
   priorityCallsEnabled: boolean
   greetingMessage?: string
@@ -257,6 +260,7 @@ export const agentSettingsValidationSchema = z.object({
   instructions: z.string(),
   documentTagIds: z.array(documentTagSchema.shape.id),
   documentsRagMode: z.enum(DocumentsRagMode),
+  embeddingModel: z.enum(EmbeddingModel),
   fillFormEnabled: z.boolean(),
   locale: z.enum(AgentLocale),
   priorityCallsEnabled: z.boolean(),
@@ -358,6 +362,7 @@ export const updateAgentSettingsModelSchema = agentSettingsValidationSchema.pick
   model: true,
   temperature: true,
   priorityCallsEnabled: true,
+  embeddingModel: true,
 })
 export type UpdateAgentSettingsModelDto = z.infer<typeof updateAgentSettingsModelSchema>
 

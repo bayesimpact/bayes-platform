@@ -16,6 +16,7 @@ import {
   AgentEditor,
   type AgentEditorOrchestration,
 } from "@/studio/features/agents/components/AgentEditor"
+import { projectEmbeddingModelsActions } from "@/studio/features/project-embedding-models/project-embedding-models.slice"
 import { selectAgentSettingsDataByAgentId } from "../../common/features/agents/agent-settings/agent-settings.selectors"
 import { AgentSettingsCreateButton } from "../features/agents/agent-settings/components/AgentSettingsCreateButton"
 import { AgentSettingsHistory } from "../features/agents/agent-settings/components/AgentSettingsHistory"
@@ -31,6 +32,10 @@ export function AgentEditorRoute() {
     agent.type === "conversation" && project.featureFlags.includes("agent-orchestration")
 
   useMount({ actions: agentSubAgentsActions, condition: hasOrchestration })
+  useMount({
+    actions: projectEmbeddingModelsActions,
+    condition: project.featureFlags.includes("local-embeddings"),
+  })
 
   if (hasOrchestration) {
     return (

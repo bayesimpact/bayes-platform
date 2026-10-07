@@ -1,3 +1,4 @@
+import { EmbeddingModel } from "@caseai-connect/api-contracts"
 import { embed } from "ai"
 import { DocumentChunkRetrievalService } from "./document-chunk-retrieval.service"
 
@@ -43,6 +44,28 @@ function buildOuterQueryBuilderMock(getRawMany: jest.Mock) {
   }
 }
 
+const mockIsCompleted = jest.fn()
+const mockEmbedQueryLocally = jest.fn()
+
+function buildService({
+  innerQueryBuilder,
+  outerQueryBuilder,
+}: {
+  innerQueryBuilder: ReturnType<typeof buildInnerQueryBuilderMock>
+  outerQueryBuilder: ReturnType<typeof buildOuterQueryBuilderMock>
+}) {
+  return new DocumentChunkRetrievalService(
+    {
+      createQueryBuilder: jest
+        .fn()
+        .mockReturnValueOnce(innerQueryBuilder)
+        .mockReturnValueOnce(outerQueryBuilder),
+    } as never,
+    { isCompleted: mockIsCompleted } as never,
+    { embedQuery: mockEmbedQueryLocally } as never,
+  )
+}
+
 describe("DocumentChunkRetrievalService", () => {
   beforeEach(() => {
     jest.clearAllMocks()
@@ -50,6 +73,129 @@ describe("DocumentChunkRetrievalService", () => {
     process.env.GOOGLE_VERTEX_LOCATION = "us-central1"
     process.env.DOCUMENT_EMBEDDING_MODELS = "gemini-embedding-001"
     mockTextEmbeddingModel.mockReturnValue("embedding-model")
+    mockIsCompleted.mockResolvedValue(false)
+  })
+
+  it("retrieves with the agent's local model once the project has it ready", async () => {
+    const getRawMany = jest.fn().mockResolvedValue([])
+    const innerQueryBuilder = buildInnerQueryBuilderMock()
+    const outerQueryBuilder = buildOuterQueryBuilderMock(getRawMany)
+    mockIsCompleted.mockResolvedValue(true)
+    mockEmbedQueryLocally.mockResolvedValue({ embedding: [0.4, 0.5], sparseEmbedding: null })
+    const service = buildService({ innerQueryBuilder, outerQueryBuilder })
+
+    await service.retrieveTopChunks({
+      connectScope: { organizationId: "organization-1", projectId: "project-1" },
+      query: "question",
+      embeddingModel: EmbeddingModel.BgeM3,
+    })
+
+    expect(mockEmbedQueryLocally).toHaveBeenCalledWith({
+      modelName: EmbeddingModel.BgeM3,
+      text: expect.stringContaining("question"),
+    })
+    expect(embed).not.toHaveBeenCalled()
+    expect(innerQueryBuilder.andWhere).toHaveBeenCalledWith("embedding.model_name = :modelName", {
+      modelName: EmbeddingModel.BgeM3,
+    })
+  })
+
+  it("ranks by dense plus 0.3 sparse when the query has lexical weights", async () => {
+    const getRawMany = jest.fn().mockResolvedValue([])
+    const innerQueryBuilder = buildInnerQueryBuilderMock()
+    const outerQueryBuilder = buildOuterQueryBuilderMock(getRawMany)
+    mockIsCompleted.mockResolvedValue(true)
+    mockEmbedQueryLocally.mockResolvedValue({
+      embedding: [0.4, 0.5],
+      sparseEmbedding: { "12": 0.2, "40": 0.7 },
+    })
+    const service = buildService({ innerQueryBuilder, outerQueryBuilder })
+
+    await service.retrieveTopChunks({
+      connectScope: { organizationId: "organization-1", projectId: "project-1" },
+      query: "question",
+      embeddingModel: EmbeddingModel.BgeM3,
+    })
+
+    const hybridDistance =
+      "((embedding.embedding <=> :queryEmbedding::vector) + 0.3 * COALESCE(sparse.sparse_embedding <#> :querySparseEmbedding::sparsevec, 0))"
+    expect(innerQueryBuilder.addSelect).toHaveBeenCalledWith(hybridDistance, "distance")
+    expect(innerQueryBuilder.addOrderBy).toHaveBeenCalledWith(hybridDistance, "ASC")
+    expect(innerQueryBuilder.leftJoin).toHaveBeenCalledWith(
+      "document_chunk_sparse_embedding",
+      "sparse",
+      "sparse.document_chunk_embedding_id = embedding.id",
+    )
+    expect(innerQueryBuilder.setParameters).toHaveBeenCalledWith(
+      expect.objectContaining({ querySparseEmbedding: "{13:0.2,41:0.7}/250002" }),
+    )
+  })
+
+  it("keeps the plain cosine distance for the default model", async () => {
+    const getRawMany = jest.fn().mockResolvedValue([])
+    const innerQueryBuilder = buildInnerQueryBuilderMock()
+    const outerQueryBuilder = buildOuterQueryBuilderMock(getRawMany)
+    const mockedEmbed = embed as jest.MockedFunction<typeof embed>
+    mockedEmbed.mockResolvedValue({ embedding: [0.1] } as never)
+    const service = buildService({ innerQueryBuilder, outerQueryBuilder })
+
+    await service.retrieveTopChunks({
+      connectScope: { organizationId: "organization-1", projectId: "project-1" },
+      query: "question",
+    })
+
+    expect(innerQueryBuilder.addSelect).toHaveBeenCalledWith(
+      "(embedding.embedding <=> :queryEmbedding::vector)",
+      "distance",
+    )
+    expect(innerQueryBuilder.leftJoin).not.toHaveBeenCalledWith(
+      "document_chunk_sparse_embedding",
+      expect.anything(),
+      expect.anything(),
+    )
+  })
+
+  it("falls back to the default model when the local model is not ready", async () => {
+    const getRawMany = jest.fn().mockResolvedValue([])
+    const innerQueryBuilder = buildInnerQueryBuilderMock()
+    const outerQueryBuilder = buildOuterQueryBuilderMock(getRawMany)
+    mockIsCompleted.mockResolvedValue(false)
+    const mockedEmbed = embed as jest.MockedFunction<typeof embed>
+    mockedEmbed.mockResolvedValue({ embedding: [0.1] } as never)
+    const service = buildService({ innerQueryBuilder, outerQueryBuilder })
+
+    await service.retrieveTopChunks({
+      connectScope: { organizationId: "organization-1", projectId: "project-1" },
+      query: "question",
+      embeddingModel: EmbeddingModel.BgeM3,
+    })
+
+    expect(mockEmbedQueryLocally).not.toHaveBeenCalled()
+    expect(innerQueryBuilder.andWhere).toHaveBeenCalledWith("embedding.model_name = :modelName", {
+      modelName: "gemini-embedding-001",
+    })
+  })
+
+  it("falls back to the default model when the local embedding fails", async () => {
+    const getRawMany = jest.fn().mockResolvedValue([])
+    const innerQueryBuilder = buildInnerQueryBuilderMock()
+    const outerQueryBuilder = buildOuterQueryBuilderMock(getRawMany)
+    mockIsCompleted.mockResolvedValue(true)
+    mockEmbedQueryLocally.mockRejectedValue(new Error("workers down"))
+    const mockedEmbed = embed as jest.MockedFunction<typeof embed>
+    mockedEmbed.mockResolvedValue({ embedding: [0.1] } as never)
+    const service = buildService({ innerQueryBuilder, outerQueryBuilder })
+
+    await service.retrieveTopChunks({
+      connectScope: { organizationId: "organization-1", projectId: "project-1" },
+      query: "question",
+      embeddingModel: EmbeddingModel.BgeM3,
+    })
+
+    expect(mockedEmbed).toHaveBeenCalledTimes(1)
+    expect(innerQueryBuilder.andWhere).toHaveBeenCalledWith("embedding.model_name = :modelName", {
+      modelName: "gemini-embedding-001",
+    })
   })
 
   it("retrieves top chunks for a project scope", async () => {
@@ -73,12 +219,7 @@ describe("DocumentChunkRetrievalService", () => {
       embedding: [0.1, 0.2, 0.3],
     } as never)
 
-    const service = new DocumentChunkRetrievalService({
-      createQueryBuilder: jest
-        .fn()
-        .mockReturnValueOnce(innerQueryBuilder)
-        .mockReturnValueOnce(outerQueryBuilder),
-    } as never)
+    const service = buildService({ innerQueryBuilder, outerQueryBuilder })
 
     const chunks = await service.retrieveTopChunks({
       connectScope: {
@@ -120,12 +261,7 @@ describe("DocumentChunkRetrievalService", () => {
       embedding: [0.1, 0.2, 0.3],
     } as never)
 
-    const service = new DocumentChunkRetrievalService({
-      createQueryBuilder: jest
-        .fn()
-        .mockReturnValueOnce(innerQueryBuilder)
-        .mockReturnValueOnce(outerQueryBuilder),
-    } as never)
+    const service = buildService({ innerQueryBuilder, outerQueryBuilder })
 
     await service.retrieveTopChunks({
       connectScope: {

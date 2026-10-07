@@ -597,6 +597,7 @@ export class ToolsService {
                   ? (agent.documentTags?.map((documentTag) => documentTag.id) ?? [])
                   : [],
               retrievalService: this.documentChunkRetrievalService,
+              embeddingModel: agentSettings.embeddingModel,
               retrievedChunksRegistry,
               citeInline: hasSourcesReporting,
               onExecute,
