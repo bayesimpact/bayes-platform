@@ -11,7 +11,7 @@ import { toAgentWithSettingsRunJobPayload } from "@/domains/agents/shared/agent-
 import { StructuredExtractionAgentRunLlmService } from "@/domains/agents/shared/structured-extraction-agent-run-llm.service"
 import { documentFactory } from "@/domains/documents/document.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
-import type { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.provider"
+import { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.provider"
 import { LlmModule } from "@/external/llm/llm.module"
 import { agentCsvExtractionRunFactory } from "./agent-csv-extraction-run.factory"
 import type { ProcessAgentCsvExtractionRunRecordJobPayload } from "./agent-csv-extraction-run.types"
@@ -42,7 +42,7 @@ describe("AgentCsvExtractionRunProcessorService", () => {
     })
     repositories = setup.getAllRepositories()
     service = setup.module.get(AgentCsvExtractionRunProcessorService)
-    mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
+    mockProvider = setup.module.get(AISDKMockProvider)
     llmFeatures = { priorityCalls: false, flexWorkers: false }
   })
 

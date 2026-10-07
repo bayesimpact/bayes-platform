@@ -8,7 +8,7 @@ import {
 } from "@/common/test/test-database"
 import { AgentLlmModule } from "@/domains/agents/shared/agent-session-messages/streaming/agent-llm.module"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
-import type { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.provider"
+import { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.provider"
 import { LlmModule } from "@/external/llm/llm.module"
 import { evaluationConversationDatasetFactory } from "../datasets/evaluation-conversation-dataset.factory"
 import { evaluationConversationDatasetRecordFactory } from "../datasets/records/evaluation-conversation-dataset-record.factory"
@@ -41,7 +41,7 @@ describe("EvaluationConversationRunProcessorService", () => {
     })
     repositories = setup.getAllRepositories()
     service = setup.module.get(EvaluationConversationRunProcessorService)
-    mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
+    mockProvider = setup.module.get(AISDKMockProvider)
   })
 
   afterAll(async () => {

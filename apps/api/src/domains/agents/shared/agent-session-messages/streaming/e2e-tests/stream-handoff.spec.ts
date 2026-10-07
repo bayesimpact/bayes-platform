@@ -16,7 +16,7 @@ import {
 } from "@/common/test/test-database"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
 import { createOrganizationWithAgentAndSubAgents } from "@/domains/organizations/organization.factory"
-import type { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.provider"
+import { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.provider"
 import { setupUserGuardForTesting } from "../../../../../../../test/e2e.helpers"
 import { CHILD_FIRST_TURN_TRIGGER, PARENT_RESUME_TRIGGER } from "../handoff-turn-loop"
 import { StreamingModule } from "../streaming.module"
@@ -114,7 +114,7 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
 
   it("hands the conversation to the sub-agent, lets it talk to the user in the same session, and resumes the parent when it concludes", async () => {
     const { agent, session, child } = await createContext()
-    const mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
+    const mockProvider = setup.module.get(AISDKMockProvider)
     mockProvider.resetMock()
 
     // Turn 1. The parent hands over, the child's first turn follows at once.
@@ -239,7 +239,7 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
         state: { forName: "Ada" },
       }),
     )
-    const mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
+    const mockProvider = setup.module.get(AISDKMockProvider)
     mockProvider.resetMock()
     mockProvider.addToolCallTurn(agent.id, "take_over_form", {})
     mockProvider.addTextTurn(agent.id, "Your form is already complete, Ada.")
@@ -302,7 +302,7 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
     const [identity, needs] = subAgents
     if (!identity || !needs) throw new Error("sub-agents not created")
 
-    const mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
+    const mockProvider = setup.module.get(AISDKMockProvider)
     mockProvider.resetMock()
 
     // Turn 1: hand-over to Identity, which fills the form and says goodbye WITHOUT
@@ -392,7 +392,7 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
 
   it("completes the form from the sub-agent's transcript when it concludes, without overwriting what fillForm wrote", async () => {
     const { agent, session, child } = await createContext()
-    const mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
+    const mockProvider = setup.module.get(AISDKMockProvider)
     mockProvider.resetMock()
 
     // Turn 1: hand-over, the child asks for both names.
@@ -456,7 +456,7 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
 
   it("streams the sentence once when the sub-agent repeats it after a tool result, and ends its turn on the conclusion", async () => {
     const { agent, session, child } = await createContext()
-    const mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
+    const mockProvider = setup.module.get(AISDKMockProvider)
     mockProvider.resetMock()
 
     // Turn 1: hand-over, the child asks for the name.
@@ -529,7 +529,7 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
 
   it("hands the conversation over when the parent announces the hand-over without calling its tool", async () => {
     const { agent, session, child } = await createContext()
-    const mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
+    const mockProvider = setup.module.get(AISDKMockProvider)
     mockProvider.resetMock()
 
     // The parent writes the transfer sentence and calls nothing. The classifier
@@ -570,7 +570,7 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
 
   it("does not ask about an announced hand-over when the hand-over tool ran", async () => {
     const { agent, child } = await createContext()
-    const mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
+    const mockProvider = setup.module.get(AISDKMockProvider)
     mockProvider.resetMock()
 
     mockProvider.addToolCallTurn(agent.id, "take_over_form", {})
@@ -622,7 +622,7 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
     const [first, second] = subAgents
     if (!first || !second) throw new Error("sub-agents not created")
 
-    const mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
+    const mockProvider = setup.module.get(AISDKMockProvider)
     mockProvider.resetMock()
     // The parent hands over to First, then keeps going: it writes its sentence
     // and calls Second in the same generation. Second is refused, the turn ends

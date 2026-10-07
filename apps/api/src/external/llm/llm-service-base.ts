@@ -10,59 +10,18 @@ import type {
   LLMProvider,
   LLMServiceTier,
 } from "@/common/interfaces/llm-provider.interface"
+import type { LlmProviders } from "@/external/llm/llm.module"
 
 export abstract class LlmServiceBase {
-  constructor({
-    mockLlmProvider,
-    vertexLlmProvider,
-    vertex3LlmProvider,
-    mistralLlmProvider,
-    medGemmaLlmProvider,
-    gemmaLlmProvider,
-  }: {
-    mockLlmProvider: LLMProvider
-    vertexLlmProvider: LLMProvider
-    vertex3LlmProvider: LLMProvider
-    mistralLlmProvider: LLMProvider
-    medGemmaLlmProvider: LLMProvider
-    gemmaLlmProvider: LLMProvider
-  }) {
-    this._mockLlmProvider = mockLlmProvider
-    this.vertexLlmProvider = vertexLlmProvider
-    this.vertex3LlmProvider = vertex3LlmProvider
-    this.mistralLlmProvider = mistralLlmProvider
-    this.medGemmaLlmProvider = medGemmaLlmProvider
-    this.gemmaLlmProvider = gemmaLlmProvider
-  }
-  private readonly _mockLlmProvider: LLMProvider
-  private readonly vertexLlmProvider: LLMProvider
-  private readonly vertex3LlmProvider: LLMProvider
-  private readonly mistralLlmProvider: LLMProvider
-  private readonly medGemmaLlmProvider: LLMProvider
-  private readonly gemmaLlmProvider: LLMProvider
+  constructor(private readonly llmProviders: LlmProviders) {}
 
+  // An arrow function: services pass it on as a callback.
   protected getProviderForModel: (model: string) => LLMProvider = (model) => {
-    return this.getProviderForModelImpl(model)
+    const provider = this.llmProviders[AgentModelToAgentProvider[model]]
+    if (!provider) throw new NotImplementedException(`not supported llm model: ${model}`)
+    return provider
   }
-  private getProviderForModelImpl(model: string): LLMProvider {
-    const provider = AgentModelToAgentProvider[model]
-    switch (provider) {
-      case AgentProvider._Mock:
-        return this._mockLlmProvider
-      case AgentProvider.Vertex:
-        return this.vertexLlmProvider
-      case AgentProvider.Vertex3:
-        return this.vertex3LlmProvider
-      case AgentProvider.Mistral:
-        return this.mistralLlmProvider
-      case AgentProvider.MedGemma:
-        return this.medGemmaLlmProvider
-      case AgentProvider.Gemma:
-        return this.gemmaLlmProvider
-      default:
-        throw new NotImplementedException(`not supported llm provider: ${provider}`)
-    }
-  }
+
   protected buildLLMConfig(params: BuildLLMConfigParams): LLMConfig {
     const {
       systemPrompt,

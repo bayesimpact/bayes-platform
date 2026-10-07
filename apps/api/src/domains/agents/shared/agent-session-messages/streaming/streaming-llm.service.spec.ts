@@ -25,7 +25,7 @@ import {
   createOrganizationWithAgent,
   createOrganizationWithAgentAndSubAgents,
 } from "@/domains/organizations/organization.factory"
-import type { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.provider"
+import { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.provider"
 import { AgentLlmRequestService } from "./agent-llm-request.service"
 import { StreamingModule } from "./streaming.module"
 import { StreamingLlmService } from "./streaming-llm.service"
@@ -50,7 +50,7 @@ describe("StreamingLLMService", () => {
         AgentMessageAttachmentDocumentsService,
       )
     pdfConverterClient = setup.module.get<PdfConverterClient>(PdfConverterClient)
-    mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
+    mockProvider = setup.module.get(AISDKMockProvider)
   })
 
   afterAll(async () => {

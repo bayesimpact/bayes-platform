@@ -1,4 +1,4 @@
-import { AgentModel } from "@caseai-connect/api-contracts"
+import { AgentModel, AgentProvider } from "@caseai-connect/api-contracts"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import type { LLMProvider } from "@/common/interfaces/llm-provider.interface"
 import { EvaluationConversationRunGraderLlmService } from "./evaluation-conversation-run-grader-llm.service"
@@ -16,14 +16,14 @@ describe("EvaluationConversationRunGraderLLMService", () => {
   beforeEach(() => {
     mockProvider = { generateText: jest.fn() }
     vertexProvider = { generateText: jest.fn() }
-    grader = new EvaluationConversationRunGraderLlmService(
-      mockProvider as unknown as LLMProvider,
-      vertexProvider as unknown as LLMProvider,
-      vertexProvider as unknown as LLMProvider,
-      vertexProvider as unknown as LLMProvider,
-      vertexProvider as unknown as LLMProvider,
-      vertexProvider as unknown as LLMProvider,
-    )
+    grader = new EvaluationConversationRunGraderLlmService({
+      [AgentProvider._Mock]: mockProvider as unknown as LLMProvider,
+      [AgentProvider.Vertex]: vertexProvider as unknown as LLMProvider,
+      [AgentProvider.Vertex3]: vertexProvider as unknown as LLMProvider,
+      [AgentProvider.Mistral]: vertexProvider as unknown as LLMProvider,
+      [AgentProvider.MedGemma]: vertexProvider as unknown as LLMProvider,
+      [AgentProvider.Gemma]: vertexProvider as unknown as LLMProvider,
+    })
   })
 
   const gradeWith = (

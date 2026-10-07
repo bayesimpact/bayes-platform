@@ -1,8 +1,9 @@
 import { AgentModel, AgentModelToAgentProvider, AgentProvider } from "@caseai-connect/api-contracts"
 import { Inject, Injectable, UnprocessableEntityException } from "@nestjs/common"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
-import type { LLMMetadata, LLMProvider } from "@/common/interfaces/llm-provider.interface"
+import type { LLMMetadata } from "@/common/interfaces/llm-provider.interface"
 import { LlmServiceBase } from "@/external/llm"
+import { LLM_PROVIDERS, type LlmProviders } from "@/external/llm/llm.module"
 
 /**
  * LLM judge for conversation evaluation runs, ported from the legacy
@@ -17,27 +18,10 @@ import { LlmServiceBase } from "@/external/llm"
 @Injectable()
 export class EvaluationConversationRunGraderLlmService extends LlmServiceBase {
   constructor(
-    @Inject("_MockLLMProvider")
-    mockLlmProvider: LLMProvider,
-    @Inject("VertexLLMProvider")
-    vertexLlmProvider: LLMProvider,
-    @Inject("Vertex3LLMProvider")
-    vertex3LlmProvider: LLMProvider,
-    @Inject("MistralLLMProvider")
-    mistralLlmProvider: LLMProvider,
-    @Inject("MedGemmaLLMProvider")
-    medGemmaLlmProvider: LLMProvider,
-    @Inject("GemmaLLMProvider")
-    gemmaLlmProvider: LLMProvider,
+    @Inject(LLM_PROVIDERS)
+    llmProviders: LlmProviders,
   ) {
-    super({
-      mockLlmProvider,
-      vertexLlmProvider,
-      vertex3LlmProvider,
-      medGemmaLlmProvider,
-      gemmaLlmProvider,
-      mistralLlmProvider,
-    })
+    super(llmProviders)
   }
 
   async gradeOutput({

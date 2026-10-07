@@ -1,13 +1,10 @@
 import { Inject, Injectable, UnprocessableEntityException } from "@nestjs/common"
 import { v4 } from "uuid"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
-import type {
-  LLMChatMessage,
-  LLMMetadata,
-  LLMProvider,
-} from "@/common/interfaces/llm-provider.interface"
+import type { LLMChatMessage, LLMMetadata } from "@/common/interfaces/llm-provider.interface"
 import { todaysDatePromptLine } from "@/common/utils/todays-date-prompt-line"
 import { LlmServiceBase } from "@/external/llm"
+import { LLM_PROVIDERS, type LlmProviders } from "@/external/llm/llm.module"
 import type { AgentWithSettingsRunJobPayload } from "./agent-with-settings-run.types"
 
 /**
@@ -32,27 +29,10 @@ export type StructuredExtractionInputColumn = {
 @Injectable()
 export class StructuredExtractionAgentRunLlmService extends LlmServiceBase {
   constructor(
-    @Inject("_MockLLMProvider")
-    mockLlmProvider: LLMProvider,
-    @Inject("VertexLLMProvider")
-    vertexLlmProvider: LLMProvider,
-    @Inject("Vertex3LLMProvider")
-    vertex3LlmProvider: LLMProvider,
-    @Inject("MistralLLMProvider")
-    mistralLlmProvider: LLMProvider,
-    @Inject("MedGemmaLLMProvider")
-    medGemmaLlmProvider: LLMProvider,
-    @Inject("GemmaLLMProvider")
-    gemmaLlmProvider: LLMProvider,
+    @Inject(LLM_PROVIDERS)
+    llmProviders: LlmProviders,
   ) {
-    super({
-      mockLlmProvider,
-      vertexLlmProvider,
-      vertex3LlmProvider,
-      medGemmaLlmProvider,
-      gemmaLlmProvider,
-      mistralLlmProvider,
-    })
+    super(llmProviders)
   }
 
   /**

@@ -7,11 +7,6 @@ import { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.p
 import { AISDKVertexProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-vertex.provider"
 import { AISDKVertex3Provider } from "@/external/llm/ai-sdk/providers/ai-sdk-vertex3.provider"
 
-/**
- * Fails to compile when a provider is missing. A model missing from its provider's
- * `modelOptions` already fails to compile in the provider itself, since that map is keyed on
- * `AgentModelOf<Provider>`.
- */
 const providers: { [Provider in AgentProvider]: AISDKLLMProviderBase<Provider> } = {
   [AgentProvider.Gemma]: new AISDKGemmaProvider(),
   [AgentProvider.MedGemma]: new AISDKMedGemmaProvider(),

@@ -11,11 +11,11 @@ import type { Repository } from "typeorm/repository/Repository"
 import { v4 } from "uuid"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
-import type { LLMProvider } from "@/common/interfaces/llm-provider.interface"
 import type { Agent } from "@/domains/agents/agent.entity"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { LlmServiceBase } from "@/external/llm"
+import { LLM_PROVIDERS, type LlmProviders } from "@/external/llm/llm.module"
 import { AgentMessage } from "../agent-message.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentMessageAttachmentDocumentsService } from "../agent-message-attachment-documents.service"
@@ -45,27 +45,10 @@ export class StreamingLlmService extends LlmServiceBase {
     @InjectRepository(AgentMessage)
     agentMessageRepository: Repository<AgentMessage>,
 
-    @Inject("_MockLLMProvider")
-    mockLlmProvider: LLMProvider,
-    @Inject("VertexLLMProvider")
-    vertexLlmProvider: LLMProvider,
-    @Inject("Vertex3LLMProvider")
-    vertex3LlmProvider: LLMProvider,
-    @Inject("MistralLLMProvider")
-    mistralLlmProvider: LLMProvider,
-    @Inject("MedGemmaLLMProvider")
-    medGemmaLlmProvider: LLMProvider,
-    @Inject("GemmaLLMProvider")
-    gemmaLlmProvider: LLMProvider,
+    @Inject(LLM_PROVIDERS)
+    llmProviders: LlmProviders,
   ) {
-    super({
-      mockLlmProvider,
-      vertexLlmProvider,
-      vertex3LlmProvider,
-      medGemmaLlmProvider,
-      gemmaLlmProvider,
-      mistralLlmProvider,
-    })
+    super(llmProviders)
 
     this.conversationAgentSessionRepository = conversationAgentSessionRepository
 

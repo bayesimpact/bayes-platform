@@ -1,28 +1,55 @@
-import { AgentModel, AgentThinkingLevel } from "@caseai-connect/api-contracts"
+import { AgentModel, AgentProvider, AgentThinkingLevel } from "@caseai-connect/api-contracts"
 import type {
   BuildLLMConfigParams,
   LLMConfig,
   LLMProvider,
 } from "@/common/interfaces/llm-provider.interface"
+import type { LlmProviders } from "@/external/llm/llm.module"
 import { LlmServiceBase } from "./llm-service-base"
+
+const providerNamed = (name: string) => ({ name }) as unknown as LLMProvider
+
+const llmProviders: LlmProviders = {
+  [AgentProvider._Mock]: providerNamed("mock"),
+  [AgentProvider.Vertex]: providerNamed("vertex"),
+  [AgentProvider.Vertex3]: providerNamed("vertex3"),
+  [AgentProvider.Mistral]: providerNamed("mistral"),
+  [AgentProvider.MedGemma]: providerNamed("medgemma"),
+  [AgentProvider.Gemma]: providerNamed("gemma"),
+}
 
 class TestLlmService extends LlmServiceBase {
   constructor() {
-    const provider = {} as LLMProvider
-    super({
-      mockLlmProvider: provider,
-      vertexLlmProvider: provider,
-      vertex3LlmProvider: provider,
-      mistralLlmProvider: provider,
-      medGemmaLlmProvider: provider,
-      gemmaLlmProvider: provider,
-    })
+    super(llmProviders)
   }
 
   build(params: BuildLLMConfigParams): LLMConfig {
     return this.buildLLMConfig(params)
   }
+  providerFor(model: string): LLMProvider {
+    return this.getProviderForModel(model)
+  }
 }
+
+describe("LlmServiceBase.getProviderForModel", () => {
+  it.each([
+    [AgentModel._Mock, "mock"],
+    [AgentModel.Gemini25Flash, "vertex"],
+    [AgentModel.Gemini35FlashLite, "vertex3"],
+    [AgentModel.MistralSmall31_24B, "mistral"],
+    [AgentModel.MedGemma10_27B, "medgemma"],
+    [AgentModel.Gemma4_26B, "gemma"],
+  ])("serves %s with the %s provider", (model, providerName) => {
+    const provider = new TestLlmService().providerFor(model) as unknown as { name: string }
+    expect(provider.name).toBe(providerName)
+  })
+
+  it("rejects a model outside the catalog", () => {
+    expect(() => new TestLlmService().providerFor("unknown-model")).toThrow(
+      "not supported llm model: unknown-model",
+    )
+  })
+})
 
 describe("LlmServiceBase.buildLLMConfig", () => {
   const baseParams: BuildLLMConfigParams = {

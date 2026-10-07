@@ -21,6 +21,7 @@ import {
 import { StorageModule } from "@/domains/documents/storage/storage.module"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { ProjectsModule } from "@/domains/projects/projects.module"
+import { AISDKGemmaProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-gemma.provider"
 import { LlmModule } from "@/external/llm/llm.module"
 import { extractionAgentSessionFactory } from "./extraction-agent-session.factory"
 import { ExtractionAgentSessionRunLlmService } from "./extraction-agent-session-run-llm.service"
@@ -47,7 +48,7 @@ describe("ExtractionAgentSessionRunLlmService", () => {
     repositories = setup.getAllRepositories()
     service = setup.module.get(ExtractionAgentSessionRunLlmService)
     pdfConverterClient = setup.module.get(PdfConverterClient)
-    gemmaLlmProvider = setup.module.get<LLMProvider>("GemmaLLMProvider")
+    gemmaLlmProvider = setup.module.get(AISDKGemmaProvider)
   })
 
   beforeEach(async () => {

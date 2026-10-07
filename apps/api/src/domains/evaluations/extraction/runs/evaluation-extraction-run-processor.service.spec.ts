@@ -10,7 +10,7 @@ import { toAgentWithSettingsRunJobPayload } from "@/domains/agents/shared/agent-
 import { StructuredExtractionAgentRunLlmService } from "@/domains/agents/shared/structured-extraction-agent-run-llm.service"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { ProjectRepository } from "@/domains/projects/project.repository"
-import type { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.provider"
+import { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.provider"
 import { LlmModule } from "@/external/llm/llm.module"
 import { evaluationExtractionDatasetFactory } from "../datasets/evaluation-extraction-dataset.factory"
 import { evaluationExtractionRunFactory } from "./evaluation-extraction-run.factory"
@@ -43,7 +43,7 @@ describe("EvaluationExtractionRunProcessorService", () => {
     })
     repositories = setup.getAllRepositories()
     service = setup.module.get(EvaluationExtractionRunProcessorService)
-    mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
+    mockProvider = setup.module.get(AISDKMockProvider)
   })
 
   afterAll(async () => {
