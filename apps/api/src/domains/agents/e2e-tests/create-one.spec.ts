@@ -19,6 +19,7 @@ import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { DocumentTag } from "../../documents/tags/document-tag.entity"
 import { documentTagFactory } from "../../documents/tags/document-tag.factory"
@@ -44,6 +45,7 @@ describe("Agents - createOne", () => {
     })
     repositories = setup.getAllRepositories()
     expectActivityCreated = bindExpectActivityCreated(repositories.activityRepository)
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)

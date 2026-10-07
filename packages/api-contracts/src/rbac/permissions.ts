@@ -59,6 +59,14 @@ export const PROJECT_DELETE_PERMISSION = "project.delete" as const
 /** Read a project's conversation analytics. Not inherited from the organization. */
 export const PROJECT_ANALYTICS_READ_PERMISSION = "project.analytics.read" as const
 
+export const AGENT_CREATE_PERMISSION = "agent.create" as const
+
+export const AGENT_READ_PERMISSION = "agent.read" as const
+
+export const AGENT_UPDATE_PERMISSION = "agent.update" as const
+
+export const AGENT_DELETE_PERMISSION = "agent.delete" as const
+
 /**
  * Read an agent's conversation analytics. Held on the agent only: a project or
  * organization role does not grant it.
@@ -82,6 +90,39 @@ export const PROJECT_MEMBER_UPDATE_PERMISSION = "project.member.update" as const
  * on the agent only: a project or organization role does not grant it.
  */
 export const AGENT_MEMBER_INVITE_PERMISSION = "agent.member.invite" as const
+
+/**
+ * List the project's agents with their unpublished draft settings, as the studio and
+ * evaluation apps do. Scoped to the project and never inherited from the organization.
+ */
+export const AGENT_DRAFT_READ_PERMISSION = "agent.draft.read" as const
+
+/**
+ * See and replace the sub-agents an agent can call. Held on the agent only: a project
+ * or organization role does not grant them.
+ */
+export const AGENT_SUB_AGENT_READ_PERMISSION = "agent.sub_agent.read" as const
+
+export const AGENT_SUB_AGENT_UPDATE_PERMISSION = "agent.sub_agent.update" as const
+
+/**
+ * See the revision history of an agent's settings, drafts included. Checked on the
+ * agent, and granted on project roles that pass it down to every agent of the project.
+ */
+export const AGENT_SETTINGS_DRAFT_READ_PERMISSION = "agent.settings.draft.read" as const
+
+/**
+ * Edit an agent's draft settings, publish the draft as a new revision, restore an older
+ * revision into the draft, or archive a revision. Held on the agent only: a project
+ * or organization role does not grant them.
+ */
+export const AGENT_SETTINGS_DRAFT_UPDATE_PERMISSION = "agent.settings.draft.update" as const
+
+export const AGENT_SETTINGS_DRAFT_PUBLISH_PERMISSION = "agent.settings.draft.publish" as const
+
+export const AGENT_SETTINGS_RESTORE_PERMISSION = "agent.settings.restore" as const
+
+export const AGENT_SETTINGS_ARCHIVE_PERMISSION = "agent.settings.archive" as const
 
 /**
  * Open a user interface of a project. One permission per app, scoped to the project
@@ -202,6 +243,31 @@ export const CSV_EXTRACTION_RUN_PLAYGROUND_UPDATE_PERMISSION =
 
 export const CSV_EXTRACTION_RUN_PLAYGROUND_DELETE_PERMISSION =
   "csv_extraction_run.playground.delete" as const
+
+/**
+ * Live conversation sessions: the caller's own chats with an agent, and the sub-sessions they
+ * spawned. Scoped to the project and never inherited from the organization.
+ */
+export const AGENT_CONVERSATION_SESSION_READ_PERMISSION = "agent.conversation.session.read" as const
+
+export const AGENT_CONVERSATION_SESSION_CREATE_PERMISSION =
+  "agent.conversation.session.create" as const
+
+export const AGENT_CONVERSATION_SESSION_DELETE_PERMISSION =
+  "agent.conversation.session.delete" as const
+
+/**
+ * Playground conversation sessions. They belong to the Studio surface, so only project owners
+ * and admins hold these keys. Scoped to the project and never inherited from the organization.
+ */
+export const AGENT_CONVERSATION_SESSION_PLAYGROUND_READ_PERMISSION =
+  "agent.conversation.session.playground.read" as const
+
+export const AGENT_CONVERSATION_SESSION_PLAYGROUND_CREATE_PERMISSION =
+  "agent.conversation.session.playground.create" as const
+
+export const AGENT_CONVERSATION_SESSION_PLAYGROUND_DELETE_PERMISSION =
+  "agent.conversation.session.playground.delete" as const
 
 /**
  * Permissions an App may be granted. Policy lives in code, not in the database:

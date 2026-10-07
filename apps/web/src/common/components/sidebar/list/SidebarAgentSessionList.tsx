@@ -13,8 +13,10 @@ import {
 } from "@caseai-connect/ui/shad/sidebar"
 import { cn } from "@caseai-connect/ui/utils"
 import { MessagesSquareIcon, MoreHorizontalIcon, Trash2Icon } from "lucide-react"
+import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { Link, useNavigate } from "react-router-dom"
+import { ConfirmDialog } from "@/common/components/ConfirmDialog"
 import type { ConversationAgentSession } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.models"
 import { selectCurrentConversationAgentSessionsDataFromAgentId } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.selectors"
 import { selectCurrentAgentSessionId } from "@/common/features/agents/agent-sessions/current-agent-session-id/current-agent-session-id.selectors"
@@ -22,7 +24,6 @@ import { deleteAgentSession } from "@/common/features/agents/agent-sessions/shar
 import { BaseAgentSessionCreator } from "@/common/features/agents/agent-sessions/shared/base-agent-session/components/BaseAgentSessionCreator"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { selectCurrentAgentId } from "@/common/features/agents/agents.selectors"
-import { useGetAgentRoute } from "@/common/hooks/use-get-path"
 import { useRoutesBuilder } from "@/common/routes/build-routes/context"
 import { ADS } from "@/common/store/async-data-status"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
@@ -72,6 +73,7 @@ function SessionList({
 }) {
   const currentSessionId = useAppSelector(selectCurrentAgentSessionId)
   const { build } = useRoutesBuilder()
+  const [sessionIdToDelete, setSessionIdToDelete] = useState<string | null>(null)
   const items: MenuItem[] = sessions.map((session) => ({
     id: session.id,
     title: buildSince(session.createdAt),
@@ -96,36 +98,29 @@ function SessionList({
                 {item.icon && <item.icon />}
                 <span>{item.title}</span>
 
-                <OptionsMenu
-                  agentId={agentSessionProps.agentId}
-                  agentSessionId={item.id}
-                  agentType={agentSessionProps.agentType}
-                />
+                <OptionsMenu onDelete={() => setSessionIdToDelete(item.id)} />
               </Link>
             </SidebarMenuSubButton>
           </SidebarMenuSubItem>
         ))}
+
+      {/* Outside the session links, so clicks in the dialog do not navigate to a session. */}
+      <ConfirmDeleteSessionDialog
+        agentSessionProps={agentSessionProps}
+        agentSessionId={sessionIdToDelete}
+        onClose={() => setSessionIdToDelete(null)}
+      />
     </SidebarMenuSub>
   )
 }
 
-function OptionsMenu({
-  agentId,
-  agentSessionId,
-  agentType,
-}: {
-  agentId: string
-  agentSessionId: string
-  agentType: Agent["type"]
-}) {
-  const navigate = useNavigate()
-  const dispatch = useAppDispatch()
+function OptionsMenu({ onDelete }: { onDelete: () => void }) {
   const { isMobile } = useSidebar()
   const { t } = useTranslation()
-  const agentRoute = useGetAgentRoute()
-  const handleSuccess = () => navigate(agentRoute)
-  const handleDelete = () => {
-    dispatch(deleteAgentSession({ agentType, agentId, agentSessionId, onSuccess: handleSuccess }))
+  const handleDelete = (event: React.MouseEvent) => {
+    // The menu sits inside the session link: keep the click from opening the session.
+    event.stopPropagation()
+    onDelete()
   }
   return (
     <DropdownMenu>
@@ -149,5 +144,37 @@ function OptionsMenu({
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
+  )
+}
+
+function ConfirmDeleteSessionDialog({
+  agentSessionProps,
+  agentSessionId,
+  onClose,
+}: {
+  agentSessionProps: AgentSessionProps
+  agentSessionId: string | null
+  onClose: () => void
+}) {
+  const navigate = useNavigate()
+  const dispatch = useAppDispatch()
+  const { t } = useTranslation()
+  const { build } = useRoutesBuilder()
+  const { organizationId, projectId, agentId, agentType } = agentSessionProps
+  const handleSuccess = () => navigate(build.agentRoute({ organizationId, projectId, agentId }))
+  const handleDelete = () => {
+    if (agentSessionId) {
+      dispatch(deleteAgentSession({ agentType, agentId, agentSessionId, onSuccess: handleSuccess }))
+    }
+    onClose()
+  }
+  return (
+    <ConfirmDialog
+      open={agentSessionId !== null}
+      title={t("conversationAgentSession:delete.confirm.title")}
+      description={t("conversationAgentSession:delete.confirm.description")}
+      onConfirm={handleDelete}
+      onCancel={onClose}
+    />
   )
 }

@@ -177,6 +177,9 @@ describe("ProjectsService", () => {
           "csv_extraction_run.create",
           "csv_extraction_run.update",
           "csv_extraction_run.delete",
+          "agent.conversation.session.read",
+          "agent.conversation.session.create",
+          "agent.conversation.session.delete",
         ].sort(),
       )
     })

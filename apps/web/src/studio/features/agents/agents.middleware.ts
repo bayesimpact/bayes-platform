@@ -1,5 +1,5 @@
 import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit"
-import { listAgentSettings } from "@/common/features/agents/agent-settings/agent-settings.thunks"
+import { listAgentSettingsWithDraft } from "@/common/features/agents/agent-settings/agent-settings.thunks"
 import { listAgents } from "@/common/features/agents/agents.thunks"
 import { fetchMe } from "@/common/features/me/me.thunks"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
@@ -20,7 +20,7 @@ function registerListeners() {
       deleteDocumentTag.fulfilled,
     ),
     effect: async (_, listenerApi) => {
-      listenerApi.dispatch(listAgents())
+      listenerApi.dispatch(listAgents({ includeDrafts: true }))
     },
   })
 
@@ -28,8 +28,8 @@ function registerListeners() {
     actionCreator: updateAgent.fulfilled,
     effect: async (action, listenerApi) => {
       const agentId = action.meta.arg.agentId
-      await listenerApi.dispatch(listAgents())
-      await listenerApi.dispatch(listAgentSettings({ agentId }))
+      await listenerApi.dispatch(listAgents({ includeDrafts: true }))
+      await listenerApi.dispatch(listAgentSettingsWithDraft({ agentId }))
 
       listenerApi.dispatch(
         notificationsActions.show({
@@ -54,7 +54,7 @@ function registerListeners() {
   listenerMiddleware.startListening({
     actionCreator: deleteAgent.fulfilled,
     effect: async (_, listenerApi) => {
-      await listenerApi.dispatch(listAgents())
+      await listenerApi.dispatch(listAgents({ includeDrafts: true }))
 
       listenerApi.dispatch(
         notificationsActions.show({
@@ -80,8 +80,8 @@ function registerListeners() {
     actionCreator: createAgent.fulfilled,
     effect: async (action, listenerApi) => {
       const agentId = action.payload.id
-      await listenerApi.dispatch(listAgents())
-      await listenerApi.dispatch(listAgentSettings({ agentId }))
+      await listenerApi.dispatch(listAgents({ includeDrafts: true }))
+      await listenerApi.dispatch(listAgentSettingsWithDraft({ agentId }))
 
       listenerApi.dispatch(
         notificationsActions.show({

@@ -7,7 +7,7 @@ import { extractionAgentSessionsSlice } from "@/common/features/agents/agent-ses
 import { agentSessionMessagesMiddleware } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.middleware"
 import { agentSessionMessagesSlice } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.slice"
 import { baseAgentSessionsMiddleware } from "@/common/features/agents/agent-sessions/shared/base-agent-session/base-agent-sessions.middleware"
-import { agentsMiddleware } from "@/common/features/agents/agents.middleware"
+import { createAgentsMiddleware } from "@/common/features/agents/agents.middleware"
 import { agentsSlice } from "@/common/features/agents/agents.slice"
 import { agentCsvExtractionRunsMiddleware } from "@/common/features/agents/csv-extraction-runs/agent-csv-extraction-runs.middleware"
 import { agentCsvExtractionRunsSlice } from "@/common/features/agents/csv-extraction-runs/agent-csv-extraction-runs.slice"
@@ -56,7 +56,7 @@ const studioMiddlewareList = [
   agentMemoriesMiddleware,
   agentMessageFeedbackMiddleware,
   agentSessionMessagesMiddleware,
-  agentsMiddleware,
+  createAgentsMiddleware({ includeDrafts: true }),
   agentSubAgentsMiddleware,
   baseAgentSessionsMiddleware,
   conversationAgentSessionsMiddleware,

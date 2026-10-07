@@ -7,7 +7,7 @@ import type {
 } from "./agent-settings.dto"
 
 export const AgentSettingsRoutes = {
-  getAll: defineRoute<ResponseData<AgentSettingsDto[]>>({
+  getAllWithDraft: defineRoute<ResponseData<AgentSettingsDto[]>>({
     method: "get",
     path: "organizations/:organizationId/projects/:projectId/agents/:agentId/settings",
   }),

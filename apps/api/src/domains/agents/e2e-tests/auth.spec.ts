@@ -1,5 +1,11 @@
 import { randomUUID } from "node:crypto"
-import { AgentsRoutes } from "@caseai-connect/api-contracts"
+import {
+  AgentLocale,
+  AgentModel,
+  AgentSubAgentsRoutes,
+  AgentsRoutes,
+  DocumentsRagMode,
+} from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
@@ -12,9 +18,15 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
+import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { projectFactory } from "@/domains/projects/project.factory"
-import { mockForeignAuthSubject, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
+import {
+  mockForeignAuthSubject,
+  mockOidcEmailForSub,
+  setupUserGuardForTesting,
+} from "../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { Agent } from "../agent.entity"
 import { AgentsModule } from "../agents.module"
@@ -40,6 +52,7 @@ describe("Agents - Auth", () => {
     })
     repositories = setup.getAllRepositories()
     _agentRepository = setup.getRepository(Agent)
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)
@@ -133,9 +146,13 @@ describe("Agents - Auth", () => {
       authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
-    it("allows a simple member to get all agents with drafts", async () => {
-      await createContextForRole("member")
+    it("allows a project admin to get all agents with drafts", async () => {
+      await createContextForRole("admin")
       expectResponse(await subject(), 200)
+    })
+    it("doesn't allow a simple member to get all agents with drafts", async () => {
+      await createContextForRole("member")
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
   })
 
@@ -254,6 +271,168 @@ describe("Agents - Auth", () => {
     it("doesn't allow a simple member to delete a agent", async () => {
       await createContextForRole("member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+  })
+
+  describe("role matrix", () => {
+    type Role = "owner" | "admin" | "member"
+
+    const createContextForRoles = async ({
+      projectRole,
+      agentRole,
+    }: {
+      projectRole: Role
+      agentRole: Role
+    }) => {
+      const { organization, project, agent } = await createOrganizationWithAgent(repositories, {
+        user: { authSubject },
+        organizationMembership: { role: "member" },
+        projectMembership: { role: projectRole },
+        agentMembership: { role: agentRole },
+      })
+      organizationId = organization.id
+      projectId = project.id
+      agentId = agent.id
+      return { organization }
+    }
+
+    const switchToOrganizationAdminWithoutProjectMembership = async (
+      organization: Awaited<ReturnType<typeof createContextForRoles>>["organization"],
+    ) => {
+      const organizationAdminAuthSubject = `oidc|${randomUUID()}`
+      await addUserToOrganization({
+        repositories,
+        organization,
+        user: {
+          authSubject: organizationAdminAuthSubject,
+          email: mockOidcEmailForSub(organizationAdminAuthSubject),
+        },
+        membership: { role: "admin" },
+      })
+      authSubject = organizationAdminAuthSubject
+    }
+
+    const pathParams = () => removeNullish({ organizationId, projectId, agentId })
+
+    const getAll = async () =>
+      request({ route: AgentsRoutes.getAll, pathParams: pathParams(), token: "token" })
+
+    const getAllWithDrafts = async () =>
+      request({ route: AgentsRoutes.getAllWithDrafts, pathParams: pathParams(), token: "token" })
+
+    const createOne = async () =>
+      request({
+        route: AgentsRoutes.createOne,
+        pathParams: pathParams(),
+        token: "token",
+        request: {
+          payload: {
+            type: "conversation",
+            name: "New Agent",
+            instructions: "This is a default prompt",
+            documentsRagMode: DocumentsRagMode.All,
+            model: AgentModel.Gemini25Flash,
+            temperature: 0,
+            locale: AgentLocale.EN,
+            tagsToAdd: [],
+            projectAgentSessionCategoryIds: [],
+          },
+        },
+      })
+
+    const updateOne = async () =>
+      request({
+        route: AgentsRoutes.updateOne,
+        pathParams: pathParams(),
+        token: "token",
+        request: { payload: { name: "Renamed Agent" } },
+      })
+
+    const deleteOne = async () =>
+      request({ route: AgentsRoutes.deleteOne, pathParams: pathParams(), token: "token" })
+
+    const getAllSubAgents = async () =>
+      request({ route: AgentSubAgentsRoutes.getAll, pathParams: pathParams(), token: "token" })
+
+    const updateAllSubAgents = async () =>
+      request({
+        route: AgentSubAgentsRoutes.updateAll,
+        pathParams: pathParams(),
+        token: "token",
+        request: { payload: { subAgents: [] } },
+      })
+
+    it.each<Role>(["owner", "admin", "member"])("lets a project %s list agents", async (role) => {
+      await createContextForRoles({ projectRole: role, agentRole: "member" })
+      expectResponse(await getAll(), 200)
+    })
+
+    it.each<Role>(["owner", "admin"])("lets a project %s list agents with drafts", async (role) => {
+      await createContextForRoles({ projectRole: role, agentRole: "member" })
+      expectResponse(await getAllWithDrafts(), 200)
+    })
+
+    it("doesn't let a project member who owns an agent list agents with drafts", async () => {
+      await createContextForRoles({ projectRole: "member", agentRole: "owner" })
+      expectResponse(await getAllWithDrafts(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+
+    it("doesn't let an organization admin outside the project list agents", async () => {
+      const { organization } = await createContextForRoles({
+        projectRole: "owner",
+        agentRole: "owner",
+      })
+      await switchToOrganizationAdminWithoutProjectMembership(organization)
+      expectResponse(await getAll(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+      expectResponse(await getAllWithDrafts(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+
+    it.each<Role>(["owner", "admin"])("lets a project %s create an agent", async (role) => {
+      await createContextForRoles({ projectRole: role, agentRole: "member" })
+      expectResponse(await createOne(), 201)
+    })
+
+    it("doesn't let a project member who owns an agent create one", async () => {
+      await createContextForRoles({ projectRole: "member", agentRole: "owner" })
+      expectResponse(await createOne(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+
+    it.each<Role>([
+      "owner",
+      "admin",
+    ])("lets an agent %s update the agent and its sub-agents, even as a project member", async (role) => {
+      await createContextForRoles({ projectRole: "member", agentRole: role })
+      expectResponse(await updateOne(), 200)
+      expectResponse(await getAllSubAgents(), 200)
+      expectResponse(await updateAllSubAgents(), 200)
+    })
+
+    it("doesn't let an agent member who owns the project update the agent or read its sub-agents", async () => {
+      await createContextForRoles({ projectRole: "owner", agentRole: "member" })
+      expectResponse(await updateOne(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+      expectResponse(await getAllSubAgents(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+      expectResponse(await updateAllSubAgents(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+      expectResponse(await deleteOne(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+
+    it.each<Role>([
+      "owner",
+      "admin",
+    ])("lets an agent %s delete the agent, even as a project member", async (role) => {
+      await createContextForRoles({ projectRole: "member", agentRole: role })
+      expectResponse(await deleteOne(), 200)
+    })
+
+    it("doesn't let an organization admin outside the project touch an agent", async () => {
+      const { organization } = await createContextForRoles({
+        projectRole: "owner",
+        agentRole: "owner",
+      })
+      await switchToOrganizationAdminWithoutProjectMembership(organization)
+      expectResponse(await createOne(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+      expectResponse(await updateOne(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+      expectResponse(await getAllSubAgents(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+      expectResponse(await deleteOne(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
   })
 })

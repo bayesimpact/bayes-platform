@@ -8,24 +8,42 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+- (beta) Agent memory: conversation agents can remember facts about signed-in users, with their approval.
+
+### Changed
+
+### Fixed
+- Studio: opening a project page after visiting an agent no longer shows an error.
+
+### Security
+
+## [26.10.0] - 2026-10-07
+
+### Added
 - External sources: Studio lists each source with its app, and can delete the source and its documents.
 - Kubernetes: the Helm chart can install an optional Phoenix to read LLM traces.
 - Sign-in: any OpenID Connect provider, such as Keycloak, can authenticate platform users.
 - Embed widget: visitors and host sites can start a new conversation instead of resuming the stored one.
-- (beta) Agent memory: conversation agents can remember facts about signed-in users, with their approval.
+- Invitations: invited people accept in the app, through a link or an email sent when SMTP is configured.
 - Project members: each member's page lists every permission their project role grants.
 - Project members: owners and admins can switch another member between the admin and member roles.
+- (beta) Apps: installed apps can manage the project's document tags.
 
 ### Changed
-- Trace links open the conversation in Phoenix instead of Langfuse.
-- Members: people added by email get access right away, without an invitation to accept.
+- Traces: LLM traces go to any OpenTelemetry backend, and trace links follow a configurable URL instead of Langfuse.
+- Chats: Studio and Desk ask for confirmation before deleting a chat.
+- Sign-in: a refused first sign-in now explains why and what to do next.
 
 ### Fixed
 - Review campaigns: changing the targeted agent of a draft campaign is now saved.
+- Review campaigns: reopening the editor now shows the selected campaign instead of the previous one.
 - Evaluation: reloading an extraction dataset page no longer shows an error.
+- Backoffice: the create organization button is hidden from users without that permission.
+- Sign-in: sessions survive network drops and several open tabs, and signing in again returns to the current page.
 
 ### Security
 - CSV extraction: only the member who created a run can now open it.
+- Document tags: a tag can no longer be attached to a parent from another project.
 
 ## [26.09.4] - 2026-09-29
 

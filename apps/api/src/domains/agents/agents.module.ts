@@ -17,6 +17,7 @@ import { Project } from "@/domains/projects/project.entity"
 import { UsersModule } from "@/domains/users/users.module"
 import { LlmModule } from "@/external/llm/llm.module"
 import { ProjectsModule } from "../projects/projects.module"
+import { RbacModule } from "../rbac/rbac.module"
 import { ResourceLibrariesModule } from "../resource-libraries/resource-libraries.module"
 import { Agent } from "./agent.entity"
 import { AgentGuard } from "./agent.guard"
@@ -65,6 +66,7 @@ import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
     forwardRef(() => ConversationAgentSessionsModule),
     forwardRef(() => ExtractionAgentSessionsModule),
     ConversationFormsModule,
+    RbacModule,
   ],
   providers: [
     AgentsService,

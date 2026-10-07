@@ -22,10 +22,11 @@ import { agentMcpServerFactory } from "@/domains/mcp-servers/agent-mcp-server.fa
 import { mcpServerFactory } from "@/domains/mcp-servers/mcp-server.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { AgentsModule } from "../../agents.module"
 
-describe("Agent Settings - getAll", () => {
+describe("Agent Settings - getAllWithDraft", () => {
   let app: INestApplication<App>
   let request: Requester
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
@@ -43,6 +44,7 @@ describe("Agent Settings - getAll", () => {
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)
@@ -71,7 +73,7 @@ describe("Agent Settings - getAll", () => {
 
   const subject = async () =>
     request({
-      route: AgentSettingsRoutes.getAll,
+      route: AgentSettingsRoutes.getAllWithDraft,
       pathParams: removeNullish({ organizationId, projectId, agentId }),
       token: accessToken,
     })
