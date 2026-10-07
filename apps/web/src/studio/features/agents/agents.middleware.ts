@@ -1,5 +1,5 @@
 import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit"
-import { listAgentSettings } from "@/common/features/agents/agent-settings/agent-settings.thunks"
+import { listAgentSettingsWithDraft } from "@/common/features/agents/agent-settings/agent-settings.thunks"
 import { listAgents } from "@/common/features/agents/agents.thunks"
 import { fetchMe } from "@/common/features/me/me.thunks"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
@@ -29,7 +29,7 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       const agentId = action.meta.arg.agentId
       await listenerApi.dispatch(listAgents())
-      await listenerApi.dispatch(listAgentSettings({ agentId }))
+      await listenerApi.dispatch(listAgentSettingsWithDraft({ agentId }))
 
       listenerApi.dispatch(
         notificationsActions.show({
@@ -81,7 +81,7 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       const agentId = action.payload.id
       await listenerApi.dispatch(listAgents())
-      await listenerApi.dispatch(listAgentSettings({ agentId }))
+      await listenerApi.dispatch(listAgentSettingsWithDraft({ agentId }))
 
       listenerApi.dispatch(
         notificationsActions.show({

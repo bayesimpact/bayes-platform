@@ -32,9 +32,12 @@ import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
 import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
 import {
+  AGENT_CREATE_PERMISSION,
+  AGENT_DELETE_PERMISSION,
   AGENT_DRAFT_READ_PERMISSION,
   AGENT_SUB_AGENT_READ_PERMISSION,
   AGENT_SUB_AGENT_UPDATE_PERMISSION,
+  AGENT_UPDATE_PERMISSION,
   PROJECT_READ_PERMISSION,
 } from "@/domains/rbac/rbac.constants"
 import { UserGuard } from "@/domains/users/user.guard"
@@ -55,7 +58,7 @@ export class AgentsController {
   ) {}
 
   @Post(AgentsRoutes.createOne.path)
-  @CheckPermission("agent.create", "project")
+  @CheckPermission(AGENT_CREATE_PERMISSION, "project")
   @TrackActivity({ action: "agent.create" })
   @UsePipes(new ZodValidationPipe(createAgentSchema))
   async createOne(
@@ -128,7 +131,7 @@ export class AgentsController {
 
   // NOTE: update agent name only
   @Patch(AgentsRoutes.updateOne.path)
-  @CheckPermission("agent.update", "agent")
+  @CheckPermission(AGENT_UPDATE_PERMISSION, "agent")
   @AddContext("agent")
   @TrackActivity({ action: "agent.update", entityFrom: "agent" })
   @UsePipes(new ZodValidationPipe(updateAgentNameSchema))
@@ -148,7 +151,7 @@ export class AgentsController {
   }
 
   @Delete(AgentsRoutes.deleteOne.path)
-  @CheckPermission("agent.delete", "agent")
+  @CheckPermission(AGENT_DELETE_PERMISSION, "agent")
   @AddContext("agent")
   @TrackActivity({ action: "agent.delete", entityFrom: "agent" })
   async deleteOne(

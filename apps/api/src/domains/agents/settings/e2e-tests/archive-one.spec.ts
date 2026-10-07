@@ -19,6 +19,7 @@ import {
 } from "@/domains/agents/settings/agent.settings.spec.helper"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { AgentsModule } from "../../agents.module"
 
@@ -43,6 +44,7 @@ describe("Agent Settings - archiveOne", () => {
     })
     repositories = setup.getAllRepositories()
     expectActivityCreated = bindExpectActivityCreated(repositories.activityRepository)
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)
