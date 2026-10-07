@@ -27,6 +27,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Review campaigns: reopening the editor now shows the selected campaign instead of the previous one.
 - Evaluation: reloading an extraction dataset page no longer shows an error.
 - Backoffice: the create organization button is hidden from users without that permission.
+- Sign-in: a network drop or several open tabs no longer end the session or show a sign-in error.
 
 ### Security
 - CSV extraction: only the member who created a run can now open it.

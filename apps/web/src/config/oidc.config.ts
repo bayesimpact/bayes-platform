@@ -31,7 +31,8 @@ export function buildOidcSettings(
     post_logout_redirect_uri: appUrl,
     response_type: "code",
     scope: config.oidcScope?.trim() || DEFAULT_OIDC_SCOPE,
-    automaticSilentRenew: true,
+    // oidcClient.ts renews the token itself, under a lock shared by all tabs
+    automaticSilentRenew: false,
     userStore: new WebStorageStateStore({ store }),
     ...(Object.keys(extraQueryParams).length > 0 ? { extraQueryParams } : {}),
   }
