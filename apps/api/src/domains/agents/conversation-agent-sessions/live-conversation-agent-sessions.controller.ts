@@ -1,5 +1,5 @@
 import { ConversationAgentSessionsRoutes } from "@caseai-connect/api-contracts"
-import { Controller, Param, Post, Req, UseGuards } from "@nestjs/common"
+import { Controller, Post, Req, UseGuards } from "@nestjs/common"
 import type {
   EndpointRequestWithAgent,
   EndpointRequestWithAgentSession,
@@ -51,11 +51,11 @@ export class LiveConversationAgentSessionsController extends ConversationAgentSe
   }
 
   @Post(Routes.listSubSessions.path)
+  @AddContext("agentSession")
   @CheckPermission(AGENT_CONVERSATION_SESSION_READ_PERMISSION, "project")
   listSubSessions(
-    @Req() request: EndpointRequestWithAgent,
-    @Param("agentSessionId") agentSessionId: string,
+    @Req() request: EndpointRequestWithAgentSession<ConversationAgentSession>,
   ): Promise<typeof Routes.listSubSessions.response> {
-    return this.handleListSubSessions(request, agentSessionId)
+    return this.handleListSubSessions(request)
   }
 }

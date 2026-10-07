@@ -90,16 +90,17 @@ export abstract class ConversationAgentSessionsController {
   }
 
   protected async handleListSubSessions(
-    request: EndpointRequestWithAgent,
-    agentSessionId: string,
+    request: EndpointRequestWithAgentSession<ConversationAgentSession>,
   ): Promise<Routes["listSubSessions"]["response"]> {
+    if (request.agentSession.type !== this.type) throw new NotFoundException()
+
     const connectScope = getRequiredConnectScope(request)
 
     const [subAgents, sessions] = await Promise.all([
       this.agentSubAgentsService.listSubAgents({ connectScope, parentAgent: request.agent }),
       this.conversationAgentSessionsService.listSubSessions({
         connectScope,
-        parentSessionId: agentSessionId,
+        parentSessionId: request.agentSession.id,
         userId: request.user.id,
         type: this.type,
       }),
