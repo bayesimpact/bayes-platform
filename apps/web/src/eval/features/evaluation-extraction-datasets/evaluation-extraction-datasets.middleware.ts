@@ -40,7 +40,8 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: `${action.meta.arg.name} created successfully`,
+          titleKey: "evaluation:notifications.created",
+          titleValues: { name: action.meta.arg.name },
           type: "success",
         }),
       )
@@ -51,7 +52,8 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: `${action.meta.arg.name} creation failed`,
+          titleKey: "evaluation:notifications.createError",
+          titleValues: { name: action.meta.arg.name },
           type: "error",
         }),
       )
@@ -63,7 +65,8 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: `${action.meta.arg.name} updated successfully`,
+          titleKey: "evaluation:notifications.updated",
+          titleValues: { name: action.meta.arg.name },
           type: "success",
         }),
       )
@@ -74,7 +77,8 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: `${action.meta.arg.name} update failed`,
+          titleKey: "evaluation:notifications.updateError",
+          titleValues: { name: action.meta.arg.name },
           type: "error",
         }),
       )
@@ -86,7 +90,8 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: `${action.meta.arg.name} renamed successfully`,
+          titleKey: "evaluation:notifications.renamed",
+          titleValues: { name: action.meta.arg.name },
           type: "success",
         }),
       )
@@ -97,7 +102,8 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: `${action.meta.arg.name} rename failed`,
+          titleKey: "evaluation:notifications.renameError",
+          titleValues: { name: action.meta.arg.name },
           type: "error",
         }),
       )
@@ -108,7 +114,12 @@ function registerListeners() {
     actionCreator: evaluationExtractionDatasetsActions.deleteOne.fulfilled,
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(evaluationExtractionDatasetsActions.listDatasets())
-      listenerApi.dispatch(notificationsActions.show({ title: "Dataset deleted", type: "success" }))
+      listenerApi.dispatch(
+        notificationsActions.show({
+          titleKey: "evaluation:notifications.deleted",
+          type: "success",
+        }),
+      )
     },
   })
 
@@ -116,7 +127,10 @@ function registerListeners() {
     actionCreator: evaluationExtractionDatasetsActions.deleteOne.rejected,
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
-        notificationsActions.show({ title: "Failed to delete dataset", type: "error" }),
+        notificationsActions.show({
+          titleKey: "evaluation:notifications.deleteError",
+          type: "error",
+        }),
       )
     },
   })
@@ -145,7 +159,8 @@ function registerFileListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: `Uploading ${action.meta.arg.file.name}...`,
+          titleKey: "evaluation:notifications.uploading",
+          titleValues: { fileName: action.meta.arg.file.name },
           type: "info",
         }),
       )
@@ -156,7 +171,8 @@ function registerFileListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: `${action.meta.arg.file.name} uploaded successfully`,
+          titleKey: "evaluation:notifications.fileUploaded",
+          titleValues: { fileName: action.meta.arg.file.name },
           type: "success",
         }),
       )
@@ -167,7 +183,8 @@ function registerFileListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: `${action.meta.arg.file.name} upload failed`,
+          titleKey: "evaluation:notifications.fileUploadError",
+          titleValues: { fileName: action.meta.arg.file.name },
           type: "error",
         }),
       )
@@ -179,7 +196,7 @@ function registerFileListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "File(s) deleted successfully",
+          titleKey: "evaluation:notifications.filesDeleted",
           type: "success",
         }),
       )
@@ -190,7 +207,7 @@ function registerFileListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "File deletion failed",
+          titleKey: "evaluation:notifications.fileDeleteError",
           type: "error",
         }),
       )

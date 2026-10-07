@@ -84,7 +84,9 @@ function registerListeners() {
       if (action.meta.arg.targetType !== "review_campaign") return
       listenerApi.dispatch(
         notificationsActions.show({
-          title: action.payload.emailSent ? "Invitations sent by email" : "People invited",
+          titleKey: action.payload.emailSent
+            ? "reviewCampaigns:notifications.invitationsSentByEmail"
+            : "reviewCampaigns:notifications.peopleInvited",
           type: "success",
         }),
       )
@@ -96,7 +98,10 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       if (action.meta.arg.targetType !== "review_campaign") return
       listenerApi.dispatch(
-        notificationsActions.show({ title: "Failed to invite people", type: "error" }),
+        notificationsActions.show({
+          titleKey: "reviewCampaigns:notifications.inviteError",
+          type: "error",
+        }),
       )
     },
   })
@@ -113,23 +118,23 @@ function registerListeners() {
   }> = [
     {
       action: createReviewCampaign,
-      success: "Review campaign created successfully",
-      error: "Review campaign creation failed",
+      success: "reviewCampaigns:notifications.createSuccess",
+      error: "reviewCampaigns:notifications.createError",
     },
     {
       action: updateReviewCampaign,
-      success: "Review campaign updated successfully",
-      error: "Review campaign update failed",
+      success: "reviewCampaigns:notifications.updateSuccess",
+      error: "reviewCampaigns:notifications.updateError",
     },
     {
       action: deleteReviewCampaign,
-      success: "Review campaign deleted successfully",
-      error: "Review campaign deletion failed",
+      success: "reviewCampaigns:notifications.deleteSuccess",
+      error: "reviewCampaigns:notifications.deleteError",
     },
     {
       action: revokeReviewCampaignMembership,
-      success: "Membership revoked",
-      error: "Failed to revoke membership",
+      success: "reviewCampaigns:notifications.revokeSuccess",
+      error: "reviewCampaigns:notifications.revokeError",
     },
   ]
 
@@ -137,13 +142,13 @@ function registerListeners() {
     listenerMiddleware.startListening({
       actionCreator: action.fulfilled,
       effect: async (_, listenerApi) => {
-        listenerApi.dispatch(notificationsActions.show({ title: success, type: "success" }))
+        listenerApi.dispatch(notificationsActions.show({ titleKey: success, type: "success" }))
       },
     })
     listenerMiddleware.startListening({
       actionCreator: action.rejected,
       effect: async (_, listenerApi) => {
-        listenerApi.dispatch(notificationsActions.show({ title: error, type: "error" }))
+        listenerApi.dispatch(notificationsActions.show({ titleKey: error, type: "error" }))
       },
     })
   }

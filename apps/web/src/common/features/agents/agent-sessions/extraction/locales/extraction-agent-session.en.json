@@ -48,6 +48,16 @@
         "description": "This extraction will be permanently deleted. This action cannot be undone.",
         "submit": "Delete"
       }
+    },
+    "notifications": {
+      "completed": "Extraction completed successfully",
+      "failed": "Extraction failed",
+      "uploading": "Uploading {{fileName}}...",
+      "executionFailed": "Extraction execution failed",
+      "documentsDeleted": "Document(s) deleted successfully",
+      "documentsDeleteError": "Failed to delete document(s)",
+      "deleted": "Extraction deleted successfully",
+      "deleteError": "Extraction deletion failed"
     }
   }
 }

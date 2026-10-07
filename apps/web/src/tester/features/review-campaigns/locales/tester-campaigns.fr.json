@@ -91,6 +91,11 @@
       "ariaLabel": "Note",
       "starAriaLabel_one": "{{count}} étoile",
       "starAriaLabel_other": "{{count}} étoiles"
+    },
+    "notifications": {
+      "sessionStarted": "Session démarrée",
+      "feedbackSaved": "Retour enregistré",
+      "surveySaved": "Questionnaire enregistré"
     }
   }
 }

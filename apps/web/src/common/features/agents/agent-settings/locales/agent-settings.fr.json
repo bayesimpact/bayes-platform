@@ -225,6 +225,18 @@
         "description": "Permet à l'agent de remplir un formulaire structuré à partir des réponses de l'utilisateur pendant la conversation.",
         "schemaDescription": "Définissez les champs du formulaire que l'agent doit remplir. L'ordre des champs est l'ordre dans lequel l'agent pose ses questions."
       }
+    },
+    "notifications": {
+      "versionRestored": "Version de l'agent restaurée avec succès",
+      "versionRestoreError": "La restauration de la version de l'agent a échoué",
+      "versionPublished": "Version de l'agent publiée avec succès",
+      "versionPublishError": "La publication de la version de l'agent a échoué",
+      "updated": "Agent mis à jour avec succès",
+      "updateError": "La mise à jour de l'agent a échoué",
+      "embedConfigUpdated": "Configuration d'intégration mise à jour avec succès",
+      "embedConfigUpdateError": "La mise à jour de la configuration d'intégration a échoué",
+      "subAgentsUpdated": "Sous-agents mis à jour avec succès",
+      "subAgentsUpdateError": "La mise à jour des sous-agents a échoué"
     }
   }
 }

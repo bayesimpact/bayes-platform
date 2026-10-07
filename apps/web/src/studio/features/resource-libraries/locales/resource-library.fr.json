@@ -62,6 +62,18 @@
       "addLibrary": "Ajouter une bibliothèque",
       "searchPlaceholder": "Rechercher des bibliothèques...",
       "noResults": "Aucune bibliothèque trouvée"
+    },
+    "notifications": {
+      "created": "Bibliothèque de ressources créée",
+      "createError": "La création de la bibliothèque de ressources a échoué",
+      "updated": "Bibliothèque de ressources mise à jour",
+      "updateError": "La mise à jour de la bibliothèque de ressources a échoué",
+      "deleted": "Bibliothèque de ressources supprimée",
+      "deleteError": "La suppression de la bibliothèque de ressources a échoué",
+      "resourceSaved": "Ressource enregistrée",
+      "resourceSaveError": "L'enregistrement de la ressource a échoué",
+      "resourceDeleted": "Ressource supprimée",
+      "resourceDeleteError": "La suppression de la ressource a échoué"
     }
   }
 }

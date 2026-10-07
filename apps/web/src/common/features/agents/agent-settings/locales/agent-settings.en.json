@@ -225,6 +225,18 @@
         "description": "Let the agent fill a structured form from the user's answers during the conversation.",
         "schemaDescription": "Define the form fields the agent should fill. The field order is the order in which the agent asks its questions."
       }
+    },
+    "notifications": {
+      "versionRestored": "Agent version restored successfully",
+      "versionRestoreError": "Agent version restore failed",
+      "versionPublished": "Agent version published successfully",
+      "versionPublishError": "Agent version publication failed",
+      "updated": "Agent updated successfully",
+      "updateError": "Agent update failed",
+      "embedConfigUpdated": "Embed config updated successfully",
+      "embedConfigUpdateError": "Failed to update embed config",
+      "subAgentsUpdated": "Sub-agents updated successfully",
+      "subAgentsUpdateError": "Failed to update sub-agents"
     }
   }
 }

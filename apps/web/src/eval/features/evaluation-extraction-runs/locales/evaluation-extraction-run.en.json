@@ -126,6 +126,15 @@
       "documentsRagMode": "Document search",
       "prompt": "System prompt",
       "outputSchema": "Output schema"
+    },
+    "notifications": {
+      "started": "Evaluation run started",
+      "startError": "Evaluation run failed to start",
+      "completed": "Evaluation run completed successfully",
+      "failed": "Evaluation run failed",
+      "deleted": "Run deleted",
+      "deleteError": "Failed to delete run",
+      "cancelled": "Run cancelled"
     }
   }
 }

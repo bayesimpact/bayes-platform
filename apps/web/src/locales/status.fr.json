@@ -34,6 +34,7 @@
       "description": "La page que vous recherchez n'existe pas.",
       "home": "Aller à l'accueil",
       "oops": "Oups !"
-    }
+    },
+    "somethingWentWrong": "Une erreur s'est produite"
   }
 }

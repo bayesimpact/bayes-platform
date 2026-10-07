@@ -57,7 +57,7 @@ function registerListeners() {
 
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Agent version restored successfully",
+          titleKey: "agentSettings:notifications.versionRestored",
           type: "success",
         }),
       )
@@ -68,7 +68,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Agent version restore failed",
+          titleKey: "agentSettings:notifications.versionRestoreError",
           type: "error",
         }),
       )
@@ -82,7 +82,7 @@ function registerListeners() {
 
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Agent version published successfully",
+          titleKey: "agentSettings:notifications.versionPublished",
           type: "success",
         }),
       )
@@ -95,7 +95,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Agent version publication failed",
+          titleKey: "agentSettings:notifications.versionPublishError",
           type: "error",
         }),
       )
@@ -109,7 +109,7 @@ function registerListeners() {
 
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Agent updated successfully",
+          titleKey: "agentSettings:notifications.updated",
           type: "success",
         }),
       )
@@ -120,7 +120,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Agent update failed",
+          titleKey: "agentSettings:notifications.updateError",
           type: "error",
         }),
       )

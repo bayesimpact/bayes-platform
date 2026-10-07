@@ -91,6 +91,11 @@
       "ariaLabel": "Rating",
       "starAriaLabel_one": "{{count}} star",
       "starAriaLabel_other": "{{count}} stars"
+    },
+    "notifications": {
+      "sessionStarted": "Session started",
+      "feedbackSaved": "Feedback saved",
+      "surveySaved": "Survey saved"
     }
   }
 }

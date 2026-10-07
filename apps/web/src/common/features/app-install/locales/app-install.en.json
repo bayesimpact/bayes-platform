@@ -73,6 +73,10 @@
         "name": "Delete workspace",
         "description": "Permanently delete this workspace."
       }
+    },
+    "notifications": {
+      "revokeError": "Could not revoke the app",
+      "installError": "App installation failed"
     }
   }
 }

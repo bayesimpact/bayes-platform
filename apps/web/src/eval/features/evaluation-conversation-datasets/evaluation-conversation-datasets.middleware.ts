@@ -56,7 +56,8 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: `${action.meta.arg.name} created successfully`,
+          titleKey: "evaluationConversationDataset:notifications.created",
+          titleValues: { name: action.meta.arg.name },
           type: "success",
         }),
       )
@@ -67,7 +68,8 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: `${action.meta.arg.name} creation failed`,
+          titleKey: "evaluationConversationDataset:notifications.createError",
+          titleValues: { name: action.meta.arg.name },
           type: "error",
         }),
       )
@@ -79,7 +81,8 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: `${action.meta.arg.name} renamed successfully`,
+          titleKey: "evaluationConversationDataset:notifications.renamed",
+          titleValues: { name: action.meta.arg.name },
           type: "success",
         }),
       )
@@ -90,7 +93,8 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: `${action.meta.arg.name} rename failed`,
+          titleKey: "evaluationConversationDataset:notifications.renameError",
+          titleValues: { name: action.meta.arg.name },
           type: "error",
         }),
       )
@@ -101,7 +105,12 @@ function registerListeners() {
     actionCreator: evaluationConversationDatasetsActions.deleteOne.fulfilled,
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(evaluationConversationDatasetsActions.listDatasets())
-      listenerApi.dispatch(notificationsActions.show({ title: "Dataset deleted", type: "success" }))
+      listenerApi.dispatch(
+        notificationsActions.show({
+          titleKey: "evaluationConversationDataset:notifications.deleted",
+          type: "success",
+        }),
+      )
     },
   })
 
@@ -109,7 +118,10 @@ function registerListeners() {
     actionCreator: evaluationConversationDatasetsActions.deleteOne.rejected,
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
-        notificationsActions.show({ title: "Failed to delete dataset", type: "error" }),
+        notificationsActions.show({
+          titleKey: "evaluationConversationDataset:notifications.deleteError",
+          type: "error",
+        }),
       )
       // Roll back the optimistic removal: the dataset still exists server-side.
       listenerApi.dispatch(evaluationConversationDatasetsActions.listDatasets())
@@ -182,14 +194,22 @@ function registerRecordListeners() {
   listenerMiddleware.startListening({
     actionCreator: evaluationConversationDatasetsActions.createRecord.fulfilled,
     effect: async (_, listenerApi) => {
-      listenerApi.dispatch(notificationsActions.show({ title: "Record created", type: "success" }))
+      listenerApi.dispatch(
+        notificationsActions.show({
+          titleKey: "evaluationConversationDataset:notifications.recordCreated",
+          type: "success",
+        }),
+      )
     },
   })
   listenerMiddleware.startListening({
     actionCreator: evaluationConversationDatasetsActions.createRecord.rejected,
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
-        notificationsActions.show({ title: "Failed to create record", type: "error" }),
+        notificationsActions.show({
+          titleKey: "evaluationConversationDataset:notifications.recordCreateError",
+          type: "error",
+        }),
       )
     },
   })
@@ -197,14 +217,22 @@ function registerRecordListeners() {
   listenerMiddleware.startListening({
     actionCreator: evaluationConversationDatasetsActions.createRecords.fulfilled,
     effect: async (_, listenerApi) => {
-      listenerApi.dispatch(notificationsActions.show({ title: "Records created", type: "success" }))
+      listenerApi.dispatch(
+        notificationsActions.show({
+          titleKey: "evaluationConversationDataset:notifications.recordsCreated",
+          type: "success",
+        }),
+      )
     },
   })
   listenerMiddleware.startListening({
     actionCreator: evaluationConversationDatasetsActions.createRecords.rejected,
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
-        notificationsActions.show({ title: "Failed to create records", type: "error" }),
+        notificationsActions.show({
+          titleKey: "evaluationConversationDataset:notifications.recordsCreateError",
+          type: "error",
+        }),
       )
     },
   })
@@ -212,14 +240,22 @@ function registerRecordListeners() {
   listenerMiddleware.startListening({
     actionCreator: evaluationConversationDatasetsActions.updateRecord.fulfilled,
     effect: async (_, listenerApi) => {
-      listenerApi.dispatch(notificationsActions.show({ title: "Record updated", type: "success" }))
+      listenerApi.dispatch(
+        notificationsActions.show({
+          titleKey: "evaluationConversationDataset:notifications.recordUpdated",
+          type: "success",
+        }),
+      )
     },
   })
   listenerMiddleware.startListening({
     actionCreator: evaluationConversationDatasetsActions.updateRecord.rejected,
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
-        notificationsActions.show({ title: "Failed to update record", type: "error" }),
+        notificationsActions.show({
+          titleKey: "evaluationConversationDataset:notifications.recordUpdateError",
+          type: "error",
+        }),
       )
     },
   })
@@ -227,14 +263,22 @@ function registerRecordListeners() {
   listenerMiddleware.startListening({
     actionCreator: evaluationConversationDatasetsActions.deleteRecord.fulfilled,
     effect: async (_, listenerApi) => {
-      listenerApi.dispatch(notificationsActions.show({ title: "Record deleted", type: "success" }))
+      listenerApi.dispatch(
+        notificationsActions.show({
+          titleKey: "evaluationConversationDataset:notifications.recordDeleted",
+          type: "success",
+        }),
+      )
     },
   })
   listenerMiddleware.startListening({
     actionCreator: evaluationConversationDatasetsActions.deleteRecord.rejected,
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
-        notificationsActions.show({ title: "Failed to delete record", type: "error" }),
+        notificationsActions.show({
+          titleKey: "evaluationConversationDataset:notifications.recordDeleteError",
+          type: "error",
+        }),
       )
     },
   })

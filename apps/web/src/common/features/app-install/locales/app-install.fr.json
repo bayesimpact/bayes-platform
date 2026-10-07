@@ -73,6 +73,10 @@
         "name": "Supprimer l'espace de travail",
         "description": "Supprimer définitivement cet espace de travail."
       }
+    },
+    "notifications": {
+      "revokeError": "Impossible de révoquer l'application",
+      "installError": "L'installation de l'application a échoué"
     }
   }
 }

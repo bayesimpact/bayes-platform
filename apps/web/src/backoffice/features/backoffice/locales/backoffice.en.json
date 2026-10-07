@@ -1,0 +1,18 @@
+{
+  "backoffice": {
+    "notifications": {
+      "organizationCreated": "Organization created",
+      "organizationCreateError": "Failed to create organization",
+      "projectUpdated": "Backoffice project updated",
+      "projectUpdateError": "Backoffice project update failed",
+      "termsDocumentsSaved": "Terms documents saved",
+      "termsDocumentsSaveError": "Failed to save terms documents",
+      "appCreated": "App created",
+      "appUpdated": "App updated",
+      "appDeleted": "App deleted",
+      "appCreateError": "Failed to create app",
+      "appUpdateError": "Failed to update app",
+      "appDeleteError": "Failed to delete app"
+    }
+  }
+}

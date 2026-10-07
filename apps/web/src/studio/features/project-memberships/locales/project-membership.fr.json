@@ -61,6 +61,15 @@
         "title": "Passer {{name}} au rôle {{role}} ?",
         "description": "Ses permissions sur ce projet et ses agents changent immédiatement."
       }
+    },
+    "notifications": {
+      "invitationsSentByEmail": "Invitations envoyées par e-mail",
+      "peopleInvited": "Personnes invitées",
+      "inviteError": "L'invitation des personnes a échoué",
+      "removed": "Membre retiré avec succès",
+      "removeError": "Le retrait du membre a échoué",
+      "roleUpdated": "Rôle mis à jour",
+      "roleUpdateError": "La mise à jour du rôle a échoué"
     }
   }
 }

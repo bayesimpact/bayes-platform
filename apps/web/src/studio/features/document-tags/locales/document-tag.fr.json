@@ -37,6 +37,14 @@
     "searchPlaceholder": "Rechercher...",
     "noTagsFound": "Aucune étiquette trouvée",
     "untagged": "Sans étiquette",
-    "addTag": "Ajouter une étiquette"
+    "addTag": "Ajouter une étiquette",
+    "notifications": {
+      "deleted": "Étiquette de document supprimée avec succès",
+      "deleteError": "La suppression de l'étiquette de document a échoué",
+      "created": "Étiquette de document créée avec succès",
+      "createError": "La création de l'étiquette de document a échoué",
+      "updated": "Étiquette de document mise à jour avec succès",
+      "updateError": "La mise à jour de l'étiquette de document a échoué"
+    }
   }
 }

@@ -33,6 +33,15 @@
     "delete": {
       "title": "Delete Workspace",
       "description": "Are you sure you want to delete {{name}}? This action is irreversible."
+    },
+    "notifications": {
+      "created": "Project created successfully",
+      "createError": "Project creation failed",
+      "updated": "Project updated successfully",
+      "updateError": "Project update failed",
+      "deleted": "Project deleted successfully",
+      "deleteError": "Project deletion failed",
+      "conversationCategoriesUpdateError": "Failed to update conversation categories"
     }
   }
 }

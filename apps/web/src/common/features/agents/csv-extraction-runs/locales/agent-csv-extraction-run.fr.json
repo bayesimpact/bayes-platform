@@ -61,6 +61,15 @@
         "description": "Cette extraction CSV sera supprimée définitivement. Cette action est irréversible.",
         "submit": "Supprimer"
       }
+    },
+    "notifications": {
+      "started": "Extraction CSV lancée",
+      "startError": "Le lancement de l'extraction CSV a échoué",
+      "completed": "Extraction CSV terminée avec succès",
+      "failed": "L'extraction CSV a échoué",
+      "deleted": "Extraction supprimée avec succès",
+      "deleteError": "La suppression de l'extraction a échoué",
+      "cancelled": "Exécution annulée"
     }
   }
 }

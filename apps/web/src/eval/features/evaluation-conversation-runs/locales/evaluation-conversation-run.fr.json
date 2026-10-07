@@ -119,6 +119,17 @@
       "locale": "Langue",
       "documentsRagMode": "Mode de recherche documentaire",
       "prompt": "Prompt système"
+    },
+    "notifications": {
+      "started": "Exécution d'évaluation lancée",
+      "restarted": "Exécution d'évaluation relancée",
+      "restartError": "La relance de l'exécution d'évaluation a échoué",
+      "startError": "Le lancement de l'exécution d'évaluation a échoué",
+      "completed": "Exécution d'évaluation terminée avec succès",
+      "failed": "L'exécution d'évaluation a échoué",
+      "deleted": "Exécution supprimée",
+      "deleteError": "La suppression de l'exécution a échoué",
+      "cancelled": "Exécution annulée"
     }
   }
 }

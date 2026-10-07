@@ -180,7 +180,8 @@ function registerListeners() {
       if (errors.length > 0) {
         listenerApi.dispatch(
           notificationsActions.show({
-            title: `${errors.length} documents failed to upload`,
+            titleKey: "document:notifications.uploadFailedCount",
+            titleValues: { count: errors.length },
             type: "error",
           }),
         )
@@ -193,7 +194,8 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: `Uploading ${action.meta.arg.file.name}...`,
+          titleKey: "document:notifications.uploading",
+          titleValues: { fileName: action.meta.arg.file.name },
           type: "info",
         }),
       )
@@ -204,7 +206,8 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: `${action.meta.arg.file.name} uploaded successfully`,
+          titleKey: "document:notifications.uploaded",
+          titleValues: { fileName: action.meta.arg.file.name },
           type: "success",
         }),
       )
@@ -219,7 +222,8 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: `${action.meta.arg.file.name} upload failed`,
+          titleKey: "document:notifications.uploadError",
+          titleValues: { fileName: action.meta.arg.file.name },
           type: "error",
         }),
       )
@@ -231,7 +235,7 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Document updated successfully",
+          titleKey: "document:notifications.updated",
           type: "success",
         }),
       )
@@ -245,7 +249,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Document update failed",
+          titleKey: "document:notifications.updateError",
           type: "error",
         }),
       )
@@ -257,7 +261,7 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Document deleted successfully",
+          titleKey: "document:notifications.deleted",
           type: "success",
         }),
       )
@@ -271,7 +275,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Document deletion failed",
+          titleKey: "document:notifications.deleteError",
           type: "error",
         }),
       )
@@ -283,7 +287,8 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: `${action.meta.arg.documentIds.length} documents deleted successfully`,
+          titleKey: "document:notifications.bulkDeleted",
+          titleValues: { count: action.meta.arg.documentIds.length },
           type: "success",
         }),
       )
@@ -295,7 +300,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Failed to delete documents",
+          titleKey: "document:notifications.bulkDeleteError",
           type: "error",
         }),
       )
@@ -307,7 +312,8 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: `Tags added to ${action.meta.arg.documentIds.length} documents`,
+          titleKey: "document:notifications.tagsAdded",
+          titleValues: { count: action.meta.arg.documentIds.length },
           type: "success",
         }),
       )
@@ -319,7 +325,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Failed to add tags to documents",
+          titleKey: "document:notifications.tagsAddError",
           type: "error",
         }),
       )
@@ -331,7 +337,8 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: `Tags removed from ${action.meta.arg.documentIds.length} documents`,
+          titleKey: "document:notifications.tagsRemoved",
+          titleValues: { count: action.meta.arg.documentIds.length },
           type: "success",
         }),
       )
@@ -343,7 +350,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Failed to remove tags from documents",
+          titleKey: "document:notifications.tagsRemoveError",
           type: "error",
         }),
       )
@@ -355,7 +362,8 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: action.payload.message,
+          titleKey: "document:notifications.crawlStarted",
+          titleValues: { url: action.meta.arg.url },
           type: "success",
         }),
       )
@@ -366,7 +374,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Website crawl failed",
+          titleKey: "document:notifications.crawlError",
           type: "error",
         }),
       )

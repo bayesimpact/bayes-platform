@@ -34,7 +34,7 @@ listenerMiddleware.startListening({
   effect: async (action, listenerApi) => {
     listenerApi.dispatch(
       notificationsActions.show({
-        title: "Project created successfully",
+        titleKey: "project:notifications.created",
         type: "success",
       }),
     )
@@ -56,7 +56,7 @@ listenerMiddleware.startListening({
   effect: async (_, listenerApi) => {
     listenerApi.dispatch(
       notificationsActions.show({
-        title: "Project creation failed",
+        titleKey: "project:notifications.createError",
         type: "error",
       }),
     )

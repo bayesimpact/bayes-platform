@@ -82,6 +82,22 @@
       "description": "Evaluate and test the performance of your agents.",
       "evaluateExtractionAgent": "Evaluate Extraction Agent",
       "manageDatasets": "Manage datasets and run evaluations"
+    },
+    "notifications": {
+      "created": "{{name}} created successfully",
+      "createError": "{{name}} creation failed",
+      "updated": "{{name}} updated successfully",
+      "updateError": "{{name}} update failed",
+      "renamed": "{{name}} renamed successfully",
+      "renameError": "{{name}} rename failed",
+      "deleted": "Dataset deleted",
+      "deleteError": "Failed to delete dataset",
+      "uploading": "Uploading {{fileName}}...",
+      "fileUploaded": "{{fileName}} uploaded successfully",
+      "fileUploadError": "{{fileName}} upload failed",
+      "fileUploadErrorWithReason": "Error uploading file \"{{fileName}}\"",
+      "filesDeleted": "File(s) deleted successfully",
+      "fileDeleteError": "File deletion failed"
     }
   }
 }

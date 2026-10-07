@@ -197,10 +197,11 @@
       "updateError": "Review campaign update failed",
       "deleteSuccess": "Review campaign deleted successfully",
       "deleteError": "Review campaign deletion failed",
-      "addParticipantsSuccess": "Participants added",
-      "addParticipantsError": "Failed to add participants",
       "revokeSuccess": "Membership revoked",
-      "revokeError": "Failed to revoke membership"
+      "revokeError": "Failed to revoke membership",
+      "invitationsSentByEmail": "Invitations sent by email",
+      "peopleInvited": "People invited",
+      "inviteError": "Failed to invite people"
     },
     "report": {
       "title": "Campaign report",

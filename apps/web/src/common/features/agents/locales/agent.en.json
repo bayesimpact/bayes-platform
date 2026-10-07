@@ -63,6 +63,14 @@
         "description": "Update this agent to {{replacement}} and re-test it before that date. After it, runs on {{model}} will start failing."
       }
     },
-    "playground": "Playground"
+    "playground": "Playground",
+    "notifications": {
+      "updated": "Agent updated successfully",
+      "updateError": "Agent update failed",
+      "deleted": "Agent deleted successfully",
+      "deleteError": "Agent deletion failed",
+      "created": "Agent created successfully",
+      "createError": "Agent creation failed"
+    }
   }
 }

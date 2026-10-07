@@ -52,7 +52,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Failed to update conversation categories",
+          titleKey: "project:notifications.conversationCategoriesUpdateError",
           type: "error",
         }),
       )
@@ -64,7 +64,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Project updated successfully",
+          titleKey: "project:notifications.updated",
           type: "success",
         }),
       )
@@ -75,7 +75,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Project update failed",
+          titleKey: "project:notifications.updateError",
           type: "error",
         }),
       )
@@ -87,7 +87,7 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Project deleted successfully",
+          titleKey: "project:notifications.deleted",
           type: "success",
         }),
       )
@@ -101,7 +101,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Project deletion failed",
+          titleKey: "project:notifications.deleteError",
           type: "error",
         }),
       )

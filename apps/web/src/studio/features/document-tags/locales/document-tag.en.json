@@ -37,6 +37,14 @@
     "searchPlaceholder": "Search tags...",
     "noTagsFound": "No tags found",
     "untagged": "Untagged",
-    "addTag": "Add tag"
+    "addTag": "Add tag",
+    "notifications": {
+      "deleted": "Document tag deleted successfully",
+      "deleteError": "Document tag deletion failed",
+      "created": "Document tag created successfully",
+      "createError": "Document tag creation failed",
+      "updated": "Document tag updated successfully",
+      "updateError": "Document tag update failed"
+    }
   }
 }
