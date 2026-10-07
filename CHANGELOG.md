@@ -8,6 +8,16 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+### Security
+
+## [26.10.1] - 2026-10-07
+
+### Added
 - (beta) Agent memory: conversation agents can remember facts about signed-in users, with their approval.
 
 ### Changed
