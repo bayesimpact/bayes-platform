@@ -97,6 +97,25 @@ cd infra/database
 docker compose --profile mail up -d --no-recreate mailpit
 ```
 
+#### Profiles of the dev stack
+
+`infra/database/docker-compose.yaml` is the one compose project of the local
+stack (`connect-db`). A plain `docker compose up -d` starts pgvector and redis;
+the other services start with their profile, from `infra/database`:
+
+| Profile | Services | Start |
+|---|---|---|
+| (default) | pgvector, redis | `docker compose up -d` |
+| `mail` | Mailpit, http://localhost:8025 | `docker compose --profile mail up -d --no-recreate mailpit` |
+| `keycloak` | Keycloak, http://localhost:8080 ([README](infra/keycloak/README.md)) | `docker compose --profile keycloak up -d --no-recreate keycloak` |
+| `dex` | Dex, http://localhost:5556 ([README](infra/dex/README.md)) | `docker compose --profile dex up -d --no-recreate dex` |
+| `traces` | otel-collector, Phoenix | `docker compose --profile traces up -d --no-recreate otel-collector phoenix` |
+| `analytics` | Grafana, http://localhost:3300 | `docker compose --profile analytics up -d --no-recreate grafana` |
+
+Keycloak and Dex used to have their own compose projects. If one of them still
+runs from there, stop it once before starting it with its profile:
+`docker compose -p connect-keycloak down` or `docker compose -p connect-dex down`.
+
 #### Stop the Database
 
 ```bash

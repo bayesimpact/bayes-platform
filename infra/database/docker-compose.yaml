@@ -1,3 +1,14 @@
+# Local dev stack, one compose project for everything (`connect-db`).
+# A plain `docker compose up -d` (and the CI) starts pgvector and redis only.
+# Profiles: `mail` (Mailpit), `keycloak`, `dex`, `traces` (otel-collector,
+# Phoenix), `analytics` (Grafana). See the README for the commands.
+#
+# Mounts of files and folders that must exist use the long syntax with
+# `create_host_path: false`: a missing source then fails `docker compose up`
+# with "bind source path does not exist". With the short syntax Docker creates
+# the missing path as an empty root-owned folder, which the container reads as
+# a broken file and which breaks the next checkout on the CI runners.
+# Only the data folders under ./dontsave are created on first start.
 name: "connect-db"
 services:
   pgvector:
@@ -8,7 +19,12 @@ services:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: passpass
     volumes:
-      - ./sql/common.sql:/docker-entrypoint-initdb.d/common.sql
+      - type: bind
+        source: ./sql/common.sql
+        target: /docker-entrypoint-initdb.d/common.sql
+        read_only: true
+        bind:
+          create_host_path: false
       - ./dontsave/pgdata:/var/lib/postgresql/data
     command:
       - "postgres"
@@ -36,8 +52,18 @@ services:
       GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
       GF_NEWS_NEWS_FEED_ENABLED: "false"
     volumes:
-      - ./grafana/provisioning:/etc/grafana/provisioning:ro
-      - ../../deploy/helm/bayes-platform/dashboards:/var/lib/grafana/dashboards:ro
+      - type: bind
+        source: ./grafana/provisioning
+        target: /etc/grafana/provisioning
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ../../deploy/helm/bayes-platform/dashboards
+        target: /var/lib/grafana/dashboards
+        read_only: true
+        bind:
+          create_host_path: false
     depends_on:
       - pgvector
   # LLM traces: the API sends OTLP to the collector (OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318),
@@ -54,7 +80,12 @@ services:
       PHOENIX_ENDPOINT: http://phoenix:6006
     volumes:
       # The chart's file: one copy of the mapping (deploy/helm/bayes-platform/files).
-      - ../../deploy/helm/bayes-platform/files/otel-collector.yaml:/etc/otelcol/collector.yaml:ro
+      - type: bind
+        source: ../../deploy/helm/bayes-platform/files/otel-collector.yaml
+        target: /etc/otelcol/collector.yaml
+        read_only: true
+        bind:
+          create_host_path: false
     depends_on:
       - phoenix
   phoenix:
@@ -80,3 +111,57 @@ services:
       # Accept any SMTP credentials, so an .env with SMTP_USER set still works.
       MP_SMTP_AUTH_ACCEPT_ANY: "1"
       MP_SMTP_AUTH_ALLOW_INSECURE: "1"
+  # Local OpenID Connect provider, http://localhost:8080 (admin / admin). Not for
+  # production use. Imports infra/keycloak/realm-platform.local.json when it
+  # exists (git-ignored), else realm-platform.sample.json. See infra/keycloak/README.md.
+  # Profile `keycloak`: `docker compose --profile keycloak up -d --no-recreate keycloak`.
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.2
+    profiles: [keycloak]
+    entrypoint: ["sh", "-c"]
+    command:
+      - |
+        realm=/srv/keycloak/realm-platform.local.json
+        [ -f "$$realm" ] || realm=/srv/keycloak/realm-platform.sample.json
+        echo "Keycloak realm: $$realm"
+        mkdir -p /opt/keycloak/data/import
+        cp "$$realm" /opt/keycloak/data/import/realm-platform.json
+        exec /opt/keycloak/bin/kc.sh start-dev --import-realm
+    ports:
+      - "${KEYCLOAK_PORT:-8080}:8080"
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+    volumes:
+      # The folder, so the local realm copy is optional.
+      - type: bind
+        source: ../keycloak
+        target: /srv/keycloak
+        read_only: true
+        bind:
+          create_host_path: false
+  # Lighter local OpenID Connect provider, http://localhost:5556. Not for
+  # production use. Reads infra/dex/config.local.yaml when it exists
+  # (git-ignored), else config.sample.yaml. See infra/dex/README.md.
+  # Profile `dex`: `docker compose --profile dex up -d --no-recreate dex`.
+  dex:
+    image: ghcr.io/dexidp/dex:v2.44.0
+    profiles: [dex]
+    entrypoint: ["sh", "-c"]
+    command:
+      - |
+        config=/srv/dex/config.local.yaml
+        [ -f "$$config" ] || config=/srv/dex/config.sample.yaml
+        echo "Dex configuration: $$config"
+        exec dex serve "$$config"
+    ports:
+      # Fixed: the port is part of the issuer in the configuration.
+      - "5556:5556"
+    volumes:
+      # The folder, so the local config copy is optional.
+      - type: bind
+        source: ../dex
+        target: /srv/dex
+        read_only: true
+        bind:
+          create_host_path: false
