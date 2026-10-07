@@ -1,9 +1,10 @@
-import { ErrorResponse } from "oidc-client-ts"
+import { ErrorResponse, type User } from "oidc-client-ts"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 const userManagerMock = vi.hoisted(() => ({
   getUser: vi.fn(),
   signinSilent: vi.fn(),
+  signinRedirect: vi.fn(),
   settings: { accessTokenExpiringNotificationTimeInSeconds: 60 },
   events: { addAccessTokenExpiring: vi.fn() },
 }))
@@ -16,7 +17,14 @@ vi.mock("oidc-client-ts", async (importOriginal) => ({
 }))
 vi.mock("@/config/oidc.config", () => ({ getOidcSettings: () => ({}) }))
 
-const { AuthenticationRequiredError, getAccessToken, getUserManager } = await import("./oidcClient")
+const {
+  AuthenticationRequiredError,
+  getAccessToken,
+  getUserManager,
+  login,
+  rememberSigninReturnTo,
+  takeSigninReturnTo,
+} = await import("./oidcClient")
 
 const expiredUser = { expired: true, expires_in: -5, access_token: "old" }
 const freshUser = { expired: false, expires_in: 3600, access_token: "fresh" }
@@ -118,5 +126,48 @@ describe("background renewal", () => {
     renewBeforeExpiry()
     await vi.waitFor(() => expect(userManagerMock.signinSilent).toHaveBeenCalledTimes(2))
     vi.useRealTimers()
+  })
+})
+
+describe("return to the page after sign-in", () => {
+  const stubLocation = (pathname: string, search = "", hash = "") =>
+    vi.stubGlobal("window", { location: { origin: "https://app.test", pathname, search, hash } })
+
+  beforeEach(() => {
+    userManagerMock.signinRedirect.mockReset()
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it("sends the current page in the OIDC state", async () => {
+    stubLocation("/studio/projects/1", "?tab=agents", "#top")
+    await login({ loginHint: "user@example.org" })
+    expect(userManagerMock.signinRedirect).toHaveBeenCalledWith({
+      login_hint: "user@example.org",
+      state: { returnTo: "/studio/projects/1?tab=agents#top" },
+    })
+  })
+
+  it("sends no page from the app root", async () => {
+    stubLocation("/", "?login_hint=user%40example.org")
+    await login()
+    expect(userManagerMock.signinRedirect).toHaveBeenCalledWith({})
+  })
+
+  it("returns to the page once", () => {
+    rememberSigninReturnTo({ state: { returnTo: "/desk/chats" } } as User)
+    expect(takeSigninReturnTo()).toBe("/desk/chats")
+    expect(takeSigninReturnTo()).toBeNull()
+  })
+
+  it("ignores a page on another origin or a missing state", () => {
+    rememberSigninReturnTo({ state: { returnTo: "//evil.example/path" } } as User)
+    expect(takeSigninReturnTo()).toBeNull()
+    rememberSigninReturnTo({ state: { returnTo: "https://evil.example" } } as User)
+    expect(takeSigninReturnTo()).toBeNull()
+    rememberSigninReturnTo({ state: undefined } as User)
+    expect(takeSigninReturnTo()).toBeNull()
   })
 })
