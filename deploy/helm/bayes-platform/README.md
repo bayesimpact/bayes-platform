@@ -223,7 +223,7 @@ See `values.yaml`. Every key is documented in place. The main sections:
 | Section | What it controls |
 |---|---|
 | `global.image` | registry, tag, pull policy, pull secrets |
-| `urls` | the public URLs, used by the API (CORS, links) and by the front ends; `web` and `api` may be one host or two, the second serves `/api` and `/public` only |
+| `urls` | the public URLs, used by the API (CORS, links) and by the front ends; `web` and `api` may be one host or two, the second serves `/api` and `/public` only. `web` also becomes `FRONTEND_URL`, `MCP_OAUTH_REDIRECT_URL` and `APP_PUBLIC_URL` (links in emails); set them in `config` to override |
 | `web.env` | browser configuration of the web front (`WEB_*`), served by the API |
 | `secrets` | the Secret with the application secrets |
 | `config` | the non-secret environment shared by the API and the workers |
