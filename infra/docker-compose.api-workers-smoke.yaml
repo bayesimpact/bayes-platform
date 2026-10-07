@@ -9,7 +9,14 @@ services:
     ports:
       - "55432:5432"
     volumes:
-      - ./database/sql/common.sql:/docker-entrypoint-initdb.d/common.sql:ro
+      # Long syntax: a missing file fails `up` instead of Docker creating a
+      # root-owned folder in the runner's workspace.
+      - type: bind
+        source: ./database/sql/common.sql
+        target: /docker-entrypoint-initdb.d/common.sql
+        read_only: true
+        bind:
+          create_host_path: false
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U admin -d postgres"]
       interval: 5s

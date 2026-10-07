@@ -4,8 +4,11 @@ A lighter alternative to [infra/keycloak](../keycloak/README.md): one small
 container, static clients and users, no admin console. Use Keycloak to test
 what is specific to it (realm settings, `offline_access` role, logout).
 
+The dev stack of `infra/database` runs it under the `dex` profile:
+
 ```bash
-docker compose -f infra/dex/docker-compose.yaml up -d
+cd infra/database
+docker compose --profile dex up -d --no-recreate dex
 ```
 
 Then set, in `apps/api/.env`:
