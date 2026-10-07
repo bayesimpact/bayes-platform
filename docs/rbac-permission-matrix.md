@@ -67,6 +67,7 @@ The `csv_extraction_run.*` permissions are not inherited either: an organization
 | `project.member.update` — change another member's role between admin and member | ✅ | ✅ | — |
 | `agent.create` | ✅ | ✅ | — |
 | `agent.read` | ✅ | ✅ | — |
+| `agent.draft.read` — list the project's agents with their draft settings | ✅ | ✅ | — |
 | `document.read` | ✅ | ✅ | — |
 | `document.create` | ✅ | ✅ | — |
 | `document.update` | ✅ | ✅ | — |
@@ -116,6 +117,8 @@ The two analytics permissions are never inherited from a parent resource: an org
 
 `agent.member.invite` is held on the agent only: a project or organization role does not let anyone invite to an agent.
 
+`agent.sub_agent.read` and `agent.sub_agent.update` are held on the agent only as well: a project or organization role does not open an agent's sub-agents.
+
 | Permission | `agent_owner` | `agent_admin` | `agent_member` |
 |---|---|---|---|
 | `agent.read` | ✅ | ✅ | ✅ |
@@ -123,6 +126,8 @@ The two analytics permissions are never inherited from a parent resource: an org
 | `agent.delete` | ✅ | ✅ | — |
 | `agent.analytics.read` — see the agent's conversation analytics | ✅ | ✅ | — |
 | `agent.member.invite` — invite people to the agent, see and revoke pending invitations | ✅ | ✅ | — |
+| `agent.sub_agent.read` — see the sub-agents the agent can call | ✅ | ✅ | — |
+| `agent.sub_agent.update` — replace the sub-agents the agent can call | ✅ | ✅ | — |
 | `user.read` — see the agent's members | ✅ | ✅ | — |
 | `backoffice.agent.read` — see the agent in the backoffice | ✅ | ✅ | — |
 

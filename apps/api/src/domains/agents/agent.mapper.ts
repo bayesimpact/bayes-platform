@@ -1,6 +1,7 @@
-import type { AgentDto, AgentWithDraftDto } from "@caseai-connect/api-contracts"
+import type { AgentDto, AgentSubAgentDto, AgentWithDraftDto } from "@caseai-connect/api-contracts"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import type { Agent } from "./agent.entity"
+import type { AgentSubAgent } from "./sub-agents/agent-sub-agent.entity"
 
 export function toAgentDto({
   agent,
@@ -53,5 +54,26 @@ export function toAgentWithDraftDto({
     name: agent.name,
     projectId: agent.projectId,
     type: agent.type,
+  }
+}
+
+export function toAgentSubAgentDto(entity: AgentSubAgent): AgentSubAgentDto {
+  return {
+    id: entity.id,
+    parentAgentId: entity.parentAgentId,
+    childAgentId: entity.childAgentId,
+    toolName: entity.toolName,
+    description: entity.description,
+    enabled: entity.enabled,
+    mode: entity.mode,
+    childAgent: entity.childAgent
+      ? {
+          id: entity.childAgent.id,
+          name: entity.childAgent.name,
+          type: entity.childAgent.type,
+        }
+      : undefined,
+    createdAt: entity.createdAt.getTime(),
+    updatedAt: entity.updatedAt.getTime(),
   }
 }
