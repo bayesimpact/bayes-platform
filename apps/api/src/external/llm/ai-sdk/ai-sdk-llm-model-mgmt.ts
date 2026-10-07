@@ -379,8 +379,9 @@ export abstract class AISDKLLMModelMgmt<
     leakedToolCalls?: LeakedToolCall[]
   }): LanguageModelV3 {
     const baseModel = this.getLanguageModel(args)
-    // Bound for use inside the stream TransformStream, where `this` is the
-    // transformer, not the provider.
+    // Logs the tool calls the model verbalized in its text, for generate and
+    // stream alike (the stream calls it from a plain method, where `this` is
+    // not the provider).
     const logLeaked = ({ originalText }: { originalText: string }) =>
       this.logLeakedToolCalls({
         originalText,
@@ -411,11 +412,7 @@ export abstract class AISDKLLMModelMgmt<
               if (strippedText !== originalText) {
                 activeSpan?.setAttribute(RAW_LLM_RESPONSE_STRIPPED_ATTR, strippedText)
               }
-              this.logLeakedToolCalls({
-                originalText,
-                config: args.config,
-                leakedToolCalls: args.leakedToolCalls,
-              })
+              logLeaked({ originalText })
             }
           } catch {
             // never let telemetry capture break the generation
