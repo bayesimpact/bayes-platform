@@ -397,6 +397,19 @@ export const AGENT_ROLE_PERMISSIONS = {
   agent_member: ["agent.read"],
 } as const satisfies Record<string, readonly string[]>
 
+type GrantedPermission<RolePermissions extends Record<string, readonly string[]>> =
+  RolePermissions[keyof RolePermissions][number]
+
+/**
+ * Every permission someone can hold: granted on a catalog role, or grantable to an App.
+ * A key outside this union can never be held, so checking it would always deny.
+ */
+export type CatalogPermission =
+  | GrantedPermission<typeof ORGANIZATION_ROLE_PERMISSIONS>
+  | GrantedPermission<typeof PROJECT_ROLE_PERMISSIONS>
+  | GrantedPermission<typeof AGENT_ROLE_PERMISSIONS>
+  | AppGrantablePermission
+
 export const RESOURCE_TYPE_READ_PERMISSION_MAP = {
   organization: "organization.read",
   project: "project.read",
