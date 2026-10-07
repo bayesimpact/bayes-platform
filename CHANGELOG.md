@@ -11,9 +11,11 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - (beta) Agent memory: conversation agents can remember facts about signed-in users, with their approval.
 
 ### Changed
+- Notifications: the app's notifications now show in the user's language.
 
 ### Fixed
 - Studio: opening a project page after visiting an agent no longer shows an error.
+- Sign-in: network drops and open tabs no longer sign users out, and signing in again returns to the same page.
 
 ### Security
 
