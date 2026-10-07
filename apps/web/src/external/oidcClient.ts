@@ -1,6 +1,6 @@
-import { ErrorResponse, UserManager } from "oidc-client-ts"
+import { ErrorResponse, type User, UserManager } from "oidc-client-ts"
 import { getOidcSettings } from "@/config/oidc.config"
-import { getAppUrl } from "@/config/runtime-config"
+import { getAppPathname, getAppUrl } from "@/config/runtime-config"
 
 /**
  * Single OIDC client for the whole app: the React provider (main.tsx) and the
@@ -117,9 +117,46 @@ function renewBeforeExpiry(): void {
   })
 }
 
-/** `loginHint` pre-fills the email on the provider's screens (OIDC `login_hint`). */
+/**
+ * `loginHint` pre-fills the email on the provider's screens (OIDC `login_hint`).
+ * The provider always comes back to the app root: the current page travels in
+ * the OIDC `state` so the home route can return to it.
+ */
 export async function login({ loginHint }: { loginHint?: string } = {}): Promise<void> {
-  await getUserManager().signinRedirect(loginHint ? { login_hint: loginHint } : undefined)
+  const returnTo = getCurrentAppPath()
+  await getUserManager().signinRedirect({
+    ...(loginHint ? { login_hint: loginHint } : {}),
+    ...(returnTo ? { state: { returnTo } satisfies SigninState } : {}),
+  })
+}
+
+type SigninState = { returnTo: string }
+
+function getCurrentAppPath(): string | null {
+  const pathname = getAppPathname()
+  if (pathname === "/") return null
+  return `${pathname}${window.location.search}${window.location.hash}`
+}
+
+let signinReturnTo: string | null = null
+
+/** Called once the provider sent the user back: keeps the page to return to. */
+export function rememberSigninReturnTo(user: User | undefined): void {
+  const state = user?.state
+  const returnTo =
+    typeof state === "object" && state !== null && "returnTo" in state ? state.returnTo : null
+  // A relative path only, never another origin (`//host`)
+  signinReturnTo =
+    typeof returnTo === "string" && returnTo.startsWith("/") && !returnTo.startsWith("//")
+      ? returnTo
+      : null
+}
+
+/** The page the user was on before the sign-in, once. */
+export function takeSigninReturnTo(): string | null {
+  const returnTo = signinReturnTo
+  signinReturnTo = null
+  return returnTo
 }
 
 /**

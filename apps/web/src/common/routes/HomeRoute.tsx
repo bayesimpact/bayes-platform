@@ -3,7 +3,7 @@ import { useAuth } from "react-oidc-context"
 import { useNavigate } from "react-router-dom"
 import { readLoginHint } from "@/common/auth/login-hint"
 import { useAuthCallbackError } from "@/common/auth/use-auth-callback-error"
-import { login } from "@/external/oidcClient"
+import { login, takeSigninReturnTo } from "@/external/oidcClient"
 import { AuthErrorRoute } from "./AuthErrorRoute"
 import { RouteNames } from "./helpers"
 import { LoadingRoute } from "./LoadingRoute"
@@ -17,7 +17,8 @@ export function HomeRoute() {
     if (isLoading || callbackError) return
 
     if (isAuthenticated) {
-      navigate(RouteNames.ONBOARDING)
+      // Back to the page that started the sign-in, else the onboarding
+      navigate(takeSigninReturnTo() ?? RouteNames.ONBOARDING)
     } else {
       login({ loginHint: readLoginHint() })
     }
