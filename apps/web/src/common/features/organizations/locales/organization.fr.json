@@ -27,6 +27,12 @@
       "namePlaceholder": "Saisissez le nom de l'organisation",
       "cancel": "Annuler",
       "save": "Enregistrer"
+    },
+    "notifications": {
+      "created": "Organisation créée avec succès",
+      "createError": "La création de l'organisation a échoué",
+      "renamed": "Organisation renommée avec succès",
+      "renameError": "Le renommage de l'organisation a échoué"
     }
   }
 }

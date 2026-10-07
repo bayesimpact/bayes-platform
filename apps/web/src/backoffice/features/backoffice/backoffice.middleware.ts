@@ -74,7 +74,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Organization created",
+          titleKey: "backoffice:notifications.organizationCreated",
           type: "success",
         }),
       )
@@ -87,7 +87,7 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Failed to create organization",
+          titleKey: "backoffice:notifications.organizationCreateError",
           description: action.error.message,
           type: "error",
         }),
@@ -103,7 +103,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Backoffice project updated",
+          titleKey: "backoffice:notifications.projectUpdated",
           type: "success",
         }),
       )
@@ -118,7 +118,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Backoffice project update failed",
+          titleKey: "backoffice:notifications.projectUpdateError",
           type: "error",
         }),
       )
@@ -130,7 +130,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Terms documents saved",
+          titleKey: "backoffice:notifications.termsDocumentsSaved",
           type: "success",
         }),
       )
@@ -142,7 +142,7 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Failed to save terms documents",
+          titleKey: "backoffice:notifications.termsDocumentsSaveError",
           description: action.error.message,
           type: "error",
         }),
@@ -157,12 +157,12 @@ function registerListeners() {
       backofficeActions.deleteAppManifest.fulfilled,
     ),
     effect: async (action, listenerApi) => {
-      const title = backofficeActions.createAppManifest.fulfilled.match(action)
-        ? "App created"
+      const titleKey = backofficeActions.createAppManifest.fulfilled.match(action)
+        ? "backoffice:notifications.appCreated"
         : backofficeActions.updateAppManifest.fulfilled.match(action)
-          ? "App updated"
-          : "App deleted"
-      listenerApi.dispatch(notificationsActions.show({ title, type: "success" }))
+          ? "backoffice:notifications.appUpdated"
+          : "backoffice:notifications.appDeleted"
+      listenerApi.dispatch(notificationsActions.show({ titleKey, type: "success" }))
       listenerApi.dispatch(backofficeActions.listAppManifests())
     },
   })
@@ -172,7 +172,7 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Failed to create app",
+          titleKey: "backoffice:notifications.appCreateError",
           description: action.error.message,
           type: "error",
         }),
@@ -185,7 +185,7 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Failed to update app",
+          titleKey: "backoffice:notifications.appUpdateError",
           description: action.error.message,
           type: "error",
         }),
@@ -198,7 +198,7 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Failed to delete app",
+          titleKey: "backoffice:notifications.appDeleteError",
           description: action.error.message,
           type: "error",
         }),

@@ -33,7 +33,7 @@ function registerListeners() {
 
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Agent updated successfully",
+          titleKey: "agent:notifications.updated",
           type: "success",
         }),
       )
@@ -44,7 +44,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Agent update failed",
+          titleKey: "agent:notifications.updateError",
           type: "error",
         }),
       )
@@ -58,7 +58,7 @@ function registerListeners() {
 
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Agent deleted successfully",
+          titleKey: "agent:notifications.deleted",
           type: "success",
         }),
       )
@@ -69,7 +69,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Agent deletion failed",
+          titleKey: "agent:notifications.deleteError",
           type: "error",
         }),
       )
@@ -85,7 +85,7 @@ function registerListeners() {
 
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Agent created successfully",
+          titleKey: "agent:notifications.created",
           type: "success",
         }),
       )
@@ -101,7 +101,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Agent creation failed",
+          titleKey: "agent:notifications.createError",
           type: "error",
         }),
       )

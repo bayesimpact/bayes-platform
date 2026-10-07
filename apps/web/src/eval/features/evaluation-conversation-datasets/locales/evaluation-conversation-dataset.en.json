@@ -77,6 +77,22 @@
       "minNameLength": "Name must be at least 3 characters",
       "inputRequired": "Input is required",
       "expectedOutputRequired": "Expected output is required"
+    },
+    "notifications": {
+      "created": "{{name}} created successfully",
+      "createError": "{{name}} creation failed",
+      "renamed": "{{name}} renamed successfully",
+      "renameError": "{{name}} rename failed",
+      "deleted": "Dataset deleted",
+      "deleteError": "Failed to delete dataset",
+      "recordCreated": "Record created",
+      "recordCreateError": "Failed to create record",
+      "recordsCreated": "Records created",
+      "recordsCreateError": "Failed to create records",
+      "recordUpdated": "Record updated",
+      "recordUpdateError": "Failed to update record",
+      "recordDeleted": "Record deleted",
+      "recordDeleteError": "Failed to delete record"
     }
   }
 }

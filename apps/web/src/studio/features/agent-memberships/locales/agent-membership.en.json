@@ -36,6 +36,13 @@
         "description": "This will remove the member from the agent. This action cannot be undone.",
         "confirm": "Remove"
       }
+    },
+    "notifications": {
+      "invitationsSentByEmail": "Invitations sent by email",
+      "peopleInvited": "People invited",
+      "inviteError": "Failed to invite people",
+      "removed": "Member removed successfully",
+      "removeError": "Failed to remove member"
     }
   }
 }

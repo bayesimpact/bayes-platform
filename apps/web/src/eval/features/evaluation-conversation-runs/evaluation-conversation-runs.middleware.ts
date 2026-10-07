@@ -98,7 +98,7 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Evaluation run started",
+          titleKey: "evaluationConversationRun:notifications.started",
           type: "info",
         }),
       )
@@ -121,7 +121,7 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Evaluation run restarted",
+          titleKey: "evaluationConversationRun:notifications.restarted",
           type: "info",
         }),
       )
@@ -143,7 +143,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Evaluation run failed to restart",
+          titleKey: "evaluationConversationRun:notifications.restartError",
           type: "error",
         }),
       )
@@ -155,7 +155,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Evaluation run failed to start",
+          titleKey: "evaluationConversationRun:notifications.startError",
           type: "error",
         }),
       )
@@ -199,7 +199,7 @@ function registerListeners() {
             await listenerApi.dispatch(evaluationConversationRunsActions.getAll())
             listenerApi.dispatch(
               notificationsActions.show({
-                title: "Evaluation run completed successfully",
+                titleKey: "evaluationConversationRun:notifications.completed",
                 type: "success",
               }),
             )
@@ -210,7 +210,7 @@ function registerListeners() {
             await listenerApi.dispatch(evaluationConversationRunsActions.getAll())
             listenerApi.dispatch(
               notificationsActions.show({
-                title: "Evaluation run failed",
+                titleKey: "evaluationConversationRun:notifications.failed",
                 type: "error",
               }),
             )
@@ -229,7 +229,12 @@ function registerListeners() {
     actionCreator: evaluationConversationRunsActions.deleteOne.fulfilled,
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(evaluationConversationRunsActions.getAll())
-      listenerApi.dispatch(notificationsActions.show({ title: "Run deleted", type: "success" }))
+      listenerApi.dispatch(
+        notificationsActions.show({
+          titleKey: "evaluationConversationRun:notifications.deleted",
+          type: "success",
+        }),
+      )
     },
   })
 
@@ -237,7 +242,10 @@ function registerListeners() {
     actionCreator: evaluationConversationRunsActions.deleteOne.rejected,
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
-        notificationsActions.show({ title: "Failed to delete run", type: "error" }),
+        notificationsActions.show({
+          titleKey: "evaluationConversationRun:notifications.deleteError",
+          type: "error",
+        }),
       )
     },
   })
@@ -245,7 +253,12 @@ function registerListeners() {
   listenerMiddleware.startListening({
     actionCreator: evaluationConversationRunsActions.cancelOne.fulfilled,
     effect: async (_, listenerApi) => {
-      listenerApi.dispatch(notificationsActions.show({ title: "Run cancelled", type: "success" }))
+      listenerApi.dispatch(
+        notificationsActions.show({
+          titleKey: "evaluationConversationRun:notifications.cancelled",
+          type: "success",
+        }),
+      )
       // Dispatch the action (not the raw stop function) so runStatusStream.isActive
       // stays in sync; the getAll listener restarts the stream if other runs are
       // still in progress.

@@ -33,6 +33,15 @@
     "delete": {
       "title": "Supprimer l'espace de travail",
       "description": "Êtes-vous sûr de vouloir supprimer {{name}} ? Cette action est irréversible."
+    },
+    "notifications": {
+      "created": "Espace de travail créé avec succès",
+      "createError": "La création de l'espace de travail a échoué",
+      "updated": "Espace de travail mis à jour avec succès",
+      "updateError": "La mise à jour de l'espace de travail a échoué",
+      "deleted": "Espace de travail supprimé avec succès",
+      "deleteError": "La suppression de l'espace de travail a échoué",
+      "conversationCategoriesUpdateError": "La mise à jour des catégories de conversation a échoué"
     }
   }
 }

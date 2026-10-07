@@ -36,6 +36,13 @@
         "description": "Ce membre sera retiré de l'agent. Cette action est irréversible.",
         "confirm": "Retirer"
       }
+    },
+    "notifications": {
+      "invitationsSentByEmail": "Invitations envoyées par e-mail",
+      "peopleInvited": "Personnes invitées",
+      "inviteError": "L'invitation des personnes a échoué",
+      "removed": "Membre retiré avec succès",
+      "removeError": "Le retrait du membre a échoué"
     }
   }
 }

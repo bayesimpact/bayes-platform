@@ -67,7 +67,9 @@ function registerListeners() {
       if (action.meta.arg.targetType !== "agent") return
       listenerApi.dispatch(
         notificationsActions.show({
-          title: action.payload.emailSent ? "Invitations sent by email" : "People invited",
+          titleKey: action.payload.emailSent
+            ? "agentMembership:notifications.invitationsSentByEmail"
+            : "agentMembership:notifications.peopleInvited",
           type: "success",
         }),
       )
@@ -79,7 +81,7 @@ function registerListeners() {
       if (action.meta.arg.targetType !== "agent") return
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Failed to invite people",
+          titleKey: "agentMembership:notifications.inviteError",
           type: "error",
         }),
       )
@@ -91,7 +93,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Member removed successfully",
+          titleKey: "agentMembership:notifications.removed",
           type: "success",
         }),
       )
@@ -102,7 +104,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Failed to remove member",
+          titleKey: "agentMembership:notifications.removeError",
           type: "error",
         }),
       )

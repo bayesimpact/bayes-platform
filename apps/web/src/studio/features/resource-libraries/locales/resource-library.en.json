@@ -62,6 +62,18 @@
       "addLibrary": "Add library",
       "searchPlaceholder": "Search libraries...",
       "noResults": "No libraries found"
+    },
+    "notifications": {
+      "created": "Resource library created",
+      "createError": "Resource library creation failed",
+      "updated": "Resource library updated",
+      "updateError": "Resource library update failed",
+      "deleted": "Resource library deleted",
+      "deleteError": "Resource library deletion failed",
+      "resourceSaved": "Resource saved",
+      "resourceSaveError": "Saving resource failed",
+      "resourceDeleted": "Resource deleted",
+      "resourceDeleteError": "Resource deletion failed"
     }
   }
 }

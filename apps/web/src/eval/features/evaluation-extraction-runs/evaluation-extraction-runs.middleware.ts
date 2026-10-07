@@ -64,7 +64,7 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Evaluation run started",
+          titleKey: "evaluationExtractionRun:notifications.started",
           type: "info",
         }),
       )
@@ -81,7 +81,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Evaluation run failed to start",
+          titleKey: "evaluationExtractionRun:notifications.startError",
           type: "error",
         }),
       )
@@ -130,7 +130,7 @@ function registerListeners() {
             await listenerApi.dispatch(evaluationExtractionRunsActions.getAll())
             listenerApi.dispatch(
               notificationsActions.show({
-                title: "Evaluation run completed successfully",
+                titleKey: "evaluationExtractionRun:notifications.completed",
                 type: "success",
               }),
             )
@@ -141,7 +141,7 @@ function registerListeners() {
             await listenerApi.dispatch(evaluationExtractionRunsActions.getAll())
             listenerApi.dispatch(
               notificationsActions.show({
-                title: "Evaluation run failed",
+                titleKey: "evaluationExtractionRun:notifications.failed",
                 type: "error",
               }),
             )
@@ -160,7 +160,12 @@ function registerListeners() {
     actionCreator: evaluationExtractionRunsActions.deleteOne.fulfilled,
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(evaluationExtractionRunsActions.getAll())
-      listenerApi.dispatch(notificationsActions.show({ title: "Run deleted", type: "success" }))
+      listenerApi.dispatch(
+        notificationsActions.show({
+          titleKey: "evaluationExtractionRun:notifications.deleted",
+          type: "success",
+        }),
+      )
     },
   })
 
@@ -168,7 +173,10 @@ function registerListeners() {
     actionCreator: evaluationExtractionRunsActions.deleteOne.rejected,
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
-        notificationsActions.show({ title: "Failed to delete run", type: "error" }),
+        notificationsActions.show({
+          titleKey: "evaluationExtractionRun:notifications.deleteError",
+          type: "error",
+        }),
       )
     },
   })
@@ -176,7 +184,12 @@ function registerListeners() {
   listenerMiddleware.startListening({
     actionCreator: evaluationExtractionRunsActions.cancelOne.fulfilled,
     effect: async (_, listenerApi) => {
-      listenerApi.dispatch(notificationsActions.show({ title: "Run cancelled", type: "success" }))
+      listenerApi.dispatch(
+        notificationsActions.show({
+          titleKey: "evaluationExtractionRun:notifications.cancelled",
+          type: "success",
+        }),
+      )
       stopRunStatusStream()
       listenerApi.dispatch(evaluationExtractionRunsActions.getAll())
     },

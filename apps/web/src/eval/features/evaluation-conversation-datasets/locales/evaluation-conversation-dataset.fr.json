@@ -77,6 +77,22 @@
       "minNameLength": "Le nom doit contenir au moins 3 caractères",
       "inputRequired": "L'entrée est requise",
       "expectedOutputRequired": "Le résultat attendu est requis"
+    },
+    "notifications": {
+      "created": "{{name}} créé avec succès",
+      "createError": "La création de {{name}} a échoué",
+      "renamed": "{{name}} renommé avec succès",
+      "renameError": "Le renommage de {{name}} a échoué",
+      "deleted": "Dataset supprimé",
+      "deleteError": "La suppression du dataset a échoué",
+      "recordCreated": "Enregistrement créé",
+      "recordCreateError": "La création de l'enregistrement a échoué",
+      "recordsCreated": "Enregistrements créés",
+      "recordsCreateError": "La création des enregistrements a échoué",
+      "recordUpdated": "Enregistrement mis à jour",
+      "recordUpdateError": "La mise à jour de l'enregistrement a échoué",
+      "recordDeleted": "Enregistrement supprimé",
+      "recordDeleteError": "La suppression de l'enregistrement a échoué"
     }
   }
 }

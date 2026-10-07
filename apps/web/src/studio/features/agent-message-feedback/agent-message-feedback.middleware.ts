@@ -31,7 +31,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Feedback submitted successfully",
+          titleKey: "agentMessageFeedback:notifications.submitted",
           type: "success",
         }),
       )
@@ -42,7 +42,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Failed to submit feedback",
+          titleKey: "agentMessageFeedback:notifications.submitError",
           type: "error",
         }),
       )

@@ -90,7 +90,9 @@ function registerListeners() {
       if (action.meta.arg.targetType !== "project") return
       listenerApi.dispatch(
         notificationsActions.show({
-          title: action.payload.emailSent ? "Invitations sent by email" : "People invited",
+          titleKey: action.payload.emailSent
+            ? "projectMembership:notifications.invitationsSentByEmail"
+            : "projectMembership:notifications.peopleInvited",
           type: "success",
         }),
       )
@@ -102,7 +104,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Member removed successfully",
+          titleKey: "projectMembership:notifications.removed",
           type: "success",
         }),
       )
@@ -114,7 +116,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Role updated",
+          titleKey: "projectMembership:notifications.roleUpdated",
           type: "success",
         }),
       )
@@ -128,7 +130,7 @@ function registerListeners() {
       if (action.meta.arg.targetType !== "project") return
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Failed to invite people",
+          titleKey: "projectMembership:notifications.inviteError",
           type: "error",
         }),
       )
@@ -140,7 +142,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Failed to update role",
+          titleKey: "projectMembership:notifications.roleUpdateError",
           type: "error",
         }),
       )
@@ -152,7 +154,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Failed to remove member",
+          titleKey: "projectMembership:notifications.removeError",
           type: "error",
         }),
       )

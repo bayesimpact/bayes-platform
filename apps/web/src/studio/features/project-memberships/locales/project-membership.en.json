@@ -61,6 +61,15 @@
         "title": "Change {{name}}'s role to {{role}}?",
         "description": "Their permissions on this project and its agents change right away."
       }
+    },
+    "notifications": {
+      "invitationsSentByEmail": "Invitations sent by email",
+      "peopleInvited": "People invited",
+      "inviteError": "Failed to invite people",
+      "removed": "Member removed successfully",
+      "removeError": "Failed to remove member",
+      "roleUpdated": "Role updated",
+      "roleUpdateError": "Failed to update role"
     }
   }
 }

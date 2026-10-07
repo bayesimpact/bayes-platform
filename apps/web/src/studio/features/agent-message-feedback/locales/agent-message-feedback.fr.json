@@ -23,6 +23,10 @@
         "title": "Pas encore de retours",
         "description": "Aucun avis sur les messages de l'agent."
       }
+    },
+    "notifications": {
+      "submitted": "Retour envoyé avec succès",
+      "submitError": "L'envoi du retour a échoué"
     }
   }
 }

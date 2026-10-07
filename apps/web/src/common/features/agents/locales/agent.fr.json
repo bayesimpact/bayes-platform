@@ -63,6 +63,14 @@
         "description": "Mettez cet agent à jour vers {{replacement}} et testez-le avant cette date. Passé ce délai, les exécutions sur {{model}} échoueront."
       }
     },
-    "playground": "Playground"
+    "playground": "Playground",
+    "notifications": {
+      "updated": "Agent mis à jour avec succès",
+      "updateError": "La mise à jour de l'agent a échoué",
+      "deleted": "Agent supprimé avec succès",
+      "deleteError": "La suppression de l'agent a échoué",
+      "created": "Agent créé avec succès",
+      "createError": "La création de l'agent a échoué"
+    }
   }
 }

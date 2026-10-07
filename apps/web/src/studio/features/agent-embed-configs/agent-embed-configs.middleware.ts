@@ -32,7 +32,7 @@ function registerListeners() {
     effect: (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Embed config updated successfully",
+          titleKey: "agentSettings:notifications.embedConfigUpdated",
           type: "success",
         }),
       )
@@ -44,7 +44,7 @@ function registerListeners() {
     effect: (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Failed to update embed config",
+          titleKey: "agentSettings:notifications.embedConfigUpdateError",
           type: "error",
         }),
       )

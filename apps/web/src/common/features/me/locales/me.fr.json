@@ -26,6 +26,12 @@
       "agentBadge": "Agent",
       "reviewCampaignBadge": "Campagne de revue",
       "roleLabel": "Rôle"
+    },
+    "notifications": {
+      "invitationAnswerError": "Impossible de répondre à l'invitation",
+      "apiUnreachable": "Impossible de joindre l'API",
+      "apiUnreachableDescription": "Vérifiez que l'API est démarrée et que CORS est configuré pour l'origine de cette application web.",
+      "profileUpdated": "Profil mis à jour"
     }
   },
   "termsAcceptance": {

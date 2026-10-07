@@ -82,6 +82,22 @@
       "description": "Évaluez et testez les performances de vos agents.",
       "evaluateExtractionAgent": "Évaluer l'agent d'extraction",
       "manageDatasets": "Gérer les datasets et lancer les évaluations"
+    },
+    "notifications": {
+      "created": "{{name}} créé avec succès",
+      "createError": "La création de {{name}} a échoué",
+      "updated": "{{name}} mis à jour avec succès",
+      "updateError": "La mise à jour de {{name}} a échoué",
+      "renamed": "{{name}} renommé avec succès",
+      "renameError": "Le renommage de {{name}} a échoué",
+      "deleted": "Dataset supprimé",
+      "deleteError": "La suppression du dataset a échoué",
+      "uploading": "Téléversement de {{fileName}}...",
+      "fileUploaded": "{{fileName}} téléversé avec succès",
+      "fileUploadError": "Le téléversement de {{fileName}} a échoué",
+      "fileUploadErrorWithReason": "Erreur lors du téléversement du fichier « {{fileName}} »",
+      "filesDeleted": "Fichier(s) supprimé(s) avec succès",
+      "fileDeleteError": "La suppression du fichier a échoué"
     }
   }
 }

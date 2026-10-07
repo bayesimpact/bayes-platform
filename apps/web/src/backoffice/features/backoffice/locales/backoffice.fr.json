@@ -1,0 +1,18 @@
+{
+  "backoffice": {
+    "notifications": {
+      "organizationCreated": "Organisation créée",
+      "organizationCreateError": "La création de l'organisation a échoué",
+      "projectUpdated": "Espace de travail mis à jour dans le backoffice",
+      "projectUpdateError": "La mise à jour de l'espace de travail dans le backoffice a échoué",
+      "termsDocumentsSaved": "Documents des conditions d'utilisation enregistrés",
+      "termsDocumentsSaveError": "L'enregistrement des documents des conditions d'utilisation a échoué",
+      "appCreated": "Application créée",
+      "appUpdated": "Application mise à jour",
+      "appDeleted": "Application supprimée",
+      "appCreateError": "La création de l'application a échoué",
+      "appUpdateError": "La mise à jour de l'application a échoué",
+      "appDeleteError": "La suppression de l'application a échoué"
+    }
+  }
+}

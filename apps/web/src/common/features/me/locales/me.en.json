@@ -26,6 +26,12 @@
       "agentBadge": "Agent",
       "reviewCampaignBadge": "Review campaign",
       "roleLabel": "Role"
+    },
+    "notifications": {
+      "invitationAnswerError": "Failed to answer the invitation",
+      "apiUnreachable": "Unable to reach the API",
+      "apiUnreachableDescription": "Please check that the API is running and CORS is configured for this web app origin.",
+      "profileUpdated": "Profile updated"
     }
   },
   "termsAcceptance": {

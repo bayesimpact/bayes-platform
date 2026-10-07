@@ -33,7 +33,10 @@ function registerListeners() {
     actionCreator: createMcpServer.fulfilled,
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
-        notificationsActions.show({ title: "MCP server created", type: "success" }),
+        notificationsActions.show({
+          titleKey: "mcpServers:notifications.created",
+          type: "success",
+        }),
       )
       action.meta.arg.onSuccess()
     },
@@ -43,7 +46,7 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "MCP server creation failed",
+          titleKey: "mcpServers:notifications.createError",
           description: action.payload || undefined,
           type: "error",
         }),
@@ -55,7 +58,10 @@ function registerListeners() {
     actionCreator: deleteMcpServer.fulfilled,
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
-        notificationsActions.show({ title: "MCP server deleted", type: "success" }),
+        notificationsActions.show({
+          titleKey: "mcpServers:notifications.deleted",
+          type: "success",
+        }),
       )
       action.meta.arg.onSuccess()
     },
@@ -64,7 +70,10 @@ function registerListeners() {
     actionCreator: deleteMcpServer.rejected,
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
-        notificationsActions.show({ title: "MCP server deletion failed", type: "error" }),
+        notificationsActions.show({
+          titleKey: "mcpServers:notifications.deleteError",
+          type: "error",
+        }),
       )
     },
   })
@@ -73,7 +82,10 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(listAgentSettingsWithDraft({ agentId: action.meta.arg.agentId }))
       listenerApi.dispatch(
-        notificationsActions.show({ title: "MCP server enabled", type: "success" }),
+        notificationsActions.show({
+          titleKey: "mcpServers:notifications.enabled",
+          type: "success",
+        }),
       )
     },
   })
@@ -83,7 +95,10 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(listAgentSettingsWithDraft({ agentId: action.meta.arg.agentId }))
       listenerApi.dispatch(
-        notificationsActions.show({ title: "MCP server disabled", type: "success" }),
+        notificationsActions.show({
+          titleKey: "mcpServers:notifications.disabled",
+          type: "success",
+        }),
       )
     },
   })
@@ -92,7 +107,10 @@ function registerListeners() {
     actionCreator: enableMcpServerForAgent.rejected,
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
-        notificationsActions.show({ title: "Failed to enable MCP server", type: "error" }),
+        notificationsActions.show({
+          titleKey: "mcpServers:notifications.enableError",
+          type: "error",
+        }),
       )
     },
   })
@@ -101,7 +119,10 @@ function registerListeners() {
     actionCreator: disableMcpServerForAgent.rejected,
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
-        notificationsActions.show({ title: "Failed to disable MCP server", type: "error" }),
+        notificationsActions.show({
+          titleKey: "mcpServers:notifications.disableError",
+          type: "error",
+        }),
       )
     },
   })
@@ -111,7 +132,7 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "MCP server authorization failed",
+          titleKey: "mcpServers:notifications.authorizationError",
           description: action.payload || undefined,
           type: "error",
         }),

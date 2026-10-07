@@ -87,7 +87,7 @@ function registerListeners() {
           await listenerApi.dispatch(getAll({ agentId }))
           listenerApi.dispatch(
             notificationsActions.show({
-              title: "Extraction completed successfully",
+              titleKey: "extractionAgentSession:notifications.completed",
               type: "success",
             }),
           )
@@ -97,7 +97,7 @@ function registerListeners() {
           await listenerApi.dispatch(getAll({ agentId }))
           listenerApi.dispatch(
             notificationsActions.show({
-              title: "Extraction failed",
+              titleKey: "extractionAgentSession:notifications.failed",
               type: "error",
             }),
           )
@@ -117,7 +117,8 @@ function registerListeners() {
       if (!("file" in action.meta.arg)) return
       listenerApi.dispatch(
         notificationsActions.show({
-          title: `Uploading ${action.meta.arg.file.name}...`,
+          titleKey: "extractionAgentSession:notifications.uploading",
+          titleValues: { fileName: action.meta.arg.file.name },
           type: "info",
         }),
       )
@@ -129,7 +130,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Extraction execution failed",
+          titleKey: "extractionAgentSession:notifications.executionFailed",
           type: "error",
         }),
       )
@@ -141,7 +142,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Document(s) deleted successfully",
+          titleKey: "extractionAgentSession:notifications.documentsDeleted",
           type: "success",
         }),
       )
@@ -153,7 +154,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Failed to delete document(s)",
+          titleKey: "extractionAgentSession:notifications.documentsDeleteError",
           type: "error",
         }),
       )
@@ -167,7 +168,7 @@ function registerListeners() {
 
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Extraction deleted successfully",
+          titleKey: "extractionAgentSession:notifications.deleted",
           type: "success",
         }),
       )
@@ -184,7 +185,7 @@ function registerListeners() {
 
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Extraction deletion failed",
+          titleKey: "extractionAgentSession:notifications.deleteError",
           type: "error",
         }),
       )

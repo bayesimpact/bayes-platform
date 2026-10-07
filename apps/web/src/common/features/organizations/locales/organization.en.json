@@ -27,6 +27,12 @@
       "namePlaceholder": "Enter organization name",
       "cancel": "Cancel",
       "save": "Save"
+    },
+    "notifications": {
+      "created": "Organization created successfully",
+      "createError": "Organization creation failed",
+      "renamed": "Organization renamed successfully",
+      "renameError": "Failed to rename organization"
     }
   }
 }

@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from "react"
 import { useDropzone } from "react-dropzone"
 import { useTranslation } from "react-i18next"
 import { buildAccept } from "@/common/components/file-uploader-mime"
+import type { NotificationValues } from "@/common/features/notifications/notifications.models"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import { useAppDispatch } from "@/common/store/hooks"
 
@@ -43,10 +44,10 @@ export function FileUploader({
   const disabled = disabledProp || status === "loading"
 
   const showNotification = useCallback(
-    (type: "info" | "error", title: string) =>
+    (type: "info" | "error", titleKey: string, titleValues: NotificationValues) =>
       // tiemout required
       setTimeout(() => {
-        dispatch(notificationsActions.show({ type, title }))
+        dispatch(notificationsActions.show({ type, titleKey, titleValues }))
       }, 0),
     [dispatch],
   )
@@ -91,32 +92,29 @@ export function FileUploader({
         rejection.errors.forEach((err) => {
           switch (err.code) {
             case "file-invalid-type":
-              showNotification(
-                "error",
-                t("fileInvalidType", {
-                  fileName: rejection.file.name,
-                  fileType: rejection.file.type,
-                }),
-              )
+              showNotification("error", "actions:fileInvalidType", {
+                fileName: rejection.file.name,
+                fileType: rejection.file.type,
+              })
               break
 
             case "too-many-files":
-              showNotification("error", t("fileTooMany", { maxFiles }))
+              showNotification("error", "actions:fileTooMany", { maxFiles })
               break
 
             case "file-too-large":
-              showNotification("error", t("fileTooLarge", { fileName: rejection.file.name }))
+              showNotification("error", "actions:fileTooLarge", { fileName: rejection.file.name })
               break
 
             case "file-too-small":
-              showNotification("error", t("fileTooSmall", { fileName: rejection.file.name }))
+              showNotification("error", "actions:fileTooSmall", { fileName: rejection.file.name })
               break
 
             default:
-              showNotification(
-                "error",
-                t("fileUploadFailed", { fileName: rejection.file.name, errorMessage: err.message }),
-              )
+              showNotification("error", "actions:fileUploadFailed", {
+                fileName: rejection.file.name,
+                errorMessage: err.message,
+              })
               break
           }
         })
