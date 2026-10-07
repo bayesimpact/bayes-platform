@@ -161,7 +161,7 @@ This instruction is in:
 
 `DocumentChunkRetrievalService` embeds the `query` as-is — the standalone question the model wrote, with no extra framing around it.
 
-That text is embedded using the **first model** from `DOCUMENT_EMBEDDING_MODELS`, unless the agent picked a local model (`agent_settings.embedding_model`) that its project finished embedding with. A local model is embedded by the GPU workers through the `query-embeddings` BullMQ queue (the API waits for the job result, `LOCAL_EMBEDDING_QUERY_TIMEOUT_MS`); on timeout or error the service falls back to the Vertex model with a warning. See ADR 0019.
+That text is embedded using the **first model** from `DOCUMENT_EMBEDDING_MODELS`, unless the agent picked a local model (`agent_settings.embedding_model`) that its project finished embedding with. A local model is embedded by the GPU workers through the `query-embeddings` BullMQ queue (the API waits for the job result, `LOCAL_EMBEDDING_QUERY_TIMEOUT_MS`); on timeout or error the service falls back to the Vertex model with a warning. See ADR 0023.
 
 ### 5) Similarity search in pgvector
 
