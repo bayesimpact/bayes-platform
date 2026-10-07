@@ -478,11 +478,12 @@ export abstract class AISDKLLMModelMgmt<
                   stripper = createStreamSanitizer()
                   currentTextId = typeof c.id === "string" ? c.id : undefined
                   controller.enqueue(chunk)
-                } else if (
-                  c?.type === "text-delta" &&
-                  typeof c.delta === "string" &&
-                  stripper !== null
-                ) {
+                } else if (c?.type === "text-delta" && typeof c.delta === "string") {
+                  // A delta that arrives without its text-start is cleaned too.
+                  if (stripper === null) {
+                    stripper = createStreamSanitizer()
+                    currentTextId = typeof c.id === "string" ? c.id : undefined
+                  }
                   const cleaned = stripper.feed(c.delta)
                   if (cleaned) controller.enqueue({ ...c, delta: cleaned })
                 } else if (c?.type === "text-end") {

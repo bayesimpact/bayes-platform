@@ -684,6 +684,35 @@ describe("AISDKLLMModelMgmt", () => {
         expect(leakedToolCalls.map((leakedCall) => leakedCall.name)).toEqual(["notify_operator"])
       })
 
+      it("cleans deltas that arrive without a text-start", async () => {
+        const chunks = textChunks(`${LONG_ANSWER}${LEAKED_CALL_TEXT}`).filter(
+          (part) => part.type !== "text-start",
+        )
+        const model = new TestModelMgmt(streamModel(chunks)).rawCaptureModelFor()
+
+        const streamParts = await collect(model)
+        const text = streamedText(streamParts)
+
+        expect(text).toContain("Our plans start at 10 euros a month")
+        expect(text).not.toContain("<call:")
+        expect(
+          streamParts
+            .filter((part) => part.type === "text-delta")
+            .every((part) => part.type === "text-delta" && part.id === "text-1"),
+        ).toBe(true)
+      })
+
+      it("releases the text held back when the stream ends without a text-end", async () => {
+        const chunks = textChunks(`${LONG_ANSWER}Thanks.`).filter(
+          (part) => part.type !== "text-start" && part.type !== "text-end",
+        )
+        const model = new TestModelMgmt(streamModel(chunks)).rawCaptureModelFor()
+
+        const text = streamedText(await collect(model))
+
+        expect(text).toBe(`${LONG_ANSWER}Thanks.`)
+      })
+
       it("emits a tool call the provider dropped for malformed arguments", async () => {
         const model = new TestModelMgmt(
           streamModel([
