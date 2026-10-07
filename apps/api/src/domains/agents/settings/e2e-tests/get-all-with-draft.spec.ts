@@ -1,5 +1,6 @@
 import {
   AgentLocale,
+  AgentMemoryMode,
   AgentModel,
   AgentSettingsRoutes,
   AgentThinkingLevel,
@@ -190,6 +191,7 @@ describe("Agent Settings - getAllWithDraft", () => {
       updatedAt: storedRevision2.updatedAt.getTime(),
       priorityCallsEnabled: false,
       thinkingLevel: AgentThinkingLevel.Auto,
+      memoryMode: AgentMemoryMode.Off,
     })
   })
 

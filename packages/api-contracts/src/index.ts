@@ -9,10 +9,12 @@ export { AgentMembershipRoutes } from "./agent-membership/agent-membership.route
 // Agent Message Feedback
 export type * from "./agent-message-feedback/agent-message-feedback.dto"
 export { AgentMessageFeedbackRoutes } from "./agent-message-feedback/agent-message-feedback.routes"
-
 // Agent CSV Extraction Runs
 export * from "./agents/agent-csv-extraction-runs/agent-csv-extraction-runs.dto"
 export { AgentCsvExtractionRunsRoutes } from "./agents/agent-csv-extraction-runs/agent-csv-extraction-runs.routes"
+// Agent Memories
+export * from "./agents/agent-memories/agent-memories.dto"
+export { AgentMemoriesRoutes } from "./agents/agent-memories/agent-memories.routes"
 // Agent
 export * from "./agents/agents.dto"
 export { AgentsRoutes } from "./agents/agents.routes"

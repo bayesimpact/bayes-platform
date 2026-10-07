@@ -8,6 +8,7 @@ import type {
   PaginatedBackofficeUsers,
   TermsDocuments,
 } from "@/backoffice/features/backoffice/backoffice.models"
+import type { AgentMemory } from "@/common/features/agents/agent-memories/agent-memories.models"
 import type {
   ConversationAgentSession,
   ConversationSubSession,
@@ -160,6 +161,11 @@ export const seed = {
         callbackState: params.callbackState ?? "csrf-state",
       },
     }
+  },
+
+  /** What the current agent remembers about the signed-in user (Studio and Desk conversations). */
+  agentMemories(memories: AgentMemory[]): StoryPreloadedState {
+    return { agentMemories: { mounted: true, data: ads.fulfilled(memories) } }
   },
 
   me(user: User): StoryPreloadedState {

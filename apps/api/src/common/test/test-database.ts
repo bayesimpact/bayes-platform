@@ -195,6 +195,9 @@ WITH
   del_conversation_form AS (
     DELETE FROM "conversation_form"
   ),
+  del_agent_memory AS (
+    DELETE FROM "agent_memory"
+  ),
   del_agent_message_feedback AS (
     DELETE FROM "agent_message_feedback"
   ),

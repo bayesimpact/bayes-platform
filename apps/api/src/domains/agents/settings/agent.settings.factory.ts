@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto"
 import {
   AgentLocale,
+  AgentMemoryMode,
   AgentModel,
   AgentThinkingLevel,
   DocumentsRagMode,
@@ -50,6 +51,7 @@ export const agentSettingsFactory = AgentSettingsFactory.define(
       fillFormEnabled: params.fillFormEnabled ?? false,
       thinkingLevel: params.thinkingLevel || AgentThinkingLevel.Auto,
       priorityCallsEnabled: params.priorityCallsEnabled ?? false,
+      memoryMode: params.memoryMode || AgentMemoryMode.Off,
       organizationId: transientParams.organization.id,
       projectId: transientParams.project.id,
       agentId: transientParams.agent.id,

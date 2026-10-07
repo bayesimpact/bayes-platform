@@ -1,5 +1,6 @@
 import type {
   AgentLocale,
+  AgentMemoryMode,
   AgentModel,
   AgentTemperature,
   AgentThinkingLevel,
@@ -74,4 +75,7 @@ export class AgentSettings extends ConnectEntityBase {
 
   @Column({ type: "varchar", name: "thinking_level", nullable: false, default: "auto" })
   thinkingLevel!: AgentThinkingLevel
+
+  @Column({ type: "varchar", name: "memory_mode", nullable: false, default: "off" })
+  memoryMode!: AgentMemoryMode
 }

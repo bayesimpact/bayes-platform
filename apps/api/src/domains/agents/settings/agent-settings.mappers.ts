@@ -62,5 +62,6 @@ export function toAgentSettingsDto({
     updatedAt: agentSettings.updatedAt.getTime(),
     usedProjectAgentSessionCategoryIds,
     thinkingLevel: agentSettings.thinkingLevel,
+    memoryMode: agentSettings.memoryMode,
   }
 }

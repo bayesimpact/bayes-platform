@@ -24,6 +24,8 @@
       "fillingForm": "Filling in the form…",
       "completingForm": "Completing the form…",
       "handingBack": "Handing the conversation back…",
+      "savingMemory": "Remembering…",
+      "forgettingMemory": "Forgetting…",
       "recalculating": "Updating the session…"
     },
     "asyncLoading": "Loading...",

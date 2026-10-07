@@ -224,6 +224,15 @@
         "title": "Remplissage de formulaire",
         "description": "Permet à l'agent de remplir un formulaire structuré à partir des réponses de l'utilisateur pendant la conversation.",
         "schemaDescription": "Définissez les champs du formulaire que l'agent doit remplir. L'ordre des champs est l'ordre dans lequel l'agent pose ses questions."
+      },
+      "memory": {
+        "title": "Mémoire",
+        "description": "Permet à l'agent de se souvenir d'informations sur chaque utilisateur connecté d'une conversation à l'autre. Les utilisateurs voient et suppriment ce qu'il retient.",
+        "modes": {
+          "off": "Désactivée",
+          "ask": "Demander avant d'enregistrer",
+          "auto": "Enregistrer automatiquement"
+        }
       }
     },
     "notifications": {

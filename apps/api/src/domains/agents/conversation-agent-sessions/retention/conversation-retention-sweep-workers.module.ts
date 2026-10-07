@@ -2,6 +2,7 @@ import { BullModule } from "@nestjs/bullmq"
 import { Module } from "@nestjs/common"
 import { TypeOrmModule } from "@nestjs/typeorm"
 import { ALL_ENTITIES } from "@/common/all-entities"
+import { AgentMemoriesStoreModule } from "@/domains/agents/memories/agent-memories-store.module"
 import { PdfPagesModule } from "@/domains/documents/pdf-pages/pdf-pages.module"
 import { StorageModule } from "@/domains/documents/storage/storage.module"
 import { ConversationFormsModule } from "../../shared/conversation-forms/conversation-forms.module"
@@ -20,6 +21,7 @@ import { ConversationRetentionSweepSchedulerService } from "./conversation-reten
     StorageModule,
     PdfPagesModule,
     ConversationFormsModule,
+    AgentMemoriesStoreModule,
   ],
   providers: [
     ConversationRetentionSweepWorker,

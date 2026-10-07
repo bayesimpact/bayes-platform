@@ -101,6 +101,18 @@ export enum AgentThinkingLevel {
   High = "high",
 }
 
+/**
+ * How a conversation agent uses its memory of a user (see ADR 0023).
+ * - off: no memory tools, nothing remembered.
+ * - ask: facts the user asks to remember are saved; facts the agent infers wait for the user's approval.
+ * - auto: the agent saves both without asking.
+ */
+export enum AgentMemoryMode {
+  Off = "off",
+  Ask = "ask",
+  Auto = "auto",
+}
+
 /** Model every newly created agent and eval judge run starts on. */
 export const DEFAULT_AGENT_MODEL = AgentModel.Gemini35FlashLite
 
@@ -173,6 +185,7 @@ export type AgentSettingsDto = {
   updatedAt: TimeType
   usedProjectAgentSessionCategoryIds: string[]
   thinkingLevel: AgentThinkingLevel
+  memoryMode: AgentMemoryMode
 }
 
 // Constraint keywords (enum/minimum/maximum/items) mirror the subset of JSON Schema
@@ -274,6 +287,7 @@ export const agentSettingsValidationSchema = z.object({
       "Temperature must be between 0.0 and 2.0",
     ),
   thinkingLevel: z.enum(AgentThinkingLevel),
+  memoryMode: z.enum(AgentMemoryMode),
 })
 
 export type AgentTemperature = z.infer<typeof agentSettingsValidationSchema.shape.temperature>
@@ -395,6 +409,7 @@ export const updateAgentSettingsToolsSchema = z
   .object({
     fillFormEnabled: agentSettingsValidationSchema.shape.fillFormEnabled,
     outputJsonSchema: outputJsonSchemaSchema.optional(),
+    memoryMode: agentSettingsValidationSchema.shape.memoryMode.optional(),
   })
   .refine(refineFillFormOutputJsonSchema.fn, refineFillFormOutputJsonSchema.message)
 export type UpdateAgentSettingsToolsDto = z.infer<typeof updateAgentSettingsToolsSchema>
