@@ -54,6 +54,8 @@ The `*.ui.read` permissions open one user interface of the project each and are 
 
 The `csv_extraction_run.*` permissions are not inherited either: an organization role does not open a project's CSV extraction runs. Every project role holds the four live run permissions, while the `csv_extraction_run.playground.*` ones stay with owners and admins.
 
+The `agent.conversation.session.*` permissions are not inherited either: an organization role does not open a project's conversations. Every project role holds the three live session permissions, while the `agent.conversation.session.playground.*` ones stay with owners and admins. Each caller only ever sees their own sessions.
+
 | Permission | `project_owner` | `project_admin` | `project_member` |
 |---|---|---|---|
 | `project.read` | ✅ | ✅ | ✅ |
@@ -105,6 +107,12 @@ The `csv_extraction_run.*` permissions are not inherited either: an organization
 | `csv_extraction_run.playground.create` — create a playground CSV extraction run | ✅ | ✅ | — |
 | `csv_extraction_run.playground.update` — execute, retry or cancel a playground CSV extraction run | ✅ | ✅ | — |
 | `csv_extraction_run.playground.delete` — delete a playground CSV extraction run | ✅ | ✅ | — |
+| `agent.conversation.session.read` — see your live conversations with the project's agents, and their sub-sessions | ✅ | ✅ | ✅ |
+| `agent.conversation.session.create` — start a live conversation with an agent | ✅ | ✅ | ✅ |
+| `agent.conversation.session.delete` — delete one of your live conversations | ✅ | ✅ | ✅ |
+| `agent.conversation.session.playground.read` — see your playground conversations with the project's agents, and their sub-sessions | ✅ | ✅ | — |
+| `agent.conversation.session.playground.create` — start a playground conversation with an agent | ✅ | ✅ | — |
+| `agent.conversation.session.playground.delete` — delete one of your playground conversations | ✅ | ✅ | — |
 | `user.read` — see the project's members | ✅ | ✅ | — |
 | `backoffice.project.read` — see the project in the backoffice | ✅ | ✅ | — |
 | `backoffice.project.update` — mutate the project from the backoffice (e.g. feature flags) | ✅ | ✅ | — |

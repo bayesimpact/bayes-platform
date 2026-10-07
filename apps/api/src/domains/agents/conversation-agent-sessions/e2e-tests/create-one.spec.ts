@@ -1,4 +1,7 @@
-import { ConversationAgentSessionsRoutes } from "@caseai-connect/api-contracts"
+import {
+  type BaseAgentSessionTypeDto,
+  ConversationAgentSessionsRoutes,
+} from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import { bindExpectActivityCreated } from "@/common/test/activity-test.helpers"
@@ -13,6 +16,7 @@ import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { addMemberByEmailToProject } from "@/domains/projects/memberships/project-membership.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { ConversationAgentSessionsModule } from "../conversation-agent-sessions.module"
 
@@ -37,6 +41,7 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
     })
     repositories = setup.getAllRepositories()
     expectActivityCreated = bindExpectActivityCreated(repositories.activityRepository)
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)
@@ -75,19 +80,18 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
     authSubject = addedUser.authSubject!
   }
 
-  const subject = async (payload?: typeof ConversationAgentSessionsRoutes.createOne.request) =>
+  const subject = async (type: BaseAgentSessionTypeDto) =>
     request({
-      route: ConversationAgentSessionsRoutes.createOne,
+      route: ConversationAgentSessionsRoutes[type].createOne,
       pathParams: removeNullish({ organizationId, projectId, agentId }),
       token: accessToken,
-      request: payload,
     })
 
   describe("creating a live session", () => {
     it("should create a live session", async () => {
       await createContext("member")
 
-      const response = await subject({ payload: { type: "live" } })
+      const response = await subject("live")
 
       expectResponse(response, 201)
       expect(response.body.data.id).toBeDefined()
@@ -107,7 +111,7 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
     it("should create a playground session", async () => {
       await createContext("owner")
 
-      const response = await subject({ payload: { type: "playground" } })
+      const response = await subject("playground")
 
       expectResponse(response, 201)
       expect(response.body.data.id).toBeDefined()
@@ -131,7 +135,7 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
         greetingMessage: greeting,
       })
 
-      const response = await subject({ payload: { type: "live" } })
+      const response = await subject("live")
 
       expectResponse(response, 201)
       const sessionId = response.body.data.id
@@ -145,7 +149,7 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
     it("should not seed any message when the agent has no greetingMessage", async () => {
       await createContext("owner")
 
-      const response = await subject({ payload: { type: "live" } })
+      const response = await subject("live")
 
       expectResponse(response, 201)
       const messages = await repositories.agentMessageRepository.find({

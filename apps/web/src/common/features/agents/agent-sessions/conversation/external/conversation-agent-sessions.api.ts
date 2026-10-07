@@ -6,35 +6,30 @@ import { fromDto, fromSubSessionDto } from "./conversation-agent-sessions.mapper
 export default {
   getAll: async ({ type, ...params }) => {
     const axios = getAxiosInstance()
-    const response = await axios.post<typeof ConversationAgentSessionsRoutes.getAll.response>(
-      ConversationAgentSessionsRoutes.getAll.getPath(params),
-      { payload: { type } } satisfies typeof ConversationAgentSessionsRoutes.getAll.request,
+    const response = await axios.post<typeof ConversationAgentSessionsRoutes.live.getAll.response>(
+      ConversationAgentSessionsRoutes[type].getAll.getPath(params),
     )
     return response.data.data.map(fromDto)
   },
   createOne: async ({ type, ...params }) => {
     const axios = getAxiosInstance()
-    const response = await axios.post<typeof ConversationAgentSessionsRoutes.createOne.response>(
-      ConversationAgentSessionsRoutes.createOne.getPath(params),
-      { payload: { type } } satisfies typeof ConversationAgentSessionsRoutes.createOne.request,
-    )
+    const response = await axios.post<
+      typeof ConversationAgentSessionsRoutes.live.createOne.response
+    >(ConversationAgentSessionsRoutes[type].createOne.getPath(params))
     return fromDto(response.data.data)
   },
   deleteOne: async ({ type, ...params }) => {
     const axios = getAxiosInstance()
-    const response = await axios.post<typeof ConversationAgentSessionsRoutes.deleteOne.response>(
-      ConversationAgentSessionsRoutes.deleteOne.getPath(params),
-      { payload: { type } } satisfies typeof ConversationAgentSessionsRoutes.deleteOne.request,
-    )
+    const response = await axios.post<
+      typeof ConversationAgentSessionsRoutes.live.deleteOne.response
+    >(ConversationAgentSessionsRoutes[type].deleteOne.getPath(params))
     return response.data.data
   },
   listSubSessions: async ({ type, ...params }) => {
     const axios = getAxiosInstance()
     const response = await axios.post<
-      typeof ConversationAgentSessionsRoutes.listSubSessions.response
-    >(ConversationAgentSessionsRoutes.listSubSessions.getPath(params), {
-      payload: { type },
-    } satisfies typeof ConversationAgentSessionsRoutes.listSubSessions.request)
+      typeof ConversationAgentSessionsRoutes.live.listSubSessions.response
+    >(ConversationAgentSessionsRoutes[type].listSubSessions.getPath(params))
     return response.data.data.map(fromSubSessionDto)
   },
 } satisfies IConversationAgentSessionsSpi

@@ -245,6 +245,31 @@ export const CSV_EXTRACTION_RUN_PLAYGROUND_DELETE_PERMISSION =
   "csv_extraction_run.playground.delete" as const
 
 /**
+ * Live conversation sessions: the caller's own chats with an agent, and the sub-sessions they
+ * spawned. Scoped to the project and never inherited from the organization.
+ */
+export const AGENT_CONVERSATION_SESSION_READ_PERMISSION = "agent.conversation.session.read" as const
+
+export const AGENT_CONVERSATION_SESSION_CREATE_PERMISSION =
+  "agent.conversation.session.create" as const
+
+export const AGENT_CONVERSATION_SESSION_DELETE_PERMISSION =
+  "agent.conversation.session.delete" as const
+
+/**
+ * Playground conversation sessions. They belong to the Studio surface, so only project owners
+ * and admins hold these keys. Scoped to the project and never inherited from the organization.
+ */
+export const AGENT_CONVERSATION_SESSION_PLAYGROUND_READ_PERMISSION =
+  "agent.conversation.session.playground.read" as const
+
+export const AGENT_CONVERSATION_SESSION_PLAYGROUND_CREATE_PERMISSION =
+  "agent.conversation.session.playground.create" as const
+
+export const AGENT_CONVERSATION_SESSION_PLAYGROUND_DELETE_PERMISSION =
+  "agent.conversation.session.playground.delete" as const
+
+/**
  * Permissions an App may be granted. Policy lives in code, not in the database:
  * there is no Permission entity and no `app_grantable` column. Intersect this
  * list with `AppManifest.grantable_permissions` on save and on authorize.

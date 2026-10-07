@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto"
 import {
+  type BaseAgentSessionTypeDto,
   ConversationAgentSessionsRoutes,
   type ProjectMembershipRoleDto,
 } from "@caseai-connect/api-contracts"
@@ -14,13 +15,16 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
+import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
 import { createOrganizationWithAgentSession } from "@/domains/organizations/organization.factory"
 import {
   mockForeignAuthSubject,
   mockOidcEmailForSub,
   setupUserGuardForTesting,
 } from "../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
+import { conversationAgentSessionFactory } from "../conversation-agent-session.factory"
 import { ConversationAgentSessionsModule } from "../conversation-agent-sessions.module"
 
 describe("Agent Sessions - Auth", () => {
@@ -43,7 +47,7 @@ describe("Agent Sessions - Auth", () => {
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
-
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)
@@ -64,13 +68,19 @@ describe("Agent Sessions - Auth", () => {
     await app.close()
   })
 
-  const createContextForRole = async (role: ProjectMembershipRoleDto) => {
+  // Seeds an organization/project (membership at `role`) + conversation agent, and a session of
+  // `type` owned by the caller so the delete and sub-session routes have a resolvable target.
+  const createContextForRole = async (
+    role: ProjectMembershipRoleDto,
+    type: BaseAgentSessionTypeDto = "live",
+  ) => {
     const { organization, project, agent, agentSession, user } =
       await createOrganizationWithAgentSession({
         repositories,
         params: {
           user: { authSubject, email: mockOidcEmailForSub(authSubject) },
           projectMembership: { role },
+          agentSession: { type },
         },
         agentType: "conversation",
       })
@@ -80,197 +90,161 @@ describe("Agent Sessions - Auth", () => {
     agentId = agent.id
     agentSessionId = agentSession.id
     accessToken = "token"
+    return { organization, project, agent, type }
   }
 
-  describe("ConversationAgentSessionsRoutes.createOne", () => {
-    const subject = async (type: "playground" | "live") =>
+  /**
+   * Switches the caller to an organization admin who holds no role on the project, and points the
+   * path at a session of their own, so only the permission check stands between them and the route.
+   */
+  const switchToOrganizationAdminWithoutProjectRole = async ({
+    organization,
+    project,
+    agent,
+    type,
+  }: Awaited<ReturnType<typeof createContextForRole>>) => {
+    const organizationAdminAuthSubject = `oidc|${randomUUID()}`
+    const { user } = await addUserToOrganization({
+      repositories,
+      organization,
+      user: {
+        authSubject: organizationAdminAuthSubject,
+        email: mockOidcEmailForSub(organizationAdminAuthSubject),
+      },
+      membership: { role: "admin" },
+    })
+    const agentSession = conversationAgentSessionFactory
+      .transient({ organization, project, agent, user })
+      .build({ type })
+    await repositories.conversationAgentSessionRepository.save(agentSession)
+    authSubject = organizationAdminAuthSubject
+    agentSessionId = agentSession.id
+  }
+
+  // Shared by the four routes: authentication, organization and agent context.
+  const describeContextChecks = (
+    subject: (type: BaseAgentSessionTypeDto) => ReturnType<Requester>,
+  ) => {
+    describe.each([["live"], ["playground"]] as const)("on the %s routes", (type) => {
+      it("requires an authentication token", async () => {
+        accessToken = null
+        expectResponse(await subject(type), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+      })
+
+      it("requires a valid organization ID", async () => {
+        await createContextForRole("owner", type)
+        organizationId = null
+        expectResponse(await subject(type), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
+      })
+
+      it("requires a valid agent ID", async () => {
+        await createContextForRole("owner", type)
+        agentId = null
+        expectResponse(await subject(type), 404)
+      })
+
+      it("requires the user to be a member of the organization", async () => {
+        await createContextForRole("owner", type)
+        authSubject = mockForeignAuthSubject()
+        expectResponse(await subject(type), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
+      })
+
+      it("forbids an organization admin who holds no project role", async () => {
+        const context = await createContextForRole("owner", type)
+        await switchToOrganizationAdminWithoutProjectRole(context)
+        expectResponse(await subject(type), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+      })
+    })
+  }
+
+  // Live routes are open to every project role, playground routes to owners and admins only.
+  const describeRoleChecks = (
+    subject: (type: BaseAgentSessionTypeDto) => ReturnType<Requester>,
+  ) => {
+    it.each([
+      ["owner"],
+      ["admin"],
+      ["member"],
+    ] as const)("allows a project %s on the live routes", async (role) => {
+      await createContextForRole(role, "live")
+      expectResponse(await subject("live"), 201)
+    })
+
+    it.each([
+      ["owner"],
+      ["admin"],
+    ] as const)("allows a project %s on the playground routes", async (role) => {
+      await createContextForRole(role, "playground")
+      expectResponse(await subject("playground"), 201)
+    })
+
+    it("forbids a plain member on the playground routes", async () => {
+      await createContextForRole("member", "playground")
+      expectResponse(await subject("playground"), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+  }
+
+  describe("createOne", () => {
+    const subject = async (type: BaseAgentSessionTypeDto) =>
       request({
-        route: ConversationAgentSessionsRoutes.createOne,
+        route: ConversationAgentSessionsRoutes[type].createOne,
         pathParams: removeNullish({ organizationId, projectId, agentId }),
         token: accessToken ?? undefined,
-        request: { payload: { type } },
       })
 
-    describe.each([["live"], ["playground"]] as const)("creating a %s session", (type) => {
-      it("requires an authentication token", async () => {
-        accessToken = null
-        expectResponse(await subject(type), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
-      })
-
-      it("requires a valid organization ID", async () => {
-        await createContextForRole("owner")
-        organizationId = null
-        expectResponse(await subject(type), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
-      })
-      it("requires a valid agent ID", async () => {
-        await createContextForRole("member")
-        agentId = null
-        expectResponse(await subject(type), 404)
-      })
-
-      it("requires the user to be a member of the organization", async () => {
-        await createContextForRole("member")
-        authSubject = mockForeignAuthSubject()
-        expectResponse(await subject(type), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
-      })
-
-      if (type === "playground") {
-        it("doesn't allow members to create playground sessions", async () => {
-          await createContextForRole("member")
-          expectResponse(await subject(type), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
-        })
-      } else {
-        it("allows members to create live sessions", async () => {
-          await createContextForRole("member")
-          expectResponse(await subject(type), 201)
-        })
-      }
-
-      it("allows owners to create live sessions", async () => {
-        await createContextForRole("owner")
-        expectResponse(await subject(type), 201)
-      })
-    })
+    describeContextChecks(subject)
+    describeRoleChecks(subject)
   })
 
-  describe("ConversationAgentSessionsRoutes.getAll", () => {
-    const subject = async (type: "playground" | "live") =>
+  describe("getAll", () => {
+    const subject = async (type: BaseAgentSessionTypeDto) =>
       request({
-        route: ConversationAgentSessionsRoutes.getAll,
+        route: ConversationAgentSessionsRoutes[type].getAll,
         pathParams: removeNullish({ organizationId, projectId, agentId }),
         token: accessToken ?? undefined,
-        request: { payload: { type } },
       })
 
-    describe.each([["live"], ["playground"]] as const)("getting %s sessions", (type) => {
-      it("requires an authentication token", async () => {
-        accessToken = null
-        expectResponse(await subject(type), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    describeContextChecks(subject)
+    describeRoleChecks(subject)
+  })
+
+  describe("deleteOne", () => {
+    const subject = async (type: BaseAgentSessionTypeDto) =>
+      request({
+        route: ConversationAgentSessionsRoutes[type].deleteOne,
+        pathParams: removeNullish({ organizationId, projectId, agentId, agentSessionId }),
+        token: accessToken ?? undefined,
       })
-      it("requires a valid organization ID", async () => {
-        await createContextForRole("owner")
-        organizationId = null
-        expectResponse(await subject(type), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
-      })
-      it("requires a valid agent ID", async () => {
-        await createContextForRole("owner")
-        agentId = null
-        expectResponse(await subject(type), 404)
-      })
-      if (type === "playground") {
-        it("doesn't allow simple member to get playground sessions", async () => {
-          await createContextForRole("member")
-          expectResponse(await subject(type), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
-        })
-      } else {
-        it("allows members to get live sessions", async () => {
-          await createContextForRole("member")
-          expectResponse(await subject(type), 201)
-        })
-      }
-      it("allows owner to get sessions", async () => {
-        await createContextForRole("owner")
-        expectResponse(await subject(type), 201)
-      })
-      it("requires the user to be a member of the organization", async () => {
-        await createContextForRole("owner")
-        authSubject = mockForeignAuthSubject()
-        expectResponse(await subject(type), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
-      })
+
+    describeContextChecks(subject)
+    describeRoleChecks(subject)
+
+    it("answers 404 for an unknown session", async () => {
+      await createContextForRole("owner")
+      agentSessionId = randomUUID()
+      expectResponse(await subject("live"), 404)
+    })
+
+    it("answers 404 for a playground session on the live routes", async () => {
+      await createContextForRole("owner", "playground")
+      expectResponse(await subject("live"), 404)
+    })
+
+    it("answers 404 for a live session on the playground routes", async () => {
+      await createContextForRole("owner", "live")
+      expectResponse(await subject("playground"), 404)
     })
   })
 
-  describe("ConversationAgentSessionsRoutes.deleteOne", () => {
-    const subject = async (type: "playground" | "live") =>
+  describe("listSubSessions", () => {
+    const subject = async (type: BaseAgentSessionTypeDto) =>
       request({
-        route: ConversationAgentSessionsRoutes.deleteOne,
+        route: ConversationAgentSessionsRoutes[type].listSubSessions,
         pathParams: removeNullish({ organizationId, projectId, agentId, agentSessionId }),
         token: accessToken ?? undefined,
-        request: { payload: { type } },
       })
 
-    describe.each([["live"], ["playground"]] as const)("deleting a %s session", (type) => {
-      it("requires an authentication token", async () => {
-        accessToken = null
-        expectResponse(await subject(type), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
-      })
-      it("requires a valid organization ID", async () => {
-        await createContextForRole("owner")
-        organizationId = null
-        expectResponse(await subject(type), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
-      })
-      it("requires a valid agent ID", async () => {
-        await createContextForRole("owner")
-        agentId = null
-        expectResponse(await subject(type), 404)
-      })
-      it("requires the user to be a member of the organization", async () => {
-        await createContextForRole("owner")
-        authSubject = mockForeignAuthSubject()
-        expectResponse(await subject(type), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
-      })
-      if (type === "playground") {
-        it("doesn't allow a simple member to delete playground sessions", async () => {
-          await createContextForRole("member")
-          expectResponse(await subject(type), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
-        })
-      } else {
-        it("allows member to delete sessions", async () => {
-          await createContextForRole("member")
-          expectResponse(await subject(type), 201)
-        })
-      }
-      it("allows owner to delete sessions", async () => {
-        await createContextForRole("owner")
-        expectResponse(await subject(type), 201)
-      })
-    })
-  })
-
-  describe("ConversationAgentSessionsRoutes.listSubSessions", () => {
-    const subject = async (type: "playground" | "live") =>
-      request({
-        route: ConversationAgentSessionsRoutes.listSubSessions,
-        pathParams: removeNullish({ organizationId, projectId, agentId, agentSessionId }),
-        token: accessToken ?? undefined,
-        request: { payload: { type } },
-      })
-
-    describe.each([["live"], ["playground"]] as const)("listing %s sub-sessions", (type) => {
-      it("requires an authentication token", async () => {
-        accessToken = null
-        expectResponse(await subject(type), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
-      })
-      it("requires a valid organization ID", async () => {
-        await createContextForRole("owner")
-        organizationId = null
-        expectResponse(await subject(type), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
-      })
-      it("requires a valid agent ID", async () => {
-        await createContextForRole("owner")
-        agentId = null
-        expectResponse(await subject(type), 404)
-      })
-      it("requires the user to be a member of the organization", async () => {
-        await createContextForRole("owner")
-        authSubject = mockForeignAuthSubject()
-        expectResponse(await subject(type), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
-      })
-      if (type === "playground") {
-        it("doesn't allow a simple member to list playground sub-sessions", async () => {
-          await createContextForRole("member")
-          expectResponse(await subject(type), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
-        })
-      } else {
-        it("allows members to list live sub-sessions", async () => {
-          await createContextForRole("member")
-          expectResponse(await subject(type), 201)
-        })
-      }
-      it("allows owner to list sub-sessions", async () => {
-        await createContextForRole("owner")
-        expectResponse(await subject(type), 201)
-      })
-    })
+    describeContextChecks(subject)
+    describeRoleChecks(subject)
   })
 })

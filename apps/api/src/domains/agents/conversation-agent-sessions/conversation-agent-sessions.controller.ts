@@ -1,25 +1,18 @@
-import {
-  type ConversationAgentSessionDto,
+import type {
+  ConversationAgentSessionDto,
   ConversationAgentSessionsRoutes,
 } from "@caseai-connect/api-contracts"
-import { Body, Controller, Param, Post, Req, UseGuards } from "@nestjs/common"
+import { Injectable, NotFoundException } from "@nestjs/common"
 import type {
   EndpointRequestWithAgent,
   EndpointRequestWithAgentSession,
 } from "@/common/context/request.interface"
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
-import { AddContext, RequireContext } from "@/common/context/require-context.decorator"
-import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
-import { CheckPolicy } from "@/common/policies/check-policy.decorator"
-import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import { toConversationFormDto } from "@/domains/agents/shared/conversation-forms/conversation-form.mapper"
-import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
-import { UserGuard } from "@/domains/users/user.guard"
 import { getTraceUrl } from "@/external/llm/trace-url"
-import { BaseAgentSessionGuard } from "../base-agent-sessions/base-agent-session.guard"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { BaseAgentSessionsService } from "../base-agent-sessions/base-agent-sessions.service"
 import type { BaseAgentSessionType } from "../base-agent-sessions/base-agent-sessions.types"
@@ -29,10 +22,21 @@ import type { ConversationAgentSession } from "./conversation-agent-session.enti
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ConversationAgentSessionsService } from "./conversation-agent-sessions.service"
 
-@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, BaseAgentSessionGuard)
-@RequireContext("organization", "project", "agent")
-@Controller()
-export class ConversationAgentSessionsController {
+type Routes = (typeof ConversationAgentSessionsRoutes)[BaseAgentSessionType]
+
+/**
+ * Base of the live and playground conversation session controllers. Each subclass serves one
+ * session type on its own route set and checks its own permissions, and the handlers here only
+ * ever see sessions of that type, so a live permission never opens a playground session.
+ *
+ * This class declares no routes and no guards and is not registered in the module.
+ * `@Injectable()` only makes TypeScript emit the constructor metadata the subclasses inherit for
+ * dependency injection.
+ */
+@Injectable()
+export abstract class ConversationAgentSessionsController {
+  protected abstract readonly type: BaseAgentSessionType
+
   constructor(
     private readonly conversationAgentSessionsService: ConversationAgentSessionsService,
     private readonly agentSettingsService: AgentSettingsService,
@@ -40,32 +44,25 @@ export class ConversationAgentSessionsController {
     private readonly agentSubAgentsService: AgentSubAgentsService,
   ) {}
 
-  @CheckPolicy((policy) => policy.canList())
-  @Post(ConversationAgentSessionsRoutes.getAll.path)
-  async getAll(
-    @Req() request: EndpointRequestWithAgent,
-    @Body() { payload }: typeof ConversationAgentSessionsRoutes.getAll.request,
-  ): Promise<typeof ConversationAgentSessionsRoutes.getAll.response> {
+  protected async handleGetAll(
+    request: EndpointRequestWithAgent,
+  ): Promise<Routes["getAll"]["response"]> {
     const sessions = await this.conversationAgentSessionsService.getAllSessionsForAgent({
       connectScope: getRequiredConnectScope(request),
       agentId: request.agent.id,
       userId: request.user.id,
-      type: payload.type,
+      type: this.type,
     })
     const formSchemas = await this.resolveFormSchemas({
       connectScope: getRequiredConnectScope(request),
       sessions,
     })
-    return { data: sessions.map(toDto(payload.type, formSchemas)) }
+    return { data: sessions.map(toDto(this.type, formSchemas)) }
   }
 
-  @CheckPolicy((policy) => policy.canCreate())
-  @Post(ConversationAgentSessionsRoutes.createOne.path)
-  @TrackActivity({ action: "conversationAgentSession.create" })
-  async createOne(
-    @Req() request: EndpointRequestWithAgent,
-    @Body() { payload }: typeof ConversationAgentSessionsRoutes.createOne.request,
-  ): Promise<typeof ConversationAgentSessionsRoutes.createOne.response> {
+  protected async handleCreateOne(
+    request: EndpointRequestWithAgent,
+  ): Promise<Routes["createOne"]["response"]> {
     const agentSettings = await this.agentSettingsService.getLast({
       connectScope: getRequiredConnectScope(request),
       agentId: request.agent.id,
@@ -74,17 +71,16 @@ export class ConversationAgentSessionsController {
       connectScope: getRequiredConnectScope(request),
       agentSettingsId: agentSettings.id,
       userId: request.user.id,
-      type: payload.type,
+      type: this.type,
     })
-    return { data: toDto(payload.type, new Map())(session) }
+    return { data: toDto(this.type, new Map())(session) }
   }
 
-  @Post(ConversationAgentSessionsRoutes.deleteOne.path)
-  @AddContext("agentSession")
-  @CheckPolicy((policy) => policy.canDelete())
-  async deleteOne(
-    @Req() request: EndpointRequestWithAgentSession<ConversationAgentSession>,
-  ): Promise<typeof ConversationAgentSessionsRoutes.deleteOne.response> {
+  protected async handleDeleteOne(
+    request: EndpointRequestWithAgentSession<ConversationAgentSession>,
+  ): Promise<Routes["deleteOne"]["response"]> {
+    if (request.agentSession.type !== this.type) throw new NotFoundException()
+
     await this.baseAgentSessionsService.deleteAgentSession({
       agentType: "conversation",
       agentId: request.agent.id,
@@ -93,13 +89,10 @@ export class ConversationAgentSessionsController {
     return { data: { success: true } }
   }
 
-  @CheckPolicy((policy) => policy.canList())
-  @Post(ConversationAgentSessionsRoutes.listSubSessions.path)
-  async listSubSessions(
-    @Req() request: EndpointRequestWithAgent,
-    @Param("agentSessionId") agentSessionId: string,
-    @Body() { payload }: typeof ConversationAgentSessionsRoutes.listSubSessions.request,
-  ): Promise<typeof ConversationAgentSessionsRoutes.listSubSessions.response> {
+  protected async handleListSubSessions(
+    request: EndpointRequestWithAgent,
+    agentSessionId: string,
+  ): Promise<Routes["listSubSessions"]["response"]> {
     const connectScope = getRequiredConnectScope(request)
 
     const [subAgents, sessions] = await Promise.all([
@@ -108,7 +101,7 @@ export class ConversationAgentSessionsController {
         connectScope,
         parentSessionId: agentSessionId,
         userId: request.user.id,
-        type: payload.type,
+        type: this.type,
       }),
     ])
 
@@ -133,7 +126,7 @@ export class ConversationAgentSessionsController {
             agentId: subAgent.childAgentId,
             agentName: subAgent.childAgent.name,
             outputJsonSchema: settings.outputJsonSchema ?? undefined,
-            session: toDto(payload.type, formSchemas)(session),
+            session: toDto(this.type, formSchemas)(session),
           },
         ]
       }),
