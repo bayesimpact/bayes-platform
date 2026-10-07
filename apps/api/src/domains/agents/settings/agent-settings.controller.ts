@@ -107,6 +107,9 @@ export class AgentSettingsController {
     if (!targetSettings) {
       throw new NotFoundException(`Revision ${revision} not found for agent with id ${agentId}`)
     }
+    if (targetSettings.isArchived) {
+      throw new UnprocessableEntityException(`Cannot restore archived revision "${revisionParam}"`)
+    }
 
     const isRestored = await this.agentSettingsService.updateAllSettings({
       connectScope,
