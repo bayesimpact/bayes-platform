@@ -40,7 +40,7 @@ function registerListeners() {
     actionCreator: addProjectAgentSessionCategory.fulfilled,
     effect: async (action, listenerApi) => {
       if (action.meta.arg.assignToAllConversationalAgents) {
-        await listenerApi.dispatch(listAgents())
+        await listenerApi.dispatch(listAgents({ includeDrafts: true }))
       }
     },
   })

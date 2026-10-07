@@ -20,7 +20,7 @@ const refresh = ({
 }) => {
   const state = listenerApi.getState()
   const agentId = getCurrentId({ state, name: "agentId" })
-  listenerApi.dispatch(listAgents())
+  listenerApi.dispatch(listAgents({ includeDrafts: true }))
   listenerApi.dispatch(listAgentSettingsWithDraft({ agentId }))
 }
 
