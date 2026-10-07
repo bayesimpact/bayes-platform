@@ -128,7 +128,15 @@ describe("ConversationAgentSessionsRoutes.listSubSessions", () => {
         .build({ parentSessionId: agentSession.id }),
     )
 
-    return { parentSession: agentSession, fillFormChildAgent, fillFormSubSession }
+    return {
+      organization,
+      project,
+      user,
+      agent,
+      parentSession: agentSession,
+      fillFormChildAgent,
+      fillFormSubSession,
+    }
   }
 
   const subject = async (agentSessionId: string) =>
@@ -169,9 +177,15 @@ describe("ConversationAgentSessionsRoutes.listSubSessions", () => {
   })
 
   it("returns an empty list when the parent session has no sub-sessions", async () => {
-    await createContext()
+    const { organization, project, user, agent } = await createContext()
+    const sessionWithoutSubSessions = await repositories.conversationAgentSessionRepository.save(
+      conversationAgentSessionFactory
+        .transient({ organization, project, user, agent })
+        .playground()
+        .build(),
+    )
 
-    const response = await subject("22222222-2222-2222-2222-222222222222")
+    const response = await subject(sessionWithoutSubSessions.id)
 
     expectResponse(response, 201)
     expect(response.body.data).toHaveLength(0)

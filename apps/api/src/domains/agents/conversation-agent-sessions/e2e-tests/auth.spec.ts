@@ -246,5 +246,39 @@ describe("Agent Sessions - Auth", () => {
 
     describeContextChecks(subject)
     describeRoleChecks(subject)
+
+    it("answers 404 for an unknown session", async () => {
+      await createContextForRole("owner")
+      agentSessionId = randomUUID()
+      expectResponse(await subject("live"), 404)
+    })
+
+    it("answers 404 for another user's session of the same agent", async () => {
+      const { organization, project, agent } = await createContextForRole("owner")
+      const otherAuthSubject = `oidc|${randomUUID()}`
+      const { user: otherUser } = await addUserToOrganization({
+        repositories,
+        organization,
+        user: { authSubject: otherAuthSubject, email: mockOidcEmailForSub(otherAuthSubject) },
+        membership: { role: "member" },
+      })
+      const otherUserSession = await repositories.conversationAgentSessionRepository.save(
+        conversationAgentSessionFactory
+          .transient({ organization, project, agent, user: otherUser })
+          .build({ type: "live" }),
+      )
+      agentSessionId = otherUserSession.id
+      expectResponse(await subject("live"), 404)
+    })
+
+    it("answers 404 for a playground session on the live routes", async () => {
+      await createContextForRole("owner", "playground")
+      expectResponse(await subject("live"), 404)
+    })
+
+    it("answers 404 for a live session on the playground routes", async () => {
+      await createContextForRole("owner", "live")
+      expectResponse(await subject("playground"), 404)
+    })
   })
 })
