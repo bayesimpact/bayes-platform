@@ -163,6 +163,9 @@ describe("buildState", () => {
     const unknown = describeHost(state, "new-thing-storybook.connect.localhost")
     assert.equal(unknown.environment, null)
     assert.equal(unknown.guess, "new-thing")
+    const shared = describeHost(state, "mail.connect.localhost")
+    assert.equal(shared.shared.name, "mailpit")
+    assert.match(shared.shared.command, /--profile mail up -d mailpit/u)
   })
 })
 
