@@ -2,7 +2,8 @@
 # A plain `docker compose up -d` (and the CI) starts pgvector and redis only.
 # Profiles: `mail` (Mailpit), `keycloak`, `dex`, `traces` (otel-collector,
 # Phoenix), `analytics` (Grafana), `router` (Traefik and the dashboard of the
-# worktree environments), `bull-board`. See the README for the commands.
+# worktree environments), `bull-board`, `bull-board-oidc`. See the README for
+# the commands.
 #
 # Mounts of files and folders that must exist use the long syntax with
 # `create_host_path: false`: a missing source then fails `docker compose up`
@@ -240,10 +241,43 @@ services:
   # Profile `bull-board`: `docker compose --profile bull-board up -d --no-recreate bull-board`.
   bull-board:
     image: venatum/bull-board:3.4.14
-    profiles: [bull-board]
+    profiles: [bull-board, bull-board-oidc]
     depends_on: [redis]
     ports:
       - "${BULL_BOARD_PORT:-3400}:3000"
     environment:
       REDIS_HOST: redis
       REDIS_PORT: "6379"
+  # Same dashboard behind an OIDC login on Dex, http://localhost:3401: the
+  # setup of a cluster, to test locally. The browser reaches Dex on localhost,
+  # the proxy reaches it on the compose network: discovery is off and the
+  # endpoints are explicit. Dex keeps one issuer, Keycloak does not (it builds
+  # the issuer from the request host), so this works with Dex only.
+  # Profile `bull-board-oidc`, with Dex:
+  # `docker compose --profile dex --profile bull-board-oidc up -d --no-recreate dex bull-board-oauth2-proxy`.
+  bull-board-oauth2-proxy:
+    image: quay.io/oauth2-proxy/oauth2-proxy:v7.15.4
+    profiles: [bull-board-oidc]
+    depends_on: [bull-board]
+    ports:
+      - "${BULL_BOARD_OIDC_PORT:-3401}:4180"
+    environment:
+      OAUTH2_PROXY_HTTP_ADDRESS: 0.0.0.0:4180
+      OAUTH2_PROXY_UPSTREAMS: http://bull-board:3000
+      OAUTH2_PROXY_PROVIDER: oidc
+      OAUTH2_PROXY_OIDC_ISSUER_URL: http://localhost:5556/dex
+      OAUTH2_PROXY_SKIP_OIDC_DISCOVERY: "true"
+      OAUTH2_PROXY_LOGIN_URL: http://localhost:5556/dex/auth
+      OAUTH2_PROXY_REDEEM_URL: http://dex:5556/dex/token
+      OAUTH2_PROXY_OIDC_JWKS_URL: http://dex:5556/dex/keys
+      OAUTH2_PROXY_CLIENT_ID: bull-board
+      OAUTH2_PROXY_CLIENT_SECRET: local-bull-board-secret
+      OAUTH2_PROXY_REDIRECT_URL: http://localhost:3401/oauth2/callback
+      OAUTH2_PROXY_EMAIL_DOMAINS: example.org
+      OAUTH2_PROXY_SCOPE: openid profile email
+      # Local only: 32 bytes, no secret. A cluster takes a random one from a Secret.
+      OAUTH2_PROXY_COOKIE_SECRET: local-bull-board-cookie-secret-0
+      OAUTH2_PROXY_COOKIE_SECURE: "false"
+      OAUTH2_PROXY_SKIP_PROVIDER_BUTTON: "true"
+      # No consent screen on each sign-in (the default `force` asks every time).
+      OAUTH2_PROXY_APPROVAL_PROMPT: auto

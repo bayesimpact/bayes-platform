@@ -171,7 +171,7 @@ The API and the workers send their traces and metrics over OTLP to `config.OTEL_
 
 ## Queue dashboard
 
-The chart deploys no queue dashboard. To examine or retry BullMQ jobs, run Bull Board as a separate Deployment on the same Redis, without a public ingress: see [infra/bull-board/README.md](../../../infra/bull-board/README.md).
+The chart deploys no queue dashboard. To examine or retry BullMQ jobs, run Bull Board as a separate Deployment on the same Redis, with oauth2-proxy in front for the OpenID Connect sign-in: see [infra/bull-board/README.md](../../../infra/bull-board/README.md).
 
 ## Managed services
 
