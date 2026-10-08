@@ -58,6 +58,8 @@ The `agent.conversation.session.*` permissions are not inherited either: an orga
 
 The `agent.extraction.session.*` permissions follow the same rule: an organization role does not open a project's extraction runs. Every project role holds the three live session permissions, while the `agent.extraction.session.playground.*` ones stay with owners and admins. Each caller only ever sees their own runs and the documents they uploaded for them.
 
+The `project.agent_session_category.*` permissions are not inherited either: an organization role does not change a project's conversation categories.
+
 | Permission | `project_owner` | `project_admin` | `project_member` |
 |---|---|---|---|
 | `project.read` | ✅ | ✅ | ✅ |
@@ -121,6 +123,8 @@ The `agent.extraction.session.*` permissions follow the same rule: an organizati
 | `agent.extraction.session.playground.read` — see your playground extraction runs with the project's agents, and the documents you uploaded for them | ✅ | ✅ | — |
 | `agent.extraction.session.playground.create` — upload a document and run a playground extraction with an agent | ✅ | ✅ | — |
 | `agent.extraction.session.playground.delete` — delete one of your playground extraction runs | ✅ | ✅ | — |
+| `project.agent_session_category.create` — create a conversation category in the project, optionally assigned to every conversational agent | ✅ | ✅ | — |
+| `project.agent_session_category.delete` — delete a conversation category from the project | ✅ | ✅ | — |
 | `user.read` — see the project's members | ✅ | ✅ | — |
 | `backoffice.project.read` — see the project in the backoffice | ✅ | ✅ | — |
 | `backoffice.project.update` — mutate the project from the backoffice (e.g. feature flags) | ✅ | ✅ | — |

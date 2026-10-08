@@ -295,6 +295,16 @@ export const AGENT_EXTRACTION_SESSION_PLAYGROUND_DELETE_PERMISSION =
   "agent.extraction.session.playground.delete" as const
 
 /**
+ * Session categories of a project, used to tag its agents' conversations. Scoped to the project
+ * and never inherited from the organization.
+ */
+export const PROJECT_AGENT_SESSION_CATEGORY_CREATE_PERMISSION =
+  "project.agent_session_category.create" as const
+
+export const PROJECT_AGENT_SESSION_CATEGORY_DELETE_PERMISSION =
+  "project.agent_session_category.delete" as const
+
+/**
  * Permissions an App may be granted. Policy lives in code, not in the database:
  * there is no Permission entity and no `app_grantable` column. Intersect this
  * list with `AppManifest.grantable_permissions` on save and on authorize.

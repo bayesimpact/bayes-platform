@@ -32,7 +32,6 @@ import { AgentMembershipsService } from "./memberships/agent-memberships.service
 import { AgentSessionCategoriesService } from "./session-categories/agent-session-categories.service"
 import { AgentSessionCategory } from "./session-categories/agent-session-category.entity"
 import { ProjectAgentSessionCategoriesController } from "./session-categories/project-agent-session-categories.controller"
-import { ProjectAgentSessionCategoriesGuard } from "./session-categories/project-agent-session-categories.guard"
 import { ProjectAgentSessionCategoriesService } from "./session-categories/project-agent-session-categories.service"
 import { ProjectAgentSessionCategory } from "./session-categories/project-agent-session-category.entity"
 import { AgentSettingsController } from "./settings/agent-settings.controller"
@@ -79,7 +78,6 @@ import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
     AgentMembershipRepository,
     AgentGuard,
     AgentMembershipsGuard,
-    ProjectAgentSessionCategoriesGuard,
     ResourceContextGuard,
     OrganizationContextResolver,
     ProjectContextResolver,
