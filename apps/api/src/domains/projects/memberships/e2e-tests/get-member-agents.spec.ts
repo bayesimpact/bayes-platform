@@ -16,6 +16,7 @@ import {
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { AGENT_ROLE_PERMISSIONS } from "@/domains/rbac/rbac.constants"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { ProjectsModule } from "../../projects.module"
 
@@ -37,6 +38,7 @@ describe("Project membership - getMemberAgents", () => {
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)
