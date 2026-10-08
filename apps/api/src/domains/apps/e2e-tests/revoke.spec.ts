@@ -114,7 +114,7 @@ describe("Apps - Revoke", () => {
     return authorized.body.data
   }
 
-  it("revokes the installation, blocks new tokens, and keeps the issued JWT until it expires", async () => {
+  it("revokes the installation and refuses new tokens and the JWT issued before", async () => {
     const { organization, project, user } = await createStaffInstaller()
     const manifest = await createManifest()
     const credentials = await install(project.id, manifest.slug)
@@ -135,6 +135,10 @@ describe("Apps - Revoke", () => {
         client_secret: credentials.clientSecret,
       })
     expectResponse(issued, 200)
+    expectResponse(
+      await requester({ route: AppsV1Routes.getMe, token: issued.body.access_token }),
+      200,
+    )
 
     const listed = await requester({
       route: AppsRoutes.listForProject,
@@ -210,12 +214,13 @@ describe("Apps - Revoke", () => {
       "Invalid client credentials",
     )
 
-    const me = await requester({
-      route: AppsV1Routes.getMe,
-      token: issued.body.access_token,
-    })
-    expectResponse(me, 200)
-    expect(me.body.data.installationId).toBe(installation.id)
+    expectResponse(
+      await requester({
+        route: AppsV1Routes.getMe,
+        token: issued.body.access_token,
+      }),
+      401,
+    )
 
     const again = await requester({
       route: AppsRoutes.revoke,

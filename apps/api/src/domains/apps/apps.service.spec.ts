@@ -296,7 +296,7 @@ describe("AppsService", () => {
     ).rejects.toBeInstanceOf(UnauthorizedException)
   })
 
-  it("revokes an installation without dropping its credentials or issued JWT", async () => {
+  it("revokes an installation, keeps its credentials and refuses its issued JWT", async () => {
     const repositories = setup.getAllRepositories()
     const { project, user } = await createOrganizationWithProject(repositories)
     await assignPlatformStaffToUser({ repositories, user })
@@ -368,9 +368,9 @@ describe("AppsService", () => {
       }),
     ).rejects.toBeInstanceOf(UnauthorizedException)
 
-    const principal = await service.resolveAppPrincipal(issued.accessToken)
-    expect(principal.installationId).toBe(installation.id)
-    expect(principal.projectId).toBe(project.id)
+    await expect(service.resolveAppPrincipal(issued.accessToken)).rejects.toBeInstanceOf(
+      UnauthorizedException,
+    )
 
     await expect(
       service.revokeInstallation({ installationId: randomUUID(), userId: user.id }),
