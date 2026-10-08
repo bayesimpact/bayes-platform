@@ -63,6 +63,8 @@ import {
   EVALUATION_UI_READ_PERMISSION,
   intersectWithAppGrantablePermissions,
   ORGANIZATION_ROLE_PERMISSIONS,
+  PROJECT_AGENT_SESSION_CATEGORY_CREATE_PERMISSION,
+  PROJECT_AGENT_SESSION_CATEGORY_DELETE_PERMISSION,
   PROJECT_ANALYTICS_READ_PERMISSION,
   PROJECT_CREATE_PERMISSION,
   PROJECT_DELETE_PERMISSION,
@@ -616,6 +618,36 @@ describe("extraction agent session permissions", () => {
   it("never inherits extraction sessions from the organization", () => {
     const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
     for (const permission of [...liveSessionPermissions, ...playgroundSessionPermissions]) {
+      expect(inheritable).not.toContain(permission)
+    }
+  })
+})
+
+describe("project agent session category permissions", () => {
+  const rolesHolding = (rolePermissions: Record<string, readonly string[]>, permission: string) =>
+    Object.entries(rolePermissions)
+      .filter(([_roleKey, permissions]) => permissions.includes(permission))
+      .map(([roleKey]) => roleKey)
+
+  const sessionCategoryPermissions = [
+    PROJECT_AGENT_SESSION_CATEGORY_CREATE_PERMISSION,
+    PROJECT_AGENT_SESSION_CATEGORY_DELETE_PERMISSION,
+  ]
+
+  it.each(
+    sessionCategoryPermissions,
+  )("grants %s to project owners and admins only", (permission) => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
+      "project_owner",
+      "project_admin",
+    ])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
+  })
+
+  it("never inherits session categories from the organization", () => {
+    const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
+    for (const permission of sessionCategoryPermissions) {
       expect(inheritable).not.toContain(permission)
     }
   })
