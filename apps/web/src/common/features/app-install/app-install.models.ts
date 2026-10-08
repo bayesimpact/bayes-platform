@@ -15,6 +15,7 @@ export type AppInstallPage = {
     description: string | null
     logoUrl: string | null
     grantablePermissions: AppGrantablePermission[]
+    allowedRedirectUris: string[]
   }
   projects: AppInstallProject[]
 }

@@ -51,6 +51,7 @@ const toAppInstallPage = (dto: AppInstallPageDto): AppInstallPage => ({
     description: dto.app.description,
     logoUrl: dto.app.logoUrl,
     grantablePermissions: dto.app.grantablePermissions,
+    allowedRedirectUris: dto.app.allowedRedirectUris,
   },
   projects: dto.projects.map((project) => ({
     id: project.id,

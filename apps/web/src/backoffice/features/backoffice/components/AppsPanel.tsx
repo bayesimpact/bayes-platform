@@ -16,6 +16,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -63,6 +64,7 @@ const emptyFormValues: ManifestFormValues = {
   description: "",
   logoUrl: "",
   grantablePermissions: [],
+  allowedRedirectUris: [],
 }
 
 export function AppsPanel() {
@@ -256,6 +258,7 @@ function AppManifestFormDialog({
           description: manifest.description ?? "",
           logoUrl: manifest.logoUrl ?? "",
           grantablePermissions: manifest.grantablePermissions,
+          allowedRedirectUris: manifest.allowedRedirectUris,
         }
       : emptyFormValues,
   })
@@ -349,6 +352,38 @@ function AppManifestFormDialog({
                       />
                     </FormControl>
                   </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="allowedRedirectUris"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Allowed install callback URLs</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder={
+                        "http://localhost:3100/auth/bayes/callback\nhttps://app.example.com/auth/bayes/callback"
+                      }
+                      rows={4}
+                      value={(field.value ?? []).join("\n")}
+                      onChange={(event) => {
+                        field.onChange(
+                          event.target.value
+                            .split("\n")
+                            .map((line) => line.trim())
+                            .filter((line) => line.length > 0),
+                        )
+                      }}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Exact match (scheme, host, path). One URL per line. Loopback URLs (localhost /
+                    127.0.0.1) work for local installs without being listed; register staging and
+                    production HTTPS callbacks here.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

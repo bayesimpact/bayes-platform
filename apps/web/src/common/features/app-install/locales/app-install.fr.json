@@ -10,7 +10,8 @@
     "authorized": "✓ Autorisé — retournez dans le terminal",
     "cancel": "Annuler et revenir au terminal",
     "revocability": "L'accès peut être révoqué à tout moment depuis la page de ce projet dans le <settings>backoffice</settings>. {{name}} ne pourra atteindre que l'espace sélectionné ci-dessus.",
-    "invalidRedirect": "Ce lien d'installation nécessite une redirect_uri loopback (localhost ou 127.0.0.1) et un state.",
+    "invalidRedirect": "Ce lien d'installation nécessite une redirect_uri (http ou https) et un state.",
+    "unregisteredRedirect": "Cette redirect_uri n'est pas enregistrée pour cette app. Demandez à un opérateur de l'ajouter aux URLs de callback autorisées, ou utilisez une URL loopback (localhost / 127.0.0.1) pour le développement local.",
     "missingSlug": "Slug d'app manquant.",
     "copy": {
       "document_read": {

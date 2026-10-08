@@ -95,6 +95,40 @@ export const InvalidRedirect: Story = {
   },
 }
 
+export const AllowlistedHttps: Story = {
+  render: () => {
+    const registeredRedirectUri = "https://app.example.com/auth/bayes/callback"
+    const allowlistedPage = appInstallPageFactory.build({
+      app: {
+        name: "Helpful Assistant",
+        slug: "helpful-assistant",
+        allowedRedirectUris: [registeredRedirectUri],
+      },
+    })
+    const store = buildMockStore({
+      state: mergeSeeds(
+        seed.me(userFactory.build({ globalPermissions: ["app.install"], termsAccepted: true })),
+        seed.appInstallPage(allowlistedPage),
+        seed.appInstallCallback({
+          slug: "helpful-assistant",
+          redirectUri: registeredRedirectUri,
+          callbackState: "csrf-state",
+        }),
+      ),
+    })
+    const router = createMemoryRouter([appsInstallRoute], {
+      initialEntries: [
+        `/apps/install/helpful-assistant?redirect_uri=${encodeURIComponent(registeredRedirectUri)}&state=csrf-state`,
+      ],
+    })
+    return (
+      <Provider store={store}>
+        <RouterProvider router={router} />
+      </Provider>
+    )
+  },
+}
+
 export const ManyPermissions: Story = {
   render: () => {
     const crowdedPage = appInstallPageFactory.build({

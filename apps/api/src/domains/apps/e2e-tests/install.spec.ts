@@ -143,6 +143,7 @@ describe("Apps - Install", () => {
         name: "Helpful Assistant",
         slug: "helpful-assistant",
         grantablePermissions: [DOCUMENT_READ_PERMISSION, DOCUMENT_CREATE_PERMISSION],
+        allowedRedirectUris: [],
       })
       expect(response.body.data.projects.map((installProject) => installProject.id)).toContain(
         project.id,
@@ -236,7 +237,7 @@ describe("Apps - Install", () => {
       expect(reinstall.body.data.clientId).not.toBe(authorized.body.data.clientId)
     })
 
-    it("rejects a non-loopback redirect URI", async () => {
+    it("rejects a non-loopback redirect URI that is not allowlisted", async () => {
       const { project } = await createStaffInstaller()
       const manifest = await createManifest()
       expectResponse(
@@ -254,7 +255,55 @@ describe("Apps - Install", () => {
           },
         }),
         400,
+        "redirectUri must be a registered callback URL for this app, or a loopback http(s) URL (localhost or 127.0.0.1)",
       )
+    })
+
+    it("accepts an allowlisted HTTPS redirect URI", async () => {
+      const { project } = await createStaffInstaller()
+      const registeredRedirectUri = "https://site-crawler.staging.bayes.org/auth/bayes/callback"
+      const superadminAuthSubject = `oidc|${randomUUID()}`
+      const previousAuthSubject = authSubject
+      authSubject = superadminAuthSubject
+      const { user } = await createOrganizationWithProject(repositories, {
+        user: {
+          authSubject: superadminAuthSubject,
+          email: mockOidcEmailForSub(superadminAuthSubject),
+        },
+      })
+      await assignPlatformSuperadminToUser({ repositories, user })
+      const created = await request({
+        route: AppsRoutes.createOne,
+        token: "token",
+        request: {
+          payload: {
+            name: "Site Crawler",
+            slug: "site-crawler",
+            description: null,
+            logoUrl: null,
+            grantablePermissions: [DOCUMENT_READ_PERMISSION],
+            allowedRedirectUris: [registeredRedirectUri],
+          },
+        },
+      })
+      expectResponse(created, 201)
+      authSubject = previousAuthSubject
+
+      const authorized = await request({
+        route: AppsRoutes.authorize,
+        pathParams: { slug: created.body.data.slug },
+        token: "token",
+        request: {
+          payload: {
+            projectId: project.id,
+            permissions: [DOCUMENT_READ_PERMISSION],
+            redirectUri: registeredRedirectUri,
+            state: "csrf-state",
+          },
+        },
+      })
+      expectResponse(authorized, 201)
+      expect(authorized.body.data.redirectUri).toBe(registeredRedirectUri)
     })
   })
 })

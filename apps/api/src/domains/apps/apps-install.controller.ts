@@ -132,6 +132,7 @@ function toAppInstallPageDto(page: AppInstallPage): AppInstallPageDto {
       logoUrl: page.app.logoUrl,
       grantablePermissions: page.app
         .grantablePermissions as AppInstallPageDto["app"]["grantablePermissions"],
+      allowedRedirectUris: page.app.allowedRedirectUris,
     },
     projects: page.projects,
   }

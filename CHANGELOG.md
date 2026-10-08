@@ -8,6 +8,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+- Apps: operators can register allowed install callback URLs so staging and production apps can install without a localhost redirect.
 
 ### Changed
 
