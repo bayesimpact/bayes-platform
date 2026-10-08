@@ -48,6 +48,7 @@ import {
   listContainers,
   psql,
   readJson,
+  repositoryId,
   repositoryPaths,
   run,
   runVisible,
@@ -149,6 +150,11 @@ async function up() {
     const passwordHash = dexPasswordHash()
     checkNodeModulesVolumes(environment)
     refuseForeignProject(environment)
+    // The cleanup counts this attempt as activity, even when the run fails or is interrupted.
+    writeFileAtomic(
+      join(environment.stateDir, "last-up.json"),
+      `${JSON.stringify({ path: environment.root, startedAt: new Date().toISOString() })}\n`,
+    )
 
     const composeEnvFile = join(environment.root, "infra/worktree/.env")
     const previous = existsSync(composeEnvFile)
@@ -161,6 +167,7 @@ async function up() {
     const variables = composeVariables({
       names: environment.names,
       worktreePath: environment.root,
+      repository: repositoryId(environment.mainCheckout),
       uid: process.getuid(),
       gid: process.getgid(),
       routerPort: environment.routerPort,

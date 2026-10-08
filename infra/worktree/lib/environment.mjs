@@ -22,6 +22,7 @@ export const DEFAULT_SMTP_FROM = "Platform <no-reply@connect.localhost>"
 export function composeVariables({
   names,
   worktreePath,
+  repository,
   uid,
   gid,
   routerPort,
@@ -37,6 +38,9 @@ export function composeVariables({
     COMPOSE_PROJECT_NAME: names.project,
     WT_SLUG: names.slug,
     WT_PATH: worktreePath,
+    // Labels the containers with their clone, so that the cleanup of one clone (or of another
+    // user of the machine) never takes them for its own.
+    WT_REPO: repository,
     WT_UID: String(uid),
     WT_GID: String(gid),
     WT_ROUTER_PORT: String(routerPort),
