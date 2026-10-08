@@ -157,9 +157,8 @@ TRACE_URL_TEMPLATE=https://traces.example.org/redirects/sessions/{traceId}
 # Database
 DATABASE_URL=postgresql://admin:passpass@localhost:5432/caseai_connect
 
-# OpenID Connect provider (local Keycloak: see infra/keycloak/README.md)
-OIDC_ISSUER_URL=http://localhost:8080/realms/platform
-# OIDC_AUDIENCE=platform-api
+# OpenID Connect provider (local Dex: see infra/dex/README.md)
+OIDC_ISSUER_URL=http://localhost:5556/dex
 WEB_OIDC_CLIENT_ID=platform-web
 ```
 
@@ -178,6 +177,11 @@ WEB_OIDC_CLIENT_ID=platform-web
 
 Upgrading a `.env` from Auth0: see [docs/upgrading/auth0-to-oidc.md](docs/upgrading/auth0-to-oidc.md).
 
+**Local sign-in:** start Dex (`docker compose --profile dex up -d --no-recreate dex` from
+`infra/database`), then run `node infra/dex/sync-users.mjs` from the main checkout. Every person of
+your local database gets a Dex account with their email and a local dev password, and keeps their
+data. See [infra/dex/README.md](infra/dex/README.md).
+
 #### Web Environment Variables
 
 ```bash
@@ -192,7 +196,7 @@ Edit `.env`:
 VITE_API_URL=http://localhost:3000/api
 
 # OpenID Connect provider and the public client of the web app
-VITE_OIDC_AUTHORITY=http://localhost:8080/realms/platform
+VITE_OIDC_AUTHORITY=http://localhost:5556/dex
 VITE_OIDC_CLIENT_ID=platform-web
 ```
 
@@ -374,7 +378,7 @@ Once HTTPS is set up, update your `.env` files to use `https://connect.localhost
 VITE_API_URL=https://connect.localhost:3000/api
 ```
 
-**Identity provider:** the web app client must allow `https://connect.localhost:5173` as redirect URI, post-logout redirect URI and web origin. The local Keycloak realm (`infra/keycloak`) already does.
+**Identity provider:** the web app client must allow `https://connect.localhost:5173` as redirect URI, post-logout redirect URI and web origin. The local Dex does, and `node infra/dex/sync-users.mjs` adds every origin of `FRONTEND_URL`.
 
 ### 6. Run the Projects Locally
 
