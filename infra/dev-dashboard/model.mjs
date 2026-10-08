@@ -42,6 +42,14 @@ const LINK_SERVICES = {
   dex: "dex",
 }
 
+// How to start a shared service, with its route, from the main checkout.
+const SHARED_SERVICES = {
+  phoenix: { name: "phoenix", command: "docker compose --profile traces up -d phoenix" },
+  mailpit: { name: "mailpit", command: "docker compose --profile mail up -d mailpit" },
+  grafana: { name: "grafana", command: "docker compose --profile analytics up -d grafana" },
+  traefik: { name: "traefik", command: "docker compose --profile router up -d traefik" },
+}
+
 // Services of the shared stack, with the hostname and path Traefik serves them on.
 const SHARED_LINKS = {
   phoenix: ["phoenix", ""],
@@ -176,6 +184,8 @@ export function describeHost(state, host) {
     if (link) return { environment, link, service: LINK_SERVICES[link.name] ?? link.name }
   }
   const label = host.endsWith(`.${DOMAIN}`) ? host.slice(0, -(DOMAIN.length + 1)) : host
+  const shared = Object.entries(SHARED_LINKS).find(([, [sharedHost]]) => sharedHost === label)
+  if (shared) return { environment: null, shared: SHARED_SERVICES[shared[0]] }
   const guess = label.replace(/-(embed-storybook|storybook|ui|embed|help|grafana|dex)$/u, "")
   return { environment: null, guess }
 }

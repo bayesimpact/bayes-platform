@@ -79,7 +79,7 @@ function readStatusFile() {
 }
 
 function statusPage(state, host) {
-  const { environment, link, service, guess } = describeHost(state, host)
+  const { environment, link, service, guess, shared } = describeHost(state, host)
   const dashboard = state.dashboardUrl
   let title
   let details
@@ -93,6 +93,9 @@ function statusPage(state, host) {
       .map((service) => `<li>${escapeHtml(service.name)}: ${escapeHtml(service.health)}</li>`)
       .join("")}</ul>
 <p>Logs: <code>npm run wt -- logs ${escapeHtml(service)}</code> in the worktree.</p>`
+  } else if (shared) {
+    title = `${shared.name} is not routed`
+    details = `<p>It is stopped, or it was started before its route existed. Start or recreate it from the main checkout, in <code>infra/database</code>: <code>${escapeHtml(shared.command)}</code>.</p>`
   } else {
     title = `No environment answers at ${host}`
     details = `<p>Start it from Claude Code with <code>/worktree ${escapeHtml(guess)}</code>.</p>`
