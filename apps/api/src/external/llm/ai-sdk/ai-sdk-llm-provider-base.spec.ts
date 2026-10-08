@@ -223,6 +223,52 @@ describe("AISDKLLMProviderBase", () => {
       })
     })
 
+    it("recovers a verbalized tool call once, even when the recovery answer leaks it again", async () => {
+      const LEAKED_CALL = "<call:default_api:notify_operator{severity:high}/>"
+      const execute = jest.fn().mockResolvedValue("notified")
+      let streamCalls = 0
+      let generateCalls = 0
+      const model = new MockLanguageModelV3({
+        doStream: async () => {
+          streamCalls += 1
+          return {
+            stream: simulateReadableStream({
+              chunks: [...textParts(`Your request is noted. ${LEAKED_CALL}`), finish("stop")],
+            }),
+          }
+        },
+        // The recovery's structured output: valid arguments, followed by the
+        // same verbalized call. Fed back into the list the recovery walks
+        // through, it would be recovered again and again: past the second
+        // call the model fails, so such a regression fails this test instead
+        // of hanging the suite.
+        doGenerate: async (): Promise<LanguageModelV3GenerateResult> => {
+          generateCalls += 1
+          if (generateCalls > 2) throw new Error("recovered the same call again and again")
+          return {
+            content: [{ type: "text", text: `{"severity":"high"} ${LEAKED_CALL}` }],
+            finishReason: { unified: "stop", raw: undefined },
+            usage,
+            warnings: [],
+          }
+        },
+      })
+      const provider = new TestProvider(AgentProvider._Mock, model)
+
+      const text = await collect(provider, [{ role: "user", content: "Escalate this." }], {
+        ...mockConfig,
+        tools: {
+          notify_operator: tool({ inputSchema: z.object({ severity: z.string() }), execute }),
+        },
+      })
+
+      expect(streamCalls).toBe(1)
+      expect(text).not.toContain("<call:")
+      expect(generateCalls).toBe(1)
+      expect(execute).toHaveBeenCalledTimes(1)
+      expect(execute).toHaveBeenCalledWith({ severity: "high" }, expect.anything())
+    })
+
     it("drops the text the model repeats after a tool result", async () => {
       const execute = jest.fn().mockResolvedValue("ok")
       const model = buildStreamModel(

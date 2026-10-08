@@ -47,6 +47,7 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
     // instead of emitting them. Collected by the raw-capture middleware and
     // recovered after the stream (see recoverLeakedToolCalls).
     const leakedToolCalls: LeakedToolCall[] = []
+    const modelWithoutLeakedToolCalls = this.getLanguageModelWithRawCapture({ config, callOrigin })
     const temperature: number | undefined = this.applyTemperature(config.temperature)
 
     const agent = new ToolLoopAgent({
@@ -57,7 +58,7 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
       // Arguments the model broke (invalid JSON) are regenerated through
       // structured output instead of being lost.
       experimental_repairToolCall: this.buildToolCallRepair({
-        model: this.getLanguageModelWithRawCapture({ config, callOrigin }),
+        model: modelWithoutLeakedToolCalls,
         config,
         callOrigin,
         metadata,
@@ -112,7 +113,7 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
       trace.getActiveSpan()?.setAttribute("llm.repeated_step_text.blocks", droppedBlocks.length)
     }
     await this.recoverLeakedToolCalls({
-      model: this.getLanguageModelWithRawCapture({ config, callOrigin }),
+      model: modelWithoutLeakedToolCalls,
       config,
       callOrigin,
       metadata,
