@@ -108,11 +108,12 @@ export function hostEnvValues({ names, redisPort, gcpCredentials, testDatabaseUr
 export const REDIS_PORTS = { first: 16380, last: 16479 }
 
 /**
- * The host port of an environment's Redis: the one it had, unless another environment has it,
- * otherwise the first port of the range that no environment has and nothing listens on.
+ * The host port of an environment's Redis: the one it had, unless another environment has it or
+ * something else listens on it, otherwise the first port of the range that no environment has
+ * and nothing listens on.
  */
 export async function pickRedisPort({ previous, taken, isFree }) {
-  if (previous && !taken.has(previous)) return previous
+  if (previous && !taken.has(previous) && (await isFree(previous))) return previous
   for (let port = REDIS_PORTS.first; port <= REDIS_PORTS.last; port += 1) {
     if (!taken.has(port) && (await isFree(port))) return port
   }

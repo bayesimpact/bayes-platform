@@ -113,6 +113,11 @@ describe("pickRedisPort", () => {
     assert.equal(await pickRedisPort({ previous: 16390, taken: new Set(), isFree: free }), 16390)
   })
 
+  it("leaves the port it had when something else listens on it", async () => {
+    const isFree = async (port) => port !== 16390
+    assert.equal(await pickRedisPort({ previous: 16390, taken: new Set(), isFree }), 16380)
+  })
+
   it("skips the ports of other environments, started or only recorded", async () => {
     const taken = new Set([16380, 16381])
     assert.equal(await pickRedisPort({ previous: 16380, taken, isFree: free }), 16382)

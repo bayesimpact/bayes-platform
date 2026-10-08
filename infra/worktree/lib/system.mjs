@@ -12,6 +12,7 @@ import {
 } from "node:fs"
 import { request } from "node:http"
 import { createServer } from "node:net"
+import { uptime } from "node:os"
 import { dirname, join } from "node:path"
 import { STATE_DIR } from "../../dex/dex-config.mjs"
 
@@ -198,39 +199,75 @@ export function withLockSync(name, work) {
   }
 }
 
-/** Takes the lock file, waiting while a live process holds it, and returns its release. */
+/**
+ * Takes the lock file, waiting while a live process holds it, and returns its release. The file
+ * holds the holder's pid and start time, which also serve as its token: a release removes the
+ * file only while it still holds that token.
+ */
 function acquireLock(name, { waitMs, pollMs, onWait = () => {} }) {
   const path = join(STATE_DIR, "locks", `${name}.lock`)
   mkdirSync(dirname(path), { recursive: true })
   const deadline = Date.now() + waitMs
   let announced = false
   for (;;) {
+    const token = JSON.stringify({ pid: process.pid, startedAt: new Date().toISOString() })
     try {
-      writeFileSync(
-        path,
-        JSON.stringify({ pid: process.pid, startedAt: new Date().toISOString() }),
-        { flag: "wx" },
-      )
-      return () => rmSync(path, { force: true })
+      writeFileSync(path, token, { flag: "wx" })
+      return () => {
+        if (readText(path) === token) rmSync(path, { force: true })
+      }
     } catch (error) {
       if (error.code !== "EEXIST") throw error
     }
-    // The holder writes its pid right after creating the file. An empty file is a lock being
-    // taken, unless it stays empty: then its process died in between. A lock whose process is
-    // gone is taken over.
-    const holder = readJson(path, null)
-    if (holder ? !isAlive(holder.pid) : ageInMs(path) > 10_000) {
-      rmSync(path, { force: true })
+    const text = readText(path)
+    if (text === null) continue
+    const holder = parseJson(text)
+    if (isAbandoned(name, path, holder)) {
+      // A dead holder never rewrites its file: if it changed, someone else took it over.
+      if (readText(path) === text) rmSync(path, { force: true })
       continue
     }
     if (Date.now() > deadline) {
-      throw new Error(`${name} is locked by process ${holder?.pid ?? "unknown"}`)
+      throw new Error(`${name} is locked by process ${holder?.pid ?? "unknown"} (${path})`)
     }
     if (holder && !announced) {
       onWait(holder.pid)
       announced = true
     }
     sleep(pollMs)
+  }
+}
+
+const BOOTED_AT = Date.now() - uptime() * 1000
+// Machine-wide locks guard a few seconds of work at most.
+const MACHINE_LOCK_MAX_AGE_MS = 60_000
+
+function isAbandoned(name, path, holder) {
+  // The holder writes its token right after creating the file. An empty file is a lock being
+  // taken, unless it stays empty: then its process died in between.
+  if (!holder) return ageInMs(path) > 10_000
+  const startedAt = Date.parse(holder.startedAt)
+  // Taken before the machine started: its pid may now belong to another process.
+  if (startedAt < BOOTED_AT) return true
+  if (name.startsWith("_") && Date.now() - startedAt > MACHINE_LOCK_MAX_AGE_MS) return true
+  return !isAlive(holder.pid)
+}
+
+/** A file's text, or null when it does not exist. */
+function readText(path) {
+  try {
+    return readFileSync(path, "utf8")
+  } catch (error) {
+    if (error.code === "ENOENT") return null
+    throw error
+  }
+}
+
+function parseJson(text) {
+  try {
+    return JSON.parse(text)
+  } catch {
+    return null
   }
 }
 
