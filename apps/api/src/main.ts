@@ -6,7 +6,6 @@ import { NestFactory } from "@nestjs/core"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS
 import { NestExpressApplication } from "@nestjs/platform-express"
 import { AppModule } from "./app.module"
-import { registerBullBoardOpenIdConnect } from "./common/bull-board/bull-board-openid-registration"
 import { StackTraceLoggingExceptionFilter } from "./common/filters/stack-trace-logging-exception.filter"
 import { registerGracefulShutdown } from "./common/lifecycle/graceful-shutdown"
 import { getLogLevels, StructuredLogger } from "./common/logger/structured-logger"
@@ -36,7 +35,6 @@ async function bootstrap() {
   }
   // Private API under /api, public chat API at /public (see config/api-prefix).
   configureGlobalPrefix(app)
-  registerBullBoardOpenIdConnect(app)
   // Web front served at / from this process in the app-runtime image (no-op otherwise).
   registerWebApp(app)
   app.useBodyParser("json", { limit: "500kb" })

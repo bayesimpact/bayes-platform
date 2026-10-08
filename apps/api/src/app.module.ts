@@ -3,7 +3,6 @@ import { type MiddlewareConsumer, Module, type NestModule } from "@nestjs/common
 import { ConfigModule, ConfigService } from "@nestjs/config"
 import { TypeOrmModule } from "@nestjs/typeorm"
 import { getBullMqConnection } from "./bullmq.config"
-import { BullBoardAdminModule } from "./common/bull-board/bull-board-admin.module"
 import { DiagnosticsModule } from "./common/diagnostics/diagnostics.module"
 import { HealthModule } from "./common/health/health.module"
 import { RequestLoggerMiddleware } from "./common/middleware/request-logger.middleware"
@@ -48,7 +47,6 @@ import { UsersModule } from "./domains/users/users.module"
     BullModule.forRootAsync({
       useFactory: () => ({ connection: getBullMqConnection() }),
     }),
-    BullBoardAdminModule.registerWhenEnabled(),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

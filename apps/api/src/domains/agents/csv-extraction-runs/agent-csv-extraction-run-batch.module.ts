@@ -1,8 +1,5 @@
-import { BullMQAdapter } from "@bull-board/api/bullMQAdapter"
-import { BullBoardModule } from "@bull-board/nestjs"
 import { BullModule } from "@nestjs/bullmq"
 import { Module } from "@nestjs/common"
-import { isBullBoardEnabled } from "@/common/bull-board/bull-board-env"
 import {
   AGENT_CSV_EXTRACTION_RUN_EXECUTE_QUEUE_NAME,
   AGENT_CSV_EXTRACTION_RUN_QUEUE_NAME,
@@ -14,18 +11,6 @@ import { BullMqAgentCsvExtractionRunBatchService } from "./bull-mq-agent-csv-ext
   imports: [
     BullModule.registerQueue({ name: AGENT_CSV_EXTRACTION_RUN_EXECUTE_QUEUE_NAME }),
     BullModule.registerQueue({ name: AGENT_CSV_EXTRACTION_RUN_QUEUE_NAME }),
-    ...(isBullBoardEnabled()
-      ? [
-          BullBoardModule.forFeature({
-            name: AGENT_CSV_EXTRACTION_RUN_EXECUTE_QUEUE_NAME,
-            adapter: BullMQAdapter,
-          }),
-          BullBoardModule.forFeature({
-            name: AGENT_CSV_EXTRACTION_RUN_QUEUE_NAME,
-            adapter: BullMQAdapter,
-          }),
-        ]
-      : []),
   ],
   providers: [
     BullMqAgentCsvExtractionRunBatchService,

@@ -8,9 +8,8 @@ import { type INestApplication, RequestMethod } from "@nestjs/common"
  * - `/public/...` the public chat API, a published contract that never moves
  *
  * Nest prefixes every controller route with `api`, except the public chat
- * controllers. Middleware mounted through Nest (Bull Board) follows the same
- * rule; plain Express middleware (OIDC, static files) does not and must use
- * {@link PRIVATE_API_PATH} itself.
+ * controllers. Plain Express middleware (static files) is not prefixed and must
+ * use {@link PRIVATE_API_PATH} itself.
  */
 export const API_PREFIX = "api"
 

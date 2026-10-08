@@ -28,8 +28,6 @@ VITE_OIDC_CLIENT_ID=platform-web
 In [realm-platform.sample.json](realm-platform.sample.json):
 
 - `platform-web`: public client of the web app (authorization code + PKCE).
-- `bull-board`: confidential client of the Bull Board dashboard
-  (`BULL_BOARD_OIDC_CLIENT_ID=bull-board`, `BULL_BOARD_OIDC_CLIENT_SECRET=local-bull-board-secret`).
 - Two users with verified emails: `admin@example.org` / `admin` and
   `member@example.org` / `member`.
 

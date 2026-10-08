@@ -28,11 +28,6 @@ staticClients:
       - https://connect.localhost:5174
       - http://localhost:5173
       - https://connect.localhost:3000
-  - id: bull-board
-    name: Bull Board dashboard
-    secret: local-bull-board-secret
-    redirectURIs:
-      - https://connect.localhost:3000/api/internal/bull-board/oauth/callback
 
 # Passwords are bcrypt hashes of "admin" and "member". The password database
 # reports every email as verified, so people added by email are linked.
