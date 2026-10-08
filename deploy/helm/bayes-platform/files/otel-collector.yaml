@@ -80,12 +80,15 @@ processors:
           - set(span.attributes["tool.name"], span.attributes["ai.toolCall.name"]) where span.attributes["ai.toolCall.name"] != nil
           - set(span.attributes["input.value"], span.attributes["ai.toolCall.args"]) where span.attributes["ai.toolCall.args"] != nil
           - set(span.attributes["output.value"], span.attributes["ai.toolCall.result"]) where span.attributes["ai.toolCall.result"] != nil
-  # The Phoenix project of the platform's traces.
+  # The Phoenix project of the platform's traces. `insert` keeps a project a
+  # process already sets: each local worktree environment sends its own with
+  # OTEL_RESOURCE_ATTRIBUTES=openinference.project.name=wt-<name>. Nothing sets
+  # it in staging or production, so their traces stay in bayes-platform.
   resource/phoenix-project:
     attributes:
       - key: openinference.project.name
         value: bayes-platform
-        action: upsert
+        action: insert
 
 exporters:
   otlphttp/phoenix:
