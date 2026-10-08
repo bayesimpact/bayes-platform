@@ -21,13 +21,16 @@ const RESERVED_SLUGS = new Set([
 ])
 const SERVICE_SUFFIXES = ["-dex", "-grafana", "-embed", "-help", "-storybook", "-ui"]
 
-/** Why a worktree folder name cannot name an environment, or null when it can. */
+/**
+ * Why a worktree folder name cannot name an environment, or null when it can. An issue number is
+ * a valid name: 135 gives http://135.connect.localhost:8800.
+ */
 export function slugProblem(slug) {
   if (slug.startsWith("agent-")) {
     return "agent worktrees (agent-*) are short-lived and never get an environment"
   }
-  if (!/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/u.test(slug)) {
-    return "use lowercase letters, digits and single hyphens, starting with a letter (for example fix-sidebar)"
+  if (!/^[a-z0-9]+(-[a-z0-9]+)*$/u.test(slug)) {
+    return "use lowercase letters, digits and single hyphens (for example fix-sidebar, or 135 for an issue)"
   }
   if (slug.length > MAX_SLUG_LENGTH) return `use at most ${MAX_SLUG_LENGTH} characters`
   if (RESERVED_SLUGS.has(slug)) return `"${slug}" is a hostname of the shared stack`

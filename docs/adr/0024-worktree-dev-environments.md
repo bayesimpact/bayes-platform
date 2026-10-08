@@ -50,7 +50,8 @@ machine on `http://<worktree>.connect.localhost:8800`.**
   isolation needs a Redis per environment. Traces go to the Phoenix project `wt-<worktree>` (the
   collector now inserts its default project instead of overwriting it). Emails go to Mailpit.
 * **The skill is the only trigger.** `/worktree <name>` creates the worktree and its environment;
-  `npm run wt -- up` does it in any worktree. Agent worktrees (`agent-*`) never get one.
+  `npm run wt -- up` does it in any worktree. The name can be an issue number, so `/worktree 135`
+  serves `http://135.connect.localhost:8800`. Agent worktrees (`agent-*`) never get one.
 
 ## 3. Consequences
 

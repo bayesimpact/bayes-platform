@@ -9,12 +9,18 @@ describe("slugProblem", () => {
     }
   })
 
+  it("accepts issue numbers", () => {
+    for (const slug of ["135", "7", "135-sidebar", "2fix"]) {
+      assert.equal(slugProblem(slug), null, slug)
+    }
+  })
+
   it("refuses agent worktrees", () => {
     assert.match(slugProblem("agent-a1b2c3"), /agent worktrees/u)
   })
 
   it("refuses names that are not plain hostname labels", () => {
-    for (const slug of ["Fix", "fix_sidebar", "fix--sidebar", "-fix", "fix-", "2fix", "fix.ui"]) {
+    for (const slug of ["Fix", "fix_sidebar", "fix--sidebar", "-fix", "fix-", "#135", "fix.ui"]) {
       assert.match(slugProblem(slug), /lowercase letters/u, slug)
     }
   })
@@ -63,6 +69,14 @@ describe("environmentNames", () => {
     assert.equal(environmentNames("fix", 80).origin, "http://fix.connect.localhost")
   })
 
+  it("derives the same names from an issue number", () => {
+    const issue = environmentNames("135", 8800)
+    assert.equal(issue.origin, "http://135.connect.localhost:8800")
+    assert.equal(issue.dexIssuer, "http://135-dex.connect.localhost:8800/dex")
+    assert.equal(issue.project, "wt-135")
+    assert.equal(issue.database, "connect_wt_135")
+  })
+
   it("keeps every name within the limits of Postgres and DNS", () => {
     const longest = environmentNames("x".repeat(32), 8800)
     assert.ok(`${longest.testDatabase}_w999`.length <= 63)
@@ -94,6 +108,8 @@ describe("isDatabaseOf", () => {
       assert.ok(!isDatabaseOf("fix-sidebar", name), name)
     }
     assert.ok(!isDatabaseOf("fix", "connect_wt_fix_sidebar"))
+    assert.ok(!isDatabaseOf("13", "connect_wt_135"))
+    assert.ok(!isDatabaseOf("135", "connect_wt_1350__test"))
   })
 })
 

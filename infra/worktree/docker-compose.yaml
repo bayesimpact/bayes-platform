@@ -46,6 +46,10 @@ x-node-volumes: &node-volumes
   - { type: volume, source: nm-jest-config, target: "${WT_PATH}/packages/jest-config/node_modules" }
   - { type: volume, source: nm-ui, target: "${WT_PATH}/packages/ui/node_modules" }
 
+# Labels of every service. The services that Traefik routes write theirs as a list
+# (`- key=value`) instead: Compose interpolates label keys in that form only, and their router
+# names must carry the slug, or two environments would declare the same routers and Traefik would
+# drop both.
 x-labels: &labels
   dev.worktree.slug: ${WT_SLUG}
   dev.worktree.path: ${WT_PATH}
@@ -235,11 +239,12 @@ services:
         aliases: ["${WT_SLUG}-dex.connect.localhost"]
       shared: {}
     labels:
-      <<: *labels
-      dev.worktree.service: dex
-      traefik.enable: "true"
-      traefik.http.routers.wt-${WT_SLUG}-dex.rule: Host(`${WT_SLUG}-dex.connect.localhost`)
-      traefik.http.services.wt-${WT_SLUG}-dex.loadbalancer.server.port: ${WT_ROUTER_PORT}
+      - dev.worktree.slug=${WT_SLUG}
+      - dev.worktree.path=${WT_PATH}
+      - dev.worktree.service=dex
+      - traefik.enable=true
+      - traefik.http.routers.wt-${WT_SLUG}-dex.rule=Host(`${WT_SLUG}-dex.connect.localhost`)
+      - traefik.http.services.wt-${WT_SLUG}-dex.loadbalancer.server.port=${WT_ROUTER_PORT}
 
   contracts:
     <<: *node
@@ -273,13 +278,14 @@ services:
       <<: *health
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/healthz').then((reply) => process.exit(reply.ok ? 0 : 1), () => process.exit(1))"]
     labels:
-      <<: *labels
-      dev.worktree.service: api
-      dev.worktree.link.bull-board: ${WT_ORIGIN}/api/internal/bull-board
-      traefik.enable: "true"
-      traefik.http.routers.wt-${WT_SLUG}-api.rule: Host(`${WT_SLUG}.connect.localhost`) && PathRegexp(`^/(api|public)(/|$$)`)
-      traefik.http.routers.wt-${WT_SLUG}-api.priority: "100"
-      traefik.http.services.wt-${WT_SLUG}-api.loadbalancer.server.port: "3000"
+      - dev.worktree.slug=${WT_SLUG}
+      - dev.worktree.path=${WT_PATH}
+      - dev.worktree.service=api
+      - dev.worktree.link.bull-board=${WT_ORIGIN}/api/internal/bull-board
+      - traefik.enable=true
+      - traefik.http.routers.wt-${WT_SLUG}-api.rule=Host(`${WT_SLUG}.connect.localhost`) && PathRegexp(`^/(api|public)(/|$$)`)
+      - traefik.http.routers.wt-${WT_SLUG}-api.priority=100
+      - traefik.http.services.wt-${WT_SLUG}-api.loadbalancer.server.port=3000
 
   workers:
     <<: *node
@@ -323,14 +329,15 @@ services:
       <<: *health
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5173/').then((reply) => process.exit(reply.ok ? 0 : 1), () => process.exit(1))"]
     labels:
-      <<: *labels
-      dev.worktree.service: web
-      dev.worktree.link.app: ${WT_ORIGIN}
-      traefik.enable: "true"
-      traefik.http.routers.wt-${WT_SLUG}-web.rule: Host(`${WT_SLUG}.connect.localhost`)
-      traefik.http.routers.wt-${WT_SLUG}-web.priority: "10"
-      traefik.http.routers.wt-${WT_SLUG}-web.middlewares: dev-starting@docker
-      traefik.http.services.wt-${WT_SLUG}-web.loadbalancer.server.port: "5173"
+      - dev.worktree.slug=${WT_SLUG}
+      - dev.worktree.path=${WT_PATH}
+      - dev.worktree.service=web
+      - dev.worktree.link.app=${WT_ORIGIN}
+      - traefik.enable=true
+      - traefik.http.routers.wt-${WT_SLUG}-web.rule=Host(`${WT_SLUG}.connect.localhost`)
+      - traefik.http.routers.wt-${WT_SLUG}-web.priority=10
+      - traefik.http.routers.wt-${WT_SLUG}-web.middlewares=dev-starting@docker
+      - traefik.http.services.wt-${WT_SLUG}-web.loadbalancer.server.port=5173
 
   embed:
     <<: *node
@@ -345,13 +352,14 @@ services:
       <<: *health
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:5175/').then((reply) => process.exit(reply.ok ? 0 : 1), () => process.exit(1))"]
     labels:
-      <<: *labels
-      dev.worktree.service: embed
-      dev.worktree.link.embed: ${WT_EMBED_ORIGIN}
-      traefik.enable: "true"
-      traefik.http.routers.wt-${WT_SLUG}-embed.rule: Host(`${WT_SLUG}-embed.connect.localhost`)
-      traefik.http.routers.wt-${WT_SLUG}-embed.middlewares: dev-starting@docker
-      traefik.http.services.wt-${WT_SLUG}-embed.loadbalancer.server.port: "5175"
+      - dev.worktree.slug=${WT_SLUG}
+      - dev.worktree.path=${WT_PATH}
+      - dev.worktree.service=embed
+      - dev.worktree.link.embed=${WT_EMBED_ORIGIN}
+      - traefik.enable=true
+      - traefik.http.routers.wt-${WT_SLUG}-embed.rule=Host(`${WT_SLUG}-embed.connect.localhost`)
+      - traefik.http.routers.wt-${WT_SLUG}-embed.middlewares=dev-starting@docker
+      - traefik.http.services.wt-${WT_SLUG}-embed.loadbalancer.server.port=5175
 
   help:
     <<: *node
@@ -368,13 +376,14 @@ services:
       <<: *health
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4321/').then((reply) => process.exit(reply.status < 500 ? 0 : 1), () => process.exit(1))"]
     labels:
-      <<: *labels
-      dev.worktree.service: help
-      dev.worktree.link.help: ${WT_HELP_ORIGIN}
-      traefik.enable: "true"
-      traefik.http.routers.wt-${WT_SLUG}-help.rule: Host(`${WT_SLUG}-help.connect.localhost`)
-      traefik.http.routers.wt-${WT_SLUG}-help.middlewares: dev-starting@docker
-      traefik.http.services.wt-${WT_SLUG}-help.loadbalancer.server.port: "4321"
+      - dev.worktree.slug=${WT_SLUG}
+      - dev.worktree.path=${WT_PATH}
+      - dev.worktree.service=help
+      - dev.worktree.link.help=${WT_HELP_ORIGIN}
+      - traefik.enable=true
+      - traefik.http.routers.wt-${WT_SLUG}-help.rule=Host(`${WT_SLUG}-help.connect.localhost`)
+      - traefik.http.routers.wt-${WT_SLUG}-help.middlewares=dev-starting@docker
+      - traefik.http.services.wt-${WT_SLUG}-help.loadbalancer.server.port=4321
 
   # Storybook pins its HMR socket to its own port: it listens on the router port, so the
   # browser's socket goes through Traefik.
@@ -389,13 +398,14 @@ services:
       <<: *health
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:${WT_ROUTER_PORT}/index.json').then((reply) => process.exit(reply.ok ? 0 : 1), () => process.exit(1))"]
     labels:
-      <<: *labels
-      dev.worktree.service: storybook-web
-      dev.worktree.link.storybook: http://${WT_SLUG}-storybook.connect.localhost:${WT_ROUTER_PORT}
-      traefik.enable: "true"
-      traefik.http.routers.wt-${WT_SLUG}-storybook-web.rule: Host(`${WT_SLUG}-storybook.connect.localhost`)
-      traefik.http.routers.wt-${WT_SLUG}-storybook-web.middlewares: dev-starting@docker
-      traefik.http.services.wt-${WT_SLUG}-storybook-web.loadbalancer.server.port: ${WT_ROUTER_PORT}
+      - dev.worktree.slug=${WT_SLUG}
+      - dev.worktree.path=${WT_PATH}
+      - dev.worktree.service=storybook-web
+      - dev.worktree.link.storybook=http://${WT_SLUG}-storybook.connect.localhost:${WT_ROUTER_PORT}
+      - traefik.enable=true
+      - traefik.http.routers.wt-${WT_SLUG}-storybook-web.rule=Host(`${WT_SLUG}-storybook.connect.localhost`)
+      - traefik.http.routers.wt-${WT_SLUG}-storybook-web.middlewares=dev-starting@docker
+      - traefik.http.services.wt-${WT_SLUG}-storybook-web.loadbalancer.server.port=${WT_ROUTER_PORT}
 
   storybook-ui:
     <<: *node
@@ -408,13 +418,14 @@ services:
       <<: *health
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:${WT_ROUTER_PORT}/index.json').then((reply) => process.exit(reply.ok ? 0 : 1), () => process.exit(1))"]
     labels:
-      <<: *labels
-      dev.worktree.service: storybook-ui
-      dev.worktree.link.ui-storybook: http://${WT_SLUG}-ui.connect.localhost:${WT_ROUTER_PORT}
-      traefik.enable: "true"
-      traefik.http.routers.wt-${WT_SLUG}-storybook-ui.rule: Host(`${WT_SLUG}-ui.connect.localhost`)
-      traefik.http.routers.wt-${WT_SLUG}-storybook-ui.middlewares: dev-starting@docker
-      traefik.http.services.wt-${WT_SLUG}-storybook-ui.loadbalancer.server.port: ${WT_ROUTER_PORT}
+      - dev.worktree.slug=${WT_SLUG}
+      - dev.worktree.path=${WT_PATH}
+      - dev.worktree.service=storybook-ui
+      - dev.worktree.link.ui-storybook=http://${WT_SLUG}-ui.connect.localhost:${WT_ROUTER_PORT}
+      - traefik.enable=true
+      - traefik.http.routers.wt-${WT_SLUG}-storybook-ui.rule=Host(`${WT_SLUG}-ui.connect.localhost`)
+      - traefik.http.routers.wt-${WT_SLUG}-storybook-ui.middlewares=dev-starting@docker
+      - traefik.http.services.wt-${WT_SLUG}-storybook-ui.loadbalancer.server.port=${WT_ROUTER_PORT}
 
   storybook-embed:
     <<: *node
@@ -427,13 +438,14 @@ services:
       <<: *health
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:${WT_ROUTER_PORT}/index.json').then((reply) => process.exit(reply.ok ? 0 : 1), () => process.exit(1))"]
     labels:
-      <<: *labels
-      dev.worktree.service: storybook-embed
-      dev.worktree.link.embed-storybook: http://${WT_SLUG}-embed-storybook.connect.localhost:${WT_ROUTER_PORT}
-      traefik.enable: "true"
-      traefik.http.routers.wt-${WT_SLUG}-storybook-embed.rule: Host(`${WT_SLUG}-embed-storybook.connect.localhost`)
-      traefik.http.routers.wt-${WT_SLUG}-storybook-embed.middlewares: dev-starting@docker
-      traefik.http.services.wt-${WT_SLUG}-storybook-embed.loadbalancer.server.port: ${WT_ROUTER_PORT}
+      - dev.worktree.slug=${WT_SLUG}
+      - dev.worktree.path=${WT_PATH}
+      - dev.worktree.service=storybook-embed
+      - dev.worktree.link.embed-storybook=http://${WT_SLUG}-embed-storybook.connect.localhost:${WT_ROUTER_PORT}
+      - traefik.enable=true
+      - traefik.http.routers.wt-${WT_SLUG}-storybook-embed.rule=Host(`${WT_SLUG}-embed-storybook.connect.localhost`)
+      - traefik.http.routers.wt-${WT_SLUG}-storybook-embed.middlewares=dev-starting@docker
+      - traefik.http.services.wt-${WT_SLUG}-storybook-embed.loadbalancer.server.port=${WT_ROUTER_PORT}
 
   # Grafana on the analytics schema of this environment's database, with the branch's
   # provisioning and dashboards.
@@ -468,13 +480,14 @@ services:
       db:
         condition: service_completed_successfully
     labels:
-      <<: *labels
-      dev.worktree.service: grafana
-      dev.worktree.link.grafana: http://${WT_SLUG}-grafana.connect.localhost:${WT_ROUTER_PORT}
-      traefik.enable: "true"
-      traefik.http.routers.wt-${WT_SLUG}-grafana.rule: Host(`${WT_SLUG}-grafana.connect.localhost`)
-      traefik.http.routers.wt-${WT_SLUG}-grafana.middlewares: dev-starting@docker
-      traefik.http.services.wt-${WT_SLUG}-grafana.loadbalancer.server.port: "3000"
+      - dev.worktree.slug=${WT_SLUG}
+      - dev.worktree.path=${WT_PATH}
+      - dev.worktree.service=grafana
+      - dev.worktree.link.grafana=http://${WT_SLUG}-grafana.connect.localhost:${WT_ROUTER_PORT}
+      - traefik.enable=true
+      - traefik.http.routers.wt-${WT_SLUG}-grafana.rule=Host(`${WT_SLUG}-grafana.connect.localhost`)
+      - traefik.http.routers.wt-${WT_SLUG}-grafana.middlewares=dev-starting@docker
+      - traefik.http.services.wt-${WT_SLUG}-grafana.loadbalancer.server.port=3000
 
   pdf-converter:
     image: golang:1.25-bookworm

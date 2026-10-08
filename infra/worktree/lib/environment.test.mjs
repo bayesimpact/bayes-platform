@@ -38,6 +38,17 @@ describe("composeVariables", () => {
     for (const variable of used) assert.ok(variable in variables, variable)
   })
 
+  it("gives every environment its own Traefik routers", () => {
+    // Compose interpolates the keys of labels written as a list, never as a map. A map key such
+    // as `traefik.http.routers.wt-${WT_SLUG}-web.rule` stays literal, so two environments declare
+    // the same router with different rules, and Traefik drops both.
+    const template = readFileSync(new URL("../docker-compose.yaml", import.meta.url), "utf8")
+    const literalKeys = template
+      .split("\n")
+      .filter((line) => /^\s*[^\s#-][^\s:]*\$\{[^}]+\}[^\s:]*:(\s|$)/u.test(line))
+    assert.deepEqual(literalKeys, [])
+  })
+
   it("names the compose project and defaults the optional values", () => {
     assert.equal(variables.COMPOSE_PROJECT_NAME, "wt-fix-sidebar")
     assert.equal(variables.WT_GCS_BUCKET, "")

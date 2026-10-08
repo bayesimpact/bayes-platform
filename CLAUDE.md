@@ -100,7 +100,7 @@ Target shape: `Conversation retention: conversations are now kept 30 days by def
 
 Claude Code worktrees live under `.claude/worktrees/`. Gitignored config (`.env`, `.env.test`, root `dontsave/*.json`, `apps/api/.certs/*.pem`) is copied in automatically via `.worktreeinclude`.
 
-A worktree can run its own dev environment: `/worktree <name>`, or `npm run wt -- up` in the worktree (see `infra/worktree/README.md`). It runs every dev server in containers, with databases copied from the main checkout's (`connect_wt_<name>` and `connect_wt_<name>__test`), its own Redis, and URLs on `http://<name>.connect.localhost:8800`.
+A worktree can run its own dev environment: `/worktree <name>` (an issue number works too: `/worktree 135` serves `http://135.connect.localhost:8800`), or `npm run wt -- up` in the worktree (see `infra/worktree/README.md`). It runs every dev server in containers, with databases copied from the main checkout's (`connect_wt_<name>` and `connect_wt_<name>__test`), its own Redis, and URLs on `http://<name>.connect.localhost:8800`.
 
 1. Never run `npm install`: it rewrites `package-lock.json` with cosmetic peer-flag churn that pollutes the diff. In a fresh worktree, `npm ci` at the worktree root comes first; `npm run wt -- up` runs it for you.
 2. In a worktree with an environment, never start `npm run dev`, `npm run dev:workers-main` or a Storybook on the host: the environment runs them and reloads on edits. Read their logs with `npm run wt -- logs <service>`.
