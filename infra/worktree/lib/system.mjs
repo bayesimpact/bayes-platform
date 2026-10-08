@@ -227,8 +227,11 @@ function acquireLock(name, { waitMs, pollMs, onWait = () => {} }) {
       if (readText(path) === text) rmSync(path, { force: true })
       continue
     }
-    if (Date.now() > deadline) {
-      throw new Error(`${name} is locked by process ${holder?.pid ?? "unknown"} (${path})`)
+    if (Date.now() >= deadline) {
+      throw Object.assign(
+        new Error(`${name} is locked by process ${holder?.pid ?? "unknown"} (${path})`),
+        { code: "ELOCKED", pid: holder?.pid },
+      )
     }
     if (holder && !announced) {
       onWait(holder.pid)
