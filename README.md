@@ -114,6 +114,16 @@ the other services start with their profile, from `infra/database`:
 | `dex` | Dex, http://localhost:5556 ([README](infra/dex/README.md)) | `docker compose --profile dex up -d --no-recreate dex` |
 | `traces` | otel-collector, Phoenix, http://localhost:6060 | `docker compose --profile traces up -d --no-recreate otel-collector phoenix` |
 | `analytics` | Grafana, http://localhost:3300 | `docker compose --profile analytics up -d --no-recreate grafana` |
+| `router` | Traefik and the dashboard of the worktree environments, http://dev.connect.localhost:8800 | `mkdir -p ~/.bayes-worktrees && docker compose --profile router up -d --no-recreate traefik dev-dashboard` |
+
+The `router` profile serves every `*.connect.localhost` host on
+http://127.0.0.1:8800 (`ROUTER_PORT` in `infra/database/.env`): the worktree
+environments, plus http://phoenix.connect.localhost:8800,
+http://mail.connect.localhost:8800, http://grafana.connect.localhost:8800 and
+Traefik's own dashboard at http://traefik.connect.localhost:8800/dashboard/.
+Chrome and Firefox resolve `*.localhost` by themselves; Safari does not. On the
+dev VM, forward port 8800 to your laptop (VS Code does it, with the settings of
+`.vscode/settings.json`).
 
 Keycloak and Dex used to have their own compose projects. If one of them still
 runs from there, stop it once before starting it with its profile:
