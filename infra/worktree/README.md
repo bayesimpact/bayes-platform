@@ -12,6 +12,10 @@ In Claude Code, `/worktree fix-sidebar` creates `.claude/worktrees/fix-sidebar`,
 there and starts the environment (a few minutes the first time). In any worktree, Claude's or not,
 `npm run wt -- up` does the same.
 
+The name gives the URLs, and an issue number works too: `/worktree 135` shows the title of issue
+135 (from bayes-platform or internal-issues) and serves the app on
+`http://135.connect.localhost:8800`. `/worktree` alone proposes a name.
+
 | Command (`npm run wt -- ...`) | What it does |
 |---|---|
 | `up` | Creates or updates the environment of the current worktree, then prints its URLs. Safe to repeat, and needed after a change to `package-lock.json`. |

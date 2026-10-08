@@ -1,7 +1,7 @@
 ---
 name: worktree
-description: Create a git worktree with its own dev environment (web app, API, workers, Storybooks, Grafana, Bull Board, Dex, a Phoenix project and databases copied from the local one) on http://<name>.connect.localhost:8800, or manage the environment of the current worktree (status, logs, restart, stop, start, reset-db, down). Use when the user asks to start work in a new worktree, to see a branch running, or about the environment of a worktree.
-argument-hint: "<name> | status | logs [service] | restart [service] | stop | start | reset-db | dex-sync | down"
+description: Create a git worktree with its own dev environment (web app, API, workers, Storybooks, Grafana, Bull Board, Dex, a Phoenix project and databases copied from the local one) on http://<name>.connect.localhost:8800, the name being a short name or an issue number, or manage the environment of the current worktree (status, logs, restart, stop, start, reset-db, down). Use when the user asks to start work in a new worktree, to work on an issue in its own environment, to see a branch running, or about the environment of a worktree.
+argument-hint: "[<name> | <issue number>] | status | logs [service] | restart [service] | stop | start | reset-db | dex-sync | down"
 ---
 
 # Worktree environments
@@ -9,17 +9,30 @@ argument-hint: "<name> | status | logs [service] | restart [service] | stop | st
 Each worktree gets its own containers, databases and URLs, so several branches run side by side.
 How it works and what to do when something breaks: `infra/worktree/README.md`.
 
-## With a name: create the worktree and its environment
+## Create a worktree and its environment
 
-1. Check the name: lowercase letters, digits and single hyphens, starting with a letter, at most
-   32 characters, not ending with `-ui`, `-embed`, `-help`, `-storybook`, `-dex` or `-grafana`,
-   and not `dev`, `traefik`, `phoenix`, `mail` or `grafana`. Suggest a valid name otherwise.
+1. Settle the name, which gives the URLs: `http://<name>.connect.localhost:8800`.
+   - **An issue number** (`135`, `#135` or the issue's URL): the name is the number, so
+     `http://135.connect.localhost:8800`. Find the issue with
+     `gh issue view <number> --repo <repo> --json title,state,url`, in the repository of the URL
+     when there is one, otherwise in `bayesimpact/bayes-platform` and in
+     `bayesimpact/internal-issues`. Show the user its title and repository. When both repositories
+     have an open issue with that number, ask which one is meant. A number gh cannot find is still
+     a valid name.
+   - **A name**: lowercase letters, digits and single hyphens, at most 32 characters, not starting
+     with `agent-`, not ending with `-ui`, `-embed`, `-help`, `-storybook`, `-dex` or `-grafana`,
+     and none of `api`, `connect`, `dashboard`, `dev`, `grafana`, `mail`, `main`, `phoenix`,
+     `router`, `traefik` and `www`. Suggest a valid name otherwise.
+   - **Nothing**: propose a short name for the task at hand, or the issue's number when the
+     conversation names an issue. Show it with the URL it gives, and ask the user to keep it or to
+     give another name or an issue number.
 2. Enter the worktree: if `.claude/worktrees/<name>` exists, call `EnterWorktree` with its
    `path`; otherwise call `EnterWorktree` with the `name`.
 3. In the worktree, run `npm run wt -- up` with a 600000 ms timeout. The first run takes a few
    minutes: it installs dependencies on the host and in the containers, copies the database and
    starts every server.
-4. Show the user the URL list that `wt up` prints, as it is.
+4. Show the user the URL list that `wt up` prints, as it is, under the issue's title when the name
+   is an issue number.
 
 If `wt up` reports a failure, read the logs it printed, fix what you can (for example a migration
 of the branch), then run `npm run wt -- up` again: it is safe to repeat.
