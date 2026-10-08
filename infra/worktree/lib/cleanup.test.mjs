@@ -44,6 +44,11 @@ describe("decide", () => {
     })
   })
 
+  it("keeps an environment whose folder is still there though git does not list it", () => {
+    const unlisted = { slug: "135", unlisted: true, worktreeExists: true, hasEnvironment: true }
+    assert.equal(decide({ ...unlisted, isAgentWorktree: false, now }).action, "keep")
+  })
+
   const kept = [
     ["an agent worktree", { isAgentWorktree: true }, "agent worktree"],
     ["a locked worktree", { locked: true }, "worktree locked"],

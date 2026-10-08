@@ -16,6 +16,7 @@ export function decide(facts) {
   if (!facts.worktreeExists) {
     return facts.hasEnvironment ? { action: "teardown", reason: "worktree removed" } : keep("gone")
   }
+  if (facts.unlisted) return keep("folder still there, though git does not list it as a worktree")
   if (facts.locked) return keep("worktree locked")
   if (!facts.branch) return keep("detached HEAD")
   if (!facts.ghAvailable) return keep("gh unavailable")

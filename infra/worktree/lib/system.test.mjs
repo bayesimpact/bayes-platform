@@ -83,6 +83,20 @@ describe("withLockIfFree", () => {
     assert.ok(!existsSync(join(locks, "free.lock")))
   })
 
+  it(
+    "keeps the lock of a live holder whatever the wall clock says",
+    { skip: !BOOT_ID },
+    async () => {
+      leaveLock("clock", {
+        pid: process.pid,
+        startedAt: "2000-01-01T00:00:00.000Z",
+        bootId: BOOT_ID,
+        uptime: uptime(),
+      })
+      assert.deepEqual(await withLockIfFree("clock", async () => "in"), { busy: process.pid })
+    },
+  )
+
   it("says who holds the lock instead of waiting", async () => {
     leaveLock("busy", { pid: process.pid, startedAt: new Date().toISOString() })
     let ran = false

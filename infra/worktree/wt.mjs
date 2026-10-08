@@ -485,24 +485,32 @@ async function cleanup() {
     try {
       // Without waiting: a held lock means someone works on this environment right now.
       const outcome = await withLockIfFree(facts.slug, async () => {
-        // Read again under the lock: a `wt up` may have run since the first reading.
+        // Decide again under the lock: a `wt up` may have run since the first reading.
         const fresh = freshFacts(mainCheckout, facts)
         const again = decide(fresh)
-        if (again.action !== decision.action) return again
+        if (again.action === "keep") return { kept: again.reason }
+        if (
+          again.action === "remove" &&
+          !fresh.hasEnvironment &&
+          !options["include-unregistered"]
+        ) {
+          return { kept: `${again.reason}, no environment (--include-unregistered removes it)` }
+        }
         await removeWorktreeAndEnvironment(fresh, again, mainCheckout)
-        return null
+        return { removed: again }
       })
       const kept =
-        "busy" in outcome ? { reason: `busy, locked by process ${outcome.busy}` } : outcome.result
+        "busy" in outcome ? `busy, locked by process ${outcome.busy}` : outcome.result.kept
       if (kept) {
         if (facts.hasEnvironment && facts.worktreeExists) {
-          updateStatus(facts.slug, { cleanup: { verdict: "keep", reason: kept.reason, checkedAt } })
+          updateStatus(facts.slug, { cleanup: { verdict: "keep", reason: kept, checkedAt } })
         }
-        say(`keep    ${facts.slug}: ${kept.reason}`)
+        say(`keep    ${facts.slug}: ${kept}`)
         continue
       }
       removals += 1
-      logCleanup({ slug: facts.slug, action: decision.action, reason: decision.reason })
+      const { action, reason } = outcome.result.removed
+      logCleanup({ slug: facts.slug, action, reason })
     } catch (error) {
       removals += 1
       logCleanup({ slug: facts.slug, action: "failed", reason: error.message })
@@ -515,9 +523,13 @@ async function cleanup() {
 }
 
 async function removeWorktreeAndEnvironment(facts, decision, mainCheckout) {
-  if (facts.hasEnvironment) await removeEnvironment(environmentOfSlug(facts.slug, mainCheckout))
-  // A `wt up` that failed before creating containers still left a state folder and a port.
-  else rmSync(join(STATE_DIR, "envs", facts.slug), { recursive: true, force: true })
+  if (facts.hasEnvironment) {
+    await removeEnvironment(environmentOfSlug(facts.slug, mainCheckout))
+  } else if (stateBelongsTo(facts.slug, facts.path)) {
+    // A `wt up` that failed before creating containers still left a state folder and a port.
+    // The folder is named after the worktree's folder only, hence the check of its owner.
+    rmSync(join(STATE_DIR, "envs", facts.slug), { recursive: true, force: true })
+  }
   if (decision.action !== "remove") return
   // Without --force: git refuses a worktree with modified or untracked files.
   run("git", ["-C", mainCheckout, "worktree", "remove", facts.path])
@@ -530,13 +542,32 @@ async function removeWorktreeAndEnvironment(facts, decision, mainCheckout) {
     `refs/heads/${facts.branch}`,
   ])
   if (tip === facts.head) run("git", ["-C", mainCheckout, "branch", "-D", facts.branch])
-  updateStatus(facts.slug, null)
+  const entry = readStatus().environments?.[facts.slug]
+  if (!entry?.path || entry.path === facts.path) updateStatus(facts.slug, null)
   console.log(`Removed the worktree ${facts.path} and the branch ${facts.branch}.`)
+}
+
+/** Whether the state folder of `slug` was written by `wt up` in the worktree at `path`. */
+function stateBelongsTo(slug, path) {
+  const folder = join(STATE_DIR, "envs", slug)
+  return ["last-up.json", "redis-port"].some(
+    (name) => readJson(join(folder, name), {}).path === path,
+  )
+}
+
+/** When `wt up` last started in the worktree at `path`, whether it finished or not. */
+function lastUpAt(slug, path) {
+  const attempt = readJson(join(STATE_DIR, "envs", slug, "last-up.json"), {})
+  const finished = readStatus().environments?.[slug]
+  return Math.max(
+    attempt.path === path ? Date.parse(attempt.startedAt) || 0 : 0,
+    !finished?.path || finished.path === path ? Date.parse(finished?.upAt ?? "") || 0 : 0,
+  )
 }
 
 /** Everything decide() needs about each worktree of the repository and each environment. */
 function cleanupFacts(mainCheckout) {
-  const context = factsContext()
+  const context = factsContext(mainCheckout)
   const worktrees = listWorktrees(mainCheckout)
   const facts = worktrees.map((worktree) => worktreeFacts(worktree, context))
   // Environments whose worktree git no longer knows (folder deleted, then pruned).
@@ -549,14 +580,18 @@ function cleanupFacts(mainCheckout) {
 
 /** The facts of one worktree read again, once its lock is held. */
 function freshFacts(mainCheckout, facts) {
-  const context = factsContext()
+  const context = factsContext(mainCheckout)
   const worktree = listWorktrees(mainCheckout).find((candidate) => candidate.path === facts.path)
   return worktree ? worktreeFacts(worktree, context) : orphanFacts(facts.slug, facts.path, context)
 }
 
-function factsContext() {
+function factsContext(mainCheckout) {
   const environmentPaths = new Map()
-  for (const container of listContainers(["label=dev.worktree.slug"])) {
+  // This clone's environments only: the others belong to another clone or another user.
+  for (const container of listContainers([
+    "label=dev.worktree.slug",
+    `label=dev.worktree.repo=${repositoryId(mainCheckout)}`,
+  ])) {
     environmentPaths.set(
       container.Labels["dev.worktree.path"],
       container.Labels["dev.worktree.slug"],
@@ -597,21 +632,30 @@ function worktreeFacts(worktree, { environmentPaths, ghAvailable, now }) {
     headInPullRequest: isInPullRequest(worktree.path, worktree.head, pr.headRefOid),
     inUse: isInUse(worktree.path),
     // A `wt up` counts as activity: it may have reopened the worktree without touching git.
-    lastActivityAt: Math.max(
-      lastGitActivity(worktree.path),
-      Date.parse(readStatus().environments?.[slug]?.upAt ?? "") || 0,
-    ),
+    lastActivityAt: Math.max(lastGitActivity(worktree.path), lastUpAt(slug, worktree.path)),
   }
 }
 
+/** An environment of this clone whose worktree `git worktree list` does not show. */
 function orphanFacts(slug, path, { environmentPaths, now }) {
   return {
     slug,
     path,
-    worktreeExists: false,
+    unlisted: true,
+    // Only a missing folder means the worktree is gone; one that cannot be read may be fine.
+    worktreeExists: !isGone(path),
     hasEnvironment: environmentPaths.has(path),
     isAgentWorktree: false,
     now,
+  }
+}
+
+function isGone(path) {
+  try {
+    statSync(path)
+    return false
+  } catch (error) {
+    return error.code === "ENOENT"
   }
 }
 
