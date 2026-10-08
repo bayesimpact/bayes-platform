@@ -144,7 +144,7 @@ Scoped to one agent via `user_membership` (`resource_type = 'agent'`).
 
 The two analytics permissions are never inherited from a parent resource: an organization role does not open a project's analytics, and a project role does not open an agent's analytics.
 
-`agent.member.invite` is held on the agent only: a project or organization role does not let anyone invite to an agent.
+The `agent.member.*` permissions are held on the agent only: a project or organization role does not let anyone see an agent's members, invite to an agent or remove a member.
 
 `agent.sub_agent.read` and `agent.sub_agent.update` are held on the agent only as well: a project or organization role does not open an agent's sub-agents.
 
@@ -158,7 +158,9 @@ The same goes for `agent.settings.draft.update`, `agent.settings.draft.publish`,
 | `agent.update` | ✅ | ✅ | — |
 | `agent.delete` | ✅ | ✅ | — |
 | `agent.analytics.read` — see the agent's conversation analytics | ✅ | ✅ | — |
+| `agent.member.read` — see the agent's members and their roles | ✅ | ✅ | — |
 | `agent.member.invite` — invite people to the agent, see and revoke pending invitations | ✅ | ✅ | — |
+| `agent.member.delete` — remove a member from the agent | ✅ | ✅ | — |
 | `agent.sub_agent.read` — see the sub-agents the agent can call | ✅ | ✅ | — |
 | `agent.sub_agent.update` — replace the sub-agents the agent can call | ✅ | ✅ | — |
 | `agent.settings.draft.update` — edit the draft settings | ✅ | ✅ | — |

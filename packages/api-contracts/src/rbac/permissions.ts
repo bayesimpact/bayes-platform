@@ -101,6 +101,14 @@ export const PROJECT_MEMBER_DELETE_PERMISSION = "project.member.delete" as const
 export const AGENT_MEMBER_INVITE_PERMISSION = "agent.member.invite" as const
 
 /**
+ * See an agent's members and their roles, or remove one. Held on the agent only: a
+ * project or organization role does not grant them.
+ */
+export const AGENT_MEMBER_READ_PERMISSION = "agent.member.read" as const
+
+export const AGENT_MEMBER_DELETE_PERMISSION = "agent.member.delete" as const
+
+/**
  * List the project's agents with their unpublished draft settings, as the studio and
  * evaluation apps do. Scoped to the project and never inherited from the organization.
  */

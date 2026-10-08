@@ -13,7 +13,9 @@ import {
   AGENT_EXTRACTION_SESSION_PLAYGROUND_DELETE_PERMISSION,
   AGENT_EXTRACTION_SESSION_PLAYGROUND_READ_PERMISSION,
   AGENT_EXTRACTION_SESSION_READ_PERMISSION,
+  AGENT_MEMBER_DELETE_PERMISSION,
   AGENT_MEMBER_INVITE_PERMISSION,
+  AGENT_MEMBER_READ_PERMISSION,
   AGENT_ROLE_PERMISSIONS,
   AGENT_SETTINGS_ARCHIVE_PERMISSION,
   AGENT_SETTINGS_DRAFT_PUBLISH_PERMISSION,
@@ -725,6 +727,28 @@ describe("project member permissions", () => {
   it("never inherits project members from the organization", () => {
     const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
     for (const permission of projectMemberPermissions) {
+      expect(inheritable).not.toContain(permission)
+    }
+  })
+})
+
+describe("agent member permissions", () => {
+  const rolesHolding = (rolePermissions: Record<string, readonly string[]>, permission: string) =>
+    Object.entries(rolePermissions)
+      .filter(([_roleKey, permissions]) => permissions.includes(permission))
+      .map(([roleKey]) => roleKey)
+
+  const agentMemberPermissions = [AGENT_MEMBER_READ_PERMISSION, AGENT_MEMBER_DELETE_PERMISSION]
+
+  it.each(agentMemberPermissions)("grants %s to agent owners and admins only", (permission) => {
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual(["agent_owner", "agent_admin"])
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
+  })
+
+  it("never inherits agent members from a parent resource", () => {
+    const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.agent
+    for (const permission of agentMemberPermissions) {
       expect(inheritable).not.toContain(permission)
     }
   })
