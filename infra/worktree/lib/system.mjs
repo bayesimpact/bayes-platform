@@ -54,12 +54,12 @@ export function repositoryPaths(cwd = process.cwd()) {
   return { root, isMain: gitDir === commonDir, mainCheckout: dirname(commonDir) }
 }
 
-/** The shared stack's compose command, always on the main checkout's file and folder. */
 /** What the containers of a clone are labeled with: its main checkout, links resolved. */
 export function repositoryId(mainCheckout) {
   return realpathSync(mainCheckout)
 }
 
+/** The shared stack's compose command, always on the main checkout's file and folder. */
 export function sharedCompose(mainCheckout, args) {
   const folder = join(mainCheckout, "infra/database")
   return [
@@ -331,4 +331,14 @@ function isAlive(pid) {
 
 export function fileExists(path) {
   return existsSync(path)
+}
+
+/** Whether nothing is at `path`. A path that cannot be read, another user's for example, is not gone. */
+export function isGone(path) {
+  try {
+    statSync(path)
+    return false
+  } catch (error) {
+    return error.code === "ENOENT"
+  }
 }

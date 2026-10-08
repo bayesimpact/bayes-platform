@@ -78,11 +78,12 @@ export function environmentNames(slug, routerPort) {
  */
 export function isDatabaseOf(slug, name) {
   const base = `connect_wt_${slug.replaceAll("-", "_")}`
+  const literal = base.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&")
   return (
     name === base ||
     name === `${base}__restoring` ||
     name === `${base}__test` ||
-    new RegExp(`^${base}__test_w\\d+$`, "u").test(name)
+    new RegExp(`^${literal}__test_w\\d+$`, "u").test(name)
   )
 }
 

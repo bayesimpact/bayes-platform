@@ -44,6 +44,7 @@ import { environmentNames, isDatabaseOf, nodeModulesFolders, slugProblem } from 
 import { currentBranch, pullRequestOf, readStatus, updateStatus } from "./lib/status.mjs"
 import {
   databaseNames,
+  isGone,
   isPortFree,
   listContainers,
   psql,
@@ -145,16 +146,15 @@ try {
 async function up() {
   const environment = currentEnvironment()
   const startedAt = Date.now()
-  await withLock(environment.slug, async () => {
-    const postgres = ensureSharedStack(environment.mainCheckout)
-    const passwordHash = dexPasswordHash()
-    checkNodeModulesVolumes(environment)
-    refuseForeignProject(environment)
+  await withOwnLock(environment, async () => {
     // The cleanup counts this attempt as activity, even when the run fails or is interrupted.
     writeFileAtomic(
       join(environment.stateDir, "last-up.json"),
       `${JSON.stringify({ path: environment.root, startedAt: new Date().toISOString() })}\n`,
     )
+    const postgres = ensureSharedStack(environment.mainCheckout)
+    const passwordHash = dexPasswordHash()
+    checkNodeModulesVolumes(environment)
 
     const composeEnvFile = join(environment.root, "infra/worktree/.env")
     const previous = existsSync(composeEnvFile)
@@ -202,41 +202,48 @@ async function up() {
 }
 
 async function down() {
-  const target = options.slug ? environmentOfSlug(options.slug) : currentEnvironment()
-  // wt-<name> may belong to a worktree of the same name in another clone.
-  if (!options.slug) refuseForeignProject(target)
-  await withLock(target.slug, async () => {
-    const postgres = sharedContainer("pgvector")
-    if (postgres && databaseNames(postgres).includes(target.names.database)) {
-      const dump = dumpDatabase(postgres, target.names.database, target.slug)
-      console.log(`Kept a dump of ${target.names.database} for ${TRASH_DAYS} days: ${dump}`)
-    }
-    runVisible("docker", [
-      "compose",
-      "-p",
-      target.names.project,
-      "down",
-      "--volumes",
-      "--remove-orphans",
-    ])
-    dropDatabases(postgres, target.slug)
-    // Phoenix answers 404 for a project that never got a trace: nothing to report.
-    await throughRouter(
-      target.routerPort,
-      `phoenix.connect.localhost:${target.routerPort}`,
-      `/v1/projects/${target.names.phoenixProject}`,
-      "DELETE",
-    )
-    rmSync(join(STATE_DIR, "envs", target.slug), { recursive: true, force: true })
-    updateStatus(target.slug, null)
-    pruneTrash()
-    console.log(`Removed the environment ${target.slug}.`)
-  })
+  if (options.slug) {
+    // An environment whose worktree is gone: there is no folder left to check it against.
+    const target = environmentOfSlug(validSlug(options.slug))
+    await withLock(target.slug, () => removeEnvironment(target))
+  } else {
+    const target = currentEnvironment()
+    await withOwnLock(target, () => removeEnvironment(target))
+  }
+}
+
+/** Containers, volumes, databases (after a dump), Phoenix project and state of an environment. */
+async function removeEnvironment(target) {
+  const postgres = sharedContainer("pgvector")
+  if (postgres && databaseNames(postgres).includes(target.names.database)) {
+    const dump = dumpDatabase(postgres, target.names.database, target.slug)
+    console.log(`Kept a dump of ${target.names.database} for ${TRASH_DAYS} days: ${dump}`)
+  }
+  runVisible("docker", [
+    "compose",
+    "-p",
+    target.names.project,
+    "down",
+    "--volumes",
+    "--remove-orphans",
+  ])
+  dropDatabases(postgres, target.slug)
+  // Phoenix answers 404 for a project that never got a trace: nothing to report.
+  await throughRouter(
+    target.routerPort,
+    `phoenix.connect.localhost:${target.routerPort}`,
+    `/v1/projects/${target.names.phoenixProject}`,
+    "DELETE",
+  )
+  rmSync(join(STATE_DIR, "envs", target.slug), { recursive: true, force: true })
+  updateStatus(target.slug, null)
+  pruneTrash()
+  console.log(`Removed the environment ${target.slug}.`)
 }
 
 async function resetDatabases() {
   const environment = currentEnvironment()
-  await withLock(environment.slug, async () => {
+  await withOwnLock(environment, async () => {
     const postgres = ensureSharedStack(environment.mainCheckout)
     compose(environment, ["stop", "api", "workers", "grafana"])
     if (databaseNames(postgres).includes(environment.names.database)) {
@@ -258,7 +265,8 @@ function dexSync() {
 }
 
 function composeCommand(args) {
-  const target = options.slug ? environmentOfSlug(options.slug) : currentEnvironment()
+  const target = options.slug ? environmentOfSlug(validSlug(options.slug)) : currentEnvironment()
+  if (!options.slug) refuseForeignProject(target)
   const code = runVisible("docker", [
     "compose",
     "-p",
@@ -496,11 +504,28 @@ function refuseForeignProject(environment) {
   const foreign = listContainers([
     `label=com.docker.compose.project=${environment.names.project}`,
   ]).find((container) => container.Labels["dev.worktree.path"] !== environment.root)
-  if (foreign) {
-    throw new Error(
-      `${environment.names.project} belongs to ${foreign.Labels["dev.worktree.path"]}: remove it there (npm run wt -- down), or rename this worktree.`,
-    )
-  }
+  if (!foreign) return
+  const owner = foreign.Labels["dev.worktree.path"]
+  throw new Error(
+    isGone(owner)
+      ? `${environment.names.project} belongs to ${owner}, which no longer exists: remove it with npm run wt -- down --slug ${environment.slug}, then try again.`
+      : `${environment.names.project} belongs to ${owner}: remove it there (npm run wt -- down), or rename this worktree.`,
+  )
+}
+
+/** The environment's lock, held once it is sure that wt-<name> belongs to this worktree. */
+function withOwnLock(environment, work) {
+  return withLock(environment.slug, () => {
+    refuseForeignProject(environment)
+    return work()
+  })
+}
+
+/** A name given with --slug: it ends up in paths and database names. */
+function validSlug(slug) {
+  const problem = slugProblem(slug)
+  if (problem) throw new Error(`--slug ${slug}: ${problem}.`)
+  return slug
 }
 
 /**

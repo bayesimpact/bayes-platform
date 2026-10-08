@@ -111,6 +111,10 @@ describe("isDatabaseOf", () => {
     assert.ok(!isDatabaseOf("13", "connect_wt_135"))
     assert.ok(!isDatabaseOf("135", "connect_wt_1350__test"))
   })
+
+  it("reads a name as text, never as a pattern", () => {
+    assert.ok(!isDatabaseOf("..", "connect_wt_ab__test_w1"))
+  })
 })
 
 describe("nodeModulesFolders", () => {
