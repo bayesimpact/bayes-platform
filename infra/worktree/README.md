@@ -58,11 +58,14 @@ Chrome or Firefox: Safari does not resolve `*.localhost`. Windows is not support
    the people of your local database to Dex (see [infra/dex/README.md](../dex/README.md)).
 2. `npm run wt -- setup`. It creates the shared caches, starts the shared stack with the `router`,
    `traces` and `mail` profiles, and creates the read-only role of Grafana.
-3. On the dev VM, forward port 8800 (the environments) and 5556 (the main checkout's Dex) to your
+3. Document uploads go from the browser straight to the dev bucket, so its CORS must accept the
+   environments' origins: the shared bucket of the dev VMs does (bayesimpact/infra), and for a
+   bucket of your own, `gcloud storage buckets update gs://<bucket> --cors-file=cors.json`.
+4. On the dev VM, forward port 8800 (the environments) and 5556 (the main checkout's Dex) to your
    laptop. VS Code does it with the settings of the repository; otherwise
    `ssh -L 8800:localhost:8800 -L 5556:localhost:5556 <vm>`. Raise the inotify limit, since every
    dev server takes one instance: `sudo sysctl fs.inotify.max_user_instances=1024`.
-4. Open http://dev.connect.localhost:8800.
+5. Open http://dev.connect.localhost:8800.
 
 `npm run wt -- doctor` checks all of this.
 
