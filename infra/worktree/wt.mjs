@@ -42,6 +42,7 @@ import {
   hostEnvValues,
   missingNodeModulesVolumes,
   parseComposeEnv,
+  pickRedisPort,
   TEMPLATE_NODE_MODULES_FOLDERS,
 } from "./lib/environment.mjs"
 import { environmentNames, isDatabaseOf, nodeModulesFolders, slugProblem } from "./lib/naming.mjs"
@@ -836,20 +837,63 @@ function refuseForeignProject(environment) {
   }
 }
 
+/**
+ * The host port of the environment's Redis, kept from one `up` to the next. Chosen under a
+ * machine-wide lock and recorded in the environment's state folder at once, so two environments
+ * starting together never take the same port before either container binds it. `down` removes
+ * the record with the folder.
+ */
 async function chooseRedisPort(environment, previous) {
-  const used = new Set(
-    listContainers(["label=dev.worktree.service=bullmq"])
-      .filter((container) => container.Labels["dev.worktree.slug"] !== environment.slug)
-      .flatMap((container) =>
-        [...(container.Ports ?? "").matchAll(/:(\d+)->6379/gu)].map((match) => Number(match[1])),
+  return withLock("_redis-ports", async () => {
+    const containers = listContainers(["label=dev.worktree.service=bullmq"])
+    const published = (container) =>
+      [...(container.Ports ?? "").matchAll(/:(\d+)->6379/gu)].map((match) => Number(match[1]))
+    const isOwn = (container) => container.Labels["dev.worktree.slug"] === environment.slug
+    const ownPorts = containers.filter(isOwn).flatMap(published)
+    const taken = new Set([
+      ...containers.filter((container) => !isOwn(container)).flatMap(published),
+      ...recordedRedisPorts(
+        environment.slug,
+        new Set(containers.map((container) => container.Labels["dev.worktree.slug"])),
       ),
-  )
-  const own = Number(previous.WT_REDIS_PORT)
-  if (own && !used.has(own)) return own
-  for (let port = 16380; port < 16480; port += 1) {
-    if (!used.has(port) && (await isPortFree(port))) return port
+    ])
+    const port = await pickRedisPort({
+      previous: Number(previous.WT_REDIS_PORT),
+      taken,
+      // The environment's own Redis, when it runs, already listens on its port.
+      isFree: (candidate) => ownPorts.includes(candidate) || isPortFree(candidate),
+    })
+    writeFileAtomic(
+      redisPortFile(environment.slug),
+      `${JSON.stringify({ port, path: environment.root })}\n`,
+    )
+    return port
+  })
+}
+
+function redisPortFile(slug) {
+  return join(STATE_DIR, "envs", slug, "redis-port")
+}
+
+/**
+ * The Redis ports that other environments recorded, whether their containers run or not. When
+ * an environment's worktree and containers are both gone, its state folder goes too, and its
+ * port can be taken again.
+ */
+function recordedRedisPorts(slug, slugsWithContainers) {
+  const folder = join(STATE_DIR, "envs")
+  if (!existsSync(folder)) return []
+  const ports = []
+  for (const other of readdirSync(folder)) {
+    if (other === slug || !existsSync(redisPortFile(other))) continue
+    const record = readJson(redisPortFile(other), {})
+    if (record.path && !existsSync(record.path) && !slugsWithContainers.has(other)) {
+      rmSync(join(folder, other), { recursive: true, force: true })
+    } else if (record.port) {
+      ports.push(Number(record.port))
+    }
   }
-  throw new Error("No free port for the environment's Redis between 16380 and 16479.")
+  return ports
 }
 
 function gcpCredentials(environment) {
