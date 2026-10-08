@@ -133,6 +133,14 @@ Every service of the stack restarts with Docker after a reboot, until you stop
 it with `docker compose stop <service>`. Postgres accepts 500 connections, for
 the main checkout, worktree environments and parallel test runs at once.
 
+#### Worktree environments
+
+Each git worktree can run its own environment, side by side: every dev server in containers,
+databases copied from yours, its own Redis, Dex and Phoenix project, and URLs such as
+http://fix-sidebar.connect.localhost:8800. In Claude Code, `/worktree <name>` creates the worktree
+and its environment; in any worktree, `npm run wt -- up`. The setup, once per machine, and
+everything else: [infra/worktree/README.md](infra/worktree/README.md).
+
 #### Stop the Database
 
 ```bash
