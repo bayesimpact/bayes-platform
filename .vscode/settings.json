@@ -32,5 +32,10 @@
   "typescript.preferences.includePackageJsonAutoImports": "on",
   "typescript.tsserver.watchOptions": {
     "excludeDirectories": ["**/node_modules", "**/dist"]
+  },
+  "remote.portsAttributes": {
+    "8800": { "label": "Worktree environments (router)", "requireLocalPort": true },
+    "5556": { "label": "Dex of the main checkout", "requireLocalPort": true },
+    "16380-16479": { "label": "Redis of a worktree environment", "onAutoForward": "ignore" }
   }
 }
