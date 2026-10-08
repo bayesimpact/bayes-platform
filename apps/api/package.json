@@ -5,8 +5,8 @@
   "license": "MIT",
   "scripts": {
     "dev": "nest start --watch",
-    "dev:workers-main": "BULL_BOARD_ENABLED=false nest start --entryFile workers-main --watch",
-    "dev:workers-main-windows": "tsc -b ../../packages/api-contracts && nest start --entryFile workers-main --watch",
+    "dev:workers-main": "BULL_BOARD_ENABLED=false nest start --entryFile workers-main --watch --path tsconfig.workers.json",
+    "dev:workers-main-windows": "tsc -b ../../packages/api-contracts && nest start --entryFile workers-main --watch --path tsconfig.workers.json",
     "build": "nest build",
     "build:test": "tsc -p tsconfig.build-test.json",
     "start": "nest start",
