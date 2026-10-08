@@ -2,7 +2,7 @@
 // pull request, databases, cleanup verdict), one entry per environment.
 import { join } from "node:path"
 import { STATE_DIR } from "../../dex/dex-config.mjs"
-import { readJson, run, writeFileAtomic } from "./system.mjs"
+import { readJson, run, withLockSync, writeFileAtomic } from "./system.mjs"
 
 export const STATUS_FILE = join(STATE_DIR, "status.json")
 
@@ -10,14 +10,20 @@ export function readStatus() {
   return readJson(STATUS_FILE, { environments: {} })
 }
 
-/** Merges `details` into the entry of `slug`, or removes the entry when `details` is null. */
+/**
+ * Merges `details` into the entry of `slug`, or removes the entry when `details` is null. Under
+ * a lock: `wt up` of another environment, or the cleanup of a session start, may write the file
+ * at the same moment, and a copy read before their change would drop it.
+ */
 export function updateStatus(slug, details) {
-  const status = readStatus()
-  status.environments ??= {}
-  if (details === null) delete status.environments[slug]
-  else status.environments[slug] = { ...status.environments[slug], ...details }
-  status.updatedAt = new Date().toISOString()
-  writeFileAtomic(STATUS_FILE, `${JSON.stringify(status, null, 2)}\n`)
+  withLockSync("_status", () => {
+    const status = readStatus()
+    status.environments ??= {}
+    if (details === null) delete status.environments[slug]
+    else status.environments[slug] = { ...status.environments[slug], ...details }
+    status.updatedAt = new Date().toISOString()
+    writeFileAtomic(STATUS_FILE, `${JSON.stringify(status, null, 2)}\n`)
+  })
 }
 
 /** The current branch of a checkout, or null on a detached HEAD. */

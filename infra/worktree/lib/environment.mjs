@@ -104,6 +104,23 @@ export function hostEnvValues({ names, redisPort, gcpCredentials, testDatabaseUr
   return { api, apiTest }
 }
 
+/** The loopback ports that environments publish their Redis on, for host commands. */
+export const REDIS_PORTS = { first: 16380, last: 16479 }
+
+/**
+ * The host port of an environment's Redis: the one it had, unless another environment has it,
+ * otherwise the first port of the range that no environment has and nothing listens on.
+ */
+export async function pickRedisPort({ previous, taken, isFree }) {
+  if (previous && !taken.has(previous)) return previous
+  for (let port = REDIS_PORTS.first; port <= REDIS_PORTS.last; port += 1) {
+    if (!taken.has(port) && (await isFree(port))) return port
+  }
+  throw new Error(
+    `No free port for the environment's Redis between ${REDIS_PORTS.first} and ${REDIS_PORTS.last}.`,
+  )
+}
+
 /** Folders of package-lock.json whose node_modules the compose template does not mount. */
 export function missingNodeModulesVolumes(folders) {
   return folders.filter((folder) => !TEMPLATE_NODE_MODULES_FOLDERS.includes(folder))

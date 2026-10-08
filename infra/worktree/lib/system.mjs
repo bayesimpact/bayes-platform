@@ -1,7 +1,15 @@
 // Side effects of the worktree tooling: git, docker, the shared Postgres, files and locks.
 // Node built-ins only.
 import { execFileSync, spawnSync } from "node:child_process"
-import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs"
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs"
 import { request } from "node:http"
 import { createServer } from "node:net"
 import { dirname, join } from "node:path"
@@ -163,44 +171,80 @@ export function readJson(path, fallback) {
 }
 
 /**
- * Holds a per-environment lock while `work` runs, so two sessions never set up or remove the
- * same environment at once. A lock whose process is gone is taken over.
+ * Holds a lock while `work` runs: per environment, so two sessions never set up or remove the
+ * same environment at once, or for the whole machine around a choice that environments share.
+ * Names of machine-wide locks start with "_", which no environment name can.
  */
 export async function withLock(name, work) {
+  const release = acquireLock(name, {
+    waitMs: 15 * 60 * 1000,
+    pollMs: 500,
+    onWait: (pid) => console.log(`Waiting for process ${pid}, which is working on ${name}...`),
+  })
+  try {
+    return await work()
+  } finally {
+    release()
+  }
+}
+
+/** The same lock around short synchronous work, such as a read-modify-write of a shared file. */
+export function withLockSync(name, work) {
+  const release = acquireLock(name, { waitMs: 30 * 1000, pollMs: 10 })
+  try {
+    return work()
+  } finally {
+    release()
+  }
+}
+
+/** Takes the lock file, waiting while a live process holds it, and returns its release. */
+function acquireLock(name, { waitMs, pollMs, onWait = () => {} }) {
   const path = join(STATE_DIR, "locks", `${name}.lock`)
   mkdirSync(dirname(path), { recursive: true })
-  const deadline = Date.now() + 15 * 60 * 1000
+  const deadline = Date.now() + waitMs
   let announced = false
   for (;;) {
     try {
       writeFileSync(
         path,
         JSON.stringify({ pid: process.pid, startedAt: new Date().toISOString() }),
-        {
-          flag: "wx",
-        },
+        { flag: "wx" },
       )
-      break
+      return () => rmSync(path, { force: true })
     } catch (error) {
       if (error.code !== "EEXIST") throw error
-      const holder = readJson(path, {})
-      if (!isAlive(holder.pid)) {
-        rmSync(path, { force: true })
-        continue
-      }
-      if (Date.now() > deadline) throw new Error(`${name} is locked by process ${holder.pid}`)
-      if (!announced) {
-        console.log(`Waiting for process ${holder.pid}, which is working on ${name}...`)
-        announced = true
-      }
-      await new Promise((resolve) => setTimeout(resolve, 2000))
     }
+    // The holder writes its pid right after creating the file. An empty file is a lock being
+    // taken, unless it stays empty: then its process died in between. A lock whose process is
+    // gone is taken over.
+    const holder = readJson(path, null)
+    if (holder ? !isAlive(holder.pid) : ageInMs(path) > 10_000) {
+      rmSync(path, { force: true })
+      continue
+    }
+    if (Date.now() > deadline) {
+      throw new Error(`${name} is locked by process ${holder?.pid ?? "unknown"}`)
+    }
+    if (holder && !announced) {
+      onWait(holder.pid)
+      announced = true
+    }
+    sleep(pollMs)
   }
+}
+
+/** The age of a file, or 0 when it is gone (its holder just released it). */
+function ageInMs(path) {
   try {
-    return await work()
-  } finally {
-    rmSync(path, { force: true })
+    return Date.now() - statSync(path).mtimeMs
+  } catch {
+    return 0
   }
+}
+
+function sleep(milliseconds) {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, milliseconds)
 }
 
 function isAlive(pid) {

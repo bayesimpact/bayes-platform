@@ -8,6 +8,7 @@ import {
   hostEnvValues,
   missingNodeModulesVolumes,
   parseComposeEnv,
+  pickRedisPort,
   TEMPLATE_NODE_MODULES_FOLDERS,
   withDatabase,
 } from "./environment.mjs"
@@ -101,6 +102,31 @@ describe("withDatabase", () => {
     assert.equal(
       withDatabase("postgresql://user:p%40ss@localhost:5432/connect_test?sslmode=disable", "x"),
       "postgresql://user:p%40ss@localhost:5432/x?sslmode=disable",
+    )
+  })
+})
+
+describe("pickRedisPort", () => {
+  const free = async () => true
+
+  it("keeps the port the environment had when no other environment has it", async () => {
+    assert.equal(await pickRedisPort({ previous: 16390, taken: new Set(), isFree: free }), 16390)
+  })
+
+  it("skips the ports of other environments, started or only recorded", async () => {
+    const taken = new Set([16380, 16381])
+    assert.equal(await pickRedisPort({ previous: 16380, taken, isFree: free }), 16382)
+  })
+
+  it("skips the ports something else listens on", async () => {
+    const isFree = async (port) => port !== 16380
+    assert.equal(await pickRedisPort({ previous: 0, taken: new Set(), isFree }), 16381)
+  })
+
+  it("says so when the range is full", async () => {
+    await assert.rejects(
+      pickRedisPort({ previous: 0, taken: new Set(), isFree: async () => false }),
+      /No free port/u,
     )
   })
 })
