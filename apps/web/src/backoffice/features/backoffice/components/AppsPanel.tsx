@@ -284,156 +284,162 @@ function AppManifestFormDialog({
 
   return (
     <Dialog open onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogContent className="sm:max-w-2xl">
-        <DialogHeader>
+      <DialogContent className="flex max-h-[85vh] flex-col gap-4 overflow-hidden sm:max-w-2xl">
+        <DialogHeader className="shrink-0">
           <DialogTitle>{manifest ? "Edit app" : "Create app"}</DialogTitle>
           <DialogDescription>
             Grantable permissions are the maximum an installation of this app may receive.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onValid)} className="flex flex-col gap-3">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Helpful Assistant" autoFocus {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="slug"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Slug</FormLabel>
-                  <FormControl>
-                    <Input placeholder="helpful-assistant" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="What this app does"
-                      value={field.value ?? ""}
-                      onChange={field.onChange}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="logoUrl"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Logo URL</FormLabel>
-                  <div className="flex items-center gap-3">
-                    <AppLogo src={field.value} className="size-10" />
+          <form
+            onSubmit={form.handleSubmit(onValid)}
+            className="flex min-h-0 flex-1 flex-col gap-3"
+          >
+            <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pe-1">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="https://example.com/logo.png"
+                      <Input placeholder="Helpful Assistant" autoFocus {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="slug"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Slug</FormLabel>
+                    <FormControl>
+                      <Input placeholder="helpful-assistant" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="What this app does"
                         value={field.value ?? ""}
                         onChange={field.onChange}
                       />
                     </FormControl>
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="allowedRedirectUris"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Allowed install callback URLs</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder={
-                        "http://localhost:3100/auth/bayes/callback\nhttps://app.example.com/auth/bayes/callback"
-                      }
-                      rows={4}
-                      value={(field.value ?? []).join("\n")}
-                      onChange={(event) => {
-                        field.onChange(
-                          event.target.value
-                            .split("\n")
-                            .map((line) => line.trim())
-                            .filter((line) => line.length > 0),
-                        )
-                      }}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Exact match (scheme, host, path). One URL per line. Loopback URLs (localhost /
-                    127.0.0.1) work for local installs without being listed; register staging and
-                    production HTTPS callbacks here.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="grantablePermissions"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Grantable permissions</FormLabel>
-                  <div
-                    className="grid gap-4"
-                    style={{
-                      gridTemplateColumns: `repeat(${GRANTABLE_PERMISSION_GROUPS.length}, minmax(8rem, 1fr))`,
-                    }}
-                  >
-                    {GRANTABLE_PERMISSION_GROUPS.map((group) => (
-                      <fieldset key={group.resourceType} className="flex flex-col gap-2">
-                        <legend className="text-sm font-medium">{group.label}</legend>
-                        {group.permissions.map((permission) => {
-                          const checkboxId = `grantable-${permission}`
-                          return (
-                            <div key={permission} className="flex items-center gap-2 text-sm">
-                              <Checkbox
-                                id={checkboxId}
-                                checked={field.value.includes(permission)}
-                                onCheckedChange={(checked) => {
-                                  field.onChange(
-                                    checked === true
-                                      ? [...field.value, permission]
-                                      : field.value.filter(
-                                          (selectedPermission) => selectedPermission !== permission,
-                                        ),
-                                  )
-                                }}
-                              />
-                              <label htmlFor={checkboxId} className="cursor-pointer">
-                                {appGrantablePermissionActionLabel(permission)}
-                              </label>
-                            </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="logoUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Logo URL</FormLabel>
+                    <div className="flex items-center gap-3">
+                      <AppLogo src={field.value} className="size-10" />
+                      <FormControl>
+                        <Input
+                          placeholder="https://example.com/logo.png"
+                          value={field.value ?? ""}
+                          onChange={field.onChange}
+                        />
+                      </FormControl>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="allowedRedirectUris"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Allowed install callback URLs</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder={
+                          "http://localhost:3100/auth/bayes/callback\nhttps://app.example.com/auth/bayes/callback"
+                        }
+                        rows={4}
+                        value={(field.value ?? []).join("\n")}
+                        onChange={(event) => {
+                          field.onChange(
+                            event.target.value
+                              .split("\n")
+                              .map((line) => line.trim())
+                              .filter((line) => line.length > 0),
                           )
-                        })}
-                      </fieldset>
-                    ))}
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <DialogFooter className="mt-2">
+                        }}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Exact match (scheme, host, path). One URL per line. Loopback URLs (localhost /
+                      127.0.0.1) work for local installs without being listed; register staging and
+                      production HTTPS callbacks here.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="grantablePermissions"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Grantable permissions</FormLabel>
+                    <div
+                      className="grid gap-4"
+                      style={{
+                        gridTemplateColumns: `repeat(${GRANTABLE_PERMISSION_GROUPS.length}, minmax(8rem, 1fr))`,
+                      }}
+                    >
+                      {GRANTABLE_PERMISSION_GROUPS.map((group) => (
+                        <fieldset key={group.resourceType} className="flex flex-col gap-2">
+                          <legend className="text-sm font-medium">{group.label}</legend>
+                          {group.permissions.map((permission) => {
+                            const checkboxId = `grantable-${permission}`
+                            return (
+                              <div key={permission} className="flex items-center gap-2 text-sm">
+                                <Checkbox
+                                  id={checkboxId}
+                                  checked={field.value.includes(permission)}
+                                  onCheckedChange={(checked) => {
+                                    field.onChange(
+                                      checked === true
+                                        ? [...field.value, permission]
+                                        : field.value.filter(
+                                            (selectedPermission) =>
+                                              selectedPermission !== permission,
+                                          ),
+                                    )
+                                  }}
+                                />
+                                <label htmlFor={checkboxId} className="cursor-pointer">
+                                  {appGrantablePermissionActionLabel(permission)}
+                                </label>
+                              </div>
+                            )
+                          })}
+                        </fieldset>
+                      ))}
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <DialogFooter className="shrink-0 border-t pt-3">
               <Button
                 type="button"
                 variant="outline"
