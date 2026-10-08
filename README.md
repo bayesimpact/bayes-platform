@@ -115,6 +115,7 @@ the other services start with their profile, from `infra/database`:
 | `traces` | otel-collector, Phoenix, http://localhost:6060 | `docker compose --profile traces up -d --no-recreate otel-collector phoenix` |
 | `analytics` | Grafana, http://localhost:3300 | `docker compose --profile analytics up -d --no-recreate grafana` |
 | `router` | Traefik, which routes the worktree environments on http://*.connect.localhost:8800 | `docker compose --profile router up -d --no-recreate traefik` |
+| `bull-board` | Bull Board, http://localhost:3400 ([README](infra/bull-board/README.md)) | `docker compose --profile bull-board up -d --no-recreate bull-board` |
 
 The `router` profile serves every `*.connect.localhost` host on
 http://127.0.0.1:8800 (`ROUTER_PORT` in `infra/database/.env`): the worktree

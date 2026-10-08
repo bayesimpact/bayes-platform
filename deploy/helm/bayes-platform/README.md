@@ -169,6 +169,10 @@ The API and the workers send their traces and metrics over OTLP to `config.OTEL_
 
 > **The bundled Phoenix is not production ready.** It has no authentication: anyone who reaches it reads every prompt and answer. One replica, SQLite on a volume by default (`phoenix.database.urlKey` switches to a Postgres you created). Restrict its ingress (`ingress.phoenixAnnotations`) or keep it without `urls.phoenix` and reach it with `kubectl port-forward`. For production, run your own Phoenix with sign-in, keep `phoenix.enabled: false` and set `otelCollector.phoenix.endpoint`.
 
+## Queue dashboard
+
+The chart deploys no queue dashboard. To examine or retry BullMQ jobs, run Bull Board as a separate Deployment on the same Redis, without a public ingress: see [infra/bull-board/README.md](../../../infra/bull-board/README.md).
+
 ## Managed services
 
 See `values-managed.example.yaml`. The differences with the default:
