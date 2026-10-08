@@ -353,7 +353,7 @@ async function doctor() {
     const memory = Number(run("docker", ["info", "--format", "{{.MemTotal}}"]))
     check(
       memory >= 12 * 1024 ** 3,
-      `Docker memory ${(memory / 1024 ** 3).toFixed(1)} GB (about 6 GB per environment)`,
+      `Docker memory ${(memory / 1024 ** 3).toFixed(1)} GB (about 7 GB per environment)`,
       "raise it in Docker Desktop settings",
     )
   }
