@@ -14,6 +14,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Fixed
 
 ### Security
+- Apps: revoking an installation now cuts the app's access at once.
 
 ## [26.10.1] - 2026-10-07
 

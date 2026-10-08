@@ -32,7 +32,10 @@ import { isServiceUser } from "@/domains/users/service-user.helpers"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { UsersService } from "@/domains/users/users.service"
 import { buildAppInstallRoleKey } from "./app-install-role"
-import { APP_INSTALLATION_STATUS_REVOKED } from "./app-installation.entity"
+import {
+  APP_INSTALLATION_STATUS_ACTIVE,
+  APP_INSTALLATION_STATUS_REVOKED,
+} from "./app-installation.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import {
   type ActiveAppInstallationSummary,
@@ -310,9 +313,13 @@ export class AppsService {
 
   async resolveAppPrincipal(token: string): Promise<AppPrincipal> {
     const claims = this.appJwtService.verify(token)
-    // Revocation stops new tokens only. An issued JWT stays valid until exp.
+    // A revoked installation loses access at once, even with a JWT issued before.
     const installation = await this.appInstallationRepository.findById(claims.installation_id)
-    if (!installation || installation.projectId !== claims.project_id) {
+    if (
+      !installation ||
+      installation.status !== APP_INSTALLATION_STATUS_ACTIVE ||
+      installation.projectId !== claims.project_id
+    ) {
       throw new UnauthorizedException(AUTH_ERRORS.INVALID_ACCESS_TOKEN)
     }
 
