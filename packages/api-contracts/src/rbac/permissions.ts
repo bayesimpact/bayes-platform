@@ -270,6 +270,31 @@ export const AGENT_CONVERSATION_SESSION_PLAYGROUND_DELETE_PERMISSION =
   "agent.conversation.session.playground.delete" as const
 
 /**
+ * Live extraction sessions: the caller's own runs of an extraction agent, the documents they
+ * uploaded to feed them, and the status stream. Scoped to the project and never inherited from
+ * the organization.
+ */
+export const AGENT_EXTRACTION_SESSION_READ_PERMISSION = "agent.extraction.session.read" as const
+
+/** Upload a document and run an extraction agent on it. */
+export const AGENT_EXTRACTION_SESSION_CREATE_PERMISSION = "agent.extraction.session.create" as const
+
+export const AGENT_EXTRACTION_SESSION_DELETE_PERMISSION = "agent.extraction.session.delete" as const
+
+/**
+ * Playground extraction sessions. They belong to the Studio surface, so only project owners and
+ * admins hold these keys. Scoped to the project and never inherited from the organization.
+ */
+export const AGENT_EXTRACTION_SESSION_PLAYGROUND_READ_PERMISSION =
+  "agent.extraction.session.playground.read" as const
+
+export const AGENT_EXTRACTION_SESSION_PLAYGROUND_CREATE_PERMISSION =
+  "agent.extraction.session.playground.create" as const
+
+export const AGENT_EXTRACTION_SESSION_PLAYGROUND_DELETE_PERMISSION =
+  "agent.extraction.session.playground.delete" as const
+
+/**
  * Permissions an App may be granted. Policy lives in code, not in the database:
  * there is no Permission entity and no `app_grantable` column. Intersect this
  * list with `AppManifest.grantable_permissions` on save and on authorize.

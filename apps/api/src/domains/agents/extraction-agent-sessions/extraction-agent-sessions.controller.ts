@@ -1,21 +1,14 @@
-import {
-  type ExtractionAgentSessionDto,
-  type ExtractionAgentSessionStatusChangedEventDto,
-  type ExtractionAgentSessionSummaryDto,
+import type {
+  ExtractionAgentSessionDto,
+  ExtractionAgentSessionStatusChangedEventDto,
+  ExtractionAgentSessionSummaryDto,
   ExtractionAgentSessionsRoutes,
 } from "@caseai-connect/api-contracts"
 import {
-  Body,
-  Controller,
   ForbiddenException,
-  HttpCode,
-  HttpStatus,
+  Injectable,
   NotFoundException,
-  Post,
-  Req,
-  Sse,
   UnprocessableEntityException,
-  UseGuards,
 } from "@nestjs/common"
 import { filter, map, type Observable } from "rxjs"
 import type {
@@ -23,37 +16,38 @@ import type {
   EndpointRequestWithAgentSession,
 } from "@/common/context/request.interface"
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
-import { AddContext, RequireContext } from "@/common/context/require-context.decorator"
-import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
-import { CheckPolicy } from "@/common/policies/check-policy.decorator"
-import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
-import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { toDocumentDto } from "@/domains/documents/documents.helpers"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentsService } from "@/domains/documents/documents.service"
-import { UserGuard } from "@/domains/users/user.guard"
 import { getTraceUrl } from "@/external/llm/trace-url"
-import { BaseAgentSessionGuard } from "../base-agent-sessions/base-agent-session.guard"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { BaseAgentSessionsService } from "../base-agent-sessions/base-agent-sessions.service"
 import type { BaseAgentSessionType } from "../base-agent-sessions/base-agent-sessions.types"
-import { ExtractionAgentDocumentsGuard } from "./extraction-agent-documents.guard"
 import type { ExtractionAgentSession } from "./extraction-agent-session.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ExtractionAgentSessionStatusStreamService } from "./extraction-agent-session-status-stream.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ExtractionAgentSessionsService } from "./extraction-agent-sessions.service"
 
-// BaseAgentSessionGuard is applied per-method rather than at class level because
-// the SSE stream endpoint is a bodyless GET and does not carry payload.type.
-@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard)
-@RequireContext("organization", "project", "agent")
-@Controller()
-export class ExtractionAgentSessionsController {
+type Routes = (typeof ExtractionAgentSessionsRoutes)[BaseAgentSessionType]
+
+/**
+ * Base of the live and playground extraction session controllers. Each subclass serves one run
+ * type on its own route set and checks its own permissions, and the handlers here only ever see
+ * runs of that type, so a live permission never opens a playground run.
+ *
+ * This class declares no routes and no guards and is not registered in the module.
+ * `@Injectable()` only makes TypeScript emit the constructor metadata the subclasses inherit for
+ * dependency injection.
+ */
+@Injectable()
+export abstract class ExtractionAgentSessionsController {
+  protected abstract readonly type: BaseAgentSessionType
+
   constructor(
     private readonly extractionAgentSessionsService: ExtractionAgentSessionsService,
     private readonly baseAgentSessionsService: BaseAgentSessionsService,
@@ -62,16 +56,10 @@ export class ExtractionAgentSessionsController {
     private readonly documentsService: DocumentsService,
   ) {}
 
-  @Post(ExtractionAgentSessionsRoutes.executeOne.path)
-  @UseGuards(BaseAgentSessionGuard)
-  @CheckPolicy((policy) => policy.canCreate())
-  @TrackActivity({ action: "extractionAgentSession.execute" })
-  async executeOne(
-    @Req() request: EndpointRequestWithAgent,
-    @Body() { payload }: typeof ExtractionAgentSessionsRoutes.executeOne.request,
-  ): Promise<typeof ExtractionAgentSessionsRoutes.executeOne.response> {
-    const { documentId, type, agentSettingsRevision } = payload
-
+  protected async handleExecuteOne(
+    request: EndpointRequestWithAgent,
+    { documentId, agentSettingsRevision }: Routes["executeOne"]["request"]["payload"],
+  ): Promise<Routes["executeOne"]["response"]> {
     // `agent_settings.revision` is a Postgres `integer`; anything outside its 32-bit signed range
     // reaches TypeORM as-is and produces a driver error instead of a clean rejection here.
     if (
@@ -84,7 +72,7 @@ export class ExtractionAgentSessionsController {
     ) {
       throw new ForbiddenException("Settings version must be an integer")
     }
-    if (agentSettingsRevision !== undefined && type !== "playground") {
+    if (agentSettingsRevision !== undefined && this.type !== "playground") {
       throw new ForbiddenException(
         "Choosing a settings version is only available in the playground",
       )
@@ -94,7 +82,6 @@ export class ExtractionAgentSessionsController {
     const agentSettings = await this.resolveAgentSettings({
       connectScope,
       agentId: request.agent.id,
-      sessionType: type,
       revision: agentSettingsRevision,
     })
     const run = await this.extractionAgentSessionsService.executeExtraction({
@@ -103,7 +90,7 @@ export class ExtractionAgentSessionsController {
       agentSettings,
       userId: request.user.id,
       documentId,
-      type,
+      type: this.type,
     })
     return { data: { runId: run.id } }
   }
@@ -120,16 +107,14 @@ export class ExtractionAgentSessionsController {
   private async resolveAgentSettings({
     connectScope,
     agentId,
-    sessionType,
     revision,
   }: {
     connectScope: RequiredConnectScope
     agentId: string
-    sessionType: BaseAgentSessionType
     revision: number | undefined
   }): Promise<AgentSettings> {
     if (revision === undefined) {
-      return sessionType === "playground"
+      return this.type === "playground"
         ? this.agentSettingsService.getLast({ connectScope, agentId, includesDraft: true })
         : this.agentSettingsService.getLast({ connectScope, agentId })
     }
@@ -144,9 +129,8 @@ export class ExtractionAgentSessionsController {
     return agentSettings
   }
 
-  @Sse(ExtractionAgentSessionsRoutes.streamSessionStatus.path, { method: 0 /* GET */ })
-  streamSessionStatus(
-    @Req() request: EndpointRequestWithAgent,
+  protected handleStreamSessionStatus(
+    request: EndpointRequestWithAgent,
   ): Observable<ExtractionAgentSessionStatusChangedEventDto> {
     const connectScope = getRequiredConnectScope(request)
     return this.sessionStatusStreamService.events$.pipe(
@@ -160,40 +144,31 @@ export class ExtractionAgentSessionsController {
     )
   }
 
-  @Post(ExtractionAgentSessionsRoutes.getAll.path)
-  @UseGuards(BaseAgentSessionGuard)
-  @CheckPolicy((policy) => policy.canList())
-  async getAll(
-    @Req() request: EndpointRequestWithAgent,
-    @Body() { payload }: typeof ExtractionAgentSessionsRoutes.getAll.request,
-  ): Promise<typeof ExtractionAgentSessionsRoutes.getAll.response> {
+  protected async handleGetAll(
+    request: EndpointRequestWithAgent,
+  ): Promise<Routes["getAll"]["response"]> {
     const agentSessions = await this.extractionAgentSessionsService.listRuns({
       connectScope: getRequiredConnectScope(request),
       userId: request.user.id,
       agentId: request.agent.id,
-      type: payload.type,
+      type: this.type,
     })
-    return { data: agentSessions.map(toSummaryDto(payload.type)) }
+    return { data: agentSessions.map(toSummaryDto(this.type)) }
   }
 
-  @Post(ExtractionAgentSessionsRoutes.getOne.path)
-  @UseGuards(BaseAgentSessionGuard)
-  @AddContext("agentSession")
-  @CheckPolicy((policy) => policy.canList())
-  async getOne(
-    @Req() request: EndpointRequestWithAgentSession<ExtractionAgentSession>,
-    @Body() { payload }: typeof ExtractionAgentSessionsRoutes.getOne.request,
-  ): Promise<typeof ExtractionAgentSessionsRoutes.getOne.response> {
-    return { data: toDto(payload.type)(request.agentSession) }
+  protected async handleGetOne(
+    request: EndpointRequestWithAgentSession<ExtractionAgentSession>,
+  ): Promise<Routes["getOne"]["response"]> {
+    if (request.agentSession.type !== this.type) throw new NotFoundException()
+
+    return { data: toDto(this.type)(request.agentSession) }
   }
 
-  @Post(ExtractionAgentSessionsRoutes.deleteOne.path)
-  @UseGuards(BaseAgentSessionGuard)
-  @AddContext("agentSession")
-  @CheckPolicy((policy) => policy.canDelete())
-  async deleteOne(
-    @Req() request: EndpointRequestWithAgentSession<ExtractionAgentSession>,
-  ): Promise<typeof ExtractionAgentSessionsRoutes.deleteOne.response> {
+  protected async handleDeleteOne(
+    request: EndpointRequestWithAgentSession<ExtractionAgentSession>,
+  ): Promise<Routes["deleteOne"]["response"]> {
+    if (request.agentSession.type !== this.type) throw new NotFoundException()
+
     await this.baseAgentSessionsService.deleteAgentSession({
       agentType: "extraction",
       agentId: request.agent.id,
@@ -205,37 +180,27 @@ export class ExtractionAgentSessionsController {
   // The document an extraction run reads is uploaded here rather than through the project
   // documents routes: those are for admins and owners, while a live run is open to every member.
   // The browser presigns, PUTs the bytes to the returned URL, then confirms.
-  @Post(ExtractionAgentSessionsRoutes.presignDocument.path)
-  @UseGuards(ExtractionAgentDocumentsGuard)
-  @CheckPolicy((policy) => policy.canCreate())
-  @HttpCode(HttpStatus.CREATED)
-  async presignDocument(
-    @Req() request: EndpointRequestWithAgent,
-    @Body() { payload }: typeof ExtractionAgentSessionsRoutes.presignDocument.request,
-  ): Promise<typeof ExtractionAgentSessionsRoutes.presignDocument.response> {
-    if (!payload.file) {
+  protected async handlePresignDocument(
+    request: EndpointRequestWithAgent,
+    { file }: Routes["presignDocument"]["request"]["payload"],
+  ): Promise<Routes["presignDocument"]["response"]> {
+    if (!file) {
       throw new UnprocessableEntityException("A file is required.")
     }
 
     const presigned = await this.documentsService.presignUpload({
       connectScope: getRequiredConnectScope(request),
-      file: payload.file,
+      file,
       sourceType: "extraction",
       userId: request.user.id,
     })
     return { data: presigned }
   }
 
-  @Post(ExtractionAgentSessionsRoutes.confirmDocument.path)
-  @UseGuards(ExtractionAgentDocumentsGuard)
-  @CheckPolicy((policy) => policy.canCreate())
-  @TrackActivity({ action: "extractionAgentSession.uploadDocument" })
-  @HttpCode(HttpStatus.CREATED)
-  async confirmDocument(
-    @Req() request: EndpointRequestWithAgent,
-    @Body() { payload }: typeof ExtractionAgentSessionsRoutes.confirmDocument.request,
-  ): Promise<typeof ExtractionAgentSessionsRoutes.confirmDocument.response> {
-    const { documentId } = payload
+  protected async handleConfirmDocument(
+    request: EndpointRequestWithAgent,
+    { documentId }: Routes["confirmDocument"]["request"]["payload"],
+  ): Promise<Routes["confirmDocument"]["response"]> {
     if (!documentId) {
       throw new UnprocessableEntityException("A document ID is required.")
     }
@@ -250,12 +215,9 @@ export class ExtractionAgentSessionsController {
     return { data: toDocumentDto(document) }
   }
 
-  @Post(ExtractionAgentSessionsRoutes.listMyDocuments.path)
-  @UseGuards(ExtractionAgentDocumentsGuard)
-  @CheckPolicy((policy) => policy.canList())
-  async listMyDocuments(
-    @Req() request: EndpointRequestWithAgent,
-  ): Promise<typeof ExtractionAgentSessionsRoutes.listMyDocuments.response> {
+  protected async handleListMyDocuments(
+    request: EndpointRequestWithAgent,
+  ): Promise<Routes["listMyDocuments"]["response"]> {
     const documents = await this.documentsService.listExtractionDocumentsForUser({
       connectScope: getRequiredConnectScope(request),
       userId: request.user.id,

@@ -15,6 +15,7 @@ import {
 } from "@/domains/organizations/organization.factory"
 import { createSingleUser } from "@/domains/users/user.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { ExtractionAgentSessionsModule } from "../extraction-agent-sessions.module"
 
@@ -36,6 +37,7 @@ describe("ExtractionAgentSessions - listMyDocuments", () => {
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)
@@ -67,10 +69,9 @@ describe("ExtractionAgentSessions - listMyDocuments", () => {
 
   const subject = async () =>
     request({
-      route: ExtractionAgentSessionsRoutes.listMyDocuments,
+      route: ExtractionAgentSessionsRoutes.live.listMyDocuments,
       pathParams: removeNullish({ organizationId, projectId, agentId }),
       token: accessToken,
-      request: { payload: { type: "live" } },
     })
 
   const titlesOf = (response: { body: { data: { title: string }[] } }) =>

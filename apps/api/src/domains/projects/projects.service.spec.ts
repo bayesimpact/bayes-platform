@@ -180,6 +180,9 @@ describe("ProjectsService", () => {
           "agent.conversation.session.read",
           "agent.conversation.session.create",
           "agent.conversation.session.delete",
+          "agent.extraction.session.read",
+          "agent.extraction.session.create",
+          "agent.extraction.session.delete",
         ].sort(),
       )
     })
