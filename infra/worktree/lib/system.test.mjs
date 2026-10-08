@@ -7,7 +7,7 @@ import { after, describe, it } from "node:test"
 // STATE_DIR is read when the module loads.
 const home = mkdtempSync(join(tmpdir(), "wt-locks-"))
 process.env.BAYES_DEV_HOME = home
-const { withLockSync } = await import("./system.mjs")
+const { withLockIfFree, withLockSync } = await import("./system.mjs")
 const locks = join(home, "locks")
 after(() => rmSync(home, { recursive: true, force: true }))
 
@@ -55,5 +55,23 @@ describe("withLockSync", () => {
       leaveLock("taken-over", { pid: process.pid, startedAt: "another holder" })
     })
     assert.ok(existsSync(join(locks, "taken-over.lock")))
+  })
+})
+
+describe("withLockIfFree", () => {
+  it("runs the work when nobody holds the lock", async () => {
+    assert.deepEqual(await withLockIfFree("free", async () => "removed"), { result: "removed" })
+    assert.ok(!existsSync(join(locks, "free.lock")))
+  })
+
+  it("says who holds the lock instead of waiting", async () => {
+    leaveLock("busy", { pid: process.pid, startedAt: new Date().toISOString() })
+    let ran = false
+    const outcome = await withLockIfFree("busy", async () => {
+      ran = true
+    })
+    assert.deepEqual(outcome, { busy: process.pid })
+    assert.equal(ran, false)
+    assert.ok(existsSync(join(locks, "busy.lock")))
   })
 })

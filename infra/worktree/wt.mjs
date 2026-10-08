@@ -60,6 +60,7 @@ import {
   sharedContainer,
   throughRouter,
   withLock,
+  withLockIfFree,
   writeFileAtomic,
 } from "./lib/system.mjs"
 
@@ -472,11 +473,29 @@ async function cleanup() {
       say(`Stopped after ${MAX_REMOVALS_PER_RUN} removals: run it again for the next ones.`)
       break
     }
-    removals += 1
     try {
-      await withLock(facts.slug, () => removeWorktreeAndEnvironment(facts, decision, mainCheckout))
+      // Without waiting: a held lock means someone works on this environment right now.
+      const outcome = await withLockIfFree(facts.slug, async () => {
+        // Read again under the lock: a `wt up` may have run since the first reading.
+        const fresh = freshFacts(mainCheckout, facts)
+        const again = decide(fresh)
+        if (again.action !== decision.action) return again
+        await removeWorktreeAndEnvironment(fresh, again, mainCheckout)
+        return null
+      })
+      const kept =
+        "busy" in outcome ? { reason: `busy, locked by process ${outcome.busy}` } : outcome.result
+      if (kept) {
+        if (facts.hasEnvironment && facts.worktreeExists) {
+          updateStatus(facts.slug, { cleanup: { verdict: "keep", reason: kept.reason, checkedAt } })
+        }
+        say(`keep    ${facts.slug}: ${kept.reason}`)
+        continue
+      }
+      removals += 1
       logCleanup({ slug: facts.slug, action: decision.action, reason: decision.reason })
     } catch (error) {
+      removals += 1
       logCleanup({ slug: facts.slug, action: "failed", reason: error.message })
       console.error(`Could not remove ${facts.slug}: ${error.message}`)
     }
@@ -488,6 +507,8 @@ async function cleanup() {
 
 async function removeWorktreeAndEnvironment(facts, decision, mainCheckout) {
   if (facts.hasEnvironment) await removeEnvironment(environmentOfSlug(facts.slug, mainCheckout))
+  // A `wt up` that failed before creating containers still left a state folder and a port.
+  else rmSync(join(STATE_DIR, "envs", facts.slug), { recursive: true, force: true })
   if (decision.action !== "remove") return
   // Without --force: git refuses a worktree with modified or untracked files.
   run("git", ["-C", mainCheckout, "worktree", "remove", facts.path])
@@ -506,8 +527,25 @@ async function removeWorktreeAndEnvironment(facts, decision, mainCheckout) {
 
 /** Everything decide() needs about each worktree of the repository and each environment. */
 function cleanupFacts(mainCheckout) {
-  const now = Date.now()
-  const ghAvailable = isGhSignedIn()
+  const context = factsContext()
+  const worktrees = listWorktrees(mainCheckout)
+  const facts = worktrees.map((worktree) => worktreeFacts(worktree, context))
+  // Environments whose worktree git no longer knows (folder deleted, then pruned).
+  const known = new Set(worktrees.map((worktree) => worktree.path))
+  for (const [path, slug] of context.environmentPaths) {
+    if (!known.has(path)) facts.push(orphanFacts(slug, path, context))
+  }
+  return facts
+}
+
+/** The facts of one worktree read again, once its lock is held. */
+function freshFacts(mainCheckout, facts) {
+  const context = factsContext()
+  const worktree = listWorktrees(mainCheckout).find((candidate) => candidate.path === facts.path)
+  return worktree ? worktreeFacts(worktree, context) : orphanFacts(facts.slug, facts.path, context)
+}
+
+function factsContext() {
   const environmentPaths = new Map()
   for (const container of listContainers(["label=dev.worktree.slug"])) {
     environmentPaths.set(
@@ -515,61 +553,57 @@ function cleanupFacts(mainCheckout) {
       container.Labels["dev.worktree.slug"],
     )
   }
-  const facts = []
-  const worktrees = parseWorktreeList(
+  return { environmentPaths, ghAvailable: isGhSignedIn(), now: Date.now() }
+}
+
+function listWorktrees(mainCheckout) {
+  return parseWorktreeList(
     run("git", ["-C", mainCheckout, "worktree", "list", "--porcelain"]),
   ).filter((worktree) => worktree.path !== mainCheckout)
-  for (const worktree of worktrees) {
-    const slug = basename(worktree.path)
-    const base = {
-      slug,
-      path: worktree.path,
-      branch: worktree.branch,
-      head: worktree.head,
-      locked: worktree.locked,
-      isAgentWorktree: slug.startsWith("agent-"),
-      worktreeExists: !worktree.prunable && existsSync(worktree.path),
-      hasEnvironment: environmentPaths.has(worktree.path),
-      ghAvailable,
-      now,
-    }
-    environmentPaths.delete(worktree.path)
-    if (
-      !base.worktreeExists ||
-      base.isAgentWorktree ||
-      base.locked ||
-      !base.branch ||
-      !ghAvailable
-    ) {
-      facts.push(base)
-      continue
-    }
-    const pr = pullRequestOf(worktree.branch, worktree.path)
-    if (!pr || pr.state === "OPEN") {
-      facts.push({ ...base, pr })
-      continue
-    }
-    facts.push({
-      ...base,
-      pr,
-      dirty: isDirty(worktree.path),
-      headInPullRequest: isInPullRequest(worktree.path, worktree.head, pr.headRefOid),
-      inUse: isInUse(worktree.path),
-      lastActivityAt: lastGitActivity(worktree.path),
-    })
+}
+
+function worktreeFacts(worktree, { environmentPaths, ghAvailable, now }) {
+  const slug = basename(worktree.path)
+  const base = {
+    slug,
+    path: worktree.path,
+    branch: worktree.branch,
+    head: worktree.head,
+    locked: worktree.locked,
+    isAgentWorktree: slug.startsWith("agent-"),
+    worktreeExists: !worktree.prunable && existsSync(worktree.path),
+    hasEnvironment: environmentPaths.has(worktree.path),
+    ghAvailable,
+    now,
   }
-  // Environments whose worktree git no longer knows (folder deleted, then pruned).
-  for (const [path, slug] of environmentPaths) {
-    facts.push({
-      slug,
-      path,
-      worktreeExists: false,
-      hasEnvironment: true,
-      isAgentWorktree: false,
-      now,
-    })
+  if (!base.worktreeExists || base.isAgentWorktree || base.locked || !base.branch || !ghAvailable) {
+    return base
   }
-  return facts
+  const pr = pullRequestOf(worktree.branch, worktree.path)
+  if (!pr || pr.state === "OPEN") return { ...base, pr }
+  return {
+    ...base,
+    pr,
+    dirty: isDirty(worktree.path),
+    headInPullRequest: isInPullRequest(worktree.path, worktree.head, pr.headRefOid),
+    inUse: isInUse(worktree.path),
+    // A `wt up` counts as activity: it may have reopened the worktree without touching git.
+    lastActivityAt: Math.max(
+      lastGitActivity(worktree.path),
+      Date.parse(readStatus().environments?.[slug]?.upAt ?? "") || 0,
+    ),
+  }
+}
+
+function orphanFacts(slug, path, { environmentPaths, now }) {
+  return {
+    slug,
+    path,
+    worktreeExists: false,
+    hasEnvironment: environmentPaths.has(path),
+    isAgentWorktree: false,
+    now,
+  }
 }
 
 function isGhSignedIn() {

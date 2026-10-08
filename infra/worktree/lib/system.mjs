@@ -189,6 +189,25 @@ export async function withLock(name, work) {
   }
 }
 
+/**
+ * Runs `work` under the lock when nobody holds it, and returns `{ result }`. When a live process
+ * holds it, returns `{ busy: pid }` at once.
+ */
+export async function withLockIfFree(name, work) {
+  let release
+  try {
+    release = acquireLock(name, { waitMs: 0, pollMs: 0 })
+  } catch (error) {
+    if (error.code === "ELOCKED") return { busy: error.pid }
+    throw error
+  }
+  try {
+    return { result: await work() }
+  } finally {
+    release()
+  }
+}
+
 /** The same lock around short synchronous work, such as a read-modify-write of a shared file. */
 export function withLockSync(name, work) {
   const release = acquireLock(name, { waitMs: 30 * 1000, pollMs: 10 })
