@@ -68,6 +68,10 @@ import {
   PROJECT_ANALYTICS_READ_PERMISSION,
   PROJECT_CREATE_PERMISSION,
   PROJECT_DELETE_PERMISSION,
+  PROJECT_MCP_SERVER_CREATE_PERMISSION,
+  PROJECT_MCP_SERVER_DELETE_PERMISSION,
+  PROJECT_MCP_SERVER_READ_PERMISSION,
+  PROJECT_MCP_SERVER_UPDATE_PERMISSION,
   PROJECT_MEMBER_INVITE_PERMISSION,
   PROJECT_READ_PERMISSION,
   PROJECT_ROLE_PERMISSIONS,
@@ -648,6 +652,49 @@ describe("project agent session category permissions", () => {
   it("never inherits session categories from the organization", () => {
     const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
     for (const permission of sessionCategoryPermissions) {
+      expect(inheritable).not.toContain(permission)
+    }
+  })
+})
+
+describe("project MCP server permissions", () => {
+  const rolesHolding = (rolePermissions: Record<string, readonly string[]>, permission: string) =>
+    Object.entries(rolePermissions)
+      .filter(([_roleKey, permissions]) => permissions.includes(permission))
+      .map(([roleKey]) => roleKey)
+
+  it("grants project.mcp_server.read to every project role only", () => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, PROJECT_MCP_SERVER_READ_PERMISSION)).toEqual([
+      "project_owner",
+      "project_admin",
+      "project_member",
+    ])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, PROJECT_MCP_SERVER_READ_PERMISSION)).toEqual(
+      [],
+    )
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, PROJECT_MCP_SERVER_READ_PERMISSION)).toEqual([])
+  })
+
+  const mcpServerWritePermissions = [
+    PROJECT_MCP_SERVER_CREATE_PERMISSION,
+    PROJECT_MCP_SERVER_UPDATE_PERMISSION,
+    PROJECT_MCP_SERVER_DELETE_PERMISSION,
+  ]
+
+  it.each(
+    mcpServerWritePermissions,
+  )("grants %s to project owners and admins only", (permission) => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
+      "project_owner",
+      "project_admin",
+    ])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
+  })
+
+  it("never inherits MCP servers from the organization", () => {
+    const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
+    for (const permission of [PROJECT_MCP_SERVER_READ_PERMISSION, ...mcpServerWritePermissions]) {
       expect(inheritable).not.toContain(permission)
     }
   })

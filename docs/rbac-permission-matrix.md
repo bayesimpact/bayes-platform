@@ -60,6 +60,8 @@ The `agent.extraction.session.*` permissions follow the same rule: an organizati
 
 The `project.agent_session_category.*` permissions are not inherited either: an organization role does not change a project's conversation categories.
 
+The `project.mcp_server.*` permissions are not inherited either: an organization role does not open a project's MCP servers. Every project role sees them, while adding, connecting, toggling and deleting stay with owners and admins.
+
 | Permission | `project_owner` | `project_admin` | `project_member` |
 |---|---|---|---|
 | `project.read` | ✅ | ✅ | ✅ |
@@ -125,6 +127,10 @@ The `project.agent_session_category.*` permissions are not inherited either: an 
 | `agent.extraction.session.playground.delete` — delete one of your playground extraction runs | ✅ | ✅ | — |
 | `project.agent_session_category.create` — create a conversation category in the project, optionally assigned to every conversational agent | ✅ | ✅ | — |
 | `project.agent_session_category.delete` — delete a conversation category from the project | ✅ | ✅ | — |
+| `project.mcp_server.read` — see the project's MCP servers | ✅ | ✅ | ✅ |
+| `project.mcp_server.create` — add an MCP server to the project | ✅ | ✅ | — |
+| `project.mcp_server.update` — turn an MCP server on or off for an agent, or connect it through OAuth | ✅ | ✅ | — |
+| `project.mcp_server.delete` — delete an MCP server from the project | ✅ | ✅ | — |
 | `user.read` — see the project's members | ✅ | ✅ | — |
 | `backoffice.project.read` — see the project in the backoffice | ✅ | ✅ | — |
 | `backoffice.project.update` — mutate the project from the backoffice (e.g. feature flags) | ✅ | ✅ | — |

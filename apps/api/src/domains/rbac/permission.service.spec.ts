@@ -906,6 +906,7 @@ describe("PermissionService", () => {
           "agent.extraction.session.read",
           "agent.extraction.session.create",
           "agent.extraction.session.delete",
+          "project.mcp_server.read",
         ].sort(),
       )
     })
