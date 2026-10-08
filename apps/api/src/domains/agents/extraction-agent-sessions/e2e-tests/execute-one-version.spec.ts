@@ -15,6 +15,7 @@ import type { Organization } from "@/domains/organizations/organization.entity"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import type { Project } from "@/domains/projects/project.entity"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { AgentsModule } from "../../agents.module"
 
@@ -52,6 +53,7 @@ describe("ExtractionAgentSessions - executeOne settings version", () => {
           .useValue(mockLlmProvider),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)
@@ -122,10 +124,10 @@ describe("ExtractionAgentSessions - executeOne settings version", () => {
     agentSettingsRevision?: number
   } = {}) =>
     request({
-      route: ExtractionAgentSessionsRoutes.executeOne,
+      route: ExtractionAgentSessionsRoutes[type].executeOne,
       pathParams: removeNullish({ organizationId, projectId, agentId }),
       token: accessToken,
-      request: { payload: { documentId, type, agentSettingsRevision } },
+      request: { payload: { documentId, agentSettingsRevision } },
     })
 
   /** Settings row the run was pinned to, which is what the worker will run. */
@@ -205,12 +207,12 @@ describe("ExtractionAgentSessions - executeOne settings version", () => {
     await createContext()
 
     const response = await request({
-      route: ExtractionAgentSessionsRoutes.executeOne,
+      route: ExtractionAgentSessionsRoutes.playground.executeOne,
       pathParams: removeNullish({ organizationId, projectId, agentId }),
       token: accessToken,
       request: {
-        payload: { documentId, type: "playground", agentSettingsRevision: "2" },
-      } as unknown as typeof ExtractionAgentSessionsRoutes.executeOne.request,
+        payload: { documentId, agentSettingsRevision: "2" },
+      } as unknown as typeof ExtractionAgentSessionsRoutes.playground.executeOne.request,
     })
 
     expectResponse(response, 403)

@@ -56,6 +56,8 @@ The `csv_extraction_run.*` permissions are not inherited either: an organization
 
 The `agent.conversation.session.*` permissions are not inherited either: an organization role does not open a project's conversations. Every project role holds the three live session permissions, while the `agent.conversation.session.playground.*` ones stay with owners and admins. Each caller only ever sees their own sessions.
 
+The `agent.extraction.session.*` permissions follow the same rule: an organization role does not open a project's extraction runs. Every project role holds the three live session permissions, while the `agent.extraction.session.playground.*` ones stay with owners and admins. Each caller only ever sees their own runs and the documents they uploaded for them.
+
 | Permission | `project_owner` | `project_admin` | `project_member` |
 |---|---|---|---|
 | `project.read` | ✅ | ✅ | ✅ |
@@ -113,6 +115,12 @@ The `agent.conversation.session.*` permissions are not inherited either: an orga
 | `agent.conversation.session.playground.read` — see your playground conversations with the project's agents, and their sub-sessions | ✅ | ✅ | — |
 | `agent.conversation.session.playground.create` — start a playground conversation with an agent | ✅ | ✅ | — |
 | `agent.conversation.session.playground.delete` — delete one of your playground conversations | ✅ | ✅ | — |
+| `agent.extraction.session.read` — see your live extraction runs with the project's agents, and the documents you uploaded for them | ✅ | ✅ | ✅ |
+| `agent.extraction.session.create` — upload a document and run a live extraction with an agent | ✅ | ✅ | ✅ |
+| `agent.extraction.session.delete` — delete one of your live extraction runs | ✅ | ✅ | ✅ |
+| `agent.extraction.session.playground.read` — see your playground extraction runs with the project's agents, and the documents you uploaded for them | ✅ | ✅ | — |
+| `agent.extraction.session.playground.create` — upload a document and run a playground extraction with an agent | ✅ | ✅ | — |
+| `agent.extraction.session.playground.delete` — delete one of your playground extraction runs | ✅ | ✅ | — |
 | `user.read` — see the project's members | ✅ | ✅ | — |
 | `backoffice.project.read` — see the project in the backoffice | ✅ | ✅ | — |
 | `backoffice.project.update` — mutate the project from the backoffice (e.g. feature flags) | ✅ | ✅ | — |

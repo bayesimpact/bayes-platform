@@ -7,6 +7,12 @@ import {
   AGENT_CONVERSATION_SESSION_PLAYGROUND_READ_PERMISSION,
   AGENT_CONVERSATION_SESSION_READ_PERMISSION,
   AGENT_DRAFT_READ_PERMISSION,
+  AGENT_EXTRACTION_SESSION_CREATE_PERMISSION,
+  AGENT_EXTRACTION_SESSION_DELETE_PERMISSION,
+  AGENT_EXTRACTION_SESSION_PLAYGROUND_CREATE_PERMISSION,
+  AGENT_EXTRACTION_SESSION_PLAYGROUND_DELETE_PERMISSION,
+  AGENT_EXTRACTION_SESSION_PLAYGROUND_READ_PERMISSION,
+  AGENT_EXTRACTION_SESSION_READ_PERMISSION,
   AGENT_MEMBER_INVITE_PERMISSION,
   AGENT_ROLE_PERMISSIONS,
   AGENT_SETTINGS_ARCHIVE_PERMISSION,
@@ -561,6 +567,53 @@ describe("conversation agent session permissions", () => {
   })
 
   it("never inherits conversation sessions from the organization", () => {
+    const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
+    for (const permission of [...liveSessionPermissions, ...playgroundSessionPermissions]) {
+      expect(inheritable).not.toContain(permission)
+    }
+  })
+})
+
+describe("extraction agent session permissions", () => {
+  const rolesHolding = (rolePermissions: Record<string, readonly string[]>, permission: string) =>
+    Object.entries(rolePermissions)
+      .filter(([_roleKey, permissions]) => permissions.includes(permission))
+      .map(([roleKey]) => roleKey)
+
+  const liveSessionPermissions = [
+    AGENT_EXTRACTION_SESSION_READ_PERMISSION,
+    AGENT_EXTRACTION_SESSION_CREATE_PERMISSION,
+    AGENT_EXTRACTION_SESSION_DELETE_PERMISSION,
+  ]
+
+  it.each(liveSessionPermissions)("grants %s to every project role only", (permission) => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
+      "project_owner",
+      "project_admin",
+      "project_member",
+    ])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
+  })
+
+  const playgroundSessionPermissions = [
+    AGENT_EXTRACTION_SESSION_PLAYGROUND_READ_PERMISSION,
+    AGENT_EXTRACTION_SESSION_PLAYGROUND_CREATE_PERMISSION,
+    AGENT_EXTRACTION_SESSION_PLAYGROUND_DELETE_PERMISSION,
+  ]
+
+  it.each(
+    playgroundSessionPermissions,
+  )("grants %s to project owners and admins only", (permission) => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
+      "project_owner",
+      "project_admin",
+    ])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
+  })
+
+  it("never inherits extraction sessions from the organization", () => {
     const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
     for (const permission of [...liveSessionPermissions, ...playgroundSessionPermissions]) {
       expect(inheritable).not.toContain(permission)

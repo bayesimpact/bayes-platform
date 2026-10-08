@@ -13,53 +13,60 @@ import type {
   ExtractionAgentSessionSummaryDto,
 } from "./extraction-agent-sessions.dto"
 
-const prefix =
-  "organizations/:organizationId/projects/:projectId/agents/:agentId/extraction-agent-sessions"
+/** Live and playground runs each get their own route set, so each has its own permissions. */
+function defineExtractionAgentSessionsRoutes(type: BaseAgentSessionTypeDto) {
+  const prefix = `/organizations/:organizationId/projects/:projectId/agents/:agentId/extraction-agent-sessions/${type}`
 
-type Request<T = object> = RequestPayload<{ type: BaseAgentSessionTypeDto } & T>
+  return {
+    executeOne: defineRoute<
+      ResponseData<ExtractionAgentSessionResultDto>,
+      RequestPayload<
+        Pick<ExtractionAgentSessionSummaryDto, "documentId"> & { agentSettingsRevision?: number }
+      >
+    >({
+      method: "post",
+      path: `${prefix}/execute`,
+    }),
+    getAll: defineRoute<ResponseData<ExtractionAgentSessionSummaryDto[]>>({
+      method: "post",
+      path: prefix,
+    }),
+    getOne: defineRoute<ResponseData<ExtractionAgentSessionDto>>({
+      method: "post",
+      path: `${prefix}/:agentSessionId/getOne`,
+    }),
+    deleteOne: defineRoute<ResponseData<SuccessResponseDTO>>({
+      method: "post",
+      path: `${prefix}/:agentSessionId/delete`,
+    }),
+    // The document an extraction run reads is uploaded through the agent, one at a time, not
+    // through the project documents routes, which are for project owners and admins only.
+    presignDocument: defineRoute<
+      ResponseData<PresignFileResponseItemDto>,
+      RequestPayload<{ file: PresignFileRequestItemDto }>
+    >({
+      method: "post",
+      path: `${prefix}/documents/presign`,
+    }),
+    confirmDocument: defineRoute<ResponseData<DocumentDto>, RequestPayload<{ documentId: string }>>(
+      {
+        method: "post",
+        path: `${prefix}/documents/confirm`,
+      },
+    ),
+    listMyDocuments: defineRoute<ResponseData<DocumentDto[]>>({
+      method: "post",
+      path: `${prefix}/documents/mine`,
+    }),
+  }
+}
 
 export const ExtractionAgentSessionsRoutes = {
-  executeOne: defineRoute<
-    ResponseData<ExtractionAgentSessionResultDto>,
-    Request<
-      Pick<ExtractionAgentSessionSummaryDto, "documentId"> & { agentSettingsRevision?: number }
-    >
-  >({
-    method: "post",
-    path: `${prefix}/execute`,
-  }),
+  live: defineExtractionAgentSessionsRoutes("live"),
+  playground: defineExtractionAgentSessionsRoutes("playground"),
+  // One stream for both run types: it carries status changes only, never results.
   streamSessionStatus: defineRoute<ExtractionAgentSessionStatusChangedEventDto>({
     method: "get",
-    path: `${prefix}/status/stream`,
-  }),
-  getAll: defineRoute<ResponseData<ExtractionAgentSessionSummaryDto[]>, Request>({
-    method: "post",
-    path: prefix,
-  }),
-  getOne: defineRoute<ResponseData<ExtractionAgentSessionDto>, Request>({
-    method: "post",
-    path: `${prefix}/:agentSessionId/getOne`,
-  }),
-  deleteOne: defineRoute<ResponseData<SuccessResponseDTO>, Request>({
-    method: "post",
-    path: `/${prefix}/:agentSessionId/delete`,
-  }),
-  // The document an extraction run reads is uploaded through the agent, one at a time, not
-  // through the project documents routes: a live run is open to every project member, a
-  // playground run to admins and owners.
-  presignDocument: defineRoute<
-    ResponseData<PresignFileResponseItemDto>,
-    Request<{ file: PresignFileRequestItemDto }>
-  >({
-    method: "post",
-    path: `${prefix}/documents/presign`,
-  }),
-  confirmDocument: defineRoute<ResponseData<DocumentDto>, Request<{ documentId: string }>>({
-    method: "post",
-    path: `${prefix}/documents/confirm`,
-  }),
-  listMyDocuments: defineRoute<ResponseData<DocumentDto[]>, Request>({
-    method: "post",
-    path: `${prefix}/documents/mine`,
+    path: "/organizations/:organizationId/projects/:projectId/agents/:agentId/extraction-agent-sessions/status/stream",
   }),
 }

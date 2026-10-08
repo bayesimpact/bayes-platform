@@ -13,6 +13,7 @@ import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { documentFactory } from "@/domains/documents/document.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { AgentsModule } from "../../agents.module"
 import { EXTRACTION_AGENT_SESSION_BATCH_SERVICE } from "../extraction-agent-session-batch.interface"
@@ -52,6 +53,7 @@ describe("ExtractionAgentSessionsRoutes.createOne", () => {
           .useValue(mockBatchService),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     expectActivityCreated = bindExpectActivityCreated(repositories.activityRepository)
     app = setup.module.createNestApplication()
     await app.init()
@@ -99,17 +101,14 @@ describe("ExtractionAgentSessionsRoutes.createOne", () => {
     authSubject = user.authSubject!
   }
 
-  const subject = async (payload?: typeof ExtractionAgentSessionsRoutes.executeOne.request) =>
+  const subject = async (
+    payload?: typeof ExtractionAgentSessionsRoutes.playground.executeOne.request,
+  ) =>
     request({
-      route: ExtractionAgentSessionsRoutes.executeOne,
+      route: ExtractionAgentSessionsRoutes.playground.executeOne,
       pathParams: removeNullish({ organizationId, projectId, agentId }),
       token: accessToken,
-      request: payload ?? {
-        payload: {
-          documentId,
-          type: "playground",
-        },
-      },
+      request: payload ?? { payload: { documentId } },
     })
 
   it("should create an extraction session run", async () => {
