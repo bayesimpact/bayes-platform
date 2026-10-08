@@ -305,6 +305,19 @@ export const PROJECT_AGENT_SESSION_CATEGORY_DELETE_PERMISSION =
   "project.agent_session_category.delete" as const
 
 /**
+ * MCP servers of a project, and turning them on or off for its agents. Scoped to the project
+ * and never inherited from the organization.
+ */
+export const PROJECT_MCP_SERVER_READ_PERMISSION = "project.mcp_server.read" as const
+
+export const PROJECT_MCP_SERVER_CREATE_PERMISSION = "project.mcp_server.create" as const
+
+/** Turn a server on or off for an agent, or connect it through OAuth. */
+export const PROJECT_MCP_SERVER_UPDATE_PERMISSION = "project.mcp_server.update" as const
+
+export const PROJECT_MCP_SERVER_DELETE_PERMISSION = "project.mcp_server.delete" as const
+
+/**
  * Permissions an App may be granted. Policy lives in code, not in the database:
  * there is no Permission entity and no `app_grantable` column. Intersect this
  * list with `AppManifest.grantable_permissions` on save and on authorize.

@@ -11,6 +11,7 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { PDF_EXPORT_BUILT_IN_NAME, PDF_EXPORT_PRESET_SLUG } from "../built-in/built-in-mcp-servers"
 import { BuiltInMcpServersService } from "../built-in/built-in-mcp-servers.service"
@@ -35,6 +36,7 @@ describe("McpServers - deleteOne", () => {
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)
