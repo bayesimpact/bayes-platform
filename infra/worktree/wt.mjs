@@ -203,6 +203,8 @@ async function up() {
 
 async function down() {
   const target = options.slug ? environmentOfSlug(options.slug) : currentEnvironment()
+  // wt-<name> may belong to a worktree of the same name in another clone.
+  if (!options.slug) refuseForeignProject(target)
   await withLock(target.slug, async () => {
     const postgres = sharedContainer("pgvector")
     if (postgres && databaseNames(postgres).includes(target.names.database)) {
