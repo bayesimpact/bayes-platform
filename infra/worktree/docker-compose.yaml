@@ -53,6 +53,7 @@ x-node-volumes: &node-volumes
 x-labels: &labels
   dev.worktree.slug: ${WT_SLUG}
   dev.worktree.path: ${WT_PATH}
+  dev.worktree.repo: ${WT_REPO}
 
 x-health: &health
   interval: 30s
@@ -241,6 +242,7 @@ services:
     labels:
       - dev.worktree.slug=${WT_SLUG}
       - dev.worktree.path=${WT_PATH}
+      - dev.worktree.repo=${WT_REPO}
       - dev.worktree.service=dex
       - traefik.enable=true
       - traefik.http.routers.wt-${WT_SLUG}-dex.rule=Host(`${WT_SLUG}-dex.connect.localhost`)
@@ -280,6 +282,7 @@ services:
     labels:
       - dev.worktree.slug=${WT_SLUG}
       - dev.worktree.path=${WT_PATH}
+      - dev.worktree.repo=${WT_REPO}
       - dev.worktree.service=api
       - dev.worktree.link.bull-board=${WT_ORIGIN}/api/internal/bull-board
       - traefik.enable=true
@@ -331,6 +334,7 @@ services:
     labels:
       - dev.worktree.slug=${WT_SLUG}
       - dev.worktree.path=${WT_PATH}
+      - dev.worktree.repo=${WT_REPO}
       - dev.worktree.service=web
       - dev.worktree.link.app=${WT_ORIGIN}
       - traefik.enable=true
@@ -354,6 +358,7 @@ services:
     labels:
       - dev.worktree.slug=${WT_SLUG}
       - dev.worktree.path=${WT_PATH}
+      - dev.worktree.repo=${WT_REPO}
       - dev.worktree.service=embed
       - dev.worktree.link.embed=${WT_EMBED_ORIGIN}
       - traefik.enable=true
@@ -378,6 +383,7 @@ services:
     labels:
       - dev.worktree.slug=${WT_SLUG}
       - dev.worktree.path=${WT_PATH}
+      - dev.worktree.repo=${WT_REPO}
       - dev.worktree.service=help
       - dev.worktree.link.help=${WT_HELP_ORIGIN}
       - traefik.enable=true
@@ -400,6 +406,7 @@ services:
     labels:
       - dev.worktree.slug=${WT_SLUG}
       - dev.worktree.path=${WT_PATH}
+      - dev.worktree.repo=${WT_REPO}
       - dev.worktree.service=storybook-web
       - dev.worktree.link.storybook=http://${WT_SLUG}-storybook.connect.localhost:${WT_ROUTER_PORT}
       - traefik.enable=true
@@ -420,6 +427,7 @@ services:
     labels:
       - dev.worktree.slug=${WT_SLUG}
       - dev.worktree.path=${WT_PATH}
+      - dev.worktree.repo=${WT_REPO}
       - dev.worktree.service=storybook-ui
       - dev.worktree.link.ui-storybook=http://${WT_SLUG}-ui.connect.localhost:${WT_ROUTER_PORT}
       - traefik.enable=true
@@ -440,6 +448,7 @@ services:
     labels:
       - dev.worktree.slug=${WT_SLUG}
       - dev.worktree.path=${WT_PATH}
+      - dev.worktree.repo=${WT_REPO}
       - dev.worktree.service=storybook-embed
       - dev.worktree.link.embed-storybook=http://${WT_SLUG}-embed-storybook.connect.localhost:${WT_ROUTER_PORT}
       - traefik.enable=true
@@ -482,6 +491,7 @@ services:
     labels:
       - dev.worktree.slug=${WT_SLUG}
       - dev.worktree.path=${WT_PATH}
+      - dev.worktree.repo=${WT_REPO}
       - dev.worktree.service=grafana
       - dev.worktree.link.grafana=http://${WT_SLUG}-grafana.connect.localhost:${WT_ROUTER_PORT}
       - traefik.enable=true

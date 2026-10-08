@@ -5,6 +5,7 @@ import {
   existsSync,
   mkdirSync,
   readFileSync,
+  realpathSync,
   renameSync,
   rmSync,
   statSync,
@@ -54,6 +55,11 @@ export function repositoryPaths(cwd = process.cwd()) {
 }
 
 /** The shared stack's compose command, always on the main checkout's file and folder. */
+/** What the containers of a clone are labeled with: its main checkout, links resolved. */
+export function repositoryId(mainCheckout) {
+  return realpathSync(mainCheckout)
+}
+
 export function sharedCompose(mainCheckout, args) {
   const folder = join(mainCheckout, "infra/database")
   return [
@@ -229,7 +235,12 @@ function acquireLock(name, { waitMs, pollMs, onWait = () => {} }) {
   const deadline = Date.now() + waitMs
   let announced = false
   for (;;) {
-    const token = JSON.stringify({ pid: process.pid, startedAt: new Date().toISOString() })
+    const token = JSON.stringify({
+      pid: process.pid,
+      startedAt: new Date().toISOString(),
+      bootId: BOOT_ID,
+      uptime: uptime(),
+    })
     try {
       writeFileSync(path, token, { flag: "wx" })
       return () => {
@@ -260,18 +271,39 @@ function acquireLock(name, { waitMs, pollMs, onWait = () => {} }) {
   }
 }
 
-const BOOTED_AT = Date.now() - uptime() * 1000
+/**
+ * Identifies the current boot of the machine, or null where unknown. Unlike the wall clock, it
+ * does not move when the time is set.
+ */
+export const BOOT_ID = readBootId()
 // Machine-wide locks guard a few seconds of work at most.
-const MACHINE_LOCK_MAX_AGE_MS = 60_000
+const MACHINE_LOCK_MAX_AGE_SECONDS = 60
+
+function readBootId() {
+  try {
+    if (process.platform === "linux") {
+      return readFileSync("/proc/sys/kernel/random/boot_id", "utf8").trim()
+    }
+    if (process.platform === "darwin") {
+      return execFileSync("sysctl", ["-n", "kern.bootsessionuuid"], { encoding: "utf8" }).trim()
+    }
+  } catch {
+    // Unknown: locks then rely on the holder's pid only.
+  }
+  return null
+}
 
 function isAbandoned(name, path, holder) {
   // The holder writes its token right after creating the file. An empty file is a lock being
   // taken, unless it stays empty: then its process died in between.
   if (!holder) return ageInMs(path) > 10_000
-  const startedAt = Date.parse(holder.startedAt)
-  // Taken before the machine started: its pid may now belong to another process.
-  if (startedAt < BOOTED_AT) return true
-  if (name.startsWith("_") && Date.now() - startedAt > MACHINE_LOCK_MAX_AGE_MS) return true
+  if (BOOT_ID && holder.bootId) {
+    // Taken during an earlier boot: its pid may now belong to another process.
+    if (holder.bootId !== BOOT_ID) return true
+    // Uptime, unlike the wall clock, only moves forward during a boot.
+    const age = uptime() - holder.uptime
+    if (name.startsWith("_") && age > MACHINE_LOCK_MAX_AGE_SECONDS) return true
+  }
   return !isAlive(holder.pid)
 }
 

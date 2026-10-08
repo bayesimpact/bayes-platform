@@ -21,6 +21,7 @@ describe("composeVariables", () => {
   const variables = composeVariables({
     names,
     worktreePath: "/repo/.claude/worktrees/fix-sidebar",
+    repository: "/repo",
     uid: 1000,
     gid: 1000,
     routerPort: 8800,
