@@ -246,6 +246,9 @@ services:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8080/healthz').then((reply) => process.exit(reply.ok ? 0 : 1), () => process.exit(1))"]
       interval: 30s
       timeout: 5s
+      # Traefik skips a container until its first passing check: check early at start.
+      start_period: 30s
+      start_interval: 2s
     labels:
       traefik.enable: "true"
       traefik.http.routers.dev-dashboard.rule: Host(`dev.connect.localhost`)
