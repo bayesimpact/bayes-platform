@@ -71,6 +71,20 @@ machine on `http://<worktree>.connect.localhost:8800`.**
 * **Host processes under a small supervisor, Traefik on host ports.** Lighter, but each worktree
   needs its own block of ports, the processes do not survive a reboot by themselves, and the macOS
   path differs. Rejected for containers, which also give health checks and labels for routing.
+* **Kubernetes: a local cluster per machine, a namespace per worktree.** Deleting a namespace
+  removes an environment in one command, as `docker compose down -v` does, and routes are named
+  per namespace. The rest stays the same work: copying and dropping databases, Dex accounts, the
+  `.env` files of host commands, `node_modules` per platform, cleanup after the merge. In exchange,
+  every machine runs a cluster, which a 16 GB Mac can hardly afford next to an environment; host
+  commands reach each environment's Redis through port mappings or port-forward; and the shared
+  stack ends up split between Compose and the cluster. The production chart cannot serve as is: it
+  runs production images and cannot mount the source tree. Kubernetes fits another need, preview
+  environments per pull request on a remote cluster.
+* **Terraform for each environment.** Its Docker provider can describe the same containers, but it
+  adds a state per worktree that must outlive it, drifts when a container is stopped or changed by
+  hand, and has no logs, exec or file watching. Its PostgreSQL provider copies a database from a
+  template, which fails while the source database has open sessions. Terraform stays at the
+  machine layer, where it manages the dev VM and the dev bucket.
 * **Keycloak.** It accepts wildcard redirect URIs and derives its issuer from the request, but it
   is heavier and the team prefers Dex, which the repository already runs.
 * **One Phoenix per worktree.** About 600 MB each; a project per worktree in the shared Phoenix
