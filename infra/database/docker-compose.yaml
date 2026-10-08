@@ -9,10 +9,19 @@
 # the missing path as an empty root-owned folder, which the container reads as
 # a broken file and which breaks the next checkout on the CI runners.
 # Only the data folders under ./dontsave are created on first start.
+#
+# Every service restarts with Docker (`restart: unless-stopped`), so the stack
+# comes back after a reboot until you stop it with `docker compose stop`.
 name: "connect-db"
 services:
   pgvector:
     image: pgvector/pgvector:pg17
+    restart: unless-stopped
+    # Parallel queries use /dev/shm; Docker's default 64 MB is too small.
+    shm_size: 256mb
+    # log_statement=all is verbose: the local driver rotates the files.
+    logging:
+      driver: local
     ports:
       - "${DATABASE_PORT:-5432}:5432"
     environment:
@@ -26,12 +35,17 @@ services:
         bind:
           create_host_path: false
       - ./dontsave/pgdata:/var/lib/postgresql/data
+    # 500 connections: the main checkout, each worktree environment (an API
+    # and workers hold about 26) and parallel test runs share this server.
     command:
       - "postgres"
       - "-c"
       - "log_statement=all"
+      - "-c"
+      - "max_connections=500"
   redis:
     image: redis:7-alpine
+    restart: unless-stopped
     ports:
       - "${REDIS_PORT:-6379}:6379"
   # Grafana on the analytics schema: http://localhost:3300, no login.
@@ -39,12 +53,16 @@ services:
   # (deploy/helm/bayes-platform/dashboards), the same files the cluster gets.
   # Profile `analytics`: a plain `docker compose up` (and the CI, make db-tests)
   # leaves it off; `docker compose up -d grafana` names it, so starts it.
+  # ANALYTICS_DB_NAME is the database the datasource reads (GRAFANA_DATABASE in
+  # infra/database/.env, `connect` by default).
   grafana:
     image: grafana/grafana:13.2.2 # same major as the cluster (chart grafana 13.x)
     profiles: [analytics]
+    restart: unless-stopped
     ports:
       - "${GRAFANA_PORT:-3300}:3000"
     environment:
+      ANALYTICS_DB_NAME: ${GRAFANA_DATABASE:-connect}
       GF_AUTH_ANONYMOUS_ENABLED: "true"
       GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
       GF_AUTH_DISABLE_LOGIN_FORM: "true"
@@ -67,12 +85,14 @@ services:
     depends_on:
       - pgvector
   # LLM traces: the API sends OTLP to the collector (OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318),
-  # which maps them to OpenInference and forwards them to Phoenix at http://localhost:6006.
+  # which maps them to OpenInference and forwards them to Phoenix at http://localhost:6060
+  # (6006 belongs to the web app's Storybook and its MCP server in .mcp.json).
   # Profile `traces`: a plain `docker compose up` (and the CI, make db-tests)
   # leaves them off; start them with `docker compose --profile traces up -d`.
   otel-collector:
     image: otel/opentelemetry-collector-k8s:0.161.0 # same distribution as the gateway of the clusters
     profiles: [traces]
+    restart: unless-stopped
     command: ["--config=/etc/otelcol/collector.yaml"]
     ports:
       - "${OTEL_COLLECTOR_PORT:-4318}:4318"
@@ -91,8 +111,9 @@ services:
   phoenix:
     image: arizephoenix/phoenix:version-20.14.0 # same version as staging (chart phoenix-helm 12.0.x)
     profiles: [traces]
+    restart: unless-stopped
     ports:
-      - "${PHOENIX_PORT:-6006}:6006"
+      - "${PHOENIX_PORT:-6060}:6006"
     environment:
       PHOENIX_WORKING_DIR: /mnt/data
     volumes:
@@ -104,6 +125,7 @@ services:
   mailpit:
     image: axllent/mailpit:v1.31.4
     profiles: [mail]
+    restart: unless-stopped
     ports:
       - "${MAILPIT_SMTP_PORT:-1025}:1025"
       - "${MAILPIT_UI_PORT:-8025}:8025"
@@ -118,6 +140,7 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:26.2
     profiles: [keycloak]
+    restart: unless-stopped
     entrypoint: ["sh", "-c"]
     command:
       - |
@@ -147,6 +170,7 @@ services:
   dex:
     image: ghcr.io/dexidp/dex:v2.44.0
     profiles: [dex]
+    restart: unless-stopped
     entrypoint: ["sh", "-c"]
     command:
       - |

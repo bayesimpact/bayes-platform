@@ -64,6 +64,8 @@ activity per workspace, never a user or a conversation (see
 provisioned from `infra/database/grafana`, the dashboards are the JSON files of
 `deploy/helm/bayes-platform/dashboards`, the same the chart ships to the cluster;
 a change made in the UI is lost at the next start, export the JSON and commit it.
+It reads the `connect` database, or the one named by `GRAFANA_DATABASE` in
+`infra/database/.env`.
 
 ```bash
 cd infra/database
@@ -75,9 +77,10 @@ cd ../.. && make analytics-dev-role          # once, after the migrations: the r
 
 An OpenTelemetry Collector (`deploy/helm/bayes-platform/files/otel-collector.yaml`, the same traces
 pipeline as the gateway of the clusters) and Phoenix at
-[http://localhost:6006](http://localhost:6006). Start them, then set in `apps/api/.env`:
+[http://localhost:6060](http://localhost:6060) (port 6006 belongs to the web
+app's Storybook). Start them, then set in `apps/api/.env`:
 `OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318` and
-`TRACE_URL_TEMPLATE=http://localhost:6006/redirects/sessions/{traceId}`.
+`TRACE_URL_TEMPLATE=http://localhost:6060/redirects/sessions/{traceId}`.
 
 ```bash
 cd infra/database
@@ -109,12 +112,16 @@ the other services start with their profile, from `infra/database`:
 | `mail` | Mailpit, http://localhost:8025 | `docker compose --profile mail up -d --no-recreate mailpit` |
 | `keycloak` | Keycloak, http://localhost:8080 ([README](infra/keycloak/README.md)) | `docker compose --profile keycloak up -d --no-recreate keycloak` |
 | `dex` | Dex, http://localhost:5556 ([README](infra/dex/README.md)) | `docker compose --profile dex up -d --no-recreate dex` |
-| `traces` | otel-collector, Phoenix | `docker compose --profile traces up -d --no-recreate otel-collector phoenix` |
+| `traces` | otel-collector, Phoenix, http://localhost:6060 | `docker compose --profile traces up -d --no-recreate otel-collector phoenix` |
 | `analytics` | Grafana, http://localhost:3300 | `docker compose --profile analytics up -d --no-recreate grafana` |
 
 Keycloak and Dex used to have their own compose projects. If one of them still
 runs from there, stop it once before starting it with its profile:
 `docker compose -p connect-keycloak down` or `docker compose -p connect-dex down`.
+
+Every service of the stack restarts with Docker after a reboot, until you stop
+it with `docker compose stop <service>`. Postgres accepts 500 connections, for
+the main checkout, worktree environments and parallel test runs at once.
 
 #### Stop the Database
 
