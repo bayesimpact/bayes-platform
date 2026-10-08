@@ -46,7 +46,7 @@ Scoped to one project via `user_membership` (`resource_type = 'project'`).
 
 The evaluation permissions are never inherited from the organization: an organization role does not open a project's evaluation app, its datasets or its runs.
 
-`project.member.invite` and `project.member.update` are not inherited either: an organization role does not let anyone invite to a project or change a member's role.
+The `project.member.*` permissions are not inherited either: an organization role does not let anyone see a project's members, invite to a project, change a member's role or remove a member.
 
 The `resource_library.*` permissions are not inherited either: an organization role does not open a project's resource libraries.
 
@@ -71,8 +71,10 @@ The `project.mcp_server.*` permissions are not inherited either: an organization
 | `studio.ui.read` — open the project's studio app | ✅ | ✅ | — |
 | `evaluation.ui.read` — open the project's evaluation app | ✅ | ✅ | — |
 | `project.analytics.read` — see the project's conversation analytics | ✅ | ✅ | — |
+| `project.member.read` — see the project's members, their roles and the agents each one can reach | ✅ | ✅ | — |
 | `project.member.invite` — invite people to the project or its review campaigns, see and revoke pending invitations | ✅ | ✅ | — |
 | `project.member.update` — change another member's role between admin and member | ✅ | ✅ | — |
+| `project.member.delete` — remove a member from the project | ✅ | ✅ | — |
 | `agent.create` | ✅ | ✅ | — |
 | `agent.read` | ✅ | ✅ | — |
 | `agent.draft.read` — list the project's agents with their draft settings | ✅ | ✅ | — |

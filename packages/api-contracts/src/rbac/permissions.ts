@@ -86,6 +86,15 @@ export const PROJECT_MEMBER_INVITE_PERMISSION = "project.member.invite" as const
 export const PROJECT_MEMBER_UPDATE_PERMISSION = "project.member.update" as const
 
 /**
+ * See a project's members, their roles and the agents each one can reach. Not inherited
+ * from the organization.
+ */
+export const PROJECT_MEMBER_READ_PERMISSION = "project.member.read" as const
+
+/** Remove a member from a project. Not inherited from the organization. */
+export const PROJECT_MEMBER_DELETE_PERMISSION = "project.member.delete" as const
+
+/**
  * Invite people to an agent, see its pending invitations and revoke them. Held
  * on the agent only: a project or organization role does not grant it.
  */
