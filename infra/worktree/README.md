@@ -21,11 +21,32 @@ there and starts the environment (a few minutes the first time). In any worktree
 | `dex-sync` | Gives a Dex account to people added to its database since it started. |
 | `down` | Removes its containers, volumes and databases. A dump stays in `~/.bayes-worktrees/trash/` for 14 days. |
 | `status`, `doctor` | Every environment of the machine; checks of the machine. |
+| `cleanup [--apply]` | What can go now that pull requests are merged (see below), or remove it. |
 
 Sign in with your email and the local dev password. Commands you run on the host in the worktree
 (tests, typecheck, `migration:run`, scripts) use the environment's databases and Redis, never the
 main checkout's. Do not start `npm run dev` or a Storybook on the host of a worktree: the
 environment runs them, and your edits reload there.
+
+## Cleanup after merge
+
+`npm run wt -- cleanup` lists what it would remove:
+
+- the environment of a worktree whose folder is gone;
+- a worktree whose pull request is merged or closed, with its environment, its databases and its
+  local branch.
+
+It keeps a worktree with uncommitted changes, with commits that are not in the pull request, with
+a process working in it (a Claude session, a shell), with git activity in the last 2 hours, or
+whose pull request was merged less than 30 minutes ago. `--apply` removes at most 3 per run, and
+keeps a dump of each database for 14 days. Worktrees that never had an environment are only
+removed with `--include-unregistered`.
+
+The session start hook of `.claude/settings.json` runs it in the background, at most every 10
+minutes. For now it only records its verdicts, which the dashboard shows.
+`npm run wt -- cleanup --enable-auto` lets it remove what is safe, `--disable-auto` turns that
+off. Removals are logged in `~/.bayes-worktrees/cleanup.log`, and the next session in the main
+checkout mentions them.
 
 ## Setup, once per machine
 

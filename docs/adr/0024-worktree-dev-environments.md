@@ -61,9 +61,11 @@ machine on `http://<worktree>.connect.localhost:8800`.**
 * The dev bucket of Google Cloud Storage stays shared: deleting a document in an environment
   deletes the file for the main checkout too.
 * The main checkout keeps `npm run dev` on the host, with the shared Dex on port 5556.
-* Environments outlive the session that created them. Cleanup after the merge of the pull request
-  comes in a follow-up: a session start hook that removes environments whose pull request is
-  merged and whose worktree has nothing left to push.
+* Environments outlive the session that created them. `npm run wt -- cleanup`, run in the
+  background by a session start hook, removes an environment, its databases, its worktree and its
+  branch once the pull request is merged or closed, only when nothing would be lost: no
+  uncommitted change, no commit outside the pull request, nobody working in it. It starts in
+  report-only mode.
 
 ## 4. Alternatives considered
 

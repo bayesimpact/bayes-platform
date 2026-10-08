@@ -39,6 +39,8 @@ Run `npm run wt -- <command>` in the worktree and report the result:
   accepted in the worktree, for example).
 - `down`: removes the containers, volumes and databases (a dump is kept 14 days). Ask the user
   before running it.
+- `cleanup`: lists the environments and worktrees whose pull request is merged or closed and that
+  are safe to remove. `cleanup --apply` removes them: ask the user first.
 
 ## Working in a worktree that has an environment
 

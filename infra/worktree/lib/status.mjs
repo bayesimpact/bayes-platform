@@ -45,7 +45,7 @@ export function pullRequestOf(branch, cwd) {
           "--limit",
           "1",
           "--json",
-          "number,state,url,title,headRefOid",
+          "number,state,url,title,headRefOid,mergedAt,closedAt",
         ],
         { cwd },
       ),

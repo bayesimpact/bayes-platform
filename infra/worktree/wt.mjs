@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { spawnSync } from "node:child_process"
+import { spawn, spawnSync } from "node:child_process"
 // Dev environments of git worktrees. Each worktree gets its own containers (web app, API,
 // workers, Storybooks, Grafana, Dex...), databases copied from the local one and URLs on
 // http://<worktree>.connect.localhost:8800. See infra/worktree/README.md.
@@ -9,6 +9,7 @@ import { spawnSync } from "node:child_process"
 // Run `npm run wt -- help` for the commands. Node built-ins only.
 import { createHash } from "node:crypto"
 import {
+  appendFileSync,
   closeSync,
   copyFileSync,
   existsSync,
@@ -16,9 +17,12 @@ import {
   openSync,
   readdirSync,
   readFileSync,
+  readlinkSync,
   rmSync,
   statfsSync,
   statSync,
+  utimesSync,
+  writeFileSync,
 } from "node:fs"
 import { homedir, totalmem } from "node:os"
 import { basename, dirname, join, resolve } from "node:path"
@@ -31,6 +35,7 @@ import {
   STATE_DIR,
 } from "../dex/dex-config.mjs"
 import { readEnvValues, setEnvValues } from "../dex/env-file.mjs"
+import { decide, MAX_REMOVALS_PER_RUN, parseWorktreeList } from "./lib/cleanup.mjs"
 import {
   composeVariables,
   formatComposeEnv,
@@ -46,6 +51,7 @@ import {
   isPortFree,
   listContainers,
   psql,
+  readJson,
   repositoryPaths,
   run,
   runVisible,
@@ -80,6 +86,10 @@ const SHARED_SERVICES = [
   ["mailpit", "mail"],
 ]
 const TRASH_DAYS = 14
+const CONFIG_FILE = join(STATE_DIR, "config.json")
+const CLEANUP_LOG = join(STATE_DIR, "cleanup.log")
+const CLEANUP_STAMP = join(STATE_DIR, "cleanup.stamp")
+const CLEANUP_EVERY_MS = 10 * 60 * 1000
 
 const HELP = `Dev environments of git worktrees (infra/worktree/README.md).
 
@@ -94,6 +104,10 @@ In a worktree:
 
 Anywhere:
   status                     List the environments of this machine
+  cleanup [--apply]          Environments whose pull request is merged or closed: what would be
+                             removed (environment, databases, worktree, branch), or remove them
+    [--include-unregistered] Also worktrees without an environment
+    [--enable-auto | --disable-auto]  Let the session start hook remove them by itself
   setup [--recreate]         Once per machine: caches, shared stack and router
   doctor                     Check this machine
   down --slug <name>         Remove the environment of a worktree that no longer exists`
@@ -105,6 +119,11 @@ const { values: options, positionals } = parseArgs({
     slug: { type: "string" },
     recreate: { type: "boolean", default: false },
     "skip-host-install": { type: "boolean", default: false },
+    apply: { type: "boolean", default: false },
+    auto: { type: "boolean", default: false },
+    "include-unregistered": { type: "boolean", default: false },
+    "enable-auto": { type: "boolean", default: false },
+    "disable-auto": { type: "boolean", default: false },
     help: { type: "boolean", short: "h", default: false },
   },
 })
@@ -120,6 +139,8 @@ const commands = {
   "reset-db": () => resetDatabases(),
   "dex-sync": () => dexSync(),
   status: () => status(),
+  cleanup: () => cleanup(),
+  "session-start": () => sessionStart(),
   setup: () => setup(),
   doctor: () => doctor(),
   help: () => console.log(HELP),
@@ -194,33 +215,51 @@ async function up() {
 
 async function down() {
   const target = options.slug ? environmentOfSlug(options.slug) : currentEnvironment()
-  await withLock(target.slug, async () => {
-    const postgres = sharedContainer("pgvector")
-    if (postgres && databaseNames(postgres).includes(target.names.database)) {
-      const dump = dumpDatabase(postgres, target.names.database, target.slug)
-      console.log(`Kept a dump of ${target.names.database} for ${TRASH_DAYS} days: ${dump}`)
-    }
-    runVisible("docker", [
-      "compose",
-      "-p",
-      target.names.project,
-      "down",
-      "--volumes",
-      "--remove-orphans",
-    ])
-    dropDatabases(postgres, target.slug)
-    // Phoenix answers 404 for a project that never got a trace: nothing to report.
-    await throughRouter(
-      target.routerPort,
-      `phoenix.connect.localhost:${target.routerPort}`,
-      `/v1/projects/${target.names.phoenixProject}`,
-      "DELETE",
-    )
-    rmSync(join(STATE_DIR, "envs", target.slug), { recursive: true, force: true })
-    updateStatus(target.slug, null)
-    pruneTrash()
-    console.log(`Removed the environment ${target.slug}.`)
-  })
+  await withLock(target.slug, () => removeEnvironment(target))
+}
+
+/** Containers, volumes, databases (after a dump), Phoenix project and state of an environment. */
+async function removeEnvironment(target) {
+  const postgres = sharedContainer("pgvector")
+  if (postgres && databaseNames(postgres).includes(target.names.database)) {
+    const dump = dumpDatabase(postgres, target.names.database, target.slug)
+    console.log(`Kept a dump of ${target.names.database} for ${TRASH_DAYS} days: ${dump}`)
+  }
+  runVisible("docker", [
+    "compose",
+    "-p",
+    target.names.project,
+    "down",
+    "--volumes",
+    "--remove-orphans",
+  ])
+  // Whatever compose did not find, for example after the project was renamed.
+  const leftovers = listContainers([`label=dev.worktree.slug=${target.slug}`]).map(
+    (container) => container.ID,
+  )
+  if (leftovers.length > 0) run("docker", ["rm", "--force", ...leftovers])
+  const volumes = run("docker", [
+    "volume",
+    "ls",
+    "--quiet",
+    "--filter",
+    `label=com.docker.compose.project=${target.names.project}`,
+  ])
+    .split("\n")
+    .filter(Boolean)
+  if (volumes.length > 0) run("docker", ["volume", "rm", "--force", ...volumes])
+  dropDatabases(postgres, target.slug)
+  // Phoenix answers 404 for a project that never got a trace: nothing to report.
+  await throughRouter(
+    target.routerPort,
+    `phoenix.connect.localhost:${target.routerPort}`,
+    `/v1/projects/${target.names.phoenixProject}`,
+    "DELETE",
+  )
+  rmSync(join(STATE_DIR, "envs", target.slug), { recursive: true, force: true })
+  updateStatus(target.slug, null)
+  pruneTrash()
+  console.log(`Removed the environment ${target.slug}.`)
 }
 
 async function resetDatabases() {
@@ -386,6 +425,311 @@ async function doctor() {
   for (const { ok, label, advice } of checks) {
     console.log(`${ok ? "✓" : "✗"} ${label}${ok || !advice ? "" : `: ${advice}`}`)
   }
+}
+
+async function cleanup() {
+  const { mainCheckout } = repositoryPaths()
+  if (options["enable-auto"] || options["disable-auto"]) {
+    writeConfig({ ...readConfig(), autoCleanup: Boolean(options["enable-auto"]) })
+    console.log(
+      options["enable-auto"]
+        ? "The session start hook now removes the environments whose pull request is merged or closed."
+        : "The session start hook now only reports what it would remove.",
+    )
+    return
+  }
+  const apply = options.apply || (options.auto && readConfig().autoCleanup === true)
+  const say = options.auto ? () => {} : (line) => console.log(line)
+  const checkedAt = new Date().toISOString()
+  let removals = 0
+  for (const facts of cleanupFacts(mainCheckout)) {
+    const decision = decide(facts)
+    if (facts.hasEnvironment && facts.worktreeExists) {
+      updateStatus(facts.slug, {
+        cleanup: { verdict: decision.action, reason: decision.reason, checkedAt },
+      })
+    }
+    if (decision.action === "keep") {
+      if (decision.reason !== "gone") say(`keep    ${facts.slug}: ${decision.reason}`)
+      continue
+    }
+    if (decision.action === "remove" && !facts.hasEnvironment && !options["include-unregistered"]) {
+      say(
+        `report  ${facts.slug}: ${decision.reason}, no environment (--include-unregistered removes it)`,
+      )
+      continue
+    }
+    const what =
+      decision.action === "remove"
+        ? "environment, databases, worktree and branch"
+        : "environment and databases"
+    if (!apply) {
+      say(`would remove ${facts.slug} (${what}): ${decision.reason}`)
+      continue
+    }
+    if (removals >= MAX_REMOVALS_PER_RUN) {
+      say(`Stopped after ${MAX_REMOVALS_PER_RUN} removals: run it again for the next ones.`)
+      break
+    }
+    removals += 1
+    try {
+      await withLock(facts.slug, () => removeWorktreeAndEnvironment(facts, decision, mainCheckout))
+      logCleanup({ slug: facts.slug, action: decision.action, reason: decision.reason })
+    } catch (error) {
+      logCleanup({ slug: facts.slug, action: "failed", reason: error.message })
+      console.error(`Could not remove ${facts.slug}: ${error.message}`)
+    }
+  }
+  if (!apply && !options.auto) {
+    console.log("\nNothing was removed. --apply removes what is listed as would remove.")
+  }
+}
+
+async function removeWorktreeAndEnvironment(facts, decision, mainCheckout) {
+  if (facts.hasEnvironment) await removeEnvironment(environmentOfSlug(facts.slug, mainCheckout))
+  if (decision.action !== "remove") return
+  // Without --force: git refuses a worktree with modified or untracked files.
+  run("git", ["-C", mainCheckout, "worktree", "remove", facts.path])
+  const tip = run("git", [
+    "-C",
+    mainCheckout,
+    "rev-parse",
+    "--verify",
+    "--quiet",
+    `refs/heads/${facts.branch}`,
+  ])
+  if (tip === facts.head) run("git", ["-C", mainCheckout, "branch", "-D", facts.branch])
+  updateStatus(facts.slug, null)
+  console.log(`Removed the worktree ${facts.path} and the branch ${facts.branch}.`)
+}
+
+/** Everything decide() needs about each worktree of the repository and each environment. */
+function cleanupFacts(mainCheckout) {
+  const now = Date.now()
+  const ghAvailable = isGhSignedIn()
+  const environmentPaths = new Map()
+  for (const container of listContainers(["label=dev.worktree.slug"])) {
+    environmentPaths.set(
+      container.Labels["dev.worktree.path"],
+      container.Labels["dev.worktree.slug"],
+    )
+  }
+  const facts = []
+  const worktrees = parseWorktreeList(
+    run("git", ["-C", mainCheckout, "worktree", "list", "--porcelain"]),
+  ).filter((worktree) => worktree.path !== mainCheckout)
+  for (const worktree of worktrees) {
+    const slug = basename(worktree.path)
+    const base = {
+      slug,
+      path: worktree.path,
+      branch: worktree.branch,
+      head: worktree.head,
+      locked: worktree.locked,
+      isAgentWorktree: slug.startsWith("agent-"),
+      worktreeExists: !worktree.prunable && existsSync(worktree.path),
+      hasEnvironment: environmentPaths.has(worktree.path),
+      ghAvailable,
+      now,
+    }
+    environmentPaths.delete(worktree.path)
+    if (
+      !base.worktreeExists ||
+      base.isAgentWorktree ||
+      base.locked ||
+      !base.branch ||
+      !ghAvailable
+    ) {
+      facts.push(base)
+      continue
+    }
+    const pr = pullRequestOf(worktree.branch, worktree.path)
+    if (!pr || pr.state === "OPEN") {
+      facts.push({ ...base, pr })
+      continue
+    }
+    facts.push({
+      ...base,
+      pr,
+      dirty: isDirty(worktree.path),
+      headInPullRequest: isInPullRequest(worktree.path, worktree.head, pr.headRefOid),
+      inUse: isInUse(worktree.path),
+      lastActivityAt: lastGitActivity(worktree.path),
+    })
+  }
+  // Environments whose worktree git no longer knows (folder deleted, then pruned).
+  for (const [path, slug] of environmentPaths) {
+    facts.push({
+      slug,
+      path,
+      worktreeExists: false,
+      hasEnvironment: true,
+      isAgentWorktree: false,
+      now,
+    })
+  }
+  return facts
+}
+
+function isGhSignedIn() {
+  try {
+    run("gh", ["auth", "status"])
+    return true
+  } catch {
+    return false
+  }
+}
+
+function isDirty(path) {
+  return (
+    run("git", [
+      "-C",
+      path,
+      "--no-optional-locks",
+      "status",
+      "--porcelain",
+      "--untracked-files=all",
+    ]) !== ""
+  )
+}
+
+/** HEAD is the pull request's last commit, or an ancestor of it. */
+function isInPullRequest(path, head, pullRequestHead) {
+  if (head === pullRequestHead) return true
+  try {
+    run("git", ["-C", path, "cat-file", "-e", `${pullRequestHead}^{commit}`])
+    run("git", ["-C", path, "merge-base", "--is-ancestor", head, pullRequestHead])
+    return true
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Whether a process of this machine works in the worktree: a Claude session, a shell, an
+ * editor. The environment's own containers run there too, so processes of another mount
+ * namespace (containers) do not count.
+ */
+function isInUse(path) {
+  if (process.platform === "linux") {
+    const ownNamespace = readlinkSync("/proc/self/ns/mnt")
+    for (const pid of readdirSync("/proc").filter((name) => /^\d+$/u.test(name))) {
+      try {
+        if (readlinkSync(`/proc/${pid}/ns/mnt`) !== ownNamespace) continue
+        const cwd = readlinkSync(`/proc/${pid}/cwd`)
+        if (cwd === path || cwd.startsWith(`${path}/`)) return true
+      } catch {
+        // A process that ended, or of another user.
+      }
+    }
+    return false
+  }
+  try {
+    return run("lsof", ["-a", "-d", "cwd", "-u", String(process.getuid()), "-Fn"])
+      .split("\n")
+      .some((line) => line === `n${path}` || line.startsWith(`n${path}/`))
+  } catch {
+    return true
+  }
+}
+
+/** The last change of the worktree's index or HEAD (commits, checkouts, staging). */
+function lastGitActivity(path) {
+  const gitDir = run("git", ["-C", path, "rev-parse", "--absolute-git-dir"])
+  return Math.max(
+    ...["index", "HEAD", "logs/HEAD"].map((name) => {
+      try {
+        return statSync(join(gitDir, name)).mtimeMs
+      } catch {
+        return 0
+      }
+    }),
+  )
+}
+
+function readConfig() {
+  return readJson(CONFIG_FILE, {})
+}
+
+function writeConfig(config) {
+  writeFileAtomic(CONFIG_FILE, `${JSON.stringify(config, null, 2)}\n`, 0o600)
+}
+
+function logCleanup(entry) {
+  mkdirSync(STATE_DIR, { recursive: true, mode: 0o700 })
+  appendFileSync(CLEANUP_LOG, `${JSON.stringify({ at: new Date().toISOString(), ...entry })}\n`)
+}
+
+/**
+ * The SessionStart hook (.claude/settings.json): a reminder of the environment of this
+ * worktree, or of /worktree in the main checkout, then a cleanup in the background, at most
+ * every 10 minutes. Prints nothing on machines that never set the tooling up.
+ */
+function sessionStart() {
+  if (process.platform === "win32" || !existsSync(STATE_DIR)) return
+  let paths
+  try {
+    paths = repositoryPaths()
+  } catch {
+    return
+  }
+  const routerPort = Number(readMainStackEnv(paths.mainCheckout).ROUTER_PORT || 8800)
+  if (paths.isMain) {
+    const environments = Object.keys(readStatus().environments ?? {}).length
+    console.log(
+      `Worktree environments of this machine: ${environments}, at http://dev.connect.localhost:${routerPort}. To start work in a new worktree with its own environment (URLs, databases, Dex): /worktree <name>.`,
+    )
+    for (const line of recentCleanups()) console.log(line)
+  } else {
+    const slug = basename(paths.root)
+    const names = environmentNames(slug, routerPort)
+    if (existsSync(join(paths.root, "infra/worktree/.env"))) {
+      console.log(
+        `This worktree runs its own environment at ${names.origin} (npm run wt -- status). Commands run here (tests, migrations, scripts) use its databases ${names.database} and ${names.testDatabase}. Never start npm run dev, the workers or a Storybook here: the environment runs them. Logs: npm run wt -- logs <service>.`,
+      )
+    } else if (!slug.startsWith("agent-") && !slugProblem(slug)) {
+      console.log(`This worktree has no environment yet: npm run wt -- up starts one.`)
+    }
+  }
+  startCleanupInBackground(paths.mainCheckout)
+}
+
+function recentCleanups() {
+  if (!existsSync(CLEANUP_LOG)) return []
+  const since = Date.now() - 24 * 60 * 60 * 1000
+  return readFileSync(CLEANUP_LOG, "utf8")
+    .split("\n")
+    .filter(Boolean)
+    .map((line) => JSON.parse(line))
+    .filter((entry) => Date.parse(entry.at) > since)
+    .map((entry) =>
+      entry.action === "failed"
+        ? `Cleanup could not remove ${entry.slug}: ${entry.reason}`
+        : `Cleanup removed ${entry.slug} (${entry.reason}).`,
+    )
+}
+
+function startCleanupInBackground(mainCheckout) {
+  const script = join(mainCheckout, "infra/worktree/wt.mjs")
+  if (!existsSync(script)) return
+  if (
+    existsSync(CLEANUP_STAMP) &&
+    Date.now() - statSync(CLEANUP_STAMP).mtimeMs < CLEANUP_EVERY_MS
+  ) {
+    return
+  }
+  if (existsSync(CLEANUP_STAMP)) {
+    const time = new Date()
+    utimesSync(CLEANUP_STAMP, time, time)
+  } else {
+    writeFileSync(CLEANUP_STAMP, "")
+  }
+  const output = openSync(join(STATE_DIR, "cleanup-output.log"), "a")
+  spawn(process.execPath, [script, "cleanup", "--auto"], {
+    cwd: mainCheckout,
+    detached: true,
+    stdio: ["ignore", output, output],
+  }).unref()
 }
 
 // --- Environment ------------------------------------------------------------------------------
