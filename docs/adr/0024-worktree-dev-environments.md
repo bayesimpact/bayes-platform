@@ -54,8 +54,8 @@ machine on `http://<worktree>.connect.localhost:8800`.**
 
 ## 3. Consequences
 
-* An environment costs 5 to 6 GB of memory and about 2 GB of disk. The VM runs several; a 16 GB
-  Mac runs one or two. `npm run wt -- stop` pauses one.
+* An environment costs about 7 GB of memory and about 2 GB of disk. The VM runs several; a 16 GB
+  Mac runs one, a 32 GB Mac three. `npm run wt -- stop` pauses one.
 * The shared Postgres accepts 500 connections and its services restart with Docker.
   `make db-tests` no longer recreates it outside CI.
 * The dev bucket of Google Cloud Storage stays shared: deleting a document in an environment

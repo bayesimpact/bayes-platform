@@ -50,7 +50,7 @@ checkout mentions them.
 
 ## Setup, once per machine
 
-You need Docker (Docker Desktop on a Mac, with at least 6 GB of memory per environment you run at
+You need Docker (Docker Desktop on a Mac, with about 7 GB of memory per environment you run at
 the same time), Node 22 or later, `gh` signed in (for the pull request shown on the dashboard), and
 Chrome or Firefox: Safari does not resolve `*.localhost`. Windows is not supported yet.
 
@@ -116,7 +116,7 @@ Chrome or Firefox: Safari does not resolve `*.localhost`. Windows is not support
   `npm run wt -- setup --recreate`.
 - **A document deleted in an environment is gone in main too.** The environments share the dev
   bucket of Google Cloud Storage with the main checkout.
-- **The machine runs out of memory.** An environment uses 5 to 6 GB. `npm run wt -- stop` pauses
+- **The machine runs out of memory.** An environment uses about 7 GB. `npm run wt -- stop` pauses
   the ones you do not use.
 - **Never run `docker compose up` in a worktree's `infra/database`.** That copy of the shared
   stack would bind another data folder. Manage the shared stack from the main checkout, or through
