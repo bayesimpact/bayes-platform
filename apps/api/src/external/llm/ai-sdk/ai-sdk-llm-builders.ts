@@ -6,7 +6,6 @@ import type {
   LLMMetadata,
 } from "@/common/interfaces/llm-provider.interface"
 import { removeNullish } from "@/common/utils/remove-nullish"
-import type { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
 
 export abstract class AISDKLLMBuilders {
   protected buildFunctionIdForStreamChatResponse(aiSDKMessages: LLMChatMessage[]): string {
@@ -55,39 +54,10 @@ export abstract class AISDKLLMBuilders {
     })
   }
 
-  protected buildCustomProviderOptions({
-    config,
-    callOrigin,
-    metadata,
-    schema,
-    tags,
-  }: {
-    config: LLMConfig
-    callOrigin: CallOrigin
-    metadata: LLMMetadata
-    schema?: JSONSchema7
-    tags: string[]
-  }) {
-    return {
-      callOrigin,
-      agentId: metadata.agentId,
-      metadata: this.buildMetadata({ config, metadata, schema, tags }),
-    }
-  }
-
-  protected buildProviderOptions(args: {
-    config: LLMConfig
-    callOrigin: CallOrigin
-    metadata: LLMMetadata
-    schema?: JSONSchema7
-    tags: string[]
-  }) {
-    return {
-      custom: this.buildCustomProviderOptions(args),
-      ...this.buildNativeProviderOptions({ config: args.config }),
-    }
-  }
-
+  /**
+   * The provider options of a call, keyed by provider (e.g. `vertex` for its
+   * thinking level). None by default: a provider that has some overrides this.
+   */
   protected buildNativeProviderOptions(_args: {
     config: LLMConfig
   }): Record<string, Record<string, JSONValue>> {

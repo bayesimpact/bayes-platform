@@ -47,11 +47,15 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
     // instead of emitting them. Collected by the raw-capture middleware and
     // recovered after the stream (see recoverLeakedToolCalls).
     const leakedToolCalls: LeakedToolCall[] = []
-    const modelWithoutLeakedToolCalls = this.getLanguageModelWithRawCapture({ config, callOrigin })
+    const modelWithoutLeakedToolCalls = this.getLanguageModelWithRawCapture({
+      config,
+      callOrigin,
+      metadata,
+    })
     const temperature: number | undefined = this.applyTemperature(config.temperature)
 
     const agent = new ToolLoopAgent({
-      model: this.getLanguageModelWithRawCapture({ config, callOrigin, leakedToolCalls }),
+      model: this.getLanguageModelWithRawCapture({ config, callOrigin, metadata, leakedToolCalls }),
       ...(temperature !== undefined ? { temperature } : {}),
       tools: this.supportsStrictTools() ? this.withStrictTools(config.tools) : config.tools,
       stopWhen: this.buildStopConditions(config),
@@ -60,7 +64,6 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
       experimental_repairToolCall: this.buildToolCallRepair({
         model: modelWithoutLeakedToolCalls,
         config,
-        callOrigin,
         metadata,
         functionId,
         tags,
@@ -73,7 +76,7 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
           userMessage: this.buildUserMessageForTelemetry(aiSDKMessages),
         }),
       },
-      providerOptions: this.buildProviderOptions({ config, callOrigin, metadata, tags }),
+      providerOptions: this.buildNativeProviderOptions({ config }),
     })
 
     let systemPrompt = systemMessage || config.systemPrompt || ""
@@ -115,7 +118,6 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
     await this.recoverLeakedToolCalls({
       model: modelWithoutLeakedToolCalls,
       config,
-      callOrigin,
       metadata,
       functionId,
       leakedToolCalls,
@@ -138,7 +140,7 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
     const tags = this.getTags(config)
     const temperature: number | undefined = this.applyTemperature(config.temperature)
     const { text } = await generateText({
-      model: this.getLanguageModelWithRawCapture({ config, callOrigin }),
+      model: this.getLanguageModelWithRawCapture({ config, callOrigin, metadata }),
       system: config.systemPrompt,
       prompt,
       ...(temperature !== undefined ? { temperature } : {}),
@@ -147,7 +149,7 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
         functionId: "LLMProvider.generateText",
         metadata: this.buildMetadata({ config, metadata, tags }),
       },
-      providerOptions: this.buildProviderOptions({ config, callOrigin, metadata, tags }),
+      providerOptions: this.buildNativeProviderOptions({ config }),
     })
     return text
   }
@@ -171,7 +173,7 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
     const tags = this.getTags(config)
     const temperature: number | undefined = this.applyTemperature(config.temperature)
     const result = await generateText({
-      model: this.getLanguageModelWithRawCapture({ config, callOrigin }),
+      model: this.getLanguageModelWithRawCapture({ config, callOrigin, metadata }),
       messages: aiSDKMessages,
       system: config.systemPrompt,
       ...(temperature !== undefined ? { temperature } : {}),
@@ -188,13 +190,7 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
           tags,
         }),
       },
-      providerOptions: this.buildProviderOptions({
-        config,
-        callOrigin,
-        metadata,
-        schema,
-        tags,
-      }),
+      providerOptions: this.buildNativeProviderOptions({ config }),
     })
     return this.readStructuredOutput(result)
   }

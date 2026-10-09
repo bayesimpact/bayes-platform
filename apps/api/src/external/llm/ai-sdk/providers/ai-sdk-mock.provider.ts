@@ -7,6 +7,7 @@ import { z } from "zod"
 import type {
   LLMChatMessage,
   LLMConfig,
+  LLMMetadata,
   MockValue,
 } from "@/common/interfaces/llm-provider.interface"
 import { generateRandomFromJSONSchema } from "@/common/test/random-generator"
@@ -143,13 +144,22 @@ export class AISDKMockProvider extends AISDKLLMProviderBase<AgentProvider._Mock>
     return ["MOCK-LLM", config.model]
   }
 
-  getLanguageModel({ callOrigin }: { config: LLMConfig; callOrigin: CallOrigin }): LanguageModel {
+  getLanguageModel({
+    callOrigin,
+    metadata,
+  }: {
+    config: LLMConfig
+    callOrigin: CallOrigin
+    metadata: LLMMetadata
+  }): LanguageModel {
+    // The scripted answers are queued by agent.
+    const agentId = metadata.agentId
     return new MockLanguageModelV3({
       // Pass file/image URLs through instead of downloading them: attachments
       // are signed storage URLs that are unreachable from the test process.
       supportedUrls: { "*/*": [/.*/] },
       doGenerate: async (options) => {
-        const resolved = this.resolve({ mode: "generate", callOrigin, options })
+        const resolved = this.resolve({ mode: "generate", callOrigin, agentId, options })
         if (resolved.type === "error") throw resolved.error
         if (resolved.type === "malformedToolCall") {
           throw new Error("malformed tool call turns are only supported in stream mode")
@@ -182,7 +192,7 @@ export class AISDKMockProvider extends AISDKLLMProviderBase<AgentProvider._Mock>
         }
       },
       doStream: async (options) => {
-        const resolved = this.resolve({ mode: "stream", callOrigin, options })
+        const resolved = this.resolve({ mode: "stream", callOrigin, agentId, options })
         if (resolved.type === "error") throw resolved.error
         return {
           stream:
@@ -201,13 +211,14 @@ export class AISDKMockProvider extends AISDKLLMProviderBase<AgentProvider._Mock>
   private resolve({
     mode,
     callOrigin,
+    agentId,
     options,
   }: {
     mode: "generate" | "stream"
     callOrigin: CallOrigin
+    agentId: string
     options: LanguageModelV3CallOptions
   }): ResolvedMock {
-    const agentId = this.getAgentId(options)
     this.calls.push({
       agentId,
       callOrigin,
@@ -267,11 +278,6 @@ export class AISDKMockProvider extends AISDKLLMProviderBase<AgentProvider._Mock>
           : "Hello, I'm the text default mock value!",
       ],
     }
-  }
-
-  private getAgentId(options: LanguageModelV3CallOptions): string | undefined {
-    const agentId = options.providerOptions?.custom?.agentId
-    return typeof agentId === "string" ? agentId : undefined
   }
 
   private getNextToolCallId(): string {

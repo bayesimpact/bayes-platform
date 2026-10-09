@@ -223,6 +223,50 @@ describe("AISDKMedGemmaProvider through the AI SDK (vLLM simulated)", () => {
     )
   })
 
+  it("repairs tool arguments the model got wrong, through the custom model", async () => {
+    const execute = jest.fn().mockResolvedValue("Plans start at 10 euros.")
+    const fetchSpy = jest
+      .spyOn(globalThis, "fetch")
+      // The model calls the tool without its required query…
+      .mockResolvedValueOnce(
+        sseTurn({ type: "tool", name: "lookup_knowledge_base", arguments: {} }),
+      )
+      // …the repair regenerates the arguments through structured output…
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            choices: [{ message: { content: '{"query":"pricing"}' }, finish_reason: "stop" }],
+            usage: { prompt_tokens: 20, completion_tokens: 4 },
+          }),
+          { status: 200 },
+        ),
+      )
+      // …and the model answers with the tool result.
+      .mockResolvedValueOnce(sseTurn({ type: "answer", content: "Plans start at 10 euros." }))
+
+    let text = ""
+    for await (const chunk of new AISDKMedGemmaProvider().streamChatResponse({
+      messages: [{ role: "user", content: "What does it cost?" }],
+      config: {
+        ...config,
+        tools: {
+          lookup_knowledge_base: tool({
+            description: "Looks up the knowledge base.",
+            inputSchema: z.object({ query: z.string() }),
+            execute,
+          }),
+        },
+      } as LLMConfig,
+      metadata,
+    })) {
+      text += chunk
+    }
+
+    expect(execute).toHaveBeenCalledWith({ query: "pricing" }, expect.anything())
+    expect(text).toBe("Plans start at 10 euros.")
+    expect(fetchSpy).toHaveBeenCalledTimes(3)
+  })
+
   it("reports the model's own error message to the caller", async () => {
     jest
       .spyOn(globalThis, "fetch")

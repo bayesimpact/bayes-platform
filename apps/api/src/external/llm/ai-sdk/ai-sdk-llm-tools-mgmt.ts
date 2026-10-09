@@ -12,7 +12,6 @@ import {
 } from "ai"
 import type { LLMConfig, LLMMetadata } from "@/common/interfaces/llm-provider.interface"
 import { AISDKLLMBuilders } from "@/external/llm/ai-sdk/ai-sdk-llm-builders"
-import type { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
 
 // Hallucinated tool-call syntax that Gemini models (lite especially) leak
 // into the TEXT stream instead of emitting a real functionCall, e.g.
@@ -114,14 +113,12 @@ export abstract class AISDKLLMToolsMgmt extends AISDKLLMBuilders {
   protected buildToolCallRepair({
     model,
     config,
-    callOrigin,
     metadata,
     functionId,
     tags,
   }: {
     model: LanguageModelV3
     config: LLMConfig
-    callOrigin: CallOrigin
     metadata: LLMMetadata
     functionId: string
     tags: string[]
@@ -134,7 +131,6 @@ export abstract class AISDKLLMToolsMgmt extends AISDKLLMBuilders {
         const repaired = await this.regenerateToolInput({
           model,
           config,
-          callOrigin,
           metadata,
           functionId,
           tags,
@@ -162,7 +158,6 @@ export abstract class AISDKLLMToolsMgmt extends AISDKLLMBuilders {
   private async regenerateToolInput({
     model,
     config,
-    callOrigin,
     metadata,
     functionId,
     tags,
@@ -174,7 +169,6 @@ export abstract class AISDKLLMToolsMgmt extends AISDKLLMBuilders {
   }: {
     model: LanguageModelV3
     config: LLMConfig
-    callOrigin: CallOrigin
     metadata: LLMMetadata
     functionId: string
     tags: string[]
@@ -202,7 +196,7 @@ ${malformed}`,
         functionId,
         metadata: { ...this.buildMetadata({ config, metadata, tags }), [telemetryKey]: toolName },
       },
-      providerOptions: this.buildProviderOptions({ config, callOrigin, metadata, tags }),
+      providerOptions: this.buildNativeProviderOptions({ config }),
     })
     return regenerated.output
   }
@@ -229,7 +223,6 @@ ${malformed}`,
   protected async recoverLeakedToolCalls({
     model,
     config,
-    callOrigin,
     metadata,
     functionId,
     leakedToolCalls,
@@ -238,7 +231,6 @@ ${malformed}`,
   }: {
     model: LanguageModelV3
     config: LLMConfig
-    callOrigin: CallOrigin
     metadata: LLMMetadata
     functionId: string
     leakedToolCalls: LeakedToolCall[]
@@ -271,7 +263,6 @@ ${malformed}`,
         await this.recoverLeakedToolCall({
           model,
           config,
-          callOrigin,
           metadata,
           functionId,
           leakedCall,
@@ -289,7 +280,6 @@ ${malformed}`,
   private async recoverLeakedToolCall({
     model,
     config,
-    callOrigin,
     metadata,
     functionId,
     leakedCall,
@@ -298,7 +288,6 @@ ${malformed}`,
   }: {
     model: LanguageModelV3
     config: LLMConfig
-    callOrigin: CallOrigin
     metadata: LLMMetadata
     functionId: string
     leakedCall: LeakedToolCall
@@ -347,7 +336,7 @@ ${leakedCall.raw}`,
           recoveredLeakedToolCall: leakedCall.name,
         },
       },
-      providerOptions: this.buildProviderOptions({ config, callOrigin, metadata, tags }),
+      providerOptions: this.buildNativeProviderOptions({ config }),
     })
 
     await tool.execute(recoveredInput.output, {

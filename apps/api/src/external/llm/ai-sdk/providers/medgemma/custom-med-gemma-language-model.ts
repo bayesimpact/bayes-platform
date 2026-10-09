@@ -11,7 +11,6 @@ import {
   type LanguageModelV3StreamResult,
   type LanguageModelV3ToolResultOutput,
   type LanguageModelV3Usage,
-  type SharedV3ProviderMetadata,
   type SharedV3Warning,
 } from "@ai-sdk/provider"
 import { NotImplementedException } from "@nestjs/common"
@@ -20,7 +19,6 @@ import type { JSONSchema7 } from "ai"
 import { z } from "zod"
 import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"
 import { castToolInputParameters, objectToRecord } from "@/common/zod-helper"
-import { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
 
 export class CustomMedGemmaLanguageModel implements LanguageModelV3 {
   readonly specificationVersion = "v3"
@@ -42,20 +40,13 @@ export class CustomMedGemmaLanguageModel implements LanguageModelV3 {
   // falls back to the AI SDK downloading the bytes and inlining base64 below.
   readonly supportedUrls = { "image/*": [/^https:\/\/storage\.googleapis\.com\/.+/] }
 
+  /**
+   * A structured output, against the schema of `responseFormat`. The MedGemma
+   * provider routes here the structured output calls, and the repair and the
+   * recovery of a chat turn with tools.
+   */
   async doGenerate(options: LanguageModelV3CallOptions): Promise<LanguageModelV3GenerateResult> {
-    const callOrigin = options.providerOptions?.custom?.callOrigin
-    if (!callOrigin)
-      throw new NotImplementedException(
-        "DEV - callOrigin is not specified in the options.providerOptions.custom",
-      )
-    switch (callOrigin) {
-      case CallOrigin.generateStructuredOutput:
-        return await this.doGenerateForGenerateStructuredOutput(options)
-      default:
-        throw new NotImplementedException(
-          `DEV - doGenerate is not implemented for callOrigin = ${callOrigin}}`,
-        )
-    }
+    return await this.doGenerateForGenerateStructuredOutput(options)
   }
 
   async doGenerateForGenerateStructuredOutput(
@@ -235,20 +226,9 @@ export class CustomMedGemmaLanguageModel implements LanguageModelV3 {
     }
   }
 
+  /** A chat turn with tools, the only stream the MedGemma provider routes here. */
   async doStream(options: LanguageModelV3CallOptions): Promise<LanguageModelV3StreamResult> {
-    const callOrigin = options.providerOptions?.custom?.callOrigin
-    if (!callOrigin)
-      throw new NotImplementedException(
-        "DEV - callOrigin is not specified in the options.providerOptions.custom",
-      )
-    switch (callOrigin) {
-      case CallOrigin.streamChatResponse_withTools:
-        return await this.doStreamWithTools(options)
-      default:
-        throw new NotImplementedException(
-          `DEV - doStream is not implemented for callOrigin = ${callOrigin}}`,
-        )
-    }
+    return await this.doStreamWithTools(options)
   }
   private async formatMessages(prompt: LanguageModelV3Prompt) {
     const messagesFromPrompt = await this.extractPromptContentsAsInput(prompt)
@@ -407,27 +387,21 @@ export class CustomMedGemmaLanguageModel implements LanguageModelV3 {
                 throw new Error("Failed to parse response")
               }
 
-              const metadata: SharedV3ProviderMetadata = {
-                CustomMedgemma: providerOptionsToJson(options.providerOptions?.custom?.metadata),
-              }
               const id = crypto.randomUUID()
 
               if (response.data.type === "answer") {
                 controller.enqueue({
                   type: "text-start",
                   id,
-                  providerMetadata: metadata,
                 })
                 controller.enqueue({
                   type: "text-delta",
                   delta: response.data.content,
                   id,
-                  providerMetadata: metadata,
                 })
                 controller.enqueue({
                   type: "text-end",
                   id,
-                  providerMetadata: metadata,
                 })
                 finishReason = this.toFinishReason(rawFinishReason)
               } else if (response.data.type === "tool") {
@@ -437,14 +411,12 @@ export class CustomMedGemmaLanguageModel implements LanguageModelV3 {
                   toolCallId,
                   toolName: response.data.name,
                   input: JSON.stringify(response.data.arguments),
-                  providerMetadata: metadata,
                 })
                 finishReason = { unified: "tool-calls", raw: rawFinishReason }
               }
               controller.enqueue({
                 type: "finish",
                 finishReason,
-                providerMetadata: metadata,
                 usage: {
                   inputTokens: {
                     // biome-ignore lint/complexity/useLiteralKeys: custom
@@ -634,25 +606,4 @@ export class CustomMedGemmaLanguageModel implements LanguageModelV3 {
     })
     return obj
   }
-}
-
-// biome-ignore lint/suspicious/noExplicitAny: custom
-function providerOptionsToJson(options: any | undefined): Record<string, any> {
-  if (!options || typeof options !== "object") return {}
-
-  // biome-ignore lint/suspicious/noExplicitAny: custom
-  const json: Record<string, any> = {}
-
-  for (const [key, value] of Object.entries(options)) {
-    if (
-      value === null ||
-      typeof value === "string" ||
-      typeof value === "number" ||
-      typeof value === "boolean"
-    ) {
-      json[key] = value
-    }
-  }
-
-  return json
 }

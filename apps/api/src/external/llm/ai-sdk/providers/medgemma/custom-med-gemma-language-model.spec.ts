@@ -5,7 +5,6 @@ import {
 } from "@ai-sdk/provider"
 import { AgentModel, AgentThinkingLevel } from "@caseai-connect/api-contracts"
 import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"
-import { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
 import { CustomMedGemmaLanguageModel } from "./custom-med-gemma-language-model"
 
 describe("CustomMedGemmaLanguageModel", () => {
@@ -91,7 +90,6 @@ describe("CustomMedGemmaLanguageModel", () => {
     overrides: Partial<LanguageModelV3CallOptions> = {},
   ): LanguageModelV3CallOptions => ({
     prompt: [{ role: "user", content: [{ type: "text", text: "Give it a title." }] }],
-    providerOptions: { custom: { callOrigin: CallOrigin.generateStructuredOutput } },
     responseFormat: { type: "json", schema: { type: "object", properties: {} } },
     ...overrides,
   })
@@ -100,7 +98,6 @@ describe("CustomMedGemmaLanguageModel", () => {
     overrides: Partial<LanguageModelV3CallOptions> = {},
   ): LanguageModelV3CallOptions => ({
     prompt: [{ role: "user", content: [{ type: "text", text: "Hi" }] }],
-    providerOptions: { custom: { callOrigin: CallOrigin.streamChatResponse_withTools } },
     ...overrides,
   })
 
@@ -125,7 +122,6 @@ describe("CustomMedGemmaLanguageModel", () => {
           content: [{ type: "file", mediaType: "image/png", data: new URL(imageUrl) }],
         },
       ],
-      providerOptions: { custom: { callOrigin: CallOrigin.generateStructuredOutput } },
       responseFormat: { type: "json", schema: { type: "object", properties: {} } },
     })
 
@@ -144,7 +140,6 @@ describe("CustomMedGemmaLanguageModel", () => {
           content: [{ type: "file", mediaType: "image/png", data: new Uint8Array([1, 2, 3]) }],
         },
       ],
-      providerOptions: { custom: { callOrigin: CallOrigin.generateStructuredOutput } },
       responseFormat: { type: "json", schema: { type: "object", properties: {} } },
     })
 
@@ -173,7 +168,6 @@ describe("CustomMedGemmaLanguageModel", () => {
           ],
         },
       ],
-      providerOptions: { custom: { callOrigin: CallOrigin.streamChatResponse_withTools } },
     })
     await drain(stream)
 
@@ -199,20 +193,12 @@ describe("CustomMedGemmaLanguageModel", () => {
   })
 
   describe("doGenerate", () => {
-    it("requires the call origin", async () => {
-      await expect(
-        buildModel().doGenerate(structuredOutputOptions({ providerOptions: {} })),
-      ).rejects.toThrow("callOrigin is not specified")
-    })
+    it("serves a structured output without any provider option", async () => {
+      jest.spyOn(globalThis, "fetch").mockResolvedValue(chatCompletionsResponse())
 
-    it("only serves structured output", async () => {
-      await expect(
-        buildModel().doGenerate(
-          structuredOutputOptions({
-            providerOptions: { custom: { callOrigin: CallOrigin.generateText } },
-          }),
-        ),
-      ).rejects.toThrow("doGenerate is not implemented for callOrigin = generateText")
+      const result = await buildModel().doGenerate(structuredOutputOptions())
+
+      expect(result.content).toEqual([{ type: "text", text: "{}" }])
     })
 
     it("requires a schema", async () => {
@@ -415,20 +401,13 @@ describe("CustomMedGemmaLanguageModel", () => {
   })
 
   describe("doStream", () => {
-    it("requires the call origin", async () => {
-      await expect(buildModel().doStream(streamOptions({ providerOptions: {} }))).rejects.toThrow(
-        "callOrigin is not specified",
-      )
-    })
+    it("streams a chat turn without any provider option", async () => {
+      jest.spyOn(globalThis, "fetch").mockResolvedValue(sseTurn({ type: "answer", content: "ok" }))
 
-    it("only serves the chat turn with tools", async () => {
-      await expect(
-        buildModel().doStream(
-          streamOptions({
-            providerOptions: { custom: { callOrigin: CallOrigin.streamChatResponse } },
-          }),
-        ),
-      ).rejects.toThrow("doStream is not implemented for callOrigin = streamChatResponse")
+      const { stream } = await buildModel().doStream(streamOptions())
+      const streamParts = await collect(stream)
+
+      expect(streamParts.at(-1)?.type).toBe("finish")
     })
 
     it("streams the call with the answer-or-tool JSON format and flattens text messages", async () => {
@@ -523,26 +502,19 @@ describe("CustomMedGemmaLanguageModel", () => {
       })
     })
 
-    it("only forwards the primitive values of the call metadata", async () => {
+    it("streams its parts without provider metadata", async () => {
       jest.spyOn(globalThis, "fetch").mockResolvedValue(sseTurn({ type: "answer", content: "ok" }))
 
-      const { stream } = await buildModel().doStream(
-        streamOptions({
-          providerOptions: {
-            custom: {
-              callOrigin: CallOrigin.streamChatResponse_withTools,
-              metadata: { agentId: "agent-1", currentTurn: 2, tags: ["a"], spanLabel: null },
-            },
-          },
-        }),
-      )
+      const { stream } = await buildModel().doStream(streamOptions())
       const streamParts = await collect(stream)
 
-      expect(streamParts[0]).toMatchObject({
-        providerMetadata: {
-          CustomMedgemma: { agentId: "agent-1", currentTurn: 2, spanLabel: null },
-        },
-      })
+      expect(streamParts.map((part) => part.type)).toEqual([
+        "text-start",
+        "text-delta",
+        "text-end",
+        "finish",
+      ])
+      expect(streamParts.some((part) => "providerMetadata" in part)).toBe(false)
     })
 
     it("reports an error the model returns in the stream as an Error, without answer text", async () => {

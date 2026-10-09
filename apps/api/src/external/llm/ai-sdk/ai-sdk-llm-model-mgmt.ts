@@ -9,7 +9,11 @@ import { Logger, NotImplementedException } from "@nestjs/common"
 import { trace } from "@opentelemetry/api"
 import { wrapLanguageModel } from "ai"
 import type { ZodType, z } from "zod"
-import type { LLMChatMessage, LLMConfig } from "@/common/interfaces/llm-provider.interface"
+import type {
+  LLMChatMessage,
+  LLMConfig,
+  LLMMetadata,
+} from "@/common/interfaces/llm-provider.interface"
 import {
   type CallOrigin,
   extractTextFromContent,
@@ -99,7 +103,16 @@ export abstract class AISDKLLMModelMgmt<
       )
   }
 
-  abstract getLanguageModel({ config, callOrigin }: { config: LLMConfig; callOrigin: CallOrigin })
+  /**
+   * The model for one call. It is built per call, knowing the call: a model
+   * that needs to know which call it serves (the mock's scripted answers, by
+   * agent) reads it here rather than from the provider options.
+   */
+  abstract getLanguageModel(args: {
+    config: LLMConfig
+    callOrigin: CallOrigin
+    metadata: LLMMetadata
+  })
   abstract getTags(config: LLMConfig): string[]
   abstract getAgentProvider(): Provider
 
@@ -371,6 +384,7 @@ export abstract class AISDKLLMModelMgmt<
   protected getLanguageModelWithRawCapture(args: {
     config: LLMConfig
     callOrigin: CallOrigin
+    metadata: LLMMetadata
     /**
      * Request-scoped sink for tool calls the model verbalized in the text
      * channel. The sanitizer removes the tag before anything downstream sees

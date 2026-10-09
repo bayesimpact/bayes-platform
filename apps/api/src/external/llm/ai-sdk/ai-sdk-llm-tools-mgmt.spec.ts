@@ -18,7 +18,6 @@ import {
 import { MockLanguageModelV3 } from "ai/test"
 import { z } from "zod"
 import type { LLMConfig, LLMMetadata } from "@/common/interfaces/llm-provider.interface"
-import { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
 import {
   AISDKLLMToolsMgmt,
   type LeakedToolCall,
@@ -29,7 +28,6 @@ import { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.p
 type CallArgs = {
   model: LanguageModelV3
   config: LLMConfig
-  callOrigin: CallOrigin
   metadata: LLMMetadata
   functionId: string
   tags: string[]
@@ -171,7 +169,6 @@ function buildCallArgs(model: LanguageModelV3, config: LLMConfig = baseConfig): 
   return {
     model,
     config,
-    callOrigin: CallOrigin.streamChatResponse_withTools,
     metadata,
     functionId: "function-id",
     tags: [],

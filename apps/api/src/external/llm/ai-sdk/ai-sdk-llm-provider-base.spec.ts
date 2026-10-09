@@ -38,7 +38,18 @@ class TestProvider<
   getAgentProvider(): Provider {
     return this.agentProvider
   }
-  getLanguageModel(): LanguageModelV3 {
+  /** The call each model was built for. */
+  readonly languageModelCalls: Array<{ callOrigin: CallOrigin; metadata: LLMMetadata }> = []
+
+  getLanguageModel({
+    callOrigin,
+    metadata,
+  }: {
+    config: LLMConfig
+    callOrigin: CallOrigin
+    metadata: LLMMetadata
+  }): LanguageModelV3 {
+    this.languageModelCalls.push({ callOrigin, metadata })
     return this.model
   }
   getTags(_config: LLMConfig): string[] {
@@ -202,25 +213,28 @@ describe("AISDKLLMProviderBase", () => {
       expect(model.doStreamCalls[0]?.temperature).toBeUndefined()
     })
 
-    it("tags the call origin, with or without tools", async () => {
+    it("builds the model for the call origin and the agent, with or without tools", async () => {
       const withoutTools = buildStreamModel([...textParts("Hi"), finish("stop")])
-      await collect(new TestProvider(AgentProvider._Mock, withoutTools), [
-        { role: "user", content: "Hello" },
-      ])
-      const withTools = buildStreamModel([...textParts("Hi"), finish("stop")])
-      await collect(
-        new TestProvider(AgentProvider._Mock, withTools),
-        [{ role: "user", content: "Hello" }],
-        { ...mockConfig, tools: { lookup: tool({ inputSchema: z.object({}) }) } },
+      const providerWithoutTools = new TestProvider(AgentProvider._Mock, withoutTools)
+      await collect(providerWithoutTools, [{ role: "user", content: "Hello" }])
+      const providerWithTools = new TestProvider(
+        AgentProvider._Mock,
+        buildStreamModel([...textParts("Hi"), finish("stop")]),
       )
+      await collect(providerWithTools, [{ role: "user", content: "Hello" }], {
+        ...mockConfig,
+        tools: { lookup: tool({ inputSchema: z.object({}) }) },
+      })
 
-      expect(withoutTools.doStreamCalls[0]?.providerOptions?.custom).toMatchObject({
+      expect(providerWithoutTools.languageModelCalls[0]).toMatchObject({
         callOrigin: CallOrigin.streamChatResponse,
-        agentId: "agent-id",
+        metadata: { agentId: "agent-id" },
       })
-      expect(withTools.doStreamCalls[0]?.providerOptions?.custom).toMatchObject({
-        callOrigin: CallOrigin.streamChatResponse_withTools,
-      })
+      expect(providerWithTools.languageModelCalls[0]?.callOrigin).toBe(
+        CallOrigin.streamChatResponse_withTools,
+      )
+      // Nothing about the call travels in the provider options any more.
+      expect(withoutTools.doStreamCalls[0]?.providerOptions?.custom).toBeUndefined()
     })
 
     it("recovers a verbalized tool call once, even when the recovery answer leaks it again", async () => {
@@ -339,7 +353,7 @@ describe("AISDKLLMProviderBase", () => {
       const call = model.doGenerateCalls[0]
       expect(call?.prompt[0]).toEqual({ role: "system", content: "You are a helpful assistant." })
       expect(call?.temperature).toBe(0.2)
-      expect(call?.providerOptions?.custom).toMatchObject({ callOrigin: CallOrigin.generateText })
+      expect(provider.languageModelCalls[0]?.callOrigin).toBe(CallOrigin.generateText)
     })
 
     it("rejects a model the provider does not serve", async () => {
@@ -378,9 +392,7 @@ describe("AISDKLLMProviderBase", () => {
       expect(output).toEqual({ title: "Pricing" })
       const call = model.doGenerateCalls[0]
       expect(call?.responseFormat).toMatchObject({ type: "json", schema })
-      expect(call?.providerOptions?.custom).toMatchObject({
-        callOrigin: CallOrigin.generateStructuredOutput,
-      })
+      expect(provider.languageModelCalls[0]?.callOrigin).toBe(CallOrigin.generateStructuredOutput)
     })
 
     it("rejects a system message", async () => {

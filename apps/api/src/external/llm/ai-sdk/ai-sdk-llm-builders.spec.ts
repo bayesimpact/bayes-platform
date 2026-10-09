@@ -8,7 +8,7 @@ import type {
   LLMMetadata,
 } from "@/common/interfaces/llm-provider.interface"
 import { AISDKLLMBuilders } from "@/external/llm/ai-sdk/ai-sdk-llm-builders"
-import { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
+import type { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
 
 type BuildArgs = {
   config: LLMConfig
@@ -28,13 +28,7 @@ class TestBuilders extends AISDKLLMBuilders {
   metadataFor(args: Omit<BuildArgs, "callOrigin">) {
     return this.buildMetadata(args)
   }
-  customProviderOptionsFor(args: BuildArgs) {
-    return this.buildCustomProviderOptions(args)
-  }
-  providerOptionsFor(args: BuildArgs) {
-    return this.buildProviderOptions(args)
-  }
-  nativeProviderOptionsFor(config: LLMConfig) {
+  providerOptionsFor(config: LLMConfig) {
     return this.buildNativeProviderOptions({ config })
   }
 }
@@ -176,43 +170,13 @@ describe("AISDKLLMBuilders", () => {
     })
   })
 
-  describe("buildCustomProviderOptions", () => {
-    it("carries the call origin, the agent and the metadata", () => {
-      const args: BuildArgs = { config, callOrigin: CallOrigin.generateText, metadata, tags: [] }
-
-      expect(builders.customProviderOptionsFor(args)).toEqual({
-        callOrigin: CallOrigin.generateText,
-        agentId: "agent-id",
-        metadata: builders.metadataFor(args),
-      })
-    })
-  })
-
   describe("buildNativeProviderOptions", () => {
-    it("is empty by default", () => {
-      expect(builders.nativeProviderOptionsFor(config)).toEqual({})
-    })
-  })
-
-  describe("buildProviderOptions", () => {
-    const args: BuildArgs = {
-      config,
-      callOrigin: CallOrigin.streamChatResponse,
-      metadata,
-      tags: [],
-    }
-
-    it("only holds the custom options when the provider has no native ones", () => {
-      expect(builders.providerOptionsFor(args)).toEqual({
-        custom: builders.customProviderOptionsFor(args),
-      })
+    it("is empty when the provider has no options of its own", () => {
+      expect(builders.providerOptionsFor(config)).toEqual({})
     })
 
-    it("adds the native options a provider declares next to the custom ones", () => {
-      const buildersWithNativeOptions = new TestBuildersWithNativeOptions()
-
-      expect(buildersWithNativeOptions.providerOptionsFor(args)).toEqual({
-        custom: buildersWithNativeOptions.customProviderOptionsFor(args),
+    it("holds the options a provider declares", () => {
+      expect(new TestBuildersWithNativeOptions().providerOptionsFor(config)).toEqual({
         vertex: { thinkingBudget: 0 },
       })
     })

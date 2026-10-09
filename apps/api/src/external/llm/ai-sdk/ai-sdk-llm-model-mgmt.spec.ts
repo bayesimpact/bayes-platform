@@ -10,7 +10,11 @@ import { type Span, trace } from "@opentelemetry/api"
 import { simulateReadableStream } from "ai"
 import { MockLanguageModelV3 } from "ai/test"
 import { z } from "zod"
-import type { LLMChatMessage, LLMConfig } from "@/common/interfaces/llm-provider.interface"
+import type {
+  LLMChatMessage,
+  LLMConfig,
+  LLMMetadata,
+} from "@/common/interfaces/llm-provider.interface"
 import {
   CallOrigin,
   RAW_LLM_REQUEST_ATTR,
@@ -55,6 +59,17 @@ const mockConfig: LLMConfig = {
   thinkingLevel: AgentThinkingLevel.Auto,
 }
 
+const mockMetadata: LLMMetadata = {
+  traceId: "trace-id",
+  agentSessionId: "agent-session-id",
+  currentTurn: 1,
+  organizationId: "organization-id",
+  projectId: "project-id",
+  agentId: "agent-id",
+  revision: 1,
+  tags: [],
+}
+
 class TestModelMgmt extends AISDKLLMModelMgmt<AgentProvider._Mock> {
   protected readonly modelOptions: Record<AgentModel._Mock, ModelOptions> = {
     [AgentModel._Mock]: defineModelOptions(
@@ -79,6 +94,7 @@ class TestModelMgmt extends AISDKLLMModelMgmt<AgentProvider._Mock> {
     return this.getLanguageModelWithRawCapture({
       config: mockConfig,
       callOrigin: CallOrigin.streamChatResponse_withTools,
+      metadata: mockMetadata,
       leakedToolCalls,
     })
   }
