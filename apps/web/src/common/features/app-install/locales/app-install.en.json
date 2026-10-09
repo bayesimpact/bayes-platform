@@ -9,6 +9,7 @@
     "authorizing": "Authorizing…",
     "authorized": "✓ Authorized — return to your terminal",
     "cancel": "Cancel and return to the terminal",
+    "cancelToApp": "Cancel and return to {{name}}",
     "revocability": "Access can be revoked at any time from this project's page in the <settings>backoffice</settings>. {{name}} will only be able to reach the workspace you selected above.",
     "invalidRedirect": "This install link needs a redirect_uri (http or https) and a state.",
     "unregisteredRedirect": "This redirect_uri is not registered for this app. Ask an operator to add it to the app's allowed callback URLs, or use a loopback URL (localhost / 127.0.0.1) for local development.",
@@ -73,6 +74,14 @@
       "project_delete": {
         "name": "Delete workspace",
         "description": "Permanently delete this workspace."
+      },
+      "agent_read": {
+        "name": "Read agents",
+        "description": "See the agents of this workspace."
+      },
+      "agent_conversation_session_external_create": {
+        "name": "Chat with agents for people outside Bayes",
+        "description": "People who write to this app can chat with the agents of this workspace, without a Bayes account."
       }
     },
     "notifications": {

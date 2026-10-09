@@ -12,6 +12,7 @@ import { EmbedTokenGuard } from "./guards/embed-token.guard"
 import { PublicSessionTokenGuard } from "./guards/public-session-token.guard"
 import { PublicChatLegacyController } from "./legacy/public-chat-legacy.controller"
 import { PublicAgentSession } from "./public-agent-sessions/public-agent-session.entity"
+import { PublicAgentSessionRepository } from "./public-agent-sessions/public-agent-session.repository"
 import { PublicAgentSessionCategory } from "./public-agent-sessions/public-agent-session-category.entity"
 import { PublicAgentSessionsService } from "./public-agent-sessions/public-agent-sessions.service"
 import { PublicChatService } from "./public-chat.service"
@@ -36,9 +37,10 @@ import { PublicChatV1Controller } from "./v1/public-chat-v1.controller"
     PublicSessionTokenGuard,
     AgentEmbedConfigsService,
     PublicAgentSessionsService,
+    PublicAgentSessionRepository,
     PublicChatService,
   ],
   controllers: [PublicChatV1Controller, PublicChatLegacyController],
-  exports: [AgentEmbedConfigsService],
+  exports: [AgentEmbedConfigsService, PublicAgentSessionRepository, PublicChatService],
 })
 export class PublicChatModule {}

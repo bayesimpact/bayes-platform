@@ -15,6 +15,7 @@
     "project.member.delete": "Retirer un membre d'un projet",
     "agent.create": "Créer des agents dans un projet",
     "agent.read": "Voir un agent",
+    "agent.conversation.session.external.create": "Ouvrir des conversations avec un agent pour des personnes extérieures à la plateforme",
     "agent.update": "Modifier un agent",
     "agent.delete": "Supprimer un agent",
     "agent.analytics.read": "Voir l'analytique des conversations d'un agent",

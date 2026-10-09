@@ -45,6 +45,7 @@ describe("PublicChatService", () => {
       { getLast: jest.fn().mockResolvedValue({ locale: "fr" }) } as never,
       { getSessionWithMessages: jest.fn().mockResolvedValue({ session, messages }) } as never,
       {} as never,
+      {} as never,
       { readLiveHtml } as never,
       {} as never,
     )

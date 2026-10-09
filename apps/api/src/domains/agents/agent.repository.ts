@@ -1,6 +1,6 @@
 import type { AgentType } from "@caseai-connect/api-contracts"
 import { Injectable } from "@nestjs/common"
-import type { Repository } from "typeorm"
+import { In, type Repository } from "typeorm"
 import { ALL_ENTITIES } from "@/common/all-entities"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
@@ -21,6 +21,30 @@ export class AgentRepository {
       where: { projectId },
       select: { id: true, name: true, type: true },
       order: { createdAt: "ASC" },
+    })
+  }
+
+  /** Conversation agents of the project among `agentIds`, in creation order. */
+  async findConversationSummariesByIds(
+    projectId: string,
+    agentIds: readonly string[],
+  ): Promise<AgentSummary[]> {
+    if (agentIds.length === 0) return []
+    return this.repo().find({
+      where: { projectId, id: In([...agentIds]), type: "conversation" },
+      select: { id: true, name: true, type: true },
+      order: { createdAt: "ASC" },
+    })
+  }
+
+  /** The conversation agent with this id in the project, or null. */
+  async findConversationSummaryInProject(
+    projectId: string,
+    agentId: string,
+  ): Promise<AgentSummary | null> {
+    return this.repo().findOne({
+      where: { projectId, id: agentId, type: "conversation" },
+      select: { id: true, name: true, type: true },
     })
   }
 

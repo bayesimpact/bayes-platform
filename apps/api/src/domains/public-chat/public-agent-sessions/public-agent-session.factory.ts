@@ -20,15 +20,20 @@ export const publicAgentSessionFactory = PublicAgentSessionFactory.define(
   ({ params, transientParams }) => {
     const sessionToken = transientParams.sessionToken ?? randomUUID()
     const sessionTokenHash = crypto.createHash("sha256").update(sessionToken).digest("hex")
+    // A session belongs to the embed or to an App installation, never both.
+    const appInstallationId = params.appInstallationId ?? null
 
     return {
       id: params.id ?? randomUUID(),
-      embedConfigId: transientParams.embedConfig?.id ?? params.embedConfigId ?? randomUUID(),
+      embedConfigId: appInstallationId
+        ? null
+        : (transientParams.embedConfig?.id ?? params.embedConfigId ?? randomUUID()),
+      appInstallationId,
       agentId: transientParams.embedConfig?.agentId ?? params.agentId ?? randomUUID(),
       organizationId:
         transientParams.embedConfig?.organizationId ?? params.organizationId ?? randomUUID(),
       projectId: transientParams.embedConfig?.projectId ?? params.projectId ?? randomUUID(),
-      sessionTokenHash: params.sessionTokenHash ?? sessionTokenHash,
+      sessionTokenHash: appInstallationId ? null : (params.sessionTokenHash ?? sessionTokenHash),
       externalVisitorId: params.externalVisitorId ?? null,
       lastActivityAt: params.lastActivityAt ?? now,
       title: params.title ?? null,

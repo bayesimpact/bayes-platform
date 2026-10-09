@@ -8,6 +8,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+- Apps: an installed app can let people outside the platform talk to the workspace's agents.
 
 ### Changed
 

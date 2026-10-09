@@ -9,6 +9,7 @@
     "authorizing": "Autorisation…",
     "authorized": "✓ Autorisé — retournez dans le terminal",
     "cancel": "Annuler et revenir au terminal",
+    "cancelToApp": "Annuler et revenir à {{name}}",
     "revocability": "L'accès peut être révoqué à tout moment depuis la page de ce projet dans le <settings>backoffice</settings>. {{name}} ne pourra atteindre que l'espace sélectionné ci-dessus.",
     "invalidRedirect": "Ce lien d'installation nécessite une redirect_uri (http ou https) et un state.",
     "unregisteredRedirect": "Cette redirect_uri n'est pas enregistrée pour cette app. Demandez à un opérateur de l'ajouter aux URLs de callback autorisées, ou utilisez une URL loopback (localhost / 127.0.0.1) pour le développement local.",
@@ -73,6 +74,14 @@
       "project_delete": {
         "name": "Supprimer l'espace de travail",
         "description": "Supprimer définitivement cet espace de travail."
+      },
+      "agent_read": {
+        "name": "Voir les agents",
+        "description": "Voir les agents de cet espace de travail."
+      },
+      "agent_conversation_session_external_create": {
+        "name": "Discuter avec les agents pour des personnes extérieures",
+        "description": "Les personnes qui écrivent à cette app peuvent discuter avec les agents de cet espace de travail, sans compte Bayes."
       }
     },
     "notifications": {
