@@ -1,3 +1,4 @@
+import { z } from "zod"
 import type { TimeType } from "../../generic"
 
 export type BaseAgentSessionTypeDto = "playground" | "live"
@@ -54,3 +55,36 @@ export type ConversationSubSessionDto = {
   outputJsonSchema?: Record<string, unknown>
   session: ConversationAgentSessionDto
 }
+
+/** One message of a conversation opened for safety review. Read-only: no feedback, no MCP App HTML. */
+export type ConversationReviewMessageDto = {
+  id: string
+  role: "user" | "assistant" | "tool"
+  content: string
+  status?: "streaming" | "completed" | "aborted" | "error"
+  /** Names of the tools the agent called in this turn, in call order. */
+  toolNames: string[]
+  createdAt: TimeType
+}
+
+/** A conversation of an agent, whoever had it, opened from its session id for safety review. */
+export type ConversationReviewDto = {
+  sessionId: string
+  agentId: string
+  type: BaseAgentSessionTypeDto
+  title?: string
+  /** True when the session was spawned by a parent agent that delegated to this one. */
+  isSubSession: boolean
+  /** True when the retention sweep already emptied the conversation's content. */
+  isPurged: boolean
+  createdAt: TimeType
+  updatedAt: TimeType
+  messages: ConversationReviewMessageDto[]
+}
+
+/** The session id a reviewer pastes to open a conversation for safety review. */
+export const conversationReviewLookupSchema = z.object({
+  agentSessionId: z.string().trim().uuid(),
+})
+
+export type ConversationReviewLookupDto = z.infer<typeof conversationReviewLookupSchema>

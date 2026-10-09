@@ -1,9 +1,16 @@
 import { Injectable } from "@nestjs/common"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
-import type { PLATFORM_STAFF_ROLE, PLATFORM_SUPERADMIN_ROLE } from "./rbac.constants"
+import type {
+  CONVERSATION_REVIEWER_ROLE,
+  PLATFORM_STAFF_ROLE,
+  PLATFORM_SUPERADMIN_ROLE,
+} from "./rbac.constants"
 
-export type PlatformRoleKey = typeof PLATFORM_STAFF_ROLE | typeof PLATFORM_SUPERADMIN_ROLE
+export type PlatformRoleKey =
+  | typeof PLATFORM_STAFF_ROLE
+  | typeof PLATFORM_SUPERADMIN_ROLE
+  | typeof CONVERSATION_REVIEWER_ROLE
 
 /**
  * TypeORM's raw query returns the rows for SELECT and INSERT ... RETURNING,

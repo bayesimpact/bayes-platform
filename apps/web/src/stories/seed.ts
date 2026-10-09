@@ -51,6 +51,7 @@ import type {
   AnalyticsCategoryDailyPoint,
   AnalyticsDailyPoint,
 } from "@/studio/features/analytics/project/analytics.models"
+import type { ConversationReview } from "@/studio/features/conversation-review/conversation-review.models"
 import type { DocumentSource } from "@/studio/features/document-sources/document-sources.models"
 import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"
 import type { Document } from "@/studio/features/documents/documents.models"
@@ -412,6 +413,10 @@ export const seed = {
       feedbacksByAgentId: Record<string, AgentMessageFeedback[]>,
     ): StoryPreloadedState {
       return { agentMessageFeedback: { data: ads.fulfilled(feedbacksByAgentId) } }
+    },
+
+    conversationReview(review: ConversationReview): StoryPreloadedState {
+      return { conversationReview: { review: ads.fulfilled(review) } }
     },
 
     agentSubAgents(subAgents: AgentSubAgent[]): StoryPreloadedState {

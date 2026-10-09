@@ -206,10 +206,16 @@ export type BackofficeUserDetailDto = {
   name: string | null
   createdAt: TimeType
   globalRoles: BackofficeUserGlobalRoleDto[]
+  /** Global roles the backoffice can grant or revoke, whether or not this user holds them. */
+  grantableGlobalRoles: BackofficeUserGlobalRoleDto[]
   organizationMemberships: BackofficeUserOrganizationMembershipDto[]
   projectMemberships: BackofficeUserProjectMembershipDto[]
   agentMemberships: BackofficeUserAgentMembershipDto[]
   reviewCampaignMemberships: BackofficeUserReviewCampaignMembershipDto[]
+}
+
+export type UpdateBackofficeUserGlobalRoleRequestDto = {
+  roleKey: string
 }
 
 export const TERMS_DOCUMENT_TYPES = [

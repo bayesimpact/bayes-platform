@@ -20,6 +20,9 @@ import { LiveConversationAgentSessionsController } from "./live-conversation-age
 import { PlaygroundConversationAgentSessionsController } from "./playground-conversation-agent-sessions.controller"
 import { ConversationRetentionSweepRun } from "./retention/conversation-retention-sweep-run.entity"
 import { ConversationRetentionSweepRunsController } from "./retention/conversation-retention-sweep-runs.controller"
+import { ConversationReviewController } from "./review/conversation-review.controller"
+import { ConversationReviewRepository } from "./review/conversation-review.repository"
+import { ConversationReviewService } from "./review/conversation-review.service"
 
 @Module({
   imports: [
@@ -36,10 +39,13 @@ import { ConversationRetentionSweepRunsController } from "./retention/conversati
     ...moduleProviders,
     AgentMessageAttachmentDocumentsService,
     ConversationAgentSessionsService,
+    ConversationReviewRepository,
+    ConversationReviewService,
     McpAppHtmlService,
   ],
   controllers: [
     ConversationRetentionSweepRunsController,
+    ConversationReviewController,
     LiveAgentMessagesController,
     LiveConversationAgentSessionsController,
     PlaygroundAgentMessagesController,

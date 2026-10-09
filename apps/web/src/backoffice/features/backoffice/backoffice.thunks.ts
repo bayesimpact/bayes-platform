@@ -95,6 +95,32 @@ const getUser = createAsyncThunk<BackofficeUserDetail, string, ThunkConfig>(
   },
 )
 
+const grantUserGlobalRole = createAsyncThunk<
+  { userId: string; roleKey: string },
+  { userId: string; roleKey: string },
+  ThunkConfig
+>("backoffice/grantUserGlobalRole", async (params, { extra: { services } }) => {
+  try {
+    await services.backoffice.grantUserGlobalRole(params)
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, "Something went wrong, please try again."))
+  }
+  return params
+})
+
+const revokeUserGlobalRole = createAsyncThunk<
+  { userId: string; roleKey: string },
+  { userId: string; roleKey: string },
+  ThunkConfig
+>("backoffice/revokeUserGlobalRole", async (params, { extra: { services } }) => {
+  try {
+    await services.backoffice.revokeUserGlobalRole(params)
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, "Something went wrong, please try again."))
+  }
+  return params
+})
+
 const getRbacCatalog = createAsyncThunk<BackofficeRbacCatalog, void, ThunkConfig>(
   "backoffice/getRbacCatalog",
   async (_, { extra: { services } }) => services.backoffice.getRbacCatalog(),
@@ -167,6 +193,8 @@ export const backofficeThunks = {
   getProject,
   listUsers,
   getUser,
+  grantUserGlobalRole,
+  revokeUserGlobalRole,
   getRbacCatalog,
   addFeatureFlag,
   removeFeatureFlag,

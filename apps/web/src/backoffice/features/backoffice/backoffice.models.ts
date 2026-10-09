@@ -276,6 +276,8 @@ export type BackofficeUserDetail = {
   name: string | null
   createdAt: TimeType
   globalRoles: BackofficeUserGlobalRole[]
+  /** Global roles the backoffice can grant or revoke, whether or not this user holds them. */
+  grantableGlobalRoles: BackofficeUserGlobalRole[]
   organizationMemberships: BackofficeUserOrganizationMembership[]
   projectMemberships: BackofficeUserProjectMembership[]
   agentMemberships: BackofficeUserAgentMembership[]
@@ -434,6 +436,7 @@ export const toBackofficeUserDetail = (dto: BackofficeUserDetailDto): Backoffice
   name: dto.name,
   createdAt: dto.createdAt,
   globalRoles: dto.globalRoles.map(toBackofficeUserGlobalRole),
+  grantableGlobalRoles: dto.grantableGlobalRoles.map(toBackofficeUserGlobalRole),
   organizationMemberships: dto.organizationMemberships.map(toBackofficeUserOrganizationMembership),
   projectMemberships: dto.projectMemberships.map(toBackofficeUserProjectMembership),
   agentMemberships: dto.agentMemberships.map(toBackofficeUserAgentMembership),

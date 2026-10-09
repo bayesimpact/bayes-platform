@@ -104,6 +104,16 @@ export default {
     )
     return toBackofficeUserDetail(response.data.data)
   },
+  grantUserGlobalRole: async ({ userId, roleKey }) => {
+    const axios = getAxiosInstance()
+    await axios.post(BackofficeRoutes.grantUserGlobalRole.getPath({ userId }), {
+      payload: { roleKey },
+    } satisfies typeof BackofficeRoutes.grantUserGlobalRole.request)
+  },
+  revokeUserGlobalRole: async ({ userId, roleKey }) => {
+    const axios = getAxiosInstance()
+    await axios.delete(BackofficeRoutes.revokeUserGlobalRole.getPath({ userId, roleKey }))
+  },
   getRbacCatalog: async () => {
     const axios = getAxiosInstance()
     const response = await axios.get<typeof BackofficeRoutes.getRbacCatalog.response>(

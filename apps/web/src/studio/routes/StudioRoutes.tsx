@@ -26,6 +26,7 @@ import { StudioLayout } from "../components/StudioLayout"
 import { AgentSettingsVersionSelect } from "../features/agents/agent-settings/components/AgentSettingsVersionSelect"
 import { AgentList } from "../features/analytics/agent/components/AgentList"
 import { AgentAnalyticsRoute } from "./AgentAnalyticsRoute"
+import { AgentConversationReviewRoute } from "./AgentConversationReviewRoute"
 import { AgentEditorRoute } from "./AgentEditorRoute"
 import { AgentMembershipsRoute } from "./AgentMembershipsRoute"
 import { ProjectDocumentsRoute } from "./DocumentsRoute"
@@ -165,6 +166,11 @@ export const studioRoutes = {
             {
               path: StudioRoutes.agentSession.path,
               element: <AgentSessionRoute Component={StudioAgentSessionRoute} />,
+            },
+            {
+              // Gated by the global `agent.conversation.review` permission, not by agent roles.
+              path: StudioRoutes.agentConversationReview.path,
+              element: <AgentConversationReviewRoute />,
             },
             {
               path: StudioRoutes.agentExtraction.path,

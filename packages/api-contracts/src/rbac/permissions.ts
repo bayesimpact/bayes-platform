@@ -18,6 +18,15 @@ export const BACKOFFICE_USER_READ_PERMISSION = "backoffice.user.read" as const
 
 export const BACKOFFICE_TERMS_UPDATE_PERMISSION = "backoffice.terms.update" as const
 
+/** Grant or revoke, from the backoffice, the global roles listed in `BACKOFFICE_GRANTABLE_GLOBAL_ROLES`. */
+export const BACKOFFICE_USER_ROLE_UPDATE_PERMISSION = "backoffice.user.role.update" as const
+
+/**
+ * Read any conversation of an agent from its session id, whoever had it (safety review).
+ * Global, held only by the `conversation_reviewer` role, which nobody has by default.
+ */
+export const AGENT_CONVERSATION_REVIEW_PERMISSION = "agent.conversation.review" as const
+
 /** Install an App on a project. Global, same wiring as `backoffice.read`. */
 export const APP_INSTALL_PERMISSION = "app.install" as const
 
@@ -502,6 +511,8 @@ export type GlobalPermission =
   | typeof BACKOFFICE_AGENT_READ_PERMISSION
   | typeof BACKOFFICE_USER_READ_PERMISSION
   | typeof BACKOFFICE_TERMS_UPDATE_PERMISSION
+  | typeof BACKOFFICE_USER_ROLE_UPDATE_PERMISSION
+  | typeof AGENT_CONVERSATION_REVIEW_PERMISSION
   | typeof APP_INSTALL_PERMISSION
   | typeof BACKOFFICE_APP_MANAGE_PERMISSION
 

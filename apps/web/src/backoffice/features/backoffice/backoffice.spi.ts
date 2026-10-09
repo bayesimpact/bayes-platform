@@ -43,6 +43,8 @@ export interface IBackofficeSpi {
     search?: string
   }) => Promise<PaginatedBackofficeUsers>
   getUser: (userId: string) => Promise<BackofficeUserDetail>
+  grantUserGlobalRole: (params: { userId: string; roleKey: string }) => Promise<void>
+  revokeUserGlobalRole: (params: { userId: string; roleKey: string }) => Promise<void>
   getRbacCatalog: () => Promise<BackofficeRbacCatalog>
   addFeatureFlag: (params: { projectId: string; featureFlagKey: FeatureFlagKey }) => Promise<void>
   removeFeatureFlag: (params: {

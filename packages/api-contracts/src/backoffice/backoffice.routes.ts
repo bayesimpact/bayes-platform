@@ -14,6 +14,7 @@ import type {
   PaginatedBackofficeOrganizationsDto,
   PaginatedBackofficeProjectsDto,
   PaginatedBackofficeUsersDto,
+  UpdateBackofficeUserGlobalRoleRequestDto,
   UpdateTermsDocumentsRequestDto,
 } from "./backoffice.dto"
 
@@ -48,6 +49,17 @@ export const BackofficeRoutes = {
   getUser: defineRoute<ResponseData<BackofficeUserDetailDto>>({
     method: "get",
     path: "backoffice/users/:userId",
+  }),
+  grantUserGlobalRole: defineRoute<
+    ResponseData<SuccessResponseDTO>,
+    RequestPayload<UpdateBackofficeUserGlobalRoleRequestDto>
+  >({
+    method: "post",
+    path: "backoffice/users/:userId/global-roles",
+  }),
+  revokeUserGlobalRole: defineRoute<ResponseData<SuccessResponseDTO>>({
+    method: "delete",
+    path: "backoffice/users/:userId/global-roles/:roleKey",
   }),
   listProjects: defineRoute<ResponseData<PaginatedBackofficeProjectsDto>>({
     method: "get",

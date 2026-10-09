@@ -266,6 +266,7 @@ describe("MeController (e2e)", () => {
         "backoffice.read",
         "backoffice.terms.update",
         "backoffice.user.read",
+        "backoffice.user.role.update",
         "organization.create",
         "trace.read",
       ])

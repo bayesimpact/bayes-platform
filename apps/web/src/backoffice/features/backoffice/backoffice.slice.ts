@@ -262,7 +262,8 @@ const slice = createSlice({
 
     builder
       .addCase(backofficeThunks.getUser.pending, (state) => {
-        state.userDetail.status = ADS.Loading
+        // A reload after a role change keeps the page on screen.
+        if (!ADS.isFulfilled(state.userDetail)) state.userDetail.status = ADS.Loading
         state.userDetail.error = null
       })
       .addCase(backofficeThunks.getUser.fulfilled, (state, action) => {

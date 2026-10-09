@@ -28,6 +28,7 @@ import {
   BACKOFFICE_ORGANIZATION_READ_PERMISSION,
   BACKOFFICE_PROJECT_READ_PERMISSION,
   BACKOFFICE_PROJECT_UPDATE_PERMISSION,
+  BACKOFFICE_USER_ROLE_UPDATE_PERMISSION,
   ORGANIZATION_CREATE_PERMISSION,
 } from "@/domains/rbac/rbac.constants"
 import { UserGuard } from "@/domains/users/user.guard"
@@ -179,6 +180,7 @@ export class BackofficeController {
       data: toBackofficeUserDetailDto(
         result.user,
         result.globalRoles,
+        result.grantableGlobalRoles,
         result.organizationMemberships,
         result.projectMemberships,
         result.agentMemberships,
@@ -186,6 +188,31 @@ export class BackofficeController {
         result.roleGrantsByRoleId,
       ),
     }
+  }
+
+  @Post(BackofficeRoutes.grantUserGlobalRole.path)
+  @CheckPermission(BACKOFFICE_USER_ROLE_UPDATE_PERMISSION)
+  @TrackActivity({ action: "backoffice.user.global_role.grant" })
+  async grantUserGlobalRole(
+    @Param("userId") userId: string,
+    @Body() body: typeof BackofficeRoutes.grantUserGlobalRole.request,
+  ): Promise<typeof BackofficeRoutes.grantUserGlobalRole.response> {
+    await this.backofficeService.grantUserGlobalRole({
+      targetUserId: userId,
+      roleKey: body.payload.roleKey,
+    })
+    return { data: { success: true } }
+  }
+
+  @Delete(BackofficeRoutes.revokeUserGlobalRole.path)
+  @CheckPermission(BACKOFFICE_USER_ROLE_UPDATE_PERMISSION)
+  @TrackActivity({ action: "backoffice.user.global_role.revoke" })
+  async revokeUserGlobalRole(
+    @Param("userId") userId: string,
+    @Param("roleKey") roleKey: string,
+  ): Promise<typeof BackofficeRoutes.revokeUserGlobalRole.response> {
+    await this.backofficeService.revokeUserGlobalRole({ targetUserId: userId, roleKey })
+    return { data: { success: true } }
   }
 
   @Get(BackofficeRoutes.getRbacCatalog.path)

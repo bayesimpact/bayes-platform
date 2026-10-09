@@ -240,6 +240,7 @@ export function toBackofficeUserGlobalRoleDto(roleGrant: RoleGrant): BackofficeU
 export function toBackofficeUserDetailDto(
   user: User,
   globalRoles: RoleGrant[],
+  grantableGlobalRoles: RoleGrant[],
   organizationMemberships: OrganizationMembershipModel[],
   projectMemberships: ProjectMembershipModel[],
   agentMemberships: AgentMembershipModel[],
@@ -252,6 +253,7 @@ export function toBackofficeUserDetailDto(
     name: user.name,
     createdAt: user.createdAt.getTime() as TimeType,
     globalRoles: globalRoles.map(toBackofficeUserGlobalRoleDto),
+    grantableGlobalRoles: grantableGlobalRoles.map(toBackofficeUserGlobalRoleDto),
     organizationMemberships: organizationMemberships.map((membership) =>
       toBackofficeUserOrganizationMembershipDto(
         membership,

@@ -19,6 +19,12 @@ export const selectIsTermsManagementAuthorized = (state: RootState): boolean =>
 export const selectIsAppManagementAuthorized = (state: RootState): boolean =>
   state.me.data.value?.globalPermissions.includes("backoffice.app.manage") ?? false
 
+export const selectCanReviewConversations = (state: RootState): boolean =>
+  state.me.data.value?.globalPermissions.includes("agent.conversation.review") ?? false
+
+export const selectCanUpdateUserGlobalRoles = (state: RootState): boolean =>
+  state.me.data.value?.globalPermissions.includes("backoffice.user.role.update") ?? false
+
 export const selectCanInstallApps = (state: RootState): boolean =>
   state.me.data.value?.globalPermissions.includes("app.install") ?? false
 

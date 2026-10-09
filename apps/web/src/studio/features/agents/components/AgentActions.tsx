@@ -1,12 +1,14 @@
 import { Button } from "@caseai-connect/ui/shad/button"
-import { ExternalLinkIcon, PenLineIcon, UsersIcon } from "lucide-react"
+import { ExternalLinkIcon, PenLineIcon, ShieldCheckIcon, UsersIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import type { Agent } from "@/common/features/agents/agents.models"
+import { selectCanReviewConversations } from "@/common/features/me/me.selectors"
 import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
 import { useAbility } from "@/common/hooks/use-ability"
 import { useFeatureFlags } from "@/common/hooks/use-feature-flags"
 import { useValue } from "@/common/hooks/use-value"
+import { useAppSelector } from "@/common/store/hooks"
 import { DeskRoutes } from "@/desk/routes/helpers"
 import { EvalRoutes } from "@/eval/routes/helpers"
 import { AgentDeletorWithTrigger } from "@/studio/features/agents/components/AgentDeletor"
@@ -16,6 +18,8 @@ export function AgentActions({ organizationId, agent }: { organizationId: string
   const { abilities } = useAbility()
   const canManageAgent = abilities.canManageAgent({ agentId: agent.id })
   const isExtractionAgent = agent.type === "extraction"
+  // Safety review is a global permission: it does not depend on the caller's role on the agent.
+  const canReviewConversations = useAppSelector(selectCanReviewConversations)
   return (
     <>
       {isExtractionAgent && (
@@ -23,6 +27,14 @@ export function AgentActions({ organizationId, agent }: { organizationId: string
       )}
 
       <NavApp organizationId={organizationId} projectId={agent.projectId} agentId={agent.id} />
+
+      {canReviewConversations && agent.type === "conversation" && (
+        <NavConversationReview
+          organizationId={organizationId}
+          projectId={agent.projectId}
+          agentId={agent.id}
+        />
+      )}
 
       {canManageAgent && (
         <>
@@ -86,6 +98,26 @@ function NavEvaluation({
         <ExternalLinkIcon />
         {t("actions:goToEval")}
       </a>
+    </Button>
+  )
+}
+
+function NavConversationReview({
+  organizationId,
+  projectId,
+  agentId,
+}: {
+  organizationId: string
+  projectId: string
+  agentId: string
+}) {
+  const { t } = useTranslation()
+  const navigate = useNavigate()
+  const path = StudioRoutes.agentConversationReview.build({ organizationId, projectId, agentId })
+  return (
+    <Button variant="outline" onClick={() => navigate(path)}>
+      <ShieldCheckIcon />
+      {t("conversationReview:menu")}
     </Button>
   )
 }

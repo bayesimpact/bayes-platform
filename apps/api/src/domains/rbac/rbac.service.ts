@@ -5,6 +5,7 @@ import { DataSource, In, Not, type Repository } from "typeorm"
 import {
   AGENT_ROLE_PERMISSIONS,
   AGENT_ROLES,
+  CONVERSATION_REVIEWER_ROLE,
   ORGANIZATION_ROLE_PERMISSIONS,
   ORGANIZATION_ROLES,
   PLATFORM_STAFF_ROLE,
@@ -21,6 +22,7 @@ const ORGANIZATION_ROLE_LABELS: Record<string, string> = {
   org_member: "Organization Member",
   [PLATFORM_STAFF_ROLE]: "Platform Staff",
   [PLATFORM_SUPERADMIN_ROLE]: "Platform Superadmin",
+  [CONVERSATION_REVIEWER_ROLE]: "Conversation Reviewer",
 }
 
 const PROJECT_ROLE_LABELS: Record<string, string> = {
@@ -38,6 +40,7 @@ const AGENT_ROLE_LABELS: Record<string, string> = {
 const GLOBAL_ROLE_SCOPE: Record<string, Role["scopeType"]> = {
   [PLATFORM_STAFF_ROLE]: "global",
   [PLATFORM_SUPERADMIN_ROLE]: "global",
+  [CONVERSATION_REVIEWER_ROLE]: "global",
 }
 
 @Injectable()
@@ -60,6 +63,7 @@ export class RbacService {
         ...Object.values(ORGANIZATION_ROLES),
         PLATFORM_STAFF_ROLE,
         PLATFORM_SUPERADMIN_ROLE,
+        CONVERSATION_REVIEWER_ROLE,
       ],
       labels: ORGANIZATION_ROLE_LABELS,
       defaultScope: "organization",

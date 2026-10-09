@@ -332,6 +332,7 @@ export const backofficeUserDetailFactory = BackofficeUserDetailFactory.define(({
     name: params.name ?? `${firstName} ${lastName}`,
     createdAt: (params.createdAt ?? faker.date.past().getTime()) as TimeType,
     globalRoles: params.globalRoles ?? [],
+    grantableGlobalRoles: params.grantableGlobalRoles ?? [],
     organizationMemberships: params.organizationMemberships ?? [],
     projectMemberships: params.projectMemberships ?? [],
     agentMemberships: params.agentMemberships ?? [],

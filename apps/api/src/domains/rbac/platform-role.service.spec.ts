@@ -3,9 +3,10 @@ import { isPlatformRoleKey, PlatformRoleService } from "@/domains/rbac/platform-
 import { PLATFORM_STAFF_ROLE, PLATFORM_SUPERADMIN_ROLE } from "@/domains/rbac/rbac.constants"
 
 describe("isPlatformRoleKey", () => {
-  it("accepts the two global roles only", () => {
+  it("accepts the global roles only", () => {
     expect(isPlatformRoleKey("platform_staff")).toBe(true)
     expect(isPlatformRoleKey("platform_superadmin")).toBe(true)
+    expect(isPlatformRoleKey("conversation_reviewer")).toBe(true)
     expect(isPlatformRoleKey("org_owner")).toBe(false)
   })
 })
