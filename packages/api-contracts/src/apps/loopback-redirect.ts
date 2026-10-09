@@ -76,15 +76,14 @@ export function assertAllowedInstallRedirectUri(raw: string, allowlist: readonly
   return raw
 }
 
+/** Redirect after approve: one-time `code` + `state` only (never the client secret). */
 export function buildAppInstallCallbackUrl(params: {
   redirectUri: string
-  clientId: string
-  clientSecret: string
+  code: string
   state: string
 }): string {
   const url = parseHttpRedirectUri(params.redirectUri)
-  url.searchParams.set("client_id", params.clientId)
-  url.searchParams.set("client_secret", params.clientSecret)
+  url.searchParams.set("code", params.code)
   url.searchParams.set("state", params.state)
   return url.toString()
 }

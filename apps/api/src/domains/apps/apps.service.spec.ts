@@ -20,6 +20,7 @@ import { UserRepository } from "@/domains/users/user.repository"
 import { USER_TYPE_SERVICE } from "@/domains/users/user.types"
 import { UsersService } from "@/domains/users/users.service"
 import { assignPlatformStaffToUser, ensureRbacCatalog } from "../../../test/rbac-test.helpers"
+import { AppInstallAuthorizationCodeRepository } from "./app-install-authorization-code.repository"
 import {
   APP_INSTALLATION_STATUS_ACTIVE,
   APP_INSTALLATION_STATUS_REVOKED,
@@ -40,6 +41,7 @@ describe("AppsService", () => {
         AppsService,
         AppManifestRepository,
         AppInstallationRepository,
+        AppInstallAuthorizationCodeRepository,
         ProjectRepository,
         UsersService,
         UserRepository,
@@ -179,10 +181,21 @@ describe("AppsService", () => {
 
     expect(authorized.redirectUri).toBe(redirectUri)
     expect(authorized.state).toBe("csrf-state")
+    expect(authorized.code).toBeTruthy()
     expect(authorized.clientId).toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
     )
     expect(authorized.clientSecret).toBeTruthy()
+
+    const exchanged = await service.exchangeInstallCode({
+      code: authorized.code,
+      redirect_uri: redirectUri,
+    })
+    expect(exchanged.clientId).toBe(authorized.clientId)
+    expect(exchanged.clientSecret).toBe(authorized.clientSecret)
+    await expect(
+      service.exchangeInstallCode({ code: authorized.code, redirect_uri: redirectUri }),
+    ).rejects.toBeInstanceOf(UnauthorizedException)
 
     const installation = await repositories.appInstallationRepository.findOneByOrFail({
       appManifestId: created.id,

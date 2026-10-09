@@ -72,8 +72,7 @@ const toProjectAppInstallation = (dto: AppInstallationSummaryDto): ProjectAppIns
 })
 
 const toAuthorizeResult = (dto: AuthorizeAppInstallResponseDto): AuthorizeAppInstallResult => ({
-  clientId: dto.clientId,
-  clientSecret: dto.clientSecret,
+  code: dto.code,
   redirectUri: dto.redirectUri,
   state: dto.state,
 })

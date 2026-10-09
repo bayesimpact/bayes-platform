@@ -146,10 +146,24 @@ export const authorizeAppInstallSchema = z
 export type AuthorizeAppInstallRequestDto = z.infer<typeof authorizeAppInstallSchema>
 
 export type AuthorizeAppInstallResponseDto = {
-  clientId: string
-  clientSecret: string
+  code: string
   redirectUri: string
   state: string
+}
+
+export const exchangeAppInstallCodeSchema = z
+  .object({
+    code: z.string().trim().min(1).max(128),
+    redirect_uri: z.string().url(),
+  })
+  .strict()
+
+export type ExchangeAppInstallCodeRequestDto = z.infer<typeof exchangeAppInstallCodeSchema>
+
+/** Unwrapped machine response (same style as apps/v1/token). */
+export type ExchangeAppInstallCodeResponseDto = {
+  client_id: string
+  client_secret: string
 }
 
 export const appClientCredentialsTokenSchema = z

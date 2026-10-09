@@ -1,10 +1,12 @@
 import { randomUUID } from "node:crypto"
 import {
   AppsRoutes,
+  AppsV1Routes,
   DOCUMENT_CREATE_PERMISSION,
   DOCUMENT_READ_PERMISSION,
 } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
+import supertest from "supertest"
 import type { App } from "supertest/types"
 import { AUTH_ERRORS } from "@/common/errors/auth-errors"
 import { bindExpectActivityCreated } from "@/common/test/activity-test.helpers"
@@ -64,6 +66,12 @@ describe("Apps - Install", () => {
     await teardownE2eTestDatabase(setup)
     await app.close()
   })
+
+  const postExchange = (body: { code: string; redirect_uri: string }) =>
+    supertest(app.getHttpServer())
+      .post(AppsV1Routes.exchangeInstallCode.getPath())
+      .set("Connection", "close")
+      .send(body)
 
   const createStaffInstaller = async () => {
     const { organization, project, user } = await createOrganizationWithProject(repositories, {
@@ -172,14 +180,29 @@ describe("Apps - Install", () => {
         },
       })
       expectResponse(authorized, 201)
-      expect(authorized.body.data.clientId).toBeTruthy()
-      expect(authorized.body.data.clientSecret).toBeTruthy()
+      expect(authorized.body.data.code).toBeTruthy()
       expect(authorized.body.data.state).toBe("csrf-state")
+      expect(authorized.body.data).not.toHaveProperty("clientId")
+      expect(authorized.body.data).not.toHaveProperty("clientSecret")
+
+      const exchanged = await postExchange({
+        code: authorized.body.data.code,
+        redirect_uri: redirectUri,
+      })
+      expectResponse(exchanged, 200)
+      expect(exchanged.body.client_id).toBeTruthy()
+      expect(exchanged.body.client_secret).toBeTruthy()
+
+      const reused = await postExchange({
+        code: authorized.body.data.code,
+        redirect_uri: redirectUri,
+      })
+      expectResponse(reused, 401)
 
       const installation = await repositories.appInstallationRepository.findOneByOrFail({
-        clientId: authorized.body.data.clientId,
+        clientId: exchanged.body.client_id,
       })
-      expect(installation.clientSecretHash).not.toContain(authorized.body.data.clientSecret)
+      expect(installation.clientSecretHash).not.toContain(exchanged.body.client_secret)
       const serviceUser = await repositories.userRepository.findOneByOrFail({
         id: installation.serviceUserId ?? undefined,
       })
@@ -234,7 +257,8 @@ describe("Apps - Install", () => {
         },
       })
       expectResponse(reinstall, 201)
-      expect(reinstall.body.data.clientId).not.toBe(authorized.body.data.clientId)
+      expect(reinstall.body.data.code).toBeTruthy()
+      expect(reinstall.body.data.code).not.toBe(authorized.body.data.code)
     })
 
     it("rejects a non-loopback redirect URI that is not allowlisted", async () => {
@@ -304,6 +328,16 @@ describe("Apps - Install", () => {
       })
       expectResponse(authorized, 201)
       expect(authorized.body.data.redirectUri).toBe(registeredRedirectUri)
+      expect(authorized.body.data.code).toBeTruthy()
+      expect(authorized.body.data).not.toHaveProperty("clientSecret")
+
+      const exchanged = await postExchange({
+        code: authorized.body.data.code,
+        redirect_uri: registeredRedirectUri,
+      })
+      expectResponse(exchanged, 200)
+      expect(exchanged.body.client_id).toBeTruthy()
+      expect(exchanged.body.client_secret).toBeTruthy()
     })
   })
 })

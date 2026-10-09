@@ -77,8 +77,7 @@ export function AppsInstallCard() {
     window.location.assign(
       buildAppInstallCallbackUrl({
         redirectUri: result.redirectUri,
-        clientId: result.clientId,
-        clientSecret: result.clientSecret,
+        code: result.code,
         state: result.state,
       }),
     )

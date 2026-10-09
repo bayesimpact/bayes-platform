@@ -29,8 +29,7 @@ export type AuthorizeAppInstallInput = {
 }
 
 export type AuthorizeAppInstallResult = {
-  clientId: string
-  clientSecret: string
+  code: string
   redirectUri: string
   state: string
 }

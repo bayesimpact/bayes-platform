@@ -4,15 +4,26 @@ import { appManifestSlugSchema, parseLoopbackRedirectUri } from "@caseai-connect
 
 const DEFAULT_TIMEOUT_MS = 5 * 60 * 1000
 
+export type AppsInstallCredentials = {
+  clientId: string
+  clientSecret: string
+}
+
 export type AppsInstallIO = {
   slug: string
   frontendOrigin: string
+  apiOrigin: string
   openUrl: (url: string) => void
   write: (text: string) => void
   writeError: (text: string) => void
   state?: string
   timeoutMs?: number
   color?: boolean
+  exchangeInstallCode?: (params: {
+    code: string
+    redirectUri: string
+    apiOrigin: string
+  }) => Promise<AppsInstallCredentials>
 }
 
 export function parseFrontendOrigin(raw: string): string {
@@ -47,12 +58,21 @@ export async function runAppsInstall(io: AppsInstallIO): Promise<number> {
     return fail(io, error instanceof Error ? error.message : "Invalid frontend origin")
   }
 
+  let apiOrigin: string
+  try {
+    apiOrigin = parseApiOrigin(io.apiOrigin)
+  } catch (error) {
+    return fail(io, error instanceof Error ? error.message : "Invalid API origin")
+  }
+
   const state = io.state ?? randomBytes(32).toString("base64url")
+  let callbackRedirectUri = ""
   const outcome = await waitForCallback({
     state,
     timeoutMs: io.timeoutMs ?? DEFAULT_TIMEOUT_MS,
     slug: slug.data,
     onListening: (redirectUri) => {
+      callbackRedirectUri = redirectUri
       parseLoopbackRedirectUri(redirectUri)
       const installUrl = new URL(`/apps/install/${slug.data}`, frontendOrigin)
       installUrl.searchParams.set("redirect_uri", redirectUri)
@@ -65,8 +85,24 @@ export async function runAppsInstall(io: AppsInstallIO): Promise<number> {
   })
 
   if (outcome.kind === "authorized") {
+    const exchange = io.exchangeInstallCode ?? defaultExchangeInstallCode
+    let credentials: AppsInstallCredentials
+    try {
+      credentials = await exchange({
+        code: outcome.code,
+        redirectUri: callbackRedirectUri,
+        apiOrigin,
+      })
+    } catch (error) {
+      return fail(
+        io,
+        error instanceof Error
+          ? error.message
+          : "Failed to exchange the install authorization code",
+      )
+    }
     io.write(
-      `\n${style(`${slug.data} is installed.`, io.color, "1;32")}\n\n${style("Client id", io.color, "1")}\n${style(outcome.clientId, io.color, "36")}\n\n${style("Client secret", io.color, "1")}\n${style(outcome.clientSecret, io.color, "1;36")}\n\n${style("Save the client secret now. It cannot be retrieved later.", io.color, "33")}\n`,
+      `\n${style(`${slug.data} is installed.`, io.color, "1;32")}\n\n${style("Client id", io.color, "1")}\n${style(credentials.clientId, io.color, "36")}\n\n${style("Client secret", io.color, "1")}\n${style(credentials.clientSecret, io.color, "1;36")}\n\n${style("Save the client secret now. It cannot be retrieved later.", io.color, "33")}\n`,
     )
     return 0
   }
@@ -76,7 +112,32 @@ export async function runAppsInstall(io: AppsInstallIO): Promise<number> {
     return fail(io, "The callback state did not match this session. Nothing was saved.")
   }
   if (outcome.kind === "timeout") return fail(io, "Authorization timed out.")
-  return fail(io, "The callback did not include a client id and client secret.")
+  return fail(io, "The callback did not include an authorization code.")
+}
+
+export function parseApiOrigin(raw: string): string {
+  const origin = parseFrontendOrigin(raw.endsWith("/api") ? raw.slice(0, -4) : raw)
+  return `${origin}/api`
+}
+
+async function defaultExchangeInstallCode(params: {
+  code: string
+  redirectUri: string
+  apiOrigin: string
+}): Promise<AppsInstallCredentials> {
+  const response = await fetch(`${params.apiOrigin}/apps/v1/install/exchange`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ code: params.code, redirect_uri: params.redirectUri }),
+  })
+  if (!response.ok) {
+    throw new Error("Failed to exchange the install authorization code")
+  }
+  const body = (await response.json()) as { client_id?: string; client_secret?: string }
+  if (!body.client_id || !body.client_secret) {
+    throw new Error("The install exchange response did not include credentials")
+  }
+  return { clientId: body.client_id, clientSecret: body.client_secret }
 }
 
 function fail(io: AppsInstallIO, message: string): number {
@@ -145,7 +206,7 @@ function escapeHtml(value: string): string {
 }
 
 type CallbackOutcome =
-  | { kind: "authorized"; clientId: string; clientSecret: string }
+  | { kind: "authorized"; code: string }
   | { kind: "denied" }
   | { kind: "mismatch" }
   | { kind: "invalid" }
@@ -207,10 +268,9 @@ function readCallback(requestUrl: URL, expectedState: string): CallbackOutcome {
   const receivedState = requestUrl.searchParams.get("state") ?? ""
   if (!statesMatch(expectedState, receivedState)) return { kind: "mismatch" }
   if (requestUrl.searchParams.get("error") === "access_denied") return { kind: "denied" }
-  const clientId = requestUrl.searchParams.get("client_id")
-  const clientSecret = requestUrl.searchParams.get("client_secret")
-  if (!clientId || !clientSecret) return { kind: "invalid" }
-  return { kind: "authorized", clientId, clientSecret }
+  const code = requestUrl.searchParams.get("code")
+  if (!code) return { kind: "invalid" }
+  return { kind: "authorized", code }
 }
 
 function statesMatch(expected: string, received: string): boolean {

@@ -1,8 +1,9 @@
-import { randomUUID } from "node:crypto"
+import { createHash, randomBytes, randomUUID } from "node:crypto"
 import {
   type AppGrantablePermission,
   appClientCredentialsTokenSchema,
   assertAllowedInstallRedirectUri,
+  exchangeAppInstallCodeSchema,
   InvalidInstallRedirectUriError,
 } from "@caseai-connect/api-contracts"
 import {
@@ -31,6 +32,8 @@ import { RoleRepository } from "@/domains/rbac/role.repository"
 import { isServiceUser } from "@/domains/users/service-user.helpers"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { UsersService } from "@/domains/users/users.service"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AppInstallAuthorizationCodeRepository } from "./app-install-authorization-code.repository"
 import { buildAppInstallRoleKey } from "./app-install-role"
 import {
   APP_INSTALLATION_STATUS_ACTIVE,
@@ -59,6 +62,8 @@ import {
 } from "./client-credentials"
 
 const INVALID_CLIENT_MESSAGE = "Invalid client credentials"
+const INVALID_INSTALL_CODE_MESSAGE = "Invalid or expired install authorization code"
+const INSTALL_CODE_TTL_MS = 5 * 60 * 1000
 let dummyClientSecretHash: Promise<string> | undefined
 
 export type AppInstallPage = {
@@ -72,13 +77,20 @@ export type AppInstallPage = {
 }
 
 export type AuthorizeAppInstallResult = {
-  clientId: string
-  clientSecret: string
+  code: string
   redirectUri: string
   state: string
   installationId: string
   organizationId: string
   projectId: string
+  /** Present for tests that call the service directly; never returned by the authorize HTTP route. */
+  clientId: string
+  clientSecret: string
+}
+
+export type ExchangeAppInstallCodeResult = {
+  clientId: string
+  clientSecret: string
 }
 
 export type AppAccessTokenResult = {
@@ -100,6 +112,7 @@ export class AppsService {
   constructor(
     private readonly appManifestRepository: AppManifestRepository,
     private readonly appInstallationRepository: AppInstallationRepository,
+    private readonly appInstallAuthorizationCodeRepository: AppInstallAuthorizationCodeRepository,
     private readonly roleRepository: RoleRepository,
     private readonly permissionService: PermissionService,
     private readonly usersService: UsersService,
@@ -208,6 +221,9 @@ export class AppsService {
     const clientId = generateClientId()
     const clientSecretHash = await hashClientSecret(clientSecret)
     const installationId = randomUUID()
+    const code = generateInstallAuthorizationCode()
+    const codeHash = hashInstallAuthorizationCode(code)
+    const expiresAt = new Date(Date.now() + INSTALL_CODE_TTL_MS)
 
     await this.transactionService.run(async () => {
       const customRole = await this.roleRepository.createProjectRole({
@@ -235,16 +251,57 @@ export class AppsService {
         clientSecretHash,
         createdByUserId: params.userId,
       })
+      await this.appInstallAuthorizationCodeRepository.createAuthorizationCode({
+        codeHash,
+        appInstallationId: installationId,
+        clientId,
+        clientSecret,
+        redirectUri,
+        expiresAt,
+      })
     })
 
     return {
-      clientId,
-      clientSecret,
+      code,
       redirectUri,
       state: params.state,
       installationId,
       organizationId: pickerProject.organizationId,
       projectId: pickerProject.id,
+      clientId,
+      clientSecret,
+    }
+  }
+
+  async exchangeInstallCode(body: unknown): Promise<ExchangeAppInstallCodeResult> {
+    const parsed = exchangeAppInstallCodeSchema.safeParse(body)
+    if (!parsed.success) {
+      throw new UnauthorizedException(INVALID_INSTALL_CODE_MESSAGE)
+    }
+
+    const codeHash = hashInstallAuthorizationCode(parsed.data.code)
+    const authorization =
+      await this.appInstallAuthorizationCodeRepository.findUnusedByCodeHash(codeHash)
+    if (
+      !authorization ||
+      authorization.clientSecret === null ||
+      authorization.expiresAt.getTime() <= Date.now() ||
+      authorization.redirectUri !== parsed.data.redirect_uri
+    ) {
+      throw new UnauthorizedException(INVALID_INSTALL_CODE_MESSAGE)
+    }
+
+    const consumed = await this.appInstallAuthorizationCodeRepository.consumeAuthorizationCode({
+      id: authorization.id,
+      consumedAt: new Date(),
+    })
+    if (!consumed) {
+      throw new UnauthorizedException(INVALID_INSTALL_CODE_MESSAGE)
+    }
+
+    return {
+      clientId: authorization.clientId,
+      clientSecret: authorization.clientSecret,
     }
   }
 
@@ -438,4 +495,12 @@ function toActiveInstallationSummary(
     clientId: installation.clientId,
     createdAt: installation.createdAt,
   }
+}
+
+function generateInstallAuthorizationCode(): string {
+  return randomBytes(32).toString("base64url")
+}
+
+function hashInstallAuthorizationCode(code: string): string {
+  return createHash("sha256").update(code).digest("hex")
 }

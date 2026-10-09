@@ -69,8 +69,7 @@ export class AppsInstallController {
     })
     return {
       data: {
-        clientId: result.clientId,
-        clientSecret: result.clientSecret,
+        code: result.code,
         redirectUri: result.redirectUri,
         state: result.state,
       },

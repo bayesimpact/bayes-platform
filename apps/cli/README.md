@@ -26,7 +26,9 @@ npx bayes apps install <slug> --frontend https://connect.localhost:5173
 
 ## Install callback URLs (`redirect_uri`)
 
-Install links pass credentials back to `redirect_uri`. The platform accepts that URI only when:
+After approval, the browser redirects to `redirect_uri` with a short-lived one-time `code` and `state` only. The client secret is never put in the URL. The CLI (and deployed apps) exchange that code for credentials with `POST /apps/v1/install/exchange`.
+
+The platform accepts `redirect_uri` when:
 
 1. It is a **loopback** URL (`localhost`, `127.0.0.1`, or `::1`) — used by this CLI and other local tools, without needing backoffice registration, or
 2. It **exactly matches** a URL on the app's allowlist in the backoffice (Apps → edit app → Allowed install callback URLs).
@@ -38,3 +40,13 @@ Register one HTTPS callback per deployed environment (staging, production), for 
 - `https://site-crawler.bayes.org/auth/bayes/callback`
 
 Match is exact: scheme, host, and path. Do not leave the allowlist empty for web apps that install from a non-loopback host.
+
+Local installs often need an explicit API origin when the web app and API are on different hosts:
+
+```bash
+npx bayes apps install <slug> \
+  --frontend https://connect.localhost:5173 \
+  --api http://localhost:3000/api
+```
+
+`--api` defaults to `BAYES_API_URL`, or `<frontend>/api` when unset.

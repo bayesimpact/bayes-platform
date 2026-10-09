@@ -27,17 +27,14 @@ describe("loopback redirect URIs", () => {
     )
   })
 
-  it("builds the one-shot callback URL", () => {
+  it("builds the one-shot callback URL with a code", () => {
     expect(
       buildAppInstallCallbackUrl({
         redirectUri: "http://127.0.0.1:8787/callback",
-        clientId: "client-id",
-        clientSecret: "client-secret",
+        code: "install-code",
         state: "abc",
       }),
-    ).toBe(
-      "http://127.0.0.1:8787/callback?client_id=client-id&client_secret=client-secret&state=abc",
-    )
+    ).toBe("http://127.0.0.1:8787/callback?code=install-code&state=abc")
   })
 
   it("builds the OAuth access_denied cancel URL", () => {
@@ -49,17 +46,14 @@ describe("loopback redirect URIs", () => {
     ).toBe("http://127.0.0.1:8787/callback?error=access_denied&state=abc")
   })
 
-  it("builds callback URLs for registered HTTPS redirects", () => {
+  it("builds callback URLs for registered HTTPS redirects with a code only", () => {
     expect(
       buildAppInstallCallbackUrl({
         redirectUri: "https://app.example.com/auth/bayes/callback",
-        clientId: "client-id",
-        clientSecret: "client-secret",
+        code: "install-code",
         state: "abc",
       }),
-    ).toBe(
-      "https://app.example.com/auth/bayes/callback?client_id=client-id&client_secret=client-secret&state=abc",
-    )
+    ).toBe("https://app.example.com/auth/bayes/callback?code=install-code&state=abc")
   })
 })
 
