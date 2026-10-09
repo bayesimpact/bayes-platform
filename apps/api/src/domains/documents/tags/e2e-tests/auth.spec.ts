@@ -11,9 +11,15 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
+import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { projectFactory } from "@/domains/projects/project.factory"
-import { mockForeignAuthSubject, setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
+import {
+  mockForeignAuthSubject,
+  mockOidcEmailForSub,
+  setupUserGuardForTesting,
+} from "../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { DocumentTag } from "../document-tag.entity"
 import { documentTagFactory } from "../document-tag.factory"
@@ -37,6 +43,7 @@ describe("DocumentTags - Auth", () => {
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)
@@ -70,6 +77,23 @@ describe("DocumentTags - Auth", () => {
     return { organization, project }
   }
 
+  /** Switches the caller to an organization admin who holds no role on the project. */
+  const switchToOrganizationAdminWithoutProjectRole = async ({
+    organization,
+  }: Awaited<ReturnType<typeof createContextForRole>>) => {
+    const organizationAdminAuthSubject = `oidc|${randomUUID()}`
+    await addUserToOrganization({
+      repositories,
+      organization,
+      user: {
+        authSubject: organizationAdminAuthSubject,
+        email: mockOidcEmailForSub(organizationAdminAuthSubject),
+      },
+      membership: { role: "admin" },
+    })
+    authSubject = organizationAdminAuthSubject
+  }
+
   describe("DocumentTagsRoutes.getAll", () => {
     const subject = async () =>
       request({
@@ -99,6 +123,15 @@ describe("DocumentTags - Auth", () => {
     it("doesn't allow a simple member to get all document tags", async () => {
       await createContextForRole("member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("forbids an organization admin who holds no project role", async () => {
+      const context = await createContextForRole("owner")
+      await switchToOrganizationAdminWithoutProjectRole(context)
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it.each([["owner"], ["admin"]] as const)("allows a project %s", async (role) => {
+      await createContextForRole(role)
+      expectResponse(await subject(), 200)
     })
   })
 
@@ -133,6 +166,15 @@ describe("DocumentTags - Auth", () => {
       await createContextForRole("member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
+    it("forbids an organization admin who holds no project role", async () => {
+      const context = await createContextForRole("owner")
+      await switchToOrganizationAdminWithoutProjectRole(context)
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it.each([["owner"], ["admin"]] as const)("allows a project %s", async (role) => {
+      await createContextForRole(role)
+      expectResponse(await subject({ payload: { name: "Pricing" } }), 201)
+    })
   })
 
   describe("DocumentTagsRoutes.updateOne", () => {
@@ -141,6 +183,7 @@ describe("DocumentTags - Auth", () => {
         route: DocumentTagsRoutes.updateOne,
         pathParams: removeNullish({ organizationId, projectId, documentTagId }),
         token: accessToken ?? undefined,
+        request: { payload: { name: "Support" } },
       })
 
     it("requires an authentication token", async () => {
@@ -172,6 +215,15 @@ describe("DocumentTags - Auth", () => {
     it("doesn't allow a simple member to update a document tag", async () => {
       await createContextForRole("member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("forbids an organization admin who holds no project role", async () => {
+      const context = await createContextForRole("owner")
+      await switchToOrganizationAdminWithoutProjectRole(context)
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it.each([["owner"], ["admin"]] as const)("allows a project %s", async (role) => {
+      await createContextForRole(role)
+      expectResponse(await subject(), 200)
     })
   })
 
@@ -212,6 +264,15 @@ describe("DocumentTags - Auth", () => {
     it("doesn't allow a simple member to delete a document tag", async () => {
       await createContextForRole("member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("forbids an organization admin who holds no project role", async () => {
+      const context = await createContextForRole("owner")
+      await switchToOrganizationAdminWithoutProjectRole(context)
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it.each([["owner"], ["admin"]] as const)("allows a project %s", async (role) => {
+      await createContextForRole(role)
+      expectResponse(await subject(), 200)
     })
   })
 })

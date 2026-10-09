@@ -8,9 +8,9 @@ import { AuthModule } from "@/domains/auth/auth.module"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
 import { Project } from "@/domains/projects/project.entity"
 import { ProjectsModule } from "@/domains/projects/projects.module"
+import { RbacModule } from "@/domains/rbac/rbac.module"
 import { UsersModule } from "@/domains/users/users.module"
 import { DocumentTag } from "./document-tag.entity"
-import { DocumentTagGuard } from "./document-tag.guard"
 import { DocumentTagRepository } from "./document-tag.repository"
 import { DocumentTagsController } from "./document-tags.controller"
 import { DocumentTagsService } from "./document-tags.service"
@@ -22,11 +22,11 @@ import { DocumentTagsService } from "./document-tags.service"
     forwardRef(() => ProjectsModule),
     UsersModule,
     AuthModule,
+    RbacModule,
   ],
   providers: [
     DocumentTagsService,
     DocumentTagRepository,
-    DocumentTagGuard,
     ResourceContextGuard,
     OrganizationContextResolver,
     ProjectContextResolver,

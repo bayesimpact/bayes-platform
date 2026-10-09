@@ -701,6 +701,36 @@ describe("project agent message feedback permissions", () => {
   })
 })
 
+describe("document tag permissions", () => {
+  const rolesHolding = (rolePermissions: Record<string, readonly string[]>, permission: string) =>
+    Object.entries(rolePermissions)
+      .filter(([_roleKey, permissions]) => permissions.includes(permission))
+      .map(([roleKey]) => roleKey)
+
+  const documentTagPermissions = [
+    DOCUMENT_TAG_READ_PERMISSION,
+    DOCUMENT_TAG_CREATE_PERMISSION,
+    DOCUMENT_TAG_UPDATE_PERMISSION,
+    DOCUMENT_TAG_DELETE_PERMISSION,
+  ]
+
+  it.each(documentTagPermissions)("grants %s to project owners and admins only", (permission) => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
+      "project_owner",
+      "project_admin",
+    ])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
+  })
+
+  it("never inherits document tags from the organization", () => {
+    const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
+    for (const permission of documentTagPermissions) {
+      expect(inheritable).not.toContain(permission)
+    }
+  })
+})
+
 describe("project MCP server permissions", () => {
   const rolesHolding = (rolePermissions: Record<string, readonly string[]>, permission: string) =>
     Object.entries(rolePermissions)
