@@ -30,6 +30,7 @@ import { assignPlatformStaffToUser, ensureRbacCatalog } from "../../../../test/r
 import { expectResponse } from "../../../../test/request"
 import { AppsModule } from "../apps.module"
 import { AppsService } from "../apps.service"
+import { INSTALL_PKCE_METHOD_S256, RFC7636_TEST_CODE_CHALLENGE } from "../install-pkce"
 
 describe("Apps - Upload document", () => {
   let app: INestApplication<App>
@@ -107,6 +108,8 @@ describe("Apps - Upload document", () => {
       permissions,
       redirectUri: "http://127.0.0.1:8787/callback",
       state: "csrf-state",
+      codeChallenge: RFC7636_TEST_CODE_CHALLENGE,
+      codeChallengeMethod: INSTALL_PKCE_METHOD_S256,
     })
     const token = await appsService.issueToken({
       grant_type: "client_credentials",

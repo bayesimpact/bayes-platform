@@ -23,6 +23,11 @@ import {
 } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { AppsModule } from "../apps.module"
+import {
+  INSTALL_PKCE_METHOD_S256,
+  RFC7636_TEST_CODE_CHALLENGE,
+  RFC7636_TEST_CODE_VERIFIER,
+} from "../install-pkce"
 
 describe("Apps - Revoke", () => {
   let app: INestApplication<App>
@@ -108,6 +113,8 @@ describe("Apps - Revoke", () => {
           permissions: [DOCUMENT_READ_PERMISSION],
           redirectUri,
           state: "csrf-state",
+          codeChallenge: RFC7636_TEST_CODE_CHALLENGE,
+          codeChallengeMethod: INSTALL_PKCE_METHOD_S256,
         },
       },
     })
@@ -115,7 +122,11 @@ describe("Apps - Revoke", () => {
     const exchanged = await request(app.getHttpServer())
       .post(AppsV1Routes.exchangeInstallCode.getPath())
       .set("Connection", "close")
-      .send({ code: authorized.body.data.code, redirect_uri: redirectUri })
+      .send({
+        code: authorized.body.data.code,
+        redirect_uri: redirectUri,
+        code_verifier: RFC7636_TEST_CODE_VERIFIER,
+      })
     expectResponse(exchanged, 200)
     return {
       clientId: exchanged.body.client_id,

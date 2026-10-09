@@ -28,6 +28,7 @@ import type { z } from "zod"
 import { BackofficeProjectRoutes } from "@/backoffice/routes/helpers"
 import {
   selectAppInstallCallbackState,
+  selectAppInstallCodeChallenge,
   selectAppInstallPage,
   selectAppInstallRedirectUri,
   selectAppInstallSlug,
@@ -47,6 +48,7 @@ export function AppsInstallCard() {
   const slug = useCurrentId(selectAppInstallSlug)
   const redirectUri = useAppSelector(selectAppInstallRedirectUri)
   const callbackState = useAppSelector(selectAppInstallCallbackState)
+  const codeChallenge = useAppSelector(selectAppInstallCodeChallenge)
   const canInstall = page.projects.length > 0
   const cancelUrl = buildAppInstallDeniedUrl({ redirectUri, state: callbackState })
 
@@ -57,6 +59,8 @@ export function AppsInstallCard() {
       permissions: page.app.grantablePermissions,
       redirectUri,
       state: callbackState,
+      codeChallenge,
+      codeChallengeMethod: "S256",
     },
   })
   const selectedProjectId = form.watch("projectId")
@@ -72,6 +76,8 @@ export function AppsInstallCard() {
         permissions: values.permissions,
         redirectUri: values.redirectUri,
         state: values.state,
+        codeChallenge: values.codeChallenge,
+        codeChallengeMethod: values.codeChallengeMethod,
       }),
     ).unwrap()
     window.location.assign(

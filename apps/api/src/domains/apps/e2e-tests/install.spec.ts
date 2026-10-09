@@ -31,6 +31,11 @@ import {
 } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { AppsModule } from "../apps.module"
+import {
+  INSTALL_PKCE_METHOD_S256,
+  RFC7636_TEST_CODE_CHALLENGE,
+  RFC7636_TEST_CODE_VERIFIER,
+} from "../install-pkce"
 
 describe("Apps - Install", () => {
   let app: INestApplication<App>
@@ -67,7 +72,7 @@ describe("Apps - Install", () => {
     await app.close()
   })
 
-  const postExchange = (body: { code: string; redirect_uri: string }) =>
+  const postExchange = (body: { code: string; redirect_uri: string; code_verifier: string }) =>
     supertest(app.getHttpServer())
       .post(AppsV1Routes.exchangeInstallCode.getPath())
       .set("Connection", "close")
@@ -176,6 +181,8 @@ describe("Apps - Install", () => {
             permissions: [DOCUMENT_READ_PERMISSION],
             redirectUri,
             state: "csrf-state",
+            codeChallenge: RFC7636_TEST_CODE_CHALLENGE,
+            codeChallengeMethod: INSTALL_PKCE_METHOD_S256,
           },
         },
       })
@@ -188,6 +195,7 @@ describe("Apps - Install", () => {
       const exchanged = await postExchange({
         code: authorized.body.data.code,
         redirect_uri: redirectUri,
+        code_verifier: RFC7636_TEST_CODE_VERIFIER,
       })
       expectResponse(exchanged, 200)
       expect(exchanged.body.client_id).toBeTruthy()
@@ -196,6 +204,7 @@ describe("Apps - Install", () => {
       const reused = await postExchange({
         code: authorized.body.data.code,
         redirect_uri: redirectUri,
+        code_verifier: RFC7636_TEST_CODE_VERIFIER,
       })
       expectResponse(reused, 401)
 
@@ -233,6 +242,8 @@ describe("Apps - Install", () => {
             permissions: [DOCUMENT_READ_PERMISSION],
             redirectUri,
             state: "csrf-state",
+            codeChallenge: RFC7636_TEST_CODE_CHALLENGE,
+            codeChallengeMethod: INSTALL_PKCE_METHOD_S256,
           },
         },
       })
@@ -253,6 +264,8 @@ describe("Apps - Install", () => {
             permissions: [DOCUMENT_READ_PERMISSION],
             redirectUri,
             state: "csrf-state-2",
+            codeChallenge: RFC7636_TEST_CODE_CHALLENGE,
+            codeChallengeMethod: INSTALL_PKCE_METHOD_S256,
           },
         },
       })
@@ -275,6 +288,8 @@ describe("Apps - Install", () => {
               permissions: [DOCUMENT_READ_PERMISSION],
               redirectUri: "https://evil.example/callback",
               state: "csrf-state",
+              codeChallenge: RFC7636_TEST_CODE_CHALLENGE,
+              codeChallengeMethod: INSTALL_PKCE_METHOD_S256,
             },
           },
         }),
@@ -323,6 +338,8 @@ describe("Apps - Install", () => {
             permissions: [DOCUMENT_READ_PERMISSION],
             redirectUri: registeredRedirectUri,
             state: "csrf-state",
+            codeChallenge: RFC7636_TEST_CODE_CHALLENGE,
+            codeChallengeMethod: INSTALL_PKCE_METHOD_S256,
           },
         },
       })
@@ -334,6 +351,7 @@ describe("Apps - Install", () => {
       const exchanged = await postExchange({
         code: authorized.body.data.code,
         redirect_uri: registeredRedirectUri,
+        code_verifier: RFC7636_TEST_CODE_VERIFIER,
       })
       expectResponse(exchanged, 200)
       expect(exchanged.body.client_id).toBeTruthy()

@@ -20,12 +20,27 @@ export default {
     )
     return toAppInstallPage(response.data.data)
   },
-  authorize: async ({ slug, projectId, permissions, redirectUri, state }) => {
+  authorize: async ({
+    slug,
+    projectId,
+    permissions,
+    redirectUri,
+    state,
+    codeChallenge,
+    codeChallengeMethod,
+  }) => {
     const axios = getAxiosInstance()
     const response = await axios.post<typeof AppsRoutes.authorize.response>(
       AppsRoutes.authorize.getPath({ slug }),
       {
-        payload: { projectId, permissions, redirectUri, state },
+        payload: {
+          projectId,
+          permissions,
+          redirectUri,
+          state,
+          codeChallenge,
+          codeChallengeMethod,
+        },
       } satisfies typeof AppsRoutes.authorize.request,
     )
     return toAuthorizeResult(response.data.data)

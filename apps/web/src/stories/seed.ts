@@ -136,13 +136,20 @@ export const seed = {
   /** Seeds the operator app-install page and the loopback callback ids the route reads. */
   appInstallPage(
     page: AppInstallPage,
-    callback: { redirectUri?: string; callbackState?: string } = {},
+    callback: {
+      redirectUri?: string
+      callbackState?: string
+      codeChallenge?: string
+      codeChallengeMethod?: string
+    } = {},
   ): StoryPreloadedState {
     return {
       appInstall: {
         slug: page.app.slug,
         redirectUri: callback.redirectUri ?? "http://127.0.0.1:8787/callback",
         callbackState: callback.callbackState ?? "csrf-state",
+        codeChallenge: callback.codeChallenge ?? "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+        codeChallengeMethod: callback.codeChallengeMethod ?? "S256",
         page: ads.fulfilled(page),
       },
     }
@@ -153,12 +160,16 @@ export const seed = {
     slug: string | null
     redirectUri?: string
     callbackState?: string
+    codeChallenge?: string
+    codeChallengeMethod?: string
   }): StoryPreloadedState {
     return {
       appInstall: {
         slug: params.slug,
         redirectUri: params.redirectUri ?? "http://127.0.0.1:8787/callback",
         callbackState: params.callbackState ?? "csrf-state",
+        codeChallenge: params.codeChallenge ?? "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+        codeChallengeMethod: params.codeChallengeMethod ?? "S256",
       },
     }
   },

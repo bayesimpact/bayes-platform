@@ -60,6 +60,7 @@ import {
   hashClientSecret,
   verifyClientSecret,
 } from "./client-credentials"
+import { installPkceChallengeMatches } from "./install-pkce"
 
 const INVALID_CLIENT_MESSAGE = "Invalid client credentials"
 const INVALID_INSTALL_CODE_MESSAGE = "Invalid or expired install authorization code"
@@ -200,6 +201,8 @@ export class AppsService {
     permissions: readonly string[]
     redirectUri: string
     state: string
+    codeChallenge: string
+    codeChallengeMethod: string
   }): Promise<AuthorizeAppInstallResult> {
     const app = await this.requireManifestBySlug(params.slug)
     const redirectUri = this.requireInstallRedirectUri(params.redirectUri, app.allowedRedirectUris)
@@ -257,6 +260,8 @@ export class AppsService {
         clientId,
         clientSecret,
         redirectUri,
+        codeChallenge: params.codeChallenge,
+        codeChallengeMethod: params.codeChallengeMethod,
         expiresAt,
       })
     })
@@ -286,7 +291,12 @@ export class AppsService {
       !authorization ||
       authorization.clientSecret === null ||
       authorization.expiresAt.getTime() <= Date.now() ||
-      authorization.redirectUri !== parsed.data.redirect_uri
+      authorization.redirectUri !== parsed.data.redirect_uri ||
+      !installPkceChallengeMatches({
+        codeVerifier: parsed.data.code_verifier,
+        codeChallenge: authorization.codeChallenge,
+        codeChallengeMethod: authorization.codeChallengeMethod,
+      })
     ) {
       throw new UnauthorizedException(INVALID_INSTALL_CODE_MESSAGE)
     }

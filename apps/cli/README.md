@@ -26,7 +26,7 @@ npx bayes apps install <slug> --frontend https://connect.localhost:5173
 
 ## Install callback URLs (`redirect_uri`)
 
-After approval, the browser redirects to `redirect_uri` with a short-lived one-time `code` and `state` only. The client secret is never put in the URL. The CLI (and deployed apps) exchange that code for credentials with `POST /apps/v1/install/exchange`.
+After approval, the browser redirects to `redirect_uri` with a short-lived one-time `code` and `state` only. The client secret is never put in the URL. The CLI (and deployed apps) start the flow with PKCE (`code_challenge` / `S256`) and exchange the code plus `code_verifier` for credentials with `POST /apps/v1/install/exchange`.
 
 The platform accepts `redirect_uri` when:
 

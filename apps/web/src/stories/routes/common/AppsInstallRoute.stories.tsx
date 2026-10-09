@@ -11,8 +11,9 @@ const page = appInstallPageFactory.build({
   app: { name: "Helpful Assistant", slug: "helpful-assistant" },
 })
 
-const loopbackEntry =
-  "/apps/install/helpful-assistant?redirect_uri=http%3A%2F%2F127.0.0.1%3A8787%2Fcallback&state=csrf-state"
+const pkceQuery =
+  "code_challenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM&code_challenge_method=S256"
+const loopbackEntry = `/apps/install/helpful-assistant?redirect_uri=http%3A%2F%2F127.0.0.1%3A8787%2Fcallback&state=csrf-state&${pkceQuery}`
 
 function renderAt(initialEntry: string, withPage: boolean) {
   return () => {
@@ -81,6 +82,8 @@ export const InvalidRedirect: Story = {
           slug: "helpful-assistant",
           redirectUri: "",
           callbackState: "",
+          codeChallenge: "",
+          codeChallengeMethod: "",
         }),
       ),
     })
@@ -118,7 +121,7 @@ export const AllowlistedHttps: Story = {
     })
     const router = createMemoryRouter([appsInstallRoute], {
       initialEntries: [
-        `/apps/install/helpful-assistant?redirect_uri=${encodeURIComponent(registeredRedirectUri)}&state=csrf-state`,
+        `/apps/install/helpful-assistant?redirect_uri=${encodeURIComponent(registeredRedirectUri)}&state=csrf-state&${pkceQuery}`,
       ],
     })
     return (

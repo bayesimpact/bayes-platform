@@ -23,6 +23,8 @@ function useSetCurrentIds() {
   const [searchParams] = useSearchParams()
   const redirectUri = searchParams.get("redirect_uri") ?? ""
   const callbackState = searchParams.get("state") ?? ""
+  const codeChallenge = searchParams.get("code_challenge") ?? ""
+  const codeChallengeMethod = searchParams.get("code_challenge_method") ?? ""
 
   useEffect(() => {
     dispatch(
@@ -30,9 +32,11 @@ function useSetCurrentIds() {
         slug: slug ?? null,
         redirectUri,
         callbackState,
+        codeChallenge,
+        codeChallengeMethod,
       }),
     )
-  }, [callbackState, dispatch, redirectUri, slug])
+  }, [callbackState, codeChallenge, codeChallengeMethod, dispatch, redirectUri, slug])
 
   return slug ?? null
 }

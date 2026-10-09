@@ -178,6 +178,8 @@ describe("Apps - Auth", () => {
             permissions: ["document.read"],
             redirectUri: "http://127.0.0.1:8787/callback",
             state: "csrf-state",
+            codeChallenge: "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+            codeChallengeMethod: "S256",
           },
         },
       })

@@ -1,6 +1,7 @@
 import { randomBytes, timingSafeEqual } from "node:crypto"
 import { createServer, type Server } from "node:http"
 import { appManifestSlugSchema, parseLoopbackRedirectUri } from "@caseai-connect/api-contracts"
+import { codeChallengeS256, generateCodeVerifier } from "./pkce"
 
 const DEFAULT_TIMEOUT_MS = 5 * 60 * 1000
 
@@ -22,6 +23,7 @@ export type AppsInstallIO = {
   exchangeInstallCode?: (params: {
     code: string
     redirectUri: string
+    codeVerifier: string
     apiOrigin: string
   }) => Promise<AppsInstallCredentials>
 }
@@ -66,6 +68,8 @@ export async function runAppsInstall(io: AppsInstallIO): Promise<number> {
   }
 
   const state = io.state ?? randomBytes(32).toString("base64url")
+  const codeVerifier = generateCodeVerifier()
+  const codeChallenge = codeChallengeS256(codeVerifier)
   let callbackRedirectUri = ""
   const outcome = await waitForCallback({
     state,
@@ -77,6 +81,8 @@ export async function runAppsInstall(io: AppsInstallIO): Promise<number> {
       const installUrl = new URL(`/apps/install/${slug.data}`, frontendOrigin)
       installUrl.searchParams.set("redirect_uri", redirectUri)
       installUrl.searchParams.set("state", state)
+      installUrl.searchParams.set("code_challenge", codeChallenge)
+      installUrl.searchParams.set("code_challenge_method", "S256")
       io.write(
         `${style(`Approve ${slug.data} in your browser.`, io.color, "1;35")}\n${style("This command waits here until you do.", io.color, "2")}\n\n${style(installUrl.toString(), io.color, "2")}\n`,
       )
@@ -91,6 +97,7 @@ export async function runAppsInstall(io: AppsInstallIO): Promise<number> {
       credentials = await exchange({
         code: outcome.code,
         redirectUri: callbackRedirectUri,
+        codeVerifier,
         apiOrigin,
       })
     } catch (error) {
@@ -123,12 +130,17 @@ export function parseApiOrigin(raw: string): string {
 async function defaultExchangeInstallCode(params: {
   code: string
   redirectUri: string
+  codeVerifier: string
   apiOrigin: string
 }): Promise<AppsInstallCredentials> {
   const response = await fetch(`${params.apiOrigin}/apps/v1/install/exchange`, {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ code: params.code, redirect_uri: params.redirectUri }),
+    body: JSON.stringify({
+      code: params.code,
+      redirect_uri: params.redirectUri,
+      code_verifier: params.codeVerifier,
+    }),
   })
   if (!response.ok) {
     throw new Error("Failed to exchange the install authorization code")

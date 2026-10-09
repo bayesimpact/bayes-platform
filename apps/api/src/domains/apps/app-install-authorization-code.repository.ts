@@ -11,6 +11,8 @@ export type AppInstallAuthorizationCodeRecord = {
   clientId: string
   clientSecret: string | null
   redirectUri: string
+  codeChallenge: string
+  codeChallengeMethod: string
   expiresAt: Date
   consumedAt: Date | null
 }
@@ -25,6 +27,8 @@ export class AppInstallAuthorizationCodeRepository {
     clientId: string
     clientSecret: string
     redirectUri: string
+    codeChallenge: string
+    codeChallengeMethod: string
     expiresAt: Date
   }): Promise<AppInstallAuthorizationCodeRecord> {
     const saved = await this.repo().save(this.repo().create(params))
@@ -63,6 +67,8 @@ export class AppInstallAuthorizationCodeRepository {
       clientId: row.clientId,
       clientSecret: row.clientSecret,
       redirectUri: row.redirectUri,
+      codeChallenge: row.codeChallenge,
+      codeChallengeMethod: row.codeChallengeMethod,
       expiresAt: row.expiresAt,
       consumedAt: row.consumedAt,
     }

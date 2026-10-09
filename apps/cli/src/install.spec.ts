@@ -38,6 +38,8 @@ describe("runAppsInstall", () => {
     expect(lines[0]).toContain("/apps/install/sitecrawler?")
     expect(lines[0]).toContain("redirect_uri=http%3A%2F%2Flocalhost%3A")
     expect(lines[0]).toContain("state=session-state")
+    expect(lines[0]).toContain("code_challenge=")
+    expect(lines[0]).toContain("code_challenge_method=S256")
     const printed = lines.join("")
     expect(printed).toContain("sitecrawler is installed")
     expect(printed).toContain("Client id")

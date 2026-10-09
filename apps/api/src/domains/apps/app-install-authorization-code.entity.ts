@@ -25,6 +25,13 @@ export class AppInstallAuthorizationCode extends Base4AllEntity {
   @Column({ type: "varchar", name: "redirect_uri" })
   redirectUri!: string
 
+  /** RFC 7636 S256 code_challenge from the installing client. */
+  @Column({ type: "varchar", name: "code_challenge" })
+  codeChallenge!: string
+
+  @Column({ type: "varchar", name: "code_challenge_method", length: 8 })
+  codeChallengeMethod!: string
+
   @Column({ type: "timestamptz", name: "expires_at" })
   expiresAt!: Date
 

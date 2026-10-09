@@ -138,12 +138,22 @@ export type AppInstallationSummaryDto = {
   createdAt: TimeType
 }
 
+/** RFC 7636 code_challenge / code_verifier charset and length. */
+const pkceValueSchema = z
+  .string()
+  .trim()
+  .min(43)
+  .max(128)
+  .regex(/^[A-Za-z0-9_-]+$/, "Must be a base64url PKCE value")
+
 export const authorizeAppInstallSchema = z
   .object({
     projectId: z.string().uuid(),
     permissions: z.array(grantablePermissionSchema),
     redirectUri: z.string().url(),
     state: z.string().min(1).max(512),
+    codeChallenge: pkceValueSchema,
+    codeChallengeMethod: z.literal("S256"),
   })
   .strict()
 
@@ -159,6 +169,7 @@ export const exchangeAppInstallCodeSchema = z
   .object({
     code: z.string().trim().min(1).max(128),
     redirect_uri: z.string().url(),
+    code_verifier: pkceValueSchema,
   })
   .strict()
 

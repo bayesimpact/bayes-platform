@@ -16,6 +16,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Security
 - Apps: install redirects return a one-time code instead of the client secret in the URL.
+- Apps: install code exchange requires PKCE so a stolen code cannot be redeemed alone.
 - Apps: registered install callbacks must use HTTPS; loopback and `*.localhost` may still use HTTP.
 - Apps: revoking an installation now cuts the app's access at once.
 
