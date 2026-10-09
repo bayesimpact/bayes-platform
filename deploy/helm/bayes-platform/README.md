@@ -31,7 +31,7 @@ Minimum cluster size for the self-contained install without GPU: 4 vCPU and 8 Gi
 
 ## Images
 
-Every release publishes the six images, public, on GitHub Container Registry: `ghcr.io/bayesimpact/bayes-platform/<component>:<version>` (for example `.../app:26.09.1`). Every push to `main` also publishes `sha-<short sha>` and `latest`. No credentials are needed to pull them.
+Every release publishes the six images, public, on GitHub Container Registry: `ghcr.io/bayesimpact/bayes-platform/<component>:<version>` (for example `.../app:26.09.1`). Every push to `main` also publishes `main`, `latest` and `main-<run>-<short sha>` once the tests pass (every build also pushes `sha-<short sha>`, tests or not). No credentials are needed to pull them.
 
 The chart is published as an OCI artifact under the release version without the leading zero of the month (release `26.09.1`, chart `26.9.1`: CalVer allows the zero, semver does not, and OCI chart tags are semver):
 
