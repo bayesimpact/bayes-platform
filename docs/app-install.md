@@ -52,7 +52,7 @@ sequenceDiagram
   Client->>Client: Check state
   Client->>API: POST /api/apps/v1/install/exchange
   API-->>Client: client_id and client_secret
-  Note over Client: Store secret once; never in the URL
+  Note over Client: Store the secret once - never put it in a URL
 ```
 
 ### After install (API access)
@@ -62,9 +62,9 @@ sequenceDiagram
   participant Client as Installing client
   participant API as API
 
-  Client->>API: POST /api/apps/v1/token (client_credentials)
+  Client->>API: POST /api/apps/v1/token client_credentials
   API-->>Client: access_token App JWT
-  Client->>API: Authenticated apps/v1 calls e.g. GET /api/apps/v1/me
+  Client->>API: Authenticated apps/v1 calls such as GET /api/apps/v1/me
 ```
 
 ## Install URL (browser entry)
