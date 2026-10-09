@@ -9,9 +9,9 @@ import { Organization } from "@/domains/organizations/organization.entity"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
 import { Project } from "@/domains/projects/project.entity"
 import { ProjectsModule } from "@/domains/projects/projects.module"
+import { RbacModule } from "@/domains/rbac/rbac.module"
 import { UsersModule } from "@/domains/users/users.module"
 import { Agent } from "../../../agent.entity"
-import { AgentGuard } from "../../../agent.guard"
 import { AgentsModule } from "../../../agents.module"
 import { AgentMessage } from "../agent-message.entity"
 import { AgentMessageFeedbackController } from "./agent-message-feedback.controller"
@@ -26,10 +26,10 @@ import { AgentMessageFeedbackService } from "./agent-message-feedback.service"
     OrganizationsModule,
     ProjectsModule,
     AgentsModule,
+    RbacModule,
   ],
   providers: [
     AgentMessageFeedbackService,
-    AgentGuard,
     ResourceContextGuard,
     OrganizationContextResolver,
     ProjectContextResolver,

@@ -322,6 +322,17 @@ export const PROJECT_AGENT_SESSION_CATEGORY_DELETE_PERMISSION =
   "project.agent_session_category.delete" as const
 
 /**
+ * Feedback left on an agent's messages. Every project role can leave feedback from a
+ * conversation, while reading an agent's feedback stays with project owners and admins.
+ * Scoped to the project and never inherited from the organization.
+ */
+export const PROJECT_AGENT_MESSAGE_FEEDBACK_READ_PERMISSION =
+  "project.agent_message_feedback.read" as const
+
+export const PROJECT_AGENT_MESSAGE_FEEDBACK_CREATE_PERMISSION =
+  "project.agent_message_feedback.create" as const
+
+/**
  * MCP servers of a project, and turning them on or off for its agents. Scoped to the project
  * and never inherited from the organization.
  */

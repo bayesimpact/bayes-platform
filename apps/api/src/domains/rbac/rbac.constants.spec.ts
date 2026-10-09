@@ -65,6 +65,8 @@ import {
   EVALUATION_UI_READ_PERMISSION,
   intersectWithAppGrantablePermissions,
   ORGANIZATION_ROLE_PERMISSIONS,
+  PROJECT_AGENT_MESSAGE_FEEDBACK_CREATE_PERMISSION,
+  PROJECT_AGENT_MESSAGE_FEEDBACK_READ_PERMISSION,
   PROJECT_AGENT_SESSION_CATEGORY_CREATE_PERMISSION,
   PROJECT_AGENT_SESSION_CATEGORY_DELETE_PERMISSION,
   PROJECT_ANALYTICS_READ_PERMISSION,
@@ -656,6 +658,44 @@ describe("project agent session category permissions", () => {
   it("never inherits session categories from the organization", () => {
     const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
     for (const permission of sessionCategoryPermissions) {
+      expect(inheritable).not.toContain(permission)
+    }
+  })
+})
+
+describe("project agent message feedback permissions", () => {
+  const rolesHolding = (rolePermissions: Record<string, readonly string[]>, permission: string) =>
+    Object.entries(rolePermissions)
+      .filter(([_roleKey, permissions]) => permissions.includes(permission))
+      .map(([roleKey]) => roleKey)
+
+  it("grants project.agent_message_feedback.create to every project role only", () => {
+    const permission = PROJECT_AGENT_MESSAGE_FEEDBACK_CREATE_PERMISSION
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
+      "project_owner",
+      "project_admin",
+      "project_member",
+    ])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
+  })
+
+  it("grants project.agent_message_feedback.read to project owners and admins only", () => {
+    const permission = PROJECT_AGENT_MESSAGE_FEEDBACK_READ_PERMISSION
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
+      "project_owner",
+      "project_admin",
+    ])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
+  })
+
+  it("never inherits message feedback from the organization", () => {
+    const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
+    for (const permission of [
+      PROJECT_AGENT_MESSAGE_FEEDBACK_CREATE_PERMISSION,
+      PROJECT_AGENT_MESSAGE_FEEDBACK_READ_PERMISSION,
+    ]) {
       expect(inheritable).not.toContain(permission)
     }
   })

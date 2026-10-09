@@ -14,6 +14,7 @@ import { conversationAgentSessionFactory } from "@/domains/agents/conversation-a
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { createOrganizationWithAgentMessage } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../../../test/request"
 import { agentMessageFactory } from "../../agent-messages.factory"
 import { agentMessageFeedbackFactory } from "../agent-message-feedback.factory"
@@ -37,6 +38,7 @@ describe("AgentMessageFeedbackRoutes.getAll", () => {
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)
