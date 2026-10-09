@@ -18,4 +18,7 @@ export class AppManifest extends Base4AllEntity {
 
   @Column({ type: "jsonb", name: "grantable_permissions", default: [] })
   grantablePermissions!: string[]
+
+  @Column({ type: "jsonb", name: "allowed_redirect_uris", default: [] })
+  allowedRedirectUris!: string[]
 }

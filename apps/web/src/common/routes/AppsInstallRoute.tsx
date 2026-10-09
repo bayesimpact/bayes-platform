@@ -1,14 +1,17 @@
+import { isAllowedInstallRedirectUri } from "@caseai-connect/api-contracts"
 import { useEffect } from "react"
 import { useTranslation } from "react-i18next"
 import { useParams, useSearchParams } from "react-router-dom"
 import {
-  selectAppInstallHasValidLoopback,
+  selectAppInstallHasValidCallbackParams,
   selectAppInstallPage,
+  selectAppInstallRedirectUri,
   selectAppInstallSlug,
 } from "@/common/features/app-install/app-install.selectors"
 import { appInstallActions } from "@/common/features/app-install/app-install.slice"
 import { AppsInstallCard } from "@/common/features/app-install/components/AppsInstallCard"
 import { useMount } from "@/common/hooks/use-mount"
+import { useValue } from "@/common/hooks/use-value"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { AsyncRoute } from "./AsyncRoute"
 import { ErrorRoute } from "./ErrorRoute"
@@ -38,23 +41,35 @@ export function AppsInstallRoute() {
   const { t } = useTranslation("appInstall")
   const slugParam = useSetCurrentIds()
   const slug = useAppSelector(selectAppInstallSlug)
-  const hasValidLoopback = useAppSelector(selectAppInstallHasValidLoopback)
+  const hasValidCallbackParams = useAppSelector(selectAppInstallHasValidCallbackParams)
   const page = useAppSelector(selectAppInstallPage)
   const idsReady = slug === slugParam
 
   useMount({
     actions: appInstallActions,
-    condition: idsReady && !!slug && hasValidLoopback,
+    condition: idsReady && !!slug && hasValidCallbackParams,
     refreshOn: [slug],
   })
 
   if (!idsReady) return <LoadingRoute />
   if (!slug) return <ErrorRoute error={t("missingSlug")} />
-  if (!hasValidLoopback) return <ErrorRoute error={t("invalidRedirect")} />
+  if (!hasValidCallbackParams) return <ErrorRoute error={t("invalidRedirect")} />
 
   return (
     <AsyncRoute data={[page]}>
-      <AppsInstallCard />
+      <AllowedRedirectGate />
     </AsyncRoute>
   )
+}
+
+function AllowedRedirectGate() {
+  const { t } = useTranslation("appInstall")
+  const page = useValue(selectAppInstallPage)
+  const redirectUri = useAppSelector(selectAppInstallRedirectUri)
+
+  if (!isAllowedInstallRedirectUri(redirectUri, page.app.allowedRedirectUris)) {
+    return <ErrorRoute error={t("unregisteredRedirect")} />
+  }
+
+  return <AppsInstallCard />
 }

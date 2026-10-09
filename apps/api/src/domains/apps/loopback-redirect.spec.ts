@@ -1,7 +1,11 @@
 import {
+  assertAllowedInstallRedirectUri,
   buildAppInstallCallbackUrl,
   buildAppInstallDeniedUrl,
+  InvalidInstallRedirectUriError,
   InvalidLoopbackRedirectUriError,
+  isAllowedInstallRedirectUri,
+  isHttpRedirectUri,
   isLoopbackRedirectUri,
   parseLoopbackRedirectUri,
 } from "@caseai-connect/api-contracts"
@@ -43,5 +47,54 @@ describe("loopback redirect URIs", () => {
         state: "abc",
       }),
     ).toBe("http://127.0.0.1:8787/callback?error=access_denied&state=abc")
+  })
+
+  it("builds callback URLs for registered HTTPS redirects", () => {
+    expect(
+      buildAppInstallCallbackUrl({
+        redirectUri: "https://app.example.com/auth/bayes/callback",
+        clientId: "client-id",
+        clientSecret: "client-secret",
+        state: "abc",
+      }),
+    ).toBe(
+      "https://app.example.com/auth/bayes/callback?client_id=client-id&client_secret=client-secret&state=abc",
+    )
+  })
+})
+
+describe("allowed install redirect URIs", () => {
+  const allowlist = [
+    "http://localhost:3100/auth/bayes/callback",
+    "https://site-crawler.staging.bayes.org/auth/bayes/callback",
+  ]
+
+  it("accepts loopback without allowlist registration", () => {
+    expect(isAllowedInstallRedirectUri("http://127.0.0.1:8787/callback", [])).toBe(true)
+    expect(isHttpRedirectUri("https://app.example.com/callback")).toBe(true)
+  })
+
+  it("accepts exact allowlist matches", () => {
+    const localCallback = "http://localhost:3100/auth/bayes/callback"
+    expect(
+      isAllowedInstallRedirectUri(
+        "https://site-crawler.staging.bayes.org/auth/bayes/callback",
+        allowlist,
+      ),
+    ).toBe(true)
+    expect(assertAllowedInstallRedirectUri(localCallback, allowlist)).toBe(localCallback)
+  })
+
+  it("rejects non-allowlisted non-loopback URIs", () => {
+    expect(isAllowedInstallRedirectUri("https://evil.example/callback", allowlist)).toBe(false)
+    expect(
+      isAllowedInstallRedirectUri(
+        "https://site-crawler.staging.bayes.org/auth/bayes/callback/",
+        allowlist,
+      ),
+    ).toBe(false)
+    expect(() =>
+      assertAllowedInstallRedirectUri("https://evil.example/callback", allowlist),
+    ).toThrow(InvalidInstallRedirectUriError)
   })
 })

@@ -51,6 +51,7 @@ export class AppsController {
       description: body.payload.description ?? null,
       logoUrl: body.payload.logoUrl ?? null,
       grantablePermissions: body.payload.grantablePermissions,
+      allowedRedirectUris: body.payload.allowedRedirectUris ?? [],
     })
     return { data: toAppManifestDto(manifest) }
   }
@@ -89,6 +90,7 @@ function toAppManifestDto(manifest: AppManifestRecord): AppManifestDto {
     description: manifest.description,
     logoUrl: manifest.logoUrl,
     grantablePermissions: manifest.grantablePermissions as AppManifestDto["grantablePermissions"],
+    allowedRedirectUris: manifest.allowedRedirectUris,
     createdAt: manifest.createdAt.getTime(),
   }
 }

@@ -11,6 +11,7 @@ export type AppManifestDto = {
   description: string | null
   logoUrl: string | null
   grantablePermissions: AppGrantablePermission[]
+  allowedRedirectUris: string[]
   createdAt: TimeType
 }
 
@@ -28,6 +29,22 @@ const grantablePermissionSchema = z.enum(
 
 const emptyToNull = (value: string | null | undefined) => (value ? value : null)
 
+const httpRedirectUriSchema = z
+  .string()
+  .trim()
+  .url()
+  .max(2048)
+  .refine((value) => {
+    try {
+      const url = new URL(value)
+      return url.protocol === "http:" || url.protocol === "https:"
+    } catch {
+      return false
+    }
+  }, "Must be an http(s) URL")
+
+export const allowedRedirectUrisSchema = z.array(httpRedirectUriSchema).max(20)
+
 export const createAppManifestSchema = z
   .object({
     name: z.string().trim().min(2).max(100),
@@ -44,10 +61,19 @@ export const createAppManifestSchema = z
       .optional()
       .transform((value) => (value === "" || value === undefined ? null : value)),
     grantablePermissions: z.array(grantablePermissionSchema),
+    allowedRedirectUris: allowedRedirectUrisSchema.optional().transform((value) => value ?? []),
   })
   .strict()
 
-export type CreateAppManifestRequestDto = z.infer<typeof createAppManifestSchema>
+export type CreateAppManifestRequestDto = {
+  name: string
+  slug: string
+  description?: string | null
+  logoUrl?: string | null
+  grantablePermissions: AppGrantablePermission[]
+  /** Omitted on create → empty allowlist (loopback install still works). */
+  allowedRedirectUris?: string[]
+}
 
 export const updateAppManifestSchema = z
   .object({
@@ -65,6 +91,7 @@ export const updateAppManifestSchema = z
       .optional()
       .transform((value) => (value === undefined ? undefined : value === "" ? null : value)),
     grantablePermissions: z.array(grantablePermissionSchema).optional(),
+    allowedRedirectUris: allowedRedirectUrisSchema.optional(),
   })
   .strict()
 
@@ -74,6 +101,7 @@ export type UpdateAppManifestRequestDto = {
   description?: string | null
   logoUrl?: string | null
   grantablePermissions?: AppGrantablePermission[]
+  allowedRedirectUris?: string[]
 }
 
 export type AppInstallProjectDto = {
@@ -91,6 +119,7 @@ export type AppInstallPageDto = {
     description: string | null
     logoUrl: string | null
     grantablePermissions: AppGrantablePermission[]
+    allowedRedirectUris: string[]
   }
   projects: AppInstallProjectDto[]
 }

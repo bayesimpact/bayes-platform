@@ -2,8 +2,8 @@ import { randomUUID } from "node:crypto"
 import {
   type AppGrantablePermission,
   appClientCredentialsTokenSchema,
-  InvalidLoopbackRedirectUriError,
-  parseLoopbackRedirectUri,
+  assertAllowedInstallRedirectUri,
+  InvalidInstallRedirectUriError,
 } from "@caseai-connect/api-contracts"
 import {
   BadRequestException,
@@ -121,7 +121,11 @@ export class AppsService {
   async createAppManifest(fields: CreateAppManifestFields): Promise<AppManifestRecord> {
     const grantablePermissions = this.requireGrantablePermissions(fields.grantablePermissions)
     await this.assertSlugAvailable(fields.slug)
-    return this.appManifestRepository.createManifest({ ...fields, grantablePermissions })
+    return this.appManifestRepository.createManifest({
+      ...fields,
+      grantablePermissions,
+      allowedRedirectUris: fields.allowedRedirectUris ?? [],
+    })
   }
 
   async updateAppManifest(
@@ -184,8 +188,8 @@ export class AppsService {
     redirectUri: string
     state: string
   }): Promise<AuthorizeAppInstallResult> {
-    const redirectUri = this.requireLoopbackRedirectUri(params.redirectUri)
     const app = await this.requireManifestBySlug(params.slug)
+    const redirectUri = this.requireInstallRedirectUri(params.redirectUri, app.allowedRedirectUris)
     const selectedPermissions = this.requireInstallPermissions(
       params.permissions,
       app.grantablePermissions,
@@ -335,12 +339,11 @@ export class AppsService {
     }
   }
 
-  private requireLoopbackRedirectUri(raw: string): string {
+  private requireInstallRedirectUri(raw: string, allowlist: readonly string[]): string {
     try {
-      parseLoopbackRedirectUri(raw)
-      return raw
+      return assertAllowedInstallRedirectUri(raw, allowlist)
     } catch (error) {
-      if (error instanceof InvalidLoopbackRedirectUriError) {
+      if (error instanceof InvalidInstallRedirectUriError) {
         throw new BadRequestException(error.message)
       }
       throw error

@@ -476,6 +476,7 @@ export type AppManifest = {
   description: string | null
   logoUrl: string | null
   grantablePermissions: AppGrantablePermission[]
+  allowedRedirectUris: string[]
   createdAt: TimeType
 }
 
@@ -485,6 +486,7 @@ export type CreateAppManifestInput = {
   description: string | null
   logoUrl: string | null
   grantablePermissions: AppGrantablePermission[]
+  allowedRedirectUris?: string[]
 }
 
 export type UpdateAppManifestInput = Partial<CreateAppManifestInput>
@@ -496,5 +498,6 @@ export const toAppManifest = (dto: AppManifestDto): AppManifest => ({
   description: dto.description,
   logoUrl: dto.logoUrl,
   grantablePermissions: dto.grantablePermissions,
+  allowedRedirectUris: dto.allowedRedirectUris,
   createdAt: dto.createdAt,
 })

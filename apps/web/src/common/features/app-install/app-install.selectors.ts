@@ -1,4 +1,4 @@
-import { isLoopbackRedirectUri } from "@caseai-connect/api-contracts"
+import { isHttpRedirectUri } from "@caseai-connect/api-contracts"
 import type { RootState } from "@/common/store"
 
 export const selectAppInstallPage = (state: RootState) => state.appInstall.page
@@ -9,5 +9,6 @@ export const selectAppInstallCallbackState = (state: RootState) => state.appInst
 export const selectProjectInstallations = (state: RootState) =>
   state.appInstall.projectInstallations
 
-export const selectAppInstallHasValidLoopback = (state: RootState): boolean =>
-  isLoopbackRedirectUri(state.appInstall.redirectUri) && state.appInstall.callbackState.length > 0
+/** Query params present and syntactically valid before the install page loads. */
+export const selectAppInstallHasValidCallbackParams = (state: RootState): boolean =>
+  isHttpRedirectUri(state.appInstall.redirectUri) && state.appInstall.callbackState.length > 0
