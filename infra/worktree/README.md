@@ -8,13 +8,13 @@ and http://dev.connect.localhost:8800 lists every environment of the machine.
 
 ## Daily use
 
-In Claude Code, `/worktree fix-sidebar` creates `.claude/worktrees/fix-sidebar`, moves the session
-there and starts the environment (a few minutes the first time). In any worktree, Claude's or not,
-`npm run wt -- up` does the same.
+In Claude Code, `/worktree-env fix-sidebar` creates `.claude/worktrees/fix-sidebar`, moves the
+session there and starts the environment (a few minutes the first time). In any worktree, Claude's
+or not, `npm run wt -- up` does the same.
 
-The name gives the URLs, and an issue number works too: `/worktree 135` shows the title of issue
-135 (from bayes-platform or internal-issues) and serves the app on
-`http://135.connect.localhost:8800`. `/worktree` alone proposes a name.
+The name gives the URLs, and an issue number works too: `/worktree-env 135` shows the title of
+issue 135 (from bayes-platform or internal-issues) and serves the app on
+`http://135.connect.localhost:8800`. `/worktree-env` alone proposes a name.
 
 | Command (`npm run wt -- ...`) | What it does |
 |---|---|
@@ -109,7 +109,7 @@ Chrome or Firefox: Safari does not resolve `*.localhost`. Windows is not support
   of the branch) and run `npm run wt -- up` again.
 - **A URL shows "not answering yet".** The service is starting or restarting; the page reloads by
   itself. `npm run wt -- logs <service>` tells why when it lasts.
-- **"No environment answers at ..."** Start it with `/worktree <name>`, or `npm run wt -- up` in
+- **"No environment answers at ..."** Start it with `/worktree-env <name>`, or `npm run wt -- up` in
   that worktree.
 - **Signed out after a restart.** Dex keeps its keys in memory: sign in again.
 - **Someone invited in the environment cannot sign in.** `npm run wt -- dex-sync`.

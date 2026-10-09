@@ -146,7 +146,7 @@
     environments.replaceChildren(
       ...(state.environments.length
         ? state.environments.map(environmentCard)
-        : [element("p", { className: "empty", text: "No environment yet. Start one from Claude Code with /worktree <name>." })]),
+        : [element("p", { className: "empty", text: "No environment yet. Start one from Claude Code with /worktree-env <name>." })]),
     )
     document.getElementById("shared").replaceChildren(
       ...state.shared.map((entry) =>

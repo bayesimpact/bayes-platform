@@ -1,5 +1,5 @@
 ---
-name: worktree
+name: worktree-env
 description: Create a git worktree with its own dev environment (web app, API, workers, Storybooks, Grafana, Bull Board, Dex, a Phoenix project and databases copied from the local one) on http://<name>.connect.localhost:8800, the name being a short name or an issue number, or manage the environment of the current worktree (status, logs, restart, stop, start, reset-db, down). Use when the user asks to start work in a new worktree, to work on an issue in its own environment, to see a branch running, or about the environment of a worktree.
 argument-hint: "[<name> | <issue number>] | status | logs [service] | restart [service] | stop | start | reset-db | dex-sync | down"
 ---
