@@ -16,15 +16,10 @@ export const WEB_CLIENT_ID = "platform-web"
 export const BULL_BOARD_CLIENT_ID = "bull-board"
 export const BULL_BOARD_CLIENT_SECRET = "local-bull-board-secret"
 
-// The origins of config.sample.yaml, kept so a generated config still serves them.
-export const SAMPLE_WEB_REDIRECT_URIS = [
+// The CORS origins of the API when FRONTEND_URL is empty (apps/api/src/config/cors.ts).
+const DEFAULT_FRONTEND_ORIGINS = [
   "https://connect.localhost:5173",
   "https://connect.localhost:5174",
-  "http://localhost:5173",
-  "https://connect.localhost:3000",
-]
-export const SAMPLE_BULL_BOARD_REDIRECT_URIS = [
-  "https://connect.localhost:3000/api/internal/bull-board/oauth/callback",
 ]
 
 const HEADER = `# Generated from the users of a local database. Edits are overwritten the next time
@@ -80,6 +75,21 @@ export function buildDexConfig({
  */
 export function usernameOf(user) {
   return user.name?.trim() || user.email
+}
+
+/**
+ * The web app origins of FRONTEND_URL, read like the API's CORS outside production
+ * (parseFrontendUrls in apps/api/src/config/cors.ts), so Dex accepts the origins the API does.
+ */
+export function frontendOrigins(frontendUrl) {
+  const origins = (frontendUrl ?? "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean)
+    .map((origin) =>
+      origin.startsWith("http://") || origin.startsWith("https://") ? origin : `https://${origin}`,
+    )
+  return origins.length > 0 ? origins : [...DEFAULT_FRONTEND_ORIGINS]
 }
 
 /**
