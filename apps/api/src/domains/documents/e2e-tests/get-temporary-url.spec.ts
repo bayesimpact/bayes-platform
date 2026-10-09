@@ -13,6 +13,7 @@ import { DocumentTag } from "@/domains/documents/tags/document-tag.entity"
 import { documentTagFactory } from "@/domains/documents/tags/document-tag.factory"
 import { createOrganizationWithDocument } from "@/domains/organizations/organization.factory"
 import type { ProjectMembershipFixture } from "@/domains/projects/memberships/project-membership.types"
+import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { DocumentsModule } from "../documents.module"
 import { withDocumentAuthAndEmbeddingsMocks } from "../test-overrides"
@@ -37,6 +38,7 @@ describe("Documents - getTemporaryUrl", () => {
         withDocumentAuthAndEmbeddingsMocks(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)

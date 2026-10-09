@@ -13,6 +13,7 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { createOrganizationWithDocument } from "@/domains/organizations/organization.factory"
+import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { Document } from "../document.entity"
 import { DocumentsModule } from "../documents.module"
@@ -42,6 +43,7 @@ describe("Documents - updateOne", () => {
         withDocumentAuthAndEmbeddingsMocks(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     expectActivityCreated = bindExpectActivityCreated(repositories.activityRepository)
     app = setup.module.createNestApplication()
     await app.init()
