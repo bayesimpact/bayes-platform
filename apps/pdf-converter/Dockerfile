@@ -1,4 +1,4 @@
-FROM golang:1.25-bookworm AS build
+FROM golang:1.26-bookworm AS build
 WORKDIR /src
 COPY apps/pdf-converter/go.mod apps/pdf-converter/go.sum ./
 RUN go mod download
