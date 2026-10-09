@@ -14,11 +14,9 @@ import { agentMessageFactory } from "@/domains/agents/shared/agent-session-messa
 import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
 import { createOrganizationWithAgentSession } from "@/domains/organizations/organization.factory"
 import { mockOidcEmailForSub, setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
-import {
-  assignConversationReviewerToUser,
-  ensureRbacCatalog,
-} from "../../../../../../test/rbac-test.helpers"
+import { ensureRbacCatalog } from "../../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../../test/request"
+import { grantConversationReview } from "../../../conversation-reviewers/agent-conversation-reviewer.factory"
 import { conversationAgentSessionFactory } from "../../conversation-agent-session.factory"
 import { ConversationAgentSessionsModule } from "../../conversation-agent-sessions.module"
 
@@ -89,7 +87,7 @@ describe("ConversationReviewRoutes.getOne", () => {
       organization,
       user: { authSubject, email: mockOidcEmailForSub(authSubject) },
     })
-    await assignConversationReviewerToUser({ repositories, user: reviewer })
+    await grantConversationReview({ repositories, user: reviewer, agent })
 
     return { ...context, firstMessage, secondMessage }
   }

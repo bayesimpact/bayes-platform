@@ -125,29 +125,29 @@ function registerListeners() {
     },
   })
 
-  // The user page reloads so its role list shows what the server now holds.
-  for (const roleThunk of [
-    backofficeActions.grantUserGlobalRole,
-    backofficeActions.revokeUserGlobalRole,
+  // The agent page reloads so its reviewer list shows what the server now holds.
+  for (const reviewerThunk of [
+    backofficeActions.grantAgentConversationReviewer,
+    backofficeActions.revokeAgentConversationReviewer,
   ]) {
     listenerMiddleware.startListening({
-      actionCreator: roleThunk.fulfilled,
+      actionCreator: reviewerThunk.fulfilled,
       effect: async (action, listenerApi) => {
         listenerApi.dispatch(
           notificationsActions.show({
-            titleKey: "backoffice:notifications.userRolesUpdated",
+            titleKey: "backoffice:notifications.conversationReviewersUpdated",
             type: "success",
           }),
         )
-        listenerApi.dispatch(backofficeActions.getUser(action.payload.userId))
+        listenerApi.dispatch(backofficeActions.getAgent(action.payload.agentId))
       },
     })
     listenerMiddleware.startListening({
-      actionCreator: roleThunk.rejected,
+      actionCreator: reviewerThunk.rejected,
       effect: async (action, listenerApi) => {
         listenerApi.dispatch(
           notificationsActions.show({
-            titleKey: "backoffice:notifications.userRolesUpdateError",
+            titleKey: "backoffice:notifications.conversationReviewersUpdateError",
             description: action.error.message,
             type: "error",
           }),

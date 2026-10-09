@@ -31,6 +31,8 @@ export interface IBackofficeSpi {
     search?: string
   }) => Promise<PaginatedBackofficeAgents>
   getAgent: (agentId: string) => Promise<BackofficeAgentDetail>
+  grantAgentConversationReviewer: (params: { agentId: string; email: string }) => Promise<void>
+  revokeAgentConversationReviewer: (params: { agentId: string; userId: string }) => Promise<void>
   listProjects: (params: {
     page?: number
     limit?: number
@@ -43,8 +45,6 @@ export interface IBackofficeSpi {
     search?: string
   }) => Promise<PaginatedBackofficeUsers>
   getUser: (userId: string) => Promise<BackofficeUserDetail>
-  grantUserGlobalRole: (params: { userId: string; roleKey: string }) => Promise<void>
-  revokeUserGlobalRole: (params: { userId: string; roleKey: string }) => Promise<void>
   getRbacCatalog: () => Promise<BackofficeRbacCatalog>
   addFeatureFlag: (params: { projectId: string; featureFlagKey: FeatureFlagKey }) => Promise<void>
   removeFeatureFlag: (params: {

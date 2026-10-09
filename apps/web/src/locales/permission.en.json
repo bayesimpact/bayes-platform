@@ -75,8 +75,7 @@
     "backoffice.organization.read": "See organizations in the backoffice",
     "backoffice.project.read": "See projects in the backoffice",
     "backoffice.project.update": "Mutate a project from the backoffice (e.g. feature flags)",
-    "backoffice.user.role.update": "Grant or revoke a user's conversation reviewer role from the backoffice",
-    "agent.conversation.review": "Read any conversation of an agent from its session id, for safety review",
+    "backoffice.conversation_reviewer.update": "Grant or revoke, agent by agent, the right to read any of its conversations for safety review",
     "backoffice.agent.read": "See agents in the backoffice",
     "backoffice.user.read": "See every user in the backoffice"
   },

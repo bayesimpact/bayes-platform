@@ -5,9 +5,12 @@ import { ShieldAlertIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { GridHeader } from "@/common/components/grid/Grid"
-import { selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
+import {
+  selectCurrentAgentData,
+  selectCurrentAgentId,
+} from "@/common/features/agents/agents.selectors"
 import { getAgentIcon } from "@/common/features/agents/components/AgentIcon"
-import { selectCanReviewConversations } from "@/common/features/me/me.selectors"
+import { selectCanReviewConversationsOfAgent } from "@/common/features/me/me.selectors"
 import { useGetAgentRoute } from "@/common/hooks/use-get-path"
 import { useMount } from "@/common/hooks/use-mount"
 import { useValue } from "@/common/hooks/use-value"
@@ -20,9 +23,10 @@ import { selectConversationReview } from "@/studio/features/conversation-review/
 import { conversationReviewActions } from "@/studio/features/conversation-review/conversation-review.slice"
 import { loadConversationReview } from "@/studio/features/conversation-review/conversation-review.thunks"
 
-/** Safety review: gated by the global `agent.conversation.review` permission, not by agent roles. */
+/** Safety review: open to the people granted it on this agent, whatever their role. */
 export function AgentConversationReviewRoute() {
-  const canReviewConversations = useAppSelector(selectCanReviewConversations)
+  const agentId = useAppSelector(selectCurrentAgentId)
+  const canReviewConversations = useAppSelector(selectCanReviewConversationsOfAgent(agentId))
 
   useMount({ actions: conversationReviewActions, condition: canReviewConversations })
 

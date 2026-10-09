@@ -84,7 +84,7 @@ export const Default: Story = {
           baseSeeds,
           seed.me({
             ...user,
-            globalPermissions: canReviewConversations ? ["agent.conversation.review"] : [],
+            conversationReviewAgentIds: canReviewConversations ? [currentAgent.id] : [],
           }),
           seed.agents([...restAgents, currentAgent], { currentId: currentAgent.id }),
           seed.conversationAgentSessions({ [currentAgent.id]: [] }),

@@ -1,18 +1,13 @@
 import { Injectable } from "@nestjs/common"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { type PlatformRoleKey, PlatformRoleRepository } from "./platform-role.repository"
-import {
-  CONVERSATION_REVIEWER_ROLE,
-  PLATFORM_STAFF_ROLE,
-  PLATFORM_SUPERADMIN_ROLE,
-} from "./rbac.constants"
+import { PLATFORM_STAFF_ROLE, PLATFORM_SUPERADMIN_ROLE } from "./rbac.constants"
 
 export type { PlatformRoleKey } from "./platform-role.repository"
 
 export const PLATFORM_ROLE_KEYS: readonly PlatformRoleKey[] = [
   PLATFORM_SUPERADMIN_ROLE,
   PLATFORM_STAFF_ROLE,
-  CONVERSATION_REVIEWER_ROLE,
 ]
 
 export function isPlatformRoleKey(value: string): value is PlatformRoleKey {
@@ -20,13 +15,13 @@ export function isPlatformRoleKey(value: string): value is PlatformRoleKey {
 }
 
 /**
- * Grants and revokes the global roles (platform_superadmin, platform_staff, conversation_reviewer).
+ * Grants and revokes the global roles (platform_superadmin, platform_staff).
  *
  * Deliberately not called at sign-in: granting a global role from the email
  * the identity provider reports would let anyone who can register an address
  * of the right shape become staff. Roles are granted by an operator, through
  * the platform-role command (scripts/platform-role.ts), the chart's
- * platformSuperadmins job, or the back office for the roles it may hand out.
+ * platformSuperadmins job, or later the back office.
  */
 @Injectable()
 export class PlatformRoleService {

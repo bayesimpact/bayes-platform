@@ -75,8 +75,7 @@
     "backoffice.organization.read": "Voir les organisations dans le backoffice",
     "backoffice.project.read": "Voir les projets dans le backoffice",
     "backoffice.project.update": "Modifier un projet depuis le backoffice (par exemple les feature flags)",
-    "backoffice.user.role.update": "Attribuer ou retirer le rôle de relecteur de conversations depuis le backoffice",
-    "agent.conversation.review": "Relire n'importe quelle conversation d'un agent à partir de son identifiant de session (revue de sécurité)",
+    "backoffice.conversation_reviewer.update": "Attribuer ou retirer, agent par agent, le droit de relire toutes ses conversations (revue de sécurité)",
     "backoffice.agent.read": "Voir les agents dans le backoffice",
     "backoffice.user.read": "Voir tous les utilisateurs dans le backoffice"
   },

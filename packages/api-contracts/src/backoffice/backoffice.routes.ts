@@ -9,12 +9,12 @@ import type {
   BackofficeRbacCatalogDto,
   BackofficeUserDetailDto,
   CreateBackofficeOrganizationRequestDto,
+  GrantBackofficeAgentConversationReviewerRequestDto,
   ListTermsDocumentsResponseDto,
   PaginatedBackofficeAgentsDto,
   PaginatedBackofficeOrganizationsDto,
   PaginatedBackofficeProjectsDto,
   PaginatedBackofficeUsersDto,
-  UpdateBackofficeUserGlobalRoleRequestDto,
   UpdateTermsDocumentsRequestDto,
 } from "./backoffice.dto"
 
@@ -42,6 +42,17 @@ export const BackofficeRoutes = {
     method: "get",
     path: "backoffice/agents/:agentId",
   }),
+  grantAgentConversationReviewer: defineRoute<
+    ResponseData<SuccessResponseDTO>,
+    RequestPayload<GrantBackofficeAgentConversationReviewerRequestDto>
+  >({
+    method: "post",
+    path: "backoffice/agents/:agentId/conversation-reviewers",
+  }),
+  revokeAgentConversationReviewer: defineRoute<ResponseData<SuccessResponseDTO>>({
+    method: "delete",
+    path: "backoffice/agents/:agentId/conversation-reviewers/:userId",
+  }),
   listUsers: defineRoute<ResponseData<PaginatedBackofficeUsersDto>>({
     method: "get",
     path: "backoffice/users",
@@ -49,17 +60,6 @@ export const BackofficeRoutes = {
   getUser: defineRoute<ResponseData<BackofficeUserDetailDto>>({
     method: "get",
     path: "backoffice/users/:userId",
-  }),
-  grantUserGlobalRole: defineRoute<
-    ResponseData<SuccessResponseDTO>,
-    RequestPayload<UpdateBackofficeUserGlobalRoleRequestDto>
-  >({
-    method: "post",
-    path: "backoffice/users/:userId/global-roles",
-  }),
-  revokeUserGlobalRole: defineRoute<ResponseData<SuccessResponseDTO>>({
-    method: "delete",
-    path: "backoffice/users/:userId/global-roles/:roleKey",
   }),
   listProjects: defineRoute<ResponseData<PaginatedBackofficeProjectsDto>>({
     method: "get",

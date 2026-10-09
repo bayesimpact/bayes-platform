@@ -84,6 +84,18 @@ export default {
     )
     return toBackofficeProjectDetail(response.data.data)
   },
+  grantAgentConversationReviewer: async ({ agentId, email }) => {
+    const axios = getAxiosInstance()
+    await axios.post(BackofficeRoutes.grantAgentConversationReviewer.getPath({ agentId }), {
+      payload: { email },
+    } satisfies typeof BackofficeRoutes.grantAgentConversationReviewer.request)
+  },
+  revokeAgentConversationReviewer: async ({ agentId, userId }) => {
+    const axios = getAxiosInstance()
+    await axios.delete(
+      BackofficeRoutes.revokeAgentConversationReviewer.getPath({ agentId, userId }),
+    )
+  },
   listUsers: async ({ page, limit, search }) => {
     const axios = getAxiosInstance()
     const queryParams: Record<string, string> = {}
@@ -103,16 +115,6 @@ export default {
       BackofficeRoutes.getUser.getPath({ userId }),
     )
     return toBackofficeUserDetail(response.data.data)
-  },
-  grantUserGlobalRole: async ({ userId, roleKey }) => {
-    const axios = getAxiosInstance()
-    await axios.post(BackofficeRoutes.grantUserGlobalRole.getPath({ userId }), {
-      payload: { roleKey },
-    } satisfies typeof BackofficeRoutes.grantUserGlobalRole.request)
-  },
-  revokeUserGlobalRole: async ({ userId, roleKey }) => {
-    const axios = getAxiosInstance()
-    await axios.delete(BackofficeRoutes.revokeUserGlobalRole.getPath({ userId, roleKey }))
   },
   getRbacCatalog: async () => {
     const axios = getAxiosInstance()

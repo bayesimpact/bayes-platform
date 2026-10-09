@@ -10,6 +10,7 @@ import {
   moduleImports,
   moduleProviders,
 } from "../base-agent-sessions/base-agent-sessions-module.helpers"
+import { AgentConversationReviewersModule } from "../conversation-reviewers/agent-conversation-reviewers.module"
 import { AgentMessageAttachmentDocumentsService } from "../shared/agent-session-messages/agent-message-attachment-documents.service"
 import { LiveAgentMessagesController } from "../shared/agent-session-messages/live-agent-messages.controller"
 import { McpAppHtmlService } from "../shared/agent-session-messages/mcp-app-html.service"
@@ -34,6 +35,7 @@ import { ConversationReviewService } from "./review/conversation-review.service"
     McpServersModule,
     PdfPagesModule,
     RbacModule,
+    AgentConversationReviewersModule,
   ],
   providers: [
     ...moduleProviders,

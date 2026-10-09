@@ -168,7 +168,7 @@ export const studioRoutes = {
               element: <AgentSessionRoute Component={StudioAgentSessionRoute} />,
             },
             {
-              // Gated by the global `agent.conversation.review` permission, not by agent roles.
+              // Gated by a safety review grant on the agent, not by agent roles.
               path: StudioRoutes.agentConversationReview.path,
               element: <AgentConversationReviewRoute />,
             },

@@ -9,23 +9,22 @@ This document mirrors those files. Whenever a role or a role/permission grant ch
 
 ## Global roles
 
-Global roles are stored as `user_membership` rows with `resource_type = 'global'`. `platform_staff` is renamed from `org_creator` and seeded by email domain (`SeedPlatformStaffByEmailDomain` / `ORGANIZATION_CREATOR_EMAIL_DOMAIN`). `platform_superadmin` is seeded from `BACKOFFICE_AUTHORIZED_EMAILS` by `SeedPlatformSuperadminByEmails`. The app itself never reads those env vars for authorization. `platform_staff` holds global `backoffice.project.read` so the App install picker is not empty for the people who hold `app.install`. `backoffice.app.manage` is superadmin-only and is not granted by `app.install`. `conversation_reviewer` is held by nobody by default: a holder of `backoffice.user.role.update` (superadmin) grants it person by person from the backoffice user page, and the superadmin role itself does not hold `agent.conversation.review`. Reading a conversation still needs a membership of its organization.
+Global roles are stored as `user_membership` rows with `resource_type = 'global'`. `platform_staff` is renamed from `org_creator` and seeded by email domain (`SeedPlatformStaffByEmailDomain` / `ORGANIZATION_CREATOR_EMAIL_DOMAIN`). `platform_superadmin` is seeded from `BACKOFFICE_AUTHORIZED_EMAILS` by `SeedPlatformSuperadminByEmails`. The app itself never reads those env vars for authorization. `platform_staff` holds global `backoffice.project.read` so the App install picker is not empty for the people who hold `app.install`. `backoffice.app.manage` is superadmin-only and is not granted by `app.install`. The right to read any conversation of an agent for safety review is not a role: it lives in the `agent_conversation_reviewer` table, one row per person and agent, granted from the backoffice agent page by a holder of `backoffice.conversation_reviewer.update`. Nobody holds it by default, superadmins included, and reading a conversation still needs a membership of its organization.
 
-| Permission | `platform_staff` | `platform_superadmin` | `conversation_reviewer` |
-|---|---|---|---|
-| `app.install` — install apps on a project | ✅ | ✅ | — |
-| `backoffice.app.manage` — manage app definitions in the backoffice | — | ✅ | — |
-| `backoffice.read` — access `/backoffice` routes | ✅ | ✅ | — |
-| `trace.read` — see trace links | ✅ | ✅ | — |
-| `backoffice.terms.update` — manage terms documents | — | ✅ | — |
-| `backoffice.organization.read` — see every organization in the backoffice | — | ✅ | — |
-| `backoffice.project.read` — see every project in the backoffice | ✅ | ✅ | — |
-| `backoffice.project.update` — mutate projects from the backoffice (e.g. feature flags) | — | ✅ | — |
-| `backoffice.agent.read` — see every agent in the backoffice | — | ✅ | — |
-| `backoffice.user.read` — see every user in the backoffice | — | ✅ | — |
-| `organization.create` — create organizations | — | ✅ | — |
-| `backoffice.user.role.update` — grant or revoke the conversation reviewer role from the backoffice | — | ✅ | — |
-| `agent.conversation.review` — read any conversation of an agent from its session id (safety review) | — | — | ✅ |
+| Permission | `platform_staff` | `platform_superadmin` |
+|---|---|---|
+| `app.install` — install apps on a project | ✅ | ✅ |
+| `backoffice.app.manage` — manage app definitions in the backoffice | — | ✅ |
+| `backoffice.read` — access `/backoffice` routes | ✅ | ✅ |
+| `trace.read` — see trace links | ✅ | ✅ |
+| `backoffice.terms.update` — manage terms documents | — | ✅ |
+| `backoffice.organization.read` — see every organization in the backoffice | — | ✅ |
+| `backoffice.project.read` — see every project in the backoffice | ✅ | ✅ |
+| `backoffice.project.update` — mutate projects from the backoffice (e.g. feature flags) | — | ✅ |
+| `backoffice.agent.read` — see every agent in the backoffice | — | ✅ |
+| `backoffice.user.read` — see every user in the backoffice | — | ✅ |
+| `organization.create` — create organizations | — | ✅ |
+| `backoffice.conversation_reviewer.update` — grant or revoke, agent by agent, the right to read any of its conversations | — | ✅ |
 
 ## Organization roles
 

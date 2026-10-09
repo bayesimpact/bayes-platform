@@ -29,7 +29,7 @@ type StoryArgs = StudioStoryArgs & {
   withDraft?: boolean
   /** Puts the agent on a retired model so the deprecation banner renders. */
   withDeprecatedModel?: boolean
-  /** Grants the global `agent.conversation.review` permission: the header shows the safety entry. */
+  /** Grants the safety review of the current agent: the header shows the safety entry. */
   canReviewConversations?: boolean
 }
 
@@ -122,7 +122,7 @@ export const Default: Story = {
             baseSeeds,
             seed.me({
               ...user,
-              globalPermissions: canReviewConversations ? ["agent.conversation.review"] : [],
+              conversationReviewAgentIds: canReviewConversations ? [currentAgent.id] : [],
             }),
             seed.agents([...restAgents, currentAgent], { currentId: currentAgent.id }),
             seed.conversationAgentSessions({ [currentAgent.id]: conversationSessions }),

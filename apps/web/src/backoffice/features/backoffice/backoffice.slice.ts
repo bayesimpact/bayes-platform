@@ -168,7 +168,8 @@ const slice = createSlice({
 
     builder
       .addCase(backofficeThunks.getAgent.pending, (state) => {
-        state.agentDetail.status = ADS.Loading
+        // A reload after a reviewer change keeps the page on screen.
+        if (!ADS.isFulfilled(state.agentDetail)) state.agentDetail.status = ADS.Loading
         state.agentDetail.error = null
       })
       .addCase(backofficeThunks.getAgent.fulfilled, (state, action) => {
@@ -262,8 +263,7 @@ const slice = createSlice({
 
     builder
       .addCase(backofficeThunks.getUser.pending, (state) => {
-        // A reload after a role change keeps the page on screen.
-        if (!ADS.isFulfilled(state.userDetail)) state.userDetail.status = ADS.Loading
+        state.userDetail.status = ADS.Loading
         state.userDetail.error = null
       })
       .addCase(backofficeThunks.getUser.fulfilled, (state, action) => {

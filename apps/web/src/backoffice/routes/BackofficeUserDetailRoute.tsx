@@ -2,14 +2,9 @@ import { Button } from "@caseai-connect/ui/shad/button"
 import { ArrowLeftIcon, ExternalLinkIcon } from "lucide-react"
 import { useEffect } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
-import { selectCanUpdateUserGlobalRoles } from "@/common/features/me/me.selectors"
 import { useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
-import type {
-  BackofficeUserDetail,
-  BackofficeUserGlobalRole,
-} from "../features/backoffice/backoffice.models"
 import { selectBackofficeUserDetail } from "../features/backoffice/backoffice.selectors"
 import { backofficeActions } from "../features/backoffice/backoffice.slice"
 import { RolePermissionBadge } from "../features/backoffice/components/RolePermissionBadge"
@@ -44,7 +39,6 @@ export function BackofficeUserDetailRoute() {
 function WithData() {
   const navigate = useNavigate()
   const user = useValue(selectBackofficeUserDetail)
-  const canUpdateUserGlobalRoles = useAppSelector(selectCanUpdateUserGlobalRoles)
 
   return (
     <div className="p-6 space-y-6">
@@ -80,10 +74,6 @@ function WithData() {
             ))}
           </div>
         </div>
-      )}
-
-      {canUpdateUserGlobalRoles && user.grantableGlobalRoles.length > 0 && (
-        <GrantableGlobalRolesSection user={user} />
       )}
 
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
@@ -136,57 +126,6 @@ function WithData() {
         />
       </div>
     </div>
-  )
-}
-
-/** Roles granted person by person from here, such as reading any conversation for safety review. */
-function GrantableGlobalRolesSection({ user }: { user: BackofficeUserDetail }) {
-  const grantedRoleKeys = new Set(user.globalRoles.map((globalRole) => globalRole.key))
-  return (
-    <div className="space-y-2">
-      <h3 className="text-sm font-medium text-muted-foreground">Special access</h3>
-      <p className="text-xs text-muted-foreground">
-        Nobody holds these roles by default. Grant them only to the people who need them.
-      </p>
-      <ul className="border rounded-lg divide-y">
-        {user.grantableGlobalRoles.map((grantableRole) => (
-          <GrantableGlobalRoleRow
-            key={grantableRole.key}
-            userId={user.id}
-            role={grantableRole}
-            isGranted={grantedRoleKeys.has(grantableRole.key)}
-          />
-        ))}
-      </ul>
-    </div>
-  )
-}
-
-function GrantableGlobalRoleRow({
-  userId,
-  role,
-  isGranted,
-}: {
-  userId: string
-  role: BackofficeUserGlobalRole
-  isGranted: boolean
-}) {
-  const dispatch = useAppDispatch()
-  const handleClick = () => {
-    const params = { userId, roleKey: role.key }
-    void dispatch(
-      isGranted
-        ? backofficeActions.revokeUserGlobalRole(params)
-        : backofficeActions.grantUserGlobalRole(params),
-    )
-  }
-  return (
-    <li className="flex items-center justify-between gap-3 px-4 py-3">
-      <RolePermissionBadge role={role.name} roleKey={role.key} permissions={role.permissions} />
-      <Button variant={isGranted ? "outline" : "default"} size="sm" onClick={handleClick}>
-        {isGranted ? "Revoke" : "Grant"}
-      </Button>
-    </li>
   )
 }
 

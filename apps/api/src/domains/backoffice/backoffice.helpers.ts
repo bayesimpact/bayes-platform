@@ -23,6 +23,7 @@ import type {
   TimeType,
 } from "@caseai-connect/api-contracts"
 import type { Agent } from "@/domains/agents/agent.entity"
+import type { AgentConversationReviewerRecord } from "@/domains/agents/conversation-reviewers/agent-conversation-reviewer.repository"
 import type { AgentMembershipModel } from "@/domains/agents/memberships/agent-membership.model"
 import type { FeatureFlag } from "@/domains/feature-flags/feature-flag.entity"
 import type { OrganizationMembershipModel } from "@/domains/organizations/memberships/organization-membership.model"
@@ -109,6 +110,7 @@ export function toBackofficeAgentDetailDto(
     }
   },
   members: AgentMembershipModel[],
+  conversationReviewers: AgentConversationReviewerRecord[],
 ): BackofficeAgentDetailDto {
   return {
     id: agent.id,
@@ -118,6 +120,12 @@ export function toBackofficeAgentDetailDto(
     organizationId: agent.project?.organization?.id ?? agent.project?.organizationId ?? "",
     organizationName: agent.project?.organization?.name ?? "",
     createdAt: agent.createdAt.getTime() as TimeType,
+    conversationReviewers: conversationReviewers.map((reviewer) => ({
+      userId: reviewer.userId,
+      email: reviewer.email,
+      name: reviewer.name,
+      grantedAt: reviewer.grantedAt.getTime() as TimeType,
+    })),
     members: members.map(
       (membership): BackofficeAgentMemberDto => ({
         userId: membership.userId,
@@ -240,7 +248,6 @@ export function toBackofficeUserGlobalRoleDto(roleGrant: RoleGrant): BackofficeU
 export function toBackofficeUserDetailDto(
   user: User,
   globalRoles: RoleGrant[],
-  grantableGlobalRoles: RoleGrant[],
   organizationMemberships: OrganizationMembershipModel[],
   projectMemberships: ProjectMembershipModel[],
   agentMemberships: AgentMembershipModel[],
@@ -253,7 +260,6 @@ export function toBackofficeUserDetailDto(
     name: user.name,
     createdAt: user.createdAt.getTime() as TimeType,
     globalRoles: globalRoles.map(toBackofficeUserGlobalRoleDto),
-    grantableGlobalRoles: grantableGlobalRoles.map(toBackofficeUserGlobalRoleDto),
     organizationMemberships: organizationMemberships.map((membership) =>
       toBackofficeUserOrganizationMembershipDto(
         membership,

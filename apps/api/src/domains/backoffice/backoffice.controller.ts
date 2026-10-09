@@ -3,6 +3,7 @@ import {
   createBackofficeOrganizationSchema,
   type FeatureFlagKey,
   FeatureFlags,
+  grantBackofficeAgentConversationReviewerSchema,
 } from "@caseai-connect/api-contracts"
 import {
   BadRequestException,
@@ -12,6 +13,7 @@ import {
   Get,
   NotFoundException,
   Param,
+  ParseUUIDPipe,
   Post,
   Query,
   Req,
@@ -20,15 +22,16 @@ import {
 } from "@nestjs/common"
 import type { EndpointRequest } from "@/common/context/request.interface"
 import { ZodValidationPipe } from "@/common/zod-validation-pipe"
+import { attachTrackedActivity } from "@/domains/activities/attach-tracked-activity"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
 import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
 import {
   BACKOFFICE_AGENT_READ_PERMISSION,
+  BACKOFFICE_CONVERSATION_REVIEWER_UPDATE_PERMISSION,
   BACKOFFICE_ORGANIZATION_READ_PERMISSION,
   BACKOFFICE_PROJECT_READ_PERMISSION,
   BACKOFFICE_PROJECT_UPDATE_PERMISSION,
-  BACKOFFICE_USER_ROLE_UPDATE_PERMISSION,
   ORGANIZATION_CREATE_PERMISSION,
 } from "@/domains/rbac/rbac.constants"
 import { UserGuard } from "@/domains/users/user.guard"
@@ -136,7 +139,40 @@ export class BackofficeController {
       targetAgentId: agentId,
     })
     if (!result) throw new NotFoundException(`Agent ${agentId} not found`)
-    return { data: toBackofficeAgentDetailDto(result.agent, result.members) }
+    return {
+      data: toBackofficeAgentDetailDto(result.agent, result.members, result.conversationReviewers),
+    }
+  }
+
+  @Post(BackofficeRoutes.grantAgentConversationReviewer.path)
+  @CheckPermission(BACKOFFICE_CONVERSATION_REVIEWER_UPDATE_PERMISSION)
+  @TrackActivity({ action: "backoffice.agent.conversation_reviewer.grant", entityFrom: "agent" })
+  async grantAgentConversationReviewer(
+    @Req() request: EndpointRequest,
+    @Param("agentId", new ParseUUIDPipe()) agentId: string,
+    @Body(new ZodValidationPipe(grantBackofficeAgentConversationReviewerSchema))
+    body: typeof BackofficeRoutes.grantAgentConversationReviewer.request,
+  ): Promise<typeof BackofficeRoutes.grantAgentConversationReviewer.response> {
+    await this.backofficeService.grantAgentConversationReviewer({
+      agentId,
+      email: body.payload.email,
+      actingUserId: request.user.id,
+    })
+    attachTrackedActivity(request, { entityFrom: "agent", entityId: agentId })
+    return { data: { success: true } }
+  }
+
+  @Delete(BackofficeRoutes.revokeAgentConversationReviewer.path)
+  @CheckPermission(BACKOFFICE_CONVERSATION_REVIEWER_UPDATE_PERMISSION)
+  @TrackActivity({ action: "backoffice.agent.conversation_reviewer.revoke", entityFrom: "agent" })
+  async revokeAgentConversationReviewer(
+    @Req() request: EndpointRequest,
+    @Param("agentId", new ParseUUIDPipe()) agentId: string,
+    @Param("userId", new ParseUUIDPipe()) userId: string,
+  ): Promise<typeof BackofficeRoutes.revokeAgentConversationReviewer.response> {
+    await this.backofficeService.revokeAgentConversationReviewer({ agentId, userId })
+    attachTrackedActivity(request, { entityFrom: "agent", entityId: agentId })
+    return { data: { success: true } }
   }
 
   @Get(BackofficeRoutes.listUsers.path)
@@ -180,7 +216,6 @@ export class BackofficeController {
       data: toBackofficeUserDetailDto(
         result.user,
         result.globalRoles,
-        result.grantableGlobalRoles,
         result.organizationMemberships,
         result.projectMemberships,
         result.agentMemberships,
@@ -188,31 +223,6 @@ export class BackofficeController {
         result.roleGrantsByRoleId,
       ),
     }
-  }
-
-  @Post(BackofficeRoutes.grantUserGlobalRole.path)
-  @CheckPermission(BACKOFFICE_USER_ROLE_UPDATE_PERMISSION)
-  @TrackActivity({ action: "backoffice.user.global_role.grant" })
-  async grantUserGlobalRole(
-    @Param("userId") userId: string,
-    @Body() body: typeof BackofficeRoutes.grantUserGlobalRole.request,
-  ): Promise<typeof BackofficeRoutes.grantUserGlobalRole.response> {
-    await this.backofficeService.grantUserGlobalRole({
-      targetUserId: userId,
-      roleKey: body.payload.roleKey,
-    })
-    return { data: { success: true } }
-  }
-
-  @Delete(BackofficeRoutes.revokeUserGlobalRole.path)
-  @CheckPermission(BACKOFFICE_USER_ROLE_UPDATE_PERMISSION)
-  @TrackActivity({ action: "backoffice.user.global_role.revoke" })
-  async revokeUserGlobalRole(
-    @Param("userId") userId: string,
-    @Param("roleKey") roleKey: string,
-  ): Promise<typeof BackofficeRoutes.revokeUserGlobalRole.response> {
-    await this.backofficeService.revokeUserGlobalRole({ targetUserId: userId, roleKey })
-    return { data: { success: true } }
   }
 
   @Get(BackofficeRoutes.getRbacCatalog.path)

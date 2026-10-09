@@ -3,7 +3,7 @@ import { ExternalLinkIcon, PenLineIcon, ShieldCheckIcon, UsersIcon } from "lucid
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import type { Agent } from "@/common/features/agents/agents.models"
-import { selectCanReviewConversations } from "@/common/features/me/me.selectors"
+import { selectCanReviewConversationsOfAgent } from "@/common/features/me/me.selectors"
 import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
 import { useAbility } from "@/common/hooks/use-ability"
 import { useFeatureFlags } from "@/common/hooks/use-feature-flags"
@@ -18,8 +18,8 @@ export function AgentActions({ organizationId, agent }: { organizationId: string
   const { abilities } = useAbility()
   const canManageAgent = abilities.canManageAgent({ agentId: agent.id })
   const isExtractionAgent = agent.type === "extraction"
-  // Safety review is a global permission: it does not depend on the caller's role on the agent.
-  const canReviewConversations = useAppSelector(selectCanReviewConversations)
+  // Safety review is granted agent by agent, whatever the caller's role on the agent.
+  const canReviewConversations = useAppSelector(selectCanReviewConversationsOfAgent(agent.id))
   return (
     <>
       {isExtractionAgent && (

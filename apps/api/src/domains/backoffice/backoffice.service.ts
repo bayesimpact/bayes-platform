@@ -2,6 +2,9 @@ import type { FeatureFlagKey } from "@caseai-connect/api-contracts"
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import { In, type Repository } from "typeorm"
+import type { AgentConversationReviewerRecord } from "@/domains/agents/conversation-reviewers/agent-conversation-reviewer.repository"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentConversationReviewersService } from "@/domains/agents/conversation-reviewers/agent-conversation-reviewers.service"
 import type { AgentMembershipModel } from "@/domains/agents/memberships/agent-membership.model"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentMembershipsService } from "@/domains/agents/memberships/agent-memberships.service"
@@ -14,14 +17,10 @@ import { ProjectMembershipsService } from "@/domains/projects/memberships/projec
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { PermissionService, type ResourceIdsScope } from "@/domains/rbac/permission.service"
 import type { RoleGrant } from "@/domains/rbac/permission.types"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { PlatformRoleService } from "@/domains/rbac/platform-role.service"
 import {
   BACKOFFICE_AGENT_READ_PERMISSION,
-  BACKOFFICE_GRANTABLE_GLOBAL_ROLES,
   BACKOFFICE_ORGANIZATION_READ_PERMISSION,
   BACKOFFICE_PROJECT_READ_PERMISSION,
-  isBackofficeGrantableGlobalRole,
 } from "@/domains/rbac/rbac.constants"
 import { Agent } from "../agents/agent.entity"
 import { FeatureFlag } from "../feature-flags/feature-flag.entity"
@@ -93,7 +92,7 @@ export class BackofficeService {
     private readonly agentMembershipsService: AgentMembershipsService,
     private readonly reviewCampaignMembershipsService: ReviewCampaignMembershipsService,
     private readonly permissionService: PermissionService,
-    private readonly platformRoleService: PlatformRoleService,
+    private readonly agentConversationReviewersService: AgentConversationReviewersService,
   ) {}
 
   async createOrganization({
@@ -228,11 +227,11 @@ export class BackofficeService {
     return { agents, total }
   }
 
-  async getAgentDetail({
-    targetAgentId,
-  }: {
-    targetAgentId: string
-  }): Promise<{ agent: Agent; members: AgentMembershipModel[] } | null> {
+  async getAgentDetail({ targetAgentId }: { targetAgentId: string }): Promise<{
+    agent: Agent
+    members: AgentMembershipModel[]
+    conversationReviewers: AgentConversationReviewerRecord[]
+  } | null> {
     const agent = await this.agentRepository
       .createQueryBuilder("agent")
       .select(["agent.id", "agent.name", "agent.createdAt"])
@@ -245,11 +244,48 @@ export class BackofficeService {
 
     if (!agent) return null
 
-    const members = sortMembershipsByUserEmail(
-      await this.agentMembershipsService.listAgentMemberships(targetAgentId),
-    )
+    const [members, conversationReviewers] = await Promise.all([
+      this.agentMembershipsService
+        .listAgentMemberships(targetAgentId)
+        .then(sortMembershipsByUserEmail),
+      this.agentConversationReviewersService.listReviewersOfAgent(targetAgentId),
+    ])
 
-    return { agent, members }
+    return { agent, members, conversationReviewers }
+  }
+
+  /**
+   * Grants the safety review of one agent to the user with this email. The account must exist:
+   * a right to read conversations is never given to an address nobody has signed in with.
+   */
+  async grantAgentConversationReviewer({
+    agentId,
+    email,
+    actingUserId,
+  }: {
+    agentId: string
+    email: string
+    actingUserId: string
+  }): Promise<void> {
+    const agent = await this.agentRepository.findOne({ where: { id: agentId } })
+    if (!agent) throw new NotFoundException(`Agent ${agentId} not found`)
+    const user = await this.userRepository.findOne({ where: { email: email.toLowerCase() } })
+    if (!user) throw new NotFoundException(`No user with email ${email}`)
+    await this.agentConversationReviewersService.grant({
+      userId: user.id,
+      agentId,
+      grantedByUserId: actingUserId,
+    })
+  }
+
+  async revokeAgentConversationReviewer({
+    agentId,
+    userId,
+  }: {
+    agentId: string
+    userId: string
+  }): Promise<void> {
+    await this.agentConversationReviewersService.revoke({ userId, agentId })
   }
 
   async listUsers({
@@ -402,7 +438,6 @@ export class BackofficeService {
   }): Promise<{
     user: User
     globalRoles: RoleGrant[]
-    grantableGlobalRoles: RoleGrant[]
     organizationMemberships: OrganizationMembershipModel[]
     projectMemberships: ProjectMembershipModel[]
     agentMemberships: AgentMembershipModel[]
@@ -423,7 +458,6 @@ export class BackofficeService {
       agentMemberships,
       reviewCampaignMemberships,
       globalRoles,
-      grantableGlobalRoles,
     ] = await Promise.all([
       this.organizationMembershipsService
         .listMembershipsForUser(targetUserId)
@@ -438,7 +472,6 @@ export class BackofficeService {
         .listMembershipsForUser(targetUserId)
         .then(sortReviewCampaignMembershipsByCampaignName),
       this.permissionService.listGlobalRolesForUser(targetUserId),
-      this.listGrantableGlobalRoles(),
     ])
 
     const membershipRoleIds = [
@@ -451,62 +484,12 @@ export class BackofficeService {
     return {
       user,
       globalRoles,
-      grantableGlobalRoles,
       organizationMemberships,
       projectMemberships,
       agentMemberships,
       reviewCampaignMemberships,
       roleGrantsByRoleId,
     }
-  }
-
-  /**
-   * Grants one of the global roles the backoffice hands out. Any other role key, platform roles
-   * included, is refused: those stay with the platform-role command.
-   */
-  async grantUserGlobalRole({
-    targetUserId,
-    roleKey,
-  }: {
-    targetUserId: string
-    roleKey: string
-  }): Promise<void> {
-    const grantableRoleKey = await this.assertGrantableRoleForUser({ targetUserId, roleKey })
-    await this.platformRoleService.grantGlobalRole(targetUserId, grantableRoleKey)
-  }
-
-  async revokeUserGlobalRole({
-    targetUserId,
-    roleKey,
-  }: {
-    targetUserId: string
-    roleKey: string
-  }): Promise<void> {
-    const grantableRoleKey = await this.assertGrantableRoleForUser({ targetUserId, roleKey })
-    await this.platformRoleService.revokeGlobalRole(targetUserId, grantableRoleKey)
-  }
-
-  private async assertGrantableRoleForUser({
-    targetUserId,
-    roleKey,
-  }: {
-    targetUserId: string
-    roleKey: string
-  }) {
-    if (!isBackofficeGrantableGlobalRole(roleKey)) {
-      throw new BadRequestException(`Role ${roleKey} cannot be granted from the backoffice`)
-    }
-    const user = await this.userRepository.findOne({ where: { id: targetUserId } })
-    if (!user) throw new NotFoundException(`User ${targetUserId} not found`)
-    return roleKey
-  }
-
-  private async listGrantableGlobalRoles(): Promise<RoleGrant[]> {
-    const catalog = await this.permissionService.getCatalog()
-    const grantableRoleKeys: readonly string[] = BACKOFFICE_GRANTABLE_GLOBAL_ROLES
-    return catalog.roles
-      .filter((role) => grantableRoleKeys.includes(role.key))
-      .map((role) => ({ key: role.key, name: role.name, permissions: role.permissions }))
   }
 
   async getRbacCatalog() {

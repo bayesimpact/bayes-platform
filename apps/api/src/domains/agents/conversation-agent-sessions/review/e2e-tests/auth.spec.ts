@@ -9,17 +9,18 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
+import { agentFactory } from "@/domains/agents/agent.factory"
 import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
 import type { Organization } from "@/domains/organizations/organization.entity"
 import { createOrganizationWithAgentSession } from "@/domains/organizations/organization.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import { mockOidcEmailForSub, setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
 import {
-  assignConversationReviewerToUser,
   assignPlatformSuperadminToUser,
   ensureRbacCatalog,
 } from "../../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../../test/request"
+import { grantConversationReview } from "../../../conversation-reviewers/agent-conversation-reviewer.factory"
 import { ConversationAgentSessionsModule } from "../../conversation-agent-sessions.module"
 
 describe("ConversationReviewRoutes.getOne - Auth", () => {
@@ -97,31 +98,40 @@ describe("ConversationReviewRoutes.getOne - Auth", () => {
     expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
   })
 
-  it("rejects the owner of the project and agent, who does not hold the permission", async () => {
+  it("rejects the owner of the project and agent, who was not granted the review", async () => {
     const { user } = await createContext()
     authSubject = user.authSubject as string
-    expectResponse(await subject(), 403)
+    expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
   })
 
-  it("rejects a platform superadmin who does not hold the conversation reviewer role", async () => {
+  it("rejects a platform superadmin who was not granted the review", async () => {
     await createContext()
     const caller = await createCaller()
     await assignPlatformSuperadminToUser({ repositories, user: caller })
-    expectResponse(await subject(), 403)
+    expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
   })
 
-  it("rejects a conversation reviewer outside the organization", async () => {
-    await createContext()
+  it("rejects a reviewer of another agent of the same project", async () => {
+    const { project } = await createContext()
+    const caller = await createCaller()
+    const otherAgent = agentFactory.transient({ organization, project }).build()
+    await repositories.agentRepository.save(otherAgent)
+    await grantConversationReview({ repositories, user: caller, agent: otherAgent })
+    expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+  })
+
+  it("rejects a reviewer of the agent who is outside the organization", async () => {
+    const { agent } = await createContext()
     const outsider = userFactory.build({ authSubject, email: mockOidcEmailForSub(authSubject) })
     await repositories.userRepository.save(outsider)
-    await assignConversationReviewerToUser({ repositories, user: outsider })
+    await grantConversationReview({ repositories, user: outsider, agent })
     expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
   })
 
-  it("lets a conversation reviewer read the conversation without project or agent membership", async () => {
-    await createContext()
+  it("lets a reviewer of the agent read the conversation without project or agent membership", async () => {
+    const { agent } = await createContext()
     const caller = await createCaller()
-    await assignConversationReviewerToUser({ repositories, user: caller })
+    await grantConversationReview({ repositories, user: caller, agent })
     expectResponse(await subject(), 200)
   })
 })

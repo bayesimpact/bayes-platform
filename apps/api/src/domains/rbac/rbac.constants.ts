@@ -1,6 +1,5 @@
 import {
   AGENT_ANALYTICS_READ_PERMISSION,
-  AGENT_CONVERSATION_REVIEW_PERMISSION,
   AGENT_CONVERSATION_SESSION_CREATE_PERMISSION,
   AGENT_CONVERSATION_SESSION_DELETE_PERMISSION,
   AGENT_CONVERSATION_SESSION_EXTERNAL_CREATE_PERMISSION,
@@ -34,13 +33,13 @@ import {
   type AppGrantablePermission,
   BACKOFFICE_AGENT_READ_PERMISSION,
   BACKOFFICE_APP_MANAGE_PERMISSION,
+  BACKOFFICE_CONVERSATION_REVIEWER_UPDATE_PERMISSION,
   BACKOFFICE_ORGANIZATION_READ_PERMISSION,
   BACKOFFICE_PROJECT_READ_PERMISSION,
   BACKOFFICE_PROJECT_UPDATE_PERMISSION,
   BACKOFFICE_READ_PERMISSION,
   BACKOFFICE_TERMS_UPDATE_PERMISSION,
   BACKOFFICE_USER_READ_PERMISSION,
-  BACKOFFICE_USER_ROLE_UPDATE_PERMISSION,
   CSV_EXTRACTION_RUN_CREATE_PERMISSION,
   CSV_EXTRACTION_RUN_DELETE_PERMISSION,
   CSV_EXTRACTION_RUN_PLAYGROUND_CREATE_PERMISSION,
@@ -119,7 +118,6 @@ import type { PermissionResourceType } from "./permission.types"
  */
 export {
   AGENT_ANALYTICS_READ_PERMISSION,
-  AGENT_CONVERSATION_REVIEW_PERMISSION,
   AGENT_CONVERSATION_SESSION_EXTERNAL_CREATE_PERMISSION,
   AGENT_MEMBER_DELETE_PERMISSION,
   AGENT_MEMBER_INVITE_PERMISSION,
@@ -146,7 +144,7 @@ export {
   BACKOFFICE_PROJECT_UPDATE_PERMISSION,
   BACKOFFICE_READ_PERMISSION,
   BACKOFFICE_TERMS_UPDATE_PERMISSION,
-  BACKOFFICE_USER_ROLE_UPDATE_PERMISSION,
+  BACKOFFICE_CONVERSATION_REVIEWER_UPDATE_PERMISSION,
   BACKOFFICE_USER_READ_PERMISSION,
   DESK_UI_READ_PERMISSION,
   AGENT_CONVERSATION_SESSION_CREATE_PERMISSION,
@@ -243,20 +241,6 @@ export const PLATFORM_STAFF_ROLE = "platform_staff" as const
 
 export const PLATFORM_SUPERADMIN_ROLE = "platform_superadmin" as const
 
-/** Global role holding only `agent.conversation.review`. Nobody has it until granted from the backoffice. */
-export const CONVERSATION_REVIEWER_ROLE = "conversation_reviewer" as const
-
-/** Global roles a holder of `backoffice.user.role.update` can grant or revoke from the backoffice. */
-export const BACKOFFICE_GRANTABLE_GLOBAL_ROLES = [CONVERSATION_REVIEWER_ROLE] as const
-
-export type BackofficeGrantableGlobalRole = (typeof BACKOFFICE_GRANTABLE_GLOBAL_ROLES)[number]
-
-export function isBackofficeGrantableGlobalRole(
-  value: string,
-): value is BackofficeGrantableGlobalRole {
-  return (BACKOFFICE_GRANTABLE_GLOBAL_ROLES as readonly string[]).includes(value)
-}
-
 export const PROJECT_ROLES = {
   owner: "project_owner",
   admin: "project_admin",
@@ -344,12 +328,9 @@ export const ORGANIZATION_ROLE_PERMISSIONS = {
     BACKOFFICE_PROJECT_UPDATE_PERMISSION,
     BACKOFFICE_AGENT_READ_PERMISSION,
     BACKOFFICE_USER_READ_PERMISSION,
-    BACKOFFICE_USER_ROLE_UPDATE_PERMISSION,
+    BACKOFFICE_CONVERSATION_REVIEWER_UPDATE_PERMISSION,
     ORGANIZATION_CREATE_PERMISSION,
   ],
-  // Deliberately not held by platform_superadmin: reading other people's conversations is
-  // granted person by person.
-  [CONVERSATION_REVIEWER_ROLE]: [AGENT_CONVERSATION_REVIEW_PERMISSION],
 } as const satisfies Record<string, readonly string[]>
 
 /** Permissions granted per project role key. */
@@ -666,7 +647,6 @@ export const PARENT_RESOURCE_TYPE_MAP = {
 export const CATALOG_ROLE_KEYS = [
   PLATFORM_STAFF_ROLE,
   PLATFORM_SUPERADMIN_ROLE,
-  CONVERSATION_REVIEWER_ROLE,
   ORGANIZATION_ROLES.owner,
   ORGANIZATION_ROLES.admin,
   ORGANIZATION_ROLES.member,
@@ -823,8 +803,6 @@ export const PERMISSION_DESCRIPTIONS: Record<string, string> = {
     "Mutate a project from the backoffice (e.g. feature flags)",
   [BACKOFFICE_AGENT_READ_PERMISSION]: "See agents in the backoffice",
   [BACKOFFICE_USER_READ_PERMISSION]: "See every user in the backoffice",
-  [BACKOFFICE_USER_ROLE_UPDATE_PERMISSION]:
-    "Grant or revoke a user's conversation reviewer role from the backoffice",
-  [AGENT_CONVERSATION_REVIEW_PERMISSION]:
-    "Read any conversation of an agent from its session id, for safety review",
+  [BACKOFFICE_CONVERSATION_REVIEWER_UPDATE_PERMISSION]:
+    "Grant or revoke, agent by agent, the right to read any of its conversations for safety review",
 }

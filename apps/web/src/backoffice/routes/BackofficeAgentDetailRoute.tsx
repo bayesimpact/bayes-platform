@@ -8,6 +8,7 @@ import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { selectBackofficeAgentDetail } from "../features/backoffice/backoffice.selectors"
 import { backofficeActions } from "../features/backoffice/backoffice.slice"
+import { AgentConversationReviewersSection } from "../features/backoffice/components/AgentConversationReviewersSection"
 import { BackofficeAgentRoutes, BackofficeProjectRoutes, BackofficeUserRoutes } from "./helpers"
 
 export function BackofficeAgentDetailRoute() {
@@ -74,6 +75,10 @@ function WithData() {
             to: BackofficeUserRoutes.user.build({ userId: member.userId }),
           }))}
           emptyText="No members"
+        />
+        <AgentConversationReviewersSection
+          agentId={agent.id}
+          reviewers={agent.conversationReviewers}
         />
       </div>
     </div>
