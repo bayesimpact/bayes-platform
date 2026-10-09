@@ -8,16 +8,13 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
-- Apps: operators can register allowed install callback URLs so staging and production apps can install without a localhost redirect.
 
 ### Changed
 
 ### Fixed
 
 ### Security
-- Apps: install redirects return a one-time code instead of the client secret in the URL.
-- Apps: install code exchange requires PKCE so a stolen code cannot be redeemed alone.
-- Apps: registered install callbacks must use HTTPS; loopback and `*.localhost` may still use HTTP.
+- Apps: install hands credentials through a one-time PKCE code on allowlisted HTTPS callbacks.
 - Apps: revoking an installation now cuts the app's access at once.
 
 ## [26.10.1] - 2026-10-07
