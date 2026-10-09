@@ -2,6 +2,8 @@ module github.com/bayesimpact/bayes-platform/apps/pdf-converter
 
 go 1.25.0
 
+toolchain go1.26.9
+
 require (
 	cloud.google.com/go/storage v1.65.0
 	codeberg.org/go-pdf/fpdf v0.12.0
