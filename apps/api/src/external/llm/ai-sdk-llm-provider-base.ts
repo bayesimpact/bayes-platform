@@ -38,6 +38,11 @@ import { createUnfinishedToolCallTracker } from "@/external/llm/unfinished-tool-
 
 const logger = new Logger("AISDKLLMProviderBase")
 
+// Upper bound on the tokens one streamed step can generate, reasoning
+// included. A model can loop on one token without end (observed with Gemma
+// 4 after a tool call): without a bound, the generation runs for minutes.
+export const MAX_STREAM_OUTPUT_TOKENS = 16384
+
 export abstract class AISDKLLMProviderBase extends AISDKLLMToolsMgmt implements LLMProvider {
   async *streamChatResponse({
     messages,
@@ -80,6 +85,7 @@ export abstract class AISDKLLMProviderBase extends AISDKLLMToolsMgmt implements 
     const agent = new ToolLoopAgent({
       model: this.getLanguageModelWithRawCapture({ config, callOrigin, leakedToolCalls }),
       ...(temperature !== undefined ? { temperature } : {}),
+      maxOutputTokens: MAX_STREAM_OUTPUT_TOKENS,
       tools: this.supportsStrictTools() ? withStrictTools(config.tools) : config.tools,
       // Keep the default step safety net, but skip the follow-up generation
       // when a step only ran fire-and-forget tools (their output is noise),

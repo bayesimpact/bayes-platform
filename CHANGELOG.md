@@ -12,6 +12,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Changed
 
 ### Fixed
+- Conversations: an assistant reply that never ends no longer crashes the server.
 
 ### Security
 - Apps: install hands credentials through a one-time PKCE code on allowlisted HTTPS callbacks.
