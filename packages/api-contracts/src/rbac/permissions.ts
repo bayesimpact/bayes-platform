@@ -139,6 +139,14 @@ export const AGENT_SETTINGS_DRAFT_PUBLISH_PERMISSION = "agent.settings.draft.pub
 
 export const AGENT_SETTINGS_RESTORE_PERMISSION = "agent.settings.restore" as const
 
+/**
+ * Open a conversation with an agent on behalf of people outside the platform, and
+ * send their messages. Granted on no catalog role: only an App holds it, through
+ * its install role, which passes it down to every agent of the project.
+ */
+export const AGENT_CONVERSATION_SESSION_EXTERNAL_CREATE_PERMISSION =
+  "agent.conversation.session.external.create" as const
+
 export const AGENT_SETTINGS_ARCHIVE_PERMISSION = "agent.settings.archive" as const
 
 /**
@@ -367,6 +375,8 @@ export const APP_GRANTABLE_PERMISSIONS = [
   PROJECT_READ_PERMISSION,
   PROJECT_UPDATE_PERMISSION,
   PROJECT_DELETE_PERMISSION,
+  AGENT_READ_PERMISSION,
+  AGENT_CONVERSATION_SESSION_EXTERNAL_CREATE_PERMISSION,
 ] as const
 
 export type AppGrantablePermission = (typeof APP_GRANTABLE_PERMISSIONS)[number]
@@ -409,7 +419,14 @@ export function groupAppGrantablePermissions(
   return groups
 }
 
+/** Action labels that the permission key does not spell well on its own. */
+const APP_GRANTABLE_ACTION_LABELS: Partial<Record<AppGrantablePermission, string>> = {
+  [AGENT_CONVERSATION_SESSION_EXTERNAL_CREATE_PERMISSION]: "Chat for people outside Bayes",
+}
+
 export function appGrantablePermissionActionLabel(permission: AppGrantablePermission): string {
+  const label = APP_GRANTABLE_ACTION_LABELS[permission]
+  if (label) return label
   const action = permission.slice(permission.indexOf(".") + 1)
   if (!action) return permission
   return action.charAt(0).toUpperCase() + action.slice(1)

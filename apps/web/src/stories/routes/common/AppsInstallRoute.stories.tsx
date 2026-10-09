@@ -166,6 +166,33 @@ export const ManyPermissions: Story = {
   },
 }
 
+/** A conversation App: its permission keys are the longest the page has to show. */
+export const ConversationApp: Story = {
+  render: () => {
+    const conversationPage = appInstallPageFactory.build({
+      app: {
+        name: "Helpful Assistant",
+        slug: "helpful-assistant",
+        grantablePermissions: ["agent.read", "agent.conversation.session.external.create"],
+      },
+    })
+    const store = buildMockStore({
+      state: mergeSeeds(
+        seed.me(userFactory.build({ globalPermissions: ["app.install"], termsAccepted: true })),
+        seed.appInstallPage(conversationPage),
+      ),
+    })
+    const router = createMemoryRouter([appsInstallRoute], {
+      initialEntries: [loopbackEntry],
+    })
+    return (
+      <Provider store={store}>
+        <RouterProvider router={router} />
+      </Provider>
+    )
+  },
+}
+
 export const EmptyWorkspaces: Story = {
   render: () => {
     const emptyPage = appInstallPageFactory.build({ projects: [] })

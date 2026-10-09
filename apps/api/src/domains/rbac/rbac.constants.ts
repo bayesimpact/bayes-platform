@@ -2,6 +2,7 @@ import {
   AGENT_ANALYTICS_READ_PERMISSION,
   AGENT_CONVERSATION_SESSION_CREATE_PERMISSION,
   AGENT_CONVERSATION_SESSION_DELETE_PERMISSION,
+  AGENT_CONVERSATION_SESSION_EXTERNAL_CREATE_PERMISSION,
   AGENT_CONVERSATION_SESSION_PLAYGROUND_CREATE_PERMISSION,
   AGENT_CONVERSATION_SESSION_PLAYGROUND_DELETE_PERMISSION,
   AGENT_CONVERSATION_SESSION_PLAYGROUND_READ_PERMISSION,
@@ -110,6 +111,7 @@ import type { PermissionResourceType } from "./permission.types"
  */
 export {
   AGENT_ANALYTICS_READ_PERMISSION,
+  AGENT_CONVERSATION_SESSION_EXTERNAL_CREATE_PERMISSION,
   AGENT_MEMBER_DELETE_PERMISSION,
   AGENT_MEMBER_INVITE_PERMISSION,
   AGENT_MEMBER_READ_PERMISSION,
@@ -599,6 +601,7 @@ export const RESOURCE_TYPE_PERMISSIONS_MAP = {
     "agent.update",
     "agent.delete",
     AGENT_SETTINGS_DRAFT_READ_PERMISSION,
+    AGENT_CONVERSATION_SESSION_EXTERNAL_CREATE_PERMISSION,
     BACKOFFICE_AGENT_READ_PERMISSION,
   ],
 } as const satisfies Record<PermissionResourceType, readonly string[]>
@@ -650,6 +653,8 @@ export const PERMISSION_DESCRIPTIONS: Record<string, string> = {
   "agent.update": "Update an agent",
   "agent.delete": "Delete an agent",
   [AGENT_ANALYTICS_READ_PERMISSION]: "See an agent's conversation analytics",
+  [AGENT_CONVERSATION_SESSION_EXTERNAL_CREATE_PERMISSION]:
+    "Open conversations with an agent for people outside the platform",
   [AGENT_MEMBER_READ_PERMISSION]: "See an agent's members and their roles",
   [AGENT_MEMBER_INVITE_PERMISSION]: "Invite people to an agent, and revoke pending invitations",
   [AGENT_MEMBER_DELETE_PERMISSION]: "Remove a member from an agent",

@@ -398,12 +398,7 @@ function AppManifestFormDialog({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Grantable permissions</FormLabel>
-                    <div
-                      className="grid gap-4"
-                      style={{
-                        gridTemplateColumns: `repeat(${GRANTABLE_PERMISSION_GROUPS.length}, minmax(8rem, 1fr))`,
-                      }}
-                    >
+                    <div className="grid grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] gap-4">
                       {GRANTABLE_PERMISSION_GROUPS.map((group) => (
                         <fieldset key={group.resourceType} className="flex flex-col gap-2">
                           <legend className="text-sm font-medium">{group.label}</legend>
@@ -425,7 +420,7 @@ function AppManifestFormDialog({
                                     )
                                   }}
                                 />
-                                <label htmlFor={checkboxId} className="cursor-pointer">
+                                <label htmlFor={checkboxId} className="min-w-0 cursor-pointer">
                                   {appGrantablePermissionActionLabel(permission)}
                                 </label>
                               </div>
