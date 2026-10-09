@@ -66,7 +66,7 @@ The `document_tag.*` permissions are not inherited either: an organization role 
 
 The `project.mcp_server.*` permissions are not inherited either: an organization role does not open a project's MCP servers. Every project role sees them, while adding, connecting, toggling and deleting stay with owners and admins.
 
-The `project.review_campaign.*` permissions are not inherited either: an organization role does not open a project's review campaigns. Managing them and their testers and reviewers stays with project owners and admins.
+The `project.review_campaign.*` permissions are not inherited either: an organization role does not open a project's review campaigns. Managing them, inviting testers and reviewers and removing them stays with project owners and admins.
 
 | Permission | `project_owner` | `project_admin` | `project_member` |
 |---|---|---|---|
@@ -78,7 +78,7 @@ The `project.review_campaign.*` permissions are not inherited either: an organiz
 | `evaluation.ui.read` — open the project's evaluation app | ✅ | ✅ | — |
 | `project.analytics.read` — see the project's conversation analytics | ✅ | ✅ | — |
 | `project.member.read` — see the project's members, their roles and the agents each one can reach | ✅ | ✅ | — |
-| `project.member.invite` — invite people to the project or its review campaigns, see and revoke pending invitations | ✅ | ✅ | — |
+| `project.member.invite` — invite people to the project, see and revoke pending invitations | ✅ | ✅ | — |
 | `project.member.update` — change another member's role between admin and member | ✅ | ✅ | — |
 | `project.member.delete` — remove a member from the project | ✅ | ✅ | — |
 | `agent.create` | ✅ | ✅ | — |
@@ -150,6 +150,7 @@ The `project.review_campaign.*` permissions are not inherited either: an organiz
 | `project.review_campaign.update` — update a review campaign | ✅ | ✅ | — |
 | `project.review_campaign.delete` — delete a review campaign | ✅ | ✅ | — |
 | `project.review_campaign.member.delete` — remove a tester or a reviewer from a review campaign | ✅ | ✅ | — |
+| `project.review_campaign.member.invite` — invite testers and reviewers to a review campaign, see and revoke pending invitations | ✅ | ✅ | — |
 | `user.read` — see the project's members | ✅ | ✅ | — |
 | `backoffice.project.read` — see the project in the backoffice | ✅ | ✅ | — |
 | `backoffice.project.update` — mutate the project from the backoffice (e.g. feature flags) | ✅ | ✅ | — |

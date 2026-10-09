@@ -7,7 +7,7 @@ import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
 import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
-import { PROJECT_MEMBER_INVITE_PERMISSION } from "@/domains/rbac/rbac.constants"
+import { PROJECT_REVIEW_CAMPAIGN_MEMBER_INVITE_PERMISSION } from "@/domains/rbac/rbac.constants"
 import { UserGuard } from "@/domains/users/user.guard"
 import { reviewCampaignInvitationTarget } from "./invitation-targets"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -20,7 +20,7 @@ export class ReviewCampaignInvitationsController {
   constructor(private readonly invitationsService: InvitationsService) {}
 
   @Get(ReviewCampaignInvitationsRoutes.getAll.path)
-  @CheckPermission(PROJECT_MEMBER_INVITE_PERMISSION, "project")
+  @CheckPermission(PROJECT_REVIEW_CAMPAIGN_MEMBER_INVITE_PERMISSION, "project")
   async getAll(
     @Req() request: EndpointRequestWithReviewCampaign,
   ): Promise<typeof ReviewCampaignInvitationsRoutes.getAll.response> {
@@ -31,7 +31,7 @@ export class ReviewCampaignInvitationsController {
   }
 
   @Post(ReviewCampaignInvitationsRoutes.createMany.path)
-  @CheckPermission(PROJECT_MEMBER_INVITE_PERMISSION, "project")
+  @CheckPermission(PROJECT_REVIEW_CAMPAIGN_MEMBER_INVITE_PERMISSION, "project")
   @TrackActivity({ action: "invitation.invite" })
   async createMany(
     @Req() request: EndpointRequestWithReviewCampaign,
@@ -49,7 +49,7 @@ export class ReviewCampaignInvitationsController {
   }
 
   @Delete(ReviewCampaignInvitationsRoutes.deleteOne.path)
-  @CheckPermission(PROJECT_MEMBER_INVITE_PERMISSION, "project")
+  @CheckPermission(PROJECT_REVIEW_CAMPAIGN_MEMBER_INVITE_PERMISSION, "project")
   @TrackActivity({ action: "invitation.revoke" })
   async deleteOne(
     @Req() request: EndpointRequestWithReviewCampaign,
