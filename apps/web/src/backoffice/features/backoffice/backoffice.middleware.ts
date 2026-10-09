@@ -125,6 +125,37 @@ function registerListeners() {
     },
   })
 
+  // The agent page reloads so its reviewer list shows what the server now holds.
+  for (const reviewerThunk of [
+    backofficeActions.grantAgentConversationReviewer,
+    backofficeActions.revokeAgentConversationReviewer,
+  ]) {
+    listenerMiddleware.startListening({
+      actionCreator: reviewerThunk.fulfilled,
+      effect: async (action, listenerApi) => {
+        listenerApi.dispatch(
+          notificationsActions.show({
+            titleKey: "backoffice:notifications.conversationReviewersUpdated",
+            type: "success",
+          }),
+        )
+        listenerApi.dispatch(backofficeActions.getAgent(action.payload.agentId))
+      },
+    })
+    listenerMiddleware.startListening({
+      actionCreator: reviewerThunk.rejected,
+      effect: async (action, listenerApi) => {
+        listenerApi.dispatch(
+          notificationsActions.show({
+            titleKey: "backoffice:notifications.conversationReviewersUpdateError",
+            description: action.error.message,
+            type: "error",
+          }),
+        )
+      },
+    })
+  }
+
   listenerMiddleware.startListening({
     actionCreator: backofficeActions.updateTermsDocuments.fulfilled,
     effect: async (_, listenerApi) => {

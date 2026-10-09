@@ -20,7 +20,11 @@ export * from "./agents/agents.dto"
 export { AgentsRoutes } from "./agents/agents.routes"
 // Conversation Agent Sessions
 export type * from "./agents/conversation-agent-sessions/conversation-agent-sessions.dto"
-export { ConversationAgentSessionsRoutes } from "./agents/conversation-agent-sessions/conversation-agent-sessions.routes"
+export { conversationReviewLookupSchema } from "./agents/conversation-agent-sessions/conversation-agent-sessions.dto"
+export {
+  ConversationAgentSessionsRoutes,
+  ConversationReviewRoutes,
+} from "./agents/conversation-agent-sessions/conversation-agent-sessions.routes"
 // Extraction Agent Sessions
 export * from "./agents/extraction-agent-sessions/extraction-agent-sessions.dto"
 export { ExtractionAgentSessionsRoutes } from "./agents/extraction-agent-sessions/extraction-agent-sessions.routes"
@@ -66,7 +70,10 @@ export {
 } from "./apps/loopback-redirect"
 // Backoffice
 export type * from "./backoffice/backoffice.dto"
-export { createBackofficeOrganizationSchema } from "./backoffice/backoffice.dto"
+export {
+  createBackofficeOrganizationSchema,
+  grantBackofficeAgentConversationReviewerSchema,
+} from "./backoffice/backoffice.dto"
 export { BackofficeRoutes } from "./backoffice/backoffice.routes"
 // Document Tags
 export * from "./document-tags/document-tag.dto"

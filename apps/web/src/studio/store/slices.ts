@@ -24,6 +24,8 @@ import { agentAnalyticsMiddleware } from "@/studio/features/analytics/agent/agen
 import { agentAnalyticsSlice } from "@/studio/features/analytics/agent/agent-analytics.slice"
 import { projectAnalyticsMiddleware } from "@/studio/features/analytics/project/analytics.middleware"
 import { projectAnalyticsSlice } from "@/studio/features/analytics/project/analytics.slice"
+import { conversationReviewMiddleware } from "@/studio/features/conversation-review/conversation-review.middleware"
+import { conversationReviewSlice } from "@/studio/features/conversation-review/conversation-review.slice"
 import { documentTagsMiddleware } from "@/studio/features/document-tags/document-tags.middleware"
 import { documentTagsSlice } from "@/studio/features/document-tags/document-tags.slice"
 import { projectMembershipsMiddleware } from "@/studio/features/project-memberships/project-memberships.middleware"
@@ -60,6 +62,7 @@ const studioMiddlewareList = [
   agentSubAgentsMiddleware,
   baseAgentSessionsMiddleware,
   conversationAgentSessionsMiddleware,
+  conversationReviewMiddleware,
   documentSourcesMiddleware,
   documentsMiddleware,
   documentTagsMiddleware,
@@ -86,6 +89,7 @@ export const studioSliceList = [
   agentsSlice,
   agentSubAgentsSlice,
   conversationAgentSessionsSlice,
+  conversationReviewSlice,
   currentIdsSlice,
   documentSourcesSlice,
   documentsSlice,

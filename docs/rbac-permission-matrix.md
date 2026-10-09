@@ -9,7 +9,7 @@ This document mirrors those files. Whenever a role or a role/permission grant ch
 
 ## Global roles
 
-Global roles are stored as `user_membership` rows with `resource_type = 'global'`. `platform_staff` is renamed from `org_creator` and seeded by email domain (`SeedPlatformStaffByEmailDomain` / `ORGANIZATION_CREATOR_EMAIL_DOMAIN`). `platform_superadmin` is seeded from `BACKOFFICE_AUTHORIZED_EMAILS` by `SeedPlatformSuperadminByEmails`. The app itself never reads those env vars for authorization. `platform_staff` holds global `backoffice.project.read` so the App install picker is not empty for the people who hold `app.install`. `backoffice.app.manage` is superadmin-only and is not granted by `app.install`.
+Global roles are stored as `user_membership` rows with `resource_type = 'global'`. `platform_staff` is renamed from `org_creator` and seeded by email domain (`SeedPlatformStaffByEmailDomain` / `ORGANIZATION_CREATOR_EMAIL_DOMAIN`). `platform_superadmin` is seeded from `BACKOFFICE_AUTHORIZED_EMAILS` by `SeedPlatformSuperadminByEmails`. The app itself never reads those env vars for authorization. `platform_staff` holds global `backoffice.project.read` so the App install picker is not empty for the people who hold `app.install`. `backoffice.app.manage` is superadmin-only and is not granted by `app.install`. The right to read any conversation of an agent for safety review is not a role: it lives in the `agent_conversation_reviewer` table, one row per person and agent, granted from the backoffice agent page by a holder of `backoffice.conversation_reviewer.update`. Nobody holds it by default, superadmins included, and reading a conversation still needs a membership of its organization.
 
 | Permission | `platform_staff` | `platform_superadmin` |
 |---|---|---|
@@ -24,6 +24,7 @@ Global roles are stored as `user_membership` rows with `resource_type = 'global'
 | `backoffice.agent.read` — see every agent in the backoffice | — | ✅ |
 | `backoffice.user.read` — see every user in the backoffice | — | ✅ |
 | `organization.create` — create organizations | — | ✅ |
+| `backoffice.conversation_reviewer.update` — grant or revoke, agent by agent, the right to read any of its conversations | — | ✅ |
 
 ## Organization roles
 

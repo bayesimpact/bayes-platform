@@ -30,6 +30,7 @@ const agentEdit = agent.extend("/edit")
 const feedback = agent.extend("/f")
 const agentMemberships = agent.extend("/members")
 const agentAnalytics = agent.extend("/analytics")
+const agentConversationReview = agent.extend("/safety")
 const agentExtraction = agent.extend("/extraction")
 const agentExtractionCsvRun = agentExtraction.extend("/csv-runs/:csvRunId")
 const agentExtractionRun = agentExtraction.extend("/runs/:extractionRunId")
@@ -37,6 +38,7 @@ const agentExtractionRun = agentExtraction.extend("/runs/:extractionRunId")
 export const StudioRoutes = {
   agent,
   agentAnalytics,
+  agentConversationReview,
   agentExtraction,
   agentExtractionCsvRun,
   agentExtractionRun,

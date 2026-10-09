@@ -19,6 +19,16 @@ export const selectIsTermsManagementAuthorized = (state: RootState): boolean =>
 export const selectIsAppManagementAuthorized = (state: RootState): boolean =>
   state.me.data.value?.globalPermissions.includes("backoffice.app.manage") ?? false
 
+/** Whether the user was granted the safety review of this agent. No role stands in for it. */
+export const selectCanReviewConversationsOfAgent =
+  (agentId: string | null) =>
+  (state: RootState): boolean =>
+    agentId !== null && (state.me.data.value?.conversationReviewAgentIds.includes(agentId) ?? false)
+
+export const selectCanUpdateConversationReviewers = (state: RootState): boolean =>
+  state.me.data.value?.globalPermissions.includes("backoffice.conversation_reviewer.update") ??
+  false
+
 export const selectCanInstallApps = (state: RootState): boolean =>
   state.me.data.value?.globalPermissions.includes("app.install") ?? false
 

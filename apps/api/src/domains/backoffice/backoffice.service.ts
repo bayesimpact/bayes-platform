@@ -2,6 +2,9 @@ import type { FeatureFlagKey } from "@caseai-connect/api-contracts"
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import { In, type Repository } from "typeorm"
+import type { AgentConversationReviewerRecord } from "@/domains/agents/conversation-reviewers/agent-conversation-reviewer.repository"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentConversationReviewersService } from "@/domains/agents/conversation-reviewers/agent-conversation-reviewers.service"
 import type { AgentMembershipModel } from "@/domains/agents/memberships/agent-membership.model"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentMembershipsService } from "@/domains/agents/memberships/agent-memberships.service"
@@ -89,6 +92,7 @@ export class BackofficeService {
     private readonly agentMembershipsService: AgentMembershipsService,
     private readonly reviewCampaignMembershipsService: ReviewCampaignMembershipsService,
     private readonly permissionService: PermissionService,
+    private readonly agentConversationReviewersService: AgentConversationReviewersService,
   ) {}
 
   async createOrganization({
@@ -223,11 +227,11 @@ export class BackofficeService {
     return { agents, total }
   }
 
-  async getAgentDetail({
-    targetAgentId,
-  }: {
-    targetAgentId: string
-  }): Promise<{ agent: Agent; members: AgentMembershipModel[] } | null> {
+  async getAgentDetail({ targetAgentId }: { targetAgentId: string }): Promise<{
+    agent: Agent
+    members: AgentMembershipModel[]
+    conversationReviewers: AgentConversationReviewerRecord[]
+  } | null> {
     const agent = await this.agentRepository
       .createQueryBuilder("agent")
       .select(["agent.id", "agent.name", "agent.createdAt"])
@@ -240,11 +244,48 @@ export class BackofficeService {
 
     if (!agent) return null
 
-    const members = sortMembershipsByUserEmail(
-      await this.agentMembershipsService.listAgentMemberships(targetAgentId),
-    )
+    const [members, conversationReviewers] = await Promise.all([
+      this.agentMembershipsService
+        .listAgentMemberships(targetAgentId)
+        .then(sortMembershipsByUserEmail),
+      this.agentConversationReviewersService.listReviewersOfAgent(targetAgentId),
+    ])
 
-    return { agent, members }
+    return { agent, members, conversationReviewers }
+  }
+
+  /**
+   * Grants the safety review of one agent to the user with this email. The account must exist:
+   * a right to read conversations is never given to an address nobody has signed in with.
+   */
+  async grantAgentConversationReviewer({
+    agentId,
+    email,
+    actingUserId,
+  }: {
+    agentId: string
+    email: string
+    actingUserId: string
+  }): Promise<void> {
+    const agent = await this.agentRepository.findOne({ where: { id: agentId } })
+    if (!agent) throw new NotFoundException(`Agent ${agentId} not found`)
+    const user = await this.userRepository.findOne({ where: { email: email.toLowerCase() } })
+    if (!user) throw new NotFoundException(`No user with email ${email}`)
+    await this.agentConversationReviewersService.grant({
+      userId: user.id,
+      agentId,
+      grantedByUserId: actingUserId,
+    })
+  }
+
+  async revokeAgentConversationReviewer({
+    agentId,
+    userId,
+  }: {
+    agentId: string
+    userId: string
+  }): Promise<void> {
+    await this.agentConversationReviewersService.revoke({ userId, agentId })
   }
 
   async listUsers({

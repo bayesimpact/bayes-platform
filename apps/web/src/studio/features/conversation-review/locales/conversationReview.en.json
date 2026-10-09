@@ -1,0 +1,33 @@
+{
+  "conversationReview": {
+    "menu": "Safety",
+    "pageTitle": "Safety review",
+    "form": {
+      "label": "Session id",
+      "placeholder": "e.g. 3f2b8c1e-…",
+      "invalid": "Enter a valid session id."
+    },
+    "notice": "Every conversation you open here is recorded in the activity log.",
+    "empty": "Paste a session id to read the conversation.",
+    "notFound": "No conversation of this agent has this session id.",
+    "session": {
+      "live": "Live",
+      "playground": "Playground",
+      "subSession": "Sub-session",
+      "purged": "Content deleted by the retention policy",
+      "startedAt": "Started {{date}}",
+      "noMessages": "This conversation has no messages."
+    },
+    "roles": {
+      "user": "User",
+      "assistant": "Agent",
+      "tool": "Tool"
+    },
+    "status": {
+      "streaming": "Still being written",
+      "aborted": "Interrupted",
+      "error": "Failed"
+    },
+    "tools": "Tools: {{names}}"
+  }
+}

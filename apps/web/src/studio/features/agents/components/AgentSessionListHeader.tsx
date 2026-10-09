@@ -5,11 +5,13 @@ import { Grid, GridCard, GridContent, GridHeader } from "@/common/components/gri
 import { BaseAgentSessionCreator } from "@/common/features/agents/agent-sessions/shared/base-agent-session/components/BaseAgentSessionCreator"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { getAgentIcon } from "@/common/features/agents/components/AgentIcon"
+import { selectCanReviewConversationsOfAgent } from "@/common/features/me/me.selectors"
 import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
 import { useAbility } from "@/common/hooks/use-ability"
 import { useFeatureFlags } from "@/common/hooks/use-feature-flags"
 import { useGetAgentRoute, useGetProjectRoute } from "@/common/hooks/use-get-path"
 import { useValue } from "@/common/hooks/use-value"
+import { useAppSelector } from "@/common/store/hooks"
 import { AgentActions } from "./AgentActions"
 import { AgentAnalyticsCard } from "./AgentAnalyticsCard"
 import { FeedbackButton } from "./FeedbackButton"
@@ -47,6 +49,11 @@ export function AgentSessionListHeader({
   const showAgentAnalytics =
     canManageAgent && agent.type === "conversation" && hasFeature("project-analytics")
 
+  // Safety review is granted agent by agent, so its menu entry shows even without an agent role.
+  const canReviewConversations = useAppSelector(selectCanReviewConversationsOfAgent(agent.id))
+  const showAgentActions =
+    canManageAgent || (canReviewConversations && agent.type === "conversation")
+
   const headerCardCount = (1 + // Create Session button
     (showAgentAnalytics ? 1 : 0) +
     (canManageAgent ? 1 : 0)) as 1 | 2 | 3
@@ -62,7 +69,7 @@ export function AgentSessionListHeader({
           </>
         }
         action={
-          canManageAgent ? <AgentActions agent={agent} organizationId={organizationId} /> : null
+          showAgentActions ? <AgentActions agent={agent} organizationId={organizationId} /> : null
         }
       />
 

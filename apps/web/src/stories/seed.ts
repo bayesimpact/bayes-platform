@@ -1,5 +1,6 @@
 import type {
   AppManifest,
+  BackofficeAgentDetail,
   BackofficeRbacCatalog,
   BackofficeUserDetail,
   PaginatedBackofficeAgents,
@@ -51,6 +52,7 @@ import type {
   AnalyticsCategoryDailyPoint,
   AnalyticsDailyPoint,
 } from "@/studio/features/analytics/project/analytics.models"
+import type { ConversationReview } from "@/studio/features/conversation-review/conversation-review.models"
 import type { DocumentSource } from "@/studio/features/document-sources/document-sources.models"
 import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"
 import type { Document } from "@/studio/features/documents/documents.models"
@@ -414,6 +416,10 @@ export const seed = {
       return { agentMessageFeedback: { data: ads.fulfilled(feedbacksByAgentId) } }
     },
 
+    conversationReview(review: ConversationReview): StoryPreloadedState {
+      return { conversationReview: { review: ads.fulfilled(review) } }
+    },
+
     agentSubAgents(subAgents: AgentSubAgent[]): StoryPreloadedState {
       return { agentSubAgents: { data: ads.fulfilled(subAgents) } }
     },
@@ -488,6 +494,10 @@ export const seed = {
           usersQuery: { page: users.page, limit: users.limit, search: "" },
         },
       }
+    },
+
+    agentDetail(agentDetail: BackofficeAgentDetail): StoryPreloadedState {
+      return { backoffice: { agentDetail: ads.fulfilled(agentDetail) } }
     },
 
     userDetail(userDetail: BackofficeUserDetail): StoryPreloadedState {

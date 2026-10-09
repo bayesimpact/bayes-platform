@@ -18,6 +18,8 @@ export type User = {
   email: string
   name: string
   globalPermissions: GlobalPermission[]
+  /** The agents whose conversations this user was granted to read for safety review. */
+  conversationReviewAgentIds: string[]
   memberships: UserMembershipsDto
   termsAccepted: boolean
 }

@@ -168,7 +168,8 @@ const slice = createSlice({
 
     builder
       .addCase(backofficeThunks.getAgent.pending, (state) => {
-        state.agentDetail.status = ADS.Loading
+        // A reload after a reviewer change keeps the page on screen.
+        if (!ADS.isFulfilled(state.agentDetail)) state.agentDetail.status = ADS.Loading
         state.agentDetail.error = null
       })
       .addCase(backofficeThunks.getAgent.fulfilled, (state, action) => {

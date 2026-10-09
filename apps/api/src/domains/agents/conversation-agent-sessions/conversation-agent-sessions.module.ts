@@ -10,6 +10,7 @@ import {
   moduleImports,
   moduleProviders,
 } from "../base-agent-sessions/base-agent-sessions-module.helpers"
+import { AgentConversationReviewersModule } from "../conversation-reviewers/agent-conversation-reviewers.module"
 import { AgentMessageAttachmentDocumentsService } from "../shared/agent-session-messages/agent-message-attachment-documents.service"
 import { LiveAgentMessagesController } from "../shared/agent-session-messages/live-agent-messages.controller"
 import { McpAppHtmlService } from "../shared/agent-session-messages/mcp-app-html.service"
@@ -20,6 +21,9 @@ import { LiveConversationAgentSessionsController } from "./live-conversation-age
 import { PlaygroundConversationAgentSessionsController } from "./playground-conversation-agent-sessions.controller"
 import { ConversationRetentionSweepRun } from "./retention/conversation-retention-sweep-run.entity"
 import { ConversationRetentionSweepRunsController } from "./retention/conversation-retention-sweep-runs.controller"
+import { ConversationReviewController } from "./review/conversation-review.controller"
+import { ConversationReviewRepository } from "./review/conversation-review.repository"
+import { ConversationReviewService } from "./review/conversation-review.service"
 
 @Module({
   imports: [
@@ -31,15 +35,19 @@ import { ConversationRetentionSweepRunsController } from "./retention/conversati
     McpServersModule,
     PdfPagesModule,
     RbacModule,
+    AgentConversationReviewersModule,
   ],
   providers: [
     ...moduleProviders,
     AgentMessageAttachmentDocumentsService,
     ConversationAgentSessionsService,
+    ConversationReviewRepository,
+    ConversationReviewService,
     McpAppHtmlService,
   ],
   controllers: [
     ConversationRetentionSweepRunsController,
+    ConversationReviewController,
     LiveAgentMessagesController,
     LiveConversationAgentSessionsController,
     PlaygroundAgentMessagesController,

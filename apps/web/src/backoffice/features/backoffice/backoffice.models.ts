@@ -97,6 +97,15 @@ export type BackofficeAgentDetail = {
   organizationName: string
   createdAt: TimeType
   members: BackofficeAgentMember[]
+  /** The people granted to read any conversation of this agent for safety review. */
+  conversationReviewers: BackofficeAgentConversationReviewer[]
+}
+
+export type BackofficeAgentConversationReviewer = {
+  userId: string
+  email: string
+  name: string | null
+  grantedAt: TimeType
 }
 
 export type PaginatedBackofficeAgents = {
@@ -141,6 +150,12 @@ export const toBackofficeAgentDetail = (dto: BackofficeAgentDetailDto): Backoffi
   organizationName: dto.organizationName,
   createdAt: dto.createdAt,
   members: dto.members.map(toBackofficeAgentMember),
+  conversationReviewers: dto.conversationReviewers.map((reviewer) => ({
+    userId: reviewer.userId,
+    email: reviewer.email,
+    name: reviewer.name,
+    grantedAt: reviewer.grantedAt,
+  })),
 })
 
 export type BackofficeProjectListItem = {

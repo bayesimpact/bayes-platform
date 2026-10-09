@@ -3,6 +3,7 @@ import {
   createBackofficeOrganizationSchema,
   type FeatureFlagKey,
   FeatureFlags,
+  grantBackofficeAgentConversationReviewerSchema,
 } from "@caseai-connect/api-contracts"
 import {
   BadRequestException,
@@ -12,6 +13,7 @@ import {
   Get,
   NotFoundException,
   Param,
+  ParseUUIDPipe,
   Post,
   Query,
   Req,
@@ -20,11 +22,13 @@ import {
 } from "@nestjs/common"
 import type { EndpointRequest } from "@/common/context/request.interface"
 import { ZodValidationPipe } from "@/common/zod-validation-pipe"
+import { attachTrackedActivity } from "@/domains/activities/attach-tracked-activity"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
 import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
 import {
   BACKOFFICE_AGENT_READ_PERMISSION,
+  BACKOFFICE_CONVERSATION_REVIEWER_UPDATE_PERMISSION,
   BACKOFFICE_ORGANIZATION_READ_PERMISSION,
   BACKOFFICE_PROJECT_READ_PERMISSION,
   BACKOFFICE_PROJECT_UPDATE_PERMISSION,
@@ -135,7 +139,40 @@ export class BackofficeController {
       targetAgentId: agentId,
     })
     if (!result) throw new NotFoundException(`Agent ${agentId} not found`)
-    return { data: toBackofficeAgentDetailDto(result.agent, result.members) }
+    return {
+      data: toBackofficeAgentDetailDto(result.agent, result.members, result.conversationReviewers),
+    }
+  }
+
+  @Post(BackofficeRoutes.grantAgentConversationReviewer.path)
+  @CheckPermission(BACKOFFICE_CONVERSATION_REVIEWER_UPDATE_PERMISSION)
+  @TrackActivity({ action: "backoffice.agent.conversation_reviewer.grant", entityFrom: "agent" })
+  async grantAgentConversationReviewer(
+    @Req() request: EndpointRequest,
+    @Param("agentId", new ParseUUIDPipe()) agentId: string,
+    @Body(new ZodValidationPipe(grantBackofficeAgentConversationReviewerSchema))
+    body: typeof BackofficeRoutes.grantAgentConversationReviewer.request,
+  ): Promise<typeof BackofficeRoutes.grantAgentConversationReviewer.response> {
+    await this.backofficeService.grantAgentConversationReviewer({
+      agentId,
+      email: body.payload.email,
+      actingUserId: request.user.id,
+    })
+    attachTrackedActivity(request, { entityFrom: "agent", entityId: agentId })
+    return { data: { success: true } }
+  }
+
+  @Delete(BackofficeRoutes.revokeAgentConversationReviewer.path)
+  @CheckPermission(BACKOFFICE_CONVERSATION_REVIEWER_UPDATE_PERMISSION)
+  @TrackActivity({ action: "backoffice.agent.conversation_reviewer.revoke", entityFrom: "agent" })
+  async revokeAgentConversationReviewer(
+    @Req() request: EndpointRequest,
+    @Param("agentId", new ParseUUIDPipe()) agentId: string,
+    @Param("userId", new ParseUUIDPipe()) userId: string,
+  ): Promise<typeof BackofficeRoutes.revokeAgentConversationReviewer.response> {
+    await this.backofficeService.revokeAgentConversationReviewer({ agentId, userId })
+    attachTrackedActivity(request, { entityFrom: "agent", entityId: agentId })
+    return { data: { success: true } }
   }
 
   @Get(BackofficeRoutes.listUsers.path)

@@ -48,6 +48,7 @@ export type BackofficeStoryArgs = {
   isTermsManagementAuthorized: boolean
   isAppManagementAuthorized: boolean
   canCreateOrganization: boolean
+  canUpdateConversationReviewers: boolean
   withOrganizations: boolean
   withAgents: boolean
   withProjects: boolean
@@ -61,6 +62,7 @@ export const backofficeStoryArgs = {
   isTermsManagementAuthorized: false,
   isAppManagementAuthorized: false,
   canCreateOrganization: true,
+  canUpdateConversationReviewers: true,
   withOrganizations: true,
   withAgents: true,
   withProjects: true,
@@ -74,6 +76,7 @@ export const backofficeStoryArgTypes = {
   isTermsManagementAuthorized: { control: "boolean" },
   isAppManagementAuthorized: { control: "boolean" },
   canCreateOrganization: { control: "boolean" },
+  canUpdateConversationReviewers: { control: "boolean" },
   withOrganizations: { control: "boolean" },
   withAgents: { control: "boolean" },
   withProjects: { control: "boolean" },
@@ -98,6 +101,9 @@ export function buildBackofficeData(args: BackofficeStoryArgs): {
       ...(args.isTermsManagementAuthorized ? (["backoffice.terms.update"] as const) : []),
       ...(args.isAppManagementAuthorized ? (["backoffice.app.manage"] as const) : []),
       ...(args.canCreateOrganization ? (["organization.create"] as const) : []),
+      ...(args.canUpdateConversationReviewers
+        ? (["backoffice.conversation_reviewer.update"] as const)
+        : []),
     ],
   })
 
@@ -264,6 +270,8 @@ export function buildMockBackofficeService(overrides: {
       }
       return detail
     },
+    async grantAgentConversationReviewer() {},
+    async revokeAgentConversationReviewer() {},
     async getRbacCatalog() {
       if (!rbacCatalog) return backofficeRbacCatalogFactory.build()
       return rbacCatalog
