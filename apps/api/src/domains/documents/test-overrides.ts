@@ -33,7 +33,10 @@ export function withDocumentAuthAndEmbeddingsMocks(
 }
 
 function createUrlCrawlingBatchServiceMock() {
-  return { enqueueCrawlUrl: jest.fn().mockResolvedValue(undefined) }
+  return {
+    enqueueCrawlUrl: jest.fn().mockResolvedValue(undefined),
+    cancelCrawlUrl: jest.fn().mockResolvedValue(undefined),
+  }
 }
 
 export function withUrlCrawlingBatchServiceMock(

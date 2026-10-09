@@ -24,8 +24,8 @@ export class DocumentContextResolver implements ContextResolver {
       (await this.documentsService.findById({
         connectScope: getRequiredConnectScope(requestWithDocument),
         documentId,
-        // Load tags so policies (e.g. canDownload) can inspect whether the
-        // document is publicly accessible.
+        // Load tags so DocumentsController.getTemporaryUrl can tell whether
+        // the document is publicly accessible.
         withTags: true,
       })) ?? undefined
     if (!document) throw new NotFoundException()
