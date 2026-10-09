@@ -16,6 +16,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Security
 - Apps: install redirects return a one-time code instead of the client secret in the URL.
+- Apps: registered install callbacks must use HTTPS; loopback and `*.localhost` may still use HTTP.
 - Apps: revoking an installation now cuts the app's access at once.
 
 ## [26.10.1] - 2026-10-07

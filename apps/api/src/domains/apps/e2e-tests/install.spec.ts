@@ -279,7 +279,7 @@ describe("Apps - Install", () => {
           },
         }),
         400,
-        "redirectUri must be a registered callback URL for this app, or a loopback http(s) URL (localhost or 127.0.0.1)",
+        "redirectUri must be a registered https callback URL for this app, or a loopback http(s) URL (localhost, *.localhost, 127.0.0.1, or ::1)",
       )
     })
 

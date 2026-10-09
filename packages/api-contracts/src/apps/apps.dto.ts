@@ -1,6 +1,7 @@
 import { z } from "zod"
 import type { TimeType } from "../generic"
 import { APP_GRANTABLE_PERMISSIONS, type AppGrantablePermission } from "../rbac/permissions"
+import { isLoopbackHostname } from "./loopback-redirect"
 
 export type { AppGrantablePermission }
 
@@ -29,7 +30,8 @@ const grantablePermissionSchema = z.enum(
 
 const emptyToNull = (value: string | null | undefined) => (value ? value : null)
 
-const httpRedirectUriSchema = z
+/** Registered callbacks must be https; loopback (incl. *.localhost) may use http. */
+const installRedirectUriSchema = z
   .string()
   .trim()
   .url()
@@ -37,13 +39,15 @@ const httpRedirectUriSchema = z
   .refine((value) => {
     try {
       const url = new URL(value)
-      return url.protocol === "http:" || url.protocol === "https:"
+      if (url.protocol !== "http:" && url.protocol !== "https:") return false
+      if (isLoopbackHostname(url.hostname)) return true
+      return url.protocol === "https:"
     } catch {
       return false
     }
-  }, "Must be an http(s) URL")
+  }, "Must be an https URL, or a loopback http(s) URL (localhost, *.localhost, 127.0.0.1)")
 
-export const allowedRedirectUrisSchema = z.array(httpRedirectUriSchema).max(20)
+export const allowedRedirectUrisSchema = z.array(installRedirectUriSchema).max(20)
 
 export const createAppManifestSchema = z
   .object({

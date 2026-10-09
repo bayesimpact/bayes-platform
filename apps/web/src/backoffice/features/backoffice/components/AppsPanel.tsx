@@ -369,7 +369,7 @@ function AppManifestFormDialog({
                     <FormControl>
                       <Textarea
                         placeholder={
-                          "http://localhost:3100/auth/bayes/callback\nhttps://app.example.com/auth/bayes/callback"
+                          "https://app.example.com/auth/bayes/callback\nhttps://staging.example.com/auth/bayes/callback"
                         }
                         rows={4}
                         value={(field.value ?? []).join("\n")}
@@ -384,9 +384,9 @@ function AppManifestFormDialog({
                       />
                     </FormControl>
                     <FormDescription>
-                      Exact match (scheme, host, path). One URL per line. Loopback URLs (localhost /
-                      127.0.0.1) work for local installs without being listed; register staging and
-                      production HTTPS callbacks here.
+                      Exact match (scheme, host, path). One URL per line. HTTPS only. Loopback URLs
+                      (localhost, *.localhost, 127.0.0.1) work for local installs without being
+                      listed; register staging and production callbacks here.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

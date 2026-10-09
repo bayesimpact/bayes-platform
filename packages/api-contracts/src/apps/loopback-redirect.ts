@@ -1,7 +1,9 @@
-const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "[::1]"])
+const LOOPBACK_IP_HOSTS = new Set(["127.0.0.1", "::1", "[::1]"])
 
 export class InvalidLoopbackRedirectUriError extends Error {
-  constructor(message = "redirectUri must be a loopback http(s) URL (localhost or 127.0.0.1)") {
+  constructor(
+    message = "redirectUri must be a loopback http(s) URL (localhost, *.localhost, 127.0.0.1, or ::1)",
+  ) {
     super(message)
     this.name = "InvalidLoopbackRedirectUriError"
   }
@@ -9,17 +11,27 @@ export class InvalidLoopbackRedirectUriError extends Error {
 
 export class InvalidInstallRedirectUriError extends Error {
   constructor(
-    message = "redirectUri must be a registered callback URL for this app, or a loopback http(s) URL (localhost or 127.0.0.1)",
+    message = "redirectUri must be a registered https callback URL for this app, or a loopback http(s) URL (localhost, *.localhost, 127.0.0.1, or ::1)",
   ) {
     super(message)
     this.name = "InvalidInstallRedirectUriError"
   }
 }
 
-/** RFC 8252 native-app loopback: http(s) on localhost / 127.0.0.1 / ::1 only. */
+/**
+ * RFC 8252 loopback IPs, plus RFC 6761 `.localhost` (including bare `localhost`
+ * and names like `acme.localhost`).
+ */
+export function isLoopbackHostname(hostname: string): boolean {
+  const normalized = hostname.toLowerCase()
+  if (LOOPBACK_IP_HOSTS.has(normalized)) return true
+  return normalized === "localhost" || normalized.endsWith(".localhost")
+}
+
+/** RFC 8252 / RFC 6761 native-app loopback: http(s) on a loopback host only. */
 export function parseLoopbackRedirectUri(raw: string): URL {
   const url = parseHttpRedirectUri(raw)
-  if (!LOOPBACK_HOSTS.has(url.hostname)) {
+  if (!isLoopbackHostname(url.hostname)) {
     throw new InvalidLoopbackRedirectUriError()
   }
   return url
@@ -60,12 +72,14 @@ export function isHttpRedirectUri(raw: string): boolean {
 }
 
 /**
- * Accept install redirect_uri when it is a loopback URL (local CLI / native apps)
- * or an exact string match against the app's registered allowlist.
+ * Accept install redirect_uri when it is a loopback URL (local CLI / *.localhost)
+ * or an exact https match against the app's registered allowlist.
  */
 export function isAllowedInstallRedirectUri(raw: string, allowlist: readonly string[]): boolean {
   if (isLoopbackRedirectUri(raw)) return true
   if (!isHttpRedirectUri(raw)) return false
+  const url = parseHttpRedirectUri(raw)
+  if (url.protocol !== "https:") return false
   return allowlist.includes(raw)
 }
 

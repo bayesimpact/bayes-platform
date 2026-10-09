@@ -54,6 +54,7 @@ export {
   InvalidLoopbackRedirectUriError,
   isAllowedInstallRedirectUri,
   isHttpRedirectUri,
+  isLoopbackHostname,
   isLoopbackRedirectUri,
   parseHttpRedirectUri,
   parseLoopbackRedirectUri,

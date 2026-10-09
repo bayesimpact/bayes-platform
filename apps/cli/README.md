@@ -30,14 +30,15 @@ After approval, the browser redirects to `redirect_uri` with a short-lived one-t
 
 The platform accepts `redirect_uri` when:
 
-1. It is a **loopback** URL (`localhost`, `127.0.0.1`, or `::1`) — used by this CLI and other local tools, without needing backoffice registration, or
-2. It **exactly matches** a URL on the app's allowlist in the backoffice (Apps → edit app → Allowed install callback URLs).
+1. It is a **loopback** URL (`localhost`, `*.localhost`, `127.0.0.1`, or `::1`) — used by this CLI and other local tools, without needing backoffice registration, or
+2. It **exactly matches** an **https** URL on the app's allowlist in the backoffice (Apps → edit app → Allowed install callback URLs).
 
 Register one HTTPS callback per deployed environment (staging, production), for example:
 
-- `http://localhost:3100/auth/bayes/callback`
 - `https://site-crawler.staging.bayes.org/auth/bayes/callback`
 - `https://site-crawler.bayes.org/auth/bayes/callback`
+
+Local loopback examples that need no allowlist entry: `http://localhost:3100/auth/bayes/callback`, `http://acme.localhost/auth/bayes/callback`.
 
 Match is exact: scheme, host, and path. Do not leave the allowlist empty for web apps that install from a non-loopback host.
 
