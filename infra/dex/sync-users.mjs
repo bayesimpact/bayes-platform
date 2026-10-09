@@ -4,9 +4,10 @@
 //
 //   node infra/dex/sync-users.mjs [--password <dev password>] [--dry-run] [--no-env] [--no-restart]
 //
-// Run it from the main checkout, once, then again when people are added to the database. It
-// writes infra/dex/config.local.yaml (git-ignored), points apps/api/.env and apps/web/.env.local
-// at Dex (each backed up once next to it), and recreates the dex container of infra/database.
+// Run it from the main checkout, once, then again when people are added to the database or the
+// URLs of the .env files change. It writes infra/dex/config.local.yaml (git-ignored), points
+// apps/api/.env and apps/web/.env.local at Dex (each backed up once next to it), and recreates
+// the dex container of infra/database.
 // Nothing is written to the database: at the first sign-in, the API links each account to its
 // Dex identity by verified email (docs/adr/0021-generic-oidc-and-access-by-email.md).
 //
@@ -29,12 +30,11 @@ import {
   BULL_BOARD_CLIENT_SECRET,
   buildDexConfig,
   findPostgresContainer,
+  frontendOrigins,
   hashPassword,
   PASSWORD_HASH_FILE,
   readHumanUsers,
   redirectUris,
-  SAMPLE_BULL_BOARD_REDIRECT_URIS,
-  SAMPLE_WEB_REDIRECT_URIS,
   STATE_DIR,
   WEB_CLIENT_ID,
 } from "./dex-config.mjs"
@@ -87,26 +87,24 @@ async function main() {
   const container = findPostgresContainer()
   const users = readHumanUsers({ container, database })
   if (users.length === 0) {
-    throw new Error(`No human user in the database ${database}: nothing to sign in with.`)
+    throw new Error(
+      `No human user in the database ${database} yet. Add yourself with \`npm run platform-role -w apps/api -- grant --email <your email> --role platform_superadmin\`, then run this script again.`,
+    )
   }
 
-  const frontendOrigins = (apiEnv.FRONTEND_URL ?? "")
-    .split(",")
-    .map((origin) => origin.trim())
-    .filter(Boolean)
-  const derived = redirectUris({
-    webOrigins: frontendOrigins,
+  const { web: webRedirectUris, bullBoard: bullBoardRedirectUris } = redirectUris({
+    webOrigins: frontendOrigins(apiEnv.FRONTEND_URL),
     basePath: webEnv.VITE_BASE_PATH,
     bullBoardBaseUrl: apiEnv.BULL_BOARD_BASE_URL,
     bullBoardRoute: apiEnv.BULL_BOARD_ROUTE,
   })
-  const webRedirectUris = [...SAMPLE_WEB_REDIRECT_URIS, ...derived.web]
-  const bullBoardRedirectUris = [...SAMPLE_BULL_BOARD_REDIRECT_URIS, ...derived.bullBoard]
 
   console.log(`Database ${database}: ${users.length} people`)
   for (const user of users) console.log(`  ${user.email}`)
   console.log(`Web app redirect URIs: ${[...new Set(webRedirectUris)].join(", ")}`)
-  console.log(`Bull Board redirect URIs: ${[...new Set(bullBoardRedirectUris)].join(", ")}`)
+  console.log(
+    `Bull Board redirect URIs: ${bullBoardRedirectUris.join(", ") || "none, BULL_BOARD_BASE_URL is not set"}`,
+  )
   if (options["dry-run"]) return
 
   const passwordHash = await resolvePasswordHash(container)

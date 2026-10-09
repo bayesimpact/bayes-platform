@@ -3,6 +3,7 @@ import { describe, it } from "node:test"
 import {
   BULL_BOARD_CLIENT_SECRET,
   buildDexConfig,
+  frontendOrigins,
   redirectUris,
   toYaml,
   usernameOf,
@@ -53,6 +54,26 @@ describe("usernameOf", () => {
   it("falls back to the email", () => {
     assert.equal(usernameOf({ email: "ana@example.org", name: null }), "ana@example.org")
     assert.equal(usernameOf({ email: "ana@example.org", name: "  " }), "ana@example.org")
+  })
+})
+
+describe("frontendOrigins", () => {
+  it("splits FRONTEND_URL and adds https:// when an origin has no scheme, like the API's CORS", () => {
+    assert.deepEqual(
+      frontendOrigins(
+        " https://connect.localhost:5273, connect.localhost:5274 ,,http://localhost:5173",
+      ),
+      ["https://connect.localhost:5273", "https://connect.localhost:5274", "http://localhost:5173"],
+    )
+  })
+
+  it("falls back to the API's local origins when FRONTEND_URL is empty", () => {
+    for (const frontendUrl of [undefined, "", " , "]) {
+      assert.deepEqual(frontendOrigins(frontendUrl), [
+        "https://connect.localhost:5173",
+        "https://connect.localhost:5174",
+      ])
+    }
   })
 })
 
