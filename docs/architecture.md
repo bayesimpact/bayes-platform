@@ -15,17 +15,15 @@ graph TB
     subgraph "GitHub"
         GH["GitHub Actions CI/CD<br/>ci.yml / publish-images.yml"]
         GHCR["GitHub Container Registry<br/>six public images, Helm chart"]
-        DEPLOY["Deployment repository<br/>Helm values per environment"]
     end
 
-    subgraph "Slack"
-        SLACK["Slack<br/>Deploy notifications"]
+    subgraph "Operator"
+        OPS["helm install / upgrade<br/>or any GitOps tool"]
     end
 
     subgraph "Google Cloud Platform — europe-west9"
 
         subgraph "Kubernetes (Helm chart)"
-            FLUX["Flux<br/>GitOps"]
             API["API Service (NestJS)<br/>serves the web front<br/>Port 3000"]
             WORKERS["Workers (NestJS)<br/>CPU and GPU<br/>Document embeddings"]
         end
@@ -75,11 +73,9 @@ graph TB
 
     %% CI/CD flows
     GH -- "Build & Push" --> GHCR
-    GH -- "repository_dispatch<br/>(tag + commit)" --> DEPLOY
-    DEPLOY -- "Deploy notification" --> SLACK
-    FLUX -- "polls" --> DEPLOY
-    FLUX -- "helm upgrade<br/>(migrations as a hook)" --> API
-    FLUX -- "helm upgrade" --> WORKERS
+    OPS -- "chart + values" --> API
+    OPS -- "chart + values" --> WORKERS
+    OPS -- "migrations<br/>(Helm hook)" --> PG
     API -. "pulls images" .-> GHCR
 
     %% Styling
@@ -88,10 +84,10 @@ graph TB
     classDef client fill:#FBBC05,stroke:#333,color:#000
     classDef cicd fill:#EA4335,stroke:#333,color:#fff
 
-    class API,WORKERS,FLUX,PG,REDIS,GCS,SM,VERTEX gcp
-    class IDP,OTEL,SLACK external
+    class API,WORKERS,PG,REDIS,GCS,SM,VERTEX gcp
+    class IDP,OTEL,OPS external
     class WEB client
-    class GH,GHCR,DEPLOY cicd
+    class GH,GHCR cicd
 ```
 
 ## Network Flows Summary
@@ -111,9 +107,7 @@ graph TB
 | Workers | Vertex AI | HTTPS (gRPC) | Document embeddings |
 | Workers | OpenTelemetry gateway | OTLP/HTTP | Traces and metrics |
 | GitHub Actions | GitHub Container Registry | HTTPS | Image and chart push |
-| GitHub Actions | Deployment repository | HTTPS (repository_dispatch) | New images published |
-| Flux (in the cluster) | Deployment repository, this repository | HTTPS | Helm values, chart at a pinned commit |
-| Cluster | GitHub Container Registry | HTTPS | Image pull |
+| Cluster | GitHub Container Registry | HTTPS | Image and chart pull |
 
 ## CORS Configuration
 
@@ -162,21 +156,28 @@ flowchart LR
     CHECKS --> PUBLISH
     TEST --> PUBLISH
     BUILD --> PUBLISH["Add the deployment tags<br/>main, latest, main-&lt;run&gt;-&lt;sha&gt;<br/>or the release version"]
-    PUBLISH --> NOTIFY["repository_dispatch<br/>to the deployment repository<br/>(tag + commit)"]
     PUBLISH --> CHART["Release tag only:<br/>Helm chart as OCI artifact"]
-    NOTIFY --> PR["A workflow writes the tag<br/>and the chart commit<br/>in the Helm values"]
-    PR --> FLUX["Flux upgrades the<br/>Helm release"]
+    PUBLISH --> NOTIFY["Optional event<br/>platform-images-published<br/>(tag + commit)"]
 ```
 
-The images are published only when the checks and the tests pass. Deployments are GitOps: the deployment repository (private) holds, per environment, the image tag and the commit of this repository the chart is read from. A workflow there turns the event into a pull request and merges it, and Flux, inside the cluster, applies it. Chart and images always come from the same commit.
+The images are published only when the checks and the tests pass. What each tag means:
 
-- **Staging** follows `main`: every `main-<run>-<sha>` build is deployed.
-- **Production** follows releases: a release tag publishes its images and its chart, and nothing else happens. A person deploys the release with a manual run of the deployment workflow.
-- **Notifications**: the deployment workflow posts one Slack message per run and updates it as the rollout goes. Flux posts errors only.
+| Tag | Published on | Use |
+|---|---|---|
+| `sha-<short sha>` | Every build, tests or not | Not for deployments |
+| `main-<run>-<short sha>` | Push to `main`, tests passed | Follow `main` at a known build (sortable) |
+| `main`, `latest` | Push to `main`, tests passed | Moving tags, for a test install |
+| `<version>` (`26.10.2`) | Release tag, tests passed | Production installs |
+
+A release tag also publishes the Helm chart: `oci://ghcr.io/bayesimpact/charts/bayes-platform`, same version without a leading zero in the month (`26.9.1` for `v26.09.1`). Its default image tag is the release version.
+
+Nothing in this repository deploys. To install or upgrade, use the chart with your values: see [deploy/helm/bayes-platform/README.md](../deploy/helm/bayes-platform/README.md). To keep chart and images consistent, take both from the same commit (a release version, or the chart of the commit in `main-<run>-<sha>`).
+
+After the publish, the workflow sends a `repository_dispatch` event `platform-images-published` (tag, commit, repository) to a deployment repository of the organization, so that a GitOps setup can follow new builds. This step needs a GitHub App (`DEPLOY_APP_ID`, `DEPLOY_APP_PRIVATE_KEY`).
 
 ### Making a release
 
 1. Check that the `[Unreleased]` part of `CHANGELOG.md` lists the changes (the release fails on an empty one).
-2. Tag a commit of `main` that the staging already runs, with the CalVer version: `git tag v26.10.2 && git push origin v26.10.2`.
-3. `release.yml` promotes the changelog (pull request, auto-merged) and creates the GitHub release. `publish-images.yml` publishes the six images under `26.10.2` and the chart under the same version without a leading zero in the month (`26.9.1` for `v26.09.1`).
-4. Deploy it from the deployment repository.
+2. Tag a commit of `main` whose images are published, with the CalVer version: `git tag v26.10.2 && git push origin v26.10.2`.
+3. `release.yml` promotes the changelog (pull request, auto-merged) and creates the GitHub release. `publish-images.yml` publishes the six images and the chart under that version.
+4. Upgrade your installs to the new version (`helm upgrade ... --version 26.10.2`, see the chart README).
