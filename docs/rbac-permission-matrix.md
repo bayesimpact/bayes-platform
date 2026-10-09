@@ -66,6 +66,8 @@ The `document_tag.*` permissions are not inherited either: an organization role 
 
 The `project.mcp_server.*` permissions are not inherited either: an organization role does not open a project's MCP servers. Every project role sees them, while adding, connecting, toggling and deleting stay with owners and admins.
 
+The `project.review_campaign.*` permissions are not inherited either: an organization role does not open a project's review campaigns. Managing them and their testers and reviewers stays with project owners and admins.
+
 | Permission | `project_owner` | `project_admin` | `project_member` |
 |---|---|---|---|
 | `project.read` | ✅ | ✅ | ✅ |
@@ -143,6 +145,11 @@ The `project.mcp_server.*` permissions are not inherited either: an organization
 | `project.mcp_server.create` — add an MCP server to the project | ✅ | ✅ | — |
 | `project.mcp_server.update` — turn an MCP server on or off for an agent, or connect it through OAuth | ✅ | ✅ | — |
 | `project.mcp_server.delete` — delete an MCP server from the project | ✅ | ✅ | — |
+| `project.review_campaign.read` — see the project's review campaigns | ✅ | ✅ | — |
+| `project.review_campaign.create` — create a review campaign | ✅ | ✅ | — |
+| `project.review_campaign.update` — update a review campaign | ✅ | ✅ | — |
+| `project.review_campaign.delete` — delete a review campaign | ✅ | ✅ | — |
+| `project.review_campaign.member.delete` — remove a tester or a reviewer from a review campaign | ✅ | ✅ | — |
 | `user.read` — see the project's members | ✅ | ✅ | — |
 | `backoffice.project.read` — see the project in the backoffice | ✅ | ✅ | — |
 | `backoffice.project.update` — mutate the project from the backoffice (e.g. feature flags) | ✅ | ✅ | — |

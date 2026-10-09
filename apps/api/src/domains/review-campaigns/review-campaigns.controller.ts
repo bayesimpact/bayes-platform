@@ -13,23 +13,30 @@ import type {
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
 import { AddContext, RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
-import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
+import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
+import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
+import {
+  PROJECT_REVIEW_CAMPAIGN_CREATE_PERMISSION,
+  PROJECT_REVIEW_CAMPAIGN_DELETE_PERMISSION,
+  PROJECT_REVIEW_CAMPAIGN_MEMBER_DELETE_PERMISSION,
+  PROJECT_REVIEW_CAMPAIGN_READ_PERMISSION,
+  PROJECT_REVIEW_CAMPAIGN_UPDATE_PERMISSION,
+} from "@/domains/rbac/rbac.constants"
 import { UserGuard } from "@/domains/users/user.guard"
 import type { ReviewCampaignMembershipModel } from "./memberships/review-campaign-membership.model"
 import type { ReviewCampaign } from "./review-campaign.entity"
-import { ReviewCampaignsGuard } from "./review-campaigns.guard"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ReviewCampaignsService } from "./review-campaigns.service"
 
-@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, ReviewCampaignsGuard)
+@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, CheckPermissionGuard)
 @RequireContext("organization", "project")
 @Controller()
 export class ReviewCampaignsController {
   constructor(private readonly reviewCampaignsService: ReviewCampaignsService) {}
 
   @Post(ReviewCampaignsRoutes.createOne.path)
-  @CheckPolicy((policy) => policy.canCreate())
+  @CheckPermission(PROJECT_REVIEW_CAMPAIGN_CREATE_PERMISSION, "project")
   async createOne(
     @Req() request: EndpointRequestWithProject,
     @Body() { payload }: typeof ReviewCampaignsRoutes.createOne.request,
@@ -42,7 +49,7 @@ export class ReviewCampaignsController {
   }
 
   @Get(ReviewCampaignsRoutes.getAll.path)
-  @CheckPolicy((policy) => policy.canList())
+  @CheckPermission(PROJECT_REVIEW_CAMPAIGN_READ_PERMISSION, "project")
   async getAll(
     @Req() request: EndpointRequestWithProject,
   ): Promise<typeof ReviewCampaignsRoutes.getAll.response> {
@@ -59,7 +66,7 @@ export class ReviewCampaignsController {
 
   @Get(ReviewCampaignsRoutes.getOne.path)
   @AddContext("reviewCampaign")
-  @CheckPolicy((policy) => policy.canView())
+  @CheckPermission(PROJECT_REVIEW_CAMPAIGN_READ_PERMISSION, "project")
   async getOne(
     @Req() request: EndpointRequestWithReviewCampaign,
   ): Promise<typeof ReviewCampaignsRoutes.getOne.response> {
@@ -72,7 +79,7 @@ export class ReviewCampaignsController {
 
   @Patch(ReviewCampaignsRoutes.updateOne.path)
   @AddContext("reviewCampaign")
-  @CheckPolicy((policy) => policy.canUpdate())
+  @CheckPermission(PROJECT_REVIEW_CAMPAIGN_UPDATE_PERMISSION, "project")
   async updateOne(
     @Req() request: EndpointRequestWithReviewCampaign,
     @Body() { payload }: typeof ReviewCampaignsRoutes.updateOne.request,
@@ -87,7 +94,7 @@ export class ReviewCampaignsController {
 
   @Delete(ReviewCampaignsRoutes.deleteOne.path)
   @AddContext("reviewCampaign")
-  @CheckPolicy((policy) => policy.canDelete())
+  @CheckPermission(PROJECT_REVIEW_CAMPAIGN_DELETE_PERMISSION, "project")
   async deleteOne(
     @Req() request: EndpointRequestWithReviewCampaign,
   ): Promise<typeof ReviewCampaignsRoutes.deleteOne.response> {
@@ -100,7 +107,7 @@ export class ReviewCampaignsController {
 
   @Delete(ReviewCampaignsRoutes.revokeMembership.path)
   @AddContext("reviewCampaign")
-  @CheckPolicy((policy) => policy.canUpdate())
+  @CheckPermission(PROJECT_REVIEW_CAMPAIGN_MEMBER_DELETE_PERMISSION, "project")
   async revokeMembership(
     @Req() request: EndpointRequestWithReviewCampaign,
     @Param("membershipId") membershipId: string,

@@ -10,13 +10,19 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
+import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import {
   mockForeignAuthSubject,
   mockOidcEmailForSub,
   setupUserGuardForTesting,
 } from "../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
+import {
+  reviewCampaignMembershipFactory,
+  saveReviewCampaignMembership,
+} from "../memberships/review-campaign-membership.factory"
 import { reviewCampaignFactory } from "../review-campaign.factory"
 import { ReviewCampaignsModule } from "../review-campaigns.module"
 
@@ -39,6 +45,7 @@ describe("ReviewCampaigns - Auth", () => {
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)
@@ -76,19 +83,36 @@ describe("ReviewCampaigns - Auth", () => {
     projectId = project.id
     reviewCampaignId = campaign.id
     accessToken = "token"
-    return { organization, project, agent, campaign }
+    return { organization, project, user, agent, campaign }
+  }
+
+  /** Switches the caller to an organization admin who holds no role on the project. */
+  const switchToOrganizationAdminWithoutProjectRole = async ({
+    organization,
+  }: Awaited<ReturnType<typeof createContextForRole>>) => {
+    const organizationAdminAuthSubject = `oidc|${randomUUID()}`
+    await addUserToOrganization({
+      repositories,
+      organization,
+      user: {
+        authSubject: organizationAdminAuthSubject,
+        email: mockOidcEmailForSub(organizationAdminAuthSubject),
+      },
+      membership: { role: "admin" },
+    })
+    authSubject = organizationAdminAuthSubject
   }
 
   describe("ReviewCampaignsRoutes.createOne", () => {
     const payload: typeof ReviewCampaignsRoutes.createOne.request = {
       payload: { agentId: randomUUID(), name: "new" },
     }
-    const subject = async () =>
+    const subject = async (createPayload = payload) =>
       request({
         route: ReviewCampaignsRoutes.createOne,
         pathParams: removeNullish({ organizationId, projectId }),
         token: accessToken ?? undefined,
-        request: payload,
+        request: createPayload,
       })
 
     it("requires an authentication token", async () => {
@@ -107,6 +131,15 @@ describe("ReviewCampaigns - Auth", () => {
     it("forbids project members without admin role", async () => {
       await createContextForRole("member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("forbids an organization admin who holds no project role", async () => {
+      const context = await createContextForRole("owner")
+      await switchToOrganizationAdminWithoutProjectRole(context)
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it.each([["owner"], ["admin"]] as const)("allows a project %s", async (role) => {
+      const { agent } = await createContextForRole(role)
+      expectResponse(await subject({ payload: { agentId: agent.id, name: "new" } }), 201)
     })
   })
 
@@ -135,6 +168,15 @@ describe("ReviewCampaigns - Auth", () => {
       await createContextForRole("member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
+    it("forbids an organization admin who holds no project role", async () => {
+      const context = await createContextForRole("owner")
+      await switchToOrganizationAdminWithoutProjectRole(context)
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it.each([["owner"], ["admin"]] as const)("allows a project %s", async (role) => {
+      await createContextForRole(role)
+      expectResponse(await subject(), 200)
+    })
   })
 
   describe("ReviewCampaignsRoutes.getOne", () => {
@@ -162,6 +204,15 @@ describe("ReviewCampaigns - Auth", () => {
     it("forbids project members without admin role", async () => {
       await createContextForRole("member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("forbids an organization admin who holds no project role", async () => {
+      const context = await createContextForRole("owner")
+      await switchToOrganizationAdminWithoutProjectRole(context)
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it.each([["owner"], ["admin"]] as const)("allows a project %s", async (role) => {
+      await createContextForRole(role)
+      expectResponse(await subject(), 200)
     })
   })
 
@@ -195,6 +246,15 @@ describe("ReviewCampaigns - Auth", () => {
       await createContextForRole("member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
+    it("forbids an organization admin who holds no project role", async () => {
+      const context = await createContextForRole("owner")
+      await switchToOrganizationAdminWithoutProjectRole(context)
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it.each([["owner"], ["admin"]] as const)("allows a project %s", async (role) => {
+      await createContextForRole(role)
+      expectResponse(await subject(), 200)
+    })
   })
 
   describe("ReviewCampaignsRoutes.deleteOne", () => {
@@ -217,6 +277,15 @@ describe("ReviewCampaigns - Auth", () => {
     it("forbids project members without admin role", async () => {
       await createContextForRole("member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("forbids an organization admin who holds no project role", async () => {
+      const context = await createContextForRole("owner")
+      await switchToOrganizationAdminWithoutProjectRole(context)
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it.each([["owner"], ["admin"]] as const)("allows a project %s", async (role) => {
+      await createContextForRole(role)
+      expectResponse(await subject(), 200)
     })
   })
 
@@ -245,6 +314,23 @@ describe("ReviewCampaigns - Auth", () => {
     it("forbids project members without admin role", async () => {
       await createContextForRole("member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("forbids an organization admin who holds no project role", async () => {
+      const context = await createContextForRole("owner")
+      await switchToOrganizationAdminWithoutProjectRole(context)
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it.each([["owner"], ["admin"]] as const)("allows a project %s", async (role) => {
+      const { organization, project, user, campaign } = await createContextForRole(role)
+      const membership = await saveReviewCampaignMembership({
+        repositories,
+        membership: reviewCampaignMembershipFactory
+          .tester()
+          .transient({ organization, project, campaign, user })
+          .build(),
+      })
+      membershipId = membership.id
+      expectResponse(await subject(), 200)
     })
   })
 })

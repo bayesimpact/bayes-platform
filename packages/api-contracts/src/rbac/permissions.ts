@@ -346,6 +346,22 @@ export const PROJECT_MCP_SERVER_UPDATE_PERMISSION = "project.mcp_server.update" 
 export const PROJECT_MCP_SERVER_DELETE_PERMISSION = "project.mcp_server.delete" as const
 
 /**
+ * Review campaigns of a project, managed from the campaign editor. Scoped to the project
+ * and never inherited from the organization.
+ */
+export const PROJECT_REVIEW_CAMPAIGN_READ_PERMISSION = "project.review_campaign.read" as const
+
+export const PROJECT_REVIEW_CAMPAIGN_CREATE_PERMISSION = "project.review_campaign.create" as const
+
+export const PROJECT_REVIEW_CAMPAIGN_UPDATE_PERMISSION = "project.review_campaign.update" as const
+
+export const PROJECT_REVIEW_CAMPAIGN_DELETE_PERMISSION = "project.review_campaign.delete" as const
+
+/** Remove a tester or a reviewer from a review campaign. */
+export const PROJECT_REVIEW_CAMPAIGN_MEMBER_DELETE_PERMISSION =
+  "project.review_campaign.member.delete" as const
+
+/**
  * Permissions an App may be granted. Policy lives in code, not in the database:
  * there is no Permission entity and no `app_grantable` column. Intersect this
  * list with `AppManifest.grantable_permissions` on save and on authorize.
