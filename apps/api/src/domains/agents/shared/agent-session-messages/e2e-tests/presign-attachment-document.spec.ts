@@ -11,6 +11,7 @@ import { removeNullish } from "@/common/utils/remove-nullish"
 import { ConversationAgentSessionsModule } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.module"
 import { createOrganizationWithAgentSession } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../../test/request"
 
 describe("AgentSessionMessagesRoutes.presignAttachmentDocument", () => {
@@ -32,6 +33,7 @@ describe("AgentSessionMessagesRoutes.presignAttachmentDocument", () => {
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)
@@ -62,10 +64,10 @@ describe("AgentSessionMessagesRoutes.presignAttachmentDocument", () => {
   }
 
   const subject = async (
-    payload: typeof AgentSessionMessagesRoutes.presignAttachmentDocument.request.payload,
+    payload: typeof AgentSessionMessagesRoutes.playground.presignAttachmentDocument.request.payload,
   ) =>
     request({
-      route: AgentSessionMessagesRoutes.presignAttachmentDocument,
+      route: AgentSessionMessagesRoutes.playground.presignAttachmentDocument,
       pathParams: removeNullish({ organizationId, projectId, agentId, agentSessionId }),
       token: accessToken,
       request: { payload },
@@ -73,7 +75,7 @@ describe("AgentSessionMessagesRoutes.presignAttachmentDocument", () => {
 
   const getTemporaryUrlSubject = async (attachmentDocumentId: string) =>
     request({
-      route: AgentSessionMessagesRoutes.getAttachmentDocumentTemporaryUrl,
+      route: AgentSessionMessagesRoutes.playground.getAttachmentDocumentTemporaryUrl,
       pathParams: removeNullish({
         organizationId,
         projectId,
@@ -82,14 +84,12 @@ describe("AgentSessionMessagesRoutes.presignAttachmentDocument", () => {
         attachmentDocumentId,
       }),
       token: accessToken,
-      request: { payload: { type: "live" } },
     })
 
   it("should create an attachment document and return a signed upload URL", async () => {
     const { organization, project } = await createContext()
 
     const response = await subject({
-      type: "live",
       fileName: "support-notes.pdf",
       mimeType: "application/pdf",
       size: 1234,
@@ -116,7 +116,6 @@ describe("AgentSessionMessagesRoutes.presignAttachmentDocument", () => {
   it("should return a temporary URL for an attachment document", async () => {
     await createContext()
     const presignResponse = await subject({
-      type: "live",
       fileName: "support-notes.pdf",
       mimeType: "application/pdf",
       size: 1234,
@@ -132,7 +131,6 @@ describe("AgentSessionMessagesRoutes.presignAttachmentDocument", () => {
     await createContext()
 
     const response = await subject({
-      type: "live",
       fileName: "notes.txt",
       // @ts-expect-error Testing runtime validation for an unsupported MIME type.
       mimeType: "text/plain",

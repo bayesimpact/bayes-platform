@@ -12,6 +12,7 @@ import { conversationAgentSessionFactory } from "@/domains/agents/conversation-a
 import { ConversationAgentSessionsModule } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.module"
 import { createOrganizationWithAgentMessage } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../../test/request"
 
 describe("AgentSessionMessagesRoutes.getOne", () => {
@@ -34,6 +35,7 @@ describe("AgentSessionMessagesRoutes.getOne", () => {
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)
@@ -64,15 +66,9 @@ describe("AgentSessionMessagesRoutes.getOne", () => {
     return { organization, project, user, agent }
   }
 
-  const subject = async ({
-    messageId,
-    payload,
-  }: {
-    messageId: string
-    payload: typeof AgentSessionMessagesRoutes.getOne.request.payload
-  }) =>
+  const subject = async ({ messageId }: { messageId: string }) =>
     request({
-      route: AgentSessionMessagesRoutes.getOne,
+      route: AgentSessionMessagesRoutes.playground.getOne,
       pathParams: removeNullish({
         organizationId,
         projectId,
@@ -81,18 +77,12 @@ describe("AgentSessionMessagesRoutes.getOne", () => {
         messageId,
       }),
       token: accessToken,
-      request: { payload },
     })
 
   it("should return message", async () => {
     await createContext()
 
-    const response = await subject({
-      messageId: agentMessageId,
-      payload: {
-        type: "live",
-      },
-    })
+    const response = await subject({ messageId: agentMessageId })
 
     expectResponse(response, 201)
     expect(response.body.data).toBeDefined()
@@ -103,12 +93,7 @@ describe("AgentSessionMessagesRoutes.getOne", () => {
     const nonExistentId = "00000000-0000-0000-0000-000000000000"
     await createContext()
 
-    const response = await subject({
-      messageId: nonExistentId,
-      payload: {
-        type: "live",
-      },
-    })
+    const response = await subject({ messageId: nonExistentId })
 
     expectResponse(response, 404)
     expect(response.body.data).toBeUndefined()
@@ -124,12 +109,7 @@ describe("AgentSessionMessagesRoutes.getOne", () => {
     await repositories.conversationAgentSessionRepository.save(otherSession)
     agentSessionId = otherSession.id
 
-    const response = await subject({
-      messageId: agentMessageId,
-      payload: {
-        type: "live",
-      },
-    })
+    const response = await subject({ messageId: agentMessageId })
 
     expectResponse(response, 404)
     expect(response.body.data).toBeUndefined()

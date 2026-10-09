@@ -11,6 +11,7 @@ import { removeNullish } from "@/common/utils/remove-nullish"
 import { ConversationAgentSessionsModule } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.module"
 import { createOrganizationWithAgentSession } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../../test/rbac-test.helpers"
 import { type Requester, testRequester } from "../../../../../../test/request"
 import { agentMessageFactory, createChitChatConversation } from "../agent-messages.factory"
 import { McpAppHtmlService } from "../mcp-app-html.service"
@@ -40,6 +41,7 @@ describe("AgentSessionMessagesRoutes.getMcpAppHtml", () => {
           .useValue({ readLiveHtml }),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)
@@ -76,18 +78,16 @@ describe("AgentSessionMessagesRoutes.getMcpAppHtml", () => {
 
   const listMessages = async () =>
     request({
-      route: AgentSessionMessagesRoutes.getAll,
+      route: AgentSessionMessagesRoutes.playground.getAll,
       pathParams: removeNullish({ organizationId, projectId, agentId, agentSessionId }),
       token: accessToken,
-      request: { payload: { type: "live" } },
     })
 
   const subject = async () =>
     request({
-      route: AgentSessionMessagesRoutes.getMcpAppHtml,
+      route: AgentSessionMessagesRoutes.playground.getMcpAppHtml,
       pathParams: removeNullish({ organizationId, projectId, agentId, agentSessionId }),
       token: accessToken,
-      request: { payload: { type: "live" } },
     })
 
   it("returns the message list without reading any MCP server", async () => {
