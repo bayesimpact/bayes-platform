@@ -1,7 +1,8 @@
 # Local dev stack, one compose project for everything (`connect-db`).
 # A plain `docker compose up -d` (and the CI) starts pgvector and redis only.
 # Profiles: `mail` (Mailpit), `keycloak`, `dex`, `traces` (otel-collector,
-# Phoenix), `analytics` (Grafana). See the README for the commands.
+# Phoenix), `analytics` (Grafana), `router` (Traefik and the dashboard of the
+# worktree environments). See the README for the commands.
 #
 # Mounts of files and folders that must exist use the long syntax with
 # `create_host_path: false`: a missing source then fails `docker compose up`
@@ -9,10 +10,19 @@
 # the missing path as an empty root-owned folder, which the container reads as
 # a broken file and which breaks the next checkout on the CI runners.
 # Only the data folders under ./dontsave are created on first start.
+#
+# Every service restarts with Docker (`restart: unless-stopped`), so the stack
+# comes back after a reboot until you stop it with `docker compose stop`.
 name: "connect-db"
 services:
   pgvector:
     image: pgvector/pgvector:pg17
+    restart: unless-stopped
+    # Parallel queries use /dev/shm; Docker's default 64 MB is too small.
+    shm_size: 256mb
+    # log_statement=all is verbose: the local driver rotates the files.
+    logging:
+      driver: local
     ports:
       - "${DATABASE_PORT:-5432}:5432"
     environment:
@@ -26,12 +36,17 @@ services:
         bind:
           create_host_path: false
       - ./dontsave/pgdata:/var/lib/postgresql/data
+    # 500 connections: the main checkout, each worktree environment (an API
+    # and workers hold about 26) and parallel test runs share this server.
     command:
       - "postgres"
       - "-c"
       - "log_statement=all"
+      - "-c"
+      - "max_connections=500"
   redis:
     image: redis:7-alpine
+    restart: unless-stopped
     ports:
       - "${REDIS_PORT:-6379}:6379"
   # Grafana on the analytics schema: http://localhost:3300, no login.
@@ -39,12 +54,16 @@ services:
   # (deploy/helm/bayes-platform/dashboards), the same files the cluster gets.
   # Profile `analytics`: a plain `docker compose up` (and the CI, make db-tests)
   # leaves it off; `docker compose up -d grafana` names it, so starts it.
+  # ANALYTICS_DB_NAME is the database the datasource reads (GRAFANA_DATABASE in
+  # infra/database/.env, `connect` by default).
   grafana:
     image: grafana/grafana:13.2.2 # same major as the cluster (chart grafana 13.x)
     profiles: [analytics]
+    restart: unless-stopped
     ports:
       - "${GRAFANA_PORT:-3300}:3000"
     environment:
+      ANALYTICS_DB_NAME: ${GRAFANA_DATABASE:-connect}
       GF_AUTH_ANONYMOUS_ENABLED: "true"
       GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
       GF_AUTH_DISABLE_LOGIN_FORM: "true"
@@ -66,13 +85,19 @@ services:
           create_host_path: false
     depends_on:
       - pgvector
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.grafana.rule: Host(`grafana.connect.localhost`)
+      traefik.http.services.grafana.loadbalancer.server.port: "3000"
   # LLM traces: the API sends OTLP to the collector (OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318),
-  # which maps them to OpenInference and forwards them to Phoenix at http://localhost:6006.
+  # which maps them to OpenInference and forwards them to Phoenix at http://localhost:6060
+  # (6006 belongs to the web app's Storybook and its MCP server in .mcp.json).
   # Profile `traces`: a plain `docker compose up` (and the CI, make db-tests)
   # leaves them off; start them with `docker compose --profile traces up -d`.
   otel-collector:
     image: otel/opentelemetry-collector-k8s:0.161.0 # same distribution as the gateway of the clusters
     profiles: [traces]
+    restart: unless-stopped
     command: ["--config=/etc/otelcol/collector.yaml"]
     ports:
       - "${OTEL_COLLECTOR_PORT:-4318}:4318"
@@ -91,12 +116,17 @@ services:
   phoenix:
     image: arizephoenix/phoenix:version-20.14.0 # same version as staging (chart phoenix-helm 12.0.x)
     profiles: [traces]
+    restart: unless-stopped
     ports:
-      - "${PHOENIX_PORT:-6006}:6006"
+      - "${PHOENIX_PORT:-6060}:6006"
     environment:
       PHOENIX_WORKING_DIR: /mnt/data
     volumes:
       - ./dontsave/phoenix:/mnt/data
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.phoenix.rule: Host(`phoenix.connect.localhost`)
+      traefik.http.services.phoenix.loadbalancer.server.port: "6006"
   # Fake SMTP server for the invitation emails: catches every email, sends
   # none, and shows them at http://localhost:8025. Set SMTP_HOST=localhost and
   # SMTP_PORT=1025 in apps/api/.env to use it.
@@ -104,6 +134,7 @@ services:
   mailpit:
     image: axllent/mailpit:v1.31.4
     profiles: [mail]
+    restart: unless-stopped
     ports:
       - "${MAILPIT_SMTP_PORT:-1025}:1025"
       - "${MAILPIT_UI_PORT:-8025}:8025"
@@ -111,6 +142,10 @@ services:
       # Accept any SMTP credentials, so an .env with SMTP_USER set still works.
       MP_SMTP_AUTH_ACCEPT_ANY: "1"
       MP_SMTP_AUTH_ALLOW_INSECURE: "1"
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.mail.rule: Host(`mail.connect.localhost`)
+      traefik.http.services.mail.loadbalancer.server.port: "8025"
   # Local OpenID Connect provider, http://localhost:8080 (admin / admin). Not for
   # production use. Imports infra/keycloak/realm-platform.local.json when it
   # exists (git-ignored), else realm-platform.sample.json. See infra/keycloak/README.md.
@@ -118,6 +153,7 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:26.2
     profiles: [keycloak]
+    restart: unless-stopped
     entrypoint: ["sh", "-c"]
     command:
       - |
@@ -147,6 +183,7 @@ services:
   dex:
     image: ghcr.io/dexidp/dex:v2.44.0
     profiles: [dex]
+    restart: unless-stopped
     entrypoint: ["sh", "-c"]
     command:
       - |
@@ -165,3 +202,85 @@ services:
         read_only: true
         bind:
           create_host_path: false
+  # Router of the worktree environments: every host *.connect.localhost on
+  # http://127.0.0.1:${ROUTER_PORT:-8800}, routed by Docker labels (only the
+  # containers labeled traefik.enable=true). Plain HTTP: browsers treat
+  # *.localhost as a secure context. Traefik's own dashboard is at
+  # http://traefik.connect.localhost:8800/dashboard/. The 0s read timeout
+  # keeps long uploads and streams open.
+  # Profile `router`: `docker compose --profile router up -d --no-recreate`.
+  traefik:
+    image: traefik:v3.7.14
+    profiles: [router]
+    restart: unless-stopped
+    command:
+      - --entrypoints.web.address=:${ROUTER_PORT:-8800}
+      - --entrypoints.web.transport.respondingTimeouts.readTimeout=0s
+      - --providers.docker.exposedByDefault=false
+      - --providers.docker.network=connect-db_default
+      # A starting or unhealthy service answers 503 instead of falling through to another router.
+      - --providers.docker.allowEmptyServices=true
+      - --api.dashboard=true
+      - --global.checkNewVersion=false
+      - --global.sendAnonymousUsage=false
+      - --log.level=WARN
+    ports:
+      - "127.0.0.1:${ROUTER_PORT:-8800}:${ROUTER_PORT:-8800}"
+    volumes:
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+        read_only: true
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.traefik.rule: Host(`traefik.connect.localhost`)
+      traefik.http.routers.traefik.service: api@internal
+  # The list of worktree environments with their links: http://dev.connect.localhost:8800.
+  # It also answers every host no running service takes (a page that says what
+  # is starting or what to start), and the 502-504 errors of the environments
+  # through the dev-starting middleware. Read-only access to Docker. It reads
+  # status.json (branch, pull request, databases) from ~/.bayes-worktrees, which
+  # the worktree tooling writes.
+  dev-dashboard:
+    image: node:24.21.0-trixie-slim
+    profiles: [router]
+    restart: unless-stopped
+    command: ["node", "/app/server.mjs"]
+    environment:
+      ROUTER_PORT: ${ROUTER_PORT:-8800}
+      STATE_DIR: /state
+    volumes:
+      - type: bind
+        source: ../dev-dashboard
+        target: /app
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
+        read_only: true
+      - type: bind
+        source: ${DEV_STATE_DIR:-${HOME}/.bayes-worktrees}
+        target: /state
+        read_only: true
+        bind:
+          create_host_path: false
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8080/healthz').then((reply) => process.exit(reply.ok ? 0 : 1), () => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      # Traefik skips a container until its first passing check: check early at start.
+      start_period: 30s
+      start_interval: 2s
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.dev-dashboard.rule: Host(`dev.connect.localhost`)
+      traefik.http.routers.dev-dashboard.service: dev-dashboard
+      traefik.http.routers.dev-fallback.rule: HostRegexp(`^.+\.connect\.localhost$$`)
+      traefik.http.routers.dev-fallback.priority: "1"
+      traefik.http.routers.dev-fallback.service: dev-dashboard
+      traefik.http.services.dev-dashboard.loadbalancer.server.port: "8080"
+      traefik.http.middlewares.dev-starting.errors.status: "502-504"
+      traefik.http.middlewares.dev-starting.errors.service: dev-dashboard
+      traefik.http.middlewares.dev-starting.errors.query: /status?code={status}

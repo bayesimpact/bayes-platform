@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Worktree environments</title>
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --card: #ffffff;
+    --text: #1f2933;
+    --muted: #616e7c;
+    --border: #e1e4e8;
+    --accent: #2f6fde;
+    --ready: #1f9d55;
+    --starting: #d69e2e;
+    --problem: #d64545;
+    --stopped: #9aa5b1;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12161b;
+      --card: #1b2128;
+      --text: #e4e7eb;
+      --muted: #9aa5b1;
+      --border: #2c343d;
+      --accent: #6ea8fe;
+    }
+  }
+  * { box-sizing: border-box; }
+  code { font-family: ui-monospace, monospace; }
+  body { margin: 0; font: 15px/1.5 system-ui, -apple-system, sans-serif; color: var(--text); background: var(--bg); }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  main { max-width: 72rem; margin: 0 auto; padding: 2rem 1rem 4rem; }
+  header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.5rem; margin-bottom: 1.5rem; }
+  h1 { font-size: 1.5rem; margin: 0; }
+  h2 { font-size: 1.05rem; margin: 2rem 0 0.75rem; color: var(--muted); font-weight: 600; }
+  .meta { color: var(--muted); font-size: 0.85rem; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr)); gap: 1rem; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: 0.75rem; }
+  .title { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+  .title strong { font-size: 1.1rem; overflow-wrap: anywhere; }
+  .branch { font-family: ui-monospace, monospace; font-size: 0.85rem; color: var(--muted); overflow-wrap: anywhere; }
+  .pill { font-size: 0.75rem; font-weight: 600; padding: 0.1rem 0.55rem; border-radius: 999px; color: #fff; white-space: nowrap; }
+  .pill.ready { background: var(--ready); }
+  .pill.starting { background: var(--starting); }
+  .pill.problem { background: var(--problem); }
+  .pill.stopped { background: var(--stopped); }
+  .links { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .links a { text-decoration: none; color: var(--accent); border: 1px solid var(--border); border-radius: 6px; padding: 0.2rem 0.55rem; font-size: 0.85rem; }
+  .links a:hover { border-color: var(--accent); }
+  .services { display: flex; flex-wrap: wrap; gap: 0.35rem 0.8rem; font-size: 0.8rem; color: var(--muted); }
+  .dot { display: inline-block; width: 0.55rem; height: 0.55rem; border-radius: 50%; margin-right: 0.3rem; vertical-align: 0.05rem; }
+  .dot.healthy, .dot.running, .dot.done { background: var(--ready); }
+  .dot.starting { background: var(--starting); }
+  .dot.unhealthy, .dot.failed, .dot.dead { background: var(--problem); }
+  .dot.stopped, .dot.unknown, .dot.paused { background: var(--stopped); }
+  .details { font-size: 0.8rem; color: var(--muted); display: grid; gap: 0.15rem; }
+  .details code { overflow-wrap: anywhere; }
+  .empty, .error { background: var(--card); border: 1px dashed var(--border); border-radius: 10px; padding: 1.25rem; color: var(--muted); }
+  .error { border-color: var(--problem); color: var(--problem); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Worktree environments</h1>
+    <span class="meta" id="updated"></span>
+  </header>
+  <div id="error"></div>
+  <section class="grid" id="environments"></section>
+  <h2>Shared stack</h2>
+  <section class="services" id="shared"></section>
+</main>
+<script>
+  const LINK_LABELS = {
+    app: "App",
+    "bull-board": "Bull Board",
+    grafana: "Grafana",
+    storybook: "Storybook",
+    "ui-storybook": "UI Storybook",
+    embed: "Embed",
+    "embed-storybook": "Embed Storybook",
+    help: "Help",
+    dex: "Dex",
+  }
+  const STATE_LABELS = { ready: "ready", starting: "starting", problem: "problem", stopped: "stopped" }
+
+  function element(tag, properties = {}, children = []) {
+    const node = document.createElement(tag)
+    for (const [key, value] of Object.entries(properties)) {
+      if (key === "className") node.className = value
+      else if (key === "text") node.textContent = value
+      else node.setAttribute(key, value)
+    }
+    for (const child of children) if (child) node.append(child)
+    return node
+  }
+
+  function link(name, url) {
+    return element("a", { href: url, target: "_blank", rel: "noopener", text: LINK_LABELS[name] ?? name })
+  }
+
+  function service(entry) {
+    return element("span", { title: entry.health }, [
+      element("span", { className: `dot ${entry.health}` }),
+      document.createTextNode(entry.name),
+    ])
+  }
+
+  function pullRequest(pr) {
+    if (!pr) return null
+    return element("a", { href: pr.url, target: "_blank", rel: "noopener", text: `#${pr.number} ${pr.state.toLowerCase()}` })
+  }
+
+  function environmentCard(environment) {
+    const links = environment.links.map((entry) => link(entry.name, entry.url))
+    if (environment.tracesUrl) links.push(link("Traces", environment.tracesUrl))
+    const details = []
+    if (environment.databases) {
+      details.push(element("div", {}, [document.createTextNode("Databases: "), element("code", { text: Object.values(environment.databases).join(", ") })]))
+    }
+    if (environment.path) details.push(element("div", {}, [document.createTextNode("Path: "), element("code", { text: environment.path })]))
+    if (environment.cleanup) details.push(element("div", { text: `Cleanup: ${environment.cleanup.verdict} (${environment.cleanup.reason})` }))
+    return element("article", { className: "card" }, [
+      element("div", { className: "title" }, [
+        element("strong", { text: environment.slug }),
+        element("span", { className: `pill ${environment.state}`, text: STATE_LABELS[environment.state] ?? environment.state }),
+      ]),
+      environment.branch || environment.pr
+        ? element("div", { className: "branch" }, [
+            document.createTextNode(environment.branch ?? ""),
+            environment.pr ? document.createTextNode(" · ") : null,
+            pullRequest(environment.pr),
+          ])
+        : null,
+      element("nav", { className: "links" }, links),
+      element("div", { className: "services" }, environment.services.map(service)),
+      details.length ? element("div", { className: "details" }, details) : null,
+    ])
+  }
+
+  function render(state) {
+    const environments = document.getElementById("environments")
+    environments.replaceChildren(
+      ...(state.environments.length
+        ? state.environments.map(environmentCard)
+        : [element("p", { className: "empty", text: "No environment yet. Start one from Claude Code with /worktree-env <name>." })]),
+    )
+    document.getElementById("shared").replaceChildren(
+      ...state.shared.map((entry) =>
+        entry.url
+          ? element("span", { title: entry.health }, [element("span", { className: `dot ${entry.health}` }), link(entry.name, entry.url)])
+          : service(entry),
+      ),
+    )
+    document.getElementById("updated").textContent = `Updated ${new Date(state.generatedAt).toLocaleTimeString()}`
+    document.getElementById("error").replaceChildren()
+  }
+
+  async function refresh() {
+    try {
+      const response = await fetch("/api/state", { cache: "no-store" })
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
+      render(await response.json())
+    } catch (error) {
+      document.getElementById("error").replaceChildren(
+        element("p", { className: "error", text: `Could not load the environments (${error.message}). Retrying.` }),
+      )
+    }
+  }
+
+  refresh()
+  setInterval(refresh, 5000)
+</script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -f \"$CLAUDE_PROJECT_DIR/infra/worktree/wt.mjs\" ] && node \"$CLAUDE_PROJECT_DIR/infra/worktree/wt.mjs\" session-start || true",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "allow": ["Bash(npm run wt -- *)"],
+    "deny": ["Bash(docker system prune*)", "Bash(docker volume prune*)"]
+  }
+}
