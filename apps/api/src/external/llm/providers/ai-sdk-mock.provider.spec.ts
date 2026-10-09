@@ -9,6 +9,7 @@ import type {
   LLMFile,
   LLMMetadata,
 } from "@/common/interfaces/llm-provider.interface"
+import { MAX_STREAM_OUTPUT_TOKENS } from "@/external/llm/ai-sdk-llm-provider-base"
 import { AISDKMockProvider } from "@/external/llm/providers/ai-sdk-mock.provider"
 
 describe("AISDKMockProvider", () => {
@@ -133,6 +134,13 @@ describe("AISDKMockProvider", () => {
     // The AI SDK may coalesce consecutive text deltas, so assert on the content.
     expect(results.length).toBeGreaterThan(0)
     expect(results.join("")).toBe("Hello!")
+  })
+
+  it("streamChatResponse - limits the output tokens of each step", async () => {
+    provider.addStreamTurn(metadata.agentId, ["Hello!"])
+    await streamToStringArray(provider.streamChatResponse({ messages, config, metadata }))
+
+    expect(provider.getCalls().at(-1)?.maxOutputTokens).toBe(MAX_STREAM_OUTPUT_TOKENS)
   })
 
   it("streamChatResponse - rethrows a provider error instead of ending silently", async () => {
