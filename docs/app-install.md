@@ -33,25 +33,25 @@ Two surfaces share the same protocol; only `redirect_uri` and who runs the callb
 sequenceDiagram
   autonumber
   actor Op as Operator
-  participant Client as Installing client<br/>(CLI or app backend)
+  participant Client as Installing client
   participant Browser as Browser
   participant Web as Web app
-  participant API as API (/api)
+  participant API as API
 
-  Client->>Client: Generate state, code_verifier<br/>code_challenge = S256(verifier)
-  Client->>Browser: Open install URL<br/>(redirect_uri, state, code_challenge, S256)
-  Browser->>Web: GET /apps/install/:slug?...
-  Web->>API: GET /api/apps/install/:slug<br/>(operator session)
-  API-->>Web: App + installable projects
-  Op->>Web: Pick project + permissions, Approve
-  Web->>API: POST /api/apps/install/:slug/authorize<br/>{ projectId, permissions, redirectUri, state,<br/>codeChallenge, codeChallengeMethod }
-  API->>API: Create installation, service user,<br/>custom role, auth code (TTL 5 min)
-  API-->>Web: { code, redirectUri, state }
-  Web->>Browser: Redirect to redirect_uri?code&state
-  Browser->>Client: GET callback?code&state
+  Client->>Client: Generate state and PKCE S256 challenge
+  Client->>Browser: Open install URL with redirect_uri, state, challenge
+  Browser->>Web: GET /apps/install/:slug
+  Web->>API: GET /api/apps/install/:slug (operator session)
+  API-->>Web: App and installable projects
+  Op->>Web: Pick project and permissions, Approve
+  Web->>API: POST /api/apps/install/:slug/authorize
+  API->>API: Create installation, service user, role, auth code
+  API-->>Web: code, redirectUri, state
+  Web->>Browser: Redirect to redirect_uri with code and state
+  Browser->>Client: GET callback with code and state
   Client->>Client: Check state
-  Client->>API: POST /api/apps/v1/install/exchange<br/>{ code, redirect_uri, code_verifier }
-  API-->>Client: { client_id, client_secret }
+  Client->>API: POST /api/apps/v1/install/exchange
+  API-->>Client: client_id and client_secret
   Note over Client: Store secret once; never in the URL
 ```
 
@@ -60,11 +60,11 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
   participant Client as Installing client
-  participant API as API (/api)
+  participant API as API
 
-  Client->>API: POST /api/apps/v1/token<br/>grant_type=client_credentials<br/>+ client_id + client_secret
-  API-->>Client: access_token (App JWT)
-  Client->>API: Authenticated apps/v1 calls<br/>(e.g. GET /api/apps/v1/me)
+  Client->>API: POST /api/apps/v1/token (client_credentials)
+  API-->>Client: access_token App JWT
+  Client->>API: Authenticated apps/v1 calls e.g. GET /api/apps/v1/me
 ```
 
 ## Install URL (browser entry)
