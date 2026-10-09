@@ -147,11 +147,13 @@ export class AISDKVertex3Provider extends AISDKLLMProviderBase<AgentProvider.Ver
     return provider(config.model)
   }
 
-  protected override buildNativeProviderOptions({
-    config,
-  }: {
-    config: LLMConfig
-  }): Record<string, Record<string, JSONValue>> {
+  /**
+   * No temperature (nor topX settings) for the 3.x models: they are not
+   * compatible with the thinking level.
+   */
+  protected override buildSpecificProviderOptions({ config }: { config: LLMConfig }): {
+    providerOptions: Record<string, Record<string, JSONValue>>
+  } {
     let vertexOptions: Record<string, JSONValue> = {}
     if (config.serviceTier) vertexOptions = { sharedRequestType: config.serviceTier }
     vertexOptions = {
@@ -161,7 +163,7 @@ export class AISDKVertex3Provider extends AISDKLLMProviderBase<AgentProvider.Ver
         thinkingLevel: config.thinkingLevel,
       }),
     }
-    return { vertex: vertexOptions }
+    return { providerOptions: { vertex: vertexOptions } }
   }
 
   normalizeThinkingLevelForModel({
@@ -240,12 +242,6 @@ export class AISDKVertex3Provider extends AISDKLLMProviderBase<AgentProvider.Ver
         )
     }
   }
-  protected override applyTemperature(_temperature: number): number | undefined {
-    // temperature should not be set (also the case for topX settings) when using 3.x model :
-    // these parameters are not compatible with thinking level
-    return undefined
-  }
-
   getTags(config: LLMConfig): string[] {
     const tags = [this.vertexProject, locationForModel(config.model), config.model]
     if (config.serviceTier) tags.push(config.serviceTier.toUpperCase())

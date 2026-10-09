@@ -61,8 +61,8 @@ class TestProviderWithOverrides extends TestProvider {
   protected applySpecificToSystemPrompt({ systemPrompt }: { systemPrompt: string }): string {
     return `${systemPrompt} Answer briefly.`
   }
-  protected applyTemperature(): number | undefined {
-    return undefined
+  protected buildSpecificProviderOptions() {
+    return { providerOptions: { vertex: { thinkingBudget: 0 } } }
   }
 }
 
@@ -200,7 +200,7 @@ describe("AISDKLLMProviderBase", () => {
       expect(model.doStreamCalls[0]?.temperature).toBe(0.2)
     })
 
-    it("applies the provider's system prompt and temperature adjustments", async () => {
+    it("applies the provider's system prompt and specific call settings", async () => {
       const model = buildStreamModel([...textParts("Hi"), finish("stop")])
       const provider = new TestProviderWithOverrides(AgentProvider._Mock, model)
 
@@ -211,6 +211,7 @@ describe("AISDKLLMProviderBase", () => {
         content: "You are a helpful assistant. Answer briefly.",
       })
       expect(model.doStreamCalls[0]?.temperature).toBeUndefined()
+      expect(model.doStreamCalls[0]?.providerOptions).toEqual({ vertex: { thinkingBudget: 0 } })
     })
 
     it("builds the model for the call origin and the agent, with or without tools", async () => {

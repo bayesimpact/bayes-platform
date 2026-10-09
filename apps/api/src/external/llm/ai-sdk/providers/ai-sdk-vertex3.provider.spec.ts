@@ -60,10 +60,31 @@ describe("AISDKVertex3Provider location routing", () => {
   })
 })
 
+describe("AISDKVertex3Provider temperature", () => {
+  class TestableProvider extends AISDKVertex3Provider {
+    public specificProviderOptionsFor(config: LLMConfig) {
+      return this.buildSpecificProviderOptions({ config })
+    }
+  }
+
+  it("sends no temperature, which the thinking level does not allow", () => {
+    const config = {
+      model: AgentModel.Gemini35Flash,
+      temperature: 0,
+      serviceTier: undefined,
+      thinkingLevel: AgentThinkingLevel.Auto,
+    } satisfies LLMConfig
+
+    expect(new TestableProvider().specificProviderOptionsFor(config)).not.toHaveProperty(
+      "temperature",
+    )
+  })
+})
+
 describe("AISDKVertex3Provider service tier", () => {
   class TestableProvider extends AISDKVertex3Provider {
     public providerOptionsFor(config: LLMConfig) {
-      return this.buildNativeProviderOptions({ config })
+      return this.buildSpecificProviderOptions({ config }).providerOptions
     }
   }
   const buildConfig = (serviceTier: LLMServiceTier): LLMConfig =>
@@ -102,7 +123,7 @@ describe("AISDKVertex3Provider service tier", () => {
 describe("AISDKVertex3Provider thinking level", () => {
   class TestableProvider extends AISDKVertex3Provider {
     public providerOptionsFor(config: LLMConfig) {
-      return this.buildNativeProviderOptions({ config })
+      return this.buildSpecificProviderOptions({ config }).providerOptions
     }
   }
   const buildConfig = ({

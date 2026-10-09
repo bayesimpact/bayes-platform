@@ -55,12 +55,15 @@ export abstract class AISDKLLMBuilders {
   }
 
   /**
-   * The provider options of a call, keyed by provider (e.g. `vertex` for its
-   * thinking level). None by default: a provider that has some overrides this.
+   * The call settings that vary by provider, spread last into each AI SDK
+   * call: the temperature, left out when the model must not receive one, and
+   * the provider options keyed by provider (e.g. `vertex` for its thinking
+   * level). A provider that needs others overrides this.
    */
-  protected buildNativeProviderOptions(_args: {
-    config: LLMConfig
-  }): Record<string, Record<string, JSONValue>> {
-    return {}
+  protected buildSpecificProviderOptions({ config }: { config: LLMConfig }): {
+    temperature?: number
+    providerOptions: Record<string, Record<string, JSONValue>>
+  } {
+    return { temperature: config.temperature, providerOptions: {} }
   }
 }

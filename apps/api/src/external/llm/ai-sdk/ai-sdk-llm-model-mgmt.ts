@@ -577,10 +577,6 @@ export abstract class AISDKLLMModelMgmt<
     return systemPrompt
   }
 
-  protected applyTemperature(temperature: number): number | undefined {
-    return temperature
-  }
-
   /**
    * Adapts the message of a structured output call to what the provider
    * accepts, or throws when it cannot take it (a file type it does not read).

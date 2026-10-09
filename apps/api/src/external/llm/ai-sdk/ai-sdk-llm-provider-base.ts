@@ -52,11 +52,9 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
       callOrigin,
       metadata,
     })
-    const temperature: number | undefined = this.applyTemperature(config.temperature)
 
     const agent = new ToolLoopAgent({
       model: this.getLanguageModelWithRawCapture({ config, callOrigin, metadata, leakedToolCalls }),
-      ...(temperature !== undefined ? { temperature } : {}),
       tools: this.supportsStrictTools() ? this.withStrictTools(config.tools) : config.tools,
       stopWhen: this.buildStopConditions(config),
       // Arguments the model broke (invalid JSON) are regenerated through
@@ -76,7 +74,7 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
           userMessage: this.buildUserMessageForTelemetry(aiSDKMessages),
         }),
       },
-      providerOptions: this.buildNativeProviderOptions({ config }),
+      ...this.buildSpecificProviderOptions({ config }),
     })
 
     let systemPrompt = systemMessage || config.systemPrompt || ""
@@ -138,18 +136,16 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
     const callOrigin = CallOrigin.generateText
     this.checkConfigProviderAndModel(config)
     const tags = this.getTags(config)
-    const temperature: number | undefined = this.applyTemperature(config.temperature)
     const { text } = await generateText({
       model: this.getLanguageModelWithRawCapture({ config, callOrigin, metadata }),
       system: config.systemPrompt,
       prompt,
-      ...(temperature !== undefined ? { temperature } : {}),
       experimental_telemetry: {
         isEnabled: true,
         functionId: "LLMProvider.generateText",
         metadata: this.buildMetadata({ config, metadata, tags }),
       },
-      providerOptions: this.buildNativeProviderOptions({ config }),
+      ...this.buildSpecificProviderOptions({ config }),
     })
     return text
   }
@@ -171,12 +167,10 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
 
     const aiSDKMessages = this.toConversationMessages([message], "generate structured output")
     const tags = this.getTags(config)
-    const temperature: number | undefined = this.applyTemperature(config.temperature)
     const result = await generateText({
       model: this.getLanguageModelWithRawCapture({ config, callOrigin, metadata }),
       messages: aiSDKMessages,
       system: config.systemPrompt,
-      ...(temperature !== undefined ? { temperature } : {}),
       output: Output.object({
         schema: jsonSchema<Record<string, unknown>>(schema),
       }),
@@ -190,7 +184,7 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
           tags,
         }),
       },
-      providerOptions: this.buildNativeProviderOptions({ config }),
+      ...this.buildSpecificProviderOptions({ config }),
     })
     return this.readStructuredOutput(result)
   }

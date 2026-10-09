@@ -102,6 +102,13 @@ class TestToolsMgmt extends AISDKLLMToolsMgmt {
   }
 }
 
+/** A provider that sends no temperature and options of its own (as Vertex 3.x does). */
+class TestToolsMgmtWithSpecificOptions extends TestToolsMgmt {
+  protected buildSpecificProviderOptions() {
+    return { providerOptions: { vertex: { thinkingBudget: 0 } } }
+  }
+}
+
 /** A model whose structured output is `text`, or which throws `error`. */
 function buildModel({ text, error }: { text?: string; error?: Error }): MockLanguageModelV3 {
   return new MockLanguageModelV3({
@@ -228,6 +235,25 @@ describe("AISDKLLMToolsMgmt", () => {
       expect(toolsMgmt.malformedLogger.warn).toHaveBeenCalledWith(
         expect.stringContaining('"record_summary"'),
       )
+    })
+
+    it("regenerates with the provider's specific call settings", async () => {
+      const model = buildModel({ text: '{"title":"Pricing","summary":"none"}' })
+      const defaultModel = buildModel({ text: '{"title":"Pricing","summary":"none"}' })
+
+      await new TestToolsMgmtWithSpecificOptions().toolCallRepairFor(buildCallArgs(model))({
+        system: undefined,
+        messages: [],
+        toolCall,
+        tools,
+        inputSchema: async () => ({}),
+        error: invalidInputError,
+      } as unknown as Parameters<ToolCallRepairFunction<ToolSet>>[0])
+      await repair(defaultModel)
+
+      expect(model.doGenerateCalls[0]?.temperature).toBeUndefined()
+      expect(model.doGenerateCalls[0]?.providerOptions).toEqual({ vertex: { thinkingBudget: 0 } })
+      expect(defaultModel.doGenerateCalls[0]?.temperature).toBe(0)
     })
 
     it("does not repair an error other than invalid arguments", async () => {
@@ -417,6 +443,21 @@ describe("AISDKLLMToolsMgmt", () => {
       expect(toolsMgmt.leakedLogger.warn).toHaveBeenCalledWith(
         expect.stringContaining('"notify_operator"'),
       )
+    })
+
+    it("regenerates the arguments with the provider's specific call settings", async () => {
+      const model = buildModel({
+        text: '{"severity":"high","summary":"Escalation requested.","reference":"ABC-123"}',
+      })
+
+      await new TestToolsMgmtWithSpecificOptions().recoverLeakedToolCallsFor({
+        ...buildCallArgs(model, buildConfig(jest.fn())),
+        leakedToolCalls: [LEAKED_CALL],
+        steps: Promise.resolve([]),
+      })
+
+      expect(model.doGenerateCalls[0]?.temperature).toBeUndefined()
+      expect(model.doGenerateCalls[0]?.providerOptions).toEqual({ vertex: { thinkingBudget: 0 } })
     })
 
     it("executes a tool without arguments without regenerating anything", async () => {

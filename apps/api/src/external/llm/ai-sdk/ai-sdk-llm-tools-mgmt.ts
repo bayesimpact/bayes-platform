@@ -180,7 +180,6 @@ export abstract class AISDKLLMToolsMgmt extends AISDKLLMBuilders {
   }): Promise<unknown> {
     const regenerated = await generateText({
       model,
-      temperature: config.temperature,
       messages: [
         {
           role: "user",
@@ -196,7 +195,7 @@ ${malformed}`,
         functionId,
         metadata: { ...this.buildMetadata({ config, metadata, tags }), [telemetryKey]: toolName },
       },
-      providerOptions: this.buildNativeProviderOptions({ config }),
+      ...this.buildSpecificProviderOptions({ config }),
     })
     return regenerated.output
   }
@@ -317,7 +316,6 @@ ${malformed}`,
     // last gate before a side effect runs: arguments that do not fit throw.
     const recoveredInput = await generateText({
       model,
-      temperature: config.temperature,
       messages: [
         {
           role: "user",
@@ -336,7 +334,7 @@ ${leakedCall.raw}`,
           recoveredLeakedToolCall: leakedCall.name,
         },
       },
-      providerOptions: this.buildNativeProviderOptions({ config }),
+      ...this.buildSpecificProviderOptions({ config }),
     })
 
     await tool.execute(recoveredInput.output, {

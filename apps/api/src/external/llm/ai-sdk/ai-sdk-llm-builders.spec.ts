@@ -28,16 +28,16 @@ class TestBuilders extends AISDKLLMBuilders {
   metadataFor(args: Omit<BuildArgs, "callOrigin">) {
     return this.buildMetadata(args)
   }
-  providerOptionsFor(config: LLMConfig) {
-    return this.buildNativeProviderOptions({ config })
+  specificProviderOptionsFor(config: LLMConfig) {
+    return this.buildSpecificProviderOptions({ config })
   }
 }
 
-class TestBuildersWithNativeOptions extends TestBuilders {
-  protected buildNativeProviderOptions(_args: {
-    config: LLMConfig
-  }): Record<string, Record<string, JSONValue>> {
-    return { vertex: { thinkingBudget: 0 } }
+class TestBuildersWithSpecificOptions extends TestBuilders {
+  protected buildSpecificProviderOptions(_args: { config: LLMConfig }): {
+    providerOptions: Record<string, Record<string, JSONValue>>
+  } {
+    return { providerOptions: { vertex: { thinkingBudget: 0 } } }
   }
 }
 
@@ -170,15 +170,21 @@ describe("AISDKLLMBuilders", () => {
     })
   })
 
-  describe("buildNativeProviderOptions", () => {
-    it("is empty when the provider has no options of its own", () => {
-      expect(builders.providerOptionsFor(config)).toEqual({})
+  describe("buildSpecificProviderOptions", () => {
+    it("holds the configured temperature and no provider options by default", () => {
+      expect(builders.specificProviderOptionsFor(config)).toEqual({
+        temperature: 0,
+        providerOptions: {},
+      })
     })
 
-    it("holds the options a provider declares", () => {
-      expect(new TestBuildersWithNativeOptions().providerOptionsFor(config)).toEqual({
-        vertex: { thinkingBudget: 0 },
-      })
+    it("holds what a provider declares, without a temperature it leaves out", () => {
+      const specificOptions = new TestBuildersWithSpecificOptions().specificProviderOptionsFor(
+        config,
+      )
+
+      expect(specificOptions).toEqual({ providerOptions: { vertex: { thinkingBudget: 0 } } })
+      expect(specificOptions).not.toHaveProperty("temperature")
     })
   })
 })
