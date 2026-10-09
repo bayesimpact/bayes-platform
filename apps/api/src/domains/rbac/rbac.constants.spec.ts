@@ -82,6 +82,11 @@ import {
   PROJECT_MEMBER_INVITE_PERMISSION,
   PROJECT_MEMBER_READ_PERMISSION,
   PROJECT_READ_PERMISSION,
+  PROJECT_REVIEW_CAMPAIGN_CREATE_PERMISSION,
+  PROJECT_REVIEW_CAMPAIGN_DELETE_PERMISSION,
+  PROJECT_REVIEW_CAMPAIGN_MEMBER_DELETE_PERMISSION,
+  PROJECT_REVIEW_CAMPAIGN_READ_PERMISSION,
+  PROJECT_REVIEW_CAMPAIGN_UPDATE_PERMISSION,
   PROJECT_ROLE_PERMISSIONS,
   PROJECT_UPDATE_PERMISSION,
   RESOURCE_LIBRARY_CREATE_PERMISSION,
@@ -774,6 +779,39 @@ describe("project MCP server permissions", () => {
   it("never inherits MCP servers from the organization", () => {
     const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
     for (const permission of [PROJECT_MCP_SERVER_READ_PERMISSION, ...mcpServerWritePermissions]) {
+      expect(inheritable).not.toContain(permission)
+    }
+  })
+})
+
+describe("project review campaign permissions", () => {
+  const rolesHolding = (rolePermissions: Record<string, readonly string[]>, permission: string) =>
+    Object.entries(rolePermissions)
+      .filter(([_roleKey, permissions]) => permissions.includes(permission))
+      .map(([roleKey]) => roleKey)
+
+  const reviewCampaignPermissions = [
+    PROJECT_REVIEW_CAMPAIGN_READ_PERMISSION,
+    PROJECT_REVIEW_CAMPAIGN_CREATE_PERMISSION,
+    PROJECT_REVIEW_CAMPAIGN_UPDATE_PERMISSION,
+    PROJECT_REVIEW_CAMPAIGN_DELETE_PERMISSION,
+    PROJECT_REVIEW_CAMPAIGN_MEMBER_DELETE_PERMISSION,
+  ]
+
+  it.each(
+    reviewCampaignPermissions,
+  )("grants %s to project owners and admins only", (permission) => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
+      "project_owner",
+      "project_admin",
+    ])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
+  })
+
+  it("never inherits review campaigns from the organization", () => {
+    const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
+    for (const permission of reviewCampaignPermissions) {
       expect(inheritable).not.toContain(permission)
     }
   })
