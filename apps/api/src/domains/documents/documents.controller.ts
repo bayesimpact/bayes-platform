@@ -8,6 +8,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   HttpCode,
   HttpStatus,
@@ -31,12 +32,22 @@ import type {
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
 import { AddContext, RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
-import { CheckPolicy } from "@/common/policies/check-policy.decorator"
+import { AUTH_ERRORS } from "@/common/errors/auth-errors"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
+import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
+import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { PermissionService } from "@/domains/rbac/permission.service"
+import {
+  DOCUMENT_CREATE_PERMISSION,
+  DOCUMENT_DELETE_PERMISSION,
+  DOCUMENT_READ_PERMISSION,
+  DOCUMENT_UPDATE_PERMISSION,
+  PROJECT_READ_PERMISSION,
+} from "@/domains/rbac/rbac.constants"
 import { UserGuard } from "@/domains/users/user.guard"
 import type { Document } from "./document.entity"
-import { DocumentsGuard } from "./documents.guard"
 import { isPublicDocument, toDocumentDto } from "./documents.helpers"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentsService } from "./documents.service"
@@ -48,7 +59,7 @@ import {
 } from "./embeddings/document-embeddings-batch.interface"
 import { FILE_STORAGE_SERVICE, type IFileStorage } from "./storage/file-storage.interface"
 
-@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, DocumentsGuard)
+@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, CheckPermissionGuard)
 @RequireContext("organization", "project")
 @Controller()
 export class DocumentsController {
@@ -59,10 +70,11 @@ export class DocumentsController {
     private readonly documentEmbeddingsBatchService: DocumentEmbeddingsBatchService,
     private readonly documentsService: DocumentsService,
     private readonly documentEmbeddingStatusStreamService: DocumentEmbeddingStatusStreamService,
+    private readonly permissionService: PermissionService,
   ) {}
 
-  @CheckPolicy((policy) => policy.canCreate())
   @Post(DocumentsRoutes.presignMany.path)
+  @CheckPermission(DOCUMENT_CREATE_PERMISSION, "project")
   @HttpCode(HttpStatus.CREATED)
   async presignMany(
     @Body() { payload }: typeof DocumentsRoutes.presignMany.request,
@@ -93,8 +105,8 @@ export class DocumentsController {
     return { data: results }
   }
 
-  @CheckPolicy((policy) => policy.canCreate())
   @Post(DocumentsRoutes.confirmMany.path)
+  @CheckPermission(DOCUMENT_CREATE_PERMISSION, "project")
   @TrackActivity({ action: "document.createMany" })
   @HttpCode(HttpStatus.CREATED)
   async confirmMany(
@@ -147,9 +159,9 @@ export class DocumentsController {
     return { data: documents.map(toDocumentDto) }
   }
 
-  @CheckPolicy((policy) => policy.canUpdate())
-  @AddContext("document")
   @Post(DocumentsRoutes.reprocessOne.path)
+  @CheckPermission(DOCUMENT_UPDATE_PERMISSION, "project")
+  @AddContext("document")
   async reprocessOne(
     @Request() req: EndpointRequestWithDocument,
   ): Promise<typeof DocumentsRoutes.reprocessOne.response> {
@@ -174,8 +186,8 @@ export class DocumentsController {
     return { data: { success: true } }
   }
 
-  @CheckPolicy((policy) => policy.canList())
   @Get(DocumentsRoutes.getAll.path)
+  @CheckPermission(DOCUMENT_READ_PERMISSION, "project")
   async getAll(
     @Request() req: EndpointRequestWithProject,
     @Param("sourceType") sourceType: DocumentSourceType,
@@ -187,9 +199,9 @@ export class DocumentsController {
     return { data: documents.map(toDocumentDto) }
   }
 
-  @CheckPolicy((policy) => policy.canUpdate())
-  @AddContext("document")
   @Patch(DocumentsRoutes.updateOne.path)
+  @CheckPermission(DOCUMENT_UPDATE_PERMISSION, "project")
+  @AddContext("document")
   @TrackActivity({ action: "document.update", entityFrom: "document" })
   async updateOne(
     @Request() req: EndpointRequestWithDocument,
@@ -204,9 +216,9 @@ export class DocumentsController {
     return { data: { success: true } }
   }
 
-  @CheckPolicy((policy) => policy.canDelete())
-  @AddContext("document")
   @Delete(DocumentsRoutes.deleteOne.path)
+  @CheckPermission(DOCUMENT_DELETE_PERMISSION, "project")
+  @AddContext("document")
   @TrackActivity({ action: "document.delete", entityFrom: "document" })
   async deleteOne(
     @Request() req: EndpointRequestWithDocument,
@@ -221,17 +233,19 @@ export class DocumentsController {
     return { data: { success: true } }
   }
 
-  // Admins/owners can download any document; regular members only documents
-  // tagged `public-documents` (see DocumentPolicy.canDownload). The document is
-  // loaded with its tags by DocumentContextResolver so the policy can enforce this.
-  @CheckPolicy((policy) => policy.canDownload())
-  @AddContext("document")
+  // Any project member can download a document tagged `public-documents`, the
+  // single tag that exposes downloadable sources in chat. Any other document
+  // takes `document.read`. DocumentContextResolver loads the document with its
+  // tags so this can be checked.
   @Get(DocumentsRoutes.getTemporaryUrl.path)
+  @CheckPermission(PROJECT_READ_PERMISSION, "project")
+  @AddContext("document")
   @HttpCode(HttpStatus.CREATED)
   async getTemporaryUrl(
     @Request() req: EndpointRequestWithDocument,
   ): Promise<typeof DocumentsRoutes.getTemporaryUrl.response> {
     const document = req.document
+    await this.assertCanDownload(req)
 
     const url = await this.fileStorageService.getTemporaryUrl(document.storageRelativePath)
     if (!url) {
@@ -242,18 +256,18 @@ export class DocumentsController {
 
   // Reports whether a document is tagged `public-documents`. Drives the download
   // affordance for chat sources without trusting a value copied by the LLM. Any
-  // project member can call it (canView) since it exposes only a boolean.
-  @CheckPolicy((policy) => policy.canView())
-  @AddContext("document")
+  // project member can call it since it exposes only a boolean.
   @Get(DocumentsRoutes.getIsPublic.path)
+  @CheckPermission(PROJECT_READ_PERMISSION, "project")
+  @AddContext("document")
   async getIsPublic(
     @Request() req: EndpointRequestWithDocument,
   ): Promise<typeof DocumentsRoutes.getIsPublic.response> {
     return { data: { isPublicDocument: isPublicDocument(req.document) } }
   }
 
-  @CheckPolicy((policy) => policy.canList())
   @Sse(DocumentsRoutes.streamEmbeddingStatus.path, { method: 0 /* GET */ })
+  @CheckPermission(DOCUMENT_READ_PERMISSION, "project")
   streamEmbeddingStatus(
     @Request() req: EndpointRequestWithProject,
   ): Observable<DocumentEmbeddingStatusChangedEventDto> {
@@ -266,5 +280,18 @@ export class DocumentsController {
       ),
       map((event) => ({ ...event, data: JSON.stringify(event) })),
     )
+  }
+
+  private async assertCanDownload(req: EndpointRequestWithDocument): Promise<void> {
+    if (isPublicDocument(req.document)) {
+      return
+    }
+    const isAllowed = await this.permissionService.has(req.user.id, DOCUMENT_READ_PERMISSION, {
+      type: "project",
+      id: req.project.id,
+    })
+    if (!isAllowed) {
+      throw new ForbiddenException(AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    }
   }
 }
