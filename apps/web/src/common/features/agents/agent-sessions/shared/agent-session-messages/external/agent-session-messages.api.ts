@@ -9,40 +9,36 @@ import { fromDto } from "./agent-session-messages.mappers"
 export default {
   getAll: async ({ payload, ...params }) => {
     const axios = getAxiosInstance()
-    const response = await axios.post<typeof AgentSessionMessagesRoutes.getAll.response>(
-      AgentSessionMessagesRoutes.getAll.getPath(params),
-      { payload } satisfies typeof AgentSessionMessagesRoutes.getAll.request,
+    const response = await axios.post<typeof AgentSessionMessagesRoutes.live.getAll.response>(
+      AgentSessionMessagesRoutes[payload.type].getAll.getPath(params),
     )
     return response.data.data.map(fromDto)
   },
   getOne: async ({ payload, ...params }) => {
     const axios = getAxiosInstance()
-    const response = await axios.post<typeof AgentSessionMessagesRoutes.getOne.response>(
-      AgentSessionMessagesRoutes.getOne.getPath(params),
-      { payload } satisfies typeof AgentSessionMessagesRoutes.getOne.request,
+    const response = await axios.post<typeof AgentSessionMessagesRoutes.live.getOne.response>(
+      AgentSessionMessagesRoutes[payload.type].getOne.getPath(params),
     )
     return fromDto(response.data.data)
   },
   getMcpAppHtml: async ({ payload, ...params }) => {
     const axios = getAxiosInstance()
-    const response = await axios.post<typeof AgentSessionMessagesRoutes.getMcpAppHtml.response>(
-      AgentSessionMessagesRoutes.getMcpAppHtml.getPath(params),
-      { payload } satisfies typeof AgentSessionMessagesRoutes.getMcpAppHtml.request,
-    )
+    const response = await axios.post<
+      typeof AgentSessionMessagesRoutes.live.getMcpAppHtml.response
+    >(AgentSessionMessagesRoutes[payload.type].getMcpAppHtml.getPath(params))
     return response.data.data
   },
   uploadAttachmentDocument: async ({ file, payload, ...params }) => {
     const axios = getAxiosInstance()
     const response = await axios.post<
-      typeof AgentSessionMessagesRoutes.presignAttachmentDocument.response
-    >(AgentSessionMessagesRoutes.presignAttachmentDocument.getPath(params), {
+      typeof AgentSessionMessagesRoutes.live.presignAttachmentDocument.response
+    >(AgentSessionMessagesRoutes[payload.type].presignAttachmentDocument.getPath(params), {
       payload: {
-        type: payload.type,
         fileName: file.name,
         mimeType: file.type as PresignAgentSessionMessageAttachmentDocumentRequestDto["mimeType"],
         size: file.size,
       },
-    } satisfies typeof AgentSessionMessagesRoutes.presignAttachmentDocument.request)
+    } satisfies typeof AgentSessionMessagesRoutes.live.presignAttachmentDocument.request)
 
     const uploadResponse = await fetch(response.data.data.uploadUrl, {
       method: "PUT",
@@ -59,10 +55,8 @@ export default {
   getAttachmentDocumentTemporaryUrl: async ({ payload, ...params }) => {
     const axios = getAxiosInstance()
     const response = await axios.post<
-      typeof AgentSessionMessagesRoutes.getAttachmentDocumentTemporaryUrl.response
-    >(AgentSessionMessagesRoutes.getAttachmentDocumentTemporaryUrl.getPath(params), {
-      payload,
-    } satisfies typeof AgentSessionMessagesRoutes.getAttachmentDocumentTemporaryUrl.request)
+      typeof AgentSessionMessagesRoutes.live.getAttachmentDocumentTemporaryUrl.response
+    >(AgentSessionMessagesRoutes[payload.type].getAttachmentDocumentTemporaryUrl.getPath(params))
 
     return response.data.data
   },

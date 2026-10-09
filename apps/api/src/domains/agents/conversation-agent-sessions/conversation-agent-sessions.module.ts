@@ -11,8 +11,9 @@ import {
   moduleProviders,
 } from "../base-agent-sessions/base-agent-sessions-module.helpers"
 import { AgentMessageAttachmentDocumentsService } from "../shared/agent-session-messages/agent-message-attachment-documents.service"
-import { AgentMessagesController } from "../shared/agent-session-messages/agent-messages.controller"
+import { LiveAgentMessagesController } from "../shared/agent-session-messages/live-agent-messages.controller"
 import { McpAppHtmlService } from "../shared/agent-session-messages/mcp-app-html.service"
+import { PlaygroundAgentMessagesController } from "../shared/agent-session-messages/playground-agent-messages.controller"
 import { StreamingModule } from "../shared/agent-session-messages/streaming/streaming.module"
 import { ConversationAgentSessionsService } from "./conversation-agent-sessions.service"
 import { LiveConversationAgentSessionsController } from "./live-conversation-agent-sessions.controller"
@@ -38,9 +39,10 @@ import { ConversationRetentionSweepRunsController } from "./retention/conversati
     McpAppHtmlService,
   ],
   controllers: [
-    AgentMessagesController,
     ConversationRetentionSweepRunsController,
+    LiveAgentMessagesController,
     LiveConversationAgentSessionsController,
+    PlaygroundAgentMessagesController,
     PlaygroundConversationAgentSessionsController,
   ],
   exports: [ConversationAgentSessionsService, McpAppHtmlService],

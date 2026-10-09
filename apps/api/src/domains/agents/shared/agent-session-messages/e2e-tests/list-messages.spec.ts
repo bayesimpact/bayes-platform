@@ -12,6 +12,7 @@ import { ConversationAgentSessionsModule } from "@/domains/agents/conversation-a
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { createOrganizationWithAgentSession } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../../test/rbac-test.helpers"
 import { type Requester, testRequester } from "../../../../../../test/request"
 import { agentMessageFactory, createChitChatConversation } from "../agent-messages.factory"
 
@@ -34,6 +35,7 @@ describe("AgentSessionMessagesRoutes.listMessages", () => {
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)
@@ -70,10 +72,9 @@ describe("AgentSessionMessagesRoutes.listMessages", () => {
 
   const subject = async () =>
     request({
-      route: AgentSessionMessagesRoutes.getAll,
+      route: AgentSessionMessagesRoutes.playground.getAll,
       pathParams: removeNullish({ organizationId, projectId, agentId, agentSessionId }),
       token: accessToken,
-      request: { payload: { type: "live" } },
     })
 
   describe("listMessages", () => {
