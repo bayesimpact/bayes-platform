@@ -178,9 +178,10 @@ WEB_OIDC_CLIENT_ID=platform-web
 Upgrading a `.env` from Auth0: see [docs/upgrading/auth0-to-oidc.md](docs/upgrading/auth0-to-oidc.md).
 
 **Local sign-in:** start Dex (`docker compose --profile dex up -d --no-recreate dex` from
-`infra/database`), then run `node infra/dex/sync-users.mjs` from the main checkout. Every person of
-your local database gets a Dex account with their email and a local dev password, and keeps their
-data. See [infra/dex/README.md](infra/dex/README.md).
+`infra/database`). On a fresh checkout, sign in with the sample user `admin@example.org` / `admin`,
+then give it a platform role. When your database already has people, run
+`node infra/dex/sync-users.mjs` from the main checkout: each of them gets a Dex account with their
+email and a local dev password, and keeps their data. See [infra/dex/README.md](infra/dex/README.md).
 
 #### Web Environment Variables
 
@@ -378,7 +379,7 @@ Once HTTPS is set up, update your `.env` files to use `https://connect.localhost
 VITE_API_URL=https://connect.localhost:3000/api
 ```
 
-**Identity provider:** the web app client must allow `https://connect.localhost:5173` as redirect URI, post-logout redirect URI and web origin. The local Dex does, and `node infra/dex/sync-users.mjs` adds every origin of `FRONTEND_URL`.
+**Identity provider:** the web app client must allow `https://connect.localhost:5173` as redirect URI, post-logout redirect URI and web origin. The local Dex accepts it (it has no logout), and `node infra/dex/sync-users.mjs` lists every origin of `FRONTEND_URL` as a redirect URI.
 
 ### 6. Run the Projects Locally
 
