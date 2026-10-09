@@ -85,6 +85,7 @@ import {
   PROJECT_REVIEW_CAMPAIGN_CREATE_PERMISSION,
   PROJECT_REVIEW_CAMPAIGN_DELETE_PERMISSION,
   PROJECT_REVIEW_CAMPAIGN_MEMBER_DELETE_PERMISSION,
+  PROJECT_REVIEW_CAMPAIGN_MEMBER_INVITE_PERMISSION,
   PROJECT_REVIEW_CAMPAIGN_READ_PERMISSION,
   PROJECT_REVIEW_CAMPAIGN_UPDATE_PERMISSION,
   PROJECT_ROLE_PERMISSIONS,
@@ -738,6 +739,28 @@ describe("document tag permissions", () => {
     for (const permission of documentTagPermissions) {
       expect(inheritable).not.toContain(permission)
     }
+  })
+})
+
+describe("project review campaign invitation permissions", () => {
+  const rolesHolding = (rolePermissions: Record<string, readonly string[]>, permission: string) =>
+    Object.entries(rolePermissions)
+      .filter(([_roleKey, permissions]) => permissions.includes(permission))
+      .map(([roleKey]) => roleKey)
+
+  it("grants project.review_campaign.member.invite to project owners and admins only", () => {
+    const permission = PROJECT_REVIEW_CAMPAIGN_MEMBER_INVITE_PERMISSION
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
+      "project_owner",
+      "project_admin",
+    ])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
+  })
+
+  it("never inherits review campaign invitations from the organization", () => {
+    const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
+    expect(inheritable).not.toContain(PROJECT_REVIEW_CAMPAIGN_MEMBER_INVITE_PERMISSION)
   })
 })
 

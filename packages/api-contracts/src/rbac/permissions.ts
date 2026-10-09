@@ -74,8 +74,8 @@ export const AGENT_DELETE_PERMISSION = "agent.delete" as const
 export const AGENT_ANALYTICS_READ_PERMISSION = "agent.analytics.read" as const
 
 /**
- * Invite people to a project or to one of its review campaigns, see the pending
- * invitations and revoke them. Not inherited from the organization.
+ * Invite people to a project, see the pending invitations and revoke them. Not
+ * inherited from the organization.
  */
 export const PROJECT_MEMBER_INVITE_PERMISSION = "project.member.invite" as const
 
@@ -368,6 +368,13 @@ export const PROJECT_REVIEW_CAMPAIGN_DELETE_PERMISSION = "project.review_campaig
 /** Remove a tester or a reviewer from a review campaign. */
 export const PROJECT_REVIEW_CAMPAIGN_MEMBER_DELETE_PERMISSION =
   "project.review_campaign.member.delete" as const
+
+/**
+ * Invite testers and reviewers to a project's review campaigns, see the pending invitations
+ * and revoke them. Scoped to the project and never inherited from the organization.
+ */
+export const PROJECT_REVIEW_CAMPAIGN_MEMBER_INVITE_PERMISSION =
+  "project.review_campaign.member.invite" as const
 
 /**
  * Permissions an App may be granted. Policy lives in code, not in the database:
