@@ -98,7 +98,7 @@ function statusPage(state, host) {
     details = `<p>It is stopped, or it was started before its route existed. Start or recreate it from the main checkout, in <code>infra/database</code>: <code>${escapeHtml(shared.command)}</code>.</p>`
   } else {
     title = `No environment answers at ${host}`
-    details = `<p>Start it from Claude Code with <code>/worktree ${escapeHtml(guess)}</code>.</p>`
+    details = `<p>Start it from Claude Code with <code>/worktree-env ${escapeHtml(guess)}</code>.</p>`
   }
   return `<!doctype html>
 <html lang="en">

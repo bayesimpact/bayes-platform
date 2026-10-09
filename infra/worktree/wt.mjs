@@ -282,7 +282,7 @@ function status() {
   const known = readStatus().environments ?? {}
   if (containers.length === 0) {
     console.log(
-      "No worktree environment on this machine. Start one with /worktree <name> in Claude Code.",
+      "No worktree environment on this machine. Start one with /worktree-env <name> in Claude Code.",
     )
     return
   }
@@ -422,7 +422,7 @@ function currentEnvironment() {
   const paths = repositoryPaths()
   if (paths.isMain) {
     throw new Error(
-      "Run it in a worktree: the main checkout keeps npm run dev. In Claude Code, /worktree <name> creates one with its environment.",
+      "Run it in a worktree: the main checkout keeps npm run dev. In Claude Code, /worktree-env <name> creates one with its environment.",
     )
   }
   const slug = basename(paths.root)
