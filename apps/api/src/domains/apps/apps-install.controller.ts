@@ -60,6 +60,8 @@ export class AppsInstallController {
       permissions: body.payload.permissions,
       redirectUri: body.payload.redirectUri,
       state: body.payload.state,
+      codeChallenge: body.payload.codeChallenge,
+      codeChallengeMethod: body.payload.codeChallengeMethod,
     })
     attachTrackedActivity(request, {
       organizationId: result.organizationId,
@@ -69,8 +71,7 @@ export class AppsInstallController {
     })
     return {
       data: {
-        clientId: result.clientId,
-        clientSecret: result.clientSecret,
+        code: result.code,
         redirectUri: result.redirectUri,
         state: result.state,
       },

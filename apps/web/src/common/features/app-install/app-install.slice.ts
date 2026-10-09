@@ -11,6 +11,8 @@ interface State {
   slug: string | null
   redirectUri: string
   callbackState: string
+  codeChallenge: string
+  codeChallengeMethod: string
   page: AsyncData<AppInstallPage>
   projectInstallations: AsyncData<ProjectAppInstallation[]>
 }
@@ -19,6 +21,8 @@ const initialState: State = {
   slug: null,
   redirectUri: "",
   callbackState: "",
+  codeChallenge: "",
+  codeChallengeMethod: "",
   page: defaultAsyncData,
   projectInstallations: defaultAsyncData,
 }
@@ -34,11 +38,19 @@ const slice = createSlice({
     },
     setCurrentIds: (
       state,
-      action: PayloadAction<{ slug: string | null; redirectUri: string; callbackState: string }>,
+      action: PayloadAction<{
+        slug: string | null
+        redirectUri: string
+        callbackState: string
+        codeChallenge: string
+        codeChallengeMethod: string
+      }>,
     ) => {
       state.slug = action.payload.slug
       state.redirectUri = action.payload.redirectUri
       state.callbackState = action.payload.callbackState
+      state.codeChallenge = action.payload.codeChallenge
+      state.codeChallengeMethod = action.payload.codeChallengeMethod
     },
   },
   extraReducers: (builder) => {

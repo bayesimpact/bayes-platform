@@ -7,6 +7,8 @@ import { ProjectRepository } from "@/domains/projects/project.repository"
 import { RbacModule } from "@/domains/rbac/rbac.module"
 import { UsersModule } from "@/domains/users/users.module"
 import { AppGuard } from "./app.guard"
+import { AppInstallAuthorizationCode } from "./app-install-authorization-code.entity"
+import { AppInstallAuthorizationCodeRepository } from "./app-install-authorization-code.repository"
 import { AppInstallation } from "./app-installation.entity"
 import { AppInstallationRepository } from "./app-installation.repository"
 import { AppJwtService } from "./app-jwt.service"
@@ -22,7 +24,7 @@ import { AppsDocumentsController } from "./documents/apps-documents.controller"
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([AppManifest, AppInstallation]),
+    TypeOrmModule.forFeature([AppManifest, AppInstallation, AppInstallAuthorizationCode]),
     AuthModule,
     UsersModule,
     RbacModule,
@@ -41,6 +43,7 @@ import { AppsDocumentsController } from "./documents/apps-documents.controller"
     AppsService,
     AppManifestRepository,
     AppInstallationRepository,
+    AppInstallAuthorizationCodeRepository,
     AppJwtService,
     AppGuard,
     ProjectRepository,

@@ -26,11 +26,12 @@ export type AuthorizeAppInstallInput = {
   permissions: AppGrantablePermission[]
   redirectUri: string
   state: string
+  codeChallenge: string
+  codeChallengeMethod: "S256"
 }
 
 export type AuthorizeAppInstallResult = {
-  clientId: string
-  clientSecret: string
+  code: string
   redirectUri: string
   state: string
 }

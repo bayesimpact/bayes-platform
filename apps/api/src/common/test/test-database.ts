@@ -248,6 +248,12 @@ SELECT 1;`)
           END IF;
           IF EXISTS (
             SELECT FROM information_schema.tables
+            WHERE table_schema = 'public' AND table_name = 'app_install_authorization_code'
+          ) THEN
+            DELETE FROM "app_install_authorization_code";
+          END IF;
+          IF EXISTS (
+            SELECT FROM information_schema.tables
             WHERE table_schema = 'public' AND table_name = 'app_installation'
           ) THEN
             DELETE FROM "app_installation";

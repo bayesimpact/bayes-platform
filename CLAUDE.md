@@ -95,6 +95,7 @@ Target shape: `Conversation retention: conversations are now kept 30 days by def
 
 - Use semantic commit messages consistent with the repo history: `feat: ...`, `fix: ...`, `chore: ...`.
 - Use scoped variants only when they match existing history and add clarity.
+- This repository is **public**. Never mention private GitHub repos (especially `bayesimpact/internal-issues`) in commits, PR titles/bodies, comments, docs, or `Closes`/`Refs`/`Fixes` trailers. Link public `bayes-platform` issues only, or omit the reference.
 
 ## Working in a Worktree (Claude Code)
 

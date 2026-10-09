@@ -20,6 +20,7 @@ import { UserRepository } from "@/domains/users/user.repository"
 import { USER_TYPE_SERVICE } from "@/domains/users/user.types"
 import { UsersService } from "@/domains/users/users.service"
 import { assignPlatformStaffToUser, ensureRbacCatalog } from "../../../test/rbac-test.helpers"
+import { AppInstallAuthorizationCodeRepository } from "./app-install-authorization-code.repository"
 import {
   APP_INSTALLATION_STATUS_ACTIVE,
   APP_INSTALLATION_STATUS_REVOKED,
@@ -29,6 +30,11 @@ import { AppInstallationRepository } from "./app-installation.repository"
 import { AppJwtService } from "./app-jwt.service"
 import { AppManifestRepository } from "./app-manifest.repository"
 import { AppsService } from "./apps.service"
+import {
+  INSTALL_PKCE_METHOD_S256,
+  RFC7636_TEST_CODE_CHALLENGE,
+  RFC7636_TEST_CODE_VERIFIER,
+} from "./install-pkce"
 
 describe("AppsService", () => {
   let service: AppsService
@@ -40,6 +46,7 @@ describe("AppsService", () => {
         AppsService,
         AppManifestRepository,
         AppInstallationRepository,
+        AppInstallAuthorizationCodeRepository,
         ProjectRepository,
         UsersService,
         UserRepository,
@@ -175,14 +182,40 @@ describe("AppsService", () => {
       permissions: [DOCUMENT_READ_PERMISSION],
       redirectUri,
       state: "csrf-state",
+      codeChallenge: RFC7636_TEST_CODE_CHALLENGE,
+      codeChallengeMethod: INSTALL_PKCE_METHOD_S256,
     })
 
     expect(authorized.redirectUri).toBe(redirectUri)
     expect(authorized.state).toBe("csrf-state")
+    expect(authorized.code).toBeTruthy()
     expect(authorized.clientId).toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
     )
     expect(authorized.clientSecret).toBeTruthy()
+
+    await expect(
+      service.exchangeInstallCode({
+        code: authorized.code,
+        redirect_uri: redirectUri,
+        code_verifier: "x".repeat(43),
+      }),
+    ).rejects.toBeInstanceOf(UnauthorizedException)
+
+    const exchanged = await service.exchangeInstallCode({
+      code: authorized.code,
+      redirect_uri: redirectUri,
+      code_verifier: RFC7636_TEST_CODE_VERIFIER,
+    })
+    expect(exchanged.clientId).toBe(authorized.clientId)
+    expect(exchanged.clientSecret).toBe(authorized.clientSecret)
+    await expect(
+      service.exchangeInstallCode({
+        code: authorized.code,
+        redirect_uri: redirectUri,
+        code_verifier: RFC7636_TEST_CODE_VERIFIER,
+      }),
+    ).rejects.toBeInstanceOf(UnauthorizedException)
 
     const installation = await repositories.appInstallationRepository.findOneByOrFail({
       appManifestId: created.id,
@@ -226,6 +259,8 @@ describe("AppsService", () => {
         permissions: [DOCUMENT_READ_PERMISSION],
         redirectUri,
         state: "csrf-state",
+        codeChallenge: RFC7636_TEST_CODE_CHALLENGE,
+        codeChallengeMethod: INSTALL_PKCE_METHOD_S256,
       }),
     ).rejects.toBeInstanceOf(ConflictException)
   })
@@ -242,6 +277,8 @@ describe("AppsService", () => {
       permissions: [DOCUMENT_READ_PERMISSION],
       redirectUri: "http://127.0.0.1:8787/callback",
       state: "csrf-state",
+      codeChallenge: RFC7636_TEST_CODE_CHALLENGE,
+      codeChallengeMethod: INSTALL_PKCE_METHOD_S256,
     })
 
     const token = await service.issueToken({
@@ -311,6 +348,8 @@ describe("AppsService", () => {
       permissions: [DOCUMENT_READ_PERMISSION],
       redirectUri: "http://127.0.0.1:8787/callback",
       state: "csrf-state",
+      codeChallenge: RFC7636_TEST_CODE_CHALLENGE,
+      codeChallengeMethod: INSTALL_PKCE_METHOD_S256,
     })
     const issued = await service.issueToken({
       grant_type: "client_credentials",

@@ -1,14 +1,16 @@
-export const INSTALL_USAGE = `bayes apps install <slug> [--frontend <origin>]
+export const INSTALL_USAGE = `bayes apps install <slug> [--frontend <origin>] [--api <origin>]
 
 Open the Bayes install page and print the client id and client secret once.
 
   --frontend   Web app origin, for example https://connect.localhost:5173.
                Defaults to BAYES_FRONTEND_URL.
+  --api        API origin including the /api prefix, for example http://localhost:3000/api.
+               Defaults to BAYES_API_URL, or <frontend>/api.
 `
 
 export type ParsedArgs =
   | { kind: "help" }
-  | { kind: "install"; slug: string; frontendOrigin: string }
+  | { kind: "install"; slug: string; frontendOrigin: string; apiOrigin: string }
   | { kind: "error"; message: string }
 
 export function parseInstallArgs(argv: readonly string[], env: NodeJS.ProcessEnv): ParsedArgs {
@@ -25,6 +27,7 @@ export function parseInstallArgs(argv: readonly string[], env: NodeJS.ProcessEnv
 
   let slug: string | undefined
   let frontendOrigin = env.BAYES_FRONTEND_URL
+  let apiOrigin = env.BAYES_API_URL
   for (let index = 0; index < rest.length; index += 1) {
     const arg = rest[index]
     if (arg === undefined) continue
@@ -34,6 +37,15 @@ export function parseInstallArgs(argv: readonly string[], env: NodeJS.ProcessEnv
         return { kind: "error", message: `Missing value for --frontend.\n\n${INSTALL_USAGE}` }
       }
       frontendOrigin = value
+      index += 1
+      continue
+    }
+    if (arg === "--api") {
+      const value = rest[index + 1]
+      if (!value || value.startsWith("--")) {
+        return { kind: "error", message: `Missing value for --api.\n\n${INSTALL_USAGE}` }
+      }
+      apiOrigin = value
       index += 1
       continue
     }
@@ -52,5 +64,10 @@ export function parseInstallArgs(argv: readonly string[], env: NodeJS.ProcessEnv
     }
   }
 
-  return { kind: "install", slug, frontendOrigin }
+  return {
+    kind: "install",
+    slug,
+    frontendOrigin,
+    apiOrigin: apiOrigin ?? `${frontendOrigin.replace(/\/$/, "")}/api`,
+  }
 }

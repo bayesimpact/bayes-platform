@@ -78,6 +78,7 @@ The routes under `PUBLIC_PATH_PREFIX` (`/public/...`) are a frozen contract with
 
 - Use semantic commit messages consistent with the repo history: `feat: ...`, `fix: ...`, `chore: ...`.
 - Use scoped variants only when they match existing history and add clarity.
+- This repository is **public**. Never mention private GitHub repos (especially `bayesimpact/internal-issues`) in commits, PR titles/bodies, comments, docs, or `Closes`/`Refs`/`Fixes` trailers. Link public `bayes-platform` issues only, or omit the reference.
 
 ## Code Style
 
