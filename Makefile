@@ -254,8 +254,20 @@ npm-ci:
 ci-checks: npm-ci
 	npm run biome:ci && npm run typecheck && npm run check:boundaries
 
+# The database server of the API tests. GitHub Actions gets a throwaway server
+# on a tmpfs. Locally, the tests use the dev server started from the main
+# checkout: the tmpfs override would replace that container, and every
+# database on it (main's and each worktree's) would disappear until the next
+# plain `docker compose up`. So locally, start it if needed but never recreate
+# it, and always from the main checkout's compose file.
+MAIN_CHECKOUT := $(shell dirname "$$(git rev-parse --path-format=absolute --git-common-dir)")
+
 db-tests:
+ifeq ($(GITHUB_ACTIONS),true)
 	docker compose -f infra/database/docker-compose.yaml -f infra/database/docker-compose.test.yaml up -d
+else
+	docker compose -f $(MAIN_CHECKOUT)/infra/database/docker-compose.yaml up -d --no-recreate pgvector redis
+endif
 
 # Volumes created before the analytics migration have connect_admin without
 # CREATEROLE, and Postgres does not re-run infra/database/sql/common.sql.
