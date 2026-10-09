@@ -62,6 +62,8 @@ The `project.agent_session_category.*` permissions are not inherited either: an 
 
 The `project.agent_message_feedback.*` permissions are not inherited either: an organization role does not open a project's message feedback. Every project role can leave feedback, while reading it stays with owners and admins.
 
+The `document_tag.*` permissions are not inherited either: an organization role does not open a project's document tags. Reading and changing them stays with project owners and admins.
+
 The `project.mcp_server.*` permissions are not inherited either: an organization role does not open a project's MCP servers. Every project role sees them, while adding, connecting, toggling and deleting stay with owners and admins.
 
 | Permission | `project_owner` | `project_admin` | `project_member` |
@@ -89,6 +91,10 @@ The `project.mcp_server.*` permissions are not inherited either: an organization
 | `document_source.create` | ✅ | ✅ | — |
 | `document_source.update` | ✅ | ✅ | — |
 | `document_source.delete` | ✅ | ✅ | — |
+| `document_tag.read` — see document tags in the project | ✅ | ✅ | — |
+| `document_tag.create` — create a document tag | ✅ | ✅ | — |
+| `document_tag.update` — update a document tag | ✅ | ✅ | — |
+| `document_tag.delete` — delete a document tag | ✅ | ✅ | — |
 | `evaluation.extraction.dataset.read` — see the project's evaluation extraction datasets and their files | ✅ | ✅ | — |
 | `evaluation.extraction.dataset.create` — create evaluation extraction datasets and upload their files | ✅ | ✅ | — |
 | `evaluation.extraction.dataset.update` — update an evaluation extraction dataset | ✅ | ✅ | — |
@@ -176,4 +182,4 @@ The same goes for `agent.settings.draft.update`, `agent.settings.draft.publish`,
 
 ## App grantable permissions
 
-Apps may only be granted the permissions in `APP_GRANTABLE_PERMISSIONS`, grouped by resource type: document (`document.read`, `document.create`, `document.update`, `document.delete`), document source (`document_source.read`, `document_source.create`, `document_source.update`, `document_source.delete`), document tag (`document_tag.read`, `document_tag.create`, `document_tag.update`, `document_tag.delete`), and workspace (`project.read`, `project.update`, `project.delete`). `project.create` is not grantable. Document tag permissions are not granted on catalog roles: Studio tag routes stay on the project owner or admin policy. This allowlist is code, not a database column. Manifest save and authorize intersect requested permissions with it.
+Apps may only be granted the permissions in `APP_GRANTABLE_PERMISSIONS`, grouped by resource type: document (`document.read`, `document.create`, `document.update`, `document.delete`), document source (`document_source.read`, `document_source.create`, `document_source.update`, `document_source.delete`), document tag (`document_tag.read`, `document_tag.create`, `document_tag.update`, `document_tag.delete`), and workspace (`project.read`, `project.update`, `project.delete`). `project.create` is not grantable. This allowlist is code, not a database column. Manifest save and authorize intersect requested permissions with it.

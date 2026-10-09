@@ -7,23 +7,29 @@ import type {
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
 import { AddContext, RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
-import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
+import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
+import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
+import {
+  DOCUMENT_TAG_CREATE_PERMISSION,
+  DOCUMENT_TAG_DELETE_PERMISSION,
+  DOCUMENT_TAG_READ_PERMISSION,
+  DOCUMENT_TAG_UPDATE_PERMISSION,
+} from "@/domains/rbac/rbac.constants"
 import { UserGuard } from "@/domains/users/user.guard"
 import type { DocumentTag } from "./document-tag.entity"
-import { DocumentTagGuard } from "./document-tag.guard"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentTagsService } from "./document-tags.service"
 
-@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, DocumentTagGuard)
+@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, CheckPermissionGuard)
 @RequireContext("organization", "project")
 @Controller()
 export class DocumentTagsController {
   constructor(private readonly documentTagsService: DocumentTagsService) {}
 
   @Post(DocumentTagsRoutes.createOne.path)
-  @CheckPolicy((policy) => policy.canCreate())
+  @CheckPermission(DOCUMENT_TAG_CREATE_PERMISSION, "project")
   @TrackActivity({ action: "documentTag.create" })
   async createOne(
     @Req() request: EndpointRequestWithProject,
@@ -41,7 +47,7 @@ export class DocumentTagsController {
   }
 
   @Get(DocumentTagsRoutes.getAll.path)
-  @CheckPolicy((policy) => policy.canList())
+  @CheckPermission(DOCUMENT_TAG_READ_PERMISSION, "project")
   async getAll(
     @Req() request: EndpointRequestWithProject,
   ): Promise<typeof DocumentTagsRoutes.getAll.response> {
@@ -54,7 +60,7 @@ export class DocumentTagsController {
   }
 
   @Patch(DocumentTagsRoutes.updateOne.path)
-  @CheckPolicy((policy) => policy.canUpdate())
+  @CheckPermission(DOCUMENT_TAG_UPDATE_PERMISSION, "project")
   @AddContext("documentTag")
   @TrackActivity({ action: "documentTag.update", entityFrom: "documentTag" })
   async updateOne(
@@ -74,7 +80,7 @@ export class DocumentTagsController {
   }
 
   @Delete(DocumentTagsRoutes.deleteOne.path)
-  @CheckPolicy((policy) => policy.canDelete())
+  @CheckPermission(DOCUMENT_TAG_DELETE_PERMISSION, "project")
   @AddContext("documentTag")
   @TrackActivity({ action: "documentTag.delete", entityFrom: "documentTag" })
   async deleteOne(
