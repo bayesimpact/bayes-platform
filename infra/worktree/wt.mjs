@@ -746,7 +746,7 @@ function logCleanup(entry) {
 
 /**
  * The SessionStart hook (.claude/settings.json): a reminder of the environment of this
- * worktree, or of /worktree in the main checkout, then a cleanup in the background, at most
+ * worktree, or of /worktree-env in the main checkout, then a cleanup in the background, at most
  * every 10 minutes. Prints nothing on machines that never set the tooling up.
  */
 function sessionStart() {
@@ -761,7 +761,7 @@ function sessionStart() {
   if (paths.isMain) {
     const environments = Object.keys(readStatus().environments ?? {}).length
     console.log(
-      `Worktree environments of this machine: ${environments}, at http://dev.connect.localhost:${routerPort}. To start work in a new worktree with its own environment (URLs, databases, Dex): /worktree <name>.`,
+      `Worktree environments of this machine: ${environments}, at http://dev.connect.localhost:${routerPort}. To start work in a new worktree with its own environment (URLs, databases, Dex): /worktree-env <name>.`,
     )
     for (const line of recentCleanups()) console.log(line)
   } else {
