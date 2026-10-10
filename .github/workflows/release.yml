@@ -13,6 +13,10 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    # The key of the release GitHub App, a bypass actor of the approval
+    # ruleset on main. The environment accepts the v* release tags only, and
+    # only the merge team can push those tags (ruleset on tags).
+    environment: release-bot
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -38,8 +42,9 @@ jobs:
           echo "$NOTES" > release-notes.txt
 
       - name: Update CHANGELOG.md
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
-          VERSION="${{ steps.version.outputs.version }}"
           DATE=$(date +%Y-%m-%d)
 
           # Replace [Unreleased] section with versioned heading and a fresh [Unreleased]
@@ -65,8 +70,8 @@ jobs:
         id: changelog_pr
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
-          VERSION="${{ steps.version.outputs.version }}"
           BRANCH="chore/changelog-v${VERSION}"
           cp CHANGELOG.md /tmp/CHANGELOG.md
           git config user.name "github-actions[bot]"
@@ -78,12 +83,12 @@ jobs:
           git commit -m "chore: promote changelog for v${VERSION}"
           git push origin "$BRANCH"
           echo "branch_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-          gh pr create \
+          PR_URL=$(gh pr create \
             --base main \
             --head "$BRANCH" \
             --title "chore: promote changelog for v${VERSION}" \
-            --body "Automated changelog update for release v${VERSION}."
-          gh pr merge "$BRANCH" --squash --auto
+            --body "Automated changelog update for release v${VERSION}.")
+          echo "pr_url=$PR_URL" >> "$GITHUB_OUTPUT"
 
       - name: Approve changelog PR tests check
         uses: actions/github-script@v7
@@ -102,10 +107,30 @@ jobs:
               }
             });
 
+      # The token of the release GitHub App. Used for one thing: the merge of
+      # the changelog pull request that this run opened.
+      - name: Token of the release app
+        id: app
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      # The app is a bypass actor of the approval ruleset: --admin merges
+      # without the approval. The tests check above is still required.
+      - name: Merge changelog PR
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          PR_URL: ${{ steps.changelog_pr.outputs.pr_url }}
+        run: gh pr merge "$PR_URL" --squash --admin
+
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
           gh release create "$GITHUB_REF_NAME" \
-            --title "v${{ steps.version.outputs.version }}" \
+            --title "v${VERSION}" \
             --notes-file release-notes.txt

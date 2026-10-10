@@ -1,7 +1,7 @@
 # Public API contract (docs/public-api-contract.md). A change needs a written go from one of
 # these maintainers and the public-contract-approved label, set by a maintainer who is not
-# the PR author. The ruleset does not require code owner review; this file requests their
-# review automatically and names them.
+# the PR author. The ruleset requires code owner review, so one of them approves the
+# change; this file requests their review automatically and names them.
 /packages/api-contracts/src/public-chat/                            @jdoucy @alexisjamet @did @OlivierDoucy
 /apps/api/src/domains/public-chat/v1/                               @jdoucy @alexisjamet @did @OlivierDoucy
 /apps/api/src/domains/public-chat/guards/                           @jdoucy @alexisjamet @did @OlivierDoucy
@@ -13,3 +13,8 @@
 /.github/workflows/public-contract.yml                              @jdoucy @alexisjamet @did @OlivierDoucy
 /.github/scripts/public-contract-check.mjs                          @jdoucy @alexisjamet @did @OlivierDoucy
 /.github/CODEOWNERS                                                 @jdoucy @alexisjamet @did @OlivierDoucy
+
+# The workflows can hold the token of the release GitHub App, a bypass actor of
+# the approval ruleset on main. A change under .github/ (this file included)
+# needs the review of its code owner.
+/.github/                                                           @jdoucy
