@@ -25,6 +25,13 @@ export const BACKOFFICE_TERMS_UPDATE_PERMISSION = "backoffice.terms.update" as c
 export const BACKOFFICE_CONVERSATION_REVIEWER_UPDATE_PERMISSION =
   "backoffice.conversation_reviewer.update" as const
 
+/**
+ * Read any conversation of an agent from its session id, whoever had it (safety review).
+ * Scoped to the agent and held only by the `agent_conversation_reviewer` role, which nobody has by
+ * default: it is granted person by person and agent by agent from the backoffice.
+ */
+export const AGENT_CONVERSATION_REVIEW_PERMISSION = "agent.conversation.review" as const
+
 /** Install an App on a project. Global, same wiring as `backoffice.read`. */
 export const APP_INSTALL_PERMISSION = "app.install" as const
 

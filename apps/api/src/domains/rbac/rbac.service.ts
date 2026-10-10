@@ -3,6 +3,7 @@ import { InjectDataSource, InjectRepository } from "@nestjs/typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DataSource, In, Not, type Repository } from "typeorm"
 import {
+  AGENT_CONVERSATION_REVIEWER_ROLE,
   AGENT_ROLE_PERMISSIONS,
   AGENT_ROLES,
   ORGANIZATION_ROLE_PERMISSIONS,
@@ -33,6 +34,7 @@ const AGENT_ROLE_LABELS: Record<string, string> = {
   agent_owner: "Agent Owner",
   agent_admin: "Agent Admin",
   agent_member: "Agent Member",
+  [AGENT_CONVERSATION_REVIEWER_ROLE]: "Agent Conversation Reviewer",
 }
 
 const GLOBAL_ROLE_SCOPE: Record<string, Role["scopeType"]> = {
@@ -88,7 +90,7 @@ export class RbacService {
    */
   async seedAgentRolesAndPermissions(): Promise<void> {
     const rolesByKey = await this.upsertRoles({
-      roleKeys: Object.values(AGENT_ROLES),
+      roleKeys: [...Object.values(AGENT_ROLES), AGENT_CONVERSATION_REVIEWER_ROLE],
       labels: AGENT_ROLE_LABELS,
       defaultScope: "agent",
     })

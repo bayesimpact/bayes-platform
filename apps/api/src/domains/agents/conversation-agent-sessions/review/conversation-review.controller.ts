@@ -11,8 +11,10 @@ import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { attachTrackedActivity } from "@/domains/activities/attach-tracked-activity"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
+import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
+import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
+import { AGENT_CONVERSATION_REVIEW_PERMISSION } from "@/domains/rbac/rbac.constants"
 import { UserGuard } from "@/domains/users/user.guard"
-import { AgentConversationReviewerGuard } from "../../conversation-reviewers/agent-conversation-reviewer.guard"
 import type { AgentMessage } from "../../shared/agent-session-messages/agent-message.entity"
 import type { ConversationReview } from "./conversation-review.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -20,17 +22,18 @@ import { ConversationReviewService } from "./conversation-review.service"
 
 /**
  * Safety review of an agent's conversations. Past the organization membership every Studio route
- * needs, the only gate is a safety review grant on this agent (see `AgentConversationReviewer`):
- * no role, global or scoped, stands in for it. Every read is logged in the activity journal with
- * the session it opened.
+ * needs, the only gate is `agent.conversation.review`, held by the `agent_conversation_reviewer`
+ * role on the agent's `temp_agent` resource and by nothing else. Every read is logged in the
+ * activity journal with the session it opened.
  */
-@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, AgentConversationReviewerGuard)
+@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, CheckPermissionGuard)
 @RequireContext("organization", "project", "agent")
 @Controller()
 export class ConversationReviewController {
   constructor(private readonly conversationReviewService: ConversationReviewService) {}
 
   @Get(ConversationReviewRoutes.getOne.path)
+  @CheckPermission(AGENT_CONVERSATION_REVIEW_PERMISSION, "temp_agent")
   @TrackActivity({ action: "agent.conversation.review", entityFrom: "agentSession" })
   async getOne(
     @Req() request: EndpointRequestWithAgent,

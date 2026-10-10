@@ -84,14 +84,17 @@ describe("Backoffice - agent conversation reviewers", () => {
     request({ route: BackofficeRoutes.getAgent, pathParams: { agentId }, token: "token" })
 
   const reviewerRows = (agent: Agent, user: User) =>
-    repositories.agentConversationReviewerRepository.findBy({ agentId: agent.id, userId: user.id })
+    repositories.userMembershipRepository.findBy({
+      resourceType: "temp_agent",
+      resourceId: agent.id,
+      userId: user.id,
+    })
 
   it("lets a superadmin grant the review of one agent by email, then revoke it", async () => {
-    const { caller, agent, reviewer } = await createContext(assignPlatformSuperadminToUser)
+    const { agent, reviewer } = await createContext(assignPlatformSuperadminToUser)
 
     expectResponse(await grant(agent.id, "Reviewer@Example.com"), 201)
-    const [row] = await reviewerRows(agent, reviewer)
-    expect(row?.grantedByUserId).toBe(caller.id)
+    expect(await reviewerRows(agent, reviewer)).toHaveLength(1)
 
     const detail = await getAgent(agent.id)
     expectResponse(detail, 200)

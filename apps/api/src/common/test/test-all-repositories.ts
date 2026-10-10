@@ -4,7 +4,6 @@ import { Agent } from "@/domains/agents/agent.entity"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import { ConversationAgentSessionCategory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session-category.entity"
 import { ConversationRetentionSweepRun } from "@/domains/agents/conversation-agent-sessions/retention/conversation-retention-sweep-run.entity"
-import { AgentConversationReviewer } from "@/domains/agents/conversation-reviewers/agent-conversation-reviewer.entity"
 import { AgentCsvExtractionRun } from "@/domains/agents/csv-extraction-runs/agent-csv-extraction-run.entity"
 import { AgentCsvExtractionRunRecord } from "@/domains/agents/csv-extraction-runs/agent-csv-extraction-run-record.entity"
 import { ExtractionAgentSession } from "@/domains/agents/extraction-agent-sessions/extraction-agent-session.entity"
@@ -58,7 +57,6 @@ export type AllRepositories = {
   agentMemoryRepository: Repository<AgentMemory>
   agentMessageAttachmentDocumentRepository: Repository<AgentMessageAttachmentDocument>
   agentMessageFeedbackRepository: Repository<AgentMessageFeedback>
-  agentConversationReviewerRepository: Repository<AgentConversationReviewer>
   agentMessageRepository: Repository<AgentMessage>
   agentRepository: Repository<Agent>
   agentSettingsRepository: Repository<AgentSettings>
@@ -114,7 +112,6 @@ export function buildAllRepositories(
     agentMemoryRepository: getRepository(AgentMemory),
     agentMessageAttachmentDocumentRepository: getRepository(AgentMessageAttachmentDocument),
     agentMessageFeedbackRepository: getRepository(AgentMessageFeedback),
-    agentConversationReviewerRepository: getRepository(AgentConversationReviewer),
     agentMessageRepository: getRepository(AgentMessage),
     agentRepository: getRepository(Agent),
     agentSettingsRepository: getRepository(AgentSettings),
