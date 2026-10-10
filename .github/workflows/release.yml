@@ -14,8 +14,8 @@ jobs:
   release:
     runs-on: ubuntu-latest
     # The key of the release GitHub App, a bypass actor of the approval
-    # ruleset on main. The environment accepts the v* release tags only, and
-    # only the merge team can push those tags (ruleset on tags).
+    # ruleset on main. The environment accepts main and the v* release tags
+    # only, and only the merge team can push those tags (ruleset on tags).
     environment: release-bot
     steps:
       - name: Checkout code
