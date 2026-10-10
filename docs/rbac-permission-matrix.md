@@ -9,7 +9,7 @@ This document mirrors those files. Whenever a role or a role/permission grant ch
 
 ## Global roles
 
-Global roles are stored as `user_membership` rows with `resource_type = 'global'`. `platform_staff` is renamed from `org_creator` and seeded by email domain (`SeedPlatformStaffByEmailDomain` / `ORGANIZATION_CREATOR_EMAIL_DOMAIN`). `platform_superadmin` is seeded from `BACKOFFICE_AUTHORIZED_EMAILS` by `SeedPlatformSuperadminByEmails`. The app itself never reads those env vars for authorization. `platform_staff` holds global `backoffice.project.read` so the App install picker is not empty for the people who hold `app.install`. `backoffice.app.manage` is superadmin-only and is not granted by `app.install`. The right to read any conversation of an agent for safety review is not a role: it lives in the `agent_conversation_reviewer` table, one row per person and agent, granted from the backoffice agent page by a holder of `backoffice.conversation_reviewer.update`. Nobody holds it by default, superadmins included, and reading a conversation still needs a membership of its organization.
+Global roles are stored as `user_membership` rows with `resource_type = 'global'`. `platform_staff` is renamed from `org_creator` and seeded by email domain (`SeedPlatformStaffByEmailDomain` / `ORGANIZATION_CREATOR_EMAIL_DOMAIN`). `platform_superadmin` is seeded from `BACKOFFICE_AUTHORIZED_EMAILS` by `SeedPlatformSuperadminByEmails`. The app itself never reads those env vars for authorization. `platform_staff` holds global `backoffice.project.read` so the App install picker is not empty for the people who hold `app.install`. `backoffice.app.manage` is superadmin-only and is not granted by `app.install`. `backoffice.conversation_reviewer.update` lets the backoffice grant or revoke `agent_conversation_reviewer` on an agent (see Agent roles).
 
 | Permission | `platform_staff` | `platform_superadmin` |
 |---|---|---|
@@ -161,6 +161,8 @@ The `project.review_campaign.*` permissions are not inherited either: an organiz
 
 Scoped to one agent via `user_membership` (`resource_type = 'agent'`).
 
+`agent_conversation_reviewer` is the exception: it is held on a `temp_agent` row (`resource_id` = the agent's id) so it adds to the person's single owner, admin or member role on the agent instead of replacing it. Routes check it with `@CheckPermission(AGENT_CONVERSATION_REVIEW_PERMISSION, "temp_agent")`. Nobody holds it by default, superadmins included; a holder of `backoffice.conversation_reviewer.update` grants it person by person from the backoffice agent page. `temp_agent` has no parent and passes nothing down. It is a stopgap until the team decides whether `user_membership` should allow several roles per person on one agent.
+
 The two analytics permissions are never inherited from a parent resource: an organization role does not open a project's analytics, and a project role does not open an agent's analytics.
 
 The `agent.member.*` permissions are held on the agent only: a project or organization role does not let anyone see an agent's members, invite to an agent or remove a member.
@@ -171,23 +173,24 @@ The same goes for `agent.settings.draft.update`, `agent.settings.draft.publish`,
 
 `agent.settings.draft.read` works the other way: it is checked on the agent but granted on project owners and admins, and passes down to every agent of the project.
 
-| Permission | `agent_owner` | `agent_admin` | `agent_member` |
-|---|---|---|---|
-| `agent.read` | ✅ | ✅ | ✅ |
-| `agent.update` | ✅ | ✅ | — |
-| `agent.delete` | ✅ | ✅ | — |
-| `agent.analytics.read` — see the agent's conversation analytics | ✅ | ✅ | — |
-| `agent.member.read` — see the agent's members and their roles | ✅ | ✅ | — |
-| `agent.member.invite` — invite people to the agent, see and revoke pending invitations | ✅ | ✅ | — |
-| `agent.member.delete` — remove a member from the agent | ✅ | ✅ | — |
-| `agent.sub_agent.read` — see the sub-agents the agent can call | ✅ | ✅ | — |
-| `agent.sub_agent.update` — replace the sub-agents the agent can call | ✅ | ✅ | — |
-| `agent.settings.draft.update` — edit the draft settings | ✅ | ✅ | — |
-| `agent.settings.draft.publish` — publish the draft settings as a new revision | ✅ | ✅ | — |
-| `agent.settings.restore` — restore an older revision of the settings into the draft | ✅ | ✅ | — |
-| `agent.settings.archive` — archive a revision of the settings | ✅ | ✅ | — |
-| `user.read` — see the agent's members | ✅ | ✅ | — |
-| `backoffice.agent.read` — see the agent in the backoffice | ✅ | ✅ | — |
+| Permission | `agent_owner` | `agent_admin` | `agent_member` | `agent_conversation_reviewer` |
+|---|---|---|---|---|
+| `agent.read` | ✅ | ✅ | ✅ | — |
+| `agent.update` | ✅ | ✅ | — | — |
+| `agent.delete` | ✅ | ✅ | — | — |
+| `agent.analytics.read` — see the agent's conversation analytics | ✅ | ✅ | — | — |
+| `agent.member.read` — see the agent's members and their roles | ✅ | ✅ | — | — |
+| `agent.member.invite` — invite people to the agent, see and revoke pending invitations | ✅ | ✅ | — | — |
+| `agent.member.delete` — remove a member from the agent | ✅ | ✅ | — | — |
+| `agent.sub_agent.read` — see the sub-agents the agent can call | ✅ | ✅ | — | — |
+| `agent.sub_agent.update` — replace the sub-agents the agent can call | ✅ | ✅ | — | — |
+| `agent.settings.draft.update` — edit the draft settings | ✅ | ✅ | — | — |
+| `agent.settings.draft.publish` — publish the draft settings as a new revision | ✅ | ✅ | — | — |
+| `agent.settings.restore` — restore an older revision of the settings into the draft | ✅ | ✅ | — | — |
+| `agent.settings.archive` — archive a revision of the settings | ✅ | ✅ | — | — |
+| `user.read` — see the agent's members | ✅ | ✅ | — | — |
+| `backoffice.agent.read` — see the agent in the backoffice | ✅ | ✅ | — | — |
+| `agent.conversation.review` — read any conversation of the agent from its session id (safety review) | — | — | — | ✅ |
 
 ## App grantable permissions
 

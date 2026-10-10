@@ -6,12 +6,18 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { agentFactory } from "@/domains/agents/agent.factory"
+import { grantConversationReview } from "@/domains/agents/conversation-reviewers/agent-conversation-reviewer.factory"
 import { UserMembership } from "@/domains/memberships/user-membership.entity"
 import { userMembershipFactory } from "@/domains/memberships/user-membership.factory"
-import { createOrganizationWithOwner } from "@/domains/organizations/organization.factory"
+import {
+  createOrganizationWithAgent,
+  createOrganizationWithOwner,
+} from "@/domains/organizations/organization.factory"
 import { projectFactory } from "@/domains/projects/project.factory"
 import { PermissionService } from "@/domains/rbac/permission.service"
 import {
+  AGENT_CONVERSATION_REVIEW_PERMISSION,
+  AGENT_CONVERSATION_REVIEWER_ROLE,
   AGENT_ROLE_PERMISSIONS,
   AGENT_ROLES,
   AGENT_SETTINGS_DRAFT_READ_PERMISSION,
@@ -49,7 +55,7 @@ import { Role } from "@/domains/rbac/role.entity"
 import { RolePermission } from "@/domains/rbac/role-permission.entity"
 import { userFactory } from "@/domains/users/user.factory"
 import { USER_TYPE_SERVICE } from "@/domains/users/user.types"
-import { ensureRbacCatalog } from "../../../test/rbac-test.helpers"
+import { assignPlatformSuperadminToUser, ensureRbacCatalog } from "../../../test/rbac-test.helpers"
 
 describe("PermissionService", () => {
   let service: PermissionService
@@ -107,6 +113,57 @@ describe("PermissionService", () => {
       }),
     )
   }
+
+  describe("agent.conversation.review", () => {
+    it("is granted on the temp_agent resource of the agents the user reviews only", async () => {
+      const repositories = setup.getAllRepositories()
+      const { user, organization, project, agent } = await createOrganizationWithAgent(repositories)
+      const otherAgent = agentFactory.transient({ organization, project }).build()
+      await repositories.agentRepository.save(otherAgent)
+      await grantConversationReview({ repositories, user, agent })
+
+      await expect(
+        service.has(user.id, AGENT_CONVERSATION_REVIEW_PERMISSION, {
+          type: "temp_agent",
+          id: agent.id,
+        }),
+      ).resolves.toBe(true)
+      await expect(
+        service.has(user.id, AGENT_CONVERSATION_REVIEW_PERMISSION, {
+          type: "temp_agent",
+          id: otherAgent.id,
+        }),
+      ).resolves.toBe(false)
+    })
+
+    it("is not granted by any other role, agent owner and superadmin included", async () => {
+      const repositories = setup.getAllRepositories()
+      const { user, agent } = await createOrganizationWithAgent(repositories)
+      await assignPlatformSuperadminToUser({ repositories, user })
+
+      await expect(
+        service.has(user.id, AGENT_CONVERSATION_REVIEW_PERMISSION, {
+          type: "temp_agent",
+          id: agent.id,
+        }),
+      ).resolves.toBe(false)
+    })
+
+    it("adds to the user's role on the agent without changing it", async () => {
+      const repositories = setup.getAllRepositories()
+      const { user, agent } = await createOrganizationWithAgent(repositories)
+      await grantConversationReview({ repositories, user, agent })
+
+      // The owner keeps every owner permission on the agent resource.
+      await expect(
+        service.has(user.id, "agent.update", { type: "agent", id: agent.id }),
+      ).resolves.toBe(true)
+      // The review is never read from the agent resource itself.
+      await expect(
+        service.has(user.id, AGENT_CONVERSATION_REVIEW_PERMISSION, { type: "agent", id: agent.id }),
+      ).resolves.toBe(false)
+    })
+  })
 
   it("lists a role's permissions from the catalog", async () => {
     const repositories = setup.getAllRepositories()
@@ -1885,7 +1942,7 @@ describe("RbacService", () => {
     await service.seedAgentRolesAndPermissions()
     await service.seedAgentRolesAndPermissions()
 
-    const agentRoleKeys = Object.values(AGENT_ROLES)
+    const agentRoleKeys = [...Object.values(AGENT_ROLES), AGENT_CONVERSATION_REVIEWER_ROLE]
     const roles = await setup.getRepository(Role).find({ where: { key: In(agentRoleKeys) } })
     expect(roles.map((role) => role.key).sort()).toEqual([...agentRoleKeys].sort())
     expect(roles.every((role) => role.scopeType === "agent")).toBe(true)

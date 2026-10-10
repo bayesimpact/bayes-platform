@@ -585,6 +585,9 @@ const ALL_ALIVE_RESOURCE_IDS_QUERIES: Record<PermissionResourceType, string> = {
   agent: `SELECT agent.id AS "resourceId"
           FROM agent
           WHERE agent.deleted_at IS NULL`,
+  temp_agent: `SELECT agent.id AS "resourceId"
+               FROM agent
+               WHERE agent.deleted_at IS NULL`,
 }
 
 /**
