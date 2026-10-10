@@ -261,21 +261,15 @@ export class BackofficeService {
   async grantAgentConversationReviewer({
     agentId,
     email,
-    actingUserId,
   }: {
     agentId: string
     email: string
-    actingUserId: string
   }): Promise<void> {
     const agent = await this.agentRepository.findOne({ where: { id: agentId } })
     if (!agent) throw new NotFoundException(`Agent ${agentId} not found`)
     const user = await this.userRepository.findOne({ where: { email: email.toLowerCase() } })
     if (!user) throw new NotFoundException(`No user with email ${email}`)
-    await this.agentConversationReviewersService.grant({
-      userId: user.id,
-      agentId,
-      grantedByUserId: actingUserId,
-    })
+    await this.agentConversationReviewersService.grant({ userId: user.id, agentId })
   }
 
   async revokeAgentConversationReviewer({

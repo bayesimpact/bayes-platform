@@ -243,6 +243,10 @@ describe("MeController (e2e)", () => {
 
       expectResponse(response, 200)
       expect(response.body.data.user.conversationReviewAgentIds).toEqual([agent.id])
+      // The review adds to the user's role on the agent: it is not a membership of its own.
+      expect(response.body.data.user.memberships.agentMemberships).toEqual([
+        expect.objectContaining({ agentId: agent.id, role: "owner" }),
+      ])
     })
 
     it("returns global permissions of platform_staff users", async () => {

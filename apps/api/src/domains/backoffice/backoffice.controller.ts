@@ -156,7 +156,6 @@ export class BackofficeController {
     await this.backofficeService.grantAgentConversationReviewer({
       agentId,
       email: body.payload.email,
-      actingUserId: request.user.id,
     })
     attachTrackedActivity(request, { entityFrom: "agent", entityId: agentId })
     return { data: { success: true } }

@@ -3,16 +3,12 @@ import type { AgentConversationReviewerRecord } from "./agent-conversation-revie
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentConversationReviewerRepository } from "./agent-conversation-reviewer.repository"
 
-/** Who may read any conversation of an agent for safety review. Nobody, until granted. */
+/** Who holds `agent_conversation_reviewer` on an agent. Nobody, until granted. */
 @Injectable()
 export class AgentConversationReviewersService {
   constructor(
     private readonly agentConversationReviewerRepository: AgentConversationReviewerRepository,
   ) {}
-
-  isReviewer(params: { userId: string; agentId: string }): Promise<boolean> {
-    return this.agentConversationReviewerRepository.isReviewer(params)
-  }
 
   listAgentIdsForUser(userId: string): Promise<string[]> {
     return this.agentConversationReviewerRepository.listAgentIdsForUser(userId)
@@ -22,7 +18,7 @@ export class AgentConversationReviewersService {
     return this.agentConversationReviewerRepository.listReviewersOfAgent(agentId)
   }
 
-  grant(params: { userId: string; agentId: string; grantedByUserId: string }): Promise<boolean> {
+  grant(params: { userId: string; agentId: string }): Promise<boolean> {
     return this.agentConversationReviewerRepository.grant(params)
   }
 

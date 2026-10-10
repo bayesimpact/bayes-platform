@@ -1,5 +1,6 @@
 import {
   AGENT_ANALYTICS_READ_PERMISSION,
+  AGENT_CONVERSATION_REVIEW_PERMISSION,
   AGENT_CONVERSATION_SESSION_CREATE_PERMISSION,
   AGENT_CONVERSATION_SESSION_DELETE_PERMISSION,
   AGENT_CONVERSATION_SESSION_EXTERNAL_CREATE_PERMISSION,
@@ -118,6 +119,7 @@ import type { PermissionResourceType } from "./permission.types"
  */
 export {
   AGENT_ANALYTICS_READ_PERMISSION,
+  AGENT_CONVERSATION_REVIEW_PERMISSION,
   AGENT_CONVERSATION_SESSION_EXTERNAL_CREATE_PERMISSION,
   AGENT_MEMBER_DELETE_PERMISSION,
   AGENT_MEMBER_INVITE_PERMISSION,
@@ -246,6 +248,16 @@ export const PROJECT_ROLES = {
   admin: "project_admin",
   member: "project_member",
 } as const
+
+/**
+ * Agent role granting only the safety review of the agent's conversations. Nobody has it until a
+ * backoffice operator grants it. It is held on a `temp_agent` row (resource id = agent id), so it
+ * adds to the person's owner, admin or member role on the agent instead of replacing it.
+ */
+export const AGENT_CONVERSATION_REVIEWER_ROLE = "agent_conversation_reviewer" as const
+
+/** Legacy `user_membership.role` value of the `temp_agent` rows. Ignored by the RBAC checks. */
+export const AGENT_CONVERSATION_REVIEWER_MEMBERSHIP_ROLE = "reviewer" as const
 
 export const AGENT_ROLES = {
   owner: "agent_owner",
@@ -564,6 +576,8 @@ export const AGENT_ROLE_PERMISSIONS = {
     BACKOFFICE_AGENT_READ_PERMISSION,
   ],
   agent_member: ["agent.read"],
+  // Not held by owner, admin or member: granted person by person from the backoffice.
+  [AGENT_CONVERSATION_REVIEWER_ROLE]: [AGENT_CONVERSATION_REVIEW_PERMISSION],
 } as const satisfies Record<string, readonly string[]>
 
 type GrantedPermission<RolePermissions extends Record<string, readonly string[]>> =
@@ -583,6 +597,7 @@ export const RESOURCE_TYPE_READ_PERMISSION_MAP = {
   organization: "organization.read",
   project: "project.read",
   agent: "agent.read",
+  temp_agent: AGENT_CONVERSATION_REVIEW_PERMISSION,
 } as const satisfies Record<PermissionResourceType, string>
 
 /**
@@ -631,12 +646,15 @@ export const RESOURCE_TYPE_PERMISSIONS_MAP = {
     AGENT_CONVERSATION_SESSION_EXTERNAL_CREATE_PERMISSION,
     BACKOFFICE_AGENT_READ_PERMISSION,
   ],
+  // Holds only additional agent roles, which never pass down from a parent.
+  temp_agent: [],
 } as const satisfies Record<PermissionResourceType, readonly string[]>
 
 export const PARENT_RESOURCE_TYPE_MAP = {
   organization: [],
   project: ["organization"],
   agent: ["organization", "project"],
+  temp_agent: [],
 } as const satisfies Record<PermissionResourceType, readonly PermissionResourceType[]>
 
 /**
@@ -656,6 +674,7 @@ export const CATALOG_ROLE_KEYS = [
   AGENT_ROLES.owner,
   AGENT_ROLES.admin,
   AGENT_ROLES.member,
+  AGENT_CONVERSATION_REVIEWER_ROLE,
 ] as const
 
 export const PERMISSION_DESCRIPTIONS: Record<string, string> = {
@@ -803,6 +822,8 @@ export const PERMISSION_DESCRIPTIONS: Record<string, string> = {
     "Mutate a project from the backoffice (e.g. feature flags)",
   [BACKOFFICE_AGENT_READ_PERMISSION]: "See agents in the backoffice",
   [BACKOFFICE_USER_READ_PERMISSION]: "See every user in the backoffice",
+  [AGENT_CONVERSATION_REVIEW_PERMISSION]:
+    "Read any conversation of an agent from its session id, for safety review",
   [BACKOFFICE_CONVERSATION_REVIEWER_UPDATE_PERMISSION]:
     "Grant or revoke, agent by agent, the right to read any of its conversations for safety review",
 }

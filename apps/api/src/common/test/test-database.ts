@@ -201,9 +201,6 @@ WITH
   del_agent_message_feedback AS (
     DELETE FROM "agent_message_feedback"
   ),
-  del_agent_conversation_reviewer AS (
-    DELETE FROM "agent_conversation_reviewer"
-  ),
   del_agent_message AS (
     DELETE FROM "agent_message"
   ),
