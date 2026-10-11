@@ -1,7 +1,6 @@
 import {
   type AgentModel,
   createEvaluationConversationRunSchema,
-  DEFAULT_AGENT_MODEL,
   EVALUATION_CONVERSATION_RUN_JUDGE_INSTRUCTIONS_MAX_LENGTH,
 } from "@caseai-connect/api-contracts"
 import { Button } from "@caseai-connect/ui/shad/button"
@@ -53,28 +52,14 @@ import { useValue } from "@/common/hooks/use-value"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { buildDate } from "@/common/utils/build-date"
 import type { EvaluationConversationDataset } from "@/eval/features/evaluation-conversation-datasets/evaluation-conversation-datasets.models"
+import {
+  buildCreateRunPayload,
+  buildDefaultRunFormValues,
+  type RunFormValues,
+} from "@/eval/features/evaluation-conversation-runs/evaluation-conversation-runs.helpers"
 import { selectIsExecutingConversationRun } from "@/eval/features/evaluation-conversation-runs/evaluation-conversation-runs.selectors"
 import { evaluationConversationRunsActions } from "@/eval/features/evaluation-conversation-runs/evaluation-conversation-runs.slice"
 import { useEvaluationConversationRunPath } from "@/eval/hooks/use-evaluation-conversation-run-path"
-
-type RunFormValues = {
-  agentId: string
-  // null = no explicit choice yet; the newest revision is used once history loads.
-  selectedRevision: number | null
-  judgeModel: AgentModel
-  judgeInstructions: string
-  runScope: "all" | "limited"
-  limitedCount: number
-}
-
-const defaultRunFormValues: RunFormValues = {
-  agentId: "",
-  selectedRevision: null,
-  judgeModel: DEFAULT_AGENT_MODEL,
-  judgeInstructions: "",
-  runScope: "all",
-  limitedCount: 1,
-}
 
 export function RunEvaluationConversationDialog({
   dataset,
@@ -126,7 +111,7 @@ export function RunEvaluationConversationDialog({
 
   const form = useForm<RunFormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: defaultRunFormValues,
+    defaultValues: buildDefaultRunFormValues(),
   })
   const { control, watch, setValue } = form
 
@@ -144,7 +129,7 @@ export function RunEvaluationConversationDialog({
     (nextOpen: boolean) => {
       setOpen(nextOpen)
       if (!nextOpen) {
-        form.reset(defaultRunFormValues)
+        form.reset(buildDefaultRunFormValues())
       }
     },
     [form],
@@ -169,18 +154,11 @@ export function RunEvaluationConversationDialog({
   )
 
   const handleRun = form.handleSubmit(async (values) => {
-    const agentSettingsRevision = values.selectedRevision
-    if (agentSettingsRevision === null) return
+    const payload = buildCreateRunPayload({ datasetId: dataset.id, values })
+    if (!payload) return
 
     const result = await dispatch(
-      evaluationConversationRunsActions.createAndExecute({
-        datasetId: dataset.id,
-        agentId: values.agentId,
-        agentSettingsRevision,
-        judgeModel: values.judgeModel,
-        judgeInstructions: values.judgeInstructions.trim() || null,
-        recordLimit: values.runScope === "limited" ? values.limitedCount : null,
-      }),
+      evaluationConversationRunsActions.createAndExecute(payload),
     ).unwrap()
 
     setOpen(false)

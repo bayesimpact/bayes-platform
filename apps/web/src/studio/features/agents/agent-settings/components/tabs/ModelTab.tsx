@@ -31,7 +31,8 @@ import { selectCurrentProjectData } from "@/common/features/projects/projects.se
 import { useFeatureFlags } from "@/common/hooks/use-feature-flags"
 import { useValue } from "@/common/hooks/use-value"
 import { useAppDispatch } from "@/common/store/hooks"
-import { type AgentTabFormProps, pickDirtyFields, useReportDirty } from "../agent-tab-form.shared"
+import { type AgentTabFormProps, useReportDirty } from "../agent-tab-form.shared"
+import { buildModelTabDefaultValues, buildModelTabSubmit } from "./model-tab.helpers"
 import { TabSaveButton } from "./TabSaveButton"
 
 type FormValues = z.infer<typeof updateAgentSettingsModelSchema>
@@ -45,11 +46,7 @@ export function ModelTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(updateAgentSettingsModelSchema),
-    defaultValues: {
-      model: agentSettings.model,
-      deletedTemperature: agentSettings.deletedTemperature,
-      priorityCallsEnabled: agentSettings.priorityCallsEnabled,
-    },
+    defaultValues: buildModelTabDefaultValues(agentSettings),
   })
   useReportDirty(form.formState.isDirty, onDirtyChange)
 
@@ -59,13 +56,13 @@ export function ModelTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
   const priorityCallsAvailable = isPriorityCallsAvailable({ hasFeature, model: selectedModel })
 
   const handleSubmit = form.handleSubmit(async (values) => {
-    const fields = pickDirtyFields(values, form.formState.dirtyFields)
-    if (!priorityCallsAvailable && values.priorityCallsEnabled) fields.priorityCallsEnabled = false
-    await dispatch(updateAgentSettingsModel({ agentId: agentSettings.agentId, fields })).unwrap()
-    form.reset({
-      ...values,
-      priorityCallsEnabled: fields.priorityCallsEnabled ?? values.priorityCallsEnabled,
+    const { fields, resetValues } = buildModelTabSubmit({
+      values,
+      dirtyFields: form.formState.dirtyFields,
+      priorityCallsAvailable,
     })
+    await dispatch(updateAgentSettingsModel({ agentId: agentSettings.agentId, fields })).unwrap()
+    form.reset(resetValues)
   })
 
   return (
