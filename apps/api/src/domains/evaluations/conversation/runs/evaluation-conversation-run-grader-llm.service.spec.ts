@@ -83,7 +83,7 @@ describe("EvaluationConversationRunGraderLLMService", () => {
     expect(vertexProvider.generateText).toHaveBeenCalledTimes(1)
     const callArguments = vertexProvider.generateText.mock.calls[0]![0]
     expect(callArguments.config.model).toBe(AgentModel.Gemini25Flash)
-    expect(callArguments.config.temperature).toBe(0)
+    expect(callArguments.config.modelOptions).toEqual({ temperature: 0 })
     expect(callArguments.prompt).toContain("<%ratingInstructions>")
     expect(callArguments.prompt).toContain("The expected answer")
     expect(callArguments.prompt).toContain("<%value>")

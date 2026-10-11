@@ -69,7 +69,7 @@ class TestToolsMgmt extends AISDKLLMToolsMgmt {
   }: {
     config: LLMConfig
   }): SpecificProviderOptions {
-    return { temperature: config.temperature }
+    return { ...config.modelOptions }
   }
 
   toolCallRepairFor(args: CallArgs): ToolCallRepairFunction<ToolSet> {
@@ -175,7 +175,7 @@ const metadata: LLMMetadata = {
 
 const baseConfig: LLMConfig = {
   model: AgentModel._Mock,
-  temperature: 0,
+  modelOptions: { temperature: 0 },
   systemPrompt: "",
   serviceTier: undefined,
   thinkingLevel: AgentThinkingLevel.Auto,

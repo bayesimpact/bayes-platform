@@ -54,7 +54,7 @@ const LEAKED_NAME_ONLY_CALL =
 
 const mockConfig: LLMConfig = {
   model: AgentModel._Mock,
-  temperature: 0,
+  modelOptions: { temperature: 0 },
   systemPrompt: "",
   serviceTier: undefined,
   thinkingLevel: AgentThinkingLevel.Auto,
@@ -135,13 +135,17 @@ class TestModelMgmt extends AISDKLLMModelMgmt<AgentProvider._Mock> {
 class TestModelMgmtWithoutTemperature extends TestModelMgmt {
   protected readonly modelOptions: Record<AgentModel._Mock, ModelOptions> = {
     [AgentModel._Mock]: defineModelOptions(
-      z.object({ providerOptions: z.object({ vertex: z.object({ thinkingBudget: z.number() }) }) }),
-      { providerOptions: { vertex: { thinkingBudget: 0 } } },
+      z.object({
+        providerOptions: z.object({
+          vertex: z.object({ thinkingBudget: z.number(), includeThoughts: z.boolean() }),
+        }),
+      }),
+      { providerOptions: { vertex: { thinkingBudget: 0, includeThoughts: true } } },
     ),
   }
 }
 
-/** Applies a config the model's schema rejects. */
+/** Applies call settings the model's schema rejects, whatever the call's options. */
 class TestModelMgmtWithInvalidConfig extends TestModelMgmt {
   protected applyConfigToModelOptions(): SpecificProviderOptions {
     return { temperature: "hot" } as unknown as SpecificProviderOptions
@@ -415,23 +419,45 @@ describe("AISDKLLMModelMgmt", () => {
   })
 
   describe("buildSpecificProviderOptions", () => {
-    it("holds the model's options with the configured temperature", () => {
+    it("holds the model's default options when the call sets none", () => {
+      const { modelOptions: _modelOptions, ...configWithoutOptions } = mockConfig
+
+      expect(new TestModelMgmt().specificProviderOptionsFor(configWithoutOptions)).toEqual({
+        temperature: 0,
+      })
+    })
+
+    it("holds the options of the call over the model's defaults", () => {
       expect(
-        new TestModelMgmt().specificProviderOptionsFor({ ...mockConfig, temperature: 0.4 }),
+        new TestModelMgmt().specificProviderOptionsFor({
+          ...mockConfig,
+          modelOptions: { temperature: 0.4 },
+        }),
       ).toEqual({ temperature: 0.4 })
     })
 
-    it("sends no temperature to a model whose options take none", () => {
+    it("merges the options of the call into the defaults, and drops what the model does not take", () => {
       const specificOptions = new TestModelMgmtWithoutTemperature().specificProviderOptionsFor({
         ...mockConfig,
-        temperature: 0.4,
+        modelOptions: { temperature: 0.4, providerOptions: { vertex: { thinkingBudget: 512 } } },
       })
 
-      expect(specificOptions).toEqual({ providerOptions: { vertex: { thinkingBudget: 0 } } })
+      expect(specificOptions).toEqual({
+        providerOptions: { vertex: { thinkingBudget: 512, includeThoughts: true } },
+      })
       expect(specificOptions).not.toHaveProperty("temperature")
     })
 
-    it("rejects options that do not fit the model's schema", () => {
+    it("falls back to the model's defaults when the options of the call do not fit", () => {
+      expect(
+        new TestModelMgmt().specificProviderOptionsFor({
+          ...mockConfig,
+          modelOptions: { temperature: "hot" },
+        }),
+      ).toEqual({ temperature: 0 })
+    })
+
+    it("rejects call settings that do not fit the model's schema", () => {
       expect(() =>
         new TestModelMgmtWithInvalidConfig().specificProviderOptionsFor(mockConfig),
       ).toThrow()

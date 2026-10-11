@@ -21,7 +21,7 @@ describe("AISDKMockProvider", () => {
     messages = [{ role: "user", content: "for test purpose" }]
     config = {
       model: AgentModel._Mock,
-      temperature: 1,
+      modelOptions: { temperature: 1 },
       systemPrompt: "",
       serviceTier: undefined,
       thinkingLevel: AgentThinkingLevel.Auto,
@@ -147,7 +147,7 @@ describe("AISDKMockProvider", () => {
     const executed: unknown[] = []
     const toolConfig: LLMConfig = {
       model: AgentModel._Mock,
-      temperature: 1,
+      modelOptions: { temperature: 1 },
       systemPrompt: "",
       serviceTier: undefined,
       tools: {

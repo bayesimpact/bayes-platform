@@ -184,7 +184,7 @@ ${promptHelpers.now()}`
     ],
     config: {
       model,
-      temperature: 0,
+      modelOptions: { temperature: 0 },
       tools,
       fireAndForgetToolNames: [ToolName.SurfaceResources],
       serviceTier: undefined,

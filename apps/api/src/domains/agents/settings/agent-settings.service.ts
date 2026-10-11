@@ -222,8 +222,8 @@ export class AgentSettingsService {
           initialAgentSettings: last,
           modifiedAgentSettings: {
             ...agentSettings,
-            ...(agentSettings.temperature !== undefined && {
-              temperature: agentSettings.temperature,
+            ...(agentSettings.deletedTemperature !== undefined && {
+              deletedTemperature: agentSettings.deletedTemperature,
             }),
           },
         })

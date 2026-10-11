@@ -86,7 +86,7 @@ export class StructuredExtractionAgentRunLlmService extends LlmServiceBase {
     const llmConfig = this.buildLLMConfig({
       systemPrompt,
       model: agentWithSettings.settings.model,
-      temperature: agentWithSettings.settings.temperature,
+      modelOptions: agentWithSettings.settings.providerOptions,
       priorityCallsEnabled: agentWithSettings.settings.priorityCallsEnabled,
       llmFeatures: agentWithSettings.llmFeatures,
       thinkingLevel: agentWithSettings.settings.thinkingLevel,

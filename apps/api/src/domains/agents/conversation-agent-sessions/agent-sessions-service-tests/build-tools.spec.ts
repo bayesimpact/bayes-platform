@@ -192,7 +192,7 @@ describe("buildTools", () => {
         agentId: childAgent.id,
         instructions: "Answer benefits questions",
         model: testAgentSettings.model,
-        temperature: testAgentSettings.temperature,
+        deletedTemperature: testAgentSettings.deletedTemperature,
         locale: testAgentSettings.locale,
         documentsRagMode: DocumentsRagMode.None,
         revision: 1,

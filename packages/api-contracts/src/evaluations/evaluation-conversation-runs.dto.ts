@@ -37,7 +37,7 @@ export type EvaluationConversationRunAgentSettingsDto = {
   locale: AgentLocale
   model: AgentModel
   revision: number
-  temperature: AgentTemperature
+  deletedTemperature: AgentTemperature
 }
 
 // DTOs

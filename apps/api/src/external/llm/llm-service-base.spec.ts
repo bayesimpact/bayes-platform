@@ -55,7 +55,7 @@ describe("LlmServiceBase.buildLLMConfig", () => {
   const baseParams: BuildLLMConfigParams = {
     model: AgentModel.Gemini35FlashLite,
     systemPrompt: "You are a helpful assistant.",
-    temperature: 0,
+    modelOptions: { temperature: 0 },
     priorityCallsEnabled: false,
     llmFeatures: {},
   }
@@ -86,34 +86,17 @@ describe("LlmServiceBase.buildLLMConfig", () => {
     expect(config).toMatchObject({
       model: AgentModel.Gemini35FlashLite,
       systemPrompt: "You are a helpful assistant.",
-      temperature: 0,
+      modelOptions: { temperature: 0 },
       fireAndForgetToolNames: ["sources"],
       terminalToolNames: ["take_over_form"],
       useExtendedTimeouts: true,
     })
   })
 
-  it("reads a temperature stored as a decimal string", () => {
-    const config = new TestLlmService().build({
-      ...baseParams,
-      temperature: "0.7" as unknown as number,
-    })
+  it("leaves the model options out when the agent stores none", () => {
+    const config = new TestLlmService().build({ ...baseParams, modelOptions: null })
 
-    expect(config.temperature).toBe(0.7)
-  })
-
-  it.each([0, 2])("accepts the boundary temperature %s", (temperature) => {
-    expect(new TestLlmService().build({ ...baseParams, temperature }).temperature).toBe(temperature)
-  })
-
-  it.each([
-    [-0.1, "-0.1"],
-    [2.1, "2.1"],
-    ["warm" as unknown as number, "NaN"],
-  ])("rejects the temperature %s", (temperature, shown) => {
-    expect(() => new TestLlmService().build({ ...baseParams, temperature })).toThrow(
-      `Invalid temperature value: ${shown}. Temperature must be a number between 0 and 2.`,
-    )
+    expect(config.modelOptions).toBeUndefined()
   })
 
   describe("service tier", () => {

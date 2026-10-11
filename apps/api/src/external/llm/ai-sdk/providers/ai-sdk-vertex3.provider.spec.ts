@@ -32,7 +32,7 @@ describe("AISDKVertex3Provider location routing", () => {
   const locationOf = (model: AgentModel) =>
     new AISDKVertex3Provider().getTags({
       model,
-      temperature: 0,
+      modelOptions: { temperature: 0 },
       serviceTier: undefined,
       thinkingLevel: AgentThinkingLevel.Auto,
     })[1]
@@ -69,7 +69,7 @@ describe("AISDKVertex3Provider temperature", () => {
 
   const buildConfig = (model: AgentModel): LLMConfig => ({
     model,
-    temperature: 0.4,
+    modelOptions: { temperature: 0.4 },
     serviceTier: undefined,
     thinkingLevel: AgentThinkingLevel.Auto,
   })
@@ -102,7 +102,7 @@ describe("AISDKVertex3Provider service tier", () => {
     }
   }
   const buildConfig = (serviceTier: LLMServiceTier): LLMConfig =>
-    ({ model: AgentModel.Gemini35Flash, temperature: 0, serviceTier }) as LLMConfig
+    ({ model: AgentModel.Gemini35Flash, serviceTier }) as LLMConfig
 
   it("serviceTier : priority - should set vertex.sharedRequestType = priority", () => {
     expect(new TestableProvider().providerOptionsFor(buildConfig("priority"))).toEqual({
@@ -149,7 +149,7 @@ describe("AISDKVertex3Provider thinking level", () => {
   }): LLMConfig =>
     ({
       model: agentModel,
-      temperature: 0,
+      modelOptions: { temperature: 0 },
       serviceTier: undefined,
       thinkingLevel,
     }) satisfies LLMConfig

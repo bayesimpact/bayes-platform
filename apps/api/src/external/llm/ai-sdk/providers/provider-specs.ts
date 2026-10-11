@@ -54,7 +54,7 @@ export class ProviderSpecs {
     const prompt = "What's your name?"
     const config = {
       model,
-      temperature: ProviderSpecs.temperature,
+      modelOptions: { temperature: ProviderSpecs.temperature },
       systemPrompt: ProviderSpecs.systemPrompt,
       serviceTier,
       thinkingLevel: thinkingLevel || AgentThinkingLevel.Auto,
@@ -78,7 +78,7 @@ export class ProviderSpecs {
     const messages: LLMChatMessage[] = [{ role: "user", content: "What can you do for me?" }]
     const config = {
       model,
-      temperature: ProviderSpecs.temperature,
+      modelOptions: { temperature: ProviderSpecs.temperature },
       systemPrompt: ProviderSpecs.systemPrompt,
       serviceTier,
       thinkingLevel: thinkingLevel || AgentThinkingLevel.Auto,
@@ -160,7 +160,7 @@ export class ProviderSpecs {
     })
     const config = {
       model,
-      temperature: ProviderSpecs.temperature,
+      modelOptions: { temperature: ProviderSpecs.temperature },
       systemPrompt: prompt,
       tools: { fillForm: fillFormTool } as ToolSet,
       serviceTier,
@@ -318,7 +318,7 @@ export class ProviderSpecs {
     })
     const config = {
       model,
-      temperature: ProviderSpecs.temperature,
+      modelOptions: { temperature: ProviderSpecs.temperature },
       systemPrompt: prompt,
       tools: { fillForm: fillFormTool } as ToolSet,
       serviceTier,
@@ -451,7 +451,7 @@ Always answer in English.`
     })
     const config = {
       model,
-      temperature: ProviderSpecs.temperature,
+      modelOptions: { temperature: ProviderSpecs.temperature },
       systemPrompt: prompt,
       tools: { lookup_knowledge_base: lookupKnowledgeBaseTool } as ToolSet,
       serviceTier,
@@ -574,7 +574,7 @@ Always answer in English.`
     })
     const config = {
       model,
-      temperature: ProviderSpecs.temperature,
+      modelOptions: { temperature: ProviderSpecs.temperature },
       systemPrompt: prompt,
       tools: {
         lookup_knowledge_base: lookupKnowledgeBaseTool,
@@ -695,7 +695,7 @@ DO NOT HALLUCINATE VALUES, return only values that you find in the file; if no v
     }
     const config = {
       model,
-      temperature: ProviderSpecs.temperature,
+      modelOptions: { temperature: ProviderSpecs.temperature },
       systemPrompt: ProviderSpecs.systemPrompt,
       serviceTier,
       thinkingLevel: thinkingLevel || AgentThinkingLevel.Auto,
@@ -752,7 +752,7 @@ Output the full list unchanged, except for the constant named ‘Pi’, which mu
     }
     const config = {
       model,
-      temperature: ProviderSpecs.temperature,
+      modelOptions: { temperature: ProviderSpecs.temperature },
       systemPrompt: ProviderSpecs.systemPrompt,
       serviceTier,
       thinkingLevel: thinkingLevel || AgentThinkingLevel.Auto,
@@ -880,7 +880,7 @@ Output the full list unchanged, except for the constant named ‘Pi’, which mu
     }
     const config = {
       model,
-      temperature: ProviderSpecs.temperature,
+      modelOptions: { temperature: ProviderSpecs.temperature },
       systemPrompt: systemPromptFr,
       serviceTier,
       thinkingLevel: thinkingLevel || AgentThinkingLevel.Auto,

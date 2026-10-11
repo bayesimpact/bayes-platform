@@ -106,7 +106,7 @@ export const createAgentSchema = agentValidationSchema
       outputJsonSchema: true,
       projectAgentSessionCategoryIds: true,
       resourceLibraryIds: true,
-      temperature: true,
+      deletedTemperature: true,
     }).shape,
     fillFormEnabled: agentSettingsValidationSchema.shape.fillFormEnabled.optional(),
     tagsToAdd: updateDocumentTagsSchema.required().shape.tagsToAdd,

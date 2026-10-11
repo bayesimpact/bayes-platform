@@ -140,7 +140,7 @@ export class AgentLlmRequestService {
         contextSections: promptSections,
       }),
       model: agentSettings.model,
-      temperature: agentSettings.temperature,
+      modelOptions: agentSettings.providerOptions,
       tools,
       fireAndForgetToolNames,
       terminalToolNames,
@@ -192,7 +192,7 @@ export class AgentLlmRequestService {
           buildLLMConfig({
             systemPrompt: classifierSystemPrompt,
             model: agentSettings.model,
-            temperature: 0,
+            modelOptions: { temperature: 0 },
             priorityCallsEnabled: agentSettings.priorityCallsEnabled,
             llmFeatures,
           }),

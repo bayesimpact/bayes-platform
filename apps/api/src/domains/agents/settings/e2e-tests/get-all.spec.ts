@@ -148,7 +148,7 @@ describe("Agent Settings - getAll", () => {
       greetingMessage: "Hello there",
       locale: AgentLocale.FR,
       model: AgentModel.Gemini25Flash,
-      temperature: 1.5,
+      deletedTemperature: 1.5,
       documentsRagMode: DocumentsRagMode.None,
       fillFormEnabled: true,
       outputJsonSchema: { type: "object", properties: { title: { type: "string" } } },
@@ -172,7 +172,7 @@ describe("Agent Settings - getAll", () => {
       greetingMessage: "Hello there",
       locale: AgentLocale.FR,
       model: AgentModel.Gemini25Flash,
-      temperature: 1.5,
+      deletedTemperature: 1.5,
       documentsRagMode: DocumentsRagMode.None,
       fillFormEnabled: true,
       outputJsonSchema: { type: "object", properties: { title: { type: "string" } } },
@@ -187,6 +187,7 @@ describe("Agent Settings - getAll", () => {
       createdAt: storedRevision2.createdAt.getTime(),
       updatedAt: storedRevision2.updatedAt.getTime(),
       priorityCallsEnabled: false,
+      providerOptions: null,
       thinkingLevel: AgentThinkingLevel.Auto,
     })
   })

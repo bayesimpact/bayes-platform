@@ -30,7 +30,6 @@ class TestBuilders extends AISDKLLMBuilders {
   metadataFor(args: Omit<BuildArgs, "callOrigin">) {
     return this.buildMetadata(args)
   }
-  // Read from the model options, out of this class's scope.
   protected buildSpecificProviderOptions(): SpecificProviderOptions {
     return {}
   }
@@ -41,7 +40,7 @@ describe("AISDKLLMBuilders", () => {
 
   const config: LLMConfig = {
     model: AgentModel._Mock,
-    temperature: 0,
+    modelOptions: { temperature: 0 },
     systemPrompt: "You are a helpful assistant.",
     serviceTier: undefined,
     thinkingLevel: AgentThinkingLevel.Auto,

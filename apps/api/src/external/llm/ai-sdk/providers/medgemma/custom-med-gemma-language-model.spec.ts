@@ -10,7 +10,7 @@ import { CustomMedGemmaLanguageModel } from "./custom-med-gemma-language-model"
 describe("CustomMedGemmaLanguageModel", () => {
   const buildConfig = (): LLMConfig => ({
     model: AgentModel.MedGemma10_27B,
-    temperature: 0,
+    modelOptions: { temperature: 0 },
     serviceTier: undefined,
     thinkingLevel: AgentThinkingLevel.Auto,
   })

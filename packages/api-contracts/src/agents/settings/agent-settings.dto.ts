@@ -178,7 +178,9 @@ export type AgentSettingsDto = {
   projectAgentSessionCategoryIds: string[]
   resourceLibraryIds: string[]
   revision: number
-  temperature: AgentTemperature
+  deletedTemperature: AgentTemperature
+  /** The options of the agent's model (its temperature, its thinking level...). */
+  providerOptions: Record<string, unknown> | null
   updatedAt: TimeType
   usedProjectAgentSessionCategoryIds: string[]
   thinkingLevel: AgentThinkingLevel
@@ -273,7 +275,7 @@ export const agentSettingsValidationSchema = z.object({
   outputJsonSchema: outputJsonSchemaSchema.optional(),
   projectAgentSessionCategoryIds: z.array(z.string().uuid()),
   resourceLibraryIds: z.array(z.string().uuid()).optional(),
-  temperature: z
+  deletedTemperature: z
     .float32()
     .min(0)
     .max(2)
@@ -285,7 +287,9 @@ export const agentSettingsValidationSchema = z.object({
   thinkingLevel: z.enum(AgentThinkingLevel),
 })
 
-export type AgentTemperature = z.infer<typeof agentSettingsValidationSchema.shape.temperature>
+export type AgentTemperature = z.infer<
+  typeof agentSettingsValidationSchema.shape.deletedTemperature
+>
 
 export const refineOutputJsonSchema = {
   fn: (data: { type: AgentDto["type"]; outputJsonSchema?: AgentSettingsDto["outputJsonSchema"] }) =>
@@ -335,7 +339,7 @@ export const updateAgentSettingsSchema = agentSettingsValidationSchema
     outputJsonSchema: true,
     projectAgentSessionCategoryIds: true,
     resourceLibraryIds: true,
-    temperature: true,
+    deletedTemperature: true,
     thinkingLevel: true,
   })
   .extend({
@@ -365,7 +369,7 @@ export type UpdateAgentSettingsGeneralDto = z.infer<typeof updateAgentSettingsGe
 
 export const updateAgentSettingsModelSchema = agentSettingsValidationSchema.pick({
   model: true,
-  temperature: true,
+  deletedTemperature: true,
   priorityCallsEnabled: true,
 })
 export type UpdateAgentSettingsModelDto = z.infer<typeof updateAgentSettingsModelSchema>

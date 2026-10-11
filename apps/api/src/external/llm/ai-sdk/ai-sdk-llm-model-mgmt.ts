@@ -57,6 +57,22 @@ export function defineModelOptions<Schema extends ZodType<SpecificProviderOption
   return { schema, values }
 }
 
+/** `override` merged over `base`, object by object; any other value of `override` wins. */
+function mergeModelOptions(
+  base: Record<string, unknown>,
+  override: Record<string, unknown>,
+): Record<string, unknown> {
+  const isPlainObject = (value: unknown): value is Record<string, unknown> =>
+    typeof value === "object" && value !== null && !Array.isArray(value)
+  const merged: Record<string, unknown> = { ...base }
+  for (const [key, value] of Object.entries(override)) {
+    const baseValue = merged[key]
+    merged[key] =
+      isPlainObject(baseValue) && isPlainObject(value) ? mergeModelOptions(baseValue, value) : value
+  }
+  return merged
+}
+
 export type StreamPartLike =
   | { type: "start-step" }
   | { type: "finish-step" }
@@ -133,8 +149,12 @@ export abstract class AISDKLLMModelMgmt<
   }
 
   /**
-   * The model's options with the agent config applied, checked against the
-   * model's schema on every call.
+   * The model's default options, with the ones of the call (the agent's
+   * stored options, or an internal call's) merged over them and the call
+   * settings applied, checked against the model's schema on every call. An
+   * option the model does not take (a temperature it deprecated) is dropped.
+   * Options that do not fit the schema (stored for another model) fall back
+   * to the model's defaults.
    */
   protected buildSpecificProviderOptions({
     config,
@@ -142,22 +162,33 @@ export abstract class AISDKLLMModelMgmt<
     config: LLMConfig
   }): SpecificProviderOptions {
     const { schema, values } = this.modelOptions[this.toProviderAgentModel(config.model)]
+    const merged = schema.safeParse(
+      this.applyConfigToModelOptions({
+        config,
+        values: mergeModelOptions(values, config.modelOptions ?? {}) as SpecificProviderOptions,
+      }),
+    )
+    if (merged.success) return merged.data
+    logger.warn("Model options that do not fit the model, falling back to its defaults", {
+      model: config.model,
+      modelOptions: config.modelOptions,
+      issues: merged.error.issues,
+    })
     return schema.parse(this.applyConfigToModelOptions({ config, values }))
   }
 
   /**
-   * Overrides the model's default options with the agent config: the
-   * configured temperature, for a model that takes one. A provider with
-   * options of its own overrides this.
+   * Applies the settings of the call that are not model options (the service
+   * tier, the thinking level). None by default: a provider that has some
+   * overrides this.
    */
   protected applyConfigToModelOptions({
-    config,
     values,
   }: {
     config: LLMConfig
     values: SpecificProviderOptions
   }): SpecificProviderOptions {
-    return "temperature" in values ? { ...values, temperature: config.temperature } : values
+    return values
   }
 
   // Composite removals that need a full self-contained match. Safe to run on a

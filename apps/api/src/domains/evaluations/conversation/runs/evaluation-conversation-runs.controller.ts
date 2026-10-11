@@ -311,7 +311,7 @@ function toEvaluationConversationRunAgentSettingsDto(
     revision: agentSettings.revision,
     // The column is a decimal with a read transformer; Number() keeps the DTO
     // numeric even if a raw string slips through (mirrors agents.controller.ts).
-    temperature: Number(agentSettings.temperature),
+    deletedTemperature: Number(agentSettings.deletedTemperature),
   }
 }
 

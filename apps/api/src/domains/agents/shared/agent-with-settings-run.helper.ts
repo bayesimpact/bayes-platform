@@ -20,7 +20,7 @@ export function toAgentWithSettingsRunJobPayload({
       revision: agentSettings.revision,
       instructions: agentSettings.instructions,
       model: agentSettings.model,
-      temperature: agentSettings.temperature,
+      providerOptions: agentSettings.providerOptions,
       locale: agentSettings.locale,
       documentsRagMode: agentSettings.documentsRagMode,
       outputJsonSchema: agentSettings.outputJsonSchema,

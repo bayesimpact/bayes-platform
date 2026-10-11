@@ -117,7 +117,7 @@ export class ExtractionAgentSessionRunLlmService extends LlmServiceBase {
         config: this.buildLLMConfig({
           systemPrompt: todaysDatePromptLine(),
           model: agentSettings.model,
-          temperature: agentSettings.temperature,
+          modelOptions: agentSettings.providerOptions,
           // Extraction agent runs can be long-running; opt in to the extended
           // network timeouts on the provider fetch (see AISDKVertexProvider).
           useExtendedTimeouts: true,

@@ -14,7 +14,7 @@ const fullFields: AgentSettingsCreateFields = {
   instructions: "You are a helpful assistant",
   documentsRagMode: DocumentsRagMode.All,
   model: AgentModel._Mock,
-  temperature: 0.7,
+  deletedTemperature: 0.7,
   locale: AgentLocale.EN,
   outputJsonSchema: { type: "object" },
   greetingMessage: "Hello there",
@@ -75,11 +75,11 @@ describe("extractAgentSettingsUpdateFields", () => {
   it("only picks the whitelisted keys and drops unknown ones", () => {
     const result = extractAgentSettingsUpdateFields({
       instructions: "Updated",
-      temperature: 0.2,
+      deletedTemperature: 0.2,
       somethingElse: true,
     })
 
-    expect(result).toEqual({ instructions: "Updated", temperature: 0.2 })
+    expect(result).toEqual({ instructions: "Updated", deletedTemperature: 0.2 })
     expect(result).not.toHaveProperty("somethingElse")
   })
 

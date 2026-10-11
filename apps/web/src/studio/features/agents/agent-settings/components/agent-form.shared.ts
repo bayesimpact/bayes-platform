@@ -33,7 +33,7 @@ export function getDefaultFormValues({
     greetingMessage: undefined,
     documentsRagMode: DocumentsRagMode.All,
     model: DEFAULT_AGENT_MODEL,
-    temperature: 0.0,
+    deletedTemperature: 0.0,
     locale: language,
     tagsToAdd: [],
     projectAgentSessionCategoryIds: [],

@@ -141,7 +141,7 @@ describe("Agent Settings - updateOne", () => {
     const { agent, agentSettings } = await createContext()
 
     const response = await subject({
-      payload: { model: AgentModel.Gemini25Pro, temperature: 1.5 },
+      payload: { model: AgentModel.Gemini25Pro, deletedTemperature: 1.5 },
     })
     expectResponse(response, 200)
 
@@ -153,7 +153,7 @@ describe("Agent Settings - updateOne", () => {
       order: { revision: "DESC" },
     })
     expect(updatedAgentSettings?.model).toBe(AgentModel.Gemini25Pro)
-    expect(updatedAgentSettings?.temperature).toBe(1.5)
+    expect(updatedAgentSettings?.deletedTemperature).toBe(1.5)
     expect(updatedAgentSettings?.instructions).toBe(agentSettings.instructions)
   })
 

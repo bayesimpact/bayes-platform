@@ -299,7 +299,7 @@ async function runSubAgentTool({
     const config = buildLLMConfig({
       systemPrompt,
       model: childAgentSettings.model,
-      temperature: childAgentSettings.temperature,
+      modelOptions: childAgentSettings.providerOptions,
       tools,
       fireAndForgetToolNames,
       priorityCallsEnabled: childAgentSettings.priorityCallsEnabled,
@@ -356,7 +356,7 @@ async function runSubAgentTool({
                 buildLLMConfig({
                   systemPrompt: classifierSystemPrompt,
                   model: childAgentSettings.model,
-                  temperature: 0,
+                  modelOptions: { temperature: 0 },
                   priorityCallsEnabled: childAgentSettings.priorityCallsEnabled,
                   llmFeatures,
                 }),

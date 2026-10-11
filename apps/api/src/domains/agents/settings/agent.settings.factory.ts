@@ -42,7 +42,7 @@ export const agentSettingsFactory = AgentSettingsFactory.define(
       revision: params.revision ?? 1,
       instructions: params.instructions || `This is a test default prompt for bot ${sequence}`,
       model: params.model || AgentModel._Mock,
-      temperature: params.temperature ?? 0.7,
+      deletedTemperature: params.deletedTemperature ?? 0.7,
       locale: params.locale || AgentLocale.EN,
       documentsRagMode: params.documentsRagMode || DocumentsRagMode.All,
       greetingMessage: params.greetingMessage ?? null,

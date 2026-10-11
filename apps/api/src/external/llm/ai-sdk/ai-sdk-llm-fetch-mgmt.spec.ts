@@ -35,7 +35,7 @@ class TestFetchMgmt extends AISDKLLMFetchMgmt<AgentProvider._Mock> {
 
 const config: LLMConfig = {
   model: AgentModel._Mock,
-  temperature: 0,
+  modelOptions: { temperature: 0 },
   serviceTier: undefined,
   thinkingLevel: AgentThinkingLevel.Auto,
 }

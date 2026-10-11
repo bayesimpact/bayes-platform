@@ -47,7 +47,7 @@ export function ModelTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
     resolver: zodResolver(updateAgentSettingsModelSchema),
     defaultValues: {
       model: agentSettings.model,
-      temperature: agentSettings.temperature,
+      deletedTemperature: agentSettings.deletedTemperature,
       priorityCallsEnabled: agentSettings.priorityCallsEnabled,
     },
   })
@@ -102,7 +102,7 @@ export function ModelTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
 
           <FormField
             control={form.control}
-            name="temperature"
+            name="deletedTemperature"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>{t("agentSettings:props.temperature")}</FormLabel>

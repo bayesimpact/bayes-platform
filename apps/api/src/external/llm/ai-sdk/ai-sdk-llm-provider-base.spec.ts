@@ -140,7 +140,7 @@ const metadata: LLMMetadata = {
 
 const mockConfig: LLMConfig = {
   model: AgentModel._Mock,
-  temperature: 0.2,
+  modelOptions: { temperature: 0.2 },
   systemPrompt: "You are a helpful assistant.",
   serviceTier: undefined,
   thinkingLevel: AgentThinkingLevel.Auto,

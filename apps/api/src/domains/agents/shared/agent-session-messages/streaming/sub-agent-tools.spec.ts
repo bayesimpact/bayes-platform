@@ -21,7 +21,7 @@ describe("buildSubAgentTools", () => {
       instructions: "Answer delegated questions.",
       model: "mock-model",
       revision: 1,
-      temperature: 0,
+      deletedTemperature: 0,
       locale: "en",
       documentsRagMode: DocumentsRagMode.None,
     }
@@ -145,7 +145,7 @@ describe("buildSubAgentTools", () => {
       organizationId: "organization-id",
       instructions: "Collect the user details.",
       model: "mock-model",
-      temperature: 0,
+      deletedTemperature: 0,
       locale: "en",
       revision: 1,
       documentsRagMode: DocumentsRagMode.None,
@@ -279,7 +279,7 @@ describe("buildSubAgentTools", () => {
       instructions: "Answer pricing questions.",
       model: "mock-model",
       revision: 1,
-      temperature: 0,
+      deletedTemperature: 0,
       locale: "en",
       documentsRagMode: DocumentsRagMode.None,
     }

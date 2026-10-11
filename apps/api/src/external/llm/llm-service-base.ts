@@ -26,7 +26,7 @@ export abstract class LlmServiceBase {
     const {
       systemPrompt,
       model,
-      temperature,
+      modelOptions,
       tools,
       fireAndForgetToolNames,
       terminalToolNames,
@@ -35,16 +35,6 @@ export abstract class LlmServiceBase {
       llmFeatures,
       thinkingLevel,
     } = params
-    // Convert temperature to number (database decimal types may be returned as strings)
-    const safeTemperature =
-      typeof temperature === "string" ? parseFloat(temperature) : Number(temperature)
-
-    // Validate temperature is a valid number
-    if (Number.isNaN(safeTemperature) || safeTemperature < 0 || safeTemperature > 2) {
-      throw new Error(
-        `Invalid temperature value: ${safeTemperature}. Temperature must be a number between 0 and 2.`,
-      )
-    }
     let serviceTier: LLMServiceTier
     if (
       llmFeatures?.priorityCalls &&
@@ -55,7 +45,7 @@ export abstract class LlmServiceBase {
     }
     return {
       model,
-      temperature: safeTemperature,
+      modelOptions: modelOptions ?? undefined,
       systemPrompt,
       tools,
       fireAndForgetToolNames,

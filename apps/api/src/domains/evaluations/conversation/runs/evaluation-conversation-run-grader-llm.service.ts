@@ -58,7 +58,7 @@ ${
     : ""
 }`,
       model: judgeModel,
-      temperature: 0,
+      modelOptions: { temperature: 0 },
       priorityCallsEnabled: false,
       llmFeatures: { priorityCalls: false, flexWorkers: false },
     }

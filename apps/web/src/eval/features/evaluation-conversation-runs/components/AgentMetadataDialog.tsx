@@ -81,7 +81,7 @@ export function AgentMetadataDialog({
             />
             <MetadataField
               label={t("evaluationConversationRun:agentMetadata.temperature")}
-              value={String(agentSettings.temperature)}
+              value={String(agentSettings.deletedTemperature)}
             />
             <MetadataField
               label={t("evaluationConversationRun:agentMetadata.locale")}

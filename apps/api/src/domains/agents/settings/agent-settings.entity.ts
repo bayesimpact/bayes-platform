@@ -44,6 +44,7 @@ export class AgentSettings extends ConnectEntityBase {
     precision: 3,
     scale: 2,
     default: 0,
+    name: "temperature",
     nullable: false,
     // Postgres returns `decimal` as a string; convert on read so the runtime value matches the
     // declared number type (AgentDto.temperature) and passes numeric validation.
@@ -52,7 +53,11 @@ export class AgentSettings extends ConnectEntityBase {
       to: (value: AgentTemperature): AgentTemperature => value,
     },
   })
-  temperature!: AgentTemperature
+  /**
+   * Replaced by the temperature of `providerOptions`, for the models that
+   * still take one: kept as the `temperature` column, no longer read.
+   */
+  deletedTemperature!: AgentTemperature
 
   @Column({ type: "varchar", nullable: false })
   locale!: AgentLocale
@@ -76,5 +81,6 @@ export class AgentSettings extends ConnectEntityBase {
   thinkingLevel!: AgentThinkingLevel
 
   @Column({ type: "jsonb", nullable: true, name: "provider_options" })
+  /** The options of the agent's model, merged over the model's defaults on every call. */
   providerOptions!: Record<string, unknown> | null
 }

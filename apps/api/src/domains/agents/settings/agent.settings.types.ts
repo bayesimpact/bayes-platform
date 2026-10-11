@@ -2,7 +2,7 @@ import type { AgentSettings } from "@/domains/agents/settings/agent-settings.ent
 
 export type AgentSettingsCreateFields = Pick<
   AgentSettings,
-  "instructions" | "documentsRagMode" | "model" | "temperature" | "locale"
+  "instructions" | "documentsRagMode" | "model" | "deletedTemperature" | "locale"
 > &
   Partial<
     Pick<
@@ -22,7 +22,7 @@ export type AgentSettingsUpdateFields = Partial<
     | "greetingMessage"
     | "documentsRagMode"
     | "model"
-    | "temperature"
+    | "deletedTemperature"
     | "locale"
     | "outputJsonSchema"
     | "fillFormEnabled"

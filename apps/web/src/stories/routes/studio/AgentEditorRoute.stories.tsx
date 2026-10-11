@@ -36,7 +36,7 @@ function buildVersions(agentSettings: AgentSettings): AgentSettings[] {
       isDraft: false,
       name: "Stricter sourcing",
       description: "Requires the agent to cite a source for every factual claim.",
-      temperature: 0.2,
+      deletedTemperature: 0.2,
       instructions: `${agentSettings.instructions}\nAlways cite your sources.`,
     },
     {

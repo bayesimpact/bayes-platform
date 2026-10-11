@@ -54,7 +54,7 @@ class TestVllmProviderWithFakeAuth extends TestVllmProvider {
 
 const config: LLMConfig = {
   model: AgentModel.Gemma4_26B,
-  temperature: 0,
+  modelOptions: { temperature: 0 },
   systemPrompt: "You are a helpful assistant.",
   serviceTier: undefined,
   thinkingLevel: AgentThinkingLevel.Auto,

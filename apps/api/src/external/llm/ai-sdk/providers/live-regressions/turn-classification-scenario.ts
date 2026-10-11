@@ -119,7 +119,7 @@ Always answer in English.`
     ],
     config: {
       model,
-      temperature: 0,
+      modelOptions: { temperature: 0 },
       tools: { [ToolName.LookupKnowledgeBase]: lookupTool },
       serviceTier: undefined,
       thinkingLevel: AgentThinkingLevel.Auto,
@@ -190,7 +190,7 @@ export async function runFatPromptTurnScenario({
     ],
     config: {
       model,
-      temperature: 0,
+      modelOptions: { temperature: 0 },
       serviceTier: undefined,
       thinkingLevel: AgentThinkingLevel.Auto,
     },
