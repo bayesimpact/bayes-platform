@@ -1,4 +1,3 @@
-import type { JSONValue } from "@ai-sdk/provider"
 import { AgentModel, AgentThinkingLevel } from "@caseai-connect/api-contracts"
 import { type JSONSchema7, tool } from "ai"
 import { z } from "zod"
@@ -7,7 +6,10 @@ import type {
   LLMConfig,
   LLMMetadata,
 } from "@/common/interfaces/llm-provider.interface"
-import { AISDKLLMBuilders } from "@/external/llm/ai-sdk/ai-sdk-llm-builders"
+import {
+  AISDKLLMBuilders,
+  type SpecificProviderOptions,
+} from "@/external/llm/ai-sdk/ai-sdk-llm-builders"
 import type { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
 
 type BuildArgs = {
@@ -28,16 +30,9 @@ class TestBuilders extends AISDKLLMBuilders {
   metadataFor(args: Omit<BuildArgs, "callOrigin">) {
     return this.buildMetadata(args)
   }
-  specificProviderOptionsFor(config: LLMConfig) {
-    return this.buildSpecificProviderOptions({ config })
-  }
-}
-
-class TestBuildersWithSpecificOptions extends TestBuilders {
-  protected buildSpecificProviderOptions(_args: { config: LLMConfig }): {
-    providerOptions: Record<string, Record<string, JSONValue>>
-  } {
-    return { providerOptions: { vertex: { thinkingBudget: 0 } } }
+  // Read from the model options, out of this class's scope.
+  protected buildSpecificProviderOptions(): SpecificProviderOptions {
+    return { providerOptions: {} }
   }
 }
 
@@ -167,24 +162,6 @@ describe("AISDKLLMBuilders", () => {
         revision: 3,
         thinkingLevel: AgentThinkingLevel.Auto,
       })
-    })
-  })
-
-  describe("buildSpecificProviderOptions", () => {
-    it("holds the configured temperature and no provider options by default", () => {
-      expect(builders.specificProviderOptionsFor(config)).toEqual({
-        temperature: 0,
-        providerOptions: {},
-      })
-    })
-
-    it("holds what a provider declares, without a temperature it leaves out", () => {
-      const specificOptions = new TestBuildersWithSpecificOptions().specificProviderOptionsFor(
-        config,
-      )
-
-      expect(specificOptions).toEqual({ providerOptions: { vertex: { thinkingBudget: 0 } } })
-      expect(specificOptions).not.toHaveProperty("temperature")
     })
   })
 })

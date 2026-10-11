@@ -15,6 +15,7 @@ import type {
   LLMConfig,
   LLMMetadata,
 } from "@/common/interfaces/llm-provider.interface"
+import type { SpecificProviderOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-builders"
 import {
   CallOrigin,
   RAW_LLM_REQUEST_ATTR,
@@ -125,6 +126,26 @@ class TestModelMgmt extends AISDKLLMModelMgmt<AgentProvider._Mock> {
   }
   repeatedStepTextFilterFor(): RepeatedStepTextFilter {
     return this.createRepeatedStepTextFilter()
+  }
+  specificProviderOptionsFor(config: LLMConfig): SpecificProviderOptions {
+    return this.buildSpecificProviderOptions({ config })
+  }
+}
+
+/** A model that takes no temperature, and options of its own. */
+class TestModelMgmtWithoutTemperature extends TestModelMgmt {
+  protected readonly modelOptions: Record<AgentModel._Mock, ModelOptions> = {
+    [AgentModel._Mock]: defineModelOptions(
+      z.object({ providerOptions: z.object({ vertex: z.object({ thinkingBudget: z.number() }) }) }),
+      { providerOptions: { vertex: { thinkingBudget: 0 } } },
+    ),
+  }
+}
+
+/** Applies a config the model's schema rejects. */
+class TestModelMgmtWithInvalidConfig extends TestModelMgmt {
+  protected applyConfigToModelOptions(): SpecificProviderOptions {
+    return { temperature: "hot" } as unknown as SpecificProviderOptions
   }
 }
 
@@ -391,6 +412,36 @@ describe("AISDKLLMModelMgmt", () => {
       for (const delta of deltas) out += sanitizer.feed(delta)
       out += sanitizer.flush()
       expect(out).toBe("Merci, tout est transmis à l'équipe médicale pour la suite. ")
+    })
+  })
+
+  describe("buildSpecificProviderOptions", () => {
+    it("holds the model's options with the configured temperature", () => {
+      expect(
+        new TestModelMgmt().specificProviderOptionsFor({ ...mockConfig, temperature: 0.4 }),
+      ).toEqual({ temperature: 0.4, providerOptions: {} })
+    })
+
+    it("sends no temperature to a model whose options take none", () => {
+      const specificOptions = new TestModelMgmtWithoutTemperature().specificProviderOptionsFor({
+        ...mockConfig,
+        temperature: 0.4,
+      })
+
+      expect(specificOptions).toEqual({ providerOptions: { vertex: { thinkingBudget: 0 } } })
+      expect(specificOptions).not.toHaveProperty("temperature")
+    })
+
+    it("rejects options that do not fit the model's schema", () => {
+      expect(() =>
+        new TestModelMgmtWithInvalidConfig().specificProviderOptionsFor(mockConfig),
+      ).toThrow()
+    })
+
+    it("rejects a model the provider does not serve", () => {
+      expect(() =>
+        new TestModelMgmt().specificProviderOptionsFor({ ...mockConfig, model: "unknown-model" }),
+      ).toThrow()
     })
   })
 

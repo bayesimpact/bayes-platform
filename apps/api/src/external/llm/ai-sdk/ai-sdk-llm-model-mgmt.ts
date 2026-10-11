@@ -14,6 +14,7 @@ import type {
   LLMConfig,
   LLMMetadata,
 } from "@/common/interfaces/llm-provider.interface"
+import type { SpecificProviderOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-builders"
 import {
   type CallOrigin,
   extractTextFromContent,
@@ -38,12 +39,18 @@ const logger = new Logger("AISDKLLMModelMgmt")
 // stripped), we treat it as leaked-marker content and drop it too.
 const CHANNEL_KEYWORDS = "thought|analysis|reasoning|finalize|commentary|final"
 
-export type ProviderOptions = Record<string, unknown>
-
-export type ModelOptions = { schema: ZodType; values: ProviderOptions }
+/**
+ * What a model accepts on top of the standard call settings: the schema of its
+ * {@link SpecificProviderOptions} and their default values, which the agent
+ * config then overrides (temperature, service tier, thinking level).
+ */
+export type ModelOptions = {
+  schema: ZodType<SpecificProviderOptions>
+  values: SpecificProviderOptions
+}
 
 /** Pairs a model's options schema with its values, which must conform to it at compile time. */
-export function defineModelOptions<Schema extends ZodType<ProviderOptions>>(
+export function defineModelOptions<Schema extends ZodType<SpecificProviderOptions>>(
   schema: Schema,
   values: z.infer<Schema>,
 ): ModelOptions {
@@ -118,11 +125,39 @@ export abstract class AISDKLLMModelMgmt<
 
   protected abstract readonly modelOptions: Record<AgentModelOf<Provider>, ModelOptions>
 
-  getProviderOptionsSchema(agentModel: AgentModel): ZodType {
+  getModelOptionsSchema(agentModel: AgentModel): ZodType<SpecificProviderOptions> {
     return this.modelOptions[this.toProviderAgentModel(agentModel)].schema
   }
-  getProviderOptions(agentModel: AgentModel): ProviderOptions {
+  getModelOptions(agentModel: AgentModel): SpecificProviderOptions {
     return this.modelOptions[this.toProviderAgentModel(agentModel)].values
+  }
+
+  /**
+   * The model's options with the agent config applied, checked against the
+   * model's schema on every call.
+   */
+  protected buildSpecificProviderOptions({
+    config,
+  }: {
+    config: LLMConfig
+  }): SpecificProviderOptions {
+    const { schema, values } = this.modelOptions[this.toProviderAgentModel(config.model)]
+    return schema.parse(this.applyConfigToModelOptions({ config, values }))
+  }
+
+  /**
+   * Overrides the model's default options with the agent config: the
+   * configured temperature, for a model that takes one. A provider with
+   * options of its own overrides this.
+   */
+  protected applyConfigToModelOptions({
+    config,
+    values,
+  }: {
+    config: LLMConfig
+    values: SpecificProviderOptions
+  }): SpecificProviderOptions {
+    return "temperature" in values ? { ...values, temperature: config.temperature } : values
   }
 
   // Composite removals that need a full self-contained match. Safe to run on a
@@ -371,10 +406,11 @@ export abstract class AISDKLLMModelMgmt<
 
   /**
    * Narrows a model to the ones this provider serves, so it can index a
-   * `Record<AgentModelOf<Provider>, ...>`. A model of another provider throws.
+   * `Record<AgentModelOf<Provider>, ...>`. A model of another provider, or no
+   * model at all (a config carries a plain string), throws.
    */
-  protected toProviderAgentModel(agentModel: AgentModel): AgentModelOf<Provider> {
-    if (AgentModelToAgentProvider[agentModel] !== this.getAgentProvider())
+  protected toProviderAgentModel(agentModel: string): AgentModelOf<Provider> {
+    if (AgentModelToAgentProvider[agentModel as AgentModel] !== this.getAgentProvider())
       throw new NotImplementedException(
         `DEV - model ${agentModel} is not served by provider ${this.getAgentProvider()}`,
       )

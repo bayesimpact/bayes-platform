@@ -7,6 +7,16 @@ import type {
 } from "@/common/interfaces/llm-provider.interface"
 import { removeNullish } from "@/common/utils/remove-nullish"
 
+/**
+ * The call settings that vary by model, spread last into each AI SDK call:
+ * the temperature, left out when the model must not receive one, and the
+ * provider options keyed by provider (e.g. `vertex` for its thinking level).
+ */
+export type SpecificProviderOptions = {
+  temperature?: number
+  providerOptions: Record<string, Record<string, JSONValue>>
+}
+
 export abstract class AISDKLLMBuilders {
   protected buildFunctionIdForStreamChatResponse(aiSDKMessages: LLMChatMessage[]): string {
     return `LLMProvider.streamChatResponse [${aiSDKMessages.filter((m) => m.role === "assistant").length + 1} turn(s)]` //+1 => current turn
@@ -54,16 +64,8 @@ export abstract class AISDKLLMBuilders {
     })
   }
 
-  /**
-   * The call settings that vary by provider, spread last into each AI SDK
-   * call: the temperature, left out when the model must not receive one, and
-   * the provider options keyed by provider (e.g. `vertex` for its thinking
-   * level). A provider that needs others overrides this.
-   */
-  protected buildSpecificProviderOptions({ config }: { config: LLMConfig }): {
-    temperature?: number
-    providerOptions: Record<string, Record<string, JSONValue>>
-  } {
-    return { temperature: config.temperature, providerOptions: {} }
-  }
+  /** See {@link SpecificProviderOptions}. */
+  protected abstract buildSpecificProviderOptions(args: {
+    config: LLMConfig
+  }): SpecificProviderOptions
 }

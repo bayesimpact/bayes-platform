@@ -18,6 +18,7 @@ import {
 import { MockLanguageModelV3 } from "ai/test"
 import { z } from "zod"
 import type { LLMConfig, LLMMetadata } from "@/common/interfaces/llm-provider.interface"
+import type { SpecificProviderOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-builders"
 import {
   AISDKLLMToolsMgmt,
   type LeakedToolCall,
@@ -62,6 +63,14 @@ class TestToolsMgmt extends AISDKLLMToolsMgmt {
   readonly malformedLogger = buildLoggerMock()
   protected readonly leakedToolCallLogger = this.leakedLogger as unknown as Logger
   protected readonly malformedToolCallLogger = this.malformedLogger as unknown as Logger
+
+  protected buildSpecificProviderOptions({
+    config,
+  }: {
+    config: LLMConfig
+  }): SpecificProviderOptions {
+    return { temperature: config.temperature, providerOptions: {} }
+  }
 
   toolCallRepairFor(args: CallArgs): ToolCallRepairFunction<ToolSet> {
     return this.buildToolCallRepair(args)

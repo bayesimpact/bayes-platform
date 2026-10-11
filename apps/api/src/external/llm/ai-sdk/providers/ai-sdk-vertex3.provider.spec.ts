@@ -67,17 +67,31 @@ describe("AISDKVertex3Provider temperature", () => {
     }
   }
 
-  it("sends no temperature, which the thinking level does not allow", () => {
-    const config = {
-      model: AgentModel.Gemini35Flash,
-      temperature: 0,
-      serviceTier: undefined,
-      thinkingLevel: AgentThinkingLevel.Auto,
-    } satisfies LLMConfig
+  const buildConfig = (model: AgentModel): LLMConfig => ({
+    model,
+    temperature: 0.4,
+    serviceTier: undefined,
+    thinkingLevel: AgentThinkingLevel.Auto,
+  })
 
-    expect(new TestableProvider().specificProviderOptionsFor(config)).not.toHaveProperty(
-      "temperature",
-    )
+  it.each([
+    AgentModel.Gemini35FlashLite,
+    AgentModel.Gemini36Flash,
+    AgentModel.Gemini37Flash,
+    AgentModel.Gemini38Flash,
+  ])("sends no temperature to %s, which Google deprecated it for", (model) => {
+    expect(
+      new TestableProvider().specificProviderOptionsFor(buildConfig(model)),
+    ).not.toHaveProperty("temperature")
+  })
+
+  it.each([
+    AgentModel.Gemini31FlashLite,
+    AgentModel.Gemini35Flash,
+  ])("sends the configured temperature to %s", (model) => {
+    expect(new TestableProvider().specificProviderOptionsFor(buildConfig(model))).toMatchObject({
+      temperature: 0.4,
+    })
   })
 })
 

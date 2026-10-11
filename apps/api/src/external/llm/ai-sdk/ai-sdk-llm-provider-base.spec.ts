@@ -19,14 +19,18 @@ import type {
   LLMProvider,
 } from "@/common/interfaces/llm-provider.interface"
 import { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
-import type { ModelOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
+import { defineModelOptions, type ModelOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
 import { AISDKLLMProviderBase } from "@/external/llm/ai-sdk/ai-sdk-llm-provider-base"
 
 class TestProvider<
   Provider extends AgentProvider = AgentProvider._Mock,
 > extends AISDKLLMProviderBase<Provider> {
-  // The direct calls never read the model options.
-  protected readonly modelOptions = {} as Record<AgentModelOf<Provider>, ModelOptions>
+  protected readonly modelOptions = {
+    [AgentModel._Mock]: defineModelOptions(
+      z.object({ temperature: z.number(), providerOptions: z.object({}) }),
+      { temperature: 0, providerOptions: {} },
+    ),
+  } as Record<AgentModelOf<Provider>, ModelOptions>
 
   constructor(
     private readonly agentProvider: Provider,

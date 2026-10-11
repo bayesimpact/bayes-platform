@@ -20,8 +20,8 @@ describe("AISDKLLMProviderBase model options", () => {
   it.each(Object.values(AgentModel))("%s values conform to its schema", (agentModel) => {
     const provider = providers[AgentModelToAgentProvider[agentModel]]
 
-    const schema = provider.getProviderOptionsSchema(agentModel)
-    const values = provider.getProviderOptions(agentModel)
+    const schema = provider.getModelOptionsSchema(agentModel)
+    const values = provider.getModelOptions(agentModel)
 
     expect(schema.parse(values)).toEqual(values)
   })
