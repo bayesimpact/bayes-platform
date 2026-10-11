@@ -14,6 +14,12 @@ import {
   isPriorityCallsAvailable,
 } from "./agent-model.helpers"
 
+describe("DEFAULT_AGENT_MODEL", () => {
+  it("is Gemini 3.5 Flash-Lite", () => {
+    expect(DEFAULT_AGENT_MODEL).toBe(AgentModel.Gemini35FlashLite)
+  })
+})
+
 describe("AgentModelMetadataMap", () => {
   it("has an entry for every model", () => {
     const missing = Object.values(AgentModel).filter((model) => !AgentModelMetadataMap[model])
@@ -95,6 +101,13 @@ describe("buildAgentModelDeprecationInterpolation", () => {
     expect(interpolation?.date).toMatch(/^30 \S+ 2026$/)
   })
 
+  it("names the replacement of the other deprecated model", () => {
+    expect(buildAgentModelDeprecationInterpolation(AgentModel.Gemini25Flash)).toMatchObject({
+      model: AgentModel.Gemini25Flash,
+      replacement: AgentModel.Gemini35FlashLite,
+    })
+  })
+
   it("returns undefined for a supported model and for no model at all", () => {
     expect(buildAgentModelDeprecationInterpolation(DEFAULT_AGENT_MODEL)).toBeUndefined()
     expect(buildAgentModelDeprecationInterpolation(undefined)).toBeUndefined()
@@ -103,6 +116,24 @@ describe("buildAgentModelDeprecationInterpolation", () => {
 
 describe("formatAgentModelLabel", () => {
   const labels = { deprecatedSuffix: "(deprecated)", nonEuSuffix: "(non-EU)" }
+
+  it("labels every offered model", () => {
+    expect(
+      buildAgentModelOptions(() => true).map((model) => formatAgentModelLabel(model, labels)),
+    ).toEqual([
+      "gemini-2.5-flash (deprecated)",
+      "gemini-2.5-pro (deprecated)",
+      "gemini-3.1-flash-lite",
+      "gemini-3.5-flash-lite",
+      "gemini-3.5-flash",
+      "gemini-3.6-flash",
+      "gemini-3.7-flash",
+      "gemini-3.8-flash",
+      "google/medgemma-27b-it",
+      "google/gemma-4-26b-A4B-it",
+      "mistralai/Mistral-Small-3.1-24B-Instruct-2503",
+    ])
+  })
 
   it("appends the deprecated suffix to a deprecated model", () => {
     expect(formatAgentModelLabel(AgentModel.Gemini25Flash, labels)).toBe(
@@ -185,6 +216,36 @@ describe("buildAgentModelOptions", () => {
     for (const replacement of replacements) {
       expect(options).toContain(replacement)
     }
+  })
+
+  it("offers every provider's models when all flags are on", () => {
+    expect(buildAgentModelOptions(() => true)).toEqual([
+      AgentModel.Gemini25Flash,
+      AgentModel.Gemini25Pro,
+      AgentModel.Gemini31FlashLite,
+      AgentModel.Gemini35FlashLite,
+      AgentModel.Gemini35Flash,
+      AgentModel.Gemini36Flash,
+      AgentModel.Gemini37Flash,
+      AgentModel.Gemini38Flash,
+      AgentModel.MedGemma10_27B,
+      AgentModel.Gemma4_26B,
+      AgentModel.MistralSmall31_24B,
+    ])
+  })
+
+  it.each([
+    ["medgemma", AgentModel.MedGemma10_27B],
+    ["gemma", AgentModel.Gemma4_26B],
+    ["mistral", AgentModel.MistralSmall31_24B],
+  ])("adds only the %s model when its flag alone is on", (flag, model) => {
+    const options = buildAgentModelOptions((feature) => feature === flag)
+
+    expect(options).toEqual([...buildAgentModelOptions(noFlags), model])
+  })
+
+  it("offers the default model with no flags enabled", () => {
+    expect(buildAgentModelOptions(noFlags)).toContain(DEFAULT_AGENT_MODEL)
   })
 
   it("adds a flagged provider's models only when its flag is on", () => {

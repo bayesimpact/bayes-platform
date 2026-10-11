@@ -22,6 +22,7 @@ import { StorageModule } from "@/domains/documents/storage/storage.module"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { ProjectsModule } from "@/domains/projects/projects.module"
 import { AISDKGemmaProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-gemma.provider"
+import { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.provider"
 import { LlmModule } from "@/external/llm/llm.module"
 import { extractionAgentSessionFactory } from "./extraction-agent-session.factory"
 import { ExtractionAgentSessionRunLlmService } from "./extraction-agent-session-run-llm.service"
@@ -64,11 +65,13 @@ describe("ExtractionAgentSessionRunLlmService", () => {
     documentDesc,
     forceEmptySchema,
     model = AgentModel._Mock,
+    providerOptions = null,
   }: {
     documentDesc: Pick<Document, "mimeType" | "sourceType" | "storageRelativePath"> &
       Partial<Pick<Document, "pdfPageCount">>
     forceEmptySchema?: true
     model?: AgentModel
+    providerOptions?: Record<string, unknown> | null
   }) => {
     const schema = z.object({ content: z.string(), source: z.string() })
     const { organization, project, user, agent, agentSettings } = await createOrganizationWithAgent(
@@ -80,6 +83,7 @@ describe("ExtractionAgentSessionRunLlmService", () => {
         agentSettings: {
           model,
           outputJsonSchema: forceEmptySchema ? undefined : schema.toJSONSchema(),
+          providerOptions,
         },
       },
     )
@@ -120,6 +124,33 @@ describe("ExtractionAgentSessionRunLlmService", () => {
     const parsed = schema.parse(run.result)
     expect(parsed.source).toBe("source-value")
     expect(parsed.content).toBe("content-value")
+  })
+
+  it("runById - runs the agent's model options with the extended network timeouts", async () => {
+    const { organization, project, pendingSession } = await seedPendingSessionWithDocument({
+      documentDesc: {
+        mimeType: "application/pdf",
+        sourceType: "extraction",
+        storageRelativePath: "test/file.pdf",
+      },
+      providerOptions: { temperature: 0.4 },
+    })
+    const mockProvider = setup.module.get(AISDKMockProvider)
+    mockProvider.resetMock()
+    const generateStructuredOutputSpy = jest.spyOn(mockProvider, "generateStructuredOutput")
+
+    await service.runById({
+      extractionAgentSessionId: pendingSession.id,
+      organizationId: organization.id,
+      projectId: project.id,
+    })
+
+    const { config } = generateStructuredOutputSpy.mock.calls[0]?.[0] ?? {}
+    expect(config).toMatchObject({
+      modelOptions: { temperature: 0.4 },
+      useExtendedTimeouts: true,
+    })
+    expect(mockProvider.getCalls().map((call) => call.temperature)).toEqual([0.4])
   })
 
   it("runById - should works - jpg", async () => {

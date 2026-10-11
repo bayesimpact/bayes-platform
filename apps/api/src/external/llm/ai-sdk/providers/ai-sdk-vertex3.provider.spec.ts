@@ -95,6 +95,97 @@ describe("AISDKVertex3Provider temperature", () => {
   })
 })
 
+describe("AISDKVertex3Provider stored model options", () => {
+  class TestableProvider extends AISDKVertex3Provider {
+    public specificProviderOptionsFor(config: LLMConfig) {
+      return this.buildSpecificProviderOptions({ config })
+    }
+  }
+
+  const storedThinkingLevel = (thinkingLevel: string) => ({
+    providerOptions: { vertex: { thinkingConfig: { thinkingLevel, includeThoughts: true } } },
+  })
+  const buildConfig = ({
+    model,
+    modelOptions,
+    serviceTier,
+  }: {
+    model: AgentModel
+    modelOptions: Record<string, unknown>
+    serviceTier?: LLMServiceTier
+  }): LLMConfig => ({
+    model,
+    modelOptions,
+    serviceTier,
+    thinkingLevel: AgentThinkingLevel.Auto,
+  })
+
+  it("sends the stored temperature and thinking level", () => {
+    expect(
+      new TestableProvider().specificProviderOptionsFor(
+        buildConfig({
+          model: AgentModel.Gemini35Flash,
+          modelOptions: { temperature: 0.3, ...storedThinkingLevel("low") },
+        }),
+      ),
+    ).toEqual({
+      temperature: 0.3,
+      providerOptions: {
+        vertex: { thinkingConfig: { thinkingLevel: "low", includeThoughts: true } },
+      },
+    })
+  })
+
+  it("drops a stored temperature the model no longer takes, and keeps the thinking level", () => {
+    expect(
+      new TestableProvider().specificProviderOptionsFor(
+        buildConfig({
+          model: AgentModel.Gemini36Flash,
+          modelOptions: { temperature: 0.3, ...storedThinkingLevel("high") },
+        }),
+      ),
+    ).toEqual({
+      providerOptions: {
+        vertex: { thinkingConfig: { thinkingLevel: "high", includeThoughts: true } },
+      },
+    })
+  })
+
+  it("falls back to the model's defaults when the stored thinking level is not one it accepts", () => {
+    expect(
+      new TestableProvider().specificProviderOptionsFor(
+        buildConfig({
+          model: AgentModel.Gemini37Flash,
+          modelOptions: storedThinkingLevel("minimal"),
+        }),
+      ),
+    ).toEqual({
+      providerOptions: {
+        vertex: { thinkingConfig: { thinkingLevel: "medium", includeThoughts: true } },
+      },
+    })
+  })
+
+  it("applies the service tier over the stored options", () => {
+    expect(
+      new TestableProvider().specificProviderOptionsFor(
+        buildConfig({
+          model: AgentModel.Gemini35FlashLite,
+          modelOptions: storedThinkingLevel("low"),
+          serviceTier: "priority",
+        }),
+      ),
+    ).toEqual({
+      providerOptions: {
+        vertex: {
+          sharedRequestType: "priority",
+          thinkingConfig: { thinkingLevel: "low", includeThoughts: true },
+        },
+      },
+    })
+  })
+})
+
 describe("AISDKVertex3Provider service tier", () => {
   class TestableProvider extends AISDKVertex3Provider {
     public providerOptionsFor(config: LLMConfig) {

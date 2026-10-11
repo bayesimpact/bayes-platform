@@ -25,6 +25,10 @@ export type MockCall = {
   toolSchemas: Record<string, string>
   /** Serialized JSON schema of the structured output requested, if any. */
   responseFormatSchema?: string
+  /** Temperature the model received, if any. */
+  temperature?: number
+  /** Provider options the model received, if any. */
+  providerOptions?: LanguageModelV3CallOptions["providerOptions"]
 }
 
 type ResolvedMock =
@@ -230,6 +234,10 @@ export class AISDKMockProvider extends AISDKLLMProviderBase<AgentProvider._Mock>
       ),
       ...(options.responseFormat?.type === "json" && options.responseFormat.schema !== undefined
         ? { responseFormatSchema: JSON.stringify(options.responseFormat.schema) }
+        : {}),
+      ...(options.temperature !== undefined ? { temperature: options.temperature } : {}),
+      ...(options.providerOptions !== undefined
+        ? { providerOptions: options.providerOptions }
         : {}),
     })
 
