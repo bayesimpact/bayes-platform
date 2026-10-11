@@ -26,10 +26,23 @@ export class CustomMedGemmaLanguageModel implements LanguageModelV3 {
   readonly modelId: string
   readonly baseUrl: string
   readonly apiKey: string
+  /** The fetch the provider picked for the call (with extended timeouts for a long one). */
+  private readonly fetch: typeof globalThis.fetch
 
-  constructor({ baseUrl, config, apiKey }: { baseUrl: string; config: LLMConfig; apiKey: string }) {
+  constructor({
+    baseUrl,
+    config,
+    apiKey,
+    fetch = (input, init) => globalThis.fetch(input, init),
+  }: {
+    baseUrl: string
+    config: LLMConfig
+    apiKey: string
+    fetch?: typeof globalThis.fetch
+  }) {
     this.baseUrl = new URL("v1", baseUrl).toString()
     this.apiKey = apiKey
+    this.fetch = fetch
     this.provider = "CustomMedgemma"
     this.modelId = config.model
   }
@@ -89,7 +102,7 @@ export class CustomMedGemmaLanguageModel implements LanguageModelV3 {
     }
     const stringifiedBody = JSON.stringify(body)
 
-    const res = await fetch(url, {
+    const res = await this.fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -345,7 +358,7 @@ export class CustomMedGemmaLanguageModel implements LanguageModelV3 {
     }
     const stringifiedBody = JSON.stringify(body)
 
-    const res = await fetch(url, {
+    const res = await this.fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

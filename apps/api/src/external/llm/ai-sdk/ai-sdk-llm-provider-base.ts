@@ -10,7 +10,8 @@ import type {
 } from "@/common/interfaces/llm-provider.interface"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
-import { AISDKLLMModelMgmt } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
+import { AISDKLLMFetchMgmt } from "@/external/llm/ai-sdk/ai-sdk-llm-fetch-mgmt"
+import type { AISDKLLMModelMgmt } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
 import type { LeakedToolCall } from "@/external/llm/ai-sdk/ai-sdk-llm-tools-mgmt"
 
 const logger = new Logger("AISDKLLMProviderBase")
@@ -19,10 +20,11 @@ const logger = new Logger("AISDKLLMProviderBase")
  * The calls a provider answers through the AI SDK: a streamed chat turn, a
  * plain text generation and a structured output. Everything about the model
  * itself (choice, options, middleware, output cleaning) lives in
- * {@link AISDKLLMModelMgmt}.
+ * {@link AISDKLLMModelMgmt}, and the fetch it is reached through in
+ * {@link AISDKLLMFetchMgmt}.
  */
 export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = AgentProvider>
-  extends AISDKLLMModelMgmt<Provider>
+  extends AISDKLLMFetchMgmt<Provider>
   implements LLMProvider
 {
   async *streamChatResponse({

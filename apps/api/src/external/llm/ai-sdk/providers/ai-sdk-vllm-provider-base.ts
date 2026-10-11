@@ -52,6 +52,7 @@ export abstract class AISDKVllmProviderBase<
    */
   protected createOpenAiCompatibleChatModel(config: LLMConfig): LanguageModelV3 {
     const auth = this.auth
+    const fetchForCall = this.fetchFor(config)
     const { url, apiKey } = this.getModelEnvSettings(config.model)
     return createOpenAI({
       name: this.providerName,
@@ -62,7 +63,7 @@ export abstract class AISDKVllmProviderBase<
         const { token } = await client.getAccessToken()
         const headers = new Headers(init?.headers)
         headers.set("Authorization", `Bearer ${token}`)
-        return fetch(requestUrl, { ...init, headers })
+        return fetchForCall(requestUrl, { ...init, headers })
       },
     }).chat(config.model)
   }

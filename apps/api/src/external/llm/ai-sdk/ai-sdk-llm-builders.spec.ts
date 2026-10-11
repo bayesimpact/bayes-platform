@@ -32,7 +32,7 @@ class TestBuilders extends AISDKLLMBuilders {
   }
   // Read from the model options, out of this class's scope.
   protected buildSpecificProviderOptions(): SpecificProviderOptions {
-    return { providerOptions: {} }
+    return {}
   }
 }
 

@@ -11,10 +11,9 @@ export class AISDKGemmaProvider extends AISDKVllmProviderBase<AgentProvider.Gemm
   protected readonly providerName = "Gemma Provider"
 
   protected readonly modelOptions: Record<GemmaAgentModel, ModelOptions> = {
-    [AgentModel.Gemma4_26B]: defineModelOptions(
-      z.object({ temperature: z.number(), providerOptions: z.object({}) }),
-      { temperature: 0, providerOptions: {} },
-    ),
+    [AgentModel.Gemma4_26B]: defineModelOptions(z.object({ temperature: z.number() }), {
+      temperature: 0,
+    }),
   }
 
   getAgentProvider(): AgentProvider.Gemma {

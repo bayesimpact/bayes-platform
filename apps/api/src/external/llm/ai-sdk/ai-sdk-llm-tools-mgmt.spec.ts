@@ -69,7 +69,7 @@ class TestToolsMgmt extends AISDKLLMToolsMgmt {
   }: {
     config: LLMConfig
   }): SpecificProviderOptions {
-    return { temperature: config.temperature, providerOptions: {} }
+    return { temperature: config.temperature }
   }
 
   toolCallRepairFor(args: CallArgs): ToolCallRepairFunction<ToolSet> {

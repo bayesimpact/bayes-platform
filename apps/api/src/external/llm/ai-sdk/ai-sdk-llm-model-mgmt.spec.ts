@@ -73,10 +73,9 @@ const mockMetadata: LLMMetadata = {
 
 class TestModelMgmt extends AISDKLLMModelMgmt<AgentProvider._Mock> {
   protected readonly modelOptions: Record<AgentModel._Mock, ModelOptions> = {
-    [AgentModel._Mock]: defineModelOptions(
-      z.object({ temperature: z.number(), providerOptions: z.object({}) }),
-      { temperature: 0, providerOptions: {} },
-    ),
+    [AgentModel._Mock]: defineModelOptions(z.object({ temperature: z.number() }), {
+      temperature: 0,
+    }),
   }
 
   constructor(private readonly model?: LanguageModelV3) {
@@ -419,7 +418,7 @@ describe("AISDKLLMModelMgmt", () => {
     it("holds the model's options with the configured temperature", () => {
       expect(
         new TestModelMgmt().specificProviderOptionsFor({ ...mockConfig, temperature: 0.4 }),
-      ).toEqual({ temperature: 0.4, providerOptions: {} })
+      ).toEqual({ temperature: 0.4 })
     })
 
     it("sends no temperature to a model whose options take none", () => {

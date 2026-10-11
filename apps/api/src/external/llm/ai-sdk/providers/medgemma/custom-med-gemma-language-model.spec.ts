@@ -110,6 +110,24 @@ describe("CustomMedGemmaLanguageModel", () => {
     jest.restoreAllMocks()
   })
 
+  it("sends the request through the fetch the provider picked", async () => {
+    const globalFetchSpy = jest.spyOn(globalThis, "fetch")
+    const fetch = jest.fn().mockResolvedValue(chatCompletionsResponse())
+
+    await new CustomMedGemmaLanguageModel({
+      baseUrl: "http://medgemma.test",
+      apiKey: "k",
+      config: buildConfig(),
+      fetch,
+    }).doGenerate({
+      prompt: [{ role: "user", content: [{ type: "text", text: "Hi" }] }],
+      responseFormat: { type: "json", schema: { type: "object", properties: {} } },
+    })
+
+    expect(fetch).toHaveBeenCalledTimes(1)
+    expect(globalFetchSpy).not.toHaveBeenCalled()
+  })
+
   it("passes an https image URL through as an OpenAI-style image_url part", async () => {
     const fetchSpy = jest.spyOn(globalThis, "fetch").mockResolvedValue(chatCompletionsResponse())
     const imageUrl =

@@ -14,10 +14,9 @@ export class AISDKMistralProvider extends AISDKVllmProviderBase<AgentProvider.Mi
   protected readonly providerName = "Mistral Provider"
 
   protected readonly modelOptions: Record<MistralAgentModel, ModelOptions> = {
-    [AgentModel.MistralSmall31_24B]: defineModelOptions(
-      z.object({ temperature: z.number(), providerOptions: z.object({}) }),
-      { temperature: 0, providerOptions: {} },
-    ),
+    [AgentModel.MistralSmall31_24B]: defineModelOptions(z.object({ temperature: z.number() }), {
+      temperature: 0,
+    }),
   }
 
   getAgentProvider(): AgentProvider.Mistral {

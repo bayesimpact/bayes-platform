@@ -21,10 +21,9 @@ export class AISDKMedGemmaProvider extends AISDKVllmProviderBase<AgentProvider.M
   }
 
   protected readonly modelOptions: Record<MedGemmaAgentModel, ModelOptions> = {
-    [AgentModel.MedGemma10_27B]: defineModelOptions(
-      z.object({ temperature: z.number(), providerOptions: z.object({}) }),
-      { temperature: 0, providerOptions: {} },
-    ),
+    [AgentModel.MedGemma10_27B]: defineModelOptions(z.object({ temperature: z.number() }), {
+      temperature: 0,
+    }),
   }
   /** MedGemma uses a different API depending on the call. */
   override getLanguageModel({
@@ -79,6 +78,7 @@ ${toolDocs.join("\n")}
       name: this.providerName,
       url: new URL("v1/responses", url).toString(),
       apiKey,
+      fetch: this.fetchFor(config),
     })(config.model)
   }
   getOpenAiProvider(config: LLMConfig): LanguageModelV3 {
@@ -87,11 +87,17 @@ ${toolDocs.join("\n")}
       name: this.providerName,
       baseURL: new URL("v1", url).toString(),
       apiKey,
+      fetch: this.fetchFor(config),
     })(config.model)
   }
   getCustomProvider(config: LLMConfig): LanguageModelV3 {
     const { url, apiKey } = this.getModelEnvSettings(config.model)
-    return new CustomMedGemmaLanguageModel({ config, baseUrl: url, apiKey }) as LanguageModelV3
+    return new CustomMedGemmaLanguageModel({
+      config,
+      baseUrl: url,
+      apiKey,
+      fetch: this.fetchFor(config),
+    }) as LanguageModelV3
   }
   /** MedGemma does not honour the response format: the object is read from its text. */
   protected override readStructuredOutput(result: {

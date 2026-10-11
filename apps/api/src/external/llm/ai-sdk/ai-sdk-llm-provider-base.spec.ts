@@ -26,10 +26,9 @@ class TestProvider<
   Provider extends AgentProvider = AgentProvider._Mock,
 > extends AISDKLLMProviderBase<Provider> {
   protected readonly modelOptions = {
-    [AgentModel._Mock]: defineModelOptions(
-      z.object({ temperature: z.number(), providerOptions: z.object({}) }),
-      { temperature: 0, providerOptions: {} },
-    ),
+    [AgentModel._Mock]: defineModelOptions(z.object({ temperature: z.number() }), {
+      temperature: 0,
+    }),
   } as Record<AgentModelOf<Provider>, ModelOptions>
 
   constructor(

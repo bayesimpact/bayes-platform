@@ -8,7 +8,6 @@ import {
 } from "@caseai-connect/api-contracts"
 import { Injectable } from "@nestjs/common"
 import type { LanguageModel } from "ai"
-import { Agent, fetch as undiciFetch } from "undici"
 import { z } from "zod"
 import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"
 import type { SpecificProviderOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-builders"
@@ -16,123 +15,30 @@ import type { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
 import { defineModelOptions, type ModelOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
 import { AISDKLLMProviderBase } from "@/external/llm/ai-sdk/ai-sdk-llm-provider-base"
 
-// Default network timeouts (ms) applied to the extended-timeout fetch when the
-// corresponding env vars are unset. Sized for long-running calls such as
-// extraction agent runs.
-const DEFAULT_HEADERS_TIMEOUT_MS = 30 * 60 * 1000 // 30 minutes
-const DEFAULT_BODY_TIMEOUT_MS = 30 * 60 * 1000 // 30 minutes
-const DEFAULT_CONNECT_TIMEOUT_MS = 30 * 1000 // 30 seconds
-
-function readTimeoutMs(value: string | undefined, defaultMs: number): number {
-  if (!value) return defaultMs
-  const parsed = Number.parseInt(value, 10)
-  return Number.isNaN(parsed) ? defaultMs : parsed
-}
-
-/**
- * A model flagged `servedOutsideEu` in `AgentModelMetadataMap` is not served on the EU
- * regional endpoint (aiplatform.eu.rep.googleapis.com) and can only run through the "global"
- * endpoint, which does NOT guarantee EU data processing. Every other model stays on "eu"
- * (data residency).
- *
- * No model carries the flag since the 2026-09-04 probe: every Gemini 3.x flash and flash-lite
- * in the catalog answers on "eu" (3.6-flash was global-only at the 2026-07-30 probe). The same
- * catalog entry drives the "(non-EU)" label in the model pickers, so when a new model ships
- * global-only, set the flag there and routing and label follow together.
- */
 type VertexLocation = "eu" | "global"
-
-function locationForModel(model: string): VertexLocation {
-  return isAgentModelServedOutsideEu(model) ? "global" : "eu"
-}
 
 type Vertex3AgentModel = AgentModelOf<AgentProvider.Vertex3>
 
-/** The thinking levels Gemini accepts, from the lowest to the highest. */
-const VERTEX_THINKING_LEVELS = [
-  AgentThinkingLevel.Minimal,
-  AgentThinkingLevel.Low,
-  AgentThinkingLevel.Medium,
-  AgentThinkingLevel.High,
-] as const
-type VertexThinkingLevel = (typeof VERTEX_THINKING_LEVELS)[number]
+/** The thinking levels Gemini accepts: every level but auto, which picks the model's default. */
+type VertexThinkingLevel = Exclude<AgentThinkingLevel, AgentThinkingLevel.Auto>
 
 type Vertex3Model = {
   /**
-   * Whether the model still takes a temperature. Google deprecated it (with
-   * top_p and top_k) from Gemini 3.6 Flash and 3.5 Flash-Lite on, for all
-   * later models: ignored for now, rejected with a 400 by future ones.
+   * Whether the agent can still set the model's temperature, which defaults
+   * to Google's 1. Google deprecated it (with top_p and top_k) from Gemini 3.6
+   * Flash and 3.5 Flash-Lite on, for all later models: ignored for now,
+   * rejected with a 400 by future ones.
    */
-  takesTemperature: boolean
+  canSetTemperature: boolean
   /** The official default thinking level. */
   defaultLevel: VertexThinkingLevel
   /** The thinking levels the model accepts. */
   levels: [VertexThinkingLevel, ...VertexThinkingLevel[]]
 }
 
-const VERTEX3_MODELS: Record<Vertex3AgentModel, Vertex3Model> = {
-  [AgentModel.Gemini31FlashLite]: {
-    takesTemperature: true,
-    defaultLevel: AgentThinkingLevel.Minimal,
-    levels: [...VERTEX_THINKING_LEVELS],
-  },
-  [AgentModel.Gemini35FlashLite]: {
-    takesTemperature: false,
-    defaultLevel: AgentThinkingLevel.Minimal,
-    levels: [...VERTEX_THINKING_LEVELS],
-  },
-  [AgentModel.Gemini35Flash]: {
-    takesTemperature: true,
-    defaultLevel: AgentThinkingLevel.Medium,
-    levels: [...VERTEX_THINKING_LEVELS],
-  },
-  [AgentModel.Gemini36Flash]: {
-    takesTemperature: false,
-    defaultLevel: AgentThinkingLevel.Medium,
-    levels: [...VERTEX_THINKING_LEVELS],
-  },
-  // Minimal was removed from 3.7 and up.
-  [AgentModel.Gemini37Flash]: {
-    takesTemperature: false,
-    defaultLevel: AgentThinkingLevel.Medium,
-    levels: [AgentThinkingLevel.Low, AgentThinkingLevel.Medium, AgentThinkingLevel.High],
-  },
-  [AgentModel.Gemini38Flash]: {
-    takesTemperature: false,
-    defaultLevel: AgentThinkingLevel.Medium,
-    levels: [AgentThinkingLevel.Low, AgentThinkingLevel.Medium, AgentThinkingLevel.High],
-  },
-}
-
 type VertexOptions = {
   sharedRequestType?: "priority" | "flex"
   thinkingConfig: { thinkingLevel: VertexThinkingLevel; includeThoughts: boolean }
-}
-
-/**
- * A temperature when the model still takes one, a service tier and a
- * thinking level among those the model accepts.
- */
-function vertex3ModelOptions({
-  takesTemperature,
-  defaultLevel,
-  levels,
-}: Vertex3Model): ModelOptions {
-  const vertexSchema = z.object({
-    sharedRequestType: z.enum(["priority", "flex"]).optional(),
-    thinkingConfig: z.object({ thinkingLevel: z.enum(levels), includeThoughts: z.boolean() }),
-  })
-  const vertex: VertexOptions = {
-    thinkingConfig: { thinkingLevel: defaultLevel, includeThoughts: true },
-  }
-  return takesTemperature
-    ? defineModelOptions(
-        z.object({ temperature: z.number(), providerOptions: z.object({ vertex: vertexSchema }) }),
-        { temperature: 0, providerOptions: { vertex } },
-      )
-    : defineModelOptions(z.object({ providerOptions: z.object({ vertex: vertexSchema }) }), {
-        providerOptions: { vertex },
-      })
 }
 
 @Injectable()
@@ -141,12 +47,83 @@ export class AISDKVertex3Provider extends AISDKLLMProviderBase<AgentProvider.Ver
     return AgentProvider.Vertex3
   }
 
+  /** The thinking levels Gemini accepts, from the lowest to the highest. */
+  private readonly thinkingLevels: [VertexThinkingLevel, ...VertexThinkingLevel[]] = [
+    AgentThinkingLevel.Minimal,
+    AgentThinkingLevel.Low,
+    AgentThinkingLevel.Medium,
+    AgentThinkingLevel.High,
+  ]
+
+  private readonly vertex3Models: Record<Vertex3AgentModel, Vertex3Model> = {
+    [AgentModel.Gemini31FlashLite]: {
+      canSetTemperature: true,
+      defaultLevel: AgentThinkingLevel.Minimal,
+      levels: [...this.thinkingLevels],
+    },
+    [AgentModel.Gemini35FlashLite]: {
+      canSetTemperature: false,
+      defaultLevel: AgentThinkingLevel.Minimal,
+      levels: [...this.thinkingLevels],
+    },
+    [AgentModel.Gemini35Flash]: {
+      canSetTemperature: true,
+      defaultLevel: AgentThinkingLevel.Medium,
+      levels: [...this.thinkingLevels],
+    },
+    [AgentModel.Gemini36Flash]: {
+      canSetTemperature: false,
+      defaultLevel: AgentThinkingLevel.Medium,
+      levels: [...this.thinkingLevels],
+    },
+    // Minimal was removed from 3.7 and up.
+    [AgentModel.Gemini37Flash]: {
+      canSetTemperature: false,
+      defaultLevel: AgentThinkingLevel.Medium,
+      levels: [AgentThinkingLevel.Low, AgentThinkingLevel.Medium, AgentThinkingLevel.High],
+    },
+    [AgentModel.Gemini38Flash]: {
+      canSetTemperature: false,
+      defaultLevel: AgentThinkingLevel.Medium,
+      levels: [AgentThinkingLevel.Low, AgentThinkingLevel.Medium, AgentThinkingLevel.High],
+    },
+  }
+
   protected readonly modelOptions = Object.fromEntries(
-    Object.entries(VERTEX3_MODELS).map(([agentModel, vertex3Model]) => [
+    Object.entries(this.vertex3Models).map(([agentModel, vertex3Model]) => [
       agentModel,
-      vertex3ModelOptions(vertex3Model),
+      this.vertex3ModelOptions(vertex3Model),
     ]),
   ) as Record<Vertex3AgentModel, ModelOptions>
+
+  /**
+   * A temperature when the agent can still set one, a service tier and a
+   * thinking level among those the model accepts.
+   */
+  private vertex3ModelOptions({
+    canSetTemperature,
+    defaultLevel,
+    levels,
+  }: Vertex3Model): ModelOptions {
+    const vertexSchema = z.object({
+      sharedRequestType: z.enum(["priority", "flex"]).optional(),
+      thinkingConfig: z.object({ thinkingLevel: z.enum(levels), includeThoughts: z.boolean() }),
+    })
+    const vertex: VertexOptions = {
+      thinkingConfig: { thinkingLevel: defaultLevel, includeThoughts: true },
+    }
+    return canSetTemperature
+      ? defineModelOptions(
+          z.object({
+            temperature: z.number(),
+            providerOptions: z.object({ vertex: vertexSchema }),
+          }),
+          { temperature: 1, providerOptions: { vertex } },
+        )
+      : defineModelOptions(z.object({ providerOptions: z.object({ vertex: vertexSchema }) }), {
+          providerOptions: { vertex },
+        })
+  }
 
   /**
    * Gemini enforces tool argument schemas for strict tools (mode VALIDATED):
@@ -171,12 +148,8 @@ export class AISDKVertex3Provider extends AISDKLLMProviderBase<AgentProvider.Ver
 
     // One provider per location: models run on "eu" (EU data residency)
     // unless they are only served globally — see GLOBAL_ONLY_MODELS.
-    const buildProvider = (location: VertexLocation, fetch?: typeof undiciFetch) =>
-      createVertex({
-        project: this.vertexProject,
-        location,
-        ...(fetch ? { fetch: fetch as unknown as typeof globalThis.fetch } : {}),
-      })
+    const buildProvider = (location: VertexLocation, fetch?: typeof globalThis.fetch) =>
+      createVertex({ project: this.vertexProject, location, ...(fetch ? { fetch } : {}) })
 
     // Default providers: rely on the AI SDK / undici default fetch timeouts.
     this.vertexProviders = {
@@ -185,29 +158,31 @@ export class AISDKVertex3Provider extends AISDKLLMProviderBase<AgentProvider.Ver
     }
 
     // Extended-timeout providers: opt-in via `config.useExtendedTimeouts` for
-    // long-running calls (e.g. extraction agent runs). The three timeouts are
-    // configurable through env vars; a single dispatcher is reused across calls.
-    const extendedTimeoutDispatcher = new Agent({
-      headersTimeout: readTimeoutMs(
-        process.env.VERTEX_FETCH_HEADERS_TIMEOUT_MS,
-        DEFAULT_HEADERS_TIMEOUT_MS,
-      ),
-      bodyTimeout: readTimeoutMs(process.env.VERTEX_FETCH_BODY_TIMEOUT_MS, DEFAULT_BODY_TIMEOUT_MS),
-      connectTimeout: readTimeoutMs(
-        process.env.VERTEX_FETCH_CONNECT_TIMEOUT_MS,
-        DEFAULT_CONNECT_TIMEOUT_MS,
-      ),
-    })
-    const extendedTimeoutFetch: typeof undiciFetch = (url, options) =>
-      undiciFetch(url, { ...options, dispatcher: extendedTimeoutDispatcher })
+    // long-running calls (e.g. extraction agent runs). One client per location
+    // and mode, so each keeps its access token cached.
     this.vertexProvidersWithExtendedTimeouts = {
-      eu: buildProvider("eu", extendedTimeoutFetch),
-      global: buildProvider("global", extendedTimeoutFetch),
+      eu: buildProvider("eu", this.extendedTimeoutsFetch),
+      global: buildProvider("global", this.extendedTimeoutsFetch),
     }
   }
 
+  /**
+   * A model flagged `servedOutsideEu` in `AgentModelMetadataMap` is not served on the EU
+   * regional endpoint (aiplatform.eu.rep.googleapis.com) and can only run through the "global"
+   * endpoint, which does NOT guarantee EU data processing. Every other model stays on "eu"
+   * (data residency).
+   *
+   * No model carries the flag since the 2026-09-04 probe: every Gemini 3.x flash and flash-lite
+   * in the catalog answers on "eu" (3.6-flash was global-only at the 2026-07-30 probe). The same
+   * catalog entry drives the "(non-EU)" label in the model pickers, so when a new model ships
+   * global-only, set the flag there and routing and label follow together.
+   */
+  private locationForModel(model: string): VertexLocation {
+    return isAgentModelServedOutsideEu(model) ? "global" : "eu"
+  }
+
   getLanguageModel({ config }: { config: LLMConfig; callOrigin: CallOrigin }): LanguageModel {
-    const location = locationForModel(config.model)
+    const location = this.locationForModel(config.model)
     const provider = config.useExtendedTimeouts
       ? this.vertexProvidersWithExtendedTimeouts[location]
       : this.vertexProviders[location]
@@ -215,7 +190,7 @@ export class AISDKVertex3Provider extends AISDKLLMProviderBase<AgentProvider.Ver
   }
 
   /**
-   * The model's options with the temperature (for a model that still takes
+   * The model's options with the temperature (for a model whose agent can still set
    * one), the service tier and the thinking level the agent configured.
    */
   protected override applyConfigToModelOptions({
@@ -245,19 +220,16 @@ export class AISDKVertex3Provider extends AISDKLLMProviderBase<AgentProvider.Ver
    * the model's default stays.
    */
   private thinkingLevelFor(config: LLMConfig): VertexThinkingLevel | undefined {
-    const requestedRank = VERTEX_THINKING_LEVELS.indexOf(
-      config.thinkingLevel as VertexThinkingLevel,
-    )
+    const requestedRank = this.thinkingLevels.indexOf(config.thinkingLevel as VertexThinkingLevel)
     if (requestedRank === -1) return undefined
-    const { levels } = VERTEX3_MODELS[this.toProviderAgentModel(config.model)]
+    const { levels } = this.vertex3Models[this.toProviderAgentModel(config.model)]
     return (
-      levels.find((level) => VERTEX_THINKING_LEVELS.indexOf(level) >= requestedRank) ??
-      levels.at(-1)
+      levels.find((level) => this.thinkingLevels.indexOf(level) >= requestedRank) ?? levels.at(-1)
     )
   }
 
   getTags(config: LLMConfig): string[] {
-    const tags = [this.vertexProject, locationForModel(config.model), config.model]
+    const tags = [this.vertexProject, this.locationForModel(config.model), config.model]
     if (config.serviceTier) tags.push(config.serviceTier.toUpperCase())
     tags.push(config.thinkingLevel.toUpperCase())
     return tags
