@@ -43,9 +43,9 @@ export const agentSettingsFactory = AgentSettingsFactory.define(
       greetingMessage: params.greetingMessage ?? null,
       outputJsonSchema: params.outputJsonSchema ?? null,
       fillFormEnabled: params.fillFormEnabled ?? false,
-      deletedThinkingLevel: params.deletedThinkingLevel || "auto",
       priorityCallsEnabled: params.priorityCallsEnabled ?? false,
-      providerOptions: params.providerOptions ?? null,
+      // The model's defaults: merged over them on every call, an empty object keeps them all.
+      providerOptions: params.providerOptions ?? {},
       organizationId: transientParams.organization.id,
       projectId: transientParams.project.id,
       agentId: transientParams.agent.id,

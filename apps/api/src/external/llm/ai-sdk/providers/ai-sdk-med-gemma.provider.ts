@@ -25,9 +25,12 @@ export class AISDKMedGemmaProvider extends AISDKVllmProviderBase<AgentProvider.M
   }
 
   protected readonly modelOptions: Record<MedGemmaAgentModel, ModelOptions> = {
-    [AgentModel.MedGemma10_27B]: defineModelOptions(z.object({ temperature: z.number() }), {
-      temperature: 0,
-    }),
+    [AgentModel.MedGemma10_27B]: defineModelOptions(
+      z.object({ temperature: z.number().min(0).max(2) }),
+      {
+        temperature: 0,
+      },
+    ),
   }
   protected readonly modelMetadata: Record<MedGemmaAgentModel, ModelMetadata> = {
     [AgentModel.MedGemma10_27B]: {},

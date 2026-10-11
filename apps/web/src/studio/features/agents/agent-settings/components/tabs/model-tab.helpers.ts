@@ -1,7 +1,19 @@
 import type { UpdateAgentSettingsModelDto } from "@caseai-connect/api-contracts"
 import type { UseFormReturn } from "react-hook-form"
-import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"
+import { findAgentModelEntry } from "@/common/features/agents/agent-model.helpers"
+import type {
+  AgentModelsCatalog,
+  AgentSettings,
+} from "@/common/features/agents/agent-settings/agent-settings.models"
 import { pickDirtyFields } from "../agent-tab-form.shared"
+
+/** The default options of a model: what a model starts on when it is picked. */
+export function defaultModelOptions(
+  catalog: AgentModelsCatalog,
+  model: string,
+): Record<string, unknown> {
+  return findAgentModelEntry(catalog, model)?.defaultOptions ?? {}
+}
 
 /** The model tab starts from the agent's current model settings. */
 export function buildModelTabDefaultValues(
@@ -9,7 +21,7 @@ export function buildModelTabDefaultValues(
 ): UpdateAgentSettingsModelDto {
   return {
     model: agentSettings.model,
-    deletedTemperature: agentSettings.deletedTemperature,
+    providerOptions: agentSettings.providerOptions,
     priorityCallsEnabled: agentSettings.priorityCallsEnabled,
   }
 }

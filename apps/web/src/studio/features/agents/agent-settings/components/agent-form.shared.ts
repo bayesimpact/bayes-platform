@@ -25,18 +25,21 @@ export function getDefaultFormValues({
   creationChoice,
   language,
   defaultModel,
+  defaultModelOptions,
 }: {
   creationChoice: AgentCreationChoice
   language: AgentLocale
   /** The model a new agent starts on, from the catalog. */
   defaultModel: AgentModel
+  /** That model's default options, from the catalog. */
+  defaultModelOptions: Record<string, unknown>
 }): CreateAgentDto {
   const sharedValues = {
     name: "",
     greetingMessage: undefined,
     documentsRagMode: DocumentsRagMode.All,
     model: defaultModel,
-    deletedTemperature: 0.0,
+    providerOptions: defaultModelOptions,
     locale: language,
     tagsToAdd: [],
     projectAgentSessionCategoryIds: [],

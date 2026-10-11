@@ -113,7 +113,7 @@ export class AISDKVertex3Provider extends AISDKLLMProviderBase<AgentProvider.Ver
     return canSetTemperature
       ? defineModelOptions(
           z.object({
-            temperature: z.number(),
+            temperature: z.number().min(0).max(2),
             providerOptions: z.object({ vertex: vertexSchema }),
           }),
           { temperature: 1, providerOptions: { vertex } },

@@ -83,6 +83,30 @@ export class AgentModelsService {
       throw new BadRequestException(`Model ${model} is not available in this project`)
   }
 
+  /**
+   * The options to store for an agent on `model`: the ones given, checked against the model's
+   * schema (an option the model does not take is dropped), or the model's defaults when none are
+   * given. Options that do not fit the model are rejected.
+   */
+  resolveModelOptions({
+    model,
+    providerOptions,
+  }: {
+    model: AgentModel
+    providerOptions: Record<string, unknown> | null | undefined
+  }): Record<string, unknown> {
+    const llmProvider = this.llmProviders[AgentModelToAgentProvider[model]]
+    if (providerOptions == null) return llmProvider.getModelOptions(model)
+    const parsed = llmProvider.getModelOptionsSchema(model).safeParse(providerOptions)
+    if (!parsed.success)
+      throw new BadRequestException(
+        `Invalid options for model ${model}: ${parsed.error.issues
+          .map((issue) => `${issue.path.join(".")} ${issue.message}`)
+          .join("; ")}`,
+      )
+    return parsed.data
+  }
+
   private async listSelectableProviders(
     connectScope: RequiredConnectScope,
   ): Promise<Set<AgentProvider>> {

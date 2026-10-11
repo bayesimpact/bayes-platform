@@ -65,13 +65,13 @@ describe("ExtractionAgentSessionRunLlmService", () => {
     documentDesc,
     forceEmptySchema,
     model = AgentModel._Mock,
-    providerOptions = null,
+    providerOptions = {},
   }: {
     documentDesc: Pick<Document, "mimeType" | "sourceType" | "storageRelativePath"> &
       Partial<Pick<Document, "pdfPageCount">>
     forceEmptySchema?: true
     model?: AgentModel
-    providerOptions?: Record<string, unknown> | null
+    providerOptions?: Record<string, unknown>
   }) => {
     const schema = z.object({ content: z.string(), source: z.string() })
     const { organization, project, user, agent, agentSettings } = await createOrganizationWithAgent(

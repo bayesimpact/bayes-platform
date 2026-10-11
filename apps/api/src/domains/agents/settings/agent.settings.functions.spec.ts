@@ -13,6 +13,7 @@ import {
 const fullFields: AgentSettingsCreateFields = {
   instructions: "You are a helpful assistant",
   documentsRagMode: DocumentsRagMode.All,
+  providerOptions: {},
   model: AgentModel._Mock,
   deletedTemperature: 0.7,
   locale: AgentLocale.EN,

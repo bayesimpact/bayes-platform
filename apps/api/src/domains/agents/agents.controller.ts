@@ -67,7 +67,13 @@ export class AgentsController {
     await this.agentModelsService.assertSelectable({ connectScope, model: payload.model })
     const { agent, agentSettings } = await this.agentsService.createAgent({
       connectScope,
-      fields: payload,
+      fields: {
+        ...payload,
+        providerOptions: this.agentModelsService.resolveModelOptions({
+          model: payload.model,
+          providerOptions: payload.providerOptions,
+        }),
+      },
       userId: request.user.id,
     })
 

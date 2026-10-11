@@ -78,12 +78,6 @@ describe("LlmServiceBase.buildLLMConfig", () => {
     })
   })
 
-  it("leaves the model options out when the agent stores none", () => {
-    const config = new TestLlmService().build({ ...baseParams, modelOptions: null })
-
-    expect(config.modelOptions).toBeUndefined()
-  })
-
   describe("service tier", () => {
     const priorityParams: BuildLLMConfigParams = {
       ...baseParams,

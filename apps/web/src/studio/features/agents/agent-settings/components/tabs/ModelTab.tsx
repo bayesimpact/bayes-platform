@@ -8,7 +8,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@caseai-connect/ui/shad/form"
-import { Input } from "@caseai-connect/ui/shad/input"
 import {
   Select,
   SelectContent,
@@ -18,13 +17,17 @@ import {
 } from "@caseai-connect/ui/shad/select"
 import { Switch } from "@caseai-connect/ui/shad/switch"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useMemo } from "react"
 import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import type { z } from "zod"
 import {
   buildAgentModelOptions,
+  describeModelOptionFields,
+  findAgentModelEntry,
   formatAgentModelLabel,
   isPriorityCallsAvailable,
+  readModelOption,
 } from "@/common/features/agents/agent-model.helpers"
 import { selectAvailableModelsData } from "@/common/features/agents/agent-settings/agent-settings.selectors"
 import { updateAgentSettingsModel } from "@/common/features/agents/agent-settings/agent-settings.thunks"
@@ -33,7 +36,12 @@ import { useFeatureFlags } from "@/common/hooks/use-feature-flags"
 import { useValue } from "@/common/hooks/use-value"
 import { useAppDispatch } from "@/common/store/hooks"
 import { type AgentTabFormProps, useReportDirty } from "../agent-tab-form.shared"
-import { buildModelTabDefaultValues, buildModelTabSubmit } from "./model-tab.helpers"
+import { ModelOptionsFields } from "./ModelOptionsFields"
+import {
+  buildModelTabDefaultValues,
+  buildModelTabSubmit,
+  defaultModelOptions,
+} from "./model-tab.helpers"
 import { TabSaveButton } from "./TabSaveButton"
 
 type FormValues = z.infer<typeof updateAgentSettingsModelSchema>
@@ -46,8 +54,31 @@ export function ModelTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
   const catalog = useValue(selectAvailableModelsData)
   const models = buildAgentModelOptions(catalog)
 
+  // The contract schema, plus the temperature range of the selected model (from its schema).
+  const formSchema = useMemo(
+    () =>
+      updateAgentSettingsModelSchema.superRefine((values, context) => {
+        const range = describeModelOptionFields(
+          findAgentModelEntry(catalog, values.model),
+        ).temperature
+        const temperature = readModelOption(values.providerOptions, ["temperature"])
+        if (!range) return
+        if (
+          typeof temperature !== "number" ||
+          Number.isNaN(temperature) ||
+          (range.minimum !== undefined && temperature < range.minimum) ||
+          (range.maximum !== undefined && temperature > range.maximum)
+        )
+          context.addIssue({
+            code: "custom",
+            path: ["providerOptions"],
+            message: t("agentSettings:props.validation.temperatureInvalid"),
+          })
+      }),
+    [catalog, t],
+  )
   const form = useForm<FormValues>({
-    resolver: zodResolver(updateAgentSettingsModelSchema),
+    resolver: zodResolver(formSchema),
     defaultValues: buildModelTabDefaultValues(agentSettings),
   })
   useReportDirty(form.formState.isDirty, onDirtyChange)
@@ -55,6 +86,7 @@ export function ModelTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
   // The priority tier only exists for Gemini 3.x models and needs the project flag. It follows
   // the model currently picked in the form, so switching to another provider hides it.
   const selectedModel = form.watch("model")
+  const optionFields = describeModelOptionFields(findAgentModelEntry(catalog, selectedModel))
   const priorityCallsAvailable = isPriorityCallsAvailable({ hasFeature, model: selectedModel })
 
   const handleSubmit = form.handleSubmit(async (values) => {
@@ -77,7 +109,16 @@ export function ModelTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>{t("agentSettings:props.model")}</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select
+                  onValueChange={(model) => {
+                    field.onChange(model)
+                    // A new model starts on its own default options.
+                    form.setValue("providerOptions", defaultModelOptions(catalog, model), {
+                      shouldDirty: true,
+                    })
+                  }}
+                  value={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder={t("agentSettings:props.placeholders.model")} />
@@ -101,22 +142,15 @@ export function ModelTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
 
           <FormField
             control={form.control}
-            name="deletedTemperature"
+            name="providerOptions"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t("agentSettings:props.temperature")}</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    max="2"
-                    placeholder={t("agentSettings:props.placeholders.temperature")}
-                    {...field}
-                    onChange={(event) => field.onChange(event.target.valueAsNumber)}
-                  />
-                </FormControl>
-                <FormMessage />
+              <FormItem className="contents">
+                <ModelOptionsFields
+                  fields={optionFields}
+                  value={field.value}
+                  onChange={field.onChange}
+                />
+                <FormMessage className="md:col-span-2" />
               </FormItem>
             )}
           />

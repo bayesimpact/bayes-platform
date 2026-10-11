@@ -327,8 +327,6 @@ describe("AgentSettings", () => {
       })
       assertOnSettings(agentSettingsValuesRev1, savedSettings)
       expect(savedSettings?.revision).toBe(1)
-      // The deleted thinking level column keeps its default.
-      expect(savedSettings?.deletedThinkingLevel).toBe("auto")
     })
     it("updateAllSettings should create draft settings with revision = last revision +1 - no existing draft", async () => {
       const { organization, project, agent } = await createAgentWithSettings(

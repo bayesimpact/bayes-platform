@@ -91,3 +91,97 @@ export function formatAgentModelLabel(
 
   return [model, ...suffixes].join(" ")
 }
+
+/** The part of a JSON Schema the option fields are read from. */
+type OptionsJsonSchema = {
+  type?: string
+  properties?: Record<string, OptionsJsonSchema>
+  enum?: unknown[]
+  minimum?: number
+  maximum?: number
+}
+
+/**
+ * The option fields a model offers, read from the JSON Schema of its options: a temperature when
+ * it takes one, a thinking level (with the levels it accepts) when it has one. A model may have
+ * either, both, or none.
+ */
+export type ModelOptionFields = {
+  temperature?: { minimum?: number; maximum?: number }
+  thinkingLevel?: { path: string[]; levels: string[] }
+}
+
+export function describeModelOptionFields(entry: AgentModelEntry | undefined): ModelOptionFields {
+  const schema = entry?.optionsSchema as OptionsJsonSchema | undefined
+  if (!schema) return {}
+  const temperature = schema.properties?.temperature
+  const thinkingLevel = findThinkingLevel(schema, [])
+  return {
+    ...(temperature?.type === "number"
+      ? { temperature: { minimum: temperature.minimum, maximum: temperature.maximum } }
+      : {}),
+    ...(thinkingLevel ? { thinkingLevel } : {}),
+  }
+}
+
+/** The path to the `thinkingLevel` property, wherever the provider nests it, and its levels. */
+function findThinkingLevel(
+  schema: OptionsJsonSchema,
+  path: string[],
+): { path: string[]; levels: string[] } | undefined {
+  for (const [key, property] of Object.entries(schema.properties ?? {})) {
+    if (key === "thinkingLevel" && Array.isArray(property.enum))
+      return { path: [...path, key], levels: property.enum.map(String) }
+    const nested = findThinkingLevel(property, [...path, key])
+    if (nested) return nested
+  }
+  return undefined
+}
+
+/** The value at `path` in model options, if any. */
+export function readModelOption(options: Record<string, unknown> | null, path: string[]): unknown {
+  let value: unknown = options
+  for (const key of path) {
+    if (typeof value !== "object" || value === null) return undefined
+    value = (value as Record<string, unknown>)[key]
+  }
+  return value
+}
+
+/** A copy of model options with `value` at `path`. */
+export function writeModelOption(
+  options: Record<string, unknown> | null,
+  path: string[],
+  value: unknown,
+): Record<string, unknown> {
+  const [key, ...rest] = path
+  if (key === undefined) return options ?? {}
+  const current = options ?? {}
+  const child = current[key]
+  return {
+    ...current,
+    [key]:
+      rest.length === 0
+        ? value
+        : writeModelOption(
+            typeof child === "object" && child !== null ? (child as Record<string, unknown>) : null,
+            rest,
+            value,
+          ),
+  }
+}
+
+/** The first value of `key` in model options, wherever the provider nests it (e.g. `thinkingLevel`). */
+export function findModelOptionValue(
+  options: Record<string, unknown> | null,
+  key: string,
+): unknown {
+  if (!options) return undefined
+  if (key in options) return options[key]
+  for (const value of Object.values(options)) {
+    if (typeof value !== "object" || value === null || Array.isArray(value)) continue
+    const found = findModelOptionValue(value as Record<string, unknown>, key)
+    if (found !== undefined) return found
+  }
+  return undefined
+}

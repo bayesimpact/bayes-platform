@@ -120,10 +120,6 @@ function WithData({
                 mono
               />
               <MetadataField
-                label={t("evaluationExtractionRun:agentMetadata.temperature")}
-                value={String(agentSettings.deletedTemperature)}
-              />
-              <MetadataField
                 label={t("evaluationExtractionRun:agentMetadata.locale")}
                 value={agentSettings.locale}
               />

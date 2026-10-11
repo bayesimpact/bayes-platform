@@ -65,11 +65,11 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
   }
 
   const createContext = async ({
-    parentProviderOptions = null,
-    childProviderOptions = null,
+    parentProviderOptions = {},
+    childProviderOptions = {},
   }: {
-    parentProviderOptions?: Record<string, unknown> | null
-    childProviderOptions?: Record<string, unknown> | null
+    parentProviderOptions?: Record<string, unknown>
+    childProviderOptions?: Record<string, unknown>
   } = {}) => {
     const { user, organization, project, agent, agentSettings, subAgents } =
       await createOrganizationWithAgentAndSubAgents(repositories, {
@@ -159,7 +159,7 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
     expect(classificationTemperatures.every((temperature) => temperature === 0)).toBe(true)
   })
 
-  it("runs an agent that stores no model options on its model's defaults", async () => {
+  it("runs an agent that keeps its model's defaults on those defaults", async () => {
     const { agent, child } = await createContext()
     const mockProvider = setup.module.get(AISDKMockProvider)
     mockProvider.resetMock()

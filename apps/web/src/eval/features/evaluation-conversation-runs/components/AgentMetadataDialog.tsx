@@ -10,6 +10,7 @@ import {
 import { ExternalLinkIcon, InfoIcon } from "lucide-react"
 import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
+import { findModelOptionValue } from "@/common/features/agents/agent-model.helpers"
 import { selectAgentsData } from "@/common/features/agents/agents.selectors"
 import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
@@ -43,6 +44,8 @@ export function AgentMetadataDialog({
 
   const studioUrl = StudioRoutes.agent.build({ organizationId, projectId, agentId })
   const canAccessStudio = abilities.canAccessStudio({ projectId })
+  const temperature = findModelOptionValue(agentSettings.providerOptions, "temperature")
+  const thinkingLevel = findModelOptionValue(agentSettings.providerOptions, "thinkingLevel")
 
   return (
     <Dialog>
@@ -79,10 +82,20 @@ export function AgentMetadataDialog({
               value={agentSettings.model}
               mono
             />
-            <MetadataField
-              label={t("evaluationConversationRun:agentMetadata.temperature")}
-              value={String(agentSettings.deletedTemperature)}
-            />
+            {typeof temperature === "number" && (
+              <MetadataField
+                label={t("evaluationConversationRun:agentMetadata.temperature")}
+                value={String(temperature)}
+              />
+            )}
+            {typeof thinkingLevel === "string" && (
+              <MetadataField
+                label={t("evaluationConversationRun:agentMetadata.thinkingLevel")}
+                value={t(`agentSettings:props.thinkingLevels.${thinkingLevel}`, {
+                  defaultValue: thinkingLevel,
+                })}
+              />
+            )}
             <MetadataField
               label={t("evaluationConversationRun:agentMetadata.locale")}
               value={agentSettings.locale}

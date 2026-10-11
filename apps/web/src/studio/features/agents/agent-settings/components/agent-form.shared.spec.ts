@@ -5,15 +5,24 @@ import { type AgentCreationChoice, getDefaultFormValues } from "./agent-form.sha
 describe("getDefaultFormValues", () => {
   const creationChoices: AgentCreationChoice[] = ["conversation", "extraction", "form"]
 
-  it.each(creationChoices)("starts a %s agent on the given default model", (creationChoice) => {
+  const defaultModelOptions = {
+    providerOptions: {
+      vertex: { thinkingConfig: { thinkingLevel: "minimal", includeThoughts: true } },
+    },
+  }
+
+  it.each(
+    creationChoices,
+  )("starts a %s agent on the given default model and its options", (creationChoice) => {
     const values = getDefaultFormValues({
       creationChoice,
       language: AgentLocale.EN,
       defaultModel: AgentModel.Gemini35FlashLite,
+      defaultModelOptions,
     })
 
     expect(values.model).toBe(AgentModel.Gemini35FlashLite)
-    expect(values.deletedTemperature).toBe(0)
+    expect(values.providerOptions).toEqual(defaultModelOptions)
     expect(values.documentsRagMode).toBe(DocumentsRagMode.All)
     expect(values.locale).toBe(AgentLocale.EN)
   })
@@ -23,6 +32,7 @@ describe("getDefaultFormValues", () => {
       creationChoice: "form",
       language: AgentLocale.FR,
       defaultModel: AgentModel.Gemini35FlashLite,
+      defaultModelOptions,
     })
 
     expect(values).toMatchObject({ type: "conversation", fillFormEnabled: true })
@@ -34,6 +44,7 @@ describe("getDefaultFormValues", () => {
       creationChoice: "extraction",
       language: AgentLocale.EN,
       defaultModel: AgentModel.Gemini35FlashLite,
+      defaultModelOptions,
     })
 
     expect(values.type).toBe("extraction")

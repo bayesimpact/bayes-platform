@@ -78,6 +78,99 @@ describe("Agent Settings - updateOne", () => {
     )
   }
 
+  const latestOptions = async () =>
+    (
+      await repositories.agentSettingsRepository.findOne({
+        where: { agentId },
+        order: { revision: "DESC" },
+      })
+    )?.providerOptions
+
+  it("stores the model options checked against the agent's model", async () => {
+    const { agentSettings } = await createContext()
+    await repositories.agentSettingsRepository.update(agentSettings.id, {
+      model: AgentModel.Gemini36Flash,
+    })
+
+    // Gemini 3.6 takes no temperature: it is dropped, the thinking level is kept.
+    expectResponse(
+      await subject({
+        payload: {
+          providerOptions: {
+            temperature: 0.3,
+            providerOptions: {
+              vertex: { thinkingConfig: { thinkingLevel: "high", includeThoughts: true } },
+            },
+          },
+        },
+      }),
+      200,
+    )
+
+    expect(await latestOptions()).toEqual({
+      providerOptions: {
+        vertex: { thinkingConfig: { thinkingLevel: "high", includeThoughts: true } },
+      },
+    })
+  })
+
+  it("rejects options that do not fit the agent's model", async () => {
+    const { agentSettings } = await createContext()
+    await repositories.agentSettingsRepository.update(agentSettings.id, {
+      model: AgentModel.Gemini37Flash,
+    })
+
+    // Gemini 3.7 does not accept the minimal thinking level.
+    expectResponse(
+      await subject({
+        payload: {
+          providerOptions: {
+            providerOptions: {
+              vertex: { thinkingConfig: { thinkingLevel: "minimal", includeThoughts: true } },
+            },
+          },
+        },
+      }),
+      400,
+    )
+  })
+
+  it("starts a new model on its default options when none are sent", async () => {
+    await createContext()
+
+    expectResponse(await subject({ payload: { model: AgentModel.Gemini36Flash } }), 200)
+
+    expect(await latestOptions()).toEqual({
+      providerOptions: {
+        vertex: { thinkingConfig: { thinkingLevel: "medium", includeThoughts: true } },
+      },
+    })
+  })
+
+  it("checks the options sent with a new model against that model", async () => {
+    await createContext()
+
+    expectResponse(
+      await subject({
+        payload: {
+          model: AgentModel.Gemini35FlashLite,
+          providerOptions: {
+            providerOptions: {
+              vertex: { thinkingConfig: { thinkingLevel: "low", includeThoughts: true } },
+            },
+          },
+        },
+      }),
+      200,
+    )
+
+    expect(await latestOptions()).toEqual({
+      providerOptions: {
+        vertex: { thinkingConfig: { thinkingLevel: "low", includeThoughts: true } },
+      },
+    })
+  })
+
   it("rejects switching to a model behind a feature flag the project lacks", async () => {
     await createContext()
 
@@ -169,7 +262,7 @@ describe("Agent Settings - updateOne", () => {
     const { agent, agentSettings } = await createContext()
 
     const response = await subject({
-      payload: { model: AgentModel.Gemini25Pro, deletedTemperature: 1.5 },
+      payload: { model: AgentModel.Gemini25Pro, providerOptions: { temperature: 1.5 } },
     })
     expectResponse(response, 200)
 
@@ -181,7 +274,7 @@ describe("Agent Settings - updateOne", () => {
       order: { revision: "DESC" },
     })
     expect(updatedAgentSettings?.model).toBe(AgentModel.Gemini25Pro)
-    expect(updatedAgentSettings?.deletedTemperature).toBe(1.5)
+    expect(updatedAgentSettings?.providerOptions).toEqual({ temperature: 1.5 })
     expect(updatedAgentSettings?.instructions).toBe(agentSettings.instructions)
   })
 
@@ -319,20 +412,6 @@ describe("Agent Settings - updateOne", () => {
     })
     expect(updatedAgentSettings?.isDraft).toBeTruthy()
     expect(updatedAgentSettings?.priorityCallsEnabled).toBeTruthy()
-  })
-  it("should still store the deleted thinking level", async () => {
-    await createContext()
-
-    const setResponse = await subject({
-      payload: { deletedThinkingLevel: "high" },
-    })
-    expectResponse(setResponse, 200)
-
-    const updatedAgentSettings = await repositories.agentSettingsRepository.findOne({
-      where: { agentId, revision: 2 },
-    })
-    expect(updatedAgentSettings?.isDraft).toBeTruthy()
-    expect(updatedAgentSettings?.deletedThinkingLevel).toBe("high")
   })
 
   it("should preserve an existing soft-deleted project category while adding a new category", async () => {

@@ -6,7 +6,7 @@ export const agentSettingsDiffKeys = [
   "instructions",
   "greetingMessage",
   "model",
-  "deletedTemperature",
+  "providerOptions",
   "locale",
   "documentsRagMode",
   "outputJsonSchema",
@@ -21,7 +21,7 @@ export const agentSettingsDiffFileNames: Record<AgentSettingsDiffKey, string> = 
   instructions: "instructions.md",
   greetingMessage: "greeting-message.md",
   model: "model.txt",
-  deletedTemperature: "temperature.txt",
+  providerOptions: "model-options.json",
   locale: "language.txt",
   documentsRagMode: "documents-rag-mode.txt",
   outputJsonSchema: "output-json-schema.json",
@@ -33,7 +33,7 @@ export const agentSettingsDiffLabelKeys: Record<AgentSettingsDiffKey, string> = 
   instructions: "agentSettings:props.instructions",
   greetingMessage: "agentSettings:props.greeting",
   model: "agentSettings:props.model",
-  deletedTemperature: "agentSettings:props.temperature",
+  providerOptions: "agentSettings:props.modelOptions",
   locale: "agentSettings:props.locale",
   documentsRagMode: "agentSettings:props.documentsRagMode",
   outputJsonSchema: "agentSettings:props.outputJsonSchema",
@@ -47,7 +47,7 @@ export function serializeAgentSettingsField(
 ): string {
   const value = agent[key]
   if (value === undefined || value === null) return ""
-  if (key === "outputJsonSchema") return JSON.stringify(value, null, 2)
+  if (key === "outputJsonSchema" || key === "providerOptions") return JSON.stringify(value, null, 2)
   return String(value)
 }
 

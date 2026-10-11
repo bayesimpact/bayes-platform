@@ -18,6 +18,7 @@ import { GridCard } from "@/common/components/grid/Grid"
 import { selectAvailableModelsCatalog } from "@/common/features/agents/agent-settings/agent-settings.selectors"
 import type { Project } from "@/common/features/projects/projects.models"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
+import { defaultModelOptions } from "@/studio/features/agents/agent-settings/components/tabs/model-tab.helpers"
 import { StudioRoutes } from "@/studio/routes/helpers"
 import {
   type AgentCreationChoice,
@@ -92,6 +93,7 @@ function AgentCreatorDialog({
         creationChoice: selectedChoice,
         language,
         defaultModel: catalog.defaults.agent,
+        defaultModelOptions: defaultModelOptions(catalog, catalog.defaults.agent),
       }),
       name: name.trim(),
       projectAgentSessionCategoryIds: project.agentSessionCategories.map((category) => category.id),

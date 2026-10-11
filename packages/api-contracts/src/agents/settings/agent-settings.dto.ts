@@ -124,13 +124,10 @@ export type AgentSettingsDto = {
   projectAgentSessionCategoryIds: string[]
   resourceLibraryIds: string[]
   revision: number
-  deletedTemperature: AgentTemperature
   /** The options of the agent's model (its temperature, its thinking level...). */
-  providerOptions: Record<string, unknown> | null
+  providerOptions: Record<string, unknown>
   updatedAt: TimeType
   usedProjectAgentSessionCategoryIds: string[]
-  /** Replaced by the thinking level of `providerOptions`: no longer read. */
-  deletedThinkingLevel: string
 }
 
 // Constraint keywords (enum/minimum/maximum/items) mirror the subset of JSON Schema
@@ -222,21 +219,12 @@ export const agentSettingsValidationSchema = z.object({
   outputJsonSchema: outputJsonSchemaSchema.optional(),
   projectAgentSessionCategoryIds: z.array(z.string().uuid()),
   resourceLibraryIds: z.array(z.string().uuid()).optional(),
-  deletedTemperature: z
-    .float32()
-    .min(0)
-    .max(2)
-    .refine(
-      (temperatureValue) =>
-        temperatureValue >= 0 && temperatureValue <= 2 && Number.isFinite(temperatureValue),
-      "Temperature must be between 0.0 and 2.0",
-    ),
-  deletedThinkingLevel: z.string(),
+  /**
+   * The options of the agent's model (its temperature, its thinking level...). Their shape
+   * depends on the model: the API checks them against the model's schema.
+   */
+  providerOptions: z.record(z.string(), z.unknown()),
 })
-
-export type AgentTemperature = z.infer<
-  typeof agentSettingsValidationSchema.shape.deletedTemperature
->
 
 export const refineOutputJsonSchema = {
   fn: (data: { type: AgentDto["type"]; outputJsonSchema?: AgentSettingsDto["outputJsonSchema"] }) =>
@@ -286,8 +274,6 @@ export const updateAgentSettingsSchema = agentSettingsValidationSchema
     outputJsonSchema: true,
     projectAgentSessionCategoryIds: true,
     resourceLibraryIds: true,
-    deletedTemperature: true,
-    deletedThinkingLevel: true,
   })
   .extend({
     tagsToAdd: updateDocumentTagsSchema.required().shape.tagsToAdd,
@@ -316,7 +302,7 @@ export type UpdateAgentSettingsGeneralDto = z.infer<typeof updateAgentSettingsGe
 
 export const updateAgentSettingsModelSchema = agentSettingsValidationSchema.pick({
   model: true,
-  deletedTemperature: true,
+  providerOptions: true,
   priorityCallsEnabled: true,
 })
 export type UpdateAgentSettingsModelDto = z.infer<typeof updateAgentSettingsModelSchema>

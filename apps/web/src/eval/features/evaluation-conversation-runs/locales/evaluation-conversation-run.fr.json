@@ -116,6 +116,7 @@
       "notFound": "Agent introuvable",
       "model": "Modèle",
       "temperature": "Température",
+      "thinkingLevel": "Niveau de réflexion",
       "locale": "Langue",
       "documentsRagMode": "Mode de recherche documentaire",
       "prompt": "Prompt système"

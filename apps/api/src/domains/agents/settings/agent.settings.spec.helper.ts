@@ -9,6 +9,7 @@ export const agentSettingsValuesRev1: AgentSettingsCreateFields = {
   deletedTemperature: 0,
   locale: AgentLocale.EN,
   documentsRagMode: DocumentsRagMode.All,
+  providerOptions: {},
   greetingMessage: "This is the greeting message 1",
   outputJsonSchema: {
     type: "object",
@@ -23,6 +24,7 @@ export const agentSettingsValuesRev2Archived: AgentSettingsCreateFields = {
   deletedTemperature: 1,
   locale: AgentLocale.FR,
   documentsRagMode: DocumentsRagMode.All,
+  providerOptions: {},
   greetingMessage: "This is the greeting message 2",
   outputJsonSchema: {
     type: "object",
@@ -37,6 +39,7 @@ export const agentSettingsValuesRev3Draft: AgentSettingsCreateFields = {
   deletedTemperature: 1,
   locale: AgentLocale.FR,
   documentsRagMode: DocumentsRagMode.All,
+  providerOptions: {},
   greetingMessage: "This is the greeting message 3",
   outputJsonSchema: {
     type: "object",

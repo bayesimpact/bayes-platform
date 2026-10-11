@@ -71,8 +71,7 @@ export const evaluationConversationRunFactory = EvaluationConversationRunFactory
         locale: params.agentSettings?.locale ?? agentSettings.locale,
         model: params.agentSettings?.model ?? agentSettings.model,
         revision: params.agentSettings?.revision ?? agentSettings.revision,
-        deletedTemperature:
-          params.agentSettings?.deletedTemperature ?? agentSettings.deletedTemperature,
+        providerOptions: params.agentSettings?.providerOptions ?? agentSettings.providerOptions,
       },
       judgeModel: params.judgeModel ?? defaultAgentModels.judge,
       judgeInstructions: params.judgeInstructions ?? null,

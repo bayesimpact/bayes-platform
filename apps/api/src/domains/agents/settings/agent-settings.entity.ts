@@ -1,9 +1,4 @@
-import type {
-  AgentLocale,
-  AgentModel,
-  AgentTemperature,
-  DocumentsRagMode,
-} from "@caseai-connect/api-contracts"
+import type { AgentLocale, AgentModel, DocumentsRagMode } from "@caseai-connect/api-contracts"
 import { Column, JoinColumn, ManyToOne } from "typeorm"
 import { ConnectEntityBase, ConnectEntityWithUniqueIndex } from "@/common/entities/connect-entity"
 import { Agent } from "@/domains/agents/agent.entity"
@@ -48,15 +43,15 @@ export class AgentSettings extends ConnectEntityBase {
     // Postgres returns `decimal` as a string; convert on read so the runtime value matches the
     // declared number type (AgentDto.temperature) and passes numeric validation.
     transformer: {
-      from: (value: string | null): AgentTemperature => (value === null ? 0 : Number(value)),
-      to: (value: AgentTemperature): AgentTemperature => value,
+      from: (value: string | null): number => (value === null ? 0 : Number(value)),
+      to: (value: number): number => value,
     },
   })
   /**
    * Replaced by the temperature of `providerOptions`, for the models that
    * still take one: kept as the `temperature` column, no longer read.
    */
-  deletedTemperature!: AgentTemperature
+  deletedTemperature!: number
 
   @Column({ type: "varchar", nullable: false })
   locale!: AgentLocale
@@ -76,14 +71,11 @@ export class AgentSettings extends ConnectEntityBase {
   @Column({ type: "boolean", name: "priority_calls_enabled", default: false, nullable: false })
   priorityCallsEnabled!: boolean
 
-  @Column({ type: "varchar", name: "thinking_level", nullable: false, default: "auto" })
+  @Column({ type: "jsonb", nullable: false, name: "provider_options" })
   /**
-   * Replaced by the thinking level of `providerOptions`, for the models that
-   * take one: kept as the `thinking_level` column, no longer read.
+   * The options of the agent's model, merged over the model's defaults on every call. Never
+   * null: an agent is created with its model's defaults, and every revision keeps or replaces
+   * them.
    */
-  deletedThinkingLevel!: string
-
-  @Column({ type: "jsonb", nullable: true, name: "provider_options" })
-  /** The options of the agent's model, merged over the model's defaults on every call. */
-  providerOptions!: Record<string, unknown> | null
+  providerOptions!: Record<string, unknown>
 }

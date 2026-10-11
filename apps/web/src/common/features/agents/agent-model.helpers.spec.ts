@@ -4,9 +4,13 @@ import type { HasFeature } from "@/common/hooks/use-feature-flags"
 import {
   buildAgentModelDeprecationInterpolation,
   buildAgentModelOptions,
+  describeModelOptionFields,
   findAgentModelEntry,
+  findModelOptionValue,
   formatAgentModelLabel,
   isPriorityCallsAvailable,
+  readModelOption,
+  writeModelOption,
 } from "./agent-model.helpers"
 import { agentModelsCatalogFactory } from "./agent-settings/agent-settings.factory"
 import type { AgentModelsCatalog } from "./agent-settings/agent-settings.models"
@@ -201,6 +205,107 @@ describe("buildAgentModelOptions", () => {
     )
 
     expect(options).toEqual([...buildAgentModelOptions(catalog), model])
+  })
+})
+
+describe("describeModelOptionFields", () => {
+  const fieldsOf = (model: AgentModel) =>
+    describeModelOptionFields(findAgentModelEntry(catalog, model))
+  const thinkingLevelPath = ["providerOptions", "vertex", "thinkingConfig", "thinkingLevel"]
+  const temperature = { minimum: 0, maximum: 2 }
+
+  it.each([
+    AgentModel.Gemini25Flash,
+    AgentModel.Gemini25Pro,
+    AgentModel.MedGemma10_27B,
+    AgentModel.Gemma4_26B,
+    AgentModel.MistralSmall31_24B,
+  ])("offers only a temperature for %s", (model) => {
+    expect(fieldsOf(model)).toEqual({ temperature })
+  })
+
+  it.each([
+    AgentModel.Gemini31FlashLite,
+    AgentModel.Gemini35Flash,
+  ])("offers a temperature and every thinking level for %s", (model) => {
+    expect(fieldsOf(model)).toEqual({
+      temperature,
+      thinkingLevel: { path: thinkingLevelPath, levels: ["minimal", "low", "medium", "high"] },
+    })
+  })
+
+  it.each([
+    AgentModel.Gemini35FlashLite,
+    AgentModel.Gemini36Flash,
+  ])("offers only a thinking level for %s, whose temperature Google deprecated", (model) => {
+    expect(fieldsOf(model)).toEqual({
+      thinkingLevel: { path: thinkingLevelPath, levels: ["minimal", "low", "medium", "high"] },
+    })
+  })
+
+  it.each([
+    AgentModel.Gemini37Flash,
+    AgentModel.Gemini38Flash,
+  ])("offers the thinking levels %s accepts, without minimal", (model) => {
+    expect(fieldsOf(model)).toEqual({
+      thinkingLevel: { path: thinkingLevelPath, levels: ["low", "medium", "high"] },
+    })
+  })
+
+  it("offers nothing for a model that left the catalog", () => {
+    expect(describeModelOptionFields(undefined)).toEqual({})
+  })
+})
+
+describe("readModelOption and writeModelOption", () => {
+  const path = ["providerOptions", "vertex", "thinkingConfig", "thinkingLevel"]
+  const options = {
+    temperature: 1,
+    providerOptions: {
+      vertex: { thinkingConfig: { thinkingLevel: "medium", includeThoughts: true } },
+    },
+  }
+
+  it("reads a nested option, and nothing on a missing path", () => {
+    expect(readModelOption(options, path)).toBe("medium")
+    expect(readModelOption(options, ["temperature"])).toBe(1)
+    expect(readModelOption({}, path)).toBeUndefined()
+    expect(readModelOption(null, ["temperature"])).toBeUndefined()
+  })
+
+  it("writes a nested option on a copy, keeping its siblings", () => {
+    const written = writeModelOption(options, path, "high")
+
+    expect(written).toEqual({
+      temperature: 1,
+      providerOptions: {
+        vertex: { thinkingConfig: { thinkingLevel: "high", includeThoughts: true } },
+      },
+    })
+    expect(readModelOption(options, path)).toBe("medium")
+  })
+
+  it("creates the path when the options have none", () => {
+    expect(writeModelOption(null, ["temperature"], 0.5)).toEqual({ temperature: 0.5 })
+  })
+})
+
+describe("findModelOptionValue", () => {
+  const options = {
+    temperature: 0.3,
+    providerOptions: {
+      vertex: { thinkingConfig: { thinkingLevel: "low", includeThoughts: true } },
+    },
+  }
+
+  it("finds an option at the top level or nested by the provider", () => {
+    expect(findModelOptionValue(options, "temperature")).toBe(0.3)
+    expect(findModelOptionValue(options, "thinkingLevel")).toBe("low")
+  })
+
+  it("finds nothing in options that lack it, or in no options at all", () => {
+    expect(findModelOptionValue({ temperature: 0 }, "thinkingLevel")).toBeUndefined()
+    expect(findModelOptionValue(null, "temperature")).toBeUndefined()
   })
 })
 

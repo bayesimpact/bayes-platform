@@ -203,21 +203,30 @@ export class AgentSettingsController {
     const connectScope = getRequiredConnectScope(request)
     const agentId = request.agent.id
 
-    // Keeping the current model is always allowed, even when the project lost access to it.
-    if (payload.model !== undefined) {
+    const fieldsToUpdate = { ...payload }
+    if (payload.model !== undefined || payload.providerOptions !== undefined) {
       const current = await this.agentSettingsService.getLast({
         connectScope,
         agentId,
         includesDraft: true,
       })
-      if (current.model !== payload.model)
-        await this.agentModelsService.assertSelectable({ connectScope, model: payload.model })
+      const model = payload.model ?? current.model
+      const modelChanges = payload.model !== undefined && payload.model !== current.model
+      // Keeping the current model is always allowed, even when the project lost access to it.
+      if (modelChanges) await this.agentModelsService.assertSelectable({ connectScope, model })
+      // New options are checked against the model; a new model without options starts on its
+      // defaults, since the options of the previous one may not fit it.
+      if (payload.providerOptions !== undefined || modelChanges)
+        fieldsToUpdate.providerOptions = this.agentModelsService.resolveModelOptions({
+          model,
+          providerOptions: payload.providerOptions,
+        })
     }
 
     const updated = await this.agentSettingsService.updateAllSettings({
       connectScope,
       agentId,
-      fieldsToUpdate: payload,
+      fieldsToUpdate,
     })
     if (!updated) {
       throw new UnprocessableEntityException(
@@ -326,10 +335,8 @@ function toAgentSettingsDto({
     projectAgentSessionCategoryIds,
     resourceLibraryIds,
     revision: agentSettings.revision,
-    deletedTemperature: Number(agentSettings.deletedTemperature),
     providerOptions: agentSettings.providerOptions,
     updatedAt: agentSettings.updatedAt.getTime(),
     usedProjectAgentSessionCategoryIds,
-    deletedThinkingLevel: agentSettings.deletedThinkingLevel,
   }
 }

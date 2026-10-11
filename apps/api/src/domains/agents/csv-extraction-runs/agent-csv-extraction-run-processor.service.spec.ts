@@ -58,7 +58,7 @@ describe("AgentCsvExtractionRunProcessorService", () => {
 
   const seedExtractionRunRecord = async (options?: {
     recordStatus?: "running" | "success"
-    providerOptions?: Record<string, unknown> | null
+    providerOptions?: Record<string, unknown>
   }) => {
     const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
       repositories,
@@ -67,7 +67,7 @@ describe("AgentCsvExtractionRunProcessorService", () => {
         agentSettings: {
           instructions: "Extract the full name.",
           outputJsonSchema: { type: "object", properties: { fullName: { type: "string" } } },
-          providerOptions: options?.providerOptions ?? null,
+          providerOptions: options?.providerOptions ?? {},
         },
       },
     )

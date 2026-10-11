@@ -19,6 +19,75 @@ export const defaultAgentModels: AgentModelsCatalog["defaults"] = {
 
 const ALWAYS_SELECTABLE_PROVIDERS = [AgentProvider.Vertex, AgentProvider.Vertex3]
 
+const JSON_SCHEMA_DRAFT = "https://json-schema.org/draft/2020-12/schema"
+const TEMPERATURE_SCHEMA = { type: "number", minimum: 0, maximum: 2 }
+const ALL_THINKING_LEVELS = ["minimal", "low", "medium", "high"]
+
+/** The options of a model that only takes a temperature, as the API's JSON Schema renders them. */
+const temperatureOnlyOptions = {
+  optionsSchema: {
+    $schema: JSON_SCHEMA_DRAFT,
+    type: "object",
+    properties: { temperature: TEMPERATURE_SCHEMA },
+    required: ["temperature"],
+    additionalProperties: false,
+  },
+  defaultOptions: { temperature: 0 },
+}
+
+/** The options of a Gemini 3.x model: a thinking level, and a temperature for the oldest ones. */
+function vertex3Options({
+  temperature,
+  levels,
+  defaultLevel,
+}: {
+  temperature?: number
+  levels: string[]
+  defaultLevel: string
+}) {
+  const vertex = {
+    type: "object",
+    properties: {
+      sharedRequestType: { type: "string", enum: ["priority", "flex"] },
+      thinkingConfig: {
+        type: "object",
+        properties: {
+          thinkingLevel: { type: "string", enum: levels },
+          includeThoughts: { type: "boolean" },
+        },
+        required: ["thinkingLevel", "includeThoughts"],
+        additionalProperties: false,
+      },
+    },
+    required: ["thinkingConfig"],
+    additionalProperties: false,
+  }
+  const providerOptions = {
+    type: "object",
+    properties: { vertex },
+    required: ["vertex"],
+    additionalProperties: false,
+  }
+  return {
+    optionsSchema: {
+      $schema: JSON_SCHEMA_DRAFT,
+      type: "object",
+      properties: {
+        ...(temperature !== undefined ? { temperature: TEMPERATURE_SCHEMA } : {}),
+        providerOptions,
+      },
+      required: [...(temperature !== undefined ? ["temperature"] : []), "providerOptions"],
+      additionalProperties: false,
+    },
+    defaultOptions: {
+      ...(temperature !== undefined ? { temperature } : {}),
+      providerOptions: {
+        vertex: { thinkingConfig: { thinkingLevel: defaultLevel, includeThoughts: true } },
+      },
+    },
+  }
+}
+
 /** The catalog of the API, model by model (the test model is never listed). */
 const CATALOG: Omit<AgentModelEntry, "selectable">[] = [
   {
@@ -29,57 +98,74 @@ const CATALOG: Omit<AgentModelEntry, "selectable">[] = [
       recommendedReplacement: AgentModel.Gemini35FlashLite,
     },
     servedOutsideEu: false,
-    optionsSchema: { type: "object" },
-    defaultOptions: { temperature: 0 },
+    ...temperatureOnlyOptions,
   },
   {
     model: AgentModel.Gemini25Pro,
     provider: AgentProvider.Vertex,
     deprecation: { deprecatedOn: "2026-09-30", recommendedReplacement: AgentModel.Gemini35Flash },
     servedOutsideEu: false,
-    optionsSchema: { type: "object" },
-    defaultOptions: { temperature: 0 },
+    ...temperatureOnlyOptions,
   },
   ...[
-    AgentModel.Gemini31FlashLite,
-    AgentModel.Gemini35FlashLite,
-    AgentModel.Gemini35Flash,
-    AgentModel.Gemini36Flash,
-    AgentModel.Gemini37Flash,
-    AgentModel.Gemini38Flash,
-  ].map((model) => ({
-    model,
+    {
+      model: AgentModel.Gemini31FlashLite,
+      ...vertex3Options({ temperature: 1, levels: ALL_THINKING_LEVELS, defaultLevel: "minimal" }),
+    },
+    {
+      model: AgentModel.Gemini35FlashLite,
+      ...vertex3Options({ levels: ALL_THINKING_LEVELS, defaultLevel: "minimal" }),
+    },
+    {
+      model: AgentModel.Gemini35Flash,
+      ...vertex3Options({ temperature: 1, levels: ALL_THINKING_LEVELS, defaultLevel: "medium" }),
+    },
+    {
+      model: AgentModel.Gemini36Flash,
+      ...vertex3Options({ levels: ALL_THINKING_LEVELS, defaultLevel: "medium" }),
+    },
+    // Minimal was removed from 3.7 and up.
+    {
+      model: AgentModel.Gemini37Flash,
+      ...vertex3Options({ levels: ["low", "medium", "high"], defaultLevel: "medium" }),
+    },
+    {
+      model: AgentModel.Gemini38Flash,
+      ...vertex3Options({ levels: ["low", "medium", "high"], defaultLevel: "medium" }),
+    },
+  ].map((entry) => ({
+    ...entry,
     provider: AgentProvider.Vertex3,
     deprecation: null,
     servedOutsideEu: false,
-    optionsSchema: { type: "object" },
-    defaultOptions: {},
   })),
   {
     model: AgentModel.MedGemma10_27B,
     provider: AgentProvider.MedGemma,
     deprecation: null,
     servedOutsideEu: false,
-    optionsSchema: { type: "object" },
-    defaultOptions: { temperature: 0 },
+    ...temperatureOnlyOptions,
   },
   {
     model: AgentModel.Gemma4_26B,
     provider: AgentProvider.Gemma,
     deprecation: null,
     servedOutsideEu: false,
-    optionsSchema: { type: "object" },
-    defaultOptions: { temperature: 0 },
+    ...temperatureOnlyOptions,
   },
   {
     model: AgentModel.MistralSmall31_24B,
     provider: AgentProvider.Mistral,
     deprecation: null,
     servedOutsideEu: false,
-    optionsSchema: { type: "object" },
-    defaultOptions: { temperature: 0 },
+    ...temperatureOnlyOptions,
   },
 ]
+
+/** The default options of a model, as the API sends them. */
+function catalogDefaultOptions(model: string): Record<string, unknown> {
+  return CATALOG.find((entry) => entry.model === model)?.defaultOptions ?? {}
+}
 
 type AgentModelsCatalogTransientParams = {
   /** Providers the project may pick on top of the Vertex ones (its feature flags). */
@@ -168,11 +254,11 @@ export const agentSettingsFactory = AgentSettingsFactory.define(({ params, trans
     locale: params.locale ?? AgentLocale.EN,
     model: params.model ?? defaultAgentModels.agent,
     projectAgentSessionCategoryIds: params.projectAgentSessionCategoryIds ?? [],
-    deletedTemperature: params.deletedTemperature ?? 0.7,
-    providerOptions: params.providerOptions ?? null,
+    providerOptions:
+      (params.providerOptions as Record<string, unknown> | undefined) ??
+      catalogDefaultOptions(params.model ?? defaultAgentModels.agent),
     updatedAt: params.updatedAt ?? faker.date.recent().getTime(),
     usedProjectAgentSessionCategoryIds: params.usedProjectAgentSessionCategoryIds ?? [],
     mcpServers: params.mcpServers ?? [],
-    deletedThinkingLevel: params.deletedThinkingLevel ?? "auto",
   } satisfies AgentSettings
 })

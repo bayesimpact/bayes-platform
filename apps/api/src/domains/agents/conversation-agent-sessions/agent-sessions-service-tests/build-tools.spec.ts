@@ -193,6 +193,7 @@ describe("buildTools", () => {
         instructions: "Answer benefits questions",
         model: testAgentSettings.model,
         deletedTemperature: testAgentSettings.deletedTemperature,
+        providerOptions: testAgentSettings.providerOptions,
         locale: testAgentSettings.locale,
         documentsRagMode: DocumentsRagMode.None,
         revision: 1,

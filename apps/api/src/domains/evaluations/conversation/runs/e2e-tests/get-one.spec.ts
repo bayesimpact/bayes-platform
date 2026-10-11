@@ -121,7 +121,7 @@ describe("EvaluationConversationRuns - getOne", () => {
       locale: agentSettings.locale,
       model: agentSettings.model,
       revision: agentSettings.revision,
-      deletedTemperature: Number(agentSettings.deletedTemperature),
+      providerOptions: agentSettings.providerOptions,
     })
   })
 
