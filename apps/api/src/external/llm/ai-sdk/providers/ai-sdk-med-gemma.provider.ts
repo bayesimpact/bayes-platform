@@ -6,7 +6,11 @@ import { Injectable, NotImplementedException } from "@nestjs/common"
 import { z } from "zod"
 import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"
 import { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
-import { defineModelOptions, type ModelOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
+import {
+  defineModelOptions,
+  type ModelMetadata,
+  type ModelOptions,
+} from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
 import { AISDKVllmProviderBase } from "@/external/llm/ai-sdk/providers/ai-sdk-vllm-provider-base"
 import { CustomMedGemmaLanguageModel } from "@/external/llm/ai-sdk/providers/medgemma/custom-med-gemma-language-model"
 
@@ -24,6 +28,9 @@ export class AISDKMedGemmaProvider extends AISDKVllmProviderBase<AgentProvider.M
     [AgentModel.MedGemma10_27B]: defineModelOptions(z.object({ temperature: z.number() }), {
       temperature: 0,
     }),
+  }
+  protected readonly modelMetadata: Record<MedGemmaAgentModel, ModelMetadata> = {
+    [AgentModel.MedGemma10_27B]: {},
   }
   /** MedGemma uses a different API depending on the call. */
   override getLanguageModel({

@@ -1,4 +1,4 @@
-import { AgentModel, AgentThinkingLevel } from "@caseai-connect/api-contracts"
+import { AgentModel } from "@caseai-connect/api-contracts"
 import { type JSONSchema7, tool } from "ai"
 import { z } from "zod"
 import type {
@@ -43,7 +43,6 @@ describe("AISDKLLMBuilders", () => {
     modelOptions: { temperature: 0 },
     systemPrompt: "You are a helpful assistant.",
     serviceTier: undefined,
-    thinkingLevel: AgentThinkingLevel.Auto,
   }
 
   const metadata: LLMMetadata = {
@@ -145,7 +144,6 @@ describe("AISDKLLMBuilders", () => {
         outputSchema: JSON.stringify(schema),
         availableTools: JSON.stringify(tools),
         spanLabel: "classification",
-        thinkingLevel: AgentThinkingLevel.Auto,
       })
     })
 
@@ -159,7 +157,6 @@ describe("AISDKLLMBuilders", () => {
         tags: ["metadata-tag"],
         currentTurn: 2,
         revision: 3,
-        thinkingLevel: AgentThinkingLevel.Auto,
       })
     })
   })

@@ -1,5 +1,9 @@
-import { AgentModel, DEFAULT_AGENT_MODEL } from "@caseai-connect/api-contracts"
+import { AgentModel } from "@caseai-connect/api-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
+import {
+  agentModelsCatalogFactory,
+  defaultAgentModels,
+} from "@/common/features/agents/agent-settings/agent-settings.factory"
 import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"
 import type { IAgentSettingsSpi } from "@/common/features/agents/agent-settings/agent-settings.spi"
 import type { Agent } from "@/common/features/agents/agents.models"
@@ -67,6 +71,7 @@ function buildMockAgentsService(agents: Agent[]): IAgentsSpi {
 }
 function buildMockAgentSettingsService(agentSettingsHistory: AgentSettings[]): IAgentSettingsSpi {
   return {
+    getAvailableModels: async () => agentModelsCatalogFactory.build(),
     getAll: async () => agentSettingsHistory,
     getFillFormOutputJsonSchema: async ({ revision }) =>
       agentSettingsHistory.find((agentSettings) => agentSettings.revision === revision)
@@ -123,7 +128,7 @@ export const ConversationAgent: Story = {
           name: "Helpful Assistant",
           revision: 3,
           isDraft: !!withDraft,
-          model: withDeprecatedModel ? AgentModel.Gemini25Flash : DEFAULT_AGENT_MODEL,
+          model: withDeprecatedModel ? AgentModel.Gemini25Flash : defaultAgentModels.agent,
           priorityCallsEnabled: !!withPriorityCalls,
         } as AgentSettings
         const childAgents = rawChildAgents.map((agent, index) => ({

@@ -5,7 +5,7 @@ import type {
   LanguageModelV3GenerateResult,
   LanguageModelV3StreamPart,
 } from "@ai-sdk/provider"
-import { AgentModel, AgentProvider, AgentThinkingLevel } from "@caseai-connect/api-contracts"
+import { AgentModel, AgentProvider } from "@caseai-connect/api-contracts"
 import { type Span, trace } from "@opentelemetry/api"
 import { simulateReadableStream } from "ai"
 import { MockLanguageModelV3 } from "ai/test"
@@ -25,6 +25,7 @@ import {
 import {
   AISDKLLMModelMgmt,
   defineModelOptions,
+  type ModelMetadata,
   type ModelOptions,
   type RepeatedStepTextFilter,
   type StreamPartLike,
@@ -57,7 +58,6 @@ const mockConfig: LLMConfig = {
   modelOptions: { temperature: 0 },
   systemPrompt: "",
   serviceTier: undefined,
-  thinkingLevel: AgentThinkingLevel.Auto,
 }
 
 const mockMetadata: LLMMetadata = {
@@ -72,6 +72,9 @@ const mockMetadata: LLMMetadata = {
 }
 
 class TestModelMgmt extends AISDKLLMModelMgmt<AgentProvider._Mock> {
+  protected readonly modelMetadata: Record<AgentModel._Mock, ModelMetadata> = {
+    [AgentModel._Mock]: {},
+  }
   protected readonly modelOptions: Record<AgentModel._Mock, ModelOptions> = {
     [AgentModel._Mock]: defineModelOptions(z.object({ temperature: z.number() }), {
       temperature: 0,

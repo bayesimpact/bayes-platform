@@ -11,7 +11,7 @@ export type AgentSettingsCreateFields = Pick<
       | "greetingMessage"
       | "fillFormEnabled"
       | "priorityCallsEnabled"
-      | "thinkingLevel"
+      | "deletedThinkingLevel"
     >
   >
 
@@ -27,6 +27,6 @@ export type AgentSettingsUpdateFields = Partial<
     | "outputJsonSchema"
     | "fillFormEnabled"
     | "priorityCallsEnabled"
-    | "thinkingLevel"
+    | "deletedThinkingLevel"
   >
 >

@@ -3,7 +3,7 @@ import type {
   LanguageModelV3GenerateResult,
   LanguageModelV3StreamPart,
 } from "@ai-sdk/provider"
-import { AgentModel, AgentThinkingLevel } from "@caseai-connect/api-contracts"
+import { AgentModel } from "@caseai-connect/api-contracts"
 import type { Logger } from "@nestjs/common"
 import { Test } from "@nestjs/testing"
 import {
@@ -178,7 +178,6 @@ const baseConfig: LLMConfig = {
   modelOptions: { temperature: 0 },
   systemPrompt: "",
   serviceTier: undefined,
-  thinkingLevel: AgentThinkingLevel.Auto,
 }
 
 function buildCallArgs(model: LanguageModelV3, config: LLMConfig = baseConfig): CallArgs {
@@ -343,7 +342,6 @@ describe("AISDKLLMToolsMgmt", () => {
               execute: async (input) => execute(input),
             }),
           },
-          thinkingLevel: AgentThinkingLevel.Auto,
         }) as LLMConfig
 
       const streamAll = async (config: LLMConfig) => {
@@ -646,7 +644,6 @@ describe("AISDKLLMToolsMgmt", () => {
               execute: async (input) => execute(input),
             }),
           },
-          thinkingLevel: AgentThinkingLevel.Auto,
         }) as LLMConfig
 
       const streamAll = async (config: LLMConfig) => {

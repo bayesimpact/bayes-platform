@@ -26,6 +26,7 @@ import {
   formatAgentModelLabel,
   isPriorityCallsAvailable,
 } from "@/common/features/agents/agent-model.helpers"
+import { selectAvailableModelsData } from "@/common/features/agents/agent-settings/agent-settings.selectors"
 import { updateAgentSettingsModel } from "@/common/features/agents/agent-settings/agent-settings.thunks"
 import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
 import { useFeatureFlags } from "@/common/hooks/use-feature-flags"
@@ -42,7 +43,8 @@ export function ModelTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
   const dispatch = useAppDispatch()
   const project = useValue(selectCurrentProjectData)
   const { hasFeature } = useFeatureFlags(project)
-  const models = buildAgentModelOptions(hasFeature)
+  const catalog = useValue(selectAvailableModelsData)
+  const models = buildAgentModelOptions(catalog)
 
   const form = useForm<FormValues>({
     resolver: zodResolver(updateAgentSettingsModelSchema),
@@ -84,7 +86,7 @@ export function ModelTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
                   <SelectContent>
                     {models.map((model) => (
                       <SelectItem key={model} value={model}>
-                        {formatAgentModelLabel(model, {
+                        {formatAgentModelLabel(model, catalog, {
                           deprecatedSuffix: t("agent:model.deprecatedSuffix"),
                           nonEuSuffix: t("agent:model.nonEuSuffix"),
                         })}

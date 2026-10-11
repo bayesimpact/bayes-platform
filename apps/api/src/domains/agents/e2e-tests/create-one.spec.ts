@@ -76,6 +76,39 @@ describe("Agents - createOne", () => {
       request: payload,
     })
 
+  const enableFeatureFlag = async (featureFlagKey: string) => {
+    await repositories.featureFlagRepository.save(
+      repositories.featureFlagRepository.create({ projectId, featureFlagKey, enabled: true }),
+    )
+  }
+
+  const gemmaAgentPayload: typeof AgentsRoutes.createOne.request = {
+    payload: {
+      type: "conversation",
+      name: "New Agent",
+      instructions: "This is a default prompt",
+      documentsRagMode: DocumentsRagMode.All,
+      model: AgentModel.Gemma4_26B,
+      deletedTemperature: 0,
+      locale: AgentLocale.EN,
+      tagsToAdd: [],
+      projectAgentSessionCategoryIds: [],
+    },
+  }
+
+  it("rejects a model behind a feature flag the project lacks", async () => {
+    await createContext()
+
+    expectResponse(await subject(gemmaAgentPayload), 400)
+  })
+
+  it("accepts a flagged provider's model once the project has its flag", async () => {
+    await createContext()
+    await enableFeatureFlag("gemma")
+
+    expectResponse(await subject(gemmaAgentPayload), 201)
+  })
+
   it("should create an agent and return it", async () => {
     await createContext()
 

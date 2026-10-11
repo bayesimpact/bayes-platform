@@ -1,7 +1,6 @@
 import { readFile } from "node:fs/promises"
 import { join } from "node:path"
 import { tool } from "@ai-sdk/provider-utils"
-import { AgentThinkingLevel } from "@caseai-connect/api-contracts"
 import type { FilePart, ImagePart, ToolSet } from "ai"
 import { v4 } from "uuid"
 import { z } from "zod"
@@ -26,6 +25,20 @@ export class ProviderSpecs {
     "You're a chat bot named Elvis. Your goal is to answer to the user with the knowledge you have"
   private static temperature = 0
 
+  /** The test temperature, with the thinking level the spec asks for (the model's default when none). */
+  private static modelOptions(thinkingLevel?: string) {
+    return {
+      temperature: ProviderSpecs.temperature,
+      ...(thinkingLevel && thinkingLevel !== "auto"
+        ? {
+            providerOptions: {
+              vertex: { thinkingConfig: { thinkingLevel, includeThoughts: true } },
+            },
+          }
+        : {}),
+    }
+  }
+
   private static getMetadata(): LLMMetadata {
     return {
       agentId: "agentId",
@@ -48,16 +61,15 @@ export class ProviderSpecs {
     provider: LLMProvider
     model: string
     serviceTier?: LLMServiceTier
-    thinkingLevel?: AgentThinkingLevel
+    thinkingLevel?: string
   }): Promise<void> {
     const metadata = ProviderSpecs.getMetadata()
     const prompt = "What's your name?"
     const config = {
       model,
-      modelOptions: { temperature: ProviderSpecs.temperature },
+      modelOptions: ProviderSpecs.modelOptions(thinkingLevel),
       systemPrompt: ProviderSpecs.systemPrompt,
       serviceTier,
-      thinkingLevel: thinkingLevel || AgentThinkingLevel.Auto,
     }
     const result = await provider.generateText({ prompt, config, metadata })
     expect(result).toBeDefined()
@@ -72,16 +84,15 @@ export class ProviderSpecs {
     provider: LLMProvider
     model: string
     serviceTier?: LLMServiceTier
-    thinkingLevel?: AgentThinkingLevel
+    thinkingLevel?: string
   }): Promise<void> {
     const metadata = ProviderSpecs.getMetadata()
     const messages: LLMChatMessage[] = [{ role: "user", content: "What can you do for me?" }]
     const config = {
       model,
-      modelOptions: { temperature: ProviderSpecs.temperature },
+      modelOptions: ProviderSpecs.modelOptions(thinkingLevel),
       systemPrompt: ProviderSpecs.systemPrompt,
       serviceTier,
-      thinkingLevel: thinkingLevel || AgentThinkingLevel.Auto,
     }
     const stream = provider.streamChatResponse({ messages, config, metadata })
     const results = await ProviderSpecs.streamToStringArray(stream)
@@ -100,7 +111,7 @@ export class ProviderSpecs {
     model: string
     advancedExpectation: boolean
     serviceTier?: LLMServiceTier
-    thinkingLevel?: AgentThinkingLevel
+    thinkingLevel?: string
   }) {
     const prompt = `##Instructions:
     Your main task is to help the user fill out the form by asking questions and providing guidance.
@@ -160,11 +171,10 @@ export class ProviderSpecs {
     })
     const config = {
       model,
-      modelOptions: { temperature: ProviderSpecs.temperature },
+      modelOptions: ProviderSpecs.modelOptions(thinkingLevel),
       systemPrompt: prompt,
       tools: { fillForm: fillFormTool } as ToolSet,
       serviceTier,
-      thinkingLevel: thinkingLevel || AgentThinkingLevel.Auto,
     }
     const chatMessages: LLMChatMessage[] = [{ role: "user", content: "Hello" }]
     const metadata = ProviderSpecs.getMetadata()
@@ -257,7 +267,7 @@ export class ProviderSpecs {
     model: string
     advancedExpectation: boolean
     serviceTier?: LLMServiceTier
-    thinkingLevel?: AgentThinkingLevel
+    thinkingLevel?: string
   }): Promise<void> {
     const prompt = `##Instructions:
     Your main task is to help the user fill out the form by asking questions and providing guidance.
@@ -318,11 +328,10 @@ export class ProviderSpecs {
     })
     const config = {
       model,
-      modelOptions: { temperature: ProviderSpecs.temperature },
+      modelOptions: ProviderSpecs.modelOptions(thinkingLevel),
       systemPrompt: prompt,
       tools: { fillForm: fillFormTool } as ToolSet,
       serviceTier,
-      thinkingLevel: thinkingLevel || AgentThinkingLevel.Auto,
     }
     const chatMessages: LLMChatMessage[] = [{ role: "user", content: "Hello" }]
     const metadata = ProviderSpecs.getMetadata()
@@ -415,7 +424,7 @@ export class ProviderSpecs {
     model: string
     advancedExpectation: boolean
     serviceTier?: LLMServiceTier
-    thinkingLevel?: AgentThinkingLevel
+    thinkingLevel?: string
   }): Promise<void> {
     const prompt = `Today's date: 2026-04-01 (Date format YYYY-MM-DD)
 
@@ -451,11 +460,10 @@ Always answer in English.`
     })
     const config = {
       model,
-      modelOptions: { temperature: ProviderSpecs.temperature },
+      modelOptions: ProviderSpecs.modelOptions(thinkingLevel),
       systemPrompt: prompt,
       tools: { lookup_knowledge_base: lookupKnowledgeBaseTool } as ToolSet,
       serviceTier,
-      thinkingLevel: thinkingLevel || AgentThinkingLevel.Auto,
     }
     const chatMessages: LLMChatMessage[] = [
       { role: "user", content: "C'est combien de deplacement en plus la charge" },
@@ -513,7 +521,7 @@ Always answer in English.`
     model: string
     advancedExpectation: boolean
     serviceTier?: LLMServiceTier
-    thinkingLevel?: AgentThinkingLevel
+    thinkingLevel?: string
   }): Promise<void> {
     const prompt = `Today's date: 2026-04-01 (Date format YYYY-MM-DD)
 
@@ -574,7 +582,7 @@ Always answer in English.`
     })
     const config = {
       model,
-      modelOptions: { temperature: ProviderSpecs.temperature },
+      modelOptions: ProviderSpecs.modelOptions(thinkingLevel),
       systemPrompt: prompt,
       tools: {
         lookup_knowledge_base: lookupKnowledgeBaseTool,
@@ -582,7 +590,6 @@ Always answer in English.`
         getUnitPrice: getUnitPriceTool,
       } as ToolSet,
       serviceTier,
-      thinkingLevel: thinkingLevel || AgentThinkingLevel.Auto,
     }
     const chatMessages: LLMChatMessage[] = [
       {
@@ -660,7 +667,7 @@ Always answer in English.`
     provider: LLMProvider
     model: string
     serviceTier?: LLMServiceTier
-    thinkingLevel?: AgentThinkingLevel
+    thinkingLevel?: string
   }) {
     const prompt = `From the file, get the expected values and replace the phone number by 007.
 DO NOT HALLUCINATE VALUES, return only values that you find in the file; if no values then return undefined`
@@ -695,10 +702,9 @@ DO NOT HALLUCINATE VALUES, return only values that you find in the file; if no v
     }
     const config = {
       model,
-      modelOptions: { temperature: ProviderSpecs.temperature },
+      modelOptions: ProviderSpecs.modelOptions(thinkingLevel),
       systemPrompt: ProviderSpecs.systemPrompt,
       serviceTier,
-      thinkingLevel: thinkingLevel || AgentThinkingLevel.Auto,
     }
     const result = await provider.generateStructuredOutput({
       message,
@@ -722,7 +728,7 @@ DO NOT HALLUCINATE VALUES, return only values that you find in the file; if no v
     provider: LLMProvider
     model: string
     serviceTier?: LLMServiceTier
-    thinkingLevel?: AgentThinkingLevel
+    thinkingLevel?: string
   }): Promise<void> {
     const prompt = `From the input table, extract each constant name and its value. 
 Output the full list unchanged, except for the constant named ‘Pi’, which must have its value replaced by 0.007.`
@@ -752,10 +758,9 @@ Output the full list unchanged, except for the constant named ‘Pi’, which mu
     }
     const config = {
       model,
-      modelOptions: { temperature: ProviderSpecs.temperature },
+      modelOptions: ProviderSpecs.modelOptions(thinkingLevel),
       systemPrompt: ProviderSpecs.systemPrompt,
       serviceTier,
-      thinkingLevel: thinkingLevel || AgentThinkingLevel.Auto,
     }
     const result = await provider.generateStructuredOutput({
       message,
@@ -784,7 +789,7 @@ Output the full list unchanged, except for the constant named ‘Pi’, which mu
     provider: LLMProvider
     model: string
     serviceTier?: LLMServiceTier
-    thinkingLevel?: AgentThinkingLevel
+    thinkingLevel?: string
   }): Promise<void> {
     const filename = "xray-png.png"
     return await ProviderSpecs.testGenerateStructuredOutputFromXRay({
@@ -805,7 +810,7 @@ Output the full list unchanged, except for the constant named ‘Pi’, which mu
     provider: LLMProvider
     model: string
     serviceTier?: LLMServiceTier
-    thinkingLevel?: AgentThinkingLevel
+    thinkingLevel?: string
   }): Promise<void> {
     const filename = "xray-micro-png.png"
     return await ProviderSpecs.testGenerateStructuredOutputFromXRay({
@@ -826,7 +831,7 @@ Output the full list unchanged, except for the constant named ‘Pi’, which mu
     provider: LLMProvider
     model: string
     serviceTier?: LLMServiceTier
-    thinkingLevel?: AgentThinkingLevel
+    thinkingLevel?: string
   }): Promise<void> {
     const filename = "xray-jpg.jpg"
     return await ProviderSpecs.testGenerateStructuredOutputFromXRay({
@@ -849,7 +854,7 @@ Output the full list unchanged, except for the constant named ‘Pi’, which mu
     model: string
     provider: LLMProvider
     serviceTier: LLMServiceTier
-    thinkingLevel?: AgentThinkingLevel
+    thinkingLevel?: string
   }): Promise<void> {
     const systemPromptFr =
       "Tu es un chat bot nommé Elvis. Ton objectif est de répondre aux utilisateurs en fonction des connaissances dont tu disposes"
@@ -880,10 +885,9 @@ Output the full list unchanged, except for the constant named ‘Pi’, which mu
     }
     const config = {
       model,
-      modelOptions: { temperature: ProviderSpecs.temperature },
+      modelOptions: ProviderSpecs.modelOptions(thinkingLevel),
       systemPrompt: systemPromptFr,
       serviceTier,
-      thinkingLevel: thinkingLevel || AgentThinkingLevel.Auto,
     }
     const result = await provider.generateStructuredOutput({
       message,

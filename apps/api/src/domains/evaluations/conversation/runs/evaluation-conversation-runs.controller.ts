@@ -1,4 +1,5 @@
 import {
+  AgentModel,
   type EvaluationConversationRunAgentSettingsDto,
   type EvaluationConversationRunDto,
   type EvaluationConversationRunRecordDto,
@@ -9,7 +10,9 @@ import {
   Body,
   Controller,
   Delete,
+  forwardRef,
   Get,
+  Inject,
   Logger,
   NotFoundException,
   Post,
@@ -30,6 +33,7 @@ import { AddContext, RequireContext } from "@/common/context/require-context.dec
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
+import { AgentModelsService } from "@/domains/agents/settings/agent-models.service"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
@@ -64,6 +68,8 @@ export class EvaluationConversationRunsController {
     private readonly runStatusStreamService: EvaluationConversationRunStatusStreamService,
     private readonly statusNotifierService: EvaluationConversationRunStatusNotifierService,
     private readonly agentSettingsService: AgentSettingsService,
+    @Inject(forwardRef(() => AgentModelsService))
+    private readonly agentModelsService: AgentModelsService,
   ) {}
 
   @Post(EvaluationConversationRunsRoutes.createOne.path)
@@ -74,6 +80,9 @@ export class EvaluationConversationRunsController {
     @Body() { payload }: typeof EvaluationConversationRunsRoutes.createOne.request,
   ): Promise<typeof EvaluationConversationRunsRoutes.createOne.response> {
     const connectScope = getRequiredConnectScope(request)
+    // An unknown judge model is rejected by the service (422); a known one must be selectable.
+    if (Object.values(AgentModel).includes(payload.judgeModel))
+      await this.agentModelsService.assertSelectable({ connectScope, model: payload.judgeModel })
     const agentSettings = await this.resolveAgentSettings({
       connectScope,
       agentId: payload.agentId,

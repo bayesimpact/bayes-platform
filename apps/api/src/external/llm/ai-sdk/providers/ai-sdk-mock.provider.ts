@@ -12,7 +12,11 @@ import type {
 } from "@/common/interfaces/llm-provider.interface"
 import { generateRandomFromJSONSchema } from "@/common/test/random-generator"
 import { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
-import { defineModelOptions, type ModelOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
+import {
+  defineModelOptions,
+  type ModelMetadata,
+  type ModelOptions,
+} from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
 import { AISDKLLMProviderBase } from "@/external/llm/ai-sdk/ai-sdk-llm-provider-base"
 
 export type MockCall = {
@@ -111,6 +115,9 @@ export class AISDKMockProvider extends AISDKLLMProviderBase<AgentProvider._Mock>
     [AgentModel._Mock]: defineModelOptions(z.object({ temperature: z.number() }), {
       temperature: 0,
     }),
+  }
+  protected readonly modelMetadata: Record<MockAgentModel, ModelMetadata> = {
+    [AgentModel._Mock]: {},
   }
 
   /**

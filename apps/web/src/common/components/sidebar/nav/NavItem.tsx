@@ -5,7 +5,10 @@ import { AlertTriangleIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 import { buildAgentModelDeprecationInterpolation } from "@/common/features/agents/agent-model.helpers"
-import { selectAgentSettingsDataByAgentId } from "@/common/features/agents/agent-settings/agent-settings.selectors"
+import {
+  selectAgentSettingsDataByAgentId,
+  selectAvailableModelsCatalog,
+} from "@/common/features/agents/agent-settings/agent-settings.selectors"
 import { useAppSelector } from "@/common/store/hooks"
 import { isStudioInterface } from "@/studio/routes/helpers"
 import type { MenuItem } from "../types"
@@ -42,7 +45,8 @@ export function AppNavItem({
 function DeprecatedModelIcon({ agentId }: { agentId: string }) {
   const { t } = useTranslation()
   const agentSettings = useAppSelector(selectAgentSettingsDataByAgentId({ agentId }))
-  const interpolation = buildAgentModelDeprecationInterpolation(agentSettings.value?.model)
+  const catalog = useAppSelector(selectAvailableModelsCatalog)
+  const interpolation = buildAgentModelDeprecationInterpolation(agentSettings.value?.model, catalog)
 
   if (!interpolation) return null
 

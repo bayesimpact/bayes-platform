@@ -1,12 +1,15 @@
 import {
   AgentSettingsRoutes,
+  PROJECT_READ_PERMISSION,
   partialUpdateAgentSettingsSchema,
 } from "@caseai-connect/api-contracts"
 import type { AgentSettingsDto } from "@caseai-connect/api-contracts/src/agents/settings/agent-settings.dto"
 import {
   Body,
   Controller,
+  forwardRef,
   Get,
+  Inject,
   NotFoundException,
   Param,
   Patch,
@@ -16,7 +19,10 @@ import {
   UseGuards,
   UsePipes,
 } from "@nestjs/common"
-import type { EndpointRequestWithAgent } from "@/common/context/request.interface"
+import type {
+  EndpointRequestWithAgent,
+  EndpointRequestWithProject,
+} from "@/common/context/request.interface"
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
 import { RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
@@ -25,8 +31,11 @@ import { ZodValidationPipe } from "@/common/zod-validation-pipe"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { AgentGuard } from "@/domains/agents/agent.guard"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
+import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
+import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
 import { UserGuard } from "@/domains/users/user.guard"
 import type { Agent } from "../agent.entity"
+import { AgentModelsService } from "./agent-models.service"
 import type { AgentSettings } from "./agent-settings.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsService } from "./agent-settings.service"
@@ -35,7 +44,28 @@ import { AgentSettingsService } from "./agent-settings.service"
 @RequireContext("organization", "project", "agent")
 @Controller()
 export class AgentSettingsController {
-  constructor(private readonly agentSettingsService: AgentSettingsService) {}
+  constructor(
+    private readonly agentSettingsService: AgentSettingsService,
+    @Inject(forwardRef(() => AgentModelsService))
+    private readonly agentModelsService: AgentModelsService,
+  ) {}
+
+  /**
+   * The model catalog of the project, for any of its agents (and for the judge of an evaluation
+   * run): no agent in the path, so the route requires the project context only.
+   */
+  @Get(AgentSettingsRoutes.getAvailableModels.path)
+  @RequireContext("organization", "project")
+  @UseGuards(CheckPermissionGuard)
+  @CheckPermission(PROJECT_READ_PERMISSION, "project")
+  @CheckPolicy((policy) => policy.canList())
+  async getAvailableModels(
+    @Req() request: EndpointRequestWithProject,
+  ): Promise<typeof AgentSettingsRoutes.getAvailableModels.response> {
+    return {
+      data: await this.agentModelsService.listForProject(getRequiredConnectScope(request)),
+    }
+  }
 
   // History timeline of all revisions for the agent settings, including drafts and published revisions.
   @Get(AgentSettingsRoutes.getAll.path)
@@ -173,6 +203,17 @@ export class AgentSettingsController {
     const connectScope = getRequiredConnectScope(request)
     const agentId = request.agent.id
 
+    // Keeping the current model is always allowed, even when the project lost access to it.
+    if (payload.model !== undefined) {
+      const current = await this.agentSettingsService.getLast({
+        connectScope,
+        agentId,
+        includesDraft: true,
+      })
+      if (current.model !== payload.model)
+        await this.agentModelsService.assertSelectable({ connectScope, model: payload.model })
+    }
+
     const updated = await this.agentSettingsService.updateAllSettings({
       connectScope,
       agentId,
@@ -289,6 +330,6 @@ function toAgentSettingsDto({
     providerOptions: agentSettings.providerOptions,
     updatedAt: agentSettings.updatedAt.getTime(),
     usedProjectAgentSessionCategoryIds,
-    thinkingLevel: agentSettings.thinkingLevel,
+    deletedThinkingLevel: agentSettings.deletedThinkingLevel,
   }
 }

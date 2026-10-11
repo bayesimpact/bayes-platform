@@ -1,26 +1,24 @@
 import { createVertex } from "@ai-sdk/google-vertex"
-import {
-  AgentModel,
-  type AgentModelOf,
-  AgentProvider,
-  AgentThinkingLevel,
-  isAgentModelServedOutsideEu,
-} from "@caseai-connect/api-contracts"
+import { AgentModel, type AgentModelOf, AgentProvider } from "@caseai-connect/api-contracts"
 import { Injectable } from "@nestjs/common"
 import type { LanguageModel } from "ai"
 import { z } from "zod"
 import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"
 import type { SpecificProviderOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-builders"
 import type { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
-import { defineModelOptions, type ModelOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
+import {
+  defineModelOptions,
+  type ModelMetadata,
+  type ModelOptions,
+} from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
 import { AISDKLLMProviderBase } from "@/external/llm/ai-sdk/ai-sdk-llm-provider-base"
 
 type VertexLocation = "eu" | "global"
 
 type Vertex3AgentModel = AgentModelOf<AgentProvider.Vertex3>
 
-/** The thinking levels Gemini accepts: every level but auto, which picks the model's default. */
-type VertexThinkingLevel = Exclude<AgentThinkingLevel, AgentThinkingLevel.Auto>
+/** The thinking levels Gemini accepts. */
+type VertexThinkingLevel = "minimal" | "low" | "medium" | "high"
 
 type Vertex3Model = {
   /**
@@ -49,43 +47,43 @@ export class AISDKVertex3Provider extends AISDKLLMProviderBase<AgentProvider.Ver
 
   /** The thinking levels Gemini accepts, from the lowest to the highest. */
   private readonly thinkingLevels: [VertexThinkingLevel, ...VertexThinkingLevel[]] = [
-    AgentThinkingLevel.Minimal,
-    AgentThinkingLevel.Low,
-    AgentThinkingLevel.Medium,
-    AgentThinkingLevel.High,
+    "minimal",
+    "low",
+    "medium",
+    "high",
   ]
 
   private readonly vertex3Models: Record<Vertex3AgentModel, Vertex3Model> = {
     [AgentModel.Gemini31FlashLite]: {
       canSetTemperature: true,
-      defaultLevel: AgentThinkingLevel.Minimal,
+      defaultLevel: "minimal",
       levels: [...this.thinkingLevels],
     },
     [AgentModel.Gemini35FlashLite]: {
       canSetTemperature: false,
-      defaultLevel: AgentThinkingLevel.Minimal,
+      defaultLevel: "minimal",
       levels: [...this.thinkingLevels],
     },
     [AgentModel.Gemini35Flash]: {
       canSetTemperature: true,
-      defaultLevel: AgentThinkingLevel.Medium,
+      defaultLevel: "medium",
       levels: [...this.thinkingLevels],
     },
     [AgentModel.Gemini36Flash]: {
       canSetTemperature: false,
-      defaultLevel: AgentThinkingLevel.Medium,
+      defaultLevel: "medium",
       levels: [...this.thinkingLevels],
     },
     // Minimal was removed from 3.7 and up.
     [AgentModel.Gemini37Flash]: {
       canSetTemperature: false,
-      defaultLevel: AgentThinkingLevel.Medium,
-      levels: [AgentThinkingLevel.Low, AgentThinkingLevel.Medium, AgentThinkingLevel.High],
+      defaultLevel: "medium",
+      levels: ["low", "medium", "high"],
     },
     [AgentModel.Gemini38Flash]: {
       canSetTemperature: false,
-      defaultLevel: AgentThinkingLevel.Medium,
-      levels: [AgentThinkingLevel.Low, AgentThinkingLevel.Medium, AgentThinkingLevel.High],
+      defaultLevel: "medium",
+      levels: ["low", "medium", "high"],
     },
   }
 
@@ -167,18 +165,27 @@ export class AISDKVertex3Provider extends AISDKLLMProviderBase<AgentProvider.Ver
   }
 
   /**
-   * A model flagged `servedOutsideEu` in `AgentModelMetadataMap` is not served on the EU
-   * regional endpoint (aiplatform.eu.rep.googleapis.com) and can only run through the "global"
-   * endpoint, which does NOT guarantee EU data processing. Every other model stays on "eu"
-   * (data residency).
-   *
-   * No model carries the flag since the 2026-09-04 probe: every Gemini 3.x flash and flash-lite
-   * in the catalog answers on "eu" (3.6-flash was global-only at the 2026-07-30 probe). The same
-   * catalog entry drives the "(non-EU)" label in the model pickers, so when a new model ships
-   * global-only, set the flag there and routing and label follow together.
+   * No model is served outside the EU since the 2026-09-04 probe: every Gemini 3.x flash and
+   * flash-lite answers on "eu" (3.6-flash was global-only at the 2026-07-30 probe). When a new
+   * model ships global-only, set `servedOutsideEu` here: the routing and the "(non-EU)" label of
+   * the model pickers follow together.
+   */
+  protected readonly modelMetadata: Record<Vertex3AgentModel, ModelMetadata> = {
+    [AgentModel.Gemini31FlashLite]: {},
+    [AgentModel.Gemini35FlashLite]: {},
+    [AgentModel.Gemini35Flash]: {},
+    [AgentModel.Gemini36Flash]: {},
+    [AgentModel.Gemini37Flash]: {},
+    [AgentModel.Gemini38Flash]: {},
+  }
+
+  /**
+   * A model flagged `servedOutsideEu` is not served on the EU regional endpoint
+   * (aiplatform.eu.rep.googleapis.com) and can only run through the "global" endpoint, which does
+   * NOT guarantee EU data processing. Every other model stays on "eu" (data residency).
    */
   private locationForModel(model: string): VertexLocation {
-    return isAgentModelServedOutsideEu(model) ? "global" : "eu"
+    return this.modelMetadata[this.toProviderAgentModel(model)].servedOutsideEu ? "global" : "eu"
   }
 
   getLanguageModel({ config }: { config: LLMConfig; callOrigin: CallOrigin }): LanguageModel {
@@ -189,10 +196,7 @@ export class AISDKVertex3Provider extends AISDKLLMProviderBase<AgentProvider.Ver
     return provider(config.model)
   }
 
-  /**
-   * The model's options with the temperature (for a model whose agent can still set
-   * one), the service tier and the thinking level the agent configured.
-   */
+  /** The model's options with the service tier of the call. */
   protected override applyConfigToModelOptions({
     config,
     values,
@@ -201,37 +205,25 @@ export class AISDKVertex3Provider extends AISDKLLMProviderBase<AgentProvider.Ver
     values: SpecificProviderOptions
   }): SpecificProviderOptions {
     const { vertex } = values.providerOptions as { vertex: VertexOptions }
-    const thinkingLevel = this.thinkingLevelFor(config)
+    if (!config.serviceTier) return values
     return {
-      ...super.applyConfigToModelOptions({ config, values }),
-      providerOptions: {
-        vertex: {
-          ...vertex,
-          ...(config.serviceTier ? { sharedRequestType: config.serviceTier } : {}),
-          thinkingConfig: { ...vertex.thinkingConfig, ...(thinkingLevel ? { thinkingLevel } : {}) },
-        },
-      },
+      ...values,
+      providerOptions: { vertex: { ...vertex, sharedRequestType: config.serviceTier } },
     }
   }
 
-  /**
-   * The configured thinking level, raised to the next one the model accepts
-   * (minimal was removed from 3.7 and up). None for auto, or no level at all:
-   * the model's default stays.
-   */
-  private thinkingLevelFor(config: LLMConfig): VertexThinkingLevel | undefined {
-    const requestedRank = this.thinkingLevels.indexOf(config.thinkingLevel as VertexThinkingLevel)
-    if (requestedRank === -1) return undefined
-    const { levels } = this.vertex3Models[this.toProviderAgentModel(config.model)]
-    return (
-      levels.find((level) => this.thinkingLevels.indexOf(level) >= requestedRank) ?? levels.at(-1)
-    )
+  /** The thinking level the call asks for: the agent's stored one, or the model's default. */
+  private thinkingLevelTag(config: LLMConfig): string {
+    const stored = (
+      config.modelOptions?.providerOptions as { vertex?: Partial<VertexOptions> } | undefined
+    )?.vertex?.thinkingConfig?.thinkingLevel
+    return stored ?? this.vertex3Models[this.toProviderAgentModel(config.model)].defaultLevel
   }
 
   getTags(config: LLMConfig): string[] {
     const tags = [this.vertexProject, this.locationForModel(config.model), config.model]
     if (config.serviceTier) tags.push(config.serviceTier.toUpperCase())
-    tags.push(config.thinkingLevel.toUpperCase())
+    tags.push(this.thinkingLevelTag(config).toUpperCase())
     return tags
   }
 }

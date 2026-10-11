@@ -304,7 +304,6 @@ async function runSubAgentTool({
       fireAndForgetToolNames,
       priorityCallsEnabled: childAgentSettings.priorityCallsEnabled,
       llmFeatures,
-      thinkingLevel: childAgentSettings.thinkingLevel,
     })
 
     const metadata = buildSubAgentMetadata({

@@ -2,12 +2,14 @@ import { createListenerMiddleware } from "@reduxjs/toolkit"
 import {
   createAgentSettings,
   listAgentSettings,
+  listAvailableModels,
   restoreAgentSettings,
   updateAgentSettings,
 } from "@/common/features/agents/agent-settings/agent-settings.thunks"
 import type { AppDispatch, RootState } from "@/common/store/types"
 import { getCurrentId } from "../../helpers"
 import { notificationsActions } from "../../notifications/notifications.slice"
+import { hasProjectChanged } from "../../projects/projects.selectors"
 import { listAgents } from "../agents.thunks"
 import { agentSettingsActions } from "./agent-settings.slice"
 
@@ -25,6 +27,16 @@ const refresh = ({
 }
 
 function registerListeners() {
+  // The catalog depends on the project's feature flags: reload it when the project changes.
+  listenerMiddleware.startListening({
+    predicate(_, currentState, originalState) {
+      return hasProjectChanged(originalState, currentState)
+    },
+    effect: async (_, listenerApi) => {
+      await listenerApi.dispatch(listAvailableModels())
+    },
+  })
+
   listenerMiddleware.startListening({
     actionCreator: listAgents.fulfilled,
     effect: async (action, listenerApi) => {

@@ -1,6 +1,7 @@
 import type { JSONValue } from "@ai-sdk/provider"
-import type { AgentModel, AgentProvider, AgentThinkingLevel } from "@caseai-connect/api-contracts"
+import type { AgentModel, AgentProvider } from "@caseai-connect/api-contracts"
 import type { ModelMessage, ToolSet } from "ai"
+import type { ZodType } from "zod"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 export type LLMChatMessage = ModelMessage
 
@@ -52,7 +53,6 @@ export type BuildLLMConfigParams = {
   priorityCallsEnabled: boolean
   llmFeatures: LLMFeatures
   useExtendedTimeouts?: boolean
-  thinkingLevel?: AgentThinkingLevel
 }
 export type LLMConfig =
   | {
@@ -64,7 +64,6 @@ export type LLMConfig =
       terminalToolNames?: string[]
       useExtendedTimeouts?: never
       serviceTier: never
-      thinkingLevel: never
     }
   | {
       model: Exclude<string, MockModels>
@@ -92,7 +91,6 @@ export type LLMConfig =
        */
       useExtendedTimeouts?: boolean
       serviceTier: LLMServiceTier
-      thinkingLevel: AgentThinkingLevel
     }
 export type LLMServiceTier = "priority" | "flex" | undefined
 export type LLMMetadata = (
@@ -128,6 +126,15 @@ export type LLMMetadata = (
 
 export interface LLMProvider {
   getAgentProvider(): AgentProvider
+  /** The schema of a model's options, checked on every call. */
+  getModelOptionsSchema(agentModel: AgentModel): ZodType<SpecificProviderOptions>
+  /** A model's options when the call sets none. */
+  getModelOptions(agentModel: AgentModel): SpecificProviderOptions
+  /** What the catalog says of a model (retirement, data residency). */
+  getModelMetadata(agentModel: AgentModel): {
+    deprecation?: { deprecatedOn: string; recommendedReplacement: AgentModel }
+    servedOutsideEu?: boolean
+  }
   streamChatResponse({
     messages,
     config,

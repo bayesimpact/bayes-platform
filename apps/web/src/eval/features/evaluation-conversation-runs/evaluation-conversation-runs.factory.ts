@@ -1,7 +1,9 @@
-import { DEFAULT_AGENT_MODEL } from "@caseai-connect/api-contracts"
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
-import { agentSettingsFactory } from "@/common/features/agents/agent-settings/agent-settings.factory"
+import {
+  agentSettingsFactory,
+  defaultAgentModels,
+} from "@/common/features/agents/agent-settings/agent-settings.factory"
 import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"
 import type { Agent } from "@/common/features/agents/agents.models"
 import type { EvaluationConversationDataset } from "../evaluation-conversation-datasets/evaluation-conversation-datasets.models"
@@ -72,7 +74,7 @@ export const evaluationConversationRunFactory = EvaluationConversationRunFactory
         deletedTemperature:
           params.agentSettings?.deletedTemperature ?? agentSettings.deletedTemperature,
       },
-      judgeModel: params.judgeModel ?? DEFAULT_AGENT_MODEL,
+      judgeModel: params.judgeModel ?? defaultAgentModels.judge,
       judgeInstructions: params.judgeInstructions ?? null,
       status: params.status ?? "completed",
       summary:

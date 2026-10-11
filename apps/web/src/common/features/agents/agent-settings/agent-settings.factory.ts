@@ -1,7 +1,7 @@
 import {
   AgentLocale,
-  AgentThinkingLevel,
-  DEFAULT_AGENT_MODEL,
+  AgentModel,
+  AgentProvider,
   DocumentsRagMode,
   type outputJsonSchemaSchema,
 } from "@caseai-connect/api-contracts"
@@ -9,7 +9,105 @@ import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
 import type { z } from "zod"
 import type { Agent } from "../agents.models"
-import type { AgentSettings } from "./agent-settings.models"
+import type { AgentModelEntry, AgentModelsCatalog, AgentSettings } from "./agent-settings.models"
+
+/** The default models the API returns (a new agent, a new evaluation run's judge). */
+export const defaultAgentModels: AgentModelsCatalog["defaults"] = {
+  agent: AgentModel.Gemini35FlashLite,
+  judge: AgentModel.Gemini35FlashLite,
+}
+
+const ALWAYS_SELECTABLE_PROVIDERS = [AgentProvider.Vertex, AgentProvider.Vertex3]
+
+/** The catalog of the API, model by model (the test model is never listed). */
+const CATALOG: Omit<AgentModelEntry, "selectable">[] = [
+  {
+    model: AgentModel.Gemini25Flash,
+    provider: AgentProvider.Vertex,
+    deprecation: {
+      deprecatedOn: "2026-09-30",
+      recommendedReplacement: AgentModel.Gemini35FlashLite,
+    },
+    servedOutsideEu: false,
+    optionsSchema: { type: "object" },
+    defaultOptions: { temperature: 0 },
+  },
+  {
+    model: AgentModel.Gemini25Pro,
+    provider: AgentProvider.Vertex,
+    deprecation: { deprecatedOn: "2026-09-30", recommendedReplacement: AgentModel.Gemini35Flash },
+    servedOutsideEu: false,
+    optionsSchema: { type: "object" },
+    defaultOptions: { temperature: 0 },
+  },
+  ...[
+    AgentModel.Gemini31FlashLite,
+    AgentModel.Gemini35FlashLite,
+    AgentModel.Gemini35Flash,
+    AgentModel.Gemini36Flash,
+    AgentModel.Gemini37Flash,
+    AgentModel.Gemini38Flash,
+  ].map((model) => ({
+    model,
+    provider: AgentProvider.Vertex3,
+    deprecation: null,
+    servedOutsideEu: false,
+    optionsSchema: { type: "object" },
+    defaultOptions: {},
+  })),
+  {
+    model: AgentModel.MedGemma10_27B,
+    provider: AgentProvider.MedGemma,
+    deprecation: null,
+    servedOutsideEu: false,
+    optionsSchema: { type: "object" },
+    defaultOptions: { temperature: 0 },
+  },
+  {
+    model: AgentModel.Gemma4_26B,
+    provider: AgentProvider.Gemma,
+    deprecation: null,
+    servedOutsideEu: false,
+    optionsSchema: { type: "object" },
+    defaultOptions: { temperature: 0 },
+  },
+  {
+    model: AgentModel.MistralSmall31_24B,
+    provider: AgentProvider.Mistral,
+    deprecation: null,
+    servedOutsideEu: false,
+    optionsSchema: { type: "object" },
+    defaultOptions: { temperature: 0 },
+  },
+]
+
+type AgentModelsCatalogTransientParams = {
+  /** Providers the project may pick on top of the Vertex ones (its feature flags). */
+  flaggedProviders: AgentProvider[]
+}
+
+class AgentModelsCatalogFactory extends Factory<
+  AgentModelsCatalog,
+  AgentModelsCatalogTransientParams
+> {}
+
+export const agentModelsCatalogFactory = AgentModelsCatalogFactory.define(
+  ({ params, transientParams }) => {
+    const selectableProviders = [
+      ...ALWAYS_SELECTABLE_PROVIDERS,
+      ...(transientParams.flaggedProviders ?? []),
+    ]
+    return {
+      models:
+        (params.models as AgentModelEntry[] | undefined) ??
+        CATALOG.map((entry) => ({
+          ...entry,
+          selectable: selectableProviders.includes(entry.provider),
+        })),
+      defaults: { ...defaultAgentModels, ...params.defaults },
+    }
+  },
+)
 
 type OutputJsonSchema = z.infer<typeof outputJsonSchemaSchema>
 
@@ -68,13 +166,13 @@ export const agentSettingsFactory = AgentSettingsFactory.define(({ params, trans
     isDraft: !!params.isDraft,
     isArchived: !!params.isArchived,
     locale: params.locale ?? AgentLocale.EN,
-    model: params.model ?? DEFAULT_AGENT_MODEL,
+    model: params.model ?? defaultAgentModels.agent,
     projectAgentSessionCategoryIds: params.projectAgentSessionCategoryIds ?? [],
     deletedTemperature: params.deletedTemperature ?? 0.7,
     providerOptions: params.providerOptions ?? null,
     updatedAt: params.updatedAt ?? faker.date.recent().getTime(),
     usedProjectAgentSessionCategoryIds: params.usedProjectAgentSessionCategoryIds ?? [],
     mcpServers: params.mcpServers ?? [],
-    thinkingLevel: AgentThinkingLevel.Auto,
+    deletedThinkingLevel: params.deletedThinkingLevel ?? "auto",
   } satisfies AgentSettings
 })

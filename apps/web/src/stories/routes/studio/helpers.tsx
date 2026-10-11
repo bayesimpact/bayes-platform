@@ -1,4 +1,6 @@
+import { AgentProvider } from "@caseai-connect/api-contracts"
 import { agentFactory } from "@/common/features/agents/agent.factory"
+import { agentModelsCatalogFactory } from "@/common/features/agents/agent-settings/agent-settings.factory"
 import type { Agent } from "@/common/features/agents/agents.models"
 import {
   agentMembershipFactory,
@@ -33,6 +35,16 @@ export const studioStoryArgTypes = {
   ...baseStoryArgTypes,
   withAgents: { control: "boolean" },
 } as const
+
+/** The providers a project sees through its feature flags (the API gates the same ones). */
+function flaggedProvidersOf(featureFlags: string[]): AgentProvider[] {
+  const providerByFlag: Record<string, AgentProvider> = {
+    medgemma: AgentProvider.MedGemma,
+    gemma: AgentProvider.Gemma,
+    mistral: AgentProvider.Mistral,
+  }
+  return featureFlags.flatMap((flag) => (providerByFlag[flag] ? [providerByFlag[flag]] : []))
+}
 
 export function buildStudioData(input: StudioStoryArgs): {
   user: User
@@ -79,6 +91,11 @@ export function buildStudioData(input: StudioStoryArgs): {
         featureFlags: seededProject.featureFlags,
       }),
     ]),
+    seed.availableModels(
+      agentModelsCatalogFactory
+        .transient({ flaggedProviders: flaggedProvidersOf(seededProject.featureFlags) })
+        .build(),
+    ),
     seed.agents(agents),
     seed.studio.projectPendingInvitations([]),
     seed.studio.agentPendingInvitations([]),

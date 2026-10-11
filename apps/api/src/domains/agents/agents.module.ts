@@ -14,6 +14,7 @@ import { DocumentTagsModule } from "@/domains/documents/tags/document-tags.modul
 import { MembershipsModule } from "@/domains/memberships/memberships.module"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
 import { Project } from "@/domains/projects/project.entity"
+import { RbacModule } from "@/domains/rbac/rbac.module"
 import { UsersModule } from "@/domains/users/users.module"
 import { LlmModule } from "@/external/llm/llm.module"
 import { ProjectsModule } from "../projects/projects.module"
@@ -34,6 +35,7 @@ import { ProjectAgentSessionCategoriesController } from "./session-categories/pr
 import { ProjectAgentSessionCategoriesGuard } from "./session-categories/project-agent-session-categories.guard"
 import { ProjectAgentSessionCategoriesService } from "./session-categories/project-agent-session-categories.service"
 import { ProjectAgentSessionCategory } from "./session-categories/project-agent-session-category.entity"
+import { AgentModelsService } from "./settings/agent-models.service"
 import { AgentSettingsController } from "./settings/agent-settings.controller"
 import { AgentSettings } from "./settings/agent-settings.entity"
 import { AgentSettingsModule } from "./settings/agent-settings.module"
@@ -52,6 +54,7 @@ import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
       AgentSettings,
     ]),
     forwardRef(() => AgentSettingsModule),
+    RbacModule,
     LlmModule,
     MembershipsModule,
     OrganizationsModule,
@@ -67,6 +70,7 @@ import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
     ConversationFormsModule,
   ],
   providers: [
+    AgentModelsService,
     AgentsService,
     AgentRepository,
     AgentSessionCategoriesService,
@@ -91,6 +95,7 @@ import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
     ProjectAgentSessionCategoriesController,
   ],
   exports: [
+    AgentModelsService,
     AgentsService,
     AgentRepository,
     AgentSessionCategoriesService,

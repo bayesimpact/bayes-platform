@@ -5,7 +5,11 @@ import type { LanguageModel } from "ai"
 import { z } from "zod"
 import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"
 import type { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
-import { defineModelOptions, type ModelOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
+import {
+  defineModelOptions,
+  type ModelMetadata,
+  type ModelOptions,
+} from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
 import { AISDKLLMProviderBase } from "@/external/llm/ai-sdk/ai-sdk-llm-provider-base"
 
 type VertexAgentModel = AgentModelOf<AgentProvider.Vertex>
@@ -23,6 +27,20 @@ export class AISDKVertexProvider extends AISDKLLMProviderBase<AgentProvider.Vert
     [AgentModel.Gemini25Pro]: defineModelOptions(z.object({ temperature: z.number() }), {
       temperature: 0,
     }),
+  }
+  protected readonly modelMetadata: Record<VertexAgentModel, ModelMetadata> = {
+    [AgentModel.Gemini25Flash]: {
+      deprecation: {
+        deprecatedOn: "2026-09-30",
+        recommendedReplacement: AgentModel.Gemini35FlashLite,
+      },
+    },
+    [AgentModel.Gemini25Pro]: {
+      deprecation: {
+        deprecatedOn: "2026-09-30",
+        recommendedReplacement: AgentModel.Gemini35Flash,
+      },
+    },
   }
   private readonly vertexProvider: ReturnType<typeof createVertex>
   private readonly vertexProviderWithExtendedTimeouts: ReturnType<typeof createVertex>

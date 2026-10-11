@@ -89,7 +89,6 @@ export class StructuredExtractionAgentRunLlmService extends LlmServiceBase {
       modelOptions: agentWithSettings.settings.providerOptions,
       priorityCallsEnabled: agentWithSettings.settings.priorityCallsEnabled,
       llmFeatures: agentWithSettings.llmFeatures,
-      thinkingLevel: agentWithSettings.settings.thinkingLevel,
     })
 
     const llmMetadata: LLMMetadata = {

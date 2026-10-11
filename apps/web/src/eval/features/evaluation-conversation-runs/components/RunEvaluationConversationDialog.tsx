@@ -42,12 +42,16 @@ import {
   buildAgentModelOptions,
   formatAgentModelLabel,
 } from "@/common/features/agents/agent-model.helpers"
-import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"
-import { selectAgentSettingsHistoryDataByAgentId } from "@/common/features/agents/agent-settings/agent-settings.selectors"
+import type {
+  AgentModelsCatalog,
+  AgentSettings,
+} from "@/common/features/agents/agent-settings/agent-settings.models"
+import {
+  selectAgentSettingsHistoryDataByAgentId,
+  selectAvailableModelsData,
+} from "@/common/features/agents/agent-settings/agent-settings.selectors"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { selectAgentsData } from "@/common/features/agents/agents.selectors"
-import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
-import { useFeatureFlags } from "@/common/hooks/use-feature-flags"
 import { useValue } from "@/common/hooks/use-value"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { buildDate } from "@/common/utils/build-date"
@@ -71,13 +75,13 @@ export function RunEvaluationConversationDialog({
   const navigate = useNavigate()
   const { buildConversationRunPath } = useEvaluationConversationRunPath()
   const agentsData = useValue(selectAgentsData)
-  const project = useValue(selectCurrentProjectData)
-  const { hasFeature } = useFeatureFlags(project)
+  const catalog = useValue(selectAvailableModelsData)
 
   const isExecuting = useAppSelector(selectIsExecutingConversationRun)
   const [open, setOpen] = useState(false)
 
-  const judgeModels = useMemo(() => buildAgentModelOptions(hasFeature), [hasFeature])
+  const judgeModels = useMemo(() => buildAgentModelOptions(catalog), [catalog])
+  const defaultJudgeModel = catalog.defaults.judge
 
   const conversationAgents = useMemo(() => {
     return agentsData.filter((agent) => agent.type === "conversation")
@@ -111,7 +115,7 @@ export function RunEvaluationConversationDialog({
 
   const form = useForm<RunFormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: buildDefaultRunFormValues(),
+    defaultValues: buildDefaultRunFormValues(defaultJudgeModel),
   })
   const { control, watch, setValue } = form
 
@@ -129,10 +133,10 @@ export function RunEvaluationConversationDialog({
     (nextOpen: boolean) => {
       setOpen(nextOpen)
       if (!nextOpen) {
-        form.reset(buildDefaultRunFormValues())
+        form.reset(buildDefaultRunFormValues(defaultJudgeModel))
       }
     },
-    [form],
+    [form, defaultJudgeModel],
   )
 
   const handleAgentChange = useCallback(
@@ -205,7 +209,7 @@ export function RunEvaluationConversationDialog({
                 />
               )}
 
-              <JudgeModelField control={control} models={judgeModels} />
+              <JudgeModelField control={control} models={judgeModels} catalog={catalog} />
 
               <JudgeInstructionsField control={control} />
 
@@ -349,9 +353,11 @@ function AgentVersionField({
 function JudgeModelField({
   control,
   models,
+  catalog,
 }: {
   control: Control<RunFormValues>
   models: AgentModel[]
+  catalog: AgentModelsCatalog
 }) {
   const { t } = useTranslation()
 
@@ -371,7 +377,7 @@ function JudgeModelField({
             <SelectContent>
               {models.map((model) => (
                 <SelectItem key={model} value={model}>
-                  {formatAgentModelLabel(model, {
+                  {formatAgentModelLabel(model, catalog, {
                     deprecatedSuffix: t("agent:model.deprecatedSuffix"),
                     nonEuSuffix: t("agent:model.nonEuSuffix"),
                   })}

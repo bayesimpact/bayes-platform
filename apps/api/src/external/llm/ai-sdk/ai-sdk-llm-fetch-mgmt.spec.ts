@@ -1,10 +1,14 @@
 import type { LanguageModelV3 } from "@ai-sdk/provider"
-import { AgentModel, AgentProvider, AgentThinkingLevel } from "@caseai-connect/api-contracts"
+import { AgentModel, AgentProvider } from "@caseai-connect/api-contracts"
 import { Agent, fetch as undiciFetch } from "undici"
 import { z } from "zod"
 import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"
 import { AISDKLLMFetchMgmt } from "@/external/llm/ai-sdk/ai-sdk-llm-fetch-mgmt"
-import { defineModelOptions, type ModelOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
+import {
+  defineModelOptions,
+  type ModelMetadata,
+  type ModelOptions,
+} from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
 
 jest.mock("undici", () => ({
   Agent: jest.fn(),
@@ -12,6 +16,9 @@ jest.mock("undici", () => ({
 }))
 
 class TestFetchMgmt extends AISDKLLMFetchMgmt<AgentProvider._Mock> {
+  protected readonly modelMetadata: Record<AgentModel._Mock, ModelMetadata> = {
+    [AgentModel._Mock]: {},
+  }
   protected readonly modelOptions: Record<AgentModel._Mock, ModelOptions> = {
     [AgentModel._Mock]: defineModelOptions(z.object({ temperature: z.number() }), {
       temperature: 0,
@@ -37,7 +44,6 @@ const config: LLMConfig = {
   model: AgentModel._Mock,
   modelOptions: { temperature: 0 },
   serviceTier: undefined,
-  thinkingLevel: AgentThinkingLevel.Auto,
 }
 const extendedConfig: LLMConfig = { ...config, useExtendedTimeouts: true }
 

@@ -1,9 +1,4 @@
-import {
-  AgentModel,
-  AgentModelToAgentProvider,
-  AgentProvider,
-  AgentThinkingLevel,
-} from "@caseai-connect/api-contracts"
+import { AgentModel, AgentModelToAgentProvider, AgentProvider } from "@caseai-connect/api-contracts"
 import { afterAll, beforeAll } from "@jest/globals"
 import { BatchSpanProcessor, ConsoleSpanExporter } from "@opentelemetry/sdk-trace-base"
 import { NodeTracerProvider } from "@opentelemetry/sdk-trace-node"
@@ -155,7 +150,6 @@ describe("AISDKMedGemmaProvider through the AI SDK (vLLM simulated)", () => {
     temperature: 0,
     systemPrompt: "You answer pricing questions.",
     serviceTier: undefined,
-    thinkingLevel: AgentThinkingLevel.Auto,
     tools: {
       lookup_knowledge_base: tool({
         description: "Looks up the knowledge base.",

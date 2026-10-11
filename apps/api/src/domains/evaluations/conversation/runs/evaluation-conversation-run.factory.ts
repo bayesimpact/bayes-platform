@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto"
-import { DEFAULT_AGENT_MODEL } from "@caseai-connect/api-contracts"
 import { Factory } from "fishery"
 import type { RequiredScopeTransientParams } from "@/common/entities/connect-required-fields"
 import type { Agent } from "@/domains/agents/agent.entity"
+import { AGENT_MODEL_DEFAULTS } from "@/domains/agents/settings/agent-models.service"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import type { EvaluationConversationDataset } from "../datasets/evaluation-conversation-dataset.entity"
 import type {
@@ -49,7 +49,7 @@ export const evaluationConversationRunFactory = EvaluationConversationRunFactory
       agentSettingsId: transientParams.agentSettings.id,
       agentSettings: transientParams.agentSettings,
       status: params.status || "pending",
-      judgeModel: params.judgeModel ?? DEFAULT_AGENT_MODEL,
+      judgeModel: params.judgeModel ?? AGENT_MODEL_DEFAULTS.judge,
       judgeInstructions: params.judgeInstructions ?? null,
       summary: (params.summary as EvaluationConversationRunSummary) || null,
       organizationId: transientParams.organization.id,

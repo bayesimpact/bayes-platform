@@ -1,4 +1,4 @@
-import { AgentThinkingLevel, ToolName } from "@caseai-connect/api-contracts"
+import { ToolName } from "@caseai-connect/api-contracts"
 import type {
   LLMConfig,
   LLMMetadata,
@@ -53,7 +53,6 @@ function buildConfig(model: string): (systemPrompt: string) => LLMConfig {
     temperature: 0,
     systemPrompt,
     serviceTier: undefined,
-    thinkingLevel: AgentThinkingLevel.Auto,
   })
 }
 
@@ -122,7 +121,6 @@ Always answer in English.`
       modelOptions: { temperature: 0 },
       tools: { [ToolName.LookupKnowledgeBase]: lookupTool },
       serviceTier: undefined,
-      thinkingLevel: AgentThinkingLevel.Auto,
     },
     metadata,
   })
@@ -192,7 +190,6 @@ export async function runFatPromptTurnScenario({
       model,
       modelOptions: { temperature: 0 },
       serviceTier: undefined,
-      thinkingLevel: AgentThinkingLevel.Auto,
     },
     metadata,
   })

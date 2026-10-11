@@ -1,8 +1,4 @@
-import {
-  AgentModelToAgentProvider,
-  AgentProvider,
-  AgentThinkingLevel,
-} from "@caseai-connect/api-contracts"
+import { AgentModelToAgentProvider, AgentProvider } from "@caseai-connect/api-contracts"
 import { NotImplementedException } from "@nestjs/common"
 import type {
   BuildLLMConfigParams,
@@ -33,7 +29,6 @@ export abstract class LlmServiceBase {
       useExtendedTimeouts,
       priorityCallsEnabled,
       llmFeatures,
-      thinkingLevel,
     } = params
     let serviceTier: LLMServiceTier
     if (
@@ -52,7 +47,6 @@ export abstract class LlmServiceBase {
       terminalToolNames,
       useExtendedTimeouts,
       serviceTier,
-      thinkingLevel: thinkingLevel ?? AgentThinkingLevel.Auto,
     }
   }
 }

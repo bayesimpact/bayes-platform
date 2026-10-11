@@ -7,14 +7,8 @@ type AgentWithSettingsRunJobPayloadBase = Pick<Agent, "id" | "name" | "type"> &
     AgentSettings,
     "revision" | "instructions" | "documentsRagMode" | "model" | "locale" | "priorityCallsEnabled"
   > &
-  // thinkingLevel and providerOptions are optional: jobs queued before they
-  // existed still run, on Auto and on the model's default options.
-  Partial<
-    Pick<
-      AgentSettings,
-      "outputJsonSchema" | "greetingMessage" | "thinkingLevel" | "providerOptions"
-    >
-  >
+  // providerOptions is optional: jobs queued before it existed run on the model's defaults.
+  Partial<Pick<AgentSettings, "outputJsonSchema" | "greetingMessage" | "providerOptions">>
 
 export type AgentWithSettingsRunJobPayload = {
   settings: AgentWithSettingsRunJobPayloadBase

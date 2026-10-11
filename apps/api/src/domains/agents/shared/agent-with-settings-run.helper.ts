@@ -26,7 +26,6 @@ export function toAgentWithSettingsRunJobPayload({
       outputJsonSchema: agentSettings.outputJsonSchema,
       greetingMessage: agentSettings.greetingMessage,
       priorityCallsEnabled: agentSettings.priorityCallsEnabled,
-      thinkingLevel: agentSettings.thinkingLevel,
     },
     llmFeatures,
   } satisfies AgentWithSettingsRunJobPayload

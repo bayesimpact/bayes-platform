@@ -118,6 +118,23 @@ describe("EvaluationConversationRuns - createOne", () => {
     await expectActivityCreated("evaluationConversationRun.create")
   })
 
+  it("rejects a judge model behind a feature flag the project lacks", async () => {
+    const { dataset, agent } = await createContext()
+
+    const res = await subject({
+      payload: {
+        datasetId: dataset.id,
+        agentId: agent.id,
+        agentSettingsRevision: null,
+        judgeModel: AgentModel.Gemma4_26B,
+        judgeInstructions: null,
+      },
+    })
+
+    expectResponse(res, 400)
+    expect(await evaluationConversationRunRepository.find()).toHaveLength(0)
+  })
+
   it("should persist trimmed judge instructions and store blank ones as null", async () => {
     const { dataset, agent } = await createContext()
 

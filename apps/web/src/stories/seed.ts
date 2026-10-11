@@ -17,7 +17,10 @@ import type {
   AgentSessionMcpAppHtml,
   AgentSessionMessage,
 } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.models"
-import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"
+import type {
+  AgentModelsCatalog,
+  AgentSettings,
+} from "@/common/features/agents/agent-settings/agent-settings.models"
 import type { Agent } from "@/common/features/agents/agents.models"
 import type { AppInstallPage } from "@/common/features/app-install/app-install.models"
 import type { User } from "@/common/features/me/me.models"
@@ -216,6 +219,11 @@ export const seed = {
         { currentId: project.organizationId },
       ),
     )
+  },
+
+  /** Seeds the model catalog the agent and evaluation screens read. */
+  availableModels(catalog: AgentModelsCatalog): StoryPreloadedState {
+    return { agentSettings: { availableModels: ads.fulfilled(catalog) } }
   },
 
   agents(agents: Agent[], options: { currentId?: string | null } = {}): StoryPreloadedState {

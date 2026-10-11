@@ -7,8 +7,8 @@ import {
 } from "./evaluation-conversation-runs.helpers"
 
 describe("buildDefaultRunFormValues", () => {
-  it("starts with no agent, the whole dataset, and the default model as judge", () => {
-    expect(buildDefaultRunFormValues()).toEqual({
+  it("starts with no agent, the whole dataset, and the given default judge", () => {
+    expect(buildDefaultRunFormValues(AgentModel.Gemini35FlashLite)).toEqual({
       agentId: "",
       selectedRevision: null,
       judgeModel: AgentModel.Gemini35FlashLite,
@@ -19,7 +19,9 @@ describe("buildDefaultRunFormValues", () => {
   })
 
   it("returns a fresh object each time, so a reset never reuses edited values", () => {
-    expect(buildDefaultRunFormValues()).not.toBe(buildDefaultRunFormValues())
+    expect(buildDefaultRunFormValues(AgentModel.Gemini35FlashLite)).not.toBe(
+      buildDefaultRunFormValues(AgentModel.Gemini35FlashLite),
+    )
   })
 })
 

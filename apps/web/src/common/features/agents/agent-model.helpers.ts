@@ -1,34 +1,33 @@
 import {
-  AgentModel,
+  type AgentModel,
   AgentModelToAgentProvider,
   AgentProvider,
-  getAgentModelDeprecation,
-  isAgentModelServedOutsideEu,
 } from "@caseai-connect/api-contracts"
+import type {
+  AgentModelEntry,
+  AgentModelsCatalog,
+} from "@/common/features/agents/agent-settings/agent-settings.models"
 import type { HasFeature } from "@/common/hooks/use-feature-flags"
 import { buildDate } from "@/common/utils/build-date"
 
 /**
- * Models a project may choose from, in enum declaration order.
- *
- * Single source of truth for provider gating: `AgentModelTab` and the eval judge picker both
- * call this, so a new provider or a new gate is one change here.
+ * Models the project may choose from, in catalog order. The API decides what is selectable (a
+ * provider behind a feature flag the project lacks is not): `ModelTab` and the eval judge picker
+ * both offer this list.
  */
-export function buildAgentModelOptions(hasFeature: HasFeature): AgentModel[] {
-  const providers: AgentProvider[] = [
-    // Vertex3 is never gated: it holds the recommended replacements for the deprecated Vertex
-    // models, so hiding it would leave a project unable to migrate off them.
-    AgentProvider.Vertex,
-    AgentProvider.Vertex3,
-  ]
-  if (hasFeature("medgemma")) providers.push(AgentProvider.MedGemma)
-  if (hasFeature("gemma")) providers.push(AgentProvider.Gemma)
-  if (hasFeature("mistral")) providers.push(AgentProvider.Mistral)
+export function buildAgentModelOptions(catalog: AgentModelsCatalog): AgentModel[] {
+  return catalog.models.filter((entry) => entry.selectable).map((entry) => entry.model)
+}
 
-  // AgentModel._Mock drops out naturally — its provider is never in the list.
-  return Object.values(AgentModel).filter((model) =>
-    providers.includes(AgentModelToAgentProvider[model]),
-  )
+/**
+ * The catalog entry of a model. `agent_settings.model` is an unconstrained string and a model
+ * leaves the catalog once its provider retires it, so a stored model may have none.
+ */
+export function findAgentModelEntry(
+  catalog: AgentModelsCatalog | null,
+  model: string | undefined,
+): AgentModelEntry | undefined {
+  return catalog?.models.find((entry) => entry.model === model)
 }
 
 /**
@@ -49,11 +48,14 @@ export function isPriorityCallsAvailable({
 
 /**
  * Interpolation values for the `agent:model.deprecation.*` strings, shared by every surface that
- * announces a retirement (banner, sidebar tooltip). Returns `undefined` when the model is supported
- * or unknown, so callers can use it as their render gate.
+ * announces a retirement (banner, sidebar tooltip). Returns `undefined` when the model is
+ * supported, unknown, or the catalog is not loaded yet, so callers can use it as their render gate.
  */
-export function buildAgentModelDeprecationInterpolation(model: AgentModel | undefined) {
-  const deprecation = model ? getAgentModelDeprecation(model) : undefined
+export function buildAgentModelDeprecationInterpolation(
+  model: AgentModel | undefined,
+  catalog: AgentModelsCatalog | null,
+) {
+  const deprecation = findAgentModelEntry(catalog, model)?.deprecation
   if (!deprecation) return undefined
 
   return {
@@ -78,11 +80,13 @@ export type AgentModelLabelSuffixes = {
  */
 export function formatAgentModelLabel(
   model: AgentModel,
+  catalog: AgentModelsCatalog,
   { deprecatedSuffix, nonEuSuffix }: AgentModelLabelSuffixes,
 ): string {
+  const entry = findAgentModelEntry(catalog, model)
   const suffixes = [
-    getAgentModelDeprecation(model) ? deprecatedSuffix : undefined,
-    isAgentModelServedOutsideEu(model) ? nonEuSuffix : undefined,
+    entry?.deprecation ? deprecatedSuffix : undefined,
+    entry?.servedOutsideEu ? nonEuSuffix : undefined,
   ].filter((suffix) => suffix !== undefined)
 
   return [model, ...suffixes].join(" ")

@@ -10,7 +10,9 @@ import {
   Body,
   Controller,
   Delete,
+  forwardRef,
   Get,
+  Inject,
   Patch,
   Post,
   Put,
@@ -36,6 +38,7 @@ import { AgentGuard } from "./agent.guard"
 import { toAgentDto, toAgentWithDraftDto } from "./agent.mapper"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentsService } from "./agents.service"
+import { AgentModelsService } from "./settings/agent-models.service"
 import type { AgentSubAgent } from "./sub-agents/agent-sub-agent.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
@@ -48,6 +51,8 @@ export class AgentsController {
     private readonly agentsService: AgentsService,
     private readonly agentSettingsService: AgentSettingsService,
     private readonly agentSubAgentsService: AgentSubAgentsService,
+    @Inject(forwardRef(() => AgentModelsService))
+    private readonly agentModelsService: AgentModelsService,
   ) {}
 
   @Post(AgentsRoutes.createOne.path)
@@ -58,8 +63,10 @@ export class AgentsController {
     @Req() request: EndpointRequestWithProject,
     @Body() { payload }: typeof AgentsRoutes.createOne.request,
   ): Promise<typeof AgentsRoutes.createOne.response> {
+    const connectScope = getRequiredConnectScope(request)
+    await this.agentModelsService.assertSelectable({ connectScope, model: payload.model })
     const { agent, agentSettings } = await this.agentsService.createAgent({
-      connectScope: getRequiredConnectScope(request),
+      connectScope,
       fields: payload,
       userId: request.user.id,
     })

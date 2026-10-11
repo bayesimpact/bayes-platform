@@ -4,7 +4,11 @@ import type { FilePart } from "ai"
 import { z } from "zod"
 import type { LLMChatMessage, LLMConfig } from "@/common/interfaces/llm-provider.interface"
 import { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
-import { defineModelOptions, type ModelOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
+import {
+  defineModelOptions,
+  type ModelMetadata,
+  type ModelOptions,
+} from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
 import { AISDKVllmProviderBase } from "@/external/llm/ai-sdk/providers/ai-sdk-vllm-provider-base"
 
 type MistralAgentModel = AgentModelOf<AgentProvider.Mistral>
@@ -17,6 +21,9 @@ export class AISDKMistralProvider extends AISDKVllmProviderBase<AgentProvider.Mi
     [AgentModel.MistralSmall31_24B]: defineModelOptions(z.object({ temperature: z.number() }), {
       temperature: 0,
     }),
+  }
+  protected readonly modelMetadata: Record<MistralAgentModel, ModelMetadata> = {
+    [AgentModel.MistralSmall31_24B]: {},
   }
 
   getAgentProvider(): AgentProvider.Mistral {

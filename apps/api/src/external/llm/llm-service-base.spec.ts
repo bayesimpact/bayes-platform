@@ -1,4 +1,4 @@
-import { AgentModel, AgentProvider, AgentThinkingLevel } from "@caseai-connect/api-contracts"
+import { AgentModel, AgentProvider } from "@caseai-connect/api-contracts"
 import type {
   BuildLLMConfigParams,
   LLMConfig,
@@ -59,21 +59,6 @@ describe("LlmServiceBase.buildLLMConfig", () => {
     priorityCallsEnabled: false,
     llmFeatures: {},
   }
-
-  it("carries the agent's thinking level", () => {
-    const config = new TestLlmService().build({
-      ...baseParams,
-      thinkingLevel: AgentThinkingLevel.High,
-    })
-
-    expect(config.thinkingLevel).toBe(AgentThinkingLevel.High)
-  })
-
-  it("falls back to Auto when no thinking level is given", () => {
-    const config = new TestLlmService().build(baseParams)
-
-    expect(config.thinkingLevel).toBe(AgentThinkingLevel.Auto)
-  })
 
   it("carries the call settings through", () => {
     const config = new TestLlmService().build({

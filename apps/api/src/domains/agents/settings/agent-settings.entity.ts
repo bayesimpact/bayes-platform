@@ -2,7 +2,6 @@ import type {
   AgentLocale,
   AgentModel,
   AgentTemperature,
-  AgentThinkingLevel,
   DocumentsRagMode,
 } from "@caseai-connect/api-contracts"
 import { Column, JoinColumn, ManyToOne } from "typeorm"
@@ -78,7 +77,11 @@ export class AgentSettings extends ConnectEntityBase {
   priorityCallsEnabled!: boolean
 
   @Column({ type: "varchar", name: "thinking_level", nullable: false, default: "auto" })
-  thinkingLevel!: AgentThinkingLevel
+  /**
+   * Replaced by the thinking level of `providerOptions`, for the models that
+   * take one: kept as the `thinking_level` column, no longer read.
+   */
+  deletedThinkingLevel!: string
 
   @Column({ type: "jsonb", nullable: true, name: "provider_options" })
   /** The options of the agent's model, merged over the model's defaults on every call. */

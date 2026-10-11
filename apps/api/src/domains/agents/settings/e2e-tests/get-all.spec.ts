@@ -2,7 +2,6 @@ import {
   AgentLocale,
   AgentModel,
   AgentSettingsRoutes,
-  AgentThinkingLevel,
   DocumentsRagMode,
 } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
@@ -188,7 +187,7 @@ describe("Agent Settings - getAll", () => {
       updatedAt: storedRevision2.updatedAt.getTime(),
       priorityCallsEnabled: false,
       providerOptions: null,
-      thinkingLevel: AgentThinkingLevel.Auto,
+      deletedThinkingLevel: "auto",
     })
   })
 

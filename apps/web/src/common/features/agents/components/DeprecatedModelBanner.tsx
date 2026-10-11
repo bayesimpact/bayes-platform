@@ -3,11 +3,13 @@ import { Alert, AlertDescription, AlertTitle } from "@caseai-connect/ui/shad/ale
 import { TriangleAlertIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { buildAgentModelDeprecationInterpolation } from "@/common/features/agents/agent-model.helpers"
+import { selectAvailableModelsCatalog } from "@/common/features/agents/agent-settings/agent-settings.selectors"
+import { useAppSelector } from "@/common/store/hooks"
 
 /**
  * Warns that a model is being retired and names its replacement. Renders nothing when the model
- * is supported, so callers mount it unconditionally — declaring a future deprecation in
- * `AgentModelMetadataMap` is enough to surface it here.
+ * is supported, so callers mount it unconditionally — declaring a future deprecation in the
+ * provider's model metadata (API) is enough to surface it here.
  *
  * `model` is optional because it lives on the agent settings, whose fetch some views do not gate
  * their rendering on: an absent model renders nothing rather than forcing every caller to branch.
@@ -16,7 +18,8 @@ import { buildAgentModelDeprecationInterpolation } from "@/common/features/agent
  */
 export function DeprecatedModelBanner({ model }: { model?: AgentModel }) {
   const { t } = useTranslation()
-  const interpolation = buildAgentModelDeprecationInterpolation(model)
+  const catalog = useAppSelector(selectAvailableModelsCatalog)
+  const interpolation = buildAgentModelDeprecationInterpolation(model, catalog)
 
   if (!interpolation) return null
 

@@ -3,7 +3,7 @@ import {
   type LanguageModelV3CallOptions,
   type LanguageModelV3StreamPart,
 } from "@ai-sdk/provider"
-import { AgentModel, AgentThinkingLevel } from "@caseai-connect/api-contracts"
+import { AgentModel } from "@caseai-connect/api-contracts"
 import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"
 import { CustomMedGemmaLanguageModel } from "./custom-med-gemma-language-model"
 
@@ -12,7 +12,6 @@ describe("CustomMedGemmaLanguageModel", () => {
     model: AgentModel.MedGemma10_27B,
     modelOptions: { temperature: 0 },
     serviceTier: undefined,
-    thinkingLevel: AgentThinkingLevel.Auto,
   })
 
   const buildModel = () =>

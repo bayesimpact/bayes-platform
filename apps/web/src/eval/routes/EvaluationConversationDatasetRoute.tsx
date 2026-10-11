@@ -1,5 +1,6 @@
 import { useNavigate, useOutlet } from "react-router-dom"
 import { GridHeader } from "@/common/components/grid/Grid"
+import { selectAvailableModelsData } from "@/common/features/agents/agent-settings/agent-settings.selectors"
 import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
 import { useMount } from "@/common/hooks/use-mount"
@@ -28,6 +29,7 @@ export function EvaluationConversationDatasetRoute() {
   const datasetId = useAppSelector(selectCurrentConversationDatasetId)
   const dataset = useAppSelector(selectCurrentConversationDatasetData)
   const runs = useAppSelector(selectConversationRunsData)
+  const agentModels = useAppSelector(selectAvailableModelsData)
   const outlet = useOutlet()
 
   // Load the current dataset's records via middleware (ADR 0009); refreshOn
@@ -42,7 +44,9 @@ export function EvaluationConversationDatasetRoute() {
   })
 
   if (!datasetId) return <LoadingRoute />
-  return <AsyncRoute data={[dataset, runs]}>{outlet ? outlet : <WithData />}</AsyncRoute>
+  return (
+    <AsyncRoute data={[dataset, runs, agentModels]}>{outlet ? outlet : <WithData />}</AsyncRoute>
+  )
 }
 
 function WithData() {

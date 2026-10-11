@@ -1,6 +1,7 @@
 import type { LanguageModelV3 } from "@ai-sdk/provider"
 import {
   type AgentModel,
+  type AgentModelDeprecation,
   type AgentModelOf,
   AgentModelToAgentProvider,
   type AgentProvider,
@@ -38,6 +39,21 @@ const logger = new Logger("AISDKLLMModelMgmt")
 // bare standalone line (between two marker pairs, after the opener has been
 // stripped), we treat it as leaked-marker content and drop it too.
 const CHANNEL_KEYWORDS = "thought|analysis|reasoning|finalize|commentary|final"
+
+/**
+ * What the catalog says of a model. Every field is optional, but each provider declares an
+ * entry for every model it serves: a new model cannot ship without one.
+ */
+export type ModelMetadata = {
+  /** Set when the provider retires the model, with the model to move to. */
+  deprecation?: AgentModelDeprecation
+  /**
+   * `true` when the provider does not serve the model from the EU region: it can only run
+   * through a global endpoint, which carries no EU data-processing guarantee. Absent means
+   * EU-served. Drives both the endpoint routing and the UI label.
+   */
+  servedOutsideEu?: boolean
+}
 
 /**
  * What a model accepts on top of the standard call settings: the schema of its
@@ -140,6 +156,12 @@ export abstract class AISDKLLMModelMgmt<
   abstract getAgentProvider(): Provider
 
   protected abstract readonly modelOptions: Record<AgentModelOf<Provider>, ModelOptions>
+  /** What the catalog says of each model the provider serves (retirement, data residency). */
+  protected abstract readonly modelMetadata: Record<AgentModelOf<Provider>, ModelMetadata>
+
+  getModelMetadata(agentModel: AgentModel): ModelMetadata {
+    return this.modelMetadata[this.toProviderAgentModel(agentModel)]
+  }
 
   getModelOptionsSchema(agentModel: AgentModel): ZodType<SpecificProviderOptions> {
     return this.modelOptions[this.toProviderAgentModel(agentModel)].schema

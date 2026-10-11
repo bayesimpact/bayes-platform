@@ -52,7 +52,6 @@ export abstract class AISDKLLMBuilders {
       outputSchema: JSON.stringify(schema),
       availableTools: JSON.stringify(config.tools),
       spanLabel: metadata.spanLabel,
-      thinkingLevel: config.thinkingLevel,
     })
   }
 

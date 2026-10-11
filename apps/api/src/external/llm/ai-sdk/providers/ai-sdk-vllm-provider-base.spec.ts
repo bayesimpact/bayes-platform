@@ -1,17 +1,12 @@
 import type { JSONSchema7Definition, LanguageModelV3CallOptions } from "@ai-sdk/provider"
-import {
-  AgentModel,
-  type AgentModelOf,
-  AgentProvider,
-  AgentThinkingLevel,
-} from "@caseai-connect/api-contracts"
+import { AgentModel, type AgentModelOf, AgentProvider } from "@caseai-connect/api-contracts"
 import { jsonSchema, type ToolSet, tool } from "ai"
 import { GoogleAuth } from "google-auth-library"
 import { z } from "zod"
 import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"
 import { zNullableType } from "@/common/zod-helper"
 import { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
-import type { ModelOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
+import type { ModelMetadata, ModelOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
 import { AISDKVllmProviderBase } from "@/external/llm/ai-sdk/providers/ai-sdk-vllm-provider-base"
 
 jest.mock("google-auth-library", () => ({
@@ -25,6 +20,7 @@ class TestVllmProvider extends AISDKVllmProviderBase<AgentProvider.Gemma> {
   protected readonly providerName = "Test Provider"
   // The tests never read the model options.
   protected readonly modelOptions = {} as Record<AgentModelOf<AgentProvider.Gemma>, ModelOptions>
+  protected readonly modelMetadata = {} as Record<AgentModelOf<AgentProvider.Gemma>, ModelMetadata>
 
   getAgentProvider(): AgentProvider.Gemma {
     return AgentProvider.Gemma
@@ -57,7 +53,6 @@ const config: LLMConfig = {
   modelOptions: { temperature: 0 },
   systemPrompt: "You are a helpful assistant.",
   serviceTier: undefined,
-  thinkingLevel: AgentThinkingLevel.Auto,
 }
 
 function chatCompletionResponse(content: string): Response {

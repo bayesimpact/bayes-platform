@@ -1,86 +1,79 @@
-import {
-  AgentModel,
-  AgentModelMetadataMap,
-  DEFAULT_AGENT_MODEL,
-  getAgentModelDeprecation,
-  isAgentModelServedOutsideEu,
-} from "@caseai-connect/api-contracts"
+import { AgentModel, AgentProvider } from "@caseai-connect/api-contracts"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import type { HasFeature } from "@/common/hooks/use-feature-flags"
 import {
   buildAgentModelDeprecationInterpolation,
   buildAgentModelOptions,
+  findAgentModelEntry,
   formatAgentModelLabel,
   isPriorityCallsAvailable,
 } from "./agent-model.helpers"
+import { agentModelsCatalogFactory } from "./agent-settings/agent-settings.factory"
+import type { AgentModelsCatalog } from "./agent-settings/agent-settings.models"
 
-describe("DEFAULT_AGENT_MODEL", () => {
-  it("is Gemini 3.5 Flash-Lite", () => {
-    expect(DEFAULT_AGENT_MODEL).toBe(AgentModel.Gemini35FlashLite)
-  })
+const catalog = agentModelsCatalogFactory.build()
+
+/** The catalog with one model's entry changed, as the API would send it. */
+const catalogWith = (
+  model: AgentModel,
+  change: Partial<AgentModelsCatalog["models"][number]>,
+): AgentModelsCatalog => ({
+  ...catalog,
+  models: catalog.models.map((entry) => (entry.model === model ? { ...entry, ...change } : entry)),
 })
 
-describe("AgentModelMetadataMap", () => {
-  it("has an entry for every model", () => {
-    const missing = Object.values(AgentModel).filter((model) => !AgentModelMetadataMap[model])
+describe("agent model catalog (as the API sends it)", () => {
+  it("starts a new agent and judges a new evaluation run on Gemini 3.5 Flash-Lite", () => {
+    expect(catalog.defaults).toEqual({
+      agent: AgentModel.Gemini35FlashLite,
+      judge: AgentModel.Gemini35FlashLite,
+    })
+  })
 
-    expect(missing).toEqual([])
+  it("lists every model but the test one", () => {
+    expect(catalog.models.map((entry) => entry.model)).toEqual(
+      Object.values(AgentModel).filter((model) => model !== AgentModel._Mock),
+    )
   })
 
   it("never recommends a replacement that is itself deprecated", () => {
-    const selfDefeating = Object.values(AgentModel).filter((model) => {
-      const replacement = getAgentModelDeprecation(model)?.recommendedReplacement
-      return !!replacement && !!getAgentModelDeprecation(replacement)
+    const selfDefeating = catalog.models.filter((entry) => {
+      const replacement = entry.deprecation?.recommendedReplacement
+      return !!replacement && !!findAgentModelEntry(catalog, replacement)?.deprecation
     })
 
     expect(selfDefeating).toEqual([])
   })
 
-  it("uses ISO dates for every deprecation", () => {
-    const badDates = Object.values(AgentModel)
-      .map((model) => getAgentModelDeprecation(model)?.deprecatedOn)
-      .filter((date) => date !== undefined && !/^\d{4}-\d{2}-\d{2}$/.test(date))
-
-    expect(badDates).toEqual([])
-  })
-
   it("marks the gemini 2.5 models as deprecated on 2026-09-30", () => {
-    expect(getAgentModelDeprecation(AgentModel.Gemini25Flash)).toEqual({
+    expect(findAgentModelEntry(catalog, AgentModel.Gemini25Flash)?.deprecation).toEqual({
       deprecatedOn: "2026-09-30",
       recommendedReplacement: AgentModel.Gemini35FlashLite,
     })
-    expect(getAgentModelDeprecation(AgentModel.Gemini25Pro)).toEqual({
+    expect(findAgentModelEntry(catalog, AgentModel.Gemini25Pro)?.deprecation).toEqual({
       deprecatedOn: "2026-09-30",
       recommendedReplacement: AgentModel.Gemini35Flash,
     })
   })
 
-  it("does not deprecate the default model", () => {
-    expect(getAgentModelDeprecation(DEFAULT_AGENT_MODEL)).toBeUndefined()
-  })
-
-  it("treats a model that is no longer in the enum as not deprecated", () => {
-    // `agent_settings.model` is an unconstrained varchar, so a row can hold a model that has been
-    // dropped from `AgentModel` (exactly what retiring the 2.5 models will produce). Reading the
-    // catalog must answer "unknown", not throw — the banner renders inside the agent subtree and
-    // there is no error boundary above it.
-    expect(() => getAgentModelDeprecation("gemini-2.5-flash")).not.toThrow()
-    expect(getAgentModelDeprecation("gemini-1.5-flash-retired")).toBeUndefined()
-    expect(getAgentModelDeprecation("")).toBeUndefined()
+  it("does not deprecate the default models", () => {
+    expect(findAgentModelEntry(catalog, catalog.defaults.agent)?.deprecation).toBeNull()
+    expect(findAgentModelEntry(catalog, catalog.defaults.judge)?.deprecation).toBeNull()
   })
 
   it("reports no model as served outside the EU", () => {
-    // Verified 2026-09-04: every Gemini 3.x model answers on the EU regional endpoint.
-    const servedOutsideEu = Object.values(AgentModel).filter((model) =>
-      isAgentModelServedOutsideEu(model),
-    )
-
-    expect(servedOutsideEu).toEqual([])
+    expect(catalog.models.filter((entry) => entry.servedOutsideEu)).toEqual([])
   })
+})
 
-  it("treats an unknown model as EU-served rather than throwing", () => {
-    expect(() => isAgentModelServedOutsideEu("gemini-1.5-flash-retired")).not.toThrow()
-    expect(isAgentModelServedOutsideEu("gemini-1.5-flash-retired")).toBe(false)
+describe("findAgentModelEntry", () => {
+  it("finds nothing for a model that left the catalog, an empty one, or no catalog yet", () => {
+    // `agent_settings.model` is an unconstrained varchar, so a row can hold a model the catalog
+    // dropped: reading it must answer "unknown", not throw.
+    expect(findAgentModelEntry(catalog, "gemini-1.5-flash-retired")).toBeUndefined()
+    expect(findAgentModelEntry(catalog, "")).toBeUndefined()
+    expect(findAgentModelEntry(catalog, undefined)).toBeUndefined()
+    expect(findAgentModelEntry(null, AgentModel.Gemini25Flash)).toBeUndefined()
   })
 })
 
@@ -91,7 +84,7 @@ describe("buildAgentModelDeprecationInterpolation", () => {
   afterEach(() => vi.unstubAllGlobals())
 
   it("names the model, its replacement and its retirement date", () => {
-    const interpolation = buildAgentModelDeprecationInterpolation(AgentModel.Gemini25Pro)
+    const interpolation = buildAgentModelDeprecationInterpolation(AgentModel.Gemini25Pro, catalog)
 
     expect(interpolation).toMatchObject({
       model: AgentModel.Gemini25Pro,
@@ -102,15 +95,18 @@ describe("buildAgentModelDeprecationInterpolation", () => {
   })
 
   it("names the replacement of the other deprecated model", () => {
-    expect(buildAgentModelDeprecationInterpolation(AgentModel.Gemini25Flash)).toMatchObject({
+    expect(
+      buildAgentModelDeprecationInterpolation(AgentModel.Gemini25Flash, catalog),
+    ).toMatchObject({
       model: AgentModel.Gemini25Flash,
       replacement: AgentModel.Gemini35FlashLite,
     })
   })
 
-  it("returns undefined for a supported model and for no model at all", () => {
-    expect(buildAgentModelDeprecationInterpolation(DEFAULT_AGENT_MODEL)).toBeUndefined()
-    expect(buildAgentModelDeprecationInterpolation(undefined)).toBeUndefined()
+  it("returns undefined for a supported model, no model at all, or no catalog yet", () => {
+    expect(buildAgentModelDeprecationInterpolation(catalog.defaults.agent, catalog)).toBeUndefined()
+    expect(buildAgentModelDeprecationInterpolation(undefined, catalog)).toBeUndefined()
+    expect(buildAgentModelDeprecationInterpolation(AgentModel.Gemini25Flash, null)).toBeUndefined()
   })
 })
 
@@ -118,8 +114,16 @@ describe("formatAgentModelLabel", () => {
   const labels = { deprecatedSuffix: "(deprecated)", nonEuSuffix: "(non-EU)" }
 
   it("labels every offered model", () => {
+    const allFlags = agentModelsCatalogFactory
+      .transient({
+        flaggedProviders: [AgentProvider.MedGemma, AgentProvider.Gemma, AgentProvider.Mistral],
+      })
+      .build()
+
     expect(
-      buildAgentModelOptions(() => true).map((model) => formatAgentModelLabel(model, labels)),
+      buildAgentModelOptions(allFlags).map((model) =>
+        formatAgentModelLabel(model, allFlags, labels),
+      ),
     ).toEqual([
       "gemini-2.5-flash (deprecated)",
       "gemini-2.5-pro (deprecated)",
@@ -135,67 +139,36 @@ describe("formatAgentModelLabel", () => {
     ])
   })
 
-  it("appends the deprecated suffix to a deprecated model", () => {
-    expect(formatAgentModelLabel(AgentModel.Gemini25Flash, labels)).toBe(
-      "gemini-2.5-flash (deprecated)",
-    )
-  })
-
-  it("leaves a supported EU-served model untouched", () => {
-    expect(formatAgentModelLabel(AgentModel.Gemini35FlashLite, labels)).toBe(
-      "gemini-3.5-flash-lite",
-    )
-  })
-
   it("appends the residency suffix to a model served outside the EU", () => {
-    // No catalog entry carries the flag today, so it is seeded on the real catalog and restored.
-    const metadata = AgentModelMetadataMap[AgentModel.Gemini36Flash]
-    metadata.servedOutsideEu = true
-    try {
-      expect(formatAgentModelLabel(AgentModel.Gemini36Flash, labels)).toBe(
-        "gemini-3.6-flash (non-EU)",
-      )
-    } finally {
-      delete metadata.servedOutsideEu
-    }
-  })
-
-  it("does not mark the other vertex 3 models as non-EU", () => {
-    expect(formatAgentModelLabel(AgentModel.Gemini31FlashLite, labels)).toBe(
-      "gemini-3.1-flash-lite",
-    )
-    expect(formatAgentModelLabel(AgentModel.Gemini35Flash, labels)).toBe("gemini-3.5-flash")
-    expect(formatAgentModelLabel(AgentModel.Gemini36Flash, labels)).toBe("gemini-3.6-flash")
-    expect(formatAgentModelLabel(AgentModel.Gemini38Flash, labels)).toBe("gemini-3.8-flash")
+    expect(
+      formatAgentModelLabel(
+        AgentModel.Gemini36Flash,
+        catalogWith(AgentModel.Gemini36Flash, { servedOutsideEu: true }),
+        labels,
+      ),
+    ).toBe("gemini-3.6-flash (non-EU)")
   })
 
   it("appends both suffixes when a model is deprecated and served outside the EU", () => {
-    // No catalog entry carries either fact today, so both are seeded on the real catalog and
-    // restored: the assertion is about the formatter, not about the current data.
-    const metadata = AgentModelMetadataMap[AgentModel.Gemini36Flash]
-    const originalDeprecation = metadata.deprecation
-    metadata.servedOutsideEu = true
-    metadata.deprecation = {
-      deprecatedOn: "2027-01-01",
-      recommendedReplacement: AgentModel.Gemini35Flash,
-    }
-
-    try {
-      expect(formatAgentModelLabel(AgentModel.Gemini36Flash, labels)).toBe(
-        "gemini-3.6-flash (deprecated) (non-EU)",
-      )
-    } finally {
-      metadata.deprecation = originalDeprecation
-      delete metadata.servedOutsideEu
-    }
+    expect(
+      formatAgentModelLabel(
+        AgentModel.Gemini36Flash,
+        catalogWith(AgentModel.Gemini36Flash, {
+          servedOutsideEu: true,
+          deprecation: {
+            deprecatedOn: "2027-01-01",
+            recommendedReplacement: AgentModel.Gemini35Flash,
+          },
+        }),
+        labels,
+      ),
+    ).toBe("gemini-3.6-flash (deprecated) (non-EU)")
   })
 })
 
 describe("buildAgentModelOptions", () => {
-  const noFlags: HasFeature = () => false
-
-  it("always offers the vertex and vertex 3 models", () => {
-    expect(buildAgentModelOptions(noFlags)).toEqual([
+  it("offers the vertex and vertex 3 models when the project has no flag", () => {
+    expect(buildAgentModelOptions(catalog)).toEqual([
       AgentModel.Gemini25Flash,
       AgentModel.Gemini25Pro,
       AgentModel.Gemini31FlashLite,
@@ -207,57 +180,27 @@ describe("buildAgentModelOptions", () => {
     ])
   })
 
-  it("keeps the recommended replacements available with no flags enabled", () => {
-    const options = buildAgentModelOptions(noFlags)
-    const replacements = Object.values(AgentModel)
-      .map((model) => getAgentModelDeprecation(model)?.recommendedReplacement)
-      .filter((replacement) => replacement !== undefined)
+  it("keeps the recommended replacements and the default models available", () => {
+    const options = buildAgentModelOptions(catalog)
+    const replacements = catalog.models.flatMap((entry) =>
+      entry.deprecation ? [entry.deprecation.recommendedReplacement] : [],
+    )
 
-    for (const replacement of replacements) {
-      expect(options).toContain(replacement)
+    for (const model of [...replacements, catalog.defaults.agent, catalog.defaults.judge]) {
+      expect(options).toContain(model)
     }
   })
 
-  it("offers every provider's models when all flags are on", () => {
-    expect(buildAgentModelOptions(() => true)).toEqual([
-      AgentModel.Gemini25Flash,
-      AgentModel.Gemini25Pro,
-      AgentModel.Gemini31FlashLite,
-      AgentModel.Gemini35FlashLite,
-      AgentModel.Gemini35Flash,
-      AgentModel.Gemini36Flash,
-      AgentModel.Gemini37Flash,
-      AgentModel.Gemini38Flash,
-      AgentModel.MedGemma10_27B,
-      AgentModel.Gemma4_26B,
-      AgentModel.MistralSmall31_24B,
-    ])
-  })
-
   it.each([
-    ["medgemma", AgentModel.MedGemma10_27B],
-    ["gemma", AgentModel.Gemma4_26B],
-    ["mistral", AgentModel.MistralSmall31_24B],
-  ])("adds only the %s model when its flag alone is on", (flag, model) => {
-    const options = buildAgentModelOptions((feature) => feature === flag)
+    [AgentProvider.MedGemma, AgentModel.MedGemma10_27B],
+    [AgentProvider.Gemma, AgentModel.Gemma4_26B],
+    [AgentProvider.Mistral, AgentModel.MistralSmall31_24B],
+  ])("adds only the %s model once the API says it is selectable", (provider, model) => {
+    const options = buildAgentModelOptions(
+      agentModelsCatalogFactory.transient({ flaggedProviders: [provider] }).build(),
+    )
 
-    expect(options).toEqual([...buildAgentModelOptions(noFlags), model])
-  })
-
-  it("offers the default model with no flags enabled", () => {
-    expect(buildAgentModelOptions(noFlags)).toContain(DEFAULT_AGENT_MODEL)
-  })
-
-  it("adds a flagged provider's models only when its flag is on", () => {
-    const options = buildAgentModelOptions((feature) => feature === "mistral")
-
-    expect(options).toContain(AgentModel.MistralSmall31_24B)
-    expect(options).not.toContain(AgentModel.Gemma4_26B)
-    expect(options).not.toContain(AgentModel.MedGemma10_27B)
-  })
-
-  it("never offers the mock model", () => {
-    expect(buildAgentModelOptions(() => true)).not.toContain(AgentModel._Mock)
+    expect(options).toEqual([...buildAgentModelOptions(catalog), model])
   })
 })
 

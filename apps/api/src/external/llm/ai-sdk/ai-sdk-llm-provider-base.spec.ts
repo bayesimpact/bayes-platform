@@ -3,12 +3,7 @@ import type {
   LanguageModelV3GenerateResult,
   LanguageModelV3StreamPart,
 } from "@ai-sdk/provider"
-import {
-  AgentModel,
-  type AgentModelOf,
-  AgentProvider,
-  AgentThinkingLevel,
-} from "@caseai-connect/api-contracts"
+import { AgentModel, type AgentModelOf, AgentProvider } from "@caseai-connect/api-contracts"
 import { simulateReadableStream, tool } from "ai"
 import { MockLanguageModelV3 } from "ai/test"
 import { z } from "zod"
@@ -19,7 +14,11 @@ import type {
   LLMProvider,
 } from "@/common/interfaces/llm-provider.interface"
 import { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
-import { defineModelOptions, type ModelOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
+import {
+  defineModelOptions,
+  type ModelMetadata,
+  type ModelOptions,
+} from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
 import { AISDKLLMProviderBase } from "@/external/llm/ai-sdk/ai-sdk-llm-provider-base"
 
 class TestProvider<
@@ -30,6 +29,9 @@ class TestProvider<
       temperature: 0,
     }),
   } as Record<AgentModelOf<Provider>, ModelOptions>
+  protected readonly modelMetadata = {
+    [AgentModel._Mock]: {},
+  } as Record<AgentModelOf<Provider>, ModelMetadata>
 
   constructor(
     private readonly agentProvider: Provider,
@@ -143,7 +145,6 @@ const mockConfig: LLMConfig = {
   modelOptions: { temperature: 0.2 },
   systemPrompt: "You are a helpful assistant.",
   serviceTier: undefined,
-  thinkingLevel: AgentThinkingLevel.Auto,
 }
 
 async function collect(

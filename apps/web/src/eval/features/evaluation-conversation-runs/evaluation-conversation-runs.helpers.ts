@@ -1,4 +1,4 @@
-import { type AgentModel, DEFAULT_AGENT_MODEL } from "@caseai-connect/api-contracts"
+import type { AgentModel } from "@caseai-connect/api-contracts"
 
 /** The fields of the dialog that starts a conversation evaluation run. */
 export type RunFormValues = {
@@ -11,12 +11,12 @@ export type RunFormValues = {
   limitedCount: number
 }
 
-/** A fresh form: no agent, the whole dataset, judged by the default model. */
-export function buildDefaultRunFormValues(): RunFormValues {
+/** A fresh form: no agent, the whole dataset, judged by the catalog's default judge. */
+export function buildDefaultRunFormValues(defaultJudgeModel: AgentModel): RunFormValues {
   return {
     agentId: "",
     selectedRevision: null,
-    judgeModel: DEFAULT_AGENT_MODEL,
+    judgeModel: defaultJudgeModel,
     judgeInstructions: "",
     runScope: "all",
     limitedCount: 1,

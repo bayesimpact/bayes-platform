@@ -1,9 +1,4 @@
-import {
-  AgentModel,
-  AgentSettingsRoutes,
-  AgentThinkingLevel,
-  DocumentsRagMode,
-} from "@caseai-connect/api-contracts"
+import { AgentModel, AgentSettingsRoutes, DocumentsRagMode } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
@@ -76,6 +71,39 @@ describe("Agent Settings - updateOne", () => {
       token: accessToken,
       request: payload,
     })
+
+  const enableFeatureFlag = async (featureFlagKey: string) => {
+    await repositories.featureFlagRepository.save(
+      repositories.featureFlagRepository.create({ projectId, featureFlagKey, enabled: true }),
+    )
+  }
+
+  it("rejects switching to a model behind a feature flag the project lacks", async () => {
+    await createContext()
+
+    expectResponse(await subject({ payload: { model: AgentModel.Gemma4_26B } }), 400)
+  })
+
+  it("accepts switching to a flagged provider's model once the project has its flag", async () => {
+    await createContext()
+    await enableFeatureFlag("gemma")
+
+    expectResponse(await subject({ payload: { model: AgentModel.Gemma4_26B } }), 200)
+  })
+
+  it("keeps a model the project lost access to when another field changes", async () => {
+    const { agentSettings } = await createContext()
+    await repositories.agentSettingsRepository.update(agentSettings.id, {
+      model: AgentModel.Gemma4_26B,
+    })
+
+    expectResponse(
+      await subject({
+        payload: { model: AgentModel.Gemma4_26B, instructions: "Updated instructions" },
+      }),
+      200,
+    )
+  })
 
   it("should update the settings in a new draft revision and return success", async () => {
     await createContext()
@@ -292,11 +320,11 @@ describe("Agent Settings - updateOne", () => {
     expect(updatedAgentSettings?.isDraft).toBeTruthy()
     expect(updatedAgentSettings?.priorityCallsEnabled).toBeTruthy()
   })
-  it("should update thinkingLevel", async () => {
+  it("should still store the deleted thinking level", async () => {
     await createContext()
 
     const setResponse = await subject({
-      payload: { thinkingLevel: AgentThinkingLevel.High },
+      payload: { deletedThinkingLevel: "high" },
     })
     expectResponse(setResponse, 200)
 
@@ -304,7 +332,7 @@ describe("Agent Settings - updateOne", () => {
       where: { agentId, revision: 2 },
     })
     expect(updatedAgentSettings?.isDraft).toBeTruthy()
-    expect(updatedAgentSettings?.thinkingLevel).toBe(AgentThinkingLevel.High)
+    expect(updatedAgentSettings?.deletedThinkingLevel).toBe("high")
   })
 
   it("should preserve an existing soft-deleted project category while adding a new category", async () => {

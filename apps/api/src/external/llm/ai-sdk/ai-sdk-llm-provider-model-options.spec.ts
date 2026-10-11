@@ -1,11 +1,5 @@
-import {
-  AgentModel,
-  AgentModelToAgentProvider,
-  AgentProvider,
-  DEFAULT_AGENT_MODEL,
-  getAgentModelDeprecation,
-  isAgentModelServedOutsideEu,
-} from "@caseai-connect/api-contracts"
+import { AgentModel, AgentModelToAgentProvider, AgentProvider } from "@caseai-connect/api-contracts"
+import { AGENT_MODEL_DEFAULTS } from "@/domains/agents/settings/agent-models.service"
 import type { AISDKLLMProviderBase } from "@/external/llm/ai-sdk/ai-sdk-llm-provider-base"
 import { AISDKGemmaProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-gemma.provider"
 import { AISDKMedGemmaProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-med-gemma.provider"
@@ -142,17 +136,29 @@ describe("agent model catalog", () => {
     expect(AgentModelToAgentProvider[model]).toBe(provider)
   })
 
-  it.each(CATALOG)("$model carries its deprecation", ({ model, deprecation }) => {
-    expect(getAgentModelDeprecation(model)).toEqual(deprecation)
+  it.each(CATALOG)("$model carries its deprecation", ({ model, provider, deprecation }) => {
+    expect(providers[provider].getModelMetadata(model).deprecation).toEqual(deprecation)
   })
 
-  it.each(CATALOG)("$model is served in the EU", ({ model }) => {
-    expect(isAgentModelServedOutsideEu(model)).toBe(false)
+  it.each(CATALOG)("$model is served in the EU", ({ model, provider }) => {
+    expect(providers[provider].getModelMetadata(model).servedOutsideEu === true).toBe(false)
   })
 
   it("has one default model", () => {
     const defaults = CATALOG.filter((entry) => entry.isDefault).map((entry) => entry.model)
-    expect(defaults).toEqual([DEFAULT_AGENT_MODEL])
+    expect(defaults).toEqual([AGENT_MODEL_DEFAULTS.agent])
+  })
+
+  it("judges evaluation runs with Gemini 3.5 Flash-Lite by default", () => {
+    expect(AGENT_MODEL_DEFAULTS.judge).toBe(AgentModel.Gemini35FlashLite)
+  })
+
+  it.each(
+    Object.entries(AGENT_MODEL_DEFAULTS),
+  )("picks a %s default that is supported and never behind a feature flag", (_role, model) => {
+    const entry = CATALOG.find((catalogEntry) => catalogEntry.model === model)
+    expect(entry?.deprecation).toBeUndefined()
+    expect([AgentProvider.Vertex, AgentProvider.Vertex3]).toContain(entry?.provider)
   })
 
   it.each(CATALOG)("$model has its default options", ({ model, provider, defaultOptions }) => {
