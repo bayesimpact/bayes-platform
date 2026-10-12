@@ -88,35 +88,17 @@ beforeEach(() => {
 describe("uploadCsvFile", () => {
   const file = new File(["title,summary\nFirst,One\n"], "sample.csv", { type: "text/csv" })
 
-  const upload = (onSuccess = vi.fn()) =>
-    agentCsvExtractionRunsThunks.uploadCsvFile({ file, onSuccess })(
-      vi.fn(),
-      () => buildState(),
-      extra,
-    )
-
-  it("uploads through the extraction agent's live routes outside Studio", async () => {
+  it("uploads through the extraction agent routes of the run type it is given", async () => {
     // The project documents routes are for owners and admins: a Desk member got a 403 there.
+    // The page URL says Desk while the caller asks for playground: the caller wins.
     mockedIsStudioInterface.mockReturnValue(false)
     const onSuccess = vi.fn()
 
-    const action = await upload(onSuccess)
-
-    expect(uploadDocument).toHaveBeenCalledWith({
-      organizationId,
-      projectId,
-      agentId,
-      type: "live",
+    const action = await agentCsvExtractionRunsThunks.uploadCsvFile({
       file,
-    })
-    expect(action.payload).toBe("document-csv")
-    expect(onSuccess).toHaveBeenCalledWith("document-csv")
-  })
-
-  it("uploads through the extraction agent's playground routes in Studio", async () => {
-    mockedIsStudioInterface.mockReturnValue(true)
-
-    await upload()
+      type: "playground",
+      onSuccess,
+    })(vi.fn(), () => buildState(), extra)
 
     expect(uploadDocument).toHaveBeenCalledWith({
       organizationId,
@@ -125,6 +107,8 @@ describe("uploadCsvFile", () => {
       type: "playground",
       file,
     })
+    expect(action.payload).toBe("document-csv")
+    expect(onSuccess).toHaveBeenCalledWith("document-csv")
   })
 })
 

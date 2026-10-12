@@ -63,7 +63,10 @@ export const deskRoutes = {
             {
               path: DeskRoutes.agentExtraction.path,
               element: (
-                <AgentExtractionRoute buildCsvRunPath={DeskRoutes.agentExtractionCsvRun.build} />
+                <AgentExtractionRoute
+                  type="live"
+                  buildCsvRunPath={DeskRoutes.agentExtractionCsvRun.build}
+                />
               ),
               children: [
                 {

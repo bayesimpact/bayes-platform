@@ -156,18 +156,15 @@ describe("executeOne", () => {
 })
 
 describe("deleteMyDocuments", () => {
-  const deleteDocuments = (documentIds: string[]) =>
-    extractionAgentSessionsThunks.deleteMyDocuments({ documentIds })(
-      vi.fn(),
-      () => buildState(),
-      extra,
-    )
-
-  it("deletes each document through the extraction agent's live routes outside Studio", async () => {
+  it("deletes each document through the extraction agent routes of the run type it is given", async () => {
     // The project documents route is for owners and admins: a Desk member got a 403 there.
+    // The page URL says Desk while the caller asks for playground: the caller wins.
     mockedIsStudioInterface.mockReturnValue(false)
 
-    const action = await deleteDocuments(["document-1", "document-2"])
+    const action = await extractionAgentSessionsThunks.deleteMyDocuments({
+      documentIds: ["document-1", "document-2"],
+      type: "playground",
+    })(vi.fn(), () => buildState(), extra)
 
     expect(action.meta.requestStatus).toBe("fulfilled")
     expect(deleteMyDocument).toHaveBeenCalledTimes(2)
@@ -175,29 +172,15 @@ describe("deleteMyDocuments", () => {
       organizationId,
       projectId,
       agentId,
-      type: "live",
+      type: "playground",
       documentId: "document-1",
     })
-    expect(deleteMyDocument).toHaveBeenCalledWith({
-      organizationId,
-      projectId,
-      agentId,
-      type: "live",
-      documentId: "document-2",
-    })
-  })
-
-  it("deletes through the extraction agent's playground routes in Studio", async () => {
-    mockedIsStudioInterface.mockReturnValue(true)
-
-    await deleteDocuments(["document-1"])
-
     expect(deleteMyDocument).toHaveBeenCalledWith({
       organizationId,
       projectId,
       agentId,
       type: "playground",
-      documentId: "document-1",
+      documentId: "document-2",
     })
   })
 })
