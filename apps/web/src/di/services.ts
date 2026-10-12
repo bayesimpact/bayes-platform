@@ -22,6 +22,7 @@ import type { IAgentMessageFeedbackSpi } from "@/studio/features/agent-message-f
 import type { IAgentSubAgentsSpi } from "@/studio/features/agent-sub-agents/agent-sub-agents.spi"
 import type { IAgentAnalyticsSpi } from "@/studio/features/analytics/agent/agent-analytics.spi"
 import type { IProjectAnalyticsSpi } from "@/studio/features/analytics/project/analytics.spi"
+import type { IAppInstallationsSpi } from "@/studio/features/app-installations/app-installations.spi"
 import type { IConversationReviewSpi } from "@/studio/features/conversation-review/conversation-review.spi"
 import type { IDocumentSourcesSpi } from "@/studio/features/document-sources/document-sources.spi"
 import type { IDocumentTagsSpi } from "@/studio/features/document-tags/document-tags.spi"
@@ -58,6 +59,7 @@ export type Services = {
   evaluationExtractionRuns: IEvaluationExtractionRunsSpi
   extractionAgentSessions: IExtractionAgentSessionsSpi
   mcpServers: IMcpServersSpi
+  appInstallations: IAppInstallationsSpi
   me: IMeSpi
   invitations: IInvitationsSpi
   organizations: IOrganizationsSpi

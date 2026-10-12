@@ -109,7 +109,7 @@ export class AppsInstallController {
   }
 }
 
-function toAppInstallationSummaryDto(
+export function toAppInstallationSummaryDto(
   installation: ActiveAppInstallationSummary,
 ): AppInstallationSummaryDto {
   return {

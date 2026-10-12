@@ -1,4 +1,7 @@
-import { DOCUMENT_SOURCE_READ_PERMISSION } from "@caseai-connect/api-contracts"
+import {
+  DOCUMENT_SOURCE_READ_PERMISSION,
+  PROJECT_APP_INSTALLATION_READ_PERMISSION,
+} from "@caseai-connect/api-contracts"
 import {
   Collapsible,
   CollapsibleContent,
@@ -17,6 +20,7 @@ import {
 } from "@caseai-connect/ui/shad/sidebar"
 import { cn } from "@caseai-connect/ui/utils"
 import {
+  AppWindowIcon,
   BarChart3Icon,
   ChevronRightIcon,
   CloudAlertIcon,
@@ -66,6 +70,11 @@ export function SidebarFooterChildren({ project }: { project: Project }) {
           <RestrictedFeature feature="agent-mcp">
             <NavMcpServers organizationId={project.organizationId} projectId={project.id} />
           </RestrictedFeature>
+          <NavAppInstallations
+            organizationId={project.organizationId}
+            projectId={project.id}
+            permissions={project.permissions}
+          />
           <NavProjectMemberships organizationId={project.organizationId} projectId={project.id} />
           <NavAdmin organizationId={project.organizationId} projectId={project.id} />
         </SidebarMenu>
@@ -326,6 +335,35 @@ function NavMcpServers({
           <ServerIcon />
           <span className={cn(isActive && "font-semibold capitalize-first")}>
             {t("mcpServers:title")}
+          </span>
+        </Link>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  )
+}
+
+function NavAppInstallations({
+  organizationId,
+  projectId,
+  permissions,
+}: {
+  organizationId: string
+  projectId: string
+  permissions: Project["permissions"]
+}) {
+  const { t } = useTranslation()
+  const { isRoute } = useIsRoute()
+  if (!permissions.includes(PROJECT_APP_INSTALLATION_READ_PERMISSION)) return null
+
+  const isActive = isRoute(StudioRoutes.appInstallations.path)
+  const path = StudioRoutes.appInstallations.build({ organizationId, projectId })
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton isActive={isActive} asChild>
+        <Link to={path}>
+          <AppWindowIcon />
+          <span className={cn(isActive && "font-semibold capitalize-first")}>
+            {t("appInstallations:title")}
           </span>
         </Link>
       </SidebarMenuButton>

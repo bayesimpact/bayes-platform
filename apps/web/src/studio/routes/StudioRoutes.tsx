@@ -29,6 +29,7 @@ import { AgentAnalyticsRoute } from "./AgentAnalyticsRoute"
 import { AgentConversationReviewRoute } from "./AgentConversationReviewRoute"
 import { AgentEditorRoute } from "./AgentEditorRoute"
 import { AgentMembershipsRoute } from "./AgentMembershipsRoute"
+import { AppInstallationsRoute } from "./AppInstallationsRoute"
 import { ProjectDocumentsRoute } from "./DocumentsRoute"
 import { ExternalSourcesRoute } from "./ExternalSourcesRoute"
 import { FeedbackRoute } from "./FeedbackRoute"
@@ -98,6 +99,10 @@ export const studioRoutes = {
               <McpServersRoute />
             </RestrictedFeature>
           ),
+        },
+        {
+          path: StudioRoutes.appInstallations.path,
+          element: <AppInstallationsRoute />,
         },
         {
           path: StudioRoutes.resourceLibraries.path,
