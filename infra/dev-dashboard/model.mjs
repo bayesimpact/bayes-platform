@@ -141,6 +141,7 @@ export function buildState({ containers, status = {}, routerPort, now }) {
           pr: details.pr ?? null,
           databases: details.databases ?? null,
           cleanup: details.cleanup ?? null,
+          cleanupCommand: cleanupCommand(environment.slug, details.cleanup),
           state: environmentState(environment.services),
           services: environment.services.sort((first, second) =>
             first.name.localeCompare(second.name),
@@ -151,6 +152,14 @@ export function buildState({ containers, status = {}, routerPort, now }) {
         }
       }),
   }
+}
+
+/**
+ * The command that removes an environment the last cleanup found safe to remove. The dashboard
+ * only shows it: removing needs the host's git, gh and databases.
+ */
+export function cleanupCommand(slug, cleanup) {
+  return cleanup?.verdict === "remove" ? `npm run wt -- cleanup --apply --slug ${slug}` : null
 }
 
 function sortLinks(links) {

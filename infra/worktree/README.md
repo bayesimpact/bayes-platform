@@ -44,10 +44,11 @@ It keeps a worktree with uncommitted changes, with commits that are not in the p
 a process working in it (a Claude session, a shell), with git activity in the last 2 hours, or
 whose pull request was merged less than 30 minutes ago. `--apply` removes at most 3 per run, and
 keeps a dump of each database for 14 days. Worktrees that never had an environment are only
-removed with `--include-unregistered`.
+removed with `--include-unregistered`. `--slug <name>` limits the run to one environment.
 
 The session start hook of `.claude/settings.json` runs it in the background, at most every 10
-minutes. For now it only records its verdicts, which the dashboard shows.
+minutes. For now it only records its verdicts, which the dashboard shows. On an environment it
+found safe to remove, the dashboard gives the command that removes it, to run in the main checkout.
 `npm run wt -- cleanup --enable-auto` lets it remove what is safe, `--disable-auto` turns that
 off. Removals are logged in `~/.bayes-worktrees/cleanup.log`, and the next session in the main
 checkout mentions them.

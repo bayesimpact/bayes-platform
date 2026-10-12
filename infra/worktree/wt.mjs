@@ -111,6 +111,7 @@ Anywhere:
   cleanup [--apply]          Environments whose pull request is merged or closed: what would be
                              removed (environment, databases, worktree, branch), or remove them
     [--include-unregistered] Also worktrees without an environment
+    [--slug <name>]          Only this environment and its worktree
     [--enable-auto | --disable-auto]  Let the session start hook remove them by itself
   setup [--recreate]         Once per machine: caches, shared stack and router
   doctor                     Check this machine
@@ -458,7 +459,10 @@ async function cleanup() {
   const say = options.auto ? () => {} : (line) => console.log(line)
   const checkedAt = new Date().toISOString()
   let removals = 0
-  for (const facts of cleanupFacts(mainCheckout)) {
+  const only = options.slug ? validSlug(options.slug) : null
+  const candidates = cleanupFacts(mainCheckout).filter((facts) => !only || facts.slug === only)
+  if (only && candidates.length === 0) say(`No worktree or environment named ${only}.`)
+  for (const facts of candidates) {
     const decision = decide(facts)
     if (facts.hasEnvironment && facts.worktreeExists) {
       updateStatus(facts.slug, {
