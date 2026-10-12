@@ -19,7 +19,6 @@ import { UrlCrawlingBatchModule } from "./crawling/url-crawling-batch.module"
 import { WebSourceEmbeddingsBatchModule } from "./crawling/web-source-embeddings-batch.module"
 import { Document } from "./document.entity"
 import { DocumentsController } from "./documents.controller"
-import { DocumentsGuard } from "./documents.guard"
 import { DocumentsService } from "./documents.service"
 import { DocumentChunkRetrievalService } from "./embeddings/document-chunk-retrieval.service"
 import { DocumentEmbeddingStatusNotifierService } from "./embeddings/document-embedding-status-notifier.service"
@@ -71,7 +70,6 @@ import { DocumentTagsModule } from "./tags/document-tags.module"
     DocumentEmbeddingStatusNotifierService,
     DocumentCrawlProgressStreamService,
     DocumentChunkRetrievalService,
-    DocumentsGuard,
     ResourceContextGuard,
     OrganizationContextResolver,
     ProjectContextResolver,

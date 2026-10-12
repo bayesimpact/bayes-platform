@@ -18,6 +18,8 @@ export type MockCall = {
   toolSchemas: Record<string, string>
   /** Serialized JSON schema of the structured output requested, if any. */
   responseFormatSchema?: string
+  /** Output token limit requested for this generation, if any. */
+  maxOutputTokens?: number
 }
 
 type ResolvedMock =
@@ -175,6 +177,9 @@ export class AISDKMockProvider extends AISDKLLMProviderBase {
       ),
       ...(options.responseFormat?.type === "json" && options.responseFormat.schema !== undefined
         ? { responseFormatSchema: JSON.stringify(options.responseFormat.schema) }
+        : {}),
+      ...(options.maxOutputTokens !== undefined
+        ? { maxOutputTokens: options.maxOutputTokens }
         : {}),
     })
 

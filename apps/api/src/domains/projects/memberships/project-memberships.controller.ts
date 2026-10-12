@@ -6,23 +6,27 @@ import type {
 } from "@/common/context/request.interface"
 import { AddContext, RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
-import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
+import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
+import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
+import {
+  PROJECT_MEMBER_DELETE_PERMISSION,
+  PROJECT_MEMBER_READ_PERMISSION,
+} from "@/domains/rbac/rbac.constants"
 import { UserGuard } from "@/domains/users/user.guard"
 import { toProjectMembershipDto } from "./project-membership.mapper"
-import { ProjectMembershipsGuard } from "./project-memberships.guard"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectMembershipsService } from "./project-memberships.service"
 
-@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, ProjectMembershipsGuard)
+@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, CheckPermissionGuard)
 @RequireContext("organization", "project")
 @Controller()
 export class ProjectMembershipsController {
   constructor(private readonly projectMembershipsService: ProjectMembershipsService) {}
 
   @Get(ProjectMembershipRoutes.getAll.path)
-  @CheckPolicy((policy) => policy.canList())
+  @CheckPermission(PROJECT_MEMBER_READ_PERMISSION, "project")
   async getAll(
     @Req() request: EndpointRequestWithProject,
   ): Promise<typeof ProjectMembershipRoutes.getAll.response> {
@@ -43,7 +47,7 @@ export class ProjectMembershipsController {
 
   @Get(ProjectMembershipRoutes.getMemberAgents.path)
   @AddContext("projectMembership")
-  @CheckPolicy((policy) => policy.canList())
+  @CheckPermission(PROJECT_MEMBER_READ_PERMISSION, "project")
   async getMemberAgents(
     @Req() request: EndpointRequestWithProjectMembership,
   ): Promise<typeof ProjectMembershipRoutes.getMemberAgents.response> {
@@ -67,7 +71,7 @@ export class ProjectMembershipsController {
   }
 
   @Delete(ProjectMembershipRoutes.deleteOne.path)
-  @CheckPolicy((policy) => policy.canDelete())
+  @CheckPermission(PROJECT_MEMBER_DELETE_PERMISSION, "project")
   @AddContext("projectMembership")
   @TrackActivity({ action: "projectMembership.delete", entityFrom: "memberProjectMembership" })
   async removeProjectMembership(

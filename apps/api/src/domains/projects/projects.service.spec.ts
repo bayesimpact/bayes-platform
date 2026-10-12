@@ -183,6 +183,8 @@ describe("ProjectsService", () => {
           "agent.extraction.session.read",
           "agent.extraction.session.create",
           "agent.extraction.session.delete",
+          "project.agent_message_feedback.create",
+          "project.mcp_server.read",
         ].sort(),
       )
     })

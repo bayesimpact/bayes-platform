@@ -29,6 +29,8 @@ type StoryArgs = StudioStoryArgs & {
   withDraft?: boolean
   /** Puts the agent on a retired model so the deprecation banner renders. */
   withDeprecatedModel?: boolean
+  /** Grants the safety review of the current agent: the header shows the safety entry. */
+  canReviewConversations?: boolean
 }
 
 const meta = {
@@ -45,6 +47,7 @@ const meta = {
     withAgentSessions: { control: "boolean" },
     withDraft: { control: "boolean" },
     withDeprecatedModel: { control: "boolean" },
+    canReviewConversations: { control: "boolean" },
   },
   args: {
     ...studioStoryArgs,
@@ -54,6 +57,7 @@ const meta = {
     withAgentSessions: false,
     withDraft: false,
     withDeprecatedModel: false,
+    canReviewConversations: false,
   },
   render: render({ routes: studioRoutes, path: StudioRoutes.agent.path }),
 } satisfies Meta<StoryArgs>
@@ -64,8 +68,16 @@ type Story = StoryObj<typeof meta>
 export const Default: Story = {
   decorators: [
     buildDecorator<StoryArgs>(
-      ({ agentType, fillForm, withAgentSessions, withDraft, withDeprecatedModel, ...args }) => {
-        const { baseSeeds, project, agents } = buildStudioData(args)
+      ({
+        agentType,
+        fillForm,
+        withAgentSessions,
+        withDraft,
+        withDeprecatedModel,
+        canReviewConversations,
+        ...args
+      }) => {
+        const { baseSeeds, user, project, agents } = buildStudioData(args)
         const [firstAgent, ...restAgents] = agents
         const withFillForm = agentType === "conversation" && !!fillForm
         const currentAgent = agentFactory.transient({ project }).build({
@@ -108,6 +120,10 @@ export const Default: Story = {
         return {
           state: mergeSeeds(
             baseSeeds,
+            seed.me({
+              ...user,
+              conversationReviewAgentIds: canReviewConversations ? [currentAgent.id] : [],
+            }),
             seed.agents([...restAgents, currentAgent], { currentId: currentAgent.id }),
             seed.conversationAgentSessions({ [currentAgent.id]: conversationSessions }),
             seed.extractionAgentSessions({
@@ -163,6 +179,14 @@ export const AgentOnDeprecatedModel: Story = {
   args: {
     ...AgentConvWithSessions.args,
     withDeprecatedModel: true,
+  },
+  decorators: Default.decorators,
+}
+
+export const AgentConvForConversationReviewer: Story = {
+  args: {
+    ...AgentConvWithSessions.args,
+    canReviewConversations: true,
   },
   decorators: Default.decorators,
 }

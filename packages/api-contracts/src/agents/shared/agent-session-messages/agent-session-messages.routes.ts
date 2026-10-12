@@ -12,51 +12,48 @@ import type {
 // We still define a route for path/method typing. The response type is treated as unknown by clients.
 export type AgentSessionStreamResponse = unknown
 
-const basePath =
-  "organizations/:organizationId/projects/:projectId/agents/:agentId/agent-sessions/:agentSessionId"
+const agentSessionsPath =
+  "organizations/:organizationId/projects/:projectId/agents/:agentId/agent-sessions"
+
+/** Live and playground sessions each get their own route set, so each has its own permissions. */
+function defineAgentSessionMessagesRoutes(type: BaseAgentSessionTypeDto) {
+  const prefix = `${agentSessionsPath}/${type}/:agentSessionId/messages`
+
+  return {
+    getAll: defineRoute<ResponseData<AgentSessionMessageDto[]>>({
+      method: "post",
+      path: prefix,
+    }),
+    /**
+     * Current HTML of every MCP App card the session's replies point at. Reading it means
+     * connecting to each MCP server, so it is separate from `getAll` and loaded once the
+     * transcript is already on screen.
+     */
+    getMcpAppHtml: defineRoute<ResponseData<AgentSessionMcpAppHtmlDto[]>>({
+      method: "post",
+      path: `${prefix}/mcp-app-html`,
+    }),
+    getOne: defineRoute<ResponseData<AgentSessionMessageDto>>({
+      method: "post",
+      path: `${prefix}/:messageId`,
+    }),
+    presignAttachmentDocument: defineRoute<
+      ResponseData<PresignAgentSessionMessageAttachmentDocumentResponseDto>,
+      RequestPayload<PresignAgentSessionMessageAttachmentDocumentRequestDto>
+    >({
+      method: "post",
+      path: `${prefix}/attachment-document/presign`,
+    }),
+    getAttachmentDocumentTemporaryUrl: defineRoute<ResponseData<{ url: string }>>({
+      method: "post",
+      path: `${prefix}/attachment-document/:attachmentDocumentId/temporary-url`,
+    }),
+  }
+}
+
 export const AgentSessionMessagesRoutes = {
-  getAll: defineRoute<
-    ResponseData<AgentSessionMessageDto[]>,
-    RequestPayload<{ type: BaseAgentSessionTypeDto }>
-  >({
-    method: "post",
-    path: `${basePath}/messages`,
-  }),
-  getOne: defineRoute<
-    ResponseData<AgentSessionMessageDto>,
-    RequestPayload<{ type: BaseAgentSessionTypeDto }>
-  >({
-    method: "post",
-    path: `${basePath}/messages/:messageId`,
-  }),
-  /**
-   * Current HTML of every MCP App card the session's replies point at. Reading it means
-   * connecting to each MCP server, so it is separate from `getAll` and loaded once the
-   * transcript is already on screen.
-   */
-  getMcpAppHtml: defineRoute<
-    ResponseData<AgentSessionMcpAppHtmlDto[]>,
-    RequestPayload<{ type: BaseAgentSessionTypeDto }>
-  >({
-    method: "post",
-    path: `${basePath}/messages/mcp-app-html`,
-  }),
-  presignAttachmentDocument: defineRoute<
-    ResponseData<PresignAgentSessionMessageAttachmentDocumentResponseDto>,
-    RequestPayload<
-      { type: BaseAgentSessionTypeDto } & PresignAgentSessionMessageAttachmentDocumentRequestDto
-    >
-  >({
-    method: "post",
-    path: `${basePath}/messages/attachment-document/presign`,
-  }),
-  getAttachmentDocumentTemporaryUrl: defineRoute<
-    ResponseData<{ url: string }>,
-    RequestPayload<{ type: BaseAgentSessionTypeDto }>
-  >({
-    method: "post",
-    path: `${basePath}/messages/attachment-document/:attachmentDocumentId/temporary-url`,
-  }),
+  live: defineAgentSessionMessagesRoutes("live"),
+  playground: defineAgentSessionMessagesRoutes("playground"),
   stream: defineRoute<
     ResponseData<AgentSessionStreamResponse>,
     RequestPayload<{
@@ -72,6 +69,6 @@ export const AgentSessionMessagesRoutes = {
     }>
   >({
     method: "post",
-    path: `${basePath}/stream`,
+    path: `${agentSessionsPath}/:agentSessionId/stream`,
   }),
 }

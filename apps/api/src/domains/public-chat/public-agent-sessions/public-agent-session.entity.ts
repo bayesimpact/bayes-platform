@@ -1,13 +1,27 @@
-import { Column, Entity, Index, JoinColumn, ManyToOne, OneToMany } from "typeorm"
+import { Check, Column, Entity, Index, JoinColumn, ManyToOne, OneToMany } from "typeorm"
 import { Base4AllEntity } from "@/common/entities/base4all.entity"
+import { AppInstallation } from "@/domains/apps/app-installation.entity"
 import { AgentEmbedConfig } from "../agent-embed-configs/agent-embed-config.entity"
 import { PublicAgentSessionCategory } from "./public-agent-session-category.entity"
 
+/**
+ * A conversation with an agent for someone who is not signed in. It comes either
+ * from the embed (`embedConfigId`, with a session token) or from an installed App
+ * (`appInstallationId`, no session token: the App authenticates every call).
+ */
 @Entity("public_agent_session")
 @Index(["sessionTokenHash"])
+@Index(["appInstallationId"])
+@Check(
+  "CHK_public_agent_session_one_channel",
+  '("embed_config_id" IS NULL) <> ("app_installation_id" IS NULL)',
+)
 export class PublicAgentSession extends Base4AllEntity {
-  @Column({ type: "uuid", name: "embed_config_id" })
-  embedConfigId!: string
+  @Column({ type: "uuid", name: "embed_config_id", nullable: true })
+  embedConfigId!: string | null
+
+  @Column({ type: "uuid", name: "app_installation_id", nullable: true })
+  appInstallationId!: string | null
 
   @Column({ type: "uuid", name: "agent_id" })
   agentId!: string
@@ -18,8 +32,8 @@ export class PublicAgentSession extends Base4AllEntity {
   @Column({ type: "uuid", name: "project_id" })
   projectId!: string
 
-  @Column({ type: "varchar", name: "session_token_hash", unique: true })
-  sessionTokenHash!: string
+  @Column({ type: "varchar", name: "session_token_hash", unique: true, nullable: true })
+  sessionTokenHash!: string | null
 
   @Column({ type: "varchar", name: "external_visitor_id", nullable: true })
   externalVisitorId!: string | null
@@ -49,5 +63,9 @@ export class PublicAgentSession extends Base4AllEntity {
 
   @ManyToOne(() => AgentEmbedConfig, { onDelete: "CASCADE" })
   @JoinColumn({ name: "embed_config_id" })
-  embedConfig!: AgentEmbedConfig
+  embedConfig?: AgentEmbedConfig | null
+
+  @ManyToOne(() => AppInstallation)
+  @JoinColumn({ name: "app_installation_id" })
+  appInstallation?: AppInstallation | null
 }

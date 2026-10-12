@@ -23,6 +23,11 @@ import {
 } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { AppsModule } from "../apps.module"
+import {
+  INSTALL_PKCE_METHOD_S256,
+  RFC7636_TEST_CODE_CHALLENGE,
+  RFC7636_TEST_CODE_VERIFIER,
+} from "../install-pkce"
 
 describe("Apps - Revoke", () => {
   let app: INestApplication<App>
@@ -97,6 +102,7 @@ describe("Apps - Revoke", () => {
   }
 
   const install = async (projectId: string, slug: string) => {
+    const redirectUri = "http://127.0.0.1:8787/callback"
     const authorized = await requester({
       route: AppsRoutes.authorize,
       pathParams: { slug },
@@ -105,13 +111,27 @@ describe("Apps - Revoke", () => {
         payload: {
           projectId,
           permissions: [DOCUMENT_READ_PERMISSION],
-          redirectUri: "http://127.0.0.1:8787/callback",
+          redirectUri,
           state: "csrf-state",
+          codeChallenge: RFC7636_TEST_CODE_CHALLENGE,
+          codeChallengeMethod: INSTALL_PKCE_METHOD_S256,
         },
       },
     })
     expectResponse(authorized, 201)
-    return authorized.body.data
+    const exchanged = await request(app.getHttpServer())
+      .post(AppsV1Routes.exchangeInstallCode.getPath())
+      .set("Connection", "close")
+      .send({
+        code: authorized.body.data.code,
+        redirect_uri: redirectUri,
+        code_verifier: RFC7636_TEST_CODE_VERIFIER,
+      })
+    expectResponse(exchanged, 200)
+    return {
+      clientId: exchanged.body.client_id,
+      clientSecret: exchanged.body.client_secret,
+    }
   }
 
   it("revokes the installation and refuses new tokens and the JWT issued before", async () => {

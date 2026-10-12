@@ -1,30 +1,14 @@
 import {
-  AgentSessionMessagesRoutes,
+  type AgentSessionMessagesRoutes,
   agentSessionMessageAttachmentAllowedMimeTypes,
 } from "@caseai-connect/api-contracts"
-import {
-  Body,
-  Controller,
-  HttpCode,
-  HttpStatus,
-  Inject,
-  NotFoundException,
-  Param,
-  Post,
-  Req,
-  UnprocessableEntityException,
-  UseGuards,
-} from "@nestjs/common"
+import { Inject, Injectable, NotFoundException, UnprocessableEntityException } from "@nestjs/common"
 import { v4 } from "uuid"
 import type { EndpointRequestWithAgentSession } from "@/common/context/request.interface"
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
-import { RequireContext } from "@/common/context/require-context.decorator"
-import { ResourceContextGuard } from "@/common/context/resource-context.guard"
-import { CheckPolicy } from "@/common/policies/check-policy.decorator"
-import { BaseAgentSessionGuard } from "@/domains/agents/base-agent-sessions/base-agent-session.guard"
+import type { BaseAgentSessionType } from "@/domains/agents/base-agent-sessions/base-agent-sessions.types"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
-import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import {
   extractFileExtension,
   normalizeUploadedFileName,
@@ -33,7 +17,6 @@ import {
   FILE_STORAGE_SERVICE,
   type IFileStorage,
 } from "@/domains/documents/storage/file-storage.interface"
-import { UserGuard } from "@/domains/users/user.guard"
 import type { ConversationAgentSession } from "../../conversation-agent-sessions/conversation-agent-session.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ConversationAgentSessionsService } from "../../conversation-agent-sessions/conversation-agent-sessions.service"
@@ -43,10 +26,21 @@ import { AgentMessageAttachmentDocumentsService } from "./agent-message-attachme
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { McpAppHtmlService } from "./mcp-app-html.service"
 
-@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, BaseAgentSessionGuard)
-@RequireContext("organization", "project", "agent", "agentSession")
-@Controller()
-export class AgentMessagesController {
+type Routes = (typeof AgentSessionMessagesRoutes)[BaseAgentSessionType]
+
+/**
+ * Base of the live and playground session message controllers. Each subclass serves one session
+ * type on its own route set and checks its own permissions, and the handlers here answer 404 for
+ * a session of the other type, so a live permission never opens a playground session.
+ *
+ * This class declares no routes and no guards and is not registered in the module.
+ * `@Injectable()` only makes TypeScript emit the constructor metadata the subclasses inherit for
+ * dependency injection.
+ */
+@Injectable()
+export abstract class AgentMessagesController {
+  protected abstract readonly type: BaseAgentSessionType
+
   constructor(
     @Inject(FILE_STORAGE_SERVICE)
     private readonly fileStorageService: IFileStorage,
@@ -56,11 +50,10 @@ export class AgentMessagesController {
     private readonly agentSettingsService: AgentSettingsService,
   ) {}
 
-  @CheckPolicy((policy) => policy.canList())
-  @Post(AgentSessionMessagesRoutes.getAll.path)
-  async getAll(
-    @Req() request: EndpointRequestWithAgentSession<ConversationAgentSession>,
-  ): Promise<typeof AgentSessionMessagesRoutes.getAll.response> {
+  protected async handleGetAll(
+    request: EndpointRequestWithAgentSession<ConversationAgentSession>,
+  ): Promise<Routes["getAll"]["response"]> {
+    this.assertSessionType(request)
     const connectScope = getRequiredConnectScope(request)
     const agentSessionId = request.agentSession.id
     const messages = await this.conversationAgentSessionsService.listMessagesForSession({
@@ -72,11 +65,10 @@ export class AgentMessagesController {
     return { data: toDtos(messages) }
   }
 
-  @CheckPolicy((policy) => policy.canList())
-  @Post(AgentSessionMessagesRoutes.getMcpAppHtml.path)
-  async getMcpAppHtml(
-    @Req() request: EndpointRequestWithAgentSession<ConversationAgentSession>,
-  ): Promise<typeof AgentSessionMessagesRoutes.getMcpAppHtml.response> {
+  protected async handleGetMcpAppHtml(
+    request: EndpointRequestWithAgentSession<ConversationAgentSession>,
+  ): Promise<Routes["getMcpAppHtml"]["response"]> {
+    this.assertSessionType(request)
     const connectScope = getRequiredConnectScope(request)
     const agentSessionId = request.agentSession.id
     const messages = await this.conversationAgentSessionsService.listMessagesForSession({
@@ -100,12 +92,11 @@ export class AgentMessagesController {
     return { data: toMcpAppHtmlDtos(htmlByKey) }
   }
 
-  @CheckPolicy((policy) => policy.canList())
-  @Post(AgentSessionMessagesRoutes.getOne.path)
-  async getOne(
-    @Req() request: EndpointRequestWithAgentSession<ConversationAgentSession>,
-    @Param("messageId") messageId: string,
-  ): Promise<typeof AgentSessionMessagesRoutes.getOne.response> {
+  protected async handleGetOne(
+    request: EndpointRequestWithAgentSession<ConversationAgentSession>,
+    messageId: string,
+  ): Promise<Routes["getOne"]["response"]> {
+    this.assertSessionType(request)
     const connectScope = getRequiredConnectScope(request)
     const message = await this.conversationAgentSessionsService.getMessageById({
       id: messageId,
@@ -120,13 +111,11 @@ export class AgentMessagesController {
     return { data: toDto(message) }
   }
 
-  @CheckPolicy((policy) => policy.canCreate())
-  @Post(AgentSessionMessagesRoutes.presignAttachmentDocument.path)
-  @HttpCode(HttpStatus.CREATED)
-  async presignAttachmentDocument(
-    @Req() request: EndpointRequestWithAgentSession<ConversationAgentSession>,
-    @Body() { payload }: typeof AgentSessionMessagesRoutes.presignAttachmentDocument.request,
-  ): Promise<typeof AgentSessionMessagesRoutes.presignAttachmentDocument.response> {
+  protected async handlePresignAttachmentDocument(
+    request: EndpointRequestWithAgentSession<ConversationAgentSession>,
+    payload: Routes["presignAttachmentDocument"]["request"]["payload"],
+  ): Promise<Routes["presignAttachmentDocument"]["response"]> {
+    this.assertSessionType(request)
     if (!payload.fileName || !payload.fileName.trim()) {
       throw new UnprocessableEntityException("File name is required.")
     }
@@ -171,12 +160,11 @@ export class AgentMessagesController {
     return { data: { attachmentDocumentId, uploadUrl } }
   }
 
-  @CheckPolicy((policy) => policy.canList())
-  @Post(AgentSessionMessagesRoutes.getAttachmentDocumentTemporaryUrl.path)
-  async getAttachmentDocumentTemporaryUrl(
-    @Req() request: EndpointRequestWithAgentSession<ConversationAgentSession>,
-    @Param("attachmentDocumentId") attachmentDocumentId: string,
-  ): Promise<typeof AgentSessionMessagesRoutes.getAttachmentDocumentTemporaryUrl.response> {
+  protected async handleGetAttachmentDocumentTemporaryUrl(
+    request: EndpointRequestWithAgentSession<ConversationAgentSession>,
+    attachmentDocumentId: string,
+  ): Promise<Routes["getAttachmentDocumentTemporaryUrl"]["response"]> {
+    this.assertSessionType(request)
     const attachmentDocument = await this.agentMessageAttachmentDocumentsService.findById({
       connectScope: getRequiredConnectScope(request),
       attachmentDocumentId,
@@ -190,5 +178,11 @@ export class AgentMessagesController {
         url: await this.fileStorageService.getTemporaryUrl(attachmentDocument.storageRelativePath),
       },
     }
+  }
+
+  private assertSessionType(
+    request: EndpointRequestWithAgentSession<ConversationAgentSession>,
+  ): void {
+    if (request.agentSession.type !== this.type) throw new NotFoundException()
   }
 }

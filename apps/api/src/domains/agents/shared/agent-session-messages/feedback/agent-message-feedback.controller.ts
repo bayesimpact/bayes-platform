@@ -10,26 +10,29 @@ import type {
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
 import { AddContext, RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
-import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import type { Agent } from "@/domains/agents/agent.entity"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
-import { DocumentsGuard } from "@/domains/documents/documents.guard"
+import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
+import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
+import {
+  PROJECT_AGENT_MESSAGE_FEEDBACK_CREATE_PERMISSION,
+  PROJECT_AGENT_MESSAGE_FEEDBACK_READ_PERMISSION,
+} from "@/domains/rbac/rbac.constants"
 import { UserGuard } from "@/domains/users/user.guard"
 import { getTraceUrl } from "@/external/llm/trace-url"
-import { AgentGuard } from "../../../agent.guard"
 import type { AgentMessage } from "../agent-message.entity"
 import type { AgentMessageFeedback } from "./agent-message-feedback.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentMessageFeedbackService } from "./agent-message-feedback.service"
 
-@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard)
+@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, CheckPermissionGuard)
 @RequireContext("organization", "project")
 @Controller()
 export class AgentMessageFeedbackController {
   constructor(private readonly feedbackService: AgentMessageFeedbackService) {}
 
-  @CheckPolicy((policy) => policy.canCreate())
   @Post(AgentMessageFeedbackRoutes.createOne.path)
+  @CheckPermission(PROJECT_AGENT_MESSAGE_FEEDBACK_CREATE_PERMISSION, "project")
   async createOne(
     @Req() request: EndpointRequestWithProject,
     @Param("agentMessageId") agentMessageId: string,
@@ -49,10 +52,9 @@ export class AgentMessageFeedbackController {
     return { data: { success: true } }
   }
 
-  @UseGuards(AgentGuard, DocumentsGuard) // FIXME: create dedicated guard because a "member" of an agent should not have access to feedbacks
-  @AddContext("agent")
-  @CheckPolicy((policy) => policy.canList())
   @Get(AgentMessageFeedbackRoutes.getAll.path)
+  @CheckPermission(PROJECT_AGENT_MESSAGE_FEEDBACK_READ_PERMISSION, "project")
+  @AddContext("agent")
   async getAll(
     @Req() request: EndpointRequestWithAgent,
   ): Promise<typeof AgentMessageFeedbackRoutes.getAll.response> {

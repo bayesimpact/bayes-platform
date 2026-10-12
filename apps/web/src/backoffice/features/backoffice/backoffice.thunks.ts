@@ -65,6 +65,32 @@ const getAgent = createAsyncThunk<BackofficeAgentDetail, string, ThunkConfig>(
   },
 )
 
+const grantAgentConversationReviewer = createAsyncThunk<
+  { agentId: string; email: string },
+  { agentId: string; email: string },
+  ThunkConfig
+>("backoffice/grantAgentConversationReviewer", async (params, { extra: { services } }) => {
+  try {
+    await services.backoffice.grantAgentConversationReviewer(params)
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, "Something went wrong, please try again."))
+  }
+  return params
+})
+
+const revokeAgentConversationReviewer = createAsyncThunk<
+  { agentId: string; userId: string },
+  { agentId: string; userId: string },
+  ThunkConfig
+>("backoffice/revokeAgentConversationReviewer", async (params, { extra: { services } }) => {
+  try {
+    await services.backoffice.revokeAgentConversationReviewer(params)
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, "Something went wrong, please try again."))
+  }
+  return params
+})
+
 const listProjects = createAsyncThunk<
   PaginatedBackofficeProjects,
   { page?: number; limit?: number; search?: string } | undefined,
@@ -163,6 +189,8 @@ export const backofficeThunks = {
   createOrganization,
   listAgents,
   getAgent,
+  grantAgentConversationReviewer,
+  revokeAgentConversationReviewer,
   listProjects,
   getProject,
   listUsers,

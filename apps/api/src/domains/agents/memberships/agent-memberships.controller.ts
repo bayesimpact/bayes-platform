@@ -10,23 +10,27 @@ import type {
 } from "@/common/context/request.interface"
 import { AddContext, RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
-import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
+import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
+import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
+import {
+  AGENT_MEMBER_DELETE_PERMISSION,
+  AGENT_MEMBER_READ_PERMISSION,
+} from "@/domains/rbac/rbac.constants"
 import { UserGuard } from "@/domains/users/user.guard"
 import type { AgentMembershipModel } from "./agent-membership.model"
-import { AgentMembershipsGuard } from "./agent-memberships.guard"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentMembershipsService } from "./agent-memberships.service"
 
-@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, AgentMembershipsGuard)
+@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, CheckPermissionGuard)
 @RequireContext("organization", "project", "agent")
 @Controller()
 export class AgentMembershipsController {
   constructor(private readonly agentMembershipsService: AgentMembershipsService) {}
 
   @Get(AgentMembershipRoutes.getAll.path)
-  @CheckPolicy((policy) => policy.canList())
+  @CheckPermission(AGENT_MEMBER_READ_PERMISSION, "agent")
   async getAll(
     @Req() request: EndpointRequestWithAgent,
   ): Promise<typeof AgentMembershipRoutes.getAll.response> {
@@ -37,7 +41,7 @@ export class AgentMembershipsController {
   }
 
   @Delete(AgentMembershipRoutes.deleteOne.path)
-  @CheckPolicy((policy) => policy.canDelete())
+  @CheckPermission(AGENT_MEMBER_DELETE_PERMISSION, "agent")
   @AddContext("agentMembership")
   @TrackActivity({ action: "agentMembership.delete", entityFrom: "memberAgentMembership" })
   async removeAgentMembership(

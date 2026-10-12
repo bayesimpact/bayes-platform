@@ -20,12 +20,27 @@ export default {
     )
     return toAppInstallPage(response.data.data)
   },
-  authorize: async ({ slug, projectId, permissions, redirectUri, state }) => {
+  authorize: async ({
+    slug,
+    projectId,
+    permissions,
+    redirectUri,
+    state,
+    codeChallenge,
+    codeChallengeMethod,
+  }) => {
     const axios = getAxiosInstance()
     const response = await axios.post<typeof AppsRoutes.authorize.response>(
       AppsRoutes.authorize.getPath({ slug }),
       {
-        payload: { projectId, permissions, redirectUri, state },
+        payload: {
+          projectId,
+          permissions,
+          redirectUri,
+          state,
+          codeChallenge,
+          codeChallengeMethod,
+        },
       } satisfies typeof AppsRoutes.authorize.request,
     )
     return toAuthorizeResult(response.data.data)
@@ -51,6 +66,7 @@ const toAppInstallPage = (dto: AppInstallPageDto): AppInstallPage => ({
     description: dto.app.description,
     logoUrl: dto.app.logoUrl,
     grantablePermissions: dto.app.grantablePermissions,
+    allowedRedirectUris: dto.app.allowedRedirectUris,
   },
   projects: dto.projects.map((project) => ({
     id: project.id,
@@ -71,8 +87,7 @@ const toProjectAppInstallation = (dto: AppInstallationSummaryDto): ProjectAppIns
 })
 
 const toAuthorizeResult = (dto: AuthorizeAppInstallResponseDto): AuthorizeAppInstallResult => ({
-  clientId: dto.clientId,
-  clientSecret: dto.clientSecret,
+  code: dto.code,
   redirectUri: dto.redirectUri,
   state: dto.state,
 })

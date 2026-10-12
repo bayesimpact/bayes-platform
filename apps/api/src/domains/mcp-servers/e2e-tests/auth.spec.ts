@@ -17,10 +17,16 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { AgentsModule } from "@/domains/agents/agents.module"
+import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
 import type { Organization } from "@/domains/organizations/organization.entity"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { projectFactory } from "@/domains/projects/project.factory"
-import { mockForeignAuthSubject, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
+import {
+  mockForeignAuthSubject,
+  mockOidcEmailForSub,
+  setupUserGuardForTesting,
+} from "../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { EncryptionService } from "../encryption.service"
 import { mcpServerFactory } from "../mcp-server.factory"
@@ -60,6 +66,7 @@ describe("McpServers - auth and scoping", () => {
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     encryptionService = setup.module.get(EncryptionService)
     app = setup.module.createNestApplication()
     await app.init()
@@ -114,6 +121,21 @@ describe("McpServers - auth and scoping", () => {
     return { otherProject, foreignServer }
   }
 
+  /** Switches the caller to an organization admin who holds no role on the project. */
+  const switchToOrganizationAdminWithoutProjectRole = async (organization: Organization) => {
+    const organizationAdminAuthSubject = `oidc|${randomUUID()}`
+    await addUserToOrganization({
+      repositories,
+      organization,
+      user: {
+        authSubject: organizationAdminAuthSubject,
+        email: mockOidcEmailForSub(organizationAdminAuthSubject),
+      },
+      membership: { role: "admin" },
+    })
+    authSubject = organizationAdminAuthSubject
+  }
+
   /**
    * The factory blob is not decryptable, which is fine for routes that never
    * read it. The OAuth routes do, so give the current server a real config.
@@ -161,6 +183,12 @@ describe("McpServers - auth and scoping", () => {
       await createContextForRole("member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
+
+    it("forbids an organization admin without a project role from creating", async () => {
+      const { organization } = await createContextForRole("owner")
+      await switchToOrganizationAdminWithoutProjectRole(organization)
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
   })
 
   describe("getAll", () => {
@@ -192,6 +220,12 @@ describe("McpServers - auth and scoping", () => {
 
       expectResponse(response, 200)
       expect(response.body.data).toEqual([])
+    })
+
+    it("forbids an organization admin without a project role from listing", async () => {
+      const { organization } = await createContextForRole("owner")
+      await switchToOrganizationAdminWithoutProjectRole(organization)
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
 
     it("returns the decrypted URL and never the API key", async () => {
@@ -267,6 +301,16 @@ describe("McpServers - auth and scoping", () => {
 
     it("forbids a simple project member from deleting", async () => {
       await createContextForRole("member")
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+
+      expect(
+        await repositories.mcpServerRepository.findOne({ where: { id: mcpServerId } }),
+      ).not.toBeNull()
+    })
+
+    it("forbids an organization admin without a project role from deleting", async () => {
+      const { organization } = await createContextForRole("owner")
+      await switchToOrganizationAdminWithoutProjectRole(organization)
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
 
       expect(
@@ -420,10 +464,10 @@ describe("McpServers - auth and scoping", () => {
     })
   })
 
-  // Both OAuth routes are gated by canCreate(). The allowed-role cases assert
-  // the 400 the service raises once the guard lets the request through: a
-  // provider is never mocked here, the functional coverage lives in
-  // oauth.spec.ts. Anything but 401 or 403 proves the policy accepted the role.
+  // Both OAuth routes check project.mcp_server.update. The allowed-role cases
+  // assert the 400 the service raises once the guard lets the request through:
+  // a provider is never mocked here, the functional coverage lives in
+  // oauth.spec.ts. Anything but 401 or 403 proves the guard accepted the role.
   describe("initiateOauth", () => {
     const subject = () =>
       request({

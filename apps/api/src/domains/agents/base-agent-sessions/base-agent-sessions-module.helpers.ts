@@ -23,7 +23,6 @@ import { AgentMessage } from "../shared/agent-session-messages/agent-message.ent
 import { AgentMessageAttachmentDocument } from "../shared/agent-session-messages/agent-message-attachment-document.entity"
 import { ConversationForm } from "../shared/conversation-forms/conversation-form.entity"
 import { ConversationFormsModule } from "../shared/conversation-forms/conversation-forms.module"
-import { BaseAgentSessionGuard } from "./base-agent-session.guard"
 import { BaseAgentSessionsService } from "./base-agent-sessions.service"
 
 export const moduleImports = [
@@ -61,7 +60,6 @@ export const moduleFeatures = [
 export const moduleProviders = [
   AgentContextResolver,
   AgentSessionContextResolver,
-  BaseAgentSessionGuard,
   BaseAgentSessionsService,
   OrganizationContextResolver,
   ProjectContextResolver,

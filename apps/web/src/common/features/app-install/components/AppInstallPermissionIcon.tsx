@@ -1,10 +1,12 @@
 import type { AppGrantablePermission } from "@caseai-connect/api-contracts"
 import {
+  BotIcon,
   FilePlusIcon,
   FileTextIcon,
   FolderIcon,
   FolderPlusIcon,
   LayoutGridIcon,
+  MessagesSquareIcon,
   PencilIcon,
   SettingsIcon,
   TagIcon,
@@ -28,6 +30,8 @@ const PERMISSION_ICONS: Record<AppGrantablePermission, typeof FileTextIcon> = {
   "project.read": LayoutGridIcon,
   "project.update": SettingsIcon,
   "project.delete": Trash2Icon,
+  "agent.read": BotIcon,
+  "agent.conversation.session.external.create": MessagesSquareIcon,
 }
 
 export function AppInstallPermissionIcon({ permission }: { permission: AppGrantablePermission }) {

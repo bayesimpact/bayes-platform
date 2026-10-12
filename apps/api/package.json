@@ -78,7 +78,7 @@
     "@opentelemetry/sdk-node": "^0.222.0",
     "@opentelemetry/sdk-trace-base": "^2.11.0",
     "@spider-cloud/spider-client": "^0.2.0",
-    "ai": "^6.0.87",
+    "ai": "^6.0.302",
     "axios": "^1.12.2",
     "bullmq": "^5.70.2",
     "class-transformer": "^0.5.1",

@@ -8,12 +8,16 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+- Safety review: people granted access on an agent can read any of its conversations from a session id.
+- Apps: an installed app can let people outside the platform talk to the workspace's agents.
 
 ### Changed
 
 ### Fixed
+- Conversations: an assistant reply that never ends no longer crashes the server.
 
 ### Security
+- Apps: install hands credentials through a one-time PKCE code on allowlisted HTTPS callbacks.
 - Apps: revoking an installation now cuts the app's access at once.
 
 ## [26.10.1] - 2026-10-07

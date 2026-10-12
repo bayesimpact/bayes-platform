@@ -26,6 +26,7 @@ import {
   ensureRbacCatalog,
 } from "../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../test/request"
+import { grantConversationReview } from "../agents/conversation-reviewers/agent-conversation-reviewer.factory"
 import { MeModule } from "./me.module"
 
 describe("MeController (e2e)", () => {
@@ -119,6 +120,7 @@ describe("MeController (e2e)", () => {
         email: soloUser.email,
         name: soloUser.name,
         globalPermissions: [],
+        conversationReviewAgentIds: [],
         memberships: {
           organizationMemberships: [],
           projectMemberships: [],
@@ -232,6 +234,21 @@ describe("MeController (e2e)", () => {
       })
     })
 
+    it("returns the agents the user was granted to review", async () => {
+      const { user, agent } = await createOrganizationWithAgent(repositories)
+      authSubject = user.authSubject!
+      await grantConversationReview({ repositories, user, agent })
+
+      const response = await subject()
+
+      expectResponse(response, 200)
+      expect(response.body.data.user.conversationReviewAgentIds).toEqual([agent.id])
+      // The review adds to the user's role on the agent: it is not a membership of its own.
+      expect(response.body.data.user.memberships.agentMemberships).toEqual([
+        expect.objectContaining({ agentId: agent.id, role: "owner" }),
+      ])
+    })
+
     it("returns global permissions of platform_staff users", async () => {
       const user = userFactory.build({ authSubject })
       await repositories.userRepository.save(user)
@@ -260,6 +277,7 @@ describe("MeController (e2e)", () => {
         "app.install",
         "backoffice.agent.read",
         "backoffice.app.manage",
+        "backoffice.conversation_reviewer.update",
         "backoffice.organization.read",
         "backoffice.project.read",
         "backoffice.project.update",

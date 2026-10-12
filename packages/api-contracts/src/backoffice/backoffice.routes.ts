@@ -9,6 +9,7 @@ import type {
   BackofficeRbacCatalogDto,
   BackofficeUserDetailDto,
   CreateBackofficeOrganizationRequestDto,
+  GrantBackofficeAgentConversationReviewerRequestDto,
   ListTermsDocumentsResponseDto,
   PaginatedBackofficeAgentsDto,
   PaginatedBackofficeOrganizationsDto,
@@ -40,6 +41,17 @@ export const BackofficeRoutes = {
   getAgent: defineRoute<ResponseData<BackofficeAgentDetailDto>>({
     method: "get",
     path: "backoffice/agents/:agentId",
+  }),
+  grantAgentConversationReviewer: defineRoute<
+    ResponseData<SuccessResponseDTO>,
+    RequestPayload<GrantBackofficeAgentConversationReviewerRequestDto>
+  >({
+    method: "post",
+    path: "backoffice/agents/:agentId/conversation-reviewers",
+  }),
+  revokeAgentConversationReviewer: defineRoute<ResponseData<SuccessResponseDTO>>({
+    method: "delete",
+    path: "backoffice/agents/:agentId/conversation-reviewers/:userId",
   }),
   listUsers: defineRoute<ResponseData<PaginatedBackofficeUsersDto>>({
     method: "get",
