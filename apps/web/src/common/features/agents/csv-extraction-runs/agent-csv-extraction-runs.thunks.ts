@@ -73,12 +73,11 @@ const uploadCsvFile = createAsyncThunk<
 >(
   "agentCsvExtractionRuns/uploadCsvFile",
   async ({ file, onSuccess }, { extra: { services }, getState }) => {
-    const { organizationId, projectId } = getBaseParams(getState())
-    const document = await services.documents.uploadOne({
-      organizationId,
-      projectId,
+    // Through the extraction agent, like any run document: a Desk member cannot use the project
+    // documents routes.
+    const document = await services.extractionAgentSessions.uploadDocument({
+      ...getBaseParams(getState()),
       file,
-      sourceType: "extraction",
     })
     onSuccess(document.id)
     return document.id

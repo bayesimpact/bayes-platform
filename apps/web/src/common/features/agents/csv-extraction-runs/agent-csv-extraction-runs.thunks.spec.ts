@@ -1,3 +1,4 @@
+import { MimeTypes } from "@caseai-connect/api-contracts"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { agentFactory } from "@/common/features/agents/agent.factory"
 import { agentSettingsFactory } from "@/common/features/agents/agent-settings/agent-settings.factory"
@@ -6,6 +7,7 @@ import { projectFactory } from "@/common/features/projects/projects.factory"
 import type { RootState } from "@/common/store"
 import { ADS } from "@/common/store/async-data-status"
 import type { Services } from "@/di/services"
+import { documentFactory } from "@/studio/features/documents/documents.factory"
 import { isStudioInterface } from "@/studio/routes/helpers"
 import { agentCsvExtractionRunsThunks } from "./agent-csv-extraction-runs.thunks"
 
@@ -23,8 +25,12 @@ const agent = agentFactory.transient({ project }).build({ id: agentId })
 
 const createOne = vi.fn()
 const executeOne = vi.fn()
+const uploadDocument = vi.fn()
 const extra = {
-  services: { agentCsvExtractionRuns: { createOne, executeOne } } as unknown as Services,
+  services: {
+    agentCsvExtractionRuns: { createOne, executeOne },
+    extractionAgentSessions: { uploadDocument },
+  } as unknown as Services,
 }
 
 const columnSchema = {
@@ -72,6 +78,54 @@ beforeEach(() => {
   vi.clearAllMocks()
   createOne.mockResolvedValue({ id: "run-1" })
   executeOne.mockResolvedValue({ id: "run-1" })
+  uploadDocument.mockResolvedValue(
+    documentFactory
+      .transient({ project })
+      .build({ id: "document-csv", mimeType: MimeTypes.csv, sourceType: "extraction" }),
+  )
+})
+
+describe("uploadCsvFile", () => {
+  const file = new File(["title,summary\nFirst,One\n"], "sample.csv", { type: "text/csv" })
+
+  const upload = (onSuccess = vi.fn()) =>
+    agentCsvExtractionRunsThunks.uploadCsvFile({ file, onSuccess })(
+      vi.fn(),
+      () => buildState(),
+      extra,
+    )
+
+  it("uploads through the extraction agent's live routes outside Studio", async () => {
+    // The project documents routes are for owners and admins: a Desk member got a 403 there.
+    mockedIsStudioInterface.mockReturnValue(false)
+    const onSuccess = vi.fn()
+
+    const action = await upload(onSuccess)
+
+    expect(uploadDocument).toHaveBeenCalledWith({
+      organizationId,
+      projectId,
+      agentId,
+      type: "live",
+      file,
+    })
+    expect(action.payload).toBe("document-csv")
+    expect(onSuccess).toHaveBeenCalledWith("document-csv")
+  })
+
+  it("uploads through the extraction agent's playground routes in Studio", async () => {
+    mockedIsStudioInterface.mockReturnValue(true)
+
+    await upload()
+
+    expect(uploadDocument).toHaveBeenCalledWith({
+      organizationId,
+      projectId,
+      agentId,
+      type: "playground",
+      file,
+    })
+  })
 })
 
 describe("createAndExecute", () => {
