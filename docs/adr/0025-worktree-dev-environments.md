@@ -1,4 +1,4 @@
-# ADR 0024: One dev environment per git worktree
+# ADR 0025: One dev environment per git worktree
 
 * **Status**: Accepted
 * **Date**: 2026-10-08
