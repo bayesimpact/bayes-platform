@@ -119,9 +119,10 @@ Keycloak and Dex used to have their own compose projects. If one of them still
 runs from there, stop it once before starting it with its profile:
 `docker compose -p connect-keycloak down` or `docker compose -p connect-dex down`.
 
-Every service of the stack restarts with Docker after a reboot, until you stop
-it with `docker compose stop <service>`. Postgres accepts 500 connections, for
-the main checkout, worktree environments and parallel test runs at once.
+The services that were running come back after a reboot, until you stop them
+with `docker compose stop <service>`, except Keycloak and Grafana, which you
+start on demand. Postgres accepts 500 connections, for the main checkout,
+worktree environments and parallel test runs at once.
 
 #### Stop the Database
 
