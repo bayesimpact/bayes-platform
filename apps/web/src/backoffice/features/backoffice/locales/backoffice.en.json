@@ -5,6 +5,8 @@
       "organizationCreateError": "Failed to create organization",
       "projectUpdated": "Backoffice project updated",
       "projectUpdateError": "Backoffice project update failed",
+      "conversationReviewersUpdated": "Conversation reviewers updated",
+      "conversationReviewersUpdateError": "Failed to update the conversation reviewers",
       "termsDocumentsSaved": "Terms documents saved",
       "termsDocumentsSaveError": "Failed to save terms documents",
       "appCreated": "App created",

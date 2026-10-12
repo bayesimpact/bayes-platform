@@ -11,8 +11,9 @@ const page = appInstallPageFactory.build({
   app: { name: "Helpful Assistant", slug: "helpful-assistant" },
 })
 
-const loopbackEntry =
-  "/apps/install/helpful-assistant?redirect_uri=http%3A%2F%2F127.0.0.1%3A8787%2Fcallback&state=csrf-state"
+const pkceQuery =
+  "code_challenge=E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM&code_challenge_method=S256"
+const loopbackEntry = `/apps/install/helpful-assistant?redirect_uri=http%3A%2F%2F127.0.0.1%3A8787%2Fcallback&state=csrf-state&${pkceQuery}`
 
 function renderAt(initialEntry: string, withPage: boolean) {
   return () => {
@@ -81,11 +82,47 @@ export const InvalidRedirect: Story = {
           slug: "helpful-assistant",
           redirectUri: "",
           callbackState: "",
+          codeChallenge: "",
+          codeChallengeMethod: "",
         }),
       ),
     })
     const router = createMemoryRouter([appsInstallRoute], {
       initialEntries: ["/apps/install/helpful-assistant"],
+    })
+    return (
+      <Provider store={store}>
+        <RouterProvider router={router} />
+      </Provider>
+    )
+  },
+}
+
+export const AllowlistedHttps: Story = {
+  render: () => {
+    const registeredRedirectUri = "https://app.example.com/auth/bayes/callback"
+    const allowlistedPage = appInstallPageFactory.build({
+      app: {
+        name: "Helpful Assistant",
+        slug: "helpful-assistant",
+        allowedRedirectUris: [registeredRedirectUri],
+      },
+    })
+    const store = buildMockStore({
+      state: mergeSeeds(
+        seed.me(userFactory.build({ globalPermissions: ["app.install"], termsAccepted: true })),
+        seed.appInstallPage(allowlistedPage),
+        seed.appInstallCallback({
+          slug: "helpful-assistant",
+          redirectUri: registeredRedirectUri,
+          callbackState: "csrf-state",
+        }),
+      ),
+    })
+    const router = createMemoryRouter([appsInstallRoute], {
+      initialEntries: [
+        `/apps/install/helpful-assistant?redirect_uri=${encodeURIComponent(registeredRedirectUri)}&state=csrf-state&${pkceQuery}`,
+      ],
     })
     return (
       <Provider store={store}>
@@ -116,6 +153,33 @@ export const ManyPermissions: Story = {
       state: mergeSeeds(
         seed.me(userFactory.build({ globalPermissions: ["app.install"], termsAccepted: true })),
         seed.appInstallPage(crowdedPage),
+      ),
+    })
+    const router = createMemoryRouter([appsInstallRoute], {
+      initialEntries: [loopbackEntry],
+    })
+    return (
+      <Provider store={store}>
+        <RouterProvider router={router} />
+      </Provider>
+    )
+  },
+}
+
+/** A conversation App: its permission keys are the longest the page has to show. */
+export const ConversationApp: Story = {
+  render: () => {
+    const conversationPage = appInstallPageFactory.build({
+      app: {
+        name: "Helpful Assistant",
+        slug: "helpful-assistant",
+        grantablePermissions: ["agent.read", "agent.conversation.session.external.create"],
+      },
+    })
+    const store = buildMockStore({
+      state: mergeSeeds(
+        seed.me(userFactory.build({ globalPermissions: ["app.install"], termsAccepted: true })),
+        seed.appInstallPage(conversationPage),
       ),
     })
     const router = createMemoryRouter([appsInstallRoute], {

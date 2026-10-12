@@ -3,6 +3,7 @@ import { defineRoute } from "../../helpers"
 import type {
   BaseAgentSessionTypeDto,
   ConversationAgentSessionDto,
+  ConversationReviewDto,
   ConversationSubSessionDto,
 } from "./conversation-agent-sessions.dto"
 
@@ -36,4 +37,15 @@ function defineConversationAgentSessionsRoutes(type: BaseAgentSessionTypeDto) {
 export const ConversationAgentSessionsRoutes = {
   live: defineConversationAgentSessionsRoutes("live"),
   playground: defineConversationAgentSessionsRoutes("playground"),
+}
+
+/**
+ * Safety review: any conversation of the agent, live or playground and whoever had it, read from
+ * its session id. Needs the global `agent.conversation.review` permission.
+ */
+export const ConversationReviewRoutes = {
+  getOne: defineRoute<ResponseData<ConversationReviewDto>>({
+    method: "get",
+    path: "/organizations/:organizationId/projects/:projectId/agents/:agentId/conversation-review/:agentSessionId",
+  }),
 }

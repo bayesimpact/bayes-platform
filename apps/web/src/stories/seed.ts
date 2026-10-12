@@ -1,5 +1,6 @@
 import type {
   AppManifest,
+  BackofficeAgentDetail,
   BackofficeRbacCatalog,
   BackofficeUserDetail,
   PaginatedBackofficeAgents,
@@ -51,6 +52,7 @@ import type {
   AnalyticsCategoryDailyPoint,
   AnalyticsDailyPoint,
 } from "@/studio/features/analytics/project/analytics.models"
+import type { ConversationReview } from "@/studio/features/conversation-review/conversation-review.models"
 import type { DocumentSource } from "@/studio/features/document-sources/document-sources.models"
 import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"
 import type { Document } from "@/studio/features/documents/documents.models"
@@ -136,13 +138,20 @@ export const seed = {
   /** Seeds the operator app-install page and the loopback callback ids the route reads. */
   appInstallPage(
     page: AppInstallPage,
-    callback: { redirectUri?: string; callbackState?: string } = {},
+    callback: {
+      redirectUri?: string
+      callbackState?: string
+      codeChallenge?: string
+      codeChallengeMethod?: string
+    } = {},
   ): StoryPreloadedState {
     return {
       appInstall: {
         slug: page.app.slug,
         redirectUri: callback.redirectUri ?? "http://127.0.0.1:8787/callback",
         callbackState: callback.callbackState ?? "csrf-state",
+        codeChallenge: callback.codeChallenge ?? "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+        codeChallengeMethod: callback.codeChallengeMethod ?? "S256",
         page: ads.fulfilled(page),
       },
     }
@@ -153,12 +162,16 @@ export const seed = {
     slug: string | null
     redirectUri?: string
     callbackState?: string
+    codeChallenge?: string
+    codeChallengeMethod?: string
   }): StoryPreloadedState {
     return {
       appInstall: {
         slug: params.slug,
         redirectUri: params.redirectUri ?? "http://127.0.0.1:8787/callback",
         callbackState: params.callbackState ?? "csrf-state",
+        codeChallenge: params.codeChallenge ?? "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+        codeChallengeMethod: params.codeChallengeMethod ?? "S256",
       },
     }
   },
@@ -403,6 +416,10 @@ export const seed = {
       return { agentMessageFeedback: { data: ads.fulfilled(feedbacksByAgentId) } }
     },
 
+    conversationReview(review: ConversationReview): StoryPreloadedState {
+      return { conversationReview: { review: ads.fulfilled(review) } }
+    },
+
     agentSubAgents(subAgents: AgentSubAgent[]): StoryPreloadedState {
       return { agentSubAgents: { data: ads.fulfilled(subAgents) } }
     },
@@ -477,6 +494,10 @@ export const seed = {
           usersQuery: { page: users.page, limit: users.limit, search: "" },
         },
       }
+    },
+
+    agentDetail(agentDetail: BackofficeAgentDetail): StoryPreloadedState {
+      return { backoffice: { agentDetail: ads.fulfilled(agentDetail) } }
     },
 
     userDetail(userDetail: BackofficeUserDetail): StoryPreloadedState {

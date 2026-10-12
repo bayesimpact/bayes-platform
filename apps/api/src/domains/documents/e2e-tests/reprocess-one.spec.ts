@@ -9,6 +9,7 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { createOrganizationWithDocument } from "@/domains/organizations/organization.factory"
+import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { DocumentsModule } from "../documents.module"
 import {
@@ -42,6 +43,7 @@ describe("Documents - reprocessOne", () => {
         withDocumentAuthAndEmbeddingsMocks(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     embeddingsBatchServiceMock = setup.module.get(DOCUMENT_EMBEDDINGS_BATCH_SERVICE)
     app = setup.module.createNestApplication()
     await app.init()

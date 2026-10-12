@@ -3,6 +3,8 @@ import { buildNameFromEmail, MeRoutes, updateMeSchema } from "@caseai-connect/ap
 import { Body, Controller, Get, Patch, Req, UseGuards, UsePipes } from "@nestjs/common"
 import type { EndpointRequest } from "@/common/context/request.interface"
 import { ZodValidationPipe } from "@/common/zod-validation-pipe"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentConversationReviewersService } from "@/domains/agents/conversation-reviewers/agent-conversation-reviewers.service"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { OrganizationsService } from "@/domains/organizations/organizations.service"
@@ -30,6 +32,7 @@ export class MeController {
     private readonly permissionService: PermissionService,
     private readonly termsComplianceService: TermsComplianceService,
     private readonly usersService: UsersService,
+    private readonly agentConversationReviewersService: AgentConversationReviewersService,
   ) {}
 
   @Patch(MeRoutes.patchMe.path)
@@ -46,17 +49,31 @@ export class MeController {
   @Get(MeRoutes.getMe.path)
   async getMe(@Req() request: EndpointRequest): Promise<typeof MeRoutes.getMe.response> {
     const user = request.user
-    const [organizations, memberships, termsDocuments, latestAcceptance, globalPermissions] =
-      await Promise.all([
-        this.organizationsService.listOrganizations(user.id),
-        this.meService.getUserMemberships(user.id),
-        this.termsComplianceService.listTermsDocuments(),
-        this.termsComplianceService.getLatestAcceptanceForUser(user.id),
-        this.permissionService.listGlobalPermissions(user.id),
-      ])
+    const [
+      organizations,
+      memberships,
+      termsDocuments,
+      latestAcceptance,
+      globalPermissions,
+      conversationReviewAgentIds,
+    ] = await Promise.all([
+      this.organizationsService.listOrganizations(user.id),
+      this.meService.getUserMemberships(user.id),
+      this.termsComplianceService.listTermsDocuments(),
+      this.termsComplianceService.getLatestAcceptanceForUser(user.id),
+      this.permissionService.listGlobalPermissions(user.id),
+      this.agentConversationReviewersService.listAgentIdsForUser(user.id),
+    ])
     return {
       data: {
-        user: toUserDto({ user, memberships, termsDocuments, latestAcceptance, globalPermissions }),
+        user: toUserDto({
+          user,
+          memberships,
+          termsDocuments,
+          latestAcceptance,
+          globalPermissions,
+          conversationReviewAgentIds,
+        }),
         organizations: organizations.map(toOrganizationDto),
         currentTerms: toCurrentTermsDto(termsDocuments),
       },
@@ -70,18 +87,21 @@ function toUserDto({
   termsDocuments,
   latestAcceptance,
   globalPermissions,
+  conversationReviewAgentIds,
 }: {
   user: { id: string; email: string; name: string | null }
   memberships: Awaited<ReturnType<MeService["getUserMemberships"]>>
   termsDocuments: Awaited<ReturnType<TermsComplianceService["listTermsDocuments"]>>
   latestAcceptance: Awaited<ReturnType<TermsComplianceService["getLatestAcceptanceForUser"]>>
   globalPermissions: string[]
+  conversationReviewAgentIds: string[]
 }): UserDto {
   return {
     id: user.id,
     email: user.email,
     name: user.name ?? buildNameFromEmail(user.email),
     globalPermissions: globalPermissions as GlobalPermission[],
+    conversationReviewAgentIds,
     memberships: toUserMembershipDto(memberships),
     termsAccepted: isAcceptanceUpToDate(latestAcceptance, termsDocuments),
   }

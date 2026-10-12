@@ -2,6 +2,7 @@ import {
   authorizeAppInstallSchema,
   buildAppInstallCallbackUrl,
   buildAppInstallDeniedUrl,
+  isLoopbackRedirectUri,
 } from "@caseai-connect/api-contracts"
 import { Button } from "@caseai-connect/ui/shad/button"
 import {
@@ -28,6 +29,7 @@ import type { z } from "zod"
 import { BackofficeProjectRoutes } from "@/backoffice/routes/helpers"
 import {
   selectAppInstallCallbackState,
+  selectAppInstallCodeChallenge,
   selectAppInstallPage,
   selectAppInstallRedirectUri,
   selectAppInstallSlug,
@@ -47,6 +49,7 @@ export function AppsInstallCard() {
   const slug = useCurrentId(selectAppInstallSlug)
   const redirectUri = useAppSelector(selectAppInstallRedirectUri)
   const callbackState = useAppSelector(selectAppInstallCallbackState)
+  const codeChallenge = useAppSelector(selectAppInstallCodeChallenge)
   const canInstall = page.projects.length > 0
   const cancelUrl = buildAppInstallDeniedUrl({ redirectUri, state: callbackState })
 
@@ -57,6 +60,8 @@ export function AppsInstallCard() {
       permissions: page.app.grantablePermissions,
       redirectUri,
       state: callbackState,
+      codeChallenge,
+      codeChallengeMethod: "S256",
     },
   })
   const selectedProjectId = form.watch("projectId")
@@ -72,13 +77,14 @@ export function AppsInstallCard() {
         permissions: values.permissions,
         redirectUri: values.redirectUri,
         state: values.state,
+        codeChallenge: values.codeChallenge,
+        codeChallengeMethod: values.codeChallengeMethod,
       }),
     ).unwrap()
     window.location.assign(
       buildAppInstallCallbackUrl({
         redirectUri: result.redirectUri,
-        clientId: result.clientId,
-        clientSecret: result.clientSecret,
+        code: result.code,
         state: result.state,
       }),
     )
@@ -158,7 +164,9 @@ export function AppsInstallCard() {
             href={cancelUrl}
             className="mt-3 block shrink-0 text-center text-sm text-[#71717a] underline-offset-2 hover:underline"
           >
-            {t("cancel")}
+            {isLoopbackRedirectUri(redirectUri)
+              ? t("cancel")
+              : t("cancelToApp", { name: page.app.name })}
           </a>
         </div>
         <p className="mt-4 max-w-[440px] shrink-0 rounded-[12px] border border-[#e4e4e7] bg-white px-4 py-3 text-sm text-[#71717a]">
@@ -204,10 +212,11 @@ function PermissionList() {
                   <p className="text-sm text-[#71717a]">
                     {t(`copy.${copyKey}.description`, { defaultValue: "" })}
                   </p>
+                  {/* Under the text: a long key never squeezes the name and description. */}
+                  <code className="mt-1 inline-block max-w-full break-all rounded-md bg-[#f4f4f6] px-2 py-0.5 font-mono text-[11px] text-[#71717a]">
+                    {permission}
+                  </code>
                 </div>
-                <code className="shrink-0 rounded-full bg-[#f4f4f6] px-2 py-0.5 font-mono text-[11px] text-[#71717a]">
-                  {permission}
-                </code>
               </li>
             )
           })}

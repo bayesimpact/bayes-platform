@@ -9,6 +9,7 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { createOrganizationWithDocument } from "@/domains/organizations/organization.factory"
+import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { DocumentsModule } from "../../documents.module"
 import { DocumentEmbeddingStatusNotifierService } from "../../embeddings/document-embedding-status-notifier.service"
@@ -44,6 +45,7 @@ describe("Documents - reCrawlUrl", () => {
       applyOverrides: (moduleBuilder) => withCrawlingAndAuthMocks(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     crawlingBatchServiceMock = setup.module.get(URL_CRAWLING_BATCH_SERVICE)
     notifierMock = setup.module.get(DocumentEmbeddingStatusNotifierService)
     app = setup.module.createNestApplication()

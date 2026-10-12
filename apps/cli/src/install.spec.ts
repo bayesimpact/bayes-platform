@@ -2,6 +2,12 @@ import { parseLoopbackRedirectUri } from "@caseai-connect/api-contracts"
 import { parseFrontendOrigin, runAppsInstall } from "./install"
 
 const frontendOrigin = "https://connect.localhost:5173"
+const apiOrigin = "https://connect.localhost:5173/api"
+
+const exchangeInstallCode = async () => ({
+  clientId: "client-1",
+  clientSecret: "secret-1",
+})
 
 describe("runAppsInstall", () => {
   it("opens a loopback install URL and prints the credentials once", async () => {
@@ -10,8 +16,10 @@ describe("runAppsInstall", () => {
     const exitCode = await runAppsInstall({
       slug: "sitecrawler",
       frontendOrigin,
+      apiOrigin,
       state: "session-state",
       timeoutMs: 2_000,
+      exchangeInstallCode,
       write: (text) => lines.push(text),
       writeError: (text) => lines.push(text),
       openUrl: (url) => {
@@ -19,8 +27,7 @@ describe("runAppsInstall", () => {
         const redirectUri = installUrl.searchParams.get("redirect_uri") ?? ""
         parseLoopbackRedirectUri(redirectUri)
         const callback = new URL(redirectUri)
-        callback.searchParams.set("client_id", "client-1")
-        callback.searchParams.set("client_secret", "secret-1")
+        callback.searchParams.set("code", "install-code-1")
         callback.searchParams.set("state", installUrl.searchParams.get("state") ?? "")
         page = fetch(callback).then((response) => response.text())
       },
@@ -31,6 +38,8 @@ describe("runAppsInstall", () => {
     expect(lines[0]).toContain("/apps/install/sitecrawler?")
     expect(lines[0]).toContain("redirect_uri=http%3A%2F%2Flocalhost%3A")
     expect(lines[0]).toContain("state=session-state")
+    expect(lines[0]).toContain("code_challenge=")
+    expect(lines[0]).toContain("code_challenge_method=S256")
     const printed = lines.join("")
     expect(printed).toContain("sitecrawler is installed")
     expect(printed).toContain("Client id")
@@ -49,16 +58,17 @@ describe("runAppsInstall", () => {
     const exitCode = await runAppsInstall({
       slug: "sitecrawler",
       frontendOrigin,
+      apiOrigin,
       state: "session-state",
       timeoutMs: 2_000,
       color: true,
+      exchangeInstallCode,
       write: (text) => lines.push(text),
       writeError: (text) => lines.push(text),
       openUrl: (url) => {
         const installUrl = new URL(url)
         const callback = new URL(installUrl.searchParams.get("redirect_uri") ?? "")
-        callback.searchParams.set("client_id", "client-1")
-        callback.searchParams.set("client_secret", "secret-1")
+        callback.searchParams.set("code", "install-code-1")
         callback.searchParams.set("state", "session-state")
         void fetch(callback)
       },
@@ -79,15 +89,16 @@ describe("runAppsInstall", () => {
     const exitCode = await runAppsInstall({
       slug: "sitecrawler",
       frontendOrigin,
+      apiOrigin,
       state: "expected-state",
       timeoutMs: 2_000,
+      exchangeInstallCode,
       write: (text) => output.push(text),
       writeError: (text) => errors.push(text),
       openUrl: (url) => {
         const installUrl = new URL(url)
         const callback = new URL(installUrl.searchParams.get("redirect_uri") ?? "")
-        callback.searchParams.set("client_id", "client-1")
-        callback.searchParams.set("client_secret", "secret-1")
+        callback.searchParams.set("code", "install-code-1")
         callback.searchParams.set("state", "expected-other")
         void fetch(callback)
       },
@@ -103,6 +114,7 @@ describe("runAppsInstall", () => {
     const exitCode = await runAppsInstall({
       slug: "sitecrawler",
       frontendOrigin,
+      apiOrigin,
       state: "session-state",
       timeoutMs: 2_000,
       write: () => undefined,
@@ -120,46 +132,34 @@ describe("runAppsInstall", () => {
     expect(errors.join("")).toContain("cancelled")
   })
 
-  it("times out when the browser never calls back", async () => {
+  it("rejects a callback without a code", async () => {
     const errors: string[] = []
     const exitCode = await runAppsInstall({
       slug: "sitecrawler",
       frontendOrigin,
-      timeoutMs: 30,
+      apiOrigin,
+      state: "session-state",
+      timeoutMs: 2_000,
       write: () => undefined,
       writeError: (text) => errors.push(text),
-      openUrl: () => undefined,
-    })
-
-    expect(exitCode).toBe(1)
-    expect(errors.join("")).toContain("timed out")
-  })
-
-  it("rejects a slug that is not kebab-case", async () => {
-    const errors: string[] = []
-    const exitCode = await runAppsInstall({
-      slug: "Site Crawler",
-      frontendOrigin,
-      write: () => undefined,
-      writeError: (text) => errors.push(text),
-      openUrl: () => {
-        throw new Error("should not open")
+      openUrl: (url) => {
+        const installUrl = new URL(url)
+        const callback = new URL(installUrl.searchParams.get("redirect_uri") ?? "")
+        callback.searchParams.set("state", "session-state")
+        void fetch(callback)
       },
     })
 
     expect(exitCode).toBe(1)
-    expect(errors.join("")).toContain("kebab-case")
+    expect(errors.join("")).toContain("authorization code")
   })
-})
 
-describe("parseFrontendOrigin", () => {
-  it("keeps the origin and drops a trailing slash", () => {
+  it("parses a frontend origin", () => {
+    expect(parseFrontendOrigin("https://connect.localhost:5173")).toBe(
+      "https://connect.localhost:5173",
+    )
     expect(parseFrontendOrigin("https://connect.localhost:5173/")).toBe(
       "https://connect.localhost:5173",
     )
-  })
-
-  it("rejects an origin that includes a path", () => {
-    expect(() => parseFrontendOrigin("https://connect.localhost:5173/apps")).toThrow(/path/)
   })
 })

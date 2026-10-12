@@ -9,13 +9,18 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
+import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
 import {
   createOrganizationWithAgent,
   createOrganizationWithProject,
 } from "@/domains/organizations/organization.factory"
 import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
 import { userFactory } from "@/domains/users/user.factory"
-import { mockForeignAuthSubject, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
+import {
+  mockForeignAuthSubject,
+  mockOidcEmailForSub,
+  setupUserGuardForTesting,
+} from "../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { invitationFactory } from "../invitation.factory"
@@ -190,15 +195,45 @@ describe("Invitations - Auth", () => {
           .build(),
       )
       const invitation = await savePendingInvitation({ reviewCampaign })
-      return { target: { reviewCampaign }, invitationId: invitation.id }
+      return { organization, target: { reviewCampaign }, invitationId: invitation.id }
+    }
+
+    /** Switches the caller to an organization admin who holds no role on the project. */
+    const switchToOrganizationAdminWithoutProjectRole = async ({
+      organization,
+    }: Awaited<ReturnType<typeof createContextForRole>>) => {
+      const organizationAdminAuthSubject = `oidc|${randomUUID()}`
+      await addUserToOrganization({
+        repositories,
+        organization,
+        user: {
+          authSubject: organizationAdminAuthSubject,
+          email: mockOidcEmailForSub(organizationAdminAuthSubject),
+        },
+        membership: { role: "admin" },
+      })
+      authSubject = organizationAdminAuthSubject
     }
 
     it("doesn't allow a project member", async () => {
       const { target, invitationId } = await createContextForRole("member")
       expectAll(await callAdminRoutes(target, invitationId), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
+    it("doesn't allow an organization admin who holds no project role", async () => {
+      const context = await createContextForRole("owner")
+      await switchToOrganizationAdminWithoutProjectRole(context)
+      expectAll(
+        await callAdminRoutes(context.target, context.invitationId),
+        403,
+        AUTH_ERRORS.UNAUTHORIZED_RESOURCE,
+      )
+    })
     it("allows a project admin", async () => {
       const { target, invitationId } = await createContextForRole("admin")
+      expectAllowed(await callAdminRoutes(target, invitationId))
+    })
+    it("allows the project owner", async () => {
+      const { target, invitationId } = await createContextForRole("owner")
       expectAllowed(await callAdminRoutes(target, invitationId))
     })
   })

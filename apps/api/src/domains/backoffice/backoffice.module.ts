@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common"
 import { TypeOrmModule } from "@nestjs/typeorm"
 import { Agent } from "@/domains/agents/agent.entity"
 import { AgentRepository } from "@/domains/agents/agent.repository"
+import { AgentConversationReviewersModule } from "@/domains/agents/conversation-reviewers/agent-conversation-reviewers.module"
 import { AgentMembershipRepository } from "@/domains/agents/memberships/agent-membership.repository"
 import { AgentMembershipsService } from "@/domains/agents/memberships/agent-memberships.service"
 import { AuthModule } from "@/domains/auth/auth.module"
@@ -29,6 +30,7 @@ import { BackofficeService } from "./backoffice.service"
     UsersModule,
     AuthModule,
     RbacModule,
+    AgentConversationReviewersModule,
   ],
   controllers: [BackofficeController],
   providers: [

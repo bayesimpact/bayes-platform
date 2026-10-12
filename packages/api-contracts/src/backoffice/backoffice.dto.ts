@@ -129,7 +129,24 @@ export type BackofficeAgentDetailDto = {
   organizationName: string
   createdAt: TimeType
   members: BackofficeAgentMemberDto[]
+  /** The people granted to read any conversation of this agent for safety review. */
+  conversationReviewers: BackofficeAgentConversationReviewerDto[]
 }
+
+export type BackofficeAgentConversationReviewerDto = {
+  userId: string
+  email: string
+  name: string | null
+  grantedAt: TimeType
+}
+
+export const grantBackofficeAgentConversationReviewerSchema = z.object({
+  email: z.string().trim().email(),
+})
+
+export type GrantBackofficeAgentConversationReviewerRequestDto = z.infer<
+  typeof grantBackofficeAgentConversationReviewerSchema
+>
 
 export type BackofficeUserDto = {
   id: string

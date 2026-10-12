@@ -1,0 +1,38 @@
+---
+description: Never mention private GitHub repos in public bayes-platform artifacts
+alwaysApply: true
+---
+
+# No private-repo references in this public repo
+
+`bayesimpact/bayes-platform` is **public**. Anything written here is world-readable: commits, PR titles/bodies, comments, code, docs, changelogs, branch names that spell a private repo, CI logs you paste into PRs.
+
+## Forbidden in this repository
+
+Never put any of the following into commits, PRs, comments, docs, code, or changelogs:
+
+- Links or names of **private** GitHub repos (especially `bayesimpact/internal-issues`)
+- `Closes` / `Fixes` / `Refs` / `Part of` trailers that point at a private repo issue
+  (e.g. `Closes bayesimpact/internal-issues#137`, `Refs: bayesimpact/internal-issues#137`)
+- Internal-only URLs, tickets, or tracker IDs that only resolve inside a private org repo
+
+Tracking a private security/internal issue is fine **in chat with the user**. Do **not** mirror that reference into the public git history or GitHub UI.
+
+## What to write instead
+
+- Describe the change on its own (no private issue link).
+- If a public bayes-platform issue exists, link that (`Closes #1234`).
+- If work was driven by a private issue only, omit the reference entirely.
+
+```
+# ❌ BAD — leaks a private tracker into the public repo
+Closes bayesimpact/internal-issues#137
+Refs: bayesimpact/internal-issues#137
+
+# ✅ GOOD — no private tracker
+# (no Closes/Refs line, or Closes #<public bayes-platform issue>)
+```
+
+## Before every commit and `gh pr create` / `gh pr edit`
+
+Scan the message/body for `internal-issues`, other private repo slugs, and `bayesimpact/` links that are not `bayesimpact/bayes-platform`. Remove them before committing or publishing.

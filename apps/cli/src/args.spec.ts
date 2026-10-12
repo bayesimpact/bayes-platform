@@ -11,6 +11,7 @@ describe("parseInstallArgs", () => {
       kind: "install",
       slug: "sitecrawler",
       frontendOrigin: "https://connect.localhost:5173",
+      apiOrigin: "https://connect.localhost:5173/api",
     })
   })
 
@@ -23,6 +24,29 @@ describe("parseInstallArgs", () => {
       kind: "install",
       slug: "sitecrawler",
       frontendOrigin: "https://connect.example",
+      apiOrigin: "https://connect.example/api",
+    })
+  })
+
+  it("reads an explicit API origin", () => {
+    expect(
+      parseInstallArgs(
+        [
+          "apps",
+          "install",
+          "sitecrawler",
+          "--frontend",
+          "https://connect.localhost:5173",
+          "--api",
+          "http://localhost:3000/api",
+        ],
+        {},
+      ),
+    ).toEqual({
+      kind: "install",
+      slug: "sitecrawler",
+      frontendOrigin: "https://connect.localhost:5173",
+      apiOrigin: "http://localhost:3000/api",
     })
   })
 

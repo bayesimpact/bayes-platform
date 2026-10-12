@@ -47,7 +47,10 @@ export const AgentInvitationsRoutes = {
   }),
 }
 
-/** Invitations to a review campaign. Needs `project.member.invite` on its project. */
+/**
+ * Invitations to a review campaign. Needs `project.review_campaign.member.invite` on its
+ * project.
+ */
 export const ReviewCampaignInvitationsRoutes = {
   getAll: defineRoute<ResponseData<ListInvitationsResponseDto>>({
     method: "get",

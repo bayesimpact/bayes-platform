@@ -15,6 +15,7 @@ import type { AgentSettings } from "@/domains/agents/settings/agent-settings.ent
 import { conversationFormFactory } from "@/domains/agents/shared/conversation-forms/conversation-form.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import {
   reviewCampaignMembershipFactory,
@@ -41,6 +42,7 @@ describe("ReviewCampaigns - Tester happy path", () => {
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)

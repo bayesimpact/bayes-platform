@@ -1,7 +1,8 @@
 import type { StreamEvent, StreamEventPayload } from "@caseai-connect/api-contracts"
-import { Injectable, NotFoundException } from "@nestjs/common"
+import { Injectable, InternalServerErrorException, Logger, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"
+import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { Agent } from "@/domains/agents/agent.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
@@ -16,6 +17,8 @@ import { StreamingLlmService } from "@/domains/agents/shared/agent-session-messa
 import type { AgentEmbedConfig } from "./agent-embed-configs/agent-embed-config.entity"
 import type { PublicAgentSession } from "./public-agent-sessions/public-agent-session.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { PublicAgentSessionRepository } from "./public-agent-sessions/public-agent-session.repository"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { PublicAgentSessionsService } from "./public-agent-sessions/public-agent-sessions.service"
 
 /**
@@ -24,11 +27,14 @@ import { PublicAgentSessionsService } from "./public-agent-sessions/public-agent
  */
 @Injectable()
 export class PublicChatService {
+  private readonly logger = new Logger(PublicChatService.name)
+
   constructor(
     @InjectRepository(Agent)
     private readonly agentRepository: Repository<Agent>,
     private readonly agentSettingsService: AgentSettingsService,
     private readonly publicAgentSessionsService: PublicAgentSessionsService,
+    private readonly publicAgentSessionRepository: PublicAgentSessionRepository,
     private readonly streamingLLMService: StreamingLlmService,
     private readonly mcpAppHtmlService: McpAppHtmlService,
     private readonly activeAgentScopeService: ActiveAgentScopeService,
@@ -138,6 +144,53 @@ export class PublicChatService {
         }),
     })
     yield* coalesceTurnsIntoOneReply(turns)
+  }
+
+  /** The whole reply in a conversation of this App installation and agent. */
+  async replyToAppConversation({
+    connectScope,
+    appInstallationId,
+    agentId,
+    conversationId,
+    content,
+  }: {
+    connectScope: RequiredConnectScope
+    appInstallationId: string
+    agentId: string
+    conversationId: string
+    content: string
+  }): Promise<{ messageId: string; content: string }> {
+    const session = await this.publicAgentSessionRepository.findAppSession({
+      connectScope,
+      appInstallationId,
+      agentId,
+      sessionId: conversationId,
+    })
+    if (!session) throw new NotFoundException(`Conversation ${conversationId} not found`)
+    return this.replyTo(session, content)
+  }
+
+  /**
+   * The whole reply to one message, for a channel that shows complete messages (an
+   * installed App). Runs the same turns as the stream and keeps the final `end`.
+   */
+  private async replyTo(
+    publicSession: PublicAgentSession,
+    userContent: string,
+  ): Promise<{ messageId: string; content: string }> {
+    let reply: { messageId: string; content: string } | undefined
+    for await (const event of this.streamResponse(publicSession, userContent, () => {})) {
+      const payload = JSON.parse(String(event.data)) as StreamEventPayload
+      if (payload.type === "error") {
+        this.logger.error(`Reply to session ${publicSession.id} failed: ${payload.error}`)
+        throw new InternalServerErrorException("The agent could not answer")
+      }
+      if (payload.type === "end") {
+        reply = { messageId: payload.messageId, content: payload.fullContent }
+      }
+    }
+    if (!reply) throw new InternalServerErrorException("The agent could not answer")
+    return reply
   }
 }
 

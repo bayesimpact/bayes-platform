@@ -24,11 +24,16 @@ import type {
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
 import { AddContext, RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
-import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
+import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
+import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
+import {
+  DOCUMENT_CREATE_PERMISSION,
+  DOCUMENT_READ_PERMISSION,
+  DOCUMENT_UPDATE_PERMISSION,
+} from "@/domains/rbac/rbac.constants"
 import { UserGuard } from "@/domains/users/user.guard"
-import { DocumentsGuard } from "../documents.guard"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentsService } from "../documents.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -40,7 +45,7 @@ import {
   type UrlCrawlingBatchService,
 } from "./url-crawling-batch.interface"
 
-@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, DocumentsGuard)
+@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, CheckPermissionGuard)
 @RequireContext("organization", "project")
 @Controller()
 export class CrawlingController {
@@ -52,8 +57,8 @@ export class CrawlingController {
     private readonly urlCrawlingBatchService: UrlCrawlingBatchService,
   ) {}
 
-  @CheckPolicy((policy) => policy.canCreate())
   @Post(DocumentsRoutes.crawlUrl.path)
+  @CheckPermission(DOCUMENT_CREATE_PERMISSION, "project")
   @TrackActivity({ action: "document.crawlUrl" })
   @HttpCode(HttpStatus.ACCEPTED)
   async crawlUrl(
@@ -100,8 +105,8 @@ export class CrawlingController {
     }
   }
 
-  @CheckPolicy((policy) => policy.canUpdate())
   @Post(DocumentsRoutes.reCrawlUrl.path)
+  @CheckPermission(DOCUMENT_UPDATE_PERMISSION, "project")
   @TrackActivity({ action: "document.reCrawlUrl", entityFrom: "document" })
   @AddContext("document")
   @HttpCode(HttpStatus.ACCEPTED)
@@ -154,8 +159,8 @@ export class CrawlingController {
     }
   }
 
-  @CheckPolicy((policy) => policy.canUpdate())
   @Post(DocumentsRoutes.cancelCrawl.path)
+  @CheckPermission(DOCUMENT_UPDATE_PERMISSION, "project")
   @AddContext("document")
   @HttpCode(HttpStatus.OK)
   async cancelCrawl(
@@ -184,8 +189,8 @@ export class CrawlingController {
     return { data: { success: true } }
   }
 
-  @CheckPolicy((policy) => policy.canList())
   @Sse(DocumentsRoutes.streamCrawlProgress.path, { method: 0 /* GET */ })
+  @CheckPermission(DOCUMENT_READ_PERMISSION, "project")
   streamCrawlProgress(
     @Request() req: EndpointRequestWithProject,
   ): Observable<DocumentCrawlProgressChangedEventDto> {

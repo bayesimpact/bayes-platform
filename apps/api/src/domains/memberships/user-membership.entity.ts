@@ -16,6 +16,7 @@ export type UserMembershipResourceType =
   | "organization"
   | "project"
   | "agent"
+  | "temp_agent"
   | "review_campaign"
   | "global"
 

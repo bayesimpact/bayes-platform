@@ -18,6 +18,20 @@ export const BACKOFFICE_USER_READ_PERMISSION = "backoffice.user.read" as const
 
 export const BACKOFFICE_TERMS_UPDATE_PERMISSION = "backoffice.terms.update" as const
 
+/**
+ * Grant or revoke, from the backoffice, the right to read any conversation of one agent from its
+ * session id (safety review). That right itself is kept per agent, outside the role catalog.
+ */
+export const BACKOFFICE_CONVERSATION_REVIEWER_UPDATE_PERMISSION =
+  "backoffice.conversation_reviewer.update" as const
+
+/**
+ * Read any conversation of an agent from its session id, whoever had it (safety review).
+ * Scoped to the agent and held only by the `agent_conversation_reviewer` role, which nobody has by
+ * default: it is granted person by person and agent by agent from the backoffice.
+ */
+export const AGENT_CONVERSATION_REVIEW_PERMISSION = "agent.conversation.review" as const
+
 /** Install an App on a project. Global, same wiring as `backoffice.read`. */
 export const APP_INSTALL_PERMISSION = "app.install" as const
 
@@ -74,8 +88,8 @@ export const AGENT_DELETE_PERMISSION = "agent.delete" as const
 export const AGENT_ANALYTICS_READ_PERMISSION = "agent.analytics.read" as const
 
 /**
- * Invite people to a project or to one of its review campaigns, see the pending
- * invitations and revoke them. Not inherited from the organization.
+ * Invite people to a project, see the pending invitations and revoke them. Not
+ * inherited from the organization.
  */
 export const PROJECT_MEMBER_INVITE_PERMISSION = "project.member.invite" as const
 
@@ -86,10 +100,27 @@ export const PROJECT_MEMBER_INVITE_PERMISSION = "project.member.invite" as const
 export const PROJECT_MEMBER_UPDATE_PERMISSION = "project.member.update" as const
 
 /**
+ * See a project's members, their roles and the agents each one can reach. Not inherited
+ * from the organization.
+ */
+export const PROJECT_MEMBER_READ_PERMISSION = "project.member.read" as const
+
+/** Remove a member from a project. Not inherited from the organization. */
+export const PROJECT_MEMBER_DELETE_PERMISSION = "project.member.delete" as const
+
+/**
  * Invite people to an agent, see its pending invitations and revoke them. Held
  * on the agent only: a project or organization role does not grant it.
  */
 export const AGENT_MEMBER_INVITE_PERMISSION = "agent.member.invite" as const
+
+/**
+ * See an agent's members and their roles, or remove one. Held on the agent only: a
+ * project or organization role does not grant them.
+ */
+export const AGENT_MEMBER_READ_PERMISSION = "agent.member.read" as const
+
+export const AGENT_MEMBER_DELETE_PERMISSION = "agent.member.delete" as const
 
 /**
  * List the project's agents with their unpublished draft settings, as the studio and
@@ -121,6 +152,14 @@ export const AGENT_SETTINGS_DRAFT_UPDATE_PERMISSION = "agent.settings.draft.upda
 export const AGENT_SETTINGS_DRAFT_PUBLISH_PERMISSION = "agent.settings.draft.publish" as const
 
 export const AGENT_SETTINGS_RESTORE_PERMISSION = "agent.settings.restore" as const
+
+/**
+ * Open a conversation with an agent on behalf of people outside the platform, and
+ * send their messages. Granted on no catalog role: only an App holds it, through
+ * its install role, which passes it down to every agent of the project.
+ */
+export const AGENT_CONVERSATION_SESSION_EXTERNAL_CREATE_PERMISSION =
+  "agent.conversation.session.external.create" as const
 
 export const AGENT_SETTINGS_ARCHIVE_PERMISSION = "agent.settings.archive" as const
 
@@ -295,6 +334,63 @@ export const AGENT_EXTRACTION_SESSION_PLAYGROUND_DELETE_PERMISSION =
   "agent.extraction.session.playground.delete" as const
 
 /**
+ * Session categories of a project, used to tag its agents' conversations. Scoped to the project
+ * and never inherited from the organization.
+ */
+export const PROJECT_AGENT_SESSION_CATEGORY_CREATE_PERMISSION =
+  "project.agent_session_category.create" as const
+
+export const PROJECT_AGENT_SESSION_CATEGORY_DELETE_PERMISSION =
+  "project.agent_session_category.delete" as const
+
+/**
+ * Feedback left on an agent's messages. Every project role can leave feedback from a
+ * conversation, while reading an agent's feedback stays with project owners and admins.
+ * Scoped to the project and never inherited from the organization.
+ */
+export const PROJECT_AGENT_MESSAGE_FEEDBACK_READ_PERMISSION =
+  "project.agent_message_feedback.read" as const
+
+export const PROJECT_AGENT_MESSAGE_FEEDBACK_CREATE_PERMISSION =
+  "project.agent_message_feedback.create" as const
+
+/**
+ * MCP servers of a project, and turning them on or off for its agents. Scoped to the project
+ * and never inherited from the organization.
+ */
+export const PROJECT_MCP_SERVER_READ_PERMISSION = "project.mcp_server.read" as const
+
+export const PROJECT_MCP_SERVER_CREATE_PERMISSION = "project.mcp_server.create" as const
+
+/** Turn a server on or off for an agent, or connect it through OAuth. */
+export const PROJECT_MCP_SERVER_UPDATE_PERMISSION = "project.mcp_server.update" as const
+
+export const PROJECT_MCP_SERVER_DELETE_PERMISSION = "project.mcp_server.delete" as const
+
+/**
+ * Review campaigns of a project, managed from the campaign editor. Scoped to the project
+ * and never inherited from the organization.
+ */
+export const PROJECT_REVIEW_CAMPAIGN_READ_PERMISSION = "project.review_campaign.read" as const
+
+export const PROJECT_REVIEW_CAMPAIGN_CREATE_PERMISSION = "project.review_campaign.create" as const
+
+export const PROJECT_REVIEW_CAMPAIGN_UPDATE_PERMISSION = "project.review_campaign.update" as const
+
+export const PROJECT_REVIEW_CAMPAIGN_DELETE_PERMISSION = "project.review_campaign.delete" as const
+
+/** Remove a tester or a reviewer from a review campaign. */
+export const PROJECT_REVIEW_CAMPAIGN_MEMBER_DELETE_PERMISSION =
+  "project.review_campaign.member.delete" as const
+
+/**
+ * Invite testers and reviewers to a project's review campaigns, see the pending invitations
+ * and revoke them. Scoped to the project and never inherited from the organization.
+ */
+export const PROJECT_REVIEW_CAMPAIGN_MEMBER_INVITE_PERMISSION =
+  "project.review_campaign.member.invite" as const
+
+/**
  * Permissions an App may be granted. Policy lives in code, not in the database:
  * there is no Permission entity and no `app_grantable` column. Intersect this
  * list with `AppManifest.grantable_permissions` on save and on authorize.
@@ -316,6 +412,8 @@ export const APP_GRANTABLE_PERMISSIONS = [
   PROJECT_READ_PERMISSION,
   PROJECT_UPDATE_PERMISSION,
   PROJECT_DELETE_PERMISSION,
+  AGENT_READ_PERMISSION,
+  AGENT_CONVERSATION_SESSION_EXTERNAL_CREATE_PERMISSION,
 ] as const
 
 export type AppGrantablePermission = (typeof APP_GRANTABLE_PERMISSIONS)[number]
@@ -358,7 +456,14 @@ export function groupAppGrantablePermissions(
   return groups
 }
 
+/** Action labels that the permission key does not spell well on its own. */
+const APP_GRANTABLE_ACTION_LABELS: Partial<Record<AppGrantablePermission, string>> = {
+  [AGENT_CONVERSATION_SESSION_EXTERNAL_CREATE_PERMISSION]: "Chat for people outside Bayes",
+}
+
 export function appGrantablePermissionActionLabel(permission: AppGrantablePermission): string {
+  const label = APP_GRANTABLE_ACTION_LABELS[permission]
+  if (label) return label
   const action = permission.slice(permission.indexOf(".") + 1)
   if (!action) return permission
   return action.charAt(0).toUpperCase() + action.slice(1)
@@ -411,6 +516,7 @@ export type GlobalPermission =
   | typeof BACKOFFICE_AGENT_READ_PERMISSION
   | typeof BACKOFFICE_USER_READ_PERMISSION
   | typeof BACKOFFICE_TERMS_UPDATE_PERMISSION
+  | typeof BACKOFFICE_CONVERSATION_REVIEWER_UPDATE_PERMISSION
   | typeof APP_INSTALL_PERMISSION
   | typeof BACKOFFICE_APP_MANAGE_PERMISSION
 
