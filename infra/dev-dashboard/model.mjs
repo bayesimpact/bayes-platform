@@ -90,6 +90,15 @@ export function environmentState(services) {
   return "starting"
 }
 
+/**
+ * The overall state of the shared stack. A stopped service does not count while others run: the
+ * services of an optional profile (analytics, traces...) are often stopped on purpose.
+ */
+export function sharedState(services) {
+  const running = services.filter((service) => service.health !== "stopped")
+  return environmentState(running.length > 0 ? running : services)
+}
+
 export function buildState({ containers, status = {}, routerPort, now }) {
   const environments = new Map()
   const shared = []
@@ -130,6 +139,7 @@ export function buildState({ containers, status = {}, routerPort, now }) {
     routerPort,
     dashboardUrl: publicUrl("dev", routerPort),
     shared: shared.sort((first, second) => first.name.localeCompare(second.name)),
+    sharedState: sharedState(shared),
     environments: [...environments.values()]
       .sort((first, second) => first.slug.localeCompare(second.slug))
       .map((environment) => {
