@@ -2,6 +2,7 @@ import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 import {
   buildState,
+  cleanupCommand,
   containerHealth,
   describeHost,
   environmentState,
@@ -177,5 +178,16 @@ describe("hostname and publicUrl", () => {
   it("omits port 80", () => {
     assert.equal(publicUrl("dev", 80), "http://dev.connect.localhost")
     assert.equal(publicUrl("dev", 8800), "http://dev.connect.localhost:8800")
+  })
+})
+
+describe("cleanupCommand", () => {
+  it("is given only for what the last cleanup found safe to remove", () => {
+    assert.equal(
+      cleanupCommand("742", { verdict: "remove", reason: "pull request #990 merged" }),
+      "npm run wt -- cleanup --apply --slug 742",
+    )
+    assert.equal(cleanupCommand("742", { verdict: "keep", reason: "in use" }), null)
+    assert.equal(cleanupCommand("742", null), null)
   })
 })

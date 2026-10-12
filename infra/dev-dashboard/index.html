@@ -58,6 +58,9 @@
   .dot.stopped, .dot.unknown, .dot.paused { background: var(--stopped); }
   .details { font-size: 0.8rem; color: var(--muted); display: grid; gap: 0.15rem; }
   .details code { overflow-wrap: anywhere; }
+  .cleanup { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-top: 0.25rem; }
+  .cleanup button { font: inherit; font-size: 0.85rem; color: var(--accent); background: none; border: 1px solid var(--border); border-radius: 6px; padding: 0.2rem 0.55rem; cursor: pointer; }
+  .cleanup button:hover { border-color: var(--accent); }
   .empty, .error { background: var(--card); border: 1px dashed var(--border); border-radius: 10px; padding: 1.25rem; color: var(--muted); }
   .error { border-color: var(--problem); color: var(--problem); }
 </style>
@@ -114,6 +117,20 @@
     return element("a", { href: pr.url, target: "_blank", rel: "noopener", text: `#${pr.number} ${pr.state.toLowerCase()}` })
   }
 
+  // The dashboard is read-only: it gives the command to run in the main checkout.
+  function cleanupCommand(command) {
+    const button = element("button", { type: "button", text: "Copy cleanup command" })
+    button.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(command)
+        button.textContent = "Copied, run it in the main checkout"
+      } catch {
+        button.textContent = "Copy failed, select the command"
+      }
+    })
+    return element("div", { className: "cleanup" }, [button, element("code", { text: command })])
+  }
+
   function environmentCard(environment) {
     const links = environment.links.map((entry) => link(entry.name, entry.url))
     if (environment.tracesUrl) links.push(link("Traces", environment.tracesUrl))
@@ -123,6 +140,7 @@
     }
     if (environment.path) details.push(element("div", {}, [document.createTextNode("Path: "), element("code", { text: environment.path })]))
     if (environment.cleanup) details.push(element("div", { text: `Cleanup: ${environment.cleanup.verdict} (${environment.cleanup.reason})` }))
+    if (environment.cleanupCommand) details.push(cleanupCommand(environment.cleanupCommand))
     return element("article", { className: "card" }, [
       element("div", { className: "title" }, [
         element("strong", { text: environment.slug }),
