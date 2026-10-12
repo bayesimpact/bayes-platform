@@ -2,10 +2,12 @@ import assert from "node:assert/strict"
 import { readFileSync } from "node:fs"
 import { describe, it } from "node:test"
 import {
+  composeTemplateKeys,
   composeVariables,
   DEFAULT_SMTP_FROM,
   formatComposeEnv,
   hostEnvValues,
+  missingApiEnvKeys,
   missingNodeModulesVolumes,
   parseComposeEnv,
   pickRedisPort,
@@ -157,5 +159,39 @@ describe("node_modules volumes", () => {
 
   it("reports the folders the template lacks", () => {
     assert.deepEqual(missingNodeModulesVolumes(["", "apps/api", "apps/new"]), ["apps/new"])
+  })
+})
+
+describe("missingApiEnvKeys", () => {
+  const template = readFileSync(new URL("../docker-compose.yaml", import.meta.url), "utf8")
+
+  it("reads the variables the compose template sets", () => {
+    const keys = composeTemplateKeys(template)
+    for (const key of ["DATABASE_NAME", "BULL_BOARD_OIDC_SECRET", "FRONTEND_URL", "PORT"]) {
+      assert.ok(keys.has(key), key)
+    }
+  })
+
+  it("reports the keys of .env-example that neither .env nor compose provides, placeholders aside", () => {
+    assert.deepEqual(
+      missingApiEnvKeys({
+        example: {
+          QUEUE_NAME: "jobs",
+          FRONTEND_URL: "https://example.com",
+          LOG_LEVEL: "info",
+          MODEL_xxx_URL: "https://example.com",
+        },
+        env: { LOG_LEVEL: "debug" },
+        provided: new Set(["FRONTEND_URL"]),
+      }),
+      ["QUEUE_NAME"],
+    )
+  })
+
+  it("accepts a key the .env sets to an empty value", () => {
+    assert.deepEqual(
+      missingApiEnvKeys({ example: { TOKEN: "x" }, env: { TOKEN: "" }, provided: new Set() }),
+      [],
+    )
   })
 })

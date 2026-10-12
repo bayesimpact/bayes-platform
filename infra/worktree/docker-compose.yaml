@@ -111,6 +111,8 @@ x-backend-env: &backend-env
   BULL_BOARD_BASE_URL: ${WT_ORIGIN}
   BULL_BOARD_OIDC_CLIENT_ID: bull-board
   BULL_BOARD_OIDC_CLIENT_SECRET: local-bull-board-secret
+  # Encrypts the session cookie of Bull Board. A fixed value is enough on a dev machine.
+  BULL_BOARD_OIDC_SECRET: local-bull-board-cookie-secret
   OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
   # Its own Phoenix project (the collector inserts bayes-platform only when unset).
   OTEL_RESOURCE_ATTRIBUTES: openinference.project.name=wt-${WT_SLUG}
@@ -197,7 +199,8 @@ services:
     command:
       - sh
       - -ec
-      - npm run migration:run -w apps/api && DATABASE_NAME="$$WT_DB_TEST" npm run migration:run -w apps/api
+      # The test database starts empty: NODE_ENV=test skips the seeds that need a value of .env.
+      - npm run migration:run -w apps/api && DATABASE_NAME="$$WT_DB_TEST" NODE_ENV=test npm run migration:run -w apps/api
     labels:
       <<: *labels
       dev.worktree.service: migrate

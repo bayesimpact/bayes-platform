@@ -112,6 +112,9 @@ Chrome or Firefox: Safari does not resolve `*.localhost`. Windows is not support
 
 - **`wt up` stops on a failed step.** It prints the step's logs. Fix the cause (often a migration
   of the branch) and run `npm run wt -- up` again.
+- **The API or the workers never get ready.** An `apps/api/.env` copied long ago lacks the keys
+  added since (`wt up` and `wt doctor` name them). Copy them from `apps/api/.env-example`, then
+  `npm run wt -- restart api` and `npm run wt -- restart workers`.
 - **A URL shows "not answering yet".** The service is starting or restarting; the page reloads by
   itself. `npm run wt -- logs <service>` tells why when it lasts.
 - **"No environment answers at ..."** Start it with `/worktree-env <name>`, or `npm run wt -- up` in

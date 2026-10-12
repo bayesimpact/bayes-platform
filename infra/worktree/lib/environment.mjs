@@ -126,6 +126,23 @@ export async function pickRedisPort({ previous, taken, isFree }) {
   )
 }
 
+/** Variables that the compose template sets on its services. */
+export function composeTemplateKeys(template) {
+  return new Set([...template.matchAll(/^\s+([A-Z][A-Z0-9_]*):/gmu)].map((match) => match[1]))
+}
+
+/**
+ * Keys that apps/api/.env-example sets and that neither the API's .env nor the compose template
+ * provides. An .env copied long ago misses the keys added since, and the API or the workers stop
+ * at boot without some of them. Names with lowercase letters (VLLM_xxx_URL) are placeholders.
+ */
+export function missingApiEnvKeys({ example, env, provided }) {
+  return Object.keys(example)
+    .filter((key) => /^[A-Z][A-Z0-9_]*$/u.test(key))
+    .filter((key) => !(key in env) && !provided.has(key))
+    .sort()
+}
+
 /** Folders of package-lock.json whose node_modules the compose template does not mount. */
 export function missingNodeModulesVolumes(folders) {
   return folders.filter((folder) => !TEMPLATE_NODE_MODULES_FOLDERS.includes(folder))
