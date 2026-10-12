@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { spawnSync } from "node:child_process"
+import { spawn, spawnSync } from "node:child_process"
 // Dev environments of git worktrees. Each worktree gets its own containers (web app, API,
 // workers, Storybooks, Grafana, Dex...), databases copied from the local one and URLs on
 // http://<worktree>.connect.localhost:8800. See infra/worktree/README.md.
@@ -9,6 +9,7 @@ import { spawnSync } from "node:child_process"
 // Run `npm run wt -- help` for the commands. Node built-ins only.
 import { createHash } from "node:crypto"
 import {
+  appendFileSync,
   closeSync,
   copyFileSync,
   existsSync,
@@ -16,9 +17,12 @@ import {
   openSync,
   readdirSync,
   readFileSync,
+  readlinkSync,
   rmSync,
   statfsSync,
   statSync,
+  utimesSync,
+  writeFileSync,
 } from "node:fs"
 import { homedir, totalmem } from "node:os"
 import { basename, dirname, join, resolve } from "node:path"
@@ -31,6 +35,7 @@ import {
   STATE_DIR,
 } from "../dex/dex-config.mjs"
 import { readEnvValues, setEnvValues } from "../dex/env-file.mjs"
+import { decide, MAX_REMOVALS_PER_RUN, parseWorktreeList } from "./lib/cleanup.mjs"
 import {
   composeVariables,
   formatComposeEnv,
@@ -57,6 +62,7 @@ import {
   sharedContainer,
   throughRouter,
   withLock,
+  withLockIfFree,
   writeFileAtomic,
 } from "./lib/system.mjs"
 
@@ -84,6 +90,10 @@ const SHARED_SERVICES = [
   ["mailpit", "mail"],
 ]
 const TRASH_DAYS = 14
+const CONFIG_FILE = join(STATE_DIR, "config.json")
+const CLEANUP_LOG = join(STATE_DIR, "cleanup.log")
+const CLEANUP_STAMP = join(STATE_DIR, "cleanup.stamp")
+const CLEANUP_EVERY_MS = 10 * 60 * 1000
 
 const HELP = `Dev environments of git worktrees (infra/worktree/README.md).
 
@@ -98,6 +108,10 @@ In a worktree:
 
 Anywhere:
   status                     List the environments of this machine
+  cleanup [--apply]          Environments whose pull request is merged or closed: what would be
+                             removed (environment, databases, worktree, branch), or remove them
+    [--include-unregistered] Also worktrees without an environment
+    [--enable-auto | --disable-auto]  Let the session start hook remove them by itself
   setup [--recreate]         Once per machine: caches, shared stack and router
   doctor                     Check this machine
   down --slug <name>         Remove the environment of a worktree that no longer exists`
@@ -109,6 +123,11 @@ const { values: options, positionals } = parseArgs({
     slug: { type: "string" },
     recreate: { type: "boolean", default: false },
     "skip-host-install": { type: "boolean", default: false },
+    apply: { type: "boolean", default: false },
+    auto: { type: "boolean", default: false },
+    "include-unregistered": { type: "boolean", default: false },
+    "enable-auto": { type: "boolean", default: false },
+    "disable-auto": { type: "boolean", default: false },
     help: { type: "boolean", short: "h", default: false },
   },
 })
@@ -124,6 +143,8 @@ const commands = {
   "reset-db": () => resetDatabases(),
   "dex-sync": () => dexSync(),
   status: () => status(),
+  cleanup: () => cleanup(),
+  "session-start": () => sessionStart(),
   setup: () => setup(),
   doctor: () => doctor(),
   help: () => console.log(HELP),
@@ -227,6 +248,21 @@ async function removeEnvironment(target) {
     "--volumes",
     "--remove-orphans",
   ])
+  // Whatever compose did not find, for example after the project was renamed.
+  const leftovers = listContainers([`label=dev.worktree.slug=${target.slug}`]).map(
+    (container) => container.ID,
+  )
+  if (leftovers.length > 0) run("docker", ["rm", "--force", ...leftovers])
+  const volumes = run("docker", [
+    "volume",
+    "ls",
+    "--quiet",
+    "--filter",
+    `label=com.docker.compose.project=${target.names.project}`,
+  ])
+    .split("\n")
+    .filter(Boolean)
+  if (volumes.length > 0) run("docker", ["volume", "rm", "--force", ...volumes])
   dropDatabases(postgres, target.slug)
   // Phoenix answers 404 for a project that never got a trace: nothing to report.
   await throughRouter(
@@ -405,6 +441,379 @@ async function doctor() {
   for (const { ok, label, advice } of checks) {
     console.log(`${ok ? "✓" : "✗"} ${label}${ok || !advice ? "" : `: ${advice}`}`)
   }
+}
+
+async function cleanup() {
+  const { mainCheckout } = repositoryPaths()
+  if (options["enable-auto"] || options["disable-auto"]) {
+    writeConfig({ ...readConfig(), autoCleanup: Boolean(options["enable-auto"]) })
+    console.log(
+      options["enable-auto"]
+        ? "The session start hook now removes the environments whose pull request is merged or closed."
+        : "The session start hook now only reports what it would remove.",
+    )
+    return
+  }
+  const apply = options.apply || (options.auto && readConfig().autoCleanup === true)
+  const say = options.auto ? () => {} : (line) => console.log(line)
+  const checkedAt = new Date().toISOString()
+  let removals = 0
+  for (const facts of cleanupFacts(mainCheckout)) {
+    const decision = decide(facts)
+    if (facts.hasEnvironment && facts.worktreeExists) {
+      updateStatus(facts.slug, {
+        cleanup: { verdict: decision.action, reason: decision.reason, checkedAt },
+      })
+    }
+    if (decision.action === "keep") {
+      if (decision.reason !== "gone") say(`keep    ${facts.slug}: ${decision.reason}`)
+      continue
+    }
+    if (decision.action === "remove" && !facts.hasEnvironment && !options["include-unregistered"]) {
+      say(
+        `report  ${facts.slug}: ${decision.reason}, no environment (--include-unregistered removes it)`,
+      )
+      continue
+    }
+    const what =
+      decision.action === "remove"
+        ? "environment, databases, worktree and branch"
+        : "environment and databases"
+    if (!apply) {
+      say(`would remove ${facts.slug} (${what}): ${decision.reason}`)
+      continue
+    }
+    if (removals >= MAX_REMOVALS_PER_RUN) {
+      say(`Stopped after ${MAX_REMOVALS_PER_RUN} removals: run it again for the next ones.`)
+      break
+    }
+    try {
+      // Without waiting: a held lock means someone works on this environment right now.
+      const outcome = await withLockIfFree(facts.slug, async () => {
+        // Decide again under the lock: a `wt up` may have run since the first reading.
+        const fresh = freshFacts(mainCheckout, facts)
+        const again = decide(fresh)
+        if (again.action === "keep") return { kept: again.reason }
+        if (
+          again.action === "remove" &&
+          !fresh.hasEnvironment &&
+          !options["include-unregistered"]
+        ) {
+          return { kept: `${again.reason}, no environment (--include-unregistered removes it)` }
+        }
+        await removeWorktreeAndEnvironment(fresh, again, mainCheckout)
+        return { removed: again }
+      })
+      const kept =
+        "busy" in outcome ? `busy, locked by process ${outcome.busy}` : outcome.result.kept
+      if (kept) {
+        if (facts.hasEnvironment && facts.worktreeExists) {
+          updateStatus(facts.slug, { cleanup: { verdict: "keep", reason: kept, checkedAt } })
+        }
+        say(`keep    ${facts.slug}: ${kept}`)
+        continue
+      }
+      removals += 1
+      const { action, reason } = outcome.result.removed
+      logCleanup({ slug: facts.slug, action, reason })
+    } catch (error) {
+      removals += 1
+      logCleanup({ slug: facts.slug, action: "failed", reason: error.message })
+      console.error(`Could not remove ${facts.slug}: ${error.message}`)
+    }
+  }
+  if (!apply && !options.auto) {
+    console.log("\nNothing was removed. --apply removes what is listed as would remove.")
+  }
+}
+
+async function removeWorktreeAndEnvironment(facts, decision, mainCheckout) {
+  if (facts.hasEnvironment) {
+    await removeEnvironment(environmentOfSlug(facts.slug, mainCheckout))
+  } else if (stateBelongsTo(facts.slug, facts.path)) {
+    // A `wt up` that failed before creating containers still left a state folder and a port.
+    // The folder is named after the worktree's folder only, hence the check of its owner.
+    rmSync(join(STATE_DIR, "envs", facts.slug), { recursive: true, force: true })
+  }
+  if (decision.action !== "remove") return
+  // Without --force: git refuses a worktree with modified or untracked files.
+  run("git", ["-C", mainCheckout, "worktree", "remove", facts.path])
+  const tip = run("git", [
+    "-C",
+    mainCheckout,
+    "rev-parse",
+    "--verify",
+    "--quiet",
+    `refs/heads/${facts.branch}`,
+  ])
+  if (tip === facts.head) run("git", ["-C", mainCheckout, "branch", "-D", facts.branch])
+  const entry = readStatus().environments?.[facts.slug]
+  if (!entry?.path || entry.path === facts.path) updateStatus(facts.slug, null)
+  console.log(`Removed the worktree ${facts.path} and the branch ${facts.branch}.`)
+}
+
+/** Whether the state folder of `slug` was written by `wt up` in the worktree at `path`. */
+function stateBelongsTo(slug, path) {
+  const folder = join(STATE_DIR, "envs", slug)
+  return ["last-up.json", "redis-port"].some(
+    (name) => readJson(join(folder, name), {}).path === path,
+  )
+}
+
+/** When `wt up` last started in the worktree at `path`, whether it finished or not. */
+function lastUpAt(slug, path) {
+  const attempt = readJson(join(STATE_DIR, "envs", slug, "last-up.json"), {})
+  const finished = readStatus().environments?.[slug]
+  return Math.max(
+    attempt.path === path ? Date.parse(attempt.startedAt) || 0 : 0,
+    !finished?.path || finished.path === path ? Date.parse(finished?.upAt ?? "") || 0 : 0,
+  )
+}
+
+/** Everything decide() needs about each worktree of the repository and each environment. */
+function cleanupFacts(mainCheckout) {
+  const context = factsContext(mainCheckout)
+  const worktrees = listWorktrees(mainCheckout)
+  const facts = worktrees.map((worktree) => worktreeFacts(worktree, context))
+  // Environments whose worktree git no longer knows (folder deleted, then pruned).
+  const known = new Set(worktrees.map((worktree) => worktree.path))
+  for (const [path, slug] of context.environmentPaths) {
+    if (!known.has(path)) facts.push(orphanFacts(slug, path, context))
+  }
+  return facts
+}
+
+/** The facts of one worktree read again, once its lock is held. */
+function freshFacts(mainCheckout, facts) {
+  const context = factsContext(mainCheckout)
+  const worktree = listWorktrees(mainCheckout).find((candidate) => candidate.path === facts.path)
+  return worktree ? worktreeFacts(worktree, context) : orphanFacts(facts.slug, facts.path, context)
+}
+
+function factsContext(mainCheckout) {
+  const environmentPaths = new Map()
+  // This clone's environments only: the others belong to another clone or another user.
+  for (const container of listContainers([
+    "label=dev.worktree.slug",
+    `label=dev.worktree.repo=${repositoryId(mainCheckout)}`,
+  ])) {
+    environmentPaths.set(
+      container.Labels["dev.worktree.path"],
+      container.Labels["dev.worktree.slug"],
+    )
+  }
+  return { environmentPaths, ghAvailable: isGhSignedIn(), now: Date.now() }
+}
+
+function listWorktrees(mainCheckout) {
+  return parseWorktreeList(
+    run("git", ["-C", mainCheckout, "worktree", "list", "--porcelain"]),
+  ).filter((worktree) => worktree.path !== mainCheckout)
+}
+
+function worktreeFacts(worktree, { environmentPaths, ghAvailable, now }) {
+  const slug = basename(worktree.path)
+  const base = {
+    slug,
+    path: worktree.path,
+    branch: worktree.branch,
+    head: worktree.head,
+    locked: worktree.locked,
+    isAgentWorktree: slug.startsWith("agent-"),
+    worktreeExists: !worktree.prunable && existsSync(worktree.path),
+    hasEnvironment: environmentPaths.has(worktree.path),
+    ghAvailable,
+    now,
+  }
+  if (!base.worktreeExists || base.isAgentWorktree || base.locked || !base.branch || !ghAvailable) {
+    return base
+  }
+  const pr = pullRequestOf(worktree.branch, worktree.path)
+  if (!pr || pr.state === "OPEN") return { ...base, pr }
+  return {
+    ...base,
+    pr,
+    dirty: isDirty(worktree.path),
+    headInPullRequest: isInPullRequest(worktree.path, worktree.head, pr.headRefOid),
+    inUse: isInUse(worktree.path),
+    // A `wt up` counts as activity: it may have reopened the worktree without touching git.
+    lastActivityAt: Math.max(lastGitActivity(worktree.path), lastUpAt(slug, worktree.path)),
+  }
+}
+
+/** An environment of this clone whose worktree `git worktree list` does not show. */
+function orphanFacts(slug, path, { environmentPaths, now }) {
+  return {
+    slug,
+    path,
+    unlisted: true,
+    // Only a missing folder means the worktree is gone; one that cannot be read may be fine.
+    worktreeExists: !isGone(path),
+    hasEnvironment: environmentPaths.has(path),
+    isAgentWorktree: false,
+    now,
+  }
+}
+
+function isGhSignedIn() {
+  try {
+    run("gh", ["auth", "status"])
+    return true
+  } catch {
+    return false
+  }
+}
+
+function isDirty(path) {
+  return (
+    run("git", [
+      "-C",
+      path,
+      "--no-optional-locks",
+      "status",
+      "--porcelain",
+      "--untracked-files=all",
+    ]) !== ""
+  )
+}
+
+/** HEAD is the pull request's last commit, or an ancestor of it. */
+function isInPullRequest(path, head, pullRequestHead) {
+  if (head === pullRequestHead) return true
+  try {
+    run("git", ["-C", path, "cat-file", "-e", `${pullRequestHead}^{commit}`])
+    run("git", ["-C", path, "merge-base", "--is-ancestor", head, pullRequestHead])
+    return true
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Whether a process of this machine works in the worktree: a Claude session, a shell, an
+ * editor. The environment's own containers run there too, so processes of another mount
+ * namespace (containers) do not count.
+ */
+function isInUse(path) {
+  if (process.platform === "linux") {
+    const ownNamespace = readlinkSync("/proc/self/ns/mnt")
+    for (const pid of readdirSync("/proc").filter((name) => /^\d+$/u.test(name))) {
+      try {
+        if (readlinkSync(`/proc/${pid}/ns/mnt`) !== ownNamespace) continue
+        const cwd = readlinkSync(`/proc/${pid}/cwd`)
+        if (cwd === path || cwd.startsWith(`${path}/`)) return true
+      } catch {
+        // A process that ended, or of another user.
+      }
+    }
+    return false
+  }
+  try {
+    return run("lsof", ["-a", "-d", "cwd", "-u", String(process.getuid()), "-Fn"])
+      .split("\n")
+      .some((line) => line === `n${path}` || line.startsWith(`n${path}/`))
+  } catch {
+    return true
+  }
+}
+
+/** The last change of the worktree's index or HEAD (commits, checkouts, staging). */
+function lastGitActivity(path) {
+  const gitDir = run("git", ["-C", path, "rev-parse", "--absolute-git-dir"])
+  return Math.max(
+    ...["index", "HEAD", "logs/HEAD"].map((name) => {
+      try {
+        return statSync(join(gitDir, name)).mtimeMs
+      } catch {
+        return 0
+      }
+    }),
+  )
+}
+
+function readConfig() {
+  return readJson(CONFIG_FILE, {})
+}
+
+function writeConfig(config) {
+  writeFileAtomic(CONFIG_FILE, `${JSON.stringify(config, null, 2)}\n`, 0o600)
+}
+
+function logCleanup(entry) {
+  mkdirSync(STATE_DIR, { recursive: true, mode: 0o700 })
+  appendFileSync(CLEANUP_LOG, `${JSON.stringify({ at: new Date().toISOString(), ...entry })}\n`)
+}
+
+/**
+ * The SessionStart hook (.claude/settings.json): a reminder of the environment of this
+ * worktree, or of /worktree-env in the main checkout, then a cleanup in the background, at most
+ * every 10 minutes. Prints nothing on machines that never set the tooling up.
+ */
+function sessionStart() {
+  if (process.platform === "win32" || !existsSync(STATE_DIR)) return
+  let paths
+  try {
+    paths = repositoryPaths()
+  } catch {
+    return
+  }
+  const routerPort = Number(readMainStackEnv(paths.mainCheckout).ROUTER_PORT || 8800)
+  if (paths.isMain) {
+    const environments = Object.keys(readStatus().environments ?? {}).length
+    console.log(
+      `Worktree environments of this machine: ${environments}, at http://dev.connect.localhost:${routerPort}. To start work in a new worktree with its own environment (URLs, databases, Dex): /worktree-env <name>.`,
+    )
+    for (const line of recentCleanups()) console.log(line)
+  } else {
+    const slug = basename(paths.root)
+    const names = environmentNames(slug, routerPort)
+    if (existsSync(join(paths.root, "infra/worktree/.env"))) {
+      console.log(
+        `This worktree runs its own environment at ${names.origin} (npm run wt -- status). Commands run here (tests, migrations, scripts) use its databases ${names.database} and ${names.testDatabase}. Never start npm run dev, the workers or a Storybook here: the environment runs them. Logs: npm run wt -- logs <service>.`,
+      )
+    } else if (!slug.startsWith("agent-") && !slugProblem(slug)) {
+      console.log(`This worktree has no environment yet: npm run wt -- up starts one.`)
+    }
+  }
+  startCleanupInBackground(paths.mainCheckout)
+}
+
+function recentCleanups() {
+  if (!existsSync(CLEANUP_LOG)) return []
+  const since = Date.now() - 24 * 60 * 60 * 1000
+  return readFileSync(CLEANUP_LOG, "utf8")
+    .split("\n")
+    .filter(Boolean)
+    .map((line) => JSON.parse(line))
+    .filter((entry) => Date.parse(entry.at) > since)
+    .map((entry) =>
+      entry.action === "failed"
+        ? `Cleanup could not remove ${entry.slug}: ${entry.reason}`
+        : `Cleanup removed ${entry.slug} (${entry.reason}).`,
+    )
+}
+
+function startCleanupInBackground(mainCheckout) {
+  const script = join(mainCheckout, "infra/worktree/wt.mjs")
+  if (!existsSync(script)) return
+  if (
+    existsSync(CLEANUP_STAMP) &&
+    Date.now() - statSync(CLEANUP_STAMP).mtimeMs < CLEANUP_EVERY_MS
+  ) {
+    return
+  }
+  if (existsSync(CLEANUP_STAMP)) {
+    const time = new Date()
+    utimesSync(CLEANUP_STAMP, time, time)
+  } else {
+    writeFileSync(CLEANUP_STAMP, "")
+  }
+  const output = openSync(join(STATE_DIR, "cleanup-output.log"), "a")
+  spawn(process.execPath, [script, "cleanup", "--auto"], {
+    cwd: mainCheckout,
+    detached: true,
+    stdio: ["ignore", output, output],
+  }).unref()
 }
 
 // --- Environment ------------------------------------------------------------------------------
