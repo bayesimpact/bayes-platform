@@ -9,8 +9,11 @@ and http://dev.connect.localhost:8800 lists every environment of the machine.
 ## Daily use
 
 In Claude Code, `/worktree-env fix-sidebar` creates `.claude/worktrees/fix-sidebar`, moves the
-session there and starts the environment (a few minutes the first time). In any worktree, Claude's
-or not, `npm run wt -- up` does the same.
+session there and starts the environment (a few minutes the first time). Outside Claude Code,
+`npm run wt -- new fix-sidebar` creates the same worktree from `origin/main`, on the branch
+`worktree-fix-sidebar`, with the gitignored files of `.worktreeinclude`, then starts its
+environment. The dashboard's "New worktree" button copies that command. In any worktree, Claude's
+or not, `npm run wt -- up` starts or updates its environment.
 
 The name gives the URLs, and an issue number works too: `/worktree-env 135` shows the title of
 issue 135 (from bayes-platform or internal-issues) and serves the app on
@@ -18,6 +21,7 @@ issue 135 (from bayes-platform or internal-issues) and serves the app on
 
 | Command (`npm run wt -- ...`) | What it does |
 |---|---|
+| `new <name>` | Creates the worktree `.claude/worktrees/<name>`, then its environment. Run it anywhere in the repository. |
 | `up` | Creates or updates the environment of the current worktree, then prints its URLs. Safe to repeat, and needed after a change to `package-lock.json`. |
 | `logs [service] [--follow]` | Logs of the environment or of one service. |
 | `restart [service]`, `stop`, `start` | `stop` pauses the environment until `start`, reboots included. |

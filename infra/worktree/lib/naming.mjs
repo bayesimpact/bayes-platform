@@ -1,5 +1,6 @@
 // Names of a worktree environment, derived from the worktree folder name (its "slug"): compose
 // project, databases, hostnames, Phoenix project. Pure functions only.
+import { join } from "node:path"
 
 export const DOMAIN = "connect.localhost"
 export const MAX_SLUG_LENGTH = 32
@@ -37,6 +38,14 @@ export function slugProblem(slug) {
   const suffix = SERVICE_SUFFIXES.find((candidate) => slug.endsWith(candidate))
   if (suffix) return `a name ending with "${suffix}" would take another environment's hostname`
   return null
+}
+
+/**
+ * The folder and branch `wt new` gives the worktree of `slug`: the ones Claude Code's
+ * /worktree-env gives it, so either way of creating it finds the other's.
+ */
+export function newWorktreeLocation(mainCheckout, slug) {
+  return { path: join(mainCheckout, ".claude/worktrees", slug), branch: `worktree-${slug}` }
 }
 
 export function originOf(label, routerPort) {
