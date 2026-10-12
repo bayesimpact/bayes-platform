@@ -21,9 +21,9 @@ import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
 import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
-import { useCurrentId, useValue } from "@/common/hooks/use-value"
+import { useCurrentId } from "@/common/hooks/use-value"
 import { useAppDispatch } from "@/common/store/hooks"
-import { selectMcpServersData } from "@/studio/features/mcp-servers/mcp-servers.selectors"
+import type { McpServer } from "@/studio/features/mcp-servers/mcp-servers.models"
 import {
   disableMcpServerForAgent,
   enableMcpServerForAgent,
@@ -39,13 +39,15 @@ export type AgentMcpServerDisplay = {
 export function McpServersTab({
   agentId,
   agentMcpServers,
+  mcpServers,
 }: {
   agentId: string
   agentMcpServers: AgentMcpServerDisplay[]
+  /** The project's servers this agent may enable. */
+  mcpServers: McpServer[]
 }) {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
-  const projectMcpServers = useValue(selectMcpServersData)
   const organizationId = useCurrentId(selectCurrentOrganizationId)
   const projectId = useCurrentId(selectCurrentProjectId)
   const managerPath = StudioRoutes.mcpServers.build({ organizationId, projectId })
@@ -62,7 +64,7 @@ export function McpServersTab({
     }
   }
 
-  if (projectMcpServers.length === 0) {
+  if (mcpServers.length === 0) {
     return (
       <Empty className="border">
         <EmptyHeader>
@@ -91,7 +93,7 @@ export function McpServersTab({
         </Link>
       </div>
       <ItemGroup className="gap-3">
-        {projectMcpServers.map((server) => (
+        {mcpServers.map((server) => (
           <Item key={server.id} variant="outline">
             <ItemMedia variant="icon">
               <ServerIcon />

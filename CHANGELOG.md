@@ -12,6 +12,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Apps: an installed app can let people outside the platform talk to the workspace's agents.
 
 ### Changed
+- (beta) PDF export: extraction agents no longer offer the built-in PDF export server.
 
 ### Fixed
 - Conversations: an assistant reply that never ends no longer crashes the server.
