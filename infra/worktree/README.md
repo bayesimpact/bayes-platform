@@ -51,8 +51,8 @@ keeps a dump of each database for 14 days. Worktrees that never had an environme
 removed with `--include-unregistered`. `--slug <name>` limits the run to one environment.
 
 The session start hook of `.claude/settings.json` runs it in the background, at most every 10
-minutes. For now it only records its verdicts, which the dashboard shows. On an environment it
-found safe to remove, the dashboard gives the command that removes it, to run in the main checkout.
+minutes. For now it only records its verdicts. Each card of the dashboard gives the command that
+closes its worktree, to run in the main checkout, with the last verdict under it.
 `npm run wt -- cleanup --enable-auto` lets it remove what is safe, `--disable-auto` turns that
 off. Removals are logged in `~/.bayes-worktrees/cleanup.log`, and the next session in the main
 checkout mentions them.
