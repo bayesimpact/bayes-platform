@@ -45,7 +45,13 @@ import {
   pickRedisPort,
   TEMPLATE_NODE_MODULES_FOLDERS,
 } from "./lib/environment.mjs"
-import { environmentNames, isDatabaseOf, nodeModulesFolders, slugProblem } from "./lib/naming.mjs"
+import {
+  environmentNames,
+  isDatabaseOf,
+  newWorktreeLocation,
+  nodeModulesFolders,
+  slugProblem,
+} from "./lib/naming.mjs"
 import { currentBranch, pullRequestOf, readStatus, updateStatus } from "./lib/status.mjs"
 import {
   databaseNames,
@@ -107,6 +113,8 @@ In a worktree:
   dex-sync                   Give Dex accounts to people added to its database since it started
 
 Anywhere:
+  new <name>                 Create the worktree .claude/worktrees/<name> from origin/main, then
+                             its environment (an issue number works as the name)
   status                     List the environments of this machine
   cleanup [--apply]          Environments whose pull request is merged or closed: what would be
                              removed (environment, databases, worktree, branch), or remove them
@@ -135,6 +143,7 @@ const { values: options, positionals } = parseArgs({
 
 const [command = "help", argument] = positionals
 const commands = {
+  new: () => newWorktree(),
   up: () => up(),
   down: () => down(),
   logs: () => composeCommand(["logs", "--tail", "200", ...(options.follow ? ["--follow"] : [])]),
@@ -164,6 +173,86 @@ try {
 }
 
 // --- Commands --------------------------------------------------------------------------------
+
+/**
+ * Creates the worktree of `name` in the main checkout's .claude/worktrees, from origin/main, with
+ * the gitignored files of .worktreeinclude, then runs its own `wt up`. On an existing worktree of
+ * that name, only runs `wt up`.
+ */
+function newWorktree() {
+  assertSupportedPlatform()
+  if (!argument) {
+    throw new Error("Give it a name: npm run wt -- new <name>, an issue number works too.")
+  }
+  const problem = slugProblem(argument)
+  if (problem) throw new Error(`new ${argument}: ${problem}.`)
+  const { mainCheckout } = repositoryPaths()
+  const { path, branch } = newWorktreeLocation(mainCheckout, argument)
+  const worktrees = parseWorktreeList(
+    run("git", ["-C", mainCheckout, "worktree", "list", "--porcelain"]),
+  )
+  if (worktrees.some((worktree) => worktree.path === path)) {
+    console.log(`The worktree ${argument} exists: starting its environment.`)
+  } else if (existsSync(path)) {
+    throw new Error(`${path} exists but is not a worktree: remove it, or pick another name.`)
+  } else {
+    createWorktree(mainCheckout, path, branch)
+  }
+  const code = runVisible(
+    process.execPath,
+    [
+      join(path, "infra/worktree/wt.mjs"),
+      "up",
+      ...(options["skip-host-install"] ? ["--skip-host-install"] : []),
+    ],
+    { cwd: path },
+  )
+  if (code !== 0) process.exit(code)
+  console.log(`\nWork in it: cd ${path}`)
+}
+
+function createWorktree(mainCheckout, path, branch) {
+  const git = (args) => run("git", ["-C", mainCheckout, ...args])
+  const hasBranch =
+    spawnSync("git", [
+      "-C",
+      mainCheckout,
+      "show-ref",
+      "--verify",
+      "--quiet",
+      `refs/heads/${branch}`,
+    ]).status === 0
+  if (hasBranch) {
+    console.log(`Creating the worktree on the existing branch ${branch}...`)
+    git(["worktree", "add", path, branch])
+  } else {
+    if (runVisible("git", ["-C", mainCheckout, "fetch", "--quiet", "origin", "main"]) !== 0) {
+      console.warn("Could not fetch origin: the worktree starts from the last fetched origin/main.")
+    }
+    console.log(`Creating the worktree on a new branch ${branch} from origin/main...`)
+    git(["worktree", "add", "--no-track", "-b", branch, path, "origin/main"])
+  }
+  // What Claude Code copies into its worktrees: .env files, credentials, local certificates.
+  const included = git([
+    "ls-files",
+    "--others",
+    "--ignored",
+    `--exclude-from=${join(mainCheckout, ".worktreeinclude")}`,
+    "--",
+    ".",
+    ":!infra/database/dontsave",
+    ":!**/node_modules/**",
+  ])
+    .split("\n")
+    .filter(Boolean)
+  for (const file of included) {
+    const target = join(path, file)
+    if (existsSync(target)) continue
+    mkdirSync(dirname(target), { recursive: true })
+    copyFileSync(join(mainCheckout, file), target)
+    console.log(`Copied ${file} from the main checkout.`)
+  }
+}
 
 async function up() {
   const environment = currentEnvironment()

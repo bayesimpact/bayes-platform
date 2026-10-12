@@ -1,6 +1,12 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
-import { environmentNames, isDatabaseOf, nodeModulesFolders, slugProblem } from "./naming.mjs"
+import {
+  environmentNames,
+  isDatabaseOf,
+  newWorktreeLocation,
+  nodeModulesFolders,
+  slugProblem,
+} from "./naming.mjs"
 
 describe("slugProblem", () => {
   it("accepts lowercase names with single hyphens", () => {
@@ -132,5 +138,14 @@ describe("nodeModulesFolders", () => {
       }),
       ["", "apps/api", "packages/ui"],
     )
+  })
+})
+
+describe("newWorktreeLocation", () => {
+  it("is the folder and branch of Claude Code's worktrees", () => {
+    assert.deepEqual(newWorktreeLocation("/repo", "135"), {
+      path: "/repo/.claude/worktrees/135",
+      branch: "worktree-135",
+    })
   })
 })

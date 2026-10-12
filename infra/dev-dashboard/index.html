@@ -61,6 +61,11 @@
   .cleanup { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-top: 0.25rem; }
   .cleanup button { font: inherit; font-size: 0.85rem; color: var(--accent); background: none; border: 1px solid var(--border); border-radius: 6px; padding: 0.2rem 0.55rem; cursor: pointer; }
   .cleanup button:hover { border-color: var(--accent); }
+  .new { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; font-size: 0.85rem; }
+  .new input { font: inherit; color: var(--text); background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 0.25rem 0.55rem; width: 14rem; max-width: 100%; }
+  .new button { font: inherit; color: #fff; background: var(--accent); border: 1px solid var(--accent); border-radius: 6px; padding: 0.25rem 0.7rem; cursor: pointer; }
+  .new button:disabled { opacity: 0.5; cursor: default; }
+  .new output { color: var(--muted); overflow-wrap: anywhere; }
   .empty, .error { background: var(--card); border: 1px dashed var(--border); border-radius: 10px; padding: 1.25rem; color: var(--muted); }
   .error { border-color: var(--problem); color: var(--problem); }
 </style>
@@ -71,6 +76,11 @@
     <h1>Worktree environments</h1>
     <span class="meta" id="updated"></span>
   </header>
+  <form class="new" id="new-worktree">
+    <input id="new-name" aria-label="Name or issue number" placeholder="name or issue number" autocomplete="off" spellcheck="false">
+    <button type="submit" id="new-copy" disabled>New worktree</button>
+    <output id="new-command">Copies the command that creates it with its environment.</output>
+  </form>
   <div id="error"></div>
   <section class="grid" id="environments"></section>
   <h2>Shared stack</h2>
@@ -131,6 +141,42 @@
     return element("div", { className: "cleanup" }, [button, element("code", { text: command })])
   }
 
+  // The dashboard is read-only: it gives the command, and `wt new` checks the name in full.
+  let routerPort = 8800
+
+  function newWorktreeName(input) {
+    const value = input.trim().toLowerCase()
+    const issue = value.match(/^#?(\d+)$/u) ?? value.match(/\/issues\/(\d+)/u)
+    return issue ? issue[1] : value
+  }
+
+  function showNewWorktree() {
+    const name = newWorktreeName(document.getElementById("new-name").value)
+    const valid = /^[a-z0-9]+(-[a-z0-9]+)*$/u.test(name) && name.length <= 32
+    const output = document.getElementById("new-command")
+    const button = document.getElementById("new-copy")
+    button.disabled = !valid
+    button.textContent = "New worktree"
+    if (!name) output.replaceChildren("Copies the command that creates it with its environment.")
+    else if (!valid) output.replaceChildren("Lowercase letters, digits and single hyphens, at most 32 characters.")
+    else {
+      const url = `http://${name}.connect.localhost${routerPort === 80 ? "" : `:${routerPort}`}`
+      output.replaceChildren(element("code", { text: `npm run wt -- new ${name}` }), ` gives ${url}`)
+    }
+  }
+
+  document.getElementById("new-name").addEventListener("input", showNewWorktree)
+  document.getElementById("new-worktree").addEventListener("submit", async (event) => {
+    event.preventDefault()
+    const button = document.getElementById("new-copy")
+    try {
+      await navigator.clipboard.writeText(`npm run wt -- new ${newWorktreeName(document.getElementById("new-name").value)}`)
+      button.textContent = "Copied, run it in the main checkout"
+    } catch {
+      button.textContent = "Copy failed, select the command"
+    }
+  })
+
   function environmentCard(environment) {
     const links = environment.links.map((entry) => link(entry.name, entry.url))
     if (environment.tracesUrl) links.push(link("Traces", environment.tracesUrl))
@@ -164,7 +210,7 @@
     environments.replaceChildren(
       ...(state.environments.length
         ? state.environments.map(environmentCard)
-        : [element("p", { className: "empty", text: "No environment yet. Start one from Claude Code with /worktree-env <name>." })]),
+        : [element("p", { className: "empty", text: "No environment yet. Create one above, or from Claude Code with /worktree-env <name>." })]),
     )
     document.getElementById("shared").replaceChildren(
       ...state.shared.map((entry) =>
@@ -173,6 +219,10 @@
           : service(entry),
       ),
     )
+    if (state.routerPort !== routerPort) {
+      routerPort = state.routerPort
+      showNewWorktree()
+    }
     document.getElementById("updated").textContent = `Updated ${new Date(state.generatedAt).toLocaleTimeString()}`
     document.getElementById("error").replaceChildren()
   }
