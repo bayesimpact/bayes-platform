@@ -164,12 +164,20 @@ export function AgentEditor({
       })
     }
 
-    if (hasFeature("agent-mcp") && projectMcpServers.length > 0) {
+    // Built-in servers (PDF export) attach output to a chat reply, which extraction runs do not have
+    const availableMcpServers = isConversation
+      ? projectMcpServers
+      : projectMcpServers.filter((mcpServer) => !mcpServer.isBuiltIn)
+    if (hasFeature("agent-mcp") && availableMcpServers.length > 0) {
       list.push({
         value: "mcpServers",
         label: t("agentSettings:tabs.mcpServers"),
         render: () => (
-          <McpServersTab agentId={agent.id} agentMcpServers={agentSettings.mcpServers} />
+          <McpServersTab
+            agentId={agent.id}
+            agentMcpServers={agentSettings.mcpServers}
+            mcpServers={availableMcpServers}
+          />
         ),
       })
     }
