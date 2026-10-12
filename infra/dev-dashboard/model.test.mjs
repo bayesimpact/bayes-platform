@@ -8,6 +8,7 @@ import {
   environmentState,
   hostname,
   publicUrl,
+  sharedState,
 } from "./model.mjs"
 
 function container({
@@ -189,5 +190,19 @@ describe("cleanupCommand", () => {
     )
     assert.equal(cleanupCommand("742", { verdict: "keep", reason: "in use" }), null)
     assert.equal(cleanupCommand("742", null), null)
+  })
+})
+
+describe("sharedState", () => {
+  const services = (...healths) => healths.map((health, index) => ({ name: `s${index}`, health }))
+
+  it("ignores a stopped optional service while the others run", () => {
+    assert.equal(sharedState(services("healthy", "running", "stopped")), "ready")
+    assert.equal(sharedState(services("healthy", "starting", "stopped")), "starting")
+    assert.equal(sharedState(services("healthy", "unhealthy", "stopped")), "problem")
+  })
+
+  it("is stopped when everything is", () => {
+    assert.equal(sharedState(services("stopped", "stopped")), "stopped")
   })
 })

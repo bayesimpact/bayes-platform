@@ -16,6 +16,8 @@
     --starting: #d69e2e;
     --problem: #d64545;
     --stopped: #9aa5b1;
+    --hover: #f1f3f5;
+    --shadow: 0 4px 12px rgb(0 0 0 / 0.12);
   }
   @media (prefers-color-scheme: dark) {
     :root {
@@ -25,6 +27,8 @@
       --muted: #9aa5b1;
       --border: #2c343d;
       --accent: #6ea8fe;
+      --hover: #262d36;
+      --shadow: 0 4px 12px rgb(0 0 0 / 0.45);
     }
   }
   * { box-sizing: border-box; }
@@ -33,9 +37,12 @@
   a { color: var(--accent); text-decoration: none; }
   a:hover { text-decoration: underline; }
   main { max-width: 72rem; margin: 0 auto; padding: 2rem 1rem 4rem; }
-  header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.5rem; margin-bottom: 1.5rem; }
+  header { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 0.5rem; margin-bottom: 1.5rem; }
   h1 { font-size: 1.5rem; margin: 0; }
-  h2 { font-size: 1.05rem; margin: 2rem 0 0.75rem; color: var(--muted); font-weight: 600; }
+  h2 { font-size: 1.05rem; margin: 0; color: var(--muted); font-weight: 600; }
+  .header-side { display: grid; justify-items: end; gap: 0.35rem; }
+  .shared-title { display: flex; align-items: center; gap: 0.5rem; }
+  .shared-title h2 { font-size: 0.85rem; font-weight: 500; }
   .meta { color: var(--muted); font-size: 0.85rem; }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr)); gap: 1rem; }
   .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: 0.75rem; }
@@ -47,25 +54,50 @@
   .pill.starting { background: var(--starting); }
   .pill.problem { background: var(--problem); }
   .pill.stopped { background: var(--stopped); }
-  .links { display: flex; flex-wrap: wrap; gap: 0.4rem; }
-  .links a { text-decoration: none; color: var(--accent); border: 1px solid var(--border); border-radius: 6px; padding: 0.2rem 0.55rem; font-size: 0.85rem; }
-  .links a:hover { border-color: var(--accent); }
+  .open { position: relative; display: inline-flex; align-self: flex-start; }
+  .open > a, .open > button { display: inline-flex; align-items: center; height: 2rem; font: inherit; font-size: 0.85rem; font-weight: 500; color: var(--text); background: var(--card); border: 1px solid var(--border); cursor: pointer; text-decoration: none; }
+  .open > a { gap: 0.4rem; padding: 0 0.85rem; border-radius: 6px 0 0 6px; }
+  .open > a:only-child { border-radius: 6px; }
+  .open > button { padding: 0 0.5rem; border-left: 0; border-radius: 0 6px 6px 0; color: var(--muted); }
+  .open > a:hover, .open > button:hover, .open > button[aria-expanded="true"] { background: var(--hover); text-decoration: none; }
+  .menu { position: absolute; left: 0; top: calc(100% + 0.3rem); z-index: 10; min-width: 11rem; display: grid; padding: 0.25rem; background: var(--card); border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow); }
+  .menu[hidden] { display: none; }
+  .menu a { color: var(--text); font-size: 0.85rem; padding: 0.35rem 0.5rem; border-radius: 4px; text-decoration: none; }
+  .menu a:hover, .menu a:focus-visible { background: var(--hover); outline: none; text-decoration: none; }
   .services { display: flex; flex-wrap: wrap; gap: 0.35rem 0.8rem; font-size: 0.8rem; color: var(--muted); }
   .dot { display: inline-block; width: 0.55rem; height: 0.55rem; border-radius: 50%; margin-right: 0.3rem; vertical-align: 0.05rem; }
   .dot.healthy, .dot.running, .dot.done { background: var(--ready); }
   .dot.starting { background: var(--starting); }
   .dot.unhealthy, .dot.failed, .dot.dead { background: var(--problem); }
   .dot.stopped, .dot.unknown, .dot.paused { background: var(--stopped); }
-  .details { font-size: 0.8rem; color: var(--muted); display: grid; gap: 0.15rem; }
-  .details code { overflow-wrap: anywhere; }
+  .status { position: relative; }
+  .status > .pill { border: 0; font-family: inherit; cursor: default; }
+  .popover { display: none; position: absolute; right: 0; top: 100%; z-index: 10; padding-top: 0.4rem; }
+  .status:hover .popover, .status:focus-within .popover { display: block; }
+  .popover .services { width: max-content; max-width: min(20rem, 80vw); background: var(--card); border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow); padding: 0.6rem 0.75rem; }
+  /* The header wraps on a phone: the shared stack goes to the left, its popover opens rightwards. */
+  @media (max-width: 40rem) {
+    .header-side { justify-items: start; }
+    .header-side .shared-title { position: relative; }
+    .header-side .status { position: static; }
+    .header-side .popover { left: 0; right: auto; }
+  }
+  .details { font-size: 0.8rem; color: var(--muted); display: grid; gap: 0.6rem; }
+  .field { display: grid; gap: 0.25rem; }
+  .field label { font-weight: 500; color: var(--text); }
+  .field input { font: 0.8rem ui-monospace, monospace; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 0.35rem 0.55rem; width: 100%; min-width: 0; text-overflow: ellipsis; }
+  .field input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
   .cleanup { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-top: 0.25rem; }
   .cleanup button { font: inherit; font-size: 0.85rem; color: var(--accent); background: none; border: 1px solid var(--border); border-radius: 6px; padding: 0.2rem 0.55rem; cursor: pointer; }
   .cleanup button:hover { border-color: var(--accent); }
-  .new { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; font-size: 0.85rem; }
-  .new input { font: inherit; color: var(--text); background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 0.25rem 0.55rem; width: 14rem; max-width: 100%; }
-  .new button { font: inherit; color: #fff; background: var(--accent); border: 1px solid var(--accent); border-radius: 6px; padding: 0.25rem 0.7rem; cursor: pointer; }
+  .new { display: grid; gap: 0.6rem; width: fit-content; max-width: 100%; margin-bottom: 1.5rem; font-size: 0.85rem; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 0.85rem 1rem; }
+  .new-row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .new input { font: inherit; height: 2rem; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 0 0.6rem; width: 16rem; max-width: 100%; }
+  .new input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .new button { font: inherit; font-weight: 500; height: 2rem; color: #fff; background: var(--accent); border: 1px solid var(--accent); border-radius: 6px; padding: 0 0.85rem; cursor: pointer; }
   .new button:disabled { opacity: 0.5; cursor: default; }
-  .new output { color: var(--muted); overflow-wrap: anywhere; }
+  .new output { color: var(--muted); overflow-wrap: anywhere; max-width: 32rem; }
+  .new output:empty { display: none; }
   .empty, .error { background: var(--card); border: 1px dashed var(--border); border-radius: 10px; padding: 1.25rem; color: var(--muted); }
   .error { border-color: var(--problem); color: var(--problem); }
 </style>
@@ -74,17 +106,23 @@
 <main>
   <header>
     <h1>Worktree environments</h1>
-    <span class="meta" id="updated"></span>
+    <div class="header-side">
+      <span class="meta" id="updated"></span>
+      <div class="shared-title">
+        <h2>Shared stack</h2>
+        <div id="shared"></div>
+      </div>
+    </div>
   </header>
   <form class="new" id="new-worktree">
-    <input id="new-name" aria-label="Name or issue number" placeholder="name or issue number" autocomplete="off" spellcheck="false">
-    <button type="submit" id="new-copy" disabled>New worktree</button>
-    <output id="new-command">Copies the command that creates it with its environment.</output>
+    <div class="new-row">
+      <input id="new-name" aria-label="Name or issue number" placeholder="name or issue number" autocomplete="off" spellcheck="false">
+      <button type="submit" id="new-copy" disabled>New worktree</button>
+    </div>
+    <output id="new-command"></output>
   </form>
   <div id="error"></div>
   <section class="grid" id="environments"></section>
-  <h2>Shared stack</h2>
-  <section class="services" id="shared"></section>
 </main>
 <script>
   const LINK_LABELS = {
@@ -157,7 +195,7 @@
     const button = document.getElementById("new-copy")
     button.disabled = !valid
     button.textContent = "New worktree"
-    if (!name) output.replaceChildren("Copies the command that creates it with its environment.")
+    if (!name) output.replaceChildren()
     else if (!valid) output.replaceChildren("Lowercase letters, digits and single hyphens, at most 32 characters.")
     else {
       const url = `http://${name}.connect.localhost${routerPort === 80 ? "" : `:${routerPort}`}`
@@ -177,20 +215,76 @@
     }
   })
 
-  function environmentCard(environment) {
+  // An overall state, with the state of each service in a popover.
+  function statusBadge(state, services) {
+    return element("div", { className: "status" }, [
+      element("button", { type: "button", className: `pill ${state}`, text: STATE_LABELS[state] ?? state }),
+      element("div", { className: "popover" }, [element("div", { className: "services" }, services)]),
+    ])
+  }
+
+  // The app, with the other links in a menu (the app picker of the platform's onboarding).
+  let openMenu = null
+  // lucide's chevron-down, as on the app picker.
+  const CHEVRON_DOWN = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>'
+
+  function openButton(environment) {
     const links = environment.links.map((entry) => link(entry.name, entry.url))
     if (environment.tracesUrl) links.push(link("Traces", environment.tracesUrl))
-    const details = []
-    if (environment.databases) {
-      details.push(element("div", {}, [document.createTextNode("Databases: "), element("code", { text: Object.values(environment.databases).join(", ") })]))
+    const [first, ...others] = links
+    if (!first) return null
+    if (others.length === 0) return element("div", { className: "open" }, [first])
+    const menu = element("div", { className: "menu", role: "menu", id: `menu-${environment.slug}` }, others)
+    for (const item of others) {
+      item.setAttribute("role", "menuitem")
+      item.addEventListener("click", () => setMenu(null))
     }
-    if (environment.path) details.push(element("div", {}, [document.createTextNode("Path: "), element("code", { text: environment.path })]))
+    const toggle = element("button", { type: "button", "aria-label": "Other links", "aria-haspopup": "menu", "aria-controls": menu.id })
+    toggle.innerHTML = CHEVRON_DOWN
+    toggle.addEventListener("click", (event) => {
+      event.stopPropagation()
+      setMenu(openMenu === environment.slug ? null : environment.slug)
+    })
+    const group = element("div", { className: "open", "data-slug": environment.slug }, [first, toggle, menu])
+    showMenu(group, openMenu === environment.slug)
+    return group
+  }
+
+  function showMenu(group, open) {
+    group.querySelector(".menu").hidden = !open
+    group.querySelector("button").setAttribute("aria-expanded", String(open))
+  }
+
+  function setMenu(slug) {
+    openMenu = slug
+    for (const group of document.querySelectorAll(".open[data-slug]")) showMenu(group, group.dataset.slug === slug)
+  }
+
+  document.addEventListener("click", (event) => {
+    if (openMenu && !event.target.closest(".menu")) setMenu(null)
+  })
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && openMenu) setMenu(null)
+  })
+
+  // A read-only value to copy: clicking it selects all of it.
+  function field(label, value) {
+    const id = `field-${crypto.randomUUID()}`
+    const input = element("input", { id, value, readonly: "", title: value })
+    input.addEventListener("focus", () => input.select())
+    return element("div", { className: "field" }, [element("label", { for: id, text: label }), input])
+  }
+
+  function environmentCard(environment) {
+    const details = []
+    if (environment.databases) details.push(field("Databases", Object.values(environment.databases).join(", ")))
+    if (environment.path) details.push(field("Path", environment.path))
     if (environment.cleanup) details.push(element("div", { text: `Cleanup: ${environment.cleanup.verdict} (${environment.cleanup.reason})` }))
     if (environment.cleanupCommand) details.push(cleanupCommand(environment.cleanupCommand))
     return element("article", { className: "card" }, [
       element("div", { className: "title" }, [
         element("strong", { text: environment.slug }),
-        element("span", { className: `pill ${environment.state}`, text: STATE_LABELS[environment.state] ?? environment.state }),
+        statusBadge(environment.state, environment.services.map(service)),
       ]),
       environment.branch || environment.pr
         ? element("div", { className: "branch" }, [
@@ -199,26 +293,47 @@
             pullRequest(environment.pr),
           ])
         : null,
-      element("nav", { className: "links" }, links),
-      element("div", { className: "services" }, environment.services.map(service)),
+      openButton(environment),
       details.length ? element("div", { className: "details" }, details) : null,
     ])
   }
 
+  // A card is rebuilt only when its environment changed, so a refresh keeps an open menu, the
+  // popover under the mouse and a selection in a field.
+  let cards = new Map()
+  let sharedData = null
+
+  function card(environment) {
+    const data = JSON.stringify(environment)
+    const known = cards.get(environment.slug)
+    return known?.data === data ? known : { data, node: environmentCard(environment) }
+  }
+
   function render(state) {
     const environments = document.getElementById("environments")
-    environments.replaceChildren(
-      ...(state.environments.length
-        ? state.environments.map(environmentCard)
-        : [element("p", { className: "empty", text: "No environment yet. Create one above, or from Claude Code with /worktree-env <name>." })]),
-    )
-    document.getElementById("shared").replaceChildren(
-      ...state.shared.map((entry) =>
-        entry.url
-          ? element("span", { title: entry.health }, [element("span", { className: `dot ${entry.health}` }), link(entry.name, entry.url)])
-          : service(entry),
-      ),
-    )
+    cards = new Map(state.environments.map((environment) => [environment.slug, card(environment)]))
+    const nodes = state.environments.length
+      ? [...cards.values()].map((entry) => entry.node)
+      : [element("p", { className: "empty", text: "No environment yet. Create one above, or from Claude Code with /worktree-env <name>." })]
+    // Moving a node, even to the same place, would drop its focus and selection.
+    const current = [...environments.children]
+    if (nodes.length !== current.length || nodes.some((node, index) => node !== current[index])) {
+      environments.replaceChildren(...nodes)
+    }
+    const shared = JSON.stringify([state.sharedState, state.shared])
+    if (shared !== sharedData) {
+      sharedData = shared
+      document.getElementById("shared").replaceChildren(
+        statusBadge(
+          state.sharedState,
+          state.shared.map((entry) =>
+            entry.url
+              ? element("span", { title: entry.health }, [element("span", { className: `dot ${entry.health}` }), link(entry.name, entry.url)])
+              : service(entry),
+          ),
+        ),
+      )
+    }
     if (state.routerPort !== routerPort) {
       routerPort = state.routerPort
       showNewWorktree()
