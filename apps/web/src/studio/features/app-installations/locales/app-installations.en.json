@@ -1,0 +1,9 @@
+{
+  "appInstallations": {
+    "title": "Connected apps",
+    "description": "Apps that can reach this project.",
+    "empty": "No app is connected to this project yet.",
+    "installedOn": "Connected on {{date}}",
+    "noPermissions": "No permission granted"
+  }
+}

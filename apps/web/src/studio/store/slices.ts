@@ -36,6 +36,8 @@ import { agentSettingsMiddleware } from "../../common/features/agents/agent-sett
 import { agentSettingsSlice } from "../../common/features/agents/agent-settings/agent-settings.slice"
 import { createSliceManager } from "../../common/store/dynamic-middleware"
 import { studioAgentsMiddleware } from "../features/agents/agents.middleware"
+import { appInstallationsMiddleware } from "../features/app-installations/app-installations.middleware"
+import { appInstallationsSlice } from "../features/app-installations/app-installations.slice"
 import { documentSourcesMiddleware } from "../features/document-sources/document-sources.middleware"
 import { documentSourcesSlice } from "../features/document-sources/document-sources.slice"
 import { documentsMiddleware } from "../features/documents/documents.middleware"
@@ -58,6 +60,7 @@ const studioMiddlewareList = [
   agentMemoriesMiddleware,
   agentMessageFeedbackMiddleware,
   agentSessionMessagesMiddleware,
+  appInstallationsMiddleware,
   createAgentsMiddleware({ includeDrafts: true }),
   agentSubAgentsMiddleware,
   baseAgentSessionsMiddleware,
@@ -86,6 +89,7 @@ export const studioSliceList = [
   agentMemoriesSlice,
   agentMessageFeedbackSlice,
   agentSessionMessagesSlice,
+  appInstallationsSlice,
   agentsSlice,
   agentSubAgentsSlice,
   conversationAgentSessionsSlice,
