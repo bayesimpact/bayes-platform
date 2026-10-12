@@ -16,6 +16,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Fixed
 - Conversations: an assistant reply that never ends no longer crashes the server.
+- Extraction agents: project members can now upload CSV files and delete the documents they uploaded.
 
 ### Security
 - Apps: install hands credentials through a one-time PKCE code on allowlisted HTTPS callbacks.

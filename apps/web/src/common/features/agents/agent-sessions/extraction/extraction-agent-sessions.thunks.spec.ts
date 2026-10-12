@@ -27,8 +27,11 @@ const document = documentFactory.transient({ project }).build({ id: "document-1"
 
 const executeOne = vi.fn()
 const uploadDocument = vi.fn()
+const deleteMyDocument = vi.fn()
 const extra = {
-  services: { extractionAgentSessions: { executeOne, uploadDocument } } as unknown as Services,
+  services: {
+    extractionAgentSessions: { executeOne, uploadDocument, deleteMyDocument },
+  } as unknown as Services,
 }
 
 /**
@@ -149,5 +152,52 @@ describe("executeOne", () => {
 
     expect(uploadDocument).not.toHaveBeenCalled()
     expect(executeOne).toHaveBeenCalledWith(expect.objectContaining({ documentId: document.id }))
+  })
+})
+
+describe("deleteMyDocuments", () => {
+  const deleteDocuments = (documentIds: string[]) =>
+    extractionAgentSessionsThunks.deleteMyDocuments({ documentIds })(
+      vi.fn(),
+      () => buildState(),
+      extra,
+    )
+
+  it("deletes each document through the extraction agent's live routes outside Studio", async () => {
+    // The project documents route is for owners and admins: a Desk member got a 403 there.
+    mockedIsStudioInterface.mockReturnValue(false)
+
+    const action = await deleteDocuments(["document-1", "document-2"])
+
+    expect(action.meta.requestStatus).toBe("fulfilled")
+    expect(deleteMyDocument).toHaveBeenCalledTimes(2)
+    expect(deleteMyDocument).toHaveBeenCalledWith({
+      organizationId,
+      projectId,
+      agentId,
+      type: "live",
+      documentId: "document-1",
+    })
+    expect(deleteMyDocument).toHaveBeenCalledWith({
+      organizationId,
+      projectId,
+      agentId,
+      type: "live",
+      documentId: "document-2",
+    })
+  })
+
+  it("deletes through the extraction agent's playground routes in Studio", async () => {
+    mockedIsStudioInterface.mockReturnValue(true)
+
+    await deleteDocuments(["document-1"])
+
+    expect(deleteMyDocument).toHaveBeenCalledWith({
+      organizationId,
+      projectId,
+      agentId,
+      type: "playground",
+      documentId: "document-1",
+    })
   })
 })

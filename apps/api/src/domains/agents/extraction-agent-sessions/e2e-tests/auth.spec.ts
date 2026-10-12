@@ -339,6 +339,25 @@ describe("ExtractionAgentSessions - Auth", () => {
     describeRoleChecks(subject)
   })
 
+  describe("deleteMyDocument", () => {
+    const subject = async (type: BaseAgentSessionTypeDto) =>
+      request({
+        route: ExtractionAgentSessionsRoutes[type].deleteMyDocument,
+        pathParams: removeNullish({ organizationId, projectId, agentId, documentId }),
+        token: accessToken ?? undefined,
+      })
+
+    describeContextChecks(subject)
+    // The seeded document belongs to nobody, so a caller who is let through gets a 404.
+    describeRoleChecks(subject, 404)
+
+    it("answers 404 for an unknown document", async () => {
+      await createContextForRole("owner")
+      documentId = randomUUID()
+      expectResponse(await subject("live"), 404)
+    })
+  })
+
   // An allowed caller would hold the stream open, so only the refusals are checked here.
   describe("streamSessionStatus", () => {
     const subject = async () =>

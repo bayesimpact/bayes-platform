@@ -3,6 +3,7 @@ import { Body, Controller, HttpCode, HttpStatus, Post, Req, UseGuards } from "@n
 import type {
   EndpointRequestWithAgent,
   EndpointRequestWithAgentSession,
+  EndpointRequestWithDocument,
 } from "@/common/context/request.interface"
 import { AddContext, RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
@@ -92,5 +93,15 @@ export class PlaygroundExtractionAgentSessionsController extends ExtractionAgent
     @Req() request: EndpointRequestWithAgent,
   ): Promise<typeof Routes.listMyDocuments.response> {
     return this.handleListMyDocuments(request)
+  }
+
+  @Post(Routes.deleteMyDocument.path)
+  @AddContext("document")
+  @CheckPermission(AGENT_EXTRACTION_SESSION_PLAYGROUND_DELETE_PERMISSION, "project")
+  @TrackActivity({ action: "extractionAgentSession.deleteDocument" })
+  deleteMyDocument(
+    @Req() request: EndpointRequestWithAgent & EndpointRequestWithDocument,
+  ): Promise<typeof Routes.deleteMyDocument.response> {
+    return this.handleDeleteMyDocument(request)
   }
 }

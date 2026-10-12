@@ -129,11 +129,16 @@ const deleteMyDocuments = createAsyncThunk<void, { documentIds: string[] }, Thun
   "extractionAgentSessions/deleteMyDocuments",
   async ({ documentIds }, { extra: { services }, getState }) => {
     const state = getState()
-    const organizationId = getCurrentId({ state, name: "organizationId" })
-    const projectId = getCurrentId({ state, name: "projectId" })
+    // Through the extraction agent: a Desk member cannot use the project documents route.
+    const params = {
+      organizationId: getCurrentId({ state, name: "organizationId" }),
+      projectId: getCurrentId({ state, name: "projectId" }),
+      agentId: getCurrentId({ state, name: "agentId" }),
+      type: buildType(),
+    }
     await Promise.all(
       documentIds.map((documentId) =>
-        services.documents.deleteOne({ organizationId, projectId, documentId }),
+        services.extractionAgentSessions.deleteMyDocument({ ...params, documentId }),
       ),
     )
   },
