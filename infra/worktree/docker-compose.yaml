@@ -500,7 +500,7 @@ services:
       - traefik.http.services.wt-${WT_SLUG}-grafana.loadbalancer.server.port=3000
 
   pdf-converter:
-    image: golang:1.25-bookworm
+    image: golang:1.26-bookworm # same as apps/pdf-converter/Dockerfile
     restart: unless-stopped
     logging:
       driver: local
