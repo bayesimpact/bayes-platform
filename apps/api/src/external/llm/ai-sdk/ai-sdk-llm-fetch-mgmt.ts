@@ -45,15 +45,15 @@ export abstract class AISDKLLMFetchMgmt<
   private getExtendedTimeoutsDispatcher(): Agent {
     this.extendedTimeoutsDispatcher ??= new Agent({
       headersTimeout: this.readTimeoutMs(
-        process.env.VERTEX_FETCH_HEADERS_TIMEOUT_MS,
+        process.env.LLM_FETCH_HEADERS_TIMEOUT_MS,
         this.defaultHeadersTimeoutMs,
       ),
       bodyTimeout: this.readTimeoutMs(
-        process.env.VERTEX_FETCH_BODY_TIMEOUT_MS,
+        process.env.LLM_FETCH_BODY_TIMEOUT_MS,
         this.defaultBodyTimeoutMs,
       ),
       connectTimeout: this.readTimeoutMs(
-        process.env.VERTEX_FETCH_CONNECT_TIMEOUT_MS,
+        process.env.LLM_FETCH_CONNECT_TIMEOUT_MS,
         this.defaultConnectTimeoutMs,
       ),
     })

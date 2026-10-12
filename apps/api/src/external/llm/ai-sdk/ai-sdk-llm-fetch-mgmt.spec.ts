@@ -48,9 +48,9 @@ const config: LLMConfig = {
 const extendedConfig: LLMConfig = { ...config, useExtendedTimeouts: true }
 
 const TIMEOUT_ENV_KEYS = [
-  "VERTEX_FETCH_HEADERS_TIMEOUT_MS",
-  "VERTEX_FETCH_BODY_TIMEOUT_MS",
-  "VERTEX_FETCH_CONNECT_TIMEOUT_MS",
+  "LLM_FETCH_HEADERS_TIMEOUT_MS",
+  "LLM_FETCH_BODY_TIMEOUT_MS",
+  "LLM_FETCH_CONNECT_TIMEOUT_MS",
 ]
 
 describe("AISDKLLMFetchMgmt", () => {
@@ -96,8 +96,8 @@ describe("AISDKLLMFetchMgmt", () => {
   })
 
   it("applies the default timeouts, or the ones the env sets", async () => {
-    process.env.VERTEX_FETCH_HEADERS_TIMEOUT_MS = "60000"
-    process.env.VERTEX_FETCH_CONNECT_TIMEOUT_MS = "not-a-number"
+    process.env.LLM_FETCH_HEADERS_TIMEOUT_MS = "60000"
+    process.env.LLM_FETCH_CONNECT_TIMEOUT_MS = "not-a-number"
 
     await new TestFetchMgmt().fetchForConfig(extendedConfig)("https://model.test")
 
