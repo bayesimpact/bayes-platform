@@ -11,8 +11,10 @@
 # a broken file and which breaks the next checkout on the CI runners.
 # Only the data folders under ./dontsave are created on first start.
 #
-# Every service restarts with Docker (`restart: unless-stopped`), so the stack
-# comes back after a reboot until you stop it with `docker compose stop`.
+# The services the main checkout and the worktree environments rely on restart
+# with Docker (`restart: unless-stopped`): after a reboot, the ones that were
+# running come back, until you stop them with `docker compose stop`. Keycloak
+# and Grafana, started on demand, do not.
 name: "connect-db"
 services:
   pgvector:
@@ -59,7 +61,6 @@ services:
   grafana:
     image: grafana/grafana:13.2.2 # same major as the cluster (chart grafana 13.x)
     profiles: [analytics]
-    restart: unless-stopped
     ports:
       - "${GRAFANA_PORT:-3300}:3000"
     environment:
@@ -153,7 +154,6 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:26.2
     profiles: [keycloak]
-    restart: unless-stopped
     entrypoint: ["sh", "-c"]
     command:
       - |
