@@ -37,9 +37,11 @@ import {
 import { readEnvValues, setEnvValues } from "../dex/env-file.mjs"
 import { decide, MAX_REMOVALS_PER_RUN, parseWorktreeList } from "./lib/cleanup.mjs"
 import {
+  composeTemplateKeys,
   composeVariables,
   formatComposeEnv,
   hostEnvValues,
+  missingApiEnvKeys,
   missingNodeModulesVolumes,
   parseComposeEnv,
   pickRedisPort,
@@ -294,6 +296,7 @@ async function up() {
 
     prepareMountPoints(environment)
     copyMissingEnvFiles(environment)
+    warnMissingApiEnvKeys(environment.root)
     pointHostEnvFilesAtEnvironment(environment, { redisPort, gcp })
     if (!options["skip-host-install"]) installHostDependencies(environment, lockHash)
 
@@ -475,7 +478,9 @@ in Chrome or Firefox.`)
 
 async function doctor() {
   const checks = []
-  const check = (ok, label, advice = "") => checks.push({ ok, label, advice })
+  // A warning (!) points at something to look at without failing the machine.
+  const check = (ok, label, advice = "", { warning = false } = {}) =>
+    checks.push({ ok, label, advice, warning })
   check(
     process.platform !== "win32",
     `platform ${process.platform}`,
@@ -503,6 +508,13 @@ async function doctor() {
     )
   }
   check(existsSync(PASSWORD_HASH_FILE), "local dev password set", "node infra/dex/sync-users.mjs")
+  const missingKeys = apiEnvGaps(repositoryPaths().mainCheckout)
+  check(
+    missingKeys.length === 0,
+    "apps/api/.env of the main checkout has the keys of .env-example",
+    `add ${missingKeys.join(", ")} (values in apps/api/.env-example)`,
+    { warning: true },
+  )
   const disk = statfsSync(homedir())
   const freeGb = (disk.bavail * disk.bsize) / 1024 ** 3
   check(
@@ -528,8 +540,9 @@ async function doctor() {
     totalmem() > 8 * 1024 ** 3,
     `${(totalmem() / 1024 ** 3).toFixed(0)} GB of RAM on this machine`,
   )
-  for (const { ok, label, advice } of checks) {
-    console.log(`${ok ? "✓" : "✗"} ${label}${ok || !advice ? "" : `: ${advice}`}`)
+  for (const { ok, label, advice, warning } of checks) {
+    const mark = ok ? "✓" : warning ? "!" : "✗"
+    console.log(`${mark} ${label}${ok || !advice ? "" : `: ${advice}`}`)
   }
 }
 
@@ -949,6 +962,24 @@ function environmentOfSlug(slug, mainCheckout = repositoryPaths().mainCheckout) 
 
 function readMainStackEnv(mainCheckout = repositoryPaths().mainCheckout) {
   return readEnvFile(join(mainCheckout, "infra/database/.env"))
+}
+
+/** Keys of apps/api/.env-example that the .env of `root` lacks and compose does not provide. */
+function apiEnvGaps(root) {
+  return missingApiEnvKeys({
+    example: readEnvFile(join(root, "apps/api/.env-example")),
+    env: readEnvFile(join(root, "apps/api/.env")),
+    provided: composeTemplateKeys(readFileSync(join(root, COMPOSE_FILE), "utf8")),
+  })
+}
+
+/** A key the API needs at boot is often the cause of an API or workers that never get ready. */
+function warnMissingApiEnvKeys(root) {
+  const missing = apiEnvGaps(root)
+  if (missing.length === 0) return
+  console.log(`apps/api/.env lacks keys of apps/api/.env-example: ${missing.join(", ")}.
+If the API or the workers do not get ready, copy them from apps/api/.env-example, then run
+\`npm run wt -- restart api\` and \`npm run wt -- restart workers\`.`)
 }
 
 function readEnvFile(path) {
