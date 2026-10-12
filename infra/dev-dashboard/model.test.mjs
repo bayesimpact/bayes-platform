@@ -183,13 +183,8 @@ describe("hostname and publicUrl", () => {
 })
 
 describe("cleanupCommand", () => {
-  it("is given only for what the last cleanup found safe to remove", () => {
-    assert.equal(
-      cleanupCommand("742", { verdict: "remove", reason: "pull request #990 merged" }),
-      "npm run wt -- cleanup --apply --slug 742",
-    )
-    assert.equal(cleanupCommand("742", { verdict: "keep", reason: "in use" }), null)
-    assert.equal(cleanupCommand("742", null), null)
+  it("closes one worktree, whatever the last verdict", () => {
+    assert.equal(cleanupCommand("742"), "npm run wt -- cleanup --apply --slug 742")
   })
 })
 

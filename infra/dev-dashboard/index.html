@@ -87,9 +87,6 @@
   .field label { font-weight: 500; color: var(--text); }
   .field input { font: 0.8rem ui-monospace, monospace; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 0.35rem 0.55rem; width: 100%; min-width: 0; text-overflow: ellipsis; }
   .field input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
-  .cleanup { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-top: 0.25rem; }
-  .cleanup button { font: inherit; font-size: 0.85rem; color: var(--accent); background: none; border: 1px solid var(--border); border-radius: 6px; padding: 0.2rem 0.55rem; cursor: pointer; }
-  .cleanup button:hover { border-color: var(--accent); }
   .new { display: grid; gap: 0.6rem; width: fit-content; max-width: 100%; margin-bottom: 1.5rem; font-size: 0.85rem; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 0.85rem 1rem; }
   .new-row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
   .new input { font: inherit; height: 2rem; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 0 0.6rem; width: 16rem; max-width: 100%; }
@@ -163,20 +160,6 @@
   function pullRequest(pr) {
     if (!pr) return null
     return element("a", { href: pr.url, target: "_blank", rel: "noopener", text: `#${pr.number} ${pr.state.toLowerCase()}` })
-  }
-
-  // The dashboard is read-only: it gives the command to run in the main checkout.
-  function cleanupCommand(command) {
-    const button = element("button", { type: "button", text: "Copy cleanup command" })
-    button.addEventListener("click", async () => {
-      try {
-        await navigator.clipboard.writeText(command)
-        button.textContent = "Copied, run it in the main checkout"
-      } catch {
-        button.textContent = "Copy failed, select the command"
-      }
-    })
-    return element("div", { className: "cleanup" }, [button, element("code", { text: command })])
   }
 
   // The dashboard is read-only: it gives the command, and `wt new` checks the name in full.
@@ -268,19 +251,29 @@
   })
 
   // A read-only value to copy: clicking it selects all of it.
-  function field(label, value) {
+  function field(label, value, hint) {
     const id = `field-${crypto.randomUUID()}`
     const input = element("input", { id, value, readonly: "", title: value })
     input.addEventListener("focus", () => input.select())
-    return element("div", { className: "field" }, [element("label", { for: id, text: label }), input])
+    return element("div", { className: "field" }, [
+      element("label", { for: id, text: label }),
+      input,
+      hint ? element("span", { text: hint }) : null,
+    ])
+  }
+
+  // The dashboard is read-only: it gives the command, and the cleanup checks it is safe.
+  function cleanupHint(cleanup) {
+    if (cleanup?.verdict === "remove") return `Safe to remove (${cleanup.reason}). Run it in the main checkout.`
+    if (cleanup) return `Kept for now: ${cleanup.reason}.`
+    return "Run it in the main checkout once the pull request is merged."
   }
 
   function environmentCard(environment) {
     const details = []
     if (environment.databases) details.push(field("Databases", Object.values(environment.databases).join(", ")))
     if (environment.path) details.push(field("Path", environment.path))
-    if (environment.cleanup) details.push(element("div", { text: `Cleanup: ${environment.cleanup.verdict} (${environment.cleanup.reason})` }))
-    if (environment.cleanupCommand) details.push(cleanupCommand(environment.cleanupCommand))
+    details.push(field("Close and cleanup worktree", environment.cleanupCommand, cleanupHint(environment.cleanup)))
     return element("article", { className: "card" }, [
       element("div", { className: "title" }, [
         element("strong", { text: environment.slug }),

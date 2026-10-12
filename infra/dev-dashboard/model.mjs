@@ -151,7 +151,7 @@ export function buildState({ containers, status = {}, routerPort, now }) {
           pr: details.pr ?? null,
           databases: details.databases ?? null,
           cleanup: details.cleanup ?? null,
-          cleanupCommand: cleanupCommand(environment.slug, details.cleanup),
+          cleanupCommand: cleanupCommand(environment.slug),
           state: environmentState(environment.services),
           services: environment.services.sort((first, second) =>
             first.name.localeCompare(second.name),
@@ -165,11 +165,12 @@ export function buildState({ containers, status = {}, routerPort, now }) {
 }
 
 /**
- * The command that removes an environment the last cleanup found safe to remove. The dashboard
- * only shows it: removing needs the host's git, gh and databases.
+ * The command that closes a worktree: its environment, databases, folder and branch. The dashboard
+ * only shows it, since removing needs the host's git, gh and databases, and the cleanup removes
+ * nothing that still holds work.
  */
-export function cleanupCommand(slug, cleanup) {
-  return cleanup?.verdict === "remove" ? `npm run wt -- cleanup --apply --slug ${slug}` : null
+export function cleanupCommand(slug) {
+  return `npm run wt -- cleanup --apply --slug ${slug}`
 }
 
 function sortLinks(links) {
