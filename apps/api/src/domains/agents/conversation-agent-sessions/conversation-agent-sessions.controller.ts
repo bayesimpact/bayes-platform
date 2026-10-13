@@ -2,7 +2,7 @@ import type {
   ConversationAgentSessionDto,
   ConversationAgentSessionsRoutes,
 } from "@caseai-connect/api-contracts"
-import { Injectable, NotFoundException } from "@nestjs/common"
+import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common"
 import type {
   EndpointRequestWithAgent,
   EndpointRequestWithAgentSession,
@@ -60,12 +60,28 @@ export abstract class ConversationAgentSessionsController {
     return { data: sessions.map(toDto(this.type, formSchemas)) }
   }
 
+  /** The body is optional: a session created without one greets with the default revision. */
   protected async handleCreateOne(
     request: EndpointRequestWithAgent,
+    body: Partial<Routes["createOne"]["request"]> | undefined,
   ): Promise<Routes["createOne"]["response"]> {
-    const agentSettings = await this.agentSettingsService.getLast({
+    const agentSettingsRevision = body?.payload?.agentSettingsRevision
+    if (agentSettingsRevision !== undefined) {
+      if (this.type !== "playground") {
+        throw new ForbiddenException(
+          "Choosing a settings version is only available in the playground",
+        )
+      }
+      if (!Number.isInteger(agentSettingsRevision)) {
+        throw new ForbiddenException("Settings version must be an integer")
+      }
+    }
+
+    const agentSettings = await this.agentSettingsService.getForSession({
       connectScope: getRequiredConnectScope(request),
       agentId: request.agent.id,
+      sessionType: this.type,
+      revision: agentSettingsRevision,
     })
     const session = await this.conversationAgentSessionsService.createSession({
       connectScope: getRequiredConnectScope(request),

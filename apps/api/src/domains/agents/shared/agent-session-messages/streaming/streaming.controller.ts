@@ -1,26 +1,15 @@
 import { AgentSessionMessagesRoutes, type StreamEvent } from "@caseai-connect/api-contracts"
 import type { MessageEvent } from "@nestjs/common"
-import {
-  Controller,
-  ForbiddenException,
-  NotFoundException,
-  Query,
-  Req,
-  Sse,
-  UnprocessableEntityException,
-  UseGuards,
-} from "@nestjs/common"
+import { Controller, ForbiddenException, Query, Req, Sse, UseGuards } from "@nestjs/common"
 import { Observable } from "rxjs"
 import type { EndpointRequestWithAgentSession } from "@/common/context/request.interface"
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
 import { RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
-import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import type { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ConversationAgentSessionsService } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.service"
-import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
@@ -74,7 +63,7 @@ export class StreamingController {
     return new Observable<StreamEvent>((subscriber) => {
       void (async () => {
         try {
-          const agentSettings = await this.resolveAgentSettings({
+          const agentSettings = await this.agentSettingsService.getForSession({
             connectScope,
             agentId: agent.id,
             sessionType: session.type,
@@ -130,42 +119,6 @@ export class StreamingController {
         }
       })()
     })
-  }
-
-  /**
-   * Settings the answer runs with.
-   *
-   * A playground session with no explicit revision runs the draft when there is one. The Studio
-   * playground renders before its settings history has loaded, so the client cannot always name
-   * a revision, and defaulting that window to the published one would run a version the header
-   * does not claim. A live session keeps running the newest published revision; it can never
-   * reach here with a revision, that is rejected in the handler.
-   */
-  private async resolveAgentSettings({
-    connectScope,
-    agentId,
-    sessionType,
-    revision,
-  }: {
-    connectScope: RequiredConnectScope
-    agentId: string
-    sessionType: ConversationAgentSession["type"]
-    revision: number | undefined
-  }): Promise<AgentSettings> {
-    if (revision === undefined) {
-      return sessionType === "playground"
-        ? this.agentSettingsService.getLast({ connectScope, agentId, includesDraft: true })
-        : this.agentSettingsService.getLast({ connectScope, agentId })
-    }
-
-    const agentSettings = await this.agentSettingsService.get({ connectScope, agentId, revision })
-    if (!agentSettings) {
-      throw new NotFoundException(`Version ${revision} not found for agent ${agentId}`)
-    }
-    if (agentSettings.isArchived) {
-      throw new UnprocessableEntityException(`Version ${revision} is archived and cannot be run`)
-    }
-    return agentSettings
   }
 }
 

@@ -1,5 +1,5 @@
 import { ConversationAgentSessionsRoutes } from "@caseai-connect/api-contracts"
-import { Controller, Param, Post, Req, UseGuards } from "@nestjs/common"
+import { Body, Controller, Param, Post, Req, UseGuards } from "@nestjs/common"
 import type {
   EndpointRequestWithAgent,
   EndpointRequestWithAgentSession,
@@ -40,8 +40,11 @@ export class PlaygroundConversationAgentSessionsController extends ConversationA
   @Post(Routes.createOne.path)
   @CheckPermission(AGENT_CONVERSATION_SESSION_PLAYGROUND_CREATE_PERMISSION, "project")
   @TrackActivity({ action: "conversationAgentSession.create" })
-  createOne(@Req() request: EndpointRequestWithAgent): Promise<typeof Routes.createOne.response> {
-    return this.handleCreateOne(request)
+  createOne(
+    @Req() request: EndpointRequestWithAgent,
+    @Body() body: Partial<typeof Routes.createOne.request> | undefined,
+  ): Promise<typeof Routes.createOne.response> {
+    return this.handleCreateOne(request, body)
   }
 
   @Post(Routes.deleteOne.path)
