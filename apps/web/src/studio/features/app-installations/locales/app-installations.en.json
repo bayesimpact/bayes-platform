@@ -2,7 +2,10 @@
   "appInstallations": {
     "title": "Connected apps",
     "description": "Apps that can reach this project.",
-    "empty": "No app is connected to this project yet.",
+    "empty": {
+      "title": "No connected app yet",
+      "description": "Apps that you connect to this project show up here, with what they can access."
+    },
     "installedOn": "Connected on {{date}}",
     "noPermissions": "No permission granted",
     "revoke": {
