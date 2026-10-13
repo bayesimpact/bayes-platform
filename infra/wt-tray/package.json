@@ -1,0 +1,9 @@
+{
+  "name": "wt-tray",
+  "private": true,
+  "description": "Worktree environments in the menu bar (infra/wt-tray/README.md)",
+  "scripts": {
+    "dev": "npx --yes @tauri-apps/cli@2.12.2 dev",
+    "build": "npx --yes @tauri-apps/cli@2.12.2 build"
+  }
+}

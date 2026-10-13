@@ -60,7 +60,12 @@ Run `npm run wt -- <command>` in the worktree and report the result:
 - `down`: removes the containers, volumes and databases (a dump is kept 14 days). Ask the user
   before running it.
 - `cleanup`: lists the environments and worktrees whose pull request is merged or closed and that
-  are safe to remove. `cleanup --apply` removes them: ask the user first.
+  are safe to remove. `cleanup --apply` removes them: ask the user first. A worktree kept as
+  "in use by ..." has a session or a shell in it, maybe this one.
+- `login`: prints the link that enables the dashboard's buttons in the user's browser (start,
+  stop, update, logs, new worktree...), through their daemon (`npm run wt -- serve`, started by
+  the session start hook). Give the user the command rather than its output: the link holds their
+  token.
 
 ## Working in a worktree that has an environment
 

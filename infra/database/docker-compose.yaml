@@ -266,6 +266,14 @@ services:
         read_only: true
         bind:
           create_host_path: false
+      # Where each user's daemon (wt serve) tells how to reach it: the gateway of the buttons
+      # forwards to it (docs/adr/0026). wt setup creates it, writable by everyone and sticky, in
+      # /var/tmp, which a reboot keeps: the dashboard restarts with Docker, before any wt command.
+      - type: bind
+        source: ${WT_DAEMON_DIR:-/var/tmp/bayes-worktrees}
+        target: /daemons
+        bind:
+          create_host_path: false
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8080/healthz').then((reply) => process.exit(reply.ok ? 0 : 1), () => process.exit(1))"]
       interval: 30s

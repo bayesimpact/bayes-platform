@@ -24,7 +24,7 @@ export function decide(facts) {
   if (facts.pr.state === "OPEN") return keep(`pull request #${facts.pr.number} open`)
   if (facts.dirty) return keep("uncommitted changes")
   if (!facts.headInPullRequest) return keep("commits that are not in the pull request")
-  if (facts.inUse) return keep("in use")
+  if (facts.inUse === true || facts.inUse?.length > 0) return keep(inUseReason(facts.inUse))
   const endedAt = Date.parse(facts.pr.mergedAt ?? facts.pr.closedAt ?? "")
   if (Number.isFinite(endedAt) && facts.now - endedAt < MERGE_GRACE_MS) {
     return keep(`pull request #${facts.pr.number} ${facts.pr.state.toLowerCase()} minutes ago`)
@@ -36,6 +36,11 @@ export function decide(facts) {
     action: "remove",
     reason: `pull request #${facts.pr.number} ${facts.pr.state.toLowerCase()}`,
   }
+}
+
+/** `inUse` lists the processes working in the worktree, or is true when they could not be listed. */
+function inUseReason(inUse) {
+  return Array.isArray(inUse) ? `in use by ${inUse.join(", ")}` : "in use"
 }
 
 function keep(reason) {

@@ -143,6 +143,23 @@ export function missingApiEnvKeys({ example, env, provided }) {
     .sort()
 }
 
+/** The images that a compose file runs, each once. */
+export function composeImages(template) {
+  return [...new Set([...template.matchAll(/^\s*image:\s*([^\s#]+)/gmu)].map((match) => match[1]))]
+}
+
+/**
+ * Images pulled for another architecture than Docker's. A `docker build --platform=linux/amd64`
+ * on a Mac (the Makefile's) replaces the local node image with its amd64 variant, and every
+ * environment then runs it emulated, several times slower. `images` maps an image to its
+ * architecture, null when it is not pulled yet.
+ */
+export function foreignImages(images, dockerArchitecture) {
+  return Object.entries(images)
+    .filter(([, architecture]) => architecture && architecture !== dockerArchitecture)
+    .map(([image]) => image)
+}
+
 /** Folders of package-lock.json whose node_modules the compose template does not mount. */
 export function missingNodeModulesVolumes(folders) {
   return folders.filter((folder) => !TEMPLATE_NODE_MODULES_FOLDERS.includes(folder))

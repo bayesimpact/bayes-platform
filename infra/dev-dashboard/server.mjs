@@ -1,16 +1,19 @@
 // Dashboard of the worktree environments, served by the router profile of infra/database at
-// http://dev.connect.localhost:<router port>. Read-only: it lists containers through the Docker
-// socket (GET requests only) and reads the status file of the worktree tooling. Traefik also
-// sends it the requests for hosts that no running service answers, so it shows what is starting
-// or what to start. Node built-ins only.
+// http://dev.connect.localhost:<router port>. It lists containers through the Docker socket (GET
+// requests only) and reads the status of the worktree tooling. Its buttons go through /api/*,
+// which it forwards to the daemon (`wt serve`) of the caller (docs/adr/0026). Traefik also sends
+// it the requests for hosts that no running service answers, so it shows what is starting or
+// what to start. Node built-ins only.
 import { readFileSync } from "node:fs"
 import { createServer, request } from "node:http"
 import { join } from "node:path"
-import { buildState, DASHBOARD_HOST, describeHost, hostname } from "./model.mjs"
+import { daemonStatuses, daemonTarget, forward, gatewayDecision, TOKEN_HEADER } from "./gateway.mjs"
+import { buildState, DASHBOARD_HOST, describeHost, hostname, publicUrl } from "./model.mjs"
 
 const PORT = Number(process.env.PORT ?? 8080)
 const ROUTER_PORT = Number(process.env.ROUTER_PORT ?? 8800)
 const STATE_DIR = process.env.STATE_DIR ?? "/state"
+const DAEMON_DIR = process.env.DAEMON_DIR ?? "/daemons"
 const PAGE = readFileSync(new URL("./index.html", import.meta.url), "utf8")
 
 createServer((incoming, response) => {
@@ -21,12 +24,32 @@ createServer((incoming, response) => {
 }).listen(PORT, () => console.log(`Dashboard listening on ${PORT}`))
 
 async function handle(incoming, response) {
+  const host = hostname(incoming.headers.host)
+  const path = new URL(incoming.url ?? "/", "http://localhost").pathname
+  if (host === DASHBOARD_HOST && path.startsWith("/api/") && path !== "/api/state") {
+    const decision = gatewayDecision({
+      method: incoming.method,
+      origin: incoming.headers.origin,
+      token: incoming.headers[TOKEN_HEADER],
+      dashboardOrigin: publicUrl("dev", ROUTER_PORT),
+    })
+    if (decision.error) {
+      send(response, decision.status, "application/json", JSON.stringify({ error: decision.error }))
+      return
+    }
+    const target = daemonTarget(DAEMON_DIR, decision.uid)
+    if (!target) {
+      const error = "Your daemon does not run: npm run wt -- serve"
+      send(response, 502, "application/json", JSON.stringify({ error }))
+      return
+    }
+    forward(incoming, response, target)
+    return
+  }
   if (incoming.method !== "GET" && incoming.method !== "HEAD") {
     send(response, 405, "text/plain; charset=utf-8", "Read-only")
     return
   }
-  const host = hostname(incoming.headers.host)
-  const path = new URL(incoming.url ?? "/", "http://localhost").pathname
   if (path === "/healthz") {
     send(response, 200, "text/plain; charset=utf-8", "ok")
     return
@@ -46,7 +69,7 @@ async function handle(incoming, response) {
 async function currentState() {
   return buildState({
     containers: await dockerGet("/containers/json?all=1"),
-    status: readStatusFile(),
+    status: await readStatuses(),
     routerPort: ROUTER_PORT,
     now: new Date().toISOString(),
   })
@@ -68,6 +91,13 @@ function dockerGet(path) {
     call.on("error", reject)
     call.end()
   })
+}
+
+/** The status file of whoever started the shared stack, then what every user's daemon tells. */
+async function readStatuses() {
+  const file = readStatusFile()
+  const fromDaemons = await daemonStatuses(DAEMON_DIR)
+  return { ...file, environments: { ...file.environments, ...fromDaemons } }
 }
 
 function readStatusFile() {
