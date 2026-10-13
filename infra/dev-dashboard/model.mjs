@@ -1,6 +1,6 @@
 // What the dashboard shows, computed from the Docker containers and the status file written by
-// the worktree tooling (branch, pull request, databases, cleanup verdict). Pure functions only,
-// so they are tested without Docker.
+// the worktree tooling (description, issue, branch, pull request, databases, cleanup verdict).
+// Pure functions only, so they are tested without Docker.
 
 export const DOMAIN = "connect.localhost"
 export const DASHBOARD_HOST = `dev.${DOMAIN}`
@@ -146,8 +146,11 @@ export function buildState({ containers, status = {}, routerPort, now }) {
         const details = status.environments?.[environment.slug] ?? {}
         return {
           slug: environment.slug,
+          // What the worktree is for: as given to `wt describe`, or the title of its issue or PR.
+          description: details.description || details.issue?.title || details.pr?.title || null,
           path: details.path ?? environment.path,
           branch: details.branch ?? null,
+          issue: details.issue ?? null,
           pr: details.pr ?? null,
           databases: details.databases ?? null,
           cleanup: details.cleanup ?? null,

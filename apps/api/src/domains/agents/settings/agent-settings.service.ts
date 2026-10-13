@@ -14,6 +14,7 @@ import type { DocumentTagsUpdateFields } from "@/domains/documents/tags/document
 import { ResourceLibrariesService } from "@/domains/resource-libraries/resource-libraries.service"
 import type { ResourceLibrary } from "@/domains/resource-libraries/resource-library.entity"
 import { Agent } from "../agent.entity"
+import type { BaseAgentSessionType } from "../base-agent-sessions/base-agent-sessions.types"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSessionCategoriesService } from "../session-categories/agent-session-categories.service"
 import { ProjectAgentSessionCategory } from "../session-categories/project-agent-session-category.entity"
@@ -115,6 +116,42 @@ export class AgentSettingsService {
     const last = await this.getLastOrUndefined({ connectScope, agentId, includesDraft })
     if (!last) throw new NotFoundException(`AgentSettings with agentId ${agentId} not found`)
     return last
+  }
+
+  /**
+   * Settings a conversation session runs with, from its greeting to each answer.
+   *
+   * A playground session with no explicit revision runs the draft when there is one. The Studio
+   * playground renders before its settings history has loaded, so the client cannot always name
+   * a revision, and defaulting that window to the published one would run a version the header
+   * does not claim. A live session keeps running the newest published revision: callers reject
+   * a revision on a live session before reaching here.
+   */
+  async getForSession({
+    connectScope,
+    agentId,
+    sessionType,
+    revision,
+  }: {
+    connectScope: RequiredConnectScope
+    agentId: string
+    sessionType: BaseAgentSessionType
+    revision: number | undefined
+  }): Promise<AgentSettings> {
+    if (revision === undefined) {
+      return sessionType === "playground"
+        ? this.getLast({ connectScope, agentId, includesDraft: true })
+        : this.getLast({ connectScope, agentId })
+    }
+
+    const agentSettings = await this.get({ connectScope, agentId, revision })
+    if (!agentSettings) {
+      throw new NotFoundException(`Version ${revision} not found for agent ${agentId}`)
+    }
+    if (agentSettings.isArchived) {
+      throw new UnprocessableEntityException(`Version ${revision} is archived and cannot be run`)
+    }
+    return agentSettings
   }
 
   async getAll({

@@ -239,8 +239,8 @@ services:
   # It also answers every host no running service takes (a page that says what
   # is starting or what to start), and the 502-504 errors of the environments
   # through the dev-starting middleware. Read-only access to Docker. It reads
-  # status.json (branch, pull request, databases) from ~/.bayes-worktrees, which
-  # the worktree tooling writes.
+  # status.json (description, issue, branch, pull request, databases) from
+  # ~/.bayes-worktrees, which the worktree tooling writes.
   dev-dashboard:
     image: node:24.21.0-trixie-slim
     profiles: [router]

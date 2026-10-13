@@ -1,20 +1,13 @@
 import type { AgentSessionMessagesRoutes, StreamEvent } from "@caseai-connect/api-contracts"
 import type { MessageEvent } from "@nestjs/common"
-import {
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-  UnprocessableEntityException,
-} from "@nestjs/common"
+import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common"
 import { Observable } from "rxjs"
 import type { EndpointRequestWithAgentSession } from "@/common/context/request.interface"
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
-import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import type { BaseAgentSessionType } from "@/domains/agents/base-agent-sessions/base-agent-sessions.types"
 import type { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ConversationAgentSessionsService } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.service"
-import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -78,7 +71,7 @@ export abstract class StreamingController {
     return new Observable<StreamEvent>((subscriber) => {
       void (async () => {
         try {
-          const agentSettings = await this.resolveAgentSettings({
+          const agentSettings = await this.agentSettingsService.getForSession({
             connectScope,
             agentId: agent.id,
             sessionType: session.type,
@@ -134,42 +127,6 @@ export abstract class StreamingController {
         }
       })()
     })
-  }
-
-  /**
-   * Settings the answer runs with.
-   *
-   * A playground session with no explicit revision runs the draft when there is one. The Studio
-   * playground renders before its settings history has loaded, so the client cannot always name
-   * a revision, and defaulting that window to the published one would run a version the header
-   * does not claim. A live session keeps running the newest published revision; it can never
-   * reach here with a revision, that is rejected in the handler.
-   */
-  private async resolveAgentSettings({
-    connectScope,
-    agentId,
-    sessionType,
-    revision,
-  }: {
-    connectScope: RequiredConnectScope
-    agentId: string
-    sessionType: ConversationAgentSession["type"]
-    revision: number | undefined
-  }): Promise<AgentSettings> {
-    if (revision === undefined) {
-      return sessionType === "playground"
-        ? this.agentSettingsService.getLast({ connectScope, agentId, includesDraft: true })
-        : this.agentSettingsService.getLast({ connectScope, agentId })
-    }
-
-    const agentSettings = await this.agentSettingsService.get({ connectScope, agentId, revision })
-    if (!agentSettings) {
-      throw new NotFoundException(`Version ${revision} not found for agent ${agentId}`)
-    }
-    if (agentSettings.isArchived) {
-      throw new UnprocessableEntityException(`Version ${revision} is archived and cannot be run`)
-    }
-    return agentSettings
   }
 }
 

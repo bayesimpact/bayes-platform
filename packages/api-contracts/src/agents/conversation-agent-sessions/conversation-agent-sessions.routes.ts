@@ -1,4 +1,4 @@
-import type { ResponseData, SuccessResponseDTO } from "../../generic"
+import type { RequestPayload, ResponseData, SuccessResponseDTO } from "../../generic"
 import { defineRoute } from "../../helpers"
 import type {
   BaseAgentSessionTypeDto,
@@ -16,7 +16,18 @@ function defineConversationAgentSessionsRoutes(type: BaseAgentSessionTypeDto) {
       method: "post",
       path: prefix,
     }),
-    createOne: defineRoute<ResponseData<ConversationAgentSessionDto>>({
+    createOne: defineRoute<
+      ResponseData<ConversationAgentSessionDto>,
+      RequestPayload<{
+        /**
+         * Settings revision the session greets with. Playground sessions only, like the
+         * revision of the stream: a live session that sends one is rejected. Omitted, a
+         * playground session greets with the latest revision including the draft and a live
+         * session with the latest published one.
+         */
+        agentSettingsRevision?: number
+      }>
+    >({
       method: "post",
       path: `${prefix}/create`,
     }),
