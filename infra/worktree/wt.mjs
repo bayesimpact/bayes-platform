@@ -54,7 +54,7 @@ import {
   nodeModulesFolders,
   slugProblem,
 } from "./lib/naming.mjs"
-import { currentBranch, pullRequestOf, readStatus, updateStatus } from "./lib/status.mjs"
+import { currentBranch, issueOf, pullRequestOf, readStatus, updateStatus } from "./lib/status.mjs"
 import {
   databaseNames,
   isGone,
@@ -107,6 +107,9 @@ const HELP = `Dev environments of git worktrees (infra/worktree/README.md).
 
 In a worktree:
   up [--skip-host-install]   Create or update the environment of this worktree, then print its URLs
+    [--description <text>]   What the worktree is for, shown on its card of the dashboard
+    [--issue <number|URL>]   Its issue, linked on the card (a number of this repository, or a URL)
+  describe <text> [--issue <number|URL>]  Change the description of this worktree, or its issue
   down                       Remove it: containers, volumes and databases (a dump is kept ${TRASH_DAYS} days)
   logs [service] [--follow]  Logs of the environment, or of one service (api, workers, web...)
   restart [service]          Restart the environment, or one service
@@ -117,6 +120,7 @@ In a worktree:
 Anywhere:
   new <name>                 Create the worktree .claude/worktrees/<name> from origin/main, then
                              its environment (an issue number works as the name)
+    [--description <text>] [--issue <number|URL>]  As for up
   status                     List the environments of this machine
   cleanup [--apply]          Environments whose pull request is merged or closed: what would be
                              removed (environment, databases, worktree, branch), or remove them
@@ -134,6 +138,8 @@ const { values: options, positionals } = parseArgs({
     slug: { type: "string" },
     recreate: { type: "boolean", default: false },
     "skip-host-install": { type: "boolean", default: false },
+    description: { type: "string" },
+    issue: { type: "string" },
     apply: { type: "boolean", default: false },
     auto: { type: "boolean", default: false },
     "include-unregistered": { type: "boolean", default: false },
@@ -147,6 +153,7 @@ const [command = "help", argument] = positionals
 const commands = {
   new: () => newWorktree(),
   up: () => up(),
+  describe: () => describeWorktree(),
   down: () => down(),
   logs: () => composeCommand(["logs", "--tail", "200", ...(options.follow ? ["--follow"] : [])]),
   restart: () => composeCommand(["restart"]),
@@ -206,6 +213,8 @@ function newWorktree() {
       join(path, "infra/worktree/wt.mjs"),
       "up",
       ...(options["skip-host-install"] ? ["--skip-host-install"] : []),
+      ...(options.description === undefined ? [] : ["--description", options.description]),
+      ...(options.issue === undefined ? [] : ["--issue", options.issue]),
     ],
     { cwd: path },
   )
@@ -259,6 +268,8 @@ function createWorktree(mainCheckout, path, branch) {
 async function up() {
   const environment = currentEnvironment()
   const startedAt = Date.now()
+  // Before the long part: an issue gh cannot find stops here.
+  const card = cardDetails(environment)
   await withOwnLock(environment, async () => {
     // The cleanup counts this attempt as activity, even when the run fails or is interrupted.
     writeFileAtomic(
@@ -310,9 +321,54 @@ async function up() {
     }
     await waitUntilReady(environment)
     await waitForRoutes(environment)
-    recordStatus(environment)
+    recordStatus(environment, card)
     printSummary(environment, startedAt)
   })
+}
+
+/**
+ * Changes what the dashboard says of this worktree: its description, its issue. Reads its pull
+ * request again on the way, since one opened after `wt up` waits for the next cleanup otherwise.
+ */
+function describeWorktree() {
+  const environment = currentEnvironment()
+  const description = positionals.slice(1).join(" ").trim() || options.description
+  if (!description && options.issue === undefined) {
+    throw new Error(
+      'Say what this worktree is for: npm run wt -- describe "Fix the sidebar on phones". --issue <number or URL> links its issue.',
+    )
+  }
+  const pr = pullRequestOf(currentBranch(environment.root), environment.root)
+  updateStatus(environment.slug, {
+    ...cardDetails(environment, description),
+    ...(pr ? { pr } : {}),
+  })
+  console.log(
+    `The card of ${environment.slug} is up to date: http://dev.connect.localhost:${environment.routerPort}`,
+  )
+}
+
+/**
+ * The description and issue of the dashboard card, from --description and --issue. Without
+ * --issue, an environment named after a number gets the open issue of that number in this
+ * repository, until it has one.
+ */
+function cardDetails(environment, description = options.description) {
+  const details = {}
+  if (description !== undefined) details.description = description.trim() || null
+  if (options.issue !== undefined) {
+    details.issue = issueOf(options.issue, environment.root)
+    if (!details.issue) {
+      throw new Error(`gh finds no issue ${options.issue}: give its URL, or check gh auth status.`)
+    }
+  } else if (
+    /^\d+$/u.test(environment.slug) &&
+    !readStatus().environments?.[environment.slug]?.issue
+  ) {
+    const issue = issueOf(environment.slug, environment.root)
+    if (issue?.state === "OPEN") details.issue = issue
+  }
+  return details
 }
 
 async function down() {
@@ -568,6 +624,8 @@ async function cleanup() {
     const decision = decide(facts)
     if (facts.hasEnvironment && facts.worktreeExists) {
       updateStatus(facts.slug, {
+        // A pull request opened since `wt up` shows on the dashboard from here.
+        ...(facts.pr ? { pr: facts.pr } : {}),
         cleanup: { verdict: decision.action, reason: decision.reason, checkedAt },
       })
     }
@@ -731,11 +789,11 @@ function worktreeFacts(worktree, { environmentPaths, ghAvailable, now }) {
     ghAvailable,
     now,
   }
-  if (!base.worktreeExists || base.isAgentWorktree || base.locked || !base.branch || !ghAvailable) {
-    return base
-  }
+  if (!base.worktreeExists || base.isAgentWorktree || !base.branch || !ghAvailable) return base
+  // A session working in the worktree locks it: its pull request is still read for the dashboard.
+  if (base.locked && !base.hasEnvironment) return base
   const pr = pullRequestOf(worktree.branch, worktree.path)
-  if (!pr || pr.state === "OPEN") return { ...base, pr }
+  if (base.locked || !pr || pr.state === "OPEN") return { ...base, pr }
   return {
     ...base,
     pr,
@@ -1321,9 +1379,10 @@ function printLogs(environment, serviceName) {
   ])
 }
 
-function recordStatus(environment) {
+function recordStatus(environment, card) {
   const branch = currentBranch(environment.root)
   updateStatus(environment.slug, {
+    ...card,
     path: environment.root,
     branch,
     pr: pullRequestOf(branch, environment.root),

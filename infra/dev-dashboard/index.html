@@ -48,6 +48,8 @@
   .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: 0.75rem; }
   .title { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
   .title strong { font-size: 1.1rem; overflow-wrap: anywhere; }
+  .description { margin: -0.35rem 0 0; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; line-clamp: 3; overflow: hidden; overflow-wrap: anywhere; }
+  .description.missing { font-size: 0.8rem; color: var(--muted); }
   .branch { font-family: ui-monospace, monospace; font-size: 0.85rem; color: var(--muted); overflow-wrap: anywhere; }
   .pill { font-size: 0.75rem; font-weight: 600; padding: 0.1rem 0.55rem; border-radius: 999px; color: #fff; white-space: nowrap; }
   .pill.ready { background: var(--ready); }
@@ -114,6 +116,7 @@
   <form class="new" id="new-worktree">
     <div class="new-row">
       <input id="new-name" aria-label="Name or issue number" placeholder="name or issue number" autocomplete="off" spellcheck="false">
+      <input id="new-description" aria-label="What it is for" placeholder="what it is for (optional)" autocomplete="off">
       <button type="submit" id="new-copy" disabled>New worktree</button>
     </div>
     <output id="new-command"></output>
@@ -159,7 +162,12 @@
 
   function pullRequest(pr) {
     if (!pr) return null
-    return element("a", { href: pr.url, target: "_blank", rel: "noopener", text: `#${pr.number} ${pr.state.toLowerCase()}` })
+    return element("a", { href: pr.url, target: "_blank", rel: "noopener", title: pr.title ?? "", text: `PR #${pr.number} ${pr.state.toLowerCase()}` })
+  }
+
+  function issueLink(issue) {
+    if (!issue) return null
+    return element("a", { href: issue.url, target: "_blank", rel: "noopener", title: issue.title ?? "", text: `issue #${issue.number}` })
   }
 
   // The dashboard is read-only: it gives the command, and `wt new` checks the name in full.
@@ -169,6 +177,13 @@
     const value = input.trim().toLowerCase()
     const issue = value.match(/^#?(\d+)$/u) ?? value.match(/\/issues\/(\d+)/u)
     return issue ? issue[1] : value
+  }
+
+  function newWorktreeCommand() {
+    const name = newWorktreeName(document.getElementById("new-name").value)
+    const description = document.getElementById("new-description").value.trim()
+    // Single quotes keep the text as typed in the shell, a quote included.
+    return description ? `npm run wt -- new ${name} --description '${description.replaceAll("'", "'\\''")}'` : `npm run wt -- new ${name}`
   }
 
   function showNewWorktree() {
@@ -182,16 +197,17 @@
     else if (!valid) output.replaceChildren("Lowercase letters, digits and single hyphens, at most 32 characters.")
     else {
       const url = `http://${name}.connect.localhost${routerPort === 80 ? "" : `:${routerPort}`}`
-      output.replaceChildren(element("code", { text: `npm run wt -- new ${name}` }), ` gives ${url}`)
+      output.replaceChildren(element("code", { text: newWorktreeCommand() }), ` gives ${url}`)
     }
   }
 
   document.getElementById("new-name").addEventListener("input", showNewWorktree)
+  document.getElementById("new-description").addEventListener("input", showNewWorktree)
   document.getElementById("new-worktree").addEventListener("submit", async (event) => {
     event.preventDefault()
     const button = document.getElementById("new-copy")
     try {
-      await navigator.clipboard.writeText(`npm run wt -- new ${newWorktreeName(document.getElementById("new-name").value)}`)
+      await navigator.clipboard.writeText(newWorktreeCommand())
       button.textContent = "Copied, run it in the main checkout"
     } catch {
       button.textContent = "Copy failed, select the command"
@@ -269,6 +285,10 @@
     return "Run it in the main checkout once the pull request is merged."
   }
 
+  function separated(nodes) {
+    return nodes.filter(Boolean).flatMap((node, index) => (index === 0 ? [node] : [document.createTextNode(" · "), node]))
+  }
+
   function environmentCard(environment) {
     const details = []
     if (environment.databases) details.push(field("Databases", Object.values(environment.databases).join(", ")))
@@ -279,12 +299,19 @@
         element("strong", { text: environment.slug }),
         statusBadge(environment.state, environment.services.map(service)),
       ]),
-      environment.branch || environment.pr
-        ? element("div", { className: "branch" }, [
-            document.createTextNode(environment.branch ?? ""),
-            environment.pr ? document.createTextNode(" · ") : null,
+      environment.description
+        ? element("p", { className: "description", title: environment.description, text: environment.description })
+        : element("p", { className: "description missing" }, [
+            "No description: ",
+            element("code", { text: 'npm run wt -- describe "…"' }),
+            " in the worktree.",
+          ]),
+      environment.branch || environment.issue || environment.pr
+        ? element("div", { className: "branch" }, separated([
+            environment.branch ? document.createTextNode(environment.branch) : null,
+            issueLink(environment.issue),
             pullRequest(environment.pr),
-          ])
+          ]))
         : null,
       openButton(environment),
       details.length ? element("div", { className: "details" }, details) : null,

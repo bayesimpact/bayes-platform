@@ -1,5 +1,5 @@
-// ~/.bayes-worktrees/status.json: what the dashboard shows next to the containers (branch,
-// pull request, databases, cleanup verdict), one entry per environment.
+// ~/.bayes-worktrees/status.json: what the dashboard shows next to the containers (description,
+// issue, branch, pull request, databases, cleanup verdict), one entry per environment.
 import { join } from "node:path"
 import { STATE_DIR } from "../../dex/dex-config.mjs"
 import { readJson, run, withLockSync, writeFileAtomic } from "./system.mjs"
@@ -57,6 +57,24 @@ export function pullRequestOf(branch, cwd) {
       ),
     )
     return pr ?? null
+  } catch {
+    return null
+  }
+}
+
+/**
+ * An issue through gh: its number in this repository (`135` or `#135`) or its URL, for an issue
+ * of another repository. Null when gh is missing, signed out or offline, or finds no such issue.
+ */
+export function issueOf(reference, cwd) {
+  try {
+    return JSON.parse(
+      run(
+        "gh",
+        ["issue", "view", String(reference).replace(/^#/u, ""), "--json", "number,title,state,url"],
+        { cwd },
+      ),
+    )
   } catch {
     return null
   }
