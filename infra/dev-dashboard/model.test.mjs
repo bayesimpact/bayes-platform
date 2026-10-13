@@ -147,6 +147,27 @@ describe("buildState", () => {
     assert.equal(environment.pr.number, 951)
   })
 
+  it("describes an environment by its own text, else by the title of its issue or pull request", () => {
+    const describe = (details) =>
+      buildState({
+        containers: [container({ slug: "742", service: "web" })],
+        status: { environments: { 742: details } },
+        routerPort: 8800,
+        now: "2026-10-08T12:00:00.000Z",
+      }).environments[0]
+    const issue = { number: 742, title: "Export a report", state: "OPEN", url: "https://x/y/742" }
+    const pr = { number: 951, title: "feat: export reports", state: "OPEN", url: "https://x/y/951" }
+    assert.equal(
+      describe({ description: "Try the new export", issue, pr }).description,
+      "Try the new export",
+    )
+    assert.equal(describe({ issue, pr }).description, "Export a report")
+    assert.equal(describe({ pr }).description, "feat: export reports")
+    assert.equal(describe({}).description, null)
+    assert.equal(describe({ issue }).issue.url, "https://x/y/742")
+    assert.equal(state.environments[0].issue, null)
+  })
+
   it("lists the shared stack, with links for the services Traefik routes", () => {
     assert.deepEqual(
       state.shared.map((entry) => [entry.name, entry.health, entry.url]),

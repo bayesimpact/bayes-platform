@@ -19,10 +19,19 @@ The name gives the URLs, and an issue number works too: `/worktree-env 135` show
 issue 135 (from bayes-platform or internal-issues) and serves the app on
 `http://135.connect.localhost:8800`. `/worktree-env` alone proposes a name.
 
+Each card of the dashboard says what its worktree is for, with links to its issue and its pull
+request. `/worktree-env` fills in the description and the issue. Otherwise, `--description` and
+`--issue` of `new` and `up`, or `npm run wt -- describe "<text>"` in the worktree, set them. The
+dashboard's form takes a description too. Without a description, the card shows the title of the
+issue, then of the pull request. An environment named after a number gets the open issue of that
+number in this repository. A new pull request shows after the next `wt up`, `wt describe` or
+cleanup of a session start.
+
 | Command (`npm run wt -- ...`) | What it does |
 |---|---|
 | `new <name>` | Creates the worktree `.claude/worktrees/<name>`, then its environment. Run it anywhere in the repository. |
 | `up` | Creates or updates the environment of the current worktree, then prints its URLs. Safe to repeat, and needed after a change to `package-lock.json`. |
+| `describe <text> [--issue <number or URL>]` | Changes the description of the worktree on the dashboard, or its issue. |
 | `logs [service] [--follow]` | Logs of the environment or of one service. |
 | `restart [service]`, `stop`, `start` | `stop` pauses the environment until `start`, reboots included. |
 | `reset-db` | Replaces its databases with a fresh copy of the main checkout's. |
@@ -106,7 +115,8 @@ Chrome or Firefox: Safari does not resolve `*.localhost`. Windows is not support
   machine: they land in Mailpit (http://mail.connect.localhost:8800), since the copied database
   holds real addresses.
 - **Shared state.** `~/.bayes-worktrees/` holds the local dev password hash, each environment's Dex
-  configuration, `status.json` for the dashboard, locks and dumps.
+  configuration, `status.json` for the dashboard (description, issue, branch, pull request,
+  databases, cleanup verdict), locks and dumps.
 
 ## When something goes wrong
 

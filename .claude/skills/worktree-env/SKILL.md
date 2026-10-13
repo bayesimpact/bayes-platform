@@ -1,7 +1,7 @@
 ---
 name: worktree-env
-description: Create a git worktree with its own dev environment (web app, API, workers, Storybooks, Grafana, Bull Board, Dex, a Phoenix project and databases copied from the local one) on http://<name>.connect.localhost:8800, the name being a short name or an issue number, or manage the environment of the current worktree (status, logs, restart, stop, start, reset-db, down). Use when the user asks to start work in a new worktree, to work on an issue in its own environment, to see a branch running, or about the environment of a worktree.
-argument-hint: "[<name> | <issue number>] | status | logs [service] | restart [service] | stop | start | reset-db | dex-sync | down"
+description: Create a git worktree with its own dev environment (web app, API, workers, Storybooks, Grafana, Bull Board, Dex, a Phoenix project and databases copied from the local one) on http://<name>.connect.localhost:8800, the name being a short name or an issue number, or manage the environment of the current worktree (status, logs, restart, stop, start, reset-db, down, its description on the dashboard). Use when the user asks to start work in a new worktree, to work on an issue in its own environment, to see a branch running, or about the environment of a worktree.
+argument-hint: "[<name> | <issue number>] | status | logs [service] | restart [service] | stop | start | reset-db | dex-sync | down | describe <text>"
 ---
 
 # Worktree environments
@@ -28,9 +28,14 @@ How it works and what to do when something breaks: `infra/worktree/README.md`.
      give another name or an issue number.
 2. Enter the worktree: if `.claude/worktrees/<name>` exists, call `EnterWorktree` with its
    `path`; otherwise call `EnterWorktree` with the `name`.
-3. In the worktree, run `npm run wt -- up` with a 600000 ms timeout. The first run takes a few
-   minutes: it installs dependencies on the host and in the containers, copies the database and
-   starts every server.
+3. In the worktree, run `npm run wt -- up` with a 600000 ms timeout. For a new worktree, add what
+   its card on the dashboard shows, so nobody has to guess later what it was for:
+   - `--issue <URL>` with the URL of the issue found in step 1;
+   - `--description "<text>"` when the name is not an issue number: one short sentence on the task,
+     from the user's request (the card shows the issue's title otherwise).
+
+   The first run takes a few minutes: it installs dependencies on the host and in the containers,
+   copies the database and starts every server.
 4. Show the user the URL list that `wt up` prints, as it is, under the issue's title when the name
    is an issue number.
 
@@ -48,6 +53,8 @@ Run `npm run wt -- <command>` in the worktree and report the result:
   not end.
 - `restart [service]`, `stop`, `start`.
 - `reset-db`: replaces the environment's databases with a fresh copy of the main checkout's.
+- `describe "<text>" [--issue <number or URL>]`: changes what the dashboard card says the worktree
+  is for, or the issue it links. Also reads its pull request again.
 - `dex-sync`: gives a Dex account to people added to the environment's database (an invitation
   accepted in the worktree, for example).
 - `down`: removes the containers, volumes and databases (a dump is kept 14 days). Ask the user
