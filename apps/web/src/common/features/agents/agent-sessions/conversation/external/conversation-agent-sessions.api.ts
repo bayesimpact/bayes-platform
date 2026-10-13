@@ -11,11 +11,14 @@ export default {
     )
     return response.data.data.map(fromDto)
   },
-  createOne: async ({ type, ...params }) => {
+  createOne: async ({ type, agentSettingsRevision, ...params }) => {
     const axios = getAxiosInstance()
+    const payload: typeof ConversationAgentSessionsRoutes.live.createOne.request = {
+      payload: { agentSettingsRevision },
+    }
     const response = await axios.post<
       typeof ConversationAgentSessionsRoutes.live.createOne.response
-    >(ConversationAgentSessionsRoutes[type].createOne.getPath(params))
+    >(ConversationAgentSessionsRoutes[type].createOne.getPath(params), payload)
     return fromDto(response.data.data)
   },
   deleteOne: async ({ type, ...params }) => {

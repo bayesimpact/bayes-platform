@@ -1,6 +1,6 @@
 // What the dashboard shows, computed from the Docker containers and the status file written by
-// the worktree tooling (branch, pull request, databases, cleanup verdict). Pure functions only,
-// so they are tested without Docker.
+// the worktree tooling (description, issue, branch, pull request, databases, cleanup verdict).
+// Pure functions only, so they are tested without Docker.
 
 export const DOMAIN = "connect.localhost"
 export const DASHBOARD_HOST = `dev.${DOMAIN}`
@@ -90,6 +90,15 @@ export function environmentState(services) {
   return "starting"
 }
 
+/**
+ * The overall state of the shared stack. A stopped service does not count while others run: the
+ * services of an optional profile (analytics, traces...) are often stopped on purpose.
+ */
+export function sharedState(services) {
+  const running = services.filter((service) => service.health !== "stopped")
+  return environmentState(running.length > 0 ? running : services)
+}
+
 export function buildState({ containers, status = {}, routerPort, now }) {
   const environments = new Map()
   const shared = []
@@ -130,17 +139,22 @@ export function buildState({ containers, status = {}, routerPort, now }) {
     routerPort,
     dashboardUrl: publicUrl("dev", routerPort),
     shared: shared.sort((first, second) => first.name.localeCompare(second.name)),
+    sharedState: sharedState(shared),
     environments: [...environments.values()]
       .sort((first, second) => first.slug.localeCompare(second.slug))
       .map((environment) => {
         const details = status.environments?.[environment.slug] ?? {}
         return {
           slug: environment.slug,
+          // What the worktree is for: as given to `wt describe`, or the title of its issue or PR.
+          description: details.description || details.issue?.title || details.pr?.title || null,
           path: details.path ?? environment.path,
           branch: details.branch ?? null,
+          issue: details.issue ?? null,
           pr: details.pr ?? null,
           databases: details.databases ?? null,
           cleanup: details.cleanup ?? null,
+          cleanupCommand: cleanupCommand(environment.slug),
           state: environmentState(environment.services),
           services: environment.services.sort((first, second) =>
             first.name.localeCompare(second.name),
@@ -151,6 +165,15 @@ export function buildState({ containers, status = {}, routerPort, now }) {
         }
       }),
   }
+}
+
+/**
+ * The command that closes a worktree: its environment, databases, folder and branch. The dashboard
+ * only shows it, since removing needs the host's git, gh and databases, and the cleanup removes
+ * nothing that still holds work.
+ */
+export function cleanupCommand(slug) {
+  return `npm run wt -- cleanup --apply --slug ${slug}`
 }
 
 function sortLinks(links) {

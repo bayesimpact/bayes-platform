@@ -10,11 +10,15 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Added
 - Safety review: people granted access on an agent can read any of its conversations from a session id.
 - Apps: an installed app can let people outside the platform talk to the workspace's agents.
+- Apps: the studio now lists the apps connected to a project.
 
 ### Changed
+- (beta) PDF export: extraction agents no longer offer the built-in PDF export server.
 
 ### Fixed
 - Conversations: an assistant reply that never ends no longer crashes the server.
+- Extraction agents: project members can now upload CSV files and delete the documents they uploaded.
+- Studio playground: a new chat now greets with the welcome message of the version being tested.
 
 ### Security
 - Apps: install hands credentials through a one-time PKCE code on allowlisted HTTPS callbacks.

@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto"
 import {
   DOCUMENT_SOURCE_READ_PERMISSION,
+  PROJECT_APP_INSTALLATION_READ_PERMISSION,
   PROJECT_MEMBER_UPDATE_PERMISSION,
   ProjectsRoutes,
 } from "@caseai-connect/api-contracts"
@@ -169,6 +170,7 @@ describe("Projects - listProjects", () => {
         "studio.ui.read",
         "evaluation.ui.read",
         PROJECT_MEMBER_UPDATE_PERMISSION,
+        PROJECT_APP_INSTALLATION_READ_PERMISSION,
       ].sort(),
     )
     expect(permissionsByName.Member).toEqual(["desk.ui.read"])

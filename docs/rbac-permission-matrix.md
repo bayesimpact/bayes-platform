@@ -67,6 +67,8 @@ The `document_tag.*` permissions are not inherited either: an organization role 
 
 The `project.mcp_server.*` permissions are not inherited either: an organization role does not open a project's MCP servers. Every project role sees them, while adding, connecting, toggling and deleting stay with owners and admins.
 
+The `project.app_installation.read` permission is not inherited either: project owners and admins see the apps installed on the project, while installing and revoking an app stay behind the global `app.install`.
+
 The `project.review_campaign.*` permissions are not inherited either: an organization role does not open a project's review campaigns. Managing them, inviting testers and reviewers and removing them stays with project owners and admins. `review_campaign.report.read` is granted on project owners and admins and passes down to every campaign of the project (see Review campaign roles).
 
 | Permission | `project_owner` | `project_admin` | `project_member` |
@@ -146,6 +148,7 @@ The `project.review_campaign.*` permissions are not inherited either: an organiz
 | `project.mcp_server.create` — add an MCP server to the project | ✅ | ✅ | — |
 | `project.mcp_server.update` — turn an MCP server on or off for an agent, or connect it through OAuth | ✅ | ✅ | — |
 | `project.mcp_server.delete` — delete an MCP server from the project | ✅ | ✅ | — |
+| `project.app_installation.read` — see the apps installed on the project | ✅ | ✅ | — |
 | `project.review_campaign.read` — see the project's review campaigns | ✅ | ✅ | — |
 | `project.review_campaign.create` — create a review campaign | ✅ | ✅ | — |
 | `project.review_campaign.update` — update a review campaign | ✅ | ✅ | — |

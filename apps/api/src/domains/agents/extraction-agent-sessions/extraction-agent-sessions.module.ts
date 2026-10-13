@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common"
 import { TypeOrmModule } from "@nestjs/typeorm"
+import { DocumentContextResolver } from "@/common/context/resolvers/document-context.resolver"
 import { RbacModule } from "@/domains/rbac/rbac.module"
 import {
   moduleFeatures,
@@ -21,6 +22,7 @@ import { PlaygroundExtractionAgentSessionsController } from "./playground-extrac
   ],
   providers: [
     ...moduleProviders,
+    DocumentContextResolver,
     ExtractionAgentSessionsService,
     ExtractionAgentSessionStatusStreamService,
   ],

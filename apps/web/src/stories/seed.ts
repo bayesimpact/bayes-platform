@@ -52,6 +52,7 @@ import type {
   AnalyticsCategoryDailyPoint,
   AnalyticsDailyPoint,
 } from "@/studio/features/analytics/project/analytics.models"
+import type { AppInstallation } from "@/studio/features/app-installations/app-installations.models"
 import type { ConversationReview } from "@/studio/features/conversation-review/conversation-review.models"
 import type { DocumentSource } from "@/studio/features/document-sources/document-sources.models"
 import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"
@@ -346,6 +347,10 @@ export const seed = {
 
     documentTags(documentTags: DocumentTag[]): StoryPreloadedState {
       return { documentTags: { data: ads.fulfilled(documentTags) } }
+    },
+
+    appInstallations(appInstallations: AppInstallation[]): StoryPreloadedState {
+      return { appInstallations: { data: ads.fulfilled(appInstallations) } }
     },
 
     mcpServers(mcpServers: McpServer[]): StoryPreloadedState {

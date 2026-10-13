@@ -1,4 +1,7 @@
-import type { AgentCsvExtractionRunColumnSchemaDto } from "@caseai-connect/api-contracts"
+import type {
+  AgentCsvExtractionRunColumnSchemaDto,
+  BaseAgentSessionTypeDto,
+} from "@caseai-connect/api-contracts"
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import { buildType } from "@/common/features/agents/agent-sessions/shared/base-agent-session/base-agent-sessions.thunks"
 import { selectPlaygroundRevision } from "@/common/features/agents/agent-settings/agent-settings.selectors"
@@ -13,13 +16,16 @@ import type {
 
 type ThunkConfigWithSignal = ThunkConfig & { serializedErrorType: Error }
 
-function getBaseParams(state: RootState) {
+function getAgentIds(state: RootState) {
   return {
     organizationId: getCurrentId({ state, name: "organizationId" }),
     projectId: getCurrentId({ state, name: "projectId" }),
     agentId: getCurrentId({ state, name: "agentId" }),
-    type: buildType(),
   }
+}
+
+function getBaseParams(state: RootState) {
+  return { ...getAgentIds(state), type: buildType() }
 }
 
 const getRecords = createAsyncThunk<
@@ -68,17 +74,17 @@ const getFileColumns = createAsyncThunk<
 
 const uploadCsvFile = createAsyncThunk<
   string,
-  { file: File; onSuccess: (documentId: string) => void },
+  { file: File; type: BaseAgentSessionTypeDto; onSuccess: (documentId: string) => void },
   ThunkConfig
 >(
   "agentCsvExtractionRuns/uploadCsvFile",
-  async ({ file, onSuccess }, { extra: { services }, getState }) => {
-    const { organizationId, projectId } = getBaseParams(getState())
-    const document = await services.documents.uploadOne({
-      organizationId,
-      projectId,
+  async ({ file, type, onSuccess }, { extra: { services }, getState }) => {
+    // Through the extraction agent, like any run document: a Desk member cannot use the project
+    // documents routes.
+    const document = await services.extractionAgentSessions.uploadDocument({
+      ...getAgentIds(getState()),
+      type,
       file,
-      sourceType: "extraction",
     })
     onSuccess(document.id)
     return document.id

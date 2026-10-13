@@ -196,6 +196,7 @@ export const sendMessage = createAsyncThunk<
 
     try {
       await streamChatResponse({
+        type: agentSession.type,
         organizationId,
         projectId,
         agentId,

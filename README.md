@@ -64,6 +64,8 @@ activity per workspace, never a user or a conversation (see
 provisioned from `infra/database/grafana`, the dashboards are the JSON files of
 `deploy/helm/bayes-platform/dashboards`, the same the chart ships to the cluster;
 a change made in the UI is lost at the next start, export the JSON and commit it.
+It reads the `connect` database, or the one named by `GRAFANA_DATABASE` in
+`infra/database/.env`.
 
 ```bash
 cd infra/database
@@ -75,9 +77,10 @@ cd ../.. && make analytics-dev-role          # once, after the migrations: the r
 
 An OpenTelemetry Collector (`deploy/helm/bayes-platform/files/otel-collector.yaml`, the same traces
 pipeline as the gateway of the clusters) and Phoenix at
-[http://localhost:6006](http://localhost:6006). Start them, then set in `apps/api/.env`:
+[http://localhost:6060](http://localhost:6060) (port 6006 belongs to the web
+app's Storybook). Start them, then set in `apps/api/.env`:
 `OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318` and
-`TRACE_URL_TEMPLATE=http://localhost:6006/redirects/sessions/{traceId}`.
+`TRACE_URL_TEMPLATE=http://localhost:6060/redirects/sessions/{traceId}`.
 
 ```bash
 cd infra/database
@@ -109,7 +112,7 @@ the other services start with their profile, from `infra/database`:
 | `mail` | Mailpit, http://localhost:8025 | `docker compose --profile mail up -d --no-recreate mailpit` |
 | `keycloak` | Keycloak, http://localhost:8080 ([README](infra/keycloak/README.md)) | `docker compose --profile keycloak up -d --no-recreate keycloak` |
 | `dex` | Dex, http://localhost:5556 ([README](infra/dex/README.md)) | `docker compose --profile dex up -d --no-recreate dex` |
-| `traces` | otel-collector, Phoenix | `docker compose --profile traces up -d --no-recreate otel-collector phoenix` |
+| `traces` | otel-collector, Phoenix, http://localhost:6060 | `docker compose --profile traces up -d --no-recreate otel-collector phoenix` |
 | `analytics` | Grafana, http://localhost:3300 | `docker compose --profile analytics up -d --no-recreate grafana` |
 | `router` | Traefik and the dashboard of the worktree environments, http://dev.connect.localhost:8800 | `mkdir -p ~/.bayes-worktrees && docker compose --profile router up -d --no-recreate traefik dev-dashboard` |
 
@@ -125,6 +128,19 @@ dev VM, forward port 8800 to your laptop (VS Code does it, with the settings of
 Keycloak and Dex used to have their own compose projects. If one of them still
 runs from there, stop it once before starting it with its profile:
 `docker compose -p connect-keycloak down` or `docker compose -p connect-dex down`.
+
+The services that were running come back after a reboot, until you stop them
+with `docker compose stop <service>`, except Keycloak and Grafana, which you
+start on demand. Postgres accepts 500 connections, for the main checkout,
+worktree environments and parallel test runs at once.
+
+#### Worktree environments
+
+Each git worktree can run its own environment, side by side: every dev server in containers,
+databases copied from yours, its own Redis, Dex and Phoenix project, and URLs such as
+http://fix-sidebar.connect.localhost:8800. In Claude Code, `/worktree-env <name>` creates the
+worktree and its environment; in any worktree, `npm run wt -- up`. The setup, once per machine, and
+everything else: [infra/worktree/README.md](infra/worktree/README.md).
 
 #### Stop the Database
 
@@ -167,9 +183,8 @@ TRACE_URL_TEMPLATE=https://traces.example.org/redirects/sessions/{traceId}
 # Database
 DATABASE_URL=postgresql://admin:passpass@localhost:5432/caseai_connect
 
-# OpenID Connect provider (local Keycloak: see infra/keycloak/README.md)
-OIDC_ISSUER_URL=http://localhost:8080/realms/platform
-# OIDC_AUDIENCE=platform-api
+# OpenID Connect provider (local Dex: see infra/dex/README.md)
+OIDC_ISSUER_URL=http://localhost:5556/dex
 WEB_OIDC_CLIENT_ID=platform-web
 ```
 
@@ -188,6 +203,12 @@ WEB_OIDC_CLIENT_ID=platform-web
 
 Upgrading a `.env` from Auth0: see [docs/upgrading/auth0-to-oidc.md](docs/upgrading/auth0-to-oidc.md).
 
+**Local sign-in:** start Dex (`docker compose --profile dex up -d --no-recreate dex` from
+`infra/database`). On a fresh checkout, sign in with the sample user `admin@example.org` / `admin`,
+then give it a platform role. When your database already has people, run
+`node infra/dex/sync-users.mjs` from the main checkout: each of them gets a Dex account with their
+email and a local dev password, and keeps their data. See [infra/dex/README.md](infra/dex/README.md).
+
 #### Web Environment Variables
 
 ```bash
@@ -202,7 +223,7 @@ Edit `.env`:
 VITE_API_URL=http://localhost:3000/api
 
 # OpenID Connect provider and the public client of the web app
-VITE_OIDC_AUTHORITY=http://localhost:8080/realms/platform
+VITE_OIDC_AUTHORITY=http://localhost:5556/dex
 VITE_OIDC_CLIENT_ID=platform-web
 ```
 
@@ -384,7 +405,7 @@ Once HTTPS is set up, update your `.env` files to use `https://connect.localhost
 VITE_API_URL=https://connect.localhost:3000/api
 ```
 
-**Identity provider:** the web app client must allow `https://connect.localhost:5173` as redirect URI, post-logout redirect URI and web origin. The local Keycloak realm (`infra/keycloak`) already does.
+**Identity provider:** the web app client must allow `https://connect.localhost:5173` as redirect URI, post-logout redirect URI and web origin. The local Dex accepts it (it has no logout), and `node infra/dex/sync-users.mjs` lists every origin of `FRONTEND_URL` as a redirect URI.
 
 ### 6. Run the Projects Locally
 

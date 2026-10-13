@@ -7,9 +7,11 @@ import {
 } from "@/domains/agents/base-agent-sessions/base-agent-sessions-module.helpers"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import { ConversationAgentSessionsModule } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.module"
+import { RbacModule } from "@/domains/rbac/rbac.module"
 import { ActiveAgentScopeService } from "./active-agent-scope.service"
 import { AgentLlmModule } from "./agent-llm.module"
-import { StreamingController } from "./streaming.controller"
+import { LiveStreamingController } from "./live-streaming.controller"
+import { PlaygroundStreamingController } from "./playground-streaming.controller"
 import { StreamingLlmService } from "./streaming-llm.service"
 
 @Module({
@@ -18,9 +20,10 @@ import { StreamingLlmService } from "./streaming-llm.service"
     ...moduleImports,
     forwardRef(() => AgentLlmModule),
     forwardRef(() => ConversationAgentSessionsModule),
+    RbacModule,
   ],
   providers: [...moduleProviders, StreamingLlmService, ActiveAgentScopeService],
-  controllers: [StreamingController],
+  controllers: [LiveStreamingController, PlaygroundStreamingController],
   exports: [StreamingLlmService, ActiveAgentScopeService],
 })
 export class StreamingModule {}

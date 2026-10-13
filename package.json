@@ -10,6 +10,8 @@
     "build": "turbo run build",
     "test": "turbo run test",
     "test:e2e": "turbo run test:e2e",
+    "test:dev-tools": "node --test \"infra/dex/*.test.mjs\" \"infra/dev-dashboard/*.test.mjs\" \"infra/worktree/lib/*.test.mjs\"",
+    "wt": "node infra/worktree/wt.mjs",
     "lint": "biome lint .",
     "format": "biome format --write .",
     "format:check": "biome format .",

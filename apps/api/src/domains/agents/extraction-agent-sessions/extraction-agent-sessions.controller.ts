@@ -14,6 +14,7 @@ import { filter, map, type Observable } from "rxjs"
 import type {
   EndpointRequestWithAgent,
   EndpointRequestWithAgentSession,
+  EndpointRequestWithDocument,
 } from "@/common/context/request.interface"
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
@@ -223,6 +224,22 @@ export abstract class ExtractionAgentSessionsController {
       userId: request.user.id,
     })
     return { data: documents.map(toDocumentDto) }
+  }
+
+  // The project documents route deletes any document and stays with admins and owners. Here a
+  // caller removes only a document they uploaded for a run; any other answers 404, as if absent.
+  protected async handleDeleteMyDocument(
+    request: EndpointRequestWithAgent & EndpointRequestWithDocument,
+  ): Promise<Routes["deleteMyDocument"]["response"]> {
+    const { document } = request
+    if (document.sourceType !== "extraction" || document.userId !== request.user.id) {
+      throw new NotFoundException(`Document ${document.id} not found`)
+    }
+    await this.documentsService.deleteDocument({
+      connectScope: getRequiredConnectScope(request),
+      documentId: document.id,
+    })
+    return { data: { success: true } }
   }
 }
 

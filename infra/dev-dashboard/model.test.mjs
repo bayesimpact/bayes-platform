@@ -2,11 +2,13 @@ import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 import {
   buildState,
+  cleanupCommand,
   containerHealth,
   describeHost,
   environmentState,
   hostname,
   publicUrl,
+  sharedState,
 } from "./model.mjs"
 
 function container({
@@ -145,6 +147,27 @@ describe("buildState", () => {
     assert.equal(environment.pr.number, 951)
   })
 
+  it("describes an environment by its own text, else by the title of its issue or pull request", () => {
+    const describe = (details) =>
+      buildState({
+        containers: [container({ slug: "742", service: "web" })],
+        status: { environments: { 742: details } },
+        routerPort: 8800,
+        now: "2026-10-08T12:00:00.000Z",
+      }).environments[0]
+    const issue = { number: 742, title: "Export a report", state: "OPEN", url: "https://x/y/742" }
+    const pr = { number: 951, title: "feat: export reports", state: "OPEN", url: "https://x/y/951" }
+    assert.equal(
+      describe({ description: "Try the new export", issue, pr }).description,
+      "Try the new export",
+    )
+    assert.equal(describe({ issue, pr }).description, "Export a report")
+    assert.equal(describe({ pr }).description, "feat: export reports")
+    assert.equal(describe({}).description, null)
+    assert.equal(describe({ issue }).issue.url, "https://x/y/742")
+    assert.equal(state.environments[0].issue, null)
+  })
+
   it("lists the shared stack, with links for the services Traefik routes", () => {
     assert.deepEqual(
       state.shared.map((entry) => [entry.name, entry.health, entry.url]),
@@ -177,5 +200,25 @@ describe("hostname and publicUrl", () => {
   it("omits port 80", () => {
     assert.equal(publicUrl("dev", 80), "http://dev.connect.localhost")
     assert.equal(publicUrl("dev", 8800), "http://dev.connect.localhost:8800")
+  })
+})
+
+describe("cleanupCommand", () => {
+  it("closes one worktree, whatever the last verdict", () => {
+    assert.equal(cleanupCommand("742"), "npm run wt -- cleanup --apply --slug 742")
+  })
+})
+
+describe("sharedState", () => {
+  const services = (...healths) => healths.map((health, index) => ({ name: `s${index}`, health }))
+
+  it("ignores a stopped optional service while the others run", () => {
+    assert.equal(sharedState(services("healthy", "running", "stopped")), "ready")
+    assert.equal(sharedState(services("healthy", "starting", "stopped")), "starting")
+    assert.equal(sharedState(services("healthy", "unhealthy", "stopped")), "problem")
+  })
+
+  it("is stopped when everything is", () => {
+    assert.equal(sharedState(services("stopped", "stopped")), "stopped")
   })
 })

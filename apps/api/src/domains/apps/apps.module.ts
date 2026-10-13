@@ -1,9 +1,13 @@
 import { Module } from "@nestjs/common"
 import { TypeOrmModule } from "@nestjs/typeorm"
+import { OrganizationContextResolver } from "@/common/context/resolvers/organization-context.resolver"
+import { ProjectContextResolver } from "@/common/context/resolvers/project-context.resolver"
+import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { AgentRepository } from "@/domains/agents/agent.repository"
 import { AuthModule } from "@/domains/auth/auth.module"
 import { DocumentsModule } from "@/domains/documents/documents.module"
 import { DocumentTagsModule } from "@/domains/documents/tags/document-tags.module"
+import { Project } from "@/domains/projects/project.entity"
 import { ProjectRepository } from "@/domains/projects/project.repository"
 import { PublicChatModule } from "@/domains/public-chat/public-chat.module"
 import { RbacModule } from "@/domains/rbac/rbac.module"
@@ -25,10 +29,11 @@ import { AppsConversationsService } from "./conversations/apps-conversations.ser
 import { AppsDocumentSourcesController } from "./document-sources/apps-document-sources.controller"
 import { AppsDocumentTagsController } from "./document-tags/apps-document-tags.controller"
 import { AppsDocumentsController } from "./documents/apps-documents.controller"
+import { ProjectAppInstallationsController } from "./project-app-installations.controller"
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([AppManifest, AppInstallation, AppInstallAuthorizationCode]),
+    TypeOrmModule.forFeature([AppManifest, AppInstallation, AppInstallAuthorizationCode, Project]),
     AuthModule,
     UsersModule,
     RbacModule,
@@ -44,6 +49,7 @@ import { AppsDocumentsController } from "./documents/apps-documents.controller"
     AppsDocumentTagsController,
     AppsDocumentsController,
     AppsConversationsController,
+    ProjectAppInstallationsController,
   ],
   providers: [
     AppsService,
@@ -55,6 +61,9 @@ import { AppsDocumentsController } from "./documents/apps-documents.controller"
     ProjectRepository,
     AgentRepository,
     AppsConversationsService,
+    ResourceContextGuard,
+    OrganizationContextResolver,
+    ProjectContextResolver,
   ],
   exports: [AppsService, AppManifestRepository, AppInstallationRepository, AppJwtService],
 })

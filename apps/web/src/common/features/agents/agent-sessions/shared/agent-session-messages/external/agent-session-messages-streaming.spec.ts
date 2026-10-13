@@ -7,6 +7,7 @@ import type { StreamEventHandler } from "./agent-session-messages-streaming-even
 vi.mock("@/external/oidcClient", () => ({ getAccessToken: vi.fn().mockResolvedValue("token") }))
 
 const params = {
+  type: "live" as const,
   organizationId: "org-1",
   projectId: "project-1",
   agentId: "agent-1",

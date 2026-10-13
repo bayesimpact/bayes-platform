@@ -1,5 +1,6 @@
 import type { BaseAgentSessionTypeDto, SuccessResponseDTO } from "@caseai-connect/api-contracts"
 import { createAsyncThunk } from "@reduxjs/toolkit"
+import { selectPlaygroundRevision } from "@/common/features/agents/agent-settings/agent-settings.selectors"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { getCurrentId } from "@/common/features/helpers"
 import type { RootState, ThunkExtraArg } from "@/common/store"
@@ -26,10 +27,16 @@ export const createAgentChatSession = createAsyncThunk<
     const organizationId = getCurrentId({ state, name: "organizationId" })
     const projectId = getCurrentId({ state, name: "projectId" })
     const params = { organizationId, projectId }
+    const type = buildType()
+    // The greeting comes from the version the playground runs. `undefined` while the history is
+    // loading, which lets the API greet with the draft, its own playground default.
+    const agentSettingsRevision =
+      type === "playground" ? selectPlaygroundRevision({ agentId })(state) : undefined
     return services.conversationAgentSessions.createOne({
       ...params,
       agentId,
-      type: buildType(),
+      type,
+      agentSettingsRevision,
     })
   },
 )
