@@ -4,6 +4,15 @@
     "description": "Apps that can reach this project.",
     "empty": "No app is connected to this project yet.",
     "installedOn": "Connected on {{date}}",
-    "noPermissions": "No permission granted"
+    "noPermissions": "No permission granted",
+    "revoke": {
+      "action": "Revoke",
+      "title": "Revoke {{name}}?",
+      "description": "{{name}} loses access to this project at once. Installing it again needs a new authorization."
+    },
+    "notifications": {
+      "revoked": "App revoked",
+      "revokeError": "Could not revoke the app"
+    }
   }
 }

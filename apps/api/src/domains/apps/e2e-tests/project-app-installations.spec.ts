@@ -4,6 +4,7 @@ import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import { AUTH_ERRORS } from "@/common/errors/auth-errors"
+import { bindExpectActivityCreated } from "@/common/test/activity-test.helpers"
 import {
   type AllRepositories,
   clearTestDatabase,
@@ -11,6 +12,7 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
+import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { withDocumentEmbeddingsBatchServiceMock } from "@/domains/documents/test-overrides"
 import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
 import type { Organization } from "@/domains/organizations/organization.entity"
@@ -23,7 +25,10 @@ import {
 } from "../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
-import { APP_INSTALLATION_STATUS_REVOKED } from "../app-installation.entity"
+import {
+  APP_INSTALLATION_STATUS_ACTIVE,
+  APP_INSTALLATION_STATUS_REVOKED,
+} from "../app-installation.entity"
 import { appInstallationFactory } from "../app-installation.factory"
 import { appManifestFactory } from "../app-manifest.factory"
 import { AppsModule } from "../apps.module"
@@ -40,10 +45,11 @@ describe("Apps - project app installations", () => {
   let projectId: string
   let accessToken: string | null = "token"
   let authSubject = "oidc|123"
+  let expectActivityCreated: ReturnType<typeof bindExpectActivityCreated>
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
-      additionalImports: [AppsModule],
+      additionalImports: [AppsModule, ActivitiesModule],
       applyOverrides: (moduleBuilder) =>
         setupUserGuardForTesting(
           withDocumentEmbeddingsBatchServiceMock(moduleBuilder),
@@ -51,6 +57,7 @@ describe("Apps - project app installations", () => {
         ),
     })
     repositories = setup.getAllRepositories()
+    expectActivityCreated = bindExpectActivityCreated(repositories.activityRepository)
     await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
@@ -71,14 +78,14 @@ describe("Apps - project app installations", () => {
   })
 
   const createContextForRole = async (role: ProjectRole = "owner") => {
-    const { organization, project } = await createOrganizationWithProject(repositories, {
+    const { user, organization, project } = await createOrganizationWithProject(repositories, {
       user: { authSubject },
       organizationMembership: { role: "member" },
       projectMembership: { role },
     })
     organizationId = organization.id
     projectId = project.id
-    return { organization, project }
+    return { user, organization, project }
   }
 
   const installApp = async (
@@ -119,7 +126,17 @@ describe("Apps - project app installations", () => {
       token: accessToken ?? undefined,
     })
 
-  describe("auth", () => {
+  const revoke = (appInstallationId: string) =>
+    request({
+      route: ProjectAppInstallationsRoutes.revokeOne,
+      pathParams: removeNullish({ organizationId, projectId, appInstallationId }),
+      token: accessToken ?? undefined,
+    })
+
+  const statusOf = async (appInstallationId: string) =>
+    (await repositories.appInstallationRepository.findOneByOrFail({ id: appInstallationId })).status
+
+  describe("getAll auth", () => {
     it("requires an authentication token", async () => {
       await createContextForRole("owner")
       accessToken = null
@@ -181,5 +198,58 @@ describe("Apps - project app installations", () => {
 
     expectResponse(response, 200)
     expect(response.body.data).toEqual([])
+  })
+
+  describe("revokeOne", () => {
+    it.each<ProjectRole>(["owner", "admin"])("lets a project %s revoke an app", async (role) => {
+      const { user, organization, project } = await createContextForRole(role)
+      const installation = await installApp(project.id, { name: "Helpful Assistant" })
+
+      expectResponse(await revoke(installation.id), 200)
+
+      expect(await statusOf(installation.id)).toBe(APP_INSTALLATION_STATUS_REVOKED)
+      await expectActivityCreated("appInstallation.revoke", {
+        userId: user.id,
+        organizationId: organization.id,
+        projectId: project.id,
+        entityId: installation.id,
+        entityType: "appInstallation",
+      })
+      const listed = await subject()
+      expectResponse(listed, 200)
+      expect(listed.body.data).toEqual([])
+    })
+
+    it("forbids a simple project member", async () => {
+      const { project } = await createContextForRole("member")
+      const installation = await installApp(project.id, { name: "Helpful Assistant" })
+
+      expectResponse(await revoke(installation.id), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+      expect(await statusOf(installation.id)).toBe(APP_INSTALLATION_STATUS_ACTIVE)
+    })
+
+    it("forbids an organization admin without a project role", async () => {
+      const { organization, project } = await createContextForRole("owner")
+      const installation = await installApp(project.id, { name: "Helpful Assistant" })
+      await switchToOrganizationAdminWithoutProjectRole(organization)
+
+      expectResponse(await revoke(installation.id), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+      expect(await statusOf(installation.id)).toBe(APP_INSTALLATION_STATUS_ACTIVE)
+    })
+
+    it("does not revoke an app of another project", async () => {
+      const { organization } = await createContextForRole("owner")
+      const otherProject = projectFactory.transient({ organization }).build()
+      await repositories.projectRepository.save(otherProject)
+      const foreign = await installApp(otherProject.id, { name: "Other Project App" })
+
+      expectResponse(await revoke(foreign.id), 404)
+      expect(await statusOf(foreign.id)).toBe(APP_INSTALLATION_STATUS_ACTIVE)
+    })
+
+    it("answers 404 for an unknown app", async () => {
+      await createContextForRole("owner")
+      expectResponse(await revoke(randomUUID()), 404)
+    })
   })
 })

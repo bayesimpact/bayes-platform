@@ -73,6 +73,7 @@ import {
   PROJECT_AGENT_SESSION_CATEGORY_DELETE_PERMISSION,
   PROJECT_ANALYTICS_READ_PERMISSION,
   PROJECT_APP_INSTALLATION_READ_PERMISSION,
+  PROJECT_APP_INSTALLATION_REVOKE_PERMISSION,
   PROJECT_CREATE_PERMISSION,
   PROJECT_DELETE_PERMISSION,
   PROJECT_MCP_SERVER_CREATE_PERMISSION,
@@ -897,20 +898,26 @@ describe("project app installation permissions", () => {
       .filter(([_roleKey, permissions]) => permissions.includes(permission))
       .map(([roleKey]) => roleKey)
 
-  it("grants project.app_installation.read to project owners and admins only", () => {
-    expect(
-      rolesHolding(PROJECT_ROLE_PERMISSIONS, PROJECT_APP_INSTALLATION_READ_PERMISSION),
-    ).toEqual(["project_owner", "project_admin"])
-    expect(
-      rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, PROJECT_APP_INSTALLATION_READ_PERMISSION),
-    ).toEqual([])
-    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, PROJECT_APP_INSTALLATION_READ_PERMISSION)).toEqual(
-      [],
-    )
+  const appInstallationPermissions = [
+    PROJECT_APP_INSTALLATION_READ_PERMISSION,
+    PROJECT_APP_INSTALLATION_REVOKE_PERMISSION,
+  ]
+
+  it.each(
+    appInstallationPermissions,
+  )("grants %s to project owners and admins only", (permission) => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
+      "project_owner",
+      "project_admin",
+    ])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
   })
 
   it("never inherits app installations from the organization", () => {
     const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
-    expect(inheritable).not.toContain(PROJECT_APP_INSTALLATION_READ_PERMISSION)
+    for (const permission of appInstallationPermissions) {
+      expect(inheritable).not.toContain(permission)
+    }
   })
 })
