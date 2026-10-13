@@ -1,9 +1,9 @@
-import {
-  selectAgentSettingsDataByAgentId,
-  selectAvailableModelsData,
-} from "@/common/features/agents/agent-settings/agent-settings.selectors"
+import { selectAgentSettingsDataByAgentId } from "@/common/features/agents/agent-settings/agent-settings.selectors"
 import { agentSettingsActions } from "@/common/features/agents/agent-settings/agent-settings.slice"
-import { selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
+import {
+  selectAvailableModelsData,
+  selectCurrentAgentData,
+} from "@/common/features/agents/agents.selectors"
 import { DeprecatedModelBanner } from "@/common/features/agents/components/DeprecatedModelBanner"
 import { useMount } from "@/common/hooks/use-mount"
 import { useValue } from "@/common/hooks/use-value"

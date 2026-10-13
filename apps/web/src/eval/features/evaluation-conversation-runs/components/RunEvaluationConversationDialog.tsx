@@ -42,16 +42,13 @@ import {
   buildAgentModelOptions,
   formatAgentModelLabel,
 } from "@/common/features/agents/agent-model.helpers"
-import type {
-  AgentModelsCatalog,
-  AgentSettings,
-} from "@/common/features/agents/agent-settings/agent-settings.models"
+import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"
+import { selectAgentSettingsHistoryDataByAgentId } from "@/common/features/agents/agent-settings/agent-settings.selectors"
+import type { Agent, AgentModelsCatalog } from "@/common/features/agents/agents.models"
 import {
-  selectAgentSettingsHistoryDataByAgentId,
+  selectAgentsData,
   selectAvailableModelsData,
-} from "@/common/features/agents/agent-settings/agent-settings.selectors"
-import type { Agent } from "@/common/features/agents/agents.models"
-import { selectAgentsData } from "@/common/features/agents/agents.selectors"
+} from "@/common/features/agents/agents.selectors"
 import { useValue } from "@/common/hooks/use-value"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { buildDate } from "@/common/utils/build-date"

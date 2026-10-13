@@ -1,10 +1,7 @@
 import { AgentModel, type UpdateAgentSettingsModelDto } from "@caseai-connect/api-contracts"
 import { describe, expect, it } from "vitest"
-import { agentFactory } from "@/common/features/agents/agent.factory"
-import {
-  agentModelsCatalogFactory,
-  agentSettingsFactory,
-} from "@/common/features/agents/agent-settings/agent-settings.factory"
+import { agentFactory, agentModelsCatalogFactory } from "@/common/features/agents/agent.factory"
+import { agentSettingsFactory } from "@/common/features/agents/agent-settings/agent-settings.factory"
 import { organizationFactory } from "@/common/features/organizations/organization.factory"
 import { projectFactory } from "@/common/features/projects/projects.factory"
 import {

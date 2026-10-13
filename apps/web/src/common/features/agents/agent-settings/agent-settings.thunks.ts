@@ -13,7 +13,7 @@ import { getCurrentId } from "@/common/features/helpers"
 import type { RootState, ThunkExtraArg } from "@/common/store"
 import { updateAgent } from "@/studio/features/agents/agents.thunks"
 import { selectCurrentAgentData } from "../agents.selectors"
-import type { AgentModelsCatalog, AgentSettings } from "./agent-settings.models"
+import type { AgentSettings } from "./agent-settings.models"
 
 type ThunkConfig = { state: RootState; extra: ThunkExtraArg }
 
@@ -152,14 +152,3 @@ export const getFillFormOutputJsonSchema = createAsyncThunk<
   }
   return await services.agentSettings.getFillFormOutputJsonSchema(params)
 })
-
-/** The model catalog of the current project (it depends on the project's feature flags). */
-export const listAvailableModels = createAsyncThunk<AgentModelsCatalog, void, ThunkConfig>(
-  "agentSettings/listAvailableModels",
-  async (_, { extra: { services }, getState }) => {
-    const state = getState()
-    const organizationId = getCurrentId({ state, name: "organizationId" })
-    const projectId = getCurrentId({ state, name: "projectId" })
-    return await services.agentSettings.getAvailableModels({ organizationId, projectId })
-  },
-)

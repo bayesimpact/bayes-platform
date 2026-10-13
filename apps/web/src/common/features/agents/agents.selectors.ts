@@ -1,7 +1,7 @@
 import { createSelector } from "@reduxjs/toolkit"
 import type { RootState } from "@/common/store"
 import { ADS, type AsyncData } from "@/common/store/async-data-status"
-import type { Agent } from "./agents.models"
+import type { Agent, AgentModelsCatalog } from "./agents.models"
 
 export const selectAgentsData = (state: RootState) => state.agents.data
 
@@ -24,4 +24,12 @@ export const hasAgentChanged = (prev: RootState, next: RootState) => {
   const prevId = selectCurrentAgentId(prev)
   const nextId = selectCurrentAgentId(next)
   return prevId !== nextId && !!nextId
+}
+
+export const selectAvailableModelsData = (state: RootState) => state.agents.availableModels
+
+/** The model catalog once loaded, or null before a route mounts it. */
+export const selectAvailableModelsCatalog = (state: RootState): AgentModelsCatalog | null => {
+  const data = selectAvailableModelsData(state)
+  return ADS.isFulfilled(data) ? data.value : null
 }

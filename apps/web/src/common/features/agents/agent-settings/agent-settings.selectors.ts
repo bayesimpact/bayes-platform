@@ -3,18 +3,7 @@ import { selectAgentsData } from "@/common/features/agents/agents.selectors"
 import type { RootState } from "@/common/store"
 import { ADS, type AsyncData } from "@/common/store/async-data-status"
 import { resolveEffectiveRevision } from "./agent-settings.functions"
-import type { AgentModelsCatalog, AgentSettings } from "./agent-settings.models"
-
-export const selectAvailableModelsData = (state: RootState) => state.agentSettings.availableModels
-
-/**
- * The model catalog once loaded, or null: before the project's catalog arrives, and in the
- * interfaces that do not load the agent settings.
- */
-export const selectAvailableModelsCatalog = (state: RootState): AgentModelsCatalog | null => {
-  const data = (state as Partial<RootState>).agentSettings?.availableModels
-  return data && ADS.isFulfilled(data) ? data.value : null
-}
+import type { AgentSettings } from "./agent-settings.models"
 
 const selectAgentSettingsHistoryData = (state: RootState) => state.agentSettings.history
 

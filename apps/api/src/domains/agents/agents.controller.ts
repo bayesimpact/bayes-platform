@@ -1,8 +1,11 @@
 import {
+  type AgentModelDto,
+  type AgentModelListDto,
   type AgentSubAgentDto,
   AgentSubAgentsRoutes,
   AgentsRoutes,
   createAgentSchema,
+  PROJECT_READ_PERMISSION,
   replaceAgentSubAgentsSchema,
   updateAgentNameSchema,
 } from "@caseai-connect/api-contracts"
@@ -10,9 +13,7 @@ import {
   Body,
   Controller,
   Delete,
-  forwardRef,
   Get,
-  Inject,
   Patch,
   Post,
   Put,
@@ -30,15 +31,17 @@ import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { ZodValidationPipe } from "@/common/zod-validation-pipe"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
+import type { AgentModelData } from "@/domains/agents/settings/agent-models.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
+import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
+import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
 import { UserGuard } from "@/domains/users/user.guard"
 import { AgentGuard } from "./agent.guard"
 import { toAgentDto, toAgentWithDraftDto } from "./agent.mapper"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentsService } from "./agents.service"
-import { AgentModelsService } from "./settings/agent-models.service"
 import type { AgentSubAgent } from "./sub-agents/agent-sub-agent.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
@@ -51,8 +54,6 @@ export class AgentsController {
     private readonly agentsService: AgentsService,
     private readonly agentSettingsService: AgentSettingsService,
     private readonly agentSubAgentsService: AgentSubAgentsService,
-    @Inject(forwardRef(() => AgentModelsService))
-    private readonly agentModelsService: AgentModelsService,
   ) {}
 
   @Post(AgentsRoutes.createOne.path)
@@ -64,12 +65,12 @@ export class AgentsController {
     @Body() { payload }: typeof AgentsRoutes.createOne.request,
   ): Promise<typeof AgentsRoutes.createOne.response> {
     const connectScope = getRequiredConnectScope(request)
-    await this.agentModelsService.assertSelectable({ connectScope, model: payload.model })
     const { agent, agentSettings } = await this.agentsService.createAgent({
       connectScope,
       fields: {
         ...payload,
-        providerOptions: this.agentModelsService.resolveModelOptions({
+        providerOptions: await this.agentSettingsService.resolveNewAgentModelOptions({
+          connectScope,
           model: payload.model,
           providerOptions: payload.providerOptions,
         }),
@@ -100,6 +101,24 @@ export class AgentsController {
       }),
     )
     return { data: results }
+  }
+
+  @Get(AgentsRoutes.getAvailableModels.path)
+  @UseGuards(CheckPermissionGuard)
+  @CheckPermission(PROJECT_READ_PERMISSION, "project")
+  @CheckPolicy((policy) => policy.canList())
+  async getAvailableModels(
+    @Req() request: EndpointRequestWithProject,
+  ): Promise<typeof AgentsRoutes.getAvailableModels.response> {
+    const availableModels = await this.agentSettingsService.getAvailableModels(
+      getRequiredConnectScope(request),
+    )
+    return {
+      data: {
+        models: availableModels.models.map((model) => toAgentModelDto(model)),
+        defaults: availableModels.defaults,
+      } satisfies AgentModelListDto,
+    }
   }
 
   @Get(AgentsRoutes.getAllWithDrafts.path)
@@ -221,5 +240,17 @@ function toAgentSubAgentDto(entity: AgentSubAgent): AgentSubAgentDto {
       : undefined,
     createdAt: entity.createdAt.getTime(),
     updatedAt: entity.updatedAt.getTime(),
+  }
+}
+
+function toAgentModelDto(model: AgentModelData): AgentModelDto {
+  return {
+    model: model.agentModel,
+    provider: model.agentProvider,
+    isAvailable: model.isAvailable,
+    deprecation: model.agentModelDeprecation,
+    servedOutsideEu: model.servedOutsideEu,
+    optionsSchema: model.optionsSchema,
+    defaultOptions: model.defaultOptions,
   }
 }

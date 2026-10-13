@@ -1,14 +1,11 @@
 import { AgentModel } from "@caseai-connect/api-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { agentFactory } from "@/common/features/agents/agent.factory"
+import { agentFactory, defaultAgentModels } from "@/common/features/agents/agent.factory"
 import {
   conversationAgentSessionFactory,
   extractionAgentSessionSummaryFactory,
 } from "@/common/features/agents/agent-sessions/agent-session.factory"
-import {
-  agentSettingsFactory,
-  defaultAgentModels,
-} from "@/common/features/agents/agent-settings/agent-settings.factory"
+import { agentSettingsFactory } from "@/common/features/agents/agent-settings/agent-settings.factory"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { buildDecorator, render } from "@/stories/decorators"
 import { sortRecentlyCreated } from "@/stories/helpers"

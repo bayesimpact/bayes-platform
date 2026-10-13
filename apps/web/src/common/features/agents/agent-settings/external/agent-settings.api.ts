@@ -4,13 +4,6 @@ import type { AgentSettings } from "../agent-settings.models"
 import type { IAgentSettingsSpi } from "../agent-settings.spi"
 
 export default {
-  getAvailableModels: async (params) => {
-    const axios = getAxiosInstance()
-    const response = await axios.get<typeof AgentSettingsRoutes.getAvailableModels.response>(
-      AgentSettingsRoutes.getAvailableModels.getPath(params),
-    )
-    return response.data.data
-  },
   updateOne: async (params, payload) => {
     const axios = getAxiosInstance()
     const response = await axios.patch(AgentSettingsRoutes.updateOne.getPath(params), {

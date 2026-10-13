@@ -154,6 +154,16 @@ describe("Agents - createOne", () => {
     expectResponse(await subject(gemmaAgentPayload), 400)
   })
 
+  it("rejects a model past its deprecation date", async () => {
+    await createContext()
+
+    // Gemini 2.5 was deprecated on 2026-09-30.
+    expectResponse(
+      await subject({ payload: { ...gemmaAgentPayload.payload, model: AgentModel.Gemini25Flash } }),
+      400,
+    )
+  })
+
   it("accepts a flagged provider's model once the project has its flag", async () => {
     await createContext()
     await enableFeatureFlag("gemma")
@@ -170,7 +180,7 @@ describe("Agents - createOne", () => {
         name: "New Agent",
         instructions: "This is a default prompt",
         documentsRagMode: DocumentsRagMode.All,
-        model: AgentModel.Gemini25Flash,
+        model: AgentModel.Gemini31FlashLite,
         locale: AgentLocale.EN,
         tagsToAdd: [],
         projectAgentSessionCategoryIds: [],
@@ -197,7 +207,7 @@ describe("Agents - createOne", () => {
       where: { agentId: response.body.data.id, revision: 1 },
     })
     expect(agentSettings?.instructions).toBe("This is a default prompt")
-    expect(agentSettings?.model).toBe(AgentModel.Gemini25Flash)
+    expect(agentSettings?.model).toBe(AgentModel.Gemini31FlashLite)
     expect(agentSettings?.locale).toBe(AgentLocale.EN)
     expect(agentSettings?.documentsRagMode).toBe(DocumentsRagMode.All)
     await expectActivityCreated("agent.create")
@@ -212,7 +222,7 @@ describe("Agents - createOne", () => {
         name: "Fresh Agent",
         instructions: "This is a default prompt",
         documentsRagMode: DocumentsRagMode.All,
-        model: AgentModel.Gemini25Flash,
+        model: AgentModel.Gemini31FlashLite,
         locale: AgentLocale.EN,
         tagsToAdd: [],
         projectAgentSessionCategoryIds: [],
@@ -248,7 +258,7 @@ describe("Agents - createOne", () => {
         instructions: "This is a default prompt",
         greetingMessage: "Hi! How can I help you today?",
         documentsRagMode: DocumentsRagMode.All,
-        model: AgentModel.Gemini25Flash,
+        model: AgentModel.Gemini31FlashLite,
         locale: AgentLocale.EN,
         tagsToAdd: [],
         projectAgentSessionCategoryIds: [],
@@ -272,7 +282,7 @@ describe("Agents - createOne", () => {
         name: "Silent Agent",
         instructions: "This is a default prompt",
         documentsRagMode: DocumentsRagMode.All,
-        model: AgentModel.Gemini25Flash,
+        model: AgentModel.Gemini31FlashLite,
         locale: AgentLocale.EN,
         tagsToAdd: [],
         projectAgentSessionCategoryIds: [],
@@ -296,7 +306,7 @@ describe("Agents - createOne", () => {
         name: "Form Filling Agent",
         instructions: "This is a default prompt",
         documentsRagMode: DocumentsRagMode.All,
-        model: AgentModel.Gemini25Flash,
+        model: AgentModel.Gemini31FlashLite,
         locale: AgentLocale.EN,
         fillFormEnabled: true,
         outputJsonSchema: {
@@ -329,7 +339,7 @@ describe("Agents - createOne", () => {
         name: "Form Filling Agent",
         instructions: "This is a default prompt",
         documentsRagMode: DocumentsRagMode.All,
-        model: AgentModel.Gemini25Flash,
+        model: AgentModel.Gemini31FlashLite,
         locale: AgentLocale.EN,
         fillFormEnabled: true,
         tagsToAdd: [],
@@ -355,7 +365,7 @@ describe("Agents - createOne", () => {
         name: "Tagged Agent",
         instructions: "This is a default prompt",
         documentsRagMode: DocumentsRagMode.Tags,
-        model: AgentModel.Gemini25Flash,
+        model: AgentModel.Gemini31FlashLite,
         locale: AgentLocale.EN,
         tagsToAdd: [documentTag.id],
         projectAgentSessionCategoryIds: [],
@@ -391,7 +401,7 @@ describe("Agents - createOne", () => {
         name: "Categorized Agent",
         instructions: "This is a default prompt",
         documentsRagMode: DocumentsRagMode.All,
-        model: AgentModel.Gemini25Flash,
+        model: AgentModel.Gemini31FlashLite,
         locale: AgentLocale.EN,
         tagsToAdd: [],
         projectAgentSessionCategoryIds: [projectCategory.id],

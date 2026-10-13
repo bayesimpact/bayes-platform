@@ -1,6 +1,6 @@
 import { useNavigate, useOutlet } from "react-router-dom"
 import { GridHeader } from "@/common/components/grid/Grid"
-import { selectAvailableModelsData } from "@/common/features/agents/agent-settings/agent-settings.selectors"
+import { selectAvailableModelsData } from "@/common/features/agents/agents.selectors"
 import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
 import { useMount } from "@/common/hooks/use-mount"

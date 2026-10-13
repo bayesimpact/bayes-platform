@@ -1,8 +1,8 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
-import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
+import { ADS, type AsyncData } from "@/common/store/async-data-status"
 import type { Agent } from "../agents.models"
-import type { AgentModelsCatalog, AgentSettings } from "./agent-settings.models"
-import { listAgentSettings, listAvailableModels } from "./agent-settings.thunks"
+import type { AgentSettings } from "./agent-settings.models"
+import { listAgentSettings } from "./agent-settings.thunks"
 
 type DataType = Record<Agent["id"], AsyncData<AgentSettings[]>> // keyed by agentId
 
@@ -13,14 +13,11 @@ interface State {
    * from the draft-first default, which is the version a tester wants nine times out of ten.
    */
   playgroundRevisionByAgentId: Record<string, number>
-  /** The model catalog of the current project. */
-  availableModels: AsyncData<AgentModelsCatalog>
 }
 
 const initialState: State = {
   history: {},
   playgroundRevisionByAgentId: {},
-  availableModels: defaultAsyncData,
 }
 
 const slice = createSlice({
@@ -63,17 +60,6 @@ const slice = createSlice({
           value: null,
           error: action.error.message || "Failed to load agent version history",
         }
-      })
-      .addCase(listAvailableModels.pending, (state) => {
-        if (!ADS.isFulfilled(state.availableModels)) state.availableModels.status = ADS.Loading
-        state.availableModels.error = null
-      })
-      .addCase(listAvailableModels.fulfilled, (state, action) => {
-        state.availableModels = { status: ADS.Fulfilled, error: null, value: action.payload }
-      })
-      .addCase(listAvailableModels.rejected, (state, action) => {
-        state.availableModels.status = ADS.Error
-        state.availableModels.error = action.error.message || "Failed to list available models"
       })
   },
 })

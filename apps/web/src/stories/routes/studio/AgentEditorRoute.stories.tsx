@@ -3,7 +3,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite"
 import {
   agentModelsCatalogFactory,
   defaultAgentModels,
-} from "@/common/features/agents/agent-settings/agent-settings.factory"
+} from "@/common/features/agents/agent.factory"
 import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"
 import type { IAgentSettingsSpi } from "@/common/features/agents/agent-settings/agent-settings.spi"
 import type { Agent } from "@/common/features/agents/agents.models"
@@ -57,6 +57,7 @@ function buildMockAgentsService(agents: Agent[]): IAgentsSpi {
   return {
     getAll: async () => agents,
     getAllWithDrafts: async () => agents,
+    getAvailableModels: async () => agentModelsCatalogFactory.build(),
     createOne: async () => {
       throw new Error("createOne is not supported in this story")
     },
@@ -70,7 +71,6 @@ function buildMockAgentsService(agents: Agent[]): IAgentsSpi {
 }
 function buildMockAgentSettingsService(agentSettingsHistory: AgentSettings[]): IAgentSettingsSpi {
   return {
-    getAvailableModels: async () => agentModelsCatalogFactory.build(),
     getAll: async () => agentSettingsHistory,
     getFillFormOutputJsonSchema: async ({ revision }) =>
       agentSettingsHistory.find((agentSettings) => agentSettings.revision === revision)

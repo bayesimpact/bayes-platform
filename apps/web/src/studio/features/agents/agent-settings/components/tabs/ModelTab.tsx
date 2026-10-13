@@ -29,8 +29,8 @@ import {
   isPriorityCallsAvailable,
   readModelOption,
 } from "@/common/features/agents/agent-model.helpers"
-import { selectAvailableModelsData } from "@/common/features/agents/agent-settings/agent-settings.selectors"
 import { updateAgentSettingsModel } from "@/common/features/agents/agent-settings/agent-settings.thunks"
+import { selectAvailableModelsData } from "@/common/features/agents/agents.selectors"
 import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
 import { useFeatureFlags } from "@/common/hooks/use-feature-flags"
 import { useValue } from "@/common/hooks/use-value"
@@ -53,6 +53,10 @@ export function ModelTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
   const { hasFeature } = useFeatureFlags(project)
   const catalog = useValue(selectAvailableModelsData)
   const models = buildAgentModelOptions(catalog)
+  const modelLabelSuffixes = {
+    deprecatedSuffix: t("agent:model.deprecatedSuffix"),
+    nonEuSuffix: t("agent:model.nonEuSuffix"),
+  }
 
   // The contract schema, plus the temperature range of the selected model (from its schema).
   const formSchema = useMemo(
@@ -125,16 +129,24 @@ export function ModelTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
+                    {/* The agent's model stays shown once the project can no longer pick it. */}
+                    {!models.includes(agentSettings.model) && (
+                      <SelectItem value={agentSettings.model} disabled>
+                        {formatAgentModelLabel(agentSettings.model, catalog, modelLabelSuffixes)}
+                      </SelectItem>
+                    )}
                     {models.map((model) => (
                       <SelectItem key={model} value={model}>
-                        {formatAgentModelLabel(model, catalog, {
-                          deprecatedSuffix: t("agent:model.deprecatedSuffix"),
-                          nonEuSuffix: t("agent:model.nonEuSuffix"),
-                        })}
+                        {formatAgentModelLabel(model, catalog, modelLabelSuffixes)}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                {!models.includes(field.value) && (
+                  <FormDescription className="text-destructive">
+                    {t("agent:model.unavailable")}
+                  </FormDescription>
+                )}
                 <FormMessage />
               </FormItem>
             )}

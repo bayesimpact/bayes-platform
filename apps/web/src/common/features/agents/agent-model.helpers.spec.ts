@@ -1,7 +1,9 @@
 import { AgentModel, AgentProvider } from "@caseai-connect/api-contracts"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import type { HasFeature } from "@/common/hooks/use-feature-flags"
+import { agentModelsCatalogFactory } from "./agent.factory"
 import {
+  agentModelDeprecationStage,
   buildAgentModelDeprecationInterpolation,
   buildAgentModelOptions,
   describeModelOptionFields,
@@ -12,8 +14,7 @@ import {
   readModelOption,
   writeModelOption,
 } from "./agent-model.helpers"
-import { agentModelsCatalogFactory } from "./agent-settings/agent-settings.factory"
-import type { AgentModelsCatalog } from "./agent-settings/agent-settings.models"
+import type { AgentModelsCatalog } from "./agents.models"
 
 const catalog = agentModelsCatalogFactory.build()
 
@@ -114,6 +115,21 @@ describe("buildAgentModelDeprecationInterpolation", () => {
   })
 })
 
+describe("agentModelDeprecationStage", () => {
+  it("announces the retirement once the API no longer offers a deprecated model", () => {
+    expect(agentModelDeprecationStage(AgentModel.Gemini25Flash, catalog)).toBe("retirement")
+  })
+
+  it("announces the deprecation while the API still offers the model", () => {
+    expect(
+      agentModelDeprecationStage(
+        AgentModel.Gemini25Flash,
+        catalogWith(AgentModel.Gemini25Flash, { isAvailable: true }),
+      ),
+    ).toBe("deprecation")
+  })
+})
+
 describe("formatAgentModelLabel", () => {
   const labels = { deprecatedSuffix: "(deprecated)", nonEuSuffix: "(non-EU)" }
 
@@ -129,8 +145,6 @@ describe("formatAgentModelLabel", () => {
         formatAgentModelLabel(model, allFlags, labels),
       ),
     ).toEqual([
-      "gemini-2.5-flash (deprecated)",
-      "gemini-2.5-pro (deprecated)",
       "gemini-3.1-flash-lite",
       "gemini-3.5-flash-lite",
       "gemini-3.5-flash",
@@ -141,6 +155,12 @@ describe("formatAgentModelLabel", () => {
       "google/gemma-4-26b-A4B-it",
       "mistralai/Mistral-Small-3.1-24B-Instruct-2503",
     ])
+  })
+
+  it("marks a retired model as deprecated, for an agent still on it", () => {
+    expect(formatAgentModelLabel(AgentModel.Gemini25Flash, catalog, labels)).toBe(
+      "gemini-2.5-flash (deprecated)",
+    )
   })
 
   it("appends the residency suffix to a model served outside the EU", () => {
@@ -171,10 +191,8 @@ describe("formatAgentModelLabel", () => {
 })
 
 describe("buildAgentModelOptions", () => {
-  it("offers the vertex and vertex 3 models when the project has no flag", () => {
+  it("offers the vertex 3 models when the project has no flag", () => {
     expect(buildAgentModelOptions(catalog)).toEqual([
-      AgentModel.Gemini25Flash,
-      AgentModel.Gemini25Pro,
       AgentModel.Gemini31FlashLite,
       AgentModel.Gemini35FlashLite,
       AgentModel.Gemini35Flash,
@@ -199,7 +217,7 @@ describe("buildAgentModelOptions", () => {
     [AgentProvider.MedGemma, AgentModel.MedGemma10_27B],
     [AgentProvider.Gemma, AgentModel.Gemma4_26B],
     [AgentProvider.Mistral, AgentModel.MistralSmall31_24B],
-  ])("adds only the %s model once the API says it is selectable", (provider, model) => {
+  ])("adds only the %s model once the API says it is available", (provider, model) => {
     const options = buildAgentModelOptions(
       agentModelsCatalogFactory.transient({ flaggedProviders: [provider] }).build(),
     )

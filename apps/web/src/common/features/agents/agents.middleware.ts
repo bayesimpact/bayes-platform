@@ -1,7 +1,8 @@
 import { createListenerMiddleware } from "@reduxjs/toolkit"
 import type { AppDispatch, RootState } from "@/common/store/types"
 import { hasProjectChanged } from "../projects/projects.selectors"
-import { listAgents } from "./agents.thunks"
+import { agentsActions } from "./agents.slice"
+import { listAgents, listAvailableModels } from "./agents.thunks"
 
 const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()
 
@@ -13,6 +14,14 @@ function registerListeners() {
     },
     effect: async (_, listenerApi) => {
       await listenerApi.dispatch(listAgents())
+    },
+  })
+
+  // Only the routes that read the catalog mount it (Studio and Eval), so Desk never fetches it.
+  listenerMiddleware.startListening({
+    actionCreator: agentsActions.mountAvailableModels,
+    effect: async (_, listenerApi) => {
+      await listenerApi.dispatch(listAvailableModels())
     },
   })
 }

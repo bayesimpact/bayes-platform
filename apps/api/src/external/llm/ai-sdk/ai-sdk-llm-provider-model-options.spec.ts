@@ -1,5 +1,5 @@
 import { AgentModel, AgentModelToAgentProvider, AgentProvider } from "@caseai-connect/api-contracts"
-import { AGENT_MODEL_DEFAULTS } from "@/domains/agents/settings/agent-models.service"
+import { AGENT_DEFAULT_MODELS } from "@/domains/agents/settings/agent-models.service"
 import type { AISDKLLMProviderBase } from "@/external/llm/ai-sdk/ai-sdk-llm-provider-base"
 import { AISDKGemmaProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-gemma.provider"
 import { AISDKMedGemmaProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-med-gemma.provider"
@@ -146,15 +146,15 @@ describe("agent model catalog", () => {
 
   it("has one default model", () => {
     const defaults = CATALOG.filter((entry) => entry.isDefault).map((entry) => entry.model)
-    expect(defaults).toEqual([AGENT_MODEL_DEFAULTS.agent])
+    expect(defaults).toEqual([AGENT_DEFAULT_MODELS.agent])
   })
 
   it("judges evaluation runs with Gemini 3.5 Flash-Lite by default", () => {
-    expect(AGENT_MODEL_DEFAULTS.judge).toBe(AgentModel.Gemini35FlashLite)
+    expect(AGENT_DEFAULT_MODELS.judge).toBe(AgentModel.Gemini35FlashLite)
   })
 
   it.each(
-    Object.entries(AGENT_MODEL_DEFAULTS),
+    Object.entries(AGENT_DEFAULT_MODELS),
   )("picks a %s default that is supported and never behind a feature flag", (_role, model) => {
     const entry = CATALOG.find((catalogEntry) => catalogEntry.model === model)
     expect(entry?.deprecation).toBeUndefined()

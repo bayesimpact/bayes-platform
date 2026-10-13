@@ -1,18 +1,12 @@
 import type { RequestPayload, ResponseData, SuccessResponseDTO } from "../../generic"
 import { defineRoute } from "../../helpers"
 import type {
-  AgentModelsDto,
   AgentSettingsDto,
   CreateAgentSettingsDto,
   PartialUpdateAgentSettingsDto,
 } from "./agent-settings.dto"
 
 export const AgentSettingsRoutes = {
-  /** The model catalog of the project: what an agent's model and model options may be. */
-  getAvailableModels: defineRoute<ResponseData<AgentModelsDto>>({
-    method: "get",
-    path: "organizations/:organizationId/projects/:projectId/agent-models",
-  }),
   getAll: defineRoute<ResponseData<AgentSettingsDto[]>>({
     method: "get",
     path: "organizations/:organizationId/projects/:projectId/agents/:agentId/settings",

@@ -3,7 +3,7 @@ import type {
   PartialUpdateAgentSettingsDto,
   SuccessResponseDTO,
 } from "@caseai-connect/api-contracts"
-import type { AgentModelsCatalog, AgentSettings } from "./agent-settings.models"
+import type { AgentSettings } from "./agent-settings.models"
 
 type BaseParams = {
   organizationId: string
@@ -11,11 +11,6 @@ type BaseParams = {
   agentId: string
 }
 export interface IAgentSettingsSpi {
-  /** The model catalog of the project: what an agent's model and model options may be. */
-  getAvailableModels: (params: {
-    organizationId: string
-    projectId: string
-  }) => Promise<AgentModelsCatalog>
   // History
   getAll: (params: BaseParams) => Promise<AgentSettings[]>
   getFillFormOutputJsonSchema: (

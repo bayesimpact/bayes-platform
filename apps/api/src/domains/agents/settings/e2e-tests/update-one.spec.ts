@@ -198,6 +198,23 @@ describe("Agent Settings - updateOne", () => {
     )
   })
 
+  it("rejects switching to a model past its deprecation date", async () => {
+    await createContext()
+
+    // Gemini 2.5 was deprecated on 2026-09-30.
+    expectResponse(await subject({ payload: { model: AgentModel.Gemini25Pro } }), 400)
+  })
+
+  it("keeps a model past its deprecation date when its options change", async () => {
+    const { agentSettings } = await createContext()
+    await repositories.agentSettingsRepository.update(agentSettings.id, {
+      model: AgentModel.Gemini25Flash,
+    })
+
+    expectResponse(await subject({ payload: { providerOptions: { temperature: 0.5 } } }), 200)
+    expect(await latestOptions()).toEqual({ temperature: 0.5 })
+  })
+
   it("should update the settings in a new draft revision and return success", async () => {
     await createContext()
 
@@ -261,8 +278,14 @@ describe("Agent Settings - updateOne", () => {
   it("should update only the model tab fields and leave the rest untouched", async () => {
     const { agent, agentSettings } = await createContext()
 
+    const providerOptions = {
+      temperature: 1.5,
+      providerOptions: {
+        vertex: { thinkingConfig: { thinkingLevel: "high", includeThoughts: true } },
+      },
+    }
     const response = await subject({
-      payload: { model: AgentModel.Gemini25Pro, providerOptions: { temperature: 1.5 } },
+      payload: { model: AgentModel.Gemini35Flash, providerOptions },
     })
     expectResponse(response, 200)
 
@@ -273,8 +296,8 @@ describe("Agent Settings - updateOne", () => {
       where: { agentId },
       order: { revision: "DESC" },
     })
-    expect(updatedAgentSettings?.model).toBe(AgentModel.Gemini25Pro)
-    expect(updatedAgentSettings?.providerOptions).toEqual({ temperature: 1.5 })
+    expect(updatedAgentSettings?.model).toBe(AgentModel.Gemini35Flash)
+    expect(updatedAgentSettings?.providerOptions).toEqual(providerOptions)
     expect(updatedAgentSettings?.instructions).toBe(agentSettings.instructions)
   })
 

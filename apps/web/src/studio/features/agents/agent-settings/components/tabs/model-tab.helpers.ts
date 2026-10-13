@@ -1,10 +1,8 @@
 import type { UpdateAgentSettingsModelDto } from "@caseai-connect/api-contracts"
 import type { UseFormReturn } from "react-hook-form"
 import { findAgentModelEntry } from "@/common/features/agents/agent-model.helpers"
-import type {
-  AgentModelsCatalog,
-  AgentSettings,
-} from "@/common/features/agents/agent-settings/agent-settings.models"
+import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"
+import type { AgentModelsCatalog } from "@/common/features/agents/agents.models"
 import { pickDirtyFields } from "../agent-tab-form.shared"
 
 /** The default options of a model: what a model starts on when it is picked. */

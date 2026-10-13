@@ -63,8 +63,11 @@ export type AgentModelDeprecation = {
 export type AgentModelDto = {
   model: AgentModel
   provider: AgentProvider
-  /** Whether the project may pick it: its provider is not behind a feature flag the project lacks. */
-  selectable: boolean
+  /**
+   * Whether the project may pick it: its provider is not behind a feature flag the project lacks,
+   * and the model is not retired (from the day after `deprecation.deprecatedOn`, in UTC).
+   */
+  isAvailable: boolean
   /** Set when the provider retires the model, with the model to move to. */
   deprecation: AgentModelDeprecation | null
   /**
@@ -78,8 +81,8 @@ export type AgentModelDto = {
   defaultOptions: Record<string, unknown>
 }
 
-export type AgentModelsDto = {
-  /** Every model but the test one, selectable or not, in catalog order. */
+export type AgentModelListDto = {
+  /** Every model but the test one, available or not, in catalog order. */
   models: AgentModelDto[]
   /** The model a new agent starts on, and the one a new evaluation run is judged by. */
   defaults: { agent: AgentModel; judge: AgentModel }
@@ -124,7 +127,6 @@ export type AgentSettingsDto = {
   projectAgentSessionCategoryIds: string[]
   resourceLibraryIds: string[]
   revision: number
-  /** The options of the agent's model (its temperature, its thinking level...). */
   providerOptions: Record<string, unknown>
   updatedAt: TimeType
   usedProjectAgentSessionCategoryIds: string[]

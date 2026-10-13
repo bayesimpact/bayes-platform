@@ -2,7 +2,7 @@ import {
   AgentModel,
   type AgentModelDto,
   AgentProvider,
-  AgentSettingsRoutes,
+  AgentsRoutes,
 } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
@@ -14,11 +14,11 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
-import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
-import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
-import { AgentsModule } from "../../agents.module"
+import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
+import { expectResponse, type Requester, testRequester } from "../../../../test/request"
+import { AgentsModule } from "../agents.module"
 
-describe("Agent Settings - getAvailableModels", () => {
+describe("Agents - getAvailableModels", () => {
   let app: INestApplication<App>
   let request: Requester
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
@@ -67,12 +67,12 @@ describe("Agent Settings - getAvailableModels", () => {
 
   const subject = async () => {
     const response = await request({
-      route: AgentSettingsRoutes.getAvailableModels,
+      route: AgentsRoutes.getAvailableModels,
       pathParams: removeNullish({ organizationId, projectId }),
       token: "token",
     })
     expectResponse(response, 200)
-    return response.body.data as typeof AgentSettingsRoutes.getAvailableModels.response.data
+    return response.body.data as typeof AgentsRoutes.getAvailableModels.response.data
   }
   const entryOf = (models: AgentModelDto[], model: AgentModel) =>
     models.find((entry) => entry.model === model)
@@ -147,20 +147,20 @@ describe("Agent Settings - getAvailableModels", () => {
     ).not.toHaveProperty("temperature")
   })
 
-  it("offers the vertex models only, without any feature flag", async () => {
+  it("offers the vertex 3 models only, without any feature flag", async () => {
     await createContext()
 
     const { models } = await subject()
 
-    expect(models.filter((entry) => entry.selectable).map((entry) => entry.provider)).toEqual(
-      expect.arrayContaining([AgentProvider.Vertex, AgentProvider.Vertex3]),
-    )
+    expect(
+      new Set(models.filter((entry) => entry.isAvailable).map((entry) => entry.provider)),
+    ).toEqual(new Set([AgentProvider.Vertex3]))
     for (const model of [
       AgentModel.MedGemma10_27B,
       AgentModel.Gemma4_26B,
       AgentModel.MistralSmall31_24B,
     ]) {
-      expect(entryOf(models, model)?.selectable).toBe(false)
+      expect(entryOf(models, model)?.isAvailable).toBe(false)
     }
   })
 
@@ -169,7 +169,18 @@ describe("Agent Settings - getAvailableModels", () => {
 
     const { models } = await subject()
 
-    expect(entryOf(models, AgentModel.Gemma4_26B)?.selectable).toBe(true)
-    expect(entryOf(models, AgentModel.MistralSmall31_24B)?.selectable).toBe(false)
+    expect(entryOf(models, AgentModel.Gemma4_26B)?.isAvailable).toBe(true)
+    expect(entryOf(models, AgentModel.MistralSmall31_24B)?.isAvailable).toBe(false)
+  })
+
+  it("no longer offers a model past its deprecation date, but still describes it", async () => {
+    await createContext()
+
+    const { models } = await subject()
+
+    // Gemini 2.5 was deprecated on 2026-09-30.
+    const gemini25Flash = entryOf(models, AgentModel.Gemini25Flash)
+    expect(gemini25Flash?.isAvailable).toBe(false)
+    expect(gemini25Flash?.deprecation).toMatchObject({ deprecatedOn: "2026-09-30" })
   })
 })

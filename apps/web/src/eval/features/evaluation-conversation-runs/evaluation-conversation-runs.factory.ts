@@ -1,9 +1,7 @@
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
-import {
-  agentSettingsFactory,
-  defaultAgentModels,
-} from "@/common/features/agents/agent-settings/agent-settings.factory"
+import { defaultAgentModels } from "@/common/features/agents/agent.factory"
+import { agentSettingsFactory } from "@/common/features/agents/agent-settings/agent-settings.factory"
 import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"
 import type { Agent } from "@/common/features/agents/agents.models"
 import type { EvaluationConversationDataset } from "../evaluation-conversation-datasets/evaluation-conversation-datasets.models"

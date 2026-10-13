@@ -1,6 +1,5 @@
 import { AgentProvider } from "@caseai-connect/api-contracts"
-import { agentFactory } from "@/common/features/agents/agent.factory"
-import { agentModelsCatalogFactory } from "@/common/features/agents/agent-settings/agent-settings.factory"
+import { agentFactory, agentModelsCatalogFactory } from "@/common/features/agents/agent.factory"
 import type { Agent } from "@/common/features/agents/agents.models"
 import {
   agentMembershipFactory,

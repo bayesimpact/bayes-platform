@@ -3,20 +3,17 @@ import {
   AgentModelToAgentProvider,
   AgentProvider,
 } from "@caseai-connect/api-contracts"
-import type {
-  AgentModelEntry,
-  AgentModelsCatalog,
-} from "@/common/features/agents/agent-settings/agent-settings.models"
+import type { AgentModelEntry, AgentModelsCatalog } from "@/common/features/agents/agents.models"
 import type { HasFeature } from "@/common/hooks/use-feature-flags"
 import { buildDate } from "@/common/utils/build-date"
 
 /**
- * Models the project may choose from, in catalog order. The API decides what is selectable (a
- * provider behind a feature flag the project lacks is not): `ModelTab` and the eval judge picker
- * both offer this list.
+ * Models the project may choose from, in catalog order. The API decides what is available (a
+ * provider behind a feature flag the project lacks is not, nor is a retired model): `ModelTab`
+ * and the eval judge picker both offer this list.
  */
 export function buildAgentModelOptions(catalog: AgentModelsCatalog): AgentModel[] {
-  return catalog.models.filter((entry) => entry.selectable).map((entry) => entry.model)
+  return catalog.models.filter((entry) => entry.isAvailable).map((entry) => entry.model)
 }
 
 /**
@@ -65,6 +62,17 @@ export function buildAgentModelDeprecationInterpolation(
     // negative-offset timezone. Appending the time forces local-midnight parsing instead.
     date: buildDate(new Date(`${deprecation.deprecatedOn}T00:00:00`).getTime(), "dd MMMM yyyy"),
   }
+}
+
+/**
+ * Which `agent:model.*` strings announce the retirement of a deprecated model: `retirement` once
+ * the API no longer offers it, `deprecation` while it still does.
+ */
+export function agentModelDeprecationStage(
+  model: AgentModel | undefined,
+  catalog: AgentModelsCatalog | null,
+): "deprecation" | "retirement" {
+  return findAgentModelEntry(catalog, model)?.isAvailable === false ? "retirement" : "deprecation"
 }
 
 /** Already-translated suffixes a model label can carry. Both can apply to the same model. */

@@ -35,7 +35,6 @@ import { ProjectAgentSessionCategoriesController } from "./session-categories/pr
 import { ProjectAgentSessionCategoriesGuard } from "./session-categories/project-agent-session-categories.guard"
 import { ProjectAgentSessionCategoriesService } from "./session-categories/project-agent-session-categories.service"
 import { ProjectAgentSessionCategory } from "./session-categories/project-agent-session-category.entity"
-import { AgentModelsService } from "./settings/agent-models.service"
 import { AgentSettingsController } from "./settings/agent-settings.controller"
 import { AgentSettings } from "./settings/agent-settings.entity"
 import { AgentSettingsModule } from "./settings/agent-settings.module"
@@ -70,7 +69,6 @@ import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
     ConversationFormsModule,
   ],
   providers: [
-    AgentModelsService,
     AgentsService,
     AgentRepository,
     AgentSessionCategoriesService,
@@ -95,7 +93,6 @@ import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
     ProjectAgentSessionCategoriesController,
   ],
   exports: [
-    AgentModelsService,
     AgentsService,
     AgentRepository,
     AgentSessionCategoriesService,
