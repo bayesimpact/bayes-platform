@@ -14,6 +14,16 @@ export default {
     )
     return response.data.data.map(toAppInstallation)
   },
+  revokeOne: async ({ organizationId, projectId, appInstallationId }) => {
+    const axios = getAxiosInstance()
+    await axios.post(
+      ProjectAppInstallationsRoutes.revokeOne.getPath({
+        organizationId,
+        projectId,
+        appInstallationId,
+      }),
+    )
+  },
 } satisfies IAppInstallationsSpi
 
 const toAppInstallation = (dto: AppInstallationSummaryDto): AppInstallation => ({

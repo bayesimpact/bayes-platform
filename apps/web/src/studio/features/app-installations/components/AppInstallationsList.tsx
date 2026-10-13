@@ -6,9 +6,11 @@ import { AppInstallationItem } from "./AppInstallationItem"
 export function AppInstallationsList({
   appInstallations,
   onBack,
+  onRevoke,
 }: {
   appInstallations: AppInstallation[]
   onBack: () => void
+  onRevoke?: (appInstallationId: string) => void
 }) {
   const { t } = useTranslation()
 
@@ -28,7 +30,11 @@ export function AppInstallationsList({
           </GridCard>
         ) : (
           appInstallations.map((appInstallation) => (
-            <AppInstallationItem key={appInstallation.id} appInstallation={appInstallation} />
+            <AppInstallationItem
+              key={appInstallation.id}
+              appInstallation={appInstallation}
+              onRevoke={onRevoke}
+            />
           ))
         )}
       </GridContent>

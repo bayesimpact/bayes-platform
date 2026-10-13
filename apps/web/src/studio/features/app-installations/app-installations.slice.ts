@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
 import type { AppInstallation } from "./app-installations.models"
-import { listAppInstallations } from "./app-installations.thunks"
+import { listAppInstallations, revokeProjectAppInstallation } from "./app-installations.thunks"
 
 interface State {
   data: AsyncData<AppInstallation[]>
@@ -35,6 +35,13 @@ const slice = createSlice({
       .addCase(listAppInstallations.rejected, (state, action) => {
         state.data.status = ADS.Error
         state.data.error = action.error.message || "Failed to list connected apps"
+      })
+      .addCase(revokeProjectAppInstallation.fulfilled, (state, action) => {
+        if (!ADS.isFulfilled(state.data)) return
+        const { appInstallationId } = action.meta.arg
+        state.data.value = state.data.value.filter(
+          (appInstallation) => appInstallation.id !== appInstallationId,
+        )
       })
   },
 })

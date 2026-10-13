@@ -329,12 +329,14 @@ export class AppsService {
     )
   }
 
+  /** With `projectId`, an installation of another project is reported as missing. */
   async revokeInstallation(params: {
     installationId: string
     userId: string
+    projectId?: string
   }): Promise<{ organizationId: string; projectId: string }> {
     const installation = await this.appInstallationRepository.findById(params.installationId)
-    if (!installation) {
+    if (!installation || (params.projectId && installation.projectId !== params.projectId)) {
       throw new NotFoundException(`App installation ${params.installationId} not found`)
     }
 

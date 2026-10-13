@@ -56,10 +56,14 @@ export const AppsRoutes = {
   }),
 }
 
-/** The apps installed on a project, as its members see them in the studio. */
+/** The apps installed on a project, as its owners and admins see them in the studio. */
 export const ProjectAppInstallationsRoutes = {
   getAll: defineRoute<ResponseData<AppInstallationSummaryDto[]>>({
     method: "get",
     path: "organizations/:organizationId/projects/:projectId/app-installations",
+  }),
+  revokeOne: defineRoute<ResponseData<SuccessResponseDTO>>({
+    method: "post",
+    path: "organizations/:organizationId/projects/:projectId/app-installations/:appInstallationId/revoke",
   }),
 }
