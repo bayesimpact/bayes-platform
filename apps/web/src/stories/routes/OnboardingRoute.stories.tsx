@@ -189,6 +189,24 @@ export const Single: Story = {
   },
 }
 
+/**
+ * A member of an organization without any project in it and unable to create one, as a tester
+ * once their review campaign closes: the no-access page, as with no workspace.
+ */
+export const OrganizationWithoutProjects: Story = {
+  args: {
+    organizationMembershipRole: "member",
+    projectMembershipRole: "member",
+    agentMembershipRole: "owner",
+    featureFlags: [],
+    organizationCount: 1,
+    projectsPerOrganization: 0,
+    withPendingInvitations: false,
+    withReviewCampaignMembershipsAsTester: false,
+    withReviewCampaignMembershipsAsReviewer: false,
+  },
+}
+
 /** Invited but not a member of anything yet: only the invitations to accept. */
 export const InvitedOnly: Story = {
   args: {

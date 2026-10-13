@@ -2,12 +2,14 @@ import type {
   EndpointRequestWithAgent,
   EndpointRequestWithOrganizationMembership,
   EndpointRequestWithProject,
+  EndpointRequestWithReviewCampaign,
 } from "@/common/context/request.interface"
 import type { PermissionResourceType } from "./permission.types"
 
 type PermissionRequest = EndpointRequestWithOrganizationMembership &
   Partial<EndpointRequestWithProject> &
-  Partial<EndpointRequestWithAgent> & {
+  Partial<EndpointRequestWithAgent> &
+  Partial<Pick<EndpointRequestWithReviewCampaign, "reviewCampaign">> & {
     params?: Record<string, string | undefined>
   }
 
@@ -31,5 +33,7 @@ export function resolvePermissionResourceId(
     case "agent":
     case "temp_agent":
       return request.agent?.id ?? request.params?.agentId
+    case "review_campaign":
+      return request.reviewCampaign?.id ?? request.params?.reviewCampaignId
   }
 }

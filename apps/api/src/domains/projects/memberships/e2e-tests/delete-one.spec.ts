@@ -10,10 +10,22 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
+import { agentFactory } from "@/domains/agents/agent.factory"
+import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
+import type { Organization } from "@/domains/organizations/organization.entity"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import {
+  reviewCampaignMembershipFactory,
+  saveReviewCampaignMembership,
+} from "@/domains/review-campaigns/memberships/review-campaign-membership.factory"
+import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
+import type { ReviewCampaignMembershipRole } from "@/domains/review-campaigns/review-campaigns.types"
+import type { User } from "@/domains/users/user.entity"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
+import type { Project } from "../../project.entity"
+import { projectFactory } from "../../project.factory"
 import { ProjectsModule } from "../../projects.module"
 import { addMemberByEmailToProject } from "../project-membership.factory"
 
@@ -149,5 +161,81 @@ describe("Project membership - deleteOne", () => {
       where: { id: addedUser.id },
     })
     expect(user).not.toBeNull()
+  })
+
+  describe("review campaign roles", () => {
+    const createActiveCampaign = async (organization: Organization, project: Project) => {
+      const agent = await repositories.agentRepository.save(
+        agentFactory.transient({ organization, project }).build(),
+      )
+      const agentSettings = await repositories.agentSettingsRepository.save(
+        agentSettingsFactory.transient({ organization, project, agent }).build(),
+      )
+      return repositories.reviewCampaignRepository.save(
+        reviewCampaignFactory
+          .active()
+          .transient({ organization, project, agent, agentSettings })
+          .build(),
+      )
+    }
+
+    const addCampaignRole = async ({
+      organization,
+      project,
+      campaign,
+      user,
+      role,
+    }: {
+      organization: Organization
+      project: Project
+      campaign: Awaited<ReturnType<typeof createActiveCampaign>>
+      user: User
+      role: ReviewCampaignMembershipRole
+    }) =>
+      saveReviewCampaignMembership({
+        repositories,
+        membership: reviewCampaignMembershipFactory
+          .transient({ organization, project, campaign, user })
+          .build({ role }),
+      })
+
+    const findCampaignRows = (userId: string, campaignId: string) =>
+      repositories.userMembershipRepository.find({
+        where: { userId, resourceType: "review_campaign", resourceId: campaignId },
+      })
+
+    it("removes the member's roles on the project's campaigns and keeps those on another project's", async () => {
+      const { organization, project, addedUser } = await createContext()
+      const projectCampaign = await createActiveCampaign(organization, project)
+      const otherProject = await repositories.projectRepository.save(
+        projectFactory.transient({ organization }).build(),
+      )
+      const otherProjectCampaign = await createActiveCampaign(organization, otherProject)
+      for (const role of ["tester", "reviewer"] as const) {
+        await addCampaignRole({
+          organization,
+          project,
+          campaign: projectCampaign,
+          user: addedUser,
+          role,
+        })
+      }
+      const keptMembership = await addCampaignRole({
+        organization,
+        project: otherProject,
+        campaign: otherProjectCampaign,
+        user: addedUser,
+        role: "tester",
+      })
+
+      expectResponse(await subject(), 200)
+
+      expect(await findCampaignRows(addedUser.id, projectCampaign.id)).toEqual([])
+      expect(
+        (await findCampaignRows(addedUser.id, otherProjectCampaign.id)).map(
+          (campaignRow) => campaignRow.id,
+        ),
+      ).toEqual([keptMembership.id])
+    })
   })
 })

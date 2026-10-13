@@ -19,6 +19,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Security
 - Apps: install hands credentials through a one-time PKCE code on allowlisted HTTPS callbacks.
 - Apps: revoking an installation now cuts the app's access at once.
+- Review campaigns: testers and reviewers who accept an invitation no longer become members of the campaign's project.
 
 ## [26.10.1] - 2026-10-07
 

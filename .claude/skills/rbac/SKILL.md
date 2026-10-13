@@ -34,12 +34,15 @@ Add the constant to the role arrays that should hold it:
 - `ORGANIZATION_ROLE_PERMISSIONS` — org roles, and the global `platform_staff` / `platform_superadmin` roles
 - `PROJECT_ROLE_PERMISSIONS`
 - `AGENT_ROLE_PERMISSIONS`
+- `REVIEW_CAMPAIGN_ROLE_PERMISSIONS`, for `review_campaign_tester` and `review_campaign_reviewer`, held on `review_campaign` rows
 
-Org roles do not grant `project.read`. Project visibility comes from a project membership, unless a parent role is explicitly given the requested key.
+Org roles do not grant `project.read`. Project visibility comes from a project membership, or from a review campaign role on one of the project's campaigns (see below), unless a parent role is explicitly given the requested key.
 
 If `PermissionService.listResourceIds` or `listResourcePermissions` must accept the new key, add it to `READ_PERMISSION_RESOURCE_TYPE_MAP`. Only keys in that map are valid listing permissions (`organization.read`, `project.read`, `agent.read`, and the matching `backoffice.*.read` keys).
 
-If a parent membership should pass the permission down to a child resource, add it to `RESOURCE_TYPE_PERMISSIONS_MAP` for the child type. A parent grant is ignored for keys absent from that list. `PARENT_RESOURCE_TYPE_MAP` already says which parents exist: projects inherit from the organization, agents inherit from the organization and the project.
+If a parent membership should pass the permission down to a child resource, add it to `RESOURCE_TYPE_PERMISSIONS_MAP` for the child type. A parent grant is ignored for keys absent from that list. `PARENT_RESOURCE_TYPE_MAP` already says which parents exist: projects inherit from the organization, agents inherit from the organization and the project, and review campaigns inherit from the project, which passes down only `review_campaign.report.read` (held by project owners and admins). `temp_agent` has no parent.
+
+A review campaign role is the one grant that goes from a child resource up to its parent. On a project, a tester or reviewer role held on one of its campaigns gives the keys in `PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN`: `project.read`, `agent.conversation.session.read`, `agent.conversation.session.create` and `project.agent_message_feedback.create`. Testers hold all four, reviewers only `project.read`. It holds only while the campaign is in one of the role's statuses in `REVIEW_CAMPAIGN_STATUSES_GIVING_PROJECT_PERMISSIONS`: active for testers, active or closed for reviewers, never a draft. Every key of a campaign role outside `review_campaign.*` must be in that list (`rbac.constants.spec.ts` checks it). A route that checks one of these four keys on `"project"` lets the project's campaign testers or reviewers in, so pick a narrower key that no campaign role holds when they must stay out.
 
 Update the matching table in `docs/rbac-permission-matrix.md` in the same change. Run the `check-permission-matrix` skill before finishing.
 
@@ -67,7 +70,7 @@ Scoped permission — pass the resource type. The guard calls `PermissionService
 async updateOrganization() {}
 ```
 
-The second argument is `"organization"`, `"project"`, or `"agent"`. `resolvePermissionResourceId` reads the id already on the request (`organizationId`, `project.id`, `agent.id`) and otherwise the route param (`organizationId`, `projectId`, `agentId`). Keep the context resolver or domain guard that sets that id. `CheckPermissionGuard` only answers whether the permission holds.
+The second argument is `"organization"`, `"project"`, `"agent"`, `"temp_agent"` or `"review_campaign"`. `resolvePermissionResourceId` reads the id already on the request (`organizationId`, `project.id`, `agent.id`, `reviewCampaign.id`) and otherwise the route param (`organizationId`, `projectId`, `agentId`, `reviewCampaignId`). `"temp_agent"` takes the agent's id and checks only the additional agent roles held on `temp_agent` rows (today `agent_conversation_reviewer`). `"review_campaign"` checks the campaign roles, plus `review_campaign.report.read` passed down from the project. Keep the context resolver or domain guard that sets that id. `CheckPermissionGuard` only answers whether the permission holds.
 
 Import `CheckPermission` from `apps/api/src/domains/rbac/check-permission.decorator.ts` and `CheckPermissionGuard` from `check-permission.guard.ts`. Use the exported permission constant when one exists.
 
@@ -101,6 +104,7 @@ return this.projectRepository.findAllByIds(permissionsByProjectId)
 - every live resource of that type, when the caller holds the permission globally
 - resources where the caller's role grants that exact key
 - child resources whose parent role grants that same key
+- for `project.read`, the projects of the campaigns where the caller holds a campaign role in one of its giving statuses. `listResourcePermissions("project.read")` adds that role's `PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN` keys to those projects.
 
 The argument is the permission you mean. `backoffice.organization.read` is not rewritten to `organization.read`.
 
@@ -111,6 +115,7 @@ Reference: `apps/api/src/domains/backoffice/backoffice.service.ts` (`listResourc
 - [ ] Constant in `packages/api-contracts/src/rbac/permissions.ts` (and `GlobalPermission` when global)
 - [ ] Imported in `rbac.constants.ts`, granted on the role, described in `PERMISSION_DESCRIPTIONS`
 - [ ] `READ_PERMISSION_RESOURCE_TYPE_MAP` / `RESOURCE_TYPE_PERMISSIONS_MAP` updated when the key is listed or inherited
+- [ ] A project key granted on a campaign role is in `PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN`, and a route checking one of those keys on `"project"` is meant to let campaign testers or reviewers in
 - [ ] `docs/rbac-permission-matrix.md` updated
 - [ ] Data migration inserts the `role_permission` rows
 - [ ] Route uses `@CheckPermission` and `CheckPermissionGuard`

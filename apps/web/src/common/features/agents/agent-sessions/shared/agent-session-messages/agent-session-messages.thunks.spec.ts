@@ -199,6 +199,41 @@ describe("sendMessage", () => {
     })
   })
 
+  it("fails the turn when the attachment upload is refused", async () => {
+    // The upload ran before the stream's error handling, so a refused one used to fail silently.
+    mockedIsStudioInterface.mockReturnValue(false)
+    const dispatch = vi.fn()
+    const uploadAttachmentDocument = vi
+      .fn()
+      .mockRejectedValue(new Error("Request failed with status code 403"))
+    const uploadExtra = {
+      services: { agentSessionMessages: { uploadAttachmentDocument } } as unknown as Services,
+    }
+
+    const agentSession = {
+      id: agentSessionId,
+      type: "live",
+      agentId,
+    } as ConversationAgentSession
+    const file = new File(["Sample content"], "notes.txt", { type: "text/plain" })
+
+    const result = await sendMessage({ content: "Hello", agentSession, file })(
+      dispatch,
+      () => buildState(),
+      uploadExtra,
+    )
+
+    expect(sendMessage.rejected.match(result)).toBe(true)
+    expect(mockedStreamChatResponse).not.toHaveBeenCalled()
+    const startStreaming = findAction(dispatch, "startStreaming")
+    expect(startStreaming?.payload).toMatchObject({ userMessage: { content: "Hello" } })
+    expect(startStreaming?.payload.userMessage).not.toHaveProperty("attachmentDocumentId")
+    expect(findAction(dispatch, "failAssistantMessage")?.payload).toEqual({
+      messageId: startStreaming?.payload.assistantMessageId,
+      error: "Request failed with status code 403",
+    })
+  })
+
   it("leaves a completed stream alone", async () => {
     mockedIsStudioInterface.mockReturnValue(true)
     mockedStreamChatResponse.mockImplementation(async ({ handlers }) => {

@@ -136,8 +136,10 @@ export const sendMessage = createAsyncThunk<
     const assistantMessageId = generateId()
 
     // A file picked in the composer is uploaded now; a resend reuses the turn's attachment.
-    const attachmentDocumentId = file
-      ? (
+    let attachmentDocumentId = existingAttachmentDocumentId
+    if (file) {
+      try {
+        attachmentDocumentId = (
           await services.agentSessionMessages.uploadAttachmentDocument({
             organizationId,
             projectId,
@@ -147,7 +149,24 @@ export const sendMessage = createAsyncThunk<
             payload: { type: buildType() },
           })
         ).attachmentDocumentId
-      : existingAttachmentDocumentId
+      } catch (error) {
+        // A refused upload (403 once a campaign closes) fails the turn, as a failed send does.
+        dispatch(
+          agentSessionMessagesActions.startStreaming({
+            userMessage: { id: userMessageId, role: "user", content, createdAt: Date.now() },
+            assistantMessageId,
+            agentRevision: agentSettingsRevision,
+          }),
+        )
+        dispatch(
+          agentSessionMessagesActions.failAssistantMessage({
+            messageId: assistantMessageId,
+            error: error instanceof Error ? error.message : "Failed to upload the attachment",
+          }),
+        )
+        throw error
+      }
+    }
 
     const userMessage: AgentSessionMessage = {
       id: userMessageId,

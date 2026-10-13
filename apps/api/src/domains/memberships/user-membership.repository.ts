@@ -2,7 +2,9 @@ import { Injectable } from "@nestjs/common"
 import type { EntityManager, Repository } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
+import type { REVIEW_CAMPAIGN_ROLES } from "@/domains/rbac/rbac.constants"
 import { resolveOrganizationRoleId } from "@/domains/rbac/resolve-organization-role-id"
+import { resolveReviewCampaignRoleId } from "@/domains/rbac/resolve-review-campaign-role-id"
 import {
   UserMembership,
   type UserMembershipResourceType,
@@ -185,6 +187,10 @@ export class UserMembershipRepository {
         resourceType: params.resourceType,
         resourceId: params.resourceId,
         role: params.role,
+        roleId: await resolveReviewCampaignRoleId(
+          repo.manager,
+          params.role as keyof typeof REVIEW_CAMPAIGN_ROLES,
+        ),
       }),
     )
   }

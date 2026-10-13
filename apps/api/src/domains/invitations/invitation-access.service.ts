@@ -33,7 +33,8 @@ export class InvitationAccessService {
   /**
    * Whether the user already holds what the invitation would give. A project
    * invitation makes an admin, so a project `member` (who joined through an
-   * agent or a campaign) can still be invited, and becomes admin on accepting.
+   * agent) can still be invited, and becomes admin on accepting. A campaign row
+   * without its RBAC role does not count, so a new invitation repairs it.
    */
   async hasAccess(params: { target: InvitationAccessTarget; userId: string }): Promise<boolean> {
     const { target, userId } = params
@@ -52,14 +53,14 @@ export class InvitationAccessService {
             userId,
           }),
         )
-      case "review_campaign":
-        return Boolean(
-          await this.reviewCampaignMembershipsService.findByUserCampaignAndRole({
-            userId,
-            campaignId: target.targetId,
-            role: target.role as ReviewCampaignMembershipRole,
-          }),
-        )
+      case "review_campaign": {
+        const membership = await this.reviewCampaignMembershipsService.findByUserCampaignAndRole({
+          userId,
+          campaignId: target.targetId,
+          role: target.role as ReviewCampaignMembershipRole,
+        })
+        return Boolean(membership?.roleId)
+      }
     }
   }
 
@@ -94,13 +95,12 @@ export class InvitationAccessService {
         })
         return
       case "review_campaign":
+        // No project role: the campaign role gives what the person needs on the project
+        // (PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN). The organization row stays, since every
+        // organization-scoped route requires one.
         await this.organizationMembershipsService.upsertOrganizationMemberMembership({
           userId,
           organizationId: target.organizationId,
-        })
-        await this.projectMembershipsService.upsertProjectMemberMembership({
-          userId,
-          projectId: target.projectId,
         })
         await this.reviewCampaignMembershipsService.acceptCampaignMembership({
           campaignId: target.targetId,

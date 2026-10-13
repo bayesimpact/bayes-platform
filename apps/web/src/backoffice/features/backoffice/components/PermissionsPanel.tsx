@@ -17,13 +17,26 @@ import { selectBackofficeRbacCatalog } from "../backoffice.selectors"
 import { backofficeActions } from "../backoffice.slice"
 import { SearchField } from "./BackofficeTable"
 
-const SCOPE_ORDER = ["global", "organization", "project", "agent"] as const
+const SCOPE_ORDER = ["global", "organization", "project", "agent", "review_campaign"] as const
 const SCOPE_LABELS: Record<(typeof SCOPE_ORDER)[number], string> = {
   global: "Global roles",
   organization: "Organization roles",
   project: "Project roles",
   agent: "Agent roles",
+  review_campaign: "Review campaign roles",
 }
+const SCOPE_CAPTIONS: Partial<Record<(typeof SCOPE_ORDER)[number], string>> = {
+  review_campaign:
+    "Testers get the keys on the campaign's project while the campaign is active. Reviewers keep project.read once it is closed.",
+}
+
+/** A campaign role key outside `review_campaign.` is checked on the campaign's project. */
+const REVIEW_CAMPAIGN_PERMISSION_PREFIX = "review_campaign."
+const appliesOnCampaignProject = (
+  scopeType: (typeof SCOPE_ORDER)[number],
+  permissionKey: string,
+): boolean =>
+  scopeType === "review_campaign" && !permissionKey.startsWith(REVIEW_CAMPAIGN_PERMISSION_PREFIX)
 
 export function PermissionsPanel() {
   const catalog = useAppSelector(selectBackofficeRbacCatalog)
@@ -51,7 +64,8 @@ function WithData() {
       <div className="space-y-2">
         <h2 className="text-xl font-semibold">Permissions</h2>
         <p className="text-sm text-muted-foreground">
-          Role grants from the live RBAC catalog. Review campaigns are not on RBAC yet.
+          Role grants from the live RBAC catalog. Review campaign routes still use the tester and
+          reviewer roles and do not check the review_campaign.* keys yet.
         </p>
         <SearchField value={search} onChange={setSearch} placeholder="Search permissions…" />
       </div>
@@ -59,6 +73,7 @@ function WithData() {
         <ScopeMatrix
           key={scopeType}
           title={SCOPE_LABELS[scopeType]}
+          caption={SCOPE_CAPTIONS[scopeType]}
           catalog={catalog}
           scopeType={scopeType}
           search={search}
@@ -70,11 +85,13 @@ function WithData() {
 
 function ScopeMatrix({
   title,
+  caption,
   catalog,
   scopeType,
   search,
 }: {
   title: string
+  caption?: string
   catalog: BackofficeRbacCatalog
   scopeType: (typeof SCOPE_ORDER)[number]
   search: string
@@ -116,7 +133,10 @@ function ScopeMatrix({
 
   return (
     <section className="space-y-3">
-      <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>
+      <div className="space-y-1">
+        <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>
+        {caption && <p className="text-xs text-muted-foreground">{caption}</p>}
+      </div>
       <div className="border rounded-lg overflow-x-auto">
         <Table>
           <TableHeader className="bg-muted/50">
@@ -139,7 +159,14 @@ function ScopeMatrix({
               <TableRow key={permissionKey}>
                 <TableCell>
                   <div className="flex flex-col">
-                    <span className="font-mono text-xs">{permissionKey}</span>
+                    <span className="font-mono text-xs">
+                      {permissionKey}
+                      {appliesOnCampaignProject(scopeType, permissionKey) && (
+                        <span className="ml-2 font-sans text-[10px] text-muted-foreground">
+                          on the campaign's project
+                        </span>
+                      )}
+                    </span>
                     {descriptionByKey.get(permissionKey) && (
                       <span className="text-xs text-muted-foreground">
                         {descriptionByKey.get(permissionKey)}

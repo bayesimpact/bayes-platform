@@ -229,11 +229,15 @@ export function toBackofficeUserAgentMembershipDto(
 
 export function toBackofficeUserReviewCampaignMembershipDto(
   membership: ReviewCampaignMembershipModel,
+  roleGrant: RoleGrant | undefined,
 ): BackofficeUserReviewCampaignMembershipDto {
   return {
     campaignId: membership.campaignId,
     campaignName: membership.campaign?.name ?? "",
+    projectId: membership.projectId,
     role: membership.role,
+    roleKey: roleGrant?.key ?? null,
+    permissions: roleGrant?.permissions ?? [],
   }
 }
 
@@ -278,8 +282,11 @@ export function toBackofficeUserDetailDto(
         membership.roleId ? roleGrantsByRoleId.get(membership.roleId) : undefined,
       ),
     ),
-    reviewCampaignMemberships: reviewCampaignMemberships.map(
-      toBackofficeUserReviewCampaignMembershipDto,
+    reviewCampaignMemberships: reviewCampaignMemberships.map((membership) =>
+      toBackofficeUserReviewCampaignMembershipDto(
+        membership,
+        membership.roleId ? roleGrantsByRoleId.get(membership.roleId) : undefined,
+      ),
     ),
   }
 }

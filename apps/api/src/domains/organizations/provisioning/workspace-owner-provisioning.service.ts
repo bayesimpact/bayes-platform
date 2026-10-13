@@ -14,7 +14,11 @@ export type ProvisionWorkspaceOwnerInput = {
 }
 
 export type ProvisionWorkspaceOwnerResult = {
-  status: "granted" | "skipped_existing_membership"
+  /**
+   * `granted_without_organization_admin`: the user already was an organization member (for
+   * example a review campaign participant) and stays one, so staff must promote them by hand.
+   */
+  status: "granted" | "granted_without_organization_admin" | "skipped_existing_membership"
   email: string
   organizationName: string
   organizationId: string
@@ -24,7 +28,10 @@ export type ProvisionWorkspaceOwnerResult = {
 }
 
 export type PreviewWorkspaceOwnerProvisioningResult = {
-  status: "would_grant" | "would_skip_existing_membership"
+  status:
+    | "would_grant"
+    | "would_grant_without_organization_admin"
+    | "would_skip_existing_membership"
   email: string
   organizationName: string
 }
@@ -107,6 +114,19 @@ export class WorkspaceOwnerProvisioningService {
         projectId: project.id,
       })
 
+      if (existingOrgMembership?.role === "member") {
+        return {
+          status: "granted_without_organization_admin" as const,
+          email: normalizedEmail,
+          organizationName: normalizedOrgName,
+          organizationId: organization.id,
+          projectId: project.id,
+          userId: user.id,
+          message:
+            "Workspace access granted, but the user was already an organization member and stays one.",
+        }
+      }
+
       return {
         status: "granted" as const,
         email: normalizedEmail,
@@ -147,6 +167,19 @@ export class WorkspaceOwnerProvisioningService {
         if (existingProjectMembership) {
           return {
             status: "would_skip_existing_membership",
+            email: normalizedEmail,
+            organizationName: normalizedOrgName,
+          }
+        }
+
+        const existingOrgMembership =
+          await this.organizationMembershipsService.findOrganizationMembership({
+            userId: user.id,
+            organizationId: organization.id,
+          })
+        if (existingOrgMembership?.role === "member") {
+          return {
+            status: "would_grant_without_organization_admin",
             email: normalizedEmail,
             organizationName: normalizedOrgName,
           }

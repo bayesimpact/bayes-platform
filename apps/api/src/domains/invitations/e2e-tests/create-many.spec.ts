@@ -9,11 +9,16 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
+import { userMembershipFactory } from "@/domains/memberships/user-membership.factory"
 import {
   createOrganizationWithAgent,
   createOrganizationWithProject,
 } from "@/domains/organizations/organization.factory"
 import { addUserToProject } from "@/domains/projects/memberships/project-membership.factory"
+import {
+  reviewCampaignMembershipFactory,
+  saveReviewCampaignMembership,
+} from "@/domains/review-campaigns/memberships/review-campaign-membership.factory"
 import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
 import { buildServiceUserEmail } from "@/domains/users/service-user.helpers"
 import { userFactory } from "@/domains/users/user.factory"
@@ -301,6 +306,63 @@ describe("Invitations - createMany", () => {
         ),
         400,
       )
+    })
+
+    it("invites again someone whose campaign row holds no role", async () => {
+      const campaign = await createCampaign("active")
+      const participant = await repositories.userRepository.save(
+        userFactory.build({ email: "participant@example.com" }),
+      )
+      await repositories.userMembershipRepository.save(
+        userMembershipFactory.build({
+          userId: participant.id,
+          resourceType: "review_campaign",
+          resourceId: campaign.id,
+          role: "tester",
+          roleId: null,
+        }),
+      )
+
+      const response = await subject(
+        { reviewCampaign: campaign },
+        { emails: [participant.email], role: "tester" },
+      )
+
+      expectResponse(response, 201)
+      expect(response.body.data.invitations).toEqual([
+        expect.objectContaining({ invitedEmail: participant.email, role: "tester" }),
+      ])
+      expect(
+        await findPendingInvitation({ userId: participant.id, targetId: campaign.id }),
+      ).not.toBeNull()
+    })
+
+    it("skips someone who already holds the campaign role", async () => {
+      const campaign = await createCampaign("active")
+      const participant = await repositories.userRepository.save(
+        userFactory.build({ email: "participant@example.com" }),
+      )
+      const organization = await repositories.organizationRepository.findOneByOrFail({
+        id: campaign.organizationId,
+      })
+      const project = await repositories.projectRepository.findOneByOrFail({
+        id: campaign.projectId,
+      })
+      await saveReviewCampaignMembership({
+        repositories,
+        membership: reviewCampaignMembershipFactory
+          .tester()
+          .transient({ organization, project, campaign, user: participant })
+          .build(),
+      })
+
+      const response = await subject(
+        { reviewCampaign: campaign },
+        { emails: [participant.email], role: "tester" },
+      )
+
+      expectResponse(response, 201)
+      expect(response.body.data.invitations).toEqual([])
     })
 
     it("refuses to invite members to a campaign that is not active", async () => {
