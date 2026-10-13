@@ -1,19 +1,15 @@
-import { AgentSessionMessagesRoutes, type StreamEvent } from "@caseai-connect/api-contracts"
+import type { AgentSessionMessagesRoutes, StreamEvent } from "@caseai-connect/api-contracts"
 import type { MessageEvent } from "@nestjs/common"
-import { Controller, ForbiddenException, Query, Req, Sse, UseGuards } from "@nestjs/common"
+import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common"
 import { Observable } from "rxjs"
 import type { EndpointRequestWithAgentSession } from "@/common/context/request.interface"
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
-import { RequireContext } from "@/common/context/require-context.decorator"
-import { ResourceContextGuard } from "@/common/context/resource-context.guard"
-import { CheckPolicy } from "@/common/policies/check-policy.decorator"
+import type { BaseAgentSessionType } from "@/domains/agents/base-agent-sessions/base-agent-sessions.types"
 import type { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ConversationAgentSessionsService } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
-import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
-import { UserGuard } from "@/domains/users/user.guard"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ActiveAgentScopeService } from "./active-agent-scope.service"
 import { runHandoffTurns } from "./handoff-turn-loop"
@@ -21,10 +17,22 @@ import { runHandoffTurns } from "./handoff-turn-loop"
 import { StreamingLlmService } from "./streaming-llm.service"
 import type { AgentSessionScope } from "./streaming-session.types"
 
-@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard)
-@RequireContext("organization", "project", "agent", "agentSession")
-@Controller()
-export class StreamingController {
+/**
+ * Base of the live and playground streaming controllers. Each subclass serves one session type on
+ * its own route and checks its own permission, and the handler here turns away a session of the
+ * other type, so a live permission never streams into a playground session.
+ *
+ * The rejection comes back as an SSE error frame, like every other check made in the handler: a
+ * guard failure is the only one that gets an HTTP status.
+ *
+ * This class declares no routes and no guards and is not registered in the module.
+ * `@Injectable()` only makes TypeScript emit the constructor metadata the subclasses inherit for
+ * dependency injection.
+ */
+@Injectable()
+export abstract class StreamingController {
+  protected abstract readonly type: BaseAgentSessionType
+
   constructor(
     private readonly chatStreamingLLMService: StreamingLlmService,
     private readonly agentSettingsService: AgentSettingsService,
@@ -32,12 +40,12 @@ export class StreamingController {
     private readonly conversationAgentSessionsService: ConversationAgentSessionsService,
   ) {}
 
-  @CheckPolicy((policy) => policy.canList())
-  @Sse(AgentSessionMessagesRoutes.stream.path, { method: 0 /* GET */ })
-  stream(
-    @Req() request: EndpointRequestWithAgentSession<ConversationAgentSession>,
-    @Query("q") query: string,
+  protected handleStream(
+    request: EndpointRequestWithAgentSession<ConversationAgentSession>,
+    query: string,
   ): Observable<MessageEvent> {
+    if (request.agentSession.type !== this.type) throw new NotFoundException()
+
     const payload = parseStreamPayload(query)
     const userContent = payload.content
     const attachmentDocumentId = payload.attachmentDocumentId
@@ -122,7 +130,8 @@ export class StreamingController {
   }
 }
 
-type StreamPayload = (typeof AgentSessionMessagesRoutes.stream.request)["payload"]
+type StreamPayload =
+  (typeof AgentSessionMessagesRoutes)[BaseAgentSessionType]["stream"]["request"]["payload"]
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)
