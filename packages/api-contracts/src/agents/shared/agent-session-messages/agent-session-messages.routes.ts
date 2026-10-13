@@ -48,27 +48,27 @@ function defineAgentSessionMessagesRoutes(type: BaseAgentSessionTypeDto) {
       method: "post",
       path: `${prefix}/attachment-document/:attachmentDocumentId/temporary-url`,
     }),
+    stream: defineRoute<
+      ResponseData<AgentSessionStreamResponse>,
+      RequestPayload<{
+        content: string
+        attachmentDocumentId?: string
+        /**
+         * Settings revision the answer must run with. Playground sessions only: a live session
+         * that sends one is rejected rather than silently ignored, so a caller can never believe
+         * it tested a draft in production. Omitted, a playground session runs the latest revision
+         * including the draft and a live session runs the latest published one.
+         */
+        agentSettingsRevision?: number
+      }>
+    >({
+      method: "post",
+      path: `${prefix}/stream`,
+    }),
   }
 }
 
 export const AgentSessionMessagesRoutes = {
   live: defineAgentSessionMessagesRoutes("live"),
   playground: defineAgentSessionMessagesRoutes("playground"),
-  stream: defineRoute<
-    ResponseData<AgentSessionStreamResponse>,
-    RequestPayload<{
-      content: string
-      attachmentDocumentId?: string
-      /**
-       * Settings revision the answer must run with. Playground sessions only: a live session
-       * that sends one is rejected rather than silently ignored, so a caller can never believe
-       * it tested a draft in production. Omitted, a playground session runs the latest revision
-       * including the draft and a live session runs the latest published one.
-       */
-      agentSettingsRevision?: number
-    }>
-  >({
-    method: "post",
-    path: `${agentSessionsPath}/:agentSessionId/stream`,
-  }),
 }
