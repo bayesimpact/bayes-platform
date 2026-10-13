@@ -1,3 +1,4 @@
+import type { BaseAgentSessionTypeDto } from "@caseai-connect/api-contracts"
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import { selectPlaygroundRevision } from "@/common/features/agents/agent-settings/agent-settings.selectors"
 import { getCurrentId } from "@/common/features/helpers"
@@ -125,15 +126,24 @@ const streamSessionStatus = createAsyncThunk<void, void, ThunkConfigWithSignal>(
   },
 )
 
-const deleteMyDocuments = createAsyncThunk<void, { documentIds: string[] }, ThunkConfig>(
+const deleteMyDocuments = createAsyncThunk<
+  void,
+  { documentIds: string[]; type: BaseAgentSessionTypeDto },
+  ThunkConfig
+>(
   "extractionAgentSessions/deleteMyDocuments",
-  async ({ documentIds }, { extra: { services }, getState }) => {
+  async ({ documentIds, type }, { extra: { services }, getState }) => {
     const state = getState()
-    const organizationId = getCurrentId({ state, name: "organizationId" })
-    const projectId = getCurrentId({ state, name: "projectId" })
+    // Through the extraction agent: a Desk member cannot use the project documents route.
+    const params = {
+      organizationId: getCurrentId({ state, name: "organizationId" }),
+      projectId: getCurrentId({ state, name: "projectId" }),
+      agentId: getCurrentId({ state, name: "agentId" }),
+      type,
+    }
     await Promise.all(
       documentIds.map((documentId) =>
-        services.documents.deleteOne({ organizationId, projectId, documentId }),
+        services.extractionAgentSessions.deleteMyDocument({ ...params, documentId }),
       ),
     )
   },

@@ -58,6 +58,11 @@ function defineExtractionAgentSessionsRoutes(type: BaseAgentSessionTypeDto) {
       method: "post",
       path: `${prefix}/documents/mine`,
     }),
+    // Deletes only a document the caller uploaded for a run, unlike the project documents route.
+    deleteMyDocument: defineRoute<ResponseData<SuccessResponseDTO>>({
+      method: "post",
+      path: `${prefix}/documents/:documentId/delete`,
+    }),
   }
 }
 

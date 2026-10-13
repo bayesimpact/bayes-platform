@@ -181,6 +181,7 @@ export const studioRoutes = {
               path: StudioRoutes.agentExtraction.path,
               element: (
                 <AgentExtractionRoute
+                  type="playground"
                   buildCsvRunPath={StudioRoutes.agentExtractionCsvRun.build}
                   renderVersionPicker={<StudioExtractionVersionPicker />}
                 />

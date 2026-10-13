@@ -84,6 +84,13 @@ const api: IExtractionAgentSessionsSpi = {
     >(ExtractionAgentSessionsRoutes[type].listMyDocuments.getPath(params))
     return response.data.data.map(fromDocumentDto)
   },
+  deleteMyDocument: async ({ type, ...params }) => {
+    const axios = getAxiosInstance()
+    const response = await axios.post<
+      typeof ExtractionAgentSessionsRoutes.live.deleteMyDocument.response
+    >(ExtractionAgentSessionsRoutes[type].deleteMyDocument.getPath(params))
+    return response.data.data
+  },
 }
 
 export default api

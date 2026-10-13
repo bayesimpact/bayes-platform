@@ -27,8 +27,11 @@ const document = documentFactory.transient({ project }).build({ id: "document-1"
 
 const executeOne = vi.fn()
 const uploadDocument = vi.fn()
+const deleteMyDocument = vi.fn()
 const extra = {
-  services: { extractionAgentSessions: { executeOne, uploadDocument } } as unknown as Services,
+  services: {
+    extractionAgentSessions: { executeOne, uploadDocument, deleteMyDocument },
+  } as unknown as Services,
 }
 
 /**
@@ -149,5 +152,35 @@ describe("executeOne", () => {
 
     expect(uploadDocument).not.toHaveBeenCalled()
     expect(executeOne).toHaveBeenCalledWith(expect.objectContaining({ documentId: document.id }))
+  })
+})
+
+describe("deleteMyDocuments", () => {
+  it("deletes each document through the extraction agent routes of the run type it is given", async () => {
+    // The project documents route is for owners and admins: a Desk member got a 403 there.
+    // The page URL says Desk while the caller asks for playground: the caller wins.
+    mockedIsStudioInterface.mockReturnValue(false)
+
+    const action = await extractionAgentSessionsThunks.deleteMyDocuments({
+      documentIds: ["document-1", "document-2"],
+      type: "playground",
+    })(vi.fn(), () => buildState(), extra)
+
+    expect(action.meta.requestStatus).toBe("fulfilled")
+    expect(deleteMyDocument).toHaveBeenCalledTimes(2)
+    expect(deleteMyDocument).toHaveBeenCalledWith({
+      organizationId,
+      projectId,
+      agentId,
+      type: "playground",
+      documentId: "document-1",
+    })
+    expect(deleteMyDocument).toHaveBeenCalledWith({
+      organizationId,
+      projectId,
+      agentId,
+      type: "playground",
+      documentId: "document-2",
+    })
   })
 })

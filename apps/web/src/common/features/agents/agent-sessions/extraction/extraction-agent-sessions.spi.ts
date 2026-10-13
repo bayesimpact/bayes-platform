@@ -30,6 +30,8 @@ export interface IExtractionAgentSessionsSpi {
   /** Presigns, sends the bytes to storage and confirms: the document a run can then read. */
   uploadDocument: (params: BaseParams & { file: File }) => Promise<Document>
   listMyDocuments: (params: BaseParams) => Promise<Document[]>
+  /** Deletes a document the caller uploaded for a run. */
+  deleteMyDocument: (params: BaseParams & { documentId: string }) => Promise<SuccessResponseDTO>
   streamSessionStatus: (params: {
     organizationId: string
     projectId: string
