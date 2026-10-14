@@ -24,8 +24,7 @@ It asks once for a local dev password, then:
 - gives every person of your local database (`DATABASE_NAME` in `apps/api/.env`) a Dex account
   with their email and that password;
 - lists the origins of `FRONTEND_URL` as redirect URIs, read like the API's CORS
-  (`https://connect.localhost:5173` and `:5174` when it is empty), plus the Bull Board callback
-  when `BULL_BOARD_BASE_URL` is set;
+  (`https://connect.localhost:5173` and `:5174` when it is empty);
 - writes `infra/dex/config.local.yaml`, which is git-ignored because it holds emails;
 - points `apps/api/.env` and `apps/web/.env.local` at Dex, after a one-time backup next to each
   file (`*.dontsave-before-dex`);
@@ -36,7 +35,7 @@ data: nothing is written to the database, and at the first sign-in the API links
 its Dex identity by verified email ([ADR 0021](../../docs/adr/0021-generic-oidc-and-access-by-email.md)).
 
 Run it again when people are added to the database, or after changing `FRONTEND_URL`,
-`VITE_BASE_PATH`, `BULL_BOARD_BASE_URL` or `BULL_BOARD_ROUTE`. `--dry-run` shows what it would do,
+or `VITE_BASE_PATH`. `--dry-run` shows what it would do,
 `--password` changes the password. The password is kept hashed in
 `~/.bayes-worktrees/dex-password.bcrypt`, which the worktree environments reuse.
 
@@ -48,8 +47,6 @@ browser and the API alike.
 Without `config.local.yaml`, Dex reads [config.sample.yaml](config.sample.yaml):
 
 - `platform-web`: public client of the web app (authorization code + PKCE).
-- `bull-board`: confidential client of the Bull Board dashboard
-  (`BULL_BOARD_OIDC_CLIENT_ID=bull-board`, `BULL_BOARD_OIDC_CLIENT_SECRET=local-bull-board-secret`).
 - Two users: `admin@example.org` / `admin` and `member@example.org` / `member`.
   Dex reports their emails as verified.
 
@@ -57,7 +54,7 @@ A fresh database has nobody for `sync-users.mjs` yet: sign in with `admin@exampl
 then give it a platform role (below). You can also grant your own email a platform role first: the
 command creates your account, and `sync-users.mjs` then gives it a Dex account.
 
-The generated `config.local.yaml` has the same two clients, with the redirect URIs of your `.env`
+The generated `config.local.yaml` has the same client, with the redirect URIs of your `.env`
 files, and the people of your database in place of the two users.
 
 ## Manual configuration
