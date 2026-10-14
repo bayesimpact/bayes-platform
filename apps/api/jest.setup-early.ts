@@ -1,10 +1,8 @@
 /**
  * Runs via Jest `setupFiles` **before** the test framework and before any spec module is loaded.
- * Prevents Bull Board `forFeature` from being registered without `forRoot` when `.env` / shell sets `BULL_BOARD_ENABLED`.
  */
 import { generateKeyPairSync } from "node:crypto"
 
-delete process.env.BULL_BOARD_ENABLED
 // OAuth and MCP URLs follow the test server's random port, never a local .env value.
 delete process.env.API_PUBLIC_URL
 

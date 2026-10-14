@@ -108,11 +108,6 @@ x-backend-env: &backend-env
   WEB_OIDC_AUTHORITY: ""
   WEB_OIDC_AUDIENCE: ""
   WEB_OIDC_AUTHORIZATION_PARAMS: ""
-  BULL_BOARD_BASE_URL: ${WT_ORIGIN}
-  BULL_BOARD_OIDC_CLIENT_ID: bull-board
-  BULL_BOARD_OIDC_CLIENT_SECRET: local-bull-board-secret
-  # Encrypts the session cookie of Bull Board. A fixed value is enough on a dev machine.
-  BULL_BOARD_OIDC_SECRET: local-bull-board-cookie-secret
   OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
   # Its own Phoenix project (the collector inserts bayes-platform only when unset).
   OTEL_RESOURCE_ATTRIBUTES: openinference.project.name=wt-${WT_SLUG}
@@ -223,8 +218,8 @@ services:
       dev.worktree.service: bullmq
 
   # Its own Dex: the issuer is http://<name>-dex.connect.localhost:<router port>/dex. The
-  # browser reaches it through Traefik, the API and Bull Board directly through the network
-  # alias, so both see the same issuer. Users and redirect URIs: ~/.bayes-worktrees/envs/<name>.
+  # browser reaches it through Traefik, the API directly through the network alias, so both
+  # see the same issuer. Users and redirect URIs: ~/.bayes-worktrees/envs/<name>.
   dex:
     image: ghcr.io/dexidp/dex:v2.44.0
     restart: unless-stopped
@@ -268,7 +263,6 @@ services:
     environment:
       <<: *backend-env
       PORT: "3000"
-      BULL_BOARD_ENABLED: "true"
       OTEL_SERVICE_NAME: api
     depends_on:
       <<: *after-init
@@ -287,7 +281,6 @@ services:
       - dev.worktree.path=${WT_PATH}
       - dev.worktree.repo=${WT_REPO}
       - dev.worktree.service=api
-      - dev.worktree.link.bull-board=${WT_ORIGIN}/api/internal/bull-board
       - traefik.enable=true
       - traefik.http.routers.wt-${WT_SLUG}-api.rule=Host(`${WT_SLUG}.connect.localhost`) && PathRegexp(`^/(api|public|\.well-known/oauth-(protected-resource|authorization-server))(/|$$)`)
       - traefik.http.routers.wt-${WT_SLUG}-api.priority=100
@@ -458,6 +451,31 @@ services:
       - traefik.http.routers.wt-${WT_SLUG}-storybook-embed.rule=Host(`${WT_SLUG}-embed-storybook.connect.localhost`)
       - traefik.http.routers.wt-${WT_SLUG}-storybook-embed.middlewares=dev-starting@docker
       - traefik.http.services.wt-${WT_SLUG}-storybook-embed.loadbalancer.server.port=${WT_ROUTER_PORT}
+
+  # Bull Board on this environment's Redis, no login (infra/bull-board/README.md).
+  bull-board:
+    image: venatum/bull-board:3.4.14 # same as infra/database
+    restart: unless-stopped
+    logging:
+      driver: local
+    networks: [default, shared]
+    environment:
+      REDIS_HOST: bullmq
+      REDIS_PORT: "6379"
+      NODE_ENV: production # no access log
+    depends_on:
+      bullmq:
+        condition: service_healthy
+    labels:
+      - dev.worktree.slug=${WT_SLUG}
+      - dev.worktree.path=${WT_PATH}
+      - dev.worktree.repo=${WT_REPO}
+      - dev.worktree.service=bull-board
+      - dev.worktree.link.bull-board=http://${WT_SLUG}-bull-board.connect.localhost:${WT_ROUTER_PORT}
+      - traefik.enable=true
+      - traefik.http.routers.wt-${WT_SLUG}-bull-board.rule=Host(`${WT_SLUG}-bull-board.connect.localhost`)
+      - traefik.http.routers.wt-${WT_SLUG}-bull-board.middlewares=dev-starting@docker
+      - traefik.http.services.wt-${WT_SLUG}-bull-board.loadbalancer.server.port=3000
 
   # Grafana on the analytics schema of this environment's database, with the branch's
   # provisioning and dashboards.

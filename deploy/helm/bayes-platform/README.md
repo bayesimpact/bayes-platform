@@ -23,7 +23,7 @@ Two ways to run it:
 - Kubernetes 1.27 or newer, `helm` 3.
 - An ingress controller (the chart writes Ingress resources for the `nginx` class) and, for TLS, cert-manager with a ClusterIssuer.
 - A StorageClass. The bundled Postgres and Redis use `ReadWriteOnce` volumes. The local document storage needs `ReadWriteMany` when the API and the workers run on different nodes.
-- An OpenID Connect provider (Keycloak, Dex, Auth0, Okta...) with two clients: a public one for the web app (authorization code + PKCE) and, for Bull Board, a confidential one. Accounts must have a verified email. The web app asks for `openid profile email offline_access`: the provider must allow `offline_access` for its users, or set `web.env.WEB_OIDC_SCOPE` to `openid profile email`. Coming from Auth0: [docs/upgrading/auth0-to-oidc.md](../../../docs/upgrading/auth0-to-oidc.md).
+- An OpenID Connect provider (Keycloak, Dex, Auth0, Okta...) with a public client for the web app (authorization code + PKCE). Accounts must have a verified email. The web app asks for `openid profile email offline_access`: the provider must allow `offline_access` for its users, or set `web.env.WEB_OIDC_SCOPE` to `openid profile email`. Coming from Auth0: [docs/upgrading/auth0-to-oidc.md](../../../docs/upgrading/auth0-to-oidc.md).
 - For embeddings: a Google Cloud project with Vertex AI (`gemini-embedding-001`). Self-hosted embedding models are not supported yet.
 - For the GPU workers: a node pool with NVIDIA GPUs and the device plugin installed (GKE does this for you).
 
@@ -168,6 +168,10 @@ The API and the workers send their traces and metrics over OTLP to `config.OTEL_
 - **No Phoenix**: `phoenix.enabled: true` deploys one, and `urls.phoenix` gives it a host and the trace links of the UI.
 
 > **The bundled Phoenix is not production ready.** It has no authentication: anyone who reaches it reads every prompt and answer. One replica, SQLite on a volume by default (`phoenix.database.urlKey` switches to a Postgres you created). Restrict its ingress (`ingress.phoenixAnnotations`) or keep it without `urls.phoenix` and reach it with `kubectl port-forward`. For production, run your own Phoenix with sign-in, keep `phoenix.enabled: false` and set `otelCollector.phoenix.endpoint`.
+
+## Queue dashboard
+
+The chart deploys no queue dashboard. To examine or retry BullMQ jobs, run Bull Board as a separate Deployment on the same Redis, with oauth2-proxy in front for the OpenID Connect sign-in: see [infra/bull-board/README.md](../../../infra/bull-board/README.md).
 
 ## Managed services
 

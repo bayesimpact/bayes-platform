@@ -2,7 +2,7 @@
 # A plain `docker compose up -d` (and the CI) starts pgvector and redis only.
 # Profiles: `mail` (Mailpit), `keycloak`, `dex`, `traces` (otel-collector,
 # Phoenix), `analytics` (Grafana), `router` (Traefik and the dashboard of the
-# worktree environments). See the README for the commands.
+# worktree environments), `bull-board`. See the README for the commands.
 #
 # Mounts of files and folders that must exist use the long syntax with
 # `create_host_path: false`: a missing source then fails `docker compose up`
@@ -235,3 +235,20 @@ services:
       traefik.enable: "true"
       traefik.http.routers.traefik.rule: Host(`traefik.connect.localhost`)
       traefik.http.routers.traefik.service: api@internal
+  # Queue dashboard on the local Redis, http://localhost:3400 (and
+  # http://bull-board.connect.localhost:8800 with the router), no login.
+  # See infra/bull-board/README.md.
+  # Profile `bull-board`: `docker compose --profile bull-board up -d --no-recreate bull-board`.
+  bull-board:
+    image: venatum/bull-board:3.4.14
+    profiles: [bull-board]
+    depends_on: [redis]
+    ports:
+      - "${BULL_BOARD_PORT:-3400}:3000"
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.bull-board.rule: Host(`bull-board.connect.localhost`)
+      traefik.http.services.bull-board.loadbalancer.server.port: "3000"

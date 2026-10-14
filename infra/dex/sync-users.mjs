@@ -26,8 +26,6 @@ import { join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { parseArgs } from "node:util"
 import {
-  BULL_BOARD_CLIENT_ID,
-  BULL_BOARD_CLIENT_SECRET,
   buildDexConfig,
   findPostgresContainer,
   frontendOrigins,
@@ -92,19 +90,14 @@ async function main() {
     )
   }
 
-  const { web: webRedirectUris, bullBoard: bullBoardRedirectUris } = redirectUris({
+  const { web: webRedirectUris } = redirectUris({
     webOrigins: frontendOrigins(apiEnv.FRONTEND_URL),
     basePath: webEnv.VITE_BASE_PATH,
-    bullBoardBaseUrl: apiEnv.BULL_BOARD_BASE_URL,
-    bullBoardRoute: apiEnv.BULL_BOARD_ROUTE,
   })
 
   console.log(`Database ${database}: ${users.length} people`)
   for (const user of users) console.log(`  ${user.email}`)
   console.log(`Web app redirect URIs: ${[...new Set(webRedirectUris)].join(", ")}`)
-  console.log(
-    `Bull Board redirect URIs: ${bullBoardRedirectUris.join(", ") || "none, BULL_BOARD_BASE_URL is not set"}`,
-  )
   if (options["dry-run"]) return
 
   const passwordHash = await resolvePasswordHash(container)
@@ -112,7 +105,6 @@ async function main() {
     issuer: ISSUER,
     listenAddress: "0.0.0.0:5556",
     webRedirectUris,
-    bullBoardRedirectUris,
     users,
     passwordHash,
   })
@@ -225,8 +217,6 @@ function pointMainCheckoutAtDex() {
       WEB_OIDC_AUTHORITY: "",
       WEB_OIDC_AUDIENCE: "",
       WEB_OIDC_AUTHORIZATION_PARAMS: "",
-      BULL_BOARD_OIDC_CLIENT_ID: BULL_BOARD_CLIENT_ID,
-      BULL_BOARD_OIDC_CLIENT_SECRET: BULL_BOARD_CLIENT_SECRET,
     },
     onlyExisting: ["WEB_OIDC_AUTHORITY", "WEB_OIDC_AUDIENCE", "WEB_OIDC_AUTHORIZATION_PARAMS"],
   })
