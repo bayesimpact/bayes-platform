@@ -5,8 +5,9 @@ import type { TimeType } from "../generic"
  * Embedding models the platform can use for document retrieval.
  *
  * `gemini-embedding-001` is the historical default, computed for every project through Vertex.
- * The local models are served by the GPU workers themselves (sentence-transformers) and only
- * exist for projects with the `local-embeddings` feature flag. The enum value is the exact
+ * The local (self-hosted) models are served over HTTP by an embedder the deployment runs
+ * (apps/embedder, `EMBEDDER_<MODEL>_URL`) and only exist for projects with the
+ * `local-embeddings` feature flag. The enum value is the exact
  * `model_name` persisted on `document_chunk_embedding`.
  */
 export enum EmbeddingModel {
@@ -16,6 +17,7 @@ export enum EmbeddingModel {
 
 export enum EmbeddingProvider {
   Vertex = "VERTEX",
+  /** Self-hosted, reached over HTTP. */
   Local = "LOCAL",
 }
 

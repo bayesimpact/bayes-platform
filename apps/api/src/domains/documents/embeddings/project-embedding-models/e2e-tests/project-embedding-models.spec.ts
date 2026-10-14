@@ -20,6 +20,7 @@ import { projectEmbeddingModelFactory } from "../project-embedding-model.factory
 import { LOCAL_EMBEDDINGS_FEATURE_DISABLED_ERROR_MESSAGE } from "../project-embedding-models.controller"
 import {
   EMBEDDING_MODEL_ALREADY_PROCESSING_ERROR_MESSAGE,
+  EMBEDDING_MODEL_NOT_CONFIGURED_ERROR_MESSAGE,
   EMBEDDING_MODEL_NOT_LOCAL_ERROR_MESSAGE,
 } from "../project-embedding-models.service"
 import {
@@ -44,6 +45,8 @@ describe("Project Embedding Models", () => {
   }
 
   beforeAll(async () => {
+    // The routes only enable a model the deployment has an embedder for.
+    process.env.EMBEDDER_BGE_M3_URL = "http://embedder.test"
     setup = await setupE2eTestDatabase({
       additionalImports: [DocumentsModule],
       applyOverrides: (moduleBuilder) =>
@@ -142,6 +145,16 @@ describe("Project Embedding Models", () => {
     const response = await subject(EmbeddingModel.GeminiEmbedding001)
 
     expectResponse(response, 400, EMBEDDING_MODEL_NOT_LOCAL_ERROR_MESSAGE)
+  })
+
+  it("rejects a model the deployment has no embedder for", async () => {
+    await createContext()
+    delete process.env.EMBEDDER_BGE_M3_URL
+
+    const response = await subject()
+
+    process.env.EMBEDDER_BGE_M3_URL = "http://embedder.test"
+    expectResponse(response, 422, EMBEDDING_MODEL_NOT_CONFIGURED_ERROR_MESSAGE)
   })
 
   it("rejects an unknown model name", async () => {

@@ -1,6 +1,7 @@
-import { EmbeddingModel } from "@caseai-connect/api-contracts"
+import { EmbeddingModel, isLocalEmbeddingModel } from "@caseai-connect/api-contracts"
 import { embed } from "ai"
 import { DocumentChunkRetrievalService } from "./document-chunk-retrieval.service"
+import { EmbedderService } from "./embedders/embedder.service"
 
 const mockTextEmbeddingModel = jest.fn()
 const mockCreateVertex = jest.fn((_config?: unknown) => ({
@@ -46,6 +47,14 @@ function buildOuterQueryBuilderMock(getRawMany: jest.Mock) {
 
 const mockIsCompleted = jest.fn()
 const mockEmbedQueryLocally = jest.fn()
+// Vertex goes through the real service (on the mocked AI SDK); self-hosted models are stubbed.
+const vertexEmbedderService = new EmbedderService()
+const embedderService = {
+  embedQuery: (params: { modelName: string; text: string }) =>
+    isLocalEmbeddingModel(params.modelName)
+      ? mockEmbedQueryLocally(params)
+      : vertexEmbedderService.embedQuery(params),
+}
 
 function buildService({
   innerQueryBuilder,
@@ -62,7 +71,7 @@ function buildService({
         .mockReturnValueOnce(outerQueryBuilder),
     } as never,
     { isCompleted: mockIsCompleted } as never,
-    { embedQuery: mockEmbedQueryLocally } as never,
+    embedderService as never,
   )
 }
 
@@ -176,12 +185,12 @@ describe("DocumentChunkRetrievalService", () => {
     })
   })
 
-  it("falls back to the default model when the local embedding fails", async () => {
+  it("falls back to the default model when the self-hosted embedder fails", async () => {
     const getRawMany = jest.fn().mockResolvedValue([])
     const innerQueryBuilder = buildInnerQueryBuilderMock()
     const outerQueryBuilder = buildOuterQueryBuilderMock(getRawMany)
     mockIsCompleted.mockResolvedValue(true)
-    mockEmbedQueryLocally.mockRejectedValue(new Error("workers down"))
+    mockEmbedQueryLocally.mockRejectedValue(new Error("Embedder BAAI/bge-m3 answered 503"))
     const mockedEmbed = embed as jest.MockedFunction<typeof embed>
     mockedEmbed.mockResolvedValue({ embedding: [0.1] } as never)
     const service = buildService({ innerQueryBuilder, outerQueryBuilder })

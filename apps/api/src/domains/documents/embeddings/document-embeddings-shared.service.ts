@@ -1,35 +1,25 @@
 import { randomUUID } from "node:crypto"
-import { createVertex } from "@ai-sdk/google-vertex"
 import { Injectable, Logger, NotFoundException } from "@nestjs/common"
 import { InjectDataSource } from "@nestjs/typeorm"
-import { embedMany } from "ai"
 import { toSql } from "pgvector"
 import type { DataSource } from "typeorm"
 import type { DoclingChunk, DoclingParentChunk } from "@/external/docling/docling.types"
-import type { SparseWeights } from "@/external/local-embeddings/local-embedding-bridge.service"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { LocalEmbeddingBridgeService } from "@/external/local-embeddings/local-embedding-bridge.service"
-import { getLocalEmbeddingBatchSize } from "@/external/local-embeddings/local-embeddings.cli"
-import { toSparseVectorSql } from "@/external/local-embeddings/sparse-weights"
 import type { Document } from "../document.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentsService } from "../documents.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentEmbeddingStatusNotifierService } from "./document-embedding-status-notifier.service"
-import {
-  resolveEmbeddingModelNames,
-  resolveMaxVertexEmbeddingBatchSize,
-  resolveVertexConfig,
-} from "./document-embeddings.config"
+import { resolveEmbeddingModelNames } from "./document-embeddings.config"
 import type { CreateDocumentEmbeddingsJobPayload } from "./document-embeddings.types"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { EmbedderService } from "./embedders/embedder.service"
+import type { Embeddings } from "./embedders/embedders.types"
+import { toSparseVectorSql } from "./embedders/sparse-weights"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectEmbeddingModelRepository } from "./project-embedding-models/project-embedding-model.repository"
 
 /** Vectors of one model for every chunk of a document; `sparse` only for models with a lexical head. */
-export type ModelEmbeddings = {
-  dense: number[][]
-  sparse: SparseWeights[] | null
-}
+export type ModelEmbeddings = Embeddings
 
 type ChunkInsertionScope = {
   documentId: string
@@ -46,7 +36,7 @@ export class DocumentEmbeddingsSharedService {
     private readonly embeddingStatusNotifierService: DocumentEmbeddingStatusNotifierService,
     @InjectDataSource() private readonly dataSource: DataSource,
     private readonly projectEmbeddingModelRepository: ProjectEmbeddingModelRepository,
-    private readonly localEmbeddingBridge: LocalEmbeddingBridgeService,
+    private readonly embedderService: EmbedderService,
   ) {}
 
   async findDocumentOrThrow(payload: CreateDocumentEmbeddingsJobPayload): Promise<Document> {
@@ -73,8 +63,9 @@ export class DocumentEmbeddingsSharedService {
   }
 
   /**
-   * One vector per chunk for the Vertex models of the deployment, plus one per local model the
-   * project enabled (so a new upload is retrievable with every model an agent may pick).
+   * One vector per chunk for the Vertex models of the deployment, plus one per self-hosted model
+   * the project enabled (so a new upload is retrievable with every model an agent may pick). Any
+   * embedder failing fails the document: its chunks stay consistent across models.
    */
   async generateEmbeddingsByModel({
     chunks,
@@ -83,85 +74,54 @@ export class DocumentEmbeddingsSharedService {
     chunks: string[]
     projectId: string
   }): Promise<Map<string, ModelEmbeddings>> {
-    const embeddingsByModelName = await this.generateVertexEmbeddingsByModel(chunks)
-    const localModelNames =
-      await this.projectEmbeddingModelRepository.listActiveModelNames(projectId)
-    for (const localModelName of localModelNames) {
-      embeddingsByModelName.set(
-        localModelName,
-        await this.generateLocalEmbeddings({ modelName: localModelName, chunks }),
-      )
-    }
-    return embeddingsByModelName
+    const modelNames = [
+      ...resolveEmbeddingModelNames(),
+      ...(await this.projectEmbeddingModelRepository.listActiveModelNames(projectId)),
+    ]
+    return this.embedWithModels({ chunks, modelNames })
   }
 
-  private async generateLocalEmbeddings({
-    modelName,
+  private async embedWithModels({
     chunks,
+    modelNames,
   }: {
-    modelName: string
     chunks: string[]
-  }): Promise<ModelEmbeddings> {
-    this.logger.log(`Creating embeddings with local model ${modelName}`)
-    const batchSize = getLocalEmbeddingBatchSize()
-    const dense: number[][] = []
-    const sparse: SparseWeights[] = []
-    let hasSparse = false
-    for (let batchStartIndex = 0; batchStartIndex < chunks.length; batchStartIndex += batchSize) {
-      const batch = await this.localEmbeddingBridge.embed({
+    modelNames: string[]
+  }): Promise<Map<string, ModelEmbeddings>> {
+    const embeddingsByModelName = new Map<string, ModelEmbeddings>()
+    for (const modelName of new Set(modelNames)) {
+      embeddingsByModelName.set(
         modelName,
-        texts: chunks.slice(batchStartIndex, batchStartIndex + batchSize),
-        inputType: "document",
-      })
-      dense.push(...batch.dense)
-      if (batch.sparse) {
-        hasSparse = true
-        sparse.push(...batch.sparse)
-      }
-    }
-    if (dense.length !== chunks.length || (hasSparse && sparse.length !== chunks.length)) {
-      throw new Error(
-        `Local model ${modelName} returned ${dense.length} vectors for ${chunks.length} chunks`,
+        await this.embedderService.embedDocuments({ modelName, texts: chunks }),
       )
     }
-    return { dense, sparse: hasSparse ? sparse : null }
+    return embeddingsByModelName
   }
 
-  private async generateVertexEmbeddingsByModel(
-    chunks: string[],
-  ): Promise<Map<string, ModelEmbeddings>> {
-    const { project, location } = resolveVertexConfig()
-    const embeddingModelNames = resolveEmbeddingModelNames()
-    const maxVertexEmbeddingBatchSize = resolveMaxVertexEmbeddingBatchSize()
-    this.logger.log(
-      `Creating embeddings with Vertex models [${embeddingModelNames.join(", ")}] in project ${project}, location ${location}`,
+  /**
+   * Models a project enabled while this document was being embedded: the re-embedding job only
+   * reads completed documents, so the document job covers them itself before writing its chunks.
+   */
+  private async addModelsEnabledMeanwhile({
+    projectId,
+    chunks,
+    embeddingsByModelName,
+  }: {
+    projectId: string
+    chunks: string[]
+    embeddingsByModelName: Map<string, ModelEmbeddings>
+  }): Promise<Map<string, ModelEmbeddings>> {
+    const activeModelNames =
+      await this.projectEmbeddingModelRepository.listActiveModelNames(projectId)
+    const missingModelNames = activeModelNames.filter(
+      (modelName) => !embeddingsByModelName.has(modelName),
     )
-
-    const vertexProvider = createVertex({ project, location })
-    const embeddingsByModelName = new Map<string, ModelEmbeddings>()
-    for (const embeddingModelName of embeddingModelNames) {
-      const embeddingModel = vertexProvider.textEmbeddingModel(embeddingModelName)
-      const embeddings: number[][] = []
-
-      for (
-        let batchStartIndex = 0;
-        batchStartIndex < chunks.length;
-        batchStartIndex += maxVertexEmbeddingBatchSize
-      ) {
-        const chunkBatch = chunks.slice(
-          batchStartIndex,
-          batchStartIndex + maxVertexEmbeddingBatchSize,
-        )
-        const { embeddings: batchEmbeddings } = await embedMany({
-          model: embeddingModel,
-          values: chunkBatch,
-        })
-        embeddings.push(...batchEmbeddings)
-      }
-
-      embeddingsByModelName.set(embeddingModelName, { dense: embeddings, sparse: null })
-    }
-    return embeddingsByModelName
+    if (missingModelNames.length === 0) return embeddingsByModelName
+    this.logger.log(
+      `Embedding models [${missingModelNames.join(", ")}] were enabled on project ${projectId} meanwhile`,
+    )
+    const lateEmbeddings = await this.embedWithModels({ chunks, modelNames: missingModelNames })
+    return new Map([...embeddingsByModelName, ...lateEmbeddings])
   }
 
   async insertChunks({
@@ -177,8 +137,18 @@ export class DocumentEmbeddingsSharedService {
     doclingParentChunks?: DoclingParentChunk[]
     embeddingsByModelName: Map<string, ModelEmbeddings>
   }): Promise<void> {
+    const completeEmbeddingsByModelName = await this.addModelsEnabledMeanwhile({
+      projectId: scope.projectId,
+      chunks,
+      embeddingsByModelName,
+    })
     await this.deleteExistingChunks(scope.documentId)
-    await this.insertChildChunks({ scope, chunks, doclingChunks, embeddingsByModelName })
+    await this.insertChildChunks({
+      scope,
+      chunks,
+      doclingChunks,
+      embeddingsByModelName: completeEmbeddingsByModelName,
+    })
     if (doclingParentChunks) {
       await this.insertParentChunks({ scope, doclingParentChunks })
     }

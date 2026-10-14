@@ -1,4 +1,5 @@
 import { Module } from "@nestjs/common"
+import { EmbeddersModule } from "../embedders/embedders.module"
 import { DocumentChunkEmbeddingRepository } from "./document-chunk-embedding.repository"
 import { ProjectEmbeddingModelRepository } from "./project-embedding-model.repository"
 import { ProjectEmbeddingModelsService } from "./project-embedding-models.service"
@@ -10,7 +11,7 @@ import { ProjectEmbeddingReembedBatchModule } from "./project-embedding-reembed-
  * lives in DocumentsModule, which owns the guards it reuses.
  */
 @Module({
-  imports: [ProjectEmbeddingReembedBatchModule],
+  imports: [ProjectEmbeddingReembedBatchModule, EmbeddersModule],
   providers: [
     ProjectEmbeddingModelsService,
     ProjectEmbeddingModelRepository,

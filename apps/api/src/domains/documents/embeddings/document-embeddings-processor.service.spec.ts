@@ -1,6 +1,5 @@
 import { NotFoundException } from "@nestjs/common"
 import type { DataSource } from "typeorm"
-import type { LocalEmbeddingBridgeService } from "@/external/local-embeddings/local-embedding-bridge.service"
 import type { Document } from "../document.entity"
 import type { DocumentsService } from "../documents.service"
 import type { IFileStorage } from "../storage/file-storage.interface"
@@ -8,6 +7,7 @@ import type { DocumentEmbeddingStatusNotifierService } from "./document-embeddin
 import { DocumentEmbeddingsProcessorService } from "./document-embeddings-processor.service"
 import { DocumentEmbeddingsSharedService } from "./document-embeddings-shared.service"
 import type { DocumentTextExtractorService } from "./document-text-extractor.service"
+import type { EmbedderService } from "./embedders/embedder.service"
 import type { ProjectEmbeddingModelRepository } from "./project-embedding-models/project-embedding-model.repository"
 
 type ProcessorInternals = {
@@ -33,13 +33,13 @@ function buildSharedService(): DocumentEmbeddingsSharedService {
   const projectEmbeddingModelRepository = {
     listActiveModelNames: jest.fn().mockResolvedValue([]),
   } as unknown as ProjectEmbeddingModelRepository
-  const localEmbeddingBridge = { embed: jest.fn() } as unknown as LocalEmbeddingBridgeService
+  const embedderService = { embedDocuments: jest.fn() } as unknown as EmbedderService
   return new DocumentEmbeddingsSharedService(
     documentsService,
     embeddingStatusNotifierService,
     dataSource,
     projectEmbeddingModelRepository,
-    localEmbeddingBridge,
+    embedderService,
   )
 }
 
