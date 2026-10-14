@@ -34,6 +34,9 @@ jobs:
       - name: Build PDF Converter image
         run: make docker-build-pdf-converter
 
+      - name: Build Embedder image
+        run: make docker-build-embedder
+
       - name: Run Trivy vulnerability scanner on API
         uses: aquasecurity/trivy-action@0.35.0
         with:
@@ -85,6 +88,19 @@ jobs:
           trivyignores: '.trivyignore.yaml'
           output: 'trivy-pdf-converter-results.txt'
 
+      - name: Run Trivy vulnerability scanner on Embedder
+        if: always()
+        uses: aquasecurity/trivy-action@0.35.0
+        with:
+          image-ref: 'caseai-connect/embedder:local'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          pkg-types: 'os,library'
+          severity: 'CRITICAL,HIGH'
+          trivyignores: '.trivyignore.yaml'
+          output: 'trivy-embedder-results.txt'
+
       - name: Trivy scan summary
         if: always()
         run: |
@@ -110,4 +126,5 @@ jobs:
             print_report "CPU Workers Image" trivy-cpu-workers-results.txt
             print_report "GPU Workers Image" trivy-gpu-workers-results.txt
             print_report "PDF Converter Image" trivy-pdf-converter-results.txt
+            print_report "Embedder Image" trivy-embedder-results.txt
           } >> $GITHUB_STEP_SUMMARY

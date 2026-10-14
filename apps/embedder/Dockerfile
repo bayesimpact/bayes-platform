@@ -18,15 +18,20 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 COPY apps/embedder/requirements.txt ./
 RUN pip install --no-cache-dir --index-url ${TORCH_INDEX_URL} torch==${TORCH_VERSION} \
-  && pip install --no-cache-dir -r requirements.txt
+  && pip install --no-cache-dir -r requirements.txt \
+  # pip is build-time only. Its vendored copies carry HIGH CVEs that trivy reports.
+  && pip uninstall -y pip
 
 COPY apps/embedder/embedder.py apps/embedder/main.py ./
 
 # Bake the weights into the image so a container never downloads them at runtime.
 RUN EMBEDDER_DEVICE=cpu python embedder.py --prewarm $(printf -- '--model %s ' $(echo "${EMBEDDER_MODELS}" | tr ',' ' ')) \
   && chmod -R a+rX ${HF_HOME}
+# The weights are in the image: never reach the hub at runtime (read-only root filesystem).
+ENV HF_HUB_OFFLINE=1
 
-USER nobody
+# Numeric, so Kubernetes can check runAsNonRoot (nobody).
+USER 65534
 EXPOSE 3003
 HEALTHCHECK --interval=30s --timeout=5s --start-period=120s \
   CMD python -c "import os, urllib.request; urllib.request.urlopen(f'http://127.0.0.1:{os.environ[\"PORT\"]}/healthz')"
