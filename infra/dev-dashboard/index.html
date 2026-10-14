@@ -99,6 +99,29 @@
   .new output:empty { display: none; }
   .empty, .error { background: var(--card); border: 1px dashed var(--border); border-radius: 10px; padding: 1.25rem; color: var(--muted); }
   .error { border-color: var(--problem); color: var(--problem); }
+  .who { font-size: 0.8rem; color: var(--muted); }
+  .who button, .link-button { font: inherit; color: var(--accent); background: none; border: 0; padding: 0; cursor: pointer; }
+  .actions { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .actions button, .service-row button { font: inherit; font-size: 0.8rem; font-weight: 500; height: 1.85rem; color: var(--text); background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 0 0.65rem; cursor: pointer; }
+  .actions button:hover:not(:disabled), .service-row button:hover:not(:disabled) { background: var(--hover); }
+  .actions button.primary { color: #fff; background: var(--accent); border-color: var(--accent); }
+  .actions button.danger { color: var(--problem); }
+  .actions button:disabled, .service-row button:disabled { opacity: 0.55; cursor: progress; }
+  .service-row button { height: 1.5rem; font-size: 0.75rem; padding: 0 0.5rem; }
+  .owned summary { cursor: pointer; font-size: 0.8rem; color: var(--muted); }
+  .service-rows { display: grid; gap: 0.1rem; margin-top: 0.4rem; }
+  .service-row { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; padding: 0.1rem 0.25rem; border-radius: 4px; }
+  .service-row:hover { background: var(--hover); }
+  .service-row .name { flex: 1; }
+  .service-row .health { color: var(--muted); font-size: 0.75rem; }
+  .notice { font-size: 0.8rem; color: var(--problem); overflow-wrap: anywhere; }
+  .running { font-size: 0.8rem; color: var(--starting); }
+  dialog { width: min(60rem, 94vw); max-height: 85vh; padding: 0; color: var(--text); background: var(--card); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow); }
+  dialog::backdrop { background: rgb(0 0 0 / 0.35); }
+  .dialog-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.7rem 1rem; border-bottom: 1px solid var(--border); }
+  .dialog-head strong { overflow-wrap: anywhere; }
+  .dialog-head button { font: inherit; color: var(--text); background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 0.2rem 0.7rem; cursor: pointer; }
+  dialog pre { margin: 0; padding: 0.8rem 1rem; height: 60vh; overflow: auto; font: 0.78rem/1.45 ui-monospace, monospace; white-space: pre-wrap; overflow-wrap: anywhere; background: var(--bg); }
 </style>
 </head>
 <body>
@@ -106,6 +129,7 @@
   <header>
     <h1>Worktree environments</h1>
     <div class="header-side">
+      <span class="who" id="who"></span>
       <span class="meta" id="updated"></span>
       <div class="shared-title">
         <h2>Shared stack</h2>
@@ -124,6 +148,13 @@
   <div id="error"></div>
   <section class="grid" id="environments"></section>
 </main>
+<dialog id="output">
+  <div class="dialog-head">
+    <strong id="output-title"></strong>
+    <button type="button" id="output-close">Close</button>
+  </div>
+  <pre id="output-text"></pre>
+</dialog>
 <script>
   const LINK_LABELS = {
     app: "App",
@@ -151,6 +182,158 @@
 
   function link(name, url) {
     return element("a", { href: url, target: "_blank", rel: "noopener", text: LINK_LABELS[name] ?? name })
+  }
+
+  // --- Buttons: the caller's daemon (wt serve), through the gateway of /api (docs/adr/0026) ----
+  // `npm run wt -- login` gives a link with the token in its fragment, which no request carries.
+  // The page keeps it in its own storage, which no other origin reads, and drops the fragment.
+  const TOKEN_KEY = "wt-token"
+  const fragment = new URLSearchParams(location.hash.slice(1))
+  const fragmentToken = fragment.get("token")
+  // The menu bar app opens a job's output here: #job=<id>.
+  const fragmentJob = fragment.get("job")
+  if (fragmentToken || fragmentJob) history.replaceState(null, "", location.pathname)
+  if (fragmentToken) {
+    try {
+      localStorage.setItem(TOKEN_KEY, fragmentToken)
+    } catch {}
+  }
+  function token() {
+    try {
+      return localStorage.getItem(TOKEN_KEY)
+    } catch {
+      return null
+    }
+  }
+
+  async function api(path, { method = "GET", body } = {}) {
+    const response = await fetch(path, {
+      method,
+      cache: "no-store",
+      headers: { "x-wt-token": token() ?? "", ...(body ? { "content-type": "application/json" } : {}) },
+      body: body ? JSON.stringify(body) : undefined,
+    })
+    const answer = response.headers.get("content-type")?.includes("json") ? await response.json() : {}
+    if (!response.ok) throw new Error(answer.error ?? `HTTP ${response.status}`)
+    return answer
+  }
+
+  // Who the token names, null without one or when the daemon does not answer.
+  let me = null
+  let meError = null
+  async function loadMe() {
+    if (!token()) {
+      me = null
+      meError = null
+    } else {
+      try {
+        me = await api("/api/me")
+        meError = null
+      } catch (error) {
+        me = null
+        meError = error.message
+      }
+    }
+    showWho()
+  }
+
+  function showWho() {
+    const who = document.getElementById("who")
+    if (me) {
+      const forget = element("button", { type: "button", text: "sign out" })
+      forget.addEventListener("click", () => {
+        try {
+          localStorage.removeItem(TOKEN_KEY)
+        } catch {}
+        loadMe().then(() => rerender())
+      })
+      who.replaceChildren(`Buttons act as ${me.user} · `, forget)
+    } else if (meError) {
+      who.replaceChildren(element("span", { className: "notice", text: meError }))
+    } else {
+      who.replaceChildren("Read-only: ", element("code", { text: "npm run wt -- login" }), " enables the buttons")
+    }
+  }
+
+  // Actions in flight and the last error of each environment, kept across refreshes.
+  const pending = new Set()
+  const notices = new Map()
+  let jobs = []
+
+  async function act(key, slug, call) {
+    pending.add(key)
+    notices.delete(slug)
+    rerender()
+    try {
+      await call()
+    } catch (error) {
+      notices.set(slug, error.message)
+    } finally {
+      pending.delete(key)
+      refresh()
+    }
+  }
+
+  function actionButton({ key, slug, label, call, className, confirmation }) {
+    const button = element("button", { type: "button", text: pending.has(key) ? "…" : label })
+    if (className) button.className = className
+    button.disabled = pending.has(key)
+    button.addEventListener("click", () => {
+      if (confirmation && !confirm(confirmation)) return
+      act(key, slug, call)
+    })
+    return button
+  }
+
+  // The output of a job or of logs, streamed as JSON lines until it ends or the dialog closes.
+  let streaming = null
+  async function showStream(title, path) {
+    streaming?.abort()
+    const controller = new AbortController()
+    streaming = controller
+    const dialog = document.getElementById("output")
+    const text = document.getElementById("output-text")
+    document.getElementById("output-title").textContent = title
+    text.textContent = ""
+    if (!dialog.open) dialog.showModal()
+    const append = (value) => {
+      const atBottom = text.scrollHeight - text.scrollTop - text.clientHeight < 40
+      text.append(value)
+      if (atBottom) text.scrollTop = text.scrollHeight
+    }
+    try {
+      const response = await fetch(path, { headers: { "x-wt-token": token() ?? "" }, signal: controller.signal })
+      if (!response.ok) throw new Error((await response.json()).error ?? `HTTP ${response.status}`)
+      const reader = response.body.pipeThrough(new TextDecoderStream()).getReader()
+      let buffer = ""
+      for (;;) {
+        const { value, done } = await reader.read()
+        if (done) break
+        buffer += value
+        const lines = buffer.split("\n")
+        buffer = lines.pop()
+        for (const line of lines.filter(Boolean)) {
+          const event = JSON.parse(line)
+          if (event.type === "output") append(event.text)
+          else if (event.type === "exit") append(`\n${event.code === 0 ? "Finished." : `Failed (exit code ${event.code}).`}\n`)
+        }
+      }
+    } catch (error) {
+      if (error.name !== "AbortError") append(`\n${error.message}\n`)
+    } finally {
+      refresh()
+    }
+  }
+  document.getElementById("output-close").addEventListener("click", () => document.getElementById("output").close())
+  document.getElementById("output").addEventListener("close", () => streaming?.abort())
+
+  async function startJob(path, body) {
+    const { job } = await api(path, { method: "POST", body: body ?? {} })
+    showStream(`${job.command}`, `/api/jobs/${job.id}`)
+  }
+
+  function showJob(job) {
+    showStream(job.command, `/api/jobs/${job.id}`)
   }
 
   function service(entry) {
@@ -192,7 +375,7 @@
     const output = document.getElementById("new-command")
     const button = document.getElementById("new-copy")
     button.disabled = !valid
-    button.textContent = "New worktree"
+    button.textContent = me ? "Create" : "New worktree"
     if (!name) output.replaceChildren()
     else if (!valid) output.replaceChildren("Lowercase letters, digits and single hyphens, at most 32 characters.")
     else {
@@ -206,6 +389,19 @@
   document.getElementById("new-worktree").addEventListener("submit", async (event) => {
     event.preventDefault()
     const button = document.getElementById("new-copy")
+    const name = newWorktreeName(document.getElementById("new-name").value)
+    if (me) {
+      try {
+        const description = document.getElementById("new-description").value.trim()
+        await startJob("/api/worktrees", { name, ...(description ? { description } : {}) })
+        document.getElementById("new-name").value = ""
+        document.getElementById("new-description").value = ""
+        showNewWorktree()
+      } catch (error) {
+        document.getElementById("new-command").replaceChildren(element("span", { className: "notice", text: error.message }))
+      }
+      return
+    }
     try {
       await navigator.clipboard.writeText(newWorktreeCommand())
       button.textContent = "Copied, run it in the main checkout"
@@ -289,23 +485,129 @@
     return nodes.filter(Boolean).flatMap((node, index) => (index === 0 ? [node] : [document.createTextNode(" · "), node]))
   }
 
+  function isMine(environment) {
+    return Boolean(me) && environment.ownerUid === me.uid
+  }
+
+  const RUNNING = new Set(["healthy", "running", "starting", "unhealthy"])
+  const ONE_SHOT_SERVICES = new Set(["init", "db", "migrate"])
+
+  function serviceRow(environment, entry) {
+    const slug = environment.slug
+    const compose = (action) => () => api(`/api/environments/${slug}/${action}`, { method: "POST", body: { service: entry.name } })
+    const key = (action) => `${slug}/${entry.name}/${action}`
+    const buttons = []
+    const running = RUNNING.has(entry.health)
+    if (ONE_SHOT_SERVICES.has(entry.name)) {
+      if (!running) buttons.push(actionButton({ key: key("start"), slug, label: "Run", call: compose("start") }))
+    } else if (running) {
+      buttons.push(actionButton({ key: key("restart"), slug, label: "Restart", call: compose("restart") }))
+      buttons.push(actionButton({ key: key("stop"), slug, label: "Stop", call: compose("stop") }))
+    } else {
+      buttons.push(actionButton({ key: key("start"), slug, label: "Start", call: compose("start") }))
+    }
+    const logs = element("button", { type: "button", text: "Logs" })
+    logs.addEventListener("click", () => showStream(`${slug} · ${entry.name}`, `/api/environments/${slug}/logs?service=${entry.name}&follow=1`))
+    return element("div", { className: "service-row" }, [
+      element("span", { className: `dot ${entry.health}` }),
+      element("span", { className: "name", text: entry.name }),
+      element("span", { className: "health", text: entry.health }),
+      logs,
+      ...buttons,
+    ])
+  }
+
+  // What the owner of an environment can do from here, through their daemon.
+  const openServices = new Set()
+  function ownerControls(environment) {
+    const slug = environment.slug
+    const stopped = environment.state === "stopped"
+    const run = (action) => () => startJob(`/api/environments/${slug}/${action}`)
+    const compose = (action) => () => api(`/api/environments/${slug}/${action}`, { method: "POST", body: {} })
+    const open = (target) => () => api(`/api/environments/${slug}/open`, { method: "POST", body: { target } })
+    const job = jobs.find((entry) => entry.slug === slug && entry.exitCode === null)
+    const actions = [
+      actionButton({ key: `${slug}/env`, slug, label: stopped ? "Start" : "Stop", className: stopped ? "primary" : null, call: compose(stopped ? "start" : "stop") }),
+      actionButton({ key: `${slug}/up`, slug, label: "Update (wt up)", call: run("up") }),
+    ]
+    const logs = element("button", { type: "button", text: "Logs" })
+    logs.addEventListener("click", () => showStream(`${slug} · all services`, `/api/environments/${slug}/logs?follow=1`))
+    actions.push(logs)
+    if (me.platform === "darwin" && environment.path) {
+      actions.push(actionButton({ key: `${slug}/editor`, slug, label: "Editor", call: open("editor") }))
+      actions.push(actionButton({ key: `${slug}/terminal`, slug, label: "Terminal", call: open("terminal") }))
+    }
+    actions.push(
+      actionButton({ key: `${slug}/reset-db`, slug, label: "Reset databases", className: "danger", call: run("reset-db"), confirmation: `Replace the databases of ${slug} with a fresh copy of the main checkout's? A dump of the current ones is kept 14 days.` }),
+      actionButton({ key: `${slug}/down`, slug, label: "Remove environment", className: "danger", call: run("down"), confirmation: `Remove the environment of ${slug}: containers, volumes and databases? The worktree stays, and a dump is kept 14 days.` }),
+      actionButton({ key: `${slug}/cleanup`, slug, label: "Close worktree", className: "danger", call: run("cleanup"), confirmation: `Close ${slug}: its environment, databases, worktree and branch go, if nothing would be lost (${cleanupHint(environment.cleanup)})` }),
+    )
+    const services = element("details", { className: "owned" }, [
+      element("summary", { text: "Services" }),
+      element("div", { className: "service-rows" }, environment.services.map((entry) => serviceRow(environment, entry))),
+    ])
+    services.open = openServices.has(slug)
+    services.addEventListener("toggle", () => (services.open ? openServices.add(slug) : openServices.delete(slug)))
+    let running = null
+    if (job) {
+      const view = element("button", { type: "button", className: "link-button", text: "see its output" })
+      view.addEventListener("click", () => showJob(job))
+      running = element("div", { className: "running" }, [`${job.command} is running · `, view])
+    }
+    const notice = notices.get(slug)
+    return [
+      running,
+      element("div", { className: "actions" }, actions),
+      notice ? element("div", { className: "notice", text: notice }) : null,
+      // The last verdict of the cleanup, which runs at each session start.
+      environment.cleanup
+        ? element("div", {
+            className: "meta",
+            text: environment.cleanup.verdict === "keep" ? `Close worktree: kept for now, ${environment.cleanup.reason}.` : `Close worktree: safe (${environment.cleanup.reason}).`,
+          })
+        : null,
+      services,
+    ]
+  }
+
+  // What the worktree is for. Its owner changes it here, as `wt describe` does in the worktree.
+  function description(environment, mine) {
+    const edit = () => {
+      const text = prompt(`What is ${environment.slug} for?`, environment.description ?? "")
+      if (text === null || !text.trim()) return
+      act(`${environment.slug}/describe`, environment.slug, () =>
+        api(`/api/environments/${environment.slug}/describe`, { method: "POST", body: { description: text.trim() } }),
+      )
+    }
+    const editButton = mine
+      ? element("button", { type: "button", className: "link-button", text: environment.description ? "edit" : "Describe it" })
+      : null
+    editButton?.addEventListener("click", edit)
+    if (environment.description) {
+      return element("p", { className: "description", title: environment.description }, [
+        environment.description,
+        editButton ? " · " : null,
+        editButton,
+      ])
+    }
+    return element("p", { className: "description missing" }, mine
+      ? ["No description. ", editButton]
+      : ["No description: ", element("code", { text: 'npm run wt -- describe "…"' }), " in the worktree."])
+  }
+
   function environmentCard(environment) {
+    const mine = isMine(environment)
     const details = []
     if (environment.databases) details.push(field("Databases", Object.values(environment.databases).join(", ")))
     if (environment.path) details.push(field("Path", environment.path))
-    details.push(field("Close and cleanup worktree", environment.cleanupCommand, cleanupHint(environment.cleanup)))
+    if (!mine) details.push(field("Close and cleanup worktree", environment.cleanupCommand, cleanupHint(environment.cleanup)))
     return element("article", { className: "card" }, [
       element("div", { className: "title" }, [
         element("strong", { text: environment.slug }),
         statusBadge(environment.state, environment.services.map(service)),
       ]),
-      environment.description
-        ? element("p", { className: "description", title: environment.description, text: environment.description })
-        : element("p", { className: "description missing" }, [
-            "No description: ",
-            element("code", { text: 'npm run wt -- describe "…"' }),
-            " in the worktree.",
-          ]),
+      description(environment, mine),
+      environment.owner && !mine ? element("div", { className: "meta", text: `Owned by ${environment.owner}` }) : null,
       environment.branch || environment.issue || environment.pr
         ? element("div", { className: "branch" }, separated([
             environment.branch ? document.createTextNode(environment.branch) : null,
@@ -314,6 +616,7 @@
           ]))
         : null,
       openButton(environment),
+      ...(mine ? ownerControls(environment) : []),
       details.length ? element("div", { className: "details" }, details) : null,
     ])
   }
@@ -324,12 +627,26 @@
   let sharedData = null
 
   function card(environment) {
-    const data = JSON.stringify(environment)
+    // What else the card shows: the caller, and their actions, notices and jobs on it.
+    const slug = environment.slug
+    const data = JSON.stringify([
+      environment,
+      me?.uid,
+      [...pending].filter((key) => key.startsWith(`${slug}/`)),
+      notices.get(slug),
+      jobs.filter((job) => job.slug === slug && job.exitCode === null).map((job) => job.id),
+    ])
     const known = cards.get(environment.slug)
     return known?.data === data ? known : { data, node: environmentCard(environment) }
   }
 
+  let lastState = null
+  function rerender() {
+    if (lastState) render(lastState)
+  }
+
   function render(state) {
+    lastState = state
     const environments = document.getElementById("environments")
     cards = new Map(state.environments.map((environment) => [environment.slug, card(environment)]))
     const nodes = state.environments.length
@@ -366,7 +683,9 @@
     try {
       const response = await fetch("/api/state", { cache: "no-store" })
       if (!response.ok) throw new Error(`HTTP ${response.status}`)
-      render(await response.json())
+      const state = await response.json()
+      if (me) jobs = (await api("/api/jobs").catch(() => ({ jobs }))).jobs
+      render(state)
     } catch (error) {
       document.getElementById("error").replaceChildren(
         element("p", { className: "error", text: `Could not load the environments (${error.message}). Retrying.` }),
@@ -374,8 +693,13 @@
     }
   }
 
-  refresh()
-  setInterval(refresh, 5000)
+  loadMe().then(async () => {
+    showNewWorktree()
+    await refresh()
+    const job = jobs.find((entry) => entry.id === fragmentJob)
+    if (job) showJob(job)
+  })
+  setInterval(refresh, 3000)
 </script>
 </body>
 </html>

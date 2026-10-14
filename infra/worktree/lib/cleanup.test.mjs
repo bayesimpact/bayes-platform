@@ -20,7 +20,7 @@ const safe = {
   pr: merged,
   dirty: false,
   headInPullRequest: true,
-  inUse: false,
+  inUse: [],
   lastActivityAt: Date.parse("2026-10-08T09:00:00Z"),
   now,
 }
@@ -63,6 +63,11 @@ describe("decide", () => {
       "commits that are not in the pull request",
     ],
     ["a worktree in use", { inUse: true }, "in use"],
+    [
+      "a worktree with processes in it",
+      { inUse: ["claude (pid 79801)", "zsh (pid 46422)"] },
+      "in use by claude (pid 79801), zsh (pid 46422)",
+    ],
     [
       "a pull request merged minutes ago",
       { pr: { ...merged, mergedAt: "2026-10-08T14:45:00Z" } },

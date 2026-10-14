@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "The popover window: Tauri events and opening the environments' URLs in the browser.",
+  "windows": ["main"],
+  "permissions": ["core:default", "opener:default"]
+}

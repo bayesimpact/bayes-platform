@@ -154,6 +154,9 @@ export function buildState({ containers, status = {}, routerPort, now }) {
           pr: details.pr ?? null,
           databases: details.databases ?? null,
           cleanup: details.cleanup ?? null,
+          // From the daemon of its owner (wt serve), which alone acts on it.
+          owner: details.owner ?? null,
+          ownerUid: details.ownerUid ?? null,
           cleanupCommand: cleanupCommand(environment.slug),
           state: environmentState(environment.services),
           services: environment.services.sort((first, second) =>
