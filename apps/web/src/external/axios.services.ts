@@ -8,6 +8,8 @@ import agentCsvExtractionRuns from "@/common/features/agents/csv-extraction-runs
 import agents from "@/common/features/agents/external/agents.api"
 import appInstall from "@/common/features/app-install/external/app-install.api"
 import me from "@/common/features/me/external/me.api"
+import oauthConsent from "@/common/features/oauth-consent/external/oauth-consent.api"
+import oauthGrants from "@/common/features/oauth-grants/external/oauth-grants.api"
 import organizations from "@/common/features/organizations/external/organizations.api"
 import projects from "@/common/features/projects/external/projects.api"
 import evaluationConversationDatasets from "@/eval/features/evaluation-conversation-datasets/external/evaluation-conversation-datasets.api"
@@ -60,6 +62,8 @@ export const services = {
   mcpServers,
   appInstallations,
   me,
+  oauthConsent,
+  oauthGrants,
   invitations,
   organizations,
   projectAnalytics,

@@ -23,6 +23,8 @@ import type { AgentSettings } from "@/common/features/agents/agent-settings/agen
 import type { Agent } from "@/common/features/agents/agents.models"
 import type { AppInstallPage } from "@/common/features/app-install/app-install.models"
 import type { User } from "@/common/features/me/me.models"
+import type { OAuthConsentPage } from "@/common/features/oauth-consent/oauth-consent.models"
+import type { OAuthGrant } from "@/common/features/oauth-grants/oauth-grants.models"
 import { organizationFactory } from "@/common/features/organizations/organization.factory"
 import type { Organization } from "@/common/features/organizations/organizations.models"
 import type {
@@ -175,6 +177,31 @@ export const seed = {
         codeChallengeMethod: params.codeChallengeMethod ?? "S256",
       },
     }
+  },
+
+  /** Seeds the OAuth consent page as the API returned it for a valid request. */
+  oauthConsentPage(page: OAuthConsentPage): StoryPreloadedState {
+    return { oauthConsent: { page: ads.fulfilled(page) } }
+  },
+
+  /** Seeds the OAuth consent page as rejected by the API (invalid client or redirect URI). */
+  oauthConsentError(error: string): StoryPreloadedState {
+    return { oauthConsent: { page: ads.errored<OAuthConsentPage>(error) } }
+  },
+
+  /** MCP clients the signed-in person connected (connected apps dialog). */
+  oauthGrants(grants: OAuthGrant[]): StoryPreloadedState {
+    return { oauthGrants: { grants: ads.fulfilled(grants) } }
+  },
+
+  /** Connected apps still loading. */
+  oauthGrantsLoading(): StoryPreloadedState {
+    return { oauthGrants: { grants: ads.loading<OAuthGrant[]>() } }
+  },
+
+  /** Connected apps the API failed to list. */
+  oauthGrantsError(error: string): StoryPreloadedState {
+    return { oauthGrants: { grants: ads.errored<OAuthGrant[]>(error) } }
   },
 
   /** What the current agent remembers about the signed-in user (Studio and Desk conversations). */

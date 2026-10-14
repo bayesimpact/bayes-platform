@@ -5,6 +5,8 @@
 import { generateKeyPairSync } from "node:crypto"
 
 delete process.env.BULL_BOARD_ENABLED
+// OAuth and MCP URLs follow the test server's random port, never a local .env value.
+delete process.env.API_PUBLIC_URL
 
 // Worker queue selection fails fast when unset (see worker-pools.ts). `all`
 // enables every known queue, so this file never carries a copy of the list.

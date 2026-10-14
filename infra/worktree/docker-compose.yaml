@@ -289,7 +289,7 @@ services:
       - dev.worktree.service=api
       - dev.worktree.link.bull-board=${WT_ORIGIN}/api/internal/bull-board
       - traefik.enable=true
-      - traefik.http.routers.wt-${WT_SLUG}-api.rule=Host(`${WT_SLUG}.connect.localhost`) && PathRegexp(`^/(api|public)(/|$$)`)
+      - traefik.http.routers.wt-${WT_SLUG}-api.rule=Host(`${WT_SLUG}.connect.localhost`) && PathRegexp(`^/(api|public|\.well-known/oauth-(protected-resource|authorization-server))(/|$$)`)
       - traefik.http.routers.wt-${WT_SLUG}-api.priority=100
       - traefik.http.services.wt-${WT_SLUG}-api.loadbalancer.server.port=3000
 
@@ -322,7 +322,7 @@ services:
     environment:
       <<: *node-env
       FRONT_PORT: "5173"
-      # Same origin as the API: Traefik routes /api and /public of this host to it.
+      # Same origin as the API: Traefik routes /api, /public and the OAuth metadata of this host to it.
       VITE_API_URL: /api
       VITE_AGENT_EMBED_URL: ${WT_EMBED_ORIGIN}
       VITE_OIDC_AUTHORITY: ${WT_DEX_ISSUER}

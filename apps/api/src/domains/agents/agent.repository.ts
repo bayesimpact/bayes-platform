@@ -48,6 +48,17 @@ export class AgentRepository {
     })
   }
 
+  /** The organization and project of a live agent, or null when it does not exist. */
+  async findScopeById(
+    agentId: string,
+  ): Promise<{ organizationId: string; projectId: string } | null> {
+    const agent = await this.repo().findOne({
+      where: { id: agentId },
+      select: { id: true, organizationId: true, projectId: true },
+    })
+    return agent ? { organizationId: agent.organizationId, projectId: agent.projectId } : null
+  }
+
   async findIdsByProject(projectId: string): Promise<string[]> {
     const agents = await this.repo().find({
       where: { projectId },

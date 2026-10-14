@@ -248,6 +248,13 @@ SELECT 1;`)
           END IF;
           IF EXISTS (
             SELECT FROM information_schema.tables
+            WHERE table_schema = 'public' AND table_name = 'oauth_client'
+          ) THEN
+            -- Grants, codes and refresh tokens cascade from their client.
+            DELETE FROM "oauth_client";
+          END IF;
+          IF EXISTS (
+            SELECT FROM information_schema.tables
             WHERE table_schema = 'public' AND table_name = 'app_install_authorization_code'
           ) THEN
             DELETE FROM "app_install_authorization_code";

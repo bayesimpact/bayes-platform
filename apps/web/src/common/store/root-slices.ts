@@ -3,6 +3,8 @@ import { appInstallSlice } from "@/common/features/app-install/app-install.slice
 import { authSlice } from "@/common/features/auth/auth.slice"
 import { meSlice } from "@/common/features/me/me.slice"
 import { notificationsSlice } from "@/common/features/notifications/notifications.slice"
+import { oauthConsentSlice } from "@/common/features/oauth-consent/oauth-consent.slice"
+import { oauthGrantsSlice } from "@/common/features/oauth-grants/oauth-grants.slice"
 import { projectsSlice } from "@/common/features/projects/projects.slice"
 import { organizationsSlice } from "../features/organizations/organizations.slice"
 
@@ -15,6 +17,8 @@ export const rootSliceList = [
   authSlice,
   meSlice,
   notificationsSlice,
+  oauthConsentSlice,
+  oauthGrantsSlice,
   organizationsSlice,
   projectsSlice,
 ]

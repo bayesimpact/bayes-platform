@@ -2,6 +2,8 @@ import { configureStore, type Reducer } from "@reduxjs/toolkit"
 import { appInstallMiddleware } from "@/common/features/app-install/app-install.middleware"
 import { authMiddleware } from "@/common/features/auth/auth.middleware"
 import { meMiddleware } from "@/common/features/me/me.middleware"
+import { oauthConsentMiddleware } from "@/common/features/oauth-consent/oauth-consent.middleware"
+import { oauthGrantsMiddleware } from "@/common/features/oauth-grants/oauth-grants.middleware"
 import { getServices } from "@/di/services"
 import { organizationsMiddleware } from "../features/organizations/organizations.middleware"
 import { projectsMiddleware } from "../features/projects/projects.middleware"
@@ -25,6 +27,8 @@ export const buildStore = () =>
         appInstallMiddleware.middleware,
         authMiddleware.middleware,
         meMiddleware.middleware,
+        oauthConsentMiddleware.middleware,
+        oauthGrantsMiddleware.middleware,
         organizationsMiddleware.middleware,
         projectsMiddleware.middleware,
       ),
