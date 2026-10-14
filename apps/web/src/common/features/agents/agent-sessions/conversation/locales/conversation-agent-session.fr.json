@@ -20,7 +20,6 @@
       "placeholder": "Posez votre question..."
     },
     "subAgentResults": {
-      "view": "État du formulaire",
       "title": "État des formulaires des sous-agents",
       "description": "Résultats collectés par les sous-agents de remplissage de formulaire auxquels cet agent a délégué."
     },
