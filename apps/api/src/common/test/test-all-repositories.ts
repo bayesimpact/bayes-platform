@@ -33,6 +33,8 @@ import { Invitation } from "@/domains/invitations/invitation.entity"
 import { AgentMcpServer } from "@/domains/mcp-servers/agent-mcp-server.entity"
 import { McpServer } from "@/domains/mcp-servers/mcp-server.entity"
 import { UserMembership } from "@/domains/memberships/user-membership.entity"
+import { OAuthClient } from "@/domains/oauth/oauth-client.entity"
+import { OAuthGrant } from "@/domains/oauth/oauth-grant.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { Project } from "@/domains/projects/project.entity"
 import { AgentEmbedConfig } from "@/domains/public-chat/agent-embed-configs/agent-embed-config.entity"
@@ -82,6 +84,8 @@ export type AllRepositories = {
   evaluationExtractionRunRepository: Repository<EvaluationExtractionRun>
   extractionAgentSessionRepository: Repository<ExtractionAgentSession>
   featureFlagRepository: Repository<FeatureFlag>
+  oauthClientRepository: Repository<OAuthClient>
+  oauthGrantRepository: Repository<OAuthGrant>
   invitationRepository: Repository<Invitation>
   mcpServerRepository: Repository<McpServer>
   organizationRepository: Repository<Organization>
@@ -141,6 +145,8 @@ export function buildAllRepositories(
     evaluationExtractionRunRepository: getRepository(EvaluationExtractionRun),
     extractionAgentSessionRepository: getRepository(ExtractionAgentSession),
     featureFlagRepository: getRepository(FeatureFlag),
+    oauthClientRepository: getRepository(OAuthClient),
+    oauthGrantRepository: getRepository(OAuthGrant),
     invitationRepository: getRepository(Invitation),
     mcpServerRepository: getRepository(McpServer),
     organizationRepository: getRepository(Organization),

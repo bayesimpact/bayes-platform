@@ -32,6 +32,8 @@ export function configureGlobalPrefix(app: INestApplication): void {
     exclude: [
       { path: PUBLIC_PATH_PREFIX, method: RequestMethod.ALL },
       { path: `${PUBLIC_PATH_PREFIX}/{*path}`, method: RequestMethod.ALL },
+      // RFC 9728 metadata of the MCP endpoint, at the origin's well-known path.
+      { path: ".well-known/{*path}", method: RequestMethod.GET },
     ],
   })
 }

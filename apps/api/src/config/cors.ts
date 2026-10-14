@@ -57,11 +57,24 @@ export function parseFrontendUrls(
  * No caller sends cookies or uses `credentials: 'include'`, so credentialed
  * CORS stays off.
  */
+const OPEN_PROTOCOL_PATHS = [
+  "/api/oauth/token",
+  "/api/oauth/register",
+  "/api/oauth/revoke",
+  "/api/mcp",
+]
+
+function isOpenProtocolPath(url: string): boolean {
+  const path = url.split("?")[0] ?? ""
+  return path.startsWith("/.well-known/") || OPEN_PROTOCOL_PATHS.includes(path)
+}
+
 export function buildCorsOptionsDelegate(
   frontendUrls: string[],
 ): CorsOptionsDelegate<{ url?: string }> {
   return (req, callback: (error: Error | null, options: CorsOptions) => void) => {
     const isPublicEmbed = req.url?.startsWith(`/${PUBLIC_PATH_PREFIX}/`) ?? false
-    callback(null, { origin: isPublicEmbed ? true : frontendUrls })
+    const isOpenProtocol = req.url ? isOpenProtocolPath(req.url) : false
+    callback(null, { origin: isPublicEmbed || isOpenProtocol ? true : frontendUrls })
   }
 }

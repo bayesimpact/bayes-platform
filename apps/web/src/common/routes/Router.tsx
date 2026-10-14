@@ -5,6 +5,7 @@ import { HomeRoute } from "@/common/routes/HomeRoute"
 import { LogoutRoute } from "@/common/routes/LogoutRoute"
 import { McpOauthCallbackRoute } from "@/common/routes/McpOauthCallbackRoute"
 import { NotFoundRoute } from "@/common/routes/NotFoundRoute"
+import { OAuthAuthorizeRoute } from "@/common/routes/OAuthAuthorizeRoute"
 import { APP_BASE_PATH } from "@/config/runtime-config"
 import { deskRoutes } from "@/desk/routes/DeskRoutes"
 import { evalRoutes } from "@/eval/routes/EvalRoutes"
@@ -38,6 +39,7 @@ const router = () =>
           onboardingRoute,
           mcpOauthCallbackRoute,
           appsInstallRoute,
+          oauthAuthorizeRoute,
           studioRoutes,
           deskRoutes,
           evalRoutes,
@@ -73,4 +75,9 @@ export const mcpOauthCallbackRoute = {
 export const appsInstallRoute = {
   path: RouteNames.APPS_INSTALL,
   element: <AppsInstallRoute />,
+}
+
+export const oauthAuthorizeRoute = {
+  path: RouteNames.OAUTH_AUTHORIZE,
+  element: <OAuthAuthorizeRoute />,
 }

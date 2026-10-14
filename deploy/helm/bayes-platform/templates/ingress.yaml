@@ -8,14 +8,15 @@
 The api Deployment serves three surfaces on one process: the web front at /,
 the private API under /api, the public API under /public.
 - The web host (urls.web) gets all three: the front calls /api on its own origin.
-- When urls.api names another host, that host gets the API surfaces only, /api
-  and /public, never the front: it is the URL given to integrators.
+- When urls.api names another host, that host gets the API surfaces only, /api,
+  /public and the OAuth metadata of the MCP endpoint (/.well-known/oauth-*),
+  never the front: it is the URL given to integrators and MCP clients.
 Both carry ingress.apiAnnotations (uploads, long answers).
 */}}
 {{- if .Values.api.enabled }}
   {{- $rules = append $rules (dict "name" $apiService "component" "api" "host" $webHost "paths" (list "/") "service" $apiService "port" .Values.api.port "annotations" .Values.ingress.apiAnnotations) }}
   {{- if ne $apiHost $webHost }}
-  {{- $rules = append $rules (dict "name" (printf "%s-host" $apiService) "component" "api" "host" $apiHost "paths" (list "/api" "/public") "service" $apiService "port" .Values.api.port "annotations" .Values.ingress.apiAnnotations) }}
+  {{- $rules = append $rules (dict "name" (printf "%s-host" $apiService) "component" "api" "host" $apiHost "paths" (list "/api" "/public" "/.well-known/oauth-protected-resource" "/.well-known/oauth-authorization-server") "service" $apiService "port" .Values.api.port "annotations" .Values.ingress.apiAnnotations) }}
   {{- end }}
   {{- /*
   /api/healthz is for the kubelet, which reaches the pod directly: it queries

@@ -7,6 +7,7 @@
     "logout": "Se déconnecter",
     "helpCenter": "Centre d'aide",
     "editProfile": "Modifier le profil",
+    "connectedApps": "Applications connectées",
     "editProfileDialog": {
       "title": "Modifier le profil",
       "namePlaceholder": "Votre nom",

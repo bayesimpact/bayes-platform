@@ -18,8 +18,7 @@ import { RouteNames } from "@/common/routes/helpers"
 import { publicAssetUrl } from "@/config/runtime-config"
 import type { DeskRoutes } from "@/desk/routes/helpers"
 import { isStudioInterface, type StudioRoutes } from "@/studio/routes/helpers"
-import { EditProfileDialog } from "./nav/EditProfileDialog"
-import { NavUserMenuItems } from "./nav/NavUserMenuItems"
+import { NavUserMenuItems, type UserMenuDialog, UserMenuDialogs } from "./nav/NavUserMenuItems"
 import { SidebarBreadcrumb } from "./SidebarBreadcrumb"
 
 export function SidebarLayout({
@@ -41,7 +40,7 @@ export function SidebarLayout({
   routes?: typeof StudioRoutes | typeof DeskRoutes
   defaultOpen?: boolean
 }) {
-  const [editProfileOpen, setEditProfileOpen] = useState(false)
+  const [openDialog, setOpenDialog] = useState<UserMenuDialog | null>(null)
 
   return (
     <SidebarProvider
@@ -68,9 +67,9 @@ export function SidebarLayout({
 
         <SidebarFooter>
           <NavUser user={user}>
-            <NavUserMenuItems onEditProfile={() => setEditProfileOpen(true)} />
+            <NavUserMenuItems onOpenDialog={setOpenDialog} />
           </NavUser>
-          <EditProfileDialog open={editProfileOpen} onClose={() => setEditProfileOpen(false)} />
+          <UserMenuDialogs openDialog={openDialog} onClose={() => setOpenDialog(null)} />
         </SidebarFooter>
       </Sidebar>
 
