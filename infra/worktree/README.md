@@ -41,6 +41,8 @@ cleanup of a session start.
 | `down` | Removes its containers, volumes and databases. A dump stays in `~/.bayes-worktrees/trash/` for 14 days. |
 | `serve` | Runs your daemon, which the buttons of the dashboard and of the menu bar app go through. The session start hook starts it. |
 | `login [--rotate]` | Prints the link that enables those buttons in your browser, and your token. |
+| `promote [--apply --all \| --groups 1,3]` | What the worktree's database has that the main one lacks, in groups, or copies it there. See below. |
+| `restore-main [<id>]` | The restore points of the main database, or puts it back as it was at one. |
 | `status`, `doctor` | Every environment of the machine; checks of the machine. |
 | `cleanup [--apply]` | What can go now that pull requests are merged (see below), or remove it. |
 
@@ -58,6 +60,7 @@ your own environments:
 - `up` ("Update"), `reset-db`, `down` ("Remove environment") and `cleanup --apply --slug`
   ("Close worktree"), whose output streams in the page, the last three after a confirmation;
 - `new` from the "New worktree" form, and `describe` from the card;
+- `promote` ("Import into main"), row by row, and `restore-main` ("main database" in the header);
 - the logs of the environment or of one service, followed live;
 - on a Mac, the worktree opened in your editor or in Terminal. `WT_EDITOR`, in the environment of
   the daemon, names your editor's command (`webstorm`, `cursor`...), VS Code's `code` by default.
@@ -73,6 +76,46 @@ Mac; its output goes to `~/.bayes-worktrees/serve.log`. The dashboard forwards e
 daemon of the token's owner, after checking that it comes from the dashboard itself: the
 worktrees' own apps and other web pages cannot reach it.
 [ADR 0026](../../docs/adr/0026-worktree-control-daemon.md) explains why.
+
+## Data into the main database
+
+Every new worktree starts from a copy of the main checkout's database. To keep what you set up in
+a worktree, an app connected to a project or an MCP server for example, copy it into the main
+database: "Import into main" on its card, or in the worktree:
+
+```bash
+npm run wt -- promote
+```
+
+It lists, in groups, what the worktree's database has that the main one lacks: `+` new rows,
+`~` rows changed in the worktree, `!` rows the main database changed too. A group is what was
+made together, found through the foreign keys: an app installation comes with its manifest, its
+service user, its role and their memberships. Rows tied to nothing, messages or activities, gather
+per table. In the dashboard you pick row by row; picking a row picks what it needs, leaving one
+out leaves out what needs it. On the command line, `--apply --all` copies the rows marked `[x]`,
+`--apply --groups 1,3` those of some groups.
+
+New rows start selected, except revoked, consumed or expired ones. Changes to rows of the main
+database and conflicts are always a choice. Tables of lone rows you left out entirely start
+unselected next time. Nothing is ever deleted in the main database. It works from the schema
+alone, so a new table needs nothing: see
+[ADR 0027](../../docs/adr/0027-worktree-data-into-main.md).
+
+Run the branch's migrations in the main checkout first (`npm run migration:run -w apps/api`):
+`promote` refuses to copy while the main database lacks some, since rows they insert would come
+twice. Import before closing the worktree: its database goes with it.
+
+Each copy first takes a restore point of the main database, kept 14 days in
+`~/.bayes-worktrees/restore-points`. "main database" in the dashboard's header lists them, as
+`npm run wt -- restore-main` does, and puts the main database back as it was at one:
+
+```bash
+npm run wt -- restore-main 2026-10-14T10-20-11-322Z
+```
+
+A restore takes a restore point too, so it can be undone. The main API reconnects by itself. On a
+machine where several people share the main database, a restore also undoes what they changed
+since.
 
 ## Cleanup after merge
 
@@ -160,7 +203,7 @@ Chrome or Firefox: Safari does not resolve `*.localhost`. Windows is not support
 - **Shared state.** `~/.bayes-worktrees/` holds the local dev password hash, each environment's Dex
   configuration, `status.json` for the dashboard (description, issue, branch, pull request,
   databases, cleanup verdict), your token (`api-token`), how to start your daemon again
-  (`daemon.json`), its log, locks and dumps.
+  (`daemon.json`), its log, the restore points of the main database, locks and dumps.
 
 ## When something goes wrong
 
@@ -177,6 +220,8 @@ Chrome or Firefox: Safari does not resolve `*.localhost`. Windows is not support
 - **The dashboard shows no buttons, or "Your daemon does not run".** Run `npm run wt -- serve`
   (or start a Claude Code session), then `npm run wt -- login` and open its link. "Missing or
   wrong token" means the token changed: open the link again.
+- **"Import into main" says the main database lacks migrations.** Run
+  `npm run migration:run -w apps/api` in the main checkout, then open it again.
 - **"Close worktree" removes nothing.** The cleanup keeps what holds work and says why: a pull
   request still open, uncommitted changes, a session or a shell in the folder, recent activity.
 - **A URL shows "not answering yet".** The service is starting or restarting; the page reloads by

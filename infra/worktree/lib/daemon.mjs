@@ -3,6 +3,7 @@
 import { createHash, timingSafeEqual } from "node:crypto"
 import { join } from "node:path"
 import { slugProblem } from "./naming.mjs"
+import { validRestorePointId } from "./promote.mjs"
 
 // Machine-wide: each daemon describes itself here, and the dashboard's container mounts it.
 export const DAEMON_DIR = process.env.WT_DAEMON_DIR ?? "/var/tmp/bayes-worktrees"
@@ -17,6 +18,7 @@ const COMPOSE_ACTIONS = new Set(["start", "stop", "restart"])
 const JOB_ACTIONS = new Set(["up", "down", "reset-db", "cleanup"])
 const OTHER_ACTIONS = new Set(["logs", "open", "describe"])
 const MAX_DESCRIPTION = 500
+const MAX_SELECTED_ROWS = 20000
 
 /** The uid and secret of a token, `<uid>.<secret>`, or null. */
 export function parseToken(token) {
@@ -44,8 +46,20 @@ export function matchRoute(method, pathname) {
   if (resource === "worktrees" && parts.length === 2 && method === "POST") {
     return { route: "new" }
   }
+  // Restore points of the main database, which `promote` takes.
+  if (resource === "restore-points") {
+    if (method === "GET" && parts.length === 2) return { route: "restore-points" }
+    if (method === "POST" && action === "restore" && extra === undefined) {
+      return validRestorePointId(id) ? { route: "restore", id } : null
+    }
+    return null
+  }
   if (resource !== "environments" || extra !== undefined || slugProblem(id ?? "")) return null
   if (action === "logs" && method === "GET") return { route: "logs", slug: id }
+  // The diff of its data with the main database (GET), or copying a selection of it (POST).
+  if (action === "promote" && ["GET", "POST"].includes(method)) {
+    return { route: method === "GET" ? "promote-diff" : "promote", slug: id }
+  }
   if (method !== "POST") return null
   if (COMPOSE_ACTIONS.has(action)) return { route: "compose", slug: id, action }
   if (JOB_ACTIONS.has(action)) return { route: "job-action", slug: id, action }
@@ -70,6 +84,8 @@ export function jobCommand({
   path,
   worktreeExists,
   mainCheckout,
+  selection,
+  restorePoint,
 }) {
   const main = { script: join(mainCheckout, "infra/worktree/wt.mjs"), cwd: mainCheckout }
   const own = worktreeExists ? { script: join(path, "infra/worktree/wt.mjs"), cwd: path } : null
@@ -81,6 +97,12 @@ export function jobCommand({
       }
     case "cleanup":
       return { ...main, args: ["cleanup", "--apply", "--slug", slug] }
+    case "promote-diff":
+      return { ...main, args: ["promote", "--slug", slug, "--json"] }
+    case "promote":
+      return { ...main, args: ["promote", "--slug", slug, "--apply", "--selection", selection] }
+    case "restore":
+      return { ...main, args: ["restore-main", restorePoint] }
     case "down":
       return own ? { ...own, args: ["down"] } : { ...main, args: ["down", "--slug", slug] }
     case "up":
@@ -90,6 +112,16 @@ export function jobCommand({
     default:
       throw new Error(`Unknown action ${action}`)
   }
+}
+
+/** The rows a page selected for `promote`: row keys, or null when it is not a list of them. */
+export function validSelection(keys) {
+  if (!Array.isArray(keys) || !keys.length || keys.length > MAX_SELECTED_ROWS) return null
+  return keys.every(
+    (key) => typeof key === "string" && key.length <= 512 && /^[a-z0-9_]+:\[/u.test(key),
+  )
+    ? keys
+    : null
 }
 
 /** A description given by the page, trimmed, or null when it is missing or too long. */

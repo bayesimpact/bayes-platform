@@ -1,6 +1,6 @@
 # ADR 0025: One dev environment per git worktree
 
-* **Status**: Accepted, amended by [ADR 0026](0026-worktree-control-daemon.md) (dashboard buttons)
+* **Status**: Accepted, amended by [ADR 0026](0026-worktree-control-daemon.md) (dashboard buttons) and [ADR 0027](0027-worktree-data-into-main.md) (data into the main database)
 * **Date**: 2026-10-08
 * **Deciders**: Alexis, Jérémie
 * **Scope**: Local development: `infra/worktree/`, `infra/database/` (shared stack, `router` profile), `infra/dev-dashboard/`, `infra/dex/`, the `/worktree-env` skill, `CLAUDE.md`.

@@ -3,7 +3,15 @@
 // See docs/adr/0026-worktree-control-daemon.md. Node built-ins only.
 import { execFile, spawn } from "node:child_process"
 import { randomBytes, randomUUID } from "node:crypto"
-import { chmodSync, existsSync, mkdirSync, readFileSync, rmSync, statSync } from "node:fs"
+import {
+  chmodSync,
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  statSync,
+} from "node:fs"
 import { createServer } from "node:http"
 import { uptime, userInfo } from "node:os"
 import { join } from "node:path"
@@ -18,15 +26,20 @@ import {
   sameToken,
   TOKEN_HEADER,
   validDescription,
+  validSelection,
   validService,
 } from "./daemon.mjs"
 import { slugProblem } from "./naming.mjs"
+import { listRestorePoints } from "./promotion.mjs"
 import { readStatus } from "./status.mjs"
 import { readJson, writeFileAtomic } from "./system.mjs"
 
 export const TOKEN_FILE = join(STATE_DIR, "api-token")
 export const DAEMON_FILE = join(STATE_DIR, "daemon.json")
 const MAX_BODY = 16 * 1024
+// A selection of rows to promote: their keys, up to a few thousands.
+const MAX_SELECTION_BODY = 4 * 1024 * 1024
+const SELECTIONS_DIR = join(STATE_DIR, "promote-selections")
 const MAX_JOB_OUTPUT = 2 * 1024 * 1024
 const KEPT_JOBS = 20
 // Hosts a request may name: the dashboard through its gateway, or a local client.
@@ -190,6 +203,18 @@ async function handle({ request, response, jobs, mainCheckout }) {
         }),
       })
     }
+    case "restore-points":
+      return sendJson(response, 200, { restorePoints: listRestorePoints() })
+    case "restore":
+      await readBody(request)
+      // One job for the main database at a time: a restore, or a copy into it.
+      return startJob({
+        jobs,
+        response,
+        slug: "main-database",
+        action: "restore-main",
+        command: jobCommand({ action: "restore", restorePoint: route.id, mainCheckout }),
+      })
   }
 
   const environment = await ownEnvironment(route.slug)
@@ -258,6 +283,35 @@ async function handle({ request, response, jobs, mainCheckout }) {
       } catch (error) {
         return sendJson(response, 500, { error: String(error.stderr || error.message).trim() })
       }
+    }
+    case "promote-diff": {
+      // `wt promote --json` of the main checkout: a few seconds, both databases are read.
+      const command = jobCommand({ action: "promote-diff", slug: route.slug, mainCheckout })
+      try {
+        const { stdout } = await execFileAsync(
+          process.execPath,
+          [command.script, ...command.args],
+          {
+            cwd: command.cwd,
+            maxBuffer: 256 * 1024 * 1024,
+          },
+        )
+        return sendJson(response, 200, JSON.parse(stdout))
+      } catch (error) {
+        return sendJson(response, 500, { error: String(error.stderr || error.message).trim() })
+      }
+    }
+    case "promote": {
+      const keys = validSelection((await readBody(request, MAX_SELECTION_BODY)).keys)
+      if (!keys) return sendJson(response, 400, { error: "Select the rows to copy" })
+      const selection = writeSelection(keys)
+      return startJob({
+        jobs,
+        response,
+        slug: route.slug,
+        action: "promote",
+        command: jobCommand({ action: "promote", slug: route.slug, selection, mainCheckout }),
+      })
     }
     case "open": {
       const { target } = await readBody(request)
@@ -399,13 +453,26 @@ function openFolder(path, target) {
   return [200, { ok: true }]
 }
 
-function readBody(request) {
+/** Writes the keys a page selected, for `wt promote --selection`, and drops old selections. */
+function writeSelection(keys) {
+  mkdirSync(SELECTIONS_DIR, { recursive: true, mode: 0o700 })
+  const dayAgo = Date.now() - 24 * 60 * 60 * 1000
+  for (const name of readdirSync(SELECTIONS_DIR)) {
+    const path = join(SELECTIONS_DIR, name)
+    if (statSync(path).mtimeMs < dayAgo) rmSync(path, { force: true })
+  }
+  const path = join(SELECTIONS_DIR, `${randomUUID()}.json`)
+  writeFileAtomic(path, JSON.stringify(keys), 0o600)
+  return path
+}
+
+function readBody(request, limit = MAX_BODY) {
   return new Promise((resolve, reject) => {
     let body = ""
     request.setEncoding("utf8")
     request.on("data", (chunk) => {
       body += chunk
-      if (body.length > MAX_BODY) {
+      if (body.length > limit) {
         reject(new Error("Body too large"))
         request.destroy()
       }

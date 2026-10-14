@@ -7,6 +7,7 @@ import {
   matchRoute,
   parseToken,
   sameToken,
+  validSelection,
   validService,
 } from "./daemon.mjs"
 
@@ -163,5 +164,61 @@ describe("daemonDescription and loginUrl", () => {
       loginUrl("http://dev.connect.localhost:8800", `501.${SECRET}`),
       `http://dev.connect.localhost:8800/#token=501.${SECRET}`,
     )
+  })
+})
+
+describe("promote and restore points", () => {
+  const mainCheckout = "/home/alice/bayes-platform"
+
+  it("routes the diff, the copy and the restore points", () => {
+    assert.deepEqual(matchRoute("GET", "/api/environments/fix-sidebar/promote"), {
+      route: "promote-diff",
+      slug: "fix-sidebar",
+    })
+    assert.deepEqual(matchRoute("POST", "/api/environments/fix-sidebar/promote"), {
+      route: "promote",
+      slug: "fix-sidebar",
+    })
+    assert.deepEqual(matchRoute("GET", "/api/restore-points"), { route: "restore-points" })
+    assert.deepEqual(matchRoute("POST", "/api/restore-points/2026-10-14T10-20-11-322Z/restore"), {
+      route: "restore",
+      id: "2026-10-14T10-20-11-322Z",
+    })
+    assert.equal(matchRoute("POST", "/api/restore-points/..%2F..%2Fetc/restore"), null)
+    assert.equal(matchRoute("DELETE", "/api/environments/fix-sidebar/promote"), null)
+  })
+
+  it("runs the main checkout's wt.mjs for both", () => {
+    assert.deepEqual(
+      jobCommand({ action: "promote-diff", slug: "fix-sidebar", mainCheckout }).args,
+      ["promote", "--slug", "fix-sidebar", "--json"],
+    )
+    assert.deepEqual(
+      jobCommand({
+        action: "promote",
+        slug: "fix-sidebar",
+        selection: "/tmp/s.json",
+        mainCheckout,
+      }),
+      {
+        script: `${mainCheckout}/infra/worktree/wt.mjs`,
+        cwd: mainCheckout,
+        args: ["promote", "--slug", "fix-sidebar", "--apply", "--selection", "/tmp/s.json"],
+      },
+    )
+    assert.deepEqual(
+      jobCommand({ action: "restore", restorePoint: "2026-10-14T10-20-11-322Z", mainCheckout })
+        .args,
+      ["restore-main", "2026-10-14T10-20-11-322Z"],
+    )
+  })
+
+  it("accepts a selection of row keys only", () => {
+    const keys = ['app_manifest:["745abe2d-94e1-46c6-9b45-e90c73c66612"]']
+    assert.deepEqual(validSelection(keys), keys)
+    assert.equal(validSelection([]), null)
+    assert.equal(validSelection("app_manifest"), null)
+    assert.equal(validSelection(["--all"]), null)
+    assert.equal(validSelection([42]), null)
   })
 })

@@ -121,6 +121,28 @@
   .dialog-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.7rem 1rem; border-bottom: 1px solid var(--border); }
   .dialog-head strong { overflow-wrap: anywhere; }
   .dialog-head button { font: inherit; color: var(--text); background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 0.2rem 0.7rem; cursor: pointer; }
+  .panel-body { padding: 0.8rem 1rem; max-height: 65vh; overflow: auto; display: grid; gap: 0.6rem; font-size: 0.85rem; }
+  .panel-foot { display: flex; align-items: center; justify-content: flex-end; gap: 0.6rem; padding: 0.7rem 1rem; border-top: 1px solid var(--border); }
+  .panel-foot button { font: inherit; font-weight: 500; height: 2rem; padding: 0 0.85rem; border-radius: 6px; border: 1px solid var(--accent); color: #fff; background: var(--accent); cursor: pointer; }
+  .panel-foot button:disabled { opacity: 0.5; cursor: default; }
+  .panel-foot .meta { margin-right: auto; }
+  .warning { border: 1px solid var(--starting); border-radius: 8px; padding: 0.6rem 0.75rem; color: var(--text); }
+  .group { border: 1px solid var(--border); border-radius: 8px; }
+  .group summary { display: flex; flex-wrap: wrap; align-items: center; gap: 0.2rem 0.5rem; padding: 0.45rem 0.6rem; cursor: pointer; list-style: none; }
+  .group summary::-webkit-details-marker { display: none; }
+  .group-title { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+  .group-summary { flex-basis: 100%; padding-left: 1.6rem; font-size: 0.75rem; color: var(--muted); overflow-wrap: anywhere; }
+  .group-rows { display: grid; gap: 0.1rem; padding: 0 0.6rem 0.5rem 2rem; }
+  .change { display: flex; align-items: baseline; gap: 0.45rem; font-size: 0.8rem; }
+  .change .kind { font-family: ui-monospace, monospace; width: 0.8rem; }
+  .change .kind.added { color: var(--ready); }
+  .change .kind.changed { color: var(--starting); }
+  .change .kind.conflict { color: var(--problem); }
+  .change .table { font-family: ui-monospace, monospace; color: var(--muted); }
+  .point { display: flex; align-items: center; gap: 0.75rem; border-bottom: 1px solid var(--border); padding: 0.45rem 0; }
+  .point:last-child { border-bottom: 0; }
+  .point-text { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+  .point button { font: inherit; font-size: 0.8rem; height: 1.85rem; padding: 0 0.65rem; border-radius: 6px; border: 1px solid var(--border); color: var(--problem); background: var(--card); cursor: pointer; }
   dialog pre { margin: 0; padding: 0.8rem 1rem; height: 60vh; overflow: auto; font: 0.78rem/1.45 ui-monospace, monospace; white-space: pre-wrap; overflow-wrap: anywhere; background: var(--bg); }
 </style>
 </head>
@@ -148,6 +170,14 @@
   <div id="error"></div>
   <section class="grid" id="environments"></section>
 </main>
+<dialog id="panel">
+  <div class="dialog-head">
+    <strong id="panel-title"></strong>
+    <button type="button" id="panel-close">Close</button>
+  </div>
+  <div class="panel-body" id="panel-body"></div>
+  <div class="panel-foot" id="panel-foot"></div>
+</dialog>
 <dialog id="output">
   <div class="dialog-head">
     <strong id="output-title"></strong>
@@ -247,12 +277,175 @@
         } catch {}
         loadMe().then(() => rerender())
       })
-      who.replaceChildren(`Buttons act as ${me.user} · `, forget)
+      const restore = element("button", { type: "button", text: "main database" })
+      restore.addEventListener("click", showRestorePoints)
+      who.replaceChildren(`Buttons act as ${me.user} · `, restore, " · ", forget)
     } else if (meError) {
       who.replaceChildren(element("span", { className: "notice", text: meError }))
     } else {
       who.replaceChildren("Read-only: ", element("code", { text: "npm run wt -- login" }), " enables the buttons")
     }
+  }
+
+  // --- Data of a worktree into the main database (wt promote) and its restore points ---------
+  function openPanel(title) {
+    document.getElementById("panel-title").textContent = title
+    document.getElementById("panel-body").replaceChildren(element("p", { className: "meta", text: "Reading both databases…" }))
+    document.getElementById("panel-foot").replaceChildren()
+    const panel = document.getElementById("panel")
+    if (!panel.open) panel.showModal()
+  }
+  document.getElementById("panel-close").addEventListener("click", () => document.getElementById("panel").close())
+
+  const KIND_MARKS = { added: "+", changed: "~", conflict: "!" }
+
+  // What the worktree's database has that the main one lacks, in groups to pick from. Checking a
+  // row checks the new rows it needs, unchecking one unchecks the rows that need it.
+  async function showPromotion(slug) {
+    openPanel(`Import the data of ${slug} into the main database`)
+    let promotion
+    try {
+      promotion = await api(`/api/environments/${slug}/promote`)
+    } catch (error) {
+      document.getElementById("panel-body").replaceChildren(element("p", { className: "notice", text: error.message }))
+      return
+    }
+    const changes = new Map(promotion.groups.flatMap((group) => group.changes).map((change) => [change.key, change]))
+    const selected = new Set([...changes.values()].filter((change) => change.selected).map((change) => change.key))
+    const dependents = new Map()
+    for (const change of changes.values()) {
+      for (const target of change.requires) {
+        if (!dependents.has(target)) dependents.set(target, [])
+        dependents.get(target).push(change.key)
+      }
+    }
+    // The row and everything it reaches through `edges`.
+    const reach = (key, edges) => {
+      const reached = new Set()
+      const pending = [key]
+      while (pending.length) {
+        const current = pending.pop()
+        if (reached.has(current)) continue
+        reached.add(current)
+        pending.push(...(edges(current) ?? []))
+      }
+      return reached
+    }
+    const toggle = (key, on) => {
+      if (on) for (const current of reach(key, (row) => changes.get(row)?.requires)) selected.add(current)
+      else for (const current of reach(key, (row) => dependents.get(row))) selected.delete(current)
+      draw()
+    }
+    const blocked = promotion.missingMigrations.length > 0
+    const openGroups = new Set()
+
+    function draw() {
+      const body = []
+      if (blocked) {
+        body.push(element("div", { className: "warning" }, [
+          `The main database lacks migrations of ${slug} (${promotion.missingMigrations.join(", ")}). Run `,
+          element("code", { text: "npm run migration:run -w apps/api" }),
+          " in the main checkout, then open this again: some rows below come from those migrations.",
+        ]))
+      }
+      if (!promotion.groups.length) {
+        body.push(element("p", { className: "meta", text: `${promotion.worktreeDatabase} has nothing that ${promotion.mainDatabase} lacks.` }))
+      }
+      for (const group of promotion.groups) {
+        const keys = group.changes.map((change) => change.key)
+        const count = keys.filter((key) => selected.has(key)).length
+        const box = element("input", { type: "checkbox", "aria-label": `Import ${group.title}` })
+        box.checked = count === keys.length
+        box.indeterminate = count > 0 && count < keys.length
+        box.addEventListener("click", (event) => event.stopPropagation())
+        box.addEventListener("change", () => {
+          for (const key of keys) toggle(key, box.checked)
+        })
+        const rows = group.changes.map((change) => {
+          const rowBox = element("input", { type: "checkbox", "aria-label": `Import ${change.table} ${change.label}` })
+          rowBox.checked = selected.has(change.key)
+          rowBox.addEventListener("change", () => toggle(change.key, rowBox.checked))
+          const details = [...change.context, ...change.state].join(", ")
+          return element("label", { className: "change" }, [
+            rowBox,
+            element("span", { className: `kind ${change.kind}`, text: KIND_MARKS[change.kind], title: change.kind }),
+            element("span", { className: "table", text: change.table }),
+            element("span", { text: change.label }),
+            details ? element("span", { className: "meta", text: details }) : null,
+          ])
+        })
+        const details = element("details", { className: "group" }, [
+          element("summary", {}, [
+            box,
+            element("strong", { className: "group-title", text: group.title }),
+            element("span", { className: "meta", text: `${count}/${keys.length}` }),
+            element("span", { className: "group-summary", text: group.summary }),
+          ]),
+          element("div", { className: "group-rows" }, rows),
+        ])
+        details.open = openGroups.has(group.title)
+        details.addEventListener("toggle", () => (details.open ? openGroups.add(group.title) : openGroups.delete(group.title)))
+        body.push(details)
+      }
+      for (const { table, rows, reason } of promotion.blocked) {
+        body.push(element("p", { className: "meta", text: `Not importable: ${rows} rows of ${table}, ${reason}.` }))
+      }
+      document.getElementById("panel-body").replaceChildren(...body)
+
+      const apply = element("button", { type: "button", text: `Copy ${selected.size} rows into ${promotion.mainDatabase}` })
+      apply.disabled = blocked || selected.size === 0
+      apply.addEventListener("click", async () => {
+        if (!confirm(`Copy ${selected.size} rows into ${promotion.mainDatabase}? A restore point of it is taken first, and every new worktree gets these rows.`)) return
+        apply.disabled = true
+        try {
+          document.getElementById("panel").close()
+          await startJob(`/api/environments/${slug}/promote`, { keys: [...selected] })
+        } catch (error) {
+          notices.set(slug, error.message)
+          rerender()
+        }
+      })
+      document.getElementById("panel-foot").replaceChildren(
+        element("span", { className: "meta", text: "+ new · ~ changed in the worktree · ! changed in main too" }),
+        apply,
+      )
+    }
+    draw()
+  }
+
+  // The restore points of the main database: one before each import and each restore.
+  async function showRestorePoints() {
+    openPanel("Main database: restore points")
+    let restorePoints
+    try {
+      ;({ restorePoints } = await api("/api/restore-points"))
+    } catch (error) {
+      document.getElementById("panel-body").replaceChildren(element("p", { className: "notice", text: error.message }))
+      return
+    }
+    const rows = restorePoints.map((point) => {
+      const restore = element("button", { type: "button", text: "Restore" })
+      restore.addEventListener("click", async () => {
+        if (!confirm(`Put ${point.database} back as it was ${point.reason} (${new Date(point.createdAt).toLocaleString()})? What it holds now becomes a restore point too. On a shared machine, this also undoes what others changed since.`)) return
+        document.getElementById("panel").close()
+        try {
+          await startJob(`/api/restore-points/${point.id}/restore`)
+        } catch (error) {
+          alert(error.message)
+        }
+      })
+      return element("div", { className: "point" }, [
+        element("div", { className: "point-text" }, [
+          element("strong", { text: new Date(point.createdAt).toLocaleString() }),
+          ` · ${point.database} · ${point.reason}`,
+          point.summary ? element("div", { className: "meta", text: point.summary }) : null,
+        ]),
+        restore,
+      ])
+    })
+    document.getElementById("panel-body").replaceChildren(
+      ...(rows.length ? rows : [element("p", { className: "meta", text: "No restore point yet: each import into the main database takes one, kept 14 days." })]),
+    )
   }
 
   // Actions in flight and the last error of each environment, kept across refreshes.
@@ -533,6 +726,9 @@
     const logs = element("button", { type: "button", text: "Logs" })
     logs.addEventListener("click", () => showStream(`${slug} · all services`, `/api/environments/${slug}/logs?follow=1`))
     actions.push(logs)
+    const importButton = element("button", { type: "button", text: "Import into main" })
+    importButton.addEventListener("click", () => showPromotion(environment.slug))
+    actions.push(importButton)
     if (me.platform === "darwin" && environment.path) {
       actions.push(actionButton({ key: `${slug}/editor`, slug, label: "Editor", call: open("editor") }))
       actions.push(actionButton({ key: `${slug}/terminal`, slug, label: "Terminal", call: open("terminal") }))
@@ -540,7 +736,7 @@
     actions.push(
       actionButton({ key: `${slug}/reset-db`, slug, label: "Reset databases", className: "danger", call: run("reset-db"), confirmation: `Replace the databases of ${slug} with a fresh copy of the main checkout's? A dump of the current ones is kept 14 days.` }),
       actionButton({ key: `${slug}/down`, slug, label: "Remove environment", className: "danger", call: run("down"), confirmation: `Remove the environment of ${slug}: containers, volumes and databases? The worktree stays, and a dump is kept 14 days.` }),
-      actionButton({ key: `${slug}/cleanup`, slug, label: "Close worktree", className: "danger", call: run("cleanup"), confirmation: `Close ${slug}: its environment, databases, worktree and branch go, if nothing would be lost (${cleanupHint(environment.cleanup)})` }),
+      actionButton({ key: `${slug}/cleanup`, slug, label: "Close worktree", className: "danger", call: run("cleanup"), confirmation: `Close ${slug}: its environment, databases, worktree and branch go, if nothing would be lost (${cleanupHint(environment.cleanup)}). Its data goes with its database: use "Import into main" first for what new worktrees should get.` }),
     )
     const services = element("details", { className: "owned" }, [
       element("summary", { text: "Services" }),
