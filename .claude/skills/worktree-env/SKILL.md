@@ -7,7 +7,10 @@ argument-hint: "[<name> | <issue number>] | status | logs [service] | restart [s
 # Worktree environments
 
 Each worktree gets its own containers, databases and URLs, so several branches run side by side.
-How it works and what to do when something breaks: `infra/worktree/README.md`.
+`npm run wt` runs the team's internal tooling (`bayes wt`): `npm run wt -- help` lists its
+commands, and its README says how it works and what to do when something breaks. If `bayes` is
+missing, tell the user to install the team's internal tools. This repository keeps what the
+environment is made of: `infra/worktree/README.md`.
 
 ## Create a worktree and its environment
 
@@ -15,10 +18,9 @@ How it works and what to do when something breaks: `infra/worktree/README.md`.
    - **An issue number** (`135`, `#135` or the issue's URL): the name is the number, so
      `http://135.connect.localhost:8800`. Find the issue with
      `gh issue view <number> --repo <repo> --json title,state,url`, in the repository of the URL
-     when there is one, otherwise in `bayesimpact/bayes-platform` and in
-     `bayesimpact/internal-issues`. Show the user its title and repository. When both repositories
-     have an open issue with that number, ask which one is meant. A number gh cannot find is still
-     a valid name.
+     when there is one, otherwise in `bayesimpact/bayes-platform`. Show the user its title and
+     repository. When gh finds none there, ask the user which repository it belongs to. A number
+     gh cannot find is still a valid name.
    - **A name**: lowercase letters, digits and single hyphens, at most 32 characters, not starting
      with `agent-`, not ending with `-ui`, `-embed`, `-help`, `-storybook`, `-dex` or `-grafana`,
      and none of `api`, `connect`, `dashboard`, `dev`, `grafana`, `mail`, `main`, `phoenix`,

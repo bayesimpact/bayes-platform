@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "[ -f \"$CLAUDE_PROJECT_DIR/infra/worktree/wt.mjs\" ] && node \"$CLAUDE_PROJECT_DIR/infra/worktree/wt.mjs\" session-start || true",
+            "command": "command -v bayes >/dev/null 2>&1 && cd \"$CLAUDE_PROJECT_DIR\" && bayes wt session-start || true",
             "timeout": 15
           }
         ]
