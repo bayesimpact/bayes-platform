@@ -8,6 +8,16 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+### Security
+
+## [26.10.2] - 2026-10-14
+
+### Added
 - Safety review: people granted access on an agent can read any of its conversations from a session id.
 - Apps: an installed app can let people outside the platform talk to the workspace's agents.
 - Apps: the studio now lists the apps connected to a project and can revoke them.
