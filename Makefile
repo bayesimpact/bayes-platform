@@ -11,6 +11,7 @@ localApiImage = caseai-connect/api:local
 localCpuWorkersImage = caseai-connect/cpu-workers:local
 localGpuWorkersImage = caseai-connect/gpu-workers:local
 localPdfConverterImage = caseai-connect/pdf-converter:local
+localEmbedderImage = caseai-connect/embedder:local
 smokeComposeFile = infra/docker-compose.api-workers-smoke.yaml
 smokeEnv = API_IMAGE=${localApiImage} CPU_WORKERS_IMAGE=${localCpuWorkersImage} GPU_WORKERS_IMAGE=${localGpuWorkersImage}
 
@@ -85,6 +86,9 @@ docker-build-gpu-workers:
 
 docker-build-pdf-converter:
 	docker build --platform=linux/amd64 -t ${localPdfConverterImage} -f apps/pdf-converter/Dockerfile .
+
+docker-build-embedder:
+	docker build --platform=linux/amd64 -t ${localEmbedderImage} -f apps/embedder/Dockerfile .
 
 docker-check: docker-build-api
 	@echo "Starting docker container and checking for successful startup..."

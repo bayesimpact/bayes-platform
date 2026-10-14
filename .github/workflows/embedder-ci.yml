@@ -1,0 +1,25 @@
+name: Embedder CI
+
+on:
+  pull_request:
+    paths: ["apps/embedder/**"]
+  push:
+    branches: [main]
+    paths: ["apps/embedder/**"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/embedder
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: apps/embedder/requirements-dev.txt
+      # The tests use a fake model registry: no torch, no model download.
+      - run: pip install -r requirements-dev.txt
+      - run: pytest -q
