@@ -1,4 +1,7 @@
-import { PROJECT_APP_INSTALLATION_READ_PERMISSION } from "@caseai-connect/api-contracts"
+import {
+  PROJECT_APP_INSTALLATION_READ_PERMISSION,
+  PROJECT_APP_INSTALLATION_REVOKE_PERMISSION,
+} from "@caseai-connect/api-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { buildDecorator, render } from "@/stories/decorators"
 import {
@@ -16,6 +19,7 @@ import { studioRoutes } from "@/studio/routes/StudioRoutes"
 
 type StoryArgs = StudioStoryArgs & {
   withApps?: boolean
+  canRevoke?: boolean
 }
 
 function buildMockAppInstallationsService(
@@ -26,6 +30,7 @@ function buildMockAppInstallationsService(
     async getAll() {
       return appInstallations
     },
+    async revokeOne() {},
   }
 }
 
@@ -35,10 +40,12 @@ const meta = {
   argTypes: {
     ...studioStoryArgTypes,
     withApps: { control: "boolean" },
+    canRevoke: { control: "boolean" },
   },
   args: {
     ...studioStoryArgs,
     withApps: false,
+    canRevoke: true,
   },
   render: render({ routes: studioRoutes, path: StudioRoutes.appInstallations.path }),
 } satisfies Meta<StoryArgs>
@@ -46,9 +53,14 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-function studioState({ withApps, ...args }: StoryArgs) {
+function studioState({ withApps, canRevoke, ...args }: StoryArgs) {
   const { baseSeeds, project } = buildStudioData(args)
-  const readableProject = { ...project, permissions: [PROJECT_APP_INSTALLATION_READ_PERMISSION] }
+  const readableProject = {
+    ...project,
+    permissions: canRevoke
+      ? [PROJECT_APP_INSTALLATION_READ_PERMISSION, PROJECT_APP_INSTALLATION_REVOKE_PERMISSION]
+      : [PROJECT_APP_INSTALLATION_READ_PERMISSION],
+  }
   const appInstallations = withApps
     ? [
         appInstallationFactory.transient({ project: readableProject }).build({
