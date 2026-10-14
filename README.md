@@ -114,7 +114,7 @@ the other services start with their profile, from `infra/database`:
 | `dex` | Dex, http://localhost:5556 ([README](infra/dex/README.md)) | `docker compose --profile dex up -d --no-recreate dex` |
 | `traces` | otel-collector, Phoenix, http://localhost:6060 | `docker compose --profile traces up -d --no-recreate otel-collector phoenix` |
 | `analytics` | Grafana, http://localhost:3300 | `docker compose --profile analytics up -d --no-recreate grafana` |
-| `router` | Traefik, which routes the worktree environments on http://*.connect.localhost:8800 | `npm run wt -- setup`, which also starts the dashboard of the environments at http://dev.connect.localhost:8800 |
+| `router` | Traefik, which routes the worktree environments on http://*.connect.localhost:8800 | `docker compose --profile router up -d --no-recreate traefik` |
 
 The `router` profile serves every `*.connect.localhost` host on
 http://127.0.0.1:8800 (`ROUTER_PORT` in `infra/database/.env`): the worktree
@@ -138,10 +138,8 @@ worktree environments and parallel test runs at once.
 
 Each git worktree can run its own environment, side by side: every dev server in containers,
 databases copied from yours, its own Redis, Dex and Phoenix project, and URLs such as
-http://fix-sidebar.connect.localhost:8800. In Claude Code, `/worktree-env <name>` creates the
-worktree and its environment; in any worktree, `npm run wt -- up`. `npm run wt` runs the team's
-internal tooling (`bayes wt`), which documents the setup and the commands;
-[infra/worktree/README.md](infra/worktree/README.md) describes what this repository provides.
+http://fix-sidebar.connect.localhost:8800. [infra/worktree/README.md](infra/worktree/README.md)
+describes what an environment is made of.
 
 #### Stop the Database
 

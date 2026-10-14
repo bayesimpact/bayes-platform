@@ -5,10 +5,8 @@ API, the workers, web-embed, the help site, the pdf-converter, the three Storybo
 Board, a Dex to sign in, a Phoenix project for its traces, and its own databases copied from your
 local one, on URLs such as `http://fix-sidebar.connect.localhost:8800`.
 
-`npm run wt` runs the team's internal tooling (`bayes wt`), which creates, runs and removes these
-environments, and serves their dashboard at http://dev.connect.localhost:8800. Its README covers
-the setup, the commands and what to do when something breaks. In Claude Code,
-`/worktree-env <name>` drives it.
+The team's tooling creates, runs and removes these environments, and serves their dashboard at
+http://dev.connect.localhost:8800.
 
 This repository keeps what an environment is made of, since it changes with the code:
 

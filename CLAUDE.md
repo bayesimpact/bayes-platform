@@ -101,13 +101,13 @@ Target shape: `Conversation retention: conversations are now kept 30 days by def
 
 Claude Code worktrees live under `.claude/worktrees/`. Gitignored config (`.env`, `.env.test`, root `dontsave/*.json`, `apps/api/.certs/*.pem`) is copied in automatically via `.worktreeinclude`.
 
-A worktree can run its own dev environment: `/worktree-env <name>` (an issue number works too: `/worktree-env 135` serves `http://135.connect.localhost:8800`), or `npm run wt -- up` in the worktree (see `infra/worktree/README.md`). It runs every dev server in containers, with databases copied from the main checkout's (`connect_wt_<name>` and `connect_wt_<name>__test`), its own Redis, and URLs on `http://<name>.connect.localhost:8800`. `npm run wt` runs the team's internal tooling (`bayes wt`), which also serves the dashboard at `http://dev.connect.localhost:8800`; this repository keeps what describes the environment (`infra/worktree`, `infra/database`, `infra/dex`).
+A worktree can run its own dev environment, described in `infra/worktree` (see its README): every dev server in containers, with databases copied from the main checkout's (`connect_wt_<name>` and `connect_wt_<name>__test`), its own Redis, and URLs on `http://<name>.connect.localhost:8800`. A worktree has one when `infra/worktree/.env` exists.
 
-1. Never run `npm install`: it rewrites `package-lock.json` with cosmetic peer-flag churn that pollutes the diff. In a fresh worktree, `npm ci` at the worktree root comes first; `npm run wt -- up` runs it for you.
-2. In a worktree with an environment, never start `npm run dev`, `npm run dev:workers-main` or a Storybook on the host: the environment runs them and reloads on edits. Read their logs with `npm run wt -- logs <service>`.
+1. Never run `npm install`: it rewrites `package-lock.json` with cosmetic peer-flag churn that pollutes the diff. In a fresh worktree, `npm ci` at the worktree root comes first.
+2. In a worktree with an environment, never start `npm run dev`, `npm run dev:workers-main` or a Storybook on the host: the environment runs them and reloads on edits. Their logs are those of the containers of the compose project `wt-<name>`.
 3. In a worktree with an environment, host commands (tests, typecheck, `migration:run`, scripts) use that environment's databases and Redis, through its rewritten `.env` files. The main checkout's data is never touched.
 4. In a worktree without an environment (agent worktrees `agent-*` never get one), Postgres and Redis are the main checkout's: start no dev server or workers there, and remember that migrations hit the shared `connect` database.
-5. Never run `docker compose up` in a worktree's `infra/database`: that copy would recreate the shared Postgres on an empty data folder. The shared stack is managed from the main checkout or with `npm run wt -- setup`.
+5. Never run `docker compose up` in a worktree's `infra/database`: that copy would recreate the shared Postgres on an empty data folder. The shared stack is managed from the main checkout.
 
 ## Code Style
 

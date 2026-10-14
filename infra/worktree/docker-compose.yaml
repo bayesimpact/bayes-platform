@@ -1,6 +1,6 @@
 # The dev environment of one git worktree: web app, API, workers, web-embed, help site,
 # pdf-converter, the three Storybooks, Grafana, a Dex, a Redis and two databases on the
-# shared Postgres. `npm run wt -- up` writes infra/worktree/.env (COMPOSE_PROJECT_NAME=wt-<name>
+# shared Postgres. The worktree tooling writes infra/worktree/.env (COMPOSE_PROJECT_NAME=wt-<name>
 # and the WT_* values below), then runs `docker compose up -d` with this file.
 # See infra/worktree/README.md.
 #
@@ -18,7 +18,7 @@
 
 x-worktree: &worktree
   type: bind
-  source: ${WT_PATH:?start it with npm run wt -- up}
+  source: ${WT_PATH:?set by the worktree tooling in infra/worktree/.env}
   target: ${WT_PATH}
   bind:
     create_host_path: false
@@ -31,7 +31,7 @@ x-gcp: &gcp
   bind:
     create_host_path: false
 
-# One volume per node_modules folder of package-lock.json (`npm run wt -- up` checks the list).
+# One volume per node_modules folder of package-lock.json (the worktree tooling checks the list).
 x-node-volumes: &node-volumes
   - *worktree
   - *gcp

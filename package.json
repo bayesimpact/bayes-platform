@@ -11,7 +11,6 @@
     "test": "turbo run test",
     "test:e2e": "turbo run test:e2e",
     "test:dev-tools": "node --test \"infra/dex/*.test.mjs\"",
-    "wt": "bayes wt",
     "lint": "biome lint .",
     "format": "biome format --write .",
     "format:check": "biome format .",

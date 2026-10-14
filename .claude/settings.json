@@ -1,20 +1,5 @@
 {
-  "hooks": {
-    "SessionStart": [
-      {
-        "matcher": "startup",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "command -v bayes >/dev/null 2>&1 && cd \"$CLAUDE_PROJECT_DIR\" && bayes wt session-start || true",
-            "timeout": 15
-          }
-        ]
-      }
-    ]
-  },
   "permissions": {
-    "allow": ["Bash(npm run wt -- *)"],
     "deny": ["Bash(docker system prune*)", "Bash(docker volume prune*)"]
   }
 }
