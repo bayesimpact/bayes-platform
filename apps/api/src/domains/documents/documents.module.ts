@@ -20,9 +20,9 @@ import { DocumentChunkRetrievalService } from "./embeddings/document-chunk-retri
 import { DocumentEmbeddingStatusNotifierService } from "./embeddings/document-embedding-status-notifier.service"
 import { DocumentEmbeddingStatusStreamService } from "./embeddings/document-embedding-status-stream.service"
 import { DocumentEmbeddingsBatchModule } from "./embeddings/document-embeddings-batch.module"
+import { EmbeddersModule } from "./embeddings/embedders/embedders.module"
 import { ProjectEmbeddingModelsController } from "./embeddings/project-embedding-models/project-embedding-models.controller"
 import { ProjectEmbeddingModelsModule } from "./embeddings/project-embedding-models/project-embedding-models.module"
-import { QueryEmbeddingsClientModule } from "./embeddings/query-embeddings/query-embeddings-client.module"
 import { PdfPagesModule } from "./pdf-pages/pdf-pages.module"
 import { DocumentSource } from "./sources/document-source.entity"
 import { DocumentSourceRepository } from "./sources/document-source.repository"
@@ -58,7 +58,7 @@ import { DocumentTagsModule } from "./tags/document-tags.module"
     StorageModule,
     DocumentEmbeddingsBatchModule,
     ProjectEmbeddingModelsModule,
-    QueryEmbeddingsClientModule,
+    EmbeddersModule,
     PdfPagesModule,
   ],
   providers: [

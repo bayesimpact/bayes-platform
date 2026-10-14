@@ -1,10 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import {
-  LocalEmbedderShuttingDownError,
-  LocalEmbeddingBridgeService,
-} from "@/external/local-embeddings/local-embedding-bridge.service"
-import { getLocalEmbeddingBatchSize } from "@/external/local-embeddings/local-embeddings.cli"
+import { EmbedderService } from "../embedders/embedder.service"
+import { getEmbedderBatchSize } from "../embedders/embedders.config"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentChunkEmbeddingRepository } from "./document-chunk-embedding.repository"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -23,7 +20,7 @@ export class ProjectEmbeddingReembedService {
   constructor(
     private readonly projectEmbeddingModelsService: ProjectEmbeddingModelsService,
     private readonly chunkEmbeddingRepository: DocumentChunkEmbeddingRepository,
-    private readonly localEmbeddingBridge: LocalEmbeddingBridgeService,
+    private readonly embedderService: EmbedderService,
   ) {}
 
   async reembedProjectChunks(payload: ReembedProjectChunksJobPayload): Promise<void> {
@@ -35,7 +32,7 @@ export class ProjectEmbeddingReembedService {
     }
 
     try {
-      this.localEmbeddingBridge.assertEnabled()
+      this.embedderService.assertAvailable(modelName)
 
       const totalChunks = await this.chunkEmbeddingRepository.countEligibleChunks(projectId)
       let processedChunks = totalChunks - (await this.countMissing(projectId, modelName))
@@ -48,7 +45,7 @@ export class ProjectEmbeddingReembedService {
         `Re-embedding project ${projectId} with ${modelName}: ${processedChunks}/${totalChunks} chunks already done`,
       )
 
-      const batchSize = getLocalEmbeddingBatchSize()
+      const batchSize = getEmbedderBatchSize()
       while (true) {
         const chunks = await this.chunkEmbeddingRepository.findChunksMissingEmbedding({
           projectId,
@@ -57,10 +54,9 @@ export class ProjectEmbeddingReembedService {
         })
         if (chunks.length === 0) break
 
-        const { dense, sparse } = await this.localEmbeddingBridge.embed({
+        const { dense, sparse } = await this.embedderService.embedDocuments({
           modelName,
           texts: chunks.map((chunk) => chunk.embedText),
-          inputType: "document",
         })
         const insertedCount = await this.chunkEmbeddingRepository.insertEmbeddingsIgnoringConflicts(
           chunks.map((chunk, index) => ({
@@ -88,12 +84,8 @@ export class ProjectEmbeddingReembedService {
       })
       this.logger.log(`Re-embedding of project ${projectId} with ${modelName} completed`)
     } catch (error) {
-      if (error instanceof LocalEmbedderShuttingDownError) {
-        // A rollout or restart, not a failure: BullMQ retries the job and it resumes.
-        await this.projectEmbeddingModelsService.markPending({ id: row.id })
-      } else {
-        await this.projectEmbeddingModelsService.markFailed({ id: row.id, error })
-      }
+      // BullMQ retries the job; enabling the model again also re-queues it once the job is gone.
+      await this.projectEmbeddingModelsService.markFailed({ id: row.id, error })
       throw error
     }
   }

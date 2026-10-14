@@ -1,5 +1,6 @@
 import {
   DEFAULT_EMBEDDING_MODEL,
+  DOCUMENT_UPDATE_PERMISSION,
   EmbeddingModelCatalog,
   updateAgentSettingsModelSchema,
 } from "@caseai-connect/api-contracts"
@@ -65,6 +66,8 @@ export function ModelTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
     nonEuSuffix: t("agent:model.nonEuSuffix"),
   }
   const completedEmbeddingModels = useAppSelector(selectCompletedProjectEmbeddingModels)
+  // Enabling a model re-embeds every document of the project.
+  const canManageEmbeddingModels = project.permissions.includes(DOCUMENT_UPDATE_PERMISSION)
   // The default model always applies; a local model is offered once the project finished
   // embedding with it. Keep the agent's current value listed even if it is no longer ready.
   const embeddingModelOptions = [
@@ -195,7 +198,7 @@ export function ModelTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
               <FormItem>
                 <div className="flex items-center justify-between gap-2">
                   <FormLabel>{t("agentSettings:props.embeddingModel")}</FormLabel>
-                  <EmbeddingModelManager />
+                  {canManageEmbeddingModels && <EmbeddingModelManager />}
                 </div>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>

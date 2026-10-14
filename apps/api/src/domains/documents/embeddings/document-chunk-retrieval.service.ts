@@ -1,4 +1,3 @@
-import { createVertex } from "@ai-sdk/google-vertex"
 import {
   type EmbeddingModel,
   getEmbeddingModelMetadata,
@@ -6,19 +5,18 @@ import {
 } from "@caseai-connect/api-contracts"
 import { Injectable, Logger } from "@nestjs/common"
 import { InjectDataSource } from "@nestjs/typeorm"
-import { embed } from "ai"
 import { toSql } from "pgvector"
 import type { DataSource, SelectQueryBuilder } from "typeorm"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { DEFAULT_TOP_K } from "@/domains/agents/shared/agent-session-messages/streaming/tools/lookup-knowledge-base.tool"
-import type { SparseWeights } from "@/external/local-embeddings/local-embedding-bridge.service"
-import { toSparseVectorSql } from "@/external/local-embeddings/sparse-weights"
 import type { RetrievedDocumentChunk } from "./document-chunk.types"
-import { resolveEmbeddingModelNames, resolveVertexConfig } from "./document-embeddings.config"
+import { resolveEmbeddingModelNames } from "./document-embeddings.config"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { EmbedderService } from "./embedders/embedder.service"
+import type { SparseWeights } from "./embedders/embedders.types"
+import { toSparseVectorSql } from "./embedders/sparse-weights"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectEmbeddingModelRepository } from "./project-embedding-models/project-embedding-model.repository"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { BullMqQueryEmbeddingsClientService } from "./query-embeddings/bull-mq-query-embeddings-client.service"
 
 @Injectable()
 export class DocumentChunkRetrievalService {
@@ -27,7 +25,7 @@ export class DocumentChunkRetrievalService {
   constructor(
     @InjectDataSource() private readonly dataSource: DataSource,
     private readonly projectEmbeddingModelRepository: ProjectEmbeddingModelRepository,
-    private readonly queryEmbeddingsClient: BullMqQueryEmbeddingsClientService,
+    private readonly embedderService: EmbedderService,
   ) {}
 
   async retrieveTopChunks({
@@ -81,8 +79,8 @@ export class DocumentChunkRetrievalService {
   }
 
   /**
-   * Embeds the query with the agent's local model when the project has it ready, and with the
-   * Vertex default otherwise. A local failure (workers down, timeout) falls back to Vertex with a
+   * Embeds the query with the agent's self-hosted model when the project has it ready, and with
+   * the Vertex default otherwise. An embedder failure (down, timeout) falls back to Vertex with a
    * warning rather than failing the chat turn: the answer is a little less relevant, not absent.
    */
   private async embedQueryWithAgentModel({
@@ -107,14 +105,14 @@ export class DocumentChunkRetrievalService {
         )
       } else {
         try {
-          const { embedding, sparseEmbedding } = await this.queryEmbeddingsClient.embedQuery({
+          const { embedding, sparseEmbedding } = await this.embedderService.embedQuery({
             modelName: embeddingModel,
             text: query,
           })
           return { modelName: embeddingModel, embedding, sparseEmbedding }
         } catch (error) {
           this.logger.warn(
-            `Local query embedding with ${embeddingModel} failed for project ${projectId}, falling back to the default model: ${
+            `Query embedding with ${embeddingModel} failed for project ${projectId}, falling back to the default model: ${
               error instanceof Error ? error.message : String(error)
             }`,
           )
@@ -126,7 +124,7 @@ export class DocumentChunkRetrievalService {
     if (!modelName) {
       return undefined
     }
-    const embedding = await this.embedQuery({ query, modelName })
+    const { embedding } = await this.embedderService.embedQuery({ modelName, text: query })
     return { modelName, embedding, sparseEmbedding: null }
   }
 
@@ -342,22 +340,5 @@ export class DocumentChunkRetrievalService {
 
   private buildRetrievalQueryText({ query }: { query: string }): string {
     return query.trim()
-  }
-
-  private async embedQuery({
-    query,
-    modelName,
-  }: {
-    query: string
-    modelName: string
-  }): Promise<number[]> {
-    const { project, location } = resolveVertexConfig()
-    const vertexProvider = createVertex({ project, location })
-    const embeddingModel = vertexProvider.textEmbeddingModel(modelName)
-    const { embedding } = await embed({
-      model: embeddingModel,
-      value: query,
-    })
-    return embedding
   }
 }

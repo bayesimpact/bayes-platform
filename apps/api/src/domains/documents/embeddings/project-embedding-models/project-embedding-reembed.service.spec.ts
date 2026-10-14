@@ -1,8 +1,5 @@
 import { EmbeddingModel } from "@caseai-connect/api-contracts"
-import {
-  LocalEmbedderShuttingDownError,
-  type LocalEmbeddingBridgeService,
-} from "@/external/local-embeddings/local-embedding-bridge.service"
+import type { EmbedderService } from "../embedders/embedder.service"
 import type { DocumentChunkEmbeddingRepository } from "./document-chunk-embedding.repository"
 import type { ProjectEmbeddingModelsService } from "./project-embedding-models.service"
 import { ProjectEmbeddingReembedService } from "./project-embedding-reembed.service"
@@ -30,7 +27,6 @@ function buildService() {
     updateProgress: jest.fn().mockResolvedValue(undefined),
     markCompleted: jest.fn().mockResolvedValue(undefined),
     markFailed: jest.fn().mockResolvedValue(undefined),
-    markPending: jest.fn().mockResolvedValue(undefined),
   }
   const chunkRepository = {
     countEligibleChunks: jest.fn(),
@@ -38,36 +34,36 @@ function buildService() {
     findChunksMissingEmbedding: jest.fn(),
     insertEmbeddingsIgnoringConflicts: jest.fn(),
   }
-  const bridge = {
-    assertEnabled: jest.fn(),
-    embed: jest.fn(),
+  const embedder = {
+    assertAvailable: jest.fn(),
+    embedDocuments: jest.fn(),
   }
   const service = new ProjectEmbeddingReembedService(
     modelsService as unknown as ProjectEmbeddingModelsService,
     chunkRepository as unknown as DocumentChunkEmbeddingRepository,
-    bridge as unknown as LocalEmbeddingBridgeService,
+    embedder as unknown as EmbedderService,
   )
-  return { service, modelsService, chunkRepository, bridge }
+  return { service, modelsService, chunkRepository, embedder }
 }
 
 describe("ProjectEmbeddingReembedService", () => {
   beforeEach(() => {
-    process.env.LOCAL_EMBEDDING_BATCH_SIZE = "2"
+    process.env.EMBEDDER_BATCH_SIZE = "2"
   })
 
   afterEach(() => {
-    delete process.env.LOCAL_EMBEDDING_BATCH_SIZE
+    delete process.env.EMBEDDER_BATCH_SIZE
   })
 
   it("embeds the missing chunks in batches, reports progress and completes", async () => {
-    const { service, modelsService, chunkRepository, bridge } = buildService()
+    const { service, modelsService, chunkRepository, embedder } = buildService()
     chunkRepository.countEligibleChunks.mockResolvedValue(3)
     // One chunk was already embedded by an upload that ran while the model was pending.
     chunkRepository.countChunksMissingEmbedding.mockResolvedValueOnce(2).mockResolvedValueOnce(0)
     chunkRepository.findChunksMissingEmbedding
       .mockResolvedValueOnce([buildChunk(1), buildChunk(2)])
       .mockResolvedValueOnce([])
-    bridge.embed.mockResolvedValue({
+    embedder.embedDocuments.mockResolvedValue({
       dense: [[0.1], [0.2]],
       sparse: [{ "5": 0.3 }, { "9": 0.1 }],
     })
@@ -75,7 +71,7 @@ describe("ProjectEmbeddingReembedService", () => {
 
     await service.reembedProjectChunks(payload)
 
-    expect(bridge.assertEnabled).toHaveBeenCalled()
+    expect(embedder.assertAvailable).toHaveBeenCalledWith(EmbeddingModel.BgeM3)
     expect(modelsService.markProcessing).toHaveBeenCalledWith({
       id: "row-1",
       totalChunks: 3,
@@ -86,10 +82,9 @@ describe("ProjectEmbeddingReembedService", () => {
       modelName: EmbeddingModel.BgeM3,
       limit: 2,
     })
-    expect(bridge.embed).toHaveBeenCalledWith({
+    expect(embedder.embedDocuments).toHaveBeenCalledWith({
       modelName: EmbeddingModel.BgeM3,
       texts: ["text 1", "text 2"],
-      inputType: "document",
     })
     expect(chunkRepository.insertEmbeddingsIgnoringConflicts).toHaveBeenCalledWith([
       expect.objectContaining({
@@ -114,12 +109,12 @@ describe("ProjectEmbeddingReembedService", () => {
   })
 
   it("marks the model failed and rethrows when the embedder fails", async () => {
-    const { service, modelsService, chunkRepository, bridge } = buildService()
+    const { service, modelsService, chunkRepository, embedder } = buildService()
     chunkRepository.countEligibleChunks.mockResolvedValue(1)
     chunkRepository.countChunksMissingEmbedding.mockResolvedValue(1)
     chunkRepository.findChunksMissingEmbedding.mockResolvedValueOnce([buildChunk(1)])
     const failure = new Error("embedder exited")
-    bridge.embed.mockRejectedValue(failure)
+    embedder.embedDocuments.mockRejectedValue(failure)
 
     await expect(service.reembedProjectChunks(payload)).rejects.toBe(failure)
 
@@ -127,24 +122,10 @@ describe("ProjectEmbeddingReembedService", () => {
     expect(modelsService.markCompleted).not.toHaveBeenCalled()
   })
 
-  it("puts the model back to pending when the worker shuts down mid-job", async () => {
-    const { service, modelsService, chunkRepository, bridge } = buildService()
-    chunkRepository.countEligibleChunks.mockResolvedValue(1)
-    chunkRepository.countChunksMissingEmbedding.mockResolvedValue(1)
-    chunkRepository.findChunksMissingEmbedding.mockResolvedValueOnce([buildChunk(1)])
-    const shutdown = new LocalEmbedderShuttingDownError()
-    bridge.embed.mockRejectedValue(shutdown)
-
-    await expect(service.reembedProjectChunks(payload)).rejects.toBe(shutdown)
-
-    expect(modelsService.markPending).toHaveBeenCalledWith({ id: "row-1" })
-    expect(modelsService.markFailed).not.toHaveBeenCalled()
-  })
-
-  it("marks the model failed when local embeddings are disabled on the worker", async () => {
-    const { service, modelsService, bridge } = buildService()
-    const disabled = new Error("Local embeddings are not enabled on this worker")
-    bridge.assertEnabled.mockImplementation(() => {
+  it("marks the model failed when its embedder is not configured", async () => {
+    const { service, modelsService, embedder } = buildService()
+    const disabled = new Error("Embedder BAAI/bge-m3 is not configured on this deployment")
+    embedder.assertAvailable.mockImplementation(() => {
       throw disabled
     })
 
@@ -154,12 +135,12 @@ describe("ProjectEmbeddingReembedService", () => {
   })
 
   it("does nothing when the row no longer exists", async () => {
-    const { service, modelsService, bridge } = buildService()
+    const { service, modelsService, embedder } = buildService()
     modelsService.findById.mockResolvedValue(null)
 
     await service.reembedProjectChunks(payload)
 
-    expect(bridge.assertEnabled).not.toHaveBeenCalled()
+    expect(embedder.assertAvailable).not.toHaveBeenCalled()
     expect(modelsService.markProcessing).not.toHaveBeenCalled()
   })
 })

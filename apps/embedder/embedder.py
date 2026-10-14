@@ -2,28 +2,20 @@
 """
 Embed texts with a local HuggingFace model through sentence-transformers.
 
-The GPU workers keep one instance of this script alive (`--serve`) and talk to it over JSON
-lines: one request object per line on stdin, one response object per line on stdout. Models are
-loaded on first use and kept in memory.
+This module holds the models and the encoding; `main.py` serves it over HTTP. Models are loaded
+once and kept in memory.
 
-Request:  {"id": "...", "model": "BAAI/bge-m3", "texts": ["..."], "input_type": "query"|"document"}
-Response: {"id": "...", "model": "...", "dimensions": 1024, "embeddings": [[...], ...],
-           "sparse_embeddings": [{"<token id>": weight, ...}, ...]}
-      or  {"id": "...", "error": "..."}
-
-`sparse_embeddings` is present only for models with a lexical head (bge-m3): one map per text
-from vocabulary token id to weight, as defined in the BGE M3 paper (Chen et al., 2024).
+`sparse` is present only for models with a lexical head (bge-m3): one map per text from
+vocabulary token id to weight, as defined in the BGE M3 paper (Chen et al., 2024).
 
 Usage:
-  python3 document_embedder.py --version
-  python3 document_embedder.py --prewarm --model BAAI/bge-m3
-  python3 document_embedder.py --serve
+  python3 embedder.py --version
+  python3 embedder.py --prewarm --model BAAI/bge-m3
 """
 
 from __future__ import annotations
 
 import argparse
-import json
 import os
 import sys
 from typing import Any
@@ -31,7 +23,7 @@ from typing import Any
 # bge-m3 accepts 8192 tokens; chunks are far shorter and a lower cap keeps memory flat.
 MAX_SEQ_LENGTH_BY_MODEL = {"BAAI/bge-m3": 1024}
 # Texts encoded per forward pass. CUDA takes the whole request at once; CPU and Apple
-# Silicon stay small to keep memory flat. LOCAL_EMBEDDING_ENCODE_BATCH_SIZE overrides both.
+# Silicon stay small to keep memory flat. EMBEDDER_ENCODE_BATCH_SIZE overrides both.
 ENCODE_BATCH_SIZE_BY_DEVICE = {"cuda": 128}
 DEFAULT_ENCODE_BATCH_SIZE = 32
 
@@ -41,7 +33,7 @@ SPARSE_HEAD_FILE_BY_MODEL = {"BAAI/bge-m3": "sparse_linear.pt"}
 
 
 def _resolve_encode_batch_size(device: str) -> int:
-    override = os.environ.get("LOCAL_EMBEDDING_ENCODE_BATCH_SIZE")
+    override = os.environ.get("EMBEDDER_ENCODE_BATCH_SIZE")
     if override:
         return int(override)
     return ENCODE_BATCH_SIZE_BY_DEVICE.get(device.split(":")[0], DEFAULT_ENCODE_BATCH_SIZE)
@@ -65,13 +57,13 @@ def _import_sentence_transformer() -> Any:
     except Exception as error:  # noqa: BLE001
         raise RuntimeError(
             "Could not import sentence_transformers. Install with:\n"
-            "  pip install -r apps/api/requirements-embeddings.txt\n"
+            "  pip install -r apps/embedder/requirements.txt\n"
             f"Error: {error}"
         ) from error
 
 
 def _resolve_device() -> str:
-    override = os.environ.get("LOCAL_EMBEDDING_DEVICE")
+    override = os.environ.get("EMBEDDER_DEVICE")
     if override:
         return override
     try:
@@ -214,69 +206,36 @@ class ModelRegistry:
         return [[float(value) for value in vector] for vector in vectors]
 
 
-def handle_request(registry: ModelRegistry, request: dict[str, Any]) -> dict[str, Any]:
-    request_id = request.get("id")
-    model_name = request.get("model")
-    texts = request.get("texts")
-    input_type = request.get("input_type", "document")
-    if not isinstance(request_id, str) or not request_id:
-        return {"id": request_id, "error": "missing request id"}
-    if not isinstance(model_name, str) or not model_name:
-        return {"id": request_id, "error": "missing model"}
-    if not isinstance(texts, list) or not all(isinstance(text, str) for text in texts):
-        return {"id": request_id, "error": "texts must be a list of strings"}
+class EmbedderError(ValueError):
+    """A request the embedder refuses (bad input), as opposed to a model failure."""
+
+
+def embed_texts(
+    registry: ModelRegistry, model_name: str, texts: list[str], input_type: str
+) -> dict[str, Any]:
+    """Dense vectors for every text, plus lexical weights for models with a sparse head."""
     if input_type not in ("query", "document"):
-        return {"id": request_id, "error": f"unknown input_type {input_type!r}"}
-    sparse_embeddings: list[dict[str, float]] | None = None
-    try:
-        if texts and registry.has_sparse_head(model_name):
-            embeddings, sparse_embeddings = registry.encode_dense_and_sparse(model_name, texts)
-        else:
-            embeddings = registry.encode(model_name, texts, input_type)
-    except Exception as error:  # noqa: BLE001
-        return {"id": request_id, "error": f"{type(error).__name__}: {error}"}
-    dimensions = len(embeddings[0]) if embeddings else 0
-    response: dict[str, Any] = {
-        "id": request_id,
-        "model": model_name,
-        "dimensions": dimensions,
-        "embeddings": embeddings,
-    }
-    if sparse_embeddings is not None:
-        response["sparse_embeddings"] = sparse_embeddings
-    return response
-
-
-def serve(registry: ModelRegistry, stdin: Any, stdout: Any) -> None:
-    for raw_line in stdin:
-        line = raw_line.strip()
-        if not line:
-            continue
-        try:
-            request = json.loads(line)
-        except json.JSONDecodeError as error:
-            response: dict[str, Any] = {"id": None, "error": f"invalid JSON: {error}"}
-        else:
-            response = handle_request(registry, request)
-        stdout.write(json.dumps(response) + "\n")
-        stdout.flush()
+        raise EmbedderError(f"unknown input_type {input_type!r}")
+    if not texts:
+        return {"dimensions": 0, "dense": [], "sparse": None}
+    sparse: list[dict[str, float]] | None = None
+    if registry.has_sparse_head(model_name):
+        dense, sparse = registry.encode_dense_and_sparse(model_name, texts)
+    else:
+        dense = registry.encode(model_name, texts, input_type)
+    return {"dimensions": len(dense[0]), "dense": dense, "sparse": sparse}
 
 
 def prewarm(registry: ModelRegistry, model_names: list[str]) -> None:
     for model_name in model_names:
-        # Through handle_request so the sparse head is downloaded too.
-        response = handle_request(
-            registry, {"id": "prewarm", "model": model_name, "texts": ["warm up"]}
-        )
-        if "error" in response:
-            raise RuntimeError(f"Prewarm of {model_name} failed: {response['error']}")
+        # Through embed_texts so the sparse head is downloaded too.
+        embed_texts(registry, model_name, ["warm up"], "document")
         print(f"Prewarmed {model_name}", file=sys.stderr, flush=True)
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Local embeddings server for the GPU workers.")
+    parser = argparse.ArgumentParser(description="Local embedding models.")
     parser.add_argument("--version", action="store_true", help="Print the sentence-transformers version.")
-    parser.add_argument("--serve", action="store_true", help="Read JSONL requests from stdin.")
     parser.add_argument("--prewarm", action="store_true", help="Download and load the given models.")
     parser.add_argument("--model", action="append", default=[], help="Model id (repeatable).")
     args = parser.parse_args(argv)
@@ -285,15 +244,10 @@ def main(argv: list[str] | None = None) -> int:
         print(_resolve_sentence_transformers_version())
         return 0
 
-    registry = ModelRegistry()
     if args.prewarm:
         if not args.model:
             parser.error("--prewarm needs at least one --model")
-        prewarm(registry, args.model)
-        return 0
-
-    if args.serve:
-        serve(registry, sys.stdin, sys.stdout)
+        prewarm(ModelRegistry(), args.model)
         return 0
 
     parser.print_help()

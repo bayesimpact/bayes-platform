@@ -1,0 +1,9 @@
+{
+  "name": "@caseai-connect/embedder",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "[ -x .venv/bin/uvicorn ] || { echo '[embedder] no apps/embedder/.venv, skipping (see apps/embedder/README.md to start it)'; exit 0; }; [ -f .env ] && set -a && . ./.env && set +a; exec .venv/bin/uvicorn main:create_app --factory --port ${PORT:-3003}",
+    "test": "[ -x .venv/bin/pytest ] || { echo '[embedder] no apps/embedder/.venv, skipping tests'; exit 0; }; .venv/bin/pytest -q"
+  }
+}

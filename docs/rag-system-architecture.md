@@ -161,7 +161,7 @@ This instruction is in:
 
 `DocumentChunkRetrievalService` embeds the `query` as-is — the standalone question the model wrote, with no extra framing around it.
 
-That text is embedded using the **first model** from `DOCUMENT_EMBEDDING_MODELS`, unless the agent picked a local model (`agent_settings.embedding_model`) that its project finished embedding with. A local model is embedded by the GPU workers through the `query-embeddings` BullMQ queue (the API waits for the job result, `LOCAL_EMBEDDING_QUERY_TIMEOUT_MS`); on timeout or error the service falls back to the Vertex model with a warning. See ADR 0023.
+That text is embedded using the **first model** from `DOCUMENT_EMBEDDING_MODELS`, unless the agent picked a self-hosted model (`agent_settings.embedding_model`) that its project finished embedding with. The API then calls that model's HTTP embedder directly (`POST {EMBEDDER_<MODEL>_URL}/v1/embed`, at most `EMBEDDER_QUERY_TIMEOUT_MS`); on timeout or error the service falls back to the Vertex model with a warning. See ADR 0028.
 
 ### 5) Similarity search in pgvector
 
@@ -206,8 +206,8 @@ Tool executions are also persisted in message history as `"tool"` messages with 
 - `DOCUMENT_EXTRACTOR_DOCLING_ENABLED` (optional, defaults to `true`)
 - `DOCUMENT_CHUNKER_COMMAND` (optional path override for `apps/api/bin/document_chunker`)
 - `DOCUMENT_EXTRACTOR_DOCLING_TIMEOUT_MS` (optional, extraction timeout and worker health-check timeout source)
-- `LOCAL_EMBEDDINGS_ENABLED` (workers only, optional, defaults to `false`): serve the local HuggingFace models (`apps/api/bin/document_embedder`) for projects with the `local-embeddings` feature flag
-- `DOCUMENT_EMBEDDER_COMMAND`, `LOCAL_EMBEDDING_DEVICE`, `LOCAL_EMBEDDING_BATCH_SIZE`, `LOCAL_EMBEDDING_REQUEST_TIMEOUT_MS` (optional local embedder tuning), `LOCAL_EMBEDDING_QUERY_TIMEOUT_MS` (API side)
+- `EMBEDDER_BGE_M3_URL`, `EMBEDDER_BGE_M3_API_KEY` (API and workers, optional): the HTTP embedder (`apps/embedder`) serving bge-m3 for projects with the `local-embeddings` feature flag. Unset, the model is not offered.
+- `EMBEDDER_BATCH_SIZE`, `EMBEDDER_REQUEST_TIMEOUT_MS`, `EMBEDDER_QUERY_TIMEOUT_MS` (optional embedder tuning)
 
 ### Storage/Infra Variables Used in the Flow
 
@@ -236,9 +236,9 @@ In deployment, workers are started separately with:
 
 When Docling extraction is enabled, workers fail fast at startup if the Docling CLI health check fails.
 
-### Local embedding models (feature flag `local-embeddings`)
+### Self-hosted embedding models (feature flag `local-embeddings`)
 
-A project admin enables a local model from the agent editor Model tab. This creates a `project_embedding_model` row and a `project-embedding-reembed` job: the GPU worker embeds every retrievable chunk of the project that has no vector for the model yet (batches of `LOCAL_EMBEDDING_BATCH_SIZE`, conflict-safe inserts, progress on the row polled by the studio). Meanwhile new uploads are embedded with the Vertex model plus every active local model of the project. Once the row is `completed`, agents of the project can pick the model as their retrieval model.
+A project admin enables a self-hosted model from the agent editor Model tab. This creates a `project_embedding_model` row and a `project-embedding-reembed` job: a worker sends every retrievable chunk of the project that has no vector for the model yet to the model's HTTP embedder (batches of `EMBEDDER_BATCH_SIZE`, conflict-safe inserts, progress on the row polled by the studio). Meanwhile new uploads are embedded with the Vertex model plus every active self-hosted model of the project; an embedder failure fails the document like a Vertex failure. Once the row is `completed`, agents of the project can pick the model as their retrieval model.
 
 ### Re-index behavior
 
@@ -250,7 +250,7 @@ On reprocessing a document, existing `document_chunk` rows are deleted first, th
 
 - File-extension validator in upload currently allows only a narrower list (`png|jpeg|jpg|pdf|txt|csv`) than MIME checks.
 - No ANN vector index (e.g. HNSW/IVFFlat) is created in migration for `embedding`; retrieval uses direct `<=>` ordering. The column is untyped (one dimension per `model_name`), so an index would be a per-model partial index over a cast expression.
-- When an agent's local model is unavailable (workers down, timeout) retrieval silently uses the Vertex model; the only signal is a warning log.
+- When an agent's self-hosted model is unavailable (embedder down, timeout) retrieval silently uses the Vertex model; the only signal is a warning log.
 - No re-ranker is used today; chunk ranking is only the initial vector similarity ranking from pgvector.
 - Retrieval only considers `source_type = "project"` and `embedding_status = "completed"`.
 - Tool input caps `topK` at 10.

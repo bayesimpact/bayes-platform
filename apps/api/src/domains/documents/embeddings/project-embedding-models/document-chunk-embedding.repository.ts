@@ -2,8 +2,8 @@ import { Injectable } from "@nestjs/common"
 import { toSql } from "pgvector"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
-import type { SparseWeights } from "@/external/local-embeddings/local-embedding-bridge.service"
-import { hasSparseWeights, toSparseVectorSql } from "@/external/local-embeddings/sparse-weights"
+import type { SparseWeights } from "../embedders/embedders.types"
+import { hasSparseWeights, toSparseVectorSql } from "../embedders/sparse-weights"
 
 export type ChunkToEmbed = {
   id: string

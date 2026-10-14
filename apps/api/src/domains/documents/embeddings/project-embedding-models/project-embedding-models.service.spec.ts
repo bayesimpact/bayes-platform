@@ -1,5 +1,10 @@
 import { EmbeddingModel } from "@caseai-connect/api-contracts"
-import { BadRequestException, ConflictException } from "@nestjs/common"
+import {
+  BadRequestException,
+  ConflictException,
+  UnprocessableEntityException,
+} from "@nestjs/common"
+import type { EmbedderService } from "../embedders/embedder.service"
 import type { ProjectEmbeddingModel } from "./project-embedding-model.entity"
 import type { ProjectEmbeddingModelRepository } from "./project-embedding-model.repository"
 import { ProjectEmbeddingModelsService } from "./project-embedding-models.service"
@@ -33,12 +38,17 @@ function buildService() {
     createPending: jest.fn(),
     updateProgress: jest.fn(),
   }
-  const batchService = { enqueueReembedProjectChunks: jest.fn().mockResolvedValue(undefined) }
+  const batchService = {
+    enqueueReembedProjectChunks: jest.fn().mockResolvedValue(undefined),
+    isReembedJobQueued: jest.fn().mockResolvedValue(true),
+  }
+  const embedderService = { isAvailable: jest.fn().mockReturnValue(true) }
   const service = new ProjectEmbeddingModelsService(
     repository as unknown as ProjectEmbeddingModelRepository,
     batchService as unknown as ProjectEmbeddingReembedBatchService,
+    embedderService as unknown as EmbedderService,
   )
-  return { service, repository, batchService }
+  return { service, repository, batchService, embedderService }
 }
 
 describe("ProjectEmbeddingModelsService", () => {
@@ -49,6 +59,16 @@ describe("ProjectEmbeddingModelsService", () => {
       await expect(
         service.enable({ connectScope, modelName: EmbeddingModel.GeminiEmbedding001 }),
       ).rejects.toBeInstanceOf(BadRequestException)
+      expect(repository.createPending).not.toHaveBeenCalled()
+    })
+
+    it("refuses a model the deployment has no embedder for", async () => {
+      const { service, repository, embedderService } = buildService()
+      embedderService.isAvailable.mockReturnValue(false)
+
+      await expect(
+        service.enable({ connectScope, modelName: EmbeddingModel.BgeM3 }),
+      ).rejects.toBeInstanceOf(UnprocessableEntityException)
       expect(repository.createPending).not.toHaveBeenCalled()
     })
 
@@ -90,6 +110,38 @@ describe("ProjectEmbeddingModelsService", () => {
       await expect(
         service.enable({ connectScope, modelName: EmbeddingModel.BgeM3 }),
       ).rejects.toBeInstanceOf(ConflictException)
+    })
+
+    it.each([
+      "pending",
+      "processing",
+    ] as const)("re-queues a %s model whose job is gone", async (status) => {
+      const { service, repository, batchService } = buildService()
+      repository.findOneByModelName.mockResolvedValue(buildRow({ status }))
+      batchService.isReembedJobQueued.mockResolvedValue(false)
+      repository.updateProgress.mockResolvedValue(buildRow({ status: "pending" }))
+
+      await service.enable({ connectScope, modelName: EmbeddingModel.BgeM3 })
+
+      expect(batchService.isReembedJobQueued).toHaveBeenCalledWith("row-1")
+      expect(batchService.enqueueReembedProjectChunks).toHaveBeenCalledTimes(1)
+    })
+
+    it("marks the model failed when the job cannot be queued, so it can be retried", async () => {
+      const { service, repository, batchService } = buildService()
+      repository.findOneByModelName.mockResolvedValue(null)
+      repository.createPending.mockResolvedValue(buildRow())
+      const enqueueError = new Error("Redis unavailable")
+      batchService.enqueueReembedProjectChunks.mockRejectedValue(enqueueError)
+
+      await expect(service.enable({ connectScope, modelName: EmbeddingModel.BgeM3 })).rejects.toBe(
+        enqueueError,
+      )
+
+      expect(repository.updateProgress).toHaveBeenCalledWith(
+        "row-1",
+        expect.objectContaining({ status: "failed", error: "Redis unavailable" }),
+      )
     })
 
     it("resets a failed model to pending and retries the job", async () => {

@@ -54,6 +54,8 @@ describe("Documents - Auth", () => {
   let authSubject = `oidc|${randomUUID()}`
 
   beforeAll(async () => {
+    // The routes only enable a model the deployment has an embedder for.
+    process.env.EMBEDDER_BGE_M3_URL = "http://embedder.test"
     setup = await setupE2eTestDatabase({
       additionalImports: [DocumentsModule],
       applyOverrides: (moduleBuilder) =>
