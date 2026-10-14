@@ -8,6 +8,7 @@ This chart installs the full platform on a Kubernetes cluster:
 | cpu-workers | async jobs (extraction, crawling, evaluations) | `cpu-workers` |
 | gpu-workers | document embeddings with Docling on one GPU (optional) | `gpu-workers` |
 | pdf-converter | PDF to page images for image-only LLMs (GCS storage only) | `pdf-converter` |
+| embedder | self-hosted embedding models (bge-m3) over HTTP (optional) | `embedder` |
 | web-embed | the embeddable widget and its `launcher.js` | `web-embed` |
 | help | the help center | `help` |
 | postgresql | bundled Postgres with pgvector (optional) | `pgvector/pgvector` |
@@ -53,6 +54,7 @@ docker build -f apps/api/Dockerfile --target app-runtime         -t $REGISTRY/ap
 docker build -f apps/api/Dockerfile --target cpu-workers-runtime -t $REGISTRY/cpu-workers:$TAG .
 docker build -f apps/api/Dockerfile --target gpu-workers-runtime -t $REGISTRY/gpu-workers:$TAG .
 docker build -f apps/pdf-converter/Dockerfile                    -t $REGISTRY/pdf-converter:$TAG .
+docker build -f apps/embedder/Dockerfile                         -t $REGISTRY/embedder:$TAG .
 docker build -f apps/web-embed/Dockerfile                        -t $REGISTRY/web-embed:$TAG .
 docker build -f apps/help/Dockerfile                             -t $REGISTRY/help:$TAG .
 ```
@@ -173,6 +175,16 @@ The API and the workers send their traces and metrics over OTLP to `config.OTEL_
 
 The chart deploys no queue dashboard. To examine or retry BullMQ jobs, run Bull Board as a separate Deployment on the same Redis, with oauth2-proxy in front for the OpenID Connect sign-in: see [infra/bull-board/README.md](../../../infra/bull-board/README.md).
 
+## Self-hosted embedding models
+
+Projects with the `local-embeddings` feature flag can embed their documents with BAAI/bge-m3 and let each agent search with it. The model runs in the embedder, which the API and the workers call over HTTP for the chunks of a document and for chat queries. Without an embedder, projects only see the Vertex model.
+
+- **Bundled**: `embedder.enabled: true` deploys it (2 to 4 GB of memory for bge-m3). On CPU, queries take a fraction of a second but re-embedding a large project takes hours: with a GPU node pool, set `embedder.gpu.enabled: true` and build the image with `--build-arg TORCH_INDEX_URL=https://download.pytorch.org/whl/cu128`.
+- **Elsewhere** (a GPU service outside the cluster, like the vLLM models): set `embedder.url` to an embedder that serves the contract of `apps/embedder/README.md`, or put `EMBEDDER_BGE_M3_URL` and `EMBEDDER_BGE_M3_API_KEY` in the application Secret, next to the `VLLM_<MODEL>_*` keys. The `embedder-gpu` image is the CUDA build.
+- **Token**: put a random value in the Secret and name its key in `embedder.apiKeySecretKey`. The embedder then requires it and the API and the workers send it.
+
+The `project-embedding-reembed` queue, listed in `cpuWorkers.queues`, re-embeds a project when an admin enables the model.
+
 ## Managed services
 
 See `values-managed.example.yaml`. The differences with the default:
@@ -235,6 +247,7 @@ See `values.yaml`. Every key is documented in place. The main sections:
 | `redis`, `externalRedis` | bundled or external Redis |
 | `storage` | `local` volume or `gcs` bucket |
 | `api`, `cpuWorkers`, `gpuWorkers`, `pdfConverter`, `webEmbed`, `help` | one block per component: replicas, resources, placement |
+| `embedder` | optional self-hosted embedding models (see "Self-hosted embedding models") |
 | `otelCollector`, `phoenix` | optional collector and Phoenix for the LLM traces (see "LLM traces") |
 | `migrations` | the migration Job |
 | `ingress` | class, annotations, cert-manager issuer, TLS |
