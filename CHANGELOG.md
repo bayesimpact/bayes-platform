@@ -14,7 +14,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - MCP: AI assistants can list projects, create agents and edit agent drafts with the access a person grants them.
 
 ### Changed
-- (beta) PDF export: extraction agents no longer offer the built-in PDF export server.
+- Self-hosting: the Bull Board queue dashboard now runs as its own service, outside the API.
 
 ### Fixed
 - Conversations: an assistant reply that never ends no longer crashes the server.
@@ -23,8 +23,9 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Conversations: the form state of an agent without sub-agents no longer says that a sub-agent filled it.
 
 ### Security
-- Apps: install hands credentials through a one-time PKCE code on allowlisted HTTPS callbacks.
+- Apps: installing an app now only sends its credentials to the app's registered secure addresses.
 - Apps: revoking an installation now cuts the app's access at once.
+- PDF conversion: dependency updates patch known vulnerabilities in the PDF converter.
 
 ## [26.10.1] - 2026-10-07
 
