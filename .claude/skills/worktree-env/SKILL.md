@@ -62,6 +62,13 @@ Run `npm run wt -- <command>` in the worktree and report the result:
 - `cleanup`: lists the environments and worktrees whose pull request is merged or closed and that
   are safe to remove. `cleanup --apply` removes them: ask the user first. A worktree kept as
   "in use by ..." has a session or a shell in it, maybe this one.
+- `promote`: lists, in groups, what the environment's database has that the main checkout's lacks
+  (an app connected in the worktree, an MCP server...). `promote --apply --all` or
+  `--apply --groups 1,3` copies it into the main database, after a restore point: ask the user
+  first, and suggest it before a cleanup when they set something up in the worktree. If it says
+  migrations are missing, run `npm run migration:run -w apps/api` in the main checkout first.
+- `restore-main [<id>]`: lists the restore points of the main database, or puts it back as it was
+  at one: ask the user first.
 - `login`: prints the link that enables the dashboard's buttons in the user's browser (start,
   stop, update, logs, new worktree...), through their daemon (`npm run wt -- serve`, started by
   the session start hook). Give the user the command rather than its output: the link holds their

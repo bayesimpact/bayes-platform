@@ -58,6 +58,13 @@ import {
   nodeModulesFolders,
   slugProblem,
 } from "./lib/naming.mjs"
+import {
+  applyPromotion,
+  listRestorePoints,
+  readPromotion,
+  readRestorePoint,
+  restoreMainDatabase,
+} from "./lib/promotion.mjs"
 import { daemonRunning, ensureToken, serve } from "./lib/serve.mjs"
 import { currentBranch, issueOf, pullRequestOf, readStatus, updateStatus } from "./lib/status.mjs"
 import {
@@ -121,12 +128,19 @@ In a worktree:
   stop | start               Pause the environment (it stays paused across reboots), resume it
   reset-db                   Replace its databases with a fresh copy of the main checkout's
   dex-sync                   Give Dex accounts to people added to its database since it started
+  promote                    What its database has that the main one lacks, in groups: the data
+                             every new worktree would then get (an app connected here...)
+    [--apply --all | --groups <1,3> | --selection <file>]  Copy it into the main database, after
+                             a restore point
+    [--json] [--slug <name>] As JSON; for another environment than this worktree's
 
 Anywhere:
   new <name>                 Create the worktree .claude/worktrees/<name> from origin/main, then
                              its environment (an issue number works as the name)
     [--description <text>] [--issue <number|URL>]  As for up
   status                     List the environments of this machine
+  restore-main [<id>]        The restore points of the main database (one per promote, kept 14
+                             days), or put it back as it was at one
   cleanup [--apply]          Environments whose pull request is merged or closed: what would be
                              removed (environment, databases, worktree, branch), or remove them
     [--include-unregistered] Also worktrees without an environment
@@ -154,6 +168,10 @@ const { values: options, positionals } = parseArgs({
     "enable-auto": { type: "boolean", default: false },
     "disable-auto": { type: "boolean", default: false },
     rotate: { type: "boolean", default: false },
+    json: { type: "boolean", default: false },
+    all: { type: "boolean", default: false },
+    groups: { type: "string" },
+    selection: { type: "string" },
     help: { type: "boolean", short: "h", default: false },
   },
 })
@@ -175,6 +193,8 @@ const commands = {
   "session-start": () => sessionStart(),
   serve: () => serve({ mainCheckout: repositoryPaths().mainCheckout }),
   login: () => login(),
+  promote: () => promote(),
+  "restore-main": () => restoreMain(),
   setup: () => setup(),
   doctor: () => doctor(),
   help: () => console.log(HELP),
@@ -1022,6 +1042,130 @@ function startDaemonInBackground(mainCheckout) {
     detached: true,
     stdio: ["ignore", output, output],
   }).unref()
+}
+
+/**
+ * What the database of an environment has that the main checkout's lacks, in coherent groups,
+ * or, with --apply, copies a selection of it into the main database after a restore point.
+ */
+async function promote() {
+  const environment = options.slug
+    ? environmentOfSlug(validSlug(options.slug))
+    : currentEnvironment()
+  const postgres = sharedContainer("pgvector")
+  if (!postgres) throw new Error("The shared Postgres does not run: npm run wt -- setup")
+  const mainDatabase = environment.mainApiEnv.DATABASE_NAME || "connect"
+  const promotion = readPromotion({
+    postgres,
+    mainDatabase,
+    worktreeDatabase: environment.names.database,
+  })
+  if (options.json && !options.apply) {
+    console.log(JSON.stringify(promotion))
+    return
+  }
+  if (!options.apply) {
+    printPromotion(promotion, environment.slug)
+    return
+  }
+  const selectedKeys = promotionSelection(promotion)
+  // One change of the main database at a time, whichever worktree it comes from.
+  await withLock("_main-database", () => {
+    const { restorePoint, summary, count } = applyPromotion({
+      postgres,
+      promotion,
+      selectedKeys,
+      slug: environment.slug,
+    })
+    console.log(`Copied ${count} rows into ${mainDatabase}: ${summary}.
+New worktrees get them. To undo it: npm run wt -- restore-main ${restorePoint}`)
+  })
+}
+
+/** The rows --apply copies: those of a selection file, of some groups, or all selected ones. */
+function promotionSelection(promotion) {
+  if (options.selection) {
+    const keys = JSON.parse(readFileSync(options.selection, "utf8"))
+    if (!Array.isArray(keys) || keys.some((key) => typeof key !== "string")) {
+      throw new Error(`${options.selection} is not a list of rows`)
+    }
+    return keys
+  }
+  let groups = promotion.groups
+  if (options.groups) {
+    const numbers = options.groups.split(",").map((value) => Number(value.trim()))
+    if (
+      numbers.some((number) => !Number.isInteger(number) || number < 1 || number > groups.length)
+    ) {
+      throw new Error(`--groups takes numbers between 1 and ${groups.length}, as listed by promote`)
+    }
+    groups = numbers.map((number) => promotion.groups[number - 1])
+  } else if (!options.all) {
+    throw new Error("Say what to copy: --all (the rows marked [x]), or --groups 1,3")
+  }
+  return groups.flatMap((group) =>
+    group.changes.filter((change) => change.selected).map((change) => change.key),
+  )
+}
+
+function printPromotion(promotion, slug) {
+  if (promotion.missingMigrations.length) {
+    console.log(`The main database lacks migrations of ${slug}: ${promotion.missingMigrations.join(", ")}.
+Run npm run migration:run -w apps/api in the main checkout before copying anything: some rows below
+may come from those migrations, and the main database gets them that way.
+`)
+  }
+  if (!promotion.groups.length) {
+    console.log(`${promotion.worktreeDatabase} has nothing that ${promotion.mainDatabase} lacks.`)
+  }
+  promotion.groups.forEach((group, index) => {
+    console.log(`${index + 1}. ${group.title} (${group.summary})`)
+    for (const change of group.changes) {
+      const mark = change.selected ? "[x]" : "[ ]"
+      const kind = { added: "+", changed: "~", conflict: "!" }[change.kind]
+      const details = [...change.context, ...change.state].join(", ")
+      console.log(
+        `   ${mark} ${kind} ${change.table} ${change.label}${details ? ` (${details})` : ""}`,
+      )
+    }
+  })
+  for (const { table, rows, reason } of promotion.blocked) {
+    console.log(`Not copied: ${rows} rows of ${table}, ${reason}.`)
+  }
+  if (promotion.groups.length) {
+    console.log(`
++ new, ~ changed in the worktree, ! changed in the main database too. [x] rows are copied by
+--apply --all; --apply --groups 1,3 copies those of some groups. The rows a copied row needs come
+with it. The dashboard lets you pick row by row.`)
+  }
+}
+
+async function restoreMain() {
+  const postgres = sharedContainer("pgvector")
+  if (!postgres) throw new Error("The shared Postgres does not run: npm run wt -- setup")
+  if (!argument) {
+    const points = listRestorePoints()
+    if (options.json) {
+      console.log(JSON.stringify(points))
+      return
+    }
+    if (!points.length) console.log("No restore point: npm run wt -- promote --apply takes one.")
+    for (const point of points) {
+      console.log(
+        `${point.id}  ${point.database}  ${point.reason}${point.summary ? `: ${point.summary}` : ""}`,
+      )
+    }
+    return
+  }
+  const point = readRestorePoint(argument)
+  if (!point)
+    throw new Error(`No restore point ${argument}: npm run wt -- restore-main lists them.`)
+  await withLock("_main-database", () => {
+    console.log(`Putting ${point.database} back as it was ${point.reason} (${point.createdAt})...`)
+    const { before } = restoreMainDatabase({ postgres, id: argument })
+    console.log(`${point.database} is back as it was. The main API reconnects by itself.
+What it held a moment ago is a restore point too: npm run wt -- restore-main ${before}`)
+  })
 }
 
 function login() {
