@@ -4,7 +4,8 @@ Every git worktree can run its own dev environment, side by side with the others
 the API, the workers, web-embed, the help site, the pdf-converter, the three Storybooks, Grafana,
 Bull Board, a Dex to sign in, a Phoenix project for its traces, and its own databases copied
 from your local one. Each service gets a URL such as `http://fix-sidebar.connect.localhost:8800`,
-and http://dev.connect.localhost:8800 lists every environment of the machine.
+and http://dev.connect.localhost:8800 lists every environment of the machine, with buttons to
+drive yours. On a Mac, [infra/wt-tray](../wt-tray/README.md) does the same from the menu bar.
 
 ## Daily use
 
@@ -12,8 +13,9 @@ In Claude Code, `/worktree-env fix-sidebar` creates `.claude/worktrees/fix-sideb
 session there and starts the environment (a few minutes the first time). Outside Claude Code,
 `npm run wt -- new fix-sidebar` creates the same worktree from `origin/main`, on the branch
 `worktree-fix-sidebar`, with the gitignored files of `.worktreeinclude`, then starts its
-environment. The dashboard's "New worktree" button copies that command. In any worktree, Claude's
-or not, `npm run wt -- up` starts or updates its environment.
+environment. The dashboard's "New worktree" form runs it for you once you are signed in to its
+buttons (see below), or copies the command. In any worktree, Claude's or not, `npm run wt -- up`
+starts or updates its environment.
 
 The name gives the URLs, and an issue number works too: `/worktree-env 135` shows the title of
 issue 135 (from bayes-platform or internal-issues) and serves the app on
@@ -22,7 +24,7 @@ issue 135 (from bayes-platform or internal-issues) and serves the app on
 Each card of the dashboard says what its worktree is for, with links to its issue and its pull
 request. `/worktree-env` fills in the description and the issue. Otherwise, `--description` and
 `--issue` of `new` and `up`, or `npm run wt -- describe "<text>"` in the worktree, set them. The
-dashboard's form takes a description too. Without a description, the card shows the title of the
+dashboard's form takes a description too, and its "Describe it" button changes one. Without a description, the card shows the title of the
 issue, then of the pull request. An environment named after a number gets the open issue of that
 number in this repository. A new pull request shows after the next `wt up`, `wt describe` or
 cleanup of a session start.
@@ -37,6 +39,10 @@ cleanup of a session start.
 | `reset-db` | Replaces its databases with a fresh copy of the main checkout's. |
 | `dex-sync` | Gives a Dex account to people added to its database since it started. |
 | `down` | Removes its containers, volumes and databases. A dump stays in `~/.bayes-worktrees/trash/` for 14 days. |
+| `serve` | Runs your daemon, which the buttons of the dashboard and of the menu bar app go through. The session start hook starts it. |
+| `login [--rotate]` | Prints the link that enables those buttons in your browser, and your token. |
+| `promote [--apply --all \| --groups 1,3]` | What the worktree's database has that the main one lacks, in groups, or copies it there. See below. |
+| `restore-main [<id>]` | The restore points of the main database, or puts it back as it was at one. |
 | `status`, `doctor` | Every environment of the machine; checks of the machine. |
 | `cleanup [--apply]` | What can go now that pull requests are merged (see below), or remove it. |
 
@@ -44,6 +50,72 @@ Sign in with your email and the local dev password. Commands you run on the host
 (tests, typecheck, `migration:run`, scripts) use the environment's databases and Redis, never the
 main checkout's. Do not start `npm run dev` or a Storybook on the host of a worktree: the
 environment runs them, and your edits reload there.
+
+## Buttons
+
+The dashboard and the [menu bar app](../wt-tray/README.md) run the `wt` commands for you, on
+your own environments:
+
+- start or stop an environment, and start, stop, restart or run again each of its services;
+- `up` ("Update"), `reset-db`, `down` ("Remove environment") and `cleanup --apply --slug`
+  ("Close worktree"), whose output streams in the page, the last three after a confirmation;
+- `new` from the "New worktree" form, and `describe` from the card;
+- `promote` ("Import into main"), row by row, and `restore-main` ("main database" in the header);
+- the logs of the environment or of one service, followed live;
+- on a Mac, the worktree opened in your editor or in Terminal. `WT_EDITOR`, in the environment of
+  the daemon, names your editor's command (`webstorm`, `cursor`...), VS Code's `code` by default.
+
+To sign in, run `npm run wt -- login` and open the link it prints, once per browser. The page
+keeps a personal token, which `npm run wt -- login --rotate` replaces. On the shared VM, a
+colleague's environments show who owns them and stay read-only. Without the token, the dashboard
+works as before: it shows everything and copies the commands.
+
+Behind the buttons, each user runs a daemon, `npm run wt -- serve`, which runs the commands as
+them. The session start hook of Claude Code starts it, and the menu bar app starts it again on a
+Mac; its output goes to `~/.bayes-worktrees/serve.log`. The dashboard forwards each request to the
+daemon of the token's owner, after checking that it comes from the dashboard itself: the
+worktrees' own apps and other web pages cannot reach it.
+[ADR 0026](../../docs/adr/0026-worktree-control-daemon.md) explains why.
+
+## Data into the main database
+
+Every new worktree starts from a copy of the main checkout's database. To keep what you set up in
+a worktree, an app connected to a project or an MCP server for example, copy it into the main
+database: "Import into main" on its card, or in the worktree:
+
+```bash
+npm run wt -- promote
+```
+
+It lists, in groups, what the worktree's database has that the main one lacks: `+` new rows,
+`~` rows changed in the worktree, `!` rows the main database changed too. A group is what was
+made together, found through the foreign keys: an app installation comes with its manifest, its
+service user, its role and their memberships. Rows tied to nothing, messages or activities, gather
+per table. In the dashboard you pick row by row; picking a row picks what it needs, leaving one
+out leaves out what needs it. On the command line, `--apply --all` copies the rows marked `[x]`,
+`--apply --groups 1,3` those of some groups.
+
+New rows start selected, except revoked, consumed or expired ones. Changes to rows of the main
+database and conflicts are always a choice. Tables of lone rows you left out entirely start
+unselected next time. Nothing is ever deleted in the main database. It works from the schema
+alone, so a new table needs nothing: see
+[ADR 0027](../../docs/adr/0027-worktree-data-into-main.md).
+
+Run the branch's migrations in the main checkout first (`npm run migration:run -w apps/api`):
+`promote` refuses to copy while the main database lacks some, since rows they insert would come
+twice. Import before closing the worktree: its database goes with it.
+
+Each copy first takes a restore point of the main database, kept 14 days in
+`~/.bayes-worktrees/restore-points`. "main database" in the dashboard's header lists them, as
+`npm run wt -- restore-main` does, and puts the main database back as it was at one:
+
+```bash
+npm run wt -- restore-main 2026-10-14T10-20-11-322Z
+```
+
+A restore takes a restore point too, so it can be undone. The main API reconnects by itself. On a
+machine where several people share the main database, a restore also undoes what they changed
+since.
 
 ## Cleanup after merge
 
@@ -59,9 +131,13 @@ whose pull request was merged less than 30 minutes ago. `--apply` removes at mos
 keeps a dump of each database for 14 days. Worktrees that never had an environment are only
 removed with `--include-unregistered`. `--slug <name>` limits the run to one environment.
 
+When it keeps a worktree in use, it names the processes working in it, for example
+`in use by zsh (pid 46422), claude (pid 79801)`: close them, or leave the folder, and try again.
+
 The session start hook of `.claude/settings.json` runs it in the background, at most every 10
-minutes. For now it only records its verdicts. Each card of the dashboard gives the command that
-closes its worktree, to run in the main checkout, with the last verdict under it.
+minutes. For now it only records its verdicts. Each card of the dashboard shows the last verdict,
+with the "Close worktree" button on yours and the command to run in the main checkout on the
+others.
 `npm run wt -- cleanup --enable-auto` lets it remove what is safe, `--disable-auto` turns that
 off. Removals are logged in `~/.bayes-worktrees/cleanup.log`, and the next session in the main
 checkout mentions them.
@@ -74,7 +150,8 @@ Chrome or Firefox: Safari does not resolve `*.localhost`. Windows is not support
 
 1. In the main checkout: `node infra/dex/sync-users.mjs`. It sets the local dev password and moves
    the people of your local database to Dex (see [infra/dex/README.md](../dex/README.md)).
-2. `npm run wt -- setup`. It creates the shared caches, starts the shared stack with the `router`,
+2. `npm run wt -- setup`. It creates the shared caches and `/var/tmp/bayes-worktrees`, where each
+   user's daemon tells the dashboard how to reach it, starts the shared stack with the `router`,
    `traces` and `mail` profiles, and creates the read-only role of Grafana.
 3. Document uploads go from the browser straight to the dev bucket, so its CORS must accept the
    environments' origins: the shared bucket of the dev VMs does (bayesimpact/infra), and for a
@@ -83,7 +160,8 @@ Chrome or Firefox: Safari does not resolve `*.localhost`. Windows is not support
    laptop. VS Code does it with the settings of the repository; otherwise
    `ssh -L 8800:localhost:8800 -L 5556:localhost:5556 <vm>`. Raise the inotify limit, since every
    dev server takes one instance: `sudo sysctl fs.inotify.max_user_instances=1024`.
-5. Open http://dev.connect.localhost:8800.
+5. Run `npm run wt -- login` and open the link it prints: http://dev.connect.localhost:8800 with
+   its buttons.
 
 `npm run wt -- doctor` checks all of this.
 
@@ -114,9 +192,18 @@ Chrome or Firefox: Safari does not resolve `*.localhost`. Windows is not support
 - **Traces and emails.** Traces go to the Phoenix project `wt-<name>`. Emails never leave the
   machine: they land in Mailpit (http://mail.connect.localhost:8800), since the copied database
   holds real addresses.
+- **Shared stack.** `wt up` starts what is missing of it, and recreates the services it routes
+  or uses (Traefik, the dashboard, Phoenix, the collector, Mailpit, Grafana) when their
+  configuration changed, for example a container created before its route existed. It never
+  touches the main checkout's Postgres and Redis.
+- **Buttons.** Each user's daemon (`wt serve`) listens on a Unix socket in
+  `/var/tmp/bayes-worktrees` on Linux, and on a loopback port on a Mac, which Docker Desktop
+  reaches as `host.docker.internal`. It runs the main checkout's `wt.mjs` for `new` and
+  `cleanup`, and the worktree's own for the rest.
 - **Shared state.** `~/.bayes-worktrees/` holds the local dev password hash, each environment's Dex
   configuration, `status.json` for the dashboard (description, issue, branch, pull request,
-  databases, cleanup verdict), locks and dumps.
+  databases, cleanup verdict), your token (`api-token`), how to start your daemon again
+  (`daemon.json`), its log, the restore points of the main database, locks and dumps.
 
 ## When something goes wrong
 
@@ -125,6 +212,18 @@ Chrome or Firefox: Safari does not resolve `*.localhost`. Windows is not support
 - **The API or the workers never get ready.** An `apps/api/.env` copied long ago lacks the keys
   added since (`wt up` and `wt doctor` name them). Copy them from `apps/api/.env-example`, then
   `npm run wt -- restart api` and `npm run wt -- restart workers`.
+- **"The requested image's platform (linux/amd64) does not match the detected host platform".**
+  A `docker build --platform=linux/amd64` (the Makefile's) replaced the local node image with its
+  amd64 variant, which runs emulated. `npm run wt -- up` pulls it again for your machine.
+- **"phoenix is not routed"** (or mailpit, grafana). Its container was created before its route
+  existed. `npm run wt -- up` recreates it with its route, and `wt doctor` checks them.
+- **The dashboard shows no buttons, or "Your daemon does not run".** Run `npm run wt -- serve`
+  (or start a Claude Code session), then `npm run wt -- login` and open its link. "Missing or
+  wrong token" means the token changed: open the link again.
+- **"Import into main" says the main database lacks migrations.** Run
+  `npm run migration:run -w apps/api` in the main checkout, then open it again.
+- **"Close worktree" removes nothing.** The cleanup keeps what holds work and says why: a pull
+  request still open, uncommitted changes, a session or a shell in the folder, recent activity.
 - **A URL shows "not answering yet".** The service is starting or restarting; the page reloads by
   itself. `npm run wt -- logs <service>` tells why when it lasts.
 - **"No environment answers at ..."** Start it with `/worktree-env <name>`, or `npm run wt -- up` in

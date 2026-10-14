@@ -10,6 +10,7 @@ import { spawn, spawnSync } from "node:child_process"
 import { createHash } from "node:crypto"
 import {
   appendFileSync,
+  chmodSync,
   closeSync,
   copyFileSync,
   existsSync,
@@ -36,9 +37,12 @@ import {
 } from "../dex/dex-config.mjs"
 import { readEnvValues, setEnvValues } from "../dex/env-file.mjs"
 import { decide, MAX_REMOVALS_PER_RUN, parseWorktreeList } from "./lib/cleanup.mjs"
+import { DAEMON_DIR, loginUrl } from "./lib/daemon.mjs"
 import {
+  composeImages,
   composeTemplateKeys,
   composeVariables,
+  foreignImages,
   formatComposeEnv,
   hostEnvValues,
   missingApiEnvKeys,
@@ -54,6 +58,14 @@ import {
   nodeModulesFolders,
   slugProblem,
 } from "./lib/naming.mjs"
+import {
+  applyPromotion,
+  listRestorePoints,
+  readPromotion,
+  readRestorePoint,
+  restoreMainDatabase,
+} from "./lib/promotion.mjs"
+import { daemonRunning, ensureToken, serve } from "./lib/serve.mjs"
 import { currentBranch, issueOf, pullRequestOf, readStatus, updateStatus } from "./lib/status.mjs"
 import {
   databaseNames,
@@ -116,17 +128,27 @@ In a worktree:
   stop | start               Pause the environment (it stays paused across reboots), resume it
   reset-db                   Replace its databases with a fresh copy of the main checkout's
   dex-sync                   Give Dex accounts to people added to its database since it started
+  promote                    What its database has that the main one lacks, in groups: the data
+                             every new worktree would then get (an app connected here...)
+    [--apply --all | --groups <1,3> | --selection <file>]  Copy it into the main database, after
+                             a restore point
+    [--json] [--slug <name>] As JSON; for another environment than this worktree's
 
 Anywhere:
   new <name>                 Create the worktree .claude/worktrees/<name> from origin/main, then
                              its environment (an issue number works as the name)
     [--description <text>] [--issue <number|URL>]  As for up
   status                     List the environments of this machine
+  restore-main [<id>]        The restore points of the main database (one per promote, kept 14
+                             days), or put it back as it was at one
   cleanup [--apply]          Environments whose pull request is merged or closed: what would be
                              removed (environment, databases, worktree, branch), or remove them
     [--include-unregistered] Also worktrees without an environment
     [--slug <name>]          Only this environment and its worktree
     [--enable-auto | --disable-auto]  Let the session start hook remove them by itself
+  serve                      Run your daemon, which the buttons of the dashboard and of the menu
+                             bar app go through (the session start hook starts it)
+  login [--rotate]           The link that lets your browser use those buttons, and your token
   setup [--recreate]         Once per machine: caches, shared stack and router
   doctor                     Check this machine
   down --slug <name>         Remove the environment of a worktree that no longer exists`
@@ -145,6 +167,11 @@ const { values: options, positionals } = parseArgs({
     "include-unregistered": { type: "boolean", default: false },
     "enable-auto": { type: "boolean", default: false },
     "disable-auto": { type: "boolean", default: false },
+    rotate: { type: "boolean", default: false },
+    json: { type: "boolean", default: false },
+    all: { type: "boolean", default: false },
+    groups: { type: "string" },
+    selection: { type: "string" },
     help: { type: "boolean", short: "h", default: false },
   },
 })
@@ -164,6 +191,10 @@ const commands = {
   status: () => status(),
   cleanup: () => cleanup(),
   "session-start": () => sessionStart(),
+  serve: () => serve({ mainCheckout: repositoryPaths().mainCheckout }),
+  login: () => login(),
+  promote: () => promote(),
+  "restore-main": () => restoreMain(),
   setup: () => setup(),
   doctor: () => doctor(),
   help: () => console.log(HELP),
@@ -279,6 +310,7 @@ async function up() {
     const postgres = ensureSharedStack(environment.mainCheckout)
     const passwordHash = dexPasswordHash()
     checkNodeModulesVolumes(environment)
+    pullNativeImages(environment.root, environment.mainCheckout)
 
     const composeEnvFile = join(environment.root, "infra/worktree/.env")
     const previous = existsSync(composeEnvFile)
@@ -503,6 +535,7 @@ async function setup() {
   run("docker", ["version", "--format", "{{.Server.Version}}"])
   const { mainCheckout } = repositoryPaths()
   mkdirSync(STATE_DIR, { recursive: true, mode: 0o700 })
+  prepareDaemonDir()
   for (const volume of ["bayes-dev-npm-cache", "bayes-dev-go-cache"]) {
     run("docker", ["volume", "create", "--label", "dev.worktree.cache=true", volume])
   }
@@ -556,7 +589,27 @@ async function doctor() {
     const routerPort = Number(readMainStackEnv().ROUTER_PORT || 8800)
     const code = await throughRouter(routerPort, `dev.connect.localhost:${routerPort}`, "/healthz")
     check(code === 200, `router answers on 127.0.0.1:${routerPort}`, "npm run wt -- setup")
+    // The dashboard answers 503 for a host no service takes: a container without its route.
+    for (const [name, label] of [
+      ["phoenix", "phoenix"],
+      ["mailpit", "mail"],
+    ]) {
+      if (!sharedContainer(name)) continue
+      const routed = await throughRouter(
+        routerPort,
+        `${label}.connect.localhost:${routerPort}`,
+        "/",
+      )
+      check(routed !== 503, `${name} is routed`, "npm run wt -- up recreates it with its route")
+    }
     const memory = Number(run("docker", ["info", "--format", "{{.MemTotal}}"]))
+    const foreign = imagesOfOtherArchitecture(repositoryPaths().mainCheckout)
+    check(
+      foreign.length === 0,
+      "images pulled for Docker's architecture",
+      `${foreign.join(", ")} run emulated: npm run wt -- up pulls them again`,
+      { warning: true },
+    )
     check(
       memory >= 12 * 1024 ** 3,
       `Docker memory ${(memory / 1024 ** 3).toFixed(1)} GB (about 7 GB per environment)`,
@@ -564,6 +617,12 @@ async function doctor() {
     )
   }
   check(existsSync(PASSWORD_HASH_FILE), "local dev password set", "node infra/dex/sync-users.mjs")
+  check(
+    daemonRunning(),
+    "your daemon runs (the buttons of the dashboard and of the menu bar app)",
+    "npm run wt -- serve, then npm run wt -- login",
+    { warning: true },
+  )
   const missingKeys = apiEnvGaps(repositoryPaths().mainCheckout)
   check(
     missingKeys.length === 0,
@@ -631,6 +690,8 @@ async function cleanup() {
     }
     if (decision.action === "keep") {
       if (decision.reason !== "gone") say(`keep    ${facts.slug}: ${decision.reason}`)
+      // Asked for this one: say that nothing went, and what would let it go.
+      if (only && apply) say(`\nNothing was removed. ${keptAdvice(decision.reason)}`)
       continue
     }
     if (decision.action === "remove" && !facts.hasEnvironment && !options["include-unregistered"]) {
@@ -799,7 +860,7 @@ function worktreeFacts(worktree, { environmentPaths, ghAvailable, now }) {
     pr,
     dirty: isDirty(worktree.path),
     headInPullRequest: isInPullRequest(worktree.path, worktree.head, pr.headRefOid),
-    inUse: isInUse(worktree.path),
+    inUse: processesIn(worktree.path),
     // A `wt up` counts as activity: it may have reopened the worktree without touching git.
     lastActivityAt: Math.max(lastGitActivity(worktree.path), lastUpAt(slug, worktree.path)),
   }
@@ -858,27 +919,55 @@ function isInPullRequest(path, head, pullRequestHead) {
  * editor. The environment's own containers run there too, so processes of another mount
  * namespace (containers) do not count.
  */
-function isInUse(path) {
+/**
+ * The processes working in a worktree (a Claude session, a shell, an editor's server), as
+ * "name (pid N)", or true when they cannot be listed, which counts as in use.
+ */
+function processesIn(path) {
+  const inside = (cwd) => cwd === path || cwd.startsWith(`${path}/`)
   if (process.platform === "linux") {
     const ownNamespace = readlinkSync("/proc/self/ns/mnt")
+    const found = []
     for (const pid of readdirSync("/proc").filter((name) => /^\d+$/u.test(name))) {
       try {
         if (readlinkSync(`/proc/${pid}/ns/mnt`) !== ownNamespace) continue
-        const cwd = readlinkSync(`/proc/${pid}/cwd`)
-        if (cwd === path || cwd.startsWith(`${path}/`)) return true
+        if (!inside(readlinkSync(`/proc/${pid}/cwd`))) continue
+        found.push(`${readFileSync(`/proc/${pid}/comm`, "utf8").trim()} (pid ${pid})`)
       } catch {
         // A process that ended, or of another user.
       }
     }
-    return false
+    return found
   }
   try {
-    return run("lsof", ["-a", "-d", "cwd", "-u", String(process.getuid()), "-Fn"])
-      .split("\n")
-      .some((line) => line === `n${path}` || line.startsWith(`n${path}/`))
+    // -F pcn: a "p<pid>" line, then "c<command>", then "n<cwd>" for each process.
+    const found = []
+    let pid = null
+    let command = null
+    const lines = run("lsof", ["-a", "-d", "cwd", "-u", String(process.getuid()), "-F", "pcn"])
+    for (const line of lines.split("\n")) {
+      if (line.startsWith("p")) pid = line.slice(1)
+      else if (line.startsWith("c")) command = line.slice(1)
+      else if (line.startsWith("n") && inside(line.slice(1))) found.push(`${command} (pid ${pid})`)
+    }
+    return found
   } catch {
     return true
   }
+}
+
+function keptAdvice(reason) {
+  if (reason.startsWith("in use")) {
+    return "Close these sessions and shells, or move them out of the worktree, then try again."
+  }
+  if (reason.includes("open")) return "It goes once its pull request is merged or closed."
+  if (reason === "uncommitted changes" || reason.startsWith("commits")) {
+    return "Commit and push the work, or discard it, then try again."
+  }
+  if (reason.includes("ago") || reason.startsWith("active")) {
+    return "It is kept a little while after the last activity: try again later."
+  }
+  return "It keeps it to lose nothing: npm run wt -- down in the worktree removes only its environment."
 }
 
 /** The last change of the worktree's index or HEAD (commits, checkouts, staging). */
@@ -940,6 +1029,158 @@ function sessionStart() {
     }
   }
   startCleanupInBackground(paths.mainCheckout)
+  startDaemonInBackground(paths.mainCheckout)
+}
+
+/** Starts this user's `wt serve` when it does not run, for the buttons of the dashboard. */
+function startDaemonInBackground(mainCheckout) {
+  const script = join(mainCheckout, "infra/worktree/wt.mjs")
+  if (!existsSync(script) || daemonRunning()) return
+  const output = openSync(join(STATE_DIR, "serve.log"), "a")
+  spawn(process.execPath, [script, "serve"], {
+    cwd: mainCheckout,
+    detached: true,
+    stdio: ["ignore", output, output],
+  }).unref()
+}
+
+/**
+ * What the database of an environment has that the main checkout's lacks, in coherent groups,
+ * or, with --apply, copies a selection of it into the main database after a restore point.
+ */
+async function promote() {
+  const environment = options.slug
+    ? environmentOfSlug(validSlug(options.slug))
+    : currentEnvironment()
+  const postgres = sharedContainer("pgvector")
+  if (!postgres) throw new Error("The shared Postgres does not run: npm run wt -- setup")
+  const mainDatabase = environment.mainApiEnv.DATABASE_NAME || "connect"
+  const promotion = readPromotion({
+    postgres,
+    mainDatabase,
+    worktreeDatabase: environment.names.database,
+  })
+  if (options.json && !options.apply) {
+    console.log(JSON.stringify(promotion))
+    return
+  }
+  if (!options.apply) {
+    printPromotion(promotion, environment.slug)
+    return
+  }
+  const selectedKeys = promotionSelection(promotion)
+  // One change of the main database at a time, whichever worktree it comes from.
+  await withLock("_main-database", () => {
+    const { restorePoint, summary, count } = applyPromotion({
+      postgres,
+      promotion,
+      selectedKeys,
+      slug: environment.slug,
+    })
+    console.log(`Copied ${count} rows into ${mainDatabase}: ${summary}.
+New worktrees get them. To undo it: npm run wt -- restore-main ${restorePoint}`)
+  })
+}
+
+/** The rows --apply copies: those of a selection file, of some groups, or all selected ones. */
+function promotionSelection(promotion) {
+  if (options.selection) {
+    const keys = JSON.parse(readFileSync(options.selection, "utf8"))
+    if (!Array.isArray(keys) || keys.some((key) => typeof key !== "string")) {
+      throw new Error(`${options.selection} is not a list of rows`)
+    }
+    return keys
+  }
+  let groups = promotion.groups
+  if (options.groups) {
+    const numbers = options.groups.split(",").map((value) => Number(value.trim()))
+    if (
+      numbers.some((number) => !Number.isInteger(number) || number < 1 || number > groups.length)
+    ) {
+      throw new Error(`--groups takes numbers between 1 and ${groups.length}, as listed by promote`)
+    }
+    groups = numbers.map((number) => promotion.groups[number - 1])
+  } else if (!options.all) {
+    throw new Error("Say what to copy: --all (the rows marked [x]), or --groups 1,3")
+  }
+  return groups.flatMap((group) =>
+    group.changes.filter((change) => change.selected).map((change) => change.key),
+  )
+}
+
+function printPromotion(promotion, slug) {
+  if (promotion.missingMigrations.length) {
+    console.log(`The main database lacks migrations of ${slug}: ${promotion.missingMigrations.join(", ")}.
+Run npm run migration:run -w apps/api in the main checkout before copying anything: some rows below
+may come from those migrations, and the main database gets them that way.
+`)
+  }
+  if (!promotion.groups.length) {
+    console.log(`${promotion.worktreeDatabase} has nothing that ${promotion.mainDatabase} lacks.`)
+  }
+  promotion.groups.forEach((group, index) => {
+    console.log(`${index + 1}. ${group.title} (${group.summary})`)
+    for (const change of group.changes) {
+      const mark = change.selected ? "[x]" : "[ ]"
+      const kind = { added: "+", changed: "~", conflict: "!" }[change.kind]
+      const details = [...change.context, ...change.state].join(", ")
+      console.log(
+        `   ${mark} ${kind} ${change.table} ${change.label}${details ? ` (${details})` : ""}`,
+      )
+    }
+  })
+  for (const { table, rows, reason } of promotion.blocked) {
+    console.log(`Not copied: ${rows} rows of ${table}, ${reason}.`)
+  }
+  if (promotion.groups.length) {
+    console.log(`
++ new, ~ changed in the worktree, ! changed in the main database too. [x] rows are copied by
+--apply --all; --apply --groups 1,3 copies those of some groups. The rows a copied row needs come
+with it. The dashboard lets you pick row by row.`)
+  }
+}
+
+async function restoreMain() {
+  const postgres = sharedContainer("pgvector")
+  if (!postgres) throw new Error("The shared Postgres does not run: npm run wt -- setup")
+  if (!argument) {
+    const points = listRestorePoints()
+    if (options.json) {
+      console.log(JSON.stringify(points))
+      return
+    }
+    if (!points.length) console.log("No restore point: npm run wt -- promote --apply takes one.")
+    for (const point of points) {
+      console.log(
+        `${point.id}  ${point.database}  ${point.reason}${point.summary ? `: ${point.summary}` : ""}`,
+      )
+    }
+    return
+  }
+  const point = readRestorePoint(argument)
+  if (!point)
+    throw new Error(`No restore point ${argument}: npm run wt -- restore-main lists them.`)
+  await withLock("_main-database", () => {
+    console.log(`Putting ${point.database} back as it was ${point.reason} (${point.createdAt})...`)
+    const { before } = restoreMainDatabase({ postgres, id: argument })
+    console.log(`${point.database} is back as it was. The main API reconnects by itself.
+What it held a moment ago is a restore point too: npm run wt -- restore-main ${before}`)
+  })
+}
+
+function login() {
+  const token = ensureToken({ rotate: options.rotate })
+  const routerPort = Number(readMainStackEnv().ROUTER_PORT || 8800)
+  const dashboard = environmentNames("dev", routerPort).origin
+  console.log(`Open this link once: your browser keeps the token, and the dashboard's buttons work.
+
+  ${loginUrl(dashboard, token)}
+
+The menu bar app reads it from ${join(STATE_DIR, "api-token")} on this Mac. On a laptop tunnelled to
+this machine, paste it in the app: ${token}`)
+  if (!daemonRunning()) console.log("\nYour daemon does not run yet: npm run wt -- serve")
+  if (options.rotate)
+    console.log("\nThe old token no longer works: open the new link, and paste it in the app.")
 }
 
 function recentCleanups() {
@@ -1045,7 +1286,50 @@ function readEnvFile(path) {
 }
 
 /** Starts what is missing of the shared stack, never recreating it. Returns the Postgres. */
+/**
+ * The folder where each user's daemon describes itself, which the dashboard mounts. Created by
+ * whoever comes first, writable by everyone, and sticky: nobody removes a colleague's files.
+ */
+function prepareDaemonDir() {
+  mkdirSync(DAEMON_DIR, { recursive: true })
+  try {
+    chmodSync(DAEMON_DIR, 0o1777)
+  } catch {}
+}
+
+/**
+ * Recreates the running services of the shared stack that Traefik routes, or that environments
+ * use, whose configuration changed: a container created before its route existed keeps no route
+ * (a Phoenix of the main checkout, for example), since the shared stack starts with --no-recreate.
+ * Compose leaves the unchanged ones alone, and the Postgres and Redis of the main checkout are
+ * never touched.
+ */
+function updateRoutedSharedServices(mainCheckout) {
+  const services = [
+    ["traefik", "router"],
+    ["dev-dashboard", "router"],
+    ["otel-collector", "traces"],
+    ["phoenix", "traces"],
+    ["mailpit", "mail"],
+    ["grafana", "analytics"],
+  ].filter(([name]) => sharedContainer(name))
+  if (services.length === 0) return
+  const profiles = [...new Set(services.map(([, profile]) => profile))]
+  runVisible(
+    "docker",
+    sharedCompose(mainCheckout, [
+      ...profiles.flatMap((profile) => ["--profile", profile]),
+      "up",
+      "-d",
+      "--no-deps",
+      "--quiet-pull",
+      ...services.map(([name]) => name),
+    ]),
+  )
+}
+
 function ensureSharedStack(mainCheckout) {
+  prepareDaemonDir()
   const missing = SHARED_SERVICES.filter(([name]) => !sharedContainer(name))
   if (missing.length > 0) {
     console.log(`Starting the shared stack: ${missing.map(([name]) => name).join(", ")}`)
@@ -1067,9 +1351,50 @@ function ensureSharedStack(mainCheckout) {
       )
     }
   }
+  updateRoutedSharedServices(mainCheckout)
   const postgres = sharedContainer("pgvector")
   if (!postgres) throw new Error("The shared Postgres does not run: npm run wt -- setup")
   return postgres
+}
+
+/**
+ * Pulls again, for Docker's architecture, the images of the compose template pulled for another
+ * one (see foreignImages), then moves the dashboard, which runs the node image too, onto it.
+ */
+function pullNativeImages(root, mainCheckout) {
+  const foreign = imagesOfOtherArchitecture(root)
+  if (foreign.length === 0) return
+  const platform = `linux/${dockerArchitecture()}`
+  for (const image of foreign) {
+    console.log(
+      `${image} was pulled for another architecture and runs emulated: pulling ${platform}...`,
+    )
+    if (runVisible("docker", ["pull", "--platform", platform, image]) !== 0) {
+      throw new Error(`Could not pull ${image} for ${platform}, see above.`)
+    }
+  }
+  runVisible(
+    "docker",
+    sharedCompose(mainCheckout, ["--profile", "router", "up", "-d", "dev-dashboard"]),
+  )
+}
+
+function imagesOfOtherArchitecture(root) {
+  const template = readFileSync(join(root, COMPOSE_FILE), "utf8")
+  const architectures = Object.fromEntries(
+    composeImages(template).map((image) => {
+      try {
+        return [image, run("docker", ["image", "inspect", "--format", "{{.Architecture}}", image])]
+      } catch {
+        return [image, null]
+      }
+    }),
+  )
+  return foreignImages(architectures, dockerArchitecture())
+}
+
+function dockerArchitecture() {
+  return run("docker", ["version", "--format", "{{.Server.Arch}}"])
 }
 
 function dexPasswordHash() {

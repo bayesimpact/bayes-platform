@@ -114,7 +114,7 @@ the other services start with their profile, from `infra/database`:
 | `dex` | Dex, http://localhost:5556 ([README](infra/dex/README.md)) | `docker compose --profile dex up -d --no-recreate dex` |
 | `traces` | otel-collector, Phoenix, http://localhost:6060 | `docker compose --profile traces up -d --no-recreate otel-collector phoenix` |
 | `analytics` | Grafana, http://localhost:3300 | `docker compose --profile analytics up -d --no-recreate grafana` |
-| `router` | Traefik and the dashboard of the worktree environments, http://dev.connect.localhost:8800 | `mkdir -p ~/.bayes-worktrees && docker compose --profile router up -d --no-recreate traefik dev-dashboard` |
+| `router` | Traefik and the dashboard of the worktree environments, http://dev.connect.localhost:8800 | `npm run wt -- setup` (it also creates `~/.bayes-worktrees` and `/var/tmp/bayes-worktrees`, which the dashboard mounts) |
 
 The `router` profile serves every `*.connect.localhost` host on
 http://127.0.0.1:8800 (`ROUTER_PORT` in `infra/database/.env`): the worktree

@@ -2,9 +2,11 @@ import assert from "node:assert/strict"
 import { readFileSync } from "node:fs"
 import { describe, it } from "node:test"
 import {
+  composeImages,
   composeTemplateKeys,
   composeVariables,
   DEFAULT_SMTP_FROM,
+  foreignImages,
   formatComposeEnv,
   hostEnvValues,
   missingApiEnvKeys,
@@ -192,6 +194,23 @@ describe("missingApiEnvKeys", () => {
     assert.deepEqual(
       missingApiEnvKeys({ example: { TOKEN: "x" }, env: { TOKEN: "" }, provided: new Set() }),
       [],
+    )
+  })
+})
+
+describe("images of another architecture", () => {
+  it("lists the images of the compose template once, comments aside", () => {
+    const template = readFileSync(new URL("../docker-compose.yaml", import.meta.url), "utf8")
+    const images = composeImages(template)
+    assert.ok(images.includes("node:24.21.0-trixie-slim"))
+    assert.ok(images.includes("golang:1.26-bookworm"))
+    assert.equal(new Set(images).size, images.length)
+  })
+
+  it("reports the pulled images whose architecture is not Docker's", () => {
+    assert.deepEqual(
+      foreignImages({ "node:24": "amd64", "redis:7": "arm64", "dex:2": null }, "arm64"),
+      ["node:24"],
     )
   })
 })

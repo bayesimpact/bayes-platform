@@ -22,12 +22,12 @@ import { ADS } from "@/common/store/async-data-status"
 import { useAppSelector } from "@/common/store/hooks"
 import { selectMcpAppHtml, selectStreamingToolSteps } from "../agent-session-messages.selectors"
 import { Attachment } from "./Attachment"
+import { ConversationFormsSheet } from "./ConversationFormsSheet"
 import { useConversationForms } from "./form-result-context"
 import { MarkdownWrapper } from "./MarkdownWrapper"
 import { McpAppPlaceholder, McpAppView } from "./McpAppView"
 import { getRenderableMcpApp, getReplyBubbleText, hasMcpAppCard } from "./mcp-app-view"
 import { SourcesTool } from "./SourcesTool"
-import { SubAgentFormResultSheet } from "./SubAgentFormResultSheet"
 import { SurfaceResourcesTool } from "./SurfaceResourcesTool"
 
 export function AgentSessionMessage({
@@ -158,12 +158,13 @@ export function AgentSessionMessage({
                   {sourcesTool && <SourcesTool toolCall={sourcesTool} />}
                 </RestrictedFeature>
 
-                {conversationForms.length > 0 && (
+                {conversationForms.forms.length > 0 && (
                   // One button on every reply, the same for all: every form
                   // of the conversation, the tab of this reply's agent first.
                   // The sheet reads live data, so it is right on any reply.
-                  <SubAgentFormResultSheet
-                    forms={conversationForms}
+                  <ConversationFormsSheet
+                    forms={conversationForms.forms}
+                    hasSubAgentForms={conversationForms.hasSubAgentForms}
                     defaultAgentId={message.agentId}
                   />
                 )}
