@@ -126,6 +126,16 @@ describe("registerWebApp", () => {
     expect(unknown.status).toBe(404)
   })
 
+  it("leaves the well-known documents to Nest, whatever the client accepts", async () => {
+    for (const accept of ["*/*", "text/html"]) {
+      const response = await request(app.getHttpServer())
+        .get("/.well-known/oauth-authorization-server/api/oauth")
+        .accept(accept)
+      expect(response.text).not.toContain("window.__CONFIG__")
+      expect(response.status).toBe(404)
+    }
+  })
+
   it("does not answer a private route at the root", async () => {
     const response = await request(app.getHttpServer()).get("/ping").accept("application/json")
     expect(response.status).toBe(404)
