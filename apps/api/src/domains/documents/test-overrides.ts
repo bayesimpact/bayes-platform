@@ -24,7 +24,10 @@ export function withDocumentEmbeddingsBatchServiceMock(
 }
 
 function createProjectEmbeddingReembedBatchServiceMock() {
-  return { enqueueReembedProjectChunks: jest.fn().mockResolvedValue(undefined) }
+  return {
+    enqueueReembedProjectChunks: jest.fn().mockResolvedValue(undefined),
+    isReembedJobQueued: jest.fn().mockResolvedValue(true),
+  }
 }
 
 export function withProjectEmbeddingReembedBatchServiceMock(

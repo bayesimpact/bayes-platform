@@ -1,6 +1,6 @@
 import { getEmbeddingModelMetadata } from "@caseai-connect/api-contracts"
 import { SparseVector } from "pgvector"
-import type { SparseWeights } from "./local-embedding-bridge.service"
+import type { SparseWeights } from "./embedders.types"
 
 /**
  * pgvector `sparsevec` literal for a model's lexical weights, or null when the model has none.

@@ -4,8 +4,8 @@ import { ConfigModule } from "@nestjs/config"
 import { TypeOrmModule } from "@nestjs/typeorm"
 import { getBullMqConnection } from "@/bullmq.config"
 import { ALL_ENTITIES } from "@/common/all-entities"
+import { EmbeddersModule } from "@/domains/documents/embeddings/embedders/embedders.module"
 import { ProjectEmbeddingModelsModule } from "@/domains/documents/embeddings/project-embedding-models/project-embedding-models.module"
-import { LocalEmbeddingsModule } from "@/external/local-embeddings/local-embeddings.module"
 import { DocumentsService } from "../documents.service"
 import { DocumentEmbeddingStatusNotifierService } from "../embeddings/document-embedding-status-notifier.service"
 import { DocumentEmbeddingsBatchModule } from "../embeddings/document-embeddings-batch.module"
@@ -36,7 +36,7 @@ import { WebSourceEmbeddingsQueueMetricsService } from "./web-source-embeddings-
     StorageModule,
     PdfPagesModule,
     DocumentEmbeddingsBatchModule,
-    LocalEmbeddingsModule,
+    EmbeddersModule,
     ProjectEmbeddingModelsModule,
   ],
   providers: [

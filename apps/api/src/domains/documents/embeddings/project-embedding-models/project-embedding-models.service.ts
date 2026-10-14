@@ -1,6 +1,15 @@
 import { type EmbeddingModel, isLocalEmbeddingModel } from "@caseai-connect/api-contracts"
-import { BadRequestException, ConflictException, Inject, Injectable, Logger } from "@nestjs/common"
+import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+  Logger,
+  UnprocessableEntityException,
+} from "@nestjs/common"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { EmbedderService } from "../embedders/embedder.service"
 import type { ProjectEmbeddingModel } from "./project-embedding-model.entity"
 import type { ProjectEmbeddingModelProgressFields } from "./project-embedding-model.repository"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -13,6 +22,8 @@ import {
 
 export const EMBEDDING_MODEL_NOT_LOCAL_ERROR_MESSAGE =
   "Only local embedding models can be enabled on a project."
+export const EMBEDDING_MODEL_NOT_CONFIGURED_ERROR_MESSAGE =
+  "This embedding model has no embedder configured on this deployment."
 export const EMBEDDING_MODEL_ALREADY_PROCESSING_ERROR_MESSAGE =
   "This embedding model is already being processed for the project."
 
@@ -24,6 +35,7 @@ export class ProjectEmbeddingModelsService {
     private readonly projectEmbeddingModelRepository: ProjectEmbeddingModelRepository,
     @Inject(PROJECT_EMBEDDING_REEMBED_BATCH_SERVICE)
     private readonly reembedBatchService: ProjectEmbeddingReembedBatchService,
+    private readonly embedderService: EmbedderService,
   ) {}
 
   async list(connectScope: RequiredConnectScope): Promise<ProjectEmbeddingModel[]> {
@@ -32,7 +44,7 @@ export class ProjectEmbeddingModelsService {
 
   /**
    * Enables a local model on the project and launches the job that embeds the existing chunks.
-   * A completed model is returned as is, a failed one is retried, a running one is refused.
+   * A completed model is returned as is, a failed or stuck one is retried, a running one is refused.
    */
   async enable({
     connectScope,
@@ -44,6 +56,9 @@ export class ProjectEmbeddingModelsService {
     if (!isLocalEmbeddingModel(modelName)) {
       throw new BadRequestException(EMBEDDING_MODEL_NOT_LOCAL_ERROR_MESSAGE)
     }
+    if (!this.embedderService.isAvailable(modelName)) {
+      throw new UnprocessableEntityException(EMBEDDING_MODEL_NOT_CONFIGURED_ERROR_MESSAGE)
+    }
 
     const existing = await this.projectEmbeddingModelRepository.findOneByModelName(
       connectScope,
@@ -52,7 +67,12 @@ export class ProjectEmbeddingModelsService {
     if (existing?.status === "completed") {
       return existing
     }
-    if (existing?.status === "pending" || existing?.status === "processing") {
+    // A pending or processing row whose job is gone (enqueue failure, retries exhausted, lost
+    // worker) would otherwise stay stuck: only a row with a live job refuses a new one.
+    if (
+      (existing?.status === "pending" || existing?.status === "processing") &&
+      (await this.reembedBatchService.isReembedJobQueued(existing.id))
+    ) {
       throw new ConflictException(EMBEDDING_MODEL_ALREADY_PROCESSING_ERROR_MESSAGE)
     }
 
@@ -68,12 +88,18 @@ export class ProjectEmbeddingModelsService {
       throw new ConflictException(EMBEDDING_MODEL_ALREADY_PROCESSING_ERROR_MESSAGE)
     }
 
-    await this.reembedBatchService.enqueueReembedProjectChunks({
-      projectEmbeddingModelId: row.id,
-      organizationId: row.organizationId,
-      projectId: row.projectId,
-      modelName: row.modelName,
-    })
+    try {
+      await this.reembedBatchService.enqueueReembedProjectChunks({
+        projectEmbeddingModelId: row.id,
+        organizationId: row.organizationId,
+        projectId: row.projectId,
+        modelName: row.modelName,
+      })
+    } catch (enqueueError) {
+      // Failed rather than pending, so the studio offers a retry instead of a spinner.
+      await this.markFailed({ id: row.id, error: enqueueError })
+      throw enqueueError
+    }
     this.logger.log(`Enabled embedding model ${modelName} on project ${row.projectId}`)
     return row
   }
@@ -114,11 +140,6 @@ export class ProjectEmbeddingModelsService {
     processedChunks: number
   }): Promise<void> {
     await this.save(id, { status: "completed", totalChunks, processedChunks, error: null })
-  }
-
-  /** Back to the queue without losing the counters, e.g. when a worker stops mid-job. */
-  async markPending({ id }: { id: string }): Promise<void> {
-    await this.save(id, { status: "pending", error: null })
   }
 
   async markFailed({ id, error }: { id: string; error: unknown }): Promise<void> {

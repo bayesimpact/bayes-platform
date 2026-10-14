@@ -19,13 +19,14 @@ import type { EndpointRequestWithProject } from "@/common/context/request.interf
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
 import { RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
-import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { ZodValidationPipe } from "@/common/zod-validation-pipe"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectsService } from "@/domains/projects/projects.service"
+import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
+import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
+import { DOCUMENT_READ_PERMISSION, DOCUMENT_UPDATE_PERMISSION } from "@/domains/rbac/rbac.constants"
 import { UserGuard } from "@/domains/users/user.guard"
-import { DocumentsGuard } from "../../documents.guard"
 import type { ProjectEmbeddingModel } from "./project-embedding-model.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectEmbeddingModelsService } from "./project-embedding-models.service"
@@ -34,10 +35,10 @@ export const LOCAL_EMBEDDINGS_FEATURE_DISABLED_ERROR_MESSAGE =
   "Local embeddings are not enabled for this project."
 
 /**
- * Local embedding models of a project. The routes reuse the documents policy: listing and
- * enabling a model is a project admin action, like managing the documents themselves.
+ * Embedding models of a project. Listing them needs the right to see the documents, and enabling
+ * one the right to update them, since it re-embeds every document of the project.
  */
-@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, DocumentsGuard)
+@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, CheckPermissionGuard)
 @RequireContext("organization", "project")
 @Controller()
 export class ProjectEmbeddingModelsController {
@@ -46,7 +47,7 @@ export class ProjectEmbeddingModelsController {
     private readonly projectsService: ProjectsService,
   ) {}
 
-  @CheckPolicy((policy) => policy.canList())
+  @CheckPermission(DOCUMENT_READ_PERMISSION, "project")
   @Get(ProjectEmbeddingModelsRoutes.getAll.path)
   async getAll(
     @Request() req: EndpointRequestWithProject,
@@ -56,7 +57,7 @@ export class ProjectEmbeddingModelsController {
     return { data: rows.map(toProjectEmbeddingModelDto) }
   }
 
-  @CheckPolicy((policy) => policy.canCreate())
+  @CheckPermission(DOCUMENT_UPDATE_PERMISSION, "project")
   @Post(ProjectEmbeddingModelsRoutes.createOne.path)
   @HttpCode(HttpStatus.CREATED)
   @UsePipes(new ZodValidationPipe(enableProjectEmbeddingModelSchema))

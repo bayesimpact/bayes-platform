@@ -40,6 +40,8 @@ export class BullMqProjectEmbeddingReembedBatchService
     try {
       await Promise.race([
         this.queue.add(PROJECT_EMBEDDING_REEMBED_JOB_NAME, payload, {
+          // One job per row: a second enqueue while one is queued is a no-op for BullMQ.
+          jobId: toReembedJobId(payload.projectEmbeddingModelId),
           attempts: 3,
           backoff: { type: "exponential", delay: 5_000 },
           removeOnComplete: true,
@@ -58,4 +60,15 @@ export class BullMqProjectEmbeddingReembedBatchService
       if (timeoutHandle !== undefined) clearTimeout(timeoutHandle)
     }
   }
+
+  async isReembedJobQueued(projectEmbeddingModelId: string): Promise<boolean> {
+    const job = await this.queue.getJob(toReembedJobId(projectEmbeddingModelId))
+    if (!job) return false
+    const state = await job.getState()
+    return state !== "completed" && state !== "failed" && state !== "unknown"
+  }
+}
+
+function toReembedJobId(projectEmbeddingModelId: string): string {
+  return `reembed-${projectEmbeddingModelId}`
 }

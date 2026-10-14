@@ -94,6 +94,9 @@ x-backend-env: &backend-env
   BULLMQ_REDIS_URL: redis://bullmq:6379
   # The API also writes <url>/mcp into the built-in PDF export MCP server of its database at boot.
   PDF_CONVERTER_URL: http://pdf-converter:3002
+  # The shared embedder of infra/database (profile `embeddings`). When it is not running, agents
+  # set to bge-m3 fall back to the Vertex model and the studio cannot enable it.
+  EMBEDDER_BGE_M3_URL: http://embedder:3003
   GOOGLE_APPLICATION_CREDENTIALS: ${WT_GCP_CREDENTIALS_IN_CONTAINER}
   GCS_CREDENTIALS: ""
   DOCUMENT_EXTRACTOR_DOCLING_ENABLED: "false"
