@@ -20,8 +20,16 @@ export const PRIVATE_API_PATH = `/${API_PREFIX}`
 /** Leading-slash form of the public API prefix. */
 export const PUBLIC_API_PATH = `/${PUBLIC_PATH_PREFIX}`
 
+/**
+ * RFC 8615 well-known documents: the OAuth metadata of the MCP endpoint and
+ * of the authorization server (ADR 0028). Clients fetch them with a generic
+ * `Accept: *\/*`, which the web front's catch-all would otherwise answer with
+ * its HTML entry page.
+ */
+export const WELL_KNOWN_PATH = "/.well-known"
+
 /** Paths the web front's catch-all must never answer. */
-export const RESERVED_PATH_PREFIXES = [PRIVATE_API_PATH, PUBLIC_API_PATH]
+export const RESERVED_PATH_PREFIXES = [PRIVATE_API_PATH, PUBLIC_API_PATH, WELL_KNOWN_PATH]
 
 export function isReservedPath(path: string): boolean {
   return RESERVED_PATH_PREFIXES.some((prefix) => path === prefix || path.startsWith(`${prefix}/`))
