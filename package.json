@@ -9,7 +9,6 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "test": "turbo run test",
-    "test:e2e": "turbo run test:e2e",
     "test:dev-tools": "node --test \"infra/dex/*.test.mjs\"",
     "lint": "biome lint .",
     "format": "biome format --write .",

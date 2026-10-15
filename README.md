@@ -523,18 +523,7 @@ npm run test:watch
 
 ### Run E2E Tests
 
-From the root:
-
-```bash
-npm run test:e2e
-```
-
-Or from the API directory:
-
-```bash
-cd apps/api
-npm run test:e2e
-```
+The API e2e tests live next to each domain, in `src/**/e2e-tests/`, and run with the other API tests (`npm run test` or `npm run test:parallel`).
 
 ### Test Database Setup
 
