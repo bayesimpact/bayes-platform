@@ -122,11 +122,11 @@
     "madge": "^8.0.0",
     "source-map-support": "^0.5.21",
     "supertest": "^7.0.0",
-    "ts-jest": "^29.2.5",
+    "ts-jest": "^29.4.15",
     "ts-loader": "^9.4.3",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "5.5.4"
+    "typescript": "~6.0.3"
   },
   "exports": {
     "./*": "./src/exports/*.ts"
