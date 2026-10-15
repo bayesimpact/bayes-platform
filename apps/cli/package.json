@@ -18,6 +18,6 @@
     "@repo/typescript-config": "*",
     "@types/jest": "^30.0.0",
     "@types/node": "^22.10.7",
-    "typescript": "5.5.4"
+    "typescript": "~6.0.3"
   }
 }
