@@ -81,9 +81,17 @@ export abstract class AISDKLLMProviderBase extends AISDKLLMToolsMgmt implements 
     // recovered after the stream (see recoverLeakedToolCalls).
     const leakedToolCalls: LeakedToolCall[] = []
     const temperature: number | undefined = this.applyTemperature(config.temperature)
+    const systemPrompt = this.applySpecificToSystemPrompt({
+      systemPrompt: systemMessage || config.systemPrompt || "",
+      config,
+      callOrigin,
+    })
 
     const agent = new ToolLoopAgent({
       model: this.getLanguageModelWithRawCapture({ config, callOrigin, leakedToolCalls }),
+      // Passed as instructions, not as a system message in `messages`: the AI SDK
+      // warns on every call otherwise (prompt injection risk).
+      ...(systemPrompt ? { instructions: systemPrompt } : {}),
       ...(temperature !== undefined ? { temperature } : {}),
       maxOutputTokens: MAX_STREAM_OUTPUT_TOKENS,
       tools: this.supportsStrictTools() ? withStrictTools(config.tools) : config.tools,
@@ -128,14 +136,7 @@ export abstract class AISDKLLMProviderBase extends AISDKLLMToolsMgmt implements 
       providerOptions: this.buildProviderOptions({ config, callOrigin, metadata, tags }),
     })
 
-    let systemPrompt = systemMessage || config.systemPrompt || ""
-    systemPrompt = this.applySpecificToSystemPrompt({ systemPrompt, config, callOrigin })
-    const systemMessagePart = systemPrompt
-      ? [{ role: "system" as const, content: systemPrompt }]
-      : []
-
-    const fullMessages = [...systemMessagePart, ...aiSDKMessages]
-    const streamResult = await agent.stream({ messages: fullMessages })
+    const streamResult = await agent.stream({ messages: aiSDKMessages })
 
     // The AI SDK never throws stream failures at the consumer: they surface
     // as `error` parts on fullStream, which textStream filters out — the
