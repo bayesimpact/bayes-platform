@@ -1,4 +1,4 @@
-import { Column, Entity, Index, JoinColumn, ManyToOne } from "typeorm"
+import { Column, Entity, Index, JoinColumn, ManyToOne, type Relation } from "typeorm"
 import { Base4AllEntity } from "@/common/entities/base4all.entity"
 import { User } from "@/domains/users/user.entity"
 
@@ -10,7 +10,7 @@ export class TermsAcceptance extends Base4AllEntity {
 
   @ManyToOne(() => User, { onDelete: "CASCADE" })
   @JoinColumn({ name: "user_id" })
-  user!: User
+  user!: Relation<User>
 
   @Column({ type: "integer", name: "general_conditions_version" })
   generalConditionsVersion!: number

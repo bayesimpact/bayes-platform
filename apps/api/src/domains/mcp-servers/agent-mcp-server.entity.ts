@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, Unique } from "typeorm"
+import { Column, Entity, JoinColumn, ManyToOne, type Relation, Unique } from "typeorm"
 import { Base4AllEntity } from "@/common/entities/base4all.entity"
 import { Agent } from "@/domains/agents/agent.entity"
 import { McpServer } from "./mcp-server.entity"
@@ -20,12 +20,12 @@ export class AgentMcpServer extends Base4AllEntity {
     (agent) => agent.agentMcpServers,
   )
   @JoinColumn({ name: "agent_id" })
-  agent!: Agent
+  agent!: Relation<Agent>
 
   @ManyToOne(
     () => McpServer,
     (mcpServer) => mcpServer.agentMcpServers,
   )
   @JoinColumn({ name: "mcp_server_id" })
-  mcpServer!: McpServer
+  mcpServer!: Relation<McpServer>
 }

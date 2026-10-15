@@ -1,4 +1,4 @@
-import { Column, Entity, Index, JoinColumn, ManyToOne } from "typeorm"
+import { Column, Entity, Index, JoinColumn, ManyToOne, type Relation } from "typeorm"
 import { Base4AllEntity } from "@/common/entities/base4all.entity"
 import { AppInstallation } from "./app-installation.entity"
 
@@ -13,7 +13,7 @@ export class AppInstallAuthorizationCode extends Base4AllEntity {
 
   @ManyToOne(() => AppInstallation)
   @JoinColumn({ name: "app_installation_id" })
-  appInstallation!: AppInstallation
+  appInstallation!: Relation<AppInstallation>
 
   @Column({ type: "uuid", name: "client_id" })
   clientId!: string

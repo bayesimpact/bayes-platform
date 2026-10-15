@@ -1,4 +1,4 @@
-import { Column, Entity, Index, JoinColumn, ManyToOne } from "typeorm"
+import { Column, Entity, Index, JoinColumn, ManyToOne, type Relation } from "typeorm"
 import { Base4AllEntity } from "@/common/entities/base4all.entity"
 import { Project } from "../projects/project.entity"
 
@@ -14,7 +14,7 @@ export class FeatureFlag extends Base4AllEntity {
     (project) => project.featureFlags,
   )
   @JoinColumn({ name: "project_id" })
-  project!: Project
+  project!: Relation<Project>
 
   @Column({ name: "enabled", default: true, nullable: false })
   enabled!: boolean

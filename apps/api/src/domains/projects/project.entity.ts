@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from "typeorm"
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, type Relation } from "typeorm"
 import { Base4AllEntity } from "@/common/entities/base4all.entity"
 import { Agent } from "@/domains/agents/agent.entity"
 import { ProjectAgentSessionCategory } from "@/domains/agents/session-categories/project-agent-session-category.entity"
@@ -29,7 +29,7 @@ export class Project extends Base4AllEntity {
     (organization) => organization.projects,
   )
   @JoinColumn({ name: "organization_id" })
-  organization!: Organization
+  organization!: Relation<Organization>
 
   @OneToMany(
     () => Agent,

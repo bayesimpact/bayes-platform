@@ -1,4 +1,4 @@
-import { Column, JoinColumn, ManyToOne, OneToMany } from "typeorm"
+import { Column, JoinColumn, ManyToOne, OneToMany, type Relation } from "typeorm"
 import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
 import { Agent } from "@/domains/agents/agent.entity"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
@@ -17,7 +17,7 @@ export class ReviewCampaign extends ConnectEntityBase {
     (project) => project.reviewCampaigns,
   )
   @JoinColumn({ name: "project_id" })
-  project!: Project
+  project!: Relation<Project>
 
   @Column({ type: "uuid", name: "agent_id" })
   agentId!: string
@@ -26,7 +26,7 @@ export class ReviewCampaign extends ConnectEntityBase {
     (agent) => agent.reviewCampaigns,
   )
   @JoinColumn({ name: "agent_id" })
-  agent!: Agent
+  agent!: Relation<Agent>
 
   @Column({ type: "uuid", name: "agent_settings_id", nullable: false })
   agentSettingsId!: string

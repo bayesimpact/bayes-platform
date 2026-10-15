@@ -6,7 +6,7 @@ import type {
   AgentThinkingLevel,
   DocumentsRagMode,
 } from "@caseai-connect/api-contracts"
-import { Column, JoinColumn, ManyToOne } from "typeorm"
+import { Column, JoinColumn, ManyToOne, type Relation } from "typeorm"
 import { ConnectEntityBase, ConnectEntityWithUniqueIndex } from "@/common/entities/connect-entity"
 import { Agent } from "@/domains/agents/agent.entity"
 
@@ -17,7 +17,7 @@ export class AgentSettings extends ConnectEntityBase {
 
   @ManyToOne(() => Agent, { onDelete: "CASCADE" })
   @JoinColumn({ name: "agent_id" })
-  agent!: Agent
+  agent!: Relation<Agent>
 
   @Column({ type: "integer", nullable: false })
   revision!: number

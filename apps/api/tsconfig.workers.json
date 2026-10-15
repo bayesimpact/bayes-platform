@@ -1,7 +1,0 @@
-{
-  "extends": "./tsconfig.build.json",
-  "compilerOptions": {
-    "outDir": "./dist-workers",
-    "tsBuildInfoFile": "./dist-workers/tsconfig.workers.tsbuildinfo"
-  }
-}

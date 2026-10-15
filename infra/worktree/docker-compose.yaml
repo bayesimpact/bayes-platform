@@ -15,8 +15,8 @@
 # - Services that join the shared network (connect-db_default) reach pgvector, otel-collector
 #   and mailpit by name. Redis is called bullmq and stays on the project network, because the
 #   shared network already has a redis.
-# - Never mount anything on apps/api/dist or dist-workers: Nest's deleteOutDir then fails with
-#   EBUSY and `nest start --watch` exits 0.
+# - Never mount anything on apps/api/dist or dist-workers: the dev script deletes them on start
+#   (`swc --delete-dir-on-start`), which then fails with EBUSY.
 
 x-worktree: &worktree
   type: bind
