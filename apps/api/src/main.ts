@@ -15,6 +15,7 @@ import { configureGlobalPrefix } from "./config/api-prefix"
 import { buildCorsOptionsDelegate, parseFrontendUrls } from "./config/cors"
 import { withOpenProtocolCors } from "./config/protocol-cors"
 import { getApiShutdownTimeoutMs } from "./config/shutdown-timeouts.config"
+import { StreamingLlmService } from "./domains/agents/shared/agent-session-messages/streaming/streaming-llm.service"
 import { BuiltInMcpServersService } from "./domains/mcp-servers/built-in/built-in-mcp-servers.service"
 
 const isProduction = process.env.NODE_ENV === "production"
@@ -64,12 +65,18 @@ async function bootstrap() {
   }
   // Streams (SSE) hold the HTTP server open, so the wait for the requests in
   // flight is bounded: past the timeout the process exits and the clients
-  // reconnect.
+  // reconnect. The replies still being written are settled as aborted first,
+  // so a reload shows them interrupted instead of a spinner.
+  const streamingLlmService = app.get(StreamingLlmService, { strict: false })
   registerGracefulShutdown({
     close: () => app.close(),
     timeoutMs: getApiShutdownTimeoutMs(),
     context: "Bootstrap",
     workLabel: "the requests in flight",
+    onTimeout: async () => {
+      const aborted = await streamingLlmService.abortRepliesInFlight()
+      logger.warn(`Settled ${aborted} streaming replies as aborted`)
+    },
   })
   const port = Number(process.env.PORT) || 3000
   await app.listen(port)

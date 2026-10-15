@@ -19,6 +19,11 @@ export type GracefulShutdownOptions = {
   workLabel: string
   /** Appended to the timeout warning, e.g. "; they go back to the queue". */
   timeoutHint?: string
+  /**
+   * Runs when the timeout is reached, before the exit: settles what the exit leaves half-done.
+   * Keep it short, the platform kills the process soon after the timeout.
+   */
+  onTimeout?: () => Promise<void>
   /** Signals that start the shutdown. Defaults to SIGTERM and SIGINT. */
   signals?: readonly NodeJS.Signals[]
   logger?: LoggerService
@@ -41,6 +46,7 @@ export function registerGracefulShutdown({
   context,
   workLabel,
   timeoutHint = "",
+  onTimeout,
   signals = DEFAULT_SIGNALS,
   logger = new Logger(context),
   exit = (code: number) => process.exit(code),
@@ -57,7 +63,15 @@ export function registerGracefulShutdown({
 
     const deadline = setTimeout(() => {
       logger.warn(`Still waiting for ${workLabel} after ${timeoutMs} ms, exiting${timeoutHint}`)
-      exit(0)
+      if (!onTimeout) return exit(0)
+      onTimeout()
+        .catch((error: unknown) => {
+          logger.error(
+            "Error while settling the work left in flight",
+            error instanceof Error ? error.stack : String(error),
+          )
+        })
+        .finally(() => exit(0))
     }, timeoutMs)
     // Never keep the process alive just for the deadline.
     deadline.unref()
