@@ -69,7 +69,6 @@
     "globals": "^16.5.0",
     "storybook": "^10.6.1",
     "storybook-addon-remix-react-router": "^6.0.0",
-    "typescript": "~6.0.3",
     "vite": "^7.2.4",
     "vitest": "^4.0.0"
   }
