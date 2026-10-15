@@ -12,6 +12,16 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Changed
 
 ### Fixed
+
+### Security
+
+## [26.10.3] - 2026-10-15
+
+### Added
+
+### Changed
+
+### Fixed
 - Self-hosting: agent replies no longer write a security warning to the error logs on every turn.
 
 ### Security
