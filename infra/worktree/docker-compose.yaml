@@ -574,11 +574,14 @@ networks:
     external: true
 
 volumes:
+  # Caches shared by the environments of a machine. On a machine with several users, each one
+  # needs their own: the containers run as their owner, who cannot write the files of another
+  # user's install. The tooling names them in infra/worktree/.env.
   npm-cache:
-    name: bayes-dev-npm-cache
+    name: ${WT_NPM_CACHE_VOLUME:-bayes-dev-npm-cache}
     external: true
   go-cache:
-    name: bayes-dev-go-cache
+    name: ${WT_GO_CACHE_VOLUME:-bayes-dev-go-cache}
     external: true
   nm-root: {}
   nm-api: {}
