@@ -220,7 +220,7 @@ Contract: `AppsRoutes.revoke`.
 | Who calls exchange | CLI (`--api` / `BAYES_API_URL`, default `{frontend}/api`) | App backend |
 | PKCE | Generated in the CLI process | Generated in the app before building the install URL |
 
-CLI usage: `apps/cli/README.md`.
+The `bayes` CLI is a client of this protocol. Install with `bayes apps install <slug> --frontend <origin>`.
 
 ## Security properties
 
@@ -249,5 +249,4 @@ CLI usage: `apps/cli/README.md`.
 | Install + exchange service | `apps/api/src/domains/apps/apps.service.ts` |
 | PKCE helpers (API) | `apps/api/src/domains/apps/install-pkce.ts` |
 | Install UI | `apps/web/src/common/features/app-install/`, `AppsInstallRoute` |
-| CLI | `apps/cli/src/install.ts` |
 | E2E | `apps/api/src/domains/apps/e2e-tests/install.spec.ts` |

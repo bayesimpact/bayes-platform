@@ -84,7 +84,7 @@ Decisions live in `docs/adr/`. Two of them apply to every API change, and each h
 
 ### TypeScript 7 and 6 side by side
 
-`tsc` is TypeScript 7 (the native compiler), declared once at the root as `"@typescript/native": "npm:typescript@^7"`. It only type-checks and emits, since TypeScript 7 has no JavaScript API yet. The root `typescript` dependency is an alias of `@typescript/typescript6`, so tools that `require("typescript")` (dependency-cruiser, ts-jest in `apps/cli`, Astro, Storybook) still get the 6.0 API. Do not add `typescript` to a workspace or reinstall it under its own name: that brings back a second `tsc` that shadows TypeScript 7. The API never loads the compiler: it builds, runs and tests through SWC (`apps/api/.swcrc`).
+`tsc` is TypeScript 7 (the native compiler), declared once at the root as `"@typescript/native": "npm:typescript@^7"`. It only type-checks and emits, since TypeScript 7 has no JavaScript API yet. The root `typescript` dependency is an alias of `@typescript/typescript6`, so tools that `require("typescript")` (dependency-cruiser, Astro, Storybook) still get the 6.0 API. Do not add `typescript` to a workspace or reinstall it under its own name: that brings back a second `tsc` that shadows TypeScript 7. The API never loads the compiler: it builds, runs and tests through SWC (`apps/api/.swcrc`).
 
 ## Changelog
 
