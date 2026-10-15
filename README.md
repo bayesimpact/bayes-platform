@@ -124,7 +124,9 @@ http://mail.connect.localhost:8800, http://grafana.connect.localhost:8800 and
 Traefik's own dashboard at http://traefik.connect.localhost:8800/dashboard/.
 Chrome and Firefox resolve `*.localhost` by themselves; Safari does not. On the
 dev VM, forward port 8800 to your laptop (VS Code does it, with the settings of
-`.vscode/settings.json`).
+`.vscode/settings.json`). It can also serve them in https on a domain of yours:
+see "HTTPS on a domain of your own" in
+[infra/worktree/README.md](infra/worktree/README.md).
 
 Keycloak and Dex used to have their own compose projects. If one of them still
 runs from there, stop it once before starting it with its profile:

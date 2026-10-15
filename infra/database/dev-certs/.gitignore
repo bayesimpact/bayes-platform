@@ -1,0 +1,4 @@
+# A certificate for DEV_DOMAIN, its key and traefik.yml: see "HTTPS on a domain of your own"
+# in infra/worktree/README.md. Never committed.
+*
+!.gitignore
