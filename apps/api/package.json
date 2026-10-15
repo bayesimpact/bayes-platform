@@ -108,7 +108,6 @@
     "@nestjs/cli": "^11.0.21",
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.0",
-    "@repo/jest-config": "*",
     "@repo/typescript-config": "*",
     "@swc/cli": "^0.8.1",
     "@swc/core": "^1.16.18",
