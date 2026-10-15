@@ -1,4 +1,4 @@
-import { Column, JoinColumn, ManyToOne } from "typeorm"
+import { Column, JoinColumn, ManyToOne, type Relation } from "typeorm"
 import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
 import { EvaluationExtractionDataset } from "../evaluation-extraction-dataset.entity"
 
@@ -16,7 +16,7 @@ export class EvaluationExtractionDatasetRecord extends ConnectEntityBase {
     { onDelete: "CASCADE" },
   )
   @JoinColumn({ name: "evaluation_extraction_dataset_id" })
-  evaluationExtractionDataset!: EvaluationExtractionDataset
+  evaluationExtractionDataset!: Relation<EvaluationExtractionDataset>
 
   @Column({ name: "data", nullable: false, type: "jsonb" })
   data!: EvaluationExtractionDatasetRecordData

@@ -68,7 +68,7 @@ FROM api-deps AS build
 COPY apps/api ./apps/api
 COPY ./packages ./packages
 
-# Generate the production build. The build script runs "nest build" to compile the application.
+# Generate the production build. The build script compiles src/ to dist/ with SWC (.swcrc).
 RUN cd apps/api && npm run build
 RUN cd packages/api-contracts && npm run build
 

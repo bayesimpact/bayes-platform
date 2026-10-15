@@ -1,4 +1,4 @@
-import { Column, JoinColumn, ManyToOne, Unique } from "typeorm"
+import { Column, JoinColumn, ManyToOne, type Relation, Unique } from "typeorm"
 import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
 import { User } from "@/domains/users/user.entity"
 import { ReviewCampaign } from "../review-campaign.entity"
@@ -16,7 +16,7 @@ export class TesterCampaignSurvey extends ConnectEntityBase {
     { onDelete: "CASCADE" },
   )
   @JoinColumn({ name: "campaign_id" })
-  campaign!: ReviewCampaign
+  campaign!: Relation<ReviewCampaign>
 
   @Column({ type: "uuid", name: "user_id" })
   userId!: string
@@ -26,7 +26,7 @@ export class TesterCampaignSurvey extends ConnectEntityBase {
     (user) => user.testerCampaignSurveys,
   )
   @JoinColumn({ name: "user_id" })
-  user!: User
+  user!: Relation<User>
 
   @Column({ type: "smallint", name: "overall_rating" })
   overallRating!: number

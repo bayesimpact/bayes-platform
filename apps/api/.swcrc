@@ -1,0 +1,24 @@
+{
+  "$schema": "https://swc.rs/schema.json",
+  "exclude": [
+    "\\.spec\\.ts$",
+    "\\.d\\.ts$",
+    "/e2e-tests/",
+    "/service-tests/",
+    "/domains/documents/test-overrides\\.ts$"
+  ],
+  "sourceMaps": true,
+  "module": { "type": "commonjs" },
+  "jsc": {
+    "target": "es2022",
+    "parser": { "syntax": "typescript", "decorators": true, "dynamicImport": true },
+    "transform": {
+      "legacyDecorator": true,
+      "decoratorMetadata": true,
+      "useDefineForClassFields": true
+    },
+    "keepClassNames": true,
+    "baseUrl": ".",
+    "paths": { "@/*": ["./src/*"] }
+  }
+}

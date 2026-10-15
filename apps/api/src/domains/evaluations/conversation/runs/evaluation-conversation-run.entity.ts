@@ -1,5 +1,5 @@
 import type { AgentModel } from "@caseai-connect/api-contracts"
-import { Column, JoinColumn, ManyToOne, OneToMany } from "typeorm"
+import { Column, JoinColumn, ManyToOne, OneToMany, type Relation } from "typeorm"
 import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
 import type { Agent } from "@/domains/agents/agent.entity"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
@@ -33,13 +33,13 @@ export class EvaluationConversationRun extends ConnectEntityBase {
       evaluationConversationDataset.id,
   )
   @JoinColumn({ name: "evaluation_conversation_dataset_id" })
-  evaluationConversationDataset!: EvaluationConversationDataset
+  evaluationConversationDataset!: Relation<EvaluationConversationDataset>
 
   @Column({ type: "uuid", name: "agent_id", nullable: false })
   agentId!: string
   @ManyToOne("Agent", (agent: Agent) => agent.id)
   @JoinColumn({ name: "agent_id" })
-  agent!: Agent
+  agent!: Relation<Agent>
 
   @Column({ type: "uuid", name: "agent_settings_id", nullable: false })
   agentSettingsId!: string

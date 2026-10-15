@@ -1,4 +1,4 @@
-import { Column, JoinColumn, ManyToOne } from "typeorm"
+import { Column, JoinColumn, ManyToOne, type Relation } from "typeorm"
 import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
 import { AgentCsvExtractionRun } from "./agent-csv-extraction-run.entity"
 
@@ -21,7 +21,7 @@ export class AgentCsvExtractionRunRecord extends ConnectEntityBase {
     { onDelete: "CASCADE" },
   )
   @JoinColumn({ name: "agent_csv_extraction_run_id" })
-  agentCsvExtractionRun!: AgentCsvExtractionRun
+  agentCsvExtractionRun!: Relation<AgentCsvExtractionRun>
 
   @Column({ type: "int", name: "row_index", nullable: false })
   rowIndex!: number

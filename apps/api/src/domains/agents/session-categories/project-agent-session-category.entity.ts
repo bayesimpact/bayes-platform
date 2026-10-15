@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Unique } from "typeorm"
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, type Relation, Unique } from "typeorm"
 import { Base4AllEntity } from "@/common/entities/base4all.entity"
 import { ConversationAgentSessionCategory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session-category.entity"
 import { Project } from "@/domains/projects/project.entity"
@@ -19,7 +19,7 @@ export class ProjectAgentSessionCategory extends Base4AllEntity {
     { onDelete: "CASCADE" },
   )
   @JoinColumn({ name: "project_id" })
-  project!: Project
+  project!: Relation<Project>
 
   @OneToMany(
     () => AgentSessionCategory,

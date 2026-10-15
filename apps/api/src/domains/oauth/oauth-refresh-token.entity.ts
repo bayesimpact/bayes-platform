@@ -1,4 +1,4 @@
-import { Column, Entity, Index, JoinColumn, ManyToOne } from "typeorm"
+import { Column, Entity, Index, JoinColumn, ManyToOne, type Relation } from "typeorm"
 import { Base4AllEntity } from "@/common/entities/base4all.entity"
 import { OAuthGrant } from "./oauth-grant.entity"
 
@@ -14,7 +14,7 @@ export class OAuthRefreshToken extends Base4AllEntity {
 
   @ManyToOne(() => OAuthGrant, { onDelete: "CASCADE" })
   @JoinColumn({ name: "oauth_grant_id" })
-  oauthGrant!: OAuthGrant
+  oauthGrant!: Relation<OAuthGrant>
 
   @Column({ type: "timestamptz", name: "expires_at" })
   expiresAt!: Date

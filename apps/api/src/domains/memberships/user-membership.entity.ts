@@ -7,6 +7,7 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  type Relation,
   UpdateDateColumn,
 } from "typeorm"
 import { Role } from "@/domains/rbac/role.entity"
@@ -90,7 +91,7 @@ export class UserMembership {
 
   @ManyToOne(() => User)
   @JoinColumn({ name: "user_id" })
-  user!: User
+  user!: Relation<User>
 }
 
 /** Resource id for scoped memberships; global rows have no resource. */
