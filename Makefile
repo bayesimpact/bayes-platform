@@ -261,13 +261,26 @@ ci-checks: npm-ci
 # plain `docker compose up`. So locally, start it if needed but never recreate
 # it, and always from the main checkout's compose file.
 MAIN_CHECKOUT := $(shell dirname "$$(git rev-parse --path-format=absolute --git-common-dir)")
+ifeq ($(GITHUB_ACTIONS),true)
+DB_TESTS_COMPOSE := docker compose -f infra/database/docker-compose.yaml -f infra/database/docker-compose.test.yaml
+else
+DB_TESTS_COMPOSE := docker compose -f $(MAIN_CHECKOUT)/infra/database/docker-compose.yaml
+endif
 
+# `up -d` returns before Postgres accepts connections, and a fresh tmpfs server
+# first runs initdb and the init scripts. pg_isready over TCP only answers once
+# the final server listens, so the migrations that follow never race it.
 db-tests:
 ifeq ($(GITHUB_ACTIONS),true)
-	docker compose -f infra/database/docker-compose.yaml -f infra/database/docker-compose.test.yaml up -d
+	$(DB_TESTS_COMPOSE) up -d
 else
-	docker compose -f $(MAIN_CHECKOUT)/infra/database/docker-compose.yaml up -d --no-recreate pgvector redis
+	$(DB_TESTS_COMPOSE) up -d --no-recreate pgvector redis
 endif
+	@for attempt in $$(seq 1 60); do \
+	  $(DB_TESTS_COMPOSE) exec -T pgvector pg_isready -h 127.0.0.1 -U admin -q && exit 0; \
+	  sleep 1; \
+	done; \
+	echo "Postgres did not accept connections within 60 seconds"; exit 1
 
 # Volumes created before the analytics migration have connect_admin without
 # CREATEROLE, and Postgres does not re-run infra/database/sql/common.sql.
