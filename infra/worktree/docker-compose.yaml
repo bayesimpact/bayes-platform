@@ -196,6 +196,10 @@ services:
     environment:
       <<: *backend-env
       WT_DB_TEST: ${WT_DB_TEST}
+      # Type-checking 150+ migrations takes about 1.2 GB and 10 s, against 0.4 GB and 1 s without:
+      # on a Docker with little memory, migrate was killed while the dev servers started. CI
+      # checks the types.
+      TS_NODE_TRANSPILE_ONLY: "true"
     depends_on:
       <<: *after-init
       db:
