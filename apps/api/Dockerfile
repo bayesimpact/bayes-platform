@@ -17,7 +17,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends libc6 && rm -rf
 COPY package.json package-lock.json ./
 COPY apps/api/package.json ./apps/api/
 COPY packages/api-contracts/package.json ./packages/api-contracts/
-COPY packages/jest-config/package.json ./packages/jest-config/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 COPY packages/ui/package.json ./packages/ui/
 
@@ -32,8 +31,8 @@ RUN npm ci \
 # 📦 Production dependencies of the API, from the manifests only
 #
 # A fresh `npm ci --omit=dev` produces a cleaner tree than `npm prune --omit=dev`,
-# which leaves extraneous packages (e.g. next/react pulled by @repo/jest-config's
-# devDeps) lingering in node_modules.
+# which leaves extraneous packages (dev-only dependencies of other workspaces)
+# lingering in node_modules.
 #
 FROM node:24.21.0-trixie-slim AS api-prod-deps
 
@@ -41,7 +40,6 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY apps/api/package.json ./apps/api/
 COPY packages/api-contracts/package.json ./packages/api-contracts/
-COPY packages/jest-config/package.json ./packages/jest-config/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 COPY packages/ui/package.json ./packages/ui/
 
@@ -86,7 +84,6 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY apps/web/package.json ./apps/web/
 COPY packages/api-contracts/package.json ./packages/api-contracts/
-COPY packages/jest-config/package.json ./packages/jest-config/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 COPY packages/ui/package.json ./packages/ui/
 

@@ -649,7 +649,6 @@ caseai-connect/
 │   └── mcp-server/       # MCP server for Claude Desktop
 ├── packages/
 │   ├── api/              # Shared API types and DTOs
-│   ├── jest-config/      # Shared Jest configuration
 │   ├── typescript-config/# Shared TypeScript configuration
 │   └── ui/               # Shared UI components
 ├── infra/
