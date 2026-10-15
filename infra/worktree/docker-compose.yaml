@@ -40,7 +40,6 @@ x-node-volumes: &node-volumes
   - { type: volume, source: npm-cache, target: /npm-cache }
   - { type: volume, source: nm-root, target: "${WT_PATH}/node_modules" }
   - { type: volume, source: nm-api, target: "${WT_PATH}/apps/api/node_modules" }
-  - { type: volume, source: nm-cli, target: "${WT_PATH}/apps/cli/node_modules" }
   - { type: volume, source: nm-help, target: "${WT_PATH}/apps/help/node_modules" }
   - { type: volume, source: nm-web, target: "${WT_PATH}/apps/web/node_modules" }
   - { type: volume, source: nm-web-embed, target: "${WT_PATH}/apps/web-embed/node_modules" }
@@ -147,7 +146,6 @@ services:
       - { type: volume, source: go-cache, target: /go-cache }
       - { type: volume, source: nm-root, target: "${WT_PATH}/node_modules" }
       - { type: volume, source: nm-api, target: "${WT_PATH}/apps/api/node_modules" }
-      - { type: volume, source: nm-cli, target: "${WT_PATH}/apps/cli/node_modules" }
       - { type: volume, source: nm-help, target: "${WT_PATH}/apps/help/node_modules" }
       - { type: volume, source: nm-web, target: "${WT_PATH}/apps/web/node_modules" }
       - { type: volume, source: nm-web-embed, target: "${WT_PATH}/apps/web-embed/node_modules" }
@@ -580,7 +578,6 @@ volumes:
     external: true
   nm-root: {}
   nm-api: {}
-  nm-cli: {}
   nm-help: {}
   nm-web: {}
   nm-web-embed: {}
