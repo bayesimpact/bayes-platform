@@ -9,7 +9,6 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "test": "turbo run test",
-    "test:e2e": "turbo run test:e2e",
     "lint": "biome lint .",
     "format": "biome format --write .",
     "format:check": "biome format .",
