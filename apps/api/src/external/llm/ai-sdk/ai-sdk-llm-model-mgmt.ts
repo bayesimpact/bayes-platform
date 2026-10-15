@@ -15,6 +15,7 @@ import type {
   LLMConfig,
   LLMMetadata,
 } from "@/common/interfaces/llm-provider.interface"
+import { removeNullish } from "@/common/utils/remove-nullish"
 import type { SpecificProviderOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-builders"
 import {
   type CallOrigin,
@@ -40,18 +41,8 @@ const logger = new Logger("AISDKLLMModelMgmt")
 // stripped), we treat it as leaked-marker content and drop it too.
 const CHANNEL_KEYWORDS = "thought|analysis|reasoning|finalize|commentary|final"
 
-/**
- * What the catalog says of a model. Every field is optional, but each provider declares an
- * entry for every model it serves: a new model cannot ship without one.
- */
-export type ModelMetadata = {
-  /** Set when the provider retires the model, with the model to move to. */
+export type ModelInfos = {
   deprecation?: AgentModelDeprecation
-  /**
-   * `true` when the provider does not serve the model from the EU region: it can only run
-   * through a global endpoint, which carries no EU data-processing guarantee. Absent means
-   * EU-served. Drives both the endpoint routing and the UI label.
-   */
   servedOutsideEu?: boolean
 }
 
@@ -152,15 +143,21 @@ export abstract class AISDKLLMModelMgmt<
     callOrigin: CallOrigin
     metadata: LLMMetadata
   })
-  abstract getTags(config: LLMConfig): string[]
+  getProviderMetadata(config: LLMConfig): Record<string, string | number | string[]> {
+    return {
+      provider: this.getAgentProvider(),
+      model: config.model,
+      ...removeNullish(this.getModelMetadata(config)),
+    }
+  }
+  protected abstract getModelMetadata(config: LLMConfig): Record<string, string | number | string[]>
   abstract getAgentProvider(): Provider
 
   protected abstract readonly modelOptions: Record<AgentModelOf<Provider>, ModelOptions>
-  /** What the catalog says of each model the provider serves (retirement, data residency). */
-  protected abstract readonly modelMetadata: Record<AgentModelOf<Provider>, ModelMetadata>
+  protected abstract readonly modelInfos: Record<AgentModelOf<Provider>, ModelInfos>
 
-  getModelMetadata(agentModel: AgentModel): ModelMetadata {
-    return this.modelMetadata[this.toProviderAgentModel(agentModel)]
+  getModelInfos(agentModel: AgentModel): ModelInfos {
+    return this.modelInfos[this.toProviderAgentModel(agentModel)]
   }
 
   getModelOptionsSchema(agentModel: AgentModel): ZodType<SpecificProviderOptions> {

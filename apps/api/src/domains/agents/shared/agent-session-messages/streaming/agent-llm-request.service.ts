@@ -224,7 +224,14 @@ export class AgentLlmRequestService {
     this.logger.log(
       `Agent "${agent.name}" (${agent.id}) trace: ${getTraceUrl(session.traceId) ?? session.traceId} (session ${session.id})`,
     )
-    const tags = [agent.name, `rev-${agentSettings.revision}`, agent.type, ...extraTags]
+    //fixme DOO extraTags
+    // const tags = [agent.name, `rev-${agentSettings.revision}`, agent.type, ...extraTags]
+    const _additionalMetadata = {
+      "agent.name": agent.name,
+      revision: agentSettings.revision,
+      "agent.type": agent.type,
+      ...(hasSubAgentTools ? { "agent:class": "parent-agent" } : {}),
+    }
     return {
       traceId: session.traceId,
       agentSessionId: session.id,
@@ -233,7 +240,7 @@ export class AgentLlmRequestService {
       projectId: agent.projectId,
       organizationId: session.organizationId,
       currentTurn: session.messages.filter((message) => message.role === "user").length,
-      tags: hasSubAgentTools ? [...tags, "parent-agent"] : tags,
+      additionalMetadata: hasSubAgentTools ? [...tags, "parent-agent"] : tags,
       ...(spanLabel ? { spanLabel } : {}),
     }
   }

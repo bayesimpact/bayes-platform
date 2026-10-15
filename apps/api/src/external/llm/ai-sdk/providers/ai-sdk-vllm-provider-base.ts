@@ -42,8 +42,8 @@ export abstract class AISDKVllmProviderBase<
     return this.createOpenAiCompatibleChatModel(config)
   }
 
-  getTags(config: LLMConfig): string[] {
-    return [this.providerName, config.model]
+  getModelMetadata(config: LLMConfig): Record<string, string | number | string[]> {
+    return {}
   }
 
   /**

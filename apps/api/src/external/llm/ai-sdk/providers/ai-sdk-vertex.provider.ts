@@ -7,7 +7,7 @@ import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"
 import type { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
 import {
   defineModelOptions,
-  type ModelMetadata,
+  type ModelInfos,
   type ModelOptions,
 } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
 import { AISDKLLMProviderBase } from "@/external/llm/ai-sdk/ai-sdk-llm-provider-base"
@@ -34,7 +34,7 @@ export class AISDKVertexProvider extends AISDKLLMProviderBase<AgentProvider.Vert
       },
     ),
   }
-  protected readonly modelMetadata: Record<VertexAgentModel, ModelMetadata> = {
+  protected readonly modelInfos: Record<VertexAgentModel, ModelInfos> = {
     [AgentModel.Gemini25Flash]: {
       deprecation: {
         deprecatedOn: "2026-09-30",
@@ -80,7 +80,7 @@ export class AISDKVertexProvider extends AISDKLLMProviderBase<AgentProvider.Vert
       : this.vertexProvider
     return provider(config.model)
   }
-  getTags(config: LLMConfig): string[] {
-    return [this.vertexProject, this.vertexLocation, config.model]
+  protected getModelMetadata(config: LLMConfig): Record<string, string | number | string[]> {
+    return { project: this.vertexProject, location: this.vertexLocation }
   }
 }

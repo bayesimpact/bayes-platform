@@ -16,7 +16,7 @@ import type {
 import { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
 import {
   defineModelOptions,
-  type ModelMetadata,
+  type ModelInfos,
   type ModelOptions,
 } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
 import { AISDKLLMProviderBase } from "@/external/llm/ai-sdk/ai-sdk-llm-provider-base"
@@ -29,9 +29,9 @@ class TestProvider<
       temperature: 0,
     }),
   } as Record<AgentModelOf<Provider>, ModelOptions>
-  protected readonly modelMetadata = {
+  protected readonly modelInfos = {
     [AgentModel._Mock]: {},
-  } as Record<AgentModelOf<Provider>, ModelMetadata>
+  } as Record<AgentModelOf<Provider>, ModelInfos>
 
   constructor(
     private readonly agentProvider: Provider,
@@ -57,7 +57,7 @@ class TestProvider<
     this.languageModelCalls.push({ callOrigin, metadata })
     return this.model
   }
-  getTags(_config: LLMConfig): string[] {
+  getModelMetadata(_config: LLMConfig): string[] {
     return ["test-tag"]
   }
 }

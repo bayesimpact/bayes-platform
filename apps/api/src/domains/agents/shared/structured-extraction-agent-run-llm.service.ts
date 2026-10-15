@@ -99,12 +99,12 @@ export class StructuredExtractionAgentRunLlmService extends LlmServiceBase {
       agentId: agentWithSettings.settings.id,
       revision: agentWithSettings.settings.revision,
       projectId: connectScope.projectId,
-      tags: [
-        agentWithSettings.settings.name,
-        `rev-${agentWithSettings.settings.revision}`,
-        agentWithSettings.settings.type,
-        runTag,
-      ],
+      additionalMetadata: {
+        "agent.name": agentWithSettings.settings.name,
+        "agent.revision": agentWithSettings.settings.revision,
+        "agent.type": agentWithSettings.settings.type,
+        runTag: runTag,
+      },
     }
 
     const output = await this.getProviderForModel(

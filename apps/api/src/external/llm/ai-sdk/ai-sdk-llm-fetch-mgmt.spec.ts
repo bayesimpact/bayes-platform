@@ -6,7 +6,7 @@ import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"
 import { AISDKLLMFetchMgmt } from "@/external/llm/ai-sdk/ai-sdk-llm-fetch-mgmt"
 import {
   defineModelOptions,
-  type ModelMetadata,
+  type ModelInfos,
   type ModelOptions,
 } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
 
@@ -16,7 +16,7 @@ jest.mock("undici", () => ({
 }))
 
 class TestFetchMgmt extends AISDKLLMFetchMgmt<AgentProvider._Mock> {
-  protected readonly modelMetadata: Record<AgentModel._Mock, ModelMetadata> = {
+  protected readonly modelInfos: Record<AgentModel._Mock, ModelInfos> = {
     [AgentModel._Mock]: {},
   }
   protected readonly modelOptions: Record<AgentModel._Mock, ModelOptions> = {
@@ -31,7 +31,7 @@ class TestFetchMgmt extends AISDKLLMFetchMgmt<AgentProvider._Mock> {
   getLanguageModel(): LanguageModelV3 {
     throw new Error("TestFetchMgmt builds no model")
   }
-  getTags(): string[] {
+  getModelMetadata(): string[] {
     return []
   }
 

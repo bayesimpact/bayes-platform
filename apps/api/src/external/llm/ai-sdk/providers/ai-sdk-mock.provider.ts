@@ -14,7 +14,7 @@ import { generateRandomFromJSONSchema } from "@/common/test/random-generator"
 import { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
 import {
   defineModelOptions,
-  type ModelMetadata,
+  type ModelInfos,
   type ModelOptions,
 } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
 import { AISDKLLMProviderBase } from "@/external/llm/ai-sdk/ai-sdk-llm-provider-base"
@@ -118,7 +118,7 @@ export class AISDKMockProvider extends AISDKLLMProviderBase<AgentProvider._Mock>
       temperature: 0,
     }),
   }
-  protected readonly modelMetadata: Record<MockAgentModel, ModelMetadata> = {
+  protected readonly modelInfos: Record<MockAgentModel, ModelInfos> = {
     [AgentModel._Mock]: {},
   }
 
@@ -152,8 +152,8 @@ export class AISDKMockProvider extends AISDKLLMProviderBase<AgentProvider._Mock>
     }
   }
 
-  getTags(config: LLMConfig): string[] {
-    return ["MOCK-LLM", config.model]
+  protected getModelMetadata(config: LLMConfig): Record<string, string | number | string[]> {
+    return {}
   }
 
   getLanguageModel({

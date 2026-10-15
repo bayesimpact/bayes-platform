@@ -110,7 +110,7 @@ export type LLMMetadata = (
   agentId: string
   revision: number
   projectId: string
-  tags: string[]
+  tags: Record<string, string | number | string[]>
   /**
    * Session of the parent run, set by sub-agents so their dedicated traces link
    * back to it.
@@ -126,12 +126,9 @@ export type LLMMetadata = (
 
 export interface LLMProvider {
   getAgentProvider(): AgentProvider
-  /** The schema of a model's options, checked on every call. */
   getModelOptionsSchema(agentModel: AgentModel): ZodType<SpecificProviderOptions>
-  /** A model's options when the call sets none. */
   getModelOptions(agentModel: AgentModel): SpecificProviderOptions
-  /** What the catalog says of a model (retirement, data residency). */
-  getModelMetadata(agentModel: AgentModel): {
+  getModelInfos(agentModel: AgentModel): {
     deprecation?: { deprecatedOn: string; recommendedReplacement: AgentModel }
     servedOutsideEu?: boolean
   }

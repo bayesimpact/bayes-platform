@@ -6,7 +6,7 @@ import type { LLMChatMessage, LLMConfig } from "@/common/interfaces/llm-provider
 import { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
 import {
   defineModelOptions,
-  type ModelMetadata,
+  type ModelInfos,
   type ModelOptions,
 } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
 import { AISDKVllmProviderBase } from "@/external/llm/ai-sdk/providers/ai-sdk-vllm-provider-base"
@@ -25,7 +25,7 @@ export class AISDKMistralProvider extends AISDKVllmProviderBase<AgentProvider.Mi
       },
     ),
   }
-  protected readonly modelMetadata: Record<MistralAgentModel, ModelMetadata> = {
+  protected readonly modelInfos: Record<MistralAgentModel, ModelInfos> = {
     [AgentModel.MistralSmall31_24B]: {},
   }
 

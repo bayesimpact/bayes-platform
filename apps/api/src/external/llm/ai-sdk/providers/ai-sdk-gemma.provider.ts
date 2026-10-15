@@ -3,7 +3,7 @@ import { Injectable } from "@nestjs/common"
 import { z } from "zod"
 import {
   defineModelOptions,
-  type ModelMetadata,
+  type ModelInfos,
   type ModelOptions,
 } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
 import { AISDKVllmProviderBase } from "@/external/llm/ai-sdk/providers/ai-sdk-vllm-provider-base"
@@ -22,7 +22,7 @@ export class AISDKGemmaProvider extends AISDKVllmProviderBase<AgentProvider.Gemm
       },
     ),
   }
-  protected readonly modelMetadata: Record<GemmaAgentModel, ModelMetadata> = {
+  protected readonly modelInfos: Record<GemmaAgentModel, ModelInfos> = {
     [AgentModel.Gemma4_26B]: {},
   }
 

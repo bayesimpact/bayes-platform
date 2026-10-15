@@ -49,7 +49,7 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
 
     const systemMessage = messages.find((msg) => msg.role === "system")?.content
     const functionId = this.buildFunctionIdForStreamChatResponse(aiSDKMessages)
-    const tags = this.getTags(config)
+    const tags = this.getModelMetadata(config)
     // Request-scoped: tool calls the model verbalized in the text channel
     // instead of emitting them. Collected by the raw-capture middleware and
     // recovered after the stream (see recoverLeakedToolCalls).
@@ -145,7 +145,7 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
   }): Promise<string> {
     const callOrigin = CallOrigin.generateText
     this.checkConfigProviderAndModel(config)
-    const tags = this.getTags(config)
+    const tags = this.getModelMetadata(config)
     const { text } = await generateText({
       model: this.getLanguageModelWithRawCapture({ config, callOrigin, metadata }),
       system: config.systemPrompt,
@@ -176,7 +176,7 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
     message = this.applySpecificToStructuredOutputMessage({ message, config })
 
     const aiSDKMessages = this.toConversationMessages([message], "generate structured output")
-    const tags = this.getTags(config)
+    const tags = this.getModelMetadata(config)
     const result = await generateText({
       model: this.getLanguageModelWithRawCapture({ config, callOrigin, metadata }),
       messages: aiSDKMessages,

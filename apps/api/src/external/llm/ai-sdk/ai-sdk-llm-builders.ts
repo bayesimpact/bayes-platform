@@ -37,7 +37,7 @@ export abstract class AISDKLLMBuilders {
     config: LLMConfig
     metadata: LLMMetadata
     schema?: JSONSchema7
-    tags: string[]
+    tags: Record<string, string | number | string[]>
   }): Record<string, string | number | string[]> {
     return removeNullish({
       // Our trace id groups all the turns of a run; the trace backend shows it
@@ -46,12 +46,13 @@ export abstract class AISDKLLMBuilders {
       agentSessionId: metadata.agentSessionId,
       parentSessionId: metadata.parentSessionId,
       userId: `o:${metadata.organizationId} / p:${metadata.projectId}`,
-      tags: [...(metadata?.tags || []), ...tags],
       currentTurn: metadata.currentTurn,
       revision: metadata.revision,
       outputSchema: JSON.stringify(schema),
       availableTools: JSON.stringify(config.tools),
       spanLabel: metadata.spanLabel,
+      ...metadata?.tags,
+      ...tags,
     })
   }
 

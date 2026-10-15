@@ -6,7 +6,7 @@ import { z } from "zod"
 import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"
 import { zNullableType } from "@/common/zod-helper"
 import { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
-import type { ModelMetadata, ModelOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
+import type { ModelInfos, ModelOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
 import { AISDKVllmProviderBase } from "@/external/llm/ai-sdk/providers/ai-sdk-vllm-provider-base"
 
 jest.mock("google-auth-library", () => ({
@@ -20,7 +20,7 @@ class TestVllmProvider extends AISDKVllmProviderBase<AgentProvider.Gemma> {
   protected readonly providerName = "Test Provider"
   // The tests never read the model options.
   protected readonly modelOptions = {} as Record<AgentModelOf<AgentProvider.Gemma>, ModelOptions>
-  protected readonly modelMetadata = {} as Record<AgentModelOf<AgentProvider.Gemma>, ModelMetadata>
+  protected readonly modelInfos = {} as Record<AgentModelOf<AgentProvider.Gemma>, ModelInfos>
 
   getAgentProvider(): AgentProvider.Gemma {
     return AgentProvider.Gemma
@@ -122,7 +122,7 @@ describe("AISDKVllmProviderBase", () => {
 
   describe("getTags", () => {
     it("tags the provider and the model", () => {
-      expect(provider.getTags(config)).toEqual(["Test Provider", AgentModel.Gemma4_26B])
+      expect(provider.getModelMetadata(config)).toEqual(["Test Provider", AgentModel.Gemma4_26B])
     })
   })
 

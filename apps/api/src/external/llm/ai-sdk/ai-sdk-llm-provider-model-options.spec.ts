@@ -137,11 +137,11 @@ describe("agent model catalog", () => {
   })
 
   it.each(CATALOG)("$model carries its deprecation", ({ model, provider, deprecation }) => {
-    expect(providers[provider].getModelMetadata(model).deprecation).toEqual(deprecation)
+    expect(providers[provider].getModelInfos(model).deprecation).toEqual(deprecation)
   })
 
   it.each(CATALOG)("$model is served in the EU", ({ model, provider }) => {
-    expect(providers[provider].getModelMetadata(model).servedOutsideEu === true).toBe(false)
+    expect(providers[provider].getModelInfos(model).servedOutsideEu === true).toBe(false)
   })
 
   it("has one default model", () => {

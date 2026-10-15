@@ -25,7 +25,7 @@ import {
 import {
   AISDKLLMModelMgmt,
   defineModelOptions,
-  type ModelMetadata,
+  type ModelInfos,
   type ModelOptions,
   type RepeatedStepTextFilter,
   type StreamPartLike,
@@ -72,7 +72,7 @@ const mockMetadata: LLMMetadata = {
 }
 
 class TestModelMgmt extends AISDKLLMModelMgmt<AgentProvider._Mock> {
-  protected readonly modelMetadata: Record<AgentModel._Mock, ModelMetadata> = {
+  protected readonly modelInfos: Record<AgentModel._Mock, ModelInfos> = {
     [AgentModel._Mock]: {},
   }
   protected readonly modelOptions: Record<AgentModel._Mock, ModelOptions> = {
@@ -101,7 +101,7 @@ class TestModelMgmt extends AISDKLLMModelMgmt<AgentProvider._Mock> {
       leakedToolCalls,
     })
   }
-  getTags(_config: LLMConfig): string[] {
+  getModelMetadata(_config: LLMConfig): string[] {
     return []
   }
 
