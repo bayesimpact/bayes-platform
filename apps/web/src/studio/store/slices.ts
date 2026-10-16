@@ -1,3 +1,5 @@
+import { agentMemoriesMiddleware } from "@/common/features/agents/agent-memories/agent-memories.middleware"
+import { agentMemoriesSlice } from "@/common/features/agents/agent-memories/agent-memories.slice"
 import { conversationAgentSessionsMiddleware } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.middleware"
 import { conversationAgentSessionsSlice } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.slice"
 import { extractionAgentSessionsMiddleware } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.middleware"
@@ -5,7 +7,7 @@ import { extractionAgentSessionsSlice } from "@/common/features/agents/agent-ses
 import { agentSessionMessagesMiddleware } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.middleware"
 import { agentSessionMessagesSlice } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.slice"
 import { baseAgentSessionsMiddleware } from "@/common/features/agents/agent-sessions/shared/base-agent-session/base-agent-sessions.middleware"
-import { agentsMiddleware } from "@/common/features/agents/agents.middleware"
+import { createAgentsMiddleware } from "@/common/features/agents/agents.middleware"
 import { agentsSlice } from "@/common/features/agents/agents.slice"
 import { agentCsvExtractionRunsMiddleware } from "@/common/features/agents/csv-extraction-runs/agent-csv-extraction-runs.middleware"
 import { agentCsvExtractionRunsSlice } from "@/common/features/agents/csv-extraction-runs/agent-csv-extraction-runs.slice"
@@ -22,6 +24,8 @@ import { agentAnalyticsMiddleware } from "@/studio/features/analytics/agent/agen
 import { agentAnalyticsSlice } from "@/studio/features/analytics/agent/agent-analytics.slice"
 import { projectAnalyticsMiddleware } from "@/studio/features/analytics/project/analytics.middleware"
 import { projectAnalyticsSlice } from "@/studio/features/analytics/project/analytics.slice"
+import { conversationReviewMiddleware } from "@/studio/features/conversation-review/conversation-review.middleware"
+import { conversationReviewSlice } from "@/studio/features/conversation-review/conversation-review.slice"
 import { documentTagsMiddleware } from "@/studio/features/document-tags/document-tags.middleware"
 import { documentTagsSlice } from "@/studio/features/document-tags/document-tags.slice"
 import { projectMembershipsMiddleware } from "@/studio/features/project-memberships/project-memberships.middleware"
@@ -32,6 +36,8 @@ import { agentSettingsMiddleware } from "../../common/features/agents/agent-sett
 import { agentSettingsSlice } from "../../common/features/agents/agent-settings/agent-settings.slice"
 import { createSliceManager } from "../../common/store/dynamic-middleware"
 import { studioAgentsMiddleware } from "../features/agents/agents.middleware"
+import { appInstallationsMiddleware } from "../features/app-installations/app-installations.middleware"
+import { appInstallationsSlice } from "../features/app-installations/app-installations.slice"
 import { documentSourcesMiddleware } from "../features/document-sources/document-sources.middleware"
 import { documentSourcesSlice } from "../features/document-sources/document-sources.slice"
 import { documentsMiddleware } from "../features/documents/documents.middleware"
@@ -51,12 +57,15 @@ const studioMiddlewareList = [
   agentEmbedConfigsMiddleware,
   agentSettingsMiddleware,
   agentMembershipsMiddleware,
+  agentMemoriesMiddleware,
   agentMessageFeedbackMiddleware,
   agentSessionMessagesMiddleware,
-  agentsMiddleware,
+  appInstallationsMiddleware,
+  createAgentsMiddleware({ includeDrafts: true }),
   agentSubAgentsMiddleware,
   baseAgentSessionsMiddleware,
   conversationAgentSessionsMiddleware,
+  conversationReviewMiddleware,
   documentSourcesMiddleware,
   documentsMiddleware,
   documentTagsMiddleware,
@@ -77,11 +86,14 @@ export const studioSliceList = [
   agentEmbedConfigsSlice,
   agentSettingsSlice,
   agentMembershipsSlice,
+  agentMemoriesSlice,
   agentMessageFeedbackSlice,
   agentSessionMessagesSlice,
+  appInstallationsSlice,
   agentsSlice,
   agentSubAgentsSlice,
   conversationAgentSessionsSlice,
+  conversationReviewSlice,
   currentIdsSlice,
   documentSourcesSlice,
   documentsSlice,

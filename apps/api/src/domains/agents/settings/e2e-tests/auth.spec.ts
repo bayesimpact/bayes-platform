@@ -11,9 +11,15 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
+import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { projectFactory } from "@/domains/projects/project.factory"
-import { mockForeignAuthSubject, setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
+import {
+  mockForeignAuthSubject,
+  mockOidcEmailForSub,
+  setupUserGuardForTesting,
+} from "../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { AgentsModule } from "../../agents.module"
 
@@ -36,6 +42,7 @@ describe("Agent Settings - Auth", () => {
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)
@@ -70,10 +77,10 @@ describe("Agent Settings - Auth", () => {
     return { organization, project }
   }
 
-  describe("AgentSettingsRoutes.getAll", () => {
+  describe("AgentSettingsRoutes.getAllWithDraft", () => {
     const subject = async () =>
       request({
-        route: AgentSettingsRoutes.getAll,
+        route: AgentSettingsRoutes.getAllWithDraft,
         pathParams: removeNullish({ organizationId, projectId, agentId }),
         token: accessToken ?? undefined,
       })
@@ -207,7 +214,7 @@ describe("Agent Settings - Auth", () => {
       projectId = project2.id
       expectResponse(await subject(), 404) //exception thrown by guard
     })
-    it("allows a simple member to read the form schema, as the session side needs it", async () => {
+    it("allows a simple member of the agent to read the form schema, as the session side needs it", async () => {
       await createContextForRole("member")
       expectResponse(await subject(), 200)
     })
@@ -354,6 +361,179 @@ describe("Agent Settings - Auth", () => {
     it("doesn't allow a simple member to archive a revision", async () => {
       await createContextForRole("member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+  })
+
+  describe("role matrix", () => {
+    type Role = "owner" | "admin" | "member"
+
+    const createContextForRoles = async ({
+      projectRole,
+      agentRole,
+    }: {
+      projectRole: Role
+      agentRole: Role
+    }) => {
+      const { organization, project, agent } = await createOrganizationWithAgent(repositories, {
+        user: { authSubject },
+        organizationMembership: { role: "member" },
+        projectMembership: { role: projectRole },
+        agentMembership: { role: agentRole },
+      })
+      organizationId = organization.id
+      projectId = project.id
+      agentId = agent.id
+      return { organization }
+    }
+
+    const switchToOrganizationAdminWithoutProjectMembership = async (
+      organization: Awaited<ReturnType<typeof createContextForRoles>>["organization"],
+    ) => {
+      const organizationAdminAuthSubject = `oidc|${randomUUID()}`
+      await addUserToOrganization({
+        repositories,
+        organization,
+        user: {
+          authSubject: organizationAdminAuthSubject,
+          email: mockOidcEmailForSub(organizationAdminAuthSubject),
+        },
+        membership: { role: "admin" },
+      })
+      authSubject = organizationAdminAuthSubject
+    }
+
+    const removeAgentMemberships = async () => {
+      await repositories.userMembershipRepository.delete({ resourceType: "agent" })
+    }
+
+    const pathParams = () => removeNullish({ organizationId, projectId, agentId })
+    const revisionPathParams = () =>
+      removeNullish({ organizationId, projectId, agentId, revision: "1" })
+
+    const getAll = async () =>
+      request({
+        route: AgentSettingsRoutes.getAllWithDraft,
+        pathParams: pathParams(),
+        token: "token",
+      })
+
+    const getFillFormOutputJsonSchema = async () =>
+      request({
+        route: AgentSettingsRoutes.getFillFormOutputJsonSchema,
+        pathParams: revisionPathParams(),
+        token: "token",
+      })
+
+    const updateOne = async () =>
+      request({
+        route: AgentSettingsRoutes.updateOne,
+        pathParams: pathParams(),
+        token: "token",
+        request: { payload: { instructions: "New instructions" } },
+      })
+
+    const restoreOne = async () =>
+      request({
+        route: AgentSettingsRoutes.restoreOne,
+        pathParams: revisionPathParams(),
+        token: "token",
+      })
+
+    const createOne = async () =>
+      request({
+        route: AgentSettingsRoutes.createOne,
+        pathParams: revisionPathParams(),
+        token: "token",
+        request: { payload: { revisionName: "A name", revisionDesc: "A description" } },
+      })
+
+    const archiveOne = async () =>
+      request({
+        route: AgentSettingsRoutes.archiveOne,
+        pathParams: revisionPathParams(),
+        token: "token",
+      })
+
+    // The business outcome of a mutation depends on the seeded revisions, so an allowed
+    // call only has to get past the permission check.
+    const expectAllowed = (response: { status: number }) => {
+      expect(response.status).not.toBe(401)
+      expect(response.status).not.toBe(403)
+    }
+
+    const expectForbidden = (response: Parameters<typeof expectResponse>[0]) => {
+      expectResponse(response, 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    }
+
+    it.each<Role>([
+      "owner",
+      "admin",
+    ])("lets a project %s read the history without an agent role", async (role) => {
+      await createContextForRoles({ projectRole: role, agentRole: "member" })
+      await removeAgentMemberships()
+      expectResponse(await getAll(), 200)
+    })
+
+    it("doesn't let a project member who owns the agent read the history", async () => {
+      await createContextForRoles({ projectRole: "member", agentRole: "owner" })
+      expectForbidden(await getAll())
+    })
+
+    it.each<Role>([
+      "owner",
+      "admin",
+      "member",
+    ])("lets an agent %s read the form schema, even as a project member", async (role) => {
+      await createContextForRoles({ projectRole: "member", agentRole: role })
+      expectResponse(await getFillFormOutputJsonSchema(), 200)
+    })
+
+    it.each<Role>([
+      "owner",
+      "admin",
+    ])("lets a project %s read the form schema without an agent role", async (role) => {
+      await createContextForRoles({ projectRole: role, agentRole: "member" })
+      await removeAgentMemberships()
+      expectResponse(await getFillFormOutputJsonSchema(), 200)
+    })
+
+    it("doesn't let a project member without an agent role read the form schema", async () => {
+      await createContextForRoles({ projectRole: "member", agentRole: "member" })
+      await removeAgentMemberships()
+      expectForbidden(await getFillFormOutputJsonSchema())
+    })
+
+    it.each<Role>([
+      "owner",
+      "admin",
+    ])("lets an agent %s change the settings, even as a project member", async (role) => {
+      await createContextForRoles({ projectRole: "member", agentRole: role })
+      expectAllowed(await updateOne())
+      expectAllowed(await restoreOne())
+      expectAllowed(await createOne())
+      expectAllowed(await archiveOne())
+    })
+
+    it("doesn't let an agent member who owns the project change the settings", async () => {
+      await createContextForRoles({ projectRole: "owner", agentRole: "member" })
+      expectForbidden(await updateOne())
+      expectForbidden(await restoreOne())
+      expectForbidden(await createOne())
+      expectForbidden(await archiveOne())
+    })
+
+    it("doesn't let an organization admin outside the project read or change the settings", async () => {
+      const { organization } = await createContextForRoles({
+        projectRole: "owner",
+        agentRole: "owner",
+      })
+      await switchToOrganizationAdminWithoutProjectMembership(organization)
+      expectForbidden(await getAll())
+      expectForbidden(await getFillFormOutputJsonSchema())
+      expectForbidden(await updateOne())
+      expectForbidden(await restoreOne())
+      expectForbidden(await createOne())
+      expectForbidden(await archiveOne())
     })
   })
 })

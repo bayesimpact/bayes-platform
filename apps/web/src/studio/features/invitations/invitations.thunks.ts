@@ -1,7 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import { getCurrentId } from "@/common/features/helpers"
 import type { RootState, ThunkExtraArg } from "@/common/store"
-import type { PendingInvitations } from "./invitations.models"
+import type { CreatedInvitations, PendingInvitations } from "./invitations.models"
 import type {
   CreateInvitationsParams,
   InvitationTarget,
@@ -19,7 +19,7 @@ const scopeTarget = (state: RootState, target: InvitationTarget): ScopedInvitati
 })
 
 export const createInvitations = createAsyncThunk<
-  PendingInvitations,
+  CreatedInvitations,
   CreateInvitationsParams,
   ThunkConfig
 >(

@@ -1,3 +1,4 @@
+import type { BaseAgentSessionTypeDto } from "@caseai-connect/api-contracts"
 import { Card, CardContent } from "@caseai-connect/ui/shad/card"
 import {
   Empty,
@@ -15,9 +16,13 @@ import type { Document } from "@/studio/features/documents/documents.models"
 import { selectExtractionAgentSessionsDocuments } from "../agent-sessions/extraction/extraction-agent-sessions.selectors"
 import { extractionAgentSessionsActions } from "../agent-sessions/extraction/extraction-agent-sessions.slice"
 
-type OnSelectDocument = { onSelectDocument: (document: Document) => void }
-
-export function DocumentList({ onSelectDocument }: OnSelectDocument) {
+export function DocumentList({
+  type,
+  onSelectDocument,
+}: {
+  type: BaseAgentSessionTypeDto
+  onSelectDocument: (document: Document) => void
+}) {
   const dispatch = useAppDispatch()
   const documents = useValue(selectExtractionAgentSessionsDocuments)
   return (
@@ -28,7 +33,7 @@ export function DocumentList({ onSelectDocument }: OnSelectDocument) {
           emptyState={<EmptyDocument />}
           onSelect={onSelectDocument}
           onDelete={(documentIds) =>
-            dispatch(extractionAgentSessionsActions.deleteMyDocuments({ documentIds }))
+            dispatch(extractionAgentSessionsActions.deleteMyDocuments({ documentIds, type }))
           }
         />
       </CardContent>

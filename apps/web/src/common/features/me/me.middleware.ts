@@ -52,7 +52,7 @@ listenerMiddleware.startListening({
     listenerApi.dispatch(fetchPendingInvitations())
     listenerApi.dispatch(
       notificationsActions.show({
-        title: "Failed to answer the invitation",
+        titleKey: "me:notifications.invitationAnswerError",
         type: "error",
       }),
     )
@@ -80,9 +80,8 @@ listenerMiddleware.startListening({
 
     listenerApi.dispatch(
       notificationsActions.show({
-        title: "Unable to reach the API",
-        description:
-          "Please check that the API is running and CORS is configured for this web app origin.",
+        titleKey: "me:notifications.apiUnreachable",
+        descriptionKey: "me:notifications.apiUnreachableDescription",
         type: "error",
       }),
     )
@@ -93,7 +92,9 @@ listenerMiddleware.startListening({
   actionCreator: updateMe.fulfilled,
   effect: (_, listenerApi) => {
     listenerApi.dispatch(fetchMe())
-    listenerApi.dispatch(notificationsActions.show({ title: "Profile updated", type: "success" }))
+    listenerApi.dispatch(
+      notificationsActions.show({ titleKey: "me:notifications.profileUpdated", type: "success" }),
+    )
   },
 })
 

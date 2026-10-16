@@ -13,7 +13,7 @@ const preview: Preview = {
       },
     },
     viewport: {
-      viewports: {
+      options: {
         ...INITIAL_VIEWPORTS,
         iphoneSE: {
           name: "iPhone SE (375px)",

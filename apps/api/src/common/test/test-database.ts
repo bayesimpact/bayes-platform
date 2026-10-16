@@ -195,6 +195,9 @@ WITH
   del_conversation_form AS (
     DELETE FROM "conversation_form"
   ),
+  del_agent_memory AS (
+    DELETE FROM "agent_memory"
+  ),
   del_agent_message_feedback AS (
     DELETE FROM "agent_message_feedback"
   ),
@@ -245,8 +248,23 @@ SELECT 1;`)
           END IF;
           IF EXISTS (
             SELECT FROM information_schema.tables
+            WHERE table_schema = 'public' AND table_name = 'oauth_client'
+          ) THEN
+            -- Grants, codes and refresh tokens cascade from their client.
+            DELETE FROM "oauth_client";
+          END IF;
+          IF EXISTS (
+            SELECT FROM information_schema.tables
+            WHERE table_schema = 'public' AND table_name = 'app_install_authorization_code'
+          ) THEN
+            DELETE FROM "app_install_authorization_code";
+          END IF;
+          IF EXISTS (
+            SELECT FROM information_schema.tables
             WHERE table_schema = 'public' AND table_name = 'app_installation'
           ) THEN
+            -- App conversations reference their installation, with no cascade.
+            DELETE FROM "public_agent_session" WHERE "app_installation_id" IS NOT NULL;
             DELETE FROM "app_installation";
           END IF;
           IF EXISTS (

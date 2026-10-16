@@ -14,6 +14,7 @@ import { removeNullish } from "@/common/utils/remove-nullish"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { addMemberByEmailToProject } from "@/domains/projects/memberships/project-membership.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { conversationAgentSessionFactory } from "../conversation-agent-session.factory"
 import { ConversationAgentSessionsModule } from "../conversation-agent-sessions.module"
@@ -36,6 +37,7 @@ describe("ConversationAgentSessionsRoutes.getAll", () => {
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)
@@ -134,10 +136,9 @@ describe("ConversationAgentSessionsRoutes.getAll", () => {
 
   const subject = async (type: BaseAgentSessionTypeDto) =>
     request({
-      route: ConversationAgentSessionsRoutes.getAll,
+      route: ConversationAgentSessionsRoutes[type].getAll,
       pathParams: removeNullish({ organizationId, projectId, agentId }),
       token: accessToken,
-      request: { payload: { type } },
     })
 
   it("should return only live sessions for authenticated user sorted by newest first", async () => {

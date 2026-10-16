@@ -1,3 +1,4 @@
+import type { BaseAgentSessionTypeDto } from "@caseai-connect/api-contracts"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate, useOutlet } from "react-router-dom"
@@ -22,6 +23,8 @@ import { useRoutesBuilder } from "../../build-routes/context"
 import { ErrorRoute } from "../../ErrorRoute"
 
 export function AgentExtractionRoute(props: {
+  /** Live runs in the Desk, playground runs in Studio. */
+  type: BaseAgentSessionTypeDto
   buildCsvRunPath: BuildAgentExtractionCsvRunRoute
   /** Studio-only version picker; Desk passes nothing and keeps running the published version. */
   renderVersionPicker?: React.ReactNode
@@ -47,12 +50,14 @@ export function AgentExtractionRoute(props: {
 }
 
 function WithData({
+  type,
   buildCsvRunPath,
   renderVersionPicker,
   agentId,
   csvDocumentId,
   setCsvDocumentId,
 }: {
+  type: BaseAgentSessionTypeDto
   buildCsvRunPath: BuildAgentExtractionCsvRunRoute
   renderVersionPicker?: React.ReactNode
   agentId: string
@@ -87,6 +92,7 @@ function WithData({
     )
   return (
     <FileManager
+      type={type}
       agentId={agentId}
       renderVersionPicker={renderVersionPicker}
       onCsvSuccess={handleCsvSuccess}
@@ -96,11 +102,13 @@ function WithData({
 }
 
 function FileManager({
+  type,
   agentId,
   renderVersionPicker,
   onCsvSuccess,
   onExtractionRunSuccess,
 }: {
+  type: BaseAgentSessionTypeDto
   agentId: string
   renderVersionPicker?: React.ReactNode
   onCsvSuccess: (documentId: string) => void
@@ -119,6 +127,7 @@ function FileManager({
       dispatch(
         agentCsvExtractionRunsThunks.uploadCsvFile({
           file: data.file,
+          type,
           onSuccess: onCsvSuccess,
         }),
       )
@@ -165,7 +174,7 @@ function FileManager({
       />
 
       <div className="p-4">
-        <DocumentList onSelectDocument={(document) => handleSubmit({ document })} />
+        <DocumentList type={type} onSelectDocument={(document) => handleSubmit({ document })} />
       </div>
     </div>
   )

@@ -1,6 +1,8 @@
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { GridHeader } from "@/common/components/grid/Grid"
+import { AgentMemoryPanel } from "@/common/features/agents/agent-memories/components/AgentMemoryPanel"
+import { useAgentMemory } from "@/common/features/agents/agent-memories/use-agent-memory"
 import type { ConversationAgentSession } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.models"
 import { selectFillFormOutputJsonSchema } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.selectors"
 import { selectCurrentMessagesData } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.selectors"
@@ -19,6 +21,7 @@ export function DeskAgentSessionRoute({ agentSession }: { agentSession: AgentSes
   const agent = useValue(selectCurrentAgentData)
   const messages = useValue(selectCurrentMessagesData)
   const fillFormOutputJsonSchema = useAppSelector(selectFillFormOutputJsonSchema)
+  useAgentMemory({ agentId: agent.id })
 
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -42,7 +45,12 @@ export function DeskAgentSessionRoute({ agentSession }: { agentSession: AgentSes
             <Icon />
           </div>
         }
-        action={<DeleteAgentSessionButton agent={agent} agentSession={agentSession} />}
+        action={
+          <>
+            <AgentMemoryPanel />
+            <DeleteAgentSessionButton agent={agent} agentSession={agentSession} />
+          </>
+        }
       />
 
       <div className="flex-1">

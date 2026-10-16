@@ -53,5 +53,8 @@ export interface IAgentCsvExtractionRunsSpi {
       onStatusChanged: (event: AgentCsvExtractionRunStatusChangedEvent) => void
     },
   ): Promise<void>
+  getExportTemporaryUrl(
+    params: BaseParams & { agentCsvExtractionRunId: string },
+  ): Promise<{ url: string }>
   deleteOne(params: BaseParams & { agentCsvExtractionRunId: string }): Promise<void>
 }

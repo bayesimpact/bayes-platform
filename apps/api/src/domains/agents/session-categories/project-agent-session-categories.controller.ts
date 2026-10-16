@@ -3,15 +3,19 @@ import { Body, Controller, Delete, Param, Post, Req, UseGuards } from "@nestjs/c
 import type { EndpointRequestWithProject } from "@/common/context/request.interface"
 import { AddContext, RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
-import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
+import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
+import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
+import {
+  PROJECT_AGENT_SESSION_CATEGORY_CREATE_PERMISSION,
+  PROJECT_AGENT_SESSION_CATEGORY_DELETE_PERMISSION,
+} from "@/domains/rbac/rbac.constants"
 import { UserGuard } from "@/domains/users/user.guard"
-import { ProjectAgentSessionCategoriesGuard } from "./project-agent-session-categories.guard"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectAgentSessionCategoriesService } from "./project-agent-session-categories.service"
 
-@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, ProjectAgentSessionCategoriesGuard)
+@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, CheckPermissionGuard)
 @RequireContext("organization")
 @Controller()
 export class ProjectAgentSessionCategoriesController {
@@ -20,7 +24,7 @@ export class ProjectAgentSessionCategoriesController {
   ) {}
 
   @Post(ProjectAgentSessionCategoriesRoutes.createOne.path)
-  @CheckPolicy((policy) => policy.canCreate())
+  @CheckPermission(PROJECT_AGENT_SESSION_CATEGORY_CREATE_PERMISSION, "project")
   @AddContext("project")
   @TrackActivity({ action: "project.add_agent_session_category", entityFrom: "project" })
   async createOne(
@@ -36,7 +40,7 @@ export class ProjectAgentSessionCategoriesController {
   }
 
   @Delete(ProjectAgentSessionCategoriesRoutes.deleteOne.path)
-  @CheckPolicy((policy) => policy.canDelete())
+  @CheckPermission(PROJECT_AGENT_SESSION_CATEGORY_DELETE_PERMISSION, "project")
   @AddContext("project")
   @TrackActivity({ action: "project.delete_agent_session_category", entityFrom: "project" })
   async deleteOne(

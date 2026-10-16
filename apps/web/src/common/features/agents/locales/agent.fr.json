@@ -68,6 +68,14 @@
       },
       "unavailable": "Ce modèle n'est plus disponible. Sélectionnez un nouveau modèle dans la liste."
     },
-    "playground": "Playground"
+    "playground": "Playground",
+    "notifications": {
+      "updated": "Agent mis à jour avec succès",
+      "updateError": "La mise à jour de l'agent a échoué",
+      "deleted": "Agent supprimé avec succès",
+      "deleteError": "La suppression de l'agent a échoué",
+      "created": "Agent créé avec succès",
+      "createError": "La création de l'agent a échoué"
+    }
   }
 }

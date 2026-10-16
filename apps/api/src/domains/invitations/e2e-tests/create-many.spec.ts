@@ -13,6 +13,7 @@ import {
   createOrganizationWithAgent,
   createOrganizationWithProject,
 } from "@/domains/organizations/organization.factory"
+import { addUserToProject } from "@/domains/projects/memberships/project-membership.factory"
 import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
 import { buildServiceUserEmail } from "@/domains/users/service-user.helpers"
 import { userFactory } from "@/domains/users/user.factory"
@@ -147,7 +148,7 @@ describe("Invitations - createMany", () => {
       ).not.toBeNull()
     })
 
-    it("skips people who are already project members", async () => {
+    it("skips people who are already project owners or admins", async () => {
       const { project, user } = await createProjectContext()
 
       const response = await subject(
@@ -159,6 +160,18 @@ describe("Invitations - createMany", () => {
 
       expectResponse(response, 201)
       expect(response.body.data.invitations).toEqual([])
+    })
+
+    it("invites a project member to become admin", async () => {
+      const { project } = await createProjectContext()
+      const { user: member } = await addUserToProject({ repositories, project })
+
+      const response = await subject({ project }, { emails: [member.email] })
+
+      expectResponse(response, 201)
+      expect(response.body.data.invitations).toEqual([
+        expect.objectContaining({ invitedEmail: member.email, role: "admin", status: "pending" }),
+      ])
     })
 
     it("skips people who already have a pending invitation", async () => {

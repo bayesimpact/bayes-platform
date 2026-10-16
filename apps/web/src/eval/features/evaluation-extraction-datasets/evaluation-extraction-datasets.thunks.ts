@@ -124,7 +124,9 @@ const uploadFile = createAsyncThunk<void, { file: File }, ThunkConfig>(
       const description = error instanceof Error ? error.message : String(error)
       dispatch(
         notificationsActions.show({
-          title: `${title}: ${description}`,
+          titleKey: "evaluation:notifications.fileUploadErrorWithReason",
+          titleValues: { fileName: file.name },
+          description,
           type: "error",
         }),
       )

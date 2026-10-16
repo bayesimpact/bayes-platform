@@ -14,17 +14,18 @@ graph TB
 
     subgraph "GitHub"
         GH["GitHub Actions CI/CD<br/>ci.yml / publish-images.yml"]
+        GHCR["GitHub Container Registry<br/>six public images, Helm chart"]
     end
 
-    subgraph "Slack"
-        SLACK["Slack Webhook<br/>Deploy notifications"]
+    subgraph "Operator"
+        OPS["helm install / upgrade<br/>or any GitOps tool"]
     end
 
     subgraph "Google Cloud Platform — europe-west9"
 
-        subgraph "Cloud Run"
-            API["API Service (NestJS)<br/>Container: connect<br/>Port 3000<br/>Min: 1 / Max: 1"]
-            WORKERS["Workers Service (NestJS)<br/>Cloud Run Workers<br/>Document embeddings"]
+        subgraph "Kubernetes (Helm chart)"
+            API["API Service (NestJS)<br/>serves the web front<br/>Port 3000"]
+            WORKERS["Workers (NestJS)<br/>CPU and GPU<br/>Document embeddings"]
         end
 
         subgraph "Cloud SQL"
@@ -37,10 +38,6 @@ graph TB
 
         subgraph "Storage"
             GCS["Google Cloud Storage<br/>Bucket: your-bucket-name"]
-        end
-
-        subgraph "Artifact Registry"
-            AR["Docker Images<br/>REGION-docker.pkg.dev"]
         end
 
         subgraph "Secret Manager"
@@ -75,11 +72,11 @@ graph TB
     WORKERS -- "OTLP" --> OTEL
 
     %% CI/CD flows
-    GH -- "Build & Push" --> AR
-    GH -- "gcloud run deploy" --> API
-    GH -- "gcloud run worker-pools deploy" --> WORKERS
-    GH -- "migration:run<br/>via Cloud SQL Proxy" --> PG
-    GH -- "Deploy notification" --> SLACK
+    GH -- "Build & Push" --> GHCR
+    OPS -- "chart + values" --> API
+    OPS -- "chart + values" --> WORKERS
+    OPS -- "migrations<br/>(Helm hook)" --> PG
+    API -. "pulls images" .-> GHCR
 
     %% Styling
     classDef gcp fill:#4285F4,stroke:#333,color:#fff
@@ -87,17 +84,17 @@ graph TB
     classDef client fill:#FBBC05,stroke:#333,color:#000
     classDef cicd fill:#EA4335,stroke:#333,color:#fff
 
-    class API,WORKERS,PG,REDIS,GCS,AR,SM,VERTEX gcp
-    class IDP,OTEL,SLACK external
+    class API,WORKERS,PG,REDIS,GCS,SM,VERTEX gcp
+    class IDP,OTEL,OPS external
     class WEB client
-    class GH cicd
+    class GH,GHCR cicd
 ```
 
 ## Network Flows Summary
 
 | Source | Destination | Protocol | Purpose |
 |--------|-------------|----------|---------|
-| Web App | API (Cloud Run) | HTTPS + JWT | All API requests |
+| Web App | API | HTTPS + JWT | All API requests |
 | Web App | OIDC provider | HTTPS | Login, token refresh (authorization code + PKCE) |
 | API | PostgreSQL (Cloud SQL) | Unix Socket (Cloud SQL Proxy) | Data persistence |
 | API | Redis | TCP 6379 (TLS in prod) | BullMQ job enqueue |
@@ -109,10 +106,8 @@ graph TB
 | Workers | Redis | TCP 6379 | BullMQ job consume |
 | Workers | Vertex AI | HTTPS (gRPC) | Document embeddings |
 | Workers | OpenTelemetry gateway | OTLP/HTTP | Traces and metrics |
-| GitHub Actions | Artifact Registry | HTTPS | Docker image push |
-| GitHub Actions | Cloud Run | HTTPS (gcloud) | Service deployment |
-| GitHub Actions | Cloud SQL | TCP (proxy) | Run migrations |
-| GitHub Actions | Slack | HTTPS (webhook) | Deploy notifications |
+| GitHub Actions | GitHub Container Registry | HTTPS | Image and chart push |
+| Cluster | GitHub Container Registry | HTTPS | Image and chart pull |
 
 ## CORS Configuration
 
@@ -139,7 +134,7 @@ sequenceDiagram
     participant U as User
     participant W as Web App
     participant A as OIDC provider
-    participant API as API (Cloud Run)
+    participant API as API
 
     U->>W: Open app
     W->>A: Redirect to the provider login
@@ -161,8 +156,28 @@ flowchart LR
     CHECKS --> PUBLISH
     TEST --> PUBLISH
     BUILD --> PUBLISH["Add the deployment tags<br/>main, latest, main-&lt;run&gt;-&lt;sha&gt;<br/>or the release version"]
-    PUBLISH --> NOTIFY["repository_dispatch<br/>to the deployment repository"]
-    NOTIFY --> FLUX["Flux upgrades the<br/>Helm release"]
+    PUBLISH --> CHART["Release tag only:<br/>Helm chart as OCI artifact"]
+    PUBLISH --> NOTIFY["Optional event<br/>platform-images-published<br/>(tag + commit)"]
 ```
 
-The images are published only when the checks and the tests pass. Deployments are GitOps: the deployment repository holds the image tag in the Helm values, a workflow there turns the event into a pull request, and Flux applies it. The deploy notifications come from Flux.
+The images are published only when the checks and the tests pass. What each tag means:
+
+| Tag | Published on | Use |
+|---|---|---|
+| `sha-<short sha>` | Every build, tests or not | Not for deployments |
+| `main-<run>-<short sha>` | Push to `main`, tests passed | Follow `main` at a known build (sortable) |
+| `main`, `latest` | Push to `main`, tests passed | Moving tags, for a test install |
+| `<version>` (`26.10.2`) | Release tag, tests passed | Production installs |
+
+A release tag also publishes the Helm chart: `oci://ghcr.io/bayesimpact/charts/bayes-platform`, same version without a leading zero in the month (`26.9.1` for `v26.09.1`). Its default image tag is the release version.
+
+Nothing in this repository deploys. To install or upgrade, use the chart with your values: see [deploy/helm/bayes-platform/README.md](../deploy/helm/bayes-platform/README.md). To keep chart and images consistent, take both from the same commit (a release version, or the chart of the commit in `main-<run>-<sha>`).
+
+After the publish, the workflow sends a `repository_dispatch` event `platform-images-published` (tag, commit, repository) to a deployment repository of the organization, so that a GitOps setup can follow new builds. This step needs a GitHub App (`DEPLOY_APP_ID`, `DEPLOY_APP_PRIVATE_KEY`).
+
+### Making a release
+
+1. Check that the `[Unreleased]` part of `CHANGELOG.md` lists the changes (the release fails on an empty one).
+2. Tag a commit of `main` whose images are published, with the CalVer version: `git tag v26.10.2 && git push origin v26.10.2`.
+3. `release.yml` promotes the changelog (pull request, auto-merged) and creates the GitHub release. `publish-images.yml` publishes the six images and the chart under that version.
+4. Upgrade your installs to the new version (`helm upgrade ... --version 26.10.2`, see the chart README).

@@ -64,6 +64,8 @@ activity per workspace, never a user or a conversation (see
 provisioned from `infra/database/grafana`, the dashboards are the JSON files of
 `deploy/helm/bayes-platform/dashboards`, the same the chart ships to the cluster;
 a change made in the UI is lost at the next start, export the JSON and commit it.
+It reads the `connect` database, or the one named by `GRAFANA_DATABASE` in
+`infra/database/.env`.
 
 ```bash
 cd infra/database
@@ -75,14 +77,72 @@ cd ../.. && make analytics-dev-role          # once, after the migrations: the r
 
 An OpenTelemetry Collector (`deploy/helm/bayes-platform/files/otel-collector.yaml`, the same traces
 pipeline as the gateway of the clusters) and Phoenix at
-[http://localhost:6006](http://localhost:6006). Start them, then set in `apps/api/.env`:
+[http://localhost:6060](http://localhost:6060) (port 6006 belongs to the web
+app's Storybook). Start them, then set in `apps/api/.env`:
 `OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318` and
-`TRACE_URL_TEMPLATE=http://localhost:6006/redirects/sessions/{traceId}`.
+`TRACE_URL_TEMPLATE=http://localhost:6060/redirects/sessions/{traceId}`.
 
 ```bash
 cd infra/database
 docker compose --profile traces up -d --no-recreate otel-collector phoenix
 ```
+
+#### Invitation emails in Mailpit (optional)
+
+Mailpit is a fake SMTP server: it catches every email and sends none. The
+invitation emails show up at [http://localhost:8025](http://localhost:8025).
+Start it, then set in `apps/api/.env`: `SMTP_HOST=localhost`, `SMTP_PORT=1025`
+and `SMTP_FROM=Platform <no-reply@connect.localhost>`. Without `SMTP_HOST` the
+API sends no email.
+
+```bash
+cd infra/database
+docker compose --profile mail up -d --no-recreate mailpit
+```
+
+#### Profiles of the dev stack
+
+`infra/database/docker-compose.yaml` is the one compose project of the local
+stack (`connect-db`). A plain `docker compose up -d` starts pgvector and redis;
+the other services start with their profile, from `infra/database`:
+
+| Profile | Services | Start |
+|---|---|---|
+| (default) | pgvector, redis | `docker compose up -d` |
+| `mail` | Mailpit, http://localhost:8025 | `docker compose --profile mail up -d --no-recreate mailpit` |
+| `keycloak` | Keycloak, http://localhost:8080 ([README](infra/keycloak/README.md)) | `docker compose --profile keycloak up -d --no-recreate keycloak` |
+| `dex` | Dex, http://localhost:5556 ([README](infra/dex/README.md)) | `docker compose --profile dex up -d --no-recreate dex` |
+| `traces` | otel-collector, Phoenix, http://localhost:6060 | `docker compose --profile traces up -d --no-recreate otel-collector phoenix` |
+| `analytics` | Grafana, http://localhost:3300 | `docker compose --profile analytics up -d --no-recreate grafana` |
+| `router` | Traefik, which routes the worktree environments on http://*.connect.localhost:8800 | `docker compose --profile router up -d --no-recreate traefik` |
+| `bull-board` | Bull Board, http://localhost:3400 ([README](infra/bull-board/README.md)) | `docker compose --profile bull-board up -d --no-recreate bull-board` |
+
+The `router` profile serves every `*.connect.localhost` host on
+http://127.0.0.1:8800 (`ROUTER_PORT` in `infra/database/.env`): the worktree
+environments, plus http://phoenix.connect.localhost:8800,
+http://mail.connect.localhost:8800, http://grafana.connect.localhost:8800 and
+Traefik's own dashboard at http://traefik.connect.localhost:8800/dashboard/.
+Chrome and Firefox resolve `*.localhost` by themselves; Safari does not. On the
+dev VM, forward port 8800 to your laptop (VS Code does it, with the settings of
+`.vscode/settings.json`). It can also serve them in https on a domain of yours:
+see "HTTPS on a domain of your own" in
+[infra/worktree/README.md](infra/worktree/README.md).
+
+Keycloak and Dex used to have their own compose projects. If one of them still
+runs from there, stop it once before starting it with its profile:
+`docker compose -p connect-keycloak down` or `docker compose -p connect-dex down`.
+
+The services that were running come back after a reboot, until you stop them
+with `docker compose stop <service>`, except Keycloak and Grafana, which you
+start on demand. Postgres accepts 500 connections, for the main checkout,
+worktree environments and parallel test runs at once.
+
+#### Worktree environments
+
+Each git worktree can run its own environment, side by side: every dev server in containers,
+databases copied from yours, its own Redis, Dex and Phoenix project, and URLs such as
+http://fix-sidebar.connect.localhost:8800. [infra/worktree/README.md](infra/worktree/README.md)
+describes what an environment is made of.
 
 #### Stop the Database
 
@@ -125,9 +185,8 @@ TRACE_URL_TEMPLATE=https://traces.example.org/redirects/sessions/{traceId}
 # Database
 DATABASE_URL=postgresql://admin:passpass@localhost:5432/caseai_connect
 
-# OpenID Connect provider (local Keycloak: see infra/keycloak/README.md)
-OIDC_ISSUER_URL=http://localhost:8080/realms/platform
-# OIDC_AUDIENCE=platform-api
+# OpenID Connect provider (local Dex: see infra/dex/README.md)
+OIDC_ISSUER_URL=http://localhost:5556/dex
 WEB_OIDC_CLIENT_ID=platform-web
 ```
 
@@ -146,6 +205,12 @@ WEB_OIDC_CLIENT_ID=platform-web
 
 Upgrading a `.env` from Auth0: see [docs/upgrading/auth0-to-oidc.md](docs/upgrading/auth0-to-oidc.md).
 
+**Local sign-in:** start Dex (`docker compose --profile dex up -d --no-recreate dex` from
+`infra/database`). On a fresh checkout, sign in with the sample user `admin@example.org` / `admin`,
+then give it a platform role. When your database already has people, run
+`node infra/dex/sync-users.mjs` from the main checkout: each of them gets a Dex account with their
+email and a local dev password, and keeps their data. See [infra/dex/README.md](infra/dex/README.md).
+
 #### Web Environment Variables
 
 ```bash
@@ -160,7 +225,7 @@ Edit `.env`:
 VITE_API_URL=http://localhost:3000/api
 
 # OpenID Connect provider and the public client of the web app
-VITE_OIDC_AUTHORITY=http://localhost:8080/realms/platform
+VITE_OIDC_AUTHORITY=http://localhost:5556/dex
 VITE_OIDC_CLIENT_ID=platform-web
 ```
 
@@ -342,7 +407,7 @@ Once HTTPS is set up, update your `.env` files to use `https://connect.localhost
 VITE_API_URL=https://connect.localhost:3000/api
 ```
 
-**Identity provider:** the web app client must allow `https://connect.localhost:5173` as redirect URI, post-logout redirect URI and web origin. The local Keycloak realm (`infra/keycloak`) already does.
+**Identity provider:** the web app client must allow `https://connect.localhost:5173` as redirect URI, post-logout redirect URI and web origin. The local Dex accepts it (it has no logout), and `node infra/dex/sync-users.mjs` lists every origin of `FRONTEND_URL` as a redirect URI.
 
 ### 6. Run the Projects Locally
 
@@ -360,7 +425,6 @@ This will start all apps in watch mode using Turbo.
 - **Without HTTPS** (no certs): API at `http://localhost:3000`, web at `http://localhost:5173`
 - **API paths**: the private API is served under `/api` (`/api/healthz`, `/api/organizations/...`) and the public chat API under `/public`. `/public` is the stable public surface: an incompatible change would become `/public/v1`, never a move under `/api`. In the `app` image the web front is served at `/` on the same origin.
 - **PDF converter** (Go): `http://localhost:3002`, with the PDF export MCP endpoint at `/mcp`. Started when Go is installed and `apps/pdf-converter/.env` exists (copy `.env-example`), skipped otherwise. See [apps/pdf-converter/README.md](apps/pdf-converter/README.md).
-- **Apps CLI**: install an app from the terminal with `npx bayes`. See [apps/cli/README.md](apps/cli/README.md).
 
 #### Run Individual Projects
 
@@ -377,6 +441,26 @@ npm run dev
 cd apps/web
 npm run dev
 ```
+
+#### Storybook
+
+Each front end has its own Storybook, which renders screens and components with sample data, without the API or a login:
+
+| Package | Command | URL |
+|---------|---------|-----|
+| `apps/web` | `cd apps/web && npm run storybook` | `http://localhost:6006` |
+| `apps/web-embed` | `cd apps/web-embed && npm run storybook` | `http://localhost:6007` |
+| `packages/ui` | `cd packages/ui && npm run storybook` | `http://localhost:6008` |
+
+#### Storybook MCP servers for Claude Code
+
+`.mcp.json` declares two MCP servers, served by the Storybook MCP addon: `storybook-web` (`apps/web`, port 6006) and `storybook-ui` (`packages/ui`, port 6008). They let Claude Code read component docs, find the stories of a changed file and link to a story. The `storybook-screenshot` skill uses them alongside its own screenshot script.
+
+1. Approve both servers when Claude Code asks, the first time you open the repo, or later from `/mcp`.
+2. Start the matching Storybook: a server only connects while its Storybook runs.
+3. If Storybook started after Claude Code, reconnect the server from `/mcp`.
+
+If you had registered them yourself with `claude mcp add`, remove those copies with `claude mcp remove storybook-web -s local` (and `storybook-ui`): a local entry overrides the shared one.
 
 ### Docker Smoke Test (API + Workers + PG + Redis)
 

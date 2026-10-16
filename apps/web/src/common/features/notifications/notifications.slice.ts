@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit"
 import { generateId } from "@/common/utils/generate-id"
-import type { Notification } from "./notifications.models"
+import type { Notification, NotificationContent } from "./notifications.models"
 
 interface State {
   notifications: Notification[]
@@ -14,7 +14,7 @@ const slice = createSlice({
   name: "notifications",
   initialState,
   reducers: {
-    show: (state, action: { payload: Omit<Notification, "id"> }) => {
+    show: (state, action: { payload: NotificationContent }) => {
       state.notifications.push({ id: generateId(), ...action.payload })
     },
     reset: () => initialState,

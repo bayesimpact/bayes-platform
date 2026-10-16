@@ -9,6 +9,7 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import type { Document } from "../../document.entity"
 import { DocumentsModule } from "../../documents.module"
@@ -39,6 +40,7 @@ describe("Documents - crawlUrl", () => {
       applyOverrides: (moduleBuilder) => withCrawlingAndAuthMocks(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     crawlingBatchServiceMock = setup.module.get(URL_CRAWLING_BATCH_SERVICE)
     app = setup.module.createNestApplication()
     await app.init()

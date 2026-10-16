@@ -5,15 +5,25 @@ import { useTranslation } from "react-i18next"
 import { useAppDispatch } from "@/common/store/hooks"
 import { getDocumentTemporaryUrl } from "@/studio/features/documents/documents.thunks"
 
+type OpenerDisplayProps = {
+  buttonProps?: React.ComponentProps<typeof Button>
+} & ({ noText?: boolean; noIcon: never } | { noIcon?: boolean })
+
 export function DocumentOpener({
   documentId,
+  ...rest
+}: { documentId: string } & OpenerDisplayProps) {
+  const dispatch = useAppDispatch()
+  const getUrl = () => dispatch(getDocumentTemporaryUrl({ documentId })).unwrap()
+  return <FileOpener getUrl={getUrl} {...rest} />
+}
+
+/** Download button for a file served through a temporary URL that `getUrl` fetches on click. */
+export function FileOpener({
+  getUrl,
   buttonProps,
   ...rest
-}: {
-  documentId: string
-  buttonProps?: React.ComponentProps<typeof Button>
-} & ({ noText?: boolean; noIcon: never } | { noIcon?: boolean })) {
-  const dispatch = useAppDispatch()
+}: { getUrl: () => Promise<{ url: string }> } & OpenerDisplayProps) {
   const { t } = useTranslation()
   const [url, setUrl] = useState<string | null>(null)
   const aRef = useRef<HTMLAnchorElement | null>(null)
@@ -21,9 +31,9 @@ export function DocumentOpener({
   const hasText = "noText" in rest ? !rest.noText : true
   const hasIcon = "noIcon" in rest ? !rest.noIcon : true
 
-  const getUrl = async () => {
+  const fetchUrl = async () => {
     if (url) return
-    const res = await dispatch(getDocumentTemporaryUrl({ documentId })).unwrap()
+    const res = await getUrl()
     setUrl(res.url)
   }
 
@@ -45,7 +55,7 @@ export function DocumentOpener({
 
   if (!url)
     return (
-      <Button variant="outline" onClick={getUrl} {...buttonProps}>
+      <Button variant="outline" onClick={fetchUrl} {...buttonProps}>
         {content}
       </Button>
     )

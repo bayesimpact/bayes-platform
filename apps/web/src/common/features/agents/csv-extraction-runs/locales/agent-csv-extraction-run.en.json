@@ -61,6 +61,15 @@
         "description": "This CSV extraction will be permanently deleted. This action cannot be undone.",
         "submit": "Delete"
       }
+    },
+    "notifications": {
+      "started": "CSV extraction run started",
+      "startError": "CSV extraction run failed to start",
+      "completed": "CSV extraction run completed successfully",
+      "failed": "CSV extraction run failed",
+      "deleted": "Extraction deleted successfully",
+      "deleteError": "Extraction deletion failed",
+      "cancelled": "Run cancelled"
     }
   }
 }

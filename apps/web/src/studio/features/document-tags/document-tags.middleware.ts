@@ -37,7 +37,7 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Document tag deleted successfully",
+          titleKey: "documentTag:notifications.deleted",
           type: "success",
         }),
       )
@@ -51,7 +51,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Document tag deletion failed",
+          titleKey: "documentTag:notifications.deleteError",
           type: "error",
         }),
       )
@@ -63,7 +63,7 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Document tag created successfully",
+          titleKey: "documentTag:notifications.created",
           type: "success",
         }),
       )
@@ -77,7 +77,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Document tag creation failed",
+          titleKey: "documentTag:notifications.createError",
           type: "error",
         }),
       )
@@ -89,7 +89,7 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Document tag updated successfully",
+          titleKey: "documentTag:notifications.updated",
           type: "success",
         }),
       )
@@ -102,7 +102,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Document tag update failed",
+          titleKey: "documentTag:notifications.updateError",
           type: "error",
         }),
       )

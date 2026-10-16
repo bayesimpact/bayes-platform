@@ -177,6 +177,14 @@ describe("ProjectsService", () => {
           "csv_extraction_run.create",
           "csv_extraction_run.update",
           "csv_extraction_run.delete",
+          "agent.conversation.session.read",
+          "agent.conversation.session.create",
+          "agent.conversation.session.delete",
+          "agent.extraction.session.read",
+          "agent.extraction.session.create",
+          "agent.extraction.session.delete",
+          "project.agent_message_feedback.create",
+          "project.mcp_server.read",
         ].sort(),
       )
     })

@@ -38,6 +38,8 @@ export type CreateReviewCampaignInvitationsRequestDto = CreateInvitationsRequest
 export type CreateInvitationsResponseDto = {
   /** New pending invitations. Emails that already have access or a pending invitation are left out. */
   invitations: InvitationDto[]
+  /** True when the platform emailed every new invitation (SMTP configured and every send succeeded). */
+  emailSent: boolean
 }
 
 export type ListInvitationsResponseDto = {

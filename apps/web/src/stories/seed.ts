@@ -1,5 +1,6 @@
 import type {
   AppManifest,
+  BackofficeAgentDetail,
   BackofficeRbacCatalog,
   BackofficeUserDetail,
   PaginatedBackofficeAgents,
@@ -8,6 +9,7 @@ import type {
   PaginatedBackofficeUsers,
   TermsDocuments,
 } from "@/backoffice/features/backoffice/backoffice.models"
+import type { AgentMemory } from "@/common/features/agents/agent-memories/agent-memories.models"
 import type {
   ConversationAgentSession,
   ConversationSubSession,
@@ -21,6 +23,8 @@ import type { AgentSettings } from "@/common/features/agents/agent-settings/agen
 import type { Agent, AgentModelsCatalog } from "@/common/features/agents/agents.models"
 import type { AppInstallPage } from "@/common/features/app-install/app-install.models"
 import type { User } from "@/common/features/me/me.models"
+import type { OAuthConsentPage } from "@/common/features/oauth-consent/oauth-consent.models"
+import type { OAuthGrant } from "@/common/features/oauth-grants/oauth-grants.models"
 import { organizationFactory } from "@/common/features/organizations/organization.factory"
 import type { Organization } from "@/common/features/organizations/organizations.models"
 import type {
@@ -50,6 +54,8 @@ import type {
   AnalyticsCategoryDailyPoint,
   AnalyticsDailyPoint,
 } from "@/studio/features/analytics/project/analytics.models"
+import type { AppInstallation } from "@/studio/features/app-installations/app-installations.models"
+import type { ConversationReview } from "@/studio/features/conversation-review/conversation-review.models"
 import type { DocumentSource } from "@/studio/features/document-sources/document-sources.models"
 import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"
 import type { Document } from "@/studio/features/documents/documents.models"
@@ -135,13 +141,20 @@ export const seed = {
   /** Seeds the operator app-install page and the loopback callback ids the route reads. */
   appInstallPage(
     page: AppInstallPage,
-    callback: { redirectUri?: string; callbackState?: string } = {},
+    callback: {
+      redirectUri?: string
+      callbackState?: string
+      codeChallenge?: string
+      codeChallengeMethod?: string
+    } = {},
   ): StoryPreloadedState {
     return {
       appInstall: {
         slug: page.app.slug,
         redirectUri: callback.redirectUri ?? "http://127.0.0.1:8787/callback",
         callbackState: callback.callbackState ?? "csrf-state",
+        codeChallenge: callback.codeChallenge ?? "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+        codeChallengeMethod: callback.codeChallengeMethod ?? "S256",
         page: ads.fulfilled(page),
       },
     }
@@ -152,14 +165,48 @@ export const seed = {
     slug: string | null
     redirectUri?: string
     callbackState?: string
+    codeChallenge?: string
+    codeChallengeMethod?: string
   }): StoryPreloadedState {
     return {
       appInstall: {
         slug: params.slug,
         redirectUri: params.redirectUri ?? "http://127.0.0.1:8787/callback",
         callbackState: params.callbackState ?? "csrf-state",
+        codeChallenge: params.codeChallenge ?? "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+        codeChallengeMethod: params.codeChallengeMethod ?? "S256",
       },
     }
+  },
+
+  /** Seeds the OAuth consent page as the API returned it for a valid request. */
+  oauthConsentPage(page: OAuthConsentPage): StoryPreloadedState {
+    return { oauthConsent: { page: ads.fulfilled(page) } }
+  },
+
+  /** Seeds the OAuth consent page as rejected by the API (invalid client or redirect URI). */
+  oauthConsentError(error: string): StoryPreloadedState {
+    return { oauthConsent: { page: ads.errored<OAuthConsentPage>(error) } }
+  },
+
+  /** MCP clients the signed-in person connected (connected apps dialog). */
+  oauthGrants(grants: OAuthGrant[]): StoryPreloadedState {
+    return { oauthGrants: { grants: ads.fulfilled(grants) } }
+  },
+
+  /** Connected apps still loading. */
+  oauthGrantsLoading(): StoryPreloadedState {
+    return { oauthGrants: { grants: ads.loading<OAuthGrant[]>() } }
+  },
+
+  /** Connected apps the API failed to list. */
+  oauthGrantsError(error: string): StoryPreloadedState {
+    return { oauthGrants: { grants: ads.errored<OAuthGrant[]>(error) } }
+  },
+
+  /** What the current agent remembers about the signed-in user (Studio and Desk conversations). */
+  agentMemories(memories: AgentMemory[]): StoryPreloadedState {
+    return { agentMemories: { mounted: true, data: ads.fulfilled(memories) } }
   },
 
   me(user: User): StoryPreloadedState {
@@ -334,6 +381,10 @@ export const seed = {
       return { documentTags: { data: ads.fulfilled(documentTags) } }
     },
 
+    appInstallations(appInstallations: AppInstallation[]): StoryPreloadedState {
+      return { appInstallations: { data: ads.fulfilled(appInstallations) } }
+    },
+
     mcpServers(mcpServers: McpServer[]): StoryPreloadedState {
       return { mcpServers: { data: ads.fulfilled(mcpServers) } }
     },
@@ -400,6 +451,10 @@ export const seed = {
       feedbacksByAgentId: Record<string, AgentMessageFeedback[]>,
     ): StoryPreloadedState {
       return { agentMessageFeedback: { data: ads.fulfilled(feedbacksByAgentId) } }
+    },
+
+    conversationReview(review: ConversationReview): StoryPreloadedState {
+      return { conversationReview: { review: ads.fulfilled(review) } }
     },
 
     agentSubAgents(subAgents: AgentSubAgent[]): StoryPreloadedState {
@@ -476,6 +531,10 @@ export const seed = {
           usersQuery: { page: users.page, limit: users.limit, search: "" },
         },
       }
+    },
+
+    agentDetail(agentDetail: BackofficeAgentDetail): StoryPreloadedState {
+      return { backoffice: { agentDetail: ads.fulfilled(agentDetail) } }
     },
 
     userDetail(userDetail: BackofficeUserDetail): StoryPreloadedState {

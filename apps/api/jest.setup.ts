@@ -29,6 +29,3 @@ if (process.env.TEST_USE_WORKER_DATABASE === "true") {
   process.env.DATABASE_URL = parsedDatabaseUrl.toString()
   process.env.DATABASE_NAME = workerDatabaseName
 }
-
-// Bull Board registers `forFeature` from domain modules but `forRoot` only exists on `AppModule`; never enable in Jest.
-delete process.env.BULL_BOARD_ENABLED

@@ -1,0 +1,5 @@
+{
+  "permissions": {
+    "deny": ["Bash(docker system prune*)", "Bash(docker volume prune*)"]
+  }
+}

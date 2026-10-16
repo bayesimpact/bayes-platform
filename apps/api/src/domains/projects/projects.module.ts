@@ -12,6 +12,7 @@ import { UsersModule } from "@/domains/users/users.module"
 import { AgentsModule } from "../agents/agents.module"
 import { DocumentTagsModule } from "../documents/tags/document-tags.module"
 import { ProjectMembershipRepository } from "./memberships/project-membership.repository"
+import { ProjectMembershipRoleController } from "./memberships/project-membership-role.controller"
 import { ProjectMembershipsController } from "./memberships/project-memberships.controller"
 import { ProjectMembershipsService } from "./memberships/project-memberships.service"
 import { Project } from "./project.entity"
@@ -40,7 +41,7 @@ import { ProjectsService } from "./projects.service"
     ProjectContextResolver,
     ProjectMembershipContextResolver,
   ],
-  controllers: [ProjectsController, ProjectMembershipsController],
+  controllers: [ProjectsController, ProjectMembershipsController, ProjectMembershipRoleController],
   exports: [
     ProjectsService,
     ProjectMembershipsService,

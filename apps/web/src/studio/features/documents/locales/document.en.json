@@ -113,6 +113,29 @@
         "nameLabel": "Name (optional)",
         "confirm": "Upload"
       }
+    },
+    "notifications": {
+      "uploadFailedCount_one": "{{count}} document failed to upload",
+      "uploadFailedCount_other": "{{count}} documents failed to upload",
+      "uploading": "Uploading {{fileName}}...",
+      "uploaded": "{{fileName}} uploaded successfully",
+      "uploadError": "{{fileName}} upload failed",
+      "uploadErrorWithReason": "Error uploading file \"{{fileName}}\"",
+      "updated": "Document updated successfully",
+      "updateError": "Document update failed",
+      "deleted": "Document deleted successfully",
+      "deleteError": "Document deletion failed",
+      "bulkDeleted_one": "{{count}} document deleted successfully",
+      "bulkDeleted_other": "{{count}} documents deleted successfully",
+      "bulkDeleteError": "Failed to delete documents",
+      "tagsAdded_one": "Tags added to {{count}} document",
+      "tagsAdded_other": "Tags added to {{count}} documents",
+      "tagsAddError": "Failed to add tags to documents",
+      "tagsRemoved_one": "Tags removed from {{count}} document",
+      "tagsRemoved_other": "Tags removed from {{count}} documents",
+      "tagsRemoveError": "Failed to remove tags from documents",
+      "crawlStarted": "Crawling {{url}}. Documents will appear as they are processed.",
+      "crawlError": "Website crawl failed"
     }
   }
 }

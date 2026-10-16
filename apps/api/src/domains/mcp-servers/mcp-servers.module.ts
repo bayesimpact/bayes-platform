@@ -11,12 +11,12 @@ import { AuthModule } from "@/domains/auth/auth.module"
 import { MembershipsModule } from "@/domains/memberships/memberships.module"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
 import { Project } from "@/domains/projects/project.entity"
+import { RbacModule } from "@/domains/rbac/rbac.module"
 import { UsersModule } from "@/domains/users/users.module"
 import { AgentMcpServer } from "./agent-mcp-server.entity"
 import { BuiltInMcpServersService } from "./built-in/built-in-mcp-servers.service"
 import { EncryptionService } from "./encryption.service"
 import { McpServer } from "./mcp-server.entity"
-import { McpServerGuard } from "./mcp-server.guard"
 import { McpServersController } from "./mcp-servers.controller"
 import { McpServersService } from "./mcp-servers.service"
 import { McpOauthService } from "./oauth/mcp-oauth.service"
@@ -29,13 +29,13 @@ import { McpOauthService } from "./oauth/mcp-oauth.service"
     OrganizationsModule,
     UsersModule,
     AuthModule,
+    RbacModule,
   ],
   providers: [
     McpServersService,
     McpOauthService,
     BuiltInMcpServersService,
     EncryptionService,
-    McpServerGuard,
     ResourceContextGuard,
     OrganizationContextResolver,
     ProjectContextResolver,

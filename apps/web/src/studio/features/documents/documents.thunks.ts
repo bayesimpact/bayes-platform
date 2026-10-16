@@ -72,7 +72,9 @@ export const uploadDocuments = createAsyncThunk<
           const description = result.error.message
           dispatch(
             notificationsActions.show({
-              title: `${title}: ${description}`,
+              titleKey: "document:notifications.uploadErrorWithReason",
+              titleValues: { fileName: result.file.name },
+              description,
               type: "error",
             }),
           )

@@ -10,6 +10,7 @@ import { ConversationRetentionSweepRun } from "@/domains/agents/conversation-age
 import { AgentCsvExtractionRun } from "@/domains/agents/csv-extraction-runs/agent-csv-extraction-run.entity"
 import { AgentCsvExtractionRunRecord } from "@/domains/agents/csv-extraction-runs/agent-csv-extraction-run-record.entity"
 import { ExtractionAgentSession } from "@/domains/agents/extraction-agent-sessions/extraction-agent-session.entity"
+import { AgentMemory } from "@/domains/agents/memories/agent-memory.entity"
 import { AgentSessionCategory } from "@/domains/agents/session-categories/agent-session-category.entity"
 import { ProjectAgentSessionCategory } from "@/domains/agents/session-categories/project-agent-session-category.entity"
 import { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
@@ -17,6 +18,7 @@ import { AgentMessageAttachmentDocument } from "@/domains/agents/shared/agent-se
 import { AgentMessageFeedback } from "@/domains/agents/shared/agent-session-messages/feedback/agent-message-feedback.entity"
 import { ConversationForm } from "@/domains/agents/shared/conversation-forms/conversation-form.entity"
 import { AgentSubAgent } from "@/domains/agents/sub-agents/agent-sub-agent.entity"
+import { AppInstallAuthorizationCode } from "@/domains/apps/app-install-authorization-code.entity"
 import { AppInstallation } from "@/domains/apps/app-installation.entity"
 import { AppManifest } from "@/domains/apps/app-manifest.entity"
 import { Document } from "@/domains/documents/document.entity"
@@ -39,6 +41,10 @@ import { Invitation } from "@/domains/invitations/invitation.entity"
 import { AgentMcpServer } from "@/domains/mcp-servers/agent-mcp-server.entity"
 import { McpServer } from "@/domains/mcp-servers/mcp-server.entity"
 import { UserMembership } from "@/domains/memberships/user-membership.entity"
+import { OAuthAuthorizationCode } from "@/domains/oauth/oauth-authorization-code.entity"
+import { OAuthClient } from "@/domains/oauth/oauth-client.entity"
+import { OAuthGrant } from "@/domains/oauth/oauth-grant.entity"
+import { OAuthRefreshToken } from "@/domains/oauth/oauth-refresh-token.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { Project } from "@/domains/projects/project.entity"
 import { AgentEmbedConfig } from "@/domains/public-chat/agent-embed-configs/agent-embed-config.entity"
@@ -63,12 +69,14 @@ export const ALL_ENTITIES = [
   AgentSessionCategory,
   ProjectAgentSessionCategory,
   AgentMcpServer,
+  AgentMemory,
   AgentMessage,
   AgentMessageAttachmentDocument,
   AgentMessageFeedback,
   AgentSubAgent,
   AgentCsvExtractionRun,
   AgentCsvExtractionRunRecord,
+  AppInstallAuthorizationCode,
   AppInstallation,
   AppManifest,
   ConversationAgentSession,
@@ -95,6 +103,10 @@ export const ALL_ENTITIES = [
   FeatureFlag,
   Invitation,
   McpServer,
+  OAuthAuthorizationCode,
+  OAuthClient,
+  OAuthGrant,
+  OAuthRefreshToken,
   Organization,
   UserMembership,
   Project,

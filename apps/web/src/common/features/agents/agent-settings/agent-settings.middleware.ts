@@ -1,7 +1,7 @@
 import { createListenerMiddleware } from "@reduxjs/toolkit"
 import {
   createAgentSettings,
-  listAgentSettings,
+  listAgentSettingsWithDraft,
   restoreAgentSettings,
   updateAgentSettings,
 } from "@/common/features/agents/agent-settings/agent-settings.thunks"
@@ -20,8 +20,8 @@ const refresh = ({
 }) => {
   const state = listenerApi.getState()
   const agentId = getCurrentId({ state, name: "agentId" })
-  listenerApi.dispatch(listAgents())
-  listenerApi.dispatch(listAgentSettings({ agentId }))
+  listenerApi.dispatch(listAgents({ includeDrafts: true }))
+  listenerApi.dispatch(listAgentSettingsWithDraft({ agentId }))
 }
 
 function registerListeners() {
@@ -31,11 +31,11 @@ function registerListeners() {
       const state = listenerApi.getState()
       const agentIds = action.payload.map((agent) => agent.id)
 
-      // Check if agent settings are already in the state, if not, dispatch listAgentSettings for that agent
+      // Check if agent settings are already in the state, if not, dispatch listAgentSettingsWithDraft for that agent
       for (const agentId of agentIds) {
         const agentSettings = state.agentSettings.history[agentId]
         if (!agentSettings) {
-          listenerApi.dispatch(listAgentSettings({ agentId }))
+          listenerApi.dispatch(listAgentSettingsWithDraft({ agentId }))
         }
       }
     },
@@ -46,7 +46,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       const state = listenerApi.getState()
       const agentId = getCurrentId({ state, name: "agentId" })
-      listenerApi.dispatch(listAgentSettings({ agentId }))
+      listenerApi.dispatch(listAgentSettingsWithDraft({ agentId }))
     },
   })
 
@@ -57,7 +57,7 @@ function registerListeners() {
 
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Agent version restored successfully",
+          titleKey: "agentSettings:notifications.versionRestored",
           type: "success",
         }),
       )
@@ -68,7 +68,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Agent version restore failed",
+          titleKey: "agentSettings:notifications.versionRestoreError",
           type: "error",
         }),
       )
@@ -82,7 +82,7 @@ function registerListeners() {
 
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Agent version published successfully",
+          titleKey: "agentSettings:notifications.versionPublished",
           type: "success",
         }),
       )
@@ -95,7 +95,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Agent version publication failed",
+          titleKey: "agentSettings:notifications.versionPublishError",
           type: "error",
         }),
       )
@@ -109,7 +109,7 @@ function registerListeners() {
 
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Agent updated successfully",
+          titleKey: "agentSettings:notifications.updated",
           type: "success",
         }),
       )
@@ -120,7 +120,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Agent update failed",
+          titleKey: "agentSettings:notifications.updateError",
           type: "error",
         }),
       )

@@ -1,10 +1,12 @@
 # Local OIDC provider (Keycloak)
 
 The platform authenticates users with any OpenID Connect provider. For local
-development, this folder runs Keycloak with a `platform` realm already set up.
+development, this folder holds a `platform` realm already set up, and the dev
+stack of `infra/database` runs Keycloak with it under the `keycloak` profile.
 
 ```bash
-docker compose -f infra/keycloak/docker-compose.yaml up -d
+cd infra/database
+docker compose --profile keycloak up -d --no-recreate keycloak
 ```
 
 Then set, in `apps/api/.env`:
@@ -26,8 +28,6 @@ VITE_OIDC_CLIENT_ID=platform-web
 In [realm-platform.sample.json](realm-platform.sample.json):
 
 - `platform-web`: public client of the web app (authorization code + PKCE).
-- `bull-board`: confidential client of the Bull Board dashboard
-  (`BULL_BOARD_OIDC_CLIENT_ID=bull-board`, `BULL_BOARD_OIDC_CLIENT_SECRET=local-bull-board-secret`).
 - Two users with verified emails: `admin@example.org` / `admin` and
   `member@example.org` / `member`.
 
@@ -53,7 +53,7 @@ cp infra/keycloak/realm-platform.sample.json infra/keycloak/realm-platform.local
 ```
 
 The realm is imported once: recreate the container to apply a change
-(`docker compose -f infra/keycloak/docker-compose.yaml up -d --force-recreate`).
+(`docker compose --profile keycloak up -d --force-recreate keycloak`, from `infra/database`).
 Copy the sample again when it changes.
 
 ## Troubleshooting

@@ -15,18 +15,19 @@ import { useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { FeedbackCreator } from "@/common/components/FeedbackCreator"
 import { RestrictedFeature } from "@/common/components/RestrictedFeature"
+import { MemoryToolCard } from "@/common/features/agents/agent-memories/components/MemoryToolCard"
 import type { AgentSessionMessage as AgentSessionMessageType } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.models"
 import { useCopyToClipboard } from "@/common/hooks/use-copy-to-clipboard"
 import { ADS } from "@/common/store/async-data-status"
 import { useAppSelector } from "@/common/store/hooks"
 import { selectMcpAppHtml, selectStreamingToolSteps } from "../agent-session-messages.selectors"
 import { Attachment } from "./Attachment"
+import { ConversationFormsSheet } from "./ConversationFormsSheet"
 import { useConversationForms } from "./form-result-context"
 import { MarkdownWrapper } from "./MarkdownWrapper"
 import { McpAppPlaceholder, McpAppView } from "./McpAppView"
 import { getRenderableMcpApp, getReplyBubbleText, hasMcpAppCard } from "./mcp-app-view"
 import { SourcesTool } from "./SourcesTool"
-import { SubAgentFormResultSheet } from "./SubAgentFormResultSheet"
 import { SurfaceResourcesTool } from "./SurfaceResourcesTool"
 
 export function AgentSessionMessage({
@@ -58,6 +59,9 @@ export function AgentSessionMessage({
       const sourcesTool = message.toolCalls?.find((call) => call.name === ToolName.Sources)
       const surfaceResourcesTool = message.toolCalls?.find(
         (call) => call.name === ToolName.SurfaceResources,
+      )
+      const saveMemoryTools = (message.toolCalls ?? []).filter(
+        (call) => call.name === ToolName.SaveMemory,
       )
       // Every card this reply shows, with its view once the HTML is here. A card without a view
       // is either still loading (placeholder) or unavailable (its text stands in).
@@ -115,6 +119,11 @@ export function AgentSessionMessage({
             )}
 
             {!isStreaming &&
+              saveMemoryTools.map((toolCall) => (
+                <MemoryToolCard key={toolCall.id} toolCall={toolCall} />
+              ))}
+
+            {!isStreaming &&
               mcpAppCards.map(({ toolCall, view }) =>
                 view ? (
                   <McpAppView
@@ -149,12 +158,13 @@ export function AgentSessionMessage({
                   {sourcesTool && <SourcesTool toolCall={sourcesTool} />}
                 </RestrictedFeature>
 
-                {conversationForms.length > 0 && (
+                {conversationForms.forms.length > 0 && (
                   // One button on every reply, the same for all: every form
                   // of the conversation, the tab of this reply's agent first.
                   // The sheet reads live data, so it is right on any reply.
-                  <SubAgentFormResultSheet
-                    forms={conversationForms}
+                  <ConversationFormsSheet
+                    forms={conversationForms.forms}
+                    hasSubAgentForms={conversationForms.hasSubAgentForms}
                     defaultAgentId={message.agentId}
                   />
                 )}
@@ -228,6 +238,8 @@ const TOOL_ACTIVITY_KEY: Record<string, string> = {
   [ToolName.FillForm]: "activity.fillingForm",
   [ToolName.ConsolidateForm]: "activity.completingForm",
   [ToolName.ConcludeHandoff]: "activity.handingBack",
+  [ToolName.SaveMemory]: "activity.savingMemory",
+  [ToolName.ForgetMemory]: "activity.forgettingMemory",
   [ToolName.RecalculateConversationSessionMetadata]: "activity.recalculating",
 }
 

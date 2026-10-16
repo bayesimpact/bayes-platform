@@ -3,6 +3,7 @@ import {
   createBackofficeOrganizationSchema,
   type FeatureFlagKey,
   FeatureFlags,
+  grantBackofficeAgentConversationReviewerSchema,
 } from "@caseai-connect/api-contracts"
 import {
   BadRequestException,
@@ -12,6 +13,7 @@ import {
   Get,
   NotFoundException,
   Param,
+  ParseUUIDPipe,
   Post,
   Query,
   Req,
@@ -20,14 +22,17 @@ import {
 } from "@nestjs/common"
 import type { EndpointRequest } from "@/common/context/request.interface"
 import { ZodValidationPipe } from "@/common/zod-validation-pipe"
+import { attachTrackedActivity } from "@/domains/activities/attach-tracked-activity"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
 import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
 import {
   BACKOFFICE_AGENT_READ_PERMISSION,
+  BACKOFFICE_CONVERSATION_REVIEWER_UPDATE_PERMISSION,
   BACKOFFICE_ORGANIZATION_READ_PERMISSION,
   BACKOFFICE_PROJECT_READ_PERMISSION,
   BACKOFFICE_PROJECT_UPDATE_PERMISSION,
+  BACKOFFICE_READ_PERMISSION,
   ORGANIZATION_CREATE_PERMISSION,
 } from "@/domains/rbac/rbac.constants"
 import { UserGuard } from "@/domains/users/user.guard"
@@ -55,12 +60,15 @@ function assertValidFeatureFlagKey(value: string): FeatureFlagKey {
   return value as FeatureFlagKey
 }
 
+// BackofficeGuard keeps `backoffice.read` as a baseline on every route: org and project roles hold
+// scoped `backoffice.*` keys, so the route permission alone would let their owners in.
 @UseGuards(JwtAuthGuard, UserGuard, BackofficeGuard, CheckPermissionGuard)
 @Controller()
 export class BackofficeController {
   constructor(private readonly backofficeService: BackofficeService) {}
 
   @Get(BackofficeRoutes.listOrganizations.path)
+  @CheckPermission(BACKOFFICE_READ_PERMISSION)
   async listOrganizations(
     @Req() request: EndpointRequest,
     @Query("page") pageParam?: string,
@@ -101,6 +109,7 @@ export class BackofficeController {
   }
 
   @Get(BackofficeRoutes.listAgents.path)
+  @CheckPermission(BACKOFFICE_READ_PERMISSION)
   async listAgents(
     @Req() request: EndpointRequest,
     @Query("page") pageParam?: string,
@@ -135,10 +144,43 @@ export class BackofficeController {
       targetAgentId: agentId,
     })
     if (!result) throw new NotFoundException(`Agent ${agentId} not found`)
-    return { data: toBackofficeAgentDetailDto(result.agent, result.members) }
+    return {
+      data: toBackofficeAgentDetailDto(result.agent, result.members, result.conversationReviewers),
+    }
+  }
+
+  @Post(BackofficeRoutes.grantAgentConversationReviewer.path)
+  @CheckPermission(BACKOFFICE_CONVERSATION_REVIEWER_UPDATE_PERMISSION)
+  @TrackActivity({ action: "backoffice.agent.conversation_reviewer.grant", entityFrom: "agent" })
+  async grantAgentConversationReviewer(
+    @Req() request: EndpointRequest,
+    @Param("agentId", new ParseUUIDPipe()) agentId: string,
+    @Body(new ZodValidationPipe(grantBackofficeAgentConversationReviewerSchema))
+    body: typeof BackofficeRoutes.grantAgentConversationReviewer.request,
+  ): Promise<typeof BackofficeRoutes.grantAgentConversationReviewer.response> {
+    await this.backofficeService.grantAgentConversationReviewer({
+      agentId,
+      email: body.payload.email,
+    })
+    attachTrackedActivity(request, { entityFrom: "agent", entityId: agentId })
+    return { data: { success: true } }
+  }
+
+  @Delete(BackofficeRoutes.revokeAgentConversationReviewer.path)
+  @CheckPermission(BACKOFFICE_CONVERSATION_REVIEWER_UPDATE_PERMISSION)
+  @TrackActivity({ action: "backoffice.agent.conversation_reviewer.revoke", entityFrom: "agent" })
+  async revokeAgentConversationReviewer(
+    @Req() request: EndpointRequest,
+    @Param("agentId", new ParseUUIDPipe()) agentId: string,
+    @Param("userId", new ParseUUIDPipe()) userId: string,
+  ): Promise<typeof BackofficeRoutes.revokeAgentConversationReviewer.response> {
+    await this.backofficeService.revokeAgentConversationReviewer({ agentId, userId })
+    attachTrackedActivity(request, { entityFrom: "agent", entityId: agentId })
+    return { data: { success: true } }
   }
 
   @Get(BackofficeRoutes.listUsers.path)
+  @CheckPermission(BACKOFFICE_READ_PERMISSION)
   async listUsers(
     @Req() request: EndpointRequest,
     @Query("page") pageParam?: string,
@@ -165,6 +207,7 @@ export class BackofficeController {
   }
 
   @Get(BackofficeRoutes.getUser.path)
+  @CheckPermission(BACKOFFICE_READ_PERMISSION)
   async getUser(
     @Req() request: EndpointRequest,
     @Param("userId") userId: string,
@@ -189,12 +232,14 @@ export class BackofficeController {
   }
 
   @Get(BackofficeRoutes.getRbacCatalog.path)
+  @CheckPermission(BACKOFFICE_READ_PERMISSION)
   async getRbacCatalog(): Promise<typeof BackofficeRoutes.getRbacCatalog.response> {
     const catalog = await this.backofficeService.getRbacCatalog()
     return { data: catalog }
   }
 
   @Get(BackofficeRoutes.listProjects.path)
+  @CheckPermission(BACKOFFICE_READ_PERMISSION)
   async listProjects(
     @Req() request: EndpointRequest,
     @Query("page") pageParam?: string,

@@ -2762,6 +2762,24 @@
   },
   {
     "type": "dependency",
+    "from": "src/domains/agents/memories/agent-memories.module.ts",
+    "to": "src/domains/organizations/organization.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/agents/memories/agent-memories.module.ts",
+    "to": "src/domains/projects/project.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
     "from": "src/domains/agents/settings/agent-settings.service.ts",
     "to": "src/domains/resource-libraries/resource-library.entity.ts",
     "rule": {
@@ -3439,6 +3457,15 @@
     "type": "dependency",
     "from": "src/domains/invitations/invitations.module.ts",
     "to": "src/domains/review-campaigns/review-campaign.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-cross-domain-entity-import"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/apps/apps.module.ts",
+    "to": "src/domains/projects/project.entity.ts",
     "rule": {
       "severity": "error",
       "name": "no-cross-domain-entity-import"

@@ -48,6 +48,11 @@ function defineAgentCsvExtractionRunsRoutes(type: BaseAgentSessionTypeDto) {
       method: "get",
       path: `${prefix}/:agentCsvExtractionRunId/records`,
     }),
+    /** A temporary URL to download the run's results export, for whoever can read the run. */
+    getExportTemporaryUrl: defineRoute<ResponseData<{ url: string }>>({
+      method: "get",
+      path: `${prefix}/:agentCsvExtractionRunId/export/temporary-url`,
+    }),
     deleteOne: defineRoute<ResponseData<SuccessResponseDTO>>({
       method: "delete",
       path: `${prefix}/:agentCsvExtractionRunId`,

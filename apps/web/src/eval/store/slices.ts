@@ -1,6 +1,6 @@
 import { agentSettingsMiddleware } from "@/common/features/agents/agent-settings/agent-settings.middleware"
 import { agentSettingsSlice } from "@/common/features/agents/agent-settings/agent-settings.slice"
-import { agentsMiddleware } from "@/common/features/agents/agents.middleware"
+import { createAgentsMiddleware } from "@/common/features/agents/agents.middleware"
 import { agentsSlice } from "@/common/features/agents/agents.slice"
 import { projectsSlice } from "@/common/features/projects/projects.slice"
 import { createSliceManager } from "@/common/store/dynamic-middleware"
@@ -15,7 +15,7 @@ import { evaluationExtractionRunsSlice } from "../features/evaluation-extraction
 import { currentIdsSlice } from "./currentIds.slice"
 
 const evalMiddlewareList = [
-  agentsMiddleware,
+  createAgentsMiddleware({ includeDrafts: true }),
   agentSettingsMiddleware,
   evaluationConversationDatasetsMiddleware,
   evaluationConversationRunsMiddleware,

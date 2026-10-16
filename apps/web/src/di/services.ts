@@ -1,4 +1,5 @@
 import type { IBackofficeSpi } from "@/backoffice/features/backoffice/backoffice.spi"
+import type { IAgentMemoriesSpi } from "@/common/features/agents/agent-memories/agent-memories.spi"
 import type { IConversationAgentSessionsSpi } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.spi"
 import type { IExtractionAgentSessionsSpi } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.spi"
 import type { IAgentSessionMessagesSpi } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.spi"
@@ -7,6 +8,8 @@ import type { IAgentsSpi } from "@/common/features/agents/agents.spi"
 import type { IAgentCsvExtractionRunsSpi } from "@/common/features/agents/csv-extraction-runs/agent-csv-extraction-runs.spi"
 import type { IAppInstallSpi } from "@/common/features/app-install/app-install.spi"
 import type { IMeSpi } from "@/common/features/me/me.spi"
+import type { IOAuthConsentSpi } from "@/common/features/oauth-consent/oauth-consent.spi"
+import type { IOAuthGrantsSpi } from "@/common/features/oauth-grants/oauth-grants.spi"
 import type { IOrganizationsSpi } from "@/common/features/organizations/organizations.spi"
 import type { IProjectsSpi } from "@/common/features/projects/projects.spi"
 import type { IEvaluationConversationDatasetsSpi } from "@/eval/features/evaluation-conversation-datasets/evaluation-conversation-datasets.spi"
@@ -21,6 +24,8 @@ import type { IAgentMessageFeedbackSpi } from "@/studio/features/agent-message-f
 import type { IAgentSubAgentsSpi } from "@/studio/features/agent-sub-agents/agent-sub-agents.spi"
 import type { IAgentAnalyticsSpi } from "@/studio/features/analytics/agent/agent-analytics.spi"
 import type { IProjectAnalyticsSpi } from "@/studio/features/analytics/project/analytics.spi"
+import type { IAppInstallationsSpi } from "@/studio/features/app-installations/app-installations.spi"
+import type { IConversationReviewSpi } from "@/studio/features/conversation-review/conversation-review.spi"
 import type { IDocumentSourcesSpi } from "@/studio/features/document-sources/document-sources.spi"
 import type { IDocumentTagsSpi } from "@/studio/features/document-tags/document-tags.spi"
 import type { IDocumentsSpi } from "@/studio/features/documents/documents.spi"
@@ -37,6 +42,7 @@ export type Services = {
   agentCsvExtractionRuns: IAgentCsvExtractionRunsSpi
   agentEmbedConfigs: IAgentEmbedConfigsSpi
   agentMemberships: IAgentMembershipsSpi
+  agentMemories: IAgentMemoriesSpi
   agentMessageFeedback: IAgentMessageFeedbackSpi
   agentSubAgents: IAgentSubAgentsSpi
   agents: IAgentsSpi
@@ -45,6 +51,7 @@ export type Services = {
   appInstall: IAppInstallSpi
   backoffice: IBackofficeSpi
   conversationAgentSessions: IConversationAgentSessionsSpi
+  conversationReview: IConversationReviewSpi
   documentSources: IDocumentSourcesSpi
   documents: IDocumentsSpi
   documentTags: IDocumentTagsSpi
@@ -54,7 +61,10 @@ export type Services = {
   evaluationExtractionRuns: IEvaluationExtractionRunsSpi
   extractionAgentSessions: IExtractionAgentSessionsSpi
   mcpServers: IMcpServersSpi
+  appInstallations: IAppInstallationsSpi
   me: IMeSpi
+  oauthConsent: IOAuthConsentSpi
+  oauthGrants: IOAuthGrantsSpi
   invitations: IInvitationsSpi
   organizations: IOrganizationsSpi
   projectAnalytics: IProjectAnalyticsSpi

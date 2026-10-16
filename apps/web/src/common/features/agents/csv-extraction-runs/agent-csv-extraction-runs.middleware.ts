@@ -42,7 +42,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "CSV extraction run started",
+          titleKey: "agentCsvExtractionRun:notifications.started",
           type: "info",
         }),
       )
@@ -57,7 +57,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "CSV extraction run failed to start",
+          titleKey: "agentCsvExtractionRun:notifications.startError",
           type: "error",
         }),
       )
@@ -99,7 +99,7 @@ function registerListeners() {
           await listenerApi.dispatch(extractionAgentSessionsActions.getAll({ agentId }))
           listenerApi.dispatch(
             notificationsActions.show({
-              title: "CSV extraction run completed successfully",
+              titleKey: "agentCsvExtractionRun:notifications.completed",
               type: "success",
             }),
           )
@@ -109,7 +109,7 @@ function registerListeners() {
           await listenerApi.dispatch(extractionAgentSessionsActions.getAll({ agentId }))
           listenerApi.dispatch(
             notificationsActions.show({
-              title: "CSV extraction run failed",
+              titleKey: "agentCsvExtractionRun:notifications.failed",
               type: "error",
             }),
           )
@@ -131,7 +131,10 @@ function registerListeners() {
       await listenerApi.dispatch(extractionAgentSessionsActions.getAll({ agentId }))
 
       listenerApi.dispatch(
-        notificationsActions.show({ title: "Extraction deleted successfully", type: "success" }),
+        notificationsActions.show({
+          titleKey: "agentCsvExtractionRun:notifications.deleted",
+          type: "success",
+        }),
       )
     },
   })
@@ -140,7 +143,10 @@ function registerListeners() {
     actionCreator: agentCsvExtractionRunsActions.deleteOne.rejected,
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
-        notificationsActions.show({ title: "Extraction deletion failed", type: "error" }),
+        notificationsActions.show({
+          titleKey: "agentCsvExtractionRun:notifications.deleteError",
+          type: "error",
+        }),
       )
     },
   })
@@ -148,7 +154,12 @@ function registerListeners() {
   listenerMiddleware.startListening({
     actionCreator: agentCsvExtractionRunsActions.cancelOne.fulfilled,
     effect: async (_, listenerApi) => {
-      listenerApi.dispatch(notificationsActions.show({ title: "Run cancelled", type: "success" }))
+      listenerApi.dispatch(
+        notificationsActions.show({
+          titleKey: "agentCsvExtractionRun:notifications.cancelled",
+          type: "success",
+        }),
+      )
       stopCsvRunStatusStream()
 
       const state = listenerApi.getState()

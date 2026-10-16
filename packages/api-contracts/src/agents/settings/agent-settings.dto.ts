@@ -45,10 +45,6 @@ export const AgentModelToAgentProvider = {
   [AgentModel._Mock]: AgentProvider._Mock,
 } as const satisfies Record<AgentModel, AgentProvider>
 
-/**
- * The models a provider serves, read from `AgentModelToAgentProvider`. A `Record` keyed on it
- * fails to compile when a model is mapped to the provider without an entry.
- */
 export type AgentModelOf<Provider extends AgentProvider> = {
   [Model in AgentModel]: (typeof AgentModelToAgentProvider)[Model] extends Provider ? Model : never
 }[AgentModel]
@@ -59,27 +55,16 @@ export type AgentModelDeprecation = {
   recommendedReplacement: AgentModel
 }
 
-/** A model of the catalog, as the project sees it. */
 export type AgentModelDto = {
   model: AgentModel
   provider: AgentProvider
-  /**
-   * Whether the project may pick it: its provider is not behind a feature flag the project lacks,
-   * and the model is not retired (from the day after `deprecation.deprecatedOn`, in UTC).
-   */
   isAvailable: boolean
-  /** Set when the provider retires the model, with the model to move to. */
   deprecation: AgentModelDeprecation | null
-  /**
-   * `true` when the provider does not serve the model from the EU region: it runs through a
-   * global endpoint, which carries no EU data-processing guarantee.
-   */
   servedOutsideEu: boolean
-  /** JSON Schema of the model's options (its temperature, its thinking level...). */
   optionsSchema: Record<string, unknown>
-  /** The model's options when the agent sets none. */
   defaultOptions: Record<string, unknown>
 }
+
 
 export type AgentModelListDto = {
   /** Every model but the test one, available or not, in catalog order. */
@@ -87,6 +72,19 @@ export type AgentModelListDto = {
   /** The model a new agent starts on, and the one a new evaluation run is judged by. */
   defaults: { agent: AgentModel; judge: AgentModel }
 }
+
+/**
+ * How a conversation agent uses its memory of a user (see ADR 0023).
+ * - off: no memory tools, nothing remembered.
+ * - ask: facts the user asks to remember are saved; facts the agent infers wait for the user's approval.
+ * - auto: the agent saves both without asking.
+ */
+export enum AgentMemoryMode {
+  Off = "off",
+  Ask = "ask",
+  Auto = "auto",
+}
+
 
 export enum AgentLocale {
   EN = "en",
@@ -130,6 +128,7 @@ export type AgentSettingsDto = {
   providerOptions: Record<string, unknown>
   updatedAt: TimeType
   usedProjectAgentSessionCategoryIds: string[]
+  memoryMode: AgentMemoryMode
 }
 
 // Constraint keywords (enum/minimum/maximum/items) mirror the subset of JSON Schema
@@ -221,11 +220,14 @@ export const agentSettingsValidationSchema = z.object({
   outputJsonSchema: outputJsonSchemaSchema.optional(),
   projectAgentSessionCategoryIds: z.array(z.string().uuid()),
   resourceLibraryIds: z.array(z.string().uuid()).optional(),
-  /**
-   * The options of the agent's model (its temperature, its thinking level...). Their shape
-   * depends on the model: the API checks them against the model's schema.
-   */
   providerOptions: z.record(z.string(), z.unknown()),
+  memoryMode: z.enum(AgentMemoryMode),
+  thinkingLevel: z.enum(AgentThinkingLevel),
+  providerOptions: z.record(z.string(), z.unknown()),
+  memoryMode: z.enum(AgentMemoryMode),
+  providerOptions: z.record(z.string(), z.unknown()),
+  memoryMode: z.enum(AgentMemoryMode),
+  memoryMode: z.enum(AgentMemoryMode),
 })
 
 export const refineOutputJsonSchema = {
@@ -343,6 +345,7 @@ export const updateAgentSettingsToolsSchema = z
   .object({
     fillFormEnabled: agentSettingsValidationSchema.shape.fillFormEnabled,
     outputJsonSchema: outputJsonSchemaSchema.optional(),
+    memoryMode: agentSettingsValidationSchema.shape.memoryMode.optional(),
   })
   .refine(refineFillFormOutputJsonSchema.fn, refineFillFormOutputJsonSchema.message)
 export type UpdateAgentSettingsToolsDto = z.infer<typeof updateAgentSettingsToolsSchema>

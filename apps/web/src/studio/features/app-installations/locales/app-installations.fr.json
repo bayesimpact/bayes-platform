@@ -1,0 +1,21 @@
+{
+  "appInstallations": {
+    "title": "Apps connectées",
+    "description": "Les apps qui peuvent accéder à ce projet.",
+    "empty": {
+      "title": "Aucune app connectée pour l'instant",
+      "description": "Les apps que vous connectez à ce projet apparaissent ici, avec ce à quoi elles ont accès."
+    },
+    "installedOn": "Connectée le {{date}}",
+    "noPermissions": "Aucune permission accordée",
+    "revoke": {
+      "action": "Révoquer",
+      "title": "Révoquer {{name}} ?",
+      "description": "{{name}} perd immédiatement l'accès à ce projet. Pour la réinstaller, il faudra une nouvelle autorisation."
+    },
+    "notifications": {
+      "revoked": "App révoquée",
+      "revokeError": "Impossible de révoquer l'app"
+    }
+  }
+}

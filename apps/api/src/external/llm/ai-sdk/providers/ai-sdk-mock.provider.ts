@@ -33,6 +33,8 @@ export type MockCall = {
   temperature?: number
   /** Provider options the model received, if any. */
   providerOptions?: LanguageModelV3CallOptions["providerOptions"]
+  /** Output token limit requested for this generation, if any. */
+  maxOutputTokens?: number
 }
 
 type ResolvedMock =
@@ -245,6 +247,8 @@ export class AISDKMockProvider extends AISDKLLMProviderBase<AgentProvider._Mock>
       ...(options.temperature !== undefined ? { temperature: options.temperature } : {}),
       ...(options.providerOptions !== undefined
         ? { providerOptions: options.providerOptions }
+      ...(options.maxOutputTokens !== undefined
+        ? { maxOutputTokens: options.maxOutputTokens }
         : {}),
     })
 

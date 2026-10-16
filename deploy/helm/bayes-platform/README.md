@@ -23,7 +23,7 @@ Two ways to run it:
 - Kubernetes 1.27 or newer, `helm` 3.
 - An ingress controller (the chart writes Ingress resources for the `nginx` class) and, for TLS, cert-manager with a ClusterIssuer.
 - A StorageClass. The bundled Postgres and Redis use `ReadWriteOnce` volumes. The local document storage needs `ReadWriteMany` when the API and the workers run on different nodes.
-- An OpenID Connect provider (Keycloak, Dex, Auth0, Okta...) with two clients: a public one for the web app (authorization code + PKCE) and, for Bull Board, a confidential one. Accounts must have a verified email. The web app asks for `openid profile email offline_access`: the provider must allow `offline_access` for its users, or set `web.env.WEB_OIDC_SCOPE` to `openid profile email`. Coming from Auth0: [docs/upgrading/auth0-to-oidc.md](../../../docs/upgrading/auth0-to-oidc.md).
+- An OpenID Connect provider (Keycloak, Dex, Auth0, Okta...) with a public client for the web app (authorization code + PKCE). Accounts must have a verified email. The web app asks for `openid profile email offline_access`: the provider must allow `offline_access` for its users, or set `web.env.WEB_OIDC_SCOPE` to `openid profile email`. Coming from Auth0: [docs/upgrading/auth0-to-oidc.md](../../../docs/upgrading/auth0-to-oidc.md).
 - For embeddings: a Google Cloud project with Vertex AI (`gemini-embedding-001`). Self-hosted embedding models are not supported yet.
 - For the GPU workers: a node pool with NVIDIA GPUs and the device plugin installed (GKE does this for you).
 
@@ -31,7 +31,7 @@ Minimum cluster size for the self-contained install without GPU: 4 vCPU and 8 Gi
 
 ## Images
 
-Every release publishes the six images, public, on GitHub Container Registry: `ghcr.io/bayesimpact/bayes-platform/<component>:<version>` (for example `.../app:26.09.1`). Every push to `main` also publishes `sha-<short sha>` and `latest`. No credentials are needed to pull them.
+Every release publishes the six images, public, on GitHub Container Registry: `ghcr.io/bayesimpact/bayes-platform/<component>:<version>` (for example `.../app:26.09.1`). Every push to `main` also publishes `main`, `latest` and `main-<run>-<short sha>` once the tests pass (every build also pushes `sha-<short sha>`, tests or not). No credentials are needed to pull them.
 
 The chart is published as an OCI artifact under the release version without the leading zero of the month (release `26.09.1`, chart `26.9.1`: CalVer allows the zero, semver does not, and OCI chart tags are semver):
 
@@ -98,7 +98,7 @@ helm upgrade --install platform deploy/helm/bayes-platform \
 ```yaml
 urls:
   web: https://platform.example.org        # the web front at /, which calls /api on its own origin
-  api: https://api.platform.example.org    # the API for everything else (/api, /public); may equal web
+  api: https://api.platform.example.org    # the API for everything else (/api, /public, MCP OAuth metadata); may equal web
   webEmbed: https://embed.platform.example.org
   help: https://help.platform.example.org
 
@@ -169,6 +169,10 @@ The API and the workers send their traces and metrics over OTLP to `config.OTEL_
 
 > **The bundled Phoenix is not production ready.** It has no authentication: anyone who reaches it reads every prompt and answer. One replica, SQLite on a volume by default (`phoenix.database.urlKey` switches to a Postgres you created). Restrict its ingress (`ingress.phoenixAnnotations`) or keep it without `urls.phoenix` and reach it with `kubectl port-forward`. For production, run your own Phoenix with sign-in, keep `phoenix.enabled: false` and set `otelCollector.phoenix.endpoint`.
 
+## Queue dashboard
+
+The chart deploys no queue dashboard. To examine or retry BullMQ jobs, run Bull Board as a separate Deployment on the same Redis, with oauth2-proxy in front for the OpenID Connect sign-in: see [infra/bull-board/README.md](../../../infra/bull-board/README.md).
+
 ## Managed services
 
 See `values-managed.example.yaml`. The differences with the default:
@@ -223,7 +227,7 @@ See `values.yaml`. Every key is documented in place. The main sections:
 | Section | What it controls |
 |---|---|
 | `global.image` | registry, tag, pull policy, pull secrets |
-| `urls` | the public URLs, used by the API (CORS, links) and by the front ends; `web` and `api` may be one host or two, the second serves `/api` and `/public` only |
+| `urls` | the public URLs, used by the API (CORS, links) and by the front ends; `web` and `api` may be one host or two, the second serves `/api`, `/public` and the OAuth metadata of the MCP endpoint (`/.well-known/oauth-*`) only. `web` also becomes `FRONTEND_URL`, `MCP_OAUTH_REDIRECT_URL` and `APP_PUBLIC_URL` (links in emails), `api` becomes `API_PUBLIC_URL` (OAuth issuer and MCP endpoint URL, give MCP clients `<api>/api/mcp`); set them in `config` to override |
 | `web.env` | browser configuration of the web front (`WEB_*`), served by the API |
 | `secrets` | the Secret with the application secrets |
 | `config` | the non-secret environment shared by the API and the workers |
@@ -237,7 +241,7 @@ See `values.yaml`. Every key is documented in place. The main sections:
 
 ## Limits of this version
 
-- One OpenID Connect provider per install. The platform sends no email: people are invited by email in the members screens and accept in the app, and the customer creates their accounts in the identity provider.
+- One OpenID Connect provider per install. People are invited by email in the members screens and accept in the app. The customer creates their accounts in the identity provider. Invitation emails are optional: set `config.SMTP_HOST`, `config.SMTP_FROM` and the `SMTP_USER` / `SMTP_PASSWORD` secret keys, otherwise admins copy each invitation link.
 - Embeddings need Vertex AI. LLM calls can go to any OpenAI-compatible endpoint (`VLLM_*` secrets).
 - The local document storage has no S3 backend. Use the `gcs` mode or a `ReadWriteMany` volume.
 - The API has no health route yet, so its probes check the TCP port.

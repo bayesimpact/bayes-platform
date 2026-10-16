@@ -1,3 +1,4 @@
+import type { EditableProjectMembershipRoleDto } from "@caseai-connect/api-contracts"
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import { getCurrentId } from "@/common/features/helpers"
 import type { RootState, ThunkExtraArg } from "@/common/store"
@@ -12,6 +13,25 @@ export const listProjectMemberships = createAsyncThunk<ProjectMembership[], void
     const organizationId = getCurrentId({ state, name: "organizationId" })
     const projectId = getCurrentId({ state, name: "projectId" })
     return await services.projectMemberships.getAll({ organizationId, projectId })
+  },
+)
+
+export const updateProjectMembershipRole = createAsyncThunk<
+  ProjectMembership,
+  { membershipId: string; role: EditableProjectMembershipRoleDto },
+  ThunkConfig
+>(
+  "projectMemberships/updateRole",
+  async ({ membershipId, role }, { extra: { services }, getState }) => {
+    const state = getState()
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    return await services.projectMemberships.updateOne({
+      organizationId,
+      projectId,
+      membershipId,
+      role,
+    })
   },
 )
 

@@ -45,7 +45,7 @@ function registerListeners() {
     effect: (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Sub-agents updated successfully",
+          titleKey: "agentSettings:notifications.subAgentsUpdated",
           type: "success",
         }),
       )
@@ -57,7 +57,7 @@ function registerListeners() {
     effect: (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Failed to update sub-agents",
+          titleKey: "agentSettings:notifications.subAgentsUpdateError",
           type: "error",
         }),
       )

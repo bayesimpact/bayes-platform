@@ -68,6 +68,14 @@
       },
       "unavailable": "This model is no longer available. Select a new model from the list."
     },
-    "playground": "Playground"
+    "playground": "Playground",
+    "notifications": {
+      "updated": "Agent updated successfully",
+      "updateError": "Agent update failed",
+      "deleted": "Agent deleted successfully",
+      "deleteError": "Agent deletion failed",
+      "created": "Agent created successfully",
+      "createError": "Agent creation failed"
+    }
   }
 }

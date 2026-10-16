@@ -11,7 +11,9 @@ function getAbsolutePath(value: string) {
 }
 const config: StorybookConfig = {
   stories: ["../src/**/*.stories.@(js|jsx|mjs|ts|tsx)"],
-  addons: ["storybook-addon-remix-react-router"],
+  addons: ["storybook-addon-remix-react-router", "@storybook/addon-mcp"],
   framework: getAbsolutePath("@storybook/react-vite"),
+  // Component props and stories for the MCP docs tools, served at /manifests/components.json.
+  features: { componentsManifest: true },
 }
 export default config

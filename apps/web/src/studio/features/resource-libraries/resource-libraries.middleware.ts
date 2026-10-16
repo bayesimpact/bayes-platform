@@ -40,7 +40,10 @@ function registerListeners() {
     actionCreator: createResourceLibrary.fulfilled,
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
-        notificationsActions.show({ title: "Resource library created", type: "success" }),
+        notificationsActions.show({
+          titleKey: "resourceLibrary:notifications.created",
+          type: "success",
+        }),
       )
       action.meta.arg.onSuccess(action.payload)
     },
@@ -50,7 +53,7 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Resource library creation failed",
+          titleKey: "resourceLibrary:notifications.createError",
           description: action.payload || undefined,
           type: "error",
         }),
@@ -62,7 +65,10 @@ function registerListeners() {
     actionCreator: updateResourceLibrary.fulfilled,
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
-        notificationsActions.show({ title: "Resource library updated", type: "success" }),
+        notificationsActions.show({
+          titleKey: "resourceLibrary:notifications.updated",
+          type: "success",
+        }),
       )
       action.meta.arg.onSuccess()
     },
@@ -72,7 +78,7 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Resource library update failed",
+          titleKey: "resourceLibrary:notifications.updateError",
           description: action.payload || undefined,
           type: "error",
         }),
@@ -84,7 +90,10 @@ function registerListeners() {
     actionCreator: deleteResourceLibrary.fulfilled,
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
-        notificationsActions.show({ title: "Resource library deleted", type: "success" }),
+        notificationsActions.show({
+          titleKey: "resourceLibrary:notifications.deleted",
+          type: "success",
+        }),
       )
       action.meta.arg.onSuccess()
     },
@@ -93,7 +102,10 @@ function registerListeners() {
     actionCreator: deleteResourceLibrary.rejected,
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
-        notificationsActions.show({ title: "Resource library deletion failed", type: "error" }),
+        notificationsActions.show({
+          titleKey: "resourceLibrary:notifications.deleteError",
+          type: "error",
+        }),
       )
     },
   })
@@ -103,7 +115,10 @@ function registerListeners() {
       actionCreator: saveResource.fulfilled,
       effect: async (action, listenerApi) => {
         listenerApi.dispatch(
-          notificationsActions.show({ title: "Resource saved", type: "success" }),
+          notificationsActions.show({
+            titleKey: "resourceLibrary:notifications.resourceSaved",
+            type: "success",
+          }),
         )
         action.meta.arg.onSuccess()
       },
@@ -114,7 +129,7 @@ function registerListeners() {
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Saving resource failed",
+          titleKey: "resourceLibrary:notifications.resourceSaveError",
           description: typeof action.payload === "string" ? action.payload || undefined : undefined,
           type: "error",
         }),
@@ -126,7 +141,10 @@ function registerListeners() {
     actionCreator: deleteResource.fulfilled,
     effect: async (action, listenerApi) => {
       listenerApi.dispatch(
-        notificationsActions.show({ title: "Resource deleted", type: "success" }),
+        notificationsActions.show({
+          titleKey: "resourceLibrary:notifications.resourceDeleted",
+          type: "success",
+        }),
       )
       action.meta.arg.onSuccess()
     },
@@ -135,7 +153,10 @@ function registerListeners() {
     actionCreator: deleteResource.rejected,
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
-        notificationsActions.show({ title: "Resource deletion failed", type: "error" }),
+        notificationsActions.show({
+          titleKey: "resourceLibrary:notifications.resourceDeleteError",
+          type: "error",
+        }),
       )
     },
   })

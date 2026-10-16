@@ -19,6 +19,7 @@ import { createOrganizationWithAgentAndSubAgents } from "@/domains/organizations
 import { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
 import { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.provider"
 import { setupUserGuardForTesting } from "../../../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../../../test/rbac-test.helpers"
 import { CHILD_FIRST_TURN_TRIGGER, PARENT_RESUME_TRIGGER } from "../handoff-turn-loop"
 import { StreamingModule } from "../streaming.module"
 
@@ -45,6 +46,7 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
   })
@@ -107,7 +109,7 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
   const subject = (content: string) =>
     request(app.getHttpServer())
       .get(
-        AgentSessionMessagesRoutes.stream.getPath({
+        AgentSessionMessagesRoutes.live.stream.getPath({
           organizationId,
           projectId,
           agentId,

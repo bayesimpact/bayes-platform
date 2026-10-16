@@ -15,6 +15,7 @@ export const appManifestFactory = Factory.define<AppManifest>(({ sequence, param
       DOCUMENT_READ_PERMISSION,
       DOCUMENT_CREATE_PERMISSION,
     ],
+    allowedRedirectUris: params.allowedRedirectUris ?? [],
     createdAt: params.createdAt || now,
     updatedAt: params.updatedAt || now,
     deletedAt: params.deletedAt ?? null,

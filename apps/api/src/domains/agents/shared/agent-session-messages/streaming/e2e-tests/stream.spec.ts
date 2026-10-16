@@ -17,6 +17,7 @@ import type { Organization } from "@/domains/organizations/organization.entity"
 import { createOrganizationWithAgentSession } from "@/domains/organizations/organization.factory"
 import type { Project } from "@/domains/projects/project.entity"
 import { setupUserGuardForTesting } from "../../../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../../../test/rbac-test.helpers"
 import { StreamingModule } from "../streaming.module"
 
 describe("AgentSessionMessagesRoutes.stream", () => {
@@ -28,6 +29,7 @@ describe("AgentSessionMessagesRoutes.stream", () => {
   let projectId: string
   let agentId: string
   let agentSessionId: string
+  let agentSessionType: BaseAgentSessionTypeDto = "live"
   let accessToken: string | undefined = "token"
   let authSubject = "oidc|123"
 
@@ -37,6 +39,7 @@ describe("AgentSessionMessagesRoutes.stream", () => {
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
   })
@@ -67,13 +70,14 @@ describe("AgentSessionMessagesRoutes.stream", () => {
     projectId = project.id
     agentId = agent.id
     agentSessionId = agentSession.id
+    agentSessionType = sessionType
     authSubject = user.authSubject!
     return { organization, project, agent, agentSettings, session: agentSession }
   }
 
   /** The stream is a GET: its payload travels JSON-encoded in `?q=`. */
   const rawSubject = (query: string) => {
-    const path = AgentSessionMessagesRoutes.stream.getPath({
+    const path = AgentSessionMessagesRoutes[agentSessionType].stream.getPath({
       organizationId,
       projectId,
       agentId,

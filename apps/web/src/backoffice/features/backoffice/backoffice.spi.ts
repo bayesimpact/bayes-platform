@@ -31,6 +31,8 @@ export interface IBackofficeSpi {
     search?: string
   }) => Promise<PaginatedBackofficeAgents>
   getAgent: (agentId: string) => Promise<BackofficeAgentDetail>
+  grantAgentConversationReviewer: (params: { agentId: string; email: string }) => Promise<void>
+  revokeAgentConversationReviewer: (params: { agentId: string; userId: string }) => Promise<void>
   listProjects: (params: {
     page?: number
     limit?: number

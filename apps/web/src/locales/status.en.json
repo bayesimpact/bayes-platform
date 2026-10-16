@@ -24,6 +24,8 @@
       "fillingForm": "Filling in the form…",
       "completingForm": "Completing the form…",
       "handingBack": "Handing the conversation back…",
+      "savingMemory": "Remembering…",
+      "forgettingMemory": "Forgetting…",
       "recalculating": "Updating the session…"
     },
     "asyncLoading": "Loading...",
@@ -34,6 +36,7 @@
       "description": "The page you are looking for does not exist.",
       "home": "Go Home",
       "oops": "Oops!"
-    }
+    },
+    "somethingWentWrong": "Something went wrong"
   }
 }

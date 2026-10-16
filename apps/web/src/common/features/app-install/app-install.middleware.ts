@@ -20,7 +20,7 @@ listenerMiddleware.startListening({
   effect: async (action, listenerApi) => {
     listenerApi.dispatch(
       notificationsActions.show({
-        title: "Could not revoke the app",
+        titleKey: "appInstall:notifications.revokeError",
         description: action.payload || undefined,
         type: "error",
       }),
@@ -33,7 +33,7 @@ listenerMiddleware.startListening({
   effect: async (action, listenerApi) => {
     listenerApi.dispatch(
       notificationsActions.show({
-        title: "App installation failed",
+        titleKey: "appInstall:notifications.installError",
         description: action.payload || undefined,
         type: "error",
       }),

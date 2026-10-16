@@ -11,10 +11,10 @@ export default {
     } satisfies typeof AgentSettingsRoutes.updateOne.request)
     return response.data.data
   },
-  getAll: async (params) => {
+  getAllWithDraft: async (params) => {
     const axios = getAxiosInstance()
-    const response = await axios.get<typeof AgentSettingsRoutes.getAll.response>(
-      AgentSettingsRoutes.getAll.getPath(params),
+    const response = await axios.get<typeof AgentSettingsRoutes.getAllWithDraft.response>(
+      AgentSettingsRoutes.getAllWithDraft.getPath(params),
     )
     return response.data.data.map(toAgentSettings)
   },
@@ -81,4 +81,5 @@ const toAgentSettings = (dto: AgentSettingsDto): AgentSettings => ({
   providerOptions: dto.providerOptions,
   updatedAt: dto.updatedAt,
   usedProjectAgentSessionCategoryIds: dto.usedProjectAgentSessionCategoryIds,
+  memoryMode: dto.memoryMode,
 })

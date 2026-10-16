@@ -13,6 +13,7 @@ import {
   listProjectMemberAgents,
   listProjectMemberships,
   removeProjectMembership,
+  updateProjectMembershipRole,
 } from "./project-memberships.thunks"
 
 const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()
@@ -56,6 +57,14 @@ function registerListeners() {
     },
   })
 
+  // A role change moves the member's agent memberships too
+  listenerMiddleware.startListening({
+    actionCreator: updateProjectMembershipRole.fulfilled,
+    effect: async (action, listenerApi) => {
+      await listenerApi.dispatch(listProjectMemberAgents({ membershipId: action.payload.id }))
+    },
+  })
+
   listenerMiddleware.startListening({
     actionCreator: createInvitations.fulfilled,
     effect: async (action, listenerApi) => {
@@ -81,7 +90,9 @@ function registerListeners() {
       if (action.meta.arg.targetType !== "project") return
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "People invited",
+          titleKey: action.payload.emailSent
+            ? "projectMembership:notifications.invitationsSentByEmail"
+            : "projectMembership:notifications.peopleInvited",
           type: "success",
         }),
       )
@@ -93,7 +104,19 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Member removed successfully",
+          titleKey: "projectMembership:notifications.removed",
+          type: "success",
+        }),
+      )
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: updateProjectMembershipRole.fulfilled,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({
+          titleKey: "projectMembership:notifications.roleUpdated",
           type: "success",
         }),
       )
@@ -107,7 +130,19 @@ function registerListeners() {
       if (action.meta.arg.targetType !== "project") return
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Failed to invite people",
+          titleKey: "projectMembership:notifications.inviteError",
+          type: "error",
+        }),
+      )
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: updateProjectMembershipRole.rejected,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({
+          titleKey: "projectMembership:notifications.roleUpdateError",
           type: "error",
         }),
       )
@@ -119,7 +154,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Failed to remove member",
+          titleKey: "projectMembership:notifications.removeError",
           type: "error",
         }),
       )

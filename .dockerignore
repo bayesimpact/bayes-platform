@@ -32,6 +32,8 @@ playwright-report/
 out/
 build
 dist
+# Dev workers compile apart from the API (apps/api/tsconfig.workers.json)
+dist-workers
 
 # IDEs and editors
 /.idea

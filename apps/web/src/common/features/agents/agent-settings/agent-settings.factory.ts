@@ -1,5 +1,6 @@
 import {
   AgentLocale,
+  AgentMemoryMode,
   DocumentsRagMode,
   type outputJsonSchemaSchema,
 } from "@caseai-connect/api-contracts"
@@ -42,6 +43,11 @@ class AgentSettingsFactory extends Factory<AgentSettings, AgentSettingsTransient
   priorityCalls() {
     return this.params({ priorityCallsEnabled: true })
   }
+
+  /** A conversation agent that asks before remembering what it infers. */
+  memory() {
+    return this.params({ memoryMode: AgentMemoryMode.Ask })
+  }
 }
 
 export const agentSettingsFactory = AgentSettingsFactory.define(({ params, transientParams }) => {
@@ -75,5 +81,6 @@ export const agentSettingsFactory = AgentSettingsFactory.define(({ params, trans
     updatedAt: params.updatedAt ?? faker.date.recent().getTime(),
     usedProjectAgentSessionCategoryIds: params.usedProjectAgentSessionCategoryIds ?? [],
     mcpServers: params.mcpServers ?? [],
+    memoryMode: params.memoryMode ?? AgentMemoryMode.Off,
   } satisfies AgentSettings
 })

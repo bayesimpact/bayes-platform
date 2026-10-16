@@ -7,6 +7,7 @@ import { ConversationRetentionSweepRun } from "@/domains/agents/conversation-age
 import { AgentCsvExtractionRun } from "@/domains/agents/csv-extraction-runs/agent-csv-extraction-run.entity"
 import { AgentCsvExtractionRunRecord } from "@/domains/agents/csv-extraction-runs/agent-csv-extraction-run-record.entity"
 import { ExtractionAgentSession } from "@/domains/agents/extraction-agent-sessions/extraction-agent-session.entity"
+import { AgentMemory } from "@/domains/agents/memories/agent-memory.entity"
 import { AgentSessionCategory } from "@/domains/agents/session-categories/agent-session-category.entity"
 import { ProjectAgentSessionCategory } from "@/domains/agents/session-categories/project-agent-session-category.entity"
 import { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
@@ -32,6 +33,8 @@ import { Invitation } from "@/domains/invitations/invitation.entity"
 import { AgentMcpServer } from "@/domains/mcp-servers/agent-mcp-server.entity"
 import { McpServer } from "@/domains/mcp-servers/mcp-server.entity"
 import { UserMembership } from "@/domains/memberships/user-membership.entity"
+import { OAuthClient } from "@/domains/oauth/oauth-client.entity"
+import { OAuthGrant } from "@/domains/oauth/oauth-grant.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { Project } from "@/domains/projects/project.entity"
 import { AgentEmbedConfig } from "@/domains/public-chat/agent-embed-configs/agent-embed-config.entity"
@@ -53,6 +56,7 @@ export type AllRepositories = {
   activityRepository: Repository<Activity>
   agentSessionCategoryRepository: Repository<AgentSessionCategory>
   agentMcpServerRepository: Repository<AgentMcpServer>
+  agentMemoryRepository: Repository<AgentMemory>
   agentMessageAttachmentDocumentRepository: Repository<AgentMessageAttachmentDocument>
   agentMessageFeedbackRepository: Repository<AgentMessageFeedback>
   agentMessageRepository: Repository<AgentMessage>
@@ -80,6 +84,8 @@ export type AllRepositories = {
   evaluationExtractionRunRepository: Repository<EvaluationExtractionRun>
   extractionAgentSessionRepository: Repository<ExtractionAgentSession>
   featureFlagRepository: Repository<FeatureFlag>
+  oauthClientRepository: Repository<OAuthClient>
+  oauthGrantRepository: Repository<OAuthGrant>
   invitationRepository: Repository<Invitation>
   mcpServerRepository: Repository<McpServer>
   organizationRepository: Repository<Organization>
@@ -107,6 +113,7 @@ export function buildAllRepositories(
     activityRepository: getRepository(Activity),
     agentSessionCategoryRepository: getRepository(AgentSessionCategory),
     agentMcpServerRepository: getRepository(AgentMcpServer),
+    agentMemoryRepository: getRepository(AgentMemory),
     agentMessageAttachmentDocumentRepository: getRepository(AgentMessageAttachmentDocument),
     agentMessageFeedbackRepository: getRepository(AgentMessageFeedback),
     agentMessageRepository: getRepository(AgentMessage),
@@ -138,6 +145,8 @@ export function buildAllRepositories(
     evaluationExtractionRunRepository: getRepository(EvaluationExtractionRun),
     extractionAgentSessionRepository: getRepository(ExtractionAgentSession),
     featureFlagRepository: getRepository(FeatureFlag),
+    oauthClientRepository: getRepository(OAuthClient),
+    oauthGrantRepository: getRepository(OAuthGrant),
     invitationRepository: getRepository(Invitation),
     mcpServerRepository: getRepository(McpServer),
     organizationRepository: getRepository(Organization),

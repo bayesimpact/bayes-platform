@@ -1,0 +1,38 @@
+{
+  "oauthConsent": {
+    "headline": "{{name}} wants to access your projects",
+    "redirectHost": "You will be sent back to {{host}}.",
+    "verified": "Verified",
+    "verifiedHint": "The domain of this app was checked.",
+    "unverified": "Unverified",
+    "unverifiedHint": "This name is declared by the app itself. Only continue if you trust {{host}}.",
+    "projects": "Projects",
+    "projectsHint": "The app only reaches the projects you select.",
+    "permissions": "Permissions",
+    "permissionUnavailable": "None of the selected projects allows it.",
+    "selectProjectFirst": "Select a project first.",
+    "noProjects": "You have no project to share yet. Decline to go back to the app.",
+    "approve": "Allow access",
+    "approving": "Allowing…",
+    "approved": "Access granted. You can go back to {{name}}.",
+    "denied": "Access denied. You can go back to {{name}}.",
+    "invalidRequest": "This authorization link is incomplete or malformed. Start again from the app.",
+    "permission": {
+      "project_read": {
+        "name": "See the projects",
+        "description": "Read the selected projects and their settings."
+      },
+      "agent_create": {
+        "name": "Create agents",
+        "description": "Add new agents to the selected projects."
+      },
+      "agent_settings_draft_update": {
+        "name": "Edit agent drafts",
+        "description": "Change the draft settings of the agents you own or administer in the selected projects (model, instructions). Publishing stays in the studio."
+      }
+    },
+    "notifications": {
+      "approveError": "Access could not be granted"
+    }
+  }
+}

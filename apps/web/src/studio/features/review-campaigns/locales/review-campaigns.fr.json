@@ -197,10 +197,11 @@
       "updateError": "La mise à jour de la campagne d'évaluation a échoué",
       "deleteSuccess": "Campagne d'évaluation supprimée avec succès",
       "deleteError": "La suppression de la campagne d'évaluation a échoué",
-      "addParticipantsSuccess": "Participants ajoutés",
-      "addParticipantsError": "L'ajout des participants a échoué",
       "revokeSuccess": "Adhésion révoquée",
-      "revokeError": "La révocation de l'adhésion a échoué"
+      "revokeError": "La révocation de l'adhésion a échoué",
+      "invitationsSentByEmail": "Invitations envoyées par e-mail",
+      "peopleInvited": "Personnes invitées",
+      "inviteError": "L'invitation des personnes a échoué"
     },
     "report": {
       "title": "Rapport de campagne",

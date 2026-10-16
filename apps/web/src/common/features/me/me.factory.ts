@@ -36,6 +36,7 @@ export const userFactory = UserFactory.define(({ params, transientParams }) => {
     email: params.email ?? faker.internet.email({ firstName, lastName }).toLowerCase(),
     name: params.name ?? `${firstName} ${lastName}`,
     globalPermissions: params.globalPermissions ?? [],
+    conversationReviewAgentIds: params.conversationReviewAgentIds ?? [],
     termsAccepted: params.termsAccepted ?? true,
     memberships: {
       organizationMemberships,
@@ -104,6 +105,7 @@ export const projectMembershipFactory = ProjectMembershipFactory.define(
       userHasSignedIn: params.userHasSignedIn ?? true,
       createdAt: params.createdAt ?? faker.date.past().getTime(),
       role: params.role ?? "member",
+      permissions: params.permissions ?? [],
     } satisfies ProjectMembershipDto
   },
 )

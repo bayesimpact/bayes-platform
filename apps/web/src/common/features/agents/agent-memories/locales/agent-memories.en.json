@@ -1,0 +1,27 @@
+{
+  "agentMemories": {
+    "card": {
+      "saved": "Saved to memory",
+      "proposalTitle": "Remember this for next time?",
+      "proposalDescription": "The agent suggests keeping this fact for your next conversations.",
+      "save": "Yes, remember it",
+      "reject": "No, don't keep it",
+      "rewordLabel": "Or reword it",
+      "rewordPlaceholder": "Write the fact as you want it remembered",
+      "submit": "Confirm",
+      "skip": "Later",
+      "answeredSaved": "Remembered",
+      "answeredRejected": "Not kept"
+    },
+    "panel": {
+      "button": "Memory",
+      "title": "What the agent remembers",
+      "description": "Facts this agent keeps about you between conversations. Only you can see them.",
+      "playgroundDescription": "Playground memory is separate from what the agent remembers in live conversations.",
+      "empty": "The agent doesn't remember anything about you yet.",
+      "pending": "Waiting for your answer",
+      "clearAll": "Forget everything",
+      "clearAllConfirm": "Forget everything the agent remembers about you?"
+    }
+  }
+}

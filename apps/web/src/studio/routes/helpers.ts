@@ -12,6 +12,7 @@ const externalSources = project.extend("/external")
 const webSources = project.extend("/web-sources")
 const document = documents.extend("/:documentId")
 const mcpServers = project.extend("/mcp-servers")
+const appInstallations = project.extend("/apps")
 const resourceLibraries = project.extend("/resource-libraries")
 const resourceLibraryNew = resourceLibraries.extend("/new")
 const resourceLibrary = resourceLibraries.extend("/:resourceLibraryId")
@@ -30,6 +31,7 @@ const agentEdit = agent.extend("/edit")
 const feedback = agent.extend("/f")
 const agentMemberships = agent.extend("/members")
 const agentAnalytics = agent.extend("/analytics")
+const agentConversationReview = agent.extend("/safety")
 const agentExtraction = agent.extend("/extraction")
 const agentExtractionCsvRun = agentExtraction.extend("/csv-runs/:csvRunId")
 const agentExtractionRun = agentExtraction.extend("/runs/:extractionRunId")
@@ -37,12 +39,14 @@ const agentExtractionRun = agentExtraction.extend("/runs/:extractionRunId")
 export const StudioRoutes = {
   agent,
   agentAnalytics,
+  agentConversationReview,
   agentExtraction,
   agentExtractionCsvRun,
   agentExtractionRun,
   agentEdit,
   agentMemberships,
   agentSession,
+  appInstallations,
   document,
   documents,
   externalSources,

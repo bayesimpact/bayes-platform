@@ -5,6 +5,7 @@ import { OrganizationContextResolver } from "@/common/context/resolvers/organiza
 import { ProjectContextResolver } from "@/common/context/resolvers/project-context.resolver"
 import { ReviewCampaignContextResolver } from "@/common/context/resolvers/review-campaign-context.resolver"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
+import { MailerModule } from "@/common/mailer/mailer.module"
 import { Agent } from "@/domains/agents/agent.entity"
 import { AgentsModule } from "@/domains/agents/agents.module"
 import { AuthModule } from "@/domains/auth/auth.module"
@@ -30,6 +31,7 @@ import { ReviewCampaignInvitationsController } from "./review-campaign-invitatio
   imports: [
     // Project, Agent and ReviewCampaign are read by the context resolvers of the routes.
     TypeOrmModule.forFeature([Invitation, Project, Agent, ReviewCampaign]),
+    MailerModule,
     MembershipsModule,
     UsersModule,
     AuthModule,

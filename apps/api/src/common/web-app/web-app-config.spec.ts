@@ -77,7 +77,7 @@ describe("buildWebAppRuntimeConfig", () => {
 
   it("never copies unrelated environment variables", () => {
     const config = buildWebAppRuntimeConfig({
-      BULL_BOARD_OIDC_CLIENT_SECRET: "secret",
+      ANOTHER_SERVICE_SECRET: "secret",
       DATABASE_URL: "x",
     })
     expect(Object.values(config)).not.toContain("secret")

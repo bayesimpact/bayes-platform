@@ -15,6 +15,7 @@ import { FILE_STORAGE_SERVICE } from "@/domains/documents/storage/file-storage.i
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { createSingleUser } from "@/domains/users/user.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { ExtractionAgentSessionsModule } from "../extraction-agent-sessions.module"
 
@@ -51,6 +52,7 @@ describe("ExtractionAgentSessions - uploadDocument", () => {
           .useValue(mockFileStorageService),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     expectActivityCreated = bindExpectActivityCreated(repositories.activityRepository)
     app = setup.module.createNestApplication()
     await app.init()
@@ -81,9 +83,11 @@ describe("ExtractionAgentSessions - uploadDocument", () => {
   }
 
   describe("presignDocument", () => {
-    const subject = async (payload: typeof ExtractionAgentSessionsRoutes.presignDocument.request) =>
+    const subject = async (
+      payload: typeof ExtractionAgentSessionsRoutes.playground.presignDocument.request,
+    ) =>
       request({
-        route: ExtractionAgentSessionsRoutes.presignDocument,
+        route: ExtractionAgentSessionsRoutes.playground.presignDocument,
         pathParams: removeNullish({ organizationId, projectId, agentId }),
         token: accessToken,
         request: payload,
@@ -94,7 +98,6 @@ describe("ExtractionAgentSessions - uploadDocument", () => {
 
       const response = await subject({
         payload: {
-          type: "playground",
           file: { fileName: "invoice.pdf", mimeType: MimeTypes.pdf, size: 1234 },
         },
       })
@@ -114,14 +117,13 @@ describe("ExtractionAgentSessions - uploadDocument", () => {
 
     it("rejects a missing file", async () => {
       await createContext()
-      expectResponse(await subject({ payload: { type: "playground" } as never }), 422)
+      expectResponse(await subject({ payload: {} as never }), 422)
     })
 
     it("rejects a file type that is not allowed", async () => {
       await createContext()
       const response = await subject({
         payload: {
-          type: "playground",
           file: { fileName: "script.sh", mimeType: "application/x-sh" as never, size: 10 },
         },
       })
@@ -131,9 +133,11 @@ describe("ExtractionAgentSessions - uploadDocument", () => {
   })
 
   describe("confirmDocument", () => {
-    const subject = async (payload: typeof ExtractionAgentSessionsRoutes.confirmDocument.request) =>
+    const subject = async (
+      payload: typeof ExtractionAgentSessionsRoutes.playground.confirmDocument.request,
+    ) =>
       request({
-        route: ExtractionAgentSessionsRoutes.confirmDocument,
+        route: ExtractionAgentSessionsRoutes.playground.confirmDocument,
         pathParams: removeNullish({ organizationId, projectId, agentId }),
         token: accessToken,
         request: payload,
@@ -163,7 +167,7 @@ describe("ExtractionAgentSessions - uploadDocument", () => {
       const { user, organization, project } = await createContext()
       const pending = await savePending({ organization, project, userId: user.id })
 
-      const response = await subject({ payload: { type: "playground", documentId: pending.id } })
+      const response = await subject({ payload: { documentId: pending.id } })
 
       expectResponse(response, 201)
       expect(response.body.data.id).toBe(pending.id)
@@ -176,7 +180,7 @@ describe("ExtractionAgentSessions - uploadDocument", () => {
 
     it("rejects a missing document ID", async () => {
       await createContext()
-      expectResponse(await subject({ payload: { type: "playground" } as never }), 422)
+      expectResponse(await subject({ payload: {} as never }), 422)
     })
 
     it("does not confirm a document uploaded by another user", async () => {
@@ -184,7 +188,7 @@ describe("ExtractionAgentSessions - uploadDocument", () => {
       const otherUser = await createSingleUser(repositories.userRepository)
       const pending = await savePending({ organization, project, userId: otherUser.id })
 
-      const response = await subject({ payload: { type: "playground", documentId: pending.id } })
+      const response = await subject({ payload: { documentId: pending.id } })
 
       expectResponse(response, 404)
       const document = await repositories.documentRepository.findOneByOrFail({ id: pending.id })
@@ -200,7 +204,7 @@ describe("ExtractionAgentSessions - uploadDocument", () => {
         sourceType: "project",
       })
 
-      const response = await subject({ payload: { type: "playground", documentId: pending.id } })
+      const response = await subject({ payload: { documentId: pending.id } })
 
       expectResponse(response, 404)
       const document = await repositories.documentRepository.findOneByOrFail({ id: pending.id })

@@ -1,7 +1,6 @@
 import {
   type AgentModelDto,
   type AgentModelListDto,
-  type AgentSubAgentDto,
   AgentSubAgentsRoutes,
   AgentsRoutes,
   createAgentSchema,
@@ -28,7 +27,6 @@ import type {
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
 import { AddContext, RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
-import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { ZodValidationPipe } from "@/common/zod-validation-pipe"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import type { AgentModelData } from "@/domains/agents/settings/agent-models.service"
@@ -37,16 +35,23 @@ import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.s
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
 import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
+import {
+  AGENT_CREATE_PERMISSION,
+  AGENT_DELETE_PERMISSION,
+  AGENT_DRAFT_READ_PERMISSION,
+  AGENT_SUB_AGENT_READ_PERMISSION,
+  AGENT_SUB_AGENT_UPDATE_PERMISSION,
+  AGENT_UPDATE_PERMISSION,
+  PROJECT_READ_PERMISSION,
+} from "@/domains/rbac/rbac.constants"
 import { UserGuard } from "@/domains/users/user.guard"
-import { AgentGuard } from "./agent.guard"
-import { toAgentDto, toAgentWithDraftDto } from "./agent.mapper"
+import { toAgentDto, toAgentSubAgentDto, toAgentWithDraftDto } from "./agent.mapper"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentsService } from "./agents.service"
-import type { AgentSubAgent } from "./sub-agents/agent-sub-agent.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
 
-@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, AgentGuard)
+@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, CheckPermissionGuard)
 @RequireContext("organization", "project")
 @Controller()
 export class AgentsController {
@@ -57,7 +62,7 @@ export class AgentsController {
   ) {}
 
   @Post(AgentsRoutes.createOne.path)
-  @CheckPolicy((policy) => policy.canCreate())
+  @CheckPermission(AGENT_CREATE_PERMISSION, "project")
   @TrackActivity({ action: "agent.create" })
   @UsePipes(new ZodValidationPipe(createAgentSchema))
   async createOne(
@@ -82,7 +87,7 @@ export class AgentsController {
   }
 
   @Get(AgentsRoutes.getAll.path)
-  @CheckPolicy((policy) => policy.canList())
+  @CheckPermission(PROJECT_READ_PERMISSION, "project")
   async getAll(
     @Req() request: EndpointRequestWithProject,
   ): Promise<typeof AgentsRoutes.getAll.response> {
@@ -122,7 +127,7 @@ export class AgentsController {
   }
 
   @Get(AgentsRoutes.getAllWithDrafts.path)
-  @CheckPolicy((policy) => policy.canList())
+  @CheckPermission(AGENT_DRAFT_READ_PERMISSION, "project")
   async getAllWithDrafts(
     @Req() request: EndpointRequestWithProject,
   ): Promise<typeof AgentsRoutes.getAllWithDrafts.response> {
@@ -156,7 +161,7 @@ export class AgentsController {
 
   // NOTE: update agent name only
   @Patch(AgentsRoutes.updateOne.path)
-  @CheckPolicy((policy) => policy.canUpdate())
+  @CheckPermission(AGENT_UPDATE_PERMISSION, "agent")
   @AddContext("agent")
   @TrackActivity({ action: "agent.update", entityFrom: "agent" })
   @UsePipes(new ZodValidationPipe(updateAgentNameSchema))
@@ -176,7 +181,7 @@ export class AgentsController {
   }
 
   @Delete(AgentsRoutes.deleteOne.path)
-  @CheckPolicy((policy) => policy.canDelete())
+  @CheckPermission(AGENT_DELETE_PERMISSION, "agent")
   @AddContext("agent")
   @TrackActivity({ action: "agent.delete", entityFrom: "agent" })
   async deleteOne(
@@ -190,7 +195,7 @@ export class AgentsController {
   // Sub-agents endpoints
   //
   @Get(AgentSubAgentsRoutes.getAll.path)
-  @CheckPolicy((policy) => policy.canUpdate())
+  @CheckPermission(AGENT_SUB_AGENT_READ_PERMISSION, "agent")
   @AddContext("agent")
   async getAllSubAgents(
     @Req() request: EndpointRequestWithAgent,
@@ -204,7 +209,7 @@ export class AgentsController {
   }
 
   @Put(AgentSubAgentsRoutes.updateAll.path)
-  @CheckPolicy((policy) => policy.canUpdate())
+  @CheckPermission(AGENT_SUB_AGENT_UPDATE_PERMISSION, "agent")
   @AddContext("agent")
   @TrackActivity({ action: "agent.sub_agents.update", entityFrom: "agent" })
   @UsePipes(new ZodValidationPipe(replaceAgentSubAgentsSchema))
@@ -219,27 +224,6 @@ export class AgentsController {
     })
 
     return { data: subAgents.map(toAgentSubAgentDto) }
-  }
-}
-
-function toAgentSubAgentDto(entity: AgentSubAgent): AgentSubAgentDto {
-  return {
-    id: entity.id,
-    parentAgentId: entity.parentAgentId,
-    childAgentId: entity.childAgentId,
-    toolName: entity.toolName,
-    description: entity.description,
-    enabled: entity.enabled,
-    mode: entity.mode,
-    childAgent: entity.childAgent
-      ? {
-          id: entity.childAgent.id,
-          name: entity.childAgent.name,
-          type: entity.childAgent.type,
-        }
-      : undefined,
-    createdAt: entity.createdAt.getTime(),
-    updatedAt: entity.updatedAt.getTime(),
   }
 }
 

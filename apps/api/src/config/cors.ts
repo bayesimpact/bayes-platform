@@ -52,8 +52,7 @@ export function parseFrontendUrls(
  *   (X-Session-Token) are present.
  * - Everything else only serves the platform front ends, so origins are
  *   pinned to the FRONTEND_URL list. These endpoints are secured by OIDC
- *   Bearer tokens; the one cookie-authenticated surface (Bull Board's OIDC
- *   session) is covered by this strict policy too.
+ *   Bearer tokens.
  * No caller sends cookies or uses `credentials: 'include'`, so credentialed
  * CORS stays off.
  */

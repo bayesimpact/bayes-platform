@@ -1,4 +1,5 @@
 import backoffice from "@/backoffice/features/backoffice/external/backoffice.api"
+import agentMemories from "@/common/features/agents/agent-memories/external/agent-memories.api"
 import conversationAgentSessions from "@/common/features/agents/agent-sessions/conversation/external/conversation-agent-sessions.api"
 import extractionAgentSessions from "@/common/features/agents/agent-sessions/extraction/external/extraction-agent-sessions.api"
 import agentSessionMessages from "@/common/features/agents/agent-sessions/shared/agent-session-messages/external/agent-session-messages.api"
@@ -7,6 +8,8 @@ import agentCsvExtractionRuns from "@/common/features/agents/csv-extraction-runs
 import agents from "@/common/features/agents/external/agents.api"
 import appInstall from "@/common/features/app-install/external/app-install.api"
 import me from "@/common/features/me/external/me.api"
+import oauthConsent from "@/common/features/oauth-consent/external/oauth-consent.api"
+import oauthGrants from "@/common/features/oauth-grants/external/oauth-grants.api"
 import organizations from "@/common/features/organizations/external/organizations.api"
 import projects from "@/common/features/projects/external/projects.api"
 import evaluationConversationDatasets from "@/eval/features/evaluation-conversation-datasets/external/evaluation-conversation-datasets.api"
@@ -20,6 +23,8 @@ import agentMessageFeedback from "@/studio/features/agent-message-feedback/exter
 import agentSubAgents from "@/studio/features/agent-sub-agents/external/agent-sub-agents.api"
 import agentAnalytics from "@/studio/features/analytics/agent/external/agent-analytics.api"
 import projectAnalytics from "@/studio/features/analytics/project/external/analytics.api"
+import appInstallations from "@/studio/features/app-installations/external/app-installations.api"
+import conversationReview from "@/studio/features/conversation-review/external/conversation-review.api"
 import documentSources from "@/studio/features/document-sources/external/document-sources.api"
 import documentTags from "@/studio/features/document-tags/external/document-tags.api"
 import documents from "@/studio/features/documents/external/documents.api"
@@ -36,6 +41,7 @@ export const services = {
   agentCsvExtractionRuns,
   agentEmbedConfigs,
   agentMemberships,
+  agentMemories,
   agentMessageFeedback,
   agentSubAgents,
   agents,
@@ -44,6 +50,7 @@ export const services = {
   appInstall,
   backoffice,
   conversationAgentSessions,
+  conversationReview,
   documentSources,
   documents,
   documentTags,
@@ -53,7 +60,10 @@ export const services = {
   evaluationExtractionRuns,
   extractionAgentSessions,
   mcpServers,
+  appInstallations,
   me,
+  oauthConsent,
+  oauthGrants,
   invitations,
   organizations,
   projectAnalytics,

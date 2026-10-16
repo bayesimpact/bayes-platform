@@ -19,6 +19,7 @@ import {
   createOrganizationWithAgent,
   createOrganizationWithProject,
 } from "@/domains/organizations/organization.factory"
+import { addUserToProject } from "@/domains/projects/memberships/project-membership.factory"
 import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import { mockOidcEmailForSub, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
@@ -118,6 +119,22 @@ describe("Invitations - acceptOne", () => {
       expect(acceptedInvitation.status).toBe("accepted")
       expect(acceptedInvitation.acceptedAt).not.toBeNull()
       await expectActivityCreated("invitation.accept")
+    })
+
+    it("promotes a project member to admin", async () => {
+      const { project, invitee, invitation } = await createContext()
+      await addUserToProject({ repositories, project, user: invitee })
+
+      expectResponse(await subject(invitation.id), 201)
+
+      expect(
+        (
+          await findProjectMembershipRow(repositories, {
+            userId: invitee.id,
+            projectId: project.id,
+          })
+        )?.role,
+      ).toBe("admin")
     })
 
     it("does nothing the second time", async () => {

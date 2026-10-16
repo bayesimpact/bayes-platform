@@ -1,6 +1,9 @@
 import { Button } from "@caseai-connect/ui/shad/button"
 import { Trash2Icon } from "lucide-react"
+import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
+import { ConfirmDialog } from "@/common/components/ConfirmDialog"
 import { GridCard } from "@/common/components/grid/Grid"
 import type { ConversationAgentSession } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.models"
 import type { ExtractionAgentSession } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.models"
@@ -27,9 +30,11 @@ export function AgentSessionItem({
   projectId: string
   agentType: Agent["type"]
 }) {
+  const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const { build } = useRoutesBuilder()
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
   const handleClick = () => {
     const path = build.agentSessionRoute({
       organizationId,
@@ -51,6 +56,7 @@ export function AgentSessionItem({
         agentSessionId: agentSession.id,
       }),
     )
+    setConfirmDeleteOpen(false)
   }
   return (
     <GridCard className={className}>
@@ -60,11 +66,18 @@ export function AgentSessionItem({
         <GridCard.Title className="pb-4">{title}</GridCard.Title>
         <GridCard.GoButton onClick={handleClick} />
         <GridCard.TopAction>
-          <Button variant="ghost" size="icon-sm" onClick={handleDelete}>
+          <Button variant="ghost" size="icon-sm" onClick={() => setConfirmDeleteOpen(true)}>
             <Trash2Icon className="size-3.5" />
           </Button>
         </GridCard.TopAction>
       </GridCard.Body>
+      <ConfirmDialog
+        open={confirmDeleteOpen}
+        title={t("conversationAgentSession:delete.confirm.title")}
+        description={t("conversationAgentSession:delete.confirm.description")}
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmDeleteOpen(false)}
+      />
     </GridCard>
   )
 }

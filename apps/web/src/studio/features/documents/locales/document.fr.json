@@ -113,6 +113,29 @@
         "nameLabel": "Nom (optionnel)",
         "confirm": "Téléverser"
       }
+    },
+    "notifications": {
+      "uploadFailedCount_one": "{{count}} document n'a pas pu être téléversé",
+      "uploadFailedCount_other": "{{count}} documents n'ont pas pu être téléversés",
+      "uploading": "Téléversement de {{fileName}}...",
+      "uploaded": "{{fileName}} téléversé avec succès",
+      "uploadError": "Le téléversement de {{fileName}} a échoué",
+      "uploadErrorWithReason": "Erreur lors du téléversement du fichier « {{fileName}} »",
+      "updated": "Document mis à jour avec succès",
+      "updateError": "La mise à jour du document a échoué",
+      "deleted": "Document supprimé avec succès",
+      "deleteError": "La suppression du document a échoué",
+      "bulkDeleted_one": "{{count}} document supprimé avec succès",
+      "bulkDeleted_other": "{{count}} documents supprimés avec succès",
+      "bulkDeleteError": "La suppression des documents a échoué",
+      "tagsAdded_one": "Étiquettes ajoutées à {{count}} document",
+      "tagsAdded_other": "Étiquettes ajoutées à {{count}} documents",
+      "tagsAddError": "L'ajout des étiquettes aux documents a échoué",
+      "tagsRemoved_one": "Étiquettes retirées de {{count}} document",
+      "tagsRemoved_other": "Étiquettes retirées de {{count}} documents",
+      "tagsRemoveError": "Le retrait des étiquettes des documents a échoué",
+      "crawlStarted": "Exploration de {{url}}. Les documents apparaîtront au fur et à mesure de leur traitement.",
+      "crawlError": "L'exploration du site a échoué"
     }
   }
 }

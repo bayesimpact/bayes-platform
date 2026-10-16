@@ -1,6 +1,6 @@
 import axios, { type AxiosInstance } from "axios"
 import { runtimeConfig } from "@/config/runtime-config"
-import { AuthenticationRequiredError, getAccessToken, logout } from "./oidcClient"
+import { AuthenticationRequiredError, getAccessToken, login } from "./oidcClient"
 
 let axiosInstance: AxiosInstance | null = null
 
@@ -24,10 +24,10 @@ const buildAxiosInstance = (): AxiosInstance => {
       } catch (error) {
         // The session is gone: the user must sign in again
         if (error instanceof AuthenticationRequiredError) {
-          console.warn(`${error.message} Logging out user.`)
-          // Logout will redirect the user, so we reject the request
-          // The logout will clear localStorage and redirect to home page
-          await logout()
+          console.warn(`${error.message} Signing in again.`)
+          // The provider redirect leaves the page: reject the request. The
+          // user comes back to the current page once signed in.
+          await login()
           return Promise.reject(new Error("Your session has expired. Please log in again."))
         }
 
@@ -60,10 +60,10 @@ const buildAxiosInstance = (): AxiosInstance => {
           error.config.headers.Authorization = `Bearer ${token}`
           return axiosInstance.request(error.config)
         } catch (tokenError) {
-          // If getting a fresh token fails because the session is gone, logout
+          // The session is gone: sign in again and come back to this page
           if (tokenError instanceof AuthenticationRequiredError) {
-            console.warn(`${tokenError.message} Logging out user.`)
-            await logout()
+            console.warn(`${tokenError.message} Signing in again.`)
+            await login()
             return Promise.reject(new Error("Your session has expired. Please log in again."))
           }
           // For other errors, reject with the original error

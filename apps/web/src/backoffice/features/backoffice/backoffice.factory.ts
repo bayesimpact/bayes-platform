@@ -3,6 +3,7 @@ import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
 import type {
   AppManifest,
+  BackofficeAgentConversationReviewer,
   BackofficeAgentDetail,
   BackofficeAgentListItem,
   BackofficeAgentMember,
@@ -90,7 +91,22 @@ export const backofficeAgentDetailFactory = BackofficeAgentDetailFactory.define(
   organizationName: params.organizationName ?? faker.company.name(),
   createdAt: (params.createdAt ?? faker.date.past().getTime()) as TimeType,
   members: params.members ?? [],
+  conversationReviewers: params.conversationReviewers ?? [],
 }))
+
+class BackofficeAgentConversationReviewerFactory extends Factory<BackofficeAgentConversationReviewer> {}
+
+export const backofficeAgentConversationReviewerFactory =
+  BackofficeAgentConversationReviewerFactory.define(({ params }) => {
+    const firstName = faker.person.firstName()
+    const lastName = faker.person.lastName()
+    return {
+      userId: params.userId ?? faker.string.uuid(),
+      email: params.email ?? faker.internet.email({ firstName, lastName }).toLowerCase(),
+      name: params.name ?? `${firstName} ${lastName}`,
+      grantedAt: (params.grantedAt ?? faker.date.recent().getTime()) as TimeType,
+    }
+  })
 
 class PaginatedBackofficeAgentsFactory extends Factory<PaginatedBackofficeAgents> {}
 
@@ -566,5 +582,9 @@ export const appManifestFactory = AppManifestFactory.define(({ params, sequence 
   description: params.description ?? "A generic assistant used in tests.",
   logoUrl: params.logoUrl ?? null,
   grantablePermissions: params.grantablePermissions ?? ["document.read", "document.create"],
+  allowedRedirectUris: params.allowedRedirectUris ?? [
+    "http://localhost:3100/auth/bayes/callback",
+    "https://app.example.com/auth/bayes/callback",
+  ],
   createdAt: (params.createdAt ?? faker.date.past().getTime()) as TimeType,
 }))

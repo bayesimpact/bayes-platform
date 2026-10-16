@@ -37,11 +37,14 @@ export class AgentInvitationsController {
     @Req() request: EndpointRequestWithAgent,
     @Body() body: typeof AgentInvitationsRoutes.createMany.request,
   ): Promise<typeof AgentInvitationsRoutes.createMany.response> {
-    const invitations = await this.invitationsService.createMany({
+    const { invitations, emailSent } = await this.invitationsService.createMany({
       target: agentInvitationTarget(request.agent),
       emails: body.payload.emails ?? [],
+      inviter: { name: request.user.name, email: request.user.email },
     })
-    return { data: { invitations: await this.invitationsService.toDtos(invitations) } }
+    return {
+      data: { invitations: await this.invitationsService.toDtos(invitations), emailSent },
+    }
   }
 
   @Delete(AgentInvitationsRoutes.deleteOne.path)

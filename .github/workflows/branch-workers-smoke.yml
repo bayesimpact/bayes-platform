@@ -46,3 +46,12 @@ jobs:
       - name: Stop the smoke stack
         if: always()
         run: make docker-smoke-down
+
+      # The GPU workers image alone is 15 GB, and the build cache already keeps
+      # its layers for the next run. Dangling images are the previous builds
+      # whose tag moved to a newer one.
+      - name: Remove the smoke images
+        if: always()
+        run: |
+          docker image rm -f caseai-connect/gpu-workers:local caseai-connect/cpu-workers:local || true
+          docker image prune -f

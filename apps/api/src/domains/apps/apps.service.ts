@@ -1,9 +1,10 @@
-import { randomUUID } from "node:crypto"
+import { createHash, randomBytes, randomUUID } from "node:crypto"
 import {
   type AppGrantablePermission,
   appClientCredentialsTokenSchema,
-  InvalidLoopbackRedirectUriError,
-  parseLoopbackRedirectUri,
+  assertAllowedInstallRedirectUri,
+  exchangeAppInstallCodeSchema,
+  InvalidInstallRedirectUriError,
 } from "@caseai-connect/api-contracts"
 import {
   BadRequestException,
@@ -31,8 +32,13 @@ import { RoleRepository } from "@/domains/rbac/role.repository"
 import { isServiceUser } from "@/domains/users/service-user.helpers"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { UsersService } from "@/domains/users/users.service"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AppInstallAuthorizationCodeRepository } from "./app-install-authorization-code.repository"
 import { buildAppInstallRoleKey } from "./app-install-role"
-import { APP_INSTALLATION_STATUS_REVOKED } from "./app-installation.entity"
+import {
+  APP_INSTALLATION_STATUS_ACTIVE,
+  APP_INSTALLATION_STATUS_REVOKED,
+} from "./app-installation.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import {
   type ActiveAppInstallationSummary,
@@ -54,8 +60,11 @@ import {
   hashClientSecret,
   verifyClientSecret,
 } from "./client-credentials"
+import { installPkceChallengeMatches } from "./install-pkce"
 
 const INVALID_CLIENT_MESSAGE = "Invalid client credentials"
+const INVALID_INSTALL_CODE_MESSAGE = "Invalid or expired install authorization code"
+const INSTALL_CODE_TTL_MS = 5 * 60 * 1000
 let dummyClientSecretHash: Promise<string> | undefined
 
 export type AppInstallPage = {
@@ -69,13 +78,20 @@ export type AppInstallPage = {
 }
 
 export type AuthorizeAppInstallResult = {
-  clientId: string
-  clientSecret: string
+  code: string
   redirectUri: string
   state: string
   installationId: string
   organizationId: string
   projectId: string
+  /** Present for tests that call the service directly; never returned by the authorize HTTP route. */
+  clientId: string
+  clientSecret: string
+}
+
+export type ExchangeAppInstallCodeResult = {
+  clientId: string
+  clientSecret: string
 }
 
 export type AppAccessTokenResult = {
@@ -97,6 +113,7 @@ export class AppsService {
   constructor(
     private readonly appManifestRepository: AppManifestRepository,
     private readonly appInstallationRepository: AppInstallationRepository,
+    private readonly appInstallAuthorizationCodeRepository: AppInstallAuthorizationCodeRepository,
     private readonly roleRepository: RoleRepository,
     private readonly permissionService: PermissionService,
     private readonly usersService: UsersService,
@@ -118,7 +135,11 @@ export class AppsService {
   async createAppManifest(fields: CreateAppManifestFields): Promise<AppManifestRecord> {
     const grantablePermissions = this.requireGrantablePermissions(fields.grantablePermissions)
     await this.assertSlugAvailable(fields.slug)
-    return this.appManifestRepository.createManifest({ ...fields, grantablePermissions })
+    return this.appManifestRepository.createManifest({
+      ...fields,
+      grantablePermissions,
+      allowedRedirectUris: fields.allowedRedirectUris ?? [],
+    })
   }
 
   async updateAppManifest(
@@ -180,9 +201,11 @@ export class AppsService {
     permissions: readonly string[]
     redirectUri: string
     state: string
+    codeChallenge: string
+    codeChallengeMethod: string
   }): Promise<AuthorizeAppInstallResult> {
-    const redirectUri = this.requireLoopbackRedirectUri(params.redirectUri)
     const app = await this.requireManifestBySlug(params.slug)
+    const redirectUri = this.requireInstallRedirectUri(params.redirectUri, app.allowedRedirectUris)
     const selectedPermissions = this.requireInstallPermissions(
       params.permissions,
       app.grantablePermissions,
@@ -201,6 +224,9 @@ export class AppsService {
     const clientId = generateClientId()
     const clientSecretHash = await hashClientSecret(clientSecret)
     const installationId = randomUUID()
+    const code = generateInstallAuthorizationCode()
+    const codeHash = hashInstallAuthorizationCode(code)
+    const expiresAt = new Date(Date.now() + INSTALL_CODE_TTL_MS)
 
     await this.transactionService.run(async () => {
       const customRole = await this.roleRepository.createProjectRole({
@@ -228,16 +254,64 @@ export class AppsService {
         clientSecretHash,
         createdByUserId: params.userId,
       })
+      await this.appInstallAuthorizationCodeRepository.createAuthorizationCode({
+        codeHash,
+        appInstallationId: installationId,
+        clientId,
+        clientSecret,
+        redirectUri,
+        codeChallenge: params.codeChallenge,
+        codeChallengeMethod: params.codeChallengeMethod,
+        expiresAt,
+      })
     })
 
     return {
-      clientId,
-      clientSecret,
+      code,
       redirectUri,
       state: params.state,
       installationId,
       organizationId: pickerProject.organizationId,
       projectId: pickerProject.id,
+      clientId,
+      clientSecret,
+    }
+  }
+
+  async exchangeInstallCode(body: unknown): Promise<ExchangeAppInstallCodeResult> {
+    const parsed = exchangeAppInstallCodeSchema.safeParse(body)
+    if (!parsed.success) {
+      throw new UnauthorizedException(INVALID_INSTALL_CODE_MESSAGE)
+    }
+
+    const codeHash = hashInstallAuthorizationCode(parsed.data.code)
+    const authorization =
+      await this.appInstallAuthorizationCodeRepository.findUnusedByCodeHash(codeHash)
+    if (
+      !authorization ||
+      authorization.clientSecret === null ||
+      authorization.expiresAt.getTime() <= Date.now() ||
+      authorization.redirectUri !== parsed.data.redirect_uri ||
+      !installPkceChallengeMatches({
+        codeVerifier: parsed.data.code_verifier,
+        codeChallenge: authorization.codeChallenge,
+        codeChallengeMethod: authorization.codeChallengeMethod,
+      })
+    ) {
+      throw new UnauthorizedException(INVALID_INSTALL_CODE_MESSAGE)
+    }
+
+    const consumed = await this.appInstallAuthorizationCodeRepository.consumeAuthorizationCode({
+      id: authorization.id,
+      consumedAt: new Date(),
+    })
+    if (!consumed) {
+      throw new UnauthorizedException(INVALID_INSTALL_CODE_MESSAGE)
+    }
+
+    return {
+      clientId: authorization.clientId,
+      clientSecret: authorization.clientSecret,
     }
   }
 
@@ -255,12 +329,14 @@ export class AppsService {
     )
   }
 
+  /** With `projectId`, an installation of another project is reported as missing. */
   async revokeInstallation(params: {
     installationId: string
     userId: string
+    projectId?: string
   }): Promise<{ organizationId: string; projectId: string }> {
     const installation = await this.appInstallationRepository.findById(params.installationId)
-    if (!installation) {
+    if (!installation || (params.projectId && installation.projectId !== params.projectId)) {
       throw new NotFoundException(`App installation ${params.installationId} not found`)
     }
 
@@ -310,9 +386,13 @@ export class AppsService {
 
   async resolveAppPrincipal(token: string): Promise<AppPrincipal> {
     const claims = this.appJwtService.verify(token)
-    // Revocation stops new tokens only. An issued JWT stays valid until exp.
+    // A revoked installation loses access at once, even with a JWT issued before.
     const installation = await this.appInstallationRepository.findById(claims.installation_id)
-    if (!installation || installation.projectId !== claims.project_id) {
+    if (
+      !installation ||
+      installation.status !== APP_INSTALLATION_STATUS_ACTIVE ||
+      installation.projectId !== claims.project_id
+    ) {
       throw new UnauthorizedException(AUTH_ERRORS.INVALID_ACCESS_TOKEN)
     }
 
@@ -328,12 +408,11 @@ export class AppsService {
     }
   }
 
-  private requireLoopbackRedirectUri(raw: string): string {
+  private requireInstallRedirectUri(raw: string, allowlist: readonly string[]): string {
     try {
-      parseLoopbackRedirectUri(raw)
-      return raw
+      return assertAllowedInstallRedirectUri(raw, allowlist)
     } catch (error) {
-      if (error instanceof InvalidLoopbackRedirectUriError) {
+      if (error instanceof InvalidInstallRedirectUriError) {
         throw new BadRequestException(error.message)
       }
       throw error
@@ -428,4 +507,12 @@ function toActiveInstallationSummary(
     clientId: installation.clientId,
     createdAt: installation.createdAt,
   }
+}
+
+function generateInstallAuthorizationCode(): string {
+  return randomBytes(32).toString("base64url")
+}
+
+function hashInstallAuthorizationCode(code: string): string {
+  return createHash("sha256").update(code).digest("hex")
 }

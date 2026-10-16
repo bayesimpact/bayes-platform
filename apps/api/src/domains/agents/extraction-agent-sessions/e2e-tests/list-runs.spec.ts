@@ -13,6 +13,7 @@ import { FILE_STORAGE_SERVICE } from "@/domains/documents/storage/file-storage.i
 import { createOrganizationWithAgentSession } from "@/domains/organizations/organization.factory"
 import { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.provider"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { ExtractionAgentSessionsModule } from "../extraction-agent-sessions.module"
 
@@ -53,6 +54,7 @@ describe("ExtractionAgentSessions - listRuns", () => {
           .useValue(mockFileStorageService),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)
@@ -95,18 +97,16 @@ describe("ExtractionAgentSessions - listRuns", () => {
 
   const subjectGetAll = async () =>
     request({
-      route: ExtractionAgentSessionsRoutes.getAll,
+      route: ExtractionAgentSessionsRoutes.playground.getAll,
       pathParams: removeNullish({ organizationId, projectId, agentId }),
       token: accessToken,
-      request: { payload: { type: "playground" } },
     })
 
   const subjectGetOne = async () =>
     request({
-      route: ExtractionAgentSessionsRoutes.getOne,
+      route: ExtractionAgentSessionsRoutes.playground.getOne,
       pathParams: removeNullish({ organizationId, projectId, agentId, agentSessionId }),
       token: accessToken,
-      request: { payload: { type: "playground" } },
     })
 
   it("reports the revision a listed run was executed with", async () => {

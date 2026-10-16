@@ -87,6 +87,7 @@ describe("Apps - CRUD", () => {
       name: "Helpful Assistant",
       slug: "helpful-assistant",
       grantablePermissions: [DOCUMENT_READ_PERMISSION],
+      allowedRedirectUris: [],
     })
 
     const listed = await request({ route: AppsRoutes.getAll, token: "token" })
@@ -101,14 +102,21 @@ describe("Apps - CRUD", () => {
     expectResponse(fetched, 200)
     expect(fetched.body.data.id).toBe(created.body.data.id)
 
+    const registeredRedirectUri = "https://app.example.com/auth/bayes/callback"
     const updated = await request({
       route: AppsRoutes.updateOne,
       pathParams: { appManifestId: created.body.data.id },
       token: "token",
-      request: { payload: { name: "Updated Assistant" } },
+      request: {
+        payload: {
+          name: "Updated Assistant",
+          allowedRedirectUris: [registeredRedirectUri],
+        },
+      },
     })
     expectResponse(updated, 200)
     expect(updated.body.data.name).toBe("Updated Assistant")
+    expect(updated.body.data.allowedRedirectUris).toEqual([registeredRedirectUri])
 
     await expectActivityCreated("appManifest.create", {
       entityId: null,

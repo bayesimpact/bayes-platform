@@ -21,6 +21,7 @@ import { Organization } from "@/domains/organizations/organization.entity"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
 import { Project } from "@/domains/projects/project.entity"
 import { ProjectsModule } from "@/domains/projects/projects.module"
+import { RbacModule } from "@/domains/rbac/rbac.module"
 import { User } from "@/domains/users/user.entity"
 import { UsersModule } from "@/domains/users/users.module"
 import { ReviewCampaignMembershipRepository } from "./memberships/review-campaign-membership.repository"
@@ -31,7 +32,6 @@ import { ReportsService } from "./reports/reports.service"
 import { ReviewCampaign } from "./review-campaign.entity"
 import { ReviewCampaignRepository } from "./review-campaign.repository"
 import { ReviewCampaignsController } from "./review-campaigns.controller"
-import { ReviewCampaignsGuard } from "./review-campaigns.guard"
 import { ReviewCampaignsService } from "./review-campaigns.service"
 import { ReviewerSessionReviewController } from "./reviewer/reviewer.controller"
 import { ReviewerGuard } from "./reviewer/reviewer.guard"
@@ -74,6 +74,7 @@ import { TesterSessionFeedback } from "./tester-session-feedbacks/tester-session
     AuthModule,
     forwardRef(() => ConversationAgentSessionsModule),
     ConversationFormsModule,
+    RbacModule,
   ],
   providers: [
     AgentSessionInCampaignContextResolver,
@@ -87,7 +88,6 @@ import { TesterSessionFeedback } from "./tester-session-feedbacks/tester-session
     ReviewCampaignMembershipRepository,
     ReviewCampaignMembershipsService,
     ReviewCampaignRepository,
-    ReviewCampaignsGuard,
     ReviewCampaignsService,
     ReviewerGuard,
     ReviewerService,

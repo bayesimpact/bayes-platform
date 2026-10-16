@@ -187,6 +187,18 @@ on other chart values.
 - name: MCP_OAUTH_REDIRECT_URL
   value: {{ printf "%s/oauth/mcp/callback" (trimSuffix "/" .Values.urls.web) | quote }}
 {{- end }}
+{{- if not (hasKey .Values.config "APP_PUBLIC_URL") }}
+# Public URL of the web front, for the links put in emails (invitations).
+# Set config.APP_PUBLIC_URL to override.
+- name: APP_PUBLIC_URL
+  value: {{ trimSuffix "/" .Values.urls.web | quote }}
+{{- end }}
+{{- if not (hasKey .Values.config "API_PUBLIC_URL") }}
+# Public URL of the API, the base of the OAuth issuer and of the MCP endpoint
+# URL. Set config.API_PUBLIC_URL to override.
+- name: API_PUBLIC_URL
+  value: {{ trimSuffix "/" .Values.urls.api | quote }}
+{{- end }}
 {{- if eq .Values.storage.mode "gcs" }}
 - name: GCS_STORAGE_BUCKET_NAME
   value: {{ required "storage.gcs.bucket is required when storage.mode is gcs" .Values.storage.gcs.bucket | quote }}

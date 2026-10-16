@@ -12,6 +12,7 @@ export type AppManifestRecord = {
   description: string | null
   logoUrl: string | null
   grantablePermissions: string[]
+  allowedRedirectUris: string[]
   createdAt: Date
 }
 
@@ -21,6 +22,7 @@ export type CreateAppManifestFields = {
   description: string | null
   logoUrl: string | null
   grantablePermissions: string[]
+  allowedRedirectUris?: string[]
 }
 
 export type UpdateAppManifestFields = Partial<CreateAppManifestFields>
@@ -45,7 +47,12 @@ export class AppManifestRepository {
   }
 
   async createManifest(fields: CreateAppManifestFields): Promise<AppManifestRecord> {
-    const saved = await this.repo().save(this.repo().create(fields))
+    const saved = await this.repo().save(
+      this.repo().create({
+        ...fields,
+        allowedRedirectUris: fields.allowedRedirectUris ?? [],
+      }),
+    )
     return this.toRecord(saved)
   }
 
@@ -89,6 +96,7 @@ export class AppManifestRepository {
       description: manifest.description,
       logoUrl: manifest.logoUrl,
       grantablePermissions: manifest.grantablePermissions,
+      allowedRedirectUris: manifest.allowedRedirectUris,
       createdAt: manifest.createdAt,
     }
   }

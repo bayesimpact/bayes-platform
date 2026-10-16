@@ -54,7 +54,12 @@ function registerListeners() {
   listenerMiddleware.startListening({
     matcher: isAnyOf(submitReviewerReview.fulfilled, updateReviewerReview.fulfilled),
     effect: async (_, listenerApi) => {
-      listenerApi.dispatch(notificationsActions.show({ title: "Review saved", type: "success" }))
+      listenerApi.dispatch(
+        notificationsActions.show({
+          titleKey: "reviewerCampaigns:notifications.reviewSaved",
+          type: "success",
+        }),
+      )
 
       const state = listenerApi.getState()
       const scope = getCampaignScope(state)
@@ -68,7 +73,9 @@ function registerListeners() {
       const errorAction = action as { error?: { message?: string } }
       listenerApi.dispatch(
         notificationsActions.show({
-          title: errorAction.error?.message || "Something went wrong",
+          ...(errorAction.error?.message
+            ? { title: errorAction.error.message }
+            : { titleKey: "status:somethingWentWrong" }),
           type: "error",
         }),
       )

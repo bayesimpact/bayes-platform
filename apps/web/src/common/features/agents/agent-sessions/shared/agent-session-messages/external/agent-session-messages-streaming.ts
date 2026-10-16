@@ -1,3 +1,4 @@
+import type { BaseAgentSessionTypeDto } from "@caseai-connect/api-contracts"
 import { runtimeConfig } from "@/config/runtime-config"
 import { getAccessToken } from "@/external/oidcClient"
 import {
@@ -18,6 +19,7 @@ export type { StreamEventHandler }
  * message instead.
  */
 export async function streamChatResponse({
+  type,
   organizationId,
   projectId,
   agentId,
@@ -29,6 +31,7 @@ export async function streamChatResponse({
   handlers,
   signal,
 }: {
+  type: BaseAgentSessionTypeDto
   organizationId: string
   projectId: string
   agentId: string
@@ -48,6 +51,7 @@ export async function streamChatResponse({
 
     const url = buildStreamUrl({
       baseURL,
+      type,
       organizationId,
       projectId,
       agentId,

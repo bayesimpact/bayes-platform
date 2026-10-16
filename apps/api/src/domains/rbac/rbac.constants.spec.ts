@@ -1,7 +1,31 @@
 import {
   AGENT_ANALYTICS_READ_PERMISSION,
+  AGENT_CONVERSATION_SESSION_CREATE_PERMISSION,
+  AGENT_CONVERSATION_SESSION_DELETE_PERMISSION,
+  AGENT_CONVERSATION_SESSION_EXTERNAL_CREATE_PERMISSION,
+  AGENT_CONVERSATION_SESSION_PLAYGROUND_CREATE_PERMISSION,
+  AGENT_CONVERSATION_SESSION_PLAYGROUND_DELETE_PERMISSION,
+  AGENT_CONVERSATION_SESSION_PLAYGROUND_READ_PERMISSION,
+  AGENT_CONVERSATION_SESSION_READ_PERMISSION,
+  AGENT_DRAFT_READ_PERMISSION,
+  AGENT_EXTRACTION_SESSION_CREATE_PERMISSION,
+  AGENT_EXTRACTION_SESSION_DELETE_PERMISSION,
+  AGENT_EXTRACTION_SESSION_PLAYGROUND_CREATE_PERMISSION,
+  AGENT_EXTRACTION_SESSION_PLAYGROUND_DELETE_PERMISSION,
+  AGENT_EXTRACTION_SESSION_PLAYGROUND_READ_PERMISSION,
+  AGENT_EXTRACTION_SESSION_READ_PERMISSION,
+  AGENT_MEMBER_DELETE_PERMISSION,
   AGENT_MEMBER_INVITE_PERMISSION,
+  AGENT_MEMBER_READ_PERMISSION,
+  AGENT_READ_PERMISSION,
   AGENT_ROLE_PERMISSIONS,
+  AGENT_SETTINGS_ARCHIVE_PERMISSION,
+  AGENT_SETTINGS_DRAFT_PUBLISH_PERMISSION,
+  AGENT_SETTINGS_DRAFT_READ_PERMISSION,
+  AGENT_SETTINGS_DRAFT_UPDATE_PERMISSION,
+  AGENT_SETTINGS_RESTORE_PERMISSION,
+  AGENT_SUB_AGENT_READ_PERMISSION,
+  AGENT_SUB_AGENT_UPDATE_PERMISSION,
   APP_GRANTABLE_PERMISSIONS,
   CSV_EXTRACTION_RUN_CREATE_PERMISSION,
   CSV_EXTRACTION_RUN_DELETE_PERMISSION,
@@ -43,11 +67,29 @@ import {
   EVALUATION_UI_READ_PERMISSION,
   intersectWithAppGrantablePermissions,
   ORGANIZATION_ROLE_PERMISSIONS,
+  PROJECT_AGENT_MESSAGE_FEEDBACK_CREATE_PERMISSION,
+  PROJECT_AGENT_MESSAGE_FEEDBACK_READ_PERMISSION,
+  PROJECT_AGENT_SESSION_CATEGORY_CREATE_PERMISSION,
+  PROJECT_AGENT_SESSION_CATEGORY_DELETE_PERMISSION,
   PROJECT_ANALYTICS_READ_PERMISSION,
+  PROJECT_APP_INSTALLATION_READ_PERMISSION,
+  PROJECT_APP_INSTALLATION_REVOKE_PERMISSION,
   PROJECT_CREATE_PERMISSION,
   PROJECT_DELETE_PERMISSION,
+  PROJECT_MCP_SERVER_CREATE_PERMISSION,
+  PROJECT_MCP_SERVER_DELETE_PERMISSION,
+  PROJECT_MCP_SERVER_READ_PERMISSION,
+  PROJECT_MCP_SERVER_UPDATE_PERMISSION,
+  PROJECT_MEMBER_DELETE_PERMISSION,
   PROJECT_MEMBER_INVITE_PERMISSION,
+  PROJECT_MEMBER_READ_PERMISSION,
   PROJECT_READ_PERMISSION,
+  PROJECT_REVIEW_CAMPAIGN_CREATE_PERMISSION,
+  PROJECT_REVIEW_CAMPAIGN_DELETE_PERMISSION,
+  PROJECT_REVIEW_CAMPAIGN_MEMBER_DELETE_PERMISSION,
+  PROJECT_REVIEW_CAMPAIGN_MEMBER_INVITE_PERMISSION,
+  PROJECT_REVIEW_CAMPAIGN_READ_PERMISSION,
+  PROJECT_REVIEW_CAMPAIGN_UPDATE_PERMISSION,
   PROJECT_ROLE_PERMISSIONS,
   PROJECT_UPDATE_PERMISSION,
   RESOURCE_LIBRARY_CREATE_PERMISSION,
@@ -84,6 +126,9 @@ describe("intersectWithAppGrantablePermissions", () => {
         PROJECT_UPDATE_PERMISSION,
         PROJECT_DELETE_PERMISSION,
         PROJECT_CREATE_PERMISSION,
+        AGENT_READ_PERMISSION,
+        "agent.update",
+        AGENT_CONVERSATION_SESSION_EXTERNAL_CREATE_PERMISSION,
       ]),
     ).toEqual([...APP_GRANTABLE_PERMISSIONS])
   })
@@ -138,6 +183,86 @@ describe("analytics permissions", () => {
     ]
     expect(inheritable).not.toContain(PROJECT_ANALYTICS_READ_PERMISSION)
     expect(inheritable).not.toContain(AGENT_ANALYTICS_READ_PERMISSION)
+  })
+})
+
+describe("agent draft and sub-agent permissions", () => {
+  const rolesHolding = (rolePermissions: Record<string, readonly string[]>, permission: string) =>
+    Object.entries(rolePermissions)
+      .filter(([_roleKey, permissions]) => permissions.includes(permission))
+      .map(([roleKey]) => roleKey)
+
+  it("grants agent drafts to project owners and admins only", () => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, AGENT_DRAFT_READ_PERMISSION)).toEqual([
+      "project_owner",
+      "project_admin",
+    ])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, AGENT_DRAFT_READ_PERMISSION)).toEqual([])
+  })
+
+  it.each([
+    AGENT_SUB_AGENT_READ_PERMISSION,
+    AGENT_SUB_AGENT_UPDATE_PERMISSION,
+  ])("grants %s to agent owners and admins only", (permission) => {
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual(["agent_owner", "agent_admin"])
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
+  })
+
+  it("never inherits agent drafts or sub-agents from a parent resource", () => {
+    const inheritable: readonly string[] = [
+      ...RESOURCE_TYPE_PERMISSIONS_MAP.project,
+      ...RESOURCE_TYPE_PERMISSIONS_MAP.agent,
+    ]
+    expect(inheritable).not.toContain(AGENT_DRAFT_READ_PERMISSION)
+    expect(inheritable).not.toContain(AGENT_SUB_AGENT_READ_PERMISSION)
+    expect(inheritable).not.toContain(AGENT_SUB_AGENT_UPDATE_PERMISSION)
+  })
+})
+
+describe("agent settings permissions", () => {
+  const rolesHolding = (rolePermissions: Record<string, readonly string[]>, permission: string) =>
+    Object.entries(rolePermissions)
+      .filter(([_roleKey, permissions]) => permissions.includes(permission))
+      .map(([roleKey]) => roleKey)
+
+  const agentSettingsChangePermissions = [
+    AGENT_SETTINGS_DRAFT_UPDATE_PERMISSION,
+    AGENT_SETTINGS_DRAFT_PUBLISH_PERMISSION,
+    AGENT_SETTINGS_RESTORE_PERMISSION,
+    AGENT_SETTINGS_ARCHIVE_PERMISSION,
+  ]
+
+  it("grants the settings history to project owners and admins only", () => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, AGENT_SETTINGS_DRAFT_READ_PERMISSION)).toEqual([
+      "project_owner",
+      "project_admin",
+    ])
+    expect(
+      rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, AGENT_SETTINGS_DRAFT_READ_PERMISSION),
+    ).toEqual([])
+  })
+
+  it.each(
+    agentSettingsChangePermissions,
+  )("grants %s to agent owners and admins only", (permission) => {
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual(["agent_owner", "agent_admin"])
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
+  })
+
+  it("passes the settings history down from the project to its agents", () => {
+    expect(RESOURCE_TYPE_PERMISSIONS_MAP.agent).toContain(AGENT_SETTINGS_DRAFT_READ_PERMISSION)
+  })
+
+  it("never inherits the settings changes from a parent resource", () => {
+    const inheritable: readonly string[] = [
+      ...RESOURCE_TYPE_PERMISSIONS_MAP.project,
+      ...RESOURCE_TYPE_PERMISSIONS_MAP.agent,
+    ]
+    for (const permission of agentSettingsChangePermissions) {
+      expect(inheritable).not.toContain(permission)
+    }
   })
 })
 
@@ -422,6 +547,376 @@ describe("CSV extraction run permissions", () => {
       CSV_EXTRACTION_RUN_PLAYGROUND_READ_PERMISSION,
       CSV_EXTRACTION_RUN_PLAYGROUND_UPDATE_PERMISSION,
     ]) {
+      expect(inheritable).not.toContain(permission)
+    }
+  })
+})
+
+describe("conversation agent session permissions", () => {
+  const rolesHolding = (rolePermissions: Record<string, readonly string[]>, permission: string) =>
+    Object.entries(rolePermissions)
+      .filter(([_roleKey, permissions]) => permissions.includes(permission))
+      .map(([roleKey]) => roleKey)
+
+  const liveSessionPermissions = [
+    AGENT_CONVERSATION_SESSION_READ_PERMISSION,
+    AGENT_CONVERSATION_SESSION_CREATE_PERMISSION,
+    AGENT_CONVERSATION_SESSION_DELETE_PERMISSION,
+  ]
+
+  it.each(liveSessionPermissions)("grants %s to every project role only", (permission) => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
+      "project_owner",
+      "project_admin",
+      "project_member",
+    ])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
+  })
+
+  const playgroundSessionPermissions = [
+    AGENT_CONVERSATION_SESSION_PLAYGROUND_READ_PERMISSION,
+    AGENT_CONVERSATION_SESSION_PLAYGROUND_CREATE_PERMISSION,
+    AGENT_CONVERSATION_SESSION_PLAYGROUND_DELETE_PERMISSION,
+  ]
+
+  it.each(
+    playgroundSessionPermissions,
+  )("grants %s to project owners and admins only", (permission) => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
+      "project_owner",
+      "project_admin",
+    ])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
+  })
+
+  it("never inherits conversation sessions from the organization", () => {
+    const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
+    for (const permission of [...liveSessionPermissions, ...playgroundSessionPermissions]) {
+      expect(inheritable).not.toContain(permission)
+    }
+  })
+})
+
+describe("extraction agent session permissions", () => {
+  const rolesHolding = (rolePermissions: Record<string, readonly string[]>, permission: string) =>
+    Object.entries(rolePermissions)
+      .filter(([_roleKey, permissions]) => permissions.includes(permission))
+      .map(([roleKey]) => roleKey)
+
+  const liveSessionPermissions = [
+    AGENT_EXTRACTION_SESSION_READ_PERMISSION,
+    AGENT_EXTRACTION_SESSION_CREATE_PERMISSION,
+    AGENT_EXTRACTION_SESSION_DELETE_PERMISSION,
+  ]
+
+  it.each(liveSessionPermissions)("grants %s to every project role only", (permission) => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
+      "project_owner",
+      "project_admin",
+      "project_member",
+    ])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
+  })
+
+  const playgroundSessionPermissions = [
+    AGENT_EXTRACTION_SESSION_PLAYGROUND_READ_PERMISSION,
+    AGENT_EXTRACTION_SESSION_PLAYGROUND_CREATE_PERMISSION,
+    AGENT_EXTRACTION_SESSION_PLAYGROUND_DELETE_PERMISSION,
+  ]
+
+  it.each(
+    playgroundSessionPermissions,
+  )("grants %s to project owners and admins only", (permission) => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
+      "project_owner",
+      "project_admin",
+    ])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
+  })
+
+  it("never inherits extraction sessions from the organization", () => {
+    const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
+    for (const permission of [...liveSessionPermissions, ...playgroundSessionPermissions]) {
+      expect(inheritable).not.toContain(permission)
+    }
+  })
+})
+
+describe("project agent session category permissions", () => {
+  const rolesHolding = (rolePermissions: Record<string, readonly string[]>, permission: string) =>
+    Object.entries(rolePermissions)
+      .filter(([_roleKey, permissions]) => permissions.includes(permission))
+      .map(([roleKey]) => roleKey)
+
+  const sessionCategoryPermissions = [
+    PROJECT_AGENT_SESSION_CATEGORY_CREATE_PERMISSION,
+    PROJECT_AGENT_SESSION_CATEGORY_DELETE_PERMISSION,
+  ]
+
+  it.each(
+    sessionCategoryPermissions,
+  )("grants %s to project owners and admins only", (permission) => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
+      "project_owner",
+      "project_admin",
+    ])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
+  })
+
+  it("never inherits session categories from the organization", () => {
+    const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
+    for (const permission of sessionCategoryPermissions) {
+      expect(inheritable).not.toContain(permission)
+    }
+  })
+})
+
+describe("project agent message feedback permissions", () => {
+  const rolesHolding = (rolePermissions: Record<string, readonly string[]>, permission: string) =>
+    Object.entries(rolePermissions)
+      .filter(([_roleKey, permissions]) => permissions.includes(permission))
+      .map(([roleKey]) => roleKey)
+
+  it("grants project.agent_message_feedback.create to every project role only", () => {
+    const permission = PROJECT_AGENT_MESSAGE_FEEDBACK_CREATE_PERMISSION
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
+      "project_owner",
+      "project_admin",
+      "project_member",
+    ])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
+  })
+
+  it("grants project.agent_message_feedback.read to project owners and admins only", () => {
+    const permission = PROJECT_AGENT_MESSAGE_FEEDBACK_READ_PERMISSION
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
+      "project_owner",
+      "project_admin",
+    ])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
+  })
+
+  it("never inherits message feedback from the organization", () => {
+    const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
+    for (const permission of [
+      PROJECT_AGENT_MESSAGE_FEEDBACK_CREATE_PERMISSION,
+      PROJECT_AGENT_MESSAGE_FEEDBACK_READ_PERMISSION,
+    ]) {
+      expect(inheritable).not.toContain(permission)
+    }
+  })
+})
+
+describe("document tag permissions", () => {
+  const rolesHolding = (rolePermissions: Record<string, readonly string[]>, permission: string) =>
+    Object.entries(rolePermissions)
+      .filter(([_roleKey, permissions]) => permissions.includes(permission))
+      .map(([roleKey]) => roleKey)
+
+  const documentTagPermissions = [
+    DOCUMENT_TAG_READ_PERMISSION,
+    DOCUMENT_TAG_CREATE_PERMISSION,
+    DOCUMENT_TAG_UPDATE_PERMISSION,
+    DOCUMENT_TAG_DELETE_PERMISSION,
+  ]
+
+  it.each(documentTagPermissions)("grants %s to project owners and admins only", (permission) => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
+      "project_owner",
+      "project_admin",
+    ])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
+  })
+
+  it("never inherits document tags from the organization", () => {
+    const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
+    for (const permission of documentTagPermissions) {
+      expect(inheritable).not.toContain(permission)
+    }
+  })
+})
+
+describe("project review campaign invitation permissions", () => {
+  const rolesHolding = (rolePermissions: Record<string, readonly string[]>, permission: string) =>
+    Object.entries(rolePermissions)
+      .filter(([_roleKey, permissions]) => permissions.includes(permission))
+      .map(([roleKey]) => roleKey)
+
+  it("grants project.review_campaign.member.invite to project owners and admins only", () => {
+    const permission = PROJECT_REVIEW_CAMPAIGN_MEMBER_INVITE_PERMISSION
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
+      "project_owner",
+      "project_admin",
+    ])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
+  })
+
+  it("never inherits review campaign invitations from the organization", () => {
+    const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
+    expect(inheritable).not.toContain(PROJECT_REVIEW_CAMPAIGN_MEMBER_INVITE_PERMISSION)
+  })
+})
+
+describe("project MCP server permissions", () => {
+  const rolesHolding = (rolePermissions: Record<string, readonly string[]>, permission: string) =>
+    Object.entries(rolePermissions)
+      .filter(([_roleKey, permissions]) => permissions.includes(permission))
+      .map(([roleKey]) => roleKey)
+
+  it("grants project.mcp_server.read to every project role only", () => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, PROJECT_MCP_SERVER_READ_PERMISSION)).toEqual([
+      "project_owner",
+      "project_admin",
+      "project_member",
+    ])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, PROJECT_MCP_SERVER_READ_PERMISSION)).toEqual(
+      [],
+    )
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, PROJECT_MCP_SERVER_READ_PERMISSION)).toEqual([])
+  })
+
+  const mcpServerWritePermissions = [
+    PROJECT_MCP_SERVER_CREATE_PERMISSION,
+    PROJECT_MCP_SERVER_UPDATE_PERMISSION,
+    PROJECT_MCP_SERVER_DELETE_PERMISSION,
+  ]
+
+  it.each(
+    mcpServerWritePermissions,
+  )("grants %s to project owners and admins only", (permission) => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
+      "project_owner",
+      "project_admin",
+    ])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
+  })
+
+  it("never inherits MCP servers from the organization", () => {
+    const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
+    for (const permission of [PROJECT_MCP_SERVER_READ_PERMISSION, ...mcpServerWritePermissions]) {
+      expect(inheritable).not.toContain(permission)
+    }
+  })
+})
+
+describe("project review campaign permissions", () => {
+  const rolesHolding = (rolePermissions: Record<string, readonly string[]>, permission: string) =>
+    Object.entries(rolePermissions)
+      .filter(([_roleKey, permissions]) => permissions.includes(permission))
+      .map(([roleKey]) => roleKey)
+
+  const reviewCampaignPermissions = [
+    PROJECT_REVIEW_CAMPAIGN_READ_PERMISSION,
+    PROJECT_REVIEW_CAMPAIGN_CREATE_PERMISSION,
+    PROJECT_REVIEW_CAMPAIGN_UPDATE_PERMISSION,
+    PROJECT_REVIEW_CAMPAIGN_DELETE_PERMISSION,
+    PROJECT_REVIEW_CAMPAIGN_MEMBER_DELETE_PERMISSION,
+  ]
+
+  it.each(
+    reviewCampaignPermissions,
+  )("grants %s to project owners and admins only", (permission) => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
+      "project_owner",
+      "project_admin",
+    ])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
+  })
+
+  it("never inherits review campaigns from the organization", () => {
+    const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
+    for (const permission of reviewCampaignPermissions) {
+      expect(inheritable).not.toContain(permission)
+    }
+  })
+})
+
+describe("project member permissions", () => {
+  const rolesHolding = (rolePermissions: Record<string, readonly string[]>, permission: string) =>
+    Object.entries(rolePermissions)
+      .filter(([_roleKey, permissions]) => permissions.includes(permission))
+      .map(([roleKey]) => roleKey)
+
+  const projectMemberPermissions = [
+    PROJECT_MEMBER_READ_PERMISSION,
+    PROJECT_MEMBER_DELETE_PERMISSION,
+  ]
+
+  it.each(projectMemberPermissions)("grants %s to project owners and admins only", (permission) => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
+      "project_owner",
+      "project_admin",
+    ])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
+  })
+
+  it("never inherits project members from the organization", () => {
+    const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
+    for (const permission of projectMemberPermissions) {
+      expect(inheritable).not.toContain(permission)
+    }
+  })
+})
+
+describe("agent member permissions", () => {
+  const rolesHolding = (rolePermissions: Record<string, readonly string[]>, permission: string) =>
+    Object.entries(rolePermissions)
+      .filter(([_roleKey, permissions]) => permissions.includes(permission))
+      .map(([roleKey]) => roleKey)
+
+  const agentMemberPermissions = [AGENT_MEMBER_READ_PERMISSION, AGENT_MEMBER_DELETE_PERMISSION]
+
+  it.each(agentMemberPermissions)("grants %s to agent owners and admins only", (permission) => {
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual(["agent_owner", "agent_admin"])
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
+  })
+
+  it("never inherits agent members from a parent resource", () => {
+    const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.agent
+    for (const permission of agentMemberPermissions) {
+      expect(inheritable).not.toContain(permission)
+    }
+  })
+})
+
+describe("project app installation permissions", () => {
+  const rolesHolding = (rolePermissions: Record<string, readonly string[]>, permission: string) =>
+    Object.entries(rolePermissions)
+      .filter(([_roleKey, permissions]) => permissions.includes(permission))
+      .map(([roleKey]) => roleKey)
+
+  const appInstallationPermissions = [
+    PROJECT_APP_INSTALLATION_READ_PERMISSION,
+    PROJECT_APP_INSTALLATION_REVOKE_PERMISSION,
+  ]
+
+  it.each(
+    appInstallationPermissions,
+  )("grants %s to project owners and admins only", (permission) => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
+      "project_owner",
+      "project_admin",
+    ])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
+  })
+
+  it("never inherits app installations from the organization", () => {
+    const inheritable: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP.project
+    for (const permission of appInstallationPermissions) {
       expect(inheritable).not.toContain(permission)
     }
   })

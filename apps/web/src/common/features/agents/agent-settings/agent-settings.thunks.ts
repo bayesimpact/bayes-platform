@@ -17,16 +17,16 @@ import type { AgentSettings } from "./agent-settings.models"
 
 type ThunkConfig = { state: RootState; extra: ThunkExtraArg }
 
-export const listAgentSettings = createAsyncThunk<
+export const listAgentSettingsWithDraft = createAsyncThunk<
   AgentSettings[],
   { agentId: string },
   ThunkConfig
->("agentSettings/getAll", async ({ agentId }, { extra: { services }, getState }) => {
+>("agentSettings/getAllWithDraft", async ({ agentId }, { extra: { services }, getState }) => {
   const state = getState()
   const organizationId = getCurrentId({ state, name: "organizationId" })
   const projectId = getCurrentId({ state, name: "projectId" })
   const params = { organizationId, projectId, agentId }
-  return await services.agentSettings.getAll(params)
+  return await services.agentSettings.getAllWithDraft(params)
 })
 
 export const restoreAgentSettings = createAsyncThunk<void, { revision: number }, ThunkConfig>(

@@ -134,6 +134,98 @@ describe("Backoffice - Auth", () => {
     })
   })
 
+  describe("BackofficeRoutes.listAgents", () => {
+    const subject = async () =>
+      request({
+        route: BackofficeRoutes.listAgents,
+        token: accessToken ?? undefined,
+      })
+
+    it("requires an authentication token", async () => {
+      accessToken = null
+      expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+
+    it("rejects users without the backoffice.read permission", async () => {
+      await createOrganizationWithOwner(repositories, {
+        user: { authSubject, email: mockOidcEmailForSub(authSubject) },
+      })
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+
+    it("allows authorized users to list agents", async () => {
+      await createAuthorizedUser()
+      expectResponse(await subject(), 200)
+    })
+  })
+
+  describe("BackofficeRoutes.listProjects", () => {
+    const subject = async () =>
+      request({
+        route: BackofficeRoutes.listProjects,
+        token: accessToken ?? undefined,
+      })
+
+    it("requires an authentication token", async () => {
+      accessToken = null
+      expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+
+    it("rejects users without the backoffice.read permission", async () => {
+      await createOrganizationWithOwner(repositories, {
+        user: { authSubject, email: mockOidcEmailForSub(authSubject) },
+      })
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+
+    it("allows authorized users to list projects", async () => {
+      await createAuthorizedUser()
+      expectResponse(await subject(), 200)
+    })
+  })
+
+  describe("BackofficeRoutes.getUser", () => {
+    const subject = async (userId: string) =>
+      request({
+        route: BackofficeRoutes.getUser,
+        pathParams: { userId },
+        token: accessToken ?? undefined,
+      })
+
+    it("requires an authentication token", async () => {
+      accessToken = null
+      expectResponse(await subject(randomUUID()), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+
+    it("rejects users without the backoffice.read permission", async () => {
+      const { user } = await createOrganizationWithOwner(repositories, {
+        user: { authSubject, email: mockOidcEmailForSub(authSubject) },
+      })
+      expectResponse(await subject(user.id), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+
+    it("allows authorized users to read a user", async () => {
+      const user = await createAuthorizedUser()
+      expectResponse(await subject(user.id), 200)
+    })
+  })
+
+  describe("BackofficeRoutes.getOrganization", () => {
+    const subject = async (organizationId: string) =>
+      request({
+        route: BackofficeRoutes.getOrganization,
+        pathParams: { organizationId },
+        token: accessToken ?? undefined,
+      })
+
+    it("rejects an organization owner without backoffice.read, despite their scoped backoffice.organization.read", async () => {
+      const { organization } = await createOrganizationWithOwner(repositories, {
+        user: { authSubject, email: mockOidcEmailForSub(authSubject) },
+      })
+      expectResponse(await subject(organization.id), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+  })
+
   describe("BackofficeRoutes.createOrganization", () => {
     const subject = async () =>
       request({

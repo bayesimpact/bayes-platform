@@ -3,6 +3,7 @@ import { buildStreamUrl } from "./agent-session-messages-streaming-url"
 
 const params = {
   baseURL: "https://api.example.test",
+  type: "live" as const,
   organizationId: "org-1",
   projectId: "project-1",
   agentId: "agent-1",
@@ -40,11 +41,19 @@ describe("buildStreamUrl", () => {
     })
   })
 
-  it("points at the session's stream path", () => {
+  it("points a live session at the live stream path", () => {
     const url = buildStreamUrl({ ...params, content: "Hello" })
 
     expect(new URL(url).pathname).toBe(
-      "/organizations/org-1/projects/project-1/agents/agent-1/agent-sessions/session-1/stream",
+      "/organizations/org-1/projects/project-1/agents/agent-1/agent-sessions/live/session-1/messages/stream",
+    )
+  })
+
+  it("points a playground session at the playground stream path", () => {
+    const url = buildStreamUrl({ ...params, type: "playground", content: "Hello" })
+
+    expect(new URL(url).pathname).toBe(
+      "/organizations/org-1/projects/project-1/agents/agent-1/agent-sessions/playground/session-1/messages/stream",
     )
   })
 })

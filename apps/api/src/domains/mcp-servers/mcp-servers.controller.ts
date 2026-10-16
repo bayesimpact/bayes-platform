@@ -13,13 +13,19 @@ import type {
 } from "@/common/context/request.interface"
 import { AddContext, RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
-import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { ZodValidationPipe } from "@/common/zod-validation-pipe"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
+import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
+import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
+import {
+  PROJECT_MCP_SERVER_CREATE_PERMISSION,
+  PROJECT_MCP_SERVER_DELETE_PERMISSION,
+  PROJECT_MCP_SERVER_READ_PERMISSION,
+  PROJECT_MCP_SERVER_UPDATE_PERMISSION,
+} from "@/domains/rbac/rbac.constants"
 import { UserGuard } from "@/domains/users/user.guard"
 import { isBuiltInMcpServer } from "./built-in/built-in-mcp-servers"
 import type { McpServer } from "./mcp-server.entity"
-import { McpServerGuard } from "./mcp-server.guard"
 import type { McpServerConfig } from "./mcp-servers.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { McpServersService } from "./mcp-servers.service"
@@ -28,7 +34,7 @@ import { McpOauthService } from "./oauth/mcp-oauth.service"
 
 type EndpointRequestWithAgentAndMcpServer = EndpointRequestWithAgent & EndpointRequestWithMcpServer
 
-@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, McpServerGuard)
+@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, CheckPermissionGuard)
 @RequireContext("organization", "project")
 @Controller()
 export class McpServersController {
@@ -38,7 +44,7 @@ export class McpServersController {
   ) {}
 
   @Post(McpServersRoutes.createOne.path)
-  @CheckPolicy((policy) => policy.canCreate())
+  @CheckPermission(PROJECT_MCP_SERVER_CREATE_PERMISSION, "project")
   @UsePipes(new ZodValidationPipe(createMcpServerSchema))
   async createOne(
     @Req() request: EndpointRequestWithProject,
@@ -63,7 +69,7 @@ export class McpServersController {
   }
 
   @Get(McpServersRoutes.getAll.path)
-  @CheckPolicy((policy) => policy.canList())
+  @CheckPermission(PROJECT_MCP_SERVER_READ_PERMISSION, "project")
   async getAll(
     @Req() request: EndpointRequestWithProject,
   ): Promise<typeof McpServersRoutes.getAll.response> {
@@ -77,7 +83,8 @@ export class McpServersController {
   }
 
   @Delete(McpServersRoutes.deleteOne.path)
-  @CheckPolicy((policy) => policy.canDelete())
+  // Built-in servers can be toggled but never deleted: the service refuses them.
+  @CheckPermission(PROJECT_MCP_SERVER_DELETE_PERMISSION, "project")
   @AddContext("mcpServer")
   async deleteOne(
     @Req() request: EndpointRequestWithMcpServer,
@@ -90,7 +97,7 @@ export class McpServersController {
   // visible from every project, so the agent id alone would let one project
   // toggle it on an agent of another.
   @Post(McpServersRoutes.enableForAgent.path)
-  @CheckPolicy((policy) => policy.canCreate())
+  @CheckPermission(PROJECT_MCP_SERVER_UPDATE_PERMISSION, "project")
   @AddContext("mcpServer", "agent")
   async enableForAgent(
     @Req() request: EndpointRequestWithAgentAndMcpServer,
@@ -100,9 +107,9 @@ export class McpServersController {
   }
 
   @Delete(McpServersRoutes.disableForAgent.path)
-  // Not canDelete(): turning a server off for an agent updates the agent's
+  // Not .delete: turning a server off for an agent updates the agent's
   // configuration, and built-in servers can be toggled but never deleted.
-  @CheckPolicy((policy) => policy.canUpdate())
+  @CheckPermission(PROJECT_MCP_SERVER_UPDATE_PERMISSION, "project")
   @AddContext("mcpServer", "agent")
   async disableForAgent(
     @Req() request: EndpointRequestWithAgentAndMcpServer,
@@ -112,7 +119,7 @@ export class McpServersController {
   }
 
   @Post(McpServersRoutes.initiateOauth.path)
-  @CheckPolicy((policy) => policy.canCreate())
+  @CheckPermission(PROJECT_MCP_SERVER_UPDATE_PERMISSION, "project")
   @AddContext("mcpServer")
   async initiateOauth(
     @Req() request: EndpointRequestWithMcpServer,
@@ -122,7 +129,7 @@ export class McpServersController {
   }
 
   @Post(McpServersRoutes.completeOauth.path)
-  @CheckPolicy((policy) => policy.canCreate())
+  @CheckPermission(PROJECT_MCP_SERVER_UPDATE_PERMISSION, "project")
   @AddContext("mcpServer")
   @UsePipes(new ZodValidationPipe(completeMcpServerOauthSchema))
   async completeOauth(

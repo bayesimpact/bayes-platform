@@ -23,6 +23,10 @@
         "title": "No feedback yet",
         "description": "No feedback on the agent's messages."
       }
+    },
+    "notifications": {
+      "submitted": "Feedback submitted successfully",
+      "submitError": "Failed to submit feedback"
     }
   }
 }

@@ -36,6 +36,17 @@
     "oauth": {
       "authorize": "Autoriser",
       "connected": "Connecté via OAuth"
+    },
+    "notifications": {
+      "created": "Serveur MCP créé",
+      "createError": "La création du serveur MCP a échoué",
+      "deleted": "Serveur MCP supprimé",
+      "deleteError": "La suppression du serveur MCP a échoué",
+      "enabled": "Serveur MCP activé",
+      "disabled": "Serveur MCP désactivé",
+      "enableError": "L'activation du serveur MCP a échoué",
+      "disableError": "La désactivation du serveur MCP a échoué",
+      "authorizationError": "L'autorisation du serveur MCP a échoué"
     }
   }
 }

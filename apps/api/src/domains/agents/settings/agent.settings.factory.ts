@@ -1,5 +1,10 @@
 import { randomUUID } from "node:crypto"
-import { AgentLocale, AgentModel, DocumentsRagMode } from "@caseai-connect/api-contracts"
+import {
+  AgentLocale,
+  AgentMemoryMode,
+  AgentModel,
+  DocumentsRagMode,
+} from "@caseai-connect/api-contracts"
 import { Factory } from "fishery"
 import type { RequiredScopeTransientParams } from "@/common/entities/connect-required-fields"
 import type { Agent } from "@/domains/agents/agent.entity"
@@ -44,8 +49,8 @@ export const agentSettingsFactory = AgentSettingsFactory.define(
       outputJsonSchema: params.outputJsonSchema ?? null,
       fillFormEnabled: params.fillFormEnabled ?? false,
       priorityCallsEnabled: params.priorityCallsEnabled ?? false,
-      // The model's defaults: merged over them on every call, an empty object keeps them all.
       providerOptions: params.providerOptions ?? {},
+      memoryMode: params.memoryMode || AgentMemoryMode.Off,
       organizationId: transientParams.organization.id,
       projectId: transientParams.project.id,
       agentId: transientParams.agent.id,

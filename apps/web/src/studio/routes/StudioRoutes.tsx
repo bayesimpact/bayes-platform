@@ -26,8 +26,10 @@ import { StudioLayout } from "../components/StudioLayout"
 import { AgentSettingsVersionSelect } from "../features/agents/agent-settings/components/AgentSettingsVersionSelect"
 import { AgentList } from "../features/analytics/agent/components/AgentList"
 import { AgentAnalyticsRoute } from "./AgentAnalyticsRoute"
+import { AgentConversationReviewRoute } from "./AgentConversationReviewRoute"
 import { AgentEditorRoute } from "./AgentEditorRoute"
 import { AgentMembershipsRoute } from "./AgentMembershipsRoute"
+import { AppInstallationsRoute } from "./AppInstallationsRoute"
 import { ProjectDocumentsRoute } from "./DocumentsRoute"
 import { ExternalSourcesRoute } from "./ExternalSourcesRoute"
 import { FeedbackRoute } from "./FeedbackRoute"
@@ -99,6 +101,10 @@ export const studioRoutes = {
           ),
         },
         {
+          path: StudioRoutes.appInstallations.path,
+          element: <AppInstallationsRoute />,
+        },
+        {
           path: StudioRoutes.resourceLibraries.path,
           element: <ResourceLibrariesRoute />,
           children: [
@@ -167,9 +173,15 @@ export const studioRoutes = {
               element: <AgentSessionRoute Component={StudioAgentSessionRoute} />,
             },
             {
+              // Gated by a safety review grant on the agent, not by agent roles.
+              path: StudioRoutes.agentConversationReview.path,
+              element: <AgentConversationReviewRoute />,
+            },
+            {
               path: StudioRoutes.agentExtraction.path,
               element: (
                 <AgentExtractionRoute
+                  type="playground"
                   buildCsvRunPath={StudioRoutes.agentExtractionCsvRun.build}
                   renderVersionPicker={<StudioExtractionVersionPicker />}
                 />

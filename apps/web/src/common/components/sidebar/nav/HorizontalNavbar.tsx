@@ -5,8 +5,7 @@ import { NavUser } from "@/common/components/sidebar/nav/NavUser"
 import type { User } from "@/common/features/me/me.models"
 import { RouteNames } from "@/common/routes/helpers"
 import { publicAssetUrl } from "@/config/runtime-config"
-import { EditProfileDialog } from "./EditProfileDialog"
-import { NavUserMenuItems } from "./NavUserMenuItems"
+import { NavUserMenuItems, type UserMenuDialog, UserMenuDialogs } from "./NavUserMenuItems"
 
 export function HorizontalNavbar({
   user,
@@ -18,7 +17,7 @@ export function HorizontalNavbar({
   appName: string
 }) {
   const navigate = useNavigate()
-  const [editProfileOpen, setEditProfileOpen] = useState(false)
+  const [openDialog, setOpenDialog] = useState<UserMenuDialog | null>(null)
   const goHome = () => navigate(homePath ?? RouteNames.HOME)
   return (
     <div className="w-full h-16 bg-white border-b flex items-center justify-between px-4 gap-2">
@@ -34,9 +33,9 @@ export function HorizontalNavbar({
 
       <div>
         <NavUser user={user}>
-          <NavUserMenuItems onEditProfile={() => setEditProfileOpen(true)} />
+          <NavUserMenuItems onOpenDialog={setOpenDialog} />
         </NavUser>
-        <EditProfileDialog open={editProfileOpen} onClose={() => setEditProfileOpen(false)} />
+        <UserMenuDialogs openDialog={openDialog} onClose={() => setOpenDialog(null)} />
       </div>
     </div>
   )

@@ -19,7 +19,7 @@ listenerMiddleware.startListening({
   effect: async (action, listenerApi) => {
     listenerApi.dispatch(
       notificationsActions.show({
-        title: "Organization created successfully",
+        titleKey: "organization:notifications.created",
         type: "success",
       }),
     )
@@ -33,7 +33,7 @@ listenerMiddleware.startListening({
   effect: async (_, listenerApi) => {
     listenerApi.dispatch(
       notificationsActions.show({
-        title: "Organization creation failed",
+        titleKey: "organization:notifications.createError",
         type: "error",
       }),
     )
@@ -45,7 +45,7 @@ listenerMiddleware.startListening({
   effect: async (action, listenerApi) => {
     listenerApi.dispatch(
       notificationsActions.show({
-        title: "Organization renamed successfully",
+        titleKey: "organization:notifications.renamed",
         type: "success",
       }),
     )
@@ -59,7 +59,7 @@ listenerMiddleware.startListening({
   effect: async (_, listenerApi) => {
     listenerApi.dispatch(
       notificationsActions.show({
-        title: "Failed to rename organization",
+        titleKey: "organization:notifications.renameError",
         type: "error",
       }),
     )

@@ -12,6 +12,10 @@ export enum ToolName {
   ConcludeHandoff = "concludeHandoff",
   /** At the end of a hand-over, the platform adds to the form the fields the exchange left empty. */
   ConsolidateForm = "consolidateForm",
+  /** The agent stores facts about the user for later conversations (see ADR 0023). */
+  SaveMemory = "saveMemory",
+  /** The agent removes facts it remembered about the user. */
+  ForgetMemory = "forgetMemory",
 }
 
 export type AgentSessionToolName = ToolName | (string & {})

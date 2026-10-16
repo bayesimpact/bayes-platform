@@ -72,7 +72,12 @@ function registerListeners() {
   listenerMiddleware.startListening({
     actionCreator: startTesterSession.fulfilled,
     effect: async (action, listenerApi) => {
-      listenerApi.dispatch(notificationsActions.show({ title: "Session started", type: "success" }))
+      listenerApi.dispatch(
+        notificationsActions.show({
+          titleKey: "testerCampaigns:notifications.sessionStarted",
+          type: "success",
+        }),
+      )
       const scope = getScope(listenerApi.getState())
       listenerApi.dispatch(listMyTesterSessions(scope))
       action.meta.arg.onSuccess?.(action.payload.id)
@@ -81,7 +86,12 @@ function registerListeners() {
   listenerMiddleware.startListening({
     matcher: isAnyOf(submitTesterFeedback.fulfilled, updateTesterFeedback.fulfilled),
     effect: async (_, listenerApi) => {
-      listenerApi.dispatch(notificationsActions.show({ title: "Feedback saved", type: "success" }))
+      listenerApi.dispatch(
+        notificationsActions.show({
+          titleKey: "testerCampaigns:notifications.feedbackSaved",
+          type: "success",
+        }),
+      )
       const scope = getScope(listenerApi.getState())
       listenerApi.dispatch(listMyTesterSessions(scope))
     },
@@ -89,7 +99,12 @@ function registerListeners() {
   listenerMiddleware.startListening({
     matcher: isAnyOf(submitTesterSurvey.fulfilled, updateTesterSurvey.fulfilled),
     effect: async (_, listenerApi) => {
-      listenerApi.dispatch(notificationsActions.show({ title: "Survey saved", type: "success" }))
+      listenerApi.dispatch(
+        notificationsActions.show({
+          titleKey: "testerCampaigns:notifications.surveySaved",
+          type: "success",
+        }),
+      )
       listenerApi.dispatch(getMyTesterSurvey())
     },
   })
@@ -106,7 +121,9 @@ function registerListeners() {
       const errorAction = action as { error?: { message?: string } }
       listenerApi.dispatch(
         notificationsActions.show({
-          title: errorAction.error?.message || "Something went wrong",
+          ...(errorAction.error?.message
+            ? { title: errorAction.error.message }
+            : { titleKey: "status:somethingWentWrong" }),
           type: "error",
         }),
       )

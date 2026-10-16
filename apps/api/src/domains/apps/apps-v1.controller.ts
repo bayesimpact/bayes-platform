@@ -20,6 +20,18 @@ export class AppsV1Controller {
     }
   }
 
+  @Post(AppsV1Routes.exchangeInstallCode.path)
+  @HttpCode(HttpStatus.OK)
+  async exchangeInstallCode(
+    @Body() body: unknown,
+  ): Promise<typeof AppsV1Routes.exchangeInstallCode.response> {
+    const credentials = await this.appsService.exchangeInstallCode(body)
+    return {
+      client_id: credentials.clientId,
+      client_secret: credentials.clientSecret,
+    }
+  }
+
   @UseGuards(AppGuard)
   @Get(AppsV1Routes.getMe.path)
   async getMe(

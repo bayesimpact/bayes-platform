@@ -20,7 +20,6 @@
       "placeholder": "Ask your question..."
     },
     "subAgentResults": {
-      "view": "Form state",
       "title": "Form state of sub-agent forms",
       "description": "Results collected by the form-filling sub-agents this agent delegated to."
     },
@@ -28,6 +27,12 @@
       "show": "Form state",
       "description": "The information the agent has collected so far.",
       "thisAgent": "This agent"
+    },
+    "delete": {
+      "confirm": {
+        "title": "Delete chat",
+        "description": "This chat and its messages will be permanently deleted. This action cannot be undone."
+      }
     }
   }
 }

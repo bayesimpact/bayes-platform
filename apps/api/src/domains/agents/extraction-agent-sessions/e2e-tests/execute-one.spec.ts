@@ -11,6 +11,7 @@ import { removeNullish } from "@/common/utils/remove-nullish"
 import { documentFactory } from "@/domains/documents/document.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { AgentsModule } from "../../agents.module"
 
@@ -46,6 +47,7 @@ describe.skip("ExtractionAgentSessions - executeOne", () => {
           .useValue(mockLlmProvider),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)
@@ -96,57 +98,44 @@ describe.skip("ExtractionAgentSessions - executeOne", () => {
   }
 
   const subjectExecutePlayground = async (
-    payload?: typeof ExtractionAgentSessionsRoutes.executeOne.request,
+    payload?: typeof ExtractionAgentSessionsRoutes.playground.executeOne.request,
   ) =>
     request({
-      route: ExtractionAgentSessionsRoutes.executeOne,
+      route: ExtractionAgentSessionsRoutes.playground.executeOne,
       pathParams: removeNullish({ organizationId, projectId, agentId }),
       token: accessToken,
-      request: payload ?? {
-        payload: {
-          documentId,
-          type: "playground",
-        },
-      },
+      request: payload ?? { payload: { documentId } },
     })
 
   const subjectExecuteLive = async (
-    payload?: typeof ExtractionAgentSessionsRoutes.executeOne.request,
+    payload?: typeof ExtractionAgentSessionsRoutes.live.executeOne.request,
   ) =>
     request({
-      route: ExtractionAgentSessionsRoutes.executeOne,
+      route: ExtractionAgentSessionsRoutes.live.executeOne,
       pathParams: removeNullish({ organizationId, projectId, agentId }),
       token: accessToken,
-      request: payload ?? {
-        payload: {
-          documentId,
-          type: "live",
-        },
-      },
+      request: payload ?? { payload: { documentId } },
     })
 
   const subjectGetAllPlayground = async () =>
     request({
-      route: ExtractionAgentSessionsRoutes.getAll,
+      route: ExtractionAgentSessionsRoutes.playground.getAll,
       pathParams: removeNullish({ organizationId, projectId, agentId }),
       token: accessToken,
-      request: { payload: { type: "playground" } },
     })
 
   const subjectGetAllLive = async () =>
     request({
-      route: ExtractionAgentSessionsRoutes.getAll,
+      route: ExtractionAgentSessionsRoutes.live.getAll,
       pathParams: removeNullish({ organizationId, projectId, agentId }),
       token: accessToken,
-      request: { payload: { type: "live" } },
     })
 
   const subjectGetOnePlayground = async (runId: string) =>
     request({
-      route: ExtractionAgentSessionsRoutes.getOne,
+      route: ExtractionAgentSessionsRoutes.playground.getOne,
       pathParams: removeNullish({ organizationId, projectId, agentId, runId }),
       token: accessToken,
-      request: { payload: { type: "playground" } },
     })
 
   it("should execute extraction, persist a run, and expose it in history endpoints", async () => {
@@ -198,9 +187,7 @@ describe.skip("ExtractionAgentSessions - executeOne", () => {
     await createContext({ agentType: "conversation" })
     mockLlmProvider.generateStructuredOutput.mockResolvedValue({ fullName: "Jane Doe" })
 
-    const response = await subjectExecutePlayground({
-      payload: { documentId, type: "playground" },
-    })
+    const response = await subjectExecutePlayground({ payload: { documentId } })
     expectResponse(response, 422)
   })
 

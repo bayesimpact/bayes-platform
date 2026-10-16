@@ -12,6 +12,7 @@ Turn a free-text description into a well-formed GitHub issue and post it.
 
 - **NEVER mention the "Health" project** — or anything that identifies it — in any issue, body, or comment on bayes-platform. Strip it from the user's description and rephrase in neutral, generic terms.
 - More broadly, never include client names, confidential project names, internal URLs, credentials, or private data in anything posted to a public repo.
+- **Never mention `bayesimpact/internal-issues` (or any other private repo) in bayes-platform** — not in issue text, PR bodies, commit messages, `Closes`/`Refs`/`Fixes` trailers, or docs. Private-tracker IDs stay in private trackers and in chat with the user only.
 - If the user's description leans on a confidential detail to make sense, genericize it (e.g. "a specific client deployment") rather than dropping the issue. If you cannot genericize it without losing the point, STOP and ask the user how to phrase it.
 
 This guardrail overrides "Friction is the enemy" — when confidentiality is at stake, pause and check rather than post.

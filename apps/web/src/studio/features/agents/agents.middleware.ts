@@ -1,5 +1,5 @@
 import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit"
-import { listAgentSettings } from "@/common/features/agents/agent-settings/agent-settings.thunks"
+import { listAgentSettingsWithDraft } from "@/common/features/agents/agent-settings/agent-settings.thunks"
 import { listAgents } from "@/common/features/agents/agents.thunks"
 import { fetchMe } from "@/common/features/me/me.thunks"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
@@ -20,7 +20,7 @@ function registerListeners() {
       deleteDocumentTag.fulfilled,
     ),
     effect: async (_, listenerApi) => {
-      listenerApi.dispatch(listAgents())
+      listenerApi.dispatch(listAgents({ includeDrafts: true }))
     },
   })
 
@@ -28,12 +28,12 @@ function registerListeners() {
     actionCreator: updateAgent.fulfilled,
     effect: async (action, listenerApi) => {
       const agentId = action.meta.arg.agentId
-      await listenerApi.dispatch(listAgents())
-      await listenerApi.dispatch(listAgentSettings({ agentId }))
+      await listenerApi.dispatch(listAgents({ includeDrafts: true }))
+      await listenerApi.dispatch(listAgentSettingsWithDraft({ agentId }))
 
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Agent updated successfully",
+          titleKey: "agent:notifications.updated",
           type: "success",
         }),
       )
@@ -44,7 +44,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Agent update failed",
+          titleKey: "agent:notifications.updateError",
           type: "error",
         }),
       )
@@ -54,11 +54,11 @@ function registerListeners() {
   listenerMiddleware.startListening({
     actionCreator: deleteAgent.fulfilled,
     effect: async (_, listenerApi) => {
-      await listenerApi.dispatch(listAgents())
+      await listenerApi.dispatch(listAgents({ includeDrafts: true }))
 
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Agent deleted successfully",
+          titleKey: "agent:notifications.deleted",
           type: "success",
         }),
       )
@@ -69,7 +69,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Agent deletion failed",
+          titleKey: "agent:notifications.deleteError",
           type: "error",
         }),
       )
@@ -80,12 +80,12 @@ function registerListeners() {
     actionCreator: createAgent.fulfilled,
     effect: async (action, listenerApi) => {
       const agentId = action.payload.id
-      await listenerApi.dispatch(listAgents())
-      await listenerApi.dispatch(listAgentSettings({ agentId }))
+      await listenerApi.dispatch(listAgents({ includeDrafts: true }))
+      await listenerApi.dispatch(listAgentSettingsWithDraft({ agentId }))
 
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Agent created successfully",
+          titleKey: "agent:notifications.created",
           type: "success",
         }),
       )
@@ -101,7 +101,7 @@ function registerListeners() {
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          title: "Agent creation failed",
+          titleKey: "agent:notifications.createError",
           type: "error",
         }),
       )

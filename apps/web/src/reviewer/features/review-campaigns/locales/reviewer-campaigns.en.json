@@ -103,6 +103,9 @@
       "empty": "No answers.",
       "notAnswered": "Not answered",
       "ratingAriaLabel": "Rated {{rating}} out of 5"
+    },
+    "notifications": {
+      "reviewSaved": "Review saved"
     }
   }
 }

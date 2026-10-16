@@ -18,6 +18,7 @@ import { RbacModule } from "@/domains/rbac/rbac.module"
 import { UsersModule } from "@/domains/users/users.module"
 import { LlmModule } from "@/external/llm/llm.module"
 import { ProjectsModule } from "../projects/projects.module"
+import { RbacModule } from "../rbac/rbac.module"
 import { ResourceLibrariesModule } from "../resource-libraries/resource-libraries.module"
 import { Agent } from "./agent.entity"
 import { AgentGuard } from "./agent.guard"
@@ -27,12 +28,10 @@ import { AgentsService } from "./agents.service"
 import { BaseAgentSessionsService } from "./base-agent-sessions/base-agent-sessions.service"
 import { AgentMembershipRepository } from "./memberships/agent-membership.repository"
 import { AgentMembershipsController } from "./memberships/agent-memberships.controller"
-import { AgentMembershipsGuard } from "./memberships/agent-memberships.guard"
 import { AgentMembershipsService } from "./memberships/agent-memberships.service"
 import { AgentSessionCategoriesService } from "./session-categories/agent-session-categories.service"
 import { AgentSessionCategory } from "./session-categories/agent-session-category.entity"
 import { ProjectAgentSessionCategoriesController } from "./session-categories/project-agent-session-categories.controller"
-import { ProjectAgentSessionCategoriesGuard } from "./session-categories/project-agent-session-categories.guard"
 import { ProjectAgentSessionCategoriesService } from "./session-categories/project-agent-session-categories.service"
 import { ProjectAgentSessionCategory } from "./session-categories/project-agent-session-category.entity"
 import { AgentSettingsController } from "./settings/agent-settings.controller"
@@ -67,6 +66,7 @@ import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
     forwardRef(() => ConversationAgentSessionsModule),
     forwardRef(() => ExtractionAgentSessionsModule),
     ConversationFormsModule,
+    RbacModule,
   ],
   providers: [
     AgentsService,
@@ -78,8 +78,6 @@ import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
     AgentMembershipsService,
     AgentMembershipRepository,
     AgentGuard,
-    AgentMembershipsGuard,
-    ProjectAgentSessionCategoriesGuard,
     ResourceContextGuard,
     OrganizationContextResolver,
     ProjectContextResolver,

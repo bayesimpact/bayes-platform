@@ -1,6 +1,6 @@
 [
   {
-    "origin": ["https://connect.localhost:5173", "https://connect.localhost:3000"],
+    "origin": ["*"],
     "method": ["PUT"],
     "responseHeader": ["Content-Type"],
     "maxAgeSeconds": 3600

@@ -15,6 +15,7 @@ import {
   selectIsRetryingCsvRun,
 } from "@/common/features/agents/csv-extraction-runs/agent-csv-extraction-runs.selectors"
 import { agentCsvExtractionRunsActions } from "@/common/features/agents/csv-extraction-runs/agent-csv-extraction-runs.slice"
+import { agentCsvExtractionRunsThunks } from "@/common/features/agents/csv-extraction-runs/agent-csv-extraction-runs.thunks"
 import { AgentCsvExtractionRunRecordsTable } from "@/common/features/agents/csv-extraction-runs/components/AgentCsvExtractionRunRecordsTable"
 import { AgentCsvExtractionRunStatusBadge } from "@/common/features/agents/csv-extraction-runs/components/AgentCsvExtractionRunStatusBadge"
 import { AgentCsvExtractionRunSummary } from "@/common/features/agents/csv-extraction-runs/components/AgentCsvExtractionRunSummaryCard"
@@ -25,7 +26,7 @@ import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { LoadingRoute } from "@/common/routes/LoadingRoute"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { buildDuration, buildSince } from "@/common/utils/build-date"
-import { DocumentOpener } from "@/studio/features/documents/components/DocumentOpener"
+import { FileOpener } from "@/studio/features/documents/components/DocumentOpener"
 
 /**
  * `renderRevisionBadge` labels the run with the agent settings version it ran with. It is a
@@ -138,7 +139,15 @@ function WithData({ renderRevisionBadge }: Props) {
                 {t("agentCsvExtractionRun:results.retry")}
               </Button>
             ) : run.csvExportDocumentId ? (
-              <DocumentOpener documentId={run.csvExportDocumentId} />
+              <FileOpener
+                getUrl={() =>
+                  dispatch(
+                    agentCsvExtractionRunsThunks.getExportTemporaryUrl({
+                      agentCsvExtractionRunId: run.id,
+                    }),
+                  ).unwrap()
+                }
+              />
             ) : null}
 
             <Button variant="secondary" size="icon" onClick={() => setConfirmDeleteOpen(true)}>

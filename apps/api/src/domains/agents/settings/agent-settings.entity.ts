@@ -1,4 +1,9 @@
-import type { AgentLocale, AgentModel, DocumentsRagMode } from "@caseai-connect/api-contracts"
+import type {
+  AgentLocale,
+  AgentMemoryMode,
+  AgentModel,
+  DocumentsRagMode,
+} from "@caseai-connect/api-contracts"
 import { Column, JoinColumn, ManyToOne } from "typeorm"
 import { ConnectEntityBase, ConnectEntityWithUniqueIndex } from "@/common/entities/connect-entity"
 import { Agent } from "@/domains/agents/agent.entity"
@@ -47,10 +52,7 @@ export class AgentSettings extends ConnectEntityBase {
       to: (value: number): number => value,
     },
   })
-  /**
-   * Replaced by the temperature of `providerOptions`, for the models that
-   * still take one: kept as the `temperature` column, no longer read.
-   */
+  deletedTemperature!: number
   deletedTemperature!: number
 
   @Column({ type: "varchar", nullable: false })
@@ -72,10 +74,10 @@ export class AgentSettings extends ConnectEntityBase {
   priorityCallsEnabled!: boolean
 
   @Column({ type: "jsonb", nullable: false, name: "provider_options" })
-  /**
-   * The options of the agent's model, merged over the model's defaults on every call. Never
-   * null: an agent is created with its model's defaults, and every revision keeps or replaces
-   * them.
-   */
   providerOptions!: Record<string, unknown>
+
+  @Column({ type: "varchar", name: "memory_mode", nullable: false, default: "off" })
+  m
+  @Column({ type: "varchar", name: "memory_mode", nullable: false, default: "off" })
+  memoryMode!: AgentMemoryMode
 }

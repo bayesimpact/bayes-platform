@@ -1,4 +1,9 @@
-import { DocumentsRagMode, outputJsonSchemaSchema, ToolName } from "@caseai-connect/api-contracts"
+import {
+  AgentMemoryMode,
+  DocumentsRagMode,
+  outputJsonSchemaSchema,
+  ToolName,
+} from "@caseai-connect/api-contracts"
 import { Inject, Injectable, Logger } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import type { ToolSet } from "ai"
@@ -11,6 +16,9 @@ import type {
 } from "@/common/interfaces/llm-provider.interface"
 import type { Agent } from "@/domains/agents/agent.entity"
 import { ConversationAgentSessionsService } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.service"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentMemoriesService } from "@/domains/agents/memories/agent-memories.service"
+import type { AgentMemoryOwner } from "@/domains/agents/memories/agent-memory.repository"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
@@ -41,6 +49,13 @@ import {
   inlineCitationInstruction,
   lookupKnowledgeBaseTool,
 } from "./tools/lookup-knowledge-base.tool"
+import {
+  createMemoryAliasRegistry,
+  forgetMemoryTool,
+  type MemoryAliasRegistry,
+  memoryOwnerForSession,
+  saveMemoryTool,
+} from "./tools/memory.tools"
 import { createRetrievedChunksRegistry } from "./tools/retrieved-chunks-registry"
 import type { SessionStateTarget } from "./tools/session-state-target"
 import { surfaceResourcesTool } from "./tools/surface-resources.tool"
@@ -106,6 +121,7 @@ export class ToolsService {
     private readonly mcpServersService: McpServersService,
     @InjectRepository(AgentMessage)
     private readonly agentMessageRepository: Repository<AgentMessage>,
+    private readonly agentMemoriesService: AgentMemoriesService,
   ) {}
 
   buildTools: (params: BuildToolsParams) => Promise<BuiltTools> = async (params) => {
@@ -409,6 +425,7 @@ export class ToolsService {
       sessionPersistsForms(session)
     const [
       hasSourcesTool,
+      memoryEnabled,
       {
         tools: subAgentTools,
         toolDescriptions: subAgentToolDescriptions,
@@ -419,6 +436,11 @@ export class ToolsService {
     ] = await Promise.all([
       // Check if the agent has the sources tool enabled
       this.projectsService.hasFeature({ connectScope, feature: "sources-tool" }),
+
+      // Memory is on for this agent and its project has the feature
+      agentSettings.memoryMode === AgentMemoryMode.Off
+        ? Promise.resolve(false)
+        : this.projectsService.hasFeature({ connectScope, feature: "agent-memory" }),
 
       // Build sub-agent tools if requested
       includeSubAgentTools
@@ -449,6 +471,8 @@ export class ToolsService {
             handoffTurnState: {} as HandoffTurnState,
           }),
     ])
+    // Memory also needs a signed-in user to remember things about (see ADR 0023).
+    const memoryOwner = memoryEnabled ? memoryOwnerForSession({ agent, session }) : null
     // A sub-agent answering as the active agent of a handoff hands the
     // conversation back itself, with this tool; the post-turn step also reads
     // its reply for a conclusion it forgot to signal, and summarizes its part.
@@ -539,6 +563,10 @@ export class ToolsService {
       handoff,
       ownFormSchema: hasFillFormTool ? agentSettings.outputJsonSchema : null,
     })
+    const memory = memoryOwner
+      ? await this.buildMemoryContext({ connectScope, owner: memoryOwner })
+      : null
+    if (memory) promptSections.push(memory.promptSection)
 
     // Sources are reported only when the agent can actually retrieve chunks:
     // BOTH the project feature flag and an active RAG mode (lookup tool present).
@@ -623,6 +651,26 @@ export class ToolsService {
             [ToolName.FillForm]: fillFormTool({
               agentSessionScope,
               conversationFormStore: this.conversationFormsService,
+              onExecute,
+            }),
+          }
+        : {}),
+
+      ...(memory && memoryOwner
+        ? {
+            [ToolName.SaveMemory]: saveMemoryTool({
+              connectScope,
+              owner: memoryOwner,
+              memoryMode: agentSettings.memoryMode,
+              sourceSessionId: session.id,
+              memoryStore: this.agentMemoriesService,
+              onExecute,
+            }),
+            [ToolName.ForgetMemory]: forgetMemoryTool({
+              connectScope,
+              owner: memoryOwner,
+              aliasRegistry: memory.aliasRegistry,
+              memoryStore: this.agentMemoriesService,
               onExecute,
             }),
           }
@@ -817,6 +865,33 @@ export class ToolsService {
         summary: form.summary,
       }))
     return [...ownSections, promptHelpers.subAgentOutcomes(outcomes)].filter(Boolean)
+  }
+
+  /**
+   * The memory section of the prompt and the aliases the forget tool resolves.
+   * Saved facts and pending proposals share one numbering, so the model can
+   * refer to either.
+   */
+  private async buildMemoryContext({
+    connectScope,
+    owner,
+  }: {
+    connectScope: RequiredConnectScope
+    owner: AgentMemoryOwner
+  }): Promise<{ promptSection: string; aliasRegistry: MemoryAliasRegistry }> {
+    const memories = await this.agentMemoriesService.listForOwner(connectScope, owner)
+    const aliasRegistry = createMemoryAliasRegistry(memories.map((memory) => memory.id))
+    const toLine = (memory: (typeof memories)[number]) => ({
+      alias: aliasRegistry.aliasFor(memory.id),
+      content: memory.content,
+    })
+    return {
+      aliasRegistry,
+      promptSection: promptHelpers.memory({
+        saved: memories.filter((memory) => memory.status === "saved").map(toLine),
+        pending: memories.filter((memory) => memory.status === "pending").map(toLine),
+      }),
+    }
   }
 
   private addToolsWithoutCollisions({

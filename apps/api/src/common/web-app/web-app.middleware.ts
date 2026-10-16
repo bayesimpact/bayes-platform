@@ -64,6 +64,12 @@ function buildSpaFallback(settings: WebAppSettings) {
         "Cache-Control": "no-store",
         "Permissions-Policy": "microphone=(self)",
         "X-Content-Type-Options": "nosniff",
+        // The OAuth consent page must never sit in another site's frame, where a
+        // hidden click would approve a client (ADR 0028).
+        ...(request.path.startsWith("/oauth/") && {
+          "X-Frame-Options": "DENY",
+          "Content-Security-Policy": "frame-ancestors 'none'",
+        }),
       })
       .send(html)
   }

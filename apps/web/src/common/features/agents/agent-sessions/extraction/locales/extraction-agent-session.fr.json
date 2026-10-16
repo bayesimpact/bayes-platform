@@ -48,6 +48,16 @@
         "description": "Cette extraction sera supprimée définitivement. Cette action est irréversible.",
         "submit": "Supprimer"
       }
+    },
+    "notifications": {
+      "completed": "Extraction terminée avec succès",
+      "failed": "L'extraction a échoué",
+      "uploading": "Téléversement de {{fileName}}...",
+      "executionFailed": "L'exécution de l'extraction a échoué",
+      "documentsDeleted": "Document(s) supprimé(s) avec succès",
+      "documentsDeleteError": "La suppression du ou des documents a échoué",
+      "deleted": "Extraction supprimée avec succès",
+      "deleteError": "La suppression de l'extraction a échoué"
     }
   }
 }

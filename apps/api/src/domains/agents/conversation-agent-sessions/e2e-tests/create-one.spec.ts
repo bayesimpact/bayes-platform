@@ -1,4 +1,7 @@
-import { ConversationAgentSessionsRoutes } from "@caseai-connect/api-contracts"
+import {
+  type BaseAgentSessionTypeDto,
+  ConversationAgentSessionsRoutes,
+} from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import { bindExpectActivityCreated } from "@/common/test/activity-test.helpers"
@@ -10,9 +13,14 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
+import type { Agent } from "@/domains/agents/agent.entity"
+import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
+import type { Organization } from "@/domains/organizations/organization.entity"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { addMemberByEmailToProject } from "@/domains/projects/memberships/project-membership.factory"
+import type { Project } from "@/domains/projects/project.entity"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { ConversationAgentSessionsModule } from "../conversation-agent-sessions.module"
 
@@ -26,6 +34,9 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
   let projectId: string
   let agentId: string
   let agentSettingsId: string
+  let organization: Organization
+  let project: Project
+  let agent: Agent
   let accessToken: string | undefined = "token"
   let authSubject = "oidc|123"
   let expectActivityCreated: ReturnType<typeof bindExpectActivityCreated>
@@ -37,6 +48,7 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
     })
     repositories = setup.getAllRepositories()
     expectActivityCreated = bindExpectActivityCreated(repositories.activityRepository)
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)
@@ -54,12 +66,14 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
   })
 
   const createContext = async (role: "owner" | "member" | "admin") => {
-    const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
-      repositories,
-      {
-        organizationMembership: { role },
-      },
-    )
+    const created = await createOrganizationWithAgent(repositories, {
+      organizationMembership: { role },
+      agentSettings: { greetingMessage: "Published greeting" },
+    })
+    organization = created.organization
+    project = created.project
+    agent = created.agent
+    const agentSettings = created.agentSettings
     const { addedUser } = await addMemberByEmailToProject({
       repositories,
       organization,
@@ -75,19 +89,44 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
     authSubject = addedUser.authSubject!
   }
 
-  const subject = async (payload?: typeof ConversationAgentSessionsRoutes.createOne.request) =>
+  const subject = async (type: BaseAgentSessionTypeDto, agentSettingsRevision?: number) =>
     request({
-      route: ConversationAgentSessionsRoutes.createOne,
+      route: ConversationAgentSessionsRoutes[type].createOne,
       pathParams: removeNullish({ organizationId, projectId, agentId }),
       token: accessToken,
-      request: payload,
+      request:
+        agentSettingsRevision === undefined ? undefined : { payload: { agentSettingsRevision } },
     })
+
+  const seedRevision = async ({
+    revision,
+    greetingMessage,
+    isDraft = false,
+    isArchived = false,
+  }: {
+    revision: number
+    greetingMessage: string
+    isDraft?: boolean
+    isArchived?: boolean
+  }) => {
+    const settings = agentSettingsFactory
+      .transient({ organization, project, agent })
+      .build({ revision, greetingMessage, isDraft, isArchived })
+    await repositories.agentSettingsRepository.save(settings)
+    return settings
+  }
+
+  const findGreeting = async (sessionId: string) => {
+    const messages = await repositories.agentMessageRepository.find({ where: { sessionId } })
+    expect(messages).toHaveLength(1)
+    return messages[0]
+  }
 
   describe("creating a live session", () => {
     it("should create a live session", async () => {
       await createContext("member")
 
-      const response = await subject({ payload: { type: "live" } })
+      const response = await subject("live")
 
       expectResponse(response, 201)
       expect(response.body.data.id).toBeDefined()
@@ -107,7 +146,7 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
     it("should create a playground session", async () => {
       await createContext("owner")
 
-      const response = await subject({ payload: { type: "playground" } })
+      const response = await subject("playground")
 
       expectResponse(response, 201)
       expect(response.body.data.id).toBeDefined()
@@ -131,7 +170,7 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
         greetingMessage: greeting,
       })
 
-      const response = await subject({ payload: { type: "live" } })
+      const response = await subject("live")
 
       expectResponse(response, 201)
       const sessionId = response.body.data.id
@@ -144,14 +183,85 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
 
     it("should not seed any message when the agent has no greetingMessage", async () => {
       await createContext("owner")
+      await repositories.agentSettingsRepository.update(agentSettingsId, { greetingMessage: null })
 
-      const response = await subject({ payload: { type: "live" } })
+      const response = await subject("live")
 
       expectResponse(response, 201)
       const messages = await repositories.agentMessageRepository.find({
         where: { sessionId: response.body.data.id },
       })
       expect(messages).toHaveLength(0)
+    })
+  })
+
+  describe("greeting with a settings version", () => {
+    it("greets a playground session with the draft when no version is requested", async () => {
+      await createContext("owner")
+      const draft = await seedRevision({
+        revision: 2,
+        greetingMessage: "Draft greeting",
+        isDraft: true,
+      })
+
+      const response = await subject("playground")
+
+      expectResponse(response, 201)
+      const greeting = await findGreeting(response.body.data.id)
+      expect(greeting?.content).toBe("Draft greeting")
+      expect(greeting?.agentSettingsId).toBe(draft.id)
+    })
+
+    it("greets a playground session with the requested version", async () => {
+      await createContext("owner")
+      await seedRevision({ revision: 2, greetingMessage: "Draft greeting", isDraft: true })
+
+      const response = await subject("playground", 1)
+
+      expectResponse(response, 201)
+      const greeting = await findGreeting(response.body.data.id)
+      expect(greeting?.content).toBe("Published greeting")
+      expect(greeting?.agentSettingsId).toBe(agentSettingsId)
+    })
+
+    it("greets a live session with the published version even when a draft exists", async () => {
+      await createContext("member")
+      await seedRevision({ revision: 2, greetingMessage: "Draft greeting", isDraft: true })
+
+      const response = await subject("live")
+
+      expectResponse(response, 201)
+      const greeting = await findGreeting(response.body.data.id)
+      expect(greeting?.content).toBe("Published greeting")
+    })
+
+    it("rejects a version on a live session", async () => {
+      await createContext("member")
+
+      const response = await subject("live", 1)
+
+      expectResponse(
+        response,
+        403,
+        "Choosing a settings version is only available in the playground",
+      )
+    })
+
+    it("rejects an unknown version", async () => {
+      await createContext("owner")
+
+      const response = await subject("playground", 42)
+
+      expectResponse(response, 404)
+    })
+
+    it("rejects an archived version", async () => {
+      await createContext("owner")
+      await seedRevision({ revision: 2, greetingMessage: "Old greeting", isArchived: true })
+
+      const response = await subject("playground", 2)
+
+      expectResponse(response, 422)
     })
   })
 })

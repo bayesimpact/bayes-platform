@@ -32,6 +32,7 @@ export const appInstallPageFactory = AppInstallPageFactory.define(({ params }) =
       description: params.app?.description ?? "A generic assistant used in tests.",
       logoUrl: params.app?.logoUrl ?? null,
       grantablePermissions,
+      allowedRedirectUris: params.app?.allowedRedirectUris ?? [],
     },
     projects: params.projects ?? appInstallProjectFactory.buildList(2),
   }

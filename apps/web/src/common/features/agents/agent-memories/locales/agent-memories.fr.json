@@ -1,0 +1,27 @@
+{
+  "agentMemories": {
+    "card": {
+      "saved": "Enregistré en mémoire",
+      "proposalTitle": "Se souvenir de ceci pour la prochaine fois ?",
+      "proposalDescription": "L'agent propose de garder cette information pour vos prochaines conversations.",
+      "save": "Oui, s'en souvenir",
+      "reject": "Non, ne pas la garder",
+      "rewordLabel": "Ou la reformuler",
+      "rewordPlaceholder": "Écrivez l'information telle que vous voulez qu'elle soit retenue",
+      "submit": "Confirmer",
+      "skip": "Plus tard",
+      "answeredSaved": "Retenu",
+      "answeredRejected": "Non conservé"
+    },
+    "panel": {
+      "button": "Mémoire",
+      "title": "Ce dont l'agent se souvient",
+      "description": "Les informations que cet agent garde sur vous d'une conversation à l'autre. Vous seul pouvez les voir.",
+      "playgroundDescription": "La mémoire du playground est séparée de ce dont l'agent se souvient dans les conversations réelles.",
+      "empty": "L'agent ne se souvient encore de rien à votre sujet.",
+      "pending": "En attente de votre réponse",
+      "clearAll": "Tout oublier",
+      "clearAllConfirm": "Oublier tout ce dont l'agent se souvient à votre sujet ?"
+    }
+  }
+}

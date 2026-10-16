@@ -10,6 +10,7 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { documentFactory } from "@/domains/documents/document.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { DocumentsModule } from "../documents.module"
 import { withDocumentAuthAndEmbeddingsMocks } from "../test-overrides"
@@ -32,6 +33,7 @@ describe("Documents - getAll", () => {
         withDocumentAuthAndEmbeddingsMocks(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)

@@ -7,6 +7,7 @@ import {
   listProjectMemberAgents,
   listProjectMemberships,
   removeProjectMembership,
+  updateProjectMembershipRole,
 } from "./project-memberships.thunks"
 
 interface State {
@@ -48,6 +49,14 @@ const slice = createSlice({
         state.data.status = ADS.Error
         state.data.error = action.error.message || "Failed to list project memberships"
       })
+
+    builder.addCase(updateProjectMembershipRole.fulfilled, (state, action) => {
+      if (ADS.isFulfilled(state.data)) {
+        state.data.value = state.data.value.map((membership) =>
+          membership.id === action.payload.id ? action.payload : membership,
+        )
+      }
+    })
 
     builder.addCase(removeProjectMembership.fulfilled, (state, action) => {
       if (ADS.isFulfilled(state.data)) {
