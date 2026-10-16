@@ -121,7 +121,6 @@
       "openInStudio": "Open in Studio",
       "notFound": "Agent not found",
       "model": "Model",
-      "temperature": "Temperature",
       "locale": "Language",
       "documentsRagMode": "Document search",
       "prompt": "System prompt",

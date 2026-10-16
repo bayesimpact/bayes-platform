@@ -1,5 +1,7 @@
-import type { AgentModel, AgentProvider, AgentThinkingLevel } from "@caseai-connect/api-contracts"
+import type { JSONValue } from "@ai-sdk/provider"
+import type { AgentModel, AgentProvider } from "@caseai-connect/api-contracts"
 import type { ModelMessage, ToolSet } from "ai"
+import type { ZodType } from "zod"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 export type LLMChatMessage = ModelMessage
 
@@ -19,6 +21,24 @@ export type MockValue =
   // A generation that fails at the provider (e.g. a 400 APICallError).
   | { type: "error"; error: Error }
 
+/**
+ * The call settings that vary by model, spread last into each AI SDK call:
+ * the temperature, left out when the model must not receive one, and the
+ * provider options keyed by provider (e.g. `vertex` for its thinking level),
+ * left out when the model has none.
+ */
+export type SpecificProviderOptions = {
+  temperature?: number
+  providerOptions?: Record<string, Record<string, JSONValue>>
+}
+
+/**
+ * The options an agent stores for its model (`agent_settings.provider_options`),
+ * or the ones an internal call sets (e.g. `{ temperature: 0 }`). Merged over the
+ * model's defaults and checked against the model's schema on every call.
+ */
+export type LLMModelOptions = Record<string, unknown>
+
 export type LLMFeatures = {
   priorityCalls?: boolean
   flexWorkers?: boolean
@@ -26,30 +46,29 @@ export type LLMFeatures = {
 export type BuildLLMConfigParams = {
   model: AgentSettings["model"]
   systemPrompt: string
-  temperature: AgentSettings["temperature"]
+  modelOptions?: AgentSettings["providerOptions"]
   tools?: ToolSet
   fireAndForgetToolNames?: string[]
   terminalToolNames?: string[]
   priorityCallsEnabled: boolean
   llmFeatures: LLMFeatures
   useExtendedTimeouts?: boolean
-  thinkingLevel?: AgentThinkingLevel
 }
 export type LLMConfig =
   | {
       model: MockModels
-      temperature: number
+      modelOptions?: LLMModelOptions
       systemPrompt?: string
       tools?: ToolSet
       fireAndForgetToolNames?: string[]
       terminalToolNames?: string[]
       useExtendedTimeouts?: never
       serviceTier: never
-      thinkingLevel: never
     }
   | {
       model: Exclude<string, MockModels>
-      temperature: number
+      /** See {@link LLMModelOptions}. */
+      modelOptions?: LLMModelOptions
       systemPrompt?: string
       tools?: ToolSet
       /**
@@ -72,7 +91,6 @@ export type LLMConfig =
        */
       useExtendedTimeouts?: boolean
       serviceTier: LLMServiceTier
-      thinkingLevel: AgentThinkingLevel
     }
 export type LLMServiceTier = "priority" | "flex" | undefined
 export type LLMMetadata = (
@@ -108,6 +126,15 @@ export type LLMMetadata = (
 
 export interface LLMProvider {
   getAgentProvider(): AgentProvider
+  /** The schema of a model's options, checked on every call. */
+  getModelOptionsSchema(agentModel: AgentModel): ZodType<SpecificProviderOptions>
+  /** A model's options when the call sets none. */
+  getModelOptions(agentModel: AgentModel): SpecificProviderOptions
+  /** What the catalog says of a model (retirement, data residency). */
+  getModelMetadata(agentModel: AgentModel): {
+    deprecation?: { deprecatedOn: string; recommendedReplacement: AgentModel }
+    servedOutsideEu?: boolean
+  }
   streamChatResponse({
     messages,
     config,

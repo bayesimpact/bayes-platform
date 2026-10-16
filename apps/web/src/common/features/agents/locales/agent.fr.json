@@ -61,7 +61,12 @@
       "deprecation": {
         "title": "ACTION REQUISE : {{model}} sera retiré le {{date}}",
         "description": "Mettez cet agent à jour vers {{replacement}} et testez-le avant cette date. Passé ce délai, les exécutions sur {{model}} échoueront."
-      }
+      },
+      "retirement": {
+        "title": "ACTION REQUISE : {{model}} a été retiré le {{date}}",
+        "description": "Les exécutions sur {{model}} échouent désormais. Mettez cet agent à jour vers {{replacement}} et testez-le."
+      },
+      "unavailable": "Ce modèle n'est plus disponible. Sélectionnez un nouveau modèle dans la liste."
     },
     "playground": "Playground",
     "notifications": {

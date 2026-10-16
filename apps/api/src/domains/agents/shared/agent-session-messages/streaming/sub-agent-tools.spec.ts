@@ -5,6 +5,94 @@ import { buildSubAgentTools } from "./sub-agent-tools"
 import type { ToolExecutionLog } from "./tools/tool-execution-log"
 
 describe("buildSubAgentTools", () => {
+  it("runs the sub-agent with its own model options", async () => {
+    const childAgent = {
+      id: "child-agent-id",
+      projectId: "project-id",
+      organizationId: "organization-id",
+      name: "Helpful Assistant",
+      type: "conversation",
+    }
+    const childAgentSettings = {
+      id: "child-agent-id-settings",
+      projectId: "project-id",
+      organizationId: "organization-id",
+      instructions: "Answer delegated questions.",
+      model: "mock-model",
+      revision: 1,
+      deletedTemperature: 0,
+      providerOptions: { temperature: 0.6 },
+      locale: "en",
+      documentsRagMode: DocumentsRagMode.None,
+    }
+    const parentAgent = { ...childAgent, id: "parent-agent-id", name: "Orchestrator" }
+    const parentAgentSettings = {
+      ...childAgentSettings,
+      id: "parent-agent-id-settings",
+      providerOptions: { temperature: 0.3 },
+    }
+    const childConfigs: unknown[] = []
+
+    const { tools } = await buildSubAgentTools({
+      activeAgentController: {
+        setActiveAgent: async () => undefined,
+        clearActiveAgentIfCurrent: async () => undefined,
+      },
+      formReader: { findOne: async () => null },
+      agentSessionScope: {
+        agent: parentAgent,
+        agentSettings: parentAgentSettings,
+        session: { id: "session-id", traceId: "trace-id", organizationId: "organization-id" },
+        connectScope: { organizationId: "organization-id", projectId: "project-id" },
+      } as never,
+      agentSubAgentsService: {
+        listSubAgents: jest.fn().mockResolvedValue([
+          {
+            id: "sub-agent-id",
+            parentAgentId: parentAgent.id,
+            childAgentId: childAgent.id,
+            toolName: "ask_helpful_assistant",
+            description: "Ask the helpful assistant.",
+            enabled: true,
+            childAgent,
+          },
+        ]),
+      } as never,
+      buildLLMConfig: (params) => params as never,
+      conversationAgentSessionsService: { findOrCreateSubSession: jest.fn() } as never,
+      agentSettingsService: { getLast: jest.fn().mockResolvedValue(childAgentSettings) } as never,
+      buildTools: async () => ({
+        toolDescriptions: {},
+        fireAndForgetToolNames: [],
+        hasSubAgentTools: false,
+        promptSections: [],
+        terminalToolNames: [],
+        tools: {},
+      }),
+      generateMasterPrompt: () => "system prompt",
+      getProviderForModel: () =>
+        ({
+          streamChatResponse: async function* ({ config }) {
+            childConfigs.push(config)
+            yield "answer"
+          },
+        }) as never,
+      onExecute: () => undefined,
+      projectsService: {
+        hasFeature: jest.fn().mockResolvedValue(true),
+        getLlmFeatures: jest.fn().mockResolvedValue({}),
+      } as never,
+    })
+
+    const subAgentTool = tools.ask_helpful_assistant as never as {
+      execute: (input: { task: string; context: string }) => Promise<unknown>
+    }
+    await subAgentTool.execute({ task: "Help with pricing.", context: "" })
+
+    expect(childConfigs).toHaveLength(1)
+    expect(childConfigs[0]).toMatchObject({ modelOptions: { temperature: 0.6 } })
+  })
+
   it("uses the sub-agent tool name as the notification key for child tool executions", async () => {
     const toolExecutions: ToolExecutionLog[] = []
     const childAgent = {
@@ -21,7 +109,7 @@ describe("buildSubAgentTools", () => {
       instructions: "Answer delegated questions.",
       model: "mock-model",
       revision: 1,
-      temperature: 0,
+      deletedTemperature: 0,
       locale: "en",
       documentsRagMode: DocumentsRagMode.None,
     }
@@ -145,7 +233,7 @@ describe("buildSubAgentTools", () => {
       organizationId: "organization-id",
       instructions: "Collect the user details.",
       model: "mock-model",
-      temperature: 0,
+      deletedTemperature: 0,
       locale: "en",
       revision: 1,
       documentsRagMode: DocumentsRagMode.None,
@@ -279,7 +367,7 @@ describe("buildSubAgentTools", () => {
       instructions: "Answer pricing questions.",
       model: "mock-model",
       revision: 1,
-      temperature: 0,
+      deletedTemperature: 0,
       locale: "en",
       documentsRagMode: DocumentsRagMode.None,
     }

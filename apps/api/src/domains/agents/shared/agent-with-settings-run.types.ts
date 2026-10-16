@@ -5,16 +5,10 @@ import type { AgentSettings } from "@/domains/agents/settings/agent-settings.ent
 type AgentWithSettingsRunJobPayloadBase = Pick<Agent, "id" | "name" | "type"> &
   Pick<
     AgentSettings,
-    | "revision"
-    | "instructions"
-    | "documentsRagMode"
-    | "model"
-    | "temperature"
-    | "locale"
-    | "priorityCallsEnabled"
+    "revision" | "instructions" | "documentsRagMode" | "model" | "locale" | "priorityCallsEnabled"
   > &
-  // thinkingLevel is optional: jobs queued before it existed still run, on Auto.
-  Partial<Pick<AgentSettings, "outputJsonSchema" | "greetingMessage" | "thinkingLevel">>
+  // providerOptions is optional: jobs queued before it existed run on the model's defaults.
+  Partial<Pick<AgentSettings, "outputJsonSchema" | "greetingMessage" | "providerOptions">>
 
 export type AgentWithSettingsRunJobPayload = {
   settings: AgentWithSettingsRunJobPayloadBase

@@ -1,4 +1,4 @@
-import { AgentModel } from "@caseai-connect/api-contracts"
+import { AgentModel, AgentProvider } from "@caseai-connect/api-contracts"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import type { LLMProvider } from "@/common/interfaces/llm-provider.interface"
 import { EvaluationConversationRunGraderLlmService } from "./evaluation-conversation-run-grader-llm.service"
@@ -16,14 +16,14 @@ describe("EvaluationConversationRunGraderLLMService", () => {
   beforeEach(() => {
     mockProvider = { generateText: jest.fn() }
     vertexProvider = { generateText: jest.fn() }
-    grader = new EvaluationConversationRunGraderLlmService(
-      mockProvider as unknown as LLMProvider,
-      vertexProvider as unknown as LLMProvider,
-      vertexProvider as unknown as LLMProvider,
-      vertexProvider as unknown as LLMProvider,
-      vertexProvider as unknown as LLMProvider,
-      vertexProvider as unknown as LLMProvider,
-    )
+    grader = new EvaluationConversationRunGraderLlmService({
+      [AgentProvider._Mock]: mockProvider as unknown as LLMProvider,
+      [AgentProvider.Vertex]: vertexProvider as unknown as LLMProvider,
+      [AgentProvider.Vertex3]: vertexProvider as unknown as LLMProvider,
+      [AgentProvider.Mistral]: vertexProvider as unknown as LLMProvider,
+      [AgentProvider.MedGemma]: vertexProvider as unknown as LLMProvider,
+      [AgentProvider.Gemma]: vertexProvider as unknown as LLMProvider,
+    })
   })
 
   const gradeWith = (
@@ -83,7 +83,7 @@ describe("EvaluationConversationRunGraderLLMService", () => {
     expect(vertexProvider.generateText).toHaveBeenCalledTimes(1)
     const callArguments = vertexProvider.generateText.mock.calls[0]![0]
     expect(callArguments.config.model).toBe(AgentModel.Gemini25Flash)
-    expect(callArguments.config.temperature).toBe(0)
+    expect(callArguments.config.modelOptions).toEqual({ temperature: 0 })
     expect(callArguments.prompt).toContain("<%ratingInstructions>")
     expect(callArguments.prompt).toContain("The expected answer")
     expect(callArguments.prompt).toContain("<%value>")

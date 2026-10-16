@@ -21,7 +21,7 @@ Access tokens last 15 minutes, refresh tokens 7 days. The person sees and revoke
 | `list_projects` | `project.read` granted | Lists the granted projects the person can still see, and whether agents can be created in each. |
 | `create_agent` | `agent.create` granted on the project, and held by the person | Creates an agent with the web app's defaults and publishes its first version. Returns a studio link. |
 | `list_agents` | `project.read` granted on the project | Lists the agents of the project the person is a member of, with their model and whether `update_agent` can change them. |
-| `update_agent` | `agent.settings.draft.update` granted on the project, and the person owns or administers the agent | Changes the model, instructions, temperature, language or greeting in the agent's draft. Nothing is published: the person publishes the draft in the studio. |
+| `update_agent` | `agent.settings.draft.update` granted on the project, and the person owns or administers the agent | Changes the model, instructions, language or greeting in the agent's draft. Nothing is published: the person publishes the draft in the studio. |
 
 A right needs both: the person holds it on the project now, and granted it to the client.
 

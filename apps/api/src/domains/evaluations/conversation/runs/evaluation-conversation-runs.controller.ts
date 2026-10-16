@@ -1,4 +1,5 @@
 import {
+  AgentModel,
   type EvaluationConversationRunAgentSettingsDto,
   type EvaluationConversationRunDto,
   type EvaluationConversationRunRecordDto,
@@ -74,6 +75,12 @@ export class EvaluationConversationRunsController {
     @Body() { payload }: typeof EvaluationConversationRunsRoutes.createOne.request,
   ): Promise<typeof EvaluationConversationRunsRoutes.createOne.response> {
     const connectScope = getRequiredConnectScope(request)
+    // An unknown judge model is rejected by the service (422); a known one must be available.
+    if (Object.values(AgentModel).includes(payload.judgeModel))
+      await this.agentSettingsService.assertModelAvailable({
+        connectScope,
+        model: payload.judgeModel,
+      })
     const agentSettings = await this.resolveAgentSettings({
       connectScope,
       agentId: payload.agentId,
@@ -309,9 +316,7 @@ function toEvaluationConversationRunAgentSettingsDto(
     locale: agentSettings.locale,
     model: agentSettings.model,
     revision: agentSettings.revision,
-    // The column is a decimal with a read transformer; Number() keeps the DTO
-    // numeric even if a raw string slips through (mirrors agents.controller.ts).
-    temperature: Number(agentSettings.temperature),
+    providerOptions: agentSettings.providerOptions,
   }
 }
 

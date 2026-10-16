@@ -1,9 +1,11 @@
 import { Wrap } from "@/common/components/layouts/Wrap"
 import { SidebarAgentList } from "@/common/components/sidebar/list/SidebarAgentList"
 import { SidebarLayout } from "@/common/components/sidebar/SidebarLayout"
+import { agentsActions } from "@/common/features/agents/agents.slice"
 import { selectMe } from "@/common/features/me/me.selectors"
 import { selectCurrentOrganization } from "@/common/features/organizations/organizations.selectors"
 import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
+import { useMount } from "@/common/hooks/use-mount"
 import { usePreventLeave } from "@/common/hooks/use-prevent-leave"
 import { useValue } from "@/common/hooks/use-value"
 import { useAppSelector } from "@/common/store/hooks"
@@ -18,6 +20,15 @@ export function StudioLayout({ children }: { children: React.ReactNode }) {
   const user = useValue(selectMe)
   const organization = useValue(selectCurrentOrganization)
   const project = useValue(selectCurrentProjectData)
+
+  // The sidebar, the agent creator and the agent pages read the project's model catalog.
+  useMount({
+    actions: {
+      mount: agentsActions.mountAvailableModels,
+      unmount: agentsActions.unmountAvailableModels,
+    },
+    refreshOn: [project.id],
+  })
 
   const uploaderState = useAppSelector(selectUploaderState)
   usePreventLeave(uploaderState.status === "uploading")

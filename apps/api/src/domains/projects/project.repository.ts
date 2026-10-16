@@ -1,3 +1,4 @@
+import type { FeatureFlagKey } from "@caseai-connect/api-contracts"
 import { Injectable } from "@nestjs/common"
 import { In, type Repository } from "typeorm"
 import { ALL_ENTITIES } from "@/common/all-entities"
@@ -109,6 +110,17 @@ export class ProjectRepository {
     return this.repo().exists({
       where: { id: projectId, featureFlags: { featureFlagKey: feature, enabled: true } },
     })
+  }
+
+  /** Keys of the project's enabled feature flags, empty when the project does not exist. */
+  async listEnabledFeatures(projectId: string): Promise<FeatureFlagKey[]> {
+    const project = await this.repo().findOne({
+      where: { id: projectId },
+      relations: { featureFlags: true },
+    })
+    return (project?.featureFlags ?? [])
+      .filter((featureFlag) => featureFlag.enabled)
+      .map((featureFlag) => featureFlag.featureFlagKey as FeatureFlagKey)
   }
 
   async softDelete(projectId: string): Promise<void> {

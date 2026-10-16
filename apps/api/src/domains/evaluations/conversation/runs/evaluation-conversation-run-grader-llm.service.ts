@@ -1,14 +1,15 @@
 import { AgentModel, AgentModelToAgentProvider, AgentProvider } from "@caseai-connect/api-contracts"
 import { Inject, Injectable, UnprocessableEntityException } from "@nestjs/common"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
-import type { LLMMetadata, LLMProvider } from "@/common/interfaces/llm-provider.interface"
+import type { LLMMetadata } from "@/common/interfaces/llm-provider.interface"
 import { LlmServiceBase } from "@/external/llm"
+import { LLM_PROVIDERS, type LlmProviders } from "@/external/llm/llm.module"
 
 /**
  * LLM judge for conversation evaluation runs, ported from the legacy
  * EvaluationReportsService.rateReport: same prompts, same rating agent at
  * temperature 0, same mock swap for tests. The judge model is now selectable
- * per run (see DEFAULT_AGENT_MODEL for the default the UI offers) and passed in via
+ * per run (see AGENT_DEFAULT_MODELS.judge for the default the UI offers) and passed in via
  * optional per-run `judgeInstructions` are injected into the grading prompt.
  * Unlike the legacy version, the raw response is parsed into an integer score
  * clamped to 0-5 and an unparsable response throws (the run record then becomes
@@ -17,27 +18,10 @@ import { LlmServiceBase } from "@/external/llm"
 @Injectable()
 export class EvaluationConversationRunGraderLlmService extends LlmServiceBase {
   constructor(
-    @Inject("_MockLLMProvider")
-    mockLlmProvider: LLMProvider,
-    @Inject("VertexLLMProvider")
-    vertexLlmProvider: LLMProvider,
-    @Inject("Vertex3LLMProvider")
-    vertex3LlmProvider: LLMProvider,
-    @Inject("MistralLLMProvider")
-    mistralLlmProvider: LLMProvider,
-    @Inject("MedGemmaLLMProvider")
-    medGemmaLlmProvider: LLMProvider,
-    @Inject("GemmaLLMProvider")
-    gemmaLlmProvider: LLMProvider,
+    @Inject(LLM_PROVIDERS)
+    llmProviders: LlmProviders,
   ) {
-    super({
-      mockLlmProvider,
-      vertexLlmProvider,
-      vertex3LlmProvider,
-      medGemmaLlmProvider,
-      gemmaLlmProvider,
-      mistralLlmProvider,
-    })
+    super(llmProviders)
   }
 
   async gradeOutput({
@@ -74,7 +58,7 @@ ${
     : ""
 }`,
       model: judgeModel,
-      temperature: 0,
+      modelOptions: { temperature: 0 },
       priorityCallsEnabled: false,
       llmFeatures: { priorityCalls: false, flexWorkers: false },
     }

@@ -72,7 +72,8 @@
         "model": "Select model",
         "outputJsonSchema": "{\n \"type\": \"object\", \"properties\": {\n    \"field\": { \"type\": \"string\", \"description\": \"blablabla\" }\n  },\n  \"required\": [\"field\"]\n}",
         "temperature": "Enter temperature 0.0 - 2.0",
-        "locale": "Select language for agent responses"
+        "locale": "Select language for agent responses",
+        "thinkingLevel": "Select thinking level"
       },
       "validation": {
         "nameMinLength": "Name must be at least 3 characters",
@@ -80,7 +81,15 @@
         "temperatureInvalid": "Temperature must be between 0.0 and 2.0",
         "outputJsonSchemaRequired": "Output JSON schema is required",
         "outputJsonSchemaInvalid": "Output JSON schema must be a valid JSON object"
-      }
+      },
+      "thinkingLevel": "Thinking level",
+      "thinkingLevels": {
+        "minimal": "Minimal",
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      },
+      "modelOptions": "Model options"
     },
     "defaultPromptDialog": {
       "title": "Instructions",

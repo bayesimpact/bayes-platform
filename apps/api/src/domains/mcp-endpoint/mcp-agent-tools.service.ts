@@ -66,7 +66,7 @@ export type McpAgent = {
 
 export type McpAgentSettingsFields = Pick<
   PartialUpdateAgentSettingsDto,
-  "instructions" | "model" | "temperature" | "locale" | "greetingMessage"
+  "instructions" | "model" | "locale" | "greetingMessage"
 >
 
 /** The draft revision the change went into: the published version does not change. */
@@ -158,7 +158,14 @@ export class McpAgentToolsService {
     try {
       const { agent } = await this.agentsService.createAgent({
         connectScope,
-        fields: parsed.data,
+        fields: {
+          ...parsed.data,
+          providerOptions: await this.agentSettingsService.resolveNewAgentModelOptions({
+            connectScope,
+            model: parsed.data.model,
+            providerOptions: parsed.data.providerOptions,
+          }),
+        },
         userId,
       })
       await this.activitiesService.createActivity({
@@ -260,10 +267,15 @@ export class McpAgentToolsService {
 
     const connectScope = scope
     try {
-      const { agent, agentSettings } = await this.agentSettingsService.updateAllSettings({
+      const fieldsToUpdate = await this.agentSettingsService.checkModelUpdate({
         connectScope,
         agentId,
         fieldsToUpdate: parsed.data,
+      })
+      const { agent, agentSettings } = await this.agentSettingsService.updateAllSettings({
+        connectScope,
+        agentId,
+        fieldsToUpdate,
       })
       await this.activitiesService.createActivity({
         action: "agentSettings.update",

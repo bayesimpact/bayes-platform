@@ -1,14 +1,13 @@
 import {
   AgentLocale,
   AgentMemoryMode,
-  AgentThinkingLevel,
-  DEFAULT_AGENT_MODEL,
   DocumentsRagMode,
   type outputJsonSchemaSchema,
 } from "@caseai-connect/api-contracts"
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
 import type { z } from "zod"
+import { catalogDefaultOptions, defaultAgentModels } from "../agent.factory"
 import type { Agent } from "../agents.models"
 import type { AgentSettings } from "./agent-settings.models"
 
@@ -74,13 +73,14 @@ export const agentSettingsFactory = AgentSettingsFactory.define(({ params, trans
     isDraft: !!params.isDraft,
     isArchived: !!params.isArchived,
     locale: params.locale ?? AgentLocale.EN,
-    model: params.model ?? DEFAULT_AGENT_MODEL,
+    model: params.model ?? defaultAgentModels.agent,
     projectAgentSessionCategoryIds: params.projectAgentSessionCategoryIds ?? [],
-    temperature: params.temperature ?? 0.7,
+    providerOptions:
+      (params.providerOptions as Record<string, unknown> | undefined) ??
+      catalogDefaultOptions(params.model ?? defaultAgentModels.agent),
     updatedAt: params.updatedAt ?? faker.date.recent().getTime(),
     usedProjectAgentSessionCategoryIds: params.usedProjectAgentSessionCategoryIds ?? [],
     mcpServers: params.mcpServers ?? [],
-    thinkingLevel: AgentThinkingLevel.Auto,
     memoryMode: params.memoryMode ?? AgentMemoryMode.Off,
   } satisfies AgentSettings
 })

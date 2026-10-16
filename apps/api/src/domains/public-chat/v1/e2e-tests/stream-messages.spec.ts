@@ -15,7 +15,7 @@ import { agentFactory } from "@/domains/agents/agent.factory"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { agentSubAgentFactory } from "@/domains/agents/sub-agents/agent-sub-agent.factory"
 import { addFeature } from "@/domains/organizations/organization.factory"
-import type { AISDKMockProvider } from "@/external/llm/providers/ai-sdk-mock.provider"
+import { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.provider"
 import { createEmbedConfigWithSession } from "../../public-chat.factory"
 import { PublicChatModule } from "../../public-chat.module"
 
@@ -86,7 +86,7 @@ describe("PublicChat - streamMessages", () => {
       repositories.agentSessionCategoryRepository.create({ agentId: agent.id, name: "Billing" }),
     )
 
-    const mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
+    const mockProvider = setup.module.get(AISDKMockProvider)
     mockProvider.resetMock()
     // Generation 1: the answer. Generation 2: the post-turn classification.
     mockProvider.addTextTurn(agent.id, "Here you go.")
@@ -119,7 +119,7 @@ describe("PublicChat - streamMessages", () => {
       },
     })
 
-    const mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
+    const mockProvider = setup.module.get(AISDKMockProvider)
     mockProvider.resetMock()
     // Turn 1: fill fullName, then answer, then the post-turn classification.
     mockProvider.addToolCallTurn(agent.id, "fillForm", { formFields: { fullName: "Ada" } })
@@ -213,7 +213,7 @@ describe("PublicChat - streamMessages", () => {
       featureFlagKey: "agent-orchestration",
     })
 
-    const mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
+    const mockProvider = setup.module.get(AISDKMockProvider)
     mockProvider.resetMock()
     mockProvider.addToolCallTurn(agent.id, "take_over_form", {})
     mockProvider.addTextTurn(agent.id, "I hand you over.")

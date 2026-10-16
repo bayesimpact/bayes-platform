@@ -139,6 +139,6 @@ only, they have no session of their own to title).
 
 * ADR 0014 (superseded): the measurements that led to the mandatory tool
   and the constraints on forced tool calls, still valid.
-* Live regression suites: `apps/api/src/external/llm/providers/live-regressions/`
+* Live regression suites: `apps/api/src/external/llm/ai-sdk/providers/live-regressions/`
   (`rag-turn.live.spec.ts`, `fat-prompt-turn.live.spec.ts`,
   `measure-citation-rate.ts`).

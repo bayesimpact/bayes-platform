@@ -23,7 +23,7 @@ const agent = agentFactory.transient({ project }).build({
 const baseSettings = agentSettingsFactory.transient({ agent }).build({
   instructions: "You are a helpful assistant.\nAnswer clearly and concisely.",
   model: AgentModel.Gemini25Flash,
-  temperature: 0.7,
+  providerOptions: { temperature: 0.7 },
   locale: AgentLocale.EN,
   documentsRagMode: DocumentsRagMode.None,
   greetingMessage: undefined,
@@ -37,7 +37,7 @@ const versions: AgentSettings[] = [
     revision: 4,
     instructions:
       "You are a helpful assistant.\nAnswer clearly and concisely.\nAlways cite your sources.",
-    temperature: 0.3,
+    providerOptions: { temperature: 0.3 },
     documentsRagMode: DocumentsRagMode.All,
     updatedAt: Date.now() - 1000 * 60 * 60,
   },
@@ -46,7 +46,7 @@ const versions: AgentSettings[] = [
     revision: 3,
     instructions:
       "You are a helpful assistant.\nAnswer clearly and concisely.\nAlways cite your sources.",
-    temperature: 0.3,
+    providerOptions: { temperature: 0.3 },
     updatedAt: Date.now() - 1000 * 60 * 60 * 24,
   },
   {

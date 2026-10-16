@@ -62,7 +62,12 @@ function fakeRecalculator() {
 }
 
 const buildConfig = (systemPrompt: string) =>
-  ({ model: "mock", temperature: 0, systemPrompt, serviceTier: undefined }) as never
+  ({
+    model: "mock",
+    modelOptions: { temperature: 0 },
+    systemPrompt,
+    serviceTier: undefined,
+  }) as never
 
 describe("resolveSources", () => {
   it("groups the cited chunks by document, truncates excerpts and reports unknown aliases", () => {

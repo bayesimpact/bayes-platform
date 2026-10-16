@@ -106,9 +106,10 @@ export const createAgentSchema = agentValidationSchema
       outputJsonSchema: true,
       projectAgentSessionCategoryIds: true,
       resourceLibraryIds: true,
-      temperature: true,
     }).shape,
     fillFormEnabled: agentSettingsValidationSchema.shape.fillFormEnabled.optional(),
+    // The model's defaults when left out.
+    providerOptions: agentSettingsValidationSchema.shape.providerOptions.optional(),
     tagsToAdd: updateDocumentTagsSchema.required().shape.tagsToAdd,
   })
   .refine(refineOutputJsonSchema.fn, refineOutputJsonSchema.message)

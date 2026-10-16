@@ -18,6 +18,7 @@ import { removeNullish } from "@/common/utils/remove-nullish"
 import { FILE_STORAGE_SERVICE } from "@/domains/documents/storage/file-storage.interface"
 import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
 import { createOrganizationWithAgentSession } from "@/domains/organizations/organization.factory"
+import { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.provider"
 import {
   mockForeignAuthSubject,
   mockOidcEmailForSub,
@@ -66,7 +67,7 @@ describe("ExtractionAgentSessions - Auth", () => {
       additionalImports: [ExtractionAgentSessionsModule],
       applyOverrides: (moduleBuilder) =>
         setupUserGuardForTesting(moduleBuilder, () => authSubject)
-          .overrideProvider("_MockLLMProvider")
+          .overrideProvider(AISDKMockProvider)
           .useValue(mockLlmProvider)
           .overrideProvider(FILE_STORAGE_SERVICE)
           .useValue(mockFileStorageService)

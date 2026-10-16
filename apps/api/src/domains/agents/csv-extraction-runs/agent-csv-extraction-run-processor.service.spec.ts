@@ -11,8 +11,8 @@ import { toAgentWithSettingsRunJobPayload } from "@/domains/agents/shared/agent-
 import { StructuredExtractionAgentRunLlmService } from "@/domains/agents/shared/structured-extraction-agent-run-llm.service"
 import { documentFactory } from "@/domains/documents/document.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
+import { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.provider"
 import { LlmModule } from "@/external/llm/llm.module"
-import type { AISDKMockProvider } from "@/external/llm/providers/ai-sdk-mock.provider"
 import { agentCsvExtractionRunFactory } from "./agent-csv-extraction-run.factory"
 import type { ProcessAgentCsvExtractionRunRecordJobPayload } from "./agent-csv-extraction-run.types"
 import { AgentCsvExtractionRunCsvExportService } from "./agent-csv-extraction-run-csv-export.service"
@@ -42,7 +42,7 @@ describe("AgentCsvExtractionRunProcessorService", () => {
     })
     repositories = setup.getAllRepositories()
     service = setup.module.get(AgentCsvExtractionRunProcessorService)
-    mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
+    mockProvider = setup.module.get(AISDKMockProvider)
     llmFeatures = { priorityCalls: false, flexWorkers: false }
   })
 
@@ -56,7 +56,10 @@ describe("AgentCsvExtractionRunProcessorService", () => {
     jest.clearAllMocks()
   })
 
-  const seedExtractionRunRecord = async (options?: { recordStatus: "running" | "success" }) => {
+  const seedExtractionRunRecord = async (options?: {
+    recordStatus?: "running" | "success"
+    providerOptions?: Record<string, unknown>
+  }) => {
     const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
       repositories,
       {
@@ -64,6 +67,7 @@ describe("AgentCsvExtractionRunProcessorService", () => {
         agentSettings: {
           instructions: "Extract the full name.",
           outputJsonSchema: { type: "object", properties: { fullName: { type: "string" } } },
+          providerOptions: options?.providerOptions ?? {},
         },
       },
     )
@@ -127,6 +131,33 @@ describe("AgentCsvExtractionRunProcessorService", () => {
     // The last worker to finish the run owns the one-off export + notification.
     expect(mockCsvExport.generateAndStoreDocument).toHaveBeenCalledTimes(1)
     expect(mockStatusNotifier.notifyRunStatusChanged).toHaveBeenCalled()
+  })
+
+  it("processRunRecord - runs the agent's model options carried by the job", async () => {
+    const { agent, payload } = await seedExtractionRunRecord({
+      providerOptions: { temperature: 0.4 },
+    })
+    mockProvider.addObjectTurn(agent.id, { fullName: "John Doe" })
+
+    await service.processRunRecord(payload)
+
+    expect(mockProvider.getCalls().map((call) => call.temperature)).toEqual([0.4])
+  })
+
+  it("processRunRecord - runs a job queued without model options on the model's defaults", async () => {
+    const { agent, payload } = await seedExtractionRunRecord({
+      providerOptions: { temperature: 0.4 },
+    })
+    const { providerOptions: _providerOptions, ...settingsQueuedBefore } =
+      payload.agentWithSettings.settings
+    mockProvider.addObjectTurn(agent.id, { fullName: "John Doe" })
+
+    await service.processRunRecord({
+      ...payload,
+      agentWithSettings: { ...payload.agentWithSettings, settings: settingsQueuedBefore },
+    })
+
+    expect(mockProvider.getCalls().map((call) => call.temperature)).toEqual([0])
   })
 
   it("processRunRecord - should skips already success", async () => {

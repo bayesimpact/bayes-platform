@@ -1,6 +1,6 @@
-import { AgentModel, DEFAULT_AGENT_MODEL } from "@caseai-connect/api-contracts"
+import { AgentModel } from "@caseai-connect/api-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { agentFactory } from "@/common/features/agents/agent.factory"
+import { agentFactory, defaultAgentModels } from "@/common/features/agents/agent.factory"
 import {
   conversationAgentSessionFactory,
   extractionAgentSessionSummaryFactory,
@@ -93,7 +93,7 @@ export const Default: Story = {
           .transient({ agent: currentAgent })
           .build({
             revision: currentAgent.currentRevision.number,
-            model: withDeprecatedModel ? AgentModel.Gemini25Flash : DEFAULT_AGENT_MODEL,
+            model: withDeprecatedModel ? AgentModel.Gemini25Flash : defaultAgentModels.agent,
           })
         const draftAgentSettings = currentAgent.draftRevision
           ? { ...currentAgentSettings, revision: currentAgent.draftRevision.number, isDraft: true }

@@ -20,7 +20,7 @@ import type {
   AgentSessionMessage,
 } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.models"
 import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"
-import type { Agent } from "@/common/features/agents/agents.models"
+import type { Agent, AgentModelsCatalog } from "@/common/features/agents/agents.models"
 import type { AppInstallPage } from "@/common/features/app-install/app-install.models"
 import type { User } from "@/common/features/me/me.models"
 import type { OAuthConsentPage } from "@/common/features/oauth-consent/oauth-consent.models"
@@ -263,6 +263,11 @@ export const seed = {
         { currentId: project.organizationId },
       ),
     )
+  },
+
+  /** Seeds the model catalog the agent and evaluation screens read. */
+  availableModels(catalog: AgentModelsCatalog): StoryPreloadedState {
+    return { agents: { availableModels: ads.fulfilled(catalog) } }
   },
 
   agents(agents: Agent[], options: { currentId?: string | null } = {}): StoryPreloadedState {

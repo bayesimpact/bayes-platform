@@ -2,7 +2,7 @@ import type { AgentSettings } from "@/domains/agents/settings/agent-settings.ent
 
 export type AgentSettingsCreateFields = Pick<
   AgentSettings,
-  "instructions" | "documentsRagMode" | "model" | "temperature" | "locale"
+  "instructions" | "documentsRagMode" | "model" | "locale" | "providerOptions"
 > &
   Partial<
     Pick<
@@ -11,7 +11,7 @@ export type AgentSettingsCreateFields = Pick<
       | "greetingMessage"
       | "fillFormEnabled"
       | "priorityCallsEnabled"
-      | "thinkingLevel"
+      | "deletedTemperature"
       | "memoryMode"
     >
   >
@@ -23,12 +23,12 @@ export type AgentSettingsUpdateFields = Partial<
     | "greetingMessage"
     | "documentsRagMode"
     | "model"
-    | "temperature"
+    | "deletedTemperature"
     | "locale"
     | "outputJsonSchema"
     | "fillFormEnabled"
     | "priorityCallsEnabled"
-    | "thinkingLevel"
+    | "providerOptions"
     | "memoryMode"
   >
 >

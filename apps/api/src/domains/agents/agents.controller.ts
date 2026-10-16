@@ -1,4 +1,6 @@
 import {
+  type AgentModelDto,
+  type AgentModelListDto,
   AgentSubAgentsRoutes,
   AgentsRoutes,
   createAgentSchema,
@@ -26,6 +28,7 @@ import { AddContext, RequireContext } from "@/common/context/require-context.dec
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { ZodValidationPipe } from "@/common/zod-validation-pipe"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
+import type { AgentModelData } from "@/domains/agents/settings/agent-models.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
@@ -65,9 +68,17 @@ export class AgentsController {
     @Req() request: EndpointRequestWithProject,
     @Body() { payload }: typeof AgentsRoutes.createOne.request,
   ): Promise<typeof AgentsRoutes.createOne.response> {
+    const connectScope = getRequiredConnectScope(request)
     const { agent, agentSettings } = await this.agentsService.createAgent({
-      connectScope: getRequiredConnectScope(request),
-      fields: payload,
+      connectScope,
+      fields: {
+        ...payload,
+        providerOptions: await this.agentSettingsService.resolveNewAgentModelOptions({
+          connectScope,
+          model: payload.model,
+          providerOptions: payload.providerOptions,
+        }),
+      },
       userId: request.user.id,
     })
 
@@ -94,6 +105,22 @@ export class AgentsController {
       }),
     )
     return { data: results }
+  }
+
+  @Get(AgentsRoutes.getAvailableModels.path)
+  @CheckPermission(PROJECT_READ_PERMISSION, "project")
+  async getAvailableModels(
+    @Req() request: EndpointRequestWithProject,
+  ): Promise<typeof AgentsRoutes.getAvailableModels.response> {
+    const availableModels = await this.agentSettingsService.getAvailableModels(
+      getRequiredConnectScope(request),
+    )
+    return {
+      data: {
+        models: availableModels.models.map((model) => toAgentModelDto(model)),
+        defaults: availableModels.defaults,
+      } satisfies AgentModelListDto,
+    }
   }
 
   @Get(AgentsRoutes.getAllWithDrafts.path)
@@ -194,5 +221,17 @@ export class AgentsController {
     })
 
     return { data: subAgents.map(toAgentSubAgentDto) }
+  }
+}
+
+function toAgentModelDto(model: AgentModelData): AgentModelDto {
+  return {
+    model: model.agentModel,
+    provider: model.agentProvider,
+    isAvailable: model.isAvailable,
+    deprecation: model.agentModelDeprecation,
+    servedOutsideEu: model.servedOutsideEu,
+    optionsSchema: model.optionsSchema,
+    defaultOptions: model.defaultOptions,
   }
 }

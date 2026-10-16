@@ -12,6 +12,7 @@ import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { documentFactory } from "@/domains/documents/document.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
+import { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.provider"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
@@ -47,7 +48,7 @@ describe("ExtractionAgentSessionsRoutes.createOne", () => {
       additionalImports: [AgentsModule, ActivitiesModule],
       applyOverrides: (moduleBuilder) =>
         setupUserGuardForTesting(moduleBuilder, () => authSubject)
-          .overrideProvider("_MockLLMProvider")
+          .overrideProvider(AISDKMockProvider)
           .useValue(mockLlmProvider)
           .overrideProvider(EXTRACTION_AGENT_SESSION_BATCH_SERVICE)
           .useValue(mockBatchService),

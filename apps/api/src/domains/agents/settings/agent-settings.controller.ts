@@ -58,10 +58,11 @@ export class AgentSettingsController {
       includesDraft: true,
     })
 
-    const results = agentSettingsWithDraft.map(async (settings) => {
-      return toAgentSettingsDto({ agent, agentSettings: settings })
-    })
-    return { data: await Promise.all(results) }
+    return {
+      data: agentSettingsWithDraft.map((settings) =>
+        toAgentSettingsDto({ agent, agentSettings: settings }),
+      ),
+    }
   }
 
   // Output JSON schema of a given revision, used to render the fill form on the session side.
@@ -108,6 +109,9 @@ export class AgentSettingsController {
     })
     if (!targetSettings) {
       throw new NotFoundException(`Revision ${revision} not found for agent with id ${agentId}`)
+    }
+    if (targetSettings.isArchived) {
+      throw new UnprocessableEntityException(`Cannot restore archived revision "${revisionParam}"`)
     }
 
     const isRestored = await this.agentSettingsService.updateAllSettings({
@@ -172,10 +176,16 @@ export class AgentSettingsController {
     const connectScope = getRequiredConnectScope(request)
     const agentId = request.agent.id
 
-    const updated = await this.agentSettingsService.updateAllSettings({
+    const fieldsToUpdate = await this.agentSettingsService.checkModelUpdate({
       connectScope,
       agentId,
       fieldsToUpdate: payload,
+    })
+
+    const updated = await this.agentSettingsService.updateAllSettings({
+      connectScope,
+      agentId,
+      fieldsToUpdate,
     })
     if (!updated) {
       throw new UnprocessableEntityException(

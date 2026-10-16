@@ -2,8 +2,6 @@ import type {
   AgentLocale,
   AgentMemoryMode,
   AgentModel,
-  AgentTemperature,
-  AgentThinkingLevel,
   DocumentsRagMode,
 } from "@caseai-connect/api-contracts"
 import { Column, JoinColumn, ManyToOne } from "typeorm"
@@ -45,15 +43,16 @@ export class AgentSettings extends ConnectEntityBase {
     precision: 3,
     scale: 2,
     default: 0,
+    name: "temperature",
     nullable: false,
     // Postgres returns `decimal` as a string; convert on read so the runtime value matches the
     // declared number type (AgentDto.temperature) and passes numeric validation.
     transformer: {
-      from: (value: string | null): AgentTemperature => (value === null ? 0 : Number(value)),
-      to: (value: AgentTemperature): AgentTemperature => value,
+      from: (value: string | null): number => (value === null ? 0 : Number(value)),
+      to: (value: number): number => value,
     },
   })
-  temperature!: AgentTemperature
+  deletedTemperature!: number
 
   @Column({ type: "varchar", nullable: false })
   locale!: AgentLocale
@@ -73,8 +72,8 @@ export class AgentSettings extends ConnectEntityBase {
   @Column({ type: "boolean", name: "priority_calls_enabled", default: false, nullable: false })
   priorityCallsEnabled!: boolean
 
-  @Column({ type: "varchar", name: "thinking_level", nullable: false, default: "auto" })
-  thinkingLevel!: AgentThinkingLevel
+  @Column({ type: "jsonb", nullable: false, name: "provider_options" })
+  providerOptions!: Record<string, unknown>
 
   @Column({ type: "varchar", name: "memory_mode", nullable: false, default: "off" })
   memoryMode!: AgentMemoryMode
