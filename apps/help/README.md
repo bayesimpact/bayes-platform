@@ -44,6 +44,13 @@ draft: false # optional; drafts are hidden in production
 - Client-side search reads a generated per-locale index at
   `/{locale}/search.json`.
 
+## Design system
+
+The chrome (header, footer, page layout, tokens, fonts) is the Bayes design system, vendored
+from the `bayesimpact/website` repo into `src/vendor/bayes-ui/` and `public/brand/` by
+`node scripts/sync-bayes-ui.mjs` (`--check` reports a stale copy). Never edit those files by
+hand; the rules are in `CLAUDE.md` ▸ Design System.
+
 ## Configuration
 
 - `PUBLIC_APP_URL` (optional) — shows a "Back to the app" link in the header.

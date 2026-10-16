@@ -9,7 +9,7 @@ const t = useTranslations(locale)
 
 <div class="w-full max-w-md" data-search data-locale={locale}>
   <div class="relative">
-    <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+    <span class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground">
       <Icon name="search" size={16} />
     </span>
     <input
@@ -21,13 +21,13 @@ const t = useTranslations(locale)
       spellcheck="false"
       placeholder={t("search.placeholder")}
       aria-label={t("search.label")}
-      class="h-9 w-full rounded-md border border-border bg-background pl-9 pr-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-ring"
+      class="h-10 w-full rounded-full border border-border bg-card pl-10 pr-4 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-ring"
       data-search-input
     />
     <ul
       id="search-results"
       role="listbox"
-      class="absolute left-0 right-0 z-50 mt-1 hidden max-h-80 overflow-y-auto rounded-md border border-border bg-card p-1 shadow-lg"
+      class="absolute left-0 right-0 z-50 mt-1 hidden max-h-80 overflow-y-auto rounded-xl border border-border bg-card p-1 shadow-lg"
       data-search-results
     >
     </ul>
@@ -94,7 +94,7 @@ const t = useTranslations(locale)
     let pos = 0
     for (const [start, end] of merged) {
       html += escapeHtml(text.slice(pos, start))
-      html += `<mark class="rounded-[2px] bg-[var(--gold-mark)] px-0.5 text-foreground">${escapeHtml(text.slice(start, end))}</mark>`
+      html += `<mark class="rounded-[2px] bg-[var(--gold-bg)] px-0.5 text-foreground">${escapeHtml(text.slice(start, end))}</mark>`
       pos = end
     }
     return html + escapeHtml(text.slice(pos))

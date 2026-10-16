@@ -29,10 +29,7 @@ Brand gold = `#dbccaf`.
 
 ## In-app usage
 
-These static files are the archive. The rendered header/footer use the
-token-driven components instead, which reproduce the same two-tone rule live:
-
-- `src/components/LogoFull.astro` — the lockup (gold cross + `currentColor`), used in
-  the header (`text-foreground`) and footer (`text-white`).
-- `src/components/Logo.astro` — the mark only (same rule).
-- `public/favicon.svg` — the mark (gold cross + near-black dots).
+These static files are an archive. The rendered header and footer use the canonical marks
+vendored from the website's `packages/brand` into `public/brand/` (`bi-colors.svg` in the
+header, `bi-black.svg` in the footer) by `scripts/sync-bayes-ui.mjs`; `public/favicon.svg` is
+the mark.

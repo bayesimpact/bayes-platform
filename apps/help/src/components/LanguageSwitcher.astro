@@ -1,5 +1,4 @@
 ---
-import Icon from "./Icon.astro"
 import { LOCALES } from "@/consts"
 import { localeNames, useTranslations } from "@/i18n/ui"
 import { getLocaleFromPath, switchLocalePath } from "@/i18n/utils"
@@ -8,61 +7,56 @@ const current = getLocaleFromPath(Astro.url.pathname)
 const t = useTranslations(current)
 ---
 
-<div class="relative" data-lang-switcher>
-  <button
-    type="button"
-    class="inline-flex h-9 items-center gap-1.5 rounded-full border border-border bg-card px-3 text-sm text-foreground/80 transition-colors hover:bg-accent hover:text-foreground"
-    aria-haspopup="true"
-    aria-expanded="false"
-    aria-label={t("lang.label")}
-    data-lang-trigger
-  >
-    <Icon name="globe" size={16} />
-    <span class="font-medium uppercase">{current}</span>
-    <Icon name="chevron-down" size={14} class="opacity-60" />
-  </button>
-  <ul
-    class="absolute right-0 z-50 mt-2 hidden min-w-44 rounded-xl border border-border bg-card p-1.5 shadow-lg"
-    data-lang-menu
-  >
+{/* The bayesimpact.org globe dropdown (@bayes/ui lang-switcher.css): globe, current code,
+    chevron, and a menu of full names, the active one marked. */}
+<div
+  class="lang-toggle"
+  role="button"
+  tabindex="0"
+  aria-haspopup="true"
+  aria-expanded="false"
+  aria-label={t("lang.label")}
+  data-lang-switcher
+>
+  <svg class="lang-globe" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M2 12h20"></path><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+  <span>{current.toUpperCase()}</span>
+  <svg class="lang-chevron" width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+  <div class="lang-menu" role="menu">
     {
       LOCALES.map((locale) => (
-        <li>
-          <a
-            href={switchLocalePath(Astro.url.pathname, locale)}
-            aria-current={locale === current ? "true" : undefined}
-            class:list={[
-              "block rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent",
-              locale === current
-                ? "bg-secondary font-medium text-foreground"
-                : "text-muted-foreground",
-            ]}
-          >
-            {localeNames[locale]}
-          </a>
-        </li>
+        <a
+          href={switchLocalePath(Astro.url.pathname, locale)}
+          role="menuitem"
+          class:list={{ active: locale === current }}
+          aria-current={locale === current ? "true" : undefined}
+        >
+          {localeNames[locale]}
+        </a>
       ))
     }
-  </ul>
+  </div>
 </div>
 
 <script is:inline>
-  document.querySelectorAll("[data-lang-switcher]").forEach((root) => {
-    const trigger = root.querySelector("[data-lang-trigger]")
-    const menu = root.querySelector("[data-lang-menu]")
-    if (!trigger || !menu) return
-    const close = () => {
-      menu.classList.add("hidden")
-      trigger.setAttribute("aria-expanded", "false")
+  document.querySelectorAll("[data-lang-switcher]").forEach((toggle) => {
+    const set = (open) => {
+      toggle.classList.toggle("open", open)
+      toggle.setAttribute("aria-expanded", String(open))
     }
-    trigger.addEventListener("click", (event) => {
+    toggle.addEventListener("click", (event) => {
+      if (event.target.closest(".lang-menu a")) return
       event.stopPropagation()
-      const open = menu.classList.toggle("hidden")
-      trigger.setAttribute("aria-expanded", String(!open))
+      set(!toggle.classList.contains("open"))
     })
-    document.addEventListener("click", close)
+    toggle.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault()
+        set(!toggle.classList.contains("open"))
+      }
+    })
+    document.addEventListener("click", () => set(false))
     document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") close()
+      if (event.key === "Escape") set(false)
     })
   })
 </script>
