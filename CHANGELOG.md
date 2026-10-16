@@ -12,6 +12,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Changed
 
 ### Fixed
+- Sign-in: a sign-in left open for a long time now completes on its own and returns to the last page.
 
 ### Security
 
