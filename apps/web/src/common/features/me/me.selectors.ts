@@ -29,9 +29,6 @@ export const selectCanUpdateConversationReviewers = (state: RootState): boolean 
   state.me.data.value?.globalPermissions.includes("backoffice.conversation_reviewer.update") ??
   false
 
-export const selectCanInstallApps = (state: RootState): boolean =>
-  state.me.data.value?.globalPermissions.includes("app.install") ?? false
-
 export const selectTermsAccepted = (state: RootState): boolean =>
   state.me.data.value?.termsAccepted ?? false
 

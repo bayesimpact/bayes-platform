@@ -361,12 +361,7 @@ export const backofficeUserGlobalRoleFactory = BackofficeUserGlobalRoleFactory.d
   ({ params }) => ({
     key: params.key ?? "platform_staff",
     name: params.name ?? "Platform Staff",
-    permissions: params.permissions ?? [
-      "app.install",
-      "backoffice.project.read",
-      "backoffice.read",
-      "trace.read",
-    ],
+    permissions: params.permissions ?? ["backoffice.project.read", "backoffice.read", "trace.read"],
   }),
 )
 
@@ -378,14 +373,13 @@ export const backofficeRbacCatalogFactory = BackofficeRbacCatalogFactory.define(
       key: "platform_staff",
       name: "Platform Staff",
       scopeType: "global" as const,
-      permissions: ["app.install", "backoffice.project.read", "backoffice.read", "trace.read"],
+      permissions: ["backoffice.project.read", "backoffice.read", "trace.read"],
     },
     {
       key: "platform_superadmin",
       name: "Platform Superadmin",
       scopeType: "global" as const,
       permissions: [
-        "app.install",
         "backoffice.app.manage",
         "backoffice.read",
         "trace.read",
@@ -523,7 +517,6 @@ export const backofficeRbacCatalogFactory = BackofficeRbacCatalogFactory.define(
     { key: "agent.delete", description: "Delete an agent" },
     { key: "agent.read", description: "See an agent" },
     { key: "agent.update", description: "Update an agent" },
-    { key: "app.install", description: "Install apps on a project" },
     { key: "backoffice.agent.read", description: "See agents in the backoffice" },
     { key: "backoffice.app.manage", description: "Manage app definitions in the backoffice" },
     { key: "backoffice.organization.read", description: "See organizations in the backoffice" },

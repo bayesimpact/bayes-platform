@@ -7,7 +7,8 @@ import { OAuthGrant } from "./oauth-grant.entity"
 
 export type OAuthGrantRecord = {
   id: string
-  userId: string
+  /** Null on an app's grant, which acts as the installation's service user. */
+  userId: string | null
   client: {
     id: string
     clientId: string
@@ -17,6 +18,8 @@ export type OAuthGrantRecord = {
   projects: { id: string; name: string }[]
   permissions: string[]
   resource: string
+  /** Set on the grant of an app installation (ADR 0029). */
+  appInstallationId: string | null
   revokedAt: Date | null
   createdAt: Date
   lastUsedAt: Date | null
@@ -29,11 +32,12 @@ export class OAuthGrantRepository {
   constructor(private readonly transactionService: TransactionService) {}
 
   async createGrant(params: {
-    userId: string
+    userId: string | null
     oauthClientId: string
     projectIds: string[]
     permissions: string[]
     resource: string
+    appInstallationId?: string
   }): Promise<OAuthGrantRecord> {
     const { projectIds, ...fields } = params
     const saved = await this.repo().save(
@@ -56,19 +60,23 @@ export class OAuthGrantRepository {
     return row ? toRecord(row) : null
   }
 
+  /** The grants a person gave to MCP clients. App installations are listed per project instead. */
   async listActiveByUserId(userId: string): Promise<OAuthGrantRecord[]> {
     const rows = await this.repo().find({
-      where: { userId, revokedAt: IsNull() },
+      where: { userId, revokedAt: IsNull(), appInstallationId: IsNull() },
       relations: GRANT_RELATIONS,
       order: { createdAt: "DESC" },
     })
     return rows.map(toRecord)
   }
 
-  /** Revokes the grant when it belongs to the user. Returns whether it did. */
+  /**
+   * Revokes the grant when it belongs to the user and is not an app's: an
+   * installation is revoked from its project. Returns whether it did.
+   */
   async revokeForUser(params: { id: string; userId: string; revokedAt: Date }): Promise<boolean> {
     const result = await this.repo().update(
-      { id: params.id, userId: params.userId, revokedAt: IsNull() },
+      { id: params.id, userId: params.userId, revokedAt: IsNull(), appInstallationId: IsNull() },
       { revokedAt: params.revokedAt },
     )
     return (result.affected ?? 0) > 0
@@ -108,6 +116,7 @@ function toRecord(row: OAuthGrant): OAuthGrantRecord {
     projects: (row.projects ?? []).map((project) => ({ id: project.id, name: project.name })),
     permissions: row.permissions,
     resource: row.resource,
+    appInstallationId: row.appInstallationId,
     revokedAt: row.revokedAt,
     createdAt: row.createdAt,
     lastUsedAt: row.lastUsedAt,

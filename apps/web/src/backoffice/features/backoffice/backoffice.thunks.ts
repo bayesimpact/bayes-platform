@@ -5,6 +5,8 @@ import { getApiErrorMessage } from "@/common/utils/api-error"
 
 import type {
   AppManifest,
+  AppOAuthClient,
+  AppOAuthClientSecret,
   BackofficeAgentDetail,
   BackofficeOrganization,
   BackofficeOrganizationDetail,
@@ -183,6 +185,18 @@ const deleteAppManifest = createAsyncThunk<string, string, ThunkConfig>(
   },
 )
 
+const getAppOAuthClient = createAsyncThunk<AppOAuthClient, string, ThunkConfig>(
+  "backoffice/getAppOAuthClient",
+  async (appManifestId, { extra: { services } }) =>
+    services.backoffice.getAppOAuthClient(appManifestId),
+)
+
+const createAppOAuthClientSecret = createAsyncThunk<AppOAuthClientSecret, string, ThunkConfig>(
+  "backoffice/createAppOAuthClientSecret",
+  async (appManifestId, { extra: { services } }) =>
+    services.backoffice.createAppOAuthClientSecret(appManifestId),
+)
+
 export const backofficeThunks = {
   listOrganizations,
   getOrganization,
@@ -204,4 +218,6 @@ export const backofficeThunks = {
   createAppManifest,
   updateAppManifest,
   deleteAppManifest,
+  getAppOAuthClient,
+  createAppOAuthClientSecret,
 }

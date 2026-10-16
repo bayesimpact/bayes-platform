@@ -1,252 +1,96 @@
 # App install
 
-How an external app (for example Site Crawler) gets project-scoped credentials on Bayes Platform. This is the OAuth-style **install** flow: a human approves in the browser; the installing client receives `client_id` / `client_secret` via a one-time code + PKCE exchange. The secret never appears in a redirect URL.
+How an external app (a crawler, a messaging channel) gets installed on a project and calls the apps API. Apps are confidential OAuth clients of the API's authorization server ([ADR 0029](adr/0029-app-installs-on-the-oauth-server.md), on top of [ADR 0028](adr/0028-oauth-authorization-server.md)). A standard OAuth 2.1 client library works without anything specific to the platform.
 
-API paths below assume the private API prefix `/api` (see `apps/api/src/config/api-prefix.ts`).
+API paths below include the private API prefix `/api`.
 
 ## Actors
 
 | Actor | Role |
 | --- | --- |
-| **App manifest** | Platform catalog entry (name, slug, grantable permissions, HTTPS callback allowlist). Created in the backoffice. |
-| **Installing client** | The app being installed: CLI (`bayes apps install`) or a deployed app backend (Site Crawler). Owns the PKCE verifier; calls the exchange endpoint. |
-| **Operator** | Logged-in human with `app.install`. Opens the install UI, picks a project and permissions, approves. |
-| **Web app** | Bayes Connect UI at `/apps/install/:slug`. Loads the install page and posts authorize; then redirects the browser to `redirect_uri`. |
-| **API** | Issues the installation + one-time code; exchanges code+verifier for credentials; later issues App JWTs. |
-| **Callback endpoint** | Loopback HTTP server (CLI) or HTTPS route on the installing app. Receives `code` + `state` only. |
+| **App manifest** | Catalog entry, created in the back-office: name, slug, grantable permissions, HTTPS redirect URIs. |
+| **App client** | The OAuth client of the manifest: a `client_id` (`app_…`) and a `client_secret`, created in the back-office and shown once. |
+| **Installer** | A project owner or admin, who holds `project.app_installation.create` on the project. |
+| **Installation** | The app on one project: a service user, a project role with the granted permissions, and an OAuth grant. |
 
-## Prerequisites
+## Setting up an app
 
-1. An **app manifest** exists (backoffice → Apps), with a stable `slug`.
-2. **Grantable permissions** on the manifest are the only permissions the operator can grant at install time.
-3. **`redirect_uri` rules**:
-   - **Loopback** (no allowlist entry required): `http(s)://localhost`, `*.localhost`, `127.0.0.1`, or `::1`.
-   - **Registered**: exact string match on the manifest allowlist, and **https only** (plain `http://app.example.org` is rejected).
-4. The operator can sign in and holds `app.install`.
-5. The installing client can open a browser (or send the operator a URL) and later call the API for exchange.
+1. Create the manifest in the back-office, with its grantable permissions and redirect URIs (exact `https` URLs; loopback `http` is always accepted for local development).
+2. Create the client secret: `POST /api/backoffice/apps/:appManifestId/oauth-client/secret` returns `{ clientId, clientSecret }`. The secret is shown once and stored hashed. Calling it again replaces the secret, and the previous one stops working at once.
+3. Configure the app with the issuer `{API}/api/oauth`. Its metadata is at `{API}/.well-known/oauth-authorization-server/api/oauth`.
 
-## End-to-end workflow
-
-Two surfaces share the same protocol; only `redirect_uri` and who runs the callback differ.
+## Install flow
 
 ```mermaid
 sequenceDiagram
   autonumber
-  actor Op as Operator
-  participant Client as Installing client
-  participant Browser as Browser
+  actor Installer
+  participant App
   participant Web as Web app
-  participant API as API
+  participant API
 
-  Client->>Client: Generate state and PKCE S256 challenge
-  Client->>Browser: Open install URL with redirect_uri, state, challenge
-  Browser->>Web: GET /apps/install/:slug
-  Web->>API: GET /api/apps/install/:slug (operator session)
-  API-->>Web: App and installable projects
-  Op->>Web: Pick project and permissions, Approve
-  Web->>API: POST /api/apps/install/:slug/authorize
-  API->>API: Create installation, service user, role, auth code
-  API-->>Web: code, redirectUri, state
-  Web->>Browser: Redirect to redirect_uri with code and state
-  Browser->>Client: GET callback with code and state
-  Client->>Client: Check state
-  Client->>API: POST /api/apps/v1/install/exchange
-  API-->>Client: client_id and client_secret
-  Note over Client: Store the secret once - never put it in a URL
+  App->>App: Generate state and a PKCE S256 pair
+  App->>Web: Redirect to /oauth/authorize with client_id, redirect_uri, state, code_challenge, resource
+  Web->>API: GET /api/oauth/consent (installer's session)
+  API-->>Web: The app, the projects the installer can install it on, the permissions they can grant
+  Installer->>Web: Pick one project and the permissions, approve
+  Web->>API: POST /api/oauth/consent
+  API->>API: Create the installation (service user, role) and its grant, issue a code
+  Web->>App: Redirect to redirect_uri with code, state and iss
+  App->>API: POST /api/oauth/token (client_secret_basic, code, code_verifier)
+  API-->>App: Access token (1 hour) and refresh token
+  App->>API: Calls to /api/apps/v1 with the access token
 ```
 
-### After install (API access)
-
-```mermaid
-sequenceDiagram
-  participant Client as Installing client
-  participant API as API
-
-  Client->>API: POST /api/apps/v1/token client_credentials
-  API-->>Client: access_token App JWT
-  Client->>API: Authenticated apps/v1 calls such as GET /api/apps/v1/me
-```
-
-## Install URL (browser entry)
-
-Built by the installing client (CLI does this automatically):
+The authorization request is the standard one:
 
 ```
-{FRONTEND}/apps/install/{slug}
-  ?redirect_uri={url-encoded callback}
-  &state={opaque csrf value}
+{WEB}/oauth/authorize
+  ?response_type=code
+  &client_id=app_…
+  &redirect_uri={registered callback}
+  &state={opaque value}
   &code_challenge={S256 challenge}
   &code_challenge_method=S256
+  &resource={API}/api/apps/v1
 ```
 
-| Query param | Who creates it | Purpose |
-| --- | --- | --- |
-| `redirect_uri` | Client | Where the browser returns after approve/deny. Must pass allowlist / loopback rules. |
-| `state` | Client | CSRF; client must reject a callback with a different `state`. |
-| `code_challenge` | Client | PKCE S256 challenge (`base64url(sha256(code_verifier))`). |
-| `code_challenge_method` | Client | Always `S256`. |
+`resource` is optional. When sent, it must be the apps API.
 
-The **verifier stays only on the client**. The web app forwards the challenge into authorize; it never sees the verifier.
+### What the installer can grant
 
-## HTTP reference
+- The page lists the projects where the installer holds `project.app_installation.create`, that is the projects they own or administer. Organization roles do not pass it down, and platform staff get no exception.
+- An app is installed on one project at a time. A second install of the same app on the project gets `409`.
+- The permissions offered are the manifest's grantable permissions that the installer holds on the project. An install never gives an app more than its installer has.
 
-Paths are relative to the API origin (e.g. `https://connect.example/api`).
+## Tokens
 
-### 1. Load install page (operator session)
-
-```
-GET /apps/install/:slug
-Authorization: Bearer <operator access token>
-```
-
-**Permission:** `app.install`.
-
-**Response** `{ data: { app, projects } }` — manifest summary (including `allowedRedirectUris` and `grantablePermissions`) and projects the operator may install onto (backoffice-visible projects).
-
-Contract: `AppsRoutes.getInstall`.
-
-### 2. Authorize install (operator session)
-
-```
-POST /apps/install/:slug/authorize
-Authorization: Bearer <operator access token>
-Content-Type: application/json
-
-{
-  "payload": {
-    "projectId": "<uuid>",
-    "permissions": ["document.read", "..."],
-    "redirectUri": "https://app.example.com/auth/bayes/callback",
-    "state": "...",
-    "codeChallenge": "...",
-    "codeChallengeMethod": "S256"
-  }
-}
-```
-
-**Permission:** `app.install`.
-
-**Effects (single transaction):**
-
-- Refuses if an **active** installation already exists for that manifest + project (`409`).
-- Validates `redirectUri` (loopback or exact HTTPS allowlist match).
-- Creates a project **custom role** with the selected permissions.
-- Creates a **service user** and memberships on the org/project with that role.
-- Creates an **app installation** with hashed `client_secret`.
-- Stores a one-time **authorization code** row: code hash, plaintext secret (until exchange), `redirect_uri`, PKCE challenge, `expires_at` (5 minutes).
-
-**Response** `{ data: { code, redirectUri, state } }` — never `client_id` / `client_secret`.
-
-Contract: `AppsRoutes.authorize`.
-
-On success the web app navigates to:
-
-```
-{redirectUri}?code={code}&state={state}
-```
-
-On cancel it navigates to:
-
-```
-{redirectUri}?error=access_denied&state={state}
-```
-
-### 3. Exchange code (no user session)
-
-```
-POST /apps/v1/install/exchange
-Content-Type: application/json
-
-{
-  "code": "...",
-  "redirect_uri": "https://app.example.com/auth/bayes/callback",
-  "code_verifier": "..."
-}
-```
-
-**Unauthenticated.** Body is **unwrapped** (same style as `/apps/v1/token`), not `{ payload: ... }`.
-
-**Checks:** unused code, not expired, `redirect_uri` equals the value stored at authorize, PKCE verifier matches stored challenge. Failures return `401` with a generic message.
-
-**Response** (unwrapped):
-
-```json
-{
-  "client_id": "<uuid>",
-  "client_secret": "<secret>"
-}
-```
-
-Consumes the code and clears the stored plaintext secret. The installing client must persist the secret; it cannot be retrieved again.
-
-Contract: `AppsV1Routes.exchangeInstallCode`.
-
-### 4. Obtain an App JWT
-
-```
-POST /apps/v1/token
-Content-Type: application/json
-(or form-urlencoded — see existing apps token e2e)
-
-{
-  "grant_type": "client_credentials",
-  "client_id": "...",
-  "client_secret": "..."
-}
-```
-
-**Response** (unwrapped): `{ access_token, token_type: "Bearer", expires_in }`.
-
-Contract: `AppsV1Routes.createToken`.
-
-### 5. Revoke (operator session)
-
-```
-POST /app-installations/:id/revoke
-Authorization: Bearer <operator access token>
-```
-
-Marks the installation revoked and cuts API access for those credentials.
-
-Contract: `AppsRoutes.revoke`.
-
-## CLI vs HTTPS app
-
-| | **CLI (`bayes apps install`)** | **Deployed app (e.g. Site Crawler)** |
-| --- | --- | --- |
-| `redirect_uri` | `http://localhost:{port}/callback` (loopback; no allowlist) | Registered `https://…` on the manifest |
-| Callback | Temporary local HTTP server | App’s own HTTPS route |
-| Who opens the browser | CLI | App (or a link sent to the operator) |
-| Who calls exchange | CLI (`--api` / `BAYES_API_URL`, default `{frontend}/api`) | App backend |
-| PKCE | Generated in the CLI process | Generated in the app before building the install URL |
-
-The `bayes` CLI is a client of this protocol. Install with `bayes apps install <slug> --frontend <origin>`.
-
-## Security properties
-
-- **No secret in URLs** — redirect carries only `code` + `state` (or `error`).
-- **PKCE (S256)** — a stolen `code` (history, logs, Referer) cannot be exchanged without the verifier held by the installing client.
-- **Single-use, short-lived code** — 5 minute TTL; exchange clears the stored secret.
-- **Bound redirect** — exchange `redirect_uri` must match authorize.
-- **HTTPS for non-loopback** — registered callbacks cannot use `http:`.
-- **Exact allowlist match** — scheme, host, and path; no open redirect to arbitrary hosts.
-
-## What “installed” means in the data model
-
-| Record | Meaning |
+| | |
 | --- | --- |
-| `app_manifest` | Catalog definition + allowlist. |
-| `app_installation` | Binding of manifest ↔ project; holds `client_id` and **hashed** secret; status active/revoked. |
-| Service user + custom role | Identity the App JWT maps to; permissions = those granted at install. |
-| `app_install_authorization_code` | Ephemeral row for the code→credentials handoff (challenge stored, verifier never stored). |
+| Client authentication | `client_secret_basic` or `client_secret_post`, at the token and revocation endpoints. PKCE stays required. |
+| Access token | `at+jwt` signed by the API, valid 1 hour. Subject: the installation's service user. Claims: `installation_id`, `grant_id`, `client_id`. Audience: `{API}/api/apps/v1`. |
+| Refresh token | Opaque, rotated at each use, expires after 90 days without use. A refresh token used twice revokes the installation. |
+
+`/api/apps/v1/*` loads the installation on every request: once it is revoked, the app stops at once, even with an access token still valid.
+
+## Revocation
+
+Revoking from either side ends both the grant and the installation:
+
+- a project owner or admin revokes the installation in the studio (`project.app_installation.revoke`);
+- the app revokes its refresh token at `POST /api/oauth/revoke` (RFC 7009), for example when it is uninstalled.
+
+App installations do not appear in a person's "Connected apps", which lists their MCP clients only.
+
+## Before ADR 0029
+
+Apps used to install through a flow of their own ([ADR 0024](adr/0024-conversation-apps.md)): per-installation `client_id` and `client_secret`, a `client_credentials` token endpoint, and the global `app.install` permission for platform staff. It was removed with ADR 0029, and the installations it made were revoked: their apps install again from the consent page.
 
 ## Related code
 
 | Area | Location |
 | --- | --- |
-| Routes / DTOs | `packages/api-contracts/src/apps/` |
-| Redirect + allowlist helpers | `packages/api-contracts/src/apps/loopback-redirect.ts` |
-| Install + exchange service | `apps/api/src/domains/apps/apps.service.ts` |
-| PKCE helpers (API) | `apps/api/src/domains/apps/install-pkce.ts` |
-| Install UI | `apps/web/src/common/features/app-install/`, `AppsInstallRoute` |
-| E2E | `apps/api/src/domains/apps/e2e-tests/install.spec.ts` |
+| Contracts | `packages/api-contracts/src/oauth/`, `packages/api-contracts/src/apps/` |
+| Authorization server | `apps/api/src/domains/oauth/` |
+| Installations, service users, apps API guard | `apps/api/src/domains/apps/` |
+| E2E | `apps/api/src/domains/oauth/e2e-tests/app-install.spec.ts` |

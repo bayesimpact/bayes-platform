@@ -15,8 +15,6 @@ export type AppInstallationRecord = {
   projectId: string
   serviceUserId: string | null
   customRoleId: string | null
-  clientId: string | null
-  clientSecretHash: string | null
   status: AppInstallationStatus
   createdByUserId: string | null
   revokedAt: Date | null
@@ -28,7 +26,6 @@ export type ListedAppInstallation = {
   description: string | null
   logoUrl: string | null
   customRoleId: string | null
-  clientId: string | null
   createdAt: Date
 }
 
@@ -38,7 +35,6 @@ export type ActiveAppInstallationSummary = {
   description: string | null
   logoUrl: string | null
   permissions: string[]
-  clientId: string | null
   createdAt: Date
 }
 
@@ -48,8 +44,6 @@ export type CreateAppInstallationFields = {
   projectId: string
   serviceUserId: string
   customRoleId: string
-  clientId: string
-  clientSecretHash: string
   createdByUserId: string
 }
 
@@ -67,13 +61,6 @@ export class AppInstallationRepository {
     return installation ? this.toRecord(installation) : null
   }
 
-  async findActiveByClientId(clientId: string): Promise<AppInstallationRecord | null> {
-    const installation = await this.repo().findOne({
-      where: { clientId, status: APP_INSTALLATION_STATUS_ACTIVE },
-    })
-    return installation ? this.toRecord(installation) : null
-  }
-
   async listActiveByProjectId(projectId: string): Promise<ListedAppInstallation[]> {
     const installations = await this.repo().find({
       where: { projectId, status: APP_INSTALLATION_STATUS_ACTIVE },
@@ -86,7 +73,6 @@ export class AppInstallationRepository {
       description: installation.appManifest?.description ?? null,
       logoUrl: installation.appManifest?.logoUrl ?? null,
       customRoleId: installation.customRoleId,
-      clientId: installation.clientId,
       createdAt: installation.createdAt,
     }))
   }
@@ -129,8 +115,6 @@ export class AppInstallationRepository {
       projectId: installation.projectId,
       serviceUserId: installation.serviceUserId,
       customRoleId: installation.customRoleId,
-      clientId: installation.clientId,
-      clientSecretHash: installation.clientSecretHash,
       status: installation.status,
       createdByUserId: installation.createdByUserId,
       revokedAt: installation.revokedAt,

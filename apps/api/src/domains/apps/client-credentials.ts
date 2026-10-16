@@ -1,12 +1,8 @@
-import { randomBytes, randomUUID, scrypt, timingSafeEqual } from "node:crypto"
+import { randomBytes, scrypt, timingSafeEqual } from "node:crypto"
 import { promisify } from "node:util"
 
 const scryptAsync = promisify(scrypt)
 const SCRYPT_KEY_LENGTH = 64
-
-export function generateClientId(): string {
-  return randomUUID()
-}
 
 export function generateClientSecret(): string {
   return randomBytes(32).toString("base64url")

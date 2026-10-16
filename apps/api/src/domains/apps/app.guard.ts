@@ -4,9 +4,11 @@ import {
   Injectable,
   UnauthorizedException,
 } from "@nestjs/common"
+import type { Request } from "express"
 import type { EndpointRequest } from "@/common/context/request.interface"
 import { AUTH_ERRORS } from "@/common/errors/auth-errors"
 import { getAccessToken } from "@/common/utils/get-access-token"
+import { getAppsResourceUrl, getOAuthIssuer } from "@/config/public-urls"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AppsService } from "./apps.service"
 
@@ -15,14 +17,18 @@ export class AppGuard implements CanActivate {
   constructor(private readonly appsService: AppsService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest() as EndpointRequest & {
-      appInstallationId?: string
-      appProjectId?: string
-    }
+    const request = context.switchToHttp().getRequest() as Request &
+      EndpointRequest & {
+        appInstallationId?: string
+        appProjectId?: string
+      }
     const accessToken = getAccessToken(request.headers?.authorization)
 
     try {
-      const principal = await this.appsService.resolveAppPrincipal(accessToken)
+      const principal = await this.appsService.resolveAppPrincipal(accessToken, {
+        issuer: getOAuthIssuer(request),
+        appsResource: getAppsResourceUrl(request),
+      })
       request.user = principal.user
       request.appInstallationId = principal.installationId
       request.appProjectId = principal.projectId

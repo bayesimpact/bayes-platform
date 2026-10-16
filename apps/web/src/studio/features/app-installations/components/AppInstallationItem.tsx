@@ -4,7 +4,6 @@ import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { ConfirmDialog } from "@/common/components/ConfirmDialog"
 import { GridCard } from "@/common/components/grid/Grid"
-import { permissionCopyKey } from "@/common/features/app-install/components/AppInstallPermissionIcon"
 import { buildDate } from "@/common/utils/build-date"
 import type { AppInstallation } from "../app-installations.models"
 
@@ -52,7 +51,7 @@ export function AppInstallationItem({
                   title={permission}
                   className="h-auto max-w-full whitespace-normal rounded-md text-left"
                 >
-                  {t(`appInstall:copy.${permissionCopyKey(permission)}.name`, {
+                  {t(`oauthConsent:appPermission.${permission.replaceAll(".", "_")}.name`, {
                     defaultValue: permission,
                   })}
                 </Badge>

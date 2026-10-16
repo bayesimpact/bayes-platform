@@ -9,15 +9,6 @@ export class InvalidLoopbackRedirectUriError extends Error {
   }
 }
 
-export class InvalidInstallRedirectUriError extends Error {
-  constructor(
-    message = "redirectUri must be a registered https callback URL for this app, or a loopback http(s) URL (localhost, *.localhost, 127.0.0.1, or ::1)",
-  ) {
-    super(message)
-    this.name = "InvalidInstallRedirectUriError"
-  }
-}
-
 /**
  * RFC 8252 loopback IPs, plus RFC 6761 `.localhost` (including bare `localhost`
  * and names like `acme.localhost`).
@@ -52,11 +43,11 @@ export function parseHttpRedirectUri(raw: string): URL {
   try {
     url = new URL(raw)
   } catch {
-    throw new InvalidInstallRedirectUriError()
+    throw new Error("redirect URI must be an http(s) URL")
   }
 
   if (url.protocol !== "http:" && url.protocol !== "https:") {
-    throw new InvalidInstallRedirectUriError()
+    throw new Error("redirect URI must be an http(s) URL")
   }
 
   return url
@@ -72,8 +63,8 @@ export function isHttpRedirectUri(raw: string): boolean {
 }
 
 /**
- * Accept install redirect_uri when it is a loopback URL (local CLI / *.localhost)
- * or an exact https match against the app's registered allowlist.
+ * The redirect URIs of an app (ADR 0029): a loopback URL for local development,
+ * or an exact https match against the redirect URIs of its manifest.
  */
 export function isAllowedInstallRedirectUri(raw: string, allowlist: readonly string[]): boolean {
   if (isLoopbackRedirectUri(raw)) return true
@@ -81,30 +72,4 @@ export function isAllowedInstallRedirectUri(raw: string, allowlist: readonly str
   const url = parseHttpRedirectUri(raw)
   if (url.protocol !== "https:") return false
   return allowlist.includes(raw)
-}
-
-export function assertAllowedInstallRedirectUri(raw: string, allowlist: readonly string[]): string {
-  if (!isAllowedInstallRedirectUri(raw, allowlist)) {
-    throw new InvalidInstallRedirectUriError()
-  }
-  return raw
-}
-
-/** Redirect after approve: one-time `code` + `state` only (never the client secret). */
-export function buildAppInstallCallbackUrl(params: {
-  redirectUri: string
-  code: string
-  state: string
-}): string {
-  const url = parseHttpRedirectUri(params.redirectUri)
-  url.searchParams.set("code", params.code)
-  url.searchParams.set("state", params.state)
-  return url.toString()
-}
-
-export function buildAppInstallDeniedUrl(params: { redirectUri: string; state: string }): string {
-  const url = parseHttpRedirectUri(params.redirectUri)
-  url.searchParams.set("error", "access_denied")
-  url.searchParams.set("state", params.state)
-  return url.toString()
 }

@@ -9,7 +9,11 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 
+- App installs: workspace owners and admins can install connected apps themselves, granting only permissions they hold.
+
 ### Changed
+
+- App installs: apps installed through the previous flow are disconnected and must be installed again by a workspace admin.
 
 ### Fixed
 

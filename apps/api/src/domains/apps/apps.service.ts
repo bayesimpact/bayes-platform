@@ -1,15 +1,7 @@
-import { createHash, randomBytes, randomUUID } from "node:crypto"
+import { randomUUID } from "node:crypto"
+import type { AppGrantablePermission } from "@caseai-connect/api-contracts"
 import {
-  type AppGrantablePermission,
-  appClientCredentialsTokenSchema,
-  assertAllowedInstallRedirectUri,
-  exchangeAppInstallCodeSchema,
-  InvalidInstallRedirectUriError,
-} from "@caseai-connect/api-contracts"
-import {
-  BadRequestException,
   ConflictException,
-  ForbiddenException,
   Injectable,
   Logger,
   NotFoundException,
@@ -21,19 +13,14 @@ import { AUTH_ERRORS } from "@/common/errors/auth-errors"
 import { TransactionService } from "@/common/transaction/transaction.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectRepository } from "@/domains/projects/project.repository"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { PermissionService } from "@/domains/rbac/permission.service"
-import {
-  BACKOFFICE_PROJECT_READ_PERMISSION,
-  intersectWithAppGrantablePermissions,
-} from "@/domains/rbac/rbac.constants"
+import { intersectWithAppGrantablePermissions } from "@/domains/rbac/rbac.constants"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { RoleRepository } from "@/domains/rbac/role.repository"
 import { isServiceUser } from "@/domains/users/service-user.helpers"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { UsersService } from "@/domains/users/users.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { AppInstallAuthorizationCodeRepository } from "./app-install-authorization-code.repository"
+import { AppAccessTokenService } from "./app-access-token.service"
 import { buildAppInstallRoleKey } from "./app-install-role"
 import {
   APP_INSTALLATION_STATUS_ACTIVE,
@@ -45,8 +32,6 @@ import {
   AppInstallationRepository,
   type ListedAppInstallation,
 } from "./app-installation.repository"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { AppJwtService } from "./app-jwt.service"
 import type {
   AppManifestRecord,
   CreateAppManifestFields,
@@ -54,50 +39,12 @@ import type {
 } from "./app-manifest.repository"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AppManifestRepository } from "./app-manifest.repository"
-import {
-  generateClientId,
-  generateClientSecret,
-  hashClientSecret,
-  verifyClientSecret,
-} from "./client-credentials"
-import { installPkceChallengeMatches } from "./install-pkce"
 
-const INVALID_CLIENT_MESSAGE = "Invalid client credentials"
-const INVALID_INSTALL_CODE_MESSAGE = "Invalid or expired install authorization code"
-const INSTALL_CODE_TTL_MS = 5 * 60 * 1000
-let dummyClientSecretHash: Promise<string> | undefined
-
-export type AppInstallPage = {
-  app: AppManifestRecord
-  projects: {
-    id: string
-    name: string
-    organizationId: string
-    organizationName: string
-  }[]
-}
-
-export type AuthorizeAppInstallResult = {
-  code: string
-  redirectUri: string
-  state: string
+export type InstalledApp = {
   installationId: string
+  serviceUserId: string
   organizationId: string
   projectId: string
-  /** Present for tests that call the service directly; never returned by the authorize HTTP route. */
-  clientId: string
-  clientSecret: string
-}
-
-export type ExchangeAppInstallCodeResult = {
-  clientId: string
-  clientSecret: string
-}
-
-export type AppAccessTokenResult = {
-  accessToken: string
-  tokenType: "Bearer"
-  expiresIn: number
 }
 
 export type AppPrincipal = {
@@ -113,13 +60,11 @@ export class AppsService {
   constructor(
     private readonly appManifestRepository: AppManifestRepository,
     private readonly appInstallationRepository: AppInstallationRepository,
-    private readonly appInstallAuthorizationCodeRepository: AppInstallAuthorizationCodeRepository,
     private readonly roleRepository: RoleRepository,
-    private readonly permissionService: PermissionService,
     private readonly usersService: UsersService,
     private readonly projectRepository: ProjectRepository,
     private readonly transactionService: TransactionService,
-    private readonly appJwtService: AppJwtService,
+    private readonly appAccessTokenService: AppAccessTokenService,
   ) {}
 
   listAppManifests(): Promise<AppManifestRecord[]> {
@@ -184,55 +129,36 @@ export class AppsService {
     return project
   }
 
-  async getInstallPage(params: { slug: string; userId: string }): Promise<AppInstallPage> {
-    const app = await this.requireManifestBySlug(params.slug)
-    const projectIds = await this.permissionService.listResourceIds(
-      params.userId,
-      BACKOFFICE_PROJECT_READ_PERMISSION,
-    )
-    const projects = await this.projectRepository.findPickerProjectsByIds(projectIds)
-    return { app, projects }
-  }
-
-  async authorizeInstall(params: {
-    slug: string
-    userId: string
+  /**
+   * Installs an app approved on the consent page of the OAuth server
+   * (ADR 0029): the service user, its role and memberships, and the
+   * installation. The caller checked who approves and what they can grant,
+   * and runs this in the transaction that also creates the grant.
+   */
+  async installApprovedApp(params: {
+    appManifestId: string
     projectId: string
     permissions: readonly string[]
-    redirectUri: string
-    state: string
-    codeChallenge: string
-    codeChallengeMethod: string
-  }): Promise<AuthorizeAppInstallResult> {
-    const app = await this.requireManifestBySlug(params.slug)
-    const redirectUri = this.requireInstallRedirectUri(params.redirectUri, app.allowedRedirectUris)
-    const selectedPermissions = this.requireInstallPermissions(
-      params.permissions,
-      app.grantablePermissions,
-    )
-    const pickerProject = await this.requirePickerProject(params.userId, params.projectId)
+    userId: string
+  }): Promise<InstalledApp> {
+    const app = await this.getAppManifest(params.appManifestId)
+    const permissions = this.requireInstallPermissions(params.permissions, app.grantablePermissions)
+    const [project] = await this.projectRepository.findPickerProjectsByIds([params.projectId])
+    if (!project) throw new NotFoundException(`Project ${params.projectId} not found`)
 
-    const existing = await this.appInstallationRepository.findActiveByManifestAndProject(
-      app.id,
-      pickerProject.id,
-    )
-    if (existing) {
-      throw new ConflictException("This app is already installed on that project")
-    }
-
-    const clientSecret = generateClientSecret()
-    const clientId = generateClientId()
-    const clientSecretHash = await hashClientSecret(clientSecret)
-    const installationId = randomUUID()
-    const code = generateInstallAuthorizationCode()
-    const codeHash = hashInstallAuthorizationCode(code)
-    const expiresAt = new Date(Date.now() + INSTALL_CODE_TTL_MS)
-
-    await this.transactionService.run(async () => {
+    return this.transactionService.run(async () => {
+      const existing = await this.appInstallationRepository.findActiveByManifestAndProject(
+        app.id,
+        project.id,
+      )
+      if (existing) {
+        throw new ConflictException("This app is already installed on that project")
+      }
+      const installationId = randomUUID()
       const customRole = await this.roleRepository.createProjectRole({
         key: buildAppInstallRoleKey(installationId),
         name: `App install ${app.slug}`,
-        permissionKeys: selectedPermissions,
+        permissionKeys: permissions,
       })
       const serviceUser = await this.usersService.createServiceUser({
         appSlug: app.slug,
@@ -240,79 +166,25 @@ export class AppsService {
       })
       await this.usersService.attachServiceUserMemberships({
         userId: serviceUser.id,
-        organizationId: pickerProject.organizationId,
-        projectId: pickerProject.id,
+        organizationId: project.organizationId,
+        projectId: project.id,
         customRoleId: customRole.id,
       })
       await this.appInstallationRepository.createInstallation({
         id: installationId,
         appManifestId: app.id,
-        projectId: pickerProject.id,
+        projectId: project.id,
         serviceUserId: serviceUser.id,
         customRoleId: customRole.id,
-        clientId,
-        clientSecretHash,
         createdByUserId: params.userId,
       })
-      await this.appInstallAuthorizationCodeRepository.createAuthorizationCode({
-        codeHash,
-        appInstallationId: installationId,
-        clientId,
-        clientSecret,
-        redirectUri,
-        codeChallenge: params.codeChallenge,
-        codeChallengeMethod: params.codeChallengeMethod,
-        expiresAt,
-      })
+      return {
+        installationId,
+        serviceUserId: serviceUser.id,
+        organizationId: project.organizationId,
+        projectId: project.id,
+      }
     })
-
-    return {
-      code,
-      redirectUri,
-      state: params.state,
-      installationId,
-      organizationId: pickerProject.organizationId,
-      projectId: pickerProject.id,
-      clientId,
-      clientSecret,
-    }
-  }
-
-  async exchangeInstallCode(body: unknown): Promise<ExchangeAppInstallCodeResult> {
-    const parsed = exchangeAppInstallCodeSchema.safeParse(body)
-    if (!parsed.success) {
-      throw new UnauthorizedException(INVALID_INSTALL_CODE_MESSAGE)
-    }
-
-    const codeHash = hashInstallAuthorizationCode(parsed.data.code)
-    const authorization =
-      await this.appInstallAuthorizationCodeRepository.findUnusedByCodeHash(codeHash)
-    if (
-      !authorization ||
-      authorization.clientSecret === null ||
-      authorization.expiresAt.getTime() <= Date.now() ||
-      authorization.redirectUri !== parsed.data.redirect_uri ||
-      !installPkceChallengeMatches({
-        codeVerifier: parsed.data.code_verifier,
-        codeChallenge: authorization.codeChallenge,
-        codeChallengeMethod: authorization.codeChallengeMethod,
-      })
-    ) {
-      throw new UnauthorizedException(INVALID_INSTALL_CODE_MESSAGE)
-    }
-
-    const consumed = await this.appInstallAuthorizationCodeRepository.consumeAuthorizationCode({
-      id: authorization.id,
-      consumedAt: new Date(),
-    })
-    if (!consumed) {
-      throw new UnauthorizedException(INVALID_INSTALL_CODE_MESSAGE)
-    }
-
-    return {
-      clientId: authorization.clientId,
-      clientSecret: authorization.clientSecret,
-    }
   }
 
   async listActiveInstallations(projectId: string): Promise<ActiveAppInstallationSummary[]> {
@@ -329,10 +201,19 @@ export class AppsService {
     )
   }
 
+  /** The service user an installation acts as, null once it is revoked. */
+  async findActiveServiceUserId(installationId: string): Promise<string | null> {
+    const installation = await this.appInstallationRepository.findById(installationId)
+    return installation?.status === APP_INSTALLATION_STATUS_ACTIVE
+      ? installation.serviceUserId
+      : null
+  }
+
   /** With `projectId`, an installation of another project is reported as missing. */
   async revokeInstallation(params: {
     installationId: string
-    userId: string
+    /** Null when the app revokes itself through the OAuth server. */
+    userId: string | null
     projectId?: string
   }): Promise<{ organizationId: string; projectId: string }> {
     const installation = await this.appInstallationRepository.findById(params.installationId)
@@ -348,55 +229,31 @@ export class AppsService {
     const scope = { organizationId: project.organizationId, projectId: project.id }
     if (installation.status === APP_INSTALLATION_STATUS_REVOKED) return scope
 
-    const revokedAt = new Date()
-    const revoked = await this.appInstallationRepository.markRevoked(installation.id, revokedAt)
+    const revoked = await this.appInstallationRepository.markRevoked(installation.id, new Date())
     if (!revoked) return scope
 
     this.logger.log(
-      `Revoked app installation ${installation.id} on project ${project.id} by user ${params.userId}`,
+      `Revoked app installation ${installation.id} on project ${project.id} by ${params.userId ? `user ${params.userId}` : "its app"}`,
     )
     return scope
   }
 
-  async issueToken(body: unknown): Promise<AppAccessTokenResult> {
-    const parsed = parseClientCredentialsBody(body)
-    const installation = await this.appInstallationRepository.findActiveByClientId(parsed.client_id)
-    const storedHash = installation?.clientSecretHash ?? (await dummySecretHash())
-    const secretMatches = await verifyClientSecret(parsed.client_secret, storedHash)
-    if (
-      !installation ||
-      !installation.serviceUserId ||
-      !installation.clientSecretHash ||
-      !secretMatches
-    ) {
-      throw new UnauthorizedException(INVALID_CLIENT_MESSAGE)
-    }
-
-    const accessToken = this.appJwtService.sign({
-      subject: installation.serviceUserId,
-      projectId: installation.projectId,
-      installationId: installation.id,
-    })
-    return {
-      accessToken,
-      tokenType: "Bearer",
-      expiresIn: this.appJwtService.ttlSeconds,
-    }
-  }
-
-  async resolveAppPrincipal(token: string): Promise<AppPrincipal> {
-    const claims = this.appJwtService.verify(token)
-    // A revoked installation loses access at once, even with a JWT issued before.
-    const installation = await this.appInstallationRepository.findById(claims.installation_id)
-    if (
-      !installation ||
-      installation.status !== APP_INSTALLATION_STATUS_ACTIVE ||
-      installation.projectId !== claims.project_id
-    ) {
+  /**
+   * The installation behind an access token of the apps API, issued by the
+   * authorization server (ADR 0029). The installation is loaded every time:
+   * once revoked, its tokens stop at once.
+   */
+  async resolveAppPrincipal(
+    token: string,
+    urls: { issuer: string; appsResource: string },
+  ): Promise<AppPrincipal> {
+    const claims = this.appAccessTokenService.verify(token, urls)
+    const installation = await this.appInstallationRepository.findById(claims.installationId)
+    if (!installation || installation.status !== APP_INSTALLATION_STATUS_ACTIVE) {
       throw new UnauthorizedException(AUTH_ERRORS.INVALID_ACCESS_TOKEN)
     }
 
-    const user = await this.usersService.findById(claims.sub)
+    const user = await this.usersService.findById(claims.serviceUserId)
     if (!user || !isServiceUser(user) || installation.serviceUserId !== user.id) {
       throw new UnauthorizedException(AUTH_ERRORS.INVALID_ACCESS_TOKEN)
     }
@@ -406,41 +263,6 @@ export class AppsService {
       projectId: installation.projectId,
       installationId: installation.id,
     }
-  }
-
-  private requireInstallRedirectUri(raw: string, allowlist: readonly string[]): string {
-    try {
-      return assertAllowedInstallRedirectUri(raw, allowlist)
-    } catch (error) {
-      if (error instanceof InvalidInstallRedirectUriError) {
-        throw new BadRequestException(error.message)
-      }
-      throw error
-    }
-  }
-
-  private async requireManifestBySlug(slug: string): Promise<AppManifestRecord> {
-    const manifest = await this.appManifestRepository.findBySlug(slug)
-    if (!manifest) throw new NotFoundException(`App ${slug} not found`)
-    return manifest
-  }
-
-  private async requirePickerProject(
-    userId: string,
-    projectId: string,
-  ): Promise<{ id: string; organizationId: string }> {
-    const projectIds = await this.permissionService.listResourceIds(
-      userId,
-      BACKOFFICE_PROJECT_READ_PERMISSION,
-    )
-    if (!projectIds.includes(projectId)) {
-      throw new ForbiddenException("Project is not available for app installation")
-    }
-    const [project] = await this.projectRepository.findPickerProjectsByIds([projectId])
-    if (!project) {
-      throw new NotFoundException(`Project ${projectId} not found`)
-    }
-    return project
   }
 
   private requireInstallPermissions(
@@ -475,23 +297,6 @@ export class AppsService {
   }
 }
 
-function parseClientCredentialsBody(body: unknown): {
-  grant_type: "client_credentials"
-  client_id: string
-  client_secret: string
-} {
-  const parsed = appClientCredentialsTokenSchema.safeParse(body)
-  if (!parsed.success) {
-    throw new UnauthorizedException(INVALID_CLIENT_MESSAGE)
-  }
-  return parsed.data
-}
-
-function dummySecretHash(): Promise<string> {
-  dummyClientSecretHash ??= hashClientSecret("timing-safe-dummy")
-  return dummyClientSecretHash
-}
-
 function toActiveInstallationSummary(
   installation: ListedAppInstallation,
   permissionsByRoleId: Map<string, string[]>,
@@ -504,15 +309,6 @@ function toActiveInstallationSummary(
     permissions: installation.customRoleId
       ? (permissionsByRoleId.get(installation.customRoleId) ?? [])
       : [],
-    clientId: installation.clientId,
     createdAt: installation.createdAt,
   }
-}
-
-function generateInstallAuthorizationCode(): string {
-  return randomBytes(32).toString("base64url")
-}
-
-function hashInstallAuthorizationCode(code: string): string {
-  return createHash("sha256").update(code).digest("hex")
 }

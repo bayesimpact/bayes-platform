@@ -1,18 +1,22 @@
 import { Column, Entity, Index, JoinColumn, JoinTable, ManyToMany, ManyToOne } from "typeorm"
 import { Base4AllEntity } from "@/common/entities/base4all.entity"
+import { AppInstallation } from "@/domains/apps/app-installation.entity"
 import { Project } from "@/domains/projects/project.entity"
 import { User } from "@/domains/users/user.entity"
 import { OAuthClient } from "./oauth-client.entity"
 
 /**
  * What a person allowed a client to do: some permissions on some projects.
- * The client acts as the person, so a right also needs the person to hold it.
+ * An MCP client acts as the person, so a right also needs the person to hold
+ * it. An app acts as the service user of its installation (ADR 0029): its
+ * grant belongs to no person, so it outlives the account of its installer.
  */
 @Entity("oauth_grant")
 @Index("IDX_oauth_grant_user_id", ["userId"])
 export class OAuthGrant extends Base4AllEntity {
-  @Column({ type: "uuid", name: "user_id" })
-  userId!: string
+  /** The person who approved an MCP client. Null on an app's grant. */
+  @Column({ type: "uuid", name: "user_id", nullable: true })
+  userId!: string | null
 
   @ManyToOne(() => User, { onDelete: "CASCADE" })
   @JoinColumn({ name: "user_id" })
@@ -45,4 +49,12 @@ export class OAuthGrant extends Base4AllEntity {
 
   @Column({ type: "timestamptz", name: "last_used_at", nullable: true })
   lastUsedAt!: Date | null
+
+  /** The installation an app grant created. Revoking one revokes the other. */
+  @Column({ type: "uuid", name: "app_installation_id", nullable: true })
+  appInstallationId!: string | null
+
+  @ManyToOne(() => AppInstallation, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "app_installation_id" })
+  appInstallation?: AppInstallation | null
 }

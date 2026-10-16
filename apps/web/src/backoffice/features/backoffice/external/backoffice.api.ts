@@ -175,4 +175,27 @@ export default {
     const axios = getAxiosInstance()
     await axios.delete(AppsRoutes.deleteOne.getPath({ appManifestId }))
   },
+  getAppOAuthClient: async (appManifestId) => {
+    const axios = getAxiosInstance()
+    const response = await axios.get<typeof AppsRoutes.getOAuthClient.response>(
+      AppsRoutes.getOAuthClient.getPath({ appManifestId }),
+    )
+    const client = response.data.data
+    return {
+      clientId: client.clientId,
+      issuer: client.issuer,
+      authorizationEndpoint: client.authorizationEndpoint,
+      resource: client.resource,
+    }
+  },
+  createAppOAuthClientSecret: async (appManifestId) => {
+    const axios = getAxiosInstance()
+    const response = await axios.post<typeof AppsRoutes.createOAuthClientSecret.response>(
+      AppsRoutes.createOAuthClientSecret.getPath({ appManifestId }),
+    )
+    return {
+      clientId: response.data.data.clientId,
+      clientSecret: response.data.data.clientSecret,
+    }
+  },
 } satisfies IBackofficeSpi

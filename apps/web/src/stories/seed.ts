@@ -21,7 +21,6 @@ import type {
 } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.models"
 import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"
 import type { Agent } from "@/common/features/agents/agents.models"
-import type { AppInstallPage } from "@/common/features/app-install/app-install.models"
 import type { User } from "@/common/features/me/me.models"
 import type { OAuthConsentPage } from "@/common/features/oauth-consent/oauth-consent.models"
 import type { OAuthGrant } from "@/common/features/oauth-grants/oauth-grants.models"
@@ -138,47 +137,6 @@ export function mergeSeeds(...seeds: StoryPreloadedState[]): StoryPreloadedState
  *   `withRedux({ state: { someSlice: { ... } } })`
  */
 export const seed = {
-  /** Seeds the operator app-install page and the loopback callback ids the route reads. */
-  appInstallPage(
-    page: AppInstallPage,
-    callback: {
-      redirectUri?: string
-      callbackState?: string
-      codeChallenge?: string
-      codeChallengeMethod?: string
-    } = {},
-  ): StoryPreloadedState {
-    return {
-      appInstall: {
-        slug: page.app.slug,
-        redirectUri: callback.redirectUri ?? "http://127.0.0.1:8787/callback",
-        callbackState: callback.callbackState ?? "csrf-state",
-        codeChallenge: callback.codeChallenge ?? "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
-        codeChallengeMethod: callback.codeChallengeMethod ?? "S256",
-        page: ads.fulfilled(page),
-      },
-    }
-  },
-
-  /** Seeds only the URL-driven install ids (invalid-callback and loading stories). */
-  appInstallCallback(params: {
-    slug: string | null
-    redirectUri?: string
-    callbackState?: string
-    codeChallenge?: string
-    codeChallengeMethod?: string
-  }): StoryPreloadedState {
-    return {
-      appInstall: {
-        slug: params.slug,
-        redirectUri: params.redirectUri ?? "http://127.0.0.1:8787/callback",
-        callbackState: params.callbackState ?? "csrf-state",
-        codeChallenge: params.codeChallenge ?? "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
-        codeChallengeMethod: params.codeChallengeMethod ?? "S256",
-      },
-    }
-  },
-
   /** Seeds the OAuth consent page as the API returned it for a valid request. */
   oauthConsentPage(page: OAuthConsentPage): StoryPreloadedState {
     return { oauthConsent: { page: ads.fulfilled(page) } }

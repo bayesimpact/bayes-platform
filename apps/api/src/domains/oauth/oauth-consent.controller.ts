@@ -3,7 +3,7 @@ import { Body, Controller, Delete, Get, Param, Post, Query, Req, UseGuards } fro
 import { SkipThrottle, ThrottlerGuard } from "@nestjs/throttler"
 import type { Request } from "express"
 import type { EndpointRequest } from "@/common/context/request.interface"
-import { getMcpResourceUrl, getOAuthIssuer } from "@/config/public-urls"
+import { getOAuthServerUrls } from "@/config/public-urls"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { UserGuard } from "@/domains/users/user.guard"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -27,7 +27,7 @@ export class OAuthConsentController {
     const page = await this.oauthAuthorizationService.getConsentPage({
       userId: request.user.id,
       query,
-      urls: { issuer: getOAuthIssuer(request), resource: getMcpResourceUrl(request) },
+      urls: getOAuthServerUrls(request),
     })
     return { data: page }
   }
@@ -40,7 +40,7 @@ export class OAuthConsentController {
     const { redirectTo } = await this.oauthAuthorizationService.approveConsent({
       userId: request.user.id,
       payload,
-      urls: { issuer: getOAuthIssuer(request), resource: getMcpResourceUrl(request) },
+      urls: getOAuthServerUrls(request),
     })
     return { data: { redirectTo } }
   }

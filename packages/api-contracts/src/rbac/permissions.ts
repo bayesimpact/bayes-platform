@@ -32,10 +32,7 @@ export const BACKOFFICE_CONVERSATION_REVIEWER_UPDATE_PERMISSION =
  */
 export const AGENT_CONVERSATION_REVIEW_PERMISSION = "agent.conversation.review" as const
 
-/** Install an App on a project. Global, same wiring as `backoffice.read`. */
-export const APP_INSTALL_PERMISSION = "app.install" as const
-
-/** AppManifest back-office CRUD. Superadmin only in V0; not granted by `app.install`. */
+/** AppManifest back-office CRUD, and the OAuth client of each app. Superadmin only. */
 export const BACKOFFICE_APP_MANAGE_PERMISSION = "backoffice.app.manage" as const
 
 export const DOCUMENT_READ_PERMISSION = "document.read" as const
@@ -355,9 +352,12 @@ export const PROJECT_AGENT_MESSAGE_FEEDBACK_CREATE_PERMISSION =
   "project.agent_message_feedback.create" as const
 
 /**
- * Apps installed on a project, listed and revoked from the studio. Scoped to the project and never
- * inherited from the organization. Installing an app still goes through the global `app.install`.
+ * Apps installed on a project: installed through the consent page of the OAuth server (ADR 0029),
+ * listed and revoked from the studio. Scoped to the project and never inherited from the
+ * organization.
  */
+export const PROJECT_APP_INSTALLATION_CREATE_PERMISSION = "project.app_installation.create" as const
+
 export const PROJECT_APP_INSTALLATION_READ_PERMISSION = "project.app_installation.read" as const
 
 export const PROJECT_APP_INSTALLATION_REVOKE_PERMISSION = "project.app_installation.revoke" as const
@@ -504,6 +504,7 @@ export const PROJECT_SCOPED_PERMISSIONS = [
   PROJECT_MEMBER_UPDATE_PERMISSION,
   PROJECT_APP_INSTALLATION_READ_PERMISSION,
   PROJECT_APP_INSTALLATION_REVOKE_PERMISSION,
+  PROJECT_APP_INSTALLATION_CREATE_PERMISSION,
 ] as const
 
 export type ProjectScopedPermission = (typeof PROJECT_SCOPED_PERMISSIONS)[number]
@@ -527,7 +528,6 @@ export type GlobalPermission =
   | typeof BACKOFFICE_USER_READ_PERMISSION
   | typeof BACKOFFICE_TERMS_UPDATE_PERMISSION
   | typeof BACKOFFICE_CONVERSATION_REVIEWER_UPDATE_PERMISSION
-  | typeof APP_INSTALL_PERMISSION
   | typeof BACKOFFICE_APP_MANAGE_PERMISSION
 
 export type OrganizationPermission = OrganizationScopedPermission

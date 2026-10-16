@@ -2,10 +2,9 @@ import type { RequestPayload, ResponseData, SuccessResponseDTO } from "../generi
 import { defineRoute } from "../helpers"
 import type {
   AppInstallationSummaryDto,
-  AppInstallPageDto,
   AppManifestDto,
-  AuthorizeAppInstallRequestDto,
-  AuthorizeAppInstallResponseDto,
+  AppOAuthClientDto,
+  AppOAuthClientSecretDto,
   CreateAppManifestRequestDto,
   UpdateAppManifestRequestDto,
 } from "./apps.dto"
@@ -35,24 +34,15 @@ export const AppsRoutes = {
     method: "delete",
     path: "backoffice/apps/:appManifestId",
   }),
-  getInstall: defineRoute<ResponseData<AppInstallPageDto>>({
+  /** The OAuth client of the app (ADR 0029), null before its first secret. */
+  getOAuthClient: defineRoute<ResponseData<AppOAuthClientDto>>({
     method: "get",
-    path: "apps/install/:slug",
+    path: "backoffice/apps/:appManifestId/oauth-client",
   }),
-  authorize: defineRoute<
-    ResponseData<AuthorizeAppInstallResponseDto>,
-    RequestPayload<AuthorizeAppInstallRequestDto>
-  >({
+  /** Creates the client or replaces its secret. The secret is returned this once. */
+  createOAuthClientSecret: defineRoute<ResponseData<AppOAuthClientSecretDto>>({
     method: "post",
-    path: "apps/install/:slug/authorize",
-  }),
-  revoke: defineRoute<ResponseData<SuccessResponseDTO>>({
-    method: "post",
-    path: "app-installations/:id/revoke",
-  }),
-  listForProject: defineRoute<ResponseData<AppInstallationSummaryDto[]>>({
-    method: "get",
-    path: "projects/:projectId/app-installations",
+    path: "backoffice/apps/:appManifestId/oauth-client/secret",
   }),
 }
 

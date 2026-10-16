@@ -1,5 +1,4 @@
 import { createHash, createSign, createVerify, randomBytes, timingSafeEqual } from "node:crypto"
-import { normalizePem } from "@/domains/apps/app-jwt"
 
 export type OAuthAccessTokenClaims = {
   iss: string
@@ -7,10 +6,17 @@ export type OAuthAccessTokenClaims = {
   sub: string
   client_id: string
   grant_id: string
+  /** Tokens of an app (ADR 0029): the installation, whose service user is the subject. */
+  installation_id?: string
   scope: string
   iat: number
   exp: number
   jti: string
+}
+
+/** PEM keys come from env vars, where newlines are often escaped. */
+export function normalizePem(value: string): string {
+  return value.replaceAll("\\n", "\n").trim()
 }
 
 export class InvalidOAuthAccessTokenError extends Error {
@@ -48,7 +54,7 @@ export function signOAuthAccessToken(claims: OAuthAccessTokenClaims, privateKey:
 
 /**
  * Checks the signature, the `at+jwt` type (RFC 9068, so an ID token or an
- * App JWT signed with the same key is refused), issuer, audience and expiry.
+ * token of another kind signed with the same key is refused), issuer, audience and expiry.
  */
 export function verifyOAuthAccessToken(params: {
   token: string
@@ -116,6 +122,7 @@ function isAccessTokenClaims(
     typeof value.scope === "string" &&
     typeof value.iat === "number" &&
     typeof value.exp === "number" &&
-    typeof value.jti === "string"
+    typeof value.jti === "string" &&
+    (value.installation_id === undefined || typeof value.installation_id === "string")
   )
 }
