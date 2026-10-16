@@ -5,6 +5,11 @@
       "hint": "Le fournisseur d'identité a refusé la connexion. Si le problème persiste, contactez l'administrateur de la plateforme avec le message ci-dessus.",
       "retry": "réessayer",
       "logout": "se déconnecter",
+      "lostState": {
+        "title": "Connexion expirée",
+        "message": "Cette connexion a commencé il y a trop longtemps, ou un autre onglet en a lancé une nouvelle, et cet onglet ne peut plus la terminer.",
+        "hint": "Cliquez sur réessayer pour vous connecter. Si cette page revient, fermez d'abord les autres onglets de la plateforme."
+      },
       "signInRefused": {
         "emailNotVerified": {
           "title": "Vérifiez votre email",
