@@ -5,17 +5,18 @@ import { useLocation } from "react-router-dom"
 import { type AuthCallbackError, isLostSigninState } from "@/common/auth/auth-callback-error"
 import { signInErrorKey } from "@/common/auth/sign-in-error-key"
 import { getAppUrl } from "@/config/runtime-config"
-import { logout } from "@/external/oidcClient"
+import { logout, takeTabReturnTo } from "@/external/oidcClient"
 
 const LOST_STATE_RETRY_KEY = "oidc-lost-state-retry-at"
 const LOST_STATE_RETRY_WINDOW_MS = 60_000
 
 /**
  * A full reload drops the error parameters and the error the OIDC client
- * keeps in memory, then the home route starts a clean login.
+ * keeps in memory. The page this tab was on then starts a clean login, or the
+ * home route when the tab kept no page.
  */
 function restartSignin(): void {
-  window.location.assign(getAppUrl())
+  window.location.assign(`${getAppUrl()}${takeTabReturnTo() ?? ""}`)
 }
 
 /** True once per minute at most, so that a state that keeps getting lost cannot loop. */

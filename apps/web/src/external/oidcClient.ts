@@ -124,6 +124,7 @@ function renewBeforeExpiry(): void {
  */
 export async function login({ loginHint }: { loginHint?: string } = {}): Promise<void> {
   const returnTo = getCurrentAppPath()
+  keepTabReturnTo(returnTo)
   await getUserManager().signinRedirect({
     ...(loginHint ? { login_hint: loginHint } : {}),
     ...(returnTo ? { state: { returnTo } satisfies SigninState } : {}),
@@ -145,11 +146,42 @@ export function rememberSigninReturnTo(user: User | undefined): void {
   const state = user?.state
   const returnTo =
     typeof state === "object" && state !== null && "returnTo" in state ? state.returnTo : null
-  // A relative path only, never another origin (`//host`)
-  signinReturnTo =
-    typeof returnTo === "string" && returnTo.startsWith("/") && !returnTo.startsWith("//")
-      ? returnTo
-      : null
+  signinReturnTo = safeReturnTo(returnTo)
+  keepTabReturnTo(null)
+}
+
+/** A relative path only, never another origin (`//host`). */
+function safeReturnTo(returnTo: unknown): string | null {
+  return typeof returnTo === "string" && returnTo.startsWith("/") && !returnTo.startsWith("//")
+    ? returnTo
+    : null
+}
+
+/**
+ * The OIDC state can be lost (see isLostSigninState), and the page to return
+ * to with it. This tab keeps a copy in its session storage, which only this
+ * tab can change.
+ */
+const TAB_RETURN_TO_KEY = "oidc-signin-return-to"
+
+function keepTabReturnTo(returnTo: string | null): void {
+  try {
+    if (returnTo) window.sessionStorage.setItem(TAB_RETURN_TO_KEY, returnTo)
+    else window.sessionStorage.removeItem(TAB_RETURN_TO_KEY)
+  } catch {
+    // No session storage: a lost sign-in state then returns to the app root
+  }
+}
+
+/** The page this tab was on when its last sign-in started, once. */
+export function takeTabReturnTo(): string | null {
+  try {
+    const returnTo = window.sessionStorage.getItem(TAB_RETURN_TO_KEY)
+    window.sessionStorage.removeItem(TAB_RETURN_TO_KEY)
+    return safeReturnTo(returnTo)
+  } catch {
+    return null
+  }
 }
 
 /** The page the user was on before the sign-in, once. */
