@@ -62,7 +62,8 @@ export function signAppAccessToken(params: {
   installationId: string
 }): string {
   const privateKey = process.env.OAUTH_SIGNING_PRIVATE_KEY
-  if (!privateKey) throw new Error("OAUTH_SIGNING_PRIVATE_KEY is required to sign app tokens in tests")
+  if (!privateKey)
+    throw new Error("OAUTH_SIGNING_PRIVATE_KEY is required to sign app tokens in tests")
   const issuedAt = Math.floor(Date.now() / 1000)
   return signOAuthAccessToken(
     {
