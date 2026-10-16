@@ -8,11 +8,13 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+- (beta) MCP App cards can now place a message in the chat input, ready for you to review and send.
 
 ### Changed
 
 ### Fixed
 - Sign-in: a sign-in left open for a long time now completes on its own and returns to the last page.
+- (beta) MCP App cards: a stray punctuation mark no longer shows up as a reply next to a card.
 
 ### Security
 

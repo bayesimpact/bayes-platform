@@ -5,7 +5,7 @@ import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js"
 import type { JSONRPCMessage, MessageExtraInfo } from "@modelcontextprotocol/sdk/types.js"
 import { useEffect, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
-import { isOpenableLink } from "./mcp-app-view"
+import { getMcpAppMessageText, isOpenableLink } from "./mcp-app-view"
 
 const HOST_INFO = { name: "caseai-connect", version: "1.0.0" }
 const INITIALIZE_TIMEOUT_MS = 15_000
@@ -194,11 +194,17 @@ export function McpAppView({
   html,
   toolInput,
   toolResult,
+  onMessage,
   onRenderFailed,
 }: {
   html: string
   toolInput: unknown
   toolResult: unknown
+  /**
+   * Puts a message the app proposes (`ui/message`) in the chat input, for the user to read and
+   * send. Without it the app is told the host takes no messages, and offers its own fallback.
+   */
+  onMessage?: (text: string) => void
   /** The card gave up (handshake error or timeout); the parent can show its text fallback. */
   onRenderFailed?: () => void
 }) {
@@ -206,12 +212,14 @@ export function McpAppView({
   const [hasFailed, setHasFailed] = useState(false)
   // The guest completed `ui/initialize`: until then the frame is blank and a placeholder covers it.
   const [isInitialized, setIsInitialized] = useState(false)
-  // Parents pass an inline arrow that changes identity when any sibling card
-  // fails. Reading it through a ref keeps it out of the render effect deps, so
-  // a sibling failure does not tear down and re-handshake this card.
+  // Parents pass inline arrows that change identity when any sibling card
+  // fails. Reading them through refs keeps them out of the render effect deps,
+  // so a sibling failure does not tear down and re-handshake this card.
   const onRenderFailedRef = useRef(onRenderFailed)
+  const onMessageRef = useRef(onMessage)
   useEffect(() => {
     onRenderFailedRef.current = onRenderFailed
+    onMessageRef.current = onMessage
   })
 
   useEffect(() => {
@@ -234,7 +242,12 @@ export function McpAppView({
         const appBridge = new AppBridge(
           null,
           HOST_INFO,
-          { logging: {}, sandbox: {}, openLinks: {} },
+          {
+            logging: {},
+            sandbox: {},
+            openLinks: {},
+            ...(onMessageRef.current ? { message: { text: {} } } : {}),
+          },
           {
             // The app has no dark mode, so guests are told to render light.
             hostContext: { displayMode: "inline", platform: "web", theme: "light" },
@@ -266,6 +279,17 @@ export function McpAppView({
           const opened = window.open(url, "_blank")
           if (!opened) return { isError: true }
           opened.opener = null
+          return {}
+        }
+        // The message only lands in the input: the user still reads it and sends it. Like a
+        // link, it needs a click or a key press in the card, so a card cannot fill the input
+        // on its own.
+        appBridge.onmessage = async ({ role, content }) => {
+          const placeMessage = onMessageRef.current
+          const text = getMcpAppMessageText(content)
+          if (!placeMessage || role !== "user" || text.length === 0) return { isError: true }
+          if (navigator.userActivation?.isActive === false) return { isError: true }
+          placeMessage(text)
           return {}
         }
 
@@ -333,11 +357,17 @@ export function McpAppView({
     // until the 15s init timeout hides it. Reload works because that blank
     // load often does not happen on first paint.
     window.addEventListener("message", handleMessage)
-    iframe.srcdoc = SANDBOX_BOOTSTRAP_HTML.replaceAll(SANDBOX_ID_PLACEHOLDER, sandboxId)
+    // Loaded one task later, and not at all by a run torn down before then. Navigating the
+    // frame twice in a row, as StrictMode's double mount in dev does, leaves its document
+    // unrendered (0×0) while the handshake still succeeds: the card stays blank.
+    const loadTimeoutId = window.setTimeout(() => {
+      iframe.srcdoc = SANDBOX_BOOTSTRAP_HTML.replaceAll(SANDBOX_ID_PLACEHOLDER, sandboxId)
+    }, 0)
 
     return () => {
       cancelled = true
       attempt += 1
+      window.clearTimeout(loadTimeoutId)
       for (const timeoutId of retryTimeoutIds) {
         window.clearTimeout(timeoutId)
       }

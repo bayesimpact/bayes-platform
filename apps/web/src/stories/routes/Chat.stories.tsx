@@ -1,7 +1,7 @@
 import { Button } from "@caseai-connect/ui/shad/button"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { CirclePlusIcon, MicIcon, PaperclipIcon } from "lucide-react"
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { withRouter } from "storybook-addon-remix-react-router"
 import { agentSessionMessageFactory } from "@/common/features/agents/agent-sessions/agent-session.factory"
 import type { AgentSessionMessage } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/agent-session-messages.models"
@@ -9,16 +9,18 @@ import { AgentSessionMessage as AgentSessionMessageComponent } from "@/common/fe
 import {
   Chat,
   ChatActions,
+  type ChatComposerHandle,
   ChatContent,
   ChatFooter,
   ChatHeader,
   ChatInput,
   ChatSubmit,
 } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/Chat"
+import { ChatDraftContext } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/context"
 import { organizationFactory } from "@/common/features/organizations/organization.factory"
 import { projectFactory } from "@/common/features/projects/projects.factory"
 import { DotsBackground } from "@/studio/components/DotsBackground"
-import { SAMPLE_CARD_HTML } from "../common/McpAppView.stories"
+import { MESSAGE_CARD_HTML, SAMPLE_CARD_HTML } from "../common/McpAppView.stories"
 import { withRedux } from "../decorators"
 import { mergeSeeds, seed } from "../seed"
 
@@ -108,6 +110,8 @@ export const Default: Story = {
     const typedArgs = args as StoryArgs
     const [messages, setMessages] = useState<AgentSessionMessage[]>(typedArgs.messages)
 
+    const composerRef = useRef<ChatComposerHandle>(null)
+
     const handleSubmit = (value: string) => {
       setMessages((prev: AgentSessionMessage[]) => [
         ...prev,
@@ -120,12 +124,14 @@ export const Default: Story = {
           <Chat>
             <ChatHeader />
             <ChatContent>
-              {messages.map((msg: AgentSessionMessage) => (
-                <AgentSessionMessageComponent key={msg.id} message={msg} />
-              ))}
+              <ChatDraftContext.Provider value={(text) => composerRef.current?.insertText(text)}>
+                {messages.map((msg: AgentSessionMessage) => (
+                  <AgentSessionMessageComponent key={msg.id} message={msg} />
+                ))}
+              </ChatDraftContext.Provider>
             </ChatContent>
 
-            <ChatFooter focus={false} onMessageSubmit={handleSubmit}>
+            <ChatFooter composerRef={composerRef} focus={false} onMessageSubmit={handleSubmit}>
               <ChatInput placeholder="Ask a question..." className="resize-none" />
 
               <ChatActions>
@@ -229,6 +235,36 @@ export const TextWithMcpAppCard: Story = {
               mcpServerId: "mcp-server-1",
               resourceUri: "ui://pdf-export/mcp-app.html",
               html: SAMPLE_CARD_HTML,
+            },
+          },
+        ],
+      }),
+    ],
+  },
+}
+
+/**
+ * A reply that is all card: the model wrote a lone "." after the tool call, which is not shown,
+ * and the card's button puts its message in the input below.
+ */
+export const McpAppCardProposesMessage: Story = {
+  ...Default,
+  args: {
+    messages: [
+      agentSessionMessageFactory.build({ role: "user", content: "Walk me through the plan." }),
+      agentSessionMessageFactory.build({
+        role: "assistant",
+        content: ".",
+        toolCalls: [
+          {
+            id: "call-show-plan",
+            name: "show_plan",
+            arguments: { markdown: "The first step comes first." },
+            result: { content: [{ type: "text", text: "The plan is on screen." }] },
+            mcpApp: {
+              mcpServerId: "mcp-server-1",
+              resourceUri: "ui://plan/mcp-app.html",
+              html: MESSAGE_CARD_HTML,
             },
           },
         ],

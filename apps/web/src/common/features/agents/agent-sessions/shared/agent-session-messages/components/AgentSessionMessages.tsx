@@ -21,7 +21,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@caseai-connect/ui/shad/popover"
 import { cn } from "@caseai-connect/ui/utils"
 import { FileCheckIcon, ListIcon, XIcon } from "lucide-react"
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import type {
   ConversationAgentSession,
@@ -33,10 +33,12 @@ import { AgentSessionMessage } from "@/common/features/agents/agent-sessions/sha
 import {
   Chat,
   ChatActions,
+  type ChatComposerHandle,
   ChatFooter,
   ChatInput,
   ChatSubmit,
 } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/Chat"
+import { ChatDraftContext } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/context"
 import { Dictaphone } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/Dictaphone"
 import {
   type FormResultContextValue,
@@ -78,6 +80,9 @@ export function AgentSessionMessages({
   const { t } = useTranslation()
   const isStreaming = useAppSelector(selectStreaming)
   const dispatch = useAppDispatch()
+  // MCP App cards in the thread put their messages in the footer's input.
+  const composerRef = useRef<ChatComposerHandle>(null)
+  const insertDraft = (text: string) => composerRef.current?.insertText(text)
 
   // One form per agent of the conversation: the session's agent (schema from
   // the running settings) and the sub-agents that took the conversation over
@@ -138,16 +143,19 @@ export function AgentSessionMessages({
           <MessageScrollerProvider scrollPreviousItemPeek={168} defaultScrollPosition="end">
             <FormSubSessionsProvider value={formSubSessions}>
               <FormResultProvider value={formResult}>
-                <Messages
-                  messages={messages}
-                  renderMessageVersion={renderMessageVersion}
-                  resendReplyIndex={failedTurn?.replyIndex}
-                  onResendLast={handleResendLast}
-                />
+                <ChatDraftContext.Provider value={insertDraft}>
+                  <Messages
+                    messages={messages}
+                    renderMessageVersion={renderMessageVersion}
+                    resendReplyIndex={failedTurn?.replyIndex}
+                    onResendLast={handleResendLast}
+                  />
+                </ChatDraftContext.Provider>
               </FormResultProvider>
             </FormSubSessionsProvider>
 
             <Footer
+              composerRef={composerRef}
               session={session}
               messages={messages}
               isStreaming={isStreaming}
@@ -261,12 +269,14 @@ function MessageNavigator({ messages }: { messages: AgentSessionMessageType[] })
 }
 
 function Footer({
+  composerRef,
   session,
   messages,
   isStreaming,
   onFillFormToolEvent,
   rightSlot,
 }: {
+  composerRef: React.Ref<ChatComposerHandle>
   session: ConversationAgentSession
   messages: AgentSessionMessageType[]
   isStreaming: boolean
@@ -296,7 +306,7 @@ function Footer({
   }
 
   return (
-    <ChatFooter focus={!isStreaming} onMessageSubmit={handleSubmit}>
+    <ChatFooter composerRef={composerRef} focus={!isStreaming} onMessageSubmit={handleSubmit}>
       <ChatInput
         placeholder={t("conversationAgentSession:chat.placeholder")}
         className="resize-none"
