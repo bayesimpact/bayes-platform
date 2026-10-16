@@ -69,15 +69,23 @@ function ChatContent({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+/** Lets the thread above the footer put text in its input, for the user to read and send. */
+type ChatComposerHandle = {
+  /** Appends to what the user already typed, after a blank line, and focuses the input. */
+  insertText: (text: string) => void
+}
+
 function ChatFooter({
   onMessageSubmit,
   focus,
+  composerRef,
   className,
   children,
   ...props
 }: React.ComponentProps<"div"> & {
   onMessageSubmit: (value: string) => void
   focus: boolean
+  composerRef?: React.Ref<ChatComposerHandle>
 }) {
   const inputRef = React.useRef<HTMLTextAreaElement>(null)
 
@@ -85,6 +93,17 @@ function ChatFooter({
   const [disabled, setDisabled] = React.useState(false)
 
   const [isFocused, setIsFocused] = React.useState(false)
+
+  React.useImperativeHandle(
+    composerRef,
+    () => ({
+      insertText: (text: string) => {
+        setInputValue((current) => (current.trim() ? `${current.trimEnd()}\n\n${text}` : text))
+        inputRef.current?.focus()
+      },
+    }),
+    [],
+  )
 
   React.useEffect(() => {
     const handleFocus = () => {
@@ -257,6 +276,7 @@ export {
   Chat,
   ChatActions,
   ChatBotMessage,
+  type ChatComposerHandle,
   ChatContent,
   ChatFooter,
   ChatHeader,

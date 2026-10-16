@@ -1,5 +1,7 @@
 import { LATEST_PROTOCOL_VERSION } from "@modelcontextprotocol/ext-apps"
 import type { Meta, StoryObj } from "@storybook/react-vite"
+import { useState } from "react"
+import { fn } from "storybook/test"
 import { McpAppView } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/McpAppView"
 
 /**
@@ -91,6 +93,66 @@ export const SAMPLE_CARD_HTML = `<!DOCTYPE html>
   </body>
 </html>`
 
+/**
+ * A stand-in guest that proposes a message for the conversation (`ui/message`) when its button
+ * is clicked, then shows whether the host took it.
+ */
+export const MESSAGE_CARD_HTML = `<!DOCTYPE html>
+<html>
+  <body style="font: 13px sans-serif; margin: 8px;">
+    <button id="send" type="button">Send my notes</button>
+    <p id="status"></p>
+    <script>
+      (function () {
+        function send(message) {
+          window.parent.postMessage(Object.assign({ jsonrpc: "2.0" }, message), "*")
+        }
+        function notifySize() {
+          send({
+            method: "ui/notifications/size-changed",
+            params: { height: document.documentElement.getBoundingClientRect().height },
+          })
+        }
+        window.addEventListener("message", function (event) {
+          if (event.source !== window.parent) return
+          var message = event.data
+          if (!message || message.jsonrpc !== "2.0") return
+          if (message.id === 1 && message.result) {
+            send({ method: "ui/notifications/initialized" })
+          }
+          if (message.id === 2) {
+            var accepted = message.result && !message.result.isError
+            document.getElementById("status").textContent = accepted
+              ? "Passed to the conversation"
+              : "The host refused the message"
+            notifySize()
+          }
+        })
+        document.getElementById("send").addEventListener("click", function () {
+          send({
+            id: 2,
+            method: "ui/message",
+            params: {
+              role: "user",
+              content: [{ type: "text", text: "\`The first step\` Why this one first?" }],
+            },
+          })
+        })
+        send({
+          id: 1,
+          method: "ui/initialize",
+          params: {
+            appInfo: { name: "sample", version: "0" },
+            appCapabilities: {},
+            protocolVersion: "${LATEST_PROTOCOL_VERSION}",
+          },
+        })
+        notifySize()
+      })()
+    </script>
+  </body>
+</html>`
+
 const EXPIRY_WINDOW_MS = 15 * 60 * 1000
 
 /**
@@ -112,6 +174,8 @@ function buildToolResult(expiresInMs: number) {
 const meta = {
   title: "common/McpAppView",
   component: McpAppView,
+  // The card HTML constants are exported for other stories, not stories themselves.
+  excludeStories: /_HTML$/,
   parameters: { layout: "padded" },
   args: {
     html: SAMPLE_CARD_HTML,
@@ -137,4 +201,32 @@ export const PdfExportCard: Story = {
 
 export const ExpiredCard: Story = {
   render: (args) => <McpAppView {...args} toolResult={buildToolResult(-60 * 1000)} />,
+}
+
+/** The card's message lands in the input below it, as in a conversation. */
+export const ProposesMessage: Story = {
+  args: { html: MESSAGE_CARD_HTML, onMessage: fn() },
+  render: (args) => <CardAboveInput {...args} />,
+}
+
+function CardAboveInput(props: React.ComponentProps<typeof McpAppView>) {
+  const [draft, setDraft] = useState("")
+  return (
+    <div className="flex flex-col gap-2">
+      <McpAppView
+        {...props}
+        toolResult={buildToolResult(EXPIRY_WINDOW_MS)}
+        onMessage={(text) => {
+          props.onMessage?.(text)
+          setDraft(text)
+        }}
+      />
+      <textarea
+        aria-label="Chat input"
+        className="rounded-md border p-2 text-sm"
+        readOnly
+        value={draft}
+      />
+    </div>
+  )
 }
