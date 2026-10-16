@@ -131,6 +131,11 @@ const logger = new Logger("ProvisionOrganizationOwners")
 
 function printSummary(results: CliRowResult[]): void {
   const grantedCount = results.filter((result) => result.status === "granted").length
+  const grantedWithoutOrganizationAdminCount = results.filter((result) =>
+    ["granted_without_organization_admin", "would_grant_without_organization_admin"].includes(
+      result.status,
+    ),
+  ).length
   const skippedCount = results.filter((result) =>
     ["skipped_existing_membership", "would_skip_existing_membership"].includes(result.status),
   ).length
@@ -146,7 +151,7 @@ function printSummary(results: CliRowResult[]): void {
 
   logger.log("-----")
   logger.log(
-    `Summary: total=${results.length} granted=${grantedCount} skipped=${skippedCount} failed=${failedCount} would_grant=${wouldGrantCount}`,
+    `Summary: total=${results.length} granted=${grantedCount} granted_without_organization_admin=${grantedWithoutOrganizationAdminCount} skipped=${skippedCount} failed=${failedCount} would_grant=${wouldGrantCount}`,
   )
 }
 

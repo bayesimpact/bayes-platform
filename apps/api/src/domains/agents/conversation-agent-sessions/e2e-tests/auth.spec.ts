@@ -15,8 +15,16 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
+import { agentFactory } from "@/domains/agents/agent.factory"
 import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
-import { createOrganizationWithAgentSession } from "@/domains/organizations/organization.factory"
+import {
+  createOrganizationWithAgent,
+  createOrganizationWithAgentSession,
+} from "@/domains/organizations/organization.factory"
+import { projectFactory } from "@/domains/projects/project.factory"
+import { addUserToReviewCampaign } from "@/domains/review-campaigns/memberships/review-campaign-membership.factory"
+import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
+import type { ReviewCampaignStatus } from "@/domains/review-campaigns/review-campaigns.types"
 import {
   mockForeignAuthSubject,
   mockOidcEmailForSub,
@@ -246,5 +254,146 @@ describe("Agent Sessions - Auth", () => {
 
     describeContextChecks(subject)
     describeRoleChecks(subject)
+  })
+
+  // A campaign role gives the live session keys on the campaign's project, without a project row.
+  describe("review campaign participants", () => {
+    const createCampaignParticipantContext = async ({
+      status = "active",
+      role = "tester",
+    }: {
+      status?: ReviewCampaignStatus
+      role?: "tester" | "reviewer"
+    } = {}) => {
+      const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
+        repositories,
+        { agent: { type: "conversation" } },
+      )
+      const campaign = await repositories.reviewCampaignRepository.save(
+        reviewCampaignFactory[status]()
+          .transient({ organization, project, agent, agentSettings })
+          .build(),
+      )
+      const participantAuthSubject = `oidc|${randomUUID()}`
+      const { user, membership } = await addUserToReviewCampaign({
+        repositories,
+        organization,
+        project,
+        campaign,
+        role,
+        user: {
+          authSubject: participantAuthSubject,
+          email: mockOidcEmailForSub(participantAuthSubject),
+        },
+      })
+      authSubject = participantAuthSubject
+      organizationId = organization.id
+      projectId = project.id
+      agentId = agent.id
+      accessToken = "token"
+      return { organization, project, agent, campaign, user, membership }
+    }
+
+    const closeCampaign = (campaignId: string) =>
+      repositories.reviewCampaignRepository.update(
+        { id: campaignId },
+        { status: "closed", closedAt: new Date() },
+      )
+
+    const subject = (routeKey: "createOne" | "getAll", type: BaseAgentSessionTypeDto = "live") =>
+      request({
+        route: ConversationAgentSessionsRoutes[type][routeKey],
+        pathParams: removeNullish({ organizationId, projectId, agentId }),
+        token: accessToken ?? undefined,
+      })
+
+    describe.each([["createOne"], ["getAll"]] as const)("live %s", (routeKey) => {
+      it("allows a tester of an active campaign", async () => {
+        await createCampaignParticipantContext()
+        expectResponse(await subject(routeKey), 201)
+      })
+
+      it("forbids the tester once the campaign is closed", async () => {
+        const { campaign } = await createCampaignParticipantContext()
+        expectResponse(await subject(routeKey), 201)
+
+        await closeCampaign(campaign.id)
+
+        expectResponse(await subject(routeKey), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+      })
+
+      it("forbids a tester of a draft campaign", async () => {
+        await createCampaignParticipantContext({ status: "draft" })
+        expectResponse(await subject(routeKey), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+      })
+
+      it.each([
+        ["active"],
+        ["closed"],
+      ] as const)("forbids a reviewer-only participant (%s campaign)", async (status) => {
+        await createCampaignParticipantContext({ status, role: "reviewer" })
+        expectResponse(await subject(routeKey), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+      })
+
+      it("forbids a tester on another project of the organization", async () => {
+        const { organization } = await createCampaignParticipantContext()
+        const otherProject = await repositories.projectRepository.save(
+          projectFactory.transient({ organization }).build(),
+        )
+        const otherAgent = await repositories.agentRepository.save(
+          agentFactory
+            .transient({ organization, project: otherProject })
+            .build({ type: "conversation" }),
+        )
+        projectId = otherProject.id
+        agentId = otherAgent.id
+
+        expectResponse(await subject(routeKey), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+      })
+
+      it("forbids a tester whose campaign row was deleted", async () => {
+        const { membership } = await createCampaignParticipantContext()
+        await repositories.userMembershipRepository.delete({ id: membership.id })
+
+        expectResponse(await subject(routeKey), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+      })
+
+      it("forbids a tester of a soft-deleted campaign", async () => {
+        const { campaign } = await createCampaignParticipantContext()
+        await repositories.reviewCampaignRepository.softDelete({ id: campaign.id })
+
+        expectResponse(await subject(routeKey), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+      })
+
+      it("forbids a tester on the playground route", async () => {
+        await createCampaignParticipantContext()
+        expectResponse(
+          await subject(routeKey, "playground"),
+          403,
+          AUTH_ERRORS.UNAUTHORIZED_RESOURCE,
+        )
+      })
+    })
+
+    it("forbids a tester to delete their own live session", async () => {
+      const { organization, project, agent, campaign, user } =
+        await createCampaignParticipantContext()
+      const agentSession = conversationAgentSessionFactory
+        .transient({ organization, project, agent, user })
+        .live()
+        .build({ campaignId: campaign.id })
+      await repositories.conversationAgentSessionRepository.save(agentSession)
+      agentSessionId = agentSession.id
+
+      expectResponse(
+        await request({
+          route: ConversationAgentSessionsRoutes.live.deleteOne,
+          pathParams: removeNullish({ organizationId, projectId, agentId, agentSessionId }),
+          token: accessToken ?? undefined,
+        }),
+        403,
+        AUTH_ERRORS.UNAUTHORIZED_RESOURCE,
+      )
+    })
   })
 })

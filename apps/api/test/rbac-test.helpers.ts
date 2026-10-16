@@ -7,7 +7,7 @@ import type { User } from "@/domains/users/user.entity"
 
 let rbacCatalogReady = false
 
-/** Seeds the org + project + agent RBAC catalogs once per test worker (roles are never cleared). */
+/** Seeds the org, project, agent and review campaign RBAC catalogs once per test worker (roles are never cleared). */
 export async function ensureRbacCatalog(module: TestingModule): Promise<void> {
   if (rbacCatalogReady) {
     return
@@ -17,6 +17,7 @@ export async function ensureRbacCatalog(module: TestingModule): Promise<void> {
   await rbacService.seedOrganizationRolesAndPermissions()
   await rbacService.seedProjectRolesAndPermissions()
   await rbacService.seedAgentRolesAndPermissions()
+  await rbacService.seedReviewCampaignRolesAndPermissions()
   rbacCatalogReady = true
 }
 

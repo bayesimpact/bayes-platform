@@ -70,6 +70,21 @@ describe("groupPermissions", () => {
     ])
   })
 
+  it("lists review campaign keys in their own area, right after the project", () => {
+    const groups = groupPermissions([
+      "agent.read",
+      "review_campaign.report.read",
+      "project.review_campaign.member.invite",
+      "project.read",
+    ])
+
+    expect(groups).toEqual([
+      { key: "project", permissions: ["project.read", "project.review_campaign.member.invite"] },
+      { key: "reviewCampaign", permissions: ["review_campaign.report.read"] },
+      { key: "agent", permissions: ["agent.read"] },
+    ])
+  })
+
   it("puts keys of an unknown area last, under other", () => {
     expect(groupPermissions(["something.new", "agent.read"])).toEqual([
       { key: "agent", permissions: ["agent.read"] },

@@ -162,7 +162,12 @@ export type PaginatedBackofficeUsersDto = {
   limit: number
 }
 
-export type BackofficeRoleScopeDto = "organization" | "project" | "agent" | "global"
+export type BackofficeRoleScopeDto =
+  | "organization"
+  | "project"
+  | "agent"
+  | "review_campaign"
+  | "global"
 
 export type BackofficeRbacPermissionDto = {
   key: string
@@ -214,7 +219,11 @@ export type BackofficeUserAgentMembershipDto = {
 export type BackofficeUserReviewCampaignMembershipDto = {
   campaignId: string
   campaignName: string
+  projectId: string
   role: ReviewCampaignMembershipRole
+  /** The `review_campaign_*` RBAC role, null on a legacy row that never got one. */
+  roleKey: string | null
+  permissions: string[]
 }
 
 export type BackofficeUserDetailDto = {

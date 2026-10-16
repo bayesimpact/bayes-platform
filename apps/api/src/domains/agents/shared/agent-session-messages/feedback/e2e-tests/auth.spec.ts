@@ -14,8 +14,14 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
+import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
 import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
-import { createOrganizationWithAgentMessage } from "@/domains/organizations/organization.factory"
+import {
+  createOrganizationWithAgent,
+  createOrganizationWithAgentMessage,
+} from "@/domains/organizations/organization.factory"
+import { addUserToReviewCampaign } from "@/domains/review-campaigns/memberships/review-campaign-membership.factory"
+import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
 import {
   mockForeignAuthSubject,
   mockOidcEmailForSub,
@@ -23,6 +29,7 @@ import {
 } from "../../../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../../../test/request"
+import { agentMessageFactory } from "../../agent-messages.factory"
 import { AgentMessageFeedbackModule } from "../agent-message-feedback.module"
 
 describe("Agent Message Feedback - Auth", () => {
@@ -198,6 +205,98 @@ describe("Agent Message Feedback - Auth", () => {
     it.each([["owner"], ["admin"]] as const)("allows a project %s", async (role) => {
       await createContextForRole(role)
       expectResponse(await subject(), 200)
+    })
+  })
+
+  // A tester's campaign role gives the feedback key on the campaign's project, without a project row.
+  describe("review campaign participants", () => {
+    const createCampaignParticipantContext = async (role: "tester" | "reviewer" = "tester") => {
+      const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
+        repositories,
+        { agent: { type: "conversation" } },
+      )
+      const campaign = await repositories.reviewCampaignRepository.save(
+        reviewCampaignFactory
+          .active()
+          .transient({ organization, project, agent, agentSettings })
+          .build(),
+      )
+      const participantAuthSubject = `oidc|${randomUUID()}`
+      const { user } = await addUserToReviewCampaign({
+        repositories,
+        organization,
+        project,
+        campaign,
+        role,
+        user: {
+          authSubject: participantAuthSubject,
+          email: mockOidcEmailForSub(participantAuthSubject),
+        },
+      })
+      const agentSession = conversationAgentSessionFactory
+        .transient({ organization, project, agent, user })
+        .live()
+        .build({ campaignId: campaign.id })
+      await repositories.conversationAgentSessionRepository.save(agentSession)
+      const agentMessage = agentMessageFactory
+        .transient({ organization, project, session: agentSession, agentSettings })
+        .assistant()
+        .build()
+      await repositories.agentMessageRepository.save(agentMessage)
+
+      authSubject = participantAuthSubject
+      organizationId = organization.id
+      projectId = project.id
+      agentId = agent.id
+      agentMessageId = agentMessage.id
+      accessToken = "token"
+      return { campaign, agentMessage }
+    }
+
+    const createFeedback = () =>
+      request({
+        route: AgentMessageFeedbackRoutes.createOne,
+        pathParams: removeNullish({ organizationId, projectId, agentMessageId }),
+        token: accessToken ?? undefined,
+        request: { payload: { content: "Helpful answer" } },
+      })
+
+    it("lets a tester of an active campaign give feedback", async () => {
+      const { agentMessage } = await createCampaignParticipantContext()
+      expectResponse(await createFeedback(), 201)
+      expect(
+        await repositories.agentMessageFeedbackRepository.count({
+          where: { agentMessageId: agentMessage.id },
+        }),
+      ).toBe(1)
+    })
+
+    it("forbids the tester once the campaign is closed", async () => {
+      const { campaign } = await createCampaignParticipantContext()
+      await repositories.reviewCampaignRepository.update(
+        { id: campaign.id },
+        { status: "closed", closedAt: new Date() },
+      )
+
+      expectResponse(await createFeedback(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+
+    it("forbids a reviewer-only participant", async () => {
+      await createCampaignParticipantContext("reviewer")
+      expectResponse(await createFeedback(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+
+    it("forbids a tester to list the agent's feedback", async () => {
+      await createCampaignParticipantContext()
+      expectResponse(
+        await request({
+          route: AgentMessageFeedbackRoutes.getAll,
+          pathParams: removeNullish({ organizationId, projectId, agentId }),
+          token: accessToken ?? undefined,
+        }),
+        403,
+        AUTH_ERRORS.UNAUTHORIZED_RESOURCE,
+      )
     })
   })
 })

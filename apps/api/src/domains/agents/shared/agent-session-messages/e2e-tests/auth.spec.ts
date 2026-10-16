@@ -18,7 +18,12 @@ import { removeNullish } from "@/common/utils/remove-nullish"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
 import { ConversationAgentSessionsModule } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.module"
 import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
-import { createOrganizationWithAgentMessage } from "@/domains/organizations/organization.factory"
+import {
+  createOrganizationWithAgent,
+  createOrganizationWithAgentMessage,
+} from "@/domains/organizations/organization.factory"
+import { addUserToReviewCampaign } from "@/domains/review-campaigns/memberships/review-campaign-membership.factory"
+import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
 import {
   mockForeignAuthSubject,
   mockOidcEmailForSub,
@@ -27,6 +32,7 @@ import {
 import { ensureRbacCatalog } from "../../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../../test/request"
 import { agentMessageAttachmentDocumentFactory } from "../agent-message-attachment-document.factory"
+import { agentMessageFactory } from "../agent-messages.factory"
 
 describe("Agent Session Messages - Auth", () => {
   let app: INestApplication<App>
@@ -277,5 +283,115 @@ describe("Agent Session Messages - Auth", () => {
       })
 
     describeChecks(subject, 201)
+  })
+
+  // A campaign role gives the live session keys on the campaign's project, without a project row.
+  describe("review campaign participants", () => {
+    const createCampaignParticipantContext = async (role: "tester" | "reviewer" = "tester") => {
+      const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
+        repositories,
+        { agent: { type: "conversation" } },
+      )
+      const campaign = await repositories.reviewCampaignRepository.save(
+        reviewCampaignFactory
+          .active()
+          .transient({ organization, project, agent, agentSettings })
+          .build(),
+      )
+      const participantAuthSubject = `oidc|${randomUUID()}`
+      const { user } = await addUserToReviewCampaign({
+        repositories,
+        organization,
+        project,
+        campaign,
+        role,
+        user: {
+          authSubject: participantAuthSubject,
+          email: mockOidcEmailForSub(participantAuthSubject),
+        },
+      })
+      const agentSession = conversationAgentSessionFactory
+        .transient({ organization, project, agent, user })
+        .live()
+        .build({ campaignId: campaign.id })
+      await repositories.conversationAgentSessionRepository.save(agentSession)
+      const agentMessage = agentMessageFactory
+        .transient({ organization, project, session: agentSession, agentSettings })
+        .build()
+      await repositories.agentMessageRepository.save(agentMessage)
+
+      authSubject = participantAuthSubject
+      organizationId = organization.id
+      projectId = project.id
+      agentId = agent.id
+      agentSessionId = agentSession.id
+      messageId = agentMessage.id
+      accessToken = "token"
+      return { campaign }
+    }
+
+    const closeCampaign = (campaignId: string) =>
+      repositories.reviewCampaignRepository.update(
+        { id: campaignId },
+        { status: "closed", closedAt: new Date() },
+      )
+
+    const listMessages = () =>
+      request({
+        route: AgentSessionMessagesRoutes.live.getAll,
+        pathParams: removeNullish({ organizationId, projectId, agentId, agentSessionId }),
+        token: accessToken ?? undefined,
+      })
+
+    const getMessage = () =>
+      request({
+        route: AgentSessionMessagesRoutes.live.getOne,
+        pathParams: removeNullish({
+          organizationId,
+          projectId,
+          agentId,
+          agentSessionId,
+          messageId,
+        }),
+        token: accessToken ?? undefined,
+      })
+
+    const presignAttachment = () =>
+      request({
+        route: AgentSessionMessagesRoutes.live.presignAttachmentDocument,
+        pathParams: removeNullish({ organizationId, projectId, agentId, agentSessionId }),
+        token: accessToken ?? undefined,
+        request: {
+          payload: { fileName: "notes.pdf", mimeType: "application/pdf", size: 1234 },
+        },
+      })
+
+    it("lets a tester of an active campaign read and attach files in their own live session", async () => {
+      await createCampaignParticipantContext()
+
+      const messagesResponse = await listMessages()
+      expectResponse(messagesResponse, 201)
+      expect(messagesResponse.body.data.map((message) => message.id)).toEqual([messageId])
+      const messageResponse = await getMessage()
+      expectResponse(messageResponse, 201)
+      expect(messageResponse.body.data.id).toBe(messageId)
+      expectResponse(await presignAttachment(), 201)
+    })
+
+    it("forbids the tester to list messages or attach files once the campaign is closed", async () => {
+      const { campaign } = await createCampaignParticipantContext()
+      await closeCampaign(campaign.id)
+
+      expectResponse(await listMessages(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+      expectResponse(await presignAttachment(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+
+    it("forbids a reviewer-only participant", async () => {
+      await createCampaignParticipantContext("reviewer")
+
+      expectResponse(await listMessages(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+      expectResponse(await getMessage(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+      expectResponse(await presignAttachment(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
   })
 })

@@ -13,9 +13,11 @@ import { removeNullish } from "@/common/utils/remove-nullish"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { userFactory } from "@/domains/users/user.factory"
-import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
+import { mockOidcEmailForSub, setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import {
+  addUserToReviewCampaign,
   reviewCampaignMembershipFactory,
   saveReviewCampaignMembership,
 } from "../../memberships/review-campaign-membership.factory"
@@ -40,6 +42,7 @@ describe("ReviewCampaigns - Reviewer auth", () => {
       additionalImports: [ReviewCampaignsModule],
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
+    await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
     app = setup.module.createNestApplication()
     await app.init()
@@ -159,6 +162,68 @@ describe("ReviewCampaigns - Reviewer auth", () => {
       await seedReviewableSession()
       sessionId = randomUUID()
       expectResponse(await subject(), 404)
+    })
+  })
+
+  // Accepting a campaign invitation gives no project row: the campaign role is enough.
+  describe("a reviewer who holds no project role", () => {
+    const seedAsCampaignOnlyReviewer = async () => {
+      const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
+        repositories,
+        { agent: { type: "conversation" } },
+      )
+      const campaign = await repositories.reviewCampaignRepository.save(
+        reviewCampaignFactory
+          .active()
+          .transient({ organization, project, agent, agentSettings })
+          .build(),
+      )
+      await addUserToReviewCampaign({
+        repositories,
+        organization,
+        project,
+        campaign,
+        role: "reviewer",
+        user: { authSubject, email: mockOidcEmailForSub(authSubject) },
+      })
+      const tester = await repositories.userRepository.save(
+        userFactory.build({ email: `tester-auth-${randomUUID()}@example.com` }),
+      )
+      const session = conversationAgentSessionFactory
+        .transient({ organization, project, agent, user: tester })
+        .build({ campaignId: campaign.id })
+      await repositories.conversationAgentSessionRepository.save(session)
+
+      organizationId = organization.id
+      projectId = project.id
+      reviewCampaignId = campaign.id
+      sessionId = session.id
+    }
+
+    it("lists the campaign's sessions", async () => {
+      await seedAsCampaignOnlyReviewer()
+
+      const response = await request({
+        route: ReviewCampaignsRoutes.listReviewerSessions,
+        pathParams: removeNullish({ organizationId, projectId, reviewCampaignId }),
+        token: accessToken ?? undefined,
+      })
+
+      expectResponse(response, 200)
+      expect(response.body.data.sessions.map((session) => session.sessionId)).toEqual([sessionId])
+    })
+
+    it("gets a session to review", async () => {
+      await seedAsCampaignOnlyReviewer()
+
+      const response = await request({
+        route: ReviewCampaignsRoutes.getReviewerSession,
+        pathParams: removeNullish({ organizationId, projectId, reviewCampaignId, sessionId }),
+        token: accessToken ?? undefined,
+      })
+
+      expectResponse(response, 200)
+      expect(response.body.data.sessionId).toBe(sessionId)
     })
   })
 })

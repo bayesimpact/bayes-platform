@@ -80,3 +80,16 @@ works with any provider, like the rest of ADR 0021.
 * **Migration:** none. The memberships that ADR 0021's migration created from
   pending invitations stay. People added by email before this change keep
   their access without an invitation.
+
+## 5. Note (2026-10-13): review campaign invitations
+
+Accepting a review campaign invitation now gives `org_member` on the
+organization and the campaign role (`review_campaign_tester` or
+`review_campaign_reviewer`, see the amendment in
+[ADR 0019](0019-rbac-permission-catalog.md)) on the campaign, and no project
+role. The campaign role gives what the person needs on the campaign's project
+while the campaign is active, and for a reviewer once it is closed too. People
+who joined a campaign earlier keep the `project_member` row their acceptance
+created until a later migration removes it. Since #983, inviting to a review
+campaign checks `project.review_campaign.member.invite` instead of
+`project.member.invite`.

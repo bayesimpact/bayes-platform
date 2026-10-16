@@ -217,6 +217,28 @@ export class ProjectMembershipRepository {
     })
   }
 
+  /**
+   * Removes the user's tester and reviewer rows on the project's review campaigns. A campaign role
+   * gives keys on the campaign's project, so removing someone from the project removes those too.
+   */
+  async deleteReviewCampaignMembershipsForUserInProject({
+    userId,
+    projectId,
+  }: {
+    userId: string
+    projectId: string
+  }): Promise<void> {
+    await this.transactionService.getManager().query(
+      `DELETE FROM user_membership AS membership
+       USING review_campaign
+       WHERE membership.user_id = $1
+         AND membership.resource_type = 'review_campaign'
+         AND membership.resource_id = review_campaign.id
+         AND review_campaign.project_id = $2`,
+      [userId, projectId],
+    )
+  }
+
   async softDeleteAllByProject(projectId: string): Promise<void> {
     await this.userMembershipRepo().softDelete({
       resourceType: PROJECT_RESOURCE_TYPE,
