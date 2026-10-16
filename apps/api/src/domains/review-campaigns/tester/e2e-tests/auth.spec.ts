@@ -11,9 +11,11 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
-import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
+import { mockOidcEmailForSub, setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import {
+  addUserToReviewCampaign,
   reviewCampaignMembershipFactory,
   saveReviewCampaignMembership,
 } from "../../memberships/review-campaign-membership.factory"
@@ -38,6 +40,7 @@ describe("ReviewCampaigns - Tester auth", () => {
       additionalImports: [ReviewCampaignsModule],
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
+    await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
     app = setup.module.createNestApplication()
     await app.init()
@@ -317,6 +320,69 @@ describe("ReviewCampaigns - Tester auth", () => {
       await seedAsTester()
       sessionId = randomUUID()
       expectResponse(await subject(), 404)
+    })
+  })
+
+  // Accepting a campaign invitation gives no project row: the campaign role is enough.
+  describe("a tester who holds no project role", () => {
+    const seedAsCampaignOnlyTester = async () => {
+      const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
+        repositories,
+        { agent: { type: "conversation" } },
+      )
+      const campaign = await repositories.reviewCampaignRepository.save(
+        reviewCampaignFactory
+          .active()
+          .transient({ organization, project, agent, agentSettings })
+          .build(),
+      )
+      await addUserToReviewCampaign({
+        repositories,
+        organization,
+        project,
+        campaign,
+        role: "tester",
+        user: { authSubject, email: mockOidcEmailForSub(authSubject) },
+      })
+      organizationId = organization.id
+      projectId = project.id
+      reviewCampaignId = campaign.id
+    }
+
+    const pathParams = () => removeNullish({ organizationId, projectId, reviewCampaignId })
+
+    it("gets the tester context of an active campaign", async () => {
+      await seedAsCampaignOnlyTester()
+      expectResponse(
+        await request({
+          route: ReviewCampaignsRoutes.getTesterContext,
+          pathParams: pathParams(),
+          token: accessToken ?? undefined,
+        }),
+        200,
+      )
+    })
+
+    it("starts a session and lists it", async () => {
+      await seedAsCampaignOnlyTester()
+
+      const startResponse = await request({
+        route: ReviewCampaignsRoutes.startTesterSession,
+        pathParams: pathParams(),
+        token: accessToken ?? undefined,
+        request: { payload: { type: "live" } },
+      })
+      expectResponse(startResponse, 201)
+
+      const listResponse = await request({
+        route: ReviewCampaignsRoutes.listMyTesterSessions,
+        pathParams: pathParams(),
+        token: accessToken ?? undefined,
+      })
+      expectResponse(listResponse, 200)
+      expect(listResponse.body.data.sessions.map((session) => session.id)).toEqual([
+        startResponse.body.data.id,
+      ])
     })
   })
 })

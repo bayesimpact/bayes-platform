@@ -19,6 +19,7 @@ import {
 } from "@/domains/organizations/organization.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import {
   reviewCampaignMembershipFactory,
@@ -45,6 +46,7 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
       additionalImports: [ReviewCampaignsModule],
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
+    await ensureRbacCatalog(setup.module)
     repositories = setup.getAllRepositories()
     app = setup.module.createNestApplication()
     await app.init()

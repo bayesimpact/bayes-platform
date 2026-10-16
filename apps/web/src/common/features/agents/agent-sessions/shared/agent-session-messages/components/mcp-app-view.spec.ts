@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest"
 import {
   findMcpAppHtml,
   getFailedMcpAppFallbackText,
+  getMcpAppMessageText,
   getMcpAppToolResultText,
   getRenderableMcpApp,
   getReplyBubbleText,
@@ -138,6 +139,21 @@ describe("getReplyBubbleText", () => {
     expect(getReplyBubbleText("  ", [renderedCardToolCall], [])).toBe("")
   })
 
+  it("drops a reply of bare punctuation next to a card", () => {
+    // Told that the card is the reply, a model may still write a lone "." after the tool call.
+    expect(getReplyBubbleText(".", [renderedCardToolCall], [])).toBe("")
+    expect(getReplyBubbleText(" … \n", [renderedCardToolCall], [])).toBe("")
+  })
+
+  it("keeps a short reply that has a word or a number next to a card", () => {
+    expect(getReplyBubbleText("Voilà.", [renderedCardToolCall], [])).toBe("Voilà.")
+    expect(getReplyBubbleText("2.", [renderedCardToolCall], [])).toBe("2.")
+  })
+
+  it("keeps bare punctuation in a reply without a card", () => {
+    expect(getReplyBubbleText(".", [baseToolCall], [])).toBe(".")
+  })
+
   it("lets the tool result text stand in when the model wrote nothing and the card gave up", () => {
     expect(getReplyBubbleText("", [renderedCardToolCall], ["call-2"])).toBe(
       "Created Notes.pdf (2 pages).",
@@ -165,6 +181,24 @@ describe("getMcpAppToolResultText", () => {
     expect(getMcpAppToolResultText({ structuredContent: { title: "Ada" } })).toBe("")
     expect(getMcpAppToolResultText({ content: "not a list" })).toBe("")
     expect(getMcpAppToolResultText({ content: [{ type: "text", text: "   " }] })).toBe("")
+  })
+})
+
+describe("getMcpAppMessageText", () => {
+  it("joins the text blocks of a message the app proposes", () => {
+    expect(
+      getMcpAppMessageText([
+        { type: "text", text: "`First we migrate the database.` Back it up first." },
+        { type: "image", data: "...", mimeType: "image/png" },
+        { type: "text", text: "`switch traffic` When exactly?" },
+      ]),
+    ).toBe("`First we migrate the database.` Back it up first.\n\n`switch traffic` When exactly?")
+  })
+
+  it("is empty when the message carries no text", () => {
+    expect(getMcpAppMessageText([])).toBe("")
+    expect(getMcpAppMessageText([{ type: "text", text: "  \n" }])).toBe("")
+    expect(getMcpAppMessageText([{ type: "image", data: "...", mimeType: "image/png" }])).toBe("")
   })
 })
 

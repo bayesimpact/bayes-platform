@@ -5,6 +5,7 @@
  */
 const PERMISSION_GROUPS = [
   { key: "project", prefixes: ["project."] },
+  { key: "reviewCampaign", prefixes: ["review_campaign."] },
   { key: "apps", prefixes: ["desk.ui.", "studio.ui.", "evaluation.ui."] },
   { key: "agent", prefixes: ["agent."] },
   { key: "document", prefixes: ["document."] },

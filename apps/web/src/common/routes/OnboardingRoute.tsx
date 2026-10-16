@@ -54,8 +54,16 @@ function WithData() {
   const user = useValue(selectMe)
   const organizations = useValue(selectOrganizationsWithProjectsData)
   const invitations = useValue(selectPendingInvitations)
+  const { abilities } = useAbility()
   const orgsCount = organizations.length
-  if (orgsCount === 0 && invitations.length === 0) return <OrganizationCreator />
+  // An organization can be held without any project, for example once a review campaign is over.
+  const hasOrganizationCard = organizations.some((organization) =>
+    showsOrganizationCard({
+      organization,
+      canCreateProject: abilities.canCreateProject({ organizationId: organization.id }),
+    }),
+  )
+  if (!hasOrganizationCard && invitations.length === 0) return <OrganizationCreator />
 
   return (
     <SidebarLayout defaultOpen={false} hideIcon user={{ name: user.name, email: user.email }}>
@@ -124,6 +132,16 @@ function Main({
   )
 }
 
+function showsOrganizationCard({
+  organization,
+  canCreateProject,
+}: {
+  organization: OrganizationWithProjects
+  canCreateProject: boolean
+}): boolean {
+  return canCreateProject || organization.projects.length > 0
+}
+
 function OrganizationItem({ organization }: { organization: OrganizationWithProjects }) {
   const { abilities } = useAbility()
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false)
@@ -132,7 +150,7 @@ function OrganizationItem({ organization }: { organization: OrganizationWithProj
   })
   const canRename = abilities.canRenameOrganization({ organizationId: organization.id })
 
-  if (!canCreateProject && organization.projects.length === 0) return null
+  if (!showsOrganizationCard({ organization, canCreateProject })) return null
   return (
     <Card className="shadow-none bg-muted/20">
       <CardHeader className="mx-2">

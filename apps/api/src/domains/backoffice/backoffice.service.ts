@@ -472,6 +472,7 @@ export class BackofficeService {
       ...organizationMemberships,
       ...projectMemberships,
       ...agentMemberships,
+      ...reviewCampaignMemberships,
     ].flatMap((membership) => (membership.roleId ? [membership.roleId] : []))
     const roleGrantsByRoleId = await this.permissionService.listRoleGrants(membershipRoleIds)
 

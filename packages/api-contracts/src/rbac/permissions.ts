@@ -399,6 +399,49 @@ export const PROJECT_REVIEW_CAMPAIGN_MEMBER_INVITE_PERMISSION =
   "project.review_campaign.member.invite" as const
 
 /**
+ * Taking part in one review campaign, as a tester or a reviewer. Scoped to the campaign and held
+ * by the `review_campaign_tester` and `review_campaign_reviewer` roles, given when someone accepts
+ * an invitation to the campaign. Never inherited from the project, except `review_campaign.report.read`.
+ */
+export const REVIEW_CAMPAIGN_READ_PERMISSION = "review_campaign.read" as const
+
+export const REVIEW_CAMPAIGN_TESTER_SESSION_READ_PERMISSION =
+  "review_campaign.tester_session.read" as const
+
+export const REVIEW_CAMPAIGN_TESTER_SESSION_CREATE_PERMISSION =
+  "review_campaign.tester_session.create" as const
+
+export const REVIEW_CAMPAIGN_TESTER_SESSION_DELETE_PERMISSION =
+  "review_campaign.tester_session.delete" as const
+
+export const REVIEW_CAMPAIGN_TESTER_FEEDBACK_CREATE_PERMISSION =
+  "review_campaign.tester_feedback.create" as const
+
+export const REVIEW_CAMPAIGN_TESTER_FEEDBACK_UPDATE_PERMISSION =
+  "review_campaign.tester_feedback.update" as const
+
+export const REVIEW_CAMPAIGN_TESTER_SURVEY_READ_PERMISSION =
+  "review_campaign.tester_survey.read" as const
+
+export const REVIEW_CAMPAIGN_TESTER_SURVEY_CREATE_PERMISSION =
+  "review_campaign.tester_survey.create" as const
+
+export const REVIEW_CAMPAIGN_TESTER_SURVEY_UPDATE_PERMISSION =
+  "review_campaign.tester_survey.update" as const
+
+export const REVIEW_CAMPAIGN_REVIEWER_SESSION_READ_PERMISSION =
+  "review_campaign.reviewer_session.read" as const
+
+export const REVIEW_CAMPAIGN_REVIEWER_REVIEW_CREATE_PERMISSION =
+  "review_campaign.reviewer_review.create" as const
+
+export const REVIEW_CAMPAIGN_REVIEWER_REVIEW_UPDATE_PERMISSION =
+  "review_campaign.reviewer_review.update" as const
+
+/** See a campaign's report. Held by reviewers, and passed down from project owners and admins. */
+export const REVIEW_CAMPAIGN_REPORT_READ_PERMISSION = "review_campaign.report.read" as const
+
+/**
  * Permissions an App may be granted. Policy lives in code, not in the database:
  * there is no Permission entity and no `app_grantable` column. Intersect this
  * list with `AppManifest.grantable_permissions` on save and on authorize.

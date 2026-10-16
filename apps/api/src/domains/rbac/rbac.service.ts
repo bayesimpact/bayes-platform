@@ -12,6 +12,8 @@ import {
   PLATFORM_SUPERADMIN_ROLE,
   PROJECT_ROLE_PERMISSIONS,
   PROJECT_ROLES,
+  REVIEW_CAMPAIGN_ROLE_PERMISSIONS,
+  REVIEW_CAMPAIGN_ROLES,
 } from "./rbac.constants"
 import { Role } from "./role.entity"
 import { RolePermission } from "./role-permission.entity"
@@ -35,6 +37,11 @@ const AGENT_ROLE_LABELS: Record<string, string> = {
   agent_admin: "Agent Admin",
   agent_member: "Agent Member",
   [AGENT_CONVERSATION_REVIEWER_ROLE]: "Agent Conversation Reviewer",
+}
+
+const REVIEW_CAMPAIGN_ROLE_LABELS: Record<string, string> = {
+  [REVIEW_CAMPAIGN_ROLES.tester]: "Review Campaign Tester",
+  [REVIEW_CAMPAIGN_ROLES.reviewer]: "Review Campaign Reviewer",
 }
 
 const GLOBAL_ROLE_SCOPE: Record<string, Role["scopeType"]> = {
@@ -97,6 +104,20 @@ export class RbacService {
     await this.linkRolePermissions(rolesByKey, AGENT_ROLE_PERMISSIONS)
   }
 
+  /**
+   * Idempotent catalog seed for the review campaign domain.
+   * Production/deploy also seeds via migration `ReviewCampaignRoles1791800888000`.
+   * Kept for tests (`synchronize: true`) and local `seed:rbac`.
+   */
+  async seedReviewCampaignRolesAndPermissions(): Promise<void> {
+    const rolesByKey = await this.upsertRoles({
+      roleKeys: Object.values(REVIEW_CAMPAIGN_ROLES),
+      labels: REVIEW_CAMPAIGN_ROLE_LABELS,
+      defaultScope: "review_campaign",
+    })
+    await this.linkRolePermissions(rolesByKey, REVIEW_CAMPAIGN_ROLE_PERMISSIONS)
+  }
+
   /** Maps legacy org membership roles to RBAC role_id. Org rows only. */
   async assignRoleIdsToOrganizationMemberships(): Promise<number> {
     return this.assignRoleIdsToMemberships("organization", ORGANIZATION_ROLES)
@@ -110,6 +131,43 @@ export class RbacService {
   /** Maps legacy agent membership roles to RBAC role_id. Agent rows only. */
   async assignRoleIdsToAgentMemberships(): Promise<number> {
     return this.assignRoleIdsToMemberships("agent", AGENT_ROLES)
+  }
+
+  /**
+   * Maps legacy tester / reviewer roles to RBAC role_id. Review campaign rows only, and only for
+   * people who still hold a project row on the campaign's project, like migration
+   * `ReviewCampaignRoles1791800888000`: a legacy row without one belongs to someone an admin
+   * removed from the project.
+   */
+  async assignRoleIdsToReviewCampaignMemberships(): Promise<number> {
+    let updatedCount = 0
+
+    for (const [legacyRole, roleKey] of Object.entries(REVIEW_CAMPAIGN_ROLES)) {
+      const updatedRows: { id: string }[] = await this.dataSource.query(
+        `UPDATE user_membership AS membership
+         SET role_id = role.id
+         FROM role
+         WHERE membership.resource_type = 'review_campaign'
+           AND membership.role_id IS NULL
+           AND membership.role = $1
+           AND role.key = $2
+           AND EXISTS (
+             SELECT 1
+             FROM review_campaign
+             INNER JOIN user_membership AS project_membership
+               ON project_membership.resource_id = review_campaign.project_id
+               AND project_membership.resource_type = 'project'
+               AND project_membership.deleted_at IS NULL
+             WHERE review_campaign.id = membership.resource_id
+               AND project_membership.user_id = membership.user_id
+           )
+         RETURNING membership.id`,
+        [legacyRole, roleKey],
+      )
+      updatedCount += updatedRows.length
+    }
+
+    return updatedCount
   }
 
   private async assignRoleIdsToMemberships(

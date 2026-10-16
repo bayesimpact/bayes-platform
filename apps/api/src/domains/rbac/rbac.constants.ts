@@ -109,6 +109,19 @@ import {
   RESOURCE_LIBRARY_DELETE_PERMISSION,
   RESOURCE_LIBRARY_READ_PERMISSION,
   RESOURCE_LIBRARY_UPDATE_PERMISSION,
+  REVIEW_CAMPAIGN_READ_PERMISSION,
+  REVIEW_CAMPAIGN_REPORT_READ_PERMISSION,
+  REVIEW_CAMPAIGN_REVIEWER_REVIEW_CREATE_PERMISSION,
+  REVIEW_CAMPAIGN_REVIEWER_REVIEW_UPDATE_PERMISSION,
+  REVIEW_CAMPAIGN_REVIEWER_SESSION_READ_PERMISSION,
+  REVIEW_CAMPAIGN_TESTER_FEEDBACK_CREATE_PERMISSION,
+  REVIEW_CAMPAIGN_TESTER_FEEDBACK_UPDATE_PERMISSION,
+  REVIEW_CAMPAIGN_TESTER_SESSION_CREATE_PERMISSION,
+  REVIEW_CAMPAIGN_TESTER_SESSION_DELETE_PERMISSION,
+  REVIEW_CAMPAIGN_TESTER_SESSION_READ_PERMISSION,
+  REVIEW_CAMPAIGN_TESTER_SURVEY_CREATE_PERMISSION,
+  REVIEW_CAMPAIGN_TESTER_SURVEY_READ_PERMISSION,
+  REVIEW_CAMPAIGN_TESTER_SURVEY_UPDATE_PERMISSION,
   STUDIO_UI_READ_PERMISSION,
   TRACE_READ_PERMISSION,
   USER_READ_PERMISSION,
@@ -230,12 +243,25 @@ export {
   RESOURCE_LIBRARY_DELETE_PERMISSION,
   RESOURCE_LIBRARY_READ_PERMISSION,
   RESOURCE_LIBRARY_UPDATE_PERMISSION,
+  REVIEW_CAMPAIGN_READ_PERMISSION,
+  REVIEW_CAMPAIGN_REPORT_READ_PERMISSION,
+  REVIEW_CAMPAIGN_REVIEWER_REVIEW_CREATE_PERMISSION,
+  REVIEW_CAMPAIGN_REVIEWER_REVIEW_UPDATE_PERMISSION,
+  REVIEW_CAMPAIGN_REVIEWER_SESSION_READ_PERMISSION,
+  REVIEW_CAMPAIGN_TESTER_FEEDBACK_CREATE_PERMISSION,
+  REVIEW_CAMPAIGN_TESTER_FEEDBACK_UPDATE_PERMISSION,
+  REVIEW_CAMPAIGN_TESTER_SESSION_CREATE_PERMISSION,
+  REVIEW_CAMPAIGN_TESTER_SESSION_DELETE_PERMISSION,
+  REVIEW_CAMPAIGN_TESTER_SESSION_READ_PERMISSION,
+  REVIEW_CAMPAIGN_TESTER_SURVEY_CREATE_PERMISSION,
+  REVIEW_CAMPAIGN_TESTER_SURVEY_READ_PERMISSION,
+  REVIEW_CAMPAIGN_TESTER_SURVEY_UPDATE_PERMISSION,
   STUDIO_UI_READ_PERMISSION,
   TRACE_READ_PERMISSION,
   USER_READ_PERMISSION,
 }
 
-export type RoleScopeType = "organization" | "project" | "agent" | "global"
+export type RoleScopeType = "organization" | "project" | "agent" | "review_campaign" | "global"
 
 export const ORGANIZATION_ROLES = {
   owner: "org_owner",
@@ -267,6 +293,15 @@ export const AGENT_ROLES = {
   owner: "agent_owner",
   admin: "agent_admin",
   member: "agent_member",
+} as const
+
+/**
+ * Review campaign roles, keyed by the legacy `user_membership.role` of the campaign row. A person
+ * can hold both on one campaign: each role is its own `review_campaign` row.
+ */
+export const REVIEW_CAMPAIGN_ROLES = {
+  tester: "review_campaign_tester",
+  reviewer: "review_campaign_reviewer",
 } as const
 
 const APP_GRANTABLE_PERMISSION_SET: ReadonlySet<string> = new Set(APP_GRANTABLE_PERMISSIONS)
@@ -301,8 +336,9 @@ export const ORGANIZATION_PERMISSIONS = [
 /**
  * Permissions granted per org role key.
  * Org roles deliberately do NOT grant `project.read`: project visibility is
- * governed by project memberships only, so org owners/admins do not implicitly
- * see every project of the org.
+ * governed by project memberships (and, for a campaign's own project, a review
+ * campaign role), so org owners/admins do not implicitly see every project of
+ * the org.
  */
 export const ORGANIZATION_ROLE_PERMISSIONS = {
   org_owner: [
@@ -433,6 +469,7 @@ export const PROJECT_ROLE_PERMISSIONS = {
     PROJECT_REVIEW_CAMPAIGN_DELETE_PERMISSION,
     PROJECT_REVIEW_CAMPAIGN_MEMBER_DELETE_PERMISSION,
     PROJECT_REVIEW_CAMPAIGN_MEMBER_INVITE_PERMISSION,
+    REVIEW_CAMPAIGN_REPORT_READ_PERMISSION,
     USER_READ_PERMISSION,
     BACKOFFICE_PROJECT_READ_PERMISSION,
     BACKOFFICE_PROJECT_UPDATE_PERMISSION,
@@ -524,6 +561,7 @@ export const PROJECT_ROLE_PERMISSIONS = {
     PROJECT_REVIEW_CAMPAIGN_DELETE_PERMISSION,
     PROJECT_REVIEW_CAMPAIGN_MEMBER_DELETE_PERMISSION,
     PROJECT_REVIEW_CAMPAIGN_MEMBER_INVITE_PERMISSION,
+    REVIEW_CAMPAIGN_REPORT_READ_PERMISSION,
     USER_READ_PERMISSION,
     BACKOFFICE_PROJECT_READ_PERMISSION,
     BACKOFFICE_PROJECT_UPDATE_PERMISSION,
@@ -588,6 +626,63 @@ export const AGENT_ROLE_PERMISSIONS = {
   [AGENT_CONVERSATION_REVIEWER_ROLE]: [AGENT_CONVERSATION_REVIEW_PERMISSION],
 } as const satisfies Record<string, readonly string[]>
 
+/**
+ * Permissions granted per review campaign role key. The `review_campaign.*` keys apply to the
+ * campaign; the others apply to the campaign's project (PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN).
+ */
+export const REVIEW_CAMPAIGN_ROLE_PERMISSIONS = {
+  review_campaign_tester: [
+    REVIEW_CAMPAIGN_READ_PERMISSION,
+    REVIEW_CAMPAIGN_TESTER_SESSION_READ_PERMISSION,
+    REVIEW_CAMPAIGN_TESTER_SESSION_CREATE_PERMISSION,
+    REVIEW_CAMPAIGN_TESTER_SESSION_DELETE_PERMISSION,
+    REVIEW_CAMPAIGN_TESTER_FEEDBACK_CREATE_PERMISSION,
+    REVIEW_CAMPAIGN_TESTER_FEEDBACK_UPDATE_PERMISSION,
+    REVIEW_CAMPAIGN_TESTER_SURVEY_READ_PERMISSION,
+    REVIEW_CAMPAIGN_TESTER_SURVEY_CREATE_PERMISSION,
+    REVIEW_CAMPAIGN_TESTER_SURVEY_UPDATE_PERMISSION,
+    PROJECT_READ_PERMISSION,
+    AGENT_CONVERSATION_SESSION_READ_PERMISSION,
+    AGENT_CONVERSATION_SESSION_CREATE_PERMISSION,
+    PROJECT_AGENT_MESSAGE_FEEDBACK_CREATE_PERMISSION,
+  ],
+  review_campaign_reviewer: [
+    REVIEW_CAMPAIGN_READ_PERMISSION,
+    REVIEW_CAMPAIGN_REVIEWER_SESSION_READ_PERMISSION,
+    REVIEW_CAMPAIGN_REVIEWER_REVIEW_CREATE_PERMISSION,
+    REVIEW_CAMPAIGN_REVIEWER_REVIEW_UPDATE_PERMISSION,
+    REVIEW_CAMPAIGN_REPORT_READ_PERMISSION,
+    PROJECT_READ_PERMISSION,
+  ],
+} as const satisfies Record<string, readonly string[]>
+
+/**
+ * Project permissions a review campaign role gives on the campaign's project, without a project
+ * role: both roles see the project, and a tester can chat with its agents. The live session routes
+ * check these keys on the project, so this reaches every agent of the project, as a project member
+ * could, until the session keys move to the agent. Every non-`review_campaign.*` key of
+ * REVIEW_CAMPAIGN_ROLE_PERMISSIONS must be listed here (rbac.constants.spec.ts checks it).
+ */
+export const PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN = [
+  PROJECT_READ_PERMISSION,
+  AGENT_CONVERSATION_SESSION_READ_PERMISSION,
+  AGENT_CONVERSATION_SESSION_CREATE_PERMISSION,
+  PROJECT_AGENT_MESSAGE_FEEDBACK_CREATE_PERMISSION,
+] as const
+
+/**
+ * Campaign statuses under which each campaign role gives its project keys, matching when the
+ * tester and reviewer apps open: testers while the campaign is active, reviewers also once it is
+ * closed. A draft campaign gives nothing.
+ */
+export const REVIEW_CAMPAIGN_STATUSES_GIVING_PROJECT_PERMISSIONS = {
+  [REVIEW_CAMPAIGN_ROLES.tester]: ["active"],
+  [REVIEW_CAMPAIGN_ROLES.reviewer]: ["active", "closed"],
+} as const satisfies Record<
+  (typeof REVIEW_CAMPAIGN_ROLES)[keyof typeof REVIEW_CAMPAIGN_ROLES],
+  readonly ("draft" | "active" | "closed")[]
+>
+
 type GrantedPermission<RolePermissions extends Record<string, readonly string[]>> =
   RolePermissions[keyof RolePermissions][number]
 
@@ -599,6 +694,7 @@ export type CatalogPermission =
   | GrantedPermission<typeof ORGANIZATION_ROLE_PERMISSIONS>
   | GrantedPermission<typeof PROJECT_ROLE_PERMISSIONS>
   | GrantedPermission<typeof AGENT_ROLE_PERMISSIONS>
+  | GrantedPermission<typeof REVIEW_CAMPAIGN_ROLE_PERMISSIONS>
   | AppGrantablePermission
 
 export const RESOURCE_TYPE_READ_PERMISSION_MAP = {
@@ -606,6 +702,7 @@ export const RESOURCE_TYPE_READ_PERMISSION_MAP = {
   project: "project.read",
   agent: "agent.read",
   temp_agent: AGENT_CONVERSATION_REVIEW_PERMISSION,
+  review_campaign: REVIEW_CAMPAIGN_READ_PERMISSION,
 } as const satisfies Record<PermissionResourceType, string>
 
 /**
@@ -656,6 +753,9 @@ export const RESOURCE_TYPE_PERMISSIONS_MAP = {
   ],
   // Holds only additional agent roles, which never pass down from a parent.
   temp_agent: [],
+  // Taking part in a campaign never passes down from the project: project owners and admins
+  // only get to see its report.
+  review_campaign: [REVIEW_CAMPAIGN_REPORT_READ_PERMISSION],
 } as const satisfies Record<PermissionResourceType, readonly string[]>
 
 export const PARENT_RESOURCE_TYPE_MAP = {
@@ -663,6 +763,7 @@ export const PARENT_RESOURCE_TYPE_MAP = {
   project: ["organization"],
   agent: ["organization", "project"],
   temp_agent: [],
+  review_campaign: ["project"],
 } as const satisfies Record<PermissionResourceType, readonly PermissionResourceType[]>
 
 /**
@@ -683,6 +784,8 @@ export const CATALOG_ROLE_KEYS = [
   AGENT_ROLES.admin,
   AGENT_ROLES.member,
   AGENT_CONVERSATION_REVIEWER_ROLE,
+  REVIEW_CAMPAIGN_ROLES.tester,
+  REVIEW_CAMPAIGN_ROLES.reviewer,
 ] as const
 
 export const PERMISSION_DESCRIPTIONS: Record<string, string> = {
@@ -821,6 +924,26 @@ export const PERMISSION_DESCRIPTIONS: Record<string, string> = {
     "Remove a tester or a reviewer from a review campaign",
   [PROJECT_REVIEW_CAMPAIGN_MEMBER_INVITE_PERMISSION]:
     "Invite testers and reviewers to a review campaign, and revoke pending invitations",
+  [REVIEW_CAMPAIGN_READ_PERMISSION]: "See a review campaign you take part in and its agent",
+  [REVIEW_CAMPAIGN_TESTER_SESSION_READ_PERMISSION]:
+    "See your test conversations in a review campaign",
+  [REVIEW_CAMPAIGN_TESTER_SESSION_CREATE_PERMISSION]:
+    "Start a test conversation in a review campaign",
+  [REVIEW_CAMPAIGN_TESTER_SESSION_DELETE_PERMISSION]:
+    "Delete one of your test conversations in a review campaign",
+  [REVIEW_CAMPAIGN_TESTER_FEEDBACK_CREATE_PERMISSION]:
+    "Give feedback on one of your test conversations",
+  [REVIEW_CAMPAIGN_TESTER_FEEDBACK_UPDATE_PERMISSION]:
+    "Change your feedback on one of your test conversations",
+  [REVIEW_CAMPAIGN_TESTER_SURVEY_READ_PERMISSION]: "See your end-of-campaign survey answers",
+  [REVIEW_CAMPAIGN_TESTER_SURVEY_CREATE_PERMISSION]: "Answer the end-of-campaign survey",
+  [REVIEW_CAMPAIGN_TESTER_SURVEY_UPDATE_PERMISSION]: "Change your end-of-campaign survey answers",
+  [REVIEW_CAMPAIGN_REVIEWER_SESSION_READ_PERMISSION]:
+    "See the testers' conversations of a review campaign",
+  [REVIEW_CAMPAIGN_REVIEWER_REVIEW_CREATE_PERMISSION]: "Review a tester's conversation",
+  [REVIEW_CAMPAIGN_REVIEWER_REVIEW_UPDATE_PERMISSION]:
+    "Change your review of a tester's conversation",
+  [REVIEW_CAMPAIGN_REPORT_READ_PERMISSION]: "See a review campaign's report",
   [USER_READ_PERMISSION]: "See the users who are members of a resource",
   [TRACE_READ_PERMISSION]: "See trace links",
   [BACKOFFICE_APP_MANAGE_PERMISSION]: "Manage app definitions in the backoffice",

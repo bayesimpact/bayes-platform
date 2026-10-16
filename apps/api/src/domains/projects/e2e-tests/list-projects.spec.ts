@@ -15,10 +15,18 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
+import { agentFactory } from "@/domains/agents/agent.factory"
+import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
 import { createOrganizationWithOwner } from "@/domains/organizations/organization.factory"
 import { projectFactory } from "@/domains/projects/project.factory"
-import { mockForeignAuthSubject, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
+import { addUserToReviewCampaign } from "@/domains/review-campaigns/memberships/review-campaign-membership.factory"
+import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
+import {
+  mockForeignAuthSubject,
+  mockOidcEmailForSub,
+  setupUserGuardForTesting,
+} from "../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { addUserToProject } from "../memberships/project-membership.factory"
@@ -168,5 +176,40 @@ describe("Projects - listProjects", () => {
       ].sort(),
     )
     expect(permissionsByName.Member).toEqual(["desk.ui.read"])
+  })
+
+  it("should return only the campaign's project to a tester who holds no project role", async () => {
+    const { organization } = await createContext()
+    const campaignProject = projectFactory.transient({ organization }).build({ name: "Campaign" })
+    const otherProject = projectFactory.transient({ organization }).build({ name: "Other" })
+    await repositories.projectRepository.save([campaignProject, otherProject])
+    const agent = await repositories.agentRepository.save(
+      agentFactory.transient({ organization, project: campaignProject }).build(),
+    )
+    const agentSettings = await repositories.agentSettingsRepository.save(
+      agentSettingsFactory.transient({ organization, project: campaignProject, agent }).build(),
+    )
+    const campaign = await repositories.reviewCampaignRepository.save(
+      reviewCampaignFactory
+        .active()
+        .transient({ organization, project: campaignProject, agent, agentSettings })
+        .build(),
+    )
+    const testerAuthSubject = `oidc|${randomUUID()}`
+    await addUserToReviewCampaign({
+      repositories,
+      organization,
+      project: campaignProject,
+      campaign,
+      role: "tester",
+      user: { authSubject: testerAuthSubject, email: mockOidcEmailForSub(testerAuthSubject) },
+    })
+    authSubject = testerAuthSubject
+
+    const response = await subject()
+
+    expectResponse(response, 200)
+    expect(response.body.data.map((project) => project.name)).toEqual(["Campaign"])
+    expect(response.body.data[0]?.permissions).toEqual([])
   })
 })

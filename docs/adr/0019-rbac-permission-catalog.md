@@ -59,3 +59,11 @@ The permission key is the argument, and it must be a key of `READ_PERMISSION_RES
 * A new capability is a constant, a role grant, a matrix row, a `role_permission` migration, and either `@CheckPermission` or a `listResourceIds` call.
 * ADR 0004's three membership tables and its "no permissions table" alternative are not the model to implement.
 * ADR 0013 remains the history of an org-scoped `project.read` grant. The catalog does not grant that key on org roles. Adding it back would be a catalog change under this ADR, not a new mechanism.
+
+## 5. Amendment (2026-10-13): review campaign roles
+
+* Review campaigns are a scope of their own. `REVIEW_CAMPAIGN_ROLE_PERMISSIONS` grants `review_campaign_tester` and `review_campaign_reviewer`, held on the `user_membership` rows with `resource_type = 'review_campaign'` and the campaign's id. A person can hold both on one campaign, one row each. `@CheckPermission(permission, "review_campaign")` checks them. No route uses it yet: the campaign controllers move to it one by one.
+* A campaign's only parent is its project, which passes down `review_campaign.report.read` alone. Project owners and admins hold that key.
+* On a project, a campaign role held on one of its campaigns gives the keys in `PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN`: `project.read`, `agent.conversation.session.read`, `agent.conversation.session.create` and `project.agent_message_feedback.create`. Testers hold all four, reviewers only `project.read`. It is the only grant that goes from a child resource up to its parent, and it replaces the project role a campaign invitation used to give.
+* That grant holds only while the campaign is in one of the role's statuses in `REVIEW_CAMPAIGN_STATUSES_GIVING_PROJECT_PERMISSIONS`: active for testers, active or closed for reviewers, never a draft. It is the only campaign status rule in RBAC. `has`, `listResourceIds("project.read")` and `listResourcePermissions("project.read")` all apply it, so the project shows in the participant's project list.
+* A route that checks one of those keys on the project lets the project's campaign testers or reviewers in. Until the live session keys move to the agent, a tester reaches every agent of the project, as a project member could.

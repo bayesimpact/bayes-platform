@@ -13,12 +13,15 @@ import {
   createOrganizationWithAgent,
   createOrganizationWithOwner,
 } from "@/domains/organizations/organization.factory"
+import { addUserToProject } from "@/domains/projects/memberships/project-membership.factory"
 import { projectFactory } from "@/domains/projects/project.factory"
 import { PermissionService } from "@/domains/rbac/permission.service"
 import {
   AGENT_CONVERSATION_REVIEW_PERMISSION,
   AGENT_CONVERSATION_REVIEWER_ROLE,
+  AGENT_CONVERSATION_SESSION_CREATE_PERMISSION,
   AGENT_CONVERSATION_SESSION_EXTERNAL_CREATE_PERMISSION,
+  AGENT_CONVERSATION_SESSION_READ_PERMISSION,
   AGENT_ROLE_PERMISSIONS,
   AGENT_ROLES,
   AGENT_SETTINGS_DRAFT_READ_PERMISSION,
@@ -32,6 +35,7 @@ import {
   BACKOFFICE_TERMS_UPDATE_PERMISSION,
   BACKOFFICE_USER_READ_PERMISSION,
   CATALOG_ROLE_KEYS,
+  CSV_EXTRACTION_RUN_READ_PERMISSION,
   DESK_UI_READ_PERMISSION,
   DOCUMENT_CREATE_PERMISSION,
   DOCUMENT_DELETE_PERMISSION,
@@ -47,12 +51,23 @@ import {
   PROJECT_READ_PERMISSION,
   PROJECT_ROLE_PERMISSIONS,
   PROJECT_ROLES,
+  REVIEW_CAMPAIGN_READ_PERMISSION,
+  REVIEW_CAMPAIGN_REPORT_READ_PERMISSION,
+  REVIEW_CAMPAIGN_REVIEWER_REVIEW_CREATE_PERMISSION,
+  REVIEW_CAMPAIGN_ROLE_PERMISSIONS,
+  REVIEW_CAMPAIGN_ROLES,
+  REVIEW_CAMPAIGN_TESTER_SESSION_CREATE_PERMISSION,
   TRACE_READ_PERMISSION,
 } from "@/domains/rbac/rbac.constants"
 import { RbacModule } from "@/domains/rbac/rbac.module"
 import { RbacService } from "@/domains/rbac/rbac.service"
 import { Role } from "@/domains/rbac/role.entity"
 import { RolePermission } from "@/domains/rbac/role-permission.entity"
+import {
+  reviewCampaignMembershipFactory,
+  saveReviewCampaignMembership,
+} from "@/domains/review-campaigns/memberships/review-campaign-membership.factory"
+import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import { USER_TYPE_SERVICE } from "@/domains/users/user.types"
 import { assignPlatformSuperadminToUser, ensureRbacCatalog } from "../../../test/rbac-test.helpers"
@@ -162,6 +177,268 @@ describe("PermissionService", () => {
       await expect(
         service.has(user.id, AGENT_CONVERSATION_REVIEW_PERMISSION, { type: "agent", id: agent.id }),
       ).resolves.toBe(false)
+    })
+  })
+
+  describe("review campaign roles", () => {
+    const createCampaign = async () => {
+      const repositories = setup.getAllRepositories()
+      const {
+        user: owner,
+        organization,
+        project,
+        agent,
+        agentSettings,
+      } = await createOrganizationWithAgent(repositories)
+      const campaign = await repositories.reviewCampaignRepository.save(
+        reviewCampaignFactory
+          .active()
+          .transient({ organization, project, agent, agentSettings })
+          .build(),
+      )
+      return { owner, organization, project, agent, agentSettings, campaign }
+    }
+
+    const joinCampaign = async (
+      context: Awaited<ReturnType<typeof createCampaign>>,
+      role: keyof typeof REVIEW_CAMPAIGN_ROLES,
+    ) => {
+      const repositories = setup.getAllRepositories()
+      const user = await repositories.userRepository.save(userFactory.build())
+      await saveReviewCampaignMembership({
+        repositories,
+        membership: reviewCampaignMembershipFactory
+          .transient({
+            organization: context.organization,
+            project: context.project,
+            campaign: context.campaign,
+            user,
+          })
+          .build({ role }),
+      })
+      return user
+    }
+
+    it("grants each role its own keys on its campaign only", async () => {
+      const repositories = setup.getAllRepositories()
+      const context = await createCampaign()
+      const otherCampaign = await repositories.reviewCampaignRepository.save(
+        reviewCampaignFactory
+          .active()
+          .transient({
+            organization: context.organization,
+            project: context.project,
+            agent: context.agent,
+            agentSettings: context.agentSettings,
+          })
+          .build(),
+      )
+      const tester = await joinCampaign(context, "tester")
+      const reviewer = await joinCampaign(context, "reviewer")
+      const campaign = { type: "review_campaign" as const, id: context.campaign.id }
+
+      await expect(
+        service.has(tester.id, REVIEW_CAMPAIGN_TESTER_SESSION_CREATE_PERMISSION, campaign),
+      ).resolves.toBe(true)
+      await expect(
+        service.has(tester.id, REVIEW_CAMPAIGN_REVIEWER_REVIEW_CREATE_PERMISSION, campaign),
+      ).resolves.toBe(false)
+      await expect(
+        service.has(tester.id, REVIEW_CAMPAIGN_REPORT_READ_PERMISSION, campaign),
+      ).resolves.toBe(false)
+      await expect(
+        service.has(reviewer.id, REVIEW_CAMPAIGN_REVIEWER_REVIEW_CREATE_PERMISSION, campaign),
+      ).resolves.toBe(true)
+      await expect(
+        service.has(reviewer.id, REVIEW_CAMPAIGN_TESTER_SESSION_CREATE_PERMISSION, campaign),
+      ).resolves.toBe(false)
+      await expect(
+        service.has(tester.id, REVIEW_CAMPAIGN_READ_PERMISSION, {
+          type: "review_campaign",
+          id: otherCampaign.id,
+        }),
+      ).resolves.toBe(false)
+    })
+
+    it("lets project owners and admins see the report, but not take part", async () => {
+      const repositories = setup.getAllRepositories()
+      const context = await createCampaign()
+      const { user: projectMember } = await addUserToProject({
+        repositories,
+        project: context.project,
+        membership: { role: "member" },
+      })
+      const { user: projectAdmin } = await addUserToProject({
+        repositories,
+        project: context.project,
+        membership: { role: "admin" },
+      })
+      const campaign = { type: "review_campaign" as const, id: context.campaign.id }
+
+      await expect(
+        service.has(context.owner.id, REVIEW_CAMPAIGN_REPORT_READ_PERMISSION, campaign),
+      ).resolves.toBe(true)
+      await expect(
+        service.has(projectAdmin.id, REVIEW_CAMPAIGN_REPORT_READ_PERMISSION, campaign),
+      ).resolves.toBe(true)
+      await expect(
+        service.has(projectAdmin.id, REVIEW_CAMPAIGN_REVIEWER_REVIEW_CREATE_PERMISSION, campaign),
+      ).resolves.toBe(false)
+      await expect(
+        service.has(context.owner.id, REVIEW_CAMPAIGN_TESTER_SESSION_CREATE_PERMISSION, campaign),
+      ).resolves.toBe(false)
+      await expect(
+        service.has(projectMember.id, REVIEW_CAMPAIGN_REPORT_READ_PERMISSION, campaign),
+      ).resolves.toBe(false)
+    })
+
+    it("gives the listed project keys on the campaign's project, and nothing else", async () => {
+      const repositories = setup.getAllRepositories()
+      const context = await createCampaign()
+      const otherProject = projectFactory.transient({ organization: context.organization }).build()
+      await repositories.projectRepository.save(otherProject)
+      const tester = await joinCampaign(context, "tester")
+      const reviewer = await joinCampaign(context, "reviewer")
+      const project = { type: "project" as const, id: context.project.id }
+
+      await expect(
+        service.has(tester.id, AGENT_CONVERSATION_SESSION_READ_PERMISSION, project),
+      ).resolves.toBe(true)
+      await expect(
+        service.has(tester.id, AGENT_CONVERSATION_SESSION_CREATE_PERMISSION, project),
+      ).resolves.toBe(true)
+      await expect(service.has(tester.id, PROJECT_READ_PERMISSION, project)).resolves.toBe(true)
+      await expect(
+        service.has(tester.id, CSV_EXTRACTION_RUN_READ_PERMISSION, project),
+      ).resolves.toBe(false)
+      // a campaign key is never read from the project
+      await expect(
+        service.has(tester.id, REVIEW_CAMPAIGN_TESTER_SESSION_CREATE_PERMISSION, project),
+      ).resolves.toBe(false)
+      await expect(
+        service.has(tester.id, PROJECT_READ_PERMISSION, { type: "project", id: otherProject.id }),
+      ).resolves.toBe(false)
+      await expect(service.has(reviewer.id, PROJECT_READ_PERMISSION, project)).resolves.toBe(true)
+      await expect(
+        service.has(reviewer.id, AGENT_CONVERSATION_SESSION_READ_PERMISSION, project),
+      ).resolves.toBe(false)
+    })
+
+    it("lists the campaign's project with the keys the campaign role gives", async () => {
+      const context = await createCampaign()
+      const tester = await joinCampaign(context, "tester")
+
+      await expect(service.listResourceIds(tester.id, PROJECT_READ_PERMISSION)).resolves.toEqual([
+        context.project.id,
+      ])
+      const permissionsByProjectId = await service.listResourcePermissions(
+        tester.id,
+        PROJECT_READ_PERMISSION,
+      )
+      expect([...permissionsByProjectId.keys()]).toEqual([context.project.id])
+      expect(permissionsByProjectId.get(context.project.id)?.sort()).toEqual(
+        [
+          PROJECT_READ_PERMISSION,
+          AGENT_CONVERSATION_SESSION_READ_PERMISSION,
+          AGENT_CONVERSATION_SESSION_CREATE_PERMISSION,
+          "project.agent_message_feedback.create",
+        ].sort(),
+      )
+    })
+
+    const setCampaignStatus = async (
+      context: Awaited<ReturnType<typeof createCampaign>>,
+      status: "draft" | "active" | "closed",
+    ) => {
+      await setup
+        .getAllRepositories()
+        .reviewCampaignRepository.update({ id: context.campaign.id }, { status })
+    }
+
+    it("gives a tester nothing on the project once the campaign is closed", async () => {
+      const context = await createCampaign()
+      const tester = await joinCampaign(context, "tester")
+      await setCampaignStatus(context, "closed")
+      const project = { type: "project" as const, id: context.project.id }
+
+      for (const permission of [
+        PROJECT_READ_PERMISSION,
+        AGENT_CONVERSATION_SESSION_READ_PERMISSION,
+        AGENT_CONVERSATION_SESSION_CREATE_PERMISSION,
+        "project.agent_message_feedback.create",
+      ]) {
+        await expect(service.has(tester.id, permission, project)).resolves.toBe(false)
+      }
+      await expect(service.listResourceIds(tester.id, PROJECT_READ_PERMISSION)).resolves.toEqual([])
+      await expect(
+        service.listResourcePermissions(tester.id, PROJECT_READ_PERMISSION),
+      ).resolves.toEqual(new Map())
+    })
+
+    it("keeps a reviewer's project.read once the campaign is closed", async () => {
+      const context = await createCampaign()
+      const reviewer = await joinCampaign(context, "reviewer")
+      await setCampaignStatus(context, "closed")
+
+      await expect(
+        service.has(reviewer.id, PROJECT_READ_PERMISSION, {
+          type: "project",
+          id: context.project.id,
+        }),
+      ).resolves.toBe(true)
+      await expect(service.listResourceIds(reviewer.id, PROJECT_READ_PERMISSION)).resolves.toEqual([
+        context.project.id,
+      ])
+    })
+
+    it("gives the reviewer role's project.read, and only that, to someone holding both roles on a closed campaign", async () => {
+      const repositories = setup.getAllRepositories()
+      const context = await createCampaign()
+      const participant = await joinCampaign(context, "tester")
+      await saveReviewCampaignMembership({
+        repositories,
+        membership: reviewCampaignMembershipFactory
+          .transient({
+            organization: context.organization,
+            project: context.project,
+            campaign: context.campaign,
+            user: participant,
+          })
+          .build({ role: "reviewer" }),
+      })
+      await setCampaignStatus(context, "closed")
+
+      const permissionsByProjectId = await service.listResourcePermissions(
+        participant.id,
+        PROJECT_READ_PERMISSION,
+      )
+      expect(permissionsByProjectId.get(context.project.id)).toEqual([PROJECT_READ_PERMISSION])
+    })
+
+    it("gives nothing on the project while the campaign is a draft", async () => {
+      const context = await createCampaign()
+      const tester = await joinCampaign(context, "tester")
+      const reviewer = await joinCampaign(context, "reviewer")
+      await setCampaignStatus(context, "draft")
+      const project = { type: "project" as const, id: context.project.id }
+
+      await expect(service.has(tester.id, PROJECT_READ_PERMISSION, project)).resolves.toBe(false)
+      await expect(service.has(reviewer.id, PROJECT_READ_PERMISSION, project)).resolves.toBe(false)
+    })
+
+    it("gives nothing on the project once the campaign is deleted", async () => {
+      const repositories = setup.getAllRepositories()
+      const context = await createCampaign()
+      const tester = await joinCampaign(context, "tester")
+      await repositories.reviewCampaignRepository.softDelete({ id: context.campaign.id })
+
+      await expect(
+        service.has(tester.id, AGENT_CONVERSATION_SESSION_READ_PERMISSION, {
+          type: "project",
+          id: context.project.id,
+        }),
+      ).resolves.toBe(false)
+      await expect(service.listResourceIds(tester.id, PROJECT_READ_PERMISSION)).resolves.toEqual([])
     })
   })
 
@@ -1917,6 +2194,33 @@ describe("RbacService", () => {
     )
   })
 
+  it("seeds review campaign roles and permissions idempotently", async () => {
+    await service.seedReviewCampaignRolesAndPermissions()
+    await service.seedReviewCampaignRolesAndPermissions()
+
+    const reviewCampaignRoleKeys = Object.values(REVIEW_CAMPAIGN_ROLES)
+    const roles = await setup
+      .getRepository(Role)
+      .find({ where: { key: In(reviewCampaignRoleKeys) } })
+    expect(roles.map((role) => role.key).sort()).toEqual([...reviewCampaignRoleKeys].sort())
+    expect(roles.every((role) => role.scopeType === "review_campaign")).toBe(true)
+
+    const rolePermissions = await setup.getRepository(RolePermission).find({
+      where: { roleId: In(roles.map((role) => role.id)) },
+    })
+    const expectedLinks = Object.values(REVIEW_CAMPAIGN_ROLE_PERMISSIONS).flatMap((keys) => [
+      ...keys,
+    ])
+    expect(rolePermissions).toHaveLength(expectedLinks.length)
+    for (const role of roles) {
+      const roleKey = role.key as keyof typeof REVIEW_CAMPAIGN_ROLE_PERMISSIONS
+      const grantedKeys = rolePermissions
+        .filter((rolePermission) => rolePermission.roleId === role.id)
+        .map((rolePermission) => rolePermission.permissionKey)
+      expect(grantedKeys.sort()).toEqual([...REVIEW_CAMPAIGN_ROLE_PERMISSIONS[roleKey]].sort())
+    }
+  })
+
   it("assigns role_id on organization memberships", async () => {
     const repositories = setup.getAllRepositories()
     const { user, organization } = await createOrganizationWithOwner(repositories)
@@ -1993,5 +2297,68 @@ describe("RbacService", () => {
       where: { key: AGENT_ROLES.member },
     })
     expect(membership.roleId).toBe(agentMemberRole.id)
+  })
+
+  it("assigns role_id on review campaign memberships of people still in the project", async () => {
+    await service.seedReviewCampaignRolesAndPermissions()
+    const repositories = setup.getAllRepositories()
+    const { organization, project, agent, agentSettings } =
+      await createOrganizationWithAgent(repositories)
+    const campaign = await repositories.reviewCampaignRepository.save(
+      reviewCampaignFactory
+        .active()
+        .transient({ organization, project, agent, agentSettings })
+        .build(),
+    )
+    const { user: stillInProject } = await addUserToProject({
+      repositories,
+      project,
+      membership: { role: "member" },
+    })
+    // removed from the project by an admin: the campaign rows stayed, the project row did not
+    const removedFromProject = await repositories.userRepository.save(userFactory.build())
+    // legacy rows without role_id, as written before the review campaign roles existed
+    for (const user of [stillInProject, removedFromProject]) {
+      await repositories.userMembershipRepository.save([
+        userMembershipFactory.build({
+          userId: user.id,
+          resourceType: "review_campaign",
+          resourceId: campaign.id,
+          role: "tester",
+          roleId: null,
+        }),
+        userMembershipFactory.build({
+          userId: user.id,
+          resourceType: "review_campaign",
+          resourceId: campaign.id,
+          role: "reviewer",
+          roleId: null,
+        }),
+      ])
+    }
+
+    await service.assignRoleIdsToReviewCampaignMemberships()
+
+    const roleKeysOf = async (userId: string) =>
+      (
+        await setup.getRepository(UserMembership).find({
+          where: { userId, resourceType: "review_campaign" },
+          relations: ["rbacRole"],
+        })
+      )
+        .map((membership) => [membership.role, membership.rbacRole?.key ?? null])
+        .sort()
+    await expect(roleKeysOf(stillInProject.id)).resolves.toEqual(
+      [
+        ["reviewer", REVIEW_CAMPAIGN_ROLES.reviewer],
+        ["tester", REVIEW_CAMPAIGN_ROLES.tester],
+      ].sort(),
+    )
+    await expect(roleKeysOf(removedFromProject.id)).resolves.toEqual(
+      [
+        ["reviewer", null],
+        ["tester", null],
+      ].sort(),
+    )
   })
 })

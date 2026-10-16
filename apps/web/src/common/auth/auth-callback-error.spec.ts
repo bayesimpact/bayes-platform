@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { getAuthCallbackError } from "./auth-callback-error"
+import { getAuthCallbackError, isLostSigninState } from "./auth-callback-error"
 
 describe("getAuthCallbackError", () => {
   it("returns null when the query string carries no error", () => {
@@ -21,5 +21,18 @@ describe("getAuthCallbackError", () => {
       code: "access_denied",
       description: null,
     })
+  })
+})
+
+describe("isLostSigninState", () => {
+  it("detects the state the OIDC client no longer has", () => {
+    expect(
+      isLostSigninState({ code: "Error", description: "No matching state found in storage" }),
+    ).toBe(true)
+  })
+
+  it("ignores the other errors", () => {
+    expect(isLostSigninState({ code: "access_denied", description: null })).toBe(false)
+    expect(isLostSigninState({ code: "Error", description: "Network Error" })).toBe(false)
   })
 })

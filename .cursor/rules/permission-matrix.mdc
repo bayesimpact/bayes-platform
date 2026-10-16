@@ -17,6 +17,7 @@ Whenever you add, rename, or remove a role, a permission, or a role/permission g
 
 Checklist:
 
-- [ ] Every role in `ORGANIZATION_ROLE_PERMISSIONS` / `PROJECT_ROLE_PERMISSIONS` has a column in the doc
+- [ ] Every role in `ORGANIZATION_ROLE_PERMISSIONS` / `PROJECT_ROLE_PERMISSIONS` / `AGENT_ROLE_PERMISSIONS` / `REVIEW_CAMPAIGN_ROLE_PERMISSIONS` has a column in the doc
 - [ ] Every granted permission has a row, checkmarks match the constants exactly
 - [ ] `GlobalPermission` union members all appear in the "Global roles" table
+- [ ] The project rows of the review campaign table match `PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN` and `REVIEW_CAMPAIGN_STATUSES_GIVING_PROJECT_PERMISSIONS`

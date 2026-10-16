@@ -1,5 +1,9 @@
 import { randomUUID } from "node:crypto"
-import { DocumentsRoutes, MimeTypes } from "@caseai-connect/api-contracts"
+import {
+  DocumentsRoutes,
+  MimeTypes,
+  PUBLIC_DOCUMENTS_TAG_NAME,
+} from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import type { Repository } from "typeorm"
@@ -11,9 +15,17 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
+import { documentFactory } from "@/domains/documents/document.factory"
+import { DocumentTag } from "@/domains/documents/tags/document-tag.entity"
+import { documentTagFactory } from "@/domains/documents/tags/document-tag.factory"
 import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
-import { createOrganizationWithDocument } from "@/domains/organizations/organization.factory"
+import {
+  createOrganizationWithAgent,
+  createOrganizationWithDocument,
+} from "@/domains/organizations/organization.factory"
 import { projectFactory } from "@/domains/projects/project.factory"
+import { addUserToReviewCampaign } from "@/domains/review-campaigns/memberships/review-campaign-membership.factory"
+import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
 import { mockForeignAuthSubject, mockOidcEmailForSub } from "../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
@@ -456,6 +468,118 @@ describe("Documents - Auth", () => {
     it.each([["owner"], ["admin"]] as const)("allows a project %s", async (role) => {
       await createContextForRole(role, { sourceType: "project", embeddingStatus: "failed" })
       expectResponse(await subject(), 201)
+    })
+  })
+
+  // A campaign role gives `project.read` on the campaign's project, without a project row, but no
+  // document key.
+  describe.each([["tester"], ["reviewer"]] as const)("a review campaign %s", (role) => {
+    const createCampaignParticipantContext = async ({ isPublic }: { isPublic: boolean }) => {
+      const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
+        repositories,
+        { agent: { type: "conversation" } },
+      )
+      const campaign = await repositories.reviewCampaignRepository.save(
+        reviewCampaignFactory
+          .active()
+          .transient({ organization, project, agent, agentSettings })
+          .build(),
+      )
+      const document = documentFactory.transient({ organization, project }).build()
+      if (isPublic) {
+        const publicDocumentsTag = await setup
+          .getRepository(DocumentTag)
+          .save(
+            documentTagFactory
+              .transient({ organization, project })
+              .build({ name: PUBLIC_DOCUMENTS_TAG_NAME }),
+          )
+        document.tags = [publicDocumentsTag]
+      }
+      await repositories.documentRepository.save(document)
+      const participantAuthSubject = `oidc|${randomUUID()}`
+      await addUserToReviewCampaign({
+        repositories,
+        organization,
+        project,
+        campaign,
+        role,
+        user: {
+          authSubject: participantAuthSubject,
+          email: mockOidcEmailForSub(participantAuthSubject),
+        },
+      })
+
+      authSubject = participantAuthSubject
+      organizationId = organization.id
+      projectId = project.id
+      documentId = document.id
+      accessToken = "token"
+    }
+
+    const requestRoute = <
+      Route extends
+        | typeof DocumentsRoutes.getIsPublic
+        | typeof DocumentsRoutes.getTemporaryUrl
+        | typeof DocumentsRoutes.getAll,
+    >(
+      route: Route,
+    ) =>
+      request({
+        route,
+        pathParams: removeNullish({ organizationId, projectId, documentId, sourceType: "project" }),
+        token: accessToken ?? undefined,
+      })
+
+    it.each([
+      [true],
+      [false],
+    ])("can check whether a document is public (public: %s)", async (isPublic) => {
+      await createCampaignParticipantContext({ isPublic })
+
+      const response = await requestRoute(DocumentsRoutes.getIsPublic)
+
+      expectResponse(response, 200)
+      expect(response.body.data.isPublicDocument).toBe(isPublic)
+    })
+
+    it("can download a document tagged public", async () => {
+      await createCampaignParticipantContext({ isPublic: true })
+      expectResponse(await requestRoute(DocumentsRoutes.getTemporaryUrl), 201)
+    })
+
+    it("cannot download a document that is not public", async () => {
+      await createCampaignParticipantContext({ isPublic: false })
+      expectResponse(
+        await requestRoute(DocumentsRoutes.getTemporaryUrl),
+        403,
+        AUTH_ERRORS.UNAUTHORIZED_RESOURCE,
+      )
+    })
+
+    it("cannot list the project's documents", async () => {
+      await createCampaignParticipantContext({ isPublic: true })
+      expectResponse(
+        await requestRoute(DocumentsRoutes.getAll),
+        403,
+        AUTH_ERRORS.UNAUTHORIZED_RESOURCE,
+      )
+    })
+
+    it("cannot upload a document", async () => {
+      await createCampaignParticipantContext({ isPublic: false })
+      expectResponse(
+        await request({
+          route: DocumentsRoutes.presignMany,
+          pathParams: removeNullish({ organizationId, projectId, sourceType: "project" }),
+          token: accessToken ?? undefined,
+          request: {
+            payload: { files: [{ fileName: "notes.pdf", mimeType: MimeTypes.pdf, size: 1024 }] },
+          },
+        }),
+        403,
+        AUTH_ERRORS.UNAUTHORIZED_RESOURCE,
+      )
     })
   })
 })

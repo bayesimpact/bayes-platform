@@ -20,6 +20,9 @@ import {
   PLATFORM_SUPERADMIN_ROLE,
   PROJECT_ROLE_PERMISSIONS,
   PROJECT_ROLES,
+  REVIEW_CAMPAIGN_REPORT_READ_PERMISSION,
+  REVIEW_CAMPAIGN_ROLE_PERMISSIONS,
+  REVIEW_CAMPAIGN_ROLES,
 } from "@/domains/rbac/rbac.constants"
 import { RbacModule } from "@/domains/rbac/rbac.module"
 import { mockOidcEmailForSub, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
@@ -96,6 +99,15 @@ describe("Backoffice - get RBAC catalog", () => {
     expect(rolesByKey.get(AGENT_ROLES.owner)?.scopeType).toBe("agent")
     expect(new Set(rolesByKey.get(AGENT_ROLES.owner)?.permissions)).toEqual(
       new Set(AGENT_ROLE_PERMISSIONS.agent_owner),
+    )
+    for (const reviewCampaignRoleKey of Object.values(REVIEW_CAMPAIGN_ROLES)) {
+      expect(rolesByKey.get(reviewCampaignRoleKey)?.scopeType).toBe("review_campaign")
+      expect(new Set(rolesByKey.get(reviewCampaignRoleKey)?.permissions)).toEqual(
+        new Set(REVIEW_CAMPAIGN_ROLE_PERMISSIONS[reviewCampaignRoleKey]),
+      )
+    }
+    expect(rolesByKey.get(PROJECT_ROLES.admin)?.permissions).toContain(
+      REVIEW_CAMPAIGN_REPORT_READ_PERMISSION,
     )
     expect(rolesByKey.get(PLATFORM_STAFF_ROLE)?.scopeType).toBe("global")
     expect(rolesByKey.get(PLATFORM_SUPERADMIN_ROLE)?.scopeType).toBe("global")

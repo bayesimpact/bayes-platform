@@ -8,6 +8,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+- (beta) MCP App cards can now place a message in the chat input, ready for you to review and send.
 
 - App installs: workspace owners and admins can install connected apps themselves, granting only permissions they hold.
 
@@ -16,6 +17,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - App installs: apps installed through the previous flow are disconnected and must be installed again by a workspace admin.
 
 ### Fixed
+- Sign-in: a sign-in left open for a long time now completes on its own and returns to the last page.
+- (beta) MCP App cards: a stray punctuation mark no longer shows up as a reply next to a card.
 
 ### Security
 
@@ -50,6 +53,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Security
 - Apps: installing an app now only sends its credentials to the app's registered secure addresses.
 - Apps: revoking an installation now cuts the app's access at once.
+- Review campaigns: testers and reviewers who accept an invitation no longer become members of the campaign's project.
 - PDF conversion: dependency updates patch known vulnerabilities in the PDF converter.
 
 ## [26.10.1] - 2026-10-07

@@ -27,7 +27,7 @@ Global roles are stored as `user_membership` rows with `resource_type = 'global'
 
 ## Organization roles
 
-Scoped to one organization via `user_membership` (`resource_type = 'organization'`). Org roles deliberately do not grant `project.read`: project visibility is governed by project memberships only. They do grant `backoffice.project.read` / `backoffice.agent.read` so org admins see those resources in the backoffice via inheritance. They do **not** grant `backoffice.project.update` — feature-flag writes stay on project memberships.
+Scoped to one organization via `user_membership` (`resource_type = 'organization'`). Org roles deliberately do not grant `project.read`: project visibility comes from project memberships, and from a review campaign role on one of the project's campaigns (see Review campaign roles). They do grant `backoffice.project.read` / `backoffice.agent.read` so org admins see those resources in the backoffice via inheritance. They do **not** grant `backoffice.project.update`: feature-flag writes stay on project memberships.
 
 | Permission | `org_owner` | `org_admin` | `org_member` |
 |---|---|---|---|
@@ -54,13 +54,13 @@ The `*.ui.read` permissions open one user interface of the project each and are 
 
 The `csv_extraction_run.*` permissions are not inherited either: an organization role does not open a project's CSV extraction runs. Every project role holds the four live run permissions, while the `csv_extraction_run.playground.*` ones stay with owners and admins.
 
-The `agent.conversation.session.*` permissions are not inherited either: an organization role does not open a project's conversations. Every project role holds the three live session permissions, while the `agent.conversation.session.playground.*` ones stay with owners and admins. Each caller only ever sees their own sessions.
+The `agent.conversation.session.*` permissions are not inherited either: an organization role does not open a project's conversations. Every project role holds the three live session permissions, while the `agent.conversation.session.playground.*` ones stay with owners and admins. Each caller only ever sees their own sessions. A review campaign tester also holds the read and create keys on the campaign's project (see Review campaign roles).
 
 The `agent.extraction.session.*` permissions follow the same rule: an organization role does not open a project's extraction runs. Every project role holds the three live session permissions, while the `agent.extraction.session.playground.*` ones stay with owners and admins. Each caller only ever sees their own runs and the documents they uploaded for them.
 
 The `project.agent_session_category.*` permissions are not inherited either: an organization role does not change a project's conversation categories.
 
-The `project.agent_message_feedback.*` permissions are not inherited either: an organization role does not open a project's message feedback. Every project role can leave feedback, while reading it stays with owners and admins.
+The `project.agent_message_feedback.*` permissions are not inherited either: an organization role does not open a project's message feedback. Every project role can leave feedback, and so can a review campaign tester on the campaign's project, while reading it stays with owners and admins.
 
 The `document_tag.*` permissions are not inherited either: an organization role does not open a project's document tags. Reading and changing them stays with project owners and admins.
 
@@ -68,7 +68,7 @@ The `project.mcp_server.*` permissions are not inherited either: an organization
 
 The `project.app_installation.*` permissions are not inherited either: project owners and admins install apps on the project, see them and revoke them.
 
-The `project.review_campaign.*` permissions are not inherited either: an organization role does not open a project's review campaigns. Managing them, inviting testers and reviewers and removing them stays with project owners and admins.
+The `project.review_campaign.*` permissions are not inherited either: an organization role does not open a project's review campaigns. Managing them, inviting testers and reviewers and removing them stays with project owners and admins. `review_campaign.report.read` is granted on project owners and admins and passes down to every campaign of the project (see Review campaign roles).
 
 | Permission | `project_owner` | `project_admin` | `project_member` |
 |---|---|---|---|
@@ -157,6 +157,7 @@ The `project.review_campaign.*` permissions are not inherited either: an organiz
 | `project.review_campaign.delete` — delete a review campaign | ✅ | ✅ | — |
 | `project.review_campaign.member.delete` — remove a tester or a reviewer from a review campaign | ✅ | ✅ | — |
 | `project.review_campaign.member.invite` — invite testers and reviewers to a review campaign, see and revoke pending invitations | ✅ | ✅ | — |
+| `review_campaign.report.read` — see the report of the project's review campaigns (passed down to each campaign) | ✅ | ✅ | — |
 | `user.read` — see the project's members | ✅ | ✅ | — |
 | `backoffice.project.read` — see the project in the backoffice | ✅ | ✅ | — |
 | `backoffice.project.update` — mutate the project from the backoffice (e.g. feature flags) | ✅ | ✅ | — |
@@ -196,6 +197,42 @@ The same goes for `agent.settings.draft.update`, `agent.settings.draft.publish`,
 | `user.read` — see the agent's members | ✅ | ✅ | — | — |
 | `backoffice.agent.read` — see the agent in the backoffice | ✅ | ✅ | — | — |
 | `agent.conversation.review` — read any conversation of the agent from its session id (safety review) | — | — | — | ✅ |
+
+## Review campaign roles
+
+Scoped to one review campaign via `user_membership` (`resource_type = 'review_campaign'`, `resource_id` = the campaign's id). Each row keeps its legacy `role` column (`tester` or `reviewer`) and holds the matching RBAC role in `role_id`. A person can hold both roles on one campaign: each one is its own row.
+
+Accepting an invitation to a campaign gives `review_campaign_tester` or `review_campaign_reviewer` on that campaign, plus `org_member` on the organization, since every organization-scoped route needs an organization row. It gives no project role. An invitation treats a campaign row without `role_id` as no access, so a new invitation to the same campaign and role repairs it. Removing someone from a project also deletes their tester and reviewer roles on that project's campaigns. Since a participant stays `org_member`, provisioning one as a workspace owner later reports `granted_without_organization_admin` (preview: `would_grant_without_organization_admin`), and staff promote them on the organization by hand.
+
+People who joined a campaign before these roles existed keep the `project_member` row the old invitation flow gave them. Migration `1791800888000-review-campaign-roles` deletes none of those rows, and sets `role_id` only for people who still hold a project row on the campaign's project. A later migration removes the `project_member` rows that campaign invitations created, once every running pod knows the campaign roles.
+
+The `review_campaign.*` keys apply to the campaign. The organization passes none of them down, and the project passes down only `review_campaign.report.read` (`RESOURCE_TYPE_PERMISSIONS_MAP.review_campaign`), which project owners and admins hold (see Project roles).
+
+A campaign role also gives the keys in `PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN` on the campaign's project: `project.read`, `agent.conversation.session.read`, `agent.conversation.session.create` and `project.agent_message_feedback.create`. Testers hold all four, reviewers only `project.read`. This is the only grant that goes from a child resource up to its parent, and it holds only while the campaign is in one of the role's statuses in `REVIEW_CAMPAIGN_STATUSES_GIVING_PROJECT_PERMISSIONS`: active for a tester, active or closed for a reviewer. A draft campaign gives nothing. No other RBAC rule looks at the campaign status. The rule applies to `PermissionService.has`, `listResourceIds("project.read")` and `listResourcePermissions("project.read")`, so the project shows in the participant's project list. The live session routes check these keys on the project, so a tester reaches every agent of the project, as a project member could, until the session keys move to agent scope. The role's `review_campaign.*` keys never apply to the project.
+
+No route checks a `review_campaign.*` key yet. The tester, reviewer and report routes still go through `TesterGuard`, `ReviewerGuard` and `CampaignReportGuard`, which read the legacy `role` column, and `TesterPolicy` and `ReviewerPolicy` check the campaign status. Follow-up changes move each controller to `@CheckPermission(..., "review_campaign")`.
+
+The last four rows apply to the campaign's project, and only while the campaign is in the status shown.
+
+| Permission | `review_campaign_tester` | `review_campaign_reviewer` |
+|---|---|---|
+| `review_campaign.read` — see the campaign and its agent | ✅ | ✅ |
+| `review_campaign.tester_session.read` — see your test conversations in the campaign | ✅ | — |
+| `review_campaign.tester_session.create` — start a test conversation | ✅ | — |
+| `review_campaign.tester_session.delete` — delete one of your test conversations | ✅ | — |
+| `review_campaign.tester_feedback.create` — give feedback on one of your test conversations | ✅ | — |
+| `review_campaign.tester_feedback.update` — change that feedback | ✅ | — |
+| `review_campaign.tester_survey.read` — see your end-of-campaign survey answers | ✅ | — |
+| `review_campaign.tester_survey.create` — answer the end-of-campaign survey | ✅ | — |
+| `review_campaign.tester_survey.update` — change your survey answers | ✅ | — |
+| `review_campaign.reviewer_session.read` — see the testers' conversations | — | ✅ |
+| `review_campaign.reviewer_review.create` — review a tester's conversation | — | ✅ |
+| `review_campaign.reviewer_review.update` — change your review | — | ✅ |
+| `review_campaign.report.read` — see the campaign's report | — | ✅ |
+| `project.read` — see the campaign's project, and find it in your project list | ✅ while active | ✅ while active or closed |
+| `agent.conversation.session.read` — see your live conversations with the project's agents | ✅ while active | — |
+| `agent.conversation.session.create` — start a live conversation with one of the project's agents, attach a file | ✅ while active | — |
+| `project.agent_message_feedback.create` — leave feedback on an agent's message | ✅ while active | — |
 
 ## App grantable permissions
 

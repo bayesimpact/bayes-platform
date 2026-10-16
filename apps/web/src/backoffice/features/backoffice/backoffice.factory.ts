@@ -1,4 +1,8 @@
-import type { TermsDocumentType, TimeType } from "@caseai-connect/api-contracts"
+import type {
+  ReviewCampaignMembershipRole,
+  TermsDocumentType,
+  TimeType,
+} from "@caseai-connect/api-contracts"
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
 import type {
@@ -328,14 +332,57 @@ export const backofficeUserAgentMembershipFactory = BackofficeUserAgentMembershi
   }),
 )
 
+/** The grants of the two review campaign roles, as the RBAC catalog holds them. */
+const REVIEW_CAMPAIGN_ROLE_GRANTS: Record<
+  ReviewCampaignMembershipRole,
+  { roleKey: string; permissions: string[] }
+> = {
+  tester: {
+    roleKey: "review_campaign_tester",
+    permissions: [
+      "review_campaign.read",
+      "review_campaign.tester_session.read",
+      "review_campaign.tester_session.create",
+      "review_campaign.tester_session.delete",
+      "review_campaign.tester_feedback.create",
+      "review_campaign.tester_feedback.update",
+      "review_campaign.tester_survey.read",
+      "review_campaign.tester_survey.create",
+      "review_campaign.tester_survey.update",
+      "project.read",
+      "agent.conversation.session.read",
+      "agent.conversation.session.create",
+      "project.agent_message_feedback.create",
+    ],
+  },
+  reviewer: {
+    roleKey: "review_campaign_reviewer",
+    permissions: [
+      "review_campaign.read",
+      "review_campaign.reviewer_session.read",
+      "review_campaign.reviewer_review.create",
+      "review_campaign.reviewer_review.update",
+      "review_campaign.report.read",
+      "project.read",
+    ],
+  },
+}
+
 class BackofficeUserReviewCampaignMembershipFactory extends Factory<BackofficeUserReviewCampaignMembership> {}
 
+/** Defaults the role key and permissions to the grants of the membership's role. */
 export const backofficeUserReviewCampaignMembershipFactory =
-  BackofficeUserReviewCampaignMembershipFactory.define(({ params }) => ({
-    campaignId: params.campaignId ?? faker.string.uuid(),
-    campaignName: params.campaignName ?? faker.lorem.words({ min: 2, max: 4 }),
-    role: params.role ?? "tester",
-  }))
+  BackofficeUserReviewCampaignMembershipFactory.define(({ params }) => {
+    const role = params.role ?? "tester"
+    return {
+      campaignId: params.campaignId ?? faker.string.uuid(),
+      campaignName: params.campaignName ?? faker.lorem.words({ min: 2, max: 4 }),
+      projectId: params.projectId ?? faker.string.uuid(),
+      role,
+      roleKey: params.roleKey ?? REVIEW_CAMPAIGN_ROLE_GRANTS[role].roleKey,
+      permissions: params.permissions ?? [...REVIEW_CAMPAIGN_ROLE_GRANTS[role].permissions],
+    }
+  })
 
 class BackofficeUserDetailFactory extends Factory<BackofficeUserDetail> {}
 
@@ -510,6 +557,29 @@ export const backofficeRbacCatalogFactory = BackofficeRbacCatalogFactory.define(
       name: "Agent Member",
       scopeType: "agent" as const,
       permissions: ["agent.read"],
+    },
+    {
+      key: "review_campaign_tester",
+      name: "Review Campaign Tester",
+      scopeType: "review_campaign" as const,
+      permissions: [
+        "review_campaign.read",
+        "review_campaign.tester_session.read",
+        "review_campaign.tester_session.create",
+        "project.read",
+        "agent.conversation.session.read",
+      ],
+    },
+    {
+      key: "review_campaign_reviewer",
+      name: "Review Campaign Reviewer",
+      scopeType: "review_campaign" as const,
+      permissions: [
+        "review_campaign.read",
+        "review_campaign.reviewer_session.read",
+        "review_campaign.report.read",
+        "project.read",
+      ],
     },
   ],
   permissions: params.permissions ?? [

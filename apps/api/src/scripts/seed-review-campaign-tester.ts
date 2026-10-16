@@ -5,6 +5,7 @@ import { AppModule } from "@/app.module"
 import { Agent } from "@/domains/agents/agent.entity"
 import { UserMembership } from "@/domains/memberships/user-membership.entity"
 import { Project } from "@/domains/projects/project.entity"
+import { resolveReviewCampaignRoleId } from "@/domains/rbac/resolve-review-campaign-role-id"
 import { ReviewCampaign } from "@/domains/review-campaigns/review-campaign.entity"
 import { User } from "@/domains/users/user.entity"
 import { ask, confirmDatabaseTarget } from "@/scripts/script-bootstrap"
@@ -153,6 +154,7 @@ async function main(): Promise<void> {
           resourceType: "review_campaign",
           resourceId: campaign.id,
           role: "tester",
+          roleId: await resolveReviewCampaignRoleId(dataSource.manager, "tester"),
         }),
       )
       logger.log(`Created tester membership for ${email}`)
