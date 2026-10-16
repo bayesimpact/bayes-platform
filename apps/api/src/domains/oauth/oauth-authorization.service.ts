@@ -393,6 +393,13 @@ export class OAuthAuthorizationService {
       permissions,
       userId,
     })
+    if (installed.reconnected) {
+      // The app gets one live grant: the refresh tokens it held before stop working.
+      await this.oauthGrantRepository.revokeByAppInstallationId({
+        appInstallationId: installed.installationId,
+        revokedAt: new Date(),
+      })
+    }
     // The installation records who installed it; the grant belongs to no person.
     const grant = await this.oauthGrantRepository.createGrant({
       userId: null,

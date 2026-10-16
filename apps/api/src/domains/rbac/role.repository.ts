@@ -33,6 +33,16 @@ export class RoleRepository {
     return { id: saved.id, key: saved.key }
   }
 
+  /** The role now grants exactly these permissions. */
+  async replacePermissionKeys(roleId: string, permissionKeys: readonly string[]): Promise<void> {
+    await this.grantRepo().delete({ roleId })
+    if (permissionKeys.length > 0) {
+      await this.grantRepo().save(
+        permissionKeys.map((permissionKey) => this.grantRepo().create({ roleId, permissionKey })),
+      )
+    }
+  }
+
   async listPermissionKeysByRoleIds(roleIds: readonly string[]): Promise<Map<string, string[]>> {
     const uniqueRoleIds = [...new Set(roleIds)]
     if (uniqueRoleIds.length === 0) return new Map()

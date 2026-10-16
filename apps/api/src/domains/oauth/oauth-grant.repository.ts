@@ -89,6 +89,17 @@ export class OAuthGrantRepository {
     )
   }
 
+  /** Ends the grants of an installation, before a reconnection gives it a new one. */
+  async revokeByAppInstallationId(params: {
+    appInstallationId: string
+    revokedAt: Date
+  }): Promise<void> {
+    await this.repo().update(
+      { appInstallationId: params.appInstallationId, revokedAt: IsNull() },
+      { revokedAt: params.revokedAt },
+    )
+  }
+
   async markUsed(params: { id: string; usedAt: Date }): Promise<void> {
     await this.repo().update({ id: params.id }, { lastUsedAt: params.usedAt })
   }

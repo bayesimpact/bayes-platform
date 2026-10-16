@@ -52,8 +52,13 @@ grant with its refresh token. The service user model does not change.**
   user, project role `app_install_<id>`, memberships), plus an OAuth grant
   linked to the installation, and returns the code. The installation records
   who installed it, but the grant belongs to no person, so the app keeps
-  working when its installer's account goes. An app that is already
-  installed on the workspace gets the same `409` as today.
+  working when its installer's account goes.
+* Approving an app already installed on the workspace reconnects it: it keeps
+  its installation, so its service user, conversations and document sources,
+  which the platform ties to the installation. Its role gets the permissions
+  just granted, a new grant replaces the previous ones, and the refresh
+  tokens of those stop working. An app that lost its refresh token recovers
+  the same way.
 * Who installs: workspace owners and admins, through the new project
   permission `project.app_installation.create`, next to the existing
   `project.app_installation.read` and `revoke`. It is never inherited from
@@ -78,9 +83,9 @@ grant with its refresh token. The service user model does not change.**
   `apps/v1/install/exchange`, `apps/v1/token`, the App JWT, the
   per-installation credentials, and the global `app.install` permission,
   which only those endpoints checked.
-* Installations made with the old flow are revoked, since their credentials
-  no longer work. Their apps install again from the consent page once they
-  speak OAuth.
+* Installations made with the old flow lose their credentials but stay
+  active. Their apps cannot call the API until they reconnect from the
+  consent page, which keeps the installation and what is tied to it.
 
 ## 3. Consequences
 

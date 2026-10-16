@@ -14,7 +14,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Changed
 
-- App installs: apps installed through the previous flow are disconnected and must be installed again by a workspace admin.
+- App installs: apps installed through the previous flow must be reconnected by a workspace admin, keeping their conversations and documents.
 
 ### Fixed
 - Sign-in: a sign-in left open for a long time now completes on its own and returns to the last page.

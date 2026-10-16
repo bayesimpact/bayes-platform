@@ -60,7 +60,7 @@ The authorization request is the standard one:
 ### What the installer can grant
 
 - The page lists the projects where the installer holds `project.app_installation.create`, that is the projects they own or administer. Organization roles do not pass it down, and platform staff get no exception.
-- An app is installed on one project at a time. A second install of the same app on the project gets `409`.
+- An app is installed on one project at a time. Approving an app already installed on the project reconnects it: the installation stays, with its service user, conversations and document sources, its permissions become those just granted, and the previous refresh tokens stop working.
 - The permissions offered are the manifest's grantable permissions that the installer holds on the project. An install never gives an app more than its installer has.
 
 ## Tokens
@@ -84,7 +84,7 @@ App installations do not appear in a person's "Connected apps", which lists thei
 
 ## Before ADR 0029
 
-Apps used to install through a flow of their own ([ADR 0024](adr/0024-conversation-apps.md)): per-installation `client_id` and `client_secret`, a `client_credentials` token endpoint, and the global `app.install` permission for platform staff. It was removed with ADR 0029, and the installations it made were revoked: their apps install again from the consent page.
+Apps used to install through a flow of their own ([ADR 0024](adr/0024-conversation-apps.md)): per-installation `client_id` and `client_secret`, a `client_credentials` token endpoint, and the global `app.install` permission for platform staff. It was removed with ADR 0029. The installations it made lost their credentials but stay active: their apps reconnect from the consent page and keep their conversations and document sources.
 
 ## Related code
 

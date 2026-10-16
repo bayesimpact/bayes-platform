@@ -2,20 +2,15 @@ import type { MigrationInterface, QueryRunner } from "typeorm"
 
 /**
  * Removes the install flow of ADR 0024: apps install through the OAuth server
- * (ADR 0029). Installations made with the old flow authenticate with
- * per-installation credentials the API no longer accepts, so they are revoked:
- * their apps install again from the consent page. The global `app.install`
- * goes with the old endpoints.
+ * (ADR 0029). Installations made with the old flow lose their per-installation
+ * credentials but stay active: their app reconnects from the consent page and
+ * keeps the installation, with its conversations and document sources. The
+ * global `app.install` goes with the old endpoints.
  */
 export class RemoveLegacyAppInstall1792151004487 implements MigrationInterface {
   name = "RemoveLegacyAppInstall1792151004487"
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(`
-      UPDATE "app_installation"
-      SET "status" = 'revoked', "revoked_at" = now()
-      WHERE "status" = 'active' AND "client_id" IS NOT NULL
-    `)
     await queryRunner.query(`DROP TABLE "app_install_authorization_code"`)
     await queryRunner.query(`DROP INDEX "public"."UQ_app_installation_client_id"`)
     await queryRunner.query(`ALTER TABLE "app_installation" DROP COLUMN "client_id"`)
@@ -31,7 +26,7 @@ export class RemoveLegacyAppInstall1792151004487 implements MigrationInterface {
       WHERE role.key IN ('platform_staff', 'platform_superadmin')
       ON CONFLICT ("role_id", "permission_key") DO NOTHING
     `)
-    // The revoked installations and their credentials do not come back.
+    // The per-installation credentials do not come back: those apps install again.
     await queryRunner.query(
       `ALTER TABLE "app_installation" ADD "client_secret_hash" character varying`,
     )

@@ -293,19 +293,34 @@ describe("OAuth authorization server - app installs", () => {
       expect(await repositories.appInstallationRepository.count()).toBe(0)
     })
 
-    it("refuses a second install of the app on the project", async () => {
+    it("reconnects an app already installed on the project, keeping its installation", async () => {
       const { project } = await createContext()
-      const { clientId, clientSecret } = await createAppClient()
-      await installApp({ clientId, clientSecret, projectId: project.id })
-
-      const response = await postConsent({
-        clientId,
-        codeChallenge: generatePkcePair().codeChallenge,
-        projectIds: [project.id],
-        permissions: [DOCUMENT_READ_PERMISSION],
+      const { clientId, clientSecret, manifest } = await createAppClient()
+      const first = await installApp({ clientId, clientSecret, projectId: project.id })
+      const installation = await repositories.appInstallationRepository.findOneByOrFail({
+        appManifestId: manifest.id,
       })
 
-      expect(response.status).toBe(409)
+      const second = await installApp({
+        clientId,
+        clientSecret,
+        projectId: project.id,
+        permissions: [DOCUMENT_READ_PERMISSION, DOCUMENT_CREATE_PERMISSION],
+      })
+
+      const installations = await repositories.appInstallationRepository.findBy({
+        appManifestId: manifest.id,
+      })
+      expect(installations.map((row) => row.id)).toEqual([installation.id])
+      const me = await getAppsMe(second.accessToken)
+      expect(me.body.data).toMatchObject({
+        installationId: installation.id,
+        userId: installation.serviceUserId,
+      })
+      // The grant of the first connection ends with it.
+      const stale = await refresh({ clientId, clientSecret, refreshToken: first.refreshToken })
+      expect(stale.status).toBe(400)
+      expect((await getAppsMe(second.accessToken)).status).toBe(200)
     })
   })
 

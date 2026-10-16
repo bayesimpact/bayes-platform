@@ -45,6 +45,8 @@ export type InstalledApp = {
   serviceUserId: string
   organizationId: string
   projectId: string
+  /** The app was already installed on the project: same installation, new permissions. */
+  reconnected: boolean
 }
 
 export type AppPrincipal = {
@@ -132,8 +134,11 @@ export class AppsService {
   /**
    * Installs an app approved on the consent page of the OAuth server
    * (ADR 0029): the service user, its role and memberships, and the
-   * installation. The caller checked who approves and what they can grant,
-   * and runs this in the transaction that also creates the grant.
+   * installation. An app already installed on the project is reconnected
+   * instead: it keeps its installation, so its service user, conversations
+   * and document sources, and its role gets the permissions just granted.
+   * The caller checked who approves and what they can grant, and runs this
+   * in the transaction that also creates the grant.
    */
   async installApprovedApp(params: {
     appManifestId: string
@@ -151,6 +156,17 @@ export class AppsService {
         app.id,
         project.id,
       )
+      if (existing?.serviceUserId && existing.customRoleId) {
+        await this.roleRepository.replacePermissionKeys(existing.customRoleId, permissions)
+        this.logger.log(`Reconnected app installation ${existing.id} by user ${params.userId}`)
+        return {
+          installationId: existing.id,
+          serviceUserId: existing.serviceUserId,
+          organizationId: project.organizationId,
+          projectId: project.id,
+          reconnected: true,
+        }
+      }
       if (existing) {
         throw new ConflictException("This app is already installed on that project")
       }
@@ -183,6 +199,7 @@ export class AppsService {
         serviceUserId: serviceUser.id,
         organizationId: project.organizationId,
         projectId: project.id,
+        reconnected: false,
       }
     })
   }

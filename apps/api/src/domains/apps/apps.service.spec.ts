@@ -156,7 +156,7 @@ describe("AppsService", () => {
     await expect(service.deleteAppManifest(unknownId)).rejects.toBeInstanceOf(NotFoundException)
   })
 
-  it("installs an approved app as a service user whose role holds the granted permissions", async () => {
+  it("installs an approved app as a service user, and reconnects it with new permissions", async () => {
     const repositories = setup.getAllRepositories()
     const { project, user } = await createOrganizationWithProject(repositories)
     const created = await service.createAppManifest(createPayload)
@@ -171,6 +171,7 @@ describe("AppsService", () => {
     expect(installed).toMatchObject({
       organizationId: project.organizationId,
       projectId: project.id,
+      reconnected: false,
     })
     const installation = await repositories.appInstallationRepository.findOneByOrFail({
       id: installed.installationId,
@@ -197,14 +198,20 @@ describe("AppsService", () => {
     const catalog = await permissionService.getCatalog()
     expect(catalog.roles.some((role) => role.key.startsWith("app_install_"))).toBe(false)
 
+    const reconnected = await service.installApprovedApp({
+      appManifestId: created.id,
+      projectId: project.id,
+      permissions: [DOCUMENT_CREATE_PERMISSION],
+      userId: user.id,
+    })
+    expect(reconnected).toEqual({ ...installed, reconnected: true })
     await expect(
-      service.installApprovedApp({
-        appManifestId: created.id,
-        projectId: project.id,
-        permissions: [DOCUMENT_READ_PERMISSION],
-        userId: user.id,
-      }),
-    ).rejects.toBeInstanceOf(ConflictException)
+      permissionService.has(serviceUser.id, DOCUMENT_CREATE_PERMISSION, projectResource),
+    ).resolves.toBe(true)
+    await expect(
+      permissionService.has(serviceUser.id, DOCUMENT_READ_PERMISSION, projectResource),
+    ).resolves.toBe(false)
+    expect(await repositories.appInstallationRepository.count()).toBe(1)
   })
 
   it("refuses a permission the app does not offer", async () => {
