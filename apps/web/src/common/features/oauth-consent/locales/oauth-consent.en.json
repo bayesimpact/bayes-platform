@@ -17,6 +17,16 @@
     "approved": "Access granted. You can go back to {{name}}.",
     "denied": "Access denied. You can go back to {{name}}.",
     "invalidRequest": "This authorization link is incomplete or malformed. Start again from the app.",
+    "appHeadline": "Install {{name}} on a workspace",
+    "appVerifiedHint": "This app is registered by the platform.",
+    "workspace": "Workspace",
+    "workspaceHint": "The app only reaches the workspace you select, as its own account.",
+    "selectWorkspaceFirst": "Select a workspace first.",
+    "appPermissionUnavailable": "You don't hold this permission on this workspace.",
+    "noWorkspaces": "You own or administer no workspace to install this app on. Decline to go back to the app.",
+    "install": "Install",
+    "installing": "Installing…",
+    "installed": "{{name}} is installed. You can go back to it.",
     "permission": {
       "project_read": {
         "name": "See the projects",
@@ -29,6 +39,76 @@
       "agent_settings_draft_update": {
         "name": "Edit agent drafts",
         "description": "Change the draft settings of the agents you own or administer in the selected projects (model, instructions). Publishing stays in the studio."
+      }
+    },
+    "appPermission": {
+      "document_read": {
+        "name": "Read documents",
+        "description": "Access titles, content, and metadata of documents in this workspace."
+      },
+      "document_create": {
+        "name": "Create documents",
+        "description": "Add new documents to the workspace. Existing documents won't be modified."
+      },
+      "document_update": {
+        "name": "Update documents",
+        "description": "Edit the content of existing documents in this workspace."
+      },
+      "document_delete": {
+        "name": "Delete documents",
+        "description": "Permanently remove documents from this workspace."
+      },
+      "document_source_read": {
+        "name": "Read document sources",
+        "description": "See the document sources registered on this workspace."
+      },
+      "document_source_create": {
+        "name": "Create document sources",
+        "description": "Register a named document source on this workspace."
+      },
+      "document_source_update": {
+        "name": "Update document sources",
+        "description": "Rename a document source or change its settings."
+      },
+      "document_source_delete": {
+        "name": "Delete document sources",
+        "description": "Remove a document source that has no documents attached."
+      },
+      "document_tag_read": {
+        "name": "Read document tags",
+        "description": "See the document tags in this workspace."
+      },
+      "document_tag_create": {
+        "name": "Create document tags",
+        "description": "Add a document tag to this workspace."
+      },
+      "document_tag_update": {
+        "name": "Update document tags",
+        "description": "Rename a document tag or change its description and parent."
+      },
+      "document_tag_delete": {
+        "name": "Delete document tags",
+        "description": "Remove a document tag from this workspace."
+      },
+      "project_read": {
+        "name": "Read workspace",
+        "description": "See this workspace and its settings."
+      },
+      "project_update": {
+        "name": "Update workspace",
+        "description": "Change this workspace's settings."
+      },
+      "project_delete": {
+        "name": "Delete workspace",
+        "description": "Permanently delete this workspace."
+      },
+      "agent_read": {
+        "name": "Read agents",
+        "description": "See the agents of this workspace."
+      },
+      "agent_conversation_session_external_create": {
+        "name": "Chat with agents for people outside Bayes",
+        "description": "People who write to this app can chat with the agents of this workspace, without a Bayes account."
       }
     },
     "notifications": {

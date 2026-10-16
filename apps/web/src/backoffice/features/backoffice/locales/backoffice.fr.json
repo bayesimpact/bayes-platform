@@ -14,7 +14,8 @@
       "appDeleted": "Application supprimée",
       "appCreateError": "La création de l'application a échoué",
       "appUpdateError": "La mise à jour de l'application a échoué",
-      "appDeleteError": "La suppression de l'application a échoué"
+      "appDeleteError": "La suppression de l'application a échoué",
+      "appOAuthClientError": "Le client OAuth de l'application n'a pas pu être chargé ou mis à jour"
     }
   }
 }

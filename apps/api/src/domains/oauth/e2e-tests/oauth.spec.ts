@@ -94,7 +94,11 @@ describe("OAuth authorization server", () => {
         token_endpoint: `${issuer}/token`,
         registration_endpoint: `${issuer}/register`,
         code_challenge_methods_supported: ["S256"],
-        token_endpoint_auth_methods_supported: ["none"],
+        token_endpoint_auth_methods_supported: [
+          "none",
+          "client_secret_basic",
+          "client_secret_post",
+        ],
         client_id_metadata_document_supported: true,
       })
     })
@@ -185,9 +189,12 @@ describe("OAuth authorization server", () => {
       expect(response.body.data).toEqual({
         client: {
           clientId,
+          kind: "mcp",
           name: "Helpful Client",
           redirectHost: "127.0.0.1:4567",
           verified: false,
+          description: null,
+          logoUrl: null,
         },
         projects: [
           {

@@ -29,9 +29,12 @@ export default {
 const toOAuthConsentPage = (dto: OAuthConsentPageDto): OAuthConsentPage => ({
   client: {
     clientId: dto.client.clientId,
+    kind: dto.client.kind,
     name: dto.client.name,
     redirectHost: dto.client.redirectHost,
     verified: dto.client.verified,
+    description: dto.client.description,
+    logoUrl: dto.client.logoUrl,
   },
   projects: dto.projects.map((project) => ({
     id: project.id,

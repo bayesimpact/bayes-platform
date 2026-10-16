@@ -13,6 +13,7 @@ import { buildMockStore } from "@/stories/decorators"
 import { mergeSeeds, seed } from "@/stories/seed"
 
 type StoryArgs = {
+  kind: "mcp" | "app"
   verified: boolean
   withProjects: boolean
   invalidRequest: boolean
@@ -39,13 +40,47 @@ const projects = [
   oauthConsentProjectFactory.build({ name: "Product", organizationName: "Globex" }),
 ]
 
-function renderRoute({ verified, withProjects, invalidRequest }: StoryArgs) {
-  const page = oauthConsentPageFactory.build({
+const appPermissions = ["document.read", "document.create", "document_tag.read"]
+const appWorkspaces = [
+  oauthConsentProjectFactory.build({
+    name: "Support",
+    organizationId: firstOrganizationId,
+    organizationName: "Acme",
+    availablePermissions: appPermissions,
+  }),
+  oauthConsentProjectFactory.build({
+    name: "Pricing",
+    organizationId: firstOrganizationId,
+    organizationName: "Acme",
+    availablePermissions: ["document.read"],
+  }),
+]
+
+function buildPage({ kind, verified, withProjects }: StoryArgs) {
+  if (kind === "app") {
+    return oauthConsentPageFactory.build({
+      client: {
+        kind: "app",
+        name: "Helpful Assistant",
+        redirectHost: "app.example.com",
+        verified: true,
+        description: "Keeps the workspace's documents in sync with a website.",
+      },
+      projects: withProjects ? appWorkspaces : [],
+      grantablePermissions: appPermissions,
+    })
+  }
+  return oauthConsentPageFactory.build({
     client: verified
       ? { name: "Helpful Assistant", redirectHost: "app.example.com", verified: true }
       : { name: "Helpful Assistant", redirectHost: "127.0.0.1", verified: false },
     projects: withProjects ? projects : [],
   })
+}
+
+function renderRoute(args: StoryArgs) {
+  const { invalidRequest } = args
+  const page = buildPage(args)
   const store = buildMockStore({
     state: mergeSeeds(
       seed.me(userFactory.build({ termsAccepted: true })),
@@ -66,11 +101,13 @@ const meta = {
   title: "routes/common/oauth-authorize",
   parameters: { layout: "fullscreen" },
   argTypes: {
+    kind: { control: "inline-radio", options: ["mcp", "app"] },
     verified: { control: "boolean" },
     withProjects: { control: "boolean" },
     invalidRequest: { control: "boolean" },
   },
   args: {
+    kind: "mcp",
     verified: true,
     withProjects: true,
     invalidRequest: false,
@@ -89,6 +126,15 @@ export const Unverified: Story = {
 
 export const NoProjects: Story = {
   args: { withProjects: false },
+}
+
+/** An app installed on one workspace, with the permissions of its manifest. */
+export const AppInstall: Story = {
+  args: { kind: "app" },
+}
+
+export const AppInstallNoWorkspaces: Story = {
+  args: { kind: "app", withProjects: false },
 }
 
 export const InvalidRequest: Story = {

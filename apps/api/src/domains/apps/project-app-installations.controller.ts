@@ -1,4 +1,7 @@
-import { ProjectAppInstallationsRoutes } from "@caseai-connect/api-contracts"
+import {
+  type AppInstallationSummaryDto,
+  ProjectAppInstallationsRoutes,
+} from "@caseai-connect/api-contracts"
 import { Controller, Get, HttpCode, HttpStatus, Param, Post, Req, UseGuards } from "@nestjs/common"
 import type { EndpointRequestWithProject } from "@/common/context/request.interface"
 import { RequireContext } from "@/common/context/require-context.decorator"
@@ -13,11 +16,11 @@ import {
   PROJECT_APP_INSTALLATION_REVOKE_PERMISSION,
 } from "@/domains/rbac/rbac.constants"
 import { UserGuard } from "@/domains/users/user.guard"
+import type { ActiveAppInstallationSummary } from "./app-installation.repository"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AppsService } from "./apps.service"
-import { toAppInstallationSummaryDto } from "./apps-install.controller"
 
-/** The studio view of a project's apps. Installing an app stays on `app.install`. */
+/** The studio view of a project's apps. Apps are installed through the OAuth consent page (ADR 0029). */
 @UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, CheckPermissionGuard)
 @RequireContext("organization", "project")
 @Controller()
@@ -53,5 +56,18 @@ export class ProjectAppInstallationsController {
       entityId: appInstallationId,
     })
     return { data: { success: true } }
+  }
+}
+
+function toAppInstallationSummaryDto(
+  installation: ActiveAppInstallationSummary,
+): AppInstallationSummaryDto {
+  return {
+    id: installation.id,
+    appName: installation.appName,
+    description: installation.description,
+    logoUrl: installation.logoUrl,
+    permissions: installation.permissions,
+    createdAt: installation.createdAt.getTime(),
   }
 }

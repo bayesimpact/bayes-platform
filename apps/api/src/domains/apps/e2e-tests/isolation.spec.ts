@@ -1,10 +1,10 @@
 import { randomUUID } from "node:crypto"
 import {
   AgentsRoutes,
-  AppsRoutes,
   AppsV1Routes,
   DOCUMENT_READ_PERMISSION,
   DocumentsRoutes,
+  ProjectAppInstallationsRoutes,
 } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import request from "supertest"
@@ -16,21 +16,21 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { withDocumentEmbeddingsBatchServiceMock } from "@/domains/documents/test-overrides"
+import { signOAuthAccessToken } from "@/domains/oauth/oauth-crypto"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { RbacModule } from "@/domains/rbac/rbac.module"
 import { UsersService } from "@/domains/users/users.service"
-import { assignPlatformStaffToUser, ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
+import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, testRequester } from "../../../../test/request"
-import { DEFAULT_APPS_JWT_AUDIENCE, signAppJwt } from "../app-jwt"
 import { AppsModule } from "../apps.module"
-import { AppsService } from "../apps.service"
-import { INSTALL_PKCE_METHOD_S256, RFC7636_TEST_CODE_CHALLENGE } from "../install-pkce"
+import { installAppForTests, useAppsTestOrigin } from "./app-install-test.helpers"
 
-describe("Apps - JWT isolation", () => {
+describe("Apps - token isolation", () => {
   let app: INestApplication<App>
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
 
   beforeAll(async () => {
+    useAppsTestOrigin()
     setup = await setupE2eTestDatabase({
       additionalImports: [AppsModule, RbacModule],
       applyOverrides: withDocumentEmbeddingsBatchServiceMock,
@@ -55,40 +55,21 @@ describe("Apps - JWT isolation", () => {
 
   const installAndIssueToken = async () => {
     const repositories = setup.getAllRepositories()
-    const appsService = setup.module.get(AppsService)
     const { project, user } = await createOrganizationWithProject(repositories)
-    await assignPlatformStaffToUser({ repositories, user })
-    const created = await appsService.createAppManifest({
-      name: "Helpful Assistant",
-      slug: "isolation-assistant",
-      description: null,
-      logoUrl: null,
-      grantablePermissions: [DOCUMENT_READ_PERMISSION],
-    })
-    const authorized = await appsService.authorizeInstall({
-      slug: created.slug,
+    const installed = await installAppForTests(setup.module, {
       userId: user.id,
       projectId: project.id,
       permissions: [DOCUMENT_READ_PERMISSION],
-      redirectUri: "http://127.0.0.1:8787/callback",
-      state: "csrf-state",
-      codeChallenge: RFC7636_TEST_CODE_CHALLENGE,
-      codeChallengeMethod: INSTALL_PKCE_METHOD_S256,
-    })
-    const token = await appsService.issueToken({
-      grant_type: "client_credentials",
-      client_id: authorized.clientId,
-      client_secret: authorized.clientSecret,
     })
     return {
-      slug: created.slug,
-      accessToken: token.accessToken,
+      accessToken: installed.accessToken,
+      installationId: installed.installationId,
       projectId: project.id,
       organizationId: project.organizationId,
     }
   }
 
-  it("accepts an App JWT on /apps/v1/me without calling UserGuard.findOrCreate", async () => {
+  it("accepts an app token on /apps/v1/me without calling UserGuard.findOrCreate", async () => {
     const { accessToken, projectId } = await installAndIssueToken()
     const findOrCreate = jest.spyOn(setup.module.get(UsersService), "findOrCreate")
 
@@ -101,18 +82,26 @@ describe("Apps - JWT isolation", () => {
     expect(findOrCreate).not.toHaveBeenCalled()
   })
 
-  it("rejects a human-shaped JWT on /apps/v1/me with 401", async () => {
-    const privateKey = process.env.APPS_JWT_PRIVATE_KEY
-    if (!privateKey) throw new Error("APPS_JWT_PRIVATE_KEY must be set in tests")
+  it("rejects a token of another issuer on /apps/v1/me with 401", async () => {
+    const privateKey = process.env.OAUTH_SIGNING_PRIVATE_KEY
+    if (!privateKey) throw new Error("OAUTH_SIGNING_PRIVATE_KEY must be set in tests")
 
-    const humanShapedToken = signAppJwt({
+    const issuedAt = Math.floor(Date.now() / 1000)
+    const humanShapedToken = signOAuthAccessToken(
+      {
+        iss: process.env.OIDC_ISSUER_URL ?? "https://idp.example.org/realms/acme",
+        aud: "http://apps-api.test/api/apps/v1",
+        sub: `oidc|${randomUUID()}`,
+        client_id: "app_test",
+        grant_id: randomUUID(),
+        installation_id: randomUUID(),
+        scope: "",
+        iat: issuedAt,
+        exp: issuedAt + 3600,
+        jti: randomUUID(),
+      },
       privateKey,
-      issuer: process.env.OIDC_ISSUER_URL ?? "https://idp.example.org/realms/acme",
-      audience: process.env.OIDC_AUDIENCE ?? DEFAULT_APPS_JWT_AUDIENCE,
-      subject: `oidc|${randomUUID()}`,
-      projectId: randomUUID(),
-      installationId: randomUUID(),
-    })
+    )
     const me = await testRequester(app)({
       route: AppsV1Routes.getMe,
       token: humanShapedToken,
@@ -120,42 +109,31 @@ describe("Apps - JWT isolation", () => {
     expectResponse(me, 401, AUTH_ERRORS.INVALID_ACCESS_TOKEN)
   })
 
-  it("rejects an App JWT on studio /apps/install and revoke with 401, not 403", async () => {
-    const { slug, accessToken, projectId } = await installAndIssueToken()
+  it("rejects an app token on the studio app installation routes with 401, not 403", async () => {
+    const { accessToken, installationId, projectId, organizationId } = await installAndIssueToken()
     const findOrCreate = jest.spyOn(setup.module.get(UsersService), "findOrCreate")
 
-    const installPage = await request(app.getHttpServer())
-      .get(AppsRoutes.getInstall.getPath({ slug }))
-      .set("Connection", "close")
-      .set("Authorization", `Bearer ${accessToken}`)
-
-    expect(installPage.status).toBe(401)
-    expect(installPage.status).not.toBe(403)
-
-    const installation = await setup
-      .getAllRepositories()
-      .appInstallationRepository.findOneByOrFail({
-        projectId,
-      })
-    const revoke = await request(app.getHttpServer())
-      .post(AppsRoutes.revoke.getPath({ id: installation.id }))
-      .set("Connection", "close")
-      .set("Authorization", `Bearer ${accessToken}`)
-
-    expect(revoke.status).toBe(401)
-    expect(revoke.status).not.toBe(403)
-
     const listed = await request(app.getHttpServer())
-      .get(AppsRoutes.listForProject.getPath({ projectId }))
+      .get(ProjectAppInstallationsRoutes.getAll.getPath({ organizationId, projectId }))
+      .set("Connection", "close")
+      .set("Authorization", `Bearer ${accessToken}`)
+    const revoke = await request(app.getHttpServer())
+      .post(
+        ProjectAppInstallationsRoutes.revokeOne.getPath({
+          organizationId,
+          projectId,
+          appInstallationId: installationId,
+        }),
+      )
       .set("Connection", "close")
       .set("Authorization", `Bearer ${accessToken}`)
 
     expect(listed.status).toBe(401)
-    expect(listed.status).not.toBe(403)
+    expect(revoke.status).toBe(401)
     expect(findOrCreate).not.toHaveBeenCalled()
   })
 
-  it("rejects an App JWT on studio document and agent routes with 401, not 403", async () => {
+  it("rejects an app token on studio document and agent routes with 401, not 403", async () => {
     const { accessToken, projectId, organizationId } = await installAndIssueToken()
 
     const documents = await request(app.getHttpServer())

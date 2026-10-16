@@ -12,9 +12,10 @@ import {
 } from "@nestjs/common"
 import { SkipThrottle, Throttle, ThrottlerGuard } from "@nestjs/throttler"
 import type { Request } from "express"
-import { getMcpResourceUrl, getOAuthIssuer } from "@/config/public-urls"
+import { getOAuthServerUrls } from "@/config/public-urls"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { OAuthAuthorizationService } from "./oauth-authorization.service"
+import { readClientSecretBasic } from "./oauth-client-authentication"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { OAuthClientsService } from "./oauth-clients.service"
 import { OAuthProtocolErrorFilter } from "./oauth-protocol.error"
@@ -55,18 +56,22 @@ export class OAuthProtocolController {
     @Req() request: Request,
     @Body() body: unknown,
   ): Promise<typeof OAuthRoutes.createToken.response> {
-    return this.oauthAuthorizationService.createToken(body, {
-      issuer: getOAuthIssuer(request),
-      resource: getMcpResourceUrl(request),
-    })
+    return this.oauthAuthorizationService.createToken(
+      body,
+      getOAuthServerUrls(request),
+      readClientSecretBasic(request),
+    )
   }
 
   /** RFC 7009: always 200, even for an unknown token. */
   @Post(OAuthRoutes.revokeToken.path)
   @HttpCode(HttpStatus.OK)
   @SkipThrottle({ global: true })
-  async revokeToken(@Body() body: unknown): Promise<typeof OAuthRoutes.revokeToken.response> {
-    await this.oauthAuthorizationService.revokeToken(body)
+  async revokeToken(
+    @Req() request: Request,
+    @Body() body: unknown,
+  ): Promise<typeof OAuthRoutes.revokeToken.response> {
+    await this.oauthAuthorizationService.revokeToken(body, readClientSecretBasic(request))
     return {}
   }
 }

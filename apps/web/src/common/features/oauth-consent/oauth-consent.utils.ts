@@ -1,6 +1,5 @@
 import {
   OAUTH_GRANTABLE_PERMISSIONS,
-  type OAuthGrantablePermission,
   oauthAuthorizationRequestSchema,
 } from "@caseai-connect/api-contracts"
 import type { OAuthAuthorizationRequest, OAuthConsentProject } from "./oauth-consent.models"
@@ -38,7 +37,7 @@ export function buildOAuthDeniedUrl({
 export function availablePermissionsFor(
   projects: OAuthConsentProject[],
   projectIds: string[],
-): Set<OAuthGrantablePermission> {
+): Set<string> {
   const selected = new Set(projectIds)
   return new Set(
     projects
@@ -48,7 +47,7 @@ export function availablePermissionsFor(
 }
 
 /** Grantable permissions named in the client's space separated `scope`. */
-export function permissionsFromScope(scope: string | undefined): OAuthGrantablePermission[] {
+export function permissionsFromScope(scope: string | undefined): string[] {
   if (!scope) return []
   const requested = new Set(scope.split(" ").filter(Boolean))
   return OAUTH_GRANTABLE_PERMISSIONS.filter((permission) => requested.has(permission))

@@ -1,6 +1,8 @@
 import type { FeatureFlagKey } from "@caseai-connect/api-contracts"
 import type {
   AppManifest,
+  AppOAuthClient,
+  AppOAuthClientSecret,
   BackofficeAgentDetail,
   BackofficeOrganization,
   BackofficeOrganizationDetail,
@@ -61,4 +63,6 @@ export interface IBackofficeSpi {
     input: UpdateAppManifestInput
   }) => Promise<AppManifest>
   deleteAppManifest: (appManifestId: string) => Promise<void>
+  getAppOAuthClient: (appManifestId: string) => Promise<AppOAuthClient>
+  createAppOAuthClientSecret: (appManifestId: string) => Promise<AppOAuthClientSecret>
 }

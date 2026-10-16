@@ -16,6 +16,22 @@ export type AppManifestDto = {
   createdAt: TimeType
 }
 
+/** The confidential OAuth client of an app (ADR 0029). */
+export type AppOAuthClientDto = {
+  clientId: string | null
+  /** What the app is configured with, as the authorization server announces it. */
+  issuer: string
+  authorizationEndpoint: string
+  /** The apps API, the resource of the app's tokens. */
+  resource: string
+}
+
+export type AppOAuthClientSecretDto = {
+  clientId: string
+  /** Shown once: only its hash is kept. */
+  clientSecret: string
+}
+
 export const appManifestSlugSchema = z
   .string()
   .trim()
@@ -108,93 +124,13 @@ export type UpdateAppManifestRequestDto = {
   allowedRedirectUris?: string[]
 }
 
-export type AppInstallProjectDto = {
-  id: string
-  name: string
-  organizationId: string
-  organizationName: string
-}
-
-export type AppInstallPageDto = {
-  app: {
-    id: string
-    name: string
-    slug: string
-    description: string | null
-    logoUrl: string | null
-    grantablePermissions: AppGrantablePermission[]
-    allowedRedirectUris: string[]
-  }
-  projects: AppInstallProjectDto[]
-}
-
 export type AppInstallationSummaryDto = {
   id: string
   appName: string
   description: string | null
   logoUrl: string | null
   permissions: string[]
-  clientId: string | null
   createdAt: TimeType
-}
-
-/** RFC 7636 code_challenge / code_verifier charset and length. */
-const pkceValueSchema = z
-  .string()
-  .trim()
-  .min(43)
-  .max(128)
-  .regex(/^[A-Za-z0-9_-]+$/, "Must be a base64url PKCE value")
-
-export const authorizeAppInstallSchema = z
-  .object({
-    projectId: z.string().uuid(),
-    permissions: z.array(grantablePermissionSchema),
-    redirectUri: z.string().url(),
-    state: z.string().min(1).max(512),
-    codeChallenge: pkceValueSchema,
-    codeChallengeMethod: z.literal("S256"),
-  })
-  .strict()
-
-export type AuthorizeAppInstallRequestDto = z.infer<typeof authorizeAppInstallSchema>
-
-export type AuthorizeAppInstallResponseDto = {
-  code: string
-  redirectUri: string
-  state: string
-}
-
-export const exchangeAppInstallCodeSchema = z
-  .object({
-    code: z.string().trim().min(1).max(128),
-    redirect_uri: z.string().url(),
-    code_verifier: pkceValueSchema,
-  })
-  .strict()
-
-export type ExchangeAppInstallCodeRequestDto = z.infer<typeof exchangeAppInstallCodeSchema>
-
-/** Unwrapped machine response (same style as apps/v1/token). */
-export type ExchangeAppInstallCodeResponseDto = {
-  client_id: string
-  client_secret: string
-}
-
-export const appClientCredentialsTokenSchema = z
-  .object({
-    grant_type: z.literal("client_credentials"),
-    client_id: z.string().uuid(),
-    client_secret: z.string().min(1).max(256),
-  })
-  .strict()
-
-export type AppClientCredentialsTokenRequestDto = z.infer<typeof appClientCredentialsTokenSchema>
-
-export type AppAccessTokenResponseDto = {
-  access_token: string
-  token_type: "Bearer"
-  expires_in: number
 }
 
 export type AppMeResponseDto = {

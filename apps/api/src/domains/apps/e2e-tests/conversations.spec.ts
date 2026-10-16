@@ -23,11 +23,11 @@ import type { Organization } from "@/domains/organizations/organization.entity"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import type { Project } from "@/domains/projects/project.entity"
 import { RbacModule } from "@/domains/rbac/rbac.module"
-import { assignPlatformStaffToUser, ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
+import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse } from "../../../../test/request"
 import { AppsModule } from "../apps.module"
 import { AppsService } from "../apps.service"
-import { INSTALL_PKCE_METHOD_S256, RFC7636_TEST_CODE_CHALLENGE } from "../install-pkce"
+import { installAppForTests, useAppsTestOrigin } from "./app-install-test.helpers"
 
 const CONVERSATION_PERMISSIONS = [
   AGENT_READ_PERMISSION,
@@ -41,6 +41,7 @@ describe("Apps - Conversations", () => {
   let expectActivityCreated: ReturnType<typeof bindExpectActivityCreated>
 
   beforeAll(async () => {
+    useAppsTestOrigin()
     setup = await setupE2eTestDatabase({
       additionalImports: [AppsModule, RbacModule, ActivitiesModule],
     })
@@ -65,7 +66,6 @@ describe("Apps - Conversations", () => {
   ) => {
     const appsService = setup.module.get(AppsService)
     const { organization, project, agent, user } = await createOrganizationWithAgent(repositories)
-    await assignPlatformStaffToUser({ repositories, user })
     const slug = `channel-${randomUUID().slice(0, 8)}`
     await appsService.createAppManifest({
       name: "Helpful Assistant",
@@ -74,21 +74,13 @@ describe("Apps - Conversations", () => {
       logoUrl: null,
       grantablePermissions: [...CONVERSATION_PERMISSIONS],
     })
-    const credentials = await appsService.authorizeInstall({
+    const credentials = await installAppForTests(setup.module, {
       slug,
       userId: user.id,
       projectId: project.id,
       permissions,
-      redirectUri: "http://127.0.0.1:8787/callback",
-      state: "csrf-state",
-      codeChallenge: RFC7636_TEST_CODE_CHALLENGE,
-      codeChallengeMethod: INSTALL_PKCE_METHOD_S256,
     })
-    const token = await appsService.issueToken({
-      grant_type: "client_credentials",
-      client_id: credentials.clientId,
-      client_secret: credentials.clientSecret,
-    })
+    const token = { accessToken: credentials.accessToken }
     return {
       organization,
       project,

@@ -1,5 +1,4 @@
 import { configureStore, type Reducer } from "@reduxjs/toolkit"
-import { appInstallMiddleware } from "@/common/features/app-install/app-install.middleware"
 import { authMiddleware } from "@/common/features/auth/auth.middleware"
 import { meMiddleware } from "@/common/features/me/me.middleware"
 import { oauthConsentMiddleware } from "@/common/features/oauth-consent/oauth-consent.middleware"
@@ -24,7 +23,6 @@ export const buildStore = () =>
         },
       }).prepend(
         dynamicMiddleware.middleware,
-        appInstallMiddleware.middleware,
         authMiddleware.middleware,
         meMiddleware.middleware,
         oauthConsentMiddleware.middleware,

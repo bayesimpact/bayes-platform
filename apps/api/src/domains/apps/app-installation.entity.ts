@@ -18,10 +18,6 @@ export type AppInstallationStatus =
   unique: true,
   where: `"status" = 'active' AND "deleted_at" IS NULL`,
 })
-@Index("UQ_app_installation_client_id", ["clientId"], {
-  unique: true,
-  where: `"client_id" IS NOT NULL`,
-})
 export class AppInstallation extends Base4AllEntity {
   @Column({ type: "uuid", name: "app_manifest_id" })
   appManifestId!: string
@@ -50,12 +46,6 @@ export class AppInstallation extends Base4AllEntity {
   @ManyToOne(() => Role)
   @JoinColumn({ name: "custom_role_id" })
   customRole?: Role | null
-
-  @Column({ type: "uuid", name: "client_id", nullable: true })
-  clientId!: string | null
-
-  @Column({ type: "varchar", name: "client_secret_hash", nullable: true })
-  clientSecretHash!: string | null
 
   @Column({ type: "varchar", default: APP_INSTALLATION_STATUS_ACTIVE })
   status!: AppInstallationStatus

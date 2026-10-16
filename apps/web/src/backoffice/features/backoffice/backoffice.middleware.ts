@@ -224,6 +224,24 @@ function registerListeners() {
     },
   })
 
+  for (const rejected of [
+    backofficeActions.getAppOAuthClient.rejected,
+    backofficeActions.createAppOAuthClientSecret.rejected,
+  ]) {
+    listenerMiddleware.startListening({
+      actionCreator: rejected,
+      effect: async (action, listenerApi) => {
+        listenerApi.dispatch(
+          notificationsActions.show({
+            titleKey: "backoffice:notifications.appOAuthClientError",
+            description: action.error.message,
+            type: "error",
+          }),
+        )
+      },
+    })
+  }
+
   listenerMiddleware.startListening({
     actionCreator: backofficeActions.deleteAppManifest.rejected,
     effect: async (action, listenerApi) => {

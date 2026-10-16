@@ -23,9 +23,27 @@ export function getMcpResourceUrl(request: Request): string {
   return `${getApiPublicOrigin(request)}${PRIVATE_API_PATH}/mcp`
 }
 
+/** The apps API, the OAuth resource of the tokens issued to apps (ADR 0029). */
+export function getAppsResourceUrl(request: Request): string {
+  return `${getApiPublicOrigin(request)}${PRIVATE_API_PATH}/apps/v1`
+}
+
 /** Issuer of the API's authorization server (ADR 0028). */
 export function getOAuthIssuer(request: Request): string {
   return `${getApiPublicOrigin(request)}${PRIVATE_API_PATH}/oauth`
+}
+
+/** The issuer and the two resources the authorization server issues tokens for. */
+export function getOAuthServerUrls(request: Request): {
+  issuer: string
+  resource: string
+  appsResource: string
+} {
+  return {
+    issuer: getOAuthIssuer(request),
+    resource: getMcpResourceUrl(request),
+    appsResource: getAppsResourceUrl(request),
+  }
 }
 
 /** The consent page of the web app is the authorization endpoint. */

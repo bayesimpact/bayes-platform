@@ -14,7 +14,8 @@
       "appDeleted": "App deleted",
       "appCreateError": "Failed to create app",
       "appUpdateError": "Failed to update app",
-      "appDeleteError": "Failed to delete app"
+      "appDeleteError": "Failed to delete app",
+      "appOAuthClientError": "Failed to load or update the app's OAuth client"
     }
   }
 }

@@ -11,6 +11,8 @@ export type OAuthClientRecord = {
   clientName: string | null
   redirectUris: string[]
   metadataFetchedAt: Date | null
+  appManifestId: string | null
+  clientSecretHash: string | null
   createdAt: Date
 }
 
@@ -31,6 +33,34 @@ export class OAuthClientRepository {
     metadataFetchedAt: Date | null
   }): Promise<OAuthClientRecord> {
     return toRecord(await this.repo().save(this.repo().create(params)))
+  }
+
+  async findByAppManifestId(appManifestId: string): Promise<OAuthClientRecord | null> {
+    const row = await this.repo().findOneBy({ appManifestId })
+    return row ? toRecord(row) : null
+  }
+
+  /** The confidential client of an app, created with its first secret. */
+  async createAppClient(params: {
+    clientId: string
+    appManifestId: string
+    clientSecretHash: string
+  }): Promise<OAuthClientRecord> {
+    return toRecord(
+      await this.repo().save(
+        this.repo().create({
+          ...params,
+          registrationType: "app",
+          clientName: null,
+          redirectUris: [],
+          metadataFetchedAt: null,
+        }),
+      ),
+    )
+  }
+
+  async updateClientSecretHash(id: string, clientSecretHash: string): Promise<void> {
+    await this.repo().update({ id }, { clientSecretHash })
   }
 
   /** Keeps the metadata document of a cimd client fresh. */
@@ -74,6 +104,8 @@ function toRecord(row: OAuthClient): OAuthClientRecord {
     clientName: row.clientName,
     redirectUris: row.redirectUris,
     metadataFetchedAt: row.metadataFetchedAt,
+    appManifestId: row.appManifestId,
+    clientSecretHash: row.clientSecretHash,
     createdAt: row.createdAt,
   }
 }

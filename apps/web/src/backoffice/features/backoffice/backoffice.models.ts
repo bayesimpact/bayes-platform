@@ -513,6 +513,20 @@ export type CreateAppManifestInput = {
 
 export type UpdateAppManifestInput = Partial<CreateAppManifestInput>
 
+/** The OAuth client an app signs in with (ADR 0029). Null until its first secret. */
+export type AppOAuthClient = {
+  clientId: string | null
+  issuer: string
+  authorizationEndpoint: string
+  resource: string
+}
+
+/** A new secret, shown once: only its hash is kept. */
+export type AppOAuthClientSecret = {
+  clientId: string
+  clientSecret: string
+}
+
 export const toAppManifest = (dto: AppManifestDto): AppManifest => ({
   id: dto.id,
   name: dto.name,
