@@ -13,14 +13,14 @@ process.env.WORKERS_HEALTH_QUEUE_NAME ??= "document-embeddings"
 // Required by every worker process (no default in code), see pdf-exports.constants.ts.
 process.env.PDF_EXPORTS_SWEEP_QUEUE_NAME ??= "pdf-exports-sweep"
 
-if (!process.env.APPS_JWT_PRIVATE_KEY || !process.env.APPS_JWT_PUBLIC_KEY) {
+if (!process.env.OAUTH_SIGNING_PRIVATE_KEY || !process.env.OAUTH_SIGNING_PUBLIC_KEY) {
   const { privateKey, publicKey } = generateKeyPairSync("rsa", {
     modulusLength: 2048,
     publicKeyEncoding: { type: "spki", format: "pem" },
     privateKeyEncoding: { type: "pkcs8", format: "pem" },
   })
-  process.env.APPS_JWT_PRIVATE_KEY = privateKey
-  process.env.APPS_JWT_PUBLIC_KEY = publicKey
+  process.env.OAUTH_SIGNING_PRIVATE_KEY = privateKey
+  process.env.OAUTH_SIGNING_PUBLIC_KEY = publicKey
 }
 process.env.APPS_JWT_ISSUER ??= "https://api.bayes.io/apps"
 process.env.APPS_JWT_AUDIENCE ??= "bayes-apps"

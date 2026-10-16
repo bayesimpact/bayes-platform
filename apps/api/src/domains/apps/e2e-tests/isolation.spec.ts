@@ -102,8 +102,8 @@ describe("Apps - JWT isolation", () => {
   })
 
   it("rejects a human-shaped JWT on /apps/v1/me with 401", async () => {
-    const privateKey = process.env.APPS_JWT_PRIVATE_KEY
-    if (!privateKey) throw new Error("APPS_JWT_PRIVATE_KEY must be set in tests")
+    const privateKey = process.env.OAUTH_SIGNING_PRIVATE_KEY
+    if (!privateKey) throw new Error("OAUTH_SIGNING_PRIVATE_KEY must be set in tests")
 
     const humanShapedToken = signAppJwt({
       privateKey,

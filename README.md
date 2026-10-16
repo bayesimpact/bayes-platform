@@ -194,7 +194,7 @@ WEB_OIDC_CLIENT_ID=platform-web
 - `DATABASE_URL` - PostgreSQL connection string
 - `OIDC_ISSUER_URL` - Issuer of the OpenID Connect provider, equal to the `iss` claim of the access tokens
 - `OIDC_AUDIENCE` - Expected `aud` claim, when the provider sets one
-- `APPS_JWT_PRIVATE_KEY` / `APPS_JWT_PUBLIC_KEY` - RS256 PEM pair used to sign App access tokens (literal `\n` is accepted)
+- `OAUTH_SIGNING_PRIVATE_KEY` / `OAUTH_SIGNING_PUBLIC_KEY` - RS256 PEM pair used to sign App access tokens (literal `\n` is accepted)
 
 **Optional variables:**
 - `GOOGLE_APPLICATION_CREDENTIALS` - Path to Google Cloud service account key (for AI features)

@@ -21,7 +21,7 @@ const HOUR_MS = 60 * 60 * 1000
  * key, so no new secret is needed.
  */
 function buildIpHasher(): (ip: string) => string {
-  const signingKey = process.env.APPS_JWT_PRIVATE_KEY
+  const signingKey = process.env.OAUTH_SIGNING_PRIVATE_KEY
   const secret = createHash("sha256")
     .update(signingKey ? normalizePem(signingKey) : "oauth-rate-limit")
     .digest()

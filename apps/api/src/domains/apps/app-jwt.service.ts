@@ -21,8 +21,8 @@ export class AppJwtService {
   private readonly audience: string
 
   constructor(configService: ConfigService) {
-    this.privateKey = normalizePem(configService.getOrThrow<string>("APPS_JWT_PRIVATE_KEY"))
-    this.publicKey = normalizePem(configService.getOrThrow<string>("APPS_JWT_PUBLIC_KEY"))
+    this.privateKey = normalizePem(configService.getOrThrow<string>("OAUTH_SIGNING_PRIVATE_KEY"))
+    this.publicKey = normalizePem(configService.getOrThrow<string>("OAUTH_SIGNING_PUBLIC_KEY"))
     this.issuer = configService.get<string>("APPS_JWT_ISSUER")?.trim() || DEFAULT_APPS_JWT_ISSUER
     this.audience =
       configService.get<string>("APPS_JWT_AUDIENCE")?.trim() || DEFAULT_APPS_JWT_AUDIENCE

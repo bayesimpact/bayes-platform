@@ -71,15 +71,15 @@ export class OAuthAuthorizationService {
     private readonly projectRepository: ProjectRepository,
   ) {
     // The apps key pair is the authorization server's key (ADR 0028).
-    this.privateKey = normalizePem(configService.getOrThrow<string>("APPS_JWT_PRIVATE_KEY"))
-    this.publicKey = normalizePem(configService.getOrThrow<string>("APPS_JWT_PUBLIC_KEY"))
+    this.privateKey = normalizePem(configService.getOrThrow<string>("OAUTH_SIGNING_PRIVATE_KEY"))
+    this.publicKey = normalizePem(configService.getOrThrow<string>("OAUTH_SIGNING_PUBLIC_KEY"))
     // Said at startup rather than at the first token request: the rest of the
     // API keeps working, but no OAuth client can sign in until it is fixed.
     try {
       createPrivateKey(this.privateKey)
     } catch {
       this.logger.error(
-        "APPS_JWT_PRIVATE_KEY is not a PEM private key: OAuth tokens cannot be issued",
+        "OAUTH_SIGNING_PRIVATE_KEY is not a PEM private key: OAuth tokens cannot be issued",
       )
     }
   }
