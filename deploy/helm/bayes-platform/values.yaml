@@ -51,8 +51,6 @@ serviceAccount:
 #   DIAGNOSTICS_SECRET           optional, protects the diagnostics endpoint
 #   SPIDER_API_KEY               optional, web crawling provider (cpu workers)
 #   SMTP_USER, SMTP_PASSWORD     optional, SMTP credentials for the invitation emails
-#   BULL_BOARD_OIDC_CLIENT_ID, BULL_BOARD_OIDC_CLIENT_SECRET, BULL_BOARD_OIDC_SECRET
-#                                optional, Bull Board login
 #   VLLM_<MODEL>_URL, VLLM_<MODEL>_APIKEY
 #                                one pair per self-hosted model
 #   DATABASE_PASSWORD            only with externalDatabase (bundled Postgres generates its own)
@@ -79,8 +77,8 @@ config:
   OIDC_ALLOW_EMAIL_LINKING: "true"
   # Only for a single-tenant provider the customer fully controls.
   OIDC_TRUST_UNVERIFIED_EMAIL: "false"
-  # Extra authorize parameters (JSON object of strings) sent by the web app and
-  # Bull Board. An Auth0 application restricted to an organization needs
+  # Extra authorize parameters (JSON object of strings) sent by the web app. An
+  # Auth0 application restricted to an organization needs
   # {"organization":"org_xxx"}.
   OIDC_AUTHORIZATION_PARAMS: ""
   # Invitation emails (optional). Without SMTP_HOST the platform sends no email
@@ -116,9 +114,6 @@ config:
   TRACE_URL_TEMPLATE: ""
   # Queue of the PDF exports sweep. Required on every worker process.
   PDF_EXPORTS_SWEEP_QUEUE_NAME: pdf-exports-sweep
-  # Bull Board (queue dashboard) on the API.
-  BULL_BOARD_ENABLED: "false"
-  BULL_BOARD_ALLOWED_EMAIL_DOMAIN: "@example.org"
 
 # ---------------------------------------------------------------------------
 # Database

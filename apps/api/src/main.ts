@@ -6,7 +6,6 @@ import { NestFactory } from "@nestjs/core"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS
 import { NestExpressApplication } from "@nestjs/platform-express"
 import { AppModule } from "./app.module"
-import { registerBullBoardOpenIdConnect } from "./common/bull-board/bull-board-openid-registration"
 import { StackTraceLoggingExceptionFilter } from "./common/filters/stack-trace-logging-exception.filter"
 import { registerGracefulShutdown } from "./common/lifecycle/graceful-shutdown"
 import { getLogLevels, StructuredLogger } from "./common/logger/structured-logger"
@@ -14,6 +13,7 @@ import { enableDbListeners } from "./common/sse/postgres-status-stream.service"
 import { registerWebApp } from "./common/web-app/web-app.middleware"
 import { configureGlobalPrefix } from "./config/api-prefix"
 import { buildCorsOptionsDelegate, parseFrontendUrls } from "./config/cors"
+import { withOpenProtocolCors } from "./config/protocol-cors"
 import { getApiShutdownTimeoutMs } from "./config/shutdown-timeouts.config"
 import { BuiltInMcpServersService } from "./domains/mcp-servers/built-in/built-in-mcp-servers.service"
 
@@ -35,7 +35,6 @@ async function bootstrap() {
   }
   // Private API under /api, public chat API at /public (see config/api-prefix).
   configureGlobalPrefix(app)
-  registerBullBoardOpenIdConnect(app)
   // Web front served at / from this process in the app-runtime image (no-op otherwise).
   registerWebApp(app)
   app.useBodyParser("json", { limit: "500kb" })
@@ -47,8 +46,9 @@ async function bootstrap() {
     }),
   )
   app.useGlobalFilters(new StackTraceLoggingExceptionFilter(app.getHttpAdapter()))
-  // Two CORS policies, split by path — see buildCorsOptionsDelegate (#366).
-  app.enableCors(buildCorsOptionsDelegate(frontendUrls))
+  // Two CORS policies, split by path — see buildCorsOptionsDelegate (#366),
+  // plus the open OAuth and MCP protocol endpoints (withOpenProtocolCors).
+  app.enableCors(withOpenProtocolCors(buildCorsOptionsDelegate(frontendUrls)))
   // Platform-provided MCP servers are rows in mcp_server, kept in sync with
   // the environment here rather than by a migration or a lifecycle hook (which
   // would also run in the workers and in tests).

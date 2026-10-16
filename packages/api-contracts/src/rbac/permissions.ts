@@ -355,10 +355,12 @@ export const PROJECT_AGENT_MESSAGE_FEEDBACK_CREATE_PERMISSION =
   "project.agent_message_feedback.create" as const
 
 /**
- * Apps installed on a project, listed in the studio. Scoped to the project and never inherited
- * from the organization. Installing and revoking still go through the global `app.install`.
+ * Apps installed on a project, listed and revoked from the studio. Scoped to the project and never
+ * inherited from the organization. Installing an app still goes through the global `app.install`.
  */
 export const PROJECT_APP_INSTALLATION_READ_PERMISSION = "project.app_installation.read" as const
+
+export const PROJECT_APP_INSTALLATION_REVOKE_PERMISSION = "project.app_installation.revoke" as const
 
 /**
  * MCP servers of a project, and turning them on or off for its agents. Scoped to the project
@@ -544,6 +546,7 @@ export const PROJECT_SCOPED_PERMISSIONS = [
   DOCUMENT_SOURCE_READ_PERMISSION,
   PROJECT_MEMBER_UPDATE_PERMISSION,
   PROJECT_APP_INSTALLATION_READ_PERMISSION,
+  PROJECT_APP_INSTALLATION_REVOKE_PERMISSION,
 ] as const
 
 export type ProjectScopedPermission = (typeof PROJECT_SCOPED_PERMISSIONS)[number]

@@ -118,6 +118,9 @@ export { McpServersRoutes } from "./mcp-servers/mcp-servers.routes"
 export * from "./me/me.dto"
 export { MeRoutes } from "./me/me.routes"
 export { isSignInError, SIGN_IN_ERRORS, type SignInError } from "./me/sign-in-errors"
+// OAuth authorization server
+export * from "./oauth/oauth.dto"
+export { OAuthRoutes } from "./oauth/oauth.routes"
 // Organizations
 export * from "./organizations/organizations.dto"
 export { OrganizationsRoutes } from "./organizations/organizations.routes"

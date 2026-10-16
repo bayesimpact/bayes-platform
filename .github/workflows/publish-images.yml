@@ -3,7 +3,8 @@ name: Publish images
 # On every push to main and on every release tag: the checks and the tests
 # run in parallel with the build of the six container images. The images are
 # published, and the deployment repository notified, only when the tests
-# pass.
+# pass. A release tag does not run the tests again: it waits for the main run
+# of its commit and publishes once that run succeeded.
 #
 # The build pushes each image under its sha-<short sha> tag right away, a tag
 # nothing consumes. The publish step then adds the tags that deployments
@@ -48,8 +49,11 @@ jobs:
 
       - run: make ci-checks
 
+  # On main and on a manual dispatch from a branch. A release tag skips it:
+  # see tested-on-main.
   tests:
     name: tests
+    if: github.ref_type != 'tag'
     runs-on: self-hosted
     # One tests job at a time on the runner: they share the Docker daemon and
     # the database ports. Queued, not cancelled.
@@ -72,6 +76,43 @@ jobs:
       - uses: actions/checkout@v4
 
       - run: TEST_WORKERS=6 make tests-only-parallel
+
+  # On a release tag, in place of tests. A tag points at a commit of main that
+  # the main run of this workflow tests. Queuing the tests again would put a
+  # second job in tests-self-hosted, where GitHub keeps one pending job per
+  # group: the next push to main (the changelog promotion of the release, for
+  # one) cancels it, and publish and the chart are skipped. This job waits for
+  # the main run of the same commit, often still running when the tag is
+  # pushed, and fails unless that run succeeded.
+  tested-on-main:
+    name: tested on main
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      actions: read
+    steps:
+      - name: Wait for the main run of this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          runs_url="repos/${REPO}/actions/workflows/publish-images.yml/runs?head_sha=${SHA}&branch=main&event=push"
+          while true; do
+            pending=$(gh api "$runs_url" --jq '[.workflow_runs[] | select(.status != "completed")] | length')
+            succeeded=$(gh api "$runs_url" --jq '[.workflow_runs[] | select(.conclusion == "success")] | length')
+            if [ "$succeeded" -gt 0 ]; then
+              echo "A Publish images run on main succeeded for ${SHA}."
+              exit 0
+            fi
+            if [ "$pending" -eq 0 ]; then
+              echo "::error::No successful Publish images run on main for ${SHA}. Tag a commit of main whose run is green, or rerun that run and then this one."
+              exit 1
+            fi
+            echo "Main run for ${SHA} still in progress, checking again in 60 s."
+            sleep 60
+          done
 
   # Build in parallel with the tests, pushed under the sha- tag only.
   images:
@@ -204,7 +245,13 @@ jobs:
   # into a pull request on its values and Flux deploys.
   publish:
     name: publish
-    needs: [ci-checks, tests, images]
+    needs: [ci-checks, tests, tested-on-main, images]
+    # One of tests and tested-on-main is always skipped, and a skipped need
+    # skips this job by default. Run when none failed or was cancelled and
+    # the one that ran succeeded.
+    if: >-
+      !cancelled() && !failure() &&
+      (needs.tests.result == 'success' || needs.tested-on-main.result == 'success')
     runs-on: ubuntu-latest
     # The key of the release GitHub App, which sends the event to the
     # deployment repository. The environment accepts main and the v* release
@@ -276,7 +323,11 @@ jobs:
 
   chart:
     name: helm chart
-    if: startsWith(github.ref, 'refs/tags/v')
+    # The result of publish, not the default success(): that one also looks
+    # at the skipped tests job above publish and would skip the chart.
+    if: >-
+      !cancelled() && startsWith(github.ref, 'refs/tags/v') &&
+      needs.publish.result == 'success'
     needs: [publish]
     runs-on: ubuntu-latest
     steps:

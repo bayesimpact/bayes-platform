@@ -114,7 +114,8 @@ the other services start with their profile, from `infra/database`:
 | `dex` | Dex, http://localhost:5556 ([README](infra/dex/README.md)) | `docker compose --profile dex up -d --no-recreate dex` |
 | `traces` | otel-collector, Phoenix, http://localhost:6060 | `docker compose --profile traces up -d --no-recreate otel-collector phoenix` |
 | `analytics` | Grafana, http://localhost:3300 | `docker compose --profile analytics up -d --no-recreate grafana` |
-| `router` | Traefik and the dashboard of the worktree environments, http://dev.connect.localhost:8800 | `mkdir -p ~/.bayes-worktrees && docker compose --profile router up -d --no-recreate traefik dev-dashboard` |
+| `router` | Traefik, which routes the worktree environments on http://*.connect.localhost:8800 | `docker compose --profile router up -d --no-recreate traefik` |
+| `bull-board` | Bull Board, http://localhost:3400 ([README](infra/bull-board/README.md)) | `docker compose --profile bull-board up -d --no-recreate bull-board` |
 
 The `router` profile serves every `*.connect.localhost` host on
 http://127.0.0.1:8800 (`ROUTER_PORT` in `infra/database/.env`): the worktree
@@ -123,7 +124,9 @@ http://mail.connect.localhost:8800, http://grafana.connect.localhost:8800 and
 Traefik's own dashboard at http://traefik.connect.localhost:8800/dashboard/.
 Chrome and Firefox resolve `*.localhost` by themselves; Safari does not. On the
 dev VM, forward port 8800 to your laptop (VS Code does it, with the settings of
-`.vscode/settings.json`).
+`.vscode/settings.json`). It can also serve them in https on a domain of yours:
+see "HTTPS on a domain of your own" in
+[infra/worktree/README.md](infra/worktree/README.md).
 
 Keycloak and Dex used to have their own compose projects. If one of them still
 runs from there, stop it once before starting it with its profile:
@@ -138,9 +141,8 @@ worktree environments and parallel test runs at once.
 
 Each git worktree can run its own environment, side by side: every dev server in containers,
 databases copied from yours, its own Redis, Dex and Phoenix project, and URLs such as
-http://fix-sidebar.connect.localhost:8800. In Claude Code, `/worktree-env <name>` creates the
-worktree and its environment; in any worktree, `npm run wt -- up`. The setup, once per machine, and
-everything else: [infra/worktree/README.md](infra/worktree/README.md).
+http://fix-sidebar.connect.localhost:8800. [infra/worktree/README.md](infra/worktree/README.md)
+describes what an environment is made of.
 
 #### Stop the Database
 
@@ -423,7 +425,6 @@ This will start all apps in watch mode using Turbo.
 - **Without HTTPS** (no certs): API at `http://localhost:3000`, web at `http://localhost:5173`
 - **API paths**: the private API is served under `/api` (`/api/healthz`, `/api/organizations/...`) and the public chat API under `/public`. `/public` is the stable public surface: an incompatible change would become `/public/v1`, never a move under `/api`. In the `app` image the web front is served at `/` on the same origin.
 - **PDF converter** (Go): `http://localhost:3002`, with the PDF export MCP endpoint at `/mcp`. Started when Go is installed and `apps/pdf-converter/.env` exists (copy `.env-example`), skipped otherwise. See [apps/pdf-converter/README.md](apps/pdf-converter/README.md).
-- **Apps CLI**: install an app from the terminal with `npx bayes`. See [apps/cli/README.md](apps/cli/README.md).
 
 #### Run Individual Projects
 

@@ -1,6 +1,6 @@
 # The dev environment of one git worktree: web app, API, workers, web-embed, help site,
 # pdf-converter, the three Storybooks, Grafana, a Dex, a Redis and two databases on the
-# shared Postgres. `npm run wt -- up` writes infra/worktree/.env (COMPOSE_PROJECT_NAME=wt-<name>
+# shared Postgres. The worktree tooling writes infra/worktree/.env (COMPOSE_PROJECT_NAME=wt-<name>
 # and the WT_* values below), then runs `docker compose up -d` with this file.
 # See infra/worktree/README.md.
 #
@@ -8,8 +8,10 @@
 #   can open. node_modules live in volumes of this project, filled by the init service, so a
 #   `npm ci` on the host never pulls them from under a running server.
 # - Every service keeps its default port inside its container. Traefik (router profile of
-#   infra/database) serves them on http://<name>[-<service>].connect.localhost:<router port>.
-#   Plain HTTP: browsers treat *.localhost as a secure context.
+#   infra/database) serves them on <WT_SCHEME>://<name>[-<service>].<WT_DOMAIN><WT_PORT_SUFFIX>:
+#   http://<name>.connect.localhost:<router port> by default, or https on the domain of
+#   infra/database's DEV_DOMAIN (see README.md). The connect.localhost names always answer too.
+#   WT_PUBLIC_PORT is the port of those URLs, which the Storybooks listen on for their HMR socket.
 # - Services that join the shared network (connect-db_default) reach pgvector, otel-collector
 #   and mailpit by name. Redis is called bullmq and stays on the project network, because the
 #   shared network already has a redis.
@@ -18,7 +20,7 @@
 
 x-worktree: &worktree
   type: bind
-  source: ${WT_PATH:?start it with npm run wt -- up}
+  source: ${WT_PATH:?set by the worktree tooling in infra/worktree/.env}
   target: ${WT_PATH}
   bind:
     create_host_path: false
@@ -31,14 +33,13 @@ x-gcp: &gcp
   bind:
     create_host_path: false
 
-# One volume per node_modules folder of package-lock.json (`npm run wt -- up` checks the list).
+# One volume per node_modules folder of package-lock.json (the worktree tooling checks the list).
 x-node-volumes: &node-volumes
   - *worktree
   - *gcp
   - { type: volume, source: npm-cache, target: /npm-cache }
   - { type: volume, source: nm-root, target: "${WT_PATH}/node_modules" }
   - { type: volume, source: nm-api, target: "${WT_PATH}/apps/api/node_modules" }
-  - { type: volume, source: nm-cli, target: "${WT_PATH}/apps/cli/node_modules" }
   - { type: volume, source: nm-help, target: "${WT_PATH}/apps/help/node_modules" }
   - { type: volume, source: nm-web, target: "${WT_PATH}/apps/web/node_modules" }
   - { type: volume, source: nm-web-embed, target: "${WT_PATH}/apps/web-embed/node_modules" }
@@ -81,6 +82,8 @@ x-node-env: &node-env
   # A new package-lock.json recreates the services once the init has installed it.
   WT_LOCK_HASH: ${WT_LOCK_HASH}
   STORYBOOK_DISABLE_TELEMETRY: "1"
+  # Vite (web, embed, help, Storybooks) answers *.localhost by itself: this allows WT_DOMAIN too.
+  __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS: .${WT_DOMAIN:?set by the worktree tooling in infra/worktree/.env}
   ASTRO_TELEMETRY_DISABLED: "1"
 
 # Process env wins over apps/api/.env (dotenv without override, @nestjs/config).
@@ -97,7 +100,7 @@ x-backend-env: &backend-env
   GOOGLE_APPLICATION_CREDENTIALS: ${WT_GCP_CREDENTIALS_IN_CONTAINER}
   GCS_CREDENTIALS: ""
   DOCUMENT_EXTRACTOR_DOCLING_ENABLED: "false"
-  FRONTEND_URL: ${WT_ORIGIN},${WT_EMBED_ORIGIN}
+  FRONTEND_URL: ${WT_ORIGIN},${WT_EMBED_ORIGIN},${WT_LEGACY_ORIGIN},${WT_LEGACY_EMBED_ORIGIN}
   APP_PUBLIC_URL: ${WT_ORIGIN}
   LOCAL_STORAGE_SERVER_BASE_URL: ${WT_ORIGIN}
   MCP_OAUTH_REDIRECT_URL: ${WT_ORIGIN}/oauth/mcp/callback
@@ -108,15 +111,10 @@ x-backend-env: &backend-env
   WEB_OIDC_AUTHORITY: ""
   WEB_OIDC_AUDIENCE: ""
   WEB_OIDC_AUTHORIZATION_PARAMS: ""
-  BULL_BOARD_BASE_URL: ${WT_ORIGIN}
-  BULL_BOARD_OIDC_CLIENT_ID: bull-board
-  BULL_BOARD_OIDC_CLIENT_SECRET: local-bull-board-secret
-  # Encrypts the session cookie of Bull Board. A fixed value is enough on a dev machine.
-  BULL_BOARD_OIDC_SECRET: local-bull-board-cookie-secret
   OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
   # Its own Phoenix project (the collector inserts bayes-platform only when unset).
   OTEL_RESOURCE_ATTRIBUTES: openinference.project.name=wt-${WT_SLUG}
-  TRACE_URL_TEMPLATE: http://phoenix.connect.localhost:${WT_ROUTER_PORT}/redirects/sessions/{traceId}
+  TRACE_URL_TEMPLATE: ${WT_SCHEME}://phoenix.${WT_DOMAIN}${WT_PORT_SUFFIX}/redirects/sessions/{traceId}
   # The cloned database holds real emails: they all land in Mailpit.
   SMTP_HOST: mailpit
   SMTP_PORT: "1025"
@@ -124,6 +122,11 @@ x-backend-env: &backend-env
   SMTP_USER: ""
   SMTP_PASSWORD: ""
   SMTP_FROM: ${WT_SMTP_FROM}
+
+# The API and the workers reach their Dex at its public issuer, through Traefik on the shared
+# network, which listens on the same ports as on the host: http or https alike.
+x-dex-through-traefik: &dex-through-traefik
+  - connect-db-traefik-1:${WT_SLUG}-dex.${WT_DOMAIN}
 
 x-after-init: &after-init
   init:
@@ -143,7 +146,6 @@ services:
       - { type: volume, source: go-cache, target: /go-cache }
       - { type: volume, source: nm-root, target: "${WT_PATH}/node_modules" }
       - { type: volume, source: nm-api, target: "${WT_PATH}/apps/api/node_modules" }
-      - { type: volume, source: nm-cli, target: "${WT_PATH}/apps/cli/node_modules" }
       - { type: volume, source: nm-help, target: "${WT_PATH}/apps/help/node_modules" }
       - { type: volume, source: nm-web, target: "${WT_PATH}/apps/web/node_modules" }
       - { type: volume, source: nm-web-embed, target: "${WT_PATH}/apps/web-embed/node_modules" }
@@ -192,6 +194,10 @@ services:
     environment:
       <<: *backend-env
       WT_DB_TEST: ${WT_DB_TEST}
+      # Type-checking 150+ migrations takes about 1.2 GB and 10 s, against 0.4 GB and 1 s without:
+      # on a Docker with little memory, migrate was killed while the dev servers started. CI
+      # checks the types.
+      TS_NODE_TRANSPILE_ONLY: "true"
     depends_on:
       <<: *after-init
       db:
@@ -222,9 +228,10 @@ services:
       <<: *labels
       dev.worktree.service: bullmq
 
-  # Its own Dex: the issuer is http://<name>-dex.connect.localhost:<router port>/dex. The
-  # browser reaches it through Traefik, the API and Bull Board directly through the network
-  # alias, so both see the same issuer. Users and redirect URIs: ~/.bayes-worktrees/envs/<name>.
+  # Its own Dex: the issuer is <WT_SCHEME>://<name>-dex.<WT_DOMAIN><WT_PORT_SUFFIX>/dex. The
+  # browser and the backend (x-dex-through-traefik) both reach it through Traefik, so they see the
+  # same issuer; Dex serves plain HTTP on the router port behind it. Users and redirect URIs:
+  # written by the worktree tooling into WT_DEX_DIR.
   dex:
     image: ghcr.io/dexidp/dex:v2.44.0
     restart: unless-stopped
@@ -238,17 +245,14 @@ services:
         read_only: true
         bind:
           create_host_path: false
-    networks:
-      default:
-        aliases: ["${WT_SLUG}-dex.connect.localhost"]
-      shared: {}
+    networks: [default, shared]
     labels:
       - dev.worktree.slug=${WT_SLUG}
       - dev.worktree.path=${WT_PATH}
       - dev.worktree.repo=${WT_REPO}
       - dev.worktree.service=dex
       - traefik.enable=true
-      - traefik.http.routers.wt-${WT_SLUG}-dex.rule=Host(`${WT_SLUG}-dex.connect.localhost`)
+      - traefik.http.routers.wt-${WT_SLUG}-dex.rule=Host(`${WT_SLUG}-dex.${WT_DOMAIN}`) || Host(`${WT_SLUG}-dex.connect.localhost`)
       - traefik.http.services.wt-${WT_SLUG}-dex.loadbalancer.server.port=${WT_ROUTER_PORT}
 
   contracts:
@@ -265,10 +269,10 @@ services:
     <<: *node
     working_dir: ${WT_PATH}/apps/api
     networks: [default, shared]
+    external_links: *dex-through-traefik
     environment:
       <<: *backend-env
       PORT: "3000"
-      BULL_BOARD_ENABLED: "true"
       OTEL_SERVICE_NAME: api
     depends_on:
       <<: *after-init
@@ -287,9 +291,8 @@ services:
       - dev.worktree.path=${WT_PATH}
       - dev.worktree.repo=${WT_REPO}
       - dev.worktree.service=api
-      - dev.worktree.link.bull-board=${WT_ORIGIN}/api/internal/bull-board
       - traefik.enable=true
-      - traefik.http.routers.wt-${WT_SLUG}-api.rule=Host(`${WT_SLUG}.connect.localhost`) && PathRegexp(`^/(api|public)(/|$$)`)
+      - traefik.http.routers.wt-${WT_SLUG}-api.rule=(Host(`${WT_SLUG}.${WT_DOMAIN}`) || Host(`${WT_SLUG}.connect.localhost`)) && PathRegexp(`^/(api|public|\.well-known/oauth-(protected-resource|authorization-server))(/|$$)`)
       - traefik.http.routers.wt-${WT_SLUG}-api.priority=100
       - traefik.http.services.wt-${WT_SLUG}-api.loadbalancer.server.port=3000
 
@@ -297,6 +300,7 @@ services:
     <<: *node
     working_dir: ${WT_PATH}/apps/api
     networks: [default, shared]
+    external_links: *dex-through-traefik
     environment:
       <<: *backend-env
       WORKER_HEALTH_PORT: "8080"
@@ -322,7 +326,7 @@ services:
     environment:
       <<: *node-env
       FRONT_PORT: "5173"
-      # Same origin as the API: Traefik routes /api and /public of this host to it.
+      # Same origin as the API: Traefik routes /api, /public and the OAuth metadata of this host to it.
       VITE_API_URL: /api
       VITE_AGENT_EMBED_URL: ${WT_EMBED_ORIGIN}
       VITE_OIDC_AUTHORITY: ${WT_DEX_ISSUER}
@@ -341,7 +345,7 @@ services:
       - dev.worktree.service=web
       - dev.worktree.link.app=${WT_ORIGIN}
       - traefik.enable=true
-      - traefik.http.routers.wt-${WT_SLUG}-web.rule=Host(`${WT_SLUG}.connect.localhost`)
+      - traefik.http.routers.wt-${WT_SLUG}-web.rule=Host(`${WT_SLUG}.${WT_DOMAIN}`) || Host(`${WT_SLUG}.connect.localhost`)
       - traefik.http.routers.wt-${WT_SLUG}-web.priority=10
       - traefik.http.routers.wt-${WT_SLUG}-web.middlewares=dev-starting@docker
       - traefik.http.services.wt-${WT_SLUG}-web.loadbalancer.server.port=5173
@@ -365,7 +369,7 @@ services:
       - dev.worktree.service=embed
       - dev.worktree.link.embed=${WT_EMBED_ORIGIN}
       - traefik.enable=true
-      - traefik.http.routers.wt-${WT_SLUG}-embed.rule=Host(`${WT_SLUG}-embed.connect.localhost`)
+      - traefik.http.routers.wt-${WT_SLUG}-embed.rule=Host(`${WT_SLUG}-embed.${WT_DOMAIN}`) || Host(`${WT_SLUG}-embed.connect.localhost`)
       - traefik.http.routers.wt-${WT_SLUG}-embed.middlewares=dev-starting@docker
       - traefik.http.services.wt-${WT_SLUG}-embed.loadbalancer.server.port=5175
 
@@ -390,32 +394,34 @@ services:
       - dev.worktree.service=help
       - dev.worktree.link.help=${WT_HELP_ORIGIN}
       - traefik.enable=true
-      - traefik.http.routers.wt-${WT_SLUG}-help.rule=Host(`${WT_SLUG}-help.connect.localhost`)
+      - traefik.http.routers.wt-${WT_SLUG}-help.rule=Host(`${WT_SLUG}-help.${WT_DOMAIN}`) || Host(`${WT_SLUG}-help.connect.localhost`)
       - traefik.http.routers.wt-${WT_SLUG}-help.middlewares=dev-starting@docker
       - traefik.http.services.wt-${WT_SLUG}-help.loadbalancer.server.port=4321
 
-  # Storybook pins its HMR socket to its own port: it listens on the router port, so the
-  # browser's socket goes through Traefik.
+  # Storybook pins its HMR socket to its own port: it listens on the port of the public URLs, so
+  # the browser's socket goes through Traefik. Ports below 1024 need no privilege in its container.
   storybook-web:
     <<: *node
     working_dir: ${WT_PATH}/apps/web
     networks: [default, shared]
     environment: *node-env
     depends_on: *after-init
-    command: ["npm", "run", "storybook", "--", "-p", "${WT_ROUTER_PORT}", "--host", "0.0.0.0", "--ci", "--no-open"]
+    sysctls:
+      net.ipv4.ip_unprivileged_port_start: 0
+    command: ["npm", "run", "storybook", "--", "-p", "${WT_PUBLIC_PORT}", "--host", "0.0.0.0", "--ci", "--no-open"]
     healthcheck:
       <<: *health
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:${WT_ROUTER_PORT}/index.json').then((reply) => process.exit(reply.ok ? 0 : 1), () => process.exit(1))"]
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:${WT_PUBLIC_PORT}/index.json').then((reply) => process.exit(reply.ok ? 0 : 1), () => process.exit(1))"]
     labels:
       - dev.worktree.slug=${WT_SLUG}
       - dev.worktree.path=${WT_PATH}
       - dev.worktree.repo=${WT_REPO}
       - dev.worktree.service=storybook-web
-      - dev.worktree.link.storybook=http://${WT_SLUG}-storybook.connect.localhost:${WT_ROUTER_PORT}
+      - dev.worktree.link.storybook=${WT_SCHEME}://${WT_SLUG}-storybook.${WT_DOMAIN}${WT_PORT_SUFFIX}
       - traefik.enable=true
-      - traefik.http.routers.wt-${WT_SLUG}-storybook-web.rule=Host(`${WT_SLUG}-storybook.connect.localhost`)
+      - traefik.http.routers.wt-${WT_SLUG}-storybook-web.rule=Host(`${WT_SLUG}-storybook.${WT_DOMAIN}`) || Host(`${WT_SLUG}-storybook.connect.localhost`)
       - traefik.http.routers.wt-${WT_SLUG}-storybook-web.middlewares=dev-starting@docker
-      - traefik.http.services.wt-${WT_SLUG}-storybook-web.loadbalancer.server.port=${WT_ROUTER_PORT}
+      - traefik.http.services.wt-${WT_SLUG}-storybook-web.loadbalancer.server.port=${WT_PUBLIC_PORT}
 
   storybook-ui:
     <<: *node
@@ -423,20 +429,22 @@ services:
     networks: [default, shared]
     environment: *node-env
     depends_on: *after-init
-    command: ["npm", "run", "storybook", "--", "-p", "${WT_ROUTER_PORT}", "--host", "0.0.0.0", "--ci", "--no-open"]
+    sysctls:
+      net.ipv4.ip_unprivileged_port_start: 0
+    command: ["npm", "run", "storybook", "--", "-p", "${WT_PUBLIC_PORT}", "--host", "0.0.0.0", "--ci", "--no-open"]
     healthcheck:
       <<: *health
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:${WT_ROUTER_PORT}/index.json').then((reply) => process.exit(reply.ok ? 0 : 1), () => process.exit(1))"]
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:${WT_PUBLIC_PORT}/index.json').then((reply) => process.exit(reply.ok ? 0 : 1), () => process.exit(1))"]
     labels:
       - dev.worktree.slug=${WT_SLUG}
       - dev.worktree.path=${WT_PATH}
       - dev.worktree.repo=${WT_REPO}
       - dev.worktree.service=storybook-ui
-      - dev.worktree.link.ui-storybook=http://${WT_SLUG}-ui.connect.localhost:${WT_ROUTER_PORT}
+      - dev.worktree.link.ui-storybook=${WT_SCHEME}://${WT_SLUG}-ui.${WT_DOMAIN}${WT_PORT_SUFFIX}
       - traefik.enable=true
-      - traefik.http.routers.wt-${WT_SLUG}-storybook-ui.rule=Host(`${WT_SLUG}-ui.connect.localhost`)
+      - traefik.http.routers.wt-${WT_SLUG}-storybook-ui.rule=Host(`${WT_SLUG}-ui.${WT_DOMAIN}`) || Host(`${WT_SLUG}-ui.connect.localhost`)
       - traefik.http.routers.wt-${WT_SLUG}-storybook-ui.middlewares=dev-starting@docker
-      - traefik.http.services.wt-${WT_SLUG}-storybook-ui.loadbalancer.server.port=${WT_ROUTER_PORT}
+      - traefik.http.services.wt-${WT_SLUG}-storybook-ui.loadbalancer.server.port=${WT_PUBLIC_PORT}
 
   storybook-embed:
     <<: *node
@@ -444,20 +452,47 @@ services:
     networks: [default, shared]
     environment: *node-env
     depends_on: *after-init
-    command: ["npm", "run", "storybook", "--", "-p", "${WT_ROUTER_PORT}", "--host", "0.0.0.0", "--ci", "--no-open"]
+    sysctls:
+      net.ipv4.ip_unprivileged_port_start: 0
+    command: ["npm", "run", "storybook", "--", "-p", "${WT_PUBLIC_PORT}", "--host", "0.0.0.0", "--ci", "--no-open"]
     healthcheck:
       <<: *health
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:${WT_ROUTER_PORT}/index.json').then((reply) => process.exit(reply.ok ? 0 : 1), () => process.exit(1))"]
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:${WT_PUBLIC_PORT}/index.json').then((reply) => process.exit(reply.ok ? 0 : 1), () => process.exit(1))"]
     labels:
       - dev.worktree.slug=${WT_SLUG}
       - dev.worktree.path=${WT_PATH}
       - dev.worktree.repo=${WT_REPO}
       - dev.worktree.service=storybook-embed
-      - dev.worktree.link.embed-storybook=http://${WT_SLUG}-embed-storybook.connect.localhost:${WT_ROUTER_PORT}
+      - dev.worktree.link.embed-storybook=${WT_SCHEME}://${WT_SLUG}-embed-storybook.${WT_DOMAIN}${WT_PORT_SUFFIX}
       - traefik.enable=true
-      - traefik.http.routers.wt-${WT_SLUG}-storybook-embed.rule=Host(`${WT_SLUG}-embed-storybook.connect.localhost`)
+      - traefik.http.routers.wt-${WT_SLUG}-storybook-embed.rule=Host(`${WT_SLUG}-embed-storybook.${WT_DOMAIN}`) || Host(`${WT_SLUG}-embed-storybook.connect.localhost`)
       - traefik.http.routers.wt-${WT_SLUG}-storybook-embed.middlewares=dev-starting@docker
-      - traefik.http.services.wt-${WT_SLUG}-storybook-embed.loadbalancer.server.port=${WT_ROUTER_PORT}
+      - traefik.http.services.wt-${WT_SLUG}-storybook-embed.loadbalancer.server.port=${WT_PUBLIC_PORT}
+
+  # Bull Board on this environment's Redis, no login (infra/bull-board/README.md).
+  bull-board:
+    image: venatum/bull-board:3.4.14 # same as infra/database
+    restart: unless-stopped
+    logging:
+      driver: local
+    networks: [default, shared]
+    environment:
+      REDIS_HOST: bullmq
+      REDIS_PORT: "6379"
+      NODE_ENV: production # no access log
+    depends_on:
+      bullmq:
+        condition: service_healthy
+    labels:
+      - dev.worktree.slug=${WT_SLUG}
+      - dev.worktree.path=${WT_PATH}
+      - dev.worktree.repo=${WT_REPO}
+      - dev.worktree.service=bull-board
+      - dev.worktree.link.bull-board=${WT_SCHEME}://${WT_SLUG}-bull-board.${WT_DOMAIN}${WT_PORT_SUFFIX}
+      - traefik.enable=true
+      - traefik.http.routers.wt-${WT_SLUG}-bull-board.rule=Host(`${WT_SLUG}-bull-board.${WT_DOMAIN}`) || Host(`${WT_SLUG}-bull-board.connect.localhost`)
+      - traefik.http.routers.wt-${WT_SLUG}-bull-board.middlewares=dev-starting@docker
+      - traefik.http.services.wt-${WT_SLUG}-bull-board.loadbalancer.server.port=3000
 
   # Grafana on the analytics schema of this environment's database, with the branch's
   # provisioning and dashboards.
@@ -496,9 +531,9 @@ services:
       - dev.worktree.path=${WT_PATH}
       - dev.worktree.repo=${WT_REPO}
       - dev.worktree.service=grafana
-      - dev.worktree.link.grafana=http://${WT_SLUG}-grafana.connect.localhost:${WT_ROUTER_PORT}
+      - dev.worktree.link.grafana=${WT_SCHEME}://${WT_SLUG}-grafana.${WT_DOMAIN}${WT_PORT_SUFFIX}
       - traefik.enable=true
-      - traefik.http.routers.wt-${WT_SLUG}-grafana.rule=Host(`${WT_SLUG}-grafana.connect.localhost`)
+      - traefik.http.routers.wt-${WT_SLUG}-grafana.rule=Host(`${WT_SLUG}-grafana.${WT_DOMAIN}`) || Host(`${WT_SLUG}-grafana.connect.localhost`)
       - traefik.http.routers.wt-${WT_SLUG}-grafana.middlewares=dev-starting@docker
       - traefik.http.services.wt-${WT_SLUG}-grafana.loadbalancer.server.port=3000
 
@@ -539,15 +574,17 @@ networks:
     external: true
 
 volumes:
+  # Caches shared by the environments of a machine. On a machine with several users, each one
+  # needs their own: the containers run as their owner, who cannot write the files of another
+  # user's install. The tooling names them in infra/worktree/.env.
   npm-cache:
-    name: bayes-dev-npm-cache
+    name: ${WT_NPM_CACHE_VOLUME:-bayes-dev-npm-cache}
     external: true
   go-cache:
-    name: bayes-dev-go-cache
+    name: ${WT_GO_CACHE_VOLUME:-bayes-dev-go-cache}
     external: true
   nm-root: {}
   nm-api: {}
-  nm-cli: {}
   nm-help: {}
   nm-web: {}
   nm-web-embed: {}

@@ -8,22 +8,46 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
-- Safety review: people granted access on an agent can read any of its conversations from a session id.
-- Apps: an installed app can let people outside the platform talk to the workspace's agents.
-- Apps: the studio now lists the apps connected to a project.
 
 ### Changed
-- (beta) PDF export: extraction agents no longer offer the built-in PDF export server.
+
+### Fixed
+
+### Security
+
+## [26.10.3] - 2026-10-15
+
+### Added
+
+### Changed
+
+### Fixed
+- Self-hosting: agent replies no longer write a security warning to the error logs on every turn.
+
+### Security
+
+## [26.10.2] - 2026-10-14
+
+### Added
+- Safety review: people granted access on an agent can read any of its conversations from a session id.
+- Apps: an installed app can let people outside the platform talk to the workspace's agents.
+- Apps: the studio now lists the apps connected to a project and can revoke them.
+- MCP: AI assistants can list projects, create agents and edit agent drafts with the access a person grants them.
+
+### Changed
+- Self-hosting: the Bull Board queue dashboard now runs as its own service, outside the API.
 
 ### Fixed
 - Conversations: an assistant reply that never ends no longer crashes the server.
 - Extraction agents: project members can now upload CSV files and delete the documents they uploaded.
 - Studio playground: a new chat now greets with the welcome message of the version being tested.
+- Conversations: the form state of an agent without sub-agents no longer says that a sub-agent filled it.
 
 ### Security
-- Apps: install hands credentials through a one-time PKCE code on allowlisted HTTPS callbacks.
+- Apps: installing an app now only sends its credentials to the app's registered secure addresses.
 - Apps: revoking an installation now cuts the app's access at once.
 - Review campaigns: testers and reviewers who accept an invitation no longer become members of the campaign's project.
+- PDF conversion: dependency updates patch known vulnerabilities in the PDF converter.
 
 ## [26.10.1] - 2026-10-07
 

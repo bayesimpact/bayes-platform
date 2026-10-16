@@ -25,20 +25,6 @@
       },
       "defaultClientScopes": ["basic", "web-origins", "acr", "profile", "roles", "email"],
       "optionalClientScopes": ["offline_access"]
-    },
-    {
-      "clientId": "bull-board",
-      "name": "Bull Board dashboard",
-      "enabled": true,
-      "publicClient": false,
-      "secret": "local-bull-board-secret",
-      "standardFlowEnabled": true,
-      "directAccessGrantsEnabled": false,
-      "redirectUris": ["https://connect.localhost:3000/api/internal/bull-board/oauth/callback"],
-      "defaultClientScopes": ["basic", "web-origins", "acr", "profile", "roles", "email"],
-      "attributes": {
-        "post.logout.redirect.uris": "https://connect.localhost:3000"
-      }
     }
   ],
   "users": [

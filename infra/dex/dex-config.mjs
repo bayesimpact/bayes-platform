@@ -13,8 +13,6 @@ export const STATE_DIR = process.env.BAYES_DEV_HOME ?? join(homedir(), ".bayes-w
 export const PASSWORD_HASH_FILE = join(STATE_DIR, "dex-password.bcrypt")
 
 export const WEB_CLIENT_ID = "platform-web"
-export const BULL_BOARD_CLIENT_ID = "bull-board"
-export const BULL_BOARD_CLIENT_SECRET = "local-bull-board-secret"
 
 // The CORS origins of the API when FRONTEND_URL is empty (apps/api/src/config/cors.ts).
 const DEFAULT_FRONTEND_ORIGINS = [
@@ -27,18 +25,12 @@ const HEADER = `# Generated from the users of a local database. Edits are overwr
 `
 
 /**
- * The YAML configuration of a Dex with in-memory storage, the web app and Bull Board clients,
- * and one static password per user. Dex matches redirect URIs exactly, so every origin the
- * web app runs on is listed.
+ * The YAML configuration of a Dex with in-memory storage, the web app client, and one static
+ * password per user. Dex matches redirect URIs exactly, so every origin the web app runs on is
+ * listed. Callers that still pass `bullBoardRedirectUris` get no Bull Board client: Bull Board is
+ * a separate service now (infra/bull-board/README.md).
  */
-export function buildDexConfig({
-  issuer,
-  listenAddress,
-  webRedirectUris,
-  bullBoardRedirectUris,
-  users,
-  passwordHash,
-}) {
+export function buildDexConfig({ issuer, listenAddress, webRedirectUris, users, passwordHash }) {
   const config = {
     issuer,
     storage: { type: "memory" },
@@ -51,12 +43,6 @@ export function buildDexConfig({
         name: "Platform web app",
         public: true,
         redirectURIs: unique(webRedirectUris),
-      },
-      {
-        id: BULL_BOARD_CLIENT_ID,
-        name: "Bull Board dashboard",
-        secret: BULL_BOARD_CLIENT_SECRET,
-        redirectURIs: unique(bullBoardRedirectUris),
       },
     ],
     staticPasswords: users.map((user) => ({
@@ -94,16 +80,13 @@ export function frontendOrigins(frontendUrl) {
 
 /**
  * Redirect URIs of the web app (origin plus base path, no trailing slash, like
- * apps/web/src/config/runtime-config.ts getAppUrl) and of Bull Board's callback.
+ * apps/web/src/config/runtime-config.ts getAppUrl). Callers that still pass `bullBoardBaseUrl`
+ * get an empty `bullBoard` list.
  */
-export function redirectUris({ webOrigins, basePath = "", bullBoardBaseUrl, bullBoardRoute }) {
+export function redirectUris({ webOrigins, basePath = "" }) {
   const base = trimSlashes(basePath)
   const web = webOrigins.map((origin) => `${trimTrailingSlash(origin)}${base ? `/${base}` : ""}`)
-  const route = trimSlashes(bullBoardRoute || "internal/bull-board")
-  const bullBoard = bullBoardBaseUrl
-    ? [`${trimTrailingSlash(bullBoardBaseUrl)}/api/${route}/oauth/callback`]
-    : []
-  return { web, bullBoard }
+  return { web, bullBoard: [] }
 }
 
 /** The pgvector container of the shared dev stack, found by its compose labels. */

@@ -1,9 +1,9 @@
 # ADR 0025: One dev environment per git worktree
 
-* **Status**: Accepted
+* **Status**: Accepted. The tooling (`wt`, the dashboard) has since moved to the team's internal tools, with its later decisions; this repository keeps the environment it describes.
 * **Date**: 2026-10-08
 * **Deciders**: Alexis, Jérémie
-* **Scope**: Local development: `infra/worktree/`, `infra/database/` (shared stack, `router` profile), `infra/dev-dashboard/`, `infra/dex/`, the `/worktree-env` skill, `CLAUDE.md`.
+* **Scope**: Local development: `infra/worktree/`, `infra/database/` (shared stack, `router` profile), `infra/dex/`, the `/worktree-env` skill, `CLAUDE.md`.
 
 ---
 

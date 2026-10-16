@@ -3,7 +3,6 @@ import { type MiddlewareConsumer, Module, type NestModule } from "@nestjs/common
 import { ConfigModule, ConfigService } from "@nestjs/config"
 import { TypeOrmModule } from "@nestjs/typeorm"
 import { getBullMqConnection } from "./bullmq.config"
-import { BullBoardAdminModule } from "./common/bull-board/bull-board-admin.module"
 import { DiagnosticsModule } from "./common/diagnostics/diagnostics.module"
 import { HealthModule } from "./common/health/health.module"
 import { RequestLoggerMiddleware } from "./common/middleware/request-logger.middleware"
@@ -26,7 +25,9 @@ import { StorageModule } from "./domains/documents/storage/storage.module"
 import { DocumentTagsModule } from "./domains/documents/tags/document-tags.module"
 import { EvaluationsModule } from "./domains/evaluations/evaluations.module"
 import { InvitationsModule } from "./domains/invitations/invitations.module"
+import { McpEndpointModule } from "./domains/mcp-endpoint/mcp-endpoint.module"
 import { MeModule } from "./domains/me/me.module"
+import { OAuthModule } from "./domains/oauth/oauth.module"
 import { OrganizationsModule } from "./domains/organizations/organizations.module"
 import { ProjectsModule } from "./domains/projects/projects.module"
 import { AgentEmbedConfigsManagementModule } from "./domains/public-chat/agent-embed-configs/agent-embed-configs-management.module"
@@ -46,7 +47,6 @@ import { UsersModule } from "./domains/users/users.module"
     BullModule.forRootAsync({
       useFactory: () => ({ connection: getBullMqConnection() }),
     }),
-    BullBoardAdminModule.registerWhenEnabled(),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -70,7 +70,9 @@ import { UsersModule } from "./domains/users/users.module"
     EvaluationsModule,
     ExtractionAgentSessionsModule,
     InvitationsModule,
+    McpEndpointModule,
     MeModule,
+    OAuthModule,
     OrganizationsModule,
     OrganizationsModule,
     ProjectsAnalyticsModule,

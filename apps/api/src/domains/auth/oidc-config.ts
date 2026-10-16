@@ -27,7 +27,7 @@ export function getOidcAudience(env: NodeJS.ProcessEnv = process.env): string | 
  * Extra parameters added to the authorization request, as a JSON object of
  * strings, for example `{"organization":"org_123"}` to keep Auth0 users in
  * one organization, or `{"kc_idp_hint":"corporate"}` for Keycloak.
- * The web app and Bull Board both send them.
+ * The web app sends them.
  */
 export function getOidcAuthorizationParams(
   env: NodeJS.ProcessEnv = process.env,

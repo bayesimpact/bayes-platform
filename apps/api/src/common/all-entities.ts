@@ -41,6 +41,10 @@ import { Invitation } from "@/domains/invitations/invitation.entity"
 import { AgentMcpServer } from "@/domains/mcp-servers/agent-mcp-server.entity"
 import { McpServer } from "@/domains/mcp-servers/mcp-server.entity"
 import { UserMembership } from "@/domains/memberships/user-membership.entity"
+import { OAuthAuthorizationCode } from "@/domains/oauth/oauth-authorization-code.entity"
+import { OAuthClient } from "@/domains/oauth/oauth-client.entity"
+import { OAuthGrant } from "@/domains/oauth/oauth-grant.entity"
+import { OAuthRefreshToken } from "@/domains/oauth/oauth-refresh-token.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { Project } from "@/domains/projects/project.entity"
 import { AgentEmbedConfig } from "@/domains/public-chat/agent-embed-configs/agent-embed-config.entity"
@@ -99,6 +103,10 @@ export const ALL_ENTITIES = [
   FeatureFlag,
   Invitation,
   McpServer,
+  OAuthAuthorizationCode,
+  OAuthClient,
+  OAuthGrant,
+  OAuthRefreshToken,
   Organization,
   UserMembership,
   Project,

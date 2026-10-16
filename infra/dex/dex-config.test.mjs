@@ -1,13 +1,6 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
-import {
-  BULL_BOARD_CLIENT_SECRET,
-  buildDexConfig,
-  frontendOrigins,
-  redirectUris,
-  toYaml,
-  usernameOf,
-} from "./dex-config.mjs"
+import { buildDexConfig, frontendOrigins, redirectUris, toYaml, usernameOf } from "./dex-config.mjs"
 
 describe("toYaml", () => {
   it("writes nested objects, arrays of objects and scalars", () => {
@@ -88,24 +81,12 @@ describe("redirectUris", () => {
     )
   })
 
-  it("builds the Bull Board callback from its base URL and route", () => {
-    assert.deepEqual(
-      redirectUris({
-        webOrigins: [],
-        bullBoardBaseUrl: "https://connect.localhost:3100/",
-        bullBoardRoute: "/ops/queues/",
-      }).bullBoard,
-      ["https://connect.localhost:3100/api/ops/queues/oauth/callback"],
-    )
+  it("gives no Bull Board callback to callers that still pass its base URL", () => {
     assert.deepEqual(
       redirectUris({ webOrigins: [], bullBoardBaseUrl: "http://x.connect.localhost:8800" })
         .bullBoard,
-      ["http://x.connect.localhost:8800/api/internal/bull-board/oauth/callback"],
+      [],
     )
-  })
-
-  it("has no Bull Board callback without a base URL", () => {
-    assert.deepEqual(redirectUris({ webOrigins: [] }).bullBoard, [])
   })
 })
 
@@ -114,6 +95,7 @@ describe("buildDexConfig", () => {
     issuer: "http://localhost:5556/dex",
     listenAddress: "0.0.0.0:5556",
     webRedirectUris: ["http://localhost:5173", "http://localhost:5173"],
+    // Ignored: Bull Board is no longer a client of Dex.
     bullBoardRedirectUris: ["http://localhost:3000/api/internal/bull-board/oauth/callback"],
     users: [
       { id: "6f1c0d36-0000-4000-8000-000000000001", email: "ana@example.org", name: "Ana" },
@@ -134,8 +116,9 @@ describe("buildDexConfig", () => {
     assert.match(config, /username: "bo@example\.org"/u)
   })
 
-  it("lists each redirect URI once and the Bull Board client secret", () => {
+  it("lists each redirect URI once and only the web app client", () => {
     assert.equal(config.match(/"http:\/\/localhost:5173"/gu)?.length, 1)
-    assert.match(config, new RegExp(`secret: "${BULL_BOARD_CLIENT_SECRET}"`, "u"))
+    assert.equal(config.match(/ {2}- id: /gu)?.length, 1)
+    assert.doesNotMatch(config, /bull-board/u)
   })
 })

@@ -84,6 +84,17 @@ describe("registerWebApp", () => {
     expect(response.text).toContain("window.__CONFIG__")
   })
 
+  it("forbids framing the OAuth consent page, and only that page", async () => {
+    const consent = await request(app.getHttpServer())
+      .get("/oauth/authorize?client_id=x")
+      .accept("text/html")
+    const studio = await request(app.getHttpServer()).get("/studio").accept("text/html")
+
+    expect(consent.headers["x-frame-options"]).toBe("DENY")
+    expect(consent.headers["content-security-policy"]).toBe("frame-ancestors 'none'")
+    expect(studio.headers["x-frame-options"]).toBeUndefined()
+  })
+
   it("serves hashed assets as immutable", async () => {
     const response = await request(app.getHttpServer()).get("/assets/index-abc123.js")
     expect(response.status).toBe(200)
@@ -113,6 +124,16 @@ describe("registerWebApp", () => {
     expect((await request(app.getHttpServer()).get("/api/public/ping")).status).toBe(404)
     const unknown = await request(app.getHttpServer()).get("/public/nope").accept("text/html")
     expect(unknown.status).toBe(404)
+  })
+
+  it("leaves the well-known documents to Nest, whatever the client accepts", async () => {
+    for (const accept of ["*/*", "text/html"]) {
+      const response = await request(app.getHttpServer())
+        .get("/.well-known/oauth-authorization-server/api/oauth")
+        .accept(accept)
+      expect(response.text).not.toContain("window.__CONFIG__")
+      expect(response.status).toBe(404)
+    }
   })
 
   it("does not answer a private route at the root", async () => {

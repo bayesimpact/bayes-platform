@@ -1,0 +1,38 @@
+{
+  "oauthConsent": {
+    "headline": "{{name}} demande l'accès à vos projets",
+    "redirectHost": "Vous serez renvoyé vers {{host}}.",
+    "verified": "Vérifiée",
+    "verifiedHint": "Le domaine de cette application a été vérifié.",
+    "unverified": "Non vérifiée",
+    "unverifiedHint": "Ce nom est déclaré par l'application elle-même. Ne continuez que si vous faites confiance à {{host}}.",
+    "projects": "Projets",
+    "projectsHint": "L'application n'accède qu'aux projets que vous sélectionnez.",
+    "permissions": "Permissions",
+    "permissionUnavailable": "Aucun des projets sélectionnés ne le permet.",
+    "selectProjectFirst": "Sélectionnez d'abord un projet.",
+    "noProjects": "Vous n'avez encore aucun projet à partager. Refusez pour revenir à l'application.",
+    "approve": "Autoriser l'accès",
+    "approving": "Autorisation…",
+    "approved": "Accès accordé. Vous pouvez revenir à {{name}}.",
+    "denied": "Accès refusé. Vous pouvez revenir à {{name}}.",
+    "invalidRequest": "Ce lien d'autorisation est incomplet ou mal formé. Recommencez depuis l'application.",
+    "permission": {
+      "project_read": {
+        "name": "Voir les projets",
+        "description": "Lire les projets sélectionnés et leurs paramètres."
+      },
+      "agent_create": {
+        "name": "Créer des agents",
+        "description": "Ajouter de nouveaux agents aux projets sélectionnés."
+      },
+      "agent_settings_draft_update": {
+        "name": "Modifier les brouillons d'agents",
+        "description": "Changer les réglages en brouillon des agents que vous possédez ou administrez dans les projets sélectionnés (modèle, instructions). La publication reste dans le studio."
+      }
+    },
+    "notifications": {
+      "approveError": "L'accès n'a pas pu être accordé"
+    }
+  }
+}
