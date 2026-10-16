@@ -44,12 +44,6 @@ const createAgentInputSchema = z.object({
     .default(AGENT_DEFAULT_MODELS.agent)
     .describe("Language model of the agent."),
   locale: z.enum(AgentLocale).default(AgentLocale.EN).describe("Language the agent speaks."),
-  temperature: z
-    .number()
-    .min(0)
-    .max(2)
-    .default(0)
-    .describe("Sampling temperature, from 0 (steady) to 2 (creative)."),
   greetingMessage: z
     .string()
     .max(2000)
@@ -82,12 +76,6 @@ const updateAgentInputSchema = z.object({
   agentId: z.uuid().describe("Id of the agent, from list_agents or create_agent."),
   model: z.enum(AgentModel).optional().describe("New language model of the agent."),
   instructions: z.string().min(1).optional().describe("New system prompt of the agent."),
-  temperature: z
-    .number()
-    .min(0)
-    .max(2)
-    .optional()
-    .describe("New sampling temperature, from 0 (steady) to 2 (creative)."),
   locale: z.enum(AgentLocale).optional().describe("New language of the agent."),
   greetingMessage: z
     .string()
@@ -178,7 +166,7 @@ export function buildAgentCreationMcpServer({
     {
       title: "Update agent",
       description:
-        "Changes the draft settings of an agent (model, instructions, temperature, language, greeting). Only the given settings change. Nothing is published: the user reviews and publishes the draft in the studio, from the returned link.",
+        "Changes the draft settings of an agent (model, instructions, language, greeting). Only the given settings change. Nothing is published: the user reviews and publishes the draft in the studio, from the returned link.",
       inputSchema: updateAgentInputSchema,
       outputSchema: z.object({ agent: agentSchema.extend({ draftRevision: z.number() }) }),
       annotations: {

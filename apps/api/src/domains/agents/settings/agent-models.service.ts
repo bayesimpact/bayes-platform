@@ -72,14 +72,9 @@ export class AgentModelsService {
       throw new BadRequestException(`Model ${model} is not available in this project`)
     const llmProvider = this.llmProviders[provider]
     if (this.isModelRetired(llmProvider.getModelMetadata(model as AgentModel).deprecation))
-      throw new BadRequestException(`Model ${model} is retired`)
+      throw new BadRequestException(`Model ${model} is no longer available`)
   }
 
-  /**
-   * The options to store for an agent on `model`: the ones given, checked against the model's
-   * schema (an option the model does not take is dropped), or the model's defaults when none are
-   * given. Options that do not fit the model are rejected.
-   */
   resolveModelOptions({
     model,
     providerOptions,
