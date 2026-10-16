@@ -15,8 +15,8 @@
 # - Services that join the shared network (connect-db_default) reach pgvector, otel-collector
 #   and mailpit by name. Redis is called bullmq and stays on the project network, because the
 #   shared network already has a redis.
-# - Never mount anything on apps/api/dist or dist-workers: Nest's deleteOutDir then fails with
-#   EBUSY and `nest start --watch` exits 0.
+# - Never mount anything on apps/api/dist or dist-workers: the dev script deletes them on start
+#   (`swc --delete-dir-on-start`), which then fails with EBUSY.
 
 x-worktree: &worktree
   type: bind
@@ -44,7 +44,6 @@ x-node-volumes: &node-volumes
   - { type: volume, source: nm-web, target: "${WT_PATH}/apps/web/node_modules" }
   - { type: volume, source: nm-web-embed, target: "${WT_PATH}/apps/web-embed/node_modules" }
   - { type: volume, source: nm-api-contracts, target: "${WT_PATH}/packages/api-contracts/node_modules" }
-  - { type: volume, source: nm-jest-config, target: "${WT_PATH}/packages/jest-config/node_modules" }
   - { type: volume, source: nm-ui, target: "${WT_PATH}/packages/ui/node_modules" }
 
 # Labels of every service. The services that Traefik routes write theirs as a list
@@ -150,7 +149,6 @@ services:
       - { type: volume, source: nm-web, target: "${WT_PATH}/apps/web/node_modules" }
       - { type: volume, source: nm-web-embed, target: "${WT_PATH}/apps/web-embed/node_modules" }
       - { type: volume, source: nm-api-contracts, target: "${WT_PATH}/packages/api-contracts/node_modules" }
-      - { type: volume, source: nm-jest-config, target: "${WT_PATH}/packages/jest-config/node_modules" }
       - { type: volume, source: nm-ui, target: "${WT_PATH}/packages/ui/node_modules" }
     environment:
       <<: *node-env
@@ -589,5 +587,4 @@ volumes:
   nm-web: {}
   nm-web-embed: {}
   nm-api-contracts: {}
-  nm-jest-config: {}
   nm-ui: {}

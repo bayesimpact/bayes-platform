@@ -5,6 +5,7 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  type Relation,
   Unique,
   UpdateDateColumn,
 } from "typeorm"
@@ -39,7 +40,7 @@ export class ConversationAgentSessionCategory {
     { onDelete: "CASCADE" },
   )
   @JoinColumn({ name: "conversation_agent_session_id" })
-  conversationAgentSession!: ConversationAgentSession
+  conversationAgentSession!: Relation<ConversationAgentSession>
 
   @ManyToOne(
     () => AgentSessionCategory,
@@ -47,7 +48,7 @@ export class ConversationAgentSessionCategory {
     { onDelete: "CASCADE" },
   )
   @JoinColumn({ name: "agent_session_category_id" })
-  agentSessionCategory!: AgentSessionCategory
+  agentSessionCategory!: Relation<AgentSessionCategory>
 
   @ManyToOne(
     () => ProjectAgentSessionCategory,

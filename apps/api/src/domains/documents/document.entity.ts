@@ -1,4 +1,4 @@
-import { Column, JoinColumn, JoinTable, ManyToMany, ManyToOne } from "typeorm"
+import { Column, JoinColumn, JoinTable, ManyToMany, ManyToOne, type Relation } from "typeorm"
 import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
 import { Project } from "@/domains/projects/project.entity"
 import { DocumentSource } from "./sources/document-source.entity"
@@ -11,7 +11,7 @@ export class Document extends ConnectEntityBase {
     (project) => project.documents,
   )
   @JoinColumn({ name: "project_id" })
-  project!: Project
+  project!: Relation<Project>
 
   @Column({ name: "title", nullable: false })
   title!: string // can be different from the file name OR be the same OR be empty

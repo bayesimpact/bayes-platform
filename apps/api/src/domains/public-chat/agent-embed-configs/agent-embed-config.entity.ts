@@ -1,4 +1,4 @@
-import { Column, JoinColumn, ManyToOne } from "typeorm"
+import { Column, JoinColumn, ManyToOne, type Relation } from "typeorm"
 import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
 import { Agent } from "@/domains/agents/agent.entity"
 
@@ -31,5 +31,5 @@ export class AgentEmbedConfig extends ConnectEntityBase {
 
   @ManyToOne(() => Agent, { onDelete: "CASCADE" })
   @JoinColumn({ name: "agent_id" })
-  agent!: Agent
+  agent!: Relation<Agent>
 }

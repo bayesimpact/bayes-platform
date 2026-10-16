@@ -3,7 +3,7 @@ import type {
   AgentMemorySessionTypeDto,
   AgentMemoryStatus,
 } from "@caseai-connect/api-contracts"
-import { Column, JoinColumn, ManyToOne } from "typeorm"
+import { Column, JoinColumn, ManyToOne, type Relation } from "typeorm"
 import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
 import { Agent } from "@/domains/agents/agent.entity"
 import { User } from "@/domains/users/user.entity"
@@ -25,13 +25,13 @@ export class AgentMemory extends ConnectEntityBase {
   agentId!: string
   @ManyToOne(() => Agent, { onDelete: "CASCADE" })
   @JoinColumn({ name: "agent_id" })
-  agent?: Agent
+  agent?: Relation<Agent>
 
   @Column({ type: "uuid", name: "user_id" })
   userId!: string
   @ManyToOne(() => User, { onDelete: "CASCADE" })
   @JoinColumn({ name: "user_id" })
-  user?: User
+  user?: Relation<User>
 
   @Column({ type: "varchar", name: "session_type" })
   sessionType!: AgentMemorySessionTypeDto

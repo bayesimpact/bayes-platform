@@ -1,5 +1,13 @@
 import type { AgentType } from "@caseai-connect/api-contracts"
-import { Column, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany } from "typeorm"
+import {
+  Column,
+  JoinColumn,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  OneToMany,
+  type Relation,
+} from "typeorm"
 import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import { AgentSessionCategory } from "@/domains/agents/session-categories/agent-session-category.entity"
@@ -21,7 +29,7 @@ export class Agent extends ConnectEntityBase {
     (project) => project.agents,
   )
   @JoinColumn({ name: "project_id" })
-  project!: Project
+  project!: Relation<Project>
 
   @Column({ type: "varchar" })
   name!: string

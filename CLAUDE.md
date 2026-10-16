@@ -10,7 +10,6 @@ This is a Turborepo monorepo with the following structure:
 - `apps/pdf-converter` - Go service rendering PDFs to PNG page images in GCS for image-only LLMs (Gemma, MedGemma), runs on port 3002 and serves the PDF export MCP endpoint at `/mcp`; `npm run dev` starts it when Go is installed and `apps/pdf-converter/.env` exists
 - `apps/web` - Vite + React frontend application (runs on port 5173)
 - `packages/@caseai-connect/api-contracts` - Shared API contracts and DTOs
-- `packages/@repo/jest-config` - Shared Jest configurations
 - `packages/@repo/typescript-config` - Shared TypeScript configurations
 - `packages/@caseai-connect/ui` - Shared React component library
 
@@ -63,7 +62,7 @@ All commands should be run from the root directory using Turbo (via npm scripts)
   - All routes defined with `defineRoute` in `*.routes.ts` files
   - Everything exported from `packages/api-contracts/src/index.ts`
 - All packages use TypeScript with strict configuration
-- Jest configuration centralized in `@repo/jest-config`
+- API tests run on Jest with `@swc/jest` (`apps/api/jest.config.js`), web tests on Vitest
 
 ## Public API contract
 
@@ -81,6 +80,10 @@ Decisions live in `docs/adr/`. Two of them apply to every API change, and each h
 - Uses npm workspaces for monorepo management
 - Private packages with internal dependencies using `*` version specifier
 - Engines requirement: Node.js >= 18
+
+### TypeScript 7 and 6 side by side
+
+`tsc` is TypeScript 7 (the native compiler), declared once at the root as `"@typescript/native": "npm:typescript@^7"`. It only type-checks and emits, since TypeScript 7 has no JavaScript API yet. The root `typescript` dependency is an alias of `@typescript/typescript6`, so tools that `require("typescript")` (dependency-cruiser, Astro, Storybook) still get the 6.0 API. Do not add `typescript` to a workspace or reinstall it under its own name: that brings back a second `tsc` that shadows TypeScript 7. The API never loads the compiler: it builds, runs and tests through SWC (`apps/api/.swcrc`).
 
 ## Changelog
 
