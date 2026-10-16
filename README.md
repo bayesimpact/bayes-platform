@@ -301,6 +301,19 @@ docling --version
 
 If `docling` is not recognized, restart the terminal and make sure your Python Scripts directory is in `PATH`.
 
+### Self-hosted embedding models (optional, feature flag `local-embeddings`)
+
+Projects with the flag can embed their documents with open-weight models (BAAI/bge-m3 for now), served over HTTP by `apps/embedder`. Start the shared embedder and point the API and the workers at it:
+
+```bash
+docker compose -f infra/database/docker-compose.yaml --profile embeddings up -d embedder
+# apps/api/.env
+EMBEDDER_BGE_M3_URL=http://localhost:3003
+WORKER_QUEUE_NAMES=...,project-embedding-reembed
+```
+
+Worktree environments already point at it. To run it on the host instead (Apple Silicon), see `apps/embedder/README.md`. Then toggle the `local-embeddings` flag on the project in the back-office and enable a model from an agent's Model tab. See ADR 0028.
+
 Docling-related environment variables:
 
 - `DOCUMENT_EXTRACTOR_DOCLING_ENABLED` (default: `true`)

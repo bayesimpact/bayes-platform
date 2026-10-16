@@ -52,6 +52,7 @@ export const agentSettingsFactory = AgentSettingsFactory.define(
       thinkingLevel: params.thinkingLevel || AgentThinkingLevel.Auto,
       priorityCallsEnabled: params.priorityCallsEnabled ?? false,
       memoryMode: params.memoryMode || AgentMemoryMode.Off,
+      embeddingModel: params.embeddingModel ?? null,
       organizationId: transientParams.organization.id,
       projectId: transientParams.project.id,
       agentId: transientParams.agent.id,

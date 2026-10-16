@@ -2,7 +2,8 @@
 # A plain `docker compose up -d` (and the CI) starts pgvector and redis only.
 # Profiles: `mail` (Mailpit), `keycloak`, `dex`, `traces` (otel-collector,
 # Phoenix), `analytics` (Grafana), `router` (Traefik and the dashboard of the
-# worktree environments), `bull-board`. See the README for the commands.
+# worktree environments), `bull-board`, `embeddings` (the HTTP embedder). See
+# the README for the commands.
 #
 # Mounts of files and folders that must exist use the long syntax with
 # `create_host_path: false`: a missing source then fails `docker compose up`
@@ -51,6 +52,24 @@ services:
     restart: unless-stopped
     ports:
       - "${REDIS_PORT:-6379}:6379"
+  # Self-hosted embedding models (apps/embedder), shared by the main checkout and every worktree
+  # environment: it holds no state, and bge-m3 takes 2 to 4 GB of memory. On CPU (Docker has no
+  # Apple GPU): queries are quick, re-embedding a large project is slow. Reached at
+  # http://localhost:3003 from the host and http://embedder:3003 from the shared network.
+  # Profile `embeddings`: `docker compose --profile embeddings up -d embedder`. The first build
+  # downloads the model weights into the image.
+  embedder:
+    build:
+      context: ../..
+      dockerfile: apps/embedder/Dockerfile
+    image: connect-embedder:dev
+    profiles: [embeddings]
+    restart: unless-stopped
+    ports:
+      - "${EMBEDDER_PORT:-3003}:3003"
+    environment:
+      EMBEDDER_DEVICE: cpu
+      EMBEDDER_ENCODE_BATCH_SIZE: "16"
   # Grafana on the analytics schema: http://localhost:3300, no login.
   # Datasource provisioned from ./grafana, dashboards from the Helm chart
   # (deploy/helm/bayes-platform/dashboards), the same files the cluster gets.
