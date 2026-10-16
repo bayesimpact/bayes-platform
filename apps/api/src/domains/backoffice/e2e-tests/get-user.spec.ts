@@ -8,6 +8,7 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
+import { userMembershipFactory } from "@/domains/memberships/user-membership.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import {
   AGENT_ROLE_PERMISSIONS,
@@ -17,6 +18,8 @@ import {
   PLATFORM_SUPERADMIN_ROLE,
   PROJECT_ROLE_PERMISSIONS,
   PROJECT_ROLES,
+  REVIEW_CAMPAIGN_ROLE_PERMISSIONS,
+  REVIEW_CAMPAIGN_ROLES,
 } from "@/domains/rbac/rbac.constants"
 import { RbacModule } from "@/domains/rbac/rbac.module"
 import {
@@ -134,7 +137,12 @@ describe("Backoffice - get user", () => {
       {
         campaignId: reviewCampaign.id,
         campaignName: reviewCampaign.name,
+        projectId: project.id,
         role: "reviewer",
+        roleKey: REVIEW_CAMPAIGN_ROLES.reviewer,
+        permissions: expect.arrayContaining([
+          ...REVIEW_CAMPAIGN_ROLE_PERMISSIONS.review_campaign_reviewer,
+        ]),
       },
     ])
     expect(returned.organizationMemberships[0]?.permissions).toHaveLength(
@@ -146,6 +154,43 @@ describe("Backoffice - get user", () => {
     expect(returned.agentMemberships[0]?.permissions).toHaveLength(
       AGENT_ROLE_PERMISSIONS.agent_owner.length,
     )
+    expect(returned.reviewCampaignMemberships[0]?.permissions).toHaveLength(
+      REVIEW_CAMPAIGN_ROLE_PERMISSIONS.review_campaign_reviewer.length,
+    )
+  })
+
+  it("returns no role key or permissions on a review campaign row without an RBAC role", async () => {
+    const { user, organization, project, agent, agentSettings } = await createAuthorizedContext()
+    const reviewCampaign = await repositories.reviewCampaignRepository.save(
+      reviewCampaignFactory.transient({ organization, project, agent, agentSettings }).build(),
+    )
+    // legacy campaign row, as written before the review campaign roles existed
+    await repositories.userMembershipRepository.save(
+      userMembershipFactory.build({
+        userId: user.id,
+        resourceType: "review_campaign",
+        resourceId: reviewCampaign.id,
+        role: "tester",
+        roleId: null,
+      }),
+    )
+
+    const response = await request({
+      route: BackofficeRoutes.getUser,
+      pathParams: { userId: user.id },
+      token: "token",
+    })
+    expectResponse(response, 200)
+    expect(response.body.data.reviewCampaignMemberships).toEqual([
+      {
+        campaignId: reviewCampaign.id,
+        campaignName: reviewCampaign.name,
+        projectId: project.id,
+        role: "tester",
+        roleKey: null,
+        permissions: [],
+      },
+    ])
   })
 
   it("returns empty membership lists for a user with no memberships", async () => {

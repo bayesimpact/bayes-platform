@@ -6,6 +6,7 @@ import {
   getMembershipResourceId,
   UserMembership,
 } from "@/domains/memberships/user-membership.entity"
+import { resolveReviewCampaignRoleId } from "@/domains/rbac/resolve-review-campaign-role-id"
 import { ReviewCampaign } from "../review-campaign.entity"
 import type { ReviewCampaignMembershipRole } from "../review-campaigns.types"
 import type { ReviewCampaignMembershipModel } from "./review-campaign-membership.model"
@@ -19,7 +20,7 @@ const REVIEW_CAMPAIGN_RESOURCE_TYPE = "review_campaign" as const
  * `resourceType = 'review_campaign'`.
  *
  * A user may hold both `tester` and `reviewer` roles on the same campaign;
- * each role is a separate row.
+ * each role is a separate row, holding the matching `review_campaign_*` RBAC role.
  */
 @Injectable()
 export class ReviewCampaignMembershipRepository {
@@ -150,7 +151,14 @@ export class ReviewCampaignMembershipRepository {
       relations: ["user"],
     })
 
+    const roleId = await resolveReviewCampaignRoleId(this.transactionService.getManager(), role)
+
     if (existing) {
+      // A row written before the campaign roles existed (or by an older pod) gets its role here.
+      if (!existing.roleId && roleId) {
+        await membershipRepo.update({ id: existing.id }, { roleId })
+        existing.roleId = roleId
+      }
       const campaign = await this.campaignRepo().findOneOrFail({ where: { id: campaignId } })
       return this.toModel(existing, campaign)
     }
@@ -161,6 +169,7 @@ export class ReviewCampaignMembershipRepository {
         resourceType: REVIEW_CAMPAIGN_RESOURCE_TYPE,
         resourceId: campaignId,
         role,
+        roleId,
       }),
     )
     const withUser = await membershipRepo.findOneOrFail({
@@ -239,6 +248,7 @@ export class ReviewCampaignMembershipRepository {
       organizationId: campaign.organizationId,
       projectId: campaign.projectId,
       role: membership.role as ReviewCampaignMembershipRole,
+      roleId: membership.roleId,
       createdAt: membership.createdAt,
       updatedAt: membership.updatedAt,
       deletedAt: membership.deletedAt,

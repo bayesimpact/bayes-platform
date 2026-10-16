@@ -121,6 +121,12 @@ function WithData() {
             key: `${membership.campaignId}:${membership.role}`,
             label: membership.campaignName,
             role: membership.role,
+            roleKey: membership.roleKey,
+            permissions: membership.permissions,
+            // No backoffice page for a campaign yet: the link opens the campaign's project.
+            to: membership.projectId
+              ? BackofficeProjectRoutes.project.build({ projectId: membership.projectId })
+              : undefined,
           }))}
           emptyText="No review campaign memberships"
         />

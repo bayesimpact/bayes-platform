@@ -16,6 +16,8 @@ export type ReviewCampaignMembershipModel = {
   organizationId: string
   projectId: string
   role: ReviewCampaignMembershipRole
+  /** The `review_campaign_*` RBAC role; null on a legacy row that never got one. */
+  roleId: string | null
   createdAt: Date
   updatedAt: Date
   deletedAt: Date | null

@@ -8,8 +8,10 @@ import {
   CATALOG_ROLE_KEYS,
   PARENT_RESOURCE_TYPE_MAP,
   PERMISSION_DESCRIPTIONS,
+  PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN,
   READ_PERMISSION_RESOURCE_TYPE_MAP,
   RESOURCE_TYPE_PERMISSIONS_MAP,
+  REVIEW_CAMPAIGN_STATUSES_GIVING_PROJECT_PERMISSIONS,
   type ResourceReadPermission,
   type RoleScopeType,
   USER_READ_PERMISSION,
@@ -191,6 +193,8 @@ export class PermissionService {
    * - a global grant of the permission (every alive resource of the mapped type)
    * - direct access (membership on the resource whose role grants the key)
    * - access through parent resources (same key on an ancestor role)
+   * - for projects, a review campaign role on one of their campaigns granting the key
+   *   (PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN)
    *
    * Permission-first API: the resource type is resolved from the permission
    * key (e.g. `organization.read` / `backoffice.organization.read` -> organization).
@@ -235,7 +239,22 @@ export class PermissionService {
       resourceIdsFromParents.push(...childRows.map((row) => row.resourceId))
     }
 
-    return [...new Set([...directResourceIds, ...resourceIdsFromParents])]
+    const projectIdsFromReviewCampaigns = isProjectPermissionFromReviewCampaign(
+      resourceType,
+      readPermission,
+    )
+      ? Array.from(
+          (await this.listProjectPermissionsFromReviewCampaigns(userId, [readPermission])).keys(),
+        )
+      : []
+
+    return [
+      ...new Set([
+        ...directResourceIds,
+        ...resourceIdsFromParents,
+        ...projectIdsFromReviewCampaigns,
+      ]),
+    ]
   }
 
   /**
@@ -243,6 +262,8 @@ export class PermissionService {
    * - direct access: the permissions of the role held on the resource itself
    * - access through a parent resource: the parent's permissions, filtered down to the
    *   ones that apply to the requested resource type (RESOURCE_TYPE_PERMISSIONS_MAP)
+   * - for projects, the PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN keys of the review campaign
+   *   roles held on their campaigns, when those roles also grant the read permission
    *
    * Permission-first API: the resource type is resolved from the read
    * permission key (e.g. `organization.read` -> organization).
@@ -290,7 +311,62 @@ export class PermissionService {
       }
     }
 
+    if (isProjectPermissionFromReviewCampaign(resourceType, readPermission)) {
+      const permissionsByProjectId = await this.listProjectPermissionsFromReviewCampaigns(userId, [
+        ...PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN,
+      ])
+      for (const [projectId, campaignPermissions] of permissionsByProjectId) {
+        // only projects where a campaign role grants the read permission itself
+        if (!campaignPermissions.includes(readPermission)) continue
+        const collectedPermissions = permissionsByResourceId.get(projectId) ?? []
+        permissionsByResourceId.set(projectId, [
+          ...new Set([...collectedPermissions, ...campaignPermissions]),
+        ])
+      }
+    }
+
     return permissionsByResourceId
+  }
+
+  /**
+   * Project permissions given by the review campaign roles the user holds, per project of the
+   * campaigns (or of the given project only), restricted to the given keys, all within
+   * PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN. A role only gives them while its campaign is in one
+   * of its REVIEW_CAMPAIGN_STATUSES_GIVING_PROJECT_PERMISSIONS.
+   */
+  private async listProjectPermissionsFromReviewCampaigns(
+    userId: string,
+    permissions: readonly string[],
+    projectId?: string,
+  ): Promise<Map<string, string[]>> {
+    const rows: ResourcePermissionRow[] = await this.dataSource.query(
+      `SELECT DISTINCT review_campaign.project_id AS "resourceId",
+              role_permission.permission_key AS "permissionKey"
+       FROM user_membership membership
+       INNER JOIN role ON role.id = membership.role_id
+       INNER JOIN role_permission ON role_permission.role_id = membership.role_id
+       INNER JOIN review_campaign ON review_campaign.id = membership.resource_id
+         AND review_campaign.deleted_at IS NULL
+       INNER JOIN project ON project.id = review_campaign.project_id
+         AND project.deleted_at IS NULL
+       INNER JOIN unnest($3::text[], $4::text[]) AS giving_status(role_key, campaign_status)
+         ON giving_status.role_key = role.key
+         AND giving_status.campaign_status = review_campaign.status
+       WHERE membership.user_id = $1
+         AND membership.resource_type = 'review_campaign'
+         AND membership.deleted_at IS NULL
+         AND role_permission.permission_key = ANY($2)
+         AND ($5::uuid IS NULL OR review_campaign.project_id = $5)`,
+      [
+        userId,
+        permissions,
+        STATUS_GIVING_PROJECT_PERMISSIONS_ROLE_KEYS,
+        STATUS_GIVING_PROJECT_PERMISSIONS_STATUSES,
+        projectId ?? null,
+      ],
+    )
+
+    return this.groupPermissionsByResourceId(rows)
   }
 
   /** Permissions granted by roles held directly on resources of the given type. */
@@ -440,6 +516,11 @@ export class PermissionService {
    * Inheritance is gated by RESOURCE_TYPE_PERMISSIONS_MAP, with the same
    * semantics as listResourcePermissions: a parent role only conveys the
    * permissions that apply to the child resource type.
+   *
+   * On a project, a review campaign role held on one of its campaigns also
+   * counts, for the keys in PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN only and
+   * while the campaign is in one of the role's
+   * REVIEW_CAMPAIGN_STATUSES_GIVING_PROJECT_PERMISSIONS.
    */
   async has(userId: string, permission: string, resource: PermissionResource): Promise<boolean> {
     if (await this.hasGlobal(userId, permission)) {
@@ -448,6 +529,17 @@ export class PermissionService {
 
     if (await this.hasDirectly(userId, permission, resource)) {
       return true
+    }
+
+    if (isProjectPermissionFromReviewCampaign(resource.type, permission)) {
+      const permissionsByProjectId = await this.listProjectPermissionsFromReviewCampaigns(
+        userId,
+        [permission],
+        resource.id,
+      )
+      if (permissionsByProjectId.has(resource.id)) {
+        return true
+      }
     }
 
     // a permission that does not apply to this resource type can never be inherited
@@ -588,6 +680,34 @@ const ALL_ALIVE_RESOURCE_IDS_QUERIES: Record<PermissionResourceType, string> = {
   temp_agent: `SELECT agent.id AS "resourceId"
                FROM agent
                WHERE agent.deleted_at IS NULL`,
+  review_campaign: `SELECT review_campaign.id AS "resourceId"
+                    FROM review_campaign
+                    WHERE review_campaign.deleted_at IS NULL`,
+}
+
+const PROJECT_PERMISSION_FROM_REVIEW_CAMPAIGN_SET: ReadonlySet<string> = new Set(
+  PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN,
+)
+
+/** REVIEW_CAMPAIGN_STATUSES_GIVING_PROJECT_PERMISSIONS as two aligned arrays, for `unnest`. */
+const STATUS_GIVING_PROJECT_PERMISSIONS_PAIRS = Object.entries(
+  REVIEW_CAMPAIGN_STATUSES_GIVING_PROJECT_PERMISSIONS,
+).flatMap(([roleKey, campaignStatuses]) =>
+  campaignStatuses.map((campaignStatus) => ({ roleKey, campaignStatus })),
+)
+const STATUS_GIVING_PROJECT_PERMISSIONS_ROLE_KEYS = STATUS_GIVING_PROJECT_PERMISSIONS_PAIRS.map(
+  (pair) => pair.roleKey,
+)
+const STATUS_GIVING_PROJECT_PERMISSIONS_STATUSES = STATUS_GIVING_PROJECT_PERMISSIONS_PAIRS.map(
+  (pair) => pair.campaignStatus,
+)
+
+/** Whether a review campaign role can give this permission on a resource of this type. */
+function isProjectPermissionFromReviewCampaign(
+  resourceType: PermissionResourceType,
+  permission: string,
+): boolean {
+  return resourceType === "project" && PROJECT_PERMISSION_FROM_REVIEW_CAMPAIGN_SET.has(permission)
 }
 
 /**
@@ -624,6 +744,14 @@ const PARENT_RESOURCE_ID_QUERIES: Partial<
                 AND project.deleted_at IS NULL
               WHERE agent.id = $1
                 AND agent.deleted_at IS NULL`,
+  },
+  review_campaign: {
+    project: `SELECT review_campaign.project_id AS "parentResourceId"
+              FROM review_campaign
+              INNER JOIN project ON project.id = review_campaign.project_id
+                AND project.deleted_at IS NULL
+              WHERE review_campaign.id = $1
+                AND review_campaign.deleted_at IS NULL`,
   },
 }
 
@@ -662,5 +790,14 @@ const CHILD_RESOURCE_ROWS_QUERIES: Partial<
                 AND project.deleted_at IS NULL
               WHERE agent.project_id = ANY($1)
                 AND agent.deleted_at IS NULL`,
+  },
+  review_campaign: {
+    project: `SELECT review_campaign.id AS "resourceId",
+                     review_campaign.project_id AS "parentResourceId"
+              FROM review_campaign
+              INNER JOIN project ON project.id = review_campaign.project_id
+                AND project.deleted_at IS NULL
+              WHERE review_campaign.project_id = ANY($1)
+                AND review_campaign.deleted_at IS NULL`,
   },
 }

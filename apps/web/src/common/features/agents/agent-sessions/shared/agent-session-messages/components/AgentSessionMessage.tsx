@@ -11,7 +11,7 @@ import { Message, MessageContent, MessageFooter } from "@caseai-connect/ui/shad/
 import { Spinner } from "@caseai-connect/ui/shad/spinner"
 import type { TFunction } from "i18next"
 import { AlertCircleIcon, CheckIcon, ChevronRightIcon, CopyIcon, RotateCcwIcon } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { FeedbackCreator } from "@/common/components/FeedbackCreator"
 import { RestrictedFeature } from "@/common/components/RestrictedFeature"
@@ -23,6 +23,7 @@ import { useAppSelector } from "@/common/store/hooks"
 import { selectMcpAppHtml, selectStreamingToolSteps } from "../agent-session-messages.selectors"
 import { Attachment } from "./Attachment"
 import { ConversationFormsSheet } from "./ConversationFormsSheet"
+import { ChatDraftContext } from "./context"
 import { useConversationForms } from "./form-result-context"
 import { MarkdownWrapper } from "./MarkdownWrapper"
 import { McpAppPlaceholder, McpAppView } from "./McpAppView"
@@ -42,6 +43,7 @@ export function AgentSessionMessage({
 }) {
   const { t } = useTranslation()
   const conversationForms = useConversationForms()
+  const insertDraft = useContext(ChatDraftContext)
   // Card HTML is loaded after the transcript so a slow MCP server never delays the messages;
   // until it lands, each card holds its place with a placeholder.
   const mcpAppHtml = useAppSelector(selectMcpAppHtml)
@@ -131,6 +133,7 @@ export function AgentSessionMessage({
                     html={view.html}
                     toolInput={view.toolInput}
                     toolResult={view.toolResult}
+                    onMessage={insertDraft ?? undefined}
                     onRenderFailed={() =>
                       setFailedMcpAppToolCallIds((previous) =>
                         previous.includes(toolCall.id) ? previous : [...previous, toolCall.id],

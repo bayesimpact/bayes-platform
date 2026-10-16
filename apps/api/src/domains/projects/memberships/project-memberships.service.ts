@@ -268,7 +268,8 @@ export class ProjectMembershipsService {
   }
 
   /**
-   * Removes a project membership.
+   * Removes a project membership, with the user's agent memberships in the project and their
+   * tester and reviewer roles on its review campaigns.
    * If the user was added by email and never signed in, also removes the
    * account once it has no membership left.
    */
@@ -297,6 +298,11 @@ export class ProjectMembershipsService {
       }
 
       await this.agentMembershipsService.deleteAgentMembershipsForUserInProject({
+        userId: membership.userId,
+        projectId,
+      })
+
+      await this.projectMembershipRepository.deleteReviewCampaignMembershipsForUserInProject({
         userId: membership.userId,
         projectId,
       })

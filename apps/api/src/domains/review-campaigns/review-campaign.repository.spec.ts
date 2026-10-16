@@ -8,6 +8,8 @@ import { agentFactory } from "@/domains/agents/agent.factory"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { MembershipsModule } from "@/domains/memberships/memberships.module"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { RbacModule } from "@/domains/rbac/rbac.module"
+import { ensureRbacCatalog } from "../../../test/rbac-test.helpers"
 import {
   reviewCampaignMembershipFactory,
   saveReviewCampaignMembership,
@@ -22,9 +24,10 @@ describe("ReviewCampaignRepository", () => {
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
-      additionalImports: [MembershipsModule],
+      additionalImports: [MembershipsModule, RbacModule],
       providers: [ReviewCampaignRepository],
     })
+    await ensureRbacCatalog(setup.module)
     repository = setup.module.get(ReviewCampaignRepository)
     repositories = setup.getAllRepositories()
   })

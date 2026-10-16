@@ -163,6 +163,44 @@ describe("WorkspaceOwnerProvisioningService", () => {
       expect(result.status).toBe("skipped_existing_membership")
     })
 
+    it("should report a user who stays organization member, like a review campaign participant", async () => {
+      const existingUser = userFactory.build({ email: "owner@example.com" })
+      await userRepository.save(existingUser)
+      const existingOrg = organizationFactory.build({ name: "Test Org" })
+      await organizationRepository.save(existingOrg)
+      const project = projectRepository.create({ organizationId: existingOrg.id, name: "Test Org" })
+      await projectRepository.save(project)
+      // org member row and no project row, as a review campaign invitation now leaves
+      await userMembershipRepository.save(
+        userMembershipFactory.build({
+          userId: existingUser.id,
+          resourceId: existingOrg.id,
+          resourceType: "organization",
+          role: "member",
+        }),
+      )
+
+      const result = await service.provisionWorkspaceOwner({
+        email: "owner@example.com",
+        organizationName: "Test Org",
+      })
+
+      expect(result.status).toBe("granted_without_organization_admin")
+      expect(result.projectId).toBe(project.id)
+      const organizationMembership = await userMembershipRepository.findOneOrFail({
+        where: {
+          userId: existingUser.id,
+          resourceId: existingOrg.id,
+          resourceType: "organization",
+        },
+      })
+      expect(organizationMembership.role).toBe("member")
+      const projectMembership = await userMembershipRepository.findOneOrFail({
+        where: { userId: existingUser.id, resourceId: project.id, resourceType: "project" },
+      })
+      expect(projectMembership.role).toBe("admin")
+    })
+
     it("should reuse existing project in the organization", async () => {
       const existingOrg = organizationFactory.build({ name: "Test Org" })
       await organizationRepository.save(existingOrg)
@@ -221,6 +259,28 @@ describe("WorkspaceOwnerProvisioningService", () => {
       })
 
       expect(result.status).toBe("would_skip_existing_membership")
+    })
+
+    it("should return would_grant_without_organization_admin for an organization member with no project role", async () => {
+      const existingUser = userFactory.build({ email: "owner@example.com" })
+      await userRepository.save(existingUser)
+      const existingOrg = organizationFactory.build({ name: "Test Org" })
+      await organizationRepository.save(existingOrg)
+      await userMembershipRepository.save(
+        userMembershipFactory.build({
+          userId: existingUser.id,
+          resourceId: existingOrg.id,
+          resourceType: "organization",
+          role: "member",
+        }),
+      )
+
+      const result = await service.previewProvisioning({
+        email: "owner@example.com",
+        organizationName: "Test Org",
+      })
+
+      expect(result.status).toBe("would_grant_without_organization_admin")
     })
   })
 })

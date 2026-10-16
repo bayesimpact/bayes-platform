@@ -65,8 +65,38 @@ export function getReplyBubbleText(
   toolCalls: AgentSessionToolCallDto[] | undefined,
   unavailableMcpAppToolCallIds: string[],
 ): string {
-  if (content.trim().length > 0) return content
+  if (hasReplyText(content, toolCalls)) return content
   return getFailedMcpAppFallbackText(toolCalls, unavailableMcpAppToolCallIds)
+}
+
+/**
+ * Next to a card, text without a letter or a digit counts as nothing: told that the card is the
+ * reply, a model may still write a lone "." after the tool call.
+ */
+function hasReplyText(content: string, toolCalls: AgentSessionToolCallDto[] | undefined): boolean {
+  if (content.trim().length === 0) return false
+  if (!(toolCalls ?? []).some(hasMcpAppCard)) return true
+  return /[\p{L}\p{N}]/u.test(content)
+}
+
+/**
+ * Text of a message an MCP App proposes for the conversation (`ui/message`): its text blocks,
+ * joined. Empty when it carries no text, since the chat input only takes text.
+ */
+export function getMcpAppMessageText(content: unknown[]): string {
+  return content
+    .flatMap((block: unknown) =>
+      block &&
+      typeof block === "object" &&
+      "type" in block &&
+      block.type === "text" &&
+      "text" in block &&
+      typeof block.text === "string"
+        ? [block.text.trim()]
+        : [],
+    )
+    .filter((text) => text.length > 0)
+    .join("\n\n")
 }
 
 /**

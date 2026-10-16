@@ -282,7 +282,11 @@ export type BackofficeUserAgentMembership = {
 export type BackofficeUserReviewCampaignMembership = {
   campaignId: string
   campaignName: string
+  projectId: string
   role: ReviewCampaignMembershipRole
+  /** The `review_campaign_*` RBAC role, null on a legacy row that never got one. */
+  roleKey: string | null
+  permissions: string[]
 }
 
 export type BackofficeUserDetail = {
@@ -432,7 +436,10 @@ const toBackofficeUserReviewCampaignMembership = (
 ): BackofficeUserReviewCampaignMembership => ({
   campaignId: dto.campaignId,
   campaignName: dto.campaignName,
+  projectId: dto.projectId,
   role: dto.role,
+  roleKey: dto.roleKey,
+  permissions: dto.permissions,
 })
 
 const toBackofficeUserGlobalRole = (

@@ -1,11 +1,14 @@
 import { randomUUID } from "node:crypto"
 import {
+  AgentSessionMessagesRoutes,
+  ConversationAgentSessionsRoutes,
   MeRoutes,
   MyInvitationsRoutes,
   ProjectInvitationsRoutes,
 } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
+import { AUTH_ERRORS } from "@/common/errors/auth-errors"
 import { bindExpectActivityCreated } from "@/common/test/activity-test.helpers"
 import {
   type AllRepositories,
@@ -14,13 +17,17 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
+import { ConversationAgentSessionsModule } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.module"
 import { MeModule } from "@/domains/me/me.module"
+import { userMembershipFactory } from "@/domains/memberships/user-membership.factory"
 import {
   createOrganizationWithAgent,
   createOrganizationWithProject,
 } from "@/domains/organizations/organization.factory"
 import { addUserToProject } from "@/domains/projects/memberships/project-membership.factory"
+import { REVIEW_CAMPAIGN_ROLES } from "@/domains/rbac/rbac.constants"
 import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
+import type { ReviewCampaignMembershipRole } from "@/domains/review-campaigns/review-campaigns.types"
 import { userFactory } from "@/domains/users/user.factory"
 import { mockOidcEmailForSub, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import {
@@ -46,7 +53,12 @@ describe("Invitations - acceptOne", () => {
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
-      additionalImports: [InvitationsModule, MeModule, ActivitiesModule],
+      additionalImports: [
+        InvitationsModule,
+        MeModule,
+        ActivitiesModule,
+        ConversationAgentSessionsModule,
+      ],
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     await ensureRbacCatalog(setup.module)
@@ -206,10 +218,13 @@ describe("Invitations - acceptOne", () => {
   })
 
   describe("review campaign target", () => {
-    const createCampaignInvitation = async (status: "active" | "closed") => {
+    const createCampaignInvitation = async (
+      status: "active" | "closed",
+      role: ReviewCampaignMembershipRole = "reviewer",
+    ) => {
       const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
         repositories,
-        { user: { authSubject: ownerSubject } },
+        { user: { authSubject: ownerSubject }, agent: { type: "conversation" } },
       )
       const campaignFactory =
         status === "active" ? reviewCampaignFactory.active() : reviewCampaignFactory.closed()
@@ -218,23 +233,129 @@ describe("Invitations - acceptOne", () => {
       )
       const invitee = await createInvitee()
       const invitation = await repositories.invitationRepository.save(
-        invitationFactory.transient({ user: invitee, reviewCampaign }).build({ role: "reviewer" }),
+        invitationFactory.transient({ user: invitee, reviewCampaign }).build({ role }),
       )
-      return { reviewCampaign, invitee, invitation }
+      return { organization, project, agent, reviewCampaign, invitee, invitation }
     }
 
-    it("gives the invited campaign role", async () => {
-      const { reviewCampaign, invitee, invitation } = await createCampaignInvitation("active")
+    const findCampaignRole = (role: ReviewCampaignMembershipRole) =>
+      repositories.roleRepository.findOneOrFail({ where: { key: REVIEW_CAMPAIGN_ROLES[role] } })
+
+    it.each([
+      ["tester"],
+      ["reviewer"],
+    ] as const)("gives the invited %s role and an organization membership, but no project role", async (role) => {
+      const { organization, project, reviewCampaign, invitee, invitation } =
+        await createCampaignInvitation("active", role)
+      const campaignRole = await findCampaignRole(role)
 
       expectResponse(await subject(invitation.id), 201)
 
       expect(
-        await findReviewCampaignMembershipRow(repositories, {
+        (
+          await findReviewCampaignMembershipRow(repositories, {
+            userId: invitee.id,
+            campaignId: reviewCampaign.id,
+            role,
+          })
+        )?.roleId,
+      ).toBe(campaignRole.id)
+      expect(
+        (
+          await findOrganizationMembershipRow(repositories, {
+            userId: invitee.id,
+            organizationId: organization.id,
+          })
+        )?.role,
+      ).toBe("member")
+      expect(
+        await findProjectMembershipRow(repositories, { userId: invitee.id, projectId: project.id }),
+      ).toBeNull()
+    })
+
+    it("keeps the project member row the invitee already holds", async () => {
+      const { project, invitee, invitation } = await createCampaignInvitation("active", "tester")
+      const { membership: projectMembership } = await addUserToProject({
+        repositories,
+        project,
+        user: invitee,
+        membership: { role: "member" },
+      })
+
+      expectResponse(await subject(invitation.id), 201)
+
+      const projectRow = await findProjectMembershipRow(repositories, {
+        userId: invitee.id,
+        projectId: project.id,
+      })
+      expect(projectRow?.id).toBe(projectMembership.id)
+      expect(projectRow?.role).toBe("member")
+    })
+
+    it("sets the role on a campaign row the invitee holds without one", async () => {
+      const { reviewCampaign, invitee, invitation } = await createCampaignInvitation(
+        "active",
+        "tester",
+      )
+      const roleLessRow = await repositories.userMembershipRepository.save(
+        userMembershipFactory.build({
           userId: invitee.id,
-          campaignId: reviewCampaign.id,
-          role: "reviewer",
+          resourceType: "review_campaign",
+          resourceId: reviewCampaign.id,
+          role: "tester",
+          roleId: null,
         }),
-      ).not.toBeNull()
+      )
+      const testerRole = await findCampaignRole("tester")
+
+      expectResponse(await subject(invitation.id), 201)
+
+      const campaignRows = await repositories.userMembershipRepository.find({
+        where: {
+          userId: invitee.id,
+          resourceType: "review_campaign",
+          resourceId: reviewCampaign.id,
+        },
+      })
+      expect(campaignRows.map((campaignRow) => [campaignRow.id, campaignRow.roleId])).toEqual([
+        [roleLessRow.id, testerRole.id],
+      ])
+    })
+
+    it("lets an invited tester chat with the campaign agent until the campaign closes", async () => {
+      const { project, agent, reviewCampaign, invitation } = await createCampaignInvitation(
+        "active",
+        "tester",
+      )
+      expectResponse(await subject(invitation.id), 201)
+      const agentPathParams = {
+        organizationId: project.organizationId,
+        projectId: project.id,
+        agentId: agent.id,
+      }
+      const createSession = () =>
+        request({
+          route: ConversationAgentSessionsRoutes.live.createOne,
+          pathParams: agentPathParams,
+          token: "token",
+        })
+
+      const sessionResponse = await createSession()
+      expectResponse(sessionResponse, 201)
+      const messagesResponse = await request({
+        route: AgentSessionMessagesRoutes.live.getAll,
+        pathParams: { ...agentPathParams, agentSessionId: sessionResponse.body.data.id },
+        token: "token",
+      })
+      expectResponse(messagesResponse, 201)
+      expect(messagesResponse.body.data).toEqual([])
+
+      await repositories.reviewCampaignRepository.update(
+        { id: reviewCampaign.id },
+        { status: "closed", closedAt: new Date() },
+      )
+
+      expectResponse(await createSession(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
 
     it("refuses while the campaign is not active", async () => {

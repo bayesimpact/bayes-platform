@@ -83,6 +83,7 @@ import {
   PROJECT_MEMBER_DELETE_PERMISSION,
   PROJECT_MEMBER_INVITE_PERMISSION,
   PROJECT_MEMBER_READ_PERMISSION,
+  PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN,
   PROJECT_READ_PERMISSION,
   PROJECT_REVIEW_CAMPAIGN_CREATE_PERMISSION,
   PROJECT_REVIEW_CAMPAIGN_DELETE_PERMISSION,
@@ -97,6 +98,10 @@ import {
   RESOURCE_LIBRARY_READ_PERMISSION,
   RESOURCE_LIBRARY_UPDATE_PERMISSION,
   RESOURCE_TYPE_PERMISSIONS_MAP,
+  REVIEW_CAMPAIGN_REPORT_READ_PERMISSION,
+  REVIEW_CAMPAIGN_ROLE_PERMISSIONS,
+  REVIEW_CAMPAIGN_ROLES,
+  REVIEW_CAMPAIGN_STATUSES_GIVING_PROJECT_PERMISSIONS,
   STUDIO_UI_READ_PERMISSION,
 } from "./rbac.constants"
 
@@ -564,7 +569,9 @@ describe("conversation agent session permissions", () => {
     AGENT_CONVERSATION_SESSION_DELETE_PERMISSION,
   ]
 
-  it.each(liveSessionPermissions)("grants %s to every project role only", (permission) => {
+  it.each(
+    liveSessionPermissions,
+  )("grants %s to every project role, and read and create to testers", (permission) => {
     expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
       "project_owner",
       "project_admin",
@@ -572,6 +579,11 @@ describe("conversation agent session permissions", () => {
     ])
     expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
     expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(REVIEW_CAMPAIGN_ROLE_PERMISSIONS, permission)).toEqual(
+      permission === AGENT_CONVERSATION_SESSION_DELETE_PERMISSION
+        ? []
+        : [REVIEW_CAMPAIGN_ROLES.tester],
+    )
   })
 
   const playgroundSessionPermissions = [
@@ -589,6 +601,7 @@ describe("conversation agent session permissions", () => {
     ])
     expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
     expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(REVIEW_CAMPAIGN_ROLE_PERMISSIONS, permission)).toEqual([])
   })
 
   it("never inherits conversation sessions from the organization", () => {
@@ -682,7 +695,7 @@ describe("project agent message feedback permissions", () => {
       .filter(([_roleKey, permissions]) => permissions.includes(permission))
       .map(([roleKey]) => roleKey)
 
-  it("grants project.agent_message_feedback.create to every project role only", () => {
+  it("grants project.agent_message_feedback.create to every project role and to testers only", () => {
     const permission = PROJECT_AGENT_MESSAGE_FEEDBACK_CREATE_PERMISSION
     expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
       "project_owner",
@@ -691,6 +704,9 @@ describe("project agent message feedback permissions", () => {
     ])
     expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
     expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
+    expect(rolesHolding(REVIEW_CAMPAIGN_ROLE_PERMISSIONS, permission)).toEqual([
+      REVIEW_CAMPAIGN_ROLES.tester,
+    ])
   })
 
   it("grants project.agent_message_feedback.read to project owners and admins only", () => {
@@ -919,5 +935,46 @@ describe("project app installation permissions", () => {
     for (const permission of appInstallationPermissions) {
       expect(inheritable).not.toContain(permission)
     }
+  })
+})
+
+describe("review campaign role permissions", () => {
+  const isCampaignKey = (permission: string) => permission.startsWith("review_campaign.")
+  const campaignRolePermissions = Object.values(REVIEW_CAMPAIGN_ROLE_PERMISSIONS).flatMap(
+    (permissions) => [...permissions],
+  )
+
+  it("lists every project key of the campaign roles in PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN, and only those", () => {
+    const projectKeysOfCampaignRoles = new Set(
+      campaignRolePermissions.filter((permission) => !isCampaignKey(permission)),
+    )
+    expect([...projectKeysOfCampaignRoles].sort()).toEqual(
+      [...PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN].sort(),
+    )
+  })
+
+  it("gives every campaign role the campaign statuses that open its project keys", () => {
+    expect(Object.keys(REVIEW_CAMPAIGN_STATUSES_GIVING_PROJECT_PERMISSIONS).sort()).toEqual(
+      Object.values(REVIEW_CAMPAIGN_ROLES).sort(),
+    )
+  })
+
+  it("grants review_campaign keys on campaign roles only, except the report on project owners and admins", () => {
+    for (const rolePermissions of [ORGANIZATION_ROLE_PERMISSIONS, AGENT_ROLE_PERMISSIONS]) {
+      for (const permissions of Object.values(rolePermissions)) {
+        expect(permissions.filter(isCampaignKey)).toEqual([])
+      }
+    }
+    for (const [roleKey, permissions] of Object.entries(PROJECT_ROLE_PERMISSIONS)) {
+      expect(permissions.filter(isCampaignKey)).toEqual(
+        roleKey === "project_member" ? [] : [REVIEW_CAMPAIGN_REPORT_READ_PERMISSION],
+      )
+    }
+  })
+
+  it("passes only the report down from the project to its campaigns", () => {
+    expect(RESOURCE_TYPE_PERMISSIONS_MAP.review_campaign).toEqual([
+      REVIEW_CAMPAIGN_REPORT_READ_PERMISSION,
+    ])
   })
 })

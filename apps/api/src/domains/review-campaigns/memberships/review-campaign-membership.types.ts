@@ -10,6 +10,7 @@ export type ReviewCampaignMembershipFixture = {
   organizationId: string
   projectId: string
   role: ReviewCampaignMembershipRole
+  roleId: string | null
   createdAt: Date
   updatedAt: Date
   deletedAt: Date | null

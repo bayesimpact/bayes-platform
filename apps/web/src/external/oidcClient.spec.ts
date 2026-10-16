@@ -24,6 +24,7 @@ const {
   login,
   rememberSigninReturnTo,
   takeSigninReturnTo,
+  takeTabReturnTo,
 } = await import("./oidcClient")
 
 const expiredUser = { expired: true, expires_in: -5, access_token: "old" }
@@ -169,5 +170,43 @@ describe("return to the page after sign-in", () => {
     expect(takeSigninReturnTo()).toBeNull()
     rememberSigninReturnTo({ state: undefined } as User)
     expect(takeSigninReturnTo()).toBeNull()
+  })
+})
+
+describe("page kept by the tab when the sign-in state is lost", () => {
+  const stubTab = (pathname: string) => {
+    const storage = new Map<string, string>()
+    vi.stubGlobal("window", {
+      location: { origin: "https://app.test", pathname, search: "", hash: "" },
+      sessionStorage: {
+        getItem: (key: string) => storage.get(key) ?? null,
+        setItem: (key: string, value: string) => storage.set(key, value),
+        removeItem: (key: string) => storage.delete(key),
+      },
+    })
+  }
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it("keeps the page of the last sign-in, once", async () => {
+    stubTab("/desk/chats")
+    await login()
+    expect(takeTabReturnTo()).toBe("/desk/chats")
+    expect(takeTabReturnTo()).toBeNull()
+  })
+
+  it("forgets the page once the sign-in completes", async () => {
+    stubTab("/desk/chats")
+    await login()
+    rememberSigninReturnTo({ state: { returnTo: "/desk/chats" } } as User)
+    expect(takeTabReturnTo()).toBeNull()
+  })
+
+  it("keeps no page from the app root", async () => {
+    stubTab("/")
+    await login()
+    expect(takeTabReturnTo()).toBeNull()
   })
 })
