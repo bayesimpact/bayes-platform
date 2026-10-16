@@ -214,6 +214,31 @@ describe("sendMessage", () => {
     expect(mockedStreamChatResponse).toHaveBeenCalledWith(expect.objectContaining({ type }))
   })
 
+  it("fails the sub-agent's reply when the stream ends after a hand-over without settling it", async () => {
+    // The parent's `end` settles the parent's reply only. The sub-agent's reply that follows
+    // used to stay streaming for good when the stream closed before its own terminal event.
+    mockedIsStudioInterface.mockReturnValue(true)
+    mockedStreamChatResponse.mockImplementation(async ({ handlers }) => {
+      handlers.onStart({ type: "start", messageId: "parent-reply" })
+      handlers.onEnd({ type: "end", messageId: "parent-reply", fullContent: "Handing over" })
+      handlers.onStart({ type: "start", messageId: "child-reply" })
+    })
+    const dispatch = vi.fn()
+
+    const agentSession = {
+      id: agentSessionId,
+      type: "playground",
+      agentId,
+    } as ConversationAgentSession
+
+    await sendMessage({ content: "Hello", agentSession })(dispatch, () => buildState(), extra)
+
+    expect(findAction(dispatch, "failAssistantMessage")?.payload).toEqual({
+      messageId: "child-reply",
+      error: "The response ended unexpectedly",
+    })
+  })
+
   it("leaves a completed stream alone", async () => {
     mockedIsStudioInterface.mockReturnValue(true)
     mockedStreamChatResponse.mockImplementation(async ({ handlers }) => {

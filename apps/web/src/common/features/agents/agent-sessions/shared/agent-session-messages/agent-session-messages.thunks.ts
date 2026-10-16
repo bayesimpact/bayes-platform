@@ -171,9 +171,11 @@ export const sendMessage = createAsyncThunk<
     // The first `start` names the persisted id of the optimistic bubble; a later one
     // (the next agent's reply after a hand-over) opens a new bubble.
     let repliesStarted = 0
-    // A stream that ends with neither `end` nor `error` left the message half-written. Without
-    // this the bubble would stay in `streaming` for good and block every later send.
-    let sawTerminalEvent = false
+    // A stream that ends with neither `end` nor `error` for the reply it opened last left that
+    // reply half-written. Without this the bubble would stay in `streaming` for good and block
+    // every later send. Tracked per reply: after a hand-over, the parent's `end` settles only
+    // the parent's reply, not the sub-agent's that follows it.
+    let replySettled = false
 
     try {
       await streamChatResponse({
@@ -189,6 +191,7 @@ export const sendMessage = createAsyncThunk<
         handlers: {
           onStart: (event) => {
             streamedMessageId = event.messageId
+            replySettled = false
             repliesStarted += 1
             if (repliesStarted === 1) {
               // Update the optimistic message ID to match the backend's ID
@@ -230,7 +233,7 @@ export const sendMessage = createAsyncThunk<
             }
           },
           onEnd: async (event) => {
-            sawTerminalEvent = true
+            replySettled = true
             dispatch(
               agentSessionMessagesActions.completeAssistantMessage({
                 messageId: event.messageId,
@@ -244,7 +247,7 @@ export const sendMessage = createAsyncThunk<
             dispatch(conversationAgentSessionsActions.getAll({ agentId }))
           },
           onError: (event) => {
-            sawTerminalEvent = true
+            replySettled = true
             dispatch(
               agentSessionMessagesActions.failAssistantMessage({
                 messageId: event.messageId,
@@ -256,7 +259,7 @@ export const sendMessage = createAsyncThunk<
         signal,
       })
 
-      if (!sawTerminalEvent) {
+      if (!replySettled) {
         dispatch(
           agentSessionMessagesActions.failAssistantMessage({
             messageId: streamedMessageId,
