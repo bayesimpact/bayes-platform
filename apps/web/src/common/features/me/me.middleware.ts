@@ -73,7 +73,8 @@ listenerMiddleware.startListening({
 
     if (isUnauthorizedRequest) {
       // Only force logout for auth failures. Network/CORS errors should surface in UI.
-      localStorage.clear()
+      // No localStorage.clear(): it also removes the OIDC state of a sign-in
+      // that another request started, and the id token that logout() sends.
       await logout()
       return
     }
