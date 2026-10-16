@@ -160,6 +160,47 @@ describe("StreamingLLMService", () => {
     expect(events.length).toBeGreaterThan(0)
     expect(fulltextStream).toBe(`Hello, I'm the stream default mock value!`)
   })
+  describe("abortRepliesInFlight", () => {
+    it("settles as aborted a reply still being written", async () => {
+      const { connectScope, agent, agentSettings, session } = await createContextWithSession()
+
+      const stream = service.streamAgentResponse({
+        agentSessionScope: { connectScope, session, agent, agentSettings },
+        userContent: "Bonjour",
+        notifyClient: jest.fn(),
+      })
+      // The generator pauses on `start`: the reply is persisted and still streaming.
+      const start = await stream.next()
+      const { messageId } = JSON.parse((start.value as StreamEvent).data) as { messageId: string }
+
+      await expect(service.abortRepliesInFlight()).resolves.toBe(1)
+
+      const assistantMessage = await repositories.agentMessageRepository.findOneByOrFail({
+        id: messageId,
+      })
+      expect(assistantMessage.status).toBe("aborted")
+      await stream.return()
+    })
+
+    it("leaves a settled reply alone", async () => {
+      const { connectScope, agent, agentSettings, session } = await createContextWithSession()
+
+      await aggregateStream(
+        service.streamAgentResponse({
+          agentSessionScope: { connectScope, session, agent, agentSettings },
+          userContent: "Bonjour",
+          notifyClient: jest.fn(),
+        }),
+      )
+
+      await expect(service.abortRepliesInFlight()).resolves.toBe(0)
+      const assistantMessage = await repositories.agentMessageRepository.findOneOrFail({
+        where: { sessionId: session.id, role: "assistant" },
+      })
+      expect(assistantMessage.status).toBe("completed")
+    })
+  })
+
   it("streamAgentResponse - emits an error event when the provider stream fails", async () => {
     const { connectScope, agent, agentSettings, session } = await createContextWithSession()
     const notifyClient = jest.fn()
