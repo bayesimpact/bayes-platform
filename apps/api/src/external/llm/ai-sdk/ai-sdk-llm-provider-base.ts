@@ -16,6 +16,11 @@ import type { LeakedToolCall } from "@/external/llm/ai-sdk/ai-sdk-llm-tools-mgmt
 
 const logger = new Logger("AISDKLLMProviderBase")
 
+// Upper bound on the tokens one streamed step can generate, reasoning
+// included. A model can loop on one token without end (observed with Gemma
+// 4 after a tool call): without a bound, the generation runs for minutes.
+export const MAX_STREAM_OUTPUT_TOKENS = 16384
+
 /**
  * The calls a provider answers through the AI SDK: a streamed chat turn, a
  * plain text generation and a structured output. Everything about the model
@@ -55,8 +60,18 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
       metadata,
     })
 
+    const systemPrompt = this.applySpecificToSystemPrompt({
+      systemPrompt: systemMessage || config.systemPrompt || "",
+      config,
+      callOrigin,
+    })
+
     const agent = new ToolLoopAgent({
       model: this.getLanguageModelWithRawCapture({ config, callOrigin, metadata, leakedToolCalls }),
+      // Passed as instructions, not as a system message in `messages`: the AI SDK
+      // warns on every call otherwise (prompt injection risk).
+      ...(systemPrompt ? { instructions: systemPrompt } : {}),
+      maxOutputTokens: MAX_STREAM_OUTPUT_TOKENS,
       tools: this.supportsStrictTools() ? this.withStrictTools(config.tools) : config.tools,
       stopWhen: this.buildStopConditions(config),
       // Arguments the model broke (invalid JSON) are regenerated through
@@ -79,14 +94,7 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
       ...this.buildSpecificProviderOptions({ config }),
     })
 
-    let systemPrompt = systemMessage || config.systemPrompt || ""
-    systemPrompt = this.applySpecificToSystemPrompt({ systemPrompt, config, callOrigin })
-    const systemMessagePart = systemPrompt
-      ? [{ role: "system" as const, content: systemPrompt }]
-      : []
-
-    const fullMessages = [...systemMessagePart, ...aiSDKMessages]
-    const streamResult = await agent.stream({ messages: fullMessages })
+    const streamResult = await agent.stream({ messages: aiSDKMessages })
 
     // The AI SDK never throws stream failures at the consumer: they surface
     // as `error` parts on fullStream, which textStream filters out — the

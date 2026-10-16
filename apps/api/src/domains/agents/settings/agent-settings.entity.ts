@@ -53,7 +53,6 @@ export class AgentSettings extends ConnectEntityBase {
     },
   })
   deletedTemperature!: number
-  deletedTemperature!: number
 
   @Column({ type: "varchar", nullable: false })
   locale!: AgentLocale
@@ -76,8 +75,6 @@ export class AgentSettings extends ConnectEntityBase {
   @Column({ type: "jsonb", nullable: false, name: "provider_options" })
   providerOptions!: Record<string, unknown>
 
-  @Column({ type: "varchar", name: "memory_mode", nullable: false, default: "off" })
-  m
   @Column({ type: "varchar", name: "memory_mode", nullable: false, default: "off" })
   memoryMode!: AgentMemoryMode
 }

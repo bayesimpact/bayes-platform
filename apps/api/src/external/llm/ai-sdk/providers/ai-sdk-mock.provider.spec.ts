@@ -9,8 +9,8 @@ import type {
   LLMFile,
   LLMMetadata,
 } from "@/common/interfaces/llm-provider.interface"
+import { MAX_STREAM_OUTPUT_TOKENS } from "@/external/llm/ai-sdk/ai-sdk-llm-provider-base"
 import { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.provider"
-import { MAX_STREAM_OUTPUT_TOKENS } from "@/external/llm/ai-sdk-llm-provider-base"
 
 describe("AISDKMockProvider", () => {
   let provider: AISDKMockProvider

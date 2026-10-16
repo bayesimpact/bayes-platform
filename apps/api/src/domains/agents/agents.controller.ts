@@ -4,7 +4,6 @@ import {
   AgentSubAgentsRoutes,
   AgentsRoutes,
   createAgentSchema,
-  PROJECT_READ_PERMISSION,
   replaceAgentSubAgentsSchema,
   updateAgentNameSchema,
 } from "@caseai-connect/api-contracts"
@@ -109,9 +108,7 @@ export class AgentsController {
   }
 
   @Get(AgentsRoutes.getAvailableModels.path)
-  @UseGuards(CheckPermissionGuard)
   @CheckPermission(PROJECT_READ_PERMISSION, "project")
-  @CheckPolicy((policy) => policy.canList())
   async getAvailableModels(
     @Req() request: EndpointRequestWithProject,
   ): Promise<typeof AgentsRoutes.getAvailableModels.response> {

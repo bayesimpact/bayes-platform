@@ -2,11 +2,11 @@ import {
   AgentLocale,
   AgentModel,
   agentTypeSchema,
-  DEFAULT_AGENT_MODEL,
   outputJsonSchemaSchema,
 } from "@caseai-connect/api-contracts"
 import { type CallToolResult, McpServer } from "@modelcontextprotocol/server"
 import { z } from "zod"
+import { AGENT_DEFAULT_MODELS } from "@/domains/agents/settings/agent-models.service"
 import type { McpAgentToolsService, McpCaller } from "./mcp-agent-tools.service"
 
 export const MCP_SERVER_NAME = "caseai-connect-agents"
@@ -39,7 +39,10 @@ const createAgentInputSchema = z.object({
     .string()
     .min(1)
     .describe("System prompt: what the agent does, its tone and the rules it follows."),
-  model: z.enum(AgentModel).default(DEFAULT_AGENT_MODEL).describe("Language model of the agent."),
+  model: z
+    .enum(AgentModel)
+    .default(AGENT_DEFAULT_MODELS.agent)
+    .describe("Language model of the agent."),
   locale: z.enum(AgentLocale).default(AgentLocale.EN).describe("Language the agent speaks."),
   temperature: z
     .number()

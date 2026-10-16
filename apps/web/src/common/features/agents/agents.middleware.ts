@@ -19,13 +19,14 @@ export function createAgentsMiddleware({ includeDrafts }: { includeDrafts: boole
       },
     })
 
-  // Only the routes that read the catalog mount it (Studio and Eval), so Desk never fetches it.
-  listenerMiddleware.startListening({
-    actionCreator: agentsActions.mountAvailableModels,
-    effect: async (_, listenerApi) => {
-      await listenerApi.dispatch(listAvailableModels())
-    },
-  })
+    // Only the routes that read the catalog mount it (Studio and Eval), so Desk never fetches it.
+    listenerMiddleware.startListening({
+      actionCreator: agentsActions.mountAvailableModels,
+      effect: async (_, listenerApi) => {
+        await listenerApi.dispatch(listAvailableModels())
+      },
+    })
+  }
 
   return {
     listenerMiddleware,

@@ -65,7 +65,6 @@ export type AgentModelDto = {
   defaultOptions: Record<string, unknown>
 }
 
-
 export type AgentModelListDto = {
   /** Every model but the test one, available or not, in catalog order. */
   models: AgentModelDto[]
@@ -84,7 +83,6 @@ export enum AgentMemoryMode {
   Ask = "ask",
   Auto = "auto",
 }
-
 
 export enum AgentLocale {
   EN = "en",
@@ -220,14 +218,8 @@ export const agentSettingsValidationSchema = z.object({
   outputJsonSchema: outputJsonSchemaSchema.optional(),
   projectAgentSessionCategoryIds: z.array(z.string().uuid()),
   resourceLibraryIds: z.array(z.string().uuid()).optional(),
-  providerOptions: z.record(z.string(), z.unknown()),
-  memoryMode: z.enum(AgentMemoryMode),
-  thinkingLevel: z.enum(AgentThinkingLevel),
-  providerOptions: z.record(z.string(), z.unknown()),
   memoryMode: z.enum(AgentMemoryMode),
   providerOptions: z.record(z.string(), z.unknown()),
-  memoryMode: z.enum(AgentMemoryMode),
-  memoryMode: z.enum(AgentMemoryMode),
 })
 
 export const refineOutputJsonSchema = {

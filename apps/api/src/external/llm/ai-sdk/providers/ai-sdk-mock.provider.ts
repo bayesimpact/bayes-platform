@@ -247,6 +247,7 @@ export class AISDKMockProvider extends AISDKLLMProviderBase<AgentProvider._Mock>
       ...(options.temperature !== undefined ? { temperature: options.temperature } : {}),
       ...(options.providerOptions !== undefined
         ? { providerOptions: options.providerOptions }
+        : {}),
       ...(options.maxOutputTokens !== undefined
         ? { maxOutputTokens: options.maxOutputTokens }
         : {}),

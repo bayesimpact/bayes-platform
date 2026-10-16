@@ -4,7 +4,7 @@ import { ADS, defaultAsyncData } from "@/common/store/async-data-status"
 import type { RootState } from "@/common/store/types"
 import type { Services } from "@/di/services"
 import { agentModelsCatalogFactory } from "./agent.factory"
-import { agentsMiddleware } from "./agents.middleware"
+import { createAgentsMiddleware } from "./agents.middleware"
 import { selectAvailableModelsCatalog } from "./agents.selectors"
 import { agentsActions, agentsSlice } from "./agents.slice"
 import { listAvailableModels } from "./agents.thunks"
@@ -67,6 +67,7 @@ describe("listAvailableModels", () => {
 })
 
 describe("agentsMiddleware", () => {
+  const agentsMiddleware = createAgentsMiddleware({ includeDrafts: true })
   const switchProject = createAction<string>("test/switchProject")
   const projects = [{ id: "project-1" }, { id: "project-2" }]
 

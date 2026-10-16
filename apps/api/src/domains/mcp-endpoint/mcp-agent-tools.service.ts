@@ -158,7 +158,14 @@ export class McpAgentToolsService {
     try {
       const { agent } = await this.agentsService.createAgent({
         connectScope,
-        fields: parsed.data,
+        fields: {
+          ...parsed.data,
+          providerOptions: await this.agentSettingsService.resolveNewAgentModelOptions({
+            connectScope,
+            model: parsed.data.model,
+            providerOptions: parsed.data.providerOptions,
+          }),
+        },
         userId,
       })
       await this.activitiesService.createActivity({
