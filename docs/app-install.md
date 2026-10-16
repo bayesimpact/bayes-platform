@@ -69,9 +69,9 @@ The authorization request is the standard one:
 | --- | --- |
 | Client authentication | `client_secret_basic` or `client_secret_post`, at the token and revocation endpoints. PKCE stays required. |
 | Access token | `at+jwt` signed by the API, valid 1 hour. Subject: the installation's service user. Claims: `installation_id`, `grant_id`, `client_id`. Audience: `{API}/api/apps/v1`. |
-| Refresh token | Opaque, rotated at each use, expires after 90 days without use. A refresh token used twice revokes the installation. |
+| Refresh token | Opaque, rotated at each use, expires after 90 days without use. A refresh token used twice revokes its grant: the app reconnects from the consent page and keeps its installation. |
 
-`/api/apps/v1/*` loads the installation on every request: once it is revoked, the app stops at once, even with an access token still valid.
+`/api/apps/v1/*` loads the installation and the token's grant on every request: once either is revoked, the app stops at once, even with an access token still valid.
 
 ## Revocation
 

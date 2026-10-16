@@ -72,9 +72,11 @@ grant with its refresh token. The service user model does not change.**
   hour, whose subject is the installation's service user, with the
   installation id, and whose audience is the apps API (`<API>/api/apps/v1`).
 * Refresh tokens rotate at each use and expire after 90 days without use.
-  A reused refresh token revokes the grant and the installation.
-* `apps/v1/*` accepts these tokens only. The installation is loaded on each
-  request: revoking it from the studio stops the app at once.
+  A reused refresh token revokes the grant, not the installation: the app is
+  cut at once and reconnects without losing its conversations or documents,
+  since a lost token response looks the same as a stolen token.
+* `apps/v1/*` accepts these tokens only. The installation and the token's
+  grant are loaded on each request: revoking either stops the app at once.
 * Revoking an installation revokes its grant, and the other way round.
 
 ### 2.4 No transition

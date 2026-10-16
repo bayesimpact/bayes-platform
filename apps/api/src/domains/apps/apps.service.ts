@@ -257,8 +257,8 @@ export class AppsService {
 
   /**
    * The installation behind an access token of the apps API, issued by the
-   * authorization server (ADR 0029). The installation is loaded every time:
-   * once revoked, its tokens stop at once.
+   * authorization server (ADR 0029). The installation and the token's grant
+   * are loaded every time: once either is revoked, the token stops at once.
    */
   async resolveAppPrincipal(
     token: string,
@@ -266,7 +266,11 @@ export class AppsService {
   ): Promise<AppPrincipal> {
     const claims = this.appAccessTokenService.verify(token, urls)
     const installation = await this.appInstallationRepository.findById(claims.installationId)
-    if (!installation || installation.status !== APP_INSTALLATION_STATUS_ACTIVE) {
+    if (
+      !installation ||
+      installation.status !== APP_INSTALLATION_STATUS_ACTIVE ||
+      !(await this.appInstallationRepository.hasActiveGrant(installation.id, claims.grantId))
+    ) {
       throw new UnauthorizedException(AUTH_ERRORS.INVALID_ACCESS_TOKEN)
     }
 

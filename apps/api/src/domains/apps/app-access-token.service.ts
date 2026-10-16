@@ -23,7 +23,7 @@ export class AppAccessTokenService {
   verify(
     token: string,
     urls: { issuer: string; appsResource: string },
-  ): { serviceUserId: string; installationId: string } {
+  ): { serviceUserId: string; installationId: string; grantId: string } {
     try {
       const claims = verifyOAuthAccessToken({
         token,
@@ -32,7 +32,11 @@ export class AppAccessTokenService {
         audience: urls.appsResource,
       })
       if (!claims.installation_id) throw new InvalidOAuthAccessTokenError()
-      return { serviceUserId: claims.sub, installationId: claims.installation_id }
+      return {
+        serviceUserId: claims.sub,
+        installationId: claims.installation_id,
+        grantId: claims.grant_id,
+      }
     } catch (error) {
       if (error instanceof InvalidOAuthAccessTokenError) {
         throw new UnauthorizedException(AUTH_ERRORS.INVALID_ACCESS_TOKEN)

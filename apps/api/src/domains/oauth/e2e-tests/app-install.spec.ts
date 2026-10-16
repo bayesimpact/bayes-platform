@@ -444,21 +444,35 @@ describe("OAuth authorization server - app installs", () => {
       )
     })
 
-    it("revokes the installation when a refresh token comes back", async () => {
+    it("cuts the grant when a refresh token comes back, and a reconnection restores it", async () => {
       const { project } = await createContext()
       const { clientId, clientSecret, manifest } = await createAppClient()
       const tokens = await installApp({ clientId, clientSecret, projectId: project.id })
-      await refresh({ clientId, clientSecret, refreshToken: tokens.refreshToken })
+      const rotated = await refresh({ clientId, clientSecret, refreshToken: tokens.refreshToken })
 
       const replay = await refresh({ clientId, clientSecret, refreshToken: tokens.refreshToken })
 
       expect(replay.status).toBe(400)
       expect(replay.body.error).toBe("invalid_grant")
+      // Every token of the grant stops at once, the rotated one included.
+      expect((await getAppsMe(rotated.body.access_token)).status).toBe(401)
+      const next = await refresh({
+        clientId,
+        clientSecret,
+        refreshToken: rotated.body.refresh_token,
+      })
+      expect(next.status).toBe(400)
+      // The installation stays, with what is tied to it.
       const installation = await repositories.appInstallationRepository.findOneByOrFail({
         appManifestId: manifest.id,
       })
-      expect(installation.status).toBe(APP_INSTALLATION_STATUS_REVOKED)
-      expect((await getAppsMe(tokens.accessToken)).status).toBe(401)
+      expect(installation.status).toBe(APP_INSTALLATION_STATUS_ACTIVE)
+
+      const reconnected = await installApp({ clientId, clientSecret, projectId: project.id })
+
+      const me = await getAppsMe(reconnected.accessToken)
+      expect(me.status).toBe(200)
+      expect(me.body.data.installationId).toBe(installation.id)
     })
   })
 

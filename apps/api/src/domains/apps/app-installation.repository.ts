@@ -77,6 +77,19 @@ export class AppInstallationRepository {
     }))
   }
 
+  /**
+   * Whether the OAuth grant a token was issued under is still the live grant of the
+   * installation: revoked on reuse of a refresh token, or replaced by a reconnection.
+   */
+  async hasActiveGrant(installationId: string, grantId: string): Promise<boolean> {
+    const rows: unknown[] = await this.transactionService.getManager().query(
+      `SELECT 1 FROM "oauth_grant"
+       WHERE "id" = $1 AND "app_installation_id" = $2 AND "revoked_at" IS NULL`,
+      [grantId, installationId],
+    )
+    return rows.length > 0
+  }
+
   async findById(installationId: string): Promise<AppInstallationRecord | null> {
     const installation = await this.repo().findOne({ where: { id: installationId } })
     return installation ? this.toRecord(installation) : null

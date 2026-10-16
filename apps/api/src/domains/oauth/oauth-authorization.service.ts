@@ -267,7 +267,9 @@ export class OAuthAuthorizationService {
       (await this.oauthRefreshTokenRepository.markUsed({ id: refreshToken.id, usedAt: new Date() }))
     if (!isFirstUse) {
       // A rotated token came back: it leaked, or the client was copied. Cut the grant.
-      await this.revokeGrantAndInstallation(grant)
+      // An app keeps its installation: a reconnection restores it with its conversations
+      // and documents, and a lost token response can look like a reuse.
+      await this.oauthGrantRepository.revoke({ id: grant.id, revokedAt: new Date() })
       this.logger.warn(`Refresh token reused, grant ${grant.id} revoked`)
       throw new OAuthProtocolError("invalid_grant")
     }
