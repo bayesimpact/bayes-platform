@@ -1,0 +1,91 @@
+/* Vendored from bayesimpact/website packages/ui/tokens.css by scripts/sync-bayes-ui.mjs. Do not edit. */
+:root {
+
+  --bg: rgb(242, 239, 233);
+  --bg-2: rgb(241, 238, 233);
+  --ink: rgb(0, 0, 0);
+  --ink-soft: rgba(0, 0, 0, 0.8);
+  --muted: rgb(101, 113, 128);
+  --cream: rgb(247, 247, 242);
+  --card: rgb(255, 255, 255);
+
+  --gold: rgb(154, 111, 36);
+  --gold-bg: rgb(235, 224, 146);
+  --accent-orange: rgb(255, 132, 0);
+  --accent-blue: rgb(16, 103, 254);
+  --accent: var(--accent-orange);
+
+  --border-soft: rgb(219, 204, 175);
+  --border: rgb(234, 236, 240);
+
+  --bg-cases: #E9EDF3;
+  --bg-gov: #F0E7CE;
+  --bg-dark: #0E0E13;
+
+  --font-display: "Titling Gothic FB", "Archivo", "Helvetica Neue", sans-serif;
+  --font-serif: "Kaisei Decol", Georgia, serif;
+  --font-body: "Inter", system-ui, sans-serif;
+
+  --font-mono: var(--font-body);
+
+  --gold-deep: var(--gold);
+
+  --ok: rgb(31, 122, 63);
+  --ok-soft: rgb(221, 235, 223);
+  --warn: rgb(154, 74, 4);
+  --warn-soft: rgb(252, 230, 204);
+  --danger: rgb(154, 27, 27);
+  --danger-soft: rgb(246, 217, 217);
+
+  --zone-public: #F8F1DF;
+  --zone-supplier: #EDF0F4;
+  --slate: #4a5261;
+  --slate-soft: #6b7382;
+  --slate-muted: #8a93a3;
+  --slate-rule: #c3c8d0;
+  --umber: #3d3a34;
+  --umber-soft: #5b574f;
+  --on-dark: #fff;
+  --ink-faint: rgba(0,0,0,.5);
+  --veil: rgba(255,255,255,.7);
+  --toggle-off: #c9c4bb;
+  --toggle-beta: #d98a1f;
+  --shadow-chip: 0 1px 2px rgba(20,18,14,.08);
+  --shadow-lift: 0 1px 2px rgba(20,18,14,.06), 0 4px 14px rgba(20,18,14,.06);
+  --shadow-lift-hover: 0 1px 2px rgba(20,18,14,.08), 0 4px 12px rgba(20,18,14,.10);
+  --shadow-raised: 0 2px 4px rgba(20,18,14,.08), 0 12px 28px rgba(20,18,14,.12);
+  --shadow-pop: 0 2px 6px rgba(20,18,14,.10), 0 18px 44px rgba(20,18,14,.18);
+
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 28px rgba(0, 0, 0, 0.06);
+  --radius: 14px;
+  --radius-sm: 8px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+html {
+  scroll-behavior: smooth;
+}
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: 0;
+  background: none;
+  color: inherit;
+}

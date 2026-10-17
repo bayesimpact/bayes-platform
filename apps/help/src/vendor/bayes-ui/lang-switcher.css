@@ -1,0 +1,64 @@
+/* Vendored from bayesimpact/website packages/ui/lang-switcher.css by scripts/sync-bayes-ui.mjs. Do not edit. */
+.lang-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 6px 14px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 100px;
+  color: rgba(0, 0, 0, 0.7);
+  transition: border-color 0.18s ease, color 0.18s ease, background 0.18s ease;
+}
+.lang-toggle:hover,
+.lang-toggle.open { border-color: rgba(0, 0, 0, 0.45); color: var(--ink); }
+
+.lang-toggle:focus { outline: none; }
+.lang-toggle:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+.lang-toggle .lang-globe { color: rgba(0, 0, 0, 0.55); flex: 0 0 auto; }
+.lang-toggle:hover .lang-globe,
+.lang-toggle.open .lang-globe { color: var(--ink); }
+.lang-toggle .lang-chevron { transition: transform 0.2s; flex: 0 0 auto; opacity: 0.6; }
+.lang-toggle.open .lang-chevron { transform: rotate(180deg); }
+.lang-menu {
+  position: absolute;
+  top: 40px;
+  right: 0;
+  background: var(--card);
+  border-radius: 12px;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.08);
+  padding: 7px;
+  min-width: 132px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-4px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 260;
+}
+.lang-menu.open,
+.lang-toggle.open .lang-menu { opacity: 1; pointer-events: auto; transform: translateY(0); }
+.lang-menu button,
+.lang-menu a {
+  display: block;
+  width: 100%;
+  padding: 9px 16px;
+  text-align: left;
+  border: none;
+  background: none;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+  cursor: pointer;
+}
+.lang-menu button:hover,
+.lang-menu a:hover { background: var(--bg); }
+.lang-menu button.active,
+.lang-menu a.active { background: var(--ink); color: var(--bg); }
