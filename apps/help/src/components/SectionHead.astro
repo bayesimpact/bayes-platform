@@ -1,0 +1,27 @@
+---
+/**
+ * A section head the bayesimpact.org way: a pill, a centred display title, an optional serif
+ * lead, and room around them. Mirrors the website's src/components/doc/SectionHead.astro, the
+ * head of every section on /platform and /sectors; its styles are the vendored doc-page.css
+ * (.dp-head, .section-pill, .dp-title, .dp-lead), so the markup must stay the same as there.
+ *
+ * The page's own title (as="h1") has no pill. The default slot takes what sits under the lead
+ * (the hero's search, the category index).
+ */
+interface Props {
+  pill?: string
+  /** HTML: may carry a `<span class="hl">` marker-highlight. */
+  title: string
+  lead?: string
+  as?: "h1" | "h2"
+}
+const { pill, title, lead, as = "h2" } = Astro.props
+const Tag = as
+---
+
+<header class:list={["dp-head", { "dp-head-hero": as === "h1" }]}>
+  {pill && as !== "h1" && <span class="section-pill">{pill}</span>}
+  <Tag class="dp-title" set:html={title} />
+  {lead && <p class="dp-lead" set:html={lead} />}
+  <slot />
+</header>

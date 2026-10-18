@@ -1,4 +1,5 @@
 ---
+import SectionHead from "@/components/SectionHead.astro"
 import { DEFAULT_LOCALE } from "@/consts"
 import { useTranslations } from "@/i18n/ui"
 import { localizedPath } from "@/i18n/utils"
@@ -9,15 +10,15 @@ const t = useTranslations(locale)
 ---
 
 <BaseLayout title={t("notFound.title")} locale={locale}>
-  <section class="mx-auto flex max-w-xl flex-col items-center px-4 py-24 text-center sm:px-6">
-    <p class="text-6xl font-bold text-primary">404</p>
-    <h1 class="mt-4 text-2xl font-bold">{t("notFound.title")}</h1>
-    <p class="mt-2 text-muted-foreground">{t("notFound.body")}</p>
-    <a
-      href={localizedPath(locale)}
-      class="mt-8 inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
-    >
-      {t("notFound.cta")}
-    </a>
-  </section>
+  <div class="dp">
+    <div class="gp-hero dp-hero">
+      <div class="gp-wrap gp-hero-in">
+        <SectionHead as="h1" title={t("notFound.title")} lead={t("notFound.body")}>
+          <div class="dp-actions">
+            <a class="btn btn-primary" href={localizedPath(locale)}>{t("notFound.cta")}</a>
+          </div>
+        </SectionHead>
+      </div>
+    </div>
+  </div>
 </BaseLayout>

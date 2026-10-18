@@ -14,7 +14,7 @@ const { groups, locale, currentSlug } = Astro.props
 ---
 
 <aside
-  class="fixed inset-y-0 left-0 z-50 hidden w-72 -translate-x-full overflow-y-auto border-r border-border bg-background p-6 transition-transform lg:sticky lg:top-16 lg:z-0 lg:block lg:h-[calc(100vh-4rem)] lg:w-full lg:translate-x-0 lg:border-r-0 lg:p-0 lg:pr-6 lg:pt-8"
+  class="fixed bottom-0 left-0 top-[72px] z-50 hidden w-72 -translate-x-full overflow-y-auto border-r border-border bg-card p-6 transition-transform lg:sticky lg:top-[72px] lg:z-0 lg:block lg:h-[calc(100vh-72px)] lg:w-full lg:translate-x-0 lg:border-r-0 lg:p-0 lg:pr-6 lg:pt-10"
   data-sidebar
 >
   <nav class="space-y-6" aria-label="Help center">
@@ -84,7 +84,7 @@ const { groups, locale, currentSlug } = Astro.props
   </nav>
 </aside>
 
-<div class="fixed inset-0 z-40 hidden bg-black/40 lg:hidden" data-sidebar-backdrop></div>
+<div class="fixed inset-0 z-40 hidden bg-foreground/40 lg:hidden" data-sidebar-backdrop></div>
 
 <script>
   const sidebar = document.querySelector<HTMLElement>("[data-sidebar]")
@@ -94,10 +94,14 @@ const { groups, locale, currentSlug } = Astro.props
   const open = () => {
     sidebar?.classList.remove("hidden", "-translate-x-full")
     backdrop?.classList.remove("hidden")
+    toggle?.classList.add("open")
+    toggle?.setAttribute("aria-expanded", "true")
   }
   const close = () => {
     sidebar?.classList.add("-translate-x-full")
     backdrop?.classList.add("hidden")
+    toggle?.classList.remove("open")
+    toggle?.setAttribute("aria-expanded", "false")
     // Keep it display:none on mobile once the transition would be done.
     if (window.innerWidth < 1024) sidebar?.classList.add("hidden")
   }

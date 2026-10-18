@@ -10,9 +10,17 @@ interface Props {
   description?: string
   locale?: Locale
   showMenuToggle?: boolean
+  /** Whether the header carries the search (the home page has its own, in the hero). */
+  headerSearch?: boolean
 }
 
-const { title, description, locale = DEFAULT_LOCALE, showMenuToggle = false } = Astro.props
+const {
+  title,
+  description,
+  locale = DEFAULT_LOCALE,
+  showMenuToggle = false,
+  headerSearch = true,
+} = Astro.props
 const t = useTranslations(locale)
 const fullTitle = title === SITE_TITLE ? title : `${title} · ${SITE_TITLE}`
 const metaDescription = description ?? t("site.tagline")
@@ -26,13 +34,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site).toString()
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    {/* Bayes brand fonts — Inter (body), Archivo Black (display), Kaisei Decol (serif). */}
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;500;600;700;800&family=Kaisei+Decol:wght@700&display=swap"
-      rel="stylesheet"
-    />
+    {/* Fonts are @bayes/ui's, self-hosted (src/vendor/bayes-ui/fonts.css, imported by global.css). */}
     <title>{fullTitle}</title>
     <meta name="description" content={metaDescription} />
     <link rel="canonical" href={canonical} />
@@ -48,7 +50,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site).toString()
     >
       Skip to content
     </a>
-    <Header appUrl={appUrl} showMenuToggle={showMenuToggle} />
+    <Header appUrl={appUrl} showMenuToggle={showMenuToggle} search={headerSearch} />
     <main id="main">
       <slot />
     </main>

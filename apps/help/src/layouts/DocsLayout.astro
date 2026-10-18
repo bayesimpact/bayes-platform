@@ -1,6 +1,8 @@
 ---
 import type { MarkdownHeading } from "astro"
+import DocCards from "@/components/DocCards.astro"
 import Icon from "@/components/Icon.astro"
+import Search from "@/components/Search.astro"
 import Sidebar from "@/components/Sidebar.astro"
 import TableOfContents from "@/components/TableOfContents.astro"
 import type { Locale } from "@/consts"
@@ -60,131 +62,125 @@ const dateFormatter = new Intl.DateTimeFormat(locale, {
 })
 ---
 
+{/* An article on the site's document layout: the hero (breadcrumb as the eyebrow, the title,
+    the description as the chapô), then one white band holding the sidebar, the article and the
+    table of contents. */}
 <BaseLayout title={title} description={description} locale={locale} showMenuToggle>
-  <div class="mx-auto max-w-[96rem] px-4 sm:px-6">
-    <div class="lg:grid lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-6">
-      <Sidebar groups={groups} locale={locale} currentSlug={currentSlug} />
-
-      <div class="min-w-0 py-8 lg:grid lg:grid-cols-[minmax(0,1fr)_11rem] lg:gap-6">
-        <article class="min-w-0">
-          <nav aria-label="Breadcrumb" class="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-muted-foreground">
-            <a href={`/${locale}`} class="transition-colors hover:text-foreground">{t("breadcrumb.home")}</a>
-            {
-              trail.map((crumb) => (
-                <>
-                  <Icon name="chevron-right" size={14} class="shrink-0 opacity-50" />
-                  <span>{categoryLabel(crumb, locale)}</span>
-                </>
-              ))
-            }
-          </nav>
-          <h1 class="font-display mt-3 text-4xl leading-[1.1]" set:html={highlightKeyword(title, highlight)}></h1>
-          <div class="mt-3 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-            {
-              readingMinutes && (
-                <p class="flex items-center gap-1.5">
-                  <Icon name="clock" size={14} />
-                  {readingMinutes} {t("article.readingTime")}
-                </p>
-              )
-            }
-            {apiVersion && <span class="pill">{t("article.apiVersion")} {apiVersion}</span>}
-          </div>
-          <p class="mt-3 text-lg text-muted-foreground">{description}</p>
-          <hr class="my-6 border-border" />
-          <div class="prose max-w-none">
-            <slot />
-          </div>
+  <div class="dp">
+    <div class="gp-hero dp-hero hc-doc-hero">
+      <div class="gp-wrap hc-wide gp-hero-in">
+        <nav aria-label="Breadcrumb" class="eyebrow hc-crumbs">
+          <a href={`/${locale}`}>{t("breadcrumb.home")}</a>
           {
-            updated && (
-              <p class="mt-10 border-t border-border pt-4 text-sm text-muted-foreground">
-                {t("article.updated")}: {dateFormatter.format(updated)}
-              </p>
+            trail.map((crumb) => (
+              <>
+                <Icon name="chevron-right" size={12} class="hc-crumb-sep" />
+                <span>{categoryLabel(crumb, locale)}</span>
+              </>
+            ))
+          }
+        </nav>
+        <h1 class="gp-title" set:html={highlightKeyword(title, highlight)}></h1>
+        <p class="gp-lede">{description}</p>
+        <div class="hc-meta">
+          {
+            readingMinutes && (
+              <span class="pill">
+                <Icon name="clock" size={14} />
+                {readingMinutes} {t("article.readingTime")}
+              </span>
             )
           }
+          {apiVersion && <span class="pill">{t("article.apiVersion")} {apiVersion}</span>}
+        </div>
+        <div class="hc-doc-search"><Search /></div>
+      </div>
+    </div>
 
-          <div class="mt-10 border-t border-border pt-6" data-feedback data-slug={currentSlug}>
-            <div class="flex flex-wrap items-center gap-4" data-feedback-prompt>
-              <p class="text-sm font-medium">{t("feedback.question")}</p>
-              <div class="flex gap-2">
-                <button type="button" class="btn btn-outline btn-sm" data-feedback-value="yes">
-                  <Icon name="thumbs-up" size={15} />
-                  {t("feedback.yes")}
-                </button>
-                <button type="button" class="btn btn-outline btn-sm" data-feedback-value="no">
-                  <Icon name="thumbs-down" size={15} />
-                  {t("feedback.no")}
-                </button>
+    <section class="band b-paper hc-doc-band">
+      <div class="gp-wrap hc-wide">
+        <div class="lg:grid lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-8">
+          <Sidebar groups={groups} locale={locale} currentSlug={currentSlug} />
+
+          <div class="min-w-0 py-10 lg:grid lg:grid-cols-[minmax(0,1fr)_11rem] lg:gap-8">
+            <article class="min-w-0">
+              <div class="prose max-w-none">
+                <slot />
+              </div>
+              {
+                updated && (
+                  <p class="hc-updated">
+                    {t("article.updated")}: {dateFormatter.format(updated)}
+                  </p>
+                )
+              }
+
+              <div class="hc-rule" data-feedback data-slug={currentSlug}>
+                <div class="flex flex-wrap items-center gap-4" data-feedback-prompt>
+                  <p class="text-sm font-medium">{t("feedback.question")}</p>
+                  <div class="flex gap-2">
+                    <button type="button" class="btn btn-outline btn-sm" data-feedback-value="yes">
+                      <Icon name="thumbs-up" size={15} />
+                      {t("feedback.yes")}
+                    </button>
+                    <button type="button" class="btn btn-outline btn-sm" data-feedback-value="no">
+                      <Icon name="thumbs-down" size={15} />
+                      {t("feedback.no")}
+                    </button>
+                  </div>
+                </div>
+                <p class="hidden text-sm font-medium text-muted-foreground" data-feedback-thanks>
+                  {t("feedback.thanks")}
+                </p>
+              </div>
+
+              {
+                (related.length > 0 || prev || next) && (
+                  <nav aria-label="Article navigation" class="hc-rule">
+                    {related.length > 0 && (
+                      <div class="mb-8">
+                        <p class="label">{t("article.related")}</p>
+                        <DocCards docs={related} columns={2} />
+                      </div>
+                    )}
+                    <div class="cards hc-pager">
+                      {prev ? (
+                        <a href={docHref(prev)} class="card hc-step">
+                          <span class="label hc-step-k">
+                            <Icon name="arrow-left" size={14} />
+                            {t("article.prev")}
+                          </span>
+                          <span class="hc-step-t">{prev.data.title}</span>
+                        </a>
+                      ) : (
+                        <span />
+                      )}
+                      {next ? (
+                        <a href={docHref(next)} class="card hc-step hc-step-next">
+                          <span class="label hc-step-k">
+                            {t("article.next")}
+                            <Icon name="arrow-right" size={14} />
+                          </span>
+                          <span class="hc-step-t">{next.data.title}</span>
+                        </a>
+                      ) : (
+                        <span />
+                      )}
+                    </div>
+                  </nav>
+                )
+              }
+            </article>
+
+            <div class="hidden lg:block">
+              <div class="sticky top-[96px]">
+                <TableOfContents headings={headings} locale={locale} />
               </div>
             </div>
-            <p class="hidden text-sm font-medium text-muted-foreground" data-feedback-thanks>
-              {t("feedback.thanks")}
-            </p>
-          </div>
-
-          {
-            (related.length > 0 || prev || next) && (
-              <nav aria-label="Article navigation" class="mt-12 border-t border-border pt-8">
-                {related.length > 0 && (
-                  <div class="mb-8">
-                    <p class="label mb-3">{t("article.related")}</p>
-                    <ul class="grid gap-2 sm:grid-cols-2">
-                      {related.map((entry) => (
-                        <li>
-                          <a
-                            href={docHref(entry)}
-                            class="flex items-center justify-between gap-2 rounded-lg border border-border bg-card px-4 py-3 text-sm font-medium transition-all hover:-translate-y-0.5 hover:border-foreground/25 hover:shadow-[0_10px_24px_rgba(0,0,0,0.08)]"
-                          >
-                            {entry.data.title}
-                            <Icon name="chevron-right" size={16} class="shrink-0 opacity-60" />
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                <div class="grid gap-4 sm:grid-cols-2">
-                  {prev ? (
-                    <a
-                      href={docHref(prev)}
-                      class="group flex flex-col gap-1 rounded-lg border border-border bg-card px-4 py-3 transition-all hover:-translate-y-0.5 hover:border-foreground/25 hover:shadow-[0_10px_24px_rgba(0,0,0,0.08)]"
-                    >
-                      <span class="flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <Icon name="arrow-left" size={14} />
-                        {t("article.prev")}
-                      </span>
-                      <span class="font-medium">{prev.data.title}</span>
-                    </a>
-                  ) : (
-                    <span />
-                  )}
-                  {next ? (
-                    <a
-                      href={docHref(next)}
-                      class="group flex flex-col items-end gap-1 rounded-lg border border-border bg-card px-4 py-3 text-right transition-all hover:-translate-y-0.5 hover:border-foreground/25 hover:shadow-[0_10px_24px_rgba(0,0,0,0.08)]"
-                    >
-                      <span class="flex items-center gap-1.5 text-xs text-muted-foreground">
-                        {t("article.next")}
-                        <Icon name="arrow-right" size={14} />
-                      </span>
-                      <span class="font-medium">{next.data.title}</span>
-                    </a>
-                  ) : (
-                    <span />
-                  )}
-                </div>
-              </nav>
-            )
-          }
-        </article>
-
-        <div class="hidden lg:block">
-          <div class="sticky top-24">
-            <TableOfContents headings={headings} locale={locale} />
           </div>
         </div>
       </div>
-    </div>
+    </section>
   </div>
 
   <script>
@@ -208,3 +204,99 @@ const dateFormatter = new Intl.DateTimeFormat(locale, {
     }
   </script>
 </BaseLayout>
+
+<style>
+  .hc-wide {
+    max-width: 1360px;
+  }
+  .gp-hero.dp-hero.hc-doc-hero {
+    padding: 128px 0 40px;
+  }
+  .hc-doc-hero .gp-title {
+    max-width: 30ch;
+  }
+  .hc-crumbs {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
+  .hc-crumbs a:hover {
+    color: var(--ink);
+  }
+  .hc-crumbs :global(.hc-crumb-sep) {
+    opacity: 0.6;
+  }
+  .hc-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 18px;
+  }
+  .hc-meta:empty {
+    display: none;
+  }
+  .hc-doc-search {
+    display: none;
+    margin-top: 20px;
+  }
+  .dp .band.hc-doc-band {
+    padding: 0 0 64px;
+  }
+  .hc-updated {
+    margin-top: 40px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-soft);
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .hc-rule {
+    margin-top: 40px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-soft);
+  }
+  .hc-pager {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .hc-step {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease,
+      border-color 0.2s ease;
+  }
+  .hc-step:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lift-hover);
+    border-color: var(--ink);
+  }
+  .hc-step-next {
+    align-items: flex-end;
+    text-align: right;
+  }
+  .hc-step-k {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .hc-step-t {
+    font-weight: 600;
+  }
+  @media (max-width: 900px) {
+    .hc-doc-search {
+      display: flex;
+    }
+  }
+  @media (max-width: 760px) {
+    .gp-hero.dp-hero.hc-doc-hero {
+      padding: 104px 0 28px;
+    }
+  }
+  @media (max-width: 640px) {
+    .hc-pager {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
