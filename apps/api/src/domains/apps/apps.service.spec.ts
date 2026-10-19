@@ -62,6 +62,63 @@ describe("AppsService", () => {
     grantablePermissions: [DOCUMENT_READ_PERMISSION, DOCUMENT_CREATE_PERMISSION],
   }
 
+  describe("registerAppManifest", () => {
+    it("creates the manifest of an unknown slug", async () => {
+      const registered = await service.registerAppManifest({
+        ...createPayload,
+        allowedRedirectUris: ["https://helpful-assistant.example.org/callback"],
+      })
+
+      expect(registered.slug).toBe("helpful-assistant")
+      expect(registered.allowedRedirectUris).toEqual([
+        "https://helpful-assistant.example.org/callback",
+      ])
+    })
+
+    it("adds redirect URIs and permissions to an existing manifest, keeping its name", async () => {
+      const created = await service.createAppManifest({
+        ...createPayload,
+        name: "Named in the back-office",
+        grantablePermissions: [DOCUMENT_READ_PERMISSION],
+        allowedRedirectUris: ["https://first.example.org/callback"],
+      })
+
+      const registered = await service.registerAppManifest({
+        ...createPayload,
+        grantablePermissions: [DOCUMENT_CREATE_PERMISSION],
+        allowedRedirectUris: [
+          "https://second.example.org/callback",
+          "https://first.example.org/callback",
+        ],
+      })
+
+      expect(registered.id).toBe(created.id)
+      expect(registered.name).toBe("Named in the back-office")
+      expect(registered.grantablePermissions).toEqual([
+        DOCUMENT_READ_PERMISSION,
+        DOCUMENT_CREATE_PERMISSION,
+      ])
+      expect(registered.allowedRedirectUris).toEqual([
+        "https://second.example.org/callback",
+        "https://first.example.org/callback",
+      ])
+    })
+
+    it("keeps the most recent redirect URIs within the limit", async () => {
+      const older = Array.from({ length: 20 }, (_, index) => `https://old-${index}.example.org/cb`)
+      await service.createAppManifest({ ...createPayload, allowedRedirectUris: older })
+
+      const registered = await service.registerAppManifest({
+        ...createPayload,
+        allowedRedirectUris: ["https://new.example.org/cb"],
+      })
+
+      expect(registered.allowedRedirectUris).toHaveLength(20)
+      expect(registered.allowedRedirectUris.at(-1)).toBe("https://new.example.org/cb")
+      expect(registered.allowedRedirectUris).not.toContain("https://old-0.example.org/cb")
+    })
+  })
+
   it("creates, lists, and returns a manifest", async () => {
     const created = await service.createAppManifest(createPayload)
 

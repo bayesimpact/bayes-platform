@@ -63,7 +63,12 @@ const installRedirectUriSchema = z
     }
   }, "Must be an https URL, or a loopback http(s) URL (localhost, *.localhost, 127.0.0.1)")
 
-export const allowedRedirectUrisSchema = z.array(installRedirectUriSchema).max(20)
+/** How many redirect URIs an app may allow. */
+export const MAX_ALLOWED_REDIRECT_URIS = 20
+
+export const allowedRedirectUrisSchema = z
+  .array(installRedirectUriSchema)
+  .max(MAX_ALLOWED_REDIRECT_URIS)
 
 export const createAppManifestSchema = z
   .object({
