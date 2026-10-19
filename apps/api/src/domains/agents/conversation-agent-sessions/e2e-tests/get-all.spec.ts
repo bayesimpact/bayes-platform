@@ -13,6 +13,7 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { addMemberByEmailToProject } from "@/domains/projects/memberships/project-membership.factory"
+import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
@@ -153,5 +154,42 @@ describe("ConversationAgentSessionsRoutes.getAll", () => {
     expect(sessions[1]?.id).toBe(oldestAppSession.id)
     expect(sessions.every((session) => session.type === "live")).toBeTruthy()
     expect(sessions.every((session) => session.agentId === agentId)).toBeTruthy()
+  })
+
+  it("leaves the caller's review campaign sessions on the agent out of the list", async () => {
+    const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
+      repositories,
+      { agent: { type: "conversation" } },
+    )
+    const { addedUser } = await addMemberByEmailToProject({
+      repositories,
+      organization,
+      project,
+      user: { email: "member@example.com", authSubject: "oidc|member" },
+    })
+    const campaign = await repositories.reviewCampaignRepository.save(
+      reviewCampaignFactory
+        .active()
+        .transient({ organization, project, agent, agentSettings })
+        .build(),
+    )
+    const appSession = conversationAgentSessionFactory
+      .transient({ organization, project, user: addedUser, agent })
+      .live()
+      .build()
+    const campaignSession = conversationAgentSessionFactory
+      .transient({ organization, project, user: addedUser, agent })
+      .live()
+      .build({ campaignId: campaign.id })
+    await repositories.conversationAgentSessionRepository.save([appSession, campaignSession])
+    organizationId = organization.id
+    projectId = project.id
+    agentId = agent.id
+    authSubject = addedUser.authSubject!
+
+    const response = await subject("live")
+
+    expectResponse(response, 201)
+    expect(response.body.data.map((session) => session.id)).toEqual([appSession.id])
   })
 })

@@ -1,7 +1,8 @@
 import { Injectable } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"
-import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { ConversationAgentSessionRepository } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.repository"
 import type { ReviewCampaign } from "../review-campaign.entity"
 import type {
   ReviewCampaignAgentType,
@@ -66,8 +67,7 @@ type SessionRef = {
 @Injectable()
 export class ReportsService {
   constructor(
-    @InjectRepository(ConversationAgentSession)
-    private readonly conversationSessionRepository: Repository<ConversationAgentSession>,
+    private readonly conversationAgentSessionRepository: ConversationAgentSessionRepository,
     @InjectRepository(TesterSessionFeedback)
     private readonly testerFeedbackRepository: Repository<TesterSessionFeedback>,
     @InjectRepository(TesterCampaignSurvey)
@@ -80,10 +80,10 @@ export class ReportsService {
     const campaignId = campaign.id
 
     const [conversationSessions, feedbacks, surveys, reviews] = await Promise.all([
-      this.conversationSessionRepository.find({
-        where: { campaignId },
-        select: { id: true, userId: true, createdAt: true },
-      }),
+      this.conversationAgentSessionRepository.findCampaignConversations(
+        { organizationId: campaign.organizationId, projectId: campaign.projectId },
+        { campaignId },
+      ),
       this.testerFeedbackRepository.find({ where: { campaignId } }),
       this.testerSurveyRepository.find({ where: { campaignId } }),
       this.reviewRepository.find({ where: { campaignId } }),

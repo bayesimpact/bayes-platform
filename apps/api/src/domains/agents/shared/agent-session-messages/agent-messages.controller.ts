@@ -165,9 +165,10 @@ export abstract class AgentMessagesController {
     attachmentDocumentId: string,
   ): Promise<Routes["getAttachmentDocumentTemporaryUrl"]["response"]> {
     this.assertSessionType(request)
-    const attachmentDocument = await this.agentMessageAttachmentDocumentsService.findById({
+    const attachmentDocument = await this.agentMessageAttachmentDocumentsService.findForSession({
       connectScope: getRequiredConnectScope(request),
       attachmentDocumentId,
+      sessionId: request.agentSession.id,
     })
     if (!attachmentDocument) {
       throw new NotFoundException("Attachment document not found")

@@ -162,7 +162,8 @@ export type SubmitTesterCampaignSurveyRequestDto = {
 export type UpdateTesterCampaignSurveyRequestDto = Partial<SubmitTesterCampaignSurveyRequestDto>
 
 export type StartTesterSessionRequestDto = {
-  type: ReviewCampaignSessionType
+  /** Ignored: the API sets the type of a tester session. */
+  type?: ReviewCampaignSessionType
 }
 
 export type StartTesterSessionResponseDto = {

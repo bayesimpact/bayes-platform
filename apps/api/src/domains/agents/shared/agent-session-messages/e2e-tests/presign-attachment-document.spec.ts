@@ -8,11 +8,13 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
+import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
 import { ConversationAgentSessionsModule } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.module"
 import { createOrganizationWithAgentSession } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../../test/request"
+import { agentMessageFactory } from "../agent-messages.factory"
 
 describe("AgentSessionMessagesRoutes.presignAttachmentDocument", () => {
   let app: INestApplication<App>
@@ -51,7 +53,7 @@ describe("AgentSessionMessagesRoutes.presignAttachmentDocument", () => {
   })
 
   const createContext = async () => {
-    const { organization, user, project, agent, agentSession } =
+    const { organization, user, project, agent, agentSettings, agentSession } =
       await createOrganizationWithAgentSession({ repositories, agentType: "conversation" })
 
     organizationId = organization.id
@@ -60,7 +62,7 @@ describe("AgentSessionMessagesRoutes.presignAttachmentDocument", () => {
     agentSessionId = agentSession.id
     authSubject = user.authSubject!
 
-    return { organization, project }
+    return { organization, user, project, agent, agentSettings, agentSession }
   }
 
   const subject = async (
@@ -125,6 +127,48 @@ describe("AgentSessionMessagesRoutes.presignAttachmentDocument", () => {
 
     expectResponse(response, 201)
     expect(response.body.data.url).toContain("/documents/")
+  })
+
+  const presignAttachmentDocument = async () => {
+    const presignResponse = await subject({
+      fileName: "support-notes.pdf",
+      mimeType: "application/pdf",
+      size: 1234,
+    })
+    expectResponse(presignResponse, 201)
+    return presignResponse.body.data.attachmentDocumentId
+  }
+
+  it("should return a temporary URL for an attachment of one of this session's messages", async () => {
+    const { organization, project, agentSettings, agentSession } = await createContext()
+    const attachmentDocumentId = await presignAttachmentDocument()
+    await repositories.agentMessageRepository.save(
+      agentMessageFactory
+        .transient({ organization, project, session: agentSession, agentSettings })
+        .build({ attachmentDocumentId }),
+    )
+
+    const response = await getTemporaryUrlSubject(attachmentDocumentId)
+
+    expectResponse(response, 201)
+    expect(response.body.data.url).toContain("/documents/")
+  })
+
+  it("answers 404 for an attachment of another session's message", async () => {
+    const { organization, user, project, agent, agentSettings } = await createContext()
+    const otherSession = await repositories.conversationAgentSessionRepository.save(
+      conversationAgentSessionFactory.transient({ organization, project, user, agent }).build(),
+    )
+    const attachmentDocumentId = await presignAttachmentDocument()
+    await repositories.agentMessageRepository.save(
+      agentMessageFactory
+        .transient({ organization, project, session: otherSession, agentSettings })
+        .build({ attachmentDocumentId }),
+    )
+
+    const response = await getTemporaryUrlSubject(attachmentDocumentId)
+
+    expectResponse(response, 404)
   })
 
   it("should reject unsupported attachment document MIME types", async () => {

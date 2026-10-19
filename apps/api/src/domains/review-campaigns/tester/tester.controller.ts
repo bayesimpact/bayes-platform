@@ -109,13 +109,11 @@ export class TesterController {
   @CheckPermission(REVIEW_CAMPAIGN_TESTER_SESSION_CREATE_PERMISSION, "review_campaign")
   async startTesterSession(
     @Req() request: EndpointRequestWithReviewCampaign,
-    @Body() { payload }: typeof ReviewCampaignsRoutes.startTesterSession.request,
   ): Promise<typeof ReviewCampaignsRoutes.startTesterSession.response> {
     const result = await this.testerService.startSession({
       connectScope: getRequiredConnectScope(request),
       campaign: request.reviewCampaign,
       userId: request.user.id,
-      type: payload.type,
     })
     return { data: result }
   }
@@ -211,10 +209,12 @@ export class TesterSessionFeedbackController {
   async deleteTesterSession(
     @Req() request: EndpointRequestWithAgentSessionInCampaign,
   ): Promise<typeof ReviewCampaignsRoutes.deleteTesterSession.response> {
-    const { sessionId, agentType, userId } = request.agentSessionInCampaign
+    const { sessionId, agentId, agentType, userId } = request.agentSessionInCampaign
     await this.testerService.deleteTesterSession({
+      connectScope: getRequiredConnectScope(request),
       campaign: request.reviewCampaign,
       sessionId,
+      agentId,
       agentType,
       sessionOwnerUserId: userId,
       callerUserId: request.user.id,

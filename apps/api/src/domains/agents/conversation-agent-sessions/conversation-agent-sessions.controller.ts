@@ -96,11 +96,14 @@ export abstract class ConversationAgentSessionsController {
     request: EndpointRequestWithAgentSession<ConversationAgentSession>,
   ): Promise<Routes["deleteOne"]["response"]> {
     if (request.agentSession.type !== this.type) throw new NotFoundException()
+    // A review campaign session is deleted from the tester app, under the campaign's rules.
+    if (request.agentSession.campaignId) throw new NotFoundException()
 
     await this.baseAgentSessionsService.deleteAgentSession({
+      connectScope: getRequiredConnectScope(request),
       agentType: "conversation",
       agentId: request.agent.id,
-      agentSession: request.agentSession,
+      agentSessionId: request.agentSession.id,
     })
     return { data: { success: true } }
   }

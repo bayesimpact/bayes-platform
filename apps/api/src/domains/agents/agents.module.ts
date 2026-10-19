@@ -23,7 +23,6 @@ import { Agent } from "./agent.entity"
 import { AgentRepository } from "./agent.repository"
 import { AgentsController } from "./agents.controller"
 import { AgentsService } from "./agents.service"
-import { BaseAgentSessionsService } from "./base-agent-sessions/base-agent-sessions.service"
 import { AgentMembershipRepository } from "./memberships/agent-membership.repository"
 import { AgentMembershipsController } from "./memberships/agent-memberships.controller"
 import { AgentMembershipsService } from "./memberships/agent-memberships.service"
@@ -71,7 +70,6 @@ import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
     AgentSessionCategoriesService,
     AgentSubAgentsService,
     ProjectAgentSessionCategoriesService,
-    BaseAgentSessionsService,
     AgentMembershipsService,
     AgentMembershipRepository,
     ResourceContextGuard,

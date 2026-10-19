@@ -306,6 +306,49 @@ describe("ReviewCampaigns - Report", () => {
       token: accessToken ?? undefined,
     })
 
+  it("leaves the sub-sessions of tester sessions out of the report", async () => {
+    const { organization, project } = await createOrganizationWithProject(repositories, {
+      user: { authSubject },
+    })
+    const agent = await repositories.agentRepository.save(
+      agentFactory.transient({ organization, project }).build({ type: "conversation" }),
+    )
+    const agentSettings = await repositories.agentSettingsRepository.save(
+      agentSettingsFactory.transient({ organization, project, agent }).build(),
+    )
+    const campaign = await repositories.reviewCampaignRepository.save(
+      reviewCampaignFactory
+        .active()
+        .transient({ organization, project, agent, agentSettings })
+        .build(),
+    )
+    const tester = await repositories.userRepository.save(
+      userFactory.build({ email: `tester-sub-${randomUUID()}@example.com` }),
+    )
+    const testerSession = await repositories.conversationAgentSessionRepository.save(
+      conversationAgentSessionFactory
+        .transient({ organization, project, agent, user: tester })
+        .build({ campaignId: campaign.id }),
+    )
+    const subAgent = await repositories.agentRepository.save(
+      agentFactory.transient({ organization, project }).build({ type: "conversation" }),
+    )
+    await repositories.conversationAgentSessionRepository.save(
+      conversationAgentSessionFactory
+        .transient({ organization, project, agent: subAgent, user: tester })
+        .build({ campaignId: campaign.id, parentSessionId: testerSession.id }),
+    )
+    organizationId = organization.id
+    projectId = project.id
+    reviewCampaignId = campaign.id
+
+    const response = await subject()
+
+    expectResponse(response, 200)
+    expect(response.body.data.headline.sessionCount).toBe(1)
+    expect(response.body.data.sessionMatrix.map((row) => row.sessionId)).toEqual([testerSession.id])
+  })
+
   it("returns the aggregate report for the project owner", async () => {
     await seedReportableCampaign()
     const response = await subject()

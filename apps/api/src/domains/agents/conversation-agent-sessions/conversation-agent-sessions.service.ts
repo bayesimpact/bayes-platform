@@ -6,6 +6,8 @@ import { v4 } from "uuid"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { BaseAgentSessionsService } from "../base-agent-sessions/base-agent-sessions.service"
 import type { BaseAgentSessionType } from "../base-agent-sessions/base-agent-sessions.types"
 import type { AgentSessionCategory } from "../session-categories/agent-session-category.entity"
 import { AgentMessage } from "../shared/agent-session-messages/agent-message.entity"
@@ -37,6 +39,7 @@ export class ConversationAgentSessionsService {
     agentSettingsRepository: Repository<AgentSettings>,
     @InjectRepository(ConversationAgentSessionCategory)
     conversationAgentSessionCategoryRepository: Repository<ConversationAgentSessionCategory>,
+    private readonly baseAgentSessionsService: BaseAgentSessionsService,
   ) {
     this.conversationAgentSessionConnectRepository = new ConnectRepository(
       conversationAgentSessionRepository,
@@ -118,8 +121,16 @@ export class ConversationAgentSessionsService {
       // Exclude sub-sessions (those with a parent session): these are internal
       // artifacts created when a parent agent delegates to this conversation
       // agent, not user-facing sessions. Purged sessions (retention, #677) are
-      // empty husks: they stay out of the list too.
-      where: { agentId, userId, type, parentSessionId: IsNull(), purgedAt: IsNull() },
+      // empty husks: they stay out of the list too. Review campaign sessions are
+      // test material listed in the tester app, even while they share the live type.
+      where: {
+        agentId,
+        userId,
+        type,
+        parentSessionId: IsNull(),
+        purgedAt: IsNull(),
+        campaignId: IsNull(),
+      },
       order: { createdAt: "DESC" },
       relations: { forms: { agent: true } },
     })
@@ -129,7 +140,8 @@ export class ConversationAgentSessionsService {
    * Finds the conversation sub-session spawned by a parent agent session for a
    * given conversation sub-agent, or creates it if it does not exist yet. A
    * single sub-session is reused across parent turns so the sub-agent's runs all
-   * land in one persistent trace.
+   * land in one persistent trace. The lookup ignores the type: a parent has one
+   * sub-session per sub-agent, even if its type is changed later.
    */
   async findOrCreateSubSession({
     connectScope,
@@ -145,7 +157,7 @@ export class ConversationAgentSessionsService {
     type: BaseAgentSessionType
   }): Promise<ConversationAgentSession> {
     const existing = await this.conversationAgentSessionConnectRepository.find(connectScope, {
-      where: { agentId, parentSessionId, type },
+      where: { agentId, parentSessionId },
       take: 1,
     })
     if (existing[0]) return existing[0]
@@ -165,11 +177,14 @@ export class ConversationAgentSessionsService {
     agentSettingsId,
     userId,
     type,
+    campaignId = null,
   }: {
     connectScope: RequiredConnectScope
     agentSettingsId: string
     userId: string
     type: BaseAgentSessionType
+    /** Set for a tester's session in a review campaign. */
+    campaignId?: string | null
   }): Promise<ConversationAgentSession> {
     const agentSettings = await this.agentSettingsConnectRepository.getOneById(
       connectScope,
@@ -184,6 +199,7 @@ export class ConversationAgentSessionsService {
         agentId: agentSettings.agentId,
         userId,
         type,
+        campaignId,
         expiresAt: null,
         traceId: v4(),
       },
@@ -218,6 +234,24 @@ export class ConversationAgentSessionsService {
     connectScope: RequiredConnectScope
   }): Promise<ConversationAgentSession | null> {
     return await this.conversationAgentSessionConnectRepository.getOneById(connectScope, id)
+  }
+
+  /** Deletes a conversation with its messages, its forms and its relay sub-sessions. */
+  async deleteSession({
+    connectScope,
+    agentId,
+    sessionId,
+  }: {
+    connectScope: RequiredConnectScope
+    agentId: string
+    sessionId: string
+  }): Promise<void> {
+    await this.baseAgentSessionsService.deleteAgentSession({
+      connectScope,
+      agentType: "conversation",
+      agentId,
+      agentSessionId: sessionId,
+    })
   }
 
   /**

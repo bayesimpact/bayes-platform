@@ -8,8 +8,9 @@ import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { Agent } from "@/domains/agents/agent.entity"
-import type { BaseAgentSessionType } from "@/domains/agents/base-agent-sessions/base-agent-sessions.types"
-import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
+import type { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { ConversationAgentSessionRepository } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.repository"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ConversationAgentSessionsService } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.service"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
@@ -55,8 +56,7 @@ export class TesterService {
     private readonly reviewCampaignMembershipsService: ReviewCampaignMembershipsService,
     @InjectRepository(Agent)
     private readonly agentRepository: Repository<Agent>,
-    @InjectRepository(ConversationAgentSession)
-    private readonly conversationSessionRepository: Repository<ConversationAgentSession>,
+    private readonly conversationAgentSessionRepository: ConversationAgentSessionRepository,
     @InjectRepository(TesterSessionFeedback)
     private readonly feedbackRepository: Repository<TesterSessionFeedback>,
     @InjectRepository(TesterCampaignSurvey)
@@ -125,16 +125,11 @@ export class TesterService {
   }): Promise<MyTesterSessionSummary[]> {
     assertReviewCampaignIsActive(campaign)
 
-    const conversationSessions = await this.conversationSessionRepository.find({
-      where: { userId, campaignId: campaign.id },
-      select: {
-        id: true,
-        createdAt: true,
-        updatedAt: true,
-        agentId: true,
-        type: true,
-      },
-    })
+    const conversationSessions =
+      await this.conversationAgentSessionRepository.findCampaignConversations(connectScope, {
+        campaignId: campaign.id,
+        userId,
+      })
 
     const sessionIds = conversationSessions.map((session) => session.id)
     const formsBySessionId = await this.conversationFormsService.listForSessions({
@@ -170,12 +165,10 @@ export class TesterService {
     connectScope,
     campaign,
     userId,
-    type,
   }: {
     connectScope: RequiredConnectScope
     campaign: ReviewCampaign
     userId: string
-    type: BaseAgentSessionType
   }): Promise<{ id: string; agentType: ReviewCampaignAgentType }> {
     assertReviewCampaignIsActive(campaign)
 
@@ -185,14 +178,15 @@ export class TesterService {
       throw new UnprocessableEntityException(`Unsupported agent type: ${agent.type}`)
     }
 
+    // The server sets the type: testers chat through the live routes until review campaign
+    // sessions get a type of their own (#250).
     const session = await this.conversationAgentSessionsService.createSession({
       connectScope,
       agentSettingsId: agentSettings.id,
       userId,
-      type,
+      type: "live",
+      campaignId: campaign.id,
     })
-    session.campaignId = campaign.id
-    await this.conversationSessionRepository.save(session)
     return { id: session.id, agentType: "conversation" }
   }
 
@@ -265,7 +259,12 @@ export class TesterService {
     return this.feedbackRepository.save(feedback)
   }
 
-  async computeCampaignAggregates(campaignId: string): Promise<CampaignAggregates> {
+  async computeCampaignAggregates(campaign: ReviewCampaign): Promise<CampaignAggregates> {
+    const campaignId = campaign.id
+    const connectScope = {
+      organizationId: campaign.organizationId,
+      projectId: campaign.projectId,
+    }
     const [ratingRow, surveyCount, sessionCount] = await Promise.all([
       this.feedbackRepository
         .createQueryBuilder("feedback")
@@ -273,7 +272,7 @@ export class TesterService {
         .where("feedback.campaign_id = :campaignId", { campaignId })
         .getRawOne<{ mean: string | null }>(),
       this.surveyRepository.count({ where: { campaignId } }),
-      this.conversationSessionRepository.count({ where: { campaignId } }),
+      this.conversationAgentSessionRepository.countCampaignConversations(connectScope, campaignId),
     ])
     const mean = ratingRow?.mean
     return {
@@ -295,14 +294,18 @@ export class TesterService {
   }
 
   async deleteTesterSession({
+    connectScope,
     campaign,
     sessionId,
+    agentId,
     agentType,
     sessionOwnerUserId,
     callerUserId,
   }: {
+    connectScope: RequiredConnectScope
     campaign: ReviewCampaign
     sessionId: string
+    agentId: string
     agentType: ReviewCampaignAgentType
     sessionOwnerUserId: string
     callerUserId: string
@@ -320,7 +323,7 @@ export class TesterService {
     if (agentType !== "conversation") {
       throw new UnprocessableEntityException(`Unsupported agent type: ${agentType}`)
     }
-    await this.conversationSessionRepository.delete({ id: sessionId })
+    await this.conversationAgentSessionsService.deleteSession({ connectScope, agentId, sessionId })
   }
 
   async submitSurvey({

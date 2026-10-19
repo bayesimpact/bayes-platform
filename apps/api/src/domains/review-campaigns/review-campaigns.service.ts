@@ -130,7 +130,7 @@ export class ReviewCampaignsService {
     )
     const aggregates =
       campaign.status === "closed"
-        ? await this.testerService.computeCampaignAggregates(campaign.id)
+        ? await this.testerService.computeCampaignAggregates(campaign)
         : null
     return { campaign, memberships, aggregates }
   }

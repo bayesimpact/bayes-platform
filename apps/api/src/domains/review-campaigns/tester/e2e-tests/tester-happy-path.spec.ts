@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto"
 import { ReviewCampaignsRoutes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
+import { In } from "typeorm"
 import {
   type AllRepositories,
   clearTestDatabase,
@@ -10,10 +11,15 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { agentFactory } from "@/domains/agents/agent.factory"
+import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
+import { agentMessageFactory } from "@/domains/agents/shared/agent-session-messages/agent-messages.factory"
 import { conversationFormFactory } from "@/domains/agents/shared/conversation-forms/conversation-form.factory"
+import type { Organization } from "@/domains/organizations/organization.entity"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
+import type { Project } from "@/domains/projects/project.entity"
+import type { User } from "@/domains/users/user.entity"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
@@ -628,5 +634,176 @@ describe("ReviewCampaigns - Tester happy path", () => {
       surveyCount: 0,
       sessionCount: 0,
     })
+  })
+
+  const startTesterSession = async () => {
+    const response = await request({
+      route: ReviewCampaignsRoutes.startTesterSession,
+      pathParams: removeNullish({ organizationId, projectId, reviewCampaignId }),
+      token: accessToken,
+      request: { payload: { type: "live" } },
+    })
+    expectResponse(response, 201)
+    return response.body.data.id
+  }
+
+  // A relay sub-agent's sub-session of `parentSessionId`, with one message.
+  const seedSubSession = async ({
+    organization,
+    project,
+    user,
+    parentSessionId,
+    campaignId = null,
+  }: {
+    organization: Organization
+    project: Project
+    user: User
+    parentSessionId: string
+    campaignId?: string | null
+  }) => {
+    const subAgent = await repositories.agentRepository.save(
+      agentFactory.transient({ organization, project }).build({ type: "conversation" }),
+    )
+    const subAgentSettings = await repositories.agentSettingsRepository.save(
+      agentSettingsFactory.transient({ organization, project, agent: subAgent }).build(),
+    )
+    const subSession = await repositories.conversationAgentSessionRepository.save(
+      conversationAgentSessionFactory
+        .transient({ organization, project, user, agent: subAgent })
+        .live()
+        .build({ parentSessionId, campaignId }),
+    )
+    await repositories.agentMessageRepository.save(
+      agentMessageFactory
+        .transient({ organization, project, session: subSession, agentSettings: subAgentSettings })
+        .build(),
+    )
+    return subSession
+  }
+
+  it("startTesterSession stores a live session whatever type the request carries", async () => {
+    await seedActiveCampaignWithTester()
+
+    const response = await request({
+      route: ReviewCampaignsRoutes.startTesterSession,
+      pathParams: removeNullish({ organizationId, projectId, reviewCampaignId }),
+      token: accessToken,
+      // @ts-expect-error Testing that the API ignores a session type the client should not choose.
+      request: { payload: { type: "playground" } },
+    })
+
+    expectResponse(response, 201)
+    const session = await repositories.conversationAgentSessionRepository.findOneBy({
+      id: response.body.data.id,
+    })
+    expect(session).toMatchObject({ type: "live", campaignId: reviewCampaignId })
+  })
+
+  it("deleteTesterSession removes the session's messages, forms and sub-sessions", async () => {
+    const { organization, project, user, agent, agentSettings } =
+      await seedActiveCampaignWithTester()
+    const sessionId = await startTesterSession()
+    const session = await repositories.conversationAgentSessionRepository.findOneByOrFail({
+      id: sessionId,
+    })
+    await repositories.agentMessageRepository.save(
+      agentMessageFactory.transient({ organization, project, session, agentSettings }).build(),
+    )
+    await repositories.conversationFormRepository.save(
+      conversationFormFactory
+        .transient({ organization, project, agent, agentSettings, session })
+        .build(),
+    )
+    const subSession = await seedSubSession({
+      organization,
+      project,
+      user,
+      parentSessionId: sessionId,
+    })
+
+    const deleteResponse = await request({
+      route: ReviewCampaignsRoutes.deleteTesterSession,
+      pathParams: removeNullish({ organizationId, projectId, sessionId }),
+      token: accessToken,
+    })
+
+    expectResponse(deleteResponse, 200)
+    const sessionIds = [sessionId, subSession.id]
+    expect(
+      await repositories.conversationAgentSessionRepository.findBy({ id: In(sessionIds) }),
+    ).toEqual([])
+    expect(await repositories.agentMessageRepository.findBy({ sessionId: In(sessionIds) })).toEqual(
+      [],
+    )
+    expect(
+      await repositories.conversationFormRepository.findBy({ sessionId: In(sessionIds) }),
+    ).toEqual([])
+  })
+
+  it("listMyTesterSessions leaves the sub-sessions of a tester session out", async () => {
+    const { organization, project, user } = await seedActiveCampaignWithTester()
+    const sessionId = await startTesterSession()
+    await seedSubSession({
+      organization,
+      project,
+      user,
+      parentSessionId: sessionId,
+      campaignId: reviewCampaignId,
+    })
+
+    const listResponse = await request({
+      route: ReviewCampaignsRoutes.listMyTesterSessions,
+      pathParams: removeNullish({ organizationId, projectId, reviewCampaignId }),
+      token: accessToken,
+    })
+
+    expectResponse(listResponse, 200)
+    expect(listResponse.body.data.sessions.map((session) => session.id)).toEqual([sessionId])
+  })
+
+  it("submitTesterFeedback answers 404 for the sub-session of a tester session", async () => {
+    const { organization, project, user } = await seedActiveCampaignWithTester()
+    const sessionId = await startTesterSession()
+    const subSession = await seedSubSession({
+      organization,
+      project,
+      user,
+      parentSessionId: sessionId,
+      campaignId: reviewCampaignId,
+    })
+
+    const response = await request({
+      route: ReviewCampaignsRoutes.submitTesterFeedback,
+      pathParams: removeNullish({ organizationId, projectId, sessionId: subSession.id }),
+      token: accessToken,
+      request: { payload: { overallRating: 4 } },
+    })
+
+    expectResponse(response, 404)
+  })
+
+  it("getOne leaves sub-sessions out of a closed campaign's session count", async () => {
+    const { organization, project, user, campaign } = await seedActiveCampaignWithTester()
+    const sessionId = await startTesterSession()
+    await seedSubSession({
+      organization,
+      project,
+      user,
+      parentSessionId: sessionId,
+      campaignId: campaign.id,
+    })
+    await repositories.reviewCampaignRepository.update(campaign.id, {
+      status: "closed",
+      closedAt: new Date(),
+    })
+
+    const response = await request({
+      route: ReviewCampaignsRoutes.getOne,
+      pathParams: removeNullish({ organizationId, projectId, reviewCampaignId }),
+      token: accessToken,
+    })
+
+    expectResponse(response, 200)
+    expect(response.body.data.aggregates?.sessionCount).toBe(1)
   })
 })

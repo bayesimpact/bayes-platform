@@ -8,6 +8,8 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
+import { agentFactory } from "@/domains/agents/agent.factory"
+import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
 import { ConversationAgentSessionsModule } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.module"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { createOrganizationWithAgentSession } from "@/domains/organizations/organization.factory"
@@ -78,6 +80,24 @@ describe("AgentSessionMessagesRoutes.listMessages", () => {
     })
 
   describe("listMessages", () => {
+    it("answers 404 for a sub-session, even on its own agent's routes", async () => {
+      const { organization, user, project, agentSession } = await createContext()
+      const subAgent = await repositories.agentRepository.save(
+        agentFactory.transient({ organization, project }).build({ type: "conversation" }),
+      )
+      const subSession = await repositories.conversationAgentSessionRepository.save(
+        conversationAgentSessionFactory
+          .transient({ organization, project, user, agent: subAgent })
+          .build({ parentSessionId: agentSession.id }),
+      )
+      agentId = subAgent.id
+      agentSessionId = subSession.id
+
+      const response = await subject()
+
+      expect(response.status).toBe(404)
+    })
+
     it("should return messages for a session", async () => {
       await createContext()
 

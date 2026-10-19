@@ -13,7 +13,13 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Fixed
 
+- Review campaigns: test conversations no longer appear among your App conversations.
+- Review campaigns: deleting a test conversation now also deletes its messages and forms.
+- Conversations: deleting a conversation now also deletes its exchanges with sub-agents.
+
 ### Security
+
+- Attachments: a file attached to a message can no longer be opened from another conversation.
 
 ## [26.10.4] - 2026-10-18
 

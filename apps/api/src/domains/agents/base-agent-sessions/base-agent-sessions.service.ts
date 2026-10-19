@@ -1,63 +1,66 @@
 import { Injectable } from "@nestjs/common"
-import { InjectDataSource } from "@nestjs/typeorm"
-import type { EntityManager, EntityTarget } from "typeorm"
+import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { DataSource } from "typeorm"
+import { TransactionService } from "@/common/transaction/transaction.service"
 import type { Agent } from "../agent.entity"
-import { ConversationAgentSession } from "../conversation-agent-sessions/conversation-agent-session.entity"
-import { ExtractionAgentSession } from "../extraction-agent-sessions/extraction-agent-session.entity"
-import { AgentMessage } from "../shared/agent-session-messages/agent-message.entity"
-import { AgentMessageFeedback } from "../shared/agent-session-messages/feedback/agent-message-feedback.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { ConversationFormsService } from "../shared/conversation-forms/conversation-forms.service"
-
-type AgentSession = ConversationAgentSession | ExtractionAgentSession
-
-const sessionEntityByType: Record<Agent["type"], EntityTarget<AgentSession>> = {
-  conversation: ConversationAgentSession,
-  extraction: ExtractionAgentSession,
-} as const
+import { ConversationAgentSessionRepository } from "../conversation-agent-sessions/conversation-agent-session.repository"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { ExtractionAgentSessionRepository } from "../extraction-agent-sessions/extraction-agent-session.repository"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentMessageRepository } from "../shared/agent-session-messages/agent-message.repository"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { ConversationFormRepository } from "../shared/conversation-forms/conversation-form.repository"
 
 @Injectable()
 export class BaseAgentSessionsService {
   constructor(
-    @InjectDataSource() private readonly dataSource: DataSource,
-    private readonly conversationFormsService: ConversationFormsService,
+    private readonly transactionService: TransactionService,
+    private readonly agentMessageRepository: AgentMessageRepository,
+    private readonly conversationFormRepository: ConversationFormRepository,
+    private readonly conversationAgentSessionRepository: ConversationAgentSessionRepository,
+    private readonly extractionAgentSessionRepository: ExtractionAgentSessionRepository,
   ) {}
 
+  /**
+   * Deletes a session with its messages, their feedback and its forms. A conversation also takes
+   * the relay sub-sessions it spawned, with their content: they are part of that conversation.
+   */
   async deleteAgentSession({
+    connectScope,
     agentType,
     agentId,
-    agentSession,
+    agentSessionId,
   }: {
+    connectScope: RequiredConnectScope
     agentType: Agent["type"]
     agentId: string
-    agentSession: AgentSession
+    agentSessionId: string
   }): Promise<void> {
-    await this.dataSource.transaction(async (entityManager) => {
-      await this.deleteSessionMessages({ entityManager, sessionId: agentSession.id })
-      await this.conversationFormsService.deleteForSession(entityManager, agentSession.id)
-      await entityManager.delete(sessionEntityByType[agentType] as EntityTarget<AgentSession>, {
+    await this.transactionService.run(async () => {
+      const subSessionIds =
+        agentType === "conversation"
+          ? await this.conversationAgentSessionRepository.findSubSessionIds(
+              connectScope,
+              agentSessionId,
+            )
+          : []
+      const sessionIds = [agentSessionId, ...subSessionIds]
+      await this.agentMessageRepository.deleteForSessions(connectScope, sessionIds)
+      await this.conversationFormRepository.deleteForSessions(connectScope, sessionIds)
+
+      if (agentType === "extraction") {
+        await this.extractionAgentSessionRepository.deleteSession(connectScope, {
+          agentId,
+          sessionId: agentSessionId,
+        })
+        return
+      }
+      await this.conversationAgentSessionRepository.deleteSubSessions(connectScope, subSessionIds)
+      await this.conversationAgentSessionRepository.deleteSession(connectScope, {
         agentId,
-        id: agentSession.id,
+        sessionId: agentSessionId,
       })
     })
-  }
-
-  private async deleteSessionMessages({
-    entityManager,
-    sessionId,
-  }: {
-    entityManager: EntityManager
-    sessionId: string
-  }): Promise<void> {
-    const agentMessages = await entityManager.find(AgentMessage, {
-      where: { sessionId },
-      select: { id: true },
-    })
-    for (const agentMessage of agentMessages) {
-      await entityManager.delete(AgentMessageFeedback, { agentMessageId: agentMessage.id })
-    }
-    await entityManager.delete(AgentMessage, { sessionId })
   }
 }

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
-import type { Repository } from "typeorm"
+import { IsNull, type Repository } from "typeorm"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import { ExtractionAgentSession } from "@/domains/agents/extraction-agent-sessions/extraction-agent-session.entity"
 import type { ContextResolver, ResolvableRequest } from "../context-resolver.interface"
@@ -41,8 +41,12 @@ export class AgentSessionContextResolver implements ContextResolver {
     let agentSession: ConversationAgentSession | ExtractionAgentSession | undefined
     switch (requestWithAgent.agent.type) {
       case "conversation":
+        // The session routes serve root sessions only: the user reads a relay sub-session
+        // through its parent conversation (listSubSessions).
         agentSession =
-          (await this.conversationAgentSessionRepository.findOne({ where })) ?? undefined
+          (await this.conversationAgentSessionRepository.findOne({
+            where: { ...where, parentSessionId: IsNull() },
+          })) ?? undefined
         break
       case "extraction":
         // The settings are loaded with the run: its DTO exposes the revision it ran with.

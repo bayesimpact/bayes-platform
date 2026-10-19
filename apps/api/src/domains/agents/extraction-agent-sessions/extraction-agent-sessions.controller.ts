@@ -171,9 +171,10 @@ export abstract class ExtractionAgentSessionsController {
     if (request.agentSession.type !== this.type) throw new NotFoundException()
 
     await this.baseAgentSessionsService.deleteAgentSession({
+      connectScope: getRequiredConnectScope(request),
       agentType: "extraction",
       agentId: request.agent.id,
-      agentSession: request.agentSession,
+      agentSessionId: request.agentSession.id,
     })
     return { data: { success: true } }
   }

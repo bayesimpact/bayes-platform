@@ -102,6 +102,33 @@ describe("ReviewCampaigns - Reviewer list sessions", () => {
     expect(response.body.data.sessions).toEqual([])
   })
 
+  it("leaves the sub-sessions of tester sessions out", async () => {
+    const { organization, project, agent, campaign } = await seedCampaignWithReviewer()
+    const tester = await repositories.userRepository.save(
+      userFactory.build({ email: `tester-sub-${randomUUID()}@example.com` }),
+    )
+    const testerSession = await repositories.conversationAgentSessionRepository.save(
+      conversationAgentSessionFactory
+        .transient({ organization, project, agent, user: tester })
+        .build({ campaignId: campaign.id }),
+    )
+    const subAgent = await repositories.agentRepository.save(
+      agentFactory.transient({ organization, project }).build({ type: "conversation" }),
+    )
+    await repositories.conversationAgentSessionRepository.save(
+      conversationAgentSessionFactory
+        .transient({ organization, project, agent: subAgent, user: tester })
+        .build({ campaignId: campaign.id, parentSessionId: testerSession.id }),
+    )
+
+    const response = await subject()
+
+    expectResponse(response, 200)
+    expect(response.body.data.sessions.map((session) => session.sessionId)).toEqual([
+      testerSession.id,
+    ])
+  })
+
   it("lists sessions from plain and fillForm-enabled agents stamped with the campaign", async () => {
     const { organization, project, agent, campaign } = await seedCampaignWithReviewer()
     const tester = await repositories.userRepository.save(

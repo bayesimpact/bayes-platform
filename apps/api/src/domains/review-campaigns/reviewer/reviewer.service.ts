@@ -11,6 +11,8 @@ import type { RequiredConnectScope } from "@/common/entities/connect-required-fi
 import { Agent } from "@/domains/agents/agent.entity"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { ConversationAgentSessionRepository } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.repository"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
 import type { ReviewCampaign } from "../review-campaign.entity"
@@ -83,6 +85,7 @@ export class ReviewerService {
     private readonly reviewRepository: Repository<ReviewerSessionReview>,
     @InjectRepository(ConversationAgentSession)
     private readonly conversationSessionRepository: Repository<ConversationAgentSession>,
+    private readonly conversationAgentSessionRepository: ConversationAgentSessionRepository,
     @InjectRepository(AgentMessage)
     private readonly agentMessageRepository: Repository<AgentMessage>,
     @InjectRepository(Agent)
@@ -102,10 +105,11 @@ export class ReviewerService {
     // Reviewers keep reading the sessions of a closed campaign.
     assertReviewCampaignIsNotDraft(campaign)
 
-    const conversationSessions = await this.conversationSessionRepository.find({
-      where: { campaignId: campaign.id },
-      select: { id: true, userId: true, createdAt: true },
-    })
+    const conversationSessions =
+      await this.conversationAgentSessionRepository.findCampaignConversations(
+        { organizationId: campaign.organizationId, projectId: campaign.projectId },
+        { campaignId: campaign.id },
+      )
 
     type BaseSummary = Pick<
       ReviewerSessionSummary,

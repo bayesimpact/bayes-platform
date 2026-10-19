@@ -3,6 +3,8 @@ import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentMessageRepository } from "./agent-message.repository"
 import { AgentMessageAttachmentDocument } from "./agent-message-attachment-document.entity"
 
 export type CreateAgentMessageAttachmentDocumentFields = {
@@ -19,6 +21,7 @@ export class AgentMessageAttachmentDocumentsService {
   constructor(
     @InjectRepository(AgentMessageAttachmentDocument)
     attachmentDocumentRepository: Repository<AgentMessageAttachmentDocument>,
+    private readonly agentMessageRepository: AgentMessageRepository,
   ) {
     this.attachmentDocumentConnectRepository = new ConnectRepository(
       attachmentDocumentRepository,
@@ -49,6 +52,28 @@ export class AgentMessageAttachmentDocumentsService {
     connectScope: RequiredConnectScope
   }): Promise<AgentMessageAttachmentDocument | null> {
     return this.attachmentDocumentConnectRepository.getOneById(connectScope, attachmentDocumentId)
+  }
+
+  /**
+   * An attachment a session may read: one no message holds, as just after its upload, or one
+   * attached to a message of that session. An attachment a message of another conversation holds
+   * is not found.
+   */
+  async findForSession({
+    attachmentDocumentId,
+    sessionId,
+    connectScope,
+  }: {
+    attachmentDocumentId: string
+    sessionId: string
+    connectScope: RequiredConnectScope
+  }): Promise<AgentMessageAttachmentDocument | null> {
+    const attachedToSessionId = await this.agentMessageRepository.findSessionIdOfAttachment(
+      connectScope,
+      attachmentDocumentId,
+    )
+    if (attachedToSessionId !== null && attachedToSessionId !== sessionId) return null
+    return this.findById({ attachmentDocumentId, connectScope })
   }
 
   /**

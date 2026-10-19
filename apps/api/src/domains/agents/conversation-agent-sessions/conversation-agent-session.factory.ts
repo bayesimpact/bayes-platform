@@ -45,8 +45,10 @@ export const conversationAgentSessionFactory = ConversationAgentSessionFactory.d
     }
 
     const now = new Date()
+    // A review campaign session is live, as the tester app creates it.
+    const type = params.type || (params.campaignId ? "live" : "playground")
     const defaultExpiresAt =
-      params.type === "playground"
+      type === "playground"
         ? new Date(now.getTime() + 24 * 60 * 60 * 1000) // 24 hours from now
         : null
 
@@ -56,7 +58,7 @@ export const conversationAgentSessionFactory = ConversationAgentSessionFactory.d
       userId: transientParams.user.id,
       organizationId: transientParams.organization.id,
       projectId: transientParams.project.id,
-      type: params.type || "playground",
+      type,
       title: params.title ?? null,
       activeAgentId: params.activeAgentId ?? null,
       parentSessionId: params.parentSessionId ?? null,

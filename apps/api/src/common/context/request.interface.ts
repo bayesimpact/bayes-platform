@@ -115,6 +115,7 @@ export interface EndpointRequestWithAgentSessionInCampaign extends EndpointReque
   reviewCampaign: ReviewCampaign
   agentSessionInCampaign: {
     sessionId: string
+    agentId: string
     agentType: ReviewCampaignAgentType
     userId: string
   }

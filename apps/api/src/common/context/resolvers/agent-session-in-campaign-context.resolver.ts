@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, UnprocessableEntityException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
-import type { Repository } from "typeorm"
+import { IsNull, type Repository } from "typeorm"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import type { ExtractionAgentSession } from "@/domains/agents/extraction-agent-sessions/extraction-agent-session.entity"
 import { ReviewCampaign } from "@/domains/review-campaigns/review-campaign.entity"
@@ -57,6 +57,7 @@ export class AgentSessionInCampaignContextResolver implements ContextResolver {
     enriched.reviewCampaign = campaign
     enriched.agentSessionInCampaign = {
       sessionId: session.id,
+      agentId: session.agentId,
       agentType,
       userId: session.userId,
     }
@@ -70,7 +71,11 @@ export class AgentSessionInCampaignContextResolver implements ContextResolver {
     session: ConversationAgentSession | ExtractionAgentSession
     agentType: ReviewCampaignAgentType
   } | null> {
-    const conversation = await this.conversationRepository.findOne({ where: scope })
+    // A tester's conversation is a root session: the relay sub-sessions it spawned are not
+    // sessions of the campaign of their own.
+    const conversation = await this.conversationRepository.findOne({
+      where: { ...scope, parentSessionId: IsNull() },
+    })
     if (conversation) return { session: conversation, agentType: "conversation" }
 
     return null

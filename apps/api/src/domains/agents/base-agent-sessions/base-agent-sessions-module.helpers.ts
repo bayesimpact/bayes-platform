@@ -16,10 +16,13 @@ import { UsersModule } from "@/domains/users/users.module"
 import { LlmModule } from "@/external/llm/llm.module"
 import { Agent } from "../agent.entity"
 import { ConversationAgentSession } from "../conversation-agent-sessions/conversation-agent-session.entity"
+import { ConversationAgentSessionRepository } from "../conversation-agent-sessions/conversation-agent-session.repository"
 import { ConversationAgentSessionCategory } from "../conversation-agent-sessions/conversation-agent-session-category.entity"
 import { ExtractionAgentSession } from "../extraction-agent-sessions/extraction-agent-session.entity"
+import { ExtractionAgentSessionRepository } from "../extraction-agent-sessions/extraction-agent-session.repository"
 import { AgentSessionCategory } from "../session-categories/agent-session-category.entity"
 import { AgentMessage } from "../shared/agent-session-messages/agent-message.entity"
+import { AgentMessageRepository } from "../shared/agent-session-messages/agent-message.repository"
 import { AgentMessageAttachmentDocument } from "../shared/agent-session-messages/agent-message-attachment-document.entity"
 import { ConversationForm } from "../shared/conversation-forms/conversation-form.entity"
 import { ConversationFormsModule } from "../shared/conversation-forms/conversation-forms.module"
@@ -59,8 +62,11 @@ export const moduleFeatures = [
 
 export const moduleProviders = [
   AgentContextResolver,
+  AgentMessageRepository,
   AgentSessionContextResolver,
   BaseAgentSessionsService,
+  ConversationAgentSessionRepository,
+  ExtractionAgentSessionRepository,
   OrganizationContextResolver,
   ProjectContextResolver,
   ResourceContextGuard,

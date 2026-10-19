@@ -46,6 +46,28 @@ describe("findOrCreateSubSession", () => {
     expect(second.id).toBe(first.id)
   })
 
+  it("reuses the parent's sub-session whatever type it was stored with", async () => {
+    const { service, testAgent, testOrganization, testProject, testUser } = getTestContext()
+    const connectScope = { organizationId: testOrganization.id, projectId: testProject.id }
+
+    const first = await service.findOrCreateSubSession({
+      connectScope,
+      agentId: testAgent.id,
+      userId: testUser.id,
+      parentSessionId: PARENT_SESSION_ID,
+      type: "live",
+    })
+    const second = await service.findOrCreateSubSession({
+      connectScope,
+      agentId: testAgent.id,
+      userId: testUser.id,
+      parentSessionId: PARENT_SESSION_ID,
+      type: "playground",
+    })
+
+    expect(second.id).toBe(first.id)
+  })
+
   it("excludes sub-sessions from the user-facing session list", async () => {
     const {
       service,
