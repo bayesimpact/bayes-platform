@@ -3,6 +3,9 @@
 # databases on the shared Postgres. The worktree tooling writes infra/worktree/.env
 # (COMPOSE_PROJECT_NAME=wt-<name> and the WT_* values below), then runs `docker compose up -d`
 # with this file.
+# Only the core runs by default: the API, the web app, the sign-in, Redis and the contracts'
+# watcher, after init, db and migrate. Every other service has a profile of its name, which the
+# tooling turns on through COMPOSE_PROFILES (its presets: bayes wt up --preset, --with).
 # See infra/worktree/README.md.
 #
 # - The worktree is mounted at its own absolute path, so logs and stack traces show paths you
@@ -308,6 +311,7 @@ services:
 
   workers:
     <<: *node
+    profiles: [workers]
     working_dir: ${WT_PATH}/apps/api
     networks: [default, shared]
     external_links: *auth-through-traefik
@@ -362,6 +366,7 @@ services:
 
   embed:
     <<: *node
+    profiles: [embed]
     working_dir: ${WT_PATH}/apps/web-embed
     networks: [default, shared]
     environment:
@@ -385,6 +390,7 @@ services:
 
   help:
     <<: *node
+    profiles: [help]
     working_dir: ${WT_PATH}/apps/help
     networks: [default, shared]
     environment:
@@ -412,6 +418,7 @@ services:
   # the browser's socket goes through Traefik. Ports below 1024 need no privilege in its container.
   storybook-web:
     <<: *node
+    profiles: [storybook-web]
     working_dir: ${WT_PATH}/apps/web
     networks: [default, shared]
     environment: *tools-env
@@ -435,6 +442,7 @@ services:
 
   storybook-ui:
     <<: *node
+    profiles: [storybook-ui]
     working_dir: ${WT_PATH}/packages/ui
     networks: [default, shared]
     environment: *tools-env
@@ -458,6 +466,7 @@ services:
 
   storybook-embed:
     <<: *node
+    profiles: [storybook-embed]
     working_dir: ${WT_PATH}/apps/web-embed
     networks: [default, shared]
     environment: *tools-env
@@ -481,6 +490,7 @@ services:
 
   # Bull Board on this environment's Redis, no login (infra/bull-board/README.md).
   bull-board:
+    profiles: [bull-board]
     image: venatum/bull-board:3.4.14 # same as infra/database
     restart: unless-stopped
     logging:
@@ -507,6 +517,7 @@ services:
   # Grafana on the analytics schema of this environment's database, with the branch's
   # provisioning and dashboards.
   grafana:
+    profiles: [grafana]
     image: grafana/grafana:13.2.2
     restart: unless-stopped
     logging:
@@ -548,6 +559,7 @@ services:
       - traefik.http.services.wt-${WT_SLUG}-grafana.loadbalancer.server.port=3000
 
   pdf-converter:
+    profiles: [pdf-converter]
     image: golang:1.26-bookworm # same as apps/pdf-converter/Dockerfile
     restart: unless-stopped
     logging:
