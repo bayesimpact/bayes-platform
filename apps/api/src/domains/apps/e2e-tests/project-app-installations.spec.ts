@@ -97,7 +97,6 @@ describe("Apps - project app installations", () => {
     const installation = appInstallationFactory.build({
       appManifestId: manifest.id,
       projectId: targetProjectId,
-      clientId: randomUUID(),
       ...(params.status ? { status: params.status, revokedAt: new Date() } : {}),
     })
     await repositories.appInstallationRepository.save(installation)

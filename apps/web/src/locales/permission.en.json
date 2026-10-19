@@ -81,7 +81,6 @@
     "csv_extraction_run.playground.delete": "Delete a playground CSV extraction run",
     "user.read": "See the users who are members of a resource",
     "trace.read": "See trace links",
-    "app.install": "Install apps on a project",
     "backoffice.app.manage": "Manage app definitions in the backoffice",
     "backoffice.read": "Access /backoffice routes",
     "backoffice.terms.update": "Manage terms documents",

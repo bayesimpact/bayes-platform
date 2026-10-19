@@ -56,10 +56,6 @@ export { AppsDocumentTagsRoutes } from "./apps/document-tags/apps-document-tags.
 export * from "./apps/documents/apps-documents.dto"
 export { AppsDocumentsRoutes } from "./apps/documents/apps-documents.routes"
 export {
-  assertAllowedInstallRedirectUri,
-  buildAppInstallCallbackUrl,
-  buildAppInstallDeniedUrl,
-  InvalidInstallRedirectUriError,
   InvalidLoopbackRedirectUriError,
   isAllowedInstallRedirectUri,
   isHttpRedirectUri,

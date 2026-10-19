@@ -1,101 +1,242 @@
 ---
-import Icon from "@/components/Icon.astro"
 import { useTranslations } from "@/i18n/ui"
-import { getLocaleFromPath } from "@/i18n/utils"
-import LogoFull from "./LogoFull.astro"
+import { getLocaleFromPath, localizedPath } from "@/i18n/utils"
 
 const locale = getLocaleFromPath(Astro.url.pathname)
 const t = useTranslations(locale)
-const year = new Date().getFullYear()
 const appUrl = import.meta.env.PUBLIC_APP_URL as string | undefined
 
-// Legal entity + registered address, mirroring bayesimpact.org's footer verbatim.
-const legalLine = `Association de loi 1901 (SIREN 813 821 279, FR) · 501(c)(3) (EIN 47-1102475, US) · 12 rue des Jeûneurs, 75002 Paris`
+// bayesimpact.org's footer, mirrored from the website repo's BaseLayout (its menu, its copy line,
+// its styles), so the help center ends like every page of the site. Its pages are served at
+// /<path> in English and /fr/<path> in French.
+const SITE = "https://www.bayesimpact.org"
+const site = (path: string) => `${SITE}${locale === "en" ? "" : `/${locale}`}${path}`
 
-const social = [
-  { name: "linkedin", label: "LinkedIn", href: "https://www.linkedin.com/company/bayes-impact/" },
-  { name: "x-logo", label: "X", href: "https://x.com/bayesimpact", filled: true },
-  { name: "github", label: "GitHub", href: "https://github.com/bayesimpact" },
-]
+const columns = [
+  {
+    title: t("footer.platform"),
+    href: site("/platform"),
+    links: [
+      [t("footer.reliability"), site("/platform#reliability")],
+      [t("footer.demos"), site("/platform")],
+      [t("footer.validation"), site("/platform#validation")],
+      [t("footer.integration"), site("/platform#integration")],
+      [t("footer.model"), site("/platform#model")],
+      [t("footer.sourceCode"), "https://github.com/bayesimpact/bayes-platform"],
+    ],
+  },
+  {
+    title: t("footer.sectors"),
+    href: site("/sectors"),
+    links: [
+      [t("footer.governments"), site("/sectors#gouvernements")],
+      [t("footer.health"), site("/sectors#sante")],
+      [t("footer.employment"), site("/sectors#emploi")],
+      [t("footer.social"), site("/sectors#social")],
+      [t("footer.publicServices"), site("/ai-agents-for-public-services")],
+    ],
+  },
+  {
+    title: t("footer.about"),
+    href: site("/about"),
+    links: [
+      [t("footer.mission"), site("/about#mission")],
+      [t("footer.team"), site("/about#team")],
+      [t("footer.impact"), site("/about#impact")],
+      [t("footer.openSource"), site("/about#open-source")],
+      [t("footer.donors"), site("/about#supporters")],
+      [t("footer.press"), site("/#news")],
+    ],
+  },
+  {
+    title: t("footer.resources"),
+    links: [
+      [t("site.title"), localizedPath(locale)],
+      ...(appUrl ? [[t("nav.backToApp"), appUrl]] : []),
+      [t("footer.blog"), `${SITE}/blog`],
+      [t("footer.contact"), site("/contact")],
+    ],
+  },
+] as { title: string; href?: string; links: [string, string][] }[]
+
+const isExternal = (href: string) => href.startsWith("http")
 ---
 
-{/* Brand footer — near-black surface, laid out exactly like bayesimpact.org's footer:
-    an upper band (socials left · links right) over a main band (logo + legal line). */}
-<footer class="relative mt-16 overflow-hidden bg-[#0e0e13] text-white/75">
-  <div
-    class="pointer-events-none absolute inset-0 opacity-70"
-    style="background: radial-gradient(120% 90% at 50% 120%, rgba(255,132,0,0.10), transparent 60%);"
-  >
+<footer class="hc-footer">
+  <div class="footer-main">
+    <div class="footer-brand">
+      <img src="/brand/bi-black.svg" alt="Bayes Impact" class="footer-logo" />
+      <p class="footer-pitch">{t("footer.pitch")}</p>
+      <a href={site("/contact")} class="btn btn-primary btn-sm">
+        {t("footer.contactUs")} <span aria-hidden="true">→</span>
+      </a>
+      <a href={`${site("/")}#newsletter`} class="footer-newsletter">
+        {t("footer.newsletter")} <span aria-hidden="true">→</span>
+      </a>
+      <div class="socials">
+        <a href="https://www.linkedin.com/company/bayes-impact/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.98 3.5a2.5 2.5 0 1 1-.02 5 2.5 2.5 0 0 1 .02-5zM3 9h4v12H3V9zm7 0h3.8v1.6h.06c.52-.98 1.8-2 3.7-2 3.96 0 4.69 2.6 4.69 5.97V21H18.2v-5.5c0-1.31-.03-3-1.83-3-1.84 0-2.12 1.44-2.12 2.92V21H10V9z"></path></svg></a>
+        <a href="https://github.com/bayesimpact" target="_blank" rel="noopener noreferrer" aria-label="GitHub"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12.02c0 5.1 3.29 9.42 7.86 10.95.58.1.79-.25.79-.55v-2.1c-3.2.69-3.87-1.36-3.87-1.36-.52-1.32-1.27-1.68-1.27-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.76 2.69 1.25 3.34.96.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.28 1.18-3.08-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.15 1.18.91-.25 1.89-.38 2.87-.38.97 0 1.95.13 2.86.38 2.18-1.49 3.14-1.18 3.14-1.18.63 1.58.23 2.75.12 3.04.74.8 1.18 1.82 1.18 3.08 0 4.42-2.69 5.4-5.25 5.68.41.36.78 1.06.78 2.14v3.18c0 .31.2.66.8.55C20.21 21.43 23.5 17.12 23.5 12.02 23.5 5.65 18.35.5 12 .5z"></path></svg></a>
+      </div>
+    </div>
+    <nav class="footer-cols" aria-label={t("footer.siteMap")}>
+      {
+        columns.map((col) => (
+          <div class="footer-col">
+            <h2>{col.href ? <a href={col.href}>{col.title}</a> : col.title}</h2>
+            <ul>
+              {col.links.map(([label, href]) => (
+                <li>
+                  <a href={href} {...(isExternal(href) && !href.startsWith(SITE) ? { target: "_blank", rel: "noopener noreferrer" } : {})}>
+                    {label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+    </nav>
   </div>
-
-  <div class="relative mx-auto max-w-[1360px] px-6 pt-14 sm:px-10">
-    {/* Upper band — socials left, navigation links right (newsletter's slot). */}
-    <div
-      class="flex flex-col items-center gap-4 border-y border-white/12 py-6 sm:flex-row sm:justify-between sm:gap-6"
-    >
-      <div class="flex items-center gap-6">
-        {
-          social.map((entry) => (
-            <a
-              class="flex items-center justify-center text-white/70 opacity-70 transition-opacity hover:opacity-100"
-              href={entry.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={entry.label}
-            >
-              <Icon name={entry.name} size={entry.filled ? 18 : 20} filled={entry.filled} />
-            </a>
-          ))
-        }
-      </div>
-
-      <div class="flex items-center gap-4 text-sm text-white/70 sm:gap-5">
-        {
-          appUrl && (
-            <a class="transition-colors hover:text-white" href={appUrl}>
-              {t("nav.backToApp")}
-            </a>
-          )
-        }
-        {appUrl && <span class="text-white/25">·</span>}
-        <a
-          class="transition-colors hover:text-white"
-          href="https://www.bayesimpact.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          bayesimpact.org
-        </a>
-      </div>
-    </div>
-
-    {/* Main band — logo (+ tagline) stacked above the legal line. */}
-    <div class="grid gap-10 pb-16 pt-14">
-      <div class="flex flex-col items-start gap-4">
-        <LogoFull class="h-7 w-auto text-white" />
-        <p class="max-w-sm text-sm leading-relaxed text-white/55">{t("site.tagline")}</p>
-      </div>
-
-      <p class="text-xs leading-relaxed text-white/45">
-        © {year} Bayes Impact — {legalLine} —{" "}
-        <a
-          class="underline underline-offset-[3px] opacity-80 transition-opacity hover:opacity-100"
-          href="https://www.bayesimpact.org/legal-notices/"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {t("footer.legalNotice")}
-        </a>
-        {" · "}
-        <a
-          class="underline underline-offset-[3px] opacity-80 transition-opacity hover:opacity-100"
-          href="https://www.bayesimpact.org/privacy-policy/"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {t("footer.privacyPolicy")}
-        </a>
-      </p>
-    </div>
+  <div class="footer-copy">
+    © {new Date().getFullYear()} Bayes Impact, association de loi 1901 (SIREN 813 821 279, FR) et 501(c)(3) (EIN 47-1102475, US), 146 rue de Rivoli, 75001 Paris.
+    <a href={site("/legal-notices")}>{t("footer.legalNotice")}</a>
+    <a href={site("/privacy-policy")}>{t("footer.privacyPolicy")}</a>
   </div>
 </footer>
+
+<style>
+  /* bayesimpact.org's footer styles (website ▸ src/layouts/BaseLayout.astro ▸ FOOTER), on tokens. */
+  .hc-footer {
+    background: var(--bg-2);
+    padding: 64px 0 28px;
+  }
+  .footer-main {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) minmax(0, 2.6fr);
+    gap: 56px;
+    max-width: 1360px;
+    margin: 0 auto;
+    padding: 0 40px 44px;
+    border-bottom: 1px solid color-mix(in srgb, var(--ink) 10%, transparent);
+  }
+  .footer-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .footer-logo {
+    height: 28px;
+    width: auto;
+  }
+  .footer-pitch {
+    font-family: var(--font-serif);
+    font-size: 19px;
+    line-height: 1.35;
+    color: var(--ink);
+    max-width: 20ch;
+    margin: 6px 0 0;
+  }
+  .footer-newsletter {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ink);
+    border-bottom: 1px solid var(--ink);
+    padding: 0 0 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .footer-newsletter:hover {
+    opacity: 0.75;
+  }
+  .socials {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    margin-top: 6px;
+  }
+  .socials a {
+    width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+  }
+  .socials a:hover {
+    opacity: 1;
+  }
+  .footer-cols {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 32px;
+  }
+  .footer-col h2 {
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 14px;
+  }
+  .footer-col h2 a:hover {
+    color: var(--ink);
+  }
+  .footer-col ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+  .footer-col li a {
+    font-size: 14px;
+    line-height: 1.35;
+    color: var(--ink);
+    opacity: 0.78;
+    transition: opacity 0.15s;
+  }
+  .footer-col li a:hover {
+    opacity: 1;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .footer-copy {
+    max-width: 1360px;
+    margin: 0 auto;
+    padding: 22px 40px 0;
+    font-size: 12px;
+    line-height: 1.6;
+    color: var(--muted);
+  }
+  .footer-copy a {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    margin-left: 12px;
+  }
+  .footer-copy a:hover {
+    color: var(--ink);
+  }
+  @media (max-width: 900px) {
+    .hc-footer {
+      padding-top: 44px;
+    }
+    .footer-main {
+      grid-template-columns: 1fr;
+      gap: 36px;
+      padding: 0 24px 32px;
+    }
+    .footer-cols {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 28px 20px;
+    }
+    .footer-copy {
+      padding: 20px 24px 0;
+    }
+  }
+</style>

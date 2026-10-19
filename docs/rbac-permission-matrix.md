@@ -9,11 +9,10 @@ This document mirrors those files. Whenever a role or a role/permission grant ch
 
 ## Global roles
 
-Global roles are stored as `user_membership` rows with `resource_type = 'global'`. `platform_staff` is renamed from `org_creator` and seeded by email domain (`SeedPlatformStaffByEmailDomain` / `ORGANIZATION_CREATOR_EMAIL_DOMAIN`). `platform_superadmin` is seeded from `BACKOFFICE_AUTHORIZED_EMAILS` by `SeedPlatformSuperadminByEmails`. The app itself never reads those env vars for authorization. `platform_staff` holds global `backoffice.project.read` so the App install picker is not empty for the people who hold `app.install`. `backoffice.app.manage` is superadmin-only and is not granted by `app.install`. `backoffice.conversation_reviewer.update` lets the backoffice grant or revoke `agent_conversation_reviewer` on an agent (see Agent roles).
+Global roles are stored as `user_membership` rows with `resource_type = 'global'`. `platform_staff` is renamed from `org_creator` and seeded by email domain (`SeedPlatformStaffByEmailDomain` / `ORGANIZATION_CREATOR_EMAIL_DOMAIN`). `platform_superadmin` is seeded from `BACKOFFICE_AUTHORIZED_EMAILS` by `SeedPlatformSuperadminByEmails`. The app itself never reads those env vars for authorization. `platform_staff` holds global `backoffice.project.read`. `backoffice.app.manage` is superadmin-only: it manages the app manifests and their OAuth clients. `backoffice.conversation_reviewer.update` lets the backoffice grant or revoke `agent_conversation_reviewer` on an agent (see Agent roles).
 
 | Permission | `platform_staff` | `platform_superadmin` |
 |---|---|---|
-| `app.install` — install apps on a project | ✅ | ✅ |
 | `backoffice.app.manage` — manage app definitions in the backoffice | — | ✅ |
 | `backoffice.read` — access `/backoffice` routes | ✅ | ✅ |
 | `trace.read` — see trace links | ✅ | ✅ |
@@ -67,7 +66,7 @@ The `document_tag.*` permissions are not inherited either: an organization role 
 
 The `project.mcp_server.*` permissions are not inherited either: an organization role does not open a project's MCP servers. Every project role sees them, while adding, connecting, toggling and deleting stay with owners and admins.
 
-The `project.app_installation.*` permissions are not inherited either: project owners and admins see and revoke the apps installed on the project, while installing an app stays behind the global `app.install`.
+The `project.app_installation.*` permissions are not inherited either: project owners and admins install apps on the project, see them and revoke them.
 
 The `project.review_campaign.*` permissions are not inherited either: an organization role does not open a project's review campaigns. Managing them, inviting testers and reviewers and removing them stays with project owners and admins. `review_campaign.report.read` is granted on project owners and admins and passes down to every campaign of the project (see Review campaign roles).
 
@@ -150,6 +149,8 @@ The `project.review_campaign.*` permissions are not inherited either: an organiz
 | `project.mcp_server.delete` — delete an MCP server from the project | ✅ | ✅ | — |
 | `project.app_installation.read` — see the apps installed on the project | ✅ | ✅ | — |
 | `project.app_installation.revoke` — revoke an app installed on the project | ✅ | ✅ | — |
+| `project.app_installation.create` — install an app on the project | ✅ | ✅ | — |
+| `agent.conversation.session.external.create` — open conversations with the project's agents for people outside the platform | ✅ | ✅ | — |
 | `project.review_campaign.read` — see the project's review campaigns | ✅ | ✅ | — |
 | `project.review_campaign.create` — create a review campaign | ✅ | ✅ | — |
 | `project.review_campaign.update` — update a review campaign | ✅ | ✅ | — |
@@ -235,4 +236,4 @@ The last four rows apply to the campaign's project, and only while the campaign 
 
 ## App grantable permissions
 
-Apps may only be granted the permissions in `APP_GRANTABLE_PERMISSIONS`, grouped by resource type: document (`document.read`, `document.create`, `document.update`, `document.delete`), document source (`document_source.read`, `document_source.create`, `document_source.update`, `document_source.delete`), document tag (`document_tag.read`, `document_tag.create`, `document_tag.update`, `document_tag.delete`), workspace (`project.read`, `project.update`, `project.delete`), and agent (`agent.read`, `agent.conversation.session.external.create`). `project.create` is not grantable. `agent.conversation.session.external.create` lets an App open conversations with the agents of its project for people outside the platform: no catalog role grants it, and the install role passes it down from the project to its agents. This allowlist is code, not a database column. Manifest save and authorize intersect requested permissions with it.
+Apps may only be granted the permissions in `APP_GRANTABLE_PERMISSIONS`, grouped by resource type: document (`document.read`, `document.create`, `document.update`, `document.delete`), document source (`document_source.read`, `document_source.create`, `document_source.update`, `document_source.delete`), document tag (`document_tag.read`, `document_tag.create`, `document_tag.update`, `document_tag.delete`), workspace (`project.read`, `project.update`, `project.delete`), and agent (`agent.read`, `agent.conversation.session.external.create`). `project.create` is not grantable. `agent.conversation.session.external.create` lets an App open conversations with the agents of its project for people outside the platform: project owners and admins hold it so they can grant it at install, and the install role passes it down from the project to its agents. Only the apps API checks it. This allowlist is code, not a database column. Manifest save and install intersect requested permissions with it, and an installer only grants the permissions they hold on the project.

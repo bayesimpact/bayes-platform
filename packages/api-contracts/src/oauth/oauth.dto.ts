@@ -133,25 +133,39 @@ export type OAuthConsentProjectDto = {
   organizationId: string
   organizationName: string
   /** Grantable permissions the person holds on the project, the ones worth offering. */
-  availablePermissions: OAuthGrantablePermission[]
+  availablePermissions: string[]
 }
+
+/**
+ * - mcp: a client acting as the person, on the projects they pick (ADR 0028)
+ * - app: an app installed on one project, acting as its own service user (ADR 0029)
+ */
+export type OAuthClientKind = "mcp" | "app"
 
 export type OAuthConsentPageDto = {
   client: {
     clientId: string
+    kind: OAuthClientKind
     name: string | null
     /** Host the person is sent back to. */
     redirectHost: string
-    /** True for a metadata document client: its domain is checked, its name is not invented. */
+    /** True when the platform vouches for the name: a metadata document client, or an app. */
     verified: boolean
+    /** An app's description and logo, from its manifest. */
+    description: string | null
+    logoUrl: string | null
   }
+  /** For an app, the projects the person can install it on. */
   projects: OAuthConsentProjectDto[]
-  grantablePermissions: OAuthGrantablePermission[]
+  /** The MCP permissions, or the ones of the app's manifest. */
+  grantablePermissions: string[]
 }
 
 export const oauthConsentSchema = oauthAuthorizationRequestSchema.extend({
+  /** Exactly one for an app. */
   projectIds: z.array(z.uuid()).min(1).max(50),
-  permissions: z.array(z.enum(OAUTH_GRANTABLE_PERMISSIONS)).min(1),
+  /** Checked by the server against the client's grantable permissions. */
+  permissions: z.array(z.string().min(1).max(100)).min(1).max(50),
 })
 export type OAuthConsentDto = z.infer<typeof oauthConsentSchema>
 
@@ -160,21 +174,31 @@ export type OAuthConsentResponseDto = {
   redirectTo: string
 }
 
+/**
+ * Client authentication at the token and revocation endpoints: the id alone
+ * for a public client, plus the secret for an app (`client_secret_post`). With
+ * `client_secret_basic`, the server reads both from the Authorization header.
+ */
+const clientAuthenticationFields = {
+  client_id: z.string().min(1).max(2048),
+  client_secret: z.string().min(1).max(512).optional(),
+}
+
 /** Token request, form-encoded (RFC 6749 section 4.1.3 and 6). */
 export const oauthTokenRequestSchema = z.discriminatedUnion("grant_type", [
   z.object({
     grant_type: z.literal("authorization_code"),
     code: z.string().min(1).max(512),
     redirect_uri: z.string().min(1).max(2048),
-    client_id: z.string().min(1).max(2048),
     code_verifier: z.string().regex(/^[A-Za-z0-9._~-]{43,128}$/),
     resource: z.string().max(2048).optional(),
+    ...clientAuthenticationFields,
   }),
   z.object({
     grant_type: z.literal("refresh_token"),
     refresh_token: z.string().min(1).max(512),
-    client_id: z.string().min(1).max(2048),
     resource: z.string().max(2048).optional(),
+    ...clientAuthenticationFields,
   }),
 ])
 export type OAuthTokenRequestDto = z.infer<typeof oauthTokenRequestSchema>
@@ -195,7 +219,7 @@ export type OAuthErrorResponseDto = {
 export const oauthRevocationRequestSchema = z.object({
   token: z.string().min(1).max(512),
   token_type_hint: z.string().optional(),
-  client_id: z.string().min(1).max(2048),
+  ...clientAuthenticationFields,
 })
 
 export type OAuthGrantDto = {

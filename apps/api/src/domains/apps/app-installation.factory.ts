@@ -10,8 +10,6 @@ export const appInstallationFactory = Factory.define<AppInstallation>(({ params 
     projectId: params.projectId || randomUUID(),
     serviceUserId: params.serviceUserId ?? null,
     customRoleId: params.customRoleId ?? null,
-    clientId: params.clientId ?? null,
-    clientSecretHash: params.clientSecretHash ?? null,
     status: params.status ?? APP_INSTALLATION_STATUS_ACTIVE,
     createdByUserId: params.createdByUserId ?? null,
     revokedAt: params.revokedAt ?? null,

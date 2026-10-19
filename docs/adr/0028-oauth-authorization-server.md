@@ -109,5 +109,5 @@ for apps. MCP clients use it first.**
   `client_credentials` grant for the service user and the consent page in
   place of `apps/install/:slug`, with the old endpoints kept during the
   transition.
-* The API holds a new signing key use: it signs with the apps key pair
-  (`APPS_JWT_PRIVATE_KEY`), which becomes the key of the authorization server.
+* The API holds a new signing key use: it signs with the key pair of the
+  apps, renamed `OAUTH_SIGNING_PRIVATE_KEY`, which becomes the key of the authorization server.

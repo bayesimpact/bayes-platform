@@ -1,22 +1,12 @@
 import type { ResponseData } from "../generic"
 import { defineRoute } from "../helpers"
-import type {
-  AppAccessTokenResponseDto,
-  AppMeResponseDto,
-  ExchangeAppInstallCodeResponseDto,
-} from "./apps.dto"
+import type { AppMeResponseDto } from "./apps.dto"
 
+/**
+ * The apps API. An app calls it with an access token of the authorization
+ * server (ADR 0029), whose audience is `<API>/api/apps/v1`.
+ */
 export const AppsV1Routes = {
-  // RFC 6749 token response: unwrapped snake_case, not { data }.
-  createToken: defineRoute<AppAccessTokenResponseDto>({
-    method: "post",
-    path: "apps/v1/token",
-  }),
-  /** One-time install code → client credentials. Unauthenticated; unwrapped body. */
-  exchangeInstallCode: defineRoute<ExchangeAppInstallCodeResponseDto>({
-    method: "post",
-    path: "apps/v1/install/exchange",
-  }),
   getMe: defineRoute<ResponseData<AppMeResponseDto>>({
     method: "get",
     path: "apps/v1/me",

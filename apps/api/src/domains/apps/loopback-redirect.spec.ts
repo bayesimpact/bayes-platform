@@ -1,8 +1,4 @@
 import {
-  assertAllowedInstallRedirectUri,
-  buildAppInstallCallbackUrl,
-  buildAppInstallDeniedUrl,
-  InvalidInstallRedirectUriError,
   InvalidLoopbackRedirectUriError,
   isAllowedInstallRedirectUri,
   isHttpRedirectUri,
@@ -31,75 +27,38 @@ describe("loopback redirect URIs", () => {
       InvalidLoopbackRedirectUriError,
     )
   })
-
-  it("builds the one-shot callback URL with a code", () => {
-    expect(
-      buildAppInstallCallbackUrl({
-        redirectUri: "http://127.0.0.1:8787/callback",
-        code: "install-code",
-        state: "abc",
-      }),
-    ).toBe("http://127.0.0.1:8787/callback?code=install-code&state=abc")
-  })
-
-  it("builds the OAuth access_denied cancel URL", () => {
-    expect(
-      buildAppInstallDeniedUrl({
-        redirectUri: "http://127.0.0.1:8787/callback",
-        state: "abc",
-      }),
-    ).toBe("http://127.0.0.1:8787/callback?error=access_denied&state=abc")
-  })
-
-  it("builds callback URLs for registered HTTPS redirects with a code only", () => {
-    expect(
-      buildAppInstallCallbackUrl({
-        redirectUri: "https://app.example.com/auth/bayes/callback",
-        code: "install-code",
-        state: "abc",
-      }),
-    ).toBe("https://app.example.com/auth/bayes/callback?code=install-code&state=abc")
-  })
 })
 
-describe("allowed install redirect URIs", () => {
+describe("redirect URIs of an app", () => {
   const allowlist = [
     "http://localhost:3100/auth/bayes/callback",
-    "https://site-crawler.staging.bayes.org/auth/bayes/callback",
+    "https://app.example.com/auth/bayes/callback",
     "http://app.example.org/callback",
   ]
 
-  it("accepts loopback without allowlist registration", () => {
+  it("accepts loopback without registration", () => {
     expect(isAllowedInstallRedirectUri("http://127.0.0.1:8787/callback", [])).toBe(true)
     expect(isAllowedInstallRedirectUri("http://acme.localhost/callback", [])).toBe(true)
     expect(isHttpRedirectUri("https://app.example.com/callback")).toBe(true)
   })
 
-  it("accepts exact https allowlist matches", () => {
-    const localCallback = "http://localhost:3100/auth/bayes/callback"
+  it("accepts exact https matches", () => {
     expect(
-      isAllowedInstallRedirectUri(
-        "https://site-crawler.staging.bayes.org/auth/bayes/callback",
-        allowlist,
-      ),
+      isAllowedInstallRedirectUri("https://app.example.com/auth/bayes/callback", allowlist),
     ).toBe(true)
-    expect(assertAllowedInstallRedirectUri(localCallback, allowlist)).toBe(localCallback)
+    expect(
+      isAllowedInstallRedirectUri("http://localhost:3100/auth/bayes/callback", allowlist),
+    ).toBe(true)
   })
 
   it("rejects non-loopback http even when listed", () => {
     expect(isAllowedInstallRedirectUri("http://app.example.org/callback", allowlist)).toBe(false)
   })
 
-  it("rejects non-allowlisted non-loopback URIs", () => {
+  it("rejects unregistered non-loopback URIs", () => {
     expect(isAllowedInstallRedirectUri("https://evil.example/callback", allowlist)).toBe(false)
     expect(
-      isAllowedInstallRedirectUri(
-        "https://site-crawler.staging.bayes.org/auth/bayes/callback/",
-        allowlist,
-      ),
+      isAllowedInstallRedirectUri("https://app.example.com/auth/bayes/callback/", allowlist),
     ).toBe(false)
-    expect(() =>
-      assertAllowedInstallRedirectUri("https://evil.example/callback", allowlist),
-    ).toThrow(InvalidInstallRedirectUriError)
   })
 })

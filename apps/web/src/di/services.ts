@@ -6,7 +6,6 @@ import type { IAgentSessionMessagesSpi } from "@/common/features/agents/agent-se
 import type { IAgentSettingsSpi } from "@/common/features/agents/agent-settings/agent-settings.spi"
 import type { IAgentsSpi } from "@/common/features/agents/agents.spi"
 import type { IAgentCsvExtractionRunsSpi } from "@/common/features/agents/csv-extraction-runs/agent-csv-extraction-runs.spi"
-import type { IAppInstallSpi } from "@/common/features/app-install/app-install.spi"
 import type { IMeSpi } from "@/common/features/me/me.spi"
 import type { IOAuthConsentSpi } from "@/common/features/oauth-consent/oauth-consent.spi"
 import type { IOAuthGrantsSpi } from "@/common/features/oauth-grants/oauth-grants.spi"
@@ -48,7 +47,6 @@ export type Services = {
   agents: IAgentsSpi
   agentSettings: IAgentSettingsSpi
   agentSessionMessages: IAgentSessionMessagesSpi
-  appInstall: IAppInstallSpi
   backoffice: IBackofficeSpi
   conversationAgentSessions: IConversationAgentSessionsSpi
   conversationReview: IConversationReviewSpi

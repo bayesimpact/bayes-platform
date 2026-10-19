@@ -82,57 +82,51 @@ Studio/coral.
 
 ---
 
-# Design System — Bayes brand DA (light-only)
+# Design System: the Bayes one, vendored (light-only)
 
-The help center follows the **Bayes Impact brand DA** (bayesimpact.org), NOT a
-generic docs/shadcn theme. **Source of truth: `@bayes/ui` `tokens.css` +
-`components.css`** (the website's shared files) — values are *mirrored, never
-reinvented*. Everything below lives in `src/styles/global.css` unless noted.
+The help center's chrome is **the Bayes design system itself**, the one bayesimpact.org and the
+decks wear: not a look-alike. Its source of truth is the private
+`bayesimpact/website` repo (`packages/ui` = @bayes/ui, `packages/brand` = @bayes/brand, and the
+site's `src/styles/doc-page.css`). This repo cannot depend on it, so
+`scripts/sync-bayes-ui.mjs` copies what the help center uses into **`src/vendor/bayes-ui/`**
+(tokens, self-hosted fonts, `components.css`, `lang-switcher.css`, `document.css`,
+`doc-page.css`) and **`public/brand/`** (the marks), and the copy is committed.
 
-## Tokens (values in `global.css`, keep the shadcn `--color-*` names)
+- **Never edit `src/vendor/` or `public/brand/` by hand.** Change the file in `website`, merge
+  it there, then run `node scripts/sync-bayes-ui.mjs` from `apps/help` (it reads `website`'s
+  `origin/main` from `../website` next to this repo, or `WEBSITE_REPO_DIR`).
+  `node scripts/sync-bayes-ui.mjs --check` says whether the copy is stale. `src/vendor` is
+  excluded from Biome (`apps/help/biome.json`) because it is formatted as upstream wrote it.
+- **No colour or font is written in this app's chrome.** Use a token (`var(--bg)`,
+  `var(--ink)`, `var(--card)`, `var(--muted)`, `var(--border-soft)`, `var(--gold-bg)`,
+  `var(--accent-orange)`, `var(--font-display)`…) or a Tailwind utility, whose colour names
+  `global.css` maps onto those tokens (`bg-background` = `--bg`, `text-foreground` = `--ink`,
+  `bg-card`, `bg-secondary`/`bg-muted` = `--cream`, `text-muted-foreground` = `--muted`,
+  `border-border` = `--border-soft`, `bg-primary`/`border-primary` = `--accent-orange`). A
+  missing token is added in `website` first. The one exception is the system monospace stack
+  for code, which @bayes/ui does not provide.
+- **Orange is punctuation** (eyebrows, the active rule, the focus ring), never a fill or body
+  text. The gold marker highlight is `.hl` (the `highlight` frontmatter / `home.highlight`).
 
-- Surface **beige `#F2EFE9`** (`--background`) · ink **`#000`** text
-  (`--foreground`) · cards **`#FFF`** (`--card`) · cream **`#F7F7F2`**
-  (`--secondary`/`--muted`) · muted text **`#657180`** (`--muted-foreground`).
-- **Gold `#DBCCAF`** = hairlines/borders (`--border`, `--input`) and the brand
-  accent surface.
-- **Orange `#FF8400`** (`--primary`, `--accent-orange`) = **PUNCTUATION ONLY** —
-  eyebrow text, focus ring, active dot/rule, link hover. Never large orange fills,
-  never orange body text/buttons.
-- Emphasis highlight = gold marker **`#EBE092`** (`--gold-mark`, via `.hl` /
-  `<mark>`); in-text link accent = gold-deep **`#9A6F24`** (`--gold-deep`).
-- Radius **14px** (`--radius`).
-- Because the token *names* stay shadcn-compatible, **use the Tailwind utilities**
-  (`bg-background`, `text-foreground`, `border-border`, `bg-card`, `bg-secondary`,
-  `text-muted-foreground`, `bg-primary`) — **never hardcode a hex in a component.**
-  Missing token? Add it by mirroring `@bayes/ui`, don't guess a colour.
+## Page layout = the site's document pages (/platform, /sectors)
 
-## Typography
-
-- Body: **Inter** (`--font-sans`). Display/titles: **Archivo Black** via the
-  `.font-display` class (home hero, article H1, prose `h2`). Serif available:
-  **Kaisei Decol** (`--font-serif`). Headings are **not** uppercase.
-- Google Fonts are loaded in `BaseLayout.astro` (Inter / Archivo Black / Kaisei).
-
-## Component vocabulary (`global.css @layer components`, from `@bayes/ui`)
-
-- **Buttons** — pills: `.btn` + `.btn-primary` (ink bg / beige text), `.btn-outline`,
-  size `.btn-sm`.
-- **`.eyebrow`** (uppercase tracked, orange) · **`.label`** (same, muted) ·
-  **`.pill`** (gold-bordered chip) · **`.chip`** (cream tag).
-- **Cards**: white + `border-border` (gold) + `rounded-[14px]` + hover lift &
-  soft shadow.
-
-## Chrome patterns
-
-- **Header** container is `max-w-[96rem] px-4 sm:px-6` — it MUST match
-  `DocsLayout.astro` so the logo aligns with the sidebar's left edge. "Back to app"
-  is a `.btn-outline .btn-sm` pill.
-- **Footer** is a near-black brand surface (`#0e0e13`, light text) — a design
-  surface, not a theme.
-- **Language switcher**: globe + current code (`EN`/`FR`) + chevron; menu lists
-  full names, the active one is **bold + `bg-secondary`** (NO check icon —
-  bayesimpact.org has none).
+- **Header**: `Header.astro` is the site's bar (`.site-nav`: fixed, 72px) with the help
+  center's own tools in place of the marketing menu: logo + "Help center", search, "Back to
+  the app", the globe language switcher (`lang-switcher.css`), and on article pages the
+  burger that opens the sidebar. It stays independent of bayesimpact.org's pages because the
+  same image serves every install.
+- **Footer**: `Footer.astro` mirrors bayesimpact.org's footer (website ▸
+  `src/layouts/BaseLayout.astro`): brand block, the four-column site menu, the copy line. When
+  the site's footer changes, update this one in step.
+- **Home**: `.dp` page, a `.gp-hero.dp-hero` with `SectionHead as="h1"` (title, lead, search,
+  category index), then one `section.band.b-paper` per top-level category opening on a
+  `SectionHead` (pill = category label, title = its description), sub-categories as `.dp-sub`,
+  guides as `DocCards` (`.cards` / `.card`).
+- **Article**: `DocsLayout.astro`: a `.gp-hero` (breadcrumb as the eyebrow, `.gp-title`,
+  `.gp-lede`, reading-time pill), then one white band holding sidebar, prose and table of
+  contents. `SectionHead.astro` must keep the website's markup, since the styles are vendored.
+- Check desktop and 375px after any layout change; the sidebar and the table of contents
+  stick under the 72px bar.
 
 ## Hard rules
 

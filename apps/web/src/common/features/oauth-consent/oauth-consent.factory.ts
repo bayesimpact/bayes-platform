@@ -23,9 +23,12 @@ class OAuthConsentClientFactory extends Factory<OAuthConsentClient> {}
 
 export const oauthConsentClientFactory = OAuthConsentClientFactory.define(({ params }) => ({
   clientId: params.clientId ?? faker.string.uuid(),
+  kind: params.kind ?? "mcp",
   name: params.name === undefined ? "Helpful Assistant" : params.name,
   redirectHost: params.redirectHost ?? "app.example.com",
   verified: params.verified ?? true,
+  description: params.description === undefined ? null : params.description,
+  logoUrl: params.logoUrl === undefined ? null : params.logoUrl,
 }))
 
 class OAuthConsentPageFactory extends Factory<OAuthConsentPage> {}

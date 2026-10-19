@@ -8,9 +8,23 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
-- (beta) MCP App cards can now place a message in the chat input, ready for you to review and send.
 
 ### Changed
+
+### Fixed
+
+### Security
+
+## [26.10.4] - 2026-10-18
+
+### Added
+- (beta) MCP App cards can now place a message in the chat input, ready for you to review and send.
+
+- App installs: workspace owners and admins can install connected apps themselves, granting only permissions they hold.
+
+### Changed
+
+- App installs: apps installed through the previous flow must be reconnected by a workspace admin, keeping their conversations and documents.
 
 ### Fixed
 - Sign-in: a sign-in left open for a long time now completes on its own and returns to the last page.

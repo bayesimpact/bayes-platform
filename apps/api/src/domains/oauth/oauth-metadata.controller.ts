@@ -23,8 +23,13 @@ export class OAuthMetadataController {
       response_types_supported: ["code"],
       grant_types_supported: ["authorization_code", "refresh_token"],
       code_challenge_methods_supported: ["S256"],
-      token_endpoint_auth_methods_supported: ["none"],
-      revocation_endpoint_auth_methods_supported: ["none"],
+      // Public MCP clients send their id alone; apps authenticate with their secret (ADR 0029).
+      token_endpoint_auth_methods_supported: ["none", "client_secret_basic", "client_secret_post"],
+      revocation_endpoint_auth_methods_supported: [
+        "none",
+        "client_secret_basic",
+        "client_secret_post",
+      ],
       client_id_metadata_document_supported: true,
       authorization_response_iss_parameter_supported: true,
     }

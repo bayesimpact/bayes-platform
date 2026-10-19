@@ -25,11 +25,11 @@ import { documentTagFactory } from "@/domains/documents/tags/document-tag.factor
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { projectFactory } from "@/domains/projects/project.factory"
 import { RbacModule } from "@/domains/rbac/rbac.module"
-import { assignPlatformStaffToUser, ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
+import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse } from "../../../../test/request"
 import { AppsModule } from "../apps.module"
 import { AppsService } from "../apps.service"
-import { INSTALL_PKCE_METHOD_S256, RFC7636_TEST_CODE_CHALLENGE } from "../install-pkce"
+import { installAppForTests, useAppsTestOrigin } from "./app-install-test.helpers"
 
 const ALL_TAG_PERMISSIONS = [
   DOCUMENT_TAG_READ_PERMISSION,
@@ -45,6 +45,7 @@ describe("Apps - Document tags", () => {
   let expectActivityCreated: ReturnType<typeof bindExpectActivityCreated>
 
   beforeAll(async () => {
+    useAppsTestOrigin()
     setup = await setupE2eTestDatabase({
       additionalImports: [AppsModule, RbacModule, ActivitiesModule],
     })
@@ -67,7 +68,6 @@ describe("Apps - Document tags", () => {
   const installAndIssueToken = async (permissions: readonly string[]) => {
     const appsService = setup.module.get(AppsService)
     const { organization, project, user } = await createOrganizationWithProject(repositories)
-    await assignPlatformStaffToUser({ repositories, user })
     const slug = `tags-${randomUUID().slice(0, 8)}`
     await appsService.createAppManifest({
       name: "Helpful Assistant",
@@ -76,21 +76,13 @@ describe("Apps - Document tags", () => {
       logoUrl: null,
       grantablePermissions: [...ALL_TAG_PERMISSIONS],
     })
-    const credentials = await appsService.authorizeInstall({
+    const credentials = await installAppForTests(setup.module, {
       slug,
       userId: user.id,
       projectId: project.id,
       permissions,
-      redirectUri: "http://127.0.0.1:8787/callback",
-      state: "csrf-state",
-      codeChallenge: RFC7636_TEST_CODE_CHALLENGE,
-      codeChallengeMethod: INSTALL_PKCE_METHOD_S256,
     })
-    const token = await appsService.issueToken({
-      grant_type: "client_credentials",
-      client_id: credentials.clientId,
-      client_secret: credentials.clientSecret,
-    })
+    const token = { accessToken: credentials.accessToken }
     return { organization, project, accessToken: token.accessToken }
   }
 
@@ -399,7 +391,6 @@ describe("Apps - Document tags", () => {
   it("does not accept document.read in place of document_tag.read", async () => {
     const appsService = setup.module.get(AppsService)
     const { project, user } = await createOrganizationWithProject(repositories)
-    await assignPlatformStaffToUser({ repositories, user })
     const slug = `docs-only-${randomUUID().slice(0, 8)}`
     await appsService.createAppManifest({
       name: "Helpful Assistant",
@@ -408,21 +399,13 @@ describe("Apps - Document tags", () => {
       logoUrl: null,
       grantablePermissions: [DOCUMENT_READ_PERMISSION],
     })
-    const credentials = await appsService.authorizeInstall({
+    const credentials = await installAppForTests(setup.module, {
       slug,
       userId: user.id,
       projectId: project.id,
       permissions: [DOCUMENT_READ_PERMISSION],
-      redirectUri: "http://127.0.0.1:8787/callback",
-      state: "csrf-state",
-      codeChallenge: RFC7636_TEST_CODE_CHALLENGE,
-      codeChallengeMethod: INSTALL_PKCE_METHOD_S256,
     })
-    const token = await appsService.issueToken({
-      grant_type: "client_credentials",
-      client_id: credentials.clientId,
-      client_secret: credentials.clientSecret,
-    })
+    const token = { accessToken: credentials.accessToken }
 
     expectResponse(
       await call({

@@ -1,67 +1,122 @@
 ---
 import { useTranslations } from "@/i18n/ui"
-import LogoFull from "./LogoFull.astro"
 import { getLocaleFromPath, localizedPath } from "@/i18n/utils"
-import Icon from "./Icon.astro"
 import LanguageSwitcher from "./LanguageSwitcher.astro"
 import Search from "./Search.astro"
 
 interface Props {
-  /** URL of the main app, shown as a "Back to the app" link when provided. */
+  /** URL of the main app, shown as a "Back to the app" button when provided. */
   appUrl?: string
   /** Whether to show the sidebar toggle (only on doc pages). */
   showMenuToggle?: boolean
+  /** Whether to show the search field. */
+  search?: boolean
 }
 
-const { appUrl, showMenuToggle = false } = Astro.props
+const { appUrl, showMenuToggle = false, search = true } = Astro.props
 const locale = getLocaleFromPath(Astro.url.pathname)
 const t = useTranslations(locale)
 ---
 
-<header
-  class="sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70"
->
-  <div class="mx-auto flex h-16 max-w-[96rem] items-center gap-3 px-4 sm:px-6">
+{/* The bayesimpact.org bar (@bayes/ui components.css ▸ .site-nav: fixed, 72px, the beige at 70%
+    over a blur, a rule once the page scrolls), carrying the help center's own tools instead of the
+    marketing menu: a help center is served on every install, so it must not depend on the site's
+    pages. */}
+<header class="site-nav hc-nav" data-site-nav>
+  <a href={localizedPath(locale)} class="site-nav-logo hc-home" aria-label={t("site.title")}>
+    <img src="/brand/bi-colors.svg" alt="Bayes Impact" />
+    <span class="hc-home-label">{t("site.title")}</span>
+  </a>
+
+  <div class="hc-search">{search && <Search />}</div>
+
+  <div class="hc-tools">
+    {
+      appUrl && (
+        <a href={appUrl} class="btn btn-primary btn-sm hc-back">
+          {t("nav.backToApp")}
+        </a>
+      )
+    }
+    <LanguageSwitcher />
     {
       showMenuToggle && (
         <button
           type="button"
-          class="inline-flex size-9 items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-accent hover:text-foreground lg:hidden"
-          aria-label="Menu"
+          class="site-nav-burger hc-burger"
+          aria-label={t("nav.menu")}
+          aria-expanded="false"
           data-sidebar-toggle
         >
-          <Icon name="menu" />
+          <span />
         </button>
       )
     }
-
-    <a href={localizedPath(locale)} class="flex items-center gap-3" aria-label={t("site.title")}>
-      <LogoFull class="h-6 w-auto shrink-0 text-foreground" />
-      <span
-        class="hidden border-l border-border pl-3 text-sm font-medium text-muted-foreground sm:inline"
-      >
-        {locale === "fr" ? "Centre d'aide" : "Help center"}
-      </span>
-    </a>
-
-    <div class="ml-auto hidden flex-1 justify-center px-4 md:flex">
-      <Search />
-    </div>
-
-    <div class="ml-auto flex items-center gap-2 md:ml-0">
-      {
-        appUrl && (
-          <a href={appUrl} class="btn btn-outline btn-sm hidden sm:inline-flex">
-            <Icon name="arrow-left" size={16} />
-            {t("nav.backToApp")}
-          </a>
-        )
-      }
-      <LanguageSwitcher />
-    </div>
-  </div>
-
-  <div class="border-t border-border px-4 py-2 md:hidden">
-    <Search />
   </div>
 </header>
+
+<script is:inline>
+  ;(() => {
+    const nav = document.querySelector("[data-site-nav]")
+    if (!nav) return
+    const update = () => nav.classList.toggle("scrolled", window.scrollY > 8)
+    update()
+    window.addEventListener("scroll", update, { passive: true })
+  })()
+</script>
+
+<style>
+  .hc-nav {
+    gap: 20px;
+  }
+  .hc-home {
+    gap: 14px;
+    flex: 0 0 auto;
+  }
+  .hc-home-label {
+    padding-left: 14px;
+    border-left: 1px solid var(--border-soft);
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .hc-search {
+    flex: 1 1 auto;
+    display: flex;
+    justify-content: center;
+    min-width: 0;
+  }
+  .hc-tools {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 0 0 auto;
+  }
+  .hc-back {
+    white-space: nowrap;
+  }
+  /* The search moves into the page's hero on a tablet or a phone (see the layouts). */
+  @media (max-width: 900px) {
+    .hc-nav {
+      padding: 0 20px;
+    }
+    .hc-search,
+    .hc-back {
+      display: none;
+    }
+    .hc-home {
+      margin-right: auto;
+    }
+  }
+  @media (max-width: 1023px) {
+    .hc-burger {
+      display: inline-flex;
+    }
+  }
+  @media (max-width: 480px) {
+    .hc-home-label {
+      display: none;
+    }
+  }
+</style>

@@ -226,6 +226,7 @@ export function buildMockBackofficeService(overrides: {
   const rbacCatalog = overrides.rbacCatalog ?? null
   const termsDocuments = overrides.termsDocuments ?? null
   let appManifests = overrides.appManifests ?? []
+  const appClientIds = new Map<string, string>()
   return {
     async listOrganizations() {
       return organizations
@@ -308,6 +309,19 @@ export function buildMockBackofficeService(overrides: {
     async deleteAppManifest(appManifestId) {
       appManifests = appManifests.filter((manifest) => manifest.id !== appManifestId)
     },
+    async getAppOAuthClient(appManifestId) {
+      return {
+        clientId: appClientIds.get(appManifestId) ?? null,
+        issuer: "https://app.example.com/api/oauth",
+        authorizationEndpoint: "https://app.example.com/oauth/authorize",
+        resource: "https://app.example.com/api/apps/v1",
+      }
+    },
+    async createAppOAuthClientSecret(appManifestId) {
+      const clientId = appClientIds.get(appManifestId) ?? `app_${appManifestId.replaceAll("-", "")}`
+      appClientIds.set(appManifestId, clientId)
+      return { clientId, clientSecret: "example-secret-shown-once" }
+    },
   }
 }
 
@@ -329,7 +343,6 @@ export function buildInspectorUserDetail(): BackofficeUserDetail {
         key: "platform_superadmin",
         name: "Platform Superadmin",
         permissions: [
-          "app.install",
           "backoffice.app.manage",
           "backoffice.read",
           "trace.read",

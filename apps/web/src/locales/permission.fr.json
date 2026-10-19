@@ -81,7 +81,6 @@
     "csv_extraction_run.playground.delete": "Supprimer une extraction CSV du bac à sable",
     "user.read": "Voir les utilisateurs membres d'une ressource",
     "trace.read": "Voir les liens de trace",
-    "app.install": "Installer des applications sur un projet",
     "backoffice.app.manage": "Gérer les définitions d'applications dans le backoffice",
     "backoffice.read": "Accéder aux pages /backoffice",
     "backoffice.terms.update": "Gérer les conditions d'utilisation",

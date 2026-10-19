@@ -42,5 +42,5 @@ A right needs both: the person holds it on the project now, and granted it to th
 - `API_PUBLIC_URL` is the base of the issuer and of the endpoint URL. The Helm chart sets it from `urls.api`. Give MCP clients `<API_PUBLIC_URL>/api/mcp`. When the web app and the API answer on different hosts, it is required: the consent goes through the web host, the token through the API host, and both must name the same resource.
 - The `/.well-known/oauth-protected-resource` and `/.well-known/oauth-authorization-server` paths must reach the API on that host. The Helm ingress routes them; another proxy that routes only `/api` and `/public` needs them added.
 - Without `API_PUBLIC_URL` (one host for everything, as in local environments), URLs follow the request: the proxy must pass the original `Host` and `X-Forwarded-Proto`.
-- Tokens are signed with the apps key pair (`APPS_JWT_PRIVATE_KEY`, `APPS_JWT_PUBLIC_KEY`).
+- Tokens are signed with the OAuth signing key pair (`OAUTH_SIGNING_PRIVATE_KEY`, `OAUTH_SIGNING_PUBLIC_KEY`).
 - Rate limits count in the BullMQ Redis (`BULLMQ_REDIS_URL`).

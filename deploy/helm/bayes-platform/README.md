@@ -71,8 +71,8 @@ The API and the workers read their secrets from one Kubernetes Secret. Create it
 kubectl create namespace platform
 kubectl -n platform create secret generic platform-secrets \
   --from-literal=MCP_ENCRYPTION_KEY=$(openssl rand -hex 32) \
-  --from-file=APPS_JWT_PRIVATE_KEY=./apps-jwt-private.pem \
-  --from-file=APPS_JWT_PUBLIC_KEY=./apps-jwt-public.pem \
+  --from-file=OAUTH_SIGNING_PRIVATE_KEY=./oauth-signing-private.pem \
+  --from-file=OAUTH_SIGNING_PUBLIC_KEY=./oauth-signing-public.pem \
   --from-literal=VLLM_MYMODEL_URL=https://... \
   --from-literal=VLLM_MYMODEL_APIKEY=...
 ```

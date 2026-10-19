@@ -13,16 +13,13 @@ import { PublicChatModule } from "@/domains/public-chat/public-chat.module"
 import { RbacModule } from "@/domains/rbac/rbac.module"
 import { UsersModule } from "@/domains/users/users.module"
 import { AppGuard } from "./app.guard"
-import { AppInstallAuthorizationCode } from "./app-install-authorization-code.entity"
-import { AppInstallAuthorizationCodeRepository } from "./app-install-authorization-code.repository"
+import { AppAccessTokenService } from "./app-access-token.service"
 import { AppInstallation } from "./app-installation.entity"
 import { AppInstallationRepository } from "./app-installation.repository"
-import { AppJwtService } from "./app-jwt.service"
 import { AppManifest } from "./app-manifest.entity"
 import { AppManifestRepository } from "./app-manifest.repository"
 import { AppsController } from "./apps.controller"
 import { AppsService } from "./apps.service"
-import { AppsInstallController } from "./apps-install.controller"
 import { AppsV1Controller } from "./apps-v1.controller"
 import { AppsConversationsController } from "./conversations/apps-conversations.controller"
 import { AppsConversationsService } from "./conversations/apps-conversations.service"
@@ -33,7 +30,7 @@ import { ProjectAppInstallationsController } from "./project-app-installations.c
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([AppManifest, AppInstallation, AppInstallAuthorizationCode, Project]),
+    TypeOrmModule.forFeature([AppManifest, AppInstallation, Project]),
     AuthModule,
     UsersModule,
     RbacModule,
@@ -43,7 +40,6 @@ import { ProjectAppInstallationsController } from "./project-app-installations.c
   ],
   controllers: [
     AppsController,
-    AppsInstallController,
     AppsV1Controller,
     AppsDocumentSourcesController,
     AppsDocumentTagsController,
@@ -55,8 +51,7 @@ import { ProjectAppInstallationsController } from "./project-app-installations.c
     AppsService,
     AppManifestRepository,
     AppInstallationRepository,
-    AppInstallAuthorizationCodeRepository,
-    AppJwtService,
+    AppAccessTokenService,
     AppGuard,
     ProjectRepository,
     AgentRepository,
@@ -65,6 +60,6 @@ import { ProjectAppInstallationsController } from "./project-app-installations.c
     OrganizationContextResolver,
     ProjectContextResolver,
   ],
-  exports: [AppsService, AppManifestRepository, AppInstallationRepository, AppJwtService],
+  exports: [AppsService, AppManifestRepository, AppInstallationRepository],
 })
 export class AppsModule {}

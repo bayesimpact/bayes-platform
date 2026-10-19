@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto"
 import {
   isAllowedOAuthRedirectUri,
   OAUTH_MAX_REDIRECT_URIS,
@@ -6,6 +7,16 @@ import {
 } from "@caseai-connect/api-contracts"
 import { Injectable, Logger } from "@nestjs/common"
 import { z } from "zod"
+import type { AppManifestRecord } from "@/domains/apps/app-manifest.repository"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AppManifestRepository } from "@/domains/apps/app-manifest.repository"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AppsService } from "@/domains/apps/apps.service"
+import {
+  generateClientSecret,
+  hashClientSecret,
+  verifyClientSecret,
+} from "@/domains/apps/client-credentials"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import {
   ClientMetadataDocumentError,
@@ -20,6 +31,8 @@ import { OAuthProtocolError } from "./oauth-protocol.error"
 /** A cimd document is fetched again after an hour. */
 const CLIENT_METADATA_DOCUMENT_TTL_MS = 60 * 60 * 1000
 const DCR_CLIENT_ID_PREFIX = "dcr_"
+const APP_CLIENT_ID_PREFIX = "app_"
+let dummyClientSecretHash: Promise<string> | undefined
 /** A dcr client nobody approved within a day is deleted. */
 const UNUSED_DCR_CLIENT_TTL_MS = 24 * 60 * 60 * 1000
 
@@ -34,8 +47,18 @@ const clientMetadataDocumentSchema = z.object({
 })
 
 export type ResolvedOAuthClient = OAuthClientRecord & {
-  /** The domain of a cimd client is the domain of its id; a dcr client declares itself. */
+  /**
+   * The domain of a cimd client is the domain of its id, and an app is
+   * registered by the platform; a dcr client declares itself.
+   */
   verified: boolean
+  /** The manifest of an app client (ADR 0029), which gives its name and redirect URIs. */
+  app: AppManifestRecord | null
+}
+
+/** App clients are confidential: they authenticate with their secret (ADR 0029). */
+export function isAppClientId(clientId: string): boolean {
+  return clientId.startsWith(APP_CLIENT_ID_PREFIX)
 }
 
 @Injectable()
@@ -45,7 +68,57 @@ export class OAuthClientsService {
   constructor(
     private readonly oauthClientRepository: OAuthClientRepository,
     private readonly clientMetadataDocumentFetcher: ClientMetadataDocumentFetcher,
+    private readonly appManifestRepository: AppManifestRepository,
+    private readonly appsService: AppsService,
   ) {}
+
+  /** The client id of an app, null until its first secret is created. */
+  async getAppClientId(appManifestId: string): Promise<string | null> {
+    await this.appsService.getAppManifest(appManifestId)
+    const client = await this.oauthClientRepository.findByAppManifestId(appManifestId)
+    return client?.clientId ?? null
+  }
+
+  /**
+   * Creates the OAuth client of an app, or replaces its secret. The previous
+   * secret stops working at once. The new one is returned this once.
+   */
+  async createAppClientSecret(
+    appManifestId: string,
+  ): Promise<{ clientId: string; clientSecret: string }> {
+    await this.appsService.getAppManifest(appManifestId)
+    const clientSecret = generateClientSecret()
+    const clientSecretHash = await hashClientSecret(clientSecret)
+    const existing = await this.oauthClientRepository.findByAppManifestId(appManifestId)
+    if (existing) {
+      await this.oauthClientRepository.updateClientSecretHash(existing.id, clientSecretHash)
+      this.logger.log(`Secret of app client ${existing.clientId} replaced`)
+      return { clientId: existing.clientId, clientSecret }
+    }
+    const created = await this.oauthClientRepository.createAppClient({
+      clientId: `${APP_CLIENT_ID_PREFIX}${randomBytes(16).toString("hex")}`,
+      appManifestId,
+      clientSecretHash,
+    })
+    this.logger.log(`App client ${created.clientId} created for app ${appManifestId}`)
+    return { clientId: created.clientId, clientSecret }
+  }
+
+  /**
+   * Checks the secret of an app client. Takes as long for an unknown client,
+   * so the answer does not tell which client ids exist.
+   */
+  async verifyAppClientSecret(
+    clientId: string,
+    clientSecret: string | undefined,
+  ): Promise<boolean> {
+    const client = isAppClientId(clientId)
+      ? await this.oauthClientRepository.findByClientId(clientId)
+      : null
+    const storedHash = client?.clientSecretHash ?? (await dummySecretHash())
+    const secretMatches = await verifyClientSecret(clientSecret ?? "", storedHash)
+    return Boolean(client?.clientSecretHash && clientSecret && secretMatches)
+  }
 
   /** RFC 7591 dynamic client registration of a public client. */
   async registerClient(body: unknown): Promise<OAuthClientRegistrationResponseDto> {
@@ -80,19 +153,20 @@ export class OAuthClientsService {
    * whose document is fetched (and kept an hour). Null for an unknown id.
    */
   async resolveClient(clientId: string): Promise<ResolvedOAuthClient | null> {
+    if (isAppClientId(clientId)) return this.resolveAppClient(clientId)
     const documentUrl = parseClientMetadataDocumentUrl(clientId)
     if (!documentUrl) {
       const client = clientId.startsWith(DCR_CLIENT_ID_PREFIX)
         ? await this.oauthClientRepository.findByClientId(clientId)
         : null
-      return client?.registrationType === "dcr" ? { ...client, verified: false } : null
+      return client?.registrationType === "dcr" ? { ...client, verified: false, app: null } : null
     }
 
     const stored = await this.oauthClientRepository.findByClientId(clientId)
     const isFresh =
       stored?.metadataFetchedAt &&
       Date.now() - stored.metadataFetchedAt.getTime() < CLIENT_METADATA_DOCUMENT_TTL_MS
-    if (stored && isFresh) return { ...stored, verified: true }
+    if (stored && isFresh) return { ...stored, verified: true, app: null }
 
     const document = await this.fetchClientMetadataDocument(documentUrl)
     if (!document) return null
@@ -104,14 +178,29 @@ export class OAuthClientsService {
     }
     if (stored) {
       await this.oauthClientRepository.updateClientMetadata(stored.id, fields)
-      return { ...stored, ...fields, verified: true }
+      return { ...stored, ...fields, verified: true, app: null }
     }
     const created = await this.oauthClientRepository.createClient({
       clientId,
       registrationType: "cimd",
       ...fields,
     })
-    return { ...created, verified: true }
+    return { ...created, verified: true, app: null }
+  }
+
+  /** An app client takes its name and redirect URIs from its manifest, which may change. */
+  private async resolveAppClient(clientId: string): Promise<ResolvedOAuthClient | null> {
+    const client = await this.oauthClientRepository.findByClientId(clientId)
+    if (client?.registrationType !== "app" || !client.appManifestId) return null
+    const app = await this.appManifestRepository.findById(client.appManifestId)
+    if (!app) return null
+    return {
+      ...client,
+      clientName: app.name,
+      redirectUris: app.allowedRedirectUris,
+      verified: true,
+      app,
+    }
   }
 
   /**
@@ -146,4 +235,9 @@ export class OAuthClientsService {
       throw error
     }
   }
+}
+
+function dummySecretHash(): Promise<string> {
+  dummyClientSecretHash ??= hashClientSecret("timing-safe-dummy")
+  return dummyClientSecretHash
 }

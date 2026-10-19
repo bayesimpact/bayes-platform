@@ -3,7 +3,8 @@ import { ThrottlerStorageRedisService } from "@nest-lab/throttler-storage-redis"
 import type { ThrottlerModuleOptions } from "@nestjs/throttler"
 import type { RedisOptions } from "ioredis"
 import { getBullMqConnection } from "@/bullmq.config"
-import { normalizePem } from "@/domains/apps/app-jwt"
+import { readClientIdForRateLimit } from "./oauth-client-authentication"
+import { normalizePem } from "./oauth-crypto"
 
 /** Named limits of the OAuth endpoints. Each route picks its own and skips the others. */
 export const OAUTH_THROTTLERS = {
@@ -21,7 +22,7 @@ const HOUR_MS = 60 * 60 * 1000
  * key, so no new secret is needed.
  */
 function buildIpHasher(): (ip: string) => string {
-  const signingKey = process.env.APPS_JWT_PRIVATE_KEY
+  const signingKey = process.env.OAUTH_SIGNING_PRIVATE_KEY
   const secret = createHash("sha256")
     .update(signingKey ? normalizePem(signingKey) : "oauth-rate-limit")
     .digest()
@@ -54,7 +55,7 @@ export function buildOAuthThrottlerOptions(
         name: OAUTH_THROTTLERS.client,
         ttl: 60 * 1000,
         limit: 60,
-        getTracker: (request) => String(request.body?.client_id ?? "none"),
+        getTracker: (request) => readClientIdForRateLimit(request as never),
       },
       {
         name: OAUTH_THROTTLERS.user,

@@ -1,10 +1,5 @@
 import { randomUUID } from "node:crypto"
-import {
-  ConflictException,
-  NotFoundException,
-  UnauthorizedException,
-  UnprocessableEntityException,
-} from "@nestjs/common"
+import { ConflictException, NotFoundException, UnprocessableEntityException } from "@nestjs/common"
 import {
   clearTestDatabase,
   setupE2eTestDatabase,
@@ -19,22 +14,16 @@ import { RbacModule } from "@/domains/rbac/rbac.module"
 import { UserRepository } from "@/domains/users/user.repository"
 import { USER_TYPE_SERVICE } from "@/domains/users/user.types"
 import { UsersService } from "@/domains/users/users.service"
-import { assignPlatformStaffToUser, ensureRbacCatalog } from "../../../test/rbac-test.helpers"
-import { AppInstallAuthorizationCodeRepository } from "./app-install-authorization-code.repository"
+import { ensureRbacCatalog } from "../../../test/rbac-test.helpers"
+import { AppAccessTokenService } from "./app-access-token.service"
 import {
   APP_INSTALLATION_STATUS_ACTIVE,
   APP_INSTALLATION_STATUS_REVOKED,
 } from "./app-installation.entity"
 import { appInstallationFactory } from "./app-installation.factory"
 import { AppInstallationRepository } from "./app-installation.repository"
-import { AppJwtService } from "./app-jwt.service"
 import { AppManifestRepository } from "./app-manifest.repository"
 import { AppsService } from "./apps.service"
-import {
-  INSTALL_PKCE_METHOD_S256,
-  RFC7636_TEST_CODE_CHALLENGE,
-  RFC7636_TEST_CODE_VERIFIER,
-} from "./install-pkce"
 
 describe("AppsService", () => {
   let service: AppsService
@@ -46,11 +35,10 @@ describe("AppsService", () => {
         AppsService,
         AppManifestRepository,
         AppInstallationRepository,
-        AppInstallAuthorizationCodeRepository,
         ProjectRepository,
         UsersService,
         UserRepository,
-        AppJwtService,
+        AppAccessTokenService,
       ],
       additionalImports: [RbacModule, MembershipsModule],
     })
@@ -168,248 +156,121 @@ describe("AppsService", () => {
     await expect(service.deleteAppManifest(unknownId)).rejects.toBeInstanceOf(NotFoundException)
   })
 
-  it("authorizes an install with a hashed secret, custom role, and service user", async () => {
+  it("installs an approved app as a service user, and reconnects it with new permissions", async () => {
     const repositories = setup.getAllRepositories()
     const { project, user } = await createOrganizationWithProject(repositories)
-    await assignPlatformStaffToUser({ repositories, user })
     const created = await service.createAppManifest(createPayload)
-    const redirectUri = "http://127.0.0.1:8787/callback"
 
-    const authorized = await service.authorizeInstall({
-      slug: created.slug,
-      userId: user.id,
-      projectId: project.id,
-      permissions: [DOCUMENT_READ_PERMISSION],
-      redirectUri,
-      state: "csrf-state",
-      codeChallenge: RFC7636_TEST_CODE_CHALLENGE,
-      codeChallengeMethod: INSTALL_PKCE_METHOD_S256,
-    })
-
-    expect(authorized.redirectUri).toBe(redirectUri)
-    expect(authorized.state).toBe("csrf-state")
-    expect(authorized.code).toBeTruthy()
-    expect(authorized.clientId).toMatch(
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
-    )
-    expect(authorized.clientSecret).toBeTruthy()
-
-    await expect(
-      service.exchangeInstallCode({
-        code: authorized.code,
-        redirect_uri: redirectUri,
-        code_verifier: "x".repeat(43),
-      }),
-    ).rejects.toBeInstanceOf(UnauthorizedException)
-
-    const exchanged = await service.exchangeInstallCode({
-      code: authorized.code,
-      redirect_uri: redirectUri,
-      code_verifier: RFC7636_TEST_CODE_VERIFIER,
-    })
-    expect(exchanged.clientId).toBe(authorized.clientId)
-    expect(exchanged.clientSecret).toBe(authorized.clientSecret)
-    await expect(
-      service.exchangeInstallCode({
-        code: authorized.code,
-        redirect_uri: redirectUri,
-        code_verifier: RFC7636_TEST_CODE_VERIFIER,
-      }),
-    ).rejects.toBeInstanceOf(UnauthorizedException)
-
-    const installation = await repositories.appInstallationRepository.findOneByOrFail({
+    const installed = await service.installApprovedApp({
       appManifestId: created.id,
       projectId: project.id,
+      permissions: [DOCUMENT_READ_PERMISSION],
+      userId: user.id,
     })
-    expect(authorized.installationId).toBe(installation.id)
-    expect(authorized.organizationId).toBe(project.organizationId)
-    expect(authorized.projectId).toBe(project.id)
-    expect(installation.clientId).toBe(authorized.clientId)
-    expect(installation.clientSecretHash).not.toContain(authorized.clientSecret)
-    expect(installation.createdByUserId).toBe(user.id)
-    expect(installation.customRoleId).toBeTruthy()
 
+    expect(installed).toMatchObject({
+      organizationId: project.organizationId,
+      projectId: project.id,
+      reconnected: false,
+    })
+    const installation = await repositories.appInstallationRepository.findOneByOrFail({
+      id: installed.installationId,
+    })
+    expect(installation).toMatchObject({
+      appManifestId: created.id,
+      serviceUserId: installed.serviceUserId,
+      createdByUserId: user.id,
+      status: APP_INSTALLATION_STATUS_ACTIVE,
+    })
     const serviceUser = await repositories.userRepository.findOneByOrFail({
-      id: installation.serviceUserId ?? undefined,
+      id: installed.serviceUserId,
     })
     expect(serviceUser.type).toBe(USER_TYPE_SERVICE)
 
     const permissionService = setup.module.get(PermissionService)
+    const projectResource = { type: "project" as const, id: project.id }
     await expect(
-      permissionService.has(serviceUser.id, DOCUMENT_READ_PERMISSION, {
-        type: "project",
-        id: project.id,
-      }),
+      permissionService.has(serviceUser.id, DOCUMENT_READ_PERMISSION, projectResource),
     ).resolves.toBe(true)
     await expect(
-      permissionService.has(serviceUser.id, DOCUMENT_CREATE_PERMISSION, {
-        type: "project",
-        id: project.id,
-      }),
+      permissionService.has(serviceUser.id, DOCUMENT_CREATE_PERMISSION, projectResource),
     ).resolves.toBe(false)
-
     const catalog = await permissionService.getCatalog()
     expect(catalog.roles.some((role) => role.key.startsWith("app_install_"))).toBe(false)
 
-    await expect(
-      service.authorizeInstall({
-        slug: created.slug,
-        userId: user.id,
-        projectId: project.id,
-        permissions: [DOCUMENT_READ_PERMISSION],
-        redirectUri,
-        state: "csrf-state",
-        codeChallenge: RFC7636_TEST_CODE_CHALLENGE,
-        codeChallengeMethod: INSTALL_PKCE_METHOD_S256,
-      }),
-    ).rejects.toBeInstanceOf(ConflictException)
-  })
-
-  it("issues an App JWT for valid client credentials and rejects a bad secret", async () => {
-    const repositories = setup.getAllRepositories()
-    const { project, user } = await createOrganizationWithProject(repositories)
-    await assignPlatformStaffToUser({ repositories, user })
-    const created = await service.createAppManifest(createPayload)
-    const authorized = await service.authorizeInstall({
-      slug: created.slug,
-      userId: user.id,
+    const reconnected = await service.installApprovedApp({
+      appManifestId: created.id,
       projectId: project.id,
-      permissions: [DOCUMENT_READ_PERMISSION],
-      redirectUri: "http://127.0.0.1:8787/callback",
-      state: "csrf-state",
-      codeChallenge: RFC7636_TEST_CODE_CHALLENGE,
-      codeChallengeMethod: INSTALL_PKCE_METHOD_S256,
+      permissions: [DOCUMENT_CREATE_PERMISSION],
+      userId: user.id,
     })
-
-    const token = await service.issueToken({
-      grant_type: "client_credentials",
-      client_id: authorized.clientId,
-      client_secret: authorized.clientSecret,
-    })
-    expect(token.tokenType).toBe("Bearer")
-    expect(token.expiresIn).toBe(3600)
-    expect(token.accessToken.split(".")).toHaveLength(3)
-
-    const principal = await service.resolveAppPrincipal(token.accessToken)
-    expect(principal.projectId).toBe(project.id)
-    expect(principal.user.type).toBe(USER_TYPE_SERVICE)
-
+    expect(reconnected).toEqual({ ...installed, reconnected: true })
     await expect(
-      service.issueToken({
-        grant_type: "client_credentials",
-        client_id: authorized.clientId,
-        client_secret: "wrong-secret",
-      }),
-    ).rejects.toBeInstanceOf(UnauthorizedException)
-
+      permissionService.has(serviceUser.id, DOCUMENT_CREATE_PERMISSION, projectResource),
+    ).resolves.toBe(true)
     await expect(
-      service.issueToken({
-        grant_type: "password",
-        client_id: authorized.clientId,
-        client_secret: authorized.clientSecret,
-      }),
-    ).rejects.toBeInstanceOf(UnauthorizedException)
-
-    await expect(
-      service.issueToken({
-        grant_type: "client_credentials",
-        client_id: randomUUID(),
-        client_secret: authorized.clientSecret,
-      }),
-    ).rejects.toBeInstanceOf(UnauthorizedException)
-
-    const stored = await repositories.appInstallationRepository.findOneByOrFail({
-      clientId: authorized.clientId,
-    })
-    stored.status = APP_INSTALLATION_STATUS_REVOKED
-    stored.revokedAt = new Date()
-    await repositories.appInstallationRepository.save(stored)
-    await expect(
-      service.issueToken({
-        grant_type: "client_credentials",
-        client_id: authorized.clientId,
-        client_secret: authorized.clientSecret,
-      }),
-    ).rejects.toBeInstanceOf(UnauthorizedException)
+      permissionService.has(serviceUser.id, DOCUMENT_READ_PERMISSION, projectResource),
+    ).resolves.toBe(false)
+    expect(await repositories.appInstallationRepository.count()).toBe(1)
   })
 
-  it("revokes an installation, keeps its credentials and refuses its issued JWT", async () => {
+  it("refuses a permission the app does not offer", async () => {
     const repositories = setup.getAllRepositories()
     const { project, user } = await createOrganizationWithProject(repositories)
-    await assignPlatformStaffToUser({ repositories, user })
     const created = await service.createAppManifest({
       ...createPayload,
-      slug: "revoke-assistant",
+      grantablePermissions: [DOCUMENT_READ_PERMISSION],
     })
-    const authorized = await service.authorizeInstall({
-      slug: created.slug,
-      userId: user.id,
+
+    await expect(
+      service.installApprovedApp({
+        appManifestId: created.id,
+        projectId: project.id,
+        permissions: [DOCUMENT_CREATE_PERMISSION],
+        userId: user.id,
+      }),
+    ).rejects.toBeInstanceOf(UnprocessableEntityException)
+  })
+
+  it("revokes an installation once, and reports another project's as missing", async () => {
+    const repositories = setup.getAllRepositories()
+    const { project, user } = await createOrganizationWithProject(repositories)
+    const created = await service.createAppManifest(createPayload)
+    const installed = await service.installApprovedApp({
+      appManifestId: created.id,
       projectId: project.id,
       permissions: [DOCUMENT_READ_PERMISSION],
-      redirectUri: "http://127.0.0.1:8787/callback",
-      state: "csrf-state",
-      codeChallenge: RFC7636_TEST_CODE_CHALLENGE,
-      codeChallengeMethod: INSTALL_PKCE_METHOD_S256,
+      userId: user.id,
     })
-    const issued = await service.issueToken({
-      grant_type: "client_credentials",
-      client_id: authorized.clientId,
-      client_secret: authorized.clientSecret,
-    })
-    const installation = await repositories.appInstallationRepository.findOneByOrFail({
-      clientId: authorized.clientId,
-    })
-    const serviceUserId = installation.serviceUserId
-    const customRoleId = installation.customRoleId
-
-    await expect(service.listActiveInstallations(project.id)).resolves.toEqual([
-      expect.objectContaining({
-        id: installation.id,
-        appName: "Helpful Assistant",
-        description: "A generic assistant used in tests.",
-        logoUrl: null,
-        permissions: [DOCUMENT_READ_PERMISSION],
-        clientId: authorized.clientId,
-      }),
-    ])
 
     await expect(
-      service.revokeInstallation({ installationId: installation.id, userId: user.id }),
-    ).resolves.toEqual({
-      organizationId: project.organizationId,
+      service.revokeInstallation({
+        installationId: installed.installationId,
+        userId: user.id,
+        projectId: randomUUID(),
+      }),
+    ).rejects.toBeInstanceOf(NotFoundException)
+    await expect(service.findActiveServiceUserId(installed.installationId)).resolves.toBe(
+      installed.serviceUserId,
+    )
+
+    const scope = await service.revokeInstallation({
+      installationId: installed.installationId,
+      userId: user.id,
       projectId: project.id,
     })
-    await expect(service.listActiveInstallations(project.id)).resolves.toEqual([])
-
+    expect(scope).toEqual({ organizationId: project.organizationId, projectId: project.id })
     const revoked = await repositories.appInstallationRepository.findOneByOrFail({
-      id: installation.id,
+      id: installed.installationId,
     })
     expect(revoked.status).toBe(APP_INSTALLATION_STATUS_REVOKED)
-    expect(revoked.revokedAt).toBeInstanceOf(Date)
-    expect(revoked.clientId).toBe(authorized.clientId)
-    expect(revoked.clientSecretHash).toBe(installation.clientSecretHash)
-    expect(revoked.serviceUserId).toBe(serviceUserId)
-    expect(revoked.customRoleId).toBe(customRoleId)
-    expect(revoked.deletedAt).toBeNull()
+    await expect(service.findActiveServiceUserId(installed.installationId)).resolves.toBeNull()
 
-    const revokedAt = revoked.revokedAt
-    await service.revokeInstallation({ installationId: installation.id, userId: user.id })
+    await service.revokeInstallation({ installationId: installed.installationId, userId: null })
     const again = await repositories.appInstallationRepository.findOneByOrFail({
-      id: installation.id,
+      id: installed.installationId,
     })
-    expect(again.revokedAt?.toISOString()).toBe(revokedAt?.toISOString())
-
-    await expect(
-      service.issueToken({
-        grant_type: "client_credentials",
-        client_id: authorized.clientId,
-        client_secret: authorized.clientSecret,
-      }),
-    ).rejects.toBeInstanceOf(UnauthorizedException)
-
-    await expect(service.resolveAppPrincipal(issued.accessToken)).rejects.toBeInstanceOf(
-      UnauthorizedException,
-    )
+    expect(again.revokedAt?.toISOString()).toBe(revoked.revokedAt?.toISOString())
 
     await expect(
       service.revokeInstallation({ installationId: randomUUID(), userId: user.id }),

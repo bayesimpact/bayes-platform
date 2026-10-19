@@ -20,11 +20,11 @@ import {
   AGENT_CONVERSATION_REVIEW_PERMISSION,
   AGENT_CONVERSATION_REVIEWER_ROLE,
   AGENT_CONVERSATION_SESSION_CREATE_PERMISSION,
+  AGENT_CONVERSATION_SESSION_EXTERNAL_CREATE_PERMISSION,
   AGENT_CONVERSATION_SESSION_READ_PERMISSION,
   AGENT_ROLE_PERMISSIONS,
   AGENT_ROLES,
   AGENT_SETTINGS_DRAFT_READ_PERMISSION,
-  APP_INSTALL_PERMISSION,
   BACKOFFICE_AGENT_READ_PERMISSION,
   BACKOFFICE_APP_MANAGE_PERMISSION,
   BACKOFFICE_CONVERSATION_REVIEWER_UPDATE_PERMISSION,
@@ -704,7 +704,6 @@ describe("PermissionService", () => {
 
     const permissions = await service.listGlobalPermissions(user.id)
     expect(permissions.sort()).toEqual([
-      APP_INSTALL_PERMISSION,
       BACKOFFICE_PROJECT_READ_PERMISSION,
       BACKOFFICE_READ_PERMISSION,
       TRACE_READ_PERMISSION,
@@ -731,46 +730,6 @@ describe("PermissionService", () => {
     await expect(service.hasGlobal(user.id, BACKOFFICE_TERMS_UPDATE_PERMISSION)).resolves.toBe(
       false,
     )
-  })
-
-  it("grants app.install to platform_staff and platform_superadmin", async () => {
-    const repositories = setup.getAllRepositories()
-    const staff = userFactory.build({ email: "staff-install@bayesimpact.org" })
-    const superadmin = userFactory.build({ email: "superadmin-install@bayesimpact.org" })
-    await repositories.userRepository.save([staff, superadmin])
-    const platformStaffRole = await repositories.roleRepository.findOneOrFail({
-      where: { key: PLATFORM_STAFF_ROLE },
-    })
-    const platformSuperadminRole = await repositories.roleRepository.findOneOrFail({
-      where: { key: PLATFORM_SUPERADMIN_ROLE },
-    })
-    await repositories.userMembershipRepository.save([
-      userMembershipFactory.build({
-        userId: staff.id,
-        resourceType: "global",
-        resourceId: null,
-        role: "member",
-        roleId: platformStaffRole.id,
-      }),
-      userMembershipFactory.build({
-        userId: superadmin.id,
-        resourceType: "global",
-        resourceId: null,
-        role: "member",
-        roleId: platformSuperadminRole.id,
-      }),
-    ])
-
-    await expect(service.hasGlobal(staff.id, APP_INSTALL_PERMISSION)).resolves.toBe(true)
-    await expect(service.hasGlobal(superadmin.id, APP_INSTALL_PERMISSION)).resolves.toBe(true)
-  })
-
-  it("denies app.install without any global membership", async () => {
-    const repositories = setup.getAllRepositories()
-    const user = userFactory.build({ email: "outsider@example.com" })
-    await repositories.userRepository.save(user)
-
-    await expect(service.hasGlobal(user.id, APP_INSTALL_PERMISSION)).resolves.toBe(false)
   })
 
   it("grants backoffice.app.manage to platform_superadmin only", async () => {
@@ -826,7 +785,6 @@ describe("PermissionService", () => {
 
     const permissions = await service.listGlobalPermissions(user.id)
     expect(permissions.sort()).toEqual([
-      APP_INSTALL_PERMISSION,
       BACKOFFICE_AGENT_READ_PERMISSION,
       BACKOFFICE_APP_MANAGE_PERMISSION,
       BACKOFFICE_CONVERSATION_REVIEWER_UPDATE_PERMISSION,
@@ -1552,6 +1510,7 @@ describe("PermissionService", () => {
       expect([...permissionsByAgentId.keys()]).toEqual([agent.id])
       expect(permissionsByAgentId.get(agent.id)?.sort()).toEqual(
         [
+          AGENT_CONVERSATION_SESSION_EXTERNAL_CREATE_PERMISSION,
           "agent.read",
           AGENT_SETTINGS_DRAFT_READ_PERMISSION,
           BACKOFFICE_AGENT_READ_PERMISSION,
@@ -1638,6 +1597,7 @@ describe("PermissionService", () => {
         expect([...permissionsByAgentId.keys()].sort()).toEqual([agentA.id, agentB.id].sort())
         expect(permissionsByAgentId.get(agentB.id)?.sort()).toEqual(
           [
+            AGENT_CONVERSATION_SESSION_EXTERNAL_CREATE_PERMISSION,
             "agent.read",
             AGENT_SETTINGS_DRAFT_READ_PERMISSION,
             BACKOFFICE_AGENT_READ_PERMISSION,
