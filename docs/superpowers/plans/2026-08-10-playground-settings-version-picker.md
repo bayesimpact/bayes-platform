@@ -291,7 +291,7 @@ Expected: the three original tests pass, the eight new ones fail. The "requested
 
 - [ ] **Step 5: Rewrite the controller**
 
-Replace the whole body of `apps/api/src/domains/agents/shared/agent-session-messages/streaming/streaming.controller.ts` with:
+Replace the whole body of `apps/api/src/domains/agents/shared/agent-session-messages/streaming/streaming.controller.ts` with the listing below. It leaves out the access check, which now sits on the `live-streaming.controller.ts` and `playground-streaming.controller.ts` subclasses, each with its own `@CheckPermission`.
 
 ```ts
 import { AgentSessionMessagesRoutes, type StreamEvent } from "@caseai-connect/api-contracts"
@@ -312,7 +312,6 @@ import { getRequiredConnectScope } from "@/common/context/request-context.helper
 import { RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
-import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import type { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -332,7 +331,6 @@ export class StreamingController {
     private readonly agentSettingsService: AgentSettingsService,
   ) {}
 
-  @CheckPolicy((policy) => policy.canList())
   @Sse(AgentSessionMessagesRoutes.stream.path, { method: 0 /* GET */ })
   stream(
     @Req() request: EndpointRequestWithAgentSession<ConversationAgentSession>,
