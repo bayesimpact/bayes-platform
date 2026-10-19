@@ -5,6 +5,10 @@ API, the workers, web-embed, the help site, the pdf-converter, the three Storybo
 Board, a sign-in page (oidc-picker), a Phoenix project for its traces, and its own databases copied
 from your local one, on URLs such as `http://fix-sidebar.connect.localhost:8800`.
 
+Only its core runs by default: the API, the web app, the sign-in, Redis and the contracts' watcher.
+The workers, the pdf-converter, web-embed, the help site, the Storybooks, Grafana and Bull Board
+each have a compose profile of their name, which the team's tooling turns on per environment.
+
 The team's tooling creates, runs and removes these environments, and serves their dashboard at
 http://dev.connect.localhost:8800.
 
