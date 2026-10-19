@@ -7,13 +7,14 @@ import {
 } from "@caseai-connect/api-contracts"
 import { type CallToolResult, McpServer } from "@modelcontextprotocol/server"
 import { z } from "zod"
+import { getMcpServerTitle } from "@/config/mcp-server-title"
 import type { McpAgentToolsService, McpCaller } from "./mcp-agent-tools.service"
 
-export const MCP_SERVER_NAME = "caseai-connect-agents"
+export const MCP_SERVER_NAME = "agents"
 export const MCP_SERVER_VERSION = "1.0.0"
 
 const MCP_SERVER_INSTRUCTIONS = [
-  "Creates and updates agents on the CaseAI Connect platform for the signed-in user.",
+  "Creates and updates agents on the platform for the signed-in user.",
   "Call list_projects first: an agent always belongs to a project. It lists the projects the user granted to this client, and only the ones with canCreateAgents set to true accept new agents.",
   "Then call create_agent with that project's id. It returns the agent's id and, when the platform knows its public URL, a link to the agent in the studio.",
   "To change an existing agent, call list_agents with the project's id, then update_agent with the agent's id: only the agents with canUpdate set to true can be changed. update_agent edits the draft; the user publishes it in the studio.",
@@ -106,7 +107,7 @@ export function buildAgentCreationMcpServer({
   toolsService: McpAgentToolsService
 }): McpServer {
   const server = new McpServer(
-    { name: MCP_SERVER_NAME, title: "CaseAI Connect agents", version: MCP_SERVER_VERSION },
+    { name: MCP_SERVER_NAME, title: getMcpServerTitle(), version: MCP_SERVER_VERSION },
     { instructions: MCP_SERVER_INSTRUCTIONS },
   )
 

@@ -28,6 +28,7 @@ config:
   OIDC_AUDIENCE: ""
   ORGANIZATION_CREATOR_EMAIL_DOMAIN: "@example.org"
   BACKOFFICE_AUTHORIZED_DOMAIN: "@example.org"
+  MCP_SERVER_TITLE: My platform
   GOOGLE_VERTEX_PROJECT: my-project
   GOOGLE_VERTEX_LOCATION: europe-west1
   OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-gateway.observability:4318
