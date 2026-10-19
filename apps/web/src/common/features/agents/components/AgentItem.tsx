@@ -34,7 +34,13 @@ export function AgentItem({
   const date = buildSince(agent.createdAt)
   return (
     <GridCard className={className}>
-      <GridCard.Badge>{t(`agent:create.typeDialog.${agent.type}`)}</GridCard.Badge>
+      <div className="flex items-center gap-1">
+        <GridCard.Badge>{t(`agent:create.typeDialog.${agent.type}`)}</GridCard.Badge>
+        {/* Only the studio lists an agent that was never published, such as a fresh copy. */}
+        {!agent.currentRevision && (
+          <GridCard.Badge variant="warning">{t("status:draft")}</GridCard.Badge>
+        )}
+      </div>
       <GridCard.Body>
         <GridCard.Title>
           <Icon />

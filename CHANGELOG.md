@@ -9,7 +9,11 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 
+- Agent duplication: copy an agent into a new draft with its settings, tools and sources, from the studio or MCP.
+
 ### Changed
+
+- AI assistants connected to the platform before this release must reconnect once to keep listing and editing agents.
 
 ### Fixed
 

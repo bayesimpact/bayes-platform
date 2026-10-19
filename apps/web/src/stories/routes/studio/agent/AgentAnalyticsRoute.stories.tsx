@@ -91,9 +91,10 @@ export const Default: Story = {
       const currentAgent = agentFactory
         .transient({ project })
         .build({ ...firstAgent, type: "conversation" })
-      const currentAgentSettings = agentSettingsFactory
-        .transient({ agent: currentAgent })
-        .build({ revision: currentAgent.currentRevision.number, hasCategories: withCategories })
+      const currentAgentSettings = agentSettingsFactory.transient({ agent: currentAgent }).build({
+        revision: currentAgent.currentRevision?.number ?? 1,
+        hasCategories: withCategories,
+      })
 
       const analytics = withAnalytics
         ? buildAnalytics(currentAgent)
@@ -145,9 +146,10 @@ export const WithData: Story = {
           ...firstAgent,
           type: "conversation",
         })
-      const currentAgentSettings = agentSettingsFactory
-        .transient({ agent: currentAgent })
-        .build({ revision: currentAgent.currentRevision.number, hasCategories: withCategories })
+      const currentAgentSettings = agentSettingsFactory.transient({ agent: currentAgent }).build({
+        revision: currentAgent.currentRevision?.number ?? 1,
+        hasCategories: withCategories,
+      })
 
       const analytics = withAnalytics
         ? buildAnalytics(currentAgent)

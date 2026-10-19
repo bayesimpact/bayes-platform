@@ -183,6 +183,7 @@
       "modeHandoff": "Prend la main",
       "modeRelayHint": "L'orchestrateur consulte cet agent pour un échange et répond lui-même à l'usager.",
       "modeHandoffHint": "Cet agent parle directement à l'usager jusqu'à la fin de sa partie, puis rend la conversation.",
+      "unpublishedHint": "Proposé à l'orchestrateur une fois publié.",
       "talkingTo": "En conversation avec {{name}}"
     },
     "embed": {

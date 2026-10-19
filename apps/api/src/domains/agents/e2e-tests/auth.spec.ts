@@ -232,6 +232,48 @@ describe("Agents - Auth", () => {
     })
   })
 
+  describe("AgentsRoutes.duplicateOne", () => {
+    const subject = async () =>
+      request({
+        route: AgentsRoutes.duplicateOne,
+        pathParams: removeNullish({ organizationId, projectId, agentId }),
+        token: accessToken ?? undefined,
+        request: { payload: { name: "Copied Agent" } },
+      })
+
+    it("requires an authentication token", async () => {
+      accessToken = null
+      expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+    it("requires a valid organization ID", async () => {
+      await createContextForRole("owner")
+      organizationId = null
+      expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
+    })
+    it("requires a valid project ID", async () => {
+      await createContextForRole("owner")
+      projectId = randomUUID()
+      expectResponse(await subject(), 404)
+    })
+    it("requires the user to be a member of the organization", async () => {
+      await createContextForRole("owner")
+      authSubject = mockForeignAuthSubject()
+      expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
+    })
+    it("requires the agent to be part of the project", async () => {
+      const { organization } = await createContextForRole("owner")
+      const project2 = await repositories.projectRepository.save(
+        projectFactory.transient({ organization }).build(),
+      )
+      projectId = project2.id
+      expectResponse(await subject(), 404)
+    })
+    it("doesn't allow a simple member to duplicate an agent", async () => {
+      await createContextForRole("member")
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+  })
+
   describe("AgentsRoutes.updateOne", () => {
     const subject = async () =>
       request({
@@ -351,6 +393,14 @@ describe("Agents - Auth", () => {
     const deleteOne = async () =>
       request({ route: AgentsRoutes.deleteOne, pathParams: pathParams(), token: "token" })
 
+    const duplicateOne = async () =>
+      request({
+        route: AgentsRoutes.duplicateOne,
+        pathParams: pathParams(),
+        token: "token",
+        request: { payload: { name: "Copied Agent" } },
+      })
+
     const getAllSubAgents = async () =>
       request({ route: AgentSubAgentsRoutes.getAll, pathParams: pathParams(), token: "token" })
 
@@ -423,6 +473,25 @@ describe("Agents - Auth", () => {
       expectResponse(await deleteOne(), 200)
     })
 
+    it.each<Role>([
+      "owner",
+      "admin",
+    ])("lets a project %s who manages the agent duplicate it", async (role) => {
+      await createContextForRoles({ projectRole: role, agentRole: "admin" })
+      expectResponse(await duplicateOne(), 201)
+    })
+
+    it("doesn't let a project owner who is only a member of the agent duplicate it", async () => {
+      await createContextForRoles({ projectRole: "owner", agentRole: "member" })
+      expectResponse(await duplicateOne(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+
+    it("doesn't let an agent owner who cannot create agents in the project duplicate it", async () => {
+      await createContextForRoles({ projectRole: "member", agentRole: "owner" })
+      expectResponse(await duplicateOne(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+      expect(await repositories.agentRepository.count()).toBe(1)
+    })
+
     it("doesn't let an organization admin outside the project touch an agent", async () => {
       const { organization } = await createContextForRoles({
         projectRole: "owner",
@@ -430,6 +499,7 @@ describe("Agents - Auth", () => {
       })
       await switchToOrganizationAdminWithoutProjectMembership(organization)
       expectResponse(await createOne(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+      expectResponse(await duplicateOne(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
       expectResponse(await updateOne(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
       expectResponse(await getAllSubAgents(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
       expectResponse(await deleteOne(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)

@@ -7,6 +7,7 @@ import { AgentSessionCategoriesService } from "../session-categories/agent-sessi
 import { AgentSessionCategory } from "../session-categories/agent-session-category.entity"
 import { ProjectAgentSessionCategory } from "../session-categories/project-agent-session-category.entity"
 import { AgentSettings } from "./agent-settings.entity"
+import { AgentSettingsRepository } from "./agent-settings.repository"
 import { AgentSettingsService } from "./agent-settings.service"
 
 @Module({
@@ -20,7 +21,7 @@ import { AgentSettingsService } from "./agent-settings.service"
     forwardRef(() => DocumentTagsModule),
     forwardRef(() => ResourceLibrariesModule),
   ],
-  providers: [AgentSessionCategoriesService, AgentSettingsService],
-  exports: [AgentSettingsService],
+  providers: [AgentSessionCategoriesService, AgentSettingsService, AgentSettingsRepository],
+  exports: [AgentSettingsService, AgentSettingsRepository],
 })
 export class AgentSettingsModule {}

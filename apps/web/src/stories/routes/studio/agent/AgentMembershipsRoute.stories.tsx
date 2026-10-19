@@ -68,7 +68,7 @@ export const Default: Story = {
       // StudioAgentRoute waits for the agent settings before rendering its children.
       const currentAgentSettings = agentSettingsFactory
         .transient({ agent: currentAgent })
-        .build({ revision: currentAgent.currentRevision.number })
+        .build({ revision: currentAgent.currentRevision?.number ?? 1 })
 
       const memberships = withMemberships
         ? [

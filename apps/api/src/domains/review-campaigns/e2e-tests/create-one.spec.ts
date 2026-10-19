@@ -104,4 +104,16 @@ describe("ReviewCampaigns - createOne", () => {
 
     expectResponse(await subject({ payload: { agentId: otherAgent.id, name: "Bad" } }), 422)
   })
+
+  it("rejects an agent that was never published, such as a fresh copy", async () => {
+    const { agent } = await createContext()
+    await repositories.agentSettingsRepository.update({ agentId: agent.id }, { isDraft: true })
+
+    expectResponse(
+      await subject({ payload: { agentId: agent.id, name: "Copy Campaign" } }),
+      422,
+      `Agent ${agent.id} has no published version: publish it before reviewing it in a campaign`,
+    )
+    expect(await repositories.reviewCampaignRepository.count()).toBe(0)
+  })
 })

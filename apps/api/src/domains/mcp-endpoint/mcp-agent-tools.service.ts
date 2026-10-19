@@ -13,6 +13,8 @@ import { ActivitiesService } from "@/domains/activities/activities.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentRepository } from "@/domains/agents/agent.repository"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentDuplicationService } from "@/domains/agents/agent-duplication.service"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentsService } from "@/domains/agents/agents.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
@@ -22,6 +24,8 @@ import { ProjectRepository } from "@/domains/projects/project.repository"
 import { PermissionService } from "@/domains/rbac/permission.service"
 import {
   AGENT_CREATE_PERMISSION,
+  AGENT_DUPLICATE_PERMISSION,
+  AGENT_SETTINGS_DRAFT_READ_PERMISSION,
   AGENT_SETTINGS_DRAFT_UPDATE_PERMISSION,
   PROJECT_READ_PERMISSION,
 } from "@/domains/rbac/rbac.constants"
@@ -60,7 +64,10 @@ export type McpAgent = {
   name: string
   type: AgentType
   model: string
+  /** False while the agent was never published, as a copy: its draft is all it has. */
+  published: boolean
   canUpdate: boolean
+  canDuplicate: boolean
   studioUrl: string | null
 }
 
@@ -88,6 +95,10 @@ export type McpCaller = {
 export const AGENT_NOT_FOUND_ERROR =
   "Agent not found, or you are not allowed to change it. Call list_agents to see the agents you can use."
 
+/** Same answer for a missing agent, one outside the grant and one the caller cannot copy. */
+export const AGENT_NOT_DUPLICABLE_ERROR =
+  "Agent not found, or you are not allowed to duplicate it. Call list_agents to see the agents you can duplicate."
+
 /** Same answer for a missing project, one outside the grant and one the caller cannot create agents in. */
 export const PROJECT_NOT_FOUND_ERROR =
   "Project not found, or you are not allowed to create agents in it. Call list_projects to see the projects you can use."
@@ -95,8 +106,9 @@ export const PROJECT_NOT_FOUND_ERROR =
 /**
  * What the platform MCP endpoint does on behalf of a person. The checks are
  * the ones the HTTP routes run (`project.read` to list, `agent.create` on the
- * project to create), restricted to the projects and permissions of the
- * grant, so an MCP client never reaches more than the person allowed.
+ * project to create, plus `agent.duplicate` on the agent to copy it),
+ * restricted to the projects and permissions of the grant, so an MCP client
+ * never reaches more than the person allowed.
  */
 @Injectable()
 export class McpAgentToolsService {
@@ -104,6 +116,7 @@ export class McpAgentToolsService {
     private readonly permissionService: PermissionService,
     private readonly projectRepository: ProjectRepository,
     private readonly agentsService: AgentsService,
+    private readonly agentDuplicationService: AgentDuplicationService,
     private readonly agentRepository: AgentRepository,
     private readonly agentSettingsService: AgentSettingsService,
     private readonly activitiesService: ActivitiesService,
@@ -187,7 +200,11 @@ export class McpAgentToolsService {
     }
   }
 
-  /** Agents of a granted project the person is a member of, with whether update_agent can change them. */
+  /**
+   * Agents of a granted project the person is a member of, with whether update_agent can change
+   * them. An agent that was never published, such as a fresh copy, is only a draft, so it is
+   * listed to the people who can see or edit drafts, as in the studio.
+   */
   async listAgents(caller: McpCaller, projectId: string): Promise<McpResult<McpAgent[]>> {
     const canReadProject =
       caller.permissions.includes(PROJECT_READ_PERMISSION) &&
@@ -208,23 +225,38 @@ export class McpAgentToolsService {
 
     const connectScope = { organizationId: project.organizationId, projectId }
     const agents = await this.agentsService.listAgents({ userId: caller.userId, connectScope })
+    const canCreateAgents = await this.canCreateAgents(caller, projectId)
     const value = await Promise.all(
-      agents.map(async (agent) => {
-        const settings = await this.agentSettingsService.getLast({
+      agents.map(async (agent): Promise<McpAgent[]> => {
+        const publishedSettings = await this.agentSettingsService.findLastPublished({
           connectScope,
           agentId: agent.id,
         })
-        return {
-          id: agent.id,
-          name: agent.name,
-          type: agent.type,
-          model: settings.model,
-          canUpdate: await this.canUpdateAgent(caller, { ...connectScope, agentId: agent.id }),
-          studioUrl: buildStudioAgentUrl({ ...connectScope, agentId: agent.id }),
-        }
+        if (!publishedSettings && !(await this.canSeeDraft(caller.userId, agent.id))) return []
+        const settings =
+          publishedSettings ??
+          (await this.agentSettingsService.getLast({
+            connectScope,
+            agentId: agent.id,
+            includesDraft: true,
+          }))
+        const target = { ...connectScope, agentId: agent.id }
+        return [
+          {
+            id: agent.id,
+            name: agent.name,
+            type: agent.type,
+            model: settings.model,
+            published: publishedSettings !== undefined,
+            canUpdate: await this.canUpdateAgent(caller, target),
+            canDuplicate:
+              canCreateAgents && (await this.holdsDuplicatePermission(caller, agent.id)),
+            studioUrl: buildStudioAgentUrl(target),
+          },
+        ]
       }),
     )
-    return { ok: true, value }
+    return { ok: true, value: value.flat() }
   }
 
   /**
@@ -273,6 +305,7 @@ export class McpAgentToolsService {
         entityId: agentId,
         entityType: "agent",
       })
+      const target = { ...connectScope, agentId }
       return {
         ok: true,
         value: {
@@ -280,9 +313,13 @@ export class McpAgentToolsService {
           name: agent.name,
           type: agent.type,
           model: agentSettings.model,
+          published:
+            (await this.agentSettingsService.findLastPublished({ connectScope, agentId })) !==
+            undefined,
           draftRevision: agentSettings.revision,
           canUpdate: true,
-          studioUrl: buildStudioAgentUrl({ ...connectScope, agentId }),
+          canDuplicate: await this.canDuplicateAgent(caller, target),
+          studioUrl: buildStudioAgentUrl(target),
         },
       }
     } catch (error) {
@@ -290,6 +327,90 @@ export class McpAgentToolsService {
       // back as HTTP exceptions with a readable message.
       return { ok: false, error: error instanceof Error ? error.message : String(error) }
     }
+  }
+
+  /**
+   * Copies an agent into a new agent of its project, like the studio's Duplicate action: the
+   * copy takes the published settings, tools, sub-agents and sources under a new name, and its
+   * settings are a draft. Nothing is published: that stays a decision made in the studio.
+   */
+  async duplicateAgent(
+    caller: McpCaller,
+    input: { agentId: string; name: string },
+  ): Promise<McpResult<McpUpdatedAgent>> {
+    const { agentId } = input
+    const scope = await this.agentRepository.findScopeById(agentId)
+    if (!scope || !(await this.canDuplicateAgent(caller, { ...scope, agentId }))) {
+      return { ok: false, error: AGENT_NOT_DUPLICABLE_ERROR }
+    }
+
+    const connectScope = scope
+    try {
+      const { agent, agentSettings } = await this.agentDuplicationService.duplicateAgent({
+        connectScope,
+        agentId,
+        name: input.name,
+        userId: caller.userId,
+      })
+      await this.activitiesService.createActivity({
+        action: "agent.duplicate",
+        userId: caller.userId,
+        organizationId: connectScope.organizationId,
+        projectId: connectScope.projectId,
+        entityId: agentId,
+        entityType: "agent",
+      })
+      const target = { ...connectScope, agentId: agent.id }
+      return {
+        ok: true,
+        value: {
+          id: agent.id,
+          name: agent.name,
+          type: agent.type,
+          model: agentSettings.model,
+          published: false,
+          draftRevision: agentSettings.revision,
+          canUpdate: await this.canUpdateAgent(caller, target),
+          canDuplicate: await this.canDuplicateAgent(caller, target),
+          studioUrl: buildStudioAgentUrl(target),
+        },
+      }
+    } catch (error) {
+      // The tool's input schema already refuses a short name before this runs: what the
+      // duplication service refuses comes back as an HTTP exception with a readable message.
+      return { ok: false, error: error instanceof Error ? error.message : String(error) }
+    }
+  }
+
+  /**
+   * Granted `agent.create` on the project, and allowed now to copy the agent (owner or admin of
+   * it) and to create agents in its project, since the copy is a new agent there.
+   */
+  private async canDuplicateAgent(
+    caller: McpCaller,
+    target: { projectId: string; agentId: string },
+  ): Promise<boolean> {
+    if (!(await this.canCreateAgents(caller, target.projectId))) return false
+    return this.holdsDuplicatePermission(caller, target.agentId)
+  }
+
+  /**
+   * Whether the person can see the agent's draft settings over HTTP: they read the settings
+   * history, or they edit the draft as owner or admin of the agent.
+   */
+  private async canSeeDraft(userId: string, agentId: string): Promise<boolean> {
+    const agent = { type: "agent" as const, id: agentId }
+    return (
+      (await this.permissionService.has(userId, AGENT_SETTINGS_DRAFT_READ_PERMISSION, agent)) ||
+      this.permissionService.has(userId, AGENT_SETTINGS_DRAFT_UPDATE_PERMISSION, agent)
+    )
+  }
+
+  private holdsDuplicatePermission(caller: McpCaller, agentId: string): Promise<boolean> {
+    return this.permissionService.has(caller.userId, AGENT_DUPLICATE_PERMISSION, {
+      type: "agent",
+      id: agentId,
+    })
   }
 
   /** Granted on the project, and allowed to edit the agent's draft now. */

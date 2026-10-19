@@ -289,4 +289,84 @@ describe("buildTools", () => {
     expect(tools?.benefits_specialist).toBeDefined()
     expect(toolDescriptions.benefits_specialist).toBe("Answer benefit eligibility questions.")
   })
+
+  it("should only expose the sub-agents that have a published revision", async () => {
+    const {
+      agentRepository,
+      agentSettingsRepository,
+      agentSubAgentRepository,
+      featureFlagRepository,
+      toolsService,
+      testAgent,
+      testAgentSettings,
+      testOrganization,
+      testProject,
+    } = getTestContext()
+    const connectScope: RequiredConnectScope = {
+      organizationId: testOrganization.id,
+      projectId: testProject.id,
+    }
+    await addFeature({
+      featureFlagRepository,
+      projectId: testProject.id,
+      featureFlagKey: "agent-orchestration",
+    })
+    const scope = { organization: testOrganization, project: testProject }
+    // A published child, a fresh copy with only a draft, and a child whose only published
+    // revision was archived under a draft.
+    const children = [
+      { toolName: "published_helper", revisions: [{ revision: 1 }] },
+      { toolName: "draft_copy", revisions: [{ revision: 1, isDraft: true }] },
+      {
+        toolName: "archived_helper",
+        revisions: [
+          { revision: 1, isArchived: true },
+          { revision: 2, isDraft: true },
+        ],
+      },
+    ]
+    for (const child of children) {
+      const childAgent = await agentRepository.save(
+        agentRepository.create({
+          organizationId: testOrganization.id,
+          projectId: testProject.id,
+          name: child.toolName,
+          type: "conversation",
+        }),
+      )
+      await agentSettingsRepository.save(
+        child.revisions.map((revision) =>
+          agentSettingsFactory.transient({ ...scope, agent: childAgent }).build(revision),
+        ),
+      )
+      await agentSubAgentRepository.save(
+        agentSubAgentRepository.create({
+          parentAgentId: testAgent.id,
+          childAgentId: childAgent.id,
+          toolName: child.toolName,
+          description: `Ask ${child.toolName}.`,
+          enabled: true,
+        }),
+      )
+    }
+
+    const { tools, toolDescriptions } = await (
+      toolsService as unknown as BuildToolsAccessor
+    ).buildTools({
+      agentSessionScope: {
+        agent: testAgent,
+        agentSettings: { ...testAgentSettings, documentsRagMode: DocumentsRagMode.None },
+        session: buildSessionStub("00000000-0000-4000-8000-000000000002"),
+        connectScope,
+      },
+      onExecute: () => undefined,
+    })
+
+    expect(tools?.published_helper).toBeDefined()
+    expect(tools?.draft_copy).toBeUndefined()
+    expect(tools?.archived_helper).toBeUndefined()
+    expect(
+      Object.keys(toolDescriptions).filter((toolName) => toolName.endsWith("_helper")),
+    ).toEqual(["published_helper"])
+  })
 })

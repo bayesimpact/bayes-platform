@@ -153,6 +153,27 @@ describe("Agents - getAll", () => {
     expect(response.body.data[0]).not.toHaveProperty("draftRevision")
   })
 
+  it("should leave out an agent that was never published, such as a fresh copy", async () => {
+    const { organization, project, user } = await createContext()
+
+    const [publishedAgent, copiedAgent] = await repositories.agentRepository.save([
+      agentFactory.transient({ organization, project }).build({ name: "Published Agent" }),
+      agentFactory.transient({ organization, project }).build({ name: "Copied Agent" }),
+    ])
+    if (!publishedAgent || !copiedAgent) throw new Error("agents not saved")
+    await repositories.agentSettingsRepository.save([
+      agentSettingsFactory.transient({ organization, project, agent: publishedAgent }).build(),
+      agentSettingsFactory.draft().transient({ organization, project, agent: copiedAgent }).build(),
+    ])
+    await addUserToAgent({ repositories, agent: publishedAgent, user })
+    await addUserToAgent({ repositories, agent: copiedAgent, user })
+
+    const response = await subject()
+
+    expectResponse(response, 200)
+    expect(response.body.data.map((agent) => agent.name)).toEqual(["Published Agent"])
+  })
+
   it("should return empty array when project has no agents", async () => {
     await createContext()
 

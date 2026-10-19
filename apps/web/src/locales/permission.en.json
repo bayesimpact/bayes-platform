@@ -32,6 +32,7 @@
     "agent.conversation.session.external.create": "Open conversations with an agent for people outside the platform",
     "agent.update": "Update an agent",
     "agent.delete": "Delete an agent",
+    "agent.duplicate": "Copy an agent into a new draft agent",
     "agent.analytics.read": "See an agent's conversation analytics",
     "agent.member.read": "See an agent's members and their roles",
     "agent.member.invite": "Invite people to an agent, and revoke pending invitations",

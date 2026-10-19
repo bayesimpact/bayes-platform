@@ -1,7 +1,33 @@
 import type {
   AgentSettingsCreateFields,
+  AgentSettingsFields,
   AgentSettingsUpdateFields,
 } from "@/domains/agents/settings/agent.settings.types"
+import type { AgentSettings } from "./agent-settings.entity"
+
+/**
+ * The settings of a revision, as a new revision of the same or another agent takes them over,
+ * like updateSettings does when it starts a draft from the last revision.
+ */
+export function toAgentSettingsFields(agentSettings: AgentSettings): AgentSettingsFields {
+  const {
+    id,
+    createdAt,
+    updatedAt,
+    deletedAt,
+    organizationId,
+    projectId,
+    agentId,
+    agent,
+    revision,
+    revisionName,
+    revisionDesc,
+    isDraft,
+    isArchived,
+    ...fields
+  } = agentSettings
+  return fields
+}
 
 const agentSettingsFieldKeys: (keyof AgentSettingsCreateFields)[] = [
   "instructions",

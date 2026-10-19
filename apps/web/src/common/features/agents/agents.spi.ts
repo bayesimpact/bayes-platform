@@ -1,4 +1,8 @@
-import type { CreateAgentDto, SuccessResponseDTO } from "@caseai-connect/api-contracts"
+import type {
+  CreateAgentDto,
+  DuplicateAgentDto,
+  SuccessResponseDTO,
+} from "@caseai-connect/api-contracts"
 import type { Agent } from "./agents.models"
 
 export interface IAgentsSpi {
@@ -7,6 +11,11 @@ export interface IAgentsSpi {
   createOne: (
     params: { organizationId: string; projectId: string },
     payload: CreateAgentDto,
+  ) => Promise<Agent>
+  /** Copies the agent into a new agent of the project, whose settings start as a draft. */
+  duplicateOne: (
+    params: { organizationId: string; projectId: string; agentId: string },
+    payload: DuplicateAgentDto,
   ) => Promise<Agent>
   updateOne: (
     params: { organizationId: string; projectId: string; agentId: string },

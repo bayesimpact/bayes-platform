@@ -1,4 +1,4 @@
-import type { CreateAgentDto } from "@caseai-connect/api-contracts"
+import type { CreateAgentDto, DuplicateAgentDto } from "@caseai-connect/api-contracts"
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import type { Agent } from "@/common/features/agents/agents.models"
 import type { RootState, ThunkExtraArg } from "@/common/store"
@@ -22,6 +22,17 @@ export const createAgent = createAsyncThunk<
 
   const agent = await services.agents.createOne(params, fields)
   return agent
+})
+
+export const duplicateAgent = createAsyncThunk<
+  Agent,
+  { agentId: string; fields: DuplicateAgentDto; onSuccess?: (agent: Agent) => void },
+  ThunkConfig
+>("agents/duplicate", async ({ agentId, fields }, { extra: { services }, getState }) => {
+  const state = getState()
+  const params = { ...getScopeParams(state), agentId }
+
+  return await services.agents.duplicateOne(params, fields)
 })
 
 export const deleteAgent = createAsyncThunk<void, { agentId: string }, ThunkConfig>(

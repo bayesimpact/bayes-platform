@@ -51,7 +51,7 @@ export const Default: Story = {
         fillForm ? agentSettingsFactory.fillForm() : agentSettingsFactory
       )
         .transient({ agent: currentAgent })
-        .build({ revision: currentAgent.currentRevision.number })
+        .build({ revision: currentAgent.currentRevision?.number ?? 1 })
 
       const feedbacks = withFeedbacks
         ? agentMessageFeedbackFactory.transient({ agent: currentAgent, project }).buildList(3)

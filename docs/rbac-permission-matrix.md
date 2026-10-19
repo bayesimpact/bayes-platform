@@ -177,6 +177,8 @@ The `agent.member.*` permissions are held on the agent only: a project or organi
 
 The same goes for `agent.settings.draft.update`, `agent.settings.draft.publish`, `agent.settings.restore` and `agent.settings.archive`: only an agent role lets someone change an agent's settings.
 
+`agent.duplicate` is held on the agent only too, since the copy carries the agent's sub-agents. The copy is a new agent of the project, so duplicating also needs `agent.create` on the project.
+
 `agent.settings.draft.read` works the other way: it is checked on the agent but granted on project owners and admins, and passes down to every agent of the project.
 
 | Permission | `agent_owner` | `agent_admin` | `agent_member` | `agent_conversation_reviewer` |
@@ -184,6 +186,7 @@ The same goes for `agent.settings.draft.update`, `agent.settings.draft.publish`,
 | `agent.read` | ✅ | ✅ | ✅ | — |
 | `agent.update` | ✅ | ✅ | — | — |
 | `agent.delete` | ✅ | ✅ | — | — |
+| `agent.duplicate` — copy the agent into a new draft agent of its project | ✅ | ✅ | — | — |
 | `agent.analytics.read` — see the agent's conversation analytics | ✅ | ✅ | — | — |
 | `agent.member.read` — see the agent's members and their roles | ✅ | ✅ | — | — |
 | `agent.member.invite` — invite people to the agent, see and revoke pending invitations | ✅ | ✅ | — | — |

@@ -1,5 +1,6 @@
 import { AgentModel, DEFAULT_AGENT_MODEL } from "@caseai-connect/api-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
+import { agentFactory } from "@/common/features/agents/agent.factory"
 import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"
 import type { IAgentSettingsSpi } from "@/common/features/agents/agent-settings/agent-settings.spi"
 import type { Agent } from "@/common/features/agents/agents.models"
@@ -24,6 +25,8 @@ type StoryArgs = StudioStoryArgs & {
   withDeprecatedModel?: boolean
   /** Turns the priority tier on; pair it with the `llm-priority-calls` flag to see the toggle. */
   withPriorityCalls?: boolean
+  /** A fresh copy: its only revision is draft 1, never published. */
+  unpublished?: boolean
 }
 
 /** Older revisions of the agent so the version history sheet has content to compare. */
@@ -56,6 +59,9 @@ function buildMockAgentsService(agents: Agent[]): IAgentsSpi {
     getAllWithDrafts: async () => agents,
     createOne: async () => {
       throw new Error("createOne is not supported in this story")
+    },
+    duplicateOne: async () => {
+      throw new Error("duplicateOne is not supported in this story")
     },
     updateOne: async () => {
       throw new Error("updateOne is not supported in this story")
@@ -93,6 +99,7 @@ const meta = {
     withDraft: { control: "boolean" },
     withDeprecatedModel: { control: "boolean" },
     withPriorityCalls: { control: "boolean" },
+    unpublished: { control: "boolean" },
   },
   args: {
     ...studioStoryArgs,
@@ -102,6 +109,7 @@ const meta = {
     withDraft: true,
     withDeprecatedModel: false,
     withPriorityCalls: false,
+    unpublished: false,
   },
   render: render({ routes: studioRoutes, path: StudioRoutes.agentEdit.path }),
 } satisfies Meta<StoryArgs>
@@ -112,12 +120,25 @@ type Story = StoryObj<typeof meta>
 export const ConversationAgent: Story = {
   decorators: [
     buildDecorator<StoryArgs>(
-      ({ withSubAgents, withDraft, withDeprecatedModel, withPriorityCalls, ...args }) => {
-        const { baseSeeds, agents } = buildStudioData({ ...args, withAgents: true })
-        const [rawParentAgent, ...rawChildAgents] = agents
-        if (!rawParentAgent) {
+      ({
+        withSubAgents,
+        withDraft,
+        withDeprecatedModel,
+        withPriorityCalls,
+        unpublished,
+        ...args
+      }) => {
+        const { baseSeeds, agents, project } = buildStudioData({ ...args, withAgents: true })
+        const [firstAgent, ...rawChildAgents] = agents
+        if (!firstAgent) {
           throw new Error("Agent editor route story requires a parent agent")
         }
+        const rawParentAgent = unpublished
+          ? agentFactory
+              .unpublished()
+              .transient({ project })
+              .build({ id: firstAgent.id, name: firstAgent.name, type: firstAgent.type })
+          : firstAgent
         const parentAgentSettings = {
           agentId: rawParentAgent.id,
           name: "Helpful Assistant",
@@ -144,7 +165,9 @@ export const ConversationAgent: Story = {
             : []
 
         const allAgents = [rawParentAgent, ...childAgents]
-        const versions = buildVersions(parentAgentSettings)
+        const versions = unpublished
+          ? [{ ...parentAgentSettings, revision: 1, isDraft: true }]
+          : buildVersions(parentAgentSettings)
 
         return {
           state: mergeSeeds(
@@ -165,6 +188,12 @@ export const ConversationAgent: Story = {
       },
     ),
   ],
+}
+
+/** A fresh copy of an agent opens here: its settings are a draft that was never published. */
+export const ConversationAgentUnpublishedCopy: Story = {
+  args: { unpublished: true, withSubAgents: true },
+  decorators: ConversationAgent.decorators,
 }
 
 export const ConversationAgentOnDeprecatedModel: Story = {

@@ -51,6 +51,11 @@
       "title": "Supprimer l'agent",
       "description": "Êtes-vous sûr de vouloir supprimer \"{{name}}\" ? Cette action est irréversible."
     },
+    "duplicate": {
+      "title": "Dupliquer l'agent",
+      "description": "La copie reprend les réglages publiés, les outils, les sous-agents et les sources de \"{{name}}\". Elle démarre en brouillon : publiez-la depuis son éditeur quand elle est prête. Les conversations, l'analytique et les réglages d'intégration ne sont pas copiés.",
+      "defaultName": "{{name}} (copie)"
+    },
     "list": {
       "title": "Agents",
       "description": "Gérer les agents pour {{projectName}}"
@@ -70,7 +75,9 @@
       "deleted": "Agent supprimé avec succès",
       "deleteError": "La suppression de l'agent a échoué",
       "created": "Agent créé avec succès",
-      "createError": "La création de l'agent a échoué"
+      "createError": "La création de l'agent a échoué",
+      "duplicated": "Agent dupliqué en brouillon",
+      "duplicateError": "La duplication de l'agent a échoué"
     }
   }
 }

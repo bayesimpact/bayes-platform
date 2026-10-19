@@ -20,6 +20,8 @@ import { AgentSessionCategoriesService } from "../session-categories/agent-sessi
 import { ProjectAgentSessionCategory } from "../session-categories/project-agent-session-category.entity"
 import type { AgentSettingsUpdateFields } from "./agent.settings.types"
 import { AgentSettings } from "./agent-settings.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentSettingsRepository } from "./agent-settings.repository"
 
 @Injectable()
 export class AgentSettingsService {
@@ -31,7 +33,9 @@ export class AgentSettingsService {
     agentRepository: Repository<Agent>,
 
     @InjectRepository(AgentSettings)
-    private agentSettingsRepository: Repository<AgentSettings>,
+    private agentSettingsTypeOrmRepository: Repository<AgentSettings>,
+
+    private readonly agentSettingsRepository: AgentSettingsRepository,
 
     @InjectRepository(ProjectAgentSessionCategory)
     private readonly projectAgentSessionCategoryRepository: Repository<ProjectAgentSessionCategory>,
@@ -43,7 +47,10 @@ export class AgentSettingsService {
     private readonly resourceLibrariesService: ResourceLibrariesService,
   ) {
     this.agentConnectRepository = new ConnectRepository(agentRepository, "agents")
-    this.agentSettingsConnectRepository = new ConnectRepository(agentSettingsRepository, "agents")
+    this.agentSettingsConnectRepository = new ConnectRepository(
+      agentSettingsTypeOrmRepository,
+      "agents",
+    )
   }
 
   /** The exact settings row a run was pinned to, so a re-run uses the version it advertises. */
@@ -80,7 +87,7 @@ export class AgentSettingsService {
     return undefined
   }
   private async getMaxRevision(agentId: string): Promise<number> {
-    const last = await this.agentSettingsRepository
+    const last = await this.agentSettingsTypeOrmRepository
       .createQueryBuilder("as")
       .where("as.agentId = :agentId", { agentId })
       .orderBy("as.revision", "DESC")
@@ -98,11 +105,10 @@ export class AgentSettingsService {
     agentId: string
     includesDraft?: true
   }): Promise<AgentSettings | undefined> {
-    const found = await this.agentSettingsConnectRepository.find(connectScope, {
-      where: { agentId, ...(includesDraft ? {} : { isDraft: false }), isArchived: false },
-      order: { revision: "DESC" },
-    })
-    return found[0]
+    const last = includesDraft
+      ? await this.agentSettingsRepository.findLatest(connectScope, agentId)
+      : await this.agentSettingsRepository.findLatestPublished(connectScope, agentId)
+    return last ?? undefined
   }
   async getLast({
     connectScope,
@@ -116,6 +122,47 @@ export class AgentSettingsService {
     const last = await this.getLastOrUndefined({ connectScope, agentId, includesDraft })
     if (!last) throw new NotFoundException(`AgentSettings with agentId ${agentId} not found`)
     return last
+  }
+
+  /**
+   * The newest published revision, or undefined while the agent was never published: a copy of
+   * an agent starts with a draft only.
+   */
+  async findLastPublished({
+    connectScope,
+    agentId,
+  }: {
+    connectScope: RequiredConnectScope
+    agentId: string
+  }): Promise<AgentSettings | undefined> {
+    return this.getLastOrUndefined({ connectScope, agentId })
+  }
+
+  /** The newest published revision, or the draft of an agent that was never published. */
+  async getLastPublishedOrDraft({
+    connectScope,
+    agentId,
+  }: {
+    connectScope: RequiredConnectScope
+    agentId: string
+  }): Promise<AgentSettings> {
+    return (
+      (await this.findLastPublished({ connectScope, agentId })) ??
+      this.getLast({ connectScope, agentId, includesDraft: true })
+    )
+  }
+
+  /** The agents among `agentIds` that have a published revision. */
+  async listPublishedAgentIds({
+    connectScope,
+    agentIds,
+  }: {
+    connectScope: RequiredConnectScope
+    agentIds: string[]
+  }): Promise<Set<string>> {
+    return new Set(
+      await this.agentSettingsRepository.findAgentIdsWithPublishedRevision(connectScope, agentIds),
+    )
   }
 
   /**
