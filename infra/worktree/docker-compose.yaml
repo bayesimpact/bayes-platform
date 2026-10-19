@@ -111,6 +111,9 @@ x-backend-env: &backend-env
   DOCUMENT_EXTRACTOR_DOCLING_ENABLED: "false"
   FRONTEND_URL: ${WT_ORIGIN},${WT_EMBED_ORIGIN},${WT_LEGACY_ORIGIN},${WT_LEGACY_EMBED_ORIGIN}
   APP_PUBLIC_URL: ${WT_ORIGIN}
+  # The origin the API announces in its OAuth and MCP documents: the environment's own, in https
+  # when it has it, rather than the http that Traefik forwards to it.
+  API_PUBLIC_URL: ${WT_ORIGIN}
   LOCAL_STORAGE_SERVER_BASE_URL: ${WT_ORIGIN}
   MCP_OAUTH_REDIRECT_URL: ${WT_ORIGIN}/oauth/mcp/callback
   OIDC_ISSUER_URL: ${WT_AUTH_ISSUER}
