@@ -17,7 +17,7 @@ Verified against a real server (`https://mcp.coros.com/mcp`): an unauthenticated
 Key decisions:
 
 - **No migration.** New state lives in the encrypted config blob (`McpServerConfig`), which was designed for this.
-- **Callback lands on the frontend**, not the API. The frontend route posts `code`/`state` to an authenticated, policy-checked endpoint. No unauthenticated API route, CSRF is covered by `state` + JWT auth.
+- **Callback lands on the frontend**, not the API. The frontend route posts `code`/`state` to an authenticated, permission-checked endpoint. No unauthenticated API route, CSRF is covered by `state` + JWT auth.
 - **Pending-authorization state (state, PKCE verifier)** is stored in the blob itself with a 10-minute TTL. No Redis, no new table.
 - **Tokens are project-level**, like the rest of the MCP server config: whoever authorizes lends their provider account to the whole project. Accepted product trade-off for v1.
 - **Refresh at connect time**, under a pessimistic row lock (refresh tokens may rotate; two workers must not race).
@@ -1092,7 +1092,7 @@ In `mcp-servers.controller.ts` (inject `McpOauthService` in the constructor with
 
 ```typescript
 @Post(McpServersRoutes.initiateOauth.path)
-@CheckPolicy((policy) => policy.canCreate())
+@CheckPermission(PROJECT_MCP_SERVER_UPDATE_PERMISSION, "project")
 @AddContext("mcpServer")
 async initiateOauth(
   @Req() request: EndpointRequestWithMcpServer,
@@ -1102,7 +1102,7 @@ async initiateOauth(
 }
 
 @Post(McpServersRoutes.completeOauth.path)
-@CheckPolicy((policy) => policy.canCreate())
+@CheckPermission(PROJECT_MCP_SERVER_UPDATE_PERMISSION, "project")
 @AddContext("mcpServer")
 @UsePipes(new ZodValidationPipe(completeMcpServerOauthSchema))
 async completeOauth(

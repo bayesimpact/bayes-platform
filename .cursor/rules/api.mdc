@@ -240,24 +240,25 @@ Controllers and guards MUST follow the context resolver pattern for resource loa
 - Use `ResourceContextGuard` to resolve request context (`organization`, `project`, `projectMembership`, `agent`, etc.)
 - Declare required context at controller or method level with `@RequireContext(...)`
 - Add route-specific context with `@AddContext(...)` when only some handlers need extra resources
-- Keep domain guards (e.g. `ProjectsGuard`, `ProjectMembershipsGuard`, `AgentGuard`) focused on **policy evaluation only**
+- Check access with `CheckPermissionGuard` after `ResourceContextGuard` and `@CheckPermission(...)` on each route (see the RBAC section below). The permission guard loads no resource
 - Do **not** use cascading resource-loading guards like `UserGuard -> OrganizationGuard -> ProjectsGuard` to populate request resources
-- Do **not** fetch domain resources in policy guards when a context resolver exists
+- Do **not** fetch domain resources in a guard when a context resolver exists
 
 **Module wiring rules**:
 - Register `ResourceContextGuard` in module providers
 - Register each resolver used by the module (e.g., `OrganizationContextResolver`, `ProjectContextResolver`, `ProjectMembershipContextResolver`)
+- Import `RbacModule`, which provides `CheckPermissionGuard` and `PermissionService`
 - Keep `JwtAuthGuard` and `UserGuard` for authentication/user hydration; use resolvers for resource hydration
 
 **Example pattern**:
 ```typescript
-@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, ProjectsGuard)
+@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, CheckPermissionGuard)
 @RequireContext("organization", "project")
 @Controller()
 export class ExampleController {
   @Delete("organizations/:organizationId/projects/:projectId/memberships/:membershipId")
   @AddContext("projectMembership")
-  @CheckPolicy((policy) => policy.canDelete())
+  @CheckPermission(PROJECT_MEMBER_DELETE_PERMISSION, "project")
   async remove(@Req() request: EndpointRequestWithProjectMembership) {
     return { data: { success: true } }
   }
@@ -657,7 +658,7 @@ Access is one permission string, granted on roles, checked on the route, and use
 - Production learns a grant from a data migration inserting `role_permission` rows (pattern: `src/migrations/1790269217250-analytics-read-permissions.ts`). `migration:generate` cannot emit it.
 - Protect the route with `@CheckPermission(permission)` or `@CheckPermission(permission, "organization" | "project" | "agent")` and `CheckPermissionGuard` after `JwtAuthGuard` and `UserGuard`. Keep the context resolver that puts the resource id on the request.
 - A service that lists resources calls `PermissionService.listResourceIds(userId, permission)` or `listResourcePermissions(userId, permission)`, then loads those ids through its custom repository.
-- Feature services do not query `user_membership` or `role_permission`, and do not compare `membership.role` against a list of allowed roles. Existing `@CheckPolicy` policies stay where they are. A new check uses `@CheckPermission`.
+- Feature services do not query `user_membership` or `role_permission`, and do not compare `membership.role` against a list of allowed roles. Every access check goes through `@CheckPermission` on the route or through `PermissionService`. Do not write a per-domain policy class or a guard that evaluates one.
 
 **If unsure which role should hold a permission, ASK THE USER before implementing.**
 
