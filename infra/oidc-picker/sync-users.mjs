@@ -1,54 +1,45 @@
 #!/usr/bin/env node
-// Moves the people of your local database to the local Dex, so you sign in to the main
-// checkout with your email and a local dev password, and keep every account and its data.
+// Lists the people of your local database in the local oidc-picker, so you sign in to the main
+// checkout by clicking your name, and keep every account and its data.
 //
-//   node infra/dex/sync-users.mjs [--password <dev password>] [--dry-run] [--no-env] [--no-restart]
+//   node infra/oidc-picker/sync-users.mjs [--dry-run] [--no-env] [--no-restart]
 //
 // Run it from the main checkout, once, then again when people are added to the database or the
-// URLs of the .env files change. It writes infra/dex/config.local.yaml (git-ignored), points
-// apps/api/.env and apps/web/.env.local at Dex (each backed up once next to it), and recreates
-// the dex container of infra/database.
+// URLs of the .env files change. It writes infra/oidc-picker/config.local.yaml and
+// profiles.yaml (git-ignored), points apps/api/.env and apps/web/.env.local at the picker (each
+// backed up once next to it), and recreates the oidc-picker container of infra/database when its
+// configuration changed. New people only need the profiles: the picker reads them again.
 // Nothing is written to the database: at the first sign-in, the API links each account to its
-// Dex identity by verified email (docs/adr/0021-generic-oidc-and-access-by-email.md).
-//
-// The dev password is hashed once and kept in ~/.bayes-worktrees/dex-password.bcrypt, which the
-// worktree environments reuse. Pass --password (or set DEX_DEV_PASSWORD) to change it.
+// identity by verified email (docs/adr/0021-generic-oidc-and-access-by-email.md).
 import { execFileSync } from "node:child_process"
-import {
-  chmodSync,
-  copyFileSync,
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  writeFileSync,
-} from "node:fs"
+import { copyFileSync, existsSync, readFileSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { parseArgs } from "node:util"
+import { readEnvValues, setEnvValues } from "./env-file.mjs"
 import {
-  buildDexConfig,
+  buildPickerConfig,
+  buildProfiles,
   findPostgresContainer,
   frontendOrigins,
-  hashPassword,
-  PASSWORD_HASH_FILE,
+  PROFILES_FILE,
   readHumanUsers,
   redirectUris,
-  STATE_DIR,
   WEB_CLIENT_ID,
-} from "./dex-config.mjs"
-import { readEnvValues, setEnvValues } from "./env-file.mjs"
+} from "./picker-config.mjs"
 
-// The port is part of the issuer: infra/database/docker-compose.yaml publishes Dex on 5556.
-const ISSUER = "http://localhost:5556/dex"
+// The port is part of the issuer: infra/database/docker-compose.yaml publishes the picker on 5556.
+const ISSUER = "http://localhost:5556"
 const REPO = fileURLToPath(new URL("../..", import.meta.url))
-const CONFIG_FILE = join(REPO, "infra/dex/config.local.yaml")
+const FOLDER = join(REPO, "infra/oidc-picker")
+const CONFIG_FILE = join(FOLDER, "config.local.yaml")
+const PROFILES_PATH = join(FOLDER, PROFILES_FILE)
 const API_ENV_FILE = join(REPO, "apps/api/.env")
 const WEB_ENV_FILE = join(REPO, "apps/web/.env.local")
-const ENV_COMMENT = "Local Dex (infra/dex/sync-users.mjs)"
+const ENV_COMMENT = "Local oidc-picker (infra/oidc-picker/sync-users.mjs)"
 
 const { values: options } = parseArgs({
   options: {
-    password: { type: "string" },
     "dry-run": { type: "boolean", default: false },
     "no-env": { type: "boolean", default: false },
     "no-restart": { type: "boolean", default: false },
@@ -57,12 +48,11 @@ const { values: options } = parseArgs({
 })
 
 if (options.help) {
-  console.log(`Usage: node infra/dex/sync-users.mjs [options]
+  console.log(`Usage: node infra/oidc-picker/sync-users.mjs [options]
 
-  --password    Local dev password of every user (default: the saved one, else asked)
   --dry-run     Print the users and redirect URIs, write nothing
   --no-env      Leave apps/api/.env and apps/web/.env.local untouched
-  --no-restart  Do not recreate the dex container`)
+  --no-restart  Do not recreate the oidc-picker container`)
   process.exit(0)
 }
 
@@ -100,19 +90,17 @@ async function main() {
   console.log(`Web app redirect URIs: ${[...new Set(webRedirectUris)].join(", ")}`)
   if (options["dry-run"]) return
 
-  const passwordHash = await resolvePasswordHash(container)
-  const config = buildDexConfig({
-    issuer: ISSUER,
-    listenAddress: "0.0.0.0:5556",
-    webRedirectUris,
-    users,
-    passwordHash,
-  })
-  const configChanged = writeIfChanged(CONFIG_FILE, config)
-  console.log(`${configChanged ? "Wrote" : "Unchanged:"} infra/dex/config.local.yaml`)
+  const profilesChanged = writeIfChanged(PROFILES_PATH, buildProfiles(users))
+  console.log(`${profilesChanged ? "Wrote" : "Unchanged:"} infra/oidc-picker/${PROFILES_FILE}`)
+  const configChanged = writeIfChanged(
+    CONFIG_FILE,
+    buildPickerConfig({ issuer: ISSUER, webRedirectUris }),
+  )
+  console.log(`${configChanged ? "Wrote" : "Unchanged:"} infra/oidc-picker/config.local.yaml`)
 
-  if (!options["no-env"]) pointMainCheckoutAtDex()
+  if (!options["no-env"]) pointMainCheckoutAtPicker()
   if (!options["no-restart"]) {
+    // Recreated only when its configuration changed: it reads new profiles by itself.
     execFileSync(
       "docker",
       [
@@ -120,20 +108,20 @@ async function main() {
         "-f",
         join(REPO, "infra/database/docker-compose.yaml"),
         "--profile",
-        "dex",
+        "oidc-picker",
         "up",
         "-d",
-        "--force-recreate",
+        ...(configChanged ? ["--force-recreate"] : []),
         "--no-deps",
-        "dex",
+        "oidc-picker",
       ],
       { stdio: "inherit" },
     )
   }
 
   console.log(`
-Done. Restart the API and the web app (npm run dev), then sign in with your email and the dev
-password. On the dev VM, forward port 5556 to your laptop (VS Code does it, or ssh -L 5556:localhost:5556).`)
+Done. Restart the API and the web app (npm run dev), then sign in by clicking your name. On the
+dev VM, forward port 5556 to your laptop (VS Code does it, or ssh -L 5556:localhost:5556).`)
 }
 
 function assertMainCheckout() {
@@ -146,67 +134,12 @@ function assertMainCheckout() {
     .split("\n")
   if (gitDir !== commonDir) {
     throw new Error(
-      "Run this script from the main checkout: it configures the Dex and the .env files of the main checkout.",
+      "Run this script from the main checkout: it configures the oidc-picker and the .env files of the main checkout.",
     )
   }
 }
 
-async function resolvePasswordHash(container) {
-  const password = options.password ?? process.env.DEX_DEV_PASSWORD
-  if (password === undefined && existsSync(PASSWORD_HASH_FILE)) {
-    return readFileSync(PASSWORD_HASH_FILE, "utf8").trim()
-  }
-  const chosen = password ?? (await askPassword())
-  if (chosen.length < 8) throw new Error("The dev password needs at least 8 characters.")
-  const hash = hashPassword({ container, password: chosen })
-  mkdirSync(STATE_DIR, { recursive: true, mode: 0o700 })
-  writeFileSync(PASSWORD_HASH_FILE, `${hash}\n`, { mode: 0o600 })
-  chmodSync(PASSWORD_HASH_FILE, 0o600)
-  return hash
-}
-
-async function askPassword() {
-  if (!process.stdin.isTTY) {
-    throw new Error("No dev password saved yet: pass --password or set DEX_DEV_PASSWORD.")
-  }
-  const first = await readHidden("Local dev password for every user: ")
-  const second = await readHidden("Same password again: ")
-  if (first !== second) throw new Error("The two passwords differ.")
-  return first
-}
-
-function readHidden(prompt) {
-  return new Promise((resolve, reject) => {
-    process.stdout.write(prompt)
-    let typed = ""
-    const onData = (chunk) => {
-      for (const character of chunk.toString("utf8")) {
-        if (character === "\r" || character === "\n") {
-          cleanUp()
-          process.stdout.write("\n")
-          resolve(typed)
-          return
-        }
-        if (character === "\u0003") {
-          cleanUp()
-          reject(new Error("Cancelled."))
-          return
-        }
-        typed = character === "\u007f" ? typed.slice(0, -1) : typed + character
-      }
-    }
-    const cleanUp = () => {
-      process.stdin.off("data", onData)
-      process.stdin.setRawMode(false)
-      process.stdin.pause()
-    }
-    process.stdin.setRawMode(true)
-    process.stdin.resume()
-    process.stdin.on("data", onData)
-  })
-}
-
-function pointMainCheckoutAtDex() {
+function pointMainCheckoutAtPicker() {
   editEnvFile(API_ENV_FILE, {
     values: {
       OIDC_ISSUER_URL: ISSUER,
@@ -247,7 +180,7 @@ function editEnvFile(path, { values, onlyExisting }) {
     return
   }
   // One backup, from before the first switch (git-ignored through *dontsave*).
-  const backup = `${path}.dontsave-before-dex`
+  const backup = `${path}.dontsave-before-oidc-picker`
   if (before !== "" && !existsSync(backup)) copyFileSync(path, backup)
   writeFileSync(path, after)
   console.log(`Updated ${relative(path)}${before !== "" ? ` (backup: ${relative(backup)})` : ""}`)

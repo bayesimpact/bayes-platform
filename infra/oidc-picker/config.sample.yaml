@@ -1,0 +1,23 @@
+# oidc-picker configuration for local development. Not for production use: anyone who reaches it
+# signs in as any profile below, without a password. Same client and people as
+# infra/keycloak/realm-platform.sample.json.
+issuer: http://localhost:5556
+
+clients:
+  # Public client of the web app (authorization code + PKCE). The web app redirects to its
+  # origin, plus VITE_BASE_PATH when set.
+  - id: platform-web
+    redirectUris:
+      - https://connect.localhost:5173
+      - https://connect.localhost:5174
+      - http://localhost:5173
+      - https://connect.localhost:3000
+
+# The picker reports every email as verified, so people added by email are linked.
+profiles:
+  - sub: 5f0c7a0e-1d1e-4b8a-9c41-0a6f1f0d0001
+    email: admin@example.org
+    name: admin
+  - sub: 5f0c7a0e-1d1e-4b8a-9c41-0a6f1f0d0002
+    email: member@example.org
+    name: member

@@ -1,18 +1,13 @@
-// Builds the configuration of a local Dex from the people of a local database: one static
-// password per human user, all with the same local dev password. sync-users.mjs uses it for
-// the main checkout's Dex, and the worktree tooling for the Dex of each worktree environment.
-// Node built-ins only.
+// Builds the configuration of a local oidc-picker (https://github.com/bayesimpact/oidc-picker)
+// from the people of a local database: its sign-in page lists them, and a click signs in as that
+// person, without a password. sync-users.mjs uses it for the main checkout's picker, and the
+// worktree tooling for the picker of each worktree environment. Node built-ins only.
 import { execFileSync } from "node:child_process"
-import { homedir } from "node:os"
-import { join } from "node:path"
-
-/** Machine-level state of the local dev tooling, outside any checkout. */
-export const STATE_DIR = process.env.BAYES_DEV_HOME ?? join(homedir(), ".bayes-worktrees")
-
-/** bcrypt hash of the local dev password, shared by every local Dex of the machine. */
-export const PASSWORD_HASH_FILE = join(STATE_DIR, "dex-password.bcrypt")
 
 export const WEB_CLIENT_ID = "platform-web"
+
+/** The file of the profiles, next to the configuration: the picker reads it again when it changes. */
+export const PROFILES_FILE = "profiles.yaml"
 
 // The CORS origins of the API when FRONTEND_URL is empty (apps/api/src/config/cors.ts).
 const DEFAULT_FRONTEND_ORIGINS = [
@@ -21,51 +16,57 @@ const DEFAULT_FRONTEND_ORIGINS = [
 ]
 
 const HEADER = `# Generated from the users of a local database. Edits are overwritten the next time
-# it is generated (infra/dex/sync-users.mjs for the main checkout). Not for production use.
+# it is generated (infra/oidc-picker/sync-users.mjs for the main checkout). Not for production use.
 `
 
 /**
- * The YAML configuration of a Dex with in-memory storage, the web app client, and one static
- * password per user. Dex matches redirect URIs exactly, so every origin the web app runs on is
- * listed. Callers that still pass `bullBoardRedirectUris` get no Bull Board client: Bull Board is
- * a separate service now (infra/bull-board/README.md).
+ * The YAML configuration of a picker with the web app client, its profiles in PROFILES_FILE.
+ * - `keysFile`: where the signing keys are kept, so a restart keeps people signed in.
+ * - `allowNonLocalIssuer`: an issuer on a domain of yours (DEV_DOMAIN), not *.localhost.
+ * - `actorHeader`: the header a gatekeeper in front of the picker sets to the person it signed
+ *   in. The picker then refuses requests without it, logs who picked whom, and turns the
+ *   password grant off.
  */
-export function buildDexConfig({ issuer, listenAddress, webRedirectUris, users, passwordHash }) {
+export function buildPickerConfig({
+  issuer,
+  webRedirectUris,
+  keysFile,
+  allowNonLocalIssuer = false,
+  actorHeader,
+}) {
   const config = {
     issuer,
-    storage: { type: "memory" },
-    web: { http: listenAddress, allowedOrigins: ["*"] },
-    oauth2: { skipApprovalScreen: true, passwordConnector: "local" },
-    enablePasswordDB: true,
-    staticClients: [
-      {
-        id: WEB_CLIENT_ID,
-        name: "Platform web app",
-        public: true,
-        redirectURIs: unique(webRedirectUris),
-      },
-    ],
-    staticPasswords: users.map((user) => ({
-      email: user.email,
-      hash: passwordHash,
-      username: usernameOf(user),
-      userID: user.id,
-    })),
+    ...(allowNonLocalIssuer ? { allowNonLocalIssuer: true } : {}),
+    ...(actorHeader ? { actorHeader } : {}),
+    ...(keysFile ? { keysFile } : {}),
+    clients: [{ id: WEB_CLIENT_ID, redirectUris: unique(webRedirectUris) }],
+    profilesFile: PROFILES_FILE,
   }
   return `${HEADER}${toYaml(config)}\n`
 }
 
 /**
- * Dex sends the username as the `name` claim, and the API copies it onto the account it links
- * at the first sign-in: keep the stored name, or fall back to the email.
+ * The profiles of the picker: one per person, signed in with their platform id as `sub` and
+ * their stored name, so the first sign-in does not rename the account.
  */
-export function usernameOf(user) {
+export function buildProfiles(users) {
+  const profiles = users.map((user) => ({
+    sub: user.id,
+    email: user.email,
+    name: nameOf(user),
+  }))
+  return `${HEADER}${profiles.length > 0 ? toYaml({ profiles }) : "profiles: []"}\n`
+}
+
+/** The stored name, or the email when there is none. */
+export function nameOf(user) {
   return user.name?.trim() || user.email
 }
 
 /**
  * The web app origins of FRONTEND_URL, read like the API's CORS outside production
- * (parseFrontendUrls in apps/api/src/config/cors.ts), so Dex accepts the origins the API does.
+ * (parseFrontendUrls in apps/api/src/config/cors.ts), so the picker accepts the origins the API
+ * does.
  */
 export function frontendOrigins(frontendUrl) {
   const origins = (frontendUrl ?? "")
@@ -118,47 +119,29 @@ export function findPostgresContainer() {
 export function readHumanUsers({ container, database }) {
   const sql = `SELECT coalesce(json_agg(json_build_object('id', id, 'email', email, 'name', name) ORDER BY email), '[]')
 FROM "user" WHERE type = 'human' AND deleted_at IS NULL AND coalesce(email, '') <> '';`
-  return JSON.parse(psql({ container, database, sql }))
+  return JSON.parse(
+    execFileSync(
+      "docker",
+      [
+        "exec",
+        "-i",
+        container,
+        "psql",
+        "-U",
+        "admin",
+        "-d",
+        database,
+        "-qAt",
+        "-v",
+        "ON_ERROR_STOP=1",
+      ],
+      { input: sql, encoding: "utf8" },
+    ).trim(),
+  )
 }
 
 /**
- * bcrypt hash of the dev password, computed by pgcrypto in the shared Postgres so the tooling
- * needs no dependency. The statement is kept out of the server log (log_statement=all).
- */
-export function hashPassword({ container, password }) {
-  const literal = password.replaceAll("'", "''")
-  const sql = `SET log_statement = 'none';
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-SELECT crypt('${literal}', gen_salt('bf', 10));`
-  const hash = psql({ container, database: "postgres", sql }).split("\n").at(-1)
-  if (!/^\$2[aby]\$\d\d\$/u.test(hash ?? "")) {
-    throw new Error("pgcrypto did not return a bcrypt hash")
-  }
-  return hash
-}
-
-function psql({ container, database, sql }) {
-  return execFileSync(
-    "docker",
-    [
-      "exec",
-      "-i",
-      container,
-      "psql",
-      "-U",
-      "admin",
-      "-d",
-      database,
-      "-qAt",
-      "-v",
-      "ON_ERROR_STOP=1",
-    ],
-    { input: sql, encoding: "utf8" },
-  ).trim()
-}
-
-/**
- * A small YAML writer for the plain objects, arrays, strings, numbers and booleans of a Dex
+ * A small YAML writer for the plain objects, arrays, strings, numbers and booleans of a picker
  * configuration. Strings are written as JSON strings, which are valid double-quoted YAML.
  */
 export function toYaml(value, indent = "") {
