@@ -100,6 +100,7 @@ async function main() {
 
   if (!options["no-env"]) pointMainCheckoutAtPicker()
   if (!options["no-restart"]) {
+    removeFormerDex()
     // Recreated only when its configuration changed: it reads new profiles by itself.
     execFileSync(
       "docker",
@@ -122,6 +123,30 @@ async function main() {
   console.log(`
 Done. Restart the API and the web app (npm run dev), then sign in by clicking your name. On the
 dev VM, forward port 5556 to your laptop (VS Code does it, or ssh -L 5556:localhost:5556).`)
+}
+
+/**
+ * The Dex the shared stack ran before the picker: its service is gone from the compose file, but
+ * its container stays and holds port 5556, which the picker takes.
+ */
+function removeFormerDex() {
+  const containers = execFileSync(
+    "docker",
+    [
+      "ps",
+      "-aq",
+      "--filter",
+      "label=com.docker.compose.project=connect-db",
+      "--filter",
+      "label=com.docker.compose.service=dex",
+    ],
+    { encoding: "utf8" },
+  )
+    .split("\n")
+    .filter(Boolean)
+  if (containers.length === 0) return
+  execFileSync("docker", ["rm", "-f", ...containers], { stdio: "ignore" })
+  console.log("Removed the former Dex of the shared stack, which held port 5556.")
 }
 
 function assertMainCheckout() {
