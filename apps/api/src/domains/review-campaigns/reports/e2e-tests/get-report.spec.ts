@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto"
 import { ReviewCampaignsRoutes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
+import { AUTH_ERRORS } from "@/common/errors/auth-errors"
 import {
   type AllRepositories,
   clearTestDatabase,
@@ -17,11 +18,13 @@ import {
   organizationMembershipFactory,
   saveOrgMembership,
 } from "@/domains/organizations/memberships/organization-membership.factory"
+import type { Organization } from "@/domains/organizations/organization.entity"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import {
   projectMembershipFactory,
   saveProjectMembership,
 } from "@/domains/projects/memberships/project-membership.factory"
+import type { Project } from "@/domains/projects/project.entity"
 import { userFactory } from "@/domains/users/user.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
@@ -272,6 +275,30 @@ describe("ReviewCampaigns - Report", () => {
     }
   }
 
+  // An organization member holding a project role and no campaign role.
+  const addProjectMember = async ({
+    organization,
+    project,
+    role,
+  }: {
+    organization: Organization
+    project: Project
+    role: "admin" | "member"
+  }) => {
+    const user = await repositories.userRepository.save(
+      userFactory.build({ email: `project-${role}-${randomUUID()}@example.com` }),
+    )
+    await saveOrgMembership({
+      repositories,
+      membership: organizationMembershipFactory.transient({ user, organization }).build(),
+    })
+    await saveProjectMembership({
+      repositories,
+      membership: projectMembershipFactory[role]().transient({ user, project }).build(),
+    })
+    return user
+  }
+
   const subject = async () =>
     request({
       route: ReviewCampaignsRoutes.getCampaignReport,
@@ -387,11 +414,25 @@ describe("ReviewCampaigns - Report", () => {
     expectResponse(response, 401)
   })
 
+  it("allows a project admin who takes no part in the campaign", async () => {
+    const { organization, project } = await seedReportableCampaign()
+    const projectAdmin = await addProjectMember({ organization, project, role: "admin" })
+    authSubject = projectAdmin.authSubject!
+
+    expectResponse(await subject(), 200)
+  })
+
+  it("forbids a project member who takes no part in the campaign (403)", async () => {
+    const { organization, project } = await seedReportableCampaign()
+    const projectMember = await addProjectMember({ organization, project, role: "member" })
+    authSubject = projectMember.authSubject!
+
+    expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+  })
+
   it("forbids a tester-only member (403)", async () => {
     const { organization, project, campaign } = await seedReportableCampaign()
-    // Tester is a project "member" — passes org/project context resolution
-    // but fails both canView-as-admin (needs admin/owner) and canView-as-
-    // reviewer (needs reviewer role). End-state: 403.
+    // The tester is also a project member: neither role holds review_campaign.report.read.
     const tester = await repositories.userRepository.save(
       userFactory.build({ email: `tester-only-${randomUUID()}@example.com` }),
     )
@@ -413,7 +454,7 @@ describe("ReviewCampaigns - Report", () => {
     authSubject = tester.authSubject!
 
     const response = await subject()
-    expectResponse(response, 403)
+    expectResponse(response, 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
   })
 
   it("requires an authentication token (401)", async () => {

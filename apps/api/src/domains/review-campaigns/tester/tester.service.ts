@@ -21,6 +21,10 @@ import { ConversationFormsService } from "@/domains/agents/shared/conversation-f
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ReviewCampaignMembershipsService } from "../memberships/review-campaign-memberships.service"
 import type { ReviewCampaign } from "../review-campaign.entity"
+import {
+  assertReviewCampaignIsActive,
+  assertReviewCampaignIsNotDraft,
+} from "../review-campaign-status"
 import type { ReviewCampaignAgentType, ReviewCampaignAnswer } from "../review-campaigns.types"
 import { TesterCampaignSurvey } from "../tester-campaign-surveys/tester-campaign-survey.entity"
 import { TesterSessionFeedback } from "../tester-session-feedbacks/tester-session-feedback.entity"
@@ -69,7 +73,22 @@ export class TesterService {
     return this.reviewCampaignMembershipsService.listCampaignsForUser(userId, role)
   }
 
-  async getAgentForCampaign({
+  /**
+   * Shared with the reviewer landing page: campaign name, description and agent snapshot are
+   * neutral metadata, and reviewers keep them once the campaign is closed.
+   */
+  async getTesterContext({
+    connectScope,
+    campaign,
+  }: {
+    connectScope: RequiredConnectScope
+    campaign: ReviewCampaign
+  }): Promise<{ agent: Agent; agentSettings: AgentSettings }> {
+    assertReviewCampaignIsNotDraft(campaign)
+    return this.getAgentForCampaign({ connectScope, campaign })
+  }
+
+  private async getAgentForCampaign({
     connectScope,
     campaign,
   }: {
@@ -98,14 +117,16 @@ export class TesterService {
   async listMyTesterSessions({
     connectScope,
     userId,
-    campaignId,
+    campaign,
   }: {
     connectScope: RequiredConnectScope
     userId: string
-    campaignId: string
+    campaign: ReviewCampaign
   }): Promise<MyTesterSessionSummary[]> {
+    assertReviewCampaignIsActive(campaign)
+
     const conversationSessions = await this.conversationSessionRepository.find({
-      where: { userId, campaignId },
+      where: { userId, campaignId: campaign.id },
       select: {
         id: true,
         createdAt: true,
@@ -156,6 +177,8 @@ export class TesterService {
     userId: string
     type: BaseAgentSessionType
   }): Promise<{ id: string; agentType: ReviewCampaignAgentType }> {
+    assertReviewCampaignIsActive(campaign)
+
     const { agent, agentSettings } = await this.getAgentForCampaign({ connectScope, campaign })
 
     if (agent.type !== "conversation") {
@@ -190,6 +213,7 @@ export class TesterService {
     callerUserId: string
     fields: TesterFeedbackFields
   }): Promise<TesterSessionFeedback> {
+    assertReviewCampaignIsActive(campaign)
     this.validateRating(fields.overallRating)
     this.assertSessionOwnedByCaller(sessionOwnerUserId, callerUserId)
 
@@ -214,16 +238,19 @@ export class TesterService {
   }
 
   async updateFeedback({
+    campaign,
     sessionId,
     sessionOwnerUserId,
     callerUserId,
     fields,
   }: {
+    campaign: ReviewCampaign
     sessionId: string
     sessionOwnerUserId: string
     callerUserId: string
     fields: Partial<TesterFeedbackFields>
   }): Promise<TesterSessionFeedback> {
+    assertReviewCampaignIsActive(campaign)
     if (fields.overallRating !== undefined) this.validateRating(fields.overallRating)
     this.assertSessionOwnedByCaller(sessionOwnerUserId, callerUserId)
 
@@ -258,25 +285,29 @@ export class TesterService {
 
   async getMyTesterSurvey({
     userId,
-    campaignId,
+    campaign,
   }: {
     userId: string
-    campaignId: string
+    campaign: ReviewCampaign
   }): Promise<TesterCampaignSurvey | null> {
-    return this.surveyRepository.findOne({ where: { campaignId, userId } })
+    assertReviewCampaignIsActive(campaign)
+    return this.surveyRepository.findOne({ where: { campaignId: campaign.id, userId } })
   }
 
   async deleteTesterSession({
+    campaign,
     sessionId,
     agentType,
     sessionOwnerUserId,
     callerUserId,
   }: {
+    campaign: ReviewCampaign
     sessionId: string
     agentType: ReviewCampaignAgentType
     sessionOwnerUserId: string
     callerUserId: string
   }): Promise<void> {
+    assertReviewCampaignIsActive(campaign)
     this.assertSessionOwnedByCaller(sessionOwnerUserId, callerUserId)
 
     const feedback = await this.feedbackRepository.findOne({ where: { sessionId } })
@@ -303,6 +334,7 @@ export class TesterService {
     userId: string
     fields: TesterSurveyFields
   }): Promise<TesterCampaignSurvey> {
+    assertReviewCampaignIsActive(campaign)
     this.validateRating(fields.overallRating)
 
     const existing = await this.surveyRepository.findOne({
@@ -336,6 +368,7 @@ export class TesterService {
     userId: string
     fields: Partial<TesterSurveyFields>
   }): Promise<TesterCampaignSurvey> {
+    assertReviewCampaignIsActive(campaign)
     if (fields.overallRating !== undefined) this.validateRating(fields.overallRating)
 
     const survey = await this.surveyRepository.findOne({

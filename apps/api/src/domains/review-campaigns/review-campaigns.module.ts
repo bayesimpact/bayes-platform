@@ -4,7 +4,6 @@ import { AgentSessionInCampaignContextResolver } from "@/common/context/resolver
 import { OrganizationContextResolver } from "@/common/context/resolvers/organization-context.resolver"
 import { ProjectContextResolver } from "@/common/context/resolvers/project-context.resolver"
 import { ReviewCampaignContextResolver } from "@/common/context/resolvers/review-campaign-context.resolver"
-import { ReviewCampaignMembershipContextResolver } from "@/common/context/resolvers/review-campaign-membership-context.resolver"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { Agent } from "@/domains/agents/agent.entity"
 import { AgentsModule } from "@/domains/agents/agents.module"
@@ -26,7 +25,6 @@ import { User } from "@/domains/users/user.entity"
 import { UsersModule } from "@/domains/users/users.module"
 import { ReviewCampaignMembershipRepository } from "./memberships/review-campaign-membership.repository"
 import { ReviewCampaignMembershipsService } from "./memberships/review-campaign-memberships.service"
-import { CampaignReportGuard } from "./reports/campaign-report.guard"
 import { ReportsController } from "./reports/reports.controller"
 import { ReportsService } from "./reports/reports.service"
 import { ReviewCampaign } from "./review-campaign.entity"
@@ -34,7 +32,6 @@ import { ReviewCampaignRepository } from "./review-campaign.repository"
 import { ReviewCampaignsController } from "./review-campaigns.controller"
 import { ReviewCampaignsService } from "./review-campaigns.service"
 import { ReviewerSessionReviewController } from "./reviewer/reviewer.controller"
-import { ReviewerGuard } from "./reviewer/reviewer.guard"
 import { ReviewerService } from "./reviewer/reviewer.service"
 import { ReviewerSessionDetailController } from "./reviewer/reviewer-session-detail.controller"
 import { ReviewerSessionsController } from "./reviewer/reviewer-sessions.controller"
@@ -44,7 +41,6 @@ import {
   TesterMeController,
   TesterSessionFeedbackController,
 } from "./tester/tester.controller"
-import { TesterGuard } from "./tester/tester.guard"
 import { TesterService } from "./tester/tester.service"
 import { TesterCampaignSurvey } from "./tester-campaign-surveys/tester-campaign-survey.entity"
 import { TesterSessionFeedback } from "./tester-session-feedbacks/tester-session-feedback.entity"
@@ -78,20 +74,16 @@ import { TesterSessionFeedback } from "./tester-session-feedbacks/tester-session
   ],
   providers: [
     AgentSessionInCampaignContextResolver,
-    CampaignReportGuard,
     OrganizationContextResolver,
     ProjectContextResolver,
     ReportsService,
     ResourceContextGuard,
     ReviewCampaignContextResolver,
-    ReviewCampaignMembershipContextResolver,
     ReviewCampaignMembershipRepository,
     ReviewCampaignMembershipsService,
     ReviewCampaignRepository,
     ReviewCampaignsService,
-    ReviewerGuard,
     ReviewerService,
-    TesterGuard,
     TesterService,
   ],
   controllers: [

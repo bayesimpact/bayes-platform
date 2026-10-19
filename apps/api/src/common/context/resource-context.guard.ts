@@ -49,8 +49,6 @@ import { ProjectMembershipContextResolver } from "./resolvers/project-membership
 import { ResourceLibraryContextResolver } from "./resolvers/resource-library-context.resolver"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ReviewCampaignContextResolver } from "./resolvers/review-campaign-context.resolver"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { ReviewCampaignMembershipContextResolver } from "./resolvers/review-campaign-membership-context.resolver"
 
 const RESOLUTION_ORDER: ContextResource[] = [
   "organization",
@@ -71,7 +69,6 @@ const RESOLUTION_ORDER: ContextResource[] = [
   "evaluationExtractionRun",
   "agentSessionInCampaign",
   "reviewCampaign",
-  "reviewCampaignMembership",
 ]
 
 @Injectable()
@@ -101,8 +98,6 @@ export class ResourceContextGuard implements CanActivate {
     evaluationExtractionDatasetDocumentContextResolver?: EvaluationExtractionDatasetDocumentContextResolver,
     @Optional() evaluationExtractionRunContextResolver?: EvaluationExtractionRunContextResolver,
     @Optional() reviewCampaignContextResolver?: ReviewCampaignContextResolver,
-    @Optional()
-    reviewCampaignMembershipContextResolver?: ReviewCampaignMembershipContextResolver,
     @Optional()
     agentSessionInCampaignContextResolver?: AgentSessionInCampaignContextResolver,
   ) {
@@ -184,12 +179,6 @@ export class ResourceContextGuard implements CanActivate {
     }
     if (reviewCampaignContextResolver) {
       resolverEntries.push([reviewCampaignContextResolver.resource, reviewCampaignContextResolver])
-    }
-    if (reviewCampaignMembershipContextResolver) {
-      resolverEntries.push([
-        reviewCampaignMembershipContextResolver.resource,
-        reviewCampaignMembershipContextResolver,
-      ])
     }
     if (agentSessionInCampaignContextResolver) {
       resolverEntries.push([
