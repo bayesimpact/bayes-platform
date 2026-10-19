@@ -26,7 +26,7 @@ import { AppsService } from "@/domains/apps/apps.service"
 import { withDocumentEmbeddingsBatchServiceMock } from "@/domains/documents/test-overrides"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { USER_TYPE_SERVICE } from "@/domains/users/user.types"
-import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
+import { listenOnLoopback, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import {
   assignPlatformSuperadminToUser,
   ensureRbacCatalog,
@@ -66,8 +66,7 @@ describe("OAuth authorization server - app installs", () => {
     await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     configureGlobalPrefix(app)
-    await app.listen(0, "127.0.0.1")
-    baseUrl = await app.getUrl()
+    baseUrl = await listenOnLoopback(app)
   })
 
   beforeEach(async () => {
