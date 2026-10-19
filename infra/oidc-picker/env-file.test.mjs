@@ -34,8 +34,8 @@ describe("setEnvValues", () => {
   it("rewrites every assignment of a key and keeps the other lines", () => {
     const before = "# Auth\nOIDC_ISSUER_URL=https://old/\nOTHER=1\nexport OIDC_ISSUER_URL=x\n"
     assert.equal(
-      setEnvValues(before, { OIDC_ISSUER_URL: "http://localhost:5556/dex" }),
-      "# Auth\nOIDC_ISSUER_URL=http://localhost:5556/dex\nOTHER=1\nOIDC_ISSUER_URL=http://localhost:5556/dex\n",
+      setEnvValues(before, { OIDC_ISSUER_URL: "http://localhost:5556" }),
+      "# Auth\nOIDC_ISSUER_URL=http://localhost:5556\nOTHER=1\nOIDC_ISSUER_URL=http://localhost:5556\n",
     )
   })
 
