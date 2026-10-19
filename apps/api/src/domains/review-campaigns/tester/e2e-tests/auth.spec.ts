@@ -10,6 +10,8 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
+import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
+import { userMembershipFactory } from "@/domains/memberships/user-membership.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { mockOidcEmailForSub, setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
@@ -20,7 +22,9 @@ import {
   saveReviewCampaignMembership,
 } from "../../memberships/review-campaign-membership.factory"
 import { reviewCampaignFactory } from "../../review-campaign.factory"
+import { reviewCampaignStatusErrorMessage } from "../../review-campaign-status"
 import { ReviewCampaignsModule } from "../../review-campaigns.module"
+import type { ReviewCampaignMembershipRole } from "../../review-campaigns.types"
 
 describe("ReviewCampaigns - Tester auth", () => {
   let app: INestApplication<App>
@@ -62,11 +66,15 @@ describe("ReviewCampaigns - Tester auth", () => {
     await app.close()
   })
 
-  const seedAsTester = async (campaignStatus: "draft" | "active" | "closed" = "active") => {
+  const seedAsTester = async (
+    campaignStatus: "draft" | "active" | "closed" = "active",
+    role: ReviewCampaignMembershipRole = "tester",
+  ) => {
     const { organization, project, user, agent, agentSettings } = await createOrganizationWithAgent(
       repositories,
       {
         user: { authSubject },
+        agent: { type: "conversation" },
       },
     )
     const factory =
@@ -81,14 +89,57 @@ describe("ReviewCampaigns - Tester auth", () => {
     await saveReviewCampaignMembership({
       repositories,
       membership: reviewCampaignMembershipFactory
-        .tester()
         .transient({ organization, project, campaign, user })
-        .build(),
+        .build({ role }),
     })
     organizationId = organization.id
     projectId = project.id
     reviewCampaignId = campaign.id
-    return { organization, project, user, campaign }
+    return { organization, project, user, agent, campaign }
+  }
+
+  const seedAsReviewerOnly = (campaignStatus: "draft" | "active" | "closed" = "active") =>
+    seedAsTester(campaignStatus, "reviewer")
+
+  // A campaign session started by the caller, for the routes nested under a session.
+  const seedOwnSession = async ({
+    organization,
+    project,
+    user,
+    agent,
+    campaign,
+  }: Awaited<ReturnType<typeof seedAsTester>>) => {
+    const session = conversationAgentSessionFactory
+      .transient({ organization, project, agent, user })
+      .build({ campaignId: campaign.id })
+    await repositories.conversationAgentSessionRepository.save(session)
+    sessionId = session.id
+  }
+
+  // A campaign row written before campaign roles: the legacy role column and no role_id.
+  const seedAsTesterWithoutCampaignRole = async () => {
+    const { organization, project, user, agent, agentSettings } = await createOrganizationWithAgent(
+      repositories,
+      { user: { authSubject } },
+    )
+    const campaign = await repositories.reviewCampaignRepository.save(
+      reviewCampaignFactory
+        .active()
+        .transient({ organization, project, agent, agentSettings })
+        .build(),
+    )
+    await repositories.userMembershipRepository.save(
+      userMembershipFactory.build({
+        userId: user.id,
+        resourceType: "review_campaign",
+        resourceId: campaign.id,
+        role: "tester",
+        roleId: null,
+      }),
+    )
+    organizationId = organization.id
+    projectId = project.id
+    reviewCampaignId = campaign.id
   }
 
   const seedAsNonMember = async () => {
@@ -135,11 +186,20 @@ describe("ReviewCampaigns - Tester auth", () => {
     })
     it("forbids non-members of the campaign (403)", async () => {
       await seedAsNonMember()
-      expectResponse(await subject(), 403)
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
     it("forbids testers when campaign is draft (403)", async () => {
       await seedAsTester("draft")
-      expectResponse(await subject(), 403)
+      expectResponse(await subject(), 403, reviewCampaignStatusErrorMessage("draft"))
+    })
+    it("forbids a campaign row without a campaign role (403)", async () => {
+      await seedAsTesterWithoutCampaignRole()
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    // The context is neutral metadata, and the rule only depends on the campaign status.
+    it("allows a tester on a closed campaign (200)", async () => {
+      await seedAsTester("closed")
+      expectResponse(await subject(), 200)
     })
 
     // Reviewers reuse this endpoint to fetch the campaign metadata for their
@@ -209,11 +269,19 @@ describe("ReviewCampaigns - Tester auth", () => {
     })
     it("forbids non-members (403)", async () => {
       await seedAsNonMember()
-      expectResponse(await subject(), 403)
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
     it("forbids closed campaigns (403)", async () => {
       await seedAsTester("closed")
-      expectResponse(await subject(), 403)
+      expectResponse(await subject(), 403, reviewCampaignStatusErrorMessage("closed"))
+    })
+    it("forbids a reviewer-only member (403)", async () => {
+      await seedAsReviewerOnly()
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("forbids a campaign row without a campaign role (403)", async () => {
+      await seedAsTesterWithoutCampaignRole()
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
   })
 
@@ -231,11 +299,15 @@ describe("ReviewCampaigns - Tester auth", () => {
     })
     it("forbids non-members (403)", async () => {
       await seedAsNonMember()
-      expectResponse(await subject(), 403)
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
     it("forbids closed campaigns (403)", async () => {
       await seedAsTester("closed")
-      expectResponse(await subject(), 403)
+      expectResponse(await subject(), 403, reviewCampaignStatusErrorMessage("closed"))
+    })
+    it("forbids a reviewer-only member (403)", async () => {
+      await seedAsReviewerOnly()
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
   })
 
@@ -257,6 +329,41 @@ describe("ReviewCampaigns - Tester auth", () => {
       sessionId = randomUUID()
       expectResponse(await subject(), 404)
     })
+    it("forbids closed campaigns (403)", async () => {
+      await seedOwnSession(await seedAsTester("closed"))
+      expectResponse(await subject(), 403, reviewCampaignStatusErrorMessage("closed"))
+    })
+    it("forbids a reviewer-only member (403)", async () => {
+      await seedOwnSession(await seedAsReviewerOnly())
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("allows the tester of an active campaign (201)", async () => {
+      await seedOwnSession(await seedAsTester())
+      expectResponse(await subject(), 201)
+    })
+  })
+
+  describe("updateTesterFeedback", () => {
+    const subject = async () =>
+      request({
+        route: ReviewCampaignsRoutes.updateTesterFeedback,
+        pathParams: removeNullish({ organizationId, projectId, sessionId }),
+        token: accessToken ?? undefined,
+        request: { payload: { overallRating: 5 } },
+      })
+
+    it("requires an authentication token", async () => {
+      accessToken = null
+      expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+    it("forbids closed campaigns (403)", async () => {
+      await seedOwnSession(await seedAsTester("closed"))
+      expectResponse(await subject(), 403, reviewCampaignStatusErrorMessage("closed"))
+    })
+    it("forbids a reviewer-only member (403)", async () => {
+      await seedOwnSession(await seedAsReviewerOnly())
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
   })
 
   describe("submitTesterSurvey", () => {
@@ -274,11 +381,42 @@ describe("ReviewCampaigns - Tester auth", () => {
     })
     it("forbids non-members (403)", async () => {
       await seedAsNonMember()
-      expectResponse(await subject(), 403)
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
     it("forbids closed campaigns (403)", async () => {
       await seedAsTester("closed")
-      expectResponse(await subject(), 403)
+      expectResponse(await subject(), 403, reviewCampaignStatusErrorMessage("closed"))
+    })
+    it("forbids a reviewer-only member (403)", async () => {
+      await seedAsReviewerOnly()
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+  })
+
+  describe("updateTesterSurvey", () => {
+    const subject = async () =>
+      request({
+        route: ReviewCampaignsRoutes.updateTesterSurvey,
+        pathParams: removeNullish({ organizationId, projectId, reviewCampaignId }),
+        token: accessToken ?? undefined,
+        request: { payload: { overallRating: 5 } },
+      })
+
+    it("requires an authentication token", async () => {
+      accessToken = null
+      expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+    it("forbids non-members (403)", async () => {
+      await seedAsNonMember()
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("forbids closed campaigns (403)", async () => {
+      await seedAsTester("closed")
+      expectResponse(await subject(), 403, reviewCampaignStatusErrorMessage("closed"))
+    })
+    it("forbids a reviewer-only member (403)", async () => {
+      await seedAsReviewerOnly()
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
   })
 
@@ -296,11 +434,15 @@ describe("ReviewCampaigns - Tester auth", () => {
     })
     it("forbids non-members (403)", async () => {
       await seedAsNonMember()
-      expectResponse(await subject(), 403)
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
     it("forbids closed campaigns (403)", async () => {
       await seedAsTester("closed")
-      expectResponse(await subject(), 403)
+      expectResponse(await subject(), 403, reviewCampaignStatusErrorMessage("closed"))
+    })
+    it("forbids a reviewer-only member (403)", async () => {
+      await seedAsReviewerOnly()
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
   })
 
@@ -320,6 +462,14 @@ describe("ReviewCampaigns - Tester auth", () => {
       await seedAsTester()
       sessionId = randomUUID()
       expectResponse(await subject(), 404)
+    })
+    it("forbids closed campaigns (403)", async () => {
+      await seedOwnSession(await seedAsTester("closed"))
+      expectResponse(await subject(), 403, reviewCampaignStatusErrorMessage("closed"))
+    })
+    it("forbids a reviewer-only member (403)", async () => {
+      await seedOwnSession(await seedAsReviewerOnly())
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
   })
 

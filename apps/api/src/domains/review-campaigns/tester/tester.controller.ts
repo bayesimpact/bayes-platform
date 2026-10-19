@@ -21,22 +21,32 @@ import {
 import type {
   EndpointRequest,
   EndpointRequestWithAgentSessionInCampaign,
-  EndpointRequestWithReviewCampaignMembership,
+  EndpointRequestWithReviewCampaign,
 } from "@/common/context/request.interface"
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
 import { RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
-import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import type { Agent } from "@/domains/agents/agent.entity"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { toConversationFormDto } from "@/domains/agents/shared/conversation-forms/conversation-form.mapper"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
+import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
+import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
+import {
+  REVIEW_CAMPAIGN_READ_PERMISSION,
+  REVIEW_CAMPAIGN_TESTER_FEEDBACK_CREATE_PERMISSION,
+  REVIEW_CAMPAIGN_TESTER_FEEDBACK_UPDATE_PERMISSION,
+  REVIEW_CAMPAIGN_TESTER_SESSION_CREATE_PERMISSION,
+  REVIEW_CAMPAIGN_TESTER_SESSION_DELETE_PERMISSION,
+  REVIEW_CAMPAIGN_TESTER_SESSION_READ_PERMISSION,
+  REVIEW_CAMPAIGN_TESTER_SURVEY_CREATE_PERMISSION,
+  REVIEW_CAMPAIGN_TESTER_SURVEY_READ_PERMISSION,
+  REVIEW_CAMPAIGN_TESTER_SURVEY_UPDATE_PERMISSION,
+} from "@/domains/rbac/rbac.constants"
 import { UserGuard } from "@/domains/users/user.guard"
 import type { ReviewCampaign } from "../review-campaign.entity"
 import type { TesterCampaignSurvey } from "../tester-campaign-surveys/tester-campaign-survey.entity"
 import type { TesterSessionFeedback } from "../tester-session-feedbacks/tester-session-feedback.entity"
-import { TesterGuard } from "./tester.guard"
-import type { TesterPolicy } from "./tester.policy"
 import type { MyTesterSessionSummary } from "./tester.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TesterService } from "./tester.service"
@@ -63,18 +73,19 @@ function parseRoleQuery(role: string | undefined): "tester" | "reviewer" {
   throw new BadRequestException(`Invalid role filter: ${role} (expected "tester" or "reviewer")`)
 }
 
-@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, TesterGuard)
-@RequireContext("organization", "project", "reviewCampaign", "reviewCampaignMembership")
+@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, CheckPermissionGuard)
+@RequireContext("organization", "project", "reviewCampaign")
 @Controller()
 export class TesterController {
   constructor(private readonly testerService: TesterService) {}
 
+  // Testers and reviewers both hold review_campaign.read: the reviewer landing page reads it too.
   @Get(ReviewCampaignsRoutes.getTesterContext.path)
-  @CheckPolicy((policy) => (policy as TesterPolicy).canViewSharedContext())
+  @CheckPermission(REVIEW_CAMPAIGN_READ_PERMISSION, "review_campaign")
   async getTesterContext(
-    @Req() request: EndpointRequestWithReviewCampaignMembership,
+    @Req() request: EndpointRequestWithReviewCampaign,
   ): Promise<typeof ReviewCampaignsRoutes.getTesterContext.response> {
-    const { agent, agentSettings } = await this.testerService.getAgentForCampaign({
+    const { agent, agentSettings } = await this.testerService.getTesterContext({
       connectScope: getRequiredConnectScope(request),
       campaign: request.reviewCampaign,
     })
@@ -82,22 +93,22 @@ export class TesterController {
   }
 
   @Get(ReviewCampaignsRoutes.listMyTesterSessions.path)
-  @CheckPolicy((policy) => policy.canView())
+  @CheckPermission(REVIEW_CAMPAIGN_TESTER_SESSION_READ_PERMISSION, "review_campaign")
   async listMyTesterSessions(
-    @Req() request: EndpointRequestWithReviewCampaignMembership,
+    @Req() request: EndpointRequestWithReviewCampaign,
   ): Promise<typeof ReviewCampaignsRoutes.listMyTesterSessions.response> {
     const summaries = await this.testerService.listMyTesterSessions({
       connectScope: getRequiredConnectScope(request),
       userId: request.user.id,
-      campaignId: request.reviewCampaign.id,
+      campaign: request.reviewCampaign,
     })
     return { data: { sessions: summaries.map(toMyTesterSessionSummaryDto) } }
   }
 
   @Post(ReviewCampaignsRoutes.startTesterSession.path)
-  @CheckPolicy((policy) => policy.canView())
+  @CheckPermission(REVIEW_CAMPAIGN_TESTER_SESSION_CREATE_PERMISSION, "review_campaign")
   async startTesterSession(
-    @Req() request: EndpointRequestWithReviewCampaignMembership,
+    @Req() request: EndpointRequestWithReviewCampaign,
     @Body() { payload }: typeof ReviewCampaignsRoutes.startTesterSession.request,
   ): Promise<typeof ReviewCampaignsRoutes.startTesterSession.response> {
     const result = await this.testerService.startSession({
@@ -110,9 +121,9 @@ export class TesterController {
   }
 
   @Post(ReviewCampaignsRoutes.submitTesterSurvey.path)
-  @CheckPolicy((policy) => policy.canView())
+  @CheckPermission(REVIEW_CAMPAIGN_TESTER_SURVEY_CREATE_PERMISSION, "review_campaign")
   async submitTesterSurvey(
-    @Req() request: EndpointRequestWithReviewCampaignMembership,
+    @Req() request: EndpointRequestWithReviewCampaign,
     @Body() { payload }: typeof ReviewCampaignsRoutes.submitTesterSurvey.request,
   ): Promise<typeof ReviewCampaignsRoutes.submitTesterSurvey.response> {
     const survey = await this.testerService.submitSurvey({
@@ -125,9 +136,9 @@ export class TesterController {
   }
 
   @Patch(ReviewCampaignsRoutes.updateTesterSurvey.path)
-  @CheckPolicy((policy) => policy.canView())
+  @CheckPermission(REVIEW_CAMPAIGN_TESTER_SURVEY_UPDATE_PERMISSION, "review_campaign")
   async updateTesterSurvey(
-    @Req() request: EndpointRequestWithReviewCampaignMembership,
+    @Req() request: EndpointRequestWithReviewCampaign,
     @Body() { payload }: typeof ReviewCampaignsRoutes.updateTesterSurvey.request,
   ): Promise<typeof ReviewCampaignsRoutes.updateTesterSurvey.response> {
     const survey = await this.testerService.updateSurvey({
@@ -139,29 +150,30 @@ export class TesterController {
   }
 
   @Get(ReviewCampaignsRoutes.getMyTesterSurvey.path)
-  @CheckPolicy((policy) => policy.canView())
+  @CheckPermission(REVIEW_CAMPAIGN_TESTER_SURVEY_READ_PERMISSION, "review_campaign")
   async getMyTesterSurvey(
-    @Req() request: EndpointRequestWithReviewCampaignMembership,
+    @Req() request: EndpointRequestWithReviewCampaign,
   ): Promise<typeof ReviewCampaignsRoutes.getMyTesterSurvey.response> {
     const survey = await this.testerService.getMyTesterSurvey({
       userId: request.user.id,
-      campaignId: request.reviewCampaign.id,
+      campaign: request.reviewCampaign,
     })
     return { data: { survey: survey ? toSurveyDto(survey) : null } }
   }
 }
 
-@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, TesterGuard)
-@RequireContext("organization", "project", "agentSessionInCampaign", "reviewCampaignMembership")
+// The session's campaign, set on the request by the agentSessionInCampaign context, is the one
+// the permission is checked on.
+@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, CheckPermissionGuard)
+@RequireContext("organization", "project", "agentSessionInCampaign")
 @Controller()
 export class TesterSessionFeedbackController {
   constructor(private readonly testerService: TesterService) {}
 
   @Post(ReviewCampaignsRoutes.submitTesterFeedback.path)
-  @CheckPolicy((policy) => policy.canView())
+  @CheckPermission(REVIEW_CAMPAIGN_TESTER_FEEDBACK_CREATE_PERMISSION, "review_campaign")
   async submitTesterFeedback(
-    @Req() request: EndpointRequestWithAgentSessionInCampaign &
-      EndpointRequestWithReviewCampaignMembership,
+    @Req() request: EndpointRequestWithAgentSessionInCampaign,
     @Body() { payload }: typeof ReviewCampaignsRoutes.submitTesterFeedback.request,
   ): Promise<typeof ReviewCampaignsRoutes.submitTesterFeedback.response> {
     const { sessionId, agentType, userId } = request.agentSessionInCampaign
@@ -178,14 +190,14 @@ export class TesterSessionFeedbackController {
   }
 
   @Patch(ReviewCampaignsRoutes.updateTesterFeedback.path)
-  @CheckPolicy((policy) => policy.canView())
+  @CheckPermission(REVIEW_CAMPAIGN_TESTER_FEEDBACK_UPDATE_PERMISSION, "review_campaign")
   async updateTesterFeedback(
-    @Req() request: EndpointRequestWithAgentSessionInCampaign &
-      EndpointRequestWithReviewCampaignMembership,
+    @Req() request: EndpointRequestWithAgentSessionInCampaign,
     @Body() { payload }: typeof ReviewCampaignsRoutes.updateTesterFeedback.request,
   ): Promise<typeof ReviewCampaignsRoutes.updateTesterFeedback.response> {
     const { sessionId, userId } = request.agentSessionInCampaign
     const feedback = await this.testerService.updateFeedback({
+      campaign: request.reviewCampaign,
       sessionId,
       sessionOwnerUserId: userId,
       callerUserId: request.user.id,
@@ -195,13 +207,13 @@ export class TesterSessionFeedbackController {
   }
 
   @Delete(ReviewCampaignsRoutes.deleteTesterSession.path)
-  @CheckPolicy((policy) => policy.canView())
+  @CheckPermission(REVIEW_CAMPAIGN_TESTER_SESSION_DELETE_PERMISSION, "review_campaign")
   async deleteTesterSession(
-    @Req() request: EndpointRequestWithAgentSessionInCampaign &
-      EndpointRequestWithReviewCampaignMembership,
+    @Req() request: EndpointRequestWithAgentSessionInCampaign,
   ): Promise<typeof ReviewCampaignsRoutes.deleteTesterSession.response> {
     const { sessionId, agentType, userId } = request.agentSessionInCampaign
     await this.testerService.deleteTesterSession({
+      campaign: request.reviewCampaign,
       sessionId,
       agentType,
       sessionOwnerUserId: userId,
