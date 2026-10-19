@@ -14,8 +14,12 @@ import { removeNullish } from "@/common/utils/remove-nullish"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { projectFactory } from "@/domains/projects/project.factory"
 import { mockForeignAuthSubject, setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
+import { agentEmbedConfigFactory } from "../agent-embed-config.factory"
 import { AgentEmbedConfigsManagementModule } from "../agent-embed-configs-management.module"
+
+type Role = "owner" | "admin" | "member"
 
 describe("AgentEmbedConfigs Management - Auth", () => {
   let app: INestApplication<App>
@@ -35,6 +39,7 @@ describe("AgentEmbedConfigs Management - Auth", () => {
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)
@@ -54,12 +59,18 @@ describe("AgentEmbedConfigs Management - Auth", () => {
     await app.close()
   })
 
-  const createContextForRole = async (role: "owner" | "admin" | "member" = "owner") => {
+  const createContextForRoles = async ({
+    projectRole,
+    agentRole,
+  }: {
+    projectRole: Role
+    agentRole: Role
+  }) => {
     const { organization, project, agent } = await createOrganizationWithAgent(repositories, {
       user: { authSubject },
       organizationMembership: { role: "member" },
-      projectMembership: { role },
-      agentMembership: { role: "member" },
+      projectMembership: { role: projectRole },
+      agentMembership: { role: agentRole },
     })
     organizationId = organization.id
     projectId = project.id
@@ -82,25 +93,28 @@ describe("AgentEmbedConfigs Management - Auth", () => {
     })
 
     it("requires a valid organization ID", async () => {
-      await createContextForRole("owner")
+      await createContextForRoles({ projectRole: "owner", agentRole: "owner" })
       organizationId = null
       expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
     })
 
     it("requires a valid project ID", async () => {
-      await createContextForRole("owner")
+      await createContextForRoles({ projectRole: "owner", agentRole: "owner" })
       projectId = randomUUID()
       expectResponse(await subject(), 404)
     })
 
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("owner")
+      await createContextForRoles({ projectRole: "owner", agentRole: "owner" })
       authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
 
     it("requires the agent to be part of the project", async () => {
-      const { organization } = await createContextForRole("owner")
+      const { organization } = await createContextForRoles({
+        projectRole: "owner",
+        agentRole: "owner",
+      })
       const project2 = await repositories.projectRepository.save(
         projectFactory.transient({ organization }).build(),
       )
@@ -108,22 +122,22 @@ describe("AgentEmbedConfigs Management - Auth", () => {
       expectResponse(await subject(), 404)
     })
 
-    it("does not allow a simple member to get the embed config", async () => {
-      await createContextForRole("member")
+    it.each<Role>([
+      "owner",
+      "admin",
+    ])("lets an agent %s get the embed config, even as a project member", async (role) => {
+      await createContextForRoles({ projectRole: "member", agentRole: role })
+      expectResponse(await subject(), 200)
+    })
+
+    it("doesn't let an agent member get the embed config", async () => {
+      await createContextForRoles({ projectRole: "member", agentRole: "member" })
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
 
-    it("allows an agent admin to get the embed config", async () => {
-      const { organization, project, agent } = await createOrganizationWithAgent(repositories, {
-        user: { authSubject },
-        organizationMembership: { role: "member" },
-        projectMembership: { role: "member" },
-        agentMembership: { role: "admin" },
-      })
-      organizationId = organization.id
-      projectId = project.id
-      agentId = agent.id
-      expectResponse(await subject(), 200)
+    it("doesn't let an agent member who owns the project get the embed config", async () => {
+      await createContextForRoles({ projectRole: "owner", agentRole: "member" })
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
   })
 
@@ -142,25 +156,28 @@ describe("AgentEmbedConfigs Management - Auth", () => {
     })
 
     it("requires a valid organization ID", async () => {
-      await createContextForRole("owner")
+      await createContextForRoles({ projectRole: "owner", agentRole: "owner" })
       organizationId = null
       expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
     })
 
     it("requires a valid project ID", async () => {
-      await createContextForRole("owner")
+      await createContextForRoles({ projectRole: "owner", agentRole: "owner" })
       projectId = randomUUID()
       expectResponse(await subject(), 404)
     })
 
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("owner")
+      await createContextForRoles({ projectRole: "owner", agentRole: "owner" })
       authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
 
     it("requires the agent to be part of the project", async () => {
-      const { organization } = await createContextForRole("owner")
+      const { organization } = await createContextForRoles({
+        projectRole: "owner",
+        agentRole: "owner",
+      })
       const project2 = await repositories.projectRepository.save(
         projectFactory.transient({ organization }).build(),
       )
@@ -168,8 +185,27 @@ describe("AgentEmbedConfigs Management - Auth", () => {
       expectResponse(await subject(), 404)
     })
 
-    it("does not allow a simple member to update the embed config", async () => {
-      await createContextForRole("member")
+    it.each<Role>([
+      "owner",
+      "admin",
+    ])("lets an agent %s update the embed config, even as a project member", async (role) => {
+      const { organization, project, agent } = await createContextForRoles({
+        projectRole: "member",
+        agentRole: role,
+      })
+      await repositories.agentEmbedConfigRepository.save(
+        agentEmbedConfigFactory.transient({ organization, project, agent }).build(),
+      )
+      expectResponse(await subject(), 200)
+    })
+
+    it("doesn't let an agent member update the embed config", async () => {
+      await createContextForRoles({ projectRole: "member", agentRole: "member" })
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+
+    it("doesn't let an agent member who owns the project update the embed config", async () => {
+      await createContextForRoles({ projectRole: "owner", agentRole: "member" })
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
   })
