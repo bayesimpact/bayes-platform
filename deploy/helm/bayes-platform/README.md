@@ -109,6 +109,7 @@ config:
   ORGANIZATION_CREATOR_EMAIL_DOMAIN: "@example.org"
   BACKOFFICE_AUTHORIZED_DOMAIN: "@example.org"
   BACKOFFICE_AUTHORIZED_EMAILS: "admin@example.org"
+  MCP_SERVER_TITLE: My platform
   GOOGLE_VERTEX_PROJECT: my-gcp-project
 
 web:
