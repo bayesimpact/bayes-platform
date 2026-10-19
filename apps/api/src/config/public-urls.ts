@@ -50,3 +50,18 @@ export function getOAuthServerUrls(request: Request): {
 export function getOAuthAuthorizationEndpoint(request: Request): string {
   return `${getAppPublicUrl() ?? getApiPublicOrigin(request)}/oauth/authorize`
 }
+
+/** An agent in the studio, linked from MCP tool results. Null when the web app's URL is unknown. */
+export function getStudioAgentUrl({
+  organizationId,
+  projectId,
+  agentId,
+}: {
+  organizationId: string
+  projectId: string
+  agentId: string
+}): string | null {
+  const appPublicUrl = getAppPublicUrl()
+  if (!appPublicUrl) return null
+  return `${appPublicUrl}/studio/o/${organizationId}/p/${projectId}/a/${agentId}`
+}

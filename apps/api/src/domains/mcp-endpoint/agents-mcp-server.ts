@@ -1,14 +1,21 @@
-import {
-  AgentLocale,
-  AgentModel,
-  agentTypeSchema,
-  DEFAULT_AGENT_MODEL,
-  outputJsonSchemaSchema,
-} from "@caseai-connect/api-contracts"
 import { type CallToolResult, McpServer } from "@modelcontextprotocol/server"
-import { z } from "zod"
 import { getMcpServerTitle } from "@/config/mcp-server-title"
 import type { McpAgentToolsService, McpCaller } from "./mcp-agent-tools.service"
+import {
+  toMcpAgent,
+  toMcpCreatedAgent,
+  toMcpProject,
+  toMcpUpdatedAgent,
+} from "./mcp-endpoint.mapper"
+import {
+  createAgentInputSchema,
+  createAgentOutputSchema,
+  listAgentsInputSchema,
+  listAgentsOutputSchema,
+  listProjectsOutputSchema,
+  updateAgentInputSchema,
+  updateAgentOutputSchema,
+} from "./mcp-endpoint.schemas"
 
 export const MCP_SERVER_NAME = "agents"
 export const MCP_SERVER_VERSION = "1.0.0"
@@ -20,86 +27,11 @@ const MCP_SERVER_INSTRUCTIONS = [
   "To change an existing agent, call list_agents with the project's id, then update_agent with the agent's id: only the agents with canUpdate set to true can be changed. update_agent edits the draft; the user publishes it in the studio.",
 ].join(" ")
 
-const projectSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  organizationId: z.string(),
-  organizationName: z.string(),
-  canCreateAgents: z.boolean(),
-})
-
-const createAgentInputSchema = z.object({
-  projectId: z.uuid().describe("Id of the project the agent belongs to, from list_projects."),
-  name: z.string().trim().min(3).describe("Name of the agent, at least 3 characters."),
-  type: agentTypeSchema
-    .default("conversation")
-    .describe(
-      "conversation: the agent chats with users. extraction: the agent reads a document and returns JSON that follows outputJsonSchema.",
-    ),
-  instructions: z
-    .string()
-    .min(1)
-    .describe("System prompt: what the agent does, its tone and the rules it follows."),
-  model: z.enum(AgentModel).default(DEFAULT_AGENT_MODEL).describe("Language model of the agent."),
-  locale: z.enum(AgentLocale).default(AgentLocale.EN).describe("Language the agent speaks."),
-  temperature: z
-    .number()
-    .min(0)
-    .max(2)
-    .default(0)
-    .describe("Sampling temperature, from 0 (steady) to 2 (creative)."),
-  greetingMessage: z
-    .string()
-    .max(2000)
-    .optional()
-    .describe("First message shown to users of a conversation agent."),
-  outputJsonSchema: outputJsonSchemaSchema
-    .optional()
-    .describe("JSON Schema of the result. Required for an extraction agent."),
-})
-
-const createdAgentSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  type: agentTypeSchema,
-  projectId: z.string(),
-  organizationId: z.string(),
-  studioUrl: z.string().nullable(),
-})
-
-const agentSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  type: agentTypeSchema,
-  model: z.string(),
-  canUpdate: z.boolean(),
-  studioUrl: z.string().nullable(),
-})
-
-const updateAgentInputSchema = z.object({
-  agentId: z.uuid().describe("Id of the agent, from list_agents or create_agent."),
-  model: z.enum(AgentModel).optional().describe("New language model of the agent."),
-  instructions: z.string().min(1).optional().describe("New system prompt of the agent."),
-  temperature: z
-    .number()
-    .min(0)
-    .max(2)
-    .optional()
-    .describe("New sampling temperature, from 0 (steady) to 2 (creative)."),
-  locale: z.enum(AgentLocale).optional().describe("New language of the agent."),
-  greetingMessage: z
-    .string()
-    .max(2000)
-    .nullable()
-    .optional()
-    .describe("New first message of a conversation agent, or null to remove it."),
-})
-
 /**
  * One MCP server per request, bound to the person and their grant: the
  * endpoint is stateless, so nothing outlives the HTTP exchange.
  */
-export function buildAgentCreationMcpServer({
+export function buildAgentsMcpServer({
   caller,
   toolsService,
 }: {
@@ -117,12 +49,12 @@ export function buildAgentCreationMcpServer({
       title: "List projects",
       description:
         "Lists the projects the user granted to this client, with their organization and whether agents can be created in them.",
-      outputSchema: z.object({ projects: z.array(projectSchema) }),
+      outputSchema: listProjectsOutputSchema,
       annotations: { readOnlyHint: true, openWorldHint: false },
     },
     async () => {
       const projects = await toolsService.listProjects(caller)
-      return structuredResult({ projects })
+      return structuredResult({ projects: projects.map(toMcpProject) })
     },
   )
 
@@ -133,7 +65,7 @@ export function buildAgentCreationMcpServer({
       description:
         "Creates an agent in a project and publishes its first version. Documents, tags and other settings are edited afterwards in the studio.",
       inputSchema: createAgentInputSchema,
-      outputSchema: z.object({ agent: createdAgentSchema }),
+      outputSchema: createAgentOutputSchema,
       annotations: {
         readOnlyHint: false,
         destructiveHint: false,
@@ -143,10 +75,8 @@ export function buildAgentCreationMcpServer({
     },
     async (input) => {
       const result = await toolsService.createAgent(caller, input)
-      if (!result.ok) {
-        return { isError: true, content: [{ type: "text", text: result.error }] }
-      }
-      return structuredResult({ agent: result.agent })
+      if (!result.ok) return errorResult(result.error)
+      return structuredResult({ agent: toMcpCreatedAgent(result.value) })
     },
   )
 
@@ -156,18 +86,14 @@ export function buildAgentCreationMcpServer({
       title: "List agents",
       description:
         "Lists the agents of a project the user is a member of, with their model and whether update_agent can change them.",
-      inputSchema: z.object({
-        projectId: z.uuid().describe("Id of the project, from list_projects."),
-      }),
-      outputSchema: z.object({ agents: z.array(agentSchema) }),
+      inputSchema: listAgentsInputSchema,
+      outputSchema: listAgentsOutputSchema,
       annotations: { readOnlyHint: true, openWorldHint: false },
     },
     async ({ projectId }) => {
       const result = await toolsService.listAgents(caller, projectId)
-      if (!result.ok) {
-        return { isError: true, content: [{ type: "text", text: result.error }] }
-      }
-      return structuredResult({ agents: result.value })
+      if (!result.ok) return errorResult(result.error)
+      return structuredResult({ agents: result.value.map(toMcpAgent) })
     },
   )
 
@@ -178,7 +104,7 @@ export function buildAgentCreationMcpServer({
       description:
         "Changes the draft settings of an agent (model, instructions, temperature, language, greeting). Only the given settings change. Nothing is published: the user reviews and publishes the draft in the studio, from the returned link.",
       inputSchema: updateAgentInputSchema,
-      outputSchema: z.object({ agent: agentSchema.extend({ draftRevision: z.number() }) }),
+      outputSchema: updateAgentOutputSchema,
       annotations: {
         readOnlyHint: false,
         destructiveHint: false,
@@ -188,10 +114,8 @@ export function buildAgentCreationMcpServer({
     },
     async (input) => {
       const result = await toolsService.updateAgent(caller, input)
-      if (!result.ok) {
-        return { isError: true, content: [{ type: "text", text: result.error }] }
-      }
-      return structuredResult({ agent: result.value })
+      if (!result.ok) return errorResult(result.error)
+      return structuredResult({ agent: toMcpUpdatedAgent(result.value) })
     },
   )
 
@@ -203,4 +127,8 @@ function structuredResult<T extends Record<string, unknown>>(output: T): CallToo
     content: [{ type: "text", text: JSON.stringify(output) }],
     structuredContent: output,
   }
+}
+
+function errorResult(error: string): CallToolResult {
+  return { isError: true, content: [{ type: "text", text: error }] }
 }

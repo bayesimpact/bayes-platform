@@ -61,5 +61,5 @@ permissions, and the client gets two tools: `list_projects` and
 * MCP clients can create agents with the web app's defaults (all documents,
   no tags, no categories). The rest of the configuration stays in the studio,
   which the tool links to when `APP_PUBLIC_URL` or `FRONTEND_URL` is set.
-* New tools go in `agent-creation-mcp-server.ts` and reuse domain services,
+* New tools go in `agents-mcp-server.ts` and reuse domain services,
   never repositories directly.
