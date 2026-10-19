@@ -37,10 +37,10 @@ const mcpCreatedAgentSchema = z.object({
 
 const mcpUpdatedAgentSchema = mcpAgentSchema.extend({ draftRevision: z.number() })
 
-export type McpProject = z.infer<typeof mcpProjectSchema>
-export type McpAgent = z.infer<typeof mcpAgentSchema>
-export type McpCreatedAgent = z.infer<typeof mcpCreatedAgentSchema>
-export type McpUpdatedAgent = z.infer<typeof mcpUpdatedAgentSchema>
+export type McpProjectDto = z.infer<typeof mcpProjectSchema>
+export type McpAgentDto = z.infer<typeof mcpAgentSchema>
+export type McpCreatedAgentDto = z.infer<typeof mcpCreatedAgentSchema>
+export type McpUpdatedAgentDto = z.infer<typeof mcpUpdatedAgentSchema>
 
 export const listProjectsOutputSchema = z.object({ projects: z.array(mcpProjectSchema) })
 

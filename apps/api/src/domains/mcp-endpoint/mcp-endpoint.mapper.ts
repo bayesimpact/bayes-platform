@@ -1,13 +1,18 @@
 import { getStudioAgentUrl } from "@/config/public-urls"
 import type {
-  McpAgentRecord,
-  McpAgentWithSettings,
-  McpProjectWithAccess,
-  McpUpdatedAgentSettings,
+  AgentRecord,
+  AgentWithSettings,
+  ProjectWithAccess,
+  UpdatedAgentSettings,
 } from "./mcp-agent-tools.service"
-import type { McpAgent, McpCreatedAgent, McpProject, McpUpdatedAgent } from "./mcp-endpoint.schemas"
+import type {
+  McpAgentDto,
+  McpCreatedAgentDto,
+  McpProjectDto,
+  McpUpdatedAgentDto,
+} from "./mcp-endpoint.schemas"
 
-export function toMcpProject({ project, canCreateAgents }: McpProjectWithAccess): McpProject {
+export function toMcpProject({ project, canCreateAgents }: ProjectWithAccess): McpProjectDto {
   return {
     id: project.id,
     name: project.name,
@@ -17,7 +22,7 @@ export function toMcpProject({ project, canCreateAgents }: McpProjectWithAccess)
   }
 }
 
-export function toMcpCreatedAgent(agent: McpAgentRecord): McpCreatedAgent {
+export function toMcpCreatedAgent(agent: AgentRecord): McpCreatedAgentDto {
   return {
     id: agent.id,
     name: agent.name,
@@ -28,7 +33,7 @@ export function toMcpCreatedAgent(agent: McpAgentRecord): McpCreatedAgent {
   }
 }
 
-export function toMcpAgent({ agent, agentSettings, canUpdate }: McpAgentWithSettings): McpAgent {
+export function toMcpAgent({ agent, agentSettings, canUpdate }: AgentWithSettings): McpAgentDto {
   return {
     id: agent.id,
     name: agent.name,
@@ -42,14 +47,14 @@ export function toMcpAgent({ agent, agentSettings, canUpdate }: McpAgentWithSett
 export function toMcpUpdatedAgent({
   agent,
   agentSettings,
-}: McpUpdatedAgentSettings): McpUpdatedAgent {
+}: UpdatedAgentSettings): McpUpdatedAgentDto {
   return {
     ...toMcpAgent({ agent, agentSettings, canUpdate: true }),
     draftRevision: agentSettings.revision,
   }
 }
 
-function toStudioUrl(agent: McpAgentRecord): string | null {
+function toStudioUrl(agent: AgentRecord): string | null {
   return getStudioAgentUrl({
     organizationId: agent.organizationId,
     projectId: agent.projectId,

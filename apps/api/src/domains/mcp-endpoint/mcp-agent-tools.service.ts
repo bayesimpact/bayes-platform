@@ -25,7 +25,7 @@ import {
   PROJECT_READ_PERMISSION,
 } from "@/domains/rbac/rbac.constants"
 
-export type McpProjectWithAccess = {
+export type ProjectWithAccess = {
   project: { id: string; name: string; organizationId: string; organizationName: string }
   canCreateAgents: boolean
 }
@@ -36,7 +36,7 @@ export type McpCreateAgentInput = Omit<
 > & { projectId: string }
 
 /** The fields of an agent the MCP tools return, without importing the agents domain's entity. */
-export type McpAgentRecord = {
+export type AgentRecord = {
   id: string
   name: string
   type: AgentType
@@ -45,11 +45,11 @@ export type McpAgentRecord = {
 }
 
 /** The fields of an agent's settings revision the MCP tools return. */
-export type McpAgentSettingsRecord = { model: string; revision: number }
+export type AgentSettingsRecord = { model: string; revision: number }
 
-export type McpAgentWithSettings = {
-  agent: McpAgentRecord
-  agentSettings: McpAgentSettingsRecord
+export type AgentWithSettings = {
+  agent: AgentRecord
+  agentSettings: AgentSettingsRecord
   canUpdate: boolean
 }
 
@@ -59,9 +59,9 @@ export type McpAgentSettingsFields = Pick<
 >
 
 /** The agent and the draft its settings went into: the published version does not change. */
-export type McpUpdatedAgentSettings = {
-  agent: McpAgentRecord
-  agentSettings: McpAgentSettingsRecord
+export type UpdatedAgentSettings = {
+  agent: AgentRecord
+  agentSettings: AgentSettingsRecord
 }
 
 export type McpResult<Value> = { ok: true; value: Value } | { ok: false; error: string }
@@ -101,7 +101,7 @@ export class McpAgentToolsService {
     private readonly activitiesService: ActivitiesService,
   ) {}
 
-  async listProjects(caller: McpCaller): Promise<McpProjectWithAccess[]> {
+  async listProjects(caller: McpCaller): Promise<ProjectWithAccess[]> {
     if (!caller.permissions.includes(PROJECT_READ_PERMISSION)) return []
     const readableProjectIds = new Set(
       await this.permissionService.listResourceIds(caller.userId, PROJECT_READ_PERMISSION),
@@ -120,7 +120,7 @@ export class McpAgentToolsService {
   async createAgent(
     caller: McpCaller,
     input: McpCreateAgentInput,
-  ): Promise<McpResult<McpAgentRecord>> {
+  ): Promise<McpResult<AgentRecord>> {
     const { projectId, ...agentFields } = input
     const { userId } = caller
 
@@ -173,10 +173,7 @@ export class McpAgentToolsService {
   }
 
   /** Agents of a granted project the person is a member of, with whether update_agent can change them. */
-  async listAgents(
-    caller: McpCaller,
-    projectId: string,
-  ): Promise<McpResult<McpAgentWithSettings[]>> {
+  async listAgents(caller: McpCaller, projectId: string): Promise<McpResult<AgentWithSettings[]>> {
     const canReadProject =
       caller.permissions.includes(PROJECT_READ_PERMISSION) &&
       caller.projectIds.includes(projectId) &&
@@ -217,7 +214,7 @@ export class McpAgentToolsService {
   async updateAgent(
     caller: McpCaller,
     input: { agentId: string } & McpAgentSettingsFields,
-  ): Promise<McpResult<McpUpdatedAgentSettings>> {
+  ): Promise<McpResult<UpdatedAgentSettings>> {
     const { agentId, ...requestedFields } = input
     const scope = await this.agentRepository.findScopeById(agentId)
     if (!scope || !(await this.canUpdateAgent(caller, { ...scope, agentId }))) {
