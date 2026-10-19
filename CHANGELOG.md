@@ -10,7 +10,6 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Added
 
 ### Changed
-- MCP clients: the platform's MCP server now shows the name each deployment configures.
 
 ### Fixed
 
