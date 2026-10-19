@@ -23,11 +23,13 @@ Connect provider built on node-oidc-provider. Its sign-in page lists the people 
 and a click signs in as that person, without a password.**
 
 - The main checkout's picker runs under the `oidc-picker` profile of `infra/database`, issuer
-  `http://localhost:5556`. `infra/oidc-picker/sync-users.mjs` lists the people of the local
-  database in it.
+  `http://localhost:5556`. It reads `config.sample.yaml`, or a `config.local.yaml` that lists the
+  people of the local database.
 - Each worktree environment runs its own, the `auth` service, issuer
-  `<scheme>://<name>-auth.<domain>`, at the root, with no `/dex` path. The worktree tooling writes
-  its configuration with `infra/oidc-picker/picker-config.mjs`.
+  `<scheme>://<name>-auth.<domain>`, at the root, with no `/dex` path, from a configuration it is
+  given in `WT_AUTH_DIR`.
+- This repository runs the picker; the team's tooling writes what it lists (the people of a
+  database, the redirect URIs, the `.env` files), as it creates the environments.
 - Each person's `sub` is their platform id. At the first sign-in, the API links the new identity to
   the account by verified email (ADR 0021), so nothing is lost when moving from Dex.
 - The picker reads its profiles again when their file changes: someone added to the database is
