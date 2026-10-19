@@ -86,8 +86,18 @@ export class OAuthClientsService {
   async createAppClientSecret(
     appManifestId: string,
   ): Promise<{ clientId: string; clientSecret: string }> {
+    return this.setAppClientSecret(appManifestId, generateClientSecret())
+  }
+
+  /**
+   * Creates the OAuth client of an app, or replaces its secret, with a secret the caller holds:
+   * for scripts and dev tooling, which keep the secret an app already runs with.
+   */
+  async setAppClientSecret(
+    appManifestId: string,
+    clientSecret: string,
+  ): Promise<{ clientId: string; clientSecret: string }> {
     await this.appsService.getAppManifest(appManifestId)
-    const clientSecret = generateClientSecret()
     const clientSecretHash = await hashClientSecret(clientSecret)
     const existing = await this.oauthClientRepository.findByAppManifestId(appManifestId)
     if (existing) {
