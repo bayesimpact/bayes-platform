@@ -20,7 +20,7 @@ import {
   OAuthAccessTokenGuard,
   type OAuthAuthenticatedRequest,
 } from "@/domains/oauth/oauth-access-token.guard"
-import { buildAgentCreationMcpServer } from "./agent-creation-mcp-server"
+import { buildAgentsMcpServer } from "./agents-mcp-server"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { McpAgentToolsService, type McpCaller } from "./mcp-agent-tools.service"
 import { MCP_ENDPOINT_PATH } from "./mcp-endpoint.urls"
@@ -78,6 +78,6 @@ export class McpEndpointController implements OnModuleDestroy {
       // The guard runs before the handler, so this only happens on a wiring mistake.
       throw new Error("MCP request reached the server without a grant")
     }
-    return buildAgentCreationMcpServer({ caller, toolsService: this.toolsService })
+    return buildAgentsMcpServer({ caller, toolsService: this.toolsService })
   }
 }

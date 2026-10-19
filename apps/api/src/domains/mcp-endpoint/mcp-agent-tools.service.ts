@@ -7,7 +7,6 @@ import {
   partialUpdateAgentSettingsSchema,
 } from "@caseai-connect/api-contracts"
 import { Injectable } from "@nestjs/common"
-import { getAppPublicUrl } from "@/config/app-public-url"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ActivitiesService } from "@/domains/activities/activities.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -26,11 +25,8 @@ import {
   PROJECT_READ_PERMISSION,
 } from "@/domains/rbac/rbac.constants"
 
-export type McpProject = {
-  id: string
-  name: string
-  organizationId: string
-  organizationName: string
+export type ProjectWithAccess = {
+  project: { id: string; name: string; organizationId: string; organizationName: string }
   canCreateAgents: boolean
 }
 
@@ -39,29 +35,22 @@ export type McpCreateAgentInput = Omit<
   "documentsRagMode" | "tagsToAdd" | "projectAgentSessionCategoryIds" | "resourceLibraryIds"
 > & { projectId: string }
 
-export type McpCreatedAgent = {
+/** The fields of an agent the MCP tools return, without importing the agents domain's entity. */
+export type AgentRecord = {
   id: string
   name: string
   type: AgentType
-  projectId: string
   organizationId: string
-  studioUrl: string | null
+  projectId: string
 }
 
-export type McpCreateAgentResult =
-  | { ok: true; agent: McpCreatedAgent }
-  | { ok: false; error: string }
+/** The fields of an agent's settings revision the MCP tools return. */
+export type AgentSettingsRecord = { model: string; revision: number }
 
-/** The grantable permission behind update_agent (ADR 0028). */
-export const MCP_AGENT_SETTINGS_PERMISSION = "agent.settings.draft.update"
-
-export type McpAgent = {
-  id: string
-  name: string
-  type: AgentType
-  model: string
+export type AgentWithSettings = {
+  agent: AgentRecord
+  agentSettings: AgentSettingsRecord
   canUpdate: boolean
-  studioUrl: string | null
 }
 
 export type McpAgentSettingsFields = Pick<
@@ -69,8 +58,11 @@ export type McpAgentSettingsFields = Pick<
   "instructions" | "model" | "temperature" | "locale" | "greetingMessage"
 >
 
-/** The draft revision the change went into: the published version does not change. */
-export type McpUpdatedAgent = McpAgent & { draftRevision: number }
+/** The agent and the draft its settings went into: the published version does not change. */
+export type UpdatedAgentSettings = {
+  agent: AgentRecord
+  agentSettings: AgentSettingsRecord
+}
 
 export type McpResult<Value> = { ok: true; value: Value } | { ok: false; error: string }
 
@@ -109,7 +101,7 @@ export class McpAgentToolsService {
     private readonly activitiesService: ActivitiesService,
   ) {}
 
-  async listProjects(caller: McpCaller): Promise<McpProject[]> {
+  async listProjects(caller: McpCaller): Promise<ProjectWithAccess[]> {
     if (!caller.permissions.includes(PROJECT_READ_PERMISSION)) return []
     const readableProjectIds = new Set(
       await this.permissionService.listResourceIds(caller.userId, PROJECT_READ_PERMISSION),
@@ -119,13 +111,16 @@ export class McpAgentToolsService {
     )
     return Promise.all(
       projects.map(async (project) => ({
-        ...project,
+        project,
         canCreateAgents: await this.canCreateAgents(caller, project.id),
       })),
     )
   }
 
-  async createAgent(caller: McpCaller, input: McpCreateAgentInput): Promise<McpCreateAgentResult> {
+  async createAgent(
+    caller: McpCaller,
+    input: McpCreateAgentInput,
+  ): Promise<McpResult<AgentRecord>> {
     const { projectId, ...agentFields } = input
     const { userId } = caller
 
@@ -169,17 +164,7 @@ export class McpAgentToolsService {
         entityId: null,
         entityType: null,
       })
-      return {
-        ok: true,
-        agent: {
-          id: agent.id,
-          name: agent.name,
-          type: agent.type,
-          projectId,
-          organizationId: connectScope.organizationId,
-          studioUrl: buildStudioAgentUrl({ ...connectScope, agentId: agent.id }),
-        },
-      }
+      return { ok: true, value: agent }
     } catch (error) {
       // Business rules (name length, JSON schema of an extraction agent...)
       // come back as HTTP exceptions with a readable message.
@@ -188,7 +173,7 @@ export class McpAgentToolsService {
   }
 
   /** Agents of a granted project the person is a member of, with whether update_agent can change them. */
-  async listAgents(caller: McpCaller, projectId: string): Promise<McpResult<McpAgent[]>> {
+  async listAgents(caller: McpCaller, projectId: string): Promise<McpResult<AgentWithSettings[]>> {
     const canReadProject =
       caller.permissions.includes(PROJECT_READ_PERMISSION) &&
       caller.projectIds.includes(projectId) &&
@@ -209,20 +194,14 @@ export class McpAgentToolsService {
     const connectScope = { organizationId: project.organizationId, projectId }
     const agents = await this.agentsService.listAgents({ userId: caller.userId, connectScope })
     const value = await Promise.all(
-      agents.map(async (agent) => {
-        const settings = await this.agentSettingsService.getLast({
+      agents.map(async (agent) => ({
+        agent,
+        agentSettings: await this.agentSettingsService.getLast({
           connectScope,
           agentId: agent.id,
-        })
-        return {
-          id: agent.id,
-          name: agent.name,
-          type: agent.type,
-          model: settings.model,
-          canUpdate: await this.canUpdateAgent(caller, { ...connectScope, agentId: agent.id }),
-          studioUrl: buildStudioAgentUrl({ ...connectScope, agentId: agent.id }),
-        }
-      }),
+        }),
+        canUpdate: await this.canUpdateAgent(caller, { ...connectScope, agentId: agent.id }),
+      })),
     )
     return { ok: true, value }
   }
@@ -235,7 +214,7 @@ export class McpAgentToolsService {
   async updateAgent(
     caller: McpCaller,
     input: { agentId: string } & McpAgentSettingsFields,
-  ): Promise<McpResult<McpUpdatedAgent>> {
+  ): Promise<McpResult<UpdatedAgentSettings>> {
     const { agentId, ...requestedFields } = input
     const scope = await this.agentRepository.findScopeById(agentId)
     if (!scope || !(await this.canUpdateAgent(caller, { ...scope, agentId }))) {
@@ -273,18 +252,7 @@ export class McpAgentToolsService {
         entityId: agentId,
         entityType: "agent",
       })
-      return {
-        ok: true,
-        value: {
-          id: agent.id,
-          name: agent.name,
-          type: agent.type,
-          model: agentSettings.model,
-          draftRevision: agentSettings.revision,
-          canUpdate: true,
-          studioUrl: buildStudioAgentUrl({ ...connectScope, agentId }),
-        },
-      }
+      return { ok: true, value: { agent, agentSettings } }
     } catch (error) {
       // Business rules (an extraction agent without a JSON schema...) come
       // back as HTTP exceptions with a readable message.
@@ -298,7 +266,7 @@ export class McpAgentToolsService {
     target: { projectId: string; agentId: string },
   ): Promise<boolean> {
     if (!caller.projectIds.includes(target.projectId)) return false
-    if (!caller.permissions.includes(MCP_AGENT_SETTINGS_PERMISSION)) return false
+    if (!caller.permissions.includes(AGENT_SETTINGS_DRAFT_UPDATE_PERMISSION)) return false
     return this.permissionService.has(caller.userId, AGENT_SETTINGS_DRAFT_UPDATE_PERMISSION, {
       type: "agent",
       id: target.agentId,
@@ -313,18 +281,4 @@ export class McpAgentToolsService {
       id: projectId,
     })
   }
-}
-
-function buildStudioAgentUrl({
-  organizationId,
-  projectId,
-  agentId,
-}: {
-  organizationId: string
-  projectId: string
-  agentId: string
-}): string | null {
-  const appPublicUrl = getAppPublicUrl()
-  if (!appPublicUrl) return null
-  return `${appPublicUrl}/studio/o/${organizationId}/p/${projectId}/a/${agentId}`
 }
