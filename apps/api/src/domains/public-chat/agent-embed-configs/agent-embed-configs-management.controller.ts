@@ -1,25 +1,29 @@
-import { type AgentEmbedConfigDto, AgentEmbedConfigsRoutes } from "@caseai-connect/api-contracts"
+import {
+  AGENT_UPDATE_PERMISSION,
+  type AgentEmbedConfigDto,
+  AgentEmbedConfigsRoutes,
+} from "@caseai-connect/api-contracts"
 import { Body, Controller, Get, Patch, Req, UseGuards } from "@nestjs/common"
 import type { EndpointRequestWithAgent } from "@/common/context/request.interface"
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
 import { AddContext, RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
-import { CheckPolicy } from "@/common/policies/check-policy.decorator"
-import { AgentGuard } from "@/domains/agents/agent.guard"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
+import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
+import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
 import { UserGuard } from "@/domains/users/user.guard"
 import type { AgentEmbedConfig } from "./agent-embed-config.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentEmbedConfigsService } from "./agent-embed-configs.service"
 
-@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, AgentGuard)
+@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, CheckPermissionGuard)
 @RequireContext("organization", "project")
 @Controller()
 export class AgentEmbedConfigsManagementController {
   constructor(private readonly agentEmbedConfigsService: AgentEmbedConfigsService) {}
 
   @Get(AgentEmbedConfigsRoutes.getOne.path)
-  @CheckPolicy((policy) => policy.canUpdate())
+  @CheckPermission(AGENT_UPDATE_PERMISSION, "agent")
   @AddContext("agent")
   async getOne(
     @Req() request: EndpointRequestWithAgent,
@@ -34,7 +38,7 @@ export class AgentEmbedConfigsManagementController {
   }
 
   @Patch(AgentEmbedConfigsRoutes.updateOne.path)
-  @CheckPolicy((policy) => policy.canUpdate())
+  @CheckPermission(AGENT_UPDATE_PERMISSION, "agent")
   @AddContext("agent")
   async updateOne(
     @Req() request: EndpointRequestWithAgent,

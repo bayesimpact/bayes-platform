@@ -57,7 +57,6 @@ export interface EndpointRequestWithProjectMembership extends EndpointRequestWit
 
 export interface EndpointRequestWithAgent extends EndpointRequestWithProject {
   agent: Agent
-  agentMembership: AgentMembershipModel | undefined
 }
 
 export interface EndpointRequestWithAgentMembership extends EndpointRequestWithAgent {
