@@ -94,6 +94,7 @@ signed in.
 ## Notes
 
 - **Signing keys.** The main checkout's picker keeps them in memory: a restart signs you out.
+- **Color.** The picker takes the web app's `--primary`, from `apps/web/public/theme/theme.css`.
 - **Logout.** The picker has an `end_session_endpoint` and logs out without a confirmation page.
 - **Token for scripts.** The password grant is on: the username picks the profile and the
   password is ignored.

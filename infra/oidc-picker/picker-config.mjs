@@ -3,11 +3,15 @@
 // person, without a password. sync-users.mjs uses it for the main checkout's picker, and the
 // worktree tooling for the picker of each worktree environment. Node built-ins only.
 import { execFileSync } from "node:child_process"
+import { existsSync, readFileSync } from "node:fs"
 
 export const WEB_CLIENT_ID = "platform-web"
 
 /** The file of the profiles, next to the configuration: the picker reads it again when it changes. */
 export const PROFILES_FILE = "profiles.yaml"
+
+// The web app's theme, loaded at runtime: the picker takes its primary color.
+const THEME_FILE = new URL("../../apps/web/public/theme/theme.css", import.meta.url)
 
 // The CORS origins of the API when FRONTEND_URL is empty (apps/api/src/config/cors.ts).
 const DEFAULT_FRONTEND_ORIGINS = [
@@ -26,6 +30,7 @@ const HEADER = `# Generated from the users of a local database. Edits are overwr
  * - `actorHeader`: the header a gatekeeper in front of the picker sets to the person it signed
  *   in. The picker then refuses requests without it, logs who picked whom, and turns the
  *   password grant off.
+ * The picker takes the web app's primary color (apps/web/public/theme/theme.css).
  */
 export function buildPickerConfig({
   issuer,
@@ -33,16 +38,23 @@ export function buildPickerConfig({
   keysFile,
   allowNonLocalIssuer = false,
   actorHeader,
+  accent = themePrimary(),
 }) {
   const config = {
     issuer,
     ...(allowNonLocalIssuer ? { allowNonLocalIssuer: true } : {}),
     ...(actorHeader ? { actorHeader } : {}),
     ...(keysFile ? { keysFile } : {}),
+    ...(accent ? { theme: { accent } } : {}),
     clients: [{ id: WEB_CLIENT_ID, redirectUris: unique(webRedirectUris) }],
     profilesFile: PROFILES_FILE,
   }
   return `${HEADER}${toYaml(config)}\n`
+}
+
+/** The `--primary` color of a theme stylesheet, or null without one. */
+export function themePrimary(css = existsSync(THEME_FILE) ? readFileSync(THEME_FILE, "utf8") : "") {
+  return css.match(/--primary:\s*([^;}]+?)\s*[;}]/u)?.[1] ?? null
 }
 
 /**

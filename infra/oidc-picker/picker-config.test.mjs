@@ -6,6 +6,7 @@ import {
   frontendOrigins,
   nameOf,
   redirectUris,
+  themePrimary,
   toYaml,
 } from "./picker-config.mjs"
 
@@ -94,6 +95,8 @@ describe("buildPickerConfig", () => {
     assert.match(config, /clients:\n {2}- id: "platform-web"/u)
     assert.match(config, /profilesFile: "profiles\.yaml"/u)
     assert.doesNotMatch(config, /allowNonLocalIssuer|actorHeader|keysFile/u)
+    // The web app's primary color, from its theme.
+    assert.match(config, /theme:\n {2}accent: "[^"]+"/u)
   })
 
   it("writes the options of an environment on a domain, behind a gatekeeper", () => {
@@ -125,5 +128,19 @@ describe("buildProfiles", () => {
 
   it("writes an empty list when the database has nobody", () => {
     assert.match(buildProfiles([]), /\nprofiles: \[\]\n$/u)
+  })
+})
+
+describe("themePrimary", () => {
+  it("reads the primary color of a theme stylesheet", () => {
+    assert.equal(
+      themePrimary(":root {\n  --primary: oklch(62.8% 0.2 303.9);\n}"),
+      "oklch(62.8% 0.2 303.9)",
+    )
+    assert.equal(themePrimary(":root{--primary:#a855f7}"), "#a855f7")
+  })
+
+  it("gives null without one", () => {
+    assert.equal(themePrimary(""), null)
   })
 })
