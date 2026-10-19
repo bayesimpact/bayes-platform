@@ -210,9 +210,9 @@ Upgrading a `.env` from Auth0: see [docs/upgrading/auth0-to-oidc.md](docs/upgrad
 **Local sign-in:** start the oidc-picker (`docker compose --profile oidc-picker up -d
 --no-recreate oidc-picker` from `infra/database`). Its sign-in page lists people: click one to sign
 in as them, without a password. On a fresh checkout, sign in as the sample `admin@example.org`, then
-give it a platform role. When your database already has people, run
-`node infra/oidc-picker/sync-users.mjs` from the main checkout: it lists each of them, and every
-account keeps its data. See [infra/oidc-picker/README.md](infra/oidc-picker/README.md).
+give it a platform role. To list the people of your database instead, write
+`infra/oidc-picker/config.local.yaml` (the team's worktree tooling writes it for you): every account
+keeps its data. See [infra/oidc-picker/README.md](infra/oidc-picker/README.md).
 
 #### Web Environment Variables
 
@@ -410,7 +410,7 @@ Once HTTPS is set up, update your `.env` files to use `https://connect.localhost
 VITE_API_URL=https://connect.localhost:3000/api
 ```
 
-**Identity provider:** the web app client must allow `https://connect.localhost:5173` as redirect URI, post-logout redirect URI and web origin. The local oidc-picker accepts it, and `node infra/oidc-picker/sync-users.mjs` lists every origin of `FRONTEND_URL` as a redirect URI.
+**Identity provider:** the web app client must allow `https://connect.localhost:5173` as redirect URI, post-logout redirect URI and web origin. The local oidc-picker's sample configuration accepts it. A `config.local.yaml` lists every origin of `FRONTEND_URL` as a redirect URI.
 
 ### 6. Run the Projects Locally
 
