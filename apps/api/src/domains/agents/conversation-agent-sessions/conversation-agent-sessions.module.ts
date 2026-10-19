@@ -16,6 +16,7 @@ import { LiveAgentMessagesController } from "../shared/agent-session-messages/li
 import { McpAppHtmlService } from "../shared/agent-session-messages/mcp-app-html.service"
 import { PlaygroundAgentMessagesController } from "../shared/agent-session-messages/playground-agent-messages.controller"
 import { StreamingModule } from "../shared/agent-session-messages/streaming/streaming.module"
+import { ConversationAgentSessionRepository } from "./conversation-agent-session.repository"
 import { ConversationAgentSessionsService } from "./conversation-agent-sessions.service"
 import { LiveConversationAgentSessionsController } from "./live-conversation-agent-sessions.controller"
 import { PlaygroundConversationAgentSessionsController } from "./playground-conversation-agent-sessions.controller"
@@ -53,6 +54,10 @@ import { ConversationReviewService } from "./review/conversation-review.service"
     PlaygroundAgentMessagesController,
     PlaygroundConversationAgentSessionsController,
   ],
-  exports: [ConversationAgentSessionsService, McpAppHtmlService],
+  exports: [
+    ConversationAgentSessionRepository,
+    ConversationAgentSessionsService,
+    McpAppHtmlService,
+  ],
 })
 export class ConversationAgentSessionsModule {}

@@ -8,7 +8,6 @@ import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { Agent } from "@/domains/agents/agent.entity"
 import { AgentsModule } from "@/domains/agents/agents.module"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
-import { ConversationAgentSessionRepository } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.repository"
 import { ConversationAgentSessionsModule } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.module"
 import { ExtractionAgentSession } from "@/domains/agents/extraction-agent-sessions/extraction-agent-session.entity"
 import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
@@ -75,7 +74,6 @@ import { TesterSessionFeedback } from "./tester-session-feedbacks/tester-session
   ],
   providers: [
     AgentSessionInCampaignContextResolver,
-    ConversationAgentSessionRepository,
     OrganizationContextResolver,
     ProjectContextResolver,
     ReportsService,
