@@ -15,7 +15,6 @@ import type { OrganizationMembershipContextModel } from "@/domains/organizations
 import type { ProjectMembershipModel } from "@/domains/projects/memberships/project-membership.model"
 import type { Project } from "@/domains/projects/project.entity"
 import type { ResourceLibrary } from "@/domains/resource-libraries/resource-library.entity"
-import type { ReviewCampaignMembershipModel } from "@/domains/review-campaigns/memberships/review-campaign-membership.model"
 import type { ReviewCampaign } from "@/domains/review-campaigns/review-campaign.entity"
 import type { ReviewCampaignAgentType } from "@/domains/review-campaigns/review-campaigns.types"
 import type { User } from "@/domains/users/user.entity"
@@ -58,7 +57,6 @@ export interface EndpointRequestWithProjectMembership extends EndpointRequestWit
 
 export interface EndpointRequestWithAgent extends EndpointRequestWithProject {
   agent: Agent
-  agentMembership: AgentMembershipModel | undefined
 }
 
 export interface EndpointRequestWithAgentMembership extends EndpointRequestWithAgent {
@@ -111,12 +109,6 @@ export interface EndpointRequestWithAgentCsvExtractionRun extends EndpointReques
 
 export interface EndpointRequestWithReviewCampaign extends EndpointRequestWithProject {
   reviewCampaign: ReviewCampaign
-}
-
-export interface EndpointRequestWithReviewCampaignMembership
-  extends EndpointRequestWithReviewCampaign {
-  testerMembership: ReviewCampaignMembershipModel | undefined
-  reviewerMembership: ReviewCampaignMembershipModel | undefined
 }
 
 export interface EndpointRequestWithAgentSessionInCampaign extends EndpointRequestWithProject {

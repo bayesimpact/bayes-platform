@@ -152,21 +152,22 @@ Controllers and guards MUST follow the context resolver pattern for resource loa
 - Use `ResourceContextGuard` to resolve request context (`organization`, `project`, `projectMembership`, `agent`, etc.)
 - Declare required context at controller or method level with `@RequireContext(...)`
 - Add route-specific context with `@AddContext(...)` when only some handlers need extra resources
-- Keep domain guards (e.g. `ProjectsGuard`) focused on **policy evaluation only** — no DB resource loading
+- Check access with `CheckPermissionGuard` after `ResourceContextGuard` and `@CheckPermission(...)` on each route (see the RBAC section below). The permission guard loads no resource
 - Do **not** use cascading resource-loading guards like `UserGuard -> OrganizationGuard -> ProjectsGuard`
 
 **Module wiring**:
 - Register `ResourceContextGuard` in module providers
 - Register each resolver used by the module (`OrganizationContextResolver`, `ProjectContextResolver`, etc.)
+- Import `RbacModule`, which provides `CheckPermissionGuard` and `PermissionService`
 
 ```typescript
-@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, ProjectsGuard)
+@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, CheckPermissionGuard)
 @RequireContext("organization", "project")
 @Controller()
 export class ExampleController {
   @Delete("organizations/:organizationId/projects/:projectId/memberships/:membershipId")
   @AddContext("projectMembership")
-  @CheckPolicy((policy) => policy.canDelete())
+  @CheckPermission(PROJECT_MEMBER_DELETE_PERMISSION, "project")
   async remove(@Req() request: EndpointRequestWithProjectMembership) {
     return { data: { success: true } }
   }
@@ -372,7 +373,7 @@ A new capability touches all of these in one change:
 5. Protect the route with `@CheckPermission(permission)` for a global check, or `@CheckPermission(permission, "organization" | "project" | "agent" | "temp_agent" | "review_campaign")` for a scoped one, with `CheckPermissionGuard` after `JwtAuthGuard` and `UserGuard`. Keep the context resolver or domain guard that puts the resource id on the request. The permission guard only answers whether the permission holds. A key in `PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN` checked on `"project"` also lets that project's campaign testers or reviewers in, so pick a narrower key when they must stay out.
 6. A service that lists resources calls `PermissionService.listResourceIds(userId, permission)` or `listResourcePermissions(userId, permission)`, then loads those ids through its custom repository. Pass the key you mean: `backoffice.organization.read` is never rewritten to `organization.read`.
 
-Feature services do not query `user_membership` or `role_permission`, and do not compare `membership.role` against a list of allowed roles. Existing `@CheckPolicy` policies stay where they are. A new check uses `@CheckPermission`.
+Feature services do not query `user_membership` or `role_permission`, and do not compare `membership.role` against a list of allowed roles. Every access check goes through `@CheckPermission` on the route or through `PermissionService`. Do not write a per-domain policy class or a guard that evaluates one.
 
 **If unsure which role should hold a permission, ASK THE USER before implementing.**
 

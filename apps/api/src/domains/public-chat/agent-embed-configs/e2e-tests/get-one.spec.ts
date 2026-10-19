@@ -11,6 +11,7 @@ import {
 } from "@/common/test/test-database"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
+import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { agentEmbedConfigFactory } from "../agent-embed-config.factory"
 import { AgentEmbedConfigsManagementModule } from "../agent-embed-configs-management.module"
@@ -32,6 +33,7 @@ describe("AgentEmbedConfigs Management - GET one", () => {
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
+    await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)

@@ -20,7 +20,6 @@ export type ContextResource =
   | "evaluationExtractionDatasetDocument"
   | "evaluationExtractionRun"
   | "reviewCampaign"
-  | "reviewCampaignMembership"
   | "agentSessionInCampaign"
   | "mcpServer"
 

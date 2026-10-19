@@ -107,6 +107,52 @@ describe("registerGracefulShutdown", () => {
       expect(exit).toHaveBeenCalledWith(0)
     })
 
+    it("runs onTimeout before exiting once the timeout is reached", async () => {
+      const calls: string[] = []
+      const exit = jest.fn(() => calls.push("exit"))
+      const onTimeout = jest.fn(async () => {
+        calls.push("onTimeout")
+      })
+      const { shutdown } = register({
+        close: jest.fn().mockReturnValue(new Promise<void>(() => {})),
+        onTimeout,
+        exit,
+      })
+
+      void shutdown("SIGTERM")
+      await jest.advanceTimersByTimeAsync(25_000)
+
+      expect(calls).toEqual(["onTimeout", "exit"])
+      expect(exit).toHaveBeenCalledWith(0)
+    })
+
+    it("still exits 0 when onTimeout fails", async () => {
+      const failure = new Error("settle failed")
+      const { shutdown, logger, exit } = register({
+        close: jest.fn().mockReturnValue(new Promise<void>(() => {})),
+        onTimeout: jest.fn().mockRejectedValue(failure),
+      })
+
+      void shutdown("SIGTERM")
+      await jest.advanceTimersByTimeAsync(25_000)
+
+      expect(logger.error).toHaveBeenCalledWith(
+        "Error while settling the work left in flight",
+        failure.stack,
+      )
+      expect(exit).toHaveBeenCalledWith(0)
+    })
+
+    it("does not run onTimeout when the close finishes before the timeout", async () => {
+      const onTimeout = jest.fn().mockResolvedValue(undefined)
+      const { shutdown } = register({ onTimeout })
+
+      await shutdown("SIGTERM")
+      await jest.advanceTimersByTimeAsync(60_000)
+
+      expect(onTimeout).not.toHaveBeenCalled()
+    })
+
     it("does not warn when the close finishes before the timeout", async () => {
       const { shutdown, logger, exit } = register()
 

@@ -28,7 +28,7 @@ This v0 is backend-only. UI/UX will be defined later.
 - Single file extraction per request
 - Schema-constrained structured output
 - Server-side JSON schema validation before response
-- Authorization model identical to existing `Agent` policy
+- Authorization model identical to existing `Agent` routes
 - Run history persisted as `AgentExtractionRun`
 
 ### Out of Scope
@@ -43,7 +43,7 @@ This v0 is backend-only. UI/UX will be defined later.
 ## Core Product Decisions
 
 1. **Execution model**: synchronous HTTP endpoint
-2. **Policy**: Extraction Agent policy is the same as Agent policy
+2. **Authorization**: Extraction Agent routes check RBAC permissions the same way Agent routes do
 3. **Source document**: reuse existing `documents` domain (document uploaded first, then referenced by `documentId`)
 4. **Document source type**: extraction uploads must use `sourceType = "extraction"`
 5. **Contract**: strict structured response based on JSON schema
@@ -60,7 +60,7 @@ Extraction remains in the `agents` domain for v0.
 
 Rationale:
 
-- policy and authorization are identical to `Agent`
+- authorization is identical to `Agent`
 - extraction is scoped by existing `organization` + `project` + `agent` context
 - avoids duplicate module and guard wiring
 - keeps `Agent.type` and execution behavior in one cohesive domain
@@ -73,7 +73,6 @@ Suggested folder layout (v0):
     - `agent-extraction-run.entity.ts`
     - `agent-extraction-runs.controller.ts`
     - `agent-extraction-runs.service.ts`
-    - `agent-extraction-run.policy.ts` (or reuse `AgentPolicy`)
     - `e2e-tests/...`
     - `service-tests/...`
 
@@ -102,7 +101,7 @@ The API exposes a sync extraction endpoint under the agent scope.
 The endpoint:
 
 - verifies auth + context (`organization`, `project`, `agent`)
-- verifies caller permissions with the same policy behavior as `Agent`
+- verifies caller permissions with `@CheckPermission`, as `Agent` routes do
 - verifies agent type is `extraction`
 - loads the document by `documentId` within connect scope
 - calls the LLM with prompt + schema + file
@@ -209,7 +208,7 @@ This endpoint returns all runs in v0 (no pagination).
 ### Error Response (examples)
 
 - `400/422` invalid input (missing `documentId`, invalid schema config, etc.)
-- `403` unauthorized (same policy semantics as existing agent endpoints)
+- `403` unauthorized (same permission semantics as existing agent endpoints)
 - `404` agent/document/run not found in scope
 - `422` schema validation failed on model output
 - `500/502` upstream LLM/provider failure
@@ -224,12 +223,12 @@ Recommended error codes in response body:
 
 ---
 
-## Authorization and Policy
+## Authorization
 
 Extraction Agent authorization must reuse the current Agent authorization rules:
 
-- same guard stack philosophy (`JwtAuthGuard`, `UserGuard`, `ResourceContextGuard`, domain policy guard)
-- same role semantics as Agent policy methods for list/create/update/delete-like capabilities
+- same guard stack (`JwtAuthGuard`, `UserGuard`, `ResourceContextGuard`, `CheckPermissionGuard`)
+- `@CheckPermission` on each route with an `agent.extraction.session.*` key, granted on roles in the RBAC catalog (ADR 0019)
 - same scoped access model using `organizationId` + `projectId`
 
 No custom role logic is introduced in v0.
@@ -287,7 +286,7 @@ Design note: `AgentExtractionRun` is intentionally separate from `AgentSession`.
 
 1. Authenticate user
 2. Resolve context (`organization`, `project`, `agent`)
-3. Check policy (same as Agent policy)
+3. Check the permission (same as Agent routes)
 4. Create `AgentExtractionRun` with initial status
 5. Validate extraction request payload
 6. Load `documentId` in scoped context

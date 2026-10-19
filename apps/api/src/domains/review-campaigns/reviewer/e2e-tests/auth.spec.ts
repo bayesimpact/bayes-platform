@@ -22,6 +22,7 @@ import {
   saveReviewCampaignMembership,
 } from "../../memberships/review-campaign-membership.factory"
 import { reviewCampaignFactory } from "../../review-campaign.factory"
+import { reviewCampaignStatusErrorMessage } from "../../review-campaign-status"
 import { ReviewCampaignsModule } from "../../review-campaigns.module"
 
 describe("ReviewCampaigns - Reviewer auth", () => {
@@ -112,6 +113,66 @@ describe("ReviewCampaigns - Reviewer auth", () => {
     sessionId = session.id
   }
 
+  describe("listReviewerSessions", () => {
+    const subject = async () =>
+      request({
+        route: ReviewCampaignsRoutes.listReviewerSessions,
+        pathParams: removeNullish({ organizationId, projectId, reviewCampaignId }),
+        token: accessToken ?? undefined,
+      })
+
+    it("requires an authentication token", async () => {
+      accessToken = null
+      expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+    it("forbids non-members (403)", async () => {
+      await seedReviewableSession({ callerRole: "none" })
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("forbids tester-only members (no reviewer role) (403)", async () => {
+      await seedReviewableSession({ callerRole: "tester" })
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("forbids reviewers on draft campaigns (403)", async () => {
+      await seedReviewableSession({ campaignStatus: "draft" })
+      expectResponse(await subject(), 403, reviewCampaignStatusErrorMessage("draft"))
+    })
+    it("allows reviewers on closed campaigns (200)", async () => {
+      await seedReviewableSession({ campaignStatus: "closed" })
+      expectResponse(await subject(), 200)
+    })
+  })
+
+  describe("getReviewerSession", () => {
+    const subject = async () =>
+      request({
+        route: ReviewCampaignsRoutes.getReviewerSession,
+        pathParams: removeNullish({ organizationId, projectId, reviewCampaignId, sessionId }),
+        token: accessToken ?? undefined,
+      })
+
+    it("requires an authentication token", async () => {
+      accessToken = null
+      expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+    it("forbids non-members (403)", async () => {
+      await seedReviewableSession({ callerRole: "none" })
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("forbids tester-only members (no reviewer role) (403)", async () => {
+      await seedReviewableSession({ callerRole: "tester" })
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("forbids reviewers on draft campaigns (403)", async () => {
+      await seedReviewableSession({ campaignStatus: "draft" })
+      expectResponse(await subject(), 403, reviewCampaignStatusErrorMessage("draft"))
+    })
+    it("allows reviewers on closed campaigns (200)", async () => {
+      await seedReviewableSession({ campaignStatus: "closed" })
+      expectResponse(await subject(), 200)
+    })
+  })
+
   describe("submitReviewerSessionReview", () => {
     const subject = async () =>
       request({
@@ -127,15 +188,15 @@ describe("ReviewCampaigns - Reviewer auth", () => {
     })
     it("forbids non-members (403)", async () => {
       await seedReviewableSession({ callerRole: "none" })
-      expectResponse(await subject(), 403)
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
     it("forbids tester-only members (no reviewer role) (403)", async () => {
       await seedReviewableSession({ callerRole: "tester" })
-      expectResponse(await subject(), 403)
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
     it("forbids reviewers on closed campaigns (403)", async () => {
       await seedReviewableSession({ campaignStatus: "closed" })
-      expectResponse(await subject(), 403)
+      expectResponse(await subject(), 403, reviewCampaignStatusErrorMessage("closed"))
     })
   })
 
@@ -162,6 +223,14 @@ describe("ReviewCampaigns - Reviewer auth", () => {
       await seedReviewableSession()
       sessionId = randomUUID()
       expectResponse(await subject(), 404)
+    })
+    it("forbids tester-only members (no reviewer role) (403)", async () => {
+      await seedReviewableSession({ callerRole: "tester" })
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("forbids reviewers on closed campaigns (403)", async () => {
+      await seedReviewableSession({ campaignStatus: "closed" })
+      expectResponse(await subject(), 403, reviewCampaignStatusErrorMessage("closed"))
     })
   })
 

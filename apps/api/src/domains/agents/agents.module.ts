@@ -20,7 +20,6 @@ import { LlmModule } from "@/external/llm/llm.module"
 import { ProjectsModule } from "../projects/projects.module"
 import { ResourceLibrariesModule } from "../resource-libraries/resource-libraries.module"
 import { Agent } from "./agent.entity"
-import { AgentGuard } from "./agent.guard"
 import { AgentRepository } from "./agent.repository"
 import { AgentsController } from "./agents.controller"
 import { AgentsService } from "./agents.service"
@@ -75,7 +74,6 @@ import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
     BaseAgentSessionsService,
     AgentMembershipsService,
     AgentMembershipRepository,
-    AgentGuard,
     ResourceContextGuard,
     OrganizationContextResolver,
     ProjectContextResolver,
