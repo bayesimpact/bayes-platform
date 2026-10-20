@@ -154,13 +154,15 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-export const Verified: Story = {}
+/** An MCP client, such as an AI assistant, asks to act as the person on the projects they pick. */
+export const McpConnect: Story = {}
 
-export const Unverified: Story = {
+/** An MCP client whose name the platform has not verified: the screen warns before access is granted. */
+export const McpConnectUnverified: Story = {
   args: { verified: false },
 }
 
-export const NoProjects: Story = {
+export const McpConnectNoProjects: Story = {
   args: { withProjects: false },
 }
 
