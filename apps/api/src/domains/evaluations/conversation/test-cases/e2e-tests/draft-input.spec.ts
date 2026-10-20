@@ -12,6 +12,7 @@ import {
   teardownTestDatabase,
 } from "@/common/test/test-transaction-manager"
 import { removeNullish } from "@/common/utils/remove-nullish"
+import { ActivitiesModule } from "@/domains/activities/activities.module"
 import type { AISDKMockProvider } from "@/external/llm/providers/ai-sdk-mock.provider"
 import { setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../../test/rbac-test.helpers"
@@ -33,7 +34,7 @@ describe("EvaluationConversationTestCases - draftInput", () => {
 
   beforeAll(async () => {
     setup = await setupTransactionalTestDatabase({
-      additionalImports: [EvaluationsModule],
+      additionalImports: [EvaluationsModule, ActivitiesModule],
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
@@ -119,6 +120,23 @@ describe("EvaluationConversationTestCases - draftInput", () => {
       earlierTurnCount: 0,
     })
     expect(mockProvider.getCalls()).toHaveLength(0)
+  })
+
+  it("records the conversation it read in the activity journal", async () => {
+    const { agentSession, lastAnswer } = await createContext()
+
+    expectResponse(await subject(lastAnswer.id, "lastMessage"), 201)
+
+    const activities = await setup.dataSource.query(
+      `SELECT action, entity_id AS "entityId", entity_type AS "entityType" FROM activity`,
+    )
+    expect(activities).toEqual([
+      {
+        action: "evaluationConversationTestCase.draftInput",
+        entityId: agentSession.id,
+        entityType: "agentSession",
+      },
+    ])
   })
 
   it("does not treat a user message as an answer", async () => {

@@ -4,6 +4,7 @@ import type { EndpointRequestWithProject } from "@/common/context/request.interf
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
 import { RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
+import { attachTrackedActivity } from "@/domains/activities/attach-tracked-activity"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
@@ -57,48 +58,63 @@ export class EvaluationConversationTestCasesController {
     return { data: testCase }
   }
 
+  // The drafting routes read a conversation, maybe someone else's, so each read is logged in the
+  // activity journal with the session it opened, as on the conversation review page.
+
   @Post(EvaluationConversationTestCasesRoutes.draftInput.path)
   @CheckPermission(EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION, "project")
+  @TrackActivity({
+    action: "evaluationConversationTestCase.draftInput",
+    entityFrom: "agentSession",
+  })
   async draftInput(
     @Req() request: EndpointRequestWithProject,
     @Body() { payload }: typeof EvaluationConversationTestCasesRoutes.draftInput.request,
   ): Promise<typeof EvaluationConversationTestCasesRoutes.draftInput.response> {
-    const draft = await this.testCasesService.draftInput({
+    const { draft, agentSessionId } = await this.testCasesService.draftInput({
       connectScope: getRequiredConnectScope(request),
       userId: request.user.id,
       agentMessageId: payload.agentMessageId,
       inputMode: payload.inputMode,
     })
+    attachTrackedActivity(request, { entityFrom: "agentSession", entityId: agentSessionId })
     return { data: draft }
   }
 
   @Post(EvaluationConversationTestCasesRoutes.draftExpectedOutput.path)
   @CheckPermission(EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION, "project")
+  @TrackActivity({
+    action: "evaluationConversationTestCase.draftExpectedOutput",
+    entityFrom: "agentSession",
+  })
   async draftExpectedOutput(
     @Req() request: EndpointRequestWithProject,
     @Body() { payload }: typeof EvaluationConversationTestCasesRoutes.draftExpectedOutput.request,
   ): Promise<typeof EvaluationConversationTestCasesRoutes.draftExpectedOutput.response> {
-    const expectedOutput = await this.testCasesService.draftExpectedOutput({
+    const { draft, agentSessionId } = await this.testCasesService.draftExpectedOutput({
       connectScope: getRequiredConnectScope(request),
       userId: request.user.id,
       agentMessageId: payload.agentMessageId,
       comment: payload.comment,
     })
-    return { data: { expectedOutput } }
+    attachTrackedActivity(request, { entityFrom: "agentSession", entityId: agentSessionId })
+    return { data: { expectedOutput: draft } }
   }
 
   @Post(EvaluationConversationTestCasesRoutes.anonymize.path)
   @CheckPermission(EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION, "project")
+  @TrackActivity({ action: "evaluationConversationTestCase.anonymize", entityFrom: "agentSession" })
   async anonymize(
     @Req() request: EndpointRequestWithProject,
     @Body() { payload }: typeof EvaluationConversationTestCasesRoutes.anonymize.request,
   ): Promise<typeof EvaluationConversationTestCasesRoutes.anonymize.response> {
-    const text = await this.testCasesService.anonymize({
+    const { draft, agentSessionId } = await this.testCasesService.anonymize({
       connectScope: getRequiredConnectScope(request),
       userId: request.user.id,
       agentMessageId: payload.agentMessageId,
       text: payload.text,
     })
-    return { data: { text } }
+    attachTrackedActivity(request, { entityFrom: "agentSession", entityId: agentSessionId })
+    return { data: { text: draft } }
   }
 }

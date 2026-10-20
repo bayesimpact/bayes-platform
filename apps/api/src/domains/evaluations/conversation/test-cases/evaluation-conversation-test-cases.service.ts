@@ -39,12 +39,16 @@ type AnswerReference = {
   agentMessageId: string
 }
 
+/** A draft, with the session whose conversation it read, for the activity journal. */
+type DraftFromConversation<T> = { draft: T; agentSessionId: string }
+
 /**
  * Saves an agent answer as a test case of a conversation dataset: drafts the input that should
  * lead to it and, for a bad answer, the expected output, then writes the record.
  *
  * Drafting reads the conversation behind the answer. The caller's own conversations are open to
  * them; anyone else's only to a safety reviewer of the agent, as on the conversation review page.
+ * Each draft names the session it read, so the route can log it as the review page does.
  */
 @Injectable()
 export class EvaluationConversationTestCasesService {
@@ -66,10 +70,10 @@ export class EvaluationConversationTestCasesService {
     ...answerReference
   }: AnswerReference & {
     inputMode: EvaluationConversationTestCaseInputMode | null
-  }): Promise<EvaluationConversationTestCaseInputDraftDto> {
+  }): Promise<DraftFromConversation<EvaluationConversationTestCaseInputDraftDto>> {
     const { connectScope } = answerReference
     const savedAnswer = await this.loadSavedAnswer(answerReference)
-    const { lastUserMessage, earlierTurnCount } = savedAnswer
+    const { lastUserMessage, earlierTurnCount, agentSessionId } = savedAnswer
     const resolvedMode = earlierTurnCount === 0 ? "lastMessage" : (inputMode ?? "conversation")
     const input =
       resolvedMode === "lastMessage"
@@ -78,36 +82,41 @@ export class EvaluationConversationTestCasesService {
             toLlmScope(connectScope, savedAnswer),
             savedAnswer,
           )
-    return { inputMode: resolvedMode, input, lastUserMessage, earlierTurnCount }
+    return {
+      draft: { inputMode: resolvedMode, input, lastUserMessage, earlierTurnCount },
+      agentSessionId,
+    }
   }
 
   async draftExpectedOutput({
     comment,
     ...answerReference
-  }: AnswerReference & { comment: string }): Promise<string> {
+  }: AnswerReference & { comment: string }): Promise<DraftFromConversation<string>> {
     if (!comment.trim()) {
       throw new UnprocessableEntityException("Say what is wrong with the answer")
     }
     const savedAnswer = await this.loadSavedAnswer(answerReference)
-    return this.testCaseLlmService.draftExpectedOutput(
+    const draft = await this.testCaseLlmService.draftExpectedOutput(
       toLlmScope(answerReference.connectScope, savedAnswer),
       savedAnswer,
       comment.trim(),
     )
+    return { draft, agentSessionId: savedAnswer.agentSessionId }
   }
 
   async anonymize({
     text,
     ...answerReference
-  }: AnswerReference & { text: string }): Promise<string> {
+  }: AnswerReference & { text: string }): Promise<DraftFromConversation<string>> {
     if (!text.trim()) {
       throw new UnprocessableEntityException("The text to anonymize is empty")
     }
     const savedAnswer = await this.loadSavedAnswer(answerReference)
-    return this.testCaseLlmService.anonymize(
+    const draft = await this.testCaseLlmService.anonymize(
       toLlmScope(answerReference.connectScope, savedAnswer),
       text,
     )
+    return { draft, agentSessionId: savedAnswer.agentSessionId }
   }
 
   /** Writes the record, in a new dataset when `datasetId` is null. */

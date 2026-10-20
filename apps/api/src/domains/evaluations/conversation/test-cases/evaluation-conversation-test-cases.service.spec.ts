@@ -85,7 +85,7 @@ describe("EvaluationConversationTestCasesService", () => {
     ])
     mockProvider.addTextTurn(agent.id, "On the annual Pro plan since March 3, can I switch?")
 
-    const draft = await service.draftInput({
+    const { draft } = await service.draftInput({
       connectScope,
       userId: user.id,
       agentMessageId: answer.id,
@@ -153,7 +153,7 @@ describe("EvaluationConversationTestCasesService", () => {
 
     await grantConversationReview({ repositories, user: colleague, agent })
     await expect(draftAsColleague()).resolves.toMatchObject({
-      input: "Can I switch to the monthly plan?",
+      draft: { input: "Can I switch to the monthly plan?" },
     })
   })
 })
