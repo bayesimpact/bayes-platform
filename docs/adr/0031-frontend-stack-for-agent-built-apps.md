@@ -390,6 +390,12 @@ export function ConversationListHeader({ count, onCreate }: ConversationListHead
   then has to be written again.
 * The same English with two meanings gets a `context` (`t({ message: "Open", context: "status" })`),
   and a `comment` tells the translator what a short text refers to.
+* Agents work with Lingui's own skills: `lingui-best-practices` for the macros and the catalogs,
+  `enhanced-message-context` for translator comments, `find-unwrapped-strings` to audit text left
+  outside a macro, and `lingui-framework-setup` at the bootstrap. They are declared in the project's
+  agent settings (`.claude/settings.json` for Claude Code), so every session in the repo has them,
+  kept up to date by Lingui. When a skill and these rules disagree, on where the catalogs live for
+  example, these rules win.
 * The Desk keeps its own language choice: the browser's language first, then the person's pick in
   the user menu. Dates and numbers go through `Intl`. Zod messages shown in forms go through Lingui
   too. `<html translate="no">` stays, because browser translation breaks streamed text.
@@ -606,8 +612,10 @@ The kit's way of working comes with its stack:
   sign-in module is the one exception, copied once at the start (section 2.9).
 * One way to do each thing, little magic, small verified changes, and no unrequested refactor
   alongside a feature.
-* Never guess an API: read the library's documentation first. When it contradicts these rules,
-  stop, explain, propose a change and wait for a human's go.
+* Never guess an API: read the library's documentation first, from its official source. Many of
+  the stack's libraries publish it for agents, as an `llms.txt` index or as a Markdown version of
+  each page (`https://lingui.dev/ref/macro.md`), which costs the fewest tokens. When the
+  documentation contradicts these rules, stop, explain, propose a change and wait for a human's go.
 * Ask a human before an architecture decision, a new dependency, a version change or an action on
   a shared or remote system. A human types every secret.
 * The first PR carries one real endpoint and the screen that reads it, end to end: contract, guards,
@@ -764,6 +772,9 @@ part of it invalidates.
   removed by a later migration. Should the cutover wait for it?
 * Moving the session keys from the project to the agent is a known follow-up with no public issue
   yet.
+* Context7, an MCP server that serves current library documentation to agents, would spare them
+  looking up each library's pages. It is a third-party service whose index is fed by the community,
+  so the tech team decides whether to add it to `.mcp.json`.
 
 ## 7. Re-evaluate if
 
