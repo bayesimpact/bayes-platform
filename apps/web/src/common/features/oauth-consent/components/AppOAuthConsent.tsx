@@ -128,7 +128,7 @@ export function AppOAuthConsent({ request }: { request: OAuthAuthorizationReques
           settings: (
             <Link
               to={revokePath}
-              className="font-semibold text-[#111118] underline-offset-2 hover:underline"
+              className="font-semibold text-foreground underline-offset-2 hover:underline"
             />
           ),
         }}
@@ -148,13 +148,13 @@ export function AppOAuthConsent({ request }: { request: OAuthAuthorizationReques
 
       {outcome ? (
         <CardContent>
-          <p className="text-sm text-[#71717a]">
+          <p className="text-sm text-muted-foreground">
             {t(outcome === "approved" ? "installed" : "denied", { name: clientName })}
           </p>
         </CardContent>
       ) : page.projects.length === 0 ? (
         <CardContent>
-          <p className="text-sm text-[#71717a]">{t("noWorkspaces")}</p>
+          <p className="text-sm text-muted-foreground">{t("noWorkspaces")}</p>
           {/* What the app asks for, so the person can tell an owner what to grant. */}
           <div className="mt-6 flex flex-col gap-3">
             <span className={SECTION_TITLE}>{t("permissions")}</span>
@@ -272,7 +272,7 @@ function WorkspaceSelect({
   return (
     <Select value={value ?? ""} onValueChange={onChange} disabled={disabled}>
       <FormControl>
-        <SelectTrigger className="mt-4 h-10 w-full rounded-lg border-[#e4e4e7] shadow-none">
+        <SelectTrigger className="mt-4 h-10 w-full rounded-lg shadow-none">
           <SelectValue placeholder={t("selectWorkspaceFirst")} />
         </SelectTrigger>
       </FormControl>
@@ -325,7 +325,7 @@ function WorkspaceChoices({
                 <RadioGroupItem
                   id={radioId}
                   value={project.id}
-                  className={cn("border-[#d4d4d8]", selected && "border-[#7c3aed] text-[#7c3aed]")}
+                  className={cn(selected && "border-primary")}
                 />
                 <span className="min-w-0 font-medium break-words">{project.name}</span>
               </label>

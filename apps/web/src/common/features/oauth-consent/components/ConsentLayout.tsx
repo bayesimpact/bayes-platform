@@ -38,26 +38,26 @@ export function useConsentResolver() {
 }
 
 /** The title of each section of the consent screens: projects, workspace, permissions. */
-export const SECTION_TITLE = "text-sm font-semibold text-[#111118]"
+export const SECTION_TITLE = "text-sm font-semibold text-foreground"
 
 /** The small uppercase label of an organization, under a section title. */
-export const GROUP_LABEL = "text-[11px] font-medium tracking-wide text-[#a1a1aa] uppercase"
+export const GROUP_LABEL = "text-[11px] font-medium tracking-wide text-muted-foreground uppercase"
 
 /** The one-line hint under a section label. */
-export const SECTION_HINT = "text-xs text-[#71717a]"
+export const SECTION_HINT = "text-xs text-muted-foreground"
 
 /** A workspace or project row, highlighted once picked. */
 export function choiceRowClass({ selected, disabled }: { selected: boolean; disabled: boolean }) {
   return cn(
     "flex cursor-pointer items-center gap-2.5 rounded-lg border px-2.5 py-1.5 text-sm",
-    selected ? "border-[#7c3aed] bg-[#f5f3ff]" : "border-[#e4e4e7] bg-white hover:border-[#d4d4d8]",
+    selected ? "border-primary bg-accent" : "border-border bg-card hover:border-input",
     disabled && "cursor-not-allowed opacity-60",
   )
 }
 
-/** Violet checkbox of the consent screens: the shared one shows no fill once checked. */
+/** Checked state of the consent screens' checkboxes, until the shared one styles it (bayes-platform#1064). */
 export const CONSENT_CHECKBOX =
-  "border-[#d4d4d8] data-[state=checked]:border-[#7c3aed] data-[state=checked]:bg-[#7c3aed] data-[state=checked]:text-white"
+  "data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
 
 /**
  * The page, the card, and an optional note under it. The card's children are its sections:
@@ -65,11 +65,13 @@ export const CONSENT_CHECKBOX =
  */
 export function ConsentPage({ children, note }: { children: ReactNode; note?: ReactNode }) {
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-[#f4f4f6] p-4 font-[Inter,system-ui,sans-serif] text-[#111118] sm:p-6">
+    <div className="flex min-h-dvh items-center justify-center bg-muted p-4 font-[Inter,system-ui,sans-serif] text-foreground sm:p-6">
       <div className="flex w-full max-w-[440px] flex-col">
         <Card>{children}</Card>
         {note && (
-          <p className="mt-4 rounded-xl border bg-card px-4 py-3 text-sm text-[#71717a]">{note}</p>
+          <p className="mt-4 rounded-xl border bg-card px-4 py-3 text-sm text-muted-foreground">
+            {note}
+          </p>
         )}
       </div>
     </div>
@@ -101,12 +103,12 @@ export function ConsentHeader({
       {logoUrl !== undefined && (
         <div className="mb-5 flex items-center gap-3">
           <ClientMark logoUrl={logoUrl} />
-          <ArrowRightIcon className="size-4 shrink-0 text-[#a1a1aa]" aria-hidden />
+          <ArrowRightIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
           <BayesCrossMark />
         </div>
       )}
       <h1 className="text-lg font-semibold leading-snug">{headline}</h1>
-      {description && <p className="mt-2 text-sm text-[#71717a]">{description}</p>}
+      {description && <p className="mt-2 text-sm text-muted-foreground">{description}</p>}
       <ClientTrust verified={verified} trustKey={trustKey} host={host} />
     </CardHeader>
   )
@@ -129,21 +131,22 @@ function ClientTrust({
       ns="oauthConsent"
       values={{ host }}
       components={{
-        host: <span className={cn("font-semibold", verified && "text-[#3f3f46]")} />,
+        host: <span className={cn("font-semibold", verified && "text-foreground")} />,
       }}
     />
   )
   if (verified) {
     return (
-      <p className="mt-3 flex items-center gap-2 text-xs text-[#71717a]">
-        <BadgeCheckIcon className="size-3.5 shrink-0 text-[#7c3aed]" aria-hidden />
+      <p className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+        <BadgeCheckIcon className="size-3.5 shrink-0 text-foreground" aria-hidden />
         <span className="min-w-0 break-words">{label}</span>
       </p>
     )
   }
+  // The theme has no warning color: the same amber as the design system's warning badge.
   return (
-    <p className="mt-3 flex items-center gap-2 rounded-lg border border-[#fcd34d] bg-[#fffbeb] px-3 py-2 text-xs text-[#92400e]">
-      <TriangleAlertIcon className="size-3.5 shrink-0 text-[#d97706]" aria-hidden />
+    <p className="mt-3 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+      <TriangleAlertIcon className="size-3.5 shrink-0 text-amber-600" aria-hidden />
       <span className="min-w-0 break-words">{label}</span>
     </p>
   )
@@ -155,13 +158,13 @@ function ClientMark({ logoUrl }: { logoUrl: string | null }) {
       <img
         src={logoUrl}
         alt=""
-        className="size-[52px] shrink-0 rounded-[12px] border border-[#e4e4e7] bg-white object-contain"
+        className="size-[52px] shrink-0 rounded-xl border bg-card object-contain"
       />
     )
   }
   return (
-    <div className="flex size-[52px] shrink-0 items-center justify-center rounded-[12px] border border-[#e4e4e7] bg-[radial-gradient(#d4d4d8_1px,transparent_1px)] [background-size:6px_6px]">
-      <GlobeIcon className="size-6 text-[#71717a]" aria-hidden />
+    <div className="flex size-[52px] shrink-0 items-center justify-center rounded-xl border bg-[radial-gradient(var(--border)_1px,transparent_1px)] [background-size:6px_6px]">
+      <GlobeIcon className="size-6 text-muted-foreground" aria-hidden />
     </div>
   )
 }
@@ -183,7 +186,7 @@ export function ConsentFooter({
     <CardFooter className="sticky bottom-0 -mb-6 flex-col items-stretch rounded-b-xl border-t bg-card pt-4 pb-5">
       <Button
         type="submit"
-        className="h-auto min-h-11 w-full rounded-lg bg-[#7c3aed] px-4 py-2.5 text-sm font-semibold whitespace-normal text-white hover:bg-[#6d28d9]"
+        className="h-auto min-h-11 w-full whitespace-normal"
         disabled={isSubmitting}
       >
         {isSubmitting ? null : <ShieldCheckIcon className="size-4" aria-hidden />}
@@ -211,7 +214,7 @@ export function CancelLink({
       type="button"
       onClick={onCancel}
       disabled={disabled}
-      className="mt-3 block w-full shrink-0 text-center text-sm text-[#71717a] underline-offset-2 hover:underline disabled:opacity-60"
+      className="mt-3 block w-full shrink-0 text-center text-sm text-muted-foreground underline-offset-2 hover:underline disabled:opacity-60"
     >
       {isLoopbackRedirectUri(redirectUri)
         ? t("cancelTerminal")
@@ -284,12 +287,12 @@ export function GroupedPermissions({
                         className={cn(
                           "flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-medium",
                           checked
-                            ? "border-[#c4b5fd] bg-[#f5f3ff] text-[#5b21b6]"
-                            : "border-[#e4e4e7] bg-white text-[#52525b]",
+                            ? "border-primary bg-accent text-accent-foreground"
+                            : "border-border bg-card text-muted-foreground",
                           !readOnly &&
                             (canGrant && !disabled
                               ? "cursor-pointer"
-                              : "cursor-not-allowed text-[#a1a1aa]"),
+                              : "cursor-not-allowed opacity-50"),
                         )}
                       >
                         {readOnly ? null : (

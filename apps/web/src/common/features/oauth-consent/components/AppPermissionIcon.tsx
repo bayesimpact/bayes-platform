@@ -37,8 +37,8 @@ const PERMISSION_ICONS: Record<AppGrantablePermission, typeof FileTextIcon> = {
 export function AppPermissionIcon({ permission }: { permission: string }) {
   const Icon = isAppGrantablePermission(permission) ? PERMISSION_ICONS[permission] : FileTextIcon
   return (
-    <div className="flex size-[30px] shrink-0 items-center justify-center rounded-md bg-[#ede9fe]">
-      <Icon className="size-4 stroke-[#7c3aed]" aria-hidden />
+    <div className="flex size-[30px] shrink-0 items-center justify-center rounded-md bg-accent">
+      <Icon className="size-4 text-accent-foreground" aria-hidden />
     </div>
   )
 }

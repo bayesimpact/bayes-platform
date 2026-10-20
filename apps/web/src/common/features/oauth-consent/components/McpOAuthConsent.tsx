@@ -106,11 +106,11 @@ export function McpOAuthConsent({ request }: { request: OAuthAuthorizationReques
 
       {outcome ? (
         <CardContent>
-          <p className="text-sm text-[#71717a]">{t(outcome, { name: clientName })}</p>
+          <p className="text-sm text-muted-foreground">{t(outcome, { name: clientName })}</p>
         </CardContent>
       ) : page.projects.length === 0 ? (
         <CardContent>
-          <p className="text-sm text-[#71717a]">{t("noProjects")}</p>
+          <p className="text-sm text-muted-foreground">{t("noProjects")}</p>
           <div className="mt-6 flex flex-col gap-3">
             <span className={SECTION_TITLE}>{t("permissions")}</span>
             <GroupedPermissions
