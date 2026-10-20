@@ -462,7 +462,7 @@ export async function runTurnClassification({
       config: buildConfig(systemPrompt),
       metadata: {
         ...metadata,
-        tags: [...metadata.tags, "turn-classification"],
+        tags: { ...metadata.tags, "tool.name": "turn-classification" },
         spanLabel: metadata.spanLabel ? `${metadata.spanLabel} · classification` : "classification",
       },
     })

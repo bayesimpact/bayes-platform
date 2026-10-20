@@ -283,7 +283,7 @@ export class EvaluationConversationRunProcessorService {
         agentSettings,
         connectScope,
         userContent: runRecord.input,
-        extraTags: ["evaluation-conversation-run"],
+        // extraTags: ["evaluation-conversation-run"], //fixme DOO
       })
 
       const score = await this.graderService.gradeOutput({

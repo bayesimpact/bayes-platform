@@ -65,7 +65,7 @@ function buildMetadata({ model, scenario }: { model: string; scenario: string })
     agentId: "agent-1",
     revision: 1,
     projectId: "project-1",
-    tags: ["live-provider-regressions", scenario, model],
+    tags: { "test.name": "live-provider-regressions", "test.case": scenario, "agent.model": model },
   }
 }
 

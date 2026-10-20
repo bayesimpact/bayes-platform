@@ -348,8 +348,8 @@ describe("buildSubAgentTools", () => {
     expect(capturedMetadata?.traceId).toBe("sub-trace-id")
     expect(capturedMetadata?.agentSessionId).toBe("sub-session-id")
     expect(capturedMetadata?.parentSessionId).toBe("parent-session-id")
-    expect(capturedMetadata?.tags).toContain("parent-trace:parent-trace-id")
-    expect(capturedMetadata?.tags).toContain("sub-agent")
+    expect(capturedMetadata?.tags["agent.parent.trace"]).toBe("parent-trace-id")
+    expect(capturedMetadata?.tags["agent.class"]).toBe("sub-agent")
   })
 
   it("runs a conversation sub-agent against a dedicated conversation sub-session", async () => {
@@ -476,7 +476,7 @@ describe("buildSubAgentTools", () => {
     expect(capturedMetadata?.traceId).toBe("sub-trace-id")
     expect(capturedMetadata?.agentSessionId).toBe("sub-session-id")
     expect(capturedMetadata?.parentSessionId).toBe("parent-session-id")
-    expect(capturedMetadata?.tags).toContain("parent-trace:parent-trace-id")
-    expect(capturedMetadata?.tags).toContain("sub-agent")
+    expect(capturedMetadata?.tags["agent.parent.trace"]).toBe("parent-trace-id")
+    expect(capturedMetadata?.tags["agent.class"]).toBe("sub-agent")
   })
 })

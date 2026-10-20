@@ -42,9 +42,7 @@ export abstract class AISDKVllmProviderBase<
     return this.createOpenAiCompatibleChatModel(config)
   }
 
-  getModelMetadata(config: LLMConfig): Record<string, string | number | string[]> {
-    return {}
-  }
+  // protected abstract getModelMetadata(config: LLMConfig): Record<string, string | number | string[]>
 
   /**
    * The OpenAI-compatible chat model, authenticated with a Google access token

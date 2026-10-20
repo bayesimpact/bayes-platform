@@ -87,7 +87,6 @@ export class AgentLlmRequestService {
     onToolExecute,
     attachmentDocumentId,
     includeSessionMetadataTools = true,
-    extraTags = [],
     sessionState,
     syntheticUserContent,
   }: {
@@ -97,7 +96,6 @@ export class AgentLlmRequestService {
     onToolExecute: OnExecute
     attachmentDocumentId?: string
     includeSessionMetadataTools?: boolean
-    extraTags?: string[]
     sessionState?: SessionStateTarget
     /**
      * A user-role message appended for this call only, never persisted nor
@@ -153,7 +151,6 @@ export class AgentLlmRequestService {
       agent,
       agentSettings,
       hasSubAgentTools,
-      extraTags,
       // Traces: the turns of one user message share a number; the label says
       // which one is the sub-agent's, and which one the parent's resumption.
       spanLabel: agentSessionScope.handoff
@@ -211,24 +208,20 @@ export class AgentLlmRequestService {
     agent,
     agentSettings,
     hasSubAgentTools,
-    extraTags,
     spanLabel,
   }: {
     session: StreamingSession
     agent: Agent
     agentSettings: AgentSettings
     hasSubAgentTools: boolean
-    extraTags: string[]
     spanLabel?: string
   }): LLMMetadata {
     this.logger.log(
       `Agent "${agent.name}" (${agent.id}) trace: ${getTraceUrl(session.traceId) ?? session.traceId} (session ${session.id})`,
     )
-    //fixme DOO extraTags
-    // const tags = [agent.name, `rev-${agentSettings.revision}`, agent.type, ...extraTags]
-    const _additionalMetadata = {
+    const metadata = {
       "agent.name": agent.name,
-      revision: agentSettings.revision,
+      "agent.revision": agentSettings.revision,
       "agent.type": agent.type,
       ...(hasSubAgentTools ? { "agent:class": "parent-agent" } : {}),
     }
@@ -240,7 +233,7 @@ export class AgentLlmRequestService {
       projectId: agent.projectId,
       organizationId: session.organizationId,
       currentTurn: session.messages.filter((message) => message.role === "user").length,
-      additionalMetadata: hasSubAgentTools ? [...tags, "parent-agent"] : tags,
+      tags: metadata,
       ...(spanLabel ? { spanLabel } : {}),
     }
   }

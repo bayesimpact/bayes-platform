@@ -47,7 +47,7 @@ export class ProviderSpecs {
       currentTurn: 0,
       organizationId: "organizationId",
       projectId: "projectId",
-      additionalMetadata: { environment: "**TEST**" },
+      tags: { environment: "**TEST**" },
       traceId: v4(),
     }
   }

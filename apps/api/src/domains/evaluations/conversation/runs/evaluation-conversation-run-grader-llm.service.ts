@@ -71,14 +71,14 @@ ${
       revision: 0,
       projectId: connectScope.projectId,
       organizationId: connectScope.organizationId,
-      tags: ["*Rating Agent*"],
+      tags: { "agent.type": "Rating Agent" },
       spanLabel: "grading",
     }
 
     //fixme: remove when specific agent for rating(in db) for rating with mock
     if (AgentModelToAgentProvider[generatorModel] === AgentProvider._Mock) {
       ratingAgent.model = AgentModel._Mock
-      llmMetadata.tags.unshift("**TEST**")
+      llmMetadata.tags["environment"] = "**TEST**"
     }
 
     const llmConfig = this.buildLLMConfig(ratingAgent)

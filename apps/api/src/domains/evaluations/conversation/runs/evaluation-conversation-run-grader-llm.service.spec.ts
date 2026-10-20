@@ -88,7 +88,7 @@ describe("EvaluationConversationRunGraderLLMService", () => {
     expect(callArguments.prompt).toContain("The expected answer")
     expect(callArguments.prompt).toContain("<%value>")
     expect(callArguments.prompt).toContain("The generated answer")
-    expect(callArguments.metadata.tags).toEqual(["*Rating Agent*"])
+    expect(callArguments.metadata.tags["agent.type"]).toBe("Rating Agent")
     expect(callArguments.metadata.traceId).toBe("trace-1")
   })
 
@@ -141,6 +141,7 @@ describe("EvaluationConversationRunGraderLLMService", () => {
     expect(mockProvider.generateText).toHaveBeenCalledTimes(1)
     const callArguments = mockProvider.generateText.mock.calls[0]![0]
     expect(callArguments.config.model).toBe(AgentModel._Mock)
-    expect(callArguments.metadata.tags).toEqual(["**TEST**", "*Rating Agent*"])
+    expect(callArguments.metadata.tags["agent.type"]).toBe("Rating Agent")
+    expect(callArguments.metadata.tags["environment"]).toBe("**TEST**")
   })
 })

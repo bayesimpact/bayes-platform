@@ -524,7 +524,7 @@ function buildSubAgentMetadata({
     projectId: childAgent.projectId,
     organizationId: session?.organizationId ?? connectScope.organizationId,
     currentTurn: session?.messages?.filter((message) => message.role === "user").length ?? 0,
-    additionalMetadata: {
+    tags: {
       "agent.name": childAgent.name,
       "agent.revision": childAgentSettings.revision,
       "agent.type": childAgent.type,

@@ -27,7 +27,7 @@ const metadata = {
   projectId: "project",
   organizationId: "organization",
   currentTurn: 2,
-  tags: ["child"],
+  tags: { "agent.class": "sub-agent" },
 } as LLMMetadata
 
 describe("handoffTranscriptWindow", () => {
@@ -130,7 +130,7 @@ describe("runFormConsolidation", () => {
     >
     const call = calls[0]?.[0]
     if (!call) throw new Error("the model was not called")
-    expect(call.metadata.tags).toContain("form-consolidation")
+    expect(call.metadata.tags["tool.name"]).toBe("form-consolidation")
     expect(call.metadata.spanLabel).toBe("consolidation")
   })
 

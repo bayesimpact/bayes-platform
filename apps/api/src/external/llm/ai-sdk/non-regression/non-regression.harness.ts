@@ -298,7 +298,7 @@ export const metadata: LLMMetadata = {
   agentSessionId: "session-1",
   currentTurn: 1,
   revision: 1,
-  tags: [],
+  tags: {},
 }
 
 export function configFor(

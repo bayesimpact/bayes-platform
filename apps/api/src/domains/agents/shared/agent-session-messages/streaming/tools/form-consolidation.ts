@@ -223,7 +223,7 @@ export async function runFormConsolidation({
       config: buildConfig(systemPrompt),
       metadata: {
         ...metadata,
-        tags: [...metadata.tags, "form-consolidation"],
+        tags: { ...metadata.tags, "tool.name": "form-consolidation" },
         spanLabel: metadata.spanLabel ? `${metadata.spanLabel} · consolidation` : "consolidation",
       },
     })

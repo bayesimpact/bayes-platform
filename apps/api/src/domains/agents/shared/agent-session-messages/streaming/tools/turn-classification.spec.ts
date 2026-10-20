@@ -33,7 +33,7 @@ const metadata: LLMMetadata = {
   agentId: "agent-1",
   revision: 1,
   projectId: "project-1",
-  tags: ["test"],
+  tags: { environment: "**TEST**" },
 }
 
 const connectScope = { organizationId: "org-1", projectId: "project-1" }
@@ -199,7 +199,7 @@ describe("runTurnClassification", () => {
       suggestedTitle: "Leave",
     })
     // The classification call is tagged so traces can be filtered.
-    expect(generateStructuredOutput.mock.calls[0]?.[0]?.metadata.tags).toContain(
+    expect(generateStructuredOutput.mock.calls[0]?.[0]?.metadata.tags["tool.name"]).toBe(
       "turn-classification",
     )
   })

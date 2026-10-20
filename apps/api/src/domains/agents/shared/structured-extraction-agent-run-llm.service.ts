@@ -99,7 +99,7 @@ export class StructuredExtractionAgentRunLlmService extends LlmServiceBase {
       agentId: agentWithSettings.settings.id,
       revision: agentWithSettings.settings.revision,
       projectId: connectScope.projectId,
-      additionalMetadata: {
+      tags: {
         "agent.name": agentWithSettings.settings.name,
         "agent.revision": agentWithSettings.settings.revision,
         "agent.type": agentWithSettings.settings.type,

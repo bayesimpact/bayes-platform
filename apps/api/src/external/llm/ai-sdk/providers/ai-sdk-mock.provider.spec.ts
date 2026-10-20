@@ -32,7 +32,7 @@ describe("AISDKMockProvider", () => {
       currentTurn: 0,
       organizationId: "organizationId",
       projectId: "projectId",
-      tags: ["**TEST**"],
+      tags: { environment: "**TEST**" },
       traceId: "traceId",
       revision: 1,
     }

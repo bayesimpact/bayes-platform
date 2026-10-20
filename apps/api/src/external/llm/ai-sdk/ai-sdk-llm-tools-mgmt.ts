@@ -121,7 +121,7 @@ export abstract class AISDKLLMToolsMgmt extends AISDKLLMBuilders {
     config: LLMConfig
     metadata: LLMMetadata
     functionId: string
-    tags: string[]
+    tags: Record<string, string | number | string[]>
   }): ToolCallRepairFunction<ToolSet> {
     return async ({ toolCall, tools, error }) => {
       if (!InvalidToolInputError.isInstance(error)) return null
@@ -171,7 +171,7 @@ export abstract class AISDKLLMToolsMgmt extends AISDKLLMBuilders {
     config: LLMConfig
     metadata: LLMMetadata
     functionId: string
-    tags: string[]
+    tags: Record<string, string | number | string[]>
     inputSchema: NonNullable<Parameters<typeof asSchema>[0]>
     instruction: string
     malformed: string
@@ -236,7 +236,7 @@ ${malformed}`,
     streamResult: {
       steps: PromiseLike<Array<{ toolResults: Array<{ toolName: string; output: unknown }> }>>
     }
-    tags: string[]
+    tags: Record<string, string | number | string[]>
   }): Promise<void> {
     if (leakedToolCalls.length === 0) return
     const tools = config.tools
@@ -291,7 +291,7 @@ ${malformed}`,
     functionId: string
     leakedCall: LeakedToolCall
     tools: ToolSet
-    tags: string[]
+    tags: Record<string, string | number | string[]>
   }): Promise<void> {
     const tool = tools[leakedCall.name]
     if (!tool?.execute) {

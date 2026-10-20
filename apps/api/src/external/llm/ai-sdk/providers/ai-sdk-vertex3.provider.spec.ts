@@ -29,7 +29,7 @@ describe("AISDKVertex3Provider location routing", () => {
       model,
       modelOptions: { temperature: 0 },
       serviceTier: undefined,
-    })[1]
+    })["location"]
 
   it("keeps every vertex 3 model on the eu endpoint", () => {
     const vertex3Models = Object.values(AgentModel).filter(
@@ -64,7 +64,7 @@ describe("AISDKVertex3Provider location routing", () => {
     const provider = new ProviderServingOutsideEu()
     const config: LLMConfig = { model: AgentModel.Gemini36Flash, serviceTier: undefined }
 
-    expect(provider.getModelMetadata(config)[1]).toBe("global")
+    expect(provider.getModelMetadata(config)["location"]).toBe("global")
     expect(provider.getModelInfos(AgentModel.Gemini36Flash).servedOutsideEu).toBe(true)
   })
 })
@@ -286,7 +286,7 @@ describe("AISDKVertex3Provider thinking level", () => {
     const tags = new AISDKVertex3Provider().getModelMetadata(
       buildConfig(AgentModel.Gemini35Flash, "low"),
     )
-    expect(tags.at(-1)).toBe("LOW")
+    expect(tags["thinkingLevel"]).toBe("LOW")
   })
 
   it("throws on a model the provider does not serve", () => {

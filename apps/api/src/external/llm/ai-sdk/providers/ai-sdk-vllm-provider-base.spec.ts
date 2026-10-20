@@ -38,6 +38,9 @@ class TestVllmProvider extends AISDKVllmProviderBase<AgentProvider.Gemma> {
   authFor(): Pick<GoogleAuth, "getClient"> {
     return this.auth
   }
+  getModelMetadata(config: LLMConfig): Record<string, string | number | string[]> {
+    return {}
+  }
 }
 
 class TestVllmProviderWithFakeAuth extends TestVllmProvider {
@@ -120,9 +123,12 @@ describe("AISDKVllmProviderBase", () => {
     })
   })
 
-  describe("getTags", () => {
+  describe("getProviderMetadata", () => {
     it("tags the provider and the model", () => {
-      expect(provider.getModelMetadata(config)).toEqual(["Test Provider", AgentModel.Gemma4_26B])
+      expect(provider.getProviderMetadata(config)).toEqual({
+        provider: AgentProvider.Gemma,
+        model: AgentModel.Gemma4_26B,
+      })
     })
   })
 

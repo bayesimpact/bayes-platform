@@ -295,7 +295,11 @@ export class ExtractionAgentSessionRunLlmService extends LlmServiceBase {
       revision: agentSettings.revision,
       projectId: connectScope.projectId,
       currentTurn: 1,
-      tags: [agent.name, `rev-${agentSettings.revision}`, agent.type],
+      tags: {
+        "agent.name": agent.name,
+        "agent.revision": agentSettings.revision,
+        "agent.type": agent.type,
+      },
     }
   }
 }

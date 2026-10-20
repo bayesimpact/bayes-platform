@@ -172,7 +172,11 @@ ${promptHelpers.now()}`
     agentId: "agent-1",
     revision: 1,
     projectId: connectScope.projectId,
-    tags: ["live-provider-regressions", "independent-tools", model],
+    tags: {
+      "test.name": "live-provider-regressions",
+      "test.case": "independent-tools",
+      "agent.model": model,
+    },
   }
 
   const counted = withGenerationCounter(provider)

@@ -219,7 +219,7 @@ export class AISDKVertex3Provider extends AISDKLLMProviderBase<AgentProvider.Ver
     return stored ?? this.vertex3Models[this.toProviderAgentModel(config.model)].defaultLevel
   }
 
-  getModelMetadata(config: LLMConfig): Record<string, string | number | string[]> {
+  protected getModelMetadata(config: LLMConfig): Record<string, string | number | string[]> {
     return {
       project: this.vertexProject,
       location: this.locationForModel(config.model),

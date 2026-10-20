@@ -17,7 +17,7 @@ type BuildArgs = {
   callOrigin: CallOrigin
   metadata: LLMMetadata
   schema?: JSONSchema7
-  tags: string[]
+  tags: Record<string, string | number | string[]>
 }
 
 class TestBuilders extends AISDKLLMBuilders {
@@ -53,7 +53,7 @@ describe("AISDKLLMBuilders", () => {
     projectId: "project-id",
     agentId: "agent-id",
     revision: 3,
-    tags: ["metadata-tag"],
+    tags: { "metadata-tag": "metadata-tag" },
   }
 
   describe("buildFunctionIdForStreamChatResponse", () => {
@@ -130,7 +130,7 @@ describe("AISDKLLMBuilders", () => {
           spanLabel: "classification",
         },
         schema,
-        tags: ["call-tag"],
+        tags: { "call-tag": "call-tag" },
       })
 
       expect(result).toEqual({
@@ -138,7 +138,8 @@ describe("AISDKLLMBuilders", () => {
         agentSessionId: "agent-session-id",
         parentSessionId: "parent-session-id",
         userId: "o:organization-id / p:project-id",
-        tags: ["metadata-tag", "call-tag"],
+        "metadata-tag": "metadata-tag",
+        "call-tag": "call-tag",
         currentTurn: 2,
         revision: 3,
         outputSchema: JSON.stringify(schema),
@@ -148,15 +149,15 @@ describe("AISDKLLMBuilders", () => {
     })
 
     it("leaves out the fields that are not set", () => {
-      const result = builders.metadataFor({ config, metadata, tags: [] })
+      const result = builders.metadataFor({ config, metadata, tags: {} })
 
       expect(result).toEqual({
         sessionId: "trace-id",
         agentSessionId: "agent-session-id",
         userId: "o:organization-id / p:project-id",
-        tags: ["metadata-tag"],
         currentTurn: 2,
         revision: 3,
+        "metadata-tag": "metadata-tag",
       })
     })
   })
