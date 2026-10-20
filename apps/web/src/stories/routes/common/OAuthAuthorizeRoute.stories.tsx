@@ -16,6 +16,7 @@ type StoryArgs = {
   kind: "mcp" | "app"
   verified: boolean
   withProjects: boolean
+  singleWorkspace: boolean
   invalidRequest: boolean
 }
 
@@ -54,19 +55,24 @@ const appWorkspaces = [
     organizationName: "Acme",
     availablePermissions: ["document.read"],
   }),
+  oauthConsentProjectFactory.build({
+    name: "Product handbook and release notes",
+    organizationName: "Globex",
+    availablePermissions: appPermissions,
+  }),
 ]
 
-function buildPage({ kind, verified, withProjects }: StoryArgs) {
+function buildPage({ kind, verified, withProjects, singleWorkspace }: StoryArgs) {
   if (kind === "app") {
     return oauthConsentPageFactory.build({
       client: {
         kind: "app",
         name: "Helpful Assistant",
         redirectHost: "app.example.com",
-        verified: true,
+        verified,
         description: "Keeps the workspace's documents in sync with a website.",
       },
-      projects: withProjects ? appWorkspaces : [],
+      projects: withProjects ? (singleWorkspace ? appWorkspaces.slice(0, 1) : appWorkspaces) : [],
       grantablePermissions: appPermissions,
     })
   }
@@ -104,12 +110,14 @@ const meta = {
     kind: { control: "inline-radio", options: ["mcp", "app"] },
     verified: { control: "boolean" },
     withProjects: { control: "boolean" },
+    singleWorkspace: { control: "boolean" },
     invalidRequest: { control: "boolean" },
   },
   args: {
     kind: "mcp",
     verified: true,
     withProjects: true,
+    singleWorkspace: false,
     invalidRequest: false,
   },
   render: renderRoute,
@@ -128,9 +136,18 @@ export const NoProjects: Story = {
   args: { withProjects: false },
 }
 
-/** An app installed on one workspace, with the permissions of its manifest. */
+/** An app installed on one workspace chosen from the list, with the permissions of its manifest. */
 export const AppInstall: Story = {
   args: { kind: "app" },
+}
+
+/** An app the platform has not registered: the screen warns before the person installs it. */
+export const AppInstallUnverified: Story = {
+  args: { kind: "app", verified: false },
+}
+
+export const AppInstallOneWorkspace: Story = {
+  args: { kind: "app", singleWorkspace: true },
 }
 
 export const AppInstallNoWorkspaces: Story = {
