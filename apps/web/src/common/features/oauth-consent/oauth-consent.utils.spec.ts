@@ -53,7 +53,7 @@ describe("buildOAuthDeniedUrl", () => {
 })
 
 describe("groupConsentProjectsByOrganization", () => {
-  it("groups projects under their organization, in list order", () => {
+  it("groups projects under their organization, in list order, sorted A to Z", () => {
     const firstOrganizationId = "org-acme"
     const support = oauthConsentProjectFactory.build({
       name: "Support",
@@ -74,7 +74,7 @@ describe("groupConsentProjectsByOrganization", () => {
       {
         organizationId: firstOrganizationId,
         organizationName: "Acme",
-        projects: [support, pricing],
+        projects: [pricing, support],
       },
       {
         organizationId: product.organizationId,

@@ -178,7 +178,7 @@ export const AppInstallOneWorkspace: Story = {
   args: { kind: "app", singleWorkspace: true },
 }
 
-/** More workspaces and permissions than fit: both lists scroll, and their edges fade while they do. */
+/** Many workspaces go in a select, and every permission an app can ask for fits in a few rows. */
 export const AppInstallManyItems: Story = {
   args: { kind: "app", manyItems: true },
 }

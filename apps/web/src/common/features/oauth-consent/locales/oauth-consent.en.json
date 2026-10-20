@@ -117,6 +117,20 @@
     },
     "notifications": {
       "approveError": "Access could not be granted"
+    },
+    "appResource": {
+      "document": "Documents",
+      "document_source": "Document sources",
+      "document_tag": "Document tags",
+      "project": "Workspace",
+      "agent": "Agents"
+    },
+    "appAction": {
+      "read": "Read",
+      "create": "Create",
+      "update": "Edit",
+      "delete": "Delete",
+      "conversation_session_external_create": "External chats"
     }
   }
 }

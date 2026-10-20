@@ -39,7 +39,7 @@ export type OAuthConsentOrganizationGroup = {
   projects: OAuthConsentProject[]
 }
 
-/** Keeps organization order from the project list, as the project picker does. */
+/** Keeps organization order from the project list, as the project picker does, and sorts each organization's projects A to Z. */
 export function groupConsentProjectsByOrganization(
   projects: OAuthConsentProject[],
 ): OAuthConsentOrganizationGroup[] {
@@ -52,6 +52,11 @@ export function groupConsentProjectsByOrganization(
     }
     group.projects.push(project)
     groups.set(project.organizationId, group)
+  }
+  for (const group of groups.values()) {
+    group.projects.sort((first, second) =>
+      first.name.localeCompare(second.name, undefined, { sensitivity: "base", numeric: true }),
+    )
   }
   return [...groups.values()]
 }

@@ -3,6 +3,7 @@ import { Button } from "@caseai-connect/ui/shad/button"
 import { Checkbox } from "@caseai-connect/ui/shad/checkbox"
 import {
   Form,
+  FormControl,
   FormDescription,
   FormField,
   FormItem,
@@ -10,6 +11,16 @@ import {
   FormMessage,
 } from "@caseai-connect/ui/shad/form"
 import { RadioGroup, RadioGroupItem } from "@caseai-connect/ui/shad/radio-group"
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@caseai-connect/ui/shad/select"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/ui/shad/tooltip"
 import { cn } from "@caseai-connect/ui/utils"
 import { zodResolver } from "@hookform/resolvers/zod"
 import {
@@ -41,13 +52,16 @@ import {
 } from "../oauth-consent.utils"
 import { AppPermissionIcon } from "./AppPermissionIcon"
 import { BayesCrossMark } from "./BayesCrossMark"
-import { ScrollFade } from "./ScrollFade"
 
 type FormValues = z.infer<typeof oauthConsentSchema>
 
+/** Up to this many workspaces show as rows; more go in a select. */
+const MAX_WORKSPACE_ROWS = 5
+
 /**
- * App install consent. An authorization installs the app on one workspace, so the
- * person picks one. The list shows every workspace they can install on.
+ * App install consent. An authorization installs the app on one workspace, so the person picks one.
+ * The page is the only scroll: workspaces go in a select when there are many, permissions are
+ * grouped by resource, and the install button stays in view.
  */
 export function AppOAuthConsent({ request }: { request: OAuthAuthorizationRequest }) {
   const { t } = useTranslation("oauthConsent")
@@ -55,7 +69,8 @@ export function AppOAuthConsent({ request }: { request: OAuthAuthorizationReques
   const page = useValue(selectOAuthConsentPage)
   const [outcome, setOutcome] = useState<"approved" | "denied" | null>(null)
   const clientName = page.client.name ?? page.client.redirectHost
-  const defaultProjectId = page.projects[0]?.id
+  // The first workspace as displayed: organizations in list order, projects A to Z.
+  const defaultProjectId = groupConsentProjectsByOrganization(page.projects)[0]?.projects[0]?.id
   const defaultProjectIds = defaultProjectId ? [defaultProjectId] : []
   const defaultAvailable = availablePermissionsFor(page.projects, defaultProjectIds)
 
@@ -71,9 +86,8 @@ export function AppOAuthConsent({ request }: { request: OAuthAuthorizationReques
   })
   const isSubmitting = form.formState.isSubmitting
   const selectedProjectIds = form.watch("projectIds")
-  const selectedProjectId = selectedProjectIds[0] ?? null
   const available = availablePermissionsFor(page.projects, selectedProjectIds)
-  const selectedProject = page.projects.find((project) => project.id === selectedProjectId)
+  const selectedProject = page.projects.find((project) => project.id === selectedProjectIds[0])
 
   const setProjectIds = (projectIds: string[]) => {
     form.setValue("projectIds", projectIds, { shouldValidate: form.formState.isSubmitted })
@@ -106,22 +120,28 @@ export function AppOAuthConsent({ request }: { request: OAuthAuthorizationReques
       })
     : StudioRoutes.home.path
 
+  const header = (
+    <>
+      <div className="mb-5 flex items-center gap-3">
+        <AppMark logoUrl={page.client.logoUrl} />
+        <ArrowRightIcon className="size-4 shrink-0 text-[#a1a1aa]" aria-hidden />
+        <BayesCrossMark />
+      </div>
+      <h1 className="text-lg font-semibold leading-snug">
+        {t("appHeadline", { name: clientName })}
+      </h1>
+      {page.client.description && (
+        <p className="mt-2 text-sm text-[#71717a]">{page.client.description}</p>
+      )}
+      <ClientTrust client={page.client} />
+    </>
+  )
+
   return (
     <div className="flex min-h-dvh items-center justify-center bg-[#f4f4f6] p-4 font-[Inter,system-ui,sans-serif] text-[#111118] sm:p-6">
       <div className="flex w-full max-w-[440px] flex-col">
         <div className="rounded-[12px] border border-[#e4e4e7] bg-white p-6 shadow-sm">
-          <div className="mb-5 flex shrink-0 items-center gap-3">
-            <AppMark logoUrl={page.client.logoUrl} />
-            <ArrowRightIcon className="size-4 shrink-0 text-[#a1a1aa]" aria-hidden />
-            <BayesCrossMark />
-          </div>
-          <h1 className="shrink-0 text-lg font-semibold leading-snug">
-            {t("appHeadline", { name: clientName })}
-          </h1>
-          {page.client.description && (
-            <p className="mt-2 shrink-0 text-sm text-[#71717a]">{page.client.description}</p>
-          )}
-          <ClientTrust client={page.client} />
+          {header}
 
           {outcome ? (
             <p className="mt-6 text-sm text-[#71717a]">
@@ -129,19 +149,21 @@ export function AppOAuthConsent({ request }: { request: OAuthAuthorizationReques
             </p>
           ) : page.projects.length === 0 ? (
             <>
-              <div className="mt-6">
-                <p className="text-sm text-[#71717a]">{t("noWorkspaces")}</p>
-                <div className="mt-6">
-                  <PermissionList
-                    permissions={page.grantablePermissions}
-                    selected={[]}
-                    available={new Set()}
-                    unavailableHint={null}
-                    disabled
-                    readOnly
-                    onToggle={() => undefined}
-                  />
-                </div>
+              <p className="mt-6 text-sm text-[#71717a]">{t("noWorkspaces")}</p>
+              {/* What the app asks for, so the person can tell an owner what to grant. */}
+              <div className="mt-6 flex flex-col gap-3">
+                <span className="text-[11px] font-medium tracking-wide text-[#a1a1aa] uppercase">
+                  {t("permissions")}
+                </span>
+                <GroupedPermissions
+                  permissions={page.grantablePermissions}
+                  selected={[]}
+                  available={new Set()}
+                  unavailableHint={null}
+                  disabled
+                  readOnly
+                  onToggle={() => undefined}
+                />
               </div>
               <CancelLink
                 clientName={clientName}
@@ -152,85 +174,95 @@ export function AppOAuthConsent({ request }: { request: OAuthAuthorizationReques
           ) : (
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onValid)} className="mt-6">
-                <div>
-                  <FormField
-                    control={form.control}
-                    name="projectIds"
-                    render={({ field }) => (
-                      <FormItem className="gap-1.5">
-                        <FormLabel className="text-[11px] font-medium tracking-wide text-[#a1a1aa] uppercase">
-                          {t("workspace")}
-                        </FormLabel>
-                        <FormDescription className="text-sm text-[#71717a]">
-                          {t("workspaceHint")}
-                        </FormDescription>
+                <FormField
+                  control={form.control}
+                  name="projectIds"
+                  render={({ field }) => (
+                    <FormItem className="gap-1.5">
+                      <FormLabel className="text-[11px] font-medium tracking-wide text-[#a1a1aa] uppercase">
+                        {t("workspace")}
+                      </FormLabel>
+                      <FormDescription className="text-sm text-[#71717a]">
+                        {t("workspaceHint")}
+                      </FormDescription>
+                      {page.projects.length > MAX_WORKSPACE_ROWS ? (
+                        <WorkspaceSelect
+                          projects={page.projects}
+                          value={field.value[0] ?? null}
+                          disabled={isSubmitting}
+                          onChange={(projectId) => setProjectIds([projectId])}
+                        />
+                      ) : (
                         <WorkspaceChoices
                           projects={page.projects}
                           value={field.value[0] ?? null}
                           disabled={isSubmitting}
                           onChange={(projectId) => setProjectIds([projectId])}
                         />
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                  <FormField
-                    control={form.control}
-                    name="permissions"
-                    render={({ field }) => (
-                      <FormItem className="mt-6 gap-3">
-                        <FormLabel className="text-[11px] font-medium tracking-wide text-[#a1a1aa] uppercase">
-                          {t("permissions")}
-                        </FormLabel>
-                        <PermissionList
-                          permissions={page.grantablePermissions}
-                          selected={field.value}
-                          available={available}
-                          unavailableHint={
-                            selectedProjectIds.length === 0
-                              ? t("selectWorkspaceFirst")
-                              : t("appPermissionUnavailable")
-                          }
-                          disabled={isSubmitting}
-                          readOnly={false}
-                          onToggle={(permission, checked) =>
-                            field.onChange(
-                              checked
-                                ? [...field.value, permission]
-                                : field.value.filter(
-                                    (selectedPermission) => selectedPermission !== permission,
-                                  ),
-                            )
-                          }
-                        />
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                <FormField
+                  control={form.control}
+                  name="permissions"
+                  render={({ field }) => (
+                    <FormItem className="mt-6 gap-3">
+                      <FormLabel className="text-[11px] font-medium tracking-wide text-[#a1a1aa] uppercase">
+                        {t("permissions")}
+                      </FormLabel>
+                      <GroupedPermissions
+                        permissions={page.grantablePermissions}
+                        selected={field.value}
+                        available={available}
+                        unavailableHint={
+                          selectedProjectIds.length === 0
+                            ? t("selectWorkspaceFirst")
+                            : t("appPermissionUnavailable")
+                        }
+                        disabled={isSubmitting}
+                        readOnly={false}
+                        onToggle={(permission, checked) =>
+                          field.onChange(
+                            checked
+                              ? [...field.value, permission]
+                              : field.value.filter(
+                                  (selectedPermission) => selectedPermission !== permission,
+                                ),
+                          )
+                        }
+                      />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Stays in view while the page scrolls, so the action is never below the fold. */}
+                <div className="sticky bottom-0 -mx-6 -mb-6 mt-6 rounded-b-[12px] border-t border-[#e4e4e7] bg-white px-6 pt-4 pb-5">
+                  <Button
+                    type="submit"
+                    className="h-auto min-h-11 w-full rounded-lg bg-[#7c3aed] px-4 py-2.5 text-sm font-semibold whitespace-normal text-white hover:bg-[#6d28d9]"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? null : <ShieldCheckIcon className="size-4" aria-hidden />}
+                    {isSubmitting ? t("installing") : t("install", { name: clientName })}
+                  </Button>
+                  <CancelLink
+                    clientName={clientName}
+                    redirectUri={request.redirect_uri}
+                    onCancel={deny}
+                    disabled={isSubmitting}
                   />
                 </div>
-
-                <Button
-                  type="submit"
-                  className="mt-6 h-auto min-h-11 w-full shrink-0 rounded-lg bg-[#7c3aed] px-4 py-2.5 text-sm font-semibold whitespace-normal text-white hover:bg-[#6d28d9]"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? null : <ShieldCheckIcon className="size-4" aria-hidden />}
-                  {isSubmitting ? t("installing") : t("install", { name: clientName })}
-                </Button>
-                <CancelLink
-                  clientName={clientName}
-                  redirectUri={request.redirect_uri}
-                  onCancel={deny}
-                  disabled={isSubmitting}
-                />
               </form>
             </Form>
           )}
         </div>
 
         {page.projects.length > 0 && !outcome && (
-          <p className="mt-4 shrink-0 rounded-[12px] border border-[#e4e4e7] bg-white px-4 py-3 text-sm text-[#71717a]">
+          <p className="mt-4 rounded-[12px] border border-[#e4e4e7] bg-white px-4 py-3 text-sm text-[#71717a]">
             <Trans
               i18nKey="appRevocability"
               ns="oauthConsent"
@@ -251,7 +283,7 @@ export function AppOAuthConsent({ request }: { request: OAuthAuthorizationReques
   )
 }
 
-function WorkspaceChoices({
+function WorkspaceSelect({
   projects,
   value,
   disabled,
@@ -262,54 +294,45 @@ function WorkspaceChoices({
   disabled: boolean
   onChange: (projectId: string) => void
 }) {
+  const { t } = useTranslation("oauthConsent")
   return (
-    <ScrollFade className="max-h-64">
-      <RadioGroup
-        value={value ?? ""}
-        onValueChange={onChange}
-        disabled={disabled}
-        className="flex flex-col gap-4"
-      >
+    <Select value={value ?? ""} onValueChange={onChange} disabled={disabled}>
+      <FormControl>
+        <SelectTrigger className="h-10 w-full rounded-lg border-[#e4e4e7] shadow-none">
+          <SelectValue placeholder={t("selectWorkspaceFirst")} />
+        </SelectTrigger>
+      </FormControl>
+      <SelectContent>
         {groupConsentProjectsByOrganization(projects).map((group) => (
-          <fieldset key={group.organizationId} className="flex flex-col gap-2">
-            <legend className="mb-1 text-[11px] font-medium tracking-wide text-[#a1a1aa] uppercase">
-              {group.organizationName}
-            </legend>
-            {group.projects.map((project) => {
-              const radioId = `oauth-workspace-${project.id}`
-              const selected = value === project.id
-              return (
-                <label
-                  key={project.id}
-                  htmlFor={radioId}
-                  className={cn(
-                    "flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2.5 text-sm",
-                    selected
-                      ? "border-[#7c3aed] bg-[#f5f3ff]"
-                      : "border-[#e4e4e7] bg-white hover:border-[#d4d4d8]",
-                    disabled && "cursor-not-allowed opacity-60",
-                  )}
-                >
-                  <RadioGroupItem
-                    id={radioId}
-                    value={project.id}
-                    className={cn(
-                      "border-[#d4d4d8]",
-                      selected && "border-[#7c3aed] text-[#7c3aed]",
-                    )}
-                  />
-                  <span className="min-w-0 font-medium break-words">{project.name}</span>
-                </label>
-              )
-            })}
-          </fieldset>
+          <SelectGroup key={group.organizationId}>
+            <SelectLabel>{group.organizationName}</SelectLabel>
+            {group.projects.map((project) => (
+              <SelectItem key={project.id} value={project.id}>
+                {project.name}
+              </SelectItem>
+            ))}
+          </SelectGroup>
         ))}
-      </RadioGroup>
-    </ScrollFade>
+      </SelectContent>
+    </Select>
   )
 }
 
-function PermissionList({
+type PermissionGroup = { resource: string; permissions: { permission: string; action: string }[] }
+
+/** `document.read` → resource `document`, action `read`; the order of the list is kept. */
+function groupByResource(permissions: string[]): PermissionGroup[] {
+  const groups = new Map<string, PermissionGroup>()
+  for (const permission of permissions) {
+    const [resource = permission, ...rest] = permission.split(".")
+    const group = groups.get(resource) ?? { resource, permissions: [] }
+    group.permissions.push({ permission, action: rest.join("_") })
+    groups.set(resource, group)
+  }
+  return [...groups.values()]
+}
+
+function GroupedPermissions({
   permissions,
   selected,
   available,
@@ -324,56 +347,128 @@ function PermissionList({
   /** Shown in place of the description when the permission cannot be granted. */
   unavailableHint: string | null
   disabled: boolean
+  /** Lists what the app asks for, with nothing to tick. */
   readOnly: boolean
   onToggle: (permission: string, checked: boolean) => void
 }) {
   const { t } = useTranslation("oauthConsent")
   return (
-    <ScrollFade className="max-h-[28rem] pe-1 [scrollbar-gutter:stable]">
-      <ul className="flex flex-col gap-3">
-        {permissions.map((permission) => {
-          const copyKey = permission.replaceAll(".", "_")
-          const canGrant = available.has(permission)
-          const hint = canGrant ? null : unavailableHint
-          const checkboxId = `oauth-permission-${permission}`
-          return (
-            <li key={permission} className="flex items-start gap-3">
-              {readOnly ? null : (
-                <Checkbox
-                  id={checkboxId}
-                  className="mt-1.5 border-[#d4d4d8] data-[state=checked]:border-[#7c3aed] data-[state=checked]:bg-[#7c3aed] data-[state=checked]:text-white"
-                  checked={selected.includes(permission)}
-                  disabled={disabled || !canGrant}
-                  onCheckedChange={(value) => onToggle(permission, value === true)}
+    <ul className="flex flex-col gap-4">
+      {groupByResource(permissions).map((group) => (
+        <li key={group.resource} className="flex items-start gap-3">
+          <AppPermissionIcon permission={`${group.resource}.read`} />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold">
+              {t(`appResource.${group.resource}`, { defaultValue: group.resource })}
+            </p>
+            <div className="mt-1.5 flex flex-wrap gap-1.5">
+              {group.permissions.map(({ permission, action }) => {
+                const copyKey = permission.replaceAll(".", "_")
+                const canGrant = available.has(permission)
+                const checked = selected.includes(permission)
+                const checkboxId = `oauth-compact-permission-${permission}`
+                const name = t(`appPermission.${copyKey}.name`, { defaultValue: permission })
+                return (
+                  <Tooltip key={permission}>
+                    <TooltipTrigger asChild>
+                      <label
+                        htmlFor={readOnly ? undefined : checkboxId}
+                        className={cn(
+                          "flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-medium",
+                          checked
+                            ? "border-[#c4b5fd] bg-[#f5f3ff] text-[#5b21b6]"
+                            : "border-[#e4e4e7] bg-white text-[#52525b]",
+                          !readOnly &&
+                            (canGrant && !disabled
+                              ? "cursor-pointer"
+                              : "cursor-not-allowed text-[#a1a1aa]"),
+                        )}
+                      >
+                        {readOnly ? null : (
+                          <Checkbox
+                            id={checkboxId}
+                            aria-label={name}
+                            className="size-3.5 border-[#d4d4d8] data-[state=checked]:border-[#7c3aed] data-[state=checked]:bg-[#7c3aed] data-[state=checked]:text-white [&_svg]:size-3"
+                            checked={checked}
+                            disabled={disabled || !canGrant}
+                            onCheckedChange={(value) => onToggle(permission, value === true)}
+                          />
+                        )}
+                        {t(`appAction.${action}`, { defaultValue: name })}
+                      </label>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-64">
+                      <p className="font-semibold">{name}</p>
+                      <p>
+                        {canGrant || readOnly
+                          ? t(`appPermission.${copyKey}.description`, { defaultValue: "" })
+                          : unavailableHint}
+                      </p>
+                      <code className="mt-1 block font-mono text-[10px] opacity-70">
+                        {permission}
+                      </code>
+                    </TooltipContent>
+                  </Tooltip>
+                )
+              })}
+            </div>
+          </div>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+function WorkspaceChoices({
+  projects,
+  value,
+  disabled,
+  onChange,
+}: {
+  projects: OAuthConsentProject[]
+  value: string | null
+  disabled: boolean
+  onChange: (projectId: string) => void
+}) {
+  return (
+    <RadioGroup
+      value={value ?? ""}
+      onValueChange={onChange}
+      disabled={disabled}
+      className="flex flex-col gap-4"
+    >
+      {groupConsentProjectsByOrganization(projects).map((group) => (
+        <fieldset key={group.organizationId} className="flex flex-col gap-2">
+          <legend className="mb-1 text-[11px] font-medium tracking-wide text-[#a1a1aa] uppercase">
+            {group.organizationName}
+          </legend>
+          {group.projects.map((project) => {
+            const radioId = `oauth-workspace-${project.id}`
+            const selected = value === project.id
+            return (
+              <label
+                key={project.id}
+                htmlFor={radioId}
+                className={cn(
+                  "flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2.5 text-sm",
+                  selected
+                    ? "border-[#7c3aed] bg-[#f5f3ff]"
+                    : "border-[#e4e4e7] bg-white hover:border-[#d4d4d8]",
+                  disabled && "cursor-not-allowed opacity-60",
+                )}
+              >
+                <RadioGroupItem
+                  id={radioId}
+                  value={project.id}
+                  className={cn("border-[#d4d4d8]", selected && "border-[#7c3aed] text-[#7c3aed]")}
                 />
-              )}
-              <AppPermissionIcon permission={permission} />
-              <div className="min-w-0 flex-1">
-                <label
-                  htmlFor={readOnly ? undefined : checkboxId}
-                  className={cn("block", !readOnly && canGrant && "cursor-pointer")}
-                >
-                  <p
-                    className={cn(
-                      "text-sm font-semibold",
-                      !canGrant && !readOnly && "text-[#a1a1aa]",
-                    )}
-                  >
-                    {t(`appPermission.${copyKey}.name`, { defaultValue: permission })}
-                  </p>
-                  <p className="text-sm text-[#71717a]">
-                    {hint ?? t(`appPermission.${copyKey}.description`, { defaultValue: "" })}
-                  </p>
-                </label>
-                <code className="mt-1 inline-block max-w-full break-all rounded-md bg-[#f4f4f6] px-2 py-0.5 font-mono text-[11px] text-[#71717a]">
-                  {permission}
-                </code>
-              </div>
-            </li>
-          )
-        })}
-      </ul>
-    </ScrollFade>
+                <span className="min-w-0 font-medium break-words">{project.name}</span>
+              </label>
+            )
+          })}
+        </fieldset>
+      ))}
+    </RadioGroup>
   )
 }
 

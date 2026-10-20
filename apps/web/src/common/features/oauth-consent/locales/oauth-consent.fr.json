@@ -117,6 +117,20 @@
     },
     "notifications": {
       "approveError": "L'accès n'a pas pu être accordé"
+    },
+    "appResource": {
+      "document": "Documents",
+      "document_source": "Sources de documents",
+      "document_tag": "Tags de documents",
+      "project": "Espace de travail",
+      "agent": "Agents"
+    },
+    "appAction": {
+      "read": "Lire",
+      "create": "Créer",
+      "update": "Modifier",
+      "delete": "Supprimer",
+      "conversation_session_external_create": "Discussions externes"
     }
   }
 }
