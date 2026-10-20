@@ -414,3 +414,27 @@ if (process.env.IS_TEST === "true" && process.env.VERTEX3_TEST === "true") {
     it("skipped (requires process.env.IS_TEST=true and process.env.VERTEX_TEST=true)", () => {})
   })
 }
+
+describe("AISDKVertex3Provider internal calls", () => {
+  class TestableProvider extends AISDKVertex3Provider {
+    public internalCallOptionsFor(model: AgentModel) {
+      return this.buildSpecificProviderOptions({
+        config: {
+          model,
+          modelOptions: this.getInternalCallModelOptions(model),
+          serviceTier: undefined,
+        },
+      })
+    }
+  }
+
+  it("runs an internal call on the model's default temperature, not on 0", () => {
+    expect(new TestableProvider().getInternalCallModelOptions(AgentModel.Gemini35Flash)).toEqual({})
+    expect(new TestableProvider().internalCallOptionsFor(AgentModel.Gemini35Flash)).toEqual({
+      temperature: 1,
+      providerOptions: {
+        vertex: { thinkingConfig: { thinkingLevel: "medium", includeThoughts: true } },
+      },
+    })
+  })
+})

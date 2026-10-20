@@ -191,7 +191,9 @@ export class AgentLlmRequestService {
           buildLLMConfig({
             systemPrompt: classifierSystemPrompt,
             model: agentSettings.model,
-            modelOptions: { temperature: 0 },
+            modelOptions: getProviderForModel(agentSettings.model).getInternalCallModelOptions(
+              agentSettings.model,
+            ),
             priorityCallsEnabled: agentSettings.priorityCallsEnabled,
             llmFeatures,
           }),

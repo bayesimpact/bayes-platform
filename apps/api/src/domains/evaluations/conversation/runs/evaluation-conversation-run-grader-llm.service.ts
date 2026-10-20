@@ -58,7 +58,6 @@ ${
     : ""
 }`,
       model: judgeModel,
-      modelOptions: { temperature: 0 },
       priorityCallsEnabled: false,
       llmFeatures: { priorityCalls: false, flexWorkers: false },
     }
@@ -81,9 +80,13 @@ ${
       llmMetadata.tags.unshift("**TEST**")
     }
 
-    const llmConfig = this.buildLLMConfig(ratingAgent)
+    const provider = this.getProviderForModel(ratingAgent.model)
+    const llmConfig = this.buildLLMConfig({
+      ...ratingAgent,
+      modelOptions: provider.getInternalCallModelOptions(ratingAgent.model),
+    })
 
-    const response = await this.getProviderForModel(llmConfig.model).generateText({
+    const response = await provider.generateText({
       prompt: `
 <%ratingInstructions>
 ${expectedOutput}

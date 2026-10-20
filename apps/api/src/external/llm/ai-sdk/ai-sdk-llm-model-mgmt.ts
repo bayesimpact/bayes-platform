@@ -14,6 +14,8 @@ import type {
   LLMChatMessage,
   LLMConfig,
   LLMMetadata,
+  LLMModelOptions,
+  LLMProvider,
 } from "@/common/interfaces/llm-provider.interface"
 import type { SpecificProviderOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-builders"
 import {
@@ -168,6 +170,11 @@ export abstract class AISDKLLMModelMgmt<
   }
   getModelOptions(agentModel: AgentModel): SpecificProviderOptions {
     return this.modelOptions[this.toProviderAgentModel(agentModel)].values
+  }
+
+  /** See {@link LLMProvider.getInternalCallModelOptions}. A temperature of 0 by default. */
+  getInternalCallModelOptions(_agentModel: AgentModel): LLMModelOptions {
+    return { temperature: 0 }
   }
 
   /**

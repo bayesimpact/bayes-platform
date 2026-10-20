@@ -367,7 +367,7 @@ async function runSubAgentTool({
                 buildLLMConfig({
                   systemPrompt: classifierSystemPrompt,
                   model: childAgentSettings.model,
-                  modelOptions: { temperature: 0 },
+                  modelOptions: provider.getInternalCallModelOptions(childAgentSettings.model),
                   priorityCallsEnabled: childAgentSettings.priorityCallsEnabled,
                   llmFeatures,
                 }),

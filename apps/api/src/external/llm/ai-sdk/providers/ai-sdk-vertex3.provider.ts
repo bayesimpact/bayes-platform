@@ -3,7 +3,7 @@ import { AgentModel, type AgentModelOf, AgentProvider } from "@caseai-connect/ap
 import { Injectable } from "@nestjs/common"
 import type { LanguageModel } from "ai"
 import { z } from "zod"
-import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"
+import type { LLMConfig, LLMModelOptions } from "@/common/interfaces/llm-provider.interface"
 import type { SpecificProviderOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-builders"
 import type { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
 import {
@@ -225,6 +225,15 @@ export class AISDKVertex3Provider extends AISDKLLMProviderBase<AgentProvider.Ver
       config.modelOptions?.providerOptions as { vertex?: Partial<VertexOptions> } | undefined
     )?.vertex?.thinkingConfig?.thinkingLevel
     return stored ?? this.vertex3Models[this.toProviderAgentModel(config.model)].defaultLevel
+  }
+
+  /**
+   * Nothing: an internal call runs on the model's defaults. Google advises keeping Gemini 3 at
+   * its default temperature of 1 with thinking on, and these calls ran at 1 when no Gemini 3
+   * call carried a temperature.
+   */
+  override getInternalCallModelOptions(_agentModel: AgentModel): LLMModelOptions {
+    return {}
   }
 
   getTags(config: LLMConfig): string[] {
