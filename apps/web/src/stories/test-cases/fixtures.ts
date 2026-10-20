@@ -59,6 +59,32 @@ export const mockFirstTurnTestCaseSource = testCaseSourceFactory.build({
   answer: firstAnswer,
 })
 
+/** The last answer, written out at length: taller than the preview, which must scroll. */
+export const mockLongAnswerTestCaseSource = testCaseSourceFactory.build({
+  agentMessageId: "message-4",
+  answer: `Yes. Here is how switching from the annual to the monthly Pro plan works.
+
+**What happens to your plan**
+
+- The switch takes effect at the end of the current billing day.
+- Your projects, members and settings stay as they are.
+- The monthly price applies from the next invoice.
+
+**What happens to the unused part**
+
+1. We count the days left on your annual plan (about three weeks have passed).
+2. The unused part, about €98, is refunded to your card.
+3. The refund reaches your account within 5 business days.
+
+**How to switch**
+
+- Open **Settings › Billing**.
+- Choose **Change plan**, then **Monthly**.
+- Confirm, and you receive an email with the new invoice dates.
+
+Would you like me to explain anything else about your plan?`,
+})
+
 const LLM_DELAY_MS = 900
 
 const waitForLlm = () => new Promise((resolve) => setTimeout(resolve, LLM_DELAY_MS))

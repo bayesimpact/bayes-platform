@@ -6,6 +6,7 @@ import {
   mockCritique,
   mockDatasets,
   mockFirstTurnTestCaseSource,
+  mockLongAnswerTestCaseSource,
   mockPraise,
   mockTestCaseSource,
 } from "./fixtures"
@@ -63,6 +64,11 @@ export const BadAnswer: Story = {
 /** Started from a report on the Feedback page: a bad answer, with the report as what is wrong. */
 export const FromFeedbackReport: Story = {
   args: { source: { ...mockTestCaseSource, feedback: mockCritique } },
+}
+
+/** A long answer, reported as bad: the preview scrolls and the fields stay below it. */
+export const LongAnswer: Story = {
+  args: { source: { ...mockLongAnswerTestCaseSource, feedback: mockCritique } },
 }
 
 /** The project has no dataset yet: the record goes to a new one, named here. */

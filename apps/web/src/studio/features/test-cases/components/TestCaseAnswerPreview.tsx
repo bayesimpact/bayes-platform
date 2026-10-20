@@ -5,7 +5,9 @@ import { MarkdownWrapper } from "@/common/features/agents/agent-sessions/shared/
 /** The answer being saved, scrollable so a long one does not push the form out of view. */
 export function TestCaseAnswerPreview({ answer }: { answer: string }) {
   return (
-    <ScrollArea className="max-h-40">
+    // The viewport is what scrolls: a max height on the root alone lets a long answer spill
+    // over the fields below it.
+    <ScrollArea className="rounded-md [&>[data-slot=scroll-area-viewport]]:max-h-40">
       <Item variant="muted">
         <ItemContent className="text-sm">
           <MarkdownWrapper content={answer} />
