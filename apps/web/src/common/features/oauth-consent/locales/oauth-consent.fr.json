@@ -1,17 +1,16 @@
 {
   "oauthConsent": {
     "headline": "{{name}} demande l'accès à vos projets",
-    "redirectHost": "Vous serez renvoyé vers {{host}}.",
     "verified": "Vérifiée",
-    "verifiedHint": "Le domaine de cette application a été vérifié.",
     "unverified": "Non vérifiée",
-    "unverifiedHint": "Ce nom est déclaré par l'application elle-même. Ne continuez que si vous faites confiance à {{host}}.",
+    "mcpVerified": "Domaine vérifié · renvoi vers {{host}}",
+    "mcpUnverified": "Client non vérifié · renvoi vers {{host}}",
     "projects": "Projets",
     "projectsHint": "L'application n'accède qu'aux projets que vous sélectionnez.",
     "permissions": "Permissions",
     "permissionUnavailable": "Aucun des projets sélectionnés ne le permet.",
     "selectProjectFirst": "Sélectionnez d'abord un projet.",
-    "noProjects": "Vous n'avez encore aucun projet à partager. Refusez pour revenir à l'application.",
+    "noProjects": "Vous n'avez encore aucun projet à partager.",
     "approve": "Autoriser l'accès",
     "approving": "Autorisation…",
     "approved": "Accès accordé. Vous pouvez revenir à {{name}}.",
@@ -44,6 +43,10 @@
         "name": "Modifier les brouillons d'agents",
         "description": "Changer les réglages en brouillon des agents que vous possédez ou administrez dans les projets sélectionnés (modèle, instructions). La publication reste dans le studio."
       }
+    },
+    "resource": {
+      "project": "Projets",
+      "agent": "Agents"
     },
     "appPermission": {
       "document_read": {
@@ -125,12 +128,13 @@
       "project": "Espace de travail",
       "agent": "Agents"
     },
-    "appAction": {
+    "permissionAction": {
       "read": "Lire",
       "create": "Créer",
       "update": "Modifier",
       "delete": "Supprimer",
-      "conversation_session_external_create": "Discussions externes"
+      "conversation_session_external_create": "Discussions externes",
+      "settings_draft_update": "Modifier les brouillons"
     }
   }
 }

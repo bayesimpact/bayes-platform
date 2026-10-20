@@ -1,17 +1,16 @@
 {
   "oauthConsent": {
     "headline": "{{name}} wants to access your projects",
-    "redirectHost": "You will be sent back to {{host}}.",
     "verified": "Verified",
-    "verifiedHint": "The domain of this app was checked.",
     "unverified": "Unverified",
-    "unverifiedHint": "This name is declared by the app itself. Only continue if you trust {{host}}.",
+    "mcpVerified": "Verified domain · redirects to {{host}}",
+    "mcpUnverified": "Unverified client · redirects to {{host}}",
     "projects": "Projects",
     "projectsHint": "The app only reaches the projects you select.",
     "permissions": "Permissions",
     "permissionUnavailable": "None of the selected projects allows it.",
     "selectProjectFirst": "Select a project first.",
-    "noProjects": "You have no project to share yet. Decline to go back to the app.",
+    "noProjects": "You have no project to share yet.",
     "approve": "Allow access",
     "approving": "Allowing…",
     "approved": "Access granted. You can go back to {{name}}.",
@@ -44,6 +43,10 @@
         "name": "Edit agent drafts",
         "description": "Change the draft settings of the agents you own or administer in the selected projects (model, instructions). Publishing stays in the studio."
       }
+    },
+    "resource": {
+      "project": "Projects",
+      "agent": "Agents"
     },
     "appPermission": {
       "document_read": {
@@ -125,12 +128,13 @@
       "project": "Workspace",
       "agent": "Agents"
     },
-    "appAction": {
+    "permissionAction": {
       "read": "Read",
       "create": "Create",
       "update": "Edit",
       "delete": "Delete",
-      "conversation_session_external_create": "External chats"
+      "conversation_session_external_create": "External chats",
+      "settings_draft_update": "Edit drafts"
     }
   }
 }
