@@ -12,7 +12,7 @@ import {
   TriangleAlertIcon,
 } from "lucide-react"
 import { type ReactNode, useMemo } from "react"
-import { useTranslation } from "react-i18next"
+import { Trans, useTranslation } from "react-i18next"
 import { AppPermissionIcon } from "./AppPermissionIcon"
 import { BayesCrossMark } from "./BayesCrossMark"
 
@@ -85,13 +85,16 @@ export function ConsentHeader({
   headline,
   description,
   verified,
-  trustLabel,
+  trustKey,
+  host,
 }: {
   logoUrl?: string | null
   headline: string
   description: string | null
   verified: boolean
-  trustLabel: string
+  /** The trust line's copy, whose `<host>` tag wraps the redirect host. */
+  trustKey: string
+  host: string
 }) {
   return (
     <>
@@ -104,13 +107,32 @@ export function ConsentHeader({
       )}
       <h1 className="text-lg font-semibold leading-snug">{headline}</h1>
       {description && <p className="mt-2 text-sm text-[#71717a]">{description}</p>}
-      <ClientTrust verified={verified} label={trustLabel} />
+      <ClientTrust verified={verified} trustKey={trustKey} host={host} />
     </>
   )
 }
 
 /** One line: a quiet note when the platform vouches for the client, a warning when it does not. */
-function ClientTrust({ verified, label }: { verified: boolean; label: string }) {
+function ClientTrust({
+  verified,
+  trustKey,
+  host,
+}: {
+  verified: boolean
+  trustKey: string
+  host: string
+}) {
+  // The host is what the person checks, so it stands out from the rest of the line.
+  const label = (
+    <Trans
+      i18nKey={trustKey}
+      ns="oauthConsent"
+      values={{ host }}
+      components={{
+        host: <span className={cn("font-semibold", verified && "text-[#3f3f46]")} />,
+      }}
+    />
+  )
   if (verified) {
     return (
       <p className="mt-3 flex items-center gap-2 text-xs text-[#71717a]">
@@ -120,7 +142,7 @@ function ClientTrust({ verified, label }: { verified: boolean; label: string }) 
     )
   }
   return (
-    <p className="mt-3 flex items-center gap-2 rounded-lg border border-[#fcd34d] bg-[#fffbeb] px-3 py-2 text-xs font-medium text-[#92400e]">
+    <p className="mt-3 flex items-center gap-2 rounded-lg border border-[#fcd34d] bg-[#fffbeb] px-3 py-2 text-xs text-[#92400e]">
       <TriangleAlertIcon className="size-3.5 shrink-0 text-[#d97706]" aria-hidden />
       <span className="min-w-0 break-words">{label}</span>
     </p>

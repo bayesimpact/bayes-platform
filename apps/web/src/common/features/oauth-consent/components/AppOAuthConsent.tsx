@@ -141,9 +141,8 @@ export function AppOAuthConsent({ request }: { request: OAuthAuthorizationReques
         headline={t("appHeadline", { name: clientName })}
         description={page.client.description}
         verified={page.client.verified}
-        trustLabel={t(page.client.verified ? "appVerified" : "appUnverified", {
-          host: page.client.redirectHost,
-        })}
+        trustKey={page.client.verified ? "appVerified" : "appUnverified"}
+        host={page.client.redirectHost}
       />
 
       {outcome ? (

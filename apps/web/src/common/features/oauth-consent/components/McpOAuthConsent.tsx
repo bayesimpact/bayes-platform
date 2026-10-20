@@ -99,9 +99,8 @@ export function McpOAuthConsent({ request }: { request: OAuthAuthorizationReques
         headline={t("headline", { name: clientName })}
         description={page.client.description}
         verified={page.client.verified}
-        trustLabel={t(page.client.verified ? "mcpVerified" : "mcpUnverified", {
-          host: page.client.redirectHost,
-        })}
+        trustKey={page.client.verified ? "mcpVerified" : "mcpUnverified"}
+        host={page.client.redirectHost}
       />
 
       {outcome ? (
