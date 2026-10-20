@@ -1,0 +1,37 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.3.11/schema.json",
+  "root": false,
+  "extends": "//",
+  "files": {
+    "includes": ["**", "!src/routeTree.gen.ts"]
+  },
+  "linter": {
+    "rules": {
+      "style": {
+        "noEnum": "error",
+        "noNonNullAssertion": "error",
+        "noDefaultExport": "error"
+      },
+      "suspicious": {
+        "noConsole": {
+          "level": "error",
+          "options": {
+            "allow": ["error"]
+          }
+        }
+      }
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["*.config.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noDefaultExport": "off"
+          }
+        }
+      }
+    }
+  ]
+}
