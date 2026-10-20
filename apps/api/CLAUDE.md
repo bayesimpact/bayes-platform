@@ -176,6 +176,33 @@ export class ExampleController {
 
 ---
 
+## Schema routes and app endpoints
+
+The endpoints of an app on the frontend stack of [ADR 0031](../../docs/adr/0031-frontend-stack-for-agent-built-apps.md), the Desk first, are schema routes. Their contract is a `defineSchemaRoute` route of the app's contracts package (`@caseai-connect/desk-contracts`), with Zod schemas for everything they receive and return, and both the API and the app parse each part at runtime. The shared frontend rules are in `docs/frontend/conventions.md`.
+
+```typescript
+@Controller()
+export class DeskAccountController {
+  constructor(private readonly deskAccountService: DeskAccountService) {}
+
+  @DeskRoute(DeskAccountRoutes.getMe, { permission: SIGNED_IN })
+  async getMe(@Req() request: EndpointRequest): Promise<typeof DeskAccountRoutes.getMe.response> {
+    return { data: await this.deskAccountService.getMe(request.user) }
+  }
+}
+```
+
+- An app's endpoints live in `src/domains/<app>/` (`src/domains/desk/`), under the path prefix `<app>/`. The module is a read model: it calls the exported services of the feature modules, maps their records onto the contract's DTOs, and registers no entity of another domain. It imports `ContextModule` (`src/common/context/context.module.ts`) for the resolvers, and `AuthModule`, `UsersModule` and `RbacModule` for the guards, which Nest builds in the controller's module.
+- `@SchemaRoute(route, { permission })` (`src/common/schema-route/`) applies the method, the path, the status code and, in this order, `JwtAuthGuard`, `UserGuard`, `SchemaInputGuard`, `ResourceContextGuard` and `CheckPermissionGuard`, then `SchemaResponseInterceptor`. The app's decorator (`@DeskRoute`) adds its access guard at the end of the chain. A controller declares no guard of its own.
+- `permission` is required: `{ key, resource }` for a catalog key checked on a resource, or `SIGNED_IN` for a route that names no resource, such as `desk/me`.
+- The path's params name the context to resolve (`organizationId`, `projectId`, `agentId`, `agentSessionId`, `agentCsvExtractionRunId`), so the route needs no `@RequireContext`. A resolver joins `ContextModule` with the first route that needs it.
+- A handler reads its input with `@SchemaInput() input: SchemaRouteInput<typeof route>`, never with `@Body()`, `@Param()` or `@Query()`. A part the route does not declare must arrive empty, and a malformed one answers 400 with the Zod issues before any resolver runs.
+- A handler returns `{ data }`. The interceptor strips the keys the schema does not declare and answers 500, with the issue paths in the log, when the response breaks its schema.
+- The contract defines its own enums: map the domain's values onto them, never import a contracts package of an app into a feature domain.
+- Tests: the domain's `auth.spec.ts` covers every route of the app, `desk-access.spec.ts` the access guard's matrix, and one functional spec covers each action. Parse response bodies with the contract's schema and error bodies with `errorOutputSchema`. The generic machinery has its own spec in `src/common/schema-route/e2e-tests/`.
+
+---
+
 ## Testing Requirements
 
 ### E2E Tests for Controllers
