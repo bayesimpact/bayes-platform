@@ -62,7 +62,7 @@ export const Default: Story = {
         .build({ ...firstAgent, type: "conversation" })
       const currentAgentSettings = agentSettingsFactory
         .transient({ agent: currentAgent })
-        .build({ revision: currentAgent.currentRevision.number })
+        .build({ revision: currentAgent.currentRevision?.number ?? 1 })
 
       const review = conversationReviewFactory.build({
         agentId: currentAgent.id,

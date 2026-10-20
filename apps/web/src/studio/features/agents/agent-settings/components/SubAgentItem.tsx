@@ -43,6 +43,7 @@ export function SubAgentItem({
 
   const title = agent.name
   const Icon = getAgentIcon(agent.type)
+  const isUnpublished = !agent.currentRevision
 
   return (
     <div className="rounded-md border">
@@ -53,11 +54,16 @@ export function SubAgentItem({
         <ItemContent>
           <ItemTitle>
             {title}
-            <Badge variant={subAgent.enabled ? "default" : "secondary"}>
-              {subAgent.enabled
-                ? t("agentSettings:orchestration.enabled")
-                : t("agentSettings:orchestration.disabled")}
-            </Badge>
+            {/* The orchestrator only gets a sub-agent that was published at least once. */}
+            {isUnpublished ? (
+              <Badge variant="warning">{t("status:draft")}</Badge>
+            ) : (
+              <Badge variant={subAgent.enabled ? "default" : "secondary"}>
+                {subAgent.enabled
+                  ? t("agentSettings:orchestration.enabled")
+                  : t("agentSettings:orchestration.disabled")}
+              </Badge>
+            )}
           </ItemTitle>
           <ItemDescription>
             {subAgent.toolName}
@@ -66,6 +72,9 @@ export function SubAgentItem({
                 {" "}
                 <Badge variant="outline">{t("agentSettings:orchestration.modeHandoff")}</Badge>
               </>
+            )}
+            {isUnpublished && (
+              <span className="block">{t("agentSettings:orchestration.unpublishedHint")}</span>
             )}
           </ItemDescription>
         </ItemContent>

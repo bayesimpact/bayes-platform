@@ -172,6 +172,30 @@ describe("Apps - Conversations", () => {
     )
   })
 
+  it("leaves out an agent that was never published", async () => {
+    const { organization, project, agent, accessToken } = await installAndIssueToken()
+    const draftCopy = agentFactory
+      .transient({ organization, project })
+      .build({ name: "Support Assistant (copy)" })
+    await repositories.agentRepository.save(draftCopy)
+    await repositories.agentSettingsRepository.save(
+      agentSettingsFactory.draft().transient({ organization, project, agent: draftCopy }).build(),
+    )
+
+    const listed = await call({
+      method: "get",
+      path: AppsAgentsRoutes.getAll.getPath({ projectId: project.id }),
+      token: accessToken,
+    })
+
+    expectResponse(listed, 200)
+    expect(listed.body.data).toEqual([{ id: agent.id, name: agent.name }])
+    expectResponse(
+      await openConversation({ projectId: project.id, agentId: draftCopy.id, token: accessToken }),
+      404,
+    )
+  })
+
   it("opens a conversation for an external user and returns the agent's whole reply", async () => {
     const { organization, project, agent, installationId, accessToken } =
       await installAndIssueToken()

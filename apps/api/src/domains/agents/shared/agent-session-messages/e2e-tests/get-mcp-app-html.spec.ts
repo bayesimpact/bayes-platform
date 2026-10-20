@@ -1,4 +1,4 @@
-import { AgentSessionMessagesRoutes } from "@caseai-connect/api-contracts"
+import { AgentLocale, AgentSessionMessagesRoutes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import {
@@ -9,6 +9,7 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { ConversationAgentSessionsModule } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.module"
+import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { createOrganizationWithAgentSession } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../../test/rbac-test.helpers"
@@ -143,5 +144,32 @@ describe("AgentSessionMessagesRoutes.getMcpAppHtml", () => {
 
     expect(response.status).toBe(201)
     expect(response.body.data).toEqual([])
+  })
+
+  it("re-reads the cards in the published language, not the language of a newer draft", async () => {
+    const { organization, project, agent, agentSettings } = await createContext()
+    await repositories.agentSettingsRepository.update(agentSettings.id, { locale: AgentLocale.EN })
+    await repositories.agentSettingsRepository.save(
+      agentSettingsFactory
+        .draft()
+        .transient({ organization, project, agent })
+        .build({ revision: agentSettings.revision + 1, locale: AgentLocale.FR }),
+    )
+
+    expect((await subject()).status).toBe(201)
+
+    await expect(readLiveHtml.mock.calls[0]?.[0].resolveLocale()).resolves.toBe(AgentLocale.EN)
+  })
+
+  it("re-reads the cards of an agent that was never published in its draft's language", async () => {
+    const { agentSettings } = await createContext()
+    await repositories.agentSettingsRepository.update(agentSettings.id, {
+      isDraft: true,
+      locale: AgentLocale.FR,
+    })
+
+    expect((await subject()).status).toBe(201)
+
+    await expect(readLiveHtml.mock.calls[0]?.[0].resolveLocale()).resolves.toBe(AgentLocale.FR)
   })
 })

@@ -36,14 +36,14 @@ export const selectAgentSettingsDataByAgentId = ({
       const isValid = agentHistoryData.value.some((settings) => settings.agentId === agent.id)
       if (!isValid) return { status: ADS.Error, error: "Agent settings not found", value: null }
 
+      // An agent that was never published, such as a fresh copy, only has its draft.
+      const publishedRevision = agent.currentRevision?.number
+      const draftRevision = agent.draftRevision?.number
+      const revision = includeDraft
+        ? (draftRevision ?? publishedRevision)
+        : (publishedRevision ?? draftRevision)
       const currentSettings = agentHistoryData.value.find(
-        (settings) =>
-          settings.revision ===
-          (includeDraft
-            ? agent.draftRevision
-              ? agent.draftRevision.number
-              : agent.currentRevision.number
-            : agent.currentRevision.number),
+        (settings) => settings.revision === revision,
       )
 
       if (!currentSettings)

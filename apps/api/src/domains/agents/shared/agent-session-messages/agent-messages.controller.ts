@@ -80,9 +80,10 @@ export abstract class AgentMessagesController {
       sessionId: agentSessionId,
       messages,
       // Cards are re-read in the agent's published language: a draft under
-      // edit does not change what an existing conversation shows.
+      // edit does not change what an existing conversation shows. An agent
+      // that was never published, such as a copy, has only its draft's.
       resolveLocale: async () => {
-        const agentSettings = await this.agentSettingsService.getLast({
+        const agentSettings = await this.agentSettingsService.getLastPublishedOrDraft({
           connectScope,
           agentId: request.agent.id,
         })

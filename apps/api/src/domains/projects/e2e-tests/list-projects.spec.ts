@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto"
 import {
+  AGENT_CREATE_PERMISSION,
   DOCUMENT_SOURCE_READ_PERMISSION,
   PROJECT_APP_INSTALLATION_CREATE_PERMISSION,
   PROJECT_APP_INSTALLATION_READ_PERMISSION,
@@ -175,6 +176,7 @@ describe("Projects - listProjects", () => {
         PROJECT_APP_INSTALLATION_READ_PERMISSION,
         PROJECT_APP_INSTALLATION_REVOKE_PERMISSION,
         PROJECT_APP_INSTALLATION_CREATE_PERMISSION,
+        AGENT_CREATE_PERMISSION,
       ].sort(),
     )
     expect(permissionsByName.Member).toEqual(["desk.ui.read"])

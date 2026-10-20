@@ -83,7 +83,7 @@ export const Default: Story = {
           fillForm ? agentSettingsFactory.fillForm() : agentSettingsFactory
         )
           .transient({ agent: currentAgent })
-          .build({ revision: currentAgent.currentRevision.number })
+          .build({ revision: currentAgent.currentRevision?.number ?? 1 })
 
         const sessionFactory = conversationAgentSessionFactory.transient({ agent: currentAgent })
         // fillForm-enabled agents accumulate a form result on the session, shown in the sheet.

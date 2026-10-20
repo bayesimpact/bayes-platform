@@ -1,4 +1,9 @@
-import type { AgentDto, AgentSubAgentDto, AgentWithDraftDto } from "@caseai-connect/api-contracts"
+import type {
+  AgentDto,
+  AgentRevisionDto,
+  AgentSubAgentDto,
+  AgentWithDraftDto,
+} from "@caseai-connect/api-contracts"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import type { Agent } from "./agent.entity"
 import type { AgentSubAgent } from "./sub-agents/agent-sub-agent.entity"
@@ -13,47 +18,40 @@ export function toAgentDto({
   return {
     createdAt: agent.createdAt.getTime(),
     id: agent.id,
-    currentRevision: {
-      updatedAt: agentSettings.updatedAt.getTime(),
-      name: agentSettings.revisionName,
-      description: agentSettings.revisionDesc,
-      number: agentSettings.revision,
-    },
+    currentRevision: toAgentRevisionDto(agentSettings),
     name: agent.name,
     projectId: agent.projectId,
     type: agent.type,
   }
 }
 
+/** `currentAgentSettings` is the published revision, missing while the agent was never published. */
 export function toAgentWithDraftDto({
   agent,
   currentAgentSettings,
   draftAgentSettings,
 }: {
   agent: Agent
-  currentAgentSettings: AgentSettings
+  currentAgentSettings?: AgentSettings
   draftAgentSettings?: AgentSettings
 }): AgentWithDraftDto {
   return {
     createdAt: agent.createdAt.getTime(),
     id: agent.id,
-    currentRevision: {
-      updatedAt: currentAgentSettings.updatedAt.getTime(),
-      name: currentAgentSettings.revisionName,
-      description: currentAgentSettings.revisionDesc,
-      number: currentAgentSettings.revision,
-    },
-    draftRevision: draftAgentSettings
-      ? {
-          updatedAt: draftAgentSettings.updatedAt.getTime(),
-          name: draftAgentSettings.revisionName,
-          description: draftAgentSettings.revisionDesc,
-          number: draftAgentSettings.revision,
-        }
-      : undefined,
+    currentRevision: currentAgentSettings ? toAgentRevisionDto(currentAgentSettings) : undefined,
+    draftRevision: draftAgentSettings ? toAgentRevisionDto(draftAgentSettings) : undefined,
     name: agent.name,
     projectId: agent.projectId,
     type: agent.type,
+  }
+}
+
+function toAgentRevisionDto(agentSettings: AgentSettings): AgentRevisionDto {
+  return {
+    updatedAt: agentSettings.updatedAt.getTime(),
+    name: agentSettings.revisionName,
+    description: agentSettings.revisionDesc,
+    number: agentSettings.revision,
   }
 }
 

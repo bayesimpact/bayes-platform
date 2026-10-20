@@ -2,6 +2,7 @@ import {
   AgentSubAgentsRoutes,
   AgentsRoutes,
   createAgentSchema,
+  duplicateAgentSchema,
   replaceAgentSubAgentsSchema,
   updateAgentNameSchema,
 } from "@caseai-connect/api-contracts"
@@ -9,6 +10,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   Patch,
   Post,
@@ -24,6 +26,7 @@ import type {
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
 import { AddContext, RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
+import { AUTH_ERRORS } from "@/common/errors/auth-errors"
 import { ZodValidationPipe } from "@/common/zod-validation-pipe"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -31,10 +34,13 @@ import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.s
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
 import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { PermissionService } from "@/domains/rbac/permission.service"
 import {
   AGENT_CREATE_PERMISSION,
   AGENT_DELETE_PERMISSION,
   AGENT_DRAFT_READ_PERMISSION,
+  AGENT_DUPLICATE_PERMISSION,
   AGENT_SUB_AGENT_READ_PERMISSION,
   AGENT_SUB_AGENT_UPDATE_PERMISSION,
   AGENT_UPDATE_PERMISSION,
@@ -42,6 +48,8 @@ import {
 } from "@/domains/rbac/rbac.constants"
 import { UserGuard } from "@/domains/users/user.guard"
 import { toAgentDto, toAgentSubAgentDto, toAgentWithDraftDto } from "./agent.mapper"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentDuplicationService } from "./agent-duplication.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentsService } from "./agents.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -53,8 +61,10 @@ import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
 export class AgentsController {
   constructor(
     private readonly agentsService: AgentsService,
+    private readonly agentDuplicationService: AgentDuplicationService,
     private readonly agentSettingsService: AgentSettingsService,
     private readonly agentSubAgentsService: AgentSubAgentsService,
+    private readonly permissionService: PermissionService,
   ) {}
 
   @Post(AgentsRoutes.createOne.path)
@@ -74,6 +84,39 @@ export class AgentsController {
     return { data: toAgentDto({ agent, agentSettings }) }
   }
 
+  /**
+   * Copies the agent into a new agent of the project: its published settings, tools, sub-agents
+   * and sources, under a new name. The copy's settings are a draft for its owner to publish.
+   */
+  @Post(AgentsRoutes.duplicateOne.path)
+  @CheckPermission(AGENT_DUPLICATE_PERMISSION, "agent")
+  @AddContext("agent")
+  @TrackActivity({ action: "agent.duplicate", entityFrom: "agent" })
+  @UsePipes(new ZodValidationPipe(duplicateAgentSchema))
+  async duplicateOne(
+    @Req() request: EndpointRequestWithAgent,
+    @Body() { payload: { name } }: typeof AgentsRoutes.duplicateOne.request,
+  ): Promise<typeof AgentsRoutes.duplicateOne.response> {
+    const connectScope = getRequiredConnectScope(request)
+    // The copy is a new agent of the project: holding agent.duplicate on the original is not enough.
+    const canCreateAgents = await this.permissionService.has(
+      request.user.id,
+      AGENT_CREATE_PERMISSION,
+      { type: "project", id: connectScope.projectId },
+    )
+    if (!canCreateAgents) {
+      throw new ForbiddenException(AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    }
+
+    const { agent, agentSettings } = await this.agentDuplicationService.duplicateAgent({
+      connectScope,
+      agentId: request.agent.id,
+      name,
+      userId: request.user.id,
+    })
+    return { data: toAgentWithDraftDto({ agent, draftAgentSettings: agentSettings }) }
+  }
+
   @Get(AgentsRoutes.getAll.path)
   @CheckPermission(PROJECT_READ_PERMISSION, "project")
   async getAll(
@@ -86,14 +129,15 @@ export class AgentsController {
     })
     const results = await Promise.all(
       agents.map(async (agent) => {
-        const agentSettings = await this.agentSettingsService.getLast({
+        const agentSettings = await this.agentSettingsService.findLastPublished({
           connectScope,
           agentId: agent.id,
         })
-        return toAgentDto({ agent, agentSettings })
+        return agentSettings ? [toAgentDto({ agent, agentSettings })] : []
       }),
     )
-    return { data: results }
+    // An agent that was never published, such as a fresh copy, cannot be used yet.
+    return { data: results.flat() }
   }
 
   @Get(AgentsRoutes.getAllWithDrafts.path)
@@ -108,7 +152,7 @@ export class AgentsController {
     })
     const results = await Promise.all(
       agents.map(async (agent) => {
-        const currentAgentSettings = await this.agentSettingsService.getLast({
+        const currentAgentSettings = await this.agentSettingsService.findLastPublished({
           connectScope,
           agentId: agent.id,
         })
@@ -120,10 +164,12 @@ export class AgentsController {
         })
 
         const hasDraft =
-          draftAgentSettings.isDraft && currentAgentSettings.id !== draftAgentSettings.id
-        if (hasDraft)
-          return toAgentWithDraftDto({ agent, currentAgentSettings, draftAgentSettings })
-        else return toAgentWithDraftDto({ agent, currentAgentSettings })
+          draftAgentSettings.isDraft && currentAgentSettings?.id !== draftAgentSettings.id
+        return toAgentWithDraftDto({
+          agent,
+          currentAgentSettings,
+          draftAgentSettings: hasDraft ? draftAgentSettings : undefined,
+        })
       }),
     )
     return { data: results }

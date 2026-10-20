@@ -168,6 +168,23 @@ describe("ConversationAgentSessionsRoutes.listSubSessions", () => {
     })
   })
 
+  it("reads the draft of a sub-agent that has no published version", async () => {
+    const { parentSession, fillFormChildAgent } = await createContext()
+    await repositories.agentSettingsRepository.update(fillFormChildAgentSettingsId, {
+      isDraft: true,
+    })
+
+    const response = await subject(parentSession.id)
+
+    expectResponse(response, 201)
+    expect(response.body.data).toHaveLength(1)
+    expect(response.body.data[0]).toMatchObject({
+      agentId: fillFormChildAgent.id,
+      outputJsonSchema: OUTPUT_JSON_SCHEMA,
+    })
+    expect(response.body.data[0]?.session.forms[0]?.outputJsonSchema).toEqual(OUTPUT_JSON_SCHEMA)
+  })
+
   it("returns an empty list when the parent session has no sub-sessions", async () => {
     await createContext()
 

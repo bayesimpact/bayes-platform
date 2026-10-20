@@ -153,7 +153,7 @@ describe("Agents - createOne", () => {
     })
     expectResponse(listResponse, 200)
     expect(listResponse.body.data).toHaveLength(1)
-    expect(listResponse.body.data[0]?.currentRevision.number).toBe(1)
+    expect(listResponse.body.data[0]?.currentRevision?.number).toBe(1)
     expect(listResponse.body.data[0]?.draftRevision).toBeUndefined()
   })
 

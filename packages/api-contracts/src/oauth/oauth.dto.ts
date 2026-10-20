@@ -5,7 +5,8 @@ import { isLoopbackHostname } from "../apps/loopback-redirect"
  * Permissions a person can grant to an OAuth client (ADR 0028). Each one is
  * checked against the person's own rights when the client uses it:
  * - project.read: the project (RBAC `project.read`)
- * - agent.create: the project (RBAC `agent.create`)
+ * - agent.create: the project (RBAC `agent.create`). It also lets the client copy
+ *   an agent the person owns or administers (RBAC `agent.duplicate` on the agent).
  * - agent.settings.draft.update: each agent (RBAC `agent.settings.draft.update`,
  *   held as owner or admin of the agent). Publishing stays in the studio.
  */

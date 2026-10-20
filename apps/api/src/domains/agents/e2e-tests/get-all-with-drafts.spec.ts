@@ -149,7 +149,7 @@ describe("Agents - getAllWithDrafts", () => {
 
     expectResponse(response, 200)
     expect(response.body.data).toHaveLength(1)
-    expect(response.body.data[0]?.currentRevision.number).toBe(1)
+    expect(response.body.data[0]?.currentRevision?.number).toBe(1)
     expect(response.body.data[0]?.draftRevision).toBeUndefined()
   })
 
@@ -169,8 +169,8 @@ describe("Agents - getAllWithDrafts", () => {
     const response = await subject()
 
     expectResponse(response, 200)
-    expect(response.body.data[0]?.currentRevision.number).toBe(2)
-    expect(response.body.data[0]?.currentRevision.name).toBe("Second")
+    expect(response.body.data[0]?.currentRevision?.number).toBe(2)
+    expect(response.body.data[0]?.currentRevision?.name).toBe("Second")
     expect(response.body.data[0]?.draftRevision).toBeUndefined()
   })
 
@@ -190,8 +190,8 @@ describe("Agents - getAllWithDrafts", () => {
     const response = await subject()
 
     expectResponse(response, 200)
-    expect(response.body.data[0]?.currentRevision.number).toBe(1)
-    expect(response.body.data[0]?.currentRevision.name).toBe("First")
+    expect(response.body.data[0]?.currentRevision?.number).toBe(1)
+    expect(response.body.data[0]?.currentRevision?.name).toBe("First")
   })
 
   it("should resolve drafts independently for each agent of the project", async () => {
@@ -218,6 +218,52 @@ describe("Agents - getAllWithDrafts", () => {
     const byName = new Map(response.body.data.map((agent) => [agent.name, agent]))
     expect(byName.get("With Draft")?.draftRevision?.number).toBe(2)
     expect(byName.get("Without Draft")?.draftRevision).toBeUndefined()
+  })
+
+  it("should list an agent that was never published with its draft only", async () => {
+    const { organization, project, user } = await createContext()
+    await createAgentWithRevisions({
+      organization,
+      project,
+      user,
+      name: "Copied Agent",
+      revisions: [{ revision: 1, isDraft: true }],
+    })
+    await createAgentWithRevisions({
+      organization,
+      project,
+      user,
+      name: "Published Agent",
+      revisions: [{ revision: 1 }],
+    })
+
+    const response = await subject()
+
+    expectResponse(response, 200)
+    const byName = new Map(response.body.data.map((agent) => [agent.name, agent]))
+    expect(byName.get("Copied Agent")?.currentRevision).toBeUndefined()
+    expect(byName.get("Copied Agent")?.draftRevision?.number).toBe(1)
+    expect(byName.get("Published Agent")?.currentRevision?.number).toBe(1)
+  })
+
+  it("should keep listing an agent whose only published revision was archived under a draft", async () => {
+    const { organization, project, user } = await createContext()
+    await createAgentWithRevisions({
+      organization,
+      project,
+      user,
+      name: "Archived Agent",
+      revisions: [
+        { revision: 1, isArchived: true },
+        { revision: 2, isDraft: true },
+      ],
+    })
+
+    const response = await subject()
+
+    expectResponse(response, 200)
+    expect(response.body.data[0]?.currentRevision).toBeUndefined()
+    expect(response.body.data[0]?.draftRevision?.number).toBe(2)
   })
 
   it("should return empty array when project has no agents", async () => {
