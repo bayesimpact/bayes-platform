@@ -120,9 +120,6 @@ export function AppOAuthConsent({ request }: { request: OAuthAuthorizationReques
           {page.client.description && (
             <p className="mt-2 shrink-0 text-sm text-[#71717a]">{page.client.description}</p>
           )}
-          <p className="mt-2 shrink-0 text-sm text-[#71717a]">
-            {t("redirectHost", { host: page.client.redirectHost })}
-          </p>
           <ClientTrust client={page.client} />
 
           {outcome ? (
@@ -398,20 +395,25 @@ function CancelLink({
   )
 }
 
+/** One line: a quiet note when the platform registered the app, a warning when it did not. */
 function ClientTrust({ client }: { client: OAuthConsentClient }) {
   const { t } = useTranslation("oauthConsent")
   if (client.verified) {
     return (
       <p className="mt-3 flex items-center gap-2 text-xs text-[#71717a]">
         <BadgeCheckIcon className="size-3.5 shrink-0 text-[#7c3aed]" aria-hidden />
-        {t("appVerifiedHint")}
+        <span className="min-w-0 break-words">
+          {t("appVerified", { host: client.redirectHost })}
+        </span>
       </p>
     )
   }
   return (
-    <p className="mt-3 flex items-start gap-2 text-xs text-[#71717a]">
-      <TriangleAlertIcon className="mt-0.5 size-3.5 shrink-0 text-[#d97706]" aria-hidden />
-      <span>{t("unverifiedHint", { host: client.redirectHost })}</span>
+    <p className="mt-3 flex items-center gap-2 rounded-lg border border-[#fcd34d] bg-[#fffbeb] px-3 py-2 text-xs font-medium text-[#92400e]">
+      <TriangleAlertIcon className="size-3.5 shrink-0 text-[#d97706]" aria-hidden />
+      <span className="min-w-0 break-words">
+        {t("appUnverified", { host: client.redirectHost })}
+      </span>
     </p>
   )
 }
