@@ -1,8 +1,9 @@
-import { isLoopbackRedirectUri } from "@caseai-connect/api-contracts"
+import { isLoopbackRedirectUri, oauthConsentSchema } from "@caseai-connect/api-contracts"
 import { Button } from "@caseai-connect/ui/shad/button"
 import { Checkbox } from "@caseai-connect/ui/shad/checkbox"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/ui/shad/tooltip"
 import { cn } from "@caseai-connect/ui/utils"
+import { zodResolver } from "@hookform/resolvers/zod"
 import {
   ArrowRightIcon,
   BadgeCheckIcon,
@@ -10,10 +11,30 @@ import {
   ShieldCheckIcon,
   TriangleAlertIcon,
 } from "lucide-react"
-import type { ReactNode } from "react"
+import { type ReactNode, useMemo } from "react"
 import { useTranslation } from "react-i18next"
 import { AppPermissionIcon } from "./AppPermissionIcon"
 import { BayesCrossMark } from "./BayesCrossMark"
+
+/**
+ * The consent form's resolver: an empty project or permission list gets words a person can act on,
+ * any other issue keeps the contract's message.
+ */
+export function useConsentResolver() {
+  const { t } = useTranslation("oauthConsent")
+  return useMemo(
+    () =>
+      zodResolver(oauthConsentSchema, {
+        error: (issue) => {
+          if (issue.code !== "too_small") return undefined
+          if (issue.path?.[0] === "projectIds") return t("projectRequired")
+          if (issue.path?.[0] === "permissions") return t("permissionRequired")
+          return undefined
+        },
+      }),
+    [t],
+  )
+}
 
 /** The title of each section of the consent screens: projects, workspace, permissions. */
 export const SECTION_TITLE = "text-sm font-semibold text-[#111118]"

@@ -1,4 +1,4 @@
-import { oauthConsentSchema } from "@caseai-connect/api-contracts"
+import type { oauthConsentSchema } from "@caseai-connect/api-contracts"
 import { Checkbox } from "@caseai-connect/ui/shad/checkbox"
 import {
   Form,
@@ -9,7 +9,6 @@ import {
   FormMessage,
 } from "@caseai-connect/ui/shad/form"
 import { cn } from "@caseai-connect/ui/utils"
-import { zodResolver } from "@hookform/resolvers/zod"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
@@ -36,6 +35,7 @@ import {
   GroupedPermissions,
   SECTION_HINT,
   SECTION_TITLE,
+  useConsentResolver,
 } from "./ConsentLayout"
 
 type FormValues = z.infer<typeof oauthConsentSchema>
@@ -54,7 +54,7 @@ export function McpOAuthConsent({ request }: { request: OAuthAuthorizationReques
     page.projects.length === 1 && page.projects[0] ? [page.projects[0].id] : []
   const defaultAvailable = availablePermissionsFor(page.projects, defaultProjectIds)
   const form = useForm<FormValues>({
-    resolver: zodResolver(oauthConsentSchema),
+    resolver: useConsentResolver(),
     defaultValues: {
       ...request,
       projectIds: defaultProjectIds,

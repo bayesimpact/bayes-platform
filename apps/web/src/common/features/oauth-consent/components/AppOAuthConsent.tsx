@@ -1,4 +1,4 @@
-import { oauthConsentSchema } from "@caseai-connect/api-contracts"
+import type { oauthConsentSchema } from "@caseai-connect/api-contracts"
 import {
   Form,
   FormControl,
@@ -19,7 +19,6 @@ import {
   SelectValue,
 } from "@caseai-connect/ui/shad/select"
 import { cn } from "@caseai-connect/ui/utils"
-import { zodResolver } from "@hookform/resolvers/zod"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { Trans, useTranslation } from "react-i18next"
@@ -46,6 +45,7 @@ import {
   GroupedPermissions,
   SECTION_HINT,
   SECTION_TITLE,
+  useConsentResolver,
 } from "./ConsentLayout"
 
 type FormValues = z.infer<typeof oauthConsentSchema>
@@ -72,7 +72,7 @@ export function AppOAuthConsent({ request }: { request: OAuthAuthorizationReques
   const defaultAvailable = availablePermissionsFor(page.projects, defaultProjectIds)
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(oauthConsentSchema),
+    resolver: useConsentResolver(),
     defaultValues: {
       ...request,
       projectIds: defaultProjectIds,

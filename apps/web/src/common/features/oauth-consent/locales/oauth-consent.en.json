@@ -9,6 +9,8 @@
     "projectsHint": "The app only reaches the projects you select.",
     "permissions": "Permissions",
     "permissionUnavailable": "None of the selected projects allows it.",
+    "permissionRequired": "Tick at least one permission.",
+    "projectRequired": "Select at least one project.",
     "noProjects": "You have no project to share yet.",
     "approve": "Allow access",
     "approving": "Allowing…",
