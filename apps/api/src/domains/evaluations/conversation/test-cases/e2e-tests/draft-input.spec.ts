@@ -13,7 +13,7 @@ import {
 } from "@/common/test/test-transaction-manager"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
-import type { AISDKMockProvider } from "@/external/llm/providers/ai-sdk-mock.provider"
+import { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.provider"
 import { setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../../test/request"
@@ -39,7 +39,7 @@ describe("EvaluationConversationTestCases - draftInput", () => {
     })
     repositories = setup.getAllRepositories()
     await ensureRbacCatalog(setup.module)
-    mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
+    mockProvider = setup.module.get(AISDKMockProvider)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)

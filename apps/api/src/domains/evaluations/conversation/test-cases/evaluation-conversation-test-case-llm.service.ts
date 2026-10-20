@@ -2,8 +2,9 @@ import type { AgentModel } from "@caseai-connect/api-contracts"
 import { Inject, Injectable, UnprocessableEntityException } from "@nestjs/common"
 import { v4 } from "uuid"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
-import type { LLMMetadata, LLMProvider } from "@/common/interfaces/llm-provider.interface"
+import type { LLMMetadata } from "@/common/interfaces/llm-provider.interface"
 import { LlmServiceBase } from "@/external/llm"
+import { LLM_PROVIDERS, type LlmProviders } from "@/external/llm/llm.module"
 
 /** The agent revision that wrote the saved answer. */
 export type TestCaseAnsweringRevision = { agentId: string; revision: number; model: AgentModel }
@@ -55,27 +56,10 @@ Rules:
 @Injectable()
 export class EvaluationConversationTestCaseLlmService extends LlmServiceBase {
   constructor(
-    @Inject("_MockLLMProvider")
-    mockLlmProvider: LLMProvider,
-    @Inject("VertexLLMProvider")
-    vertexLlmProvider: LLMProvider,
-    @Inject("Vertex3LLMProvider")
-    vertex3LlmProvider: LLMProvider,
-    @Inject("MistralLLMProvider")
-    mistralLlmProvider: LLMProvider,
-    @Inject("MedGemmaLLMProvider")
-    medGemmaLlmProvider: LLMProvider,
-    @Inject("GemmaLLMProvider")
-    gemmaLlmProvider: LLMProvider,
+    @Inject(LLM_PROVIDERS)
+    llmProviders: LlmProviders,
   ) {
-    super({
-      mockLlmProvider,
-      vertexLlmProvider,
-      vertex3LlmProvider,
-      medGemmaLlmProvider,
-      gemmaLlmProvider,
-      mistralLlmProvider,
-    })
+    super(llmProviders)
   }
 
   /** A message that stands on its own, carrying what the earlier turns established. */
@@ -125,10 +109,11 @@ ${text}
       spanLabel,
     }: { systemPrompt: string; prompt: string; spanLabel: string },
   ): Promise<string> {
+    const provider = this.getProviderForModel(agentSettings.model)
     const config = this.buildLLMConfig({
       model: agentSettings.model,
       systemPrompt,
-      temperature: 0,
+      modelOptions: provider.getInternalCallModelOptions(agentSettings.model),
       priorityCallsEnabled: false,
       llmFeatures: { priorityCalls: false, flexWorkers: false },
     })
@@ -143,7 +128,7 @@ ${text}
       tags: ["test-case"],
       spanLabel,
     }
-    const text = await this.getProviderForModel(config.model).generateText({
+    const text = await provider.generateText({
       prompt,
       config,
       metadata,

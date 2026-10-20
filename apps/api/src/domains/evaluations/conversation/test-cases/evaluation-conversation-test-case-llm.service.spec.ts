@@ -1,4 +1,4 @@
-import { AgentModel } from "@caseai-connect/api-contracts"
+import { AgentModel, AgentProvider } from "@caseai-connect/api-contracts"
 import { UnprocessableEntityException } from "@nestjs/common"
 import type { LLMProvider } from "@/common/interfaces/llm-provider.interface"
 import { agentFactory } from "@/domains/agents/agent.factory"
@@ -25,23 +25,29 @@ describe("EvaluationConversationTestCaseLlmService", () => {
     answer: "Yes, the unused part is refunded to your card.",
   }
 
+  type FakeProvider = { generateText: jest.Mock; getInternalCallModelOptions: jest.Mock }
   let service: EvaluationConversationTestCaseLlmService
-  let mockProvider: { generateText: jest.Mock }
-  let vertexProvider: { generateText: jest.Mock }
-  let mistralProvider: { generateText: jest.Mock }
+  let mockProvider: FakeProvider
+  let vertexProvider: FakeProvider
+  let mistralProvider: FakeProvider
+
+  const fakeProvider = (): FakeProvider => ({
+    generateText: jest.fn(),
+    getInternalCallModelOptions: jest.fn(() => ({ temperature: 0 })),
+  })
 
   beforeEach(() => {
-    mockProvider = { generateText: jest.fn() }
-    vertexProvider = { generateText: jest.fn() }
-    mistralProvider = { generateText: jest.fn() }
-    service = new EvaluationConversationTestCaseLlmService(
-      mockProvider as unknown as LLMProvider,
-      vertexProvider as unknown as LLMProvider,
-      vertexProvider as unknown as LLMProvider,
-      mistralProvider as unknown as LLMProvider,
-      vertexProvider as unknown as LLMProvider,
-      vertexProvider as unknown as LLMProvider,
-    )
+    mockProvider = fakeProvider()
+    vertexProvider = fakeProvider()
+    mistralProvider = fakeProvider()
+    service = new EvaluationConversationTestCaseLlmService({
+      [AgentProvider._Mock]: mockProvider as unknown as LLMProvider,
+      [AgentProvider.Vertex]: vertexProvider as unknown as LLMProvider,
+      [AgentProvider.Vertex3]: vertexProvider as unknown as LLMProvider,
+      [AgentProvider.Mistral]: mistralProvider as unknown as LLMProvider,
+      [AgentProvider.MedGemma]: vertexProvider as unknown as LLMProvider,
+      [AgentProvider.Gemma]: vertexProvider as unknown as LLMProvider,
+    })
   })
 
   const scopeFor = (model: AgentModel) => ({
@@ -59,8 +65,14 @@ describe("EvaluationConversationTestCaseLlmService", () => {
 
     expect(mistralProvider.generateText).toHaveBeenCalledTimes(1)
     expect(vertexProvider.generateText).not.toHaveBeenCalled()
+    expect(mistralProvider.getInternalCallModelOptions).toHaveBeenCalledWith(
+      AgentModel.MistralSmall31_24B,
+    )
     const [{ config, metadata }] = mistralProvider.generateText.mock.calls[0]
-    expect(config).toMatchObject({ model: AgentModel.MistralSmall31_24B, temperature: 0 })
+    expect(config).toMatchObject({
+      model: AgentModel.MistralSmall31_24B,
+      modelOptions: { temperature: 0 },
+    })
     expect(metadata).toMatchObject({
       agentId: agent.id,
       agentSessionId: "session-1",

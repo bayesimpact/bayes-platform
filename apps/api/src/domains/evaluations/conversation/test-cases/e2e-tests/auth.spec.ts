@@ -11,7 +11,7 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import type { ProjectMembershipRole } from "@/domains/projects/memberships/project-membership.types"
-import type { AISDKMockProvider } from "@/external/llm/providers/ai-sdk-mock.provider"
+import { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.provider"
 import {
   mockForeignAuthSubject,
   mockOidcEmailForSub,
@@ -42,7 +42,7 @@ describe("EvaluationConversationTestCases - Auth", () => {
     })
     repositories = setup.getAllRepositories()
     await ensureRbacCatalog(setup.module)
-    mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
+    mockProvider = setup.module.get(AISDKMockProvider)
     app = setup.module.createNestApplication()
     await app.init()
     request = testRequester(app)

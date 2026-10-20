@@ -14,8 +14,8 @@ import { agentMessageFactory } from "@/domains/agents/shared/agent-session-messa
 import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
 import { createOrganizationWithAgentSession } from "@/domains/organizations/organization.factory"
 import { RbacModule } from "@/domains/rbac/rbac.module"
+import { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.provider"
 import { LlmModule } from "@/external/llm/llm.module"
-import type { AISDKMockProvider } from "@/external/llm/providers/ai-sdk-mock.provider"
 import { EvaluationConversationDatasetRepository } from "../datasets/evaluation-conversation-dataset.repository"
 import { EvaluationConversationDatasetRecordRepository } from "../datasets/records/evaluation-conversation-dataset-record.repository"
 import { EvaluationConversationTestCaseLlmService } from "./evaluation-conversation-test-case-llm.service"
@@ -40,7 +40,7 @@ describe("EvaluationConversationTestCasesService", () => {
     })
     repositories = setup.getAllRepositories()
     service = setup.module.get(EvaluationConversationTestCasesService)
-    mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
+    mockProvider = setup.module.get(AISDKMockProvider)
   })
 
   afterAll(async () => {
