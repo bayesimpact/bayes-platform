@@ -49,7 +49,10 @@ export function ConsentPage({ children, note }: { children: ReactNode; note?: Re
   )
 }
 
-/** The client's mark pointing to Bayes, the headline, the description and the trust line. */
+/**
+ * The headline, the description and the trust line, under the client's mark pointing to Bayes
+ * when the client has one to show (`logoUrl` undefined leaves the marks out).
+ */
 export function ConsentHeader({
   logoUrl,
   headline,
@@ -57,7 +60,7 @@ export function ConsentHeader({
   verified,
   trustLabel,
 }: {
-  logoUrl: string | null
+  logoUrl?: string | null
   headline: string
   description: string | null
   verified: boolean
@@ -65,11 +68,13 @@ export function ConsentHeader({
 }) {
   return (
     <>
-      <div className="mb-5 flex items-center gap-3">
-        <ClientMark logoUrl={logoUrl} />
-        <ArrowRightIcon className="size-4 shrink-0 text-[#a1a1aa]" aria-hidden />
-        <BayesCrossMark />
-      </div>
+      {logoUrl !== undefined && (
+        <div className="mb-5 flex items-center gap-3">
+          <ClientMark logoUrl={logoUrl} />
+          <ArrowRightIcon className="size-4 shrink-0 text-[#a1a1aa]" aria-hidden />
+          <BayesCrossMark />
+        </div>
+      )}
       <h1 className="text-lg font-semibold leading-snug">{headline}</h1>
       {description && <p className="mt-2 text-sm text-[#71717a]">{description}</p>}
       <ClientTrust verified={verified} label={trustLabel} />

@@ -92,8 +92,8 @@ export function McpOAuthConsent({ request }: { request: OAuthAuthorizationReques
 
   return (
     <ConsentPage>
+      {/* No marks: an MCP client has no logo to show, only a generic placeholder. */}
       <ConsentHeader
-        logoUrl={page.client.logoUrl}
         headline={t("headline", { name: clientName })}
         description={page.client.description}
         verified={page.client.verified}
