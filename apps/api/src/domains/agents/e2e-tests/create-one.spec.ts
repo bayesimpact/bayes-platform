@@ -78,6 +78,101 @@ describe("Agents - createOne", () => {
       request: payload,
     })
 
+  const enableFeatureFlag = async (featureFlagKey: string) => {
+    await repositories.featureFlagRepository.save(
+      repositories.featureFlagRepository.create({ projectId, featureFlagKey, enabled: true }),
+    )
+  }
+
+  const gemmaAgentPayload: typeof AgentsRoutes.createOne.request = {
+    payload: {
+      type: "conversation",
+      name: "New Agent",
+      instructions: "This is a default prompt",
+      documentsRagMode: DocumentsRagMode.All,
+      model: AgentModel.Gemma4_26B,
+      locale: AgentLocale.EN,
+      tagsToAdd: [],
+      projectAgentSessionCategoryIds: [],
+    },
+  }
+
+  const vertex3AgentPayload = (
+    providerOptions?: Record<string, unknown>,
+  ): typeof AgentsRoutes.createOne.request => ({
+    payload: {
+      ...gemmaAgentPayload.payload,
+      model: AgentModel.Gemini35Flash,
+      ...(providerOptions ? { providerOptions } : {}),
+    },
+  })
+  const storedOptionsOf = async (agentId: string) =>
+    (await setup.getRepository(AgentSettings).findOneByOrFail({ agentId })).providerOptions
+
+  it("stores the model's default options when the agent sets none", async () => {
+    await createContext()
+
+    const response = await subject(vertex3AgentPayload())
+
+    expectResponse(response, 201)
+    expect(await storedOptionsOf(response.body.data.id)).toEqual({
+      temperature: 1,
+      providerOptions: {
+        vertex: { thinkingConfig: { thinkingLevel: "medium", includeThoughts: true } },
+      },
+    })
+  })
+
+  it("stores the options the agent sets", async () => {
+    await createContext()
+
+    const response = await subject(
+      vertex3AgentPayload({
+        temperature: 0.3,
+        providerOptions: {
+          vertex: { thinkingConfig: { thinkingLevel: "low", includeThoughts: true } },
+        },
+      }),
+    )
+
+    expectResponse(response, 201)
+    expect(await storedOptionsOf(response.body.data.id)).toEqual({
+      temperature: 0.3,
+      providerOptions: {
+        vertex: { thinkingConfig: { thinkingLevel: "low", includeThoughts: true } },
+      },
+    })
+  })
+
+  it("rejects options that do not fit the model", async () => {
+    await createContext()
+
+    expectResponse(await subject(vertex3AgentPayload({ temperature: 5 })), 400)
+  })
+
+  it("rejects a model behind a feature flag the project lacks", async () => {
+    await createContext()
+
+    expectResponse(await subject(gemmaAgentPayload), 400)
+  })
+
+  it("rejects a model past its deprecation date", async () => {
+    await createContext()
+
+    // Gemini 2.5 was deprecated on 2026-09-30.
+    expectResponse(
+      await subject({ payload: { ...gemmaAgentPayload.payload, model: AgentModel.Gemini25Flash } }),
+      400,
+    )
+  })
+
+  it("accepts a flagged provider's model once the project has its flag", async () => {
+    await createContext()
+    await enableFeatureFlag("gemma")
+
+    expectResponse(await subject(gemmaAgentPayload), 201)
+  })
+
   it("should create an agent and return it", async () => {
     await createContext()
 
@@ -87,8 +182,7 @@ describe("Agents - createOne", () => {
         name: "New Agent",
         instructions: "This is a default prompt",
         documentsRagMode: DocumentsRagMode.All,
-        model: AgentModel.Gemini25Flash,
-        temperature: 0,
+        model: AgentModel.Gemini31FlashLite,
         locale: AgentLocale.EN,
         tagsToAdd: [],
         projectAgentSessionCategoryIds: [],
@@ -115,7 +209,7 @@ describe("Agents - createOne", () => {
       where: { agentId: response.body.data.id, revision: 1 },
     })
     expect(agentSettings?.instructions).toBe("This is a default prompt")
-    expect(agentSettings?.model).toBe(AgentModel.Gemini25Flash)
+    expect(agentSettings?.model).toBe(AgentModel.Gemini31FlashLite)
     expect(agentSettings?.locale).toBe(AgentLocale.EN)
     expect(agentSettings?.documentsRagMode).toBe(DocumentsRagMode.All)
     await expectActivityCreated("agent.create")
@@ -130,8 +224,7 @@ describe("Agents - createOne", () => {
         name: "Fresh Agent",
         instructions: "This is a default prompt",
         documentsRagMode: DocumentsRagMode.All,
-        model: AgentModel.Gemini25Flash,
-        temperature: 0,
+        model: AgentModel.Gemini31FlashLite,
         locale: AgentLocale.EN,
         tagsToAdd: [],
         projectAgentSessionCategoryIds: [],
@@ -167,8 +260,7 @@ describe("Agents - createOne", () => {
         instructions: "This is a default prompt",
         greetingMessage: "Hi! How can I help you today?",
         documentsRagMode: DocumentsRagMode.All,
-        model: AgentModel.Gemini25Flash,
-        temperature: 0,
+        model: AgentModel.Gemini31FlashLite,
         locale: AgentLocale.EN,
         tagsToAdd: [],
         projectAgentSessionCategoryIds: [],
@@ -192,8 +284,7 @@ describe("Agents - createOne", () => {
         name: "Silent Agent",
         instructions: "This is a default prompt",
         documentsRagMode: DocumentsRagMode.All,
-        model: AgentModel.Gemini25Flash,
-        temperature: 0,
+        model: AgentModel.Gemini31FlashLite,
         locale: AgentLocale.EN,
         tagsToAdd: [],
         projectAgentSessionCategoryIds: [],
@@ -217,8 +308,7 @@ describe("Agents - createOne", () => {
         name: "Form Filling Agent",
         instructions: "This is a default prompt",
         documentsRagMode: DocumentsRagMode.All,
-        model: AgentModel.Gemini25Flash,
-        temperature: 0,
+        model: AgentModel.Gemini31FlashLite,
         locale: AgentLocale.EN,
         fillFormEnabled: true,
         outputJsonSchema: {
@@ -251,8 +341,7 @@ describe("Agents - createOne", () => {
         name: "Form Filling Agent",
         instructions: "This is a default prompt",
         documentsRagMode: DocumentsRagMode.All,
-        model: AgentModel.Gemini25Flash,
-        temperature: 0,
+        model: AgentModel.Gemini31FlashLite,
         locale: AgentLocale.EN,
         fillFormEnabled: true,
         tagsToAdd: [],
@@ -278,8 +367,7 @@ describe("Agents - createOne", () => {
         name: "Tagged Agent",
         instructions: "This is a default prompt",
         documentsRagMode: DocumentsRagMode.Tags,
-        model: AgentModel.Gemini25Flash,
-        temperature: 0,
+        model: AgentModel.Gemini31FlashLite,
         locale: AgentLocale.EN,
         tagsToAdd: [documentTag.id],
         projectAgentSessionCategoryIds: [],
@@ -315,8 +403,7 @@ describe("Agents - createOne", () => {
         name: "Categorized Agent",
         instructions: "This is a default prompt",
         documentsRagMode: DocumentsRagMode.All,
-        model: AgentModel.Gemini25Flash,
-        temperature: 0,
+        model: AgentModel.Gemini31FlashLite,
         locale: AgentLocale.EN,
         tagsToAdd: [],
         projectAgentSessionCategoryIds: [projectCategory.id],

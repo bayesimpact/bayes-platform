@@ -4,8 +4,12 @@ import { cn } from "@caseai-connect/ui/utils"
 import { AlertTriangleIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { Link } from "react-router-dom"
-import { buildAgentModelDeprecationInterpolation } from "@/common/features/agents/agent-model.helpers"
+import {
+  agentModelDeprecationStage,
+  buildAgentModelDeprecationInterpolation,
+} from "@/common/features/agents/agent-model.helpers"
 import { selectAgentSettingsDataByAgentId } from "@/common/features/agents/agent-settings/agent-settings.selectors"
+import { selectAvailableModelsCatalog } from "@/common/features/agents/agents.selectors"
 import { useAppSelector } from "@/common/store/hooks"
 import { isStudioInterface } from "@/studio/routes/helpers"
 import type { MenuItem } from "../types"
@@ -43,7 +47,9 @@ export function AppNavItem({
 function DeprecatedModelIcon({ agentId }: { agentId: string }) {
   const { t } = useTranslation()
   const agentSettings = useAppSelector(selectAgentSettingsDataByAgentId({ agentId }))
-  const interpolation = buildAgentModelDeprecationInterpolation(agentSettings.value?.model)
+  const catalog = useAppSelector(selectAvailableModelsCatalog)
+  const interpolation = buildAgentModelDeprecationInterpolation(agentSettings.value?.model, catalog)
+  const stage = agentModelDeprecationStage(agentSettings.value?.model, catalog)
 
   if (!interpolation) return null
 
@@ -58,9 +64,9 @@ function DeprecatedModelIcon({ agentId }: { agentId: string }) {
       </TooltipTrigger>
       <TooltipContent side="right" className="max-w-72">
         <span className="block font-semibold">
-          {t("agent:model.deprecation.title", interpolation)}
+          {t(`agent:model.${stage}.title`, interpolation)}
         </span>
-        <span className="block">{t("agent:model.deprecation.description", interpolation)}</span>
+        <span className="block">{t(`agent:model.${stage}.description`, interpolation)}</span>
       </TooltipContent>
     </Tooltip>
   )

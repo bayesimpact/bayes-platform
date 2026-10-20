@@ -78,9 +78,8 @@ const toAgentSettings = (dto: AgentSettingsDto): AgentSettings => ({
   projectAgentSessionCategoryIds: dto.projectAgentSessionCategoryIds,
   resourceLibraryIds: dto.resourceLibraryIds,
   revision: dto.revision,
-  temperature: dto.temperature,
+  providerOptions: dto.providerOptions,
   updatedAt: dto.updatedAt,
   usedProjectAgentSessionCategoryIds: dto.usedProjectAgentSessionCategoryIds,
-  thinkingLevel: dto.thinkingLevel,
   memoryMode: dto.memoryMode,
 })

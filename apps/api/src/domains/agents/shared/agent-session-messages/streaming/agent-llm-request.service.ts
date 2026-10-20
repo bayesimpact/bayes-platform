@@ -140,13 +140,12 @@ export class AgentLlmRequestService {
         contextSections: promptSections,
       }),
       model: agentSettings.model,
-      temperature: agentSettings.temperature,
+      modelOptions: agentSettings.providerOptions,
       tools,
       fireAndForgetToolNames,
       terminalToolNames,
       priorityCallsEnabled: agentSettings.priorityCallsEnabled,
       llmFeatures,
-      thinkingLevel: agentSettings.thinkingLevel,
     })
 
     const metadata: LLMMetadata = this.buildLLMData({
@@ -192,7 +191,9 @@ export class AgentLlmRequestService {
           buildLLMConfig({
             systemPrompt: classifierSystemPrompt,
             model: agentSettings.model,
-            temperature: 0,
+            modelOptions: getProviderForModel(agentSettings.model).getInternalCallModelOptions(
+              agentSettings.model,
+            ),
             priorityCallsEnabled: agentSettings.priorityCallsEnabled,
             llmFeatures,
           }),

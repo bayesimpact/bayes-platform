@@ -58,10 +58,9 @@ export function toAgentSettingsDto({
     projectAgentSessionCategoryIds,
     resourceLibraryIds,
     revision: agentSettings.revision,
-    temperature: Number(agentSettings.temperature),
     updatedAt: agentSettings.updatedAt.getTime(),
     usedProjectAgentSessionCategoryIds,
-    thinkingLevel: agentSettings.thinkingLevel,
     memoryMode: agentSettings.memoryMode,
+    providerOptions: agentSettings.providerOptions,
   }
 }

@@ -116,6 +116,7 @@
       "notFound": "Agent not found",
       "model": "Model",
       "temperature": "Temperature",
+      "thinkingLevel": "Thinking level",
       "locale": "Language",
       "documentsRagMode": "Document search",
       "prompt": "System prompt"

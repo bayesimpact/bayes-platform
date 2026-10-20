@@ -19,7 +19,11 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
-import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
+import {
+  createOrganizationWithAgent,
+  createOrganizationWithProject,
+} from "@/domains/organizations/organization.factory"
+import type { ProjectMembershipRole } from "@/domains/projects/memberships/project-membership.types"
 import { projectFactory } from "@/domains/projects/project.factory"
 import {
   mockForeignAuthSubject,
@@ -316,6 +320,70 @@ describe("Agents - Auth", () => {
     })
   })
 
+  describe("AgentsRoutes.getAvailableModels", () => {
+    const createContextForProjectRole = async (role: ProjectMembershipRole) => {
+      const { user, organization, project } = await createOrganizationWithProject(repositories, {
+        projectMembership: { role },
+      })
+      organizationId = organization.id
+      projectId = project.id
+      authSubject = user.authSubject!
+      return { organization }
+    }
+    const subject = () =>
+      request({
+        route: AgentsRoutes.getAvailableModels,
+        pathParams: removeNullish({ organizationId, projectId }),
+        token: accessToken ?? undefined,
+      })
+
+    it("requires an authentication token", async () => {
+      accessToken = null
+      expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+
+    it("requires a valid organization ID", async () => {
+      organizationId = null
+      expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
+    })
+
+    it("requires a valid project ID", async () => {
+      await createContextForProjectRole("owner")
+      projectId = null
+      expectResponse(await subject(), 404)
+    })
+
+    it("requires the user to be a member of the organization", async () => {
+      await createContextForProjectRole("owner")
+      authSubject = "another-oidc-subject"
+      expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
+    })
+
+    it("doesn't allow an organization admin without a project role", async () => {
+      const { organization } = await createContextForProjectRole("owner")
+      const organizationAdminAuthSubject = `oidc|${randomUUID()}`
+      await addUserToOrganization({
+        repositories,
+        organization,
+        user: {
+          authSubject: organizationAdminAuthSubject,
+          email: mockOidcEmailForSub(organizationAdminAuthSubject),
+        },
+        membership: { role: "admin" },
+      })
+      authSubject = organizationAdminAuthSubject
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+
+    it.each<ProjectMembershipRole>([
+      "owner",
+      "admin",
+      "member",
+    ])("allows a project %s to list the models", async (role) => {
+      await createContextForProjectRole(role)
+      expectResponse(await subject(), 200)
+    })
+  })
   describe("role matrix", () => {
     type Role = "owner" | "admin" | "member"
 
@@ -373,8 +441,7 @@ describe("Agents - Auth", () => {
             name: "New Agent",
             instructions: "This is a default prompt",
             documentsRagMode: DocumentsRagMode.All,
-            model: AgentModel.Gemini25Flash,
-            temperature: 0,
+            model: AgentModel.Gemini35Flash,
             locale: AgentLocale.EN,
             tagsToAdd: [],
             projectAgentSessionCategoryIds: [],

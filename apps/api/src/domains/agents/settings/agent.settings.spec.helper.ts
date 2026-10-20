@@ -6,9 +6,10 @@ import type { AgentSettingsCreateFields, AgentSettingsUpdateFields } from "./age
 export const agentSettingsValuesRev1: AgentSettingsCreateFields = {
   instructions: "This is a default prompt 1",
   model: AgentModel.Gemini25Flash,
-  temperature: 0,
+  deletedTemperature: 0,
   locale: AgentLocale.EN,
   documentsRagMode: DocumentsRagMode.All,
+  providerOptions: {},
   greetingMessage: "This is the greeting message 1",
   outputJsonSchema: {
     type: "object",
@@ -20,9 +21,10 @@ export const agentSettingsValuesRev1: AgentSettingsCreateFields = {
 export const agentSettingsValuesRev2Archived: AgentSettingsCreateFields = {
   instructions: "This is a default prompt 2",
   model: AgentModel.Gemma4_26B,
-  temperature: 1,
+  deletedTemperature: 1,
   locale: AgentLocale.FR,
   documentsRagMode: DocumentsRagMode.All,
+  providerOptions: {},
   greetingMessage: "This is the greeting message 2",
   outputJsonSchema: {
     type: "object",
@@ -34,9 +36,10 @@ export const agentSettingsValuesRev2Archived: AgentSettingsCreateFields = {
 export const agentSettingsValuesRev3Draft: AgentSettingsCreateFields = {
   instructions: "This is a default prompt 3",
   model: AgentModel._Mock,
-  temperature: 1,
+  deletedTemperature: 1,
   locale: AgentLocale.FR,
   documentsRagMode: DocumentsRagMode.All,
+  providerOptions: {},
   greetingMessage: "This is the greeting message 3",
   outputJsonSchema: {
     type: "object",
@@ -54,7 +57,7 @@ export function assertOnSettings(expected: object, value: AgentSettingsUpdateFie
     // biome-ignore lint/complexity/useLiteralKeys: test usage
     expect(value.model).toBe(expected["model"])
     // biome-ignore lint/complexity/useLiteralKeys: test usage
-    expect(Number(value.temperature)).toBe(Number(expected["temperature"]))
+    expect(Number(value.deletedTemperature)).toBe(Number(expected["deletedTemperature"]))
     // biome-ignore lint/complexity/useLiteralKeys: test usage
     expect(value.locale).toBe(expected["locale"])
     // biome-ignore lint/complexity/useLiteralKeys: test usage

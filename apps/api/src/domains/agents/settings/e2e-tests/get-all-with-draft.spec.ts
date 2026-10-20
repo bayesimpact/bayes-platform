@@ -3,7 +3,6 @@ import {
   AgentMemoryMode,
   AgentModel,
   AgentSettingsRoutes,
-  AgentThinkingLevel,
   DocumentsRagMode,
 } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
@@ -151,7 +150,6 @@ describe("Agent Settings - getAllWithDraft", () => {
       greetingMessage: "Hello there",
       locale: AgentLocale.FR,
       model: AgentModel.Gemini25Flash,
-      temperature: 1.5,
       documentsRagMode: DocumentsRagMode.None,
       fillFormEnabled: true,
       outputJsonSchema: { type: "object", properties: { title: { type: "string" } } },
@@ -175,7 +173,6 @@ describe("Agent Settings - getAllWithDraft", () => {
       greetingMessage: "Hello there",
       locale: AgentLocale.FR,
       model: AgentModel.Gemini25Flash,
-      temperature: 1.5,
       documentsRagMode: DocumentsRagMode.None,
       fillFormEnabled: true,
       outputJsonSchema: { type: "object", properties: { title: { type: "string" } } },
@@ -190,7 +187,7 @@ describe("Agent Settings - getAllWithDraft", () => {
       createdAt: storedRevision2.createdAt.getTime(),
       updatedAt: storedRevision2.updatedAt.getTime(),
       priorityCallsEnabled: false,
-      thinkingLevel: AgentThinkingLevel.Auto,
+      providerOptions: {},
       memoryMode: AgentMemoryMode.Off,
     })
   })

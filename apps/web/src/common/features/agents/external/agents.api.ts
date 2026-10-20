@@ -22,6 +22,13 @@ export default {
     )
     return response.data.data.map(toAgent)
   },
+  getAvailableModels: async (params) => {
+    const axios = getAxiosInstance()
+    const response = await axios.get<typeof AgentsRoutes.getAvailableModels.response>(
+      AgentsRoutes.getAvailableModels.getPath(params),
+    )
+    return response.data.data
+  },
   createOne: async (params, payload) => {
     const axios = getAxiosInstance()
     const response = await axios.post<typeof AgentsRoutes.createOne.response>(

@@ -120,7 +120,6 @@
       "viewAgent": "Voir l'agent",
       "notFound": "Agent introuvable",
       "model": "Modèle",
-      "temperature": "Température",
       "locale": "Langue",
       "documentsRagMode": "Mode de recherche documentaire",
       "prompt": "Prompt système",

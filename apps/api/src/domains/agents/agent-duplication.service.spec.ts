@@ -2,7 +2,6 @@ import {
   AgentLocale,
   AgentMemoryMode,
   AgentModel,
-  AgentThinkingLevel,
   DocumentsRagMode,
 } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
@@ -53,6 +52,13 @@ describe("AgentDuplicationService", () => {
     await clearTestDatabase(setup.dataSource)
   })
 
+  const sourceModelOptions = {
+    temperature: 0.4,
+    providerOptions: {
+      vertex: { thinkingConfig: { thinkingLevel: "high", includeThoughts: true } },
+    },
+  }
+
   /** An agent with something in every table a copy reads, and some that it must leave alone. */
   const createSourceAgent = async () => {
     const context = await createOrganizationWithAgent(repositories, {
@@ -67,14 +73,13 @@ describe("AgentDuplicationService", () => {
         revisionName: "Second",
         instructions: "Answer questions about the product.",
         model: AgentModel.Gemini35Flash,
-        temperature: 0.4,
+        providerOptions: sourceModelOptions,
         locale: AgentLocale.FR,
         documentsRagMode: DocumentsRagMode.Tags,
         greetingMessage: "Hello!",
         outputJsonSchema: { type: "object", properties: { title: { type: "string" } } },
         fillFormEnabled: true,
         priorityCallsEnabled: true,
-        thinkingLevel: AgentThinkingLevel.High,
         memoryMode: AgentMemoryMode.Ask,
       }),
     )
@@ -235,6 +240,7 @@ describe("AgentDuplicationService", () => {
     expect(settingsOf(sourceRow)).toMatchObject({
       instructions: "Answer questions about the product.",
       memoryMode: AgentMemoryMode.Ask,
+      providerOptions: sourceModelOptions,
     })
   })
 

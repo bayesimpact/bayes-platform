@@ -2,7 +2,6 @@ import { z } from "zod"
 import {
   type AgentLocale,
   AgentModel,
-  type AgentTemperature,
   type DocumentsRagMode,
 } from "../agents/settings/agent-settings.dto"
 import type { TimeType } from "../generic"
@@ -37,7 +36,8 @@ export type EvaluationConversationRunAgentSettingsDto = {
   locale: AgentLocale
   model: AgentModel
   revision: number
-  temperature: AgentTemperature
+  /** The options of the model (its temperature, its thinking level...), as the revision set them. */
+  providerOptions: Record<string, unknown>
 }
 
 // DTOs

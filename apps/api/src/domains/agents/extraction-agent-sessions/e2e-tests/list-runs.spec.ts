@@ -11,6 +11,7 @@ import { removeNullish } from "@/common/utils/remove-nullish"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { FILE_STORAGE_SERVICE } from "@/domains/documents/storage/file-storage.interface"
 import { createOrganizationWithAgentSession } from "@/domains/organizations/organization.factory"
+import { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.provider"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
@@ -47,7 +48,7 @@ describe("ExtractionAgentSessions - listRuns", () => {
       additionalImports: [ExtractionAgentSessionsModule],
       applyOverrides: (moduleBuilder) =>
         setupUserGuardForTesting(moduleBuilder, () => authSubject)
-          .overrideProvider("_MockLLMProvider")
+          .overrideProvider(AISDKMockProvider)
           .useValue(mockLlmProvider)
           .overrideProvider(FILE_STORAGE_SERVICE)
           .useValue(mockFileStorageService),

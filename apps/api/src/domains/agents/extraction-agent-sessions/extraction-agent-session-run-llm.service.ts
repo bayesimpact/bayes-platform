@@ -6,11 +6,7 @@ import { JSONParseError, TypeValidationError } from "ai"
 import type { Repository } from "typeorm"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
-import type {
-  LLMChatMessage,
-  LLMMetadata,
-  LLMProvider,
-} from "@/common/interfaces/llm-provider.interface"
+import type { LLMChatMessage, LLMMetadata } from "@/common/interfaces/llm-provider.interface"
 import { todaysDatePromptLine } from "@/common/utils/todays-date-prompt-line"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import type { Document } from "@/domains/documents/document.entity"
@@ -27,6 +23,7 @@ import {
 import { ProjectRepository } from "@/domains/projects/project.repository"
 import { LlmServiceBase } from "@/external/llm"
 import { modelRequiresPdfAsImages } from "@/external/llm/agent-provider"
+import { LLM_PROVIDERS, type LlmProviders } from "@/external/llm/llm.module"
 import type { Agent } from "../agent.entity"
 import { ExtractionAgentSession } from "./extraction-agent-session.entity"
 import type { ExecuteExtractionAgentSessionJobPayload } from "./extraction-agent-session.types"
@@ -52,27 +49,10 @@ export class ExtractionAgentSessionRunLlmService extends LlmServiceBase {
     private readonly projectRepository: ProjectRepository,
     private readonly pdfPagesService: PdfPagesService,
     private readonly documentsService: DocumentsService,
-    @Inject("_MockLLMProvider")
-    mockLlmProvider: LLMProvider,
-    @Inject("VertexLLMProvider")
-    vertexLlmProvider: LLMProvider,
-    @Inject("Vertex3LLMProvider")
-    vertex3LlmProvider: LLMProvider,
-    @Inject("MistralLLMProvider")
-    mistralLlmProvider: LLMProvider,
-    @Inject("MedGemmaLLMProvider")
-    medGemmaLlmProvider: LLMProvider,
-    @Inject("GemmaLLMProvider")
-    gemmaLlmProvider: LLMProvider,
+    @Inject(LLM_PROVIDERS)
+    llmProviders: LlmProviders,
   ) {
-    super({
-      mockLlmProvider,
-      vertexLlmProvider,
-      vertex3LlmProvider,
-      medGemmaLlmProvider,
-      gemmaLlmProvider,
-      mistralLlmProvider,
-    })
+    super(llmProviders)
     this.sessionConnectRepository = new ConnectRepository(
       extractionAgentSessionRepository,
       "extractionAgentSession",
@@ -137,13 +117,12 @@ export class ExtractionAgentSessionRunLlmService extends LlmServiceBase {
         config: this.buildLLMConfig({
           systemPrompt: todaysDatePromptLine(),
           model: agentSettings.model,
-          temperature: agentSettings.temperature,
+          modelOptions: agentSettings.providerOptions,
           // Extraction agent runs can be long-running; opt in to the extended
           // network timeouts on the provider fetch (see AISDKVertexProvider).
           useExtendedTimeouts: true,
           priorityCallsEnabled: agentSettings.priorityCallsEnabled,
           llmFeatures,
-          thinkingLevel: agentSettings.thinkingLevel,
         }),
         metadata: this.buildLLMMetadata({ agent, agentSettings, run, connectScope }),
       })

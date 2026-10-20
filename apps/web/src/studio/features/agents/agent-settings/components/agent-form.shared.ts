@@ -1,7 +1,7 @@
 import {
   type AgentLocale,
+  type AgentModel,
   type CreateAgentDto,
-  DEFAULT_AGENT_MODEL,
   DocumentsRagMode,
 } from "@caseai-connect/api-contracts"
 import type { Agent } from "@/common/features/agents/agents.models"
@@ -24,16 +24,22 @@ export type AgentCreationChoice = Agent["type"] | "form"
 export function getDefaultFormValues({
   creationChoice,
   language,
+  defaultModel,
+  defaultModelOptions,
 }: {
   creationChoice: AgentCreationChoice
   language: AgentLocale
+  /** The model a new agent starts on, from the catalog. */
+  defaultModel: AgentModel
+  /** That model's default options, from the catalog. */
+  defaultModelOptions: Record<string, unknown>
 }): CreateAgentDto {
   const sharedValues = {
     name: "",
     greetingMessage: undefined,
     documentsRagMode: DocumentsRagMode.All,
-    model: DEFAULT_AGENT_MODEL,
-    temperature: 0.0,
+    model: defaultModel,
+    providerOptions: defaultModelOptions,
     locale: language,
     tagsToAdd: [],
     projectAgentSessionCategoryIds: [],

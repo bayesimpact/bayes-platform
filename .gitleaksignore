@@ -1,0 +1,5 @@
+# Fingerprints of commit 97f57531, which names the vLLM API key variables in two specs
+# before they carried a gitleaks:allow comment. A pull request scan reads that commit, so
+# keep these lines until the branch is merged, then they can go.
+97f57531b1cb00a422ddf8ed3e3ed6409974c726:apps/api/src/external/llm/ai-sdk/providers/ai-sdk-vllm-provider-base.spec.ts:generic-api-key:22
+97f57531b1cb00a422ddf8ed3e3ed6409974c726:apps/api/src/external/llm/ai-sdk/providers/ai-sdk-med-gemma.provider.spec.ts:generic-api-key:135

@@ -16,7 +16,8 @@ import {
 } from "@/common/test/test-database"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
 import { createOrganizationWithAgentAndSubAgents } from "@/domains/organizations/organization.factory"
-import type { AISDKMockProvider } from "@/external/llm/providers/ai-sdk-mock.provider"
+import { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
+import { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.provider"
 import { setupUserGuardForTesting } from "../../../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../../../test/rbac-test.helpers"
 import { CHILD_FIRST_TURN_TRIGGER, PARENT_RESUME_TRIGGER } from "../handoff-turn-loop"
@@ -65,11 +66,17 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
     properties: { forName: { type: "string" }, name: { type: "string" } },
   }
 
-  const createContext = async () => {
+  const createContext = async ({
+    parentProviderOptions = {},
+    childProviderOptions = {},
+  }: {
+    parentProviderOptions?: Record<string, unknown>
+    childProviderOptions?: Record<string, unknown>
+  } = {}) => {
     const { user, organization, project, agent, agentSettings, subAgents } =
       await createOrganizationWithAgentAndSubAgents(repositories, {
         agent: { name: "Orchestrator", type: "conversation" },
-        agentSettings: { model: AgentModel._Mock },
+        agentSettings: { model: AgentModel._Mock, providerOptions: parentProviderOptions },
         subAgents: [
           {
             subAgent: { name: "Form Filler", type: "conversation" },
@@ -77,6 +84,7 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
               model: AgentModel._Mock,
               fillFormEnabled: true,
               outputJsonSchema: FORM_SCHEMA,
+              providerOptions: childProviderOptions,
             },
             agentSubAgent: { toolName: "take_over_form", mode: "handoff" },
           },
@@ -114,9 +122,68 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
 
   const eventsOf = (text: string) => parseSseDataEvents<StreamEventPayload>(text)
 
+  it("sends each agent's own model options to its turns, and a temperature of 0 to the internal classification", async () => {
+    const { agent, child } = await createContext({
+      parentProviderOptions: { temperature: 0.3 },
+      childProviderOptions: { temperature: 0.6 },
+    })
+    const mockProvider = setup.module.get(AISDKMockProvider)
+    mockProvider.resetMock()
+    mockProvider.addToolCallTurn(agent.id, "take_over_form", { reason: "The user wants to enroll" })
+    mockProvider.addTextTurn(agent.id, "I hand you over to Form Filler.")
+    mockProvider.addObjectTurn(agent.id, { suggestedTitle: "Enrollment" })
+    mockProvider.addTextTurn(child.subAgent.id, "Hello! What is your first name?")
+    mockProvider.addObjectTurn(child.subAgent.id, { suggestedTitle: null })
+
+    const response = await subject("Hello, I would like to enroll.")
+    expect(response.status).toBe(200)
+
+    const calls = mockProvider.getCalls()
+    const temperaturesOf = (agentIdOfCall: string, structuredOutput: boolean) =>
+      calls
+        .filter(
+          (call) =>
+            call.agentId === agentIdOfCall &&
+            (call.callOrigin === CallOrigin.generateStructuredOutput) === structuredOutput,
+        )
+        .map((call) => call.temperature)
+    expect(temperaturesOf(agent.id, false).length).toBeGreaterThan(0)
+    expect(temperaturesOf(agent.id, false).every((temperature) => temperature === 0.3)).toBe(true)
+    expect(temperaturesOf(child.subAgent.id, false).length).toBeGreaterThan(0)
+    expect(
+      temperaturesOf(child.subAgent.id, false).every((temperature) => temperature === 0.6),
+    ).toBe(true)
+    const classificationTemperatures = [
+      ...temperaturesOf(agent.id, true),
+      ...temperaturesOf(child.subAgent.id, true),
+    ]
+    expect(classificationTemperatures.length).toBeGreaterThan(0)
+    expect(classificationTemperatures.every((temperature) => temperature === 0)).toBe(true)
+  })
+
+  it("runs an agent that keeps its model's defaults on those defaults", async () => {
+    const { agent, child } = await createContext()
+    const mockProvider = setup.module.get(AISDKMockProvider)
+    mockProvider.resetMock()
+    mockProvider.addToolCallTurn(agent.id, "take_over_form", { reason: "The user wants to enroll" })
+    mockProvider.addTextTurn(agent.id, "I hand you over to Form Filler.")
+    mockProvider.addObjectTurn(agent.id, { suggestedTitle: "Enrollment" })
+    mockProvider.addTextTurn(child.subAgent.id, "Hello! What is your first name?")
+    mockProvider.addObjectTurn(child.subAgent.id, { suggestedTitle: null })
+
+    const response = await subject("Hello, I would like to enroll.")
+    expect(response.status).toBe(200)
+
+    const chatCalls = mockProvider
+      .getCalls()
+      .filter((call) => call.callOrigin !== CallOrigin.generateStructuredOutput)
+    expect(chatCalls.length).toBeGreaterThan(0)
+    expect(chatCalls.every((call) => call.temperature === 0)).toBe(true)
+  })
+
   it("hands the conversation to the sub-agent, lets it talk to the user in the same session, and resumes the parent when it concludes", async () => {
     const { agent, session, child } = await createContext()
-    const mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
+    const mockProvider = setup.module.get(AISDKMockProvider)
     mockProvider.resetMock()
 
     // Turn 1. The parent hands over, the child's first turn follows at once.
@@ -241,7 +308,7 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
         state: { forName: "Ada" },
       }),
     )
-    const mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
+    const mockProvider = setup.module.get(AISDKMockProvider)
     mockProvider.resetMock()
     mockProvider.addToolCallTurn(agent.id, "take_over_form", {})
     mockProvider.addTextTurn(agent.id, "Your form is already complete, Ada.")
@@ -304,7 +371,7 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
     const [identity, needs] = subAgents
     if (!identity || !needs) throw new Error("sub-agents not created")
 
-    const mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
+    const mockProvider = setup.module.get(AISDKMockProvider)
     mockProvider.resetMock()
 
     // Turn 1: hand-over to Identity, which fills the form and says goodbye WITHOUT
@@ -394,7 +461,7 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
 
   it("completes the form from the sub-agent's transcript when it concludes, without overwriting what fillForm wrote", async () => {
     const { agent, session, child } = await createContext()
-    const mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
+    const mockProvider = setup.module.get(AISDKMockProvider)
     mockProvider.resetMock()
 
     // Turn 1: hand-over, the child asks for both names.
@@ -458,7 +525,7 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
 
   it("streams the sentence once when the sub-agent repeats it after a tool result, and ends its turn on the conclusion", async () => {
     const { agent, session, child } = await createContext()
-    const mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
+    const mockProvider = setup.module.get(AISDKMockProvider)
     mockProvider.resetMock()
 
     // Turn 1: hand-over, the child asks for the name.
@@ -531,7 +598,7 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
 
   it("hands the conversation over when the parent announces the hand-over without calling its tool", async () => {
     const { agent, session, child } = await createContext()
-    const mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
+    const mockProvider = setup.module.get(AISDKMockProvider)
     mockProvider.resetMock()
 
     // The parent writes the transfer sentence and calls nothing. The classifier
@@ -572,7 +639,7 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
 
   it("does not ask about an announced hand-over when the hand-over tool ran", async () => {
     const { agent, child } = await createContext()
-    const mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
+    const mockProvider = setup.module.get(AISDKMockProvider)
     mockProvider.resetMock()
 
     mockProvider.addToolCallTurn(agent.id, "take_over_form", {})
@@ -624,7 +691,7 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
     const [first, second] = subAgents
     if (!first || !second) throw new Error("sub-agents not created")
 
-    const mockProvider = setup.module.get<AISDKMockProvider>("_MockLLMProvider")
+    const mockProvider = setup.module.get(AISDKMockProvider)
     mockProvider.resetMock()
     // The parent hands over to First, then keeps going: it writes its sentence
     // and calls Second in the same generation. Second is refused, the turn ends

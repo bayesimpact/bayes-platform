@@ -33,13 +33,13 @@ const agentSettingsFieldKeys: (keyof AgentSettingsCreateFields)[] = [
   "instructions",
   "documentsRagMode",
   "model",
-  "temperature",
+  "deletedTemperature",
   "locale",
   "outputJsonSchema",
   "greetingMessage",
   "fillFormEnabled",
   "priorityCallsEnabled",
-  "thinkingLevel",
+  "providerOptions",
   "memoryMode",
 ]
 
@@ -83,6 +83,13 @@ export function requiresUpdateAgentSettings({
     const modifiedValue = modifiedAgentSettings[key]
 
     if (initialValue === undefined && modifiedValue === undefined) continue
+    // The model options are an object: compared by value, so resending them unchanged does not
+    // create a revision.
+    if (key === "providerOptions") {
+      if (JSON.stringify(initialValue ?? null) !== JSON.stringify(modifiedValue ?? null))
+        return true
+      continue
+    }
     if (initialValue !== modifiedValue) return true
   }
   return false

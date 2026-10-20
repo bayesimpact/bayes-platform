@@ -99,7 +99,7 @@ describe("EvaluationConversationRuns - createOne", () => {
         datasetId: dataset.id,
         agentId: agent.id,
         agentSettingsRevision: null,
-        judgeModel: AgentModel.Gemini25Pro,
+        judgeModel: AgentModel.Gemini35Flash,
         judgeInstructions: null,
       },
     })
@@ -108,14 +108,49 @@ describe("EvaluationConversationRuns - createOne", () => {
     expect(res.body.data.status).toBe("pending")
     expect(res.body.data.evaluationConversationDatasetId).toBe(dataset.id)
     expect(res.body.data.agentId).toBe(agent.id)
-    expect(res.body.data.judgeModel).toBe(AgentModel.Gemini25Pro)
+    expect(res.body.data.judgeModel).toBe(AgentModel.Gemini35Flash)
     expect(res.body.data.judgeInstructions).toBeNull()
     expect(res.body.data.summary).toBeNull()
 
     const runs = await evaluationConversationRunRepository.find()
     expect(runs).toHaveLength(1)
-    expect(runs[0]!.judgeModel).toBe(AgentModel.Gemini25Pro)
+    expect(runs[0]!.judgeModel).toBe(AgentModel.Gemini35Flash)
     await expectActivityCreated("evaluationConversationRun.create")
+  })
+
+  it("rejects a judge model behind a feature flag the project lacks", async () => {
+    const { dataset, agent } = await createContext()
+
+    const res = await subject({
+      payload: {
+        datasetId: dataset.id,
+        agentId: agent.id,
+        agentSettingsRevision: null,
+        judgeModel: AgentModel.Gemma4_26B,
+        judgeInstructions: null,
+      },
+    })
+
+    expectResponse(res, 400)
+    expect(await evaluationConversationRunRepository.find()).toHaveLength(0)
+  })
+
+  it("rejects a judge model past its deprecation date", async () => {
+    const { dataset, agent } = await createContext()
+
+    // Gemini 2.5 was deprecated on 2026-09-30.
+    const res = await subject({
+      payload: {
+        datasetId: dataset.id,
+        agentId: agent.id,
+        agentSettingsRevision: null,
+        judgeModel: AgentModel.Gemini25Pro,
+        judgeInstructions: null,
+      },
+    })
+
+    expectResponse(res, 400)
+    expect(await evaluationConversationRunRepository.find()).toHaveLength(0)
   })
 
   it("should persist trimmed judge instructions and store blank ones as null", async () => {
@@ -126,7 +161,7 @@ describe("EvaluationConversationRuns - createOne", () => {
         datasetId: dataset.id,
         agentId: agent.id,
         agentSettingsRevision: null,
-        judgeModel: AgentModel.Gemini25Flash,
+        judgeModel: AgentModel.Gemini31FlashLite,
         judgeInstructions: "  Grade strictly on factual accuracy.  ",
       },
     })
@@ -139,7 +174,7 @@ describe("EvaluationConversationRuns - createOne", () => {
         datasetId: dataset.id,
         agentId: agent.id,
         agentSettingsRevision: null,
-        judgeModel: AgentModel.Gemini25Flash,
+        judgeModel: AgentModel.Gemini31FlashLite,
         judgeInstructions: "   ",
       },
     })
@@ -161,7 +196,7 @@ describe("EvaluationConversationRuns - createOne", () => {
         datasetId: dataset.id,
         agentId: agent.id,
         agentSettingsRevision: null,
-        judgeModel: AgentModel.Gemini25Flash,
+        judgeModel: AgentModel.Gemini31FlashLite,
         judgeInstructions: 123 as unknown as string,
       },
     })
@@ -179,7 +214,7 @@ describe("EvaluationConversationRuns - createOne", () => {
         datasetId: dataset.id,
         agentId: agent.id,
         agentSettingsRevision: null,
-        judgeModel: AgentModel.Gemini25Flash,
+        judgeModel: AgentModel.Gemini31FlashLite,
         judgeInstructions: "a".repeat(
           EVALUATION_CONVERSATION_RUN_JUDGE_INSTRUCTIONS_MAX_LENGTH + 1,
         ),
@@ -203,7 +238,7 @@ describe("EvaluationConversationRuns - createOne", () => {
         datasetId: dataset.id,
         agentId: agent.id,
         agentSettingsRevision: null,
-        judgeModel: AgentModel.Gemini25Flash,
+        judgeModel: AgentModel.Gemini31FlashLite,
         judgeInstructions: null,
       },
     })
@@ -226,7 +261,7 @@ describe("EvaluationConversationRuns - createOne", () => {
         datasetId: dataset.id,
         agentId: agent.id,
         agentSettingsRevision: 1,
-        judgeModel: AgentModel.Gemini25Flash,
+        judgeModel: AgentModel.Gemini31FlashLite,
         judgeInstructions: null,
       },
     })
@@ -246,7 +281,7 @@ describe("EvaluationConversationRuns - createOne", () => {
         datasetId: dataset.id,
         agentId: agent.id,
         agentSettingsRevision: 999,
-        judgeModel: AgentModel.Gemini25Flash,
+        judgeModel: AgentModel.Gemini31FlashLite,
         judgeInstructions: null,
       },
     })
@@ -264,7 +299,7 @@ describe("EvaluationConversationRuns - createOne", () => {
         datasetId: "00000000-0000-0000-0000-000000000000",
         agentId: agent.id,
         agentSettingsRevision: null,
-        judgeModel: AgentModel.Gemini25Flash,
+        judgeModel: AgentModel.Gemini31FlashLite,
         judgeInstructions: null,
       },
     })
@@ -280,7 +315,7 @@ describe("EvaluationConversationRuns - createOne", () => {
         datasetId: dataset.id,
         agentId: "00000000-0000-0000-0000-000000000000",
         agentSettingsRevision: null,
-        judgeModel: AgentModel.Gemini25Flash,
+        judgeModel: AgentModel.Gemini31FlashLite,
         judgeInstructions: null,
       },
     })
@@ -296,7 +331,7 @@ describe("EvaluationConversationRuns - createOne", () => {
         datasetId: dataset.id,
         agentId: agent.id,
         agentSettingsRevision: null,
-        judgeModel: AgentModel.Gemini25Flash,
+        judgeModel: AgentModel.Gemini31FlashLite,
         judgeInstructions: null,
       },
     })

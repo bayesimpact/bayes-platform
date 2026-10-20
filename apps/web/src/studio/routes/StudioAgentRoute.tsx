@@ -1,6 +1,9 @@
 import { selectAgentSettingsDataByAgentId } from "@/common/features/agents/agent-settings/agent-settings.selectors"
 import { agentSettingsActions } from "@/common/features/agents/agent-settings/agent-settings.slice"
-import { selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
+import {
+  selectAvailableModelsData,
+  selectCurrentAgentData,
+} from "@/common/features/agents/agents.selectors"
 import { DeprecatedModelBanner } from "@/common/features/agents/components/DeprecatedModelBanner"
 import { useMount } from "@/common/hooks/use-mount"
 import { useValue } from "@/common/hooks/use-value"
@@ -18,9 +21,10 @@ export function StudioAgentRoute({ children }: { children: React.ReactNode }) {
   const agentSettings = useAppSelector(
     selectAgentSettingsDataByAgentId({ agentId: agent.id, includeDraft: true }),
   )
+  const agentModels = useAppSelector(selectAvailableModelsData)
 
   return (
-    <AsyncRoute data={[agentSettings]}>
+    <AsyncRoute data={[agentSettings, agentModels]}>
       <WithData agentId={agent.id}>{children}</WithData>
     </AsyncRoute>
   )

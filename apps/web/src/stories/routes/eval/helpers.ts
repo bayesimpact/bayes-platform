@@ -1,4 +1,5 @@
 import { DEFAULT_PAGE_SIZE } from "@/common/components/shared/RecordTableParts"
+import { agentModelsCatalogFactory } from "@/common/features/agents/agent.factory"
 import type { Agent } from "@/common/features/agents/agents.models"
 import type { IAgentsSpi } from "@/common/features/agents/agents.spi"
 import type {
@@ -79,6 +80,9 @@ export function buildMockAgentsService(overrides: { agents?: Agent[] } = {}): IA
     },
     async getAllWithDrafts() {
       return agents
+    },
+    async getAvailableModels() {
+      return agentModelsCatalogFactory.build()
     },
     async createOne() {
       throw new Error("createOne is not supported in eval stories")

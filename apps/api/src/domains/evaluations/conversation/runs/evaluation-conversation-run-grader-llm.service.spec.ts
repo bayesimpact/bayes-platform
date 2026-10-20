@@ -1,4 +1,4 @@
-import { AgentModel } from "@caseai-connect/api-contracts"
+import { AgentModel, AgentProvider } from "@caseai-connect/api-contracts"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import type { LLMProvider } from "@/common/interfaces/llm-provider.interface"
 import { EvaluationConversationRunGraderLlmService } from "./evaluation-conversation-run-grader-llm.service"
@@ -10,20 +10,29 @@ const connectScope: RequiredConnectScope = {
 
 describe("EvaluationConversationRunGraderLLMService", () => {
   let grader: EvaluationConversationRunGraderLlmService
-  let mockProvider: { generateText: jest.Mock }
-  let vertexProvider: { generateText: jest.Mock }
+  type FakeProvider = { generateText: jest.Mock; getInternalCallModelOptions: jest.Mock }
+  let mockProvider: FakeProvider
+  let vertexProvider: FakeProvider
+  let vertex3Provider: FakeProvider
+
+  // The internal call options each provider gives: a temperature of 0, nothing on Gemini 3.
+  const fakeProvider = (internalCallModelOptions: Record<string, unknown>): FakeProvider => ({
+    generateText: jest.fn(),
+    getInternalCallModelOptions: jest.fn(() => internalCallModelOptions),
+  })
 
   beforeEach(() => {
-    mockProvider = { generateText: jest.fn() }
-    vertexProvider = { generateText: jest.fn() }
-    grader = new EvaluationConversationRunGraderLlmService(
-      mockProvider as unknown as LLMProvider,
-      vertexProvider as unknown as LLMProvider,
-      vertexProvider as unknown as LLMProvider,
-      vertexProvider as unknown as LLMProvider,
-      vertexProvider as unknown as LLMProvider,
-      vertexProvider as unknown as LLMProvider,
-    )
+    mockProvider = fakeProvider({ temperature: 0 })
+    vertexProvider = fakeProvider({ temperature: 0 })
+    vertex3Provider = fakeProvider({})
+    grader = new EvaluationConversationRunGraderLlmService({
+      [AgentProvider._Mock]: mockProvider as unknown as LLMProvider,
+      [AgentProvider.Vertex]: vertexProvider as unknown as LLMProvider,
+      [AgentProvider.Vertex3]: vertex3Provider as unknown as LLMProvider,
+      [AgentProvider.Mistral]: vertexProvider as unknown as LLMProvider,
+      [AgentProvider.MedGemma]: vertexProvider as unknown as LLMProvider,
+      [AgentProvider.Gemma]: vertexProvider as unknown as LLMProvider,
+    })
   })
 
   const gradeWith = (
@@ -83,7 +92,7 @@ describe("EvaluationConversationRunGraderLLMService", () => {
     expect(vertexProvider.generateText).toHaveBeenCalledTimes(1)
     const callArguments = vertexProvider.generateText.mock.calls[0]![0]
     expect(callArguments.config.model).toBe(AgentModel.Gemini25Flash)
-    expect(callArguments.config.temperature).toBe(0)
+    expect(callArguments.config.modelOptions).toEqual({ temperature: 0 })
     expect(callArguments.prompt).toContain("<%ratingInstructions>")
     expect(callArguments.prompt).toContain("The expected answer")
     expect(callArguments.prompt).toContain("<%value>")
@@ -130,6 +139,18 @@ describe("EvaluationConversationRunGraderLLMService", () => {
     expect(vertexProvider.generateText).toHaveBeenCalledTimes(1)
     const callArguments = vertexProvider.generateText.mock.calls[0]![0]
     expect(callArguments.config.model).toBe(AgentModel.Gemini25Pro)
+  })
+
+  it("should run a Gemini 3 judge on the options its provider gives internal calls", async () => {
+    vertex3Provider.generateText.mockResolvedValue("3")
+
+    await gradeWith(AgentModel.Gemini25Flash, AgentModel.Gemini35Flash)
+
+    expect(vertex3Provider.getInternalCallModelOptions).toHaveBeenCalledWith(
+      AgentModel.Gemini35Flash,
+    )
+    const callArguments = vertex3Provider.generateText.mock.calls[0]![0]
+    expect(callArguments.config.modelOptions).toEqual({})
   })
 
   it("should swap to the mock model with a **TEST** tag when the generator uses the mock provider", async () => {

@@ -121,7 +121,7 @@ export function agentSessionControllerTestSetup() {
       .transient({ organization: testOrganization, project: testProject, agent: testAgent })
       .build({
         instructions: "You are a helpful assistant",
-        temperature: 0,
+        deletedTemperature: 0,
       })
     testAgentSettings = agentSettingsRepository.create(agentSettings)
     testAgentSettings = await agentSettingsRepository.save(testAgentSettings)

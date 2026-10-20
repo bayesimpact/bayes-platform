@@ -1,4 +1,8 @@
-import { AgentModel, type OAuthGrantablePermission } from "@caseai-connect/api-contracts"
+import {
+  AgentLocale,
+  AgentModel,
+  type OAuthGrantablePermission,
+} from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client"
 import type { INestApplication } from "@nestjs/common"
@@ -339,7 +343,7 @@ describe("MCP endpoint", () => {
       })
       await client.callTool({
         name: "update_agent",
-        arguments: { agentId, temperature: 0.5 },
+        arguments: { agentId, locale: AgentLocale.FR },
       })
 
       const revisions = await setup
@@ -349,8 +353,25 @@ describe("MCP endpoint", () => {
       expect(revisions[1]).toMatchObject({
         isDraft: true,
         model: AgentModel.Gemini38Flash,
-        temperature: 0.5,
+        locale: AgentLocale.FR,
       })
+      await client.close()
+    })
+
+    it("error when model is not available", async () => {
+      const { project } = await createContext()
+      const client = await connect(await grantAccess([project.id]))
+      const agentId = await createTestAgent(client, project.id)
+
+      const result = await client.callTool({
+        name: "update_agent",
+        arguments: { agentId, model: AgentModel.Gemini25Flash },
+      })
+
+      expect(result.isError).toBe(true)
+      expect(result.content).toEqual([
+        { type: "text", text: `Model ${AgentModel.Gemini25Flash} is no longer available` },
+      ])
       await client.close()
     })
   })

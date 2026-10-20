@@ -30,7 +30,7 @@ export enum AgentProvider {
   Vertex3 = "VERTEX-3",
   _Mock = "MOCK",
 }
-export const AgentModelToAgentProvider: Record<AgentModel, AgentProvider> = {
+export const AgentModelToAgentProvider = {
   [AgentModel.Gemini25Flash]: AgentProvider.Vertex,
   [AgentModel.Gemini25Pro]: AgentProvider.Vertex,
   [AgentModel.Gemini31FlashLite]: AgentProvider.Vertex3,
@@ -43,62 +43,33 @@ export const AgentModelToAgentProvider: Record<AgentModel, AgentProvider> = {
   [AgentModel.Gemma4_26B]: AgentProvider.Gemma,
   [AgentModel.MistralSmall31_24B]: AgentProvider.Mistral,
   [AgentModel._Mock]: AgentProvider._Mock,
-}
+} as const satisfies Record<AgentModel, AgentProvider>
+
+export type AgentModelOf<Provider extends AgentProvider> = {
+  [Model in AgentModel]: (typeof AgentModelToAgentProvider)[Model] extends Provider ? Model : never
+}[AgentModel]
+
 export type AgentModelDeprecation = {
   /** ISO date (YYYY-MM-DD) on which the provider retires the model. */
   deprecatedOn: string
   recommendedReplacement: AgentModel
 }
 
-/**
- * Per-model catalog. The fields are optional, but the map is exhaustive on purpose: adding a
- * model to `AgentModel` fails to compile until it has an entry here, so a new model can never
- * silently ship without deprecation metadata.
- *
- * Grouping `deprecatedOn` and `recommendedReplacement` in one object makes "deprecated implies a
- * replacement" a type invariant — no consumer has to render a dead end.
- */
-export type AgentModelMetadata = {
-  deprecation?: AgentModelDeprecation
-  /**
-   * `true` when the provider does not serve the model from the EU region. Such a model can only
-   * run through a global endpoint, which carries no EU data-processing guarantee. Absent means
-   * EU-served. This is the source of truth for both the API's endpoint routing and the UI label.
-   */
-  servedOutsideEu?: boolean
+export type AgentModelDto = {
+  model: AgentModel
+  provider: AgentProvider
+  isAvailable: boolean
+  deprecation: AgentModelDeprecation | null
+  servedOutsideEu: boolean
+  optionsSchema: Record<string, unknown>
+  defaultOptions: Record<string, unknown>
 }
 
-export const AgentModelMetadataMap: Record<AgentModel, AgentModelMetadata> = {
-  [AgentModel.Gemini25Flash]: {
-    deprecation: {
-      deprecatedOn: "2026-09-30",
-      recommendedReplacement: AgentModel.Gemini35FlashLite,
-    },
-  },
-  [AgentModel.Gemini25Pro]: {
-    deprecation: {
-      deprecatedOn: "2026-09-30",
-      recommendedReplacement: AgentModel.Gemini35Flash,
-    },
-  },
-  [AgentModel.Gemini31FlashLite]: {},
-  [AgentModel.Gemini35FlashLite]: {},
-  [AgentModel.Gemini35Flash]: {},
-  [AgentModel.Gemini36Flash]: {},
-  [AgentModel.Gemini37Flash]: {},
-  [AgentModel.Gemini38Flash]: {},
-  [AgentModel.MedGemma10_27B]: {},
-  [AgentModel.Gemma4_26B]: {},
-  [AgentModel.MistralSmall31_24B]: {},
-  [AgentModel._Mock]: {},
-}
-
-export enum AgentThinkingLevel {
-  Auto = "auto",
-  Minimal = "minimal",
-  Low = "low",
-  Medium = "medium",
-  High = "high",
+export type AgentModelListDto = {
+  /** Every model but the test one, available or not, in catalog order. */
+  models: AgentModelDto[]
+  /** The model a new agent starts on, and the one a new evaluation run is judged by. */
+  defaults: { agent: AgentModel; judge: AgentModel }
 }
 
 /**
@@ -111,35 +82,6 @@ export enum AgentMemoryMode {
   Off = "off",
   Ask = "ask",
   Auto = "auto",
-}
-
-/** Model every newly created agent and eval judge run starts on. */
-export const DEFAULT_AGENT_MODEL = AgentModel.Gemini35FlashLite
-
-/**
- * Same map, read as a plain string lookup. `agent_settings.model` is an unconstrained varchar and
- * a model leaves `AgentModel` once its provider retires it, so a stored value is not guaranteed to
- * be a live enum member. Going through this alias turns a stale row into a miss (`undefined`)
- * instead of a `TypeError` in whichever component happens to read it.
- */
-const agentModelMetadata: Partial<Record<string, AgentModelMetadata>> = AgentModelMetadataMap
-
-/**
- * Single read path for deprecation state. Returns `undefined` for a supported model, so callers
- * can branch on presence rather than on a model allow-list — a future deprecation is one entry
- * in `AgentModelMetadataMap` and no code change here or downstream.
- */
-export function getAgentModelDeprecation(model: string): AgentModelDeprecation | undefined {
-  return agentModelMetadata[model]?.deprecation
-}
-
-/**
- * Single read path for data residency: `true` only for a model the provider does not serve from
- * the EU. Unknown models answer `false`, which is the safe default for a label — it never claims
- * a residency guarantee the catalog does not state.
- */
-export function isAgentModelServedOutsideEu(model: string): boolean {
-  return agentModelMetadata[model]?.servedOutsideEu === true
 }
 
 export enum AgentLocale {
@@ -181,10 +123,9 @@ export type AgentSettingsDto = {
   projectAgentSessionCategoryIds: string[]
   resourceLibraryIds: string[]
   revision: number
-  temperature: AgentTemperature
+  providerOptions: Record<string, unknown>
   updatedAt: TimeType
   usedProjectAgentSessionCategoryIds: string[]
-  thinkingLevel: AgentThinkingLevel
   memoryMode: AgentMemoryMode
 }
 
@@ -277,20 +218,9 @@ export const agentSettingsValidationSchema = z.object({
   outputJsonSchema: outputJsonSchemaSchema.optional(),
   projectAgentSessionCategoryIds: z.array(z.string().uuid()),
   resourceLibraryIds: z.array(z.string().uuid()).optional(),
-  temperature: z
-    .float32()
-    .min(0)
-    .max(2)
-    .refine(
-      (temperatureValue) =>
-        temperatureValue >= 0 && temperatureValue <= 2 && Number.isFinite(temperatureValue),
-      "Temperature must be between 0.0 and 2.0",
-    ),
-  thinkingLevel: z.enum(AgentThinkingLevel),
   memoryMode: z.enum(AgentMemoryMode),
+  providerOptions: z.record(z.string(), z.unknown()),
 })
-
-export type AgentTemperature = z.infer<typeof agentSettingsValidationSchema.shape.temperature>
 
 export const refineOutputJsonSchema = {
   fn: (data: { type: AgentDto["type"]; outputJsonSchema?: AgentSettingsDto["outputJsonSchema"] }) =>
@@ -340,8 +270,6 @@ export const updateAgentSettingsSchema = agentSettingsValidationSchema
     outputJsonSchema: true,
     projectAgentSessionCategoryIds: true,
     resourceLibraryIds: true,
-    temperature: true,
-    thinkingLevel: true,
   })
   .extend({
     tagsToAdd: updateDocumentTagsSchema.required().shape.tagsToAdd,
@@ -370,7 +298,7 @@ export type UpdateAgentSettingsGeneralDto = z.infer<typeof updateAgentSettingsGe
 
 export const updateAgentSettingsModelSchema = agentSettingsValidationSchema.pick({
   model: true,
-  temperature: true,
+  providerOptions: true,
   priorityCallsEnabled: true,
 })
 export type UpdateAgentSettingsModelDto = z.infer<typeof updateAgentSettingsModelSchema>

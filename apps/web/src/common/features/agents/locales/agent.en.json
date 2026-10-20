@@ -66,7 +66,12 @@
       "deprecation": {
         "title": "ACTION REQUIRED: {{model}} is being retired on {{date}}",
         "description": "Update this agent to {{replacement}} and re-test it before that date. After it, runs on {{model}} will start failing."
-      }
+      },
+      "retirement": {
+        "title": "ACTION REQUIRED: {{model}} was retired on {{date}}",
+        "description": "Runs on {{model}} now fail. Update this agent to {{replacement}} and re-test it."
+      },
+      "unavailable": "This model is no longer available. Select a new model from the list."
     },
     "playground": "Playground",
     "notifications": {

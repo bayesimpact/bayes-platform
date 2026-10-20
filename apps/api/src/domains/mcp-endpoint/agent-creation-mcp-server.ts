@@ -2,13 +2,13 @@ import {
   AgentLocale,
   AgentModel,
   agentTypeSchema,
-  DEFAULT_AGENT_MODEL,
   duplicateAgentSchema,
   outputJsonSchemaSchema,
 } from "@caseai-connect/api-contracts"
 import { type CallToolResult, McpServer } from "@modelcontextprotocol/server"
 import { z } from "zod"
 import { getMcpServerTitle } from "@/config/mcp-server-title"
+import { AGENT_DEFAULT_MODELS } from "@/domains/agents/settings/agent-models.service"
 import type { McpAgentToolsService, McpCaller } from "./mcp-agent-tools.service"
 
 export const MCP_SERVER_NAME = "agents"
@@ -44,14 +44,11 @@ const createAgentInputSchema = z.object({
     .string()
     .min(1)
     .describe("System prompt: what the agent does, its tone and the rules it follows."),
-  model: z.enum(AgentModel).default(DEFAULT_AGENT_MODEL).describe("Language model of the agent."),
+  model: z
+    .enum(AgentModel)
+    .default(AGENT_DEFAULT_MODELS.agent)
+    .describe("Language model of the agent."),
   locale: z.enum(AgentLocale).default(AgentLocale.EN).describe("Language the agent speaks."),
-  temperature: z
-    .number()
-    .min(0)
-    .max(2)
-    .default(0)
-    .describe("Sampling temperature, from 0 (steady) to 2 (creative)."),
   greetingMessage: z
     .string()
     .max(2000)
@@ -86,12 +83,6 @@ const updateAgentInputSchema = z.object({
   agentId: z.uuid().describe("Id of the agent, from list_agents or create_agent."),
   model: z.enum(AgentModel).optional().describe("New language model of the agent."),
   instructions: z.string().min(1).optional().describe("New system prompt of the agent."),
-  temperature: z
-    .number()
-    .min(0)
-    .max(2)
-    .optional()
-    .describe("New sampling temperature, from 0 (steady) to 2 (creative)."),
   locale: z.enum(AgentLocale).optional().describe("New language of the agent."),
   greetingMessage: z
     .string()
@@ -189,7 +180,7 @@ export function buildAgentCreationMcpServer({
     {
       title: "Update agent",
       description:
-        "Changes the draft settings of an agent (model, instructions, temperature, language, greeting). Only the given settings change. Nothing is published: the user reviews and publishes the draft in the studio, from the returned link.",
+        "Changes the draft settings of an agent (model, instructions, language, greeting). Only the given settings change. Nothing is published: the user reviews and publishes the draft in the studio, from the returned link.",
       inputSchema: updateAgentInputSchema,
       outputSchema: z.looseObject({ agent: agentSchema.extend({ draftRevision: z.number() }) }),
       annotations: {

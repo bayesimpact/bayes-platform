@@ -1,6 +1,10 @@
-import { AgentModel, DEFAULT_AGENT_MODEL } from "@caseai-connect/api-contracts"
+import { AgentModel } from "@caseai-connect/api-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { agentFactory } from "@/common/features/agents/agent.factory"
+import {
+  agentFactory,
+  agentModelsCatalogFactory,
+  defaultAgentModels,
+} from "@/common/features/agents/agent.factory"
 import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"
 import type { IAgentSettingsSpi } from "@/common/features/agents/agent-settings/agent-settings.spi"
 import type { Agent } from "@/common/features/agents/agents.models"
@@ -39,7 +43,6 @@ function buildVersions(agentSettings: AgentSettings): AgentSettings[] {
       isDraft: false,
       name: "Stricter sourcing",
       description: "Requires the agent to cite a source for every factual claim.",
-      temperature: 0.2,
       instructions: `${agentSettings.instructions}\nAlways cite your sources.`,
     },
     {
@@ -57,6 +60,7 @@ function buildMockAgentsService(agents: Agent[]): IAgentsSpi {
   return {
     getAll: async () => agents,
     getAllWithDrafts: async () => agents,
+    getAvailableModels: async () => agentModelsCatalogFactory.build(),
     createOne: async () => {
       throw new Error("createOne is not supported in this story")
     },
@@ -144,7 +148,7 @@ export const ConversationAgent: Story = {
           name: "Helpful Assistant",
           revision: 3,
           isDraft: !!withDraft,
-          model: withDeprecatedModel ? AgentModel.Gemini25Flash : DEFAULT_AGENT_MODEL,
+          model: withDeprecatedModel ? AgentModel.Gemini25Flash : defaultAgentModels.agent,
           priorityCallsEnabled: !!withPriorityCalls,
         } as AgentSettings
         const childAgents = rawChildAgents.map((agent, index) => ({

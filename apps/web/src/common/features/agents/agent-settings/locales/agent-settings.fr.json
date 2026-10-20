@@ -72,7 +72,8 @@
         "model": "Sélectionnez le modèle",
         "outputJsonSchema": "{\n \"type\": \"object\", \"properties\": {\n    \"field\": { \"type\": \"string\", \"description\": \"blablabla\" }\n  },\n  \"required\": [\"field\"]\n}",
         "temperature": "Entrez la température 0.0 - 2.0",
-        "locale": "Sélectionnez la langue pour les réponses de l'agent"
+        "locale": "Sélectionnez la langue pour les réponses de l'agent",
+        "thinkingLevel": "Choisissez le niveau de réflexion"
       },
       "validation": {
         "nameMinLength": "Le nom doit comporter au moins 3 caractères",
@@ -80,7 +81,15 @@
         "temperatureInvalid": "La température doit être comprise entre 0,0 et 2,0",
         "outputJsonSchemaRequired": "Le schéma JSON de sortie est requis",
         "outputJsonSchemaInvalid": "Le schéma JSON de sortie doit être un objet JSON valide"
-      }
+      },
+      "thinkingLevel": "Niveau de réflexion",
+      "thinkingLevels": {
+        "minimal": "Minimal",
+        "low": "Faible",
+        "medium": "Moyen",
+        "high": "Élevé"
+      },
+      "modelOptions": "Options du modèle"
     },
     "defaultPromptDialog": {
       "title": "Instructions",

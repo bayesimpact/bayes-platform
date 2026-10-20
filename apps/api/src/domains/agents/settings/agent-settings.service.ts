@@ -1,3 +1,4 @@
+import type { AgentModel } from "@caseai-connect/api-contracts"
 import { Injectable, NotFoundException, UnprocessableEntityException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import { In, type Repository } from "typeorm"
@@ -11,6 +12,8 @@ import {
 import { DocumentTagsService } from "@/domains/documents/tags/document-tags.service"
 import type { DocumentTagsUpdateFields } from "@/domains/documents/tags/document-tags.types"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { ProjectRepository } from "@/domains/projects/project.repository"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ResourceLibrariesService } from "@/domains/resource-libraries/resource-libraries.service"
 import type { ResourceLibrary } from "@/domains/resource-libraries/resource-library.entity"
 import { Agent } from "../agent.entity"
@@ -19,6 +22,8 @@ import type { ConversationAgentSessionType } from "../base-agent-sessions/base-a
 import { AgentSessionCategoriesService } from "../session-categories/agent-session-categories.service"
 import { ProjectAgentSessionCategory } from "../session-categories/project-agent-session-category.entity"
 import type { AgentSettingsUpdateFields } from "./agent.settings.types"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentModelsService, type AvailableModels } from "./agent-models.service"
 import { AgentSettings } from "./agent-settings.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsRepository } from "./agent-settings.repository"
@@ -45,6 +50,10 @@ export class AgentSettingsService {
     private readonly documentTagsService: DocumentTagsService,
 
     private readonly resourceLibrariesService: ResourceLibrariesService,
+
+    private readonly agentModelsService: AgentModelsService,
+
+    private readonly projectRepository: ProjectRepository,
   ) {
     this.agentConnectRepository = new ConnectRepository(agentRepository, "agents")
     this.agentSettingsConnectRepository = new ConnectRepository(
@@ -306,8 +315,8 @@ export class AgentSettingsService {
           initialAgentSettings: last,
           modifiedAgentSettings: {
             ...agentSettings,
-            ...(agentSettings.temperature !== undefined && {
-              temperature: agentSettings.temperature,
+            ...(agentSettings.deletedTemperature !== undefined && {
+              deletedTemperature: agentSettings.deletedTemperature,
             }),
           },
         })
@@ -589,6 +598,77 @@ export class AgentSettingsService {
     if (value === undefined || value === null) return null
     const trimmed = value.trim()
     return trimmed.length === 0 ? null : trimmed
+  }
+
+  async getAvailableModels(connectScope: RequiredConnectScope): Promise<AvailableModels> {
+    return this.agentModelsService.getAvailableModelsForFeatures(
+      await this.listEnabledFeatures(connectScope),
+    )
+  }
+
+  async assertModelAvailable({
+    connectScope,
+    model,
+  }: {
+    connectScope: RequiredConnectScope
+    model: string
+  }): Promise<void> {
+    this.agentModelsService.assertAvailable({
+      features: await this.listEnabledFeatures(connectScope),
+      model,
+    })
+  }
+
+  /** The provider options a new agent on `model` stores, once the project may pick that model. */
+  async resolveNewAgentModelOptions({
+    connectScope,
+    model,
+    providerOptions,
+  }: {
+    connectScope: RequiredConnectScope
+    model: AgentModel
+    providerOptions: Record<string, unknown> | null | undefined
+  }): Promise<Record<string, unknown>> {
+    await this.assertModelAvailable({ connectScope, model })
+    return this.agentModelsService.resolveModelOptions({ model, providerOptions })
+  }
+
+  /**
+   * The update fields with their model choice checked. Keeping the current model is always
+   * allowed, even when the project lost access to it. New options are checked against the model,
+   * and a new model without options starts on its defaults, since the options of the previous one
+   * may not fit it.
+   */
+  async checkModelUpdate<
+    Fields extends { model?: AgentModel; providerOptions?: Record<string, unknown> | null },
+  >({
+    connectScope,
+    agentId,
+    fieldsToUpdate,
+  }: {
+    connectScope: RequiredConnectScope
+    agentId: string
+    fieldsToUpdate: Fields
+  }): Promise<Fields> {
+    if (fieldsToUpdate.model === undefined && fieldsToUpdate.providerOptions === undefined)
+      return fieldsToUpdate
+    const current = await this.getLast({ connectScope, agentId, includesDraft: true })
+    const model = fieldsToUpdate.model ?? current.model
+    const modelChanges =
+      fieldsToUpdate.model !== undefined && fieldsToUpdate.model !== current.model
+    if (modelChanges) await this.assertModelAvailable({ connectScope, model })
+    if (fieldsToUpdate.providerOptions === undefined && !modelChanges) return fieldsToUpdate
+    return {
+      ...fieldsToUpdate,
+      providerOptions: this.agentModelsService.resolveModelOptions({
+        model,
+        providerOptions: fieldsToUpdate.providerOptions,
+      }),
+    }
+  }
+
+  private listEnabledFeatures(connectScope: RequiredConnectScope) {
+    return this.projectRepository.listEnabledFeatures(connectScope.projectId)
   }
 }
 

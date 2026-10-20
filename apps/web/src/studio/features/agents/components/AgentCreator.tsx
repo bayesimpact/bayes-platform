@@ -15,8 +15,10 @@ import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { GridCard } from "@/common/components/grid/Grid"
+import { selectAvailableModelsCatalog } from "@/common/features/agents/agents.selectors"
 import type { Project } from "@/common/features/projects/projects.models"
-import { useAppDispatch } from "@/common/store/hooks"
+import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
+import { defaultModelOptions } from "@/studio/features/agents/agent-settings/components/tabs/model-tab.helpers"
 import { StudioRoutes } from "@/studio/routes/helpers"
 import {
   type AgentCreationChoice,
@@ -79,12 +81,20 @@ function AgentCreatorDialog({
     onOpenChange(nextOpen)
   }
 
-  const canCreate = name.trim().length >= minNameLength
+  // The catalog gives the model a new agent starts on; creating waits for it.
+  const catalog = useAppSelector(selectAvailableModelsCatalog)
+  const canCreate = name.trim().length >= minNameLength && catalog !== null
 
   const handleCreate = () => {
+    if (!catalog) return
     const language = i18n.language.startsWith("fr") ? AgentLocale.FR : AgentLocale.EN
     const fields: CreateAgentDto = {
-      ...getDefaultFormValues({ creationChoice: selectedChoice, language }),
+      ...getDefaultFormValues({
+        creationChoice: selectedChoice,
+        language,
+        defaultModel: catalog.defaults.agent,
+        defaultModelOptions: defaultModelOptions(catalog, catalog.defaults.agent),
+      }),
       name: name.trim(),
       projectAgentSessionCategoryIds: project.agentSessionCategories.map((category) => category.id),
     }

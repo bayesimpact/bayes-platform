@@ -1,80 +1,84 @@
-import {
-  AgentModel,
-  AgentModelMetadataMap,
-  DEFAULT_AGENT_MODEL,
-  getAgentModelDeprecation,
-  isAgentModelServedOutsideEu,
-} from "@caseai-connect/api-contracts"
+import { AgentModel, AgentProvider } from "@caseai-connect/api-contracts"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import type { HasFeature } from "@/common/hooks/use-feature-flags"
+import { agentModelsCatalogFactory } from "./agent.factory"
 import {
+  agentModelDeprecationStage,
   buildAgentModelDeprecationInterpolation,
   buildAgentModelOptions,
+  describeModelOptionFields,
+  findAgentModelEntry,
+  findModelOptionValue,
   formatAgentModelLabel,
   isPriorityCallsAvailable,
+  readModelOption,
+  writeModelOption,
 } from "./agent-model.helpers"
+import type { AgentModelsCatalog } from "./agents.models"
 
-describe("AgentModelMetadataMap", () => {
-  it("has an entry for every model", () => {
-    const missing = Object.values(AgentModel).filter((model) => !AgentModelMetadataMap[model])
+const catalog = agentModelsCatalogFactory.build()
 
-    expect(missing).toEqual([])
+/** The catalog with one model's entry changed, as the API would send it. */
+const catalogWith = (
+  model: AgentModel,
+  change: Partial<AgentModelsCatalog["models"][number]>,
+): AgentModelsCatalog => ({
+  ...catalog,
+  models: catalog.models.map((entry) => (entry.model === model ? { ...entry, ...change } : entry)),
+})
+
+describe("agent model catalog (as the API sends it)", () => {
+  it("starts a new agent and judges a new evaluation run on Gemini 3.5 Flash-Lite", () => {
+    expect(catalog.defaults).toEqual({
+      agent: AgentModel.Gemini35FlashLite,
+      judge: AgentModel.Gemini35FlashLite,
+    })
+  })
+
+  it("lists every model but the test one", () => {
+    expect(catalog.models.map((entry) => entry.model)).toEqual(
+      Object.values(AgentModel).filter((model) => model !== AgentModel._Mock),
+    )
   })
 
   it("never recommends a replacement that is itself deprecated", () => {
-    const selfDefeating = Object.values(AgentModel).filter((model) => {
-      const replacement = getAgentModelDeprecation(model)?.recommendedReplacement
-      return !!replacement && !!getAgentModelDeprecation(replacement)
+    const selfDefeating = catalog.models.filter((entry) => {
+      const replacement = entry.deprecation?.recommendedReplacement
+      return !!replacement && !!findAgentModelEntry(catalog, replacement)?.deprecation
     })
 
     expect(selfDefeating).toEqual([])
   })
 
-  it("uses ISO dates for every deprecation", () => {
-    const badDates = Object.values(AgentModel)
-      .map((model) => getAgentModelDeprecation(model)?.deprecatedOn)
-      .filter((date) => date !== undefined && !/^\d{4}-\d{2}-\d{2}$/.test(date))
-
-    expect(badDates).toEqual([])
-  })
-
   it("marks the gemini 2.5 models as deprecated on 2026-09-30", () => {
-    expect(getAgentModelDeprecation(AgentModel.Gemini25Flash)).toEqual({
+    expect(findAgentModelEntry(catalog, AgentModel.Gemini25Flash)?.deprecation).toEqual({
       deprecatedOn: "2026-09-30",
       recommendedReplacement: AgentModel.Gemini35FlashLite,
     })
-    expect(getAgentModelDeprecation(AgentModel.Gemini25Pro)).toEqual({
+    expect(findAgentModelEntry(catalog, AgentModel.Gemini25Pro)?.deprecation).toEqual({
       deprecatedOn: "2026-09-30",
       recommendedReplacement: AgentModel.Gemini35Flash,
     })
   })
 
-  it("does not deprecate the default model", () => {
-    expect(getAgentModelDeprecation(DEFAULT_AGENT_MODEL)).toBeUndefined()
-  })
-
-  it("treats a model that is no longer in the enum as not deprecated", () => {
-    // `agent_settings.model` is an unconstrained varchar, so a row can hold a model that has been
-    // dropped from `AgentModel` (exactly what retiring the 2.5 models will produce). Reading the
-    // catalog must answer "unknown", not throw — the banner renders inside the agent subtree and
-    // there is no error boundary above it.
-    expect(() => getAgentModelDeprecation("gemini-2.5-flash")).not.toThrow()
-    expect(getAgentModelDeprecation("gemini-1.5-flash-retired")).toBeUndefined()
-    expect(getAgentModelDeprecation("")).toBeUndefined()
+  it("does not deprecate the default models", () => {
+    expect(findAgentModelEntry(catalog, catalog.defaults.agent)?.deprecation).toBeNull()
+    expect(findAgentModelEntry(catalog, catalog.defaults.judge)?.deprecation).toBeNull()
   })
 
   it("reports no model as served outside the EU", () => {
-    // Verified 2026-09-04: every Gemini 3.x model answers on the EU regional endpoint.
-    const servedOutsideEu = Object.values(AgentModel).filter((model) =>
-      isAgentModelServedOutsideEu(model),
-    )
-
-    expect(servedOutsideEu).toEqual([])
+    expect(catalog.models.filter((entry) => entry.servedOutsideEu)).toEqual([])
   })
+})
 
-  it("treats an unknown model as EU-served rather than throwing", () => {
-    expect(() => isAgentModelServedOutsideEu("gemini-1.5-flash-retired")).not.toThrow()
-    expect(isAgentModelServedOutsideEu("gemini-1.5-flash-retired")).toBe(false)
+describe("findAgentModelEntry", () => {
+  it("finds nothing for a model that left the catalog, an empty one, or no catalog yet", () => {
+    // `agent_settings.model` is an unconstrained varchar, so a row can hold a model the catalog
+    // dropped: reading it must answer "unknown", not throw.
+    expect(findAgentModelEntry(catalog, "gemini-1.5-flash-retired")).toBeUndefined()
+    expect(findAgentModelEntry(catalog, "")).toBeUndefined()
+    expect(findAgentModelEntry(catalog, undefined)).toBeUndefined()
+    expect(findAgentModelEntry(null, AgentModel.Gemini25Flash)).toBeUndefined()
   })
 })
 
@@ -85,7 +89,7 @@ describe("buildAgentModelDeprecationInterpolation", () => {
   afterEach(() => vi.unstubAllGlobals())
 
   it("names the model, its replacement and its retirement date", () => {
-    const interpolation = buildAgentModelDeprecationInterpolation(AgentModel.Gemini25Pro)
+    const interpolation = buildAgentModelDeprecationInterpolation(AgentModel.Gemini25Pro, catalog)
 
     expect(interpolation).toMatchObject({
       model: AgentModel.Gemini25Pro,
@@ -95,78 +99,100 @@ describe("buildAgentModelDeprecationInterpolation", () => {
     expect(interpolation?.date).toMatch(/^30 \S+ 2026$/)
   })
 
-  it("returns undefined for a supported model and for no model at all", () => {
-    expect(buildAgentModelDeprecationInterpolation(DEFAULT_AGENT_MODEL)).toBeUndefined()
-    expect(buildAgentModelDeprecationInterpolation(undefined)).toBeUndefined()
+  it("names the replacement of the other deprecated model", () => {
+    expect(
+      buildAgentModelDeprecationInterpolation(AgentModel.Gemini25Flash, catalog),
+    ).toMatchObject({
+      model: AgentModel.Gemini25Flash,
+      replacement: AgentModel.Gemini35FlashLite,
+    })
+  })
+
+  it("returns undefined for a supported model, no model at all, or no catalog yet", () => {
+    expect(buildAgentModelDeprecationInterpolation(catalog.defaults.agent, catalog)).toBeUndefined()
+    expect(buildAgentModelDeprecationInterpolation(undefined, catalog)).toBeUndefined()
+    expect(buildAgentModelDeprecationInterpolation(AgentModel.Gemini25Flash, null)).toBeUndefined()
+  })
+})
+
+describe("agentModelDeprecationStage", () => {
+  it("announces the retirement once the API no longer offers a deprecated model", () => {
+    expect(agentModelDeprecationStage(AgentModel.Gemini25Flash, catalog)).toBe("retirement")
+  })
+
+  it("announces the deprecation while the API still offers the model", () => {
+    expect(
+      agentModelDeprecationStage(
+        AgentModel.Gemini25Flash,
+        catalogWith(AgentModel.Gemini25Flash, { isAvailable: true }),
+      ),
+    ).toBe("deprecation")
   })
 })
 
 describe("formatAgentModelLabel", () => {
   const labels = { deprecatedSuffix: "(deprecated)", nonEuSuffix: "(non-EU)" }
 
-  it("appends the deprecated suffix to a deprecated model", () => {
-    expect(formatAgentModelLabel(AgentModel.Gemini25Flash, labels)).toBe(
+  it("labels every offered model", () => {
+    const allFlags = agentModelsCatalogFactory
+      .transient({
+        flaggedProviders: [AgentProvider.MedGemma, AgentProvider.Gemma, AgentProvider.Mistral],
+      })
+      .build()
+
+    expect(
+      buildAgentModelOptions(allFlags).map((model) =>
+        formatAgentModelLabel(model, allFlags, labels),
+      ),
+    ).toEqual([
+      "gemini-3.1-flash-lite",
+      "gemini-3.5-flash-lite",
+      "gemini-3.5-flash",
+      "gemini-3.6-flash",
+      "gemini-3.7-flash",
+      "gemini-3.8-flash",
+      "google/medgemma-27b-it",
+      "google/gemma-4-26b-A4B-it",
+      "mistralai/Mistral-Small-3.1-24B-Instruct-2503",
+    ])
+  })
+
+  it("marks a retired model as deprecated, for an agent still on it", () => {
+    expect(formatAgentModelLabel(AgentModel.Gemini25Flash, catalog, labels)).toBe(
       "gemini-2.5-flash (deprecated)",
     )
   })
 
-  it("leaves a supported EU-served model untouched", () => {
-    expect(formatAgentModelLabel(AgentModel.Gemini35FlashLite, labels)).toBe(
-      "gemini-3.5-flash-lite",
-    )
-  })
-
   it("appends the residency suffix to a model served outside the EU", () => {
-    // No catalog entry carries the flag today, so it is seeded on the real catalog and restored.
-    const metadata = AgentModelMetadataMap[AgentModel.Gemini36Flash]
-    metadata.servedOutsideEu = true
-    try {
-      expect(formatAgentModelLabel(AgentModel.Gemini36Flash, labels)).toBe(
-        "gemini-3.6-flash (non-EU)",
-      )
-    } finally {
-      delete metadata.servedOutsideEu
-    }
-  })
-
-  it("does not mark the other vertex 3 models as non-EU", () => {
-    expect(formatAgentModelLabel(AgentModel.Gemini31FlashLite, labels)).toBe(
-      "gemini-3.1-flash-lite",
-    )
-    expect(formatAgentModelLabel(AgentModel.Gemini35Flash, labels)).toBe("gemini-3.5-flash")
-    expect(formatAgentModelLabel(AgentModel.Gemini36Flash, labels)).toBe("gemini-3.6-flash")
-    expect(formatAgentModelLabel(AgentModel.Gemini38Flash, labels)).toBe("gemini-3.8-flash")
+    expect(
+      formatAgentModelLabel(
+        AgentModel.Gemini36Flash,
+        catalogWith(AgentModel.Gemini36Flash, { servedOutsideEu: true }),
+        labels,
+      ),
+    ).toBe("gemini-3.6-flash (non-EU)")
   })
 
   it("appends both suffixes when a model is deprecated and served outside the EU", () => {
-    // No catalog entry carries either fact today, so both are seeded on the real catalog and
-    // restored: the assertion is about the formatter, not about the current data.
-    const metadata = AgentModelMetadataMap[AgentModel.Gemini36Flash]
-    const originalDeprecation = metadata.deprecation
-    metadata.servedOutsideEu = true
-    metadata.deprecation = {
-      deprecatedOn: "2027-01-01",
-      recommendedReplacement: AgentModel.Gemini35Flash,
-    }
-
-    try {
-      expect(formatAgentModelLabel(AgentModel.Gemini36Flash, labels)).toBe(
-        "gemini-3.6-flash (deprecated) (non-EU)",
-      )
-    } finally {
-      metadata.deprecation = originalDeprecation
-      delete metadata.servedOutsideEu
-    }
+    expect(
+      formatAgentModelLabel(
+        AgentModel.Gemini36Flash,
+        catalogWith(AgentModel.Gemini36Flash, {
+          servedOutsideEu: true,
+          deprecation: {
+            deprecatedOn: "2027-01-01",
+            recommendedReplacement: AgentModel.Gemini35Flash,
+          },
+        }),
+        labels,
+      ),
+    ).toBe("gemini-3.6-flash (deprecated) (non-EU)")
   })
 })
 
 describe("buildAgentModelOptions", () => {
-  const noFlags: HasFeature = () => false
-
-  it("always offers the vertex and vertex 3 models", () => {
-    expect(buildAgentModelOptions(noFlags)).toEqual([
-      AgentModel.Gemini25Flash,
-      AgentModel.Gemini25Pro,
+  it("offers the vertex 3 models when the project has no flag", () => {
+    expect(buildAgentModelOptions(catalog)).toEqual([
       AgentModel.Gemini31FlashLite,
       AgentModel.Gemini35FlashLite,
       AgentModel.Gemini35Flash,
@@ -176,27 +202,128 @@ describe("buildAgentModelOptions", () => {
     ])
   })
 
-  it("keeps the recommended replacements available with no flags enabled", () => {
-    const options = buildAgentModelOptions(noFlags)
-    const replacements = Object.values(AgentModel)
-      .map((model) => getAgentModelDeprecation(model)?.recommendedReplacement)
-      .filter((replacement) => replacement !== undefined)
+  it("keeps the recommended replacements and the default models available", () => {
+    const options = buildAgentModelOptions(catalog)
+    const replacements = catalog.models.flatMap((entry) =>
+      entry.deprecation ? [entry.deprecation.recommendedReplacement] : [],
+    )
 
-    for (const replacement of replacements) {
-      expect(options).toContain(replacement)
+    for (const model of [...replacements, catalog.defaults.agent, catalog.defaults.judge]) {
+      expect(options).toContain(model)
     }
   })
 
-  it("adds a flagged provider's models only when its flag is on", () => {
-    const options = buildAgentModelOptions((feature) => feature === "mistral")
+  it.each([
+    [AgentProvider.MedGemma, AgentModel.MedGemma10_27B],
+    [AgentProvider.Gemma, AgentModel.Gemma4_26B],
+    [AgentProvider.Mistral, AgentModel.MistralSmall31_24B],
+  ])("adds only the %s model once the API says it is available", (provider, model) => {
+    const options = buildAgentModelOptions(
+      agentModelsCatalogFactory.transient({ flaggedProviders: [provider] }).build(),
+    )
 
-    expect(options).toContain(AgentModel.MistralSmall31_24B)
-    expect(options).not.toContain(AgentModel.Gemma4_26B)
-    expect(options).not.toContain(AgentModel.MedGemma10_27B)
+    expect(options).toEqual([...buildAgentModelOptions(catalog), model])
+  })
+})
+
+describe("describeModelOptionFields", () => {
+  const fieldsOf = (model: AgentModel) =>
+    describeModelOptionFields(findAgentModelEntry(catalog, model))
+  const thinkingLevelPath = ["providerOptions", "vertex", "thinkingConfig", "thinkingLevel"]
+  const temperature = { minimum: 0, maximum: 2 }
+
+  it.each([
+    AgentModel.Gemini25Flash,
+    AgentModel.Gemini25Pro,
+    AgentModel.MedGemma10_27B,
+    AgentModel.Gemma4_26B,
+    AgentModel.MistralSmall31_24B,
+  ])("offers only a temperature for %s", (model) => {
+    expect(fieldsOf(model)).toEqual({ temperature })
   })
 
-  it("never offers the mock model", () => {
-    expect(buildAgentModelOptions(() => true)).not.toContain(AgentModel._Mock)
+  it.each([
+    AgentModel.Gemini31FlashLite,
+    AgentModel.Gemini35Flash,
+  ])("offers a temperature and every thinking level for %s", (model) => {
+    expect(fieldsOf(model)).toEqual({
+      temperature,
+      thinkingLevel: { path: thinkingLevelPath, levels: ["minimal", "low", "medium", "high"] },
+    })
+  })
+
+  it.each([
+    AgentModel.Gemini35FlashLite,
+    AgentModel.Gemini36Flash,
+  ])("offers only a thinking level for %s, whose temperature Google deprecated", (model) => {
+    expect(fieldsOf(model)).toEqual({
+      thinkingLevel: { path: thinkingLevelPath, levels: ["minimal", "low", "medium", "high"] },
+    })
+  })
+
+  it.each([
+    AgentModel.Gemini37Flash,
+    AgentModel.Gemini38Flash,
+  ])("offers the thinking levels %s accepts, without minimal", (model) => {
+    expect(fieldsOf(model)).toEqual({
+      thinkingLevel: { path: thinkingLevelPath, levels: ["low", "medium", "high"] },
+    })
+  })
+
+  it("offers nothing for a model that left the catalog", () => {
+    expect(describeModelOptionFields(undefined)).toEqual({})
+  })
+})
+
+describe("readModelOption and writeModelOption", () => {
+  const path = ["providerOptions", "vertex", "thinkingConfig", "thinkingLevel"]
+  const options = {
+    temperature: 1,
+    providerOptions: {
+      vertex: { thinkingConfig: { thinkingLevel: "medium", includeThoughts: true } },
+    },
+  }
+
+  it("reads a nested option, and nothing on a missing path", () => {
+    expect(readModelOption(options, path)).toBe("medium")
+    expect(readModelOption(options, ["temperature"])).toBe(1)
+    expect(readModelOption({}, path)).toBeUndefined()
+    expect(readModelOption(null, ["temperature"])).toBeUndefined()
+  })
+
+  it("writes a nested option on a copy, keeping its siblings", () => {
+    const written = writeModelOption(options, path, "high")
+
+    expect(written).toEqual({
+      temperature: 1,
+      providerOptions: {
+        vertex: { thinkingConfig: { thinkingLevel: "high", includeThoughts: true } },
+      },
+    })
+    expect(readModelOption(options, path)).toBe("medium")
+  })
+
+  it("creates the path when the options have none", () => {
+    expect(writeModelOption(null, ["temperature"], 0.5)).toEqual({ temperature: 0.5 })
+  })
+})
+
+describe("findModelOptionValue", () => {
+  const options = {
+    temperature: 0.3,
+    providerOptions: {
+      vertex: { thinkingConfig: { thinkingLevel: "low", includeThoughts: true } },
+    },
+  }
+
+  it("finds an option at the top level or nested by the provider", () => {
+    expect(findModelOptionValue(options, "temperature")).toBe(0.3)
+    expect(findModelOptionValue(options, "thinkingLevel")).toBe("low")
+  })
+
+  it("finds nothing in options that lack it, or in no options at all", () => {
+    expect(findModelOptionValue({ temperature: 0 }, "thinkingLevel")).toBeUndefined()
+    expect(findModelOptionValue(null, "temperature")).toBeUndefined()
   })
 })
 

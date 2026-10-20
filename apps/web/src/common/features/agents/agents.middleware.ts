@@ -1,7 +1,8 @@
 import { createListenerMiddleware } from "@reduxjs/toolkit"
 import type { AppDispatch, RootState } from "@/common/store/types"
 import { hasProjectChanged } from "../projects/projects.selectors"
-import { listAgents } from "./agents.thunks"
+import { agentsActions } from "./agents.slice"
+import { listAgents, listAvailableModels } from "./agents.thunks"
 
 /** Each interface decides whether its agent list carries the draft revisions. */
 export function createAgentsMiddleware({ includeDrafts }: { includeDrafts: boolean }) {
@@ -15,6 +16,14 @@ export function createAgentsMiddleware({ includeDrafts }: { includeDrafts: boole
       },
       effect: async (_, listenerApi) => {
         await listenerApi.dispatch(listAgents({ includeDrafts }))
+      },
+    })
+
+    // Only the routes that read the catalog mount it (Studio and Eval), so Desk never fetches it.
+    listenerMiddleware.startListening({
+      actionCreator: agentsActions.mountAvailableModels,
+      effect: async (_, listenerApi) => {
+        await listenerApi.dispatch(listAvailableModels())
       },
     })
   }

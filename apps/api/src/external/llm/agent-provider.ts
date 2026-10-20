@@ -1,6 +1,6 @@
 import { AgentModel, AgentModelToAgentProvider, AgentProvider } from "@caseai-connect/api-contracts"
 
-export function GetAgentModelKeyFromValue(model: string) {
+export function getAgentModelKey(model: string) {
   return Object.keys(AgentModel).find((key) => AgentModel[key as keyof typeof AgentModel] === model)
 }
 

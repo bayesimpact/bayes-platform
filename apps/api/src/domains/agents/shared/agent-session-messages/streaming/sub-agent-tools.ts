@@ -105,7 +105,7 @@ export async function buildSubAgentTools({
   tools: ToolSet
   toolDescriptions: Record<string, string>
   hasSubAgentTools: boolean
-  /** The handoff tools: a call ends the turn (see terminalToolsStopCondition). */
+  /** The handoff tools: a call ends the turn (see AISDKLLMToolsMgmt.terminalToolsStopCondition). */
   terminalToolNames: string[]
   /** The handoff links, for the post-turn check of a hand-over announced without its tool. */
   handoffCandidates: Array<{ toolName: string; agentId: string; agentName: string }>
@@ -311,12 +311,11 @@ async function runSubAgentTool({
     const config = buildLLMConfig({
       systemPrompt,
       model: childAgentSettings.model,
-      temperature: childAgentSettings.temperature,
+      modelOptions: childAgentSettings.providerOptions,
       tools,
       fireAndForgetToolNames,
       priorityCallsEnabled: childAgentSettings.priorityCallsEnabled,
       llmFeatures,
-      thinkingLevel: childAgentSettings.thinkingLevel,
     })
 
     const metadata = buildSubAgentMetadata({
@@ -368,7 +367,7 @@ async function runSubAgentTool({
                 buildLLMConfig({
                   systemPrompt: classifierSystemPrompt,
                   model: childAgentSettings.model,
-                  temperature: 0,
+                  modelOptions: provider.getInternalCallModelOptions(childAgentSettings.model),
                   priorityCallsEnabled: childAgentSettings.priorityCallsEnabled,
                   llmFeatures,
                 }),
