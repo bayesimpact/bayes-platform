@@ -1,7 +1,8 @@
 import { resolve } from "node:path"
 
-// Resolve path to api-contracts package
+// Resolve paths to the contracts packages
 const apiContractsPath = resolve(__dirname, "../../packages/api-contracts/src")
+const deskContractsPath = resolve(__dirname, "../../packages/desk-contracts/src")
 
 export const nestConfig = {
   collectCoverage: false,
@@ -45,6 +46,7 @@ export const nestConfig = {
     "^@/(.*)$": "<rootDir>/$1",
     "^@caseai-connect/api-contracts$": `${apiContractsPath}/index.ts`,
     "^@caseai-connect/api-contracts/(.*)$": `${apiContractsPath}/$1`,
+    "^@caseai-connect/desk-contracts$": `${deskContractsPath}/index.ts`,
   },
   setupFilesAfterEnv: ["<rootDir>/../jest.setup.ts"],
 }
