@@ -20,7 +20,7 @@
     "appHeadline": "{{name}} wants access to your Bayes workspace",
     "appVerifiedHint": "This app is registered by the platform.",
     "workspace": "Workspace",
-    "workspaceHint": "Choose one workspace. The app reaches only that workspace, as its own account.",
+    "workspaceHint": "The app will act there with its own account.",
     "cancelToApp": "Cancel and return to {{name}}",
     "cancelTerminal": "Cancel and return to the terminal",
     "appRevocability": "Access can be revoked at any time from this workspace's <settings>installed apps</settings>. {{name}} only reaches the workspace you select.",

@@ -20,7 +20,7 @@
     "appHeadline": "{{name}} demande l'accès à votre espace de travail Bayes",
     "appVerifiedHint": "Cette application est enregistrée par la plateforme.",
     "workspace": "Espace de travail",
-    "workspaceHint": "Choisissez un espace : l'application n'atteint que celui-ci, avec son propre compte.",
+    "workspaceHint": "L'application y agira avec son propre compte.",
     "cancelToApp": "Annuler et revenir à {{name}}",
     "cancelTerminal": "Annuler et revenir au terminal",
     "appRevocability": "L'accès peut être révoqué à tout moment depuis les <settings>applications installées</settings> de cet espace. {{name}} n'atteint que l'espace que vous sélectionnez.",
