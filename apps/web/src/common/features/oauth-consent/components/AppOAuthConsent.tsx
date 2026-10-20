@@ -41,6 +41,7 @@ import {
 } from "../oauth-consent.utils"
 import { AppPermissionIcon } from "./AppPermissionIcon"
 import { BayesCrossMark } from "./BayesCrossMark"
+import { ScrollFade } from "./ScrollFade"
 
 type FormValues = z.infer<typeof oauthConsentSchema>
 
@@ -262,44 +263,49 @@ function WorkspaceChoices({
   onChange: (projectId: string) => void
 }) {
   return (
-    <RadioGroup
-      value={value ?? ""}
-      onValueChange={onChange}
-      disabled={disabled}
-      className="flex max-h-64 flex-col gap-4 overflow-y-auto overscroll-contain"
-    >
-      {groupConsentProjectsByOrganization(projects).map((group) => (
-        <fieldset key={group.organizationId} className="flex flex-col gap-2">
-          <legend className="mb-1 text-[11px] font-medium tracking-wide text-[#a1a1aa] uppercase">
-            {group.organizationName}
-          </legend>
-          {group.projects.map((project) => {
-            const radioId = `oauth-workspace-${project.id}`
-            const selected = value === project.id
-            return (
-              <label
-                key={project.id}
-                htmlFor={radioId}
-                className={cn(
-                  "flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2.5 text-sm",
-                  selected
-                    ? "border-[#7c3aed] bg-[#f5f3ff]"
-                    : "border-[#e4e4e7] bg-white hover:border-[#d4d4d8]",
-                  disabled && "cursor-not-allowed opacity-60",
-                )}
-              >
-                <RadioGroupItem
-                  id={radioId}
-                  value={project.id}
-                  className={cn("border-[#d4d4d8]", selected && "border-[#7c3aed] text-[#7c3aed]")}
-                />
-                <span className="min-w-0 font-medium break-words">{project.name}</span>
-              </label>
-            )
-          })}
-        </fieldset>
-      ))}
-    </RadioGroup>
+    <ScrollFade className="max-h-64">
+      <RadioGroup
+        value={value ?? ""}
+        onValueChange={onChange}
+        disabled={disabled}
+        className="flex flex-col gap-4"
+      >
+        {groupConsentProjectsByOrganization(projects).map((group) => (
+          <fieldset key={group.organizationId} className="flex flex-col gap-2">
+            <legend className="mb-1 text-[11px] font-medium tracking-wide text-[#a1a1aa] uppercase">
+              {group.organizationName}
+            </legend>
+            {group.projects.map((project) => {
+              const radioId = `oauth-workspace-${project.id}`
+              const selected = value === project.id
+              return (
+                <label
+                  key={project.id}
+                  htmlFor={radioId}
+                  className={cn(
+                    "flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2.5 text-sm",
+                    selected
+                      ? "border-[#7c3aed] bg-[#f5f3ff]"
+                      : "border-[#e4e4e7] bg-white hover:border-[#d4d4d8]",
+                    disabled && "cursor-not-allowed opacity-60",
+                  )}
+                >
+                  <RadioGroupItem
+                    id={radioId}
+                    value={project.id}
+                    className={cn(
+                      "border-[#d4d4d8]",
+                      selected && "border-[#7c3aed] text-[#7c3aed]",
+                    )}
+                  />
+                  <span className="min-w-0 font-medium break-words">{project.name}</span>
+                </label>
+              )
+            })}
+          </fieldset>
+        ))}
+      </RadioGroup>
+    </ScrollFade>
   )
 }
 
@@ -323,49 +329,51 @@ function PermissionList({
 }) {
   const { t } = useTranslation("oauthConsent")
   return (
-    <ul className="flex max-h-[28rem] flex-col gap-3 overflow-y-auto overscroll-contain pe-1 [scrollbar-gutter:stable]">
-      {permissions.map((permission) => {
-        const copyKey = permission.replaceAll(".", "_")
-        const canGrant = available.has(permission)
-        const hint = canGrant ? null : unavailableHint
-        const checkboxId = `oauth-permission-${permission}`
-        return (
-          <li key={permission} className="flex items-start gap-3">
-            {readOnly ? null : (
-              <Checkbox
-                id={checkboxId}
-                className="mt-1.5 border-[#d4d4d8] data-[state=checked]:border-[#7c3aed] data-[state=checked]:bg-[#7c3aed] data-[state=checked]:text-white"
-                checked={selected.includes(permission)}
-                disabled={disabled || !canGrant}
-                onCheckedChange={(value) => onToggle(permission, value === true)}
-              />
-            )}
-            <AppPermissionIcon permission={permission} />
-            <div className="min-w-0 flex-1">
-              <label
-                htmlFor={readOnly ? undefined : checkboxId}
-                className={cn("block", !readOnly && canGrant && "cursor-pointer")}
-              >
-                <p
-                  className={cn(
-                    "text-sm font-semibold",
-                    !canGrant && !readOnly && "text-[#a1a1aa]",
-                  )}
+    <ScrollFade className="max-h-[28rem] pe-1 [scrollbar-gutter:stable]">
+      <ul className="flex flex-col gap-3">
+        {permissions.map((permission) => {
+          const copyKey = permission.replaceAll(".", "_")
+          const canGrant = available.has(permission)
+          const hint = canGrant ? null : unavailableHint
+          const checkboxId = `oauth-permission-${permission}`
+          return (
+            <li key={permission} className="flex items-start gap-3">
+              {readOnly ? null : (
+                <Checkbox
+                  id={checkboxId}
+                  className="mt-1.5 border-[#d4d4d8] data-[state=checked]:border-[#7c3aed] data-[state=checked]:bg-[#7c3aed] data-[state=checked]:text-white"
+                  checked={selected.includes(permission)}
+                  disabled={disabled || !canGrant}
+                  onCheckedChange={(value) => onToggle(permission, value === true)}
+                />
+              )}
+              <AppPermissionIcon permission={permission} />
+              <div className="min-w-0 flex-1">
+                <label
+                  htmlFor={readOnly ? undefined : checkboxId}
+                  className={cn("block", !readOnly && canGrant && "cursor-pointer")}
                 >
-                  {t(`appPermission.${copyKey}.name`, { defaultValue: permission })}
-                </p>
-                <p className="text-sm text-[#71717a]">
-                  {hint ?? t(`appPermission.${copyKey}.description`, { defaultValue: "" })}
-                </p>
-              </label>
-              <code className="mt-1 inline-block max-w-full break-all rounded-md bg-[#f4f4f6] px-2 py-0.5 font-mono text-[11px] text-[#71717a]">
-                {permission}
-              </code>
-            </div>
-          </li>
-        )
-      })}
-    </ul>
+                  <p
+                    className={cn(
+                      "text-sm font-semibold",
+                      !canGrant && !readOnly && "text-[#a1a1aa]",
+                    )}
+                  >
+                    {t(`appPermission.${copyKey}.name`, { defaultValue: permission })}
+                  </p>
+                  <p className="text-sm text-[#71717a]">
+                    {hint ?? t(`appPermission.${copyKey}.description`, { defaultValue: "" })}
+                  </p>
+                </label>
+                <code className="mt-1 inline-block max-w-full break-all rounded-md bg-[#f4f4f6] px-2 py-0.5 font-mono text-[11px] text-[#71717a]">
+                  {permission}
+                </code>
+              </div>
+            </li>
+          )
+        })}
+      </ul>
+    </ScrollFade>
   )
 }
 

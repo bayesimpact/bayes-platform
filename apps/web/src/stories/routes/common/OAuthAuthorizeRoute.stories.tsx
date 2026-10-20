@@ -1,3 +1,5 @@
+import { APP_GRANTABLE_PERMISSIONS } from "@caseai-connect/api-contracts"
+import { faker } from "@faker-js/faker"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { Provider } from "react-redux"
 import { createMemoryRouter, RouterProvider } from "react-router-dom"
@@ -17,6 +19,7 @@ type StoryArgs = {
   verified: boolean
   withProjects: boolean
   singleWorkspace: boolean
+  manyItems: boolean
   invalidRequest: boolean
 }
 
@@ -62,7 +65,30 @@ const appWorkspaces = [
   }),
 ]
 
-function buildPage({ kind, verified, withProjects, singleWorkspace }: StoryArgs) {
+const manyAppWorkspaces = [
+  { organizationName: "Acme", names: ["Support", "Pricing", "Sales", "Marketing", "Finance"] },
+  { organizationName: "Globex", names: ["Product", "Design", "Research", "Engineering"] },
+  { organizationName: "Initech", names: ["Operations", "Legal", "Onboarding", "Partners"] },
+].flatMap(({ organizationName, names }) => {
+  const organizationId = faker.string.uuid()
+  return names.map((name) =>
+    oauthConsentProjectFactory.build({
+      name,
+      organizationId,
+      organizationName,
+      availablePermissions: [...APP_GRANTABLE_PERMISSIONS],
+    }),
+  )
+})
+
+function appWorkspacesFor({ withProjects, singleWorkspace, manyItems }: StoryArgs) {
+  if (!withProjects) return []
+  if (manyItems) return manyAppWorkspaces
+  return singleWorkspace ? appWorkspaces.slice(0, 1) : appWorkspaces
+}
+
+function buildPage(args: StoryArgs) {
+  const { kind, verified } = args
   if (kind === "app") {
     return oauthConsentPageFactory.build({
       client: {
@@ -72,15 +98,15 @@ function buildPage({ kind, verified, withProjects, singleWorkspace }: StoryArgs)
         verified,
         description: "Keeps the workspace's documents in sync with a website.",
       },
-      projects: withProjects ? (singleWorkspace ? appWorkspaces.slice(0, 1) : appWorkspaces) : [],
-      grantablePermissions: appPermissions,
+      projects: appWorkspacesFor(args),
+      grantablePermissions: args.manyItems ? [...APP_GRANTABLE_PERMISSIONS] : appPermissions,
     })
   }
   return oauthConsentPageFactory.build({
     client: verified
       ? { name: "Helpful Assistant", redirectHost: "app.example.com", verified: true }
       : { name: "Helpful Assistant", redirectHost: "127.0.0.1", verified: false },
-    projects: withProjects ? projects : [],
+    projects: args.withProjects ? projects : [],
   })
 }
 
@@ -111,6 +137,7 @@ const meta = {
     verified: { control: "boolean" },
     withProjects: { control: "boolean" },
     singleWorkspace: { control: "boolean" },
+    manyItems: { control: "boolean" },
     invalidRequest: { control: "boolean" },
   },
   args: {
@@ -118,6 +145,7 @@ const meta = {
     verified: true,
     withProjects: true,
     singleWorkspace: false,
+    manyItems: false,
     invalidRequest: false,
   },
   render: renderRoute,
@@ -148,6 +176,11 @@ export const AppInstallUnverified: Story = {
 
 export const AppInstallOneWorkspace: Story = {
   args: { kind: "app", singleWorkspace: true },
+}
+
+/** More workspaces and permissions than fit: both lists scroll, and their edges fade while they do. */
+export const AppInstallManyItems: Story = {
+  args: { kind: "app", manyItems: true },
 }
 
 export const AppInstallNoWorkspaces: Story = {
