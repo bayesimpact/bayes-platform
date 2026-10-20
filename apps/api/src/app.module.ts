@@ -20,6 +20,7 @@ import { ProjectsAnalyticsModule } from "./domains/analytics/projects-analytics/
 import { AppsModule } from "./domains/apps/apps.module"
 import { AuthModule } from "./domains/auth/auth.module"
 import { BackofficeModule } from "./domains/backoffice/backoffice.module"
+import { DeskModule } from "./domains/desk/desk.module"
 import { DocumentsModule } from "./domains/documents/documents.module"
 import { StorageModule } from "./domains/documents/storage/storage.module"
 import { DocumentTagsModule } from "./domains/documents/tags/document-tags.module"
@@ -63,6 +64,7 @@ import { UsersModule } from "./domains/users/users.module"
     AuthModule,
     BackofficeModule,
     ConversationAgentSessionsModule,
+    DeskModule,
     DiagnosticsModule,
     HealthModule,
     DocumentsModule,

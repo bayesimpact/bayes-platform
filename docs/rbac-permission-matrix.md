@@ -70,6 +70,8 @@ The `project.app_installation.*` permissions are not inherited either: project o
 
 The `project.review_campaign.*` permissions are not inherited either: an organization role does not open a project's review campaigns. Managing them, inviting testers and reviewers and removing them stays with project owners and admins. `review_campaign.report.read` is granted on project owners and admins and passes down to every campaign of the project (see Review campaign roles).
 
+`desk.ui.read` picks the projects the Desk's home lists, and the API checks it on every Desk route that names a project, on top of the route's own permission. No review campaign role gives it, so campaign testers and reviewers stay out of the Desk. On a Desk route that names an agent, the caller also needs `agent.read` on that agent: project owners and admins hold it, and a project member gets it from an agent membership. Without it, the route answers 404.
+
 | Permission | `project_owner` | `project_admin` | `project_member` |
 |---|---|---|---|
 | `project.read` | ✅ | ✅ | ✅ |

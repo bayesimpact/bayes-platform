@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto"
-import { defineSchemaRoute } from "@caseai-connect/desk-contracts"
+import { defineSchemaRoute, errorOutputSchema } from "@caseai-connect/desk-contracts"
 import { Controller, type INestApplication, Logger, Module } from "@nestjs/common"
 import supertest from "supertest"
 import type { App } from "supertest/types"
@@ -25,6 +25,9 @@ import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { SchemaInput, type SchemaRouteInput } from "../schema-input.decorator"
 import { SchemaRoute, SIGNED_IN } from "../schema-route.decorator"
+
+/** The issues of an error body, parsed with the error schema the Desk reads. */
+const readIssues = (body: unknown) => errorOutputSchema.parse(body).issues
 
 const TestRoutes = {
   getItem: defineSchemaRoute({
@@ -144,7 +147,7 @@ describe("SchemaRoute", () => {
   it("answers 400 with the issues for a malformed path param", async () => {
     const response = await getItem("not-a-uuid", { page: "0" })
     expectResponse(response, 400)
-    expect(response.body).toMatchObject({
+    expect(errorOutputSchema.parse(response.body)).toMatchObject({
       statusCode: 400,
       error: "Bad Request",
       issues: [{ path: ["params", "itemId"], code: "invalid_format" }],
@@ -154,11 +157,11 @@ describe("SchemaRoute", () => {
   it("answers 400 for a missing or unknown query value", async () => {
     const missing = await getItem(randomUUID(), {})
     expectResponse(missing, 400)
-    expect(missing.body.issues).toMatchObject([{ path: ["query", "page"] }])
+    expect(readIssues(missing.body)).toMatchObject([{ path: ["query", "page"] }])
 
     const unknown = await getItem(randomUUID(), { page: "0", sort: "name" })
     expectResponse(unknown, 400)
-    expect(unknown.body.issues).toMatchObject([{ path: ["query"], code: "unrecognized_keys" }])
+    expect(readIssues(unknown.body)).toMatchObject([{ path: ["query"], code: "unrecognized_keys" }])
   })
 
   it("answers 400 when a body reaches a route that reads none", async () => {
@@ -168,7 +171,7 @@ describe("SchemaRoute", () => {
       .set("Authorization", "Bearer token")
       .send({ payload: { title: "Unexpected" } })
     expectResponse(response, 400)
-    expect(response.body.issues).toMatchObject([{ path: ["body"], code: "unrecognized_keys" }])
+    expect(readIssues(response.body)).toMatchObject([{ path: ["body"], code: "unrecognized_keys" }])
   })
 
   it("reads the payload of a body and refuses unknown keys in it", async () => {
@@ -185,13 +188,13 @@ describe("SchemaRoute", () => {
       .set("Authorization", "Bearer token")
       .send({ payload: { title: "Weekly report", color: "red" } })
     expectResponse(refused, 400)
-    expect(refused.body.issues).toMatchObject([{ path: ["body"], code: "unrecognized_keys" }])
+    expect(readIssues(refused.body)).toMatchObject([{ path: ["body"], code: "unrecognized_keys" }])
 
     const empty = await supertest(app.getHttpServer())
       .post(TestRoutes.createItem.path)
       .set("Authorization", "Bearer token")
     expectResponse(empty, 400)
-    expect(empty.body.issues).toMatchObject([{ path: ["body"] }])
+    expect(readIssues(empty.body)).toMatchObject([{ path: ["body"] }])
   })
 
   it("logs the issue paths and answers 500 when a response breaks its contract", async () => {
@@ -216,7 +219,7 @@ describe("SchemaRoute", () => {
     it("parses the params before any resolver runs", async () => {
       const response = await getOrganization("not-a-uuid")
       expectResponse(response, 400)
-      expect(response.body.issues).toMatchObject([{ path: ["params", "organizationId"] }])
+      expect(readIssues(response.body)).toMatchObject([{ path: ["params", "organizationId"] }])
     })
 
     it("resolves the resource the path names and checks the permission on it", async () => {
