@@ -19,10 +19,7 @@ export interface ITesterSpi {
   listMyCampaigns(): Promise<MyReviewCampaign[]>
   getTesterContext(params: CampaignScope): Promise<TesterContext>
   listMyTesterSessions(params: CampaignScope): Promise<MyTesterSessionSummary[]>
-  startSession(
-    params: CampaignScope,
-    payload: { type: "playground" | "live" },
-  ): Promise<StartTesterSessionResult>
+  startSession(params: CampaignScope): Promise<StartTesterSessionResult>
   submitFeedback(
     params: SessionScope,
     payload: SubmitTesterFeedbackFields,

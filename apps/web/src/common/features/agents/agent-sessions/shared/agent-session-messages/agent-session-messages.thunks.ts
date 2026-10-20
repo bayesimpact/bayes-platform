@@ -6,7 +6,7 @@ import type { RootState, ThunkExtraArg } from "@/common/store"
 import { generateId } from "@/common/utils/generate-id"
 import type { ConversationAgentSession } from "../../conversation/conversation-agent-sessions.models"
 import { conversationAgentSessionsActions } from "../../conversation/conversation-agent-sessions.slice"
-import { buildType } from "../base-agent-session/base-agent-sessions.thunks"
+import { buildConversationType } from "../base-agent-session/base-agent-sessions.thunks"
 import type { AgentSessionMcpAppHtml, AgentSessionMessage } from "./agent-session-messages.models"
 import { selectStreaming } from "./agent-session-messages.selectors"
 import { agentSessionMessagesActions } from "./agent-session-messages.slice"
@@ -25,7 +25,7 @@ export const listMessages = createAsyncThunk<AgentSessionMessage[], string, Thun
     return services.agentSessionMessages.getAll({
       ...params,
       agentSessionId,
-      payload: { type: buildType() },
+      payload: { type: buildConversationType() },
     })
   },
 )
@@ -42,7 +42,7 @@ export const getMessage = createAsyncThunk<AgentSessionMessage, string, ThunkCon
     return services.agentSessionMessages.getOne({
       ...params,
       messageId,
-      payload: { type: buildType() },
+      payload: { type: buildConversationType() },
     })
   },
 )
@@ -63,7 +63,7 @@ export const listMcpAppHtml = createAsyncThunk<AgentSessionMcpAppHtml[], string,
       projectId,
       agentId,
       agentSessionId,
-      payload: { type: buildType() },
+      payload: { type: buildConversationType() },
     })
   },
 )
@@ -84,7 +84,7 @@ export const getAttachmentDocumentTemporaryUrl = createAsyncThunk<
     return services.agentSessionMessages.getAttachmentDocumentTemporaryUrl({
       ...params,
       attachmentDocumentId,
-      payload: { type: buildType() },
+      payload: { type: buildConversationType() },
     })
   },
 )
@@ -146,7 +146,7 @@ export const sendMessage = createAsyncThunk<
             agentId,
             agentSessionId,
             file,
-            payload: { type: buildType() },
+            payload: { type: buildConversationType() },
           })
         ).attachmentDocumentId
       } catch (error) {

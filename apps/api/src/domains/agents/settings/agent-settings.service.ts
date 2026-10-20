@@ -14,7 +14,7 @@ import type { DocumentTagsUpdateFields } from "@/domains/documents/tags/document
 import { ResourceLibrariesService } from "@/domains/resource-libraries/resource-libraries.service"
 import type { ResourceLibrary } from "@/domains/resource-libraries/resource-library.entity"
 import { Agent } from "../agent.entity"
-import type { BaseAgentSessionType } from "../base-agent-sessions/base-agent-sessions.types"
+import type { ConversationAgentSessionType } from "../base-agent-sessions/base-agent-sessions.types"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSessionCategoriesService } from "../session-categories/agent-session-categories.service"
 import { ProjectAgentSessionCategory } from "../session-categories/project-agent-session-category.entity"
@@ -124,8 +124,8 @@ export class AgentSettingsService {
    * A playground session with no explicit revision runs the draft when there is one. The Studio
    * playground renders before its settings history has loaded, so the client cannot always name
    * a revision, and defaulting that window to the published one would run a version the header
-   * does not claim. A live session keeps running the newest published revision: callers reject
-   * a revision on a live session before reaching here.
+   * does not claim. A live or review campaign tester session keeps running the newest published
+   * revision: callers reject a revision on those sessions before reaching here.
    */
   async getForSession({
     connectScope,
@@ -135,7 +135,7 @@ export class AgentSettingsService {
   }: {
     connectScope: RequiredConnectScope
     agentId: string
-    sessionType: BaseAgentSessionType
+    sessionType: ConversationAgentSessionType
     revision: number | undefined
   }): Promise<AgentSettings> {
     if (revision === undefined) {

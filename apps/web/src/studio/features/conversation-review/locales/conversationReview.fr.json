@@ -13,6 +13,7 @@
     "session": {
       "live": "Live",
       "playground": "Bac à sable",
+      "review_campaign_tester": "Campagne de revue",
       "subSession": "Sous-session",
       "purged": "Contenu supprimé par la politique de conservation",
       "startedAt": "Commencée le {{date}}",

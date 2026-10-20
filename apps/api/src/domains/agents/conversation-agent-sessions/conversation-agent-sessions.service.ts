@@ -6,7 +6,10 @@ import { v4 } from "uuid"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
-import type { BaseAgentSessionType } from "../base-agent-sessions/base-agent-sessions.types"
+import type {
+  BaseAgentSessionType,
+  ConversationAgentSessionType,
+} from "../base-agent-sessions/base-agent-sessions.types"
 import type { AgentSessionCategory } from "../session-categories/agent-session-category.entity"
 import { AgentMessage } from "../shared/agent-session-messages/agent-message.entity"
 import {
@@ -142,7 +145,7 @@ export class ConversationAgentSessionsService {
     agentId: string
     userId: string
     parentSessionId: string
-    type: BaseAgentSessionType
+    type: ConversationAgentSessionType
   }): Promise<ConversationAgentSession> {
     const existing = await this.conversationAgentSessionConnectRepository.find(connectScope, {
       where: { agentId, parentSessionId, type },
@@ -169,7 +172,7 @@ export class ConversationAgentSessionsService {
     connectScope: RequiredConnectScope
     agentSettingsId: string
     userId: string
-    type: BaseAgentSessionType
+    type: ConversationAgentSessionType
   }): Promise<ConversationAgentSession> {
     const agentSettings = await this.agentSettingsConnectRepository.getOneById(
       connectScope,

@@ -109,13 +109,11 @@ export class TesterController {
   @CheckPermission(REVIEW_CAMPAIGN_TESTER_SESSION_CREATE_PERMISSION, "review_campaign")
   async startTesterSession(
     @Req() request: EndpointRequestWithReviewCampaign,
-    @Body() { payload }: typeof ReviewCampaignsRoutes.startTesterSession.request,
   ): Promise<typeof ReviewCampaignsRoutes.startTesterSession.response> {
     const result = await this.testerService.startSession({
       connectScope: getRequiredConnectScope(request),
       campaign: request.reviewCampaign,
       userId: request.user.id,
-      type: payload.type,
     })
     return { data: result }
   }

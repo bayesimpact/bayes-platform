@@ -20,7 +20,8 @@ what a workspace sees of itself, served by the API with its permissions.
 | `feedback` | user feedback on an answer | `organization_id`, `project_id`, `agent_id`, `created_at` |
 
 `channel` is `public` (embed widget), `live` or `playground` (conversations in
-the app), `extraction` (document extraction runs), or `unknown` when the session
+the app), `review_campaign_tester` (a tester's conversations in a review
+campaign), `extraction` (document extraction runs), or `unknown` when the session
 is gone. Sub-agent sessions are not counted in `sessions`; their messages are in
 `messages` with the channel of their conversation.
 

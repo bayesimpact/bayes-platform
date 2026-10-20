@@ -35,7 +35,7 @@ const testerApi = {
     return response.data.data.sessions
   },
 
-  startSession: async ({ organizationId, projectId, reviewCampaignId }, payload) => {
+  startSession: async ({ organizationId, projectId, reviewCampaignId }) => {
     const axios = getAxiosInstance()
     const response = await axios.post<typeof ReviewCampaignsRoutes.startTesterSession.response>(
       ReviewCampaignsRoutes.startTesterSession.getPath({
@@ -43,7 +43,7 @@ const testerApi = {
         projectId,
         reviewCampaignId,
       }),
-      { payload },
+      { payload: {} } satisfies typeof ReviewCampaignsRoutes.startTesterSession.request,
     )
     return response.data.data
   },

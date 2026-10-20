@@ -701,6 +701,19 @@ describe("Tools execution", () => {
       ToolName.SaveMemory,
     )
 
+    // A relay sub-session of a tester's conversation carries the type but not the campaign.
+    const reviewCampaignSubSession = {
+      ...scope,
+      session: {
+        ...scope.session,
+        type: "review_campaign_tester",
+        campaignId: null,
+      } as ConversationAgentSession,
+    }
+    expect((await buildToolNames(reviewCampaignSubSession)).toolNames).not.toContain(
+      ToolName.SaveMemory,
+    )
+
     const embedVisitor = {
       ...scope,
       session: {

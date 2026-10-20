@@ -124,7 +124,7 @@ export const myTesterSessionSummaryFactory = MyTesterSessionSummaryFactory.defin
     agentType: params.agentType ?? "conversation",
     feedbackStatus: params.feedbackStatus ?? "pending",
     forms: (params.forms as MyTesterSessionSummaryDto["forms"] | undefined) ?? [],
-    type: params.type ?? "live",
+    type: params.type ?? "review_campaign_tester",
     agentId: params.agentId ?? faker.string.uuid(),
     createdAt: params.createdAt ?? time,
     updatedAt: params.updatedAt ?? time,
