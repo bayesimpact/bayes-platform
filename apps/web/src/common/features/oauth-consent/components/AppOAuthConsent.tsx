@@ -1,4 +1,5 @@
 import type { oauthConsentSchema } from "@caseai-connect/api-contracts"
+import { CardContent } from "@caseai-connect/ui/shad/card"
 import {
   Form,
   FormControl,
@@ -146,12 +147,14 @@ export function AppOAuthConsent({ request }: { request: OAuthAuthorizationReques
       />
 
       {outcome ? (
-        <p className="mt-6 text-sm text-[#71717a]">
-          {t(outcome === "approved" ? "installed" : "denied", { name: clientName })}
-        </p>
+        <CardContent>
+          <p className="text-sm text-[#71717a]">
+            {t(outcome === "approved" ? "installed" : "denied", { name: clientName })}
+          </p>
+        </CardContent>
       ) : page.projects.length === 0 ? (
-        <>
-          <p className="mt-6 text-sm text-[#71717a]">{t("noWorkspaces")}</p>
+        <CardContent>
+          <p className="text-sm text-[#71717a]">{t("noWorkspaces")}</p>
           {/* What the app asks for, so the person can tell an owner what to grant. */}
           <div className="mt-6 flex flex-col gap-3">
             <span className={SECTION_TITLE}>{t("permissions")}</span>
@@ -167,71 +170,73 @@ export function AppOAuthConsent({ request }: { request: OAuthAuthorizationReques
             />
           </div>
           <CancelLink clientName={clientName} redirectUri={request.redirect_uri} onCancel={deny} />
-        </>
+        </CardContent>
       ) : (
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onValid)} className="mt-6">
-            <FormField
-              control={form.control}
-              name="projectIds"
-              render={({ field }) => (
-                <FormItem className="gap-0">
-                  <FormLabel className={SECTION_TITLE}>{t("workspace")}</FormLabel>
-                  <FormDescription className={cn("mt-0.5", SECTION_HINT)}>
-                    {t("workspaceHint")}
-                  </FormDescription>
-                  {page.projects.length > MAX_WORKSPACE_ROWS ? (
-                    <WorkspaceSelect
-                      projects={page.projects}
-                      value={field.value[0] ?? null}
-                      disabled={isSubmitting}
-                      onChange={(projectId) => setProjectIds([projectId])}
-                    />
-                  ) : (
-                    <WorkspaceChoices
-                      projects={page.projects}
-                      value={field.value[0] ?? null}
-                      disabled={isSubmitting}
-                      onChange={(projectId) => setProjectIds([projectId])}
-                    />
-                  )}
-                  <FormMessage className="mt-2" />
-                </FormItem>
-              )}
-            />
+          <form onSubmit={form.handleSubmit(onValid)} className="flex flex-col gap-6">
+            <CardContent>
+              <FormField
+                control={form.control}
+                name="projectIds"
+                render={({ field }) => (
+                  <FormItem className="gap-0">
+                    <FormLabel className={SECTION_TITLE}>{t("workspace")}</FormLabel>
+                    <FormDescription className={cn("mt-0.5", SECTION_HINT)}>
+                      {t("workspaceHint")}
+                    </FormDescription>
+                    {page.projects.length > MAX_WORKSPACE_ROWS ? (
+                      <WorkspaceSelect
+                        projects={page.projects}
+                        value={field.value[0] ?? null}
+                        disabled={isSubmitting}
+                        onChange={(projectId) => setProjectIds([projectId])}
+                      />
+                    ) : (
+                      <WorkspaceChoices
+                        projects={page.projects}
+                        value={field.value[0] ?? null}
+                        disabled={isSubmitting}
+                        onChange={(projectId) => setProjectIds([projectId])}
+                      />
+                    )}
+                    <FormMessage className="mt-2" />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="permissions"
-              render={({ field }) => (
-                <FormItem className="mt-6 gap-3">
-                  <FormLabel className={SECTION_TITLE}>{t("permissions")}</FormLabel>
-                  <GroupedPermissions
-                    permissions={page.grantablePermissions}
-                    copy={APP_COPY}
-                    selected={field.value}
-                    available={available}
-                    unavailableHint={
-                      selectedProjectIds.length === 0
-                        ? t("selectWorkspaceFirst")
-                        : t("appPermissionUnavailable")
-                    }
-                    disabled={isSubmitting}
-                    readOnly={false}
-                    onToggle={(permission, checked) =>
-                      field.onChange(
-                        checked
-                          ? [...field.value, permission]
-                          : field.value.filter(
-                              (selectedPermission) => selectedPermission !== permission,
-                            ),
-                      )
-                    }
-                  />
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              <FormField
+                control={form.control}
+                name="permissions"
+                render={({ field }) => (
+                  <FormItem className="mt-6 gap-3">
+                    <FormLabel className={SECTION_TITLE}>{t("permissions")}</FormLabel>
+                    <GroupedPermissions
+                      permissions={page.grantablePermissions}
+                      copy={APP_COPY}
+                      selected={field.value}
+                      available={available}
+                      unavailableHint={
+                        selectedProjectIds.length === 0
+                          ? t("selectWorkspaceFirst")
+                          : t("appPermissionUnavailable")
+                      }
+                      disabled={isSubmitting}
+                      readOnly={false}
+                      onToggle={(permission, checked) =>
+                        field.onChange(
+                          checked
+                            ? [...field.value, permission]
+                            : field.value.filter(
+                                (selectedPermission) => selectedPermission !== permission,
+                              ),
+                        )
+                      }
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
 
             <ConsentFooter
               submitLabel={isSubmitting ? t("installing") : t("install", { name: clientName })}

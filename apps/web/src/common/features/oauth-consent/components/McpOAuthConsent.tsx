@@ -1,4 +1,5 @@
 import type { oauthConsentSchema } from "@caseai-connect/api-contracts"
+import { CardContent } from "@caseai-connect/ui/shad/card"
 import { Checkbox } from "@caseai-connect/ui/shad/checkbox"
 import {
   Form,
@@ -104,10 +105,12 @@ export function McpOAuthConsent({ request }: { request: OAuthAuthorizationReques
       />
 
       {outcome ? (
-        <p className="mt-6 text-sm text-[#71717a]">{t(outcome, { name: clientName })}</p>
+        <CardContent>
+          <p className="text-sm text-[#71717a]">{t(outcome, { name: clientName })}</p>
+        </CardContent>
       ) : page.projects.length === 0 ? (
-        <>
-          <p className="mt-6 text-sm text-[#71717a]">{t("noProjects")}</p>
+        <CardContent>
+          <p className="text-sm text-[#71717a]">{t("noProjects")}</p>
           <div className="mt-6 flex flex-col gap-3">
             <span className={SECTION_TITLE}>{t("permissions")}</span>
             <GroupedPermissions
@@ -122,61 +125,63 @@ export function McpOAuthConsent({ request }: { request: OAuthAuthorizationReques
             />
           </div>
           <CancelLink clientName={clientName} redirectUri={request.redirect_uri} onCancel={deny} />
-        </>
+        </CardContent>
       ) : (
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onValid)} className="mt-6">
-            <FormField
-              control={form.control}
-              name="projectIds"
-              render={({ field }) => (
-                <FormItem className="gap-0">
-                  <FormLabel className={SECTION_TITLE}>{t("projects")}</FormLabel>
-                  <FormDescription className={cn("mt-0.5", SECTION_HINT)}>
-                    {t("projectsHint")}
-                  </FormDescription>
-                  <ProjectChoices
-                    projects={page.projects}
-                    value={field.value}
-                    disabled={isSubmitting}
-                    onChange={setProjectIds}
-                  />
-                  <FormMessage className="mt-2" />
-                </FormItem>
-              )}
-            />
-
-            {/* Hidden until a project is picked: what can be granted depends on the projects. */}
-            {selectedProjectIds.length > 0 && (
+          <form onSubmit={form.handleSubmit(onValid)} className="flex flex-col gap-6">
+            <CardContent>
               <FormField
                 control={form.control}
-                name="permissions"
+                name="projectIds"
                 render={({ field }) => (
-                  <FormItem className="mt-6 gap-3">
-                    <FormLabel className={SECTION_TITLE}>{t("permissions")}</FormLabel>
-                    <GroupedPermissions
-                      permissions={page.grantablePermissions}
-                      copy={MCP_COPY}
-                      selected={field.value}
-                      available={available}
-                      unavailableHint={t("permissionUnavailable")}
+                  <FormItem className="gap-0">
+                    <FormLabel className={SECTION_TITLE}>{t("projects")}</FormLabel>
+                    <FormDescription className={cn("mt-0.5", SECTION_HINT)}>
+                      {t("projectsHint")}
+                    </FormDescription>
+                    <ProjectChoices
+                      projects={page.projects}
+                      value={field.value}
                       disabled={isSubmitting}
-                      readOnly={false}
-                      onToggle={(permission, checked) =>
-                        field.onChange(
-                          checked
-                            ? [...field.value, permission]
-                            : field.value.filter(
-                                (selectedPermission) => selectedPermission !== permission,
-                              ),
-                        )
-                      }
+                      onChange={setProjectIds}
                     />
-                    <FormMessage />
+                    <FormMessage className="mt-2" />
                   </FormItem>
                 )}
               />
-            )}
+
+              {/* Hidden until a project is picked: what can be granted depends on the projects. */}
+              {selectedProjectIds.length > 0 && (
+                <FormField
+                  control={form.control}
+                  name="permissions"
+                  render={({ field }) => (
+                    <FormItem className="mt-6 gap-3">
+                      <FormLabel className={SECTION_TITLE}>{t("permissions")}</FormLabel>
+                      <GroupedPermissions
+                        permissions={page.grantablePermissions}
+                        copy={MCP_COPY}
+                        selected={field.value}
+                        available={available}
+                        unavailableHint={t("permissionUnavailable")}
+                        disabled={isSubmitting}
+                        readOnly={false}
+                        onToggle={(permission, checked) =>
+                          field.onChange(
+                            checked
+                              ? [...field.value, permission]
+                              : field.value.filter(
+                                  (selectedPermission) => selectedPermission !== permission,
+                                ),
+                          )
+                        }
+                      />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+            </CardContent>
 
             <ConsentFooter
               submitLabel={t(isSubmitting ? "approving" : "approve")}

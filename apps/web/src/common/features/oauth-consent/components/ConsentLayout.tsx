@@ -1,5 +1,6 @@
 import { isLoopbackRedirectUri, oauthConsentSchema } from "@caseai-connect/api-contracts"
 import { Button } from "@caseai-connect/ui/shad/button"
+import { Card, CardFooter, CardHeader } from "@caseai-connect/ui/shad/card"
 import { Checkbox } from "@caseai-connect/ui/shad/checkbox"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/ui/shad/tooltip"
 import { cn } from "@caseai-connect/ui/utils"
@@ -58,18 +59,17 @@ export function choiceRowClass({ selected, disabled }: { selected: boolean; disa
 export const CONSENT_CHECKBOX =
   "border-[#d4d4d8] data-[state=checked]:border-[#7c3aed] data-[state=checked]:bg-[#7c3aed] data-[state=checked]:text-white"
 
-/** The page, the card, and an optional note under it. */
+/**
+ * The page, the card, and an optional note under it. The card's children are its sections:
+ * `ConsentHeader`, then `CardContent`, then `ConsentFooter` (inside the form when there is one).
+ */
 export function ConsentPage({ children, note }: { children: ReactNode; note?: ReactNode }) {
   return (
     <div className="flex min-h-dvh items-center justify-center bg-[#f4f4f6] p-4 font-[Inter,system-ui,sans-serif] text-[#111118] sm:p-6">
       <div className="flex w-full max-w-[440px] flex-col">
-        <div className="rounded-[12px] border border-[#e4e4e7] bg-white p-6 shadow-sm">
-          {children}
-        </div>
+        <Card>{children}</Card>
         {note && (
-          <p className="mt-4 rounded-[12px] border border-[#e4e4e7] bg-white px-4 py-3 text-sm text-[#71717a]">
-            {note}
-          </p>
+          <p className="mt-4 rounded-xl border bg-card px-4 py-3 text-sm text-[#71717a]">{note}</p>
         )}
       </div>
     </div>
@@ -97,7 +97,7 @@ export function ConsentHeader({
   host: string
 }) {
   return (
-    <>
+    <CardHeader className="block">
       {logoUrl !== undefined && (
         <div className="mb-5 flex items-center gap-3">
           <ClientMark logoUrl={logoUrl} />
@@ -108,7 +108,7 @@ export function ConsentHeader({
       <h1 className="text-lg font-semibold leading-snug">{headline}</h1>
       {description && <p className="mt-2 text-sm text-[#71717a]">{description}</p>}
       <ClientTrust verified={verified} trustKey={trustKey} host={host} />
-    </>
+    </CardHeader>
   )
 }
 
@@ -166,7 +166,10 @@ function ClientMark({ logoUrl }: { logoUrl: string | null }) {
   )
 }
 
-/** The submit button and the way back, kept in view while the page scrolls. */
+/**
+ * The submit button and the way back, kept in view while the page scrolls. It reaches the card's
+ * bottom edge, over the card's own bottom padding, so nothing shows under it.
+ */
 export function ConsentFooter({
   submitLabel,
   isSubmitting,
@@ -177,7 +180,7 @@ export function ConsentFooter({
   cancel: ReactNode
 }) {
   return (
-    <div className="sticky bottom-0 -mx-6 -mb-6 mt-6 rounded-b-[12px] border-t border-[#e4e4e7] bg-white px-6 pt-4 pb-5">
+    <CardFooter className="sticky bottom-0 -mb-6 flex-col items-stretch rounded-b-xl border-t bg-card pt-4 pb-5">
       <Button
         type="submit"
         className="h-auto min-h-11 w-full rounded-lg bg-[#7c3aed] px-4 py-2.5 text-sm font-semibold whitespace-normal text-white hover:bg-[#6d28d9]"
@@ -187,7 +190,7 @@ export function ConsentFooter({
         {submitLabel}
       </Button>
       {cancel}
-    </div>
+    </CardFooter>
   )
 }
 
