@@ -106,7 +106,7 @@ function buildPage(args: StoryArgs) {
     client: verified
       ? { name: "Helpful Assistant", redirectHost: "app.example.com", verified: true }
       : { name: "Helpful Assistant", redirectHost: "127.0.0.1", verified: false },
-    projects: args.withProjects ? projects : [],
+    projects: args.withProjects ? (args.singleWorkspace ? projects.slice(0, 1) : projects) : [],
   })
 }
 
@@ -160,6 +160,11 @@ export const McpConnect: Story = {}
 /** An MCP client whose name the platform has not verified: the screen warns before access is granted. */
 export const McpConnectUnverified: Story = {
   args: { verified: false },
+}
+
+/** A single project is picked from the start, so the permissions show. */
+export const McpConnectOneProject: Story = {
+  args: { singleWorkspace: true },
 }
 
 export const McpConnectNoProjects: Story = {

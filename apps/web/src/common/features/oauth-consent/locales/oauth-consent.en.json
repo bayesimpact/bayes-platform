@@ -9,7 +9,6 @@
     "projectsHint": "The app only reaches the projects you select.",
     "permissions": "Permissions",
     "permissionUnavailable": "None of the selected projects allows it.",
-    "selectProjectFirst": "Select a project first.",
     "noProjects": "You have no project to share yet.",
     "approve": "Allow access",
     "approving": "Allowing…",

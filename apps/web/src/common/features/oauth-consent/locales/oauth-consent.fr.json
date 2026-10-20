@@ -9,7 +9,6 @@
     "projectsHint": "L'application n'accède qu'aux projets que vous sélectionnez.",
     "permissions": "Permissions",
     "permissionUnavailable": "Aucun des projets sélectionnés ne le permet.",
-    "selectProjectFirst": "Sélectionnez d'abord un projet.",
     "noProjects": "Vous n'avez encore aucun projet à partager.",
     "approve": "Autoriser l'accès",
     "approving": "Autorisation…",

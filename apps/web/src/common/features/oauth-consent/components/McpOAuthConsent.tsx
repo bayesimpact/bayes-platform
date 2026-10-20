@@ -145,38 +145,37 @@ export function McpOAuthConsent({ request }: { request: OAuthAuthorizationReques
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="permissions"
-              render={({ field }) => (
-                <FormItem className="mt-6 gap-3">
-                  <FormLabel className={SECTION_LABEL}>{t("permissions")}</FormLabel>
-                  <GroupedPermissions
-                    permissions={page.grantablePermissions}
-                    copy={MCP_COPY}
-                    selected={field.value}
-                    available={available}
-                    unavailableHint={t(
-                      selectedProjectIds.length === 0
-                        ? "selectProjectFirst"
-                        : "permissionUnavailable",
-                    )}
-                    disabled={isSubmitting}
-                    readOnly={false}
-                    onToggle={(permission, checked) =>
-                      field.onChange(
-                        checked
-                          ? [...field.value, permission]
-                          : field.value.filter(
-                              (selectedPermission) => selectedPermission !== permission,
-                            ),
-                      )
-                    }
-                  />
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Hidden until a project is picked: what can be granted depends on the projects. */}
+            {selectedProjectIds.length > 0 && (
+              <FormField
+                control={form.control}
+                name="permissions"
+                render={({ field }) => (
+                  <FormItem className="mt-6 gap-3">
+                    <FormLabel className={SECTION_LABEL}>{t("permissions")}</FormLabel>
+                    <GroupedPermissions
+                      permissions={page.grantablePermissions}
+                      copy={MCP_COPY}
+                      selected={field.value}
+                      available={available}
+                      unavailableHint={t("permissionUnavailable")}
+                      disabled={isSubmitting}
+                      readOnly={false}
+                      onToggle={(permission, checked) =>
+                        field.onChange(
+                          checked
+                            ? [...field.value, permission]
+                            : field.value.filter(
+                                (selectedPermission) => selectedPermission !== permission,
+                              ),
+                        )
+                      }
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <ConsentFooter
               submitLabel={t(isSubmitting ? "approving" : "approve")}
