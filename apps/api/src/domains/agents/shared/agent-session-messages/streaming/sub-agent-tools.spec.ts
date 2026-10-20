@@ -60,7 +60,10 @@ describe("buildSubAgentTools", () => {
       } as never,
       buildLLMConfig: (params) => params as never,
       conversationAgentSessionsService: { findOrCreateSubSession: jest.fn() } as never,
-      agentSettingsService: { getLast: jest.fn().mockResolvedValue(childAgentSettings) } as never,
+      agentSettingsService: {
+        getLast: jest.fn().mockResolvedValue(childAgentSettings),
+        listPublishedAgentIds: jest.fn().mockResolvedValue(new Set([childAgent.id])),
+      } as never,
       buildTools: async () => ({
         toolDescriptions: {},
         fireAndForgetToolNames: [],
