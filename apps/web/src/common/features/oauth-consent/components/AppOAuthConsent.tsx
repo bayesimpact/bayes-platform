@@ -42,9 +42,10 @@ import {
   ConsentHeader,
   ConsentPage,
   choiceRowClass,
+  GROUP_LABEL,
   GroupedPermissions,
   SECTION_HINT,
-  SECTION_LABEL,
+  SECTION_TITLE,
 } from "./ConsentLayout"
 
 type FormValues = z.infer<typeof oauthConsentSchema>
@@ -154,7 +155,7 @@ export function AppOAuthConsent({ request }: { request: OAuthAuthorizationReques
           <p className="mt-6 text-sm text-[#71717a]">{t("noWorkspaces")}</p>
           {/* What the app asks for, so the person can tell an owner what to grant. */}
           <div className="mt-6 flex flex-col gap-3">
-            <span className={SECTION_LABEL}>{t("permissions")}</span>
+            <span className={SECTION_TITLE}>{t("permissions")}</span>
             <GroupedPermissions
               permissions={page.grantablePermissions}
               copy={APP_COPY}
@@ -175,9 +176,11 @@ export function AppOAuthConsent({ request }: { request: OAuthAuthorizationReques
               control={form.control}
               name="projectIds"
               render={({ field }) => (
-                <FormItem className="gap-1.5">
-                  <FormLabel className={SECTION_LABEL}>{t("workspace")}</FormLabel>
-                  <FormDescription className={SECTION_HINT}>{t("workspaceHint")}</FormDescription>
+                <FormItem className="gap-0">
+                  <FormLabel className={SECTION_TITLE}>{t("workspace")}</FormLabel>
+                  <FormDescription className={cn("mt-0.5", SECTION_HINT)}>
+                    {t("workspaceHint")}
+                  </FormDescription>
                   {page.projects.length > MAX_WORKSPACE_ROWS ? (
                     <WorkspaceSelect
                       projects={page.projects}
@@ -193,7 +196,7 @@ export function AppOAuthConsent({ request }: { request: OAuthAuthorizationReques
                       onChange={(projectId) => setProjectIds([projectId])}
                     />
                   )}
-                  <FormMessage />
+                  <FormMessage className="mt-2" />
                 </FormItem>
               )}
             />
@@ -203,7 +206,7 @@ export function AppOAuthConsent({ request }: { request: OAuthAuthorizationReques
               name="permissions"
               render={({ field }) => (
                 <FormItem className="mt-6 gap-3">
-                  <FormLabel className={SECTION_LABEL}>{t("permissions")}</FormLabel>
+                  <FormLabel className={SECTION_TITLE}>{t("permissions")}</FormLabel>
                   <GroupedPermissions
                     permissions={page.grantablePermissions}
                     copy={APP_COPY}
@@ -265,7 +268,7 @@ function WorkspaceSelect({
   return (
     <Select value={value ?? ""} onValueChange={onChange} disabled={disabled}>
       <FormControl>
-        <SelectTrigger className="h-10 w-full rounded-lg border-[#e4e4e7] shadow-none">
+        <SelectTrigger className="mt-4 h-10 w-full rounded-lg border-[#e4e4e7] shadow-none">
           <SelectValue placeholder={t("selectWorkspaceFirst")} />
         </SelectTrigger>
       </FormControl>
@@ -301,11 +304,11 @@ function WorkspaceChoices({
       value={value ?? ""}
       onValueChange={onChange}
       disabled={disabled}
-      className="flex flex-col gap-4"
+      className="mt-4 flex flex-col gap-4"
     >
       {groupConsentProjectsByOrganization(projects).map((group) => (
-        <fieldset key={group.organizationId} className="flex flex-col gap-2">
-          <legend className={cn("mb-1", SECTION_LABEL)}>{group.organizationName}</legend>
+        <fieldset key={group.organizationId} className="flex flex-col gap-1.5">
+          <legend className={cn("mb-1", GROUP_LABEL)}>{group.organizationName}</legend>
           {group.projects.map((project) => {
             const radioId = `oauth-workspace-${project.id}`
             const selected = value === project.id

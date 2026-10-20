@@ -15,8 +15,11 @@ import { useTranslation } from "react-i18next"
 import { AppPermissionIcon } from "./AppPermissionIcon"
 import { BayesCrossMark } from "./BayesCrossMark"
 
-/** The small uppercase label above each section of the consent screens. */
-export const SECTION_LABEL = "text-[11px] font-medium tracking-wide text-[#a1a1aa] uppercase"
+/** The title of each section of the consent screens: projects, workspace, permissions. */
+export const SECTION_TITLE = "text-sm font-semibold text-[#111118]"
+
+/** The small uppercase label of an organization, under a section title. */
+export const GROUP_LABEL = "text-[11px] font-medium tracking-wide text-[#a1a1aa] uppercase"
 
 /** The one-line hint under a section label. */
 export const SECTION_HINT = "text-xs text-[#71717a]"
@@ -24,7 +27,7 @@ export const SECTION_HINT = "text-xs text-[#71717a]"
 /** A workspace or project row, highlighted once picked. */
 export function choiceRowClass({ selected, disabled }: { selected: boolean; disabled: boolean }) {
   return cn(
-    "flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2.5 text-sm",
+    "flex cursor-pointer items-center gap-2.5 rounded-lg border px-2.5 py-1.5 text-sm",
     selected ? "border-[#7c3aed] bg-[#f5f3ff]" : "border-[#e4e4e7] bg-white hover:border-[#d4d4d8]",
     disabled && "cursor-not-allowed opacity-60",
   )

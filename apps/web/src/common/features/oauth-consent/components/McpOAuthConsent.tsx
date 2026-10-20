@@ -32,9 +32,10 @@ import {
   ConsentHeader,
   ConsentPage,
   choiceRowClass,
+  GROUP_LABEL,
   GroupedPermissions,
   SECTION_HINT,
-  SECTION_LABEL,
+  SECTION_TITLE,
 } from "./ConsentLayout"
 
 type FormValues = z.infer<typeof oauthConsentSchema>
@@ -109,7 +110,7 @@ export function McpOAuthConsent({ request }: { request: OAuthAuthorizationReques
         <>
           <p className="mt-6 text-sm text-[#71717a]">{t("noProjects")}</p>
           <div className="mt-6 flex flex-col gap-3">
-            <span className={SECTION_LABEL}>{t("permissions")}</span>
+            <span className={SECTION_TITLE}>{t("permissions")}</span>
             <GroupedPermissions
               permissions={page.grantablePermissions}
               copy={MCP_COPY}
@@ -130,16 +131,18 @@ export function McpOAuthConsent({ request }: { request: OAuthAuthorizationReques
               control={form.control}
               name="projectIds"
               render={({ field }) => (
-                <FormItem className="gap-1.5">
-                  <FormLabel className={SECTION_LABEL}>{t("projects")}</FormLabel>
-                  <FormDescription className={SECTION_HINT}>{t("projectsHint")}</FormDescription>
+                <FormItem className="gap-0">
+                  <FormLabel className={SECTION_TITLE}>{t("projects")}</FormLabel>
+                  <FormDescription className={cn("mt-0.5", SECTION_HINT)}>
+                    {t("projectsHint")}
+                  </FormDescription>
                   <ProjectChoices
                     projects={page.projects}
                     value={field.value}
                     disabled={isSubmitting}
                     onChange={setProjectIds}
                   />
-                  <FormMessage />
+                  <FormMessage className="mt-2" />
                 </FormItem>
               )}
             />
@@ -151,7 +154,7 @@ export function McpOAuthConsent({ request }: { request: OAuthAuthorizationReques
                 name="permissions"
                 render={({ field }) => (
                   <FormItem className="mt-6 gap-3">
-                    <FormLabel className={SECTION_LABEL}>{t("permissions")}</FormLabel>
+                    <FormLabel className={SECTION_TITLE}>{t("permissions")}</FormLabel>
                     <GroupedPermissions
                       permissions={page.grantablePermissions}
                       copy={MCP_COPY}
@@ -208,10 +211,10 @@ function ProjectChoices({
   onChange: (projectIds: string[]) => void
 }) {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="mt-4 flex flex-col gap-4">
       {groupConsentProjectsByOrganization(projects).map((group) => (
-        <fieldset key={group.organizationId} className="flex flex-col gap-2">
-          <legend className={cn("mb-1", SECTION_LABEL)}>{group.organizationName}</legend>
+        <fieldset key={group.organizationId} className="flex flex-col gap-1.5">
+          <legend className={cn("mb-1", GROUP_LABEL)}>{group.organizationName}</legend>
           {group.projects.map((project) => {
             const checkboxId = `oauth-project-${project.id}`
             const selected = value.includes(project.id)
