@@ -191,6 +191,46 @@ describe("AISDKVertex3Provider stored model options", () => {
       },
     })
   })
+
+  const storedPriorityTier = {
+    providerOptions: {
+      vertex: {
+        sharedRequestType: "priority",
+        thinkingConfig: { thinkingLevel: "low", includeThoughts: true },
+      },
+    },
+  }
+
+  it("ignores a service tier left in the stored options when the call has none", () => {
+    expect(
+      new TestableProvider().specificProviderOptionsFor(
+        buildConfig({ model: AgentModel.Gemini35FlashLite, modelOptions: storedPriorityTier }),
+      ),
+    ).toEqual({
+      providerOptions: {
+        vertex: { thinkingConfig: { thinkingLevel: "low", includeThoughts: true } },
+      },
+    })
+  })
+
+  it("sends the call's service tier over a different one left in the stored options", () => {
+    expect(
+      new TestableProvider().specificProviderOptionsFor(
+        buildConfig({
+          model: AgentModel.Gemini35FlashLite,
+          modelOptions: storedPriorityTier,
+          serviceTier: "flex",
+        }),
+      ),
+    ).toEqual({
+      providerOptions: {
+        vertex: {
+          sharedRequestType: "flex",
+          thinkingConfig: { thinkingLevel: "low", includeThoughts: true },
+        },
+      },
+    })
+  })
 })
 
 describe("AISDKVertex3Provider service tier", () => {

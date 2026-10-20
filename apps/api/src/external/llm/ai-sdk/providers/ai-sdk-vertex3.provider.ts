@@ -196,7 +196,10 @@ export class AISDKVertex3Provider extends AISDKLLMProviderBase<AgentProvider.Ver
     return provider(config.model)
   }
 
-  /** The model's options with the service tier of the call. */
+  /**
+   * The model's options with the service tier of the call, and only that one: the tier
+   * follows the project flags and the agent's toggle, never a tier left in stored options.
+   */
   protected override applyConfigToModelOptions({
     config,
     values,
@@ -205,10 +208,14 @@ export class AISDKVertex3Provider extends AISDKLLMProviderBase<AgentProvider.Ver
     values: SpecificProviderOptions
   }): SpecificProviderOptions {
     const { vertex } = values.providerOptions as { vertex: VertexOptions }
-    if (!config.serviceTier) return values
+    const { sharedRequestType: _storedTier, ...vertexWithoutTier } = vertex
     return {
       ...values,
-      providerOptions: { vertex: { ...vertex, sharedRequestType: config.serviceTier } },
+      providerOptions: {
+        vertex: config.serviceTier
+          ? { ...vertexWithoutTier, sharedRequestType: config.serviceTier }
+          : vertexWithoutTier,
+      },
     }
   }
 
