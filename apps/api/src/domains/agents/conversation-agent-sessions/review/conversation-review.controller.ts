@@ -21,7 +21,7 @@ import type { ConversationReview } from "./conversation-review.service"
 import { ConversationReviewService } from "./conversation-review.service"
 
 /**
- * Safety review of an agent's conversations. Past the organization membership every Studio route
+ * Safety review of an agent's sessions, of any kind. Past the organization membership every Studio route
  * needs, the only gate is `agent.conversation.review`, held by the `agent_conversation_reviewer`
  * role on the agent's `temp_agent` resource and by nothing else. Every read is logged in the
  * activity journal with the session it opened.
@@ -49,17 +49,51 @@ export class ConversationReviewController {
   }
 }
 
-function toConversationReviewDto({ session, messages }: ConversationReview): ConversationReviewDto {
-  return {
+function toConversationReviewDto(review: ConversationReview): ConversationReviewDto {
+  const { session, messages } = review
+  const common = {
     sessionId: session.id,
     agentId: session.agentId,
-    type: session.type,
-    ...(session.title ? { title: session.title } : {}),
-    isSubSession: session.isSubSession,
-    isPurged: session.purgedAt !== null,
+    kind: review.kind,
     createdAt: session.createdAt.getTime(),
     updatedAt: session.updatedAt.getTime(),
     messages: messages.map(toConversationReviewMessageDto),
+  }
+
+  switch (review.kind) {
+    case "conversation":
+      return {
+        ...common,
+        type: review.session.type,
+        ...(review.session.title ? { title: review.session.title } : {}),
+        isSubSession: review.session.isSubSession,
+        isPurged: review.session.purgedAt !== null,
+      }
+    case "public":
+      return {
+        ...common,
+        channel: review.session.appInstallationId ? "app" : "embed",
+        ...(review.session.externalVisitorId
+          ? { externalVisitorId: review.session.externalVisitorId }
+          : {}),
+        ...(review.session.title ? { title: review.session.title } : {}),
+        isSubSession: false,
+        isPurged: review.session.purgedAt !== null,
+      }
+    case "extraction":
+      return {
+        ...common,
+        type: review.session.type,
+        extraction: {
+          status: review.session.status,
+          documentTitle: review.session.document.title,
+          ...(review.session.result ? { result: review.session.result } : {}),
+          ...(review.session.errorCode ? { errorCode: review.session.errorCode } : {}),
+        },
+        isSubSession: false,
+        // Extraction runs are outside the retention sweep.
+        isPurged: false,
+      }
   }
 }
 

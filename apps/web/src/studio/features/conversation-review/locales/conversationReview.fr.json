@@ -7,9 +7,9 @@
       "placeholder": "ex. 3f2b8c1e-…",
       "invalid": "Saisissez un identifiant de session valide."
     },
-    "notice": "Chaque conversation ouverte ici est enregistrée dans le journal d'activité.",
-    "empty": "Collez un identifiant de session pour lire la conversation.",
-    "notFound": "Aucune conversation de cet agent n'a cet identifiant de session.",
+    "notice": "Chaque session ouverte ici est enregistrée dans le journal d'activité.",
+    "empty": "Collez un identifiant de session pour lire la session.",
+    "notFound": "Aucune session de cet agent n'a cet identifiant.",
     "session": {
       "live": "Live",
       "playground": "Bac à sable",
@@ -17,7 +17,8 @@
       "subSession": "Sous-session",
       "purged": "Contenu supprimé par la politique de conservation",
       "startedAt": "Commencée le {{date}}",
-      "noMessages": "Cette conversation n'a aucun message."
+      "noMessages": "Cette session n'a aucun message.",
+      "externalVisitorId": "Identifiant visiteur : {{id}}"
     },
     "roles": {
       "user": "Utilisateur",
@@ -29,6 +30,23 @@
       "aborted": "Interrompu",
       "error": "Échec"
     },
-    "tools": "Outils : {{names}}"
+    "tools": "Outils : {{names}}",
+    "kind": {
+      "public": "Session publique",
+      "extraction": "Extraction"
+    },
+    "channel": {
+      "embed": "Intégration",
+      "app": "App"
+    },
+    "extraction": {
+      "document": "Document : {{title}}",
+      "errorCode": "Code d'erreur : {{code}}",
+      "status": {
+        "pending": "En attente",
+        "success": "Réussie",
+        "failed": "Échec"
+      }
+    }
   }
 }

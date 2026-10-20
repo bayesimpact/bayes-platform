@@ -13,6 +13,8 @@ import { agentFactory } from "@/domains/agents/agent.factory"
 import { agentMessageFactory } from "@/domains/agents/shared/agent-session-messages/agent-messages.factory"
 import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
 import { createOrganizationWithAgentSession } from "@/domains/organizations/organization.factory"
+import { agentEmbedConfigFactory } from "@/domains/public-chat/agent-embed-configs/agent-embed-config.factory"
+import { publicAgentSessionFactory } from "@/domains/public-chat/public-agent-sessions/public-agent-session.factory"
 import { mockOidcEmailForSub, setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../../test/request"
@@ -108,6 +110,7 @@ describe("ConversationReviewRoutes.getOne", () => {
     expect(response.body.data).toEqual({
       sessionId: agentSession.id,
       agentId,
+      kind: "conversation",
       type: "live",
       title: "Pricing question",
       isSubSession: false,
@@ -141,6 +144,130 @@ describe("ConversationReviewRoutes.getOne", () => {
 
     expectResponse(response, 200)
     expect(response.body.data.type).toBe("playground")
+  })
+
+  /** A public (embed) session of the same agent, with one visitor message. */
+  const createPublicSession = async (
+    context: Awaited<ReturnType<typeof createContext>>,
+    params: { externalVisitorId?: string | null; purgedAt?: Date | null } = {},
+  ) => {
+    const { organization, project, agent, agentSession, agentSettings } = context
+    const embedConfig = agentEmbedConfigFactory.transient({ organization, project, agent }).build()
+    await repositories.agentEmbedConfigRepository.save(embedConfig)
+    const publicSession = publicAgentSessionFactory.transient({ embedConfig }).build({
+      title: "Opening hours",
+      externalVisitorId: params.externalVisitorId ?? null,
+      purgedAt: params.purgedAt ?? null,
+    })
+    await repositories.publicAgentSessionRepository.save(publicSession)
+
+    // Public messages share the message table, keyed by the public session id.
+    const visitorMessage = {
+      ...agentMessageFactory
+        .transient({ organization, project, session: agentSession, agentSettings })
+        .user()
+        .build({ content: "When are you open?", createdAt: new Date("2026-01-02T09:00:00Z") }),
+      sessionId: publicSession.id,
+    }
+    await repositories.agentMessageRepository.save(visitorMessage)
+    agentSessionId = publicSession.id
+    return { publicSession, visitorMessage }
+  }
+
+  it("returns a public session with its visitor id and messages", async () => {
+    const context = await createContext()
+    const { publicSession, visitorMessage } = await createPublicSession(context, {
+      externalVisitorId: "visitor-42",
+    })
+
+    const response = await subject()
+
+    expectResponse(response, 200)
+    expect(response.body.data).toEqual({
+      sessionId: publicSession.id,
+      agentId,
+      kind: "public",
+      channel: "embed",
+      externalVisitorId: "visitor-42",
+      title: "Opening hours",
+      isSubSession: false,
+      isPurged: false,
+      createdAt: publicSession.createdAt.getTime(),
+      updatedAt: expect.any(Number),
+      messages: [
+        {
+          id: visitorMessage.id,
+          role: "user",
+          content: "When are you open?",
+          toolNames: [],
+          createdAt: visitorMessage.createdAt.getTime(),
+        },
+      ],
+    })
+  })
+
+  it("marks a public session purged by retention, without a visitor id", async () => {
+    const context = await createContext()
+    await createPublicSession(context, { purgedAt: new Date("2026-02-01T00:00:00Z") })
+
+    const response = await subject()
+
+    expectResponse(response, 200)
+    expect(response.body.data.kind).toBe("public")
+    expect(response.body.data.isPurged).toBe(true)
+    expect(response.body.data.externalVisitorId).toBeUndefined()
+  })
+
+  it("returns 404 for a public session of another agent of the same project", async () => {
+    const context = await createContext()
+    const otherAgent = agentFactory
+      .transient({ organization: context.organization, project: context.project })
+      .build()
+    await repositories.agentRepository.save(otherAgent)
+    await createPublicSession({ ...context, agent: otherAgent })
+
+    expectResponse(await subject(), 404)
+  })
+
+  it("returns an extraction session with its document, status and result", async () => {
+    const context = await createOrganizationWithAgentSession({
+      repositories,
+      agentType: "extraction",
+      params: {
+        document: { title: "report.pdf" },
+        agentSession: { type: "live", status: "success", result: { title: "Quarterly report" } },
+      },
+    })
+    organizationId = context.organization.id
+    projectId = context.project.id
+    agentId = context.agent.id
+    agentSessionId = context.agentSession.id
+    const { user: reviewer } = await addUserToOrganization({
+      repositories,
+      organization: context.organization,
+      user: { authSubject, email: mockOidcEmailForSub(authSubject) },
+    })
+    await grantConversationReview({ repositories, user: reviewer, agent: context.agent })
+
+    const response = await subject()
+
+    expectResponse(response, 200)
+    expect(response.body.data).toEqual({
+      sessionId: context.agentSession.id,
+      agentId,
+      kind: "extraction",
+      type: "live",
+      extraction: {
+        status: "success",
+        documentTitle: "report.pdf",
+        result: { title: "Quarterly report" },
+      },
+      isSubSession: false,
+      isPurged: false,
+      createdAt: context.agentSession.createdAt.getTime(),
+      updatedAt: expect.any(Number),
+      messages: [],
+    })
   })
 
   it("returns 404 for a session of another agent of the same project", async () => {

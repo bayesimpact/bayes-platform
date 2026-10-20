@@ -73,15 +73,38 @@ export type ConversationReviewMessageDto = {
   createdAt: TimeType
 }
 
-/** A conversation of an agent, whoever had it, opened from its session id for safety review. */
+/**
+ * Where a reviewed session comes from: a Studio conversation (app, playground, review campaign),
+ * a public session (embed or installed App) or an extraction run.
+ */
+export type SessionReviewKindDto = "conversation" | "public" | "extraction"
+
+/** What an extraction session produced. Its document is named, never shown. */
+export type ExtractionSessionReviewDto = {
+  /** Same values as ExtractionAgentSessionStatus, spelled out: that file imports this one. */
+  status: "pending" | "success" | "failed"
+  documentTitle: string
+  result?: Record<string, unknown>
+  errorCode?: string
+}
+
+/** A session of an agent, whoever had it, opened from its session id for safety review. */
 export type ConversationReviewDto = {
   sessionId: string
   agentId: string
-  type: ConversationAgentSessionTypeDto
+  kind: SessionReviewKindDto
+  /** Conversation and extraction sessions only. A public session has no type. */
+  type?: ConversationAgentSessionTypeDto
+  /** Public sessions only: the embed or an installed App. */
+  channel?: "embed" | "app"
+  /** Public sessions only, when the embedding page set one and retention did not clear it. */
+  externalVisitorId?: string
+  /** Extraction sessions only. Their messages list is always empty. */
+  extraction?: ExtractionSessionReviewDto
   title?: string
   /** True when the session was spawned by a parent agent that delegated to this one. */
   isSubSession: boolean
-  /** True when the retention sweep already emptied the conversation's content. */
+  /** True when the retention sweep already emptied the session's content. */
   isPurged: boolean
   createdAt: TimeType
   updatedAt: TimeType

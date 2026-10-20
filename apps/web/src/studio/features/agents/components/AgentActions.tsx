@@ -36,7 +36,7 @@ export function AgentActions({ organizationId, agent }: { organizationId: string
         <NavApp organizationId={organizationId} projectId={agent.projectId} agentId={agent.id} />
       )}
 
-      {canReviewConversations && agent.type === "conversation" && (
+      {canReviewConversations && (
         <NavConversationReview
           organizationId={organizationId}
           projectId={agent.projectId}
