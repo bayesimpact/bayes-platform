@@ -43,6 +43,7 @@ import {
   ConsentPage,
   choiceRowClass,
   GroupedPermissions,
+  SECTION_HINT,
   SECTION_LABEL,
 } from "./ConsentLayout"
 
@@ -176,9 +177,7 @@ export function AppOAuthConsent({ request }: { request: OAuthAuthorizationReques
               render={({ field }) => (
                 <FormItem className="gap-1.5">
                   <FormLabel className={SECTION_LABEL}>{t("workspace")}</FormLabel>
-                  <FormDescription className="text-sm text-[#71717a]">
-                    {t("workspaceHint")}
-                  </FormDescription>
+                  <FormDescription className={SECTION_HINT}>{t("workspaceHint")}</FormDescription>
                   {page.projects.length > MAX_WORKSPACE_ROWS ? (
                     <WorkspaceSelect
                       projects={page.projects}

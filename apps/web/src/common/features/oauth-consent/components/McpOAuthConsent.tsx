@@ -33,6 +33,7 @@ import {
   ConsentPage,
   choiceRowClass,
   GroupedPermissions,
+  SECTION_HINT,
   SECTION_LABEL,
 } from "./ConsentLayout"
 
@@ -131,9 +132,7 @@ export function McpOAuthConsent({ request }: { request: OAuthAuthorizationReques
               render={({ field }) => (
                 <FormItem className="gap-1.5">
                   <FormLabel className={SECTION_LABEL}>{t("projects")}</FormLabel>
-                  <FormDescription className="text-sm text-[#71717a]">
-                    {t("projectsHint")}
-                  </FormDescription>
+                  <FormDescription className={SECTION_HINT}>{t("projectsHint")}</FormDescription>
                   <ProjectChoices
                     projects={page.projects}
                     value={field.value}

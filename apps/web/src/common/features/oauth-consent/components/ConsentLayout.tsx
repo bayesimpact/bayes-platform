@@ -18,6 +18,9 @@ import { BayesCrossMark } from "./BayesCrossMark"
 /** The small uppercase label above each section of the consent screens. */
 export const SECTION_LABEL = "text-[11px] font-medium tracking-wide text-[#a1a1aa] uppercase"
 
+/** The one-line hint under a section label. */
+export const SECTION_HINT = "text-xs text-[#71717a]"
+
 /** A workspace or project row, highlighted once picked. */
 export function choiceRowClass({ selected, disabled }: { selected: boolean; disabled: boolean }) {
   return cn(

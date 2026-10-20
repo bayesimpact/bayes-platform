@@ -6,7 +6,7 @@
     "mcpVerified": "Domaine vérifié · renvoi vers {{host}}",
     "mcpUnverified": "Client non vérifié · renvoi vers {{host}}",
     "projects": "Projets",
-    "projectsHint": "L'application n'accède qu'aux projets que vous sélectionnez.",
+    "projectsHint": "L'application n'accède qu'aux projets sélectionnés.",
     "permissions": "Permissions",
     "permissionUnavailable": "Aucun des projets sélectionnés ne le permet.",
     "noProjects": "Vous n'avez encore aucun projet à partager.",
