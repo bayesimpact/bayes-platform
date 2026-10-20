@@ -51,8 +51,7 @@ export function AgentSessionListHeader({
 
   // Safety review is granted agent by agent, so its menu entry shows even without an agent role.
   const canReviewConversations = useAppSelector(selectCanReviewConversationsOfAgent(agent.id))
-  const showAgentActions =
-    canManageAgent || (canReviewConversations && agent.type === "conversation")
+  const showAgentActions = canManageAgent || canReviewConversations
 
   const headerCardCount = (1 + // Create Session button
     (showAgentAnalytics ? 1 : 0) +

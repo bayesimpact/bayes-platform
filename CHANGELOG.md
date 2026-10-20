@@ -13,6 +13,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Changed
 
+- Safety review: reviewers can now open embedded chat and extraction sessions, not only studio conversations.
 - AI assistants connected to the platform before this release must reconnect once to keep listing and editing agents.
 
 ### Fixed

@@ -21,6 +21,7 @@ import { studioRoutes } from "@/studio/routes/StudioRoutes"
 type StoryArgs = StudioStoryArgs & {
   canReviewConversations?: boolean
   withReview?: boolean
+  reviewKind?: ConversationReview["kind"]
 }
 
 function buildMockConversationReviewService(review: ConversationReview): IConversationReviewSpi {
@@ -39,12 +40,14 @@ const meta = {
     withAgents: { control: undefined },
     canReviewConversations: { control: "boolean" },
     withReview: { control: "boolean" },
+    reviewKind: { control: "select", options: ["conversation", "public", "extraction"] },
   },
   args: {
     ...studioStoryArgs,
     withAgents: true,
     canReviewConversations: true,
     withReview: false,
+    reviewKind: "conversation",
   },
   render: render({ routes: studioRoutes, path: StudioRoutes.agentConversationReview.path }),
 } satisfies Meta<StoryArgs>
@@ -54,30 +57,44 @@ type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
   decorators: [
-    buildDecorator<StoryArgs>(({ canReviewConversations, withReview, ...args }) => {
+    buildDecorator<StoryArgs>(({ canReviewConversations, withReview, reviewKind, ...args }) => {
       const { baseSeeds, user, project, agents } = buildStudioData(args)
       const [firstAgent, ...restAgents] = agents
       const currentAgent = agentFactory
         .transient({ project })
-        .build({ ...firstAgent, type: "conversation" })
+        .build({ ...firstAgent, type: reviewKind === "extraction" ? "extraction" : "conversation" })
       const currentAgentSettings = agentSettingsFactory
         .transient({ agent: currentAgent })
         .build({ revision: currentAgent.currentRevision?.number ?? 1 })
 
-      const review = conversationReviewFactory.build({
-        agentId: currentAgent.id,
-        title: "Question about pricing",
-        messages: [
-          conversationReviewMessageFactory.build({ role: "user" }),
-          conversationReviewMessageFactory.build({
-            role: "assistant",
-            status: "completed",
-            toolNames: ["lookup_knowledge_base"],
-          }),
-          conversationReviewMessageFactory.build({ role: "user" }),
-          conversationReviewMessageFactory.build({ role: "assistant", status: "error" }),
-        ],
-      })
+      const review =
+        reviewKind === "extraction"
+          ? conversationReviewFactory.build({
+              agentId: currentAgent.id,
+              kind: "extraction",
+              extraction: {
+                status: "success",
+                documentTitle: "report.pdf",
+                result: { title: "Quarterly report", summary: "Sales went up." },
+              },
+            })
+          : conversationReviewFactory.build({
+              agentId: currentAgent.id,
+              title: "Question about pricing",
+              ...(reviewKind === "public"
+                ? { kind: "public", channel: "embed", externalVisitorId: "visitor-42" }
+                : {}),
+              messages: [
+                conversationReviewMessageFactory.build({ role: "user" }),
+                conversationReviewMessageFactory.build({
+                  role: "assistant",
+                  status: "completed",
+                  toolNames: ["lookup_knowledge_base"],
+                }),
+                conversationReviewMessageFactory.build({ role: "user" }),
+                conversationReviewMessageFactory.build({ role: "assistant", status: "error" }),
+              ],
+            })
 
       return {
         state: mergeSeeds(
@@ -88,6 +105,7 @@ export const Default: Story = {
           }),
           seed.agents([...restAgents, currentAgent], { currentId: currentAgent.id }),
           seed.conversationAgentSessions({ [currentAgent.id]: [] }),
+          seed.extractionAgentSessions({ [currentAgent.id]: { csvSessions: [], others: [] } }),
           seed.studio.agentHistory({
             agentId: currentAgent.id,
             versions: [currentAgentSettings],
@@ -104,6 +122,16 @@ export const Default: Story = {
 
 export const WithConversation: Story = {
   args: { withReview: true },
+  decorators: Default.decorators,
+}
+
+export const WithPublicSession: Story = {
+  args: { withReview: true, reviewKind: "public" },
+  decorators: Default.decorators,
+}
+
+export const WithExtractionSession: Story = {
+  args: { withReview: true, reviewKind: "extraction" },
   decorators: Default.decorators,
 }
 

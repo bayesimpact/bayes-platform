@@ -18,7 +18,20 @@ export const conversationReviewFactory = Factory.define<ConversationReview>(({ p
   return {
     sessionId: params.sessionId ?? faker.string.uuid(),
     agentId: params.agentId ?? faker.string.uuid(),
-    type: params.type ?? "live",
+    kind: params.kind ?? "conversation",
+    ...(params.kind === "public" ? {} : { type: params.type ?? "live" }),
+    ...(params.channel ? { channel: params.channel } : {}),
+    ...(params.externalVisitorId ? { externalVisitorId: params.externalVisitorId } : {}),
+    ...(params.extraction
+      ? {
+          extraction: {
+            status: params.extraction.status ?? "success",
+            documentTitle: params.extraction.documentTitle ?? faker.system.fileName(),
+            ...(params.extraction.result ? { result: params.extraction.result } : {}),
+            ...(params.extraction.errorCode ? { errorCode: params.extraction.errorCode } : {}),
+          },
+        }
+      : {}),
     ...(params.title ? { title: params.title } : {}),
     isSubSession: params.isSubSession ?? false,
     isPurged: params.isPurged ?? false,
