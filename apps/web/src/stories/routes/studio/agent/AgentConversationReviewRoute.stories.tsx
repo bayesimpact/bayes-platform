@@ -105,6 +105,7 @@ export const Default: Story = {
           }),
           seed.agents([...restAgents, currentAgent], { currentId: currentAgent.id }),
           seed.conversationAgentSessions({ [currentAgent.id]: [] }),
+          seed.extractionAgentSessions({ [currentAgent.id]: { csvSessions: [], others: [] } }),
           seed.studio.agentHistory({
             agentId: currentAgent.id,
             versions: [currentAgentSettings],
