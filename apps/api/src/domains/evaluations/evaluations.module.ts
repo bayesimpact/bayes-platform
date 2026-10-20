@@ -11,6 +11,7 @@ import { ProjectContextResolver } from "@/common/context/resolvers/project-conte
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { AgentsModule } from "@/domains/agents/agents.module"
 import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
+import { AgentMessageRepository } from "@/domains/agents/shared/agent-session-messages/agent-message.repository"
 import { AuthModule } from "@/domains/auth/auth.module"
 import { DocumentsModule } from "@/domains/documents/documents.module"
 import { StorageModule } from "@/domains/documents/storage/storage.module"
@@ -23,9 +24,11 @@ import { UsersModule } from "@/domains/users/users.module"
 import { LlmModule } from "@/external/llm/llm.module"
 import { Agent } from "../agents/agent.entity"
 import { EvaluationConversationDataset } from "./conversation/datasets/evaluation-conversation-dataset.entity"
+import { EvaluationConversationDatasetRepository } from "./conversation/datasets/evaluation-conversation-dataset.repository"
 import { EvaluationConversationDatasetsController } from "./conversation/datasets/evaluation-conversation-datasets.controller"
 import { EvaluationConversationDatasetsService } from "./conversation/datasets/evaluation-conversation-datasets.service"
 import { EvaluationConversationDatasetRecord } from "./conversation/datasets/records/evaluation-conversation-dataset-record.entity"
+import { EvaluationConversationDatasetRecordRepository } from "./conversation/datasets/records/evaluation-conversation-dataset-record.repository"
 import { EvaluationConversationRun } from "./conversation/runs/evaluation-conversation-run.entity"
 import { EvaluationConversationRunBatchModule } from "./conversation/runs/evaluation-conversation-run-batch.module"
 import { EvaluationConversationRunGraderLlmService } from "./conversation/runs/evaluation-conversation-run-grader-llm.service"
@@ -34,6 +37,9 @@ import { EvaluationConversationRunStatusStreamService } from "./conversation/run
 import { EvaluationConversationRunsController } from "./conversation/runs/evaluation-conversation-runs.controller"
 import { EvaluationConversationRunsService } from "./conversation/runs/evaluation-conversation-runs.service"
 import { EvaluationConversationRunRecord } from "./conversation/runs/records/evaluation-conversation-run-record.entity"
+import { EvaluationConversationTestCaseLlmService } from "./conversation/test-cases/evaluation-conversation-test-case-llm.service"
+import { EvaluationConversationTestCasesController } from "./conversation/test-cases/evaluation-conversation-test-cases.controller"
+import { EvaluationConversationTestCasesService } from "./conversation/test-cases/evaluation-conversation-test-cases.service"
 import { EvaluationExtractionDataset } from "./extraction/datasets/evaluation-extraction-dataset.entity"
 import { EvaluationExtractionDatasetDocument } from "./extraction/datasets/evaluation-extraction-dataset-document.entity"
 import { EvaluationExtractionDatasetDocumentRepository } from "./extraction/datasets/evaluation-extraction-dataset-document.repository"
@@ -81,13 +87,20 @@ import { EvaluationExtractionRunRecord } from "./extraction/runs/records/evaluat
   ],
   providers: [
     AgentContextResolver,
+    // Provided here rather than exported by the conversation sessions module, which sits in
+    // forwardRef cycles with the agents module.
+    AgentMessageRepository,
     EvaluationConversationDatasetContextResolver,
+    EvaluationConversationDatasetRecordRepository,
+    EvaluationConversationDatasetRepository,
     EvaluationConversationDatasetsService,
     EvaluationConversationRunContextResolver,
     EvaluationConversationRunGraderLlmService,
     EvaluationConversationRunStatusNotifierService,
     EvaluationConversationRunStatusStreamService,
     EvaluationConversationRunsService,
+    EvaluationConversationTestCaseLlmService,
+    EvaluationConversationTestCasesService,
     EvaluationExtractionDatasetContextResolver,
     EvaluationExtractionDatasetDocumentContextResolver,
     EvaluationExtractionDatasetDocumentRepository,
@@ -106,6 +119,7 @@ import { EvaluationExtractionRunRecord } from "./extraction/runs/records/evaluat
     EvaluationConversationDatasetsController,
     EvaluationExtractionDatasetsController,
     EvaluationConversationRunsController,
+    EvaluationConversationTestCasesController,
     EvaluationExtractionRunsController,
   ],
   exports: [

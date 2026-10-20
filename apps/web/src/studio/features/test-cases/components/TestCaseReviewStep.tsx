@@ -15,53 +15,63 @@ import { Spinner } from "@caseai-connect/ui/shad/spinner"
 import { Textarea } from "@caseai-connect/ui/shad/textarea"
 import { ToggleGroup, ToggleGroupItem } from "@caseai-connect/ui/shad/toggle-group"
 import { zodResolver } from "@hookform/resolvers/zod"
+import type { TFunction } from "i18next"
 import { ThumbsDownIcon, ThumbsUpIcon, VenetianMaskIcon } from "lucide-react"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useForm, useWatch } from "react-hook-form"
+import { useTranslation } from "react-i18next"
 import { z } from "zod"
 import type {
   TestCaseDraft,
+  TestCaseInputDraft,
   TestCaseInputMode,
   TestCaseJudgement,
-  TestCaseSource,
 } from "../test-cases.models"
 
-const reviewFormSchema = z.object({
-  inputMode: z.enum(["conversation", "lastMessage"]),
-  input: z.string().trim().min(1, "The input cannot be empty."),
-  expectedOutput: z.string().trim().min(1, "The expected answer cannot be empty."),
-  anonymized: z.boolean(),
-})
-
-type ReviewFormValues = z.infer<typeof reviewFormSchema>
+type ReviewFormValues = TestCaseDraft
 
 /** The LLM call in flight: the input is locked until it answers. */
 type PendingAction = "drafting" | "anonymizing"
 
 /**
- * Second step of saving a test case: the input and expected output proposed for the record, both editable.
- * Switching the input mode drafts the input again, and Anonymize asks an LLM to strip personal
- * data from it, whichever mode is chosen.
+ * Second step of saving a test case: the input and expected output proposed for the record, both
+ * editable. Switching the input mode drafts the input again, and Anonymize asks an LLM to strip
+ * personal data from it, whichever mode is chosen.
  */
 export function TestCaseReviewStep({
-  source,
   judgement,
   datasetName,
+  inputDraft,
   draft,
-  onDraftStandaloneQuestion,
+  onDraftInput,
   onAnonymize,
   onBack,
   onSave,
 }: {
-  source: TestCaseSource
   judgement: TestCaseJudgement
   datasetName: string
+  /** The last user message and the count of turns before it, which the mode switch relies on. */
+  inputDraft: TestCaseInputDraft
   draft: TestCaseDraft
-  onDraftStandaloneQuestion: () => Promise<string>
+  onDraftInput: (inputMode: TestCaseInputMode) => Promise<TestCaseInputDraft>
   onAnonymize: (text: string) => Promise<string>
   onBack: () => void
   onSave: (draft: TestCaseDraft) => Promise<void>
 }) {
+  const { t } = useTranslation()
+  const reviewFormSchema = useMemo(
+    () =>
+      z.object({
+        inputMode: z.enum(["conversation", "lastMessage"]),
+        input: z.string().trim().min(1, t("testCase:review.errors.inputRequired")),
+        expectedOutput: z
+          .string()
+          .trim()
+          .min(1, t("testCase:review.errors.expectedOutputRequired")),
+        anonymized: z.boolean(),
+      }),
+    [t],
+  )
   const form = useForm<ReviewFormValues>({
     resolver: zodResolver(reviewFormSchema),
     defaultValues: draft,
@@ -70,6 +80,7 @@ export function TestCaseReviewStep({
   const inputMode = useWatch({ control: form.control, name: "inputMode" })
   const anonymized = useWatch({ control: form.control, name: "anonymized" })
   const isBusy = pendingAction !== null || form.formState.isSubmitting
+  const { lastUserMessage, earlierTurnCount } = inputDraft
 
   const replaceInput = (input: string, isAnonymized: boolean) => {
     form.setValue("input", input, { shouldDirty: true, shouldValidate: true })
@@ -79,16 +90,15 @@ export function TestCaseReviewStep({
   const handleInputModeChange = async (nextMode: TestCaseInputMode) => {
     form.setValue("inputMode", nextMode)
     if (nextMode === "lastMessage") {
-      replaceInput(source.lastUserMessage, false)
+      replaceInput(lastUserMessage, false)
       return
     }
     setPendingAction("drafting")
     try {
-      replaceInput(await onDraftStandaloneQuestion(), false)
+      const redrafted = await onDraftInput(nextMode)
+      replaceInput(redrafted.input, false)
     } catch {
-      form.setError("input", {
-        message: "The question could not be drafted. Try again, or write it yourself.",
-      })
+      form.setError("input", { message: t("testCase:review.errors.draftInput") })
     } finally {
       setPendingAction(null)
     }
@@ -99,7 +109,7 @@ export function TestCaseReviewStep({
     try {
       replaceInput(await onAnonymize(form.getValues("input")), true)
     } catch {
-      form.setError("input", { message: "The input could not be anonymized. Try again." })
+      form.setError("input", { message: t("testCase:review.errors.anonymize") })
     } finally {
       setPendingAction(null)
     }
@@ -109,7 +119,7 @@ export function TestCaseReviewStep({
     try {
       await onSave(values)
     } catch {
-      form.setError("root", { message: "The record could not be saved. Try again." })
+      form.setError("root", { message: t("testCase:review.errors.save") })
     }
   }
 
@@ -120,9 +130,9 @@ export function TestCaseReviewStep({
           <div className="flex flex-wrap items-center gap-2 text-muted-foreground">
             <Badge variant="outline">
               {judgement.verdict === "good" ? <ThumbsUpIcon /> : <ThumbsDownIcon />}
-              {judgement.verdict === "good" ? "Good answer" : "Bad answer"}
+              {t(`testCase:verdict.${judgement.verdict}.title`)}
             </Badge>
-            to
+            {t("testCase:review.to")}
             <span className="font-medium text-foreground">{datasetName}</span>
           </div>
           {judgement.comment && <p className="text-muted-foreground italic">{judgement.comment}</p>}
@@ -135,8 +145,10 @@ export function TestCaseReviewStep({
             <FormItem>
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <FormLabel>Input</FormLabel>
-                  {anonymized && <Badge variant="secondary">Anonymized</Badge>}
+                  <FormLabel>{t("testCase:review.input")}</FormLabel>
+                  {anonymized && (
+                    <Badge variant="secondary">{t("testCase:review.anonymized")}</Badge>
+                  )}
                 </div>
                 <Button
                   type="button"
@@ -146,7 +158,7 @@ export function TestCaseReviewStep({
                   onClick={handleAnonymize}
                 >
                   {pendingAction === "anonymizing" ? <Spinner /> : <VenetianMaskIcon />}
-                  Anonymize
+                  {t("testCase:review.anonymize")}
                 </Button>
               </div>
               <ToggleGroup
@@ -159,18 +171,18 @@ export function TestCaseReviewStep({
                   nextMode && handleInputModeChange(nextMode as TestCaseInputMode)
                 }
               >
-                <ToggleGroupItem value="conversation" disabled={source.earlierTurnCount === 0}>
+                <ToggleGroupItem value="conversation" disabled={earlierTurnCount === 0}>
                   {pendingAction === "drafting" && <Spinner />}
-                  Conversation context
+                  {t("testCase:review.inputModes.conversation")}
                 </ToggleGroupItem>
-                <ToggleGroupItem value="lastMessage">Exact last message</ToggleGroupItem>
+                <ToggleGroupItem value="lastMessage">
+                  {t("testCase:review.inputModes.lastMessage")}
+                </ToggleGroupItem>
               </ToggleGroup>
               <FormControl>
                 <Textarea rows={4} disabled={pendingAction !== null} {...field} />
               </FormControl>
-              <FormDescription>
-                {describeInputMode(inputMode, source.earlierTurnCount)}
-              </FormDescription>
+              <FormDescription>{describeInputMode(t, inputMode, earlierTurnCount)}</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -181,14 +193,12 @@ export function TestCaseReviewStep({
           name="expectedOutput"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Expected answer</FormLabel>
+              <FormLabel>{t("testCase:review.expectedOutput")}</FormLabel>
               <FormControl>
                 <Textarea rows={6} {...field} />
               </FormControl>
               <FormDescription>
-                {judgement.verdict === "good"
-                  ? "The agent's answer, kept as the reference each run is graded against."
-                  : "Drafted by an LLM from what you said is wrong. Each run is graded against it."}
+                {t(`testCase:review.expectedOutputHints.${judgement.verdict}`)}
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -203,11 +213,11 @@ export function TestCaseReviewStep({
 
         <DialogFooter>
           <Button type="button" variant="outline" disabled={isBusy} onClick={onBack}>
-            Back
+            {t("actions:back")}
           </Button>
           <Button type="submit" disabled={isBusy}>
             {form.formState.isSubmitting && <Spinner />}
-            Save test case
+            {t("testCase:review.save")}
           </Button>
         </DialogFooter>
       </form>
@@ -215,12 +225,11 @@ export function TestCaseReviewStep({
   )
 }
 
-function describeInputMode(inputMode: TestCaseInputMode, earlierTurnCount: number): string {
-  if (earlierTurnCount === 0) {
-    return "This answer replies to the first message, so that message holds the whole conversation."
-  }
-  const earlierTurns = earlierTurnCount === 1 ? "earlier turn" : `${earlierTurnCount} earlier turns`
-  return inputMode === "conversation"
-    ? `Written by an LLM from the ${earlierTurns}, so the question stands on its own when a run replays it.`
-    : `The user's last message as sent. A run does not replay the ${earlierTurns}.`
+function describeInputMode(
+  t: TFunction,
+  inputMode: TestCaseInputMode,
+  earlierTurnCount: number,
+): string {
+  if (earlierTurnCount === 0) return t("testCase:review.inputHints.firstTurn")
+  return t(`testCase:review.inputHints.${inputMode}`, { count: earlierTurnCount })
 }

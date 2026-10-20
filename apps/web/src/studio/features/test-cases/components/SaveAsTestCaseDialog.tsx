@@ -9,13 +9,16 @@ import {
   DialogTitle,
 } from "@caseai-connect/ui/shad/dialog"
 import { Spinner } from "@caseai-connect/ui/shad/spinner"
+import type { TFunction } from "i18next"
 import { AlertCircleIcon } from "lucide-react"
 import { useRef, useState } from "react"
+import { useTranslation } from "react-i18next"
 import type { EvaluationConversationDataset } from "@/eval/features/evaluation-conversation-datasets/evaluation-conversation-datasets.models"
 import type {
   TestCase,
   TestCaseDatasetTarget,
   TestCaseDraft,
+  TestCaseInputDraft,
   TestCaseInputMode,
   TestCaseJudgement,
   TestCaseSource,
@@ -27,7 +30,12 @@ type DialogStep =
   | { kind: "judge"; judgement: TestCaseJudgement | null }
   | { kind: "drafting"; judgement: TestCaseJudgement }
   | { kind: "draftFailed"; judgement: TestCaseJudgement }
-  | { kind: "review"; judgement: TestCaseJudgement; draft: TestCaseDraft }
+  | {
+      kind: "review"
+      judgement: TestCaseJudgement
+      inputDraft: TestCaseInputDraft
+      draft: TestCaseDraft
+    }
 
 const FIRST_STEP: DialogStep = { kind: "judge", judgement: null }
 
@@ -41,7 +49,8 @@ export function SaveAsTestCaseDialog({
   onOpenChange,
   source,
   datasets,
-  onDraftStandaloneQuestion,
+  canCreateDataset,
+  onDraftInput,
   onDraftExpectedOutput,
   onAnonymize,
   onSave,
@@ -50,14 +59,16 @@ export function SaveAsTestCaseDialog({
   onOpenChange: (open: boolean) => void
   source: TestCaseSource
   datasets: EvaluationConversationDataset[]
-  /** Writes a question that carries what the earlier turns established. */
-  onDraftStandaloneQuestion: () => Promise<string>
-  /** Writes the answer the agent should have given, from the user's critique. */
-  onDraftExpectedOutput: (critique: string) => Promise<string>
+  canCreateDataset: boolean
+  /** Drafts the input in a mode, or with none, in the one that suits the conversation. */
+  onDraftInput: (inputMode: TestCaseInputMode | null) => Promise<TestCaseInputDraft>
+  /** Writes the answer the agent should have given, from what is wrong with it. */
+  onDraftExpectedOutput: (comment: string) => Promise<string>
   /** Strips personal data from a text. */
   onAnonymize: (text: string) => Promise<string>
-  onSave: (testCase: TestCase) => Promise<void>
+  onSave: (testCase: TestCase, datasetName: string) => Promise<void>
 }) {
+  const { t } = useTranslation()
   const [step, setStep] = useState<DialogStep>(FIRST_STEP)
   // Bumped on close, so a draft that lands after the dialog closed is dropped.
   const openingRef = useRef(0)
@@ -73,19 +84,22 @@ export function SaveAsTestCaseDialog({
   const draft = async (judgement: TestCaseJudgement) => {
     const opening = openingRef.current
     setStep({ kind: "drafting", judgement })
-    // With no earlier turn, the last message already holds the whole conversation.
-    const inputMode: TestCaseInputMode =
-      source.earlierTurnCount > 0 ? "conversation" : "lastMessage"
     try {
-      const [input, expectedOutput] = await Promise.all([
-        inputMode === "conversation" ? onDraftStandaloneQuestion() : source.lastUserMessage,
+      const [inputDraft, expectedOutput] = await Promise.all([
+        onDraftInput(null),
         judgement.verdict === "good" ? source.answer : onDraftExpectedOutput(judgement.comment),
       ])
       if (opening !== openingRef.current) return
       setStep({
         kind: "review",
         judgement,
-        draft: { inputMode, input, expectedOutput, anonymized: false },
+        inputDraft,
+        draft: {
+          inputMode: inputDraft.inputMode,
+          input: inputDraft.input,
+          expectedOutput,
+          anonymized: false,
+        },
       })
     } catch {
       if (opening !== openingRef.current) return
@@ -94,7 +108,11 @@ export function SaveAsTestCaseDialog({
   }
 
   const save = async (judgement: TestCaseJudgement, reviewed: TestCaseDraft) => {
-    await onSave({ ...judgement, ...reviewed })
+    const { target } = judgement
+    await onSave(
+      { ...judgement, ...reviewed },
+      target.kind === "new" ? target.name : existingDatasetName(target.datasetId, datasets),
+    )
     handleOpenChange(false)
   }
 
@@ -102,11 +120,11 @@ export function SaveAsTestCaseDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="flex max-h-[calc(100dvh-2rem)] flex-col gap-0 p-0 sm:max-w-2xl">
         <DialogHeader className="shrink-0 p-6 pb-4">
-          <DialogTitle>Save as test case</DialogTitle>
+          <DialogTitle>{t("testCase:saveAsTestCase")}</DialogTitle>
           <DialogDescription>
             {step.kind === "review"
-              ? "Check what the dataset will hold. A run sends the input to the agent and grades its answer against the expected one."
-              : "Turn this answer into a test case, replayed every time the dataset runs."}
+              ? t("testCase:dialog.reviewDescription")
+              : t("testCase:dialog.judgeDescription")}
           </DialogDescription>
         </DialogHeader>
 
@@ -115,6 +133,7 @@ export function SaveAsTestCaseDialog({
             <TestCaseJudgeStep
               source={source}
               datasets={datasets}
+              canCreateDataset={canCreateDataset}
               judgement={step.judgement}
               onCancel={() => handleOpenChange(false)}
               onSubmit={draft}
@@ -125,8 +144,8 @@ export function SaveAsTestCaseDialog({
             <div className="flex flex-col items-center gap-3 py-12 text-sm text-muted-foreground">
               <Spinner className="size-5" />
               {step.judgement.verdict === "good"
-                ? "Drafting the test case…"
-                : "Drafting the test case and the answer to aim for…"}
+                ? t("testCase:dialog.drafting")
+                : t("testCase:dialog.draftingWithExpectedOutput")}
             </div>
           )}
 
@@ -134,30 +153,28 @@ export function SaveAsTestCaseDialog({
             <div className="flex flex-col gap-5">
               <Alert variant="destructive">
                 <AlertCircleIcon />
-                <AlertTitle>The test case could not be drafted</AlertTitle>
-                <AlertDescription>
-                  The LLM did not answer. Try again, or go back and change your choices.
-                </AlertDescription>
+                <AlertTitle>{t("testCase:dialog.draftFailedTitle")}</AlertTitle>
+                <AlertDescription>{t("testCase:dialog.draftFailedDescription")}</AlertDescription>
               </Alert>
               <DialogFooter>
                 <Button
                   variant="outline"
                   onClick={() => setStep({ kind: "judge", judgement: step.judgement })}
                 >
-                  Back
+                  {t("actions:back")}
                 </Button>
-                <Button onClick={() => draft(step.judgement)}>Try again</Button>
+                <Button onClick={() => draft(step.judgement)}>{t("actions:retry")}</Button>
               </DialogFooter>
             </div>
           )}
 
           {step.kind === "review" && (
             <TestCaseReviewStep
-              source={source}
               judgement={step.judgement}
-              datasetName={targetName(step.judgement.target, datasets)}
+              datasetName={targetName(t, step.judgement.target, datasets)}
+              inputDraft={step.inputDraft}
               draft={step.draft}
-              onDraftStandaloneQuestion={onDraftStandaloneQuestion}
+              onDraftInput={onDraftInput}
               onAnonymize={onAnonymize}
               onBack={() => setStep({ kind: "judge", judgement: step.judgement })}
               onSave={(reviewed) => save(step.judgement, reviewed)}
@@ -170,9 +187,14 @@ export function SaveAsTestCaseDialog({
 }
 
 function targetName(
+  t: TFunction,
   target: TestCaseDatasetTarget,
   datasets: EvaluationConversationDataset[],
 ): string {
-  if (target.kind === "new") return `${target.name} (new)`
-  return datasets.find((dataset) => dataset.id === target.datasetId)?.name ?? ""
+  if (target.kind === "new") return t("testCase:dataset.newDatasetSuffix", { name: target.name })
+  return existingDatasetName(target.datasetId, datasets)
+}
+
+function existingDatasetName(datasetId: string, datasets: EvaluationConversationDataset[]) {
+  return datasets.find((dataset) => dataset.id === datasetId)?.name ?? ""
 }

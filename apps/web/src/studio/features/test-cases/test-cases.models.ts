@@ -1,3 +1,9 @@
+import type {
+  EvaluationConversationTestCaseDto,
+  EvaluationConversationTestCaseInputDraftDto,
+  EvaluationConversationTestCaseInputMode,
+} from "@caseai-connect/api-contracts"
+
 /** Whether the agent should keep giving the answer, or stop giving it. */
 export type TestCaseVerdict = "good" | "bad"
 
@@ -6,18 +12,18 @@ export type TestCaseVerdict = "good" | "bad"
  * conversation, or the user's last message as it was sent. A run replays a single turn, so the
  * last message alone can lose what the earlier turns established.
  */
-export type TestCaseInputMode = "conversation" | "lastMessage"
+export type TestCaseInputMode = EvaluationConversationTestCaseInputMode
 
-/** The agent answer being saved as a test case, and what led to it. */
+/** The agent answer being saved as a test case. */
 export type TestCaseSource = {
   agentMessageId: string
   answer: string
-  lastUserMessage: string
-  /** User turns before the last one. With none, both input modes give the same input. */
-  earlierTurnCount: number
   /** The report a user left on this answer, when it is saved from the Feedback page. */
   feedback: string | null
 }
+
+/** The input the API drafted, with what the review step needs to switch modes. */
+export type TestCaseInputDraft = EvaluationConversationTestCaseInputDraftDto
 
 /** Where the record goes: an existing dataset, or a new one created on save. */
 export type TestCaseDatasetTarget =
@@ -45,3 +51,6 @@ export type TestCaseDraft = {
 
 /** The record about to be saved. */
 export type TestCase = TestCaseJudgement & TestCaseDraft
+
+/** Where the saved record landed. */
+export type SavedTestCase = EvaluationConversationTestCaseDto

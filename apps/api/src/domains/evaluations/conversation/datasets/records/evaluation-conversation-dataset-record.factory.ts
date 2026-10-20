@@ -34,6 +34,7 @@ export const evaluationConversationDatasetRecordFactory =
       projectId: transientParams.project.id,
       input: params.input || `Sample question ${sequence}`,
       expectedOutput: params.expectedOutput || `Sample expected answer ${sequence}`,
+      comment: params.comment ?? null,
       createdAt: params.createdAt || now,
       updatedAt: params.updatedAt || now,
       deletedAt: params.deletedAt || null,

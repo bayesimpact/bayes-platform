@@ -30,86 +30,72 @@ import {
 import { Textarea } from "@caseai-connect/ui/shad/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { PlusIcon, ThumbsDownIcon, ThumbsUpIcon } from "lucide-react"
+import { useMemo } from "react"
 import { useForm, useWatch } from "react-hook-form"
+import { useTranslation } from "react-i18next"
 import { z } from "zod"
 import type { EvaluationConversationDataset } from "@/eval/features/evaluation-conversation-datasets/evaluation-conversation-datasets.models"
-import type { TestCaseJudgement, TestCaseSource } from "../test-cases.models"
+import type { TestCaseJudgement, TestCaseSource, TestCaseVerdict } from "../test-cases.models"
 import { TestCaseAnswerPreview } from "./TestCaseAnswerPreview"
 
 const NEW_DATASET = "new"
 
-const judgeFormSchema = z
-  .object({
-    verdict: z.enum(["good", "bad"]),
-    comment: z.string().trim(),
-    datasetId: z.string(),
-    newDatasetName: z.string().trim(),
-  })
-  // A bad answer's expected output is drafted from the comment; a good one can go without.
-  .refine((values) => values.verdict !== "bad" || values.comment.length > 0, {
-    path: ["comment"],
-    message: "Say what is wrong with this answer.",
-  })
-  .refine(
-    (values) =>
-      values.datasetId !== NEW_DATASET ||
-      values.newDatasetName.length >= EVALUATION_CONVERSATION_DATASET_NAME_MIN_LENGTH,
-    {
-      path: ["newDatasetName"],
-      message: `A dataset name needs at least ${EVALUATION_CONVERSATION_DATASET_NAME_MIN_LENGTH} characters.`,
-    },
-  )
+const judgeFormShape = z.object({
+  verdict: z.enum(["good", "bad"]),
+  comment: z.string().trim(),
+  datasetId: z.string(),
+  newDatasetName: z.string().trim(),
+})
 
-type JudgeFormValues = z.infer<typeof judgeFormSchema>
+type JudgeFormValues = z.infer<typeof judgeFormShape>
 
-const VERDICT_CHOICES = [
-  {
-    value: "good",
-    Icon: ThumbsUpIcon,
-    title: "Good answer",
-    description: "The answer becomes the reference the agent is graded against.",
-  },
-  {
-    value: "bad",
-    Icon: ThumbsDownIcon,
-    title: "Bad answer",
-    description: "Say what is wrong, and an LLM drafts the answer to aim for.",
-  },
-] as const
-
-const COMMENT_FIELD = {
-  good: {
-    label: "What is good about this answer?",
-    placeholder: "What the agent got right and must keep doing",
-    description:
-      "Optional. Kept with the test case, so whoever reads the dataset knows why this answer is the reference.",
-  },
-  bad: {
-    label: "What is wrong with this answer?",
-    placeholder: "What the agent got wrong, left out, or should not have said",
-    description:
-      "An LLM turns it into the answer the agent should have given. Kept with the test case.",
-  },
-} as const
+const VERDICT_ICONS: Record<TestCaseVerdict, typeof ThumbsUpIcon> = {
+  good: ThumbsUpIcon,
+  bad: ThumbsDownIcon,
+}
 
 /**
- * First step of saving a test case: is the answer good or bad, what makes it so, and which dataset gets the
- * record. Nothing is drafted until this is settled.
+ * First step of saving a test case: is the answer good or bad, what makes it so, and which
+ * dataset gets the record. Nothing is drafted until this is settled.
  */
 export function TestCaseJudgeStep({
   source,
   datasets,
+  canCreateDataset,
   judgement,
   onCancel,
   onSubmit,
 }: {
   source: TestCaseSource
   datasets: EvaluationConversationDataset[]
+  canCreateDataset: boolean
   /** What the user settled before going back from the review, if they did. */
   judgement: TestCaseJudgement | null
   onCancel: () => void
   onSubmit: (judgement: TestCaseJudgement) => void
 }) {
+  const { t } = useTranslation()
+  const judgeFormSchema = useMemo(
+    () =>
+      // A bad answer's expected output is drafted from the comment; a good one can go without.
+      judgeFormShape
+        .refine((values) => values.verdict !== "bad" || values.comment.length > 0, {
+          path: ["comment"],
+          message: t("testCase:comment.required"),
+        })
+        .refine(
+          (values) =>
+            values.datasetId !== NEW_DATASET ||
+            values.newDatasetName.length >= EVALUATION_CONVERSATION_DATASET_NAME_MIN_LENGTH,
+          {
+            path: ["newDatasetName"],
+            message: t("testCase:dataset.nameTooShort", {
+              count: EVALUATION_CONVERSATION_DATASET_NAME_MIN_LENGTH,
+            }),
+          },
+        ),
+    [t],
+  )
   const form = useForm<JudgeFormValues>({
     resolver: zodResolver(judgeFormSchema),
     defaultValues: toFormValues({ source, datasets, judgement }),
@@ -130,27 +116,32 @@ export function TestCaseJudgeStep({
           name="verdict"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Is this the answer the agent should give?</FormLabel>
+              <FormLabel>{t("testCase:verdict.label")}</FormLabel>
               <FormControl>
                 <RadioGroup
                   value={field.value}
                   onValueChange={field.onChange}
                   className="grid gap-3 sm:grid-cols-2"
                 >
-                  {VERDICT_CHOICES.map(({ value, Icon, title, description }) => (
-                    <FieldLabel key={value} htmlFor={`test-case-verdict-${value}`}>
-                      <Field orientation="horizontal">
-                        <FieldContent>
-                          <FieldTitle>
-                            <Icon className="size-4" />
-                            {title}
-                          </FieldTitle>
-                          <FieldDescription>{description}</FieldDescription>
-                        </FieldContent>
-                        <RadioGroupItem value={value} id={`test-case-verdict-${value}`} />
-                      </Field>
-                    </FieldLabel>
-                  ))}
+                  {(["good", "bad"] as const).map((value) => {
+                    const Icon = VERDICT_ICONS[value]
+                    return (
+                      <FieldLabel key={value} htmlFor={`test-case-verdict-${value}`}>
+                        <Field orientation="horizontal">
+                          <FieldContent>
+                            <FieldTitle>
+                              <Icon className="size-4" />
+                              {t(`testCase:verdict.${value}.title`)}
+                            </FieldTitle>
+                            <FieldDescription>
+                              {t(`testCase:verdict.${value}.description`)}
+                            </FieldDescription>
+                          </FieldContent>
+                          <RadioGroupItem value={value} id={`test-case-verdict-${value}`} />
+                        </Field>
+                      </FieldLabel>
+                    )
+                  })}
                 </RadioGroup>
               </FormControl>
             </FormItem>
@@ -162,14 +153,18 @@ export function TestCaseJudgeStep({
           name="comment"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{COMMENT_FIELD[verdict].label}</FormLabel>
+              <FormLabel>{t(`testCase:comment.${verdict}.label`)}</FormLabel>
               <FormControl>
-                <Textarea rows={3} placeholder={COMMENT_FIELD[verdict].placeholder} {...field} />
+                <Textarea
+                  rows={3}
+                  placeholder={t(`testCase:comment.${verdict}.placeholder`)}
+                  {...field}
+                />
               </FormControl>
               <FormDescription>
                 {source.feedback && verdict === "bad"
-                  ? "Taken from the user's report. Edit it if it misses the point."
-                  : COMMENT_FIELD[verdict].description}
+                  ? t("testCase:comment.fromReport")
+                  : t(`testCase:comment.${verdict}.description`)}
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -181,7 +176,7 @@ export function TestCaseJudgeStep({
           name="datasetId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Dataset</FormLabel>
+              <FormLabel>{t("testCase:dataset.label")}</FormLabel>
               <Select value={field.value} onValueChange={field.onChange}>
                 <FormControl>
                   <SelectTrigger className="w-full">
@@ -193,15 +188,17 @@ export function TestCaseJudgeStep({
                     <SelectItem key={dataset.id} value={dataset.id}>
                       {dataset.name}
                       <span className="text-muted-foreground">
-                        {dataset.recordCount} {dataset.recordCount === 1 ? "record" : "records"}
+                        {t("testCase:dataset.recordCount", { count: dataset.recordCount })}
                       </span>
                     </SelectItem>
                   ))}
-                  {datasets.length > 0 && <SelectSeparator />}
-                  <SelectItem value={NEW_DATASET}>
-                    <PlusIcon className="size-3.5" />
-                    New dataset
-                  </SelectItem>
+                  {canCreateDataset && datasets.length > 0 && <SelectSeparator />}
+                  {canCreateDataset && (
+                    <SelectItem value={NEW_DATASET}>
+                      <PlusIcon className="size-3.5" />
+                      {t("testCase:dataset.newDataset")}
+                    </SelectItem>
+                  )}
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -215,9 +212,12 @@ export function TestCaseJudgeStep({
             name="newDatasetName"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>New dataset name</FormLabel>
+                <FormLabel>{t("testCase:dataset.newDatasetName")}</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter dataset name" {...field} />
+                  <Input
+                    placeholder={t("evaluationConversationDataset:dataset.props.placeholders.name")}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -227,9 +227,9 @@ export function TestCaseJudgeStep({
 
         <DialogFooter>
           <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
+            {t("actions:cancel")}
           </Button>
-          <Button type="submit">Next</Button>
+          <Button type="submit">{t("actions:next")}</Button>
         </DialogFooter>
       </form>
     </Form>

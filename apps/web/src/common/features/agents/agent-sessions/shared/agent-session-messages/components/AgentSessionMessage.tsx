@@ -33,11 +33,11 @@ import { SurfaceResourcesTool } from "./SurfaceResourcesTool"
 
 export function AgentSessionMessage({
   message,
-  renderMessageVersion,
+  renderMessageFooter,
   onResend,
 }: {
   message: AgentSessionMessageType
-  renderMessageVersion?: (message: AgentSessionMessageType) => React.ReactNode
+  renderMessageFooter?: (message: AgentSessionMessageType) => React.ReactNode
   /** Sends the turn that led to this reply again. Only offered on a failed last reply. */
   onResend?: () => void
 }) {
@@ -155,7 +155,7 @@ export function AgentSessionMessage({
                   <CopyToClipboard content={bubbleContent} />
                 )}
 
-                {renderMessageVersion?.(message)}
+                {renderMessageFooter?.(message)}
 
                 <RestrictedFeature feature="sources-tool">
                   {sourcesTool && <SourcesTool toolCall={sourcesTool} />}

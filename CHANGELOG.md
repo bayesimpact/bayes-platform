@@ -10,6 +10,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Added
 
 - Agent duplication: copy an agent into a new draft with its settings, tools and sources, from the studio or MCP.
+- Test cases: save a good or bad agent answer into an evaluation dataset, from the playground or feedback.
 
 ### Changed
 

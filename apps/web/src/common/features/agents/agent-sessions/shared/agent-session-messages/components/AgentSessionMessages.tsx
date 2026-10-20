@@ -60,7 +60,7 @@ export function AgentSessionMessages({
   formSubSessions = [],
   formResultSchema,
   agentName,
-  renderMessageVersion,
+  renderMessageFooter,
   renderVersionSelect,
 }: {
   session: AgentSession
@@ -71,10 +71,11 @@ export function AgentSessionMessages({
   /** The session agent's name, for the tab of its own form. */
   agentName?: string
   /**
-   * Optional per-message affordance rendered in the footer, after the copy button.
-   * Studio uses it for the agent settings revision badge; the other surfaces omit it.
+   * Optional per-message affordances rendered in the footer, after the copy button.
+   * Studio uses it for Save as test case and the agent settings revision badge; the other
+   * surfaces omit it.
    */
-  renderMessageVersion?: (message: AgentSessionMessageType) => React.ReactNode
+  renderMessageFooter?: (message: AgentSessionMessageType) => React.ReactNode
   renderVersionSelect?: React.ReactNode
 }) {
   const { t } = useTranslation()
@@ -146,7 +147,7 @@ export function AgentSessionMessages({
                 <ChatDraftContext.Provider value={insertDraft}>
                   <Messages
                     messages={messages}
-                    renderMessageVersion={renderMessageVersion}
+                    renderMessageFooter={renderMessageFooter}
                     resendReplyIndex={failedTurn?.replyIndex}
                     onResendLast={handleResendLast}
                   />
@@ -171,12 +172,12 @@ export function AgentSessionMessages({
 
 function Messages({
   messages,
-  renderMessageVersion,
+  renderMessageFooter,
   resendReplyIndex,
   onResendLast,
 }: {
   messages: AgentSessionMessageType[]
-  renderMessageVersion?: (message: AgentSessionMessageType) => React.ReactNode
+  renderMessageFooter?: (message: AgentSessionMessageType) => React.ReactNode
   /** Index of the failed reply that renders the Retry affordance. */
   resendReplyIndex?: number
   onResendLast?: () => void
@@ -194,7 +195,7 @@ function Messages({
             >
               <AgentSessionMessage
                 message={message}
-                renderMessageVersion={renderMessageVersion}
+                renderMessageFooter={renderMessageFooter}
                 onResend={index === resendReplyIndex ? onResendLast : undefined}
               />
             </MessageScrollerItem>

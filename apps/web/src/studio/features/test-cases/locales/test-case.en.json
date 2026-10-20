@@ -1,0 +1,80 @@
+{
+  "testCase": {
+    "saveAsTestCase": "Save as test case",
+    "dialog": {
+      "judgeDescription": "Turn this answer into a test case, replayed every time the dataset runs.",
+      "reviewDescription": "Check what the dataset will hold. A run sends the input to the agent and grades its answer against the expected one.",
+      "drafting": "Drafting the test case…",
+      "draftingWithExpectedOutput": "Drafting the test case and the answer to aim for…",
+      "draftFailedTitle": "The test case could not be drafted",
+      "draftFailedDescription": "The LLM did not answer. Try again, or go back and change your choices."
+    },
+    "verdict": {
+      "label": "Is this the answer the agent should give?",
+      "good": {
+        "title": "Good answer",
+        "description": "The answer becomes the reference the agent is graded against."
+      },
+      "bad": {
+        "title": "Bad answer",
+        "description": "Say what is wrong, and an LLM drafts the answer to aim for."
+      }
+    },
+    "comment": {
+      "good": {
+        "label": "What is good about this answer?",
+        "placeholder": "What the agent got right and must keep doing",
+        "description": "Optional. Kept with the test case, so whoever reads the dataset knows why this answer is the reference."
+      },
+      "bad": {
+        "label": "What is wrong with this answer?",
+        "placeholder": "What the agent got wrong, left out, or should not have said",
+        "description": "An LLM turns it into the answer the agent should have given. Kept with the test case."
+      },
+      "fromReport": "Taken from the user's report. Edit it if it misses the point.",
+      "required": "Say what is wrong with this answer."
+    },
+    "dataset": {
+      "label": "Dataset",
+      "recordCount_one": "{{count}} record",
+      "recordCount_other": "{{count}} records",
+      "newDataset": "New dataset",
+      "newDatasetName": "New dataset name",
+      "newDatasetSuffix": "{{name}} (new)",
+      "nameTooShort": "A dataset name needs at least {{count}} characters."
+    },
+    "review": {
+      "to": "to",
+      "input": "Input",
+      "anonymize": "Anonymize",
+      "anonymized": "Anonymized",
+      "inputModes": {
+        "conversation": "Conversation context",
+        "lastMessage": "Exact last message"
+      },
+      "inputHints": {
+        "firstTurn": "This answer replies to the first message, so that message holds the whole conversation.",
+        "conversation_one": "Written by an LLM from the earlier turn, so the question stands on its own when a run replays it.",
+        "conversation_other": "Written by an LLM from the {{count}} earlier turns, so the question stands on its own when a run replays it.",
+        "lastMessage_one": "The user's last message as sent. A run does not replay the earlier turn.",
+        "lastMessage_other": "The user's last message as sent. A run does not replay the {{count}} earlier turns."
+      },
+      "expectedOutput": "Expected answer",
+      "expectedOutputHints": {
+        "good": "The agent's answer, kept as the reference each run is graded against.",
+        "bad": "Drafted by an LLM from what you said is wrong. Each run is graded against it."
+      },
+      "save": "Save test case",
+      "errors": {
+        "inputRequired": "The input cannot be empty.",
+        "expectedOutputRequired": "The expected answer cannot be empty.",
+        "draftInput": "The question could not be drafted. Try again, or write it yourself.",
+        "anonymize": "The input could not be anonymized. Try again.",
+        "save": "The test case could not be saved. Try again."
+      }
+    },
+    "notifications": {
+      "saved": "Test case saved to {{name}}"
+    }
+  }
+}

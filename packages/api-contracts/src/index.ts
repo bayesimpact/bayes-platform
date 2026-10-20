@@ -84,6 +84,9 @@ export { EvaluationConversationDatasetsRoutes } from "./evaluations/evaluation-c
 // Evaluation Conversation Runs
 export * from "./evaluations/evaluation-conversation-runs.dto"
 export { EvaluationConversationRunsRoutes } from "./evaluations/evaluation-conversation-runs.routes"
+// Evaluation Conversation Test Cases
+export * from "./evaluations/evaluation-conversation-test-cases.dto"
+export { EvaluationConversationTestCasesRoutes } from "./evaluations/evaluation-conversation-test-cases.routes"
 // Evaluation Datasets
 export * from "./evaluations/evaluation-extraction-datasets.dto"
 export { EvaluationExtractionDatasetsRoutes } from "./evaluations/evaluation-extraction-datasets.routes"

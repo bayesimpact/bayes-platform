@@ -1,22 +1,18 @@
 import { fn } from "storybook/test"
-import { agentFactory } from "@/common/features/agents/agent.factory"
-import { agentSessionMessageFactory } from "@/common/features/agents/agent-sessions/agent-session.factory"
 import { organizationFactory } from "@/common/features/organizations/organization.factory"
 import { projectFactory } from "@/common/features/projects/projects.factory"
 import { evaluationConversationDatasetFactory } from "@/eval/features/evaluation-conversation-datasets/evaluation-conversation-datasets.factory"
-import { agentMessageFeedbackFactory } from "@/studio/features/agent-message-feedback/agent-message-feedback.factory"
-import { testCaseSourceFactory } from "@/studio/features/test-cases/test-cases.factory"
-import type { TestCase } from "@/studio/features/test-cases/test-cases.models"
+import {
+  testCaseInputDraftFactory,
+  testCaseSourceFactory,
+} from "@/studio/features/test-cases/test-cases.factory"
+import type { TestCase, TestCaseInputMode } from "@/studio/features/test-cases/test-cases.models"
 
-export const mockOrganization = organizationFactory.build({ id: "org-1" })
+const mockOrganization = organizationFactory.build({ id: "org-1" })
 
-export const mockProject = projectFactory
+const mockProject = projectFactory
   .transient({ organization: mockOrganization })
   .build({ id: "proj-1", name: "Demo project" })
-
-export const mockAgent = agentFactory
-  .transient({ project: mockProject })
-  .build({ id: "agent-1", name: "Helpful Assistant", type: "conversation" })
 
 export const mockDatasets = [
   evaluationConversationDatasetFactory
@@ -51,47 +47,17 @@ const standaloneQuestion =
 const correctedAnswer =
   "Yes. You can switch to monthly billing from **Settings › Billing**. The unused part of your annual plan (about €98) becomes store credit, applied to your next monthly invoices. It is not refunded to your card."
 
-export const mockMessages = [
-  agentSessionMessageFactory.build({ id: "message-1", role: "user", content: firstUserMessage }),
-  agentSessionMessageFactory.build({
-    id: "message-2",
-    role: "assistant",
-    content: firstAnswer,
-    agentId: mockAgent.id,
-  }),
-  agentSessionMessageFactory.build({ id: "message-3", role: "user", content: lastUserMessage }),
-  agentSessionMessageFactory.build({
-    id: "message-4",
-    role: "assistant",
-    content: savedAnswer,
-    agentId: mockAgent.id,
-  }),
-]
-
 /** The last answer of the conversation, one earlier turn behind it. */
 export const mockTestCaseSource = testCaseSourceFactory.build({
   agentMessageId: "message-4",
   answer: savedAnswer,
-  lastUserMessage,
-  earlierTurnCount: 1,
 })
 
 /** The first answer: no earlier turn, so both input modes give the same input. */
 export const mockFirstTurnTestCaseSource = testCaseSourceFactory.build({
   agentMessageId: "message-2",
   answer: firstAnswer,
-  lastUserMessage: firstUserMessage,
-  earlierTurnCount: 0,
 })
-
-export const mockFeedbacks = [
-  agentMessageFeedbackFactory.transient({ agent: mockAgent, project: mockProject }).build({
-    id: "feedback-1",
-    agentMessageId: "message-4",
-    agentMessageContent: savedAnswer,
-    content: mockCritique,
-  }),
-]
 
 const LLM_DELAY_MS = 900
 
@@ -105,15 +71,39 @@ const anonymize = (text: string) =>
     .replaceAll("jordan.lee@example.com", "[email]")
     .replaceAll("March 3", "[date]")
 
+// What the API drafts for each answer of the conversation, in each input mode.
+const draftInputFor = (agentMessageId: string, inputMode: TestCaseInputMode | null) => {
+  if (agentMessageId === mockFirstTurnTestCaseSource.agentMessageId) {
+    return testCaseInputDraftFactory.build({
+      inputMode: "lastMessage",
+      input: firstUserMessage,
+      lastUserMessage: firstUserMessage,
+      earlierTurnCount: 0,
+    })
+  }
+  return testCaseInputDraftFactory.build({
+    inputMode: inputMode ?? "conversation",
+    input: inputMode === "lastMessage" ? lastUserMessage : standaloneQuestion,
+    lastUserMessage,
+    earlierTurnCount: 1,
+  })
+}
+
 /** The dialog's LLM calls and save, answering after a short wait so the pending states show. */
-export function buildMockTestCaseCallbacks({ failDrafts = false }: { failDrafts?: boolean } = {}) {
+export function buildMockTestCaseCallbacks({
+  agentMessageId = mockTestCaseSource.agentMessageId,
+  failDrafts = false,
+}: {
+  agentMessageId?: string
+  failDrafts?: boolean
+} = {}) {
   return {
-    onDraftStandaloneQuestion: fn(async () => {
+    onDraftInput: fn(async (inputMode: TestCaseInputMode | null) => {
       await waitForLlm()
       if (failDrafts) throw new Error("The LLM did not answer")
-      return standaloneQuestion
+      return draftInputFor(agentMessageId, inputMode)
     }),
-    onDraftExpectedOutput: fn(async (_critique: string) => {
+    onDraftExpectedOutput: fn(async (_comment: string) => {
       await waitForLlm()
       if (failDrafts) throw new Error("The LLM did not answer")
       return correctedAnswer
@@ -122,7 +112,7 @@ export function buildMockTestCaseCallbacks({ failDrafts = false }: { failDrafts?
       await waitForLlm()
       return anonymize(text)
     }),
-    onSave: fn(async (_testCase: TestCase) => {
+    onSave: fn(async (_testCase: TestCase, _datasetName: string) => {
       await waitForLlm()
     }),
   }

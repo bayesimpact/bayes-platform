@@ -34,6 +34,7 @@ import type { IProjectMembershipsSpi } from "@/studio/features/project-membershi
 import type { IResourceLibrariesSpi } from "@/studio/features/resource-libraries/resource-libraries.spi"
 import type { IReportsSpi } from "@/studio/features/review-campaigns/reports/reports.spi"
 import type { IReviewCampaignsSpi } from "@/studio/features/review-campaigns/review-campaigns.spi"
+import type { ITestCasesSpi } from "@/studio/features/test-cases/test-cases.spi"
 import type { ITesterSpi } from "@/tester/features/review-campaigns/tester.spi"
 
 export type Services = {
@@ -73,6 +74,7 @@ export type Services = {
   reviewCampaignsReports: IReportsSpi
   reviewCampaignsReviewer: IReviewerSpi
   reviewCampaignsTester: ITesterSpi
+  testCases: ITestCasesSpi
 }
 
 export const getServices = (): Services => {

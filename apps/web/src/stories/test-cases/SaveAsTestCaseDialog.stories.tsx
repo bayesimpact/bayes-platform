@@ -19,6 +19,7 @@ const meta = {
     onOpenChange: fn(),
     source: mockTestCaseSource,
     datasets: mockDatasets,
+    canCreateDataset: true,
     ...buildMockTestCaseCallbacks(),
   },
 } satisfies Meta<typeof SaveAsTestCaseDialog>
@@ -69,6 +70,11 @@ export const NoDatasetYet: Story = {
   args: { datasets: [] },
 }
 
+/** Without the right to create datasets, the picker offers the existing ones only. */
+export const CannotCreateDataset: Story = {
+  args: { canCreateDataset: false },
+}
+
 /** The review of a good answer: the input is a standalone question drafted from the conversation. */
 export const ReviewGoodAnswer: Story = {
   play: async ({ canvasElement }) => {
@@ -98,7 +104,10 @@ export const Anonymized: Story = {
 
 /** An answer to the first message, saved without a comment: the input is that message as sent. */
 export const FirstTurnAnswer: Story = {
-  args: { source: mockFirstTurnTestCaseSource },
+  args: {
+    source: mockFirstTurnTestCaseSource,
+    ...buildMockTestCaseCallbacks({ agentMessageId: mockFirstTurnTestCaseSource.agentMessageId }),
+  },
   play: async ({ canvasElement }) => {
     await goToReview(canvasElement)
   },
