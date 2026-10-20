@@ -25,7 +25,7 @@ const agent = agentFactory.transient({ project }).build()
 function buildStore() {
   const agentSettings = agentSettingsFactory
     .transient({ agent })
-    .build({ model: AgentModel.Gemini25Flash, revision: agent.currentRevision.number })
+    .build({ model: AgentModel.Gemini25Flash, revision: agent.currentRevision?.number ?? 1 })
   const state = {
     agents: {
       data: { status: ADS.Fulfilled, error: null, value: [agent] },

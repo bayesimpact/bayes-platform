@@ -4,7 +4,12 @@ import { listAgents } from "@/common/features/agents/agents.thunks"
 import { fetchMe } from "@/common/features/me/me.thunks"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import type { AppDispatch, RootState } from "@/common/store/types"
-import { createAgent, deleteAgent, updateAgent } from "@/studio/features/agents/agents.thunks"
+import {
+  createAgent,
+  deleteAgent,
+  duplicateAgent,
+  updateAgent,
+} from "@/studio/features/agents/agents.thunks"
 import {
   deleteDocumentTag,
   updateDocumentTag,
@@ -96,6 +101,37 @@ function registerListeners() {
       listenerApi.dispatch(fetchMe()) // To update agent membership and then abilities
     },
   })
+  listenerMiddleware.startListening({
+    actionCreator: duplicateAgent.fulfilled,
+    effect: async (action, listenerApi) => {
+      const agentId = action.payload.id
+      await listenerApi.dispatch(listAgents({ includeDrafts: true }))
+      await listenerApi.dispatch(listAgentSettingsWithDraft({ agentId }))
+      // The copy's owner membership must reach the abilities before its editor opens.
+      await listenerApi.dispatch(fetchMe())
+
+      listenerApi.dispatch(
+        notificationsActions.show({
+          titleKey: "agent:notifications.duplicated",
+          type: "success",
+        }),
+      )
+
+      action.meta.arg.onSuccess?.(action.payload)
+    },
+  })
+  listenerMiddleware.startListening({
+    actionCreator: duplicateAgent.rejected,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({
+          titleKey: "agent:notifications.duplicateError",
+          type: "error",
+        }),
+      )
+    },
+  })
+
   listenerMiddleware.startListening({
     actionCreator: createAgent.rejected,
     effect: async (_, listenerApi) => {

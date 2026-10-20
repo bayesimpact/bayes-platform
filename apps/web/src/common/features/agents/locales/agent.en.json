@@ -51,6 +51,11 @@
       "title": "Delete Agent",
       "description": "Are you sure you want to delete \"{{name}}\"? This action is irreversible."
     },
+    "duplicate": {
+      "title": "Duplicate Agent",
+      "description": "The copy gets the published settings, tools, sub-agents and sources of \"{{name}}\". It starts as a draft: publish it from its editor when it is ready. Conversations, analytics and embed settings are not copied.",
+      "defaultName": "{{name}} (copy)"
+    },
     "list": {
       "title": "Agents",
       "description": "Manage agents for {{projectName}}"
@@ -75,7 +80,9 @@
       "deleted": "Agent deleted successfully",
       "deleteError": "Agent deletion failed",
       "created": "Agent created successfully",
-      "createError": "Agent creation failed"
+      "createError": "Agent creation failed",
+      "duplicated": "Agent duplicated as a draft",
+      "duplicateError": "Agent duplication failed"
     }
   }
 }

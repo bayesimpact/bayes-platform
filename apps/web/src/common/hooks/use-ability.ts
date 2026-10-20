@@ -107,6 +107,14 @@ export function useAbility() {
     [agentMemberships],
   )
 
+  // The copy is a new agent of the project: managing the agent is not enough on its own.
+  const canDuplicateAgent = useCallback(
+    ({ projectId, agentId }: { projectId: string | null; agentId: string | null }) =>
+      canManageAgent({ agentId }) &&
+      hasProjectPermission({ projectId, permission: "agent.create" }),
+    [canManageAgent, hasProjectPermission],
+  )
+
   return useMemo(
     () => ({
       abilities: {
@@ -114,6 +122,7 @@ export function useAbility() {
         canAccessStudio,
         canAccessEvaluation,
         canCreateProject,
+        canDuplicateAgent,
         canManageAgent,
         canAccessTester,
         canAccessReviewer,
@@ -126,6 +135,7 @@ export function useAbility() {
       canAccessStudio,
       canAccessEvaluation,
       canCreateProject,
+      canDuplicateAgent,
       canManageAgent,
       canAccessTester,
       canAccessReviewer,

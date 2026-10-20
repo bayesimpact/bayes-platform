@@ -1,7 +1,11 @@
 # The dev environment of one git worktree: web app, API, workers, web-embed, help site,
-# pdf-converter, the three Storybooks, Grafana, a Dex, a Redis and two databases on the
-# shared Postgres. The worktree tooling writes infra/worktree/.env (COMPOSE_PROJECT_NAME=wt-<name>
-# and the WT_* values below), then runs `docker compose up -d` with this file.
+# pdf-converter, the three Storybooks, Grafana, a sign-in (oidc-picker), a Redis and two
+# databases on the shared Postgres. The worktree tooling writes infra/worktree/.env
+# (COMPOSE_PROJECT_NAME=wt-<name> and the WT_* values below), then runs `docker compose up -d`
+# with this file.
+# Only the core runs by default: the API, the web app, the sign-in, Redis and the contracts'
+# watcher, after init, db and migrate. Every other service has a profile of its name, which the
+# tooling turns on through COMPOSE_PROFILES (its presets: bayes wt up --preset, --with).
 # See infra/worktree/README.md.
 #
 # - The worktree is mounted at its own absolute path, so logs and stack traces show paths you
@@ -110,9 +114,12 @@ x-backend-env: &backend-env
   DOCUMENT_EXTRACTOR_DOCLING_ENABLED: "false"
   FRONTEND_URL: ${WT_ORIGIN},${WT_EMBED_ORIGIN},${WT_LEGACY_ORIGIN},${WT_LEGACY_EMBED_ORIGIN}
   APP_PUBLIC_URL: ${WT_ORIGIN}
+  # The origin the API announces in its OAuth and MCP documents: the environment's own, in https
+  # when it has it, rather than the http that Traefik forwards to it.
+  API_PUBLIC_URL: ${WT_ORIGIN}
   LOCAL_STORAGE_SERVER_BASE_URL: ${WT_ORIGIN}
   MCP_OAUTH_REDIRECT_URL: ${WT_ORIGIN}/oauth/mcp/callback
-  OIDC_ISSUER_URL: ${WT_DEX_ISSUER}
+  OIDC_ISSUER_URL: ${WT_AUTH_ISSUER}
   OIDC_AUDIENCE: ""
   OIDC_AUTHORIZATION_PARAMS: ""
   WEB_OIDC_CLIENT_ID: platform-web
@@ -131,10 +138,10 @@ x-backend-env: &backend-env
   SMTP_PASSWORD: ""
   SMTP_FROM: ${WT_SMTP_FROM}
 
-# The API and the workers reach their Dex at its public issuer, through Traefik on the shared
+# The API and the workers reach their sign-in at its public issuer, through Traefik on the shared
 # network, which listens on the same ports as on the host: http or https alike.
-x-dex-through-traefik: &dex-through-traefik
-  - connect-db-traefik-1:${WT_SLUG}-dex.${WT_DOMAIN}
+x-auth-through-traefik: &auth-through-traefik
+  - connect-db-traefik-1:${WT_SLUG}-auth.${WT_DOMAIN}
 
 x-after-init: &after-init
   init:
@@ -236,21 +243,22 @@ services:
       <<: *labels
       dev.worktree.service: bullmq
 
-  # Its own Dex: the issuer is <WT_SCHEME>://<name>-dex.<WT_DOMAIN><WT_PORT_SUFFIX>/dex. The
-  # browser and the backend (x-dex-through-traefik) both reach it through Traefik, so they see the
-  # same issuer; Dex serves plain HTTP on the router port behind it. Users and redirect URIs:
-  # written by the worktree tooling into WT_DEX_DIR.
-  dex:
-    image: ghcr.io/dexidp/dex:v2.44.0
+  # Its own sign-in, an oidc-picker (infra/oidc-picker): the issuer is
+  # <WT_SCHEME>://<name>-auth.<WT_DOMAIN><WT_PORT_SUFFIX>. The browser and the backend
+  # (x-auth-through-traefik) both reach it through Traefik, so they see the same issuer. Its
+  # configuration and profiles are written by the worktree tooling into WT_AUTH_DIR, where it
+  # keeps its signing keys: a restart keeps people signed in.
+  auth:
+    image: ghcr.io/bayesimpact/oidc-picker:0.1.0
     restart: unless-stopped
+    user: "${WT_UID}:${WT_GID}"
     logging:
       driver: local
-    command: ["dex", "serve", "/etc/dex/dex.yaml"]
+    command: ["/config/oidc-picker.yaml"]
     volumes:
       - type: bind
-        source: ${WT_DEX_DIR}
-        target: /etc/dex
-        read_only: true
+        source: ${WT_AUTH_DIR:?The worktree tooling is older than this environment, update it}
+        target: /config
         bind:
           create_host_path: false
     networks: [default, shared]
@@ -258,10 +266,10 @@ services:
       - dev.worktree.slug=${WT_SLUG}
       - dev.worktree.path=${WT_PATH}
       - dev.worktree.repo=${WT_REPO}
-      - dev.worktree.service=dex
+      - dev.worktree.service=auth
       - traefik.enable=true
-      - traefik.http.routers.wt-${WT_SLUG}-dex.rule=Host(`${WT_SLUG}-dex.${WT_DOMAIN}`) || Host(`${WT_SLUG}-dex.connect.localhost`)
-      - traefik.http.services.wt-${WT_SLUG}-dex.loadbalancer.server.port=${WT_ROUTER_PORT}
+      - traefik.http.routers.wt-${WT_SLUG}-auth.rule=Host(`${WT_SLUG}-auth.${WT_DOMAIN}`) || Host(`${WT_SLUG}-auth.connect.localhost`)
+      - traefik.http.services.wt-${WT_SLUG}-auth.loadbalancer.server.port=5556
 
   contracts:
     <<: *node
@@ -277,7 +285,7 @@ services:
     <<: *node
     working_dir: ${WT_PATH}/apps/api
     networks: [default, shared]
-    external_links: *dex-through-traefik
+    external_links: *auth-through-traefik
     environment:
       <<: *backend-env
       PORT: "3000"
@@ -288,7 +296,7 @@ services:
         condition: service_completed_successfully
       bullmq:
         condition: service_healthy
-      dex:
+      auth:
         condition: service_started
     command: ["npm", "run", "dev"]
     healthcheck:
@@ -306,9 +314,10 @@ services:
 
   workers:
     <<: *node
+    profiles: [workers]
     working_dir: ${WT_PATH}/apps/api
     networks: [default, shared]
-    external_links: *dex-through-traefik
+    external_links: *auth-through-traefik
     environment:
       <<: *backend-env
       WORKER_HEALTH_PORT: "8080"
@@ -337,7 +346,7 @@ services:
       # Same origin as the API: Traefik routes /api, /public and the OAuth metadata of this host to it.
       VITE_API_URL: /api
       VITE_AGENT_EMBED_URL: ${WT_EMBED_ORIGIN}
-      VITE_OIDC_AUTHORITY: ${WT_DEX_ISSUER}
+      VITE_OIDC_AUTHORITY: ${WT_AUTH_ISSUER}
       VITE_OIDC_CLIENT_ID: platform-web
       VITE_OIDC_AUDIENCE: ""
       VITE_OIDC_AUTHORIZATION_PARAMS: ""
@@ -360,6 +369,7 @@ services:
 
   embed:
     <<: *node
+    profiles: [embed]
     working_dir: ${WT_PATH}/apps/web-embed
     networks: [default, shared]
     environment:
@@ -383,6 +393,7 @@ services:
 
   help:
     <<: *node
+    profiles: [help]
     working_dir: ${WT_PATH}/apps/help
     networks: [default, shared]
     environment:
@@ -410,6 +421,7 @@ services:
   # the browser's socket goes through Traefik. Ports below 1024 need no privilege in its container.
   storybook-web:
     <<: *node
+    profiles: [storybook-web]
     working_dir: ${WT_PATH}/apps/web
     networks: [default, shared]
     environment: *tools-env
@@ -433,6 +445,7 @@ services:
 
   storybook-ui:
     <<: *node
+    profiles: [storybook-ui]
     working_dir: ${WT_PATH}/packages/ui
     networks: [default, shared]
     environment: *tools-env
@@ -456,6 +469,7 @@ services:
 
   storybook-embed:
     <<: *node
+    profiles: [storybook-embed]
     working_dir: ${WT_PATH}/apps/web-embed
     networks: [default, shared]
     environment: *tools-env
@@ -479,6 +493,7 @@ services:
 
   # Bull Board on this environment's Redis, no login (infra/bull-board/README.md).
   bull-board:
+    profiles: [bull-board]
     image: venatum/bull-board:3.4.14 # same as infra/database
     restart: unless-stopped
     logging:
@@ -505,6 +520,7 @@ services:
   # Grafana on the analytics schema of this environment's database, with the branch's
   # provisioning and dashboards.
   grafana:
+    profiles: [grafana]
     image: grafana/grafana:13.2.2
     restart: unless-stopped
     logging:
@@ -546,6 +562,7 @@ services:
       - traefik.http.services.wt-${WT_SLUG}-grafana.loadbalancer.server.port=3000
 
   pdf-converter:
+    profiles: [pdf-converter]
     image: golang:1.26-bookworm # same as apps/pdf-converter/Dockerfile
     restart: unless-stopped
     logging:

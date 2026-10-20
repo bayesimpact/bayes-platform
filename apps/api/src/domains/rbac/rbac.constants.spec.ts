@@ -8,6 +8,7 @@ import {
   AGENT_CONVERSATION_SESSION_PLAYGROUND_READ_PERMISSION,
   AGENT_CONVERSATION_SESSION_READ_PERMISSION,
   AGENT_DRAFT_READ_PERMISSION,
+  AGENT_DUPLICATE_PERMISSION,
   AGENT_EXTRACTION_SESSION_CREATE_PERMISSION,
   AGENT_EXTRACTION_SESSION_DELETE_PERMISSION,
   AGENT_EXTRACTION_SESSION_PLAYGROUND_CREATE_PERMISSION,
@@ -222,6 +223,30 @@ describe("agent draft and sub-agent permissions", () => {
     expect(inheritable).not.toContain(AGENT_DRAFT_READ_PERMISSION)
     expect(inheritable).not.toContain(AGENT_SUB_AGENT_READ_PERMISSION)
     expect(inheritable).not.toContain(AGENT_SUB_AGENT_UPDATE_PERMISSION)
+  })
+})
+
+describe("agent duplicate permission", () => {
+  const rolesHolding = (rolePermissions: Record<string, readonly string[]>, permission: string) =>
+    Object.entries(rolePermissions)
+      .filter(([_roleKey, permissions]) => permissions.includes(permission))
+      .map(([roleKey]) => roleKey)
+
+  it("grants agent.duplicate to agent owners and admins only", () => {
+    expect(rolesHolding(AGENT_ROLE_PERMISSIONS, AGENT_DUPLICATE_PERMISSION)).toEqual([
+      "agent_owner",
+      "agent_admin",
+    ])
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, AGENT_DUPLICATE_PERMISSION)).toEqual([])
+    expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, AGENT_DUPLICATE_PERMISSION)).toEqual([])
+  })
+
+  it("never inherits agent.duplicate from a parent resource, since the copy carries the sub-agents", () => {
+    const inheritable: readonly string[] = [
+      ...RESOURCE_TYPE_PERMISSIONS_MAP.project,
+      ...RESOURCE_TYPE_PERMISSIONS_MAP.agent,
+    ]
+    expect(inheritable).not.toContain(AGENT_DUPLICATE_PERMISSION)
   })
 })
 

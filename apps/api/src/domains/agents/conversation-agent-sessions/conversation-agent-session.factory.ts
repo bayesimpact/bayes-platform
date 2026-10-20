@@ -23,6 +23,10 @@ class ConversationAgentSessionFactory extends Factory<
     return this.params({ type: "live" })
   }
 
+  reviewCampaignTester() {
+    return this.params({ type: "review_campaign_tester" })
+  }
+
   expiredMinutesAgo(minutes: number) {
     return this.params({ expiresAt: new Date(Date.now() - minutes * 60 * 1000) })
   }
@@ -56,7 +60,8 @@ export const conversationAgentSessionFactory = ConversationAgentSessionFactory.d
       userId: transientParams.user.id,
       organizationId: transientParams.organization.id,
       projectId: transientParams.project.id,
-      type: params.type || "playground",
+      // A session built with a campaign is a tester's, as in production.
+      type: params.type || (params.campaignId ? "review_campaign_tester" : "playground"),
       title: params.title ?? null,
       activeAgentId: params.activeAgentId ?? null,
       parentSessionId: params.parentSessionId ?? null,

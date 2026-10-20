@@ -117,9 +117,10 @@ export class ConversationRetentionSweepService {
       .innerJoin("project", "project", "project.id = session.project_id")
       .where("session.purged_at IS NULL")
       // Review-campaign sessions are test material, reviewed long after they
-      // happen: they stay out of the retention purge until session kinds are
-      // differentiated (#617).
+      // happen: they stay out of the retention purge, with their relay
+      // sub-sessions, which take the tester session's type but not its campaign.
       .andWhere("session.campaign_id IS NULL")
+      .andWhere("session.type <> 'review_campaign_tester'")
       .andWhere(
         "session.created_at < now() - (project.conversation_retention_days * interval '1 day')",
       )

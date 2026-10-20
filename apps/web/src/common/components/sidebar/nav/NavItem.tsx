@@ -29,7 +29,8 @@ export function AppNavItem({
         <Link to={item.url}>
           {isStudioInterface() && <DeprecatedModelIcon agentId={item.id} />}
           {item.icon && <item.icon />}
-          <span className={cn(item.isActive && "font-semibold")}>{item.title}</span>
+          {/* Truncated on its own: the button only truncates its last child, which itemOptions can be. */}
+          <span className={cn("truncate", item.isActive && "font-semibold")}>{item.title}</span>
           {itemOptions}
         </Link>
       </SidebarMenuButton>

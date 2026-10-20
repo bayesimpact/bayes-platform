@@ -216,9 +216,11 @@ function RunEvaluationExtractionForm({
     : undefined
 
   // The user's explicit pick, defaulting to the latest published revision — the
-  // version the server would pin if the payload carried none.
+  // version the server would pin if the payload carried none — or to the draft of
+  // an agent that was never published, such as a fresh copy.
   const effectiveRevision =
-    selectedRevision ?? (history ? (findPublishedVersion(history)?.revision ?? null) : null)
+    selectedRevision ??
+    (history ? ((findPublishedVersion(history) ?? history[0])?.revision ?? null) : null)
   const selectedVersion =
     history && effectiveRevision !== null ? findVersion(history, effectiveRevision) : undefined
 

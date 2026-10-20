@@ -34,7 +34,7 @@
       },
       "agent_create": {
         "name": "Create agents",
-        "description": "Add new agents to the selected projects."
+        "description": "Add new agents to the selected projects, including copies of the agents you own or administer there."
       },
       "agent_settings_draft_update": {
         "name": "Edit agent drafts",

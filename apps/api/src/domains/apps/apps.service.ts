@@ -1,5 +1,8 @@
 import { randomUUID } from "node:crypto"
-import type { AppGrantablePermission } from "@caseai-connect/api-contracts"
+import {
+  type AppGrantablePermission,
+  MAX_ALLOWED_REDIRECT_URIS,
+} from "@caseai-connect/api-contracts"
 import {
   ConflictException,
   Injectable,
@@ -107,6 +110,28 @@ export class AppsService {
     })
     if (!updated) throw new NotFoundException(`App ${appManifestId} not found`)
     return updated
+  }
+
+  /**
+   * Registers an app by slug, for scripts and dev tooling: creates its manifest, or adds the given
+   * redirect URIs and permissions to the ones it has. Its name and description stay as they are
+   * when it exists. The allowlist keeps its most recent MAX_ALLOWED_REDIRECT_URIS entries.
+   */
+  async registerAppManifest(
+    fields: CreateAppManifestFields & { allowedRedirectUris: string[] },
+  ): Promise<AppManifestRecord> {
+    const existing = await this.appManifestRepository.findBySlug(fields.slug)
+    if (!existing) return this.createAppManifest(fields)
+    const allowedRedirectUris = [
+      ...new Set([
+        ...existing.allowedRedirectUris.filter((uri) => !fields.allowedRedirectUris.includes(uri)),
+        ...fields.allowedRedirectUris,
+      ]),
+    ].slice(-MAX_ALLOWED_REDIRECT_URIS)
+    const grantablePermissions = [
+      ...new Set([...existing.grantablePermissions, ...fields.grantablePermissions]),
+    ]
+    return this.updateAppManifest(existing.id, { allowedRedirectUris, grantablePermissions })
   }
 
   async deleteAppManifest(appManifestId: string): Promise<void> {

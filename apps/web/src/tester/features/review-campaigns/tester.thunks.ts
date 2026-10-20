@@ -44,8 +44,7 @@ export const startTesterSession = createAsyncThunk<
   const reviewCampaignId = getCurrentId({ state, name: "reviewCampaignId" })
 
   const params = { organizationId, projectId, reviewCampaignId }
-  const type = "live"
-  const result = await services.reviewCampaignsTester.startSession(params, { type })
+  const result = await services.reviewCampaignsTester.startSession(params)
 
   // Refresh sessions after starting a new one
   dispatch(listMyTesterSessions(params))

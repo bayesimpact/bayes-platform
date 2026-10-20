@@ -312,7 +312,7 @@ describe("Agent Session Messages - Auth", () => {
       })
       const agentSession = conversationAgentSessionFactory
         .transient({ organization, project, agent, user })
-        .live()
+        .reviewCampaignTester()
         .build({ campaignId: campaign.id })
       await repositories.conversationAgentSessionRepository.save(agentSession)
       const agentMessage = agentMessageFactory
@@ -338,14 +338,14 @@ describe("Agent Session Messages - Auth", () => {
 
     const listMessages = () =>
       request({
-        route: AgentSessionMessagesRoutes.live.getAll,
+        route: AgentSessionMessagesRoutes.review_campaign_tester.getAll,
         pathParams: removeNullish({ organizationId, projectId, agentId, agentSessionId }),
         token: accessToken ?? undefined,
       })
 
     const getMessage = () =>
       request({
-        route: AgentSessionMessagesRoutes.live.getOne,
+        route: AgentSessionMessagesRoutes.review_campaign_tester.getOne,
         pathParams: removeNullish({
           organizationId,
           projectId,
@@ -358,7 +358,7 @@ describe("Agent Session Messages - Auth", () => {
 
     const presignAttachment = () =>
       request({
-        route: AgentSessionMessagesRoutes.live.presignAttachmentDocument,
+        route: AgentSessionMessagesRoutes.review_campaign_tester.presignAttachmentDocument,
         pathParams: removeNullish({ organizationId, projectId, agentId, agentSessionId }),
         token: accessToken ?? undefined,
         request: {
@@ -366,7 +366,7 @@ describe("Agent Session Messages - Auth", () => {
         },
       })
 
-    it("lets a tester of an active campaign read and attach files in their own live session", async () => {
+    it("lets a tester of an active campaign read and attach files in their own campaign session", async () => {
       await createCampaignParticipantContext()
 
       const messagesResponse = await listMessages()
@@ -384,6 +384,17 @@ describe("Agent Session Messages - Auth", () => {
 
       expectResponse(await listMessages(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
       expectResponse(await presignAttachment(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+
+    it("answers 404 for the tester's campaign session on the live routes", async () => {
+      await createCampaignParticipantContext()
+
+      const response = await request({
+        route: AgentSessionMessagesRoutes.live.getAll,
+        pathParams: removeNullish({ organizationId, projectId, agentId, agentSessionId }),
+        token: accessToken ?? undefined,
+      })
+      expectResponse(response, 404)
     })
 
     it("forbids a reviewer-only participant", async () => {

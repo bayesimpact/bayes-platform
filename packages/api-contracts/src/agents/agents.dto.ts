@@ -12,27 +12,29 @@ import {
 export const agentTypeSchema = z.enum(["conversation", "extraction"])
 export type AgentType = z.infer<typeof agentTypeSchema>
 
+export type AgentRevisionDto = {
+  updatedAt: TimeType
+  name?: string
+  description?: string
+  number: number
+}
+
 export type AgentDto = {
   createdAt: TimeType
   id: string
   name: string
   projectId: string
   type: AgentType
-  currentRevision: {
-    updatedAt: TimeType
-    name?: string
-    description?: string
-    number: number
-  }
+  currentRevision: AgentRevisionDto
 }
 
-export type AgentWithDraftDto = AgentDto & {
-  draftRevision?: {
-    updatedAt: TimeType
-    name?: string
-    description?: string
-    number: number
-  }
+/**
+ * An agent as the studio sees it. `currentRevision` is the published revision: it is missing
+ * while the agent was never published, as a copy that starts as a draft.
+ */
+export type AgentWithDraftDto = Omit<AgentDto, "currentRevision"> & {
+  currentRevision?: AgentRevisionDto
+  draftRevision?: AgentRevisionDto
 }
 
 const agentSubAgentToolNameSchema = z
@@ -125,3 +127,8 @@ export type CreateAgentDto = z.infer<typeof createAgentSchema>
 export type UpdateAgentNameDto = z.infer<typeof updateAgentNameSchema>
 
 export const updateAgentNameSchema = agentValidationSchema.pick({ name: true })
+
+/** The name of the copy: everything else comes from the agent that is duplicated. */
+export const duplicateAgentSchema = agentValidationSchema.pick({ name: true })
+
+export type DuplicateAgentDto = z.infer<typeof duplicateAgentSchema>

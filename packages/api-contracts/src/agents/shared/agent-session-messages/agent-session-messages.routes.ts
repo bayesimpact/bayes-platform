@@ -1,6 +1,6 @@
 import type { RequestPayload, ResponseData } from "../../../generic"
 import { defineRoute } from "../../../helpers"
-import type { BaseAgentSessionTypeDto } from "../../conversation-agent-sessions/conversation-agent-sessions.dto"
+import type { ConversationAgentSessionTypeDto } from "../../conversation-agent-sessions/conversation-agent-sessions.dto"
 import type {
   AgentSessionMcpAppHtmlDto,
   AgentSessionMessageDto,
@@ -15,8 +15,11 @@ export type AgentSessionStreamResponse = unknown
 const agentSessionsPath =
   "organizations/:organizationId/projects/:projectId/agents/:agentId/agent-sessions"
 
-/** Live and playground sessions each get their own route set, so each has its own permissions. */
-function defineAgentSessionMessagesRoutes(type: BaseAgentSessionTypeDto) {
+/**
+ * Live, playground and review campaign tester sessions each get their own route set, so each has
+ * its own permissions.
+ */
+function defineAgentSessionMessagesRoutes(type: ConversationAgentSessionTypeDto) {
   const prefix = `${agentSessionsPath}/${type}/:agentSessionId/messages`
 
   return {
@@ -71,4 +74,5 @@ function defineAgentSessionMessagesRoutes(type: BaseAgentSessionTypeDto) {
 export const AgentSessionMessagesRoutes = {
   live: defineAgentSessionMessagesRoutes("live"),
   playground: defineAgentSessionMessagesRoutes("playground"),
+  review_campaign_tester: defineAgentSessionMessagesRoutes("review_campaign_tester"),
 }

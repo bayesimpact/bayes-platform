@@ -10,7 +10,7 @@ import {
 } from "@/common/test/test-database"
 import { configureGlobalPrefix } from "@/config/api-prefix"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
-import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
+import { listenOnLoopback, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { ClientMetadataDocumentFetcher } from "../client-metadata-document.fetcher"
 import { OAuthModule } from "../oauth.module"
@@ -47,8 +47,7 @@ describe("OAuth authorization server", () => {
     await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     configureGlobalPrefix(app)
-    await app.listen(0, "127.0.0.1")
-    baseUrl = await app.getUrl()
+    baseUrl = await listenOnLoopback(app)
   })
 
   beforeEach(async () => {

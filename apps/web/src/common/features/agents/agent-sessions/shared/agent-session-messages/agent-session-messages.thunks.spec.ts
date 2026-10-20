@@ -8,18 +8,24 @@ import type { RootState } from "@/common/store"
 import { ADS, defaultAsyncData } from "@/common/store/async-data-status"
 import type { Services } from "@/di/services"
 import { isStudioInterface } from "@/studio/routes/helpers"
-import { sendMessage } from "./agent-session-messages.thunks"
+import { isTesterInterface } from "@/tester/routes/helpers"
+import { listMessages, sendMessage } from "./agent-session-messages.thunks"
 import { streamChatResponse } from "./external/agent-session-messages-streaming"
 
 // `isStudioInterface` reads `window.location`, which doesn't exist under vitest's default node
 // environment. Mocking it (rather than `buildType` itself) keeps the real `buildType` — the
 // gate `sendMessage` actually depends on — in the test path.
 vi.mock("@/studio/routes/helpers", () => ({ isStudioInterface: vi.fn() }))
+vi.mock("@/tester/routes/helpers", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/tester/routes/helpers")>()),
+  isTesterInterface: vi.fn(),
+}))
 
 // The real module imports the OIDC client transitively, which also needs `window`.
 vi.mock("./external/agent-session-messages-streaming", () => ({ streamChatResponse: vi.fn() }))
 
 const mockedIsStudioInterface = vi.mocked(isStudioInterface)
+const mockedIsTesterInterface = vi.mocked(isTesterInterface)
 const mockedStreamChatResponse = vi.mocked(streamChatResponse)
 
 const organizationId = "org-1"
@@ -266,5 +272,28 @@ describe("sendMessage", () => {
 
     expect(findAction(dispatch, "failAssistantMessage")).toBeUndefined()
     expect(findAction(dispatch, "completeAssistantMessage")).toBeDefined()
+  })
+})
+
+describe("listMessages", () => {
+  const listWith = async () => {
+    const getAll = vi.fn().mockResolvedValue([])
+    const services = { agentSessionMessages: { getAll } } as unknown as Services
+    await listMessages(agentSessionId)(vi.fn(), () => buildState(), { services })
+    return getAll.mock.calls[0]?.[0]
+  }
+
+  it("reads a tester's conversation on the review campaign tester routes", async () => {
+    mockedIsStudioInterface.mockReturnValue(false)
+    mockedIsTesterInterface.mockReturnValue(true)
+
+    expect(await listWith()).toMatchObject({ payload: { type: "review_campaign_tester" } })
+  })
+
+  it("reads an App conversation on the live routes", async () => {
+    mockedIsStudioInterface.mockReturnValue(false)
+    mockedIsTesterInterface.mockReturnValue(false)
+
+    expect(await listWith()).toMatchObject({ payload: { type: "live" } })
   })
 })

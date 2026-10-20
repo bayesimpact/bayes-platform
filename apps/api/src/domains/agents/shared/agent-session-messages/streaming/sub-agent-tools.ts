@@ -133,6 +133,12 @@ export async function buildSubAgentTools({
     connectScope,
     parentAgent: agent,
   })
+  // A sub-agent answers with its published settings: one that was never published, such as a
+  // fresh copy, is not offered until it is.
+  const publishedChildAgentIds = await agentSettingsService.listPublishedAgentIds({
+    connectScope,
+    agentIds: subAgents.map((subAgent) => subAgent.childAgentId),
+  })
   const tools: ToolSet = {}
   const toolDescriptions: Record<string, string> = {}
   const terminalToolNames: string[] = []
@@ -142,6 +148,12 @@ export async function buildSubAgentTools({
   for (const subAgent of subAgents) {
     if (!subAgent.enabled) continue
     if (subAgent.childAgent.type === "extraction") continue
+    if (!publishedChildAgentIds.has(subAgent.childAgentId)) {
+      logger.log(
+        `Sub-agent ${subAgent.childAgentId} of agent ${agent.id} was never published; ${subAgent.toolName} is not offered`,
+      )
+      continue
+    }
 
     if (subAgent.mode === "handoff") {
       // A sub-agent answering as the active agent keeps its relay links but

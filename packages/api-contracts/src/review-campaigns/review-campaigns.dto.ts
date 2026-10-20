@@ -9,7 +9,6 @@ export type ReviewCampaignQuestionType = "rating" | "single-choice" | "free-text
 // Historically also "form"; those rows were migrated to "conversation" when the
 // form agent type was replaced by the fillForm tool (issue #558).
 export type ReviewCampaignAgentType = "conversation"
-export type ReviewCampaignSessionType = "live"
 export type ReviewCampaignFeedbackStatus = "submitted" | "pending" | "abandoned"
 
 export type ReviewCampaignQuestionDto = {
@@ -161,9 +160,8 @@ export type SubmitTesterCampaignSurveyRequestDto = {
 
 export type UpdateTesterCampaignSurveyRequestDto = Partial<SubmitTesterCampaignSurveyRequestDto>
 
-export type StartTesterSessionRequestDto = {
-  type: ReviewCampaignSessionType
-}
+/** The server gives the session its type (`review_campaign_tester`) and its campaign. */
+export type StartTesterSessionRequestDto = Record<string, never>
 
 export type StartTesterSessionResponseDto = {
   id: string

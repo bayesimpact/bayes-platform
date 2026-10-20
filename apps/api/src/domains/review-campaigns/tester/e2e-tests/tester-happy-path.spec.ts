@@ -1,5 +1,8 @@
 import { randomUUID } from "node:crypto"
-import { ReviewCampaignsRoutes } from "@caseai-connect/api-contracts"
+import {
+  ConversationAgentSessionsRoutes,
+  ReviewCampaignsRoutes,
+} from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import {
@@ -260,7 +263,7 @@ describe("ReviewCampaigns - Tester happy path", () => {
       route: ReviewCampaignsRoutes.startTesterSession,
       pathParams: removeNullish({ organizationId, projectId, reviewCampaignId }),
       token: accessToken,
-      request: { payload: { type: "live" } },
+      request: { payload: {} },
     })
     expectResponse(response, 201)
     expect(response.body.data.agentType).toBe("conversation")
@@ -269,6 +272,26 @@ describe("ReviewCampaigns - Tester happy path", () => {
       where: { id: response.body.data.id },
     })
     expect(session?.campaignId).toBe(reviewCampaignId)
+    expect(session?.type).toBe("review_campaign_tester")
+  })
+
+  it("a tester's campaign conversations stay out of their App conversation list", async () => {
+    const { agent } = await seedActiveCampaignWithTester("conversation")
+    const startResponse = await request({
+      route: ReviewCampaignsRoutes.startTesterSession,
+      pathParams: removeNullish({ organizationId, projectId, reviewCampaignId }),
+      token: accessToken,
+      request: { payload: {} },
+    })
+    expectResponse(startResponse, 201)
+
+    const listResponse = await request({
+      route: ConversationAgentSessionsRoutes.live.getAll,
+      pathParams: removeNullish({ organizationId, projectId, agentId: agent.id }),
+      token: accessToken,
+    })
+    expectResponse(listResponse, 201)
+    expect(listResponse.body.data).toEqual([])
   })
 
   it("startTesterSession on a fillForm-enabled campaign returns agentType conversation; listMyTesterSessions carries the session forms", async () => {
@@ -287,7 +310,7 @@ describe("ReviewCampaigns - Tester happy path", () => {
       route: ReviewCampaignsRoutes.startTesterSession,
       pathParams: removeNullish({ organizationId, projectId, reviewCampaignId }),
       token: accessToken,
-      request: { payload: { type: "live" } },
+      request: { payload: {} },
     })
     expectResponse(started, 201)
     expect(started.body.data.agentType).toBe("conversation")
@@ -321,7 +344,7 @@ describe("ReviewCampaigns - Tester happy path", () => {
       route: ReviewCampaignsRoutes.startTesterSession,
       pathParams: removeNullish({ organizationId, projectId, reviewCampaignId }),
       token: accessToken,
-      request: { payload: { type: "live" } },
+      request: { payload: {} },
     })
     const pendingSessionId = first.body.data.id
 
@@ -329,7 +352,7 @@ describe("ReviewCampaigns - Tester happy path", () => {
       route: ReviewCampaignsRoutes.startTesterSession,
       pathParams: removeNullish({ organizationId, projectId, reviewCampaignId }),
       token: accessToken,
-      request: { payload: { type: "live" } },
+      request: { payload: {} },
     })
     const submittedSessionId = second.body.data.id
 
@@ -360,7 +383,7 @@ describe("ReviewCampaigns - Tester happy path", () => {
       route: ReviewCampaignsRoutes.startTesterSession,
       pathParams: removeNullish({ organizationId, projectId, reviewCampaignId }),
       token: accessToken,
-      request: { payload: { type: "live" } },
+      request: { payload: {} },
     })
     expectResponse(response, 422)
   })
@@ -371,7 +394,7 @@ describe("ReviewCampaigns - Tester happy path", () => {
       route: ReviewCampaignsRoutes.startTesterSession,
       pathParams: removeNullish({ organizationId, projectId, reviewCampaignId }),
       token: accessToken,
-      request: { payload: { type: "live" } },
+      request: { payload: {} },
     })
     const sessionId = sessionStart.body.data.id
 
@@ -414,7 +437,7 @@ describe("ReviewCampaigns - Tester happy path", () => {
       route: ReviewCampaignsRoutes.startTesterSession,
       pathParams: removeNullish({ organizationId, projectId, reviewCampaignId }),
       token: accessToken,
-      request: { payload: { type: "live" } },
+      request: { payload: {} },
     })
     const sessionId = sessionStart.body.data.id
 
@@ -496,7 +519,7 @@ describe("ReviewCampaigns - Tester happy path", () => {
       route: ReviewCampaignsRoutes.startTesterSession,
       pathParams: removeNullish({ organizationId, projectId, reviewCampaignId }),
       token: accessToken,
-      request: { payload: { type: "live" } },
+      request: { payload: {} },
     })
     const sessionId = sessionStart.body.data.id
 
@@ -523,7 +546,7 @@ describe("ReviewCampaigns - Tester happy path", () => {
       route: ReviewCampaignsRoutes.startTesterSession,
       pathParams: removeNullish({ organizationId, projectId, reviewCampaignId }),
       token: accessToken,
-      request: { payload: { type: "live" } },
+      request: { payload: {} },
     })
     const sessionId = sessionStart.body.data.id
 
@@ -549,13 +572,13 @@ describe("ReviewCampaigns - Tester happy path", () => {
       route: ReviewCampaignsRoutes.startTesterSession,
       pathParams: removeNullish({ organizationId, projectId, reviewCampaignId }),
       token: accessToken,
-      request: { payload: { type: "live" } },
+      request: { payload: {} },
     })
     const secondSession = await request({
       route: ReviewCampaignsRoutes.startTesterSession,
       pathParams: removeNullish({ organizationId, projectId, reviewCampaignId }),
       token: accessToken,
-      request: { payload: { type: "live" } },
+      request: { payload: {} },
     })
     await request({
       route: ReviewCampaignsRoutes.submitTesterFeedback,

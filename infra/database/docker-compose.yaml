@@ -1,6 +1,6 @@
 # Local dev stack, one compose project for everything (`connect-db`).
 # A plain `docker compose up -d` (and the CI) starts pgvector and redis only.
-# Profiles: `mail` (Mailpit), `keycloak`, `dex`, `traces` (otel-collector,
+# Profiles: `mail` (Mailpit), `keycloak`, `oidc-picker`, `traces` (otel-collector,
 # Phoenix), `analytics` (Grafana), `router` (Traefik and the dashboard of the
 # worktree environments), `bull-board`. See the README for the commands.
 #
@@ -176,29 +176,30 @@ services:
         read_only: true
         bind:
           create_host_path: false
-  # Lighter local OpenID Connect provider, http://localhost:5556. Not for
-  # production use. Reads infra/dex/config.local.yaml when it exists
-  # (git-ignored), else config.sample.yaml. See infra/dex/README.md.
-  # Profile `dex`: `docker compose --profile dex up -d --no-recreate dex`.
-  dex:
-    image: ghcr.io/dexidp/dex:v2.44.0
-    profiles: [dex]
+  # Local OpenID Connect provider, http://localhost:5556: its sign-in page lists
+  # people, and a click signs in as one, without a password. Not for production
+  # use. Reads infra/oidc-picker/config.local.yaml when it exists (git-ignored),
+  # else config.sample.yaml. See infra/oidc-picker/README.md.
+  # Profile `oidc-picker`:
+  # `docker compose --profile oidc-picker up -d --no-recreate oidc-picker`.
+  oidc-picker:
+    image: ghcr.io/bayesimpact/oidc-picker:0.1.0
+    profiles: [oidc-picker]
     restart: unless-stopped
     entrypoint: ["sh", "-c"]
     command:
       - |
-        config=/srv/dex/config.local.yaml
-        [ -f "$$config" ] || config=/srv/dex/config.sample.yaml
-        echo "Dex configuration: $$config"
-        exec dex serve "$$config"
+        config=/srv/oidc-picker/config.local.yaml
+        [ -f "$$config" ] || config=/srv/oidc-picker/config.sample.yaml
+        exec node /app/src/cli.ts "$$config"
     ports:
       # Fixed: the port is part of the issuer in the configuration.
       - "5556:5556"
     volumes:
       # The folder, so the local config copy is optional.
       - type: bind
-        source: ../dex
-        target: /srv/dex
+        source: ../oidc-picker
+        target: /srv/oidc-picker
         read_only: true
         bind:
           create_host_path: false
@@ -210,7 +211,7 @@ services:
   #   for DEV_DOMAIN: a domain of yours whose names resolve to 127.0.0.1. See
   #   "HTTPS on a domain of your own" in infra/worktree/README.md. The entrypoint
   #   listens on the same port inside the container, so the environments'
-  #   containers reach their Dex at its public URL through Traefik. Plain http to
+  #   containers reach their sign-in at its public URL through Traefik. Plain http to
   #   DEV_DOMAIN redirects to https.
   # The file provider watches DEV_CERT_DIR: a renewed certificate is served as
   # soon as its files change there. Traefik's own dashboard is at

@@ -97,6 +97,8 @@ config:
   ORGANIZATION_CREATOR_EMAIL_DOMAIN: "@example.org"
   BACKOFFICE_AUTHORIZED_DOMAIN: "@example.org"
   BACKOFFICE_AUTHORIZED_EMAILS: "admin@example.org"
+  # Name of the platform MCP server shown to MCP clients.
+  MCP_SERVER_TITLE: Bayes platform
   # Embeddings. gemini-embedding-001 needs Vertex AI (GOOGLE_VERTEX_*).
   DOCUMENT_EMBEDDING_MODELS: gemini-embedding-001
   MAX_VERTEX_EMBEDDING_BATCH_SIZE: "250"

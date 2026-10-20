@@ -27,6 +27,8 @@ type StoryArgs = StudioStoryArgs & {
   withAgentSessions?: boolean
   /** Unpublished draft revision — drives whether the header's publish button is enabled. */
   withDraft?: boolean
+  /** A fresh copy: its settings are draft revision 1, and it was never published. */
+  unpublished?: boolean
   /** Puts the agent on a retired model so the deprecation banner renders. */
   withDeprecatedModel?: boolean
   /** Grants the safety review of the current agent: the header shows the safety entry. */
@@ -46,6 +48,7 @@ const meta = {
     fillForm: { control: "boolean" },
     withAgentSessions: { control: "boolean" },
     withDraft: { control: "boolean" },
+    unpublished: { control: "boolean" },
     withDeprecatedModel: { control: "boolean" },
     canReviewConversations: { control: "boolean" },
   },
@@ -56,6 +59,7 @@ const meta = {
     fillForm: false,
     withAgentSessions: false,
     withDraft: false,
+    unpublished: false,
     withDeprecatedModel: false,
     canReviewConversations: false,
   },
@@ -73,6 +77,7 @@ export const Default: Story = {
         fillForm,
         withAgentSessions,
         withDraft,
+        unpublished,
         withDeprecatedModel,
         canReviewConversations,
         ...args
@@ -80,24 +85,31 @@ export const Default: Story = {
         const { baseSeeds, user, project, agents } = buildStudioData(args)
         const [firstAgent, ...restAgents] = agents
         const withFillForm = agentType === "conversation" && !!fillForm
-        const currentAgent = agentFactory.transient({ project }).build({
-          ...firstAgent,
-          type: agentType,
-          currentRevision: { number: 1 },
-          // An unpublished draft revision is newer than the published one.
-          draftRevision: withDraft ? { number: 2 } : undefined,
-        })
+        const currentAgent = unpublished
+          ? agentFactory
+              .unpublished()
+              .transient({ project })
+              .build({ id: firstAgent?.id, name: firstAgent?.name, type: agentType })
+          : agentFactory.transient({ project }).build({
+              ...firstAgent,
+              type: agentType,
+              currentRevision: { number: 1 },
+              // An unpublished draft revision is newer than the published one.
+              draftRevision: withDraft ? { number: 2 } : undefined,
+            })
         const currentAgentSettings = (
           withFillForm ? agentSettingsFactory.fillForm() : agentSettingsFactory
         )
           .transient({ agent: currentAgent })
           .build({
-            revision: currentAgent.currentRevision.number,
+            revision: currentAgent.currentRevision?.number ?? 1,
             model: withDeprecatedModel ? AgentModel.Gemini25Flash : defaultAgentModels.agent,
           })
         const draftAgentSettings = currentAgent.draftRevision
           ? { ...currentAgentSettings, revision: currentAgent.draftRevision.number, isDraft: true }
           : undefined
+        // A copy that was never published only has its draft in the history.
+        const publishedAgentSettings = currentAgent.currentRevision ? [currentAgentSettings] : []
 
         const conversationSessionFactory = conversationAgentSessionFactory.transient({
           agent: currentAgent,
@@ -132,8 +144,8 @@ export const Default: Story = {
             seed.studio.agentHistory({
               agentId: currentAgent.id,
               versions: draftAgentSettings
-                ? [draftAgentSettings, currentAgentSettings]
-                : [currentAgentSettings],
+                ? [draftAgentSettings, ...publishedAgentSettings]
+                : publishedAgentSettings,
             }),
           ),
         }
@@ -187,6 +199,16 @@ export const AgentConvForConversationReviewer: Story = {
   args: {
     ...AgentConvWithSessions.args,
     canReviewConversations: true,
+  },
+  decorators: Default.decorators,
+}
+
+/** A fresh copy of an agent: its settings are a draft that was never published. */
+export const AgentUnpublishedCopy: Story = {
+  args: {
+    ...AgentConvWithSessions.args,
+    withAgentSessions: false,
+    unpublished: true,
   },
   decorators: Default.decorators,
 }

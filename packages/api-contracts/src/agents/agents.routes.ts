@@ -1,12 +1,23 @@
 import type { RequestPayload, ResponseData, SuccessResponseDTO } from "../generic"
 import { defineRoute } from "../helpers"
-import type { AgentDto, AgentWithDraftDto, CreateAgentDto, UpdateAgentNameDto } from "./agents.dto"
+import type {
+  AgentDto,
+  AgentWithDraftDto,
+  CreateAgentDto,
+  DuplicateAgentDto,
+  UpdateAgentNameDto,
+} from "./agents.dto"
 import type { AgentModelListDto } from "./settings/agent-settings.dto"
 
 export const AgentsRoutes = {
   createOne: defineRoute<ResponseData<AgentDto>, RequestPayload<CreateAgentDto>>({
     method: "post",
     path: "organizations/:organizationId/projects/:projectId/agents",
+  }),
+  /** Copies the agent into a new agent of the project, whose settings start as a draft. */
+  duplicateOne: defineRoute<ResponseData<AgentWithDraftDto>, RequestPayload<DuplicateAgentDto>>({
+    method: "post",
+    path: "organizations/:organizationId/projects/:projectId/agents/:agentId/duplicate",
   }),
   getAll: defineRoute<ResponseData<AgentDto[]>>({
     method: "get",

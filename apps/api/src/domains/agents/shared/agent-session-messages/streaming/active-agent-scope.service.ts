@@ -14,7 +14,7 @@ import type { ActiveTurnAgent } from "./handoff-turn-loop"
  * agent answers, with its latest published settings: the playground's version
  * picker applies to the agent under test, not to the sub-agent it hands the
  * conversation to. Falls back to the session's agent when the recorded agent
- * no longer exists in the project.
+ * no longer exists in the project, or has no published version left.
  */
 @Injectable()
 export class ActiveAgentScopeService {
@@ -54,10 +54,16 @@ export class ActiveAgentScopeService {
       return { agent: rootAgent, agentSettings: rootAgentSettings }
     }
 
-    const agentSettings = await this.agentSettingsService.getLast({
+    const agentSettings = await this.agentSettingsService.findLastPublished({
       connectScope,
       agentId: activeAgent.id,
     })
+    if (!agentSettings) {
+      this.logger.warn(
+        `Active agent ${activeAgentId} has no published version for agent ${rootAgent.id}; the session's agent answers`,
+      )
+      return { agent: rootAgent, agentSettings: rootAgentSettings }
+    }
     return { agent: activeAgent, agentSettings, handoff: { parentAgent: rootAgent } }
   }
 }

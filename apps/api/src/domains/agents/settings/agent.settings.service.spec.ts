@@ -8,6 +8,7 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { Agent } from "@/domains/agents/agent.entity"
+import { agentFactory } from "@/domains/agents/agent.factory"
 import { AgentsModule } from "@/domains/agents/agents.module"
 import { AgentsService } from "@/domains/agents/agents.service"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
@@ -95,6 +96,61 @@ describe("AgentSettings", () => {
         includesDraft: true,
       })
       assertOnSettings(agentSettingsValuesRev3Draft, settings)
+    })
+    it("getLastPublishedOrDraft should prefer the published revision over a newer draft", async () => {
+      const { organization, project, agent } = await createAgentWithSettings(setup, repositories)
+
+      const settings = await service.getLastPublishedOrDraft({
+        connectScope: { organizationId: organization.id, projectId: project.id },
+        agentId: agent.id,
+      })
+
+      assertOnSettings(agentSettingsValuesRev1, settings)
+    })
+    it("getLastPublishedOrDraft should return the draft of an agent that was never published", async () => {
+      const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
+        repositories,
+        { agentSettings: { isDraft: true } },
+      )
+      const connectScope = { organizationId: organization.id, projectId: project.id }
+
+      const settings = await service.getLastPublishedOrDraft({ connectScope, agentId: agent.id })
+
+      expect(settings.id).toBe(agentSettings.id)
+      expect(await service.findLastPublished({ connectScope, agentId: agent.id })).toBeUndefined()
+    })
+    it("listPublishedAgentIds should leave out the agents with only a draft or an archived revision", async () => {
+      const {
+        organization,
+        project,
+        agent: publishedAgent,
+      } = await createAgentWithSettings(setup, repositories)
+      const draftOnlyAgent = await repositories.agentRepository.save(
+        agentFactory.transient({ organization, project }).build(),
+      )
+      const archivedAgent = await repositories.agentRepository.save(
+        agentFactory.transient({ organization, project }).build(),
+      )
+      await setup
+        .getRepository(AgentSettings)
+        .save([
+          agentSettingsFactory
+            .transient({ organization, project, agent: draftOnlyAgent })
+            .build({ revision: 1, isDraft: true }),
+          agentSettingsFactory
+            .transient({ organization, project, agent: archivedAgent })
+            .build({ revision: 1, isArchived: true }),
+          agentSettingsFactory
+            .transient({ organization, project, agent: archivedAgent })
+            .build({ revision: 2, isDraft: true }),
+        ])
+
+      const publishedAgentIds = await service.listPublishedAgentIds({
+        connectScope: { organizationId: organization.id, projectId: project.id },
+        agentIds: [publishedAgent.id, draftOnlyAgent.id, archivedAgent.id],
+      })
+
+      expect([...publishedAgentIds]).toEqual([publishedAgent.id])
     })
     it("get should return settings from Agent - specified revision", async () => {
       const { organization, project, agent } = await createAgentWithSettings(setup, repositories)
