@@ -15,6 +15,7 @@ import { AgentMessageAttachmentDocumentsService } from "../shared/agent-session-
 import { LiveAgentMessagesController } from "../shared/agent-session-messages/live-agent-messages.controller"
 import { McpAppHtmlService } from "../shared/agent-session-messages/mcp-app-html.service"
 import { PlaygroundAgentMessagesController } from "../shared/agent-session-messages/playground-agent-messages.controller"
+import { ReviewCampaignTesterAgentMessagesController } from "../shared/agent-session-messages/review-campaign-tester-agent-messages.controller"
 import { StreamingModule } from "../shared/agent-session-messages/streaming/streaming.module"
 import { ConversationAgentSessionsService } from "./conversation-agent-sessions.service"
 import { LiveConversationAgentSessionsController } from "./live-conversation-agent-sessions.controller"
@@ -52,6 +53,7 @@ import { ConversationReviewService } from "./review/conversation-review.service"
     LiveConversationAgentSessionsController,
     PlaygroundAgentMessagesController,
     PlaygroundConversationAgentSessionsController,
+    ReviewCampaignTesterAgentMessagesController,
   ],
   exports: [ConversationAgentSessionsService, McpAppHtmlService],
 })

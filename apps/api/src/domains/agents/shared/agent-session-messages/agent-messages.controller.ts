@@ -6,7 +6,7 @@ import { Inject, Injectable, NotFoundException, UnprocessableEntityException } f
 import { v4 } from "uuid"
 import type { EndpointRequestWithAgentSession } from "@/common/context/request.interface"
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
-import type { BaseAgentSessionType } from "@/domains/agents/base-agent-sessions/base-agent-sessions.types"
+import type { ConversationAgentSessionType } from "@/domains/agents/base-agent-sessions/base-agent-sessions.types"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import {
@@ -26,7 +26,7 @@ import { AgentMessageAttachmentDocumentsService } from "./agent-message-attachme
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { McpAppHtmlService } from "./mcp-app-html.service"
 
-type Routes = (typeof AgentSessionMessagesRoutes)[BaseAgentSessionType]
+type Routes = (typeof AgentSessionMessagesRoutes)[ConversationAgentSessionType]
 
 /**
  * Base of the live and playground session message controllers. Each subclass serves one session
@@ -39,7 +39,7 @@ type Routes = (typeof AgentSessionMessagesRoutes)[BaseAgentSessionType]
  */
 @Injectable()
 export abstract class AgentMessagesController {
-  protected abstract readonly type: BaseAgentSessionType
+  protected abstract readonly type: ConversationAgentSessionType
 
   constructor(
     @Inject(FILE_STORAGE_SERVICE)

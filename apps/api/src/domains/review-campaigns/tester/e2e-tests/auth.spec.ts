@@ -260,7 +260,7 @@ describe("ReviewCampaigns - Tester auth", () => {
         route: ReviewCampaignsRoutes.startTesterSession,
         pathParams: removeNullish({ organizationId, projectId, reviewCampaignId }),
         token: accessToken ?? undefined,
-        request: { payload: { type: "live" } },
+        request: { payload: {} },
       })
 
     it("requires an authentication token", async () => {
@@ -520,7 +520,7 @@ describe("ReviewCampaigns - Tester auth", () => {
         route: ReviewCampaignsRoutes.startTesterSession,
         pathParams: pathParams(),
         token: accessToken ?? undefined,
-        request: { payload: { type: "live" } },
+        request: { payload: {} },
       })
       expectResponse(startResponse, 201)
 

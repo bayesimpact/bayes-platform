@@ -4,7 +4,7 @@ import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/commo
 import { Observable } from "rxjs"
 import type { EndpointRequestWithAgentSession } from "@/common/context/request.interface"
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
-import type { BaseAgentSessionType } from "@/domains/agents/base-agent-sessions/base-agent-sessions.types"
+import type { ConversationAgentSessionType } from "@/domains/agents/base-agent-sessions/base-agent-sessions.types"
 import type { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ConversationAgentSessionsService } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.service"
@@ -31,7 +31,7 @@ import type { AgentSessionScope } from "./streaming-session.types"
  */
 @Injectable()
 export abstract class StreamingController {
-  protected abstract readonly type: BaseAgentSessionType
+  protected abstract readonly type: ConversationAgentSessionType
 
   constructor(
     private readonly chatStreamingLLMService: StreamingLlmService,
@@ -131,7 +131,7 @@ export abstract class StreamingController {
 }
 
 type StreamPayload =
-  (typeof AgentSessionMessagesRoutes)[BaseAgentSessionType]["stream"]["request"]["payload"]
+  (typeof AgentSessionMessagesRoutes)[ConversationAgentSessionType]["stream"]["request"]["payload"]
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value)

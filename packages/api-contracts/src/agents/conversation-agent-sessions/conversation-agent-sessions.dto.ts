@@ -3,6 +3,12 @@ import type { TimeType } from "../../generic"
 
 export type BaseAgentSessionTypeDto = "playground" | "live"
 
+/**
+ * What a conversation session is for: the playground and live uses, plus a tester's conversation
+ * in a review campaign, whose type the server sets when the tester starts it.
+ */
+export type ConversationAgentSessionTypeDto = BaseAgentSessionTypeDto | "review_campaign_tester"
+
 export type ConversationFormStatusDto = "in_progress" | "concluded"
 
 /**
@@ -28,7 +34,7 @@ export type ConversationFormDto = {
 export type ConversationAgentSessionDto = {
   id: string
   agentId: string
-  type: BaseAgentSessionTypeDto
+  type: ConversationAgentSessionTypeDto
   title?: string
   createdAt: TimeType
   updatedAt: TimeType
@@ -71,7 +77,7 @@ export type ConversationReviewMessageDto = {
 export type ConversationReviewDto = {
   sessionId: string
   agentId: string
-  type: BaseAgentSessionTypeDto
+  type: ConversationAgentSessionTypeDto
   title?: string
   /** True when the session was spawned by a parent agent that delegated to this one. */
   isSubSession: boolean

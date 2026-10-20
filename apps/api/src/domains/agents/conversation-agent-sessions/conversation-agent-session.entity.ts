@@ -4,7 +4,7 @@ import { Agent } from "@/domains/agents/agent.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { ReviewCampaign } from "@/domains/review-campaigns/review-campaign.entity"
 import { User } from "@/domains/users/user.entity"
-import type { BaseAgentSessionType } from "../base-agent-sessions/base-agent-sessions.types"
+import type { ConversationAgentSessionType } from "../base-agent-sessions/base-agent-sessions.types"
 import { AgentMessage } from "../shared/agent-session-messages/agent-message.entity"
 import { ConversationForm } from "../shared/conversation-forms/conversation-form.entity"
 import { ConversationAgentSessionCategory } from "./conversation-agent-session-category.entity"
@@ -21,7 +21,7 @@ export class ConversationAgentSession extends ConnectEntityBase {
   userId!: string
 
   @Column({ type: "varchar" })
-  type!: BaseAgentSessionType
+  type!: ConversationAgentSessionType
 
   @Column({ type: "varchar", nullable: true })
   title!: string | null

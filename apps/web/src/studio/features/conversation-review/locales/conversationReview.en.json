@@ -13,6 +13,7 @@
     "session": {
       "live": "Live",
       "playground": "Playground",
+      "review_campaign_tester": "Review campaign",
       "subSession": "Sub-session",
       "purged": "Content deleted by the retention policy",
       "startedAt": "Started {{date}}",

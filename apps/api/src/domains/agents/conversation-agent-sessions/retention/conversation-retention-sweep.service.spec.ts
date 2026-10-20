@@ -91,6 +91,7 @@ describe("ConversationRetentionSweepService", () => {
     await service.sweepExpiredConversations()
 
     expect(queryBuilder.andWhere).toHaveBeenCalledWith("session.campaign_id IS NULL")
+    expect(queryBuilder.andWhere).toHaveBeenCalledWith("session.type <> 'review_campaign_tester'")
   })
 
   it("does not count sessions the purge skipped", async () => {

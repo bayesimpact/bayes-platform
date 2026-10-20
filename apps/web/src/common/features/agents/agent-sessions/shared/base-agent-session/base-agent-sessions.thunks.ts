@@ -1,10 +1,15 @@
-import type { BaseAgentSessionTypeDto, SuccessResponseDTO } from "@caseai-connect/api-contracts"
+import type {
+  BaseAgentSessionTypeDto,
+  ConversationAgentSessionTypeDto,
+  SuccessResponseDTO,
+} from "@caseai-connect/api-contracts"
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import { selectPlaygroundRevision } from "@/common/features/agents/agent-settings/agent-settings.selectors"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { getCurrentId } from "@/common/features/helpers"
 import type { RootState, ThunkExtraArg } from "@/common/store"
 import { isStudioInterface } from "@/studio/routes/helpers"
+import { isTesterInterface } from "@/tester/routes/helpers"
 import type { ConversationAgentSession } from "../../conversation/conversation-agent-sessions.models"
 import type { ExtractionAgentSession } from "../../extraction/extraction-agent-sessions.models"
 
@@ -71,4 +76,9 @@ export const deleteAgentSession = createAsyncThunk<
 // FIXME: This is a temporary solution to avoid having to duplicate functions for live and playground agent sessions.
 export function buildType(): BaseAgentSessionTypeDto {
   return isStudioInterface() ? "playground" : "live"
+}
+
+/** The message routes of a conversation also serve a tester's conversation in a review campaign. */
+export function buildConversationType(): ConversationAgentSessionTypeDto {
+  return isTesterInterface() ? "review_campaign_tester" : buildType()
 }

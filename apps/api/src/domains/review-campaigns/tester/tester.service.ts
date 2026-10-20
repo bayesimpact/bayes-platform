@@ -8,7 +8,6 @@ import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { Agent } from "@/domains/agents/agent.entity"
-import type { BaseAgentSessionType } from "@/domains/agents/base-agent-sessions/base-agent-sessions.types"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ConversationAgentSessionsService } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.service"
@@ -170,12 +169,10 @@ export class TesterService {
     connectScope,
     campaign,
     userId,
-    type,
   }: {
     connectScope: RequiredConnectScope
     campaign: ReviewCampaign
     userId: string
-    type: BaseAgentSessionType
   }): Promise<{ id: string; agentType: ReviewCampaignAgentType }> {
     assertReviewCampaignIsActive(campaign)
 
@@ -189,7 +186,7 @@ export class TesterService {
       connectScope,
       agentSettingsId: agentSettings.id,
       userId,
-      type,
+      type: "review_campaign_tester",
     })
     session.campaignId = campaign.id
     await this.conversationSessionRepository.save(session)

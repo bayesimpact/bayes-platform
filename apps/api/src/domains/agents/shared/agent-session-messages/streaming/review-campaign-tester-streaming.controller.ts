@@ -1,0 +1,37 @@
+import { AgentSessionMessagesRoutes } from "@caseai-connect/api-contracts"
+import type { MessageEvent } from "@nestjs/common"
+import { Controller, Query, Req, Sse, UseGuards } from "@nestjs/common"
+import type { Observable } from "rxjs"
+import type { EndpointRequestWithAgentSession } from "@/common/context/request.interface"
+import { RequireContext } from "@/common/context/require-context.decorator"
+import { ResourceContextGuard } from "@/common/context/resource-context.guard"
+import type { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
+import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
+import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
+import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
+import { AGENT_CONVERSATION_SESSION_CREATE_PERMISSION } from "@/domains/rbac/rbac.constants"
+import { UserGuard } from "@/domains/users/user.guard"
+import { StreamingController } from "./streaming.controller"
+
+const Routes = AgentSessionMessagesRoutes.review_campaign_tester
+
+/**
+ * Sends a message to a tester's conversation in a review campaign and streams the reply. Checked
+ * with `agent.conversation.session.create`, which a tester of an active campaign holds on the
+ * campaign's project.
+ */
+@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, CheckPermissionGuard)
+@RequireContext("organization", "project", "agent", "agentSession")
+@Controller()
+export class ReviewCampaignTesterStreamingController extends StreamingController {
+  protected readonly type = "review_campaign_tester"
+
+  @Sse(Routes.stream.path, { method: 0 /* GET */ })
+  @CheckPermission(AGENT_CONVERSATION_SESSION_CREATE_PERMISSION, "project")
+  stream(
+    @Req() request: EndpointRequestWithAgentSession<ConversationAgentSession>,
+    @Query("q") query: string,
+  ): Observable<MessageEvent> {
+    return this.handleStream(request, query)
+  }
+}

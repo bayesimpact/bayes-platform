@@ -12,6 +12,7 @@ import { ActiveAgentScopeService } from "./active-agent-scope.service"
 import { AgentLlmModule } from "./agent-llm.module"
 import { LiveStreamingController } from "./live-streaming.controller"
 import { PlaygroundStreamingController } from "./playground-streaming.controller"
+import { ReviewCampaignTesterStreamingController } from "./review-campaign-tester-streaming.controller"
 import { StreamingLlmService } from "./streaming-llm.service"
 
 @Module({
@@ -23,7 +24,11 @@ import { StreamingLlmService } from "./streaming-llm.service"
     RbacModule,
   ],
   providers: [...moduleProviders, StreamingLlmService, ActiveAgentScopeService],
-  controllers: [LiveStreamingController, PlaygroundStreamingController],
+  controllers: [
+    LiveStreamingController,
+    PlaygroundStreamingController,
+    ReviewCampaignTesterStreamingController,
+  ],
   exports: [StreamingLlmService, ActiveAgentScopeService],
 })
 export class StreamingModule {}
