@@ -1,4 +1,5 @@
 import { type AgentModel, AgentProvider } from "@caseai-connect/api-contracts"
+import type { LLMServiceTier } from "@/common/interfaces/llm-provider.interface"
 import type { AISDKLLMProviderBase } from "@/external/llm/ai-sdk/ai-sdk-llm-provider-base"
 import {
   type CapturedRequest,
@@ -119,6 +120,9 @@ const PROVIDERS: ProviderUnderTest[] = [
 
 const CALLS: Call[] = ["generateText", "streamChatResponse"]
 
+/** The option the call sets (project flags and agent toggle), never the stored options. */
+const SERVICE_TIER_OPTION = "providerOptions.vertex.sharedRequestType"
+
 /**
  * Every option a model declares reaches the model's API, with the value the
  * agent set, through every kind of call. The options are read from the
@@ -155,9 +159,10 @@ describe("AI SDK non-regression - model options reach the request", () => {
     call: Call,
     model: AgentModel,
     modelOptions: Record<string, unknown> | undefined,
+    serviceTier?: LLMServiceTier,
   ): Promise<CapturedRequest> => {
     fakeFetch.respondWith(providerUnderTest.responseFor[call]())
-    const config = configFor(model, { modelOptions })
+    const config = configFor(model, { modelOptions, serviceTier })
     const text =
       call === "generateText"
         ? await providerUnderTest.instance.generateText({ prompt: "Hi", config, metadata })
@@ -211,11 +216,26 @@ describe("AI SDK non-regression - model options reach the request", () => {
       )
 
       it.each(cases)("sends $option = $value on $call", async ({ option, path, value, call }) => {
-        const request = await send(providerUnderTest, call, model, withOption({}, path, value))
+        const request =
+          option === SERVICE_TIER_OPTION
+            ? await send(providerUnderTest, call, model, undefined, value as LLMServiceTier)
+            : await send(providerUnderTest, call, model, withOption({}, path, value))
 
         expect(providerUnderTest.locations[option]?.(request)).toEqual(value)
         expect(warningCollector.warnings).toEqual([])
       })
+
+      if (leaves.some((leaf) => leaf.path.join(".") === SERVICE_TIER_OPTION)) {
+        it.each(
+          CALLS,
+        )("leaves out a service tier left in the stored options on %s", async (call) => {
+          const storedTier = withOption({}, SERVICE_TIER_OPTION.split("."), "priority")
+          const request = await send(providerUnderTest, call, model, storedTier)
+
+          expect(providerUnderTest.locations[SERVICE_TIER_OPTION]?.(request)).toBeUndefined()
+          expect(warningCollector.warnings).toEqual([])
+        })
+      }
 
       if (!leaves.some((leaf) => leaf.path.join(".") === "temperature")) {
         it.each(CALLS)("leaves out a temperature the model no longer takes on %s", async (call) => {
