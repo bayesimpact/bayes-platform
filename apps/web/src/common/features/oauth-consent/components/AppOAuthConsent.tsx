@@ -38,12 +38,12 @@ import {
 } from "../oauth-consent.utils"
 import {
   CancelLink,
+  ChoiceCard,
   ConsentFooter,
   ConsentHeader,
   ConsentPage,
-  choiceRowClass,
-  GROUP_LABEL,
   GroupedPermissions,
+  OrganizationGroup,
   SECTION_HINT,
   SECTION_TITLE,
   useConsentResolver,
@@ -311,27 +311,20 @@ function WorkspaceChoices({
       className="mt-4 flex flex-col gap-4"
     >
       {groupConsentProjectsByOrganization(projects).map((group) => (
-        <fieldset key={group.organizationId} className="flex flex-col gap-1.5">
-          <legend className={cn("mb-1", GROUP_LABEL)}>{group.organizationName}</legend>
+        <OrganizationGroup key={group.organizationId} name={group.organizationName}>
           {group.projects.map((project) => {
             const radioId = `oauth-workspace-${project.id}`
-            const selected = value === project.id
             return (
-              <label
+              <ChoiceCard
                 key={project.id}
                 htmlFor={radioId}
-                className={choiceRowClass({ selected, disabled })}
-              >
-                <RadioGroupItem
-                  id={radioId}
-                  value={project.id}
-                  className={cn(selected && "border-primary")}
-                />
-                <span className="min-w-0 font-medium break-words">{project.name}</span>
-              </label>
+                label={project.name}
+                disabled={disabled}
+                control={<RadioGroupItem id={radioId} value={project.id} />}
+              />
             )
           })}
-        </fieldset>
+        </OrganizationGroup>
       ))}
     </RadioGroup>
   )

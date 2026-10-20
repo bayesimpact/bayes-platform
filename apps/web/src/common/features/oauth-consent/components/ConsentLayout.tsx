@@ -1,7 +1,10 @@
 import { isLoopbackRedirectUri, oauthConsentSchema } from "@caseai-connect/api-contracts"
+import { Alert, AlertDescription } from "@caseai-connect/ui/shad/alert"
 import { Button } from "@caseai-connect/ui/shad/button"
-import { Card, CardFooter, CardHeader } from "@caseai-connect/ui/shad/card"
+import { Card, CardContent, CardFooter, CardHeader } from "@caseai-connect/ui/shad/card"
 import { Checkbox } from "@caseai-connect/ui/shad/checkbox"
+import { Field, FieldLabel, FieldLegend, FieldSet, FieldTitle } from "@caseai-connect/ui/shad/field"
+import { Item, ItemContent, ItemGroup, ItemMedia, ItemTitle } from "@caseai-connect/ui/shad/item"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/ui/shad/tooltip"
 import { cn } from "@caseai-connect/ui/utils"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -46,12 +49,46 @@ export const GROUP_LABEL = "text-[11px] font-medium tracking-wide text-muted-for
 /** The one-line hint under a section label. */
 export const SECTION_HINT = "text-xs text-muted-foreground"
 
-/** A workspace or project row, highlighted once picked. */
-export function choiceRowClass({ selected, disabled }: { selected: boolean; disabled: boolean }) {
-  return cn(
-    "flex cursor-pointer items-center gap-2.5 rounded-lg border px-2.5 py-1.5 text-sm",
-    selected ? "border-primary bg-accent" : "border-border bg-card hover:border-input",
-    disabled && "cursor-not-allowed opacity-60",
+/** The projects of one organization, under its name. */
+export function OrganizationGroup({ name, children }: { name: string; children: ReactNode }) {
+  return (
+    <FieldSet className="gap-1.5">
+      <FieldLegend
+        variant="label"
+        className={cn("mb-1 data-[variant=label]:text-[11px]", GROUP_LABEL)}
+      >
+        {name}
+      </FieldLegend>
+      {children}
+    </FieldSet>
+  )
+}
+
+/**
+ * A workspace or project to pick: shadcn's choice card, a `FieldLabel` around a horizontal `Field`,
+ * which highlights itself once its radio or checkbox is checked. Kept short, one line per project.
+ */
+export function ChoiceCard({
+  htmlFor,
+  control,
+  label,
+  disabled,
+}: {
+  htmlFor: string
+  control: ReactNode
+  label: string
+  disabled: boolean
+}) {
+  return (
+    <FieldLabel
+      htmlFor={htmlFor}
+      className="w-full cursor-pointer [&>*]:data-[slot=field]:px-2.5 [&>*]:data-[slot=field]:py-1.5"
+    >
+      <Field orientation="horizontal" className="gap-2.5" data-disabled={disabled || undefined}>
+        {control}
+        <FieldTitle className="min-w-0 break-words">{label}</FieldTitle>
+      </Field>
+    </FieldLabel>
   )
 }
 
@@ -69,9 +106,9 @@ export function ConsentPage({ children, note }: { children: ReactNode; note?: Re
       <div className="flex w-full max-w-[440px] flex-col">
         <Card>{children}</Card>
         {note && (
-          <p className="mt-4 rounded-xl border bg-card px-4 py-3 text-sm text-muted-foreground">
-            {note}
-          </p>
+          <Card className="mt-4 py-3">
+            <CardContent className="px-4 text-sm text-muted-foreground">{note}</CardContent>
+          </Card>
         )}
       </div>
     </div>
@@ -145,10 +182,12 @@ function ClientTrust({
   }
   // The theme has no warning color: the same amber as the design system's warning badge.
   return (
-    <p className="mt-3 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-      <TriangleAlertIcon className="size-3.5 shrink-0 text-amber-600" aria-hidden />
-      <span className="min-w-0 break-words">{label}</span>
-    </p>
+    <Alert className="mt-3 border-amber-200 bg-amber-50 px-3 text-amber-800">
+      <TriangleAlertIcon className="size-3.5" aria-hidden />
+      <AlertDescription className="min-w-0 break-words text-xs text-amber-800">
+        {label}
+      </AlertDescription>
+    </Alert>
   )
 }
 
@@ -210,16 +249,17 @@ export function CancelLink({
 }) {
   const { t } = useTranslation("oauthConsent")
   return (
-    <button
+    <Button
       type="button"
+      variant="link"
       onClick={onCancel}
       disabled={disabled}
-      className="mt-3 block w-full shrink-0 text-center text-sm text-muted-foreground underline-offset-2 hover:underline disabled:opacity-60"
+      className="mt-1 h-auto w-full whitespace-normal font-normal text-muted-foreground"
     >
       {isLoopbackRedirectUri(redirectUri)
         ? t("cancelTerminal")
         : t("cancelToApp", { name: clientName })}
-    </button>
+    </Button>
   )
 }
 
@@ -264,15 +304,17 @@ export function GroupedPermissions({
 }) {
   const { t } = useTranslation("oauthConsent")
   return (
-    <ul className="flex flex-col gap-4">
+    <ItemGroup className="gap-4">
       {groupByResource(permissions).map((group) => (
-        <li key={group.resource} className="flex items-start gap-3">
-          <AppPermissionIcon permission={`${group.resource}.read`} />
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold">
+        <Item key={group.resource} role="listitem" size="sm" className="items-start gap-3 p-0">
+          <ItemMedia variant="icon">
+            <AppPermissionIcon permission={`${group.resource}.read`} />
+          </ItemMedia>
+          <ItemContent className="min-w-0">
+            <ItemTitle>
               {t(`${copy.resource}.${group.resource}`, { defaultValue: group.resource })}
-            </p>
-            <div className="mt-1.5 flex flex-wrap gap-1.5">
+            </ItemTitle>
+            <div className="flex flex-wrap gap-1.5">
               {group.permissions.map(({ permission, action }) => {
                 const copyKey = permission.replaceAll(".", "_")
                 const canGrant = available.has(permission)
@@ -281,32 +323,36 @@ export function GroupedPermissions({
                 const name = t(`${copy.permission}.${copyKey}.name`, { defaultValue: permission })
                 return (
                   <Tooltip key={permission}>
+                    {/* A small choice card, as the project rows, so it highlights once checked. */}
                     <TooltipTrigger asChild>
-                      <label
+                      <FieldLabel
                         htmlFor={readOnly ? undefined : checkboxId}
                         className={cn(
-                          "flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-medium",
-                          checked
-                            ? "border-primary bg-accent text-accent-foreground"
-                            : "border-border bg-card text-muted-foreground",
-                          !readOnly &&
-                            (canGrant && !disabled
-                              ? "cursor-pointer"
-                              : "cursor-not-allowed opacity-50"),
+                          // A pill: shadcn's choice card spans the row, this one fits its label.
+                          "has-[>[data-slot=field]]:w-fit [&>*]:data-[slot=field]:px-2 [&>*]:data-[slot=field]:py-1",
+                          !readOnly && canGrant && !disabled && "cursor-pointer",
                         )}
                       >
-                        {readOnly ? null : (
-                          <Checkbox
-                            id={checkboxId}
-                            aria-label={name}
-                            className={cn("size-3.5 [&_svg]:size-3", CONSENT_CHECKBOX)}
-                            checked={checked}
-                            disabled={disabled || !canGrant}
-                            onCheckedChange={(value) => onToggle(permission, value === true)}
-                          />
-                        )}
-                        {t(`permissionAction.${action}`, { defaultValue: name })}
-                      </label>
+                        <Field
+                          orientation="horizontal"
+                          className="w-auto gap-1.5"
+                          data-disabled={(!readOnly && (disabled || !canGrant)) || undefined}
+                        >
+                          {readOnly ? null : (
+                            <Checkbox
+                              id={checkboxId}
+                              aria-label={name}
+                              className={cn("size-3.5 [&_svg]:size-3", CONSENT_CHECKBOX)}
+                              checked={checked}
+                              disabled={disabled || !canGrant}
+                              onCheckedChange={(value) => onToggle(permission, value === true)}
+                            />
+                          )}
+                          <FieldTitle className="text-xs">
+                            {t(`permissionAction.${action}`, { defaultValue: name })}
+                          </FieldTitle>
+                        </Field>
+                      </FieldLabel>
                     </TooltipTrigger>
                     <TooltipContent className="max-w-64">
                       <p className="font-semibold">{name}</p>
@@ -323,9 +369,9 @@ export function GroupedPermissions({
                 )
               })}
             </div>
-          </div>
-        </li>
+          </ItemContent>
+        </Item>
       ))}
-    </ul>
+    </ItemGroup>
   )
 }

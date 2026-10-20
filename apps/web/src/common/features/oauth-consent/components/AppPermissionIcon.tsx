@@ -34,13 +34,10 @@ const PERMISSION_ICONS: Record<AppGrantablePermission, typeof FileTextIcon> = {
   "agent.conversation.session.external.create": MessagesSquareIcon,
 }
 
+/** The icon of a permission, for an `ItemMedia variant="icon"` to frame. */
 export function AppPermissionIcon({ permission }: { permission: string }) {
   const Icon = isAppGrantablePermission(permission) ? PERMISSION_ICONS[permission] : FileTextIcon
-  return (
-    <div className="flex size-[30px] shrink-0 items-center justify-center rounded-md bg-accent">
-      <Icon className="size-4 text-accent-foreground" aria-hidden />
-    </div>
-  )
+  return <Icon aria-hidden />
 }
 
 function isAppGrantablePermission(permission: string): permission is AppGrantablePermission {

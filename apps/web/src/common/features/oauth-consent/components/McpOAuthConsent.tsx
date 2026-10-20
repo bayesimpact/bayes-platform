@@ -27,13 +27,13 @@ import {
 } from "../oauth-consent.utils"
 import {
   CancelLink,
+  ChoiceCard,
   CONSENT_CHECKBOX,
   ConsentFooter,
   ConsentHeader,
   ConsentPage,
-  choiceRowClass,
-  GROUP_LABEL,
   GroupedPermissions,
+  OrganizationGroup,
   SECTION_HINT,
   SECTION_TITLE,
   useConsentResolver,
@@ -217,35 +217,35 @@ function ProjectChoices({
   return (
     <div className="mt-4 flex flex-col gap-4">
       {groupConsentProjectsByOrganization(projects).map((group) => (
-        <fieldset key={group.organizationId} className="flex flex-col gap-1.5">
-          <legend className={cn("mb-1", GROUP_LABEL)}>{group.organizationName}</legend>
+        <OrganizationGroup key={group.organizationId} name={group.organizationName}>
           {group.projects.map((project) => {
             const checkboxId = `oauth-project-${project.id}`
             const selected = value.includes(project.id)
             return (
-              <label
+              <ChoiceCard
                 key={project.id}
                 htmlFor={checkboxId}
-                className={choiceRowClass({ selected, disabled })}
-              >
-                <Checkbox
-                  id={checkboxId}
-                  className={CONSENT_CHECKBOX}
-                  checked={selected}
-                  disabled={disabled}
-                  onCheckedChange={(checked) =>
-                    onChange(
-                      checked === true
-                        ? [...value, project.id]
-                        : value.filter((projectId) => projectId !== project.id),
-                    )
-                  }
-                />
-                <span className="min-w-0 font-medium break-words">{project.name}</span>
-              </label>
+                label={project.name}
+                disabled={disabled}
+                control={
+                  <Checkbox
+                    id={checkboxId}
+                    className={CONSENT_CHECKBOX}
+                    checked={selected}
+                    disabled={disabled}
+                    onCheckedChange={(checked) =>
+                      onChange(
+                        checked === true
+                          ? [...value, project.id]
+                          : value.filter((projectId) => projectId !== project.id),
+                      )
+                    }
+                  />
+                }
+              />
             )
           })}
-        </fieldset>
+        </OrganizationGroup>
       ))}
     </div>
   )
