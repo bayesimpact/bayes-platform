@@ -9,6 +9,7 @@ import {
 } from "@/common/features/agents/agent-sessions/agent-session.factory"
 import { agentSettingsFactory } from "@/common/features/agents/agent-settings/agent-settings.factory"
 import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"
+import { evaluationConversationDatasetFactory } from "@/eval/features/evaluation-conversation-datasets/evaluation-conversation-datasets.factory"
 import { buildDecorator, render } from "@/stories/decorators"
 import {
   buildStudioData,
@@ -17,11 +18,14 @@ import {
   studioStoryArgTypes,
 } from "@/stories/routes/studio/helpers"
 import { mergeSeeds, seed } from "@/stories/seed"
+import { buildMockTestCasesService } from "@/stories/test-cases/mock-service"
 import { StudioRoutes } from "@/studio/routes/helpers"
 import { studioRoutes } from "@/studio/routes/StudioRoutes"
 
 type StoryArgs = StudioStoryArgs & {
   fillForm?: boolean
+  /** Datasets the answers can be saved into as test cases. */
+  withDatasets?: boolean
   withMessages?: boolean
   withSubAgentForms?: boolean
   withVersionHistory?: boolean
@@ -36,6 +40,7 @@ const meta = {
     ...studioStoryArgTypes,
     withAgents: { control: undefined },
     fillForm: { control: "boolean" },
+    withDatasets: { control: "boolean" },
     withMessages: { control: "boolean" },
     withSubAgentForms: { control: "boolean" },
     withVersionHistory: { control: "boolean" },
@@ -46,6 +51,7 @@ const meta = {
     ...studioStoryArgs,
     withAgents: true,
     fillForm: false,
+    withDatasets: true,
     withMessages: true,
     withSubAgentForms: false,
     withVersionHistory: true,
@@ -63,6 +69,7 @@ export const Default: Story = {
     buildDecorator<StoryArgs>(
       ({
         fillForm,
+        withDatasets,
         withMessages,
         withSubAgentForms,
         withVersionHistory,
@@ -163,9 +170,15 @@ export const Default: Story = {
             ]
           : []
 
+        const datasets = withDatasets
+          ? evaluationConversationDatasetFactory.transient({ project }).buildList(2)
+          : []
+
         return {
+          services: { testCases: buildMockTestCasesService() },
           state: mergeSeeds(
             baseSeeds,
+            seed.eval.conversationDatasets(datasets),
             seed.agents([...restAgents, currentAgent], { currentId: currentAgent.id }),
             seed.conversationAgentSessions({ [currentAgent.id]: [session] }),
             subSessions.length > 0

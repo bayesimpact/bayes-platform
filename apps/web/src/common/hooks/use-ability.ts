@@ -115,18 +115,33 @@ export function useAbility() {
     [canManageAgent, hasProjectPermission],
   )
 
+  // Saving an agent answer as a test case adds a record to one of the project's datasets.
+  const canSaveTestCase = useCallback(
+    ({ projectId }: { projectId: string | null }) =>
+      hasProjectPermission({ projectId, permission: "evaluation.conversation.dataset.update" }),
+    [hasProjectPermission],
+  )
+
+  const canCreateEvaluationDataset = useCallback(
+    ({ projectId }: { projectId: string | null }) =>
+      hasProjectPermission({ projectId, permission: "evaluation.conversation.dataset.create" }),
+    [hasProjectPermission],
+  )
+
   return useMemo(
     () => ({
       abilities: {
         canAccessDesk,
         canAccessStudio,
         canAccessEvaluation,
+        canCreateEvaluationDataset,
         canCreateProject,
         canDuplicateAgent,
         canManageAgent,
         canAccessTester,
         canAccessReviewer,
         canRenameOrganization,
+        canSaveTestCase,
         canUpdateProjectMemberRole,
       },
     }),
@@ -134,12 +149,14 @@ export function useAbility() {
       canAccessDesk,
       canAccessStudio,
       canAccessEvaluation,
+      canCreateEvaluationDataset,
       canCreateProject,
       canDuplicateAgent,
       canManageAgent,
       canAccessTester,
       canAccessReviewer,
       canRenameOrganization,
+      canSaveTestCase,
       canUpdateProjectMemberRole,
     ],
   )

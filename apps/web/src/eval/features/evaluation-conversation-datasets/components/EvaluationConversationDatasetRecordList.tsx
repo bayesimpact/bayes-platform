@@ -115,6 +115,9 @@ function RecordsTable({
               <th className="text-foreground h-auto px-2 py-2 text-left align-bottom font-medium whitespace-nowrap">
                 {t("evaluationConversationDataset:record.props.expectedOutput")}
               </th>
+              <th className="text-foreground h-auto px-2 py-2 text-left align-bottom font-medium whitespace-nowrap">
+                {t("evaluationConversationDataset:record.props.comment")}
+              </th>
               <th
                 className="text-foreground h-auto px-2 py-2 text-left align-bottom font-medium whitespace-nowrap"
                 style={{ width: 96 }}
@@ -124,7 +127,7 @@ function RecordsTable({
           <tbody>
             {records.length === 0 ? (
               <tr>
-                <td colSpan={4} className="h-24 text-center text-muted-foreground p-2">
+                <td colSpan={5} className="h-24 text-center text-muted-foreground p-2">
                   {t("status:noResults")}
                 </td>
               </tr>
@@ -150,6 +153,13 @@ function RecordsTable({
                     style={{ width: 300, maxWidth: 400 }}
                   >
                     <TruncatedCell value={record.expectedOutput} />
+                  </td>
+                  <td
+                    className="p-2 align-middle whitespace-nowrap"
+                    style={{ width: 240, maxWidth: 320 }}
+                  >
+                    {/* Why the expected output is the reference, for a record saved from an answer. */}
+                    {record.comment && <TruncatedCell value={record.comment} />}
                   </td>
                   <td className="p-2 align-middle whitespace-nowrap">
                     <div className="flex items-center justify-end gap-1">

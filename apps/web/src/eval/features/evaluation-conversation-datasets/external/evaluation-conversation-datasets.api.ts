@@ -117,6 +117,7 @@ function toRecord(
   dto: EvaluationConversationDatasetRecordDto,
 ): EvaluationConversationDatasetRecord {
   return {
+    comment: dto.comment,
     createdAt: dto.createdAt,
     expectedOutput: dto.expectedOutput,
     id: dto.id,

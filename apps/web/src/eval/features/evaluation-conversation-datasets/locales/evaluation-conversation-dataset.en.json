@@ -67,6 +67,7 @@
       "props": {
         "input": "Input",
         "expectedOutput": "Expected Output",
+        "comment": "Comment",
         "placeholders": {
           "input": "Enter the input sent to the agent",
           "expectedOutput": "Enter the expected agent answer"

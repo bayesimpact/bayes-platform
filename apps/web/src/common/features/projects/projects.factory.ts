@@ -48,6 +48,8 @@ const ADMIN_PERMISSIONS = [
   "evaluation.ui.read",
   "project.member.update",
   "agent.create",
+  "evaluation.conversation.dataset.create",
+  "evaluation.conversation.dataset.update",
 ]
 
 function permissionsForRole(role: ProjectMembershipRoleDto): string[] {

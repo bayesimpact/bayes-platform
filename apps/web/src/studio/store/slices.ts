@@ -12,6 +12,8 @@ import { agentsSlice } from "@/common/features/agents/agents.slice"
 import { agentCsvExtractionRunsMiddleware } from "@/common/features/agents/csv-extraction-runs/agent-csv-extraction-runs.middleware"
 import { agentCsvExtractionRunsSlice } from "@/common/features/agents/csv-extraction-runs/agent-csv-extraction-runs.slice"
 import { projectsSlice } from "@/common/features/projects/projects.slice"
+import { evaluationConversationDatasetsMiddleware } from "@/eval/features/evaluation-conversation-datasets/evaluation-conversation-datasets.middleware"
+import { evaluationConversationDatasetsSlice } from "@/eval/features/evaluation-conversation-datasets/evaluation-conversation-datasets.slice"
 import { agentEmbedConfigsMiddleware } from "@/studio/features/agent-embed-configs/agent-embed-configs.middleware"
 import { agentEmbedConfigsSlice } from "@/studio/features/agent-embed-configs/agent-embed-configs.slice"
 import { agentMembershipsMiddleware } from "@/studio/features/agent-memberships/agent-memberships.middleware"
@@ -32,6 +34,7 @@ import { projectMembershipsMiddleware } from "@/studio/features/project-membersh
 import { projectMembershipsSlice } from "@/studio/features/project-memberships/project-memberships.slice"
 import { reviewCampaignsMiddleware } from "@/studio/features/review-campaigns/review-campaigns.middleware"
 import { reviewCampaignsSlice } from "@/studio/features/review-campaigns/review-campaigns.slice"
+import { testCasesMiddleware } from "@/studio/features/test-cases/test-cases.middleware"
 import { agentSettingsMiddleware } from "../../common/features/agents/agent-settings/agent-settings.middleware"
 import { agentSettingsSlice } from "../../common/features/agents/agent-settings/agent-settings.slice"
 import { createSliceManager } from "../../common/store/dynamic-middleware"
@@ -69,6 +72,8 @@ const studioMiddlewareList = [
   documentSourcesMiddleware,
   documentsMiddleware,
   documentTagsMiddleware,
+  // The test case dialog picks one of the project's conversation datasets.
+  evaluationConversationDatasetsMiddleware,
   extractionAgentSessionsMiddleware,
   mcpServersMiddleware,
   projectAnalyticsMiddleware,
@@ -78,6 +83,7 @@ const studioMiddlewareList = [
   reviewCampaignsReportsMiddleware,
   studioAgentsMiddleware,
   studioProjectsMiddleware,
+  testCasesMiddleware,
 ]
 
 export const studioSliceList = [
@@ -98,6 +104,7 @@ export const studioSliceList = [
   documentSourcesSlice,
   documentsSlice,
   documentTagsSlice,
+  evaluationConversationDatasetsSlice,
   extractionAgentSessionsSlice,
   mcpServersSlice,
   projectAnalyticsSlice,

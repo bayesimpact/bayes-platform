@@ -19,4 +19,8 @@ export class EvaluationConversationDatasetRecord extends ConnectEntityBase {
 
   @Column({ name: "expected_output", nullable: false, type: "text" })
   expectedOutput!: string
+
+  // Why the expected output is the reference, when the record was saved from an agent answer.
+  @Column({ name: "comment", nullable: true, type: "text" })
+  comment!: string | null
 }

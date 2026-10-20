@@ -33,6 +33,7 @@ import projectMemberships from "@/studio/features/project-memberships/external/p
 import resourceLibraries from "@/studio/features/resource-libraries/external/resource-libraries.api"
 import reviewCampaigns from "@/studio/features/review-campaigns/external/review-campaigns.api"
 import reviewCampaignsReports from "@/studio/features/review-campaigns/reports/external/reports.api"
+import testCases from "@/studio/features/test-cases/external/test-cases.api"
 import reviewCampaignsTester from "@/tester/features/review-campaigns/external/tester.api"
 
 export const services = {
@@ -72,4 +73,5 @@ export const services = {
   reviewCampaignsReports,
   reviewCampaignsReviewer,
   reviewCampaignsTester,
+  testCases,
 }

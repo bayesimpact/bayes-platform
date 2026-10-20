@@ -1,0 +1,80 @@
+{
+  "testCase": {
+    "saveAsTestCase": "Enregistrer comme cas de test",
+    "dialog": {
+      "judgeDescription": "Transformez cette réponse en cas de test, rejoué à chaque exécution du dataset.",
+      "reviewDescription": "Vérifiez ce que le dataset va contenir. Une exécution envoie l'entrée à l'agent et note sa réponse par rapport à la réponse attendue.",
+      "drafting": "Rédaction du cas de test…",
+      "draftingWithExpectedOutput": "Rédaction du cas de test et de la réponse à viser…",
+      "draftFailedTitle": "Le cas de test n'a pas pu être rédigé",
+      "draftFailedDescription": "Le LLM n'a pas répondu. Réessayez, ou revenez en arrière pour modifier vos choix."
+    },
+    "verdict": {
+      "label": "Est-ce la réponse que l'agent devrait donner ?",
+      "good": {
+        "title": "Bonne réponse",
+        "description": "La réponse devient la référence à laquelle l'agent est comparé."
+      },
+      "bad": {
+        "title": "Mauvaise réponse",
+        "description": "Dites ce qui ne va pas, et un LLM rédige la réponse à viser."
+      }
+    },
+    "comment": {
+      "good": {
+        "label": "Qu'est-ce qui est bien dans cette réponse ?",
+        "placeholder": "Ce que l'agent a bien fait et doit continuer à faire",
+        "description": "Facultatif. Conservé avec le cas de test, pour que les lecteurs du dataset sachent pourquoi cette réponse sert de référence."
+      },
+      "bad": {
+        "label": "Qu'est-ce qui ne va pas dans cette réponse ?",
+        "placeholder": "Ce que l'agent a mal dit, a oublié ou n'aurait pas dû dire",
+        "description": "Un LLM en tire la réponse que l'agent aurait dû donner. Conservé avec le cas de test."
+      },
+      "fromReport": "Repris du signalement de l'utilisateur. Modifiez-le s'il passe à côté.",
+      "required": "Dites ce qui ne va pas dans cette réponse."
+    },
+    "dataset": {
+      "label": "Dataset",
+      "recordCount_one": "{{count}} enregistrement",
+      "recordCount_other": "{{count}} enregistrements",
+      "newDataset": "Nouveau dataset",
+      "newDatasetName": "Nom du nouveau dataset",
+      "newDatasetSuffix": "{{name}} (nouveau)",
+      "nameTooShort": "Le nom d'un dataset doit faire au moins {{count}} caractères."
+    },
+    "review": {
+      "to": "dans",
+      "input": "Entrée",
+      "anonymize": "Anonymiser",
+      "anonymized": "Anonymisée",
+      "inputModes": {
+        "conversation": "Contexte de la conversation",
+        "lastMessage": "Dernier message exact"
+      },
+      "inputHints": {
+        "firstTurn": "Cette réponse répond au premier message, qui contient donc toute la conversation.",
+        "conversation_one": "Rédigée par un LLM à partir de l'échange précédent, pour que la question se suffise à elle-même quand une exécution la rejoue.",
+        "conversation_other": "Rédigée par un LLM à partir des {{count}} échanges précédents, pour que la question se suffise à elle-même quand une exécution la rejoue.",
+        "lastMessage_one": "Le dernier message de l'utilisateur, tel qu'envoyé. Une exécution ne rejoue pas l'échange précédent.",
+        "lastMessage_other": "Le dernier message de l'utilisateur, tel qu'envoyé. Une exécution ne rejoue pas les {{count}} échanges précédents."
+      },
+      "expectedOutput": "Réponse attendue",
+      "expectedOutputHints": {
+        "good": "La réponse de l'agent, conservée comme référence pour noter chaque exécution.",
+        "bad": "Rédigée par un LLM à partir de ce qui ne va pas. Chaque exécution est notée par rapport à elle."
+      },
+      "save": "Enregistrer le cas de test",
+      "errors": {
+        "inputRequired": "L'entrée ne peut pas être vide.",
+        "expectedOutputRequired": "La réponse attendue ne peut pas être vide.",
+        "draftInput": "La question n'a pas pu être rédigée. Réessayez, ou écrivez-la vous-même.",
+        "anonymize": "L'entrée n'a pas pu être anonymisée. Réessayez.",
+        "save": "Le cas de test n'a pas pu être enregistré. Réessayez."
+      }
+    },
+    "notifications": {
+      "saved": "Cas de test enregistré dans {{name}}"
+    }
+  }
+}

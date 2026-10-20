@@ -67,6 +67,7 @@
       "props": {
         "input": "Entrée",
         "expectedOutput": "Résultat attendu",
+        "comment": "Commentaire",
         "placeholders": {
           "input": "Entrez le message envoyé à l'agent",
           "expectedOutput": "Entrez la réponse attendue de l'agent"

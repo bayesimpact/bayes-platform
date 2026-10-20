@@ -21,12 +21,17 @@ import {
 } from "@/common/features/agents/agent-settings/agent-settings.selectors"
 import { selectAgentsData, selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
 import { DeleteAgentSessionButton } from "@/common/features/agents/components/DeleteAgentSessionButton"
+import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
+import { useAbility } from "@/common/hooks/use-ability"
 import { useGetAgentRoute } from "@/common/hooks/use-get-path"
+import { useMount } from "@/common/hooks/use-mount"
 import { useValue } from "@/common/hooks/use-value"
 import { useAppSelector } from "@/common/store/hooks"
 import { buildSince } from "@/common/utils/build-date"
+import { evaluationConversationDatasetsActions } from "@/eval/features/evaluation-conversation-datasets/evaluation-conversation-datasets.slice"
 import { TraceUrlOpener } from "@/studio/components/TraceUrlOpener"
 import { AgentRevisionBadge } from "@/studio/features/agents/agent-settings/components/AgentRevisionBadge"
+import { SaveAsTestCase } from "@/studio/features/test-cases/components/SaveAsTestCase"
 import { AgentSettingsVersionSelect } from "../features/agents/agent-settings/components/AgentSettingsVersionSelect"
 
 type AgentSession = ConversationAgentSession
@@ -48,6 +53,14 @@ export function StudioAgentSessionRoute({ agentSession }: { agentSession: AgentS
   )
   const formSubSessions = useAppSelector(selectSubSessions)
   useAgentMemory({ agentId: agent.id })
+  const projectId = useAppSelector(selectCurrentProjectId)
+  const { abilities } = useAbility()
+  // The datasets an answer can be saved into as a test case. Left out of the AsyncRoute: the
+  // conversation does not wait for them.
+  useMount({
+    actions: evaluationConversationDatasetsActions,
+    condition: abilities.canSaveTestCase({ projectId }),
+  })
 
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -90,6 +103,18 @@ export function StudioAgentSessionRoute({ agentSession }: { agentSession: AgentS
       />
     )
   }
+
+  const renderMessageFooter = (message: AgentSessionMessage) => (
+    <>
+      {/* A failed or interrupted reply has no answer to keep. */}
+      {message.status !== "error" && message.status !== "aborted" && (
+        <SaveAsTestCase
+          source={{ agentMessageId: message.id, answer: message.content, feedback: null }}
+        />
+      )}
+      {renderMessageVersion(message)}
+    </>
+  )
 
   return (
     <div className="flex flex-col h-full">
@@ -143,7 +168,7 @@ export function StudioAgentSessionRoute({ agentSession }: { agentSession: AgentS
           formResultSchema={
             runningSettings.fillFormEnabled ? runningSettings.outputJsonSchema : undefined
           }
-          renderMessageVersion={renderMessageVersion}
+          renderMessageFooter={renderMessageFooter}
           renderVersionSelect={
             <AgentSettingsVersionSelect agentId={agent.id} revision={runningRevision} />
           }
