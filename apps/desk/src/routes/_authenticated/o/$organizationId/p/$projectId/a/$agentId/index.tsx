@@ -1,5 +1,5 @@
 import { createFileRoute, redirect } from "@tanstack/react-router"
-import { NewConversation } from "@/features/sessions"
+import { NewConversation } from "@/features/conversation"
 
 /** A new conversation with a conversation agent. An extraction agent opens a new extraction. */
 export const Route = createFileRoute("/_authenticated/o/$organizationId/p/$projectId/a/$agentId/")({
@@ -17,5 +17,6 @@ export const Route = createFileRoute("/_authenticated/o/$organizationId/p/$proje
 
 function NewConversationRoute() {
   const { agent } = Route.useRouteContext()
-  return <NewConversation key={agent.id} agentName={agent.name} />
+  const params = Route.useParams()
+  return <NewConversation key={agent.id} agent={params} agentName={agent.name} />
 }

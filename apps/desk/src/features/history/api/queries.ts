@@ -49,3 +49,8 @@ export function prefetchAgentHistory(queryClient: QueryClient, agent: HistoryAge
   void queryClient.prefetchQuery(extractionRunsQueryOptions(agent))
   void queryClient.prefetchQuery(csvExtractionRunsQueryOptions(agent))
 }
+
+/** Marks an agent's history stale, after a conversation started, got a title or was deleted. */
+export function invalidateAgentHistory(queryClient: QueryClient, agentId: string): void {
+  void queryClient.invalidateQueries({ queryKey: historyKeys.agent(agentId) })
+}

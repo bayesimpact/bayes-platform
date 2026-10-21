@@ -13,6 +13,7 @@ import {
   type HistoryEntry,
   type HistoryPeriod,
 } from "../history-entries"
+import { ConversationActions } from "./ConversationActions"
 import { HistoryEntryLink } from "./HistoryEntryLink"
 
 export type HistoryListProps = {
@@ -45,6 +46,13 @@ export function HistoryList({ agent, entries, empty }: HistoryListProps) {
           {group.entries.map((entry) => (
             <SidebarMenuItem key={entry.id}>
               <HistoryEntryLink agent={agent} entry={entry} />
+              {entry.kind === "conversation" ? (
+                <ConversationActions
+                  agent={agent}
+                  agentSessionId={entry.id}
+                  title={entry.title ?? t`New conversation`}
+                />
+              ) : null}
             </SidebarMenuItem>
           ))}
         </SidebarMenu>

@@ -114,6 +114,54 @@ export function defineSchemaRoute<
   }
 }
 
+/** A route that answers with server-sent events, each checked against the `event` schema. */
+export type StreamRoute<
+  TParams extends ObjectSchema,
+  TQuery extends ObjectSchema,
+  TEvent extends z.ZodType,
+> = {
+  path: string
+  getPath: (params?: Record<string, string>) => string
+  method: "get"
+  schemas: { params: TParams; query: TQuery; body: EmptySchema; event: TEvent }
+}
+
+/** Any route declared with `defineStreamRoute`. */
+export type AnyStreamRoute = StreamRoute<ObjectSchema, ObjectSchema, z.ZodType>
+
+/**
+ * Declares a route of the API that streams server-sent events, with the schemas of its params,
+ * its query and each of its events.
+ */
+export function defineStreamRoute<
+  TPath extends string,
+  TEvent extends z.ZodType,
+  TParams extends ObjectSchema = EmptySchema,
+  TQuery extends ObjectSchema = EmptySchema,
+>(
+  definition: {
+    method: "get"
+    path: TPath
+    params?: TParams
+    query?: TQuery
+    event: TEvent
+  } & ParamsMatchPath<TPath, TParams>,
+): StreamRoute<TParams, TQuery, TEvent> {
+  const path = definition.path.startsWith("/") ? definition.path : `/${definition.path}`
+  return {
+    path,
+    getPath: (params) => (params ? interpolatePath(path, params) : path),
+    method: definition.method,
+    schemas: {
+      // Safe: TParams and TQuery default to EmptySchema, the schema used when the part is absent.
+      params: (definition.params ?? emptySchema) as TParams,
+      query: (definition.query ?? emptySchema) as TQuery,
+      body: emptySchema,
+      event: definition.event,
+    },
+  }
+}
+
 /** Replaces each `:name` segment with its encoded value, and keeps the segments it has no value for. */
 function interpolatePath(path: string, params: Record<string, string>): string {
   return path.replace(/:(\w+)/g, (segment, name: string) => {

@@ -1,6 +1,8 @@
 import {
+  type ConversationMessageOutputDto,
   type ConversationSessionOutputDto,
   type CsvExtractionRunOutputDto,
+  conversationMessageOutputSchema,
   conversationSessionOutputSchema,
   csvExtractionRunOutputSchema,
   type ExtractionRunOutputDto,
@@ -45,6 +47,20 @@ export function buildCsvExtractionRun(
 ): CsvExtractionRunOutputDto {
   return csvExtractionRunOutputSchema.parse({
     id: crypto.randomUUID(),
+    status: "completed",
+    createdAt: daysAgo(0),
+    ...overrides,
+  })
+}
+
+/** A message of a conversation, checked against the contract. */
+export function buildConversationMessage(
+  overrides: Partial<ConversationMessageOutputDto> = {},
+): ConversationMessageOutputDto {
+  return conversationMessageOutputSchema.parse({
+    id: crypto.randomUUID(),
+    role: "assistant",
+    content: "Hello! How can I help you today?",
     status: "completed",
     createdAt: daysAgo(0),
     ...overrides,

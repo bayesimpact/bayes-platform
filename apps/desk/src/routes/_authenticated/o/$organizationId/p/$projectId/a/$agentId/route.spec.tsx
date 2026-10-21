@@ -47,17 +47,6 @@ describe("an agent's pages", () => {
     expect(await screen.findByText("No conversations yet")).toBeInTheDocument()
   })
 
-  it("show a past conversation's place until the chat comes", async () => {
-    const world = buildEmptyHistoryWorld()
-    server.use(...worldHandlers(world))
-    const [assistant] = world.agents
-    renderApp(
-      `/app/o/${world.organizations[0]?.id}/p/${assistant?.projectId}/a/${assistant?.id}/as/${crypto.randomUUID()}`,
-    )
-
-    expect(await screen.findByText("Past conversations open soon")).toBeInTheDocument()
-  })
-
   it("are not found for an agent the person cannot use", async () => {
     const world = buildEmptyHistoryWorld()
     server.use(...worldHandlers(world))

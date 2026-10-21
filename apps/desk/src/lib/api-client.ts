@@ -1,5 +1,6 @@
 import {
   type AnySchemaRoute,
+  type AnyStreamRoute,
   type ErrorOutputDto,
   errorOutputSchema,
 } from "@caseai-connect/desk-contracts"
@@ -65,14 +66,7 @@ export async function apiRequest<TRoute extends AnySchemaRoute>(
   route: TRoute,
   ...[options]: ApiRequestArgs<TRoute>
 ): Promise<TRoute["response"]["data"]> {
-  const request = buildRequest(route, options ?? {})
-  let response = await send(request, { forceRefresh: false })
-  // The token may have been revoked before it expired: refresh it once.
-  if (response.status === 401) response = await send(request, { forceRefresh: true })
-  if (response.status === 401) await startNewSignIn()
-
-  if (!response.ok) throw new ApiError(response.status, await readErrorBody(response))
-
+  const response = await apiFetch(route, options ?? {})
   const result = route.schemas.response.safeParse(await response.json())
   if (!result.success) {
     const routeName = `${route.method.toUpperCase()} ${route.path}`
@@ -82,16 +76,51 @@ export async function apiRequest<TRoute extends AnySchemaRoute>(
   return result.data.data
 }
 
+type ApiStreamOptions<TRoute extends AnyStreamRoute> = Part<"params", TRoute["schemas"]["params"]> &
+  Part<"query", TRoute["schemas"]["query"]> & { signal?: AbortSignal }
+
+/**
+ * Opens a Desk stream on this origin's `/api`, with the bearer token, and returns the response
+ * whose body `lib/stream.ts` reads. An error answer, sent before the stream starts, throws.
+ */
+export function apiStreamResponse<TRoute extends AnyStreamRoute>(
+  route: TRoute,
+  options: ApiStreamOptions<TRoute>,
+): Promise<Response> {
+  return apiFetch(route, { ...options, accept: "text/event-stream" })
+}
+
+/**
+ * Sends a request built from the route's schemas, with the bearer token: a 401 refreshes the
+ * token once, then starts a new sign-in, and an error answer throws an `ApiError`.
+ */
+async function apiFetch(
+  route: AnySchemaRoute | AnyStreamRoute,
+  options: RequestOptions,
+): Promise<Response> {
+  const request = buildRequest(route, options)
+  let response = await send(request, { forceRefresh: false })
+  // The token may have been revoked before it expired: refresh it once.
+  if (response.status === 401) response = await send(request, { forceRefresh: true })
+  if (response.status === 401) await startNewSignIn()
+
+  if (!response.ok) throw new ApiError(response.status, await readErrorBody(response))
+  return response
+}
+
+type RequestOptions = {
+  params?: Record<string, unknown>
+  query?: Record<string, unknown>
+  body?: unknown
+  signal?: AbortSignal
+  accept?: string
+}
+
 type PreparedRequest = { url: URL; init: RequestInit }
 
 function buildRequest(
-  route: AnySchemaRoute,
-  options: {
-    params?: Record<string, unknown>
-    query?: Record<string, unknown>
-    body?: unknown
-    signal?: AbortSignal
-  },
+  route: AnySchemaRoute | AnyStreamRoute,
+  options: RequestOptions,
 ): PreparedRequest {
   const params = z.encode(route.schemas.params, options.params ?? {})
   const query = z.encode(route.schemas.query, options.query ?? {})
@@ -104,7 +133,7 @@ function buildRequest(
     init: {
       method: route.method.toUpperCase(),
       headers: {
-        Accept: "application/json",
+        Accept: options.accept ?? "application/json",
         ...(hasBody ? { "Content-Type": "application/json" } : {}),
       },
       ...(hasBody ? { body: JSON.stringify({ payload: options.body }) } : {}),

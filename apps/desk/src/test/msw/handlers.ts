@@ -2,6 +2,10 @@ import type { MeOutputDto, MyProjectOutputDto } from "@caseai-connect/desk-contr
 import { delay, HttpResponse, http } from "msw"
 import { buildMe } from "../factories/account.factory"
 import {
+  buildConversationMessage,
+  buildConversationSession,
+} from "../factories/agent-sessions.factory"
+import {
   buildDeskWorld,
   buildEmptyHistoryWorld,
   buildExtractionAgentWorld,
@@ -12,6 +16,34 @@ import {
 } from "../factories/desk-world.factory"
 
 const agentPath = "*/api/organizations/:organizationId/projects/:projectId/agents/:agentId"
+const messagesPath = `${agentPath}/agent-sessions/live/:agentSessionId/messages`
+
+/** One server-sent event, as Nest writes it. */
+const sseFrame = (data: unknown) => `id: 1\ndata: ${JSON.stringify(data)}\n\n`
+
+/** A reply streamed in a few chunks, with a pause between them as a real agent takes. */
+function replyStream(frames: string[]): ReadableStream<Uint8Array> {
+  const encoder = new TextEncoder()
+  return new ReadableStream({
+    async start(controller) {
+      for (const frame of frames) {
+        await delay()
+        controller.enqueue(encoder.encode(frame))
+      }
+      controller.close()
+    },
+  })
+}
+
+/** The words of a reply, two by two, as the chunks of its stream. */
+function chunksOf(text: string): string[] {
+  const words = text.split(" ")
+  const chunks: string[] = []
+  for (let index = 0; index < words.length; index += 2) {
+    chunks.push(`${index > 0 ? " " : ""}${words.slice(index, index + 2).join(" ")}`)
+  }
+  return chunks
+}
 
 /** `GET me`, answered with the given person. */
 const meHandler = (me: MeOutputDto = buildMe()) =>
@@ -40,6 +72,69 @@ export function worldHandlers(world: DeskWorld) {
     http.get(`${agentPath}/csv-extraction-runs/live`, ({ params }) =>
       HttpResponse.json({ data: world.csvExtractionRuns[String(params.agentId)] ?? [] }),
     ),
+    ...conversationHandlers(world),
+  ]
+}
+
+/** A person's conversations: start one, read its messages, send a message, delete it. */
+function conversationHandlers(world: DeskWorld) {
+  return [
+    http.post(`${agentPath}/conversation-agent-sessions/live/create`, ({ params }) => {
+      const agentId = String(params.agentId)
+      const conversation = buildConversationSession({ title: undefined, createdAt: Date.now() })
+      world.conversations[agentId] = [conversation, ...(world.conversations[agentId] ?? [])]
+      world.messages[conversation.id] = [buildConversationMessage({ createdAt: Date.now() })]
+      return HttpResponse.json({ data: { id: conversation.id } }, { status: 201 })
+    }),
+    http.post(
+      `${agentPath}/conversation-agent-sessions/live/:agentSessionId/delete`,
+      ({ params }) => {
+        const agentId = String(params.agentId)
+        world.conversations[agentId] = (world.conversations[agentId] ?? []).filter(
+          (conversation) => conversation.id !== params.agentSessionId,
+        )
+        return HttpResponse.json({ data: { success: true } }, { status: 201 })
+      },
+    ),
+    http.post(messagesPath, ({ params }) => {
+      const messages = world.messages[String(params.agentSessionId)]
+      return messages
+        ? HttpResponse.json({ data: messages }, { status: 201 })
+        : new HttpResponse(null, { status: 404 })
+    }),
+    http.get(`${messagesPath}/stream`, ({ params, request }) => {
+      const agentSessionId = String(params.agentSessionId)
+      const query = JSON.parse(new URL(request.url).searchParams.get("q") ?? "{}")
+      const content: string = query.payload?.content ?? ""
+      const reply = buildConversationMessage({
+        content:
+          `Here is what I found about "${content}". ` +
+          "The answer depends on your plan, so I listed the options that apply to you.",
+        toolCalls: [{ id: crypto.randomUUID(), name: "lookup_knowledge_base" }],
+      })
+      world.messages[agentSessionId] = [
+        ...(world.messages[agentSessionId] ?? []),
+        buildConversationMessage({ role: "user", content }),
+        reply,
+      ]
+      const agentId = String(params.agentId)
+      for (const conversation of world.conversations[agentId] ?? []) {
+        if (conversation.id === agentSessionId && conversation.title === undefined) {
+          conversation.title = content.slice(0, 40)
+        }
+      }
+      const frames = [
+        sseFrame({ type: "start", messageId: reply.id }),
+        sseFrame({ type: "notify_client", toolName: "lookup_knowledge_base" }),
+        ...chunksOf(reply.content).map((chunk) =>
+          sseFrame({ type: "chunk", messageId: reply.id, content: chunk }),
+        ),
+        sseFrame({ type: "end", messageId: reply.id, fullContent: reply.content }),
+      ]
+      return new HttpResponse(replyStream(frames), {
+        headers: { "Content-Type": "text/event-stream" },
+      })
+    }),
   ]
 }
 

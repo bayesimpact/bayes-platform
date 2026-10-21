@@ -11,6 +11,9 @@ export * from "./agents/agents.dto"
 export { DeskAgentsRoutes } from "./agents/agents.routes"
 // Common
 export * from "./common/error.dto"
+// Conversations
+export * from "./conversations/conversations.dto"
+export { DeskConversationsRoutes } from "./conversations/conversations.routes"
 export * from "./define-schema-route"
 
 // Organizations

@@ -33,7 +33,7 @@ describe("the Desk's home", () => {
     expect(
       await screen.findByRole("heading", { name: "How can I help you today?" }),
     ).toBeInTheDocument()
-    expect(screen.getByRole("textbox", { name: "Message to Helpful Assistant" })).toBeDisabled()
+    expect(screen.getByRole("textbox", { name: "Message to Helpful Assistant" })).toHaveFocus()
     expect(router.state.location.pathname).toBe(
       `/o/${world.organizations[0]?.id}/p/${assistant?.projectId}/a/${assistant?.id}`,
     )

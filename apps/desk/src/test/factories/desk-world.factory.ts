@@ -1,4 +1,5 @@
 import type {
+  ConversationMessageOutputDto,
   ConversationSessionOutputDto,
   CsvExtractionRunOutputDto,
   ExtractionRunOutputDto,
@@ -7,6 +8,7 @@ import type {
   ProjectAgentOutputDto,
 } from "@caseai-connect/desk-contracts"
 import {
+  buildConversationMessage,
   buildConversationSession,
   buildCsvExtractionRun,
   buildExtractionRun,
@@ -23,6 +25,8 @@ export type DeskWorld = {
   conversations: Record<string, ConversationSessionOutputDto[]>
   extractionRuns: Record<string, ExtractionRunOutputDto[]>
   csvExtractionRuns: Record<string, CsvExtractionRunOutputDto[]>
+  /** The messages of each conversation, oldest first. */
+  messages: Record<string, ConversationMessageOutputDto[]>
 }
 
 function emptyWorld(): DeskWorld {
@@ -33,7 +37,23 @@ function emptyWorld(): DeskWorld {
     conversations: {},
     extractionRuns: {},
     csvExtractionRuns: {},
+    messages: {},
   }
+}
+
+/** A short exchange, for a conversation of the history. */
+function buildExchange(question: string, createdAt: number): ConversationMessageOutputDto[] {
+  return [
+    buildConversationMessage({ content: "Hello! How can I help you today?", createdAt }),
+    buildConversationMessage({ role: "user", content: question, createdAt }),
+    buildConversationMessage({
+      content:
+        "Here is a short comparison.\n\nThe Starter plan covers one team and the essentials. " +
+        "The Pro plan adds shared workspaces, priority support and the integrations.",
+      createdAt,
+      toolCalls: [{ id: crypto.randomUUID(), name: "lookup_knowledge_base" }],
+    }),
+  ]
 }
 
 /** A conversation history spread over the date groups of the sidebar. */
@@ -72,7 +92,18 @@ export function buildDeskWorld(): DeskWorld {
   world.projects = [support, billing]
   world.agents = [assistant, buildProjectAgent(billing, { name: "Billing Assistant" })]
   world.conversations[assistant.id] = buildConversationHistory()
+  addMessages(world, assistant.id)
   return world
+}
+
+/** Gives every conversation of an agent's history a short exchange. */
+function addMessages(world: DeskWorld, agentId: string): void {
+  for (const conversation of world.conversations[agentId] ?? []) {
+    world.messages[conversation.id] = buildExchange(
+      conversation.title ?? "Compare the plans",
+      conversation.createdAt,
+    )
+  }
 }
 
 /** One project with several agents, an extraction agent among them. */
@@ -88,6 +119,8 @@ export function buildSeveralAgentsWorld(): DeskWorld {
   world.agents = [reader, assistant, writer]
   world.conversations[assistant.id] = buildConversationHistory()
   world.conversations[writer.id] = [buildConversationSession({ title: "Shorten this paragraph" })]
+  addMessages(world, assistant.id)
+  addMessages(world, writer.id)
   addExtractionHistory(world, reader)
   return world
 }
@@ -109,6 +142,8 @@ export function buildSeveralProjectsWorld(): DeskWorld {
   world.agents = [pricingAssistant, supportAssistant, reader, guide]
   world.conversations[pricingAssistant.id] = [buildConversationSession({ title: "Compare plans" })]
   world.conversations[supportAssistant.id] = buildConversationHistory()
+  addMessages(world, pricingAssistant.id)
+  addMessages(world, supportAssistant.id)
   addExtractionHistory(world, reader)
   return world
 }
@@ -130,6 +165,7 @@ export function buildExtractionAgentWorld(): DeskWorld {
 export function buildEmptyHistoryWorld(): DeskWorld {
   const world = buildDeskWorld()
   world.conversations = {}
+  world.messages = {}
   return world
 }
 

@@ -7,22 +7,63 @@ msgstr ""
 "X-Generator: @lingui/cli\n"
 "Language: en\n"
 
+#: src/features/history/components/ConversationActions.tsx:80
+msgid "\"{title}\" and its messages will be deleted. This cannot be undone."
+msgstr "\"{title}\" and its messages will be deleted. This cannot be undone."
+
+#: src/features/conversation/components/ToolSteps.tsx:73
+msgid "{count, plural, one {Worked through # step} other {Worked through # steps}}"
+msgstr "{count, plural, one {Worked through # step} other {Worked through # steps}}"
+
 #: src/components/shared/RouteErrorState.tsx:21
 msgid "A new version of the Desk is available"
 msgstr "A new version of the Desk is available"
+
+#: src/features/conversation/components/ChatMessageView.tsx:81
+msgid "A new version of the Desk is available. Reload the page."
+msgstr "A new version of the Desk is available. Reload the page."
+
+#: src/features/history/components/ConversationActions.tsx:62
+msgid "Actions on {title}"
+msgstr "Actions on {title}"
 
 #: src/components/shared/NotFoundState.tsx:15
 msgid "Back to the Desk"
 msgstr "Back to the Desk"
 
+#: src/features/history/components/ConversationActions.tsx:90
+msgid "Cancel"
+msgstr "Cancel"
+
 #: src/components/shared/RouteErrorState.tsx:41
 msgid "Check your connection, then try again."
 msgstr "Check your connection, then try again."
+
+#: src/features/conversation/components/ToolSteps.tsx:14
+msgid "Completing the form"
+msgstr "Completing the form"
+
+#: src/features/conversation/components/CopyButton.tsx:33
+msgid "Copied"
+msgstr "Copied"
+
+#: src/features/conversation/components/CopyButton.tsx:33
+msgid "Copy the reply"
+msgstr "Copy the reply"
 
 #. An extraction of every row of a spreadsheet
 #: src/features/history/components/HistoryEntryLink.tsx:62
 msgid "CSV extraction"
 msgstr "CSV extraction"
+
+#: src/features/history/components/ConversationActions.tsx:69
+#: src/features/history/components/ConversationActions.tsx:97
+msgid "Delete"
+msgstr "Delete"
+
+#: src/features/history/components/ConversationActions.tsx:77
+msgid "Delete this conversation?"
+msgstr "Delete this conversation?"
 
 #: src/features/sessions/components/NewExtraction.tsx:24
 msgid "Drop a document or a CSV file here"
@@ -32,11 +73,28 @@ msgstr "Drop a document or a CSV file here"
 msgid "Failed"
 msgstr "Failed"
 
+#: src/features/conversation/components/ToolSteps.tsx:13
+msgid "Filling in the form"
+msgstr "Filling in the form"
+
+#: src/features/conversation/components/ToolSteps.tsx:17
+msgid "Forgetting what you asked"
+msgstr "Forgetting what you asked"
+
+#: src/features/conversation/components/ToolSteps.tsx:9
+msgid "Gathering the sources"
+msgstr "Gathering the sources"
+
+#: src/features/conversation/components/ToolSteps.tsx:15
+msgid "Handing the conversation back"
+msgstr "Handing the conversation back"
+
 #: src/components/shared/DeskLogo.tsx:10
 msgid "Home of the Desk"
 msgstr "Home of the Desk"
 
-#: src/features/sessions/components/NewConversation.tsx:19
+#: src/features/conversation/components/ConversationView.tsx:36
+#: src/features/conversation/components/NewConversation.tsx:20
 msgid "How can I help you today?"
 msgstr "How can I help you today?"
 
@@ -48,11 +106,12 @@ msgstr "In progress"
 msgid "Language"
 msgstr "Language"
 
-#: src/features/sessions/components/NewConversation.tsx:24
+#: src/features/conversation/components/Composer.tsx:42
 msgid "Message to {agentName}"
 msgstr "Message to {agentName}"
 
 #: src/features/history/components/HistoryEntryLink.tsx:32
+#: src/features/history/components/HistoryList.tsx:53
 #: src/features/history/components/NewSessionLink.tsx:40
 msgid "New conversation"
 msgstr "New conversation"
@@ -69,7 +128,7 @@ msgstr "No conversations yet"
 msgid "No extractions yet"
 msgstr "No extractions yet"
 
-#: src/features/history/components/HistoryList.tsx:33
+#: src/features/history/components/HistoryList.tsx:34
 msgid "Older"
 msgstr "Older"
 
@@ -93,11 +152,15 @@ msgstr "Past conversations open soon"
 msgid "Past extractions open soon"
 msgstr "Past extractions open soon"
 
-#: src/features/history/components/HistoryList.tsx:32
+#: src/features/conversation/components/ToolSteps.tsx:12
+msgid "Picking useful resources"
+msgstr "Picking useful resources"
+
+#: src/features/history/components/HistoryList.tsx:33
 msgid "Previous 30 days"
 msgstr "Previous 30 days"
 
-#: src/features/history/components/HistoryList.tsx:31
+#: src/features/history/components/HistoryList.tsx:32
 msgid "Previous 7 days"
 msgstr "Previous 7 days"
 
@@ -109,13 +172,30 @@ msgstr "Reload"
 msgid "Reload the page to keep going."
 msgstr "Reload the page to keep going."
 
-#: src/features/sessions/components/NewConversation.tsx:33
+#: src/features/conversation/components/ToolSteps.tsx:16
+msgid "Remembering what matters"
+msgstr "Remembering what matters"
+
+#: src/features/conversation/components/ConversationView.tsx:50
+msgid "Retry"
+msgstr "Retry"
+
+#: src/features/conversation/components/ConversationView.tsx:62
+msgid "Scroll to the latest message"
+msgstr "Scroll to the latest message"
+
+#: src/features/conversation/components/ToolSteps.tsx:8
+msgid "Searching the knowledge base"
+msgstr "Searching the knowledge base"
+
+#: src/features/conversation/components/ToolSteps.tsx:10
+#: src/features/conversation/components/ToolSteps.tsx:11
+msgid "Searching the resources"
+msgstr "Searching the resources"
+
+#: src/features/conversation/components/Composer.tsx:54
 msgid "Send"
 msgstr "Send"
-
-#: src/features/sessions/components/NewConversation.tsx:31
-msgid "Sending messages comes in the next version of the Desk."
-msgstr "Sending messages comes in the next version of the Desk."
 
 #: src/routes/auth/callback.tsx:28
 msgid "Sign in again"
@@ -133,9 +213,37 @@ msgstr "Sign out"
 msgid "Switch agent, current agent: {agentName}"
 msgstr "Switch agent, current agent: {agentName}"
 
+#: src/features/conversation/components/ChatMessageView.tsx:73
+msgid "The agent could not answer."
+msgstr "The agent could not answer."
+
+#: src/features/conversation/components/Composer.tsx:52
+msgid "The agent is answering…"
+msgstr "The agent is answering…"
+
+#: src/features/history/components/ConversationActions.tsx:85
+msgid "The conversation could not be deleted. Try again."
+msgstr "The conversation could not be deleted. Try again."
+
+#: src/features/conversation/components/NewConversation.tsx:30
+msgid "The conversation could not start. Try again."
+msgstr "The conversation could not start. Try again."
+
+#: src/features/conversation/components/ChatMessageView.tsx:79
+msgid "The Desk could not reach the agent. Check your connection."
+msgstr "The Desk could not reach the agent. Check your connection."
+
+#: src/features/conversation/components/ChatMessageView.tsx:77
+msgid "The reply stopped before it finished."
+msgstr "The reply stopped before it finished."
+
 #: src/routes/auth/callback.tsx:24
 msgid "The sign-in did not complete"
 msgstr "The sign-in did not complete"
+
+#: src/features/conversation/components/ChatMessageView.tsx:53
+msgid "Thinking…"
+msgstr "Thinking…"
 
 #: src/features/sessions/components/SessionComingSoon.tsx:21
 msgid "This page comes in the next version of the Desk."
@@ -149,7 +257,11 @@ msgstr "This page could not load"
 msgid "This page does not exist, or you cannot open it."
 msgstr "This page does not exist, or you cannot open it."
 
-#: src/features/history/components/HistoryList.tsx:29
+#: src/features/conversation/components/ChatMessageView.tsx:37
+msgid "This reply was interrupted before it finished."
+msgstr "This reply was interrupted before it finished."
+
+#: src/features/history/components/HistoryList.tsx:30
 msgid "Today"
 msgstr "Today"
 
@@ -165,6 +277,10 @@ msgstr "Untitled document"
 msgid "Uploading comes in the next version of the Desk."
 msgstr "Uploading comes in the next version of the Desk."
 
+#: src/features/conversation/components/ToolSteps.tsx:42
+msgid "Using a tool"
+msgstr "Using a tool"
+
 #: src/features/sessions/components/NewExtraction.tsx:16
 msgid "What should {agentName} read?"
 msgstr "What should {agentName} read?"
@@ -173,11 +289,11 @@ msgstr "What should {agentName} read?"
 msgid "When someone gives you access to an agent, it appears here."
 msgstr "When someone gives you access to an agent, it appears here."
 
-#: src/features/sessions/components/NewConversation.tsx:25
+#: src/features/conversation/components/Composer.tsx:43
 msgid "Write to {agentName}"
 msgstr "Write to {agentName}"
 
-#: src/features/history/components/HistoryList.tsx:30
+#: src/features/history/components/HistoryList.tsx:31
 msgid "Yesterday"
 msgstr "Yesterday"
 
