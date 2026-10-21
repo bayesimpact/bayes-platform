@@ -15,6 +15,10 @@ export function createAppRouter(
     context: { queryClient },
     // TanStack Query alone decides when data is fresh.
     defaultPreloadStaleTime: 0,
+    // A page that loads in less than 200 ms opens at once; a slower one shows its skeleton then,
+    // rather than the router's second of blank page, and keeps it 300 ms so it does not flicker.
+    defaultPendingMs: 200,
+    defaultPendingMinMs: 300,
     scrollRestoration: true,
   })
 }
