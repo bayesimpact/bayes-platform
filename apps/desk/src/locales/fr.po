@@ -574,6 +574,10 @@ msgstr "Page suivante"
 msgid "No"
 msgstr "Non"
 
+#: src/features/agents/components/AgentSwitcher.tsx:88
+msgid "No agent matches this search."
+msgstr "Aucun agent ne correspond à cette recherche."
+
 #: src/features/history/components/AgentHistory.tsx:22
 msgid "No conversations yet"
 msgstr "Aucune conversation pour l'instant"
@@ -813,6 +817,15 @@ msgstr "Enregistrer"
 msgid "Scroll to the latest message"
 msgstr "Aller au dernier message"
 
+#: src/features/agents/components/AgentSwitcher.tsx:84
+#: src/features/agents/components/AgentSwitcher.tsx:86
+msgid "Search an agent"
+msgstr "Rechercher un agent"
+
+#: src/features/agents/components/AgentSwitcher.tsx:84
+msgid "Search an agent or a project"
+msgstr "Rechercher un agent ou un projet"
+
 #: src/features/conversation/components/ToolSteps.tsx:17
 msgid "Searching the knowledge base"
 msgstr "Recherche dans la base de connaissances"
@@ -914,7 +927,7 @@ msgstr "Arrêter la dictée"
 msgid "Stopped"
 msgstr "Arrêtée"
 
-#: src/features/agents/components/AgentSwitcher.tsx:42
+#: src/features/agents/components/AgentSwitcher.tsx:73
 msgid "Switch agent, current agent: {agentName}"
 msgstr "Changer d'agent, agent actuel : {agentName}"
 

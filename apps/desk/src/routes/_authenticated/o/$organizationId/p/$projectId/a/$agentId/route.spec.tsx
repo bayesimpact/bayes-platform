@@ -88,7 +88,9 @@ describe("an agent's pages", () => {
     renderApp(`/app/o/${pricing?.organizationId}/p/${pricing?.id}`)
 
     expect(
-      await screen.findByRole("button", { name: "Switch agent, current agent: Pricing Assistant" }),
+      await screen.findByRole("combobox", {
+        name: "Switch agent, current agent: Pricing Assistant",
+      }),
     ).toBeInTheDocument()
   })
 })

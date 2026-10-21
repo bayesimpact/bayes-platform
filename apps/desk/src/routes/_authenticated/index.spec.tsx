@@ -37,7 +37,7 @@ describe("the Desk's home", () => {
     expect(router.state.location.pathname).toBe(
       `/o/${world.organizations[0]?.id}/p/${assistant?.projectId}/a/${assistant?.id}`,
     )
-    expect(screen.queryByRole("button", { name: /Switch agent/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole("combobox", { name: /Switch agent/ })).not.toBeInTheDocument()
     // The sidebar names the agent, as the switcher would, and the bar above the page does too.
     expect(screen.getAllByText("Helpful Assistant")).toHaveLength(2)
     expect(await screen.findByRole("link", { name: "Compare the plans" })).toBeInTheDocument()
@@ -49,18 +49,19 @@ describe("the Desk's home", () => {
     server.use(...worldHandlers(buildSeveralAgentsWorld()))
     renderApp("/app/")
 
-    const switcher = await screen.findByRole("button", {
+    const switcher = await screen.findByRole("combobox", {
       name: "Switch agent, current agent: Document Reader",
     })
     await userEvent.click(switcher)
-    const menu = await screen.findByRole("menu")
+    const list = await screen.findByRole("listbox")
     expect(
-      within(menu)
-        .getAllByRole("menuitem")
+      within(list)
+        .getAllByRole("option")
         .map((item) => item.textContent),
     ).toEqual(["Document Reader", "Helpful Assistant", "Writing Helper"])
+    expect(screen.getByRole("combobox", { name: "Search an agent" })).toHaveFocus()
 
-    await userEvent.click(within(menu).getByRole("menuitem", { name: "Helpful Assistant" }))
+    await userEvent.click(within(list).getByRole("option", { name: "Helpful Assistant" }))
 
     expect(
       await screen.findByRole("heading", { name: "How can I help you today?" }),
@@ -72,14 +73,39 @@ describe("the Desk's home", () => {
     server.use(...worldHandlers(buildSeveralProjectsWorld()))
     renderApp("/app/")
 
-    await userEvent.click(await screen.findByRole("button", { name: /Switch agent/ }))
-    const menu = await screen.findByRole("menu")
+    await userEvent.click(await screen.findByRole("combobox", { name: /Switch agent/ }))
+    const list = await screen.findByRole("listbox")
 
     expect(
-      within(menu)
+      within(list)
         .getAllByRole("group")
         .map((group) => group.firstChild?.textContent),
     ).toEqual(["Help center · Operations", "Pricing · Product", "Support · Product"])
+  })
+
+  it("finds an agent by its name or its project's in the switcher", async () => {
+    server.use(...worldHandlers(buildSeveralProjectsWorld()))
+    renderApp("/app/")
+
+    await userEvent.click(await screen.findByRole("combobox", { name: /Switch agent/ }))
+    const search = await screen.findByRole("combobox", { name: "Search an agent" })
+    const optionNames = () =>
+      within(screen.getByRole("listbox"))
+        .queryAllByRole("option")
+        .map((option) => option.textContent)
+
+    await userEvent.type(search, "help center")
+    expect(optionNames().length).toBeGreaterThan(0)
+    expect(
+      within(screen.getByRole("listbox"))
+        .getAllByRole("group")
+        .map((group) => group.firstChild?.textContent),
+    ).toEqual(["Help center · Operations"])
+
+    await userEvent.clear(search)
+    await userEvent.type(search, "nothing like this")
+    expect(optionNames()).toEqual([])
+    expect(screen.getByText("No agent matches this search.")).toBeInTheDocument()
   })
 
   it("opens the agent the person used last", async () => {
@@ -90,7 +116,7 @@ describe("the Desk's home", () => {
     renderApp("/app/")
 
     expect(
-      await screen.findByRole("button", { name: "Switch agent, current agent: Writing Helper" }),
+      await screen.findByRole("combobox", { name: "Switch agent, current agent: Writing Helper" }),
     ).toBeInTheDocument()
   })
 
