@@ -108,25 +108,6 @@ export class ReviewCampaignMembershipRepository {
     return this.toModels(memberships)
   }
 
-  async findAllByUserAndCampaign({
-    userId,
-    campaignId,
-  }: {
-    userId: string
-    campaignId: string
-  }): Promise<ReviewCampaignMembershipModel[]> {
-    const memberships = await this.userMembershipRepo().find({
-      where: {
-        userId,
-        resourceType: REVIEW_CAMPAIGN_RESOURCE_TYPE,
-        resourceId: campaignId,
-      },
-      relations: ["user"],
-    })
-    const campaign = await this.campaignRepo().findOneOrFail({ where: { id: campaignId } })
-    return memberships.map((membership) => this.toModel(membership, campaign))
-  }
-
   async acceptMembership({
     campaignId,
     userId,

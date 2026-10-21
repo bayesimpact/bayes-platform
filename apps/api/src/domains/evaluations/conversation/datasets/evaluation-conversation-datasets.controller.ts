@@ -237,6 +237,7 @@ function toEvaluationConversationDatasetRecordDto(
   record: EvaluationConversationDatasetRecord,
 ): EvaluationConversationDatasetRecordDto {
   return {
+    comment: record.comment,
     createdAt: record.createdAt.getTime(),
     expectedOutput: record.expectedOutput,
     id: record.id,

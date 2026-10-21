@@ -192,6 +192,7 @@
       "modeHandoff": "Takes over",
       "modeRelayHint": "The orchestrator calls this agent for one exchange and answers the user itself.",
       "modeHandoffHint": "This agent talks to the user directly until its part is done, then hands the conversation back.",
+      "unpublishedHint": "Not offered to the orchestrator until it is published.",
       "talkingTo": "Talking to {{name}}"
     },
     "embed": {

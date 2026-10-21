@@ -228,7 +228,7 @@ export async function createOrganizationWithAgentSession<T extends Agent["type"]
       await repositories.documentRepository.save(document)
       const agentSession = extractionAgentSessionFactory
         .transient({ organization, project, user, agent, agentSettings, document })
-        .build(params.agentSession)
+        .build(params.agentSession as Partial<ExtractionAgentSession> | undefined)
       await repositories.extractionAgentSessionRepository.save(agentSession)
 
       // @ts-expect-error

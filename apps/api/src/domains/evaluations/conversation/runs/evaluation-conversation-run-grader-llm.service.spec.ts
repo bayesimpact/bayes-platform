@@ -10,16 +10,25 @@ const connectScope: RequiredConnectScope = {
 
 describe("EvaluationConversationRunGraderLLMService", () => {
   let grader: EvaluationConversationRunGraderLlmService
-  let mockProvider: { generateText: jest.Mock }
-  let vertexProvider: { generateText: jest.Mock }
+  type FakeProvider = { generateText: jest.Mock; getInternalCallModelOptions: jest.Mock }
+  let mockProvider: FakeProvider
+  let vertexProvider: FakeProvider
+  let vertex3Provider: FakeProvider
+
+  // The internal call options each provider gives: a temperature of 0, nothing on Gemini 3.
+  const fakeProvider = (internalCallModelOptions: Record<string, unknown>): FakeProvider => ({
+    generateText: jest.fn(),
+    getInternalCallModelOptions: jest.fn(() => internalCallModelOptions),
+  })
 
   beforeEach(() => {
-    mockProvider = { generateText: jest.fn() }
-    vertexProvider = { generateText: jest.fn() }
+    mockProvider = fakeProvider({ temperature: 0 })
+    vertexProvider = fakeProvider({ temperature: 0 })
+    vertex3Provider = fakeProvider({})
     grader = new EvaluationConversationRunGraderLlmService({
       [AgentProvider._Mock]: mockProvider as unknown as LLMProvider,
       [AgentProvider.Vertex]: vertexProvider as unknown as LLMProvider,
-      [AgentProvider.Vertex3]: vertexProvider as unknown as LLMProvider,
+      [AgentProvider.Vertex3]: vertex3Provider as unknown as LLMProvider,
       [AgentProvider.Mistral]: vertexProvider as unknown as LLMProvider,
       [AgentProvider.MedGemma]: vertexProvider as unknown as LLMProvider,
       [AgentProvider.Gemma]: vertexProvider as unknown as LLMProvider,
@@ -132,6 +141,18 @@ describe("EvaluationConversationRunGraderLLMService", () => {
     expect(callArguments.config.model).toBe(AgentModel.Gemini25Pro)
   })
 
+  it("should run a Gemini 3 judge on the options its provider gives internal calls", async () => {
+    vertex3Provider.generateText.mockResolvedValue("3")
+
+    await gradeWith(AgentModel.Gemini25Flash, AgentModel.Gemini35Flash)
+
+    expect(vertex3Provider.getInternalCallModelOptions).toHaveBeenCalledWith(
+      AgentModel.Gemini35Flash,
+    )
+    const callArguments = vertex3Provider.generateText.mock.calls[0]![0]
+    expect(callArguments.config.modelOptions).toEqual({})
+  })
+
   it("should swap to the mock model with a **TEST** tag when the generator uses the mock provider", async () => {
     mockProvider.generateText.mockResolvedValue("5")
 
@@ -142,6 +163,6 @@ describe("EvaluationConversationRunGraderLLMService", () => {
     const callArguments = mockProvider.generateText.mock.calls[0]![0]
     expect(callArguments.config.model).toBe(AgentModel._Mock)
     expect(callArguments.metadata.tags["agent.type"]).toBe("Rating Agent")
-    expect(callArguments.metadata.tags["environment"]).toBe("**TEST**")
+    expect(callArguments.metadata.tags.environment).toBe("**TEST**")
   })
 })

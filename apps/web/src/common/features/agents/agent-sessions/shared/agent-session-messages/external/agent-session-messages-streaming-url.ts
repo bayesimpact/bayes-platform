@@ -1,11 +1,11 @@
 import {
   AgentSessionMessagesRoutes,
-  type BaseAgentSessionTypeDto,
+  type ConversationAgentSessionTypeDto,
 } from "@caseai-connect/api-contracts"
 
 /**
- * The stream is a GET, so its payload travels JSON-encoded in `?q=`. Live and playground sessions
- * each have their own stream route, so `type` must be the session's own.
+ * The stream is a GET, so its payload travels JSON-encoded in `?q=`. Each session type has its own
+ * stream route, so `type` must be the session's own.
  *
  * The conditional spread on `agentSettingsRevision` keeps the object honest for anything reading
  * it here; it makes no difference on the wire, since `JSON.stringify` drops `undefined` values
@@ -23,7 +23,7 @@ export function buildStreamUrl({
   agentSettingsRevision,
 }: {
   baseURL: string
-  type: BaseAgentSessionTypeDto
+  type: ConversationAgentSessionTypeDto
   organizationId: string
   projectId: string
   agentId: string

@@ -8,7 +8,7 @@ As part of this work, we curate public and community resource datasets and make 
 ![Security](https://github.com/bayesimpact/caseai-connect/actions/workflows/security.yml/badge.svg)
 [![DOI](https://zenodo.org/badge/1198631787.svg?v=1)](https://doi.org/10.5281/zenodo.21533360)
 
-A SaaS platform for building multi-agent systems, built as a Turbo monorepo with a NestJS API and a React web frontend. Users sign in through any OpenID Connect provider (Keycloak, Dex, Auth0, Okta...).
+A SaaS platform for building multi-agent systems, built as a Turbo monorepo with a NestJS API and a React web frontend. Users sign in through any OpenID Connect provider (Keycloak, Auth0, Okta...).
 
 ## Prerequisites
 
@@ -111,7 +111,7 @@ the other services start with their profile, from `infra/database`:
 | (default) | pgvector, redis | `docker compose up -d` |
 | `mail` | Mailpit, http://localhost:8025 | `docker compose --profile mail up -d --no-recreate mailpit` |
 | `keycloak` | Keycloak, http://localhost:8080 ([README](infra/keycloak/README.md)) | `docker compose --profile keycloak up -d --no-recreate keycloak` |
-| `dex` | Dex, http://localhost:5556 ([README](infra/dex/README.md)) | `docker compose --profile dex up -d --no-recreate dex` |
+| `oidc-picker` | oidc-picker, the local sign-in, http://localhost:5556 ([README](infra/oidc-picker/README.md)) | `docker compose --profile oidc-picker up -d --no-recreate oidc-picker` |
 | `traces` | otel-collector, Phoenix, http://localhost:6060 | `docker compose --profile traces up -d --no-recreate otel-collector phoenix` |
 | `analytics` | Grafana, http://localhost:3300 | `docker compose --profile analytics up -d --no-recreate grafana` |
 | `router` | Traefik, which routes the worktree environments on http://*.connect.localhost:8800 | `docker compose --profile router up -d --no-recreate traefik` |
@@ -129,8 +129,10 @@ see "HTTPS on a domain of your own" in
 [infra/worktree/README.md](infra/worktree/README.md).
 
 Keycloak and Dex used to have their own compose projects. If one of them still
-runs from there, stop it once before starting it with its profile:
-`docker compose -p connect-keycloak down` or `docker compose -p connect-dex down`.
+runs from there, stop it once: `docker compose -p connect-keycloak down` or
+`docker compose -p connect-dex down`. The `dex` profile is gone: oidc-picker replaced
+Dex, and a `dex` container left from it is stopped with
+`docker rm -f connect-db-dex-1`.
 
 The services that were running come back after a reboot, until you stop them
 with `docker compose stop <service>`, except Keycloak and Grafana, which you
@@ -140,7 +142,7 @@ worktree environments and parallel test runs at once.
 #### Worktree environments
 
 Each git worktree can run its own environment, side by side: every dev server in containers,
-databases copied from yours, its own Redis, Dex and Phoenix project, and URLs such as
+databases copied from yours, its own Redis, sign-in and Phoenix project, and URLs such as
 http://fix-sidebar.connect.localhost:8800. [infra/worktree/README.md](infra/worktree/README.md)
 describes what an environment is made of.
 
@@ -185,8 +187,8 @@ TRACE_URL_TEMPLATE=https://traces.example.org/redirects/sessions/{traceId}
 # Database
 DATABASE_URL=postgresql://admin:passpass@localhost:5432/caseai_connect
 
-# OpenID Connect provider (local Dex: see infra/dex/README.md)
-OIDC_ISSUER_URL=http://localhost:5556/dex
+# OpenID Connect provider (local oidc-picker: see infra/oidc-picker/README.md)
+OIDC_ISSUER_URL=http://localhost:5556
 WEB_OIDC_CLIENT_ID=platform-web
 ```
 
@@ -205,11 +207,12 @@ WEB_OIDC_CLIENT_ID=platform-web
 
 Upgrading a `.env` from Auth0: see [docs/upgrading/auth0-to-oidc.md](docs/upgrading/auth0-to-oidc.md).
 
-**Local sign-in:** start Dex (`docker compose --profile dex up -d --no-recreate dex` from
-`infra/database`). On a fresh checkout, sign in with the sample user `admin@example.org` / `admin`,
-then give it a platform role. When your database already has people, run
-`node infra/dex/sync-users.mjs` from the main checkout: each of them gets a Dex account with their
-email and a local dev password, and keeps their data. See [infra/dex/README.md](infra/dex/README.md).
+**Local sign-in:** start the oidc-picker (`docker compose --profile oidc-picker up -d
+--no-recreate oidc-picker` from `infra/database`). Its sign-in page lists people: click one to sign
+in as them, without a password. On a fresh checkout, sign in as the sample `admin@example.org`, then
+give it a platform role. To list the people of your database instead, write
+`infra/oidc-picker/config.local.yaml` (the team's worktree tooling writes it for you): every account
+keeps its data. See [infra/oidc-picker/README.md](infra/oidc-picker/README.md).
 
 #### Web Environment Variables
 
@@ -225,7 +228,7 @@ Edit `.env`:
 VITE_API_URL=http://localhost:3000/api
 
 # OpenID Connect provider and the public client of the web app
-VITE_OIDC_AUTHORITY=http://localhost:5556/dex
+VITE_OIDC_AUTHORITY=http://localhost:5556
 VITE_OIDC_CLIENT_ID=platform-web
 ```
 
@@ -407,7 +410,7 @@ Once HTTPS is set up, update your `.env` files to use `https://connect.localhost
 VITE_API_URL=https://connect.localhost:3000/api
 ```
 
-**Identity provider:** the web app client must allow `https://connect.localhost:5173` as redirect URI, post-logout redirect URI and web origin. The local Dex accepts it (it has no logout), and `node infra/dex/sync-users.mjs` lists every origin of `FRONTEND_URL` as a redirect URI.
+**Identity provider:** the web app client must allow `https://connect.localhost:5173` as redirect URI, post-logout redirect URI and web origin. The local oidc-picker's sample configuration accepts it. A `config.local.yaml` lists every origin of `FRONTEND_URL` as a redirect URI.
 
 ### 6. Run the Projects Locally
 

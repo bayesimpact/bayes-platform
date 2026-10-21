@@ -143,12 +143,10 @@ export const getFillFormOutputJsonSchema = createAsyncThunk<
   const agentId = agent.value.id
   const organizationId = getCurrentId({ state, name: "organizationId" })
   const projectId = getCurrentId({ state, name: "projectId" })
+  // An agent that was never published has no form in live conversations yet.
+  const revision = agent.value.currentRevision?.number
+  if (revision === undefined) return undefined
 
-  const params = {
-    organizationId,
-    projectId,
-    agentId,
-    revision: agent.value.currentRevision.number,
-  }
+  const params = { organizationId, projectId, agentId, revision }
   return await services.agentSettings.getFillFormOutputJsonSchema(params)
 })

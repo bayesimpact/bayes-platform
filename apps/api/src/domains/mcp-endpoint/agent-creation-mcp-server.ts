@@ -2,24 +2,29 @@ import {
   AgentLocale,
   AgentModel,
   agentTypeSchema,
+  duplicateAgentSchema,
   outputJsonSchemaSchema,
 } from "@caseai-connect/api-contracts"
 import { type CallToolResult, McpServer } from "@modelcontextprotocol/server"
 import { z } from "zod"
+import { getMcpServerTitle } from "@/config/mcp-server-title"
 import { AGENT_DEFAULT_MODELS } from "@/domains/agents/settings/agent-models.service"
 import type { McpAgentToolsService, McpCaller } from "./mcp-agent-tools.service"
 
-export const MCP_SERVER_NAME = "caseai-connect-agents"
-export const MCP_SERVER_VERSION = "1.0.0"
+export const MCP_SERVER_NAME = "agents"
+export const MCP_SERVER_VERSION = "1.1.0"
 
 const MCP_SERVER_INSTRUCTIONS = [
-  "Creates and updates agents on the CaseAI Connect platform for the signed-in user.",
+  "Creates, updates and duplicates agents on the platform for the signed-in user.",
   "Call list_projects first: an agent always belongs to a project. It lists the projects the user granted to this client, and only the ones with canCreateAgents set to true accept new agents.",
   "Then call create_agent with that project's id. It returns the agent's id and, when the platform knows its public URL, a link to the agent in the studio.",
   "To change an existing agent, call list_agents with the project's id, then update_agent with the agent's id: only the agents with canUpdate set to true can be changed. update_agent edits the draft; the user publishes it in the studio.",
+  "To start a variant of an existing agent, call duplicate_agent with the agent's id from list_agents and a new name: only the agents with canDuplicate set to true can be copied. The copy is a new agent of the same project whose settings are a draft (published is false): nothing uses it until the user publishes it in the studio.",
 ].join(" ")
 
-const projectSchema = z.object({
+// Tool outputs are loose objects: their JSON Schema allows properties they do not list, so a
+// client that listed the tools before a release that adds a field still accepts the answers.
+const projectSchema = z.looseObject({
   id: z.string(),
   name: z.string(),
   organizationId: z.string(),
@@ -54,7 +59,7 @@ const createAgentInputSchema = z.object({
     .describe("JSON Schema of the result. Required for an extraction agent."),
 })
 
-const createdAgentSchema = z.object({
+const createdAgentSchema = z.looseObject({
   id: z.string(),
   name: z.string(),
   type: agentTypeSchema,
@@ -63,12 +68,14 @@ const createdAgentSchema = z.object({
   studioUrl: z.string().nullable(),
 })
 
-const agentSchema = z.object({
+const agentSchema = z.looseObject({
   id: z.string(),
   name: z.string(),
   type: agentTypeSchema,
   model: z.string(),
+  published: z.boolean(),
   canUpdate: z.boolean(),
+  canDuplicate: z.boolean(),
   studioUrl: z.string().nullable(),
 })
 
@@ -85,6 +92,13 @@ const updateAgentInputSchema = z.object({
     .describe("New first message of a conversation agent, or null to remove it."),
 })
 
+const duplicateAgentInputSchema = z.object({
+  agentId: z.uuid().describe("Id of the agent to copy, from list_agents."),
+  name: duplicateAgentSchema.shape.name.describe(
+    "Name of the copy, at least 3 characters, for example the original's name with a suffix.",
+  ),
+})
+
 /**
  * One MCP server per request, bound to the person and their grant: the
  * endpoint is stateless, so nothing outlives the HTTP exchange.
@@ -97,7 +111,7 @@ export function buildAgentCreationMcpServer({
   toolsService: McpAgentToolsService
 }): McpServer {
   const server = new McpServer(
-    { name: MCP_SERVER_NAME, title: "CaseAI Connect agents", version: MCP_SERVER_VERSION },
+    { name: MCP_SERVER_NAME, title: getMcpServerTitle(), version: MCP_SERVER_VERSION },
     { instructions: MCP_SERVER_INSTRUCTIONS },
   )
 
@@ -107,7 +121,7 @@ export function buildAgentCreationMcpServer({
       title: "List projects",
       description:
         "Lists the projects the user granted to this client, with their organization and whether agents can be created in them.",
-      outputSchema: z.object({ projects: z.array(projectSchema) }),
+      outputSchema: z.looseObject({ projects: z.array(projectSchema) }),
       annotations: { readOnlyHint: true, openWorldHint: false },
     },
     async () => {
@@ -123,7 +137,7 @@ export function buildAgentCreationMcpServer({
       description:
         "Creates an agent in a project and publishes its first version. Documents, tags and other settings are edited afterwards in the studio.",
       inputSchema: createAgentInputSchema,
-      outputSchema: z.object({ agent: createdAgentSchema }),
+      outputSchema: z.looseObject({ agent: createdAgentSchema }),
       annotations: {
         readOnlyHint: false,
         destructiveHint: false,
@@ -145,11 +159,11 @@ export function buildAgentCreationMcpServer({
     {
       title: "List agents",
       description:
-        "Lists the agents of a project the user is a member of, with their model and whether update_agent can change them.",
+        "Lists the agents of a project the user is a member of, with their model, whether they are published, and whether update_agent can change them and duplicate_agent can copy them.",
       inputSchema: z.object({
         projectId: z.uuid().describe("Id of the project, from list_projects."),
       }),
-      outputSchema: z.object({ agents: z.array(agentSchema) }),
+      outputSchema: z.looseObject({ agents: z.array(agentSchema) }),
       annotations: { readOnlyHint: true, openWorldHint: false },
     },
     async ({ projectId }) => {
@@ -168,7 +182,7 @@ export function buildAgentCreationMcpServer({
       description:
         "Changes the draft settings of an agent (model, instructions, language, greeting). Only the given settings change. Nothing is published: the user reviews and publishes the draft in the studio, from the returned link.",
       inputSchema: updateAgentInputSchema,
-      outputSchema: z.object({ agent: agentSchema.extend({ draftRevision: z.number() }) }),
+      outputSchema: z.looseObject({ agent: agentSchema.extend({ draftRevision: z.number() }) }),
       annotations: {
         readOnlyHint: false,
         destructiveHint: false,
@@ -178,6 +192,30 @@ export function buildAgentCreationMcpServer({
     },
     async (input) => {
       const result = await toolsService.updateAgent(caller, input)
+      if (!result.ok) {
+        return { isError: true, content: [{ type: "text", text: result.error }] }
+      }
+      return structuredResult({ agent: result.value })
+    },
+  )
+
+  server.registerTool(
+    "duplicate_agent",
+    {
+      title: "Duplicate agent",
+      description:
+        "Copies an agent into a new agent of the same project, under a new name: its published settings (model, instructions, language, greeting, built-in tools), its MCP servers, its sub-agents, its documents and resource libraries, and its conversation categories. Conversations, analytics, members and the embed settings are not copied. The copy's settings are a draft: nothing is published, the user reviews and publishes it in the studio, from the returned link.",
+      inputSchema: duplicateAgentInputSchema,
+      outputSchema: z.looseObject({ agent: agentSchema.extend({ draftRevision: z.number() }) }),
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        idempotentHint: false,
+        openWorldHint: false,
+      },
+    },
+    async (input) => {
+      const result = await toolsService.duplicateAgent(caller, input)
       if (!result.ok) {
         return { isError: true, content: [{ type: "text", text: result.error }] }
       }

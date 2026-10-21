@@ -13,6 +13,24 @@ export function defaultModelOptions(
   return findAgentModelEntry(catalog, model)?.defaultOptions ?? {}
 }
 
+/**
+ * The options the form takes when a model is picked: the agent's own when it goes back to the
+ * agent's model, the model's defaults otherwise (the options of another model may not fit).
+ */
+export function modelOptionsForPickedModel({
+  catalog,
+  agentSettings,
+  model,
+}: {
+  catalog: AgentModelsCatalog
+  agentSettings: Pick<AgentSettings, "model" | "providerOptions">
+  model: string
+}): Record<string, unknown> {
+  return model === agentSettings.model
+    ? agentSettings.providerOptions
+    : defaultModelOptions(catalog, model)
+}
+
 /** The model tab starts from the agent's current model settings. */
 export function buildModelTabDefaultValues(
   agentSettings: AgentSettings,

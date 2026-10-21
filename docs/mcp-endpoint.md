@@ -20,10 +20,13 @@ Access tokens last 15 minutes, refresh tokens 7 days. The person sees and revoke
 | --- | --- | --- |
 | `list_projects` | `project.read` granted | Lists the granted projects the person can still see, and whether agents can be created in each. |
 | `create_agent` | `agent.create` granted on the project, and held by the person | Creates an agent with the web app's defaults and publishes its first version. Returns a studio link. |
-| `list_agents` | `project.read` granted on the project | Lists the agents of the project the person is a member of, with their model and whether `update_agent` can change them. |
+| `list_agents` | `project.read` granted on the project | Lists the agents of the project the person is a member of, with their model, whether they are published, and whether `update_agent` can change them and `duplicate_agent` can copy them. An agent that was never published, such as a fresh copy, is listed only to people who can see or edit its draft. |
 | `update_agent` | `agent.settings.draft.update` granted on the project, and the person owns or administers the agent | Changes the model, instructions, language or greeting in the agent's draft. Nothing is published: the person publishes the draft in the studio. |
+| `duplicate_agent` | `agent.create` granted on the project and held by the person, who also owns or administers the agent (`agent.duplicate`) | Copies the agent into a new agent of the project under a new name: its published settings, MCP servers, sub-agents, documents, resource libraries and conversation categories. Conversations, analytics, members and embed settings stay with the original. The copy is a draft that nothing uses until the person publishes it in the studio. |
 
 A right needs both: the person holds it on the project now, and granted it to the client.
+
+Tool results can gain fields from one release to the next. Their output schemas accept properties they do not list, so a client keeps working with the tool list it read at connection. A client connected before 1.1.0, whose schemas did not allow that yet, has to reconnect once.
 
 ## Endpoints
 

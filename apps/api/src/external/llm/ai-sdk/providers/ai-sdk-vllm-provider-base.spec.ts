@@ -14,7 +14,7 @@ jest.mock("google-auth-library", () => ({
 }))
 
 const URL_ENV = "VLLM_GEMMA4_26B_URL"
-const API_KEY_ENV = "VLLM_GEMMA4_26B_APIKEY"
+const API_KEY_ENV = "VLLM_GEMMA4_26B_APIKEY" // gitleaks:allow (the name of the variable, not a key)
 
 class TestVllmProvider extends AISDKVllmProviderBase<AgentProvider.Gemma> {
   protected readonly providerName = "Test Provider"

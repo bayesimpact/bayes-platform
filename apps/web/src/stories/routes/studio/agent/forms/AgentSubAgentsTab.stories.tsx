@@ -43,17 +43,25 @@ const draftingAgent = agentFactory.transient({ project }).build({
 
 const agents = [masterAgent, resourceAgent, policyAgent, intakeAgent, draftingAgent]
 
+// A fresh copy: the orchestrator does not get it as a tool until it is published.
+const copiedAgent = agentFactory.unpublished().transient({ project }).build({
+  type: "conversation",
+  name: "Resource Navigator (copy)",
+})
+
 type StoryArgs = {
   value: AgentSubAgentFormValue[]
+  /** The project's agents the tab picks from; defaults to the published ones. */
+  candidateAgents?: typeof agents
 }
 
-function StatefulStory({ value: initialValue }: StoryArgs) {
+function StatefulStory({ value: initialValue, candidateAgents = agents }: StoryArgs) {
   const [value, setValue] = useState(initialValue)
   return (
     <div className="mx-auto max-w-5xl p-6">
       <SubAgentsTab
         parentAgentId={masterAgent.id}
-        agents={agents}
+        agents={candidateAgents}
         value={value}
         onChange={setValue}
       />
@@ -151,4 +159,39 @@ export const NoAvailableConversationAgents: Story = {
       },
     ],
   },
+}
+
+/** A never-published copy is marked as a draft, among the sub-agents and the available agents. */
+export const WithUnpublishedCopy: Story = {
+  args: {
+    candidateAgents: [...agents, copiedAgent],
+    value: [
+      {
+        id: "sub-agent-copy",
+        agentId: copiedAgent.id,
+        toolName: "ask_resource_navigator_copy",
+        description: "Route resource lookup questions to the copy under test.",
+        enabled: true,
+        mode: "relay",
+      },
+    ],
+  },
+  decorators: [
+    buildDecorator(() => ({
+      state: mergeSeeds(
+        buildStudioData(studioStoryArgs).baseSeeds,
+        seed.agents([...agents, copiedAgent], { currentId: masterAgent.id }),
+        ...[...agents, copiedAgent].map((agent) =>
+          seed.studio.agentHistory({
+            agentId: agent.id,
+            versions: [
+              agentSettingsFactory
+                .transient({ agent })
+                .build({ revision: 1, isDraft: !agent.currentRevision }),
+            ],
+          }),
+        ),
+      ),
+    })),
+  ],
 }

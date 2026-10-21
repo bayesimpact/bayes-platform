@@ -126,9 +126,18 @@ export type LLMMetadata = (
 
 export interface LLMProvider {
   getAgentProvider(): AgentProvider
+  /** The schema of a model's options, checked on every call. */
   getModelOptionsSchema(agentModel: AgentModel): ZodType<SpecificProviderOptions>
+  /** A model's options when the call sets none. */
   getModelOptions(agentModel: AgentModel): SpecificProviderOptions
-  getModelInfos(agentModel: AgentModel): {
+  /**
+   * The options of an internal call that wants a steady answer (turn classification, the
+   * evaluation judge), as a model takes them: a temperature of 0, or nothing for a model
+   * that must run on its default temperature.
+   */
+  getInternalCallModelOptions(agentModel: AgentModel): LLMModelOptions
+  /** What the catalog says of a model (retirement, data residency). */
+  getModelMetadata(agentModel: AgentModel): {
     deprecation?: { deprecatedOn: string; recommendedReplacement: AgentModel }
     servedOutsideEu?: boolean
   }

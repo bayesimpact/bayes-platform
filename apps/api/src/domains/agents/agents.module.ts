@@ -11,6 +11,7 @@ import { AuthModule } from "@/domains/auth/auth.module"
 import { DocumentsModule } from "@/domains/documents/documents.module"
 import { StorageModule } from "@/domains/documents/storage/storage.module"
 import { DocumentTagsModule } from "@/domains/documents/tags/document-tags.module"
+import { McpServersModule } from "@/domains/mcp-servers/mcp-servers.module"
 import { MembershipsModule } from "@/domains/memberships/memberships.module"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
 import { Project } from "@/domains/projects/project.entity"
@@ -20,8 +21,8 @@ import { LlmModule } from "@/external/llm/llm.module"
 import { ProjectsModule } from "../projects/projects.module"
 import { ResourceLibrariesModule } from "../resource-libraries/resource-libraries.module"
 import { Agent } from "./agent.entity"
-import { AgentGuard } from "./agent.guard"
 import { AgentRepository } from "./agent.repository"
+import { AgentDuplicationService } from "./agent-duplication.service"
 import { AgentsController } from "./agents.controller"
 import { AgentsService } from "./agents.service"
 import { BaseAgentSessionsService } from "./base-agent-sessions/base-agent-sessions.service"
@@ -30,6 +31,7 @@ import { AgentMembershipsController } from "./memberships/agent-memberships.cont
 import { AgentMembershipsService } from "./memberships/agent-memberships.service"
 import { AgentSessionCategoriesService } from "./session-categories/agent-session-categories.service"
 import { AgentSessionCategory } from "./session-categories/agent-session-category.entity"
+import { AgentSessionCategoryRepository } from "./session-categories/agent-session-category.repository"
 import { ProjectAgentSessionCategoriesController } from "./session-categories/project-agent-session-categories.controller"
 import { ProjectAgentSessionCategoriesService } from "./session-categories/project-agent-session-categories.service"
 import { ProjectAgentSessionCategory } from "./session-categories/project-agent-session-category.entity"
@@ -38,6 +40,7 @@ import { AgentSettings } from "./settings/agent-settings.entity"
 import { AgentSettingsModule } from "./settings/agent-settings.module"
 import { ConversationFormsModule } from "./shared/conversation-forms/conversation-forms.module"
 import { AgentSubAgent } from "./sub-agents/agent-sub-agent.entity"
+import { AgentSubAgentRepository } from "./sub-agents/agent-sub-agent.repository"
 import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
 
 @Module({
@@ -65,17 +68,20 @@ import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
     forwardRef(() => ConversationAgentSessionsModule),
     forwardRef(() => ExtractionAgentSessionsModule),
     ConversationFormsModule,
+    McpServersModule,
   ],
   providers: [
     AgentsService,
+    AgentDuplicationService,
     AgentRepository,
+    AgentSessionCategoryRepository,
+    AgentSubAgentRepository,
     AgentSessionCategoriesService,
     AgentSubAgentsService,
     ProjectAgentSessionCategoriesService,
     BaseAgentSessionsService,
     AgentMembershipsService,
     AgentMembershipRepository,
-    AgentGuard,
     ResourceContextGuard,
     OrganizationContextResolver,
     ProjectContextResolver,
@@ -90,6 +96,7 @@ import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
   ],
   exports: [
     AgentsService,
+    AgentDuplicationService,
     AgentRepository,
     AgentSessionCategoriesService,
     forwardRef(() => AgentSettingsModule),

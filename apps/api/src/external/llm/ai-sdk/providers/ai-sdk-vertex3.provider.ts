@@ -3,7 +3,7 @@ import { AgentModel, type AgentModelOf, AgentProvider } from "@caseai-connect/ap
 import { Injectable } from "@nestjs/common"
 import type { LanguageModel } from "ai"
 import { z } from "zod"
-import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"
+import type { LLMConfig, LLMModelOptions } from "@/common/interfaces/llm-provider.interface"
 import type { SpecificProviderOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-builders"
 import type { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
 import {
@@ -196,7 +196,10 @@ export class AISDKVertex3Provider extends AISDKLLMProviderBase<AgentProvider.Ver
     return provider(config.model)
   }
 
-  /** The model's options with the service tier of the call. */
+  /**
+   * The model's options with the service tier of the call, and only that one: the tier
+   * follows the project flags and the agent's toggle, never a tier left in stored options.
+   */
   protected override applyConfigToModelOptions({
     config,
     values,
@@ -205,26 +208,38 @@ export class AISDKVertex3Provider extends AISDKLLMProviderBase<AgentProvider.Ver
     values: SpecificProviderOptions
   }): SpecificProviderOptions {
     const { vertex } = values.providerOptions as { vertex: VertexOptions }
-    if (!config.serviceTier) return values
+    const { sharedRequestType: _storedTier, ...vertexWithoutTier } = vertex
     return {
       ...values,
-      providerOptions: { vertex: { ...vertex, sharedRequestType: config.serviceTier } },
+      providerOptions: {
+        vertex: config.serviceTier
+          ? { ...vertexWithoutTier, sharedRequestType: config.serviceTier }
+          : vertexWithoutTier,
+      },
     }
   }
 
-  private getThinkingLevel(config: LLMConfig): string {
+  /** The thinking level the call asks for: the agent's stored one, or the model's default. */
+  private thinkingLevelTag(config: LLMConfig): string {
     const stored = (
       config.modelOptions?.providerOptions as { vertex?: Partial<VertexOptions> } | undefined
     )?.vertex?.thinkingConfig?.thinkingLevel
     return stored ?? this.vertex3Models[this.toProviderAgentModel(config.model)].defaultLevel
   }
 
-  protected getModelMetadata(config: LLMConfig): Record<string, string | number | string[]> {
-    return {
-      project: this.vertexProject,
-      location: this.locationForModel(config.model),
-      thinkingLevel: this.getThinkingLevel(config).toUpperCase(),
-      ...(config.serviceTier ? { serviceTier: config.serviceTier.toUpperCase() } : {}),
-    }
+  /**
+   * Nothing: an internal call runs on the model's defaults. Google advises keeping Gemini 3 at
+   * its default temperature of 1 with thinking on, and these calls ran at 1 when no Gemini 3
+   * call carried a temperature.
+   */
+  override getInternalCallModelOptions(_agentModel: AgentModel): LLMModelOptions {
+    return {}
+  }
+
+  getTags(config: LLMConfig): string[] {
+    const tags = [this.vertexProject, this.locationForModel(config.model), config.model]
+    if (config.serviceTier) tags.push(config.serviceTier.toUpperCase())
+    tags.push(this.thinkingLevelTag(config).toUpperCase())
+    return tags
   }
 }

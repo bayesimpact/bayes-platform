@@ -3,8 +3,8 @@ import type { OAuthProtectedResourceMetadata } from "@modelcontextprotocol/serve
 import { Controller, Get, Header, Req } from "@nestjs/common"
 import type { Request } from "express"
 import { PRIVATE_API_PATH } from "@/config/api-prefix"
+import { getMcpServerTitle } from "@/config/mcp-server-title"
 import { getMcpResourceUrl, getOAuthIssuer } from "@/config/public-urls"
-import { MCP_SERVER_NAME } from "./agent-creation-mcp-server"
 import { MCP_ENDPOINT_PATH, PROTECTED_RESOURCE_METADATA_PATH } from "./mcp-endpoint.urls"
 
 /**
@@ -22,7 +22,7 @@ export class McpProtectedResourceController {
       authorization_servers: [getOAuthIssuer(request)],
       scopes_supported: [...OAUTH_GRANTABLE_PERMISSIONS],
       bearer_methods_supported: ["header"],
-      resource_name: MCP_SERVER_NAME,
+      resource_name: getMcpServerTitle(),
     }
   }
 }

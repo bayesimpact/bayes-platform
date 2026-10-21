@@ -14,7 +14,8 @@ node_modules
 .env.test
 
 # Local OIDC providers: personal users (copies of the *.sample.* files)
-infra/dex/config.local.yaml
+infra/oidc-picker/config.local.yaml
+infra/oidc-picker/profiles.yaml
 infra/keycloak/realm-platform.local.json
 
 # Testing

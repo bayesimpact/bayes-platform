@@ -137,7 +137,7 @@ const metadata: LLMMetadata = {
   projectId: "project-id",
   agentId: "agent-id",
   revision: 1,
-  tags: [],
+  tags: {},
 }
 
 const mockConfig: LLMConfig = {

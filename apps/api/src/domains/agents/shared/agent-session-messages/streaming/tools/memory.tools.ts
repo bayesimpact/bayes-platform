@@ -30,14 +30,15 @@ export type AgentMemoryToolStore = {
 /**
  * Whose memory a session reads and writes: the signed-in user talking to this
  * agent. Embed visitors and evaluation runs have no user, and review-campaign
- * sessions are test material: none of them get a memory (see ADR 0023).
+ * sessions and their relay sub-sessions are test material: none of them get a
+ * memory (see ADR 0023).
  */
 export function memoryOwnerForSession({
   agent,
   session,
 }: Pick<AgentSessionScope, "agent" | "session">): AgentMemoryOwner | null {
   if (!("userId" in session) || !session.userId) return null
-  if (session.campaignId) return null
+  if (session.campaignId || session.type === "review_campaign_tester") return null
   return { agentId: agent.id, userId: session.userId, sessionType: session.type }
 }
 

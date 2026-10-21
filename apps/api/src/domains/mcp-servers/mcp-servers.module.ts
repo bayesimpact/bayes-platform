@@ -14,6 +14,7 @@ import { Project } from "@/domains/projects/project.entity"
 import { RbacModule } from "@/domains/rbac/rbac.module"
 import { UsersModule } from "@/domains/users/users.module"
 import { AgentMcpServer } from "./agent-mcp-server.entity"
+import { AgentMcpServerRepository } from "./agent-mcp-server.repository"
 import { BuiltInMcpServersService } from "./built-in/built-in-mcp-servers.service"
 import { EncryptionService } from "./encryption.service"
 import { McpServer } from "./mcp-server.entity"
@@ -33,6 +34,7 @@ import { McpOauthService } from "./oauth/mcp-oauth.service"
   ],
   providers: [
     McpServersService,
+    AgentMcpServerRepository,
     McpOauthService,
     BuiltInMcpServersService,
     EncryptionService,
@@ -43,6 +45,6 @@ import { McpOauthService } from "./oauth/mcp-oauth.service"
     McpServerContextResolver,
   ],
   controllers: [McpServersController],
-  exports: [McpServersService, McpOauthService, BuiltInMcpServersService],
+  exports: [McpServersService, McpOauthService, BuiltInMcpServersService, AgentMcpServerRepository],
 })
 export class McpServersModule {}

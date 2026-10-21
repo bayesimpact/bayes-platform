@@ -3,30 +3,31 @@ import {
   type ReviewerSessionListItemDto,
 } from "@caseai-connect/api-contracts"
 import { Controller, Get, Req, UseGuards } from "@nestjs/common"
-import type { EndpointRequestWithReviewCampaignMembership } from "@/common/context/request.interface"
+import type { EndpointRequestWithReviewCampaign } from "@/common/context/request.interface"
 import { RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
-import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
+import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
+import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
+import { REVIEW_CAMPAIGN_REVIEWER_SESSION_READ_PERMISSION } from "@/domains/rbac/rbac.constants"
 import { UserGuard } from "@/domains/users/user.guard"
-import { ReviewerGuard } from "./reviewer.guard"
 import type { ReviewerSessionSummary } from "./reviewer.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ReviewerService } from "./reviewer.service"
 
-@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, ReviewerGuard)
-@RequireContext("organization", "project", "reviewCampaign", "reviewCampaignMembership")
+@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, CheckPermissionGuard)
+@RequireContext("organization", "project", "reviewCampaign")
 @Controller()
 export class ReviewerSessionsController {
   constructor(private readonly reviewerService: ReviewerService) {}
 
   @Get(ReviewCampaignsRoutes.listReviewerSessions.path)
-  @CheckPolicy((policy) => policy.canList())
+  @CheckPermission(REVIEW_CAMPAIGN_REVIEWER_SESSION_READ_PERMISSION, "review_campaign")
   async listReviewerSessions(
-    @Req() request: EndpointRequestWithReviewCampaignMembership,
+    @Req() request: EndpointRequestWithReviewCampaign,
   ): Promise<typeof ReviewCampaignsRoutes.listReviewerSessions.response> {
     const summaries = await this.reviewerService.listSessionsForCampaign({
-      campaignId: request.reviewCampaign.id,
+      campaign: request.reviewCampaign,
       reviewerUserId: request.user.id,
     })
     return { data: { sessions: summaries.map(toReviewerSessionListItemDto) } }

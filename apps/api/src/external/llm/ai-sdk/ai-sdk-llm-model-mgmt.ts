@@ -14,6 +14,8 @@ import type {
   LLMChatMessage,
   LLMConfig,
   LLMMetadata,
+  LLMModelOptions,
+  LLMProvider,
 } from "@/common/interfaces/llm-provider.interface"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import type { SpecificProviderOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-builders"
@@ -151,13 +153,18 @@ export abstract class AISDKLLMModelMgmt<
     }
   }
   protected abstract getModelMetadata(config: LLMConfig): Record<string, string | number | string[]>
+  abstract getTags(config: LLMConfig): string[]
   abstract getAgentProvider(): Provider
 
   protected abstract readonly modelOptions: Record<AgentModelOf<Provider>, ModelOptions>
   protected abstract readonly modelInfos: Record<AgentModelOf<Provider>, ModelInfos>
+  /** What the catalog says of each model the provider serves (retirement, data residency). */
+  protected abstract readonly modelMetadata: Record<AgentModelOf<Provider>, ModelMetadata>
 
   getModelInfos(agentModel: AgentModel): ModelInfos {
     return this.modelInfos[this.toProviderAgentModel(agentModel)]
+  getModelMetadata(agentModel: AgentModel): ModelMetadata {
+    return this.modelMetadata[this.toProviderAgentModel(agentModel)]
   }
 
   getModelOptionsSchema(agentModel: AgentModel): ZodType<SpecificProviderOptions> {
@@ -165,6 +172,11 @@ export abstract class AISDKLLMModelMgmt<
   }
   getModelOptions(agentModel: AgentModel): SpecificProviderOptions {
     return this.modelOptions[this.toProviderAgentModel(agentModel)].values
+  }
+
+  /** See {@link LLMProvider.getInternalCallModelOptions}. A temperature of 0 by default. */
+  getInternalCallModelOptions(_agentModel: AgentModel): LLMModelOptions {
+    return { temperature: 0 }
   }
 
   /**

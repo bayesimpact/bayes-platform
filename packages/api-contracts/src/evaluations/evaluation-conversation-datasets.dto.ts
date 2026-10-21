@@ -20,6 +20,8 @@ export type EvaluationConversationDatasetDto = {
 
 // DATASET RECORD
 export type EvaluationConversationDatasetRecordDto = {
+  /** Why the expected output is the reference, when the record was saved from an agent answer. */
+  comment: string | null
   createdAt: TimeType
   expectedOutput: string
   id: string

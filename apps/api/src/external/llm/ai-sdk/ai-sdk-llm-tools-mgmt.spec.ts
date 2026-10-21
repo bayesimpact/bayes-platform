@@ -31,7 +31,7 @@ type CallArgs = {
   config: LLMConfig
   metadata: LLMMetadata
   functionId: string
-  tags: string[]
+  tags: Record<string, string | number | string[]>
 }
 
 type ExecutedSteps = Array<{ toolResults: Array<{ toolName: string; output: unknown }> }>
@@ -170,7 +170,7 @@ const metadata: LLMMetadata = {
   projectId: "project-id",
   agentId: "agent-id",
   revision: 1,
-  tags: [],
+  tags: {},
 }
 
 const baseConfig: LLMConfig = {
@@ -186,7 +186,7 @@ function buildCallArgs(model: LanguageModelV3, config: LLMConfig = baseConfig): 
     config,
     metadata,
     functionId: "function-id",
-    tags: [],
+    tags: {},
   }
 }
 
@@ -323,7 +323,7 @@ describe("AISDKLLMToolsMgmt", () => {
         agentId: "agent-1",
         revision: 1,
         projectId: "project-1",
-        tags: [],
+        tags: {},
       }
 
       const buildConfig = ({
@@ -621,7 +621,7 @@ describe("AISDKLLMToolsMgmt", () => {
         agentId: "agent-1",
         revision: 1,
         projectId: "project-1",
-        tags: [],
+        tags: {},
       }
 
       const buildConfig = ({

@@ -211,10 +211,15 @@ export class ReviewCampaignsService {
     if (!agent) {
       throw new UnprocessableEntityException(`Agent ${agentId} not found in this project`)
     }
-    const agentSettings = await this.agentSettingsService.getLast({
+    const agentSettings = await this.agentSettingsService.findLastPublished({
       connectScope,
       agentId: agent.id,
     })
+    if (!agentSettings) {
+      throw new UnprocessableEntityException(
+        `Agent ${agentId} has no published version: publish it before reviewing it in a campaign`,
+      )
+    }
     return agentSettings.id
   }
 

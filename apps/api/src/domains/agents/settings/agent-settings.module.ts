@@ -10,6 +10,7 @@ import { AgentSessionCategory } from "../session-categories/agent-session-catego
 import { ProjectAgentSessionCategory } from "../session-categories/project-agent-session-category.entity"
 import { AgentModelsService } from "./agent-models.service"
 import { AgentSettings } from "./agent-settings.entity"
+import { AgentSettingsRepository } from "./agent-settings.repository"
 import { AgentSettingsService } from "./agent-settings.service"
 
 @Module({
@@ -27,9 +28,10 @@ import { AgentSettingsService } from "./agent-settings.service"
   providers: [
     AgentModelsService,
     AgentSessionCategoriesService,
+    AgentSettingsRepository,
     AgentSettingsService,
     ProjectRepository,
   ],
-  exports: [AgentSettingsService],
+  exports: [AgentSettingsService, AgentSettingsRepository],
 })
 export class AgentSettingsModule {}

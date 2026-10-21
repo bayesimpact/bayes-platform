@@ -57,6 +57,7 @@ export const evaluationConversationDatasetRecordFactory =
       id: params.id ?? faker.string.uuid(),
       input: params.input ?? faker.lorem.sentence(),
       expectedOutput: params.expectedOutput ?? faker.lorem.sentence(),
+      comment: params.comment ?? null,
       createdAt: params.createdAt ?? faker.date.past().getTime(),
       updatedAt: params.updatedAt ?? faker.date.recent().getTime(),
     }

@@ -1,4 +1,4 @@
-import type { BaseAgentSessionTypeDto } from "@caseai-connect/api-contracts"
+import type { ConversationAgentSessionTypeDto } from "@caseai-connect/api-contracts"
 import { AgentSessionMessagesRoutes, type StreamEventPayload } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
@@ -29,7 +29,7 @@ describe("AgentSessionMessagesRoutes.stream", () => {
   let projectId: string
   let agentId: string
   let agentSessionId: string
-  let agentSessionType: BaseAgentSessionTypeDto = "live"
+  let agentSessionType: ConversationAgentSessionTypeDto = "live"
   let accessToken: string | undefined = "token"
   let authSubject = "oidc|123"
 
@@ -58,7 +58,7 @@ describe("AgentSessionMessagesRoutes.stream", () => {
   const createContext = async ({
     sessionType = "live",
   }: {
-    sessionType?: BaseAgentSessionTypeDto
+    sessionType?: ConversationAgentSessionTypeDto
   } = {}) => {
     const { user, organization, project, agent, agentSession, agentSettings } =
       await createOrganizationWithAgentSession({
@@ -299,6 +299,29 @@ describe("AgentSessionMessagesRoutes.stream", () => {
 
       expect(response.text).not.toContain("event: error")
       expect(await findAssistantMessageSettingsId()).toBe(agentSettings.id)
+    })
+
+    it("runs the published revision in a review campaign tester session", async () => {
+      const { organization, project, agent, agentSettings } = await createContext({
+        sessionType: "review_campaign_tester",
+      })
+      await seedRevision({ organization, project, agent, revision: 2, isDraft: true })
+
+      const response = await subject("Hello")
+
+      expect(response.text).not.toContain("event: error")
+      expect(await findAssistantMessageSettingsId()).toBe(agentSettings.id)
+    })
+
+    it("rejects a revision on a review campaign tester session", async () => {
+      const { organization, project, agent } = await createContext({
+        sessionType: "review_campaign_tester",
+      })
+      await seedRevision({ organization, project, agent, revision: 2, isDraft: true })
+
+      const response = await subject("Hello", 2)
+
+      expect(errorData(response.text)).toContain("playground")
     })
   })
 })

@@ -40,7 +40,7 @@ import { ModelOptionsFields } from "./ModelOptionsFields"
 import {
   buildModelTabDefaultValues,
   buildModelTabSubmit,
-  defaultModelOptions,
+  modelOptionsForPickedModel,
 } from "./model-tab.helpers"
 import { TabSaveButton } from "./TabSaveButton"
 
@@ -116,10 +116,11 @@ export function ModelTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
                 <Select
                   onValueChange={(model) => {
                     field.onChange(model)
-                    // A new model starts on its own default options.
-                    form.setValue("providerOptions", defaultModelOptions(catalog, model), {
-                      shouldDirty: true,
-                    })
+                    form.setValue(
+                      "providerOptions",
+                      modelOptionsForPickedModel({ catalog, agentSettings, model }),
+                      { shouldDirty: true },
+                    )
                   }}
                   value={field.value}
                 >

@@ -7,29 +7,8 @@ import {
   type ProjectDto,
   type TimeType,
 } from "@caseai-connect/api-contracts"
-import type {
-  EndpointRequestWithAgent,
-  EndpointRequestWithProject,
-} from "@/common/context/request.interface"
 import type { FeatureFlag } from "../feature-flags/feature-flag.entity"
 import type { ProjectModel } from "./project.model"
-
-export const requestToProjectPolicyContext = (request: EndpointRequestWithProject) => {
-  return {
-    organizationMembership: request.organizationMembership,
-    projectMembership: request.projectMembership,
-    project: request.project,
-  }
-}
-export const requestToAgentPolicyContext = (request: EndpointRequestWithAgent) => {
-  return {
-    organizationMembership: request.organizationMembership,
-    projectMembership: request.projectMembership,
-    project: request.project,
-    agent: request.agent,
-    agentMembership: request.agentMembership,
-  }
-}
 
 export function toProjectDto(project: ProjectModel): ProjectDto {
   return {

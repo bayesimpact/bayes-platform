@@ -1,31 +1,31 @@
 import { ReviewCampaignsRoutes, type ReviewerSessionReviewDto } from "@caseai-connect/api-contracts"
 import { Body, Controller, Param, Patch, Post, Req, UseGuards } from "@nestjs/common"
-import type {
-  EndpointRequestWithAgentSessionInCampaign,
-  EndpointRequestWithReviewCampaignMembership,
-} from "@/common/context/request.interface"
+import type { EndpointRequestWithAgentSessionInCampaign } from "@/common/context/request.interface"
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
 import { RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
-import { CheckPolicy } from "@/common/policies/check-policy.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
+import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
+import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
+import {
+  REVIEW_CAMPAIGN_REVIEWER_REVIEW_CREATE_PERMISSION,
+  REVIEW_CAMPAIGN_REVIEWER_REVIEW_UPDATE_PERMISSION,
+} from "@/domains/rbac/rbac.constants"
 import { UserGuard } from "@/domains/users/user.guard"
 import type { ReviewerSessionReview } from "../reviewer-session-reviews/reviewer-session-review.entity"
-import { ReviewerGuard } from "./reviewer.guard"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ReviewerService } from "./reviewer.service"
 
-@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, ReviewerGuard)
-@RequireContext("organization", "project", "agentSessionInCampaign", "reviewCampaignMembership")
+@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, CheckPermissionGuard)
+@RequireContext("organization", "project", "agentSessionInCampaign")
 @Controller()
 export class ReviewerSessionReviewController {
   constructor(private readonly reviewerService: ReviewerService) {}
 
   @Post(ReviewCampaignsRoutes.submitReviewerSessionReview.path)
-  @CheckPolicy((policy) => policy.canCreate())
+  @CheckPermission(REVIEW_CAMPAIGN_REVIEWER_REVIEW_CREATE_PERMISSION, "review_campaign")
   async submitReviewerSessionReview(
-    @Req() request: EndpointRequestWithAgentSessionInCampaign &
-      EndpointRequestWithReviewCampaignMembership,
+    @Req() request: EndpointRequestWithAgentSessionInCampaign,
     @Body() { payload }: typeof ReviewCampaignsRoutes.submitReviewerSessionReview.request,
   ): Promise<typeof ReviewCampaignsRoutes.submitReviewerSessionReview.response> {
     const { sessionId, agentType, userId } = request.agentSessionInCampaign
@@ -42,15 +42,15 @@ export class ReviewerSessionReviewController {
   }
 
   @Patch(ReviewCampaignsRoutes.updateReviewerSessionReview.path)
-  @CheckPolicy((policy) => policy.canUpdate())
+  @CheckPermission(REVIEW_CAMPAIGN_REVIEWER_REVIEW_UPDATE_PERMISSION, "review_campaign")
   async updateReviewerSessionReview(
-    @Req() request: EndpointRequestWithAgentSessionInCampaign &
-      EndpointRequestWithReviewCampaignMembership,
+    @Req() request: EndpointRequestWithAgentSessionInCampaign,
     @Param("reviewId") reviewId: string,
     @Body() { payload }: typeof ReviewCampaignsRoutes.updateReviewerSessionReview.request,
   ): Promise<typeof ReviewCampaignsRoutes.updateReviewerSessionReview.response> {
     const { sessionId, userId } = request.agentSessionInCampaign
     const review = await this.reviewerService.updateReview({
+      campaign: request.reviewCampaign,
       reviewId,
       sessionId,
       sessionOwnerUserId: userId,

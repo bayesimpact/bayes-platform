@@ -26,9 +26,10 @@ export function CampaignList({
   const campaigns = useValue(selectReviewCampaignsData)
   // Review campaigns only support conversation agents as targets;
   // testerService.startSession rejects extraction agents (apps/api/.../tester.service.ts).
+  // A campaign tests the published version, so an agent never published (a copy) is left out.
   const agentOptions = useMemo(() => {
     return agents
-      .filter((agent) => agent.type === "conversation")
+      .filter((agent) => agent.type === "conversation" && agent.currentRevision)
       .map((agent) => ({ id: agent.id, name: agent.name }))
   }, [agents])
 

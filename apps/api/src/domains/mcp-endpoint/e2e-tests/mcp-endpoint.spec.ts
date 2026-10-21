@@ -19,11 +19,18 @@ import { configureGlobalPrefix } from "@/config/api-prefix"
 import { Agent } from "@/domains/agents/agent.entity"
 import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { obtainTokens, resetRateLimits } from "@/domains/oauth/e2e-tests/oauth-test.helpers"
-import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import {
+  createOrganizationWithAgent,
+  createOrganizationWithProject,
+} from "@/domains/organizations/organization.factory"
 import { addUserToProject } from "@/domains/projects/memberships/project-membership.factory"
-import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
+import { listenOnLoopback, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
-import { AGENT_NOT_FOUND_ERROR, PROJECT_NOT_FOUND_ERROR } from "../mcp-agent-tools.service"
+import {
+  AGENT_NOT_DUPLICABLE_ERROR,
+  AGENT_NOT_FOUND_ERROR,
+  PROJECT_NOT_FOUND_ERROR,
+} from "../mcp-agent-tools.service"
 import { McpEndpointModule } from "../mcp-endpoint.module"
 
 type ProtocolEra = "2026-07-28" | "2025"
@@ -53,8 +60,7 @@ describe("MCP endpoint", () => {
     await ensureRbacCatalog(setup.module)
     app = setup.module.createNestApplication()
     configureGlobalPrefix(app)
-    await app.listen(0, "127.0.0.1")
-    baseUrl = await app.getUrl()
+    baseUrl = await listenOnLoopback(app)
     endpointUrl = new URL(`${baseUrl}/api/mcp`)
   })
 
@@ -158,6 +164,7 @@ describe("MCP endpoint", () => {
 
       expect(tools.map((tool) => tool.name).sort()).toEqual([
         "create_agent",
+        "duplicate_agent",
         "list_agents",
         "list_projects",
         "update_agent",
@@ -275,7 +282,13 @@ describe("MCP endpoint", () => {
 
       expect(result.isError).toBeFalsy()
       expect(result.structuredContent).toMatchObject({
-        agent: { id: agentId, model: AgentModel.Gemini38Flash, draftRevision: 2 },
+        agent: {
+          id: agentId,
+          model: AgentModel.Gemini38Flash,
+          draftRevision: 2,
+          published: true,
+          canDuplicate: true,
+        },
       })
       const revisions = await setup
         .getRepository(AgentSettings)
@@ -359,6 +372,221 @@ describe("MCP endpoint", () => {
       expect(result.content).toEqual([
         { type: "text", text: `Model ${AgentModel.Gemini25Flash} is no longer available` },
       ])
+      await client.close()
+    })
+  })
+
+  describe("duplicate_agent", () => {
+    const createTestAgent = async (client: Client, projectId: string) => {
+      const result = await client.callTool({
+        name: "create_agent",
+        arguments: {
+          projectId,
+          name: "Helpful Assistant",
+          instructions: "Answer questions about the product.",
+          model: AgentModel.Gemini35FlashLite,
+        },
+      })
+      return (result.structuredContent as { agent: { id: string } }).agent.id
+    }
+
+    it("copies an agent into a draft that nothing uses until it is published", async () => {
+      const { organization, project, user } = await createContext()
+      const client = await connect(await grantAccess([project.id]))
+      const agentId = await createTestAgent(client, project.id)
+
+      const result = await client.callTool({
+        name: "duplicate_agent",
+        arguments: { agentId, name: "Helpful Assistant (copy)" },
+      })
+
+      expect(result.isError).toBeFalsy()
+      const { agent: copy } = result.structuredContent as { agent: { id: string } }
+      expect(copy).toMatchObject({
+        name: "Helpful Assistant (copy)",
+        type: "conversation",
+        model: AgentModel.Gemini35FlashLite,
+        published: false,
+        draftRevision: 1,
+        canUpdate: true,
+        canDuplicate: true,
+      })
+      expect(copy.id).not.toBe(agentId)
+      const copyRevisions = await setup
+        .getRepository(AgentSettings)
+        .find({ where: { agentId: copy.id } })
+      expect(
+        copyRevisions.map((revision) => [
+          revision.revision,
+          revision.isDraft,
+          revision.instructions,
+        ]),
+      ).toEqual([[1, true, "Answer questions about the product."]])
+      await expectActivityCreated("agent.duplicate", {
+        userId: user.id,
+        organizationId: organization.id,
+        projectId: project.id,
+        entityId: agentId,
+        entityType: "agent",
+      })
+      await client.close()
+    })
+
+    it("lists the copy as unpublished, next to the original", async () => {
+      const { project } = await createContext()
+      const client = await connect(await grantAccess([project.id]))
+      const agentId = await createTestAgent(client, project.id)
+      const duplicated = await client.callTool({
+        name: "duplicate_agent",
+        arguments: { agentId, name: "Helpful Assistant (copy)" },
+      })
+      const copyId = (duplicated.structuredContent as { agent: { id: string } }).agent.id
+
+      const result = await client.callTool({
+        name: "list_agents",
+        arguments: { projectId: project.id },
+      })
+
+      expect(result.isError).toBeFalsy()
+      const { agents } = result.structuredContent as {
+        agents: Array<{ id: string; published: boolean; canDuplicate: boolean }>
+      }
+      const publishedById = Object.fromEntries(agents.map((agent) => [agent.id, agent.published]))
+      expect(publishedById).toEqual({ [agentId]: true, [copyId]: false })
+      expect(agents.every((agent) => agent.canDuplicate)).toBe(true)
+      await client.close()
+    })
+
+    it("refuses without the agent.create grant", async () => {
+      const { project } = await createContext()
+      const agentId = await createTestAgent(
+        await connect(await grantAccess([project.id])),
+        project.id,
+      )
+      const client = await connect(
+        await grantAccess([project.id], ["project.read", "agent.settings.draft.update"]),
+      )
+
+      const listed = await client.callTool({
+        name: "list_agents",
+        arguments: { projectId: project.id },
+      })
+      const result = await client.callTool({
+        name: "duplicate_agent",
+        arguments: { agentId, name: "Helpful Assistant (copy)" },
+      })
+
+      expect(listed.structuredContent).toMatchObject({
+        agents: [{ id: agentId, canDuplicate: false }],
+      })
+      expect(result.isError).toBe(true)
+      expect(result.content).toEqual([{ type: "text", text: AGENT_NOT_DUPLICABLE_ERROR }])
+      expect(await setup.getRepository(Agent).count()).toBe(1)
+      await client.close()
+    })
+
+    it("refuses an agent of a project outside the grant", async () => {
+      const { project, user } = await createContext()
+      const agentId = await createTestAgent(
+        await connect(await grantAccess([project.id])),
+        project.id,
+      )
+      const { project: otherProject } = await createOrganizationWithProject(repositories)
+      await addUserToProject({
+        repositories,
+        project: otherProject,
+        user,
+        membership: { role: "owner" },
+      })
+      authSubject = user.authSubject!
+      const client = await connect(await grantAccess([otherProject.id]))
+
+      const result = await client.callTool({
+        name: "duplicate_agent",
+        arguments: { agentId, name: "Helpful Assistant (copy)" },
+      })
+
+      expect(result.isError).toBe(true)
+      expect(result.content).toEqual([{ type: "text", text: AGENT_NOT_DUPLICABLE_ERROR }])
+      await client.close()
+    })
+
+    it("explains why a name too short is refused", async () => {
+      const { project } = await createContext()
+      const client = await connect(await grantAccess([project.id]))
+      const agentId = await createTestAgent(client, project.id)
+
+      const result = await client.callTool({
+        name: "duplicate_agent",
+        arguments: { agentId, name: "ab" },
+      })
+
+      expect(result.isError).toBe(true)
+      // The input schema names the field and the minimum, whatever the SDK's wording.
+      expect(result.content).toEqual([{ type: "text", text: expect.stringMatching(/name.*3/s) }])
+      expect(await setup.getRepository(Agent).count()).toBe(1)
+      await client.close()
+    })
+
+    it.each([
+      {
+        case: "a project owner who is only a member of the agent",
+        project: "owner",
+        agent: "member",
+      },
+      {
+        case: "an agent owner who cannot create agents in the project",
+        project: "member",
+        agent: "owner",
+      },
+    ] as const)("refuses $case, even with the whole grant", async (roles) => {
+      const { user, agent } = await createOrganizationWithAgent(repositories, {
+        organizationMembership: { role: "member" },
+        projectMembership: { role: roles.project },
+        agentMembership: { role: roles.agent },
+      })
+      authSubject = user.authSubject!
+      const client = await connect(await grantAccess([agent.projectId]))
+
+      const listed = await client.callTool({
+        name: "list_agents",
+        arguments: { projectId: agent.projectId },
+      })
+      const result = await client.callTool({
+        name: "duplicate_agent",
+        arguments: { agentId: agent.id, name: "Helpful Assistant (copy)" },
+      })
+
+      expect(listed.structuredContent).toMatchObject({
+        agents: [{ id: agent.id, canDuplicate: false }],
+      })
+      expect(result.isError).toBe(true)
+      expect(result.content).toEqual([{ type: "text", text: AGENT_NOT_DUPLICABLE_ERROR }])
+      expect(await setup.getRepository(Agent).count()).toBe(1)
+      await client.close()
+    })
+
+    it.each([
+      { case: "hides it from an agent member", agent: "member", listed: false },
+      { case: "shows it to its owner", agent: "owner", listed: true },
+    ] as const)("lists a never-published agent only to people who see its draft: $case", async (roles) => {
+      const { user, agent } = await createOrganizationWithAgent(repositories, {
+        organizationMembership: { role: "member" },
+        projectMembership: { role: "member" },
+        agentMembership: { role: roles.agent },
+        agentSettings: { isDraft: true },
+      })
+      authSubject = user.authSubject!
+      const client = await connect(await grantAccess([agent.projectId]))
+
+      const result = await client.callTool({
+        name: "list_agents",
+        arguments: { projectId: agent.projectId },
+      })
+
+      expect(result.structuredContent).toEqual({
+        agents: roles.listed ? [expect.objectContaining({ id: agent.id, published: false })] : [],
+      })
       await client.close()
     })
   })

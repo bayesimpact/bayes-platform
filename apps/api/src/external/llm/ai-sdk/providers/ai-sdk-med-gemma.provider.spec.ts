@@ -130,7 +130,7 @@ describe("AISDKMedGemmaProvider.readStructuredOutput", () => {
 
 describe("AISDKMedGemmaProvider through the AI SDK (vLLM simulated)", () => {
   const URL_ENV = "VLLM_MEDGEMMA10_27B_URL"
-  const API_KEY_ENV = "VLLM_MEDGEMMA10_27B_APIKEY"
+  const API_KEY_ENV = "VLLM_MEDGEMMA10_27B_APIKEY" // gitleaks:allow (the name of the variable, not a key)
   const savedEnv = { url: process.env[URL_ENV], apiKey: process.env[API_KEY_ENV] }
 
   const metadata: LLMMetadata = {
@@ -141,7 +141,7 @@ describe("AISDKMedGemmaProvider through the AI SDK (vLLM simulated)", () => {
     projectId: "project-id",
     agentId: "agent-id",
     revision: 1,
-    tags: [],
+    tags: {},
   }
 
   // Tools route the chat turn to the custom MedGemma model.

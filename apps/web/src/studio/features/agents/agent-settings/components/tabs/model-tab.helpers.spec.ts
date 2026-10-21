@@ -8,6 +8,7 @@ import {
   buildModelTabDefaultValues,
   buildModelTabSubmit,
   defaultModelOptions,
+  modelOptionsForPickedModel,
 } from "./model-tab.helpers"
 
 const catalog = agentModelsCatalogFactory.build()
@@ -26,6 +27,25 @@ describe("defaultModelOptions", () => {
 
   it("has no options for a model that left the catalog", () => {
     expect(defaultModelOptions(catalog, "gemini-1.5-flash-retired")).toEqual({})
+  })
+})
+
+describe("modelOptionsForPickedModel", () => {
+  const agentSettings = {
+    model: AgentModel.Gemini31FlashLite,
+    providerOptions: { temperature: 0.2, ...thinkingOptions("low") },
+  }
+
+  it("starts another model on its default options", () => {
+    expect(
+      modelOptionsForPickedModel({ catalog, agentSettings, model: AgentModel.Gemini35Flash }),
+    ).toEqual({ temperature: 1, ...thinkingOptions("medium") })
+  })
+
+  it("gives back the agent's own options when it goes back to the agent's model", () => {
+    expect(
+      modelOptionsForPickedModel({ catalog, agentSettings, model: AgentModel.Gemini31FlashLite }),
+    ).toEqual({ temperature: 0.2, ...thinkingOptions("low") })
   })
 })
 

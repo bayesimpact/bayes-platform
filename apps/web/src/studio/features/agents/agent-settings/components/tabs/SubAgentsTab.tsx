@@ -1,4 +1,5 @@
 import type { AgentSubAgentMode } from "@caseai-connect/api-contracts"
+import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
 import {
   Empty,
@@ -142,7 +143,11 @@ function AgentItem({ agent, addSubAgent }: { agent: Agent; addSubAgent: (agent: 
         <Icon />
       </ItemMedia>
       <ItemContent>
-        <ItemTitle>{agent.name}</ItemTitle>
+        <ItemTitle>
+          {agent.name}
+          {/* A copy that was never published is not offered to the orchestrator until it is. */}
+          {!agent.currentRevision && <Badge variant="warning">{t("status:draft")}</Badge>}
+        </ItemTitle>
         <ItemDescription>{agentSettings.instructions}</ItemDescription>
       </ItemContent>
       <ItemActions>

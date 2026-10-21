@@ -79,6 +79,13 @@ export const AGENT_UPDATE_PERMISSION = "agent.update" as const
 export const AGENT_DELETE_PERMISSION = "agent.delete" as const
 
 /**
+ * Copy an agent into a new draft agent of its project, with its settings, tools, sub-agents and
+ * sources. Held on the agent only, since the copy carries its sub-agents, and the copy also needs
+ * `agent.create` on the project.
+ */
+export const AGENT_DUPLICATE_PERMISSION = "agent.duplicate" as const
+
+/**
  * Read an agent's conversation analytics. Held on the agent only: a project or
  * organization role does not grant it.
  */
@@ -548,6 +555,9 @@ export const PROJECT_SCOPED_PERMISSIONS = [
   PROJECT_APP_INSTALLATION_READ_PERMISSION,
   PROJECT_APP_INSTALLATION_REVOKE_PERMISSION,
   PROJECT_APP_INSTALLATION_CREATE_PERMISSION,
+  AGENT_CREATE_PERMISSION,
+  EVALUATION_CONVERSATION_DATASET_CREATE_PERMISSION,
+  EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION,
 ] as const
 
 export type ProjectScopedPermission = (typeof PROJECT_SCOPED_PERMISSIONS)[number]

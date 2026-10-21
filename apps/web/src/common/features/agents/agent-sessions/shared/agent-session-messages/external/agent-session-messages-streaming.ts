@@ -1,4 +1,4 @@
-import type { BaseAgentSessionTypeDto } from "@caseai-connect/api-contracts"
+import type { ConversationAgentSessionTypeDto } from "@caseai-connect/api-contracts"
 import { runtimeConfig } from "@/config/runtime-config"
 import { getAccessToken } from "@/external/oidcClient"
 import {
@@ -31,7 +31,7 @@ export async function streamChatResponse({
   handlers,
   signal,
 }: {
-  type: BaseAgentSessionTypeDto
+  type: ConversationAgentSessionTypeDto
   organizationId: string
   projectId: string
   agentId: string

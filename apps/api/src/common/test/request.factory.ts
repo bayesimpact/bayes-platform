@@ -168,7 +168,6 @@ export const endpointRequestWithAgentFactory = Factory.define<
     project,
     projectMembership: undefined,
     agent,
-    agentMembership: undefined,
   } satisfies EndpointRequestWithAgent
 })
 

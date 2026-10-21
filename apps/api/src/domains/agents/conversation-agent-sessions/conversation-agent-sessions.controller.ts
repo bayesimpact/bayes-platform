@@ -129,7 +129,7 @@ export abstract class ConversationAgentSessionsController {
         const session = sessionByAgentId.get(subAgent.childAgentId)
         if (!session || !subAgent.childAgent) return []
 
-        const settings = await this.agentSettingsService.getLast({
+        const settings = await this.agentSettingsService.getLastPublishedOrDraft({
           connectScope,
           agentId: subAgent.childAgentId,
         })
@@ -154,7 +154,9 @@ export abstract class ConversationAgentSessionsController {
   /**
    * The current form schema of every agent that filled a form in these
    * sessions (the session's agent, or a sub-agent that took the conversation
-   * over): the Studio renders each form with its own agent's fields.
+   * over): the Studio renders each form with its own agent's fields. An agent
+   * that was never published, such as a copy tried in its playground, gives
+   * its draft's schema.
    */
   private async resolveFormSchemas({
     connectScope,
@@ -168,7 +170,10 @@ export abstract class ConversationAgentSessionsController {
     )
     const entries = await Promise.all(
       [...agentIds].map(async (agentId) => {
-        const settings = await this.agentSettingsService.getLast({ connectScope, agentId })
+        const settings = await this.agentSettingsService.getLastPublishedOrDraft({
+          connectScope,
+          agentId,
+        })
         return [agentId, settings.fillFormEnabled ? settings.outputJsonSchema : null] as const
       }),
     )

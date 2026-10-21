@@ -34,6 +34,12 @@ export class StreamingLlmService extends LlmServiceBase {
   private readonly agentMessageRepository: Repository<AgentMessage>
   private readonly agentMessageConnectRepository: ConnectRepository<AgentMessage>
   private readonly conversationAgentSessionRepository: Repository<ConversationAgentSession>
+  /**
+   * Replies this process is writing, by message id. A reply is removed once its stream ends,
+   * whatever the outcome; what is left when the process exits is settled by
+   * {@link abortRepliesInFlight}.
+   */
+  private readonly repliesInFlight = new Map<string, RequiredConnectScope>()
 
   constructor(
     private readonly agentLlmRequestService: AgentLlmRequestService,
@@ -93,6 +99,7 @@ export class StreamingLlmService extends LlmServiceBase {
 
     // Update the session in the agentSessionScope to reflect the latest state after preparing for streaming
     agentSessionScope.session = updatedSession
+    this.repliesInFlight.set(assistantMessageId, agentSessionScope.connectScope)
 
     yield this.sseEvent({ type: "start", messageId: assistantMessageId })
 
@@ -161,6 +168,7 @@ export class StreamingLlmService extends LlmServiceBase {
 
       throw error
     } finally {
+      this.repliesInFlight.delete(assistantMessageId)
       await mcpClose?.()
     }
   }
@@ -232,6 +240,7 @@ export class StreamingLlmService extends LlmServiceBase {
       completedAt: null,
       toolCalls: null,
     })
+    this.repliesInFlight.set(assistantMessageId, connectScope)
 
     yield this.sseEvent({ type: "start", messageId: assistantMessageId })
 
@@ -317,8 +326,31 @@ export class StreamingLlmService extends LlmServiceBase {
       yield this.sseEvent({ type: "error", messageId: assistantMessageId, error: errorMessage })
       throw error
     } finally {
+      this.repliesInFlight.delete(assistantMessageId)
       await mcpClose?.()
     }
+  }
+
+  /**
+   * Settles as aborted the replies this process is still writing. Called when a shutdown gives
+   * up waiting for the streams in flight: the process exits right after, and a reply left
+   * streaming would show as a spinner after a reload until the recovery sweep catches it (see
+   * `STREAM_TIMEOUT_MS`). Only a row still streaming is touched, so a reply that settled in the
+   * meantime keeps its outcome.
+   */
+  async abortRepliesInFlight(): Promise<number> {
+    const replies = [...this.repliesInFlight]
+    const settled = await Promise.all(
+      replies.map(([id, connectScope]) =>
+        this.agentMessageConnectRepository.updateManyBy({
+          connectScope,
+          where: { id, status: "streaming" },
+          fields: { status: "aborted" },
+        }),
+      ),
+    )
+    this.repliesInFlight.clear()
+    return settled.reduce((total, affected) => total + affected, 0)
   }
 
   /**

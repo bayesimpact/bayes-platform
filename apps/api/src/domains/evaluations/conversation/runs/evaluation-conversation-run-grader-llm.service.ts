@@ -78,12 +78,16 @@ ${
     //fixme: remove when specific agent for rating(in db) for rating with mock
     if (AgentModelToAgentProvider[generatorModel] === AgentProvider._Mock) {
       ratingAgent.model = AgentModel._Mock
-      llmMetadata.tags["environment"] = "**TEST**"
+      llmMetadata.tags.environment = "**TEST**"
     }
 
-    const llmConfig = this.buildLLMConfig(ratingAgent)
+    const provider = this.getProviderForModel(ratingAgent.model)
+    const llmConfig = this.buildLLMConfig({
+      ...ratingAgent,
+      modelOptions: provider.getInternalCallModelOptions(ratingAgent.model),
+    })
 
-    const response = await this.getProviderForModel(llmConfig.model).generateText({
+    const response = await provider.generateText({
       prompt: `
 <%ratingInstructions>
 ${expectedOutput}

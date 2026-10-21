@@ -1,6 +1,6 @@
 ---
 name: crud-generator
-description: Generate CRUD boilerplate (backend NestJS controller/custom repository/service/module/guard/policy/factory/routes/e2e + frontend Redux slice/thunks/selectors/middleware/spi/api) from a given entity file and a list of methods.
+description: Generate CRUD boilerplate (backend NestJS controller/custom repository/service/module/permission checks/factory/routes/e2e + frontend Redux slice/thunks/selectors/middleware/spi/api) from a given entity file and a list of methods.
 ---
 
 Generate all CRUD-related files for a new feature based on an existing entity file and a selected list of operations.
@@ -55,9 +55,9 @@ apps/api/src/domains/projects/projects.module.ts
 apps/api/src/domains/projects/project.entity.ts
 apps/api/src/domains/rbac/platform-role.service.ts
 apps/api/src/domains/rbac/platform-role.repository.ts
+apps/api/src/domains/agents/agents.controller.ts
 apps/api/src/domains/agents/agent.factory.ts
-apps/api/src/domains/agents/agent.guard.ts
-apps/api/src/domains/agents/agent.policy.ts
+apps/api/src/domains/rbac/rbac.constants.ts
 apps/api/src/domains/agents/e2e-tests/create-one.spec.ts
 apps/api/src/domains/agents/e2e-tests/auth.spec.ts
 
@@ -100,8 +100,6 @@ Before writing any files, output a summary table of **what will be created**, gr
 - {entityNameKebab}.repository.ts    — Persistence (TypeORM stays here)
 - {entityNamePlural}.service.ts      — Business logic (no TypeORM)
 - {entityNamePlural}.module.ts       — NestJS module
-- {entityNameKebab}.guard.ts         — Authorization guard
-- {entityNameKebab}.policy.ts        — Resource policy
 - {entityNameKebab}.factory.ts       — Test data factory
 - e2e-tests/auth.spec.ts             — Auth E2E tests
 - e2e-tests/create-one.spec.ts       — (if Create requested)
@@ -109,6 +107,10 @@ Before writing any files, output a summary table of **what will be created**, gr
 - e2e-tests/get-one.spec.ts          — (if GetOne requested)
 - e2e-tests/update-one.spec.ts       — (if Update requested)
 - e2e-tests/delete-one.spec.ts       — (if Delete requested)
+
+### Permissions (one key per route, see step 4c)
+- createOne → {resource}.create      — existing key, or a new one through the rbac skill
+- getAll    → {resource}.read
 
 ### Frontend (apps/web/src/features/{entityNameKebabPlural}/)
 - {entityNamePlural}.models.ts       — TypeScript model type + Zod schema
@@ -157,20 +159,30 @@ Do **not** invent domain-prefixed keys (`createWidget`, `listWidgets`). Use `cre
 
 > After creating these two files, check whether `packages/api-contracts/src/index.ts` exists. If it does, add exports for the new DTO and Routes.
 
-### 4c. Backend — Controller
+### 4c. Backend — Permissions
+
+Follow `.claude/skills/rbac/SKILL.md` and ADR 0019. There is no per-entity guard or policy file.
+
+- Pick one permission key per route, named `{resource}.{action}` in snake case (e.g. `document_tag.create`): `create` for Create, `read` for GetAll and GetOne, `update` for Update, `delete` for Delete
+- Reuse an existing key from `apps/api/src/domains/rbac/rbac.constants.ts` when it already describes the capability
+- Otherwise the rbac skill adds the key in one change: the string in `packages/api-contracts/src/rbac/permissions.ts`, the role grants in `rbac.constants.ts`, the row in `docs/rbac-permission-matrix.md` and the data migration inserting the `role_permission` rows
+- When unsure which role should hold a new key, ask the user before generating
+
+### 4d. Backend — Controller
 
 File: `apps/api/src/domains/{featureName}/{entityNamePlural}.controller.ts`
 
 Pattern: `apps/api/src/domains/agents/agents.controller.ts`
 
 - Import `{EntityName}sRoutes` from `"@caseai-connect/api-contracts"`
-- `@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, {EntityName}Guard)` at class level
+- `@UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, CheckPermissionGuard)` at class level
 - `@RequireContext("organization", "project")` at class level (adjust scopes based on entity's parent relations)
 - Only generate `@Post`, `@Get`, `@Patch`, `@Delete` methods for requested operations
+- Each method carries `@CheckPermission({PERMISSION_CONSTANT}, "project")` with the key chosen in step 4c, imported from `@/domains/rbac/rbac.constants`
 - For entity-scoped operations (Update, Delete, GetOne): add `@AddContext("{entityNameKebab}")` and use `EndpointRequestWith{EntityName}`
 - Include a private `to{EntityName}Dto(entity: {EntityName}): {EntityName}Dto` mapping function at the bottom
 
-### 4d. Backend — Custom repository
+### 4e. Backend — Custom repository
 
 File: `apps/api/src/domains/{featureName}/{entityNameKebab}.repository.ts`
 
@@ -189,7 +201,7 @@ Services MUST NOT depend on TypeORM. All persistence lives in this custom reposi
   - `Update`: `update{EntityName}(...)` — load, assign, save
   - `Delete`: `deleteOneById({ connectScope, {entityNameKebab}Id })`
 
-### 4e. Backend — Service
+### 4f. Backend — Service
 
 File: `apps/api/src/domains/{featureName}/{entityNamePlural}.service.ts`
 
@@ -199,49 +211,22 @@ Pattern: `apps/api/src/domains/projects/projects.service.ts`
 - Generate only the service methods corresponding to requested operations; delegate persistence to the custom repository
 - Throw `NotFoundException` when entity not found, `UnprocessableEntityException` for validation failures
 
-### 4f. Backend — Module
+### 4g. Backend — Module
 
 File: `apps/api/src/domains/{featureName}/{entityNamePlural}.module.ts`
 
 Pattern: `apps/api/src/domains/projects/projects.module.ts`
 
 - `TypeOrmModule.forFeature([{EntityName}, ...related entities needed for scoping])` — always include `Project`, `UserMembership`, `ProjectMembership` if entity is project-scoped
-- Include: `OrganizationsModule`, `ProjectsModule`, `UsersModule`, `AuthModule`
-- Providers: `[{EntityName}sService, {EntityName}Repository, {EntityName}Guard, ResourceContextGuard, OrganizationContextResolver, ProjectContextResolver]`
+- Include: `OrganizationsModule`, `ProjectsModule`, `UsersModule`, `AuthModule`, `RbacModule` (provides `CheckPermissionGuard`)
+- Providers: `[{EntityName}sService, {EntityName}Repository, ResourceContextGuard, OrganizationContextResolver, ProjectContextResolver]`
 - Add `{EntityName}ContextResolver` to providers if GetOne/Update/Delete are requested (needed for `@AddContext`)
 - Controllers: `[{EntityName}sController]`
 - Exports: `[{EntityName}sService, {EntityName}Repository]`
 
 > **Note:** After creating the module file, remind the user to import this module into the parent feature module or `app.module.ts`.
 
-### 4g. Backend — Guard
-
-File: `apps/api/src/domains/{featureName}/{entityNameKebab}.guard.ts`
-
-Pattern: `apps/api/src/domains/agents/agent.guard.ts`
-
-- Mirrors the agents guard exactly, substituting entity names
-- Only needed if Update, Delete, or GetOne are requested (entity-level authorization)
-- If only Create and GetAll are requested, the guard still handles class-level policy
-
-### 4h. Backend — Policy
-
-File: `apps/api/src/domains/{featureName}/{entityNameKebab}.policy.ts`
-
-Pattern: `apps/api/src/domains/agents/agent.policy.ts`
-
-```typescript
-import { ProjectScopedPolicy } from "@/common/policies/project-scoped-policy"
-import type { {EntityName} } from "./{entityNameKebab}.entity"
-
-export class {EntityName}Policy extends ProjectScopedPolicy<{EntityName}> {}
-```
-
-Unless the entity requires custom access control logic.
-
-> **Note:** The policy only answers whether the resource belongs to the caller's scope. A capability that belongs in the RBAC catalog (a new permission, a per-role grant, or a list of what the caller can see) follows `.claude/skills/rbac/SKILL.md` and ADR 0019 with `@CheckPermission` and `PermissionService`. Do not add a `can*()` method or a membership role check for it.
-
-### 4i. Backend — Factory
+### 4h. Backend — Factory
 
 File: `apps/api/src/domains/{featureName}/{entityNameKebab}.factory.ts`
 
@@ -252,7 +237,7 @@ Pattern: `apps/api/src/domains/agents/agent.factory.ts`
 - `class {EntityName}Factory extends Factory<{EntityName}, {EntityName}TransientParams>`
 - In the factory definition: require `organization` and `project` transient params, provide sensible defaults for all entity columns using `sequence`, export as `{entityNameCamel}Factory`
 
-### 4j. Backend — E2E Tests
+### 4i. Backend — E2E Tests
 
 For each requested method, create a file in `apps/api/src/domains/{featureName}/e2e-tests/`:
 
@@ -290,7 +275,7 @@ Patterns:
 
 ---
 
-### 4k. Backend — `EndpointRequestWith{EntityName}` interface
+### 4j. Backend — `EndpointRequestWith{EntityName}` interface
 
 File: `apps/api/src/common/context/request.interface.ts` (**edit existing file**)
 
@@ -310,7 +295,7 @@ export interface EndpointRequestWith{EntityName} extends EndpointRequestWithProj
 
 ---
 
-### 4l. Backend — `{EntityName}ContextResolver`
+### 4k. Backend — `{EntityName}ContextResolver`
 
 File: `apps/api/src/common/context/resolvers/{entityNameKebab}-context.resolver.ts` (**new file**)
 
@@ -353,7 +338,7 @@ export class {EntityName}ContextResolver implements ContextResolver {
 
 ---
 
-### 4m. Backend — `ContextResource` union entry + `RESOLUTION_ORDER`
+### 4l. Backend — `ContextResource` union entry + `RESOLUTION_ORDER`
 
 **Always required** when GetOne, Update, or Delete are requested.
 
@@ -411,11 +396,11 @@ constructor(
 }
 ```
 
-> **Why this matters**: `ResourceContextGuard` only resolves resources that appear in `RESOLUTION_ORDER`. Omitting the entry here means `request.{entityNameCamel}` will always be `undefined`, causing `doesResourceBelongToProject()` in the policy to return `false` and all entity-scoped routes to 403.
+> **Why this matters**: `ResourceContextGuard` only resolves resources that appear in `RESOLUTION_ORDER`. Omitting the entry here means `request.{entityNameCamel}` will always be `undefined`, so every entity-scoped handler fails. The resolver is also what returns 404 for an entity of another project, since it loads the entity within the request's connect scope.
 
 ---
 
-### 4n. Frontend — Models
+### 4m. Frontend — Models
 
 File: `apps/web/src/features/{entityNameKebabPlural}/{entityNamePlural}.models.ts`
 
@@ -424,7 +409,7 @@ Pattern: `apps/web/src/features/agents/agents.models.ts`
 - Export a `type {EntityName} = { ... }` mirroring the DTO fields, using frontend-friendly types (import shared types from `"@caseai-connect/api-contracts"` when needed, use `TimeType` for timestamps)
 - Export a `{entityNameCamel}Schema = z.object({ ... }).strict()` Zod schema for the core fields
 
-### 4o. Frontend — SPI
+### 4n. Frontend — SPI
 
 File: `apps/web/src/features/{entityNameKebabPlural}/{entityNamePlural}.spi.ts`
 
@@ -438,7 +423,7 @@ Pattern: `apps/web/src/features/agents/agents.spi.ts`
   - `deleteOne(params): Promise<void>` (if Delete)
 - `params` always includes `organizationId: string`, `projectId: string`, and `{entityNameKebab}Id: string` when the route targets a specific entity
 
-### 4p. Frontend — API Implementation
+### 4o. Frontend — API Implementation
 
 File: `apps/web/src/features/{entityNameKebabPlural}/external/{entityNamePlural}.api.ts`
 
@@ -452,7 +437,7 @@ Pattern: `apps/web/src/features/agents/external/agents.api.ts`
   - Map `toCreateDto` / `toUpdateDto` for request payloads
 - Include `fromDto`, `toCreateDto`, `toUpdateDto` helper functions at the bottom
 
-### 4q. Frontend — Thunks
+### 4p. Frontend — Thunks
 
 File: `apps/web/src/features/{entityNameKebabPlural}/{entityNamePlural}.thunks.ts`
 
@@ -468,7 +453,7 @@ Pattern: `apps/web/src/features/agents/agents.thunks.ts`
 - Use `getCurrentIds({ state: getState(), wantedIds: ["organizationId", "projectId"] })` to get scope params
 - Access the SPI via `services.{entityNamePlural}` (camelCase plural)
 
-### 4r. Frontend — Slice
+### 4q. Frontend — Slice
 
 File: `apps/web/src/features/{entityNameKebabPlural}/{entityNamePlural}.slice.ts`
 
@@ -478,7 +463,7 @@ Pattern: `apps/web/src/features/agents/agents.slice.ts`
 - Handle `list{EntityName}s.pending/fulfilled/rejected` in `extraReducers`
 - Export `{entityNamePlural}Actions`, `{entityNamePlural}SliceReducer`, `{entityNamePlural}InitialState`
 
-### 4s. Frontend — Selectors
+### 4r. Frontend — Selectors
 
 File: `apps/web/src/features/{entityNameKebabPlural}/{entityNamePlural}.selectors.ts`
 
@@ -489,7 +474,7 @@ Pattern: `apps/web/src/features/agents/agents.selectors.ts`
 - `selectCurrent{EntityName}sData` — uses current project ID selector
 - If GetOne is applicable: `selectCurrent{EntityName}Id` from state + `select{EntityName}Data` combining list + current ID
 
-### 4t. Frontend — Middleware
+### 4s. Frontend — Middleware
 
 File: `apps/web/src/features/{entityNameKebabPlural}/{entityNamePlural}.middleware.ts`
 
@@ -545,7 +530,7 @@ After writing all files, output this checklist for the user:
 - **Biome import comment**: when importing a NestJS DI provider that is not a type (e.g. services), add `// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI` above the import
 - **No default exports** on backend files; use named exports
 - **Named export** convention: `export const {entityNamePlural}Factory`, `export class {EntityName}sService`
-- **Singular** for entity/guard/policy/factory/repository; **plural** for controller/service/module
+- **Singular** for entity/factory/repository; **plural** for controller/service/module
 - **No TypeORM in services**: persist through a custom `{EntityName}Repository`; construct `ConnectRepository` there if the entity is connect-scoped
 - **ConnectRepository** pattern: `new ConnectRepository(this.repo(), "{entityNamePlural}")` inside the custom repository, never in the service
 - **`satisfies`** keyword for the frontend API object: `} satisfies I{EntityName}sSpi`

@@ -1,6 +1,8 @@
 # Feature Specification: Project Memberships (External User Invitations)
 
 > **Superseded for invitations** by [ADR 0022](../adr/0022-in-app-invitations.md): people are invited by email and accept the invitation in the app, with no invitation email. The Auth0 parts below are historical.
+>
+> **Superseded for authorization** by [ADR 0019](../adr/0019-rbac-permission-catalog.md): the routes check `project.member.*` permissions with `@CheckPermission`, as §4.2 and §4.3 now describe.
 
 ## Overview
 
@@ -239,11 +241,11 @@ The invitation email contains a link to the **Application Login URI** with query
 
 Endpoints:
 
-| Method             | Decorator               | Policy Check                        | Request Type                                 | Notes                                                    |
+| Method             | Decorator               | Permission                          | Request Type                                 | Notes                                                    |
 |--------------------|-------------------------|-------------------------------------|----------------------------------------------|----------------------------------------------------------|
-| `listProjectMemberships`  | `@Get(...)` | `canList()`                         | `EndpointRequestWithProject`                 | Returns memberships for the project                      |
-| `inviteProjectMembers`    | `@Post(...)` | `canCreate()`                      | `EndpointRequestWithProject` + Body          | Accepts `{ payload: { emails: string[] } }`              |
-| `removeProjectMembership` | `@Delete(...)` | `canDelete()`                   | `EndpointRequestWithProjectMembership`       | `projectMembership` from request (set by context resolver) |
+| `listProjectMemberships`  | `@Get(...)` | `project.member.read`               | `EndpointRequestWithProject`                 | Returns memberships for the project                      |
+| `inviteProjectMembers`    | `@Post(...)` | `project.member.invite`            | `EndpointRequestWithProject` + Body          | Accepts `{ payload: { emails: string[] } }`              |
+| `removeProjectMembership` | `@Delete(...)` | `project.member.delete`          | `EndpointRequestWithProjectMembership`       | `projectMembership` from request (set by context resolver) |
 
 **DTO mapping**: A `toProjectMembershipDto` helper function maps `ProjectMembership` entities to DTOs.
 
@@ -251,24 +253,24 @@ Endpoints:
 
 The request flow uses context resolvers, not cascading resource-loading guards:
 
-`JwtAuthGuard → UserGuard → ResourceContextGuard → ProjectMembershipsGuard`
+`JwtAuthGuard → UserGuard → ResourceContextGuard → CheckPermissionGuard`
 
 `ResourceContextGuard` resolves resources declared with metadata:
 - Class-level: `@RequireContext("organization", "project")`
 - Route-level: `@AddContext("projectMembership")` on remove route
 
-This means `ProjectMembershipsGuard` only performs policy evaluation.
+`CheckPermissionGuard` then only checks the route's permission and loads no resource.
 
-#### `ProjectMembershipsGuard`
+#### `CheckPermissionGuard`
 
-**File**: `apps/api/src/domains/projects/memberships/project-memberships.guard.ts`
+**File**: `apps/api/src/domains/rbac/check-permission.guard.ts`
 
-A dedicated policy guard for project memberships. It:
+The shared RBAC guard. It:
 
 1. Runs **after** `ResourceContextGuard`, so request context has already been resolved.
-2. Instantiates a `ProjectMembershipPolicy` with `(userMembership, project, projectMembership?)`.
-3. Reads the `@CheckPolicy` decorator handler via the `Reflector` and evaluates it.
-4. Throws `ForbiddenException` if the policy check fails.
+2. Reads the route's `@CheckPermission(permission, "project")` metadata via the `Reflector`.
+3. Asks `PermissionService` whether the caller holds that permission on `request.project`.
+4. Throws `ForbiddenException` if the caller does not.
 
 #### `ProjectMembershipContextResolver`
 
@@ -294,31 +296,19 @@ export interface EndpointRequestWithProjectMembership extends EndpointRequestWit
 
 This extends the request type chain: `EndpointRequest → EndpointRequestWithUserMembership → EndpointRequestWithProject → EndpointRequestWithProjectMembership`.
 
-### 4.3 Policy
+### 4.3 Permissions
 
-**File**: `apps/api/src/domains/projects/memberships/project-membership.policy.ts`
+The routes check permissions declared in `packages/api-contracts/src/rbac/permissions.ts` and granted in `apps/api/src/domains/rbac/rbac.constants.ts`:
 
-A dedicated policy for project memberships, extending `ProjectScopedPolicy<ProjectMembership>`:
+- **`project.member.read`**: list the project's members.
+- **`project.member.invite`**: invite people to the project.
+- **`project.member.delete`**: remove a member. The context resolver has already loaded the membership within the project, so a membership of another project is a `404`.
 
-```typescript
-import { ProjectScopedPolicy } from "@/common/policies/project-scoped-policy"
-import type { ProjectMembership } from "./project-membership.entity"
-
-export class ProjectMembershipPolicy extends ProjectScopedPolicy<ProjectMembership> {
-  // the default project-scoped policy is enough
-}
-```
-
-The `ProjectScopedPolicy<T>` base class provides RESTful methods that handle project-scoping automatically:
-
-- **`canList()`**: Returns `true` if the user is an admin or owner of the organization.
-- **`canCreate()`**: Returns `true` if the resource belongs to the organization and the user is an admin or owner.
-- **`canUpdate()`**: Same as `canCreate()`.
-- **`canDelete()`**: Same as `canCreate()`, plus verifies the resource belongs to the correct project.
+`docs/rbac-permission-matrix.md` lists the roles holding each one.
 
 **Authorization rules**:
-- Only **owners** and **admins** of the organization can list, invite, or remove project memberships.
-- Regular **members** of the organization cannot perform these actions.
+- Only **owners** and **admins** of the project can list, invite, or remove project memberships.
+- Project **members** cannot perform these actions, and an organization role grants none of them.
 - The sidebar icon in the webapp is **hidden** for non-admin/non-owner users.
 
 ---
@@ -473,13 +463,9 @@ A separate auth test file for project memberships (decoupled from `projects/e2e-
   - Also deletes the placeholder user when removing a pending invitation
   - Does NOT delete a real user when removing a membership
 
-### 7.3 Policy Tests
+### 7.3 Authorization Tests
 
-**File**: `apps/api/src/domains/projects/memberships/project-membership.policy.spec.ts`
-
-- Test `canList()` for owner, admin, member
-- Test `canCreate()` for owner, admin, member
-- Test `canDelete()` for owner, admin, member × sameProject, differentProject, noMembership
+Covered by `e2e-tests/auth.spec.ts` (§7.1), which calls each route as each project role and as an organization admin without a project role.
 
 ### 7.4 Factory
 
@@ -1111,10 +1097,7 @@ Registered in `external/axios.services.ts` and `di/services.ts`.
 |-------------------------------------|----------|--------------------------------------------|
 | `project-membership.entity.ts`      | **New**  | TypeORM entity                             |
 | `project-membership.factory.ts`     | **New**  | Test factory (fishery)                     |
-| `project-membership.policy.ts`      | **New**  | Dedicated policy extending `ProjectScopedPolicy<ProjectMembership>` |
-| `project-membership.policy.spec.ts` | **New**  | Policy tests (canList, canCreate, canDelete) |
 | `project-memberships.controller.ts` | **New**  | Dedicated controller for membership endpoints |
-| `project-memberships.guard.ts`      | **New**  | Dedicated guard (fetches entity, enhances request, checks policy) |
 | `project-memberships.service.ts`    | **New**  | Dedicated service for membership logic     |
 | `project-memberships.service.spec.ts` | **New** | Service tests                             |
 | `e2e-tests/auth.spec.ts`           | **New**  | Auth tests for all 3 membership routes     |
@@ -1210,8 +1193,8 @@ Registered in `external/axios.services.ts` and `di/services.ts`.
 ## 11. Resolved Decisions
 
 1. **File organization**: All project membership files live in `apps/api/src/domains/projects/memberships/` — a subfolder of the `projects` domain. This keeps the domain cohesive while avoiding file clutter.
-2. **Policy architecture**: Project memberships have their own dedicated `ProjectMembershipPolicy` extending `ProjectScopedPolicy<ProjectMembership>`, with RESTful methods (`canList`, `canCreate`, `canDelete`). They do **not** extend `ProjectPolicy`.
-3. **Guard architecture**: Context is resolved by `ResourceContextGuard` + resolvers (`organization`, `project`, `projectMembership`). `ProjectMembershipsGuard` performs policy evaluation only and does not fetch resources.
+2. **Authorization**: Project membership routes check `project.member.read`, `project.member.invite` and `project.member.delete` on the project with `@CheckPermission` (ADR 0019).
+3. **Guard architecture**: Context is resolved by `ResourceContextGuard` + resolvers (`organization`, `project`, `projectMembership`). `CheckPermissionGuard` checks the permission only and does not fetch resources.
 4. **Request type**: A new `EndpointRequestWithProjectMembership` interface extends `EndpointRequestWithProject` to carry the resolved `projectMembership` entity.
 5. **Auth tests**: Project membership auth tests live in a dedicated `memberships/e2e-tests/auth.spec.ts`, separate from the projects' `e2e-tests/auth.spec.ts`.
 6. **User creation for unknown emails**: Placeholder users use a unique `auth0Id` per user: `"00000000-0000-0000-0000-"` + a random 12-character suffix (via `randomUUID().slice(-12)`). This avoids unique constraint violations when inviting multiple new users.

@@ -12,11 +12,16 @@ import { useAppSelector } from "@/common/store/hooks"
 import { DeskRoutes } from "@/desk/routes/helpers"
 import { EvalRoutes } from "@/eval/routes/helpers"
 import { AgentDeletorWithTrigger } from "@/studio/features/agents/components/AgentDeletor"
+import { AgentDuplicatorWithTrigger } from "@/studio/features/agents/components/AgentDuplicator"
 import { StudioRoutes } from "@/studio/routes/helpers"
 
 export function AgentActions({ organizationId, agent }: { organizationId: string; agent: Agent }) {
   const { abilities } = useAbility()
   const canManageAgent = abilities.canManageAgent({ agentId: agent.id })
+  const canDuplicateAgent = abilities.canDuplicateAgent({
+    projectId: agent.projectId,
+    agentId: agent.id,
+  })
   const isExtractionAgent = agent.type === "extraction"
   // Safety review is granted agent by agent, whatever the caller's role on the agent.
   const canReviewConversations = useAppSelector(selectCanReviewConversationsOfAgent(agent.id))
@@ -26,9 +31,12 @@ export function AgentActions({ organizationId, agent }: { organizationId: string
         <NavEvaluation organizationId={organizationId} projectId={agent.projectId} />
       )}
 
-      <NavApp organizationId={organizationId} projectId={agent.projectId} agentId={agent.id} />
+      {/* The app only lists published agents: a fresh copy appears there once published. */}
+      {agent.currentRevision && (
+        <NavApp organizationId={organizationId} projectId={agent.projectId} agentId={agent.id} />
+      )}
 
-      {canReviewConversations && agent.type === "conversation" && (
+      {canReviewConversations && (
         <NavConversationReview
           organizationId={organizationId}
           projectId={agent.projectId}
@@ -50,6 +58,10 @@ export function AgentActions({ organizationId, agent }: { organizationId: string
               projectId={agent.projectId}
               agentId={agent.id}
             />
+          )}
+
+          {canDuplicateAgent && (
+            <AgentDuplicatorWithTrigger organizationId={organizationId} agent={agent} />
           )}
 
           <AgentDeletorWithTrigger organizationId={organizationId} agent={agent} />

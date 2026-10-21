@@ -34,7 +34,7 @@
       },
       "agent_create": {
         "name": "Créer des agents",
-        "description": "Ajouter de nouveaux agents aux projets sélectionnés."
+        "description": "Ajouter de nouveaux agents aux projets sélectionnés, y compris des copies des agents que vous y possédez ou administrez."
       },
       "agent_settings_draft_update": {
         "name": "Modifier les brouillons d'agents",

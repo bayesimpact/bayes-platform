@@ -87,6 +87,9 @@ export function buildMockAgentsService(overrides: { agents?: Agent[] } = {}): IA
     async createOne() {
       throw new Error("createOne is not supported in eval stories")
     },
+    async duplicateOne() {
+      throw new Error("duplicateOne is not supported in eval stories")
+    },
     async updateOne() {
       return { success: true }
     },

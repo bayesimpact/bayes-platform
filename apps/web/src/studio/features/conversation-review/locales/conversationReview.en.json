@@ -7,16 +7,18 @@
       "placeholder": "e.g. 3f2b8c1e-…",
       "invalid": "Enter a valid session id."
     },
-    "notice": "Every conversation you open here is recorded in the activity log.",
-    "empty": "Paste a session id to read the conversation.",
-    "notFound": "No conversation of this agent has this session id.",
+    "notice": "Every session you open here is recorded in the activity log.",
+    "empty": "Paste a session id to read the session.",
+    "notFound": "No session of this agent has this session id.",
     "session": {
       "live": "Live",
       "playground": "Playground",
+      "review_campaign_tester": "Review campaign",
       "subSession": "Sub-session",
       "purged": "Content deleted by the retention policy",
       "startedAt": "Started {{date}}",
-      "noMessages": "This conversation has no messages."
+      "noMessages": "This session has no messages.",
+      "externalVisitorId": "Visitor id: {{id}}"
     },
     "roles": {
       "user": "User",
@@ -28,6 +30,23 @@
       "aborted": "Interrupted",
       "error": "Failed"
     },
-    "tools": "Tools: {{names}}"
+    "tools": "Tools: {{names}}",
+    "kind": {
+      "public": "Public session",
+      "extraction": "Extraction"
+    },
+    "channel": {
+      "embed": "Embed",
+      "app": "App"
+    },
+    "extraction": {
+      "document": "Document: {{title}}",
+      "errorCode": "Error code: {{code}}",
+      "status": {
+        "pending": "Pending",
+        "success": "Succeeded",
+        "failed": "Failed"
+      }
+    }
   }
 }

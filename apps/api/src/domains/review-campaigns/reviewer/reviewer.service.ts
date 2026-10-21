@@ -14,6 +14,10 @@ import { ConversationAgentSession } from "@/domains/agents/conversation-agent-se
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
 import type { ReviewCampaign } from "../review-campaign.entity"
+import {
+  assertReviewCampaignIsActive,
+  assertReviewCampaignIsNotDraft,
+} from "../review-campaign-status"
 import type {
   ReviewCampaignAgentType,
   ReviewCampaignAnswer,
@@ -89,14 +93,17 @@ export class ReviewerService {
   ) {}
 
   async listSessionsForCampaign({
-    campaignId,
+    campaign,
     reviewerUserId,
   }: {
-    campaignId: string
+    campaign: ReviewCampaign
     reviewerUserId: string
   }): Promise<ReviewerSessionSummary[]> {
+    // Reviewers keep reading the sessions of a closed campaign.
+    assertReviewCampaignIsNotDraft(campaign)
+
     const conversationSessions = await this.conversationSessionRepository.find({
-      where: { campaignId },
+      where: { campaignId: campaign.id },
       select: { id: true, userId: true, createdAt: true },
     })
 
@@ -165,6 +172,8 @@ export class ReviewerService {
     sessionOwnerUserId: string
     reviewerUserId: string
   }): Promise<ReviewerSessionViewResult> {
+    assertReviewCampaignIsNotDraft(campaign)
+
     const agent = await this.agentRepository.findOne({
       where: {
         id: campaign.agentId,
@@ -264,6 +273,7 @@ export class ReviewerService {
     reviewerUserId: string
     fields: SubmitReviewerReviewFields
   }): Promise<ReviewerSessionReview> {
+    assertReviewCampaignIsActive(campaign)
     this.validateRating(fields.overallRating)
     this.assertNotReviewingOwnSession(sessionOwnerUserId, reviewerUserId)
 
@@ -293,18 +303,21 @@ export class ReviewerService {
   }
 
   async updateReview({
+    campaign,
     reviewId,
     sessionId,
     sessionOwnerUserId,
     reviewerUserId,
     fields,
   }: {
+    campaign: ReviewCampaign
     reviewId: string
     sessionId: string
     sessionOwnerUserId: string
     reviewerUserId: string
     fields: UpdateReviewerReviewFields
   }): Promise<ReviewerSessionReview> {
+    assertReviewCampaignIsActive(campaign)
     if (fields.overallRating !== undefined) this.validateRating(fields.overallRating)
     this.assertNotReviewingOwnSession(sessionOwnerUserId, reviewerUserId)
 

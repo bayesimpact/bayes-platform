@@ -17,7 +17,7 @@ import { ProjectRepository } from "@/domains/projects/project.repository"
 import { ResourceLibrariesService } from "@/domains/resource-libraries/resource-libraries.service"
 import type { ResourceLibrary } from "@/domains/resource-libraries/resource-library.entity"
 import { Agent } from "../agent.entity"
-import type { BaseAgentSessionType } from "../base-agent-sessions/base-agent-sessions.types"
+import type { ConversationAgentSessionType } from "../base-agent-sessions/base-agent-sessions.types"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSessionCategoriesService } from "../session-categories/agent-session-categories.service"
 import { ProjectAgentSessionCategory } from "../session-categories/project-agent-session-category.entity"
@@ -25,6 +25,8 @@ import type { AgentSettingsUpdateFields } from "./agent.settings.types"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentModelsService, type AvailableModels } from "./agent-models.service"
 import { AgentSettings } from "./agent-settings.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { AgentSettingsRepository } from "./agent-settings.repository"
 
 @Injectable()
 export class AgentSettingsService {
@@ -36,7 +38,9 @@ export class AgentSettingsService {
     agentRepository: Repository<Agent>,
 
     @InjectRepository(AgentSettings)
-    private agentSettingsRepository: Repository<AgentSettings>,
+    private agentSettingsTypeOrmRepository: Repository<AgentSettings>,
+
+    private readonly agentSettingsRepository: AgentSettingsRepository,
 
     @InjectRepository(ProjectAgentSessionCategory)
     private readonly projectAgentSessionCategoryRepository: Repository<ProjectAgentSessionCategory>,
@@ -52,7 +56,10 @@ export class AgentSettingsService {
     private readonly projectRepository: ProjectRepository,
   ) {
     this.agentConnectRepository = new ConnectRepository(agentRepository, "agents")
-    this.agentSettingsConnectRepository = new ConnectRepository(agentSettingsRepository, "agents")
+    this.agentSettingsConnectRepository = new ConnectRepository(
+      agentSettingsTypeOrmRepository,
+      "agents",
+    )
   }
 
   /** The exact settings row a run was pinned to, so a re-run uses the version it advertises. */
@@ -89,7 +96,7 @@ export class AgentSettingsService {
     return undefined
   }
   private async getMaxRevision(agentId: string): Promise<number> {
-    const last = await this.agentSettingsRepository
+    const last = await this.agentSettingsTypeOrmRepository
       .createQueryBuilder("as")
       .where("as.agentId = :agentId", { agentId })
       .orderBy("as.revision", "DESC")
@@ -107,11 +114,10 @@ export class AgentSettingsService {
     agentId: string
     includesDraft?: true
   }): Promise<AgentSettings | undefined> {
-    const found = await this.agentSettingsConnectRepository.find(connectScope, {
-      where: { agentId, ...(includesDraft ? {} : { isDraft: false }), isArchived: false },
-      order: { revision: "DESC" },
-    })
-    return found[0]
+    const last = includesDraft
+      ? await this.agentSettingsRepository.findLatest(connectScope, agentId)
+      : await this.agentSettingsRepository.findLatestPublished(connectScope, agentId)
+    return last ?? undefined
   }
   async getLast({
     connectScope,
@@ -128,13 +134,54 @@ export class AgentSettingsService {
   }
 
   /**
+   * The newest published revision, or undefined while the agent was never published: a copy of
+   * an agent starts with a draft only.
+   */
+  async findLastPublished({
+    connectScope,
+    agentId,
+  }: {
+    connectScope: RequiredConnectScope
+    agentId: string
+  }): Promise<AgentSettings | undefined> {
+    return this.getLastOrUndefined({ connectScope, agentId })
+  }
+
+  /** The newest published revision, or the draft of an agent that was never published. */
+  async getLastPublishedOrDraft({
+    connectScope,
+    agentId,
+  }: {
+    connectScope: RequiredConnectScope
+    agentId: string
+  }): Promise<AgentSettings> {
+    return (
+      (await this.findLastPublished({ connectScope, agentId })) ??
+      this.getLast({ connectScope, agentId, includesDraft: true })
+    )
+  }
+
+  /** The agents among `agentIds` that have a published revision. */
+  async listPublishedAgentIds({
+    connectScope,
+    agentIds,
+  }: {
+    connectScope: RequiredConnectScope
+    agentIds: string[]
+  }): Promise<Set<string>> {
+    return new Set(
+      await this.agentSettingsRepository.findAgentIdsWithPublishedRevision(connectScope, agentIds),
+    )
+  }
+
+  /**
    * Settings a conversation session runs with, from its greeting to each answer.
    *
    * A playground session with no explicit revision runs the draft when there is one. The Studio
    * playground renders before its settings history has loaded, so the client cannot always name
    * a revision, and defaulting that window to the published one would run a version the header
-   * does not claim. A live session keeps running the newest published revision: callers reject
-   * a revision on a live session before reaching here.
+   * does not claim. A live or review campaign tester session keeps running the newest published
+   * revision: callers reject a revision on those sessions before reaching here.
    */
   async getForSession({
     connectScope,
@@ -144,7 +191,7 @@ export class AgentSettingsService {
   }: {
     connectScope: RequiredConnectScope
     agentId: string
-    sessionType: BaseAgentSessionType
+    sessionType: ConversationAgentSessionType
     revision: number | undefined
   }): Promise<AgentSettings> {
     if (revision === undefined) {
