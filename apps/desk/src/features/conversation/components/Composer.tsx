@@ -26,6 +26,8 @@ import {
 } from "@/components/ui/input-group"
 import { Kbd, KbdGroup } from "@/components/ui/kbd"
 import type { OutgoingMessage } from "../chat-messages"
+import { useDictation } from "../hooks/use-dictation"
+import { DictationButton } from "./DictationButton"
 
 export type ComposerProps = {
   agentName: string
@@ -60,10 +62,12 @@ export function Composer({
   const [file, setFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const hintId = useId()
+  const dictation = useDictation({ content, onContentChange })
   const canSend = !isBusy && (content.trim().length > 0 || annotationCount > 0)
 
   const send = () => {
     if (!canSend) return
+    dictation.stop()
     onSend({ content: content.trim(), attachment: file ? { file } : null })
     onContentChange("")
     setFile(null)
@@ -179,14 +183,17 @@ export function Composer({
           >
             <PaperclipIcon aria-hidden />
           </InputGroupButton>
-          <span className="text-xs font-normal text-muted-foreground">
+          <span className="mr-auto text-xs font-normal text-muted-foreground">
             {isBusy ? <Trans>The agent is answering…</Trans> : null}
           </span>
+          {dictation.isSupported ? (
+            <DictationButton isListening={dictation.isListening} onToggle={dictation.toggle} />
+          ) : null}
           <InputGroupButton
             type="submit"
             size="icon-sm"
             variant="default"
-            className="relative ml-auto size-8 rounded-full disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100"
+            className="relative size-8 rounded-full disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100"
             disabled={!canSend}
             aria-label={
               annotationCount > 0

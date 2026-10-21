@@ -32,7 +32,7 @@ msgstr "(optional)"
 msgid "(required)"
 msgstr "(required)"
 
-#: src/features/conversation/components/Composer.tsx:193
+#: src/features/conversation/components/Composer.tsx:200
 msgid "{annotationCount, plural, one {Send with # annotation} other {Send with # annotations}}"
 msgstr "{annotationCount, plural, one {Send with # annotation} other {Send with # annotations}}"
 
@@ -96,11 +96,11 @@ msgstr "{rowCount, plural, one {Extract the first row} other {Extract the first 
 msgid "{running, plural, one {# running} other {# running}}"
 msgstr "{running, plural, one {# running} other {# running}}"
 
-#: src/features/conversation/components/Composer.tsx:147
+#: src/features/conversation/components/Composer.tsx:151
 msgid "<0/> to send"
 msgstr "<0/> to send"
 
-#: src/features/conversation/components/Composer.tsx:153
+#: src/features/conversation/components/Composer.tsx:157
 msgid "<0><1/><2/></0> for a new line"
 msgstr "<0><1/><2/></0> for a new line"
 
@@ -176,15 +176,15 @@ msgstr "Annotate and press Enter to keep it"
 msgid "As {role}"
 msgstr "As {role}"
 
-#: src/features/conversation/components/Composer.tsx:176
+#: src/features/conversation/components/Composer.tsx:180
 msgid "Attach a file"
 msgstr "Attach a file"
 
-#: src/features/conversation/components/Composer.tsx:94
+#: src/features/conversation/components/Composer.tsx:98
 msgid "Attach a file of 10 MB at most."
 msgstr "Attach a file of 10 MB at most."
 
-#: src/features/conversation/components/Composer.tsx:90
+#: src/features/conversation/components/Composer.tsx:94
 msgid "Attach a PDF, PNG or JPEG file."
 msgstr "Attach a PDF, PNG or JPEG file."
 
@@ -332,6 +332,10 @@ msgstr "Describe the problem in a few words, up to 2,000 characters."
 msgid "Details"
 msgstr "Details"
 
+#: src/features/conversation/components/DictationButton.tsx:15
+msgid "Dictate your message"
+msgstr "Dictate your message"
+
 #: src/features/memory/components/MemoryProposals.tsx:87
 msgid "Don't remember"
 msgstr "Don't remember"
@@ -372,7 +376,7 @@ msgid "Email address missing"
 msgstr "Email address missing"
 
 #. The keyboard key
-#: src/features/conversation/components/Composer.tsx:228
+#: src/features/conversation/components/Composer.tsx:235
 msgid "Enter"
 msgstr "Enter"
 
@@ -527,7 +531,7 @@ msgstr "Loading the interactive card…"
 msgid "member"
 msgstr "member"
 
-#: src/features/conversation/components/Composer.tsx:127
+#: src/features/conversation/components/Composer.tsx:131
 msgid "Message to {agentName}"
 msgstr "Message to {agentName}"
 
@@ -711,7 +715,7 @@ msgstr "Remember"
 msgid "Remembering what matters"
 msgstr "Remembering what matters"
 
-#: src/features/conversation/components/Composer.tsx:116
+#: src/features/conversation/components/Composer.tsx:120
 msgid "Remove {fileName}"
 msgstr "Remove {fileName}"
 
@@ -798,7 +802,7 @@ msgstr "Searching the knowledge base"
 msgid "Searching the resources"
 msgstr "Searching the resources"
 
-#: src/features/conversation/components/Composer.tsx:199
+#: src/features/conversation/components/Composer.tsx:206
 msgid "Send"
 msgstr "Send"
 
@@ -815,7 +819,7 @@ msgid "Set up the extraction of {name}"
 msgstr "Set up the extraction of {name}"
 
 #. The keyboard key
-#: src/features/conversation/components/Composer.tsx:239
+#: src/features/conversation/components/Composer.tsx:246
 msgid "Shift"
 msgstr "Shift"
 
@@ -880,6 +884,10 @@ msgstr "Status"
 msgid "Stop"
 msgstr "Stop"
 
+#: src/features/conversation/components/DictationButton.tsx:15
+msgid "Stop the dictation"
+msgstr "Stop the dictation"
+
 #. A run the person stopped
 #: src/features/extraction/components/RecordStatusIcon.tsx:23
 #: src/features/extraction/components/RunStatusBadge.tsx:38
@@ -928,7 +936,7 @@ msgstr "The agent forgot everything about you."
 msgid "The agent found nothing to fill in in this document."
 msgstr "The agent found nothing to fill in in this document."
 
-#: src/features/conversation/components/Composer.tsx:183
+#: src/features/conversation/components/Composer.tsx:187
 msgid "The agent is answering…"
 msgstr "The agent is answering…"
 
@@ -980,9 +988,17 @@ msgstr "The conversation could not start. Try again."
 msgid "The Desk could not reach the agent. Check your connection."
 msgstr "The Desk could not reach the agent. Check your connection."
 
+#: src/features/conversation/hooks/use-dictation.ts:26
+msgid "The Desk may not use your microphone. Allow it in your browser, then try again."
+msgstr "The Desk may not use your microphone. Allow it in your browser, then try again."
+
 #: src/components/shared/SignInProblemPage.tsx:38
 msgid "The Desk needs it to find your invitations. Contact your administrator."
 msgstr "The Desk needs it to find your invitations. Contact your administrator."
+
+#: src/features/conversation/hooks/use-dictation.ts:27
+msgid "The dictation stopped. Try again."
+msgstr "The dictation stopped. Try again."
 
 #: src/features/extraction/components/DeleteDocumentDialog.tsx:56
 msgid "The document could not be deleted. Try again."
