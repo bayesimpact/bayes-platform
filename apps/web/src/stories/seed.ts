@@ -41,7 +41,11 @@ import type {
   EvaluationConversationRunRecord,
   PaginatedEvaluationConversationRunRecords,
 } from "@/eval/features/evaluation-conversation-runs/evaluation-conversation-runs.models"
-import type { EvaluationExtractionDataset } from "@/eval/features/evaluation-extraction-datasets/evaluation-extraction-datasets.models"
+import type {
+  EvaluationExtractionDataset,
+  EvaluationExtractionDatasetFile,
+  PaginatedEvaluationExtractionDatasetRecords,
+} from "@/eval/features/evaluation-extraction-datasets/evaluation-extraction-datasets.models"
 import type {
   EvaluationExtractionRun,
   EvaluationExtractionRunRecord,
@@ -569,13 +573,22 @@ export const seed = {
 
     extractionDatasets(
       datasets: EvaluationExtractionDataset[],
-      options: { currentId?: string | null } = {},
+      options: { currentId?: string | null; files?: EvaluationExtractionDatasetFile[] } = {},
     ): StoryPreloadedState {
       const currentId = options.currentId ?? null
+      // The datasets route also gates on the uploaded files, which only its mount
+      // middleware loads: stories run without middleware, so they are seeded here.
+      const files = options.files ?? []
       return mergeSeeds(
-        { extractionDatasets: { data: ads.fulfilled(datasets) } },
+        { extractionDatasets: { data: ads.fulfilled(datasets), files: ads.fulfilled(files) } },
         { currentIds: { datasetId: currentId } },
       )
+    },
+
+    extractionDatasetRecords(
+      records: PaginatedEvaluationExtractionDatasetRecords,
+    ): StoryPreloadedState {
+      return { extractionDatasets: { records: ads.fulfilled(records) } }
     },
 
     extractionRuns(
