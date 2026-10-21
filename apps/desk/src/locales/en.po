@@ -117,7 +117,7 @@ msgstr "Copy the code"
 msgid "Copy the message"
 msgstr "Copy the message"
 
-#: src/features/conversation/components/AssistantMessageView.tsx:96
+#: src/features/conversation/components/AssistantMessageView.tsx:95
 msgid "Copy the reply"
 msgstr "Copy the reply"
 
@@ -493,7 +493,7 @@ msgstr "This page could not load"
 msgid "This page does not exist, or you cannot open it."
 msgstr "This page does not exist, or you cannot open it."
 
-#: src/features/conversation/components/AssistantMessageView.tsx:91
+#: src/features/conversation/components/AssistantMessageView.tsx:90
 msgid "This reply was interrupted before it finished."
 msgstr "This reply was interrupted before it finished."
 

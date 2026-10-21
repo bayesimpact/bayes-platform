@@ -60,9 +60,8 @@ export function AssistantMessageView({
         <ToolSteps toolNames={message.toolNames} isWriting={writing} hasText={text !== ""} />
         {message.status === "error" ? <ReplyError message={message} /> : null}
         {message.status !== "error" && text !== "" ? (
-          // A passage of a settled reply can be quoted in the person's message; the stroke that
-          // marks it is drawn in this box, under its words.
-          <div className="relative isolate" {...(writing ? {} : { [QUOTABLE_ATTRIBUTE]: "" })}>
+          // A passage of a settled reply can be quoted in the person's message.
+          <div {...(writing ? {} : { [QUOTABLE_ATTRIBUTE]: "" })}>
             <Markdown isStreaming={writing}>{text}</Markdown>
           </div>
         ) : null}

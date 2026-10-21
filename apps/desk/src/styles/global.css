@@ -85,10 +85,8 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
-  /* The highlighter yellow of a passage being selected, and the stroke, two passes with uneven
-     edges, that marks it once quoted. Both come from point-by-point. */
+  /* The highlighter yellow of a quoted passage. */
   --quote-mark: rgb(242 196 64 / 0.32);
-  --quote-marker: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 20' preserveAspectRatio='none'%3E%3Cpath fill='%23f2c440' fill-opacity='.5' d='M2.5,4.2 C10,2.4 19,5.1 30,3.6 C44,1.9 58,4.8 73,3.1 C84,1.9 92,3.6 98,2.6 C99.6,6.2 99.1,11.4 98.4,16.3 C90,17.9 78,15.4 65,17.2 C50,19.1 36,15.9 21,17.6 C12,18.6 6,16.3 1.6,17.1 C.4,13 .9,8 2.5,4.2 Z'/%3E%3Cpath fill='%23f2c440' fill-opacity='.3' d='M4,7 C20,5.5 40,8.5 60,6.5 C75,5.3 88,7.4 96,6 C96.5,9 96.2,12 95.8,14 C80,15.5 62,12.8 45,14.6 C28,16.3 14,13.6 3.5,14.4 C3,12 3.2,9.5 4,7 Z'/%3E%3C/svg%3E");
 }
 
 .dark {
@@ -124,7 +122,6 @@
   --sidebar-border: oklch(0.269 0 0);
   --sidebar-ring: oklch(0.439 0 0);
   --quote-mark: rgb(242 196 64 / 0.24);
-  --quote-marker: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 20' preserveAspectRatio='none'%3E%3Cpath fill='%23ffd400' fill-opacity='.34' d='M2.5,4.2 C10,2.4 19,5.1 30,3.6 C44,1.9 58,4.8 73,3.1 C84,1.9 92,3.6 98,2.6 C99.6,6.2 99.1,11.4 98.4,16.3 C90,17.9 78,15.4 65,17.2 C50,19.1 36,15.9 21,17.6 C12,18.6 6,16.3 1.6,17.1 C.4,13 .9,8 2.5,4.2 Z'/%3E%3Cpath fill='%23ffd400' fill-opacity='.2' d='M4,7 C20,5.5 40,8.5 60,6.5 C75,5.3 88,7.4 96,6 C96.5,9 96.2,12 95.8,14 C80,15.5 62,12.8 45,14.6 C28,16.3 14,13.6 3.5,14.4 C3,12 3.2,9.5 4,7 Z'/%3E%3C/svg%3E");
 }
 
 @layer base {
@@ -139,16 +136,12 @@
   }
 }
 
-/* A passage of a reply turns highlighter yellow as the person selects it. */
+/* A passage of a reply turns highlighter yellow as the person selects it, and stays so while they
+   write their note on it (src/lib/quote-highlight.ts). */
 [data-quotable] ::selection {
   background-color: var(--quote-mark);
 }
 
-/* Once quoted, a highlighter stroke marks it while the person writes their note (QuoteMarker.tsx).
-   It shows at once, so the passage stays marked as the selection gives way to it. */
-@utility quote-mark {
-  background-image: var(--quote-marker);
-  background-repeat: no-repeat;
-  background-position: 0 60%;
-  background-size: 100% 88%;
+::highlight(desk-quote) {
+  background-color: var(--quote-mark);
 }
