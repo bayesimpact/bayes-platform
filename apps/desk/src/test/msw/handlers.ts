@@ -5,16 +5,7 @@ import {
   buildConversationMessage,
   buildConversationSession,
 } from "../factories/agent-sessions.factory"
-import {
-  buildDeskWorld,
-  buildEmptyHistoryWorld,
-  buildExtractionAgentWorld,
-  buildNoAgentWorld,
-  buildSeveralAgentsWorld,
-  buildSeveralProjectsWorld,
-  type DeskWorld,
-  RELEASE_NOTES_APP,
-} from "../factories/desk-world.factory"
+import { buildDeskWorld, type DeskWorld, RELEASE_NOTES_APP } from "../factories/desk-world.factory"
 import { RELEASE_NOTES_APP_HTML } from "../fixtures/mcp-app"
 import { extractionHandlers } from "./extraction-handlers"
 
@@ -269,26 +260,5 @@ function conversationHandlers(world: DeskWorld) {
   ]
 }
 
-/** The API as the mock mode and the tests start from: one project, one agent. */
+/** The API as the tests start from: one project, one agent. */
 export const handlers = [...meHandlers(), ...worldHandlers(buildDeskWorld())]
-
-/**
- * Other states of the screens, for the mock mode: `/app/?mock=agents`, `?mock=projects`,
- * `?mock=extraction`, `?mock=no-history`, `?mock=no-agent`, `?mock=terms`, `?mock=error`,
- * `?mock=loading`.
- */
-export const mockScenarios = {
-  agents: worldHandlers(buildSeveralAgentsWorld()),
-  projects: worldHandlers(buildSeveralProjectsWorld()),
-  extraction: worldHandlers(buildExtractionAgentWorld()),
-  "no-history": worldHandlers(buildEmptyHistoryWorld()),
-  "no-agent": worldHandlers(buildNoAgentWorld()),
-  terms: termsHandlers(),
-  error: [http.get("*/api/projects/mine", () => new HttpResponse(null, { status: 503 }))],
-  loading: [
-    http.get("*/api/projects/mine", async () => {
-      await delay("infinite")
-      return HttpResponse.json({})
-    }),
-  ],
-}

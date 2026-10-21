@@ -84,7 +84,7 @@ runtime.**
   named like it make every symbol and every string on screen greppable.
 * **One way to do each thing.** Every app on the stack follows the same conventions, written once,
   and two recipes cover most changes.
-* **An agent can see its work.** The mock mode renders every screen without the API, a worktree
+* **An agent can see its work.** Storybook renders every screen without the API, a worktree
   environment runs the real stack, and Playwright drives both.
 * **Well-known libraries, read before use.** The stack sticks to libraries with large and current
   documentation, and an agent reads that documentation before it uses an API.
@@ -99,14 +99,14 @@ runtime.**
 | API client | One `fetch` wrapper driven by the route objects and their schemas |
 | Validation | Zod 4, schemas shared with the API through `@caseai-connect/desk-contracts` |
 | Forms | React Hook Form, `zodResolver`, shadcn `Field` components |
-| Tables | TanStack Table v9 (section 2.3), rendered with the shadcn `Table` |
+| Tables | TanStack Table v8 (section 2.3), rendered with the shadcn `Table` |
 | Text | Lingui: English in the components, French in a PO catalog (section 2.10) |
 | UI | Tailwind CSS v4 and shadcn/ui components on Base UI, generated into the Desk, `cva`, `cn()`, lucide-react, sonner |
 | Sign-in | `oidc-client-ts`, in the Desk's own sign-in module (section 2.9) |
-| Tests | Vitest with Testing Library and happy-dom, MSW 2, Playwright |
+| Tests | Vitest with Testing Library and happy-dom, MSW 2, Storybook 10 (section 2.11), Playwright |
 | Quality | Biome, dependency-cruiser, knip |
 
-No Redux, react-router, axios, i18next, Radix or Storybook. Zustand is the only client store
+No Redux, react-router, axios, i18next or Radix. Zustand is the only client store
 allowed, for real global client state and with a human's go.
 
 ### 2.3 Versions and monorepo tooling
@@ -125,10 +125,12 @@ instead, as `@caseai-connect/desk` (private, 0.0.0). The shared lockfile and the
   [monthly dependency check](../monthly-dependency-check.md).
 * A library new to the monorepo enters at its latest stable version: TanStack Router and Query,
   Lingui, Base UI, Testing Library's React package, happy-dom, Playwright, knip. Three choices
-  follow from the lockfile. TanStack Table starts on v9, the first version compatible with the
-  React Compiler, next to the v8 of `apps/web`. MSW stays on 2, which the monorepo's Vitest 4
-  expects, and moves to 3 with Vitest 5. Component tests use happy-dom, since jsdom 30 nests under
-  `apps/desk` and moves the `undici` the API runs on.
+  follow from the lockfile. TanStack Table uses the v8 of `apps/web`, one copy for both: v8
+  changes its table in place, which the React Compiler cannot memoize, so the components that call
+  `useReactTable` opt out of it with `"use no memo"`, until a move to v9, the first version
+  compatible with the compiler. Storybook uses the 10 of `apps/web` too. MSW stays on 2, which
+  the monorepo's Vitest 4 expects, and moves to 3 with Vitest 5. Component tests use happy-dom,
+  since jsdom 30 nests under `apps/desk` and moves the `undici` the API runs on.
 * The latest TanStack Router plugin and knip need Zod 4.6, so the Desk moves the hoisted Zod from
   4.4.3 to 4.6.7 for every workspace, the API included. The PR that adds them runs the API suite,
   as does any Desk PR whose lockfile moves a version the API loads.
@@ -411,9 +413,12 @@ export function ConversationListHeader({ count, onCreate }: ConversationListHead
   Handlers live in `src/test/msw/`. Their fixtures come from factories whose output goes through the
   Desk response schemas, so a mock cannot drift from the contract. Stream handlers return a
   `ReadableStream`, since MSW's `sse()` only intercepts `EventSource`.
-* A mock mode (`npm run dev:mock -w @caseai-connect/desk`) serves the Desk with the same handlers
-  in the browser, to build or check a screen without the API. It takes the place of the route
-  stories of ADR 0010.
+* Storybook (`npm run storybook -w @caseai-connect/desk`) serves the Desk on the same handlers, to
+  build or check a screen without the API. Each story of `src/stories/` builds its own world of
+  the handlers and opens the whole Desk at a page, with a memory history: the person navigates
+  from there as in the Desk, so a story is both a state and the start of a journey. It takes the
+  place of the route stories of ADR 0010, and of the mock mode the first version had (section 5).
+  The worktree environment serves it, which makes a state easy to share.
 * Playwright covers the critical journeys (sign-in, a conversation, a document run, a CSV run)
   against a worktree environment, with the real API and database.
 * Every bug fix comes with the test that would have caught it. Ids in tests come from
@@ -720,9 +725,10 @@ part of it invalidates.
 * The repo holds two frontend conventions, two translation libraries and two primitive libraries
   until the last app leaves `apps/web`: ADR 0011, i18next and Radix there, this ADR, Lingui and Base
   UI on the new stack. The skills scoped to
-  `apps/web` (`check-use-state`, `check-factories-and-stories`, `storybook-screenshot`, the
-  frontend half of `crud-generator`) do not apply to the new stack, and its `check` script, mock
-  mode and recipe skills take their place.
+  `apps/web` (`check-use-state`, `check-factories-and-stories`, the frontend half of
+  `crud-generator`) do not apply to the new stack, and its `check` script, Storybook and recipe
+  skills take their place. `storybook-screenshot` works on the Desk's stories once given the
+  Storybook's URL.
 * Responses are parsed twice, once by each side. Zod 4 keeps that small for Desk payloads; if large
   transcripts make it visible, `z.compile` (Zod 4.5 and later) is the first lever.
 * The cutover needs a second build served at `/app`, the Desk's theme mount and redirect URIs in
@@ -763,8 +769,12 @@ part of it invalidates.
   and a deployed API.
 * **ISO date strings with Zod codecs.** The rest of the API sends epoch milliseconds, and one
   convention is easier to hold than two.
-* **Storybook stories per route.** MSW handlers, the mock mode and Playwright cover the same need;
-  stories can come back later on the same handlers.
+* **A mock mode instead of Storybook.** The first version served the Desk on the handlers with
+  `npm run dev:mock` and picked a state with `?mock=<scenario>`. Storybook replaced it on
+  2026-10-21, on the same handlers: a story keeps a state at a link, the worktree environment
+  serves and shares it, screenshots come per story, and a story of the whole Desk still lets the
+  person go from page to page. The address bar no longer follows the page, which the story's
+  starting page makes up for.
 
 ## 6. Open questions
 

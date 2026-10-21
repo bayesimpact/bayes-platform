@@ -39,15 +39,15 @@ significant change, on top of the repository's completion criteria.
 | API client | `lib/api-client.ts`, one `fetch` wrapper driven by the route objects and their schemas |
 | Validation | Zod 4, in the app's contracts package: the schemas of what it sends and reads |
 | Forms | React Hook Form, `zodResolver`, shadcn `Field` components |
-| Tables | TanStack Table v9, rendered with the shadcn `Table` |
+| Tables | TanStack Table v8, rendered with the shadcn `Table` |
 | Text | Lingui: English in the components, French in a PO catalog |
 | UI | Tailwind CSS v4, shadcn/ui on Base UI generated into the app, `cva`, `cn()` from `cn`, lucide-react, sonner |
 | Chat and content | `@shadcn/react` for the message scroller, streamdown and shiki for Markdown and code, `@modelcontextprotocol/ext-apps` and `sdk` for MCP Apps |
 | Sign-in | `oidc-client-ts`, in the app's `lib/auth/` |
-| Tests | Vitest with Testing Library and happy-dom, MSW 2, Playwright |
+| Tests | Vitest with Testing Library and happy-dom, MSW 2, Storybook 10, Playwright |
 | Quality | Biome, dependency-cruiser, knip |
 
-No Redux, react-router, axios, i18next, Radix or Storybook. Zustand is the only client store
+No Redux, react-router, axios, i18next or Radix. Zustand is the only client store
 allowed, for real global client state and with a human's go. A library enters with its first use,
 at its latest stable version, in one deliberate update of the root `package-lock.json`: shared
 libraries keep the version the monorepo resolves, so the bundle holds one React and one Zod. The
@@ -58,6 +58,7 @@ app is an npm workspace: npm is the only package manager, there is no git hook, 
 ```text
 apps/<app>/
   AGENTS.md, CLAUDE.md
+  .storybook/               Storybook's config: the app on the MSW handlers, in the mock mode
   public/theme/             default theme files, replaced by each install's own
   src/
     app/                    config, query client, router, providers, i18n
@@ -72,6 +73,7 @@ apps/<app>/
     components/shared/      compositions shared by features
     lib/                    api-client.ts, auth/, and code shared by features
     locales/                en.po (source), fr.po
+    stories/                stories of the whole app, one per state of its mocked world
     styles/global.css       Tailwind and the design tokens
     test/                   setup, MSW handlers, fixture factories, render helpers
 ```
@@ -85,8 +87,7 @@ exports and dependencies:
 - `components/` and `lib/` import neither `features/` nor `routes/`.
 - The app imports nothing from another app or from a package another app owns. Its only workspace
   dependency is its contracts package. Only `lib/auth/` imports `oidc-client-ts`.
-- `src/test/` serves the tests and the mock mode only: `main.tsx` imports it in mock mode, nothing
-  else outside the tests does.
+- `src/test/` serves the tests and the stories only: no app code imports it.
 - No cycles.
 
 Both tools only see imports. Never bring another app's code in by copying a file, importing its CSS
@@ -163,7 +164,9 @@ or editing the boundaries' configuration.
   definitions in `features/<feature>/components/<entity>-columns.tsx`. A server-paginated table
   keeps its state in validated search params and uses TanStack Table's manual pagination, sorting
   and filtering. A small list loaded whole sorts and filters on the client. Every table has an
-  empty state and a skeleton.
+  empty state and a skeleton. TanStack Table v8 changes its table in place, which the React
+  Compiler cannot memoize: a component that calls `useReactTable` opens with the `"use no memo"`
+  directive and a comment that says why.
 - State, in order of preference: a derived value, `useState`, the URL, TanStack Query. Server data
   is never copied into a client store; seeding a form from a query is fine. No empty `catch`.
 
@@ -227,9 +230,12 @@ or editing the boundaries' configuration.
   whose output goes through the response schemas. Stream handlers return a `ReadableStream`.
 - `renderApp(url)` renders the whole app at a URL on the mocked API; `renderWithI18n(ui)` renders a
   component with the active locale.
-- The mock mode (`npm run dev:mock -w <app>`) serves the app with the same handlers in the browser,
-  without the API or a sign-in. `?mock=<scenario>` picks another state of the screens. Nothing of
-  the mock mode reaches the production build.
+- Storybook (`npm run storybook -w <app>`) serves the app on the same handlers, without the API
+  or a sign-in, in Vite's `mock` mode. A story of the whole app builds its own world of the
+  handlers and opens a page of it, from which the person goes anywhere, as in the app: one story
+  per state of the world (several projects, no agent, terms to accept, a failure, a long load),
+  and one per page worth showing. A component with states of its own may add stories next to it.
+  Nothing of the mock mode reaches the production build.
 - Playwright covers the critical journeys against a worktree environment, once they exist.
 - Every bug fix comes with the test that would have caught it. Ids in tests come from
   `crypto.randomUUID()`.
@@ -290,7 +296,7 @@ the app reads the new types.
 **A feature**: its endpoint first when it is missing or must change, then keys, queries and
 mutations, components with their skeletons and their English text, `index.ts` with the strict
 minimum, the route with its loader, pending and error components, the French translations after
-`i18n:extract`, tests and `check`. Last comes a look in the browser, in the mock mode or the
+`i18n:extract`, tests and `check`. Last comes a look in the browser, in Storybook or the
 worktree environment, at desktop and phone widths, in French and English, with the loading, error
 and empty states.
 

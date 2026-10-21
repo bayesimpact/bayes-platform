@@ -1,5 +1,5 @@
 /**
- * A small MCP App for the mock mode, written against the protocol itself: it initializes, shows
+ * A small MCP App for the stories and the tests, written against the protocol itself: it initializes, shows
  * the tool's result, reports its height, and proposes a message for the person to send.
  */
 export const RELEASE_NOTES_APP_HTML = `<!doctype html>

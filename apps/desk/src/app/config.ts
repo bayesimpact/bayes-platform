@@ -26,7 +26,7 @@ const apiModeConfigSchema = z.object({
   oidcAuthorizationParams: authorizationParamsSchema,
 })
 
-/** The mock mode serves every screen from the MSW handlers, with no API and no sign-in. */
+/** The mock mode serves every screen from the MSW handlers, with no API and no sign-in: Storybook. */
 const mockModeConfigSchema = z.object({ mode: z.literal("mock") })
 
 const configSchema = z.discriminatedUnion("mode", [apiModeConfigSchema, mockModeConfigSchema])
@@ -40,8 +40,8 @@ export type OidcConfig = z.output<typeof apiModeConfigSchema>
  * one that reads `import.meta.env`, and nothing here is secret.
  */
 /**
- * Whether this build runs the mock mode (`npm run dev:mock`). A constant of the build, so the mock
- * code that only it imports stays out of the production bundle.
+ * Whether this build runs the mock mode, Vite's `mock` mode, which Storybook sets. A constant of
+ * the build, so the production bundle has no mocked sign-in.
  */
 export const isMockMode = import.meta.env.MODE === "mock"
 

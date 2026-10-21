@@ -63,11 +63,11 @@ module.exports = {
       name: "test-code-stays-in-tests",
       severity: "error",
       comment:
-        "src/test/ (handlers, factories) is for tests, stories and the mock mode only: main.tsx " +
-        "loads it in mock mode, and no other app code imports it.",
+        "src/test/ (handlers, factories) is for the tests and the stories only: no app code " +
+        "imports it.",
       from: {
         path: "^src/",
-        pathNot: ["^src/test/", "\\.spec\\.tsx?$", "\\.stories\\.tsx$", "^src/main\\.tsx$"],
+        pathNot: ["^src/test/", "\\.spec\\.tsx?$", "\\.stories\\.tsx$"],
       },
       to: { path: "^src/test/" },
     },

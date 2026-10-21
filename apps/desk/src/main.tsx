@@ -1,7 +1,6 @@
 import "./styles/global.css"
 import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
-import { isMockMode } from "./app/config"
 import { activateLocale, detectLocale } from "./app/i18n"
 import { AppProviders } from "./app/providers"
 import { createQueryClient } from "./app/query-client"
@@ -17,11 +16,6 @@ onSessionEnded(() => {
   void router.invalidate()
 })
 
-if (isMockMode) {
-  // Imported only in mock mode, so the handlers never reach the production bundle.
-  const { startMockWorker } = await import("./test/msw/browser")
-  await startMockWorker()
-}
 await activateLocale(detectLocale())
 
 const rootElement = document.getElementById("root")

@@ -5,25 +5,7 @@ import { lingui } from "@lingui/vite-plugin"
 import tailwindcss from "@tailwindcss/vite"
 import { tanstackRouter } from "@tanstack/router-plugin/vite"
 import react from "@vitejs/plugin-react"
-import { defineConfig, loadEnv, type Plugin } from "vite"
-
-/**
- * Serves MSW's worker script to the mock mode, from the installed msw package, at the Desk's base.
- * Nothing of the mock mode reaches the production build, the worker included.
- */
-function mockServiceWorker(): Plugin {
-  const workerPath = fileURLToPath(import.meta.resolve("msw/mockServiceWorker.js"))
-  return {
-    name: "desk-mock-service-worker",
-    apply: (_config, { mode }) => mode === "mock",
-    configureServer(server) {
-      server.middlewares.use("/app/mockServiceWorker.js", (_request, response) => {
-        response.setHeader("Content-Type", "text/javascript")
-        response.end(readFileSync(workerPath))
-      })
-    },
-  }
-}
+import { defineConfig, loadEnv } from "vite"
 
 // The local certificates of the API, which serve connect.localhost over HTTPS when they exist.
 const certsDirectory = fileURLToPath(new URL("../api/.certs/", import.meta.url))
@@ -66,7 +48,6 @@ export default defineConfig(({ mode }) => {
       }),
       lingui(),
       tailwindcss(),
-      mockServiceWorker(),
     ],
     resolve: {
       alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },

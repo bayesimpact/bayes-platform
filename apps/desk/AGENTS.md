@@ -39,23 +39,23 @@ Run them from the repository root.
 | Command | What it does |
 |---|---|
 | `npm run dev -w @caseai-connect/desk` | Dev server on port 5177 at `/app/`, forwarding `/api` to the local API |
-| `npm run dev:mock -w @caseai-connect/desk` | The Desk on the MSW handlers, with no API and no sign-in; `?mock=` picks a state: `agents`, `projects`, `extraction`, `no-history`, `no-agent`, `terms`, `error`, `loading`, and `default` to go back |
+| `npm run storybook -w @caseai-connect/desk` | Storybook on port 6009: the whole Desk on the MSW handlers, with no API and no sign-in, one story per state of its world |
 | `npm run check -w @caseai-connect/desk` | Typecheck, Biome, dependency-cruiser, knip, translation checks and Vitest |
 | `npm run i18n:extract -w @caseai-connect/desk` | Writes every message to `src/locales/fr.po`, to translate in the same change |
 | `npm run build -w @caseai-connect/desk` | The production build, in `apps/desk/dist` |
 | `npm run preview -w @caseai-connect/desk` | Serves that build on port 5178 at `/app/` |
 
 In a worktree with an environment, never start `dev` on the host: the environment's `desk` service
-runs it, under the `desk` profile (`bayes wt up --with desk`), at `<WT_ORIGIN>/app/`. The mock mode
-is not part of the environment and runs on the host. It keeps the chosen state in
-`sessionStorage`, so a reload deep in the Desk stays in it, and its ids are stable until the
-handlers change.
+runs it, under the `desk` profile (`bayes wt up --with desk`), at `<WT_ORIGIN>/app/`. Its Storybook
+runs under the `storybook-desk` profile, at `<WT_SCHEME>://<name>-desk-storybook.<WT_TOOLS_DOMAIN>`.
+`bayes wt up --with` does not list that profile yet: start it with
+`docker compose --profile storybook-desk up -d storybook-desk` in `infra/worktree`.
 
 ## Where things are
 
 - The home: `src/routes/_authenticated/index.tsx`, which opens the last agent the person used,
-  through `features/agents`, whose `listDeskProjects` keeps the projects that open the Desk. The user menu reads the `me` query of
-  `features/account`.
+  through `features/agents`, whose `listDeskProjects` keeps the projects that open the Desk. The
+  user menu reads the `me` query of `features/account`.
 - The layout of every signed-in page, with the session check and the user menu:
   `src/routes/_authenticated.tsx`. The sign-in callback: `src/routes/auth/callback.tsx`.
 - An agent's pages: `src/routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/`, with
@@ -71,6 +71,9 @@ handlers change.
 - The API client: `src/lib/api-client.ts`. The query client's retry rules:
   `src/app/query-client.ts`.
 - The mocked API: `src/test/msw/handlers.ts`, with the factories of `src/test/factories/`.
+- The stories: `src/stories/Desk.stories.tsx`. Each one sets its `desk` parameter (a world, handlers
+  that win over it, a starting page), which `src/test/msw/story-worker.ts` serves with ids that are
+  the same on every load. A new state of the Desk is a new story there.
 
 ## Until the cutover
 

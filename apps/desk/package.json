@@ -6,7 +6,6 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:mock": "vite --mode mock",
     "build": "vite build",
     "preview": "vite preview",
     "storybook": "storybook dev -p 6009",
