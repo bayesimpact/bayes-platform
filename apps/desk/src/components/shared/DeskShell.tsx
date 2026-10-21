@@ -41,7 +41,7 @@ export function DeskShell({ header, sidebar, footer, title, children }: DeskShel
         <SidebarContent>{sidebar}</SidebarContent>
         <SidebarFooter>{footer}</SidebarFooter>
       </Sidebar>
-      <SidebarInset className="h-svh min-h-0">
+      <SidebarInset className="h-svh min-h-0 min-w-0">
         {/* The bar fades into the page below it, as in the Claude app, over what scrolls under it. */}
         <header className="relative z-10 flex h-12 shrink-0 items-center gap-2 bg-background px-3 after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-6 after:bg-linear-to-b after:from-background after:to-transparent">
           <SidebarTrigger className="md:hidden" aria-label={t`Open the sidebar`} />

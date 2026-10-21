@@ -12,7 +12,7 @@ import {
   MessageScrollerProvider,
   MessageScrollerViewport,
 } from "@/components/ui/message-scroller"
-import { MemoryPanel } from "@/features/memory"
+import { MemoryButton, MemoryPanel } from "@/features/memory"
 import { useSendMessage } from "../api/mutations"
 import { mcpAppsHtmlQueryOptions, messagesQueryOptions } from "../api/queries"
 import { findRetryableMessage, isWriting } from "../chat-messages"
@@ -20,7 +20,8 @@ import type { ConversationRef } from "../conversation-ref"
 import { useConversationForms } from "../hooks/use-conversation-forms"
 import { ChatMessageView } from "./ChatMessageView"
 import { Composer } from "./Composer"
-import { FormsSheet } from "./FormsSheet"
+import { FormsButton } from "./FormsButton"
+import { FormsPanel } from "./FormsPanel"
 
 export type ConversationViewProps = {
   conversation: ConversationRef
@@ -42,6 +43,15 @@ export function ConversationView({ conversation, agentName, showSources }: Conve
   const retryableMessage = isBusy ? null : findRetryableMessage(messages, now)
   const forms = useConversationForms(conversation)
   const [draft, setDraft] = useState("")
+  // The panel docked beside the conversation, as an artifact in the Claude app, if one is open.
+  const [openPanel, setOpenPanel] = useState<"memory" | "forms" | null>(null)
+  const togglePanel = (panel: "memory" | "forms") =>
+    setOpenPanel((current) => (current === panel ? null : panel))
+  const memoryAgent = {
+    organizationId: conversation.organizationId,
+    projectId: conversation.projectId,
+    agentId: conversation.agentId,
+  }
   const hasSettledApps = messages.some(
     (message) => message.mcpApps.length > 0 && message.status !== "streaming",
   )
@@ -54,75 +64,87 @@ export function ConversationView({ conversation, agentName, showSources }: Conve
 
   return (
     <MessageScrollerProvider autoScroll>
-      <div className="flex min-h-0 flex-1 flex-col">
-        <HeaderActions>
-          <MemoryPanel
-            agent={{
-              organizationId: conversation.organizationId,
-              projectId: conversation.projectId,
-              agentId: conversation.agentId,
-            }}
+      <HeaderActions>
+        <MemoryButton
+          agent={memoryAgent}
+          isOpen={openPanel === "memory"}
+          onToggle={() => togglePanel("memory")}
+        />
+        {forms.length > 0 ? (
+          <FormsButton
+            forms={forms}
+            isOpen={openPanel === "forms"}
+            onToggle={() => togglePanel("forms")}
           />
-          {forms.length > 0 ? <FormsSheet forms={forms} /> : null}
-        </HeaderActions>
-        <div className="min-h-0 flex-1">
-          {messages.length === 0 ? (
-            <h1 className="mt-24 text-center text-3xl font-semibold tracking-tight">
-              <Trans>How can I help you today?</Trans>
-            </h1>
-          ) : (
-            <MessageScroller>
-              <MessageScrollerViewport>
-                <MessageScrollerContent
-                  aria-busy={isBusy}
-                  className="mx-auto w-full max-w-3xl px-4 py-6"
-                >
-                  {messages.map((message) => (
-                    <MessageScrollerItem
-                      key={message.id}
-                      messageId={message.id}
-                      scrollAnchor={message.role === "user"}
-                    >
-                      <ChatMessageView
-                        conversation={conversation}
-                        message={message}
-                        now={now}
-                        showSources={showSources}
-                        appsHtml={appsHtml}
-                        onAppMessage={setDraft}
-                      />
-                    </MessageScrollerItem>
-                  ))}
-                  {retryableMessage !== null ? (
-                    <div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => sendMessage.mutate(retryableMessage)}
+        ) : null}
+      </HeaderActions>
+      <div className="flex min-h-0 min-w-0 flex-1">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+          <div className="min-h-0 flex-1">
+            {messages.length === 0 ? (
+              <h1 className="mt-24 text-center text-3xl font-semibold tracking-tight">
+                <Trans>How can I help you today?</Trans>
+              </h1>
+            ) : (
+              <MessageScroller>
+                <MessageScrollerViewport>
+                  <MessageScrollerContent
+                    aria-busy={isBusy}
+                    className="mx-auto w-full max-w-3xl px-4 py-6"
+                  >
+                    {messages.map((message) => (
+                      <MessageScrollerItem
+                        key={message.id}
+                        messageId={message.id}
+                        scrollAnchor={message.role === "user"}
                       >
-                        <RotateCcwIcon aria-hidden />
-                        <Trans>Retry</Trans>
-                      </Button>
-                    </div>
-                  ) : null}
-                </MessageScrollerContent>
-              </MessageScrollerViewport>
-              <MessageScrollerButton>
-                <ArrowDownIcon aria-hidden />
-                <span className="sr-only">{t`Scroll to the latest message`}</span>
-              </MessageScrollerButton>
-            </MessageScroller>
-          )}
+                        <ChatMessageView
+                          conversation={conversation}
+                          message={message}
+                          now={now}
+                          showSources={showSources}
+                          appsHtml={appsHtml}
+                          onAppMessage={setDraft}
+                        />
+                      </MessageScrollerItem>
+                    ))}
+                    {retryableMessage !== null ? (
+                      <div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => sendMessage.mutate(retryableMessage)}
+                        >
+                          <RotateCcwIcon aria-hidden />
+                          <Trans>Retry</Trans>
+                        </Button>
+                      </div>
+                    ) : null}
+                  </MessageScrollerContent>
+                </MessageScrollerViewport>
+                <MessageScrollerButton>
+                  <ArrowDownIcon aria-hidden />
+                  <span className="sr-only">{t`Scroll to the latest message`}</span>
+                </MessageScrollerButton>
+              </MessageScroller>
+            )}
+          </div>
+          <div className="mx-auto w-full max-w-3xl px-4 pb-4">
+            <Composer
+              agentName={agentName}
+              content={draft}
+              onContentChange={setDraft}
+              isBusy={isBusy}
+              onSend={(outgoing) => sendMessage.mutate(outgoing)}
+            />
+          </div>
         </div>
-        <div className="mx-auto w-full max-w-3xl px-4 pb-4">
-          <Composer
-            agentName={agentName}
-            content={draft}
-            onContentChange={setDraft}
-            isBusy={isBusy}
-            onSend={(outgoing) => sendMessage.mutate(outgoing)}
-          />
-        </div>
+        {openPanel === "memory" ? (
+          <MemoryPanel agent={memoryAgent} onClose={() => setOpenPanel(null)} />
+        ) : null}
+        {openPanel === "forms" && forms.length > 0 ? (
+          <FormsPanel forms={forms} onClose={() => setOpenPanel(null)} />
+        ) : null}
       </div>
     </MessageScrollerProvider>
   )

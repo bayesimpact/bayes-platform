@@ -17,7 +17,7 @@ msgstr "\"{title}\" and its messages will be deleted. This cannot be undone."
 msgid "(opens in a new tab)"
 msgstr "(opens in a new tab)"
 
-#: src/features/memory/components/MemoryPanel.tsx:62
+#: src/features/memory/components/MemoryButton.tsx:31
 msgid "{count, plural, one {Memory (#)} other {Memory (#)}}"
 msgstr "{count, plural, one {Memory (#)} other {Memory (#)}}"
 
@@ -49,7 +49,7 @@ msgstr "A new version of the Desk is available. Reload the page."
 msgid "Actions on {title}"
 msgstr "Actions on {title}"
 
-#: src/features/conversation/components/FormsSheet.tsx:53
+#: src/features/conversation/components/FormsPanel.tsx:28
 msgid "Agent"
 msgstr "Agent"
 
@@ -75,7 +75,7 @@ msgstr "Back to the Desk"
 
 #: src/features/conversation/components/FeedbackDialog.tsx:97
 #: src/features/history/components/ConversationActions.tsx:90
-#: src/features/memory/components/MemoryPanel.tsx:125
+#: src/features/memory/components/MemoryPanel.tsx:111
 #: src/features/memory/components/MemoryRewordForm.tsx:62
 msgid "Cancel"
 msgstr "Cancel"
@@ -84,12 +84,11 @@ msgstr "Cancel"
 msgid "Check your connection, then try again."
 msgstr "Check your connection, then try again."
 
-#: src/features/conversation/components/FormsSheet.tsx:39
-#: src/features/memory/components/MemoryPanel.tsx:70
-msgid "Close"
-msgstr "Close"
+#: src/components/shared/SidePanel.tsx:35
+msgid "Close the panel"
+msgstr "Close the panel"
 
-#: src/features/conversation/components/FormsSheet.tsx:31
+#: src/features/conversation/components/FormsButton.tsx:23
 msgid "Completed form"
 msgstr "Completed form"
 
@@ -148,16 +147,16 @@ msgstr "Failed"
 msgid "Filling in the form"
 msgstr "Filling in the form"
 
-#: src/features/memory/components/MemoryPanel.tsx:94
+#: src/features/memory/components/MemoryPanel.tsx:84
 msgid "Forget \"{content}\""
 msgstr "Forget \"{content}\""
 
-#: src/features/memory/components/MemoryPanel.tsx:110
-#: src/features/memory/components/MemoryPanel.tsx:132
+#: src/features/memory/components/MemoryPanel.tsx:58
+#: src/features/memory/components/MemoryPanel.tsx:114
 msgid "Forget everything"
 msgstr "Forget everything"
 
-#: src/features/memory/components/MemoryPanel.tsx:117
+#: src/features/memory/components/MemoryPanel.tsx:103
 msgid "Forget everything?"
 msgstr "Forget everything?"
 
@@ -165,7 +164,7 @@ msgstr "Forget everything?"
 msgid "Forgetting what you asked"
 msgstr "Forgetting what you asked"
 
-#: src/features/conversation/components/FormsSheet.tsx:31
+#: src/features/conversation/components/FormsButton.tsx:23
 msgid "Form in progress"
 msgstr "Form in progress"
 
@@ -177,7 +176,7 @@ msgstr "Handing the conversation back"
 msgid "Home of the Desk"
 msgstr "Home of the Desk"
 
-#: src/features/conversation/components/ConversationView.tsx:71
+#: src/features/conversation/components/ConversationView.tsx:86
 #: src/features/conversation/components/NewConversation.tsx:22
 msgid "How can I help you today?"
 msgstr "How can I help you today?"
@@ -310,7 +309,7 @@ msgstr "Report a problem"
 msgid "Report a problem with this reply"
 msgstr "Report a problem with this reply"
 
-#: src/features/conversation/components/ConversationView.tsx:104
+#: src/features/conversation/components/ConversationView.tsx:119
 msgid "Retry"
 msgstr "Retry"
 
@@ -318,7 +317,7 @@ msgstr "Retry"
 msgid "Reword"
 msgstr "Reword"
 
-#: src/features/conversation/components/ConversationView.tsx:112
+#: src/features/conversation/components/ConversationView.tsx:127
 msgid "Scroll to the latest message"
 msgstr "Scroll to the latest message"
 
@@ -372,7 +371,7 @@ msgstr "Thank you. Your report was sent."
 msgid "The agent could not answer."
 msgstr "The agent could not answer."
 
-#: src/features/memory/components/MemoryPanel.tsx:53
+#: src/features/memory/components/MemoryPanel.tsx:43
 msgid "The agent forgot everything about you."
 msgstr "The agent forgot everything about you."
 
@@ -384,15 +383,19 @@ msgstr "The agent is answering…"
 msgid "The agent remembers"
 msgstr "The agent remembers"
 
-#: src/features/memory/components/MemoryPanel.tsx:75
+#: src/features/memory/components/MemoryPanel.tsx:65
+msgid "The agent remembers nothing about you."
+msgstr "The agent remembers nothing about you."
+
+#: src/features/memory/components/MemoryPanel.tsx:52
 msgid "The agent uses these facts in your next conversations. Only you see them."
 msgstr "The agent uses these facts in your next conversations. Only you see them."
 
-#: src/features/memory/components/MemoryPanel.tsx:120
+#: src/features/memory/components/MemoryPanel.tsx:106
 msgid "The agent will forget every fact it remembers about you."
 msgstr "The agent will forget every fact it remembers about you."
 
-#: src/features/conversation/components/FormsSheet.tsx:44
+#: src/features/conversation/components/FormsPanel.tsx:20
 msgid "The answers the agent collected from the conversation, as it fills them in."
 msgstr "The answers the agent collected from the conversation, as it fills them in."
 
@@ -412,7 +415,7 @@ msgstr "The Desk could not reach the agent. Check your connection."
 msgid "The document could not be opened. Try again."
 msgstr "The document could not be opened. Try again."
 
-#: src/features/memory/components/MemoryPanel.tsx:98
+#: src/features/memory/components/MemoryPanel.tsx:88
 msgid "The fact could not be forgotten. Try again."
 msgstr "The fact could not be forgotten. Try again."
 
@@ -432,7 +435,7 @@ msgstr "The file could not be uploaded. Try again."
 msgid "The history could not load."
 msgstr "The history could not load."
 
-#: src/features/memory/components/MemoryPanel.tsx:55
+#: src/features/memory/components/MemoryPanel.tsx:45
 msgid "The memory could not be cleared. Try again."
 msgstr "The memory could not be cleared. Try again."
 
@@ -494,7 +497,7 @@ msgstr "Uploading comes in the next version of the Desk."
 msgid "Using a tool"
 msgstr "Using a tool"
 
-#: src/features/memory/components/MemoryPanel.tsx:87
+#: src/features/memory/components/MemoryPanel.tsx:77
 msgid "Waiting for your answer"
 msgstr "Waiting for your answer"
 
@@ -502,11 +505,11 @@ msgstr "Waiting for your answer"
 msgid "What should {agentName} read?"
 msgstr "What should {agentName} read?"
 
-#: src/features/conversation/components/FormsSheet.tsx:37
+#: src/features/conversation/components/FormsPanel.tsx:18
 msgid "What the agent noted"
 msgstr "What the agent noted"
 
-#: src/features/memory/components/MemoryPanel.tsx:68
+#: src/features/memory/components/MemoryPanel.tsx:50
 msgid "What the agent remembers"
 msgstr "What the agent remembers"
 

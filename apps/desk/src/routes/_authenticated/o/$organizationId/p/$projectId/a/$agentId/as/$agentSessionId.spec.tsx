@@ -221,7 +221,7 @@ describe("a conversation", () => {
     renderApp(urlsOf(world).conversationUrl)
 
     await userEvent.click(await screen.findByRole("button", { name: "Form in progress" }))
-    const panel = await screen.findByRole("dialog", { name: "What the agent noted" })
+    const panel = await screen.findByRole("complementary", { name: "What the agent noted" })
 
     expect(within(panel).getByText("Team size").nextSibling).toHaveTextContent("5")
     expect(within(panel).getByText("Plan").nextSibling).toHaveTextContent("Pro")
@@ -255,7 +255,7 @@ describe("a conversation", () => {
     renderApp(urlsOf(world).conversationUrl)
 
     await userEvent.click(await screen.findByRole("button", { name: "Memory (2)" }))
-    const panel = await screen.findByRole("dialog", { name: "What the agent remembers" })
+    const panel = await screen.findByRole("complementary", { name: "What the agent remembers" })
     await userEvent.click(
       within(panel).getByRole("button", { name: 'Forget "Works in a team of five"' }),
     )
