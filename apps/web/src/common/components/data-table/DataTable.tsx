@@ -7,8 +7,8 @@ import {
   TableRow,
 } from "@caseai-connect/ui/shad/table"
 import { cn } from "@caseai-connect/ui/utils"
-import { flexRender, type Table as TanStackTable } from "@tanstack/react-table"
-import type { ReactNode } from "react"
+import { flexRender, type Row, type Table as TanStackTable } from "@tanstack/react-table"
+import { Fragment, type ReactNode } from "react"
 
 /** Layout hints a column passes in `meta`, as `OutputSchemaBuilder` does. */
 export type DataTableColumnMeta = {
@@ -20,14 +20,18 @@ export type DataTableColumnMeta = {
  * The shared look of a list table: a rounded border, muted header labels, selected rows
  * highlighted. The caller owns the TanStack table (columns, sorting, selection, pagination).
  * A column narrows its header cell with `meta: { className: "w-10" }`.
+ * An expanded row (`row.getIsExpanded()`) shows `renderExpanded` under it, across all columns.
  */
 export function DataTable<TData>({
   table,
   onRowClick,
+  renderExpanded,
   empty,
 }: {
   table: TanStackTable<TData>
   onRowClick?: (row: TData) => void
+  /** What an expanded row shows under it. The table's `getRowCanExpand` says which rows expand. */
+  renderExpanded?: (row: Row<TData>) => ReactNode
   /** Shown in place of the rows when there are none. */
   empty: ReactNode
 }) {
@@ -67,18 +71,26 @@ export function DataTable<TData>({
             </TableRow>
           ) : (
             rows.map((row) => (
-              <TableRow
-                key={row.id}
-                data-state={row.getIsSelected() ? "selected" : undefined}
-                className={cn(onRowClick && "cursor-pointer")}
-                onClick={onRowClick ? () => onRowClick(row.original) : undefined}
-              >
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
+              <Fragment key={row.id}>
+                <TableRow
+                  data-state={row.getIsSelected() ? "selected" : undefined}
+                  className={cn(onRowClick && "cursor-pointer")}
+                  onClick={onRowClick ? () => onRowClick(row.original) : undefined}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+                {renderExpanded && row.getIsExpanded() && (
+                  <TableRow className="bg-muted/30 hover:bg-muted/30">
+                    <TableCell colSpan={columnCount} className="max-w-0 p-0">
+                      {renderExpanded(row)}
+                    </TableCell>
+                  </TableRow>
+                )}
+              </Fragment>
             ))
           )}
         </TableBody>
