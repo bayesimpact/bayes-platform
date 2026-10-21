@@ -64,10 +64,49 @@ function buildExchange(question: string, createdAt: number): ConversationMessage
         "- the integrations, such as `webhooks`.",
       ].join("\n"),
       createdAt,
-      toolCalls: [{ id: crypto.randomUUID(), name: "lookup_knowledge_base" }],
+      toolCalls: [
+        { id: crypto.randomUUID(), name: "lookup_knowledge_base", arguments: {} },
+        {
+          id: crypto.randomUUID(),
+          name: "surfaceResources",
+          arguments: {
+            resources: [
+              {
+                id: crypto.randomUUID(),
+                title: "Plan comparison",
+                description: "Every plan, side by side.",
+                link: "https://example.org/plans",
+              },
+            ],
+          },
+        },
+        {
+          id: crypto.randomUUID(),
+          name: "sources",
+          arguments: {
+            sources: [
+              {
+                documentId: PRICING_GUIDE_ID,
+                documentTitle: "Pricing guide.pdf",
+                documentSourceType: "project",
+                chunks: [{ chunkId: "c1", partialContent: "The Pro plan covers unlimited teams…" }],
+              },
+              {
+                documentId: crypto.randomUUID(),
+                documentTitle: "Help center",
+                documentSourceType: "webCrawl",
+                chunks: [{ chunkId: "c2", partialContent: "Support answers by email…" }],
+              },
+            ],
+          },
+        },
+      ],
     }),
   ]
 }
+
+/** A document the replies cite, shared with every member of the project. */
+const PRICING_GUIDE_ID = "0b6c8f1e-7a52-4d39-9a51-3f6e0d2c4b11"
 
 /** A conversation history spread over the date groups of the sidebar. */
 function buildConversationHistory(): ConversationSessionOutputDto[] {

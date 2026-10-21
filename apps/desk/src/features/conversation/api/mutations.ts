@@ -1,4 +1,4 @@
-import { DeskConversationsRoutes } from "@caseai-connect/desk-contracts"
+import { DeskConversationsRoutes, DeskDocumentsRoutes } from "@caseai-connect/desk-contracts"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import { invalidateAgentHistory } from "@/features/history"
@@ -50,6 +50,30 @@ export function useStartConversation(agent: ConversationAgentRef) {
         params: conversation,
       })
       await streamReply(queryClient, conversation, content)
+    },
+  })
+}
+
+/**
+ * Opens a document a reply cites, in a new tab. The tab opens at once, while the click still
+ * counts as the person's, and goes to the file once its short-lived URL arrives.
+ */
+export function useOpenDocument(conversation: ConversationRef) {
+  return useMutation({
+    mutationFn: async ({ documentId, tab }: { documentId: string; tab: Window | null }) => {
+      try {
+        const { url } = await apiRequest(DeskDocumentsRoutes.getTemporaryUrl, {
+          params: {
+            organizationId: conversation.organizationId,
+            projectId: conversation.projectId,
+            documentId,
+          },
+        })
+        if (tab) tab.location.href = url
+      } catch (error) {
+        tab?.close()
+        throw error
+      }
     },
   })
 }

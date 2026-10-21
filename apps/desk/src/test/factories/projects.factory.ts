@@ -27,6 +27,7 @@ export function buildMyProject(
     name: "Pricing",
     organizationId: organization.id,
     permissions: ["project.read", DESK_UI_READ_PERMISSION],
+    featureFlags: ["sources-tool"],
     ...overrides,
   })
 }

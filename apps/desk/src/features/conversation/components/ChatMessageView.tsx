@@ -7,16 +7,20 @@ import { type ChatMessage, isWriting } from "../chat-messages"
 import type { ConversationRef } from "../conversation-ref"
 import { CopyButton } from "./CopyButton"
 import { FeedbackDialog } from "./FeedbackDialog"
+import { ResourceCards } from "./ResourceCards"
+import { SourcesList } from "./SourcesList"
 import { ToolSteps } from "./ToolSteps"
 
 export type ChatMessageViewProps = {
   conversation: ConversationRef
   message: ChatMessage
+  /** Whether the project shows the sources of a reply (its `sources-tool` feature). */
+  showSources: boolean
   now: number
 }
 
 /** One message: the person's in a bubble on the right, the agent's on the left with its steps. */
-export function ChatMessageView({ conversation, message, now }: ChatMessageViewProps) {
+export function ChatMessageView({ conversation, message, now, showSources }: ChatMessageViewProps) {
   if (message.role === "user") {
     return (
       <Message align="end">
@@ -42,6 +46,10 @@ export function ChatMessageView({ conversation, message, now }: ChatMessageViewP
         {message.status === "error" ? <ReplyError message={message} /> : null}
         {message.status !== "error" && message.content !== "" ? (
           <Markdown isStreaming={writing}>{message.content}</Markdown>
+        ) : null}
+        {message.resources.length > 0 ? <ResourceCards resources={message.resources} /> : null}
+        {showSources && message.sources.length > 0 ? (
+          <SourcesList conversation={conversation} sources={message.sources} />
         ) : null}
         {isInterrupted ? (
           <p className="text-sm text-muted-foreground">

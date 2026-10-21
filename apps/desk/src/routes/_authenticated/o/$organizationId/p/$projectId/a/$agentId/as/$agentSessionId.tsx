@@ -26,6 +26,11 @@ function ConversationRoute() {
   const { agent } = Route.useRouteContext()
   const params = Route.useParams()
   return (
-    <ConversationView key={params.agentSessionId} conversation={params} agentName={agent.name} />
+    <ConversationView
+      key={params.agentSessionId}
+      conversation={params}
+      agentName={agent.name}
+      showSources={agent.project.featureFlags.includes("sources-tool")}
+    />
   )
 }

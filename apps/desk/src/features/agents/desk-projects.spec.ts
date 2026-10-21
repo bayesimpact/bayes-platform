@@ -13,6 +13,7 @@ const project = (
   name,
   organizationId,
   permissions,
+  featureFlags: [],
 })
 
 describe("listDeskProjects", () => {

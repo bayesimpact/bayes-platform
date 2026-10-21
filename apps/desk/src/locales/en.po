@@ -13,10 +13,15 @@ msgstr "\"{title}\" and its messages will be deleted. This cannot be undone."
 
 #: src/components/shared/Markdown.tsx:53
 #: src/components/shared/Markdown.tsx:75
+#: src/features/conversation/components/ResourceCards.tsx:37
 msgid "(opens in a new tab)"
 msgstr "(opens in a new tab)"
 
-#: src/features/conversation/components/ToolSteps.tsx:89
+#: src/features/conversation/components/SourcesList.tsx:31
+msgid "{count, plural, one {Used # source} other {Used # sources}}"
+msgstr "{count, plural, one {Used # source} other {Used # sources}}"
+
+#: src/features/conversation/components/ToolSteps.tsx:91
 msgid "{count, plural, one {Worked through # step} other {Worked through # steps}}"
 msgstr "{count, plural, one {Worked through # step} other {Worked through # steps}}"
 
@@ -24,7 +29,7 @@ msgstr "{count, plural, one {Worked through # step} other {Worked through # step
 msgid "A new version of the Desk is available"
 msgstr "A new version of the Desk is available"
 
-#: src/features/conversation/components/ChatMessageView.tsx:87
+#: src/features/conversation/components/ChatMessageView.tsx:95
 msgid "A new version of the Desk is available. Reload the page."
 msgstr "A new version of the Desk is available. Reload the page."
 
@@ -45,7 +50,7 @@ msgstr "Cancel"
 msgid "Check your connection, then try again."
 msgstr "Check your connection, then try again."
 
-#: src/features/conversation/components/ToolSteps.tsx:23
+#: src/features/conversation/components/ToolSteps.tsx:22
 msgid "Completing the form"
 msgstr "Completing the form"
 
@@ -87,19 +92,15 @@ msgstr "Drop a document or a CSV file here"
 msgid "Failed"
 msgstr "Failed"
 
-#: src/features/conversation/components/ToolSteps.tsx:22
+#: src/features/conversation/components/ToolSteps.tsx:21
 msgid "Filling in the form"
 msgstr "Filling in the form"
 
-#: src/features/conversation/components/ToolSteps.tsx:26
+#: src/features/conversation/components/ToolSteps.tsx:25
 msgid "Forgetting what you asked"
 msgstr "Forgetting what you asked"
 
-#: src/features/conversation/components/ToolSteps.tsx:18
-msgid "Gathering the sources"
-msgstr "Gathering the sources"
-
-#: src/features/conversation/components/ToolSteps.tsx:24
+#: src/features/conversation/components/ToolSteps.tsx:23
 msgid "Handing the conversation back"
 msgstr "Handing the conversation back"
 
@@ -107,7 +108,7 @@ msgstr "Handing the conversation back"
 msgid "Home of the Desk"
 msgstr "Home of the Desk"
 
-#: src/features/conversation/components/ConversationView.tsx:43
+#: src/features/conversation/components/ConversationView.tsx:45
 #: src/features/conversation/components/NewConversation.tsx:20
 msgid "How can I help you today?"
 msgstr "How can I help you today?"
@@ -146,9 +147,17 @@ msgstr "No conversations yet"
 msgid "No extractions yet"
 msgstr "No extractions yet"
 
+#: src/features/conversation/components/SourceItem.tsx:78
+msgid "No passage to show."
+msgstr "No passage to show."
+
 #: src/features/history/components/HistoryList.tsx:34
 msgid "Older"
 msgstr "Older"
+
+#: src/features/conversation/components/SourceItem.tsx:58
+msgid "Open {title}"
+msgstr "Open {title}"
 
 #: src/features/account/components/UserMenu.tsx:37
 msgid "Open the menu of {email}"
@@ -170,7 +179,7 @@ msgstr "Past conversations open soon"
 msgid "Past extractions open soon"
 msgstr "Past extractions open soon"
 
-#: src/features/conversation/components/ToolSteps.tsx:21
+#: src/features/conversation/components/ToolSteps.tsx:20
 msgid "Picking useful resources"
 msgstr "Picking useful resources"
 
@@ -190,7 +199,7 @@ msgstr "Reload"
 msgid "Reload the page to keep going."
 msgstr "Reload the page to keep going."
 
-#: src/features/conversation/components/ToolSteps.tsx:25
+#: src/features/conversation/components/ToolSteps.tsx:24
 msgid "Remembering what matters"
 msgstr "Remembering what matters"
 
@@ -202,11 +211,11 @@ msgstr "Report a problem"
 msgid "Report a problem with this reply"
 msgstr "Report a problem with this reply"
 
-#: src/features/conversation/components/ConversationView.tsx:69
+#: src/features/conversation/components/ConversationView.tsx:76
 msgid "Retry"
 msgstr "Retry"
 
-#: src/features/conversation/components/ConversationView.tsx:77
+#: src/features/conversation/components/ConversationView.tsx:84
 msgid "Scroll to the latest message"
 msgstr "Scroll to the latest message"
 
@@ -214,8 +223,8 @@ msgstr "Scroll to the latest message"
 msgid "Searching the knowledge base"
 msgstr "Searching the knowledge base"
 
+#: src/features/conversation/components/ToolSteps.tsx:18
 #: src/features/conversation/components/ToolSteps.tsx:19
-#: src/features/conversation/components/ToolSteps.tsx:20
 msgid "Searching the resources"
 msgstr "Searching the resources"
 
@@ -247,7 +256,7 @@ msgstr "Switch agent, current agent: {agentName}"
 msgid "Thank you. Your report was sent."
 msgstr "Thank you. Your report was sent."
 
-#: src/features/conversation/components/ChatMessageView.tsx:79
+#: src/features/conversation/components/ChatMessageView.tsx:87
 msgid "The agent could not answer."
 msgstr "The agent could not answer."
 
@@ -263,15 +272,19 @@ msgstr "The conversation could not be deleted. Try again."
 msgid "The conversation could not start. Try again."
 msgstr "The conversation could not start. Try again."
 
-#: src/features/conversation/components/ChatMessageView.tsx:85
+#: src/features/conversation/components/ChatMessageView.tsx:93
 msgid "The Desk could not reach the agent. Check your connection."
 msgstr "The Desk could not reach the agent. Check your connection."
+
+#: src/features/conversation/components/SourceItem.tsx:41
+msgid "The document could not be opened. Try again."
+msgstr "The document could not be opened. Try again."
 
 #: src/features/conversation/components/FeedbackDialog.tsx:70
 msgid "The people who run this agent read every report to improve it."
 msgstr "The people who run this agent read every report to improve it."
 
-#: src/features/conversation/components/ChatMessageView.tsx:83
+#: src/features/conversation/components/ChatMessageView.tsx:91
 msgid "The reply stopped before it finished."
 msgstr "The reply stopped before it finished."
 
@@ -283,7 +296,7 @@ msgstr "The report could not be sent. Try again."
 msgid "The sign-in did not complete"
 msgstr "The sign-in did not complete"
 
-#: src/features/conversation/components/ToolSteps.tsx:62
+#: src/features/conversation/components/ToolSteps.tsx:64
 msgid "Thinking…"
 msgstr "Thinking…"
 
@@ -299,7 +312,7 @@ msgstr "This page could not load"
 msgid "This page does not exist, or you cannot open it."
 msgstr "This page does not exist, or you cannot open it."
 
-#: src/features/conversation/components/ChatMessageView.tsx:48
+#: src/features/conversation/components/ChatMessageView.tsx:56
 msgid "This reply was interrupted before it finished."
 msgstr "This reply was interrupted before it finished."
 
@@ -311,6 +324,7 @@ msgstr "Today"
 msgid "Try again"
 msgstr "Try again"
 
+#: src/features/conversation/components/SourceItem.tsx:34
 #: src/features/history/components/HistoryEntryLink.tsx:46
 msgid "Untitled document"
 msgstr "Untitled document"
@@ -319,7 +333,7 @@ msgstr "Untitled document"
 msgid "Uploading comes in the next version of the Desk."
 msgstr "Uploading comes in the next version of the Desk."
 
-#: src/features/conversation/components/ToolSteps.tsx:48
+#: src/features/conversation/components/ToolSteps.tsx:50
 msgid "Using a tool"
 msgstr "Using a tool"
 

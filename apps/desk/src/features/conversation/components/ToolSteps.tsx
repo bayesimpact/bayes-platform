@@ -15,7 +15,6 @@ import {
 /** What a person reads while the agent uses a tool. The tools missing here read as a generic step. */
 const TOOL_LABELS: Record<string, MessageDescriptor> = {
   lookup_knowledge_base: msg`Searching the knowledge base`,
-  sources: msg`Gathering the sources`,
   search_resources: msg`Searching the resources`,
   smart_search: msg`Searching the resources`,
   surfaceResources: msg`Picking useful resources`,
@@ -26,8 +25,11 @@ const TOOL_LABELS: Record<string, MessageDescriptor> = {
   forgetMemory: msg`Forgetting what you asked`,
 }
 
-/** Tools the platform calls for itself, which say nothing to the person. */
-const HIDDEN_TOOLS = new Set(["recalculateConversationSessionMetadata"])
+/**
+ * Tools the platform calls for itself after the reply, which say nothing to the person as steps:
+ * the sources show under the reply instead.
+ */
+const HIDDEN_TOOLS = new Set(["recalculateConversationSessionMetadata", "sources"])
 
 export type ToolStepsProps = {
   toolNames: string[]

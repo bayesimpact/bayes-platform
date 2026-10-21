@@ -1,7 +1,18 @@
-import type {
-  ConversationMessageOutputDto,
-  ReplyStreamEventDto,
+import {
+  type ConversationMessageOutputDto,
+  type ReplyStreamEventDto,
+  type SourcesArgumentsDto,
+  type SurfaceResourcesArgumentsDto,
+  sourcesArgumentsSchema,
+  surfaceResourcesArgumentsSchema,
 } from "@caseai-connect/desk-contracts"
+import type { z } from "zod"
+
+/** A document a reply relied on, with the passages it cited. */
+export type ChatSource = SourcesArgumentsDto["sources"][number]
+
+/** A resource of the agent's libraries a reply points to. */
+export type ChatResource = SurfaceResourcesArgumentsDto["resources"][number]
 
 /** Why the Desk itself failed a reply, when the server said nothing. */
 export type ReplyFailure = "ended" | "unreachable" | "contract"
@@ -17,25 +28,59 @@ export type ChatMessage = {
   createdAt: number | null
   /** Set when the Desk failed the reply; the content then holds nothing to show. */
   failure: ReplyFailure | null
+  /** The documents the reply relied on, known once the reply is persisted. */
+  sources: ChatSource[]
+  /** The resources the reply points to, known once the reply is persisted. */
+  resources: ChatResource[]
+}
+
+type ToolCall = NonNullable<ConversationMessageOutputDto["toolCalls"]>[number]
+
+/**
+ * The arguments of the calls of one tool, read with their schema. A call the schema rejects is
+ * left out and logged: the rest of the reply still shows.
+ */
+function readToolArguments<TSchema extends z.ZodType>(
+  toolCalls: ToolCall[],
+  toolName: string,
+  schema: TSchema,
+): z.output<TSchema>[] {
+  return toolCalls.flatMap((toolCall) => {
+    if (toolCall.name !== toolName) return []
+    const result = schema.safeParse(toolCall.arguments)
+    if (!result.success) {
+      console.error(`The arguments of the ${toolName} tool broke their contract:`, result.error)
+      return []
+    }
+    return [result.data]
+  })
 }
 
 /** The persisted messages as the conversation shows them. */
 export function toChatMessages(messages: ConversationMessageOutputDto[]): ChatMessage[] {
-  return messages.flatMap((message): ChatMessage[] =>
-    message.role === "tool"
-      ? []
-      : [
-          {
-            id: message.id,
-            role: message.role,
-            content: message.content,
-            status: message.status ?? "completed",
-            toolNames: (message.toolCalls ?? []).map((toolCall) => toolCall.name),
-            createdAt: message.createdAt ?? null,
-            failure: null,
-          },
-        ],
-  )
+  return messages.flatMap((message): ChatMessage[] => {
+    if (message.role === "tool") return []
+    const toolCalls = message.toolCalls ?? []
+    return [
+      {
+        id: message.id,
+        role: message.role,
+        content: message.content,
+        status: message.status ?? "completed",
+        toolNames: toolCalls.map((toolCall) => toolCall.name),
+        createdAt: message.createdAt ?? null,
+        failure: null,
+        sources: readToolArguments(toolCalls, "sources", sourcesArgumentsSchema).flatMap(
+          (toolArguments) => toolArguments.sources,
+        ),
+        resources: readToolArguments(
+          toolCalls,
+          "surfaceResources",
+          surfaceResourcesArgumentsSchema,
+        ).flatMap((toolArguments) => toolArguments.resources),
+      },
+    ]
+  })
 }
 
 /** Where a reply stands while it streams: the message the next events belong to. */
@@ -62,6 +107,8 @@ export function startTurn(
       toolNames: [],
       createdAt: now,
       failure: null,
+      sources: [],
+      resources: [],
     },
     {
       id: ids.replyId,
@@ -71,6 +118,8 @@ export function startTurn(
       toolNames: [],
       createdAt: now,
       failure: null,
+      sources: [],
+      resources: [],
     },
   ]
 }
@@ -110,6 +159,8 @@ export function applyReplyEvent(
         toolNames: [],
         createdAt: now,
         failure: null,
+        sources: [],
+        resources: [],
       }
       return {
         messages: [...messages, reply],

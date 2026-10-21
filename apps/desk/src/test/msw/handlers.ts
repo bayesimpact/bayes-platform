@@ -107,6 +107,14 @@ function conversationHandlers(world: DeskWorld) {
         return HttpResponse.json({ data: { success: true } }, { status: 201 })
       },
     ),
+    http.get(
+      "*/api/organizations/:organizationId/projects/:projectId/documents/:documentId/is-public",
+      () => HttpResponse.json({ data: { isPublicDocument: true } }),
+    ),
+    http.get(
+      "*/api/organizations/:organizationId/projects/:projectId/documents/:documentId/temporary-url",
+      () => HttpResponse.json({ data: { url: "https://example.org/pricing-guide.pdf" } }),
+    ),
     http.post(messagesPath, ({ params }) => {
       const messages = world.messages[String(params.agentSessionId)]
       return messages

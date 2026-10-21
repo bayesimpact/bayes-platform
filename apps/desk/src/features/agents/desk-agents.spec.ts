@@ -3,8 +3,18 @@ import { chooseDefaultAgent, flattenDeskAgents, groupDeskAgents } from "./desk-a
 import type { DeskProject } from "./desk-projects"
 
 const organization = { id: crypto.randomUUID(), name: "Product" }
-const pricing: DeskProject = { id: crypto.randomUUID(), name: "Pricing", organization }
-const support: DeskProject = { id: crypto.randomUUID(), name: "Support", organization }
+const pricing: DeskProject = {
+  id: crypto.randomUUID(),
+  name: "Pricing",
+  featureFlags: [],
+  organization,
+}
+const support: DeskProject = {
+  id: crypto.randomUUID(),
+  name: "Support",
+  featureFlags: [],
+  organization,
+}
 
 const agent = (name: string, project: DeskProject) => ({
   id: crypto.randomUUID(),

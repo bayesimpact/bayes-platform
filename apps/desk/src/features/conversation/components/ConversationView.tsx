@@ -20,13 +20,15 @@ import { Composer } from "./Composer"
 export type ConversationViewProps = {
   conversation: ConversationRef
   agentName: string
+  /** Whether the project shows the sources of a reply (its `sources-tool` feature). */
+  showSources: boolean
 }
 
 /**
  * A conversation, as the shadcn Chat: the messages in a scroller that follows the reply while the
  * person stays at the end, and the message box under it.
  */
-export function ConversationView({ conversation, agentName }: ConversationViewProps) {
+export function ConversationView({ conversation, agentName, showSources }: ConversationViewProps) {
   const { t } = useLingui()
   const { data: messages } = useSuspenseQuery(messagesQueryOptions(conversation))
   const sendMessage = useSendMessage(conversation)
@@ -55,7 +57,12 @@ export function ConversationView({ conversation, agentName }: ConversationViewPr
                       messageId={message.id}
                       scrollAnchor={message.role === "user"}
                     >
-                      <ChatMessageView conversation={conversation} message={message} now={now} />
+                      <ChatMessageView
+                        conversation={conversation}
+                        message={message}
+                        now={now}
+                        showSources={showSources}
+                      />
                     </MessageScrollerItem>
                   ))}
                   {retryableContent !== null ? (

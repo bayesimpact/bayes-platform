@@ -36,7 +36,37 @@ describe("a conversation", () => {
 
     expect(await screen.findByText(/Here is a short comparison/)).toBeInTheDocument()
     expect(screen.getByText("Hello! How can I help you today?")).toBeInTheDocument()
-    expect(screen.getByText("Worked through 1 step")).toBeInTheDocument()
+    expect(screen.getByText("Worked through 2 steps")).toBeInTheDocument()
+  })
+
+  it("shows the resources a reply points to and the sources it relied on", async () => {
+    const world = buildDeskWorld()
+    server.use(...worldHandlers(world))
+    const open = vi.spyOn(window, "open").mockReturnValue({ location: { href: "" } } as Window)
+    renderApp(urlsOf(world).conversationUrl)
+
+    expect(await screen.findByRole("link", { name: /Plan comparison/ })).toHaveAttribute(
+      "href",
+      "https://example.org/plans",
+    )
+    await userEvent.click(screen.getByRole("button", { name: "Used 2 sources" }))
+    expect(await screen.findByText("The Pro plan covers unlimited teams…")).toBeInTheDocument()
+    expect(screen.getByText("Support answers by email…")).toBeInTheDocument()
+
+    // The shared document opens; the crawled page has no file to open.
+    await userEvent.click(await screen.findByRole("button", { name: "Open Pricing guide.pdf" }))
+    expect(open).toHaveBeenCalledWith("", "_blank")
+    expect(screen.queryByRole("button", { name: "Open Help center" })).not.toBeInTheDocument()
+  })
+
+  it("hides the sources when the project does not show them", async () => {
+    const world = buildDeskWorld()
+    for (const project of world.projects) project.featureFlags = []
+    server.use(...worldHandlers(world))
+    renderApp(urlsOf(world).conversationUrl)
+
+    expect(await screen.findByRole("link", { name: /Plan comparison/ })).toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: /Used \d+ sources?/ })).not.toBeInTheDocument()
   })
 
   it("streams the reply to a message, then lets the person write again", async () => {

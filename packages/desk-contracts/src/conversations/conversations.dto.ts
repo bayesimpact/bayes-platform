@@ -15,11 +15,46 @@ export const createdConversationOutputSchema = z.object({
 
 export type CreatedConversationOutputDto = z.output<typeof createdConversationOutputSchema>
 
-/** A tool an agent called while it answered. */
+/**
+ * A tool an agent called while it answered. Its arguments and result depend on the tool: the
+ * Desk reads those of a few tools with the schemas below, and ignores the others.
+ */
 export const toolCallOutputSchema = z.object({
   id: z.string(),
   name: z.string(),
+  arguments: z.record(z.string(), z.unknown()).optional(),
+  result: z.unknown().optional(),
 })
+
+/** The passages of the knowledge base a reply relied on, by document (the `sources` tool). */
+export const sourcesArgumentsSchema = z.object({
+  sources: z.array(
+    z.object({
+      documentId: z.uuid(),
+      documentTitle: z.string().optional(),
+      /** `webCrawl` for a page of a crawled website, which has no file to download. */
+      documentSourceType: z.string().optional(),
+      chunks: z.array(z.object({ chunkId: z.string(), partialContent: z.string() })),
+    }),
+  ),
+})
+
+export type SourcesArgumentsDto = z.output<typeof sourcesArgumentsSchema>
+
+/** The resources of the agent's libraries a reply points to (the `surfaceResources` tool). */
+export const surfaceResourcesArgumentsSchema = z.object({
+  resources: z.array(
+    z.object({
+      id: z.string(),
+      title: z.string(),
+      description: z.string(),
+      /** A URL, or the API path of a file, which redirects to the file. */
+      link: z.string(),
+    }),
+  ),
+})
+
+export type SurfaceResourcesArgumentsDto = z.output<typeof surfaceResourcesArgumentsSchema>
 
 /** One message of a conversation, oldest first. `tool` messages hold tool results. */
 export const conversationMessageOutputSchema = z.object({

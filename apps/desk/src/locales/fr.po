@@ -13,10 +13,15 @@ msgstr "« {title} » et ses messages seront supprimés. Cette action est défin
 
 #: src/components/shared/Markdown.tsx:53
 #: src/components/shared/Markdown.tsx:75
+#: src/features/conversation/components/ResourceCards.tsx:37
 msgid "(opens in a new tab)"
 msgstr "(s'ouvre dans un nouvel onglet)"
 
-#: src/features/conversation/components/ToolSteps.tsx:89
+#: src/features/conversation/components/SourcesList.tsx:31
+msgid "{count, plural, one {Used # source} other {Used # sources}}"
+msgstr "{count, plural, one {# source utilisée} other {# sources utilisées}}"
+
+#: src/features/conversation/components/ToolSteps.tsx:91
 msgid "{count, plural, one {Worked through # step} other {Worked through # steps}}"
 msgstr "{count, plural, one {# étape suivie} other {# étapes suivies}}"
 
@@ -24,7 +29,7 @@ msgstr "{count, plural, one {# étape suivie} other {# étapes suivies}}"
 msgid "A new version of the Desk is available"
 msgstr "Une nouvelle version du Desk est disponible"
 
-#: src/features/conversation/components/ChatMessageView.tsx:87
+#: src/features/conversation/components/ChatMessageView.tsx:95
 msgid "A new version of the Desk is available. Reload the page."
 msgstr "Une nouvelle version du Desk est disponible. Rechargez la page."
 
@@ -45,7 +50,7 @@ msgstr "Annuler"
 msgid "Check your connection, then try again."
 msgstr "Vérifiez votre connexion, puis réessayez."
 
-#: src/features/conversation/components/ToolSteps.tsx:23
+#: src/features/conversation/components/ToolSteps.tsx:22
 msgid "Completing the form"
 msgstr "Finalisation du formulaire"
 
@@ -87,19 +92,15 @@ msgstr "Déposez un document ou un fichier CSV ici"
 msgid "Failed"
 msgstr "Échec"
 
-#: src/features/conversation/components/ToolSteps.tsx:22
+#: src/features/conversation/components/ToolSteps.tsx:21
 msgid "Filling in the form"
 msgstr "Remplissage du formulaire"
 
-#: src/features/conversation/components/ToolSteps.tsx:26
+#: src/features/conversation/components/ToolSteps.tsx:25
 msgid "Forgetting what you asked"
 msgstr "Oubli de ce que vous avez demandé"
 
-#: src/features/conversation/components/ToolSteps.tsx:18
-msgid "Gathering the sources"
-msgstr "Rassemblement des sources"
-
-#: src/features/conversation/components/ToolSteps.tsx:24
+#: src/features/conversation/components/ToolSteps.tsx:23
 msgid "Handing the conversation back"
 msgstr "Retour à l'agent précédent"
 
@@ -107,7 +108,7 @@ msgstr "Retour à l'agent précédent"
 msgid "Home of the Desk"
 msgstr "Accueil du Desk"
 
-#: src/features/conversation/components/ConversationView.tsx:43
+#: src/features/conversation/components/ConversationView.tsx:45
 #: src/features/conversation/components/NewConversation.tsx:20
 msgid "How can I help you today?"
 msgstr "Comment puis-je vous aider aujourd'hui ?"
@@ -146,9 +147,17 @@ msgstr "Aucune conversation pour l'instant"
 msgid "No extractions yet"
 msgstr "Aucune extraction pour l'instant"
 
+#: src/features/conversation/components/SourceItem.tsx:78
+msgid "No passage to show."
+msgstr "Aucun passage à afficher."
+
 #: src/features/history/components/HistoryList.tsx:34
 msgid "Older"
 msgstr "Plus ancien"
+
+#: src/features/conversation/components/SourceItem.tsx:58
+msgid "Open {title}"
+msgstr "Ouvrir {title}"
 
 #: src/features/account/components/UserMenu.tsx:37
 msgid "Open the menu of {email}"
@@ -170,7 +179,7 @@ msgstr "Les conversations passées s'ouvriront bientôt"
 msgid "Past extractions open soon"
 msgstr "Les extractions passées s'ouvriront bientôt"
 
-#: src/features/conversation/components/ToolSteps.tsx:21
+#: src/features/conversation/components/ToolSteps.tsx:20
 msgid "Picking useful resources"
 msgstr "Sélection de ressources utiles"
 
@@ -190,7 +199,7 @@ msgstr "Recharger"
 msgid "Reload the page to keep going."
 msgstr "Rechargez la page pour continuer."
 
-#: src/features/conversation/components/ToolSteps.tsx:25
+#: src/features/conversation/components/ToolSteps.tsx:24
 msgid "Remembering what matters"
 msgstr "Mémorisation de l'essentiel"
 
@@ -202,11 +211,11 @@ msgstr "Signaler un problème"
 msgid "Report a problem with this reply"
 msgstr "Signaler un problème avec cette réponse"
 
-#: src/features/conversation/components/ConversationView.tsx:69
+#: src/features/conversation/components/ConversationView.tsx:76
 msgid "Retry"
 msgstr "Réessayer"
 
-#: src/features/conversation/components/ConversationView.tsx:77
+#: src/features/conversation/components/ConversationView.tsx:84
 msgid "Scroll to the latest message"
 msgstr "Aller au dernier message"
 
@@ -214,8 +223,8 @@ msgstr "Aller au dernier message"
 msgid "Searching the knowledge base"
 msgstr "Recherche dans la base de connaissances"
 
+#: src/features/conversation/components/ToolSteps.tsx:18
 #: src/features/conversation/components/ToolSteps.tsx:19
-#: src/features/conversation/components/ToolSteps.tsx:20
 msgid "Searching the resources"
 msgstr "Recherche dans les ressources"
 
@@ -247,7 +256,7 @@ msgstr "Changer d'agent, agent actuel : {agentName}"
 msgid "Thank you. Your report was sent."
 msgstr "Merci, votre signalement a été envoyé."
 
-#: src/features/conversation/components/ChatMessageView.tsx:79
+#: src/features/conversation/components/ChatMessageView.tsx:87
 msgid "The agent could not answer."
 msgstr "L'agent n'a pas pu répondre."
 
@@ -263,15 +272,19 @@ msgstr "La conversation n'a pas pu être supprimée. Réessayez."
 msgid "The conversation could not start. Try again."
 msgstr "La conversation n'a pas pu démarrer. Réessayez."
 
-#: src/features/conversation/components/ChatMessageView.tsx:85
+#: src/features/conversation/components/ChatMessageView.tsx:93
 msgid "The Desk could not reach the agent. Check your connection."
 msgstr "Le Desk n'a pas pu joindre l'agent. Vérifiez votre connexion."
+
+#: src/features/conversation/components/SourceItem.tsx:41
+msgid "The document could not be opened. Try again."
+msgstr "Le document n'a pas pu être ouvert. Réessayez."
 
 #: src/features/conversation/components/FeedbackDialog.tsx:70
 msgid "The people who run this agent read every report to improve it."
 msgstr "Les personnes qui gèrent cet agent lisent chaque signalement pour l'améliorer."
 
-#: src/features/conversation/components/ChatMessageView.tsx:83
+#: src/features/conversation/components/ChatMessageView.tsx:91
 msgid "The reply stopped before it finished."
 msgstr "La réponse s'est arrêtée avant la fin."
 
@@ -283,7 +296,7 @@ msgstr "Le signalement n'a pas pu être envoyé. Réessayez."
 msgid "The sign-in did not complete"
 msgstr "La connexion n’a pas abouti"
 
-#: src/features/conversation/components/ToolSteps.tsx:62
+#: src/features/conversation/components/ToolSteps.tsx:64
 msgid "Thinking…"
 msgstr "Réflexion…"
 
@@ -299,7 +312,7 @@ msgstr "Cette page n’a pas pu se charger"
 msgid "This page does not exist, or you cannot open it."
 msgstr "Cette page n’existe pas, ou vous ne pouvez pas l’ouvrir."
 
-#: src/features/conversation/components/ChatMessageView.tsx:48
+#: src/features/conversation/components/ChatMessageView.tsx:56
 msgid "This reply was interrupted before it finished."
 msgstr "Cette réponse a été interrompue avant la fin."
 
@@ -311,6 +324,7 @@ msgstr "Aujourd'hui"
 msgid "Try again"
 msgstr "Réessayer"
 
+#: src/features/conversation/components/SourceItem.tsx:34
 #: src/features/history/components/HistoryEntryLink.tsx:46
 msgid "Untitled document"
 msgstr "Document sans titre"
@@ -319,7 +333,7 @@ msgstr "Document sans titre"
 msgid "Uploading comes in the next version of the Desk."
 msgstr "Le dépôt de fichiers arrive dans la prochaine version du Desk."
 
-#: src/features/conversation/components/ToolSteps.tsx:48
+#: src/features/conversation/components/ToolSteps.tsx:50
 msgid "Using a tool"
 msgstr "Utilisation d'un outil"
 

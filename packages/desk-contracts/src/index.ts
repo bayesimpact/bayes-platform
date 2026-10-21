@@ -15,6 +15,9 @@ export * from "./common/error.dto"
 export * from "./conversations/conversations.dto"
 export { DeskConversationsRoutes } from "./conversations/conversations.routes"
 export * from "./define-schema-route"
+// Documents
+export * from "./documents/documents.dto"
+export { DeskDocumentsRoutes } from "./documents/documents.routes"
 
 // Organizations
 export * from "./organizations/organizations.dto"

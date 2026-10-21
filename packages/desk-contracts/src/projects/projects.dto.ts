@@ -10,6 +10,8 @@ export const myProjectOutputSchema = z.object({
   organizationId: z.uuid(),
   /** The permission keys the person holds on the project. */
   permissions: z.array(z.string()),
+  /** The feature flags turned on for the project, such as `sources-tool`. */
+  featureFlags: z.array(z.string()),
 })
 
 export type MyProjectOutputDto = z.output<typeof myProjectOutputSchema>

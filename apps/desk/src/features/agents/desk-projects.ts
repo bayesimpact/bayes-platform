@@ -5,7 +5,7 @@ import {
 } from "@caseai-connect/desk-contracts"
 
 /** A project the person can open in the Desk, with its organization. */
-export type DeskProject = Pick<MyProjectOutputDto, "id" | "name"> & {
+export type DeskProject = Pick<MyProjectOutputDto, "id" | "name" | "featureFlags"> & {
   organization: MyOrganizationOutputDto
 }
 
@@ -25,7 +25,9 @@ export function listDeskProjects(
     .flatMap((project) => {
       const organization = organizationsById.get(project.organizationId)
       if (!organization || !project.permissions.includes(DESK_UI_READ_PERMISSION)) return []
-      return [{ id: project.id, name: project.name, organization }]
+      return [
+        { id: project.id, name: project.name, featureFlags: project.featureFlags, organization },
+      ]
     })
     .sort(
       (first, second) =>

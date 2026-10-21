@@ -1,9 +1,9 @@
-import { DeskConversationsRoutes } from "@caseai-connect/desk-contracts"
+import { DeskConversationsRoutes, DeskDocumentsRoutes } from "@caseai-connect/desk-contracts"
 import { queryOptions } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/api-client"
 import { isWriting, toChatMessages } from "../chat-messages"
 import type { ConversationRef } from "../conversation-ref"
-import { conversationKeys } from "./keys"
+import { conversationKeys, documentKeys } from "./keys"
 import { isReplyStreaming } from "./reply-streams"
 
 /** While the server writes a reply this tab does not stream, the messages refetch this often. */
@@ -31,4 +31,18 @@ export const messagesQueryOptions = (conversation: ConversationRef) =>
     },
     // A refetch would replace the reply this tab is streaming into the cache.
     refetchOnWindowFocus: () => !isReplyStreaming(conversation.agentSessionId),
+  })
+
+/** Whether a document a reply cites is shared with every member of the project. */
+export const documentIsPublicQueryOptions = (document: {
+  organizationId: string
+  projectId: string
+  documentId: string
+}) =>
+  queryOptions({
+    queryKey: documentKeys.isPublic(document.documentId),
+    queryFn: async ({ signal }) =>
+      (await apiRequest(DeskDocumentsRoutes.getIsPublic, { params: document, signal }))
+        .isPublicDocument,
+    staleTime: 5 * 60 * 1000,
   })
