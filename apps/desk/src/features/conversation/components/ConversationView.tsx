@@ -55,7 +55,7 @@ export function ConversationView({ conversation, agentName }: ConversationViewPr
                       messageId={message.id}
                       scrollAnchor={message.role === "user"}
                     >
-                      <ChatMessageView message={message} now={now} />
+                      <ChatMessageView conversation={conversation} message={message} now={now} />
                     </MessageScrollerItem>
                   ))}
                   {retryableContent !== null ? (

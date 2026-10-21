@@ -24,7 +24,7 @@ msgstr "{count, plural, one {Worked through # step} other {Worked through # step
 msgid "A new version of the Desk is available"
 msgstr "A new version of the Desk is available"
 
-#: src/features/conversation/components/ChatMessageView.tsx:80
+#: src/features/conversation/components/ChatMessageView.tsx:87
 msgid "A new version of the Desk is available. Reload the page."
 msgstr "A new version of the Desk is available. Reload the page."
 
@@ -36,6 +36,7 @@ msgstr "Actions on {title}"
 msgid "Back to the Desk"
 msgstr "Back to the Desk"
 
+#: src/features/conversation/components/FeedbackDialog.tsx:97
 #: src/features/history/components/ConversationActions.tsx:90
 msgid "Cancel"
 msgstr "Cancel"
@@ -73,6 +74,10 @@ msgstr "Delete"
 #: src/features/history/components/ConversationActions.tsx:77
 msgid "Delete this conversation?"
 msgstr "Delete this conversation?"
+
+#: src/features/conversation/components/FeedbackDialog.tsx:89
+msgid "Describe the problem in a few words, up to 2,000 characters."
+msgstr "Describe the problem in a few words, up to 2,000 characters."
 
 #: src/features/sessions/components/NewExtraction.tsx:24
 msgid "Drop a document or a CSV file here"
@@ -189,6 +194,14 @@ msgstr "Reload the page to keep going."
 msgid "Remembering what matters"
 msgstr "Remembering what matters"
 
+#: src/features/conversation/components/FeedbackDialog.tsx:59
+msgid "Report a problem"
+msgstr "Report a problem"
+
+#: src/features/conversation/components/FeedbackDialog.tsx:67
+msgid "Report a problem with this reply"
+msgstr "Report a problem with this reply"
+
 #: src/features/conversation/components/ConversationView.tsx:69
 msgid "Retry"
 msgstr "Retry"
@@ -210,6 +223,10 @@ msgstr "Searching the resources"
 msgid "Send"
 msgstr "Send"
 
+#: src/features/conversation/components/FeedbackDialog.tsx:100
+msgid "Send the report"
+msgstr "Send the report"
+
 #: src/routes/auth/callback.tsx:28
 msgid "Sign in again"
 msgstr "Sign in again"
@@ -226,7 +243,11 @@ msgstr "Sign out"
 msgid "Switch agent, current agent: {agentName}"
 msgstr "Switch agent, current agent: {agentName}"
 
-#: src/features/conversation/components/ChatMessageView.tsx:72
+#: src/features/conversation/components/FeedbackDialog.tsx:47
+msgid "Thank you. Your report was sent."
+msgstr "Thank you. Your report was sent."
+
+#: src/features/conversation/components/ChatMessageView.tsx:79
 msgid "The agent could not answer."
 msgstr "The agent could not answer."
 
@@ -242,13 +263,21 @@ msgstr "The conversation could not be deleted. Try again."
 msgid "The conversation could not start. Try again."
 msgstr "The conversation could not start. Try again."
 
-#: src/features/conversation/components/ChatMessageView.tsx:78
+#: src/features/conversation/components/ChatMessageView.tsx:85
 msgid "The Desk could not reach the agent. Check your connection."
 msgstr "The Desk could not reach the agent. Check your connection."
 
-#: src/features/conversation/components/ChatMessageView.tsx:76
+#: src/features/conversation/components/FeedbackDialog.tsx:70
+msgid "The people who run this agent read every report to improve it."
+msgstr "The people who run this agent read every report to improve it."
+
+#: src/features/conversation/components/ChatMessageView.tsx:83
 msgid "The reply stopped before it finished."
 msgstr "The reply stopped before it finished."
+
+#: src/features/conversation/components/FeedbackDialog.tsx:51
+msgid "The report could not be sent. Try again."
+msgstr "The report could not be sent. Try again."
 
 #: src/routes/auth/callback.tsx:24
 msgid "The sign-in did not complete"
@@ -270,7 +299,7 @@ msgstr "This page could not load"
 msgid "This page does not exist, or you cannot open it."
 msgstr "This page does not exist, or you cannot open it."
 
-#: src/features/conversation/components/ChatMessageView.tsx:45
+#: src/features/conversation/components/ChatMessageView.tsx:48
 msgid "This reply was interrupted before it finished."
 msgstr "This reply was interrupted before it finished."
 
@@ -297,6 +326,10 @@ msgstr "Using a tool"
 #: src/features/sessions/components/NewExtraction.tsx:16
 msgid "What should {agentName} read?"
 msgstr "What should {agentName} read?"
+
+#: src/features/conversation/components/FeedbackDialog.tsx:79
+msgid "What went wrong?"
+msgstr "What went wrong?"
 
 #: src/features/sessions/components/NoAgentState.tsx:11
 msgid "When someone gives you access to an agent, it appears here."

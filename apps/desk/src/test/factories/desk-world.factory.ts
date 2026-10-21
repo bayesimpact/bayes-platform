@@ -27,6 +27,8 @@ export type DeskWorld = {
   csvExtractionRuns: Record<string, CsvExtractionRunOutputDto[]>
   /** The messages of each conversation, oldest first. */
   messages: Record<string, ConversationMessageOutputDto[]>
+  /** The problems reported on the agents' replies. */
+  feedbacks: { agentMessageId: string; content: string }[]
 }
 
 function emptyWorld(): DeskWorld {
@@ -38,6 +40,7 @@ function emptyWorld(): DeskWorld {
     extractionRuns: {},
     csvExtractionRuns: {},
     messages: {},
+    feedbacks: [],
   }
 }
 

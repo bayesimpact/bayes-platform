@@ -146,6 +146,28 @@ describe("a conversation", () => {
     expect(screen.queryByRole("link", { name: "Compare the plans" })).not.toBeInTheDocument()
   })
 
+  it("reports a problem with a reply", async () => {
+    const world = buildDeskWorld()
+    server.use(...worldHandlers(world))
+    renderApp(urlsOf(world).conversationUrl)
+
+    const [, reportButton] = await screen.findAllByRole("button", { name: "Report a problem" })
+    await userEvent.click(reportButton as HTMLElement)
+    const dialog = await screen.findByRole("dialog")
+    await userEvent.click(within(dialog).getByRole("button", { name: "Send the report" }))
+    expect(
+      await within(dialog).findByText(/Describe the problem in a few words/),
+    ).toBeInTheDocument()
+
+    await userEvent.type(within(dialog).getByLabelText("What went wrong?"), "The table is wrong.")
+    await userEvent.click(within(dialog).getByRole("button", { name: "Send the report" }))
+
+    expect(await screen.findByText("Thank you. Your report was sent.")).toBeInTheDocument()
+    const [, reply] =
+      Object.values(world.messages)[0]?.filter((message) => message.role === "assistant") ?? []
+    expect(world.feedbacks).toEqual([{ agentMessageId: reply?.id, content: "The table is wrong." }])
+  })
+
   it("is not found when it is not the person's", async () => {
     const world = buildDeskWorld()
     server.use(...worldHandlers(world))

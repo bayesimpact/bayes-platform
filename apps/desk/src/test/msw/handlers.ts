@@ -96,6 +96,17 @@ function conversationHandlers(world: DeskWorld) {
         return HttpResponse.json({ data: { success: true } }, { status: 201 })
       },
     ),
+    http.post(
+      "*/api/organizations/:organizationId/projects/:projectId/agent-messages/:agentMessageId/feedbacks",
+      async ({ params, request }) => {
+        const body = (await request.json()) as { payload: { content: string } }
+        world.feedbacks.push({
+          agentMessageId: String(params.agentMessageId),
+          content: body.payload.content,
+        })
+        return HttpResponse.json({ data: { success: true } }, { status: 201 })
+      },
+    ),
     http.post(messagesPath, ({ params }) => {
       const messages = world.messages[String(params.agentSessionId)]
       return messages

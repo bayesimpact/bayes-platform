@@ -14,6 +14,21 @@ export function useSendMessage(conversation: ConversationRef) {
   })
 }
 
+/** Reports a problem with one of the agent's replies. */
+export function useSendFeedback(conversation: ConversationRef) {
+  return useMutation({
+    mutationFn: ({ agentMessageId, content }: { agentMessageId: string; content: string }) =>
+      apiRequest(DeskConversationsRoutes.createMessageFeedback, {
+        params: {
+          organizationId: conversation.organizationId,
+          projectId: conversation.projectId,
+          agentMessageId,
+        },
+        body: { content },
+      }),
+  })
+}
+
 /**
  * Starts a conversation with its first message, as in the Claude app: creates it, opens it, then
  * streams the replies there.

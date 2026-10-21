@@ -1,6 +1,7 @@
 import { I18nProvider } from "@lingui/react"
 import { type QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { RouterProvider } from "@tanstack/react-router"
+import { Toaster } from "@/components/ui/sonner"
 import { i18n } from "./i18n"
 import type { createAppRouter } from "./router"
 
@@ -14,6 +15,7 @@ export function AppProviders({ queryClient, router }: AppProvidersProps) {
     <I18nProvider i18n={i18n}>
       <QueryClientProvider client={queryClient}>
         <RouterProvider router={router} />
+        <Toaster />
       </QueryClientProvider>
     </I18nProvider>
   )

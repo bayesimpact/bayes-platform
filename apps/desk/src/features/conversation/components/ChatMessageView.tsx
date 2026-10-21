@@ -4,16 +4,19 @@ import { Markdown } from "@/components/shared/Markdown"
 import { Bubble, BubbleContent } from "@/components/ui/bubble"
 import { Message, MessageContent, MessageFooter } from "@/components/ui/message"
 import { type ChatMessage, isWriting } from "../chat-messages"
+import type { ConversationRef } from "../conversation-ref"
 import { CopyButton } from "./CopyButton"
+import { FeedbackDialog } from "./FeedbackDialog"
 import { ToolSteps } from "./ToolSteps"
 
 export type ChatMessageViewProps = {
+  conversation: ConversationRef
   message: ChatMessage
   now: number
 }
 
 /** One message: the person's in a bubble on the right, the agent's on the left with its steps. */
-export function ChatMessageView({ message, now }: ChatMessageViewProps) {
+export function ChatMessageView({ conversation, message, now }: ChatMessageViewProps) {
   if (message.role === "user") {
     return (
       <Message align="end">
@@ -48,6 +51,10 @@ export function ChatMessageView({ message, now }: ChatMessageViewProps) {
         {message.status === "completed" && message.content !== "" ? (
           <MessageFooter className="px-0">
             <CopyButton text={message.content} />
+            {/* A local reply gets its id once the persisted messages replace it. */}
+            {message.id.startsWith("local-") ? null : (
+              <FeedbackDialog conversation={conversation} agentMessageId={message.id} />
+            )}
           </MessageFooter>
         ) : null}
       </MessageContent>

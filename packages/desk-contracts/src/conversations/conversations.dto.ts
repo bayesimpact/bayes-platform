@@ -67,3 +67,17 @@ export const replyStreamEventSchema = z.discriminatedUnion("type", [
 ])
 
 export type ReplyStreamEventDto = z.output<typeof replyStreamEventSchema>
+
+/** The params of the routes under one message. */
+export const messageParamsSchema = z.strictObject({
+  organizationId: z.uuid(),
+  projectId: z.uuid(),
+  agentMessageId: z.uuid(),
+})
+
+/** A problem the person reports on one of the agent's replies. */
+export const messageFeedbackInputSchema = z.strictObject({
+  content: z.string().trim().min(1).max(2000),
+})
+
+export type MessageFeedbackInputDto = z.input<typeof messageFeedbackInputSchema>

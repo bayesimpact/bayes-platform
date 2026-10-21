@@ -5,6 +5,8 @@ import {
   conversationMessageOutputSchema,
   conversationParamsSchema,
   createdConversationOutputSchema,
+  messageFeedbackInputSchema,
+  messageParamsSchema,
   replyStreamEventSchema,
   replyStreamQuerySchema,
 } from "./conversations.dto"
@@ -33,6 +35,14 @@ export const DeskConversationsRoutes = {
     path: messagesPath,
     params: conversationParamsSchema,
     response: z.array(conversationMessageOutputSchema),
+  }),
+  /** Reports a problem with one of the agent's replies. */
+  createMessageFeedback: defineSchemaRoute({
+    method: "post",
+    path: "organizations/:organizationId/projects/:projectId/agent-messages/:agentMessageId/feedbacks",
+    params: messageParamsSchema,
+    body: messageFeedbackInputSchema,
+    response: z.object({ success: z.boolean() }),
   }),
   /** Sends a message and streams the replies, as server-sent events. */
   streamReply: defineStreamRoute({
