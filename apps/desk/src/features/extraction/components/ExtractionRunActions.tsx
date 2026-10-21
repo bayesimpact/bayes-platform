@@ -50,7 +50,9 @@ export function ExtractionRunActions({
       {canExtractAgain ? (
         <Button variant="outline" size="sm" onClick={onExtractAgain} disabled={isExtractingAgain}>
           <RotateCcwIcon aria-hidden />
-          <Trans>Extract again</Trans>
+          <span className="max-sm:sr-only">
+            <Trans>Extract again</Trans>
+          </span>
         </Button>
       ) : null}
       <DropdownMenu>

@@ -69,7 +69,7 @@ msgstr "{name} was deleted."
 msgid "{processed} of {total, plural, one {# row} other {# rows}}"
 msgstr "{processed} of {total, plural, one {# row} other {# rows}}"
 
-#: src/features/extraction/components/CsvSetup.tsx:121
+#: src/features/extraction/components/CsvSetup.tsx:148
 msgid "{rowCount, plural, one {Extract the first row} other {Extract the first # rows}}"
 msgstr "{rowCount, plural, one {Extract the first row} other {Extract the first # rows}}"
 
@@ -85,7 +85,7 @@ msgstr "<0/> to send"
 msgid "<0><1/><2/></0> for a new line"
 msgstr "<0><1/><2/></0> for a new line"
 
-#: src/features/extraction/components/CsvSetup.tsx:79
+#: src/features/extraction/components/CsvSetup.tsx:107
 msgid "<0>Read</0>: the agent reads it. <1>Keep</1>: shown beside the results. <2>Skip</2>: left out."
 msgstr "<0>Read</0>: the agent reads it. <1>Keep</1>: shown beside the results. <2>Skip</2>: left out."
 
@@ -135,7 +135,7 @@ msgid "Back to the Desk"
 msgstr "Back to the Desk"
 
 #: src/features/conversation/components/FeedbackDialog.tsx:107
-#: src/features/extraction/components/CsvSetup.tsx:114
+#: src/features/extraction/components/CsvSetup.tsx:141
 #: src/features/extraction/components/DeleteDocumentDialog.tsx:61
 #: src/features/history/components/DeleteEntryDialog.tsx:78
 #: src/features/memory/components/MemoryPanel.tsx:111
@@ -147,7 +147,11 @@ msgstr "Cancel"
 msgid "Check your connection, then try again."
 msgstr "Check your connection, then try again."
 
-#: src/features/extraction/components/CsvSetup.tsx:106
+#: src/features/extraction/components/FileDropZone.tsx:122
+msgid "Choose a file"
+msgstr "Choose a file"
+
+#: src/features/extraction/components/CsvSetup.tsx:133
 msgid "Choose at least one column for the agent to read."
 msgstr "Choose at least one column for the agent to read."
 
@@ -155,7 +159,7 @@ msgstr "Choose at least one column for the agent to read."
 msgid "Close the panel"
 msgstr "Close the panel"
 
-#: src/features/extraction/components/CsvSetup.tsx:76
+#: src/features/extraction/components/CsvSetup.tsx:82
 msgid "Columns"
 msgstr "Columns"
 
@@ -218,8 +222,8 @@ msgstr "Delete"
 msgid "Delete {name}"
 msgstr "Delete {name}"
 
-#: src/features/extraction/components/CsvRunActions.tsx:93
-#: src/features/extraction/components/ExtractionRunActions.tsx:70
+#: src/features/extraction/components/CsvRunActions.tsx:99
+#: src/features/extraction/components/ExtractionRunActions.tsx:72
 msgid "Delete the extraction"
 msgstr "Delete the extraction"
 
@@ -258,11 +262,11 @@ msgstr "Done"
 msgid "Download {fileName}"
 msgstr "Download {fileName}"
 
-#: src/features/extraction/components/CsvRunActions.tsx:81
+#: src/features/extraction/components/CsvRunActions.tsx:86
 msgid "Download the results"
 msgstr "Download the results"
 
-#: src/features/extraction/components/FileDropZone.tsx:113
+#: src/features/extraction/components/FileDropZone.tsx:116
 msgid "Drop a file here, or <0>browse</0>"
 msgstr "Drop a file here, or <0>browse</0>"
 
@@ -291,11 +295,11 @@ msgstr "Extract"
 msgid "Extract {name}"
 msgstr "Extract {name}"
 
-#: src/features/extraction/components/ExtractionRunActions.tsx:53
+#: src/features/extraction/components/ExtractionRunActions.tsx:54
 msgid "Extract again"
 msgstr "Extract again"
 
-#: src/features/extraction/components/CsvSetup.tsx:119
+#: src/features/extraction/components/CsvSetup.tsx:146
 msgid "Extract every row"
 msgstr "Extract every row"
 
@@ -397,8 +401,8 @@ msgstr "Loading the interactive card…"
 msgid "Message to {agentName}"
 msgstr "Message to {agentName}"
 
-#: src/features/extraction/components/CsvRunActions.tsx:86
-#: src/features/extraction/components/ExtractionRunActions.tsx:58
+#: src/features/extraction/components/CsvRunActions.tsx:92
+#: src/features/extraction/components/ExtractionRunActions.tsx:60
 msgid "More actions"
 msgstr "More actions"
 
@@ -412,7 +416,7 @@ msgstr "New conversation"
 msgid "New extraction"
 msgstr "New extraction"
 
-#: src/features/extraction/components/CsvRecordsTable.tsx:108
+#: src/features/extraction/components/CsvRecordsTable.tsx:110
 msgid "Next page"
 msgstr "Next page"
 
@@ -432,7 +436,7 @@ msgstr "No extractions yet"
 msgid "No passage to show."
 msgstr "No passage to show."
 
-#: src/features/extraction/components/CsvRecordsTable.tsx:83
+#: src/features/extraction/components/CsvRecordsTable.tsx:85
 msgid "No rows"
 msgstr "No rows"
 
@@ -465,11 +469,11 @@ msgstr "Open {name}"
 msgid "Open {title}"
 msgstr "Open {title}"
 
-#: src/features/extraction/components/CsvRecordsTable.tsx:47
+#: src/features/extraction/components/CsvRecordsTable.tsx:49
 msgid "Open row {rowNumber}"
 msgstr "Open row {rowNumber}"
 
-#: src/features/extraction/components/ExtractionRunActions.tsx:65
+#: src/features/extraction/components/ExtractionRunActions.tsx:67
 msgid "Open the document"
 msgstr "Open the document"
 
@@ -481,7 +485,7 @@ msgstr "Open the menu of {email}"
 msgid "Page not found"
 msgstr "Page not found"
 
-#: src/features/extraction/components/CsvRecordsTable.tsx:87
+#: src/features/extraction/components/CsvRecordsTable.tsx:89
 msgid "Pages of the results"
 msgstr "Pages of the results"
 
@@ -489,7 +493,7 @@ msgstr "Pages of the results"
 msgid "PDF"
 msgstr "PDF"
 
-#: src/features/extraction/components/FileDropZone.tsx:119
+#: src/features/extraction/components/FileDropZone.tsx:128
 msgid "PDF, image, text or CSV file, up to 25 MB. A CSV file runs row by row."
 msgstr "PDF, image, text or CSV file, up to 25 MB. A CSV file runs row by row."
 
@@ -505,7 +509,7 @@ msgstr "Previous 30 days"
 msgid "Previous 7 days"
 msgstr "Previous 7 days"
 
-#: src/features/extraction/components/CsvRecordsTable.tsx:99
+#: src/features/extraction/components/CsvRecordsTable.tsx:101
 msgid "Previous page"
 msgstr "Previous page"
 
@@ -513,6 +517,10 @@ msgstr "Previous page"
 #: src/features/extraction/components/ColumnRoleRow.tsx:39
 msgid "Read"
 msgstr "Read"
+
+#: src/features/extraction/components/CsvSetup.tsx:91
+msgid "Read all"
+msgstr "Read all"
 
 #: src/components/shared/RouteErrorState.tsx:25
 msgid "Reload"
@@ -556,7 +564,7 @@ msgstr "Resize the panel"
 msgid "Resize the sidebar"
 msgstr "Resize the sidebar"
 
-#: src/features/extraction/components/CsvRecordsTable.tsx:76
+#: src/features/extraction/components/CsvRecordsTable.tsx:78
 msgid "Results"
 msgstr "Results"
 
@@ -581,7 +589,7 @@ msgstr "Row {rowNumber}"
 msgid "Rows"
 msgstr "Rows"
 
-#: src/features/extraction/components/CsvRecordsTable.tsx:91
+#: src/features/extraction/components/CsvRecordsTable.tsx:93
 msgid "Rows {first}–{last} of {total}"
 msgstr "Rows {first}–{last} of {total}"
 
@@ -662,6 +670,10 @@ msgstr "Sign out"
 msgid "Skip"
 msgstr "Skip"
 
+#: src/features/extraction/components/CsvSetup.tsx:102
+msgid "Skip all"
+msgstr "Skip all"
+
 #: src/features/extraction/components/ExtractionFailure.tsx:50
 msgid "Something went wrong while it read it. Try again."
 msgstr "Something went wrong while it read it. Try again."
@@ -680,7 +692,7 @@ msgid "Status"
 msgstr "Status"
 
 #. Stops a run in progress
-#: src/features/extraction/components/CsvRunActions.tsx:60
+#: src/features/extraction/components/CsvRunActions.tsx:61
 msgid "Stop"
 msgstr "Stop"
 
@@ -743,7 +755,7 @@ msgstr "The agent remembers"
 msgid "The agent remembers nothing about you."
 msgstr "The agent remembers nothing about you."
 
-#: src/features/extraction/components/CsvSetup.tsx:68
+#: src/features/extraction/components/CsvSetup.tsx:74
 msgid "The agent runs once per row. Choose what it reads in each one."
 msgstr "The agent runs once per row. Choose what it reads in each one."
 
@@ -795,7 +807,7 @@ msgstr "The document has more pages than the agent can read at once. Split it, t
 msgid "The extraction could not be deleted. Try again."
 msgstr "The extraction could not be deleted. Try again."
 
-#: src/features/extraction/components/CsvSetup.tsx:57
+#: src/features/extraction/components/CsvSetup.tsx:63
 #: src/features/extraction/components/ExtractionRunView.tsx:57
 #: src/features/extraction/components/NewExtraction.tsx:86
 msgid "The extraction could not start. Try again."
@@ -821,7 +833,7 @@ msgstr "The file could not be opened. Try again."
 msgid "The file could not be uploaded. Try again."
 msgstr "The file could not be uploaded. Try again."
 
-#: src/features/extraction/components/CsvRecordsTable.tsx:83
+#: src/features/extraction/components/CsvRecordsTable.tsx:85
 msgid "The first rows come in a moment…"
 msgstr "The first rows come in a moment…"
 
@@ -861,7 +873,7 @@ msgstr "The results file could not be opened."
 msgid "The run could not be stopped. Try again."
 msgstr "The run could not be stopped. Try again."
 
-#: src/features/extraction/components/CsvRunActions.tsx:70
+#: src/features/extraction/components/CsvRunActions.tsx:72
 msgid "The run could not start again. Try again."
 msgstr "The run could not start again. Try again."
 
@@ -903,7 +915,7 @@ msgid "Took {tookTime}"
 msgstr "Took {tookTime}"
 
 #: src/components/shared/RouteErrorState.tsx:44
-#: src/features/extraction/components/CsvRunActions.tsx:75
+#: src/features/extraction/components/CsvRunActions.tsx:78
 #: src/features/extraction/components/ExtractionFailure.tsx:59
 #: src/features/history/components/AgentHistorySection.tsx:40
 msgid "Try again"

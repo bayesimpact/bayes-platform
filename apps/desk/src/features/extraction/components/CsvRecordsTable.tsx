@@ -38,6 +38,8 @@ export function CsvRecordsTable({
   onPageChange,
   onOpenRecord,
 }: CsvRecordsTableProps) {
+  // The table of TanStack Table v8 changes in place, which the React Compiler cannot memoize.
+  "use no memo"
   const { t, i18n } = useLingui()
   const answerFields = fieldKeysOf(records.records.map((record) => record.agentRawOutput))
   const columns = recordColumnsOf({

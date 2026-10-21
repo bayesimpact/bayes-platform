@@ -110,9 +110,18 @@ export function FileDropZone({ onFiles, upload }: FileDropZoneProps) {
             {isDragging ? (
               <Trans>Drop the file to extract it</Trans>
             ) : (
-              <Trans>
-                Drop a file here, or <span className="underline underline-offset-4">browse</span>
-              </Trans>
+              <>
+                {/* A touch screen picks a file; it has nothing to drag one from. */}
+                <span className="pointer-coarse:hidden">
+                  <Trans>
+                    Drop a file here, or{" "}
+                    <span className="underline underline-offset-4">browse</span>
+                  </Trans>
+                </span>
+                <span className="hidden pointer-coarse:inline">
+                  <Trans>Choose a file</Trans>
+                </span>
+              </>
             )}
           </span>
           <span id={hintId} className="text-sm text-muted-foreground">

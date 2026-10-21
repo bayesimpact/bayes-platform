@@ -57,7 +57,9 @@ export function CsvRunActions({ agent, run, onDelete }: CsvRunActionsProps) {
           }
         >
           <CircleStopIcon aria-hidden />
-          <Trans comment="Stops a run in progress">Stop</Trans>
+          <span className="max-sm:sr-only">
+            <Trans comment="Stops a run in progress">Stop</Trans>
+          </span>
         </Button>
       ) : null}
       {run.status === "failed" ? (
@@ -72,13 +74,17 @@ export function CsvRunActions({ agent, run, onDelete }: CsvRunActionsProps) {
           }
         >
           <RotateCcwIcon aria-hidden />
-          <Trans>Try again</Trans>
+          <span className="max-sm:sr-only">
+            <Trans>Try again</Trans>
+          </span>
         </Button>
       ) : null}
       {run.csvExportDocumentId && !isLive ? (
         <Button variant="outline" size="sm" onClick={handleDownload}>
           <DownloadIcon aria-hidden />
-          <Trans>Download the results</Trans>
+          <span className="max-sm:sr-only">
+            <Trans>Download the results</Trans>
+          </span>
         </Button>
       ) : null}
       <DropdownMenu>

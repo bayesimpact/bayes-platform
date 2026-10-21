@@ -42,6 +42,9 @@ export function DataTable<TData>({
   openRowId = null,
   isRefreshing = false,
 }: DataTableProps<TData>) {
+  // TanStack Table v8 mutates its table in place, which the React Compiler cannot see: memoized,
+  // the headers would keep the columns of the first render.
+  "use no memo"
   const rows = table.getRowModel().rows
   const columnCount = table.getVisibleLeafColumns().length
 

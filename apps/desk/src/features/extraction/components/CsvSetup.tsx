@@ -38,6 +38,12 @@ export function CsvSetup({ agent, documentId }: CsvSetupProps) {
   const canStart = readsAColumn(setup.roles) && !startExtraction.isPending
   const rowCount = setup.scope.kind === "first" ? setup.scope.count : 0
 
+  const setAllRoles = (role: CsvColumnRoleDto) =>
+    setSetup((current) => ({
+      ...current,
+      roles: Object.fromEntries(columns.map((column) => [column.id, role])),
+    }))
+
   const setRole = (columnId: string, role: CsvColumnRoleDto) =>
     setSetup((current) => ({ ...current, roles: { ...current.roles, [columnId]: role } }))
 
@@ -75,14 +81,35 @@ export function CsvSetup({ agent, documentId }: CsvSetupProps) {
           <h2 id="csv-columns" className="text-sm font-medium">
             <Trans>Columns</Trans>
           </h2>
-          <p className="text-xs text-muted-foreground">
-            <Trans>
-              <strong className="font-medium text-foreground">Read</strong>: the agent reads it.{" "}
-              <strong className="font-medium text-foreground">Keep</strong>: shown beside the
-              results. <strong className="font-medium text-foreground">Skip</strong>: left out.
-            </Trans>
-          </p>
+          <div className="flex items-center gap-1 text-xs">
+            <Button
+              variant="link"
+              size="xs"
+              className="h-auto px-1"
+              onClick={() => setAllRoles("input")}
+            >
+              <Trans>Read all</Trans>
+            </Button>
+            <span aria-hidden className="text-muted-foreground">
+              ·
+            </span>
+            <Button
+              variant="link"
+              size="xs"
+              className="h-auto px-1"
+              onClick={() => setAllRoles("ignore")}
+            >
+              <Trans>Skip all</Trans>
+            </Button>
+          </div>
         </div>
+        <p className="px-1 text-xs text-muted-foreground">
+          <Trans>
+            <strong className="font-medium text-foreground">Read</strong>: the agent reads it.{" "}
+            <strong className="font-medium text-foreground">Keep</strong>: shown beside the results.{" "}
+            <strong className="font-medium text-foreground">Skip</strong>: left out.
+          </Trans>
+        </p>
         <ul className="flex flex-col divide-y rounded-2xl border bg-background dark:bg-card">
           {columns.map((column) => (
             <ColumnRoleRow

@@ -1,5 +1,6 @@
 import { screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
+import { HttpResponse, http } from "msw"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { extractionUrlsOf } from "@/test/extraction-urls"
 import { buildExtractionAgentWorld } from "@/test/factories/desk-world.factory"
@@ -38,6 +39,34 @@ describe("an extraction of a CSV file", () => {
     await userEvent.click(screen.getByRole("button", { name: "Next page" }))
     expect(await screen.findByText("Rows 21–24 of 24")).toBeInTheDocument()
     expect(router.state.location.search).toEqual({ page: 1 })
+  })
+
+  it("adds the agent's answers to the table once the first rows are done", async () => {
+    const world = buildExtractionAgentWorld()
+    server.use(...worldHandlers(world))
+    const [run] = world.csvExtractionRuns[world.agents[0]?.id ?? ""] ?? []
+    if (!run) throw new Error("The world has a CSV run")
+    // The run has just started: no row is done yet, and the first poll finds it so.
+    run.status = "running"
+    run.csvExportDocumentId = null
+    for (const record of world.csvRecords[run.id] ?? []) {
+      record.status = "running"
+      record.agentRawOutput = null
+    }
+    const runsPath =
+      "*/api/organizations/:organizationId/projects/:projectId/agents/:agentId/csv-extraction-runs/live"
+    server.use(
+      http.get(runsPath, () => HttpResponse.json({ data: [run] }), { once: true }),
+      http.get(`${runsPath}/:runId`, () => HttpResponse.json({ data: run }), { once: true }),
+    )
+    renderApp(extractionUrlsOf(world).csvRunUrl)
+
+    expect(await screen.findByText("From the file")).toBeInTheDocument()
+    expect(screen.queryByText("Agent's answers")).not.toBeInTheDocument()
+    expect(
+      await screen.findByRole("columnheader", { name: "Agent's answers" }, { timeout: 4000 }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole("columnheader", { name: /^Topic/ })).toBeInTheDocument()
   })
 
   it("is set up, then started on the first rows only", async () => {

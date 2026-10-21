@@ -53,7 +53,8 @@ export function CsvRowScope({ scope, onScopeChange }: CsvRowScopeProps) {
             min={1}
             value={count}
             aria-label={t`Number of rows to try`}
-            disabled={scope.kind !== "first"}
+            // Going to the number chooses the first rows: nothing else uses it.
+            onFocus={() => onScopeChange({ kind: "first", count })}
             onChange={(event) => {
               const next = Math.max(1, Math.floor(Number(event.target.value) || 1))
               onScopeChange({ kind: "first", count: next })
