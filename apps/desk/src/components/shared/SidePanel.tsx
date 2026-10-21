@@ -35,7 +35,7 @@ export function SidePanel({ title, description, onClose, footer, children }: Sid
       aria-labelledby={titleId}
       // Safe: a custom property, which React's style type does not list.
       style={{ "--side-panel-width": `${panelWidth.width}px` } as CSSProperties}
-      className="fixed inset-0 z-30 flex flex-col bg-background duration-200 animate-in fade-in-0 slide-in-from-right-4 lg:relative lg:inset-auto lg:z-auto lg:mr-2 lg:mb-2 lg:w-(--side-panel-width) lg:shrink-0 lg:rounded-xl lg:border lg:shadow-sm"
+      className="fixed inset-0 z-30 flex flex-col bg-background duration-200 animate-in fade-in-0 slide-in-from-right-4 lg:relative lg:inset-auto lg:z-auto lg:mr-2 lg:mb-2 lg:w-(--side-panel-width) lg:shrink-0 lg:rounded-xl lg:border lg:border-foreground/15 lg:shadow-sm"
     >
       <ResizeHandle
         edge="left"
