@@ -9,7 +9,7 @@ import {
   buildSeveralAgentsWorld,
   buildSeveralProjectsWorld,
 } from "@/test/factories/desk-world.factory"
-import { worldHandlers } from "@/test/msw/handlers"
+import { termsHandlers, worldHandlers } from "@/test/msw/handlers"
 import { server } from "@/test/msw/server"
 import { renderApp } from "@/test/render-app"
 
@@ -171,5 +171,39 @@ describe("the invitations", () => {
     expect(router.state.location.pathname).toMatch(/\/a\//)
     // Without an invitation left, the envelope goes.
     expect(screen.queryByRole("button", { name: /pending invitation/ })).not.toBeInTheDocument()
+  })
+})
+
+describe("the terms", () => {
+  it("come before the Desk, which opens once the required ones are accepted", async () => {
+    const world = buildDeskWorld()
+    server.use(...worldHandlers(world), ...termsHandlers())
+    renderApp("/app/")
+
+    expect(await screen.findByRole("heading", { name: "Before you start" })).toBeInTheDocument()
+    expect(
+      screen.queryByRole("heading", { name: "How can I help you today?" }),
+    ).not.toBeInTheDocument()
+    const submit = screen.getByRole("button", { name: "Accept and continue" })
+    expect(submit).toBeDisabled()
+
+    await userEvent.click(
+      screen.getByRole("checkbox", {
+        name: "I accept the general conditions of service (required)",
+      }),
+    )
+    expect(submit).toBeDisabled()
+    await userEvent.click(
+      screen.getByRole("checkbox", { name: "I accept the privacy policy (required)" }),
+    )
+    expect(screen.getByRole("link", { name: /Read the privacy policy/ })).toHaveAttribute(
+      "href",
+      "https://example.org/terms/privacy-policy",
+    )
+    await userEvent.click(submit)
+
+    expect(
+      await screen.findByRole("heading", { name: "How can I help you today?" }),
+    ).toBeInTheDocument()
   })
 })

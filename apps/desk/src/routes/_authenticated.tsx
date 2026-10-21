@@ -1,9 +1,14 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router"
+import { Suspense } from "react"
+import { DeskShellSkeleton } from "@/components/shared/DeskShellSkeleton"
 import { RouteErrorState } from "@/components/shared/RouteErrorState"
-import { meQueryOptions } from "@/features/account"
+import { meQueryOptions, TermsGate } from "@/features/account"
 import { hasSession, readLoginHint, signIn } from "@/lib/auth/session"
 
-/** Every page of the Desk but the sign-in callback: a session, then the page in its frame. */
+/**
+ * Every page of the Desk but the sign-in callback: a session, the terms accepted, then the page in
+ * its frame.
+ */
 export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async ({ location }) => {
     if (await hasSession()) return
@@ -11,11 +16,21 @@ export const Route = createFileRoute("/_authenticated")({
     // The provider's page replaces this one: wait for it rather than render the route.
     await new Promise<never>(() => {})
   },
-  // The user menu must not block the page: its query starts here, unawaited, and the menu waits
-  // for it in a Suspense of its own while the page shows its skeleton.
+  // The pages' loaders run beside this one: `me`, which the terms and the user menu read, starts
+  // here unawaited, and the gate waits for it with the shape of the Desk.
   loader: ({ context }) => {
     void context.queryClient.prefetchQuery(meQueryOptions())
   },
   errorComponent: RouteErrorState,
-  component: Outlet,
+  component: AuthenticatedLayout,
 })
+
+function AuthenticatedLayout() {
+  return (
+    <Suspense fallback={<DeskShellSkeleton />}>
+      <TermsGate>
+        <Outlet />
+      </TermsGate>
+    </Suspense>
+  )
+}

@@ -22,6 +22,16 @@ msgstr "« {title} » et ses messages seront supprimés. Cette action est défin
 msgid "(opens in a new tab)"
 msgstr "(s'ouvre dans un nouvel onglet)"
 
+#. A document the person may accept or not
+#: src/features/account/components/TermsCheckbox.tsx:43
+msgid "(optional)"
+msgstr "(facultatif)"
+
+#. A document the person must accept
+#: src/features/account/components/TermsCheckbox.tsx:41
+msgid "(required)"
+msgstr "(obligatoire)"
+
 #: src/features/conversation/components/Composer.tsx:193
 msgid "{annotationCount, plural, one {Send with # annotation} other {Send with # annotations}}"
 msgstr "{annotationCount, plural, one {Envoyer avec # annotation} other {Envoyer avec # annotations}}"
@@ -110,6 +120,14 @@ msgstr "Une nouvelle version du Desk est disponible. Rechargez la page."
 msgid "Accept"
 msgstr "Accepter"
 
+#: src/features/account/components/TermsPage.tsx:117
+msgid "Accept and continue"
+msgstr "Valider et continuer"
+
+#: src/features/account/schemas.ts:5
+msgid "Accept the general conditions and the privacy policy to continue."
+msgstr "Acceptez les conditions générales et la politique de confidentialité pour continuer."
+
 #: src/features/invitations/components/InvitationItem.tsx:53
 msgid "Accept the invitation to {name}"
 msgstr "Accepter l’invitation à {name}"
@@ -133,6 +151,10 @@ msgstr "Agent"
 #: src/features/extraction/components/CsvRecordPanel.tsx:38
 msgid "Agent's answers"
 msgstr "Réponses de l’agent"
+
+#: src/features/account/components/TermsPage.tsx:65
+msgid "AI systems usage policy"
+msgstr "politique d’utilisation des systèmes d’intelligence artificielle"
 
 #: src/features/conversation/components/QuoteReplyPopover.tsx:127
 msgid "Annotate and press Enter to keep it"
@@ -161,6 +183,10 @@ msgstr "Pièce jointe"
 #: src/components/shared/NotFoundState.tsx:15
 msgid "Back to the Desk"
 msgstr "Retour au Desk"
+
+#: src/features/account/components/TermsPage.tsx:77
+msgid "Before you start"
+msgstr "Avant de commencer"
 
 #: src/features/conversation/components/FeedbackDialog.tsx:107
 #: src/features/extraction/components/CsvSetup.tsx:141
@@ -392,6 +418,10 @@ msgstr "Formulaire en cours"
 msgid "From the file"
 msgstr "Du fichier"
 
+#: src/features/account/components/TermsPage.tsx:51
+msgid "general conditions of service"
+msgstr "conditions générales de service"
+
 #: src/features/extraction/components/NewExtraction.tsx:53
 msgid "Give the agent one file at a time."
 msgstr "Donnez un seul fichier à la fois à l’agent."
@@ -412,6 +442,18 @@ msgstr "Accueil du Desk"
 #: src/features/conversation/components/NewConversation.tsx:22
 msgid "How can I help you today?"
 msgstr "Comment puis-je vous aider aujourd'hui ?"
+
+#: src/features/account/components/TermsPage.tsx:64
+msgid "I accept the AI systems usage policy"
+msgstr "J’accepte la politique d’utilisation des systèmes d’intelligence artificielle"
+
+#: src/features/account/components/TermsPage.tsx:50
+msgid "I accept the general conditions of service"
+msgstr "J’accepte les conditions générales de service"
+
+#: src/features/account/components/TermsPage.tsx:57
+msgid "I accept the privacy policy"
+msgstr "J’accepte la politique de confidentialité"
 
 #: src/features/conversation/components/ResourcePanel.tsx:72
 msgid "If the page stays blank, its site does not allow being shown here: open it in a new tab."
@@ -590,6 +632,10 @@ msgstr "7 derniers jours"
 msgid "Previous page"
 msgstr "Page précédente"
 
+#: src/features/account/components/TermsPage.tsx:58
+msgid "privacy policy"
+msgstr "politique de confidentialité"
+
 #. What an invitation gives access to
 #: src/features/invitations/components/InvitationItem.tsx:16
 msgid "Project"
@@ -603,6 +649,18 @@ msgstr "Lire"
 #: src/features/extraction/components/CsvSetup.tsx:91
 msgid "Read all"
 msgstr "Tout lire"
+
+#: src/features/account/components/TermsPage.tsx:80
+msgid "Read and accept the terms of the Desk to continue."
+msgstr "Prenez connaissance des conditions du Desk et acceptez-les pour continuer."
+
+#: src/features/account/components/TermsCheckbox.tsx:56
+msgid "Read it"
+msgstr "Lire"
+
+#: src/features/account/components/TermsCheckbox.tsx:52
+msgid "Read the {documentName} (opens in a new tab)"
+msgstr "Lire : {documentName} (s’ouvre dans un nouvel onglet)"
 
 #: src/components/shared/RouteErrorState.tsx:25
 msgid "Reload"
@@ -753,6 +811,7 @@ msgstr "Se reconnecter"
 msgid "Sign in again to open the Desk."
 msgstr "Reconnectez-vous pour ouvrir le Desk."
 
+#: src/features/account/components/TermsPage.tsx:114
 #: src/features/account/components/UserMenu.tsx:65
 msgid "Sign out"
 msgstr "Se déconnecter"
@@ -797,6 +856,10 @@ msgstr "Arrêtée"
 #: src/features/agents/components/AgentSwitcher.tsx:42
 msgid "Switch agent, current agent: {agentName}"
 msgstr "Changer d'agent, agent actuel : {agentName}"
+
+#: src/features/account/components/TermsPage.tsx:86
+msgid "Terms"
+msgstr "Conditions"
 
 #. The role an invitation grants
 #: src/features/invitations/components/InvitationItem.tsx:27
@@ -1100,6 +1163,7 @@ msgstr "Vous n'avez encore accès à aucun agent"
 msgid "You joined {targetName}."
 msgstr "Vous avez rejoint {targetName}."
 
+#: src/features/account/components/TermsPage.tsx:44
 #: src/features/memory/components/MemoryProposals.tsx:34
 msgid "Your answer could not be saved. Try again."
 msgstr "Votre réponse n'a pas pu être enregistrée. Réessayez."

@@ -48,9 +48,21 @@ function chunksOf(text: string): string[] {
   return chunks
 }
 
-/** `GET me`, answered with the given person. */
+/** `GET me`, answered with the given person, who accepted the terms unless told otherwise. */
 const meHandler = (me: MeOutputDto = buildMe()) =>
   http.get("*/api/me", () => HttpResponse.json({ data: me }))
+
+/** A person who has not accepted the current terms yet, until they do. */
+export function termsHandlers() {
+  const me = buildMe({ termsAccepted: false })
+  return [
+    http.get("*/api/me", () => HttpResponse.json({ data: me })),
+    http.post("*/api/me/terms-acceptances", () => {
+      me.user.termsAccepted = true
+      return HttpResponse.json({ data: { success: true } }, { status: 201 })
+    }),
+  ]
+}
 
 /** `GET projects/mine`, answered with the given projects. */
 const myProjectsHandler = (projects: MyProjectOutputDto[]) =>
@@ -256,7 +268,8 @@ export const handlers = [meHandler(), ...worldHandlers(buildDeskWorld())]
 
 /**
  * Other states of the screens, for the mock mode: `/app/?mock=agents`, `?mock=projects`,
- * `?mock=extraction`, `?mock=no-history`, `?mock=no-agent`, `?mock=error`, `?mock=loading`.
+ * `?mock=extraction`, `?mock=no-history`, `?mock=no-agent`, `?mock=terms`, `?mock=error`,
+ * `?mock=loading`.
  */
 export const mockScenarios = {
   agents: worldHandlers(buildSeveralAgentsWorld()),
@@ -264,6 +277,7 @@ export const mockScenarios = {
   extraction: worldHandlers(buildExtractionAgentWorld()),
   "no-history": worldHandlers(buildEmptyHistoryWorld()),
   "no-agent": worldHandlers(buildNoAgentWorld()),
+  terms: termsHandlers(),
   error: [http.get("*/api/projects/mine", () => new HttpResponse(null, { status: 503 }))],
   loading: [
     http.get("*/api/projects/mine", async () => {
