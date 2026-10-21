@@ -88,7 +88,7 @@ export function ToolSteps({ toolNames, isWriting, hasText }: ToolStepsProps) {
         <TraceCollapsibleTrigger>
           <TraceLine>
             <TraceTitle>
-              <Plural value={count} one="Worked through # step" other="Worked through # steps" />
+              <Plural value={count} one="Used a tool" other="Used tools" />
             </TraceTitle>
           </TraceLine>
         </TraceCollapsibleTrigger>

@@ -36,7 +36,7 @@ describe("a conversation", () => {
 
     expect(await screen.findByText(/Here is a short comparison/)).toBeInTheDocument()
     expect(screen.getByText("Hello! How can I help you today?")).toBeInTheDocument()
-    expect(screen.getByText("Worked through 3 steps")).toBeInTheDocument()
+    expect(screen.getByText("Used tools")).toBeInTheDocument()
   })
 
   it("shows the resources a reply points to and the sources it relied on", async () => {

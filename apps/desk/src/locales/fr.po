@@ -26,8 +26,8 @@ msgid "{count, plural, one {Used # source} other {Used # sources}}"
 msgstr "{count, plural, one {# source utilisée} other {# sources utilisées}}"
 
 #: src/features/conversation/components/ToolSteps.tsx:91
-msgid "{count, plural, one {Worked through # step} other {Worked through # steps}}"
-msgstr "{count, plural, one {# étape suivie} other {# étapes suivies}}"
+msgid "{count, plural, one {Used a tool} other {Used tools}}"
+msgstr "{count, plural, one {A utilisé un outil} other {A utilisé des outils}}"
 
 #: src/features/conversation/components/Composer.tsx:133
 msgid "<0/> to send"
