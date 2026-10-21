@@ -13,6 +13,10 @@
     "delete": {
       "title": "Delete {{name}}?",
       "description": "This deletes the source and the documents that belong to it."
+    },
+    "empty": {
+      "title": "No external source yet",
+      "description": "Sources appear here once an app syncs documents to this workspace."
     }
   }
 }

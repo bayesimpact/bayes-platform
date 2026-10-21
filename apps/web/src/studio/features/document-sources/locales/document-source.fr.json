@@ -13,6 +13,10 @@
     "delete": {
       "title": "Supprimer {{name}} ?",
       "description": "Cela supprime la source et les documents qui lui appartiennent."
+    },
+    "empty": {
+      "title": "Aucune source externe",
+      "description": "Les sources apparaissent ici dès qu'une application synchronise des documents vers cet espace de travail."
     }
   }
 }

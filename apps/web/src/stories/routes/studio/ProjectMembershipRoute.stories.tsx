@@ -69,39 +69,44 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-export const Default: Story = {
-  decorators: [
-    buildDecorator<StoryArgs>(({ withMemberAgents, memberRole, ...args }) => {
-      const { baseSeeds, project, agents } = buildStudioData(args)
-      const membership = projectMembershipFactory
-        .transient({ project })
-        .build({ id: FIXED_MEMBERSHIP_ID, role: memberRole ?? "member" })
-      const otherMemberships = [
-        projectMembershipFactory.transient({ project }).build({ role: "owner" }),
-      ]
-      const memberAgents = withMemberAgents
-        ? agents.map((agent, index) =>
-            projectMemberAgentFactory
-              .transient({ agent, membership })
-              .build(index === agents.length - 1 ? { membershipId: null, role: null } : {}),
-          )
-        : []
-      const memberships = [membership, ...otherMemberships]
+const decorator = buildDecorator<StoryArgs>(({ withMemberAgents, memberRole, ...args }) => {
+  const { baseSeeds, project, agents } = buildStudioData(args)
+  const membership = projectMembershipFactory
+    .transient({ project })
+    .build({ id: FIXED_MEMBERSHIP_ID, role: memberRole ?? "member" })
+  const otherMemberships = [
+    projectMembershipFactory.transient({ project }).build({ role: "owner" }),
+  ]
+  const memberAgents = withMemberAgents
+    ? agents.map((agent, index) =>
+        projectMemberAgentFactory
+          .transient({ agent, membership })
+          .build(index === agents.length - 1 ? { membershipId: null, role: null } : {}),
+      )
+    : []
+  const memberships = [membership, ...otherMemberships]
 
-      return {
-        state: mergeSeeds(
-          baseSeeds,
-          seed.studio.projectMemberships(memberships),
-          seed.studio.projectMemberAgents(memberAgents),
-          seed.currentMembershipId(FIXED_MEMBERSHIP_ID),
-        ),
-        services: {
-          projectMemberships: buildMockProjectMembershipsService({
-            memberships,
-            memberAgents,
-          }),
-        },
-      }
-    }),
-  ],
+  return {
+    state: mergeSeeds(
+      baseSeeds,
+      seed.studio.projectMemberships(memberships),
+      seed.studio.projectMemberAgents(memberAgents),
+      seed.currentMembershipId(FIXED_MEMBERSHIP_ID),
+    ),
+    services: {
+      projectMemberships: buildMockProjectMembershipsService({
+        memberships,
+        memberAgents,
+      }),
+    },
+  }
+})
+
+export const Default: Story = {
+  decorators: [decorator],
+}
+
+export const WithMemberAgents: Story = {
+  args: { withMemberAgents: true },
+  decorators: [decorator],
 }

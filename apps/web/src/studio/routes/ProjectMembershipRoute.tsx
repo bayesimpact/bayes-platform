@@ -1,26 +1,17 @@
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@caseai-connect/ui/shad/table"
-import {
-  type Column,
   type ColumnDef,
-  flexRender,
   getCoreRowModel,
   getSortedRowModel,
   type SortingState,
   useReactTable,
 } from "@tanstack/react-table"
-import { ArrowUpDownIcon } from "lucide-react"
 import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
+import { DataTable } from "@/common/components/data-table/DataTable"
 import { GridHeader } from "@/common/components/grid/Grid"
+import { SortableFilterableHeader } from "@/common/components/shared/RecordTableParts"
 import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
 import { useMount } from "@/common/hooks/use-mount"
 import { useValue } from "@/common/hooks/use-value"
@@ -127,6 +118,9 @@ const ROLE_ORDER: Record<NonNullable<ProjectMemberAgent["role"]>, number> = {
 }
 
 function MemberAgentsTable({ memberAgents }: { memberAgents: ProjectMemberAgent[] }) {
+  // TanStack Table keeps one table instance across renders, so the React Compiler would
+  // memoize its row model and show stale rows after a sort.
+  "use no memo"
   const { t } = useTranslation()
   const [sorting, setSorting] = useState<SortingState>([])
 
@@ -135,16 +129,21 @@ function MemberAgentsTable({ memberAgents }: { memberAgents: ProjectMemberAgent[
       {
         id: "agent",
         accessorKey: "agentName",
+        enableColumnFilter: false,
         header: ({ column }) => (
-          <SortableHeader column={column} label={t("projectMembership:profile.agent")} />
+          <SortableFilterableHeader column={column} label={t("projectMembership:profile.agent")} />
         ),
         cell: ({ row }) => <span className="capitalize">{row.original.agentName}</span>,
       },
       {
         id: "role",
         accessorKey: "role",
+        enableColumnFilter: false,
         header: ({ column }) => (
-          <SortableHeader column={column} label={t("projectMembership:profile.agentRole")} />
+          <SortableFilterableHeader
+            column={column}
+            label={t("projectMembership:profile.agentRole")}
+          />
         ),
         cell: ({ row }) => <RoleCell memberAgent={row.original} />,
         sortingFn: (rowA, rowB) => {
@@ -158,11 +157,7 @@ function MemberAgentsTable({ memberAgents }: { memberAgents: ProjectMemberAgent[
       },
       {
         id: "permissions",
-        header: () => (
-          <span className="text-muted-foreground">
-            {t("projectMembership:profile.agentPermissions")}
-          </span>
-        ),
+        header: () => t("projectMembership:profile.agentPermissions"),
         cell: ({ row }) =>
           row.original.permissions.length === 0 ? (
             <span className="text-muted-foreground">—</span>
@@ -185,64 +180,14 @@ function MemberAgentsTable({ memberAgents }: { memberAgents: ProjectMemberAgent[
   })
 
   return (
-    <div className="w-full rounded-lg border overflow-hidden">
-      <Table>
-        <TableHeader className="bg-muted">
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <TableHead key={header.id} colSpan={header.colSpan}>
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(header.column.columnDef.header, header.getContext())}
-                </TableHead>
-              ))}
-            </TableRow>
-          ))}
-        </TableHeader>
-
-        <TableBody>
-          {table.getRowModel().rows.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={columns.length} className="h-12 text-center">
-                {t("projectMembership:profile.noAgents")}
-              </TableCell>
-            </TableRow>
-          ) : (
-            table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
-    </div>
-  )
-}
-
-function SortableHeader<TData>({
-  column,
-  label,
-}: {
-  column: Column<TData, unknown>
-  label: string
-}) {
-  return (
-    <button
-      type="button"
-      className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
-      onClick={() => {
-        column.toggleSorting()
-      }}
-    >
-      {label}
-      <ArrowUpDownIcon className="size-3.5" />
-    </button>
+    <DataTable
+      table={table}
+      empty={
+        <p className="py-2 text-center text-muted-foreground">
+          {t("projectMembership:profile.noAgents")}
+        </p>
+      }
+    />
   )
 }
 
