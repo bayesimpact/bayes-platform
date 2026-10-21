@@ -128,7 +128,19 @@ export type UpdateAgentNameDto = z.infer<typeof updateAgentNameSchema>
 
 export const updateAgentNameSchema = agentValidationSchema.pick({ name: true })
 
-/** The name of the copy: everything else comes from the agent that is duplicated. */
-export const duplicateAgentSchema = agentValidationSchema.pick({ name: true })
+/**
+ * The settings a copy starts from: the published revision the agent runs with, or the draft its
+ * editor shows. An agent without a draft gives its published revision, and one never published
+ * gives its draft, whatever the choice.
+ */
+export const agentDuplicationSourceSchema = z.enum(["published", "draft"])
 
-export type DuplicateAgentDto = z.infer<typeof duplicateAgentSchema>
+export type AgentDuplicationSource = z.infer<typeof agentDuplicationSourceSchema>
+
+/** The name of the copy and the settings it starts from: the rest comes from the original. */
+export const duplicateAgentSchema = agentValidationSchema.pick({ name: true }).extend({
+  source: agentDuplicationSourceSchema.default("published"),
+})
+
+// Input type: a client may leave the source out.
+export type DuplicateAgentDto = z.input<typeof duplicateAgentSchema>

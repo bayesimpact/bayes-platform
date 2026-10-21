@@ -161,7 +161,30 @@ describe("Agents - duplicateOne", () => {
     expect(studioCopy?.draftRevision).toBeUndefined()
   })
 
-  it("copies the published settings, not the draft being edited", async () => {
+  it("copies the draft being edited when the caller chooses it", async () => {
+    const { organization, project, agent } = await createContext()
+    await repositories.agentSettingsRepository.save(
+      agentSettingsFactory
+        .draft()
+        .transient({ organization, project, agent })
+        .build({ revision: 2, model: AgentModel.Gemini38Flash }),
+    )
+
+    const response = await request({
+      route: AgentsRoutes.duplicateOne,
+      pathParams: removeNullish({ organizationId, projectId, agentId }),
+      token: accessToken,
+      request: { payload: { name: "Helpful Assistant (copy)", source: "draft" } },
+    })
+
+    expectResponse(response, 201)
+    const [copySettings] = await repositories.agentSettingsRepository.find({
+      where: { agentId: response.body.data.id },
+    })
+    expect(copySettings?.model).toBe(AgentModel.Gemini38Flash)
+  })
+
+  it("copies the published settings by default, not the draft being edited", async () => {
     const { organization, project, agent } = await createContext()
     await repositories.agentSettingsRepository.save(
       agentSettingsFactory

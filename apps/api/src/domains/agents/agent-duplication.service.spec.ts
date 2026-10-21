@@ -387,6 +387,40 @@ describe("AgentDuplicationService", () => {
     failingStep.mockRestore()
   })
 
+  it("copies the draft instead of the published settings when the caller chooses it", async () => {
+    const source = await createSourceAgent()
+
+    const { agentSettings } = await service.duplicateAgent({
+      connectScope: { organizationId: source.organization.id, projectId: source.project.id },
+      agentId: source.agent.id,
+      name: "Helpful Assistant (copy)",
+      source: "draft",
+      userId: source.user.id,
+    })
+
+    expect(agentSettings).toMatchObject({
+      revision: 1,
+      isDraft: true,
+      instructions: "Work in progress.",
+    })
+  })
+
+  it("copies the published settings when the draft is chosen but the agent has none", async () => {
+    const source = await createOrganizationWithAgent(repositories, {
+      agentSettings: { instructions: "Only published." },
+    })
+
+    const { agentSettings } = await service.duplicateAgent({
+      connectScope: { organizationId: source.organization.id, projectId: source.project.id },
+      agentId: source.agent.id,
+      name: "Helpful Assistant (copy)",
+      source: "draft",
+      userId: source.user.id,
+    })
+
+    expect(agentSettings).toMatchObject({ isDraft: true, instructions: "Only published." })
+  })
+
   it("copies the draft of an agent that was never published", async () => {
     const source = await createOrganizationWithAgent(repositories, {
       agentSettings: { isDraft: true, instructions: "Only a draft." },
