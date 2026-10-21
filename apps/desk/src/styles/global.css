@@ -85,6 +85,8 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  /* The highlighter yellow of a quoted passage. */
+  --quote-mark: rgb(242 196 64 / 0.32);
 }
 
 .dark {
@@ -119,6 +121,7 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(0.269 0 0);
   --sidebar-ring: oklch(0.439 0 0);
+  --quote-mark: rgb(242 196 64 / 0.24);
 }
 
 @layer base {
@@ -133,9 +136,12 @@
   }
 }
 
-/* A passage of a reply the person quotes keeps the look of a selection while they write their
-   note (src/lib/quote-highlight.ts). */
+/* A passage of a reply turns highlighter yellow as the person selects it, and stays so while they
+   write their note on it (src/lib/quote-highlight.ts). */
+[data-quotable] ::selection {
+  background-color: var(--quote-mark);
+}
+
 ::highlight(desk-quote) {
-  background-color: Highlight;
-  color: HighlightText;
+  background-color: var(--quote-mark);
 }
