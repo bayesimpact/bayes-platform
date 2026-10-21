@@ -9,6 +9,7 @@ import { QUOTABLE_ATTRIBUTE } from "../annotation"
 import { type ChatMessage, isWriting } from "../chat-messages"
 import type { ConversationRef } from "../conversation-ref"
 import { type AppsHtml, hasMeaningfulText, toolResultText, unavailableApps } from "../mcp-apps"
+import type { PlayedVideo } from "../resource-media"
 import { FeedbackDialog } from "./FeedbackDialog"
 import { McpAppsList } from "./McpAppsList"
 import { MessageActions } from "./MessageActions"
@@ -25,6 +26,8 @@ export type AssistantMessageViewProps = {
   showSources: boolean
   appsHtml: AppsHtml
   onAppMessage: (text: string) => void
+  /** Plays a video a reply points to beside the conversation. */
+  onPlayVideo: (video: PlayedVideo) => void
 }
 
 /**
@@ -39,6 +42,7 @@ export function AssistantMessageView({
   showSources,
   appsHtml,
   onAppMessage,
+  onPlayVideo,
 }: AssistantMessageViewProps) {
   const { t } = useLingui()
   const [failedAppIds, setFailedAppIds] = useState<string[]>([])
@@ -78,7 +82,9 @@ export function AssistantMessageView({
             }
           />
         ) : null}
-        {message.resources.length > 0 ? <ResourceCards resources={message.resources} /> : null}
+        {message.resources.length > 0 ? (
+          <ResourceCards resources={message.resources} onPlayVideo={onPlayVideo} />
+        ) : null}
         {message.memoryIds.length > 0 ? (
           <MemoryProposals agent={memoryAgent} memoryIds={message.memoryIds} />
         ) : null}

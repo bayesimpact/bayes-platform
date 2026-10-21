@@ -17,7 +17,8 @@ msgstr "\"{title}\" and its messages will be deleted. This cannot be undone."
 
 #: src/components/shared/Markdown.tsx:44
 #: src/components/shared/Markdown.tsx:66
-#: src/features/conversation/components/ResourceCard.tsx:74
+#: src/features/conversation/components/ResourceCard.tsx:94
+#: src/features/conversation/components/VideoPanel.tsx:31
 msgid "(opens in a new tab)"
 msgstr "(opens in a new tab)"
 
@@ -191,11 +192,11 @@ msgstr "Copy the code"
 msgid "Copy the JSON"
 msgstr "Copy the JSON"
 
-#: src/features/conversation/components/ChatMessageView.tsx:54
+#: src/features/conversation/components/ChatMessageView.tsx:58
 msgid "Copy the message"
 msgstr "Copy the message"
 
-#: src/features/conversation/components/AssistantMessageView.tsx:95
+#: src/features/conversation/components/AssistantMessageView.tsx:101
 msgid "Copy the reply"
 msgstr "Copy the reply"
 
@@ -367,7 +368,7 @@ msgstr "Handing the conversation back"
 msgid "Home of the Desk"
 msgstr "Home of the Desk"
 
-#: src/features/conversation/components/ConversationView.tsx:91
+#: src/features/conversation/components/ConversationView.tsx:94
 #: src/features/conversation/components/NewConversation.tsx:22
 msgid "How can I help you today?"
 msgstr "How can I help you today?"
@@ -479,6 +480,10 @@ msgstr "Open {name}"
 msgid "Open {title}"
 msgstr "Open {title}"
 
+#: src/features/conversation/components/VideoPanel.tsx:30
+msgid "Open on YouTube"
+msgstr "Open on YouTube"
+
 #: src/features/extraction/components/CsvRecordsTable.tsx:49
 msgid "Open row {rowNumber}"
 msgstr "Open row {rowNumber}"
@@ -510,6 +515,10 @@ msgstr "PDF, image, text or CSV file, up to 25 MB. A CSV file runs row by row."
 #: src/features/conversation/components/ToolSteps.tsx:20
 msgid "Picking useful resources"
 msgstr "Picking useful resources"
+
+#: src/features/conversation/components/ResourceCard.tsx:76
+msgid "Play {title}"
+msgstr "Play {title}"
 
 #: src/features/history/components/HistoryList.tsx:33
 msgid "Previous 30 days"
@@ -578,7 +587,7 @@ msgstr "Resize the sidebar"
 msgid "Results"
 msgstr "Results"
 
-#: src/features/conversation/components/ConversationView.tsx:144
+#: src/features/conversation/components/ConversationView.tsx:148
 msgid "Retry"
 msgstr "Retry"
 
@@ -613,7 +622,7 @@ msgstr "Rows done"
 msgid "Running"
 msgstr "Running"
 
-#: src/features/conversation/components/ConversationView.tsx:153
+#: src/features/conversation/components/ConversationView.tsx:157
 msgid "Scroll to the latest message"
 msgstr "Scroll to the latest message"
 
@@ -915,7 +924,7 @@ msgstr "This page could not load"
 msgid "This page does not exist, or you cannot open it."
 msgstr "This page does not exist, or you cannot open it."
 
-#: src/features/conversation/components/AssistantMessageView.tsx:90
+#: src/features/conversation/components/AssistantMessageView.tsx:96
 msgid "This reply was interrupted before it finished."
 msgstr "This reply was interrupted before it finished."
 

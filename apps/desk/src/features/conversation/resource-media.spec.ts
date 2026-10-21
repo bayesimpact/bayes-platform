@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { resourceMediaOf, youtubeIdOf } from "./resource-media"
+import { resourceMediaOf, youtubeEmbedUrlOf, youtubeIdOf } from "./resource-media"
 
 describe("youtubeIdOf", () => {
   it("reads the id of the usual YouTube links", () => {
@@ -21,6 +21,7 @@ describe("resourceMediaOf", () => {
     expect(resourceMediaOf("https://youtu.be/dQw4w9WgXcQ", "https://youtu.be/dQw4w9WgXcQ")).toEqual(
       {
         kind: "youtube",
+        videoId: "dQw4w9WgXcQ",
         thumbnailUrl: "https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
       },
     )
@@ -28,5 +29,13 @@ describe("resourceMediaOf", () => {
       resourceMediaOf("https://example.org/chart.png", "https://example.org/chart.png"),
     ).toEqual({ kind: "image", url: "https://example.org/chart.png" })
     expect(resourceMediaOf("https://example.org/plans", "https://example.org/plans")).toBeNull()
+  })
+})
+
+describe("youtubeEmbedUrlOf", () => {
+  it("plays a video on YouTube's privacy-enhanced host, at once", () => {
+    expect(youtubeEmbedUrlOf("dQw4w9WgXcQ")).toBe(
+      "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?autoplay=1&rel=0",
+    )
   })
 })

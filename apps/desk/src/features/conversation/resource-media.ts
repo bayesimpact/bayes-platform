@@ -1,6 +1,6 @@
 /** What a resource card previews above its title. */
 export type ResourceMedia =
-  | { kind: "youtube"; thumbnailUrl: string }
+  | { kind: "youtube"; videoId: string; thumbnailUrl: string }
   | { kind: "image"; url: string }
 
 const YOUTUBE_ID_PATTERNS = [
@@ -36,9 +36,27 @@ export function resourceMediaOf(link: string, url: string): ResourceMedia | null
   if (youtubeId) {
     return {
       kind: "youtube",
+      videoId: youtubeId,
       thumbnailUrl: `https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`,
     }
   }
   if (isImageLink(link) || isLibraryFile(link)) return { kind: "image", url }
   return null
+}
+
+/** A video a resource card plays in the side panel. */
+export type PlayedVideo = {
+  title: string
+  description: string | null
+  videoId: string
+  /** The video's page, which opens on YouTube. */
+  url: string
+}
+
+/**
+ * The player of a YouTube video, on YouTube's privacy-enhanced host, which sets no cookie until
+ * the person plays it. It starts at once: the person just asked for it.
+ */
+export function youtubeEmbedUrlOf(videoId: string): string {
+  return `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`
 }

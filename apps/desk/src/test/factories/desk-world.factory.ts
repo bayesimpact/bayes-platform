@@ -104,6 +104,12 @@ function buildExchange(question: string, createdAt: number): ConversationMessage
                 description: "Every plan, side by side.",
                 link: "https://example.org/plans",
               },
+              {
+                id: crypto.randomUUID(),
+                title: "Product tour",
+                description: "A two-minute tour of the product.",
+                link: "https://www.youtube.com/watch?v=aqz-KE-bpKQ",
+              },
             ],
           },
         },

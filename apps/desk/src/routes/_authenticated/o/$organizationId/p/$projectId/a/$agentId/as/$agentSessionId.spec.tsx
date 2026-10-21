@@ -59,6 +59,26 @@ describe("a conversation", () => {
     expect(screen.queryByRole("button", { name: "Open Help center" })).not.toBeInTheDocument()
   })
 
+  it("plays a video a reply points to beside the conversation", async () => {
+    const world = buildDeskWorld()
+    server.use(...worldHandlers(world))
+    renderApp(urlsOf(world).conversationUrl)
+
+    await userEvent.click(await screen.findByRole("button", { name: "Play Product tour" }))
+
+    const panel = await screen.findByRole("complementary", { name: "Product tour" })
+    expect(within(panel).getByTitle("Product tour")).toHaveAttribute(
+      "src",
+      "https://www.youtube-nocookie.com/embed/aqz-KE-bpKQ?autoplay=1&rel=0",
+    )
+    expect(within(panel).getByRole("link", { name: /Open on YouTube/ })).toHaveAttribute(
+      "href",
+      "https://www.youtube.com/watch?v=aqz-KE-bpKQ",
+    )
+    await userEvent.click(within(panel).getByRole("button", { name: "Close the panel" }))
+    expect(screen.queryByRole("complementary", { name: "Product tour" })).not.toBeInTheDocument()
+  })
+
   it("hides the sources when the project does not show them", async () => {
     const world = buildDeskWorld()
     for (const project of world.projects) project.featureFlags = []

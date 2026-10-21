@@ -3,22 +3,26 @@ import { ArrowUpRightIcon, PlayIcon } from "lucide-react"
 import { useState } from "react"
 import { toResourceUrl } from "@/lib/safe-url"
 import type { ChatResource } from "../chat-messages"
-import { resourceMediaOf } from "../resource-media"
+import { type PlayedVideo, resourceMediaOf } from "../resource-media"
 
 export type ResourceCardProps = {
   resource: ChatResource
+  /** Plays a video beside the conversation; without it, a video opens on YouTube. */
+  onPlayVideo?: (video: PlayedVideo) => void
 }
 
 /**
  * A resource of the agent's libraries a reply points to, as a card that opens it, with the
- * thumbnail of a video or the image it is. A link that is neither a web page nor a library file
- * shows the card without a link.
+ * thumbnail of a video or the image it is. A video plays in the side panel, beside the
+ * conversation; anything else opens in a new tab. A link that is neither a web page nor a library
+ * file shows the card without a link.
  */
-export function ResourceCard({ resource }: ResourceCardProps) {
+export function ResourceCard({ resource, onPlayVideo }: ResourceCardProps) {
   const { t } = useLingui()
   const [hasMediaFailed, setHasMediaFailed] = useState(false)
   const url = toResourceUrl(resource.link)
   const media = url && !hasMediaFailed ? resourceMediaOf(resource.link, url) : null
+  const isPlayable = media?.kind === "youtube" && onPlayVideo !== undefined
 
   const body = (
     <>
@@ -50,7 +54,7 @@ export function ResourceCard({ resource }: ResourceCardProps) {
       <span className="flex flex-col gap-1 p-3">
         <span className="flex items-center justify-between gap-2 font-medium">
           <span className="min-w-0 truncate">{resource.title}</span>
-          {url ? (
+          {url && !isPlayable ? (
             <ArrowUpRightIcon aria-hidden className="size-4 shrink-0 text-muted-foreground" />
           ) : null}
         </span>
@@ -63,6 +67,22 @@ export function ResourceCard({ resource }: ResourceCardProps) {
 
   const className = "flex h-full flex-col overflow-hidden rounded-xl border text-sm"
   if (url === null) return <div className={className}>{body}</div>
+  if (media?.kind === "youtube" && onPlayVideo) {
+    const videoId = media.videoId
+    const title = resource.title
+    return (
+      <button
+        type="button"
+        aria-label={t`Play ${title}`}
+        onClick={() =>
+          onPlayVideo({ title, description: resource.description ?? null, videoId, url })
+        }
+        className={`${className} w-full text-left transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none`}
+      >
+        {body}
+      </button>
+    )
+  }
   return (
     <a
       href={url}
