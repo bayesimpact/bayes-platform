@@ -84,7 +84,9 @@ export function AssistantMessageView({
           </p>
         ) : null}
         {message.status === "completed" && text !== "" ? (
-          <MessageFooter className="px-0">
+          // The actions show when the pointer is over the reply or the keyboard is in them, as in
+          // the Claude app; a touch screen, with no fine pointer to hover, always shows them.
+          <MessageFooter className="px-0 transition-opacity duration-150 pointer-fine:opacity-0 pointer-fine:group-hover/message:opacity-100 pointer-fine:focus-within:opacity-100">
             <CopyButton text={text} />
             {/* A local reply gets its id once the persisted messages replace it. */}
             {message.id.startsWith("local-") ? null : (
