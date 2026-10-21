@@ -458,7 +458,7 @@ msgstr "Retour à l'agent précédent"
 msgid "Hide the sidebar"
 msgstr "Masquer la barre latérale"
 
-#: src/components/shared/DeskLogo.tsx:10
+#: src/components/shared/DeskLogo.tsx:14
 msgid "Home of the Desk"
 msgstr "Accueil du Desk"
 

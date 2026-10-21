@@ -458,7 +458,7 @@ msgstr "Handing the conversation back"
 msgid "Hide the sidebar"
 msgstr "Hide the sidebar"
 
-#: src/components/shared/DeskLogo.tsx:10
+#: src/components/shared/DeskLogo.tsx:14
 msgid "Home of the Desk"
 msgstr "Home of the Desk"
 
