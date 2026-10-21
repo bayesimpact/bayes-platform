@@ -1,9 +1,15 @@
 import { screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { HttpResponse, http } from "msw"
-import { describe, expect, it, vi } from "vitest"
+import { beforeEach, describe, expect, it, vi } from "vitest"
 import { activateLocale } from "@/app/i18n"
-import { myProjectsHandler } from "@/test/msw/handlers"
+import {
+  buildDeskWorld,
+  buildNoAgentWorld,
+  buildSeveralAgentsWorld,
+  buildSeveralProjectsWorld,
+} from "@/test/factories/desk-world.factory"
+import { worldHandlers } from "@/test/msw/handlers"
 import { server } from "@/test/msw/server"
 import { renderApp } from "@/test/render-app"
 
@@ -13,28 +19,84 @@ vi.mock("@/lib/auth/session", async (importOriginal) => ({
   getAccessToken: async () => "test-token",
 }))
 
-describe("the Desk's home", () => {
-  it("lists the projects that open the Desk, grouped by organization", async () => {
-    renderApp("/app/")
+beforeEach(() => {
+  window.localStorage.clear()
+})
 
-    expect(await screen.findByRole("heading", { name: "Your projects" })).toBeInTheDocument()
-    expect(screen.getByText("3 projects")).toBeInTheDocument()
-    const product = screen.getByRole("region", { name: "Product" })
+describe("the Desk's home", () => {
+  it("opens a new conversation with the only agent, with its history and no switcher", async () => {
+    const world = buildDeskWorld()
+    server.use(...worldHandlers(world))
+    const [assistant] = world.agents
+    const { router } = renderApp("/app/")
+
     expect(
-      within(product)
-        .getAllByRole("listitem")
-        .map((item) => item.textContent),
-    ).toEqual(["Pricing", "Support"])
-    expect(screen.getByRole("region", { name: "Operations" })).toHaveTextContent("Help center")
-    expect(screen.queryByText("Billing")).not.toBeInTheDocument()
+      await screen.findByRole("heading", { name: "How can I help you today?" }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole("textbox", { name: "Message to Helpful Assistant" })).toBeDisabled()
+    expect(router.state.location.pathname).toBe(
+      `/o/${world.organizations[0]?.id}/p/${assistant?.projectId}/a/${assistant?.id}`,
+    )
+    expect(screen.queryByRole("button", { name: /Switch agent/ })).not.toBeInTheDocument()
+    expect(await screen.findByRole("link", { name: "Compare the plans" })).toBeInTheDocument()
+    expect(screen.getByText("Today")).toBeInTheDocument()
+    expect(screen.getByText("Yesterday")).toBeInTheDocument()
   })
 
-  it("says so when the person has no project yet", async () => {
-    server.use(myProjectsHandler([]))
+  it("lets a person with several agents switch agent", async () => {
+    server.use(...worldHandlers(buildSeveralAgentsWorld()))
     renderApp("/app/")
 
-    expect(await screen.findByText("No project yet")).toBeInTheDocument()
-    expect(screen.queryByText(/^\d+ projects?$/)).not.toBeInTheDocument()
+    const switcher = await screen.findByRole("button", {
+      name: "Switch agent, current agent: Document Reader",
+    })
+    await userEvent.click(switcher)
+    const menu = await screen.findByRole("menu")
+    expect(
+      within(menu)
+        .getAllByRole("menuitem")
+        .map((item) => item.textContent),
+    ).toEqual(["Document Reader", "Helpful Assistant", "Writing Helper"])
+
+    await userEvent.click(within(menu).getByRole("menuitem", { name: "Helpful Assistant" }))
+
+    expect(
+      await screen.findByRole("heading", { name: "How can I help you today?" }),
+    ).toBeInTheDocument()
+    expect(await screen.findByRole("link", { name: "Compare the plans" })).toBeInTheDocument()
+  })
+
+  it("groups the agents by project when the person has several projects", async () => {
+    server.use(...worldHandlers(buildSeveralProjectsWorld()))
+    renderApp("/app/")
+
+    await userEvent.click(await screen.findByRole("button", { name: /Switch agent/ }))
+    const menu = await screen.findByRole("menu")
+
+    expect(
+      within(menu)
+        .getAllByRole("group")
+        .map((group) => group.firstChild?.textContent),
+    ).toEqual(["Help center · Operations", "Pricing · Product", "Support · Product"])
+  })
+
+  it("opens the agent the person used last", async () => {
+    const world = buildSeveralAgentsWorld()
+    server.use(...worldHandlers(world))
+    const writer = world.agents.find((agent) => agent.name === "Writing Helper")
+    window.localStorage.setItem("desk.lastAgentId", writer?.id ?? "")
+    renderApp("/app/")
+
+    expect(
+      await screen.findByRole("button", { name: "Switch agent, current agent: Writing Helper" }),
+    ).toBeInTheDocument()
+  })
+
+  it("says so when the person has no agent yet", async () => {
+    server.use(...worldHandlers(buildNoAgentWorld()))
+    renderApp("/app/")
+
+    expect(await screen.findByText("You don't have access to an agent yet")).toBeInTheDocument()
   })
 
   it("offers to try again when the projects could not load, and loads them", async () => {
@@ -47,7 +109,9 @@ describe("the Desk's home", () => {
 
     await userEvent.click(await screen.findByRole("button", { name: "Try again" }))
 
-    expect(await screen.findByRole("heading", { name: "Your projects" })).toBeInTheDocument()
+    expect(
+      await screen.findByRole("heading", { name: "How can I help you today?" }),
+    ).toBeInTheDocument()
   })
 
   it("offers to reload when the API answers another version of the contract", async () => {
@@ -62,24 +126,23 @@ describe("the Desk's home", () => {
     await activateLocale("fr")
     renderApp("/app/")
 
-    expect(await screen.findByRole("heading", { name: "Vos projets" })).toBeInTheDocument()
-    expect(screen.getByText("3 projets")).toBeInTheDocument()
+    expect(
+      await screen.findByRole("heading", { name: "Comment puis-je vous aider aujourd'hui ?" }),
+    ).toBeInTheDocument()
   })
 
   it("is where an organization's URL leads", async () => {
-    const { router } = renderApp(`/app/o/${crypto.randomUUID()}`)
+    renderApp(`/app/o/${crypto.randomUUID()}`)
 
-    expect(await screen.findByRole("heading", { name: "Your projects" })).toBeInTheDocument()
-    expect(router.state.location.pathname).toBe("/")
+    expect(
+      await screen.findByRole("heading", { name: "How can I help you today?" }),
+    ).toBeInTheDocument()
   })
 
   it("leads back from a page that does not exist", async () => {
     renderApp("/app/no-such-page")
 
     expect(await screen.findByText("Page not found")).toBeInTheDocument()
-    expect(screen.getByRole("link", { name: "Back to your projects" })).toHaveAttribute(
-      "href",
-      "/app/",
-    )
+    expect(screen.getByRole("link", { name: "Back to the Desk" })).toHaveAttribute("href", "/app/")
   })
 })

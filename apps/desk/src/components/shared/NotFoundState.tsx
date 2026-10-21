@@ -12,7 +12,7 @@ export function NotFoundState() {
       description={<Trans>This page does not exist, or you cannot open it.</Trans>}
       action={
         <Link to="/" className={buttonVariants()}>
-          <Trans>Back to your projects</Trans>
+          <Trans>Back to the Desk</Trans>
         </Link>
       }
     />

@@ -13,6 +13,13 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 import { Route as AuthenticatedOOrganizationIdIndexRouteImport } from './routes/_authenticated/o/$organizationId/index'
+import { Route as AuthenticatedOOrganizationIdPProjectIdIndexRouteImport } from './routes/_authenticated/o/$organizationId/p/$projectId/index'
+import { Route as AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRouteImport } from './routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/route'
+import { Route as AuthenticatedOOrganizationIdPProjectIdAAgentIdIndexRouteImport } from './routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/index'
+import { Route as AuthenticatedOOrganizationIdPProjectIdAAgentIdAsAgentSessionIdRouteImport } from './routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/as/$agentSessionId'
+import { Route as AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionIndexRouteImport } from './routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/extraction/index'
+import { Route as AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionCsvRunsCsvRunIdRouteImport } from './routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/extraction/csv-runs/$csvRunId'
+import { Route as AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionRunsExtractionRunIdRouteImport } from './routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/extraction/runs/$extractionRunId'
 
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
@@ -34,16 +41,84 @@ const AuthenticatedOOrganizationIdIndexRoute =
     path: '/o/$organizationId/',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedOOrganizationIdPProjectIdIndexRoute =
+  AuthenticatedOOrganizationIdPProjectIdIndexRouteImport.update({
+    id: '/o/$organizationId/p/$projectId/',
+    path: '/o/$organizationId/p/$projectId/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRoute =
+  AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRouteImport.update({
+    id: '/o/$organizationId/p/$projectId/a/$agentId',
+    path: '/o/$organizationId/p/$projectId/a/$agentId',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedOOrganizationIdPProjectIdAAgentIdIndexRoute =
+  AuthenticatedOOrganizationIdPProjectIdAAgentIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () =>
+      AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRoute,
+  } as any)
+const AuthenticatedOOrganizationIdPProjectIdAAgentIdAsAgentSessionIdRoute =
+  AuthenticatedOOrganizationIdPProjectIdAAgentIdAsAgentSessionIdRouteImport.update(
+    {
+      id: '/as/$agentSessionId',
+      path: '/as/$agentSessionId',
+      getParentRoute: () =>
+        AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRoute,
+    } as any,
+  )
+const AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionIndexRoute =
+  AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionIndexRouteImport.update(
+    {
+      id: '/extraction/',
+      path: '/extraction/',
+      getParentRoute: () =>
+        AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRoute,
+    } as any,
+  )
+const AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionCsvRunsCsvRunIdRoute =
+  AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionCsvRunsCsvRunIdRouteImport.update(
+    {
+      id: '/extraction/csv-runs/$csvRunId',
+      path: '/extraction/csv-runs/$csvRunId',
+      getParentRoute: () =>
+        AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRoute,
+    } as any,
+  )
+const AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionRunsExtractionRunIdRoute =
+  AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionRunsExtractionRunIdRouteImport.update(
+    {
+      id: '/extraction/runs/$extractionRunId',
+      path: '/extraction/runs/$extractionRunId',
+      getParentRoute: () =>
+        AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRoute,
+    } as any,
+  )
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/o/$organizationId/': typeof AuthenticatedOOrganizationIdIndexRoute
+  '/o/$organizationId/p/$projectId/': typeof AuthenticatedOOrganizationIdPProjectIdIndexRoute
+  '/o/$organizationId/p/$projectId/a/$agentId': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRouteWithChildren
+  '/o/$organizationId/p/$projectId/a/$agentId/': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdIndexRoute
+  '/o/$organizationId/p/$projectId/a/$agentId/as/$agentSessionId': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdAsAgentSessionIdRoute
+  '/o/$organizationId/p/$projectId/a/$agentId/extraction/': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionIndexRoute
+  '/o/$organizationId/p/$projectId/a/$agentId/extraction/csv-runs/$csvRunId': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionCsvRunsCsvRunIdRoute
+  '/o/$organizationId/p/$projectId/a/$agentId/extraction/runs/$extractionRunId': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionRunsExtractionRunIdRoute
 }
 export interface FileRoutesByTo {
   '/auth/callback': typeof AuthCallbackRoute
   '/': typeof AuthenticatedIndexRoute
   '/o/$organizationId': typeof AuthenticatedOOrganizationIdIndexRoute
+  '/o/$organizationId/p/$projectId': typeof AuthenticatedOOrganizationIdPProjectIdIndexRoute
+  '/o/$organizationId/p/$projectId/a/$agentId': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdIndexRoute
+  '/o/$organizationId/p/$projectId/a/$agentId/as/$agentSessionId': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdAsAgentSessionIdRoute
+  '/o/$organizationId/p/$projectId/a/$agentId/extraction': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionIndexRoute
+  '/o/$organizationId/p/$projectId/a/$agentId/extraction/csv-runs/$csvRunId': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionCsvRunsCsvRunIdRoute
+  '/o/$organizationId/p/$projectId/a/$agentId/extraction/runs/$extractionRunId': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionRunsExtractionRunIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -51,18 +126,51 @@ export interface FileRoutesById {
   '/auth/callback': typeof AuthCallbackRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/o/$organizationId/': typeof AuthenticatedOOrganizationIdIndexRoute
+  '/_authenticated/o/$organizationId/p/$projectId/': typeof AuthenticatedOOrganizationIdPProjectIdIndexRoute
+  '/_authenticated/o/$organizationId/p/$projectId/a/$agentId': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRouteWithChildren
+  '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdIndexRoute
+  '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/as/$agentSessionId': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdAsAgentSessionIdRoute
+  '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/extraction/': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionIndexRoute
+  '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/extraction/csv-runs/$csvRunId': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionCsvRunsCsvRunIdRoute
+  '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/extraction/runs/$extractionRunId': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionRunsExtractionRunIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth/callback' | '/o/$organizationId/'
+  fullPaths:
+    | '/'
+    | '/auth/callback'
+    | '/o/$organizationId/'
+    | '/o/$organizationId/p/$projectId/'
+    | '/o/$organizationId/p/$projectId/a/$agentId'
+    | '/o/$organizationId/p/$projectId/a/$agentId/'
+    | '/o/$organizationId/p/$projectId/a/$agentId/as/$agentSessionId'
+    | '/o/$organizationId/p/$projectId/a/$agentId/extraction/'
+    | '/o/$organizationId/p/$projectId/a/$agentId/extraction/csv-runs/$csvRunId'
+    | '/o/$organizationId/p/$projectId/a/$agentId/extraction/runs/$extractionRunId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/auth/callback' | '/' | '/o/$organizationId'
+  to:
+    | '/auth/callback'
+    | '/'
+    | '/o/$organizationId'
+    | '/o/$organizationId/p/$projectId'
+    | '/o/$organizationId/p/$projectId/a/$agentId'
+    | '/o/$organizationId/p/$projectId/a/$agentId/as/$agentSessionId'
+    | '/o/$organizationId/p/$projectId/a/$agentId/extraction'
+    | '/o/$organizationId/p/$projectId/a/$agentId/extraction/csv-runs/$csvRunId'
+    | '/o/$organizationId/p/$projectId/a/$agentId/extraction/runs/$extractionRunId'
   id:
     | '__root__'
     | '/_authenticated'
     | '/auth/callback'
     | '/_authenticated/'
     | '/_authenticated/o/$organizationId/'
+    | '/_authenticated/o/$organizationId/p/$projectId/'
+    | '/_authenticated/o/$organizationId/p/$projectId/a/$agentId'
+    | '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/'
+    | '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/as/$agentSessionId'
+    | '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/extraction/'
+    | '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/extraction/csv-runs/$csvRunId'
+    | '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/extraction/runs/$extractionRunId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -100,18 +208,100 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOOrganizationIdIndexRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/o/$organizationId/p/$projectId/': {
+      id: '/_authenticated/o/$organizationId/p/$projectId/'
+      path: '/o/$organizationId/p/$projectId'
+      fullPath: '/o/$organizationId/p/$projectId/'
+      preLoaderRoute: typeof AuthenticatedOOrganizationIdPProjectIdIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/o/$organizationId/p/$projectId/a/$agentId': {
+      id: '/_authenticated/o/$organizationId/p/$projectId/a/$agentId'
+      path: '/o/$organizationId/p/$projectId/a/$agentId'
+      fullPath: '/o/$organizationId/p/$projectId/a/$agentId'
+      preLoaderRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/': {
+      id: '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/'
+      path: '/'
+      fullPath: '/o/$organizationId/p/$projectId/a/$agentId/'
+      preLoaderRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdIndexRouteImport
+      parentRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRoute
+    }
+    '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/as/$agentSessionId': {
+      id: '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/as/$agentSessionId'
+      path: '/as/$agentSessionId'
+      fullPath: '/o/$organizationId/p/$projectId/a/$agentId/as/$agentSessionId'
+      preLoaderRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdAsAgentSessionIdRouteImport
+      parentRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRoute
+    }
+    '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/extraction/': {
+      id: '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/extraction/'
+      path: '/extraction'
+      fullPath: '/o/$organizationId/p/$projectId/a/$agentId/extraction/'
+      preLoaderRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionIndexRouteImport
+      parentRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRoute
+    }
+    '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/extraction/csv-runs/$csvRunId': {
+      id: '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/extraction/csv-runs/$csvRunId'
+      path: '/extraction/csv-runs/$csvRunId'
+      fullPath: '/o/$organizationId/p/$projectId/a/$agentId/extraction/csv-runs/$csvRunId'
+      preLoaderRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionCsvRunsCsvRunIdRouteImport
+      parentRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRoute
+    }
+    '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/extraction/runs/$extractionRunId': {
+      id: '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/extraction/runs/$extractionRunId'
+      path: '/extraction/runs/$extractionRunId'
+      fullPath: '/o/$organizationId/p/$projectId/a/$agentId/extraction/runs/$extractionRunId'
+      preLoaderRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionRunsExtractionRunIdRouteImport
+      parentRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRoute
+    }
   }
 }
+
+interface AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRouteChildren {
+  AuthenticatedOOrganizationIdPProjectIdAAgentIdIndexRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdIndexRoute
+  AuthenticatedOOrganizationIdPProjectIdAAgentIdAsAgentSessionIdRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdAsAgentSessionIdRoute
+  AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionIndexRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionIndexRoute
+  AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionCsvRunsCsvRunIdRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionCsvRunsCsvRunIdRoute
+  AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionRunsExtractionRunIdRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionRunsExtractionRunIdRoute
+}
+
+const AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRouteChildren: AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRouteChildren =
+  {
+    AuthenticatedOOrganizationIdPProjectIdAAgentIdIndexRoute:
+      AuthenticatedOOrganizationIdPProjectIdAAgentIdIndexRoute,
+    AuthenticatedOOrganizationIdPProjectIdAAgentIdAsAgentSessionIdRoute:
+      AuthenticatedOOrganizationIdPProjectIdAAgentIdAsAgentSessionIdRoute,
+    AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionIndexRoute:
+      AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionIndexRoute,
+    AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionCsvRunsCsvRunIdRoute:
+      AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionCsvRunsCsvRunIdRoute,
+    AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionRunsExtractionRunIdRoute:
+      AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionRunsExtractionRunIdRoute,
+  }
+
+const AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRouteWithChildren =
+  AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRoute._addFileChildren(
+    AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRouteChildren,
+  )
 
 interface AuthenticatedRouteChildren {
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedOOrganizationIdIndexRoute: typeof AuthenticatedOOrganizationIdIndexRoute
+  AuthenticatedOOrganizationIdPProjectIdIndexRoute: typeof AuthenticatedOOrganizationIdPProjectIdIndexRoute
+  AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRouteWithChildren
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedOOrganizationIdIndexRoute:
     AuthenticatedOOrganizationIdIndexRoute,
+  AuthenticatedOOrganizationIdPProjectIdIndexRoute:
+    AuthenticatedOOrganizationIdPProjectIdIndexRoute,
+  AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRoute:
+    AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRouteWithChildren,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(

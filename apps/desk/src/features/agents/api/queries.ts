@@ -1,4 +1,8 @@
-import { DeskOrganizationsRoutes, DeskProjectsRoutes } from "@caseai-connect/desk-contracts"
+import {
+  DeskAgentsRoutes,
+  DeskOrganizationsRoutes,
+  DeskProjectsRoutes,
+} from "@caseai-connect/desk-contracts"
 import { queryOptions } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/api-client"
 import { organizationKeys, projectKeys } from "./keys"
@@ -15,4 +19,15 @@ export const myOrganizationsQueryOptions = () =>
   queryOptions({
     queryKey: organizationKeys.mine(),
     queryFn: ({ signal }) => apiRequest(DeskOrganizationsRoutes.getAllMine, { signal }),
+  })
+
+/** The published agents of a project the person is a member of, sorted by name. */
+export const projectAgentsQueryOptions = (project: { id: string; organizationId: string }) =>
+  queryOptions({
+    queryKey: projectKeys.agents(project.id),
+    queryFn: ({ signal }) =>
+      apiRequest(DeskAgentsRoutes.getAllOfProject, {
+        params: { organizationId: project.organizationId, projectId: project.id },
+        signal,
+      }),
   })

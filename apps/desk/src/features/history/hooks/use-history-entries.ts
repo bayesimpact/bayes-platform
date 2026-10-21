@@ -1,0 +1,27 @@
+import { useSuspenseQueries, useSuspenseQuery } from "@tanstack/react-query"
+import {
+  conversationsQueryOptions,
+  csvExtractionRunsQueryOptions,
+  extractionRunsQueryOptions,
+} from "../api/queries"
+import {
+  conversationEntries,
+  extractionEntries,
+  type HistoryAgent,
+  type HistoryEntry,
+} from "../history-entries"
+
+/** A conversation agent's history, from the query the agent's route prefetched. */
+export function useConversationEntries(agent: HistoryAgent): HistoryEntry[] {
+  const { data } = useSuspenseQuery(conversationsQueryOptions(agent))
+  return conversationEntries(data)
+}
+
+/** An extraction agent's history, documents and CSV files mixed, from the prefetched queries. */
+export function useExtractionEntries(agent: HistoryAgent): HistoryEntry[] {
+  return useSuspenseQueries({
+    queries: [extractionRunsQueryOptions(agent), csvExtractionRunsQueryOptions(agent)],
+    combine: ([extractionRuns, csvExtractionRuns]) =>
+      extractionEntries(extractionRuns.data, csvExtractionRuns.data),
+  })
+}

@@ -7,7 +7,7 @@ import {
 } from "@caseai-connect/desk-contracts"
 
 /** An organization of `GET organizations/mine`, checked against the contract. */
-function buildMyOrganization(
+export function buildMyOrganization(
   overrides: Partial<MyOrganizationOutputDto> = {},
 ): MyOrganizationOutputDto {
   return myOrganizationOutputSchema.parse({
@@ -18,7 +18,7 @@ function buildMyOrganization(
 }
 
 /** A project of `GET projects/mine`, which opens the Desk unless `permissions` says otherwise. */
-function buildMyProject(
+export function buildMyProject(
   organization: MyOrganizationOutputDto,
   overrides: Partial<MyProjectOutputDto> = {},
 ): MyProjectOutputDto {
@@ -29,19 +29,4 @@ function buildMyProject(
     permissions: ["project.read", DESK_UI_READ_PERMISSION],
     ...overrides,
   })
-}
-
-/** Two organizations: three projects open the Desk, and one, "Billing", does not. */
-export function buildHomeWorld() {
-  const product = buildMyOrganization({ name: "Product" })
-  const operations = buildMyOrganization({ name: "Operations" })
-  return {
-    organizations: [product, operations],
-    projects: [
-      buildMyProject(product, { name: "Support" }),
-      buildMyProject(product, { name: "Pricing" }),
-      buildMyProject(product, { name: "Billing", permissions: ["project.read"] }),
-      buildMyProject(operations, { name: "Help center" }),
-    ],
-  }
 }

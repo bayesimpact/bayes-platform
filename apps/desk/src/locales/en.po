@@ -7,41 +7,99 @@ msgstr ""
 "X-Generator: @lingui/cli\n"
 "Language: en\n"
 
-#: src/features/home/components/HomePage.tsx:21
-msgid "{count, plural, one {# project} other {# projects}}"
-msgstr "{count, plural, one {# project} other {# projects}}"
-
 #: src/components/shared/RouteErrorState.tsx:21
 msgid "A new version of the Desk is available"
 msgstr "A new version of the Desk is available"
 
 #: src/components/shared/NotFoundState.tsx:15
-msgid "Back to your projects"
-msgstr "Back to your projects"
+msgid "Back to the Desk"
+msgstr "Back to the Desk"
 
 #: src/components/shared/RouteErrorState.tsx:41
 msgid "Check your connection, then try again."
 msgstr "Check your connection, then try again."
 
-#: src/components/shared/AppHeader.tsx:18
+#. An extraction of every row of a spreadsheet
+#: src/features/history/components/HistoryEntryLink.tsx:62
+msgid "CSV extraction"
+msgstr "CSV extraction"
+
+#: src/features/sessions/components/NewExtraction.tsx:24
+msgid "Drop a document or a CSV file here"
+msgstr "Drop a document or a CSV file here"
+
+#: src/features/history/components/HistoryEntryLink.tsx:83
+msgid "Failed"
+msgstr "Failed"
+
+#: src/components/shared/DeskLogo.tsx:10
 msgid "Home of the Desk"
 msgstr "Home of the Desk"
+
+#: src/features/sessions/components/NewConversation.tsx:19
+msgid "How can I help you today?"
+msgstr "How can I help you today?"
+
+#: src/features/history/components/HistoryEntryLink.tsx:79
+msgid "In progress"
+msgstr "In progress"
 
 #: src/features/account/components/UserMenu.tsx:52
 msgid "Language"
 msgstr "Language"
 
-#: src/features/home/components/ProjectListEmpty.tsx:13
-msgid "No project yet"
-msgstr "No project yet"
+#: src/features/sessions/components/NewConversation.tsx:24
+msgid "Message to {agentName}"
+msgstr "Message to {agentName}"
+
+#: src/features/history/components/HistoryEntryLink.tsx:32
+#: src/features/history/components/NewSessionLink.tsx:40
+msgid "New conversation"
+msgstr "New conversation"
+
+#: src/features/history/components/NewSessionLink.tsx:42
+msgid "New extraction"
+msgstr "New extraction"
+
+#: src/features/history/components/AgentHistory.tsx:21
+msgid "No conversations yet"
+msgstr "No conversations yet"
+
+#: src/features/history/components/AgentHistory.tsx:26
+msgid "No extractions yet"
+msgstr "No extractions yet"
+
+#: src/features/history/components/HistoryList.tsx:33
+msgid "Older"
+msgstr "Older"
 
 #: src/features/account/components/UserMenu.tsx:37
 msgid "Open the menu of {email}"
 msgstr "Open the menu of {email}"
 
+#: src/components/shared/DeskShell.tsx:40
+msgid "Open the sidebar"
+msgstr "Open the sidebar"
+
 #: src/components/shared/NotFoundState.tsx:11
 msgid "Page not found"
 msgstr "Page not found"
+
+#: src/features/sessions/components/SessionComingSoon.tsx:16
+msgid "Past conversations open soon"
+msgstr "Past conversations open soon"
+
+#: src/features/sessions/components/SessionComingSoon.tsx:18
+msgid "Past extractions open soon"
+msgstr "Past extractions open soon"
+
+#: src/features/history/components/HistoryList.tsx:32
+msgid "Previous 30 days"
+msgstr "Previous 30 days"
+
+#: src/features/history/components/HistoryList.tsx:31
+msgid "Previous 7 days"
+msgstr "Previous 7 days"
 
 #: src/components/shared/RouteErrorState.tsx:25
 msgid "Reload"
@@ -50,6 +108,14 @@ msgstr "Reload"
 #: src/components/shared/RouteErrorState.tsx:22
 msgid "Reload the page to keep going."
 msgstr "Reload the page to keep going."
+
+#: src/features/sessions/components/NewConversation.tsx:33
+msgid "Send"
+msgstr "Send"
+
+#: src/features/sessions/components/NewConversation.tsx:31
+msgid "Sending messages comes in the next version of the Desk."
+msgstr "Sending messages comes in the next version of the Desk."
 
 #: src/routes/auth/callback.tsx:28
 msgid "Sign in again"
@@ -63,9 +129,17 @@ msgstr "Sign in again to open the Desk."
 msgid "Sign out"
 msgstr "Sign out"
 
+#: src/features/agents/components/AgentSwitcher.tsx:41
+msgid "Switch agent, current agent: {agentName}"
+msgstr "Switch agent, current agent: {agentName}"
+
 #: src/routes/auth/callback.tsx:24
 msgid "The sign-in did not complete"
 msgstr "The sign-in did not complete"
+
+#: src/features/sessions/components/SessionComingSoon.tsx:21
+msgid "This page comes in the next version of the Desk."
+msgstr "This page comes in the next version of the Desk."
 
 #: src/components/shared/RouteErrorState.tsx:40
 msgid "This page could not load"
@@ -75,14 +149,38 @@ msgstr "This page could not load"
 msgid "This page does not exist, or you cannot open it."
 msgstr "This page does not exist, or you cannot open it."
 
+#: src/features/history/components/HistoryList.tsx:29
+msgid "Today"
+msgstr "Today"
+
 #: src/components/shared/RouteErrorState.tsx:44
 msgid "Try again"
 msgstr "Try again"
 
-#: src/features/home/components/ProjectListEmpty.tsx:16
-msgid "When someone adds you to a project, it appears here."
-msgstr "When someone adds you to a project, it appears here."
+#: src/features/history/components/HistoryEntryLink.tsx:46
+msgid "Untitled document"
+msgstr "Untitled document"
 
-#: src/features/home/components/HomePage.tsx:17
-msgid "Your projects"
-msgstr "Your projects"
+#: src/features/sessions/components/NewExtraction.tsx:27
+msgid "Uploading comes in the next version of the Desk."
+msgstr "Uploading comes in the next version of the Desk."
+
+#: src/features/sessions/components/NewExtraction.tsx:16
+msgid "What should {agentName} read?"
+msgstr "What should {agentName} read?"
+
+#: src/features/sessions/components/NoAgentState.tsx:11
+msgid "When someone gives you access to an agent, it appears here."
+msgstr "When someone gives you access to an agent, it appears here."
+
+#: src/features/sessions/components/NewConversation.tsx:25
+msgid "Write to {agentName}"
+msgstr "Write to {agentName}"
+
+#: src/features/history/components/HistoryList.tsx:30
+msgid "Yesterday"
+msgstr "Yesterday"
+
+#: src/features/sessions/components/NoAgentState.tsx:10
+msgid "You don't have access to an agent yet"
+msgstr "You don't have access to an agent yet"
