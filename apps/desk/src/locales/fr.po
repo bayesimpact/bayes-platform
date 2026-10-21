@@ -160,7 +160,7 @@ msgstr "Choisir un fichier"
 msgid "Choose at least one column for the agent to read."
 msgstr "Choisissez au moins une colonne que l’agent lira."
 
-#: src/components/shared/SidePanel.tsx:53
+#: src/components/shared/SidePanel.tsx:88
 msgid "Close the panel"
 msgstr "Fermer le panneau"
 
@@ -575,7 +575,7 @@ msgstr "Signaler un problème"
 msgid "Report a problem with this reply"
 msgstr "Signaler un problème avec cette réponse"
 
-#: src/components/shared/SidePanel.tsx:42
+#: src/components/shared/SidePanel.tsx:77
 msgid "Resize the panel"
 msgstr "Redimensionner le panneau"
 

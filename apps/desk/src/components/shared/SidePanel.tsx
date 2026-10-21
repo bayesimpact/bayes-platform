@@ -1,6 +1,13 @@
 import { useLingui } from "@lingui/react/macro"
 import { XIcon } from "lucide-react"
-import { type CSSProperties, type ReactNode, useId } from "react"
+import {
+  type CSSProperties,
+  type KeyboardEvent,
+  type ReactNode,
+  useEffect,
+  useId,
+  useRef,
+} from "react"
 import { Button } from "@/components/ui/button"
 import { useResizableWidth } from "@/hooks/use-resizable-width"
 import { ResizeHandle } from "./ResizeHandle"
@@ -19,10 +26,14 @@ export type SidePanelProps = {
  * the Claude app: a card with rounded corners and a soft shadow, a little apart from the window's
  * edge, while the page stays in view and usable. Below a laptop's width, which leaves too
  * little room for both, it covers the page.
+ *
+ * Opening it moves the focus to its title, so the keyboard and screen readers land in it; Escape
+ * closes it from anywhere inside, and the focus goes back to what opened it.
  */
 export function SidePanel({ title, description, onClose, footer, children }: SidePanelProps) {
   const { t } = useLingui()
   const titleId = useId()
+  const titleRef = useRef<HTMLHeadingElement>(null)
   const panelWidth = useResizableWidth({
     storageKey: "desk.sidePanelWidth",
     defaultWidth: 384,
@@ -30,8 +41,32 @@ export function SidePanel({ title, description, onClose, footer, children }: Sid
     maxWidth: 720,
     edge: "left",
   })
+  // What had the focus before the panel opened, kept across a re-run of the effect.
+  const openerRef = useRef<Element | null>(null)
+  // The focus is outside React, which an effect moves when the panel opens and closes.
+  useEffect(() => {
+    openerRef.current ??= document.activeElement
+    const opener = openerRef.current
+    titleRef.current?.focus()
+    return () => {
+      // A panel closed with the focus in it leaves the focus nowhere: it goes back to the opener.
+      const isFocusLost =
+        document.activeElement === null || document.activeElement === document.body
+      if (isFocusLost && opener instanceof HTMLElement && opener.isConnected) opener.focus()
+    }
+  }, [])
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    // A dialog or menu opened from the panel sits in a portal: its Escape closes it alone.
+    if (event.key !== "Escape" || event.defaultPrevented) return
+    if (!(event.target instanceof Node) || !event.currentTarget.contains(event.target)) return
+    event.preventDefault()
+    onClose()
+  }
+
   return (
     <aside
+      onKeyDown={handleKeyDown}
       aria-labelledby={titleId}
       // Safe: a custom property, which React's style type does not list.
       style={{ "--side-panel-width": `${panelWidth.width}px` } as CSSProperties}
@@ -45,7 +80,7 @@ export function SidePanel({ title, description, onClose, footer, children }: Sid
       />
       <header className="flex items-start justify-between gap-2 px-4 pt-3 pb-2">
         <div className="flex min-w-0 flex-col gap-1">
-          <h2 id={titleId} className="font-medium">
+          <h2 ref={titleRef} id={titleId} tabIndex={-1} className="font-medium outline-none">
             {title}
           </h2>
           {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
