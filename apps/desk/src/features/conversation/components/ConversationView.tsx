@@ -1,7 +1,7 @@
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query"
 import { ArrowDownIcon, RotateCcwIcon } from "lucide-react"
-import { useState } from "react"
+import { useId, useState } from "react"
 import { HeaderActions } from "@/components/shared/HeaderActions"
 import { Button } from "@/components/ui/button"
 import {
@@ -13,6 +13,7 @@ import {
   MessageScrollerViewport,
 } from "@/components/ui/message-scroller"
 import { MemoryButton, MemoryPanel } from "@/features/memory"
+import { annotationLine, appendAnnotation } from "../annotation"
 import { useSendMessage } from "../api/mutations"
 import { mcpAppsHtmlQueryOptions, messagesQueryOptions } from "../api/queries"
 import { findRetryableMessage, isWriting } from "../chat-messages"
@@ -22,6 +23,7 @@ import { ChatMessageView } from "./ChatMessageView"
 import { Composer } from "./Composer"
 import { FormsButton } from "./FormsButton"
 import { FormsPanel } from "./FormsPanel"
+import { QuoteReplyPopover } from "./QuoteReplyPopover"
 
 export type ConversationViewProps = {
   conversation: ConversationRef
@@ -43,6 +45,10 @@ export function ConversationView({ conversation, agentName, showSources }: Conve
   const retryableMessage = isBusy ? null : findRetryableMessage(messages, now)
   const forms = useConversationForms(conversation)
   const [draft, setDraft] = useState("")
+  const composerId = useId()
+  const handleAnnotate = (passage: string, note: string) => {
+    setDraft((current) => appendAnnotation(current, annotationLine(passage, note)))
+  }
   // The panel docked beside the conversation, as an artifact in the Claude app, if one is open.
   const [openPanel, setOpenPanel] = useState<"memory" | "forms" | null>(null)
   const togglePanel = (panel: "memory" | "forms") =>
@@ -86,52 +92,59 @@ export function ConversationView({ conversation, agentName, showSources }: Conve
                 <Trans>How can I help you today?</Trans>
               </h1>
             ) : (
-              <MessageScroller>
-                <MessageScrollerViewport>
-                  <MessageScrollerContent
-                    aria-busy={isBusy}
-                    className="mx-auto w-full max-w-3xl px-4 py-6"
-                  >
-                    {messages.map((message) => (
-                      <MessageScrollerItem
-                        key={message.id}
-                        messageId={message.id}
-                        scrollAnchor={message.role === "user"}
-                      >
-                        <ChatMessageView
-                          conversation={conversation}
-                          message={message}
-                          now={now}
-                          showSources={showSources}
-                          appsHtml={appsHtml}
-                          onAppMessage={setDraft}
-                        />
-                      </MessageScrollerItem>
-                    ))}
-                    {retryableMessage !== null ? (
-                      <div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => sendMessage.mutate(retryableMessage)}
+              <QuoteReplyPopover
+                agentName={agentName}
+                onAnnotate={handleAnnotate}
+                messageBoxId={composerId}
+              >
+                <MessageScroller>
+                  <MessageScrollerViewport>
+                    <MessageScrollerContent
+                      aria-busy={isBusy}
+                      className="mx-auto w-full max-w-3xl px-4 py-6"
+                    >
+                      {messages.map((message) => (
+                        <MessageScrollerItem
+                          key={message.id}
+                          messageId={message.id}
+                          scrollAnchor={message.role === "user"}
                         >
-                          <RotateCcwIcon aria-hidden />
-                          <Trans>Retry</Trans>
-                        </Button>
-                      </div>
-                    ) : null}
-                  </MessageScrollerContent>
-                </MessageScrollerViewport>
-                <MessageScrollerButton>
-                  <ArrowDownIcon aria-hidden />
-                  <span className="sr-only">{t`Scroll to the latest message`}</span>
-                </MessageScrollerButton>
-              </MessageScroller>
+                          <ChatMessageView
+                            conversation={conversation}
+                            message={message}
+                            now={now}
+                            showSources={showSources}
+                            appsHtml={appsHtml}
+                            onAppMessage={setDraft}
+                          />
+                        </MessageScrollerItem>
+                      ))}
+                      {retryableMessage !== null ? (
+                        <div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => sendMessage.mutate(retryableMessage)}
+                          >
+                            <RotateCcwIcon aria-hidden />
+                            <Trans>Retry</Trans>
+                          </Button>
+                        </div>
+                      ) : null}
+                    </MessageScrollerContent>
+                  </MessageScrollerViewport>
+                  <MessageScrollerButton>
+                    <ArrowDownIcon aria-hidden />
+                    <span className="sr-only">{t`Scroll to the latest message`}</span>
+                  </MessageScrollerButton>
+                </MessageScroller>
+              </QuoteReplyPopover>
             )}
           </div>
           <div className="mx-auto w-full max-w-3xl px-4 pb-4">
             <Composer
               agentName={agentName}
+              inputId={composerId}
               content={draft}
               onContentChange={setDraft}
               isBusy={isBusy}

@@ -3,6 +3,7 @@ import { useState } from "react"
 import { Markdown } from "@/components/shared/Markdown"
 import { Message, MessageContent } from "@/components/ui/message"
 import { MemoryProposals } from "@/features/memory"
+import { QUOTABLE_ATTRIBUTE } from "../annotation"
 import { type ChatMessage, isWriting } from "../chat-messages"
 import type { ConversationRef } from "../conversation-ref"
 import { type AppsHtml, hasMeaningfulText, toolResultText, unavailableApps } from "../mcp-apps"
@@ -59,7 +60,10 @@ export function AssistantMessageView({
         <ToolSteps toolNames={message.toolNames} isWriting={writing} hasText={text !== ""} />
         {message.status === "error" ? <ReplyError message={message} /> : null}
         {message.status !== "error" && text !== "" ? (
-          <Markdown isStreaming={writing}>{text}</Markdown>
+          // A passage of a settled reply can be quoted in the person's message.
+          <div {...(writing ? {} : { [QUOTABLE_ATTRIBUTE]: "" })}>
+            <Markdown isStreaming={writing}>{text}</Markdown>
+          </div>
         ) : null}
         {message.mcpApps.length > 0 && !writing ? (
           <McpAppsList

@@ -28,6 +28,8 @@ import type { OutgoingMessage } from "../chat-messages"
 
 export type ComposerProps = {
   agentName: string
+  /** The id of the text field, so the page can put the focus back in it. */
+  inputId?: string
   /** The text being written, which an MCP App can also fill in. */
   content: string
   onContentChange: (content: string) => void
@@ -42,7 +44,14 @@ const ACCEPTED_TYPES: readonly string[] = ATTACHMENT_MIME_TYPES
  * The message box, as the shadcn Prompt Input: Enter sends, Shift+Enter starts a new line, and
  * the paperclip attaches a PDF or an image of up to 10 MB.
  */
-export function Composer({ agentName, content, onContentChange, isBusy, onSend }: ComposerProps) {
+export function Composer({
+  agentName,
+  inputId,
+  content,
+  onContentChange,
+  isBusy,
+  onSend,
+}: ComposerProps) {
   const { t } = useLingui()
   const [file, setFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -110,6 +119,7 @@ export function Composer({ agentName, content, onContentChange, isBusy, onSend }
         ) : null}
         <div className="relative w-full">
           <InputGroupTextarea
+            id={inputId}
             aria-label={t`Message to ${agentName}`}
             aria-describedby={hintId}
             value={content}

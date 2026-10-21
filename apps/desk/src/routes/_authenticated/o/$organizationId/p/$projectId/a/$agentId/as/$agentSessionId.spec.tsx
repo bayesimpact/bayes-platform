@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from "@testing-library/react"
+import { fireEvent, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { HttpResponse, http } from "msw"
 import { beforeEach, describe, expect, it, vi } from "vitest"
@@ -300,6 +300,28 @@ describe("a conversation", () => {
       await screen.findByText("Three releases this month: 2.1, 2.2 and 2.3."),
     ).toBeInTheDocument()
     expect(screen.queryByTitle("Interactive card")).not.toBeInTheDocument()
+  })
+
+  it("quotes a selected passage of a reply, with a note, in the message box", async () => {
+    const world = buildDeskWorld()
+    server.use(...worldHandlers(world))
+    renderApp(urlsOf(world).conversationUrl)
+
+    const passage = await screen.findByText(/The Pro plan also adds/)
+    const text = passage.firstChild as Text
+    const range = document.createRange()
+    range.setStart(text, 4)
+    range.setEnd(text, 12)
+    window.getSelection()?.removeAllRanges()
+    window.getSelection()?.addRange(range)
+    fireEvent.mouseUp(passage)
+
+    const note = await screen.findByRole("textbox", { name: "Your note on this passage" })
+    await userEvent.type(note, "is it billed per seat?{Enter}")
+
+    expect(screen.getByRole("textbox", { name: "Message to Helpful Assistant" })).toHaveValue(
+      "`Pro plan` is it billed per seat?",
+    )
   })
 
   it("reports a problem with a reply", async () => {
