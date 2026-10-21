@@ -1,5 +1,6 @@
 import { Trans } from "@lingui/react/macro"
 import type { HistoryAgent } from "../history-entries"
+import { useFinishedRunToasts } from "../hooks/use-finished-run-toasts"
 import { useConversationEntries, useExtractionEntries } from "../hooks/use-history-entries"
 import { HistoryList } from "./HistoryList"
 
@@ -23,5 +24,6 @@ function ConversationHistory({ agent }: AgentHistoryProps) {
 
 function ExtractionHistory({ agent }: AgentHistoryProps) {
   const entries = useExtractionEntries(agent)
+  useFinishedRunToasts(agent, entries)
   return <HistoryList agent={agent} entries={entries} empty={<Trans>No extractions yet</Trans>} />
 }

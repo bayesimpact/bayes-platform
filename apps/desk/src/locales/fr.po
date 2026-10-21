@@ -57,6 +57,10 @@ msgstr "{name} n’a pas pu être envoyé. Réessayez."
 msgid "{name} is empty."
 msgstr "{name} est vide."
 
+#: src/features/history/hooks/use-finished-run-toasts.ts:51
+msgid "{name} is extracted."
+msgstr "{name} est extrait."
+
 #: src/features/extraction/components/NewExtraction.tsx:61
 msgid "{name} is larger than 25 MB."
 msgstr "{name} dépasse 25 Mo."
@@ -201,8 +205,10 @@ msgstr "CSV"
 
 #. An extraction of every row of a spreadsheet
 #. An extraction of every row of a spreadsheet
+#. An extraction of every row of a spreadsheet
 #: src/features/history/components/HistoryEntryLink.tsx:63
 #: src/features/history/components/HistoryList.tsx:46
+#: src/features/history/hooks/use-finished-run-toasts.ts:33
 msgid "CSV extraction"
 msgstr "Extraction CSV"
 
@@ -424,11 +430,11 @@ msgstr "Page suivante"
 msgid "No"
 msgstr "Non"
 
-#: src/features/history/components/AgentHistory.tsx:21
+#: src/features/history/components/AgentHistory.tsx:22
 msgid "No conversations yet"
 msgstr "Aucune conversation pour l'instant"
 
-#: src/features/history/components/AgentHistory.tsx:26
+#: src/features/history/components/AgentHistory.tsx:28
 msgid "No extractions yet"
 msgstr "Aucune extraction pour l'instant"
 
@@ -460,6 +466,10 @@ msgstr "Nombre de lignes à essayer"
 #: src/features/history/components/HistoryList.tsx:34
 msgid "Older"
 msgstr "Plus ancien"
+
+#: src/features/history/hooks/use-finished-run-toasts.ts:50
+msgid "Open"
+msgstr "Ouvrir"
 
 #: src/features/conversation/components/AttachmentChip.tsx:42
 msgid "Open {name}"
@@ -817,6 +827,10 @@ msgstr "L’extraction n’a pas pu démarrer. Réessayez."
 msgid "The extraction of \"{title}\" and its results will be deleted. The document stays in your documents. This cannot be undone."
 msgstr "L’extraction de « {title} » et ses résultats seront supprimés. Le document reste dans vos documents. Cette action est définitive."
 
+#: src/features/history/hooks/use-finished-run-toasts.ts:52
+msgid "The extraction of {name} failed."
+msgstr "L’extraction de {name} a échoué."
+
 #: src/features/memory/components/MemoryPanel.tsx:88
 msgid "The fact could not be forgotten. Try again."
 msgstr "Cette information n'a pas pu être oubliée. Réessayez."
@@ -927,6 +941,7 @@ msgstr "Réessayer"
 #: src/features/extraction/components/ExtractionRunView.tsx:45
 #: src/features/history/components/HistoryEntryLink.tsx:46
 #: src/features/history/components/HistoryList.tsx:42
+#: src/features/history/hooks/use-finished-run-toasts.ts:34
 msgid "Untitled document"
 msgstr "Document sans titre"
 
