@@ -49,7 +49,8 @@ msgstr "Une nouvelle version du Desk est disponible. Rechargez la page."
 msgid "Actions on {title}"
 msgstr "Actions sur {title}"
 
-#: src/features/conversation/components/QuoteReplyPopover.tsx:96
+#: src/features/conversation/components/QuoteReplyPopover.tsx:100
+#: src/features/conversation/components/QuoteReplyPopover.tsx:107
 msgid "Add to your message"
 msgstr "Ajouter à votre message"
 
@@ -57,7 +58,7 @@ msgstr "Ajouter à votre message"
 msgid "Agent"
 msgstr "Agent"
 
-#: src/features/conversation/components/QuoteReplyPopover.tsx:85
+#: src/features/conversation/components/QuoteReplyPopover.tsx:86
 msgid "Annotate"
 msgstr "Annoter"
 
@@ -558,6 +559,6 @@ msgstr "Vous n'avez encore accès à aucun agent"
 msgid "Your answer could not be saved. Try again."
 msgstr "Votre réponse n'a pas pu être enregistrée. Réessayez."
 
-#: src/features/conversation/components/QuoteReplyPopover.tsx:84
+#: src/features/conversation/components/QuoteReplyPopover.tsx:85
 msgid "Your note on this passage"
 msgstr "Votre note sur ce passage"

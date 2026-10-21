@@ -4,6 +4,7 @@ import { type KeyboardEvent, type ReactNode, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent } from "@/components/ui/popover"
 import { Textarea } from "@/components/ui/textarea"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { readQuotableSelection } from "../annotation"
 import { QuoteMarker } from "./QuoteMarker"
 
@@ -90,14 +91,21 @@ export function QuoteReplyPopover({ onAnnotate, messageBoxId, children }: QuoteR
               rows={2}
               className="max-h-40 min-h-12 resize-none border-0 bg-transparent px-0 py-1 shadow-none focus-visible:ring-0 dark:bg-transparent"
             />
-            <Button
-              variant="link"
-              size="icon-sm"
-              aria-label={t`Add to your message`}
-              onClick={handleAdd}
-            >
-              <MessageSquarePlusIcon aria-hidden />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={t`Add to your message`}
+                    onClick={handleAdd}
+                  />
+                }
+              >
+                <MessageSquarePlusIcon aria-hidden />
+              </TooltipTrigger>
+              <TooltipContent>{t`Add to your message`}</TooltipContent>
+            </Tooltip>
           </div>
         </PopoverContent>
       </Popover>

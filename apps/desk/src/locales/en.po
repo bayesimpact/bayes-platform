@@ -49,7 +49,8 @@ msgstr "A new version of the Desk is available. Reload the page."
 msgid "Actions on {title}"
 msgstr "Actions on {title}"
 
-#: src/features/conversation/components/QuoteReplyPopover.tsx:96
+#: src/features/conversation/components/QuoteReplyPopover.tsx:100
+#: src/features/conversation/components/QuoteReplyPopover.tsx:107
 msgid "Add to your message"
 msgstr "Add to your message"
 
@@ -57,7 +58,7 @@ msgstr "Add to your message"
 msgid "Agent"
 msgstr "Agent"
 
-#: src/features/conversation/components/QuoteReplyPopover.tsx:85
+#: src/features/conversation/components/QuoteReplyPopover.tsx:86
 msgid "Annotate"
 msgstr "Annotate"
 
@@ -558,6 +559,6 @@ msgstr "You don't have access to an agent yet"
 msgid "Your answer could not be saved. Try again."
 msgstr "Your answer could not be saved. Try again."
 
-#: src/features/conversation/components/QuoteReplyPopover.tsx:84
+#: src/features/conversation/components/QuoteReplyPopover.tsx:85
 msgid "Your note on this passage"
 msgstr "Your note on this passage"
