@@ -132,3 +132,10 @@
     @apply font-sans;
   }
 }
+
+/* A passage of a reply the person quotes keeps the look of a selection while they write their
+   note (src/lib/quote-highlight.ts). */
+::highlight(desk-quote) {
+  background-color: Highlight;
+  color: HighlightText;
+}

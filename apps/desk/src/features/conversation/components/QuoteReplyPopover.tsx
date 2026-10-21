@@ -1,9 +1,10 @@
-import { Trans, useLingui } from "@lingui/react/macro"
+import { useLingui } from "@lingui/react/macro"
 import { MessageSquarePlusIcon } from "lucide-react"
 import { type KeyboardEvent, type ReactNode, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent } from "@/components/ui/popover"
 import { Textarea } from "@/components/ui/textarea"
+import { clearQuoteHighlight, showQuoteHighlight } from "@/lib/quote-highlight"
 import { readQuotableSelection } from "../annotation"
 
 export type QuoteReplyPopoverProps = {
@@ -32,13 +33,16 @@ export function QuoteReplyPopover({
   const [note, setNote] = useState("")
 
   const close = () => {
+    clearQuoteHighlight()
     setQuote(null)
     setNote("")
   }
 
   const handleMouseUp = () => {
     const selected = readQuotableSelection(window.getSelection())
-    if (selected) setQuote(selected)
+    if (!selected) return
+    showQuoteHighlight(selected.range)
+    setQuote(selected)
   }
 
   const handleAdd = () => {
@@ -81,7 +85,7 @@ export function QuoteReplyPopover({
           <blockquote className="line-clamp-2 border-l-2 pl-2 text-xs text-muted-foreground">
             {quote?.text}
           </blockquote>
-          <div className="flex items-end gap-2">
+          <div className="flex items-end gap-1">
             <Textarea
               aria-label={t`Your note on this passage`}
               placeholder={t`Reply to ${agentName}`}
@@ -89,15 +93,18 @@ export function QuoteReplyPopover({
               onChange={(event) => setNote(event.target.value)}
               onKeyDown={handleKeyDown}
               autoFocus
-              className="max-h-32 min-h-9 resize-none py-1.5"
+              rows={2}
+              className="max-h-40 min-h-12 resize-none border-0 bg-transparent px-0 py-1 shadow-none focus-visible:ring-0 dark:bg-transparent"
             />
-            <Button size="icon-sm" aria-label={t`Add to your message`} onClick={handleAdd}>
+            <Button
+              variant="link"
+              size="icon-sm"
+              aria-label={t`Add to your message`}
+              onClick={handleAdd}
+            >
               <MessageSquarePlusIcon aria-hidden />
             </Button>
           </div>
-          <p className="text-xs text-muted-foreground">
-            <Trans>The passage and your note join your message, which you send when ready.</Trans>
-          </p>
         </PopoverContent>
       </Popover>
     </div>

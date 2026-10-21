@@ -49,7 +49,7 @@ msgstr "A new version of the Desk is available. Reload the page."
 msgid "Actions on {title}"
 msgstr "Actions on {title}"
 
-#: src/features/conversation/components/QuoteReplyPopover.tsx:94
+#: src/features/conversation/components/QuoteReplyPopover.tsx:102
 msgid "Add to your message"
 msgstr "Add to your message"
 
@@ -305,7 +305,7 @@ msgstr "Remembering what matters"
 msgid "Remove {fileName}"
 msgstr "Remove {fileName}"
 
-#: src/features/conversation/components/QuoteReplyPopover.tsx:87
+#: src/features/conversation/components/QuoteReplyPopover.tsx:91
 msgid "Reply to {agentName}"
 msgstr "Reply to {agentName}"
 
@@ -460,10 +460,6 @@ msgstr "The history could not load."
 msgid "The memory could not be cleared. Try again."
 msgstr "The memory could not be cleared. Try again."
 
-#: src/features/conversation/components/QuoteReplyPopover.tsx:99
-msgid "The passage and your note join your message, which you send when ready."
-msgstr "The passage and your note join your message, which you send when ready."
-
 #: src/features/conversation/components/FeedbackDialog.tsx:80
 msgid "The people who run this agent read every report to improve it."
 msgstr "The people who run this agent read every report to improve it."
@@ -562,6 +558,6 @@ msgstr "You don't have access to an agent yet"
 msgid "Your answer could not be saved. Try again."
 msgstr "Your answer could not be saved. Try again."
 
-#: src/features/conversation/components/QuoteReplyPopover.tsx:86
+#: src/features/conversation/components/QuoteReplyPopover.tsx:90
 msgid "Your note on this passage"
 msgstr "Your note on this passage"
