@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dialog"
 import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Textarea } from "@/components/ui/textarea"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useSendFeedback } from "../api/mutations"
 import type { ConversationRef } from "../conversation-ref"
 
@@ -55,11 +56,20 @@ export function FeedbackDialog({ conversation, agentMessageId }: FeedbackDialogP
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger
-        render={<Button variant="ghost" size="icon-xs" aria-label={t`Report a problem`} />}
-      >
-        <FlagIcon aria-hidden className="size-3.5" />
-      </DialogTrigger>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <DialogTrigger
+              render={<Button variant="ghost" size="icon-xs" aria-label={t`Report a problem`} />}
+            />
+          }
+        >
+          <FlagIcon aria-hidden className="size-3.5" />
+        </TooltipTrigger>
+        <TooltipContent>
+          <Trans>Report a problem</Trans>
+        </TooltipContent>
+      </Tooltip>
       <DialogContent>
         <form onSubmit={(event) => void handleSubmit(event)} className="flex flex-col gap-4">
           <DialogHeader>

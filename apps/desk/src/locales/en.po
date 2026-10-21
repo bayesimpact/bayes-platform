@@ -73,7 +73,7 @@ msgstr "Attachment"
 msgid "Back to the Desk"
 msgstr "Back to the Desk"
 
-#: src/features/conversation/components/FeedbackDialog.tsx:97
+#: src/features/conversation/components/FeedbackDialog.tsx:107
 #: src/features/history/components/ConversationActions.tsx:90
 #: src/features/memory/components/MemoryPanel.tsx:111
 #: src/features/memory/components/MemoryRewordForm.tsx:62
@@ -96,7 +96,7 @@ msgstr "Completed form"
 msgid "Completing the form"
 msgstr "Completing the form"
 
-#: src/features/conversation/components/CopyButton.tsx:33
+#: src/features/conversation/components/CopyButton.tsx:30
 msgid "Copied"
 msgstr "Copied"
 
@@ -104,7 +104,7 @@ msgstr "Copied"
 msgid "Copy the code"
 msgstr "Copy the code"
 
-#: src/features/conversation/components/CopyButton.tsx:33
+#: src/features/conversation/components/CopyButton.tsx:30
 msgid "Copy the reply"
 msgstr "Copy the reply"
 
@@ -122,7 +122,7 @@ msgstr "Delete"
 msgid "Delete this conversation?"
 msgstr "Delete this conversation?"
 
-#: src/features/conversation/components/FeedbackDialog.tsx:89
+#: src/features/conversation/components/FeedbackDialog.tsx:99
 msgid "Describe the problem in a few words, up to 2,000 characters."
 msgstr "Describe the problem in a few words, up to 2,000 characters."
 
@@ -297,11 +297,12 @@ msgstr "Remembering what matters"
 msgid "Remove {fileName}"
 msgstr "Remove {fileName}"
 
-#: src/features/conversation/components/FeedbackDialog.tsx:59
+#: src/features/conversation/components/FeedbackDialog.tsx:63
+#: src/features/conversation/components/FeedbackDialog.tsx:70
 msgid "Report a problem"
 msgstr "Report a problem"
 
-#: src/features/conversation/components/FeedbackDialog.tsx:67
+#: src/features/conversation/components/FeedbackDialog.tsx:77
 msgid "Report a problem with this reply"
 msgstr "Report a problem with this reply"
 
@@ -338,7 +339,7 @@ msgstr "Searching the resources"
 msgid "Send"
 msgstr "Send"
 
-#: src/features/conversation/components/FeedbackDialog.tsx:100
+#: src/features/conversation/components/FeedbackDialog.tsx:110
 msgid "Send the report"
 msgstr "Send the report"
 
@@ -371,7 +372,7 @@ msgstr "Sign out"
 msgid "Switch agent, current agent: {agentName}"
 msgstr "Switch agent, current agent: {agentName}"
 
-#: src/features/conversation/components/FeedbackDialog.tsx:47
+#: src/features/conversation/components/FeedbackDialog.tsx:48
 msgid "Thank you. Your report was sent."
 msgstr "Thank you. Your report was sent."
 
@@ -447,7 +448,7 @@ msgstr "The history could not load."
 msgid "The memory could not be cleared. Try again."
 msgstr "The memory could not be cleared. Try again."
 
-#: src/features/conversation/components/FeedbackDialog.tsx:70
+#: src/features/conversation/components/FeedbackDialog.tsx:80
 msgid "The people who run this agent read every report to improve it."
 msgstr "The people who run this agent read every report to improve it."
 
@@ -455,7 +456,7 @@ msgstr "The people who run this agent read every report to improve it."
 msgid "The reply stopped before it finished."
 msgstr "The reply stopped before it finished."
 
-#: src/features/conversation/components/FeedbackDialog.tsx:51
+#: src/features/conversation/components/FeedbackDialog.tsx:52
 msgid "The report could not be sent. Try again."
 msgstr "The report could not be sent. Try again."
 
@@ -521,7 +522,7 @@ msgstr "What the agent noted"
 msgid "What the agent remembers"
 msgstr "What the agent remembers"
 
-#: src/features/conversation/components/FeedbackDialog.tsx:79
+#: src/features/conversation/components/FeedbackDialog.tsx:89
 msgid "What went wrong?"
 msgstr "What went wrong?"
 

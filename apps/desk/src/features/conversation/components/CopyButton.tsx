@@ -2,6 +2,7 @@ import { useLingui } from "@lingui/react/macro"
 import { CheckIcon, CopyIcon } from "lucide-react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
 /** How long the button shows that the text was copied. */
 const COPIED_FEEDBACK_IN_MILLISECONDS = 2000
@@ -26,18 +27,26 @@ export function CopyButton({ text }: CopyButtonProps) {
     }
   }
 
+  const label = isCopied ? t`Copied` : t`Copy the reply`
   return (
-    <Button
-      variant="ghost"
-      size="icon-xs"
-      aria-label={isCopied ? t`Copied` : t`Copy the reply`}
-      onClick={() => void handleCopy()}
-    >
-      {isCopied ? (
-        <CheckIcon aria-hidden className="size-3.5" />
-      ) : (
-        <CopyIcon aria-hidden className="size-3.5" />
-      )}
-    </Button>
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            aria-label={label}
+            onClick={() => void handleCopy()}
+          />
+        }
+      >
+        {isCopied ? (
+          <CheckIcon aria-hidden className="size-3.5" />
+        ) : (
+          <CopyIcon aria-hidden className="size-3.5" />
+        )}
+      </TooltipTrigger>
+      <TooltipContent>{label}</TooltipContent>
+    </Tooltip>
   )
 }
