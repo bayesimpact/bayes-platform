@@ -23,7 +23,7 @@ export function NewConversation({ agent, agentName }: NewConversationProps) {
         <Composer
           agentName={agentName}
           isBusy={startConversation.isPending}
-          onSend={(content) => startConversation.mutate(content)}
+          onSend={(outgoing) => startConversation.mutate(outgoing)}
         />
         {startConversation.isError ? (
           <p role="alert" className="mt-2 text-sm text-destructive">

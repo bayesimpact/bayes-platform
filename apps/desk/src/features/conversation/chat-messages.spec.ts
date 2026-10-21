@@ -3,7 +3,7 @@ import {
   applyReplyEvent,
   type ChatMessage,
   failStreamingReplies,
-  findRetryableContent,
+  findRetryableMessage,
   type ReplyCursor,
   startTurn,
   toChatMessages,
@@ -14,7 +14,7 @@ const now = 1_000_000
 function startedTurn() {
   const messages = startTurn(
     [],
-    "Compare the plans",
+    { content: "Compare the plans", attachment: null },
     { userMessageId: "user", replyId: "reply" },
     now,
   )
@@ -119,26 +119,27 @@ describe("failStreamingReplies", () => {
   })
 })
 
-describe("findRetryableContent", () => {
+describe("findRetryableMessage", () => {
   it("offers to send again the message a failed last reply answered", () => {
     const { messages } = startedTurn()
 
-    expect(findRetryableContent(failStreamingReplies(messages, "ended"), now)).toBe(
-      "Compare the plans",
-    )
+    expect(findRetryableMessage(failStreamingReplies(messages, "ended"), now)).toEqual({
+      content: "Compare the plans",
+      attachment: null,
+    })
   })
 
   it("offers nothing while a reply is written or after it ended", () => {
     const { messages } = startedTurn()
 
-    expect(findRetryableContent(messages, now)).toBeNull()
-    expect(findRetryableContent([], now)).toBeNull()
+    expect(findRetryableMessage(messages, now)).toBeNull()
+    expect(findRetryableMessage([], now)).toBeNull()
   })
 
   it("offers to send again a reply the server never finished", () => {
     const { messages } = startedTurn()
     const thirtyOneMinutesLater = now + 31 * 60 * 1000
 
-    expect(findRetryableContent(messages, thirtyOneMinutesLater)).toBe("Compare the plans")
+    expect(findRetryableMessage(messages, thirtyOneMinutesLater)?.content).toBe("Compare the plans")
   })
 })

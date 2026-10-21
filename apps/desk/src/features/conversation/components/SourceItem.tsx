@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query"
 import { DownloadIcon, FileTextIcon, GlobeIcon } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
+import { openBlankTab } from "@/lib/safe-url"
 import { useOpenDocument } from "../api/mutations"
 import { documentIsPublicQueryOptions } from "../api/queries"
 import type { ChatSource } from "../chat-messages"
@@ -34,8 +35,7 @@ export function SourceItem({ conversation, source }: SourceItemProps) {
   const title = source.documentTitle ?? t`Untitled document`
 
   const handleOpen = () => {
-    // Opened during the click, or the browser would block it once the URL arrives.
-    const tab = window.open("", "_blank")
+    const tab = openBlankTab()
     openDocument.mutate(
       { documentId: source.documentId, tab },
       { onError: () => toast.error(t`The document could not be opened. Try again.`) },

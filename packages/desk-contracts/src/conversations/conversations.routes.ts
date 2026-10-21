@@ -1,12 +1,16 @@
 import { z } from "zod"
 import { agentParamsSchema } from "../agent-sessions/agent-sessions.dto"
 import { defineSchemaRoute, defineStreamRoute } from "../define-schema-route"
+import { temporaryUrlOutputSchema } from "../documents/documents.dto"
 import {
+  attachmentParamsSchema,
   conversationMessageOutputSchema,
   conversationParamsSchema,
   createdConversationOutputSchema,
   messageFeedbackInputSchema,
   messageParamsSchema,
+  presignAttachmentInputSchema,
+  presignAttachmentOutputSchema,
   replyStreamEventSchema,
   replyStreamQuerySchema,
 } from "./conversations.dto"
@@ -35,6 +39,20 @@ export const DeskConversationsRoutes = {
     path: messagesPath,
     params: conversationParamsSchema,
     response: z.array(conversationMessageOutputSchema),
+  }),
+  /** Prepares the upload of a file to attach to the next message. */
+  presignAttachment: defineSchemaRoute({
+    method: "post",
+    path: `${messagesPath}/attachment-document/presign`,
+    params: conversationParamsSchema,
+    body: presignAttachmentInputSchema,
+    response: presignAttachmentOutputSchema,
+  }),
+  getAttachmentUrl: defineSchemaRoute({
+    method: "post",
+    path: `${messagesPath}/attachment-document/:attachmentDocumentId/temporary-url`,
+    params: attachmentParamsSchema,
+    response: temporaryUrlOutputSchema,
   }),
   /** Reports a problem with one of the agent's replies. */
   createMessageFeedback: defineSchemaRoute({

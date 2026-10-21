@@ -13,7 +13,7 @@ msgstr "« {title} » et ses messages seront supprimés. Cette action est défin
 
 #: src/components/shared/Markdown.tsx:53
 #: src/components/shared/Markdown.tsx:75
-#: src/features/conversation/components/ResourceCards.tsx:37
+#: src/features/conversation/components/ResourceCards.tsx:41
 msgid "(opens in a new tab)"
 msgstr "(s'ouvre dans un nouvel onglet)"
 
@@ -29,13 +29,29 @@ msgstr "{count, plural, one {# étape suivie} other {# étapes suivies}}"
 msgid "A new version of the Desk is available"
 msgstr "Une nouvelle version du Desk est disponible"
 
-#: src/features/conversation/components/ChatMessageView.tsx:95
+#: src/features/conversation/components/ChatMessageView.tsx:101
 msgid "A new version of the Desk is available. Reload the page."
 msgstr "Une nouvelle version du Desk est disponible. Rechargez la page."
 
 #: src/features/history/components/ConversationActions.tsx:62
 msgid "Actions on {title}"
 msgstr "Actions sur {title}"
+
+#: src/features/conversation/components/Composer.tsx:112
+msgid "Attach a file"
+msgstr "Joindre un fichier"
+
+#: src/features/conversation/components/Composer.tsx:63
+msgid "Attach a file of 10 MB at most."
+msgstr "Joignez un fichier de 10 Mo au plus."
+
+#: src/features/conversation/components/Composer.tsx:59
+msgid "Attach a PDF, PNG or JPEG file."
+msgstr "Joignez un fichier PDF, PNG ou JPEG."
+
+#: src/features/conversation/components/AttachmentChip.tsx:22
+msgid "Attachment"
+msgstr "Pièce jointe"
 
 #: src/components/shared/NotFoundState.tsx:15
 msgid "Back to the Desk"
@@ -125,7 +141,7 @@ msgstr "En cours"
 msgid "Language"
 msgstr "Langue"
 
-#: src/features/conversation/components/Composer.tsx:46
+#: src/features/conversation/components/Composer.tsx:90
 msgid "Message to {agentName}"
 msgstr "Message à {agentName}"
 
@@ -154,6 +170,10 @@ msgstr "Aucun passage à afficher."
 #: src/features/history/components/HistoryList.tsx:34
 msgid "Older"
 msgstr "Plus ancien"
+
+#: src/features/conversation/components/AttachmentChip.tsx:42
+msgid "Open {name}"
+msgstr "Ouvrir {name}"
 
 #: src/features/conversation/components/SourceItem.tsx:58
 msgid "Open {title}"
@@ -203,6 +223,10 @@ msgstr "Rechargez la page pour continuer."
 msgid "Remembering what matters"
 msgstr "Mémorisation de l'essentiel"
 
+#: src/features/conversation/components/Composer.tsx:81
+msgid "Remove {fileName}"
+msgstr "Retirer {fileName}"
+
 #: src/features/conversation/components/FeedbackDialog.tsx:59
 msgid "Report a problem"
 msgstr "Signaler un problème"
@@ -228,7 +252,7 @@ msgstr "Recherche dans la base de connaissances"
 msgid "Searching the resources"
 msgstr "Recherche dans les ressources"
 
-#: src/features/conversation/components/Composer.tsx:64
+#: src/features/conversation/components/Composer.tsx:127
 msgid "Send"
 msgstr "Envoyer"
 
@@ -256,11 +280,11 @@ msgstr "Changer d'agent, agent actuel : {agentName}"
 msgid "Thank you. Your report was sent."
 msgstr "Merci, votre signalement a été envoyé."
 
-#: src/features/conversation/components/ChatMessageView.tsx:87
+#: src/features/conversation/components/ChatMessageView.tsx:91
 msgid "The agent could not answer."
 msgstr "L'agent n'a pas pu répondre."
 
-#: src/features/conversation/components/Composer.tsx:56
+#: src/features/conversation/components/Composer.tsx:119
 msgid "The agent is answering…"
 msgstr "L'agent répond…"
 
@@ -272,7 +296,7 @@ msgstr "La conversation n'a pas pu être supprimée. Réessayez."
 msgid "The conversation could not start. Try again."
 msgstr "La conversation n'a pas pu démarrer. Réessayez."
 
-#: src/features/conversation/components/ChatMessageView.tsx:93
+#: src/features/conversation/components/ChatMessageView.tsx:99
 msgid "The Desk could not reach the agent. Check your connection."
 msgstr "Le Desk n'a pas pu joindre l'agent. Vérifiez votre connexion."
 
@@ -280,11 +304,19 @@ msgstr "Le Desk n'a pas pu joindre l'agent. Vérifiez votre connexion."
 msgid "The document could not be opened. Try again."
 msgstr "Le document n'a pas pu être ouvert. Réessayez."
 
+#: src/features/conversation/components/AttachmentChip.tsx:30
+msgid "The file could not be opened. Try again."
+msgstr "Le fichier n'a pas pu être ouvert. Réessayez."
+
+#: src/features/conversation/components/ChatMessageView.tsx:95
+msgid "The file could not be uploaded. Try again."
+msgstr "Le fichier n'a pas pu être envoyé. Réessayez."
+
 #: src/features/conversation/components/FeedbackDialog.tsx:70
 msgid "The people who run this agent read every report to improve it."
 msgstr "Les personnes qui gèrent cet agent lisent chaque signalement pour l'améliorer."
 
-#: src/features/conversation/components/ChatMessageView.tsx:91
+#: src/features/conversation/components/ChatMessageView.tsx:97
 msgid "The reply stopped before it finished."
 msgstr "La réponse s'est arrêtée avant la fin."
 
@@ -312,7 +344,7 @@ msgstr "Cette page n’a pas pu se charger"
 msgid "This page does not exist, or you cannot open it."
 msgstr "Cette page n’existe pas, ou vous ne pouvez pas l’ouvrir."
 
-#: src/features/conversation/components/ChatMessageView.tsx:56
+#: src/features/conversation/components/ChatMessageView.tsx:60
 msgid "This reply was interrupted before it finished."
 msgstr "Cette réponse a été interrompue avant la fin."
 
@@ -324,7 +356,7 @@ msgstr "Aujourd'hui"
 msgid "Try again"
 msgstr "Réessayer"
 
-#: src/features/conversation/components/SourceItem.tsx:34
+#: src/features/conversation/components/SourceItem.tsx:35
 #: src/features/history/components/HistoryEntryLink.tsx:46
 msgid "Untitled document"
 msgstr "Document sans titre"
@@ -349,7 +381,7 @@ msgstr "Qu'est-ce qui n'allait pas ?"
 msgid "When someone gives you access to an agent, it appears here."
 msgstr "Quand quelqu'un vous donne accès à un agent, il apparaît ici."
 
-#: src/features/conversation/components/Composer.tsx:47
+#: src/features/conversation/components/Composer.tsx:91
 msgid "Write to {agentName}"
 msgstr "Écrire à {agentName}"
 

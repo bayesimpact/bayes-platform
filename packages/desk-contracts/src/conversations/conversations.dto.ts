@@ -65,13 +65,19 @@ export const conversationMessageOutputSchema = z.object({
   status: z.enum(["streaming", "completed", "aborted", "error"]).optional(),
   createdAt: z.number().optional(),
   toolCalls: z.array(toolCallOutputSchema).optional(),
+  /** The file the person attached to their message. */
+  attachmentDocumentId: z.uuid().optional(),
 })
 
 export type ConversationMessageOutputDto = z.output<typeof conversationMessageOutputSchema>
 
 /** What the reply stream reads from its `q` parameter: the message, as JSON. */
 export const replyInputSchema = z.strictObject({
-  payload: z.strictObject({ content: z.string().trim().min(1) }),
+  payload: z.strictObject({
+    content: z.string().trim().min(1),
+    /** A file uploaded through the presign route of the conversation. */
+    attachmentDocumentId: z.uuid().optional(),
+  }),
 })
 
 /** The one query parameter of the reply stream: the input, encoded as JSON. */
@@ -116,3 +122,36 @@ export const messageFeedbackInputSchema = z.strictObject({
 })
 
 export type MessageFeedbackInputDto = z.input<typeof messageFeedbackInputSchema>
+
+/** The files a person can attach to a message. */
+export const ATTACHMENT_MIME_TYPES = [
+  "application/pdf",
+  "image/png",
+  "image/jpeg",
+  "image/jpg",
+] as const
+
+/** The largest file a person can attach, as apps/web allows it. */
+export const ATTACHMENT_MAX_BYTES = 10 * 1024 * 1024
+
+/** The file to attach, before its upload. */
+export const presignAttachmentInputSchema = z.strictObject({
+  fileName: z.string().min(1),
+  mimeType: z.enum(ATTACHMENT_MIME_TYPES),
+  size: z.number().int().positive().max(ATTACHMENT_MAX_BYTES),
+})
+
+/** Where to upload the file: a signed URL, valid 15 minutes, that takes a PUT of its bytes. */
+export const presignAttachmentOutputSchema = z.object({
+  attachmentDocumentId: z.uuid(),
+  uploadUrl: z.url(),
+})
+
+/** The params of the routes under one attachment of a conversation. */
+export const attachmentParamsSchema = z.strictObject({
+  organizationId: z.uuid(),
+  projectId: z.uuid(),
+  agentId: z.uuid(),
+  agentSessionId: z.uuid(),
+  attachmentDocumentId: z.uuid(),
+})

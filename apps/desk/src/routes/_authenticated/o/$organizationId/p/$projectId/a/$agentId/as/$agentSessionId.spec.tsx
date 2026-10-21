@@ -176,6 +176,45 @@ describe("a conversation", () => {
     expect(screen.queryByRole("link", { name: "Compare the plans" })).not.toBeInTheDocument()
   })
 
+  it("sends a file with a message, and opens it afterwards", async () => {
+    const world = buildDeskWorld()
+    server.use(...worldHandlers(world))
+    renderApp(urlsOf(world).conversationUrl)
+
+    await screen.findByRole("textbox", { name: "Message to Helpful Assistant" })
+    const file = new File(["%PDF-1.7"], "invoice.pdf", { type: "application/pdf" })
+    await userEvent.upload(
+      document.querySelector<HTMLInputElement>('input[type="file"]') as HTMLInputElement,
+      file,
+    )
+    expect(screen.getByRole("button", { name: "Remove invoice.pdf" })).toBeInTheDocument()
+    await userEvent.type(
+      screen.getByRole("textbox", { name: "Message to Helpful Assistant" }),
+      "Read this invoice{Enter}",
+    )
+
+    expect(
+      await screen.findByText(/Here is what I found about "Read this invoice"/),
+    ).toBeInTheDocument()
+    // Once persisted, the message names its file by its document, which opens.
+    expect(await screen.findByRole("button", { name: "Open Attachment" })).toBeInTheDocument()
+  })
+
+  it("refuses a file that is not a PDF or an image", async () => {
+    const world = buildDeskWorld()
+    server.use(...worldHandlers(world))
+    renderApp(urlsOf(world).conversationUrl)
+
+    await screen.findByRole("textbox", { name: "Message to Helpful Assistant" })
+    const input = document.querySelector<HTMLInputElement>('input[type="file"]') as HTMLInputElement
+    await userEvent.upload(input, new File(["a,b"], "rows.csv", { type: "text/csv" }), {
+      applyAccept: false,
+    })
+
+    expect(await screen.findByText("Attach a PDF, PNG or JPEG file.")).toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Remove rows.csv" })).not.toBeInTheDocument()
+  })
+
   it("reports a problem with a reply", async () => {
     const world = buildDeskWorld()
     server.use(...worldHandlers(world))

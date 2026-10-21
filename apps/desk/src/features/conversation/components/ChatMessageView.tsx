@@ -5,6 +5,7 @@ import { Bubble, BubbleContent } from "@/components/ui/bubble"
 import { Message, MessageContent, MessageFooter } from "@/components/ui/message"
 import { type ChatMessage, isWriting } from "../chat-messages"
 import type { ConversationRef } from "../conversation-ref"
+import { AttachmentChip } from "./AttachmentChip"
 import { CopyButton } from "./CopyButton"
 import { FeedbackDialog } from "./FeedbackDialog"
 import { ResourceCards } from "./ResourceCards"
@@ -25,6 +26,9 @@ export function ChatMessageView({ conversation, message, now, showSources }: Cha
     return (
       <Message align="end">
         <MessageContent>
+          {message.attachment ? (
+            <AttachmentChip conversation={conversation} attachment={message.attachment} />
+          ) : null}
           <Bubble align="end" variant="muted">
             <BubbleContent className="whitespace-pre-wrap">{message.content}</BubbleContent>
           </Bubble>
@@ -87,7 +91,9 @@ function ReplyError({ message }: ReplyErrorProps) {
           <Trans>The agent could not answer.</Trans>
         </p>
         <p className="text-muted-foreground">
-          {message.failure === "ended" ? (
+          {message.failure === "upload" ? (
+            <Trans>The file could not be uploaded. Try again.</Trans>
+          ) : message.failure === "ended" ? (
             <Trans>The reply stopped before it finished.</Trans>
           ) : message.failure === "unreachable" ? (
             <Trans>The Desk could not reach the agent. Check your connection.</Trans>

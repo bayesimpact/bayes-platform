@@ -3,6 +3,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import { invalidateAgentHistory } from "@/features/history"
 import { apiRequest } from "@/lib/api-client"
+import { toHttpsUrl } from "@/lib/safe-url"
+import type { OutgoingMessage } from "../chat-messages"
 import type { ConversationAgentRef, ConversationRef } from "../conversation-ref"
 import { streamReply } from "./stream-reply"
 
@@ -10,7 +12,7 @@ import { streamReply } from "./stream-reply"
 export function useSendMessage(conversation: ConversationRef) {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (content: string) => streamReply(queryClient, conversation, content),
+    mutationFn: (outgoing: OutgoingMessage) => streamReply(queryClient, conversation, outgoing),
   })
 }
 
@@ -37,7 +39,7 @@ export function useStartConversation(agent: ConversationAgentRef) {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   return useMutation({
-    mutationFn: async (content: string) => {
+    mutationFn: async (outgoing: OutgoingMessage) => {
       const created = await apiRequest(DeskConversationsRoutes.createOne, {
         params: agent,
         body: {},
@@ -49,7 +51,7 @@ export function useStartConversation(agent: ConversationAgentRef) {
         to: "/o/$organizationId/p/$projectId/a/$agentId/as/$agentSessionId",
         params: conversation,
       })
-      await streamReply(queryClient, conversation, content)
+      await streamReply(queryClient, conversation, outgoing)
     },
   })
 }
@@ -69,7 +71,35 @@ export function useOpenDocument(conversation: ConversationRef) {
             documentId,
           },
         })
-        if (tab) tab.location.href = url
+        // Only a signed https URL of the storage opens; anything else closes the tab.
+        const safeUrl = toHttpsUrl(url)
+        if (!safeUrl) throw new Error("The document URL is not https")
+        if (tab) tab.location.href = safeUrl
+      } catch (error) {
+        tab?.close()
+        throw error
+      }
+    },
+  })
+}
+
+/** Opens the file a person attached to a message, in a new tab, as `useOpenDocument` does. */
+export function useOpenAttachment(conversation: ConversationRef) {
+  return useMutation({
+    mutationFn: async ({
+      attachmentDocumentId,
+      tab,
+    }: {
+      attachmentDocumentId: string
+      tab: Window | null
+    }) => {
+      try {
+        const { url } = await apiRequest(DeskConversationsRoutes.getAttachmentUrl, {
+          params: { ...conversation, attachmentDocumentId },
+        })
+        const safeUrl = toHttpsUrl(url)
+        if (!safeUrl) throw new Error("The attachment URL is not https")
+        if (tab) tab.location.href = safeUrl
       } catch (error) {
         tab?.close()
         throw error

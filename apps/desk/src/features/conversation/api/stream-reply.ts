@@ -12,13 +12,16 @@ import {
   applyReplyEvent,
   type ChatMessage,
   failStreamingReplies,
+  type OutgoingMessage,
   type ReplyCursor,
   type ReplyFailure,
+  setAttachmentDocument,
   startTurn,
 } from "../chat-messages"
 import type { ConversationRef } from "../conversation-ref"
 import { conversationKeys } from "./keys"
 import { registerReplyStream, unregisterReplyStream } from "./reply-streams"
+import { uploadAttachment } from "./upload-attachment"
 
 /** An event of the stream, or the failure to read one. */
 type ReadEvent = { event: ReplyStreamEventDto } | { failure: ReplyFailure }
@@ -55,7 +58,7 @@ function readEvent(frame: ServerSentEvent): ReadEvent {
 export async function streamReply(
   queryClient: QueryClient,
   conversation: ConversationRef,
-  content: string,
+  outgoing: OutgoingMessage,
 ): Promise<void> {
   const queryKey = conversationKeys.messages(conversation.agentSessionId)
   await queryClient.cancelQueries({ queryKey })
@@ -64,20 +67,33 @@ export async function streamReply(
   const update = (change: (messages: ChatMessage[]) => ChatMessage[]) =>
     queryClient.setQueryData<ChatMessage[]>(queryKey, (messages = []) => change(messages))
 
-  update((messages) =>
-    startTurn(
-      messages,
-      content,
-      { userMessageId: `local-${crypto.randomUUID()}`, replyId },
-      Date.now(),
-    ),
-  )
+  const userMessageId = `local-${crypto.randomUUID()}`
+  update((messages) => startTurn(messages, outgoing, { userMessageId, replyId }, Date.now()))
   let cursor: ReplyCursor = { messageId: replyId, hasStarted: false }
   let hasFailed = true
   try {
+    let attachmentDocumentId: string | undefined
+    if (outgoing.attachment && "file" in outgoing.attachment) {
+      try {
+        attachmentDocumentId = await uploadAttachment(
+          conversation,
+          outgoing.attachment.file,
+          controller.signal,
+        )
+      } catch (error) {
+        if (controller.signal.aborted) return
+        console.error("The attachment could not be uploaded:", error)
+        update((messages) => failStreamingReplies(messages, "upload"))
+        return
+      }
+      const documentId = attachmentDocumentId
+      update((messages) => setAttachmentDocument(messages, userMessageId, documentId))
+    } else if (outgoing.attachment) {
+      attachmentDocumentId = outgoing.attachment.documentId
+    }
     const response = await apiStreamResponse(DeskConversationsRoutes.streamReply, {
       params: conversation,
-      query: { q: { payload: { content } } },
+      query: { q: { payload: { content: outgoing.content, attachmentDocumentId } } },
       signal: controller.signal,
     })
     if (!response.body) throw new Error("The reply stream has no body")

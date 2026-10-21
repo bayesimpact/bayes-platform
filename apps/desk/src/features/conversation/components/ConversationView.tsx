@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/message-scroller"
 import { useSendMessage } from "../api/mutations"
 import { messagesQueryOptions } from "../api/queries"
-import { findRetryableContent, isWriting } from "../chat-messages"
+import { findRetryableMessage, isWriting } from "../chat-messages"
 import type { ConversationRef } from "../conversation-ref"
 import { ChatMessageView } from "./ChatMessageView"
 import { Composer } from "./Composer"
@@ -34,7 +34,7 @@ export function ConversationView({ conversation, agentName, showSources }: Conve
   const sendMessage = useSendMessage(conversation)
   const now = Date.now()
   const isBusy = sendMessage.isPending || messages.some((message) => isWriting(message, now))
-  const retryableContent = isBusy ? null : findRetryableContent(messages, now)
+  const retryableMessage = isBusy ? null : findRetryableMessage(messages, now)
 
   return (
     <MessageScrollerProvider autoScroll>
@@ -65,12 +65,12 @@ export function ConversationView({ conversation, agentName, showSources }: Conve
                       />
                     </MessageScrollerItem>
                   ))}
-                  {retryableContent !== null ? (
+                  {retryableMessage !== null ? (
                     <div>
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => sendMessage.mutate(retryableContent)}
+                        onClick={() => sendMessage.mutate(retryableMessage)}
                       >
                         <RotateCcwIcon aria-hidden />
                         <Trans>Retry</Trans>
@@ -90,7 +90,7 @@ export function ConversationView({ conversation, agentName, showSources }: Conve
           <Composer
             agentName={agentName}
             isBusy={isBusy}
-            onSend={(content) => sendMessage.mutate(content)}
+            onSend={(outgoing) => sendMessage.mutate(outgoing)}
           />
         </div>
       </div>

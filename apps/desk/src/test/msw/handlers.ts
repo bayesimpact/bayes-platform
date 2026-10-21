@@ -115,6 +115,30 @@ function conversationHandlers(world: DeskWorld) {
       "*/api/organizations/:organizationId/projects/:projectId/documents/:documentId/temporary-url",
       () => HttpResponse.json({ data: { url: "https://example.org/pricing-guide.pdf" } }),
     ),
+    http.post(`${messagesPath}/attachment-document/presign`, () => {
+      const attachmentDocumentId = crypto.randomUUID()
+      return HttpResponse.json(
+        {
+          data: {
+            attachmentDocumentId,
+            uploadUrl: `https://storage.example.org/uploads/${attachmentDocumentId}`,
+          },
+        },
+        { status: 201 },
+      )
+    }),
+    http.put(
+      "https://storage.example.org/uploads/:attachmentDocumentId",
+      () => new HttpResponse(null, { status: 200 }),
+    ),
+    http.post(
+      `${messagesPath}/attachment-document/:attachmentDocumentId/temporary-url`,
+      ({ params }) =>
+        HttpResponse.json(
+          { data: { url: `https://storage.example.org/files/${params.attachmentDocumentId}` } },
+          { status: 201 },
+        ),
+    ),
     http.post(messagesPath, ({ params }) => {
       const messages = world.messages[String(params.agentSessionId)]
       return messages
@@ -125,6 +149,7 @@ function conversationHandlers(world: DeskWorld) {
       const agentSessionId = String(params.agentSessionId)
       const query = JSON.parse(new URL(request.url).searchParams.get("q") ?? "{}")
       const content: string = query.payload?.content ?? ""
+      const attachmentDocumentId: string | undefined = query.payload?.attachmentDocumentId
       const reply = buildConversationMessage({
         content:
           `Here is what I found about "${content}". ` +
@@ -135,7 +160,7 @@ function conversationHandlers(world: DeskWorld) {
       })
       world.messages[agentSessionId] = [
         ...(world.messages[agentSessionId] ?? []),
-        buildConversationMessage({ role: "user", content }),
+        buildConversationMessage({ role: "user", content, attachmentDocumentId }),
         reply,
       ]
       const agentId = String(params.agentId)

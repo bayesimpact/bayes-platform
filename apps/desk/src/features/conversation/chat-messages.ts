@@ -15,7 +15,22 @@ export type ChatSource = SourcesArgumentsDto["sources"][number]
 export type ChatResource = SurfaceResourcesArgumentsDto["resources"][number]
 
 /** Why the Desk itself failed a reply, when the server said nothing. */
-export type ReplyFailure = "ended" | "unreachable" | "contract"
+export type ReplyFailure = "ended" | "unreachable" | "contract" | "upload"
+
+/**
+ * The file attached to a person's message: its uploaded document once known, and its name while
+ * the message is local (the API does not send it back).
+ */
+export type ChatAttachment = {
+  documentId: string | null
+  fileName: string | null
+}
+
+/** What a person sends: their text, and a file to attach, picked or already uploaded. */
+export type OutgoingMessage = {
+  content: string
+  attachment: { file: File } | { documentId: string } | null
+}
 
 /** A message as the conversation shows it. `tool` messages hold tool results and are not shown. */
 export type ChatMessage = {
@@ -32,6 +47,8 @@ export type ChatMessage = {
   sources: ChatSource[]
   /** The resources the reply points to, known once the reply is persisted. */
   resources: ChatResource[]
+  /** The file the person attached to their message. */
+  attachment: ChatAttachment | null
 }
 
 type ToolCall = NonNullable<ConversationMessageOutputDto["toolCalls"]>[number]
@@ -78,6 +95,9 @@ export function toChatMessages(messages: ConversationMessageOutputDto[]): ChatMe
           "surfaceResources",
           surfaceResourcesArgumentsSchema,
         ).flatMap((toolArguments) => toolArguments.resources),
+        attachment: message.attachmentDocumentId
+          ? { documentId: message.attachmentDocumentId, fileName: null }
+          : null,
       },
     ]
   })
@@ -93,22 +113,30 @@ export type ReplyCursor = {
 /** The user's message and an empty reply, shown before the server answers. */
 export function startTurn(
   messages: ChatMessage[],
-  content: string,
+  outgoing: OutgoingMessage,
   ids: { userMessageId: string; replyId: string },
   now: number,
 ): ChatMessage[] {
+  const attachment = outgoing.attachment
+  const userAttachment: ChatAttachment | null =
+    attachment === null
+      ? null
+      : "file" in attachment
+        ? { documentId: null, fileName: attachment.file.name }
+        : { documentId: attachment.documentId, fileName: null }
   return [
     ...messages,
     {
       id: ids.userMessageId,
       role: "user",
-      content,
+      content: outgoing.content,
       status: "completed",
       toolNames: [],
       createdAt: now,
       failure: null,
       sources: [],
       resources: [],
+      attachment: userAttachment,
     },
     {
       id: ids.replyId,
@@ -120,6 +148,7 @@ export function startTurn(
       failure: null,
       sources: [],
       resources: [],
+      attachment: null,
     },
   ]
 }
@@ -161,6 +190,7 @@ export function applyReplyEvent(
         failure: null,
         sources: [],
         resources: [],
+        attachment: null,
       }
       return {
         messages: [...messages, reply],
@@ -223,8 +253,11 @@ export function isWriting(message: ChatMessage, now: number): boolean {
   return message.createdAt === null || now - message.createdAt < STREAMING_TIMEOUT_IN_MILLISECONDS
 }
 
-/** The user message a failed last reply answered, to send again; `null` when there is none. */
-export function findRetryableContent(messages: ChatMessage[], now: number): string | null {
+/**
+ * The message a failed last reply answered, to send again with its uploaded file; `null` when
+ * there is none.
+ */
+export function findRetryableMessage(messages: ChatMessage[], now: number): OutgoingMessage | null {
   const lastMessage = messages.at(-1)
   const isFailed =
     lastMessage?.role === "assistant" &&
@@ -232,5 +265,21 @@ export function findRetryableContent(messages: ChatMessage[], now: number): stri
       lastMessage.status === "aborted" ||
       (lastMessage.status === "streaming" && !isWriting(lastMessage, now)))
   if (!isFailed) return null
-  return [...messages].reverse().find((message) => message.role === "user")?.content ?? null
+  const userMessage = [...messages].reverse().find((message) => message.role === "user")
+  if (!userMessage) return null
+  const documentId = userMessage.attachment?.documentId
+  return { content: userMessage.content, attachment: documentId ? { documentId } : null }
+}
+
+/** Notes the uploaded document of the local message of a file, so a retry can send it again. */
+export function setAttachmentDocument(
+  messages: ChatMessage[],
+  userMessageId: string,
+  documentId: string,
+): ChatMessage[] {
+  return messages.map((message) =>
+    message.id === userMessageId && message.attachment
+      ? { ...message, attachment: { ...message.attachment, documentId } }
+      : message,
+  )
 }
