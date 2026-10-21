@@ -23,6 +23,7 @@ import { useConversationForms } from "../hooks/use-conversation-forms"
 import type { OpenedResource } from "../resource-media"
 import { ChatMessageView } from "./ChatMessageView"
 import { Composer } from "./Composer"
+import { ConversationMenu } from "./ConversationMenu"
 import { FormsButton } from "./FormsButton"
 import { FormsPanel } from "./FormsPanel"
 import { QuoteReplyPopover } from "./QuoteReplyPopover"
@@ -85,6 +86,7 @@ export function ConversationView({ conversation, agentName, showSources }: Conve
             onToggle={() => togglePanel("forms")}
           />
         ) : null}
+        <ConversationMenu conversation={conversation} />
       </HeaderActions>
       <div className="flex min-h-0 min-w-0 flex-1">
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">

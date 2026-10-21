@@ -224,6 +224,23 @@ describe("a conversation", () => {
     expect(screen.queryByRole("link", { name: "Compare the plans" })).not.toBeInTheDocument()
   })
 
+  it("is deleted from the menu of its page, named in the confirmation", async () => {
+    const world = buildDeskWorld()
+    server.use(...worldHandlers(world))
+    const { router } = renderApp(urlsOf(world).conversationUrl)
+
+    await userEvent.click(await screen.findByRole("button", { name: "More actions" }))
+    await userEvent.click(await screen.findByRole("menuitem", { name: "Delete the conversation" }))
+    const dialog = await screen.findByRole("alertdialog")
+    expect(within(dialog).getByText(/"Compare the plans" and its messages/)).toBeInTheDocument()
+    await userEvent.click(within(dialog).getByRole("button", { name: "Delete" }))
+
+    expect(
+      await screen.findByRole("heading", { name: "How can I help you today?" }),
+    ).toBeInTheDocument()
+    expect(router.state.location.pathname).not.toContain("/as/")
+  })
+
   it("sends a file with a message, and opens it afterwards", async () => {
     const world = buildDeskWorld()
     server.use(...worldHandlers(world))

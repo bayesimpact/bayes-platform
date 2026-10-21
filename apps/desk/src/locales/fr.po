@@ -307,6 +307,10 @@ msgstr "Supprimer"
 msgid "Delete {name}"
 msgstr "Supprimer {name}"
 
+#: src/features/conversation/components/ConversationMenu.tsx:52
+msgid "Delete the conversation"
+msgstr "Supprimer la conversation"
+
 #: src/features/extraction/components/CsvRunActions.tsx:99
 #: src/features/extraction/components/ExtractionRunActions.tsx:72
 msgid "Delete the extraction"
@@ -466,7 +470,7 @@ msgstr "Masquer la barre latérale"
 msgid "Home of the Desk"
 msgstr "Accueil du Desk"
 
-#: src/features/conversation/components/ConversationView.tsx:94
+#: src/features/conversation/components/ConversationView.tsx:96
 #: src/features/conversation/components/NewConversation.tsx:22
 msgid "How can I help you today?"
 msgstr "Comment puis-je vous aider aujourd'hui ?"
@@ -535,11 +539,13 @@ msgstr "membre"
 msgid "Message to {agentName}"
 msgstr "Message à {agentName}"
 
+#: src/features/conversation/components/ConversationMenu.tsx:45
 #: src/features/extraction/components/CsvRunActions.tsx:92
 #: src/features/extraction/components/ExtractionRunActions.tsx:60
 msgid "More actions"
 msgstr "Plus d’actions"
 
+#: src/features/conversation/components/ConversationMenu.tsx:39
 #: src/features/history/components/HistoryEntryLink.tsx:32
 #: src/features/history/components/HistoryList.tsx:40
 #: src/features/history/components/NewSessionLink.tsx:40
@@ -744,7 +750,7 @@ msgstr "Redimensionner le panneau latéral"
 msgid "Results"
 msgstr "Résultats"
 
-#: src/features/conversation/components/ConversationView.tsx:148
+#: src/features/conversation/components/ConversationView.tsx:150
 msgid "Retry"
 msgstr "Réessayer"
 
@@ -789,7 +795,7 @@ msgstr "Lignes traitées"
 msgid "Running"
 msgstr "En cours"
 
-#: src/features/conversation/components/ConversationView.tsx:157
+#: src/features/conversation/components/ConversationView.tsx:159
 msgid "Scroll to the latest message"
 msgstr "Aller au dernier message"
 
