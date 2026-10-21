@@ -1,7 +1,7 @@
 # Worktree environments
 
 Each git worktree can run its own dev environment, side by side with the others: the web app, the
-Desk, the API, the workers, web-embed, the help site, the pdf-converter, the three Storybooks, Grafana, Bull
+Desk, the API, the workers, web-embed, the help site, the pdf-converter, the four Storybooks, Grafana, Bull
 Board, a sign-in page (oidc-picker), a Phoenix project for its traces, and its own databases copied
 from your local one, on URLs such as `http://fix-sidebar.connect.localhost:8800`.
 

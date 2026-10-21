@@ -1,22 +1,8 @@
 import { setupWorker } from "msw/browser"
 import { appBasePath } from "@/app/config"
+import { installStableIds } from "../stable-ids"
 
 const SCENARIO_KEY = "desk.mockScenario"
-
-/**
- * Makes `crypto.randomUUID` count from the same start on every load of the mock mode, so the
- * mocked world gets the same ids each time and a reload keeps the page it was on. The ids stay
- * valid version 4 UUIDs, which the contracts check.
- */
-function installStableIds(): void {
-  let next = 0
-  crypto.randomUUID = () => {
-    next += 1
-    const suffix = next.toString(16).padStart(12, "0")
-    // Safe: five dash-separated hex groups, the shape `randomUUID` returns.
-    return `00000000-0000-4000-8000-${suffix}` as `${string}-${string}-${string}-${string}-${string}`
-  }
-}
 
 /**
  * The scenario of the mock mode: the `mock` parameter when the URL has one, else the one this tab

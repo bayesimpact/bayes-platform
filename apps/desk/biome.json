@@ -24,7 +24,7 @@
   },
   "overrides": [
     {
-      "includes": ["*.config.ts"],
+      "includes": ["*.config.ts", ".storybook/**", "**/*.stories.tsx"],
       "linter": {
         "rules": {
           "style": {

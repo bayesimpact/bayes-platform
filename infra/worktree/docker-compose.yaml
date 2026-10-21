@@ -1,5 +1,5 @@
 # The dev environment of one git worktree: web app, Desk, API, workers, web-embed, help site,
-# pdf-converter, the three Storybooks, Grafana, a sign-in (oidc-picker), a Redis and two
+# pdf-converter, the four Storybooks, Grafana, a sign-in (oidc-picker), a Redis and two
 # databases on the shared Postgres. The worktree tooling writes infra/worktree/.env
 # (COMPOSE_PROJECT_NAME=wt-<name> and the WT_* values below), then runs `docker compose up -d`
 # with this file.
@@ -523,6 +523,30 @@ services:
       - traefik.http.routers.wt-${WT_SLUG}-storybook-embed.rule=Host(`${WT_SLUG}-embed-storybook.${WT_TOOLS_DOMAIN:-${WT_DOMAIN}}`) || Host(`${WT_SLUG}-embed-storybook.connect.localhost`)
       - traefik.http.routers.wt-${WT_SLUG}-storybook-embed.middlewares=dev-starting@docker
       - traefik.http.services.wt-${WT_SLUG}-storybook-embed.loadbalancer.server.port=${WT_PUBLIC_PORT}
+
+  storybook-desk:
+    <<: *node
+    profiles: [storybook-desk]
+    working_dir: ${WT_PATH}/apps/desk
+    networks: [default, shared]
+    environment: *tools-env
+    depends_on: *after-init
+    sysctls:
+      net.ipv4.ip_unprivileged_port_start: 0
+    command: ["npm", "run", "storybook", "--", "-p", "${WT_PUBLIC_PORT}", "--host", "0.0.0.0", "--ci", "--no-open"]
+    healthcheck:
+      <<: *health
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:${WT_PUBLIC_PORT}/index.json').then((reply) => process.exit(reply.ok ? 0 : 1), () => process.exit(1))"]
+    labels:
+      - dev.worktree.slug=${WT_SLUG}
+      - dev.worktree.path=${WT_PATH}
+      - dev.worktree.repo=${WT_REPO}
+      - dev.worktree.service=storybook-desk
+      - dev.worktree.link.desk-storybook=${WT_SCHEME}://${WT_SLUG}-desk-storybook.${WT_TOOLS_DOMAIN:-${WT_DOMAIN}}${WT_PORT_SUFFIX}
+      - traefik.enable=true
+      - traefik.http.routers.wt-${WT_SLUG}-storybook-desk.rule=Host(`${WT_SLUG}-desk-storybook.${WT_TOOLS_DOMAIN:-${WT_DOMAIN}}`) || Host(`${WT_SLUG}-desk-storybook.connect.localhost`)
+      - traefik.http.routers.wt-${WT_SLUG}-storybook-desk.middlewares=dev-starting@docker
+      - traefik.http.services.wt-${WT_SLUG}-storybook-desk.loadbalancer.server.port=${WT_PUBLIC_PORT}
 
   # Bull Board on this environment's Redis, no login (infra/bull-board/README.md).
   bull-board:
