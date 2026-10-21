@@ -12,11 +12,11 @@ export type AnnotationBadgeProps = {
 
 /**
  * The number of an annotation, in a small bubble at the end of its passage: it scrolls with the
- * reply, and opens the note again.
+ * conversation, and opens the note again.
  */
 export function AnnotationBadge({ annotation, number, onOpen }: AnnotationBadgeProps) {
   const { t } = useLingui()
-  const end = useRangeEnd(annotation.range, annotation.container)
+  const end = useRangeEnd(annotation.range, annotation.layer)
   if (!end) return null
   return createPortal(
     <button
@@ -32,6 +32,6 @@ export function AnnotationBadge({ annotation, number, onOpen }: AnnotationBadgeP
     >
       {number}
     </button>,
-    annotation.container,
+    annotation.layer,
   )
 }

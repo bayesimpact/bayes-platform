@@ -60,9 +60,8 @@ export function AssistantMessageView({
         <ToolSteps toolNames={message.toolNames} isWriting={writing} hasText={text !== ""} />
         {message.status === "error" ? <ReplyError message={message} /> : null}
         {message.status !== "error" && text !== "" ? (
-          // A passage of a settled reply can be annotated; the number of an annotation stands
-          // in this box, at the end of its passage.
-          <div className="relative" {...(writing ? {} : { [QUOTABLE_ATTRIBUTE]: "" })}>
+          // A passage of a settled reply can be annotated.
+          <div {...(writing ? {} : { [QUOTABLE_ATTRIBUTE]: "" })}>
             <Markdown isStreaming={writing}>{text}</Markdown>
           </div>
         ) : null}

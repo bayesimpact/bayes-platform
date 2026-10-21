@@ -2,15 +2,21 @@
 export const QUOTABLE_ATTRIBUTE = "data-quotable"
 
 /**
+ * The attribute of the element the numbers of annotations are drawn in, around every message: a
+ * message clips what overflows it, as a number raised above a first line would.
+ */
+export const ANNOTATION_LAYER_ATTRIBUTE = "data-annotation-layer"
+
+/**
  * A passage of a reply the person annotated, waiting to be sent with their next message: where it
- * stands, to keep it highlighted, and the reply it is in, which shows its number.
+ * stands, to keep it highlighted, and the element its number is drawn in, which scrolls with it.
  */
 export type Annotation = {
   id: string
   passage: string
   note: string
   range: Range
-  container: HTMLElement
+  layer: HTMLElement
 }
 
 /**
@@ -60,12 +66,13 @@ export function composeMessage(
 }
 
 /**
- * The passage of a reply the person selected, with where it stands on the screen and the reply it
- * is in, or `null` when the selection is empty or leaves the reply it starts in.
+ * The passage of a reply the person selected, with where it stands on the screen and the element
+ * its number would be drawn in, or `null` when the selection is empty or leaves the reply it
+ * starts in.
  */
 export function readQuotableSelection(
   selection: Selection | null,
-): { text: string; range: Range; container: HTMLElement } | null {
+): { text: string; range: Range; layer: HTMLElement } | null {
   if (!selection || selection.isCollapsed || selection.rangeCount === 0) return null
   const text = selection.toString().trim()
   if (text === "") return null
@@ -73,5 +80,10 @@ export function readQuotableSelection(
     (node instanceof Element ? node : node?.parentElement)?.closest(`[${QUOTABLE_ATTRIBUTE}]`)
   const start = quotableOf(selection.anchorNode)
   if (!(start instanceof HTMLElement) || start !== quotableOf(selection.focusNode)) return null
-  return { text, range: selection.getRangeAt(0).cloneRange(), container: start }
+  const layer = start.closest(`[${ANNOTATION_LAYER_ATTRIBUTE}]`)
+  return {
+    text,
+    range: selection.getRangeAt(0).cloneRange(),
+    layer: layer instanceof HTMLElement ? layer : start,
+  }
 }

@@ -56,7 +56,7 @@ export function QuoteReplyPopover({
         passage: selected.text,
         note: "",
         range: selected.range,
-        container: selected.container,
+        layer: selected.layer,
       })
       return
     }

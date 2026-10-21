@@ -120,7 +120,7 @@ msgstr "Copier le code"
 msgid "Copy the message"
 msgstr "Copier le message"
 
-#: src/features/conversation/components/AssistantMessageView.tsx:96
+#: src/features/conversation/components/AssistantMessageView.tsx:95
 msgid "Copy the reply"
 msgstr "Copier la réponse"
 
@@ -338,7 +338,7 @@ msgstr "Redimensionner le panneau"
 msgid "Resize the sidebar"
 msgstr "Redimensionner le panneau latéral"
 
-#: src/features/conversation/components/ConversationView.tsx:129
+#: src/features/conversation/components/ConversationView.tsx:132
 msgid "Retry"
 msgstr "Réessayer"
 
@@ -346,7 +346,7 @@ msgstr "Réessayer"
 msgid "Reword"
 msgstr "Reformuler"
 
-#: src/features/conversation/components/ConversationView.tsx:137
+#: src/features/conversation/components/ConversationView.tsx:140
 msgid "Scroll to the latest message"
 msgstr "Aller au dernier message"
 
@@ -504,7 +504,7 @@ msgstr "Cette page n’a pas pu se charger"
 msgid "This page does not exist, or you cannot open it."
 msgstr "Cette page n’existe pas, ou vous ne pouvez pas l’ouvrir."
 
-#: src/features/conversation/components/AssistantMessageView.tsx:91
+#: src/features/conversation/components/AssistantMessageView.tsx:90
 msgid "This reply was interrupted before it finished."
 msgstr "Cette réponse a été interrompue avant la fin."
 

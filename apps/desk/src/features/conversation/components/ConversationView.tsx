@@ -13,7 +13,7 @@ import {
   MessageScrollerViewport,
 } from "@/components/ui/message-scroller"
 import { MemoryButton, MemoryPanel } from "@/features/memory"
-import { composeMessage } from "../annotation"
+import { ANNOTATION_LAYER_ATTRIBUTE, composeMessage } from "../annotation"
 import { useSendMessage } from "../api/mutations"
 import { mcpAppsHtmlQueryOptions, messagesQueryOptions } from "../api/queries"
 import { findRetryableMessage, isWriting } from "../chat-messages"
@@ -98,9 +98,12 @@ export function ConversationView({ conversation, agentName, showSources }: Conve
               >
                 <MessageScroller>
                   <MessageScrollerViewport>
+                    {/* The first line stands clear of the bar's fade, with the number of an annotation
+                        raised above it. */}
                     <MessageScrollerContent
                       aria-busy={isBusy}
-                      className="mx-auto w-full max-w-3xl px-4 py-6"
+                      className="relative mx-auto w-full max-w-3xl px-4 pt-10 pb-6"
+                      {...{ [ANNOTATION_LAYER_ATTRIBUTE]: "" }}
                     >
                       {messages.map((message) => (
                         <MessageScrollerItem
