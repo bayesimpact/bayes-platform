@@ -58,8 +58,8 @@ msgid "Agent"
 msgstr "Agent"
 
 #: src/features/conversation/components/QuoteReplyPopover.tsx:127
-msgid "Annotate"
-msgstr "Annoter"
+msgid "Annotate and press Enter to keep it"
+msgstr "Annotez, puis appuyez sur Entrée pour garder la note"
 
 #: src/features/conversation/components/Composer.tsx:176
 msgid "Attach a file"

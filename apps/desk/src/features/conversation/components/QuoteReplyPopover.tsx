@@ -124,7 +124,7 @@ export function QuoteReplyPopover({
           <div className="flex items-end gap-1">
             <Textarea
               aria-label={t`Your note on this passage`}
-              placeholder={t`Annotate`}
+              placeholder={t`Annotate and press Enter to keep it`}
               value={editing?.note ?? ""}
               onChange={(event) =>
                 setEditing((current) => (current ? { ...current, note: event.target.value } : null))
