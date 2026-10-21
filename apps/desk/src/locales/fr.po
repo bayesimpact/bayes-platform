@@ -12,6 +12,7 @@ msgid "\"{title}\" and its messages will be deleted. This cannot be undone."
 msgstr "« {title} » et ses messages seront supprimés. Cette action est définitive."
 
 #: src/components/shared/Markdown.tsx:53
+#: src/components/shared/Markdown.tsx:75
 msgid "(opens in a new tab)"
 msgstr "(s'ouvre dans un nouvel onglet)"
 
@@ -51,7 +52,7 @@ msgstr "Finalisation du formulaire"
 msgid "Copied"
 msgstr "Copié"
 
-#: src/components/shared/Markdown.tsx:95
+#: src/components/shared/Markdown.tsx:117
 msgid "Copy the code"
 msgstr "Copier le code"
 
@@ -105,6 +106,10 @@ msgstr "Accueil du Desk"
 #: src/features/conversation/components/NewConversation.tsx:20
 msgid "How can I help you today?"
 msgstr "Comment puis-je vous aider aujourd'hui ?"
+
+#: src/components/shared/Markdown.tsx:65
+msgid "Image"
+msgstr "Image"
 
 #: src/features/history/components/HistoryEntryLink.tsx:79
 msgid "In progress"

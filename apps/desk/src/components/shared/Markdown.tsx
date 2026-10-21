@@ -55,6 +55,28 @@ function MarkdownLink({ node, children, href, ...props }: ComponentProps<"a"> & 
   )
 }
 
+/**
+ * An image of the reply, shown as a link the person opens. An image would load on its own, so a
+ * reply steered by a document or a web page could send what it knows to any server in its URL.
+ */
+function MarkdownImage({ src, alt }: ComponentProps<"img"> & ExtraProps) {
+  const { t } = useLingui()
+  if (typeof src !== "string" || src === "") return null
+  const label = alt || t`Image`
+  return (
+    <a
+      href={src}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-baseline gap-0.5 font-medium text-primary underline underline-offset-4"
+    >
+      {label}
+      <ExternalLinkIcon aria-hidden className="size-3 self-center" />
+      <span className="sr-only">{t`(opens in a new tab)`}</span>
+    </a>
+  )
+}
+
 function MarkdownCode({
   node,
   className,
@@ -106,4 +128,4 @@ function MarkdownCodeBlock({ code, language }: MarkdownCodeBlockProps) {
   )
 }
 
-const MARKDOWN_COMPONENTS = { a: MarkdownLink, code: MarkdownCode }
+const MARKDOWN_COMPONENTS = { a: MarkdownLink, code: MarkdownCode, img: MarkdownImage }
