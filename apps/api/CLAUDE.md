@@ -450,6 +450,16 @@ const project = this.repo().create({ name: "My Project", organizationId, organiz
 
 Prefer passing the foreign key ID for consistency.
 
+### Singular Relations: `Relation<T>`
+
+Type a `@ManyToOne` or `@OneToOne` property whose type is the related class as `Relation<T>` (`import { type Relation } from "typeorm"`): SWC's decorator metadata otherwise reads the class and throws `Cannot access 'User' before initialization` in an import cycle. Arrays (`User[]`) and unions (`User | null`) need nothing.
+
+```typescript
+@ManyToOne(() => User)
+@JoinColumn({ name: "user_id" })
+user!: Relation<User>
+```
+
 ### Register New Entities in `ALL_ENTITIES`
 
 The main datasource (`src/config/typeorm.ts`) picks up entities via a glob (`**/*.entity.ts`), so production + `migration:generate` work automatically. But the **test DB setup** uses an explicit list: `src/common/all-entities.ts` → `ALL_ENTITIES`.
