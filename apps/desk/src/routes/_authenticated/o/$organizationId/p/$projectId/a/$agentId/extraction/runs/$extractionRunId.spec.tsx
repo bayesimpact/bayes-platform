@@ -39,6 +39,10 @@ describe("an extraction of a document", () => {
     expect(wrap).toHaveAttribute("aria-pressed", "false")
     await userEvent.click(wrap)
     expect(wrap).toHaveAttribute("aria-pressed", "true")
+    // The JSON's header copies and downloads it, in place of the actions beside the tabs.
+    expect(screen.getAllByRole("button", { name: "Download quarterly-report.json" })).toHaveLength(
+      1,
+    )
   })
 
   it("says why it failed, without a retry that would fail again", async () => {

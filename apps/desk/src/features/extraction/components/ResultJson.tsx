@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/code-block"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useHighlightedCode } from "@/hooks/use-highlighted-code"
+import { ResultFileActions } from "./ResultFileActions"
 
 /** Beyond this many lines, the JSON shows its start, and the rest on demand. */
 const COLLAPSED_LINE_COUNT = 24
@@ -25,7 +26,7 @@ export type ResultJsonProps = {
 
 /**
  * The JSON of a result, as the shadcn Code Block shows code: numbered lines, which can wrap, and
- * a long result shortened until the person asks for the rest.
+ * a long result shortened until the person asks for the rest. Its header copies and downloads it.
  */
 export function ResultJson({ json, fileName }: ResultJsonProps) {
   const { t } = useLingui()
@@ -57,10 +58,11 @@ export function ResultJson({ json, fileName }: ResultJsonProps) {
                 />
               }
             >
-              <WrapTextIcon aria-hidden />
+              <WrapTextIcon aria-hidden className="size-3.5" />
             </TooltipTrigger>
             <TooltipContent>{wrapLabel}</TooltipContent>
           </Tooltip>
+          <ResultFileActions json={json} fileName={fileName} />
         </CodeBlockActions>
       </CodeBlockHeader>
       <CodeBlockContent

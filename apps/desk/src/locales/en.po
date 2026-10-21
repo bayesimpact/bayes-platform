@@ -254,7 +254,7 @@ msgstr "Copy {label}"
 msgid "Copy the code"
 msgstr "Copy the code"
 
-#: src/features/extraction/components/ExtractionResult.tsx:49
+#: src/features/extraction/components/ResultFileActions.tsx:18
 msgid "Copy the JSON"
 msgstr "Copy the JSON"
 
@@ -351,8 +351,8 @@ msgstr "Don't remember"
 msgid "Done"
 msgstr "Done"
 
-#: src/features/extraction/components/ExtractionResult.tsx:56
-#: src/features/extraction/components/ExtractionResult.tsx:63
+#: src/features/extraction/components/ResultFileActions.tsx:25
+#: src/features/extraction/components/ResultFileActions.tsx:32
 msgid "Download {fileName}"
 msgstr "Download {fileName}"
 
@@ -418,7 +418,7 @@ msgid "Failed"
 msgstr "Failed"
 
 #. The view of a result as named values
-#: src/features/extraction/components/ExtractionResult.tsx:44
+#: src/features/extraction/components/ExtractionResult.tsx:43
 msgid "Fields"
 msgstr "Fields"
 
@@ -813,7 +813,7 @@ msgstr "Running"
 msgid "Save"
 msgstr "Save"
 
-#: src/features/extraction/components/ResultJson.tsx:37
+#: src/features/extraction/components/ResultJson.tsx:38
 msgid "Scroll long lines"
 msgstr "Scroll long lines"
 
@@ -865,12 +865,12 @@ msgid "Should the agent remember this?"
 msgstr "Should the agent remember this?"
 
 #: src/features/conversation/components/UserMessageText.tsx:44
-#: src/features/extraction/components/ResultJson.tsx:91
+#: src/features/extraction/components/ResultJson.tsx:93
 msgid "Show less"
 msgstr "Show less"
 
 #: src/features/conversation/components/UserMessageText.tsx:44
-#: src/features/extraction/components/ResultJson.tsx:91
+#: src/features/extraction/components/ResultJson.tsx:93
 msgid "Show more"
 msgstr "Show more"
 
@@ -971,7 +971,7 @@ msgstr "The agent could not read the document"
 msgid "The agent forgot everything about you."
 msgstr "The agent forgot everything about you."
 
-#: src/features/extraction/components/ExtractionResult.tsx:31
+#: src/features/extraction/components/ExtractionResult.tsx:29
 msgid "The agent found nothing to fill in in this document."
 msgstr "The agent found nothing to fill in in this document."
 
@@ -1248,8 +1248,8 @@ msgstr "What went wrong?"
 msgid "When someone gives you access to an agent, it appears here."
 msgstr "When someone gives you access to an agent, it appears here."
 
-#: src/features/extraction/components/ResultJson.tsx:37
-#: src/features/extraction/components/ResultJson.tsx:53
+#: src/features/extraction/components/ResultJson.tsx:38
+#: src/features/extraction/components/ResultJson.tsx:54
 msgid "Wrap long lines"
 msgstr "Wrap long lines"
 

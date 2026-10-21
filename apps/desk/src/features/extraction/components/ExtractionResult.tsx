@@ -1,12 +1,9 @@
-import { Trans, useLingui } from "@lingui/react/macro"
-import { DownloadIcon } from "lucide-react"
-import { CopyButton } from "@/components/shared/CopyButton"
-import { Button } from "@/components/ui/button"
+import { Trans } from "@lingui/react/macro"
+import { useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { downloadText } from "../download"
 import { extractedFieldsOf, resultFileNameOf, resultJsonOf } from "../extraction-fields"
 import { ResultFields } from "./ResultFields"
+import { ResultFileActions } from "./ResultFileActions"
 import { ResultJson } from "./ResultJson"
 
 export type ExtractionResultProps = {
@@ -17,10 +14,11 @@ export type ExtractionResultProps = {
 
 /**
  * What the agent read in the document: its fields, to read, or their JSON, to reuse elsewhere.
- * Both copy, and the JSON downloads as a file named after the document.
+ * Both copy, and the JSON downloads as a file named after the document: beside the tabs for the
+ * fields, in the header of the code for the JSON.
  */
 export function ExtractionResult({ result, documentName }: ExtractionResultProps) {
-  const { t } = useLingui()
+  const [tab, setTab] = useState("fields")
   const fields = extractedFieldsOf(result)
   const json = resultJsonOf(result)
   const fileName = resultFileNameOf(documentName)
@@ -35,7 +33,8 @@ export function ExtractionResult({ result, documentName }: ExtractionResultProps
 
   return (
     <Tabs
-      defaultValue="fields"
+      value={tab}
+      onValueChange={setTab}
       className="flex flex-col gap-3 duration-300 animate-in fade-in-0 slide-in-from-bottom-1"
     >
       <div className="flex items-center justify-between gap-2">
@@ -45,24 +44,11 @@ export function ExtractionResult({ result, documentName }: ExtractionResultProps
           </TabsTrigger>
           <TabsTrigger value="json">JSON</TabsTrigger>
         </TabsList>
-        <div className="flex items-center gap-1">
-          <CopyButton text={json} label={t`Copy the JSON`} />
-          <Tooltip>
-            <TooltipTrigger
-              render={
-                <Button
-                  variant="ghost"
-                  size="icon-xs"
-                  aria-label={t`Download ${fileName}`}
-                  onClick={() => downloadText(json, fileName, "application/json")}
-                />
-              }
-            >
-              <DownloadIcon aria-hidden className="size-3.5" />
-            </TooltipTrigger>
-            <TooltipContent>{t`Download ${fileName}`}</TooltipContent>
-          </Tooltip>
-        </div>
+        {tab === "fields" ? (
+          <div className="flex items-center gap-1">
+            <ResultFileActions json={json} fileName={fileName} />
+          </div>
+        ) : null}
       </div>
       <TabsContent value="fields">
         <ResultFields fields={fields} />
