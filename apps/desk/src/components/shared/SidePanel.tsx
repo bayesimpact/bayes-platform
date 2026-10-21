@@ -16,7 +16,8 @@ export type SidePanelProps = {
 
 /**
  * A panel docked on the right of the page, beside it rather than over it, as an artifact opens in
- * the Claude app: the page stays in view and usable. Below a laptop's width, which leaves too
+ * the Claude app: a card with rounded corners and a soft shadow, a little apart from the window's
+ * edge, while the page stays in view and usable. Below a laptop's width, which leaves too
  * little room for both, it covers the page.
  */
 export function SidePanel({ title, description, onClose, footer, children }: SidePanelProps) {
@@ -34,7 +35,7 @@ export function SidePanel({ title, description, onClose, footer, children }: Sid
       aria-labelledby={titleId}
       // Safe: a custom property, which React's style type does not list.
       style={{ "--side-panel-width": `${panelWidth.width}px` } as CSSProperties}
-      className="fixed inset-0 z-30 flex flex-col bg-background duration-200 animate-in fade-in-0 slide-in-from-right-4 lg:relative lg:inset-auto lg:z-auto lg:w-(--side-panel-width) lg:shrink-0 lg:border-l"
+      className="fixed inset-0 z-30 flex flex-col bg-background duration-200 animate-in fade-in-0 slide-in-from-right-4 lg:relative lg:inset-auto lg:z-auto lg:mr-2 lg:mb-2 lg:w-(--side-panel-width) lg:shrink-0 lg:rounded-xl lg:border lg:shadow-sm"
     >
       <ResizeHandle
         edge="left"
