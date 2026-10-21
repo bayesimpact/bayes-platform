@@ -813,6 +813,10 @@ msgstr "En cours"
 msgid "Save"
 msgstr "Enregistrer"
 
+#: src/features/extraction/components/ResultJson.tsx:37
+msgid "Scroll long lines"
+msgstr "Faire défiler les longues lignes"
+
 #: src/features/conversation/components/ConversationView.tsx:159
 msgid "Scroll to the latest message"
 msgstr "Aller au dernier message"
@@ -861,10 +865,12 @@ msgid "Should the agent remember this?"
 msgstr "L'agent doit-il retenir ceci ?"
 
 #: src/features/conversation/components/UserMessageText.tsx:44
+#: src/features/extraction/components/ResultJson.tsx:91
 msgid "Show less"
 msgstr "Afficher moins"
 
 #: src/features/conversation/components/UserMessageText.tsx:44
+#: src/features/extraction/components/ResultJson.tsx:91
 msgid "Show more"
 msgstr "Afficher plus"
 
@@ -1241,6 +1247,11 @@ msgstr "Qu'est-ce qui n'allait pas ?"
 #: src/features/sessions/components/NoAgentState.tsx:11
 msgid "When someone gives you access to an agent, it appears here."
 msgstr "Quand quelqu'un vous donne accès à un agent, il apparaît ici."
+
+#: src/features/extraction/components/ResultJson.tsx:37
+#: src/features/extraction/components/ResultJson.tsx:53
+msgid "Wrap long lines"
+msgstr "Renvoyer les longues lignes à la ligne"
 
 #: src/features/account/components/EditNameDialog.tsx:76
 msgid "Write a name of 1 to 100 characters."

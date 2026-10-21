@@ -1,13 +1,13 @@
 import { Trans, useLingui } from "@lingui/react/macro"
 import { DownloadIcon } from "lucide-react"
 import { CopyButton } from "@/components/shared/CopyButton"
-import { HighlightedCodeBlock } from "@/components/shared/HighlightedCodeBlock"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { downloadText } from "../download"
 import { extractedFieldsOf, resultFileNameOf, resultJsonOf } from "../extraction-fields"
 import { ResultFields } from "./ResultFields"
+import { ResultJson } from "./ResultJson"
 
 export type ExtractionResultProps = {
   result: Record<string, unknown>
@@ -68,7 +68,7 @@ export function ExtractionResult({ result, documentName }: ExtractionResultProps
         <ResultFields fields={fields} />
       </TabsContent>
       <TabsContent value="json">
-        <HighlightedCodeBlock code={json} language="json" title={fileName} canCopy={false} />
+        <ResultJson json={json} fileName={fileName} />
       </TabsContent>
     </Tabs>
   )

@@ -35,6 +35,10 @@ describe("an extraction of a document", () => {
 
     await userEvent.click(screen.getByRole("tab", { name: "JSON" }))
     expect(await screen.findByText("quarterly-report.json")).toBeInTheDocument()
+    const wrap = screen.getByRole("button", { name: "Wrap long lines" })
+    expect(wrap).toHaveAttribute("aria-pressed", "false")
+    await userEvent.click(wrap)
+    expect(wrap).toHaveAttribute("aria-pressed", "true")
   })
 
   it("says why it failed, without a retry that would fail again", async () => {
