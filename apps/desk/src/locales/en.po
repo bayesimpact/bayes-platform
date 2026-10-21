@@ -45,7 +45,7 @@ msgstr "Actions on {title}"
 msgid "Agent"
 msgstr "Agent"
 
-#: src/features/conversation/components/Composer.tsx:114
+#: src/features/conversation/components/Composer.tsx:118
 msgid "Attach a file"
 msgstr "Attach a file"
 
@@ -194,7 +194,7 @@ msgstr "Language"
 msgid "Loading the interactive card…"
 msgstr "Loading the interactive card…"
 
-#: src/features/conversation/components/Composer.tsx:92
+#: src/features/conversation/components/Composer.tsx:96
 msgid "Message to {agentName}"
 msgstr "Message to {agentName}"
 
@@ -285,7 +285,7 @@ msgstr "Remember"
 msgid "Remembering what matters"
 msgstr "Remembering what matters"
 
-#: src/features/conversation/components/Composer.tsx:83
+#: src/features/conversation/components/Composer.tsx:87
 msgid "Remove {fileName}"
 msgstr "Remove {fileName}"
 
@@ -318,7 +318,7 @@ msgstr "Searching the knowledge base"
 msgid "Searching the resources"
 msgstr "Searching the resources"
 
-#: src/features/conversation/components/Composer.tsx:129
+#: src/features/conversation/components/Composer.tsx:133
 msgid "Send"
 msgstr "Send"
 
@@ -358,7 +358,7 @@ msgstr "The agent could not answer."
 msgid "The agent forgot everything about you."
 msgstr "The agent forgot everything about you."
 
-#: src/features/conversation/components/Composer.tsx:121
+#: src/features/conversation/components/Composer.tsx:125
 msgid "The agent is answering…"
 msgstr "The agent is answering…"
 
@@ -504,7 +504,7 @@ msgstr "When someone gives you access to an agent, it appears here."
 msgid "Write the fact in 300 characters at most."
 msgstr "Write the fact in 300 characters at most."
 
-#: src/features/conversation/components/Composer.tsx:93
+#: src/features/conversation/components/Composer.tsx:97
 msgid "Write to {agentName}"
 msgstr "Write to {agentName}"
 

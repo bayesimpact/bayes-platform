@@ -71,9 +71,13 @@ export function Composer({ agentName, content, onContentChange, isBusy, onSend }
   const fileName = file?.name ?? ""
   return (
     <form className="w-full" onSubmit={handleSubmit}>
-      <InputGroup className="rounded-2xl bg-background shadow-sm">
+      {/*
+        A white card with a soft shadow, as in the Claude app. shadcn's group fades out when it
+        holds a disabled control, which the send button is while the box is empty: not here.
+      */}
+      <InputGroup className="rounded-3xl border-border bg-background shadow-sm transition-[border-color,box-shadow] duration-150 hover:shadow-md has-disabled:bg-background has-disabled:opacity-100 has-[[data-slot=input-group-control]:focus-visible]:border-foreground/25 has-[[data-slot=input-group-control]:focus-visible]:shadow-md has-[[data-slot=input-group-control]:focus-visible]:ring-0 dark:bg-card dark:has-disabled:bg-card">
         {file ? (
-          <InputGroupAddon align="block-start">
+          <InputGroupAddon align="block-start" className="px-3 pt-3">
             <span className="flex min-w-0 items-center gap-2 rounded-lg border bg-muted px-2 py-1 text-xs text-foreground">
               <FileIcon aria-hidden className="size-4 shrink-0" />
               <span className="min-w-0 truncate">{file.name}</span>
@@ -95,9 +99,9 @@ export function Composer({ agentName, content, onContentChange, isBusy, onSend }
           onChange={(event) => onContentChange(event.target.value)}
           onKeyDown={handleKeyDown}
           autoFocus
-          className="max-h-60 min-h-16 p-3"
+          className="max-h-60 min-h-14 px-4 pt-4 pb-2 text-base leading-relaxed md:text-base"
         />
-        <InputGroupAddon align="block-end">
+        <InputGroupAddon align="block-end" className="px-3 pb-3">
           <input
             ref={fileInputRef}
             type="file"
@@ -109,8 +113,8 @@ export function Composer({ agentName, content, onContentChange, isBusy, onSend }
           />
           <InputGroupButton
             size="icon-sm"
-            variant="outline"
-            className="rounded-full"
+            variant="ghost"
+            className="rounded-full text-muted-foreground hover:text-foreground"
             aria-label={t`Attach a file`}
             disabled={isBusy}
             onClick={() => fileInputRef.current?.click()}
@@ -124,7 +128,7 @@ export function Composer({ agentName, content, onContentChange, isBusy, onSend }
             type="submit"
             size="icon-sm"
             variant="default"
-            className="ml-auto rounded-full"
+            className="ml-auto size-8 rounded-full disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100"
             disabled={!canSend}
             aria-label={t`Send`}
           >
