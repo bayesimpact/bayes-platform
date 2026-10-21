@@ -3,6 +3,7 @@ import type {
   ConversationSessionOutputDto,
   CsvExtractionRunOutputDto,
   ExtractionRunOutputDto,
+  MemoryOutputDto,
   MyOrganizationOutputDto,
   MyProjectOutputDto,
   ProjectAgentOutputDto,
@@ -29,6 +30,8 @@ export type DeskWorld = {
   messages: Record<string, ConversationMessageOutputDto[]>
   /** The problems reported on the agents' replies. */
   feedbacks: { agentMessageId: string; content: string }[]
+  /** What each agent remembers about the person. */
+  memories: Record<string, MemoryOutputDto[]>
 }
 
 function emptyWorld(): DeskWorld {
@@ -41,6 +44,7 @@ function emptyWorld(): DeskWorld {
     csvExtractionRuns: {},
     messages: {},
     feedbacks: [],
+    memories: {},
   }
 }
 
@@ -161,7 +165,30 @@ export function buildDeskWorld(): DeskWorld {
   world.agents = [assistant, buildProjectAgent(billing, { name: "Billing Assistant" })]
   world.conversations[assistant.id] = buildConversationHistory()
   addMessages(world, assistant.id)
+  addMemories(world, assistant.id)
   return world
+}
+
+/**
+ * The agent remembers one fact about the person and proposes another, both from the last reply
+ * of its first conversation.
+ */
+function addMemories(world: DeskWorld, agentId: string): void {
+  const saved = { id: crypto.randomUUID(), content: "Works in a team of five", status: "saved" }
+  const proposed = { id: crypto.randomUUID(), content: "Prefers short answers", status: "pending" }
+  world.memories[agentId] = [saved, proposed].map((memory) => ({
+    ...memory,
+    status: memory.status as "saved" | "pending",
+    createdAt: daysAgo(0),
+  }))
+  const [firstConversation] = world.conversations[agentId] ?? []
+  const reply = (world.messages[firstConversation?.id ?? ""] ?? []).at(-1)
+  reply?.toolCalls?.push({
+    id: crypto.randomUUID(),
+    name: "saveMemory",
+    arguments: {},
+    result: { memories: [saved, proposed] },
+  })
 }
 
 /** Gives every conversation of an agent's history a short exchange. */

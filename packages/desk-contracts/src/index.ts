@@ -19,6 +19,10 @@ export * from "./define-schema-route"
 export * from "./documents/documents.dto"
 export { DeskDocumentsRoutes } from "./documents/documents.routes"
 
+// Memories
+export * from "./memories/memories.dto"
+export { DeskMemoriesRoutes } from "./memories/memories.routes"
+
 // Organizations
 export * from "./organizations/organizations.dto"
 export { DeskOrganizationsRoutes } from "./organizations/organizations.routes"

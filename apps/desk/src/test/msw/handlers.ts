@@ -73,6 +73,44 @@ export function worldHandlers(world: DeskWorld) {
       HttpResponse.json({ data: world.csvExtractionRuns[String(params.agentId)] ?? [] }),
     ),
     ...conversationHandlers(world),
+    ...memoryHandlers(world),
+  ]
+}
+
+/** What each agent remembers about the person: read it, forget facts, answer proposals. */
+function memoryHandlers(world: DeskWorld) {
+  const memoriesPath = `${agentPath}/memories/live`
+  return [
+    http.get(memoriesPath, ({ params }) =>
+      HttpResponse.json({ data: world.memories[String(params.agentId)] ?? [] }),
+    ),
+    http.delete(`${memoriesPath}/:memoryId`, ({ params }) => {
+      const agentId = String(params.agentId)
+      world.memories[agentId] = (world.memories[agentId] ?? []).filter(
+        (memory) => memory.id !== params.memoryId,
+      )
+      return HttpResponse.json({ data: { success: true } })
+    }),
+    http.delete(memoriesPath, ({ params }) => {
+      world.memories[String(params.agentId)] = []
+      return HttpResponse.json({ data: { success: true } })
+    }),
+    http.post(`${memoriesPath}/resolve-proposals`, async ({ params, request }) => {
+      const agentId = String(params.agentId)
+      const body = (await request.json()) as {
+        payload: { decisions: { memoryId: string; decision: string; content?: string }[] }
+      }
+      for (const decision of body.payload.decisions) {
+        world.memories[agentId] = (world.memories[agentId] ?? []).flatMap((memory) => {
+          if (memory.id !== decision.memoryId) return [memory]
+          if (decision.decision === "reject") return []
+          return [
+            { ...memory, status: "saved" as const, content: decision.content ?? memory.content },
+          ]
+        })
+      }
+      return HttpResponse.json({ data: world.memories[agentId] ?? [] })
+    }),
   ]
 }
 

@@ -17,6 +17,10 @@ msgstr "\"{title}\" and its messages will be deleted. This cannot be undone."
 msgid "(opens in a new tab)"
 msgstr "(opens in a new tab)"
 
+#: src/features/memory/components/MemoryPanel.tsx:62
+msgid "{count, plural, one {Memory (#)} other {Memory (#)}}"
+msgstr "{count, plural, one {Memory (#)} other {Memory (#)}}"
+
 #: src/features/conversation/components/SourcesList.tsx:31
 msgid "{count, plural, one {Used # source} other {Used # sources}}"
 msgstr "{count, plural, one {Used # source} other {Used # sources}}"
@@ -29,7 +33,7 @@ msgstr "{count, plural, one {Worked through # step} other {Worked through # step
 msgid "A new version of the Desk is available"
 msgstr "A new version of the Desk is available"
 
-#: src/features/conversation/components/ChatMessageView.tsx:101
+#: src/features/conversation/components/ChatMessageView.tsx:112
 msgid "A new version of the Desk is available. Reload the page."
 msgstr "A new version of the Desk is available. Reload the page."
 
@@ -63,6 +67,8 @@ msgstr "Back to the Desk"
 
 #: src/features/conversation/components/FeedbackDialog.tsx:97
 #: src/features/history/components/ConversationActions.tsx:90
+#: src/features/memory/components/MemoryPanel.tsx:125
+#: src/features/memory/components/MemoryRewordForm.tsx:62
 msgid "Cancel"
 msgstr "Cancel"
 
@@ -71,6 +77,7 @@ msgid "Check your connection, then try again."
 msgstr "Check your connection, then try again."
 
 #: src/features/conversation/components/FormsSheet.tsx:39
+#: src/features/memory/components/MemoryPanel.tsx:70
 msgid "Close"
 msgstr "Close"
 
@@ -112,6 +119,10 @@ msgstr "Delete this conversation?"
 msgid "Describe the problem in a few words, up to 2,000 characters."
 msgstr "Describe the problem in a few words, up to 2,000 characters."
 
+#: src/features/memory/components/MemoryProposals.tsx:87
+msgid "Don't remember"
+msgstr "Don't remember"
+
 #: src/features/sessions/components/NewExtraction.tsx:24
 msgid "Drop a document or a CSV file here"
 msgstr "Drop a document or a CSV file here"
@@ -123,6 +134,19 @@ msgstr "Failed"
 #: src/features/conversation/components/ToolSteps.tsx:21
 msgid "Filling in the form"
 msgstr "Filling in the form"
+
+#: src/features/memory/components/MemoryPanel.tsx:94
+msgid "Forget \"{content}\""
+msgstr "Forget \"{content}\""
+
+#: src/features/memory/components/MemoryPanel.tsx:110
+#: src/features/memory/components/MemoryPanel.tsx:132
+msgid "Forget everything"
+msgstr "Forget everything"
+
+#: src/features/memory/components/MemoryPanel.tsx:117
+msgid "Forget everything?"
+msgstr "Forget everything?"
 
 #: src/features/conversation/components/ToolSteps.tsx:25
 msgid "Forgetting what you asked"
@@ -140,7 +164,7 @@ msgstr "Handing the conversation back"
 msgid "Home of the Desk"
 msgstr "Home of the Desk"
 
-#: src/features/conversation/components/ConversationView.tsx:53
+#: src/features/conversation/components/ConversationView.tsx:59
 #: src/features/conversation/components/NewConversation.tsx:20
 msgid "How can I help you today?"
 msgstr "How can I help you today?"
@@ -239,6 +263,11 @@ msgstr "Reload"
 msgid "Reload the page to keep going."
 msgstr "Reload the page to keep going."
 
+#: src/features/memory/components/MemoryProposals.tsx:74
+#: src/features/memory/components/MemoryRewordForm.tsx:59
+msgid "Remember"
+msgstr "Remember"
+
 #: src/features/conversation/components/ToolSteps.tsx:24
 msgid "Remembering what matters"
 msgstr "Remembering what matters"
@@ -255,11 +284,15 @@ msgstr "Report a problem"
 msgid "Report a problem with this reply"
 msgstr "Report a problem with this reply"
 
-#: src/features/conversation/components/ConversationView.tsx:84
+#: src/features/conversation/components/ConversationView.tsx:90
 msgid "Retry"
 msgstr "Retry"
 
-#: src/features/conversation/components/ConversationView.tsx:92
+#: src/features/memory/components/MemoryProposals.tsx:78
+msgid "Reword"
+msgstr "Reword"
+
+#: src/features/conversation/components/ConversationView.tsx:98
 msgid "Scroll to the latest message"
 msgstr "Scroll to the latest message"
 
@@ -279,6 +312,10 @@ msgstr "Send"
 #: src/features/conversation/components/FeedbackDialog.tsx:100
 msgid "Send the report"
 msgstr "Send the report"
+
+#: src/features/memory/components/MemoryProposals.tsx:50
+msgid "Should the agent remember this?"
+msgstr "Should the agent remember this?"
 
 #: src/routes/auth/callback.tsx:28
 msgid "Sign in again"
@@ -300,13 +337,29 @@ msgstr "Switch agent, current agent: {agentName}"
 msgid "Thank you. Your report was sent."
 msgstr "Thank you. Your report was sent."
 
-#: src/features/conversation/components/ChatMessageView.tsx:91
+#: src/features/conversation/components/ChatMessageView.tsx:102
 msgid "The agent could not answer."
 msgstr "The agent could not answer."
+
+#: src/features/memory/components/MemoryPanel.tsx:53
+msgid "The agent forgot everything about you."
+msgstr "The agent forgot everything about you."
 
 #: src/features/conversation/components/Composer.tsx:119
 msgid "The agent is answering…"
 msgstr "The agent is answering…"
+
+#: src/features/memory/components/MemoryProposals.tsx:48
+msgid "The agent remembers"
+msgstr "The agent remembers"
+
+#: src/features/memory/components/MemoryPanel.tsx:75
+msgid "The agent uses these facts in your next conversations. Only you see them."
+msgstr "The agent uses these facts in your next conversations. Only you see them."
+
+#: src/features/memory/components/MemoryPanel.tsx:120
+msgid "The agent will forget every fact it remembers about you."
+msgstr "The agent will forget every fact it remembers about you."
 
 #: src/features/conversation/components/FormsSheet.tsx:44
 msgid "The answers the agent collected from the conversation, as it fills them in."
@@ -320,7 +373,7 @@ msgstr "The conversation could not be deleted. Try again."
 msgid "The conversation could not start. Try again."
 msgstr "The conversation could not start. Try again."
 
-#: src/features/conversation/components/ChatMessageView.tsx:99
+#: src/features/conversation/components/ChatMessageView.tsx:110
 msgid "The Desk could not reach the agent. Check your connection."
 msgstr "The Desk could not reach the agent. Check your connection."
 
@@ -328,19 +381,31 @@ msgstr "The Desk could not reach the agent. Check your connection."
 msgid "The document could not be opened. Try again."
 msgstr "The document could not be opened. Try again."
 
+#: src/features/memory/components/MemoryPanel.tsx:98
+msgid "The fact could not be forgotten. Try again."
+msgstr "The fact could not be forgotten. Try again."
+
+#: src/features/memory/components/MemoryRewordForm.tsx:46
+msgid "The fact to remember"
+msgstr "The fact to remember"
+
 #: src/features/conversation/components/AttachmentChip.tsx:30
 msgid "The file could not be opened. Try again."
 msgstr "The file could not be opened. Try again."
 
-#: src/features/conversation/components/ChatMessageView.tsx:95
+#: src/features/conversation/components/ChatMessageView.tsx:106
 msgid "The file could not be uploaded. Try again."
 msgstr "The file could not be uploaded. Try again."
+
+#: src/features/memory/components/MemoryPanel.tsx:55
+msgid "The memory could not be cleared. Try again."
+msgstr "The memory could not be cleared. Try again."
 
 #: src/features/conversation/components/FeedbackDialog.tsx:70
 msgid "The people who run this agent read every report to improve it."
 msgstr "The people who run this agent read every report to improve it."
 
-#: src/features/conversation/components/ChatMessageView.tsx:97
+#: src/features/conversation/components/ChatMessageView.tsx:108
 msgid "The reply stopped before it finished."
 msgstr "The reply stopped before it finished."
 
@@ -368,7 +433,7 @@ msgstr "This page could not load"
 msgid "This page does not exist, or you cannot open it."
 msgstr "This page does not exist, or you cannot open it."
 
-#: src/features/conversation/components/ChatMessageView.tsx:60
+#: src/features/conversation/components/ChatMessageView.tsx:71
 msgid "This reply was interrupted before it finished."
 msgstr "This reply was interrupted before it finished."
 
@@ -393,6 +458,10 @@ msgstr "Uploading comes in the next version of the Desk."
 msgid "Using a tool"
 msgstr "Using a tool"
 
+#: src/features/memory/components/MemoryPanel.tsx:87
+msgid "Waiting for your answer"
+msgstr "Waiting for your answer"
+
 #: src/features/sessions/components/NewExtraction.tsx:16
 msgid "What should {agentName} read?"
 msgstr "What should {agentName} read?"
@@ -401,6 +470,10 @@ msgstr "What should {agentName} read?"
 msgid "What the agent noted"
 msgstr "What the agent noted"
 
+#: src/features/memory/components/MemoryPanel.tsx:68
+msgid "What the agent remembers"
+msgstr "What the agent remembers"
+
 #: src/features/conversation/components/FeedbackDialog.tsx:79
 msgid "What went wrong?"
 msgstr "What went wrong?"
@@ -408,6 +481,10 @@ msgstr "What went wrong?"
 #: src/features/sessions/components/NoAgentState.tsx:11
 msgid "When someone gives you access to an agent, it appears here."
 msgstr "When someone gives you access to an agent, it appears here."
+
+#: src/features/memory/components/MemoryRewordForm.tsx:51
+msgid "Write the fact in 300 characters at most."
+msgstr "Write the fact in 300 characters at most."
 
 #: src/features/conversation/components/Composer.tsx:91
 msgid "Write to {agentName}"
@@ -420,3 +497,7 @@ msgstr "Yesterday"
 #: src/features/sessions/components/NoAgentState.tsx:10
 msgid "You don't have access to an agent yet"
 msgstr "You don't have access to an agent yet"
+
+#: src/features/memory/components/MemoryProposals.tsx:34
+msgid "Your answer could not be saved. Try again."
+msgstr "Your answer could not be saved. Try again."

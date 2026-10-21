@@ -36,7 +36,7 @@ describe("a conversation", () => {
 
     expect(await screen.findByText(/Here is a short comparison/)).toBeInTheDocument()
     expect(screen.getByText("Hello! How can I help you today?")).toBeInTheDocument()
-    expect(screen.getByText("Worked through 2 steps")).toBeInTheDocument()
+    expect(screen.getByText("Worked through 3 steps")).toBeInTheDocument()
   })
 
   it("shows the resources a reply points to and the sources it relied on", async () => {
@@ -226,6 +226,50 @@ describe("a conversation", () => {
     expect(within(panel).getByText("Team size").nextSibling).toHaveTextContent("5")
     expect(within(panel).getByText("Plan").nextSibling).toHaveTextContent("Pro")
     expect(within(panel).getByText("Start date").nextSibling).toHaveTextContent("—")
+  })
+
+  it("asks before the agent remembers a fact, which the person can reword", async () => {
+    const world = buildDeskWorld()
+    server.use(...worldHandlers(world))
+    renderApp(urlsOf(world).conversationUrl)
+
+    expect(await screen.findByText("Works in a team of five")).toBeInTheDocument()
+    expect(screen.getByText("The agent remembers")).toBeInTheDocument()
+    expect(screen.getByText("Should the agent remember this?").nextSibling).toHaveTextContent(
+      "Prefers short answers",
+    )
+
+    await userEvent.click(screen.getByRole("button", { name: "Reword" }))
+    const fact = screen.getByRole("textbox", { name: "The fact to remember" })
+    await userEvent.clear(fact)
+    await userEvent.type(fact, "Likes short answers")
+    await userEvent.click(screen.getByRole("button", { name: "Remember" }))
+
+    expect(await screen.findByText("Likes short answers")).toBeInTheDocument()
+    expect(screen.queryByText("Should the agent remember this?")).not.toBeInTheDocument()
+  })
+
+  it("forgets what the agent remembers, one fact or all of them", async () => {
+    const world = buildDeskWorld()
+    server.use(...worldHandlers(world))
+    renderApp(urlsOf(world).conversationUrl)
+
+    await userEvent.click(await screen.findByRole("button", { name: "Memory (2)" }))
+    const panel = await screen.findByRole("dialog", { name: "What the agent remembers" })
+    await userEvent.click(
+      within(panel).getByRole("button", { name: 'Forget "Works in a team of five"' }),
+    )
+    expect(await within(panel).findByText("Prefers short answers")).toBeInTheDocument()
+    await waitFor(() =>
+      expect(within(panel).queryByText("Works in a team of five")).not.toBeInTheDocument(),
+    )
+
+    await userEvent.click(within(panel).getByRole("button", { name: "Forget everything" }))
+    const confirmation = await screen.findByRole("alertdialog")
+    await userEvent.click(within(confirmation).getByRole("button", { name: "Forget everything" }))
+
+    expect(await screen.findByText("The agent forgot everything about you.")).toBeInTheDocument()
+    expect(Object.values(world.memories).flat()).toEqual([])
   })
 
   it("reports a problem with a reply", async () => {

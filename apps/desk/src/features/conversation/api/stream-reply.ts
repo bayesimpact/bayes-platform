@@ -6,6 +6,7 @@ import {
 import type { QueryClient } from "@tanstack/react-query"
 import { z } from "zod"
 import { invalidateAgentHistory } from "@/features/history"
+import { invalidateMemories } from "@/features/memory"
 import { apiStreamResponse } from "@/lib/api-client"
 import { readServerSentEvents, type ServerSentEvent } from "@/lib/stream"
 import {
@@ -25,6 +26,9 @@ import { uploadAttachment } from "./upload-attachment"
 
 /** The tools that change a form of the conversation, which comes with the agent's history. */
 const FORM_TOOLS = new Set(["fillForm", "consolidateForm"])
+
+/** The tools that change what the agent remembers about the person. */
+const MEMORY_TOOLS = new Set(["saveMemory", "forgetMemory"])
 
 /** An event of the stream, or the failure to read one. */
 type ReadEvent = { event: ReplyStreamEventDto } | { failure: ReplyFailure }
@@ -114,6 +118,10 @@ export async function streamReply(
       // A form the agent fills in shows its new answers while the reply goes on.
       if (read.event.type === "notify_client" && FORM_TOOLS.has(read.event.toolName)) {
         invalidateAgentHistory(queryClient, conversation.agentId)
+      }
+      // A fact the agent saves or forgets shows in its memory at once.
+      if (read.event.type === "notify_client" && MEMORY_TOOLS.has(read.event.toolName)) {
+        invalidateMemories(queryClient, conversation.agentId)
       }
       if (read.event.type === "error") return
     }

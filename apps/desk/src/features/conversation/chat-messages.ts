@@ -3,6 +3,7 @@ import {
   type ReplyStreamEventDto,
   type SourcesArgumentsDto,
   type SurfaceResourcesArgumentsDto,
+  saveMemoryResultSchema,
   sourcesArgumentsSchema,
   surfaceResourcesArgumentsSchema,
 } from "@caseai-connect/desk-contracts"
@@ -49,6 +50,8 @@ export type ChatMessage = {
   resources: ChatResource[]
   /** The file the person attached to their message. */
   attachment: ChatAttachment | null
+  /** The facts the reply saved or proposed to remember about the person. */
+  memoryIds: string[]
 }
 
 type ToolCall = NonNullable<ConversationMessageOutputDto["toolCalls"]>[number]
@@ -70,6 +73,15 @@ function readToolArguments<TSchema extends z.ZodType>(
       return []
     }
     return [result.data]
+  })
+}
+
+/** The facts the `saveMemory` calls of a reply saved or proposed, from their results. */
+function readSavedMemoryIds(toolCalls: ToolCall[]): string[] {
+  return toolCalls.flatMap((toolCall) => {
+    if (toolCall.name !== "saveMemory") return []
+    const result = saveMemoryResultSchema.safeParse(toolCall.result)
+    return result.success ? result.data.memories.map((memory) => memory.id) : []
   })
 }
 
@@ -98,6 +110,7 @@ export function toChatMessages(messages: ConversationMessageOutputDto[]): ChatMe
         attachment: message.attachmentDocumentId
           ? { documentId: message.attachmentDocumentId, fileName: null }
           : null,
+        memoryIds: readSavedMemoryIds(toolCalls),
       },
     ]
   })
@@ -137,6 +150,7 @@ export function startTurn(
       sources: [],
       resources: [],
       attachment: userAttachment,
+      memoryIds: [],
     },
     {
       id: ids.replyId,
@@ -149,6 +163,7 @@ export function startTurn(
       sources: [],
       resources: [],
       attachment: null,
+      memoryIds: [],
     },
   ]
 }
@@ -191,6 +206,7 @@ export function applyReplyEvent(
         sources: [],
         resources: [],
         attachment: null,
+        memoryIds: [],
       }
       return {
         messages: [...messages, reply],

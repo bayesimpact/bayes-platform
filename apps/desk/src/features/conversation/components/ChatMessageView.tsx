@@ -3,6 +3,7 @@ import { CircleAlertIcon } from "lucide-react"
 import { Markdown } from "@/components/shared/Markdown"
 import { Bubble, BubbleContent } from "@/components/ui/bubble"
 import { Message, MessageContent, MessageFooter } from "@/components/ui/message"
+import { MemoryProposals } from "@/features/memory"
 import { type ChatMessage, isWriting } from "../chat-messages"
 import type { ConversationRef } from "../conversation-ref"
 import { AttachmentChip } from "./AttachmentChip"
@@ -52,6 +53,16 @@ export function ChatMessageView({ conversation, message, now, showSources }: Cha
           <Markdown isStreaming={writing}>{message.content}</Markdown>
         ) : null}
         {message.resources.length > 0 ? <ResourceCards resources={message.resources} /> : null}
+        {message.memoryIds.length > 0 ? (
+          <MemoryProposals
+            agent={{
+              organizationId: conversation.organizationId,
+              projectId: conversation.projectId,
+              agentId: conversation.agentId,
+            }}
+            memoryIds={message.memoryIds}
+          />
+        ) : null}
         {showSources && message.sources.length > 0 ? (
           <SourcesList conversation={conversation} sources={message.sources} />
         ) : null}

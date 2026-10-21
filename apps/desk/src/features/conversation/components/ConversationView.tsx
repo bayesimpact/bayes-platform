@@ -10,6 +10,7 @@ import {
   MessageScrollerProvider,
   MessageScrollerViewport,
 } from "@/components/ui/message-scroller"
+import { MemoryPanel } from "@/features/memory"
 import { useSendMessage } from "../api/mutations"
 import { messagesQueryOptions } from "../api/queries"
 import { findRetryableMessage, isWriting } from "../chat-messages"
@@ -42,11 +43,16 @@ export function ConversationView({ conversation, agentName, showSources }: Conve
   return (
     <MessageScrollerProvider autoScroll>
       <div className="flex min-h-0 flex-1 flex-col">
-        {forms.length > 0 ? (
-          <div className="mx-auto flex w-full max-w-3xl justify-end px-4 pt-2">
-            <FormsSheet forms={forms} />
-          </div>
-        ) : null}
+        <div className="mx-auto flex w-full max-w-3xl justify-end gap-2 px-4 pt-2 empty:hidden">
+          <MemoryPanel
+            agent={{
+              organizationId: conversation.organizationId,
+              projectId: conversation.projectId,
+              agentId: conversation.agentId,
+            }}
+          />
+          {forms.length > 0 ? <FormsSheet forms={forms} /> : null}
+        </div>
         <div className="min-h-0 flex-1">
           {messages.length === 0 ? (
             <h1 className="mt-24 text-center text-3xl font-semibold tracking-tight">
