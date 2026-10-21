@@ -80,7 +80,7 @@ export class AISDKVertexProvider extends AISDKLLMProviderBase<AgentProvider.Vert
       : this.vertexProvider
     return provider(config.model)
   }
-  protected getModelMetadata(config: LLMConfig): Record<string, string | number | string[]> {
+  protected getTelemetryMetadata(_config: LLMConfig): Record<string, string | number | string[]> {
     return { project: this.vertexProject, location: this.vertexLocation }
   }
 }

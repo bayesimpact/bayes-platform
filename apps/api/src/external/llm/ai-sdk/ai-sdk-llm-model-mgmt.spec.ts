@@ -101,8 +101,8 @@ class TestModelMgmt extends AISDKLLMModelMgmt<AgentProvider._Mock> {
       leakedToolCalls,
     })
   }
-  getModelMetadata(_config: LLMConfig): string[] {
-    return []
+  getTelemetryMetadata(_config: LLMConfig): Record<string, string | number | string[]> {
+    return {}
   }
 
   parseStructuredOutputTextFor(text: string): Record<string, unknown> {

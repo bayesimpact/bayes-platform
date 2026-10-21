@@ -42,7 +42,10 @@ export abstract class AISDKVllmProviderBase<
     return this.createOpenAiCompatibleChatModel(config)
   }
 
-  // protected abstract getModelMetadata(config: LLMConfig): Record<string, string | number | string[]>
+  /** Nothing beyond the provider and the model, which every call already carries. */
+  protected getTelemetryMetadata(_config: LLMConfig): Record<string, string | number | string[]> {
+    return {}
+  }
 
   /**
    * The OpenAI-compatible chat model, authenticated with a Google access token

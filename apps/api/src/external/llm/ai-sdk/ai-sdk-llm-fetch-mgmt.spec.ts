@@ -31,8 +31,8 @@ class TestFetchMgmt extends AISDKLLMFetchMgmt<AgentProvider._Mock> {
   getLanguageModel(): LanguageModelV3 {
     throw new Error("TestFetchMgmt builds no model")
   }
-  getModelMetadata(): string[] {
-    return []
+  getTelemetryMetadata(): Record<string, string | number | string[]> {
+    return {}
   }
 
   fetchForConfig(config: LLMConfig): typeof globalThis.fetch {

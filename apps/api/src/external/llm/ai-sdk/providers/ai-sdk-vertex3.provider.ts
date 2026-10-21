@@ -236,10 +236,12 @@ export class AISDKVertex3Provider extends AISDKLLMProviderBase<AgentProvider.Ver
     return {}
   }
 
-  getTags(config: LLMConfig): string[] {
-    const tags = [this.vertexProject, this.locationForModel(config.model), config.model]
-    if (config.serviceTier) tags.push(config.serviceTier.toUpperCase())
-    tags.push(this.thinkingLevelTag(config).toUpperCase())
-    return tags
+  getTelemetryMetadata(config: LLMConfig): Record<string, string | number | string[]> {
+    return {
+      project: this.vertexProject,
+      location: this.locationForModel(config.model),
+      thinkingLevel: this.thinkingLevelTag(config).toUpperCase(),
+      ...(config.serviceTier ? { serviceTier: config.serviceTier.toUpperCase() } : {}),
+    }
   }
 }

@@ -57,8 +57,8 @@ class TestProvider<
     this.languageModelCalls.push({ callOrigin, metadata })
     return this.model
   }
-  getModelMetadata(_config: LLMConfig): string[] {
-    return ["test-tag"]
+  getTelemetryMetadata(_config: LLMConfig): Record<string, string | number | string[]> {
+    return { test: "tag" }
   }
 }
 

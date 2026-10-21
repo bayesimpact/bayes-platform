@@ -38,7 +38,7 @@ class TestVllmProvider extends AISDKVllmProviderBase<AgentProvider.Gemma> {
   authFor(): Pick<GoogleAuth, "getClient"> {
     return this.auth
   }
-  getModelMetadata(config: LLMConfig): Record<string, string | number | string[]> {
+  getTelemetryMetadata(_config: LLMConfig): Record<string, string | number | string[]> {
     return {}
   }
 }

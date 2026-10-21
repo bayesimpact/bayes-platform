@@ -44,7 +44,13 @@ const logger = new Logger("AISDKLLMModelMgmt")
 const CHANNEL_KEYWORDS = "thought|analysis|reasoning|finalize|commentary|final"
 
 export type ModelInfos = {
+  /** Set when the provider retires the model, with the model to move to. */
   deprecation?: AgentModelDeprecation
+  /**
+   * `true` when the provider does not serve the model from the EU region: it can only run
+   * through a global endpoint, which carries no EU data-processing guarantee. Absent means
+   * EU-served. Drives both the endpoint routing and the UI label.
+   */
   servedOutsideEu?: boolean
 }
 
@@ -149,22 +155,20 @@ export abstract class AISDKLLMModelMgmt<
     return {
       provider: this.getAgentProvider(),
       model: config.model,
-      ...removeNullish(this.getModelMetadata(config)),
+      ...removeNullish(this.getTelemetryMetadata(config)),
     }
   }
-  protected abstract getModelMetadata(config: LLMConfig): Record<string, string | number | string[]>
-  abstract getTags(config: LLMConfig): string[]
+  protected abstract getTelemetryMetadata(
+    config: LLMConfig,
+  ): Record<string, string | number | string[]>
   abstract getAgentProvider(): Provider
 
   protected abstract readonly modelOptions: Record<AgentModelOf<Provider>, ModelOptions>
-  protected abstract readonly modelInfos: Record<AgentModelOf<Provider>, ModelInfos>
   /** What the catalog says of each model the provider serves (retirement, data residency). */
-  protected abstract readonly modelMetadata: Record<AgentModelOf<Provider>, ModelMetadata>
+  protected abstract readonly modelInfos: Record<AgentModelOf<Provider>, ModelInfos>
 
   getModelInfos(agentModel: AgentModel): ModelInfos {
     return this.modelInfos[this.toProviderAgentModel(agentModel)]
-  getModelMetadata(agentModel: AgentModel): ModelMetadata {
-    return this.modelMetadata[this.toProviderAgentModel(agentModel)]
   }
 
   getModelOptionsSchema(agentModel: AgentModel): ZodType<SpecificProviderOptions> {

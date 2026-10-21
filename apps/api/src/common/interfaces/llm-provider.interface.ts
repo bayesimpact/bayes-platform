@@ -137,7 +137,7 @@ export interface LLMProvider {
    */
   getInternalCallModelOptions(agentModel: AgentModel): LLMModelOptions
   /** What the catalog says of a model (retirement, data residency). */
-  getModelMetadata(agentModel: AgentModel): {
+  getModelInfos(agentModel: AgentModel): {
     deprecation?: { deprecatedOn: string; recommendedReplacement: AgentModel }
     servedOutsideEu?: boolean
   }

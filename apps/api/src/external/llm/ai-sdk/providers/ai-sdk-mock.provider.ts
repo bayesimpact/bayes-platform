@@ -152,7 +152,7 @@ export class AISDKMockProvider extends AISDKLLMProviderBase<AgentProvider._Mock>
     }
   }
 
-  protected getModelMetadata(config: LLMConfig): Record<string, string | number | string[]> {
+  protected getTelemetryMetadata(_config: LLMConfig): Record<string, string | number | string[]> {
     return {}
   }
 
