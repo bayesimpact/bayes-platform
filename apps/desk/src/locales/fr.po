@@ -96,7 +96,7 @@ msgstr "Formulaire complété"
 msgid "Completing the form"
 msgstr "Finalisation du formulaire"
 
-#: src/features/conversation/components/CopyButton.tsx:30
+#: src/features/conversation/components/CopyButton.tsx:32
 msgid "Copied"
 msgstr "Copié"
 
@@ -104,7 +104,11 @@ msgstr "Copié"
 msgid "Copy the code"
 msgstr "Copier le code"
 
-#: src/features/conversation/components/CopyButton.tsx:30
+#: src/features/conversation/components/ChatMessageView.tsx:47
+msgid "Copy the message"
+msgstr "Copier le message"
+
+#: src/features/conversation/components/AssistantMessageView.tsx:91
 msgid "Copy the reply"
 msgstr "Copier la réponse"
 
@@ -480,7 +484,7 @@ msgstr "Cette page n’a pas pu se charger"
 msgid "This page does not exist, or you cannot open it."
 msgstr "Cette page n’existe pas, ou vous ne pouvez pas l’ouvrir."
 
-#: src/features/conversation/components/AssistantMessageView.tsx:84
+#: src/features/conversation/components/AssistantMessageView.tsx:86
 msgid "This reply was interrupted before it finished."
 msgstr "Cette réponse a été interrompue avant la fin."
 

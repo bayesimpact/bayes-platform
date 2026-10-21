@@ -9,10 +9,12 @@ const COPIED_FEEDBACK_IN_MILLISECONDS = 2000
 
 export type CopyButtonProps = {
   text: string
+  /** What the button copies, as its tooltip names it. */
+  label: string
 }
 
-/** Copies a reply's text, and says so for a moment. */
-export function CopyButton({ text }: CopyButtonProps) {
+/** Copies a message's text, and says so for a moment. */
+export function CopyButton({ text, label: copyLabel }: CopyButtonProps) {
   const { t } = useLingui()
   const [isCopied, setIsCopied] = useState(false)
 
@@ -27,7 +29,7 @@ export function CopyButton({ text }: CopyButtonProps) {
     }
   }
 
-  const label = isCopied ? t`Copied` : t`Copy the reply`
+  const label = isCopied ? t`Copied` : copyLabel
   return (
     <Tooltip>
       <TooltipTrigger

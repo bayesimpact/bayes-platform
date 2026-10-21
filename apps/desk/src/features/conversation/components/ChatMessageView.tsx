@@ -1,3 +1,4 @@
+import { useLingui } from "@lingui/react/macro"
 import { Bubble, BubbleContent } from "@/components/ui/bubble"
 import { Message, MessageContent } from "@/components/ui/message"
 import type { ChatMessage } from "../chat-messages"
@@ -5,6 +6,9 @@ import type { ConversationRef } from "../conversation-ref"
 import type { AppsHtml } from "../mcp-apps"
 import { AssistantMessageView } from "./AssistantMessageView"
 import { AttachmentChip } from "./AttachmentChip"
+import { CopyButton } from "./CopyButton"
+import { MessageActions } from "./MessageActions"
+import { MessageTime } from "./MessageTime"
 
 export type ChatMessageViewProps = {
   conversation: ConversationRef
@@ -25,6 +29,7 @@ export function ChatMessageView({
   appsHtml,
   onAppMessage,
 }: ChatMessageViewProps) {
+  const { t } = useLingui()
   if (message.role === "user") {
     return (
       <Message align="end">
@@ -35,6 +40,12 @@ export function ChatMessageView({
           <Bubble align="end" variant="muted">
             <BubbleContent className="whitespace-pre-wrap">{message.content}</BubbleContent>
           </Bubble>
+          <MessageActions>
+            {message.createdAt !== null ? (
+              <MessageTime createdAt={message.createdAt} now={now} />
+            ) : null}
+            <CopyButton text={message.content} label={t`Copy the message`} />
+          </MessageActions>
         </MessageContent>
       </Message>
     )

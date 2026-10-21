@@ -1,7 +1,7 @@
-import { Trans } from "@lingui/react/macro"
+import { Trans, useLingui } from "@lingui/react/macro"
 import { useState } from "react"
 import { Markdown } from "@/components/shared/Markdown"
-import { Message, MessageContent, MessageFooter } from "@/components/ui/message"
+import { Message, MessageContent } from "@/components/ui/message"
 import { MemoryProposals } from "@/features/memory"
 import { type ChatMessage, isWriting } from "../chat-messages"
 import type { ConversationRef } from "../conversation-ref"
@@ -9,6 +9,7 @@ import { type AppsHtml, hasMeaningfulText, toolResultText, unavailableApps } fro
 import { CopyButton } from "./CopyButton"
 import { FeedbackDialog } from "./FeedbackDialog"
 import { McpAppsList } from "./McpAppsList"
+import { MessageActions } from "./MessageActions"
 import { MessageTime } from "./MessageTime"
 import { ReplyError } from "./ReplyError"
 import { ResourceCards } from "./ResourceCards"
@@ -38,6 +39,7 @@ export function AssistantMessageView({
   appsHtml,
   onAppMessage,
 }: AssistantMessageViewProps) {
+  const { t } = useLingui()
   const [failedAppIds, setFailedAppIds] = useState<string[]>([])
   const writing = isWriting(message, now)
   const isInterrupted = message.status === "aborted" || (message.status === "streaming" && !writing)
@@ -85,10 +87,8 @@ export function AssistantMessageView({
           </p>
         ) : null}
         {message.status === "completed" && text !== "" ? (
-          // The actions show when the pointer is over the reply or the keyboard is in them, as in
-          // the Claude app; a touch screen, with no fine pointer to hover, always shows them.
-          <MessageFooter className="gap-0.5 px-0 transition-opacity duration-150 pointer-fine:opacity-0 pointer-fine:group-hover/message:opacity-100 pointer-fine:focus-within:opacity-100">
-            <CopyButton text={text} />
+          <MessageActions>
+            <CopyButton text={text} label={t`Copy the reply`} />
             {/* A local reply gets its id once the persisted messages replace it. */}
             {message.id.startsWith("local-") ? null : (
               <FeedbackDialog conversation={conversation} agentMessageId={message.id} />
@@ -96,7 +96,7 @@ export function AssistantMessageView({
             {message.createdAt !== null ? (
               <MessageTime createdAt={message.createdAt} now={now} />
             ) : null}
-          </MessageFooter>
+          </MessageActions>
         ) : null}
       </MessageContent>
     </Message>
