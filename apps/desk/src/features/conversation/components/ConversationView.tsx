@@ -20,13 +20,13 @@ import { findRetryableMessage, isWriting } from "../chat-messages"
 import type { ConversationRef } from "../conversation-ref"
 import { useAnnotations } from "../hooks/use-annotations"
 import { useConversationForms } from "../hooks/use-conversation-forms"
-import type { PlayedVideo } from "../resource-media"
+import type { OpenedResource } from "../resource-media"
 import { ChatMessageView } from "./ChatMessageView"
 import { Composer } from "./Composer"
 import { FormsButton } from "./FormsButton"
 import { FormsPanel } from "./FormsPanel"
 import { QuoteReplyPopover } from "./QuoteReplyPopover"
-import { VideoPanel } from "./VideoPanel"
+import { ResourcePanel } from "./ResourcePanel"
 
 export type ConversationViewProps = {
   conversation: ConversationRef
@@ -51,10 +51,10 @@ export function ConversationView({ conversation, agentName, showSources }: Conve
   const composerId = useId()
   const annotations = useAnnotations()
   // The panel docked beside the conversation, as an artifact in the Claude app, if one is open.
-  const [openPanel, setOpenPanel] = useState<"memory" | "forms" | PlayedVideo | null>(null)
+  const [openPanel, setOpenPanel] = useState<"memory" | "forms" | OpenedResource | null>(null)
   const togglePanel = (panel: "memory" | "forms") =>
     setOpenPanel((current) => (current === panel ? null : panel))
-  const playedVideo = typeof openPanel === "object" ? openPanel : null
+  const openedResource = typeof openPanel === "object" ? openPanel : null
   const memoryAgent = {
     organizationId: conversation.organizationId,
     projectId: conversation.projectId,
@@ -133,7 +133,7 @@ export function ConversationView({ conversation, agentName, showSources }: Conve
                               showSources={showSources}
                               appsHtml={appsHtml}
                               onAppMessage={setDraft}
-                              onPlayVideo={setOpenPanel}
+                              onOpenResource={setOpenPanel}
                             />
                           </MessageScrollerItem>
                         ))}
@@ -183,10 +183,10 @@ export function ConversationView({ conversation, agentName, showSources }: Conve
         {openPanel === "forms" && forms.length > 0 ? (
           <FormsPanel forms={forms} onClose={() => setOpenPanel(null)} />
         ) : null}
-        {playedVideo ? (
-          <VideoPanel
-            key={playedVideo.videoId}
-            video={playedVideo}
+        {openedResource ? (
+          <ResourcePanel
+            key={openedResource.url}
+            resource={openedResource}
             onClose={() => setOpenPanel(null)}
           />
         ) : null}

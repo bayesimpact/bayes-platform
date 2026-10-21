@@ -44,13 +44,30 @@ export function resourceMediaOf(link: string, url: string): ResourceMedia | null
   return null
 }
 
-/** A video a resource card plays in the side panel. */
-export type PlayedVideo = {
+/**
+ * A resource a card opens in the side panel: a video plays there, an image shows there, and a
+ * page or a library file shows in a frame.
+ */
+export type OpenedResource = {
+  kind: "video" | "image" | "page"
   title: string
   description: string | null
-  videoId: string
-  /** The video's page, which opens on YouTube. */
+  /** The resource's own address, which also opens in a new tab. */
   url: string
+  /** The video on YouTube, for a video. */
+  videoId: string | null
+}
+
+/** What a card opens in the side panel, from its media. */
+export function openedResourceOf(
+  resource: { title: string; description?: string | null },
+  url: string,
+  media: ResourceMedia | null,
+): OpenedResource {
+  const base = { title: resource.title, description: resource.description ?? null, url }
+  if (media?.kind === "youtube") return { ...base, kind: "video", videoId: media.videoId }
+  if (media?.kind === "image") return { ...base, kind: "image", videoId: null }
+  return { ...base, kind: "page", videoId: null }
 }
 
 /**

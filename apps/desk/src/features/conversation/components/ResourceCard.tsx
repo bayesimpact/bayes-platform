@@ -3,26 +3,25 @@ import { ArrowUpRightIcon, PlayIcon } from "lucide-react"
 import { useState } from "react"
 import { toResourceUrl } from "@/lib/safe-url"
 import type { ChatResource } from "../chat-messages"
-import { type PlayedVideo, resourceMediaOf } from "../resource-media"
+import { type OpenedResource, openedResourceOf, resourceMediaOf } from "../resource-media"
 
 export type ResourceCardProps = {
   resource: ChatResource
-  /** Plays a video beside the conversation; without it, a video opens on YouTube. */
-  onPlayVideo?: (video: PlayedVideo) => void
+  /** Opens the resource beside the conversation; without it, the card opens it in a new tab. */
+  onOpenResource?: (resource: OpenedResource) => void
 }
 
 /**
  * A resource of the agent's libraries a reply points to, as a card that opens it, with the
- * thumbnail of a video or the image it is. A video plays in the side panel, beside the
- * conversation; anything else opens in a new tab. A link that is neither a web page nor a library
- * file shows the card without a link.
+ * thumbnail of a video or the image it is. A click opens it in the side panel, beside the
+ * conversation; the card stays a link, which a Cmd, Ctrl or middle click opens in a new tab. A link
+ * that is neither a web page nor a library file shows the card without a link.
  */
-export function ResourceCard({ resource, onPlayVideo }: ResourceCardProps) {
+export function ResourceCard({ resource, onOpenResource }: ResourceCardProps) {
   const { t } = useLingui()
   const [hasMediaFailed, setHasMediaFailed] = useState(false)
   const url = toResourceUrl(resource.link)
   const media = url && !hasMediaFailed ? resourceMediaOf(resource.link, url) : null
-  const isPlayable = media?.kind === "youtube" && onPlayVideo !== undefined
 
   const body = (
     <>
@@ -54,7 +53,7 @@ export function ResourceCard({ resource, onPlayVideo }: ResourceCardProps) {
       <span className="flex flex-col gap-1 p-3">
         <span className="flex items-center justify-between gap-2 font-medium">
           <span className="min-w-0 truncate">{resource.title}</span>
-          {url && !isPlayable ? (
+          {url ? (
             <ArrowUpRightIcon aria-hidden className="size-4 shrink-0 text-muted-foreground" />
           ) : null}
         </span>
@@ -67,31 +66,23 @@ export function ResourceCard({ resource, onPlayVideo }: ResourceCardProps) {
 
   const className = "flex h-full flex-col overflow-hidden rounded-xl border text-sm"
   if (url === null) return <div className={className}>{body}</div>
-  if (media?.kind === "youtube" && onPlayVideo) {
-    const videoId = media.videoId
-    const title = resource.title
-    return (
-      <button
-        type="button"
-        aria-label={t`Play ${title}`}
-        onClick={() =>
-          onPlayVideo({ title, description: resource.description ?? null, videoId, url })
-        }
-        className={`${className} w-full text-left transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none`}
-      >
-        {body}
-      </button>
-    )
-  }
   return (
     <a
       href={url}
       target="_blank"
       rel="noopener noreferrer"
-      className={`${className} transition-colors hover:bg-muted`}
+      onClick={(event) => {
+        // A click with a modifier, or another button, keeps the browser's own new tab.
+        const isPlainClick =
+          event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey
+        if (!onOpenResource || !isPlainClick) return
+        event.preventDefault()
+        onOpenResource(openedResourceOf(resource, url, media))
+      }}
+      className={`${className} transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none`}
     >
       {body}
-      <span className="sr-only">{t`(opens in a new tab)`}</span>
+      {onOpenResource ? null : <span className="sr-only">{t`(opens in a new tab)`}</span>}
     </a>
   )
 }

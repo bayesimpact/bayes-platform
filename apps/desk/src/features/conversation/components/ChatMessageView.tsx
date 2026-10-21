@@ -6,7 +6,7 @@ import { Message, MessageContent } from "@/components/ui/message"
 import type { ChatMessage } from "../chat-messages"
 import type { ConversationRef } from "../conversation-ref"
 import type { AppsHtml } from "../mcp-apps"
-import type { PlayedVideo } from "../resource-media"
+import type { OpenedResource } from "../resource-media"
 import { AssistantMessageView } from "./AssistantMessageView"
 import { AttachmentChip } from "./AttachmentChip"
 import { MessageActions } from "./MessageActions"
@@ -20,8 +20,8 @@ export type ChatMessageViewProps = {
   now: number
   appsHtml: AppsHtml
   onAppMessage: (text: string) => void
-  /** Plays a video a reply points to beside the conversation. */
-  onPlayVideo: (video: PlayedVideo) => void
+  /** Opens a resource a reply points to beside the conversation. */
+  onOpenResource: (video: OpenedResource) => void
 }
 
 /** One message: the person's in a bubble on the right, the agent's on the left with its steps. */
@@ -32,7 +32,7 @@ export function ChatMessageView({
   showSources,
   appsHtml,
   onAppMessage,
-  onPlayVideo,
+  onOpenResource,
 }: ChatMessageViewProps) {
   const { t } = useLingui()
   if (message.role === "user") {
@@ -70,7 +70,7 @@ export function ChatMessageView({
       showSources={showSources}
       appsHtml={appsHtml}
       onAppMessage={onAppMessage}
-      onPlayVideo={onPlayVideo}
+      onOpenResource={onOpenResource}
     />
   )
 }

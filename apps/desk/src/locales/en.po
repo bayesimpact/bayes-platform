@@ -17,8 +17,8 @@ msgstr "\"{title}\" and its messages will be deleted. This cannot be undone."
 
 #: src/components/shared/Markdown.tsx:44
 #: src/components/shared/Markdown.tsx:66
-#: src/features/conversation/components/ResourceCard.tsx:94
-#: src/features/conversation/components/VideoPanel.tsx:31
+#: src/features/conversation/components/ResourceCard.tsx:85
+#: src/features/conversation/components/ResourcePanel.tsx:37
 msgid "(opens in a new tab)"
 msgstr "(opens in a new tab)"
 
@@ -373,6 +373,10 @@ msgstr "Home of the Desk"
 msgid "How can I help you today?"
 msgstr "How can I help you today?"
 
+#: src/features/conversation/components/ResourcePanel.tsx:72
+msgid "If the page stays blank, its site does not allow being shown here: open it in a new tab."
+msgstr "If the page stays blank, its site does not allow being shown here: open it in a new tab."
+
 #: src/components/shared/Markdown.tsx:56
 #: src/features/extraction/components/DocumentRow.tsx:31
 msgid "Image"
@@ -480,7 +484,11 @@ msgstr "Open {name}"
 msgid "Open {title}"
 msgstr "Open {title}"
 
-#: src/features/conversation/components/VideoPanel.tsx:30
+#: src/features/conversation/components/ResourcePanel.tsx:35
+msgid "Open in a new tab"
+msgstr "Open in a new tab"
+
+#: src/features/conversation/components/ResourcePanel.tsx:33
 msgid "Open on YouTube"
 msgstr "Open on YouTube"
 
@@ -515,10 +523,6 @@ msgstr "PDF, image, text or CSV file, up to 25 MB. A CSV file runs row by row."
 #: src/features/conversation/components/ToolSteps.tsx:20
 msgid "Picking useful resources"
 msgstr "Picking useful resources"
-
-#: src/features/conversation/components/ResourceCard.tsx:76
-msgid "Play {title}"
-msgstr "Play {title}"
 
 #: src/features/history/components/HistoryList.tsx:33
 msgid "Previous 30 days"
