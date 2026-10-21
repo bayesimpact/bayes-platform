@@ -1,5 +1,5 @@
 import type { AgentSubAgentMode } from "@caseai-connect/api-contracts"
-import { Column, Entity, JoinColumn, ManyToOne, Unique } from "typeorm"
+import { Column, Entity, JoinColumn, ManyToOne, type Relation, Unique } from "typeorm"
 import { Base4AllEntity } from "@/common/entities/base4all.entity"
 import { Agent } from "../agent.entity"
 
@@ -33,7 +33,7 @@ export class AgentSubAgent extends Base4AllEntity {
     { onDelete: "CASCADE" },
   )
   @JoinColumn({ name: "parent_agent_id" })
-  parentAgent!: Agent
+  parentAgent!: Relation<Agent>
 
   @ManyToOne(
     () => Agent,
@@ -41,5 +41,5 @@ export class AgentSubAgent extends Base4AllEntity {
     { onDelete: "CASCADE" },
   )
   @JoinColumn({ name: "child_agent_id" })
-  childAgent!: Agent
+  childAgent!: Relation<Agent>
 }

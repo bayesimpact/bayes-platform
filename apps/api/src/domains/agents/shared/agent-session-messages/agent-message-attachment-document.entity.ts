@@ -1,4 +1,4 @@
-import { Column, JoinColumn, ManyToOne } from "typeorm"
+import { Column, JoinColumn, ManyToOne, type Relation } from "typeorm"
 import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { Project } from "@/domains/projects/project.entity"
@@ -7,11 +7,11 @@ import { Project } from "@/domains/projects/project.entity"
 export class AgentMessageAttachmentDocument extends ConnectEntityBase {
   @ManyToOne(() => Organization, { nullable: false })
   @JoinColumn({ name: "organization_id" })
-  organization!: Organization
+  organization!: Relation<Organization>
 
   @ManyToOne(() => Project, { nullable: false })
   @JoinColumn({ name: "project_id" })
-  project!: Project
+  project!: Relation<Project>
 
   @Column({ type: "varchar", name: "file_name" })
   fileName!: string

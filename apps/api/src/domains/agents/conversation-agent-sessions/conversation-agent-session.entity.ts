@@ -1,4 +1,4 @@
-import { Column, JoinColumn, ManyToOne, OneToMany } from "typeorm"
+import { Column, JoinColumn, ManyToOne, OneToMany, type Relation } from "typeorm"
 import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
 import { Agent } from "@/domains/agents/agent.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
@@ -59,21 +59,21 @@ export class ConversationAgentSession extends ConnectEntityBase {
     (agent) => agent.conversationAgentSessions,
   )
   @JoinColumn({ name: "agent_id" })
-  agent!: Agent
+  agent!: Relation<Agent>
 
   @ManyToOne(
     () => User,
     (user) => user.conversationAgentSessions,
   )
   @JoinColumn({ name: "user_id" })
-  user!: User
+  user!: Relation<User>
 
   @ManyToOne(
     () => Organization,
     (organization) => organization.conversationAgentSessions,
   )
   @JoinColumn({ name: "organization_id" })
-  organization!: Organization
+  organization!: Relation<Organization>
 
   @OneToMany(
     () => AgentMessage,

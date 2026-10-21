@@ -1,4 +1,13 @@
-import { Column, Entity, Index, JoinColumn, JoinTable, ManyToMany, ManyToOne } from "typeorm"
+import {
+  Column,
+  Entity,
+  Index,
+  JoinColumn,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  type Relation,
+} from "typeorm"
 import { Base4AllEntity } from "@/common/entities/base4all.entity"
 import { AppInstallation } from "@/domains/apps/app-installation.entity"
 import { Project } from "@/domains/projects/project.entity"
@@ -20,14 +29,14 @@ export class OAuthGrant extends Base4AllEntity {
 
   @ManyToOne(() => User, { onDelete: "CASCADE" })
   @JoinColumn({ name: "user_id" })
-  user!: User
+  user!: Relation<User>
 
   @Column({ type: "uuid", name: "oauth_client_id" })
   oauthClientId!: string
 
   @ManyToOne(() => OAuthClient, { onDelete: "CASCADE" })
   @JoinColumn({ name: "oauth_client_id" })
-  oauthClient!: OAuthClient
+  oauthClient!: Relation<OAuthClient>
 
   @ManyToMany(() => Project, { onDelete: "CASCADE" })
   @JoinTable({
