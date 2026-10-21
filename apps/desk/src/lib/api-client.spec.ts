@@ -6,6 +6,15 @@ import { z } from "zod"
 
 const session = vi.hoisted(() => ({
   AuthenticationRequiredError: class AuthenticationRequiredError extends Error {},
+  SignInRefusedError: class SignInRefusedError extends Error {
+    readonly refusal: string
+    constructor(refusal: string) {
+      super(refusal)
+      this.refusal = refusal
+    }
+  },
+  SignInLoopError: class SignInLoopError extends Error {},
+  claimAutomaticSignIn: vi.fn(() => true),
   getAccessToken: vi.fn(),
   endSession: vi.fn(),
   signIn: vi.fn(),
@@ -141,5 +150,39 @@ describe("apiRequest", () => {
     ).rejects.toBeInstanceOf(session.AuthenticationRequiredError)
     expect(session.endSession).toHaveBeenCalled()
     expect(session.signIn).toHaveBeenCalledWith({ returnTo: "/app/o/1?tab=a" })
+  })
+
+  it("explains a sign-in the API refuses, without a new sign-in that would fail the same", async () => {
+    server.use(
+      http.get("http://desk.test/api/test/items/:itemId", () =>
+        HttpResponse.json(
+          {
+            statusCode: 401,
+            message: "The identity provider did not return an email for this user",
+          },
+          { status: 401 },
+        ),
+      ),
+    )
+
+    const request = apiRequest(TestRoutes.getItem, { params: { itemId }, query: { page: 0 } })
+    await expect(request).rejects.toBeInstanceOf(session.SignInRefusedError)
+    await expect(request).rejects.toHaveProperty("refusal", "emailRequired")
+    expect(session.signIn).not.toHaveBeenCalled()
+  })
+
+  it("stops when a new sign-in started a moment ago, rather than loop", async () => {
+    session.claimAutomaticSignIn.mockReturnValueOnce(false)
+    server.use(
+      http.get(
+        "http://desk.test/api/test/items/:itemId",
+        () => new HttpResponse(null, { status: 401 }),
+      ),
+    )
+
+    await expect(
+      apiRequest(TestRoutes.getItem, { params: { itemId }, query: { page: 0 } }),
+    ).rejects.toBeInstanceOf(session.SignInLoopError)
+    expect(session.signIn).not.toHaveBeenCalled()
   })
 })

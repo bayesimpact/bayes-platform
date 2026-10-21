@@ -3,9 +3,18 @@ import {
   type AnyStreamRoute,
   type ErrorOutputDto,
   errorOutputSchema,
+  signInRefusalOf,
 } from "@caseai-connect/desk-contracts"
 import { z } from "zod"
-import { AuthenticationRequiredError, endSession, getAccessToken, signIn } from "@/lib/auth/session"
+import {
+  AuthenticationRequiredError,
+  claimAutomaticSignIn,
+  endSession,
+  getAccessToken,
+  SignInLoopError,
+  SignInRefusedError,
+  signIn,
+} from "@/lib/auth/session"
 
 /** An error response of the API, with its body when it matches the error schema. */
 export class ApiError extends Error {
@@ -102,7 +111,12 @@ async function apiFetch(
   let response = await send(request, { forceRefresh: false })
   // The token may have been revoked before it expired: refresh it once.
   if (response.status === 401) response = await send(request, { forceRefresh: true })
-  if (response.status === 401) await startNewSignIn()
+  if (response.status === 401) {
+    // A refusal of the API would come back after any new sign-in: it is explained instead.
+    const refusal = signInRefusalOf((await readErrorBody(response))?.message)
+    if (refusal) throw new SignInRefusedError(refusal)
+    await startNewSignIn()
+  }
 
   if (!response.ok) throw new ApiError(response.status, await readErrorBody(response))
   return response
@@ -166,8 +180,12 @@ async function send(request: PreparedRequest, { forceRefresh }: { forceRefresh: 
   })
 }
 
-/** The session is gone: forget it and sign in again, back to this page. */
+/**
+ * The session is gone: forget it and sign in again, back to this page. A session that ends again
+ * right after a new sign-in stops there, which a page then explains, rather than loop.
+ */
 async function startNewSignIn(): Promise<never> {
+  if (!claimAutomaticSignIn()) throw new SignInLoopError()
   await endSession()
   const { pathname, search, hash } = window.location
   await signIn({ returnTo: `${pathname}${search}${hash}` })

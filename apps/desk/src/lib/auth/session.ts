@@ -8,6 +8,13 @@ import * as oidcClient from "./oidc-client"
 
 export { readLoginHint } from "./login-hint"
 export { AuthenticationRequiredError, onSessionEnded, takeTabReturnTo } from "./oidc-client"
+export {
+  claimAutomaticSignIn,
+  claimLostStateRetry,
+  releaseAutomaticSignIn,
+  SignInLoopError,
+  SignInRefusedError,
+} from "./sign-in-problems"
 
 export function hasSession(): Promise<boolean> {
   return isMockMode ? Promise.resolve(true) : oidcClient.hasSession()

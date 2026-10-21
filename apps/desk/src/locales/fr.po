@@ -108,7 +108,7 @@ msgstr "<0><1/><2/></0> pour aller à la ligne"
 msgid "<0>Read</0>: the agent reads it. <1>Keep</1>: shown beside the results. <2>Skip</2>: left out."
 msgstr "<0>Lire</0> : l’agent la lit. <1>Garder</1> : affichée à côté des résultats. <2>Ignorer</2> : laissée de côté."
 
-#: src/components/shared/RouteErrorState.tsx:21
+#: src/components/shared/RouteErrorState.tsx:37
 msgid "A new version of the Desk is available"
 msgstr "Une nouvelle version du Desk est disponible"
 
@@ -131,6 +131,10 @@ msgstr "Acceptez les conditions générales et la politique de confidentialité 
 #: src/features/invitations/components/InvitationItem.tsx:53
 msgid "Accept the invitation to {name}"
 msgstr "Accepter l’invitation à {name}"
+
+#: src/components/shared/SignInProblemPage.tsx:41
+msgid "Account already exists"
+msgstr "Compte déjà existant"
 
 #: src/features/history/components/HistoryEntryActions.tsx:48
 msgid "Actions on {title}"
@@ -155,6 +159,14 @@ msgstr "Réponses de l’agent"
 #: src/features/account/components/TermsPage.tsx:65
 msgid "AI systems usage policy"
 msgstr "politique d’utilisation des systèmes d’intelligence artificielle"
+
+#: src/components/shared/SignInProblemPage.tsx:43
+msgid "An account already exists for your email address, and this platform does not link a new sign-in to an existing account."
+msgstr "Un compte existe déjà pour votre adresse email, et cette plateforme ne relie pas une nouvelle connexion à un compte existant."
+
+#: src/components/shared/SignInProblemPage.tsx:23
+msgid "An account is waiting for your email address, but your identity provider has not verified it yet."
+msgstr "Un compte attend votre adresse email, mais votre fournisseur d’identité ne l’a pas encore vérifiée."
 
 #: src/features/conversation/components/QuoteReplyPopover.tsx:127
 msgid "Annotate and press Enter to keep it"
@@ -197,7 +209,7 @@ msgstr "Avant de commencer"
 msgid "Cancel"
 msgstr "Annuler"
 
-#: src/components/shared/RouteErrorState.tsx:41
+#: src/components/shared/RouteErrorState.tsx:57
 msgid "Check your connection, then try again."
 msgstr "Vérifiez votre connexion, puis réessayez."
 
@@ -224,6 +236,10 @@ msgstr "Formulaire complété"
 #: src/features/conversation/components/ToolSteps.tsx:22
 msgid "Completing the form"
 msgstr "Finalisation du formulaire"
+
+#: src/components/shared/SignInProblemPage.tsx:48
+msgid "Contact your administrator."
+msgstr "Contactez votre administrateur."
 
 #: src/components/shared/CopyButton.tsx:32
 msgid "Copied"
@@ -343,9 +359,17 @@ msgstr "Déposez un fichier ici, ou <0>parcourez</0>"
 msgid "Drop the file to extract it"
 msgstr "Déposez le fichier pour l’extraire"
 
+#: src/components/shared/SignInProblemPage.tsx:52
+msgid "Each new sign-in ended at once, so the Desk stopped starting new ones."
+msgstr "Chaque nouvelle connexion s’est terminée aussitôt : le Desk a cessé d’en relancer."
+
 #: src/features/conversation/components/AnnotationBadge.tsx:24
 msgid "Edit annotation {number}"
 msgstr "Modifier l'annotation {number}"
+
+#: src/components/shared/SignInProblemPage.tsx:36
+msgid "Email address missing"
+msgstr "Adresse email manquante"
 
 #. The keyboard key
 #: src/features/conversation/components/Composer.tsx:228
@@ -454,6 +478,10 @@ msgstr "J’accepte les conditions générales de service"
 #: src/features/account/components/TermsPage.tsx:57
 msgid "I accept the privacy policy"
 msgstr "J’accepte la politique de confidentialité"
+
+#: src/components/shared/SignInProblemPage.tsx:74
+msgid "If it keeps happening, contact your administrator with the message below."
+msgstr "Si cela se reproduit, contactez votre administrateur avec le message ci-dessous."
 
 #: src/features/conversation/components/ResourcePanel.tsx:72
 msgid "If the page stays blank, its site does not allow being shown here: open it in a new tab."
@@ -595,6 +623,10 @@ msgstr "Ouvrir le document"
 msgid "Open the menu of {email}"
 msgstr "Ouvrir le menu de {email}"
 
+#: src/components/shared/SignInProblemPage.tsx:29
+msgid "Open the verification email your identity provider sent you, and check your spam folder. Click the link it contains, then try again."
+msgstr "Ouvrez l’email de vérification envoyé par votre fournisseur d’identité, en regardant aussi dans vos spams. Cliquez sur le lien qu’il contient, puis réessayez."
+
 #. The role an invitation grants
 #: src/features/invitations/components/InvitationItem.tsx:24
 msgid "owner"
@@ -662,11 +694,11 @@ msgstr "Lire"
 msgid "Read the {documentName} (opens in a new tab)"
 msgstr "Lire : {documentName} (s’ouvre dans un nouvel onglet)"
 
-#: src/components/shared/RouteErrorState.tsx:25
+#: src/components/shared/RouteErrorState.tsx:41
 msgid "Reload"
 msgstr "Recharger"
 
-#: src/components/shared/RouteErrorState.tsx:22
+#: src/components/shared/RouteErrorState.tsx:38
 msgid "Reload the page to keep going."
 msgstr "Rechargez la page pour continuer."
 
@@ -803,18 +835,19 @@ msgstr "Afficher plus"
 msgid "Show the sidebar"
 msgstr "Afficher la barre latérale"
 
-#: src/routes/auth/callback.tsx:28
-msgid "Sign in again"
-msgstr "Se reconnecter"
-
-#: src/routes/auth/callback.tsx:25
-msgid "Sign in again to open the Desk."
-msgstr "Reconnectez-vous pour ouvrir le Desk."
-
+#: src/components/shared/SignInProblemPage.tsx:107
 #: src/features/account/components/TermsPage.tsx:114
 #: src/features/account/components/UserMenu.tsx:65
 msgid "Sign out"
 msgstr "Se déconnecter"
+
+#: src/components/shared/SignInProblemPage.tsx:58
+msgid "Sign-in expired"
+msgstr "Connexion expirée"
+
+#: src/components/shared/SignInProblemPage.tsx:72
+msgid "Sign-in failed"
+msgstr "Connexion impossible"
 
 #. The column is left out
 #: src/features/extraction/components/ColumnRoleRow.tsx:45
@@ -947,6 +980,10 @@ msgstr "La conversation n'a pas pu démarrer. Réessayez."
 msgid "The Desk could not reach the agent. Check your connection."
 msgstr "Le Desk n'a pas pu joindre l'agent. Vérifiez votre connexion."
 
+#: src/components/shared/SignInProblemPage.tsx:38
+msgid "The Desk needs it to find your invitations. Contact your administrator."
+msgstr "Le Desk en a besoin pour retrouver vos invitations. Contactez votre administrateur."
+
 #: src/features/extraction/components/DeleteDocumentDialog.tsx:56
 msgid "The document could not be deleted. Try again."
 msgstr "Le document n’a pas pu être supprimé. Réessayez."
@@ -1053,15 +1090,15 @@ msgstr "L’extraction va démarrer…"
 msgid "The run stopped. The rows done stay."
 msgstr "L’extraction est arrêtée. Les lignes déjà traitées restent."
 
-#: src/routes/auth/callback.tsx:24
-msgid "The sign-in did not complete"
-msgstr "La connexion n’a pas abouti"
+#: src/components/shared/SignInProblemPage.tsx:51
+msgid "The sign-in keeps failing"
+msgstr "La connexion échoue à chaque fois"
 
 #: src/features/conversation/components/ToolSteps.tsx:64
 msgid "Thinking…"
 msgstr "Réflexion…"
 
-#: src/components/shared/RouteErrorState.tsx:40
+#: src/components/shared/RouteErrorState.tsx:56
 msgid "This page could not load"
 msgstr "Cette page n’a pas pu se charger"
 
@@ -1073,6 +1110,10 @@ msgstr "Cette page n’existe pas, ou vous ne pouvez pas l’ouvrir."
 msgid "This reply was interrupted before it finished."
 msgstr "Cette réponse a été interrompue avant la fin."
 
+#: src/components/shared/SignInProblemPage.tsx:60
+msgid "This sign-in started too long ago, or another tab started a new one, and this tab can no longer complete it."
+msgstr "Cette connexion a commencé il y a trop longtemps, ou un autre onglet en a lancé une nouvelle, et cet onglet ne peut plus la terminer."
+
 #: src/features/history/components/HistoryList.tsx:30
 msgid "Today"
 msgstr "Aujourd'hui"
@@ -1082,12 +1123,21 @@ msgstr "Aujourd'hui"
 msgid "Took {tookTime}"
 msgstr "Durée : {tookTime}"
 
-#: src/components/shared/RouteErrorState.tsx:44
+#: src/components/shared/RouteErrorState.tsx:60
+#: src/components/shared/SignInProblemPage.tsx:103
 #: src/features/extraction/components/CsvRunActions.tsx:78
 #: src/features/extraction/components/ExtractionFailure.tsx:59
 #: src/features/history/components/AgentHistorySection.tsx:40
 msgid "Try again"
 msgstr "Réessayer"
+
+#: src/components/shared/SignInProblemPage.tsx:54
+msgid "Try again in a moment. If this page comes back, sign out, then sign in again."
+msgstr "Réessayez dans un instant. Si cette page revient, déconnectez-vous, puis reconnectez-vous."
+
+#: src/components/shared/SignInProblemPage.tsx:66
+msgid "Try again to sign in. If this page comes back, close the other tabs of the Desk."
+msgstr "Réessayez pour vous connecter. Si cette page revient, fermez les autres onglets du Desk."
 
 #: src/features/conversation/components/SourceItem.tsx:35
 #: src/features/extraction/components/DeleteDocumentDialog.tsx:28
@@ -1106,6 +1156,10 @@ msgstr "Envoi en cours…"
 #: src/features/conversation/components/ToolSteps.tsx:50
 msgid "Using a tool"
 msgstr "Utilisation d'un outil"
+
+#: src/components/shared/SignInProblemPage.tsx:21
+msgid "Verify your email"
+msgstr "Vérifiez votre email"
 
 #: src/features/memory/components/MemoryPanel.tsx:77
 msgid "Waiting for your answer"
@@ -1171,6 +1225,14 @@ msgstr "Votre réponse n'a pas pu être enregistrée. Réessayez."
 #: src/features/extraction/components/RecentDocuments.tsx:32
 msgid "Your documents"
 msgstr "Vos documents"
+
+#: src/components/shared/SignInProblemPage.tsx:37
+msgid "Your identity provider did not share your email address with the Desk."
+msgstr "Votre fournisseur d’identité n’a pas transmis votre adresse email au Desk."
+
+#: src/components/shared/SignInProblemPage.tsx:73
+msgid "Your identity provider refused the sign-in."
+msgstr "Votre fournisseur d’identité a refusé la connexion."
 
 #: src/features/conversation/components/QuoteReplyPopover.tsx:126
 msgid "Your note on this passage"

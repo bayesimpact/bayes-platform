@@ -2,10 +2,14 @@ import { describe, expect, it, vi } from "vitest"
 
 vi.mock("@/lib/auth/session", () => ({
   AuthenticationRequiredError: class AuthenticationRequiredError extends Error {},
+  SignInRefusedError: class SignInRefusedError extends Error {},
+  SignInLoopError: class SignInLoopError extends Error {},
 }))
 
 const { ApiError, ContractMismatchError } = await import("@/lib/api-client")
-const { AuthenticationRequiredError } = await import("@/lib/auth/session")
+const { AuthenticationRequiredError, SignInLoopError, SignInRefusedError } = await import(
+  "@/lib/auth/session"
+)
 const { createQueryClient } = await import("./query-client")
 
 const retry = createQueryClient().getDefaultOptions().queries?.retry
@@ -19,10 +23,12 @@ describe("createQueryClient", () => {
     expect(shouldRetry(3, new ApiError(503, null))).toBe(false)
   })
 
-  it("never retries a 4xx, a broken contract or an ended session", () => {
+  it("never retries a 4xx, a broken contract, an ended session or a refused sign-in", () => {
     expect(shouldRetry(0, new ApiError(404, null))).toBe(false)
     expect(shouldRetry(0, new ContractMismatchError("GET /projects/mine"))).toBe(false)
     expect(shouldRetry(0, new AuthenticationRequiredError("gone"))).toBe(false)
+    expect(shouldRetry(0, new SignInRefusedError("emailRequired"))).toBe(false)
+    expect(shouldRetry(0, new SignInLoopError())).toBe(false)
   })
 
   it("never retries a mutation", () => {
