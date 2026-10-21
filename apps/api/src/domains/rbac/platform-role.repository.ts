@@ -29,8 +29,8 @@ export class PlatformRoleRepository {
   /** Returns true when a membership was created, false when it already existed. */
   async grantGlobalRole(userId: string, roleKey: PlatformRoleKey): Promise<boolean> {
     const result: unknown = await this.transactionService.getManager().query(
-      `INSERT INTO "user_membership" ("user_id", "resource_type", "resource_id", "role", "role_id")
-       SELECT $1, 'global', NULL, 'member', role.id
+      `INSERT INTO "user_membership" ("user_id", "resource_type", "resource_id", "role_id")
+       SELECT $1, 'global', NULL, role.id
        FROM "role" AS role
        WHERE role.key = $2
          AND NOT EXISTS (

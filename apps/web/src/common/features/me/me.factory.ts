@@ -7,6 +7,7 @@ import type {
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
 import type { Agent } from "@/common/features/agents/agents.models"
+import { buildMembershipRoleDto } from "@/common/features/memberships/membership-roles.factory"
 import type { Organization } from "@/common/features/organizations/organizations.models"
 import type { Project } from "@/common/features/projects/projects.models"
 import type { User } from "./me.models"
@@ -70,7 +71,7 @@ export const organizationMembershipFactory = OrganizationMembershipFactory.defin
       id: params.id ?? faker.string.uuid(),
       organizationId: organization.id,
       userId: params.userId ?? user?.id ?? faker.string.uuid(),
-      role: params.role ?? "member",
+      roles: [buildMembershipRoleDto({ scopeType: "organization", role: "member" })],
     } satisfies OrganizationMembershipDto
   },
 )
@@ -104,7 +105,7 @@ export const projectMembershipFactory = ProjectMembershipFactory.define(
         faker.internet.email({ firstName, lastName }).toLowerCase(),
       userHasSignedIn: params.userHasSignedIn ?? true,
       createdAt: params.createdAt ?? faker.date.past().getTime(),
-      role: params.role ?? "member",
+      roles: [buildMembershipRoleDto({ scopeType: "project", role: "member" })],
       permissions: params.permissions ?? [],
     } satisfies ProjectMembershipDto
   },
@@ -135,7 +136,7 @@ export const agentMembershipFactory = AgentMembershipFactory.define(
         user?.email ??
         faker.internet.email({ firstName, lastName }).toLowerCase(),
       userHasSignedIn: params.userHasSignedIn ?? true,
-      role: params.role ?? "member",
+      roles: [buildMembershipRoleDto({ scopeType: "agent", role: "member" })],
       createdAt: params.createdAt ?? faker.date.past().getTime(),
     } satisfies AgentMembershipDto
   },
@@ -163,7 +164,7 @@ export const reviewCampaignMembershipFactory = ReviewCampaignMembershipFactory.d
       campaignId: params.campaignId ?? faker.string.uuid(),
       organizationId: project.organizationId,
       projectId: project.id,
-      role: params.role ?? "reviewer",
+      roles: [buildMembershipRoleDto({ scopeType: "review_campaign", role: "reviewer" })],
       campaignStatus: params.campaignStatus ?? "active",
     } satisfies ReviewCampaignMembershipForMeDto
   },

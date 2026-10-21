@@ -1,14 +1,13 @@
 import { z } from "zod"
 import type { TimeType } from "../generic"
+import type { MembershipRoleDto } from "../rbac/membership-role.dto"
 import type { OrganizationPermission } from "../rbac/permissions"
-
-export type OrganizationMembershipRoleDto = "owner" | "admin" | "member"
 
 export type OrganizationMembershipDto = {
   id: string
   organizationId: string
   userId: string
-  role: OrganizationMembershipRoleDto
+  roles: MembershipRoleDto[]
 }
 
 export type OrganizationDto = {

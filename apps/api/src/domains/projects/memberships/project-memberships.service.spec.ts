@@ -4,12 +4,16 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
+import { grantConversationReview } from "@/domains/agents/conversation-reviewers/agent-conversation-reviewer.factory"
+import { addUserToAgent } from "@/domains/agents/memberships/agent-membership.factory"
 import { AgentMembershipsService } from "@/domains/agents/memberships/agent-memberships.service"
+import { userMembershipFactory } from "@/domains/memberships/user-membership.factory"
 import {
+  createOrganizationWithAgent,
   createOrganizationWithOwner,
   createOrganizationWithProject,
 } from "@/domains/organizations/organization.factory"
-import { PROJECT_ROLES } from "@/domains/rbac/rbac.constants"
+import { AGENT_CONVERSATION_REVIEWER_ROLE, PROJECT_ROLES } from "@/domains/rbac/rbac.constants"
 import { userFactory } from "@/domains/users/user.factory"
 import { USER_TYPE_SERVICE } from "@/domains/users/user.types"
 import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
@@ -36,6 +40,10 @@ describe("ProjectMembershipsService", () => {
     await clearTestDatabase(setup.dataSource)
   })
 
+  afterEach(() => {
+    jest.restoreAllMocks()
+  })
+
   afterAll(async () => {
     await teardownE2eTestDatabase(setup)
   })
@@ -52,7 +60,7 @@ describe("ProjectMembershipsService", () => {
         userId: user.id,
       })
 
-      expect(membership.role).toBe("owner")
+      expect(membership.roles.map((role) => role.key)).toEqual(["project_owner"])
 
       // the RBAC role backing the membership is resolved at write time
       const savedMembership = await repositories.userMembershipRepository.findOneOrFail({
@@ -118,7 +126,7 @@ describe("ProjectMembershipsService", () => {
       })
 
       expect(created).not.toBeNull()
-      expect(created?.role).toBe("admin")
+      expect(created?.roles.map((role) => role.key)).toEqual(["project_admin"])
     })
 
     it("promotes existing non-admin membership and syncs agent admins", async () => {
@@ -146,8 +154,9 @@ describe("ProjectMembershipsService", () => {
           resourceType: "project",
           resourceId: project.id,
         },
+        relations: { rbacRole: true },
       })
-      expect(updatedMembership.role).toBe("admin")
+      expect(updatedMembership.rbacRole?.key).toBe("project_admin")
       expect(createAdminAgentMembershipsSpy).toHaveBeenCalledTimes(1)
     })
   })
@@ -197,6 +206,150 @@ describe("ProjectMembershipsService", () => {
       expect(deletedMembership).toBeNull()
       expect(deletedUser).toBeNull()
       expect(deleteAgentMembershipsSpy).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  describe("several roles on one project", () => {
+    const giveRole = async ({
+      userId,
+      projectId,
+      roleKey,
+    }: {
+      userId: string
+      projectId: string
+      roleKey: string
+    }) => {
+      const role = await repositories.roleRepository.findOneOrFail({ where: { key: roleKey } })
+      return repositories.userMembershipRepository.save(
+        userMembershipFactory.build({
+          userId,
+          resourceType: "project",
+          resourceId: projectId,
+          roleId: role.id,
+        }),
+      )
+    }
+
+    const roleKeysOf = (membership: { roles: { key: string }[] } | null) =>
+      membership?.roles.map((role) => role.key) ?? []
+
+    it("lists one membership per person, with every role they hold, oldest row as id", async () => {
+      const { project } = await createOrganizationWithProject(repositories)
+      const { membership } = await addUserToProject({
+        repositories,
+        project,
+        membership: { role: "member" },
+      })
+      await giveRole({
+        userId: membership.userId,
+        projectId: project.id,
+        roleKey: PROJECT_ROLES.admin,
+      })
+
+      const memberships = await service.listProjectMemberships(project.id)
+
+      const member = memberships.find((candidate) => candidate.userId === membership.userId)
+      expect(memberships).toHaveLength(2)
+      expect(member?.id).toBe(membership.id)
+      expect(roleKeysOf(member ?? null)).toEqual([PROJECT_ROLES.admin, PROJECT_ROLES.member])
+    })
+
+    it("finds the person's membership from any of their rows", async () => {
+      const { project } = await createOrganizationWithProject(repositories)
+      const { membership } = await addUserToProject({ repositories, project })
+      const adminRow = await giveRole({
+        userId: membership.userId,
+        projectId: project.id,
+        roleKey: PROJECT_ROLES.admin,
+      })
+
+      const found = await service.findProjectMembership({
+        userId: membership.userId,
+        projectId: project.id,
+      })
+      const { membership: updated } = await service.updateProjectMembershipRole({
+        callerUserId: (await createOrganizationWithOwner(repositories)).user.id,
+        membershipId: adminRow.id,
+        projectId: project.id,
+        role: "admin",
+      })
+
+      expect(found?.id).toBe(membership.id)
+      // admin + member collapse into admin: the member row is the one that goes
+      expect(roleKeysOf(updated)).toEqual([PROJECT_ROLES.admin])
+    })
+
+    it("adds admin next to ownership when an owner is made admin", async () => {
+      const { project, user } = await createOrganizationWithProject(repositories)
+
+      await service.upsertProjectAdminMembership({ projectId: project.id, userId: user.id })
+
+      const membership = await service.findProjectMembership({
+        userId: user.id,
+        projectId: project.id,
+      })
+      expect(roleKeysOf(membership)).toEqual([PROJECT_ROLES.owner, PROJECT_ROLES.admin])
+    })
+
+    it("removes every role of the person, and their agent roles, but not their review grants", async () => {
+      const { project, user: owner, agent } = await createOrganizationWithAgent(repositories)
+      const { membership, user: member } = await addUserToProject({
+        repositories,
+        project,
+        membership: { role: "member" },
+      })
+      await giveRole({ userId: member.id, projectId: project.id, roleKey: PROJECT_ROLES.admin })
+      await addUserToAgent({ repositories, agent, user: member, membership: { role: "admin" } })
+      await grantConversationReview({ repositories, user: member, agent })
+
+      await service.removeProjectMembership({
+        userId: owner.id,
+        membershipId: membership.id,
+        projectId: project.id,
+      })
+
+      const remainingRows = await repositories.userMembershipRepository.find({
+        where: { userId: member.id },
+        relations: { rbacRole: true },
+      })
+      expect(remainingRows.map((row) => row.rbacRole?.key)).toEqual([
+        AGENT_CONVERSATION_REVIEWER_ROLE,
+      ])
+    })
+
+    it("refuses to remove the last owner, and removes one of two owners", async () => {
+      const { project, user: owner } = await createOrganizationWithProject(repositories)
+      const { membership: coOwnerMembership, user: coOwner } = await addUserToProject({
+        repositories,
+        project,
+        membership: { role: "owner" },
+      })
+      const ownerMembership = await service.findProjectMembership({
+        userId: owner.id,
+        projectId: project.id,
+      })
+
+      await service.removeProjectMembership({
+        userId: owner.id,
+        membershipId: coOwnerMembership.id,
+        projectId: project.id,
+      })
+      await expect(
+        service.findProjectMembership({ userId: coOwner.id, projectId: project.id }),
+      ).resolves.toBeNull()
+
+      const { user: admin } = await addUserToProject({
+        repositories,
+        project,
+        membership: { role: "admin" },
+      })
+      await expect(
+        service.removeProjectMembership({
+          userId: admin.id,
+          membershipId: ownerMembership?.id ?? "",
+          projectId: project.id,
+        }),
+      ).rejects.toThrow("Cannot remove the last owner of the project")
     })
   })
 })

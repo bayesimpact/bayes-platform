@@ -58,8 +58,7 @@ describe("AgentMembershipsService", () => {
         userId: user.id,
       })
 
-      expect(membership.role).toBe("owner")
-      expect(membership.roleId).not.toBeNull()
+      expect(membership.roles.map((role) => role.key)).toEqual(["agent_owner"])
 
       const savedMembership = await repositories.userMembershipRepository.findOneOrFail({
         where: { id: membership.id },
@@ -108,6 +107,7 @@ describe("AgentMembershipsService", () => {
           resourceId: project.id,
           userId: member.id,
         },
+        relations: { rbacRole: true },
       })
       expect(projectMembership).not.toBeNull()
     })
@@ -136,6 +136,7 @@ describe("AgentMembershipsService", () => {
           resourceId: organization.id,
           userId: member.id,
         },
+        relations: { rbacRole: true },
       })
       expect(orgMembership).not.toBeNull()
     })
@@ -148,6 +149,7 @@ describe("AgentMembershipsService", () => {
           resourceId: agent.id,
           userId: user.id,
         },
+        relations: { rbacRole: true },
       })
 
       await expect(
@@ -215,13 +217,14 @@ describe("AgentMembershipsService", () => {
 
       const memberships = await repositories.userMembershipRepository.find({
         where: { userId: demotedUser.id, resourceType: "agent" },
+        relations: { rbacRole: true },
       })
       const roleByAgentId = new Map(
-        memberships.map((membership) => [membership.resourceId, membership.role]),
+        memberships.map((membership) => [membership.resourceId, membership.rbacRole?.key]),
       )
-      expect(roleByAgentId.get(adminAgent.id)).toBe("member")
-      expect(roleByAgentId.get(ownedAgent.id)).toBe("owner")
-      expect(roleByAgentId.get(otherProjectAgent.id)).toBe("admin")
+      expect(roleByAgentId.get(adminAgent.id)).toBe("agent_member")
+      expect(roleByAgentId.get(ownedAgent.id)).toBe("agent_owner")
+      expect(roleByAgentId.get(otherProjectAgent.id)).toBe("agent_admin")
 
       const demotedMembership = memberships.find(
         (membership) => membership.resourceId === adminAgent.id,

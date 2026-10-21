@@ -1,10 +1,7 @@
 import { z } from "zod"
-import type { AgentMembershipRoleDto } from "../agent-membership/agent-membership.dto"
 import type { FeatureFlagsDto } from "../feature-flags/feature-flags.dto"
 import type { TimeType } from "../generic"
-import type { OrganizationMembershipRoleDto } from "../organizations/organizations.dto"
-import type { ProjectMembershipRoleDto } from "../project-membership/project-membership.dto"
-import type { ReviewCampaignMembershipRole } from "../review-campaigns/review-campaigns.dto"
+import type { MembershipRoleDto, RoleScopeTypeDto } from "../rbac/membership-role.dto"
 
 export type BackofficeProjectDto = {
   id: string
@@ -42,7 +39,7 @@ export type BackofficeOrganizationMemberDto = {
   userId: string
   userEmail: string
   userName: string | null
-  role: OrganizationMembershipRoleDto
+  roles: MembershipRoleDto[]
 }
 
 export type BackofficeOrganizationProjectDto = {
@@ -79,7 +76,7 @@ export type BackofficeProjectMemberDto = {
   userId: string
   userEmail: string
   userName: string | null
-  role: ProjectMembershipRoleDto
+  roles: MembershipRoleDto[]
 }
 
 export type BackofficeProjectAgentDto = {
@@ -117,7 +114,7 @@ export type BackofficeAgentMemberDto = {
   userId: string
   userEmail: string
   userName: string | null
-  role: AgentMembershipRoleDto
+  roles: MembershipRoleDto[]
 }
 
 export type BackofficeAgentDetailDto = {
@@ -162,12 +159,7 @@ export type PaginatedBackofficeUsersDto = {
   limit: number
 }
 
-export type BackofficeRoleScopeDto =
-  | "organization"
-  | "project"
-  | "agent"
-  | "review_campaign"
-  | "global"
+export type BackofficeRoleScopeDto = RoleScopeTypeDto
 
 export type BackofficeRbacPermissionDto = {
   key: string
@@ -195,24 +187,24 @@ export type BackofficeUserGlobalRoleDto = {
 export type BackofficeUserOrganizationMembershipDto = {
   organizationId: string
   organizationName: string
-  role: OrganizationMembershipRoleDto
-  roleKey: string | null
+  roles: MembershipRoleDto[]
+  /** Permission keys the roles grant, together. */
   permissions: string[]
 }
 
 export type BackofficeUserProjectMembershipDto = {
   projectId: string
   projectName: string
-  role: ProjectMembershipRoleDto
-  roleKey: string | null
+  roles: MembershipRoleDto[]
+  /** Permission keys the roles grant, together. */
   permissions: string[]
 }
 
 export type BackofficeUserAgentMembershipDto = {
   agentId: string
   agentName: string
-  role: AgentMembershipRoleDto
-  roleKey: string | null
+  roles: MembershipRoleDto[]
+  /** Permission keys the roles grant, together. */
   permissions: string[]
 }
 
@@ -220,9 +212,8 @@ export type BackofficeUserReviewCampaignMembershipDto = {
   campaignId: string
   campaignName: string
   projectId: string
-  role: ReviewCampaignMembershipRole
-  /** The `review_campaign_*` RBAC role, null on a legacy row that never got one. */
-  roleKey: string | null
+  roles: MembershipRoleDto[]
+  /** Permission keys the roles grant, together. */
   permissions: string[]
 }
 

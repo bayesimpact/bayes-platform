@@ -4,6 +4,7 @@
 * **Date**: 2026-09-29
 * **Deciders**: engineering
 * **Scope**: `packages/api-contracts/src/rbac/permissions.ts`, `apps/api/src/domains/rbac/`, `docs/rbac-permission-matrix.md`
+* **Amended by**: [ADR 0032](0032-several-roles-per-resource.md) (a person can hold several roles on one resource)
 
 ---
 

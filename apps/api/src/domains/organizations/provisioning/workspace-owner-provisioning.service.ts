@@ -1,10 +1,21 @@
 import type { DataSource, Repository } from "typeorm"
 import type { TransactionService } from "@/common/transaction/transaction.service"
+import { hasRole, type MembershipRole } from "@/domains/memberships/membership-roles"
 import type { OrganizationMembershipsService } from "@/domains/organizations/memberships/organization-memberships.service"
 import { Organization } from "@/domains/organizations/organization.entity"
 import type { ProjectMembershipsService } from "@/domains/projects/memberships/project-memberships.service"
 import { Project } from "@/domains/projects/project.entity"
+import { ORGANIZATION_ROLES } from "@/domains/rbac/rbac.constants"
 import { User } from "@/domains/users/user.entity"
+
+/** Holds `org_member` and no higher organization role. */
+function isOnlyOrganizationMember(membership: { roles: MembershipRole[] }): boolean {
+  return (
+    hasRole(membership, ORGANIZATION_ROLES.member) &&
+    !hasRole(membership, ORGANIZATION_ROLES.admin) &&
+    !hasRole(membership, ORGANIZATION_ROLES.owner)
+  )
+}
 
 export type ProvisionWorkspaceOwnerInput = {
   email: string
@@ -114,7 +125,7 @@ export class WorkspaceOwnerProvisioningService {
         projectId: project.id,
       })
 
-      if (existingOrgMembership?.role === "member") {
+      if (existingOrgMembership && isOnlyOrganizationMember(existingOrgMembership)) {
         return {
           status: "granted_without_organization_admin" as const,
           email: normalizedEmail,
@@ -177,7 +188,7 @@ export class WorkspaceOwnerProvisioningService {
             userId: user.id,
             organizationId: organization.id,
           })
-        if (existingOrgMembership?.role === "member") {
+        if (existingOrgMembership && isOnlyOrganizationMember(existingOrgMembership)) {
           return {
             status: "would_grant_without_organization_admin",
             email: normalizedEmail,

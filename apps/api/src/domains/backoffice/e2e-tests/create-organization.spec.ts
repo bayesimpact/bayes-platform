@@ -86,9 +86,10 @@ describe("Backoffice - createOrganization", () => {
         resourceId: response.body.data.id,
         resourceType: "organization",
       },
+      relations: { rbacRole: true },
     })
     expect(membership).not.toBeNull()
-    expect(membership?.role).toBe("owner")
+    expect(membership?.rbacRole?.key).toBe("org_owner")
   })
 
   it("trims the organization name", async () => {

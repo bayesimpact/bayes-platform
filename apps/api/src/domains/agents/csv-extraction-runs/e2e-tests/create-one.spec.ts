@@ -1,7 +1,4 @@
-import type {
-  BaseAgentSessionTypeDto,
-  ProjectMembershipRoleDto,
-} from "@caseai-connect/api-contracts"
+import type { BaseAgentSessionTypeDto } from "@caseai-connect/api-contracts"
 import { AgentCsvExtractionRunsRoutes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
@@ -15,6 +12,7 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
+import type { ProjectMembershipRole } from "@/domains/projects/memberships/project-membership.types"
 import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { AgentCsvExtractionRunsModule } from "../agent-csv-extraction-runs.module"
@@ -73,7 +71,7 @@ describe("AgentCsvExtractionRuns - createOne", () => {
 
   let context: Awaited<ReturnType<typeof createCsvExtractionRunContext>>
 
-  const createContext = async (role: ProjectMembershipRoleDto = "owner") => {
+  const createContext = async (role: ProjectMembershipRole = "owner") => {
     context = await createCsvExtractionRunContext({ repositories, authSubject, role })
     organizationId = context.organization.id
     projectId = context.project.id

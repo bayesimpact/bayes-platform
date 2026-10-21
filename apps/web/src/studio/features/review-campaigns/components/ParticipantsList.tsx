@@ -22,6 +22,24 @@ import { NeverSignedInBadge } from "@/common/components/NeverSignedInBadge"
 import { PendingInvitationsSection } from "@/studio/features/invitations/components/PendingInvitationsSection"
 import type { PendingInvitations } from "@/studio/features/invitations/invitations.models"
 
+/** One row per role: a person who is both tester and reviewer has two, each revoked on its own. */
+type ParticipantRow = Omit<ReviewCampaignMembershipDto, "roles"> & {
+  role: ReviewCampaignMembershipRole
+}
+
+const toParticipantRows = (memberships: ReviewCampaignMembershipDto[]): ParticipantRow[] =>
+  memberships.flatMap(({ roles, ...membership }) =>
+    roles.flatMap((role): ParticipantRow[] => {
+      if (role.key === "review_campaign_tester") {
+        return [{ ...membership, id: role.membershipId, role: "tester" }]
+      }
+      if (role.key === "review_campaign_reviewer") {
+        return [{ ...membership, id: role.membershipId, role: "reviewer" }]
+      }
+      return []
+    }),
+  )
+
 type Props = {
   memberships: ReviewCampaignMembershipDto[]
   pendingInvitations: PendingInvitations
@@ -51,10 +69,12 @@ export function ParticipantsList({
   const { t } = useTranslation()
   const [emailsInput, setEmailsInput] = useState("")
   const [role, setRole] = useState<ReviewCampaignMembershipRole>("tester")
-  const [confirmRevokeMembership, setConfirmRevokeMembership] =
-    useState<ReviewCampaignMembershipDto | null>(null)
+  const [confirmRevokeMembership, setConfirmRevokeMembership] = useState<ParticipantRow | null>(
+    null,
+  )
+  const participantRows = useMemo(() => toParticipantRows(memberships), [memberships])
 
-  const columns = useMemo<ColumnDef<ReviewCampaignMembershipDto>[]>(() => {
+  const columns = useMemo<ColumnDef<ParticipantRow>[]>(() => {
     const roleLabel = (membershipRole: ReviewCampaignMembershipRole): string =>
       membershipRole === "tester"
         ? t("reviewCampaigns:participants.tester")
@@ -96,7 +116,7 @@ export function ParticipantsList({
   }, [t, disabled])
 
   const table = useReactTable({
-    data: memberships,
+    data: participantRows,
     columns,
     getRowId: (membership) => membership.id,
     getCoreRowModel: getCoreRowModel(),

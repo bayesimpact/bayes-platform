@@ -97,7 +97,23 @@ describe("Project membership - updateOne", () => {
     })
 
   const findStoredMembership = (id: string) =>
-    repositories.userMembershipRepository.findOneOrFail({ where: { id } })
+    repositories.userMembershipRepository.findOneOrFail({
+      where: { id },
+      relations: { rbacRole: true },
+    })
+
+  const roleKeysOf = (membership: { roles: { key: string }[] }) =>
+    membership.roles.map((membershipRole) => membershipRole.key)
+
+  const agentRoleKeys = async (userId: string) => {
+    const agentMemberships = await repositories.userMembershipRepository.find({
+      where: { userId, resourceType: "agent" },
+      relations: { rbacRole: true },
+    })
+    return agentMemberships
+      .map((membership) => [membership.resourceId, membership.rbacRole?.key])
+      .sort()
+  }
 
   it("promotes a member to admin and makes them admin of every agent", async () => {
     const { organization, project, addedUser } = await createContext()
@@ -117,24 +133,19 @@ describe("Project membership - updateOne", () => {
     const response = await subject()
 
     expectResponse(response, 200)
-    expect(response.body.data).toMatchObject({ id: membershipId, role: "admin" })
+    expect(response.body.data.id).toBe(membershipId)
+    expect(roleKeysOf(response.body.data)).toEqual(["project_admin"])
     expect([...response.body.data.permissions].sort()).toEqual(
       [...PROJECT_ROLE_PERMISSIONS.project_admin].sort(),
     )
 
-    const stored = await findStoredMembership(membershipId)
-    expect(stored.role).toBe("admin")
-    expect(stored.roleId).not.toBeNull()
+    // The member row becomes the admin row: the membership keeps its id.
+    expect((await findStoredMembership(membershipId)).rbacRole?.key).toBe("project_admin")
 
-    const agentMemberships = await repositories.userMembershipRepository.find({
-      where: { userId: addedUser.id, resourceType: "agent" },
-    })
-    expect(
-      agentMemberships.map((membership) => [membership.resourceId, membership.role]).sort(),
-    ).toEqual(
+    expect(await agentRoleKeys(addedUser.id)).toEqual(
       [
-        [agentWithMembership.id, "admin"],
-        [agentWithoutMembership.id, "admin"],
+        [agentWithMembership.id, "agent_admin"],
+        [agentWithoutMembership.id, "agent_admin"],
       ].sort(),
     )
     await expectActivityCreated("projectMembership.update")
@@ -165,21 +176,17 @@ describe("Project membership - updateOne", () => {
     const response = await subject()
 
     expectResponse(response, 200)
-    expect(response.body.data).toMatchObject({ id: membershipId, role: "member" })
+    expect(response.body.data.id).toBe(membershipId)
+    expect(roleKeysOf(response.body.data)).toEqual(["project_member"])
     expect([...response.body.data.permissions].sort()).toEqual(
       [...PROJECT_ROLE_PERMISSIONS.project_member].sort(),
     )
-    expect((await findStoredMembership(membershipId)).role).toBe("member")
+    expect((await findStoredMembership(membershipId)).rbacRole?.key).toBe("project_member")
 
-    const agentMemberships = await repositories.userMembershipRepository.find({
-      where: { userId: addedUser.id, resourceType: "agent" },
-    })
-    expect(
-      agentMemberships.map((membership) => [membership.resourceId, membership.role]).sort(),
-    ).toEqual(
+    expect(await agentRoleKeys(addedUser.id)).toEqual(
       [
-        [adminAgent.id, "member"],
-        [ownedAgent.id, "owner"],
+        [adminAgent.id, "agent_member"],
+        [ownedAgent.id, "agent_owner"],
       ].sort(),
     )
   })
@@ -190,16 +197,16 @@ describe("Project membership - updateOne", () => {
     const response = await subject()
 
     expectResponse(response, 200)
-    expect(response.body.data.role).toBe("admin")
+    expect(roleKeysOf(response.body.data)).toEqual(["project_admin"])
   })
 
-  it("refuses to change the owner's role", async () => {
+  it("gives an owner the role next to ownership, which never changes here", async () => {
     const { organization, project, user } = await createContext()
     const ownerMembership = await repositories.userMembershipRepository.findOneOrFail({
       where: { resourceType: "project", resourceId: project.id, userId: user.id },
     })
     membershipId = ownerMembership.id
-    // An admin tries to demote the owner
+    // An admin makes the owner a member too
     const { addedUser } = await addMemberByEmailToProject({
       repositories,
       organization,
@@ -210,8 +217,11 @@ describe("Project membership - updateOne", () => {
     authSubject = addedUser.authSubject!
     role = "member"
 
-    expectResponse(await subject(), 403, "Cannot change the role of the project owner")
-    expect((await findStoredMembership(membershipId)).role).toBe("owner")
+    const response = await subject()
+
+    expectResponse(response, 200)
+    expect(roleKeysOf(response.body.data)).toEqual(["project_owner", "project_member"])
+    expect((await findStoredMembership(membershipId)).rbacRole?.key).toBe("project_owner")
   })
 
   it("refuses to let an admin change their own role", async () => {
@@ -220,7 +230,7 @@ describe("Project membership - updateOne", () => {
     role = "member"
 
     expectResponse(await subject(), 403, "Cannot change your own role")
-    expect((await findStoredMembership(membershipId)).role).toBe("admin")
+    expect((await findStoredMembership(membershipId)).rbacRole?.key).toBe("project_admin")
   })
 
   it("refuses to make someone owner", async () => {
@@ -228,7 +238,7 @@ describe("Project membership - updateOne", () => {
     role = "owner" as EditableProjectMembershipRoleDto
 
     expectResponse(await subject(), 400, "Role must be admin or member")
-    expect((await findStoredMembership(membershipId)).role).toBe("member")
+    expect((await findStoredMembership(membershipId)).rbacRole?.key).toBe("project_member")
   })
 
   it("returns 404 for a membership of another project", async () => {

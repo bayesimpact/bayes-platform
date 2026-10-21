@@ -12,6 +12,7 @@ import { ActivitiesModule } from "@/domains/activities/activities.module"
 import type { Agent } from "@/domains/agents/agent.entity"
 import { grantConversationReview } from "@/domains/agents/conversation-reviewers/agent-conversation-reviewer.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
+import { AGENT_CONVERSATION_REVIEWER_ROLE } from "@/domains/rbac/rbac.constants"
 import { RbacModule } from "@/domains/rbac/rbac.module"
 import type { User } from "@/domains/users/user.entity"
 import { userFactory } from "@/domains/users/user.factory"
@@ -85,9 +86,10 @@ describe("Backoffice - agent conversation reviewers", () => {
 
   const reviewerRows = (agent: Agent, user: User) =>
     repositories.userMembershipRepository.findBy({
-      resourceType: "temp_agent",
+      resourceType: "agent",
       resourceId: agent.id,
       userId: user.id,
+      rbacRole: { key: AGENT_CONVERSATION_REVIEWER_ROLE },
     })
 
   it("lets a superadmin grant the review of one agent by email, then revoke it", async () => {

@@ -101,7 +101,7 @@ describe("Project membership - getMemberAgents", () => {
     expect(rowA).toMatchObject({
       agentName: "Agent A",
       agentType: "conversation",
-      role: "admin",
+      roles: [expect.objectContaining({ key: "agent_admin", scopeType: "agent" })],
     })
     expect(rowA?.membershipId).toBeTruthy()
     expect([...(rowA?.permissions ?? [])].sort()).toEqual(
@@ -111,7 +111,7 @@ describe("Project membership - getMemberAgents", () => {
     const rowB = rows.find((row: { agentId: string }) => row.agentId === agentWithoutMembership.id)
     expect(rowB).toMatchObject({
       agentName: "Agent B",
-      role: null,
+      roles: [],
       membershipId: null,
       permissions: [],
     })

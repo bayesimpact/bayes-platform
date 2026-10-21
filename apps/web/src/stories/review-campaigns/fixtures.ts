@@ -1,4 +1,5 @@
 import type { ReviewCampaignMembershipDto } from "@caseai-connect/api-contracts"
+import { buildMembershipRoleDto } from "@/common/features/memberships/membership-roles.factory"
 import { organizationFactory } from "@/common/features/organizations/organization.factory"
 import { projectFactory } from "@/common/features/projects/projects.factory"
 import {
@@ -124,18 +125,36 @@ export const mockMemberships: ReviewCampaignMembershipDto[] = [
     id: "membership-1",
     userId: "user-1",
     userEmail: "alice@example.com",
-    role: "tester",
+    roles: [
+      buildMembershipRoleDto({
+        scopeType: "review_campaign",
+        role: "tester",
+        membershipId: "membership-1",
+      }),
+    ],
   }),
   reviewCampaignMembershipFactory.transient({ campaign: mockActiveCampaign }).build({
     id: "membership-2",
     userId: "user-2",
     userEmail: "bob@example.com",
-    role: "tester",
+    roles: [
+      buildMembershipRoleDto({
+        scopeType: "review_campaign",
+        role: "tester",
+        membershipId: "membership-2",
+      }),
+    ],
   }),
   reviewCampaignMembershipFactory.transient({ campaign: mockActiveCampaign }).build({
     id: "membership-3",
     userId: "user-3",
     userEmail: "carol@example.com",
-    role: "reviewer",
+    roles: [
+      buildMembershipRoleDto({
+        scopeType: "review_campaign",
+        role: "reviewer",
+        membershipId: "membership-3",
+      }),
+    ],
   }),
 ]

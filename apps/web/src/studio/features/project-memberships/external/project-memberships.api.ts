@@ -3,6 +3,7 @@ import {
   type ProjectMembershipDto,
   ProjectMembershipRoutes,
 } from "@caseai-connect/api-contracts"
+import { toLegacyRole } from "@/common/features/memberships/membership-roles"
 import { getAxiosInstance } from "@/external/axios"
 import type { ProjectMemberAgent, ProjectMembership } from "../project-memberships.models"
 import type { IProjectMembershipsSpi } from "../project-memberships.spi"
@@ -51,7 +52,7 @@ const fromDto = (dto: ProjectMembershipDto): ProjectMembership => ({
   userEmail: dto.userEmail,
   userHasSignedIn: dto.userHasSignedIn,
   createdAt: dto.createdAt,
-  role: dto.role,
+  role: toLegacyRole(dto.roles) ?? "member",
   permissions: dto.permissions,
 })
 
@@ -60,6 +61,6 @@ const memberAgentFromDto = (dto: ProjectMemberAgentDto): ProjectMemberAgent => (
   agentName: dto.agentName,
   agentType: dto.agentType,
   membershipId: dto.membershipId,
-  role: dto.role,
+  role: toLegacyRole(dto.roles),
   permissions: dto.permissions,
 })

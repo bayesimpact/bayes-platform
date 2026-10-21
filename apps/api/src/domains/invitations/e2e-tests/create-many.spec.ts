@@ -318,7 +318,6 @@ describe("Invitations - createMany", () => {
           userId: participant.id,
           resourceType: "review_campaign",
           resourceId: campaign.id,
-          role: "tester",
           roleId: null,
         }),
       )

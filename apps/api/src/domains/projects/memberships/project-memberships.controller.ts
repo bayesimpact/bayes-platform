@@ -8,6 +8,7 @@ import { AddContext, RequireContext } from "@/common/context/require-context.dec
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
+import { toMembershipRoleDto, unionRolePermissions } from "@/domains/memberships/membership-roles"
 import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
 import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
 import {
@@ -36,12 +37,7 @@ export class ProjectMembershipsController {
       await this.projectMembershipsService.listProjectMembershipsWithRoleGrants(project.id)
 
     return {
-      data: memberships.map((membership) =>
-        toProjectMembershipDto(
-          membership,
-          membership.roleId ? roleGrantsByRoleId.get(membership.roleId) : undefined,
-        ),
-      ),
+      data: memberships.map((membership) => toProjectMembershipDto(membership, roleGrantsByRoleId)),
     }
   }
 
@@ -53,18 +49,18 @@ export class ProjectMembershipsController {
   ): Promise<typeof ProjectMembershipRoutes.getMemberAgents.response> {
     const { project, memberProjectMembership } = request
 
-    const entries = await this.projectMembershipsService.listMemberAgents({
+    const { entries, roleGrantsByRoleId } = await this.projectMembershipsService.listMemberAgents({
       projectId: project.id,
       userId: memberProjectMembership.userId,
     })
 
-    const data: ProjectMemberAgentDto[] = entries.map(({ agent, membership, permissions }) => ({
+    const data: ProjectMemberAgentDto[] = entries.map(({ agent, membership }) => ({
       agentId: agent.id,
       agentName: agent.name,
       agentType: agent.type,
       membershipId: membership?.id ?? null,
-      role: membership?.role ?? null,
-      permissions,
+      roles: membership?.roles.map(toMembershipRoleDto) ?? [],
+      permissions: membership ? unionRolePermissions(membership.roles, roleGrantsByRoleId) : [],
     }))
 
     return { data }

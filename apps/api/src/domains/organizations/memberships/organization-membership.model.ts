@@ -1,28 +1,28 @@
+import type { MembershipRole } from "@/domains/memberships/membership-roles"
 import type { Organization } from "@/domains/organizations/organization.entity"
 import type { User } from "@/domains/users/user.entity"
-import type { OrganizationMembershipRole } from "./organization-membership.types"
 
-/** Fields loaded by context resolvers and policies (no relation hydration). */
+/** Fields loaded by context resolvers (no relation hydration). */
 export type OrganizationMembershipContextModel = {
+  /** The oldest of the person's rows on the organization. */
   id: string
   userId: string
   organizationId: string
-  role: OrganizationMembershipRole
+  /** Every role the person holds on the organization, one `user_membership` row each. */
+  roles: MembershipRole[]
   createdAt: Date
   updatedAt: Date
   deletedAt: Date | null
 }
 
 /**
- * Domain model for an organization membership.
+ * Domain model for a person's membership in an organization.
  *
  * Plain object returned to the service layer. The `organization` attribute is a
  * TypeORM entity for now (pragmatic compromise during the transition away from
  * legacy tables); it will become a domain model once Organization is also split.
  */
 export type OrganizationMembershipModel = OrganizationMembershipContextModel & {
-  /** RBAC role backing this membership (null when the catalog is not seeded). */
-  roleId: string | null
   user: User
   organization: Organization
 }

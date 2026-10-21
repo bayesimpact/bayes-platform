@@ -79,7 +79,6 @@ export const saveProjectMembership = async ({
       userId: membership.userId,
       resourceType: "project",
       resourceId: membership.projectId,
-      role: membership.role,
       roleId: rbacRole?.id ?? null,
     }),
   )

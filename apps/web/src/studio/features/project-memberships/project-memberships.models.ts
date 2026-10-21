@@ -1,9 +1,5 @@
-import type {
-  AgentMembershipRoleDto,
-  AgentType,
-  ProjectMembershipRoleDto,
-  TimeType,
-} from "@caseai-connect/api-contracts"
+import type { AgentType, TimeType } from "@caseai-connect/api-contracts"
+import type { LegacyMembershipRole } from "@/common/features/memberships/membership-roles"
 
 export type ProjectMembership = {
   id: string
@@ -14,8 +10,9 @@ export type ProjectMembership = {
   /** False while the member was added by email and has never signed in. */
   userHasSignedIn: boolean
   createdAt: TimeType
-  role: ProjectMembershipRoleDto
-  /** Permission keys the role grants on the project. */
+  /** The highest of the member's project roles, until this screen shows them all (#1076). */
+  role: LegacyMembershipRole
+  /** Permission keys the roles grant on the project. */
   permissions: string[]
 }
 
@@ -24,7 +21,8 @@ export type ProjectMemberAgent = {
   agentName: string
   agentType: AgentType
   membershipId: string | null
-  role: AgentMembershipRoleDto | null
-  /** Permission keys the role grants on the agent, empty without a membership. */
+  /** The highest of the member's agent roles, until this screen shows them all (#1077). */
+  role: LegacyMembershipRole | null
+  /** Permission keys the roles grant on the agent, empty without a membership. */
   permissions: string[]
 }

@@ -1,4 +1,9 @@
-import type { GlobalPermission, UserDto, UserMembershipsDto } from "@caseai-connect/api-contracts"
+import type {
+  GlobalPermission,
+  ReviewCampaignMembershipForMeDto,
+  UserDto,
+  UserMembershipsDto,
+} from "@caseai-connect/api-contracts"
 import { buildNameFromEmail, MeRoutes, updateMeSchema } from "@caseai-connect/api-contracts"
 import { Body, Controller, Get, Patch, Req, UseGuards, UsePipes } from "@nestjs/common"
 import type { EndpointRequest } from "@/common/context/request.interface"
@@ -6,10 +11,12 @@ import { ZodValidationPipe } from "@/common/zod-validation-pipe"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentConversationReviewersService } from "@/domains/agents/conversation-reviewers/agent-conversation-reviewers.service"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
+import { toMembershipRoleDto } from "@/domains/memberships/membership-roles"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { OrganizationsService } from "@/domains/organizations/organizations.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { PermissionService } from "@/domains/rbac/permission.service"
+import type { ReviewCampaignMembershipModel } from "@/domains/review-campaigns/memberships/review-campaign-membership.model"
 import {
   isAcceptanceUpToDate,
   toCurrentTermsDto,
@@ -114,30 +121,54 @@ function toUserMembershipDto(
     organizationMemberships: membership.organizationMemberships.map((orgMembership) => ({
       id: orgMembership.id,
       organizationId: orgMembership.organizationId,
-      role: orgMembership.role,
+      roles: orgMembership.roles.map(toMembershipRoleDto),
     })),
     projectMemberships: membership.projectMemberships.map((projectMembership) => ({
       id: projectMembership.id,
       projectId: projectMembership.projectId,
-      role: projectMembership.role,
+      roles: projectMembership.roles.map(toMembershipRoleDto),
     })),
     agentMemberships: membership.agentMemberships.map((agentMembership) => ({
       id: agentMembership.id,
       agentId: agentMembership.agentId,
-      role: agentMembership.role,
+      roles: agentMembership.roles.map(toMembershipRoleDto),
     })),
     // Skip rows where the campaign was somehow not loaded (defensive — relation
     // is non-null in the schema). Surface campaignStatus so the UI can mirror
     // listMyCampaigns' active-only filter without an extra round-trip.
-    reviewCampaignMemberships: membership.reviewCampaignMemberships
-      .filter((m) => !!m.campaign)
-      .map((m) => ({
-        id: m.id,
-        campaignId: m.campaignId,
-        organizationId: m.organizationId,
-        projectId: m.projectId,
-        role: m.role,
-        campaignStatus: m.campaign.status,
-      })),
+    reviewCampaignMemberships: toReviewCampaignMembershipsForMeDto(
+      membership.reviewCampaignMemberships.filter(
+        (campaignMembership) => !!campaignMembership.campaign,
+      ),
+    ),
   }
+}
+
+/** One entry per campaign, with the user's roles on it (tester, reviewer or both). */
+function toReviewCampaignMembershipsForMeDto(
+  memberships: ReviewCampaignMembershipModel[],
+): ReviewCampaignMembershipForMeDto[] {
+  const membershipsByCampaignId = new Map<string, ReviewCampaignMembershipModel[]>()
+  for (const membership of memberships) {
+    const campaignMemberships = membershipsByCampaignId.get(membership.campaignId)
+    if (campaignMemberships) campaignMemberships.push(membership)
+    else membershipsByCampaignId.set(membership.campaignId, [membership])
+  }
+
+  return [...membershipsByCampaignId.values()].flatMap((campaignMemberships) => {
+    const [first] = campaignMemberships
+    if (!first) return []
+    return [
+      {
+        id: first.id,
+        campaignId: first.campaignId,
+        organizationId: first.organizationId,
+        projectId: first.projectId,
+        roles: campaignMemberships.map((membership) =>
+          toMembershipRoleDto(membership.membershipRole),
+        ),
+        campaignStatus: first.campaign.status,
+      },
+    ]
+  })
 }

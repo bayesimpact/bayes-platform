@@ -1,8 +1,11 @@
 import type { AgentType } from "../agents/agents.dto"
 import type { TimeType } from "../generic"
+import type { MembershipRoleDto } from "../rbac/membership-role.dto"
 
-export type AgentMembershipRoleDto = "owner" | "admin" | "member"
-
+/**
+ * A person with access to an agent, with every role they hold on it. `id` is the oldest of their
+ * membership rows on the agent, and the routes accept any of them.
+ */
 export type AgentMembershipDto = {
   id: string
   agentId: string
@@ -11,7 +14,7 @@ export type AgentMembershipDto = {
   userEmail: string
   /** False while the member was added by email and has never signed in. */
   userHasSignedIn: boolean
-  role: AgentMembershipRoleDto
+  roles: MembershipRoleDto[]
   createdAt: TimeType
 }
 
@@ -20,7 +23,8 @@ export type ProjectMemberAgentDto = {
   agentName: string
   agentType: AgentType
   membershipId: string | null
-  role: AgentMembershipRoleDto | null
-  /** Permission keys the role grants on the agent, empty without a membership. */
+  /** The member's roles on the agent, empty without a membership. */
+  roles: MembershipRoleDto[]
+  /** Permission keys the roles grant on the agent, together. */
   permissions: string[]
 }

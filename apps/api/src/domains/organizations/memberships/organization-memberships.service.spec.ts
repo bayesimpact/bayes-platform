@@ -55,7 +55,7 @@ describe("OrganizationMembershipsService", () => {
       expect(result).not.toBeNull()
       expect(result?.userId).toBe(user.id)
       expect(result?.organizationId).toBe(organization.id)
-      expect(result?.role).toBeDefined()
+      expect(result?.roles.map((role) => role.key)).toEqual(["org_owner"])
     })
 
     it("should return null when user is not a member of the organization", async () => {
@@ -135,11 +135,11 @@ describe("OrganizationMembershipsService", () => {
 
       expect(result1).not.toBeNull()
       expect(result1?.organizationId).toBe(organization1.id)
-      expect(result1?.role).toBe("owner")
+      expect(result1?.roles.map((role) => role.key)).toEqual(["org_owner"])
 
       expect(result2).not.toBeNull()
       expect(result2?.organizationId).toBe(savedOrganization2.id)
-      expect(result2?.role).toBe("member")
+      expect(result2?.roles.map((role) => role.key)).toEqual(["org_member"])
     })
   })
 
@@ -159,8 +159,9 @@ describe("OrganizationMembershipsService", () => {
           resourceId: organization.id,
           resourceType: "organization",
         },
+        relations: { rbacRole: true },
       })
-      expect(membership?.role).toBe("admin")
+      expect(membership?.rbacRole?.key).toBe("org_admin")
       const orgAdminRole = await repositories.roleRepository.findOneOrFail({
         where: { key: ORGANIZATION_ROLES.admin },
       })
@@ -183,8 +184,9 @@ describe("OrganizationMembershipsService", () => {
           resourceId: organization.id,
           resourceType: "organization",
         },
+        relations: { rbacRole: true },
       })
-      expect(membership.role).toBe("admin")
+      expect(membership.rbacRole?.key).toBe("org_admin")
       const orgAdminRole = await repositories.roleRepository.findOneOrFail({
         where: { key: ORGANIZATION_ROLES.admin },
       })
@@ -205,8 +207,9 @@ describe("OrganizationMembershipsService", () => {
           resourceId: organization.id,
           resourceType: "organization",
         },
+        relations: { rbacRole: true },
       })
-      expect(membership.role).toBe("owner")
+      expect(membership.rbacRole?.key).toBe("org_owner")
     })
   })
 
@@ -226,8 +229,9 @@ describe("OrganizationMembershipsService", () => {
           resourceId: organization.id,
           resourceType: "organization",
         },
+        relations: { rbacRole: true },
       })
-      expect(userMembership.role).toBe("owner")
+      expect(userMembership.rbacRole?.key).toBe("org_owner")
       const orgOwnerRole = await repositories.roleRepository.findOneOrFail({
         where: { key: ORGANIZATION_ROLES.owner },
       })
@@ -251,8 +255,9 @@ describe("OrganizationMembershipsService", () => {
           resourceId: organization.id,
           resourceType: "organization",
         },
+        relations: { rbacRole: true },
       })
-      expect(membership.role).toBe("member")
+      expect(membership.rbacRole?.key).toBe("org_member")
       const orgMemberRole = await repositories.roleRepository.findOneOrFail({
         where: { key: ORGANIZATION_ROLES.member },
       })

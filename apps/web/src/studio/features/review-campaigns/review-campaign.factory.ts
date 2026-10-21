@@ -7,6 +7,7 @@ import type {
 } from "@caseai-connect/api-contracts"
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
+import { buildMembershipRoleDto } from "@/common/features/memberships/membership-roles.factory"
 import type { Project } from "@/common/features/projects/projects.models"
 import type { CampaignFormAgentOption } from "./components/CampaignForm"
 
@@ -99,13 +100,16 @@ export const reviewCampaignMembershipFactory = ReviewCampaignMembershipFactory.d
         "Campaign must be provided in transient params to build a ReviewCampaignMembership",
       )
     }
+    const id = params.id ?? faker.string.uuid()
     return {
-      id: params.id ?? faker.string.uuid(),
+      id,
       campaignId: campaign.id,
       userId: params.userId ?? faker.string.uuid(),
       userEmail: params.userEmail ?? faker.internet.email().toLowerCase(),
       userHasSignedIn: params.userHasSignedIn ?? true,
-      role: params.role ?? "tester",
+      roles: [
+        buildMembershipRoleDto({ scopeType: "review_campaign", role: "tester", membershipId: id }),
+      ],
     }
   },
 )

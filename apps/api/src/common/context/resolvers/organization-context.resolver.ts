@@ -3,9 +3,9 @@ import { InjectDataSource } from "@nestjs/typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DataSource } from "typeorm"
 import { AUTH_ERRORS } from "@/common/errors/auth-errors"
+import { groupMembershipRows } from "@/domains/memberships/membership-roles"
 import { UserMembership } from "@/domains/memberships/user-membership.entity"
 import type { OrganizationMembershipContextModel } from "@/domains/organizations/memberships/organization-membership.model"
-import type { OrganizationMembershipRole } from "@/domains/organizations/memberships/organization-membership.types"
 import type { ContextResolver, ResolvableRequest } from "../context-resolver.interface"
 import type { EndpointRequestWithOrganizationMembership } from "../request.interface"
 
@@ -24,25 +24,27 @@ export class OrganizationContextResolver implements ContextResolver {
       throw new BadRequestException(AUTH_ERRORS.NO_ORGANIZATION_ID)
     }
 
-    const userMembership = await this.dataSource.getRepository(UserMembership).findOne({
+    const userMembershipRows = await this.dataSource.getRepository(UserMembership).find({
       where: {
         userId: request.user.id,
         resourceId: organizationId,
         resourceType: "organization",
       },
+      relations: { rbacRole: true },
     })
-    if (!userMembership) {
+    const [group] = groupMembershipRows(userMembershipRows)
+    if (!group) {
       throw new UnauthorizedException(AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     }
 
     const organizationMembership = {
-      id: userMembership.id,
-      userId: userMembership.userId,
+      id: group.oldest.id,
+      userId: group.oldest.userId,
       organizationId,
-      role: userMembership.role as OrganizationMembershipRole,
-      createdAt: userMembership.createdAt,
-      updatedAt: userMembership.updatedAt,
-      deletedAt: userMembership.deletedAt,
+      roles: group.roles,
+      createdAt: group.oldest.createdAt,
+      updatedAt: group.updatedAt,
+      deletedAt: group.oldest.deletedAt,
     } satisfies OrganizationMembershipContextModel
 
     const requestWithMembership = request as EndpointRequestWithOrganizationMembership

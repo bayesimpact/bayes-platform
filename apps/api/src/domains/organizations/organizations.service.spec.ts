@@ -78,9 +78,10 @@ describe("OrganizationsService", () => {
           resourceId: result.id,
           resourceType: "organization",
         },
+        relations: { rbacRole: true },
       })
       expect(membership).not.toBeNull()
-      expect(membership?.role).toBe("owner")
+      expect(membership?.rbacRole?.key).toBe("org_owner")
     })
 
     it("should create organization with correct user membership relationship", async () => {
@@ -103,6 +104,7 @@ describe("OrganizationsService", () => {
           resourceId: organization.id,
           resourceType: "organization",
         },
+        relations: { rbacRole: true },
       })
       expect(membership).not.toBeNull()
       expect(membership?.userId).toBe(savedUser.id)
@@ -134,9 +136,10 @@ describe("OrganizationsService", () => {
       // Verify both memberships exist
       const memberships = await userMembershipRepository.find({
         where: { userId: savedUser.id, resourceType: "organization" },
+        relations: { rbacRole: true },
       })
       expect(memberships).toHaveLength(2)
-      expect(memberships.every((membership) => membership.role === "owner")).toBe(true)
+      expect(memberships.every((membership) => membership.rbacRole?.key === "org_owner")).toBe(true)
     })
 
     it("should create organization with unique IDs", async () => {

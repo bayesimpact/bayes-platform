@@ -350,8 +350,7 @@ describe("UsersService", () => {
 
       expect(organizationMembership?.role).toBe("member")
       expect(organizationMembership?.roleId).toBe(orgMemberRole.id)
-      expect(projectMembership?.role).toBe("member")
-      expect(projectMembership?.role).not.toBe("admin")
+      expect(projectMembership?.roleKeys).toEqual([customRole.key])
       expect(projectMembership?.roleId).toBe(customRole.id)
     })
 

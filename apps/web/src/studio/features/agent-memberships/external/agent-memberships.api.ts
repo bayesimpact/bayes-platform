@@ -1,4 +1,5 @@
 import { type AgentMembershipDto, AgentMembershipRoutes } from "@caseai-connect/api-contracts"
+import { toLegacyRole } from "@/common/features/memberships/membership-roles"
 import { getAxiosInstance } from "@/external/axios"
 import type { AgentMembership } from "../agent-memberships.models"
 import type { IAgentMembershipsSpi } from "../agent-memberships.spi"
@@ -32,5 +33,5 @@ const fromDto = (dto: AgentMembershipDto): AgentMembership => ({
   userEmail: dto.userEmail,
   userHasSignedIn: dto.userHasSignedIn,
   createdAt: dto.createdAt,
-  role: dto.role,
+  role: toLegacyRole(dto.roles) ?? "member",
 })

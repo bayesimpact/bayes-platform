@@ -1,10 +1,7 @@
 import type { AllRepositories } from "@/common/test/test-transaction-manager"
 import type { Agent } from "@/domains/agents/agent.entity"
 import { userMembershipFactory } from "@/domains/memberships/user-membership.factory"
-import {
-  AGENT_CONVERSATION_REVIEWER_MEMBERSHIP_ROLE,
-  AGENT_CONVERSATION_REVIEWER_ROLE,
-} from "@/domains/rbac/rbac.constants"
+import { AGENT_CONVERSATION_REVIEWER_ROLE } from "@/domains/rbac/rbac.constants"
 import type { User } from "@/domains/users/user.entity"
 
 /** Grants `agent_conversation_reviewer` on `agent` to `user`, as the backoffice does. */
@@ -23,9 +20,8 @@ export async function grantConversationReview({
   await repositories.userMembershipRepository.save(
     userMembershipFactory.build({
       userId: user.id,
-      resourceType: "temp_agent",
+      resourceType: "agent",
       resourceId: agent.id,
-      role: AGENT_CONVERSATION_REVIEWER_MEMBERSHIP_ROLE,
       roleId: role.id,
     }),
   )

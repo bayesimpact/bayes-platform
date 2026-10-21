@@ -39,7 +39,6 @@ async function assignGlobalRoleToUser({
       userId: user.id,
       resourceType: "global",
       resourceId: null,
-      role: "member",
       roleId: globalRole.id,
     }),
   )

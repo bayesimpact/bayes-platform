@@ -14,6 +14,7 @@ import { getRequiredConnectScope } from "@/common/context/request-context.helper
 import { AddContext, RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
+import { toMembershipRoleDto } from "@/domains/memberships/membership-roles"
 import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
 import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
 import {
@@ -140,17 +141,31 @@ function toReviewCampaignDto(campaign: ReviewCampaign): ReviewCampaignDto {
   }
 }
 
-function toReviewCampaignMembershipDto(
-  membership: ReviewCampaignMembershipModel,
-): ReviewCampaignMembershipDto {
-  return {
-    id: membership.id,
-    campaignId: membership.campaignId,
-    userId: membership.userId,
-    userEmail: membership.user?.email ?? "",
-    userHasSignedIn: membership.user ? membership.user.authSubject !== null : false,
-    role: membership.role,
+/** One entry per person, oldest row first, with every role they hold on the campaign. */
+function toReviewCampaignMembershipDtos(
+  memberships: ReviewCampaignMembershipModel[],
+): ReviewCampaignMembershipDto[] {
+  const membershipsByUserId = new Map<string, ReviewCampaignMembershipModel[]>()
+  for (const membership of memberships) {
+    const userMemberships = membershipsByUserId.get(membership.userId)
+    if (userMemberships) userMemberships.push(membership)
+    else membershipsByUserId.set(membership.userId, [membership])
   }
+
+  return [...membershipsByUserId.values()].flatMap((userMemberships) => {
+    const [first] = userMemberships
+    if (!first) return []
+    return [
+      {
+        id: first.id,
+        campaignId: first.campaignId,
+        userId: first.userId,
+        userEmail: first.user?.email ?? "",
+        userHasSignedIn: first.user ? first.user.authSubject !== null : false,
+        roles: userMemberships.map((membership) => toMembershipRoleDto(membership.membershipRole)),
+      },
+    ]
+  })
 }
 
 function toReviewCampaignDetailDto(
@@ -160,7 +175,7 @@ function toReviewCampaignDetailDto(
 ): ReviewCampaignDetailDto {
   return {
     ...toReviewCampaignDto(campaign),
-    memberships: memberships.map(toReviewCampaignMembershipDto),
+    memberships: toReviewCampaignMembershipDtos(memberships),
     aggregates,
   }
 }

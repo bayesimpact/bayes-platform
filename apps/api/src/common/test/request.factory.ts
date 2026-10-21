@@ -63,7 +63,10 @@ export const endpointRequestWithOrganizationFactory = Factory.define<
   return {
     ...baseRequest,
     organizationId: organization.id,
-    organizationMembership: organizationMembershipFactory.transient({ organization, user }).build(),
+    organizationMembership: {
+      ...organizationMembershipFactory.transient({ organization, user }).build(),
+      roles: [],
+    },
   } satisfies EndpointRequestWithOrganizationMembership
 })
 

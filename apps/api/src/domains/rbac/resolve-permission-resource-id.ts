@@ -31,7 +31,6 @@ export function resolvePermissionResourceId(
     case "project":
       return request.project?.id ?? request.params?.projectId
     case "agent":
-    case "temp_agent":
       return request.agent?.id ?? request.params?.agentId
     case "review_campaign":
       return request.reviewCampaign?.id ?? request.params?.reviewCampaignId

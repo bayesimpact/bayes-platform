@@ -29,7 +29,7 @@ export class ProjectMembershipRoleController {
   ): Promise<typeof ProjectMembershipRoutes.updateOne.response> {
     const { project, memberProjectMembership } = request
 
-    const { membership, roleGrant } =
+    const { membership, roleGrantsByRoleId } =
       await this.projectMembershipsService.updateProjectMembershipRole({
         callerUserId: request.user.id,
         membershipId: memberProjectMembership.id,
@@ -37,6 +37,6 @@ export class ProjectMembershipRoleController {
         role: payload.role,
       })
 
-    return { data: toProjectMembershipDto(membership, roleGrant) }
+    return { data: toProjectMembershipDto(membership, roleGrantsByRoleId) }
   }
 }

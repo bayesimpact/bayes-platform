@@ -133,7 +133,6 @@ describe("ReviewCampaigns - Tester auth", () => {
         userId: user.id,
         resourceType: "review_campaign",
         resourceId: campaign.id,
-        role: "tester",
         roleId: null,
       }),
     )
