@@ -13,7 +13,7 @@ msgstr "« {title} » et ses messages seront supprimés. Cette action est défin
 
 #: src/components/shared/Markdown.tsx:53
 #: src/components/shared/Markdown.tsx:75
-#: src/features/conversation/components/ResourceCards.tsx:41
+#: src/features/conversation/components/ResourceCard.tsx:74
 msgid "(opens in a new tab)"
 msgstr "(s'ouvre dans un nouvel onglet)"
 

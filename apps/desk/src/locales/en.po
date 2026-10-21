@@ -13,7 +13,7 @@ msgstr "\"{title}\" and its messages will be deleted. This cannot be undone."
 
 #: src/components/shared/Markdown.tsx:53
 #: src/components/shared/Markdown.tsx:75
-#: src/features/conversation/components/ResourceCards.tsx:41
+#: src/features/conversation/components/ResourceCard.tsx:74
 msgid "(opens in a new tab)"
 msgstr "(opens in a new tab)"
 
