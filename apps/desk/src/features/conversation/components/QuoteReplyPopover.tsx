@@ -1,5 +1,5 @@
 import { useLingui } from "@lingui/react/macro"
-import { MessageSquarePlusIcon, Trash2Icon } from "lucide-react"
+import { Trash2Icon } from "lucide-react"
 import { type KeyboardEvent, type MouseEvent, type ReactNode, useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent } from "@/components/ui/popover"
@@ -42,7 +42,7 @@ export function QuoteReplyPopover({
   }, [highlighted])
   useEffect(() => clearQuoteHighlights, [])
 
-  // Leaving a note keeps it: closing the box, opening another or adding it all save it.
+  // Leaving a note keeps it: closing the box, opening another or pressing Enter all save it.
   const open = (annotation: Annotation | null) => {
     if (editing && editing.id !== annotation?.id) onSave(editing)
     setEditing(annotation)
@@ -68,7 +68,8 @@ export function QuoteReplyPopover({
 
   const hasNote = editing !== null && editing.note.trim() !== ""
 
-  const handleAdd = () => {
+  // Enter keeps the note and closes the box, as leaving it does.
+  const handleKeep = () => {
     if (!hasNote) return
     window.getSelection()?.removeAllRanges()
     open(null)
@@ -82,7 +83,7 @@ export function QuoteReplyPopover({
   const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key !== "Enter" || event.shiftKey || event.nativeEvent.isComposing) return
     event.preventDefault()
-    handleAdd()
+    handleKeep()
   }
 
   return (
@@ -138,9 +139,6 @@ export function QuoteReplyPopover({
                 <Trash2Icon aria-hidden />
               </IconAction>
             ) : null}
-            <IconAction label={t`Add to your message`} onClick={handleAdd} disabled={!hasNote}>
-              <MessageSquarePlusIcon aria-hidden />
-            </IconAction>
           </div>
         </PopoverContent>
       </Popover>
@@ -151,24 +149,15 @@ export function QuoteReplyPopover({
 type IconActionProps = {
   label: string
   onClick: () => void
-  disabled?: boolean
   children: ReactNode
 }
 
 /** A button of the box, named by its tooltip. */
-function IconAction({ label, onClick, disabled, children }: IconActionProps) {
+function IconAction({ label, onClick, children }: IconActionProps) {
   return (
     <Tooltip>
       <TooltipTrigger
-        render={
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label={label}
-            onClick={onClick}
-            disabled={disabled}
-          />
-        }
+        render={<Button variant="ghost" size="icon-sm" aria-label={label} onClick={onClick} />}
       >
         {children}
       </TooltipTrigger>
