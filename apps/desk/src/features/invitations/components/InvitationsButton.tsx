@@ -34,14 +34,14 @@ export function InvitationsButton() {
             variant="ghost"
             size="icon-sm"
             aria-label={label}
-            className="relative shrink-0 hover:bg-foreground/10 aria-expanded:bg-foreground/10"
+            className="group/envelope relative shrink-0 transition-colors duration-200 ease-out hover:bg-foreground hover:text-background aria-expanded:bg-foreground aria-expanded:text-background"
           />
         }
       >
         <MailIcon aria-hidden />
         <span
           aria-hidden
-          className="absolute -top-0.5 -right-0.5 flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-xs leading-4 font-medium text-primary-foreground"
+          className="absolute -top-1 -right-1 flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-xs leading-4 font-medium text-primary-foreground ring-2 ring-sidebar transition-colors duration-200 ease-out group-hover/envelope:bg-background group-hover/envelope:text-foreground group-aria-expanded/envelope:bg-background group-aria-expanded/envelope:text-foreground"
         >
           {count}
         </span>
