@@ -4,8 +4,8 @@ import { type KeyboardEvent, type ReactNode, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent } from "@/components/ui/popover"
 import { Textarea } from "@/components/ui/textarea"
-import { clearQuoteHighlight, showQuoteHighlight } from "@/lib/quote-highlight"
 import { readQuotableSelection } from "../annotation"
+import { QuoteMarker } from "./QuoteMarker"
 
 export type QuoteReplyPopoverProps = {
   agentName: string
@@ -16,7 +16,7 @@ export type QuoteReplyPopoverProps = {
   children: ReactNode
 }
 
-type Quote = { text: string; range: Range }
+type Quote = { text: string; range: Range; container: HTMLElement }
 
 /**
  * Selecting a passage of a reply opens a small box beside it, as in the Claude app: the person
@@ -33,7 +33,6 @@ export function QuoteReplyPopover({
   const [note, setNote] = useState("")
 
   const close = () => {
-    clearQuoteHighlight()
     setQuote(null)
     setNote("")
   }
@@ -41,7 +40,6 @@ export function QuoteReplyPopover({
   const handleMouseUp = () => {
     const selected = readQuotableSelection(window.getSelection())
     if (!selected) return
-    showQuoteHighlight(selected.range)
     setQuote(selected)
   }
 
@@ -63,6 +61,8 @@ export function QuoteReplyPopover({
     // biome-ignore lint/a11y/noStaticElementInteractions: the replies stay readable without it; it only adds the box.
     <div className="contents" onMouseUp={handleMouseUp}>
       {children}
+      {/* The passage stays marked once the selection goes, as the person moves to their note. */}
+      {quote ? <QuoteMarker range={quote.range} container={quote.container} /> : null}
       <Popover
         open={quote !== null}
         onOpenChange={(open) => (open ? null : close())}

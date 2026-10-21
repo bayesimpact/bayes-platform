@@ -19,18 +19,18 @@ export function appendAnnotation(draft: string, line: string): string {
 }
 
 /**
- * The passage of a reply the person selected, with where it stands on the screen, or `null` when
- * the selection is empty or leaves the reply it starts in.
+ * The passage of a reply the person selected, with where it stands on the screen and the reply it
+ * is in, or `null` when the selection is empty or leaves the reply it starts in.
  */
 export function readQuotableSelection(
   selection: Selection | null,
-): { text: string; range: Range } | null {
+): { text: string; range: Range; container: HTMLElement } | null {
   if (!selection || selection.isCollapsed || selection.rangeCount === 0) return null
   const text = selection.toString().trim()
   if (text === "") return null
   const quotableOf = (node: Node | null) =>
     (node instanceof Element ? node : node?.parentElement)?.closest(`[${QUOTABLE_ATTRIBUTE}]`)
   const start = quotableOf(selection.anchorNode)
-  if (!start || start !== quotableOf(selection.focusNode)) return null
-  return { text, range: selection.getRangeAt(0).cloneRange() }
+  if (!(start instanceof HTMLElement) || start !== quotableOf(selection.focusNode)) return null
+  return { text, range: selection.getRangeAt(0).cloneRange(), container: start }
 }
