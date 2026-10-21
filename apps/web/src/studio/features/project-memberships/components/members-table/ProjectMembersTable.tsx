@@ -1,6 +1,5 @@
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
-import { Checkbox } from "@caseai-connect/ui/shad/checkbox"
 import {
   Empty,
   EmptyContent,
@@ -9,16 +8,7 @@ import {
   EmptyTitle,
 } from "@caseai-connect/ui/shad/empty"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@caseai-connect/ui/shad/table"
-import {
   type ColumnDef,
-  flexRender,
   getCoreRowModel,
   getPaginationRowModel,
   getSortedRowModel,
@@ -29,6 +19,8 @@ import {
 import { ChevronRightIcon } from "lucide-react"
 import { type ReactNode, useMemo, useState } from "react"
 import { ConfirmDialog } from "@/common/components/ConfirmDialog"
+import { DataTable, type DataTableColumnMeta } from "@/common/components/data-table/DataTable"
+import { buildSelectionColumn } from "@/common/components/data-table/selection-column"
 import { NeverSignedInBadge } from "@/common/components/NeverSignedInBadge"
 import {
   DEFAULT_PAGE_SIZE,
@@ -113,32 +105,9 @@ export function ProjectMembersTable({
   }, [members, search, roleFilter])
 
   const columns = useMemo<ColumnDef<MembersTableMember>[]>(() => {
-    const selectColumn: ColumnDef<MembersTableMember> = {
-      id: "select",
-      enableSorting: false,
-      header: ({ table }) => (
-        <Checkbox
-          aria-label="Select all members"
-          checked={
-            table.getIsAllRowsSelected()
-              ? true
-              : table.getIsSomeRowsSelected()
-                ? "indeterminate"
-                : false
-          }
-          onCheckedChange={(value) => table.toggleAllRowsSelected(value === true)}
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          aria-label={`Select ${row.original.userName ?? row.original.userEmail}`}
-          checked={row.getIsSelected()}
-          disabled={!row.getCanSelect()}
-          onCheckedChange={(value) => row.toggleSelected(value === true)}
-          onClick={(event) => event.stopPropagation()}
-        />
-      ),
-    }
+    const selectColumn = buildSelectionColumn<MembersTableMember>({
+      rowLabel: (member) => `Select ${member.userName ?? member.userEmail}`,
+    })
     const dataColumns: ColumnDef<MembersTableMember>[] = [
       {
         id: "member",
@@ -194,6 +163,7 @@ export function ProjectMembersTable({
       },
       {
         id: "open",
+        meta: { className: "w-10" } satisfies DataTableColumnMeta,
         enableSorting: false,
         header: () => null,
         cell: () => <ChevronRightIcon className="size-4 text-muted-foreground" />,
@@ -287,62 +257,23 @@ export function ProjectMembersTable({
         />
       )}
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead
-                    key={header.id}
-                    className={
-                      header.column.id === "select" || header.column.id === "open"
-                        ? "w-10"
-                        : undefined
-                    }
-                  >
-                    {flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={columns.length}>
-                  <Empty>
-                    <EmptyHeader>
-                      <EmptyTitle>No member matches</EmptyTitle>
-                      <EmptyDescription>Try another search or remove a filter.</EmptyDescription>
-                    </EmptyHeader>
-                    <EmptyContent>
-                      <Button variant="outline" size="sm" onClick={resetFilters}>
-                        Clear filters
-                      </Button>
-                    </EmptyContent>
-                  </Empty>
-                </TableCell>
-              </TableRow>
-            ) : (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() ? "selected" : undefined}
-                  className="cursor-pointer"
-                  onClick={() => onOpenMember(row.original.id)}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      <DataTable
+        table={table}
+        onRowClick={(member) => onOpenMember(member.id)}
+        empty={
+          <Empty>
+            <EmptyHeader>
+              <EmptyTitle>No member matches</EmptyTitle>
+              <EmptyDescription>Try another search or remove a filter.</EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              <Button variant="outline" size="sm" onClick={resetFilters}>
+                Clear filters
+              </Button>
+            </EmptyContent>
+          </Empty>
+        }
+      />
 
       {pageCount > 1 && (
         <PaginationControls
