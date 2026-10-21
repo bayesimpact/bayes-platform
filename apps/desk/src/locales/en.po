@@ -49,13 +49,17 @@ msgstr "A new version of the Desk is available. Reload the page."
 msgid "Actions on {title}"
 msgstr "Actions on {title}"
 
-#: src/features/conversation/components/QuoteReplyPopover.tsx:102
+#: src/features/conversation/components/QuoteReplyPopover.tsx:96
 msgid "Add to your message"
 msgstr "Add to your message"
 
 #: src/features/conversation/components/FormsPanel.tsx:28
 msgid "Agent"
 msgstr "Agent"
+
+#: src/features/conversation/components/QuoteReplyPopover.tsx:85
+msgid "Annotate"
+msgstr "Annotate"
 
 #: src/features/conversation/components/Composer.tsx:172
 msgid "Attach a file"
@@ -305,10 +309,6 @@ msgstr "Remembering what matters"
 msgid "Remove {fileName}"
 msgstr "Remove {fileName}"
 
-#: src/features/conversation/components/QuoteReplyPopover.tsx:91
-msgid "Reply to {agentName}"
-msgstr "Reply to {agentName}"
-
 #: src/features/conversation/components/FeedbackDialog.tsx:63
 #: src/features/conversation/components/FeedbackDialog.tsx:70
 msgid "Report a problem"
@@ -326,7 +326,7 @@ msgstr "Resize the panel"
 msgid "Resize the sidebar"
 msgstr "Resize the sidebar"
 
-#: src/features/conversation/components/ConversationView.tsx:130
+#: src/features/conversation/components/ConversationView.tsx:126
 msgid "Retry"
 msgstr "Retry"
 
@@ -334,7 +334,7 @@ msgstr "Retry"
 msgid "Reword"
 msgstr "Reword"
 
-#: src/features/conversation/components/ConversationView.tsx:138
+#: src/features/conversation/components/ConversationView.tsx:134
 msgid "Scroll to the latest message"
 msgstr "Scroll to the latest message"
 
@@ -558,6 +558,6 @@ msgstr "You don't have access to an agent yet"
 msgid "Your answer could not be saved. Try again."
 msgstr "Your answer could not be saved. Try again."
 
-#: src/features/conversation/components/QuoteReplyPopover.tsx:90
+#: src/features/conversation/components/QuoteReplyPopover.tsx:84
 msgid "Your note on this passage"
 msgstr "Your note on this passage"

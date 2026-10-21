@@ -92,11 +92,7 @@ export function ConversationView({ conversation, agentName, showSources }: Conve
                 <Trans>How can I help you today?</Trans>
               </h1>
             ) : (
-              <QuoteReplyPopover
-                agentName={agentName}
-                onAnnotate={handleAnnotate}
-                messageBoxId={composerId}
-              >
+              <QuoteReplyPopover onAnnotate={handleAnnotate} messageBoxId={composerId}>
                 <MessageScroller>
                   <MessageScrollerViewport>
                     <MessageScrollerContent

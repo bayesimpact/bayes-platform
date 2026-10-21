@@ -8,7 +8,6 @@ import { readQuotableSelection } from "../annotation"
 import { QuoteMarker } from "./QuoteMarker"
 
 export type QuoteReplyPopoverProps = {
-  agentName: string
   /** Adds the passage and the person's note on it to their message. */
   onAnnotate: (passage: string, note: string) => void
   /** The id of the message box, which gets the focus once the box closes. */
@@ -22,12 +21,7 @@ type Quote = { text: string; range: Range; container: HTMLElement }
  * Selecting a passage of a reply opens a small box beside it, as in the Claude app: the person
  * writes a note on it, and the passage and the note join their message, which they send later.
  */
-export function QuoteReplyPopover({
-  agentName,
-  onAnnotate,
-  messageBoxId,
-  children,
-}: QuoteReplyPopoverProps) {
+export function QuoteReplyPopover({ onAnnotate, messageBoxId, children }: QuoteReplyPopoverProps) {
   const { t } = useLingui()
   const [quote, setQuote] = useState<Quote | null>(null)
   const [note, setNote] = useState("")
@@ -88,7 +82,7 @@ export function QuoteReplyPopover({
           <div className="flex items-end gap-1">
             <Textarea
               aria-label={t`Your note on this passage`}
-              placeholder={t`Reply to ${agentName}`}
+              placeholder={t`Annotate`}
               value={note}
               onChange={(event) => setNote(event.target.value)}
               onKeyDown={handleKeyDown}
