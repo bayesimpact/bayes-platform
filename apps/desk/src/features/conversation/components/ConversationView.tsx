@@ -98,42 +98,50 @@ export function ConversationView({ conversation, agentName, showSources }: Conve
               >
                 <MessageScroller>
                   <MessageScrollerViewport>
-                    {/* The first line stands clear of the bar's fade, with the number of an annotation
-                        raised above it. */}
-                    <MessageScrollerContent
-                      aria-busy={isBusy}
-                      className="relative mx-auto w-full max-w-3xl px-4 pt-10 pb-6"
+                    {/*
+                      The numbers of annotations are drawn around the list, which counts its
+                      children to scroll to a new message, and fills the height in its place.
+                    */}
+                    <div
+                      className="relative flex h-max min-h-full flex-col"
                       {...{ [ANNOTATION_LAYER_ATTRIBUTE]: "" }}
                     >
-                      {messages.map((message) => (
-                        <MessageScrollerItem
-                          key={message.id}
-                          messageId={message.id}
-                          scrollAnchor={message.role === "user"}
-                        >
-                          <ChatMessageView
-                            conversation={conversation}
-                            message={message}
-                            now={now}
-                            showSources={showSources}
-                            appsHtml={appsHtml}
-                            onAppMessage={setDraft}
-                          />
-                        </MessageScrollerItem>
-                      ))}
-                      {retryableMessage !== null ? (
-                        <div>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => sendMessage.mutate(retryableMessage)}
+                      {/* The first line stands clear of the bar's fade, with the number of an
+                          annotation raised above it. */}
+                      <MessageScrollerContent
+                        aria-busy={isBusy}
+                        className="mx-auto w-full max-w-3xl flex-1 px-4 pt-10 pb-6"
+                      >
+                        {messages.map((message) => (
+                          <MessageScrollerItem
+                            key={message.id}
+                            messageId={message.id}
+                            scrollAnchor={message.role === "user"}
                           >
-                            <RotateCcwIcon aria-hidden />
-                            <Trans>Retry</Trans>
-                          </Button>
-                        </div>
-                      ) : null}
-                    </MessageScrollerContent>
+                            <ChatMessageView
+                              conversation={conversation}
+                              message={message}
+                              now={now}
+                              showSources={showSources}
+                              appsHtml={appsHtml}
+                              onAppMessage={setDraft}
+                            />
+                          </MessageScrollerItem>
+                        ))}
+                        {retryableMessage !== null ? (
+                          <div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => sendMessage.mutate(retryableMessage)}
+                            >
+                              <RotateCcwIcon aria-hidden />
+                              <Trans>Retry</Trans>
+                            </Button>
+                          </div>
+                        ) : null}
+                      </MessageScrollerContent>
+                    </div>
                   </MessageScrollerViewport>
                   <MessageScrollerButton>
                     <ArrowDownIcon aria-hidden />
