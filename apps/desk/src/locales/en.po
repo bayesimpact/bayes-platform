@@ -84,7 +84,7 @@ msgstr "Cancel"
 msgid "Check your connection, then try again."
 msgstr "Check your connection, then try again."
 
-#: src/components/shared/SidePanel.tsx:35
+#: src/components/shared/SidePanel.tsx:52
 msgid "Close the panel"
 msgstr "Close the panel"
 
@@ -252,10 +252,6 @@ msgstr "Open {title}"
 msgid "Open the menu of {email}"
 msgstr "Open the menu of {email}"
 
-#: src/components/shared/DeskShell.tsx:47
-msgid "Open the sidebar"
-msgstr "Open the sidebar"
-
 #: src/components/shared/NotFoundState.tsx:11
 msgid "Page not found"
 msgstr "Page not found"
@@ -309,6 +305,14 @@ msgstr "Report a problem"
 msgid "Report a problem with this reply"
 msgstr "Report a problem with this reply"
 
+#: src/components/shared/SidePanel.tsx:41
+msgid "Resize the panel"
+msgstr "Resize the panel"
+
+#: src/components/shared/DeskShell.tsx:59
+msgid "Resize the sidebar"
+msgstr "Resize the sidebar"
+
 #: src/features/conversation/components/ConversationView.tsx:119
 msgid "Retry"
 msgstr "Retry"
@@ -346,6 +350,10 @@ msgstr "Shift"
 #: src/features/memory/components/MemoryProposals.tsx:50
 msgid "Should the agent remember this?"
 msgstr "Should the agent remember this?"
+
+#: src/components/shared/DeskShell.tsx:68
+msgid "Show or hide the sidebar"
+msgstr "Show or hide the sidebar"
 
 #: src/routes/auth/callback.tsx:28
 msgid "Sign in again"

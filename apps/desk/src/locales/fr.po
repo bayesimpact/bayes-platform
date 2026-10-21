@@ -84,7 +84,7 @@ msgstr "Annuler"
 msgid "Check your connection, then try again."
 msgstr "Vérifiez votre connexion, puis réessayez."
 
-#: src/components/shared/SidePanel.tsx:35
+#: src/components/shared/SidePanel.tsx:52
 msgid "Close the panel"
 msgstr "Fermer le panneau"
 
@@ -252,10 +252,6 @@ msgstr "Ouvrir {title}"
 msgid "Open the menu of {email}"
 msgstr "Ouvrir le menu de {email}"
 
-#: src/components/shared/DeskShell.tsx:47
-msgid "Open the sidebar"
-msgstr "Ouvrir le panneau latéral"
-
 #: src/components/shared/NotFoundState.tsx:11
 msgid "Page not found"
 msgstr "Page introuvable"
@@ -309,6 +305,14 @@ msgstr "Signaler un problème"
 msgid "Report a problem with this reply"
 msgstr "Signaler un problème avec cette réponse"
 
+#: src/components/shared/SidePanel.tsx:41
+msgid "Resize the panel"
+msgstr "Redimensionner le panneau"
+
+#: src/components/shared/DeskShell.tsx:59
+msgid "Resize the sidebar"
+msgstr "Redimensionner le panneau latéral"
+
 #: src/features/conversation/components/ConversationView.tsx:119
 msgid "Retry"
 msgstr "Réessayer"
@@ -346,6 +350,10 @@ msgstr "Maj"
 #: src/features/memory/components/MemoryProposals.tsx:50
 msgid "Should the agent remember this?"
 msgstr "L'agent doit-il retenir ceci ?"
+
+#: src/components/shared/DeskShell.tsx:68
+msgid "Show or hide the sidebar"
+msgstr "Afficher ou masquer le panneau latéral"
 
 #: src/routes/auth/callback.tsx:28
 msgid "Sign in again"

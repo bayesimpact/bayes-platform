@@ -1,6 +1,6 @@
 import { useLingui } from "@lingui/react/macro"
 import { useRouterState } from "@tanstack/react-router"
-import { type ReactNode, useEffect, useState } from "react"
+import { type CSSProperties, type ReactNode, useEffect, useState } from "react"
 import {
   Sidebar,
   SidebarContent,
@@ -11,7 +11,9 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { useResizableWidth } from "@/hooks/use-resizable-width"
 import { HeaderActionsContext } from "./header-actions-context"
+import { ResizeHandle } from "./ResizeHandle"
 
 export type DeskShellProps = {
   /** The top of the sidebar: the logo, or the agent switcher. */
@@ -33,18 +35,37 @@ export function DeskShell({ header, sidebar, footer, title, children }: DeskShel
   const { t } = useLingui()
   // The slot of the page's actions, known once the bar is mounted.
   const [actionsSlot, setActionsSlot] = useState<HTMLElement | null>(null)
+  const sidebarWidth = useResizableWidth({
+    storageKey: "desk.sidebarWidth",
+    defaultWidth: 256,
+    minWidth: 208,
+    maxWidth: 420,
+    edge: "right",
+  })
   return (
-    <SidebarProvider>
+    <SidebarProvider
+      // Safe: a custom property, which React's style type does not list.
+      style={{ "--sidebar-width": `${sidebarWidth.width}px` } as CSSProperties}
+      // The sidebar eases its width when it opens or closes, but follows a drag at once.
+      className={sidebarWidth.isResizing ? "**:transition-none" : undefined}
+    >
       <CloseSidebarOnNavigation />
       <Sidebar>
         <SidebarHeader>{header}</SidebarHeader>
         <SidebarContent>{sidebar}</SidebarContent>
         <SidebarFooter>{footer}</SidebarFooter>
+        <ResizeHandle
+          edge="right"
+          aria-label={t`Resize the sidebar`}
+          className="hidden md:flex"
+          {...sidebarWidth.handleProps}
+        />
       </Sidebar>
       <SidebarInset className="h-svh min-h-0 min-w-0">
         {/* The bar fades into the page below it, as in the Claude app, over what scrolls under it. */}
         <header className="relative z-10 flex h-12 shrink-0 items-center gap-2 bg-background px-3 after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-6 after:bg-linear-to-b after:from-background after:to-transparent">
-          <SidebarTrigger className="md:hidden" aria-label={t`Open the sidebar`} />
+          {/* Shows or hides the sidebar, as ⌘B or Ctrl+B does. */}
+          <SidebarTrigger aria-label={t`Show or hide the sidebar`} />
           <div className="min-w-0 flex-1 truncate text-sm font-medium">{title}</div>
           <div ref={setActionsSlot} className="flex shrink-0 items-center gap-2" />
         </header>

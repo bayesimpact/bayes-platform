@@ -1,7 +1,9 @@
 import { useLingui } from "@lingui/react/macro"
 import { XIcon } from "lucide-react"
-import { type ReactNode, useId } from "react"
+import { type CSSProperties, type ReactNode, useId } from "react"
 import { Button } from "@/components/ui/button"
+import { useResizableWidth } from "@/hooks/use-resizable-width"
+import { ResizeHandle } from "./ResizeHandle"
 
 export type SidePanelProps = {
   title: ReactNode
@@ -20,11 +22,26 @@ export type SidePanelProps = {
 export function SidePanel({ title, description, onClose, footer, children }: SidePanelProps) {
   const { t } = useLingui()
   const titleId = useId()
+  const panelWidth = useResizableWidth({
+    storageKey: "desk.sidePanelWidth",
+    defaultWidth: 384,
+    minWidth: 320,
+    maxWidth: 720,
+    edge: "left",
+  })
   return (
     <aside
       aria-labelledby={titleId}
-      className="fixed inset-0 z-30 flex flex-col bg-background duration-200 animate-in fade-in-0 slide-in-from-right-4 lg:static lg:inset-auto lg:z-auto lg:w-96 lg:shrink-0 lg:border-l"
+      // Safe: a custom property, which React's style type does not list.
+      style={{ "--side-panel-width": `${panelWidth.width}px` } as CSSProperties}
+      className="fixed inset-0 z-30 flex flex-col bg-background duration-200 animate-in fade-in-0 slide-in-from-right-4 lg:relative lg:inset-auto lg:z-auto lg:w-(--side-panel-width) lg:shrink-0 lg:border-l"
     >
+      <ResizeHandle
+        edge="left"
+        aria-label={t`Resize the panel`}
+        className="hidden lg:flex"
+        {...panelWidth.handleProps}
+      />
       <header className="flex items-start justify-between gap-2 px-4 pt-3 pb-2">
         <div className="flex min-w-0 flex-col gap-1">
           <h2 id={titleId} className="font-medium">
