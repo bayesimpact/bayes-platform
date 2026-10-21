@@ -138,7 +138,9 @@ export function useMcpApp(
           // The app may already be gone.
         })
         .finally(() => void bridge.close())
-      frame.srcdoc = ""
+      // The frame keeps its page: a frame emptied, then given the sandbox a moment later, as
+      // React's double mount in development does, stays on the empty page. The next run's page
+      // replaces the app, and a card that goes takes its frame with it.
     }
   }, [frameRef, toolCallId, html])
 
