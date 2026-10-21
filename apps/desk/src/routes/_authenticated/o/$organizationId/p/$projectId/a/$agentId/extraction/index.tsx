@@ -1,5 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router"
-import { NewExtraction } from "@/features/sessions"
+import { RouteErrorState } from "@/components/shared/RouteErrorState"
+import { loadNewExtraction, NewExtraction, NewExtractionSkeleton } from "@/features/extraction"
 
 /** A new extraction with an extraction agent. A conversation agent opens a new conversation. */
 export const Route = createFileRoute(
@@ -10,10 +11,14 @@ export const Route = createFileRoute(
       throw redirect({ to: "/o/$organizationId/p/$projectId/a/$agentId", params, replace: true })
     }
   },
+  loader: ({ context, params }) => loadNewExtraction(context.queryClient, params),
+  pendingComponent: NewExtractionSkeleton,
+  errorComponent: RouteErrorState,
   component: NewExtractionRoute,
 })
 
 function NewExtractionRoute() {
   const { agent } = Route.useRouteContext()
-  return <NewExtraction agentName={agent.name} />
+  const params = Route.useParams()
+  return <NewExtraction agent={params} agentName={agent.name} />
 }

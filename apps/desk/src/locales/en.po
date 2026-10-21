@@ -7,12 +7,16 @@ msgstr ""
 "X-Generator: @lingui/cli\n"
 "Language: en\n"
 
-#: src/features/history/components/ConversationActions.tsx:80
+#: src/features/extraction/components/DeleteDocumentDialog.tsx:48
+msgid "\"{name}\" will no longer be offered for an extraction. Its past extractions stay in the history."
+msgstr "\"{name}\" will no longer be offered for an extraction. Its past extractions stay in the history."
+
+#: src/features/history/components/DeleteEntryDialog.tsx:58
 msgid "\"{title}\" and its messages will be deleted. This cannot be undone."
 msgstr "\"{title}\" and its messages will be deleted. This cannot be undone."
 
-#: src/components/shared/Markdown.tsx:53
-#: src/components/shared/Markdown.tsx:75
+#: src/components/shared/Markdown.tsx:44
+#: src/components/shared/Markdown.tsx:66
 #: src/features/conversation/components/ResourceCard.tsx:74
 msgid "(opens in a new tab)"
 msgstr "(opens in a new tab)"
@@ -33,6 +37,46 @@ msgstr "{count, plural, one {Used # source} other {Used # sources}}"
 msgid "{count, plural, one {Used a tool} other {Used tools}}"
 msgstr "{count, plural, one {Used a tool} other {Used tools}}"
 
+#: src/features/extraction/components/CsvRunProgress.tsx:37
+msgid "{errors, plural, one {# failed} other {# failed}}"
+msgstr "{errors, plural, one {# failed} other {# failed}}"
+
+#: src/features/extraction/components/RecentDocuments.tsx:52
+msgid "{hiddenCount, plural, one {Show # more document} other {Show # more documents}}"
+msgstr "{hiddenCount, plural, one {Show # more document} other {Show # more documents}}"
+
+#: src/features/extraction/components/NewExtraction.tsx:60
+msgid "{name} cannot be read. Give a PDF, a PNG or JPEG image, a text or a CSV file."
+msgstr "{name} cannot be read. Give a PDF, a PNG or JPEG image, a text or a CSV file."
+
+#: src/features/extraction/components/NewExtraction.tsx:73
+msgid "{name} could not be uploaded. Try again."
+msgstr "{name} could not be uploaded. Try again."
+
+#: src/features/extraction/components/NewExtraction.tsx:62
+msgid "{name} is empty."
+msgstr "{name} is empty."
+
+#: src/features/extraction/components/NewExtraction.tsx:61
+msgid "{name} is larger than 25 MB."
+msgstr "{name} is larger than 25 MB."
+
+#: src/features/extraction/components/DeleteDocumentDialog.tsx:35
+msgid "{name} was deleted."
+msgstr "{name} was deleted."
+
+#: src/features/extraction/components/CsvRunProgress.tsx:30
+msgid "{processed} of {total, plural, one {# row} other {# rows}}"
+msgstr "{processed} of {total, plural, one {# row} other {# rows}}"
+
+#: src/features/extraction/components/CsvSetup.tsx:121
+msgid "{rowCount, plural, one {Extract the first row} other {Extract the first # rows}}"
+msgstr "{rowCount, plural, one {Extract the first row} other {Extract the first # rows}}"
+
+#: src/features/extraction/components/CsvRunProgress.tsx:42
+msgid "{running, plural, one {# running} other {# running}}"
+msgstr "{running, plural, one {# running} other {# running}}"
+
 #: src/features/conversation/components/Composer.tsx:147
 msgid "<0/> to send"
 msgstr "<0/> to send"
@@ -40,6 +84,10 @@ msgstr "<0/> to send"
 #: src/features/conversation/components/Composer.tsx:153
 msgid "<0><1/><2/></0> for a new line"
 msgstr "<0><1/><2/></0> for a new line"
+
+#: src/features/extraction/components/CsvSetup.tsx:79
+msgid "<0>Read</0>: the agent reads it. <1>Keep</1>: shown beside the results. <2>Skip</2>: left out."
+msgstr "<0>Read</0>: the agent reads it. <1>Keep</1>: shown beside the results. <2>Skip</2>: left out."
 
 #: src/components/shared/RouteErrorState.tsx:21
 msgid "A new version of the Desk is available"
@@ -49,13 +97,18 @@ msgstr "A new version of the Desk is available"
 msgid "A new version of the Desk is available. Reload the page."
 msgstr "A new version of the Desk is available. Reload the page."
 
-#: src/features/history/components/ConversationActions.tsx:62
+#: src/features/history/components/HistoryEntryActions.tsx:48
 msgid "Actions on {title}"
 msgstr "Actions on {title}"
 
 #: src/features/conversation/components/FormsPanel.tsx:28
 msgid "Agent"
 msgstr "Agent"
+
+#: src/features/extraction/components/csv-record-columns.tsx:16
+#: src/features/extraction/components/CsvRecordPanel.tsx:38
+msgid "Agent's answers"
+msgstr "Agent's answers"
 
 #: src/features/conversation/components/QuoteReplyPopover.tsx:127
 msgid "Annotate and press Enter to keep it"
@@ -82,7 +135,9 @@ msgid "Back to the Desk"
 msgstr "Back to the Desk"
 
 #: src/features/conversation/components/FeedbackDialog.tsx:107
-#: src/features/history/components/ConversationActions.tsx:90
+#: src/features/extraction/components/CsvSetup.tsx:114
+#: src/features/extraction/components/DeleteDocumentDialog.tsx:61
+#: src/features/history/components/DeleteEntryDialog.tsx:78
 #: src/features/memory/components/MemoryPanel.tsx:111
 #: src/features/memory/components/MemoryRewordForm.tsx:62
 msgid "Cancel"
@@ -92,9 +147,17 @@ msgstr "Cancel"
 msgid "Check your connection, then try again."
 msgstr "Check your connection, then try again."
 
+#: src/features/extraction/components/CsvSetup.tsx:106
+msgid "Choose at least one column for the agent to read."
+msgstr "Choose at least one column for the agent to read."
+
 #: src/components/shared/SidePanel.tsx:53
 msgid "Close the panel"
 msgstr "Close the panel"
+
+#: src/features/extraction/components/CsvSetup.tsx:76
+msgid "Columns"
+msgstr "Columns"
 
 #: src/features/conversation/components/FormsButton.tsx:23
 msgid "Completed form"
@@ -104,15 +167,23 @@ msgstr "Completed form"
 msgid "Completing the form"
 msgstr "Completing the form"
 
-#: src/features/conversation/components/CopyButton.tsx:32
+#: src/components/shared/CopyButton.tsx:32
 msgid "Copied"
 msgstr "Copied"
 
-#: src/components/shared/Markdown.tsx:117
+#: src/features/extraction/components/ResultFields.tsx:32
+msgid "Copy {label}"
+msgstr "Copy {label}"
+
+#: src/components/shared/HighlightedCodeBlock.tsx:44
 msgid "Copy the code"
 msgstr "Copy the code"
 
-#: src/features/conversation/components/ChatMessageView.tsx:50
+#: src/features/extraction/components/ExtractionResult.tsx:49
+msgid "Copy the JSON"
+msgstr "Copy the JSON"
+
+#: src/features/conversation/components/ChatMessageView.tsx:54
 msgid "Copy the message"
 msgstr "Copy the message"
 
@@ -120,31 +191,84 @@ msgstr "Copy the message"
 msgid "Copy the reply"
 msgstr "Copy the reply"
 
+#: src/features/extraction/components/DocumentRow.tsx:33
+msgid "CSV"
+msgstr "CSV"
+
 #. An extraction of every row of a spreadsheet
-#: src/features/history/components/HistoryEntryLink.tsx:62
+#. An extraction of every row of a spreadsheet
+#: src/features/history/components/HistoryEntryLink.tsx:63
+#: src/features/history/components/HistoryList.tsx:46
 msgid "CSV extraction"
 msgstr "CSV extraction"
 
-#: src/features/history/components/ConversationActions.tsx:69
-#: src/features/history/components/ConversationActions.tsx:97
+#: src/features/extraction/components/CsvRunView.tsx:56
+#: src/features/extraction/components/CsvSetup.tsx:37
+msgid "CSV file"
+msgstr "CSV file"
+
+#: src/features/extraction/components/DeleteDocumentDialog.tsx:64
+#: src/features/history/components/DeleteEntryDialog.tsx:81
+#: src/features/history/components/HistoryEntryActions.tsx:55
 msgid "Delete"
 msgstr "Delete"
 
-#: src/features/history/components/ConversationActions.tsx:77
+#: src/features/extraction/components/DocumentRow.tsx:73
+#: src/features/extraction/components/DocumentRow.tsx:81
+msgid "Delete {name}"
+msgstr "Delete {name}"
+
+#: src/features/extraction/components/CsvRunActions.tsx:93
+#: src/features/extraction/components/ExtractionRunActions.tsx:70
+msgid "Delete the extraction"
+msgstr "Delete the extraction"
+
+#: src/features/history/components/DeleteEntryDialog.tsx:51
 msgid "Delete this conversation?"
 msgstr "Delete this conversation?"
+
+#: src/features/extraction/components/DeleteDocumentDialog.tsx:45
+msgid "Delete this document?"
+msgstr "Delete this document?"
+
+#: src/features/history/components/DeleteEntryDialog.tsx:53
+msgid "Delete this extraction?"
+msgstr "Delete this extraction?"
 
 #: src/features/conversation/components/FeedbackDialog.tsx:99
 msgid "Describe the problem in a few words, up to 2,000 characters."
 msgstr "Describe the problem in a few words, up to 2,000 characters."
 
+#: src/features/extraction/components/ExtractionFailure.tsx:65
+msgid "Details"
+msgstr "Details"
+
 #: src/features/memory/components/MemoryProposals.tsx:87
 msgid "Don't remember"
 msgstr "Don't remember"
 
-#: src/features/sessions/components/NewExtraction.tsx:24
-msgid "Drop a document or a CSV file here"
-msgstr "Drop a document or a CSV file here"
+#. A run that ended well
+#: src/features/extraction/components/RecordStatusIcon.tsx:14
+#: src/features/extraction/components/RunStatusBadge.tsx:36
+msgid "Done"
+msgstr "Done"
+
+#: src/features/extraction/components/ExtractionResult.tsx:56
+#: src/features/extraction/components/ExtractionResult.tsx:63
+msgid "Download {fileName}"
+msgstr "Download {fileName}"
+
+#: src/features/extraction/components/CsvRunActions.tsx:81
+msgid "Download the results"
+msgstr "Download the results"
+
+#: src/features/extraction/components/FileDropZone.tsx:113
+msgid "Drop a file here, or <0>browse</0>"
+msgstr "Drop a file here, or <0>browse</0>"
+
+#: src/features/extraction/components/FileDropZone.tsx:111
+msgid "Drop the file to extract it"
+msgstr "Drop the file to extract it"
 
 #: src/features/conversation/components/AnnotationBadge.tsx:24
 msgid "Edit annotation {number}"
@@ -155,9 +279,41 @@ msgstr "Edit annotation {number}"
 msgid "Enter"
 msgstr "Enter"
 
-#: src/features/history/components/HistoryEntryLink.tsx:83
+#: src/features/extraction/components/CsvRowScope.tsx:41
+msgid "Every row of the file"
+msgstr "Every row of the file"
+
+#: src/features/extraction/components/DocumentRow.tsx:64
+msgid "Extract"
+msgstr "Extract"
+
+#: src/features/extraction/components/DocumentRow.tsx:59
+msgid "Extract {name}"
+msgstr "Extract {name}"
+
+#: src/features/extraction/components/ExtractionRunActions.tsx:53
+msgid "Extract again"
+msgstr "Extract again"
+
+#: src/features/extraction/components/CsvSetup.tsx:119
+msgid "Extract every row"
+msgstr "Extract every row"
+
+#. A run that ended with an error
+#: src/features/extraction/components/RecordStatusIcon.tsx:15
+#: src/features/extraction/components/RunStatusBadge.tsx:37
+#: src/features/history/components/HistoryEntryLink.tsx:89
 msgid "Failed"
 msgstr "Failed"
+
+#. The view of a result as named values
+#: src/features/extraction/components/ExtractionResult.tsx:44
+msgid "Fields"
+msgstr "Fields"
+
+#: src/features/extraction/components/DocumentRow.tsx:34
+msgid "File"
+msgstr "File"
 
 #: src/features/conversation/components/ToolSteps.tsx:21
 msgid "Filling in the form"
@@ -184,6 +340,15 @@ msgstr "Forgetting what you asked"
 msgid "Form in progress"
 msgstr "Form in progress"
 
+#: src/features/extraction/components/csv-record-columns.tsx:17
+#: src/features/extraction/components/CsvRecordPanel.tsx:46
+msgid "From the file"
+msgstr "From the file"
+
+#: src/features/extraction/components/NewExtraction.tsx:53
+msgid "Give the agent one file at a time."
+msgstr "Give the agent one file at a time."
+
 #: src/features/conversation/components/ToolSteps.tsx:23
 msgid "Handing the conversation back"
 msgstr "Handing the conversation back"
@@ -197,11 +362,12 @@ msgstr "Home of the Desk"
 msgid "How can I help you today?"
 msgstr "How can I help you today?"
 
-#: src/components/shared/Markdown.tsx:65
+#: src/components/shared/Markdown.tsx:56
+#: src/features/extraction/components/DocumentRow.tsx:31
 msgid "Image"
 msgstr "Image"
 
-#: src/features/history/components/HistoryEntryLink.tsx:79
+#: src/features/history/components/HistoryEntryLink.tsx:83
 msgid "In progress"
 msgstr "In progress"
 
@@ -209,10 +375,15 @@ msgstr "In progress"
 msgid "Interactive card"
 msgstr "Interactive card"
 
-#. A reply written less than a minute ago
-#: src/features/conversation/components/MessageTime.tsx:25
+#. Something that happened less than a minute ago
+#: src/components/shared/RelativeTime.tsx:28
 msgid "just now"
 msgstr "just now"
+
+#. The column shows beside the results, unread
+#: src/features/extraction/components/ColumnRoleRow.tsx:42
+msgid "Keep"
+msgstr "Keep"
 
 #: src/features/account/components/UserMenu.tsx:52
 msgid "Language"
@@ -226,8 +397,13 @@ msgstr "Loading the interactive card…"
 msgid "Message to {agentName}"
 msgstr "Message to {agentName}"
 
+#: src/features/extraction/components/CsvRunActions.tsx:86
+#: src/features/extraction/components/ExtractionRunActions.tsx:58
+msgid "More actions"
+msgstr "More actions"
+
 #: src/features/history/components/HistoryEntryLink.tsx:32
-#: src/features/history/components/HistoryList.tsx:53
+#: src/features/history/components/HistoryList.tsx:40
 #: src/features/history/components/NewSessionLink.tsx:40
 msgid "New conversation"
 msgstr "New conversation"
@@ -235,6 +411,14 @@ msgstr "New conversation"
 #: src/features/history/components/NewSessionLink.tsx:42
 msgid "New extraction"
 msgstr "New extraction"
+
+#: src/features/extraction/components/CsvRecordsTable.tsx:108
+msgid "Next page"
+msgstr "Next page"
+
+#: src/features/extraction/components/FieldValue.tsx:45
+msgid "No"
+msgstr "No"
 
 #: src/features/history/components/AgentHistory.tsx:21
 msgid "No conversations yet"
@@ -248,9 +432,26 @@ msgstr "No extractions yet"
 msgid "No passage to show."
 msgstr "No passage to show."
 
+#: src/features/extraction/components/CsvRecordsTable.tsx:83
+msgid "No rows"
+msgstr "No rows"
+
+#: src/features/extraction/components/ColumnRoleRow.tsx:23
+msgid "No values in the first rows"
+msgstr "No values in the first rows"
+
+#. A field of the document the agent found no value for
+#: src/features/extraction/components/FieldValue.tsx:22
+msgid "Not found"
+msgstr "Not found"
+
 #: src/features/conversation/components/FormFields.tsx:16
 msgid "Nothing noted yet."
 msgstr "Nothing noted yet."
+
+#: src/features/extraction/components/CsvRowScope.tsx:55
+msgid "Number of rows to try"
+msgstr "Number of rows to try"
 
 #: src/features/history/components/HistoryList.tsx:34
 msgid "Older"
@@ -264,6 +465,14 @@ msgstr "Open {name}"
 msgid "Open {title}"
 msgstr "Open {title}"
 
+#: src/features/extraction/components/CsvRecordsTable.tsx:47
+msgid "Open row {rowNumber}"
+msgstr "Open row {rowNumber}"
+
+#: src/features/extraction/components/ExtractionRunActions.tsx:65
+msgid "Open the document"
+msgstr "Open the document"
+
 #: src/features/account/components/UserMenu.tsx:37
 msgid "Open the menu of {email}"
 msgstr "Open the menu of {email}"
@@ -272,13 +481,17 @@ msgstr "Open the menu of {email}"
 msgid "Page not found"
 msgstr "Page not found"
 
-#: src/features/sessions/components/SessionComingSoon.tsx:16
-msgid "Past conversations open soon"
-msgstr "Past conversations open soon"
+#: src/features/extraction/components/CsvRecordsTable.tsx:87
+msgid "Pages of the results"
+msgstr "Pages of the results"
 
-#: src/features/sessions/components/SessionComingSoon.tsx:18
-msgid "Past extractions open soon"
-msgstr "Past extractions open soon"
+#: src/features/extraction/components/DocumentRow.tsx:30
+msgid "PDF"
+msgstr "PDF"
+
+#: src/features/extraction/components/FileDropZone.tsx:119
+msgid "PDF, image, text or CSV file, up to 25 MB. A CSV file runs row by row."
+msgstr "PDF, image, text or CSV file, up to 25 MB. A CSV file runs row by row."
 
 #: src/features/conversation/components/ToolSteps.tsx:20
 msgid "Picking useful resources"
@@ -291,6 +504,15 @@ msgstr "Previous 30 days"
 #: src/features/history/components/HistoryList.tsx:32
 msgid "Previous 7 days"
 msgstr "Previous 7 days"
+
+#: src/features/extraction/components/CsvRecordsTable.tsx:99
+msgid "Previous page"
+msgstr "Previous page"
+
+#. The agent reads this column
+#: src/features/extraction/components/ColumnRoleRow.tsx:39
+msgid "Read"
+msgstr "Read"
 
 #: src/components/shared/RouteErrorState.tsx:25
 msgid "Reload"
@@ -334,6 +556,10 @@ msgstr "Resize the panel"
 msgid "Resize the sidebar"
 msgstr "Resize the sidebar"
 
+#: src/features/extraction/components/CsvRecordsTable.tsx:76
+msgid "Results"
+msgstr "Results"
+
 #: src/features/conversation/components/ConversationView.tsx:144
 msgid "Retry"
 msgstr "Retry"
@@ -341,6 +567,33 @@ msgstr "Retry"
 #: src/features/memory/components/MemoryProposals.tsx:78
 msgid "Reword"
 msgstr "Reword"
+
+#. The number of a row of a CSV file
+#: src/features/extraction/components/csv-record-columns.tsx:14
+msgid "Row"
+msgstr "Row"
+
+#: src/features/extraction/components/CsvRecordPanel.tsx:22
+msgid "Row {rowNumber}"
+msgstr "Row {rowNumber}"
+
+#: src/features/extraction/components/CsvRowScope.tsx:29
+msgid "Rows"
+msgstr "Rows"
+
+#: src/features/extraction/components/CsvRecordsTable.tsx:91
+msgid "Rows {first}–{last} of {total}"
+msgstr "Rows {first}–{last} of {total}"
+
+#: src/features/extraction/components/CsvRunProgress.tsx:48
+msgid "Rows done"
+msgstr "Rows done"
+
+#. A run in progress
+#: src/features/extraction/components/RecordStatusIcon.tsx:17
+#: src/features/extraction/components/RunStatusBadge.tsx:35
+msgid "Running"
+msgstr "Running"
 
 #: src/features/conversation/components/ConversationView.tsx:153
 msgid "Scroll to the latest message"
@@ -362,6 +615,14 @@ msgstr "Send"
 #: src/features/conversation/components/FeedbackDialog.tsx:110
 msgid "Send the report"
 msgstr "Send the report"
+
+#: src/features/extraction/components/DocumentRow.tsx:64
+msgid "Set up"
+msgstr "Set up"
+
+#: src/features/extraction/components/DocumentRow.tsx:59
+msgid "Set up the extraction of {name}"
+msgstr "Set up the extraction of {name}"
 
 #. The keyboard key
 #: src/features/conversation/components/Composer.tsx:239
@@ -396,25 +657,83 @@ msgstr "Sign in again to open the Desk."
 msgid "Sign out"
 msgstr "Sign out"
 
+#. The column is left out
+#: src/features/extraction/components/ColumnRoleRow.tsx:45
+msgid "Skip"
+msgstr "Skip"
+
+#: src/features/extraction/components/ExtractionFailure.tsx:50
+msgid "Something went wrong while it read it. Try again."
+msgstr "Something went wrong while it read it. Try again."
+
+#. A run waiting for its turn
+#: src/features/extraction/components/RunStatusBadge.tsx:34
+msgid "Starting"
+msgstr "Starting"
+
+#: src/features/extraction/components/FileDropZone.tsx:103
+msgid "Starting the extraction…"
+msgstr "Starting the extraction…"
+
+#: src/features/extraction/components/csv-record-columns.tsx:15
+msgid "Status"
+msgstr "Status"
+
+#. Stops a run in progress
+#: src/features/extraction/components/CsvRunActions.tsx:60
+msgid "Stop"
+msgstr "Stop"
+
+#. A run the person stopped
+#: src/features/extraction/components/RecordStatusIcon.tsx:23
+#: src/features/extraction/components/RunStatusBadge.tsx:38
+msgid "Stopped"
+msgstr "Stopped"
+
 #: src/features/agents/components/AgentSwitcher.tsx:42
 msgid "Switch agent, current agent: {agentName}"
 msgstr "Switch agent, current agent: {agentName}"
+
+#: src/features/extraction/components/DocumentRow.tsx:32
+msgid "Text"
+msgstr "Text"
 
 #: src/features/conversation/components/FeedbackDialog.tsx:48
 msgid "Thank you. Your report was sent."
 msgstr "Thank you. Your report was sent."
 
+#: src/features/extraction/components/csv-record-columns.tsx:18
+#: src/features/extraction/components/CsvRecordPanel.tsx:27
+msgid "The agent could not answer for this row."
+msgstr "The agent could not answer for this row."
+
 #: src/features/conversation/components/ReplyError.tsx:19
 msgid "The agent could not answer."
 msgstr "The agent could not answer."
+
+#: src/features/extraction/components/ExtractionFailure.tsx:44
+msgid "The agent could not read the document"
+msgstr "The agent could not read the document"
 
 #: src/features/memory/components/MemoryPanel.tsx:43
 msgid "The agent forgot everything about you."
 msgstr "The agent forgot everything about you."
 
+#: src/features/extraction/components/ExtractionResult.tsx:31
+msgid "The agent found nothing to fill in in this document."
+msgstr "The agent found nothing to fill in in this document."
+
 #: src/features/conversation/components/Composer.tsx:183
 msgid "The agent is answering…"
 msgstr "The agent is answering…"
+
+#: src/features/extraction/components/ExtractionPending.tsx:21
+msgid "The agent is reading the document"
+msgstr "The agent is reading the document"
+
+#: src/features/extraction/components/ExtractionPending.tsx:26
+msgid "The agent is reading the document…"
+msgstr "The agent is reading the document…"
 
 #: src/features/memory/components/MemoryProposals.tsx:48
 msgid "The agent remembers"
@@ -424,6 +743,10 @@ msgstr "The agent remembers"
 msgid "The agent remembers nothing about you."
 msgstr "The agent remembers nothing about you."
 
+#: src/features/extraction/components/CsvSetup.tsx:68
+msgid "The agent runs once per row. Choose what it reads in each one."
+msgstr "The agent runs once per row. Choose what it reads in each one."
+
 #: src/features/memory/components/MemoryPanel.tsx:52
 msgid "The agent uses these facts in your next conversations. Only you see them."
 msgstr "The agent uses these facts in your next conversations. Only you see them."
@@ -432,11 +755,15 @@ msgstr "The agent uses these facts in your next conversations. Only you see them
 msgid "The agent will forget every fact it remembers about you."
 msgstr "The agent will forget every fact it remembers about you."
 
+#: src/features/extraction/components/ExtractionFailure.tsx:14
+msgid "The agent's answer did not fit the fields it fills in. Extracting again often works."
+msgstr "The agent's answer did not fit the fields it fills in. Extracting again often works."
+
 #: src/features/conversation/components/FormsPanel.tsx:20
 msgid "The answers the agent collected from the conversation, as it fills them in."
 msgstr "The answers the agent collected from the conversation, as it fills them in."
 
-#: src/features/history/components/ConversationActions.tsx:85
+#: src/features/history/components/DeleteEntryDialog.tsx:70
 msgid "The conversation could not be deleted. Try again."
 msgstr "The conversation could not be deleted. Try again."
 
@@ -448,9 +775,35 @@ msgstr "The conversation could not start. Try again."
 msgid "The Desk could not reach the agent. Check your connection."
 msgstr "The Desk could not reach the agent. Check your connection."
 
+#: src/features/extraction/components/DeleteDocumentDialog.tsx:56
+msgid "The document could not be deleted. Try again."
+msgstr "The document could not be deleted. Try again."
+
+#: src/features/extraction/components/ExtractionRunActions.tsx:45
+msgid "The document could not be opened."
+msgstr "The document could not be opened."
+
 #: src/features/conversation/components/SourceItem.tsx:41
 msgid "The document could not be opened. Try again."
 msgstr "The document could not be opened. Try again."
+
+#: src/features/extraction/components/ExtractionFailure.tsx:13
+msgid "The document has more pages than the agent can read at once. Split it, then extract each part."
+msgstr "The document has more pages than the agent can read at once. Split it, then extract each part."
+
+#: src/features/history/components/DeleteEntryDialog.tsx:72
+msgid "The extraction could not be deleted. Try again."
+msgstr "The extraction could not be deleted. Try again."
+
+#: src/features/extraction/components/CsvSetup.tsx:57
+#: src/features/extraction/components/ExtractionRunView.tsx:57
+#: src/features/extraction/components/NewExtraction.tsx:86
+msgid "The extraction could not start. Try again."
+msgstr "The extraction could not start. Try again."
+
+#: src/features/history/components/DeleteEntryDialog.tsx:60
+msgid "The extraction of \"{title}\" and its results will be deleted. The document stays in your documents. This cannot be undone."
+msgstr "The extraction of \"{title}\" and its results will be deleted. The document stays in your documents. This cannot be undone."
 
 #: src/features/memory/components/MemoryPanel.tsx:88
 msgid "The fact could not be forgotten. Try again."
@@ -468,6 +821,14 @@ msgstr "The file could not be opened. Try again."
 msgid "The file could not be uploaded. Try again."
 msgstr "The file could not be uploaded. Try again."
 
+#: src/features/extraction/components/CsvRecordsTable.tsx:83
+msgid "The first rows come in a moment…"
+msgstr "The first rows come in a moment…"
+
+#: src/features/extraction/components/CsvRowScope.tsx:47
+msgid "The first rows only, to try the setup"
+msgstr "The first rows only, to try the setup"
+
 #: src/features/history/components/AgentHistorySection.tsx:37
 msgid "The history could not load."
 msgstr "The history could not load."
@@ -475,6 +836,10 @@ msgstr "The history could not load."
 #: src/features/memory/components/MemoryPanel.tsx:45
 msgid "The memory could not be cleared. Try again."
 msgstr "The memory could not be cleared. Try again."
+
+#: src/features/extraction/components/ExtractionFailure.tsx:15
+msgid "The model that reads the document did not answer. Try again in a moment."
+msgstr "The model that reads the document did not answer. Try again in a moment."
 
 #: src/features/conversation/components/FeedbackDialog.tsx:80
 msgid "The people who run this agent read every report to improve it."
@@ -488,6 +853,26 @@ msgstr "The reply stopped before it finished."
 msgid "The report could not be sent. Try again."
 msgstr "The report could not be sent. Try again."
 
+#: src/features/extraction/components/CsvRunActions.tsx:42
+msgid "The results file could not be opened."
+msgstr "The results file could not be opened."
+
+#: src/features/extraction/components/CsvRunActions.tsx:55
+msgid "The run could not be stopped. Try again."
+msgstr "The run could not be stopped. Try again."
+
+#: src/features/extraction/components/CsvRunActions.tsx:70
+msgid "The run could not start again. Try again."
+msgstr "The run could not start again. Try again."
+
+#: src/features/extraction/components/CsvRunProgress.tsx:19
+msgid "The run is about to start…"
+msgstr "The run is about to start…"
+
+#: src/features/extraction/components/CsvRunActions.tsx:54
+msgid "The run stopped. The rows done stay."
+msgstr "The run stopped. The rows done stay."
+
 #: src/routes/auth/callback.tsx:24
 msgid "The sign-in did not complete"
 msgstr "The sign-in did not complete"
@@ -495,10 +880,6 @@ msgstr "The sign-in did not complete"
 #: src/features/conversation/components/ToolSteps.tsx:64
 msgid "Thinking…"
 msgstr "Thinking…"
-
-#: src/features/sessions/components/SessionComingSoon.tsx:21
-msgid "This page comes in the next version of the Desk."
-msgstr "This page comes in the next version of the Desk."
 
 #: src/components/shared/RouteErrorState.tsx:40
 msgid "This page could not load"
@@ -516,19 +897,30 @@ msgstr "This reply was interrupted before it finished."
 msgid "Today"
 msgstr "Today"
 
+#: src/features/extraction/components/CsvRunView.tsx:77
+#: src/features/extraction/components/ExtractionRunView.tsx:79
+msgid "Took {tookTime}"
+msgstr "Took {tookTime}"
+
 #: src/components/shared/RouteErrorState.tsx:44
+#: src/features/extraction/components/CsvRunActions.tsx:75
+#: src/features/extraction/components/ExtractionFailure.tsx:59
 #: src/features/history/components/AgentHistorySection.tsx:40
 msgid "Try again"
 msgstr "Try again"
 
 #: src/features/conversation/components/SourceItem.tsx:35
+#: src/features/extraction/components/DeleteDocumentDialog.tsx:28
+#: src/features/extraction/components/DocumentRow.tsx:28
+#: src/features/extraction/components/ExtractionRunView.tsx:45
 #: src/features/history/components/HistoryEntryLink.tsx:46
+#: src/features/history/components/HistoryList.tsx:42
 msgid "Untitled document"
 msgstr "Untitled document"
 
-#: src/features/sessions/components/NewExtraction.tsx:27
-msgid "Uploading comes in the next version of the Desk."
-msgstr "Uploading comes in the next version of the Desk."
+#: src/features/extraction/components/FileDropZone.tsx:101
+msgid "Uploading…"
+msgstr "Uploading…"
 
 #: src/features/conversation/components/ToolSteps.tsx:50
 msgid "Using a tool"
@@ -538,9 +930,13 @@ msgstr "Using a tool"
 msgid "Waiting for your answer"
 msgstr "Waiting for your answer"
 
-#: src/features/sessions/components/NewExtraction.tsx:16
+#: src/features/extraction/components/NewExtraction.tsx:93
 msgid "What should {agentName} read?"
 msgstr "What should {agentName} read?"
+
+#: src/features/extraction/components/ColumnRoleRow.tsx:27
+msgid "What the agent does with {name}"
+msgstr "What the agent does with {name}"
 
 #: src/features/conversation/components/FormsPanel.tsx:18
 msgid "What the agent noted"
@@ -562,9 +958,17 @@ msgstr "When someone gives you access to an agent, it appears here."
 msgid "Write the fact in 300 characters at most."
 msgstr "Write the fact in 300 characters at most."
 
+#: src/features/extraction/components/FieldValue.tsx:40
+msgid "Yes"
+msgstr "Yes"
+
 #: src/features/history/components/HistoryList.tsx:31
 msgid "Yesterday"
 msgstr "Yesterday"
+
+#: src/features/extraction/components/ExtractionPending.tsx:39
+msgid "You can leave this page: the extraction goes on, and its mark in the sidebar turns once it ends."
+msgstr "You can leave this page: the extraction goes on, and its mark in the sidebar turns once it ends."
 
 #: src/features/sessions/components/NoAgentState.tsx:10
 msgid "You don't have access to an agent yet"
@@ -573,6 +977,10 @@ msgstr "You don't have access to an agent yet"
 #: src/features/memory/components/MemoryProposals.tsx:34
 msgid "Your answer could not be saved. Try again."
 msgstr "Your answer could not be saved. Try again."
+
+#: src/features/extraction/components/RecentDocuments.tsx:32
+msgid "Your documents"
+msgstr "Your documents"
 
 #: src/features/conversation/components/QuoteReplyPopover.tsx:126
 msgid "Your note on this passage"

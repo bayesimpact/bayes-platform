@@ -1,17 +1,17 @@
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useState } from "react"
+import { CopyButton } from "@/components/shared/CopyButton"
 import { Markdown } from "@/components/shared/Markdown"
+import { RelativeTime } from "@/components/shared/RelativeTime"
 import { Message, MessageContent } from "@/components/ui/message"
 import { MemoryProposals } from "@/features/memory"
 import { QUOTABLE_ATTRIBUTE } from "../annotation"
 import { type ChatMessage, isWriting } from "../chat-messages"
 import type { ConversationRef } from "../conversation-ref"
 import { type AppsHtml, hasMeaningfulText, toolResultText, unavailableApps } from "../mcp-apps"
-import { CopyButton } from "./CopyButton"
 import { FeedbackDialog } from "./FeedbackDialog"
 import { McpAppsList } from "./McpAppsList"
 import { MessageActions } from "./MessageActions"
-import { MessageTime } from "./MessageTime"
 import { ReplyError } from "./ReplyError"
 import { ResourceCards } from "./ResourceCards"
 import { SourcesList } from "./SourcesList"
@@ -98,7 +98,11 @@ export function AssistantMessageView({
               <FeedbackDialog conversation={conversation} agentMessageId={message.id} />
             )}
             {message.createdAt !== null ? (
-              <MessageTime createdAt={message.createdAt} now={now} />
+              <RelativeTime
+                moment={message.createdAt}
+                now={now}
+                className="px-1 text-xs font-normal"
+              />
             ) : null}
           </MessageActions>
         ) : null}

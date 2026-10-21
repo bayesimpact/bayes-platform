@@ -1,9 +1,9 @@
 import { z } from "zod"
 import { defineSchemaRoute } from "../define-schema-route"
+import { csvExtractionRunDetailOutputSchema } from "../extractions/extractions.dto"
 import {
   agentParamsSchema,
   conversationSessionOutputSchema,
-  csvExtractionRunOutputSchema,
   extractionRunOutputSchema,
 } from "./agent-sessions.dto"
 
@@ -27,6 +27,6 @@ export const DeskAgentSessionsRoutes = {
     method: "get",
     path: `${agentPath}/csv-extraction-runs/live`,
     params: agentParamsSchema,
-    response: z.array(csvExtractionRunOutputSchema),
+    response: z.array(csvExtractionRunDetailOutputSchema),
   }),
 }

@@ -1,10 +1,10 @@
 import {
   type ConversationMessageOutputDto,
   type ConversationSessionOutputDto,
-  type CsvExtractionRunOutputDto,
+  type CsvExtractionRunDetailOutputDto,
   conversationMessageOutputSchema,
   conversationSessionOutputSchema,
-  csvExtractionRunOutputSchema,
+  csvExtractionRunDetailOutputSchema,
   type ExtractionRunOutputDto,
   extractionRunOutputSchema,
 } from "@caseai-connect/desk-contracts"
@@ -33,23 +33,32 @@ export function buildConversationSession(
 export function buildExtractionRun(
   overrides: Partial<ExtractionRunOutputDto> = {},
 ): ExtractionRunOutputDto {
+  const createdAt = overrides.createdAt ?? daysAgo(0)
   return extractionRunOutputSchema.parse({
     id: crypto.randomUUID(),
+    documentId: crypto.randomUUID(),
     documentFileName: "summary.pdf",
     status: "success",
-    createdAt: daysAgo(0),
+    createdAt,
+    updatedAt: createdAt,
     ...overrides,
   })
 }
 
 /** An extraction of a CSV file, checked against the contract. */
 export function buildCsvExtractionRun(
-  overrides: Partial<CsvExtractionRunOutputDto> = {},
-): CsvExtractionRunOutputDto {
-  return csvExtractionRunOutputSchema.parse({
+  overrides: Partial<CsvExtractionRunDetailOutputDto> = {},
+): CsvExtractionRunDetailOutputDto {
+  const createdAt = overrides.createdAt ?? daysAgo(0)
+  return csvExtractionRunDetailOutputSchema.parse({
     id: crypto.randomUUID(),
+    csvDocumentId: crypto.randomUUID(),
+    columnSchema: {},
     status: "completed",
-    createdAt: daysAgo(0),
+    summary: null,
+    csvExportDocumentId: null,
+    createdAt,
+    updatedAt: createdAt,
     ...overrides,
   })
 }

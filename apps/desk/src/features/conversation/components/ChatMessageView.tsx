@@ -1,4 +1,6 @@
 import { useLingui } from "@lingui/react/macro"
+import { CopyButton } from "@/components/shared/CopyButton"
+import { RelativeTime } from "@/components/shared/RelativeTime"
 import { Bubble, BubbleContent } from "@/components/ui/bubble"
 import { Message, MessageContent } from "@/components/ui/message"
 import type { ChatMessage } from "../chat-messages"
@@ -6,9 +8,7 @@ import type { ConversationRef } from "../conversation-ref"
 import type { AppsHtml } from "../mcp-apps"
 import { AssistantMessageView } from "./AssistantMessageView"
 import { AttachmentChip } from "./AttachmentChip"
-import { CopyButton } from "./CopyButton"
 import { MessageActions } from "./MessageActions"
-import { MessageTime } from "./MessageTime"
 import { UserMessageText } from "./UserMessageText"
 
 export type ChatMessageViewProps = {
@@ -45,7 +45,11 @@ export function ChatMessageView({
           </Bubble>
           <MessageActions>
             {message.createdAt !== null ? (
-              <MessageTime createdAt={message.createdAt} now={now} />
+              <RelativeTime
+                moment={message.createdAt}
+                now={now}
+                className="px-1 text-xs font-normal"
+              />
             ) : null}
             <CopyButton text={message.content} label={t`Copy the message`} />
           </MessageActions>

@@ -3,6 +3,7 @@ import {
   presignAttachmentInputSchema,
 } from "@caseai-connect/desk-contracts"
 import { apiRequest } from "@/lib/api-client"
+import { putFileToSignedUrl } from "@/lib/upload-file"
 import type { ConversationRef } from "../conversation-ref"
 
 /**
@@ -26,13 +27,6 @@ export async function uploadAttachment(
       signal,
     },
   )
-  // The URL is signed with the content type: storage refuses an upload without the same one.
-  const response = await fetch(uploadUrl, {
-    method: "PUT",
-    headers: { "Content-Type": file.type },
-    body: file,
-    signal,
-  })
-  if (!response.ok) throw new Error(`The storage answered ${response.status} to the upload`)
+  await putFileToSignedUrl(uploadUrl, file, file.type, signal)
   return attachmentDocumentId
 }

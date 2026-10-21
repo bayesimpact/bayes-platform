@@ -1,7 +1,11 @@
 import type {
   ConversationMessageOutputDto,
   ConversationSessionOutputDto,
-  CsvExtractionRunOutputDto,
+  CsvExtractionRecordOutputDto,
+  CsvExtractionRunDetailOutputDto,
+  CsvFileColumnOutputDto,
+  ExtractionDocumentOutputDto,
+  ExtractionRunDetailOutputDto,
   ExtractionRunOutputDto,
   MemoryOutputDto,
   MyOrganizationOutputDto,
@@ -16,6 +20,13 @@ import {
   daysAgo,
 } from "./agent-sessions.factory"
 import { buildProjectAgent } from "./agents.factory"
+import {
+  buildCsvFileColumns,
+  buildCsvRecords,
+  buildExtractionDocument,
+  buildExtractionRunDetail,
+  columnSchemaOf,
+} from "./extractions.factory"
 import { buildMyOrganization, buildMyProject } from "./projects.factory"
 
 /** Everything the mocked API answers: projects, their agents, and the history of each agent. */
@@ -25,13 +36,21 @@ export type DeskWorld = {
   agents: ProjectAgentOutputDto[]
   conversations: Record<string, ConversationSessionOutputDto[]>
   extractionRuns: Record<string, ExtractionRunOutputDto[]>
-  csvExtractionRuns: Record<string, CsvExtractionRunOutputDto[]>
+  csvExtractionRuns: Record<string, CsvExtractionRunDetailOutputDto[]>
   /** The messages of each conversation, oldest first. */
   messages: Record<string, ConversationMessageOutputDto[]>
   /** The problems reported on the agents' replies. */
   feedbacks: { agentMessageId: string; content: string }[]
   /** What each agent remembers about the person. */
   memories: Record<string, MemoryOutputDto[]>
+  /** The documents the person uploaded for each extraction agent. */
+  extractionDocuments: Record<string, ExtractionDocumentOutputDto[]>
+  /** The detail of each extraction of a document, by its id. */
+  extractionRunDetails: Record<string, ExtractionRunDetailOutputDto>
+  /** The columns of each uploaded CSV file, by the document's id. */
+  csvColumns: Record<string, CsvFileColumnOutputDto[]>
+  /** The rows of each CSV run, by the run's id. */
+  csvRecords: Record<string, CsvExtractionRecordOutputDto[]>
 }
 
 function emptyWorld(): DeskWorld {
@@ -45,6 +64,10 @@ function emptyWorld(): DeskWorld {
     messages: {},
     feedbacks: [],
     memories: {},
+    extractionDocuments: {},
+    extractionRunDetails: {},
+    csvColumns: {},
+    csvRecords: {},
   }
 }
 
@@ -140,14 +163,63 @@ function buildConversationHistory(): ConversationSessionOutputDto[] {
   ]
 }
 
-/** An extraction history mixing documents and CSV files. */
+/**
+ * An extraction history mixing documents and CSV files: a report read, notes being read, a scan
+ * that failed, and a CSV file of articles run row by row. A contract waits for its first run.
+ */
 function addExtractionHistory(world: DeskWorld, agent: ProjectAgentOutputDto): void {
-  world.extractionRuns[agent.id] = [
-    buildExtractionRun({ documentFileName: "summary.pdf", createdAt: daysAgo(0) }),
-    buildExtractionRun({ documentFileName: "notes.pdf", status: "pending", createdAt: daysAgo(0) }),
-    buildExtractionRun({ documentFileName: null, status: "failed", createdAt: daysAgo(2) }),
-  ]
-  world.csvExtractionRuns[agent.id] = [buildCsvExtractionRun({ createdAt: daysAgo(1) })]
+  const report = buildExtractionDocument({ createdAt: daysAgo(0) })
+  const notes = buildExtractionDocument({
+    fileName: "meeting-notes.md",
+    mimeType: "text/markdown",
+    size: 18_000,
+    createdAt: daysAgo(0),
+  })
+  const scan = buildExtractionDocument({
+    fileName: "scanned-manual.pdf",
+    size: 24_500_000,
+    createdAt: daysAgo(2),
+  })
+  const articles = buildExtractionDocument({
+    fileName: "articles.csv",
+    mimeType: "text/csv",
+    size: 64_000,
+    createdAt: daysAgo(1),
+  })
+  const contract = buildExtractionDocument({ fileName: "contract.pdf", createdAt: daysAgo(6) })
+  world.extractionDocuments[agent.id] = [report, notes, articles, scan, contract]
+
+  const runOf = (document: ExtractionDocumentOutputDto, status: "success" | "pending" | "failed") =>
+    buildExtractionRun({
+      documentId: document.id,
+      documentFileName: document.fileName ?? null,
+      status,
+      createdAt: document.createdAt,
+    })
+  const runs = [runOf(report, "success"), runOf(notes, "pending"), runOf(scan, "failed")]
+  world.extractionRuns[agent.id] = runs
+  for (const run of runs) world.extractionRunDetails[run.id] = buildExtractionRunDetail(run)
+
+  const columns = buildCsvFileColumns()
+  world.csvColumns[articles.id] = columns
+  const records = buildCsvRecords(columns, 24, "success")
+  const failedRecord = records[5]
+  if (failedRecord) {
+    failedRecord.status = "error"
+    failedRecord.agentRawOutput = null
+    failedRecord.errorDetails = "The model did not answer in time."
+  }
+  const csvRun = buildCsvExtractionRun({
+    csvDocumentId: articles.id,
+    columnSchema: columnSchemaOf(columns),
+    status: "completed",
+    summary: { total: 24, processed: 24, errors: 1, running: 0 },
+    csvExportDocumentId: crypto.randomUUID(),
+    createdAt: articles.createdAt,
+    updatedAt: articles.createdAt + 95_000,
+  })
+  world.csvExtractionRuns[agent.id] = [csvRun]
+  world.csvRecords[csvRun.id] = records
 }
 
 /**

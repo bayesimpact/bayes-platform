@@ -25,3 +25,26 @@ export function relativeTimeOf(moment: number, now: number, locale: string): str
 export function fullDateTimeOf(moment: number, locale: string): string {
   return new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeStyle: "short" }).format(moment)
 }
+
+/** How long something took, in the person's language: "14 sec", "2 min 5 sec", "1 hr 3 min". */
+export function durationOf(milliseconds: number, locale: string): string {
+  const totalSeconds = Math.max(0, Math.round(milliseconds / 1000))
+  const parts: { unit: string; amount: number }[] = [
+    { unit: "hour", amount: Math.floor(totalSeconds / 3600) },
+    { unit: "minute", amount: Math.floor((totalSeconds % 3600) / 60) },
+    { unit: "second", amount: totalSeconds % 60 },
+  ]
+  const first = parts.findIndex((part) => part.amount > 0)
+  // Two units at most, from the largest one: "1 hr 3 min", never "1 hr 3 min 5 sec".
+  const shown =
+    first === -1 ? [parts[2]] : parts.slice(first, first + 2).filter((part) => part.amount > 0)
+  return shown
+    .map((part) =>
+      new Intl.NumberFormat(locale, {
+        style: "unit",
+        unit: part?.unit ?? "second",
+        unitDisplay: "short",
+      }).format(part?.amount ?? 0),
+    )
+    .join(" ")
+}

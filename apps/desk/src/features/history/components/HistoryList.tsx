@@ -13,7 +13,7 @@ import {
   type HistoryEntry,
   type HistoryPeriod,
 } from "../history-entries"
-import { ConversationActions } from "./ConversationActions"
+import { HistoryEntryActions } from "./HistoryEntryActions"
 import { HistoryEntryLink } from "./HistoryEntryLink"
 
 export type HistoryListProps = {
@@ -34,6 +34,20 @@ export function HistoryList({ agent, entries, empty }: HistoryListProps) {
     older: t`Older`,
   }
 
+  const titleOf = (entry: HistoryEntry) => {
+    switch (entry.kind) {
+      case "conversation":
+        return entry.title ?? t`New conversation`
+      case "extraction":
+        return entry.fileName ?? t`Untitled document`
+      case "csv":
+        return (
+          entry.fileName ??
+          t({ message: "CSV extraction", comment: "An extraction of every row of a spreadsheet" })
+        )
+    }
+  }
+
   if (entries.length === 0) {
     return <p className="px-4 py-2 text-sm text-muted-foreground">{empty}</p>
   }
@@ -46,13 +60,7 @@ export function HistoryList({ agent, entries, empty }: HistoryListProps) {
           {group.entries.map((entry) => (
             <SidebarMenuItem key={entry.id}>
               <HistoryEntryLink agent={agent} entry={entry} />
-              {entry.kind === "conversation" ? (
-                <ConversationActions
-                  agent={agent}
-                  agentSessionId={entry.id}
-                  title={entry.title ?? t`New conversation`}
-                />
-              ) : null}
+              <HistoryEntryActions agent={agent} entry={entry} title={titleOf(entry)} />
             </SidebarMenuItem>
           ))}
         </SidebarMenu>

@@ -1,6 +1,6 @@
 import { Trans, useLingui } from "@lingui/react/macro"
 import { Link } from "@tanstack/react-router"
-import { CircleAlertIcon, ClockIcon } from "lucide-react"
+import { CircleAlertIcon, LoaderCircleIcon } from "lucide-react"
 import { SidebarMenuButton } from "@/components/ui/sidebar"
 import type { HistoryAgent, HistoryEntry } from "../history-entries"
 
@@ -59,7 +59,9 @@ export function HistoryEntryLink({ agent, entry }: HistoryEntryLinkProps) {
           }
         >
           <span className="truncate">
-            <Trans comment="An extraction of every row of a spreadsheet">CSV extraction</Trans>
+            {entry.fileName ?? (
+              <Trans comment="An extraction of every row of a spreadsheet">CSV extraction</Trans>
+            )}
           </span>
           <RunStateMark state={entry.state} />
         </SidebarMenuButton>
@@ -76,7 +78,11 @@ function RunStateMark({ state }: RunStateMarkProps) {
   const { t } = useLingui()
   if (state === "pending")
     return (
-      <ClockIcon role="img" aria-label={t`In progress`} className="ml-auto text-muted-foreground" />
+      <LoaderCircleIcon
+        role="img"
+        aria-label={t`In progress`}
+        className="ml-auto animate-spin text-muted-foreground motion-reduce:animate-none"
+      />
     )
   if (state === "failed")
     return (

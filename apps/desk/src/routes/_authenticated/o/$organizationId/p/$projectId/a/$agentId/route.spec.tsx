@@ -33,10 +33,11 @@ describe("an agent's pages", () => {
       await screen.findByRole("heading", { name: "What should Document Reader read?" }),
     ).toBeInTheDocument()
     expect(router.state.location.pathname).toBe(`${agentUrl.replace("/app", "")}/extraction`)
-    expect(await screen.findByRole("link", { name: "summary.pdf" })).toBeInTheDocument()
-    expect(screen.getByRole("link", { name: "notes.pdf In progress" })).toBeInTheDocument()
-    expect(screen.getByRole("link", { name: "Untitled document Failed" })).toBeInTheDocument()
-    expect(screen.getByRole("link", { name: "CSV extraction" })).toBeInTheDocument()
+    expect(await screen.findByRole("link", { name: "quarterly-report.pdf" })).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: "meeting-notes.md In progress" })).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: "scanned-manual.pdf Failed" })).toBeInTheDocument()
+    // A CSV run takes the name of its file.
+    expect(screen.getByRole("link", { name: "articles.csv" })).toBeInTheDocument()
     expect(screen.getByRole("link", { name: "New extraction" })).toBeInTheDocument()
   })
 

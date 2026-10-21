@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest"
+import { buildCsvExtractionRun, buildExtractionRun } from "@/test/factories/agent-sessions.factory"
 import { extractionEntries, groupByPeriod, type HistoryEntry } from "./history-entries"
 
 const now = new Date(2026, 9, 21, 15, 0).getTime()
@@ -35,20 +36,17 @@ describe("groupByPeriod", () => {
 
 describe("extractionEntries", () => {
   it("mixes documents and CSV files newest first, and reads their state", () => {
+    const csvDocumentId = crypto.randomUUID()
     const entries = extractionEntries(
       [
-        {
-          id: crypto.randomUUID(),
-          documentFileName: "summary.pdf",
-          status: "success",
-          createdAt: 3,
-        },
-        { id: crypto.randomUUID(), documentFileName: null, status: "failed", createdAt: 1 },
+        buildExtractionRun({ documentFileName: "summary.pdf", status: "success", createdAt: 3 }),
+        buildExtractionRun({ documentFileName: null, status: "failed", createdAt: 1 }),
       ],
       [
-        { id: crypto.randomUUID(), status: "running", createdAt: 2 },
-        { id: crypto.randomUUID(), status: "cancelled", createdAt: 0 },
+        buildCsvExtractionRun({ csvDocumentId, status: "running", createdAt: 2 }),
+        buildCsvExtractionRun({ status: "cancelled", createdAt: 0 }),
       ],
+      [{ id: csvDocumentId, fileName: "articles.csv" }],
     )
 
     expect(
@@ -58,6 +56,12 @@ describe("extractionEntries", () => {
       ["csv", "pending"],
       ["extraction", "failed"],
       ["csv", "done"],
+    ])
+    expect(entries.map((entry) => (entry.kind === "csv" ? entry.fileName : undefined))).toEqual([
+      undefined,
+      "articles.csv",
+      undefined,
+      null,
     ])
   })
 })

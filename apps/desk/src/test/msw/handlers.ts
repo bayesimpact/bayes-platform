@@ -16,6 +16,7 @@ import {
   RELEASE_NOTES_APP,
 } from "../factories/desk-world.factory"
 import { RELEASE_NOTES_APP_HTML } from "../fixtures/mcp-app"
+import { extractionHandlers } from "./extraction-handlers"
 
 const agentPath = "*/api/organizations/:organizationId/projects/:projectId/agents/:agentId"
 const messagesPath = `${agentPath}/agent-sessions/live/:agentSessionId/messages`
@@ -68,14 +69,9 @@ export function worldHandlers(world: DeskWorld) {
     http.post(`${agentPath}/conversation-agent-sessions/live`, ({ params }) =>
       HttpResponse.json({ data: world.conversations[String(params.agentId)] ?? [] }),
     ),
-    http.post(`${agentPath}/extraction-agent-sessions/live`, ({ params }) =>
-      HttpResponse.json({ data: world.extractionRuns[String(params.agentId)] ?? [] }),
-    ),
-    http.get(`${agentPath}/csv-extraction-runs/live`, ({ params }) =>
-      HttpResponse.json({ data: world.csvExtractionRuns[String(params.agentId)] ?? [] }),
-    ),
     ...conversationHandlers(world),
     ...memoryHandlers(world),
+    ...extractionHandlers(world),
   ]
 }
 

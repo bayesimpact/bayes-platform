@@ -13,7 +13,7 @@ export type CopyButtonProps = {
   label: string
 }
 
-/** Copies a message's text, and says so for a moment. */
+/** Copies a text, such as a message or a value, and says so for a moment. */
 export function CopyButton({ text, label: copyLabel }: CopyButtonProps) {
   const { t } = useLingui()
   const [isCopied, setIsCopied] = useState(false)
@@ -25,7 +25,7 @@ export function CopyButton({ text, label: copyLabel }: CopyButtonProps) {
       setTimeout(() => setIsCopied(false), COPIED_FEEDBACK_IN_MILLISECONDS)
     } catch (error) {
       // The browser can refuse the clipboard (no focus, no permission): nothing else to do.
-      console.error("The reply could not be copied:", error)
+      console.error("The text could not be copied:", error)
     }
   }
 

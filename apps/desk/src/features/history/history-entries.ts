@@ -1,7 +1,7 @@
 import type {
   AgentTypeDto,
   ConversationSessionOutputDto,
-  CsvExtractionRunOutputDto,
+  CsvExtractionRunDetailOutputDto,
   ExtractionRunOutputDto,
 } from "@caseai-connect/desk-contracts"
 
@@ -26,7 +26,13 @@ export type HistoryEntry =
       state: HistoryEntryState
       createdAt: number
     }
-  | { kind: "csv"; id: string; state: HistoryEntryState; createdAt: number }
+  | {
+      kind: "csv"
+      id: string
+      fileName: string | null
+      state: HistoryEntryState
+      createdAt: number
+    }
 
 export function conversationEntries(conversations: ConversationSessionOutputDto[]): HistoryEntry[] {
   return conversations.map((conversation) => ({
@@ -37,12 +43,17 @@ export function conversationEntries(conversations: ConversationSessionOutputDto[
   }))
 }
 
-/** The extractions of documents and CSV files, mixed and sorted newest first. */
+/**
+ * The extractions of documents and CSV files, mixed and sorted newest first. A CSV run takes the
+ * name of its file from the person's documents.
+ */
 export function extractionEntries(
   extractionRuns: ExtractionRunOutputDto[],
-  csvExtractionRuns: CsvExtractionRunOutputDto[],
+  csvExtractionRuns: CsvExtractionRunDetailOutputDto[],
+  documents: { id: string; fileName?: string }[],
 ): HistoryEntry[] {
-  const documents: HistoryEntry[] = extractionRuns.map((run) => ({
+  const fileNames = new Map(documents.map((document) => [document.id, document.fileName ?? null]))
+  const runs: HistoryEntry[] = extractionRuns.map((run) => ({
     kind: "extraction",
     id: run.id,
     fileName: run.documentFileName,
@@ -52,13 +63,14 @@ export function extractionEntries(
   const csvFiles: HistoryEntry[] = csvExtractionRuns.map((run) => ({
     kind: "csv",
     id: run.id,
+    fileName: fileNames.get(run.csvDocumentId) ?? null,
     state: csvRunState(run.status),
     createdAt: run.createdAt,
   }))
-  return [...documents, ...csvFiles].sort((first, second) => second.createdAt - first.createdAt)
+  return [...runs, ...csvFiles].sort((first, second) => second.createdAt - first.createdAt)
 }
 
-function csvRunState(status: CsvExtractionRunOutputDto["status"]): HistoryEntryState {
+function csvRunState(status: CsvExtractionRunDetailOutputDto["status"]): HistoryEntryState {
   if (status === "pending" || status === "running") return "pending"
   if (status === "failed") return "failed"
   // A cancelled run kept the rows it had extracted: it reads as done.
@@ -96,4 +108,15 @@ export function groupByPeriod(entries: HistoryEntry[], now: number): HistoryGrou
     const periodEntries = entries.filter((entry) => periodOf(entry.createdAt, now) === period)
     return periodEntries.length > 0 ? [{ period, entries: periodEntries }] : []
   })
+}
+
+/** Whether an extraction of the history still goes on, so the history follows it. */
+export function hasPendingRun(
+  extractionRuns: ExtractionRunOutputDto[] | undefined,
+  csvExtractionRuns: CsvExtractionRunDetailOutputDto[] | undefined,
+): boolean {
+  return (
+    (extractionRuns ?? []).some((run) => run.status === "pending") ||
+    (csvExtractionRuns ?? []).some((run) => csvRunState(run.status) === "pending")
+  )
 }

@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import { invalidateAgentHistory } from "@/features/history"
 import { apiRequest } from "@/lib/api-client"
-import { toHttpsUrl } from "@/lib/safe-url"
+import { openInTab } from "@/lib/safe-url"
 import type { OutgoingMessage } from "../chat-messages"
 import type { ConversationAgentRef, ConversationRef } from "../conversation-ref"
 import { streamReply } from "./stream-reply"
@@ -62,8 +62,8 @@ export function useStartConversation(agent: ConversationAgentRef) {
  */
 export function useOpenDocument(conversation: ConversationRef) {
   return useMutation({
-    mutationFn: async ({ documentId, tab }: { documentId: string; tab: Window | null }) => {
-      try {
+    mutationFn: ({ documentId, tab }: { documentId: string; tab: Window | null }) =>
+      openInTab(tab, async () => {
         const { url } = await apiRequest(DeskDocumentsRoutes.getTemporaryUrl, {
           params: {
             organizationId: conversation.organizationId,
@@ -71,15 +71,8 @@ export function useOpenDocument(conversation: ConversationRef) {
             documentId,
           },
         })
-        // Only a signed https URL of the storage opens; anything else closes the tab.
-        const safeUrl = toHttpsUrl(url)
-        if (!safeUrl) throw new Error("The document URL is not https")
-        if (tab) tab.location.href = safeUrl
-      } catch (error) {
-        tab?.close()
-        throw error
-      }
-    },
+        return url
+      }),
   })
 }
 
@@ -92,18 +85,12 @@ export function useOpenAttachment(conversation: ConversationRef) {
     }: {
       attachmentDocumentId: string
       tab: Window | null
-    }) => {
-      try {
+    }) =>
+      openInTab(tab, async () => {
         const { url } = await apiRequest(DeskConversationsRoutes.getAttachmentUrl, {
           params: { ...conversation, attachmentDocumentId },
         })
-        const safeUrl = toHttpsUrl(url)
-        if (!safeUrl) throw new Error("The attachment URL is not https")
-        if (tab) tab.location.href = safeUrl
-      } catch (error) {
-        tab?.close()
-        throw error
-      }
-    },
+        return url
+      }),
   })
 }

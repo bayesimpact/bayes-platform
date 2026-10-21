@@ -2,16 +2,7 @@ import { useLingui } from "@lingui/react/macro"
 import { ExternalLinkIcon } from "lucide-react"
 import type { ComponentProps } from "react"
 import { type ExtraProps, Streamdown, useIsCodeFenceIncomplete } from "streamdown"
-import {
-  CodeBlock,
-  CodeBlockActions,
-  CodeBlockContent,
-  CodeBlockCopyButton,
-  CodeBlockHeader,
-  CodeBlockLine,
-  CodeBlockTitle,
-} from "@/components/ui/code-block"
-import { useHighlightedCode } from "@/hooks/use-highlighted-code"
+import { HighlightedCodeBlock } from "./HighlightedCodeBlock"
 
 export type MarkdownProps = {
   children: string
@@ -105,27 +96,9 @@ type MarkdownCodeBlockProps = {
 }
 
 function MarkdownCodeBlock({ code, language }: MarkdownCodeBlockProps) {
-  const { t } = useLingui()
   // True while the closing fence has not arrived yet.
   const isIncomplete = useIsCodeFenceIncomplete()
-  const lines = useHighlightedCode(code, language)
-  return (
-    <CodeBlock>
-      <CodeBlockHeader>
-        <CodeBlockTitle>{language || "text"}</CodeBlockTitle>
-        <CodeBlockActions>
-          <CodeBlockCopyButton value={code} disabled={isIncomplete} aria-label={t`Copy the code`} />
-        </CodeBlockActions>
-      </CodeBlockHeader>
-      <CodeBlockContent>
-        {lines.map((line, index) => (
-          // The lines of a block only grow at the end: their position is their identity.
-          // biome-ignore lint/suspicious/noArrayIndexKey: see above.
-          <CodeBlockLine key={index}>{line}</CodeBlockLine>
-        ))}
-      </CodeBlockContent>
-    </CodeBlock>
-  )
+  return <HighlightedCodeBlock code={code} language={language} isIncomplete={isIncomplete} />
 }
 
 const MARKDOWN_COMPONENTS = { a: MarkdownLink, code: MarkdownCode, img: MarkdownImage }

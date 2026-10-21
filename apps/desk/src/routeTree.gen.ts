@@ -19,6 +19,7 @@ import { Route as AuthenticatedOOrganizationIdPProjectIdAAgentIdIndexRouteImport
 import { Route as AuthenticatedOOrganizationIdPProjectIdAAgentIdAsAgentSessionIdRouteImport } from './routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/as/$agentSessionId'
 import { Route as AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionIndexRouteImport } from './routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/extraction/index'
 import { Route as AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionCsvRunsCsvRunIdRouteImport } from './routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/extraction/csv-runs/$csvRunId'
+import { Route as AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionCsvDocumentIdRouteImport } from './routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/extraction/csv/$documentId'
 import { Route as AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionRunsExtractionRunIdRouteImport } from './routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/extraction/runs/$extractionRunId'
 
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
@@ -87,6 +88,15 @@ const AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionCsvRunsCsvRunIdRou
         AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRoute,
     } as any,
   )
+const AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionCsvDocumentIdRoute =
+  AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionCsvDocumentIdRouteImport.update(
+    {
+      id: '/extraction/csv/$documentId',
+      path: '/extraction/csv/$documentId',
+      getParentRoute: () =>
+        AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRoute,
+    } as any,
+  )
 const AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionRunsExtractionRunIdRoute =
   AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionRunsExtractionRunIdRouteImport.update(
     {
@@ -107,6 +117,7 @@ export interface FileRoutesByFullPath {
   '/o/$organizationId/p/$projectId/a/$agentId/as/$agentSessionId': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdAsAgentSessionIdRoute
   '/o/$organizationId/p/$projectId/a/$agentId/extraction/': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionIndexRoute
   '/o/$organizationId/p/$projectId/a/$agentId/extraction/csv-runs/$csvRunId': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionCsvRunsCsvRunIdRoute
+  '/o/$organizationId/p/$projectId/a/$agentId/extraction/csv/$documentId': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionCsvDocumentIdRoute
   '/o/$organizationId/p/$projectId/a/$agentId/extraction/runs/$extractionRunId': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionRunsExtractionRunIdRoute
 }
 export interface FileRoutesByTo {
@@ -118,6 +129,7 @@ export interface FileRoutesByTo {
   '/o/$organizationId/p/$projectId/a/$agentId/as/$agentSessionId': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdAsAgentSessionIdRoute
   '/o/$organizationId/p/$projectId/a/$agentId/extraction': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionIndexRoute
   '/o/$organizationId/p/$projectId/a/$agentId/extraction/csv-runs/$csvRunId': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionCsvRunsCsvRunIdRoute
+  '/o/$organizationId/p/$projectId/a/$agentId/extraction/csv/$documentId': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionCsvDocumentIdRoute
   '/o/$organizationId/p/$projectId/a/$agentId/extraction/runs/$extractionRunId': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionRunsExtractionRunIdRoute
 }
 export interface FileRoutesById {
@@ -132,6 +144,7 @@ export interface FileRoutesById {
   '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/as/$agentSessionId': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdAsAgentSessionIdRoute
   '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/extraction/': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionIndexRoute
   '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/extraction/csv-runs/$csvRunId': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionCsvRunsCsvRunIdRoute
+  '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/extraction/csv/$documentId': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionCsvDocumentIdRoute
   '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/extraction/runs/$extractionRunId': typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionRunsExtractionRunIdRoute
 }
 export interface FileRouteTypes {
@@ -146,6 +159,7 @@ export interface FileRouteTypes {
     | '/o/$organizationId/p/$projectId/a/$agentId/as/$agentSessionId'
     | '/o/$organizationId/p/$projectId/a/$agentId/extraction/'
     | '/o/$organizationId/p/$projectId/a/$agentId/extraction/csv-runs/$csvRunId'
+    | '/o/$organizationId/p/$projectId/a/$agentId/extraction/csv/$documentId'
     | '/o/$organizationId/p/$projectId/a/$agentId/extraction/runs/$extractionRunId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -157,6 +171,7 @@ export interface FileRouteTypes {
     | '/o/$organizationId/p/$projectId/a/$agentId/as/$agentSessionId'
     | '/o/$organizationId/p/$projectId/a/$agentId/extraction'
     | '/o/$organizationId/p/$projectId/a/$agentId/extraction/csv-runs/$csvRunId'
+    | '/o/$organizationId/p/$projectId/a/$agentId/extraction/csv/$documentId'
     | '/o/$organizationId/p/$projectId/a/$agentId/extraction/runs/$extractionRunId'
   id:
     | '__root__'
@@ -170,6 +185,7 @@ export interface FileRouteTypes {
     | '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/as/$agentSessionId'
     | '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/extraction/'
     | '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/extraction/csv-runs/$csvRunId'
+    | '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/extraction/csv/$documentId'
     | '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/extraction/runs/$extractionRunId'
   fileRoutesById: FileRoutesById
 }
@@ -250,6 +266,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionCsvRunsCsvRunIdRouteImport
       parentRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRoute
     }
+    '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/extraction/csv/$documentId': {
+      id: '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/extraction/csv/$documentId'
+      path: '/extraction/csv/$documentId'
+      fullPath: '/o/$organizationId/p/$projectId/a/$agentId/extraction/csv/$documentId'
+      preLoaderRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionCsvDocumentIdRouteImport
+      parentRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRoute
+    }
     '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/extraction/runs/$extractionRunId': {
       id: '/_authenticated/o/$organizationId/p/$projectId/a/$agentId/extraction/runs/$extractionRunId'
       path: '/extraction/runs/$extractionRunId'
@@ -265,6 +288,7 @@ interface AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRouteChildren {
   AuthenticatedOOrganizationIdPProjectIdAAgentIdAsAgentSessionIdRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdAsAgentSessionIdRoute
   AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionIndexRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionIndexRoute
   AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionCsvRunsCsvRunIdRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionCsvRunsCsvRunIdRoute
+  AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionCsvDocumentIdRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionCsvDocumentIdRoute
   AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionRunsExtractionRunIdRoute: typeof AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionRunsExtractionRunIdRoute
 }
 
@@ -278,6 +302,8 @@ const AuthenticatedOOrganizationIdPProjectIdAAgentIdRouteRouteChildren: Authenti
       AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionIndexRoute,
     AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionCsvRunsCsvRunIdRoute:
       AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionCsvRunsCsvRunIdRoute,
+    AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionCsvDocumentIdRoute:
+      AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionCsvDocumentIdRoute,
     AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionRunsExtractionRunIdRoute:
       AuthenticatedOOrganizationIdPProjectIdAAgentIdExtractionRunsExtractionRunIdRoute,
   }

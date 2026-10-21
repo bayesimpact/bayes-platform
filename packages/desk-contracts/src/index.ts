@@ -18,6 +18,12 @@ export * from "./define-schema-route"
 // Documents
 export * from "./documents/documents.dto"
 export { DeskDocumentsRoutes } from "./documents/documents.routes"
+// Extractions
+export * from "./extractions/extractions.dto"
+export {
+  DeskCsvExtractionsRoutes,
+  DeskExtractionsRoutes,
+} from "./extractions/extractions.routes"
 
 // Memories
 export * from "./memories/memories.dto"

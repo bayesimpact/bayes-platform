@@ -34,3 +34,18 @@ export function openBlankTab(): Window | null {
   if (tab) tab.opener = null
   return tab
 }
+
+/**
+ * Sends a tab `openBlankTab` opened to the signed URL that arrived, or closes it when the URL is
+ * not https, or when getting it failed.
+ */
+export async function openInTab(tab: Window | null, getUrl: () => Promise<string>): Promise<void> {
+  try {
+    const safeUrl = toHttpsUrl(await getUrl())
+    if (!safeUrl) throw new Error("The file URL is not https")
+    if (tab) tab.location.href = safeUrl
+  } catch (error) {
+    tab?.close()
+    throw error
+  }
+}
