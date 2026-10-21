@@ -8,12 +8,12 @@ import {
   SidebarHeader,
   SidebarInset,
   SidebarProvider,
-  SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar"
 import { useResizableWidth } from "@/hooks/use-resizable-width"
 import { HeaderActionsContext } from "./header-actions-context"
 import { ResizeHandle } from "./ResizeHandle"
+import { SidebarToggle } from "./SidebarToggle"
 
 export type DeskShellProps = {
   /** The top of the sidebar: the logo, or the agent switcher. */
@@ -65,7 +65,7 @@ export function DeskShell({ header, sidebar, footer, title, children }: DeskShel
         {/* The bar fades into the page below it, as in the Claude app, over what scrolls under it. */}
         <header className="relative z-10 flex h-12 shrink-0 items-center gap-2 bg-background px-3 after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-6 after:bg-linear-to-b after:from-background after:to-transparent">
           {/* Shows or hides the sidebar, as ⌘B or Ctrl+B does. */}
-          <SidebarTrigger aria-label={t`Show or hide the sidebar`} />
+          <SidebarToggle />
           <div className="min-w-0 flex-1 truncate text-sm font-medium">{title}</div>
           <div ref={setActionsSlot} className="flex shrink-0 items-center gap-2" />
         </header>

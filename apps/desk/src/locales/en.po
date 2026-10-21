@@ -241,6 +241,11 @@ msgstr "CSV extraction"
 msgid "CSV file"
 msgstr "CSV file"
 
+#. The Control key of a keyboard
+#: src/components/shared/SidebarToggle.tsx:18
+msgid "Ctrl"
+msgstr "Ctrl"
+
 #: src/features/invitations/components/InvitationItem.tsx:64
 msgid "Decline"
 msgstr "Decline"
@@ -394,6 +399,10 @@ msgstr "Give the agent one file at a time."
 #: src/features/conversation/components/ToolSteps.tsx:23
 msgid "Handing the conversation back"
 msgstr "Handing the conversation back"
+
+#: src/components/shared/SidebarToggle.tsx:15
+msgid "Hide the sidebar"
+msgstr "Hide the sidebar"
 
 #: src/components/shared/DeskLogo.tsx:10
 msgid "Home of the Desk"
@@ -732,9 +741,9 @@ msgstr "Show less"
 msgid "Show more"
 msgstr "Show more"
 
-#: src/components/shared/DeskShell.tsx:68
-msgid "Show or hide the sidebar"
-msgstr "Show or hide the sidebar"
+#: src/components/shared/SidebarToggle.tsx:15
+msgid "Show the sidebar"
+msgstr "Show the sidebar"
 
 #: src/routes/auth/callback.tsx:28
 msgid "Sign in again"
