@@ -1,5 +1,4 @@
 import { createFileRoute, notFound, Outlet } from "@tanstack/react-router"
-import { Suspense } from "react"
 import { DeskShell } from "@/components/shared/DeskShell"
 import { DeskShellSkeleton } from "@/components/shared/DeskShellSkeleton"
 import { RouteErrorState } from "@/components/shared/RouteErrorState"
@@ -11,12 +10,7 @@ import {
   loadDeskAgents,
   rememberLastAgent,
 } from "@/features/agents"
-import {
-  AgentHistory,
-  AgentHistorySkeleton,
-  NewSessionLink,
-  prefetchAgentHistory,
-} from "@/features/history"
+import { AgentHistorySection, NewSessionLink, prefetchAgentHistory } from "@/features/history"
 
 /**
  * The frame of every page of an agent: the sidebar with the agent switcher and the agent's
@@ -50,9 +44,7 @@ function AgentLayout() {
           <div className="p-2">
             <NewSessionLink agent={historyAgent} />
           </div>
-          <Suspense fallback={<AgentHistorySkeleton />}>
-            <AgentHistory agent={historyAgent} />
-          </Suspense>
+          <AgentHistorySection agent={historyAgent} />
         </>
       }
       footer={<CurrentUserMenu />}

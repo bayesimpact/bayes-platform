@@ -1,4 +1,6 @@
 import { screen } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
+import { HttpResponse, http } from "msw"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import {
   buildEmptyHistoryWorld,
@@ -44,6 +46,26 @@ describe("an agent's pages", () => {
     const [assistant] = world.agents
     renderApp(`/app/o/${world.organizations[0]?.id}/p/${assistant?.projectId}/a/${assistant?.id}`)
 
+    expect(await screen.findByText("No conversations yet")).toBeInTheDocument()
+  })
+
+  it("keep a history that could not load in the sidebar, with a retry", async () => {
+    const world = buildEmptyHistoryWorld()
+    server.use(...worldHandlers(world))
+    server.use(
+      http.post(
+        "*/api/organizations/:organizationId/projects/:projectId/agents/:agentId/conversation-agent-sessions/live",
+        () => new HttpResponse(null, { status: 503 }),
+        { once: true },
+      ),
+    )
+    const [assistant] = world.agents
+    renderApp(`/app/o/${world.organizations[0]?.id}/p/${assistant?.projectId}/a/${assistant?.id}`)
+
+    expect(await screen.findByText("The history could not load.")).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: "How can I help you today?" })).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole("button", { name: "Try again" }))
     expect(await screen.findByText("No conversations yet")).toBeInTheDocument()
   })
 

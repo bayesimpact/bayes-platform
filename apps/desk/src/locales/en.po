@@ -227,7 +227,7 @@ msgstr "Open {title}"
 msgid "Open the menu of {email}"
 msgstr "Open the menu of {email}"
 
-#: src/components/shared/DeskShell.tsx:40
+#: src/components/shared/DeskShell.tsx:43
 msgid "Open the sidebar"
 msgstr "Open the sidebar"
 
@@ -397,6 +397,10 @@ msgstr "The file could not be opened. Try again."
 msgid "The file could not be uploaded. Try again."
 msgstr "The file could not be uploaded. Try again."
 
+#: src/features/history/components/AgentHistorySection.tsx:37
+msgid "The history could not load."
+msgstr "The history could not load."
+
 #: src/features/memory/components/MemoryPanel.tsx:55
 msgid "The memory could not be cleared. Try again."
 msgstr "The memory could not be cleared. Try again."
@@ -442,6 +446,7 @@ msgid "Today"
 msgstr "Today"
 
 #: src/components/shared/RouteErrorState.tsx:44
+#: src/features/history/components/AgentHistorySection.tsx:40
 msgid "Try again"
 msgstr "Try again"
 

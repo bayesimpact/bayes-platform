@@ -1,5 +1,6 @@
 import { useLingui } from "@lingui/react/macro"
-import type { ReactNode } from "react"
+import { useRouterState } from "@tanstack/react-router"
+import { type ReactNode, useEffect } from "react"
 import {
   Sidebar,
   SidebarContent,
@@ -8,6 +9,7 @@ import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
+  useSidebar,
 } from "@/components/ui/sidebar"
 
 export type DeskShellProps = {
@@ -30,6 +32,7 @@ export function DeskShell({ header, sidebar, footer, title, children }: DeskShel
   const { t } = useLingui()
   return (
     <SidebarProvider>
+      <CloseSidebarOnNavigation />
       <Sidebar>
         <SidebarHeader>{header}</SidebarHeader>
         <SidebarContent>{sidebar}</SidebarContent>
@@ -45,4 +48,18 @@ export function DeskShell({ header, sidebar, footer, title, children }: DeskShel
       </SidebarInset>
     </SidebarProvider>
   )
+}
+
+/**
+ * At phone width, the sidebar opens over the page: a link chosen in it closes it, as the page it
+ * opens should show. Navigation is outside React's state, which an effect follows.
+ */
+function CloseSidebarOnNavigation() {
+  const pathname = useRouterState({ select: (state) => state.location.pathname })
+  const { setOpenMobile } = useSidebar()
+  // biome-ignore lint/correctness/useExhaustiveDependencies: the path is what triggers it.
+  useEffect(() => {
+    setOpenMobile(false)
+  }, [pathname, setOpenMobile])
+  return null
 }
