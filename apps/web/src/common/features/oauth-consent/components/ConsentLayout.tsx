@@ -92,10 +92,6 @@ export function ChoiceCard({
   )
 }
 
-/** Checked state of the consent screens' checkboxes, until the shared one styles it (bayes-platform#1064). */
-export const CONSENT_CHECKBOX =
-  "data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
-
 /**
  * The page, the card, and an optional note under it. The card's children are its sections:
  * `ConsentHeader`, then `CardContent`, then `ConsentFooter` (inside the form when there is one).
@@ -342,7 +338,7 @@ export function GroupedPermissions({
                             <Checkbox
                               id={checkboxId}
                               aria-label={name}
-                              className={cn("size-3.5 [&_svg]:size-3", CONSENT_CHECKBOX)}
+                              className="size-3.5 [&_svg]:size-3"
                               checked={checked}
                               disabled={disabled || !canGrant}
                               onCheckedChange={(value) => onToggle(permission, value === true)}

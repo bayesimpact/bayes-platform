@@ -28,7 +28,6 @@ import {
 import {
   CancelLink,
   ChoiceCard,
-  CONSENT_CHECKBOX,
   ConsentFooter,
   ConsentHeader,
   ConsentPage,
@@ -230,7 +229,6 @@ function ProjectChoices({
                 control={
                   <Checkbox
                     id={checkboxId}
-                    className={CONSENT_CHECKBOX}
                     checked={selected}
                     disabled={disabled}
                     onCheckedChange={(checked) =>
