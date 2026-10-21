@@ -13,7 +13,9 @@ import {
   buildSeveralAgentsWorld,
   buildSeveralProjectsWorld,
   type DeskWorld,
+  RELEASE_NOTES_APP,
 } from "../factories/desk-world.factory"
+import { RELEASE_NOTES_APP_HTML } from "../fixtures/mcp-app"
 
 const agentPath = "*/api/organizations/:organizationId/projects/:projectId/agents/:agentId"
 const messagesPath = `${agentPath}/agent-sessions/live/:agentSessionId/messages`
@@ -152,6 +154,12 @@ function conversationHandlers(world: DeskWorld) {
     http.get(
       "*/api/organizations/:organizationId/projects/:projectId/documents/:documentId/temporary-url",
       () => HttpResponse.json({ data: { url: "https://example.org/pricing-guide.pdf" } }),
+    ),
+    http.post(`${messagesPath}/mcp-app-html`, () =>
+      HttpResponse.json(
+        { data: [{ ...RELEASE_NOTES_APP, html: RELEASE_NOTES_APP_HTML }] },
+        { status: 201 },
+      ),
     ),
     http.post(`${messagesPath}/attachment-document/presign`, () => {
       const attachmentDocumentId = crypto.randomUUID()

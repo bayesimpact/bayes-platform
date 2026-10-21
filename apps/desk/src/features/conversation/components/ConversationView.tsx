@@ -1,6 +1,7 @@
 import { Trans, useLingui } from "@lingui/react/macro"
-import { useSuspenseQuery } from "@tanstack/react-query"
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query"
 import { ArrowDownIcon, RotateCcwIcon } from "lucide-react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
   MessageScroller,
@@ -12,7 +13,7 @@ import {
 } from "@/components/ui/message-scroller"
 import { MemoryPanel } from "@/features/memory"
 import { useSendMessage } from "../api/mutations"
-import { messagesQueryOptions } from "../api/queries"
+import { mcpAppsHtmlQueryOptions, messagesQueryOptions } from "../api/queries"
 import { findRetryableMessage, isWriting } from "../chat-messages"
 import type { ConversationRef } from "../conversation-ref"
 import { useConversationForms } from "../hooks/use-conversation-forms"
@@ -39,6 +40,16 @@ export function ConversationView({ conversation, agentName, showSources }: Conve
   const isBusy = sendMessage.isPending || messages.some((message) => isWriting(message, now))
   const retryableMessage = isBusy ? null : findRetryableMessage(messages, now)
   const forms = useConversationForms(conversation)
+  const [draft, setDraft] = useState("")
+  const hasSettledApps = messages.some(
+    (message) => message.mcpApps.length > 0 && message.status !== "streaming",
+  )
+  // useQuery: optional data, read once a reply shows an MCP App, which must not hold it back.
+  const mcpAppsHtml = useQuery({
+    ...mcpAppsHtmlQueryOptions(conversation),
+    enabled: hasSettledApps,
+  })
+  const appsHtml = { htmls: mcpAppsHtml.data ?? [], isPending: mcpAppsHtml.isPending }
 
   return (
     <MessageScrollerProvider autoScroll>
@@ -76,6 +87,8 @@ export function ConversationView({ conversation, agentName, showSources }: Conve
                         message={message}
                         now={now}
                         showSources={showSources}
+                        appsHtml={appsHtml}
+                        onAppMessage={setDraft}
                       />
                     </MessageScrollerItem>
                   ))}
@@ -103,6 +116,8 @@ export function ConversationView({ conversation, agentName, showSources }: Conve
         <div className="mx-auto w-full max-w-3xl px-4 pb-4">
           <Composer
             agentName={agentName}
+            content={draft}
+            onContentChange={setDraft}
             isBusy={isBusy}
             onSend={(outgoing) => sendMessage.mutate(outgoing)}
           />

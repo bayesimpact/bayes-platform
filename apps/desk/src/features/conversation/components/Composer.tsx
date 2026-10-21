@@ -13,6 +13,9 @@ import type { OutgoingMessage } from "../chat-messages"
 
 export type ComposerProps = {
   agentName: string
+  /** The text being written, which an MCP App can also fill in. */
+  content: string
+  onContentChange: (content: string) => void
   /** Whether a reply is on its way: the message waits until it ends. */
   isBusy: boolean
   onSend: (message: OutgoingMessage) => void
@@ -24,9 +27,8 @@ const ACCEPTED_TYPES: readonly string[] = ATTACHMENT_MIME_TYPES
  * The message box, as the shadcn Prompt Input: Enter sends, Shift+Enter starts a new line, and
  * the paperclip attaches a PDF or an image of up to 10 MB.
  */
-export function Composer({ agentName, isBusy, onSend }: ComposerProps) {
+export function Composer({ agentName, content, onContentChange, isBusy, onSend }: ComposerProps) {
   const { t } = useLingui()
-  const [content, setContent] = useState("")
   const [file, setFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const canSend = !isBusy && content.trim().length > 0
@@ -34,7 +36,7 @@ export function Composer({ agentName, isBusy, onSend }: ComposerProps) {
   const send = () => {
     if (!canSend) return
     onSend({ content: content.trim(), attachment: file ? { file } : null })
-    setContent("")
+    onContentChange("")
     setFile(null)
   }
 
@@ -90,7 +92,7 @@ export function Composer({ agentName, isBusy, onSend }: ComposerProps) {
           aria-label={t`Message to ${agentName}`}
           placeholder={t`Write to ${agentName}`}
           value={content}
-          onChange={(event) => setContent(event.target.value)}
+          onChange={(event) => onContentChange(event.target.value)}
           onKeyDown={handleKeyDown}
           autoFocus
           className="max-h-60 min-h-16 p-3"

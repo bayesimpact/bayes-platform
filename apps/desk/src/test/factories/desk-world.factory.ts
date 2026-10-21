@@ -166,7 +166,34 @@ export function buildDeskWorld(): DeskWorld {
   world.conversations[assistant.id] = buildConversationHistory()
   addMessages(world, assistant.id)
   addMemories(world, assistant.id)
+  addMcpApp(world, assistant.id)
   return world
+}
+
+/** The MCP App the replies of the mock world show. */
+export const RELEASE_NOTES_APP = {
+  mcpServerId: "release-server",
+  resourceUri: "ui://release-notes/card",
+}
+
+/** The second conversation's last reply shows an MCP App card, with a bare "." as its text. */
+function addMcpApp(world: DeskWorld, agentId: string): void {
+  const [, secondConversation] = world.conversations[agentId] ?? []
+  const reply = (world.messages[secondConversation?.id ?? ""] ?? []).at(-1)
+  if (!reply) return
+  reply.content = "."
+  reply.toolCalls = [
+    {
+      id: crypto.randomUUID(),
+      name: "list_releases",
+      arguments: { month: "October" },
+      mcpApp: RELEASE_NOTES_APP,
+      result: {
+        content: [{ type: "text", text: "Three releases this month: 2.1, 2.2 and 2.3." }],
+        structuredContent: { releases: ["2.1: faster search", "2.2: dark mode", "2.3: exports"] },
+      },
+    },
+  ]
 }
 
 /**

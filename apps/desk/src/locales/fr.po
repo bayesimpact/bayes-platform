@@ -33,7 +33,7 @@ msgstr "{count, plural, one {# étape suivie} other {# étapes suivies}}"
 msgid "A new version of the Desk is available"
 msgstr "Une nouvelle version du Desk est disponible"
 
-#: src/features/conversation/components/ChatMessageView.tsx:112
+#: src/features/conversation/components/ReplyError.tsx:29
 msgid "A new version of the Desk is available. Reload the page."
 msgstr "Une nouvelle version du Desk est disponible. Rechargez la page."
 
@@ -45,15 +45,15 @@ msgstr "Actions sur {title}"
 msgid "Agent"
 msgstr "Agent"
 
-#: src/features/conversation/components/Composer.tsx:112
+#: src/features/conversation/components/Composer.tsx:114
 msgid "Attach a file"
 msgstr "Joindre un fichier"
 
-#: src/features/conversation/components/Composer.tsx:63
+#: src/features/conversation/components/Composer.tsx:65
 msgid "Attach a file of 10 MB at most."
 msgstr "Joignez un fichier de 10 Mo au plus."
 
-#: src/features/conversation/components/Composer.tsx:59
+#: src/features/conversation/components/Composer.tsx:61
 msgid "Attach a PDF, PNG or JPEG file."
 msgstr "Joignez un fichier PDF, PNG ou JPEG."
 
@@ -164,8 +164,8 @@ msgstr "Retour à l'agent précédent"
 msgid "Home of the Desk"
 msgstr "Accueil du Desk"
 
-#: src/features/conversation/components/ConversationView.tsx:59
-#: src/features/conversation/components/NewConversation.tsx:20
+#: src/features/conversation/components/ConversationView.tsx:70
+#: src/features/conversation/components/NewConversation.tsx:22
 msgid "How can I help you today?"
 msgstr "Comment puis-je vous aider aujourd'hui ?"
 
@@ -177,11 +177,19 @@ msgstr "Image"
 msgid "In progress"
 msgstr "En cours"
 
+#: src/features/conversation/components/McpAppCard.tsx:35
+msgid "Interactive card"
+msgstr "Carte interactive"
+
 #: src/features/account/components/UserMenu.tsx:52
 msgid "Language"
 msgstr "Langue"
 
-#: src/features/conversation/components/Composer.tsx:90
+#: src/features/conversation/components/McpAppPlaceholder.tsx:14
+msgid "Loading the interactive card…"
+msgstr "Chargement de la carte interactive…"
+
+#: src/features/conversation/components/Composer.tsx:92
 msgid "Message to {agentName}"
 msgstr "Message à {agentName}"
 
@@ -272,7 +280,7 @@ msgstr "Retenir"
 msgid "Remembering what matters"
 msgstr "Mémorisation de l'essentiel"
 
-#: src/features/conversation/components/Composer.tsx:81
+#: src/features/conversation/components/Composer.tsx:83
 msgid "Remove {fileName}"
 msgstr "Retirer {fileName}"
 
@@ -284,7 +292,7 @@ msgstr "Signaler un problème"
 msgid "Report a problem with this reply"
 msgstr "Signaler un problème avec cette réponse"
 
-#: src/features/conversation/components/ConversationView.tsx:90
+#: src/features/conversation/components/ConversationView.tsx:103
 msgid "Retry"
 msgstr "Réessayer"
 
@@ -292,7 +300,7 @@ msgstr "Réessayer"
 msgid "Reword"
 msgstr "Reformuler"
 
-#: src/features/conversation/components/ConversationView.tsx:98
+#: src/features/conversation/components/ConversationView.tsx:111
 msgid "Scroll to the latest message"
 msgstr "Aller au dernier message"
 
@@ -305,7 +313,7 @@ msgstr "Recherche dans la base de connaissances"
 msgid "Searching the resources"
 msgstr "Recherche dans les ressources"
 
-#: src/features/conversation/components/Composer.tsx:127
+#: src/features/conversation/components/Composer.tsx:129
 msgid "Send"
 msgstr "Envoyer"
 
@@ -337,7 +345,7 @@ msgstr "Changer d'agent, agent actuel : {agentName}"
 msgid "Thank you. Your report was sent."
 msgstr "Merci, votre signalement a été envoyé."
 
-#: src/features/conversation/components/ChatMessageView.tsx:102
+#: src/features/conversation/components/ReplyError.tsx:19
 msgid "The agent could not answer."
 msgstr "L'agent n'a pas pu répondre."
 
@@ -345,7 +353,7 @@ msgstr "L'agent n'a pas pu répondre."
 msgid "The agent forgot everything about you."
 msgstr "L'agent a tout oublié à votre sujet."
 
-#: src/features/conversation/components/Composer.tsx:119
+#: src/features/conversation/components/Composer.tsx:121
 msgid "The agent is answering…"
 msgstr "L'agent répond…"
 
@@ -369,11 +377,11 @@ msgstr "Les réponses que l'agent a recueillies dans la conversation, au fur et 
 msgid "The conversation could not be deleted. Try again."
 msgstr "La conversation n'a pas pu être supprimée. Réessayez."
 
-#: src/features/conversation/components/NewConversation.tsx:30
+#: src/features/conversation/components/NewConversation.tsx:34
 msgid "The conversation could not start. Try again."
 msgstr "La conversation n'a pas pu démarrer. Réessayez."
 
-#: src/features/conversation/components/ChatMessageView.tsx:110
+#: src/features/conversation/components/ReplyError.tsx:27
 msgid "The Desk could not reach the agent. Check your connection."
 msgstr "Le Desk n'a pas pu joindre l'agent. Vérifiez votre connexion."
 
@@ -393,7 +401,7 @@ msgstr "L'information à retenir"
 msgid "The file could not be opened. Try again."
 msgstr "Le fichier n'a pas pu être ouvert. Réessayez."
 
-#: src/features/conversation/components/ChatMessageView.tsx:106
+#: src/features/conversation/components/ReplyError.tsx:23
 msgid "The file could not be uploaded. Try again."
 msgstr "Le fichier n'a pas pu être envoyé. Réessayez."
 
@@ -409,7 +417,7 @@ msgstr "La mémoire n'a pas pu être effacée. Réessayez."
 msgid "The people who run this agent read every report to improve it."
 msgstr "Les personnes qui gèrent cet agent lisent chaque signalement pour l'améliorer."
 
-#: src/features/conversation/components/ChatMessageView.tsx:108
+#: src/features/conversation/components/ReplyError.tsx:25
 msgid "The reply stopped before it finished."
 msgstr "La réponse s'est arrêtée avant la fin."
 
@@ -437,7 +445,7 @@ msgstr "Cette page n’a pas pu se charger"
 msgid "This page does not exist, or you cannot open it."
 msgstr "Cette page n’existe pas, ou vous ne pouvez pas l’ouvrir."
 
-#: src/features/conversation/components/ChatMessageView.tsx:71
+#: src/features/conversation/components/AssistantMessageView.tsx:83
 msgid "This reply was interrupted before it finished."
 msgstr "Cette réponse a été interrompue avant la fin."
 
@@ -491,7 +499,7 @@ msgstr "Quand quelqu'un vous donne accès à un agent, il apparaît ici."
 msgid "Write the fact in 300 characters at most."
 msgstr "Écrivez l'information en 300 caractères au plus."
 
-#: src/features/conversation/components/Composer.tsx:91
+#: src/features/conversation/components/Composer.tsx:93
 msgid "Write to {agentName}"
 msgstr "Écrire à {agentName}"
 

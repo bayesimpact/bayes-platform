@@ -7,6 +7,7 @@ import {
   conversationMessageOutputSchema,
   conversationParamsSchema,
   createdConversationOutputSchema,
+  mcpAppHtmlOutputSchema,
   messageFeedbackInputSchema,
   messageParamsSchema,
   presignAttachmentInputSchema,
@@ -39,6 +40,16 @@ export const DeskConversationsRoutes = {
     path: messagesPath,
     params: conversationParamsSchema,
     response: z.array(conversationMessageOutputSchema),
+  }),
+  /**
+   * The current HTML of every MCP App the conversation's replies show. Reading it connects to
+   * each MCP server, so it loads after the messages.
+   */
+  getMcpAppsHtml: defineSchemaRoute({
+    method: "post",
+    path: `${messagesPath}/mcp-app-html`,
+    params: conversationParamsSchema,
+    response: z.array(mcpAppHtmlOutputSchema),
   }),
   /** Prepares the upload of a file to attach to the next message. */
   presignAttachment: defineSchemaRoute({

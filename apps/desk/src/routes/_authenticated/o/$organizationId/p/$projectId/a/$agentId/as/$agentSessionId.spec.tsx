@@ -17,10 +17,10 @@ beforeEach(() => {
   window.localStorage.clear()
 })
 
-/** The URL of the main agent, and of its first conversation. */
-function urlsOf(world: DeskWorld) {
+/** The URL of the main agent, and of one of its conversations, the first by default. */
+function urlsOf(world: DeskWorld, conversationIndex = 0) {
   const [assistant] = world.agents
-  const [conversation] = world.conversations[assistant?.id ?? ""] ?? []
+  const conversation = (world.conversations[assistant?.id ?? ""] ?? [])[conversationIndex]
   const agentUrl = `/app/o/${world.organizations[0]?.id}/p/${assistant?.projectId}/a/${assistant?.id}`
   return { agentUrl, conversationUrl: `${agentUrl}/as/${conversation?.id}` }
 }
@@ -270,6 +270,36 @@ describe("a conversation", () => {
 
     expect(await screen.findByText("The agent forgot everything about you.")).toBeInTheDocument()
     expect(Object.values(world.memories).flat()).toEqual([])
+  })
+
+  it("shows the card of an MCP App while it loads, in a sandboxed frame", async () => {
+    const world = buildDeskWorld()
+    server.use(...worldHandlers(world))
+    renderApp(urlsOf(world, 1).conversationUrl)
+
+    expect(await screen.findByText("Loading the interactive card…")).toBeInTheDocument()
+    const frame = await screen.findByTitle("Interactive card")
+    expect(frame).toHaveAttribute(
+      "sandbox",
+      "allow-scripts allow-popups allow-popups-to-escape-sandbox allow-downloads",
+    )
+  })
+
+  it("shows the tool's text instead of an app the API has no HTML for", async () => {
+    const world = buildDeskWorld()
+    server.use(...worldHandlers(world))
+    server.use(
+      http.post(
+        "*/api/organizations/:organizationId/projects/:projectId/agents/:agentId/agent-sessions/live/:agentSessionId/messages/mcp-app-html",
+        () => HttpResponse.json({ data: [] }, { status: 201 }),
+      ),
+    )
+    renderApp(urlsOf(world, 1).conversationUrl)
+
+    expect(
+      await screen.findByText("Three releases this month: 2.1, 2.2 and 2.3."),
+    ).toBeInTheDocument()
+    expect(screen.queryByTitle("Interactive card")).not.toBeInTheDocument()
   })
 
   it("reports a problem with a reply", async () => {

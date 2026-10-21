@@ -52,6 +52,34 @@ export type ChatMessage = {
   attachment: ChatAttachment | null
   /** The facts the reply saved or proposed to remember about the person. */
   memoryIds: string[]
+  /** The interactive cards of MCP Apps the reply shows, in the order of its tool calls. */
+  mcpApps: ChatMcpApp[]
+}
+
+/** An MCP App a tool of the reply shows: where its HTML comes from, and the data it renders. */
+export type ChatMcpApp = {
+  toolCallId: string
+  mcpServerId: string | null
+  resourceUri: string
+  toolInput: Record<string, unknown>
+  toolResult: unknown
+}
+
+/** The MCP Apps of a reply: a tool with an app pointer and a kept result. */
+function readMcpApps(toolCalls: ToolCall[]): ChatMcpApp[] {
+  return toolCalls.flatMap((toolCall) =>
+    toolCall.mcpApp && toolCall.result !== undefined
+      ? [
+          {
+            toolCallId: toolCall.id,
+            mcpServerId: toolCall.mcpApp.mcpServerId ?? null,
+            resourceUri: toolCall.mcpApp.resourceUri,
+            toolInput: toolCall.arguments ?? {},
+            toolResult: toolCall.result,
+          },
+        ]
+      : [],
+  )
 }
 
 type ToolCall = NonNullable<ConversationMessageOutputDto["toolCalls"]>[number]
@@ -111,6 +139,7 @@ export function toChatMessages(messages: ConversationMessageOutputDto[]): ChatMe
           ? { documentId: message.attachmentDocumentId, fileName: null }
           : null,
         memoryIds: readSavedMemoryIds(toolCalls),
+        mcpApps: readMcpApps(toolCalls),
       },
     ]
   })
@@ -151,6 +180,7 @@ export function startTurn(
       resources: [],
       attachment: userAttachment,
       memoryIds: [],
+      mcpApps: [],
     },
     {
       id: ids.replyId,
@@ -164,6 +194,7 @@ export function startTurn(
       resources: [],
       attachment: null,
       memoryIds: [],
+      mcpApps: [],
     },
   ]
 }
@@ -207,6 +238,7 @@ export function applyReplyEvent(
         resources: [],
         attachment: null,
         memoryIds: [],
+        mcpApps: [],
       }
       return {
         messages: [...messages, reply],

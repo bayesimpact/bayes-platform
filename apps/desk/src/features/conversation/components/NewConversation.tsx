@@ -1,4 +1,5 @@
 import { Trans } from "@lingui/react/macro"
+import { useState } from "react"
 import { useStartConversation } from "../api/mutations"
 import type { ConversationAgentRef } from "../conversation-ref"
 import { Composer } from "./Composer"
@@ -14,6 +15,7 @@ export type NewConversationProps = {
  */
 export function NewConversation({ agent, agentName }: NewConversationProps) {
   const startConversation = useStartConversation(agent)
+  const [draft, setDraft] = useState("")
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-8 px-4 pb-16">
       <h1 className="text-center text-3xl font-semibold tracking-tight">
@@ -22,6 +24,8 @@ export function NewConversation({ agent, agentName }: NewConversationProps) {
       <div className="w-full max-w-2xl">
         <Composer
           agentName={agentName}
+          content={draft}
+          onContentChange={setDraft}
           isBusy={startConversation.isPending}
           onSend={(outgoing) => startConversation.mutate(outgoing)}
         />

@@ -23,7 +23,16 @@ export const toolCallOutputSchema = z.object({
   id: z.string(),
   name: z.string(),
   arguments: z.record(z.string(), z.unknown()).optional(),
+  /** The raw MCP result of a tool that shows an MCP App, kept only for those tools. */
   result: z.unknown().optional(),
+  /** The `ui://` resource of an MCP App the tool shows, as an interactive card. */
+  mcpApp: z
+    .object({
+      /** Left out on the pointers saved before servers were named. */
+      mcpServerId: z.string().optional(),
+      resourceUri: z.string(),
+    })
+    .optional(),
 })
 
 /** The passages of the knowledge base a reply relied on, by document (the `sources` tool). */
@@ -155,3 +164,12 @@ export const attachmentParamsSchema = z.strictObject({
   agentSessionId: z.uuid(),
   attachmentDocumentId: z.uuid(),
 })
+
+/** The current HTML of an MCP App a conversation's replies show. */
+export const mcpAppHtmlOutputSchema = z.object({
+  mcpServerId: z.string(),
+  resourceUri: z.string(),
+  html: z.string(),
+})
+
+export type McpAppHtmlOutputDto = z.output<typeof mcpAppHtmlOutputSchema>

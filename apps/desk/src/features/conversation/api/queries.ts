@@ -46,3 +46,15 @@ export const documentIsPublicQueryOptions = (document: {
         .isPublicDocument,
     staleTime: 5 * 60 * 1000,
   })
+
+/**
+ * The current HTML of the MCP Apps the conversation's replies show. The API connects to each MCP
+ * server to read it, so it loads after the messages, once a settled reply shows an app.
+ */
+export const mcpAppsHtmlQueryOptions = (conversation: ConversationRef) =>
+  queryOptions({
+    queryKey: conversationKeys.mcpApps(conversation.agentSessionId),
+    queryFn: ({ signal }) =>
+      apiRequest(DeskConversationsRoutes.getMcpAppsHtml, { params: conversation, signal }),
+    staleTime: 5 * 60 * 1000,
+  })
