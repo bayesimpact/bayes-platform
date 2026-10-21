@@ -8,7 +8,7 @@ import { UserMenu } from "./UserMenu"
 const { user } = buildMe()
 
 const renderMenu = () => {
-  const handlers = { onLocaleChange: vi.fn(), onSignOut: vi.fn() }
+  const handlers = { onLocaleChange: vi.fn(), onEditName: vi.fn(), onSignOut: vi.fn() }
   renderWithI18n(<UserMenu user={user} locale="en" locales={["en", "fr"]} {...handlers} />)
   return handlers
 }

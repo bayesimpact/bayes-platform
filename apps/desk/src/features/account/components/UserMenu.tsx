@@ -1,6 +1,6 @@
 import type { MeUserOutputDto } from "@caseai-connect/desk-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
-import { ChevronDownIcon, LogOutIcon } from "lucide-react"
+import { ChevronDownIcon, LogOutIcon, PencilIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -19,6 +19,7 @@ export type UserMenuProps = {
   locale: string
   locales: readonly string[]
   onLocaleChange: (locale: string) => void
+  onEditName: () => void
   onSignOut: () => void
 }
 
@@ -28,7 +29,14 @@ function languageName(locale: string): string {
   return `${name.charAt(0).toLocaleUpperCase(locale)}${name.slice(1)}`
 }
 
-export function UserMenu({ user, locale, locales, onLocaleChange, onSignOut }: UserMenuProps) {
+export function UserMenu({
+  user,
+  locale,
+  locales,
+  onLocaleChange,
+  onEditName,
+  onSignOut,
+}: UserMenuProps) {
   const { t } = useLingui()
   const email = user.email
   return (
@@ -45,6 +53,10 @@ export function UserMenu({ user, locale, locales, onLocaleChange, onSignOut }: U
             <span className="block truncate text-sm text-foreground">{user.name}</span>
             <span className="block truncate">{user.email}</span>
           </DropdownMenuLabel>
+          <DropdownMenuItem onClick={onEditName}>
+            <PencilIcon aria-hidden />
+            <Trans>Edit your name</Trans>
+          </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>

@@ -9,7 +9,7 @@ import {
   buildSeveralAgentsWorld,
   buildSeveralProjectsWorld,
 } from "@/test/factories/desk-world.factory"
-import { termsHandlers, worldHandlers } from "@/test/msw/handlers"
+import { meHandlers, termsHandlers, worldHandlers } from "@/test/msw/handlers"
 import { server } from "@/test/msw/server"
 import { renderApp } from "@/test/render-app"
 
@@ -205,5 +205,35 @@ describe("the terms", () => {
     expect(
       await screen.findByRole("heading", { name: "How can I help you today?" }),
     ).toBeInTheDocument()
+  })
+})
+
+describe("the person's name", () => {
+  it("is edited from the user menu, and shows at once", async () => {
+    // A person of their own: the rename must not reach the other tests.
+    server.use(...worldHandlers(buildDeskWorld()), ...meHandlers())
+    renderApp("/app/")
+
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Open the menu of alex@example.org" }),
+    )
+    await userEvent.click(await screen.findByRole("menuitem", { name: "Edit your name" }))
+    const dialog = await screen.findByRole("dialog", { name: "Edit your name" })
+    const nameField = within(dialog).getByRole("textbox", { name: "Name" })
+    expect(nameField).toHaveValue("Alex Example")
+
+    await userEvent.clear(nameField)
+    await userEvent.click(within(dialog).getByRole("button", { name: "Save" }))
+    expect(
+      await within(dialog).findByText("Write a name of 1 to 100 characters."),
+    ).toBeInTheDocument()
+
+    await userEvent.type(nameField, "  Sam Example ")
+    await userEvent.click(within(dialog).getByRole("button", { name: "Save" }))
+
+    expect(await screen.findByText("Your name was saved.")).toBeInTheDocument()
+    expect(
+      screen.getByRole("button", { name: "Open the menu of alex@example.org" }),
+    ).toHaveTextContent("Sam Example")
   })
 })

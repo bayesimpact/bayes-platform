@@ -200,6 +200,7 @@ msgstr "Back to the Desk"
 msgid "Before you start"
 msgstr "Before you start"
 
+#: src/features/account/components/EditNameDialog.tsx:84
 #: src/features/conversation/components/FeedbackDialog.tsx:107
 #: src/features/extraction/components/CsvSetup.tsx:141
 #: src/features/extraction/components/DeleteDocumentDialog.tsx:61
@@ -375,6 +376,11 @@ msgstr "Each new sign-in ended at once, so the Desk stopped starting new ones."
 msgid "Edit annotation {number}"
 msgstr "Edit annotation {number}"
 
+#: src/features/account/components/EditNameDialog.tsx:53
+#: src/features/account/components/UserMenu.tsx:58
+msgid "Edit your name"
+msgstr "Edit your name"
+
 #: src/components/shared/SignInProblemPage.tsx:36
 msgid "Email address missing"
 msgstr "Email address missing"
@@ -522,7 +528,7 @@ msgstr "just now"
 msgid "Keep"
 msgstr "Keep"
 
-#: src/features/account/components/UserMenu.tsx:52
+#: src/features/account/components/UserMenu.tsx:64
 msgid "Language"
 msgstr "Language"
 
@@ -544,6 +550,10 @@ msgstr "Message to {agentName}"
 #: src/features/extraction/components/ExtractionRunActions.tsx:60
 msgid "More actions"
 msgstr "More actions"
+
+#: src/features/account/components/EditNameDialog.tsx:65
+msgid "Name"
+msgstr "Name"
 
 #: src/features/conversation/components/ConversationMenu.tsx:39
 #: src/features/history/components/HistoryEntryLink.tsx:32
@@ -629,7 +639,7 @@ msgstr "Open row {rowNumber}"
 msgid "Open the document"
 msgstr "Open the document"
 
-#: src/features/account/components/UserMenu.tsx:37
+#: src/features/account/components/UserMenu.tsx:45
 msgid "Open the menu of {email}"
 msgstr "Open the menu of {email}"
 
@@ -795,6 +805,10 @@ msgstr "Rows done"
 msgid "Running"
 msgstr "Running"
 
+#: src/features/account/components/EditNameDialog.tsx:87
+msgid "Save"
+msgstr "Save"
+
 #: src/features/conversation/components/ConversationView.tsx:159
 msgid "Scroll to the latest message"
 msgstr "Scroll to the latest message"
@@ -847,7 +861,7 @@ msgstr "Show the sidebar"
 
 #: src/components/shared/SignInProblemPage.tsx:107
 #: src/features/account/components/TermsPage.tsx:114
-#: src/features/account/components/UserMenu.tsx:65
+#: src/features/account/components/UserMenu.tsx:77
 msgid "Sign out"
 msgstr "Sign out"
 
@@ -1080,6 +1094,10 @@ msgstr "The memory could not be cleared. Try again."
 msgid "The model that reads the document did not answer. Try again in a moment."
 msgstr "The model that reads the document did not answer. Try again in a moment."
 
+#: src/features/account/components/EditNameDialog.tsx:56
+msgid "The people of your projects see you by this name."
+msgstr "The people of your projects see you by this name."
+
 #: src/features/conversation/components/FeedbackDialog.tsx:80
 msgid "The people who run this agent read every report to improve it."
 msgstr "The people who run this agent read every report to improve it."
@@ -1211,6 +1229,10 @@ msgstr "What went wrong?"
 msgid "When someone gives you access to an agent, it appears here."
 msgstr "When someone gives you access to an agent, it appears here."
 
+#: src/features/account/components/EditNameDialog.tsx:76
+msgid "Write a name of 1 to 100 characters."
+msgstr "Write a name of 1 to 100 characters."
+
 #: src/features/memory/components/MemoryRewordForm.tsx:51
 msgid "Write the fact in 300 characters at most."
 msgstr "Write the fact in 300 characters at most."
@@ -1255,6 +1277,14 @@ msgstr "Your identity provider did not share your email address with the Desk."
 #: src/components/shared/SignInProblemPage.tsx:73
 msgid "Your identity provider refused the sign-in."
 msgstr "Your identity provider refused the sign-in."
+
+#: src/features/account/components/EditNameDialog.tsx:43
+msgid "Your name could not be saved. Try again."
+msgstr "Your name could not be saved. Try again."
+
+#: src/features/account/components/EditNameDialog.tsx:40
+msgid "Your name was saved."
+msgstr "Your name was saved."
 
 #: src/features/conversation/components/QuoteReplyPopover.tsx:126
 msgid "Your note on this passage"

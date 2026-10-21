@@ -28,6 +28,15 @@ export type MeUserOutputDto = z.output<typeof meUserOutputSchema>
 export type MeOutputDto = z.output<typeof meOutputSchema>
 export type TermsDocumentOutputDto = z.output<typeof termsDocumentOutputSchema>
 
+/** The person's new name, as the API takes it: from 1 to 100 characters, without the spaces around. */
+export const updateMeInputSchema = z.strictObject({
+  name: z.string().trim().min(1).max(100),
+})
+
+export type UpdateMeInputDto = z.input<typeof updateMeInputSchema>
+
+export const updateMeOutputSchema = z.object({ success: z.boolean() })
+
 /** The person accepts the general conditions and the privacy policy, and chooses for AI usage. */
 export const acceptTermsInputSchema = z.strictObject({
   aiUsagePolicyAccepted: z.boolean(),

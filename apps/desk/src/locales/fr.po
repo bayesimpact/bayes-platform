@@ -200,6 +200,7 @@ msgstr "Retour au Desk"
 msgid "Before you start"
 msgstr "Avant de commencer"
 
+#: src/features/account/components/EditNameDialog.tsx:84
 #: src/features/conversation/components/FeedbackDialog.tsx:107
 #: src/features/extraction/components/CsvSetup.tsx:141
 #: src/features/extraction/components/DeleteDocumentDialog.tsx:61
@@ -375,6 +376,11 @@ msgstr "Chaque nouvelle connexion s’est terminée aussitôt : le Desk a cessé
 msgid "Edit annotation {number}"
 msgstr "Modifier l'annotation {number}"
 
+#: src/features/account/components/EditNameDialog.tsx:53
+#: src/features/account/components/UserMenu.tsx:58
+msgid "Edit your name"
+msgstr "Modifier votre nom"
+
 #: src/components/shared/SignInProblemPage.tsx:36
 msgid "Email address missing"
 msgstr "Adresse email manquante"
@@ -522,7 +528,7 @@ msgstr "à l'instant"
 msgid "Keep"
 msgstr "Garder"
 
-#: src/features/account/components/UserMenu.tsx:52
+#: src/features/account/components/UserMenu.tsx:64
 msgid "Language"
 msgstr "Langue"
 
@@ -544,6 +550,10 @@ msgstr "Message à {agentName}"
 #: src/features/extraction/components/ExtractionRunActions.tsx:60
 msgid "More actions"
 msgstr "Plus d’actions"
+
+#: src/features/account/components/EditNameDialog.tsx:65
+msgid "Name"
+msgstr "Nom"
 
 #: src/features/conversation/components/ConversationMenu.tsx:39
 #: src/features/history/components/HistoryEntryLink.tsx:32
@@ -629,7 +639,7 @@ msgstr "Ouvrir la ligne {rowNumber}"
 msgid "Open the document"
 msgstr "Ouvrir le document"
 
-#: src/features/account/components/UserMenu.tsx:37
+#: src/features/account/components/UserMenu.tsx:45
 msgid "Open the menu of {email}"
 msgstr "Ouvrir le menu de {email}"
 
@@ -795,6 +805,10 @@ msgstr "Lignes traitées"
 msgid "Running"
 msgstr "En cours"
 
+#: src/features/account/components/EditNameDialog.tsx:87
+msgid "Save"
+msgstr "Enregistrer"
+
 #: src/features/conversation/components/ConversationView.tsx:159
 msgid "Scroll to the latest message"
 msgstr "Aller au dernier message"
@@ -847,7 +861,7 @@ msgstr "Afficher la barre latérale"
 
 #: src/components/shared/SignInProblemPage.tsx:107
 #: src/features/account/components/TermsPage.tsx:114
-#: src/features/account/components/UserMenu.tsx:65
+#: src/features/account/components/UserMenu.tsx:77
 msgid "Sign out"
 msgstr "Se déconnecter"
 
@@ -1080,6 +1094,10 @@ msgstr "La mémoire n'a pas pu être effacée. Réessayez."
 msgid "The model that reads the document did not answer. Try again in a moment."
 msgstr "Le modèle qui lit le document n’a pas répondu. Réessayez dans un instant."
 
+#: src/features/account/components/EditNameDialog.tsx:56
+msgid "The people of your projects see you by this name."
+msgstr "Les membres de vos projets vous voient sous ce nom."
+
 #: src/features/conversation/components/FeedbackDialog.tsx:80
 msgid "The people who run this agent read every report to improve it."
 msgstr "Les personnes qui gèrent cet agent lisent chaque signalement pour l'améliorer."
@@ -1211,6 +1229,10 @@ msgstr "Qu'est-ce qui n'allait pas ?"
 msgid "When someone gives you access to an agent, it appears here."
 msgstr "Quand quelqu'un vous donne accès à un agent, il apparaît ici."
 
+#: src/features/account/components/EditNameDialog.tsx:76
+msgid "Write a name of 1 to 100 characters."
+msgstr "Écrivez un nom de 1 à 100 caractères."
+
 #: src/features/memory/components/MemoryRewordForm.tsx:51
 msgid "Write the fact in 300 characters at most."
 msgstr "Écrivez l'information en 300 caractères au plus."
@@ -1255,6 +1277,14 @@ msgstr "Votre fournisseur d’identité n’a pas transmis votre adresse email a
 #: src/components/shared/SignInProblemPage.tsx:73
 msgid "Your identity provider refused the sign-in."
 msgstr "Votre fournisseur d’identité a refusé la connexion."
+
+#: src/features/account/components/EditNameDialog.tsx:43
+msgid "Your name could not be saved. Try again."
+msgstr "Votre nom n’a pas pu être enregistré. Réessayez."
+
+#: src/features/account/components/EditNameDialog.tsx:40
+msgid "Your name was saved."
+msgstr "Votre nom a été enregistré."
 
 #: src/features/conversation/components/QuoteReplyPopover.tsx:126
 msgid "Your note on this passage"
