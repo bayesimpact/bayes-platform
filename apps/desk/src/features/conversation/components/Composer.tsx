@@ -1,7 +1,14 @@
 import { ATTACHMENT_MAX_BYTES, ATTACHMENT_MIME_TYPES } from "@caseai-connect/desk-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { ArrowUpIcon, FileIcon, PaperclipIcon, XIcon } from "lucide-react"
-import { type ChangeEvent, type FormEvent, type KeyboardEvent, useRef, useState } from "react"
+import {
+  type ChangeEvent,
+  type FormEvent,
+  type KeyboardEvent,
+  useId,
+  useRef,
+  useState,
+} from "react"
 import { toast } from "sonner"
 import {
   InputGroup,
@@ -9,6 +16,7 @@ import {
   InputGroupButton,
   InputGroupTextarea,
 } from "@/components/ui/input-group"
+import { Kbd, KbdGroup } from "@/components/ui/kbd"
 import type { OutgoingMessage } from "../chat-messages"
 
 export type ComposerProps = {
@@ -31,6 +39,7 @@ export function Composer({ agentName, content, onContentChange, isBusy, onSend }
   const { t } = useLingui()
   const [file, setFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const hintId = useId()
   const canSend = !isBusy && content.trim().length > 0
 
   const send = () => {
@@ -92,15 +101,42 @@ export function Composer({ agentName, content, onContentChange, isBusy, onSend }
             </span>
           </InputGroupAddon>
         ) : null}
-        <InputGroupTextarea
-          aria-label={t`Message to ${agentName}`}
-          placeholder={t`Write to ${agentName}`}
-          value={content}
-          onChange={(event) => onContentChange(event.target.value)}
-          onKeyDown={handleKeyDown}
-          autoFocus
-          className="max-h-60 min-h-14 px-4 pt-4 pb-2 text-base leading-relaxed md:text-base"
-        />
+        <div className="relative w-full">
+          <InputGroupTextarea
+            aria-label={t`Message to ${agentName}`}
+            aria-describedby={hintId}
+            value={content}
+            onChange={(event) => onContentChange(event.target.value)}
+            onKeyDown={handleKeyDown}
+            autoFocus
+            className="max-h-60 min-h-14 px-4 pt-4 pb-2 text-base leading-relaxed md:text-base"
+          />
+          {/*
+            The keys to send and to start a line, drawn as keys where a placeholder would stand:
+            a placeholder holds plain text only. The field reads them as its description.
+          */}
+          <p
+            id={hintId}
+            className={
+              content === ""
+                ? "pointer-events-none absolute top-4 left-4 flex flex-wrap items-center gap-1 text-base text-muted-foreground"
+                : "sr-only"
+            }
+          >
+            <Trans>
+              <Kbd>Enter</Kbd> to send
+            </Trans>
+            <span aria-hidden className="px-1">
+              ·
+            </span>
+            <Trans>
+              <KbdGroup>
+                <Kbd>Shift</Kbd>+<Kbd>Enter</Kbd>
+              </KbdGroup>{" "}
+              for a new line
+            </Trans>
+          </p>
+        </div>
         <InputGroupAddon align="block-end" className="px-3 pb-3">
           <input
             ref={fileInputRef}

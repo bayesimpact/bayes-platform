@@ -29,6 +29,14 @@ msgstr "{count, plural, one {# source utilisée} other {# sources utilisées}}"
 msgid "{count, plural, one {Worked through # step} other {Worked through # steps}}"
 msgstr "{count, plural, one {# étape suivie} other {# étapes suivies}}"
 
+#: src/features/conversation/components/Composer.tsx:132
+msgid "<0><1>Shift</1>+<2>Enter</2></0> for a new line"
+msgstr "<0><1>Maj</1>+<2>Entrée</2></0> pour aller à la ligne"
+
+#: src/features/conversation/components/Composer.tsx:126
+msgid "<0>Enter</0> to send"
+msgstr "<0>Entrée</0> pour envoyer"
+
 #: src/components/shared/RouteErrorState.tsx:21
 msgid "A new version of the Desk is available"
 msgstr "Une nouvelle version du Desk est disponible"
@@ -45,15 +53,15 @@ msgstr "Actions sur {title}"
 msgid "Agent"
 msgstr "Agent"
 
-#: src/features/conversation/components/Composer.tsx:118
+#: src/features/conversation/components/Composer.tsx:154
 msgid "Attach a file"
 msgstr "Joindre un fichier"
 
-#: src/features/conversation/components/Composer.tsx:65
+#: src/features/conversation/components/Composer.tsx:74
 msgid "Attach a file of 10 MB at most."
 msgstr "Joignez un fichier de 10 Mo au plus."
 
-#: src/features/conversation/components/Composer.tsx:61
+#: src/features/conversation/components/Composer.tsx:70
 msgid "Attach a PDF, PNG or JPEG file."
 msgstr "Joignez un fichier PDF, PNG ou JPEG."
 
@@ -194,7 +202,7 @@ msgstr "Langue"
 msgid "Loading the interactive card…"
 msgstr "Chargement de la carte interactive…"
 
-#: src/features/conversation/components/Composer.tsx:96
+#: src/features/conversation/components/Composer.tsx:106
 msgid "Message to {agentName}"
 msgstr "Message à {agentName}"
 
@@ -285,7 +293,7 @@ msgstr "Retenir"
 msgid "Remembering what matters"
 msgstr "Mémorisation de l'essentiel"
 
-#: src/features/conversation/components/Composer.tsx:87
+#: src/features/conversation/components/Composer.tsx:96
 msgid "Remove {fileName}"
 msgstr "Retirer {fileName}"
 
@@ -318,7 +326,7 @@ msgstr "Recherche dans la base de connaissances"
 msgid "Searching the resources"
 msgstr "Recherche dans les ressources"
 
-#: src/features/conversation/components/Composer.tsx:133
+#: src/features/conversation/components/Composer.tsx:169
 msgid "Send"
 msgstr "Envoyer"
 
@@ -358,7 +366,7 @@ msgstr "L'agent n'a pas pu répondre."
 msgid "The agent forgot everything about you."
 msgstr "L'agent a tout oublié à votre sujet."
 
-#: src/features/conversation/components/Composer.tsx:125
+#: src/features/conversation/components/Composer.tsx:161
 msgid "The agent is answering…"
 msgstr "L'agent répond…"
 
@@ -503,10 +511,6 @@ msgstr "Quand quelqu'un vous donne accès à un agent, il apparaît ici."
 #: src/features/memory/components/MemoryRewordForm.tsx:51
 msgid "Write the fact in 300 characters at most."
 msgstr "Écrivez l'information en 300 caractères au plus."
-
-#: src/features/conversation/components/Composer.tsx:97
-msgid "Write to {agentName}"
-msgstr "Écrire à {agentName}"
 
 #: src/features/history/components/HistoryList.tsx:31
 msgid "Yesterday"
