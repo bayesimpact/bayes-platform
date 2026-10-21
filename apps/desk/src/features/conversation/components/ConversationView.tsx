@@ -13,11 +13,12 @@ import {
   MessageScrollerViewport,
 } from "@/components/ui/message-scroller"
 import { MemoryButton, MemoryPanel } from "@/features/memory"
-import { annotationLine, appendAnnotation } from "../annotation"
+import { composeMessage } from "../annotation"
 import { useSendMessage } from "../api/mutations"
 import { mcpAppsHtmlQueryOptions, messagesQueryOptions } from "../api/queries"
 import { findRetryableMessage, isWriting } from "../chat-messages"
 import type { ConversationRef } from "../conversation-ref"
+import { useAnnotations } from "../hooks/use-annotations"
 import { useConversationForms } from "../hooks/use-conversation-forms"
 import { ChatMessageView } from "./ChatMessageView"
 import { Composer } from "./Composer"
@@ -46,9 +47,7 @@ export function ConversationView({ conversation, agentName, showSources }: Conve
   const forms = useConversationForms(conversation)
   const [draft, setDraft] = useState("")
   const composerId = useId()
-  const handleAnnotate = (passage: string, note: string) => {
-    setDraft((current) => appendAnnotation(current, annotationLine(passage, note)))
-  }
+  const annotations = useAnnotations()
   // The panel docked beside the conversation, as an artifact in the Claude app, if one is open.
   const [openPanel, setOpenPanel] = useState<"memory" | "forms" | null>(null)
   const togglePanel = (panel: "memory" | "forms") =>
@@ -92,7 +91,11 @@ export function ConversationView({ conversation, agentName, showSources }: Conve
                 <Trans>How can I help you today?</Trans>
               </h1>
             ) : (
-              <QuoteReplyPopover onAnnotate={handleAnnotate} messageBoxId={composerId}>
+              <QuoteReplyPopover
+                annotations={annotations.annotations}
+                onSave={annotations.save}
+                messageBoxId={composerId}
+              >
                 <MessageScroller>
                   <MessageScrollerViewport>
                     <MessageScrollerContent
@@ -144,7 +147,13 @@ export function ConversationView({ conversation, agentName, showSources }: Conve
               content={draft}
               onContentChange={setDraft}
               isBusy={isBusy}
-              onSend={(outgoing) => sendMessage.mutate(outgoing)}
+              annotationCount={annotations.annotations.length}
+              onSend={(outgoing) => {
+                // The annotations leave with the message, each on a line of its own.
+                const content = composeMessage(outgoing.content, annotations.annotations)
+                sendMessage.mutate({ ...outgoing, content })
+                annotations.clear()
+              }}
             />
           </div>
         </div>

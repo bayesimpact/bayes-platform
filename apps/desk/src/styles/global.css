@@ -21,6 +21,8 @@
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar: var(--sidebar);
   --color-chart-5: var(--chart-5);
+  --color-annotation: var(--annotation);
+  --color-annotation-foreground: var(--annotation-foreground);
   --color-chart-4: var(--chart-4);
   --color-chart-3: var(--chart-3);
   --color-chart-2: var(--chart-2);
@@ -85,8 +87,11 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
-  /* The highlighter yellow of a quoted passage. */
+  /* The highlighter yellow of an annotated passage, and of the bubbles that number annotations,
+     with a dark amber ink that reads on it. They come from point-by-point. */
   --quote-mark: rgb(242 196 64 / 0.32);
+  --annotation: rgb(242 196 64);
+  --annotation-foreground: rgb(58 45 6);
 }
 
 .dark {
@@ -122,6 +127,8 @@
   --sidebar-border: oklch(0.269 0 0);
   --sidebar-ring: oklch(0.439 0 0);
   --quote-mark: rgb(242 196 64 / 0.24);
+  --annotation: rgb(240 197 69);
+  --annotation-foreground: rgb(42 32 4);
 }
 
 @layer base {
@@ -137,7 +144,7 @@
 }
 
 /* A passage of a reply turns highlighter yellow as the person selects it, and stays so while they
-   write their note on it (src/lib/quote-highlight.ts). */
+   write their note on it and until their message leaves (src/lib/quote-highlight.ts). */
 [data-quotable] ::selection {
   background-color: var(--quote-mark);
 }

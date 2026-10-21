@@ -1,4 +1,5 @@
 import { ATTACHMENT_MAX_BYTES, ATTACHMENT_MIME_TYPES } from "@caseai-connect/desk-contracts"
+import { plural } from "@lingui/core/macro"
 import { Trans, useLingui } from "@lingui/react/macro"
 import {
   ArrowBigUpIcon,
@@ -35,6 +36,8 @@ export type ComposerProps = {
   onContentChange: (content: string) => void
   /** Whether a reply is on its way: the message waits until it ends. */
   isBusy: boolean
+  /** How many annotations of the replies leave with the message, which can then be empty. */
+  annotationCount?: number
   onSend: (message: OutgoingMessage) => void
 }
 
@@ -50,13 +53,14 @@ export function Composer({
   content,
   onContentChange,
   isBusy,
+  annotationCount = 0,
   onSend,
 }: ComposerProps) {
   const { t } = useLingui()
   const [file, setFile] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const hintId = useId()
-  const canSend = !isBusy && content.trim().length > 0
+  const canSend = !isBusy && (content.trim().length > 0 || annotationCount > 0)
 
   const send = () => {
     if (!canSend) return
@@ -182,11 +186,28 @@ export function Composer({
             type="submit"
             size="icon-sm"
             variant="default"
-            className="ml-auto size-8 rounded-full disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100"
+            className="relative ml-auto size-8 rounded-full disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100"
             disabled={!canSend}
-            aria-label={t`Send`}
+            aria-label={
+              annotationCount > 0
+                ? t({
+                    message: plural(annotationCount, {
+                      one: "Send with # annotation",
+                      other: "Send with # annotations",
+                    }),
+                  })
+                : t`Send`
+            }
           >
             <ArrowUpIcon aria-hidden />
+            {annotationCount > 0 ? (
+              <span
+                aria-hidden
+                className="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-annotation text-xs leading-none font-semibold text-annotation-foreground ring-2 ring-background"
+              >
+                {annotationCount}
+              </span>
+            ) : null}
           </InputGroupButton>
         </InputGroupAddon>
       </InputGroup>

@@ -302,25 +302,39 @@ describe("a conversation", () => {
     expect(screen.queryByTitle("Interactive card")).not.toBeInTheDocument()
   })
 
-  it("quotes a selected passage of a reply, with a note, in the message box", async () => {
+  it("sends every annotated passage of a reply with the next message", async () => {
     const world = buildDeskWorld()
     server.use(...worldHandlers(world))
     renderApp(urlsOf(world).conversationUrl)
 
-    const passage = await screen.findByText(/The Pro plan also adds/)
-    const text = passage.firstChild as Text
-    const range = document.createRange()
-    range.setStart(text, 4)
-    range.setEnd(text, 12)
-    window.getSelection()?.removeAllRanges()
-    window.getSelection()?.addRange(range)
-    fireEvent.mouseUp(passage)
+    const select = (element: HTMLElement, start: number, end: number) => {
+      const text = element.firstChild as Text
+      const range = document.createRange()
+      range.setStart(text, start)
+      range.setEnd(text, end)
+      window.getSelection()?.removeAllRanges()
+      window.getSelection()?.addRange(range)
+      fireEvent.mouseUp(element)
+    }
+    const noteBox = () => screen.findByRole("textbox", { name: "Your note on this passage" })
 
-    const note = await screen.findByRole("textbox", { name: "Your note on this passage" })
-    await userEvent.type(note, "is it billed per seat?{Enter}")
+    // A note left for another passage is kept, as one added with Enter.
+    select(await screen.findByText(/The Pro plan also adds/), 4, 12)
+    await userEvent.type(await noteBox(), "is it billed per seat?")
+    select(screen.getByText(/shared workspaces/), 0, 17)
+    await userEvent.type(await noteBox(), "how many?{Enter}")
 
-    expect(screen.getByRole("textbox", { name: "Message to Helpful Assistant" })).toHaveValue(
-      "`Pro plan` is it billed per seat?",
+    await userEvent.click(screen.getByRole("button", { name: "Send with 2 annotations" }))
+
+    expect(await screen.findByRole("button", { name: "Send" })).toBeDisabled()
+    await waitFor(() =>
+      expect(
+        Object.values(world.messages)[0]?.some(
+          (message) =>
+            message.role === "user" &&
+            message.content === "`Pro plan` is it billed per seat?\n`shared workspaces` how many?",
+        ),
+      ).toBe(true),
     )
   })
 

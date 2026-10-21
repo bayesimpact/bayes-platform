@@ -17,6 +17,10 @@ msgstr "\"{title}\" and its messages will be deleted. This cannot be undone."
 msgid "(opens in a new tab)"
 msgstr "(opens in a new tab)"
 
+#: src/features/conversation/components/Composer.tsx:193
+msgid "{annotationCount, plural, one {Send with # annotation} other {Send with # annotations}}"
+msgstr "{annotationCount, plural, one {Send with # annotation} other {Send with # annotations}}"
+
 #: src/features/memory/components/MemoryButton.tsx:31
 msgid "{count, plural, one {Memory (#)} other {Memory (#)}}"
 msgstr "{count, plural, one {Memory (#)} other {Memory (#)}}"
@@ -29,11 +33,11 @@ msgstr "{count, plural, one {Used # source} other {Used # sources}}"
 msgid "{count, plural, one {Used a tool} other {Used tools}}"
 msgstr "{count, plural, one {Used a tool} other {Used tools}}"
 
-#: src/features/conversation/components/Composer.tsx:143
+#: src/features/conversation/components/Composer.tsx:147
 msgid "<0/> to send"
 msgstr "<0/> to send"
 
-#: src/features/conversation/components/Composer.tsx:149
+#: src/features/conversation/components/Composer.tsx:153
 msgid "<0><1/><2/></0> for a new line"
 msgstr "<0><1/><2/></0> for a new line"
 
@@ -49,8 +53,7 @@ msgstr "A new version of the Desk is available. Reload the page."
 msgid "Actions on {title}"
 msgstr "Actions on {title}"
 
-#: src/features/conversation/components/QuoteReplyPopover.tsx:100
-#: src/features/conversation/components/QuoteReplyPopover.tsx:107
+#: src/features/conversation/components/QuoteReplyPopover.tsx:141
 msgid "Add to your message"
 msgstr "Add to your message"
 
@@ -58,19 +61,19 @@ msgstr "Add to your message"
 msgid "Agent"
 msgstr "Agent"
 
-#: src/features/conversation/components/QuoteReplyPopover.tsx:86
+#: src/features/conversation/components/QuoteReplyPopover.tsx:126
 msgid "Annotate"
 msgstr "Annotate"
 
-#: src/features/conversation/components/Composer.tsx:172
+#: src/features/conversation/components/Composer.tsx:176
 msgid "Attach a file"
 msgstr "Attach a file"
 
-#: src/features/conversation/components/Composer.tsx:90
+#: src/features/conversation/components/Composer.tsx:94
 msgid "Attach a file of 10 MB at most."
 msgstr "Attach a file of 10 MB at most."
 
-#: src/features/conversation/components/Composer.tsx:86
+#: src/features/conversation/components/Composer.tsx:90
 msgid "Attach a PDF, PNG or JPEG file."
 msgstr "Attach a PDF, PNG or JPEG file."
 
@@ -117,7 +120,7 @@ msgstr "Copy the code"
 msgid "Copy the message"
 msgstr "Copy the message"
 
-#: src/features/conversation/components/AssistantMessageView.tsx:95
+#: src/features/conversation/components/AssistantMessageView.tsx:96
 msgid "Copy the reply"
 msgstr "Copy the reply"
 
@@ -147,8 +150,12 @@ msgstr "Don't remember"
 msgid "Drop a document or a CSV file here"
 msgstr "Drop a document or a CSV file here"
 
+#: src/features/conversation/components/AnnotationBadge.tsx:24
+msgid "Edit annotation {number}"
+msgstr "Edit annotation {number}"
+
 #. The keyboard key
-#: src/features/conversation/components/Composer.tsx:207
+#: src/features/conversation/components/Composer.tsx:228
 msgid "Enter"
 msgstr "Enter"
 
@@ -189,7 +196,7 @@ msgstr "Handing the conversation back"
 msgid "Home of the Desk"
 msgstr "Home of the Desk"
 
-#: src/features/conversation/components/ConversationView.tsx:92
+#: src/features/conversation/components/ConversationView.tsx:91
 #: src/features/conversation/components/NewConversation.tsx:22
 msgid "How can I help you today?"
 msgstr "How can I help you today?"
@@ -219,7 +226,7 @@ msgstr "Language"
 msgid "Loading the interactive card…"
 msgstr "Loading the interactive card…"
 
-#: src/features/conversation/components/Composer.tsx:123
+#: src/features/conversation/components/Composer.tsx:127
 msgid "Message to {agentName}"
 msgstr "Message to {agentName}"
 
@@ -306,9 +313,13 @@ msgstr "Remember"
 msgid "Remembering what matters"
 msgstr "Remembering what matters"
 
-#: src/features/conversation/components/Composer.tsx:112
+#: src/features/conversation/components/Composer.tsx:116
 msgid "Remove {fileName}"
 msgstr "Remove {fileName}"
+
+#: src/features/conversation/components/QuoteReplyPopover.tsx:137
+msgid "Remove this annotation"
+msgstr "Remove this annotation"
 
 #: src/features/conversation/components/FeedbackDialog.tsx:63
 #: src/features/conversation/components/FeedbackDialog.tsx:70
@@ -327,7 +338,7 @@ msgstr "Resize the panel"
 msgid "Resize the sidebar"
 msgstr "Resize the sidebar"
 
-#: src/features/conversation/components/ConversationView.tsx:126
+#: src/features/conversation/components/ConversationView.tsx:129
 msgid "Retry"
 msgstr "Retry"
 
@@ -335,7 +346,7 @@ msgstr "Retry"
 msgid "Reword"
 msgstr "Reword"
 
-#: src/features/conversation/components/ConversationView.tsx:134
+#: src/features/conversation/components/ConversationView.tsx:137
 msgid "Scroll to the latest message"
 msgstr "Scroll to the latest message"
 
@@ -348,7 +359,7 @@ msgstr "Searching the knowledge base"
 msgid "Searching the resources"
 msgstr "Searching the resources"
 
-#: src/features/conversation/components/Composer.tsx:187
+#: src/features/conversation/components/Composer.tsx:199
 msgid "Send"
 msgstr "Send"
 
@@ -357,7 +368,7 @@ msgid "Send the report"
 msgstr "Send the report"
 
 #. The keyboard key
-#: src/features/conversation/components/Composer.tsx:218
+#: src/features/conversation/components/Composer.tsx:239
 msgid "Shift"
 msgstr "Shift"
 
@@ -397,7 +408,7 @@ msgstr "The agent could not answer."
 msgid "The agent forgot everything about you."
 msgstr "The agent forgot everything about you."
 
-#: src/features/conversation/components/Composer.tsx:179
+#: src/features/conversation/components/Composer.tsx:183
 msgid "The agent is answering…"
 msgstr "The agent is answering…"
 
@@ -493,7 +504,7 @@ msgstr "This page could not load"
 msgid "This page does not exist, or you cannot open it."
 msgstr "This page does not exist, or you cannot open it."
 
-#: src/features/conversation/components/AssistantMessageView.tsx:90
+#: src/features/conversation/components/AssistantMessageView.tsx:91
 msgid "This reply was interrupted before it finished."
 msgstr "This reply was interrupted before it finished."
 
@@ -559,6 +570,6 @@ msgstr "You don't have access to an agent yet"
 msgid "Your answer could not be saved. Try again."
 msgstr "Your answer could not be saved. Try again."
 
-#: src/features/conversation/components/QuoteReplyPopover.tsx:85
+#: src/features/conversation/components/QuoteReplyPopover.tsx:125
 msgid "Your note on this passage"
 msgstr "Your note on this passage"
