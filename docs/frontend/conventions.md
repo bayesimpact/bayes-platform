@@ -22,7 +22,8 @@ significant change, on top of the repository's completion criteria.
   `https://tanstack.com/router/latest/docs` and `https://tanstack.com/query/latest/docs`. When the
   documentation contradicts these rules, stop, explain, propose a change and wait for a human's go.
 - Reading `apps/web` to learn what a screen does today is fine. Its code is never imported, copied
-  or taken as a model. The sign-in module was the one exception, copied once at the start.
+  or taken as a model. Two exceptions were copied once, each with a human's go: the sign-in
+  module at the start, and the Desk's dictation, on the browser's speech recognition.
 - Ask a human before an architecture decision, a new dependency, a version change or an action on a
   shared or remote system. A human types every secret.
 - One way to do each thing, little magic, small verified changes, and no unrequested refactor
@@ -41,6 +42,7 @@ significant change, on top of the repository's completion criteria.
 | Tables | TanStack Table v9, rendered with the shadcn `Table` |
 | Text | Lingui: English in the components, French in a PO catalog |
 | UI | Tailwind CSS v4, shadcn/ui on Base UI generated into the app, `cva`, `cn()` from `cn`, lucide-react, sonner |
+| Chat and content | `@shadcn/react` for the message scroller, streamdown and shiki for Markdown and code, `@modelcontextprotocol/ext-apps` and `sdk` for MCP Apps |
 | Sign-in | `oidc-client-ts`, in the app's `lib/auth/` |
 | Tests | Vitest with Testing Library and happy-dom, MSW 2, Playwright |
 | Quality | Biome, dependency-cruiser, knip |
@@ -124,7 +126,9 @@ or editing the boundaries' configuration.
   `isLoading`, no `data?.`, no `if (!data)`. A component never chains `useSuspenseQuery` calls on
   queries its loader did not start.
 - Each route that loads data has a `pendingComponent` shaped like the page (skeletons, never a
-  full-page spinner) and an `errorComponent` whose retry resets the query (`RouteErrorState` in
+  full-page spinner), which the router shows after 200 ms and keeps at least 300 ms
+  (`defaultPendingMs`, `defaultPendingMinMs`), so a fast page shows none and a slow one does not
+  flash it, and an `errorComponent` whose retry resets the query (`RouteErrorState` in
   `components/shared/`). A section that must not block its page starts its query unawaited in the
   loader (`prefetchQuery`) and waits in a local `Suspense` with its own skeleton, as the Desk's user
   menu does. `__root.tsx` holds the global error boundary and the not-found page.
@@ -171,6 +175,8 @@ or editing the boundaries' configuration.
 - A chat reply is a mutation that writes into the conversation's query cache with `setQueryData`.
   A stream that closes with no `end` or `error` event fails the reply, and leaving the page aborts
   it. `experimental_streamedQuery` is not used.
+- Work the API runs in the background with no stream, such as an extraction, is polled: its query
+  sets a `refetchInterval` while its status is pending, and returns `false` once it settles.
 
 ## UI and styling
 

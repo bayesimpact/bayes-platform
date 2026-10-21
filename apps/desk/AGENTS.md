@@ -11,8 +11,10 @@ holds what is specific to the Desk.
   `basepath`). The URLs of today's Desk stay: `/app/o/$organizationId/p/$projectId` and the agent
   pages below it. `/app` is the home, and `/app/o/$organizationId` redirects to it.
 - Contracts: `@caseai-connect/desk-contracts` (`packages/desk-contracts`), one folder per area
-  (`account`, `organizations`, `projects` so far), one `Desk{Area}Routes` object per area. It
-  describes the API routes the Desk calls and the fields it reads; the API does not import it.
+  (`account`, `agent-sessions`, `agents`, `conversations`, `documents`, `extractions`,
+  `invitations`, `memories`, `organizations`, `projects`), one `Desk{Area}Routes` object per
+  area. It describes the API routes the Desk calls and the fields it reads; the API does not
+  import it.
 - Endpoints: in this first phase, the Desk reads the API's existing endpoints, and `apps/api`
   changes only in its usual way when one is missing (`docs/frontend/conventions.md`, Endpoints).
   The home reads `me`, `projects/mine` and `organizations/mine`, and keeps the projects that grant
@@ -21,6 +23,12 @@ holds what is specific to the Desk.
   `lib/auth/session.ts`. It signs in with the install's client and comes back to
   `<origin>/app/auth/callback` (`<origin>/app/` after sign-out). Its storage prefix (`desk.oidc.`)
   and refresh lock are its own, apart from apps/web's.
+- Sign-in problems never loop. A 401 whose message the API uses to refuse a person raises a
+  `SignInRefusedError`, shown as a page that says why. An automatic sign-in starts at most once
+  every 30 seconds (`SignInLoopError` beyond), and a callback whose OIDC state was lost retries
+  once a minute at most. Queries never retry these errors.
+- Terms: the layout of the signed-in pages waits for `me` and shows the terms to accept before any
+  page, as apps/web does. It is the one section that holds its pages back, on purpose.
 - Configuration: the API injects `window.__CONFIG__` when it serves the Desk; in dev, the
   `VITE_OIDC_*` values of `apps/desk/.env` stand in (see `.env-example`).
 
@@ -31,7 +39,7 @@ Run them from the repository root.
 | Command | What it does |
 |---|---|
 | `npm run dev -w @caseai-connect/desk` | Dev server on port 5177 at `/app/`, forwarding `/api` to the local API |
-| `npm run dev:mock -w @caseai-connect/desk` | The Desk on the MSW handlers, with no API and no sign-in; `?mock=empty`, `?mock=error`, `?mock=loading` show the other states |
+| `npm run dev:mock -w @caseai-connect/desk` | The Desk on the MSW handlers, with no API and no sign-in; `?mock=` picks a state: `agents`, `projects`, `extraction`, `no-history`, `no-agent`, `terms`, `error`, `loading`, and `default` to go back |
 | `npm run check -w @caseai-connect/desk` | Typecheck, Biome, dependency-cruiser, knip, translation checks and Vitest |
 | `npm run i18n:extract -w @caseai-connect/desk` | Writes every message to `src/locales/fr.po`, to translate in the same change |
 | `npm run build -w @caseai-connect/desk` | The production build, in `apps/desk/dist` |
@@ -39,15 +47,27 @@ Run them from the repository root.
 
 In a worktree with an environment, never start `dev` on the host: the environment's `desk` service
 runs it, under the `desk` profile (`bayes wt up --with desk`), at `<WT_ORIGIN>/app/`. The mock mode
-is not part of the environment and runs on the host.
+is not part of the environment and runs on the host. It keeps the chosen state in
+`sessionStorage`, so a reload deep in the Desk stays in it, and its ids are stable until the
+handlers change.
 
 ## Where things are
 
-- The home: `src/routes/_authenticated/index.tsx`, composing `features/home`, whose
-  `listDeskProjects` keeps the projects that open the Desk. The user menu reads the `me` query of
+- The home: `src/routes/_authenticated/index.tsx`, which opens the last agent the person used,
+  through `features/agents`, whose `listDeskProjects` keeps the projects that open the Desk. The user menu reads the `me` query of
   `features/account`.
 - The layout of every signed-in page, with the session check and the user menu:
   `src/routes/_authenticated.tsx`. The sign-in callback: `src/routes/auth/callback.tsx`.
+- An agent's pages: `src/routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/`, with
+  a conversation (`features/conversation`) or, for an extraction agent, `extraction/` and its
+  document runs, CSV setups and CSV runs (`features/extraction`). The sidebar's history is
+  `features/history`, the agent switcher `features/agents`, the envelope of invitations
+  `features/invitations`, the terms and the name `features/account`.
+- Shared compositions, in `src/components/shared/`: `SidePanel` for every panel docked beside a
+  page, `HeaderActions` for the actions of the bar above it, `DataTable` for every table.
+- A conversation keys its messages by position: a message keeps its element when its id changes
+  (the local id, then the server's), which the message scroller would read as a new message to
+  scroll to.
 - The API client: `src/lib/api-client.ts`. The query client's retry rules:
   `src/app/query-client.ts`.
 - The mocked API: `src/test/msw/handlers.ts`, with the factories of `src/test/factories/`.
