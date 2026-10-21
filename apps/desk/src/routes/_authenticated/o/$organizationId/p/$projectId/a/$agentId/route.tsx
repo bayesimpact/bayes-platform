@@ -11,6 +11,7 @@ import {
   rememberLastAgent,
 } from "@/features/agents"
 import { AgentHistorySection, NewSessionLink, prefetchAgentHistory } from "@/features/history"
+import { InvitationsButton } from "@/features/invitations"
 
 /**
  * The frame of every page of an agent: the sidebar with the agent switcher and the agent's
@@ -47,7 +48,14 @@ function AgentLayout() {
           <AgentHistorySection agent={historyAgent} />
         </>
       }
-      footer={<CurrentUserMenu />}
+      footer={
+        <div className="flex items-center gap-1">
+          <div className="min-w-0 flex-1">
+            <CurrentUserMenu />
+          </div>
+          <InvitationsButton />
+        </div>
+      }
       title={agent.name}
     >
       <Outlet />

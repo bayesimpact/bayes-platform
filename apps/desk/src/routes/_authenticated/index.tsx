@@ -11,6 +11,7 @@ import {
   loadDeskAgents,
   readLastAgentId,
 } from "@/features/agents"
+import { InvitationsButton } from "@/features/invitations"
 import { NoAgentState } from "@/features/sessions"
 
 /** The Desk's home opens a new session with the default agent, or says there is none yet. */
@@ -33,7 +34,17 @@ export const Route = createFileRoute("/_authenticated/")({
 
 function NoAgentRoute() {
   return (
-    <DeskShell header={<DeskLogo />} footer={<CurrentUserMenu />}>
+    <DeskShell
+      header={<DeskLogo />}
+      footer={
+        <div className="flex items-center gap-1">
+          <div className="min-w-0 flex-1">
+            <CurrentUserMenu />
+          </div>
+          <InvitationsButton />
+        </div>
+      }
+    >
       <NoAgentState />
     </DeskShell>
   )

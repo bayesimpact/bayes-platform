@@ -26,6 +26,10 @@ msgstr "(opens in a new tab)"
 msgid "{annotationCount, plural, one {Send with # annotation} other {Send with # annotations}}"
 msgstr "{annotationCount, plural, one {Send with # annotation} other {Send with # annotations}}"
 
+#: src/features/invitations/components/InvitationsButton.tsx:24
+msgid "{count, plural, one {# pending invitation} other {# pending invitations}}"
+msgstr "{count, plural, one {# pending invitation} other {# pending invitations}}"
+
 #: src/features/memory/components/MemoryButton.tsx:31
 msgid "{count, plural, one {Memory (#)} other {Memory (#)}}"
 msgstr "{count, plural, one {Memory (#)} other {Memory (#)}}"
@@ -102,11 +106,26 @@ msgstr "A new version of the Desk is available"
 msgid "A new version of the Desk is available. Reload the page."
 msgstr "A new version of the Desk is available. Reload the page."
 
+#: src/features/invitations/components/InvitationItem.tsx:55
+msgid "Accept"
+msgstr "Accept"
+
+#: src/features/invitations/components/InvitationItem.tsx:53
+msgid "Accept the invitation to {name}"
+msgstr "Accept the invitation to {name}"
+
 #: src/features/history/components/HistoryEntryActions.tsx:48
 msgid "Actions on {title}"
 msgstr "Actions on {title}"
 
+#. The role an invitation grants
+#: src/features/invitations/components/InvitationItem.tsx:25
+msgid "admin"
+msgstr "admin"
+
+#. What an invitation gives access to
 #: src/features/conversation/components/FormsPanel.tsx:28
+#: src/features/invitations/components/InvitationItem.tsx:17
 msgid "Agent"
 msgstr "Agent"
 
@@ -118,6 +137,10 @@ msgstr "Agent's answers"
 #: src/features/conversation/components/QuoteReplyPopover.tsx:127
 msgid "Annotate and press Enter to keep it"
 msgstr "Annotate and press Enter to keep it"
+
+#: src/features/invitations/components/InvitationItem.tsx:43
+msgid "As {role}"
+msgstr "As {role}"
 
 #: src/features/conversation/components/Composer.tsx:176
 msgid "Attach a file"
@@ -217,6 +240,14 @@ msgstr "CSV extraction"
 #: src/features/extraction/components/CsvSetup.tsx:37
 msgid "CSV file"
 msgstr "CSV file"
+
+#: src/features/invitations/components/InvitationItem.tsx:64
+msgid "Decline"
+msgstr "Decline"
+
+#: src/features/invitations/components/InvitationItem.tsx:62
+msgid "Decline the invitation to {name}"
+msgstr "Decline the invitation to {name}"
 
 #: src/features/extraction/components/DeleteDocumentDialog.tsx:64
 #: src/features/history/components/DeleteEntryDialog.tsx:81
@@ -390,6 +421,10 @@ msgstr "In progress"
 msgid "Interactive card"
 msgstr "Interactive card"
 
+#: src/features/invitations/components/InvitationsButton.tsx:52
+msgid "Invitations"
+msgstr "Invitations"
+
 #. Something that happened less than a minute ago
 #: src/components/shared/RelativeTime.tsx:28
 msgid "just now"
@@ -407,6 +442,11 @@ msgstr "Language"
 #: src/features/conversation/components/McpAppPlaceholder.tsx:14
 msgid "Loading the interactive card…"
 msgstr "Loading the interactive card…"
+
+#. The role an invitation grants
+#: src/features/invitations/components/InvitationItem.tsx:26
+msgid "member"
+msgstr "member"
 
 #: src/features/conversation/components/Composer.tsx:127
 msgid "Message to {agentName}"
@@ -504,6 +544,11 @@ msgstr "Open the document"
 msgid "Open the menu of {email}"
 msgstr "Open the menu of {email}"
 
+#. The role an invitation grants
+#: src/features/invitations/components/InvitationItem.tsx:24
+msgid "owner"
+msgstr "owner"
+
 #: src/components/shared/NotFoundState.tsx:11
 msgid "Page not found"
 msgstr "Page not found"
@@ -535,6 +580,11 @@ msgstr "Previous 7 days"
 #: src/features/extraction/components/CsvRecordsTable.tsx:101
 msgid "Previous page"
 msgstr "Previous page"
+
+#. What an invitation gives access to
+#: src/features/invitations/components/InvitationItem.tsx:16
+msgid "Project"
+msgstr "Project"
 
 #. The agent reads this column
 #: src/features/extraction/components/ColumnRoleRow.tsx:39
@@ -594,6 +644,16 @@ msgstr "Results"
 #: src/features/conversation/components/ConversationView.tsx:148
 msgid "Retry"
 msgstr "Retry"
+
+#. What an invitation gives access to
+#: src/features/invitations/components/InvitationItem.tsx:18
+msgid "Review campaign"
+msgstr "Review campaign"
+
+#. The role an invitation grants
+#: src/features/invitations/components/InvitationItem.tsx:28
+msgid "reviewer"
+msgstr "reviewer"
 
 #: src/features/memory/components/MemoryProposals.tsx:78
 msgid "Reword"
@@ -728,6 +788,11 @@ msgstr "Stopped"
 #: src/features/agents/components/AgentSwitcher.tsx:42
 msgid "Switch agent, current agent: {agentName}"
 msgstr "Switch agent, current agent: {agentName}"
+
+#. The role an invitation grants
+#: src/features/invitations/components/InvitationItem.tsx:27
+msgid "tester"
+msgstr "tester"
 
 #: src/features/extraction/components/DocumentRow.tsx:32
 msgid "Text"
@@ -872,6 +937,10 @@ msgstr "The first rows only, to try the setup"
 msgid "The history could not load."
 msgstr "The history could not load."
 
+#: src/features/invitations/api/mutations.ts:37
+msgid "The invitation could not be answered. Try again."
+msgstr "The invitation could not be answered. Try again."
+
 #: src/features/memory/components/MemoryPanel.tsx:45
 msgid "The memory could not be cleared. Try again."
 msgstr "The memory could not be cleared. Try again."
@@ -1010,9 +1079,17 @@ msgstr "Yesterday"
 msgid "You can leave this page: the extraction goes on, and its mark in the sidebar turns once it ends."
 msgstr "You can leave this page: the extraction goes on, and its mark in the sidebar turns once it ends."
 
+#: src/features/invitations/api/mutations.ts:30
+msgid "You declined the invitation to {targetName}."
+msgstr "You declined the invitation to {targetName}."
+
 #: src/features/sessions/components/NoAgentState.tsx:10
 msgid "You don't have access to an agent yet"
 msgstr "You don't have access to an agent yet"
+
+#: src/features/invitations/api/mutations.ts:33
+msgid "You joined {targetName}."
+msgstr "You joined {targetName}."
 
 #: src/features/memory/components/MemoryProposals.tsx:34
 msgid "Your answer could not be saved. Try again."

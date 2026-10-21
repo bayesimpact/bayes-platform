@@ -7,6 +7,7 @@ import type {
   ExtractionDocumentOutputDto,
   ExtractionRunDetailOutputDto,
   ExtractionRunOutputDto,
+  InvitationOutputDto,
   MemoryOutputDto,
   MyOrganizationOutputDto,
   MyProjectOutputDto,
@@ -43,6 +44,8 @@ export type DeskWorld = {
   feedbacks: { agentMessageId: string; content: string }[]
   /** What each agent remembers about the person. */
   memories: Record<string, MemoryOutputDto[]>
+  /** The person's pending invitations, with the agent each one gives access to once accepted. */
+  invitations: { invitation: InvitationOutputDto; grantsAgent: ProjectAgentOutputDto | null }[]
   /** The documents the person uploaded for each extraction agent. */
   extractionDocuments: Record<string, ExtractionDocumentOutputDto[]>
   /** The detail of each extraction of a document, by its id. */
@@ -64,6 +67,7 @@ function emptyWorld(): DeskWorld {
     messages: {},
     feedbacks: [],
     memories: {},
+    invitations: [],
     extractionDocuments: {},
     extractionRunDetails: {},
     csvColumns: {},
@@ -245,6 +249,7 @@ export function buildDeskWorld(): DeskWorld {
   addMessages(world, assistant.id)
   addMemories(world, assistant.id)
   addMcpApp(world, assistant.id)
+  addInvitation(world)
   return world
 }
 
@@ -374,5 +379,27 @@ export function buildNoAgentWorld(): DeskWorld {
   const world = buildDeskWorld()
   world.agents = []
   world.conversations = {}
+  // The main world's invitation, to an agent of the Desk's project, is the way in.
   return world
+}
+
+/** An invitation to an agent of the Desk's project, which joins the world once accepted. */
+function addInvitation(world: DeskWorld): void {
+  const [organization] = world.organizations
+  const [project] = world.projects
+  if (!organization || !project) return
+  const agent = buildProjectAgent(project, { name: "Release Notes Writer" })
+  world.invitations.push({
+    invitation: {
+      id: crypto.randomUUID(),
+      organizationName: organization.name,
+      projectName: project.name,
+      targetType: "agent",
+      targetName: agent.name,
+      role: "member",
+      status: "pending",
+      invitedAt: daysAgo(1),
+    },
+    grantsAgent: agent,
+  })
 }

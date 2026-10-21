@@ -148,3 +148,28 @@ describe("the Desk's home", () => {
     expect(screen.getByRole("link", { name: "Back to the Desk" })).toHaveAttribute("href", "/app/")
   })
 })
+
+describe("the invitations", () => {
+  it("open from the envelope of the sidebar, and an accepted one opens its agent", async () => {
+    const world = buildNoAgentWorld()
+    server.use(...worldHandlers(world))
+    const { router } = renderApp("/app/")
+
+    await userEvent.click(await screen.findByRole("button", { name: "1 pending invitation" }))
+    const dialog = await screen.findByRole("dialog")
+    expect(within(dialog).getByText("Release Notes Writer")).toBeInTheDocument()
+    expect(within(dialog).getByText(/Agent · Support · Product/)).toBeInTheDocument()
+
+    await userEvent.click(
+      within(dialog).getByRole("button", { name: "Accept the invitation to Release Notes Writer" }),
+    )
+
+    expect(await screen.findByText("You joined Release Notes Writer.")).toBeInTheDocument()
+    expect(
+      await screen.findByRole("textbox", { name: "Message to Release Notes Writer" }),
+    ).toBeInTheDocument()
+    expect(router.state.location.pathname).toMatch(/\/a\//)
+    // Without an invitation left, the envelope goes.
+    expect(screen.queryByRole("button", { name: /pending invitation/ })).not.toBeInTheDocument()
+  })
+})

@@ -25,6 +25,10 @@ export {
   DeskExtractionsRoutes,
 } from "./extractions/extractions.routes"
 
+// Invitations
+export * from "./invitations/invitations.dto"
+export { DeskInvitationsRoutes } from "./invitations/invitations.routes"
+
 // Memories
 export * from "./memories/memories.dto"
 export { DeskMemoriesRoutes } from "./memories/memories.routes"

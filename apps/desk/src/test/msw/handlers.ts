@@ -72,6 +72,31 @@ export function worldHandlers(world: DeskWorld) {
     ...conversationHandlers(world),
     ...memoryHandlers(world),
     ...extractionHandlers(world),
+    ...invitationHandlers(world),
+  ]
+}
+
+/** The person's invitations: an accepted one adds its agent to the world. */
+function invitationHandlers(world: DeskWorld) {
+  const answer = (invitationId: string, isAccepted: boolean) => {
+    const pending = world.invitations.find((entry) => entry.invitation.id === invitationId)
+    if (!pending) return new HttpResponse(null, { status: 404 })
+    world.invitations = world.invitations.filter((entry) => entry !== pending)
+    if (isAccepted && pending.grantsAgent) world.agents.push(pending.grantsAgent)
+    return HttpResponse.json({ data: { success: true } }, { status: 201 })
+  }
+  return [
+    http.get("*/api/me/invitations", () =>
+      HttpResponse.json({
+        data: { invitations: world.invitations.map((entry) => entry.invitation) },
+      }),
+    ),
+    http.post("*/api/me/invitations/:invitationId/accept", ({ params }) =>
+      answer(String(params.invitationId), true),
+    ),
+    http.post("*/api/me/invitations/:invitationId/decline", ({ params }) =>
+      answer(String(params.invitationId), false),
+    ),
   ]
 }
 

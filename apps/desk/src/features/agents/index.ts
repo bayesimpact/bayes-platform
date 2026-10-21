@@ -1,3 +1,4 @@
+export { refreshDeskAgents } from "./api/queries"
 export { AgentSidebarHeader } from "./components/AgentSidebarHeader"
 export { chooseDefaultAgent, flattenDeskAgents } from "./desk-agents"
 export { agentPathParams, findAgent, findProjectDefaultAgent } from "./find-agent"

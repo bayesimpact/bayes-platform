@@ -26,6 +26,10 @@ msgstr "(s'ouvre dans un nouvel onglet)"
 msgid "{annotationCount, plural, one {Send with # annotation} other {Send with # annotations}}"
 msgstr "{annotationCount, plural, one {Envoyer avec # annotation} other {Envoyer avec # annotations}}"
 
+#: src/features/invitations/components/InvitationsButton.tsx:24
+msgid "{count, plural, one {# pending invitation} other {# pending invitations}}"
+msgstr "{count, plural, one {# invitation en attente} other {# invitations en attente}}"
+
 #: src/features/memory/components/MemoryButton.tsx:31
 msgid "{count, plural, one {Memory (#)} other {Memory (#)}}"
 msgstr "{count, plural, one {Mémoire (#)} other {Mémoire (#)}}"
@@ -102,11 +106,26 @@ msgstr "Une nouvelle version du Desk est disponible"
 msgid "A new version of the Desk is available. Reload the page."
 msgstr "Une nouvelle version du Desk est disponible. Rechargez la page."
 
+#: src/features/invitations/components/InvitationItem.tsx:55
+msgid "Accept"
+msgstr "Accepter"
+
+#: src/features/invitations/components/InvitationItem.tsx:53
+msgid "Accept the invitation to {name}"
+msgstr "Accepter l’invitation à {name}"
+
 #: src/features/history/components/HistoryEntryActions.tsx:48
 msgid "Actions on {title}"
 msgstr "Actions sur {title}"
 
+#. The role an invitation grants
+#: src/features/invitations/components/InvitationItem.tsx:25
+msgid "admin"
+msgstr "administrateur"
+
+#. What an invitation gives access to
 #: src/features/conversation/components/FormsPanel.tsx:28
+#: src/features/invitations/components/InvitationItem.tsx:17
 msgid "Agent"
 msgstr "Agent"
 
@@ -118,6 +137,10 @@ msgstr "Réponses de l’agent"
 #: src/features/conversation/components/QuoteReplyPopover.tsx:127
 msgid "Annotate and press Enter to keep it"
 msgstr "Annotez, puis appuyez sur Entrée pour garder la note"
+
+#: src/features/invitations/components/InvitationItem.tsx:43
+msgid "As {role}"
+msgstr "En tant que {role}"
 
 #: src/features/conversation/components/Composer.tsx:176
 msgid "Attach a file"
@@ -217,6 +240,14 @@ msgstr "Extraction CSV"
 #: src/features/extraction/components/CsvSetup.tsx:37
 msgid "CSV file"
 msgstr "Fichier CSV"
+
+#: src/features/invitations/components/InvitationItem.tsx:64
+msgid "Decline"
+msgstr "Refuser"
+
+#: src/features/invitations/components/InvitationItem.tsx:62
+msgid "Decline the invitation to {name}"
+msgstr "Refuser l’invitation à {name}"
 
 #: src/features/extraction/components/DeleteDocumentDialog.tsx:64
 #: src/features/history/components/DeleteEntryDialog.tsx:81
@@ -390,6 +421,10 @@ msgstr "En cours"
 msgid "Interactive card"
 msgstr "Carte interactive"
 
+#: src/features/invitations/components/InvitationsButton.tsx:52
+msgid "Invitations"
+msgstr "Invitations"
+
 #. Something that happened less than a minute ago
 #: src/components/shared/RelativeTime.tsx:28
 msgid "just now"
@@ -407,6 +442,11 @@ msgstr "Langue"
 #: src/features/conversation/components/McpAppPlaceholder.tsx:14
 msgid "Loading the interactive card…"
 msgstr "Chargement de la carte interactive…"
+
+#. The role an invitation grants
+#: src/features/invitations/components/InvitationItem.tsx:26
+msgid "member"
+msgstr "membre"
 
 #: src/features/conversation/components/Composer.tsx:127
 msgid "Message to {agentName}"
@@ -504,6 +544,11 @@ msgstr "Ouvrir le document"
 msgid "Open the menu of {email}"
 msgstr "Ouvrir le menu de {email}"
 
+#. The role an invitation grants
+#: src/features/invitations/components/InvitationItem.tsx:24
+msgid "owner"
+msgstr "propriétaire"
+
 #: src/components/shared/NotFoundState.tsx:11
 msgid "Page not found"
 msgstr "Page introuvable"
@@ -535,6 +580,11 @@ msgstr "7 derniers jours"
 #: src/features/extraction/components/CsvRecordsTable.tsx:101
 msgid "Previous page"
 msgstr "Page précédente"
+
+#. What an invitation gives access to
+#: src/features/invitations/components/InvitationItem.tsx:16
+msgid "Project"
+msgstr "Projet"
 
 #. The agent reads this column
 #: src/features/extraction/components/ColumnRoleRow.tsx:39
@@ -594,6 +644,16 @@ msgstr "Résultats"
 #: src/features/conversation/components/ConversationView.tsx:148
 msgid "Retry"
 msgstr "Réessayer"
+
+#. What an invitation gives access to
+#: src/features/invitations/components/InvitationItem.tsx:18
+msgid "Review campaign"
+msgstr "Campagne de revue"
+
+#. The role an invitation grants
+#: src/features/invitations/components/InvitationItem.tsx:28
+msgid "reviewer"
+msgstr "relecteur"
 
 #: src/features/memory/components/MemoryProposals.tsx:78
 msgid "Reword"
@@ -728,6 +788,11 @@ msgstr "Arrêtée"
 #: src/features/agents/components/AgentSwitcher.tsx:42
 msgid "Switch agent, current agent: {agentName}"
 msgstr "Changer d'agent, agent actuel : {agentName}"
+
+#. The role an invitation grants
+#: src/features/invitations/components/InvitationItem.tsx:27
+msgid "tester"
+msgstr "testeur"
 
 #: src/features/extraction/components/DocumentRow.tsx:32
 msgid "Text"
@@ -872,6 +937,10 @@ msgstr "Les premières lignes seulement, pour essayer la configuration"
 msgid "The history could not load."
 msgstr "L'historique n'a pas pu se charger."
 
+#: src/features/invitations/api/mutations.ts:37
+msgid "The invitation could not be answered. Try again."
+msgstr "L’invitation n’a pas pu recevoir de réponse. Réessayez."
+
 #: src/features/memory/components/MemoryPanel.tsx:45
 msgid "The memory could not be cleared. Try again."
 msgstr "La mémoire n'a pas pu être effacée. Réessayez."
@@ -1010,9 +1079,17 @@ msgstr "Hier"
 msgid "You can leave this page: the extraction goes on, and its mark in the sidebar turns once it ends."
 msgstr "Vous pouvez quitter cette page : l’extraction continue, et sa marque dans la barre latérale change une fois terminée."
 
+#: src/features/invitations/api/mutations.ts:30
+msgid "You declined the invitation to {targetName}."
+msgstr "Vous avez refusé l’invitation à {targetName}."
+
 #: src/features/sessions/components/NoAgentState.tsx:10
 msgid "You don't have access to an agent yet"
 msgstr "Vous n'avez encore accès à aucun agent"
+
+#: src/features/invitations/api/mutations.ts:33
+msgid "You joined {targetName}."
+msgstr "Vous avez rejoint {targetName}."
 
 #: src/features/memory/components/MemoryProposals.tsx:34
 msgid "Your answer could not be saved. Try again."

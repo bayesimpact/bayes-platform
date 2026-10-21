@@ -3,7 +3,7 @@ import {
   DeskOrganizationsRoutes,
   DeskProjectsRoutes,
 } from "@caseai-connect/desk-contracts"
-import { queryOptions } from "@tanstack/react-query"
+import { type QueryClient, queryOptions } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/api-client"
 import { organizationKeys, projectKeys } from "./keys"
 
@@ -31,3 +31,14 @@ export const projectAgentsQueryOptions = (project: { id: string; organizationId:
         signal,
       }),
   })
+
+/**
+ * Loads again the person's projects, organizations and agents, after they joined a project or an
+ * agent: the loaders read them as static, so they must be fresh before the page reloads its data.
+ */
+export async function refreshDeskAgents(queryClient: QueryClient): Promise<void> {
+  await Promise.all([
+    queryClient.refetchQueries({ queryKey: projectKeys.all }),
+    queryClient.refetchQueries({ queryKey: organizationKeys.all }),
+  ])
+}
