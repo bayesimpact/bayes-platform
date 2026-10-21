@@ -342,7 +342,7 @@ msgstr "Sign in again to open the Desk."
 msgid "Sign out"
 msgstr "Sign out"
 
-#: src/features/agents/components/AgentSwitcher.tsx:41
+#: src/features/agents/components/AgentSwitcher.tsx:42
 msgid "Switch agent, current agent: {agentName}"
 msgstr "Switch agent, current agent: {agentName}"
 

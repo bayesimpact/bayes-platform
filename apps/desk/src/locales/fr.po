@@ -342,7 +342,7 @@ msgstr "Reconnectez-vous pour ouvrir le Desk."
 msgid "Sign out"
 msgstr "Se déconnecter"
 
-#: src/features/agents/components/AgentSwitcher.tsx:41
+#: src/features/agents/components/AgentSwitcher.tsx:42
 msgid "Switch agent, current agent: {agentName}"
 msgstr "Changer d'agent, agent actuel : {agentName}"
 

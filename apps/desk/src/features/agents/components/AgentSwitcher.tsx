@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar"
 import type { DeskAgent, DeskProjectAgents } from "../desk-agents"
+import { AgentIdentity } from "./AgentIdentity"
 import { AgentTypeIcon } from "./AgentTypeIcon"
 
 export type AgentSwitcherProps = {
@@ -43,17 +44,7 @@ export function AgentSwitcher({ groups, currentAgent }: AgentSwitcherProps) {
               />
             }
           >
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
-              <AgentTypeIcon type={currentAgent.type} />
-            </span>
-            <span className="flex min-w-0 flex-1 flex-col text-left leading-tight">
-              {hasSeveralProjects ? (
-                <span className="truncate text-xs text-muted-foreground">
-                  {currentAgent.project.name}
-                </span>
-              ) : null}
-              <span className="truncate font-medium">{currentAgent.name}</span>
-            </span>
+            <AgentIdentity agent={currentAgent} showProject={hasSeveralProjects} />
             <ChevronsUpDownIcon aria-hidden className="ml-auto" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-(--anchor-width) min-w-56">

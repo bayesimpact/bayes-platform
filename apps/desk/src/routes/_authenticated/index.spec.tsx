@@ -38,6 +38,8 @@ describe("the Desk's home", () => {
       `/o/${world.organizations[0]?.id}/p/${assistant?.projectId}/a/${assistant?.id}`,
     )
     expect(screen.queryByRole("button", { name: /Switch agent/ })).not.toBeInTheDocument()
+    // The sidebar names the agent, as the switcher would, and the bar above the page does too.
+    expect(screen.getAllByText("Helpful Assistant")).toHaveLength(2)
     expect(await screen.findByRole("link", { name: "Compare the plans" })).toBeInTheDocument()
     expect(screen.getByText("Today")).toBeInTheDocument()
     expect(screen.getByText("Yesterday")).toBeInTheDocument()
