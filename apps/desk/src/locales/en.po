@@ -29,13 +29,13 @@ msgstr "{count, plural, one {Used # source} other {Used # sources}}"
 msgid "{count, plural, one {Worked through # step} other {Worked through # steps}}"
 msgstr "{count, plural, one {Worked through # step} other {Worked through # steps}}"
 
-#: src/features/conversation/components/Composer.tsx:132
-msgid "<0><1>Shift</1>+<2>Enter</2></0> for a new line"
-msgstr "<0><1>Shift</1>+<2>Enter</2></0> for a new line"
+#: src/features/conversation/components/Composer.tsx:133
+msgid "<0/> to send"
+msgstr "<0/> to send"
 
-#: src/features/conversation/components/Composer.tsx:126
-msgid "<0>Enter</0> to send"
-msgstr "<0>Enter</0> to send"
+#: src/features/conversation/components/Composer.tsx:139
+msgid "<0><1/><2/></0> for a new line"
+msgstr "<0><1/><2/></0> for a new line"
 
 #: src/components/shared/RouteErrorState.tsx:21
 msgid "A new version of the Desk is available"
@@ -53,15 +53,15 @@ msgstr "Actions on {title}"
 msgid "Agent"
 msgstr "Agent"
 
-#: src/features/conversation/components/Composer.tsx:154
+#: src/features/conversation/components/Composer.tsx:162
 msgid "Attach a file"
 msgstr "Attach a file"
 
-#: src/features/conversation/components/Composer.tsx:74
+#: src/features/conversation/components/Composer.tsx:81
 msgid "Attach a file of 10 MB at most."
 msgstr "Attach a file of 10 MB at most."
 
-#: src/features/conversation/components/Composer.tsx:70
+#: src/features/conversation/components/Composer.tsx:77
 msgid "Attach a PDF, PNG or JPEG file."
 msgstr "Attach a PDF, PNG or JPEG file."
 
@@ -135,6 +135,11 @@ msgstr "Don't remember"
 msgid "Drop a document or a CSV file here"
 msgstr "Drop a document or a CSV file here"
 
+#. The keyboard key
+#: src/features/conversation/components/Composer.tsx:197
+msgid "Enter"
+msgstr "Enter"
+
 #: src/features/history/components/HistoryEntryLink.tsx:83
 msgid "Failed"
 msgstr "Failed"
@@ -202,7 +207,7 @@ msgstr "Language"
 msgid "Loading the interactive card…"
 msgstr "Loading the interactive card…"
 
-#: src/features/conversation/components/Composer.tsx:106
+#: src/features/conversation/components/Composer.tsx:113
 msgid "Message to {agentName}"
 msgstr "Message to {agentName}"
 
@@ -293,7 +298,7 @@ msgstr "Remember"
 msgid "Remembering what matters"
 msgstr "Remembering what matters"
 
-#: src/features/conversation/components/Composer.tsx:96
+#: src/features/conversation/components/Composer.tsx:103
 msgid "Remove {fileName}"
 msgstr "Remove {fileName}"
 
@@ -326,13 +331,18 @@ msgstr "Searching the knowledge base"
 msgid "Searching the resources"
 msgstr "Searching the resources"
 
-#: src/features/conversation/components/Composer.tsx:169
+#: src/features/conversation/components/Composer.tsx:177
 msgid "Send"
 msgstr "Send"
 
 #: src/features/conversation/components/FeedbackDialog.tsx:100
 msgid "Send the report"
 msgstr "Send the report"
+
+#. The keyboard key
+#: src/features/conversation/components/Composer.tsx:208
+msgid "Shift"
+msgstr "Shift"
 
 #: src/features/memory/components/MemoryProposals.tsx:50
 msgid "Should the agent remember this?"
@@ -366,7 +376,7 @@ msgstr "The agent could not answer."
 msgid "The agent forgot everything about you."
 msgstr "The agent forgot everything about you."
 
-#: src/features/conversation/components/Composer.tsx:161
+#: src/features/conversation/components/Composer.tsx:169
 msgid "The agent is answering…"
 msgstr "The agent is answering…"
 

@@ -1,6 +1,13 @@
 import { ATTACHMENT_MAX_BYTES, ATTACHMENT_MIME_TYPES } from "@caseai-connect/desk-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
-import { ArrowUpIcon, FileIcon, PaperclipIcon, XIcon } from "lucide-react"
+import {
+  ArrowBigUpIcon,
+  ArrowUpIcon,
+  CornerDownLeftIcon,
+  FileIcon,
+  PaperclipIcon,
+  XIcon,
+} from "lucide-react"
 import {
   type ChangeEvent,
   type FormEvent,
@@ -124,14 +131,15 @@ export function Composer({ agentName, content, onContentChange, isBusy, onSend }
             }
           >
             <Trans>
-              <Kbd>Enter</Kbd> to send
+              <EnterKey className="ml-0.5" /> to send
             </Trans>
             <span aria-hidden className="px-1">
               ·
             </span>
             <Trans>
               <KbdGroup>
-                <Kbd>Shift</Kbd>+<Kbd>Enter</Kbd>
+                <ShiftKey />
+                <EnterKey />
               </KbdGroup>{" "}
               for a new line
             </Trans>
@@ -173,5 +181,31 @@ export function Composer({ agentName, content, onContentChange, isBusy, onSend }
         </InputGroupAddon>
       </InputGroup>
     </form>
+  )
+}
+
+type KeyProps = {
+  className?: string
+}
+
+/** The Enter key, drawn as ↵, and named for screen readers. */
+function EnterKey({ className }: KeyProps) {
+  const { t } = useLingui()
+  return (
+    <Kbd className={className}>
+      <CornerDownLeftIcon aria-hidden />
+      <span className="sr-only">{t({ message: "Enter", comment: "The keyboard key" })}</span>
+    </Kbd>
+  )
+}
+
+/** The Shift key, drawn as ⇧, and named for screen readers. */
+function ShiftKey() {
+  const { t } = useLingui()
+  return (
+    <Kbd>
+      <ArrowBigUpIcon aria-hidden />
+      <span className="sr-only">{t({ message: "Shift", comment: "The keyboard key" })}</span>
+    </Kbd>
   )
 }
