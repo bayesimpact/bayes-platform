@@ -84,7 +84,7 @@ msgstr "Annuler"
 msgid "Check your connection, then try again."
 msgstr "Vérifiez votre connexion, puis réessayez."
 
-#: src/components/shared/SidePanel.tsx:52
+#: src/components/shared/SidePanel.tsx:53
 msgid "Close the panel"
 msgstr "Fermer le panneau"
 
@@ -305,7 +305,7 @@ msgstr "Signaler un problème"
 msgid "Report a problem with this reply"
 msgstr "Signaler un problème avec cette réponse"
 
-#: src/components/shared/SidePanel.tsx:41
+#: src/components/shared/SidePanel.tsx:42
 msgid "Resize the panel"
 msgstr "Redimensionner le panneau"
 
