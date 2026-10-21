@@ -21,7 +21,7 @@ type StoryArgs = StudioStoryArgs & {
    * entirely — that is expected, not a regression.
    */
   withPendingDraft?: boolean
-  /** Whether a document is seeded for the uploader's document list. */
+  /** Whether documents are seeded for the uploader's document list (its selectable table). */
   withDocuments?: boolean
 }
 
@@ -68,11 +68,9 @@ const buildExtractionDecorator = (chosenRevision?: number) =>
       agentSettingsFactory.transient({ agent: currentAgent }).build({ revision: 1 }),
     ]
     const documents = withDocuments
-      ? [
-          documentFactory
-            .transient({ project })
-            .build({ fileName: "sample-report.pdf", mimeType: MimeTypes.pdf }),
-        ]
+      ? ["sample-report.pdf", "invoice-2024-03.pdf", "contract-scan.pdf"].map((fileName) =>
+          documentFactory.transient({ project }).build({ fileName, mimeType: MimeTypes.pdf }),
+        )
       : []
 
     return {

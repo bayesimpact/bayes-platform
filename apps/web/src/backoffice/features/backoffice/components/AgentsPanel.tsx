@@ -1,17 +1,9 @@
-import { Button } from "@caseai-connect/ui/shad/button"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@caseai-connect/ui/shad/table"
-import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table"
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
+import { type ColumnDef, getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { BackofficeAgentRoutes } from "@/backoffice/routes/helpers"
+import { DataTable } from "@/common/components/data-table/DataTable"
+import { DEFAULT_PAGE_SIZE, PaginationControls } from "@/common/components/shared/RecordTableParts"
 import { useMount } from "@/common/hooks/use-mount"
 import { useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
@@ -20,8 +12,6 @@ import type { BackofficeAgentListItem } from "../backoffice.models"
 import { selectBackofficeAgents, selectBackofficeAgentsQuery } from "../backoffice.selectors"
 import { backofficeActions } from "../backoffice.slice"
 import { SearchField } from "./BackofficeTable"
-
-const DEFAULT_PAGE_SIZE = 10
 
 export function AgentsPanel() {
   const agents = useAppSelector(selectBackofficeAgents)
@@ -41,6 +31,9 @@ export function AgentsPanel() {
 }
 
 function WithData() {
+  // TanStack Table keeps one table instance across renders, so the React Compiler would
+  // memoize its row model and show stale rows after a search or a page change.
+  "use no memo"
   const agents = useValue(selectBackofficeAgents)
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
@@ -69,12 +62,12 @@ function WithData() {
     () => [
       {
         accessorKey: "name",
-        header: () => <span className="text-muted-foreground">Agent</span>,
+        header: () => "Agent",
         cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
       },
       {
         accessorKey: "projectName",
-        header: () => <span className="text-muted-foreground">Project</span>,
+        header: () => "Project",
         cell: ({ row }) => (
           <span className="text-sm text-muted-foreground">{row.original.projectName}</span>
         ),
@@ -109,9 +102,6 @@ function WithData() {
     navigate(BackofficeAgentRoutes.agent.build({ agentId }))
   }
 
-  const from = agents.total === 0 ? 0 : agents.page * pageSize + 1
-  const to = Math.min((agents.page + 1) * pageSize, agents.total)
-
   return (
     <>
       <div className="p-4 border-b">
@@ -121,74 +111,20 @@ function WithData() {
           placeholder="Search by name or UUID…"
         />
       </div>
-      <Table>
-        <TableHeader className="bg-muted/50">
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <TableHead key={header.id}>
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(header.column.columnDef.header, header.getContext())}
-                </TableHead>
-              ))}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows.length > 0 ? (
-            table.getRowModel().rows.map((row) => (
-              <TableRow
-                key={row.id}
-                className="cursor-pointer hover:bg-muted/50"
-                onClick={() => handleRowClick(row.original.id)}
-              >
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell
-                colSpan={columns.length}
-                className="h-24 text-center text-muted-foreground"
-              >
-                No results
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-      <div className="flex items-center justify-between p-4 border-t">
-        <span className="text-sm text-muted-foreground">
-          {agents.total === 0 ? "No agents" : `${from}–${to} of ${agents.total}`}
-        </span>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={agents.page <= 0}
-            onClick={() => goToPage(agents.page - 1)}
-          >
-            <ChevronLeftIcon className="size-4" />
-            Previous
-          </Button>
-          <span className="text-sm text-muted-foreground">
-            {agents.page + 1} / {pageCount}
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={agents.page >= pageCount - 1}
-            onClick={() => goToPage(agents.page + 1)}
-          >
-            Next
-            <ChevronRightIcon className="size-4" />
-          </Button>
-        </div>
+      <div className="p-4">
+        <DataTable
+          table={table}
+          onRowClick={(agent) => handleRowClick(agent.id)}
+          empty={<p className="py-8 text-center text-muted-foreground">No results</p>}
+        />
+        {agents.total > 0 && (
+          <PaginationControls
+            pageIndex={agents.page}
+            pageCount={pageCount}
+            total={agents.total}
+            onPageChange={goToPage}
+          />
+        )}
       </div>
     </>
   )

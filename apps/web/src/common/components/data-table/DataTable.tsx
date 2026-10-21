@@ -14,6 +14,8 @@ import { Fragment, type ReactNode } from "react"
 export type DataTableColumnMeta = {
   /** Classes of the column's header cell, such as `w-10` for a checkbox or an icon column. */
   className?: string
+  /** Classes of the column's body cells, such as `align-top` when rows grow tall. */
+  cellClassName?: string
 }
 
 /**
@@ -78,7 +80,13 @@ export function DataTable<TData>({
                   onClick={onRowClick ? () => onRowClick(row.original) : undefined}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell
+                      key={cell.id}
+                      className={
+                        (cell.column.columnDef.meta as DataTableColumnMeta | undefined)
+                          ?.cellClassName
+                      }
+                    >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
