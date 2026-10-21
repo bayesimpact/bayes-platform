@@ -334,7 +334,7 @@ msgstr "Redimensionner le panneau"
 msgid "Resize the sidebar"
 msgstr "Redimensionner le panneau latéral"
 
-#: src/features/conversation/components/ConversationView.tsx:139
+#: src/features/conversation/components/ConversationView.tsx:144
 msgid "Retry"
 msgstr "Réessayer"
 
@@ -342,7 +342,7 @@ msgstr "Réessayer"
 msgid "Reword"
 msgstr "Reformuler"
 
-#: src/features/conversation/components/ConversationView.tsx:148
+#: src/features/conversation/components/ConversationView.tsx:153
 msgid "Scroll to the latest message"
 msgstr "Aller au dernier message"
 

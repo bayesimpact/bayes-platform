@@ -88,6 +88,23 @@ describe("a conversation", () => {
     )
   })
 
+  it("keeps the elements of a new message and its reply once they take the server's ids", async () => {
+    const world = buildDeskWorld()
+    server.use(...worldHandlers(world))
+    renderApp(urlsOf(world).conversationUrl)
+
+    const messageBox = await screen.findByRole("textbox", { name: "Message to Helpful Assistant" })
+    await userEvent.type(messageBox, "Which plan suits a team of five?{Enter}")
+    // The scroller takes a new element for a new message to scroll to: the sent one must keep its.
+    const sentItem = screen
+      .getByText("Which plan suits a team of five?")
+      .closest<HTMLElement>("[data-message-id]")
+    expect(sentItem?.dataset.messageId).toMatch(/^local-/)
+
+    await waitFor(() => expect(sentItem?.dataset.messageId).not.toMatch(/^local-/))
+    expect(sentItem?.isConnected).toBe(true)
+  })
+
   it("starts with the first message written on the agent's page", async () => {
     const world = buildDeskWorld()
     server.use(...worldHandlers(world))

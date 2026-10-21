@@ -112,9 +112,14 @@ export function ConversationView({ conversation, agentName, showSources }: Conve
                         aria-busy={isBusy}
                         className="mx-auto w-full max-w-3xl flex-1 px-4 pt-10 pb-6"
                       >
-                        {messages.map((message) => (
+                        {messages.map((message, position) => (
                           <MessageScrollerItem
-                            key={message.id}
+                            // A message keeps its element when its id changes: the reply takes
+                            // the server's id at its start, and the saved messages replace the
+                            // local ones once it ends. A new element would read, to the scroller,
+                            // as a new message to scroll to. A conversation only grows at its end.
+                            // biome-ignore lint/suspicious/noArrayIndexKey: see above.
+                            key={position}
                             messageId={message.id}
                             scrollAnchor={message.role === "user"}
                           >

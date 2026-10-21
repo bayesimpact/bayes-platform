@@ -334,7 +334,7 @@ msgstr "Resize the panel"
 msgid "Resize the sidebar"
 msgstr "Resize the sidebar"
 
-#: src/features/conversation/components/ConversationView.tsx:139
+#: src/features/conversation/components/ConversationView.tsx:144
 msgid "Retry"
 msgstr "Retry"
 
@@ -342,7 +342,7 @@ msgstr "Retry"
 msgid "Reword"
 msgstr "Reword"
 
-#: src/features/conversation/components/ConversationView.tsx:148
+#: src/features/conversation/components/ConversationView.tsx:153
 msgid "Scroll to the latest message"
 msgstr "Scroll to the latest message"
 
