@@ -82,18 +82,11 @@ describe("apiRequest", () => {
     expect(body).toEqual({ payload: { title: "Weekly report" } })
   })
 
-  it("throws an ApiError with the issues of a 400", async () => {
+  it("throws an ApiError with the body of a 400", async () => {
+    const message = "ZodValidationError: found 1 issues\n  [Issue 1] title:\n Too small"
     server.use(
       http.post("http://desk.test/api/test/items", () =>
-        HttpResponse.json(
-          {
-            statusCode: 400,
-            message: "body.title: Too small",
-            error: "Bad Request",
-            issues: [{ path: ["body", "title"], code: "too_small", message: "Too small" }],
-          },
-          { status: 400 },
-        ),
+        HttpResponse.json({ statusCode: 400, message, error: "Bad Request" }, { status: 400 }),
       ),
     )
 
@@ -102,7 +95,7 @@ describe("apiRequest", () => {
     )
 
     expect(error).toBeInstanceOf(ApiError)
-    expect(error).toMatchObject({ status: 400, body: { issues: [{ path: ["body", "title"] }] } })
+    expect(error).toMatchObject({ status: 400, body: { message, error: "Bad Request" } })
   })
 
   it("throws a ContractMismatchError when the response breaks the contract", async () => {

@@ -3,8 +3,7 @@ import userEvent from "@testing-library/user-event"
 import { HttpResponse, http } from "msw"
 import { describe, expect, it, vi } from "vitest"
 import { activateLocale } from "@/app/i18n"
-import { buildMe } from "@/test/factories/account.factory"
-import { meHandler } from "@/test/msw/handlers"
+import { myProjectsHandler } from "@/test/msw/handlers"
 import { server } from "@/test/msw/server"
 import { renderApp } from "@/test/render-app"
 
@@ -15,7 +14,7 @@ vi.mock("@/lib/auth/session", async (importOriginal) => ({
 }))
 
 describe("the Desk's home", () => {
-  it("lists the person's projects, grouped by organization", async () => {
+  it("lists the projects that open the Desk, grouped by organization", async () => {
     renderApp("/app/")
 
     expect(await screen.findByRole("heading", { name: "Your projects" })).toBeInTheDocument()
@@ -27,10 +26,11 @@ describe("the Desk's home", () => {
         .map((item) => item.textContent),
     ).toEqual(["Pricing", "Support"])
     expect(screen.getByRole("region", { name: "Operations" })).toHaveTextContent("Help center")
+    expect(screen.queryByText("Billing")).not.toBeInTheDocument()
   })
 
   it("says so when the person has no project yet", async () => {
-    server.use(meHandler(buildMe({ projects: [] })))
+    server.use(myProjectsHandler([]))
     renderApp("/app/")
 
     expect(await screen.findByText("No project yet")).toBeInTheDocument()
@@ -39,7 +39,9 @@ describe("the Desk's home", () => {
 
   it("offers to try again when the projects could not load, and loads them", async () => {
     server.use(
-      http.get("*/api/desk/me", () => new HttpResponse(null, { status: 503 }), { once: true }),
+      http.get("*/api/projects/mine", () => new HttpResponse(null, { status: 503 }), {
+        once: true,
+      }),
     )
     renderApp("/app/")
 
@@ -50,7 +52,7 @@ describe("the Desk's home", () => {
 
   it("offers to reload when the API answers another version of the contract", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {})
-    server.use(http.get("*/api/desk/me", () => HttpResponse.json({ data: { user: {} } })))
+    server.use(http.get("*/api/projects/mine", () => HttpResponse.json({ data: [{ id: "x" }] })))
     renderApp("/app/")
 
     expect(await screen.findByRole("button", { name: "Reload" })).toBeInTheDocument()

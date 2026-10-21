@@ -2,13 +2,12 @@
   "extends": "@repo/typescript-config/base.json",
   "compilerOptions": {
     "lib": ["es2022"],
-    "module": "commonjs",
-    "moduleResolution": "Node10",
-    "outDir": "dist",
-    "rootDir": "src",
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "types": [],
-    "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo"
+    "noEmit": true,
+    "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "dist", "**/*.spec.ts"]
+  "include": ["src"]
 }

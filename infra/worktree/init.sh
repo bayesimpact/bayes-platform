@@ -16,7 +16,6 @@ chown "$WT_UID:$WT_GID" /npm-cache /go-cache \
   apps/web/node_modules \
   apps/web-embed/node_modules \
   packages/api-contracts/node_modules \
-  packages/jest-config/node_modules \
   packages/ui/node_modules
 
 exec setpriv --reuid="$WT_UID" --regid="$WT_GID" --clear-groups -- sh -eu -c '
@@ -28,6 +27,5 @@ exec setpriv --reuid="$WT_UID" --regid="$WT_GID" --clear-groups -- sh -eu -c '
   fi
   # The API requires the compiled contracts; the web app loads the embed launcher script.
   npm run build -w packages/api-contracts
-  npm run build -w packages/desk-contracts
   npm run build:launcher -w apps/web-embed
 '

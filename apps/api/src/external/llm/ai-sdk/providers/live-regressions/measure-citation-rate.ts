@@ -1,6 +1,6 @@
 /**
  * MANUAL measurement harness — makes LIVE LLM calls. Never wire this into
- * jest or CI: it is a plain ts-node script, deliberately NOT a *.spec.ts.
+ * jest or CI: it is a plain Node script, deliberately NOT a *.spec.ts.
  *
  * The contract suites assert outcomes (sources logged once, metadata once);
  * this script measures HOW the outcome was reached over repeated attempts,
@@ -14,8 +14,7 @@
  *
  * Usage (from apps/api, NODE_OPTIONS required by google-auth):
  *
- *   NODE_OPTIONS=--experimental-vm-modules npx ts-node --transpile-only \
- *     -r tsconfig-paths/register \
+ *   NODE_OPTIONS=--experimental-vm-modules node --import ./scripts/register.mjs \
  *     src/external/llm/ai-sdk/providers/live-regressions/measure-citation-rate.ts \
  *     --model gemini-3.6-flash --scenario rag --attempts 5
  */

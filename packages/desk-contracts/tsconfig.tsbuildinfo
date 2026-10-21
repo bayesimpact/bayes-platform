@@ -1,0 +1,1 @@
+{"root":["./src/define-schema-route.ts","./src/index.ts","./src/account/account.dto.ts","./src/account/account.routes.ts","./src/common/error.dto.ts","./src/organizations/organizations.dto.ts","./src/organizations/organizations.routes.ts","./src/projects/projects.dto.ts","./src/projects/projects.routes.ts"],"version":"5.9.3"}

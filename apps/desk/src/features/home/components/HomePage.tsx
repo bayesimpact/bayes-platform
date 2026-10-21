@@ -1,10 +1,10 @@
-import type { MeProjectOutputDto } from "@caseai-connect/desk-contracts"
 import { Plural, Trans } from "@lingui/react/macro"
+import type { DeskProject } from "../desk-projects"
 import { ProjectList } from "./ProjectList"
 import { ProjectListEmpty } from "./ProjectListEmpty"
 
 export type HomePageProps = {
-  projects: MeProjectOutputDto[]
+  projects: DeskProject[]
 }
 
 /** The Desk's home: the projects where the person can open the Desk. */

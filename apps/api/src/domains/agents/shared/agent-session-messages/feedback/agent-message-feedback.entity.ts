@@ -1,4 +1,4 @@
-import { Column, JoinColumn, ManyToOne } from "typeorm"
+import { Column, JoinColumn, ManyToOne, type Relation } from "typeorm"
 import { Base4AllEntity } from "@/common/entities/base4all.entity"
 import { ConnectEntity } from "@/common/entities/connect-entity"
 import { Organization } from "@/domains/organizations/organization.entity"
@@ -15,7 +15,7 @@ export class AgentMessageFeedback extends Base4AllEntity {
     (organization) => organization.agentMessageFeedbacks,
   )
   @JoinColumn({ name: "organization_id" })
-  organization!: Organization
+  organization!: Relation<Organization>
 
   @Column({ type: "uuid", name: "project_id" })
   projectId!: string
@@ -24,7 +24,7 @@ export class AgentMessageFeedback extends Base4AllEntity {
     (project) => project.agentMessageFeedbacks,
   )
   @JoinColumn({ name: "project_id" })
-  project!: Project
+  project!: Relation<Project>
 
   @Column({ type: "uuid", name: "agent_message_id" })
   agentMessageId!: string
@@ -33,7 +33,7 @@ export class AgentMessageFeedback extends Base4AllEntity {
     (agentMessage) => agentMessage.agentMessageFeedbacks,
   )
   @JoinColumn({ name: "agent_message_id" })
-  agentMessage!: AgentMessage
+  agentMessage!: Relation<AgentMessage>
 
   @Column({ type: "uuid", name: "user_id" })
   userId!: string
@@ -42,7 +42,7 @@ export class AgentMessageFeedback extends Base4AllEntity {
     (user) => user.agentMessageFeedbacks,
   )
   @JoinColumn({ name: "user_id" })
-  user!: User
+  user!: Relation<User>
 
   @Column({ name: "content", nullable: false })
   content!: string

@@ -4,7 +4,7 @@ import { meOutputSchema } from "./account.dto"
 export const DeskAccountRoutes = {
   getMe: defineSchemaRoute({
     method: "get",
-    path: "desk/me",
+    path: "me",
     response: meOutputSchema,
   }),
 }

@@ -1,4 +1,4 @@
-import { Column, JoinColumn, ManyToOne } from "typeorm"
+import { Column, JoinColumn, ManyToOne, type Relation } from "typeorm"
 import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
 import { EvaluationConversationDatasetRecord } from "../../datasets/records/evaluation-conversation-dataset-record.entity"
 import { EvaluationConversationRun } from "../evaluation-conversation-run.entity"
@@ -22,7 +22,7 @@ export class EvaluationConversationRunRecord extends ConnectEntityBase {
     { onDelete: "CASCADE" },
   )
   @JoinColumn({ name: "evaluation_conversation_run_id" })
-  evaluationConversationRun!: EvaluationConversationRun
+  evaluationConversationRun!: Relation<EvaluationConversationRun>
 
   // Nullable: deleting a dataset record keeps historical run records alive (the run
   // record snapshots input/expectedOutput below) and simply detaches the link.

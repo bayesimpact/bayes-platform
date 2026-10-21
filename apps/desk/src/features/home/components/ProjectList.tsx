@@ -1,17 +1,17 @@
-import type { MeProjectOutputDto } from "@caseai-connect/desk-contracts"
+import type { DeskProject } from "../desk-projects"
 import { ProjectCard } from "./ProjectCard"
 
 export type ProjectListProps = {
-  projects: MeProjectOutputDto[]
+  projects: DeskProject[]
 }
 
 type OrganizationProjects = {
-  organization: MeProjectOutputDto["organization"]
-  projects: MeProjectOutputDto[]
+  organization: DeskProject["organization"]
+  projects: DeskProject[]
 }
 
 /** The projects grouped by organization, in the order the API sorts them. */
-function groupByOrganization(projects: MeProjectOutputDto[]): OrganizationProjects[] {
+function groupByOrganization(projects: DeskProject[]): OrganizationProjects[] {
   const groups = new Map<string, OrganizationProjects>()
   for (const project of projects) {
     const group = groups.get(project.organization.id)

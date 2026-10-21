@@ -53,8 +53,15 @@
     },
     "duplicate": {
       "title": "Duplicate Agent",
-      "description": "The copy gets the published settings, tools, sub-agents and sources of \"{{name}}\". It starts as a draft: publish it from its editor when it is ready. Conversations, analytics and embed settings are not copied.",
-      "defaultName": "{{name}} (copy)"
+      "description": "The copy gets the settings, tools, sub-agents and sources of \"{{name}}\". It starts as a draft: publish it from its editor when it is ready. Conversations, analytics and embed settings are not copied.",
+      "defaultName": "{{name}} (copy)",
+      "source": {
+        "label": "Settings to copy",
+        "draft": "Draft (version {{number}})",
+        "draftDescription": "What the editor shows, not published yet.",
+        "published": "Published version {{number}}",
+        "publishedDescription": "What users talk to today."
+      }
     },
     "list": {
       "title": "Agents",

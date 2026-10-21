@@ -1,4 +1,4 @@
-import { Column, JoinColumn, ManyToOne } from "typeorm"
+import { Column, JoinColumn, ManyToOne, type Relation } from "typeorm"
 import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
 import { EvaluationExtractionDatasetRecord } from "../../datasets/records/evaluation-extraction-dataset-record.entity"
 import { EvaluationExtractionRun } from "../evaluation-extraction-run.entity"
@@ -36,7 +36,7 @@ export class EvaluationExtractionRunRecord extends ConnectEntityBase {
     { onDelete: "CASCADE" },
   )
   @JoinColumn({ name: "evaluation_extraction_run_id" })
-  evaluationExtractionRun!: EvaluationExtractionRun
+  evaluationExtractionRun!: Relation<EvaluationExtractionRun>
 
   @Column({ type: "uuid", name: "evaluation_extraction_dataset_record_id", nullable: false })
   evaluationExtractionDatasetRecordId!: string
@@ -45,7 +45,7 @@ export class EvaluationExtractionRunRecord extends ConnectEntityBase {
     (evaluationExtractionDatasetRecord) => evaluationExtractionDatasetRecord.id,
   )
   @JoinColumn({ name: "evaluation_extraction_dataset_record_id" })
-  evaluationExtractionDatasetRecord!: EvaluationExtractionDatasetRecord
+  evaluationExtractionDatasetRecord!: Relation<EvaluationExtractionDatasetRecord>
 
   @Column({ type: "varchar", default: "match" })
   status!: EvaluationExtractionRunRecordStatus

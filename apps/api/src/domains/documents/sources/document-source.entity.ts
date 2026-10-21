@@ -1,4 +1,4 @@
-import { Column, Index, JoinColumn, ManyToOne, OneToMany } from "typeorm"
+import { Column, Index, JoinColumn, ManyToOne, OneToMany, type Relation } from "typeorm"
 import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
 import { Document } from "@/domains/documents/document.entity"
 import { Project } from "@/domains/projects/project.entity"
@@ -42,7 +42,7 @@ export class DocumentSource extends ConnectEntityBase {
     { onDelete: "CASCADE" },
   )
   @JoinColumn({ name: "project_id" })
-  project!: Project
+  project!: Relation<Project>
 
   @OneToMany(
     () => Document,

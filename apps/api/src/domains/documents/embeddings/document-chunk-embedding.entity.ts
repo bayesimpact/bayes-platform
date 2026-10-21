@@ -1,4 +1,4 @@
-import { Column, Index, JoinColumn, ManyToOne } from "typeorm"
+import { Column, Index, JoinColumn, ManyToOne, type Relation } from "typeorm"
 import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
 import { DocumentChunk } from "./document-chunk.entity"
 
@@ -12,7 +12,7 @@ import { DocumentChunk } from "./document-chunk.entity"
 export class DocumentChunkEmbedding extends ConnectEntityBase {
   @ManyToOne(() => DocumentChunk, { onDelete: "CASCADE" })
   @JoinColumn({ name: "document_chunk_id" })
-  documentChunk!: DocumentChunk
+  documentChunk!: Relation<DocumentChunk>
 
   @Column({ name: "document_chunk_id", type: "uuid" })
   documentChunkId!: string

@@ -1,10 +1,10 @@
-/* The Desk's global stylesheet: Tailwind, the stylesheets shadcn's components rely on, and the
-   design tokens. The token values are the platform's (packages/ui), so the Desk looks like the
-   rest of it; the install's theme (public/theme/theme.css) overrides them at runtime. The Desk
-   writes no other stylesheet. */
+/* The Desk's global stylesheet: Tailwind, the stylesheets shadcn's components rely on (shadcn.css,
+   copied from shadcn), and the design tokens. The token values are the platform's (packages/ui), so
+   the Desk looks like the rest of it; the install's theme (public/theme/theme.css) overrides them at
+   runtime. The Desk writes no other stylesheet. */
 @import "tailwindcss";
 @import "tw-animate-css";
-@import "shadcn/tailwind.css";
+@import "./shadcn.css";
 
 @custom-variant dark (&:is(.dark *));
 

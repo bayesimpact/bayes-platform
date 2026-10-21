@@ -1,10 +1,10 @@
-import { resolve } from "node:path"
+const { resolve } = require("node:path")
+const { readSwcOptions } = require("./scripts/swc-options.cjs")
 
-// Resolve paths to the contracts packages
+// Resolve path to api-contracts package
 const apiContractsPath = resolve(__dirname, "../../packages/api-contracts/src")
-const deskContractsPath = resolve(__dirname, "../../packages/desk-contracts/src")
 
-export const nestConfig = {
+const nestConfig = {
   collectCoverage: false,
   coverageProvider: "v8",
   moduleFileExtensions: ["js", "ts", "json"],
@@ -16,7 +16,8 @@ export const nestConfig = {
   testPathIgnorePatterns:
     process.env.LIVE_PROVIDER_REGRESSIONS === "1" ? [] : [".*\\.live\\.spec\\.ts$"],
   transform: {
-    "^.+\\.(t|j)s$": "ts-jest",
+    // Same SWC options as the build (.swcrc): decorator metadata, the @/ paths.
+    "^.+\\.(t|j)s$": ["@swc/jest", readSwcOptions()],
   },
   collectCoverageFrom: [
     "**/*.(t|j)s",
@@ -46,8 +47,7 @@ export const nestConfig = {
     "^@/(.*)$": "<rootDir>/$1",
     "^@caseai-connect/api-contracts$": `${apiContractsPath}/index.ts`,
     "^@caseai-connect/api-contracts/(.*)$": `${apiContractsPath}/$1`,
-    "^@caseai-connect/desk-contracts$": `${deskContractsPath}/index.ts`,
   },
   setupFilesAfterEnv: ["<rootDir>/../jest.setup.ts"],
 }
-export default nestConfig
+module.exports = nestConfig

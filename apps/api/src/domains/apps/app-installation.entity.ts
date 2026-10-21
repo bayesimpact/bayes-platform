@@ -1,4 +1,4 @@
-import { Column, Entity, Index, JoinColumn, ManyToOne } from "typeorm"
+import { Column, Entity, Index, JoinColumn, ManyToOne, type Relation } from "typeorm"
 import { Base4AllEntity } from "@/common/entities/base4all.entity"
 import { Project } from "@/domains/projects/project.entity"
 import { Role } from "@/domains/rbac/role.entity"
@@ -24,14 +24,14 @@ export class AppInstallation extends Base4AllEntity {
 
   @ManyToOne(() => AppManifest)
   @JoinColumn({ name: "app_manifest_id" })
-  appManifest!: AppManifest
+  appManifest!: Relation<AppManifest>
 
   @Column({ type: "uuid", name: "project_id" })
   projectId!: string
 
   @ManyToOne(() => Project)
   @JoinColumn({ name: "project_id" })
-  project!: Project
+  project!: Relation<Project>
 
   @Column({ type: "uuid", name: "service_user_id", nullable: true })
   serviceUserId!: string | null

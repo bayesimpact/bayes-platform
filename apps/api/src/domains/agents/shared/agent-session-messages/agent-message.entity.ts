@@ -1,4 +1,4 @@
-import { Column, JoinColumn, ManyToOne, OneToMany, OneToOne } from "typeorm"
+import { Column, JoinColumn, ManyToOne, OneToMany, OneToOne, type Relation } from "typeorm"
 import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { Document } from "@/domains/documents/document.entity"
@@ -59,7 +59,7 @@ export class AgentMessage extends ConnectEntityBase {
     { onDelete: "CASCADE", nullable: true, createForeignKeyConstraints: false },
   )
   @JoinColumn({ name: "session_id" })
-  conversationAgentSession?: ConversationAgentSession
+  conversationAgentSession?: Relation<ConversationAgentSession>
 
   session(agentType: string): ConversationAgentSession | undefined {
     switch (agentType) {

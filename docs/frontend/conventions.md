@@ -36,7 +36,7 @@ significant change, on top of the repository's completion criteria.
 | Routing | TanStack Router, file-based through its Vite plugin |
 | Server state | TanStack Query |
 | API client | `lib/api-client.ts`, one `fetch` wrapper driven by the route objects and their schemas |
-| Validation | Zod 4, schemas shared with the API through the app's contracts package |
+| Validation | Zod 4, in the app's contracts package: the schemas of what it sends and reads |
 | Forms | React Hook Form, `zodResolver`, shadcn `Field` components |
 | Tables | TanStack Table v9, rendered with the shadcn `Table` |
 | Text | Lingui: English in the components, French in a PO catalog |
@@ -148,11 +148,12 @@ or editing the boundaries' configuration.
 - Mutation hooks call the client and invalidate the affected keys on success, and on a 500 too.
   They never suspend: the UI reads `isPending`. Optimistic updates are kept for the places whose UX
   needs them, starting with the chat.
-- Forms use React Hook Form with `zodResolver(schema)`, where the schema is the request schema the
-  API applies. A form may add a `.refine` for a UX rule the server does not need. Fields are
-  `Field`, `FieldLabel` and `FieldError` bound through `Controller`, with no `Form` wrapper.
-  `useWatch` replaces `watch()`. A 400's `issues` map onto the fields with `setError`; other
-  failures become a toast. The submit button is disabled while the form submits, and a submitted
+- Forms use React Hook Form with `zodResolver(schema)`, where the schema is the route's input
+  schema in the contracts package, the same rules as the API's `ZodValidationPipe`. A form may add
+  a `.refine` for a UX rule the server does not need. Fields are `Field`, `FieldLabel` and
+  `FieldError` bound through `Controller`, with no `Form` wrapper. `useWatch` replaces `watch()`.
+  The resolver shows field errors before the form is sent; a failure from the API becomes a
+  toast. The submit button is disabled while the form submits, and a submitted
   form confirms its outcome with a toast.
 - Every data table goes through one `DataTable` in `components/shared/`, with its column
   definitions in `features/<feature>/components/<entity>-columns.tsx`. A server-paginated table
@@ -229,47 +230,56 @@ or editing the boundaries' configuration.
 
 ## The contract
 
-Each app keeps its routes and Zod schemas in a contracts package of its own (the Desk's is
-`packages/desk-contracts`), which depends on Zod alone and imports nothing from
-`packages/api-contracts`. One folder per area holds `{area}.dto.ts` and `{area}.routes.ts`.
+Each app keeps, in a contracts package of its own (the Desk's is `packages/desk-contracts`), the
+routes of the API it calls and the Zod schemas of what it sends and reads. The package depends on
+Zod alone and imports nothing from `packages/api-contracts`, and the API does not import it during
+the first phase (see Endpoints). One folder per area holds `{area}.dto.ts` and `{area}.routes.ts`.
 
 - A route is declared with `defineSchemaRoute({ method, path, params, query, body, response })`.
   It returns the shape of `defineRoute` plus its `schemas`, refuses at compile time a `params`
   schema whose keys differ from the path's `:name` segments, and adds the `{ payload }` and
-  `{ data }` envelopes. A part the route does not declare must arrive empty.
+  `{ data }` envelopes.
+- A response schema declares the fields the app reads, and only those: `z.object` strips the
+  others, so the app never depends on a field it does not declare. A response the schema rejects
+  raises a `ContractMismatchError`.
 - Schemas are named by role (`createConversationInputSchema`, `meOutputSchema`), and their types
   take the `Dto` suffix: `z.input` for what a client sends, `z.output` for what it gets. A DTO is
   never written by hand.
-- The package defines its own enums and constants with `z.enum` and `as const` objects.
+- The package defines its own enums and constants with `z.enum` and `as const` objects
+  (`DESK_UI_READ_PERMISSION`).
 - Response schemas use JSON types only, with no transform, pipe or codec. Dates are epoch
-  milliseconds. Ids are `z.uuid()`, enums `z.enum`, input objects `z.strictObject`. A field that
-  may have no value is `.nullable()` and always present.
-- Query values arrive as strings: numbers use `z.coerce.number<string>()`, flags `z.stringbool()`,
+  milliseconds, as the API sends them. Ids are `z.uuid()`, enums `z.enum`, input objects
+  `z.strictObject`. A field that may have no value is `.nullable()`.
+- Query values travel as strings: numbers use `z.coerce.number<string>()`, flags `z.stringbool()`,
   a sort key is a `z.enum`, and nested filters travel as one JSON parameter through a `z.codec`.
+  The client builds the query string with `z.encode`.
 - Lists keep the API's offset pagination (`items`, `total`, `page`, `limit`, a 0-based page and a
-  limit of 100 at most). Reads are GET.
-- Contract files keep to TypeScript 5.5 syntax, which the API's typecheck proves.
+  limit of 100 at most).
 
 ## Endpoints
 
-An app's endpoints live in `apps/api/src/domains/<app>/`, under the path prefix `<app>/`, and call
-the exported services of the feature modules. `apps/api/CLAUDE.md` ("Schema routes and app
-endpoints") has the API side; in short:
+In their first phase, the apps of this stack are built on the API as it is. `apps/api` changes as
+little as possible, and only in its usual way: its backend is rebuilt once the app's screens are
+right.
 
-- A handler is declared with the app's route decorator (`@DeskRoute(route, { permission })` for the
-  Desk), which applies `@SchemaRoute` and the app's access guard. Its `permission` is required: a
-  catalog key with its resource type, or `SIGNED_IN` for a route that names no resource.
-- The path's params (`organizationId`, `projectId`, `agentId` and so on) resolve their context, so
-  the route needs no `@RequireContext`. Handlers read the parsed input with `@SchemaInput()`.
-- A 400 carries the Zod issues (`{ statusCode, message, error, issues }`), and a response that
-  breaks its schema answers 500.
+- An app reads the existing endpoints when they hold what a screen needs, even if that takes
+  several queries: the Desk's home reads `me`, `projects/mine` and `organizations/mine`. It
+  filters on the client what the API returns for every app, as apps/web does: the Desk keeps the
+  projects that grant `desk.ui.read`.
+- A missing endpoint is written like the other routes and controllers of `apps/api`, as
+  `apps/api/CLAUDE.md` asks: a `defineRoute` route and its DTOs in `packages/api-contracts`, a
+  controller with the usual guards and `@CheckPermission`, and a body checked with
+  `@UsePipes(new ZodValidationPipe(schema))`, as `AgentsController` does. The app then declares
+  the same route in its contracts package, with the schemas of what it reads.
+- A 400 from `ZodValidationPipe` carries the Zod errors in its `message`, as one string.
 
 ## Recipes
 
-**An endpoint**, contract first: its schemas and route in the contracts package, the permission
-keys, the service calls, the handler with the app's route decorator, the e2e specs (the `auth.spec.ts`
-of the domain and one functional spec per action), the MSW handler and its factory, then the
-repository's checks and the app's `check`, whose typecheck proves the app reads the new types.
+**An endpoint the app reads**: when an existing one holds the data, its route in the app's
+contracts package with the schemas of what the app reads. When none does, the route, the
+controller and the e2e specs in `apps/api` first, written as `apps/api/CLAUDE.md` asks. Then the
+MSW handler and its factory, the repository's checks, and the app's `check`, whose typecheck proves
+the app reads the new types.
 
 **A feature**: its endpoint first when it is missing or must change, then keys, queries and
 mutations, components with their skeletons and their English text, `index.ts` with the strict

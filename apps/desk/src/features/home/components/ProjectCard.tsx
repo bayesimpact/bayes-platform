@@ -1,9 +1,9 @@
-import type { MeProjectOutputDto } from "@caseai-connect/desk-contracts"
 import { FolderIcon } from "lucide-react"
 import { Card, CardHeader, CardTitle } from "@/components/ui/card"
+import type { DeskProject } from "../desk-projects"
 
 export type ProjectCardProps = {
-  project: MeProjectOutputDto
+  project: DeskProject
 }
 
 /** A project the person can open in the Desk. The project screen and its link come next. */

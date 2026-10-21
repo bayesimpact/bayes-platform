@@ -11,8 +11,7 @@ This is a Turborepo monorepo with the following structure:
 - `apps/desk` - The Desk, rebuilt on the frontend stack of ADR 0031 (Vite, TanStack Router and Query, shadcn on Base UI, Lingui), runs on port 5177 at `/app/`; see `apps/desk/AGENTS.md`
 - `apps/web` - Vite + React frontend application (runs on port 5173)
 - `packages/@caseai-connect/api-contracts` - Shared API contracts and DTOs
-- `packages/@caseai-connect/desk-contracts` - The Desk's routes and Zod schemas, shared by `apps/desk` and the API
-- `packages/@repo/jest-config` - Shared Jest configurations
+- `packages/@caseai-connect/desk-contracts` - The Desk's view of the API: the routes it calls and the Zod schemas of their responses, which `apps/desk` checks at runtime
 - `packages/@repo/typescript-config` - Shared TypeScript configurations
 - `packages/@caseai-connect/ui` - Shared React component library
 
@@ -53,7 +52,7 @@ All commands should be run from the root directory using Turbo (via npm scripts)
 - See `apps/api/CLAUDE.md` for detailed API rules
 
 ### Desk Application
-- The first app rebuilt on the stack of [ADR 0031](docs/adr/0031-frontend-stack-for-agent-built-apps.md): an app of its own that shares no code with `apps/web`, and calls only its own endpoints (`apps/api/src/domains/desk/`)
+- The first app rebuilt on the stack of [ADR 0031](docs/adr/0031-frontend-stack-for-agent-built-apps.md): an app of its own that shares no code with `apps/web`. In its first phase it reads the API's existing endpoints and changes nothing in `apps/api`
 - Its rules: `docs/frontend/conventions.md`, shared by every app of that stack, and `apps/desk/AGENTS.md`
 - Its gate: `npm run check -w @caseai-connect/desk`, on top of the completion criteria below
 
@@ -70,7 +69,7 @@ All commands should be run from the root directory using Turbo (via npm scripts)
   - All routes defined with `defineRoute` in `*.routes.ts` files
   - Everything exported from `packages/api-contracts/src/index.ts`
 - All packages use TypeScript with strict configuration
-- Jest configuration centralized in `@repo/jest-config`
+- API tests run on Jest with `@swc/jest` (`apps/api/jest.config.js`), web tests on Vitest
 
 ## Public API contract
 
@@ -88,6 +87,10 @@ Decisions live in `docs/adr/`. Two of them apply to every API change, and each h
 - Uses npm workspaces for monorepo management
 - Private packages with internal dependencies using `*` version specifier
 - Engines requirement: Node.js >= 18
+
+### TypeScript 7 and 6 side by side
+
+`tsc` is TypeScript 7 (the native compiler), declared once at the root as `"@typescript/native": "npm:typescript@^7"`. It only type-checks and emits, since TypeScript 7 has no JavaScript API yet. The root `typescript` dependency is an alias of `@typescript/typescript6`, so tools that `require("typescript")` (dependency-cruiser, Astro, Storybook) still get the 6.0 API. Do not add `typescript` to a workspace or reinstall it under its own name: that brings back a second `tsc` that shadows TypeScript 7. The API never loads the compiler: it builds, runs and tests through SWC (`apps/api/.swcrc`).
 
 ## Changelog
 

@@ -78,8 +78,9 @@ export type AnySchemaRoute = SchemaRoute<
 >
 
 /**
- * Declares a route with the Zod schemas of everything it receives and returns. Both the API and the
- * Desk parse each part with them at runtime. A part the route does not declare must arrive empty.
+ * Declares a route of the API with the Zod schemas of what the Desk sends and reads. The Desk's
+ * client builds the request from them and parses the response at runtime, so a response that
+ * drifts from the contract fails loudly. The API does not use them yet.
  */
 export function defineSchemaRoute<
   TMethod extends SchemaRouteMethod,

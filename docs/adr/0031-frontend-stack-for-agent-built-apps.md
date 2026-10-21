@@ -467,6 +467,15 @@ maps it to its source in Jest, as it does for `api-contracts`.
 
 ### 2.13 Desk endpoints on the API
 
+**Phase 1 (Alexis, 2026-10-21).** The Desk is first built on the API as it is, and this section
+waits for the backend to be rebuilt, once the Desk's screens are right. Until then, `apps/api`
+changes as little as possible and only in its usual way. The Desk reads the existing endpoints,
+filtering on the client what they return for every app, and a missing endpoint is written like the
+other routes and controllers of `apps/api`, with `ZodValidationPipe` on its body.
+`packages/desk-contracts` describes the routes the Desk calls and the fields it reads, the Desk
+checks every response against it, and the API does not import it. `docs/frontend/conventions.md`
+holds the rules of this phase.
+
 * The Desk is the first app with endpoints of its own, and the next apps follow the same pattern: a
   contracts package, a path prefix and an API module named after the app, and an access guard on the
   app's UI permission (`studio.ui.read`, `evaluation.ui.read` and so on).

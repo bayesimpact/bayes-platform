@@ -83,11 +83,13 @@ async function main(): Promise<void> {
     const jestResult = await runCommand(
       process.execPath,
       [
+        "--import",
+        "./scripts/register.mjs",
         "../../node_modules/jest/bin/jest.js",
         "--colors",
         "--forceExit",
         "--config",
-        "jest.win.config.ts",
+        "jest.win.config.js",
         ...jestAdditionalArguments,
       ],
       scriptEnvironment,

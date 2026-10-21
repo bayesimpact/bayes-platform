@@ -1,4 +1,4 @@
-import { Column, JoinColumn, ManyToOne, Unique } from "typeorm"
+import { Column, JoinColumn, ManyToOne, type Relation, Unique } from "typeorm"
 import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import { ExtractionAgentSession } from "@/domains/agents/extraction-agent-sessions/extraction-agent-session.entity"
@@ -17,7 +17,7 @@ export class TesterSessionFeedback extends ConnectEntityBase {
     { onDelete: "CASCADE" },
   )
   @JoinColumn({ name: "campaign_id" })
-  campaign!: ReviewCampaign
+  campaign!: Relation<ReviewCampaign>
 
   @Column({ type: "uuid", name: "session_id" })
   sessionId!: string

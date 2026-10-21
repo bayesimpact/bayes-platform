@@ -1,4 +1,4 @@
-import { Column, JoinColumn, ManyToOne, OneToMany } from "typeorm"
+import { Column, JoinColumn, ManyToOne, OneToMany, type Relation } from "typeorm"
 import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
 import type { Agent } from "@/domains/agents/agent.entity"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
@@ -39,13 +39,13 @@ export class EvaluationExtractionRun extends ConnectEntityBase {
     (evaluationExtractionDataset: EvaluationExtractionDataset) => evaluationExtractionDataset.id,
   )
   @JoinColumn({ name: "evaluation_extraction_dataset_id" })
-  evaluationExtractionDataset!: EvaluationExtractionDataset
+  evaluationExtractionDataset!: Relation<EvaluationExtractionDataset>
 
   @Column({ type: "uuid", name: "agent_id", nullable: false })
   agentId!: string
   @ManyToOne("Agent", (agent: Agent) => agent.id)
   @JoinColumn({ name: "agent_id" })
-  agent!: Agent
+  agent!: Relation<Agent>
 
   @Column({ type: "uuid", name: "agent_settings_id", nullable: false })
   agentSettingsId!: string

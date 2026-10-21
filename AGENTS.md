@@ -10,8 +10,7 @@ This is a Turborepo monorepo with the following structure:
 - `apps/desk` - The Desk, rebuilt on the frontend stack of ADR 0031 (Vite, TanStack Router and Query, shadcn on Base UI, Lingui), runs on port 5177 at `/app/`; see `apps/desk/AGENTS.md`
 - `apps/web` - Vite + React frontend application (runs on port 5173)
 - `packages/@caseai-connect/api-contracts` - Shared API contracts and DTOs
-- `packages/@caseai-connect/desk-contracts` - The Desk's routes and Zod schemas, shared by `apps/desk` and the API
-- `packages/@repo/jest-config` - Shared Jest configurations
+- `packages/@caseai-connect/desk-contracts` - The Desk's view of the API: the routes it calls and the Zod schemas of their responses, which `apps/desk` checks at runtime
 - `packages/@repo/typescript-config` - Shared TypeScript configurations
 - `packages/@caseai-connect/ui` - Shared React component library
 
@@ -64,7 +63,7 @@ All commands should be run from the root directory using Turbo (via npm scripts)
   - All routes defined with `defineRoute` in `*.routes.ts` files
   - Everything exported from `packages/api-contracts/src/index.ts`
 - All packages use TypeScript with strict configuration
-- Jest configuration centralized in `@repo/jest-config`
+- API tests run on Jest with `@swc/jest` (`apps/api/jest.config.js`), web tests on Vitest
 
 ## Public API contract
 

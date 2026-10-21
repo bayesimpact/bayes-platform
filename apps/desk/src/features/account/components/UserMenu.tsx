@@ -36,16 +36,14 @@ export function UserMenu({ user, locale, locales, onLocaleChange, onSignOut }: U
       <DropdownMenuTrigger
         render={<Button variant="ghost" aria-label={t`Open the menu of ${email}`} />}
       >
-        <span className="max-w-48 truncate">{user.name ?? user.email}</span>
+        <span className="max-w-48 truncate">{user.name}</span>
         <ChevronDownIcon aria-hidden />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64">
         <DropdownMenuGroup>
           <DropdownMenuLabel>
-            <span className="block truncate text-sm text-foreground">
-              {user.name ?? user.email}
-            </span>
-            {user.name ? <span className="block truncate">{user.email}</span> : null}
+            <span className="block truncate text-sm text-foreground">{user.name}</span>
+            <span className="block truncate">{user.email}</span>
           </DropdownMenuLabel>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />

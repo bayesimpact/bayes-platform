@@ -11,11 +11,12 @@ holds what is specific to the Desk.
   `basepath`). The URLs of today's Desk stay: `/app/o/$organizationId/p/$projectId` and the agent
   pages below it. `/app` is the home, and `/app/o/$organizationId` redirects to it.
 - Contracts: `@caseai-connect/desk-contracts` (`packages/desk-contracts`), one folder per area
-  (`account`, then `project`, `conversations`, `memories`, `extraction`), one `Desk{Area}Routes`
-  object per area. Section 3 of the ADR lists the endpoints to come.
-- Endpoints: `apps/api/src/domains/desk/`, under `desk/`, each declared with `@DeskRoute`. The Desk
-  access guard checks `desk.ui.read` on the project a path names, and `agent.read` on its agent,
-  answered with a 404. Routes that name no project (`desk/me`) take `permission: SIGNED_IN`.
+  (`account`, `organizations`, `projects` so far), one `Desk{Area}Routes` object per area. It
+  describes the API routes the Desk calls and the fields it reads; the API does not import it.
+- Endpoints: in this first phase, the Desk reads the API's existing endpoints, and `apps/api`
+  changes only in its usual way when one is missing (`docs/frontend/conventions.md`, Endpoints).
+  The home reads `me`, `projects/mine` and `organizations/mine`, and keeps the projects that grant
+  `desk.ui.read`, as apps/web does.
 - Sign-in: `src/lib/auth/`, the only code that knows `oidc-client-ts`, used through
   `lib/auth/session.ts`. It signs in with the install's client and comes back to
   `<origin>/app/auth/callback` (`<origin>/app/` after sign-out). Its storage prefix (`desk.oidc.`)
@@ -42,7 +43,8 @@ is not part of the environment and runs on the host.
 
 ## Where things are
 
-- The home: `src/routes/_authenticated/index.tsx`, composing `features/home` with the `me` query of
+- The home: `src/routes/_authenticated/index.tsx`, composing `features/home`, whose
+  `listDeskProjects` keeps the projects that open the Desk. The user menu reads the `me` query of
   `features/account`.
 - The layout of every signed-in page, with the session check and the user menu:
   `src/routes/_authenticated.tsx`. The sign-in callback: `src/routes/auth/callback.tsx`.

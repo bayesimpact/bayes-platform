@@ -51,7 +51,7 @@
     "remark-gfm": "^4.0.1",
     "sonner": "^2.0.7",
     "tailwindcss": "^4.1.17",
-    "zod": "^4.6.7"
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@faker-js/faker": "^10.4.0",
@@ -69,7 +69,6 @@
     "globals": "^16.5.0",
     "storybook": "^10.6.1",
     "storybook-addon-remix-react-router": "^6.0.0",
-    "typescript": "~5.9.3",
     "vite": "^7.2.4",
     "vitest": "^4.0.0"
   }

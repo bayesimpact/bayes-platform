@@ -27,7 +27,7 @@ msgstr "Check your connection, then try again."
 msgid "Home of the Desk"
 msgstr "Home of the Desk"
 
-#: src/features/account/components/UserMenu.tsx:54
+#: src/features/account/components/UserMenu.tsx:52
 msgid "Language"
 msgstr "Language"
 
@@ -59,7 +59,7 @@ msgstr "Sign in again"
 msgid "Sign in again to open the Desk."
 msgstr "Sign in again to open the Desk."
 
-#: src/features/account/components/UserMenu.tsx:67
+#: src/features/account/components/UserMenu.tsx:65
 msgid "Sign out"
 msgstr "Sign out"
 
