@@ -1,5 +1,5 @@
 import type { ExtractionAgentSessionStatus } from "@caseai-connect/api-contracts"
-import { Column, JoinColumn, ManyToOne } from "typeorm"
+import { Column, JoinColumn, ManyToOne, type Relation } from "typeorm"
 import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { Document } from "@/domains/documents/document.entity"
@@ -15,7 +15,7 @@ export class ExtractionAgentSession extends ConnectEntityBase {
 
   @ManyToOne(() => Agent, { onDelete: "CASCADE" })
   @JoinColumn({ name: "agent_id" })
-  agent!: Agent
+  agent!: Relation<Agent>
 
   @Column({ type: "uuid", name: "agent_settings_id", nullable: false })
   agentSettingsId!: string
@@ -54,11 +54,11 @@ export class ExtractionAgentSession extends ConnectEntityBase {
 
   @ManyToOne(() => User)
   @JoinColumn({ name: "user_id" })
-  user!: User
+  user!: Relation<User>
 
   @ManyToOne(() => Document)
   @JoinColumn({ name: "document_id" })
-  document!: Document
+  document!: Relation<Document>
 
   @Column({ type: "uuid", name: "campaign_id", nullable: true })
   campaignId!: string | null

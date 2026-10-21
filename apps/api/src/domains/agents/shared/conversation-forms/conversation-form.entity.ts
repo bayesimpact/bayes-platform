@@ -1,4 +1,4 @@
-import { Column, JoinColumn, ManyToOne } from "typeorm"
+import { Column, JoinColumn, ManyToOne, type Relation } from "typeorm"
 import { ConnectEntityBase, ConnectEntityWithUniqueIndex } from "@/common/entities/connect-entity"
 import { Agent } from "@/domains/agents/agent.entity"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
@@ -28,13 +28,13 @@ export class ConversationForm extends ConnectEntityBase {
     { onDelete: "CASCADE", nullable: true, createForeignKeyConstraints: false },
   )
   @JoinColumn({ name: "session_id" })
-  conversationAgentSession?: ConversationAgentSession
+  conversationAgentSession?: Relation<ConversationAgentSession>
 
   @Column({ type: "uuid", name: "agent_id" })
   agentId!: string
   @ManyToOne(() => Agent, { onDelete: "CASCADE" })
   @JoinColumn({ name: "agent_id" })
-  agent!: Agent
+  agent!: Relation<Agent>
 
   // The settings revision in force at the last write, as on agent_message: it
   // says which version of the form schema produced the state. The state is

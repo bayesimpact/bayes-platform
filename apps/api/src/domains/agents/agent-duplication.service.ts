@@ -1,4 +1,4 @@
-import { duplicateAgentSchema } from "@caseai-connect/api-contracts"
+import { type AgentDuplicationSource, duplicateAgentSchema } from "@caseai-connect/api-contracts"
 import { Injectable, NotFoundException, UnprocessableEntityException } from "@nestjs/common"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -22,7 +22,7 @@ import { AgentSubAgentRepository } from "./sub-agents/agent-sub-agent.repository
 /**
  * Copies an agent into a new agent of its project, for someone who wants a variant of it.
  *
- * The copy takes the published settings, the MCP servers, the sub-agents, the sources (document
+ * The copy takes the published settings or the draft, as the caller chooses, the MCP servers, the sub-agents, the sources (document
  * tags and resource libraries) and the conversation categories, under a new name. Its settings
  * are a draft: no live conversation runs it until someone publishes it in the studio. Sessions,
  * memories, analytics, the embed settings and token, members, review campaigns and evaluations
@@ -45,30 +45,36 @@ export class AgentDuplicationService {
     connectScope,
     agentId,
     name,
+    source,
     userId,
   }: {
     connectScope: RequiredConnectScope
     agentId: string
     name: string
+    /** The published revision when left out. */
+    source?: AgentDuplicationSource
     userId: string
   }): Promise<{ agent: Agent; agentSettings: AgentSettings }> {
-    const parsed = duplicateAgentSchema.safeParse({ name })
+    const parsed = duplicateAgentSchema.safeParse({ name, source })
     if (!parsed.success) {
       throw new UnprocessableEntityException(
         parsed.error.issues.map((issue) => `${issue.path.join(".")}: ${issue.message}`).join("\n"),
       )
     }
-    const copyName = parsed.data.name
+    const { name: copyName, source: settingsSource } = parsed.data
 
     return this.transactionService.run(async () => {
       const source = await this.agentRepository.findDuplicationSource(connectScope, agentId)
       if (!source) {
         throw new NotFoundException(`Agent with id ${agentId} not found`)
       }
-      // An agent that was never published has only its draft to give.
+      // The latest revision is the draft when there is one. An agent that was never published
+      // has only its draft to give.
       const sourceSettings =
-        (await this.agentSettingsRepository.findLatestPublished(connectScope, agentId)) ??
-        (await this.agentSettingsRepository.findLatest(connectScope, agentId))
+        settingsSource === "draft"
+          ? await this.agentSettingsRepository.findLatest(connectScope, agentId)
+          : ((await this.agentSettingsRepository.findLatestPublished(connectScope, agentId)) ??
+            (await this.agentSettingsRepository.findLatest(connectScope, agentId)))
       if (!sourceSettings) {
         throw new NotFoundException(`AgentSettings with agentId ${agentId} not found`)
       }

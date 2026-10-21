@@ -9,13 +9,14 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 
-- Agent duplication: copy an agent into a new draft with its settings, tools and sources, from the studio or MCP.
+- Agent duplication: copy an agent into a new draft, from its draft or published settings, from the studio or MCP.
 - Test cases: save a good or bad agent answer into an evaluation dataset, from the playground or feedback.
 
 ### Changed
 
 - Safety review: reviewers can now open embedded chat and extraction sessions, not only studio conversations.
 - AI assistants connected to the platform before this release must reconnect once to keep listing and editing agents.
+- App installation: a clearer authorization screen showing the app, the workspace to choose and each permission.
 
 ### Fixed
 - Review campaigns: test conversations no longer appear among your App conversations.

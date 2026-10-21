@@ -8,18 +8,11 @@ import {
   DropdownMenuTrigger,
 } from "@caseai-connect/ui/shad/dropdown-menu"
 import { Popover, PopoverContent, PopoverTrigger } from "@caseai-connect/ui/shad/popover"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@caseai-connect/ui/shad/table"
-import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table"
+import { type ColumnDef, getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import { EyeIcon, MoreHorizontalIcon, PencilIcon, Trash2Icon } from "lucide-react"
 import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
+import { DataTable, type DataTableColumnMeta } from "@/common/components/data-table/DataTable"
 import { ResourceCard } from "@/common/components/resources/ResourceCard"
 import { buildResourceLink } from "../resource-libraries.helpers"
 import type { Resource } from "../resource-libraries.models"
@@ -44,6 +37,9 @@ export function ResourcesTable({
   onEdit: (resource: Resource) => void
   onDelete: (resource: Resource) => void
 }) {
+  // TanStack Table keeps one table instance across renders, so the React Compiler would
+  // memoize its row model and show stale rows.
+  "use no memo"
   const { t } = useTranslation()
   const [previewResource, setPreviewResource] = useState<Resource | null>(null)
 
@@ -51,16 +47,12 @@ export function ResourcesTable({
     () => [
       {
         accessorKey: "title",
-        header: () => (
-          <span className="text-muted-foreground">{t("resourceLibrary:table.title")}</span>
-        ),
+        header: () => t("resourceLibrary:table.title"),
         cell: ({ row }) => <span className="font-medium">{row.original.title}</span>,
       },
       {
         accessorKey: "description",
-        header: () => (
-          <span className="text-muted-foreground">{t("resourceLibrary:table.description")}</span>
-        ),
+        header: () => t("resourceLibrary:table.description"),
         cell: ({ row }) => {
           const { description } = row.original
           if (!description) return <span className="text-muted-foreground">—</span>
@@ -80,9 +72,7 @@ export function ResourcesTable({
       },
       {
         id: "link",
-        header: () => (
-          <span className="text-muted-foreground">{t("resourceLibrary:table.link")}</span>
-        ),
+        header: () => t("resourceLibrary:table.link"),
         cell: ({ row }) => {
           const label = resourceLinkLabel(row.original, t("resourceLibrary:link.file"))
           if (!label) return <span className="text-muted-foreground">—</span>
@@ -95,6 +85,7 @@ export function ResourcesTable({
       },
       {
         id: "actions",
+        meta: { className: "w-10" } satisfies DataTableColumnMeta,
         header: () => <span className="sr-only">{t("resourceLibrary:table.actions")}</span>,
         cell: ({ row }) => (
           <div className="flex justify-end">
@@ -136,39 +127,13 @@ export function ResourcesTable({
   const table = useReactTable({
     data: resources,
     columns,
+    getRowId: (resource) => resource.id,
     getCoreRowModel: getCoreRowModel(),
   })
 
   return (
     <>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader className="bg-muted/50">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      <DataTable table={table} empty={t("resourceLibrary:form.noResources")} />
 
       <Dialog
         open={previewResource !== null}

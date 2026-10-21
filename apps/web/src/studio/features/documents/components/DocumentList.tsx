@@ -1,7 +1,6 @@
 import { Alert, AlertDescription, AlertTitle } from "@caseai-connect/ui/shad/alert"
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
-import { Checkbox } from "@caseai-connect/ui/shad/checkbox"
 import {
   Dialog,
   DialogContent,
@@ -18,13 +17,11 @@ import {
 } from "@caseai-connect/ui/shad/dropdown-menu"
 import { Item } from "@caseai-connect/ui/shad/item"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@caseai-connect/ui/shad/table"
+  type ColumnDef,
+  getCoreRowModel,
+  type RowSelectionState,
+  useReactTable,
+} from "@tanstack/react-table"
 import {
   ChevronRightIcon,
   CloudAlertIcon,
@@ -38,11 +35,14 @@ import {
   Trash2Icon,
   XIcon,
 } from "lucide-react"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { ConfirmDialog } from "@/common/components/ConfirmDialog"
 import { DocumentDetailsSheet } from "@/common/components/DocumentSelectionList"
+import { DataTable, type DataTableColumnMeta } from "@/common/components/data-table/DataTable"
+import { DataTableBulkBar } from "@/common/components/data-table/DataTableBulkBar"
+import { buildSelectionColumn } from "@/common/components/data-table/selection-column"
 import { GridHeader } from "@/common/components/grid/Grid"
 import { useGetProjectRoute } from "@/common/hooks/use-get-path"
 import { useValue } from "@/common/hooks/use-value"
@@ -73,6 +73,9 @@ import {
 import { DocumentTagsSheet } from "../../document-tags/components/DocumentTagsSheet"
 
 export function DocumentList() {
+  // TanStack Table keeps one table instance across renders, so the React Compiler would
+  // memoize its row model and show stale rows after a selection.
+  "use no memo"
   const documents = useValue(selectDocumentsData)
   const documentTags = useValue(selectDocumentTagsData)
 
@@ -81,29 +84,64 @@ export function DocumentList() {
   const projectRoute = useGetProjectRoute()
   const handleBack = () => navigate(projectRoute)
 
-  const [selectedIds, setSelectedIds] = useState<ReadonlySet<string>>(new Set())
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
 
-  const selectedDocuments = documents.filter((document) => selectedIds.has(document.id))
-  const allSelected = documents.length > 0 && selectedDocuments.length === documents.length
-  const someSelected = selectedDocuments.length > 0 && !allSelected
+  const columns = useMemo<ColumnDef<Document>[]>(
+    () => [
+      buildSelectionColumn<Document>({
+        rowLabel: (document) => `${t("actions:select")} ${document.title}`,
+      }),
+      {
+        id: "title",
+        header: () => t("document:props.title"),
+        cell: ({ row }) => row.original.title,
+      },
+      {
+        id: "tags",
+        header: () => t("document:props.tags"),
+        cell: ({ row }) => (
+          <div className="flex flex-wrap gap-1">
+            {row.original.tagIds.map((tagId) => (
+              <Badge key={tagId} variant="secondary" className="text-xs">
+                {getTagFullPath(documentTags, tagId)}
+              </Badge>
+            ))}
+          </div>
+        ),
+      },
+      {
+        id: "embeddingStatus",
+        header: () => t("document:props.embeddingStatus"),
+        cell: ({ row }) => <EmbeddingStatusBadge status={row.original.embeddingStatus} />,
+      },
+      {
+        id: "updatedAt",
+        header: () => t("document:props.updatedAt"),
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">{buildSince(row.original.updatedAt)}</span>
+        ),
+      },
+      {
+        id: "actions",
+        meta: { className: "w-10" } satisfies DataTableColumnMeta,
+        header: () => null,
+        cell: ({ row }) => <DocumentActions document={row.original} documentTags={documentTags} />,
+      },
+    ],
+    [documentTags, t],
+  )
 
-  const clearSelection = () => setSelectedIds(new Set())
+  const table = useReactTable({
+    data: documents,
+    columns,
+    state: { rowSelection },
+    getRowId: (document) => document.id,
+    onRowSelectionChange: setRowSelection,
+    getCoreRowModel: getCoreRowModel(),
+  })
 
-  const toggleAll = () => {
-    setSelectedIds(allSelected ? new Set() : new Set(documents.map((document) => document.id)))
-  }
-
-  const toggleOne = (documentId: string) => {
-    setSelectedIds((previous) => {
-      const next = new Set(previous)
-      if (next.has(documentId)) {
-        next.delete(documentId)
-      } else {
-        next.add(documentId)
-      }
-      return next
-    })
-  }
+  const selectedDocuments = documents.filter((document) => rowSelection[document.id])
+  const clearSelection = () => setRowSelection({})
 
   return (
     <UploadDocumentsButton className="w-full">
@@ -132,89 +170,11 @@ export function DocumentList() {
                 onClear={clearSelection}
               />
             )}
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-10 rounded-tl-lg bg-muted">
-                    <Checkbox
-                      checked={allSelected ? true : someSelected ? "indeterminate" : false}
-                      onCheckedChange={toggleAll}
-                      aria-label={t("actions:selectAll")}
-                    />
-                  </TableHead>
-                  <TableHead className="font-medium bg-muted">
-                    {t("document:props.title")}
-                  </TableHead>
-                  <TableHead className="font-medium bg-muted">{t("document:props.tags")}</TableHead>
-                  <TableHead className="font-medium bg-muted">
-                    {t("document:props.embeddingStatus")}
-                  </TableHead>
-                  <TableHead className="font-medium bg-muted">
-                    {t("document:props.updatedAt")}
-                  </TableHead>
-                  <TableHead className="w-10 rounded-tr-lg bg-muted" />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {documents.map((document) => (
-                  <DocumentRow
-                    key={document.id}
-                    document={document}
-                    documentTags={documentTags}
-                    selected={selectedIds.has(document.id)}
-                    onToggleSelected={() => toggleOne(document.id)}
-                  />
-                ))}
-              </TableBody>
-            </Table>
+            <DataTable table={table} empty={null} />
           </div>
         )}
       </div>
     </UploadDocumentsButton>
-  )
-}
-
-function DocumentRow({
-  document,
-  documentTags,
-  selected,
-  onToggleSelected,
-}: {
-  document: Document
-  documentTags: DocumentTag[]
-  selected: boolean
-  onToggleSelected: () => void
-}) {
-  const { t } = useTranslation()
-  const date = buildSince(document.updatedAt)
-
-  return (
-    <TableRow data-state={selected ? "selected" : undefined}>
-      <TableCell>
-        <Checkbox
-          checked={selected}
-          onCheckedChange={onToggleSelected}
-          aria-label={t("actions:select")}
-        />
-      </TableCell>
-      <TableCell>{document.title}</TableCell>
-      <TableCell>
-        <div className="flex flex-wrap gap-1">
-          {document.tagIds.map((tagId) => (
-            <Badge key={tagId} variant="secondary" className="text-xs">
-              {getTagFullPath(documentTags, tagId)}
-            </Badge>
-          ))}
-        </div>
-      </TableCell>
-      <TableCell>
-        <EmbeddingStatusBadge status={document.embeddingStatus} />
-      </TableCell>
-      <TableCell className="text-muted-foreground">{date}</TableCell>
-      <TableCell>
-        <DocumentActions document={document} documentTags={documentTags} />
-      </TableCell>
-    </TableRow>
   )
 }
 
@@ -271,14 +231,10 @@ function DocumentBulkActions({
   }
 
   return (
-    <div className="flex items-center gap-2 rounded-lg border bg-muted/50 px-3 py-2">
-      <Button variant="ghost" size="icon" className="size-8" onClick={onClear}>
-        <XIcon className="size-4" />
-      </Button>
-      <span className="text-sm font-medium">{t("document:bulk.selected", { count })}</span>
-      <div className="ml-auto flex items-center gap-2">
+    <>
+      <DataTableBulkBar label={t("document:bulk.selected", { count })} onClearSelection={onClear}>
         <Button variant="outline" size="sm" onClick={() => setActiveAction("addTag")}>
-          <TagIcon className="size-4" />
+          <TagIcon />
           {t("documentTag:addTag")}
         </Button>
         <Button
@@ -287,15 +243,14 @@ function DocumentBulkActions({
           disabled={removableTagIds.length === 0}
           onClick={() => setActiveAction("removeTag")}
         >
-          <TagIcon className="size-4" />
+          <TagIcon />
           {t("document:bulk.removeTag.cta")}
         </Button>
-
         <Button variant="outline" size="sm" onClick={() => setActiveAction("delete")}>
-          <Trash2Icon className="size-4" />
+          <Trash2Icon />
           {t("actions:delete")}
         </Button>
-      </div>
+      </DataTableBulkBar>
 
       <ConfirmDialog
         open={activeAction === "delete"}
@@ -327,7 +282,7 @@ function DocumentBulkActions({
         }}
         onCancel={() => setActiveAction(null)}
       />
-    </div>
+    </>
   )
 }
 

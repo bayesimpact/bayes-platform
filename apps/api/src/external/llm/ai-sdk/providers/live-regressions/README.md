@@ -5,12 +5,12 @@ Vertex AI). **None of it runs in CI**, by construction:
 
 - jest does not even COLLECT `*.live.spec.ts` files unless
   `LIVE_PROVIDER_REGRESSIONS=1` is set (`testPathIgnorePatterns` in
-  `jest.config.ts`) — importing them needs network credentials and node
+  `jest.config.js`) — importing them needs network credentials and node
   flags, so they must never load in CI. Name every new live spec
   `*.live.spec.ts` to inherit this exclusion.
 - The `describe.skip` gate on the same env var is kept inside the specs as a
   second layer.
-- `measure-citation-rate.ts` is a plain ts-node script (deliberately not a
+- `measure-citation-rate.ts` is a plain Node script (deliberately not a
   `*.spec.ts`, so jest never collects it).
 
 ## Contract suites
@@ -58,8 +58,7 @@ iterations on the citation rule or the classifier prompt before changing
 the production wording:
 
 ```bash
-NODE_OPTIONS=--experimental-vm-modules npx ts-node --transpile-only \
-  -r tsconfig-paths/register \
+NODE_OPTIONS=--experimental-vm-modules node --import ./scripts/register.mjs \
   src/external/llm/ai-sdk/providers/live-regressions/measure-citation-rate.ts \
   --model gemini-3.6-flash --scenario rag --attempts 5
 ```

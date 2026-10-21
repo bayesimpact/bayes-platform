@@ -6,20 +6,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@caseai-connect/ui/shad/dropdown-menu"
+import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@caseai-connect/ui/shad/empty"
 import { Popover, PopoverContent, PopoverTrigger } from "@caseai-connect/ui/shad/popover"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@caseai-connect/ui/shad/table"
+import { type ColumnDef, getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import { EllipsisVerticalIcon, Trash2Icon } from "lucide-react"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { ConfirmDialog } from "@/common/components/ConfirmDialog"
+import { DataTable, type DataTableColumnMeta } from "@/common/components/data-table/DataTable"
 import { GridHeader } from "@/common/components/grid/Grid"
 import { useGetProjectRoute } from "@/common/hooks/use-get-path"
 import { useValue } from "@/common/hooks/use-value"
@@ -33,10 +28,61 @@ const LINK_HEAD = 28
 const LINK_TAIL = 18
 
 export function ExternalSourcesList() {
+  // TanStack Table keeps one table instance across renders, so the React Compiler would
+  // memoize its row model and show stale rows after a deletion.
+  "use no memo"
   const documentSources = useValue(selectDocumentSourcesData)
   const { t } = useTranslation("documentSource")
   const navigate = useNavigate()
   const projectRoute = useGetProjectRoute()
+
+  const columns = useMemo<ColumnDef<DocumentSource>[]>(
+    () => [
+      {
+        id: "source",
+        header: () => t("columns.source"),
+        cell: ({ row }) => <DocumentSourceNameCell documentSource={row.original} />,
+      },
+      {
+        id: "app",
+        header: () => t("columns.app"),
+        cell: ({ row }) => <DocumentSourceAppCell app={row.original.app} />,
+      },
+      {
+        id: "docs",
+        header: () => t("columns.docs"),
+        cell: ({ row }) => row.original.documentCount,
+      },
+      {
+        id: "lastSync",
+        header: () => t("columns.lastSync"),
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">
+            {row.original.lastSyncedAt ? buildSince(row.original.lastSyncedAt) : "—"}
+          </span>
+        ),
+      },
+      {
+        id: "status",
+        header: () => t("columns.status"),
+        cell: ({ row }) => <DocumentSourceStatusBadge status={row.original.status} />,
+      },
+      {
+        id: "actions",
+        meta: { className: "w-10" } satisfies DataTableColumnMeta,
+        header: () => null,
+        cell: ({ row }) => <DocumentSourceActions documentSource={row.original} />,
+      },
+    ],
+    [t],
+  )
+
+  const table = useReactTable({
+    data: documentSources,
+    columns,
+    getRowId: (documentSource) => documentSource.id,
+    getCoreRowModel: getCoreRowModel(),
+  })
 
   return (
     <>
@@ -46,80 +92,63 @@ export function ExternalSourcesList() {
         description={t("description")}
       />
       <div className="bg-white p-6">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="font-medium rounded-tl-lg bg-muted">
-                {t("columns.source")}
-              </TableHead>
-              <TableHead className="font-medium bg-muted">{t("columns.app")}</TableHead>
-              <TableHead className="font-medium bg-muted">{t("columns.docs")}</TableHead>
-              <TableHead className="font-medium bg-muted">{t("columns.lastSync")}</TableHead>
-              <TableHead className="font-medium bg-muted">{t("columns.status")}</TableHead>
-              <TableHead className="w-10 rounded-tr-lg bg-muted" />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {documentSources.map((documentSource) => (
-              <DocumentSourceRow key={documentSource.id} documentSource={documentSource} />
-            ))}
-          </TableBody>
-        </Table>
+        <DataTable
+          table={table}
+          empty={
+            <Empty>
+              <EmptyHeader>
+                <EmptyTitle>{t("empty.title")}</EmptyTitle>
+                <EmptyDescription>{t("empty.description")}</EmptyDescription>
+              </EmptyHeader>
+            </Empty>
+          }
+        />
       </div>
     </>
   )
 }
 
-function DocumentSourceRow({ documentSource }: { documentSource: DocumentSource }) {
+function DocumentSourceNameCell({ documentSource }: { documentSource: DocumentSource }) {
+  const detail = documentSource.baseUrl ?? documentSource.externalId
+  return (
+    <div className="flex flex-col">
+      <span>{documentSource.name}</span>
+      {detail && <SourceLink value={detail} />}
+    </div>
+  )
+}
+
+function DocumentSourceActions({ documentSource }: { documentSource: DocumentSource }) {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const [confirmOpen, setConfirmOpen] = useState(false)
-  const detail = documentSource.baseUrl ?? documentSource.externalId
 
   return (
-    <TableRow>
-      <TableCell>
-        <div className="flex flex-col">
-          <span>{documentSource.name}</span>
-          {detail && <SourceLink value={detail} />}
-        </div>
-      </TableCell>
-      <TableCell>
-        <DocumentSourceAppCell app={documentSource.app} />
-      </TableCell>
-      <TableCell>{documentSource.documentCount}</TableCell>
-      <TableCell className="text-muted-foreground">
-        {documentSource.lastSyncedAt ? buildSince(documentSource.lastSyncedAt) : "—"}
-      </TableCell>
-      <TableCell>
-        <DocumentSourceStatusBadge status={documentSource.status} />
-      </TableCell>
-      <TableCell>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="size-8" aria-label={t("actions:more")}>
-              <EllipsisVerticalIcon className="size-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem variant="destructive" onSelect={() => setConfirmOpen(true)}>
-              <Trash2Icon className="size-4" />
-              {t("actions:delete")}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <ConfirmDialog
-          open={confirmOpen}
-          title={t("documentSource:delete.title", { name: documentSource.name })}
-          description={t("documentSource:delete.description")}
-          onConfirm={() => {
-            setConfirmOpen(false)
-            void dispatch(deleteDocumentSource({ documentSourceId: documentSource.id }))
-          }}
-          onCancel={() => setConfirmOpen(false)}
-        />
-      </TableCell>
-    </TableRow>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="size-8" aria-label={t("actions:more")}>
+            <EllipsisVerticalIcon className="size-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem variant="destructive" onSelect={() => setConfirmOpen(true)}>
+            <Trash2Icon className="size-4" />
+            {t("actions:delete")}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <ConfirmDialog
+        open={confirmOpen}
+        title={t("documentSource:delete.title", { name: documentSource.name })}
+        description={t("documentSource:delete.description")}
+        onConfirm={() => {
+          setConfirmOpen(false)
+          void dispatch(deleteDocumentSource({ documentSourceId: documentSource.id }))
+        }}
+        onCancel={() => setConfirmOpen(false)}
+      />
+    </>
   )
 }
 

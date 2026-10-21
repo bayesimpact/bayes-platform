@@ -9,7 +9,6 @@ This is a Turborepo monorepo with the following structure:
 - `apps/api` - NestJS backend application (runs on port 3000)
 - `apps/web` - Vite + React frontend application (runs on port 5173)
 - `packages/@caseai-connect/api-contracts` - Shared API contracts and DTOs
-- `packages/@repo/jest-config` - Shared Jest configurations
 - `packages/@repo/typescript-config` - Shared TypeScript configurations
 - `packages/@caseai-connect/ui` - Shared React component library
 
@@ -62,7 +61,7 @@ All commands should be run from the root directory using Turbo (via npm scripts)
   - All routes defined with `defineRoute` in `*.routes.ts` files
   - Everything exported from `packages/api-contracts/src/index.ts`
 - All packages use TypeScript with strict configuration
-- Jest configuration centralized in `@repo/jest-config`
+- API tests run on Jest with `@swc/jest` (`apps/api/jest.config.js`), web tests on Vitest
 
 ## Public API contract
 

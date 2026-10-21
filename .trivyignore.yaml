@@ -1,1 +1,22 @@
-vulnerabilities: []
+vulnerabilities:
+  - id: CVE-2026-112403
+    expired_at: 2026-11-20
+    reason: "pillow 12.3.0 in the GPU workers docling venv: fixed in 13.0.0, but docling-core 2.103.1 (latest) requires pillow<13.0.0"
+  - id: CVE-2026-112397
+    expired_at: 2026-11-20
+    reason: "pillow 12.3.0 in the GPU workers docling venv: fixed in 13.0.0, but docling-core 2.103.1 (latest) requires pillow<13.0.0"
+  - id: CVE-2026-112400
+    expired_at: 2026-11-20
+    reason: "pillow 12.3.0 in the GPU workers docling venv: fixed in 13.0.0, but docling-core 2.103.1 (latest) requires pillow<13.0.0"
+  - id: CVE-2026-112404
+    expired_at: 2026-11-20
+    reason: "pillow 12.3.0 in the GPU workers docling venv: fixed in 13.0.0, but docling-core 2.103.1 (latest) requires pillow<13.0.0"
+  - id: CVE-2026-112895
+    expired_at: 2026-11-20
+    reason: "pillow 12.3.0 in the GPU workers docling venv: fixed in 13.0.0, but docling-core 2.103.1 (latest) requires pillow<13.0.0"
+  - id: CVE-2026-112896
+    expired_at: 2026-11-20
+    reason: "pillow 12.3.0 in the GPU workers docling venv: fixed in 13.0.0, but docling-core 2.103.1 (latest) requires pillow<13.0.0"
+  - id: CVE-2026-112897
+    expired_at: 2026-11-20
+    reason: "pillow 12.3.0 in the GPU workers docling venv: fixed in 13.0.0, but docling-core 2.103.1 (latest) requires pillow<13.0.0"

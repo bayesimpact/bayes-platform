@@ -1,30 +1,34 @@
 {
   "oauthConsent": {
     "headline": "{{name}} wants to access your projects",
-    "redirectHost": "You will be sent back to {{host}}.",
     "verified": "Verified",
-    "verifiedHint": "The domain of this app was checked.",
     "unverified": "Unverified",
-    "unverifiedHint": "This name is declared by the app itself. Only continue if you trust {{host}}.",
+    "mcpVerified": "Verified domain · redirects to <host>{{host}}</host>",
+    "mcpUnverified": "Unverified client · redirects to <host>{{host}}</host>",
     "projects": "Projects",
     "projectsHint": "The app only reaches the projects you select.",
     "permissions": "Permissions",
     "permissionUnavailable": "None of the selected projects allows it.",
-    "selectProjectFirst": "Select a project first.",
-    "noProjects": "You have no project to share yet. Decline to go back to the app.",
+    "permissionRequired": "Tick at least one permission.",
+    "projectRequired": "Select at least one project.",
+    "noProjects": "You have no project to share yet.",
     "approve": "Allow access",
     "approving": "Allowing…",
     "approved": "Access granted. You can go back to {{name}}.",
     "denied": "Access denied. You can go back to {{name}}.",
     "invalidRequest": "This authorization link is incomplete or malformed. Start again from the app.",
-    "appHeadline": "Install {{name}} on a workspace",
-    "appVerifiedHint": "This app is registered by the platform.",
+    "appHeadline": "{{name}} wants access to your Bayes workspace",
+    "appVerified": "Verified app · redirects to <host>{{host}}</host>",
+    "appUnverified": "Unverified app · redirects to <host>{{host}}</host>",
     "workspace": "Workspace",
-    "workspaceHint": "The app only reaches the workspace you select, as its own account.",
+    "workspaceHint": "The app will act there with its own account.",
+    "cancelToApp": "Cancel and return to {{name}}",
+    "cancelTerminal": "Cancel and return to the terminal",
+    "appRevocability": "Access can be revoked at any time from this workspace's <settings>installed apps</settings>. {{name}} only reaches the workspace you select.",
     "selectWorkspaceFirst": "Select a workspace first.",
     "appPermissionUnavailable": "You don't hold this permission on this workspace.",
-    "noWorkspaces": "You own or administer no workspace to install this app on. Decline to go back to the app.",
-    "install": "Install",
+    "noWorkspaces": "You own or administer no workspace to install this app on.",
+    "install": "Install {{name}}",
     "installing": "Installing…",
     "installed": "{{name}} is installed. You can go back to it.",
     "permission": {
@@ -40,6 +44,10 @@
         "name": "Edit agent drafts",
         "description": "Change the draft settings of the agents you own or administer in the selected projects (model, instructions). Publishing stays in the studio."
       }
+    },
+    "resource": {
+      "project": "Projects",
+      "agent": "Agents"
     },
     "appPermission": {
       "document_read": {
@@ -113,6 +121,21 @@
     },
     "notifications": {
       "approveError": "Access could not be granted"
+    },
+    "appResource": {
+      "document": "Documents",
+      "document_source": "Document sources",
+      "document_tag": "Document tags",
+      "project": "Workspace",
+      "agent": "Agents"
+    },
+    "permissionAction": {
+      "read": "Read",
+      "create": "Create",
+      "update": "Edit",
+      "delete": "Delete",
+      "conversation_session_external_create": "External chats",
+      "settings_draft_update": "Edit drafts"
     }
   }
 }

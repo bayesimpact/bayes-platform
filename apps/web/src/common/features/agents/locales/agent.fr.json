@@ -53,8 +53,15 @@
     },
     "duplicate": {
       "title": "Dupliquer l'agent",
-      "description": "La copie reprend les réglages publiés, les outils, les sous-agents et les sources de \"{{name}}\". Elle démarre en brouillon : publiez-la depuis son éditeur quand elle est prête. Les conversations, l'analytique et les réglages d'intégration ne sont pas copiés.",
-      "defaultName": "{{name}} (copie)"
+      "description": "La copie reprend les réglages, les outils, les sous-agents et les sources de \"{{name}}\". Elle démarre en brouillon : publiez-la depuis son éditeur quand elle est prête. Les conversations, l'analytique et les réglages d'intégration ne sont pas copiés.",
+      "defaultName": "{{name}} (copie)",
+      "source": {
+        "label": "Réglages à copier",
+        "draft": "Brouillon (version {{number}})",
+        "draftDescription": "Ce que montre l'éditeur, pas encore publié.",
+        "published": "Version publiée {{number}}",
+        "publishedDescription": "Ce que les utilisateurs utilisent aujourd'hui."
+      }
     },
     "list": {
       "title": "Agents",

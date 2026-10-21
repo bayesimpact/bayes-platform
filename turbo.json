@@ -27,7 +27,6 @@
     },
     "test": {
       "env": ["DATABASE_URL"]
-    },
-    "test:e2e": {}
+    }
   }
 }

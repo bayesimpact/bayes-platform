@@ -1,4 +1,4 @@
-import { Column, JoinColumn, ManyToOne, OneToMany } from "typeorm"
+import { Column, JoinColumn, ManyToOne, OneToMany, type Relation } from "typeorm"
 import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import type { Document } from "@/domains/documents/document.entity"
@@ -52,7 +52,7 @@ export class AgentCsvExtractionRun extends ConnectEntityBase {
   csvDocumentId!: string
   @ManyToOne("Document", (document: Document) => document.id, { onDelete: "CASCADE" })
   @JoinColumn({ name: "csv_document_id" })
-  csvDocument!: Document
+  csvDocument!: Relation<Document>
 
   @Column({ name: "column_schema", type: "jsonb", nullable: false })
   columnSchema!: AgentCsvExtractionRunColumnSchema

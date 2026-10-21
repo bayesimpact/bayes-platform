@@ -18,6 +18,8 @@ import {
   FormMessage,
 } from "@caseai-connect/ui/shad/form"
 import { Input } from "@caseai-connect/ui/shad/input"
+import { Label } from "@caseai-connect/ui/shad/label"
+import { RadioGroup, RadioGroupItem } from "@caseai-connect/ui/shad/radio-group"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { CopyIcon } from "lucide-react"
 import { useMemo, useState } from "react"
@@ -68,7 +70,8 @@ export function AgentDuplicatorWithTrigger({
   )
 }
 
-type FormValues = z.infer<typeof duplicateAgentSchema>
+type FormInput = z.input<typeof duplicateAgentSchema>
+type FormValues = z.output<typeof duplicateAgentSchema>
 
 function DuplicateForm({
   organizationId,
@@ -85,7 +88,8 @@ function DuplicateForm({
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
 
-  // The name is the only field, and a name under the minimum length is the only way it fails.
+  // The source is a choice between two values: a name under the minimum length is the only way
+  // the form fails.
   const resolver = useMemo(
     () =>
       zodResolver(duplicateAgentSchema, {
@@ -93,15 +97,23 @@ function DuplicateForm({
       }),
     [t],
   )
-  const form = useForm<FormValues>({
+  // With both a published revision and a draft, the person picks the one the copy starts from.
+  // The draft comes first: it is what the editor shows.
+  const publishedRevision = agent.currentRevision?.number
+  const draftRevision = agent.draftRevision?.number
+  const hasSourceChoice = publishedRevision !== undefined && draftRevision !== undefined
+  const form = useForm<FormInput, unknown, FormValues>({
     resolver,
-    defaultValues: { name: t("agent:duplicate.defaultName", { name: agent.name }) },
+    defaultValues: {
+      name: t("agent:duplicate.defaultName", { name: agent.name }),
+      source: hasSourceChoice ? "draft" : "published",
+    },
   })
 
   // The form stays submitting until the copy's editor opens, which happens once the agent list
   // and the abilities know the copy, or until the duplication fails and its error shows.
   const handleSubmit = form.handleSubmit(
-    ({ name }) =>
+    ({ name, source }) =>
       new Promise<void>((resolve) => {
         onDuplicatingChange(true)
         const finish = () => {
@@ -111,7 +123,7 @@ function DuplicateForm({
         dispatch(
           duplicateAgent({
             agentId: agent.id,
-            fields: { name },
+            fields: { name, source },
             onSuccess: (copy) => {
               finish()
               onDuplicated()
@@ -143,7 +155,7 @@ function DuplicateForm({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="py-4">
+        <div className="flex flex-col gap-6 py-4">
           <FormField
             control={form.control}
             name="name"
@@ -157,6 +169,33 @@ function DuplicateForm({
               </FormItem>
             )}
           />
+
+          {hasSourceChoice && (
+            <FormField
+              control={form.control}
+              name="source"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("agent:duplicate.source.label")}</FormLabel>
+                  <FormControl>
+                    <RadioGroup value={field.value} onValueChange={field.onChange}>
+                      <DuplicationSourceOption
+                        value="draft"
+                        label={t("agent:duplicate.source.draft", { number: draftRevision })}
+                        description={t("agent:duplicate.source.draftDescription")}
+                      />
+                      <DuplicationSourceOption
+                        value="published"
+                        label={t("agent:duplicate.source.published", { number: publishedRevision })}
+                        description={t("agent:duplicate.source.publishedDescription")}
+                      />
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
         </div>
 
         <DialogFooter>
@@ -167,5 +206,26 @@ function DuplicateForm({
         </DialogFooter>
       </form>
     </Form>
+  )
+}
+
+function DuplicationSourceOption({
+  value,
+  label,
+  description,
+}: {
+  value: FormValues["source"]
+  label: string
+  description: string
+}) {
+  const id = `duplicate-source-${value}`
+  return (
+    <div className="flex items-start gap-2">
+      <RadioGroupItem value={value} id={id} className="mt-0.5" />
+      <Label htmlFor={id} className="flex cursor-pointer flex-col items-start gap-1 font-normal">
+        <span>{label}</span>
+        <span className="text-muted-foreground text-xs">{description}</span>
+      </Label>
+    </div>
   )
 }

@@ -96,8 +96,8 @@ export class AgentsController {
   }
 
   /**
-   * Copies the agent into a new agent of the project: its published settings, tools, sub-agents
-   * and sources, under a new name. The copy's settings are a draft for its owner to publish.
+   * Copies the agent into a new agent of the project: its published settings or its draft, tools,
+   * sub-agents and sources, under a new name. The copy's settings are a draft for its owner to publish.
    */
   @Post(AgentsRoutes.duplicateOne.path)
   @CheckPermission(AGENT_DUPLICATE_PERMISSION, "agent")
@@ -106,7 +106,7 @@ export class AgentsController {
   @UsePipes(new ZodValidationPipe(duplicateAgentSchema))
   async duplicateOne(
     @Req() request: EndpointRequestWithAgent,
-    @Body() { payload: { name } }: typeof AgentsRoutes.duplicateOne.request,
+    @Body() { payload: { name, source } }: typeof AgentsRoutes.duplicateOne.request,
   ): Promise<typeof AgentsRoutes.duplicateOne.response> {
     const connectScope = getRequiredConnectScope(request)
     // The copy is a new agent of the project: holding agent.duplicate on the original is not enough.
@@ -123,6 +123,7 @@ export class AgentsController {
       connectScope,
       agentId: request.agent.id,
       name,
+      source,
       userId: request.user.id,
     })
     return { data: toAgentWithDraftDto({ agent, draftAgentSettings: agentSettings }) }
