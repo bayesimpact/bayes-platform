@@ -35,12 +35,13 @@ export function DeskShell({ header, sidebar, footer, title, children }: DeskShel
         <SidebarContent>{sidebar}</SidebarContent>
         <SidebarFooter>{footer}</SidebarFooter>
       </Sidebar>
-      <SidebarInset className="min-h-svh">
-        <header className="sticky top-0 z-10 flex h-12 items-center gap-2 bg-background px-3">
+      <SidebarInset className="h-svh min-h-0">
+        <header className="flex h-12 shrink-0 items-center gap-2 bg-background px-3">
           <SidebarTrigger className="md:hidden" aria-label={t`Open the sidebar`} />
           <div className="min-w-0 truncate text-sm font-medium">{title}</div>
         </header>
-        <div className="flex flex-1 flex-col">{children}</div>
+        {/* The page scrolls inside this frame, so a conversation can keep its message box in view. */}
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   )

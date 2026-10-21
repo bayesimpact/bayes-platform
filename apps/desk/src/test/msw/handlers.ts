@@ -109,7 +109,9 @@ function conversationHandlers(world: DeskWorld) {
       const reply = buildConversationMessage({
         content:
           `Here is what I found about "${content}". ` +
-          "The answer depends on your plan, so I listed the options that apply to you.",
+          "The answer depends on your plan, so here are the options that apply to you:\n\n" +
+          "1. **Starter**, for a single team.\n2. **Pro**, for several teams.\n\n" +
+          '```json\n{ "plan": "pro", "seats": 5 }\n```',
         toolCalls: [{ id: crypto.randomUUID(), name: "lookup_knowledge_base" }],
       })
       world.messages[agentSessionId] = [

@@ -1,7 +1,16 @@
 import type { MessageDescriptor } from "@lingui/core"
 import { msg } from "@lingui/core/macro"
-import { Plural, useLingui } from "@lingui/react/macro"
-import { CheckIcon, ChevronRightIcon, LoaderCircleIcon } from "lucide-react"
+import { Plural, Trans, useLingui } from "@lingui/react/macro"
+import { CheckIcon, SparklesIcon } from "lucide-react"
+import {
+  Trace,
+  TraceCollapsible,
+  TraceCollapsibleContent,
+  TraceCollapsibleTrigger,
+  TraceIcon,
+  TraceLine,
+  TraceTitle,
+} from "@/components/ui/trace"
 
 /** What a person reads while the agent uses a tool. The tools missing here read as a generic step. */
 const TOOL_LABELS: Record<string, MessageDescriptor> = {
@@ -20,67 +29,79 @@ const TOOL_LABELS: Record<string, MessageDescriptor> = {
 /** Tools the platform calls for itself, which say nothing to the person. */
 const HIDDEN_TOOLS = new Set(["recalculateConversationSessionMetadata"])
 
-/** The steps worth showing: the tools the agent called, without the platform's own. */
-function visibleToolNames(toolNames: string[]): string[] {
-  return toolNames.filter((toolName) => !HIDDEN_TOOLS.has(toolName))
-}
-
 export type ToolStepsProps = {
   toolNames: string[]
   isWriting: boolean
+  /** Whether the reply has text yet: until then, the agent shows as thinking. */
+  hasText: boolean
 }
 
 /**
- * The steps of a reply. While the agent works, its steps show as they come; once it answered,
- * they fold into one line that opens on demand.
+ * The steps of a reply, with the shadcn Trace. While the agent works, its steps show as they
+ * come, the current one shimmering; once it answered, they fold into one line that opens.
  */
-export function ToolSteps({ toolNames, isWriting }: ToolStepsProps) {
+export function ToolSteps({ toolNames, isWriting, hasText }: ToolStepsProps) {
   const { t } = useLingui()
-  const steps = visibleToolNames(toolNames)
+  const steps = toolNames.filter((toolName) => !HIDDEN_TOOLS.has(toolName))
   const labelOf = (toolName: string) => {
     const label = TOOL_LABELS[toolName]
     return label ? t(label) : t`Using a tool`
   }
 
   if (isWriting) {
+    const isThinking = !hasText && steps.length === 0
+    if (!isThinking && steps.length === 0) return null
     return (
-      <ul className="flex flex-col gap-1 text-sm text-muted-foreground" aria-live="polite">
-        {steps.map((toolName, index) => (
-          // Steps only grow, and the same tool can run twice: the position is their identity.
-          // biome-ignore lint/suspicious/noArrayIndexKey: see above.
-          <li key={index} className="flex items-center gap-2">
-            {index === steps.length - 1 ? (
-              <LoaderCircleIcon aria-hidden className="size-4 animate-spin" />
-            ) : (
-              <CheckIcon aria-hidden className="size-4" />
-            )}
-            {labelOf(toolName)}
-          </li>
-        ))}
-      </ul>
+      <Trace aria-live="polite">
+        {isThinking ? (
+          <TraceLine status="running">
+            <TraceIcon>
+              <SparklesIcon />
+            </TraceIcon>
+            <TraceTitle>
+              <Trans>Thinking…</Trans>
+            </TraceTitle>
+          </TraceLine>
+        ) : null}
+        {steps.map((toolName, index) => {
+          const isCurrent = index === steps.length - 1 && !hasText
+          return (
+            // Steps only grow, and the same tool can run twice: the position is their identity.
+            // biome-ignore lint/suspicious/noArrayIndexKey: see above.
+            <TraceLine key={index} status={isCurrent ? "running" : undefined}>
+              <TraceIcon>{isCurrent ? <SparklesIcon /> : <CheckIcon />}</TraceIcon>
+              <TraceTitle>{labelOf(toolName)}</TraceTitle>
+            </TraceLine>
+          )
+        })}
+      </Trace>
     )
   }
 
   if (steps.length === 0) return null
   const count = steps.length
   return (
-    <details className="group text-sm text-muted-foreground">
-      <summary className="flex cursor-pointer list-none items-center gap-1 hover:text-foreground">
-        <ChevronRightIcon
-          aria-hidden
-          className="size-4 transition-transform group-open:rotate-90"
-        />
-        <Plural value={count} one="Worked through # step" other="Worked through # steps" />
-      </summary>
-      <ul className="mt-1 flex flex-col gap-1 pl-5">
-        {steps.map((toolName, index) => (
-          // biome-ignore lint/suspicious/noArrayIndexKey: the steps of a finished reply never change.
-          <li key={index} className="flex items-center gap-2">
-            <CheckIcon aria-hidden className="size-4" />
-            {labelOf(toolName)}
-          </li>
-        ))}
-      </ul>
-    </details>
+    <Trace>
+      <TraceCollapsible>
+        <TraceCollapsibleTrigger>
+          <TraceLine>
+            <TraceTitle>
+              <Plural value={count} one="Worked through # step" other="Worked through # steps" />
+            </TraceTitle>
+          </TraceLine>
+        </TraceCollapsibleTrigger>
+        <TraceCollapsibleContent>
+          <ul className="flex flex-col gap-1">
+            {steps.map((toolName, index) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: the steps of a finished reply never change.
+              <li key={index} className="flex items-center gap-2 text-sm">
+                <CheckIcon aria-hidden className="size-4" />
+                {labelOf(toolName)}
+              </li>
+            ))}
+          </ul>
+        </TraceCollapsibleContent>
+      </TraceCollapsible>
+    </Trace>
   )
 }

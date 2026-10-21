@@ -11,7 +11,11 @@ msgstr ""
 msgid "\"{title}\" and its messages will be deleted. This cannot be undone."
 msgstr "\"{title}\" and its messages will be deleted. This cannot be undone."
 
-#: src/features/conversation/components/ToolSteps.tsx:73
+#: src/components/shared/Markdown.tsx:53
+msgid "(opens in a new tab)"
+msgstr "(opens in a new tab)"
+
+#: src/features/conversation/components/ToolSteps.tsx:89
 msgid "{count, plural, one {Worked through # step} other {Worked through # steps}}"
 msgstr "{count, plural, one {Worked through # step} other {Worked through # steps}}"
 
@@ -19,7 +23,7 @@ msgstr "{count, plural, one {Worked through # step} other {Worked through # step
 msgid "A new version of the Desk is available"
 msgstr "A new version of the Desk is available"
 
-#: src/features/conversation/components/ChatMessageView.tsx:81
+#: src/features/conversation/components/ChatMessageView.tsx:80
 msgid "A new version of the Desk is available. Reload the page."
 msgstr "A new version of the Desk is available. Reload the page."
 
@@ -39,13 +43,17 @@ msgstr "Cancel"
 msgid "Check your connection, then try again."
 msgstr "Check your connection, then try again."
 
-#: src/features/conversation/components/ToolSteps.tsx:14
+#: src/features/conversation/components/ToolSteps.tsx:23
 msgid "Completing the form"
 msgstr "Completing the form"
 
 #: src/features/conversation/components/CopyButton.tsx:33
 msgid "Copied"
 msgstr "Copied"
+
+#: src/components/shared/Markdown.tsx:95
+msgid "Copy the code"
+msgstr "Copy the code"
 
 #: src/features/conversation/components/CopyButton.tsx:33
 msgid "Copy the reply"
@@ -73,19 +81,19 @@ msgstr "Drop a document or a CSV file here"
 msgid "Failed"
 msgstr "Failed"
 
-#: src/features/conversation/components/ToolSteps.tsx:13
+#: src/features/conversation/components/ToolSteps.tsx:22
 msgid "Filling in the form"
 msgstr "Filling in the form"
 
-#: src/features/conversation/components/ToolSteps.tsx:17
+#: src/features/conversation/components/ToolSteps.tsx:26
 msgid "Forgetting what you asked"
 msgstr "Forgetting what you asked"
 
-#: src/features/conversation/components/ToolSteps.tsx:9
+#: src/features/conversation/components/ToolSteps.tsx:18
 msgid "Gathering the sources"
 msgstr "Gathering the sources"
 
-#: src/features/conversation/components/ToolSteps.tsx:15
+#: src/features/conversation/components/ToolSteps.tsx:24
 msgid "Handing the conversation back"
 msgstr "Handing the conversation back"
 
@@ -93,7 +101,7 @@ msgstr "Handing the conversation back"
 msgid "Home of the Desk"
 msgstr "Home of the Desk"
 
-#: src/features/conversation/components/ConversationView.tsx:36
+#: src/features/conversation/components/ConversationView.tsx:43
 #: src/features/conversation/components/NewConversation.tsx:20
 msgid "How can I help you today?"
 msgstr "How can I help you today?"
@@ -106,7 +114,7 @@ msgstr "In progress"
 msgid "Language"
 msgstr "Language"
 
-#: src/features/conversation/components/Composer.tsx:42
+#: src/features/conversation/components/Composer.tsx:46
 msgid "Message to {agentName}"
 msgstr "Message to {agentName}"
 
@@ -152,7 +160,7 @@ msgstr "Past conversations open soon"
 msgid "Past extractions open soon"
 msgstr "Past extractions open soon"
 
-#: src/features/conversation/components/ToolSteps.tsx:12
+#: src/features/conversation/components/ToolSteps.tsx:21
 msgid "Picking useful resources"
 msgstr "Picking useful resources"
 
@@ -172,28 +180,28 @@ msgstr "Reload"
 msgid "Reload the page to keep going."
 msgstr "Reload the page to keep going."
 
-#: src/features/conversation/components/ToolSteps.tsx:16
+#: src/features/conversation/components/ToolSteps.tsx:25
 msgid "Remembering what matters"
 msgstr "Remembering what matters"
 
-#: src/features/conversation/components/ConversationView.tsx:50
+#: src/features/conversation/components/ConversationView.tsx:69
 msgid "Retry"
 msgstr "Retry"
 
-#: src/features/conversation/components/ConversationView.tsx:62
+#: src/features/conversation/components/ConversationView.tsx:77
 msgid "Scroll to the latest message"
 msgstr "Scroll to the latest message"
 
-#: src/features/conversation/components/ToolSteps.tsx:8
+#: src/features/conversation/components/ToolSteps.tsx:17
 msgid "Searching the knowledge base"
 msgstr "Searching the knowledge base"
 
-#: src/features/conversation/components/ToolSteps.tsx:10
-#: src/features/conversation/components/ToolSteps.tsx:11
+#: src/features/conversation/components/ToolSteps.tsx:19
+#: src/features/conversation/components/ToolSteps.tsx:20
 msgid "Searching the resources"
 msgstr "Searching the resources"
 
-#: src/features/conversation/components/Composer.tsx:54
+#: src/features/conversation/components/Composer.tsx:64
 msgid "Send"
 msgstr "Send"
 
@@ -213,11 +221,11 @@ msgstr "Sign out"
 msgid "Switch agent, current agent: {agentName}"
 msgstr "Switch agent, current agent: {agentName}"
 
-#: src/features/conversation/components/ChatMessageView.tsx:73
+#: src/features/conversation/components/ChatMessageView.tsx:72
 msgid "The agent could not answer."
 msgstr "The agent could not answer."
 
-#: src/features/conversation/components/Composer.tsx:52
+#: src/features/conversation/components/Composer.tsx:56
 msgid "The agent is answering…"
 msgstr "The agent is answering…"
 
@@ -229,11 +237,11 @@ msgstr "The conversation could not be deleted. Try again."
 msgid "The conversation could not start. Try again."
 msgstr "The conversation could not start. Try again."
 
-#: src/features/conversation/components/ChatMessageView.tsx:79
+#: src/features/conversation/components/ChatMessageView.tsx:78
 msgid "The Desk could not reach the agent. Check your connection."
 msgstr "The Desk could not reach the agent. Check your connection."
 
-#: src/features/conversation/components/ChatMessageView.tsx:77
+#: src/features/conversation/components/ChatMessageView.tsx:76
 msgid "The reply stopped before it finished."
 msgstr "The reply stopped before it finished."
 
@@ -241,7 +249,7 @@ msgstr "The reply stopped before it finished."
 msgid "The sign-in did not complete"
 msgstr "The sign-in did not complete"
 
-#: src/features/conversation/components/ChatMessageView.tsx:53
+#: src/features/conversation/components/ToolSteps.tsx:62
 msgid "Thinking…"
 msgstr "Thinking…"
 
@@ -257,7 +265,7 @@ msgstr "This page could not load"
 msgid "This page does not exist, or you cannot open it."
 msgstr "This page does not exist, or you cannot open it."
 
-#: src/features/conversation/components/ChatMessageView.tsx:37
+#: src/features/conversation/components/ChatMessageView.tsx:45
 msgid "This reply was interrupted before it finished."
 msgstr "This reply was interrupted before it finished."
 
@@ -277,7 +285,7 @@ msgstr "Untitled document"
 msgid "Uploading comes in the next version of the Desk."
 msgstr "Uploading comes in the next version of the Desk."
 
-#: src/features/conversation/components/ToolSteps.tsx:42
+#: src/features/conversation/components/ToolSteps.tsx:48
 msgid "Using a tool"
 msgstr "Using a tool"
 
@@ -289,7 +297,7 @@ msgstr "What should {agentName} read?"
 msgid "When someone gives you access to an agent, it appears here."
 msgstr "When someone gives you access to an agent, it appears here."
 
-#: src/features/conversation/components/Composer.tsx:43
+#: src/features/conversation/components/Composer.tsx:47
 msgid "Write to {agentName}"
 msgstr "Write to {agentName}"
 

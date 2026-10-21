@@ -47,9 +47,19 @@ function buildExchange(question: string, createdAt: number): ConversationMessage
     buildConversationMessage({ content: "Hello! How can I help you today?", createdAt }),
     buildConversationMessage({ role: "user", content: question, createdAt }),
     buildConversationMessage({
-      content:
-        "Here is a short comparison.\n\nThe Starter plan covers one team and the essentials. " +
-        "The Pro plan adds shared workspaces, priority support and the integrations.",
+      content: [
+        "Here is a short comparison of the **two plans**:",
+        "",
+        "| Plan | Teams | Support |",
+        "| --- | --- | --- |",
+        "| Starter | 1 | Email |",
+        "| Pro | Unlimited | Priority |",
+        "",
+        "The Pro plan also adds:",
+        "",
+        "- shared workspaces,",
+        "- the integrations, such as `webhooks`.",
+      ].join("\n"),
       createdAt,
       toolCalls: [{ id: crypto.randomUUID(), name: "lookup_knowledge_base" }],
     }),

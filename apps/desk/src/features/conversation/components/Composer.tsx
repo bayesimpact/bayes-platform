@@ -1,8 +1,12 @@
 import { Trans, useLingui } from "@lingui/react/macro"
 import { ArrowUpIcon } from "lucide-react"
 import { type FormEvent, type KeyboardEvent, useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupTextarea,
+} from "@/components/ui/input-group"
 
 export type ComposerProps = {
   agentName: string
@@ -11,7 +15,7 @@ export type ComposerProps = {
   onSend: (content: string) => void
 }
 
-/** The message box: Enter sends, Shift+Enter starts a new line. */
+/** The message box, as the shadcn Prompt Input: Enter sends, Shift+Enter starts a new line. */
 export function Composer({ agentName, isBusy, onSend }: ComposerProps) {
   const { t } = useLingui()
   const [content, setContent] = useState("")
@@ -37,25 +41,32 @@ export function Composer({ agentName, isBusy, onSend }: ComposerProps) {
 
   return (
     <form className="w-full" onSubmit={handleSubmit}>
-      <div className="flex flex-col gap-2 rounded-2xl border bg-background p-3 shadow-sm">
-        <Textarea
+      <InputGroup className="rounded-2xl bg-background shadow-sm">
+        <InputGroupTextarea
           aria-label={t`Message to ${agentName}`}
           placeholder={t`Write to ${agentName}`}
           value={content}
           onChange={(event) => setContent(event.target.value)}
           onKeyDown={handleKeyDown}
           autoFocus
-          className="max-h-60 min-h-12 resize-none border-0 bg-transparent p-1 shadow-none focus-visible:ring-0 dark:bg-transparent"
+          className="max-h-60 min-h-16 p-3"
         />
-        <div className="flex items-center justify-between gap-2">
-          <p className="text-xs text-muted-foreground">
+        <InputGroupAddon align="block-end">
+          <span className="text-xs font-normal text-muted-foreground">
             {isBusy ? <Trans>The agent is answering…</Trans> : null}
-          </p>
-          <Button type="submit" size="icon" disabled={!canSend} aria-label={t`Send`}>
+          </span>
+          <InputGroupButton
+            type="submit"
+            size="icon-sm"
+            variant="default"
+            className="ml-auto rounded-full"
+            disabled={!canSend}
+            aria-label={t`Send`}
+          >
             <ArrowUpIcon aria-hidden />
-          </Button>
-        </div>
-      </div>
+          </InputGroupButton>
+        </InputGroupAddon>
+      </InputGroup>
     </form>
   )
 }
