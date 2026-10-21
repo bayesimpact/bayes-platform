@@ -15,7 +15,7 @@ export function DeskLogo() {
       className="flex h-12 w-fit items-center gap-2 px-2"
     >
       <img src={`${appBasePath}theme/logo.svg`} alt="" className="h-7 w-auto" />
-      <span className="text-lg font-semibold tracking-tight">{PRODUCT_NAME}</span>
+      <span className="text-2xl font-semibold tracking-tight">{PRODUCT_NAME}</span>
     </Link>
   )
 }
