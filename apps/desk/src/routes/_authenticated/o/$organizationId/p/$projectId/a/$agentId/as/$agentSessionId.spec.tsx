@@ -215,6 +215,19 @@ describe("a conversation", () => {
     expect(screen.queryByRole("button", { name: "Remove rows.csv" })).not.toBeInTheDocument()
   })
 
+  it("shows the form the agent fills in", async () => {
+    const world = buildDeskWorld()
+    server.use(...worldHandlers(world))
+    renderApp(urlsOf(world).conversationUrl)
+
+    await userEvent.click(await screen.findByRole("button", { name: "Form in progress" }))
+    const panel = await screen.findByRole("dialog", { name: "What the agent noted" })
+
+    expect(within(panel).getByText("Team size").nextSibling).toHaveTextContent("5")
+    expect(within(panel).getByText("Plan").nextSibling).toHaveTextContent("Pro")
+    expect(within(panel).getByText("Start date").nextSibling).toHaveTextContent("—")
+  })
+
   it("reports a problem with a reply", async () => {
     const world = buildDeskWorld()
     server.use(...worldHandlers(world))

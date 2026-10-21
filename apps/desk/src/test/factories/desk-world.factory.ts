@@ -111,7 +111,23 @@ const PRICING_GUIDE_ID = "0b6c8f1e-7a52-4d39-9a51-3f6e0d2c4b11"
 /** A conversation history spread over the date groups of the sidebar. */
 function buildConversationHistory(): ConversationSessionOutputDto[] {
   return [
-    buildConversationSession({ title: "Compare the plans", createdAt: daysAgo(0) }),
+    buildConversationSession({
+      title: "Compare the plans",
+      createdAt: daysAgo(0),
+      forms: [
+        {
+          agentId: crypto.randomUUID(),
+          agentName: "Helpful Assistant",
+          status: "in_progress",
+          state: { teamSize: 5, plan: "Pro" },
+          outputJsonSchema: {
+            properties: { teamSize: { type: "number" }, plan: { type: "string" }, startDate: {} },
+            propertyOrdering: ["teamSize", "plan", "startDate"],
+          },
+          updatedAt: daysAgo(0),
+        },
+      ],
+    }),
     buildConversationSession({ title: "Summarize the release notes", createdAt: daysAgo(0) }),
     buildConversationSession({ title: "Draft a reply to a question", createdAt: daysAgo(1) }),
     buildConversationSession({ title: undefined, createdAt: daysAgo(3) }),

@@ -37,6 +37,10 @@ msgstr "Une nouvelle version du Desk est disponible. Rechargez la page."
 msgid "Actions on {title}"
 msgstr "Actions sur {title}"
 
+#: src/features/conversation/components/FormsSheet.tsx:53
+msgid "Agent"
+msgstr "Agent"
+
 #: src/features/conversation/components/Composer.tsx:112
 msgid "Attach a file"
 msgstr "Joindre un fichier"
@@ -65,6 +69,14 @@ msgstr "Annuler"
 #: src/components/shared/RouteErrorState.tsx:41
 msgid "Check your connection, then try again."
 msgstr "Vérifiez votre connexion, puis réessayez."
+
+#: src/features/conversation/components/FormsSheet.tsx:39
+msgid "Close"
+msgstr "Fermer"
+
+#: src/features/conversation/components/FormsSheet.tsx:31
+msgid "Completed form"
+msgstr "Formulaire complété"
 
 #: src/features/conversation/components/ToolSteps.tsx:22
 msgid "Completing the form"
@@ -116,6 +128,10 @@ msgstr "Remplissage du formulaire"
 msgid "Forgetting what you asked"
 msgstr "Oubli de ce que vous avez demandé"
 
+#: src/features/conversation/components/FormsSheet.tsx:31
+msgid "Form in progress"
+msgstr "Formulaire en cours"
+
 #: src/features/conversation/components/ToolSteps.tsx:23
 msgid "Handing the conversation back"
 msgstr "Retour à l'agent précédent"
@@ -124,7 +140,7 @@ msgstr "Retour à l'agent précédent"
 msgid "Home of the Desk"
 msgstr "Accueil du Desk"
 
-#: src/features/conversation/components/ConversationView.tsx:45
+#: src/features/conversation/components/ConversationView.tsx:53
 #: src/features/conversation/components/NewConversation.tsx:20
 msgid "How can I help you today?"
 msgstr "Comment puis-je vous aider aujourd'hui ?"
@@ -166,6 +182,10 @@ msgstr "Aucune extraction pour l'instant"
 #: src/features/conversation/components/SourceItem.tsx:78
 msgid "No passage to show."
 msgstr "Aucun passage à afficher."
+
+#: src/features/conversation/components/FormFields.tsx:16
+msgid "Nothing noted yet."
+msgstr "Rien de noté pour l'instant."
 
 #: src/features/history/components/HistoryList.tsx:34
 msgid "Older"
@@ -235,11 +255,11 @@ msgstr "Signaler un problème"
 msgid "Report a problem with this reply"
 msgstr "Signaler un problème avec cette réponse"
 
-#: src/features/conversation/components/ConversationView.tsx:76
+#: src/features/conversation/components/ConversationView.tsx:84
 msgid "Retry"
 msgstr "Réessayer"
 
-#: src/features/conversation/components/ConversationView.tsx:84
+#: src/features/conversation/components/ConversationView.tsx:92
 msgid "Scroll to the latest message"
 msgstr "Aller au dernier message"
 
@@ -287,6 +307,10 @@ msgstr "L'agent n'a pas pu répondre."
 #: src/features/conversation/components/Composer.tsx:119
 msgid "The agent is answering…"
 msgstr "L'agent répond…"
+
+#: src/features/conversation/components/FormsSheet.tsx:44
+msgid "The answers the agent collected from the conversation, as it fills them in."
+msgstr "Les réponses que l'agent a recueillies dans la conversation, au fur et à mesure."
 
 #: src/features/history/components/ConversationActions.tsx:85
 msgid "The conversation could not be deleted. Try again."
@@ -372,6 +396,10 @@ msgstr "Utilisation d'un outil"
 #: src/features/sessions/components/NewExtraction.tsx:16
 msgid "What should {agentName} read?"
 msgstr "Que doit lire {agentName} ?"
+
+#: src/features/conversation/components/FormsSheet.tsx:37
+msgid "What the agent noted"
+msgstr "Ce que l'agent a noté"
 
 #: src/features/conversation/components/FeedbackDialog.tsx:79
 msgid "What went wrong?"

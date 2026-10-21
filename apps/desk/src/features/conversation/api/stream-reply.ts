@@ -23,6 +23,9 @@ import { conversationKeys } from "./keys"
 import { registerReplyStream, unregisterReplyStream } from "./reply-streams"
 import { uploadAttachment } from "./upload-attachment"
 
+/** The tools that change a form of the conversation, which comes with the agent's history. */
+const FORM_TOOLS = new Set(["fillForm", "consolidateForm"])
+
 /** An event of the stream, or the failure to read one. */
 type ReadEvent = { event: ReplyStreamEventDto } | { failure: ReplyFailure }
 
@@ -108,6 +111,10 @@ export async function streamReply(
         cursor = next.cursor
         return next.messages
       })
+      // A form the agent fills in shows its new answers while the reply goes on.
+      if (read.event.type === "notify_client" && FORM_TOOLS.has(read.event.toolName)) {
+        invalidateAgentHistory(queryClient, conversation.agentId)
+      }
       if (read.event.type === "error") return
     }
     // The body closed: every reply should have ended by now.

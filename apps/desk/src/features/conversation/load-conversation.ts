@@ -1,5 +1,6 @@
 import type { QueryClient } from "@tanstack/react-query"
 import { notFound } from "@tanstack/react-router"
+import { conversationsQueryOptions } from "@/features/history"
 import { ApiError } from "@/lib/api-client"
 import { messagesQueryOptions } from "./api/queries"
 import type { ConversationRef } from "./conversation-ref"
@@ -12,6 +13,15 @@ export async function loadConversation(
   queryClient: QueryClient,
   conversation: ConversationRef,
 ): Promise<void> {
+  // The forms come with the agent's conversations, which must not hold the messages back.
+  void queryClient.prefetchQuery(
+    conversationsQueryOptions({
+      organizationId: conversation.organizationId,
+      projectId: conversation.projectId,
+      agentId: conversation.agentId,
+      type: "conversation",
+    }),
+  )
   try {
     await queryClient.query({ ...messagesQueryOptions(conversation), staleTime: "static" })
   } catch (error) {

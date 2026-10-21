@@ -24,6 +24,7 @@ export function buildConversationSession(
     id: crypto.randomUUID(),
     title: "Compare the plans",
     createdAt: daysAgo(0),
+    forms: [],
     ...overrides,
   })
 }

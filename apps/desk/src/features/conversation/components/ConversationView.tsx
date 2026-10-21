@@ -14,8 +14,10 @@ import { useSendMessage } from "../api/mutations"
 import { messagesQueryOptions } from "../api/queries"
 import { findRetryableMessage, isWriting } from "../chat-messages"
 import type { ConversationRef } from "../conversation-ref"
+import { useConversationForms } from "../hooks/use-conversation-forms"
 import { ChatMessageView } from "./ChatMessageView"
 import { Composer } from "./Composer"
+import { FormsSheet } from "./FormsSheet"
 
 export type ConversationViewProps = {
   conversation: ConversationRef
@@ -35,10 +37,16 @@ export function ConversationView({ conversation, agentName, showSources }: Conve
   const now = Date.now()
   const isBusy = sendMessage.isPending || messages.some((message) => isWriting(message, now))
   const retryableMessage = isBusy ? null : findRetryableMessage(messages, now)
+  const forms = useConversationForms(conversation)
 
   return (
     <MessageScrollerProvider autoScroll>
       <div className="flex min-h-0 flex-1 flex-col">
+        {forms.length > 0 ? (
+          <div className="mx-auto flex w-full max-w-3xl justify-end px-4 pt-2">
+            <FormsSheet forms={forms} />
+          </div>
+        ) : null}
         <div className="min-h-0 flex-1">
           {messages.length === 0 ? (
             <h1 className="mt-24 text-center text-3xl font-semibold tracking-tight">
