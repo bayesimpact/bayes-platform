@@ -1,5 +1,6 @@
 import { AgentModel } from "@caseai-connect/api-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
+import { expect, userEvent, within } from "storybook/test"
 import { agentFactory, defaultAgentModels } from "@/common/features/agents/agent.factory"
 import {
   conversationAgentSessionFactory,
@@ -211,4 +212,21 @@ export const AgentUnpublishedCopy: Story = {
     unpublished: true,
   },
   decorators: Default.decorators,
+}
+
+/** The duplicate dialog of an agent with a draft: the copy starts from the draft or the published version. */
+export const AgentDuplicateWithDraft: Story = {
+  args: {
+    ...AgentConvWithSessions.args,
+    withAgentSessions: false,
+    withDraft: true,
+  },
+  decorators: Default.decorators,
+  play: async ({ canvasElement }) => {
+    // The dialog renders in a portal, outside the story's canvas.
+    const page = within(canvasElement.ownerDocument.body)
+    await userEvent.click(await page.findByRole("button", { name: "Duplicate" }))
+    const dialog = await page.findByRole("dialog", { name: "Duplicate Agent" })
+    await expect(within(dialog).getByRole("radio", { name: /Draft \(version 2\)/ })).toBeChecked()
+  },
 }
