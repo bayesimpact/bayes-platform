@@ -38,7 +38,7 @@ export function ChatMessageView({
   if (message.role === "user") {
     return (
       <Message align="end">
-        <MessageContent>
+        <MessageContent className="gap-1">
           {message.attachment ? (
             <AttachmentChip conversation={conversation} attachment={message.attachment} />
           ) : null}

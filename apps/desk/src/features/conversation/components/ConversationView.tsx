@@ -113,7 +113,7 @@ export function ConversationView({ conversation, agentName, showSources }: Conve
                           annotation raised above it. */}
                       <MessageScrollerContent
                         aria-busy={isBusy}
-                        className="mx-auto w-full max-w-3xl flex-1 px-4 pt-10 pb-6"
+                        className="mx-auto w-full max-w-3xl flex-1 gap-4 px-4 pt-10 pb-6"
                       >
                         {messages.map((message, position) => (
                           <MessageScrollerItem
