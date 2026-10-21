@@ -2,6 +2,7 @@ import { Trans, useLingui } from "@lingui/react/macro"
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query"
 import { ArrowDownIcon, RotateCcwIcon } from "lucide-react"
 import { useState } from "react"
+import { HeaderActions } from "@/components/shared/HeaderActions"
 import { Button } from "@/components/ui/button"
 import {
   MessageScroller,
@@ -54,7 +55,7 @@ export function ConversationView({ conversation, agentName, showSources }: Conve
   return (
     <MessageScrollerProvider autoScroll>
       <div className="flex min-h-0 flex-1 flex-col">
-        <div className="mx-auto flex w-full max-w-3xl justify-end gap-2 px-4 pt-2 empty:hidden">
+        <HeaderActions>
           <MemoryPanel
             agent={{
               organizationId: conversation.organizationId,
@@ -63,7 +64,7 @@ export function ConversationView({ conversation, agentName, showSources }: Conve
             }}
           />
           {forms.length > 0 ? <FormsSheet forms={forms} /> : null}
-        </div>
+        </HeaderActions>
         <div className="min-h-0 flex-1">
           {messages.length === 0 ? (
             <h1 className="mt-24 text-center text-3xl font-semibold tracking-tight">

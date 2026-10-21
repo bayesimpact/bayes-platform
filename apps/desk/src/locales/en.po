@@ -164,7 +164,7 @@ msgstr "Handing the conversation back"
 msgid "Home of the Desk"
 msgstr "Home of the Desk"
 
-#: src/features/conversation/components/ConversationView.tsx:70
+#: src/features/conversation/components/ConversationView.tsx:71
 #: src/features/conversation/components/NewConversation.tsx:22
 msgid "How can I help you today?"
 msgstr "How can I help you today?"
@@ -180,6 +180,11 @@ msgstr "In progress"
 #: src/features/conversation/components/McpAppCard.tsx:35
 msgid "Interactive card"
 msgstr "Interactive card"
+
+#. A reply written less than a minute ago
+#: src/features/conversation/components/MessageTime.tsx:25
+msgid "just now"
+msgstr "just now"
 
 #: src/features/account/components/UserMenu.tsx:52
 msgid "Language"
@@ -235,7 +240,7 @@ msgstr "Open {title}"
 msgid "Open the menu of {email}"
 msgstr "Open the menu of {email}"
 
-#: src/components/shared/DeskShell.tsx:43
+#: src/components/shared/DeskShell.tsx:47
 msgid "Open the sidebar"
 msgstr "Open the sidebar"
 
@@ -292,7 +297,7 @@ msgstr "Report a problem"
 msgid "Report a problem with this reply"
 msgstr "Report a problem with this reply"
 
-#: src/features/conversation/components/ConversationView.tsx:103
+#: src/features/conversation/components/ConversationView.tsx:104
 msgid "Retry"
 msgstr "Retry"
 
@@ -300,7 +305,7 @@ msgstr "Retry"
 msgid "Reword"
 msgstr "Reword"
 
-#: src/features/conversation/components/ConversationView.tsx:111
+#: src/features/conversation/components/ConversationView.tsx:112
 msgid "Scroll to the latest message"
 msgstr "Scroll to the latest message"
 
@@ -445,7 +450,7 @@ msgstr "This page could not load"
 msgid "This page does not exist, or you cannot open it."
 msgstr "This page does not exist, or you cannot open it."
 
-#: src/features/conversation/components/AssistantMessageView.tsx:83
+#: src/features/conversation/components/AssistantMessageView.tsx:84
 msgid "This reply was interrupted before it finished."
 msgstr "This reply was interrupted before it finished."
 

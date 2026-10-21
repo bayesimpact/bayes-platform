@@ -56,9 +56,9 @@ export function FeedbackDialog({ conversation, agentMessageId }: FeedbackDialogP
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger
-        render={<Button variant="ghost" size="icon-sm" aria-label={t`Report a problem`} />}
+        render={<Button variant="ghost" size="icon-xs" aria-label={t`Report a problem`} />}
       >
-        <FlagIcon aria-hidden />
+        <FlagIcon aria-hidden className="size-3.5" />
       </DialogTrigger>
       <DialogContent>
         <form onSubmit={(event) => void handleSubmit(event)} className="flex flex-col gap-4">

@@ -164,7 +164,7 @@ msgstr "Retour à l'agent précédent"
 msgid "Home of the Desk"
 msgstr "Accueil du Desk"
 
-#: src/features/conversation/components/ConversationView.tsx:70
+#: src/features/conversation/components/ConversationView.tsx:71
 #: src/features/conversation/components/NewConversation.tsx:22
 msgid "How can I help you today?"
 msgstr "Comment puis-je vous aider aujourd'hui ?"
@@ -180,6 +180,11 @@ msgstr "En cours"
 #: src/features/conversation/components/McpAppCard.tsx:35
 msgid "Interactive card"
 msgstr "Carte interactive"
+
+#. A reply written less than a minute ago
+#: src/features/conversation/components/MessageTime.tsx:25
+msgid "just now"
+msgstr "à l'instant"
 
 #: src/features/account/components/UserMenu.tsx:52
 msgid "Language"
@@ -235,7 +240,7 @@ msgstr "Ouvrir {title}"
 msgid "Open the menu of {email}"
 msgstr "Ouvrir le menu de {email}"
 
-#: src/components/shared/DeskShell.tsx:43
+#: src/components/shared/DeskShell.tsx:47
 msgid "Open the sidebar"
 msgstr "Ouvrir le panneau latéral"
 
@@ -292,7 +297,7 @@ msgstr "Signaler un problème"
 msgid "Report a problem with this reply"
 msgstr "Signaler un problème avec cette réponse"
 
-#: src/features/conversation/components/ConversationView.tsx:103
+#: src/features/conversation/components/ConversationView.tsx:104
 msgid "Retry"
 msgstr "Réessayer"
 
@@ -300,7 +305,7 @@ msgstr "Réessayer"
 msgid "Reword"
 msgstr "Reformuler"
 
-#: src/features/conversation/components/ConversationView.tsx:111
+#: src/features/conversation/components/ConversationView.tsx:112
 msgid "Scroll to the latest message"
 msgstr "Aller au dernier message"
 
@@ -445,7 +450,7 @@ msgstr "Cette page n’a pas pu se charger"
 msgid "This page does not exist, or you cannot open it."
 msgstr "Cette page n’existe pas, ou vous ne pouvez pas l’ouvrir."
 
-#: src/features/conversation/components/AssistantMessageView.tsx:83
+#: src/features/conversation/components/AssistantMessageView.tsx:84
 msgid "This reply was interrupted before it finished."
 msgstr "Cette réponse a été interrompue avant la fin."
 

@@ -9,6 +9,7 @@ import { type AppsHtml, hasMeaningfulText, toolResultText, unavailableApps } fro
 import { CopyButton } from "./CopyButton"
 import { FeedbackDialog } from "./FeedbackDialog"
 import { McpAppsList } from "./McpAppsList"
+import { MessageTime } from "./MessageTime"
 import { ReplyError } from "./ReplyError"
 import { ResourceCards } from "./ResourceCards"
 import { SourcesList } from "./SourcesList"
@@ -86,12 +87,15 @@ export function AssistantMessageView({
         {message.status === "completed" && text !== "" ? (
           // The actions show when the pointer is over the reply or the keyboard is in them, as in
           // the Claude app; a touch screen, with no fine pointer to hover, always shows them.
-          <MessageFooter className="px-0 transition-opacity duration-150 pointer-fine:opacity-0 pointer-fine:group-hover/message:opacity-100 pointer-fine:focus-within:opacity-100">
+          <MessageFooter className="gap-0.5 px-0 transition-opacity duration-150 pointer-fine:opacity-0 pointer-fine:group-hover/message:opacity-100 pointer-fine:focus-within:opacity-100">
             <CopyButton text={text} />
             {/* A local reply gets its id once the persisted messages replace it. */}
             {message.id.startsWith("local-") ? null : (
               <FeedbackDialog conversation={conversation} agentMessageId={message.id} />
             )}
+            {message.createdAt !== null ? (
+              <MessageTime createdAt={message.createdAt} now={now} />
+            ) : null}
           </MessageFooter>
         ) : null}
       </MessageContent>

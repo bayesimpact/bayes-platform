@@ -1,6 +1,6 @@
 import { useLingui } from "@lingui/react/macro"
 import { useRouterState } from "@tanstack/react-router"
-import { type ReactNode, useEffect } from "react"
+import { type ReactNode, useEffect, useState } from "react"
 import {
   Sidebar,
   SidebarContent,
@@ -11,6 +11,7 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { HeaderActionsContext } from "./header-actions-context"
 
 export type DeskShellProps = {
   /** The top of the sidebar: the logo, or the agent switcher. */
@@ -30,6 +31,8 @@ export type DeskShellProps = {
  */
 export function DeskShell({ header, sidebar, footer, title, children }: DeskShellProps) {
   const { t } = useLingui()
+  // The slot of the page's actions, known once the bar is mounted.
+  const [actionsSlot, setActionsSlot] = useState<HTMLElement | null>(null)
   return (
     <SidebarProvider>
       <CloseSidebarOnNavigation />
@@ -39,12 +42,16 @@ export function DeskShell({ header, sidebar, footer, title, children }: DeskShel
         <SidebarFooter>{footer}</SidebarFooter>
       </Sidebar>
       <SidebarInset className="h-svh min-h-0">
-        <header className="flex h-12 shrink-0 items-center gap-2 bg-background px-3">
+        {/* The bar fades into the page below it, as in the Claude app, over what scrolls under it. */}
+        <header className="relative z-10 flex h-12 shrink-0 items-center gap-2 bg-background px-3 after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-6 after:bg-linear-to-b after:from-background after:to-transparent">
           <SidebarTrigger className="md:hidden" aria-label={t`Open the sidebar`} />
-          <div className="min-w-0 truncate text-sm font-medium">{title}</div>
+          <div className="min-w-0 flex-1 truncate text-sm font-medium">{title}</div>
+          <div ref={setActionsSlot} className="flex shrink-0 items-center gap-2" />
         </header>
         {/* The page scrolls inside this frame, so a conversation can keep its message box in view. */}
-        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">{children}</div>
+        <HeaderActionsContext value={actionsSlot}>
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">{children}</div>
+        </HeaderActionsContext>
       </SidebarInset>
     </SidebarProvider>
   )

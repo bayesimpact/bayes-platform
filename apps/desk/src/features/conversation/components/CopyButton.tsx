@@ -29,11 +29,15 @@ export function CopyButton({ text }: CopyButtonProps) {
   return (
     <Button
       variant="ghost"
-      size="icon-sm"
+      size="icon-xs"
       aria-label={isCopied ? t`Copied` : t`Copy the reply`}
       onClick={() => void handleCopy()}
     >
-      {isCopied ? <CheckIcon aria-hidden /> : <CopyIcon aria-hidden />}
+      {isCopied ? (
+        <CheckIcon aria-hidden className="size-3.5" />
+      ) : (
+        <CopyIcon aria-hidden className="size-3.5" />
+      )}
     </Button>
   )
 }
