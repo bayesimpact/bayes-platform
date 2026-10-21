@@ -9,6 +9,7 @@ import { AttachmentChip } from "./AttachmentChip"
 import { CopyButton } from "./CopyButton"
 import { MessageActions } from "./MessageActions"
 import { MessageTime } from "./MessageTime"
+import { UserMessageText } from "./UserMessageText"
 
 export type ChatMessageViewProps = {
   conversation: ConversationRef
@@ -38,7 +39,9 @@ export function ChatMessageView({
             <AttachmentChip conversation={conversation} attachment={message.attachment} />
           ) : null}
           <Bubble align="end" variant="muted">
-            <BubbleContent className="whitespace-pre-wrap">{message.content}</BubbleContent>
+            <BubbleContent>
+              <UserMessageText content={message.content} />
+            </BubbleContent>
           </Bubble>
           <MessageActions>
             {message.createdAt !== null ? (

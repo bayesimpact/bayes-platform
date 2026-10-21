@@ -112,7 +112,7 @@ msgstr "Copied"
 msgid "Copy the code"
 msgstr "Copy the code"
 
-#: src/features/conversation/components/ChatMessageView.tsx:47
+#: src/features/conversation/components/ChatMessageView.tsx:50
 msgid "Copy the message"
 msgstr "Copy the message"
 
@@ -371,6 +371,14 @@ msgstr "Shift"
 #: src/features/memory/components/MemoryProposals.tsx:50
 msgid "Should the agent remember this?"
 msgstr "Should the agent remember this?"
+
+#: src/features/conversation/components/UserMessageText.tsx:44
+msgid "Show less"
+msgstr "Show less"
+
+#: src/features/conversation/components/UserMessageText.tsx:44
+msgid "Show more"
+msgstr "Show more"
 
 #: src/components/shared/DeskShell.tsx:68
 msgid "Show or hide the sidebar"
