@@ -1,17 +1,9 @@
-import { Button } from "@caseai-connect/ui/shad/button"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@caseai-connect/ui/shad/table"
-import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table"
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
+import { type ColumnDef, getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { BackofficeUserRoutes } from "@/backoffice/routes/helpers"
+import { DataTable } from "@/common/components/data-table/DataTable"
+import { DEFAULT_PAGE_SIZE, PaginationControls } from "@/common/components/shared/RecordTableParts"
 import { useMount } from "@/common/hooks/use-mount"
 import { useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
@@ -20,8 +12,6 @@ import type { BackofficeUser } from "../backoffice.models"
 import { selectBackofficeUsers, selectBackofficeUsersQuery } from "../backoffice.selectors"
 import { backofficeActions } from "../backoffice.slice"
 import { SearchField } from "./BackofficeTable"
-
-const DEFAULT_PAGE_SIZE = 10
 
 export function UsersPanel() {
   const users = useAppSelector(selectBackofficeUsers)
@@ -41,6 +31,9 @@ export function UsersPanel() {
 }
 
 function WithData() {
+  // TanStack Table keeps one table instance across renders, so the React Compiler would
+  // memoize its row model and show stale rows after a search or a page change.
+  "use no memo"
   const users = useValue(selectBackofficeUsers)
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
@@ -69,7 +62,7 @@ function WithData() {
     () => [
       {
         accessorKey: "email",
-        header: () => <span className="text-muted-foreground">User</span>,
+        header: () => "User",
         cell: ({ row }) => (
           <div className="flex flex-col">
             <span className="font-medium">{row.original.email}</span>
@@ -105,9 +98,6 @@ function WithData() {
     )
   }
 
-  const from = users.total === 0 ? 0 : users.page * pageSize + 1
-  const to = Math.min((users.page + 1) * pageSize, users.total)
-
   return (
     <>
       <div className="p-4 border-b">
@@ -117,76 +107,20 @@ function WithData() {
           placeholder="Search by email, name or UUID…"
         />
       </div>
-      <Table>
-        <TableHeader className="bg-muted/50">
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <TableHead key={header.id}>
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(header.column.columnDef.header, header.getContext())}
-                </TableHead>
-              ))}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows.length > 0 ? (
-            table.getRowModel().rows.map((row) => (
-              <TableRow
-                key={row.id}
-                className="cursor-pointer hover:bg-muted/50"
-                onClick={() =>
-                  navigate(BackofficeUserRoutes.user.build({ userId: row.original.id }))
-                }
-              >
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell
-                colSpan={columns.length}
-                className="h-24 text-center text-muted-foreground"
-              >
-                No results
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-      <div className="flex items-center justify-between p-4 border-t">
-        <span className="text-sm text-muted-foreground">
-          {users.total === 0 ? "No users" : `${from}–${to} of ${users.total}`}
-        </span>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={users.page <= 0}
-            onClick={() => goToPage(users.page - 1)}
-          >
-            <ChevronLeftIcon className="size-4" />
-            Previous
-          </Button>
-          <span className="text-sm text-muted-foreground">
-            {users.page + 1} / {pageCount}
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={users.page >= pageCount - 1}
-            onClick={() => goToPage(users.page + 1)}
-          >
-            Next
-            <ChevronRightIcon className="size-4" />
-          </Button>
-        </div>
+      <div className="p-4">
+        <DataTable
+          table={table}
+          onRowClick={(user) => navigate(BackofficeUserRoutes.user.build({ userId: user.id }))}
+          empty={<p className="py-8 text-center text-muted-foreground">No results</p>}
+        />
+        {users.total > 0 && (
+          <PaginationControls
+            pageIndex={users.page}
+            pageCount={pageCount}
+            total={users.total}
+            onPageChange={goToPage}
+          />
+        )}
       </div>
     </>
   )

@@ -1,19 +1,19 @@
 import type { TimeType } from "@caseai-connect/api-contracts"
 import { Button } from "@caseai-connect/ui/shad/button"
-import { Checkbox } from "@caseai-connect/ui/shad/checkbox"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@caseai-connect/ui/shad/sheet"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@caseai-connect/ui/shad/table"
-import { ArrowRightIcon, InfoIcon, Trash2Icon, XIcon } from "lucide-react"
-import { type ReactNode, useState } from "react"
+  type ColumnDef,
+  getCoreRowModel,
+  type RowSelectionState,
+  useReactTable,
+} from "@tanstack/react-table"
+import { ArrowRightIcon, InfoIcon, Trash2Icon } from "lucide-react"
+import { type ReactNode, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { ConfirmDialog } from "@/common/components/ConfirmDialog"
+import { DataTable, type DataTableColumnMeta } from "@/common/components/data-table/DataTable"
+import { DataTableBulkBar } from "@/common/components/data-table/DataTableBulkBar"
+import { buildSelectionColumn } from "@/common/components/data-table/selection-column"
 import { MarkdownWrapper } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/MarkdownWrapper"
 import { buildDate, buildSince } from "@/common/utils/build-date"
 import { formatBytes } from "@/common/utils/format-bytes"
@@ -51,33 +51,89 @@ export function DocumentSelectionList<TDocument extends DocumentSelectionItem & 
   onSelect,
   onDelete,
 }: Props<TDocument>) {
+  // TanStack Table keeps one table instance across renders, so the React Compiler would
+  // memoize its row model and show stale rows after a selection.
+  "use no memo"
   const { t } = useTranslation()
-  const [selectedIds, setSelectedIds] = useState<ReadonlySet<string>>(new Set())
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const [activeAction, setActiveAction] = useState<ActiveAction<TDocument> | null>(null)
+
+  const columns = useMemo<ColumnDef<TDocument>[]>(
+    () => [
+      buildSelectionColumn<TDocument>({
+        rowLabel: (document) => `${t("actions:select")} ${document.fileName ?? ""}`.trim(),
+      }),
+      {
+        id: "name",
+        header: () => t("documentList:props.name"),
+        cell: ({ row }) => row.original.fileName,
+      },
+      {
+        id: "createdAt",
+        header: () => t("documentList:props.createdAt"),
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">{buildSince(row.original.createdAt)}</span>
+        ),
+      },
+      {
+        id: "actions",
+        meta: { className: "w-10" } satisfies DataTableColumnMeta,
+        header: () => null,
+        cell: ({ row }) => (
+          <div className="flex items-center justify-end gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-8 text-muted-foreground"
+              aria-label={t("actions:view")}
+              onClick={() => setActiveAction({ type: "details", document: row.original })}
+            >
+              <InfoIcon className="size-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-8 text-muted-foreground hover:text-destructive"
+              aria-label={t("actions:delete")}
+              onClick={() => setActiveAction({ type: "delete", documentIds: [row.original.id] })}
+            >
+              <Trash2Icon className="size-4" />
+            </Button>
+          </div>
+        ),
+      },
+      {
+        id: "select-document",
+        meta: { className: "w-60" } satisfies DataTableColumnMeta,
+        header: () => null,
+        cell: ({ row }) => (
+          <div className="flex items-center justify-end gap-2">
+            <Button variant="outline" onClick={() => onSelect(row.original)}>
+              {t("actions:select")} <ArrowRightIcon className="size-4" />
+            </Button>
+          </div>
+        ),
+      },
+    ],
+    [onSelect, t],
+  )
+
+  const table = useReactTable({
+    data: documents,
+    columns,
+    state: { rowSelection },
+    getRowId: (document) => document.id,
+    onRowSelectionChange: setRowSelection,
+    getCoreRowModel: getCoreRowModel(),
+  })
 
   if (documents.length === 0) return <>{emptyState}</>
 
-  const selectedCount = documents.filter((document) => selectedIds.has(document.id)).length
-  const allSelected = selectedCount === documents.length
-  const someSelected = selectedCount > 0 && !allSelected
+  const selectedIds = documents
+    .filter((document) => rowSelection[document.id])
+    .map((document) => document.id)
 
-  const clearSelection = () => setSelectedIds(new Set())
-
-  const toggleAll = () => {
-    setSelectedIds(allSelected ? new Set() : new Set(documents.map((document) => document.id)))
-  }
-
-  const toggleOne = (documentId: string) => {
-    setSelectedIds((previous) => {
-      const next = new Set(previous)
-      if (next.has(documentId)) {
-        next.delete(documentId)
-      } else {
-        next.add(documentId)
-      }
-      return next
-    })
-  }
+  const clearSelection = () => setRowSelection({})
 
   const handleConfirmDelete = () => {
     if (activeAction?.type === "delete") onDelete(activeAction.documentIds)
@@ -87,104 +143,23 @@ export function DocumentSelectionList<TDocument extends DocumentSelectionItem & 
 
   return (
     <div className="flex flex-col gap-3">
-      {selectedCount > 0 && (
-        <div className="flex items-center gap-2 rounded-lg border bg-muted/50 px-3 py-2">
-          <Button variant="ghost" size="icon" className="size-8" onClick={clearSelection}>
-            <XIcon className="size-4" />
+      {selectedIds.length > 0 && (
+        <DataTableBulkBar
+          label={t("documentList:selected", { count: selectedIds.length })}
+          onClearSelection={clearSelection}
+        >
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setActiveAction({ type: "delete", documentIds: selectedIds })}
+          >
+            <Trash2Icon />
+            {t("actions:delete")}
           </Button>
-          <span className="text-sm font-medium">
-            {t("documentList:selected", { count: selectedCount })}
-          </span>
-          <div className="ml-auto">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                setActiveAction({
-                  type: "delete",
-                  documentIds: documents
-                    .filter((document) => selectedIds.has(document.id))
-                    .map((document) => document.id),
-                })
-              }
-            >
-              <Trash2Icon className="size-4" />
-              {t("actions:delete")}
-            </Button>
-          </div>
-        </div>
+        </DataTableBulkBar>
       )}
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-10 rounded-tl-lg bg-muted">
-              <Checkbox
-                checked={allSelected ? true : someSelected ? "indeterminate" : false}
-                onCheckedChange={toggleAll}
-                aria-label={t("actions:selectAll")}
-              />
-            </TableHead>
-            <TableHead className="font-medium bg-muted">{t("documentList:props.name")}</TableHead>
-            <TableHead className="font-medium bg-muted">
-              {t("documentList:props.createdAt")}
-            </TableHead>
-            <TableHead className="w-10 bg-muted" />
-            <TableHead className="w-60 rounded-tr-lg bg-muted" />
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {documents.map((document) => {
-            const selected = selectedIds.has(document.id)
-            return (
-              <TableRow key={document.id} data-state={selected ? "selected" : undefined}>
-                <TableCell>
-                  <Checkbox
-                    checked={selected}
-                    onCheckedChange={() => toggleOne(document.id)}
-                    aria-label={t("actions:select")}
-                  />
-                </TableCell>
-                <TableCell>{document.fileName}</TableCell>
-                <TableCell className="text-muted-foreground">
-                  {buildSince(document.createdAt)}
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center justify-end gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="size-8 text-muted-foreground"
-                      aria-label={t("actions:view")}
-                      onClick={() => setActiveAction({ type: "details", document })}
-                    >
-                      <InfoIcon className="size-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="size-8 text-muted-foreground hover:text-destructive"
-                      aria-label={t("actions:delete")}
-                      onClick={() =>
-                        setActiveAction({ type: "delete", documentIds: [document.id] })
-                      }
-                    >
-                      <Trash2Icon className="size-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center justify-end gap-2">
-                    <Button variant="outline" onClick={() => onSelect(document)}>
-                      {t("actions:select")} <ArrowRightIcon className="size-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            )
-          })}
-        </TableBody>
-      </Table>
+      <DataTable table={table} empty={null} />
 
       <ConfirmDialog
         open={activeAction?.type === "delete"}

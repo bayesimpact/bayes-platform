@@ -9,7 +9,6 @@ import {
 import { Spinner } from "@caseai-connect/ui/shad/spinner"
 import {
   type ColumnDef,
-  flexRender,
   getCoreRowModel,
   type OnChangeFn,
   type PaginationState,
@@ -17,6 +16,7 @@ import {
 } from "@tanstack/react-table"
 import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
+import { DataTable } from "@/common/components/data-table/DataTable"
 import { Loader } from "@/common/components/Loader"
 import { ADS } from "@/common/store/async-data-status"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
@@ -113,6 +113,9 @@ type RecordsTableProps = {
 }
 
 function RecordsTable({ run, records, total, pagination, onPaginationChange }: RecordsTableProps) {
+  // TanStack Table keeps one table instance across renders, so the React Compiler would
+  // memoize its row model and show stale rows after a sort, a filter or a page change.
+  "use no memo"
   const { t } = useTranslation()
   const isRunning = run.status === "pending" || run.status === "running"
   const totalPages = Math.max(1, Math.ceil(total / DEFAULT_PAGE_SIZE))
@@ -226,55 +229,18 @@ function RecordsTable({ run, records, total, pagination, onPaginationChange }: R
 
   return (
     <CardContent>
-      <div className="rounded-lg border overflow-x-auto">
-        <table className="w-full caption-bottom text-sm">
-          <thead className="bg-muted/50 [&_tr]:border-b">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id} className="border-b transition-colors">
-                {headerGroup.headers.map((header) => (
-                  <th
-                    key={header.id}
-                    className="text-foreground h-auto px-3 py-2 text-left align-bottom font-medium whitespace-nowrap"
-                    style={{ width: header.getSize() }}
-                  >
-                    {flexRender(header.column.columnDef.header, header.getContext())}
-                  </th>
-                ))}
-              </tr>
-            ))}
-          </thead>
-          <tbody>
-            {records.length === 0 ? (
-              <tr>
-                <td colSpan={columns.length} className="h-24 text-center text-muted-foreground">
-                  {isRunning ? (
-                    <LoadingState run={run} />
-                  ) : (
-                    t("evaluationConversationRun:results.noRecords")
-                  )}
-                </td>
-              </tr>
+      <DataTable
+        table={table}
+        empty={
+          <div className="py-8 text-center text-muted-foreground">
+            {isRunning ? (
+              <LoadingState run={run} />
             ) : (
-              table.getRowModel().rows.map((row) => (
-                <tr
-                  key={row.id}
-                  className={`border-b transition-colors hover:bg-muted/50 ${row.index % 2 !== 0 ? "bg-muted/30" : ""}`}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <td
-                      key={cell.id}
-                      className="p-3 align-middle"
-                      style={{ width: cell.column.getSize(), maxWidth: cell.column.getSize() }}
-                    >
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </td>
-                  ))}
-                </tr>
-              ))
+              t("evaluationConversationRun:results.noRecords")
             )}
-          </tbody>
-        </table>
-      </div>
+          </div>
+        }
+      />
 
       {showPagination && (
         <PaginationControls

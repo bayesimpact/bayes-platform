@@ -12,18 +12,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@caseai-connect/ui/shad/select"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@caseai-connect/ui/shad/table"
 import { Textarea } from "@caseai-connect/ui/shad/textarea"
-import { useState } from "react"
+import { type ColumnDef, getCoreRowModel, useReactTable } from "@tanstack/react-table"
+import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { ConfirmDialog } from "@/common/components/ConfirmDialog"
+import { DataTable, type DataTableColumnMeta } from "@/common/components/data-table/DataTable"
 import { NeverSignedInBadge } from "@/common/components/NeverSignedInBadge"
 import { PendingInvitationsSection } from "@/studio/features/invitations/components/PendingInvitationsSection"
 import type { PendingInvitations } from "@/studio/features/invitations/invitations.models"
@@ -51,16 +45,62 @@ export function ParticipantsList({
   onRevokeInvitation,
   disabled = false,
 }: Props) {
+  // TanStack Table keeps one table instance across renders, so the React Compiler would
+  // memoize its row model and show stale rows after an invitation or a revocation.
+  "use no memo"
   const { t } = useTranslation()
   const [emailsInput, setEmailsInput] = useState("")
   const [role, setRole] = useState<ReviewCampaignMembershipRole>("tester")
   const [confirmRevokeMembership, setConfirmRevokeMembership] =
     useState<ReviewCampaignMembershipDto | null>(null)
 
-  const roleLabel = (membershipRole: ReviewCampaignMembershipRole): string =>
-    membershipRole === "tester"
-      ? t("reviewCampaigns:participants.tester")
-      : t("reviewCampaigns:participants.reviewer")
+  const columns = useMemo<ColumnDef<ReviewCampaignMembershipDto>[]>(() => {
+    const roleLabel = (membershipRole: ReviewCampaignMembershipRole): string =>
+      membershipRole === "tester"
+        ? t("reviewCampaigns:participants.tester")
+        : t("reviewCampaigns:participants.reviewer")
+    return [
+      {
+        id: "email",
+        header: () => t("reviewCampaigns:participants.email"),
+        cell: ({ row }) => <span className="font-medium">{row.original.userEmail}</span>,
+      },
+      {
+        id: "role",
+        header: () => t("reviewCampaigns:participants.roleLabel"),
+        cell: ({ row }) => <Badge variant="outline">{roleLabel(row.original.role)}</Badge>,
+      },
+      {
+        id: "status",
+        header: () => t("reviewCampaigns:participants.status"),
+        cell: ({ row }) => (!row.original.userHasSignedIn ? <NeverSignedInBadge /> : null),
+      },
+      {
+        id: "actions",
+        meta: { className: "text-right" } satisfies DataTableColumnMeta,
+        header: () => t("reviewCampaigns:participants.actions"),
+        cell: ({ row }) => (
+          <div className="text-right">
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={disabled}
+              onClick={() => setConfirmRevokeMembership(row.original)}
+            >
+              {t("reviewCampaigns:participants.revoke")}
+            </Button>
+          </div>
+        ),
+      },
+    ]
+  }, [t, disabled])
+
+  const table = useReactTable({
+    data: memberships,
+    columns,
+    getRowId: (membership) => membership.id,
+    getCoreRowModel: getCoreRowModel(),
+  })
 
   const handleInvite = () => {
     const emails = parseEmails(emailsInput)
@@ -119,53 +159,25 @@ export function ParticipantsList({
         </div>
       </div>
 
-      <div className="rounded-md border">
-        {memberships.length === 0 ? (
-          <p className="p-4 text-muted-foreground text-sm italic">
+      <DataTable
+        table={table}
+        empty={
+          <p className="text-muted-foreground text-sm italic">
             {t("reviewCampaigns:participants.empty")}
           </p>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("reviewCampaigns:participants.email")}</TableHead>
-                <TableHead>{t("reviewCampaigns:participants.roleLabel")}</TableHead>
-                <TableHead>{t("reviewCampaigns:participants.status")}</TableHead>
-                <TableHead className="text-right">
-                  {t("reviewCampaigns:participants.actions")}
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {memberships.map((membership) => (
-                <TableRow key={membership.id}>
-                  <TableCell className="font-medium">{membership.userEmail}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{roleLabel(membership.role)}</Badge>
-                  </TableCell>
-                  <TableCell>{!membership.userHasSignedIn && <NeverSignedInBadge />}</TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      disabled={disabled}
-                      onClick={() => setConfirmRevokeMembership(membership)}
-                    >
-                      {t("reviewCampaigns:participants.revoke")}
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-        <PendingInvitationsSection
-          invitations={pendingInvitations}
-          title={t("reviewCampaigns:participants.pendingInvitations.title")}
-          description={t("reviewCampaigns:participants.pendingInvitations.description")}
-          onRevoke={onRevokeInvitation}
-        />
-      </div>
+        }
+      />
+      {pendingInvitations.length > 0 && (
+        // Boxed like the table above; the section's own top border would double the box's.
+        <div className="overflow-hidden rounded-md border [&>section]:border-t-0">
+          <PendingInvitationsSection
+            invitations={pendingInvitations}
+            title={t("reviewCampaigns:participants.pendingInvitations.title")}
+            description={t("reviewCampaigns:participants.pendingInvitations.description")}
+            onRevoke={onRevokeInvitation}
+          />
+        </div>
+      )}
 
       <ConfirmDialog
         open={confirmRevokeMembership !== null}
