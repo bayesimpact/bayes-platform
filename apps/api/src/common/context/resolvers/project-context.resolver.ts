@@ -5,7 +5,7 @@ import type { Repository } from "typeorm"
 import { DataSource } from "typeorm"
 import { groupMembershipRows } from "@/domains/memberships/membership-roles"
 import { UserMembership } from "@/domains/memberships/user-membership.entity"
-import type { ProjectMembershipModel } from "@/domains/projects/memberships/project-membership.model"
+import type { ProjectMembershipContextModel } from "@/domains/projects/memberships/project-membership.model"
 import { Project } from "@/domains/projects/project.entity"
 import type { ContextResolver, ResolvableRequest } from "../context-resolver.interface"
 import type { EndpointRequestWithProject } from "../request.interface"
@@ -46,21 +46,12 @@ export class ProjectContextResolver implements ContextResolver {
       },
       relations: { rbacRole: true },
     })
+    // One row per role the caller holds on the project (ADR 0032), and none for an organization
+    // admin or owner who reaches it through the organization. The request carries the roles,
+    // read from the rows' `role_id`.
     const [group] = groupMembershipRows(userMembershipRows)
-
-    // The `as ProjectMembershipModel` below is intentional: we build the model from
-    // user_membership rows without loading the `project` and `user` relations, which callers
-    // of `request.projectMembership` never read (they read `userId` and `roles`).
-    const projectMembership: ProjectMembershipModel | undefined = group
-      ? ({
-          id: group.oldest.id,
-          userId: group.oldest.userId,
-          projectId: project.id,
-          roles: group.roles,
-          createdAt: group.oldest.createdAt,
-          updatedAt: group.updatedAt,
-          deletedAt: group.oldest.deletedAt,
-        } as ProjectMembershipModel)
+    const projectMembership: ProjectMembershipContextModel | undefined = group
+      ? { userId: request.user.id, projectId: project.id, roles: group.roles }
       : undefined
 
     requestWithProject.project = project
