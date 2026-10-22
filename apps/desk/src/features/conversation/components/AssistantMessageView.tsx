@@ -27,7 +27,7 @@ export type AssistantMessageViewProps = {
   appsHtml: AppsHtml
   onAppMessage: (text: string) => void
   /** Opens a resource a reply points to beside the conversation. */
-  onOpenResource: (video: OpenedResource) => void
+  onOpenResource: (resource: OpenedResource) => void
 }
 
 /**

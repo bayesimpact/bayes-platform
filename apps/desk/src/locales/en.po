@@ -16,8 +16,6 @@ msgid "\"{title}\" and its messages will be deleted. This cannot be undone."
 msgstr "\"{title}\" and its messages will be deleted. This cannot be undone."
 
 #: src/components/shared/ExternalLink.tsx:20
-#: src/features/conversation/components/ResourceCard.tsx:85
-#: src/features/conversation/components/ResourcePanel.tsx:37
 msgid "(opens in a new tab)"
 msgstr "(opens in a new tab)"
 
@@ -496,7 +494,7 @@ msgstr "I accept the privacy policy"
 msgid "If it keeps happening, contact your administrator with the message below."
 msgstr "If it keeps happening, contact your administrator with the message below."
 
-#: src/features/conversation/components/ResourcePanel.tsx:72
+#: src/features/conversation/components/ResourcePanel.tsx:70
 msgid "If the page stays blank, its site does not allow being shown here: open it in a new tab."
 msgstr "If the page stays blank, its site does not allow being shown here: open it in a new tab."
 
@@ -626,11 +624,11 @@ msgstr "Open {name}"
 msgid "Open {title}"
 msgstr "Open {title}"
 
-#: src/features/conversation/components/ResourcePanel.tsx:35
+#: src/features/conversation/components/ResourcePanel.tsx:34
 msgid "Open in a new tab"
 msgstr "Open in a new tab"
 
-#: src/features/conversation/components/ResourcePanel.tsx:33
+#: src/features/conversation/components/ResourcePanel.tsx:32
 msgid "Open on YouTube"
 msgstr "Open on YouTube"
 
