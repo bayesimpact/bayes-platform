@@ -136,7 +136,7 @@ export function ConversationView({
                           </MessageScrollerItem>
                         ))}
                         {retryableMessage !== null ? (
-                          <div>
+                          <div className="mt-3">
                             <Button
                               variant="outline"
                               size="sm"
