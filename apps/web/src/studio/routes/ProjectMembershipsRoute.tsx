@@ -3,7 +3,7 @@ import { useMount } from "@/common/hooks/use-mount"
 import { useCurrentId } from "@/common/hooks/use-value"
 import { useAppSelector } from "@/common/store/hooks"
 import {
-  selectAssignableProjectRoles,
+  selectAssignableRoles,
   selectProjectMemberships,
   selectProjectPendingInvitations,
 } from "@/studio/features/project-memberships/project-memberships.selectors"
@@ -15,7 +15,7 @@ export function ProjectMembershipsRoute() {
   const projectId = useCurrentId(selectCurrentProjectId)
   const memberships = useAppSelector(selectProjectMemberships)
   const pendingInvitations = useAppSelector(selectProjectPendingInvitations)
-  const assignableRoles = useAppSelector(selectAssignableProjectRoles)
+  const assignableRoles = useAppSelector(selectAssignableRoles)
 
   useMount({
     actions: projectMembershipsActions,

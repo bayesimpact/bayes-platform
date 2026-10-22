@@ -64,19 +64,28 @@
       "selected_one": "{{count}} member selected",
       "selected_other": "{{count}} members selected",
       "addRoles": "Add roles",
-      "removeBlocked": "A workspace keeps at least one owner. Unselect an owner to remove the others.",
+      "removeBlocked": {
+        "project": "A workspace keeps at least one owner. Unselect an owner to remove the others.",
+        "agent": "An agent keeps at least one owner. Unselect an owner to remove the others."
+      },
       "genericError": "Something went wrong. Try again.",
       "addRolesDialog": {
         "title_one": "Add roles to {{count}} member",
         "title_other": "Add roles to {{count}} members",
-        "description": "The roles add to the ones they already hold. Their permissions on this workspace change right away.",
+        "description": {
+          "project": "The roles add to the ones they already hold. Their permissions on this workspace change right away.",
+          "agent": "The roles add to the ones they already hold. Their permissions on this agent change right away."
+        },
         "pickOne": "Pick at least one role.",
         "error": "The roles could not be added. Try again."
       },
       "removeDialog": {
         "title_one": "Remove {{name}}?",
         "title_other": "Remove {{count}} members?",
-        "description": "They lose access to this workspace, its agents and its review campaigns. This cannot be undone.",
+        "description": {
+          "project": "They lose access to this workspace, its agents and its review campaigns. This cannot be undone.",
+          "agent": "They lose their roles on this agent and stay members of the workspace. This cannot be undone."
+        },
         "error": "The members could not be removed. Try again."
       }
     },

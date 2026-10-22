@@ -34,7 +34,8 @@ import { MembersBulkActionBar } from "./MembersBulkActionBar"
 import { MembersTableToolbar } from "./MembersTableToolbar"
 import {
   type MembersTableMember,
-  PROJECT_OWNER_ROLE_KEY,
+  type MembersTableScope,
+  OWNER_ROLE_KEY,
   type ProjectRoleOption,
 } from "./members-table.models"
 import { useRoleLabel } from "./role-label"
@@ -47,15 +48,12 @@ function matchesSearch(member: MembersTableMember, query: string): boolean {
   return name.includes(query) || member.userEmail.toLowerCase().includes(query)
 }
 
-function isOwner(member: MembersTableMember): boolean {
-  return member.roles.some((role) => role.key === PROJECT_OWNER_ROLE_KEY)
-}
-
 /**
- * The workspace members, with search, filters and bulk actions. Presentational: the caller
- * passes the members, what the viewer may do, and the handlers that call the API.
+ * The members of a workspace or an agent, with search, filters and bulk actions. Presentational:
+ * the caller passes the members, what the viewer may do, and the handlers that call the API.
  */
-export function ProjectMembersTable({
+export function MembersTable({
+  scope,
   members,
   roles,
   currentUserId,
@@ -66,8 +64,9 @@ export function ProjectMembersTable({
   onOpenMember,
   toolbarAction,
 }: {
+  scope: MembersTableScope
   members: MembersTableMember[]
-  /** The roles a member can be given on the workspace (`scope_type = project`). */
+  /** The roles a member can be given on the resource. */
   roles: ProjectRoleOption[]
   currentUserId: string
   canUpdateRoles: boolean
@@ -94,6 +93,9 @@ export function ProjectMembersTable({
   const [isConfirming, setIsConfirming] = useState(false)
 
   const canSelect = canUpdateRoles || canRemoveMembers
+  const ownerRoleKey = OWNER_ROLE_KEY[scope]
+  const isOwner = (member: MembersTableMember) =>
+    member.roles.some((role) => role.key === ownerRoleKey)
 
   const filteredMembers = useMemo(() => {
     const query = search.trim().toLowerCase()
@@ -149,10 +151,7 @@ export function ProjectMembersTable({
           ) : (
             <div className="flex flex-wrap gap-1">
               {row.original.roles.map((role) => (
-                <Badge
-                  key={role.key}
-                  variant={role.key === PROJECT_OWNER_ROLE_KEY ? "default" : "outline"}
-                >
+                <Badge key={role.key} variant={role.key === ownerRoleKey ? "default" : "outline"}>
                   {roleLabel(role)}
                 </Badge>
               ))}
@@ -181,7 +180,7 @@ export function ProjectMembersTable({
       },
     ]
     return canSelect ? [selectColumn, ...dataColumns] : dataColumns
-  }, [canSelect, currentUserId, t, roleLabel])
+  }, [canSelect, currentUserId, ownerRoleKey, t, roleLabel])
 
   const table = useReactTable({
     data: filteredMembers,
@@ -202,7 +201,7 @@ export function ProjectMembersTable({
   const ownerCount = members.filter(isOwner).length
   const removeBlockedReason =
     ownerCount > 0 && selectedMembers.filter(isOwner).length === ownerCount
-      ? t("projectMembership:table.removeBlocked")
+      ? t(`projectMembership:table.removeBlocked.${scope}`)
       : null
 
   const resetFilters = () => {
@@ -300,6 +299,7 @@ export function ProjectMembersTable({
       {/* Mounted only while open, so each opening starts with no role picked. */}
       {pendingAction === "addRoles" && (
         <AddRolesDialog
+          scope={scope}
           open
           memberCount={selectedMembers.length}
           roles={roles}
@@ -313,7 +313,7 @@ export function ProjectMembersTable({
       <ConfirmDialog
         open={pendingAction === "remove"}
         title={removeTitle}
-        description={t("projectMembership:table.removeDialog.description")}
+        description={t(`projectMembership:table.removeDialog.description.${scope}`)}
         confirmLabel={t("actions:remove")}
         error={actionError}
         isConfirming={isConfirming}

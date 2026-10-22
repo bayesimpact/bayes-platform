@@ -63,9 +63,8 @@ export class ProjectMembershipsController {
   async getMemberRoles(
     @Req() request: EndpointRequestWithProjectMembership,
   ): Promise<typeof ProjectMembershipRoutes.getMemberRoles.response> {
-    const { membership, roleGrantsByRoleId, workspace, agents, campaigns, assignableRoles } =
+    const { membership, roleGrantsByRoleId, workspace, agents, campaigns } =
       await this.projectMembershipsService.getMemberRoles({
-        viewerUserId: request.user.id,
         memberUserId: request.memberProjectMembership.userId,
         projectId: request.project.id,
       })
@@ -80,7 +79,6 @@ export class ProjectMembershipsController {
         workspace: toResourceDto(workspace),
         agents: agents.map(toResourceDto),
         campaigns: campaigns.map(toResourceDto),
-        assignableRoles,
       },
     }
   }

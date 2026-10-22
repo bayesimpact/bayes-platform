@@ -4,6 +4,7 @@ import type { Agent } from "@/common/features/agents/agents.models"
 import type { LegacyMembershipRole } from "@/common/features/memberships/membership-roles"
 import type { Project } from "@/common/features/projects/projects.models"
 import type {
+  AssignableRoles,
   HeldRole,
   MemberRoles,
   ProjectMembership,
@@ -110,6 +111,13 @@ export const SAMPLE_CAMPAIGN_ROLES: ProjectRole[] = [
   { key: "review_campaign_reviewer", name: "Review Campaign Reviewer" },
 ]
 
+/** The catalog roles offered on each kind of resource, as the API lists them. */
+export const SAMPLE_ASSIGNABLE_ROLES: AssignableRoles = {
+  project: SAMPLE_PROJECT_ROLES,
+  agent: SAMPLE_AGENT_ROLES,
+  review_campaign: SAMPLE_CAMPAIGN_ROLES,
+}
+
 const held = (role: ProjectRole): HeldRole => ({ ...role, membershipId: faker.string.uuid() })
 
 type MemberRolesTransientParams = {
@@ -117,15 +125,13 @@ type MemberRolesTransientParams = {
   projectName: string
   /** The project's agents; the member holds `agent_member` on the first one. */
   agents: Agent[]
-  /** Whether the viewer may change the member's roles. */
-  canManage: boolean
 }
 
 class MemberRolesFactory extends Factory<MemberRoles, MemberRolesTransientParams> {}
 
 /** A member's roles on the workspace and its agents, and one active campaign they test. */
 export const memberRolesFactory = MemberRolesFactory.define(({ transientParams }) => {
-  const { membership, projectName, agents = [], canManage = true } = transientParams
+  const { membership, projectName, agents = [] } = transientParams
   if (!membership) {
     throw new Error("Membership must be provided in transient params to build MemberRoles")
   }
@@ -140,7 +146,6 @@ export const memberRolesFactory = MemberRolesFactory.define(({ transientParams }
       detail: null,
       roles: membership.roles.map(held),
       permissions: membership.permissions,
-      canManage,
     },
     agents: agents.map((agent, index) => ({
       kind: "agent",
@@ -149,7 +154,6 @@ export const memberRolesFactory = MemberRolesFactory.define(({ transientParams }
       detail: agent.type,
       roles: index === 0 && memberRole ? [held(memberRole)] : [],
       permissions: index === 0 ? ["agent.read"] : [],
-      canManage,
     })),
     campaigns: testerRole
       ? [
@@ -160,14 +164,8 @@ export const memberRolesFactory = MemberRolesFactory.define(({ transientParams }
             detail: "active",
             roles: [held(testerRole)],
             permissions: ["review_campaign.read"],
-            canManage,
           },
         ]
       : [],
-    assignableRoles: {
-      project: SAMPLE_PROJECT_ROLES,
-      agent: SAMPLE_AGENT_ROLES,
-      review_campaign: SAMPLE_CAMPAIGN_ROLES,
-    },
   } satisfies MemberRoles
 })

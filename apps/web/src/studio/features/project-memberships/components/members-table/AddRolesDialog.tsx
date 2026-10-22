@@ -11,11 +11,12 @@ import {
 import { Label } from "@caseai-connect/ui/shad/label"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import type { ProjectRoleOption } from "./members-table.models"
+import type { MembersTableScope, ProjectRoleOption } from "./members-table.models"
 import { useRoleLabel } from "./role-label"
 
-/** Picks the workspace roles to add to the selected members, and confirms the change. */
+/** Picks the roles to add to the selected members, and confirms the change. */
 export function AddRolesDialog({
+  scope,
   open,
   memberCount,
   roles,
@@ -24,6 +25,7 @@ export function AddRolesDialog({
   error,
   isConfirming = false,
 }: {
+  scope: MembersTableScope
   open: boolean
   memberCount: number
   roles: ProjectRoleOption[]
@@ -67,7 +69,7 @@ export function AddRolesDialog({
             {t("projectMembership:table.addRolesDialog.title", { count: memberCount })}
           </DialogTitle>
           <DialogDescription>
-            {t("projectMembership:table.addRolesDialog.description")}
+            {t(`projectMembership:table.addRolesDialog.description.${scope}`)}
           </DialogDescription>
         </DialogHeader>
 

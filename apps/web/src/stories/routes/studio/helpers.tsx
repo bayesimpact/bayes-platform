@@ -74,8 +74,13 @@ export function buildStudioData(input: StudioStoryArgs): {
       roles: [buildMembershipRoleDto({ scopeType: "project", role: projectMembershipRole })],
     }),
   ]
+  // A workspace owner or admin is made admin of every agent of the workspace.
+  const viewerAgentRole = projectMembershipRole === "member" ? agentMembershipRole : "admin"
   const agents = withAgents
-    ? agentFactory.transient({ project }).buildList(3).sort(sortRecentlyCreated)
+    ? agentFactory
+        .transient({ project, role: viewerAgentRole })
+        .buildList(3)
+        .sort(sortRecentlyCreated)
     : []
   const agentMemberships = agents.map((agent) =>
     agentMembershipFactory.transient({ agent }).build({

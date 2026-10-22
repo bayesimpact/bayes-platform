@@ -1,4 +1,6 @@
+import { z } from "zod"
 import type { TimeType } from "../generic"
+import { memberUserIdsSchema } from "../project-membership/project-membership.dto"
 import type { MembershipRoleDto } from "../rbac/membership-role.dto"
 
 /**
@@ -15,3 +17,16 @@ export type AgentMembershipDto = {
   roles: MembershipRoleDto[]
   createdAt: TimeType
 }
+
+/** Gives the agent roles to every member listed. All or nothing: one refusal changes nobody. */
+export const addAgentMemberRolesSchema = z.object({
+  userIds: memberUserIdsSchema,
+  roleKeys: z.array(z.string().min(1)).min(1).max(3),
+})
+export type AddAgentMemberRolesRequestDto = z.infer<typeof addAgentMemberRolesSchema>
+
+/** Removes every member listed from the agent. All or nothing: one refusal removes nobody. */
+export const deleteAgentMembersSchema = z.object({
+  userIds: memberUserIdsSchema,
+})
+export type DeleteAgentMembersRequestDto = z.infer<typeof deleteAgentMembersSchema>

@@ -125,30 +125,27 @@ describe("Project membership - getMemberRoles", () => {
     const response = await subject()
 
     expectResponse(response, 200)
-    const { member, workspace, agents, campaigns, assignableRoles } = response.body.data
+    const { member, workspace, agents, campaigns } = response.body.data
     expect(member.userId).toBe(memberUserId)
     expect(workspace).toMatchObject({
       kind: "project",
       resourceId: project.id,
       resourceName: project.name,
       roles: [expect.objectContaining({ key: "project_member" })],
-      canManage: true,
     })
     const agentRow = agents.find((row) => row.resourceId === agent.id)
     expect(agentRow).toMatchObject({
       kind: "agent",
       detail: "conversation",
       roles: [expect.objectContaining({ key: "agent_member" })],
-      canManage: true,
     })
     expect([...(agentRow?.permissions ?? [])].sort()).toEqual(
       [...AGENT_ROLE_PERMISSIONS.agent_member].sort(),
     )
-    // The caller holds no role on the second agent, so they cannot change roles there.
+    // The member holds no role on the second agent.
     expect(agents.find((row) => row.resourceId === otherAgent.id)).toMatchObject({
       roles: [],
       permissions: [],
-      canManage: false,
     })
     expect(campaigns).toEqual([
       expect.objectContaining({
@@ -157,23 +154,7 @@ describe("Project membership - getMemberRoles", () => {
         resourceName: "Pilot",
         detail: "active",
         roles: [expect.objectContaining({ key: "review_campaign_tester" })],
-        canManage: true,
       }),
-    ])
-    expect(assignableRoles.project.map((role) => role.key)).toEqual([
-      "project_owner",
-      "project_admin",
-      "project_member",
-    ])
-    // The conversation reviewer role stays a backoffice grant.
-    expect(assignableRoles.agent.map((role) => role.key)).toEqual([
-      "agent_owner",
-      "agent_admin",
-      "agent_member",
-    ])
-    expect(assignableRoles.review_campaign.map((role) => role.key)).toEqual([
-      "review_campaign_tester",
-      "review_campaign_reviewer",
     ])
   })
 

@@ -11,7 +11,7 @@ import { projectMembershipsActions } from "./project-memberships.slice"
 import {
   addMemberResourceRole,
   addProjectMemberRoles,
-  listAssignableProjectRoles,
+  listAssignableRoles,
   listProjectMemberships,
   loadMemberRoles,
   removeMemberResourceRole,
@@ -28,7 +28,7 @@ function registerListeners() {
       if (!projectId) return
       await Promise.all([
         listenerApi.dispatch(listProjectMemberships()),
-        listenerApi.dispatch(listAssignableProjectRoles()),
+        listenerApi.dispatch(listAssignableRoles()),
         listenerApi.dispatch(
           listInvitationsForTarget({ targetType: "project", targetId: projectId }),
         ),

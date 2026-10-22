@@ -12,7 +12,7 @@ import { mergeSeeds, seed } from "@/stories/seed"
 import { pendingInvitationFactory } from "@/studio/features/invitations/invitations.factory"
 import {
   projectMembershipFactory,
-  SAMPLE_PROJECT_ROLES,
+  SAMPLE_ASSIGNABLE_ROLES,
 } from "@/studio/features/project-memberships/project-memberships.factory"
 import { StudioRoutes } from "@/studio/routes/helpers"
 import { studioRoutes } from "@/studio/routes/StudioRoutes"
@@ -77,7 +77,7 @@ export const Default: Story = {
           state: mergeSeeds(
             baseSeeds,
             seed.studio.projectMemberships([...memberships, ...neverSignedInMembers]),
-            seed.studio.projectAssignableRoles(SAMPLE_PROJECT_ROLES),
+            seed.studio.assignableRoles(SAMPLE_ASSIGNABLE_ROLES),
             seed.studio.projectPendingInvitations(
               withPendingInvitations
                 ? pendingInvitationFactory.buildList(2, {
@@ -128,7 +128,7 @@ export const WithMembers: Story = {
           state: mergeSeeds(
             baseSeeds,
             seed.studio.projectMemberships([...memberships, ...neverSignedInMembers]),
-            seed.studio.projectAssignableRoles(SAMPLE_PROJECT_ROLES),
+            seed.studio.assignableRoles(SAMPLE_ASSIGNABLE_ROLES),
             seed.studio.projectPendingInvitations(
               withPendingInvitations
                 ? pendingInvitationFactory.buildList(2, {
@@ -170,7 +170,7 @@ export const WithCachedAgentSessions: Story = {
             seed.studio.projectMemberships([
               projectMembershipFactory.transient({ project, role: "owner" }).build(viewer(user)),
             ]),
-            seed.studio.projectAssignableRoles(SAMPLE_PROJECT_ROLES),
+            seed.studio.assignableRoles(SAMPLE_ASSIGNABLE_ROLES),
           ),
         }
       },

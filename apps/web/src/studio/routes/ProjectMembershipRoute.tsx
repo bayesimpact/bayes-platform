@@ -1,6 +1,8 @@
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { selectMe } from "@/common/features/me/me.selectors"
+import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
+import { useAbility } from "@/common/hooks/use-ability"
 import { useMount } from "@/common/hooks/use-mount"
 import { useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
@@ -11,6 +13,7 @@ import { ProjectMemberDetail } from "@/studio/features/project-memberships/compo
 import { PROJECT_OWNER_ROLE_KEY } from "@/studio/features/project-memberships/components/members-table/members-table.models"
 import type { MemberResource } from "@/studio/features/project-memberships/project-memberships.models"
 import {
+  selectAssignableRoles,
   selectCurrentProjectMemberUserId,
   selectMemberRoles,
   selectProjectMemberships,
@@ -52,15 +55,30 @@ function WithData() {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
+  const { abilities } = useAbility()
   const me = useValue(selectMe)
+  const projectId = useAppSelector(selectCurrentProjectId)
   const memberships = useValue(selectProjectMemberships)
-  const { member, workspace, agents, campaigns, assignableRoles } = useValue(selectMemberRoles)
+  const assignableRoles = useValue(selectAssignableRoles)
+  const { member, workspace, agents, campaigns } = useValue(selectMemberRoles)
 
   const ownerCount = memberships.filter((membership) =>
     membership.roles.some((role) => role.key === PROJECT_OWNER_ROLE_KEY),
   ).length
   const isLastOwner =
     ownerCount === 1 && member.roles.some((role) => role.key === PROJECT_OWNER_ROLE_KEY)
+
+  // What the viewer may change comes from their own permissions on each resource.
+  const canManage = (resource: MemberResource) => {
+    switch (resource.kind) {
+      case "project":
+        return abilities.canUpdateProjectMemberRole({ projectId })
+      case "agent":
+        return abilities.canUpdateAgentMembers({ agentId: resource.resourceId })
+      case "review_campaign":
+        return abilities.canUpdateCampaignMembers({ projectId }) && resource.detail !== "closed"
+    }
+  }
 
   const toResourceRoles = (resource: MemberResource): MemberResourceRoles => ({
     kind: resource.kind,
@@ -73,7 +91,7 @@ function WithData() {
       : undefined,
     roles: resource.roles,
     grantableRoles: assignableRoles[resource.kind],
-    canManage: resource.canManage,
+    canManage: canManage(resource),
     permissions: resource.permissions,
   })
 

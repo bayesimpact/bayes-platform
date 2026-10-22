@@ -43,7 +43,6 @@ export type MemberResourceRoles = {
   /** What the member's roles grant on this resource, together. */
   permissions: string[]
   /** Whether the viewer may add or remove the member's roles on this resource. */
-  canManage: boolean
 }
 
 /** A member's roles on the project, its agents and its review campaigns. */
@@ -53,5 +52,4 @@ export type MemberRoles = {
   workspace: MemberResourceRoles
   agents: MemberResourceRoles[]
   campaigns: MemberResourceRoles[]
-  assignableRoles: Record<MemberResourceRoles["kind"], { key: string; name: string }[]>
 }

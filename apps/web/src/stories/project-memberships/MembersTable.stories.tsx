@@ -2,7 +2,7 @@ import { Button } from "@caseai-connect/ui/shad/button"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { UserPlusIcon } from "lucide-react"
 import { expect, fireEvent, fn, userEvent, within } from "storybook/test"
-import { ProjectMembersTable } from "@/studio/features/project-memberships/components/members-table/ProjectMembersTable"
+import { MembersTable } from "@/studio/features/project-memberships/components/members-table/MembersTable"
 import {
   mockCurrentUserId,
   mockManyMembers,
@@ -12,8 +12,8 @@ import {
 } from "./fixtures"
 
 const meta = {
-  title: "project-memberships/ProjectMembersTable",
-  component: ProjectMembersTable,
+  title: "project-memberships/MembersTable",
+  component: MembersTable,
   parameters: { layout: "padded" },
   decorators: [
     (Story) => (
@@ -29,6 +29,7 @@ const meta = {
     ),
   ],
   args: {
+    scope: "project",
     members: mockManyMembers,
     roles: mockProjectRoles,
     currentUserId: mockCurrentUserId,
@@ -44,7 +45,7 @@ const meta = {
       </Button>
     ),
   },
-} satisfies Meta<typeof ProjectMembersTable>
+} satisfies Meta<typeof MembersTable>
 
 export default meta
 type Story = StoryObj<typeof meta>

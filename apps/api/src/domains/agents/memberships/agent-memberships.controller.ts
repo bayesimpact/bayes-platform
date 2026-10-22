@@ -1,10 +1,22 @@
 import {
   type AgentMembershipDto,
   AgentMembershipRoutes,
+  addAgentMemberRolesSchema,
   addMemberRoleSchema,
   buildNameFromEmail,
+  deleteAgentMembersSchema,
 } from "@caseai-connect/api-contracts"
-import { Body, Controller, Delete, Get, Param, Post, Req, UseGuards } from "@nestjs/common"
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  Post,
+  Req,
+  UseGuards,
+} from "@nestjs/common"
 import type {
   EndpointRequestWithAgent,
   EndpointRequestWithAgentMembership,
@@ -59,6 +71,41 @@ export class AgentMembershipsController {
       agentId: agent.id,
     })
 
+    return { data: { success: true } }
+  }
+
+  @Post(AgentMembershipRoutes.deleteMany.path)
+  @HttpCode(200)
+  @CheckPermission(AGENT_MEMBER_DELETE_PERMISSION, "agent")
+  @TrackActivity({ action: "agentMembership.deleteMany" })
+  async removeAgentMemberships(
+    @Req() request: EndpointRequestWithAgent,
+    @Body(new ZodValidationPipe(deleteAgentMembersSchema))
+    { payload }: typeof AgentMembershipRoutes.deleteMany.request,
+  ): Promise<typeof AgentMembershipRoutes.deleteMany.response> {
+    await this.agentMembershipsService.removeAgentMemberships({
+      callerUserId: request.user.id,
+      memberUserIds: payload.userIds,
+      agentId: request.agent.id,
+    })
+    return { data: { success: true } }
+  }
+
+  @Post(AgentMembershipRoutes.addRoles.path)
+  @CheckPermission(AGENT_MEMBER_UPDATE_PERMISSION, "agent")
+  @TrackActivity({ action: "agentMembership.addRoles" })
+  async addRoles(
+    @Req() request: EndpointRequestWithAgent,
+    @Body(new ZodValidationPipe(addAgentMemberRolesSchema))
+    { payload }: typeof AgentMembershipRoutes.addRoles.request,
+  ): Promise<typeof AgentMembershipRoutes.addRoles.response> {
+    await this.agentMembershipsService.addRolesToMembers({
+      callerUserId: request.user.id,
+      memberUserIds: payload.userIds,
+      agentId: request.agent.id,
+      projectId: request.project.id,
+      roleKeys: payload.roleKeys,
+    })
     return { data: { success: true } }
   }
 

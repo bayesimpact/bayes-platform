@@ -1,4 +1,4 @@
-import type { MemberRoles, ProjectMembership, ProjectRole } from "./project-memberships.models"
+import type { AssignableRoles, MemberRoles, ProjectMembership } from "./project-memberships.models"
 
 type MemberScope = { organizationId: string; projectId: string; memberUserId: string }
 
@@ -7,7 +7,7 @@ export interface IProjectMembershipsSpi {
   getAssignableRoles: (params: {
     organizationId: string
     projectId: string
-  }) => Promise<ProjectRole[]>
+  }) => Promise<AssignableRoles>
   /** All or nothing. Returns the members with their new roles. */
   addRoles: (params: {
     organizationId: string

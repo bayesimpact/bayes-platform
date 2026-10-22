@@ -3,7 +3,7 @@ export type * from "./agent-embed-configs/agent-embed-configs.dto"
 export { AgentEmbedConfigsRoutes } from "./agent-embed-configs/agent-embed-configs.routes"
 
 // Agent Membership
-export type * from "./agent-membership/agent-membership.dto"
+export * from "./agent-membership/agent-membership.dto"
 export { AgentMembershipRoutes } from "./agent-membership/agent-membership.routes"
 
 // Agent Message Feedback

@@ -1,6 +1,6 @@
 import type { TimeType } from "@caseai-connect/api-contracts"
 
-/** A role of the RBAC catalog that can be held on a workspace (`scope_type = project`). */
+/** A role of the RBAC catalog that can be held on a workspace, an agent or a review campaign. */
 export type ProjectRole = {
   key: string
   name: string
@@ -36,8 +36,6 @@ export type MemberResource = {
   roles: HeldRole[]
   /** What the member's roles grant on this resource, together. */
   permissions: string[]
-  /** Whether the viewer may add or remove the member's roles on this resource. */
-  canManage: boolean
 }
 
 /** A member's roles on the workspace, its agents and its review campaigns. */
@@ -46,6 +44,7 @@ export type MemberRoles = {
   workspace: MemberResource
   agents: MemberResource[]
   campaigns: MemberResource[]
-  /** The roles offered on each kind of resource. */
-  assignableRoles: Record<MemberResourceKind, ProjectRole[]>
 }
+
+/** The roles a member can be given on each kind of resource, in catalog order. */
+export type AssignableRoles = Record<MemberResourceKind, ProjectRole[]>

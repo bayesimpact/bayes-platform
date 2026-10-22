@@ -2,10 +2,10 @@ import { createAsyncThunk } from "@reduxjs/toolkit"
 import { getCurrentId } from "@/common/features/helpers"
 import type { RootState, ThunkExtraArg } from "@/common/store"
 import type {
+  AssignableRoles,
   MemberResourceKind,
   MemberRoles,
   ProjectMembership,
-  ProjectRole,
 } from "./project-memberships.models"
 
 type ThunkConfig = { state: RootState; extra: ThunkExtraArg }
@@ -20,7 +20,7 @@ export const listProjectMemberships = createAsyncThunk<ProjectMembership[], void
   },
 )
 
-export const listAssignableProjectRoles = createAsyncThunk<ProjectRole[], void, ThunkConfig>(
+export const listAssignableRoles = createAsyncThunk<AssignableRoles, void, ThunkConfig>(
   "projectMemberships/listAssignableRoles",
   async (_, { extra: { services }, getState }) => {
     const state = getState()

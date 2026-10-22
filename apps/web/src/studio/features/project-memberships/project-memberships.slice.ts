@@ -2,10 +2,10 @@ import { createSlice } from "@reduxjs/toolkit"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
 import type { PendingInvitations } from "@/studio/features/invitations/invitations.models"
 import { listInvitationsForTarget } from "@/studio/features/invitations/invitations.thunks"
-import type { MemberRoles, ProjectMembership, ProjectRole } from "./project-memberships.models"
+import type { AssignableRoles, MemberRoles, ProjectMembership } from "./project-memberships.models"
 import {
   addProjectMemberRoles,
-  listAssignableProjectRoles,
+  listAssignableRoles,
   listProjectMemberships,
   loadMemberRoles,
   removeProjectMembers,
@@ -16,8 +16,8 @@ interface State {
   /** The current member's roles on the workspace, its agents and its campaigns. */
   memberRoles: AsyncData<MemberRoles>
   pendingInvitations: AsyncData<PendingInvitations>
-  /** The roles a member can be given on the workspace. */
-  assignableRoles: AsyncData<ProjectRole[]>
+  /** The roles a member can be given on the workspace, an agent or a review campaign. */
+  assignableRoles: AsyncData<AssignableRoles>
 }
 
 const initialState: State = {
@@ -76,16 +76,16 @@ const slice = createSlice({
     })
 
     builder
-      .addCase(listAssignableProjectRoles.pending, (state) => {
+      .addCase(listAssignableRoles.pending, (state) => {
         if (!ADS.isFulfilled(state.assignableRoles)) state.assignableRoles.status = ADS.Loading
         state.assignableRoles.error = null
       })
-      .addCase(listAssignableProjectRoles.fulfilled, (state, action) => {
+      .addCase(listAssignableRoles.fulfilled, (state, action) => {
         state.assignableRoles = { status: ADS.Fulfilled, error: null, value: action.payload }
       })
-      .addCase(listAssignableProjectRoles.rejected, (state, action) => {
+      .addCase(listAssignableRoles.rejected, (state, action) => {
         state.assignableRoles.status = ADS.Error
-        state.assignableRoles.error = action.error.message || "Failed to list the workspace roles"
+        state.assignableRoles.error = action.error.message || "Failed to list the assignable roles"
       })
 
     builder

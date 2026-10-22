@@ -147,12 +147,30 @@ describe("Agent Memberships - Auth", () => {
       token: accessToken ?? undefined,
     })
 
+  const addRoles = async () =>
+    request({
+      route: AgentMembershipRoutes.addRoles,
+      pathParams: removeNullish({ organizationId, projectId, agentId }),
+      token: accessToken ?? undefined,
+      request: { payload: { userIds: [memberUserId!], roleKeys: ["agent_admin"] } },
+    })
+
+  const deleteMany = async () =>
+    request({
+      route: AgentMembershipRoutes.deleteMany,
+      pathParams: removeNullish({ organizationId, projectId, agentId }),
+      token: accessToken ?? undefined,
+      request: { payload: { userIds: [memberUserId!] } },
+    })
+
   it("requires an authentication token", async () => {
     accessToken = null
     expectResponse(await getAll(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
     expectResponse(await deleteOne(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
     expectResponse(await addRole(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
     expectResponse(await removeRole(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    expectResponse(await addRoles(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    expectResponse(await deleteMany(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
   })
 
   it("requires the user to be a member of the organization", async () => {
@@ -170,7 +188,13 @@ describe("Agent Memberships - Auth", () => {
     expectResponse(await getAll(), 200)
     expectResponse(await addRole(), 201)
     expectResponse(await removeRole(), 200)
+    expectResponse(await addRoles(), 201)
     expectResponse(await deleteOne(), 200)
+  })
+
+  it.each<Role>(["owner", "admin"])("lets an agent %s remove members in bulk", async (role) => {
+    await createContextForRoles({ projectRole: "member", agentRole: role })
+    expectResponse(await deleteMany(), 200)
   })
 
   it("doesn't let an agent member list or remove members", async () => {
@@ -179,6 +203,8 @@ describe("Agent Memberships - Auth", () => {
     expectResponse(await deleteOne(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     expectResponse(await addRole(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     expectResponse(await removeRole(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    expectResponse(await addRoles(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    expectResponse(await deleteMany(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
   })
 
   it("doesn't let an agent member who owns the project list or remove members", async () => {

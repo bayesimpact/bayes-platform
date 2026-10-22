@@ -231,7 +231,7 @@ export class McpAgentToolsService {
     }
 
     const connectScope = { organizationId: project.organizationId, projectId }
-    const agents = await this.agentsService.listAgents({ userId: caller.userId, connectScope })
+    const { agents } = await this.agentsService.listAgents({ userId: caller.userId, connectScope })
     const canCreateAgents = await this.canCreateAgents(caller, projectId)
     const value = await Promise.all(
       agents.map(async (agent): Promise<McpAgent[]> => {

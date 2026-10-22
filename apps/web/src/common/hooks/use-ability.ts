@@ -1,5 +1,10 @@
-import type { OrganizationPermission, ProjectPermission } from "@caseai-connect/api-contracts"
+import type {
+  AgentPermission,
+  OrganizationPermission,
+  ProjectPermission,
+} from "@caseai-connect/api-contracts"
 import { useCallback, useMemo } from "react"
+import { selectAgentsData } from "@/common/features/agents/agents.selectors"
 import {
   selectAgentMemberships,
   selectReviewCampaignMemberships,
@@ -7,6 +12,7 @@ import {
 import { holdsRole } from "@/common/features/memberships/membership-roles"
 import { selectOrganizationsList } from "@/common/features/organizations/organizations.selectors"
 import { selectMyProjectsList } from "@/common/features/projects/projects.selectors"
+import { ADS } from "@/common/store/async-data-status"
 import { useAppSelector } from "@/common/store/hooks"
 
 export function useAbility() {
@@ -14,6 +20,7 @@ export function useAbility() {
   const myProjects = useAppSelector(selectMyProjectsList)
   const agentMemberships = useAppSelector(selectAgentMemberships)
   const reviewCampaignMemberships = useAppSelector(selectReviewCampaignMemberships)
+  const agentsData = useAppSelector(selectAgentsData)
 
   const hasOrganizationPermission = useCallback(
     ({
@@ -37,6 +44,16 @@ export function useAbility() {
       return project?.permissions.includes(permission) ?? false
     },
     [myProjects],
+  )
+
+  // The project's agents come with the caller's permissions on each.
+  const hasAgentPermission = useCallback(
+    ({ agentId, permission }: { agentId: string | null; permission: AgentPermission }) => {
+      if (!agentId || !ADS.isFulfilled(agentsData)) return false
+      const agent = agentsData.value.find((item) => item.id === agentId)
+      return agent?.permissions.includes(permission) ?? false
+    },
+    [agentsData],
   )
 
   const canCreateProject = useCallback(
@@ -79,6 +96,24 @@ export function useAbility() {
     ({ projectId }: { projectId: string | null }) =>
       hasProjectPermission({ projectId, permission: "project.member.delete" }),
     [hasProjectPermission],
+  )
+
+  const canUpdateCampaignMembers = useCallback(
+    ({ projectId }: { projectId: string | null }) =>
+      hasProjectPermission({ projectId, permission: "project.review_campaign.member.invite" }),
+    [hasProjectPermission],
+  )
+
+  const canUpdateAgentMembers = useCallback(
+    ({ agentId }: { agentId: string | null }) =>
+      hasAgentPermission({ agentId, permission: "agent.member.update" }),
+    [hasAgentPermission],
+  )
+
+  const canRemoveAgentMembers = useCallback(
+    ({ agentId }: { agentId: string | null }) =>
+      hasAgentPermission({ agentId, permission: "agent.member.delete" }),
+    [hasAgentPermission],
   )
 
   const canAccessTester = useCallback(
@@ -152,6 +187,9 @@ export function useAbility() {
         canSaveTestCase,
         canUpdateProjectMemberRole,
         canRemoveProjectMembers,
+        canUpdateCampaignMembers,
+        canUpdateAgentMembers,
+        canRemoveAgentMembers,
       },
     }),
     [
@@ -168,6 +206,9 @@ export function useAbility() {
       canSaveTestCase,
       canUpdateProjectMemberRole,
       canRemoveProjectMembers,
+      canUpdateCampaignMembers,
+      canUpdateAgentMembers,
+      canRemoveAgentMembers,
     ],
   )
 }

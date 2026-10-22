@@ -2,10 +2,10 @@ import type { RequestPayload, ResponseData, SuccessResponseDTO } from "../generi
 import { defineRoute } from "../helpers"
 import type {
   AddProjectMemberRolesRequestDto,
+  AssignableRolesDto,
   DeleteProjectMembersRequestDto,
   ProjectMemberRolesDto,
   ProjectMembershipDto,
-  ProjectRoleDto,
 } from "./project-membership.dto"
 
 export const ProjectMembershipRoutes = {
@@ -18,15 +18,18 @@ export const ProjectMembershipRoutes = {
     path: "organizations/:organizationId/projects/:projectId/users/:userId",
   }),
   /**
-   * The member's roles on the workspace, its agents and its review campaigns, with what the viewer
-   * may change on each. Needs `project.member.read`.
+   * The member's roles on the workspace, its agents and its review campaigns, and the permissions
+   * they grant. Needs `project.member.read`.
    */
   getMemberRoles: defineRoute<ResponseData<ProjectMemberRolesDto>>({
     method: "get",
     path: "organizations/:organizationId/projects/:projectId/users/:userId/roles",
   }),
-  /** The roles a member can be given on the workspace, in catalog order. Needs `project.member.read`. */
-  getAssignableRoles: defineRoute<ResponseData<ProjectRoleDto[]>>({
+  /**
+   * The roles a member can be given on the workspace, an agent and a review campaign, in catalog
+   * order. Needs `project.member.read`.
+   */
+  getAssignableRoles: defineRoute<ResponseData<AssignableRolesDto>>({
     method: "get",
     path: "organizations/:organizationId/projects/:projectId/roles",
   }),

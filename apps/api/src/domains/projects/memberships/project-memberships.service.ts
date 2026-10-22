@@ -17,16 +17,17 @@ import {
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { PermissionService } from "@/domains/rbac/permission.service"
 import type { RoleGrant } from "@/domains/rbac/permission.types"
-import {
-  AGENT_CONVERSATION_REVIEWER_ROLE,
-  AGENT_MEMBER_UPDATE_PERMISSION,
-  PROJECT_MEMBER_UPDATE_PERMISSION,
-  PROJECT_REVIEW_CAMPAIGN_MEMBER_INVITE_PERMISSION,
-  PROJECT_ROLES,
-} from "@/domains/rbac/rbac.constants"
+import { AGENT_CONVERSATION_REVIEWER_ROLE, PROJECT_ROLES } from "@/domains/rbac/rbac.constants"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { UserRepository } from "@/domains/users/user.repository"
-import type { MemberRoles, ProjectMembershipModel } from "./project-membership.model"
+import type {
+  MemberResourceRoles,
+  MemberRoles,
+  ProjectMembershipModel,
+} from "./project-membership.model"
+
+type CatalogRole = { key: string; name: string }
+
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectMembershipRepository } from "./project-membership.repository"
 
@@ -88,17 +89,14 @@ export class ProjectMembershipsService {
     })
   }
 
-  /** Every agent of the project, with the user's membership and the permissions its roles grant. */
   /**
-   * A member's roles on the project, each of its agents and each of its review campaigns, the
-   * permissions those roles grant, and whether the viewer may change them on each resource.
+   * A member's roles on the project, each of its agents and each of its review campaigns, and the
+   * permissions those roles grant.
    */
   async getMemberRoles({
-    viewerUserId,
     memberUserId,
     projectId,
   }: {
-    viewerUserId: string
     memberUserId: string
     projectId: string
   }): Promise<MemberRoles> {
@@ -108,13 +106,12 @@ export class ProjectMembershipsService {
     })
     if (!membership) throw new NotFoundException()
 
-    const [agentEntries, campaignEntries, catalog] = await Promise.all([
+    const [agentEntries, campaignEntries] = await Promise.all([
       this.agentMembershipsService.listProjectMemberAgents({ projectId, userId: memberUserId }),
       this.projectMembershipRepository.findCampaignRolesInProject({
         userId: memberUserId,
         projectId,
       }),
-      this.permissionService.getCatalog(),
     ])
     const agentRoles = agentEntries.map(({ membership: agentMembership }) =>
       agentMembership ? agentMembership.roles : [],
@@ -127,28 +124,6 @@ export class ProjectMembershipsService {
     const permissionsOf = (roles: MembershipRole[]) =>
       unionRolePermissions(roles, roleGrantsByRoleId)
 
-    const [canManageProject, canManageCampaigns, ...canManageAgents] = await Promise.all([
-      this.permissionService.has(viewerUserId, PROJECT_MEMBER_UPDATE_PERMISSION, {
-        type: "project",
-        id: projectId,
-      }),
-      this.permissionService.has(viewerUserId, PROJECT_REVIEW_CAMPAIGN_MEMBER_INVITE_PERMISSION, {
-        type: "project",
-        id: projectId,
-      }),
-      ...agentEntries.map(({ agent }) =>
-        this.permissionService.has(viewerUserId, AGENT_MEMBER_UPDATE_PERMISSION, {
-          type: "agent",
-          id: agent.id,
-        }),
-      ),
-    ])
-
-    const catalogRoles = (scopeType: string, excludedKeys: string[] = []) =>
-      catalog.roles
-        .filter((role) => role.scopeType === scopeType && !excludedKeys.includes(role.key))
-        .map((role) => ({ key: role.key, name: role.name }))
-
     return {
       membership,
       roleGrantsByRoleId,
@@ -159,7 +134,6 @@ export class ProjectMembershipsService {
         detail: null,
         roles: membership.roles,
         permissions: permissionsOf(membership.roles),
-        canManage: canManageProject,
       },
       agents: agentEntries.map(({ agent }, index) => {
         const roles = agentRoles[index] ?? []
@@ -170,7 +144,6 @@ export class ProjectMembershipsService {
           detail: agent.type,
           roles,
           permissions: permissionsOf(roles),
-          canManage: canManageAgents[index] ?? false,
         }
       }),
       campaigns: campaignEntries.map((campaign) => ({
@@ -180,14 +153,7 @@ export class ProjectMembershipsService {
         detail: campaign.campaignStatus,
         roles: campaign.roles,
         permissions: permissionsOf(campaign.roles),
-        canManage: canManageCampaigns && campaign.campaignStatus !== "closed",
       })),
-      assignableRoles: {
-        project: catalogRoles("project"),
-        // The conversation reviewer role is granted in the backoffice only.
-        agent: catalogRoles("agent", [AGENT_CONVERSATION_REVIEWER_ROLE]),
-        review_campaign: catalogRoles("review_campaign"),
-      },
     }
   }
 
@@ -339,14 +305,21 @@ export class ProjectMembershipsService {
   }
 
   /**
-   * The roles a member can be given on the project, in catalog order: the `project` roles of the
-   * RBAC catalog. App install roles stay out of it.
+   * The roles a member can be given on the project, an agent and a review campaign, in catalog
+   * order. App install roles stay out of it.
    */
-  async listAssignableRoles(): Promise<{ key: string; name: string }[]> {
+  async listAssignableRoles(): Promise<Record<MemberResourceRoles["kind"], CatalogRole[]>> {
     const { roles } = await this.permissionService.getCatalog()
-    return roles
-      .filter((role) => role.scopeType === "project")
-      .map((role) => ({ key: role.key, name: role.name }))
+    const catalogRoles = (scopeType: string, excludedKeys: string[] = []) =>
+      roles
+        .filter((role) => role.scopeType === scopeType && !excludedKeys.includes(role.key))
+        .map((role) => ({ key: role.key, name: role.name }))
+    return {
+      project: catalogRoles("project"),
+      // The conversation reviewer role is granted in the backoffice only.
+      agent: catalogRoles("agent", [AGENT_CONVERSATION_REVIEWER_ROLE]),
+      review_campaign: catalogRoles("review_campaign"),
+    }
   }
 
   /**
@@ -479,7 +452,9 @@ export class ProjectMembershipsService {
   }
 
   private async assertAssignable(roleKeys: string[]): Promise<void> {
-    const assignableKeys = new Set((await this.listAssignableRoles()).map((role) => role.key))
+    const assignableKeys = new Set(
+      (await this.listAssignableRoles()).project.map((role) => role.key),
+    )
     const unknownKeys = roleKeys.filter((roleKey) => !assignableKeys.has(roleKey))
     if (unknownKeys.length > 0) {
       throw new BadRequestException(`Not a workspace role: ${unknownKeys.join(", ")}`)

@@ -1,7 +1,11 @@
 import type { RequestPayload, ResponseData, SuccessResponseDTO } from "../generic"
 import { defineRoute } from "../helpers"
 import type { AddMemberRoleRequestDto } from "../project-membership/project-membership.dto"
-import type { AgentMembershipDto } from "./agent-membership.dto"
+import type {
+  AddAgentMemberRolesRequestDto,
+  AgentMembershipDto,
+  DeleteAgentMembersRequestDto,
+} from "./agent-membership.dto"
 
 export const AgentMembershipRoutes = {
   getAll: defineRoute<ResponseData<AgentMembershipDto[]>>({
@@ -11,6 +15,28 @@ export const AgentMembershipRoutes = {
   deleteOne: defineRoute<ResponseData<SuccessResponseDTO>>({
     method: "delete",
     path: "organizations/:organizationId/projects/:projectId/agents/:agentId/users/:userId",
+  }),
+  /**
+   * Gives roles on the agent to several members, all or nothing. Needs `agent.member.update`.
+   * Nobody changes their own roles.
+   */
+  addRoles: defineRoute<
+    ResponseData<SuccessResponseDTO>,
+    RequestPayload<AddAgentMemberRolesRequestDto>
+  >({
+    method: "post",
+    path: "organizations/:organizationId/projects/:projectId/agents/:agentId/users/roles",
+  }),
+  /**
+   * Removes several members from the agent, all or nothing. Needs `agent.member.delete`. Nobody
+   * removes themselves, and the agent keeps an owner.
+   */
+  deleteMany: defineRoute<
+    ResponseData<SuccessResponseDTO>,
+    RequestPayload<DeleteAgentMembersRequestDto>
+  >({
+    method: "post",
+    path: "organizations/:organizationId/projects/:projectId/agents/:agentId/users/delete",
   }),
   /**
    * Gives a member of the workspace a role on the agent. Needs `agent.member.update`. Nobody

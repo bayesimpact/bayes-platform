@@ -147,7 +147,6 @@ const resourceFromDto = (dto: MemberResourceRolesDto): MemberResource => ({
     membershipId: role.membershipId,
   })),
   permissions: dto.permissions,
-  canManage: dto.canManage,
 })
 
 const memberRolesFromDto = (dto: ProjectMemberRolesDto): MemberRoles => ({
@@ -155,5 +154,4 @@ const memberRolesFromDto = (dto: ProjectMemberRolesDto): MemberRoles => ({
   workspace: resourceFromDto(dto.workspace),
   agents: dto.agents.map(resourceFromDto),
   campaigns: dto.campaigns.map(resourceFromDto),
-  assignableRoles: dto.assignableRoles,
 })

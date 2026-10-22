@@ -10,9 +10,9 @@ import { useAppDispatch } from "@/common/store/hooks"
 import { PendingInvitationsSection } from "@/studio/features/invitations/components/PendingInvitationsSection"
 import { revokeInvitation } from "@/studio/features/invitations/invitations.thunks"
 import { MembersCreator } from "@/studio/features/project-memberships/components/MembersCreator"
-import { ProjectMembersTable } from "@/studio/features/project-memberships/components/members-table/ProjectMembersTable"
+import { MembersTable } from "@/studio/features/project-memberships/components/members-table/MembersTable"
 import {
-  selectAssignableProjectRoles,
+  selectAssignableRoles,
   selectProjectMemberships,
   selectProjectPendingInvitations,
 } from "@/studio/features/project-memberships/project-memberships.selectors"
@@ -33,7 +33,7 @@ export function ProjectMembershipList() {
   const project = useValue(selectCurrentProjectData)
   const me = useValue(selectMe)
   const memberships = useValue(selectProjectMemberships)
-  const assignableRoles = useValue(selectAssignableProjectRoles)
+  const assignableRoles = useValue(selectAssignableRoles)
   const pendingInvitations = useValue(selectProjectPendingInvitations)
 
   const projectRoute = useGetProjectRoute()
@@ -75,9 +75,10 @@ export function ProjectMembershipList() {
         action={<MembersCreator projectId={project.id} />}
       />
       <div className="flex flex-col gap-6 bg-white p-6">
-        <ProjectMembersTable
+        <MembersTable
+          scope="project"
           members={memberships}
-          roles={assignableRoles}
+          roles={assignableRoles.project}
           currentUserId={me.id}
           canUpdateRoles={abilities.canUpdateProjectMemberRole({ projectId: project.id })}
           canRemoveMembers={abilities.canRemoveProjectMembers({ projectId: project.id })}

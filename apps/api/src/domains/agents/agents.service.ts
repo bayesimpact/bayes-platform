@@ -8,6 +8,8 @@ import { TransactionService } from "@/common/transaction/transaction.service"
 import { extractAgentSettingsCreateFields } from "@/domains/agents/settings/agent.settings.functions"
 import type { AgentSettingsCreateFields } from "@/domains/agents/settings/agent.settings.types"
 import type { DocumentTagsUpdateFields } from "../documents/tags/document-tags.types"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { PermissionService } from "../rbac/permission.service"
 import { Agent } from "./agent.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentRepository } from "./agent.repository"
@@ -39,6 +41,7 @@ export class AgentsService {
     private readonly agentMembershipsService: AgentMembershipsService,
     private readonly transactionService: TransactionService,
     private readonly agentsRepository: AgentRepository,
+    private readonly permissionService: PermissionService,
   ) {
     this.agentConnectRepository = new ConnectRepository(agentRepository, "agents")
   }
@@ -142,7 +145,7 @@ export class AgentsService {
   }
 
   /**
-   * Lists all agents for a project.
+   * Lists the project's agents the user may read, with the user's permissions on each.
    */
   async listAgents({
     userId,
@@ -150,23 +153,21 @@ export class AgentsService {
   }: {
     userId: string
     connectScope: RequiredConnectScope
-  }): Promise<Agent[]> {
-    const memberships = await this.agentMembershipsService.listMembershipsForUser(userId)
-    const agentIdsInScope = memberships
-      .filter(
-        (membership) =>
-          membership.agent.projectId === connectScope.projectId &&
-          membership.agent.organizationId === connectScope.organizationId,
-      )
-      .map((membership) => membership.agentId)
-
-    if (agentIdsInScope.length === 0) {
-      return []
+  }): Promise<{ agents: Agent[]; permissionsByAgentId: Map<string, string[]> }> {
+    // Every agent the user holds a role on comes back, such as one they only review conversations of.
+    const permissionsByAgentId = new Map(
+      [
+        ...(await this.permissionService.listResourcePermissions(userId, "agent.read")).entries(),
+      ].filter(([, permissions]) => permissions.includes("agent.read")),
+    )
+    if (permissionsByAgentId.size === 0) {
+      return { agents: [], permissionsByAgentId }
     }
 
-    return (
+    // The repository scope keeps the agents of this project only.
+    const agents = (
       await this.agentConnectRepository.find(connectScope, {
-        where: { id: In(agentIdsInScope) },
+        where: { id: In([...permissionsByAgentId.keys()]) },
         relations: {
           documentTags: true,
           resourceLibraries: true,
@@ -174,7 +175,23 @@ export class AgentsService {
           agentMcpServers: { mcpServer: true },
         },
       })
-    )?.sort((agentA, agentB) => agentA.name.localeCompare(agentB.name))
+    ).sort((agentA, agentB) => agentA.name.localeCompare(agentB.name))
+    return { agents, permissionsByAgentId }
+  }
+
+  /** The user's permissions on one agent, such as the one they just created. */
+  async listPermissionsOnAgent({
+    userId,
+    agentId,
+  }: {
+    userId: string
+    agentId: string
+  }): Promise<string[]> {
+    const permissionsByAgentId = await this.permissionService.listResourcePermissions(
+      userId,
+      "agent.read",
+    )
+    return permissionsByAgentId.get(agentId) ?? []
   }
 
   /**
