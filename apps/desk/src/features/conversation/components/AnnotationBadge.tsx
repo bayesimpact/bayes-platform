@@ -22,8 +22,6 @@ export function AnnotationBadge({ annotation, number, onOpen }: AnnotationBadgeP
     <button
       type="button"
       aria-label={t`Edit annotation ${number}`}
-      // The click opens the note; the reply must not take it for the end of a selection.
-      onMouseUp={(event) => event.stopPropagation()}
       onClick={onOpen}
       className="absolute z-10 flex size-4 -translate-y-3/4 items-center justify-center rounded-full bg-annotation text-xs leading-none font-semibold text-annotation-foreground shadow-sm transition-transform hover:scale-110 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
       // Raised just after the passage's end, as an exponent, so it covers no word.
