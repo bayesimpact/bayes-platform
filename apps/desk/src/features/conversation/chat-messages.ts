@@ -6,6 +6,8 @@ import {
   saveMemoryResultSchema,
   sourcesArgumentsSchema,
   surfaceResourcesArgumentsSchema,
+  TOOL_NAMES,
+  type ToolName,
 } from "@caseai-connect/desk-contracts"
 import type { z } from "zod"
 
@@ -90,7 +92,7 @@ type ToolCall = NonNullable<ConversationMessageOutputDto["toolCalls"]>[number]
  */
 function readToolArguments<TSchema extends z.ZodType>(
   toolCalls: ToolCall[],
-  toolName: string,
+  toolName: ToolName,
   schema: TSchema,
 ): z.output<TSchema>[] {
   return toolCalls.flatMap((toolCall) => {
@@ -107,7 +109,7 @@ function readToolArguments<TSchema extends z.ZodType>(
 /** The facts the `saveMemory` calls of a reply saved or proposed, from their results. */
 function readSavedMemoryIds(toolCalls: ToolCall[]): string[] {
   return toolCalls.flatMap((toolCall) => {
-    if (toolCall.name !== "saveMemory") return []
+    if (toolCall.name !== TOOL_NAMES.saveMemory) return []
     const result = saveMemoryResultSchema.safeParse(toolCall.result)
     return result.success ? result.data.memories.map((memory) => memory.id) : []
   })
@@ -127,12 +129,12 @@ export function toChatMessages(messages: ConversationMessageOutputDto[]): ChatMe
         toolNames: toolCalls.map((toolCall) => toolCall.name),
         createdAt: message.createdAt ?? null,
         failure: null,
-        sources: readToolArguments(toolCalls, "sources", sourcesArgumentsSchema).flatMap(
+        sources: readToolArguments(toolCalls, TOOL_NAMES.sources, sourcesArgumentsSchema).flatMap(
           (toolArguments) => toolArguments.sources,
         ),
         resources: readToolArguments(
           toolCalls,
-          "surfaceResources",
+          TOOL_NAMES.surfaceResources,
           surfaceResourcesArgumentsSchema,
         ).flatMap((toolArguments) => toolArguments.resources),
         attachment: message.attachmentDocumentId

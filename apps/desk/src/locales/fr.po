@@ -47,7 +47,7 @@ msgstr "{count, plural, one {Mémoire (#)} other {Mémoire (#)}}"
 msgid "{count, plural, one {Used # source} other {Used # sources}}"
 msgstr "{count, plural, one {# source utilisée} other {# sources utilisées}}"
 
-#: src/features/conversation/components/ToolSteps.tsx:91
+#: src/features/conversation/components/ToolSteps.tsx:98
 msgid "{count, plural, one {Used a tool} other {Used tools}}"
 msgstr "{count, plural, one {A utilisé un outil} other {A utilisé des outils}}"
 
@@ -233,7 +233,7 @@ msgstr "Colonnes"
 msgid "Completed form"
 msgstr "Formulaire complété"
 
-#: src/features/conversation/components/ToolSteps.tsx:22
+#: src/features/conversation/components/ToolSteps.tsx:23
 msgid "Completing the form"
 msgstr "Finalisation du formulaire"
 
@@ -425,7 +425,7 @@ msgstr "Champs"
 msgid "File"
 msgstr "Fichier"
 
-#: src/features/conversation/components/ToolSteps.tsx:21
+#: src/features/conversation/components/ToolSteps.tsx:22
 msgid "Filling in the form"
 msgstr "Remplissage du formulaire"
 
@@ -442,7 +442,7 @@ msgstr "Tout oublier"
 msgid "Forget everything?"
 msgstr "Tout oublier ?"
 
-#: src/features/conversation/components/ToolSteps.tsx:25
+#: src/features/conversation/components/ToolSteps.tsx:26
 msgid "Forgetting what you asked"
 msgstr "Oubli de ce que vous avez demandé"
 
@@ -463,7 +463,7 @@ msgstr "conditions générales de service"
 msgid "Give the agent one file at a time."
 msgstr "Donnez un seul fichier à la fois à l’agent."
 
-#: src/features/conversation/components/ToolSteps.tsx:23
+#: src/features/conversation/components/ToolSteps.tsx:24
 msgid "Handing the conversation back"
 msgstr "Retour à l'agent précédent"
 
@@ -671,7 +671,7 @@ msgstr "PDF"
 msgid "PDF, image, text or CSV file, up to 25 MB. A CSV file runs row by row."
 msgstr "PDF, image, texte ou fichier CSV, jusqu’à 25 Mo. Un fichier CSV est traité ligne par ligne."
 
-#: src/features/conversation/components/ToolSteps.tsx:20
+#: src/features/conversation/components/ToolSteps.tsx:21
 msgid "Picking useful resources"
 msgstr "Sélection de ressources utiles"
 
@@ -730,7 +730,7 @@ msgstr "Rechargez la page pour continuer."
 msgid "Remember"
 msgstr "Retenir"
 
-#: src/features/conversation/components/ToolSteps.tsx:24
+#: src/features/conversation/components/ToolSteps.tsx:25
 msgid "Remembering what matters"
 msgstr "Mémorisation de l'essentiel"
 
@@ -829,12 +829,12 @@ msgstr "Rechercher un agent"
 msgid "Search an agent or a project"
 msgstr "Rechercher un agent ou un projet"
 
-#: src/features/conversation/components/ToolSteps.tsx:17
+#: src/features/conversation/components/ToolSteps.tsx:18
 msgid "Searching the knowledge base"
 msgstr "Recherche dans la base de connaissances"
 
-#: src/features/conversation/components/ToolSteps.tsx:18
 #: src/features/conversation/components/ToolSteps.tsx:19
+#: src/features/conversation/components/ToolSteps.tsx:20
 msgid "Searching the resources"
 msgstr "Recherche dans les ressources"
 
@@ -1156,7 +1156,7 @@ msgstr "L’extraction est arrêtée. Les lignes déjà traitées restent."
 msgid "The sign-in keeps failing"
 msgstr "La connexion échoue à chaque fois"
 
-#: src/features/conversation/components/ToolSteps.tsx:64
+#: src/features/conversation/components/ToolSteps.tsx:71
 msgid "Thinking…"
 msgstr "Réflexion…"
 
@@ -1216,7 +1216,7 @@ msgstr "Document sans titre"
 msgid "Uploading…"
 msgstr "Envoi en cours…"
 
-#: src/features/conversation/components/ToolSteps.tsx:50
+#: src/features/conversation/components/ToolSteps.tsx:58
 msgid "Using a tool"
 msgstr "Utilisation d'un outil"
 
