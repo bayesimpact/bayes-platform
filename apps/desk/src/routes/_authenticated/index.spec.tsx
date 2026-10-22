@@ -40,10 +40,15 @@ describe("the Desk's home", () => {
     expect(screen.getByRole("textbox", { name: "Message to Helpful Assistant" })).toHaveFocus()
     expect(router.state.location.pathname).toBe(routerPathOf(agentUrlOf(world)))
     expect(screen.queryByRole("combobox", { name: /Switch agent/ })).not.toBeInTheDocument()
-    // The sidebar names the agent, as the switcher would, and the bar above the page does too.
-    expect(screen.getAllByText("Helpful Assistant")).toHaveLength(2)
+    // The open sidebar names the agent, as the switcher would: the bar above the page does not.
+    expect(screen.getAllByText("Helpful Assistant")).toHaveLength(1)
     expect(await screen.findByRole("link", { name: "Compare the plans" })).toBeInTheDocument()
     expect(screen.getByText("Today")).toBeInTheDocument()
+
+    // Once the sidebar is hidden, the bar names the agent.
+    await userEvent.click(screen.getByRole("button", { name: "Hide the sidebar" }))
+    expect(await screen.findByRole("button", { name: "Show the sidebar" })).toBeInTheDocument()
+    expect(screen.getAllByText("Helpful Assistant")).toHaveLength(2)
     expect(screen.getByText("Yesterday")).toBeInTheDocument()
   })
 

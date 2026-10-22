@@ -2,6 +2,7 @@ import { createFileRoute, notFound, Outlet, useMatch } from "@tanstack/react-rou
 import { DeskShell } from "@/components/shared/DeskShell"
 import { DeskShellSkeleton } from "@/components/shared/DeskShellSkeleton"
 import { RouteErrorState } from "@/components/shared/RouteErrorState"
+import { SidebarClosedOnly } from "@/components/shared/SidebarClosedOnly"
 import {
   AgentSidebarHeader,
   agentPathParams,
@@ -39,7 +40,8 @@ export const Route = createFileRoute("/_authenticated/o/$organizationId/p/$proje
 
 function AgentLayout() {
   const { agent, historyAgent } = Route.useRouteContext()
-  // The bar names the open conversation, and the agent on its other pages.
+  // The bar names the open conversation, and on the agent's other pages the agent, while the
+  // sidebar, which names it too, is closed.
   const conversation = useMatch({
     from: "/_authenticated/o/$organizationId/p/$projectId/a/$agentId/as/$agentSessionId",
     shouldThrow: false,
@@ -56,7 +58,13 @@ function AgentLayout() {
         </>
       }
       footer={<DeskSidebarFooter />}
-      title={conversation ? <ConversationTitle conversation={conversation.params} /> : agent.name}
+      title={
+        conversation ? (
+          <ConversationTitle conversation={conversation.params} />
+        ) : (
+          <SidebarClosedOnly>{agent.name}</SidebarClosedOnly>
+        )
+      }
     >
       <Outlet />
     </DeskShell>
