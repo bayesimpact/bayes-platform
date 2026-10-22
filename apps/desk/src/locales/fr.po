@@ -265,7 +265,7 @@ msgstr "Copier le message"
 msgid "Copy the reply"
 msgstr "Copier la réponse"
 
-#: src/features/extraction/components/DocumentRow.tsx:33
+#: src/features/extraction/components/DocumentRow.tsx:34
 msgid "CSV"
 msgstr "CSV"
 
@@ -302,8 +302,8 @@ msgstr "Refuser l’invitation à {name}"
 msgid "Delete"
 msgstr "Supprimer"
 
-#: src/features/extraction/components/DocumentRow.tsx:73
-#: src/features/extraction/components/DocumentRow.tsx:81
+#: src/features/extraction/components/DocumentRow.tsx:74
+#: src/features/extraction/components/DocumentRow.tsx:82
 msgid "Delete {name}"
 msgstr "Supprimer {name}"
 
@@ -393,11 +393,11 @@ msgstr "Entrée"
 msgid "Every row of the file"
 msgstr "Toutes les lignes du fichier"
 
-#: src/features/extraction/components/DocumentRow.tsx:64
+#: src/features/extraction/components/DocumentRow.tsx:65
 msgid "Extract"
 msgstr "Extraire"
 
-#: src/features/extraction/components/DocumentRow.tsx:59
+#: src/features/extraction/components/DocumentRow.tsx:60
 msgid "Extract {name}"
 msgstr "Extraire {name}"
 
@@ -421,7 +421,7 @@ msgstr "Échec"
 msgid "Fields"
 msgstr "Champs"
 
-#: src/features/extraction/components/DocumentRow.tsx:34
+#: src/features/extraction/components/DocumentRow.tsx:35
 msgid "File"
 msgstr "Fichier"
 
@@ -501,7 +501,7 @@ msgid "If the page stays blank, its site does not allow being shown here: open i
 msgstr "Si la page reste vide, son site refuse d’être affiché ici : ouvrez-la dans un nouvel onglet."
 
 #: src/components/shared/Markdown.tsx:51
-#: src/features/extraction/components/DocumentRow.tsx:31
+#: src/features/extraction/components/DocumentRow.tsx:32
 msgid "Image"
 msgstr "Image"
 
@@ -663,7 +663,7 @@ msgstr "Page introuvable"
 msgid "Pages of the results"
 msgstr "Pages des résultats"
 
-#: src/features/extraction/components/DocumentRow.tsx:30
+#: src/features/extraction/components/DocumentRow.tsx:31
 msgid "PDF"
 msgstr "PDF"
 
@@ -846,11 +846,11 @@ msgstr "Envoyer"
 msgid "Send the report"
 msgstr "Envoyer le signalement"
 
-#: src/features/extraction/components/DocumentRow.tsx:64
+#: src/features/extraction/components/DocumentRow.tsx:65
 msgid "Set up"
 msgstr "Configurer"
 
-#: src/features/extraction/components/DocumentRow.tsx:59
+#: src/features/extraction/components/DocumentRow.tsx:60
 msgid "Set up the extraction of {name}"
 msgstr "Configurer l’extraction de {name}"
 
@@ -945,7 +945,7 @@ msgstr "Conditions"
 msgid "tester"
 msgstr "testeur"
 
-#: src/features/extraction/components/DocumentRow.tsx:32
+#: src/features/extraction/components/DocumentRow.tsx:33
 msgid "Text"
 msgstr "Texte"
 
@@ -1204,7 +1204,7 @@ msgstr "Réessayez pour vous connecter. Si cette page revient, fermez les autres
 
 #: src/features/conversation/components/SourceItem.tsx:31
 #: src/features/extraction/components/DeleteDocumentDialog.tsx:27
-#: src/features/extraction/components/DocumentRow.tsx:28
+#: src/features/extraction/components/DocumentRow.tsx:29
 #: src/features/extraction/components/ExtractionRunView.tsx:46
 #: src/features/history/components/HistoryEntryLink.tsx:43
 #: src/features/history/components/HistoryList.tsx:42

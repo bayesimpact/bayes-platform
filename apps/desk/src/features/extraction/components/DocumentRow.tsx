@@ -4,7 +4,8 @@ import { LoaderCircleIcon, Trash2Icon } from "lucide-react"
 import { RelativeTime } from "@/components/shared/RelativeTime"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { fileKindOf, fileSizeOf } from "../extraction-files"
+import { fileSizeOf } from "@/lib/file-size"
+import { fileKindOf } from "../extraction-files"
 import { FileKindIcon } from "./FileKindIcon"
 
 export type DocumentRowProps = {

@@ -265,7 +265,7 @@ msgstr "Copy the message"
 msgid "Copy the reply"
 msgstr "Copy the reply"
 
-#: src/features/extraction/components/DocumentRow.tsx:33
+#: src/features/extraction/components/DocumentRow.tsx:34
 msgid "CSV"
 msgstr "CSV"
 
@@ -302,8 +302,8 @@ msgstr "Decline the invitation to {name}"
 msgid "Delete"
 msgstr "Delete"
 
-#: src/features/extraction/components/DocumentRow.tsx:73
-#: src/features/extraction/components/DocumentRow.tsx:81
+#: src/features/extraction/components/DocumentRow.tsx:74
+#: src/features/extraction/components/DocumentRow.tsx:82
 msgid "Delete {name}"
 msgstr "Delete {name}"
 
@@ -393,11 +393,11 @@ msgstr "Enter"
 msgid "Every row of the file"
 msgstr "Every row of the file"
 
-#: src/features/extraction/components/DocumentRow.tsx:64
+#: src/features/extraction/components/DocumentRow.tsx:65
 msgid "Extract"
 msgstr "Extract"
 
-#: src/features/extraction/components/DocumentRow.tsx:59
+#: src/features/extraction/components/DocumentRow.tsx:60
 msgid "Extract {name}"
 msgstr "Extract {name}"
 
@@ -421,7 +421,7 @@ msgstr "Failed"
 msgid "Fields"
 msgstr "Fields"
 
-#: src/features/extraction/components/DocumentRow.tsx:34
+#: src/features/extraction/components/DocumentRow.tsx:35
 msgid "File"
 msgstr "File"
 
@@ -501,7 +501,7 @@ msgid "If the page stays blank, its site does not allow being shown here: open i
 msgstr "If the page stays blank, its site does not allow being shown here: open it in a new tab."
 
 #: src/components/shared/Markdown.tsx:51
-#: src/features/extraction/components/DocumentRow.tsx:31
+#: src/features/extraction/components/DocumentRow.tsx:32
 msgid "Image"
 msgstr "Image"
 
@@ -663,7 +663,7 @@ msgstr "Page not found"
 msgid "Pages of the results"
 msgstr "Pages of the results"
 
-#: src/features/extraction/components/DocumentRow.tsx:30
+#: src/features/extraction/components/DocumentRow.tsx:31
 msgid "PDF"
 msgstr "PDF"
 
@@ -846,11 +846,11 @@ msgstr "Send"
 msgid "Send the report"
 msgstr "Send the report"
 
-#: src/features/extraction/components/DocumentRow.tsx:64
+#: src/features/extraction/components/DocumentRow.tsx:65
 msgid "Set up"
 msgstr "Set up"
 
-#: src/features/extraction/components/DocumentRow.tsx:59
+#: src/features/extraction/components/DocumentRow.tsx:60
 msgid "Set up the extraction of {name}"
 msgstr "Set up the extraction of {name}"
 
@@ -945,7 +945,7 @@ msgstr "Terms"
 msgid "tester"
 msgstr "tester"
 
-#: src/features/extraction/components/DocumentRow.tsx:32
+#: src/features/extraction/components/DocumentRow.tsx:33
 msgid "Text"
 msgstr "Text"
 
@@ -1204,7 +1204,7 @@ msgstr "Try again to sign in. If this page comes back, close the other tabs of t
 
 #: src/features/conversation/components/SourceItem.tsx:31
 #: src/features/extraction/components/DeleteDocumentDialog.tsx:27
-#: src/features/extraction/components/DocumentRow.tsx:28
+#: src/features/extraction/components/DocumentRow.tsx:29
 #: src/features/extraction/components/ExtractionRunView.tsx:46
 #: src/features/history/components/HistoryEntryLink.tsx:43
 #: src/features/history/components/HistoryList.tsx:42
