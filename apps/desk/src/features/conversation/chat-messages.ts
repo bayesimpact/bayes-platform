@@ -290,7 +290,7 @@ export function failStreamingReplies(
 const STREAMING_TIMEOUT_IN_MILLISECONDS = 30 * 60 * 1000
 
 /** Whether a reply is still being written, as far as the Desk can tell. */
-export function isWriting(message: ChatMessage, now: number): boolean {
+export function isBeingWritten(message: ChatMessage, now: number): boolean {
   if (message.status !== "streaming") return false
   return message.createdAt === null || now - message.createdAt < STREAMING_TIMEOUT_IN_MILLISECONDS
 }
@@ -305,7 +305,7 @@ export function findRetryableMessage(messages: ChatMessage[], now: number): Outg
     lastMessage?.role === "assistant" &&
     (lastMessage.status === "error" ||
       lastMessage.status === "aborted" ||
-      (lastMessage.status === "streaming" && !isWriting(lastMessage, now)))
+      (lastMessage.status === "streaming" && !isBeingWritten(lastMessage, now)))
   if (!isFailed) return null
   const userMessage = [...messages].reverse().find((message) => message.role === "user")
   if (!userMessage) return null

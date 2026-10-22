@@ -17,7 +17,7 @@ import { MemoryButton, MemoryPanel } from "@/features/memory"
 import { useNow } from "@/hooks/use-now"
 import { ANNOTATION_LAYER_ATTRIBUTE } from "../annotation"
 import { mcpAppsHtmlQueryOptions, messagesQueryOptions } from "../api/queries"
-import { findRetryableMessage, isWriting } from "../chat-messages"
+import { findRetryableMessage, isBeingWritten } from "../chat-messages"
 import { useConversationForms } from "../hooks/use-conversation-forms"
 import { useConversationPanel } from "../hooks/use-conversation-panel"
 import { useConversationSend } from "../hooks/use-conversation-send"
@@ -51,7 +51,7 @@ export function ConversationView({
   const { data: messages } = useSuspenseQuery(messagesQueryOptions(conversation))
   const sending = useConversationSend(conversation)
   const now = useNow(CLOCK_INTERVAL_IN_MILLISECONDS, true)
-  const isBusy = sending.isSending || messages.some((message) => isWriting(message, now))
+  const isBusy = sending.isSending || messages.some((message) => isBeingWritten(message, now))
   const retryableMessage = isBusy ? null : findRetryableMessage(messages, now)
   const forms = useConversationForms(conversation)
   const [draft, setDraft] = useState("")

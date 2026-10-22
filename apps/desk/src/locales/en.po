@@ -109,7 +109,7 @@ msgstr "<0>Read</0>: the agent reads it. <1>Keep</1>: shown beside the results. 
 msgid "A new version of the Desk is available"
 msgstr "A new version of the Desk is available"
 
-#: src/features/conversation/components/ReplyError.tsx:29
+#: src/features/conversation/components/ReplyError.tsx:16
 msgid "A new version of the Desk is available. Reload the page."
 msgstr "A new version of the Desk is available. Reload the page."
 
@@ -259,7 +259,7 @@ msgstr "Copy the JSON"
 msgid "Copy the message"
 msgstr "Copy the message"
 
-#: src/features/conversation/components/AssistantMessageView.tsx:96
+#: src/features/conversation/components/AssistantMessageView.tsx:97
 msgid "Copy the reply"
 msgstr "Copy the reply"
 
@@ -583,7 +583,7 @@ msgstr "No conversations yet"
 msgid "No extractions yet"
 msgstr "No extractions yet"
 
-#: src/features/conversation/components/SourceItem.tsx:74
+#: src/features/conversation/components/SourceItem.tsx:75
 msgid "No passage to show."
 msgstr "No passage to show."
 
@@ -620,7 +620,7 @@ msgstr "Open"
 msgid "Open {name}"
 msgstr "Open {name}"
 
-#: src/features/conversation/components/SourceItem.tsx:54
+#: src/features/conversation/components/SourceItem.tsx:55
 msgid "Open {title}"
 msgstr "Open {title}"
 
@@ -956,7 +956,7 @@ msgstr "Thank you. Your report was sent."
 msgid "The agent could not answer for this row."
 msgstr "The agent could not answer for this row."
 
-#: src/features/conversation/components/ReplyError.tsx:19
+#: src/features/conversation/components/ReplyError.tsx:26
 msgid "The agent could not answer."
 msgstr "The agent could not answer."
 
@@ -1020,7 +1020,7 @@ msgstr "The conversation could not be deleted. Try again."
 msgid "The conversation could not start. Try again."
 msgstr "The conversation could not start. Try again."
 
-#: src/features/conversation/components/ReplyError.tsx:27
+#: src/features/conversation/components/ReplyError.tsx:15
 msgid "The Desk could not reach the agent. Check your connection."
 msgstr "The Desk could not reach the agent. Check your connection."
 
@@ -1044,7 +1044,7 @@ msgstr "The document could not be deleted. Try again."
 msgid "The document could not be opened."
 msgstr "The document could not be opened."
 
-#: src/features/conversation/components/SourceItem.tsx:37
+#: src/features/conversation/components/SourceItem.tsx:38
 msgid "The document could not be opened. Try again."
 msgstr "The document could not be opened. Try again."
 
@@ -1082,7 +1082,7 @@ msgstr "The fact to remember"
 msgid "The file could not be opened. Try again."
 msgstr "The file could not be opened. Try again."
 
-#: src/features/conversation/components/ReplyError.tsx:23
+#: src/features/conversation/components/ReplyError.tsx:13
 msgid "The file could not be uploaded. Try again."
 msgstr "The file could not be uploaded. Try again."
 
@@ -1118,7 +1118,7 @@ msgstr "The people of your projects see you by this name."
 msgid "The people who run this agent read every report to improve it."
 msgstr "The people who run this agent read every report to improve it."
 
-#: src/features/conversation/components/ReplyError.tsx:25
+#: src/features/conversation/components/ReplyError.tsx:14
 msgid "The reply stopped before it finished."
 msgstr "The reply stopped before it finished."
 
@@ -1170,7 +1170,7 @@ msgstr "This page could not load"
 msgid "This page does not exist, or you cannot open it."
 msgstr "This page does not exist, or you cannot open it."
 
-#: src/features/conversation/components/AssistantMessageView.tsx:91
+#: src/features/conversation/components/AssistantMessageView.tsx:92
 msgid "This reply was interrupted before it finished."
 msgstr "This reply was interrupted before it finished."
 
@@ -1204,7 +1204,7 @@ msgstr "Try again in a moment. If this page comes back, sign out, then sign in a
 msgid "Try again to sign in. If this page comes back, close the other tabs of the Desk."
 msgstr "Try again to sign in. If this page comes back, close the other tabs of the Desk."
 
-#: src/features/conversation/components/SourceItem.tsx:31
+#: src/features/conversation/components/SourceItem.tsx:32
 #: src/features/extraction/components/DeleteDocumentDialog.tsx:27
 #: src/features/extraction/components/DocumentRow.tsx:29
 #: src/features/extraction/components/ExtractionRunView.tsx:46

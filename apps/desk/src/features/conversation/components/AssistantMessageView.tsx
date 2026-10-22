@@ -7,7 +7,7 @@ import { RelativeTime } from "@/components/shared/RelativeTime"
 import { Message, MessageContent } from "@/components/ui/message"
 import { MemoryProposals } from "@/features/memory"
 import { QUOTABLE_ATTRIBUTE } from "../annotation"
-import { type ChatMessage, isLocalMessageId, isWriting } from "../chat-messages"
+import { type ChatMessage, isBeingWritten, isLocalMessageId } from "../chat-messages"
 import { type AppsHtml, hasMeaningfulText, toolResultText, unavailableApps } from "../mcp-apps"
 import type { OpenedResource } from "../resource-media"
 import { FeedbackDialog } from "./FeedbackDialog"
@@ -46,25 +46,26 @@ export function AssistantMessageView({
 }: AssistantMessageViewProps) {
   const { t } = useLingui()
   const [failedAppIds, setFailedAppIds] = useState<string[]>([])
-  const writing = isWriting(message, now)
-  const isInterrupted = message.status === "aborted" || (message.status === "streaming" && !writing)
+  const isWriting = isBeingWritten(message, now)
+  const isInterrupted =
+    message.status === "aborted" || (message.status === "streaming" && !isWriting)
   const text =
-    message.mcpApps.length > 0 && !writing
+    message.mcpApps.length > 0 && !isWriting
       ? replyTextWithApps(message, unavailableApps(message.mcpApps, appsHtml, failedAppIds))
       : message.content
 
   return (
     <Message>
       <MessageContent className="gap-3">
-        <ToolSteps toolNames={message.toolNames} isWriting={writing} hasText={text !== ""} />
+        <ToolSteps toolNames={message.toolNames} isWriting={isWriting} hasText={text !== ""} />
         {message.status === "error" ? <ReplyError message={message} /> : null}
         {message.status !== "error" && text !== "" ? (
           // A passage of a settled reply can be annotated.
-          <div {...(writing ? {} : { [QUOTABLE_ATTRIBUTE]: "" })}>
-            <Markdown isStreaming={writing}>{text}</Markdown>
+          <div {...(isWriting ? {} : { [QUOTABLE_ATTRIBUTE]: "" })}>
+            <Markdown isStreaming={isWriting}>{text}</Markdown>
           </div>
         ) : null}
-        {message.mcpApps.length > 0 && !writing ? (
+        {message.mcpApps.length > 0 && !isWriting ? (
           <McpAppsList
             apps={message.mcpApps}
             appsHtml={appsHtml}

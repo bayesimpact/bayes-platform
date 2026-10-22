@@ -23,10 +23,11 @@ export function SourceItem({ conversation, source }: SourceItemProps) {
   const isWebPage = source.documentSourceType === "webCrawl"
   // useQuery: optional data, read only while the sources are open, which hides the button
   // until it knows whether the person may open the document.
-  const isPublic = useQuery({
+  const publicStatus = useQuery({
     ...documentIsPublicQueryOptions({ ...conversation, documentId: source.documentId }),
     enabled: !isWebPage,
   })
+  const canOpen = publicStatus.data === true
   const openDocument = useOpenDocument(conversation)
   const title = source.documentTitle ?? t`Untitled document`
 
@@ -47,7 +48,7 @@ export function SourceItem({ conversation, source }: SourceItemProps) {
           <FileTextIcon aria-hidden className="size-4 shrink-0" />
         )}
         <span className="min-w-0 truncate font-medium text-foreground">{title}</span>
-        {isPublic.data === true ? (
+        {canOpen ? (
           <Button
             variant="ghost"
             size="icon-sm"

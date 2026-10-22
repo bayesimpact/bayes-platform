@@ -109,7 +109,7 @@ msgstr "<0>Lire</0> : l’agent la lit. <1>Garder</1> : affichée à côté des 
 msgid "A new version of the Desk is available"
 msgstr "Une nouvelle version du Desk est disponible"
 
-#: src/features/conversation/components/ReplyError.tsx:29
+#: src/features/conversation/components/ReplyError.tsx:16
 msgid "A new version of the Desk is available. Reload the page."
 msgstr "Une nouvelle version du Desk est disponible. Rechargez la page."
 
@@ -259,7 +259,7 @@ msgstr "Copier le JSON"
 msgid "Copy the message"
 msgstr "Copier le message"
 
-#: src/features/conversation/components/AssistantMessageView.tsx:96
+#: src/features/conversation/components/AssistantMessageView.tsx:97
 msgid "Copy the reply"
 msgstr "Copier la réponse"
 
@@ -583,7 +583,7 @@ msgstr "Aucune conversation pour l'instant"
 msgid "No extractions yet"
 msgstr "Aucune extraction pour l'instant"
 
-#: src/features/conversation/components/SourceItem.tsx:74
+#: src/features/conversation/components/SourceItem.tsx:75
 msgid "No passage to show."
 msgstr "Aucun passage à afficher."
 
@@ -620,7 +620,7 @@ msgstr "Ouvrir"
 msgid "Open {name}"
 msgstr "Ouvrir {name}"
 
-#: src/features/conversation/components/SourceItem.tsx:54
+#: src/features/conversation/components/SourceItem.tsx:55
 msgid "Open {title}"
 msgstr "Ouvrir {title}"
 
@@ -956,7 +956,7 @@ msgstr "Merci, votre signalement a été envoyé."
 msgid "The agent could not answer for this row."
 msgstr "L’agent n’a pas pu répondre pour cette ligne."
 
-#: src/features/conversation/components/ReplyError.tsx:19
+#: src/features/conversation/components/ReplyError.tsx:26
 msgid "The agent could not answer."
 msgstr "L'agent n'a pas pu répondre."
 
@@ -1020,7 +1020,7 @@ msgstr "La conversation n'a pas pu être supprimée. Réessayez."
 msgid "The conversation could not start. Try again."
 msgstr "La conversation n'a pas pu démarrer. Réessayez."
 
-#: src/features/conversation/components/ReplyError.tsx:27
+#: src/features/conversation/components/ReplyError.tsx:15
 msgid "The Desk could not reach the agent. Check your connection."
 msgstr "Le Desk n'a pas pu joindre l'agent. Vérifiez votre connexion."
 
@@ -1044,7 +1044,7 @@ msgstr "Le document n’a pas pu être supprimé. Réessayez."
 msgid "The document could not be opened."
 msgstr "Le document n’a pas pu être ouvert."
 
-#: src/features/conversation/components/SourceItem.tsx:37
+#: src/features/conversation/components/SourceItem.tsx:38
 msgid "The document could not be opened. Try again."
 msgstr "Le document n'a pas pu être ouvert. Réessayez."
 
@@ -1082,7 +1082,7 @@ msgstr "L'information à retenir"
 msgid "The file could not be opened. Try again."
 msgstr "Le fichier n'a pas pu être ouvert. Réessayez."
 
-#: src/features/conversation/components/ReplyError.tsx:23
+#: src/features/conversation/components/ReplyError.tsx:13
 msgid "The file could not be uploaded. Try again."
 msgstr "Le fichier n'a pas pu être envoyé. Réessayez."
 
@@ -1118,7 +1118,7 @@ msgstr "Les membres de vos projets vous voient sous ce nom."
 msgid "The people who run this agent read every report to improve it."
 msgstr "Les personnes qui gèrent cet agent lisent chaque signalement pour l'améliorer."
 
-#: src/features/conversation/components/ReplyError.tsx:25
+#: src/features/conversation/components/ReplyError.tsx:14
 msgid "The reply stopped before it finished."
 msgstr "La réponse s'est arrêtée avant la fin."
 
@@ -1170,7 +1170,7 @@ msgstr "Cette page n’a pas pu se charger"
 msgid "This page does not exist, or you cannot open it."
 msgstr "Cette page n’existe pas, ou vous ne pouvez pas l’ouvrir."
 
-#: src/features/conversation/components/AssistantMessageView.tsx:91
+#: src/features/conversation/components/AssistantMessageView.tsx:92
 msgid "This reply was interrupted before it finished."
 msgstr "Cette réponse a été interrompue avant la fin."
 
@@ -1204,7 +1204,7 @@ msgstr "Réessayez dans un instant. Si cette page revient, déconnectez-vous, pu
 msgid "Try again to sign in. If this page comes back, close the other tabs of the Desk."
 msgstr "Réessayez pour vous connecter. Si cette page revient, fermez les autres onglets du Desk."
 
-#: src/features/conversation/components/SourceItem.tsx:31
+#: src/features/conversation/components/SourceItem.tsx:32
 #: src/features/extraction/components/DeleteDocumentDialog.tsx:27
 #: src/features/extraction/components/DocumentRow.tsx:29
 #: src/features/extraction/components/ExtractionRunView.tsx:46
