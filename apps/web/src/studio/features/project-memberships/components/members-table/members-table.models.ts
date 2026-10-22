@@ -1,17 +1,12 @@
 import type { TimeType } from "@caseai-connect/api-contracts"
 
-/** A role of the RBAC catalog whose `scope_type` is `project`. */
-export type ProjectRoleOption = {
-  key: string
-  name: string
-}
+import type { ProjectRole } from "../../project-memberships.models"
 
-/**
- * A workspace member as the members table shows it, with every role they hold on the workspace.
- * Storybook-first (#1076): the API still returns one role per member until #985.
- */
+/** A role of the RBAC catalog whose `scope_type` is `project`. */
+export type ProjectRoleOption = ProjectRole
+
+/** A workspace member as the members table shows it, with every role they hold on the workspace. */
 export type MembersTableMember = {
-  id: string
   userId: string
   userName: string | null
   userEmail: string

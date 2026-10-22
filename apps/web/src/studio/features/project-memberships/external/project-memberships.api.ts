@@ -39,6 +39,34 @@ export default {
       }),
     )
   },
+  getAssignableRoles: async ({ organizationId, projectId }) => {
+    const axios = getAxiosInstance()
+    const response = await axios.get<typeof ProjectMembershipRoutes.getAssignableRoles.response>(
+      ProjectMembershipRoutes.getAssignableRoles.getPath({ organizationId, projectId }),
+    )
+    return response.data.data
+  },
+  addRoles: async ({ organizationId, projectId, memberUserIds, roleKeys }) => {
+    const axios = getAxiosInstance()
+    const payload: typeof ProjectMembershipRoutes.addRoles.request = {
+      payload: { userIds: memberUserIds, roleKeys },
+    }
+    const response = await axios.post<typeof ProjectMembershipRoutes.addRoles.response>(
+      ProjectMembershipRoutes.addRoles.getPath({ organizationId, projectId }),
+      payload,
+    )
+    return response.data.data.map(fromDto)
+  },
+  removeMany: async ({ organizationId, projectId, memberUserIds }) => {
+    const axios = getAxiosInstance()
+    const payload: typeof ProjectMembershipRoutes.deleteMany.request = {
+      payload: { userIds: memberUserIds },
+    }
+    await axios.post(
+      ProjectMembershipRoutes.deleteMany.getPath({ organizationId, projectId }),
+      payload,
+    )
+  },
   getMemberAgents: async ({ organizationId, projectId, memberUserId }) => {
     const axios = getAxiosInstance()
     const response = await axios.get<typeof ProjectMembershipRoutes.getMemberAgents.response>(
@@ -59,7 +87,7 @@ const fromDto = (dto: ProjectMembershipDto): ProjectMembership => ({
   userEmail: dto.userEmail,
   userHasSignedIn: dto.userHasSignedIn,
   createdAt: dto.createdAt,
-  role: toLegacyRole(dto.roles) ?? "member",
+  roles: dto.roles.map((role) => ({ key: role.key, name: role.name })),
   permissions: dto.permissions,
 })
 

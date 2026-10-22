@@ -75,6 +75,12 @@ export function useAbility() {
     [hasProjectPermission],
   )
 
+  const canRemoveProjectMembers = useCallback(
+    ({ projectId }: { projectId: string | null }) =>
+      hasProjectPermission({ projectId, permission: "project.member.delete" }),
+    [hasProjectPermission],
+  )
+
   const canAccessTester = useCallback(
     ({ projectId }: { projectId: string | null }) =>
       !!reviewCampaignMemberships?.some(
@@ -145,6 +151,7 @@ export function useAbility() {
         canRenameOrganization,
         canSaveTestCase,
         canUpdateProjectMemberRole,
+        canRemoveProjectMembers,
       },
     }),
     [
@@ -160,6 +167,7 @@ export function useAbility() {
       canRenameOrganization,
       canSaveTestCase,
       canUpdateProjectMemberRole,
+      canRemoveProjectMembers,
     ],
   )
 }

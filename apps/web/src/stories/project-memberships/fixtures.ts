@@ -30,7 +30,6 @@ function buildMember(
   const firstName = faker.person.firstName()
   const lastName = faker.person.lastName()
   return {
-    id: `membership-${index}`,
     userId: `user-${index}`,
     userName: `${firstName} ${lastName}`,
     userEmail: faker.internet.email({ firstName, lastName }).toLowerCase(),
@@ -41,7 +40,6 @@ function buildMember(
 }
 
 export const mockMe = buildMember(0, {
-  id: "membership-me",
   userId: mockCurrentUserId,
   roles: [ownerRole],
 })

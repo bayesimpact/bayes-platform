@@ -19,8 +19,10 @@ import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { LoadingRoute } from "@/common/routes/LoadingRoute"
 import { useAppSelector } from "@/common/store/hooks"
 import { GroupedPermissionList } from "@/studio/features/project-memberships/components/GroupedPermissionList"
-import { BadgeWithIcon } from "@/studio/features/project-memberships/components/ProjectMembershipItem"
-import { ProjectRoleSelect } from "@/studio/features/project-memberships/components/ProjectRoleSelect"
+import {
+  BadgeWithIcon,
+  ProjectRoleSelect,
+} from "@/studio/features/project-memberships/components/ProjectRoleSelect"
 import type {
   ProjectMemberAgent,
   ProjectMembership,

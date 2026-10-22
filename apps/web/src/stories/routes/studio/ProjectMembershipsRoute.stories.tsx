@@ -10,7 +10,10 @@ import {
 } from "@/stories/routes/studio/helpers"
 import { mergeSeeds, seed } from "@/stories/seed"
 import { pendingInvitationFactory } from "@/studio/features/invitations/invitations.factory"
-import { projectMembershipFactory } from "@/studio/features/project-memberships/project-memberships.factory"
+import {
+  projectMembershipFactory,
+  SAMPLE_PROJECT_ROLES,
+} from "@/studio/features/project-memberships/project-memberships.factory"
 import { StudioRoutes } from "@/studio/routes/helpers"
 import { studioRoutes } from "@/studio/routes/StudioRoutes"
 
@@ -44,29 +47,37 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
+/** The viewer's own membership: the table marks it and keeps it out of the selection. */
+const viewer = (user: { id: string; name: string; email: string }) => ({
+  userId: user.id,
+  userName: user.name,
+  userEmail: user.email,
+})
+
 export const Default: Story = {
   decorators: [
     buildDecorator<StoryArgs>(
       ({ withMemberships, withNeverSignedInMembers, withPendingInvitations, ...args }) => {
-        const { baseSeeds, project } = buildStudioData(args)
+        const { baseSeeds, project, user } = buildStudioData(args)
         const memberships = withMemberships
           ? [
-              projectMembershipFactory.transient({ project }).build({ role: "owner" }),
-              projectMembershipFactory.transient({ project }).build({ role: "admin" }),
-              projectMembershipFactory.transient({ project }).build({ role: "member" }),
+              projectMembershipFactory.transient({ project, role: "owner" }).build(viewer(user)),
+              projectMembershipFactory.transient({ project, role: "admin" }).build(),
+              projectMembershipFactory.transient({ project, role: "member" }).build(),
             ]
-          : [projectMembershipFactory.transient({ project }).build({ role: "owner" })]
+          : [projectMembershipFactory.transient({ project, role: "owner" }).build(viewer(user))]
         const neverSignedInMembers = withNeverSignedInMembers
           ? [
               projectMembershipFactory
-                .transient({ project })
-                .build({ role: "admin", userHasSignedIn: false }),
+                .transient({ project, role: "admin" })
+                .build({ userHasSignedIn: false }),
             ]
           : []
         return {
           state: mergeSeeds(
             baseSeeds,
             seed.studio.projectMemberships([...memberships, ...neverSignedInMembers]),
+            seed.studio.projectAssignableRoles(SAMPLE_PROJECT_ROLES),
             seed.studio.projectPendingInvitations(
               withPendingInvitations
                 ? pendingInvitationFactory.buildList(2, {
@@ -98,51 +109,26 @@ export const WithMembers: Story = {
   decorators: [
     buildDecorator<StoryArgs>(
       ({ withMemberships, withNeverSignedInMembers, withPendingInvitations, ...args }) => {
-        const { baseSeeds, project } = buildStudioData(args)
+        const { baseSeeds, project, user } = buildStudioData(args)
         const memberships = withMemberships
           ? [
-              projectMembershipFactory
-                .transient({
-                  project,
-                })
-                .build({
-                  role: "owner",
-                }),
-              projectMembershipFactory
-                .transient({
-                  project,
-                })
-                .build({
-                  role: "admin",
-                }),
-              projectMembershipFactory
-                .transient({
-                  project,
-                })
-                .build({
-                  role: "member",
-                }),
+              projectMembershipFactory.transient({ project, role: "owner" }).build(viewer(user)),
+              projectMembershipFactory.transient({ project, role: "admin" }).build(),
+              projectMembershipFactory.transient({ project, role: "member" }).build(),
             ]
-          : [
-              projectMembershipFactory
-                .transient({
-                  project,
-                })
-                .build({
-                  role: "owner",
-                }),
-            ]
+          : [projectMembershipFactory.transient({ project, role: "owner" }).build(viewer(user))]
         const neverSignedInMembers = withNeverSignedInMembers
           ? [
               projectMembershipFactory
-                .transient({ project })
-                .build({ role: "admin", userHasSignedIn: false }),
+                .transient({ project, role: "admin" })
+                .build({ userHasSignedIn: false }),
             ]
           : []
         return {
           state: mergeSeeds(
             baseSeeds,
             seed.studio.projectMemberships([...memberships, ...neverSignedInMembers]),
+            seed.studio.projectAssignableRoles(SAMPLE_PROJECT_ROLES),
             seed.studio.projectPendingInvitations(
               withPendingInvitations
                 ? pendingInvitationFactory.buildList(2, {
@@ -168,7 +154,7 @@ export const WithCachedAgentSessions: Story = {
   decorators: [
     buildDecorator<StoryArgs>(
       ({ withMemberships, withNeverSignedInMembers, withPendingInvitations, ...args }) => {
-        const { baseSeeds, project, agents } = buildStudioData(args)
+        const { baseSeeds, project, agents, user } = buildStudioData(args)
         const [firstAgent, ...restAgents] = agents
         const conversationAgent = agentFactory
           .transient({ project })
@@ -182,8 +168,9 @@ export const WithCachedAgentSessions: Story = {
             seed.agents([conversationAgent, ...restAgents]),
             seed.conversationAgentSessions({ [conversationAgent.id]: sessions }),
             seed.studio.projectMemberships([
-              projectMembershipFactory.transient({ project }).build({ role: "owner" }),
+              projectMembershipFactory.transient({ project, role: "owner" }).build(viewer(user)),
             ]),
+            seed.studio.projectAssignableRoles(SAMPLE_PROJECT_ROLES),
           ),
         }
       },

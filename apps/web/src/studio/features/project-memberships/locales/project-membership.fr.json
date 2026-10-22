@@ -69,7 +69,50 @@
       "removed": "Membre retiré avec succès",
       "removeError": "Le retrait du membre a échoué",
       "roleUpdated": "Rôle mis à jour",
-      "roleUpdateError": "La mise à jour du rôle a échoué"
+      "roleUpdateError": "La mise à jour du rôle a échoué",
+      "rolesAdded_one": "Rôles ajoutés à {{count}} membre",
+      "rolesAdded_other": "Rôles ajoutés à {{count}} membres",
+      "membersRemoved_one": "{{count}} membre retiré",
+      "membersRemoved_other": "{{count}} membres retirés"
+    },
+    "roleNames": {
+      "project_owner": "Propriétaire",
+      "project_admin": "Administrateur",
+      "project_member": "Membre"
+    },
+    "table": {
+      "allRoles": "Tous les rôles",
+      "rolesCount": "{{count}} rôles",
+      "filterByRole": "Filtrer par rôle",
+      "clearFilters": "Effacer les filtres",
+      "member": "Membre",
+      "roles": "Rôles",
+      "joined": "Arrivée",
+      "noRole": "Aucun rôle",
+      "you": "Vous",
+      "selectMember": "Sélectionner {{name}}",
+      "empty": {
+        "title": "Aucun membre ne correspond",
+        "description": "Essayez une autre recherche ou retirez un filtre."
+      },
+      "selected_one": "{{count}} membre sélectionné",
+      "selected_other": "{{count}} membres sélectionnés",
+      "addRoles": "Ajouter des rôles",
+      "removeBlocked": "Un espace de travail garde au moins un propriétaire. Désélectionnez un propriétaire pour retirer les autres.",
+      "genericError": "Une erreur est survenue. Réessayez.",
+      "addRolesDialog": {
+        "title_one": "Ajouter des rôles à {{count}} membre",
+        "title_other": "Ajouter des rôles à {{count}} membres",
+        "description": "Ces rôles s'ajoutent à ceux qu'ils ont déjà. Leurs permissions sur cet espace de travail changent tout de suite.",
+        "pickOne": "Choisissez au moins un rôle.",
+        "error": "Les rôles n'ont pas pu être ajoutés. Réessayez."
+      },
+      "removeDialog": {
+        "title_one": "Retirer {{name}} ?",
+        "title_other": "Retirer {{count}} membres ?",
+        "description": "Ils perdent l'accès à cet espace de travail, à ses agents et à ses campagnes d'évaluation. Cette action est définitive.",
+        "error": "Les membres n'ont pas pu être retirés. Réessayez."
+      }
     }
   }
 }

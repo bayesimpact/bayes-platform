@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
+import type { LegacyMembershipRole } from "@/common/features/memberships/membership-roles"
 import { buildDecorator, render } from "@/stories/decorators"
 import {
   buildStudioData,
@@ -10,6 +11,8 @@ import { mergeSeeds, seed } from "@/stories/seed"
 import {
   projectMemberAgentFactory,
   projectMembershipFactory,
+  SAMPLE_PROJECT_ROLES,
+  sampleProjectRole,
 } from "@/studio/features/project-memberships/project-memberships.factory"
 import type {
   ProjectMemberAgent,
@@ -21,7 +24,7 @@ import { studioRoutes } from "@/studio/routes/StudioRoutes"
 
 type StoryArgs = StudioStoryArgs & {
   withMemberAgents?: boolean
-  memberRole?: ProjectMembership["role"]
+  memberRole?: LegacyMembershipRole
 }
 
 const FIXED_MEMBER_USER_ID = "member-user-fixture-1"
@@ -36,9 +39,16 @@ function buildMockProjectMembershipsService(
     async updateOne({ memberUserId, role }) {
       const membership = overrides.memberships?.find((item) => item.userId === memberUserId)
       if (!membership) throw new Error(`Unknown membership ${memberUserId}`)
-      return { ...membership, role }
+      return { ...membership, roles: [sampleProjectRole(role)] }
     },
     async remove() {},
+    async getAssignableRoles() {
+      return SAMPLE_PROJECT_ROLES
+    },
+    async addRoles() {
+      return []
+    },
+    async removeMany() {},
     async getMemberAgents() {
       return overrides.memberAgents ?? []
     },
@@ -72,11 +82,9 @@ type Story = StoryObj<typeof meta>
 const decorator = buildDecorator<StoryArgs>(({ withMemberAgents, memberRole, ...args }) => {
   const { baseSeeds, project, agents } = buildStudioData(args)
   const membership = projectMembershipFactory
-    .transient({ project })
-    .build({ userId: FIXED_MEMBER_USER_ID, role: memberRole ?? "member" })
-  const otherMemberships = [
-    projectMembershipFactory.transient({ project }).build({ role: "owner" }),
-  ]
+    .transient({ project, role: memberRole ?? "member" })
+    .build({ userId: FIXED_MEMBER_USER_ID })
+  const otherMemberships = [projectMembershipFactory.transient({ project, role: "owner" }).build()]
   const memberAgents = withMemberAgents
     ? agents.map((agent, index) =>
         projectMemberAgentFactory

@@ -2,7 +2,11 @@ import type { EditableProjectMembershipRoleDto } from "@caseai-connect/api-contr
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import { getCurrentId } from "@/common/features/helpers"
 import type { RootState, ThunkExtraArg } from "@/common/store"
-import type { ProjectMemberAgent, ProjectMembership } from "./project-memberships.models"
+import type {
+  ProjectMemberAgent,
+  ProjectMembership,
+  ProjectRole,
+} from "./project-memberships.models"
 
 type ThunkConfig = { state: RootState; extra: ThunkExtraArg }
 
@@ -63,3 +67,45 @@ export const listProjectMemberAgents = createAsyncThunk<
     })
   },
 )
+
+export const listAssignableProjectRoles = createAsyncThunk<ProjectRole[], void, ThunkConfig>(
+  "projectMemberships/listAssignableRoles",
+  async (_, { extra: { services }, getState }) => {
+    const state = getState()
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    return await services.projectMemberships.getAssignableRoles({ organizationId, projectId })
+  },
+)
+
+/** All or nothing: the API refuses the whole call when it refuses one member. */
+export const addProjectMemberRoles = createAsyncThunk<
+  ProjectMembership[],
+  { memberUserIds: string[]; roleKeys: string[] },
+  ThunkConfig
+>(
+  "projectMemberships/addRoles",
+  async ({ memberUserIds, roleKeys }, { extra: { services }, getState }) => {
+    const state = getState()
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    return await services.projectMemberships.addRoles({
+      organizationId,
+      projectId,
+      memberUserIds,
+      roleKeys,
+    })
+  },
+)
+
+/** All or nothing: the API refuses the whole call when it refuses one member. */
+export const removeProjectMembers = createAsyncThunk<
+  void,
+  { memberUserIds: string[] },
+  ThunkConfig
+>("projectMemberships/removeMany", async ({ memberUserIds }, { extra: { services }, getState }) => {
+  const state = getState()
+  const organizationId = getCurrentId({ state, name: "organizationId" })
+  const projectId = getCurrentId({ state, name: "projectId" })
+  return await services.projectMemberships.removeMany({ organizationId, projectId, memberUserIds })
+})

@@ -1,10 +1,29 @@
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
 import type { Agent } from "@/common/features/agents/agents.models"
+import type { LegacyMembershipRole } from "@/common/features/memberships/membership-roles"
 import type { Project } from "@/common/features/projects/projects.models"
-import type { ProjectMemberAgent, ProjectMembership } from "./project-memberships.models"
+import type {
+  ProjectMemberAgent,
+  ProjectMembership,
+  ProjectRole,
+} from "./project-memberships.models"
 
-const SAMPLE_PROJECT_ROLE_PERMISSIONS: Record<ProjectMembership["role"], string[]> = {
+/** The `project` roles of the RBAC catalog, in catalog order, as the API names them. */
+export const SAMPLE_PROJECT_ROLES: ProjectRole[] = [
+  { key: "project_owner", name: "Project Owner" },
+  { key: "project_admin", name: "Project Admin" },
+  { key: "project_member", name: "Project Member" },
+]
+
+/** The catalog role of an owner / admin / member shorthand. */
+export function sampleProjectRole(role: LegacyMembershipRole): ProjectRole {
+  const projectRole = SAMPLE_PROJECT_ROLES.find(({ key }) => key === `project_${role}`)
+  if (!projectRole) throw new Error(`Unknown project role ${role}`)
+  return projectRole
+}
+
+const SAMPLE_PROJECT_ROLE_PERMISSIONS: Record<LegacyMembershipRole, string[]> = {
   owner: [
     "project.read",
     "project.update",
@@ -54,6 +73,8 @@ const SAMPLE_AGENT_ROLE_PERMISSIONS: Record<NonNullable<ProjectMemberAgent["role
 
 type MembershipTransientParams = {
   project: Project
+  /** The member's one role, when `roles` is not given. Member by default. */
+  role: LegacyMembershipRole
 }
 
 class ProjectMembershipFactory extends Factory<ProjectMembership, MembershipTransientParams> {}
@@ -68,7 +89,7 @@ export const projectMembershipFactory = ProjectMembershipFactory.define(
     }
     const firstName = faker.person.firstName()
     const lastName = faker.person.lastName()
-    const role = params.role ?? "member"
+    const role = transientParams.role ?? "member"
     return {
       projectId: project.id,
       userId: params.userId ?? faker.string.uuid(),
@@ -76,8 +97,8 @@ export const projectMembershipFactory = ProjectMembershipFactory.define(
       userEmail: params.userEmail ?? faker.internet.email({ firstName, lastName }).toLowerCase(),
       userHasSignedIn: params.userHasSignedIn ?? true,
       createdAt: params.createdAt ?? faker.date.past().getTime(),
-      role,
-      permissions: params.permissions ?? SAMPLE_PROJECT_ROLE_PERMISSIONS[role],
+      roles: [sampleProjectRole(role)],
+      permissions: SAMPLE_PROJECT_ROLE_PERMISSIONS[role],
     } satisfies ProjectMembership
   },
 )

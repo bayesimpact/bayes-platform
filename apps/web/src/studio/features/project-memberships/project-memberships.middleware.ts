@@ -10,8 +10,11 @@ import {
 } from "@/studio/features/invitations/invitations.thunks"
 import { projectMembershipsActions } from "./project-memberships.slice"
 import {
+  addProjectMemberRoles,
+  listAssignableProjectRoles,
   listProjectMemberAgents,
   listProjectMemberships,
+  removeProjectMembers,
   removeProjectMembership,
   updateProjectMembershipRole,
 } from "./project-memberships.thunks"
@@ -26,6 +29,7 @@ function registerListeners() {
       if (!projectId) return
       await Promise.all([
         listenerApi.dispatch(listProjectMemberships()),
+        listenerApi.dispatch(listAssignableProjectRoles()),
         listenerApi.dispatch(
           listInvitationsForTarget({ targetType: "project", targetId: projectId }),
         ),
@@ -80,6 +84,47 @@ function registerListeners() {
       const { targetType, targetId } = action.meta.arg
       if (targetType !== "project") return
       await listenerApi.dispatch(listInvitationsForTarget({ targetType, targetId }))
+    },
+  })
+
+  // Removing members can end pending invitations and accounts that never signed in
+  listenerMiddleware.startListening({
+    actionCreator: removeProjectMembers.fulfilled,
+    effect: async (_, listenerApi) => {
+      const projectId = selectCurrentProjectId(listenerApi.getState())
+      if (!projectId) return
+      await Promise.all([
+        listenerApi.dispatch(listProjectMemberships()),
+        listenerApi.dispatch(
+          listInvitationsForTarget({ targetType: "project", targetId: projectId }),
+        ),
+      ])
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: addProjectMemberRoles.fulfilled,
+    effect: async (action, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({
+          titleKey: "projectMembership:notifications.rolesAdded",
+          titleValues: { count: action.meta.arg.memberUserIds.length },
+          type: "success",
+        }),
+      )
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: removeProjectMembers.fulfilled,
+    effect: async (action, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({
+          titleKey: "projectMembership:notifications.membersRemoved",
+          titleValues: { count: action.meta.arg.memberUserIds.length },
+          type: "success",
+        }),
+      )
     },
   })
 
