@@ -2,6 +2,7 @@ import {
   type CsvColumnDto,
   type CsvExtractionRecordOutputDto,
   type CsvFileColumnOutputDto,
+  csvColumnSchema,
   csvExtractionRecordOutputSchema,
   csvFileColumnOutputSchema,
   type ExtractionDocumentOutputDto,
@@ -76,18 +77,18 @@ export function buildCsvFileColumns(): CsvFileColumnOutputDto[] {
   ].map((column) => csvFileColumnOutputSchema.parse({ id: crypto.randomUUID(), ...column }))
 }
 
-/** The columns of a run, from the file's columns: the abstract is kept, the rest is read. */
+/** The columns of a run, from the file's columns: the year stays beside the answers, the rest is read. */
 export function columnSchemaOf(columns: CsvFileColumnOutputDto[]): Record<string, CsvColumnDto> {
   return Object.fromEntries(
     columns.map((column, index) => [
       column.id,
-      {
+      csvColumnSchema.parse({
         id: column.id,
         originalName: column.name,
         finalName: column.name,
-        role: column.name === "year" ? ("reference" as const) : ("input" as const),
+        role: column.name === "year" ? "reference" : "input",
         index,
-      },
+      }),
     ]),
   )
 }
@@ -107,14 +108,27 @@ export function buildCsvRecords(
         column.values[rowIndex % column.values.length] ?? `Value ${rowIndex + 1}`,
       ]),
     )
-    return csvExtractionRecordOutputSchema.parse({
-      id: crypto.randomUUID(),
+    return buildCsvRecord({
       rowIndex,
       status,
       inputData,
       agentRawOutput: status === "success" ? answerFor(rowIndex) : null,
-      errorDetails: null,
     })
+  })
+}
+
+/** One row of a run, done by default, checked against the contract. */
+export function buildCsvRecord(
+  overrides: Partial<CsvExtractionRecordOutputDto> = {},
+): CsvExtractionRecordOutputDto {
+  return csvExtractionRecordOutputSchema.parse({
+    id: crypto.randomUUID(),
+    rowIndex: 0,
+    status: "success",
+    inputData: {},
+    agentRawOutput: answerFor(overrides.rowIndex ?? 0),
+    errorDetails: null,
+    ...overrides,
   })
 }
 
