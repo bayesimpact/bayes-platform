@@ -1,5 +1,5 @@
 import type { AgentParamsDto } from "@caseai-connect/desk-contracts"
-import { Plural } from "@lingui/react/macro"
+import { Trans } from "@lingui/react/macro"
 import { useQuery } from "@tanstack/react-query"
 import { BrainIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -28,7 +28,9 @@ export function MemoryButton({ agent, isOpen, onToggle }: MemoryButtonProps) {
       onClick={onToggle}
     >
       <BrainIcon aria-hidden />
-      <Plural value={count} one="Memory (#)" other="Memory (#)" />
+      <Trans comment="The button that opens what the agent remembers, with the number of facts">
+        Memory ({count})
+      </Trans>
     </Button>
   )
 }

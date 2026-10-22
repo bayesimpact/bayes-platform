@@ -1,7 +1,7 @@
 import { useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { Suspense, useState } from "react"
-import { chooseLocale, LOCALES } from "@/app/i18n"
+import { activeLocaleOf, chooseLocale, LOCALES } from "@/app/i18n"
 import { signOut } from "@/lib/auth/session"
 import { meQueryOptions } from "../api/queries"
 import { EditNameDialog } from "./EditNameDialog"
@@ -28,13 +28,13 @@ function LoadedUserMenu() {
     <>
       <UserMenu
         user={me.user}
-        locale={i18n.locale}
+        locale={activeLocaleOf(i18n.locale)}
         locales={LOCALES}
         onLocaleChange={(locale) => void chooseLocale(locale)}
         onEditName={() => setIsEditingName(true)}
         onSignOut={() => void signOut()}
       />
-      <EditNameDialog name={me.user.name} open={isEditingName} onOpenChange={setIsEditingName} />
+      <EditNameDialog name={me.user.name} isOpen={isEditingName} onOpenChange={setIsEditingName} />
     </>
   )
 }

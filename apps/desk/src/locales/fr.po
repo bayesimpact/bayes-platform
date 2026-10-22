@@ -22,12 +22,12 @@ msgid "(opens in a new tab)"
 msgstr "(s'ouvre dans un nouvel onglet)"
 
 #. A document the person may accept or not
-#: src/features/account/components/TermsCheckbox.tsx:43
+#: src/features/account/components/TermsCheckbox.tsx:46
 msgid "(optional)"
 msgstr "(facultatif)"
 
 #. A document the person must accept
-#: src/features/account/components/TermsCheckbox.tsx:41
+#: src/features/account/components/TermsCheckbox.tsx:44
 msgid "(required)"
 msgstr "(obligatoire)"
 
@@ -38,10 +38,6 @@ msgstr "{annotationCount, plural, one {Envoyer avec # annotation} other {Envoyer
 #: src/features/invitations/components/InvitationsButton.tsx:24
 msgid "{count, plural, one {# pending invitation} other {# pending invitations}}"
 msgstr "{count, plural, one {# invitation en attente} other {# invitations en attente}}"
-
-#: src/features/memory/components/MemoryButton.tsx:31
-msgid "{count, plural, one {Memory (#)} other {Memory (#)}}"
-msgstr "{count, plural, one {Mémoire (#)} other {Mémoire (#)}}"
 
 #: src/features/conversation/components/SourcesList.tsx:31
 msgid "{count, plural, one {Used # source} other {Used # sources}}"
@@ -55,7 +51,7 @@ msgstr "{count, plural, one {A utilisé un outil} other {A utilisé des outils}}
 msgid "{errors, plural, one {# failed} other {# failed}}"
 msgstr "{errors, plural, one {# en échec} other {# en échec}}"
 
-#: src/features/extraction/components/RecentDocuments.tsx:52
+#: src/features/extraction/components/RecentDocuments.tsx:53
 msgid "{hiddenCount, plural, one {Show # more document} other {Show # more documents}}"
 msgstr "{hiddenCount, plural, one {Afficher # autre document} other {Afficher # autres documents}}"
 
@@ -83,11 +79,16 @@ msgstr "{name} dépasse 25 Mo."
 msgid "{name} was deleted."
 msgstr "{name} a été supprimé."
 
+#. The button of the person's menu, which shows their name
+#: src/features/account/components/UserMenu.tsx:44
+msgid "{name}, menu of {email}"
+msgstr "{name}, menu de {email}"
+
 #: src/features/extraction/components/CsvRunProgress.tsx:30
 msgid "{processed} of {total, plural, one {# row} other {# rows}}"
 msgstr "{processed} sur {total, plural, one {# ligne} other {# lignes}}"
 
-#: src/features/extraction/components/CsvSetup.tsx:147
+#: src/features/extraction/components/CsvSetup.tsx:154
 msgid "{rowCount, plural, one {Extract the first row} other {Extract the first # rows}}"
 msgstr "{rowCount, plural, one {Extraire la première ligne} other {Extraire les # premières lignes}}"
 
@@ -103,7 +104,7 @@ msgstr "<0/> pour envoyer"
 msgid "<0><1/><2/></0> for a new line"
 msgstr "<0><1/><2/></0> pour aller à la ligne"
 
-#: src/features/extraction/components/CsvSetup.tsx:106
+#: src/features/extraction/components/CsvSetup.tsx:113
 msgid "<0>Read</0>: the agent reads it. <1>Keep</1>: shown beside the results. <2>Skip</2>: left out."
 msgstr "<0>Lire</0> : l’agent la lit. <1>Garder</1> : affichée à côté des résultats. <2>Ignorer</2> : laissée de côté."
 
@@ -119,11 +120,11 @@ msgstr "Une nouvelle version du Desk est disponible. Rechargez la page."
 msgid "Accept"
 msgstr "Accepter"
 
-#: src/features/account/components/TermsPage.tsx:117
+#: src/features/account/components/TermsPage.tsx:119
 msgid "Accept and continue"
 msgstr "Valider et continuer"
 
-#: src/features/account/schemas.ts:5
+#: src/features/account/components/TermsPage.tsx:110
 msgid "Accept the general conditions and the privacy policy to continue."
 msgstr "Acceptez les conditions générales et la politique de confidentialité pour continuer."
 
@@ -155,7 +156,7 @@ msgstr "Agent"
 msgid "Agent's answers"
 msgstr "Réponses de l’agent"
 
-#: src/features/account/components/TermsPage.tsx:65
+#: src/features/account/components/TermsPage.tsx:62
 msgid "AI systems usage policy"
 msgstr "politique d’utilisation des systèmes d’intelligence artificielle"
 
@@ -195,17 +196,17 @@ msgstr "Pièce jointe"
 msgid "Back to the Desk"
 msgstr "Retour au Desk"
 
-#: src/features/account/components/TermsPage.tsx:77
+#: src/features/account/components/TermsPage.tsx:74
 msgid "Before you start"
 msgstr "Avant de commencer"
 
-#: src/features/account/components/EditNameDialog.tsx:84
+#: src/features/account/components/EditNameDialog.tsx:85
 #: src/features/conversation/components/FeedbackDialog.tsx:107
-#: src/features/extraction/components/CsvSetup.tsx:140
+#: src/features/extraction/components/CsvSetup.tsx:147
 #: src/features/extraction/components/DeleteDocumentDialog.tsx:60
 #: src/features/history/components/DeleteEntryDialog.tsx:78
 #: src/features/memory/components/MemoryPanel.tsx:111
-#: src/features/memory/components/MemoryRewordForm.tsx:62
+#: src/features/memory/components/MemoryRewordForm.tsx:70
 msgid "Cancel"
 msgstr "Annuler"
 
@@ -217,7 +218,7 @@ msgstr "Vérifiez votre connexion, puis réessayez."
 msgid "Choose a file"
 msgstr "Choisir un fichier"
 
-#: src/features/extraction/components/CsvSetup.tsx:132
+#: src/features/extraction/components/CsvSetup.tsx:139
 msgid "Choose at least one column for the agent to read."
 msgstr "Choisissez au moins une colonne que l’agent lira."
 
@@ -225,7 +226,7 @@ msgstr "Choisissez au moins une colonne que l’agent lira."
 msgid "Close the panel"
 msgstr "Fermer le panneau"
 
-#: src/features/extraction/components/CsvSetup.tsx:81
+#: src/features/extraction/components/CsvSetup.tsx:88
 msgid "Columns"
 msgstr "Colonnes"
 
@@ -279,7 +280,7 @@ msgid "CSV extraction"
 msgstr "Extraction CSV"
 
 #: src/features/extraction/components/CsvRunView.tsx:48
-#: src/features/extraction/components/CsvSetup.tsx:36
+#: src/features/extraction/components/CsvSetup.tsx:43
 msgid "CSV file"
 msgstr "Fichier CSV"
 
@@ -340,7 +341,7 @@ msgstr "Détails"
 msgid "Dictate your message"
 msgstr "Dicter votre message"
 
-#: src/features/memory/components/MemoryProposals.tsx:87
+#: src/features/memory/components/MemoryProposals.tsx:93
 msgid "Don't remember"
 msgstr "Ne pas retenir"
 
@@ -375,8 +376,8 @@ msgstr "Chaque nouvelle connexion s’est terminée aussitôt : le Desk a cessé
 msgid "Edit annotation {number}"
 msgstr "Modifier l'annotation {number}"
 
-#: src/features/account/components/EditNameDialog.tsx:53
-#: src/features/account/components/UserMenu.tsx:58
+#: src/features/account/components/EditNameDialog.tsx:54
+#: src/features/account/components/UserMenu.tsx:62
 msgid "Edit your name"
 msgstr "Modifier votre nom"
 
@@ -389,7 +390,7 @@ msgstr "Adresse email manquante"
 msgid "Enter"
 msgstr "Entrée"
 
-#: src/features/extraction/components/CsvRowScope.tsx:41
+#: src/features/extraction/components/CsvRowScope.tsx:39
 msgid "Every row of the file"
 msgstr "Toutes les lignes du fichier"
 
@@ -405,7 +406,7 @@ msgstr "Extraire {name}"
 msgid "Extract again"
 msgstr "Extraire à nouveau"
 
-#: src/features/extraction/components/CsvSetup.tsx:145
+#: src/features/extraction/components/CsvSetup.tsx:152
 msgid "Extract every row"
 msgstr "Extraire toutes les lignes"
 
@@ -455,7 +456,7 @@ msgstr "Formulaire en cours"
 msgid "From the file"
 msgstr "Du fichier"
 
-#: src/features/account/components/TermsPage.tsx:51
+#: src/features/account/components/TermsPage.tsx:48
 msgid "general conditions of service"
 msgstr "conditions générales de service"
 
@@ -480,15 +481,15 @@ msgstr "Accueil du Desk"
 msgid "How can I help you today?"
 msgstr "Comment puis-je vous aider aujourd'hui ?"
 
-#: src/features/account/components/TermsPage.tsx:64
+#: src/features/account/components/TermsPage.tsx:61
 msgid "I accept the AI systems usage policy"
 msgstr "J’accepte la politique d’utilisation des systèmes d’intelligence artificielle"
 
-#: src/features/account/components/TermsPage.tsx:50
+#: src/features/account/components/TermsPage.tsx:47
 msgid "I accept the general conditions of service"
 msgstr "J’accepte les conditions générales de service"
 
-#: src/features/account/components/TermsPage.tsx:57
+#: src/features/account/components/TermsPage.tsx:54
 msgid "I accept the privacy policy"
 msgstr "J’accepte la politique de confidentialité"
 
@@ -527,7 +528,7 @@ msgstr "à l'instant"
 msgid "Keep"
 msgstr "Garder"
 
-#: src/features/account/components/UserMenu.tsx:64
+#: src/features/account/components/UserMenu.tsx:68
 msgid "Language"
 msgstr "Langue"
 
@@ -540,6 +541,11 @@ msgstr "Chargement de la carte interactive…"
 msgid "member"
 msgstr "membre"
 
+#. The button that opens what the agent remembers, with the number of facts
+#: src/features/memory/components/MemoryButton.tsx:31
+msgid "Memory ({count})"
+msgstr "Mémoire ({count})"
+
 #: src/features/conversation/components/Composer.tsx:131
 msgid "Message to {agentName}"
 msgstr "Message à {agentName}"
@@ -550,7 +556,7 @@ msgstr "Message à {agentName}"
 msgid "More actions"
 msgstr "Plus d’actions"
 
-#: src/features/account/components/EditNameDialog.tsx:65
+#: src/features/account/components/EditNameDialog.tsx:66
 msgid "Name"
 msgstr "Nom"
 
@@ -565,7 +571,7 @@ msgstr "Nouvelle conversation"
 msgid "New extraction"
 msgstr "Nouvelle extraction"
 
-#: src/features/extraction/components/CsvRecordsTable.tsx:110
+#: src/features/extraction/components/CsvRecordsTable.tsx:112
 msgid "Next page"
 msgstr "Page suivante"
 
@@ -589,7 +595,7 @@ msgstr "Aucune extraction pour l'instant"
 msgid "No passage to show."
 msgstr "Aucun passage à afficher."
 
-#: src/features/extraction/components/CsvRecordsTable.tsx:85
+#: src/features/extraction/components/CsvRecordsTable.tsx:87
 msgid "No rows"
 msgstr "Aucune ligne"
 
@@ -606,7 +612,7 @@ msgstr "Non trouvé"
 msgid "Nothing noted yet."
 msgstr "Rien de noté pour l'instant."
 
-#: src/features/extraction/components/CsvRowScope.tsx:55
+#: src/features/extraction/components/CsvRowScope.tsx:52
 msgid "Number of rows to try"
 msgstr "Nombre de lignes à essayer"
 
@@ -634,17 +640,13 @@ msgstr "Ouvrir dans un nouvel onglet"
 msgid "Open on YouTube"
 msgstr "Ouvrir sur YouTube"
 
-#: src/features/extraction/components/CsvRecordsTable.tsx:49
+#: src/features/extraction/components/CsvRecordsTable.tsx:51
 msgid "Open row {rowNumber}"
 msgstr "Ouvrir la ligne {rowNumber}"
 
 #: src/features/extraction/components/ExtractionRunActions.tsx:67
 msgid "Open the document"
 msgstr "Ouvrir le document"
-
-#: src/features/account/components/UserMenu.tsx:45
-msgid "Open the menu of {email}"
-msgstr "Ouvrir le menu de {email}"
 
 #: src/components/shared/SignInProblemPage.tsx:29
 msgid "Open the verification email your identity provider sent you, and check your spam folder. Click the link it contains, then try again."
@@ -659,7 +661,7 @@ msgstr "propriétaire"
 msgid "Page not found"
 msgstr "Page introuvable"
 
-#: src/features/extraction/components/CsvRecordsTable.tsx:89
+#: src/features/extraction/components/CsvRecordsTable.tsx:91
 msgid "Pages of the results"
 msgstr "Pages des résultats"
 
@@ -683,11 +685,11 @@ msgstr "30 derniers jours"
 msgid "Previous 7 days"
 msgstr "7 derniers jours"
 
-#: src/features/extraction/components/CsvRecordsTable.tsx:101
+#: src/features/extraction/components/CsvRecordsTable.tsx:103
 msgid "Previous page"
 msgstr "Page précédente"
 
-#: src/features/account/components/TermsPage.tsx:58
+#: src/features/account/components/TermsPage.tsx:55
 msgid "privacy policy"
 msgstr "politique de confidentialité"
 
@@ -701,21 +703,18 @@ msgstr "Projet"
 msgid "Read"
 msgstr "Lire"
 
-#: src/features/extraction/components/CsvSetup.tsx:90
+#: src/features/extraction/components/CsvSetup.tsx:97
 msgid "Read all"
 msgstr "Tout lire"
 
-#: src/features/account/components/TermsPage.tsx:80
+#: src/features/account/components/TermsPage.tsx:77
 msgid "Read and accept the terms of the Desk to continue."
 msgstr "Prenez connaissance des conditions du Desk et acceptez-les pour continuer."
 
+#. The link to a document of the terms, named after it for screen readers
 #: src/features/account/components/TermsCheckbox.tsx:56
-msgid "Read it"
-msgstr "Lire"
-
-#: src/features/account/components/TermsCheckbox.tsx:52
-msgid "Read the {documentName} (opens in a new tab)"
-msgstr "Lire : {documentName} (s’ouvre dans un nouvel onglet)"
+msgid "Read it<0>: the {documentName}</0>"
+msgstr "Lire<0> : {documentName}</0>"
 
 #: src/components/shared/RouteErrorState.tsx:41
 msgid "Reload"
@@ -725,8 +724,10 @@ msgstr "Recharger"
 msgid "Reload the page to keep going."
 msgstr "Rechargez la page pour continuer."
 
-#: src/features/memory/components/MemoryProposals.tsx:74
-#: src/features/memory/components/MemoryRewordForm.tsx:59
+#. Saves the fact the agent proposed in its memory
+#. Saves the reworded fact in the agent's memory
+#: src/features/memory/components/MemoryProposals.tsx:78
+#: src/features/memory/components/MemoryRewordForm.tsx:67
 msgid "Remember"
 msgstr "Retenir"
 
@@ -759,7 +760,7 @@ msgstr "Redimensionner le panneau"
 msgid "Resize the sidebar"
 msgstr "Redimensionner le panneau latéral"
 
-#: src/features/extraction/components/CsvRecordsTable.tsx:78
+#: src/features/extraction/components/CsvRecordsTable.tsx:80
 msgid "Results"
 msgstr "Résultats"
 
@@ -777,7 +778,8 @@ msgstr "Campagne de revue"
 msgid "reviewer"
 msgstr "relecteur"
 
-#: src/features/memory/components/MemoryProposals.tsx:78
+#. Opens a field to rewrite the fact before the agent remembers it
+#: src/features/memory/components/MemoryProposals.tsx:82
 msgid "Reword"
 msgstr "Reformuler"
 
@@ -790,11 +792,11 @@ msgstr "Ligne"
 msgid "Row {rowNumber}"
 msgstr "Ligne {rowNumber}"
 
-#: src/features/extraction/components/CsvRowScope.tsx:29
+#: src/features/extraction/components/CsvRowScope.tsx:27
 msgid "Rows"
 msgstr "Lignes"
 
-#: src/features/extraction/components/CsvRecordsTable.tsx:93
+#: src/features/extraction/components/CsvRecordsTable.tsx:95
 msgid "Rows {first}–{last} of {total}"
 msgstr "Lignes {first} à {last} sur {total}"
 
@@ -808,7 +810,7 @@ msgstr "Lignes traitées"
 msgid "Running"
 msgstr "En cours"
 
-#: src/features/account/components/EditNameDialog.tsx:87
+#: src/features/account/components/EditNameDialog.tsx:88
 msgid "Save"
 msgstr "Enregistrer"
 
@@ -859,7 +861,7 @@ msgstr "Configurer l’extraction de {name}"
 msgid "Shift"
 msgstr "Maj"
 
-#: src/features/memory/components/MemoryProposals.tsx:50
+#: src/features/memory/components/MemoryProposals.tsx:54
 msgid "Should the agent remember this?"
 msgstr "L'agent doit-il retenir ceci ?"
 
@@ -878,8 +880,8 @@ msgid "Show the sidebar"
 msgstr "Afficher la barre latérale"
 
 #: src/components/shared/SignInProblemPage.tsx:107
-#: src/features/account/components/TermsPage.tsx:114
-#: src/features/account/components/UserMenu.tsx:77
+#: src/features/account/components/TermsPage.tsx:116
+#: src/features/account/components/UserMenu.tsx:86
 msgid "Sign out"
 msgstr "Se déconnecter"
 
@@ -896,7 +898,7 @@ msgstr "Connexion impossible"
 msgid "Skip"
 msgstr "Ignorer"
 
-#: src/features/extraction/components/CsvSetup.tsx:101
+#: src/features/extraction/components/CsvSetup.tsx:108
 msgid "Skip all"
 msgstr "Tout ignorer"
 
@@ -936,7 +938,7 @@ msgstr "Arrêtée"
 msgid "Switch agent, current agent: {agentName}"
 msgstr "Changer d'agent, agent actuel : {agentName}"
 
-#: src/features/account/components/TermsPage.tsx:86
+#: src/features/account/components/TermsPage.tsx:87
 msgid "Terms"
 msgstr "Conditions"
 
@@ -986,7 +988,7 @@ msgstr "L’agent lit le document"
 msgid "The agent is reading the document…"
 msgstr "L’agent lit le document…"
 
-#: src/features/memory/components/MemoryProposals.tsx:48
+#: src/features/memory/components/MemoryProposals.tsx:52
 msgid "The agent remembers"
 msgstr "L'agent retient"
 
@@ -994,7 +996,7 @@ msgstr "L'agent retient"
 msgid "The agent remembers nothing about you."
 msgstr "L'agent ne retient rien à votre sujet."
 
-#: src/features/extraction/components/CsvSetup.tsx:73
+#: src/features/extraction/components/CsvSetup.tsx:80
 msgid "The agent runs once per row. Choose what it reads in each one."
 msgstr "L’agent passe sur chaque ligne. Choisissez ce qu’il y lit."
 
@@ -1005,6 +1007,10 @@ msgstr "L'agent s'en sert dans vos prochaines conversations. Vous seul les voyez
 #: src/features/memory/components/MemoryPanel.tsx:106
 msgid "The agent will forget every fact it remembers about you."
 msgstr "L'agent oubliera tout ce qu'il a retenu à votre sujet."
+
+#: src/features/memory/components/MemoryProposals.tsx:35
+msgid "The agent will remember it."
+msgstr "L’agent s’en souviendra."
 
 #: src/features/extraction/components/ExtractionFailure.tsx:14
 msgid "The agent's answer did not fit the fields it fills in. Extracting again often works."
@@ -1058,7 +1064,7 @@ msgstr "Le document a plus de pages que l’agent ne peut en lire d’un coup. D
 msgid "The extraction could not be deleted. Try again."
 msgstr "L’extraction n’a pas pu être supprimée. Réessayez."
 
-#: src/features/extraction/components/CsvSetup.tsx:62
+#: src/features/extraction/components/CsvSetup.tsx:69
 #: src/features/extraction/components/ExtractionRunView.tsx:58
 #: src/features/extraction/components/NewExtraction.tsx:85
 msgid "The extraction could not start. Try again."
@@ -1076,7 +1082,7 @@ msgstr "L’extraction de {name} a échoué."
 msgid "The fact could not be forgotten. Try again."
 msgstr "Cette information n'a pas pu être oubliée. Réessayez."
 
-#: src/features/memory/components/MemoryRewordForm.tsx:46
+#: src/features/memory/components/MemoryRewordForm.tsx:49
 msgid "The fact to remember"
 msgstr "L'information à retenir"
 
@@ -1088,11 +1094,11 @@ msgstr "Le fichier n'a pas pu être ouvert. Réessayez."
 msgid "The file could not be uploaded. Try again."
 msgstr "Le fichier n'a pas pu être envoyé. Réessayez."
 
-#: src/features/extraction/components/CsvRecordsTable.tsx:85
+#: src/features/extraction/components/CsvRecordsTable.tsx:87
 msgid "The first rows come in a moment…"
 msgstr "Les premières lignes arrivent dans un instant…"
 
-#: src/features/extraction/components/CsvRowScope.tsx:47
+#: src/features/extraction/components/CsvRowScope.tsx:45
 msgid "The first rows only, to try the setup"
 msgstr "Les premières lignes seulement, pour essayer la configuration"
 
@@ -1112,7 +1118,7 @@ msgstr "La mémoire n'a pas pu être effacée. Réessayez."
 msgid "The model that reads the document did not answer. Try again in a moment."
 msgstr "Le modèle qui lit le document n’a pas répondu. Réessayez dans un instant."
 
-#: src/features/account/components/EditNameDialog.tsx:56
+#: src/features/account/components/EditNameDialog.tsx:57
 msgid "The people of your projects see you by this name."
 msgstr "Les membres de vos projets vous voient sous ce nom."
 
@@ -1257,13 +1263,17 @@ msgstr "Quand quelqu'un vous donne accès à un agent, il apparaît ici."
 msgid "Wrap long lines"
 msgstr "Renvoyer les longues lignes à la ligne"
 
-#: src/features/account/components/EditNameDialog.tsx:76
-msgid "Write a name of 1 to 100 characters."
-msgstr "Écrivez un nom de 1 à 100 caractères."
+#: src/features/account/components/EditNameDialog.tsx:77
+msgid "Write a name of 1 to {maxLength} characters."
+msgstr "Écrivez un nom de 1 à {maxLength} caractères."
 
-#: src/features/memory/components/MemoryRewordForm.tsx:51
-msgid "Write the fact in 300 characters at most."
-msgstr "Écrivez l'information en 300 caractères au plus."
+#: src/features/memory/components/MemoryRewordForm.tsx:54
+msgid "Write the fact in {maxLength} characters at most."
+msgstr "Écrivez l'information en {maxLength} caractères au plus."
+
+#: src/features/memory/components/MemoryRewordForm.tsx:59
+msgid "Write the fact to remember."
+msgstr "Écrivez l'information à retenir."
 
 #: src/features/extraction/components/FieldValue.tsx:41
 msgid "Yes"
@@ -1289,12 +1299,12 @@ msgstr "Vous n'avez encore accès à aucun agent"
 msgid "You joined {targetName}."
 msgstr "Vous avez rejoint {targetName}."
 
-#: src/features/account/components/TermsPage.tsx:44
-#: src/features/memory/components/MemoryProposals.tsx:34
+#: src/features/account/components/TermsPage.tsx:40
+#: src/features/memory/components/MemoryProposals.tsx:38
 msgid "Your answer could not be saved. Try again."
 msgstr "Votre réponse n'a pas pu être enregistrée. Réessayez."
 
-#: src/features/extraction/components/RecentDocuments.tsx:32
+#: src/features/extraction/components/RecentDocuments.tsx:33
 msgid "Your documents"
 msgstr "Vos documents"
 
@@ -1306,11 +1316,11 @@ msgstr "Votre fournisseur d’identité n’a pas transmis votre adresse email a
 msgid "Your identity provider refused the sign-in."
 msgstr "Votre fournisseur d’identité a refusé la connexion."
 
-#: src/features/account/components/EditNameDialog.tsx:43
+#: src/features/account/components/EditNameDialog.tsx:44
 msgid "Your name could not be saved. Try again."
 msgstr "Votre nom n’a pas pu être enregistré. Réessayez."
 
-#: src/features/account/components/EditNameDialog.tsx:40
+#: src/features/account/components/EditNameDialog.tsx:41
 msgid "Your name was saved."
 msgstr "Votre nom a été enregistré."
 

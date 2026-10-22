@@ -3,15 +3,21 @@ import { Plural, Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { Link, useNavigate } from "@tanstack/react-router"
 import { PlayIcon } from "lucide-react"
-import { useState } from "react"
+import { useId, useState } from "react"
 import { toast } from "sonner"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { extractionDocumentsQueryOptions } from "@/features/history"
 import { useStartCsvExtraction } from "../api/mutations"
 import { csvColumnsQueryOptions } from "../api/queries"
-import { type ColumnRoles, initialColumnRoles, readsAColumn, toColumnSchema } from "../csv-setup"
+import {
+  type ColumnRoles,
+  initialColumnRoles,
+  type RowScope,
+  readsAColumn,
+  toColumnSchema,
+} from "../csv-setup"
 import { ColumnRoleRow } from "./ColumnRoleRow"
-import { CsvRowScope, type RowScope } from "./CsvRowScope"
+import { CsvRowScope } from "./CsvRowScope"
 import { FileKindIcon } from "./FileKindIcon"
 
 export type CsvSetupProps = {
@@ -26,6 +32,7 @@ export type CsvSetupProps = {
 export function CsvSetup({ agent, documentId }: CsvSetupProps) {
   const { t } = useLingui()
   const navigate = useNavigate()
+  const columnsHeadingId = useId()
   const { data: columns } = useSuspenseQuery(csvColumnsQueryOptions(agent, documentId))
   const { data: documents } = useSuspenseQuery(extractionDocumentsQueryOptions(agent))
   const [setup, setSetup] = useState<{ roles: ColumnRoles; scope: RowScope }>(() => ({
@@ -75,9 +82,9 @@ export function CsvSetup({ agent, documentId }: CsvSetupProps) {
         </div>
       </header>
 
-      <section aria-labelledby="csv-columns" className="flex flex-col gap-2">
+      <section aria-labelledby={columnsHeadingId} className="flex flex-col gap-2">
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 px-1">
-          <h2 id="csv-columns" className="text-sm font-medium">
+          <h2 id={columnsHeadingId} className="text-sm font-medium">
             <Trans>Columns</Trans>
           </h2>
           <div className="flex items-center gap-1 text-xs">

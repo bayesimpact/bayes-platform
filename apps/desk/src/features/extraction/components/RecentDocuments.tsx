@@ -1,6 +1,6 @@
 import type { ExtractionDocumentOutputDto } from "@caseai-connect/desk-contracts"
 import { Plural, Trans } from "@lingui/react/macro"
-import { useState } from "react"
+import { useId, useState } from "react"
 import { DocumentRow } from "./DocumentRow"
 
 /** The documents shown before the person asks for all of them. */
@@ -22,13 +22,14 @@ export function RecentDocuments({
   onDelete,
 }: RecentDocumentsProps) {
   const [isShowingAll, setIsShowingAll] = useState(false)
+  const headingId = useId()
   if (documents.length === 0) return null
   const shown = isShowingAll ? documents : documents.slice(0, SHOWN_AT_FIRST)
   const hiddenCount = documents.length - shown.length
 
   return (
-    <section aria-labelledby="recent-documents" className="flex w-full flex-col gap-2">
-      <h2 id="recent-documents" className="px-1 text-sm font-medium text-muted-foreground">
+    <section aria-labelledby={headingId} className="flex w-full flex-col gap-2">
+      <h2 id={headingId} className="px-1 text-sm font-medium text-muted-foreground">
         <Trans>Your documents</Trans>
       </h2>
       <ul className="flex flex-col divide-y rounded-2xl border bg-background dark:bg-card">

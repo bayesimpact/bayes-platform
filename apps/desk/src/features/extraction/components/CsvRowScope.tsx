@@ -3,9 +3,7 @@ import { useId } from "react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-
-/** The rows a run reads: all of them, or the first ones, to try the setup first. */
-export type RowScope = { kind: "all" } | { kind: "first"; count: number }
+import type { RowScope } from "../csv-setup"
 
 /** The rows a try reads by default: enough to judge, few enough to wait little. */
 const DEFAULT_TRY_COUNT = 10
@@ -20,12 +18,12 @@ export function CsvRowScope({ scope, onScopeChange }: CsvRowScopeProps) {
   const { t } = useLingui()
   const allId = useId()
   const firstId = useId()
-  const countId = useId()
+  const headingId = useId()
   const count = scope.kind === "first" ? scope.count : DEFAULT_TRY_COUNT
 
   return (
-    <section aria-labelledby="csv-scope" className="flex flex-col gap-2">
-      <h2 id="csv-scope" className="px-1 text-sm font-medium">
+    <section aria-labelledby={headingId} className="flex flex-col gap-2">
+      <h2 id={headingId} className="px-1 text-sm font-medium">
         <Trans>Rows</Trans>
       </h2>
       <RadioGroup
@@ -47,7 +45,6 @@ export function CsvRowScope({ scope, onScopeChange }: CsvRowScopeProps) {
             <Trans>The first rows only, to try the setup</Trans>
           </Label>
           <Input
-            id={countId}
             type="number"
             inputMode="numeric"
             min={1}

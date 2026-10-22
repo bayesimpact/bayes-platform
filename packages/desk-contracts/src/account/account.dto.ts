@@ -28,9 +28,12 @@ export type MeUserOutputDto = z.output<typeof meUserOutputSchema>
 export type MeOutputDto = z.output<typeof meOutputSchema>
 export type TermsDocumentOutputDto = z.output<typeof termsDocumentOutputSchema>
 
+/** The longest name a person can give themselves. */
+export const USER_NAME_MAX_LENGTH = 100
+
 /** The person's new name, as the API takes it: from 1 to 100 characters, without the spaces around. */
 export const updateMeInputSchema = z.strictObject({
-  name: z.string().trim().min(1).max(100),
+  name: z.string().trim().min(1).max(USER_NAME_MAX_LENGTH),
 })
 
 export type UpdateMeInputDto = z.input<typeof updateMeInputSchema>
@@ -41,6 +44,8 @@ export const updateMeOutputSchema = z.object({ success: z.boolean() })
 export const acceptTermsInputSchema = z.strictObject({
   aiUsagePolicyAccepted: z.boolean(),
 })
+
+export type AcceptTermsInputDto = z.input<typeof acceptTermsInputSchema>
 
 export const acceptTermsOutputSchema = z.object({ success: z.boolean() })
 

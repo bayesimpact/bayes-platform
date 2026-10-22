@@ -1,4 +1,4 @@
-import type { AgentParamsDto } from "@caseai-connect/desk-contracts"
+import type { AgentParamsDto, ResolveMemoryProposalsInputDto } from "@caseai-connect/desk-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useQuery } from "@tanstack/react-query"
 import { BrainIcon, CheckIcon, PencilIcon, XIcon } from "lucide-react"
@@ -28,9 +28,13 @@ export function MemoryProposals({ agent, memoryIds }: MemoryProposalsProps) {
   const facts = memories.filter((memory) => memoryIds.includes(memory.id))
   if (facts.length === 0) return null
 
-  const decide = (decision: { memoryId: string; decision: "save" | "reject"; content?: string }) =>
+  const handleDecision = (decision: ResolveMemoryProposalsInputDto["decisions"][number]) =>
     resolveProposals.mutate([decision], {
-      onSuccess: () => setRewordingId(null),
+      onSuccess: () => {
+        // A reworded fact comes from a form, which confirms what it sent.
+        if (decision.content !== undefined) toast.success(t`The agent will remember it.`)
+        setRewordingId(null)
+      },
       onError: () => toast.error(t`Your answer could not be saved. Try again.`),
     })
 
@@ -59,7 +63,7 @@ export function MemoryProposals({ agent, memoryIds }: MemoryProposalsProps) {
                 isSaving={resolveProposals.isPending}
                 onCancel={() => setRewordingId(null)}
                 onSave={(reworded) =>
-                  decide({ memoryId: fact.id, decision: "save", content: reworded })
+                  handleDecision({ memoryId: fact.id, decision: "save", content: reworded })
                 }
               />
             ) : null}
@@ -68,20 +72,22 @@ export function MemoryProposals({ agent, memoryIds }: MemoryProposalsProps) {
                 <Button
                   size="sm"
                   disabled={resolveProposals.isPending}
-                  onClick={() => decide({ memoryId: fact.id, decision: "save" })}
+                  onClick={() => handleDecision({ memoryId: fact.id, decision: "save" })}
                 >
                   <CheckIcon aria-hidden />
-                  <Trans>Remember</Trans>
+                  <Trans comment="Saves the fact the agent proposed in its memory">Remember</Trans>
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => setRewordingId(fact.id)}>
                   <PencilIcon aria-hidden />
-                  <Trans>Reword</Trans>
+                  <Trans comment="Opens a field to rewrite the fact before the agent remembers it">
+                    Reword
+                  </Trans>
                 </Button>
                 <Button
                   size="sm"
                   variant="ghost"
                   disabled={resolveProposals.isPending}
-                  onClick={() => decide({ memoryId: fact.id, decision: "reject" })}
+                  onClick={() => handleDecision({ memoryId: fact.id, decision: "reject" })}
                 >
                   <XIcon aria-hidden />
                   <Trans>Don't remember</Trans>

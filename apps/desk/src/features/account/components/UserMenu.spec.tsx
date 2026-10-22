@@ -17,7 +17,9 @@ describe("UserMenu", () => {
   it("shows the person's name, and their email in the menu", async () => {
     renderMenu()
 
-    await userEvent.click(screen.getByRole("button", { name: `Open the menu of ${user.email}` }))
+    await userEvent.click(
+      screen.getByRole("button", { name: `${user.name}, menu of ${user.email}` }),
+    )
 
     expect(await screen.findByText(user.email)).toBeInTheDocument()
   })
@@ -25,16 +27,20 @@ describe("UserMenu", () => {
   it("switches the language", async () => {
     const { onLocaleChange } = renderMenu()
 
-    await userEvent.click(screen.getByRole("button", { name: `Open the menu of ${user.email}` }))
+    await userEvent.click(
+      screen.getByRole("button", { name: `${user.name}, menu of ${user.email}` }),
+    )
     await userEvent.click(await screen.findByRole("menuitemradio", { name: "Français" }))
 
-    expect(onLocaleChange).toHaveBeenCalledWith("fr", expect.anything())
+    expect(onLocaleChange).toHaveBeenCalledWith("fr")
   })
 
   it("signs out", async () => {
     const { onSignOut } = renderMenu()
 
-    await userEvent.click(screen.getByRole("button", { name: `Open the menu of ${user.email}` }))
+    await userEvent.click(
+      screen.getByRole("button", { name: `${user.name}, menu of ${user.email}` }),
+    )
     await userEvent.click(await screen.findByRole("menuitem", { name: "Sign out" }))
 
     expect(onSignOut).toHaveBeenCalled()

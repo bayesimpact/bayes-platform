@@ -1,6 +1,7 @@
 import type { MeUserOutputDto } from "@caseai-connect/desk-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { ChevronDownIcon, LogOutIcon, PencilIcon } from "lucide-react"
+import { isLocale, type Locale } from "@/app/i18n"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -16,15 +17,15 @@ import {
 
 export type UserMenuProps = {
   user: MeUserOutputDto
-  locale: string
-  locales: readonly string[]
-  onLocaleChange: (locale: string) => void
+  locale: Locale
+  locales: readonly Locale[]
+  onLocaleChange: (locale: Locale) => void
   onEditName: () => void
   onSignOut: () => void
 }
 
 /** Each language in its own name, from the browser, capitalized as a menu item: "English", "Français". */
-function languageName(locale: string): string {
+function languageName(locale: Locale): string {
   const name = new Intl.DisplayNames([locale], { type: "language" }).of(locale) ?? locale
   return `${name.charAt(0).toLocaleUpperCase(locale)}${name.slice(1)}`
 }
@@ -38,20 +39,23 @@ export function UserMenu({
   onSignOut,
 }: UserMenuProps) {
   const { t } = useLingui()
-  const email = user.email
+  const { name, email } = user
+  // The name starts with the visible text, which voice control users say.
+  const menuLabel = t({
+    message: `${name}, menu of ${email}`,
+    comment: "The button of the person's menu, which shows their name",
+  })
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger
-        render={<Button variant="ghost" aria-label={t`Open the menu of ${email}`} />}
-      >
-        <span className="max-w-48 truncate">{user.name}</span>
+      <DropdownMenuTrigger render={<Button variant="ghost" aria-label={menuLabel} />}>
+        <span className="max-w-48 truncate">{name}</span>
         <ChevronDownIcon aria-hidden />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64">
         <DropdownMenuGroup>
           <DropdownMenuLabel>
-            <span className="block truncate text-sm text-foreground">{user.name}</span>
-            <span className="block truncate">{user.email}</span>
+            <span className="block truncate text-sm text-foreground">{name}</span>
+            <span className="block truncate">{email}</span>
           </DropdownMenuLabel>
           <DropdownMenuItem onClick={onEditName}>
             <PencilIcon aria-hidden />
@@ -63,7 +67,12 @@ export function UserMenu({
           <DropdownMenuLabel>
             <Trans>Language</Trans>
           </DropdownMenuLabel>
-          <DropdownMenuRadioGroup value={locale} onValueChange={onLocaleChange}>
+          <DropdownMenuRadioGroup
+            value={locale}
+            onValueChange={(value) => {
+              if (isLocale(value)) onLocaleChange(value)
+            }}
+          >
             {locales.map((code) => (
               <DropdownMenuRadioItem key={code} value={code} lang={code}>
                 {languageName(code)}

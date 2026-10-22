@@ -211,18 +211,16 @@ describe("the terms", () => {
       screen.queryByRole("heading", { name: "How can I help you today?" }),
     ).not.toBeInTheDocument()
     const submit = screen.getByRole("button", { name: "Accept and continue" })
-    expect(submit).toBeDisabled()
 
     await userEvent.click(
       screen.getByRole("checkbox", {
         name: "I accept the general conditions of service (required)",
       }),
     )
-    expect(submit).toBeDisabled()
     await userEvent.click(
       screen.getByRole("checkbox", { name: "I accept the privacy policy (required)" }),
     )
-    expect(screen.getByRole("link", { name: /Read the privacy policy/ })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /^Read it.*the privacy policy/ })).toHaveAttribute(
       "href",
       "https://example.org/terms/privacy-policy",
     )
@@ -240,9 +238,7 @@ describe("the person's name", () => {
     server.use(...worldHandlers(buildDeskWorld()), ...meHandlers())
     renderApp("/app/")
 
-    await userEvent.click(
-      await screen.findByRole("button", { name: "Open the menu of alex@example.org" }),
-    )
+    await userEvent.click(await screen.findByRole("button", { name: /menu of alex@example\.org$/ }))
     await userEvent.click(await screen.findByRole("menuitem", { name: "Edit your name" }))
     const dialog = await screen.findByRole("dialog", { name: "Edit your name" })
     const nameField = within(dialog).getByRole("textbox", { name: "Name" })
@@ -258,8 +254,45 @@ describe("the person's name", () => {
     await userEvent.click(within(dialog).getByRole("button", { name: "Save" }))
 
     expect(await screen.findByText("Your name was saved.")).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: /menu of alex@example\.org$/ })).toHaveTextContent(
+      "Sam Example",
+    )
+  })
+})
+
+describe("the terms left unchecked", () => {
+  it("say which ones are required when the person sends the form", async () => {
+    server.use(...worldHandlers(buildDeskWorld()), ...termsHandlers())
+    renderApp("/app/")
+
+    await userEvent.click(await screen.findByRole("button", { name: "Accept and continue" }))
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Accept the general conditions and the privacy policy to continue.",
+    )
     expect(
-      screen.getByRole("button", { name: "Open the menu of alex@example.org" }),
-    ).toHaveTextContent("Sam Example")
+      screen.getByRole("checkbox", { name: "I accept the privacy policy (required)" }),
+    ).toHaveAttribute("aria-invalid", "true")
+    expect(screen.getByRole("heading", { name: "Before you start" })).toBeInTheDocument()
+  })
+})
+
+describe("a name the API does not save", () => {
+  it("says so in a toast, and keeps the dialog open to try again", async () => {
+    server.use(
+      // The first handler that matches answers.
+      http.patch("*/api/me", () => HttpResponse.json({ message: "Boom" }, { status: 500 })),
+      ...worldHandlers(buildDeskWorld()),
+      ...meHandlers(),
+    )
+    renderApp("/app/")
+
+    await userEvent.click(await screen.findByRole("button", { name: /menu of alex@example\.org$/ }))
+    await userEvent.click(await screen.findByRole("menuitem", { name: "Edit your name" }))
+    const dialog = await screen.findByRole("dialog", { name: "Edit your name" })
+    await userEvent.click(within(dialog).getByRole("button", { name: "Save" }))
+
+    expect(await screen.findByText("Your name could not be saved. Try again.")).toBeInTheDocument()
+    expect(within(dialog).getByRole("button", { name: "Save" })).toBeEnabled()
   })
 })

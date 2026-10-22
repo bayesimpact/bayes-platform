@@ -1,4 +1,4 @@
-import { type UpdateMeInputDto, updateMeInputSchema } from "@caseai-connect/desk-contracts"
+import { USER_NAME_MAX_LENGTH, updateMeInputSchema } from "@caseai-connect/desk-contracts"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useId } from "react"
@@ -20,22 +20,23 @@ import { useUpdateName } from "../api/mutations"
 
 export type EditNameDialogProps = {
   name: string
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  isOpen: boolean
+  onOpenChange: (isOpen: boolean) => void
 }
 
 /** Renames the person, as the people of their projects see them. */
-export function EditNameDialog({ name, open, onOpenChange }: EditNameDialogProps) {
+export function EditNameDialog({ name, isOpen, onOpenChange }: EditNameDialogProps) {
   const { t } = useLingui()
   const inputId = useId()
   const updateName = useUpdateName()
-  const form = useForm<UpdateMeInputDto>({
+  const form = useForm({
     resolver: zodResolver(updateMeInputSchema),
     values: { name },
   })
+  const maxLength = USER_NAME_MAX_LENGTH
 
   const handleSubmit = form.handleSubmit((values) =>
-    updateName.mutateAsync(values.name, {
+    updateName.mutate(values, {
       onSuccess: () => {
         toast.success(t`Your name was saved.`)
         onOpenChange(false)
@@ -45,7 +46,7 @@ export function EditNameDialog({ name, open, onOpenChange }: EditNameDialogProps
   )
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
         <form onSubmit={(event) => void handleSubmit(event)} className="flex flex-col gap-4">
           <DialogHeader>
@@ -73,7 +74,7 @@ export function EditNameDialog({ name, open, onOpenChange }: EditNameDialogProps
                 />
                 {fieldState.invalid ? (
                   <FieldError>
-                    <Trans>Write a name of 1 to 100 characters.</Trans>
+                    <Trans>Write a name of 1 to {maxLength} characters.</Trans>
                   </FieldError>
                 ) : null}
               </Field>
@@ -83,7 +84,7 @@ export function EditNameDialog({ name, open, onOpenChange }: EditNameDialogProps
             <DialogClose render={<Button type="button" variant="outline" />}>
               <Trans>Cancel</Trans>
             </DialogClose>
-            <Button type="submit" disabled={form.formState.isSubmitting}>
+            <Button type="submit" disabled={updateName.isPending}>
               <Trans>Save</Trans>
             </Button>
           </DialogFooter>

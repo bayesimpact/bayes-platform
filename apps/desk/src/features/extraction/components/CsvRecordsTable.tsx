@@ -6,6 +6,7 @@ import type {
 import { Trans, useLingui } from "@lingui/react/macro"
 import { getCoreRowModel, type SortingState, useReactTable } from "@tanstack/react-table"
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
+import { useId } from "react"
 import { DataTable } from "@/components/shared/DataTable"
 import { Button } from "@/components/ui/button"
 import { CSV_RECORDS_PAGE_SIZE } from "../api/queries"
@@ -41,6 +42,7 @@ export function CsvRecordsTable({
   // The table of TanStack Table v8 changes in place, which the React Compiler cannot memoize.
   "use no memo"
   const { t, i18n } = useLingui()
+  const headingId = useId()
   const answerFields = fieldKeysOf(records.records.map((record) => record.agentRawOutput))
   const columns = recordColumnsOf({
     answerFields,
@@ -73,8 +75,8 @@ export function CsvRecordsTable({
   const hasNext = last < records.total
 
   return (
-    <section aria-labelledby="csv-results" className="flex flex-col gap-2">
-      <h2 id="csv-results" className="px-1 text-sm font-medium">
+    <section aria-labelledby={headingId} className="flex flex-col gap-2">
+      <h2 id={headingId} className="px-1 text-sm font-medium">
         <Trans>Results</Trans>
       </h2>
       <DataTable

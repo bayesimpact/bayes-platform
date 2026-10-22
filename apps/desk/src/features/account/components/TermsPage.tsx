@@ -2,13 +2,13 @@ import type { MeOutputDto } from "@caseai-connect/desk-contracts"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { LogOutIcon } from "lucide-react"
-import { Controller, useForm, useWatch } from "react-hook-form"
+import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { DeskLogo } from "@/components/shared/DeskLogo"
 import { Button } from "@/components/ui/button"
 import { signOut } from "@/lib/auth/session"
 import { useAcceptTerms } from "../api/mutations"
-import { REQUIRED_TERMS_MESSAGE, type TermsFormValues, termsFormSchema } from "../schemas"
+import { termsFormSchema } from "../schemas"
 import { TermsCheckbox } from "./TermsCheckbox"
 
 export type TermsPageProps = {
@@ -20,9 +20,9 @@ export type TermsPageProps = {
  * policy, and, if they wish, the AI usage policy. Someone who does not accept can sign out.
  */
 export function TermsPage({ terms }: TermsPageProps) {
-  const { t, i18n } = useLingui()
+  const { t } = useLingui()
   const acceptTerms = useAcceptTerms()
-  const { control, handleSubmit, formState } = useForm<TermsFormValues>({
+  const form = useForm({
     resolver: zodResolver(termsFormSchema),
     defaultValues: {
       generalConditionsAccepted: false,
@@ -30,19 +30,16 @@ export function TermsPage({ terms }: TermsPageProps) {
       aiUsagePolicyAccepted: false,
     },
   })
-  const [generalConditionsAccepted, privacyPolicyAccepted] = useWatch({
-    control,
-    name: ["generalConditionsAccepted", "privacyPolicyAccepted"],
-  })
-  const canSubmit = generalConditionsAccepted && privacyPolicyAccepted && !acceptTerms.isPending
-  const hasRequiredError = Boolean(
-    formState.errors.generalConditionsAccepted || formState.errors.privacyPolicyAccepted,
-  )
+  const { errors } = form.formState
+  const hasRequiredError = Boolean(errors.generalConditionsAccepted || errors.privacyPolicyAccepted)
 
-  const onSubmit = ({ aiUsagePolicyAccepted }: TermsFormValues) =>
-    acceptTerms.mutate(aiUsagePolicyAccepted, {
-      onError: () => toast.error(t`Your answer could not be saved. Try again.`),
-    })
+  // Its success needs no toast: the Desk opens once `me` says the terms are accepted.
+  const handleSubmit = form.handleSubmit(({ aiUsagePolicyAccepted }) =>
+    acceptTerms.mutate(
+      { aiUsagePolicyAccepted },
+      { onError: () => toast.error(t`Your answer could not be saved. Try again.`) },
+    ),
+  )
 
   const documents = [
     {
@@ -80,7 +77,11 @@ export function TermsPage({ terms }: TermsPageProps) {
             <Trans>Read and accept the terms of the Desk to continue.</Trans>
           </p>
         </div>
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>
+        <form
+          onSubmit={(event) => void handleSubmit(event)}
+          className="flex flex-col gap-4"
+          noValidate
+        >
           <fieldset className="flex flex-col divide-y rounded-2xl border bg-background shadow-sm dark:bg-card">
             <legend className="sr-only">
               <Trans>Terms</Trans>
@@ -88,13 +89,14 @@ export function TermsPage({ terms }: TermsPageProps) {
             {documents.map((entry) => (
               <Controller
                 key={entry.name}
-                control={control}
+                control={form.control}
                 name={entry.name}
-                render={({ field }) => (
+                render={({ field, fieldState }) => (
                   <TermsCheckbox
                     label={entry.label}
                     documentName={entry.documentName}
                     isRequired={entry.isRequired}
+                    isInvalid={fieldState.invalid}
                     document={entry.document}
                     checked={field.value}
                     onCheckedChange={field.onChange}
@@ -105,7 +107,7 @@ export function TermsPage({ terms }: TermsPageProps) {
           </fieldset>
           {hasRequiredError ? (
             <p role="alert" className="text-sm text-destructive">
-              {i18n._(REQUIRED_TERMS_MESSAGE)}
+              <Trans>Accept the general conditions and the privacy policy to continue.</Trans>
             </p>
           ) : null}
           <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -113,7 +115,7 @@ export function TermsPage({ terms }: TermsPageProps) {
               <LogOutIcon aria-hidden />
               <Trans>Sign out</Trans>
             </Button>
-            <Button type="submit" disabled={!canSubmit}>
+            <Button type="submit" disabled={acceptTerms.isPending}>
               <Trans>Accept and continue</Trans>
             </Button>
           </div>

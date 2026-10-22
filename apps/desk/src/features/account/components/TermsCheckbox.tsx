@@ -1,7 +1,7 @@
 import type { TermsDocumentOutputDto } from "@caseai-connect/desk-contracts"
-import { Trans, useLingui } from "@lingui/react/macro"
-import { ExternalLinkIcon } from "lucide-react"
+import { Trans } from "@lingui/react/macro"
 import { useId } from "react"
+import { ExternalLink } from "@/components/shared/ExternalLink"
 import { Checkbox } from "@/components/ui/checkbox"
 
 export type TermsCheckboxProps = {
@@ -9,6 +9,8 @@ export type TermsCheckboxProps = {
   /** The document's name, which names its link. */
   documentName: string
   isRequired: boolean
+  /** A required document left unchecked when the person sent the form. */
+  isInvalid: boolean
   document: TermsDocumentOutputDto
   checked: boolean
   onCheckedChange: (checked: boolean) => void
@@ -19,17 +21,18 @@ export function TermsCheckbox({
   label,
   documentName,
   isRequired,
+  isInvalid,
   document,
   checked,
   onCheckedChange,
 }: TermsCheckboxProps) {
-  const { t } = useLingui()
   const id = useId()
   return (
     <div className="flex items-start gap-3 px-4 py-3">
       <Checkbox
         id={id}
         checked={checked}
+        aria-invalid={isInvalid}
         onCheckedChange={(value) => onCheckedChange(value === true)}
         className="mt-0.5"
       />
@@ -45,16 +48,15 @@ export function TermsCheckbox({
           </span>
         </label>
         {document.url ? (
-          <a
+          <ExternalLink
             href={document.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={t`Read the ${documentName} (opens in a new tab)`}
             className="inline-flex w-fit items-center gap-1 text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
           >
-            <ExternalLinkIcon aria-hidden className="size-3.5" />
-            <Trans>Read it</Trans>
-          </a>
+            {/* The name starts with the visible text, which voice control users say. */}
+            <Trans comment="The link to a document of the terms, named after it for screen readers">
+              Read it<span className="sr-only">: the {documentName}</span>
+            </Trans>
+          </ExternalLink>
         ) : null}
       </div>
     </div>

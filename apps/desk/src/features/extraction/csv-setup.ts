@@ -4,6 +4,9 @@ import type {
   CsvFileColumnOutputDto,
 } from "@caseai-connect/desk-contracts"
 
+/** The rows a run reads: all of them, or the first ones, to try the setup first. */
+export type RowScope = { kind: "all" } | { kind: "first"; count: number }
+
 /** The role of each column, by its id. */
 export type ColumnRoles = Record<string, CsvColumnRoleDto>
 

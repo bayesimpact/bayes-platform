@@ -1,6 +1,10 @@
-import { MEMORY_MAX_LENGTH } from "@caseai-connect/desk-contracts"
+import {
+  MEMORY_MAX_LENGTH,
+  resolveMemoryProposalsInputSchema,
+} from "@caseai-connect/desk-contracts"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Trans, useLingui } from "@lingui/react/macro"
+import { Trans } from "@lingui/react/macro"
+import { useId } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
@@ -9,10 +13,8 @@ import { Textarea } from "@/components/ui/textarea"
 
 /** The reworded fact, with the rule of the resolve route's `content`. */
 const rewordSchema = z.object({
-  content: z.string().trim().min(1).max(MEMORY_MAX_LENGTH),
+  content: resolveMemoryProposalsInputSchema.shape.decisions.element.shape.content.unwrap(),
 })
-
-type RewordValues = z.input<typeof rewordSchema>
 
 export type MemoryRewordFormProps = {
   initialContent: string
@@ -28,12 +30,13 @@ export function MemoryRewordForm({
   onSave,
   onCancel,
 }: MemoryRewordFormProps) {
-  const { t } = useLingui()
-  const form = useForm<RewordValues>({
+  const contentId = useId()
+  const form = useForm({
     resolver: zodResolver(rewordSchema),
     defaultValues: { content: initialContent },
   })
-  const handleSubmit = form.handleSubmit((values) => onSave(values.content.trim()))
+  const maxLength = MEMORY_MAX_LENGTH
+  const handleSubmit = form.handleSubmit((values) => onSave(values.content))
 
   return (
     <form onSubmit={(event) => void handleSubmit(event)} className="flex flex-col gap-2">
@@ -42,13 +45,18 @@ export function MemoryRewordForm({
         name="content"
         render={({ field, fieldState }) => (
           <Field data-invalid={fieldState.invalid}>
-            <FieldLabel htmlFor="memory-content" className="sr-only">
-              {t`The fact to remember`}
+            <FieldLabel htmlFor={contentId} className="sr-only">
+              <Trans>The fact to remember</Trans>
             </FieldLabel>
-            <Textarea {...field} id="memory-content" aria-invalid={fieldState.invalid} />
-            {fieldState.invalid ? (
+            <Textarea {...field} id={contentId} aria-invalid={fieldState.invalid} />
+            {fieldState.error?.type === "too_big" ? (
               <FieldError>
-                <Trans>Write the fact in 300 characters at most.</Trans>
+                <Trans>Write the fact in {maxLength} characters at most.</Trans>
+              </FieldError>
+            ) : null}
+            {fieldState.error?.type === "too_small" ? (
+              <FieldError>
+                <Trans>Write the fact to remember.</Trans>
               </FieldError>
             ) : null}
           </Field>
@@ -56,7 +64,7 @@ export function MemoryRewordForm({
       />
       <div className="flex gap-2">
         <Button type="submit" size="sm" disabled={isSaving}>
-          <Trans>Remember</Trans>
+          <Trans comment="Saves the reworded fact in the agent's memory">Remember</Trans>
         </Button>
         <Button type="button" size="sm" variant="ghost" onClick={onCancel}>
           <Trans>Cancel</Trans>
