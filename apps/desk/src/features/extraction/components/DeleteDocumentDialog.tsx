@@ -1,4 +1,4 @@
-import type { ExtractionDocumentOutputDto } from "@caseai-connect/desk-contracts"
+import type { AgentParamsDto, ExtractionDocumentOutputDto } from "@caseai-connect/desk-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { toast } from "sonner"
 import {
@@ -12,10 +12,9 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { useDeleteExtractionDocument } from "../api/mutations"
-import type { ExtractionAgentRef } from "../extraction-agent"
 
 export type DeleteDocumentDialogProps = {
-  agent: ExtractionAgentRef
+  agent: AgentParamsDto
   /** The document to delete; the dialog is open while there is one. */
   document: ExtractionDocumentOutputDto | null
   onClose: () => void

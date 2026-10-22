@@ -1,3 +1,4 @@
+import type { ConversationParamsDto } from "@caseai-connect/desk-contracts"
 import {
   DeskConversationsRoutes,
   type ReplyStreamEventDto,
@@ -13,14 +14,15 @@ import {
   applyReplyEvent,
   type ChatMessage,
   failStreamingReplies,
+  newLocalMessageId,
   type OutgoingMessage,
   type ReplyCursor,
   type ReplyFailure,
   setAttachmentDocument,
   startTurn,
 } from "../chat-messages"
-import type { ConversationRef } from "../conversation-ref"
 import { conversationKeys } from "./keys"
+import { messagesQueryOptions } from "./queries"
 import { registerReplyStream, unregisterReplyStream } from "./reply-streams"
 import { uploadAttachment } from "./upload-attachment"
 
@@ -64,17 +66,18 @@ function readEvent(frame: ServerSentEvent): ReadEvent {
  */
 export async function streamReply(
   queryClient: QueryClient,
-  conversation: ConversationRef,
+  conversation: ConversationParamsDto,
   outgoing: OutgoingMessage,
 ): Promise<void> {
-  const queryKey = conversationKeys.messages(conversation.agentSessionId)
+  // The key of the messages' query carries their type: the cache's reads and writes are checked.
+  const { queryKey } = messagesQueryOptions(conversation)
   await queryClient.cancelQueries({ queryKey })
   const controller = registerReplyStream(conversation.agentSessionId)
-  const replyId = `local-${crypto.randomUUID()}`
+  const replyId = newLocalMessageId()
   const update = (change: (messages: ChatMessage[]) => ChatMessage[]) =>
-    queryClient.setQueryData<ChatMessage[]>(queryKey, (messages = []) => change(messages))
+    queryClient.setQueryData(queryKey, (messages = []) => change(messages))
 
-  const userMessageId = `local-${crypto.randomUUID()}`
+  const userMessageId = newLocalMessageId()
   update((messages) => startTurn(messages, outgoing, { userMessageId, replyId }, Date.now()))
   let cursor: ReplyCursor = { messageId: replyId, hasStarted: false }
   let hasFailed = true
@@ -117,16 +120,16 @@ export async function streamReply(
       })
       // A form the agent fills in shows its new answers while the reply goes on.
       if (read.event.type === "notify_client" && FORM_TOOLS.has(read.event.toolName)) {
-        invalidateAgentHistory(queryClient, conversation.agentId)
+        void invalidateAgentHistory(queryClient, conversation.agentId)
       }
       // A fact the agent saves or forgets shows in its memory at once.
       if (read.event.type === "notify_client" && MEMORY_TOOLS.has(read.event.toolName)) {
-        invalidateMemories(queryClient, conversation.agentId)
+        void invalidateMemories(queryClient, conversation.agentId)
       }
       if (read.event.type === "error") return
     }
     // The body closed: every reply should have ended by now.
-    const isUnfinished = (queryClient.getQueryData<ChatMessage[]>(queryKey) ?? []).some(
+    const isUnfinished = (queryClient.getQueryData(queryKey) ?? []).some(
       (message) => message.status === "streaming",
     )
     if (isUnfinished) update((messages) => failStreamingReplies(messages, "ended"))
@@ -140,7 +143,13 @@ export async function streamReply(
     // The persisted messages replace the local ones. A failed reply stays as it is, with its
     // reason and the retry, until the person sends again or comes back.
     if (!hasFailed || controller.signal.aborted) void queryClient.invalidateQueries({ queryKey })
+    // A reply may show an MCP App the conversation did not show yet: its HTML loads again.
+    if (!hasFailed) {
+      void queryClient.invalidateQueries({
+        queryKey: conversationKeys.mcpApps(conversation.agentSessionId),
+      })
+    }
     // The history gets the conversation's new title.
-    invalidateAgentHistory(queryClient, conversation.agentId)
+    void invalidateAgentHistory(queryClient, conversation.agentId)
   }
 }

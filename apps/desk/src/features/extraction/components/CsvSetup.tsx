@@ -1,4 +1,4 @@
-import type { CsvColumnRoleDto } from "@caseai-connect/desk-contracts"
+import type { AgentParamsDto, CsvColumnRoleDto } from "@caseai-connect/desk-contracts"
 import { Plural, Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { Link, useNavigate } from "@tanstack/react-router"
@@ -10,13 +10,12 @@ import { extractionDocumentsQueryOptions } from "@/features/history"
 import { useStartCsvExtraction } from "../api/mutations"
 import { csvColumnsQueryOptions } from "../api/queries"
 import { type ColumnRoles, initialColumnRoles, readsAColumn, toColumnSchema } from "../csv-setup"
-import type { ExtractionAgentRef } from "../extraction-agent"
 import { ColumnRoleRow } from "./ColumnRoleRow"
 import { CsvRowScope, type RowScope } from "./CsvRowScope"
 import { FileKindIcon } from "./FileKindIcon"
 
 export type CsvSetupProps = {
-  agent: ExtractionAgentRef
+  agent: AgentParamsDto
   documentId: string
 }
 

@@ -56,10 +56,6 @@ export type SchemaRoute<
   path: string
   getPath: (params?: Record<string, string>) => string
   method: TMethod
-  /** Phantom type of the request body, as on the routes of `defineRoute`: never read at runtime. */
-  request: TBody extends ObjectSchema ? { payload: z.input<TBody> } : undefined
-  /** Phantom type of the response, as on the routes of `defineRoute`: never read at runtime. */
-  response: { data: z.output<TResponse> }
   schemas: {
     params: TParams
     query: TQuery
@@ -99,9 +95,6 @@ export function defineSchemaRoute<
     path,
     getPath: (params) => (params ? interpolatePath(path, params) : path),
     method: definition.method,
-    // Phantom types: these two values exist for typing only, and nothing reads them at runtime.
-    request: undefined as SchemaRoute<TMethod, TParams, TQuery, TBody, TResponse>["request"],
-    response: undefined as unknown as { data: z.output<TResponse> },
     schemas: {
       // Safe: TParams and TQuery default to EmptySchema, the schema used when the part is absent.
       params: (definition.params ?? emptySchema) as TParams,

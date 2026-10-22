@@ -1,3 +1,4 @@
+import type { AgentParamsDto } from "@caseai-connect/desk-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { EllipsisIcon, ExternalLinkIcon, RotateCcwIcon, Trash2Icon } from "lucide-react"
 import { toast } from "sonner"
@@ -12,10 +13,9 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { openBlankTab } from "@/lib/safe-url"
 import { useOpenExtractionFile } from "../api/mutations"
-import type { ExtractionAgentRef } from "../extraction-agent"
 
 export type ExtractionRunActionsProps = {
-  agent: ExtractionAgentRef
+  agent: AgentParamsDto
   documentId: string
   /** Extracting again shows once the run ended. */
   canExtractAgain: boolean

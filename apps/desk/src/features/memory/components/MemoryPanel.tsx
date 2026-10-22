@@ -1,3 +1,4 @@
+import type { AgentParamsDto } from "@caseai-connect/desk-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useQuery } from "@tanstack/react-query"
 import { Trash2Icon } from "lucide-react"
@@ -17,10 +18,9 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { useForgetAllMemories, useForgetMemory } from "../api/mutations"
 import { memoriesQueryOptions } from "../api/queries"
-import type { MemoryAgent } from "../memory-agent"
 
 export type MemoryPanelProps = {
-  agent: MemoryAgent
+  agent: AgentParamsDto
   onClose: () => void
 }
 

@@ -1,8 +1,9 @@
+import type { ConversationParamsDto, DocumentParamsDto } from "@caseai-connect/desk-contracts"
 import { DeskConversationsRoutes, DeskDocumentsRoutes } from "@caseai-connect/desk-contracts"
 import { queryOptions } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/api-client"
-import { isWriting, toChatMessages } from "../chat-messages"
-import type { ConversationRef } from "../conversation-ref"
+import { pollWhile } from "@/lib/polling"
+import { type ChatMessage, isWriting, toChatMessages } from "../chat-messages"
 import { conversationKeys, documentKeys } from "./keys"
 import { isReplyStreaming } from "./reply-streams"
 
@@ -13,32 +14,25 @@ const RECOVERY_INTERVAL_IN_MILLISECONDS = 2000
  * The messages of a conversation, oldest first. After a reload during a reply, the server keeps
  * writing it: the query then refetches every 2 s, while the tab is visible, until it settles.
  */
-export const messagesQueryOptions = (conversation: ConversationRef) =>
+export const messagesQueryOptions = (conversation: ConversationParamsDto) =>
   queryOptions({
     queryKey: conversationKeys.messages(conversation.agentSessionId),
     queryFn: async ({ signal }) =>
       toChatMessages(
         await apiRequest(DeskConversationsRoutes.getMessages, { params: conversation, signal }),
       ),
-    refetchInterval: (query) => {
+    // Three failures in a row stop the polling: the reply then shows as interrupted.
+    refetchInterval: pollWhile((messages: ChatMessage[] | undefined) => {
       if (isReplyStreaming(conversation.agentSessionId)) return false
       const now = Date.now()
-      const isServerWriting = (query.state.data ?? []).some((message) => isWriting(message, now))
-      // Three failures in a row stop the polling: the reply then shows as interrupted.
-      return isServerWriting && query.state.fetchFailureCount < 3
-        ? RECOVERY_INTERVAL_IN_MILLISECONDS
-        : false
-    },
+      return (messages ?? []).some((message) => isWriting(message, now))
+    }, RECOVERY_INTERVAL_IN_MILLISECONDS),
     // A refetch would replace the reply this tab is streaming into the cache.
     refetchOnWindowFocus: () => !isReplyStreaming(conversation.agentSessionId),
   })
 
 /** Whether a document a reply cites is shared with every member of the project. */
-export const documentIsPublicQueryOptions = (document: {
-  organizationId: string
-  projectId: string
-  documentId: string
-}) =>
+export const documentIsPublicQueryOptions = (document: DocumentParamsDto) =>
   queryOptions({
     queryKey: documentKeys.isPublic(document.documentId),
     queryFn: async ({ signal }) =>
@@ -51,7 +45,7 @@ export const documentIsPublicQueryOptions = (document: {
  * The current HTML of the MCP Apps the conversation's replies show. The API connects to each MCP
  * server to read it, so it loads after the messages, once a settled reply shows an app.
  */
-export const mcpAppsHtmlQueryOptions = (conversation: ConversationRef) =>
+export const mcpAppsHtmlQueryOptions = (conversation: ConversationParamsDto) =>
   queryOptions({
     queryKey: conversationKeys.mcpApps(conversation.agentSessionId),
     queryFn: ({ signal }) =>

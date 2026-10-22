@@ -1,3 +1,4 @@
+import type { ConversationParamsDto } from "@caseai-connect/desk-contracts"
 import { useLingui } from "@lingui/react/macro"
 import { ExternalLinkIcon, FileIcon } from "lucide-react"
 import { toast } from "sonner"
@@ -5,10 +6,9 @@ import { Button } from "@/components/ui/button"
 import { openBlankTab } from "@/lib/safe-url"
 import { useOpenAttachment } from "../api/mutations"
 import type { ChatAttachment } from "../chat-messages"
-import type { ConversationRef } from "../conversation-ref"
 
 export type AttachmentChipProps = {
-  conversation: ConversationRef
+  conversation: ConversationParamsDto
   attachment: ChatAttachment
 }
 

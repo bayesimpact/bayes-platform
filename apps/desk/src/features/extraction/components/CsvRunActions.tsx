@@ -1,4 +1,7 @@
-import type { CsvExtractionRunDetailOutputDto } from "@caseai-connect/desk-contracts"
+import type {
+  AgentParamsDto,
+  CsvExtractionRunDetailOutputDto,
+} from "@caseai-connect/desk-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { CircleStopIcon, DownloadIcon, EllipsisIcon, RotateCcwIcon, Trash2Icon } from "lucide-react"
 import { toast } from "sonner"
@@ -17,10 +20,9 @@ import {
   useRetryCsvExtraction,
 } from "../api/mutations"
 import { isCsvRunLive } from "../api/queries"
-import type { ExtractionAgentRef } from "../extraction-agent"
 
 export type CsvRunActionsProps = {
-  agent: ExtractionAgentRef
+  agent: AgentParamsDto
   run: CsvExtractionRunDetailOutputDto
   onDelete: () => void
 }

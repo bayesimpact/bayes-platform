@@ -425,6 +425,36 @@ describe("a conversation", () => {
     expect(world.feedbacks).toEqual([{ agentMessageId: reply?.id, content: "The table is wrong." }])
   })
 
+  it("is not found when its id in the URL is not an id, without asking the API", async () => {
+    const world = buildDeskWorld()
+    server.use(...worldHandlers(world))
+    const requests: string[] = []
+    server.events.on("request:start", ({ request }) => {
+      requests.push(new URL(request.url).pathname)
+    })
+    renderApp(`${urlsOf(world).agentUrl}/as/not-an-id`)
+
+    expect(await screen.findByText("Page not found")).toBeInTheDocument()
+    expect(requests.some((path) => path.includes("not-an-id"))).toBe(false)
+    server.events.removeAllListeners()
+  })
+
+  it("does not come back with the browser's back button once deleted", async () => {
+    const world = buildDeskWorld()
+    server.use(...worldHandlers(world))
+    const { router } = renderApp(urlsOf(world).conversationUrl)
+
+    await userEvent.click(await screen.findByRole("button", { name: "More actions" }))
+    await userEvent.click(await screen.findByRole("menuitem", { name: "Delete the conversation" }))
+    await userEvent.click(
+      within(await screen.findByRole("alertdialog")).getByRole("button", { name: "Delete" }),
+    )
+    await screen.findByRole("heading", { name: "How can I help you today?" })
+    router.history.back()
+
+    expect(await screen.findByText("Page not found")).toBeInTheDocument()
+  })
+
   it("is not found when it is not the person's", async () => {
     const world = buildDeskWorld()
     server.use(...worldHandlers(world))

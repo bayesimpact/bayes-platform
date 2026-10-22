@@ -2,6 +2,7 @@ import { Trans, useLingui } from "@lingui/react/macro"
 import { Link } from "@tanstack/react-router"
 import { CircleAlertIcon, LoaderCircleIcon } from "lucide-react"
 import { SidebarMenuButton } from "@/components/ui/sidebar"
+import { agentParamsOf } from "@/lib/agent-params"
 import type { HistoryAgent, HistoryEntry } from "../history-entries"
 
 export type HistoryEntryLinkProps = {
@@ -11,11 +12,7 @@ export type HistoryEntryLinkProps = {
 
 /** One line of the history, which opens its conversation or extraction. */
 export function HistoryEntryLink({ agent, entry }: HistoryEntryLinkProps) {
-  const agentParams = {
-    organizationId: agent.organizationId,
-    projectId: agent.projectId,
-    agentId: agent.agentId,
-  }
+  const agentParams = agentParamsOf(agent)
   const className = "data-[status=active]:bg-sidebar-accent data-[status=active]:font-medium"
   switch (entry.kind) {
     case "conversation":

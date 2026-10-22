@@ -1,79 +1,54 @@
+import type { AgentParamsDto } from "@caseai-connect/desk-contracts"
 import { DeskAgentSessionsRoutes, DeskExtractionsRoutes } from "@caseai-connect/desk-contracts"
 import { type QueryClient, queryOptions } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/api-client"
-import { type HistoryAgent, hasPendingRun } from "../history-entries"
+import { pollWhile } from "@/lib/polling"
+import { startQuery } from "@/lib/start-query"
+import { type HistoryAgent, hasPendingCsvRun, hasPendingExtractionRun } from "../history-entries"
 import { historyKeys } from "./keys"
 
-const agentParams = (agent: HistoryAgent) => ({
-  organizationId: agent.organizationId,
-  projectId: agent.projectId,
-  agentId: agent.agentId,
-})
+/** While an extraction of the history goes on, its list asks how it goes this often. */
+const PENDING_INTERVAL_IN_MILLISECONDS = 5000
 
 /** The person's own conversations with a conversation agent, newest first. */
-export const conversationsQueryOptions = (agent: HistoryAgent) =>
+export const conversationsQueryOptions = (agent: AgentParamsDto) =>
   queryOptions({
     queryKey: historyKeys.conversations(agent.agentId),
     queryFn: ({ signal }) =>
-      apiRequest(DeskAgentSessionsRoutes.getConversations, { params: agentParams(agent), signal }),
+      apiRequest(DeskAgentSessionsRoutes.getConversations, { params: agent, signal }),
   })
 
-/** While an extraction of the history goes on, the history asks how it goes this often. */
-const PENDING_INTERVAL_IN_MILLISECONDS = 5000
-
 /**
- * The history's interval: every 5 s while one of its extractions goes on, so its mark turns once
- * it ends. The two lists share the answer, read from the cache.
+ * The person's own extractions of one document by an extraction agent. While one goes on, the
+ * list asks every 5 s how it goes, so its mark turns once it ends.
  */
-const pendingInterval =
-  (queryClient: QueryClient | undefined, agent: HistoryAgent) => (failureCount: number) => {
-    if (!queryClient || failureCount >= 3) return false
-    const isPending = hasPendingRun(
-      queryClient.getQueryData(historyKeys.extractionRuns(agent.agentId)),
-      queryClient.getQueryData(historyKeys.csvExtractionRuns(agent.agentId)),
-    )
-    return isPending ? PENDING_INTERVAL_IN_MILLISECONDS : false
-  }
-
-/** The person's own extractions of one document by an extraction agent. */
-export const extractionRunsQueryOptions = (agent: HistoryAgent, queryClient?: QueryClient) =>
+export const extractionRunsQueryOptions = (agent: AgentParamsDto) =>
   queryOptions({
     queryKey: historyKeys.extractionRuns(agent.agentId),
     queryFn: ({ signal }) =>
-      apiRequest(DeskAgentSessionsRoutes.getExtractionRuns, { params: agentParams(agent), signal }),
-    refetchInterval: (query) => pendingInterval(queryClient, agent)(query.state.fetchFailureCount),
+      apiRequest(DeskAgentSessionsRoutes.getExtractionRuns, { params: agent, signal }),
+    refetchInterval: pollWhile(hasPendingExtractionRun, PENDING_INTERVAL_IN_MILLISECONDS),
   })
 
-/** The person's own extractions of a CSV file by an extraction agent. */
-export const csvExtractionRunsQueryOptions = (agent: HistoryAgent, queryClient?: QueryClient) =>
+/** The person's own extractions of a CSV file by an extraction agent, polled as the above. */
+export const csvExtractionRunsQueryOptions = (agent: AgentParamsDto) =>
   queryOptions({
     queryKey: historyKeys.csvExtractionRuns(agent.agentId),
     queryFn: ({ signal }) =>
-      apiRequest(DeskAgentSessionsRoutes.getCsvExtractionRuns, {
-        params: agentParams(agent),
-        signal,
-      }),
-    refetchInterval: (query) => pendingInterval(queryClient, agent)(query.state.fetchFailureCount),
+      apiRequest(DeskAgentSessionsRoutes.getCsvExtractionRuns, { params: agent, signal }),
+    refetchInterval: pollWhile(hasPendingCsvRun, PENDING_INTERVAL_IN_MILLISECONDS),
   })
 
 /**
  * The documents the person uploaded for an extraction agent, newest first: the history names a
  * CSV run by its file, and a new extraction offers them again.
  */
-export const extractionDocumentsQueryOptions = (agent: {
-  organizationId: string
-  projectId: string
-  agentId: string
-}) =>
+export const extractionDocumentsQueryOptions = (agent: AgentParamsDto) =>
   queryOptions({
     queryKey: historyKeys.extractionDocuments(agent.agentId),
     queryFn: async ({ signal }) => {
       const documents = await apiRequest(DeskExtractionsRoutes.getMyDocuments, {
-        params: {
-          organizationId: agent.organizationId,
-          projectId: agent.projectId,
-          agentId: agent.agentId,
-        },
+        params: agent,
         signal,
       })
       return [...documents].sort((first, second) => second.createdAt - first.createdAt)
@@ -86,15 +61,18 @@ export const extractionDocumentsQueryOptions = (agent: {
  */
 export function prefetchAgentHistory(queryClient: QueryClient, agent: HistoryAgent): void {
   if (agent.type === "conversation") {
-    void queryClient.prefetchQuery(conversationsQueryOptions(agent))
+    startQuery(queryClient, conversationsQueryOptions(agent))
     return
   }
-  void queryClient.prefetchQuery(extractionRunsQueryOptions(agent))
-  void queryClient.prefetchQuery(csvExtractionRunsQueryOptions(agent))
-  void queryClient.prefetchQuery(extractionDocumentsQueryOptions(agent))
+  startQuery(queryClient, extractionRunsQueryOptions(agent))
+  startQuery(queryClient, csvExtractionRunsQueryOptions(agent))
+  startQuery(queryClient, extractionDocumentsQueryOptions(agent))
 }
 
-/** Marks an agent's history stale, after a session started, changed or was deleted. */
-export function invalidateAgentHistory(queryClient: QueryClient, agentId: string): void {
-  void queryClient.invalidateQueries({ queryKey: historyKeys.agent(agentId) })
+/**
+ * Refreshes an agent's history, after a session started, changed or was deleted. A mutation
+ * returns it from `onSettled`, so its own callbacks, and the page they open, see the new history.
+ */
+export function invalidateAgentHistory(queryClient: QueryClient, agentId: string): Promise<void> {
+  return queryClient.invalidateQueries({ queryKey: historyKeys.agent(agentId) })
 }

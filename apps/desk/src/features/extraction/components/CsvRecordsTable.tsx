@@ -8,9 +8,9 @@ import { getCoreRowModel, type SortingState, useReactTable } from "@tanstack/rea
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
 import { DataTable } from "@/components/shared/DataTable"
 import { Button } from "@/components/ui/button"
-import type { CsvRecordsPage } from "../api/keys"
 import { CSV_RECORDS_PAGE_SIZE } from "../api/queries"
 import { fieldKeysOf } from "../extraction-fields"
+import type { CsvRecordsPage } from "../schemas"
 import { recordColumnsOf } from "./csv-record-columns"
 
 export type CsvRecordsTableProps = {

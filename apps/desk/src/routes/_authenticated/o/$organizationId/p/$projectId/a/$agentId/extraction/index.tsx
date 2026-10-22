@@ -20,5 +20,6 @@ export const Route = createFileRoute(
 function NewExtractionRoute() {
   const { agent } = Route.useRouteContext()
   const params = Route.useParams()
-  return <NewExtraction agent={params} agentName={agent.name} />
+  // Another agent's page starts afresh, with no upload of the previous one in progress.
+  return <NewExtraction key={params.agentId} agent={params} agentName={agent.name} />
 }

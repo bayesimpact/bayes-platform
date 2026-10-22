@@ -15,9 +15,11 @@ export async function* readServerSentEvents(
   const reader = body.getReader()
   const decoder = new TextDecoder()
   let buffer = ""
+  let isDone = false
   try {
     while (true) {
       const { value, done } = await reader.read()
+      isDone = done
       if (done) break
       buffer += decoder.decode(value, { stream: true }).replace(/\r\n?/g, "\n")
       let frameEnd = buffer.indexOf("\n\n")
@@ -31,6 +33,9 @@ export async function* readServerSentEvents(
     const lastFrame = parseFrame(buffer)
     if (lastFrame) yield lastFrame
   } finally {
+    // A reader that stops early, on an error event or a broken frame, closes the connection too:
+    // the server would otherwise keep writing to it.
+    if (!isDone) await reader.cancel()
     reader.releaseLock()
   }
 }

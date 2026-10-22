@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { SidebarMenuAction } from "@/components/ui/sidebar"
+import { agentParamsOf } from "@/lib/agent-params"
 import type { HistoryAgent, HistoryEntry } from "../history-entries"
 import { DeleteEntryDialog } from "./DeleteEntryDialog"
 
@@ -33,11 +34,7 @@ export function HistoryEntryActions({ agent, entry, title }: HistoryEntryActions
     if (openId !== entry.id) return
     void navigate({
       to: "/o/$organizationId/p/$projectId/a/$agentId",
-      params: {
-        organizationId: agent.organizationId,
-        projectId: agent.projectId,
-        agentId: agent.agentId,
-      },
+      params: agentParamsOf(agent),
     })
   }
 

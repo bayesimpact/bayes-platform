@@ -51,9 +51,14 @@ type Part<TName extends string, TSchema extends z.ZodType> = Record<
   ? { [Key in TName]?: z.output<TSchema> }
   : { [Key in TName]: z.output<TSchema> }
 
-type BodyPart<TRoute extends AnySchemaRoute> = TRoute["request"] extends { payload: infer TPayload }
-  ? { body: TPayload }
-  : { body?: never }
+/** The body, which the caller passes only when the route reads one, as its schema takes it. */
+type BodyPart<TRoute extends AnySchemaRoute> =
+  z.input<TRoute["schemas"]["body"]> extends { payload: infer TPayload }
+    ? { body: TPayload }
+    : { body?: never }
+
+/** The `data` of the route's response, as its schema outputs it. */
+type ResponseData<TRoute extends AnySchemaRoute> = z.output<TRoute["schemas"]["response"]>["data"]
 
 type ApiRequestOptions<TRoute extends AnySchemaRoute> = Part<
   "params",
@@ -74,11 +79,19 @@ type ApiRequestArgs<TRoute extends AnySchemaRoute> =
 export async function apiRequest<TRoute extends AnySchemaRoute>(
   route: TRoute,
   ...[options]: ApiRequestArgs<TRoute>
-): Promise<TRoute["response"]["data"]> {
+): Promise<ResponseData<TRoute>> {
   const response = await apiFetch(route, options ?? {})
-  const result = route.schemas.response.safeParse(await response.json())
+  const routeName = `${route.method.toUpperCase()} ${route.path}`
+  let body: unknown
+  try {
+    body = await response.json()
+  } catch {
+    // A body that is not JSON, such as a proxy's page, breaks the contract as much as a wrong one.
+    console.error(`${routeName} answered with a body that is not JSON`)
+    throw new ContractMismatchError(routeName)
+  }
+  const result = route.schemas.response.safeParse(body)
   if (!result.success) {
-    const routeName = `${route.method.toUpperCase()} ${route.path}`
     console.error(`${routeName} broke its contract:`, z.prettifyError(result.error))
     throw new ContractMismatchError(routeName)
   }
@@ -132,16 +145,29 @@ type RequestOptions = {
 
 type PreparedRequest = { url: URL; init: RequestInit }
 
+/**
+ * The request the route's schemas describe. The params keep only the keys the route declares, so
+ * a caller may pass a wider object, such as a conversation's params to a route of its agent. A
+ * value the schemas refuse is a bug of the Desk, never retried: `InvalidRequestError`.
+ */
 function buildRequest(
   route: AnySchemaRoute | AnyStreamRoute,
   options: RequestOptions,
 ): PreparedRequest {
-  const params = z.encode(route.schemas.params, options.params ?? {})
-  const query = z.encode(route.schemas.query, options.query ?? {})
+  const declared = Object.keys(route.schemas.params.shape)
+  const ownParams = Object.fromEntries(
+    Object.entries(options.params ?? {}).filter(([name]) => declared.includes(name)),
+  )
+  const params = encodeOrThrow(route, () => z.encode(route.schemas.params, ownParams))
+  const query = encodeOrThrow(route, () => z.encode(route.schemas.query, options.query ?? {}))
   const url = new URL(`/api${route.getPath(toStrings(params))}`, window.location.origin)
   for (const [name, value] of Object.entries(toStrings(query))) url.searchParams.set(name, value)
 
   const hasBody = options.body !== undefined
+  // The body goes through its schema too: it applies the contract's trims and limits.
+  const body = hasBody
+    ? encodeOrThrow(route, () => route.schemas.body.parse({ payload: options.body }))
+    : undefined
   return {
     url,
     init: {
@@ -150,9 +176,28 @@ function buildRequest(
         Accept: options.accept ?? "application/json",
         ...(hasBody ? { "Content-Type": "application/json" } : {}),
       },
-      ...(hasBody ? { body: JSON.stringify({ payload: options.body }) } : {}),
+      ...(hasBody ? { body: JSON.stringify(body) } : {}),
       ...(options.signal ? { signal: options.signal } : {}),
     },
+  }
+}
+
+/** A request whose params, query or body the route's schemas refuse: a bug of the Desk. */
+export class InvalidRequestError extends Error {
+  constructor(routeName: string, cause: unknown) {
+    super(`The request of ${routeName} does not match its contract`, { cause })
+    this.name = "InvalidRequestError"
+  }
+}
+
+function encodeOrThrow<TValue>(
+  route: AnySchemaRoute | AnyStreamRoute,
+  encode: () => TValue,
+): TValue {
+  try {
+    return encode()
+  } catch (error) {
+    throw new InvalidRequestError(`${route.method.toUpperCase()} ${route.path}`, error)
   }
 }
 

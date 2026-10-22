@@ -1,5 +1,5 @@
 import { QueryClient } from "@tanstack/react-query"
-import { ApiError, ContractMismatchError } from "@/lib/api-client"
+import { ApiError, ContractMismatchError, InvalidRequestError } from "@/lib/api-client"
 import {
   AuthenticationRequiredError,
   SignInLoopError,
@@ -7,12 +7,13 @@ import {
 } from "@/lib/auth/session"
 
 /**
- * Queries never retry a 4xx, a broken contract, an ended session or a refused sign-in; mutations
- * never retry.
+ * Queries never retry a 4xx, a broken contract either way, an ended session or a refused sign-in;
+ * mutations never retry.
  */
 function shouldRetryQuery(failureCount: number, error: Error): boolean {
   if (
     error instanceof ContractMismatchError ||
+    error instanceof InvalidRequestError ||
     error instanceof AuthenticationRequiredError ||
     error instanceof SignInRefusedError ||
     error instanceof SignInLoopError
@@ -23,10 +24,15 @@ function shouldRetryQuery(failureCount: number, error: Error): boolean {
   return failureCount < 3
 }
 
-export function createQueryClient(): QueryClient {
+export type QueryClientOptions = {
+  /** Whether a failed query retries: off in the tests and the stories, so a failure shows at once. */
+  isRetrying?: boolean
+}
+
+export function createQueryClient({ isRetrying = true }: QueryClientOptions = {}): QueryClient {
   return new QueryClient({
     defaultOptions: {
-      queries: { retry: shouldRetryQuery },
+      queries: { retry: isRetrying ? shouldRetryQuery : false },
       mutations: { retry: false },
     },
   })

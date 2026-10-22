@@ -36,9 +36,9 @@ export type OutgoingMessage = {
 /** A message as the conversation shows it. `tool` messages hold tool results and are not shown. */
 export type ChatMessage = {
   id: string
-  role: "user" | "assistant"
+  role: Exclude<ConversationMessageOutputDto["role"], "tool">
   content: string
-  status: "streaming" | "completed" | "aborted" | "error"
+  status: NonNullable<ConversationMessageOutputDto["status"]>
   /** The tools the agent called, in order, from the persisted message or the stream. */
   toolNames: string[]
   createdAt: number | null
@@ -152,6 +152,33 @@ export type ReplyCursor = {
   hasStarted: boolean
 }
 
+/** The prefix of the ids this tab gives its messages until the server names them. */
+const LOCAL_ID_PREFIX = "local-"
+
+/** An id for a message the server has not named yet. */
+export const newLocalMessageId = () => `${LOCAL_ID_PREFIX}${crypto.randomUUID()}`
+
+/** Whether a message is still this tab's own, before the server named it. */
+export const isLocalMessageId = (messageId: string) => messageId.startsWith(LOCAL_ID_PREFIX)
+
+/** A message that is still being written, with nothing in it yet. */
+function newMessage(id: string, role: ChatMessage["role"], now: number): ChatMessage {
+  return {
+    id,
+    role,
+    content: "",
+    status: "streaming",
+    toolNames: [],
+    createdAt: now,
+    failure: null,
+    sources: [],
+    resources: [],
+    attachment: null,
+    memoryIds: [],
+    mcpApps: [],
+  }
+}
+
 /** The user's message and an empty reply, shown before the server answers. */
 export function startTurn(
   messages: ChatMessage[],
@@ -169,33 +196,12 @@ export function startTurn(
   return [
     ...messages,
     {
-      id: ids.userMessageId,
-      role: "user",
+      ...newMessage(ids.userMessageId, "user", now),
       content: outgoing.content,
       status: "completed",
-      toolNames: [],
-      createdAt: now,
-      failure: null,
-      sources: [],
-      resources: [],
       attachment: userAttachment,
-      memoryIds: [],
-      mcpApps: [],
     },
-    {
-      id: ids.replyId,
-      role: "assistant",
-      content: "",
-      status: "streaming",
-      toolNames: [],
-      createdAt: now,
-      failure: null,
-      sources: [],
-      resources: [],
-      attachment: null,
-      memoryIds: [],
-      mcpApps: [],
-    },
+    newMessage(ids.replyId, "assistant", now),
   ]
 }
 
@@ -226,22 +232,8 @@ export function applyReplyEvent(
         }
       }
       // A sub-agent takes over: its reply follows in a message of its own.
-      const reply: ChatMessage = {
-        id: event.messageId,
-        role: "assistant",
-        content: "",
-        status: "streaming",
-        toolNames: [],
-        createdAt: now,
-        failure: null,
-        sources: [],
-        resources: [],
-        attachment: null,
-        memoryIds: [],
-        mcpApps: [],
-      }
       return {
-        messages: [...messages, reply],
+        messages: [...messages, newMessage(event.messageId, "assistant", now)],
         cursor: { messageId: event.messageId, hasStarted: true },
       }
     }

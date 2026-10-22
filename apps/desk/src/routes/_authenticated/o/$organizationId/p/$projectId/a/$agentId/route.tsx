@@ -12,12 +12,14 @@ import {
 } from "@/features/agents"
 import { AgentHistorySection, NewSessionLink, prefetchAgentHistory } from "@/features/history"
 import { InvitationsButton } from "@/features/invitations"
+import { uuidParams } from "@/lib/not-found"
 
 /**
  * The frame of every page of an agent: the sidebar with the agent switcher and the agent's
  * history, the page in the center. An agent the person cannot use is not found.
  */
 export const Route = createFileRoute("/_authenticated/o/$organizationId/p/$projectId/a/$agentId")({
+  params: { parse: uuidParams("organizationId", "projectId", "agentId") },
   // The pages below read the agent from the context, to redirect on its type before they load.
   beforeLoad: async ({ context, params }) => {
     const groups = await loadDeskAgents(context.queryClient)

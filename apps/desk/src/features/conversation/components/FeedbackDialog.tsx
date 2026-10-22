@@ -1,3 +1,4 @@
+import type { ConversationParamsDto } from "@caseai-connect/desk-contracts"
 import {
   type MessageFeedbackInputDto,
   messageFeedbackInputSchema,
@@ -23,10 +24,9 @@ import { Field, FieldError, FieldLabel } from "@/components/ui/field"
 import { Textarea } from "@/components/ui/textarea"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useSendFeedback } from "../api/mutations"
-import type { ConversationRef } from "../conversation-ref"
 
 export type FeedbackDialogProps = {
-  conversation: ConversationRef
+  conversation: ConversationParamsDto
   agentMessageId: string
 }
 

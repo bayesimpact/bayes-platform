@@ -1,3 +1,4 @@
+import type { ConversationParamsDto } from "@caseai-connect/desk-contracts"
 import { Plural } from "@lingui/react/macro"
 import {
   Trace,
@@ -8,11 +9,10 @@ import {
   TraceTitle,
 } from "@/components/ui/trace"
 import type { ChatSource } from "../chat-messages"
-import type { ConversationRef } from "../conversation-ref"
 import { SourceItem } from "./SourceItem"
 
 export type SourcesListProps = {
-  conversation: ConversationRef
+  conversation: ConversationParamsDto
   sources: ChatSource[]
 }
 

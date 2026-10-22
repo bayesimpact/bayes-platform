@@ -5,14 +5,14 @@ import {
   flattenDeskAgents,
 } from "./desk-agents"
 
-export type AgentPathParams = {
+export type AgentParamsDto = {
   organizationId: string
   projectId: string
   agentId: string
 }
 
 /** The agent of a URL, when the person can use it and it sits in that project. */
-export function findAgent(groups: DeskProjectAgents[], params: AgentPathParams): DeskAgent | null {
+export function findAgent(groups: DeskProjectAgents[], params: AgentParamsDto): DeskAgent | null {
   return (
     flattenDeskAgents(groups).find(
       (agent) =>
@@ -26,7 +26,7 @@ export function findAgent(groups: DeskProjectAgents[], params: AgentPathParams):
 /** The agent a project's URL opens: the last one opened when it is in the project, else its first. */
 export function findProjectDefaultAgent(
   groups: DeskProjectAgents[],
-  params: Omit<AgentPathParams, "agentId">,
+  params: Omit<AgentParamsDto, "agentId">,
   lastAgentId: string | null,
 ): DeskAgent | null {
   const group = groups.find(
@@ -38,7 +38,7 @@ export function findProjectDefaultAgent(
 }
 
 /** The path params of an agent's pages. */
-export function agentPathParams(agent: DeskAgent): AgentPathParams {
+export function agentPathParams(agent: DeskAgent): AgentParamsDto {
   return {
     organizationId: agent.project.organization.id,
     projectId: agent.project.id,

@@ -4,6 +4,7 @@ import { DeskShellSkeleton } from "@/components/shared/DeskShellSkeleton"
 import { RouteErrorState } from "@/components/shared/RouteErrorState"
 import { meQueryOptions, TermsGate } from "@/features/account"
 import { hasSession, readLoginHint, signIn } from "@/lib/auth/session"
+import { startQuery } from "@/lib/start-query"
 
 /**
  * Every page of the Desk but the sign-in callback: a session, the terms accepted, then the page in
@@ -19,7 +20,7 @@ export const Route = createFileRoute("/_authenticated")({
   // The pages' loaders run beside this one: `me`, which the terms and the user menu read, starts
   // here unawaited, and the gate waits for it with the shape of the Desk.
   loader: ({ context }) => {
-    void context.queryClient.prefetchQuery(meQueryOptions())
+    startQuery(context.queryClient, meQueryOptions())
   },
   errorComponent: RouteErrorState,
   component: AuthenticatedLayout,

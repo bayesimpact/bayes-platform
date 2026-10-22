@@ -1,3 +1,4 @@
+import type { ConversationParamsDto } from "@caseai-connect/desk-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useState } from "react"
 import { CopyButton } from "@/components/shared/CopyButton"
@@ -6,8 +7,7 @@ import { RelativeTime } from "@/components/shared/RelativeTime"
 import { Message, MessageContent } from "@/components/ui/message"
 import { MemoryProposals } from "@/features/memory"
 import { QUOTABLE_ATTRIBUTE } from "../annotation"
-import { type ChatMessage, isWriting } from "../chat-messages"
-import type { ConversationRef } from "../conversation-ref"
+import { type ChatMessage, isLocalMessageId, isWriting } from "../chat-messages"
 import { type AppsHtml, hasMeaningfulText, toolResultText, unavailableApps } from "../mcp-apps"
 import type { OpenedResource } from "../resource-media"
 import { FeedbackDialog } from "./FeedbackDialog"
@@ -19,11 +19,11 @@ import { SourcesList } from "./SourcesList"
 import { ToolSteps } from "./ToolSteps"
 
 export type AssistantMessageViewProps = {
-  conversation: ConversationRef
+  conversation: ConversationParamsDto
   message: ChatMessage
   now: number
   /** Whether the project shows the sources of a reply (its `sources-tool` feature). */
-  showSources: boolean
+  hasSourcesTool: boolean
   appsHtml: AppsHtml
   onAppMessage: (text: string) => void
   /** Opens a resource a reply points to beside the conversation. */
@@ -39,7 +39,7 @@ export function AssistantMessageView({
   conversation,
   message,
   now,
-  showSources,
+  hasSourcesTool,
   appsHtml,
   onAppMessage,
   onOpenResource,
@@ -52,11 +52,6 @@ export function AssistantMessageView({
     message.mcpApps.length > 0 && !writing
       ? replyTextWithApps(message, unavailableApps(message.mcpApps, appsHtml, failedAppIds))
       : message.content
-  const memoryAgent = {
-    organizationId: conversation.organizationId,
-    projectId: conversation.projectId,
-    agentId: conversation.agentId,
-  }
 
   return (
     <Message>
@@ -86,9 +81,9 @@ export function AssistantMessageView({
           <ResourceCards resources={message.resources} onOpenResource={onOpenResource} />
         ) : null}
         {message.memoryIds.length > 0 ? (
-          <MemoryProposals agent={memoryAgent} memoryIds={message.memoryIds} />
+          <MemoryProposals agent={conversation} memoryIds={message.memoryIds} />
         ) : null}
-        {showSources && message.sources.length > 0 ? (
+        {hasSourcesTool && message.sources.length > 0 ? (
           <SourcesList conversation={conversation} sources={message.sources} />
         ) : null}
         {isInterrupted ? (
@@ -100,7 +95,7 @@ export function AssistantMessageView({
           <MessageActions>
             <CopyButton text={text} label={t`Copy the reply`} />
             {/* A local reply gets its id once the persisted messages replace it. */}
-            {message.id.startsWith("local-") ? null : (
+            {isLocalMessageId(message.id) ? null : (
               <FeedbackDialog conversation={conversation} agentMessageId={message.id} />
             )}
             {message.createdAt !== null ? (

@@ -2,6 +2,7 @@ import { Trans } from "@lingui/react/macro"
 import { Link } from "@tanstack/react-router"
 import { SquarePenIcon } from "lucide-react"
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "@/components/ui/sidebar"
+import { agentParamsOf } from "@/lib/agent-params"
 import type { HistoryAgent } from "../history-entries"
 
 export type NewSessionLinkProps = {
@@ -10,11 +11,7 @@ export type NewSessionLinkProps = {
 
 /** Opens a new conversation, or a new extraction, with the current agent. */
 export function NewSessionLink({ agent }: NewSessionLinkProps) {
-  const params = {
-    organizationId: agent.organizationId,
-    projectId: agent.projectId,
-    agentId: agent.agentId,
-  }
+  const params = agentParamsOf(agent)
   return (
     <SidebarMenu>
       <SidebarMenuItem>

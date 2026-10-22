@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { agentParamsSchema } from "../agent-sessions/agent-sessions.dto"
+import { AGENT_PATH, agentParamsSchema, PROJECT_PATH } from "../common/params.dto"
 import { defineSchemaRoute, defineStreamRoute } from "../define-schema-route"
 import { temporaryUrlOutputSchema } from "../documents/documents.dto"
 import {
@@ -16,15 +16,14 @@ import {
   replyStreamQuerySchema,
 } from "./conversations.dto"
 
-const agentPath = "organizations/:organizationId/projects/:projectId/agents/:agentId"
-const conversationPath = `${agentPath}/conversation-agent-sessions/live/:agentSessionId`
-const messagesPath = `${agentPath}/agent-sessions/live/:agentSessionId/messages`
+const conversationPath = `${AGENT_PATH}/conversation-agent-sessions/live/:agentSessionId`
+const messagesPath = `${AGENT_PATH}/agent-sessions/live/:agentSessionId/messages`
 
 /** A person's live conversations with a conversation agent. */
 export const DeskConversationsRoutes = {
   createOne: defineSchemaRoute({
     method: "post",
-    path: `${agentPath}/conversation-agent-sessions/live/create`,
+    path: `${AGENT_PATH}/conversation-agent-sessions/live/create`,
     params: agentParamsSchema,
     body: z.strictObject({}),
     response: createdConversationOutputSchema,
@@ -68,7 +67,7 @@ export const DeskConversationsRoutes = {
   /** Reports a problem with one of the agent's replies. */
   createMessageFeedback: defineSchemaRoute({
     method: "post",
-    path: "organizations/:organizationId/projects/:projectId/agent-messages/:agentMessageId/feedbacks",
+    path: `${PROJECT_PATH}/agent-messages/:agentMessageId/feedbacks`,
     params: messageParamsSchema,
     body: messageFeedbackInputSchema,
     response: z.object({ success: z.boolean() }),

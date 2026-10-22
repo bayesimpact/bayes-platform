@@ -1,4 +1,4 @@
-import { useQueryClient, useSuspenseQueries, useSuspenseQuery } from "@tanstack/react-query"
+import { useSuspenseQueries, useSuspenseQuery } from "@tanstack/react-query"
 import {
   conversationsQueryOptions,
   csvExtractionRunsQueryOptions,
@@ -20,11 +20,10 @@ export function useConversationEntries(agent: HistoryAgent): HistoryEntry[] {
 
 /** An extraction agent's history, documents and CSV files mixed, from the prefetched queries. */
 export function useExtractionEntries(agent: HistoryAgent): HistoryEntry[] {
-  const queryClient = useQueryClient()
   return useSuspenseQueries({
     queries: [
-      extractionRunsQueryOptions(agent, queryClient),
-      csvExtractionRunsQueryOptions(agent, queryClient),
+      extractionRunsQueryOptions(agent),
+      csvExtractionRunsQueryOptions(agent),
       extractionDocumentsQueryOptions(agent),
     ],
     combine: ([extractionRuns, csvExtractionRuns, documents]) =>

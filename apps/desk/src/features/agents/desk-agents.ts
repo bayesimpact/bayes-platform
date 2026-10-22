@@ -1,13 +1,20 @@
 import type { AgentTypeDto, ProjectAgentOutputDto } from "@caseai-connect/desk-contracts"
+import { notFound } from "@tanstack/react-router"
 import type { DeskProject } from "./desk-projects"
 
 /** An agent the person can use in the Desk, with its project and organization. */
-export type DeskAgent = {
-  id: string
-  name: string
-  type: AgentTypeDto
+export type DeskAgent = Pick<ProjectAgentOutputDto, "id" | "name" | "type"> & {
   project: DeskProject
 }
+
+/** A page made for another type of agent is not found: its URL may name any agent. */
+export function requireAgentType(agent: DeskAgent, type: AgentTypeDto): void {
+  if (agent.type !== type) throw notFound()
+}
+
+/** Whether the agent's project shows the sources a reply relied on (its `sources-tool` feature). */
+export const hasSourcesTool = (agent: DeskAgent): boolean =>
+  agent.project.featureFlags.includes("sources-tool")
 
 /** The agents of a project, in the order the menu shows them. */
 export type DeskProjectAgents = {

@@ -1,4 +1,4 @@
-import type { ExtractionDocumentOutputDto } from "@caseai-connect/desk-contracts"
+import type { AgentParamsDto, ExtractionDocumentOutputDto } from "@caseai-connect/desk-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
@@ -11,14 +11,13 @@ import {
   useExtractDocument,
   useUploadAndExtract,
 } from "../api/mutations"
-import type { ExtractionAgentRef } from "../extraction-agent"
 import { fileKindOf, fileProblemOf } from "../extraction-files"
 import { DeleteDocumentDialog } from "./DeleteDocumentDialog"
 import { FileDropZone } from "./FileDropZone"
 import { RecentDocuments } from "./RecentDocuments"
 
 export type NewExtractionProps = {
-  agent: ExtractionAgentRef
+  agent: AgentParamsDto
   agentName: string
 }
 

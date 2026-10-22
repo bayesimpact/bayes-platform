@@ -1,3 +1,4 @@
+import type { AgentParamsDto } from "@caseai-connect/desk-contracts"
 import { useLingui } from "@lingui/react/macro"
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
@@ -11,8 +12,8 @@ import {
 import { durationOf } from "@/lib/relative-time"
 import { useExtractDocument } from "../api/mutations"
 import { extractionRunQueryOptions } from "../api/queries"
-import type { ExtractionAgentRef } from "../extraction-agent"
 import { fileKindOf } from "../extraction-files"
+import { EXTRACTION_RUN_STATES } from "../run-states"
 import { ExtractionFailure } from "./ExtractionFailure"
 import { ExtractionPending } from "./ExtractionPending"
 import { ExtractionResult } from "./ExtractionResult"
@@ -21,7 +22,7 @@ import { RunHeader } from "./RunHeader"
 import { RunStatusBadge } from "./RunStatusBadge"
 
 export type ExtractionRunViewProps = {
-  agent: ExtractionAgentRef
+  agent: AgentParamsDto
   runId: string
 }
 
@@ -35,7 +36,7 @@ export function ExtractionRunView({ agent, runId }: ExtractionRunViewProps) {
   const { data: run } = useSuspenseQuery(extractionRunQueryOptions(agent, runId))
   const { data: documents } = useSuspenseQuery(extractionDocumentsQueryOptions(agent))
   // useQuery: the history's list, which the sidebar loads, only names a deleted document.
-  const { data: runs = [] } = useQuery(extractionRunsQueryOptions({ ...agent, type: "extraction" }))
+  const { data: runs = [] } = useQuery(extractionRunsQueryOptions(agent))
   const extractAgain = useExtractDocument(agent)
   const [isDeleting, setIsDeleting] = useState(false)
 
@@ -70,11 +71,7 @@ export function ExtractionRunView({ agent, runId }: ExtractionRunViewProps) {
       <RunHeader
         fileKind={fileKindOf({ mimeType: document?.mimeType, fileName: documentName })}
         title={title}
-        status={
-          <RunStatusBadge
-            state={isPending ? "running" : run.status === "success" ? "done" : "failed"}
-          />
-        }
+        status={<RunStatusBadge state={EXTRACTION_RUN_STATES[run.status]} />}
         createdAt={run.createdAt}
         duration={isPending ? undefined : t`Took ${tookTime}`}
         now={Date.now()}

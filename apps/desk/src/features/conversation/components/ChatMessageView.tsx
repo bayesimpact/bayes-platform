@@ -1,10 +1,10 @@
+import type { ConversationParamsDto } from "@caseai-connect/desk-contracts"
 import { useLingui } from "@lingui/react/macro"
 import { CopyButton } from "@/components/shared/CopyButton"
 import { RelativeTime } from "@/components/shared/RelativeTime"
 import { Bubble, BubbleContent } from "@/components/ui/bubble"
 import { Message, MessageContent } from "@/components/ui/message"
 import type { ChatMessage } from "../chat-messages"
-import type { ConversationRef } from "../conversation-ref"
 import type { AppsHtml } from "../mcp-apps"
 import type { OpenedResource } from "../resource-media"
 import { AssistantMessageView } from "./AssistantMessageView"
@@ -13,10 +13,10 @@ import { MessageActions } from "./MessageActions"
 import { UserMessageText } from "./UserMessageText"
 
 export type ChatMessageViewProps = {
-  conversation: ConversationRef
+  conversation: ConversationParamsDto
   message: ChatMessage
   /** Whether the project shows the sources of a reply (its `sources-tool` feature). */
-  showSources: boolean
+  hasSourcesTool: boolean
   now: number
   appsHtml: AppsHtml
   onAppMessage: (text: string) => void
@@ -29,7 +29,7 @@ export function ChatMessageView({
   conversation,
   message,
   now,
-  showSources,
+  hasSourcesTool,
   appsHtml,
   onAppMessage,
   onOpenResource,
@@ -67,7 +67,7 @@ export function ChatMessageView({
       conversation={conversation}
       message={message}
       now={now}
-      showSources={showSources}
+      hasSourcesTool={hasSourcesTool}
       appsHtml={appsHtml}
       onAppMessage={onAppMessage}
       onOpenResource={onOpenResource}

@@ -1,3 +1,4 @@
+import type { ConversationParamsDto } from "@caseai-connect/desk-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useQuery } from "@tanstack/react-query"
 import { DownloadIcon, FileTextIcon, GlobeIcon } from "lucide-react"
@@ -7,10 +8,9 @@ import { openBlankTab } from "@/lib/safe-url"
 import { useOpenDocument } from "../api/mutations"
 import { documentIsPublicQueryOptions } from "../api/queries"
 import type { ChatSource } from "../chat-messages"
-import type { ConversationRef } from "../conversation-ref"
 
 export type SourceItemProps = {
-  conversation: ConversationRef
+  conversation: ConversationParamsDto
   source: ChatSource
 }
 
@@ -24,11 +24,7 @@ export function SourceItem({ conversation, source }: SourceItemProps) {
   // useQuery: optional data, read only while the sources are open, which hides the button
   // until it knows whether the person may open the document.
   const isPublic = useQuery({
-    ...documentIsPublicQueryOptions({
-      organizationId: conversation.organizationId,
-      projectId: conversation.projectId,
-      documentId: source.documentId,
-    }),
+    ...documentIsPublicQueryOptions({ ...conversation, documentId: source.documentId }),
     enabled: !isWebPage,
   })
   const openDocument = useOpenDocument(conversation)

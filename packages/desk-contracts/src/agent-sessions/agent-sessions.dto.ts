@@ -1,12 +1,5 @@
 import { z } from "zod"
 
-/** The params of the routes under one agent. */
-export const agentParamsSchema = z.strictObject({
-  organizationId: z.uuid(),
-  projectId: z.uuid(),
-  agentId: z.uuid(),
-})
-
 /** A field of a form, as the agent's form schema describes it. */
 const formFieldSchemaSchema = z.object({
   type: z.string().optional(),

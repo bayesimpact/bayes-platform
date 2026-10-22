@@ -1,11 +1,11 @@
+import type { AgentParamsDto } from "@caseai-connect/desk-contracts"
 import { Trans } from "@lingui/react/macro"
 import { useState } from "react"
 import { useStartConversation } from "../api/mutations"
-import type { ConversationAgentRef } from "../conversation-ref"
 import { Composer } from "./Composer"
 
 export type NewConversationProps = {
-  agent: ConversationAgentRef
+  agent: AgentParamsDto
   agentName: string
 }
 

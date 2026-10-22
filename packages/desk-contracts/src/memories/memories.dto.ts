@@ -1,12 +1,8 @@
 import { z } from "zod"
+import { agentParamsSchema } from "../common/params.dto"
 
 /** The params of the routes under one fact an agent remembers about the person. */
-export const memoryParamsSchema = z.strictObject({
-  organizationId: z.uuid(),
-  projectId: z.uuid(),
-  agentId: z.uuid(),
-  memoryId: z.uuid(),
-})
+export const memoryParamsSchema = agentParamsSchema.extend({ memoryId: z.uuid() })
 
 /**
  * A fact an agent remembers about the signed-in person across conversations. A `pending` fact

@@ -1,12 +1,13 @@
 import { z } from "zod"
+import { PROJECT_PATH, projectParamsSchema } from "../common/params.dto"
 import { defineSchemaRoute } from "../define-schema-route"
 import { projectAgentOutputSchema } from "./agents.dto"
 
 export const DeskAgentsRoutes = {
   getAllOfProject: defineSchemaRoute({
     method: "get",
-    path: "organizations/:organizationId/projects/:projectId/agents",
-    params: z.strictObject({ organizationId: z.uuid(), projectId: z.uuid() }),
+    path: `${PROJECT_PATH}/agents`,
+    params: projectParamsSchema,
     response: z.array(projectAgentOutputSchema),
   }),
 }

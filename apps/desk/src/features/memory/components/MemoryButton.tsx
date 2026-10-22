@@ -1,12 +1,12 @@
+import type { AgentParamsDto } from "@caseai-connect/desk-contracts"
 import { Plural } from "@lingui/react/macro"
 import { useQuery } from "@tanstack/react-query"
 import { BrainIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { memoriesQueryOptions } from "../api/queries"
-import type { MemoryAgent } from "../memory-agent"
 
 export type MemoryButtonProps = {
-  agent: MemoryAgent
+  agent: AgentParamsDto
   isOpen: boolean
   onToggle: () => void
 }

@@ -1,3 +1,4 @@
+import type { AgentParamsDto } from "@caseai-connect/desk-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useQuery } from "@tanstack/react-query"
 import { BrainIcon, CheckIcon, PencilIcon, XIcon } from "lucide-react"
@@ -6,11 +7,10 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { useResolveMemoryProposals } from "../api/mutations"
 import { memoriesQueryOptions } from "../api/queries"
-import type { MemoryAgent } from "../memory-agent"
 import { MemoryRewordForm } from "./MemoryRewordForm"
 
 export type MemoryProposalsProps = {
-  agent: MemoryAgent
+  agent: AgentParamsDto
   /** The facts this reply saved or proposed to remember. */
   memoryIds: string[]
 }

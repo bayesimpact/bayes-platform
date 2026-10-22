@@ -2,6 +2,7 @@ import { useLingui } from "@lingui/react/macro"
 import { useNavigate, useParams } from "@tanstack/react-router"
 import { useEffect, useRef } from "react"
 import { toast } from "sonner"
+import { agentParamsOf } from "@/lib/agent-params"
 import type { HistoryAgent, HistoryEntry } from "../history-entries"
 
 /**
@@ -32,11 +33,7 @@ export function useFinishedRunToasts(agent: HistoryAgent, entries: HistoryEntry[
         (entry.kind === "csv"
           ? t({ message: "CSV extraction", comment: "An extraction of every row of a spreadsheet" })
           : t`Untitled document`)
-      const agentParams = {
-        organizationId: agent.organizationId,
-        projectId: agent.projectId,
-        agentId: agent.agentId,
-      }
+      const agentParams = agentParamsOf(agent)
       const open = () =>
         entry.kind === "csv"
           ? navigate({

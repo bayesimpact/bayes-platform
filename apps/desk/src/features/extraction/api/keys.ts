@@ -1,3 +1,5 @@
+import type { CsvRecordsPage } from "../schemas"
+
 export const extractionKeys = {
   all: ["extraction"] as const,
   agent: (agentId: string) => [...extractionKeys.all, agentId] as const,
@@ -9,11 +11,4 @@ export const extractionKeys = {
     [...extractionKeys.agent(agentId), "csv-runs", csvRunId] as const,
   csvRecords: (agentId: string, csvRunId: string, page: CsvRecordsPage) =>
     [...extractionKeys.csvRun(agentId, csvRunId), "records", page] as const,
-}
-
-/** A page of a CSV run's rows, as the URL holds it. */
-export type CsvRecordsPage = {
-  page: number
-  sortBy?: string
-  sortOrder?: "asc" | "desc"
 }

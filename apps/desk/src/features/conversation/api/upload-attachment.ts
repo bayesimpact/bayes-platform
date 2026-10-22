@@ -1,17 +1,17 @@
+import type { ConversationParamsDto } from "@caseai-connect/desk-contracts"
 import {
   DeskConversationsRoutes,
   presignAttachmentInputSchema,
 } from "@caseai-connect/desk-contracts"
 import { apiRequest } from "@/lib/api-client"
 import { putFileToSignedUrl } from "@/lib/upload-file"
-import type { ConversationRef } from "../conversation-ref"
 
 /**
  * Uploads a file to attach to the next message of a conversation: the API signs an upload URL,
  * then the bytes go straight to storage. Returns the document the message names.
  */
 export async function uploadAttachment(
-  conversation: ConversationRef,
+  conversation: ConversationParamsDto,
   file: File,
   signal: AbortSignal,
 ): Promise<string> {

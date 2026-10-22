@@ -1,12 +1,10 @@
 import { z } from "zod"
+import { agentParamsSchema, projectParamsSchema } from "../common/params.dto"
 
 /** The params of the routes under one conversation. */
-export const conversationParamsSchema = z.strictObject({
-  organizationId: z.uuid(),
-  projectId: z.uuid(),
-  agentId: z.uuid(),
-  agentSessionId: z.uuid(),
-})
+export const conversationParamsSchema = agentParamsSchema.extend({ agentSessionId: z.uuid() })
+
+export type ConversationParamsDto = z.output<typeof conversationParamsSchema>
 
 /** A conversation the signed-in person just started, as `.../create` returns it. */
 export const createdConversationOutputSchema = z.object({
@@ -119,11 +117,7 @@ export const replyStreamEventSchema = z.discriminatedUnion("type", [
 export type ReplyStreamEventDto = z.output<typeof replyStreamEventSchema>
 
 /** The params of the routes under one message. */
-export const messageParamsSchema = z.strictObject({
-  organizationId: z.uuid(),
-  projectId: z.uuid(),
-  agentMessageId: z.uuid(),
-})
+export const messageParamsSchema = projectParamsSchema.extend({ agentMessageId: z.uuid() })
 
 /** A problem the person reports on one of the agent's replies. */
 export const messageFeedbackInputSchema = z.strictObject({
@@ -157,11 +151,7 @@ export const presignAttachmentOutputSchema = z.object({
 })
 
 /** The params of the routes under one attachment of a conversation. */
-export const attachmentParamsSchema = z.strictObject({
-  organizationId: z.uuid(),
-  projectId: z.uuid(),
-  agentId: z.uuid(),
-  agentSessionId: z.uuid(),
+export const attachmentParamsSchema = conversationParamsSchema.extend({
   attachmentDocumentId: z.uuid(),
 })
 

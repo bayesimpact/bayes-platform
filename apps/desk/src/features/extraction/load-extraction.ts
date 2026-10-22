@@ -1,8 +1,8 @@
+import type { AgentParamsDto } from "@caseai-connect/desk-contracts"
 import type { QueryClient } from "@tanstack/react-query"
-import { notFound } from "@tanstack/react-router"
 import { extractionDocumentsQueryOptions } from "@/features/history"
-import { ApiError } from "@/lib/api-client"
-import type { CsvRecordsPage } from "./api/keys"
+import { orNotFound } from "@/lib/not-found"
+import { startQuery } from "@/lib/start-query"
 import {
   csvColumnsQueryOptions,
   csvRecordsQueryOptions,
@@ -10,72 +10,68 @@ import {
   extractionRunQueryOptions,
   isCsvRunLive,
 } from "./api/queries"
-import type { ExtractionAgentRef } from "./extraction-agent"
+import type { CsvRecordsPage } from "./schemas"
 
-/** A run or a file that does not exist, or is not the person's, is not found. */
-async function orNotFound(load: () => Promise<unknown>): Promise<void> {
-  try {
-    await load()
-  } catch (error) {
-    if (error instanceof ApiError && [403, 404, 422].includes(error.status)) throw notFound()
-    throw error
-  }
-}
-
-const documentsOf = (queryClient: QueryClient, agent: ExtractionAgentRef) =>
+const documentsOf = (queryClient: QueryClient, agent: AgentParamsDto) =>
   queryClient.query({ ...extractionDocumentsQueryOptions(agent), staleTime: "static" })
 
 /** Loads the person's documents for a new extraction's page. */
 export async function loadNewExtraction(
   queryClient: QueryClient,
-  agent: ExtractionAgentRef,
+  agent: AgentParamsDto,
 ): Promise<void> {
   await documentsOf(queryClient, agent)
 }
 
 /** Loads the extraction of a document, and the documents that name it. */
-export function loadExtractionRun(
+export async function loadExtractionRun(
   queryClient: QueryClient,
-  agent: ExtractionAgentRef,
-  runId: string,
+  params: AgentParamsDto & { extractionRunId: string },
 ): Promise<void> {
-  return orNotFound(() =>
+  await orNotFound(() =>
     Promise.all([
-      queryClient.query({ ...extractionRunQueryOptions(agent, runId), staleTime: "static" }),
-      documentsOf(queryClient, agent),
+      queryClient.query({
+        ...extractionRunQueryOptions(params, params.extractionRunId),
+        staleTime: "static",
+      }),
+      documentsOf(queryClient, params),
     ]),
   )
 }
 
 /** Loads the columns of an uploaded CSV file, before its run is set up. */
-export function loadCsvSetup(
+export async function loadCsvSetup(
   queryClient: QueryClient,
-  agent: ExtractionAgentRef,
-  documentId: string,
+  params: AgentParamsDto & { documentId: string },
 ): Promise<void> {
-  return orNotFound(() =>
+  await orNotFound(() =>
     Promise.all([
-      queryClient.query({ ...csvColumnsQueryOptions(agent, documentId), staleTime: "static" }),
-      documentsOf(queryClient, agent),
+      queryClient.query({
+        ...csvColumnsQueryOptions(params, params.documentId),
+        staleTime: "static",
+      }),
+      documentsOf(queryClient, params),
     ]),
   )
 }
 
-/** Loads a CSV run and the page of its rows the URL asks for. */
-export function loadCsvRun(
+/**
+ * Loads a CSV run, and starts, unawaited, the page of its rows the URL asks for: another page of
+ * the rows keeps the page on screen, and its table shows its own wait.
+ */
+export async function loadCsvRun(
   queryClient: QueryClient,
-  agent: ExtractionAgentRef,
-  csvRunId: string,
+  params: AgentParamsDto & { csvRunId: string },
   page: CsvRecordsPage,
 ): Promise<void> {
-  return orNotFound(async () => {
-    const [run] = await Promise.all([
-      queryClient.query({ ...csvRunQueryOptions(agent, csvRunId), staleTime: "static" }),
-      documentsOf(queryClient, agent),
-    ])
-    await queryClient.query({
-      ...csvRecordsQueryOptions(agent, csvRunId, page, isCsvRunLive(run.status)),
-      staleTime: "static",
-    })
-  })
+  const [run] = await orNotFound(() =>
+    Promise.all([
+      queryClient.query({ ...csvRunQueryOptions(params, params.csvRunId), staleTime: "static" }),
+      documentsOf(queryClient, params),
+    ]),
+  )
+  startQuery(
+    queryClient,
+    csvRecordsQueryOptions(params, params.csvRunId, page, isCsvRunLive(run.status)),
+  )
 }

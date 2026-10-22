@@ -1,29 +1,26 @@
-import { createFileRoute, notFound, stripSearchParams } from "@tanstack/react-router"
-import { z } from "zod"
+import { createFileRoute, stripSearchParams } from "@tanstack/react-router"
 import { RouteErrorState } from "@/components/shared/RouteErrorState"
-import { CsvRunView, ExtractionSkeleton, loadCsvRun } from "@/features/extraction"
-
-/** The page of the results, and their order, as the URL keeps them. */
-const searchSchema = z.object({
-  page: z.number().int().min(0).catch(0).default(0),
-  sortBy: z.string().optional().catch(undefined),
-  sortOrder: z.enum(["asc", "desc"]).optional().catch(undefined),
-})
+import { requireAgentType } from "@/features/agents"
+import {
+  CsvRunSkeleton,
+  CsvRunView,
+  csvRecordsSearchSchema,
+  loadCsvRun,
+} from "@/features/extraction"
+import { uuidParams } from "@/lib/not-found"
 
 /** The extraction of a CSV file: its progress, and its rows a page at a time. */
 export const Route = createFileRoute(
   "/_authenticated/o/$organizationId/p/$projectId/a/$agentId/extraction/csv-runs/$csvRunId",
 )({
-  validateSearch: searchSchema,
+  params: { parse: uuidParams("csvRunId") },
+  validateSearch: csvRecordsSearchSchema,
   // The first page is the page's default: the URL leaves it out.
   search: { middlewares: [stripSearchParams({ page: 0 })] },
-  beforeLoad: ({ context }) => {
-    if (context.agent.type !== "extraction") throw notFound()
-  },
+  beforeLoad: ({ context }) => requireAgentType(context.agent, "extraction"),
   loaderDeps: ({ search }) => search,
-  loader: ({ context, params, deps }) =>
-    loadCsvRun(context.queryClient, params, params.csvRunId, deps),
-  pendingComponent: ExtractionSkeleton,
+  loader: ({ context, params, deps }) => loadCsvRun(context.queryClient, params, deps),
+  pendingComponent: CsvRunSkeleton,
   errorComponent: RouteErrorState,
   component: CsvRunRoute,
 })

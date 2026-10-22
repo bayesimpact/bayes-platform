@@ -1,17 +1,13 @@
 import type {
+  AgentParamsDto,
   AgentTypeDto,
   ConversationSessionOutputDto,
   CsvExtractionRunDetailOutputDto,
   ExtractionRunOutputDto,
 } from "@caseai-connect/desk-contracts"
 
-/** The agent whose history the sidebar shows. */
-export type HistoryAgent = {
-  organizationId: string
-  projectId: string
-  agentId: string
-  type: AgentTypeDto
-}
+/** The agent whose history the sidebar shows: its type says which lists make it. */
+export type HistoryAgent = AgentParamsDto & { type: AgentTypeDto }
 
 /** How an entry's run went, when it can still be pending or has failed. */
 type HistoryEntryState = "done" | "pending" | "failed"
@@ -70,12 +66,18 @@ export function extractionEntries(
   return [...runs, ...csvFiles].sort((first, second) => second.createdAt - first.createdAt)
 }
 
-function csvRunState(status: CsvExtractionRunDetailOutputDto["status"]): HistoryEntryState {
-  if (status === "pending" || status === "running") return "pending"
-  if (status === "failed") return "failed"
+/** How an extraction of a CSV file shows in the history, for each status the API sends. */
+const CSV_RUN_ENTRY_STATES = {
+  pending: "pending",
+  running: "pending",
+  failed: "failed",
+  completed: "done",
   // A cancelled run kept the rows it had extracted: it reads as done.
-  return "done"
-}
+  cancelled: "done",
+} as const satisfies Record<CsvExtractionRunDetailOutputDto["status"], HistoryEntryState>
+
+const csvRunState = (status: CsvExtractionRunDetailOutputDto["status"]): HistoryEntryState =>
+  CSV_RUN_ENTRY_STATES[status]
 
 /** The periods the sidebar groups the history by, newest first. */
 export type HistoryPeriod = "today" | "yesterday" | "previous7Days" | "previous30Days" | "older"
@@ -111,12 +113,12 @@ export function groupByPeriod(entries: HistoryEntry[], now: number): HistoryGrou
 }
 
 /** Whether an extraction of the history still goes on, so the history follows it. */
-export function hasPendingRun(
-  extractionRuns: ExtractionRunOutputDto[] | undefined,
-  csvExtractionRuns: CsvExtractionRunDetailOutputDto[] | undefined,
-): boolean {
-  return (
-    (extractionRuns ?? []).some((run) => run.status === "pending") ||
-    (csvExtractionRuns ?? []).some((run) => csvRunState(run.status) === "pending")
-  )
+/** Whether one of these extractions of a document still goes on. */
+export function hasPendingExtractionRun(runs: ExtractionRunOutputDto[] | undefined): boolean {
+  return (runs ?? []).some((run) => run.status === "pending")
+}
+
+/** Whether one of these extractions of a CSV file still goes on. */
+export function hasPendingCsvRun(runs: CsvExtractionRunDetailOutputDto[] | undefined): boolean {
+  return (runs ?? []).some((run) => csvRunState(run.status) === "pending")
 }

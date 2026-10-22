@@ -1,3 +1,4 @@
+import type { ConversationParamsDto } from "@caseai-connect/desk-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query"
 import { ArrowDownIcon, RotateCcwIcon } from "lucide-react"
@@ -17,7 +18,6 @@ import { ANNOTATION_LAYER_ATTRIBUTE, composeMessage } from "../annotation"
 import { useSendMessage } from "../api/mutations"
 import { mcpAppsHtmlQueryOptions, messagesQueryOptions } from "../api/queries"
 import { findRetryableMessage, isWriting } from "../chat-messages"
-import type { ConversationRef } from "../conversation-ref"
 import { useAnnotations } from "../hooks/use-annotations"
 import { useConversationForms } from "../hooks/use-conversation-forms"
 import type { OpenedResource } from "../resource-media"
@@ -30,17 +30,21 @@ import { QuoteReplyPopover } from "./QuoteReplyPopover"
 import { ResourcePanel } from "./ResourcePanel"
 
 export type ConversationViewProps = {
-  conversation: ConversationRef
+  conversation: ConversationParamsDto
   agentName: string
   /** Whether the project shows the sources of a reply (its `sources-tool` feature). */
-  showSources: boolean
+  hasSourcesTool: boolean
 }
 
 /**
  * A conversation, as the shadcn Chat: the messages in a scroller that follows the reply while the
  * person stays at the end, and the message box under it.
  */
-export function ConversationView({ conversation, agentName, showSources }: ConversationViewProps) {
+export function ConversationView({
+  conversation,
+  agentName,
+  hasSourcesTool,
+}: ConversationViewProps) {
   const { t } = useLingui()
   const { data: messages } = useSuspenseQuery(messagesQueryOptions(conversation))
   const sendMessage = useSendMessage(conversation)
@@ -56,11 +60,6 @@ export function ConversationView({ conversation, agentName, showSources }: Conve
   const togglePanel = (panel: "memory" | "forms") =>
     setOpenPanel((current) => (current === panel ? null : panel))
   const openedResource = typeof openPanel === "object" ? openPanel : null
-  const memoryAgent = {
-    organizationId: conversation.organizationId,
-    projectId: conversation.projectId,
-    agentId: conversation.agentId,
-  }
   const hasSettledApps = messages.some(
     (message) => message.mcpApps.length > 0 && message.status !== "streaming",
   )
@@ -75,7 +74,7 @@ export function ConversationView({ conversation, agentName, showSources }: Conve
     <MessageScrollerProvider autoScroll>
       <HeaderActions>
         <MemoryButton
-          agent={memoryAgent}
+          agent={conversation}
           isOpen={openPanel === "memory"}
           onToggle={() => togglePanel("memory")}
         />
@@ -132,7 +131,7 @@ export function ConversationView({ conversation, agentName, showSources }: Conve
                               conversation={conversation}
                               message={message}
                               now={now}
-                              showSources={showSources}
+                              hasSourcesTool={hasSourcesTool}
                               appsHtml={appsHtml}
                               onAppMessage={setDraft}
                               onOpenResource={setOpenPanel}
@@ -180,7 +179,7 @@ export function ConversationView({ conversation, agentName, showSources }: Conve
           </div>
         </div>
         {openPanel === "memory" ? (
-          <MemoryPanel agent={memoryAgent} onClose={() => setOpenPanel(null)} />
+          <MemoryPanel agent={conversation} onClose={() => setOpenPanel(null)} />
         ) : null}
         {openPanel === "forms" && forms.length > 0 ? (
           <FormsPanel forms={forms} onClose={() => setOpenPanel(null)} />

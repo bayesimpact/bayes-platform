@@ -163,6 +163,8 @@ function conversationHandlers(world: DeskWorld) {
         world.conversations[agentId] = (world.conversations[agentId] ?? []).filter(
           (conversation) => conversation.id !== params.agentSessionId,
         )
+        // As the API does, a deleted conversation's messages are gone with it.
+        delete world.messages[String(params.agentSessionId)]
         return HttpResponse.json({ data: { success: true } }, { status: 201 })
       },
     ),

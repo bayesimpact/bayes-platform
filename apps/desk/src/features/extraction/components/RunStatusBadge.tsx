@@ -1,9 +1,7 @@
 import { Trans } from "@lingui/react/macro"
 import { cn } from "cn"
 import { CircleAlertIcon, CircleCheckIcon, CircleSlashIcon, LoaderCircleIcon } from "lucide-react"
-
-/** Where a run stands, as both kinds of run share it. */
-export type RunState = "starting" | "running" | "done" | "failed" | "stopped"
+import type { RunState } from "../run-states"
 
 export type RunStatusBadgeProps = {
   state: RunState

@@ -1,20 +1,11 @@
 import { z } from "zod"
+import { agentParamsSchema } from "../common/params.dto"
 
 /** The params of the routes under one extraction of a document. */
-export const extractionRunParamsSchema = z.strictObject({
-  organizationId: z.uuid(),
-  projectId: z.uuid(),
-  agentId: z.uuid(),
-  agentSessionId: z.uuid(),
-})
+export const extractionRunParamsSchema = agentParamsSchema.extend({ agentSessionId: z.uuid() })
 
 /** The params of the routes under one document the person uploaded for an extraction. */
-export const extractionDocumentParamsSchema = z.strictObject({
-  organizationId: z.uuid(),
-  projectId: z.uuid(),
-  agentId: z.uuid(),
-  documentId: z.uuid(),
-})
+export const extractionDocumentParamsSchema = agentParamsSchema.extend({ documentId: z.uuid() })
 
 export const extractionRunStatusSchema = z.enum(["pending", "success", "failed"])
 
@@ -99,10 +90,7 @@ export const deletionOutputSchema = z.object({ success: z.boolean() })
 // CSV files: every row runs through the agent.
 
 /** The params of the routes under one extraction of a CSV file. */
-export const csvExtractionRunParamsSchema = z.strictObject({
-  organizationId: z.uuid(),
-  projectId: z.uuid(),
-  agentId: z.uuid(),
+export const csvExtractionRunParamsSchema = agentParamsSchema.extend({
   agentCsvExtractionRunId: z.uuid(),
 })
 

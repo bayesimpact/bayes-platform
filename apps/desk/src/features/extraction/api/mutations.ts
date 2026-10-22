@@ -1,3 +1,4 @@
+import type { AgentParamsDto } from "@caseai-connect/desk-contracts"
 import {
   type CsvColumnDto,
   type CsvExtractionRunDetailOutputDto,
@@ -11,7 +12,6 @@ import { invalidateAgentHistory } from "@/features/history"
 import { apiRequest } from "@/lib/api-client"
 import { openInTab } from "@/lib/safe-url"
 import { putFileToSignedUrl } from "@/lib/upload-file"
-import { agentParamsOf, type ExtractionAgentRef } from "../extraction-agent"
 import { extractionMimeTypeOf } from "../extraction-files"
 import { extractionKeys } from "./keys"
 
@@ -25,9 +25,9 @@ export type UploadStep = "uploading" | "starting"
  * Uploads a file for an extraction, then starts it: a document runs at once; a CSV file waits for
  * the person to choose what the agent reads in its rows.
  */
-export function useUploadAndExtract(agent: ExtractionAgentRef) {
+export function useUploadAndExtract(agent: AgentParamsDto) {
   const queryClient = useQueryClient()
-  const params = agentParamsOf(agent)
+  const params = agent
   return useMutation({
     mutationFn: async ({
       file,
@@ -60,13 +60,13 @@ export function useUploadAndExtract(agent: ExtractionAgentRef) {
 }
 
 /** Extracts again a document the person uploaded before. */
-export function useExtractDocument(agent: ExtractionAgentRef) {
+export function useExtractDocument(agent: AgentParamsDto) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (documentId: string) =>
       (
         await apiRequest(DeskExtractionsRoutes.executeOne, {
-          params: agentParamsOf(agent),
+          params: agent,
           body: { documentId },
         })
       ).runId,
@@ -75,21 +75,21 @@ export function useExtractDocument(agent: ExtractionAgentRef) {
 }
 
 /** Deletes a document the person uploaded; its past extractions stay. */
-export function useDeleteExtractionDocument(agent: ExtractionAgentRef) {
+export function useDeleteExtractionDocument(agent: AgentParamsDto) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (documentId: string) =>
       apiRequest(DeskExtractionsRoutes.deleteMyDocument, {
-        params: { ...agentParamsOf(agent), documentId },
+        params: { ...agent, documentId },
       }),
     onSettled: () => invalidateAgentHistory(queryClient, agent.agentId),
   })
 }
 
 /** Creates the run of a CSV file with the columns' roles, then starts it. */
-export function useStartCsvExtraction(agent: ExtractionAgentRef) {
+export function useStartCsvExtraction(agent: AgentParamsDto) {
   const queryClient = useQueryClient()
-  const params = agentParamsOf(agent)
+  const params = agent
   return useMutation({
     mutationFn: async ({
       csvDocumentId,
@@ -117,13 +117,13 @@ export function useStartCsvExtraction(agent: ExtractionAgentRef) {
 
 /** Stops a CSV run, or starts it again, and shows the run as the API answers it. */
 function useCsvRunAction(
-  agent: ExtractionAgentRef,
+  agent: AgentParamsDto,
   route: typeof DeskCsvExtractionsRoutes.cancelOne | typeof DeskCsvExtractionsRoutes.retryOne,
 ) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (csvRunId: string) =>
-      apiRequest(route, { params: { ...agentParamsOf(agent), agentCsvExtractionRunId: csvRunId } }),
+      apiRequest(route, { params: { ...agent, agentCsvExtractionRunId: csvRunId } }),
     onSuccess: (run: CsvExtractionRunDetailOutputDto) => {
       queryClient.setQueryData(extractionKeys.csvRun(agent.agentId, run.id), run)
       void queryClient.invalidateQueries({ queryKey: extractionKeys.csvRun(agent.agentId, run.id) })
@@ -133,18 +133,18 @@ function useCsvRunAction(
 }
 
 /** Stops a CSV run: the rows already done stay, and the results file gets them. */
-export const useCancelCsvExtraction = (agent: ExtractionAgentRef) =>
+export const useCancelCsvExtraction = (agent: AgentParamsDto) =>
   useCsvRunAction(agent, DeskCsvExtractionsRoutes.cancelOne)
 
 /** Runs a failed CSV extraction again, on the same rows and settings. */
-export const useRetryCsvExtraction = (agent: ExtractionAgentRef) =>
+export const useRetryCsvExtraction = (agent: AgentParamsDto) =>
   useCsvRunAction(agent, DeskCsvExtractionsRoutes.retryOne)
 
 /**
  * Opens a file in a new tab: the document an extraction read, or the results of a CSV run. The
  * tab opens during the click and goes to the file once its short-lived URL arrives.
  */
-export function useOpenExtractionFile(agent: ExtractionAgentRef) {
+export function useOpenExtractionFile(agent: AgentParamsDto) {
   return useMutation({
     mutationFn: ({
       file,
@@ -154,15 +154,11 @@ export function useOpenExtractionFile(agent: ExtractionAgentRef) {
       tab: Window | null
     }) =>
       openInTab(tab, async () => {
-        const params = agentParamsOf(agent)
+        const params = agent
         const { url } =
           file.kind === "document"
             ? await apiRequest(DeskDocumentsRoutes.getTemporaryUrl, {
-                params: {
-                  organizationId: params.organizationId,
-                  projectId: params.projectId,
-                  documentId: file.documentId,
-                },
+                params: { ...params, documentId: file.documentId },
               })
             : await apiRequest(DeskCsvExtractionsRoutes.getExportTemporaryUrl, {
                 params: { ...params, agentCsvExtractionRunId: file.csvRunId },
