@@ -39,6 +39,8 @@ const preview: Preview = {
   initialGlobals: { locale: detectLocale() },
   parameters: {
     layout: "fullscreen",
+    // The Desk around its pages first, then its two kinds of agents.
+    options: { storySort: { order: ["Desk", ["General", "Conversation", "Extraction"]] } },
     viewport: {
       options: {
         ...INITIAL_VIEWPORTS,

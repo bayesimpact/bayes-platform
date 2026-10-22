@@ -5,7 +5,9 @@ import { render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it } from "vitest"
 import previewAnnotations from "../../.storybook/preview"
-import * as stories from "./Desk.stories"
+import * as conversationStories from "./Conversation.stories"
+import * as generalStories from "./Desk.stories"
+import * as extractionStories from "./Extraction.stories"
 
 setProjectAnnotations(previewAnnotations)
 
@@ -16,14 +18,15 @@ function LocaleAndCache() {
   return <p>{`Locale ${i18n.locale}, ${isRetrying ? "retrying" : "not retrying"}`}</p>
 }
 
-const {
-  ReplyFails,
-  HistoryFailsToLoad,
-  PageNotFound,
-  ProjectsFailToLoad,
-  Loading,
-  ...pageStories
-} = composeStories(stories)
+const { HistoryFailsToLoad, PageNotFound, ProjectsFailToLoad, Loading, ...generalPages } =
+  composeStories(generalStories)
+const { ReplyFails, ...conversationPages } = composeStories(conversationStories)
+/** The stories of a page, from the three folders of Storybook. */
+const pageStories = {
+  ...generalPages,
+  ...conversationPages,
+  ...composeStories(extractionStories),
+}
 
 /** Each story of a page, and what it shows once that page loaded: every story is listed. */
 const PAGES = {

@@ -74,7 +74,7 @@ the conventions as they stand. When a rule changes, its reference file changes i
 | A stream | `src/features/conversation/api/stream-reply.ts` |
 | A route's spec | `src/routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/extraction/csv-runs/$csvRunId.spec.tsx` |
 | An MSW handler and its factory | `src/test/msw/extraction-handlers.ts`, `src/test/factories/extractions.factory.ts` |
-| A story | `src/stories/Desk.stories.tsx` |
+| A story | `src/stories/Extraction.stories.tsx` |
 
 ## Where things are
 
@@ -113,10 +113,14 @@ the conventions as they stand. When a rule changes, its reference file changes i
   `src/test/factories/`, whose `desk-world.factory.ts` builds the worlds. `src/test/setup.ts` gives
   each test a fresh world, a signed-in session and empty storage; a spec overrides a route with
   `server.use(mockRoute(...))`. Its URLs come from `src/test/desk-urls.ts`.
-- The stories: `src/stories/Desk.stories.tsx`. Each one sets its `desk` parameter with `desk()`
-  (a world, handlers that win over it, a starting page), which `src/test/msw/story-api.ts` serves
-  with ids that are the same on every load. A new state of the Desk is a new story there; a
-  component's own story gets the i18n and query providers from `src/stories/StoryProviders.tsx`.
+- The stories, in three folders of Storybook under `Desk`: `General` (`src/stories/Desk.stories.tsx`:
+  the home, the agents and projects, the terms, the failures around the pages), `Conversation`
+  (`Conversation.stories.tsx`) and `Extraction` (`Extraction.stories.tsx`). They share the meta
+  of `src/stories/desk-meta.tsx`. Each one sets its `desk` parameter with `desk()` (a world,
+  handlers that win over it, a starting page), which `src/test/msw/story-api.ts` serves with ids
+  that are the same on every load. A new state of the Desk is a new story in the file of its
+  folder; a component's own story gets the i18n and query providers from
+  `src/stories/StoryProviders.tsx`.
   `src/stories/Desk.stories.spec.tsx` renders every story in the tests.
 
 ## Until the cutover
