@@ -126,6 +126,9 @@ export const AGENT_MEMBER_READ_PERMISSION = "agent.member.read" as const
 
 export const AGENT_MEMBER_DELETE_PERMISSION = "agent.member.delete" as const
 
+/** Give a member of the workspace a role on the agent, or take one away. Held on the agent only. */
+export const AGENT_MEMBER_UPDATE_PERMISSION = "agent.member.update" as const
+
 /**
  * List the project's agents with their unpublished draft settings, as the studio and
  * evaluation apps do. Scoped to the project and never inherited from the organization.
@@ -552,6 +555,9 @@ export const PROJECT_SCOPED_PERMISSIONS = [
   EVALUATION_UI_READ_PERMISSION,
   DOCUMENT_SOURCE_READ_PERMISSION,
   PROJECT_MEMBER_UPDATE_PERMISSION,
+  PROJECT_MEMBER_DELETE_PERMISSION,
+  PROJECT_REVIEW_CAMPAIGN_MEMBER_INVITE_PERMISSION,
+  PROJECT_REVIEW_CAMPAIGN_MEMBER_DELETE_PERMISSION,
   PROJECT_APP_INSTALLATION_READ_PERMISSION,
   PROJECT_APP_INSTALLATION_REVOKE_PERMISSION,
   PROJECT_APP_INSTALLATION_CREATE_PERMISSION,
@@ -568,6 +574,25 @@ const PROJECT_SCOPED_PERMISSION_SET: ReadonlySet<string> = new Set(PROJECT_SCOPE
 
 export function isProjectPermission(permission: string): permission is ProjectPermission {
   return PROJECT_SCOPED_PERMISSION_SET.has(permission)
+}
+
+/** Agent-scoped permissions exposed on `AgentDto.permissions`: what the studio gates on an agent. */
+export const AGENT_SCOPED_PERMISSIONS = [
+  AGENT_UPDATE_PERMISSION,
+  AGENT_DELETE_PERMISSION,
+  AGENT_DUPLICATE_PERMISSION,
+  AGENT_MEMBER_READ_PERMISSION,
+  AGENT_MEMBER_INVITE_PERMISSION,
+  AGENT_MEMBER_UPDATE_PERMISSION,
+  AGENT_MEMBER_DELETE_PERMISSION,
+] as const
+
+export type AgentPermission = (typeof AGENT_SCOPED_PERMISSIONS)[number]
+
+const AGENT_SCOPED_PERMISSION_SET: ReadonlySet<string> = new Set(AGENT_SCOPED_PERMISSIONS)
+
+export function isAgentPermission(permission: string): permission is AgentPermission {
+  return AGENT_SCOPED_PERMISSION_SET.has(permission)
 }
 
 export type GlobalPermission =

@@ -5,10 +5,7 @@ export type RoleOption = ProjectRoleOption
 
 export type MemberResourceKind = "project" | "agent" | "review_campaign"
 
-/**
- * One resource of the workspace and the member's roles on it. Storybook-first (#1077): the API
- * returns no such list yet.
- */
+/** One resource of the workspace and the member's roles on it, as the member page shows it. */
 export type MemberResourceRoles = {
   kind: MemberResourceKind
   resourceId: string
@@ -25,7 +22,6 @@ export type MemberResourceRoles = {
 }
 
 export type MemberDetailMember = {
-  id: string
   userId: string
   userName: string | null
   userEmail: string

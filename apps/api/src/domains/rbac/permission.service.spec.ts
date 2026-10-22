@@ -7,6 +7,7 @@ import {
 } from "@/common/test/test-database"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { grantConversationReview } from "@/domains/agents/conversation-reviewers/agent-conversation-reviewer.factory"
+import { addUserToAgent } from "@/domains/agents/memberships/agent-membership.factory"
 import { userMembershipFactory } from "@/domains/memberships/user-membership.factory"
 import {
   createOrganizationWithAgent,
@@ -1155,6 +1156,63 @@ describe("PermissionService", () => {
           await repositories.roleRepository.delete({ id: testRole.id })
         }
       }
+    })
+  })
+
+  describe("listResourcePermissionsFor", () => {
+    it("matches listResourcePermissions for one agent, whoever asks", async () => {
+      const repositories = setup.getAllRepositories()
+      const { organization, project, agent } = await createOrganizationWithAgent(repositories)
+      const saveUser = () => repositories.userRepository.save(userFactory.build())
+      const projectAdmin = await saveUser()
+      await addUserToProject({
+        repositories,
+        project,
+        user: projectAdmin,
+        membership: { role: "admin" },
+      })
+      const agentMember = await saveUser()
+      await addUserToProject({
+        repositories,
+        project,
+        user: agentMember,
+        membership: { role: "member" },
+      })
+      await addUserToAgent({
+        repositories,
+        agent,
+        user: agentMember,
+        membership: { role: "member" },
+      })
+      const reviewer = await saveUser()
+      await grantConversationReview({ repositories, user: reviewer, agent })
+      const outsider = await saveUser()
+      await repositories.agentRepository.save(
+        agentFactory.transient({ organization, project }).build(),
+      )
+
+      for (const user of [projectAdmin, agentMember, reviewer, outsider]) {
+        const listed = (await service.listResourcePermissions(user.id, "agent.read")).get(agent.id)
+        const expected = listed?.includes("agent.read") ? listed : []
+        expect(
+          (await service.listResourcePermissionsFor(user.id, "agent.read", agent.id)).sort(),
+        ).toEqual([...expected].sort())
+      }
+      // the cases differ: an inherited set, a direct one, and nothing for the other two
+      // inherited from the workspace: read access, not management (that comes from agent_admin)
+      const inherited = await service.listResourcePermissionsFor(
+        projectAdmin.id,
+        "agent.read",
+        agent.id,
+      )
+      expect(inherited).toContain("agent.settings.draft.read")
+      expect(inherited).not.toContain("agent.update")
+      expect(
+        await service.listResourcePermissionsFor(agentMember.id, "agent.read", agent.id),
+      ).toEqual(["agent.read"])
+      expect(await service.listResourcePermissionsFor(reviewer.id, "agent.read", agent.id)).toEqual(
+        [],
+      )
     })
   })
 

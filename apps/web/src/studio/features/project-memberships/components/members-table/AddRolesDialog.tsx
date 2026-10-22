@@ -10,10 +10,13 @@ import {
 } from "@caseai-connect/ui/shad/dialog"
 import { Label } from "@caseai-connect/ui/shad/label"
 import { useState } from "react"
-import type { ProjectRoleOption } from "./members-table.models"
+import { useTranslation } from "react-i18next"
+import type { MembersTableScope, ProjectRoleOption } from "./members-table.models"
+import { useRoleLabel } from "./role-label"
 
-/** Picks the workspace roles to add to the selected members, and confirms the change. */
+/** Picks the roles to add to the selected members, and confirms the change. */
 export function AddRolesDialog({
+  scope,
   open,
   memberCount,
   roles,
@@ -22,6 +25,7 @@ export function AddRolesDialog({
   error,
   isConfirming = false,
 }: {
+  scope: MembersTableScope
   open: boolean
   memberCount: number
   roles: ProjectRoleOption[]
@@ -30,6 +34,8 @@ export function AddRolesDialog({
   error?: string | null
   isConfirming?: boolean
 }) {
+  const { t } = useTranslation()
+  const roleLabel = useRoleLabel()
   const [selectedRoleKeys, setSelectedRoleKeys] = useState<string[]>([])
   const [showEmptyChoice, setShowEmptyChoice] = useState(false)
 
@@ -55,16 +61,15 @@ export function AddRolesDialog({
     onCancel()
   }
 
-  const membersLabel = memberCount === 1 ? "1 member" : `${memberCount} members`
-
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add roles to {membersLabel}</DialogTitle>
+          <DialogTitle>
+            {t("projectMembership:table.addRolesDialog.title", { count: memberCount })}
+          </DialogTitle>
           <DialogDescription>
-            The roles add to the ones they already hold. Their permissions on this workspace change
-            right away.
+            {t(`projectMembership:table.addRolesDialog.description.${scope}`)}
           </DialogDescription>
         </DialogHeader>
 
@@ -78,13 +83,17 @@ export function AddRolesDialog({
                   checked={selectedRoleKeys.includes(role.key)}
                   onCheckedChange={(checked) => toggleRole(role.key, checked === true)}
                 />
-                <Label htmlFor={id}>{role.name}</Label>
+                <Label htmlFor={id}>{roleLabel(role)}</Label>
               </div>
             )
           })}
         </fieldset>
 
-        {showEmptyChoice && <p className="text-sm text-destructive">Pick at least one role.</p>}
+        {showEmptyChoice && (
+          <p className="text-sm text-destructive">
+            {t("projectMembership:table.addRolesDialog.pickOne")}
+          </p>
+        )}
         {error && (
           <p role="alert" className="text-sm text-destructive">
             {error}
@@ -98,10 +107,10 @@ export function AddRolesDialog({
             onClick={() => handleOpenChange(false)}
             disabled={isConfirming}
           >
-            Cancel
+            {t("actions:cancel")}
           </Button>
           <Button type="button" onClick={handleConfirm} disabled={isConfirming}>
-            Add roles
+            {t("projectMembership:table.addRoles")}
           </Button>
         </DialogFooter>
       </DialogContent>

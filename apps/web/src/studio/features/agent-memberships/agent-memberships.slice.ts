@@ -2,17 +2,21 @@ import { createSlice } from "@reduxjs/toolkit"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
 import type { PendingInvitations } from "@/studio/features/invitations/invitations.models"
 import { listInvitationsForTarget } from "@/studio/features/invitations/invitations.thunks"
+import type { ProjectRole } from "@/studio/features/project-memberships/project-memberships.models"
 import type { AgentMembership } from "./agent-memberships.models"
 import { agentMembershipsThunks } from "./agent-memberships.thunks"
 
 interface State {
   data: AsyncData<AgentMembership[]>
   pendingInvitations: AsyncData<PendingInvitations>
+  /** The roles a member can be given on the agent. */
+  assignableRoles: AsyncData<ProjectRole[]>
 }
 
 const initialState: State = {
   data: defaultAsyncData,
   pendingInvitations: defaultAsyncData,
+  assignableRoles: defaultAsyncData,
 }
 
 const slice = createSlice({
@@ -41,14 +45,18 @@ const slice = createSlice({
         state.data.error = action.error.message || "Failed to list agent memberships"
       })
 
-    builder.addCase(agentMembershipsThunks.remove.fulfilled, (state, action) => {
-      if (ADS.isFulfilled(state.data)) {
-        const { memberUserId } = action.meta.arg
-        state.data.value = state.data.value.filter(
-          (membership) => membership.userId !== memberUserId,
-        )
-      }
-    })
+    builder
+      .addCase(agentMembershipsThunks.listAssignableRoles.pending, (state) => {
+        if (!ADS.isFulfilled(state.assignableRoles)) state.assignableRoles.status = ADS.Loading
+        state.assignableRoles.error = null
+      })
+      .addCase(agentMembershipsThunks.listAssignableRoles.fulfilled, (state, action) => {
+        state.assignableRoles = { status: ADS.Fulfilled, error: null, value: action.payload }
+      })
+      .addCase(agentMembershipsThunks.listAssignableRoles.rejected, (state, action) => {
+        state.assignableRoles.status = ADS.Error
+        state.assignableRoles.error = action.error.message || "Failed to list the agent roles"
+      })
 
     builder
       .addCase(listInvitationsForTarget.pending, (state, action) => {

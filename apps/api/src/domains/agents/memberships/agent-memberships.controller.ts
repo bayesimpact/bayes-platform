@@ -1,15 +1,29 @@
 import {
   type AgentMembershipDto,
   AgentMembershipRoutes,
+  addAgentMemberRolesSchema,
+  addMemberRoleSchema,
   buildNameFromEmail,
+  deleteAgentMembersSchema,
 } from "@caseai-connect/api-contracts"
-import { Controller, Delete, Get, Req, UseGuards } from "@nestjs/common"
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  Post,
+  Req,
+  UseGuards,
+} from "@nestjs/common"
 import type {
   EndpointRequestWithAgent,
   EndpointRequestWithAgentMembership,
 } from "@/common/context/request.interface"
 import { AddContext, RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
+import { ZodValidationPipe } from "@/common/zod-validation-pipe"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { toMembershipRoleDto } from "@/domains/memberships/membership-roles"
@@ -18,6 +32,7 @@ import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
 import {
   AGENT_MEMBER_DELETE_PERMISSION,
   AGENT_MEMBER_READ_PERMISSION,
+  AGENT_MEMBER_UPDATE_PERMISSION,
 } from "@/domains/rbac/rbac.constants"
 import { UserGuard } from "@/domains/users/user.guard"
 import type { AgentMembershipModel } from "./agent-membership.model"
@@ -56,6 +71,77 @@ export class AgentMembershipsController {
       agentId: agent.id,
     })
 
+    return { data: { success: true } }
+  }
+
+  @Post(AgentMembershipRoutes.deleteMany.path)
+  @HttpCode(200)
+  @CheckPermission(AGENT_MEMBER_DELETE_PERMISSION, "agent")
+  @TrackActivity({ action: "agentMembership.deleteMany" })
+  async removeAgentMemberships(
+    @Req() request: EndpointRequestWithAgent,
+    @Body(new ZodValidationPipe(deleteAgentMembersSchema))
+    { payload }: typeof AgentMembershipRoutes.deleteMany.request,
+  ): Promise<typeof AgentMembershipRoutes.deleteMany.response> {
+    await this.agentMembershipsService.removeAgentMemberships({
+      callerUserId: request.user.id,
+      memberUserIds: payload.userIds,
+      agentId: request.agent.id,
+    })
+    return { data: { success: true } }
+  }
+
+  @Post(AgentMembershipRoutes.addRoles.path)
+  @CheckPermission(AGENT_MEMBER_UPDATE_PERMISSION, "agent")
+  @TrackActivity({ action: "agentMembership.addRoles" })
+  async addRoles(
+    @Req() request: EndpointRequestWithAgent,
+    @Body(new ZodValidationPipe(addAgentMemberRolesSchema))
+    { payload }: typeof AgentMembershipRoutes.addRoles.request,
+  ): Promise<typeof AgentMembershipRoutes.addRoles.response> {
+    await this.agentMembershipsService.addRolesToMembers({
+      callerUserId: request.user.id,
+      memberUserIds: payload.userIds,
+      agentId: request.agent.id,
+      projectId: request.project.id,
+      roleKeys: payload.roleKeys,
+    })
+    return { data: { success: true } }
+  }
+
+  @Post(AgentMembershipRoutes.addRole.path)
+  @CheckPermission(AGENT_MEMBER_UPDATE_PERMISSION, "agent")
+  @TrackActivity({ action: "agentMembership.addRole" })
+  async addRole(
+    @Req() request: EndpointRequestWithAgent,
+    @Param("userId") memberUserId: string,
+    @Body(new ZodValidationPipe(addMemberRoleSchema))
+    { payload }: typeof AgentMembershipRoutes.addRole.request,
+  ): Promise<typeof AgentMembershipRoutes.addRole.response> {
+    await this.agentMembershipsService.addMemberRole({
+      callerUserId: request.user.id,
+      memberUserId,
+      agentId: request.agent.id,
+      projectId: request.project.id,
+      roleKey: payload.roleKey,
+    })
+    return { data: { success: true } }
+  }
+
+  @Delete(AgentMembershipRoutes.removeRole.path)
+  @CheckPermission(AGENT_MEMBER_UPDATE_PERMISSION, "agent")
+  @TrackActivity({ action: "agentMembership.removeRole" })
+  async removeRole(
+    @Req() request: EndpointRequestWithAgent,
+    @Param("userId") memberUserId: string,
+    @Param("roleKey") roleKey: string,
+  ): Promise<typeof AgentMembershipRoutes.removeRole.response> {
+    await this.agentMembershipsService.removeMemberRole({
+      callerUserId: request.user.id,
+      memberUserId,
+      agentId: request.agent.id,
+      roleKey,
+    })
     return { data: { success: true } }
   }
 }

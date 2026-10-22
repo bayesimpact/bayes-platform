@@ -1,6 +1,7 @@
 import { z } from "zod"
 import { updateDocumentTagsSchema } from "../document-tags/document-tag.dto"
 import { type TimeType, timeTypeSchema } from "../generic"
+import type { AgentPermission } from "../rbac/permissions"
 import {
   agentSettingsValidationSchema,
   hasRequiredDocumentTags,
@@ -26,6 +27,8 @@ export type AgentDto = {
   projectId: string
   type: AgentType
   currentRevision: AgentRevisionDto
+  /** The caller's permissions on the agent, limited to `AGENT_SCOPED_PERMISSIONS`. */
+  permissions: AgentPermission[]
 }
 
 /**

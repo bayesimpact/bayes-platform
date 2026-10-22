@@ -256,7 +256,7 @@ describe("ProjectMembershipsService", () => {
       )
     })
 
-    it("switches a member holding admin and member to admin only", async () => {
+    it("takes one role from a member holding admin and member", async () => {
       const { project } = await createOrganizationWithProject(repositories)
       const { membership } = await addUserToProject({ repositories, project })
       const adminRow = await giveRole({
@@ -265,14 +265,13 @@ describe("ProjectMembershipsService", () => {
         roleKey: PROJECT_ROLES.admin,
       })
 
-      const { membership: updated } = await service.updateProjectMembershipRole({
+      const { membership: updated } = await service.removeRoleFromMember({
         callerUserId: (await createOrganizationWithOwner(repositories)).user.id,
         memberUserId: adminRow.userId,
         projectId: project.id,
-        role: "admin",
+        roleKey: PROJECT_ROLES.member,
       })
 
-      // admin + member collapse into admin: the member row is the one that goes
       expect(roleKeysOf(updated)).toEqual([PROJECT_ROLES.admin])
     })
 

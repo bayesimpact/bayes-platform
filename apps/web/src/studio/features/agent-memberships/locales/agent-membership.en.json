@@ -2,17 +2,12 @@
   "agentMembership": {
     "members": "Members",
     "props": {
-      "userName": "User Name",
-      "userEmail": "User Email",
-      "status": "Status",
-      "createdAt": "Created At",
       "validation": {
         "emailDuplicate": "Email already added",
         "emailInvalid": "Invalid email address"
       }
     },
     "create": {
-      "button": "Invite users",
       "title": "Invite users",
       "description": "Enter the email addresses of the people who should use this agent. They accept the invitation after signing in.",
       "label": "Email address",
@@ -24,25 +19,16 @@
     },
     "list": {
       "title": "Members of {{agentName}}",
-      "description": "Invite users who can use your agent.",
-      "empty": {
-        "title": "No members",
-        "description": "Invite users who can use your agent."
-      }
-    },
-    "remove": {
-      "dialog": {
-        "title": "Remove {{name}}?",
-        "description": "This will remove the member from the agent. This action cannot be undone.",
-        "confirm": "Remove"
-      }
+      "description": "Everyone who can use this agent, and the roles they hold on it."
     },
     "notifications": {
       "invitationsSentByEmail": "Invitations sent by email",
       "peopleInvited": "People invited",
       "inviteError": "Failed to invite people",
-      "removed": "Member removed successfully",
-      "removeError": "Failed to remove member"
+      "rolesAdded_one": "Roles added to {{count}} member",
+      "rolesAdded_other": "Roles added to {{count}} members",
+      "membersRemoved_one": "{{count}} member removed",
+      "membersRemoved_other": "{{count}} members removed"
     }
   }
 }

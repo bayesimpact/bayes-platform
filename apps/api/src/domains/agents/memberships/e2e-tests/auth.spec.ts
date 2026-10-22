@@ -14,6 +14,8 @@ import { removeNullish } from "@/common/utils/remove-nullish"
 import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
 import type { Organization } from "@/domains/organizations/organization.entity"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
+import { addUserToProject } from "@/domains/projects/memberships/project-membership.factory"
+import type { Project } from "@/domains/projects/project.entity"
 import {
   mockForeignAuthSubject,
   mockOidcEmailForSub,
@@ -80,7 +82,14 @@ describe("Agent Memberships - Auth", () => {
       projectMembership: { role: projectRole },
       agentMembership: { role: agentRole },
     })
-    const { membership } = await addMemberByEmailToAgent({ repositories, agent })
+    const { membership, addedUser } = await addMemberByEmailToAgent({ repositories, agent })
+    // A member of the project too, as role changes on the agent require.
+    await addUserToProject({
+      repositories,
+      project: { id: agent.projectId } as Project,
+      user: addedUser,
+      membership: { role: "member" },
+    })
     organizationId = organization.id
     projectId = agent.projectId
     agentId = agent.id
@@ -117,10 +126,51 @@ describe("Agent Memberships - Auth", () => {
       token: accessToken ?? undefined,
     })
 
+  const addRole = async () =>
+    request({
+      route: AgentMembershipRoutes.addRole,
+      pathParams: removeNullish({ organizationId, projectId, agentId, userId: memberUserId }),
+      token: accessToken ?? undefined,
+      request: { payload: { roleKey: "agent_admin" } },
+    })
+
+  const removeRole = async () =>
+    request({
+      route: AgentMembershipRoutes.removeRole,
+      pathParams: removeNullish({
+        organizationId,
+        projectId,
+        agentId,
+        userId: memberUserId,
+        roleKey: "agent_member",
+      }),
+      token: accessToken ?? undefined,
+    })
+
+  const addRoles = async () =>
+    request({
+      route: AgentMembershipRoutes.addRoles,
+      pathParams: removeNullish({ organizationId, projectId, agentId }),
+      token: accessToken ?? undefined,
+      request: { payload: { userIds: [memberUserId!], roleKeys: ["agent_admin"] } },
+    })
+
+  const deleteMany = async () =>
+    request({
+      route: AgentMembershipRoutes.deleteMany,
+      pathParams: removeNullish({ organizationId, projectId, agentId }),
+      token: accessToken ?? undefined,
+      request: { payload: { userIds: [memberUserId!] } },
+    })
+
   it("requires an authentication token", async () => {
     accessToken = null
     expectResponse(await getAll(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
     expectResponse(await deleteOne(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    expectResponse(await addRole(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    expectResponse(await removeRole(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    expectResponse(await addRoles(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    expectResponse(await deleteMany(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
   })
 
   it("requires the user to be a member of the organization", async () => {
@@ -136,13 +186,25 @@ describe("Agent Memberships - Auth", () => {
   ])("lets an agent %s list and remove members, even as a project member", async (role) => {
     await createContextForRoles({ projectRole: "member", agentRole: role })
     expectResponse(await getAll(), 200)
+    expectResponse(await addRole(), 201)
+    expectResponse(await removeRole(), 200)
+    expectResponse(await addRoles(), 201)
     expectResponse(await deleteOne(), 200)
+  })
+
+  it.each<Role>(["owner", "admin"])("lets an agent %s remove members in bulk", async (role) => {
+    await createContextForRoles({ projectRole: "member", agentRole: role })
+    expectResponse(await deleteMany(), 200)
   })
 
   it("doesn't let an agent member list or remove members", async () => {
     await createContextForRoles({ projectRole: "member", agentRole: "member" })
     expectResponse(await getAll(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     expectResponse(await deleteOne(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    expectResponse(await addRole(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    expectResponse(await removeRole(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    expectResponse(await addRoles(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    expectResponse(await deleteMany(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
   })
 
   it("doesn't let an agent member who owns the project list or remove members", async () => {

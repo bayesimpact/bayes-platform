@@ -1,33 +1,11 @@
 {
   "projectMembership": {
     "members": "Membres",
-    "roles": {
-      "owner": "Propriétaire",
-      "admin": "Administrateur",
-      "member": "Membre"
-    },
     "props": {
-      "userName": "Nom d'utilisateur",
-      "userEmail": "Email d'utilisateur",
-      "role": "Rôle",
-      "status": "Statut",
-      "createdAt": "Créé le",
       "validation": {
         "emailDuplicate": "Email déjà ajouté",
         "emailInvalid": "Email invalide"
       }
-    },
-    "profile": {
-      "joined": "A rejoint {{date}}",
-      "remove": "Retirer le membre",
-      "agent": "Agent",
-      "agentRole": "Rôle",
-      "agentPermissions": "Permissions",
-      "noAccess": "Pas d'accès",
-      "noAgents": "Ce projet n'a aucun agent.",
-      "permissionsDescription": "Ce que ce rôle permet sur ce projet.",
-      "noPermissions": "Ce rôle n'accorde aucune permission.",
-      "roleSelect": "Rôle sur le projet"
     },
     "create": {
       "button": "Inviter des administrateurs",
@@ -49,27 +27,116 @@
         "description": "Invitez des personnes dans votre espace de travail pour collaborer ensemble."
       }
     },
-    "remove": {
-      "dialog": {
-        "title": "Retirer {{name}} ?",
-        "description": "Ce membre sera retiré du projet. Cette action est irréversible.",
-        "confirm": "Retirer"
-      }
-    },
-    "roleChange": {
-      "dialog": {
-        "title": "Passer {{name}} au rôle {{role}} ?",
-        "description": "Ses permissions sur ce projet et ses agents changent immédiatement."
-      }
-    },
     "notifications": {
       "invitationsSentByEmail": "Invitations envoyées par e-mail",
       "peopleInvited": "Personnes invitées",
       "inviteError": "L'invitation des personnes a échoué",
-      "removed": "Membre retiré avec succès",
-      "removeError": "Le retrait du membre a échoué",
-      "roleUpdated": "Rôle mis à jour",
-      "roleUpdateError": "La mise à jour du rôle a échoué"
+      "rolesAdded_one": "Rôles ajoutés à {{count}} membre",
+      "rolesAdded_other": "Rôles ajoutés à {{count}} membres",
+      "membersRemoved_one": "{{count}} membre retiré",
+      "membersRemoved_other": "{{count}} membres retirés"
+    },
+    "roleNames": {
+      "project_owner": "Propriétaire",
+      "project_admin": "Administrateur",
+      "project_member": "Membre",
+      "agent_owner": "Propriétaire",
+      "agent_admin": "Administrateur",
+      "agent_member": "Membre",
+      "review_campaign_tester": "Testeur",
+      "review_campaign_reviewer": "Relecteur"
+    },
+    "table": {
+      "allRoles": "Tous les rôles",
+      "rolesCount": "{{count}} rôles",
+      "filterByRole": "Filtrer par rôle",
+      "clearFilters": "Effacer les filtres",
+      "member": "Membre",
+      "roles": "Rôles",
+      "joined": "Arrivée",
+      "noRole": "Aucun rôle",
+      "you": "Vous",
+      "selectMember": "Sélectionner {{name}}",
+      "empty": {
+        "title": "Aucun membre ne correspond",
+        "description": "Essayez une autre recherche ou retirez un filtre."
+      },
+      "selected_one": "{{count}} membre sélectionné",
+      "selected_other": "{{count}} membres sélectionnés",
+      "addRoles": "Ajouter des rôles",
+      "removeBlocked": {
+        "project": "Un espace de travail garde au moins un propriétaire. Désélectionnez un propriétaire pour retirer les autres.",
+        "agent": "Les propriétaires d'un agent ne se retirent pas ici. Désélectionnez-les pour retirer les autres."
+      },
+      "genericError": "Une erreur est survenue. Réessayez.",
+      "addRolesDialog": {
+        "title_one": "Ajouter des rôles à {{count}} membre",
+        "title_other": "Ajouter des rôles à {{count}} membres",
+        "description": {
+          "project": "Ces rôles s'ajoutent à ceux qu'ils ont déjà. Leurs permissions sur cet espace de travail changent tout de suite.",
+          "agent": "Ces rôles s'ajoutent à ceux qu'ils ont déjà. Leurs permissions sur cet agent changent tout de suite."
+        },
+        "pickOne": "Choisissez au moins un rôle.",
+        "error": "Les rôles n'ont pas pu être ajoutés. Réessayez."
+      },
+      "removeDialog": {
+        "title_one": "Retirer {{name}} ?",
+        "title_other": "Retirer {{count}} membres ?",
+        "description": {
+          "project": "Ils perdent l'accès à cet espace de travail, à ses agents et à ses campagnes d'évaluation. Cette action est définitive.",
+          "agent": "Ils perdent leurs rôles sur cet agent et restent membres de l'espace de travail. Cette action est définitive."
+        },
+        "error": "Les membres n'ont pas pu être retirés. Réessayez."
+      }
+    },
+    "memberDetail": {
+      "you": "Vous",
+      "selfTitle": "C'est votre propre page",
+      "selfDescription": "Personne ne change ses propres rôles. Un autre gestionnaire de cet espace de travail peut les changer.",
+      "addErrorTitle": "Le rôle n'a pas été ajouté",
+      "addErrorDetail": "{{role}} sur {{resource}} : {{error}}",
+      "addError": "Le rôle n'a pas pu être ajouté. Réessayez.",
+      "removeError": "Le rôle n'a pas pu être retiré. Réessayez.",
+      "workspace": {
+        "title": "Espace de travail",
+        "description": "Ce qu'ils peuvent faire dans tout cet espace de travail.",
+        "empty": "Aucun rôle sur cet espace de travail."
+      },
+      "agents": {
+        "title": "Agents",
+        "description": "Leurs rôles sur chaque agent de l'espace de travail.",
+        "empty": "Cet espace de travail n'a aucun agent."
+      },
+      "campaigns": {
+        "title": "Campagnes d'évaluation",
+        "description": "S'ils testent l'agent ou relisent les conversations, campagne par campagne.",
+        "empty": "Cet espace de travail n'a aucune campagne d'évaluation."
+      },
+      "removeDialog": {
+        "title": "Retirer {{role}} sur {{resource}} ?",
+        "effect": {
+          "project": "Leurs permissions sur cet espace de travail changent tout de suite.",
+          "agent": "Leurs permissions sur cet agent changent tout de suite.",
+          "review_campaign": "Leur participation à cette campagne d'évaluation change tout de suite."
+        }
+      },
+      "noAccess": "Aucun accès",
+      "cannotRemove": "{{role}} ne peut pas être retiré",
+      "removeRole": "Retirer {{role}}",
+      "addRoleOn": "Ajouter un rôle sur {{resource}}",
+      "addRole": "Ajouter un rôle",
+      "addARole": "Ajouter un rôle",
+      "permissions_one": "{{count}} permission",
+      "permissions_other": "{{count}} permissions",
+      "details": {
+        "conversation": "Conversation",
+        "extraction": "Extraction",
+        "form": "Formulaire",
+        "draft": "Brouillon",
+        "active": "Active",
+        "closed": "Clôturée"
+      },
+      "ownerLocked": "Le rôle de propriétaire est attribué à la création de l'espace de travail ou de l'agent, et ne se change pas ici."
     }
   }
 }

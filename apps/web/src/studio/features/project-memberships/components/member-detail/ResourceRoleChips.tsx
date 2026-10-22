@@ -10,6 +10,8 @@ import {
 } from "@caseai-connect/ui/shad/dropdown-menu"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/ui/shad/tooltip"
 import { PlusIcon, XIcon } from "lucide-react"
+import { useTranslation } from "react-i18next"
+import { useRoleLabel } from "../members-table/role-label"
 import type { MemberResourceRoles, RoleOption } from "./member-detail.models"
 
 /**
@@ -31,19 +33,23 @@ export function ResourceRoleChips({
   onAddRole: (role: RoleOption) => void
   onRemoveRole: (role: RoleOption) => void
 }) {
+  const { t } = useTranslation()
+  const roleLabel = useRoleLabel()
   const heldKeys = new Set(resource.roles.map((role) => role.key))
   const addableRoles = resource.grantableRoles.filter((role) => !heldKeys.has(role.key))
 
   return (
     <div className="flex flex-wrap items-center gap-1.5">
       {resource.roles.length === 0 && (
-        <span className="text-sm text-muted-foreground">No access</span>
+        <span className="text-sm text-muted-foreground">
+          {t("projectMembership:memberDetail.noAccess")}
+        </span>
       )}
       {resource.roles.map((role) => {
         const lockReason = lockedRoles[role.key]
         return (
           <Badge key={role.key} variant="outline" className="gap-1 pr-1">
-            {role.name}
+            {roleLabel(role)}
             {editable &&
               (lockReason ? (
                 <Tooltip>
@@ -51,7 +57,9 @@ export function ResourceRoleChips({
                     <button
                       type="button"
                       aria-disabled
-                      aria-label={`${role.name} cannot be removed`}
+                      aria-label={t("projectMembership:memberDetail.cannotRemove", {
+                        role: roleLabel(role),
+                      })}
                       className="cursor-not-allowed rounded-sm p-0.5 opacity-40"
                     >
                       <XIcon className="size-3" />
@@ -62,7 +70,9 @@ export function ResourceRoleChips({
               ) : (
                 <button
                   type="button"
-                  aria-label={`Remove ${role.name}`}
+                  aria-label={t("projectMembership:memberDetail.removeRole", {
+                    role: roleLabel(role),
+                  })}
                   className="rounded-sm p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
                   onClick={() => onRemoveRole(role)}
                 >
@@ -75,17 +85,23 @@ export function ResourceRoleChips({
       {editable && addableRoles.length > 0 && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="xs" aria-label={`Add a role on ${resource.resourceName}`}>
+            <Button
+              variant="ghost"
+              size="xs"
+              aria-label={t("projectMembership:memberDetail.addRoleOn", {
+                resource: resource.resourceName,
+              })}
+            >
               <PlusIcon />
-              Add role
+              {t("projectMembership:memberDetail.addRole")}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start">
-            <DropdownMenuLabel>Add a role</DropdownMenuLabel>
+            <DropdownMenuLabel>{t("projectMembership:memberDetail.addARole")}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             {addableRoles.map((role) => (
               <DropdownMenuItem key={role.key} onSelect={() => onAddRole(role)}>
-                {role.name}
+                {roleLabel(role)}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>

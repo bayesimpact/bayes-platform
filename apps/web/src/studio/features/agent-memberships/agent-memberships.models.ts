@@ -1,6 +1,7 @@
 import type { TimeType } from "@caseai-connect/api-contracts"
-import type { LegacyMembershipRole } from "@/common/features/memberships/membership-roles"
+import type { ProjectRole } from "@/studio/features/project-memberships/project-memberships.models"
 
+/** A person with access to the agent, with every member role they hold on it. */
 export type AgentMembership = {
   agentId: string
   userId: string
@@ -9,6 +10,5 @@ export type AgentMembership = {
   /** False while the member was added by email and has never signed in. */
   userHasSignedIn: boolean
   createdAt: TimeType
-  /** The highest of the member's agent roles, until this screen shows them all. */
-  role: LegacyMembershipRole
+  roles: ProjectRole[]
 }
