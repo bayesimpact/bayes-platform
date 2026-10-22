@@ -1,6 +1,7 @@
 import "../src/styles/global.css"
 import type { Preview } from "@storybook/react-vite"
-import { activateLocale, LOCALES, type Locale } from "@/app/i18n"
+import { INITIAL_VIEWPORTS } from "storybook/viewport"
+import { activateLocale, detectLocale, LOCALES, type Locale } from "@/app/i18n"
 import { serveStoryWorld } from "@/test/msw/story-worker"
 
 const isLocale = (value: unknown): value is Locale => LOCALES.some((locale) => locale === value)
@@ -19,8 +20,26 @@ const preview: Preview = {
       },
     },
   },
-  initialGlobals: { locale: "en" },
-  parameters: { layout: "fullscreen" },
+  // The browser's language first, as the Desk itself, so a French browser opens it in French.
+  initialGlobals: { locale: detectLocale() },
+  parameters: {
+    layout: "fullscreen",
+    viewport: {
+      options: {
+        ...INITIAL_VIEWPORTS,
+        iphoneSE: {
+          name: "iPhone SE (375px)",
+          styles: { width: "375px", height: "667px" },
+          type: "mobile",
+        },
+        iphone14: {
+          name: "iPhone 14 (390px)",
+          styles: { width: "390px", height: "844px" },
+          type: "mobile",
+        },
+      },
+    },
+  },
   // Each story starts from its own world on the mocked API, in the language of the toolbar.
   loaders: [
     async ({ globals, parameters }) => {

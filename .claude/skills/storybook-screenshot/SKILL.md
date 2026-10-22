@@ -1,17 +1,19 @@
 ---
 name: storybook-screenshot
-description: Use when designing or changing a web screen or component and you want to see how it renders, when checking a UI change in French and English or at phone width, or when debugging a UI bug (blank page, missing data, clipped or overflowing layout, console error) without the real app or API running.
+description: Use when designing or changing a web or Desk screen or component and you want to see how it renders, when checking a UI change in French and English or at phone width, or when debugging a UI bug (blank page, missing data, clipped or overflowing layout, console error) without the real app or API running.
 ---
 
 # Storybook screenshot
 
 ## Overview
 
-Storybook renders every route and component of `apps/web` with seeded state and mocked services, without the API, a database or a login. The script opens one story in headless Chromium, saves a PNG to read with the Read tool, and lists console errors and warnings, uncaught exceptions, failed requests and content wider than the viewport.
+Storybook renders every route and component of `apps/web` with seeded state and mocked services, and the whole Desk (`apps/desk`) on its MSW handlers, without the API, a database or a login. The script opens one story in headless Chromium, saves a PNG to read with the Read tool, and lists console errors and warnings, uncaught exceptions, failed requests and content wider than the viewport.
 
 ## Steps
 
-Run every command from the repository root. Pick a port and use it everywhere below as `PORT`: in the main checkout `6006` for `apps/web`, `6007` for `apps/web-embed`, `6008` for `packages/ui`; in a worktree another one (for example `6016`), since those may belong to another checkout's Storybook. In a fresh worktree, run `npm ci` first.
+Run every command from the repository root. Pick a port and use it everywhere below as `PORT`: in the main checkout `6006` for `apps/web`, `6007` for `apps/web-embed`, `6008` for `packages/ui`, `6009` for `apps/desk`; in a worktree another one (for example `6016`), since those may belong to another checkout's Storybook. In a fresh worktree, run `npm ci` first.
+
+**In a worktree with an environment** (`infra/worktree/.env` exists), never start a Storybook on the host: the environment serves them. Skip steps 1 and 6, start the one you need with `bayes wt up --with storybook-web` (or `storybook-ui`, `storybook-embed`, `storybook-desk`), and pass its URL, which `bayes wt up` prints, as `--base-url` instead of `--port`: `https://<name>-storybook.<domain>` for `apps/web`, `https://<name>-desk-storybook.<domain>` for the Desk. Use the same URL in place of `http://localhost:PORT` in step 2.
 
 1. **Start Storybook** as a background command (Bash `run_in_background: true`):
 
@@ -19,7 +21,7 @@ Run every command from the repository root. Pick a port and use it everywhere be
    npm --prefix apps/web run storybook -- -p PORT --ci --no-open
    ```
 
-   For shared components, use `--prefix packages/ui`; for the embed widget, `--prefix apps/web-embed`.
+   For shared components, use `--prefix packages/ui`; for the embed widget, `--prefix apps/web-embed`; for the Desk, `--prefix apps/desk`.
 
 2. **Wait until it serves stories**, as a background command (a foreground `sleep` may be blocked), then **find the story id** with a word of the screen you want:
 
@@ -28,7 +30,7 @@ Run every command from the repository root. Pick a port and use it everywhere be
    curl -s http://localhost:PORT/index.json | grep -o '"id":"[^"]*SEARCH_WORD[^"]*"'
    ```
 
-   An id is the story `title` in kebab case, `--`, then the export name: `title: "routes/studio/project/membership"` with `export const Default` gives `routes-studio-project-membership--default`. Open the story file (`apps/web/src/stories/...`) to see its exports and `argTypes`: the states you can reach come from both, for example a `WithData` export or a `withMemberAgents` toggle. Storybook silently ignores an arg the component does not use, so pass names you saw in the story's `argTypes` or `args`, or props of its component.
+   The Desk's stories are in `apps/desk/src/stories/Desk.stories.tsx`, one per state of its mocked world (`desk--conversation`, `desk--terms-to-accept`, `desk--csv-run`...): each opens the whole Desk at a page. An id is the story `title` in kebab case, `--`, then the export name: `title: "routes/studio/project/membership"` with `export const Default` gives `routes-studio-project-membership--default`. Open the story file (`apps/web/src/stories/...`) to see its exports and `argTypes`: the states you can reach come from both, for example a `WithData` export or a `withMemberAgents` toggle. Storybook silently ignores an arg the component does not use, so pass names you saw in the story's `argTypes` or `args`, or props of its component.
 
 3. **Take the screenshot** into your scratchpad directory:
 
@@ -55,7 +57,7 @@ Run every command from the repository root. Pick a port and use it everywhere be
 
 ## Storybook MCP server
 
-`@storybook/addon-mcp` (enabled in `apps/web` and `packages/ui`) serves an MCP server at `http://localhost:PORT/mcp` while that Storybook runs. `.mcp.json` registers both for the project: `storybook-web` on port 6006 and `storybook-ui` on port 6008, the main checkout's ports. If their tools are not in your tool list, the user has not approved them yet or their Storybook was not running when the session started: ask the user to start it and reconnect from `/mcp`. A Storybook on another port (in a worktree) is not reachable through them, so use the script there.
+`@storybook/addon-mcp` (enabled in `apps/web`, `packages/ui` and `apps/desk`) serves an MCP server at `http://localhost:PORT/mcp` while that Storybook runs. `.mcp.json` registers them for the project: `storybook-web` on port 6006, `storybook-ui` on port 6008 and `storybook-desk` on port 6009, the main checkout's ports. If their tools are not in your tool list, the user has not approved them yet or their Storybook was not running when the session started: ask the user to start it and reconnect from `/mcp`. A Storybook on another port (in a worktree) is not reachable through them, so use the script there.
 
 When it is connected:
 
@@ -75,7 +77,7 @@ The MCP server returns links, not images: take the screenshot with the script. I
 | Another state of the story | `--args "name:value;other:!true"`: booleans are `!true` / `!false`, spaces in a string are `+` |
 | Several cases into one folder | `--name <case>` per run, or files overwrite each other |
 | Check that a layout holds | Also pass long text and many items through `--args`: short sample labels hide overflow |
-| Both languages | `--lang fr,en` (the app reads `i18nextLng` from localStorage) |
+| Both languages | `--lang fr,en` (the web app reads `i18nextLng` from localStorage, the Desk the browser's language) |
 | Phone width | `--width 390 --height 844` |
 | Whole page height | `--full-page` (it never widens the capture: horizontal overflow is reported as a problem instead) |
 | Content that loads late | `--wait-for "text=Permissions"` or a larger `--wait` |

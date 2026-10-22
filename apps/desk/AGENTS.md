@@ -47,9 +47,11 @@ Run them from the repository root.
 
 In a worktree with an environment, never start `dev` on the host: the environment's `desk` service
 runs it, under the `desk` profile (`bayes wt up --with desk`), at `<WT_ORIGIN>/app/`. Its Storybook
-runs under the `storybook-desk` profile, at `<WT_SCHEME>://<name>-desk-storybook.<WT_TOOLS_DOMAIN>`.
-`bayes wt up --with` does not list that profile yet: start it with
-`docker compose --profile storybook-desk up -d storybook-desk` in `infra/worktree`.
+runs under the `storybook-desk` profile (`bayes wt up --with storybook-desk`, or the `front`
+preset), at `<WT_SCHEME>://<name>-desk-storybook.<WT_TOOLS_DOMAIN>`. In the main checkout,
+`npm run storybook -w @caseai-connect/desk` serves it on port 6009, with its MCP server at `/mcp`
+(`storybook-desk` in `.mcp.json`). The `storybook-screenshot` skill captures its stories, with
+`--base-url` for an environment's.
 
 ## Where things are
 
