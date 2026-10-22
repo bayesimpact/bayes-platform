@@ -32,19 +32,17 @@ export class OrganizationContextResolver implements ContextResolver {
       },
       relations: { rbacRole: true },
     })
+    // One row per role the caller holds on the organization (ADR 0032). Being a member means
+    // holding at least one; the request carries the roles, read from the rows' `role_id`.
     const [group] = groupMembershipRows(userMembershipRows)
     if (!group) {
       throw new UnauthorizedException(AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     }
 
     const organizationMembership = {
-      id: group.oldest.id,
-      userId: group.oldest.userId,
+      userId: request.user.id,
       organizationId,
       roles: group.roles,
-      createdAt: group.oldest.createdAt,
-      updatedAt: group.updatedAt,
-      deletedAt: group.oldest.deletedAt,
     } satisfies OrganizationMembershipContextModel
 
     const requestWithMembership = request as EndpointRequestWithOrganizationMembership
