@@ -2,7 +2,7 @@ import { Trans } from "@lingui/react/macro"
 import { cn } from "cn"
 import { useId, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { useOverflows } from "../hooks/use-overflows"
+import { useIsOverflowing } from "../hooks/use-is-overflowing"
 
 export type UserMessageTextProps = {
   content: string
@@ -16,8 +16,8 @@ export function UserMessageText({ content }: UserMessageTextProps) {
   const textRef = useRef<HTMLDivElement>(null)
   const textId = useId()
   const [isExpanded, setIsExpanded] = useState(false)
-  const overflows = useOverflows(textRef, !isExpanded)
-  const isCollapsed = overflows && !isExpanded
+  const isOverflowing = useIsOverflowing(textRef, !isExpanded)
+  const isCollapsed = isOverflowing && !isExpanded
 
   return (
     <>
@@ -32,7 +32,7 @@ export function UserMessageText({ content }: UserMessageTextProps) {
       >
         <div>{content}</div>
       </div>
-      {overflows ? (
+      {isOverflowing ? (
         <Button
           variant="link"
           size="xs"

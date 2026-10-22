@@ -1,6 +1,10 @@
-import type {
-  CsvExtractionRunDetailOutputDto,
-  ExtractionDocumentOutputDto,
+import {
+  type CsvExtractionRecordOutputDto,
+  type CsvExtractionRunDetailOutputDto,
+  DeskAgentSessionsRoutes,
+  DeskCsvExtractionsRoutes,
+  DeskExtractionsRoutes,
+  type ExtractionDocumentOutputDto,
 } from "@caseai-connect/desk-contracts"
 import { HttpResponse, http } from "msw"
 import { buildCsvExtractionRun, buildExtractionRun } from "../factories/agent-sessions.factory"
@@ -13,12 +17,9 @@ import {
   buildExtractionRunDetail,
   SAMPLE_RESULT,
 } from "../factories/extractions.factory"
+import { apiError, mockRoute } from "./mock-route"
 
-const agentPath = "*/api/organizations/:organizationId/projects/:projectId/agents/:agentId"
-const runsPath = `${agentPath}/extraction-agent-sessions/live`
-const csvRunsPath = `${agentPath}/csv-extraction-runs/live`
-
-/** Where the mocked storage takes the uploads. */
+/** Where the mocked storage takes the uploads, outside the API. */
 const STORAGE_ORIGIN = "https://storage.mock.localhost"
 
 /** A run reads its document for a few seconds, as an agent takes them. */
@@ -27,8 +28,8 @@ const READING_TIME_IN_MILLISECONDS = 5000
 /** The rows a CSV run does between two polls of its page. */
 const ROWS_PER_POLL = 3
 
-const created = <T>(data: T) => HttpResponse.json({ data }, { status: 201 })
-const notFound = () => new HttpResponse(null, { status: 404 })
+/** The most rows a mocked CSV run does. */
+const MAX_ROWS = 30
 
 /**
  * The extraction routes on a world: uploads, runs that read their document for a few seconds, CSV
@@ -50,14 +51,22 @@ export function extractionHandlers(world: DeskWorld) {
     if (Date.now() - detail.createdAt < READING_TIME_IN_MILLISECONDS) return
     const run = (world.extractionRuns[agentId] ?? []).find((candidate) => candidate.id === runId)
     const fails = run?.documentFileName?.includes("fail") ?? false
-    Object.assign(detail, {
-      status: fails ? "failed" : "success",
-      result: fails ? null : SAMPLE_RESULT,
-      errorCode: fails ? "EXTRACTION_PROVIDER_ERROR" : null,
-      errorDetails: fails ? { message: "The model answered 503." } : null,
-      updatedAt: Date.now(),
-    })
-    if (run) Object.assign(run, { status: detail.status, updatedAt: detail.updatedAt })
+    detail.status = fails ? "failed" : "success"
+    detail.result = fails ? null : SAMPLE_RESULT
+    detail.errorCode = fails ? "EXTRACTION_PROVIDER_ERROR" : null
+    detail.errorDetails = fails ? { message: "The model answered 503." } : null
+    detail.updatedAt = Date.now()
+    if (run) {
+      run.status = detail.status
+      run.updatedAt = detail.updatedAt
+    }
+  }
+
+  /** A run's counts, from its rows, as the API keeps them. */
+  const summaryOf = (records: CsvExtractionRecordOutputDto[]) => {
+    const processed = records.filter((record) => record.status !== "running").length
+    const errors = records.filter((record) => record.status === "error").length
+    return { total: records.length, processed, errors, running: records.length - processed }
   }
 
   /** A running CSV run does a few more rows, and ends with its results file. */
@@ -72,179 +81,156 @@ export function extractionHandlers(world: DeskWorld) {
       record.agentRawOutput = answerFor(record.rowIndex)
       remaining -= 1
     }
-    const processed = records.filter((record) => record.status !== "running").length
-    const errors = records.filter((record) => record.status === "error").length
-    const isDone = processed === records.length
-    Object.assign(run, {
-      status: isDone ? "completed" : "running",
-      summary: { total: records.length, processed, errors, running: records.length - processed },
-      csvExportDocumentId: isDone ? crypto.randomUUID() : null,
-      updatedAt: Date.now(),
-    })
+    run.summary = summaryOf(records)
+    const isDone = run.summary.running === 0
+    run.status = isDone ? "completed" : "running"
+    run.csvExportDocumentId = isDone ? crypto.randomUUID() : null
+    run.updatedAt = Date.now()
   }
 
   return [
-    http.post(runsPath, ({ params }) => {
-      const agentId = String(params.agentId)
-      for (const run of world.extractionRuns[agentId] ?? []) settle(agentId, run.id)
-      return HttpResponse.json({ data: world.extractionRuns[agentId] ?? [] })
+    mockRoute(DeskAgentSessionsRoutes.getExtractionRuns, ({ params }) => {
+      for (const run of world.extractionRuns[params.agentId] ?? []) settle(params.agentId, run.id)
+      return world.extractionRuns[params.agentId] ?? []
     }),
-    http.get(csvRunsPath, ({ params }) => {
-      const runs = world.csvExtractionRuns[String(params.agentId)] ?? []
+    mockRoute(DeskAgentSessionsRoutes.getCsvExtractionRuns, ({ params }) => {
+      const runs = world.csvExtractionRuns[params.agentId] ?? []
       for (const run of runs) advance(run)
-      return HttpResponse.json({ data: runs })
+      return runs
     }),
-    http.post(`${runsPath}/documents/presign`, async ({ request }) => {
-      const { payload } = (await request.json()) as {
-        payload: { file: { fileName: string; mimeType: string; size: number } }
-      }
+    mockRoute(DeskExtractionsRoutes.presignDocument, ({ payload }) => {
       const documentId = crypto.randomUUID()
       presigned.set(documentId, payload.file)
-      return created({ documentId, uploadUrl: `${STORAGE_ORIGIN}/uploads/${documentId}` })
+      return { documentId, uploadUrl: `${STORAGE_ORIGIN}/uploads/${documentId}` }
     }),
+    // The signed URL of the storage, which no contract describes: it takes the file's bytes.
     http.put(
       `${STORAGE_ORIGIN}/uploads/:documentId`,
       () => new HttpResponse(null, { status: 200 }),
     ),
-    http.post(`${runsPath}/documents/confirm`, async ({ params, request }) => {
-      const { payload } = (await request.json()) as { payload: { documentId: string } }
+    mockRoute(DeskExtractionsRoutes.confirmDocument, ({ params, payload }) => {
       const file = presigned.get(payload.documentId)
-      if (!file) return notFound()
+      if (!file) return apiError(404)
       const document = buildExtractionDocument({ id: payload.documentId, ...file })
-      documentsOf(String(params.agentId)).unshift(document)
+      documentsOf(params.agentId).unshift(document)
       if (file.mimeType === "text/csv") world.csvColumns[document.id] = buildCsvFileColumns()
-      return created(document)
+      return document
     }),
-    http.post(`${runsPath}/documents/mine`, ({ params }) =>
-      HttpResponse.json({ data: documentsOf(String(params.agentId)) }),
-    ),
-    http.post(`${runsPath}/documents/:documentId/delete`, ({ params }) => {
-      const agentId = String(params.agentId)
-      world.extractionDocuments[agentId] = documentsOf(agentId).filter(
+    mockRoute(DeskExtractionsRoutes.getMyDocuments, ({ params }) => documentsOf(params.agentId)),
+    mockRoute(DeskExtractionsRoutes.deleteMyDocument, ({ params }) => {
+      world.extractionDocuments[params.agentId] = documentsOf(params.agentId).filter(
         (document) => document.id !== params.documentId,
       )
-      return HttpResponse.json({ data: { success: true } })
+      return { success: true }
     }),
-    http.post(`${runsPath}/execute`, async ({ params, request }) => {
-      const agentId = String(params.agentId)
-      const { payload } = (await request.json()) as { payload: { documentId: string } }
-      const document = documentsOf(agentId).find((candidate) => candidate.id === payload.documentId)
-      if (!document) return notFound()
+    mockRoute(DeskExtractionsRoutes.executeOne, ({ params, payload }) => {
+      const document = documentsOf(params.agentId).find(
+        (candidate) => candidate.id === payload.documentId,
+      )
+      if (!document) return apiError(404)
       const run = buildExtractionRun({
         documentId: document.id,
         documentFileName: document.fileName ?? null,
         status: "pending",
         createdAt: Date.now(),
       })
-      world.extractionRuns[agentId] = [run, ...(world.extractionRuns[agentId] ?? [])]
+      world.extractionRuns[params.agentId] = [run, ...(world.extractionRuns[params.agentId] ?? [])]
       world.extractionRunDetails[run.id] = buildExtractionRunDetail(run)
-      return created({ runId: run.id })
+      return { runId: run.id }
     }),
-    http.post(`${runsPath}/:agentSessionId/getOne`, ({ params }) => {
-      const runId = String(params.agentSessionId)
-      settle(String(params.agentId), runId)
-      const detail = world.extractionRunDetails[runId]
-      return detail ? HttpResponse.json({ data: detail }) : notFound()
+    mockRoute(DeskExtractionsRoutes.getOne, ({ params }) => {
+      settle(params.agentId, params.agentSessionId)
+      return world.extractionRunDetails[params.agentSessionId] ?? apiError(404)
     }),
-    http.post(`${runsPath}/:agentSessionId/delete`, ({ params }) => {
-      const agentId = String(params.agentId)
-      world.extractionRuns[agentId] = (world.extractionRuns[agentId] ?? []).filter(
+    mockRoute(DeskExtractionsRoutes.deleteOne, ({ params }) => {
+      world.extractionRuns[params.agentId] = (world.extractionRuns[params.agentId] ?? []).filter(
         (run) => run.id !== params.agentSessionId,
       )
-      return HttpResponse.json({ data: { success: true } })
+      return { success: true }
     }),
-    http.get(`${csvRunsPath}/file/:documentId/columns`, ({ params }) => {
-      const columns = world.csvColumns[String(params.documentId)]
-      return columns ? HttpResponse.json({ data: columns }) : notFound()
-    }),
-    http.post(csvRunsPath, async ({ params, request }) => {
-      const agentId = String(params.agentId)
-      const { payload } = (await request.json()) as {
-        payload: {
-          csvDocumentId: string
-          columnSchema: CsvExtractionRunDetailOutputDto["columnSchema"]
-        }
-      }
+    mockRoute(
+      DeskCsvExtractionsRoutes.getFileColumns,
+      ({ params }) => world.csvColumns[params.documentId] ?? apiError(404),
+    ),
+    mockRoute(DeskCsvExtractionsRoutes.createOne, ({ params, payload }) => {
       const run = buildCsvExtractionRun({
         csvDocumentId: payload.csvDocumentId,
         columnSchema: payload.columnSchema,
         status: "pending",
         createdAt: Date.now(),
       })
-      world.csvExtractionRuns[agentId] = [run, ...(world.csvExtractionRuns[agentId] ?? [])]
-      return created(run)
+      world.csvExtractionRuns[params.agentId] = [
+        run,
+        ...(world.csvExtractionRuns[params.agentId] ?? []),
+      ]
+      return run
     }),
-    http.post(`${csvRunsPath}/:runId/execute`, async ({ params, request }) => {
-      const run = findCsvRun(String(params.agentId), String(params.runId))
-      if (!run) return notFound()
-      const { payload } = (await request.json()) as { payload: { recordLimit: number | null } }
+    mockRoute(DeskCsvExtractionsRoutes.executeOne, ({ params, payload }) => {
+      const run = findCsvRun(params.agentId, params.agentCsvExtractionRunId)
+      if (!run) return apiError(404)
       const columns = world.csvColumns[run.csvDocumentId] ?? buildCsvFileColumns()
-      const count = Math.min(payload.recordLimit ?? 30, 30)
+      const count = Math.min(payload.recordLimit ?? MAX_ROWS, MAX_ROWS)
       world.csvRecords[run.id] = buildCsvRecords(columns, count, "running")
-      Object.assign(run, {
-        status: "running",
-        summary: { total: count, processed: 0, errors: 0, running: count },
-      })
-      return created(run)
+      run.status = "running"
+      run.summary = { total: count, processed: 0, errors: 0, running: count }
+      return run
     }),
-    http.get(`${csvRunsPath}/:runId`, ({ params }) => {
-      const run = findCsvRun(String(params.agentId), String(params.runId))
-      if (!run) return notFound()
+    mockRoute(DeskCsvExtractionsRoutes.getOne, ({ params }) => {
+      const run = findCsvRun(params.agentId, params.agentCsvExtractionRunId)
+      if (!run) return apiError(404)
       advance(run)
-      return HttpResponse.json({ data: run })
+      return run
     }),
-    http.get(`${csvRunsPath}/:runId/records`, ({ params, request }) => {
-      const run = findCsvRun(String(params.agentId), String(params.runId))
-      if (!run) return notFound()
-      const query = new URL(request.url).searchParams
-      const page = Number(query.get("page") ?? 0)
-      const limit = Number(query.get("limit") ?? 10)
+    mockRoute(DeskCsvExtractionsRoutes.getRecords, ({ params, query }) => {
+      const run = findCsvRun(params.agentId, params.agentCsvExtractionRunId)
+      if (!run) return apiError(404)
+      const { page, limit, sortBy, sortOrder } = query
       const records = [...(world.csvRecords[run.id] ?? [])]
-      const sortBy = query.get("sortBy")
-      if (sortBy === "status")
+      if (sortBy === "status") {
         records.sort((first, second) => first.status.localeCompare(second.status))
-      if (query.get("sortOrder") === "desc") records.reverse()
-      return HttpResponse.json({
-        data: {
-          records: records.slice(page * limit, (page + 1) * limit),
-          total: records.length,
-          page,
-          limit,
-        },
-      })
-    }),
-    http.post(`${csvRunsPath}/:runId/cancel`, ({ params }) => {
-      const run = findCsvRun(String(params.agentId), String(params.runId))
-      if (!run) return notFound()
-      const records = world.csvRecords[run.id] ?? []
-      for (const record of records) if (record.status === "running") record.status = "cancelled"
-      Object.assign(run, {
-        status: "cancelled",
-        summary: { ...(run.summary ?? { total: 0, processed: 0, errors: 0 }), running: 0 },
-        csvExportDocumentId: crypto.randomUUID(),
-        updatedAt: Date.now(),
-      })
-      return created(run)
-    }),
-    http.post(`${csvRunsPath}/:runId/retry`, ({ params }) => {
-      const run = findCsvRun(String(params.agentId), String(params.runId))
-      if (!run) return notFound()
-      for (const record of world.csvRecords[run.id] ?? []) {
-        if (record.status !== "success")
-          Object.assign(record, { status: "running", errorDetails: null })
       }
-      Object.assign(run, { status: "running", updatedAt: Date.now() })
-      return created(run)
+      if (sortOrder === "desc") records.reverse()
+      return {
+        records: records.slice(page * limit, (page + 1) * limit),
+        total: records.length,
+        page,
+        limit,
+      }
     }),
-    http.get(`${csvRunsPath}/:runId/export/temporary-url`, () =>
-      HttpResponse.json({ data: { url: `${STORAGE_ORIGIN}/exports/results.csv` } }),
-    ),
-    http.delete(`${csvRunsPath}/:runId`, ({ params }) => {
-      const agentId = String(params.agentId)
-      world.csvExtractionRuns[agentId] = (world.csvExtractionRuns[agentId] ?? []).filter(
-        (run) => run.id !== params.runId,
-      )
-      return HttpResponse.json({ data: { success: true } })
+    mockRoute(DeskCsvExtractionsRoutes.cancelOne, ({ params }) => {
+      const run = findCsvRun(params.agentId, params.agentCsvExtractionRunId)
+      if (!run) return apiError(404)
+      for (const record of world.csvRecords[run.id] ?? []) {
+        if (record.status === "running") record.status = "cancelled"
+      }
+      run.status = "cancelled"
+      run.summary = { ...(run.summary ?? { total: 0, processed: 0, errors: 0 }), running: 0 }
+      run.csvExportDocumentId = crypto.randomUUID()
+      run.updatedAt = Date.now()
+      return run
+    }),
+    mockRoute(DeskCsvExtractionsRoutes.retryOne, ({ params }) => {
+      const run = findCsvRun(params.agentId, params.agentCsvExtractionRunId)
+      if (!run) return apiError(404)
+      for (const record of world.csvRecords[run.id] ?? []) {
+        if (record.status === "success") continue
+        record.status = "running"
+        record.errorDetails = null
+      }
+      // As the API does, the run's counts start again with the rows it runs again.
+      run.summary = summaryOf(world.csvRecords[run.id] ?? [])
+      run.status = "running"
+      run.updatedAt = Date.now()
+      return run
+    }),
+    mockRoute(DeskCsvExtractionsRoutes.getExportTemporaryUrl, () => ({
+      url: `${STORAGE_ORIGIN}/exports/results.csv`,
+    })),
+    mockRoute(DeskCsvExtractionsRoutes.deleteOne, ({ params }) => {
+      world.csvExtractionRuns[params.agentId] = (
+        world.csvExtractionRuns[params.agentId] ?? []
+      ).filter((run) => run.id !== params.agentCsvExtractionRunId)
+      return { success: true }
     }),
   ]
 }

@@ -1,10 +1,11 @@
 import { useLingui } from "@lingui/react/macro"
-import { useEffect, useRef } from "react"
+import { useRef } from "react"
 import { toast } from "sonner"
+import { LOCALES, type Locale } from "@/app/i18n"
 import { useSpeechRecognition } from "@/hooks/use-speech-recognition"
 
 /** The speech language of each language of the Desk. */
-const SPEECH_LANGUAGES: Record<string, string> = { fr: "fr-FR", en: "en-US" }
+const SPEECH_LANGUAGES: Record<Locale, string> = { fr: "fr-FR", en: "en-US" }
 
 type UseDictationOptions = {
   content: string
@@ -13,13 +14,21 @@ type UseDictationOptions = {
 
 /**
  * Dictation into the message box, in the Desk's language: what the person says joins what they
- * wrote before they started, as they say it. The transcript comes from the browser, which an
- * effect copies into the box.
+ * wrote before they started, as they say it.
  */
 export function useDictation({ content, onContentChange }: UseDictationOptions) {
   const { t, i18n } = useLingui()
+  const locale = LOCALES.find((known) => known === i18n.locale) ?? "en"
+  // What the box held when the dictation started, which the spoken words follow.
+  const prefixRef = useRef("")
+  // Stopped by the person or a sent message: a late word must not write the box again.
+  const isActiveRef = useRef(false)
   const recognition = useSpeechRecognition({
-    language: SPEECH_LANGUAGES[i18n.locale] ?? "en-US",
+    language: SPEECH_LANGUAGES[locale],
+    onTranscript: (transcript) => {
+      if (!isActiveRef.current || transcript === "") return
+      onContentChange(`${prefixRef.current}${transcript}`)
+    },
     onFailure: (failure) =>
       toast.error(
         failure === "notAllowed"
@@ -27,17 +36,6 @@ export function useDictation({ content, onContentChange }: UseDictationOptions) 
           : t`The dictation stopped. Try again.`,
       ),
   })
-  // What the box held when the dictation started, which the spoken words follow.
-  const prefixRef = useRef("")
-  // Stopped by the person or a sent message: a late word must not write the box again.
-  const isActiveRef = useRef(false)
-  const onContentChangeRef = useRef(onContentChange)
-  onContentChangeRef.current = onContentChange
-
-  useEffect(() => {
-    if (!isActiveRef.current || recognition.transcript === "") return
-    onContentChangeRef.current(`${prefixRef.current}${recognition.transcript}`)
-  }, [recognition.transcript])
 
   const start = () => {
     const written = content.trimEnd()

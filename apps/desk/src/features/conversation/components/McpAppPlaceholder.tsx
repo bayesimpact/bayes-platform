@@ -9,8 +9,8 @@ export function McpAppPlaceholder() {
       aria-live="polite"
       className="absolute inset-0 flex min-h-18 items-center gap-2 rounded-xl border bg-background px-4 text-sm text-muted-foreground"
     >
-      <LoaderCircleIcon aria-hidden className="size-4 animate-spin" />
-      <span className="animate-pulse">
+      <LoaderCircleIcon aria-hidden className="size-4 animate-spin motion-reduce:animate-none" />
+      <span className="animate-pulse motion-reduce:animate-none">
         <Trans>Loading the interactive card…</Trans>
       </span>
     </div>

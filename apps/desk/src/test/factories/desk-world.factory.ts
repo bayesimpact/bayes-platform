@@ -8,26 +8,33 @@ import type {
   ExtractionRunDetailOutputDto,
   ExtractionRunOutputDto,
   InvitationOutputDto,
+  McpAppHtmlOutputDto,
   MemoryOutputDto,
   MyOrganizationOutputDto,
   MyProjectOutputDto,
   ProjectAgentOutputDto,
 } from "@caseai-connect/desk-contracts"
+import { TOOL_NAMES } from "@caseai-connect/desk-contracts"
+import { RELEASE_NOTES_APP_HTML } from "../fixtures/mcp-app"
 import {
   buildConversationMessage,
   buildConversationSession,
   buildCsvExtractionRun,
   buildExtractionRun,
+  buildToolCall,
   daysAgo,
 } from "./agent-sessions.factory"
 import { buildProjectAgent } from "./agents.factory"
 import {
   buildCsvFileColumns,
+  buildCsvRecord,
   buildCsvRecords,
   buildExtractionDocument,
   buildExtractionRunDetail,
   columnSchemaOf,
 } from "./extractions.factory"
+import { buildInvitation } from "./invitations.factory"
+import { buildMemory } from "./memories.factory"
 import { buildMyOrganization, buildMyProject } from "./projects.factory"
 
 /** Everything the mocked API answers: projects, their agents, and the history of each agent. */
@@ -54,6 +61,8 @@ export type DeskWorld = {
   csvColumns: Record<string, CsvFileColumnOutputDto[]>
   /** The rows of each CSV run, by the run's id. */
   csvRecords: Record<string, CsvExtractionRecordOutputDto[]>
+  /** The current HTML of the MCP Apps the replies show. */
+  mcpAppsHtml: McpAppHtmlOutputDto[]
 }
 
 function emptyWorld(): DeskWorld {
@@ -72,6 +81,7 @@ function emptyWorld(): DeskWorld {
     extractionRunDetails: {},
     csvColumns: {},
     csvRecords: {},
+    mcpAppsHtml: [],
   }
 }
 
@@ -96,10 +106,9 @@ function buildExchange(question: string, createdAt: number): ConversationMessage
       ].join("\n"),
       createdAt,
       toolCalls: [
-        { id: crypto.randomUUID(), name: "lookup_knowledge_base", arguments: {} },
-        {
-          id: crypto.randomUUID(),
-          name: "surfaceResources",
+        buildToolCall({ name: "lookup_knowledge_base" }),
+        buildToolCall({
+          name: TOOL_NAMES.surfaceResources,
           arguments: {
             resources: [
               {
@@ -116,34 +125,37 @@ function buildExchange(question: string, createdAt: number): ConversationMessage
               },
             ],
           },
-        },
-        {
-          id: crypto.randomUUID(),
-          name: "sources",
+        }),
+        buildToolCall({
+          name: TOOL_NAMES.sources,
           arguments: {
             sources: [
               {
-                documentId: PRICING_GUIDE_ID,
+                documentId: crypto.randomUUID(),
                 documentTitle: "Pricing guide.pdf",
                 documentSourceType: "project",
-                chunks: [{ chunkId: "c1", partialContent: "The Pro plan covers unlimited teams…" }],
+                chunks: [
+                  {
+                    chunkId: crypto.randomUUID(),
+                    partialContent: "The Pro plan covers unlimited teams…",
+                  },
+                ],
               },
               {
                 documentId: crypto.randomUUID(),
                 documentTitle: "Help center",
                 documentSourceType: "webCrawl",
-                chunks: [{ chunkId: "c2", partialContent: "Support answers by email…" }],
+                chunks: [
+                  { chunkId: crypto.randomUUID(), partialContent: "Support answers by email…" },
+                ],
               },
             ],
           },
-        },
+        }),
       ],
     }),
   ]
 }
-
-/** A document the replies cite, shared with every member of the project. */
-const PRICING_GUIDE_ID = "0b6c8f1e-7a52-4d39-9a51-3f6e0d2c4b11"
 
 /** A conversation history spread over the date groups of the sidebar. */
 function buildConversationHistory(): ConversationSessionOutputDto[] {
@@ -212,13 +224,17 @@ function addExtractionHistory(world: DeskWorld, agent: ProjectAgentOutputDto): v
 
   const columns = buildCsvFileColumns()
   world.csvColumns[articles.id] = columns
-  const records = buildCsvRecords(columns, 24, "success")
-  const failedRecord = records[5]
-  if (failedRecord) {
-    failedRecord.status = "error"
-    failedRecord.agentRawOutput = null
-    failedRecord.errorDetails = "The model did not answer in time."
-  }
+  // The sixth row failed.
+  const records = buildCsvRecords(columns, 24, "success").map((record) =>
+    record.rowIndex === 5
+      ? buildCsvRecord({
+          ...record,
+          status: "error",
+          agentRawOutput: null,
+          errorDetails: "The model did not answer in time.",
+        })
+      : record,
+  )
   const csvRun = buildCsvExtractionRun({
     csvDocumentId: articles.id,
     columnSchema: columnSchemaOf(columns),
@@ -253,30 +269,29 @@ export function buildDeskWorld(): DeskWorld {
   return world
 }
 
-/** The MCP App the replies of the mock world show. */
-export const RELEASE_NOTES_APP = {
-  mcpServerId: "release-server",
-  resourceUri: "ui://release-notes/card",
-}
-
 /** The second conversation's last reply shows an MCP App card, with a bare "." as its text. */
 function addMcpApp(world: DeskWorld, agentId: string): void {
   const [, secondConversation] = world.conversations[agentId] ?? []
-  const reply = (world.messages[secondConversation?.id ?? ""] ?? []).at(-1)
+  const messages = world.messages[secondConversation?.id ?? ""] ?? []
+  const reply = messages.at(-1)
   if (!reply) return
-  reply.content = "."
-  reply.toolCalls = [
-    {
-      id: crypto.randomUUID(),
-      name: "list_releases",
-      arguments: { month: "October" },
-      mcpApp: RELEASE_NOTES_APP,
-      result: {
-        content: [{ type: "text", text: "Three releases this month: 2.1, 2.2 and 2.3." }],
-        structuredContent: { releases: ["2.1: faster search", "2.2: dark mode", "2.3: exports"] },
-      },
-    },
-  ]
+  const app = { mcpServerId: crypto.randomUUID(), resourceUri: "ui://release-notes/card" }
+  world.mcpAppsHtml.push({ ...app, html: RELEASE_NOTES_APP_HTML })
+  messages[messages.length - 1] = buildConversationMessage({
+    ...reply,
+    content: ".",
+    toolCalls: [
+      buildToolCall({
+        name: "list_releases",
+        arguments: { month: "October" },
+        mcpApp: app,
+        result: {
+          content: [{ type: "text", text: "Three releases this month: 2.1, 2.2 and 2.3." }],
+          structuredContent: { releases: ["2.1: faster search", "2.2: dark mode", "2.3: exports"] },
+        },
+      }),
+    ],
+  })
 }
 
 /**
@@ -284,20 +299,20 @@ function addMcpApp(world: DeskWorld, agentId: string): void {
  * of its first conversation.
  */
 function addMemories(world: DeskWorld, agentId: string): void {
-  const saved = { id: crypto.randomUUID(), content: "Works in a team of five", status: "saved" }
-  const proposed = { id: crypto.randomUUID(), content: "Prefers short answers", status: "pending" }
-  world.memories[agentId] = [saved, proposed].map((memory) => ({
-    ...memory,
-    status: memory.status as "saved" | "pending",
-    createdAt: daysAgo(0),
-  }))
+  const saved = buildMemory({ content: "Works in a team of five", status: "saved" })
+  const proposed = buildMemory({ content: "Prefers short answers", status: "pending" })
+  world.memories[agentId] = [saved, proposed]
   const [firstConversation] = world.conversations[agentId] ?? []
-  const reply = (world.messages[firstConversation?.id ?? ""] ?? []).at(-1)
-  reply?.toolCalls?.push({
-    id: crypto.randomUUID(),
-    name: "saveMemory",
-    arguments: {},
-    result: { memories: [saved, proposed] },
+  const messages = world.messages[firstConversation?.id ?? ""] ?? []
+  const reply = messages.at(-1)
+  if (!reply) return
+  const facts = [saved, proposed].map(({ id, content }) => ({ id, content }))
+  messages[messages.length - 1] = buildConversationMessage({
+    ...reply,
+    toolCalls: [
+      ...(reply.toolCalls ?? []),
+      buildToolCall({ name: TOOL_NAMES.saveMemory, result: { memories: facts } }),
+    ],
   })
 }
 
@@ -390,16 +405,12 @@ function addInvitation(world: DeskWorld): void {
   if (!organization || !project) return
   const agent = buildProjectAgent(project, { name: "Release Notes Writer" })
   world.invitations.push({
-    invitation: {
-      id: crypto.randomUUID(),
+    invitation: buildInvitation({
       organizationName: organization.name,
       projectName: project.name,
       targetType: "agent",
       targetName: agent.name,
-      role: "member",
-      status: "pending",
-      invitedAt: daysAgo(1),
-    },
+    }),
     grantsAgent: agent,
   })
 }

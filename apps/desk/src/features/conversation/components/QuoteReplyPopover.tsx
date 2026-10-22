@@ -1,12 +1,13 @@
 import { useLingui } from "@lingui/react/macro"
 import { Trash2Icon } from "lucide-react"
-import { type KeyboardEvent, type MouseEvent, type ReactNode, useEffect, useState } from "react"
+import { type KeyboardEvent, type ReactNode, useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent } from "@/components/ui/popover"
 import { Textarea } from "@/components/ui/textarea"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { clearQuoteHighlights, isPointInRange, showQuoteHighlights } from "@/lib/quote-highlight"
-import { type Annotation, readQuotableSelection } from "../annotation"
+import { type Annotation, isSameRange, readQuotableSelection } from "../annotation"
+import { useSettledSelection } from "../hooks/use-settled-selection"
 import { AnnotationBadge } from "./AnnotationBadge"
 
 export type QuoteReplyPopoverProps = {
@@ -43,15 +44,17 @@ export function QuoteReplyPopover({
   useEffect(() => clearQuoteHighlights, [])
 
   // Leaving a note keeps it: closing the box, opening another or pressing Enter all save it.
-  const open = (annotation: Annotation | null) => {
+  const handleOpen = (annotation: Annotation | null) => {
     if (editing && editing.id !== annotation?.id) onSave(editing)
     setEditing(annotation)
   }
 
-  const handleMouseUp = (event: MouseEvent) => {
-    const selected = readQuotableSelection(window.getSelection())
+  // A passage the person selected opens a new note, and a click on an annotated one its note.
+  useSettledSelection((click) => {
+    const selected = readQuotableSelection(document.getSelection())
     if (selected) {
-      open({
+      if (editing && isSameRange(editing.range, selected.range)) return
+      handleOpen({
         id: crypto.randomUUID(),
         passage: selected.text,
         note: "",
@@ -60,11 +63,10 @@ export function QuoteReplyPopover({
       })
       return
     }
-    const clicked = annotations.find((annotation) =>
-      isPointInRange(annotation.range, event.clientX, event.clientY),
-    )
-    if (clicked) open(clicked)
-  }
+    const clicked =
+      click && annotations.find((annotation) => isPointInRange(annotation.range, click.x, click.y))
+    if (clicked) handleOpen(clicked)
+  })
 
   const hasNote = editing !== null && editing.note.trim() !== ""
 
@@ -72,7 +74,7 @@ export function QuoteReplyPopover({
   const handleKeep = () => {
     if (!hasNote) return
     window.getSelection()?.removeAllRanges()
-    open(null)
+    handleOpen(null)
   }
 
   const handleRemove = () => {
@@ -87,21 +89,19 @@ export function QuoteReplyPopover({
   }
 
   return (
-    // The selection ends with the pointer: its end is when the box can open.
-    // biome-ignore lint/a11y/noStaticElementInteractions: the replies stay readable without it; it only adds the box.
-    <div className="contents" onMouseUp={handleMouseUp}>
+    <>
       {children}
       {annotations.map((annotation, index) => (
         <AnnotationBadge
           key={annotation.id}
           annotation={annotation}
           number={index + 1}
-          onOpen={() => open(annotation)}
+          onOpen={() => handleOpen(annotation)}
         />
       ))}
       <Popover
         open={editing !== null}
-        onOpenChange={(isOpen) => (isOpen ? null : open(null))}
+        onOpenChange={(isOpen) => (isOpen ? null : handleOpen(null))}
         // Once the box is gone, the person goes on writing their message.
         onOpenChangeComplete={(isOpen) => {
           if (!isOpen) document.getElementById(messageBoxId)?.focus()
@@ -142,7 +142,7 @@ export function QuoteReplyPopover({
           </div>
         </PopoverContent>
       </Popover>
-    </div>
+    </>
   )
 }
 

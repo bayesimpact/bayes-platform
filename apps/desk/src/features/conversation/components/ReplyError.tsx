@@ -1,6 +1,7 @@
 import { Trans } from "@lingui/react/macro"
 import { CircleAlertIcon } from "lucide-react"
-import type { ChatMessage } from "../chat-messages"
+import type { ReactNode } from "react"
+import type { ChatMessage, ReplyFailure } from "../chat-messages"
 
 export type ReplyErrorProps = {
   message: ChatMessage
@@ -8,6 +9,12 @@ export type ReplyErrorProps = {
 
 /** A reply that failed: the server's reason when it gave one, else the Desk's. */
 export function ReplyError({ message }: ReplyErrorProps) {
+  const failureReasons: Record<ReplyFailure, ReactNode> = {
+    upload: <Trans>The file could not be uploaded. Try again.</Trans>,
+    ended: <Trans>The reply stopped before it finished.</Trans>,
+    unreachable: <Trans>The Desk could not reach the agent. Check your connection.</Trans>,
+    contract: <Trans>A new version of the Desk is available. Reload the page.</Trans>,
+  }
   return (
     <div
       role="alert"
@@ -19,17 +26,7 @@ export function ReplyError({ message }: ReplyErrorProps) {
           <Trans>The agent could not answer.</Trans>
         </p>
         <p className="text-muted-foreground">
-          {message.failure === "upload" ? (
-            <Trans>The file could not be uploaded. Try again.</Trans>
-          ) : message.failure === "ended" ? (
-            <Trans>The reply stopped before it finished.</Trans>
-          ) : message.failure === "unreachable" ? (
-            <Trans>The Desk could not reach the agent. Check your connection.</Trans>
-          ) : message.failure === "contract" ? (
-            <Trans>A new version of the Desk is available. Reload the page.</Trans>
-          ) : (
-            message.content
-          )}
+          {message.failure === null ? message.content : failureReasons[message.failure]}
         </p>
       </div>
     </div>

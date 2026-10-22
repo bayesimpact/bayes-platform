@@ -4,7 +4,7 @@ import { ResourceCard } from "./ResourceCard"
 
 export type ResourceCardsProps = {
   resources: ChatResource[]
-  onOpenResource?: (video: OpenedResource) => void
+  onOpenResource: (resource: OpenedResource) => void
 }
 
 /** The resources of the agent's libraries a reply points to, as cards that open them. */

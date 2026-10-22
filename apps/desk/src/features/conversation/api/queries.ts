@@ -3,7 +3,7 @@ import { DeskConversationsRoutes, DeskDocumentsRoutes } from "@caseai-connect/de
 import { queryOptions } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/api-client"
 import { pollWhile } from "@/lib/polling"
-import { type ChatMessage, isWriting, toChatMessages } from "../chat-messages"
+import { type ChatMessage, isBeingWritten, toChatMessages } from "../chat-messages"
 import { conversationKeys, documentKeys } from "./keys"
 import { isReplyStreaming } from "./reply-streams"
 
@@ -25,7 +25,7 @@ export const messagesQueryOptions = (conversation: ConversationParamsDto) =>
     refetchInterval: pollWhile((messages: ChatMessage[] | undefined) => {
       if (isReplyStreaming(conversation.agentSessionId)) return false
       const now = Date.now()
-      return (messages ?? []).some((message) => isWriting(message, now))
+      return (messages ?? []).some((message) => isBeingWritten(message, now))
     }, RECOVERY_INTERVAL_IN_MILLISECONDS),
     // A refetch would replace the reply this tab is streaming into the cache.
     refetchOnWindowFocus: () => !isReplyStreaming(conversation.agentSessionId),

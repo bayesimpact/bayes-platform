@@ -21,7 +21,7 @@ export type ChatMessageViewProps = {
   appsHtml: AppsHtml
   onAppMessage: (text: string) => void
   /** Opens a resource a reply points to beside the conversation. */
-  onOpenResource: (video: OpenedResource) => void
+  onOpenResource: (resource: OpenedResource) => void
 }
 
 /** One message: the person's in a bubble on the right, the agent's on the left with its steps. */

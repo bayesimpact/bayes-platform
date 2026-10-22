@@ -1,5 +1,6 @@
-import { Trans, useLingui } from "@lingui/react/macro"
+import { Trans } from "@lingui/react/macro"
 import { ExternalLinkIcon } from "lucide-react"
+import { ExternalLink } from "@/components/shared/ExternalLink"
 import { SidePanel } from "@/components/shared/SidePanel"
 import { buttonVariants } from "@/components/ui/button"
 import { type OpenedResource, youtubeEmbedUrlOf } from "../resource-media"
@@ -15,17 +16,15 @@ export type ResourcePanelProps = {
  * frame, which the page cannot tell: the panel says so, and opens the resource in a new tab too.
  */
 export function ResourcePanel({ resource, onClose }: ResourcePanelProps) {
-  const { t } = useLingui()
   const title = resource.title
   return (
     <SidePanel
       title={title}
       onClose={onClose}
       footer={
-        <a
+        <ExternalLink
           href={resource.url}
-          target="_blank"
-          rel="noopener noreferrer"
+          hasIcon={false}
           className={buttonVariants({ variant: "outline", size: "sm" })}
         >
           <ExternalLinkIcon aria-hidden />
@@ -34,12 +33,11 @@ export function ResourcePanel({ resource, onClose }: ResourcePanelProps) {
           ) : (
             <Trans>Open in a new tab</Trans>
           )}
-          <span className="sr-only">{t`(opens in a new tab)`}</span>
-        </a>
+        </ExternalLink>
       }
     >
       <div className="flex h-full flex-col gap-3">
-        {resource.kind === "video" && resource.videoId ? (
+        {resource.kind === "video" ? (
           <div className="aspect-video w-full overflow-hidden rounded-lg bg-muted">
             <iframe
               src={youtubeEmbedUrlOf(resource.videoId)}

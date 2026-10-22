@@ -7,7 +7,11 @@ import {
   csvExtractionRunDetailOutputSchema,
   type ExtractionRunOutputDto,
   extractionRunOutputSchema,
+  toolCallOutputSchema,
 } from "@caseai-connect/desk-contracts"
+import type { z } from "zod"
+
+type ToolCallOutputDto = z.output<typeof toolCallOutputSchema>
 
 const DAY_IN_MILLISECONDS = 24 * 60 * 60 * 1000
 
@@ -59,6 +63,16 @@ export function buildCsvExtractionRun(
     csvExportDocumentId: null,
     createdAt,
     updatedAt: createdAt,
+    ...overrides,
+  })
+}
+
+/** A tool an agent called while it answered, checked against the contract. */
+export function buildToolCall(overrides: Partial<ToolCallOutputDto> = {}): ToolCallOutputDto {
+  return toolCallOutputSchema.parse({
+    id: crypto.randomUUID(),
+    name: "lookup_knowledge_base",
+    arguments: {},
     ...overrides,
   })
 }

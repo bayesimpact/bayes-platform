@@ -1,9 +1,10 @@
-import type * as React from "react"
+import type { CSSProperties } from "react"
 import { createHighlighterCore, type GrammarState, type HighlighterCore } from "shiki/core"
 import { createJavaScriptRegexEngine } from "shiki/engine/javascript"
+import { hasOwnKey } from "./has-own-key"
 
-// Add the languages you need. Each one loads the first time it is used.
-const languages = {
+/** The languages the Desk highlights, each loaded the first time a code block uses it. */
+const LANGUAGES = {
   bash: () => import("shiki/langs/shellscript.mjs"),
   css: () => import("shiki/langs/css.mjs"),
   diff: () => import("shiki/langs/diff.mjs"),
@@ -19,7 +20,10 @@ const languages = {
   yaml: () => import("shiki/langs/yaml.mjs"),
 }
 
-const aliases: Record<string, keyof typeof languages> = {
+type Language = keyof typeof LANGUAGES
+
+/** The other names a code block gives these languages. */
+const ALIASES = {
   js: "javascript",
   md: "markdown",
   py: "python",
@@ -29,52 +33,43 @@ const aliases: Record<string, keyof typeof languages> = {
   ts: "typescript",
   yml: "yaml",
   zsh: "bash",
-}
+} satisfies Record<string, Language>
 
 let highlighter: Promise<HighlighterCore> | undefined
 
-function getHighlighter() {
+function getHighlighter(): Promise<HighlighterCore> {
   highlighter ??= createHighlighterCore({
     themes: [import("shiki/themes/github-light.mjs"), import("shiki/themes/github-dark.mjs")],
     langs: [],
     engine: createJavaScriptRegexEngine({ forgiving: true }),
   })
-
   return highlighter
 }
 
-function getLanguage(language: string) {
+/** The language a code block names, by its name or an alias, or `null` for any other. */
+function languageOf(language: string): Language | "ansi" | null {
   const name = language.toLowerCase()
-
-  if (name === "ansi") {
-    return name
-  }
-
-  if (name in languages) {
-    return name as keyof typeof languages
-  }
-
-  return aliases[name] ?? null
+  // Terminal output, which shiki colors without a grammar.
+  if (name === "ansi") return name
+  if (hasOwnKey(LANGUAGES, name)) return name
+  return hasOwnKey(ALIASES, name) ? ALIASES[name] : null
 }
 
-// Loads a language and returns a highlighter for it, or null for a language
-// that is not listed.
+/**
+ * Loads a language and returns a highlighter for it, or `null` for a language the Desk does not
+ * highlight. Its `highlight` returns one React node per line, and the grammar state after the
+ * last line, which a later call takes to go on where the code left off.
+ */
 export async function loadHighlighter(language: string) {
-  const lang = getLanguage(language)
-
-  if (!lang) {
-    return null
-  }
+  const lang = languageOf(language)
+  if (!lang) return null
 
   const shiki = await getHighlighter()
-
   if (lang !== "ansi" && !shiki.getLoadedLanguages().includes(lang)) {
-    await shiki.loadLanguage(languages[lang])
+    await shiki.loadLanguage(LANGUAGES[lang])
   }
 
   return {
-    // Returns one React node per line, and the grammar state after the last
-    // line. Pass that state back to continue where the code left off.
     highlight(code: string, state?: GrammarState) {
       const tokenize = (text: string) =>
         shiki.codeToTokens(text, {
@@ -84,8 +79,8 @@ export async function loadHighlighter(language: string) {
           grammarState: state,
         }).tokens
 
-      // ANSI has no grammar state, so each line is tokenized on its own and
-      // gets the same colors whether it arrives in one piece or streams.
+      // ANSI has no grammar state, so each line is tokenized on its own and gets the same colors
+      // whether it arrives in one piece or streams.
       const tokens =
         lang === "ansi" ? code.split("\n").flatMap((line) => tokenize(line)) : tokenize(code)
 
@@ -93,9 +88,12 @@ export async function loadHighlighter(language: string) {
         lines: tokens.map((line) =>
           line.map((token, index) => (
             <span
-              // biome-ignore lint/suspicious/noArrayIndexKey: shadcn's code; a token's position in its line is its identity.
+              // A line's tokens never move: a token's position in its line is its identity.
+              // biome-ignore lint/suspicious/noArrayIndexKey: see above.
               key={index}
-              style={token.htmlStyle as React.CSSProperties}
+              // Safe: shiki's style holds CSS declarations and its `--shiki-*` color variables,
+              // all strings, which each token gets from its grammar and no class can hold.
+              style={token.htmlStyle as CSSProperties}
               className="text-(--shiki-light) dark:text-(--shiki-dark)"
             >
               {token.content}
@@ -107,5 +105,3 @@ export async function loadHighlighter(language: string) {
     },
   }
 }
-
-// shadcn's `highlightCode`, for server rendering, is left out: the Desk renders on the client only.

@@ -1,12 +1,12 @@
 import type { ConversationParamsDto } from "@caseai-connect/desk-contracts"
 import {
-  type MessageFeedbackInputDto,
+  MESSAGE_FEEDBACK_MAX_LENGTH,
   messageFeedbackInputSchema,
 } from "@caseai-connect/desk-contracts"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { FlagIcon } from "lucide-react"
-import { useState } from "react"
+import { useId, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
@@ -32,16 +32,18 @@ export type FeedbackDialogProps = {
 
 /** Reports a problem with one of the agent's replies, for the people who run the agent. */
 export function FeedbackDialog({ conversation, agentMessageId }: FeedbackDialogProps) {
-  const { t } = useLingui()
+  const { t, i18n } = useLingui()
+  const contentId = useId()
   const [isOpen, setIsOpen] = useState(false)
   const sendFeedback = useSendFeedback(conversation)
-  const form = useForm<MessageFeedbackInputDto>({
+  const form = useForm({
     resolver: zodResolver(messageFeedbackInputSchema),
     defaultValues: { content: "" },
   })
+  const maxLength = i18n.number(MESSAGE_FEEDBACK_MAX_LENGTH)
 
   const handleSubmit = form.handleSubmit((values) =>
-    sendFeedback.mutateAsync(
+    sendFeedback.mutate(
       { agentMessageId, content: values.content },
       {
         onSuccess: () => {
@@ -85,18 +87,20 @@ export function FeedbackDialog({ conversation, agentMessageId }: FeedbackDialogP
             name="content"
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="feedback-content">
+                <FieldLabel htmlFor={contentId}>
                   <Trans>What went wrong?</Trans>
                 </FieldLabel>
                 <Textarea
                   {...field}
-                  id="feedback-content"
+                  id={contentId}
                   aria-invalid={fieldState.invalid}
                   className="min-h-28"
                 />
                 {fieldState.invalid ? (
                   <FieldError>
-                    <Trans>Describe the problem in a few words, up to 2,000 characters.</Trans>
+                    <Trans>
+                      Describe the problem in a few words, up to {maxLength} characters.
+                    </Trans>
                   </FieldError>
                 ) : null}
               </Field>
@@ -106,7 +110,7 @@ export function FeedbackDialog({ conversation, agentMessageId }: FeedbackDialogP
             <DialogClose render={<Button type="button" variant="outline" />}>
               <Trans>Cancel</Trans>
             </DialogClose>
-            <Button type="submit" disabled={form.formState.isSubmitting}>
+            <Button type="submit" disabled={sendFeedback.isPending}>
               <Trans>Send the report</Trans>
             </Button>
           </DialogFooter>

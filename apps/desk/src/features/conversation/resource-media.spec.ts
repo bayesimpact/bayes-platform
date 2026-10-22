@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { resourceMediaOf, youtubeEmbedUrlOf, youtubeIdOf } from "./resource-media"
+import { openedResourceOf, resourceMediaOf, youtubeEmbedUrlOf, youtubeIdOf } from "./resource-media"
 
 describe("youtubeIdOf", () => {
   it("reads the id of the usual YouTube links", () => {
@@ -37,5 +37,24 @@ describe("youtubeEmbedUrlOf", () => {
     expect(youtubeEmbedUrlOf("dQw4w9WgXcQ")).toBe(
       "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?autoplay=1&rel=0",
     )
+  })
+})
+
+describe("openedResourceOf", () => {
+  it("opens a video with its id, and an image or a page with their URL alone", () => {
+    const resource = { title: "Plan comparison", description: null }
+    const video = resourceMediaOf("https://youtu.be/dQw4w9WgXcQ", "https://youtu.be/dQw4w9WgXcQ")
+
+    expect(openedResourceOf(resource, "https://youtu.be/dQw4w9WgXcQ", video)).toEqual({
+      ...resource,
+      url: "https://youtu.be/dQw4w9WgXcQ",
+      kind: "video",
+      videoId: "dQw4w9WgXcQ",
+    })
+    expect(openedResourceOf(resource, "https://example.org/plans", null)).toEqual({
+      ...resource,
+      url: "https://example.org/plans",
+      kind: "page",
+    })
   })
 })

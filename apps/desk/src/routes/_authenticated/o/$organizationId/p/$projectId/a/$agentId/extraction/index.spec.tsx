@@ -1,36 +1,30 @@
 import { EXTRACTION_MAX_BYTES } from "@caseai-connect/desk-contracts"
 import { screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { beforeEach, describe, expect, it, vi } from "vitest"
+import { describe, expect, it } from "vitest"
 import { fileSizeOf } from "@/lib/file-size"
-import { extractionUrlsOf } from "@/test/extraction-urls"
-import { buildExtractionAgentWorld } from "@/test/factories/desk-world.factory"
+import { extractionUrlsOf } from "@/test/desk-urls"
+import { buildExtractionAgentWorld, type DeskWorld } from "@/test/factories/desk-world.factory"
+import { hiddenFileInput } from "@/test/file-input"
 import { worldHandlers } from "@/test/msw/handlers"
 import { server } from "@/test/msw/server"
 import { renderApp } from "@/test/render-app"
 
-vi.mock("@/lib/auth/session", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/lib/auth/session")>()),
-  hasSession: async () => true,
-  getAccessToken: async () => "test-token",
-}))
-
-beforeEach(() => {
-  window.localStorage.clear()
-})
-
-const fileInput = () =>
-  document.querySelector<HTMLInputElement>('input[type="file"]') as HTMLInputElement
+/** A world with an extraction agent, served by the mocked API, which the test reads back. */
+function serveExtractionWorld(): DeskWorld {
+  const world = buildExtractionAgentWorld()
+  server.use(...worldHandlers(world))
+  return world
+}
 
 describe("a new extraction", () => {
   it("uploads a document, then opens its extraction while the agent reads it", async () => {
-    const world = buildExtractionAgentWorld()
-    server.use(...worldHandlers(world))
+    const world = serveExtractionWorld()
     const { router } = renderApp(extractionUrlsOf(world).newExtractionUrl)
 
     await screen.findByRole("heading", { name: "What should Document Reader read?" })
     await userEvent.upload(
-      fileInput(),
+      hiddenFileInput(),
       new File(["%PDF-1.7"], "project-brief.pdf", { type: "application/pdf" }),
     )
 
@@ -43,12 +37,11 @@ describe("a new extraction", () => {
   })
 
   it("refuses a file it cannot read, and says why", async () => {
-    const world = buildExtractionAgentWorld()
-    server.use(...worldHandlers(world))
+    const world = serveExtractionWorld()
     renderApp(extractionUrlsOf(world).newExtractionUrl)
 
     await screen.findByRole("heading", { name: "What should Document Reader read?" })
-    await userEvent.upload(fileInput(), new File(["slides"], "slides.pptx", { type: "" }), {
+    await userEvent.upload(hiddenFileInput(), new File(["slides"], "slides.pptx", { type: "" }), {
       applyAccept: false,
     })
 
@@ -60,8 +53,7 @@ describe("a new extraction", () => {
   })
 
   it("extracts again a document uploaded before, and sets up a CSV file before it runs", async () => {
-    const world = buildExtractionAgentWorld()
-    server.use(...worldHandlers(world))
+    const world = serveExtractionWorld()
     const { router } = renderApp(extractionUrlsOf(world).newExtractionUrl)
 
     const documents = await screen.findByRole("region", { name: "Your documents" })
@@ -75,6 +67,21 @@ describe("a new extraction", () => {
     const again = await screen.findByRole("region", { name: "Your documents" })
     await userEvent.click(within(again).getByRole("button", { name: "Extract contract.pdf" }))
     expect(await screen.findByRole("heading", { name: "contract.pdf" })).toBeInTheDocument()
+  })
+
+  it("deletes a document uploaded before, after a confirmation", async () => {
+    const world = serveExtractionWorld()
+    renderApp(extractionUrlsOf(world).newExtractionUrl)
+
+    const documents = await screen.findByRole("region", { name: "Your documents" })
+    await userEvent.click(within(documents).getByRole("button", { name: "Delete contract.pdf" }))
+    const dialog = await screen.findByRole("alertdialog", { name: "Delete this document?" })
+    await userEvent.click(within(dialog).getByRole("button", { name: "Delete" }))
+
+    expect(await screen.findByText("contract.pdf was deleted.")).toBeInTheDocument()
+    expect(
+      within(documents).queryByRole("button", { name: "Extract contract.pdf" }),
+    ).not.toBeInTheDocument()
   })
 })
 

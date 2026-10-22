@@ -1,3 +1,4 @@
+import { TOOL_NAMES, type ToolName } from "@caseai-connect/desk-contracts"
 import type { MessageDescriptor } from "@lingui/core"
 import { msg } from "@lingui/core/macro"
 import { Plural, Trans, useLingui } from "@lingui/react/macro"
@@ -11,25 +12,29 @@ import {
   TraceLine,
   TraceTitle,
 } from "@/components/ui/trace"
+import { hasOwnKey } from "@/lib/has-own-key"
 
 /** What a person reads while the agent uses a tool. The tools missing here read as a generic step. */
-const TOOL_LABELS: Record<string, MessageDescriptor> = {
-  lookup_knowledge_base: msg`Searching the knowledge base`,
-  search_resources: msg`Searching the resources`,
-  smart_search: msg`Searching the resources`,
-  surfaceResources: msg`Picking useful resources`,
-  fillForm: msg`Filling in the form`,
-  consolidateForm: msg`Completing the form`,
-  concludeHandoff: msg`Handing the conversation back`,
-  saveMemory: msg`Remembering what matters`,
-  forgetMemory: msg`Forgetting what you asked`,
-}
+const TOOL_LABELS = {
+  [TOOL_NAMES.lookupKnowledgeBase]: msg`Searching the knowledge base`,
+  [TOOL_NAMES.searchResources]: msg`Searching the resources`,
+  [TOOL_NAMES.smartSearch]: msg`Searching the resources`,
+  [TOOL_NAMES.surfaceResources]: msg`Picking useful resources`,
+  [TOOL_NAMES.fillForm]: msg`Filling in the form`,
+  [TOOL_NAMES.consolidateForm]: msg`Completing the form`,
+  [TOOL_NAMES.concludeHandoff]: msg`Handing the conversation back`,
+  [TOOL_NAMES.saveMemory]: msg`Remembering what matters`,
+  [TOOL_NAMES.forgetMemory]: msg`Forgetting what you asked`,
+} satisfies Partial<Record<ToolName, MessageDescriptor>>
 
 /**
  * Tools the platform calls for itself after the reply, which say nothing to the person as steps:
  * the sources show under the reply instead.
  */
-const HIDDEN_TOOLS = new Set(["recalculateConversationSessionMetadata", "sources"])
+const HIDDEN_TOOLS: ReadonlySet<string> = new Set([
+  TOOL_NAMES.recalculateConversationSessionMetadata,
+  TOOL_NAMES.sources,
+])
 
 export type ToolStepsProps = {
   toolNames: string[]
@@ -45,10 +50,8 @@ export type ToolStepsProps = {
 export function ToolSteps({ toolNames, isWriting, hasText }: ToolStepsProps) {
   const { t } = useLingui()
   const steps = toolNames.filter((toolName) => !HIDDEN_TOOLS.has(toolName))
-  const labelOf = (toolName: string) => {
-    const label = TOOL_LABELS[toolName]
-    return label ? t(label) : t`Using a tool`
-  }
+  const labelOf = (toolName: string) =>
+    hasOwnKey(TOOL_LABELS, toolName) ? t(TOOL_LABELS[toolName]) : t`Using a tool`
 
   if (isWriting) {
     const isThinking = !hasText && steps.length === 0

@@ -1,5 +1,6 @@
 import { AppBridge } from "@modelcontextprotocol/ext-apps/app-bridge"
-import { type RefObject, useEffect, useRef, useState } from "react"
+import { type RefObject, useEffect, useEffectEvent, useState } from "react"
+import { toHttpsUrl } from "@/lib/safe-url"
 import type { ChatMcpApp } from "../chat-messages"
 import { SandboxTransport, startSandbox } from "../mcp-app-sandbox"
 import { appMessageText, toCallToolResult } from "../mcp-apps"
@@ -25,37 +26,26 @@ function hasUserActivation(): boolean {
   return navigator.userActivation?.isActive ?? false
 }
 
-function isWebLink(url: string): boolean {
-  try {
-    const { protocol } = new URL(url)
-    return protocol === "https:" || protocol === "http:"
-  } catch {
-    // Not a URL at all.
-    return false
-  }
-}
-
 /**
  * Runs an MCP App in the sandbox of a frame, with the official host bridge: the handshake, the
  * tool's input and result, the app's height, and the links and messages it asks for. The frame
- * talks to the browser outside React, which an effect is for.
+ * talks to the browser outside React, which an effect is for. The card is keyed by its tool call,
+ * so the app restarts only for new HTML.
  */
 export function useMcpApp(
   frameRef: RefObject<HTMLIFrameElement | null>,
   { app, html, onMessage, onFailed }: UseMcpAppOptions,
 ): McpAppStatus {
   const [status, setStatus] = useState<McpAppStatus>("loading")
-  // Read through a ref, so a new handler never restarts the app.
-  const onMessageRef = useRef(onMessage)
-  onMessageRef.current = onMessage
-  const onFailedRef = useRef(onFailed)
-  onFailedRef.current = onFailed
-  // The messages refetch into new objects: the app restarts only for another tool call or HTML.
-  const appRef = useRef(app)
-  appRef.current = app
-  const toolCallId = app.toolCallId
+  // Effect events: the messages refetch into new objects, and a new handler or a refetched app
+  // must not restart the app.
+  const handleMessage = useEffectEvent((text: string) => onMessage(text))
+  const handleFailed = useEffectEvent(() => onFailed())
+  const readToolData = useEffectEvent(() => ({
+    input: app.toolInput,
+    result: toCallToolResult(app.toolResult),
+  }))
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: the tool call names the app; its data is read through a ref.
   useEffect(() => {
     const frame = frameRef.current
     if (!frame) return
@@ -71,8 +61,9 @@ export function useMcpApp(
     let isInitialized = false
     let hasResentAfterResize = false
     const sendToolData = () => {
-      void bridge.sendToolInput({ arguments: appRef.current.toolInput })
-      void bridge.sendToolResult(toCallToolResult(appRef.current.toolResult))
+      const { input, result } = readToolData()
+      void bridge.sendToolInput({ arguments: input })
+      void bridge.sendToolResult(result)
     }
 
     bridge.onsizechange = ({ height }) => {
@@ -83,8 +74,9 @@ export function useMcpApp(
       }
     }
     bridge.onopenlink = async ({ url }) => {
-      if (!isWebLink(url) || !hasUserActivation()) return { isError: true }
-      const opened = window.open(url, "_blank")
+      const webUrl = toHttpsUrl(url, { allowHttp: true })
+      if (!webUrl || !hasUserActivation()) return { isError: true }
+      const opened = window.open(webUrl, "_blank")
       if (!opened) return { isError: true }
       opened.opener = null
       return {}
@@ -92,7 +84,7 @@ export function useMcpApp(
     bridge.onmessage = async ({ role, content }) => {
       const text = appMessageText(content)
       if (role !== "user" || text === "" || !hasUserActivation()) return { isError: true }
-      onMessageRef.current(text)
+      handleMessage(text)
       return {}
     }
 
@@ -126,7 +118,7 @@ export function useMcpApp(
       if (controller.signal.aborted) return
       console.error("An MCP App could not render:", error)
       setStatus("failed")
-      onFailedRef.current()
+      handleFailed()
     })
 
     return () => {
@@ -142,7 +134,7 @@ export function useMcpApp(
       // React's double mount in development does, stays on the empty page. The next run's page
       // replaces the app, and a card that goes takes its frame with it.
     }
-  }, [frameRef, toolCallId, html])
+  }, [frameRef, html])
 
   return status
 }

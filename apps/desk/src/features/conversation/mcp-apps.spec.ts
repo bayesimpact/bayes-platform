@@ -1,3 +1,4 @@
+import type { ContentBlock } from "@modelcontextprotocol/sdk/types.js"
 import { describe, expect, it } from "vitest"
 import type { ChatMcpApp } from "./chat-messages"
 import {
@@ -42,9 +43,9 @@ describe("findMcpAppHtml", () => {
 
 describe("the texts of tools and apps", () => {
   it("reads the text blocks of a tool result and of a message an app proposes", () => {
-    const blocks = [
+    const blocks: ContentBlock[] = [
       { type: "text", text: " First " },
-      { type: "image", data: "…" },
+      { type: "image", data: "iVBORw0KGgo=", mimeType: "image/png" },
       { type: "text", text: "Second" },
     ]
     expect(toolResultText({ content: blocks })).toBe("First\nSecond")
@@ -79,5 +80,17 @@ describe("unavailableApps", () => {
       ]),
     ).toEqual([failed, withoutHtml])
     expect(unavailableApps([withoutHtml], { htmls, isPending: true }, [])).toEqual([])
+  })
+})
+
+describe("a tool result that breaks the MCP schema", () => {
+  it("reaches the app as structured content, and shows no text", () => {
+    const broken = { content: [{ type: "text", text: 42 }] }
+
+    expect(toCallToolResult(broken)).toEqual({
+      content: [{ type: "text", text: "" }],
+      structuredContent: broken,
+    })
+    expect(toolResultText(broken)).toBe("")
   })
 })

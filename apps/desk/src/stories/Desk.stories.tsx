@@ -1,7 +1,7 @@
+import { DeskProjectsRoutes } from "@caseai-connect/desk-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import { delay, HttpResponse, http } from "msw"
-import { conversationUrlOf } from "@/test/desk-urls"
-import { extractionUrlsOf } from "@/test/extraction-urls"
+import { delay } from "msw"
+import { conversationUrlOf, extractionUrlsOf } from "@/test/desk-urls"
 import {
   buildEmptyHistoryWorld,
   buildExtractionAgentWorld,
@@ -10,7 +10,8 @@ import {
   buildSeveralProjectsWorld,
 } from "@/test/factories/desk-world.factory"
 import { termsHandlers } from "@/test/msw/handlers"
-import type { DeskStoryParameters } from "@/test/msw/story-api"
+import { apiError, mockRoute } from "@/test/msw/mock-route"
+import { desk } from "@/test/msw/story-api"
 import { DeskStory } from "./DeskStory"
 
 /**
@@ -19,6 +20,8 @@ import { DeskStory } from "./DeskStory"
  */
 const meta = {
   title: "Desk",
+  // Every story here is the whole Desk, with providers of its own: the main world by default.
+  parameters: desk(),
   // Keyed by story: the next story starts a Desk of its own, on its own world, rather than keep
   // the router and the cache of the previous one.
   render: (_args, { id, loaded }) => (
@@ -28,8 +31,6 @@ const meta = {
 
 export default meta
 type Story = StoryObj<typeof meta>
-
-const desk = (parameters: DeskStoryParameters) => ({ desk: parameters })
 
 export const Home: Story = {}
 
@@ -54,7 +55,7 @@ export const NoAgent: Story = {
 }
 
 export const TermsToAccept: Story = {
-  parameters: desk({ handlers: termsHandlers() }),
+  parameters: desk({ handlers: termsHandlers }),
 }
 
 export const NewExtraction: Story = {
@@ -88,22 +89,22 @@ export const CsvSetup: Story = {
 export const CsvRun: Story = {
   parameters: desk({
     world: buildExtractionAgentWorld,
-    url: (world) => extractionUrlsOf(world).csvRunUrl,
+    url: (world) => extractionUrlsOf(world).csvRunUrl("articles.csv"),
   }),
 }
 
 export const ProjectsFailToLoad: Story = {
   parameters: desk({
-    handlers: [http.get("*/api/projects/mine", () => new HttpResponse(null, { status: 503 }))],
+    handlers: () => [mockRoute(DeskProjectsRoutes.getAllMine, () => apiError(503))],
   }),
 }
 
 export const Loading: Story = {
   parameters: desk({
-    handlers: [
-      http.get("*/api/projects/mine", async () => {
+    handlers: () => [
+      mockRoute(DeskProjectsRoutes.getAllMine, async () => {
         await delay("infinite")
-        return HttpResponse.json({})
+        return []
       }),
     ],
   }),
