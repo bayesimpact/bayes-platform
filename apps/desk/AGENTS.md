@@ -12,13 +12,15 @@ holds what is specific to the Desk.
   pages below it. `/app` is the home, and `/app/o/$organizationId` redirects to it.
 - Contracts: `@caseai-connect/desk-contracts` (`packages/desk-contracts`), one folder per area
   (`account`, `agent-sessions`, `agents`, `conversations`, `documents`, `extractions`,
-  `invitations`, `memories`, `organizations`, `projects`), one `Desk{Area}Routes` object per
-  area. It describes the API routes the Desk calls and the fields it reads; the API does not
-  import it.
+  `invitations`, `memories`, `organizations`, `projects`), with `common/` for the error body and
+  the params every route extends (`AgentParamsDto`, `ConversationParamsDto`), and a
+  `Desk{Area}Routes` object per area (`extractions` has two: documents and CSV files). It
+  describes the API routes the Desk calls and the fields it reads; the API does not import it.
 - Endpoints: in this first phase, the Desk reads the API's existing endpoints, and `apps/api`
   changes only in its usual way when one is missing (`docs/frontend/conventions.md`, Endpoints).
-  The home reads `me`, `projects/mine` and `organizations/mine`, and keeps the projects that grant
-  `desk.ui.read`, as apps/web does.
+  The sidebar reads `me`, then `projects/mine`, `organizations/mine` and the agents of each project
+  that grants `desk.ui.read`, as apps/web does, under one query (`deskAgentsQueryOptions` in
+  `features/agents`), and the person's invitations every minute.
 - Sign-in: `src/lib/auth/`, the only code that knows `oidc-client-ts`, used through
   `lib/auth/session.ts`. It signs in with the install's client and comes back to
   `<origin>/app/auth/callback` (`<origin>/app/` after sign-out). Its storage prefix (`desk.oidc.`)
@@ -41,7 +43,8 @@ Run them from the repository root.
 | `npm run dev -w @caseai-connect/desk` | Dev server on port 5177 at `/app/`, forwarding `/api` to the local API |
 | `npm run storybook -w @caseai-connect/desk` | Storybook on port 6009: the whole Desk on the MSW handlers, with no API and no sign-in, one story per state of its world |
 | `npm run check -w @caseai-connect/desk` | Typecheck, Biome, dependency-cruiser, knip, translation checks and Vitest |
-| `npm run i18n:extract -w @caseai-connect/desk` | Writes every message to `src/locales/fr.po`, to translate in the same change |
+| `npm run test -w @caseai-connect/desk` | Vitest alone; `npx vitest run <path>` in `apps/desk` runs one spec |
+| `npm run i18n:extract -w @caseai-connect/desk` | Writes every message to `src/locales/en.po` and `fr.po`, without line numbers, to translate in the same change |
 | `npm run build -w @caseai-connect/desk` | The production build, in `apps/desk/dist` |
 | `npm run preview -w @caseai-connect/desk` | Serves that build on port 5178 at `/app/` |
 
@@ -78,27 +81,43 @@ the conventions as they stand. When a rule changes, its reference file changes i
 - The home: `src/routes/_authenticated/index.tsx`, which opens the last agent the person used,
   through `features/agents`, whose `listDeskProjects` keeps the projects that open the Desk. The
   user menu reads the `me` query of `features/account`.
-- The layout of every signed-in page, with the session check and the user menu:
-  `src/routes/_authenticated.tsx`. The sign-in callback: `src/routes/auth/callback.tsx`.
+- The layout of every signed-in page, with the session check and the terms to accept:
+  `src/routes/_authenticated.tsx`. The sidebar's footer, with the user menu and the invitations:
+  `src/routes/-components/DeskSidebarFooter.tsx` (the router ignores `-` folders). The sign-in
+  callback: `src/routes/auth/callback.tsx`, whose problems `lib/auth/sign-in-problems.ts` tells
+  apart and `components/shared/SignInCallbackErrorPage.tsx` explains.
 - An agent's pages: `src/routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/`, with
   a conversation (`features/conversation`) or, for an extraction agent, `extraction/` and its
   document runs, CSV setups and CSV runs (`features/extraction`). The sidebar's history is
-  `features/history`, the agent switcher `features/agents`, the envelope of invitations
-  `features/invitations`, the terms and the name `features/account`.
+  `features/history`, the agent switcher and the agents' guards (`requireAgentType`,
+  `hasSourcesTool`) `features/agents`, what an agent remembers `features/memory`, the envelope of
+  invitations `features/invitations`, the terms and the name `features/account`. Each feature's
+  route loaders sit in its `load-*.ts`.
 - The sidebar's colors, in `src/styles/global.css`: unlike the platform's other tokens, the
   `--sidebar-*` ones derive from `--primary` (mixed in `oklab`, which keeps its hue), so the
   sidebar takes each install's color from its `theme.css`.
 - Shared compositions, in `src/components/shared/`: `SidePanel` for every panel docked beside a
-  page, `HeaderActions` for the actions of the bar above it, `DataTable` for every table.
+  page (it makes the page behind inert where it covers it), `HeaderActions` for the actions of the
+  bar above it, `DataTable` for every table, `ExternalLink` for a link to a new tab,
+  `HighlightedCodeBlock` for code and JSON, `RunStateIcon` for where a run stands. Shared hooks sit
+  in `src/hooks/` (`useNow`, `useMediaQuery`, `useAbortOnUnmount`), and shared logic in `src/lib/`:
+  `polling.ts`, `not-found.ts`, `start-query.ts`, `agent-params.ts`, `field-text.ts`,
+  `file-size.ts`, `format-time.ts`, `run-state.ts`, `has-own-key.ts`, `is-record.ts`.
 - A conversation keys its messages by position: a message keeps its element when its id changes
   (the local id, then the server's), which the message scroller would read as a new message to
   scroll to.
 - The API client: `src/lib/api-client.ts`. The query client's retry rules:
   `src/app/query-client.ts`.
-- The mocked API: `src/test/msw/handlers.ts`, with the factories of `src/test/factories/`.
-- The stories: `src/stories/Desk.stories.tsx`. Each one sets its `desk` parameter (a world, handlers
-  that win over it, a starting page), which `src/test/msw/story-api.ts` serves with ids that are
-  the same on every load. A new state of the Desk is a new story there.
+- The mocked API: `src/test/msw/handlers.ts` and `extraction-handlers.ts`, written with
+  `mockRoute` and `mockStreamRoute` (`src/test/msw/mock-route.ts`) and fed by the factories of
+  `src/test/factories/`, whose `desk-world.factory.ts` builds the worlds. `src/test/setup.ts` gives
+  each test a fresh world, a signed-in session and empty storage; a spec overrides a route with
+  `server.use(mockRoute(...))`. Its URLs come from `src/test/desk-urls.ts`.
+- The stories: `src/stories/Desk.stories.tsx`. Each one sets its `desk` parameter with `desk()`
+  (a world, handlers that win over it, a starting page), which `src/test/msw/story-api.ts` serves
+  with ids that are the same on every load. A new state of the Desk is a new story there; a
+  component's own story gets the i18n and query providers from `src/stories/StoryProviders.tsx`.
+  `src/stories/Desk.stories.spec.tsx` renders every story in the tests.
 
 ## Until the cutover
 
