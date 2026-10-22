@@ -3,9 +3,7 @@ import {
   AppsDocumentsRoutes,
   DOCUMENT_CREATE_PERMISSION,
   DOCUMENT_READ_PERMISSION,
-  DOCUMENT_UPLOAD_CONTENT_LENGTH_RANGE_HEADER,
   DOCUMENT_UPLOAD_MAX_BYTES,
-  documentUploadContentLengthRange,
 } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import request from "supertest"
@@ -146,7 +144,7 @@ describe("Apps - Upload document", () => {
       embeddingStatus: "pending",
       uploadHeaders: {
         "Content-Type": "application/pdf",
-        [DOCUMENT_UPLOAD_CONTENT_LENGTH_RANGE_HEADER]: documentUploadContentLengthRange(),
+        "Content-Length": String(fileBody.size),
       },
     })
     expect(created.body.data.uploadUrl).toEqual(expect.any(String))
@@ -294,7 +292,7 @@ describe("Apps - Upload document", () => {
     expect(created.body.data.embeddingStatus).toBe("pending")
   })
 
-  it("returns 400 from the upload URL when the body exceeds the cap", async () => {
+  it("returns 400 from the upload URL when the body size differs from the signed size", async () => {
     const storage = setup.module.get(FILE_STORAGE_SERVICE)
     if (!(storage instanceof LocalStorageService)) {
       throw new Error("Expected local file storage in tests")
@@ -303,13 +301,13 @@ describe("Apps - Upload document", () => {
       storagePath: `upload-cap/${randomUUID()}.pdf`,
       mimeType: "application/pdf",
       expiresInSeconds: 60,
-      maxBytes: 4,
+      contentLength: 4,
     })
     const uploaded = await request(app.getHttpServer())
       .put(localUploadPath(uploadUrl))
       .set("Content-Type", "application/pdf")
       .send(Buffer.from("12345"))
-    expectResponse(uploaded, 400, "Upload exceeds the maximum size.")
+    expectResponse(uploaded, 400, "Upload size does not match the signed size.")
   })
 
   it("returns 404 when the document feed is not in the token project", async () => {
