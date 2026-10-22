@@ -9,10 +9,13 @@ export type DeskStoryProps = {
   url: string
 }
 
-/** The whole Desk at a URL, with a router and a cache of its own, on the mocked API. */
+/**
+ * The whole Desk at a URL, with a router and a cache of its own, on the mocked API. Queries do not
+ * retry, so a failure shows at once.
+ */
 export function DeskStory({ url }: DeskStoryProps) {
   const [app] = useState(() => {
-    const queryClient = createQueryClient()
+    const queryClient = createQueryClient({ isRetrying: false })
     const router = createAppRouter(queryClient, {
       history: createMemoryHistory({ initialEntries: [url] }),
     })

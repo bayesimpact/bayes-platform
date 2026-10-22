@@ -2,11 +2,26 @@ import "../src/styles/global.css"
 import type { Preview } from "@storybook/react-vite"
 import { INITIAL_VIEWPORTS } from "storybook/viewport"
 import { activateLocale, detectLocale, LOCALES, type Locale } from "@/app/i18n"
-import { serveStoryWorld } from "@/test/msw/story-api"
+import { StoryProviders } from "@/stories/StoryProviders"
+import { type DeskStoryParameters, serveStoryWorld } from "@/test/msw/story-api"
 
 const isLocale = (value: unknown): value is Locale => LOCALES.some((locale) => locale === value)
 
 const preview: Preview = {
+  // A story of the whole Desk sets its `desk` parameter and brings its own providers; a story of
+  // one component gets them here, afresh for each story.
+  decorators: [
+    (Story, { id, parameters }) => {
+      const deskParameters: DeskStoryParameters | undefined = parameters.desk
+      return deskParameters ? (
+        <Story />
+      ) : (
+        <StoryProviders key={id}>
+          <Story />
+        </StoryProviders>
+      )
+    },
+  ],
   globalTypes: {
     locale: {
       description: "The language of the Desk",
@@ -44,7 +59,8 @@ const preview: Preview = {
   loaders: [
     async ({ globals, parameters }) => {
       await activateLocale(isLocale(globals.locale) ? globals.locale : "en")
-      return { deskUrl: serveStoryWorld(parameters.desk) }
+      const deskParameters: DeskStoryParameters | undefined = parameters.desk
+      return { deskUrl: serveStoryWorld(deskParameters) }
     },
   ],
 }
