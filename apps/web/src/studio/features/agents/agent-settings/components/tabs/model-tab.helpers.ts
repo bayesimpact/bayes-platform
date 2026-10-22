@@ -1,4 +1,7 @@
-import { DEFAULT_EMBEDDING_MODEL, type UpdateAgentSettingsModelDto } from "@caseai-connect/api-contracts"
+import {
+  DEFAULT_EMBEDDING_MODEL,
+  type UpdateAgentSettingsModelDto,
+} from "@caseai-connect/api-contracts"
 import type { UseFormReturn } from "react-hook-form"
 import { findAgentModelEntry } from "@/common/features/agents/agent-model.helpers"
 import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"
