@@ -24,6 +24,7 @@ export function createAppRouter(
 }
 
 declare module "@tanstack/react-router" {
+  // biome-ignore lint/style/useConsistentTypeDefinitions: it augments a declaration, which only an interface can.
   interface Register {
     router: ReturnType<typeof createAppRouter>
   }

@@ -46,6 +46,7 @@
   "devDependencies": {
     "@lingui/babel-plugin-lingui-macro": "^6.10.0",
     "@lingui/cli": "^6.10.0",
+    "@lingui/format-po": "^6.10.0",
     "@lingui/vite-plugin": "^6.10.0",
     "@storybook/addon-mcp": "^10.6.1",
     "@storybook/react-vite": "^10.6.1",

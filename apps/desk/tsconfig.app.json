@@ -19,10 +19,11 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
     "verbatimModuleSyntax": true,
     "erasableSyntaxOnly": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true
   },
-  "include": ["src", ".storybook"]
+  "include": ["src", ".storybook/preview.tsx"]
 }

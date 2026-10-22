@@ -48,8 +48,8 @@ module.exports = {
     {
       name: "shared-code-imports-no-feature-or-route",
       severity: "error",
-      comment: "components/ and lib/ import neither features/ nor routes/.",
-      from: { path: "^src/(components|lib)/" },
+      comment: "components/, hooks/ and lib/ import neither features/ nor routes/.",
+      from: { path: "^src/(components|hooks|lib)/" },
       to: { path: "^src/(features|routes)/" },
     },
     {
@@ -63,13 +63,13 @@ module.exports = {
       name: "test-code-stays-in-tests",
       severity: "error",
       comment:
-        "src/test/ (handlers, factories) is for the tests and the stories only: no app code " +
-        "imports it.",
+        "src/test/ (handlers, factories) and src/stories/ are for the tests and the stories " +
+        "only: no app code imports them.",
       from: {
         path: "^src/",
-        pathNot: ["^src/test/", "\\.spec\\.tsx?$", "\\.stories\\.tsx$"],
+        pathNot: ["^src/(test|stories)/", "\\.spec\\.tsx?$", "\\.stories\\.tsx$"],
       },
-      to: { path: "^src/test/" },
+      to: { path: "^src/(test|stories)/" },
     },
   ],
   options: {

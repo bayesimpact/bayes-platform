@@ -3,6 +3,7 @@
 import type { Messages } from "@lingui/core"
 
 declare global {
+  // biome-ignore lint/style/useConsistentTypeDefinitions: it augments a declaration, which only an interface can.
   interface ImportMetaEnv {
     readonly VITE_OIDC_AUTHORITY?: string
     readonly VITE_OIDC_CLIENT_ID?: string
@@ -11,6 +12,7 @@ declare global {
     readonly VITE_OIDC_AUTHORIZATION_PARAMS?: string
   }
 
+  // biome-ignore lint/style/useConsistentTypeDefinitions: it augments a declaration, which only an interface can.
   interface Window {
     /** The configuration the API injects into index.html when it serves the Desk. */
     __CONFIG__?: Record<string, string | undefined>
@@ -20,7 +22,7 @@ declare global {
   }
 
   /** The events of the browser's speech recognition, whose payloads lib.dom declares. */
-  interface SpeechRecognitionEventMap {
+  type SpeechRecognitionEventMap = {
     result: SpeechRecognitionEvent
     error: SpeechRecognitionErrorEvent
     start: Event
@@ -52,6 +54,7 @@ declare global {
 
 declare module "react" {
   /** A CSS custom property a style sets for its classes to read, such as `--sidebar-width`. */
+  // biome-ignore lint/style/useConsistentTypeDefinitions: it augments a declaration, which only an interface can.
   interface CSSProperties {
     [property: `--${string}`]: string | number | undefined
   }

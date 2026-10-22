@@ -14,10 +14,11 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
     "verbatimModuleSyntax": true,
     "erasableSyntaxOnly": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true
   },
-  "include": ["vite.config.ts", "lingui.config.ts", "knip.config.ts"]
+  "include": ["vite.config.ts", "lingui.config.ts", "knip.config.ts", ".storybook/main.ts"]
 }
