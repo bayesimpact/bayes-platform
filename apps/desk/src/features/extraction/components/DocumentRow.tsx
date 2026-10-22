@@ -63,7 +63,11 @@ export function DocumentRow({
         aria-label={kind === "csv" ? t`Set up the extraction of ${name}` : t`Extract ${name}`}
       >
         {isBusy ? (
-          <LoaderCircleIcon aria-hidden className="animate-spin motion-reduce:animate-none" />
+          <LoaderCircleIcon
+            data-icon="inline-start"
+            aria-hidden
+            className="animate-spin motion-reduce:animate-none"
+          />
         ) : null}
         {kind === "csv" ? (
           <Trans comment="Opens the setup of a CSV file's extraction">Set up</Trans>

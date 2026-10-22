@@ -19,7 +19,7 @@ export function FormsButton({ forms, isOpen, onToggle }: FormsButtonProps) {
       aria-pressed={isOpen}
       onClick={onToggle}
     >
-      <ClipboardListIcon aria-hidden />
+      <ClipboardListIcon data-icon="inline-start" aria-hidden />
       {isInProgress ? <Trans>Form in progress</Trans> : <Trans>Completed form</Trans>}
     </Button>
   )

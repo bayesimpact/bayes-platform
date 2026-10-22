@@ -142,7 +142,7 @@ export function ConversationView({
                               size="sm"
                               onClick={() => sending.retry(retryableMessage)}
                             >
-                              <RotateCcwIcon aria-hidden />
+                              <RotateCcwIcon data-icon="inline-start" aria-hidden />
                               <Trans>Retry</Trans>
                             </Button>
                           </div>

@@ -49,7 +49,7 @@ export function UserMenu({
     <DropdownMenu>
       <DropdownMenuTrigger render={<Button variant="ghost" aria-label={menuLabel} />}>
         <span className="max-w-48 truncate">{name}</span>
-        <ChevronDownIcon aria-hidden />
+        <ChevronDownIcon data-icon="inline-end" aria-hidden />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64">
         <DropdownMenuGroup>

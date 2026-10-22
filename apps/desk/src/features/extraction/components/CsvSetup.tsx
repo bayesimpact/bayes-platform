@@ -147,7 +147,7 @@ export function CsvSetup({ agent, documentId }: CsvSetupProps) {
           <Trans>Cancel</Trans>
         </Link>
         <Button onClick={handleStart} disabled={!canStart}>
-          <PlayIcon aria-hidden />
+          <PlayIcon data-icon="inline-start" aria-hidden />
           {setup.scope.kind === "all" ? (
             <Trans>Extract every row</Trans>
           ) : (

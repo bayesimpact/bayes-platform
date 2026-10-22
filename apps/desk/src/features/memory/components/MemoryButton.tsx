@@ -27,7 +27,7 @@ export function MemoryButton({ agent, isOpen, onToggle }: MemoryButtonProps) {
       aria-pressed={isOpen}
       onClick={onToggle}
     >
-      <BrainIcon aria-hidden />
+      <BrainIcon data-icon="inline-start" aria-hidden />
       <Trans comment="The button that opens what the agent remembers, with the number of facts">
         Memory ({count})
       </Trans>

@@ -77,11 +77,11 @@ export function SignInProblemPage({ problem, detail, onRetry }: SignInProblemPag
       action={
         <div className="flex flex-wrap justify-center gap-2">
           <Button onClick={onRetry}>
-            <RotateCcwIcon aria-hidden />
+            <RotateCcwIcon data-icon="inline-start" aria-hidden />
             <Trans>Try again</Trans>
           </Button>
           <Button variant="outline" onClick={() => void signOut()}>
-            <LogOutIcon aria-hidden />
+            <LogOutIcon data-icon="inline-start" aria-hidden />
             <Trans>Sign out</Trans>
           </Button>
         </div>

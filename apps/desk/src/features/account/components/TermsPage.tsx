@@ -112,7 +112,7 @@ export function TermsPage({ terms }: TermsPageProps) {
           ) : null}
           <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
             <Button type="button" variant="ghost" onClick={() => void signOut()}>
-              <LogOutIcon aria-hidden />
+              <LogOutIcon data-icon="inline-start" aria-hidden />
               <Trans>Sign out</Trans>
             </Button>
             <Button type="submit" disabled={acceptTerms.isPending}>

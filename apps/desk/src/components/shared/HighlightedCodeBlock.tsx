@@ -115,6 +115,7 @@ export function HighlightedCodeBlock({
             onClick={() => setIsExpanded(!isExpanded)}
           >
             <ChevronDownIcon
+              data-icon="inline-start"
               aria-hidden
               className="transition-transform in-aria-expanded:rotate-180"
             />

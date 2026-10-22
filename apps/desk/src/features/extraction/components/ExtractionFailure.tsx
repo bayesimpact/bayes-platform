@@ -55,7 +55,7 @@ export function ExtractionFailure({
       <div className="flex flex-wrap items-center gap-2 pl-8">
         {errorCode && LASTING_ERRORS.has(errorCode) ? null : (
           <Button size="sm" onClick={onRetry} disabled={isRetrying}>
-            <RotateCcwIcon aria-hidden />
+            <RotateCcwIcon data-icon="inline-start" aria-hidden />
             <Trans>Try again</Trans>
           </Button>
         )}

@@ -74,11 +74,11 @@ export function MemoryProposals({ agent, memoryIds }: MemoryProposalsProps) {
                   disabled={resolveProposals.isPending}
                   onClick={() => handleDecision({ memoryId: fact.id, decision: "save" })}
                 >
-                  <CheckIcon aria-hidden />
+                  <CheckIcon data-icon="inline-start" aria-hidden />
                   <Trans comment="Saves the fact the agent proposed in its memory">Remember</Trans>
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => setRewordingId(fact.id)}>
-                  <PencilIcon aria-hidden />
+                  <PencilIcon data-icon="inline-start" aria-hidden />
                   <Trans comment="Opens a field to rewrite the fact before the agent remembers it">
                     Reword
                   </Trans>
@@ -89,7 +89,7 @@ export function MemoryProposals({ agent, memoryIds }: MemoryProposalsProps) {
                   disabled={resolveProposals.isPending}
                   onClick={() => handleDecision({ memoryId: fact.id, decision: "reject" })}
                 >
-                  <XIcon aria-hidden />
+                  <XIcon data-icon="inline-start" aria-hidden />
                   <Trans>Don't remember</Trans>
                 </Button>
               </div>

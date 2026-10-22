@@ -27,7 +27,7 @@ export function ResourcePanel({ resource, onClose }: ResourcePanelProps) {
           hasIcon={false}
           className={buttonVariants({ variant: "outline", size: "sm" })}
         >
-          <ExternalLinkIcon aria-hidden />
+          <ExternalLinkIcon data-icon="inline-start" aria-hidden />
           {resource.kind === "video" ? (
             <Trans>Open on YouTube</Trans>
           ) : (
