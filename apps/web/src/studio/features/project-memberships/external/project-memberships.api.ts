@@ -16,28 +16,36 @@ export default {
     )
     return response.data.data.map(fromDto)
   },
-  updateOne: async ({ organizationId, projectId, membershipId, role }) => {
+  updateOne: async ({ organizationId, projectId, memberUserId, role }) => {
     const axios = getAxiosInstance()
     const payload: typeof ProjectMembershipRoutes.updateOne.request = { payload: { role } }
     const response = await axios.patch<typeof ProjectMembershipRoutes.updateOne.response>(
-      ProjectMembershipRoutes.updateOne.getPath({ organizationId, projectId, membershipId }),
+      ProjectMembershipRoutes.updateOne.getPath({
+        organizationId,
+        projectId,
+        userId: memberUserId,
+      }),
       payload,
     )
     return fromDto(response.data.data)
   },
-  remove: async ({ organizationId, projectId, membershipId }) => {
+  remove: async ({ organizationId, projectId, memberUserId }) => {
     const axios = getAxiosInstance()
     await axios.delete(
-      ProjectMembershipRoutes.deleteOne.getPath({ organizationId, projectId, membershipId }),
+      ProjectMembershipRoutes.deleteOne.getPath({
+        organizationId,
+        projectId,
+        userId: memberUserId,
+      }),
     )
   },
-  getMemberAgents: async ({ organizationId, projectId, membershipId }) => {
+  getMemberAgents: async ({ organizationId, projectId, memberUserId }) => {
     const axios = getAxiosInstance()
     const response = await axios.get<typeof ProjectMembershipRoutes.getMemberAgents.response>(
       ProjectMembershipRoutes.getMemberAgents.getPath({
         organizationId,
         projectId,
-        membershipId,
+        userId: memberUserId,
       }),
     )
     return response.data.data.map(memberAgentFromDto)
@@ -45,7 +53,6 @@ export default {
 } satisfies IProjectMembershipsSpi
 
 const fromDto = (dto: ProjectMembershipDto): ProjectMembership => ({
-  id: dto.id,
   projectId: dto.projectId,
   userId: dto.userId,
   userName: dto.userName,
@@ -60,7 +67,6 @@ const memberAgentFromDto = (dto: ProjectMemberAgentDto): ProjectMemberAgent => (
   agentId: dto.agentId,
   agentName: dto.agentName,
   agentType: dto.agentType,
-  membershipId: dto.membershipId,
   role: toLegacyRole(dto.roles),
   permissions: dto.permissions,
 })

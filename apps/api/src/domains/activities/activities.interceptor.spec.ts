@@ -96,6 +96,41 @@ describe("ActivitiesInterceptor", () => {
     })
   })
 
+  it("records the member's user id as the entity of a member action", async () => {
+    const reflector = {
+      getAllAndOverride: jest.fn().mockReturnValue({
+        action: "projectMembership.delete",
+        entityFrom: "memberProjectMembership",
+      }),
+    } as unknown as Reflector
+
+    const activitiesService = {
+      createActivity: jest.fn().mockResolvedValue(undefined),
+    } as unknown as ActivitiesService
+
+    const interceptor = new ActivitiesInterceptor(reflector, activitiesService)
+    const context = buildContext({
+      user: { id: "user-id" },
+      organizationId: "organization-id",
+      project: { id: "project-uuid" },
+      memberProjectMembership: { userId: "member-user-id", projectId: "project-uuid", roles: [] },
+    })
+
+    await new Promise<void>((resolve, reject) => {
+      interceptor.intercept(context, callHandler).subscribe({
+        complete: () => resolve(),
+        error: reject,
+      })
+    })
+
+    expect(activitiesService.createActivity).toHaveBeenCalledWith(
+      expect.objectContaining({
+        entityId: "member-user-id",
+        entityType: "memberProjectMembership",
+      }),
+    )
+  })
+
   it("should not infer entity from path params when entityFrom is omitted", async () => {
     const reflector = {
       getAllAndOverride: jest.fn().mockReturnValue({ action: "project.archive" }),

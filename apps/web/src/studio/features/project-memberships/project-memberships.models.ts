@@ -2,7 +2,6 @@ import type { AgentType, TimeType } from "@caseai-connect/api-contracts"
 import type { LegacyMembershipRole } from "@/common/features/memberships/membership-roles"
 
 export type ProjectMembership = {
-  id: string
   projectId: string
   userId: string
   userName: string | null
@@ -20,7 +19,6 @@ export type ProjectMemberAgent = {
   agentId: string
   agentName: string
   agentType: AgentType
-  membershipId: string | null
   /** The highest of the member's agent roles, until this screen shows them all (#1077). */
   role: LegacyMembershipRole | null
   /** Permission keys the roles grant on the agent, empty without a membership. */

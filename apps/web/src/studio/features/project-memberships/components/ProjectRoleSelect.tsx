@@ -49,7 +49,7 @@ export function ProjectRoleSelect({ membership }: { membership: ProjectMembershi
     setIsSaving(true)
     try {
       await dispatch(
-        updateProjectMembershipRole({ membershipId: membership.id, role: pendingRole }),
+        updateProjectMembershipRole({ memberUserId: membership.userId, role: pendingRole }),
       )
     } finally {
       setIsSaving(false)

@@ -37,10 +37,6 @@ export class AgentMembershipsService {
     private readonly userRepository: UserRepository,
   ) {}
 
-  async findById(membershipId: string, agentId: string): Promise<AgentMembershipModel | null> {
-    return this.agentMembershipRepository.findById({ membershipId, agentId })
-  }
-
   /** The agent's members, with their member roles (owner, admin, member). */
   async listAgentMemberships(agentId: string): Promise<AgentMembershipModel[]> {
     const memberships = await this.agentMembershipRepository.findAllByAgent(agentId)
@@ -155,20 +151,19 @@ export class AgentMembershipsService {
    * account once it has no membership left.
    */
   async removeAgentMembership({
-    userId,
-    membershipId,
+    callerUserId,
+    memberUserId,
     agentId,
   }: {
-    userId: string
-    membershipId: string
+    callerUserId: string
+    memberUserId: string
     agentId: string
   }): Promise<void> {
     return this.transactionService.run(async () => {
-      const found = await this.agentMembershipRepository.findById({ membershipId, agentId })
-      const membership = found ? toMemberView(found) : null
+      const membership = await this.findAgentMembership({ userId: memberUserId, agentId })
       if (!membership) return
 
-      if (membership.user.id === userId) {
+      if (membership.userId === callerUserId) {
         throw new Error("Cannot remove yourself from the agent")
       }
       if (hasRole(membership, AGENT_ROLES.owner)) {

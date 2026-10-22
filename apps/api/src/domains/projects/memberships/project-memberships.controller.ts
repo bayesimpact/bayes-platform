@@ -58,7 +58,6 @@ export class ProjectMembershipsController {
       agentId: agent.id,
       agentName: agent.name,
       agentType: agent.type,
-      membershipId: membership?.id ?? null,
       roles: membership?.roles.map(toMembershipRoleDto) ?? [],
       permissions: membership ? unionRolePermissions(membership.roles, roleGrantsByRoleId) : [],
     }))
@@ -76,9 +75,9 @@ export class ProjectMembershipsController {
     const { project, memberProjectMembership } = request
 
     await this.projectMembershipsService.removeProjectMembership({
-      membershipId: memberProjectMembership.id,
+      callerUserId: request.user.id,
+      memberUserId: memberProjectMembership.userId,
       projectId: project.id,
-      userId: request.user.id,
     })
 
     return { data: { success: true } }

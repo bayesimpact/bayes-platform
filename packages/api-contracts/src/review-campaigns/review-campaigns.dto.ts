@@ -45,7 +45,6 @@ export type ReviewCampaignDto = {
 }
 
 export type ReviewCampaignMembershipDto = {
-  id: string
   campaignId: string
   userId: string
   userEmail: string

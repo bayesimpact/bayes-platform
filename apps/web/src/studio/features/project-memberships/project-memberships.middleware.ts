@@ -37,8 +37,8 @@ function registerListeners() {
     actionCreator: projectMembershipsActions.memberMount,
     effect: async (_, listenerApi) => {
       const state = listenerApi.getState()
-      const membershipId = getCurrentId({ state, name: "membershipId" })
-      listenerApi.dispatch(listProjectMemberAgents({ membershipId }))
+      const memberUserId = getCurrentId({ state, name: "memberUserId" })
+      listenerApi.dispatch(listProjectMemberAgents({ memberUserId }))
     },
   })
 
@@ -61,7 +61,7 @@ function registerListeners() {
   listenerMiddleware.startListening({
     actionCreator: updateProjectMembershipRole.fulfilled,
     effect: async (action, listenerApi) => {
-      await listenerApi.dispatch(listProjectMemberAgents({ membershipId: action.payload.id }))
+      await listenerApi.dispatch(listProjectMemberAgents({ memberUserId: action.payload.userId }))
     },
   })
 

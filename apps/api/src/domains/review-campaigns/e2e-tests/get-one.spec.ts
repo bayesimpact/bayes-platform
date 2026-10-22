@@ -94,7 +94,6 @@ describe("ReviewCampaigns - getOne", () => {
     expect(response.body.data).toMatchObject({ id: campaign.id, name: "Detail" })
     expect(response.body.data.memberships).toHaveLength(1)
     expect(response.body.data.memberships[0]).toMatchObject({
-      id: membership.id,
       roles: [
         expect.objectContaining({ key: "review_campaign_tester", membershipId: membership.id }),
       ],

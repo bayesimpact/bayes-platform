@@ -24,6 +24,8 @@ import type { PendingInvitations } from "@/studio/features/invitations/invitatio
 
 /** One row per role: a person who is both tester and reviewer has two, each revoked on its own. */
 type ParticipantRow = Omit<ReviewCampaignMembershipDto, "roles"> & {
+  /** The row holding this role, which revoking deletes. */
+  membershipId: string
   role: ReviewCampaignMembershipRole
 }
 
@@ -31,10 +33,10 @@ const toParticipantRows = (memberships: ReviewCampaignMembershipDto[]): Particip
   memberships.flatMap(({ roles, ...membership }) =>
     roles.flatMap((role): ParticipantRow[] => {
       if (role.key === "review_campaign_tester") {
-        return [{ ...membership, id: role.membershipId, role: "tester" }]
+        return [{ ...membership, membershipId: role.membershipId, role: "tester" }]
       }
       if (role.key === "review_campaign_reviewer") {
-        return [{ ...membership, id: role.membershipId, role: "reviewer" }]
+        return [{ ...membership, membershipId: role.membershipId, role: "reviewer" }]
       }
       return []
     }),
@@ -118,7 +120,7 @@ export function ParticipantsList({
   const table = useReactTable({
     data: participantRows,
     columns,
-    getRowId: (membership) => membership.id,
+    getRowId: (membership) => membership.membershipId,
     getCoreRowModel: getCoreRowModel(),
   })
 
@@ -207,7 +209,7 @@ export function ParticipantsList({
         description={t("reviewCampaigns:participants.revokeDialog.description")}
         confirmLabel={t("reviewCampaigns:participants.revokeDialog.confirm")}
         onConfirm={() => {
-          if (confirmRevokeMembership) onRevoke(confirmRevokeMembership.id)
+          if (confirmRevokeMembership) onRevoke(confirmRevokeMembership.membershipId)
           setConfirmRevokeMembership(null)
         }}
         onCancel={() => setConfirmRevokeMembership(null)}

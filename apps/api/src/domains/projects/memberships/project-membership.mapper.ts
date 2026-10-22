@@ -8,7 +8,6 @@ export function toProjectMembershipDto(
   roleGrantsByRoleId: ReadonlyMap<string, RoleGrant>,
 ): ProjectMembershipDto {
   return {
-    id: model.id,
     projectId: model.projectId,
     userId: model.userId,
     userName: model.user.name,

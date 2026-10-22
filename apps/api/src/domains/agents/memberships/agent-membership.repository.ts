@@ -6,11 +6,9 @@ import { Agent } from "@/domains/agents/agent.entity"
 import {
   groupMembershipRows,
   type MembershipRowGroup,
+  resourceIdOf,
 } from "@/domains/memberships/membership-roles"
-import {
-  getMembershipResourceId,
-  UserMembership,
-} from "@/domains/memberships/user-membership.entity"
+import { UserMembership } from "@/domains/memberships/user-membership.entity"
 import { requireRoleId } from "@/domains/rbac/resolve-role-id"
 import { HUMAN_USER_TYPE_FILTER } from "@/domains/users/service-user.helpers"
 import type { AgentMembershipModel } from "./agent-membership.model"
@@ -27,27 +25,6 @@ const MEMBERSHIP_RELATIONS = { user: true, rbacRole: true } as const
 @Injectable()
 export class AgentMembershipRepository {
   constructor(private readonly transactionService: TransactionService) {}
-
-  /** The membership that one of the person's rows on the agent belongs to. */
-  async findById({
-    membershipId,
-    agentId,
-  }: {
-    membershipId: string
-    agentId?: string
-  }): Promise<AgentMembershipModel | null> {
-    const row = await this.userMembershipRepo().findOne({
-      where: {
-        id: membershipId,
-        resourceType: AGENT_RESOURCE_TYPE,
-        ...(agentId ? { resourceId: agentId } : {}),
-      },
-      select: { id: true, userId: true, resourceId: true },
-    })
-    if (!row?.resourceId) return null
-
-    return this.findByUserAndAgent({ userId: row.userId, agentId: row.resourceId })
-  }
 
   async findAllByAgent(agentId: string): Promise<AgentMembershipModel[]> {
     const rows = await this.userMembershipRepo().find({
@@ -216,34 +193,30 @@ export class AgentMembershipRepository {
   }
 
   private newestFirst(groups: MembershipRowGroup[]): MembershipRowGroup[] {
-    return [...groups].sort(
-      (left, right) => right.oldest.createdAt.getTime() - left.oldest.createdAt.getTime(),
-    )
+    return [...groups].sort((left, right) => right.createdAt.getTime() - left.createdAt.getTime())
   }
 
   private async toModels(groups: MembershipRowGroup[]): Promise<AgentMembershipModel[]> {
     if (groups.length === 0) return []
 
-    const agentIds = [...new Set(groups.map((group) => getMembershipResourceId(group.oldest)))]
+    const agentIds = [...new Set(groups.map((group) => resourceIdOf(group)))]
     const agents = await this.agentRepo().find({ where: { id: In(agentIds) } })
     const agentById = new Map(agents.map((agent) => [agent.id, agent]))
 
     return groups.flatMap((group) => {
-      const agent = agentById.get(getMembershipResourceId(group.oldest))
+      const agent = agentById.get(resourceIdOf(group))
       return agent ? [this.toModel(group, agent)] : []
     })
   }
 
   private toModel(group: MembershipRowGroup, agent: Agent): AgentMembershipModel {
     return {
-      id: group.oldest.id,
-      userId: group.oldest.userId,
-      agentId: getMembershipResourceId(group.oldest),
+      userId: group.userId,
+      agentId: resourceIdOf(group),
       roles: group.roles,
-      createdAt: group.oldest.createdAt,
+      createdAt: group.createdAt,
       updatedAt: group.updatedAt,
-      deletedAt: group.oldest.deletedAt,
-      user: group.oldest.user,
+      user: group.user,
       agent,
     }
   }

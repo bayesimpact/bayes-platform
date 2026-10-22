@@ -11,12 +11,20 @@ export type MembershipRole = {
   scopeType: RoleScopeType
 }
 
-/** Every row a person holds on one resource, oldest first. */
+/**
+ * A person's membership on one resource: the person, the resource and every role they hold
+ * there. There is no membership id: the person and the resource identify it, and each role
+ * carries the id of the row that holds it.
+ */
 export type MembershipRowGroup = {
-  /** The oldest row: its id stands for the person's membership on the resource. */
-  oldest: UserMembership
+  userId: string
+  resourceId: string | null
+  /** The `user` relation of the rows, when it was loaded. */
+  user: UserMembership["user"]
   rows: UserMembership[]
   roles: MembershipRole[]
+  /** When the person got their first role on the resource. */
+  createdAt: Date
   /** The latest update of any of the rows. */
   updatedAt: Date
 }
@@ -52,8 +60,8 @@ export function groupMembershipRows(rows: UserMembership[]): MembershipRowGroup[
 
   return [...groups.values()].flatMap((groupRows) => {
     const sortedRows = [...groupRows].sort(compareRows)
-    const [oldest] = sortedRows
-    if (!oldest) return []
+    const [first] = sortedRows
+    if (!first) return []
     const roles = sortedRows
       .flatMap((row): MembershipRole[] =>
         row.rbacRole
@@ -70,8 +78,26 @@ export function groupMembershipRows(rows: UserMembership[]): MembershipRowGroup[
       )
       .sort(compareRoles)
     const updatedAt = new Date(Math.max(...sortedRows.map((row) => row.updatedAt.getTime())))
-    return [{ oldest, rows: sortedRows, roles, updatedAt }]
+    return [
+      {
+        userId: first.userId,
+        resourceId: first.resourceId,
+        user: first.user,
+        rows: sortedRows,
+        roles,
+        createdAt: first.createdAt,
+        updatedAt,
+      },
+    ]
   })
+}
+
+/** The resource of a scoped membership; global rows have no resource. */
+export function resourceIdOf(group: MembershipRowGroup): string {
+  if (group.resourceId === null) {
+    throw new Error(`Membership of user ${group.userId} is missing resource_id`)
+  }
+  return group.resourceId
 }
 
 export function hasRole(holder: { roles: MembershipRole[] }, roleKey: string): boolean {

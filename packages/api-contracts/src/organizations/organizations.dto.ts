@@ -4,7 +4,6 @@ import type { MembershipRoleDto } from "../rbac/membership-role.dto"
 import type { OrganizationPermission } from "../rbac/permissions"
 
 export type OrganizationMembershipDto = {
-  id: string
   organizationId: string
   userId: string
   roles: MembershipRoleDto[]

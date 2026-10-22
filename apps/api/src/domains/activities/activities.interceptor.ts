@@ -16,6 +16,11 @@ import {
   type TrackActivityOptions,
 } from "./track-activity.decorator"
 
+const MEMBER_ENTITIES: ReadonlySet<TrackActivityEntityFrom> = new Set([
+  "memberProjectMembership",
+  "memberAgentMembership",
+])
+
 @Injectable()
 export class ActivitiesInterceptor implements NestInterceptor {
   constructor(
@@ -99,6 +104,14 @@ export class ActivitiesInterceptor implements NestInterceptor {
     }
 
     const value = request[entityFrom]
+    // A member has no id of its own: the person and the resource identify it, so the activity
+    // records the person.
+    if (MEMBER_ENTITIES.has(entityFrom)) {
+      const userId = (value as { userId?: unknown } | undefined)?.userId
+      return typeof userId === "string"
+        ? { entityId: userId, entityType: entityFrom }
+        : { entityId: null, entityType: null }
+    }
     if (
       value &&
       typeof value === "object" &&

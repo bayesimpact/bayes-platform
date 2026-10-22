@@ -9,6 +9,6 @@ export const AgentMembershipRoutes = {
   }),
   deleteOne: defineRoute<ResponseData<SuccessResponseDTO>>({
     method: "delete",
-    path: "organizations/:organizationId/projects/:projectId/agents/:agentId/memberships/:agentMembershipId",
+    path: "organizations/:organizationId/projects/:projectId/agents/:agentId/memberships/:userId",
   }),
 }

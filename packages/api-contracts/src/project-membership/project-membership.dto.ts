@@ -5,11 +5,10 @@ import type { MembershipRoleDto } from "../rbac/membership-role.dto"
 export type EditableProjectMembershipRoleDto = "admin" | "member"
 
 /**
- * A person with access to a project, with every role they hold on it. `id` is the oldest of
- * their membership rows on the project, and the routes below accept any of them.
+ * A person with access to a project, with every role they hold on it. A member is identified by
+ * the project and `userId`; each role carries the id of the row that holds it.
  */
 export type ProjectMembershipDto = {
-  id: string
   projectId: string
   userId: string
   userName: string | null

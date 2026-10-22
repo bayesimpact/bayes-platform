@@ -64,7 +64,7 @@ describe("ProjectMembershipsService", () => {
 
       // the RBAC role backing the membership is resolved at write time
       const savedMembership = await repositories.userMembershipRepository.findOneOrFail({
-        where: { id: membership.id },
+        where: { id: membership.roles[0]?.membershipId },
       })
       const projectOwnerRole = await repositories.roleRepository.findOneOrFail({
         where: { key: PROJECT_ROLES.owner },
@@ -167,8 +167,8 @@ describe("ProjectMembershipsService", () => {
 
       await expect(
         service.removeProjectMembership({
-          userId: user.id,
-          membershipId: projectMembership.id,
+          callerUserId: user.id,
+          memberUserId: projectMembership.userId,
           projectId: project.id,
         }),
       ).rejects.toThrow("Cannot remove yourself from the project")
@@ -192,8 +192,8 @@ describe("ProjectMembershipsService", () => {
         .mockResolvedValue()
 
       await service.removeProjectMembership({
-        userId: actorUser.id,
-        membershipId: membership.id,
+        callerUserId: actorUser.id,
+        memberUserId: membership.userId,
         projectId: project.id,
       })
 
@@ -233,7 +233,7 @@ describe("ProjectMembershipsService", () => {
     const roleKeysOf = (membership: { roles: { key: string }[] } | null) =>
       membership?.roles.map((role) => role.key) ?? []
 
-    it("lists one membership per person, with every role they hold, oldest row as id", async () => {
+    it("lists one membership per person, with every role they hold and its row", async () => {
       const { project } = await createOrganizationWithProject(repositories)
       const { membership } = await addUserToProject({
         repositories,
@@ -250,11 +250,13 @@ describe("ProjectMembershipsService", () => {
 
       const member = memberships.find((candidate) => candidate.userId === membership.userId)
       expect(memberships).toHaveLength(2)
-      expect(member?.id).toBe(membership.id)
       expect(roleKeysOf(member ?? null)).toEqual([PROJECT_ROLES.admin, PROJECT_ROLES.member])
+      expect(member?.roles.find((role) => role.key === PROJECT_ROLES.member)?.membershipId).toBe(
+        membership.id,
+      )
     })
 
-    it("finds the person's membership from any of their rows", async () => {
+    it("switches a member holding admin and member to admin only", async () => {
       const { project } = await createOrganizationWithProject(repositories)
       const { membership } = await addUserToProject({ repositories, project })
       const adminRow = await giveRole({
@@ -263,18 +265,13 @@ describe("ProjectMembershipsService", () => {
         roleKey: PROJECT_ROLES.admin,
       })
 
-      const found = await service.findProjectMembership({
-        userId: membership.userId,
-        projectId: project.id,
-      })
       const { membership: updated } = await service.updateProjectMembershipRole({
         callerUserId: (await createOrganizationWithOwner(repositories)).user.id,
-        membershipId: adminRow.id,
+        memberUserId: adminRow.userId,
         projectId: project.id,
         role: "admin",
       })
 
-      expect(found?.id).toBe(membership.id)
       // admin + member collapse into admin: the member row is the one that goes
       expect(roleKeysOf(updated)).toEqual([PROJECT_ROLES.admin])
     })
@@ -303,8 +300,8 @@ describe("ProjectMembershipsService", () => {
       await grantConversationReview({ repositories, user: member, agent })
 
       await service.removeProjectMembership({
-        userId: owner.id,
-        membershipId: membership.id,
+        callerUserId: owner.id,
+        memberUserId: membership.userId,
         projectId: project.id,
       })
 
@@ -330,8 +327,8 @@ describe("ProjectMembershipsService", () => {
       })
 
       await service.removeProjectMembership({
-        userId: owner.id,
-        membershipId: coOwnerMembership.id,
+        callerUserId: owner.id,
+        memberUserId: coOwnerMembership.userId,
         projectId: project.id,
       })
       await expect(
@@ -345,8 +342,8 @@ describe("ProjectMembershipsService", () => {
       })
       await expect(
         service.removeProjectMembership({
-          userId: admin.id,
-          membershipId: ownerMembership?.id ?? "",
+          callerUserId: admin.id,
+          memberUserId: ownerMembership?.userId ?? "",
           projectId: project.id,
         }),
       ).rejects.toThrow("Cannot remove the last owner of the project")

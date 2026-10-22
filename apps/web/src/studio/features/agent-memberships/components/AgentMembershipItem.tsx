@@ -18,7 +18,7 @@ export function AgentMembershipItem({ membership }: { membership: AgentMembershi
   const [confirmOpen, setConfirmOpen] = useState(false)
 
   const handleConfirmRemove = () => {
-    dispatch(agentMembershipsActions.remove({ membershipId: membership.id }))
+    dispatch(agentMembershipsActions.remove({ memberUserId: membership.userId }))
     setConfirmOpen(false)
   }
 

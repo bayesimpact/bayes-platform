@@ -141,7 +141,7 @@ function toReviewCampaignDto(campaign: ReviewCampaign): ReviewCampaignDto {
   }
 }
 
-/** One entry per person, oldest row first, with every role they hold on the campaign. */
+/** One entry per person, with every role they hold on the campaign, each with its row id. */
 function toReviewCampaignMembershipDtos(
   memberships: ReviewCampaignMembershipModel[],
 ): ReviewCampaignMembershipDto[] {
@@ -157,7 +157,6 @@ function toReviewCampaignMembershipDtos(
     if (!first) return []
     return [
       {
-        id: first.id,
         campaignId: first.campaignId,
         userId: first.userId,
         userEmail: first.user?.email ?? "",

@@ -70,7 +70,6 @@ export const projectMembershipFactory = ProjectMembershipFactory.define(
     const lastName = faker.person.lastName()
     const role = params.role ?? "member"
     return {
-      id: params.id ?? faker.string.uuid(),
       projectId: project.id,
       userId: params.userId ?? faker.string.uuid(),
       userName: params.userName ?? `${firstName} ${lastName}`,
@@ -92,7 +91,7 @@ class ProjectMemberAgentFactory extends Factory<ProjectMemberAgent, MemberAgentT
 
 export const projectMemberAgentFactory = ProjectMemberAgentFactory.define(
   ({ params, transientParams }) => {
-    const { agent, membership } = transientParams
+    const { agent } = transientParams
     if (!agent) {
       throw new Error("Agent must be provided in transient params to build a ProjectMemberAgent")
     }
@@ -101,7 +100,6 @@ export const projectMemberAgentFactory = ProjectMemberAgentFactory.define(
       agentId: params.agentId ?? agent.id,
       agentName: params.agentName ?? agent.name,
       agentType: params.agentType ?? agent.type,
-      membershipId: params.membershipId ?? membership?.id ?? null,
       role,
       permissions: params.permissions ?? (role ? SAMPLE_AGENT_ROLE_PERMISSIONS[role] : []),
     } satisfies ProjectMemberAgent

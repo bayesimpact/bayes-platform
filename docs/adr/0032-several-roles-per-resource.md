@@ -53,16 +53,19 @@ per role.** Their permissions there are the union of those roles.
 
 ### How the code that expected one role keeps working
 
-* **Reads group rows by person.** The organization, project and agent
-  membership models carry `roles` (catalog key, name, scope, and the row that
-  holds each). Their `id` is the person's oldest row on the resource, and the
-  routes that take a membership id accept any of the person's rows.
+* **A member is a person on a resource, with no id of its own.** Reads group
+  rows by person: the organization, project and agent membership models carry
+  `userId`, the resource and `roles` (catalog key, name, scope, and the row
+  that holds each). The member routes take the person's id
+  (`.../memberships/:userId`), and so do the activity logs of member actions.
+  Only a role has a row id, which campaign revocations and future per-role
+  changes target.
 * **DTOs expose `roles: { membershipId, key, name, scopeType }[]`** in place
   of the single `role`, on the project, agent, organization, review campaign,
   `me` and backoffice membership DTOs. A campaign participant is one entry
   with one role per row, each still revoked on its own.
 * **Role changes switch rows.** Moving someone between `project_admin` and
-  `project_member` updates the row in place (the membership keeps its id), or
+  `project_member` updates the row in place, or
   drops it when they already hold the target role. The agent cascade follows:
   admin on every agent of the project when promoted, member instead of admin
   when demoted. Other roles, ownership included, stay.

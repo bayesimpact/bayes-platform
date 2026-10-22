@@ -35,7 +35,7 @@ describe("Agent Memberships - Auth", () => {
   let organizationId: string | null = randomUUID()
   let projectId: string | null = randomUUID()
   let agentId: string | null = randomUUID()
-  let agentMembershipId: string | null = randomUUID()
+  let memberUserId: string | null = randomUUID()
   let accessToken: string | null = "token"
   let authSubject = `oidc|${randomUUID()}`
 
@@ -56,7 +56,7 @@ describe("Agent Memberships - Auth", () => {
     organizationId = randomUUID()
     projectId = randomUUID()
     agentId = randomUUID()
-    agentMembershipId = randomUUID()
+    memberUserId = randomUUID()
     accessToken = "token"
     authSubject = `oidc|${randomUUID()}`
   })
@@ -84,7 +84,7 @@ describe("Agent Memberships - Auth", () => {
     organizationId = organization.id
     projectId = agent.projectId
     agentId = agent.id
-    agentMembershipId = membership.id
+    memberUserId = membership.userId
     return { organization }
   }
 
@@ -113,7 +113,7 @@ describe("Agent Memberships - Auth", () => {
   const deleteOne = async () =>
     request({
       route: AgentMembershipRoutes.deleteOne,
-      pathParams: removeNullish({ organizationId, projectId, agentId, agentMembershipId }),
+      pathParams: removeNullish({ organizationId, projectId, agentId, userId: memberUserId }),
       token: accessToken ?? undefined,
     })
 

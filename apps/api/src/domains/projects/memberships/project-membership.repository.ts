@@ -5,11 +5,9 @@ import { TransactionService } from "@/common/transaction/transaction.service"
 import {
   groupMembershipRows,
   type MembershipRowGroup,
+  resourceIdOf,
 } from "@/domains/memberships/membership-roles"
-import {
-  getMembershipResourceId,
-  UserMembership,
-} from "@/domains/memberships/user-membership.entity"
+import { UserMembership } from "@/domains/memberships/user-membership.entity"
 import { Project } from "@/domains/projects/project.entity"
 import { requireRoleId } from "@/domains/rbac/resolve-role-id"
 import { HUMAN_USER_TYPE_FILTER } from "@/domains/users/service-user.helpers"
@@ -27,23 +25,6 @@ const MEMBERSHIP_RELATIONS = { user: true, rbacRole: true } as const
 @Injectable()
 export class ProjectMembershipRepository {
   constructor(private readonly transactionService: TransactionService) {}
-
-  /** The membership that one of the person's rows on the project belongs to. */
-  async findById({
-    membershipId,
-    projectId,
-  }: {
-    membershipId: string
-    projectId: string
-  }): Promise<ProjectMembershipModel | null> {
-    const row = await this.userMembershipRepo().findOne({
-      where: { id: membershipId, resourceType: PROJECT_RESOURCE_TYPE, resourceId: projectId },
-      select: { id: true, userId: true },
-    })
-    if (!row) return null
-
-    return this.findByUserAndProject({ userId: row.userId, projectId })
-  }
 
   async findAllByProject(projectId: string): Promise<ProjectMembershipModel[]> {
     const rows = await this.userMembershipRepo().find({
@@ -260,34 +241,30 @@ export class ProjectMembershipRepository {
   }
 
   private newestFirst(groups: MembershipRowGroup[]): MembershipRowGroup[] {
-    return [...groups].sort(
-      (left, right) => right.oldest.createdAt.getTime() - left.oldest.createdAt.getTime(),
-    )
+    return [...groups].sort((left, right) => right.createdAt.getTime() - left.createdAt.getTime())
   }
 
   private async toModels(groups: MembershipRowGroup[]): Promise<ProjectMembershipModel[]> {
     if (groups.length === 0) return []
 
-    const projectIds = [...new Set(groups.map((group) => getMembershipResourceId(group.oldest)))]
+    const projectIds = [...new Set(groups.map((group) => resourceIdOf(group)))]
     const projects = await this.projectRepo().find({ where: { id: In(projectIds) } })
     const projectById = new Map(projects.map((project) => [project.id, project]))
 
     return groups.flatMap((group) => {
-      const project = projectById.get(getMembershipResourceId(group.oldest))
+      const project = projectById.get(resourceIdOf(group))
       return project ? [this.toModel(group, project)] : []
     })
   }
 
   private toModel(group: MembershipRowGroup, project: Project): ProjectMembershipModel {
     return {
-      id: group.oldest.id,
-      userId: group.oldest.userId,
-      projectId: getMembershipResourceId(group.oldest),
+      userId: group.userId,
+      projectId: resourceIdOf(group),
       roles: group.roles,
-      createdAt: group.oldest.createdAt,
+      createdAt: group.createdAt,
       updatedAt: group.updatedAt,
-      deletedAt: group.oldest.deletedAt,
-      user: group.oldest.user,
+      user: group.user,
       project,
     }
   }

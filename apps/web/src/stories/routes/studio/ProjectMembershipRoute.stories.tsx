@@ -24,7 +24,7 @@ type StoryArgs = StudioStoryArgs & {
   memberRole?: ProjectMembership["role"]
 }
 
-const FIXED_MEMBERSHIP_ID = "membership-fixture-1"
+const FIXED_MEMBER_USER_ID = "member-user-fixture-1"
 
 function buildMockProjectMembershipsService(
   overrides: { memberships?: ProjectMembership[]; memberAgents?: ProjectMemberAgent[] } = {},
@@ -33,9 +33,9 @@ function buildMockProjectMembershipsService(
     async getAll() {
       return overrides.memberships ?? []
     },
-    async updateOne({ membershipId, role }) {
-      const membership = overrides.memberships?.find((item) => item.id === membershipId)
-      if (!membership) throw new Error(`Unknown membership ${membershipId}`)
+    async updateOne({ memberUserId, role }) {
+      const membership = overrides.memberships?.find((item) => item.userId === memberUserId)
+      if (!membership) throw new Error(`Unknown membership ${memberUserId}`)
       return { ...membership, role }
     },
     async remove() {},
@@ -62,7 +62,7 @@ const meta = {
   },
   render: render({
     routes: studioRoutes,
-    path: StudioRoutes.projectMembership.path.replace(":membershipId", FIXED_MEMBERSHIP_ID),
+    path: StudioRoutes.projectMembership.path.replace(":memberUserId", FIXED_MEMBER_USER_ID),
   }),
 } satisfies Meta<StoryArgs>
 
@@ -73,7 +73,7 @@ const decorator = buildDecorator<StoryArgs>(({ withMemberAgents, memberRole, ...
   const { baseSeeds, project, agents } = buildStudioData(args)
   const membership = projectMembershipFactory
     .transient({ project })
-    .build({ id: FIXED_MEMBERSHIP_ID, role: memberRole ?? "member" })
+    .build({ userId: FIXED_MEMBER_USER_ID, role: memberRole ?? "member" })
   const otherMemberships = [
     projectMembershipFactory.transient({ project }).build({ role: "owner" }),
   ]
@@ -81,7 +81,7 @@ const decorator = buildDecorator<StoryArgs>(({ withMemberAgents, memberRole, ...
     ? agents.map((agent, index) =>
         projectMemberAgentFactory
           .transient({ agent, membership })
-          .build(index === agents.length - 1 ? { membershipId: null, role: null } : {}),
+          .build(index === agents.length - 1 ? { role: null } : {}),
       )
     : []
   const memberships = [membership, ...otherMemberships]
@@ -91,7 +91,7 @@ const decorator = buildDecorator<StoryArgs>(({ withMemberAgents, memberRole, ...
       baseSeeds,
       seed.studio.projectMemberships(memberships),
       seed.studio.projectMemberAgents(memberAgents),
-      seed.currentMembershipId(FIXED_MEMBERSHIP_ID),
+      seed.currentMemberUserId(FIXED_MEMBER_USER_ID),
     ),
     services: {
       projectMemberships: buildMockProjectMembershipsService({

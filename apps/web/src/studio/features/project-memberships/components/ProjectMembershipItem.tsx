@@ -29,7 +29,7 @@ export function ProjectMembershipItem({
   const [confirmOpen, setConfirmOpen] = useState(false)
 
   const handleConfirmRemove = () => {
-    dispatch(removeProjectMembership({ membershipId: membership.id }))
+    dispatch(removeProjectMembership({ memberUserId: membership.userId }))
     setConfirmOpen(false)
   }
 
@@ -40,7 +40,7 @@ export function ProjectMembershipItem({
       StudioRoutes.projectMembership.build({
         organizationId,
         projectId: membership.projectId,
-        membershipId: membership.id,
+        memberUserId: membership.userId,
       }),
     )
   }

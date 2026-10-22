@@ -100,15 +100,17 @@ export const reviewCampaignMembershipFactory = ReviewCampaignMembershipFactory.d
         "Campaign must be provided in transient params to build a ReviewCampaignMembership",
       )
     }
-    const id = params.id ?? faker.string.uuid()
     return {
-      id,
       campaignId: campaign.id,
       userId: params.userId ?? faker.string.uuid(),
       userEmail: params.userEmail ?? faker.internet.email().toLowerCase(),
       userHasSignedIn: params.userHasSignedIn ?? true,
       roles: [
-        buildMembershipRoleDto({ scopeType: "review_campaign", role: "tester", membershipId: id }),
+        buildMembershipRoleDto({
+          scopeType: "review_campaign",
+          role: "tester",
+          membershipId: faker.string.uuid(),
+        }),
       ],
     }
   },

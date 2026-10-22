@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto"
 import { ProjectMembershipRoutes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
@@ -38,6 +39,7 @@ describe("Project membership - deleteOne", () => {
   let organizationId: string
   let projectId: string
   let membershipId: string
+  let memberUserId: string | null = randomUUID()
   let accessToken: string | undefined = "token"
   let authSubject = "oidc|123"
   let expectActivityCreated: ReturnType<typeof bindExpectActivityCreated>
@@ -82,6 +84,7 @@ describe("Project membership - deleteOne", () => {
       projectMembership: { role: "member" },
     })
     membershipId = membership.id
+    memberUserId = membership.userId
 
     return { organization, project, user, addedUser, membership }
   }
@@ -89,7 +92,7 @@ describe("Project membership - deleteOne", () => {
   const subject = async () =>
     request({
       route: ProjectMembershipRoutes.deleteOne,
-      pathParams: removeNullish({ organizationId, projectId, membershipId }),
+      pathParams: removeNullish({ organizationId, projectId, userId: memberUserId }),
       token: accessToken,
     })
 
@@ -117,6 +120,7 @@ describe("Project membership - deleteOne", () => {
 
     const { membership } = await addMemberByEmailToProject({ repositories, project })
     membershipId = membership.id
+    memberUserId = membership.userId
 
     // Now remove the membership
     const response = await subject()
@@ -140,6 +144,7 @@ describe("Project membership - deleteOne", () => {
       project,
     })
     membershipId = membership.id
+    memberUserId = membership.userId
 
     const response = await subject()
     expectResponse(response, 200)

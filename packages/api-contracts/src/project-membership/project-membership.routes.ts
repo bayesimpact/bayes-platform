@@ -17,14 +17,14 @@ export const ProjectMembershipRoutes = {
     RequestPayload<UpdateProjectMembershipRequestDto>
   >({
     method: "patch",
-    path: "organizations/:organizationId/projects/:projectId/memberships/:membershipId",
+    path: "organizations/:organizationId/projects/:projectId/memberships/:userId",
   }),
   deleteOne: defineRoute<ResponseData<SuccessResponseDTO>>({
     method: "delete",
-    path: "organizations/:organizationId/projects/:projectId/memberships/:membershipId",
+    path: "organizations/:organizationId/projects/:projectId/memberships/:userId",
   }),
   getMemberAgents: defineRoute<ResponseData<ProjectMemberAgentDto[]>>({
     method: "get",
-    path: "organizations/:organizationId/projects/:projectId/memberships/:membershipId/agents",
+    path: "organizations/:organizationId/projects/:projectId/memberships/:userId/agents",
   }),
 }

@@ -10,6 +10,6 @@ export interface IAgentMembershipsSpi {
     organizationId: string
     projectId: string
     agentId: string
-    membershipId: string
+    memberUserId: string
   }) => Promise<void>
 }

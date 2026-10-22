@@ -12,21 +12,20 @@ export default {
     )
     return response.data.data.map(fromDto)
   },
-  remove: async ({ organizationId, projectId, agentId, membershipId }) => {
+  remove: async ({ organizationId, projectId, agentId, memberUserId }) => {
     const axios = getAxiosInstance()
     await axios.delete(
       AgentMembershipRoutes.deleteOne.getPath({
         organizationId,
         projectId,
         agentId,
-        agentMembershipId: membershipId,
+        userId: memberUserId,
       }),
     )
   },
 } satisfies IAgentMembershipsSpi
 
 const fromDto = (dto: AgentMembershipDto): AgentMembership => ({
-  id: dto.id,
   agentId: dto.agentId,
   userId: dto.userId,
   userName: dto.userName,

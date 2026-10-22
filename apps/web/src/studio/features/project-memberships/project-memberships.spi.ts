@@ -6,17 +6,17 @@ export interface IProjectMembershipsSpi {
   updateOne: (params: {
     organizationId: string
     projectId: string
-    membershipId: string
+    memberUserId: string
     role: EditableProjectMembershipRoleDto
   }) => Promise<ProjectMembership>
   remove: (params: {
     organizationId: string
     projectId: string
-    membershipId: string
+    memberUserId: string
   }) => Promise<void>
   getMemberAgents: (params: {
     organizationId: string
     projectId: string
-    membershipId: string
+    memberUserId: string
   }) => Promise<ProjectMemberAgent[]>
 }

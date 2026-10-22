@@ -2,7 +2,6 @@ import type { TimeType } from "@caseai-connect/api-contracts"
 import type { LegacyMembershipRole } from "@/common/features/memberships/membership-roles"
 
 export type AgentMembership = {
-  id: string
   agentId: string
   userId: string
   userName: string | null

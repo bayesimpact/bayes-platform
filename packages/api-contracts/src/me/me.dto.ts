@@ -9,7 +9,6 @@ import type { GlobalPermission } from "../rbac/permissions"
 import type { ReviewCampaignStatus } from "../review-campaigns/review-campaigns.dto"
 
 export type ReviewCampaignMembershipForMeDto = {
-  id: string
   campaignId: string
   organizationId: string
   projectId: string
@@ -18,9 +17,9 @@ export type ReviewCampaignMembershipForMeDto = {
 }
 
 export type UserMembershipsDto = {
-  organizationMemberships: Pick<OrganizationMembershipDto, "id" | "organizationId" | "roles">[]
-  projectMemberships: Pick<ProjectMembershipDto, "id" | "projectId" | "roles">[]
-  agentMemberships: Pick<AgentMembershipDto, "id" | "agentId" | "roles">[]
+  organizationMemberships: Pick<OrganizationMembershipDto, "organizationId" | "roles">[]
+  projectMemberships: Pick<ProjectMembershipDto, "projectId" | "roles">[]
+  agentMemberships: Pick<AgentMembershipDto, "agentId" | "roles">[]
   reviewCampaignMemberships: ReviewCampaignMembershipForMeDto[]
 }
 

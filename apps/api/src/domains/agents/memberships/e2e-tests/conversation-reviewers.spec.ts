@@ -103,17 +103,14 @@ describe("Agent Memberships - conversation reviewers", () => {
     expectResponse(await listMembers(context), 200)
   })
 
-  const removeMember = (
-    context: Awaited<ReturnType<typeof createContext>>,
-    agentMembershipId: string,
-  ) =>
+  const removeMember = (context: Awaited<ReturnType<typeof createContext>>, userId: string) =>
     request({
       route: AgentMembershipRoutes.deleteOne,
       pathParams: {
         organizationId: context.organization.id,
         projectId: context.project.id,
         agentId: context.agent.id,
-        agentMembershipId,
+        userId,
       },
       token: "token",
     })
@@ -129,11 +126,7 @@ describe("Agent Memberships - conversation reviewers", () => {
   it("removes a member's role from the agent and keeps their review grant", async () => {
     const context = await createContext()
     await grantConversationReview({ repositories, user: context.member, agent: context.agent })
-    const [memberRow] = await repositories.userMembershipRepository.find({
-      where: { userId: context.member.id, resourceType: "agent", resourceId: context.agent.id },
-    })
-
-    expectResponse(await removeMember(context, memberRow?.id ?? ""), 200)
+    expectResponse(await removeMember(context, context.member.id), 200)
 
     expect(await roleKeysOn(context.member.id, context.agent.id)).toEqual([
       "agent_conversation_reviewer",
@@ -145,11 +138,7 @@ describe("Agent Memberships - conversation reviewers", () => {
     const reviewer = userFactory.build()
     await repositories.userRepository.save(reviewer)
     await grantConversationReview({ repositories, user: reviewer, agent: context.agent })
-    const [reviewerRow] = await repositories.userMembershipRepository.find({
-      where: { userId: reviewer.id, resourceType: "agent", resourceId: context.agent.id },
-    })
-
-    expectResponse(await removeMember(context, reviewerRow?.id ?? ""), 200)
+    expectResponse(await removeMember(context, reviewer.id), 200)
 
     expect(await roleKeysOn(reviewer.id, context.agent.id)).toEqual(["agent_conversation_reviewer"])
   })

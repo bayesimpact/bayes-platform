@@ -122,7 +122,6 @@ export const mockClosedCampaign = reviewCampaignFactory.transient({ project: moc
 
 export const mockMemberships: ReviewCampaignMembershipDto[] = [
   reviewCampaignMembershipFactory.transient({ campaign: mockActiveCampaign }).build({
-    id: "membership-1",
     userId: "user-1",
     userEmail: "alice@example.com",
     roles: [
@@ -134,7 +133,6 @@ export const mockMemberships: ReviewCampaignMembershipDto[] = [
     ],
   }),
   reviewCampaignMembershipFactory.transient({ campaign: mockActiveCampaign }).build({
-    id: "membership-2",
     userId: "user-2",
     userEmail: "bob@example.com",
     roles: [
@@ -146,7 +144,6 @@ export const mockMemberships: ReviewCampaignMembershipDto[] = [
     ],
   }),
   reviewCampaignMembershipFactory.transient({ campaign: mockActiveCampaign }).build({
-    id: "membership-3",
     userId: "user-3",
     userEmail: "carol@example.com",
     roles: [

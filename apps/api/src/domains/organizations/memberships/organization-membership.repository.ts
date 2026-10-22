@@ -5,11 +5,9 @@ import { TransactionService } from "@/common/transaction/transaction.service"
 import {
   groupMembershipRows,
   type MembershipRowGroup,
+  resourceIdOf,
 } from "@/domains/memberships/membership-roles"
-import {
-  getMembershipResourceId,
-  UserMembership,
-} from "@/domains/memberships/user-membership.entity"
+import { UserMembership } from "@/domains/memberships/user-membership.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { ORGANIZATION_ROLES } from "@/domains/rbac/rbac.constants"
 import { requireRoleId } from "@/domains/rbac/resolve-role-id"
@@ -58,7 +56,7 @@ export class OrganizationMembershipRepository {
       relations: MEMBERSHIP_RELATIONS,
     })
     const groups = groupMembershipRows(rows).sort(
-      (left, right) => right.oldest.createdAt.getTime() - left.oldest.createdAt.getTime(),
+      (left, right) => right.createdAt.getTime() - left.createdAt.getTime(),
     )
     return this.toModels(groups)
   }
@@ -206,9 +204,7 @@ export class OrganizationMembershipRepository {
   private async toModels(groups: MembershipRowGroup[]): Promise<OrganizationMembershipModel[]> {
     if (groups.length === 0) return []
 
-    const organizationIds = [
-      ...new Set(groups.map((group) => getMembershipResourceId(group.oldest))),
-    ]
+    const organizationIds = [...new Set(groups.map((group) => resourceIdOf(group)))]
     const organizations = await this.organizationRepo().find({
       where: { id: In(organizationIds) },
     })
@@ -217,7 +213,7 @@ export class OrganizationMembershipRepository {
     )
 
     return groups.flatMap((group) => {
-      const organization = organizationById.get(getMembershipResourceId(group.oldest))
+      const organization = organizationById.get(resourceIdOf(group))
       return organization ? [this.toModel(group, organization)] : []
     })
   }
@@ -227,14 +223,12 @@ export class OrganizationMembershipRepository {
     organization: Organization,
   ): OrganizationMembershipModel {
     return {
-      id: group.oldest.id,
-      userId: group.oldest.userId,
-      organizationId: getMembershipResourceId(group.oldest),
+      userId: group.userId,
+      organizationId: resourceIdOf(group),
       roles: group.roles,
-      createdAt: group.oldest.createdAt,
+      createdAt: group.createdAt,
       updatedAt: group.updatedAt,
-      deletedAt: group.oldest.deletedAt,
-      user: group.oldest.user,
+      user: group.user,
       organization,
     }
   }

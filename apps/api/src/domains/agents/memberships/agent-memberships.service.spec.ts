@@ -61,7 +61,7 @@ describe("AgentMembershipsService", () => {
       expect(membership.roles.map((role) => role.key)).toEqual(["agent_owner"])
 
       const savedMembership = await repositories.userMembershipRepository.findOneOrFail({
-        where: { id: membership.id },
+        where: { id: membership.roles[0]?.membershipId },
       })
       const agentOwnerRole = await repositories.roleRepository.findOneOrFail({
         where: { key: AGENT_ROLES.owner },
@@ -79,8 +79,8 @@ describe("AgentMembershipsService", () => {
       await addUserToProject({ repositories, project, user: member })
 
       await service.removeAgentMembership({
-        userId: user.id,
-        membershipId: membership.id,
+        callerUserId: user.id,
+        memberUserId: membership.userId,
         agentId: agent.id,
       })
 
@@ -96,8 +96,8 @@ describe("AgentMembershipsService", () => {
       await addUserToProject({ repositories, project, user: member })
 
       await service.removeAgentMembership({
-        userId: user.id,
-        membershipId: membership.id,
+        callerUserId: user.id,
+        memberUserId: membership.userId,
         agentId: agent.id,
       })
 
@@ -125,8 +125,8 @@ describe("AgentMembershipsService", () => {
       })
 
       await service.removeAgentMembership({
-        userId: user.id,
-        membershipId: membership.id,
+        callerUserId: user.id,
+        memberUserId: membership.userId,
         agentId: agent.id,
       })
 
@@ -154,8 +154,8 @@ describe("AgentMembershipsService", () => {
 
       await expect(
         service.removeAgentMembership({
-          userId: user.id,
-          membershipId: ownerMembership.id,
+          callerUserId: user.id,
+          memberUserId: ownerMembership.userId,
           agentId: agent.id,
         }),
       ).rejects.toThrow("Cannot remove yourself from the agent")
@@ -171,8 +171,8 @@ describe("AgentMembershipsService", () => {
 
       await expect(
         service.removeAgentMembership({
-          userId: requester.id,
-          membershipId: ownerMembership.id,
+          callerUserId: requester.id,
+          memberUserId: ownerMembership.userId,
           agentId: agent.id,
         }),
       ).rejects.toThrow("Cannot remove owner from the agent")

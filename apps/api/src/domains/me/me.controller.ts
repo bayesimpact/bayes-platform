@@ -119,17 +119,14 @@ function toUserMembershipDto(
 ): UserMembershipsDto {
   return {
     organizationMemberships: membership.organizationMemberships.map((orgMembership) => ({
-      id: orgMembership.id,
       organizationId: orgMembership.organizationId,
       roles: orgMembership.roles.map(toMembershipRoleDto),
     })),
     projectMemberships: membership.projectMemberships.map((projectMembership) => ({
-      id: projectMembership.id,
       projectId: projectMembership.projectId,
       roles: projectMembership.roles.map(toMembershipRoleDto),
     })),
     agentMemberships: membership.agentMemberships.map((agentMembership) => ({
-      id: agentMembership.id,
       agentId: agentMembership.agentId,
       roles: agentMembership.roles.map(toMembershipRoleDto),
     })),
@@ -160,7 +157,6 @@ function toReviewCampaignMembershipsForMeDto(
     if (!first) return []
     return [
       {
-        id: first.id,
         campaignId: first.campaignId,
         organizationId: first.organizationId,
         projectId: first.projectId,

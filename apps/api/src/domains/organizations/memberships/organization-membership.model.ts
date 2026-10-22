@@ -17,16 +17,15 @@ export type OrganizationMembershipContextModel = {
 /**
  * Domain model for a person's membership in an organization.
  *
- * Plain object returned to the service layer. The `organization` attribute is a
+ * Plain object returned to the service layer. The person and the organization identify it;
+ * each role carries the id of its row. The `organization` attribute is a
  * TypeORM entity for now (pragmatic compromise during the transition away from
  * legacy tables); it will become a domain model once Organization is also split.
  */
 export type OrganizationMembershipModel = OrganizationMembershipContextModel & {
-  /** The oldest of the person's rows on the organization. */
-  id: string
+  /** When the person got their first role on the organization. */
   createdAt: Date
   updatedAt: Date
-  deletedAt: Date | null
   user: User
   organization: Organization
 }

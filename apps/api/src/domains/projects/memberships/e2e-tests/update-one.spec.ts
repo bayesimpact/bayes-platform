@@ -36,6 +36,7 @@ describe("Project membership - updateOne", () => {
   let organizationId: string
   let projectId: string
   let membershipId: string
+  let memberUserId: string | null = randomUUID()
   let role: EditableProjectMembershipRoleDto = "admin"
   let accessToken: string | undefined = "token"
   let authSubject = "oidc|123"
@@ -84,6 +85,7 @@ describe("Project membership - updateOne", () => {
       projectMembership: { role: targetRole },
     })
     membershipId = membership.id
+    memberUserId = membership.userId
 
     return { organization, project, user, addedUser, membership }
   }
@@ -91,7 +93,7 @@ describe("Project membership - updateOne", () => {
   const subject = async () =>
     request({
       route: ProjectMembershipRoutes.updateOne,
-      pathParams: removeNullish({ organizationId, projectId, membershipId }),
+      pathParams: removeNullish({ organizationId, projectId, userId: memberUserId }),
       token: accessToken,
       request: { payload: { role } },
     })
@@ -133,7 +135,7 @@ describe("Project membership - updateOne", () => {
     const response = await subject()
 
     expectResponse(response, 200)
-    expect(response.body.data.id).toBe(membershipId)
+    expect(response.body.data.userId).toBe(memberUserId)
     expect(roleKeysOf(response.body.data)).toEqual(["project_admin"])
     expect([...response.body.data.permissions].sort()).toEqual(
       [...PROJECT_ROLE_PERMISSIONS.project_admin].sort(),
@@ -176,7 +178,7 @@ describe("Project membership - updateOne", () => {
     const response = await subject()
 
     expectResponse(response, 200)
-    expect(response.body.data.id).toBe(membershipId)
+    expect(response.body.data.userId).toBe(memberUserId)
     expect(roleKeysOf(response.body.data)).toEqual(["project_member"])
     expect([...response.body.data.permissions].sort()).toEqual(
       [...PROJECT_ROLE_PERMISSIONS.project_member].sort(),
@@ -206,6 +208,7 @@ describe("Project membership - updateOne", () => {
       where: { resourceType: "project", resourceId: project.id, userId: user.id },
     })
     membershipId = ownerMembership.id
+    memberUserId = ownerMembership.userId
     // An admin makes the owner a member too
     const { addedUser } = await addMemberByEmailToProject({
       repositories,
@@ -243,7 +246,7 @@ describe("Project membership - updateOne", () => {
 
   it("returns 404 for a membership of another project", async () => {
     await createContext()
-    membershipId = randomUUID()
+    memberUserId = randomUUID()
 
     expectResponse(await subject(), 404)
   })

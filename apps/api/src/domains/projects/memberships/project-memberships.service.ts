@@ -186,12 +186,12 @@ export class ProjectMembershipsService {
    */
   async updateProjectMembershipRole({
     callerUserId,
-    membershipId,
+    memberUserId,
     projectId,
     role,
   }: {
     callerUserId: string
-    membershipId: string
+    memberUserId: string
     projectId: string
     role: EditableProjectMembershipRole
   }): Promise<{ membership: ProjectMembershipModel; roleGrantsByRoleId: Map<string, RoleGrant> }> {
@@ -200,8 +200,8 @@ export class ProjectMembershipsService {
     }
 
     const membership = await this.transactionService.run(async () => {
-      const existing = await this.projectMembershipRepository.findById({
-        membershipId,
+      const existing = await this.projectMembershipRepository.findByUserAndProject({
+        userId: memberUserId,
         projectId,
       })
       if (!existing) throw new NotFoundException()
@@ -273,22 +273,22 @@ export class ProjectMembershipsService {
    * account once it has no membership left.
    */
   async removeProjectMembership({
-    userId,
-    membershipId,
+    callerUserId,
+    memberUserId,
     projectId,
   }: {
-    userId: string
-    membershipId: string
+    callerUserId: string
+    memberUserId: string
     projectId: string
   }): Promise<void> {
     return this.transactionService.run(async () => {
-      const membership = await this.projectMembershipRepository.findById({
-        membershipId,
+      const membership = await this.projectMembershipRepository.findByUserAndProject({
+        userId: memberUserId,
         projectId,
       })
       if (!membership) return
 
-      if (membership.user.id === userId) {
+      if (membership.userId === callerUserId) {
         throw new Error("Cannot remove yourself from the project")
       }
 

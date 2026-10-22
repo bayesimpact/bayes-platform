@@ -51,8 +51,8 @@ export class AgentMembershipsController {
     const { agent, memberAgentMembership } = request
 
     await this.agentMembershipsService.removeAgentMembership({
-      userId: request.user.id,
-      membershipId: memberAgentMembership.id,
+      callerUserId: request.user.id,
+      memberUserId: memberAgentMembership.userId,
       agentId: agent.id,
     })
 
@@ -62,7 +62,6 @@ export class AgentMembershipsController {
 
 function toDto(membership: AgentMembershipModel): AgentMembershipDto {
   return {
-    id: membership.id,
     agentId: membership.agentId,
     userId: membership.userId,
     userName: membership.user.name ?? buildNameFromEmail(membership.user.email),
