@@ -137,6 +137,31 @@ export class AgentMembershipRepository {
     await this.userMembershipRepo().update({ ...where, roleId: fromRoleId }, { roleId: toRoleId })
   }
 
+  /** Takes the role from the person on the agent. Does nothing when they do not hold it. */
+  async removeRole({
+    userId,
+    agentId,
+    roleKey,
+  }: {
+    userId: string
+    agentId: string
+    roleKey: string
+  }): Promise<void> {
+    const roleId = await requireRoleId(this.transactionService.getManager(), roleKey)
+    await this.userMembershipRepo().delete({
+      userId,
+      resourceType: AGENT_RESOURCE_TYPE,
+      resourceId: agentId,
+      roleId,
+    })
+  }
+
+  async countHolders({ agentId, roleKey }: { agentId: string; roleKey: string }) {
+    return this.userMembershipRepo().count({
+      where: { resourceType: AGENT_RESOURCE_TYPE, resourceId: agentId, rbacRole: { key: roleKey } },
+    })
+  }
+
   async createMembership({
     userId,
     agentId,

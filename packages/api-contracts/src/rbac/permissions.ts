@@ -126,6 +126,9 @@ export const AGENT_MEMBER_READ_PERMISSION = "agent.member.read" as const
 
 export const AGENT_MEMBER_DELETE_PERMISSION = "agent.member.delete" as const
 
+/** Give a member of the workspace a role on the agent, or take one away. Held on the agent only. */
+export const AGENT_MEMBER_UPDATE_PERMISSION = "agent.member.update" as const
+
 /**
  * List the project's agents with their unpublished draft settings, as the studio and
  * evaluation apps do. Scoped to the project and never inherited from the organization.

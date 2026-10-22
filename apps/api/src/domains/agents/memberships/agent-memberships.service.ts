@@ -1,4 +1,9 @@
-import { Injectable } from "@nestjs/common"
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
 import type { AgentSummary } from "@/domains/agents/agent.repository"
@@ -302,6 +307,80 @@ export class AgentMembershipsService {
       userId,
       agentIds,
       roleKeys: [...MEMBER_ROLE_KEYS],
+    })
+  }
+
+  /**
+   * Gives a member of the project a member role on the agent (owner, admin or member). Nobody
+   * changes their own roles. The conversation reviewer role stays a backoffice grant.
+   */
+  async addMemberRole({
+    callerUserId,
+    memberUserId,
+    agentId,
+    projectId,
+    roleKey,
+  }: {
+    callerUserId: string
+    memberUserId: string
+    agentId: string
+    projectId: string
+    roleKey: string
+  }): Promise<void> {
+    if (!MEMBER_ROLE_KEYS.includes(roleKey)) {
+      throw new BadRequestException(`Not an agent member role: ${roleKey}`)
+    }
+    if (memberUserId === callerUserId) {
+      throw new ForbiddenException("Cannot change your own role")
+    }
+    await this.transactionService.run(async () => {
+      const projectMembership = await this.projectMembershipRepository.findByUserAndProject({
+        userId: memberUserId,
+        projectId,
+      })
+      if (!projectMembership) {
+        throw new NotFoundException("The user is not a member of the project")
+      }
+      await this.agentMembershipRepository.addRole({ userId: memberUserId, agentId, roleKey })
+    })
+  }
+
+  /**
+   * Takes a member role from someone on the agent. Nobody changes their own roles, and the agent
+   * keeps at least one owner.
+   */
+  async removeMemberRole({
+    callerUserId,
+    memberUserId,
+    agentId,
+    roleKey,
+  }: {
+    callerUserId: string
+    memberUserId: string
+    agentId: string
+    roleKey: string
+  }): Promise<void> {
+    if (!MEMBER_ROLE_KEYS.includes(roleKey)) {
+      throw new BadRequestException(`Not an agent member role: ${roleKey}`)
+    }
+    if (memberUserId === callerUserId) {
+      throw new ForbiddenException("Cannot change your own role")
+    }
+    await this.transactionService.run(async () => {
+      const membership = await this.findAgentMembership({ userId: memberUserId, agentId })
+      if (!membership || !hasRole(membership, roleKey)) {
+        throw new NotFoundException(`The member does not hold ${roleKey}`)
+      }
+      if (roleKey === AGENT_ROLES.owner) {
+        const ownerCount = await this.agentMembershipRepository.countHolders({
+          agentId,
+          roleKey: AGENT_ROLES.owner,
+        })
+        if (ownerCount <= 1) {
+          throw new ForbiddenException("Cannot remove the last owner of the agent")
+        }
+      }
+      await this.agentMembershipRepository.removeRole({ userId: memberUserId, agentId, roleKey })
     })
   }
 }

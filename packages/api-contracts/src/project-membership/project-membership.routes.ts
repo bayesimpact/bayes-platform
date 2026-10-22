@@ -1,12 +1,11 @@
-import type { ProjectMemberAgentDto } from "../agent-membership/agent-membership.dto"
 import type { RequestPayload, ResponseData, SuccessResponseDTO } from "../generic"
 import { defineRoute } from "../helpers"
 import type {
   AddProjectMemberRolesRequestDto,
   DeleteProjectMembersRequestDto,
+  ProjectMemberRolesDto,
   ProjectMembershipDto,
   ProjectRoleDto,
-  UpdateProjectMembershipRequestDto,
 } from "./project-membership.dto"
 
 export const ProjectMembershipRoutes = {
@@ -14,21 +13,17 @@ export const ProjectMembershipRoutes = {
     method: "get",
     path: "organizations/:organizationId/projects/:projectId/users",
   }),
-  /** Switches another member between admin and member. Needs `project.member.update`. */
-  updateOne: defineRoute<
-    ResponseData<ProjectMembershipDto>,
-    RequestPayload<UpdateProjectMembershipRequestDto>
-  >({
-    method: "patch",
-    path: "organizations/:organizationId/projects/:projectId/users/:userId",
-  }),
   deleteOne: defineRoute<ResponseData<SuccessResponseDTO>>({
     method: "delete",
     path: "organizations/:organizationId/projects/:projectId/users/:userId",
   }),
-  getMemberAgents: defineRoute<ResponseData<ProjectMemberAgentDto[]>>({
+  /**
+   * The member's roles on the workspace, its agents and its review campaigns, with what the viewer
+   * may change on each. Needs `project.member.read`.
+   */
+  getMemberRoles: defineRoute<ResponseData<ProjectMemberRolesDto>>({
     method: "get",
-    path: "organizations/:organizationId/projects/:projectId/users/:userId/agents",
+    path: "organizations/:organizationId/projects/:projectId/users/:userId/roles",
   }),
   /** The roles a member can be given on the workspace, in catalog order. Needs `project.member.read`. */
   getAssignableRoles: defineRoute<ResponseData<ProjectRoleDto[]>>({

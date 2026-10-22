@@ -1,15 +1,5 @@
 import { addProjectMemberRolesSchema, ProjectMembershipRoutes } from "@caseai-connect/api-contracts"
-import {
-  Body,
-  Controller,
-  Delete,
-  Param,
-  Patch,
-  Post,
-  Req,
-  UseGuards,
-  UsePipes,
-} from "@nestjs/common"
+import { Body, Controller, Delete, Param, Post, Req, UseGuards, UsePipes } from "@nestjs/common"
 import type {
   EndpointRequestWithProject,
   EndpointRequestWithProjectMembership,
@@ -32,27 +22,6 @@ import { ProjectMembershipsService } from "./project-memberships.service"
 @Controller()
 export class ProjectMembershipRoleController {
   constructor(private readonly projectMembershipsService: ProjectMembershipsService) {}
-
-  @Patch(ProjectMembershipRoutes.updateOne.path)
-  @AddContext("projectMembership")
-  @CheckPermission(PROJECT_MEMBER_UPDATE_PERMISSION, "project")
-  @TrackActivity({ action: "projectMembership.update", entityFrom: "memberProjectMembership" })
-  async updateRole(
-    @Req() request: EndpointRequestWithProjectMembership,
-    @Body() { payload }: typeof ProjectMembershipRoutes.updateOne.request,
-  ): Promise<typeof ProjectMembershipRoutes.updateOne.response> {
-    const { project, memberProjectMembership } = request
-
-    const { membership, roleGrantsByRoleId } =
-      await this.projectMembershipsService.updateProjectMembershipRole({
-        callerUserId: request.user.id,
-        memberUserId: memberProjectMembership.userId,
-        projectId: project.id,
-        role: payload.role,
-      })
-
-    return { data: toProjectMembershipDto(membership, roleGrantsByRoleId) }
-  }
 
   @Post(ProjectMembershipRoutes.addRoles.path)
   @CheckPermission(PROJECT_MEMBER_UPDATE_PERMISSION, "project")

@@ -8,19 +8,27 @@ import {
 import { TransactionService } from "@/common/transaction/transaction.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentMembershipsService } from "@/domains/agents/memberships/agent-memberships.service"
-import { hasRole, listRoleIds } from "@/domains/memberships/membership-roles"
+import {
+  hasRole,
+  listRoleIds,
+  type MembershipRole,
+  unionRolePermissions,
+} from "@/domains/memberships/membership-roles"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { PermissionService } from "@/domains/rbac/permission.service"
 import type { RoleGrant } from "@/domains/rbac/permission.types"
-import { PROJECT_ROLES } from "@/domains/rbac/rbac.constants"
+import {
+  AGENT_CONVERSATION_REVIEWER_ROLE,
+  AGENT_MEMBER_UPDATE_PERMISSION,
+  PROJECT_MEMBER_UPDATE_PERMISSION,
+  PROJECT_REVIEW_CAMPAIGN_MEMBER_INVITE_PERMISSION,
+  PROJECT_ROLES,
+} from "@/domains/rbac/rbac.constants"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { UserRepository } from "@/domains/users/user.repository"
-import type { ProjectMembershipModel } from "./project-membership.model"
+import type { MemberRoles, ProjectMembershipModel } from "./project-membership.model"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectMembershipRepository } from "./project-membership.repository"
-import type { EditableProjectMembershipRole } from "./project-membership.types"
-
-const EDITABLE_ROLES: EditableProjectMembershipRole[] = ["admin", "member"]
 
 /** The project roles that make their holder admin of every agent of the project. */
 const AGENT_MANAGING_ROLE_KEYS: string[] = [PROJECT_ROLES.owner, PROJECT_ROLES.admin]
@@ -81,12 +89,106 @@ export class ProjectMembershipsService {
   }
 
   /** Every agent of the project, with the user's membership and the permissions its roles grant. */
-  async listMemberAgents(params: { projectId: string; userId: string }) {
-    const entries = await this.agentMembershipsService.listProjectMemberAgents(params)
-    const roleGrantsByRoleId = await this.permissionService.listRoleGrants(
-      listRoleIds(entries.flatMap(({ membership }) => (membership ? [membership] : []))),
+  /**
+   * A member's roles on the project, each of its agents and each of its review campaigns, the
+   * permissions those roles grant, and whether the viewer may change them on each resource.
+   */
+  async getMemberRoles({
+    viewerUserId,
+    memberUserId,
+    projectId,
+  }: {
+    viewerUserId: string
+    memberUserId: string
+    projectId: string
+  }): Promise<MemberRoles> {
+    const membership = await this.projectMembershipRepository.findByUserAndProject({
+      userId: memberUserId,
+      projectId,
+    })
+    if (!membership) throw new NotFoundException()
+
+    const [agentEntries, campaignEntries, catalog] = await Promise.all([
+      this.agentMembershipsService.listProjectMemberAgents({ projectId, userId: memberUserId }),
+      this.projectMembershipRepository.findCampaignRolesInProject({
+        userId: memberUserId,
+        projectId,
+      }),
+      this.permissionService.getCatalog(),
+    ])
+    const agentRoles = agentEntries.map(({ membership: agentMembership }) =>
+      agentMembership ? agentMembership.roles : [],
     )
-    return { entries, roleGrantsByRoleId }
+    const roleGrantsByRoleId = await this.permissionService.listRoleGrants([
+      ...listRoleIds([membership]),
+      ...listRoleIds(agentRoles.map((roles) => ({ roles }))),
+      ...listRoleIds(campaignEntries),
+    ])
+    const permissionsOf = (roles: MembershipRole[]) =>
+      unionRolePermissions(roles, roleGrantsByRoleId)
+
+    const [canManageProject, canManageCampaigns, ...canManageAgents] = await Promise.all([
+      this.permissionService.has(viewerUserId, PROJECT_MEMBER_UPDATE_PERMISSION, {
+        type: "project",
+        id: projectId,
+      }),
+      this.permissionService.has(viewerUserId, PROJECT_REVIEW_CAMPAIGN_MEMBER_INVITE_PERMISSION, {
+        type: "project",
+        id: projectId,
+      }),
+      ...agentEntries.map(({ agent }) =>
+        this.permissionService.has(viewerUserId, AGENT_MEMBER_UPDATE_PERMISSION, {
+          type: "agent",
+          id: agent.id,
+        }),
+      ),
+    ])
+
+    const catalogRoles = (scopeType: string, excludedKeys: string[] = []) =>
+      catalog.roles
+        .filter((role) => role.scopeType === scopeType && !excludedKeys.includes(role.key))
+        .map((role) => ({ key: role.key, name: role.name }))
+
+    return {
+      membership,
+      roleGrantsByRoleId,
+      workspace: {
+        kind: "project",
+        resourceId: projectId,
+        resourceName: membership.project.name,
+        detail: null,
+        roles: membership.roles,
+        permissions: permissionsOf(membership.roles),
+        canManage: canManageProject,
+      },
+      agents: agentEntries.map(({ agent }, index) => {
+        const roles = agentRoles[index] ?? []
+        return {
+          kind: "agent",
+          resourceId: agent.id,
+          resourceName: agent.name,
+          detail: agent.type,
+          roles,
+          permissions: permissionsOf(roles),
+          canManage: canManageAgents[index] ?? false,
+        }
+      }),
+      campaigns: campaignEntries.map((campaign) => ({
+        kind: "review_campaign",
+        resourceId: campaign.campaignId,
+        resourceName: campaign.campaignName,
+        detail: campaign.campaignStatus,
+        roles: campaign.roles,
+        permissions: permissionsOf(campaign.roles),
+        canManage: canManageCampaigns && campaign.campaignStatus !== "closed",
+      })),
+      assignableRoles: {
+        project: catalogRoles("project"),
+        // The conversation reviewer role is granted in the backoffice only.
+        agent: catalogRoles("agent", [AGENT_CONVERSATION_REVIEWER_ROLE]),
+        review_campaign: catalogRoles("review_campaign"),
+      },
+    }
   }
 
   async createProjectOwnerMembership({
@@ -180,84 +282,6 @@ export class ProjectMembershipsService {
         roleKey: PROJECT_ROLES.member,
       })
     })
-  }
-
-  /**
-   * Switches another member of the project between admin and member, and moves their agent
-   * memberships along: admin on every agent when promoted, member instead of admin when demoted.
-   * Their other roles stay, `project_owner` included. Nobody changes their own roles.
-   */
-  async updateProjectMembershipRole({
-    callerUserId,
-    memberUserId,
-    projectId,
-    role,
-  }: {
-    callerUserId: string
-    memberUserId: string
-    projectId: string
-    role: EditableProjectMembershipRole
-  }): Promise<{ membership: ProjectMembershipModel; roleGrantsByRoleId: Map<string, RoleGrant> }> {
-    if (!EDITABLE_ROLES.includes(role)) {
-      throw new BadRequestException("Role must be admin or member")
-    }
-
-    const membership = await this.transactionService.run(async () => {
-      const existing = await this.projectMembershipRepository.findByUserAndProject({
-        userId: memberUserId,
-        projectId,
-      })
-      if (!existing) throw new NotFoundException()
-
-      if (existing.userId === callerUserId) {
-        throw new ForbiddenException("Cannot change your own role")
-      }
-
-      const targetRoleKey = PROJECT_ROLES[role]
-      const otherRoleKey = role === "admin" ? PROJECT_ROLES.member : PROJECT_ROLES.admin
-      const holdsTarget = hasRole(existing, targetRoleKey)
-      const holdsOther = hasRole(existing, otherRoleKey)
-      if (holdsTarget && !holdsOther) return existing
-
-      const userId = existing.userId
-      if (holdsOther) {
-        await this.projectMembershipRepository.switchRole({
-          userId,
-          projectId,
-          fromRoleKey: otherRoleKey,
-          toRoleKey: targetRoleKey,
-        })
-      } else {
-        await this.projectMembershipRepository.addRole({
-          userId,
-          projectId,
-          roleKey: targetRoleKey,
-        })
-      }
-      if (role === "admin") {
-        await this.agentMembershipsService.createAdminAgentMembershipsForUserInProject({
-          userId,
-          projectId,
-        })
-      } else {
-        await this.agentMembershipsService.demoteAdminAgentMembershipsForUserInProject({
-          userId,
-          projectId,
-        })
-      }
-
-      const updated = await this.projectMembershipRepository.findByUserAndProject({
-        userId,
-        projectId,
-      })
-      if (!updated) throw new NotFoundException()
-      return updated
-    })
-
-    const roleGrantsByRoleId = await this.permissionService.listRoleGrants(
-      listRoleIds([membership]),
-    )
-    return { membership, roleGrantsByRoleId }
   }
 
   /**

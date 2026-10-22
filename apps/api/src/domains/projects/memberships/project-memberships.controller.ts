@@ -1,6 +1,6 @@
 import {
   deleteProjectMembersSchema,
-  type ProjectMemberAgentDto,
+  type MemberResourceRolesDto,
   ProjectMembershipRoutes,
 } from "@caseai-connect/api-contracts"
 import {
@@ -23,7 +23,7 @@ import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { ZodValidationPipe } from "@/common/zod-validation-pipe"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
-import { toMembershipRoleDto, unionRolePermissions } from "@/domains/memberships/membership-roles"
+import { toMembershipRoleDto } from "@/domains/memberships/membership-roles"
 import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
 import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
 import {
@@ -32,6 +32,7 @@ import {
 } from "@/domains/rbac/rbac.constants"
 import { UserGuard } from "@/domains/users/user.guard"
 import { toProjectMembershipDto } from "./project-membership.mapper"
+import type { MemberResourceRoles } from "./project-membership.model"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectMembershipsService } from "./project-memberships.service"
 
@@ -56,28 +57,32 @@ export class ProjectMembershipsController {
     }
   }
 
-  @Get(ProjectMembershipRoutes.getMemberAgents.path)
+  @Get(ProjectMembershipRoutes.getMemberRoles.path)
   @AddContext("projectMembership")
   @CheckPermission(PROJECT_MEMBER_READ_PERMISSION, "project")
-  async getMemberAgents(
+  async getMemberRoles(
     @Req() request: EndpointRequestWithProjectMembership,
-  ): Promise<typeof ProjectMembershipRoutes.getMemberAgents.response> {
-    const { project, memberProjectMembership } = request
+  ): Promise<typeof ProjectMembershipRoutes.getMemberRoles.response> {
+    const { membership, roleGrantsByRoleId, workspace, agents, campaigns, assignableRoles } =
+      await this.projectMembershipsService.getMemberRoles({
+        viewerUserId: request.user.id,
+        memberUserId: request.memberProjectMembership.userId,
+        projectId: request.project.id,
+      })
 
-    const { entries, roleGrantsByRoleId } = await this.projectMembershipsService.listMemberAgents({
-      projectId: project.id,
-      userId: memberProjectMembership.userId,
+    const toResourceDto = (resource: MemberResourceRoles): MemberResourceRolesDto => ({
+      ...resource,
+      roles: resource.roles.map(toMembershipRoleDto),
     })
-
-    const data: ProjectMemberAgentDto[] = entries.map(({ agent, membership }) => ({
-      agentId: agent.id,
-      agentName: agent.name,
-      agentType: agent.type,
-      roles: membership?.roles.map(toMembershipRoleDto) ?? [],
-      permissions: membership ? unionRolePermissions(membership.roles, roleGrantsByRoleId) : [],
-    }))
-
-    return { data }
+    return {
+      data: {
+        member: toProjectMembershipDto(membership, roleGrantsByRoleId),
+        workspace: toResourceDto(workspace),
+        agents: agents.map(toResourceDto),
+        campaigns: campaigns.map(toResourceDto),
+        assignableRoles,
+      },
+    }
   }
 
   @Delete(ProjectMembershipRoutes.deleteOne.path)

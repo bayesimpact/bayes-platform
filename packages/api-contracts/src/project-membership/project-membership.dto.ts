@@ -2,9 +2,6 @@ import { z } from "zod"
 import type { TimeType } from "../generic"
 import type { MembershipRoleDto } from "../rbac/membership-role.dto"
 
-/** Roles a member can be switched between. The owner role is never assigned or taken away here. */
-export type EditableProjectMembershipRoleDto = "admin" | "member"
-
 /**
  * A person with access to a project, with every role they hold on it. A member is identified by
  * the project and `userId`; each role carries the id of the row that holds it.
@@ -20,10 +17,6 @@ export type ProjectMembershipDto = {
   roles: MembershipRoleDto[]
   /** Permission keys the roles grant on the project, together. */
   permissions: string[]
-}
-
-export type UpdateProjectMembershipRequestDto = {
-  role: EditableProjectMembershipRoleDto
 }
 
 /** A role of the RBAC catalog that can be given on a workspace (`scope_type = project`). */
@@ -53,3 +46,36 @@ export const deleteProjectMembersSchema = z.object({
   userIds: bulkUserIdsSchema,
 })
 export type DeleteProjectMembersRequestDto = z.infer<typeof deleteProjectMembersSchema>
+
+/** The kinds of resource of a workspace a member can hold roles on. */
+export type MemberResourceKindDto = "project" | "agent" | "review_campaign"
+
+/** One resource of the workspace, and a member's roles on it. */
+export type MemberResourceRolesDto = {
+  kind: MemberResourceKindDto
+  resourceId: string
+  resourceName: string
+  /** The agent's type, or the campaign's status. Null for the workspace. */
+  detail: string | null
+  roles: MembershipRoleDto[]
+  /** Permission keys the member's roles grant on this resource, together. */
+  permissions: string[]
+  /** Whether the viewer may add or remove the member's roles on this resource. */
+  canManage: boolean
+}
+
+/** A member's roles on the workspace, each of its agents and each of its review campaigns. */
+export type ProjectMemberRolesDto = {
+  member: ProjectMembershipDto
+  workspace: MemberResourceRolesDto
+  agents: MemberResourceRolesDto[]
+  campaigns: MemberResourceRolesDto[]
+  /** The roles of the catalog offered on each kind of resource. */
+  assignableRoles: Record<MemberResourceKindDto, ProjectRoleDto[]>
+}
+
+/** One role to give a member on a resource. */
+export const addMemberRoleSchema = z.object({
+  roleKey: z.string().min(1),
+})
+export type AddMemberRoleRequestDto = z.infer<typeof addMemberRoleSchema>

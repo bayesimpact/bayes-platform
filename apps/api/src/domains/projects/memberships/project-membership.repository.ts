@@ -4,11 +4,13 @@ import { In, type Repository } from "typeorm"
 import { TransactionService } from "@/common/transaction/transaction.service"
 import {
   groupMembershipRows,
+  type MembershipRole,
   type MembershipRowGroup,
   resourceIdOf,
 } from "@/domains/memberships/membership-roles"
 import { UserMembership } from "@/domains/memberships/user-membership.entity"
 import { Project } from "@/domains/projects/project.entity"
+import type { RoleScopeType } from "@/domains/rbac/rbac.constants"
 import { requireRoleId } from "@/domains/rbac/resolve-role-id"
 import { HUMAN_USER_TYPE_FILTER } from "@/domains/users/service-user.helpers"
 import type { ProjectMembershipModel } from "./project-membership.model"
@@ -265,6 +267,75 @@ export class ProjectMembershipRepository {
          AND review_campaign.project_id = $2`,
       [userId, projectId],
     )
+  }
+
+  /**
+   * Every live review campaign of the project, with the roles the user holds on each (none for
+   * most). In creation order.
+   */
+  async findCampaignRolesInProject({
+    userId,
+    projectId,
+  }: {
+    userId: string
+    projectId: string
+  }): Promise<
+    { campaignId: string; campaignName: string; campaignStatus: string; roles: MembershipRole[] }[]
+  > {
+    const rows: {
+      campaignId: string
+      campaignName: string
+      campaignStatus: string
+      membershipId: string | null
+      roleId: string | null
+      roleKey: string | null
+      roleName: string | null
+      roleScopeType: RoleScopeType | null
+    }[] = await this.transactionService.getManager().query(
+      `SELECT review_campaign.id AS "campaignId",
+              review_campaign.name AS "campaignName",
+              review_campaign.status AS "campaignStatus",
+              membership.id AS "membershipId",
+              role.id AS "roleId",
+              role.key AS "roleKey",
+              role.name AS "roleName",
+              role.scope_type AS "roleScopeType"
+       FROM review_campaign
+       LEFT JOIN user_membership AS membership
+         ON membership.resource_type = 'review_campaign'
+         AND membership.resource_id = review_campaign.id
+         AND membership.user_id = $1
+         AND membership.deleted_at IS NULL
+       LEFT JOIN role ON role.id = membership.role_id
+       WHERE review_campaign.project_id = $2
+         AND review_campaign.deleted_at IS NULL
+       ORDER BY review_campaign.created_at, role.key`,
+      [userId, projectId],
+    )
+
+    const campaigns = new Map<
+      string,
+      { campaignId: string; campaignName: string; campaignStatus: string; roles: MembershipRole[] }
+    >()
+    for (const row of rows) {
+      const campaign = campaigns.get(row.campaignId) ?? {
+        campaignId: row.campaignId,
+        campaignName: row.campaignName,
+        campaignStatus: row.campaignStatus,
+        roles: [],
+      }
+      if (row.membershipId && row.roleId && row.roleKey && row.roleName && row.roleScopeType) {
+        campaign.roles.push({
+          membershipId: row.membershipId,
+          roleId: row.roleId,
+          key: row.roleKey,
+          name: row.roleName,
+          scopeType: row.roleScopeType,
+        })
+      }
+      campaigns.set(row.campaignId, campaign)
+    }
+    return [...campaigns.values()]
   }
 
   async softDeleteAllByProject(projectId: string): Promise<void> {
