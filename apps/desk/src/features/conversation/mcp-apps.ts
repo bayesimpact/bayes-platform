@@ -1,4 +1,10 @@
 import type { McpAppHtmlOutputDto } from "@caseai-connect/desk-contracts"
+import {
+  type CallToolResult,
+  CallToolResultSchema,
+  type ContentBlock,
+} from "@modelcontextprotocol/sdk/types.js"
+import { isRecord } from "@/lib/is-record"
 import type { ChatMcpApp } from "./chat-messages"
 
 /**
@@ -15,50 +21,45 @@ export function findMcpAppHtml(app: ChatMcpApp, htmls: McpAppHtmlOutputDto[]): s
   return match?.html ?? null
 }
 
-type ContentBlock = { type?: unknown; text?: unknown }
-
-function contentBlocksOf(value: unknown): ContentBlock[] {
-  if (typeof value !== "object" || value === null || !("content" in value)) return []
-  const { content } = value
-  return Array.isArray(content) ? content : []
+/**
+ * The raw MCP result the API kept for a tool that shows an app, read with the SDK's schema, or
+ * `null` when the result has no `content` or breaks the schema.
+ */
+function parseCallToolResult(result: unknown): CallToolResult | null {
+  // The schema gives a missing `content` an empty list: only a result that has one is raw.
+  if (!isRecord(result) || !("content" in result)) return null
+  const parsed = CallToolResultSchema.safeParse(result)
+  return parsed.success ? parsed.data : null
 }
 
 /** The text blocks of an MCP content list, trimmed, without the empty ones. */
 function textsOf(blocks: ContentBlock[]): string[] {
   return blocks.flatMap((block) =>
-    block.type === "text" && typeof block.text === "string" && block.text.trim() !== ""
-      ? [block.text.trim()]
-      : [],
+    block.type === "text" && block.text.trim() !== "" ? [block.text.trim()] : [],
   )
 }
 
 /**
- * A tool result as an MCP App reads it: a result with `content` as it is, anything else as the
+ * A tool result as an MCP App reads it: a raw MCP result as it is, anything else as the
  * structured content of an empty text result.
  */
-export function toCallToolResult(result: unknown): {
-  content: { type: "text"; text: string }[]
-  structuredContent?: Record<string, unknown>
-} {
-  if (typeof result === "object" && result !== null && "content" in result) {
-    // Safe: a result with `content` is the raw MCP result the API kept for the app.
-    return result as { content: { type: "text"; text: string }[] }
-  }
-  const structuredContent =
-    typeof result === "object" && result !== null && !Array.isArray(result)
-      ? (result as Record<string, unknown>)
-      : { value: result }
-  return { content: [{ type: "text", text: "" }], structuredContent }
+export function toCallToolResult(result: unknown): CallToolResult {
+  return (
+    parseCallToolResult(result) ?? {
+      content: [{ type: "text", text: "" }],
+      structuredContent: isRecord(result) ? result : { value: result },
+    }
+  )
 }
 
 /** The text of a tool result, shown instead of an app that could not render. */
 export function toolResultText(result: unknown): string {
-  return textsOf(contentBlocksOf(result)).join("\n")
+  return textsOf(parseCallToolResult(result)?.content ?? []).join("\n")
 }
 
 /** The text an app asks to put in the message box: its text blocks, one paragraph each. */
-export function appMessageText(content: unknown): string {
-  return textsOf(Array.isArray(content) ? content : []).join("\n\n")
+export function appMessageText(content: ContentBlock[]): string {
+  return textsOf(content).join("\n\n")
 }
 
 /** Whether a reply's text says something: a lone "." beside a card says nothing. */
