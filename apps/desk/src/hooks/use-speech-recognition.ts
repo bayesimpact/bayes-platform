@@ -1,38 +1,8 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useEffectEvent, useRef, useState } from "react"
 
-/** The parts of the browser's speech recognition the Desk uses, which TypeScript does not type. */
-type SpeechRecognitionInstance = {
-  continuous: boolean
-  interimResults: boolean
-  lang: string
-  start(): void
-  stop(): void
-  addEventListener(type: string, listener: (event: Event) => void): void
-  removeEventListener(type: string, listener: (event: Event) => void): void
-}
-
-type SpeechRecognitionConstructor = new () => SpeechRecognitionInstance
-
-type SpeechRecognitionResultLike = {
-  readonly isFinal: boolean
-  readonly 0: { readonly transcript: string }
-}
-
-type SpeechRecognitionEventLike = Event & {
-  readonly resultIndex: number
-  readonly results: ArrayLike<SpeechRecognitionResultLike>
-}
-
-type SpeechRecognitionErrorEventLike = Event & { readonly error: string }
-
-function speechRecognitionConstructor(): SpeechRecognitionConstructor | null {
+function speechRecognitionConstructor(): (new () => SpeechRecognition) | null {
   if (typeof window === "undefined") return null
-  // Safe: the two names browsers give the same constructor, which lib.dom does not declare.
-  const speechWindow = window as unknown as {
-    SpeechRecognition?: SpeechRecognitionConstructor
-    webkitSpeechRecognition?: SpeechRecognitionConstructor
-  }
-  return speechWindow.SpeechRecognition ?? speechWindow.webkitSpeechRecognition ?? null
+  return window.SpeechRecognition ?? window.webkitSpeechRecognition ?? null
 }
 
 /** Why the recognition stopped on its own: the microphone was refused, or something else. */
@@ -41,6 +11,8 @@ type SpeechRecognitionFailure = "notAllowed" | "other"
 type UseSpeechRecognitionOptions = {
   /** The language of the speech, as a BCP 47 tag: `fr-FR`, `en-US`. */
   language: string
+  /** Called with all the text heard since the start, as it grows. */
+  onTranscript: (transcript: string) => void
   onFailure?: (failure: SpeechRecognitionFailure) => void
 }
 
@@ -49,17 +21,18 @@ type UseSpeechRecognitionOptions = {
  * grows with the words not yet settled, and keeps the settled ones. It runs in the browser,
  * outside React, which an effect follows. `isSupported` is false where the browser has none.
  */
-export function useSpeechRecognition({ language, onFailure }: UseSpeechRecognitionOptions) {
+export function useSpeechRecognition({
+  language,
+  onTranscript,
+  onFailure,
+}: UseSpeechRecognitionOptions) {
   const [isSupported] = useState(() => speechRecognitionConstructor() !== null)
-  const [state, setState] = useState<{ isListening: boolean; transcript: string }>({
-    isListening: false,
-    transcript: "",
-  })
-  const recognitionRef = useRef<SpeechRecognitionInstance | null>(null)
+  const [isListening, setIsListening] = useState(false)
+  const recognitionRef = useRef<SpeechRecognition | null>(null)
   const settledRef = useRef("")
-  // Read through a ref, so a new handler never restarts the recognition.
-  const onFailureRef = useRef(onFailure)
-  onFailureRef.current = onFailure
+  // Effect events, so a new handler never restarts the recognition.
+  const handleTranscript = useEffectEvent((transcript: string) => onTranscript(transcript))
+  const handleFailure = useEffectEvent((failure: SpeechRecognitionFailure) => onFailure?.(failure))
 
   useEffect(() => {
     const Recognition = speechRecognitionConstructor()
@@ -70,32 +43,30 @@ export function useSpeechRecognition({ language, onFailure }: UseSpeechRecogniti
     recognition.lang = language
     recognitionRef.current = recognition
 
-    const handleResult = (event: Event) => {
-      // Safe: the browser sends its speech results on this event.
-      const speechEvent = event as SpeechRecognitionEventLike
+    const handleResult = (event: SpeechRecognitionEvent) => {
       let unsettled = ""
       let settled = settledRef.current
-      for (let index = speechEvent.resultIndex; index < speechEvent.results.length; index += 1) {
-        const result = speechEvent.results[index]
-        if (!result) continue
-        if (result.isFinal) settled += result[0].transcript
-        else unsettled += result[0].transcript
+      for (let index = event.resultIndex; index < event.results.length; index += 1) {
+        const result = event.results[index]
+        const transcript = result?.[0]?.transcript ?? ""
+        if (result?.isFinal) settled += transcript
+        else unsettled += transcript
       }
       settledRef.current = settled
-      setState((current) => ({ ...current, transcript: `${settled}${unsettled}`.trim() }))
+      handleTranscript(`${settled}${unsettled}`.trim())
     }
-    const handleError = (event: Event) => {
-      // Safe: the browser sends its recognition errors on this event.
-      const { error } = event as SpeechRecognitionErrorEventLike
+    const handleError = (event: SpeechRecognitionErrorEvent) => {
       // Silence or an aborted start is no failure the person must hear about.
-      if (error === "no-speech" || error === "aborted") return
-      console.error("The speech recognition failed:", error)
-      onFailureRef.current?.(
-        error === "not-allowed" || error === "service-not-allowed" ? "notAllowed" : "other",
+      if (event.error === "no-speech" || event.error === "aborted") return
+      console.error("The speech recognition failed:", event.error)
+      handleFailure(
+        event.error === "not-allowed" || event.error === "service-not-allowed"
+          ? "notAllowed"
+          : "other",
       )
     }
-    const handleStart = () => setState((current) => ({ ...current, isListening: true }))
-    const handleEnd = () => setState((current) => ({ ...current, isListening: false }))
+    const handleStart = () => setIsListening(true)
+    const handleEnd = () => setIsListening(false)
 
     recognition.addEventListener("result", handleResult)
     recognition.addEventListener("error", handleError)
@@ -117,16 +88,14 @@ export function useSpeechRecognition({ language, onFailure }: UseSpeechRecogniti
 
   const start = () => {
     settledRef.current = ""
-    setState((current) => ({ ...current, transcript: "" }))
     try {
       recognitionRef.current?.start()
-    } catch (error) {
+    } catch {
       // Started twice, as a double click does: the first start goes on.
-      console.error("The speech recognition could not start:", error)
     }
   }
 
   const stop = () => recognitionRef.current?.stop()
 
-  return { isSupported, isListening: state.isListening, transcript: state.transcript, start, stop }
+  return { isSupported, isListening, start, stop }
 }

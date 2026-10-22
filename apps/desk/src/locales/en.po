@@ -1026,7 +1026,7 @@ msgstr "The conversation could not start. Try again."
 msgid "The Desk could not reach the agent. Check your connection."
 msgstr "The Desk could not reach the agent. Check your connection."
 
-#: src/features/conversation/hooks/use-dictation.ts:26
+#: src/features/conversation/hooks/use-dictation.ts:35
 msgid "The Desk may not use your microphone. Allow it in your browser, then try again."
 msgstr "The Desk may not use your microphone. Allow it in your browser, then try again."
 
@@ -1034,7 +1034,7 @@ msgstr "The Desk may not use your microphone. Allow it in your browser, then try
 msgid "The Desk needs it to find your invitations. Contact your administrator."
 msgstr "The Desk needs it to find your invitations. Contact your administrator."
 
-#: src/features/conversation/hooks/use-dictation.ts:27
+#: src/features/conversation/hooks/use-dictation.ts:36
 msgid "The dictation stopped. Try again."
 msgstr "The dictation stopped. Try again."
 
