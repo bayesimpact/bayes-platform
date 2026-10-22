@@ -1,6 +1,6 @@
-import type { ProjectMembershipRoleDto } from "@caseai-connect/api-contracts"
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
+import type { LegacyMembershipRole } from "@/common/features/memberships/membership-roles"
 import type { Organization } from "@/common/features/organizations/organizations.models"
 import type {
   MyProject,
@@ -37,7 +37,7 @@ export const projectFactory = ProjectFactory.define(({ params, transientParams }
 
 type MyProjectTransientParams = {
   organization: Organization
-  role: ProjectMembershipRoleDto
+  role: LegacyMembershipRole
 }
 
 const MEMBER_PERMISSIONS = ["project.read", "desk.ui.read"]
@@ -52,7 +52,7 @@ const ADMIN_PERMISSIONS = [
   "evaluation.conversation.dataset.update",
 ]
 
-function permissionsForRole(role: ProjectMembershipRoleDto): string[] {
+function permissionsForRole(role: LegacyMembershipRole): string[] {
   return role === "member" ? MEMBER_PERMISSIONS : ADMIN_PERMISSIONS
 }
 

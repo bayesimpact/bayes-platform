@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from "@nestjs/common"
+import { listRoleIds, unionRolePermissions } from "@/domains/memberships/membership-roles"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { PermissionService } from "@/domains/rbac/permission.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -56,10 +57,11 @@ export class OrganizationsService {
       organizationId: organization.id,
     })
 
-    // the membership carries the RBAC role it was created with: ask RBAC what that role grants
-    const permissions = membership.roleId
-      ? await this.permissionService.listPermissionsForRole(membership.roleId)
-      : []
+    // the membership carries the RBAC roles it holds: ask RBAC what they grant
+    const roleGrantsByRoleId = await this.permissionService.listRoleGrants(
+      listRoleIds([membership]),
+    )
+    const permissions = unionRolePermissions(membership.roles, roleGrantsByRoleId)
     return new OrganizationModel(
       {
         id: organization.id,

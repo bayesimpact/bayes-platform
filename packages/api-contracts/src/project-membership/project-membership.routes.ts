@@ -9,7 +9,7 @@ import type {
 export const ProjectMembershipRoutes = {
   getAll: defineRoute<ResponseData<ProjectMembershipDto[]>>({
     method: "get",
-    path: "organizations/:organizationId/projects/:projectId/memberships",
+    path: "organizations/:organizationId/projects/:projectId/users",
   }),
   /** Switches another member between admin and member. Needs `project.member.update`. */
   updateOne: defineRoute<
@@ -17,14 +17,14 @@ export const ProjectMembershipRoutes = {
     RequestPayload<UpdateProjectMembershipRequestDto>
   >({
     method: "patch",
-    path: "organizations/:organizationId/projects/:projectId/memberships/:membershipId",
+    path: "organizations/:organizationId/projects/:projectId/users/:userId",
   }),
   deleteOne: defineRoute<ResponseData<SuccessResponseDTO>>({
     method: "delete",
-    path: "organizations/:organizationId/projects/:projectId/memberships/:membershipId",
+    path: "organizations/:organizationId/projects/:projectId/users/:userId",
   }),
   getMemberAgents: defineRoute<ResponseData<ProjectMemberAgentDto[]>>({
     method: "get",
-    path: "organizations/:organizationId/projects/:projectId/memberships/:membershipId/agents",
+    path: "organizations/:organizationId/projects/:projectId/users/:userId/agents",
   }),
 }

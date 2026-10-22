@@ -2,7 +2,6 @@ import { randomUUID } from "node:crypto"
 import {
   AgentCsvExtractionRunsRoutes,
   type BaseAgentSessionTypeDto,
-  type ProjectMembershipRoleDto,
 } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
@@ -16,6 +15,7 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
+import type { ProjectMembershipRole } from "@/domains/projects/memberships/project-membership.types"
 import { userFactory } from "@/domains/users/user.factory"
 import { mockForeignAuthSubject, mockOidcEmailForSub } from "../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
@@ -89,7 +89,7 @@ describe("AgentCsvExtractionRuns - Auth", () => {
   // and a "running" run so update/delete/read routes have a resolvable target. The subjects call
   // the route set of that run's type unless told otherwise.
   const createContextForRole = async (
-    role: ProjectMembershipRoleDto,
+    role: ProjectMembershipRole,
     type: BaseAgentSessionTypeDto = "live",
   ) => {
     const context = await createCsvExtractionRunContext({ repositories, role, authSubject })
@@ -477,7 +477,7 @@ describe("AgentCsvExtractionRuns - Auth", () => {
 
     // The seeded run has an export, so an allowed caller gets a 200 rather than a 404.
     const createContextWithExport = async (
-      role: ProjectMembershipRoleDto,
+      role: ProjectMembershipRole,
       type: BaseAgentSessionTypeDto = "live",
     ) => {
       const context = await createContextForRole(role, type)

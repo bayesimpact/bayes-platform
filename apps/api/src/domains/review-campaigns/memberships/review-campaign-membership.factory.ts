@@ -88,7 +88,6 @@ export const saveReviewCampaignMembership = async ({
       userId: membership.userId,
       resourceType: "review_campaign",
       resourceId: membership.campaignId,
-      role: membership.role,
       roleId: rbacRole.id,
     }),
   )

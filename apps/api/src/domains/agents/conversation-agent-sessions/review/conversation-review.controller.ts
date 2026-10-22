@@ -23,7 +23,7 @@ import { ConversationReviewService } from "./conversation-review.service"
 /**
  * Safety review of an agent's sessions, of any kind. Past the organization membership every Studio route
  * needs, the only gate is `agent.conversation.review`, held by the `agent_conversation_reviewer`
- * role on the agent's `temp_agent` resource and by nothing else. Every read is logged in the
+ * role on the agent and by nothing else: no parent passes it down. Every read is logged in the
  * activity journal with the session it opened.
  */
 @UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, CheckPermissionGuard)
@@ -33,7 +33,7 @@ export class ConversationReviewController {
   constructor(private readonly conversationReviewService: ConversationReviewService) {}
 
   @Get(ConversationReviewRoutes.getOne.path)
-  @CheckPermission(AGENT_CONVERSATION_REVIEW_PERMISSION, "temp_agent")
+  @CheckPermission(AGENT_CONVERSATION_REVIEW_PERMISSION, "agent")
   @TrackActivity({ action: "agent.conversation.review", entityFrom: "agentSession" })
   async getOne(
     @Req() request: EndpointRequestWithAgent,

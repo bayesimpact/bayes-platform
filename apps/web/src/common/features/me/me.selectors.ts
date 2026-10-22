@@ -1,5 +1,5 @@
+import { holdsRole } from "@/common/features/memberships/membership-roles"
 import type { RootState } from "@/common/store"
-import { SUPER_ROLES } from "./me.models"
 
 export const selectMe = (state: RootState) => state.me.data
 export const selectMeStatus = (state: RootState) => state.me.data.status
@@ -56,7 +56,8 @@ export const selectCanAccessStudioForOrganizationId =
     if (!memberships) return false
     return memberships.organizationMemberships.some(
       (membership) =>
-        membership.organizationId === organizationId && SUPER_ROLES.includes(membership.role),
+        membership.organizationId === organizationId &&
+        holdsRole(membership.roles, "org_owner", "org_admin"),
     )
   }
 
@@ -70,7 +71,7 @@ export const selectMyAccessibleReviewCampaignMemberships =
     const memberships = state.me.data.value?.memberships.reviewCampaignMemberships
     if (!memberships) return []
     return memberships.filter((membership) => {
-      if (membership.role !== role) return false
+      if (!holdsRole(membership.roles, `review_campaign_${role}`)) return false
       if (role === "reviewer") return membership.campaignStatus !== "draft"
       return membership.campaignStatus === "active"
     })

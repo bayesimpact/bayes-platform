@@ -4,14 +4,28 @@ import { TransactionService } from "@/common/transaction/transaction.service"
 import type { AgentSummary } from "@/domains/agents/agent.repository"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentRepository } from "@/domains/agents/agent.repository"
+import { hasRole } from "@/domains/memberships/membership-roles"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectMembershipRepository } from "@/domains/projects/memberships/project-membership.repository"
+import { AGENT_ROLES, PROJECT_ROLES } from "@/domains/rbac/rbac.constants"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { UserRepository } from "@/domains/users/user.repository"
 import type { AgentMembershipModel } from "./agent-membership.model"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentMembershipRepository } from "./agent-membership.repository"
 import type { AgentMembershipRole } from "./agent-membership.types"
+
+/**
+ * The agent roles managed from the studio. `agent_conversation_reviewer` is granted and revoked
+ * in the backoffice only, so the agent's own admins neither see nor remove it.
+ */
+const MEMBER_ROLE_KEYS: readonly string[] = Object.values(AGENT_ROLES)
+
+/** The membership as the studio sees it: its member roles only, or null without one. */
+function toMemberView(membership: AgentMembershipModel): AgentMembershipModel | null {
+  const roles = membership.roles.filter((role) => MEMBER_ROLE_KEYS.includes(role.key))
+  return roles.length > 0 ? { ...membership, roles } : null
+}
 
 @Injectable()
 export class AgentMembershipsService {
@@ -23,26 +37,21 @@ export class AgentMembershipsService {
     private readonly userRepository: UserRepository,
   ) {}
 
-  async findById(membershipId: string, agentId: string): Promise<AgentMembershipModel | null> {
-    return this.agentMembershipRepository.findById({ membershipId, agentId })
-  }
-
+  /** The agent's members, with their member roles (owner, admin, member). */
   async listAgentMemberships(agentId: string): Promise<AgentMembershipModel[]> {
-    return this.agentMembershipRepository.findAllByAgent(agentId)
+    const memberships = await this.agentMembershipRepository.findAllByAgent(agentId)
+    return memberships.flatMap((membership) => toMemberView(membership) ?? [])
   }
 
   async listMembershipsForUser(userId: string): Promise<AgentMembershipModel[]> {
     return this.agentMembershipRepository.findAllByUser(userId)
   }
 
-  async listAdminAndOwnerMembershipsForUser(userId: string): Promise<AgentMembershipModel[]> {
-    return this.agentMembershipRepository.findAdminAndOwnerByUser(userId)
-  }
-
   async listMembershipsByAgentIds(agentIds: string[]): Promise<AgentMembershipModel[]> {
     return this.agentMembershipRepository.findAllByAgentIds(agentIds)
   }
 
+  /** The user's member roles on the agent (owner, admin, member), or null without one. */
   async findAgentMembership({
     userId,
     agentId,
@@ -50,7 +59,8 @@ export class AgentMembershipsService {
     userId: string
     agentId: string
   }): Promise<AgentMembershipModel | null> {
-    return this.agentMembershipRepository.findByUserAndAgent({ userId, agentId })
+    const membership = await this.agentMembershipRepository.findByUserAndAgent({ userId, agentId })
+    return membership ? toMemberView(membership) : null
   }
 
   async listProjectMemberAgents({
@@ -73,7 +83,10 @@ export class AgentMembershipsService {
       agentIds: agents.map((agent) => agent.id),
     })
     const membershipByAgentId = new Map(
-      memberships.map((membership) => [membership.agentId, membership]),
+      memberships.flatMap((membership) => {
+        const memberView = toMemberView(membership)
+        return memberView ? [[membership.agentId, memberView] as const] : []
+      }),
     )
 
     return agents.map((agent) => ({
@@ -90,13 +103,17 @@ export class AgentMembershipsService {
     userId: string
   }): Promise<AgentMembershipModel> {
     return this.transactionService.run(() =>
-      this.agentMembershipRepository.createMembership({ agentId, userId, role: "owner" }),
+      this.agentMembershipRepository.createMembership({
+        agentId,
+        userId,
+        roleKey: AGENT_ROLES.owner,
+      }),
     )
   }
 
   /**
-   * Ensures the user has a member-level agent membership.
-   * Returns the existing membership when present, otherwise creates one.
+   * Ensures the user holds a member role on the agent (owner, admin or member).
+   * Returns the existing membership when present, otherwise creates one with the given role.
    */
   async upsertAgentMemberMembership({
     agentId,
@@ -108,10 +125,14 @@ export class AgentMembershipsService {
     role?: AgentMembershipRole
   }): Promise<AgentMembershipModel | null> {
     return this.transactionService.run(async () => {
-      const existing = await this.agentMembershipRepository.findByUserAndAgent({ userId, agentId })
+      const existing = await this.findAgentMembership({ userId, agentId })
       if (existing) return existing
 
-      return this.agentMembershipRepository.createMembership({ userId, agentId, role })
+      return this.agentMembershipRepository.createMembership({
+        userId,
+        agentId,
+        roleKey: AGENT_ROLES[role],
+      })
     })
   }
 
@@ -124,34 +145,35 @@ export class AgentMembershipsService {
   }
 
   /**
-   * Removes an agent membership.
+   * Removes a person's member roles on the agent. A conversation reviewer grant stays: only the
+   * backoffice revokes it. Nobody removes themselves, and the agent's owner stays.
    * If the user was added by email and never signed in, also removes the
    * account once it has no membership left.
    */
   async removeAgentMembership({
-    userId,
-    membershipId,
+    callerUserId,
+    memberUserId,
     agentId,
   }: {
-    userId: string
-    membershipId: string
+    callerUserId: string
+    memberUserId: string
     agentId: string
   }): Promise<void> {
     return this.transactionService.run(async () => {
-      const membership = await this.agentMembershipRepository.findById({ membershipId, agentId })
+      const membership = await this.findAgentMembership({ userId: memberUserId, agentId })
       if (!membership) return
 
-      if (membership.user.id === userId) {
+      if (membership.userId === callerUserId) {
         throw new Error("Cannot remove yourself from the agent")
       }
-      if (membership.role === "owner") {
+      if (hasRole(membership, AGENT_ROLES.owner)) {
         throw new Error("Cannot remove owner from the agent")
       }
 
-      await this.agentMembershipRepository.deleteMembership({
-        membershipId,
-        agentId,
+      await this.agentMembershipRepository.deleteMembershipsForUserAndAgents({
         userId: membership.userId,
+        agentIds: [agentId],
+        roleKeys: [...MEMBER_ROLE_KEYS],
       })
 
       await this.userRepository.deleteIfUnusedPlaceholder({ userId: membership.userId })
@@ -159,7 +181,8 @@ export class AgentMembershipsService {
   }
 
   /**
-   * Promotes or creates admin agent memberships for every agent in a project.
+   * Gives the user `agent_admin` on every agent of a project, in place of `agent_member` where
+   * they held it. Their other agent roles stay.
    * Joins an outer transaction when called inside TransactionService.run().
    */
   async createAdminAgentMembershipsForUserInProject({
@@ -170,36 +193,35 @@ export class AgentMembershipsService {
     projectId: string
   }): Promise<void> {
     const agentIds = await this.agentRepository.findIdsByProject(projectId)
+    const memberships = await this.agentMembershipRepository.findByUserAndAgents({
+      userId,
+      agentIds,
+    })
+    const membershipByAgentId = new Map(
+      memberships.map((membership) => [membership.agentId, membership]),
+    )
 
     for (const agentId of agentIds) {
-      const existing = await this.agentMembershipRepository.findByUserAndAgent({
-        userId,
-        agentId,
-      })
+      const existing = membershipByAgentId.get(agentId)
+      if (existing && hasRole(existing, AGENT_ROLES.admin)) continue
 
-      if (existing) {
-        if (existing.role === "admin") continue
-
-        await this.agentMembershipRepository.updateRole({
-          membershipId: existing.id,
+      if (existing && hasRole(existing, AGENT_ROLES.member)) {
+        await this.agentMembershipRepository.switchRole({
           userId,
           agentId,
-          role: "admin",
+          fromRoleKey: AGENT_ROLES.member,
+          toRoleKey: AGENT_ROLES.admin,
         })
         continue
       }
 
-      await this.agentMembershipRepository.createMembership({
-        userId,
-        agentId,
-        role: "admin",
-      })
+      await this.agentMembershipRepository.addRole({ userId, agentId, roleKey: AGENT_ROLES.admin })
     }
   }
 
   /**
-   * Turns the user's admin agent memberships in a project into member ones, the
-   * reverse of createAdminAgentMembershipsForUserInProject. Agent ownership stays.
+   * Turns the user's `agent_admin` roles in a project into `agent_member`, the reverse of
+   * createAdminAgentMembershipsForUserInProject. Agent ownership stays.
    * Joins an outer transaction when called inside TransactionService.run().
    */
   async demoteAdminAgentMembershipsForUserInProject({
@@ -216,13 +238,13 @@ export class AgentMembershipsService {
     })
 
     for (const membership of memberships) {
-      if (membership.role !== "admin") continue
+      if (!hasRole(membership, AGENT_ROLES.admin)) continue
 
-      await this.agentMembershipRepository.updateRole({
-        membershipId: membership.id,
+      await this.agentMembershipRepository.switchRole({
         userId,
         agentId: membership.agentId,
-        role: "member",
+        fromRoleKey: AGENT_ROLES.admin,
+        toRoleKey: AGENT_ROLES.member,
       })
     }
   }
@@ -240,30 +262,30 @@ export class AgentMembershipsService {
     projectId: string
     excludeUserId: string
   }): Promise<void> {
-    const adminUserIds =
-      await this.projectMembershipRepository.findAdminAndOwnerUserIdsByProject(projectId)
+    const adminUserIds = await this.projectMembershipRepository.findUserIdsHoldingRoles({
+      projectId,
+      roleKeys: [PROJECT_ROLES.owner, PROJECT_ROLES.admin],
+    })
 
     for (const adminUserId of adminUserIds) {
       if (adminUserId === excludeUserId) continue
 
       await this.transactionService.run(async () => {
-        const existing = await this.agentMembershipRepository.findByUserAndAgent({
-          userId: adminUserId,
-          agentId,
-        })
+        const existing = await this.findAgentMembership({ userId: adminUserId, agentId })
         if (existing) return
 
-        await this.agentMembershipRepository.createMembership({
+        await this.agentMembershipRepository.addRole({
           userId: adminUserId,
           agentId,
-          role: "admin",
+          roleKey: AGENT_ROLES.admin,
         })
       })
     }
   }
 
   /**
-   * Deletes all agent memberships for a user across every agent in a project.
+   * Deletes the user's member roles on every agent of a project. Conversation reviewer grants
+   * stay: only the backoffice revokes them.
    * Joins an outer transaction when called inside TransactionService.run().
    */
   async deleteAgentMembershipsForUserInProject({
@@ -279,6 +301,7 @@ export class AgentMembershipsService {
     await this.agentMembershipRepository.deleteMembershipsForUserAndAgents({
       userId,
       agentIds,
+      roleKeys: [...MEMBER_ROLE_KEYS],
     })
   }
 }

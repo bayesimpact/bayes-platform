@@ -9,19 +9,8 @@ type UserMembershipTransientParams = {
   organization?: Organization
 }
 
-class UserMembershipFactory extends Factory<UserMembership, UserMembershipTransientParams> {
-  member() {
-    return this.params({ role: "member" })
-  }
-
-  admin() {
-    return this.params({ role: "admin" })
-  }
-
-  owner() {
-    return this.params({ role: "owner" })
-  }
-}
+/** Builds a raw `user_membership` row. Pass `roleId`: a row is the role it holds. */
+class UserMembershipFactory extends Factory<UserMembership, UserMembershipTransientParams> {}
 
 export const userMembershipFactory = UserMembershipFactory.define(({ params, transientParams }) => {
   const userId = params.userId ?? transientParams.user?.id
@@ -40,7 +29,8 @@ export const userMembershipFactory = UserMembershipFactory.define(({ params, tra
     userId,
     resourceType,
     resourceId,
-    role: params.role ?? "member",
+    // Only the specs of past migrations, which read the legacy column, pass it.
+    role: params.role ?? null,
     roleId: params.roleId ?? null,
     rbacRole: null,
     createdAt: params.createdAt ?? now,

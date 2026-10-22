@@ -13,14 +13,14 @@ export const selectProjectMemberAgents = (state: RootState) => state.projectMemb
 export const selectProjectPendingInvitations = (state: RootState) =>
   state.projectMemberships.pendingInvitations
 
-export const selectCurrentProjectMembershipId = (state: RootState) => state.currentIds.membershipId
+export const selectCurrentProjectMemberUserId = (state: RootState) => state.currentIds.memberUserId
 
 export const selectCurrentProjectMembership = createSelector(
-  [selectProjectMemberships, selectCurrentProjectMembershipId],
-  (memberships, membershipId): AsyncData<ProjectMembership> => {
-    if (!membershipId) return { status: ADS.Uninitialized, error: null, value: null }
+  [selectProjectMemberships, selectCurrentProjectMemberUserId],
+  (memberships, memberUserId): AsyncData<ProjectMembership> => {
+    if (!memberUserId) return { status: ADS.Uninitialized, error: null, value: null }
 
-    const membership = memberships.value?.find((m) => m.id === membershipId) ?? null
+    const membership = memberships.value?.find((m) => m.userId === memberUserId) ?? null
     if (!membership) return { status: ADS.Error, error: "Membership not found", value: null }
 
     return { status: ADS.Fulfilled, error: null, value: membership }

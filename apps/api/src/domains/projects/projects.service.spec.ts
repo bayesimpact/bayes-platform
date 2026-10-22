@@ -160,7 +160,6 @@ describe("ProjectsService", () => {
           userId: memberUser.id,
           resourceType: "project",
           resourceId: project.id,
-          role: "member",
           roleId: projectMemberRole.id,
         }),
       )

@@ -1,14 +1,12 @@
 import type {
-  AgentMembershipRoleDto,
   CurrentTermsDto,
   GlobalPermission,
-  OrganizationMembershipRoleDto,
-  ProjectMembershipRoleDto,
   TermsDocumentDto,
   UserMembershipsDto,
 } from "@caseai-connect/api-contracts"
+import type { LegacyMembershipRole } from "@/common/features/memberships/membership-roles"
 
-type Role = OrganizationMembershipRoleDto | ProjectMembershipRoleDto | AgentMembershipRoleDto
+type Role = LegacyMembershipRole
 export const ROLES = ["owner", "admin", "member"] as Role[]
 export const SUPER_ROLES = ["owner", "admin"] as Role[]
 export type ROLE = (typeof ROLES)[number]

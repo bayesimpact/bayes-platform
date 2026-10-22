@@ -244,8 +244,8 @@ export const seed = {
     return { currentIds: { reviewCampaignId: id } }
   },
 
-  currentMembershipId(id: string | null): StoryPreloadedState {
-    return { currentIds: { membershipId: id } }
+  currentMemberUserId(id: string | null): StoryPreloadedState {
+    return { currentIds: { memberUserId: id } }
   },
 
   currentResourceLibraryId(id: string | null): StoryPreloadedState {

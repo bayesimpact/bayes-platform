@@ -221,7 +221,7 @@ export class EvaluationConversationTestCasesService {
   }): Promise<boolean> {
     if (ownerId === userId) return true
     return this.permissionService.has(userId, AGENT_CONVERSATION_REVIEW_PERMISSION, {
-      type: "temp_agent",
+      type: "agent",
       id: agentId,
     })
   }

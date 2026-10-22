@@ -1,4 +1,3 @@
-import type { ProjectMembershipRoleDto } from "@caseai-connect/api-contracts"
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
 import { CrownIcon, StarIcon, Trash2Icon } from "lucide-react"
@@ -10,6 +9,7 @@ import { GridCard } from "@/common/components/grid/Grid"
 import { NeverSignedInBadge } from "@/common/components/NeverSignedInBadge"
 import { SUPER_ROLES } from "@/common/features/me/me.models"
 import { selectMe } from "@/common/features/me/me.selectors"
+import type { LegacyMembershipRole } from "@/common/features/memberships/membership-roles"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import type { ProjectMembership } from "@/studio/features/project-memberships/project-memberships.models"
 import { removeProjectMembership } from "@/studio/features/project-memberships/project-memberships.thunks"
@@ -29,7 +29,7 @@ export function ProjectMembershipItem({
   const [confirmOpen, setConfirmOpen] = useState(false)
 
   const handleConfirmRemove = () => {
-    dispatch(removeProjectMembership({ membershipId: membership.id }))
+    dispatch(removeProjectMembership({ memberUserId: membership.userId }))
     setConfirmOpen(false)
   }
 
@@ -40,7 +40,7 @@ export function ProjectMembershipItem({
       StudioRoutes.projectMembership.build({
         organizationId,
         projectId: membership.projectId,
-        membershipId: membership.id,
+        memberUserId: membership.userId,
       }),
     )
   }
@@ -79,9 +79,9 @@ export function ProjectMembershipItem({
   )
 }
 
-export function BadgeWithIcon({ role }: { role: ProjectMembershipRoleDto }) {
+export function BadgeWithIcon({ role }: { role: LegacyMembershipRole }) {
   const { t } = useTranslation()
-  const iconMap: Record<ProjectMembershipRoleDto, React.ReactNode> = {
+  const iconMap: Record<LegacyMembershipRole, React.ReactNode> = {
     owner: <CrownIcon className="size-3.5 text-primary" />,
     admin: <StarIcon className="size-3.5 text-yellow-500" />,
     member: null,

@@ -1,10 +1,12 @@
 import { Injectable } from "@nestjs/common"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentMembershipsService } from "@/domains/agents/memberships/agent-memberships.service"
+import { hasRole } from "@/domains/memberships/membership-roles"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { OrganizationMembershipsService } from "@/domains/organizations/memberships/organization-memberships.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectMembershipsService } from "@/domains/projects/memberships/project-memberships.service"
+import { PROJECT_ROLES } from "@/domains/rbac/rbac.constants"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ReviewCampaignMembershipsService } from "@/domains/review-campaigns/memberships/review-campaign-memberships.service"
 import type { ReviewCampaignMembershipRole } from "@/domains/review-campaigns/review-campaigns.types"
@@ -32,9 +34,10 @@ export class InvitationAccessService {
 
   /**
    * Whether the user already holds what the invitation would give. A project
-   * invitation makes an admin, so a project `member` (who joined through an
-   * agent) can still be invited, and becomes admin on accepting. A campaign row
-   * without its RBAC role does not count, so a new invitation repairs it.
+   * invitation makes an admin, so a person holding only `project_member` (who
+   * joined through an agent) can still be invited, and becomes admin on
+   * accepting. On an agent, only a member role counts: a conversation reviewer
+   * grant alone does not.
    */
   async hasAccess(params: { target: InvitationAccessTarget; userId: string }): Promise<boolean> {
     const { target, userId } = params
@@ -44,7 +47,10 @@ export class InvitationAccessService {
           userId,
           projectId: target.targetId,
         })
-        return membership?.role === "admin" || membership?.role === "owner"
+        return Boolean(
+          membership &&
+            (hasRole(membership, PROJECT_ROLES.admin) || hasRole(membership, PROJECT_ROLES.owner)),
+        )
       }
       case "agent":
         return Boolean(
@@ -59,7 +65,7 @@ export class InvitationAccessService {
           campaignId: target.targetId,
           role: target.role as ReviewCampaignMembershipRole,
         })
-        return Boolean(membership?.roleId)
+        return Boolean(membership)
       }
     }
   }

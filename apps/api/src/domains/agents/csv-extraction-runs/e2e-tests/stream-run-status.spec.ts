@@ -3,7 +3,6 @@ import {
   AGENT_CSV_EXTRACTION_RUN_STATUS_CHANGED_CHANNEL_DTO,
   type AgentCsvExtractionRunStatusChangedEventPayload,
   AgentCsvExtractionRunsRoutes,
-  type ProjectMembershipRoleDto,
 } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import { Subject } from "rxjs"
@@ -14,6 +13,7 @@ import {
   setupTransactionalTestDatabase,
   teardownTestDatabase,
 } from "@/common/test/test-transaction-manager"
+import type { ProjectMembershipRole } from "@/domains/projects/memberships/project-membership.types"
 import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { AgentCsvExtractionRunStatusStreamService } from "../agent-csv-extraction-run-status-stream.service"
 import { AgentCsvExtractionRunsModule } from "../agent-csv-extraction-runs.module"
@@ -75,7 +75,7 @@ describe("AgentCsvExtractionRuns.streamRunStatus", () => {
     await app.close()
   })
 
-  const createContext = async (role: ProjectMembershipRoleDto = "owner") => {
+  const createContext = async (role: ProjectMembershipRole = "owner") => {
     const context = await createCsvExtractionRunContext({ repositories, role, authSubject })
     organizationId = context.organization.id
     projectId = context.project.id

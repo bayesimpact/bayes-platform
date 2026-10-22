@@ -110,8 +110,9 @@ describe("Backoffice - get user", () => {
       {
         organizationId: organization.id,
         organizationName: organization.name,
-        role: "owner",
-        roleKey: ORGANIZATION_ROLES.owner,
+        roles: [
+          expect.objectContaining({ key: ORGANIZATION_ROLES.owner, scopeType: "organization" }),
+        ],
         permissions: expect.arrayContaining([...ORGANIZATION_ROLE_PERMISSIONS.org_owner]),
       },
     ])
@@ -119,8 +120,7 @@ describe("Backoffice - get user", () => {
       {
         projectId: project.id,
         projectName: project.name,
-        role: "owner",
-        roleKey: PROJECT_ROLES.owner,
+        roles: [expect.objectContaining({ key: PROJECT_ROLES.owner, scopeType: "project" })],
         permissions: expect.arrayContaining([...PROJECT_ROLE_PERMISSIONS.project_owner]),
       },
     ])
@@ -128,8 +128,7 @@ describe("Backoffice - get user", () => {
       {
         agentId: agent.id,
         agentName: agent.name,
-        role: "owner",
-        roleKey: AGENT_ROLES.owner,
+        roles: [expect.objectContaining({ key: AGENT_ROLES.owner, scopeType: "agent" })],
         permissions: expect.arrayContaining([...AGENT_ROLE_PERMISSIONS.agent_owner]),
       },
     ])
@@ -138,8 +137,12 @@ describe("Backoffice - get user", () => {
         campaignId: reviewCampaign.id,
         campaignName: reviewCampaign.name,
         projectId: project.id,
-        role: "reviewer",
-        roleKey: REVIEW_CAMPAIGN_ROLES.reviewer,
+        roles: [
+          expect.objectContaining({
+            key: REVIEW_CAMPAIGN_ROLES.reviewer,
+            scopeType: "review_campaign",
+          }),
+        ],
         permissions: expect.arrayContaining([
           ...REVIEW_CAMPAIGN_ROLE_PERMISSIONS.review_campaign_reviewer,
         ]),
@@ -159,7 +162,7 @@ describe("Backoffice - get user", () => {
     )
   })
 
-  it("returns no role key or permissions on a review campaign row without an RBAC role", async () => {
+  it("leaves out a review campaign row without an RBAC role", async () => {
     const { user, organization, project, agent, agentSettings } = await createAuthorizedContext()
     const reviewCampaign = await repositories.reviewCampaignRepository.save(
       reviewCampaignFactory.transient({ organization, project, agent, agentSettings }).build(),
@@ -170,7 +173,6 @@ describe("Backoffice - get user", () => {
         userId: user.id,
         resourceType: "review_campaign",
         resourceId: reviewCampaign.id,
-        role: "tester",
         roleId: null,
       }),
     )
@@ -181,16 +183,7 @@ describe("Backoffice - get user", () => {
       token: "token",
     })
     expectResponse(response, 200)
-    expect(response.body.data.reviewCampaignMemberships).toEqual([
-      {
-        campaignId: reviewCampaign.id,
-        campaignName: reviewCampaign.name,
-        projectId: project.id,
-        role: "tester",
-        roleKey: null,
-        permissions: [],
-      },
-    ])
+    expect(response.body.data.reviewCampaignMemberships).toEqual([])
   })
 
   it("returns empty membership lists for a user with no memberships", async () => {

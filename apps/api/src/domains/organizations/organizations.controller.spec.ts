@@ -136,9 +136,10 @@ describe("Organizations - createOrganization", () => {
         resourceId: response.body.data.id,
         resourceType: "organization",
       },
+      relations: { rbacRole: true },
     })
     expect(membership).not.toBeNull()
-    expect(membership?.role).toBe("owner")
+    expect(membership?.rbacRole?.key).toBe("org_owner")
   })
 
   it("tracks an activity for organization creation", async () => {

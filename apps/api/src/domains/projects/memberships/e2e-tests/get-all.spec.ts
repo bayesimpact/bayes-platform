@@ -75,7 +75,7 @@ describe("Project membership - getAll", () => {
     expect(memberships).toHaveLength(1)
     expect(memberships[0]!.userName).toBe(user.name)
     expect(memberships[0]!.userEmail).toBe(user.email)
-    expect(memberships[0]!).toHaveProperty("id")
+    expect(memberships[0]!).not.toHaveProperty("id")
     expect(memberships[0]!).toHaveProperty("projectId")
     expect(memberships[0]!).toHaveProperty("userId")
     expect(memberships[0]!).toHaveProperty("createdAt")
@@ -98,11 +98,9 @@ describe("Project membership - getAll", () => {
 
     expectResponse(response, 200)
     const memberships = response.body.data
-    expect(memberships.map((membership) => membership.role).sort()).toEqual([
-      "admin",
-      "member",
-      "owner",
-    ])
+    expect(
+      memberships.flatMap((membership) => membership.roles.map((role) => role.key)).sort(),
+    ).toEqual(["project_admin", "project_member", "project_owner"])
 
     const adminMembership = memberships.find((membership) => membership.userId === admin.id)
     expect([...(adminMembership?.permissions ?? [])].sort()).toEqual(

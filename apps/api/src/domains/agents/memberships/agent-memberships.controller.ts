@@ -12,6 +12,7 @@ import { AddContext, RequireContext } from "@/common/context/require-context.dec
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
+import { toMembershipRoleDto } from "@/domains/memberships/membership-roles"
 import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
 import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
 import {
@@ -50,8 +51,8 @@ export class AgentMembershipsController {
     const { agent, memberAgentMembership } = request
 
     await this.agentMembershipsService.removeAgentMembership({
-      userId: request.user.id,
-      membershipId: memberAgentMembership.id,
+      callerUserId: request.user.id,
+      memberUserId: memberAgentMembership.userId,
       agentId: agent.id,
     })
 
@@ -61,13 +62,12 @@ export class AgentMembershipsController {
 
 function toDto(membership: AgentMembershipModel): AgentMembershipDto {
   return {
-    id: membership.id,
     agentId: membership.agentId,
     userId: membership.userId,
     userName: membership.user.name ?? buildNameFromEmail(membership.user.email),
     userEmail: membership.user.email,
     userHasSignedIn: membership.user.authSubject !== null,
-    role: membership.role,
+    roles: membership.roles.map(toMembershipRoleDto),
     createdAt: membership.createdAt.getTime(),
   }
 }

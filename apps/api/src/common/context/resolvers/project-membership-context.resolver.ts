@@ -12,16 +12,16 @@ export class ProjectMembershipContextResolver implements ContextResolver {
 
   async resolve(request: ResolvableRequest): Promise<void> {
     const requestWithParams = request as ResolvableRequest & {
-      params: { membershipId?: string }
+      params: { userId?: string }
     }
-    const membershipId = requestWithParams.params?.membershipId
+    const userId = requestWithParams.params?.userId
 
-    if (!membershipId || membershipId === ":membershipId") throw new NotFoundException()
+    if (!userId || userId === ":userId") throw new NotFoundException()
 
     const requestWithProjectMembership = request as EndpointRequestWithProjectMembership
     const memberProjectMembership =
-      (await this.projectMembershipRepository.findById({
-        membershipId,
+      (await this.projectMembershipRepository.findByUserAndProject({
+        userId,
         projectId: requestWithProjectMembership.project.id,
       })) ?? undefined
     if (!memberProjectMembership) throw new NotFoundException()

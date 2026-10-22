@@ -283,13 +283,10 @@ export const PROJECT_ROLES = {
 
 /**
  * Agent role granting only the safety review of the agent's conversations. Nobody has it until a
- * backoffice operator grants it. It is held on a `temp_agent` row (resource id = agent id), so it
- * adds to the person's owner, admin or member role on the agent instead of replacing it.
+ * backoffice operator grants it. It is a row of its own on the agent, so it adds to the person's
+ * owner, admin or member role there instead of replacing it.
  */
 export const AGENT_CONVERSATION_REVIEWER_ROLE = "agent_conversation_reviewer" as const
-
-/** Legacy `user_membership.role` value of the `temp_agent` rows. Ignored by the RBAC checks. */
-export const AGENT_CONVERSATION_REVIEWER_MEMBERSHIP_ROLE = "reviewer" as const
 
 export const AGENT_ROLES = {
   owner: "agent_owner",
@@ -298,8 +295,8 @@ export const AGENT_ROLES = {
 } as const
 
 /**
- * Review campaign roles, keyed by the legacy `user_membership.role` of the campaign row. A person
- * can hold both on one campaign: each role is its own `review_campaign` row.
+ * Review campaign roles, keyed by the tester / reviewer name the invitations use. A person can
+ * hold both on one campaign: each role is its own `review_campaign` row.
  */
 export const REVIEW_CAMPAIGN_ROLES = {
   tester: "review_campaign_tester",
@@ -705,7 +702,6 @@ export const RESOURCE_TYPE_READ_PERMISSION_MAP = {
   organization: "organization.read",
   project: "project.read",
   agent: "agent.read",
-  temp_agent: AGENT_CONVERSATION_REVIEW_PERMISSION,
   review_campaign: REVIEW_CAMPAIGN_READ_PERMISSION,
 } as const satisfies Record<PermissionResourceType, string>
 
@@ -755,8 +751,6 @@ export const RESOURCE_TYPE_PERMISSIONS_MAP = {
     AGENT_CONVERSATION_SESSION_EXTERNAL_CREATE_PERMISSION,
     BACKOFFICE_AGENT_READ_PERMISSION,
   ],
-  // Holds only additional agent roles, which never pass down from a parent.
-  temp_agent: [],
   // Taking part in a campaign never passes down from the project: project owners and admins
   // only get to see its report.
   review_campaign: [REVIEW_CAMPAIGN_REPORT_READ_PERMISSION],
@@ -766,7 +760,6 @@ export const PARENT_RESOURCE_TYPE_MAP = {
   organization: [],
   project: ["organization"],
   agent: ["organization", "project"],
-  temp_agent: [],
   review_campaign: ["project"],
 } as const satisfies Record<PermissionResourceType, readonly PermissionResourceType[]>
 

@@ -12,20 +12,18 @@ export class AgentMembershipContextResolver implements ContextResolver {
 
   async resolve(request: ResolvableRequest): Promise<void> {
     const requestWithParams = request as ResolvableRequest & {
-      params: { agentMembershipId?: string; agentId?: string }
+      params: { userId?: string; agentId?: string }
     }
-    const agentMembershipId = requestWithParams.params?.agentMembershipId
+    const userId = requestWithParams.params?.userId
+    const agentId = requestWithParams.params?.agentId
 
-    if (!agentMembershipId || agentMembershipId === ":agentMembershipId") {
+    if (!userId || userId === ":userId" || !agentId) {
       throw new NotFoundException()
     }
 
     const requestWithAgentMembership = request as EndpointRequestWithAgentMembership
     const memberAgentMembership =
-      (await this.agentMembershipRepository.findById({
-        membershipId: agentMembershipId,
-        agentId: requestWithParams.params?.agentId,
-      })) ?? undefined
+      (await this.agentMembershipRepository.findByUserAndAgent({ userId, agentId })) ?? undefined
     if (!memberAgentMembership) throw new NotFoundException()
 
     requestWithAgentMembership.memberAgentMembership = memberAgentMembership

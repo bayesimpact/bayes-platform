@@ -146,6 +146,7 @@ export {
 } from "./public-chat/public-chat.routes"
 export { PUBLIC_API_MAJOR, PUBLIC_API_VERSION } from "./public-chat/public-chat.version"
 // RBAC
+export type * from "./rbac/membership-role.dto"
 export * from "./rbac/permissions"
 // Resource Libraries
 export * from "./resource-libraries/resource-library.dto"

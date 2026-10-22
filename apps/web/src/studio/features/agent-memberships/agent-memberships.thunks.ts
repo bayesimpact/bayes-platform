@@ -16,9 +16,9 @@ const list = createAsyncThunk<AgentMembership[], void, ThunkConfig>(
   },
 )
 
-const remove = createAsyncThunk<void, { membershipId: string }, ThunkConfig>(
+const remove = createAsyncThunk<void, { memberUserId: string }, ThunkConfig>(
   "agentMemberships/remove",
-  async ({ membershipId }, { extra: { services }, getState }) => {
+  async ({ memberUserId }, { extra: { services }, getState }) => {
     const state = getState()
     const organizationId = getCurrentId({ state, name: "organizationId" })
     const projectId = getCurrentId({ state, name: "projectId" })
@@ -27,7 +27,7 @@ const remove = createAsyncThunk<void, { membershipId: string }, ThunkConfig>(
       organizationId,
       projectId,
       agentId,
-      membershipId,
+      memberUserId,
     })
   },
 )

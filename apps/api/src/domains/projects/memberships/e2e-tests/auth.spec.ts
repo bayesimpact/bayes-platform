@@ -133,12 +133,12 @@ describe("Project Memberships - Auth", () => {
   })
 
   describe("ProjectMembershipRoutes.getMemberAgents", () => {
-    let membershipId: string | null = "random-membership-id"
+    let memberUserId: string | null = randomUUID()
 
     const subject = async () =>
       request({
         route: ProjectMembershipRoutes.getMemberAgents,
-        pathParams: removeNullish({ organizationId, projectId, membershipId }),
+        pathParams: removeNullish({ organizationId, projectId, userId: memberUserId }),
         token: accessToken ?? undefined,
       })
 
@@ -152,13 +152,13 @@ describe("Project Memberships - Auth", () => {
         organization,
         project,
       })
-      membershipId = membership.id
+      memberUserId = membership.userId
 
       return { organization, project, membership }
     }
 
     beforeEach(() => {
-      membershipId = "random-membership-id"
+      memberUserId = randomUUID()
     })
 
     it("requires an authentication token", async () => {
@@ -190,12 +190,12 @@ describe("Project Memberships - Auth", () => {
   })
 
   describe("ProjectMembershipRoutes.deleteOne", () => {
-    let membershipId: string | null = "random-membership-id"
+    let memberUserId: string | null = randomUUID()
 
     const subject = async () =>
       request({
         route: ProjectMembershipRoutes.deleteOne,
-        pathParams: removeNullish({ organizationId, projectId, membershipId }),
+        pathParams: removeNullish({ organizationId, projectId, userId: memberUserId }),
         token: accessToken ?? undefined,
       })
 
@@ -210,13 +210,13 @@ describe("Project Memberships - Auth", () => {
         organization,
         project,
       })
-      membershipId = membership.id
+      memberUserId = membership.userId
 
       return { organization, project, membership }
     }
 
     beforeEach(() => {
-      membershipId = "random-membership-id"
+      memberUserId = randomUUID()
     })
 
     it("requires an authentication token", async () => {
@@ -238,9 +238,9 @@ describe("Project Memberships - Auth", () => {
       projectId = randomUUID()
       expectResponse(await subject(), 404)
     })
-    it("requires an existing membership ID", async () => {
+    it("requires an existing member", async () => {
       await createContextForRoleWithMembership("owner")
-      membershipId = randomUUID()
+      memberUserId = randomUUID()
       expectResponse(await subject(), 404)
     })
     it("doesn't allow a simple member to remove project memberships", async () => {
@@ -267,12 +267,12 @@ describe("Project Memberships - Auth", () => {
   })
 
   describe("ProjectMembershipRoutes.updateOne", () => {
-    let membershipId: string | null = "random-membership-id"
+    let memberUserId: string | null = randomUUID()
 
     const subject = async () =>
       request({
         route: ProjectMembershipRoutes.updateOne,
-        pathParams: removeNullish({ organizationId, projectId, membershipId }),
+        pathParams: removeNullish({ organizationId, projectId, userId: memberUserId }),
         token: accessToken ?? undefined,
         request: { payload: { role: "admin" } },
       })
@@ -288,13 +288,13 @@ describe("Project Memberships - Auth", () => {
         project,
         projectMembership: { role: "member" },
       })
-      membershipId = membership.id
+      memberUserId = membership.userId
 
       return { organization, project, membership }
     }
 
     beforeEach(() => {
-      membershipId = "random-membership-id"
+      memberUserId = randomUUID()
     })
 
     it("requires an authentication token", async () => {
@@ -316,9 +316,9 @@ describe("Project Memberships - Auth", () => {
       projectId = randomUUID()
       expectResponse(await subject(), 404)
     })
-    it("requires an existing membership ID", async () => {
+    it("requires an existing member", async () => {
       await createContextForRoleWithMembership("owner")
-      membershipId = randomUUID()
+      memberUserId = randomUUID()
       expectResponse(await subject(), 404)
     })
     it("doesn't allow a simple member to change a role", async () => {

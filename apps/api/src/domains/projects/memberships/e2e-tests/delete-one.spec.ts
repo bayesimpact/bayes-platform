@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto"
 import { ProjectMembershipRoutes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
@@ -38,6 +39,7 @@ describe("Project membership - deleteOne", () => {
   let organizationId: string
   let projectId: string
   let membershipId: string
+  let memberUserId: string | null = randomUUID()
   let accessToken: string | undefined = "token"
   let authSubject = "oidc|123"
   let expectActivityCreated: ReturnType<typeof bindExpectActivityCreated>
@@ -82,6 +84,7 @@ describe("Project membership - deleteOne", () => {
       projectMembership: { role: "member" },
     })
     membershipId = membership.id
+    memberUserId = membership.userId
 
     return { organization, project, user, addedUser, membership }
   }
@@ -89,9 +92,51 @@ describe("Project membership - deleteOne", () => {
   const subject = async () =>
     request({
       route: ProjectMembershipRoutes.deleteOne,
-      pathParams: removeNullish({ organizationId, projectId, membershipId }),
+      pathParams: removeNullish({ organizationId, projectId, userId: memberUserId }),
       token: accessToken,
     })
+
+  describe("guards", () => {
+    it("refuses to let someone remove themselves", async () => {
+      const { user } = await createContext()
+      memberUserId = user.id
+
+      expectResponse(await subject(), 403, "Cannot remove yourself from the project")
+    })
+
+    it("refuses to remove the last owner", async () => {
+      const { organization, project, user: owner } = await createContext()
+      const { addedUser: admin } = await addMemberByEmailToProject({
+        repositories,
+        organization,
+        project,
+        user: { email: "admin@example.com", authSubject: "oidc|admin" },
+        projectMembership: { role: "admin" },
+      })
+      authSubject = admin.authSubject!
+      memberUserId = owner.id
+
+      expectResponse(await subject(), 403, "Cannot remove the last owner of the project")
+    })
+
+    it("removes an owner while another one remains", async () => {
+      const { project, user: owner } = await createContext()
+      const { addedUser: coOwner } = await addMemberByEmailToProject({
+        repositories,
+        project,
+        user: { email: "co-owner@example.com", authSubject: "oidc|co-owner" },
+        projectMembership: { role: "owner" },
+      })
+      memberUserId = coOwner.id
+
+      expectResponse(await subject(), 200)
+      const coOwnerRows = await repositories.userMembershipRepository.find({
+        where: { userId: coOwner.id, resourceType: "project", resourceId: project.id },
+      })
+      expect(coOwnerRows).toEqual([])
+      void owner
+    })
+  })
 
   it("should successfully remove a membership", async () => {
     await createContext()
@@ -117,6 +162,7 @@ describe("Project membership - deleteOne", () => {
 
     const { membership } = await addMemberByEmailToProject({ repositories, project })
     membershipId = membership.id
+    memberUserId = membership.userId
 
     // Now remove the membership
     const response = await subject()
@@ -140,6 +186,7 @@ describe("Project membership - deleteOne", () => {
       project,
     })
     membershipId = membership.id
+    memberUserId = membership.userId
 
     const response = await subject()
     expectResponse(response, 200)

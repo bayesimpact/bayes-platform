@@ -12,7 +12,10 @@ import type { EvaluationExtractionDatasetDocument } from "@/domains/evaluations/
 import type { EvaluationExtractionRun } from "@/domains/evaluations/extraction/runs/evaluation-extraction-run.entity"
 import type { McpServer } from "@/domains/mcp-servers/mcp-server.entity"
 import type { OrganizationMembershipContextModel } from "@/domains/organizations/memberships/organization-membership.model"
-import type { ProjectMembershipModel } from "@/domains/projects/memberships/project-membership.model"
+import type {
+  ProjectMembershipContextModel,
+  ProjectMembershipModel,
+} from "@/domains/projects/memberships/project-membership.model"
 import type { Project } from "@/domains/projects/project.entity"
 import type { ResourceLibrary } from "@/domains/resource-libraries/resource-library.entity"
 import type { ReviewCampaign } from "@/domains/review-campaigns/review-campaign.entity"
@@ -48,7 +51,7 @@ export interface EndpointRequestWithOrganizationMembership
 
 export interface EndpointRequestWithProject extends EndpointRequestWithOrganizationMembership {
   project: Project
-  projectMembership: ProjectMembershipModel | undefined
+  projectMembership: ProjectMembershipContextModel | undefined
 }
 
 export interface EndpointRequestWithProjectMembership extends EndpointRequestWithProject {

@@ -6,6 +6,7 @@ import {
   userFactory,
 } from "@/common/features/me/me.factory"
 import type { User } from "@/common/features/me/me.models"
+import { buildMembershipRoleDto } from "@/common/features/memberships/membership-roles.factory"
 import { organizationFactory } from "@/common/features/organizations/organization.factory"
 import { myProjectFactory, projectFactory } from "@/common/features/projects/projects.factory"
 import { RouteNames } from "@/common/routes/helpers"
@@ -61,12 +62,16 @@ function buildData(args: StoryArgs) {
   })
 
   const organizationMemberships = organizations.map((organization) =>
-    organizationMembershipFactory
-      .transient({ organization })
-      .build({ role: organizationMembershipRole }),
+    organizationMembershipFactory.transient({ organization }).build({
+      roles: [
+        buildMembershipRoleDto({ scopeType: "organization", role: organizationMembershipRole }),
+      ],
+    }),
   )
   const projectMemberships = allProjects.map((project) =>
-    projectMembershipFactory.transient({ project }).build({ role: projectMembershipRole }),
+    projectMembershipFactory.transient({ project }).build({
+      roles: [buildMembershipRoleDto({ scopeType: "project", role: projectMembershipRole })],
+    }),
   )
 
   const reviewCampaignMemberships =
@@ -75,16 +80,18 @@ function buildData(args: StoryArgs) {
       ? [
           ...(withReviewCampaignMembershipsAsTester
             ? [
-                reviewCampaignMembershipFactory
-                  .transient({ project: firstProject })
-                  .build({ role: "tester" }),
+                reviewCampaignMembershipFactory.transient({ project: firstProject }).build({
+                  roles: [buildMembershipRoleDto({ scopeType: "review_campaign", role: "tester" })],
+                }),
               ]
             : []),
           ...(withReviewCampaignMembershipsAsReviewer
             ? [
-                reviewCampaignMembershipFactory
-                  .transient({ project: firstProject })
-                  .build({ role: "reviewer" }),
+                reviewCampaignMembershipFactory.transient({ project: firstProject }).build({
+                  roles: [
+                    buildMembershipRoleDto({ scopeType: "review_campaign", role: "reviewer" }),
+                  ],
+                }),
               ]
             : []),
         ]

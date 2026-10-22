@@ -1,9 +1,21 @@
 import type { AllRepositories } from "@/common/test/test-all-repositories"
-import type {
-  UserMembershipResourceType,
-  UserMembershipRole,
-} from "@/domains/memberships/user-membership.entity"
+import type { UserMembershipResourceType } from "@/domains/memberships/user-membership.entity"
 
+/** Shorthand of a catalog role key: `project_admin` -> `admin`, `review_campaign_tester` -> `tester`. */
+type RoleShorthand = "owner" | "admin" | "member" | "tester" | "reviewer"
+
+const ROLE_RANK: RoleShorthand[] = ["owner", "admin", "member", "tester", "reviewer"]
+
+function toShorthand(roleKey: string): RoleShorthand | null {
+  const shorthand = ROLE_RANK.find((candidate) => roleKey.endsWith(`_${candidate}`))
+  return shorthand ?? null
+}
+
+/**
+ * The person's rows on a resource, read from `role_id`: the oldest row, every role key they hold,
+ * and `role`, the shorthand of the highest one (owner, then admin, member, tester, reviewer).
+ * Null without a row.
+ */
 export async function findUserMembershipRow({
   repositories,
   userId,
@@ -15,11 +27,23 @@ export async function findUserMembershipRow({
   userId: string
   resourceType: UserMembershipResourceType
   resourceId: string
-  role?: UserMembershipRole
+  role?: RoleShorthand
 }) {
-  return repositories.userMembershipRepository.findOne({
-    where: role ? { userId, resourceType, resourceId, role } : { userId, resourceType, resourceId },
+  const rows = await repositories.userMembershipRepository.find({
+    where: { userId, resourceType, resourceId },
+    relations: { rbacRole: true },
+    order: { createdAt: "ASC" },
   })
+  const matchingRows = role
+    ? rows.filter((row) => row.rbacRole && toShorthand(row.rbacRole.key) === role)
+    : rows
+  const [oldest] = matchingRows
+  if (!oldest) return null
+
+  const roleKeys = matchingRows.flatMap((row) => (row.rbacRole ? [row.rbacRole.key] : []))
+  const shorthands = roleKeys.flatMap((roleKey) => toShorthand(roleKey) ?? [])
+  const highest = ROLE_RANK.find((shorthand) => shorthands.includes(shorthand)) ?? null
+  return { ...oldest, roleKeys, role: highest }
 }
 
 export async function findOrganizationMembershipRow(
@@ -60,7 +84,7 @@ export async function findAgentMembershipRow(
 
 export async function findReviewCampaignMembershipRow(
   repositories: AllRepositories,
-  params: { userId: string; campaignId: string; role?: UserMembershipRole },
+  params: { userId: string; campaignId: string; role?: "tester" | "reviewer" },
 ) {
   return findUserMembershipRow({
     repositories,

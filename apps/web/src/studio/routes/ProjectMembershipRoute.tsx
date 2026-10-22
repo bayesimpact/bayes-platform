@@ -27,14 +27,14 @@ import type {
 } from "@/studio/features/project-memberships/project-memberships.models"
 import {
   selectCurrentProjectMembership,
-  selectCurrentProjectMembershipId,
+  selectCurrentProjectMemberUserId,
   selectProjectMemberAgents,
   selectProjectMemberships,
 } from "@/studio/features/project-memberships/project-memberships.selectors"
 import { projectMembershipsActions } from "../features/project-memberships/project-memberships.slice"
 
 export function ProjectMembershipRoute() {
-  const membershipId = useAppSelector(selectCurrentProjectMembershipId)
+  const memberUserId = useAppSelector(selectCurrentProjectMemberUserId)
   const memberships = useAppSelector(selectProjectMemberships)
   const memberAgents = useAppSelector(selectProjectMemberAgents)
 
@@ -43,11 +43,11 @@ export function ProjectMembershipRoute() {
       mount: projectMembershipsActions.memberMount,
       unmount: projectMembershipsActions.memberUnmount,
     },
-    condition: !!membershipId,
-    refreshOn: [membershipId],
+    condition: !!memberUserId,
+    refreshOn: [memberUserId],
   })
 
-  if (!membershipId) return <LoadingRoute />
+  if (!memberUserId) return <LoadingRoute />
   return (
     <AsyncRoute data={[memberships, memberAgents]}>
       <WithData />

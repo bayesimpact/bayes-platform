@@ -12,6 +12,7 @@ import { OrganizationsModule } from "@/domains/organizations/organizations.modul
 import { ProjectMembershipsService } from "@/domains/projects/memberships/project-memberships.service"
 import { ProjectsModule } from "@/domains/projects/projects.module"
 import { userFactory } from "@/domains/users/user.factory"
+import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { WorkspaceOwnerProvisioningService } from "./workspace-owner-provisioning.service"
 
 describe("WorkspaceOwnerProvisioningService", () => {
@@ -30,6 +31,9 @@ describe("WorkspaceOwnerProvisioningService", () => {
     Awaited<ReturnType<typeof setupTransactionalTestDatabase>>["getAllRepositories"]
   >["userMembershipRepository"]
 
+  const roleIdOf = async (roleKey: string) =>
+    (await setup.getAllRepositories().roleRepository.findOneOrFail({ where: { key: roleKey } })).id
+
   beforeAll(async () => {
     setup = await setupTransactionalTestDatabase({
       additionalImports: [OrganizationsModule, MembershipsModule, ProjectsModule],
@@ -39,6 +43,7 @@ describe("WorkspaceOwnerProvisioningService", () => {
     organizationRepository = repositories.organizationRepository
     userMembershipRepository = repositories.userMembershipRepository
     projectRepository = repositories.projectRepository
+    await ensureRbacCatalog(setup.module)
     const organizationMembershipsService = setup.module.get(OrganizationMembershipsService)
     const projectMembershipsService = setup.module.get(ProjectMembershipsService)
     const transactionService = setup.module.get(TransactionService)
@@ -89,9 +94,10 @@ describe("WorkspaceOwnerProvisioningService", () => {
           resourceId: result.organizationId,
           resourceType: "organization",
         },
+        relations: { rbacRole: true },
       })
       expect(orgMembership).toBeDefined()
-      expect(orgMembership!.role).toBe("admin")
+      expect(orgMembership!.rbacRole?.key).toBe("org_admin")
 
       const projectMembership = await userMembershipRepository.findOne({
         where: {
@@ -99,8 +105,9 @@ describe("WorkspaceOwnerProvisioningService", () => {
           resourceId: result.projectId,
           resourceType: "project",
         },
+        relations: { rbacRole: true },
       })
-      expect(projectMembership?.role).toBe("admin")
+      expect(projectMembership?.rbacRole?.key).toBe("project_admin")
 
       const user = await userRepository.findOne({ where: { id: result.userId } })
       expect(user?.authSubject).toBeNull()
@@ -151,7 +158,7 @@ describe("WorkspaceOwnerProvisioningService", () => {
           userId: existingUser.id,
           resourceId: project.id,
           resourceType: "project",
-          role: "admin",
+          roleId: await roleIdOf("project_admin"),
         }),
       )
 
@@ -176,7 +183,7 @@ describe("WorkspaceOwnerProvisioningService", () => {
           userId: existingUser.id,
           resourceId: existingOrg.id,
           resourceType: "organization",
-          role: "member",
+          roleId: await roleIdOf("org_member"),
         }),
       )
 
@@ -193,12 +200,14 @@ describe("WorkspaceOwnerProvisioningService", () => {
           resourceId: existingOrg.id,
           resourceType: "organization",
         },
+        relations: { rbacRole: true },
       })
-      expect(organizationMembership.role).toBe("member")
+      expect(organizationMembership.rbacRole?.key).toBe("org_member")
       const projectMembership = await userMembershipRepository.findOneOrFail({
         where: { userId: existingUser.id, resourceId: project.id, resourceType: "project" },
+        relations: { rbacRole: true },
       })
-      expect(projectMembership.role).toBe("admin")
+      expect(projectMembership.rbacRole?.key).toBe("project_admin")
     })
 
     it("should reuse existing project in the organization", async () => {
@@ -249,7 +258,7 @@ describe("WorkspaceOwnerProvisioningService", () => {
           userId: existingUser.id,
           resourceId: project.id,
           resourceType: "project",
-          role: "admin",
+          roleId: await roleIdOf("project_admin"),
         }),
       )
 
@@ -271,7 +280,7 @@ describe("WorkspaceOwnerProvisioningService", () => {
           userId: existingUser.id,
           resourceId: existingOrg.id,
           resourceType: "organization",
-          role: "member",
+          roleId: await roleIdOf("org_member"),
         }),
       )
 
