@@ -43,9 +43,6 @@ export const selectOrganizationMemberships = (state: RootState) =>
 export const selectProjectMemberships = (state: RootState) =>
   state.me.data.value?.memberships.projectMemberships
 
-export const selectAgentMemberships = (state: RootState) =>
-  state.me.data.value?.memberships.agentMemberships
-
 export const selectReviewCampaignMemberships = (state: RootState) =>
   state.me.data.value?.memberships.reviewCampaignMemberships
 

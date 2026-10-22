@@ -222,12 +222,6 @@ export const WithPublishedPinned: Story = {
   decorators: Default.decorators,
 }
 
-/** A member who cannot manage the agent sees no version indicators. */
-export const NonManager: Story = {
-  args: { agentMembershipRole: "member", withVersionHistory: true },
-  decorators: Default.decorators,
-}
-
 /** An agent with a single version: the picker renders with nothing to switch to. */
 export const WithoutVersionHistory: Story = {
   args: { withVersionHistory: false },

@@ -5,10 +5,7 @@ import type {
 } from "@caseai-connect/api-contracts"
 import { useCallback, useMemo } from "react"
 import { selectAgentsData } from "@/common/features/agents/agents.selectors"
-import {
-  selectAgentMemberships,
-  selectReviewCampaignMemberships,
-} from "@/common/features/me/me.selectors"
+import { selectReviewCampaignMemberships } from "@/common/features/me/me.selectors"
 import { holdsRole } from "@/common/features/memberships/membership-roles"
 import { selectOrganizationsList } from "@/common/features/organizations/organizations.selectors"
 import { selectMyProjectsList } from "@/common/features/projects/projects.selectors"
@@ -18,7 +15,6 @@ import { useAppSelector } from "@/common/store/hooks"
 export function useAbility() {
   const organizations = useAppSelector(selectOrganizationsList)
   const myProjects = useAppSelector(selectMyProjectsList)
-  const agentMemberships = useAppSelector(selectAgentMemberships)
   const reviewCampaignMemberships = useAppSelector(selectReviewCampaignMemberships)
   const agentsData = useAppSelector(selectAgentsData)
 
@@ -139,15 +135,9 @@ export function useAbility() {
   )
 
   const canManageAgent = useCallback(
-    ({ agentId }: { agentId: string | null }) => {
-      const isAgentOwnerOrAdmin = [...(agentMemberships ?? [])].some(
-        (membership) =>
-          membership.agentId === agentId &&
-          holdsRole(membership.roles, "agent_owner", "agent_admin"),
-      )
-      return isAgentOwnerOrAdmin
-    },
-    [agentMemberships],
+    ({ agentId }: { agentId: string | null }) =>
+      hasAgentPermission({ agentId, permission: "agent.update" }),
+    [hasAgentPermission],
   )
 
   // The copy is a new agent of the project: managing the agent is not enough on its own.
