@@ -1,11 +1,13 @@
 import {
-  type ProjectMemberAgentDto,
+  AgentMembershipRoutes,
+  type MemberResourceRolesDto,
+  type ProjectMemberRolesDto,
   type ProjectMembershipDto,
   ProjectMembershipRoutes,
+  ReviewCampaignsRoutes,
 } from "@caseai-connect/api-contracts"
-import { toLegacyRole } from "@/common/features/memberships/membership-roles"
 import { getAxiosInstance } from "@/external/axios"
-import type { ProjectMemberAgent, ProjectMembership } from "../project-memberships.models"
+import type { MemberResource, MemberRoles, ProjectMembership } from "../project-memberships.models"
 import type { IProjectMembershipsSpi } from "../project-memberships.spi"
 
 export default {
@@ -15,29 +17,6 @@ export default {
       ProjectMembershipRoutes.getAll.getPath({ organizationId, projectId }),
     )
     return response.data.data.map(fromDto)
-  },
-  updateOne: async ({ organizationId, projectId, memberUserId, role }) => {
-    const axios = getAxiosInstance()
-    const payload: typeof ProjectMembershipRoutes.updateOne.request = { payload: { role } }
-    const response = await axios.patch<typeof ProjectMembershipRoutes.updateOne.response>(
-      ProjectMembershipRoutes.updateOne.getPath({
-        organizationId,
-        projectId,
-        userId: memberUserId,
-      }),
-      payload,
-    )
-    return fromDto(response.data.data)
-  },
-  remove: async ({ organizationId, projectId, memberUserId }) => {
-    const axios = getAxiosInstance()
-    await axios.delete(
-      ProjectMembershipRoutes.deleteOne.getPath({
-        organizationId,
-        projectId,
-        userId: memberUserId,
-      }),
-    )
   },
   getAssignableRoles: async ({ organizationId, projectId }) => {
     const axios = getAxiosInstance()
@@ -67,16 +46,82 @@ export default {
       payload,
     )
   },
-  getMemberAgents: async ({ organizationId, projectId, memberUserId }) => {
+  getMemberRoles: async ({ organizationId, projectId, memberUserId }) => {
     const axios = getAxiosInstance()
-    const response = await axios.get<typeof ProjectMembershipRoutes.getMemberAgents.response>(
-      ProjectMembershipRoutes.getMemberAgents.getPath({
+    const response = await axios.get<typeof ProjectMembershipRoutes.getMemberRoles.response>(
+      ProjectMembershipRoutes.getMemberRoles.getPath({
         organizationId,
         projectId,
         userId: memberUserId,
       }),
     )
-    return response.data.data.map(memberAgentFromDto)
+    return memberRolesFromDto(response.data.data)
+  },
+  removeRole: async ({ organizationId, projectId, memberUserId, roleKey }) => {
+    const axios = getAxiosInstance()
+    await axios.delete(
+      ProjectMembershipRoutes.removeRole.getPath({
+        organizationId,
+        projectId,
+        userId: memberUserId,
+        roleKey,
+      }),
+    )
+  },
+  addAgentRole: async ({ organizationId, projectId, agentId, memberUserId, roleKey }) => {
+    const axios = getAxiosInstance()
+    const payload: typeof AgentMembershipRoutes.addRole.request = { payload: { roleKey } }
+    await axios.post(
+      AgentMembershipRoutes.addRole.getPath({
+        organizationId,
+        projectId,
+        agentId,
+        userId: memberUserId,
+      }),
+      payload,
+    )
+  },
+  removeAgentRole: async ({ organizationId, projectId, agentId, memberUserId, roleKey }) => {
+    const axios = getAxiosInstance()
+    await axios.delete(
+      AgentMembershipRoutes.removeRole.getPath({
+        organizationId,
+        projectId,
+        agentId,
+        userId: memberUserId,
+        roleKey,
+      }),
+    )
+  },
+  addCampaignRole: async ({
+    organizationId,
+    projectId,
+    reviewCampaignId,
+    memberUserId,
+    roleKey,
+  }) => {
+    const axios = getAxiosInstance()
+    const payload: typeof ReviewCampaignsRoutes.addMemberRole.request = { payload: { roleKey } }
+    await axios.post(
+      ReviewCampaignsRoutes.addMemberRole.getPath({
+        organizationId,
+        projectId,
+        reviewCampaignId,
+        userId: memberUserId,
+      }),
+      payload,
+    )
+  },
+  revokeCampaignRole: async ({ organizationId, projectId, reviewCampaignId, membershipId }) => {
+    const axios = getAxiosInstance()
+    await axios.delete(
+      ReviewCampaignsRoutes.revokeMembership.getPath({
+        organizationId,
+        projectId,
+        reviewCampaignId,
+        membershipId,
+      }),
+    )
   },
 } satisfies IProjectMembershipsSpi
 
@@ -91,10 +136,24 @@ const fromDto = (dto: ProjectMembershipDto): ProjectMembership => ({
   permissions: dto.permissions,
 })
 
-const memberAgentFromDto = (dto: ProjectMemberAgentDto): ProjectMemberAgent => ({
-  agentId: dto.agentId,
-  agentName: dto.agentName,
-  agentType: dto.agentType,
-  role: toLegacyRole(dto.roles),
+const resourceFromDto = (dto: MemberResourceRolesDto): MemberResource => ({
+  kind: dto.kind,
+  resourceId: dto.resourceId,
+  resourceName: dto.resourceName,
+  detail: dto.detail,
+  roles: dto.roles.map((role) => ({
+    key: role.key,
+    name: role.name,
+    membershipId: role.membershipId,
+  })),
   permissions: dto.permissions,
+  canManage: dto.canManage,
+})
+
+const memberRolesFromDto = (dto: ProjectMemberRolesDto): MemberRoles => ({
+  member: fromDto(dto.member),
+  workspace: resourceFromDto(dto.workspace),
+  agents: dto.agents.map(resourceFromDto),
+  campaigns: dto.campaigns.map(resourceFromDto),
+  assignableRoles: dto.assignableRoles,
 })

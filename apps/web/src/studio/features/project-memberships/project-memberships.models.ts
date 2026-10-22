@@ -1,5 +1,4 @@
-import type { AgentType, TimeType } from "@caseai-connect/api-contracts"
-import type { LegacyMembershipRole } from "@/common/features/memberships/membership-roles"
+import type { TimeType } from "@caseai-connect/api-contracts"
 
 /** A role of the RBAC catalog that can be held on a workspace (`scope_type = project`). */
 export type ProjectRole = {
@@ -21,12 +20,32 @@ export type ProjectMembership = {
   permissions: string[]
 }
 
-export type ProjectMemberAgent = {
-  agentId: string
-  agentName: string
-  agentType: AgentType
-  /** The highest of the member's agent roles, until this screen shows them all (#1077). */
-  role: LegacyMembershipRole | null
-  /** Permission keys the roles grant on the agent, empty without a membership. */
+/** A role a member holds on a resource, with the membership row that holds it. */
+export type HeldRole = ProjectRole & { membershipId: string }
+
+/** The kinds of resource of a workspace a member can hold roles on. */
+export type MemberResourceKind = "project" | "agent" | "review_campaign"
+
+/** One resource of the workspace and the member's roles on it. */
+export type MemberResource = {
+  kind: MemberResourceKind
+  resourceId: string
+  resourceName: string
+  /** The agent's type, or the campaign's status. */
+  detail: string | null
+  roles: HeldRole[]
+  /** What the member's roles grant on this resource, together. */
   permissions: string[]
+  /** Whether the viewer may add or remove the member's roles on this resource. */
+  canManage: boolean
+}
+
+/** A member's roles on the workspace, its agents and its review campaigns. */
+export type MemberRoles = {
+  member: ProjectMembership
+  workspace: MemberResource
+  agents: MemberResource[]
+  campaigns: MemberResource[]
+  /** The roles offered on each kind of resource. */
+  assignableRoles: Record<MemberResourceKind, ProjectRole[]>
 }

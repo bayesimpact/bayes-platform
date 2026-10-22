@@ -2,24 +2,19 @@ import { createSlice } from "@reduxjs/toolkit"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
 import type { PendingInvitations } from "@/studio/features/invitations/invitations.models"
 import { listInvitationsForTarget } from "@/studio/features/invitations/invitations.thunks"
-import type {
-  ProjectMemberAgent,
-  ProjectMembership,
-  ProjectRole,
-} from "./project-memberships.models"
+import type { MemberRoles, ProjectMembership, ProjectRole } from "./project-memberships.models"
 import {
   addProjectMemberRoles,
   listAssignableProjectRoles,
-  listProjectMemberAgents,
   listProjectMemberships,
+  loadMemberRoles,
   removeProjectMembers,
-  removeProjectMembership,
-  updateProjectMembershipRole,
 } from "./project-memberships.thunks"
 
 interface State {
   data: AsyncData<ProjectMembership[]>
-  memberAgents: AsyncData<ProjectMemberAgent[]>
+  /** The current member's roles on the workspace, its agents and its campaigns. */
+  memberRoles: AsyncData<MemberRoles>
   pendingInvitations: AsyncData<PendingInvitations>
   /** The roles a member can be given on the workspace. */
   assignableRoles: AsyncData<ProjectRole[]>
@@ -27,7 +22,7 @@ interface State {
 
 const initialState: State = {
   data: defaultAsyncData,
-  memberAgents: defaultAsyncData,
+  memberRoles: defaultAsyncData,
   pendingInvitations: defaultAsyncData,
   assignableRoles: defaultAsyncData,
 }
@@ -39,7 +34,9 @@ const slice = createSlice({
     mount: () => {},
     unmount: () => {},
     memberMount: () => {},
-    memberUnmount: () => {},
+    memberUnmount: (state) => {
+      state.memberRoles = defaultAsyncData
+    },
     reset: () => initialState,
   },
   extraReducers: (builder) => {
@@ -59,14 +56,6 @@ const slice = createSlice({
         state.data.status = ADS.Error
         state.data.error = action.error.message || "Failed to list project memberships"
       })
-
-    builder.addCase(updateProjectMembershipRole.fulfilled, (state, action) => {
-      if (ADS.isFulfilled(state.data)) {
-        state.data.value = state.data.value.map((membership) =>
-          membership.userId === action.payload.userId ? action.payload : membership,
-        )
-      }
-    })
 
     builder.addCase(addProjectMemberRoles.fulfilled, (state, action) => {
       if (ADS.isFulfilled(state.data)) {
@@ -99,15 +88,6 @@ const slice = createSlice({
         state.assignableRoles.error = action.error.message || "Failed to list the workspace roles"
       })
 
-    builder.addCase(removeProjectMembership.fulfilled, (state, action) => {
-      if (ADS.isFulfilled(state.data)) {
-        const { memberUserId } = action.meta.arg
-        state.data.value = state.data.value.filter(
-          (membership) => membership.userId !== memberUserId,
-        )
-      }
-    })
-
     builder
       .addCase(listInvitationsForTarget.pending, (state, action) => {
         if (action.meta.arg.targetType !== "project") return
@@ -132,20 +112,16 @@ const slice = createSlice({
       })
 
     builder
-      .addCase(listProjectMemberAgents.pending, (state) => {
-        if (!ADS.isFulfilled(state.memberAgents)) state.memberAgents.status = ADS.Loading
-        state.memberAgents.error = null
+      .addCase(loadMemberRoles.pending, (state) => {
+        if (!ADS.isFulfilled(state.memberRoles)) state.memberRoles.status = ADS.Loading
+        state.memberRoles.error = null
       })
-      .addCase(listProjectMemberAgents.fulfilled, (state, action) => {
-        state.memberAgents = {
-          status: ADS.Fulfilled,
-          error: null,
-          value: action.payload,
-        }
+      .addCase(loadMemberRoles.fulfilled, (state, action) => {
+        state.memberRoles = { status: ADS.Fulfilled, error: null, value: action.payload }
       })
-      .addCase(listProjectMemberAgents.rejected, (state, action) => {
-        state.memberAgents.status = ADS.Error
-        state.memberAgents.error = action.error.message || "Failed to list member agents"
+      .addCase(loadMemberRoles.rejected, (state, action) => {
+        state.memberRoles.status = ADS.Error
+        state.memberRoles.error = action.error.message || "Failed to load the member's roles"
       })
   },
 })

@@ -1,44 +1,30 @@
-import { Badge } from "@caseai-connect/ui/shad/badge"
-import {
-  type ColumnDef,
-  getCoreRowModel,
-  getSortedRowModel,
-  type SortingState,
-  useReactTable,
-} from "@tanstack/react-table"
-import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
-import { DataTable } from "@/common/components/data-table/DataTable"
-import { GridHeader } from "@/common/components/grid/Grid"
-import { SortableFilterableHeader } from "@/common/components/shared/RecordTableParts"
-import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
+import { selectMe } from "@/common/features/me/me.selectors"
 import { useMount } from "@/common/hooks/use-mount"
 import { useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
 import { LoadingRoute } from "@/common/routes/LoadingRoute"
-import { useAppSelector } from "@/common/store/hooks"
-import { GroupedPermissionList } from "@/studio/features/project-memberships/components/GroupedPermissionList"
+import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
+import type { MemberResourceRoles } from "@/studio/features/project-memberships/components/member-detail/member-detail.models"
+import { ProjectMemberDetail } from "@/studio/features/project-memberships/components/member-detail/ProjectMemberDetail"
+import { PROJECT_OWNER_ROLE_KEY } from "@/studio/features/project-memberships/components/members-table/members-table.models"
+import type { MemberResource } from "@/studio/features/project-memberships/project-memberships.models"
 import {
-  BadgeWithIcon,
-  ProjectRoleSelect,
-} from "@/studio/features/project-memberships/components/ProjectRoleSelect"
-import type {
-  ProjectMemberAgent,
-  ProjectMembership,
-} from "@/studio/features/project-memberships/project-memberships.models"
-import {
-  selectCurrentProjectMembership,
   selectCurrentProjectMemberUserId,
-  selectProjectMemberAgents,
+  selectMemberRoles,
   selectProjectMemberships,
 } from "@/studio/features/project-memberships/project-memberships.selectors"
+import {
+  addMemberResourceRole,
+  removeMemberResourceRole,
+} from "@/studio/features/project-memberships/project-memberships.thunks"
 import { projectMembershipsActions } from "../features/project-memberships/project-memberships.slice"
 
 export function ProjectMembershipRoute() {
   const memberUserId = useAppSelector(selectCurrentProjectMemberUserId)
   const memberships = useAppSelector(selectProjectMemberships)
-  const memberAgents = useAppSelector(selectProjectMemberAgents)
+  const memberRoles = useAppSelector(selectMemberRoles)
 
   useMount({
     actions: {
@@ -51,156 +37,82 @@ export function ProjectMembershipRoute() {
 
   if (!memberUserId) return <LoadingRoute />
   return (
-    <AsyncRoute data={[memberships, memberAgents]}>
+    <AsyncRoute data={[memberships, memberRoles]}>
       <WithData />
     </AsyncRoute>
   )
 }
 
+const ROLE_ERROR_KEY = {
+  add: "projectMembership:memberDetail.addError",
+  remove: "projectMembership:memberDetail.removeError",
+} as const
+
 function WithData() {
-  const project = useValue(selectCurrentProjectData)
-  const projectName = project.name
-  const membership = useValue(selectCurrentProjectMembership)
-  const memberAgents = useValue(selectProjectMemberAgents)
+  const { t } = useTranslation()
+  const dispatch = useAppDispatch()
   const navigate = useNavigate()
+  const me = useValue(selectMe)
+  const memberships = useValue(selectProjectMemberships)
+  const { member, workspace, agents, campaigns, assignableRoles } = useValue(selectMemberRoles)
 
-  const handleBack = () => {
-    navigate(-1)
-  }
+  const ownerCount = memberships.filter((membership) =>
+    membership.roles.some((role) => role.key === PROJECT_OWNER_ROLE_KEY),
+  ).length
+  const isLastOwner =
+    ownerCount === 1 && member.roles.some((role) => role.key === PROJECT_OWNER_ROLE_KEY)
 
-  const displayName = membership.userName ?? membership.userEmail
-  return (
-    <div className="flex flex-col h-full bg-white">
-      <GridHeader onBack={handleBack} title={displayName} description={membership.userEmail} />
-
-      <div className="p-6 flex gap-6 flex-col">
-        <ProjectRoleCard projectName={projectName} membership={membership} />
-
-        <MemberAgentsTable memberAgents={memberAgents} />
-      </div>
-    </div>
-  )
-}
-
-function ProjectRoleCard({
-  projectName,
-  membership,
-}: {
-  projectName: string
-  membership: ProjectMembership
-}) {
-  const { t } = useTranslation()
-  const { permissions } = membership
-  return (
-    <div className="flex flex-col gap-4 border rounded-lg p-4">
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xl font-bold">{projectName}</span>
-          <ProjectRoleSelect membership={membership} />
-        </div>
-        <p className="text-sm text-muted-foreground">
-          {t("projectMembership:profile.permissionsDescription")}
-        </p>
-      </div>
-      {permissions.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          {t("projectMembership:profile.noPermissions")}
-        </p>
-      ) : (
-        <GroupedPermissionList permissions={permissions} />
-      )}
-    </div>
-  )
-}
-
-const ROLE_ORDER: Record<NonNullable<ProjectMemberAgent["role"]>, number> = {
-  owner: 0,
-  admin: 1,
-  member: 2,
-}
-
-function MemberAgentsTable({ memberAgents }: { memberAgents: ProjectMemberAgent[] }) {
-  // TanStack Table keeps one table instance across renders, so the React Compiler would
-  // memoize its row model and show stale rows after a sort.
-  "use no memo"
-  const { t } = useTranslation()
-  const [sorting, setSorting] = useState<SortingState>([])
-
-  const columns = useMemo<ColumnDef<ProjectMemberAgent>[]>(
-    () => [
-      {
-        id: "agent",
-        accessorKey: "agentName",
-        enableColumnFilter: false,
-        header: ({ column }) => (
-          <SortableFilterableHeader column={column} label={t("projectMembership:profile.agent")} />
-        ),
-        cell: ({ row }) => <span className="capitalize">{row.original.agentName}</span>,
-      },
-      {
-        id: "role",
-        accessorKey: "role",
-        enableColumnFilter: false,
-        header: ({ column }) => (
-          <SortableFilterableHeader
-            column={column}
-            label={t("projectMembership:profile.agentRole")}
-          />
-        ),
-        cell: ({ row }) => <RoleCell memberAgent={row.original} />,
-        sortingFn: (rowA, rowB) => {
-          const a = rowA.original.role
-          const b = rowB.original.role
-          if (a === b) return 0
-          if (a === null) return 1
-          if (b === null) return -1
-          return ROLE_ORDER[a] - ROLE_ORDER[b]
-        },
-      },
-      {
-        id: "permissions",
-        header: () => t("projectMembership:profile.agentPermissions"),
-        cell: ({ row }) =>
-          row.original.permissions.length === 0 ? (
-            <span className="text-muted-foreground">—</span>
-          ) : (
-            <GroupedPermissionList permissions={row.original.permissions} layout="stack" />
-          ),
-      },
-    ],
-    [t],
-  )
-
-  const table = useReactTable({
-    data: memberAgents,
-    columns,
-    state: { sorting },
-    onSortingChange: setSorting,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getRowId: (row) => row.agentId,
+  const toResourceRoles = (resource: MemberResource): MemberResourceRoles => ({
+    kind: resource.kind,
+    resourceId: resource.resourceId,
+    resourceName: resource.resourceName,
+    detail: resource.detail
+      ? t(`projectMembership:memberDetail.details.${resource.detail}`, {
+          defaultValue: resource.detail,
+        })
+      : undefined,
+    roles: resource.roles,
+    grantableRoles: assignableRoles[resource.kind],
+    canManage: resource.canManage,
+    permissions: resource.permissions,
   })
 
+  /** The membership row that holds the role: a campaign role is revoked by it. */
+  const membershipIdOf = (resource: MemberResourceRoles, roleKey: string) =>
+    [workspace, ...agents, ...campaigns]
+      .find((entry) => entry.kind === resource.kind && entry.resourceId === resource.resourceId)
+      ?.roles.find((role) => role.key === roleKey)?.membershipId ?? ""
+
+  const handleAddRole = async (resource: MemberResourceRoles, roleKey: string) => {
+    const result = await dispatch(
+      addMemberResourceRole({ kind: resource.kind, resourceId: resource.resourceId, roleKey }),
+    )
+    if (addMemberResourceRole.rejected.match(result)) throw new Error(t(ROLE_ERROR_KEY.add))
+  }
+
+  const handleRemoveRole = async (resource: MemberResourceRoles, roleKey: string) => {
+    const result = await dispatch(
+      removeMemberResourceRole({
+        kind: resource.kind,
+        resourceId: resource.resourceId,
+        roleKey,
+        membershipId: membershipIdOf(resource, roleKey),
+      }),
+    )
+    if (removeMemberResourceRole.rejected.match(result)) throw new Error(t(ROLE_ERROR_KEY.remove))
+  }
+
   return (
-    <DataTable
-      table={table}
-      empty={
-        <p className="py-2 text-center text-muted-foreground">
-          {t("projectMembership:profile.noAgents")}
-        </p>
-      }
+    <ProjectMemberDetail
+      member={member}
+      currentUserId={me.id}
+      workspace={toResourceRoles(workspace)}
+      agents={agents.map(toResourceRoles)}
+      campaigns={campaigns.map(toResourceRoles)}
+      isLastOwner={isLastOwner}
+      onAddRole={handleAddRole}
+      onRemoveRole={handleRemoveRole}
+      onBack={() => navigate(-1)}
     />
   )
-}
-
-function RoleCell({ memberAgent }: { memberAgent: ProjectMemberAgent }) {
-  const { t } = useTranslation()
-  if (!memberAgent.role) {
-    return (
-      <Badge variant="outline" className="text-muted-foreground">
-        {t("projectMembership:profile.noAccess")}
-      </Badge>
-    )
-  }
-  return <BadgeWithIcon role={memberAgent.role} />
 }

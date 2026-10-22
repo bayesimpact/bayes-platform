@@ -1,33 +1,11 @@
 {
   "projectMembership": {
     "members": "Members",
-    "roles": {
-      "owner": "Owner",
-      "admin": "Admin",
-      "member": "Member"
-    },
     "props": {
-      "userName": "User Name",
-      "userEmail": "User Email",
-      "role": "Role",
-      "status": "Status",
-      "createdAt": "Created At",
       "validation": {
         "emailDuplicate": "Email already added",
         "emailInvalid": "Invalid email address"
       }
-    },
-    "profile": {
-      "joined": "Joined {{date}}",
-      "remove": "Remove member",
-      "agent": "Agent",
-      "agentRole": "Role",
-      "agentPermissions": "Permissions",
-      "noAccess": "No access",
-      "noAgents": "This project has no agents.",
-      "permissionsDescription": "What this role allows on this project.",
-      "noPermissions": "This role grants no permission.",
-      "roleSelect": "Project role"
     },
     "create": {
       "button": "Invite admins",
@@ -49,27 +27,10 @@
         "description": "Invite people to your workspace to collaborate together."
       }
     },
-    "remove": {
-      "dialog": {
-        "title": "Remove {{name}}?",
-        "description": "This will remove the member from the project. This action cannot be undone.",
-        "confirm": "Remove"
-      }
-    },
-    "roleChange": {
-      "dialog": {
-        "title": "Change {{name}}'s role to {{role}}?",
-        "description": "Their permissions on this project and its agents change right away."
-      }
-    },
     "notifications": {
       "invitationsSentByEmail": "Invitations sent by email",
       "peopleInvited": "People invited",
       "inviteError": "Failed to invite people",
-      "removed": "Member removed successfully",
-      "removeError": "Failed to remove member",
-      "roleUpdated": "Role updated",
-      "roleUpdateError": "Failed to update role",
       "rolesAdded_one": "Roles added to {{count}} member",
       "rolesAdded_other": "Roles added to {{count}} members",
       "membersRemoved_one": "{{count}} member removed",
@@ -78,7 +39,12 @@
     "roleNames": {
       "project_owner": "Owner",
       "project_admin": "Admin",
-      "project_member": "Member"
+      "project_member": "Member",
+      "agent_owner": "Owner",
+      "agent_admin": "Admin",
+      "agent_member": "Member",
+      "review_campaign_tester": "Tester",
+      "review_campaign_reviewer": "Reviewer"
     },
     "table": {
       "allRoles": "All roles",
@@ -112,6 +78,55 @@
         "title_other": "Remove {{count}} members?",
         "description": "They lose access to this workspace, its agents and its review campaigns. This cannot be undone.",
         "error": "The members could not be removed. Try again."
+      }
+    },
+    "memberDetail": {
+      "you": "You",
+      "selfTitle": "This is your own page",
+      "selfDescription": "Nobody changes their own roles. Another manager of this workspace can change them.",
+      "addErrorTitle": "The role was not added",
+      "addErrorDetail": "{{role}} on {{resource}}: {{error}}",
+      "addError": "The role could not be added. Try again.",
+      "removeError": "The role could not be removed. Try again.",
+      "lastOwner": "A workspace keeps at least one owner.",
+      "workspace": {
+        "title": "Workspace",
+        "description": "What they can do across this workspace.",
+        "empty": "No role on this workspace."
+      },
+      "agents": {
+        "title": "Agents",
+        "description": "Their roles on each agent of the workspace.",
+        "empty": "This workspace has no agents."
+      },
+      "campaigns": {
+        "title": "Review campaigns",
+        "description": "Whether they test the agent or review the conversations, campaign by campaign.",
+        "empty": "This workspace has no review campaigns."
+      },
+      "removeDialog": {
+        "title": "Remove {{role}} on {{resource}}?",
+        "effect": {
+          "project": "Their permissions on this workspace change right away.",
+          "agent": "Their permissions on this agent change right away.",
+          "review_campaign": "Their part in this review campaign changes right away."
+        }
+      },
+      "noAccess": "No access",
+      "cannotRemove": "{{role}} cannot be removed",
+      "removeRole": "Remove {{role}}",
+      "addRoleOn": "Add a role on {{resource}}",
+      "addRole": "Add role",
+      "addARole": "Add a role",
+      "permissions_one": "{{count}} permission",
+      "permissions_other": "{{count}} permissions",
+      "details": {
+        "conversation": "Conversation",
+        "extraction": "Extraction",
+        "form": "Form",
+        "draft": "Draft",
+        "active": "Active",
+        "closed": "Closed"
       }
     }
   }

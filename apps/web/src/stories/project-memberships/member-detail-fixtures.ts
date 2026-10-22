@@ -114,7 +114,6 @@ function resource(
 }
 
 export const mockDetailMember: MemberDetailMember = {
-  id: "membership-7",
   userId: "user-7",
   userName: "Cruz Braun",
   userEmail: "cruz_braun84@hotmail.com",
@@ -122,7 +121,6 @@ export const mockDetailMember: MemberDetailMember = {
 }
 
 export const mockSelfMember: MemberDetailMember = {
-  id: "membership-me",
   userId: mockCurrentUserId,
   userName: "Alverta Mante",
   userEmail: "alverta_mante@gmail.com",

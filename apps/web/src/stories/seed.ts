@@ -65,7 +65,7 @@ import type { Document } from "@/studio/features/documents/documents.models"
 import type { PendingInvitations } from "@/studio/features/invitations/invitations.models"
 import type { McpServer } from "@/studio/features/mcp-servers/mcp-servers.models"
 import type {
-  ProjectMemberAgent,
+  MemberRoles,
   ProjectMembership,
   ProjectRole,
 } from "@/studio/features/project-memberships/project-memberships.models"
@@ -413,8 +413,8 @@ export const seed = {
       return { projectMemberships: { pendingInvitations: ads.fulfilled(invitations) } }
     },
 
-    projectMemberAgents(memberAgents: ProjectMemberAgent[]): StoryPreloadedState {
-      return { projectMemberships: { memberAgents: ads.fulfilled(memberAgents) } }
+    projectMemberRoles(memberRoles: MemberRoles): StoryPreloadedState {
+      return { projectMemberships: { memberRoles: ads.fulfilled(memberRoles) } }
     },
 
     agentMessageFeedbacks(

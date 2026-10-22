@@ -37,6 +37,7 @@
     "agent.member.read": "See an agent's members and their roles",
     "agent.member.invite": "Invite people to an agent, and revoke pending invitations",
     "agent.member.delete": "Remove a member from an agent",
+    "agent.member.update": "Give a member a role on an agent, or take one away",
     "desk.ui.read": "Open a project's desk app",
     "studio.ui.read": "Open a project's studio app",
     "evaluation.ui.read": "Open a project's evaluation app",

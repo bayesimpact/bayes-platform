@@ -9,13 +9,12 @@ import {
 } from "@/stories/routes/studio/helpers"
 import { mergeSeeds, seed } from "@/stories/seed"
 import {
-  projectMemberAgentFactory,
+  memberRolesFactory,
   projectMembershipFactory,
   SAMPLE_PROJECT_ROLES,
-  sampleProjectRole,
 } from "@/studio/features/project-memberships/project-memberships.factory"
 import type {
-  ProjectMemberAgent,
+  MemberRoles,
   ProjectMembership,
 } from "@/studio/features/project-memberships/project-memberships.models"
 import type { IProjectMembershipsSpi } from "@/studio/features/project-memberships/project-memberships.spi"
@@ -23,25 +22,21 @@ import { StudioRoutes } from "@/studio/routes/helpers"
 import { studioRoutes } from "@/studio/routes/StudioRoutes"
 
 type StoryArgs = StudioStoryArgs & {
-  withMemberAgents?: boolean
   memberRole?: LegacyMembershipRole
+  /** Whether the viewer may change the member's roles. */
+  canManage?: boolean
 }
 
 const FIXED_MEMBER_USER_ID = "member-user-fixture-1"
 
-function buildMockProjectMembershipsService(
-  overrides: { memberships?: ProjectMembership[]; memberAgents?: ProjectMemberAgent[] } = {},
-): IProjectMembershipsSpi {
+function buildMockProjectMembershipsService(overrides: {
+  memberships: ProjectMembership[]
+  memberRoles: MemberRoles
+}): IProjectMembershipsSpi {
   return {
     async getAll() {
-      return overrides.memberships ?? []
+      return overrides.memberships
     },
-    async updateOne({ memberUserId, role }) {
-      const membership = overrides.memberships?.find((item) => item.userId === memberUserId)
-      if (!membership) throw new Error(`Unknown membership ${memberUserId}`)
-      return { ...membership, roles: [sampleProjectRole(role)] }
-    },
-    async remove() {},
     async getAssignableRoles() {
       return SAMPLE_PROJECT_ROLES
     },
@@ -49,9 +44,14 @@ function buildMockProjectMembershipsService(
       return []
     },
     async removeMany() {},
-    async getMemberAgents() {
-      return overrides.memberAgents ?? []
+    async getMemberRoles() {
+      return overrides.memberRoles
     },
+    async removeRole() {},
+    async addAgentRole() {},
+    async removeAgentRole() {},
+    async addCampaignRole() {},
+    async revokeCampaignRole() {},
   }
 }
 
@@ -61,14 +61,14 @@ const meta = {
   argTypes: {
     ...studioStoryArgTypes,
     withAgents: { control: undefined },
-    withMemberAgents: { control: "boolean" },
     memberRole: { control: "select", options: ["owner", "admin", "member"] },
+    canManage: { control: "boolean" },
   },
   args: {
     ...studioStoryArgs,
     withAgents: true,
-    withMemberAgents: false,
     memberRole: "member",
+    canManage: true,
   },
   render: render({
     routes: studioRoutes,
@@ -79,45 +79,42 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-const decorator = buildDecorator<StoryArgs>(({ withMemberAgents, memberRole, ...args }) => {
+const decorator = buildDecorator<StoryArgs>(({ memberRole, canManage, ...args }) => {
   const { baseSeeds, project, agents } = buildStudioData(args)
   const membership = projectMembershipFactory
     .transient({ project, role: memberRole ?? "member" })
     .build({ userId: FIXED_MEMBER_USER_ID })
-  const otherMemberships = [projectMembershipFactory.transient({ project, role: "owner" }).build()]
-  const memberAgents = withMemberAgents
-    ? agents.map((agent, index) =>
-        projectMemberAgentFactory
-          .transient({ agent })
-          .build(index === agents.length - 1 ? { role: null } : {}),
-      )
-    : []
-  const memberships = [membership, ...otherMemberships]
+  const memberships = [
+    membership,
+    projectMembershipFactory.transient({ project, role: "owner" }).build(),
+  ]
+  const memberRoles = memberRolesFactory
+    .transient({ membership, projectName: project.name, agents, canManage: canManage ?? true })
+    .build()
 
   return {
     state: mergeSeeds(
       baseSeeds,
       seed.studio.projectMemberships(memberships),
-      seed.studio.projectMemberAgents(memberAgents),
+      seed.studio.projectMemberRoles(memberRoles),
       // The members route above this page waits for both.
       seed.studio.projectAssignableRoles(SAMPLE_PROJECT_ROLES),
       seed.studio.projectPendingInvitations([]),
       seed.currentMemberUserId(FIXED_MEMBER_USER_ID),
     ),
     services: {
-      projectMemberships: buildMockProjectMembershipsService({
-        memberships,
-        memberAgents,
-      }),
+      projectMemberships: buildMockProjectMembershipsService({ memberships, memberRoles }),
     },
   }
 })
 
+/** A member with roles on the workspace, an agent and a campaign, as a manager sees them. */
 export const Default: Story = {
   decorators: [decorator],
 }
 
-export const WithMemberAgents: Story = {
-  args: { withMemberAgents: true },
+/** A viewer who may not change this member's roles: everything is shown, nothing editable. */
+export const ReadOnly: Story = {
+  args: { canManage: false },
   decorators: [decorator],
 }

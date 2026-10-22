@@ -12,6 +12,7 @@ import {
   CollapsibleTrigger,
 } from "@caseai-connect/ui/shad/collapsible"
 import { ChevronDownIcon, type LucideIcon } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { GroupedPermissionList } from "../GroupedPermissionList"
 import type { MemberResourceRoles, RoleOption } from "./member-detail.models"
 import { ResourceRoleChips } from "./ResourceRoleChips"
@@ -83,6 +84,7 @@ function ResourceRolesRow({
   onAddRole: (role: RoleOption) => void
   onRemoveRole: (role: RoleOption) => void
 }) {
+  const { t } = useTranslation()
   return (
     <li>
       <Collapsible className="flex flex-col gap-3 px-6 py-4">
@@ -105,9 +107,9 @@ function ResourceRolesRow({
           {resource.permissions.length > 0 && (
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="xs" className="group text-muted-foreground">
-                {resource.permissions.length === 1
-                  ? "1 permission"
-                  : `${resource.permissions.length} permissions`}
+                {t("projectMembership:memberDetail.permissions", {
+                  count: resource.permissions.length,
+                })}
                 <ChevronDownIcon className="transition-transform group-data-[state=open]:rotate-180" />
               </Button>
             </CollapsibleTrigger>

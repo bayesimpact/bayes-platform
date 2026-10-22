@@ -1,9 +1,9 @@
-import type { EditableProjectMembershipRoleDto } from "@caseai-connect/api-contracts"
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import { getCurrentId } from "@/common/features/helpers"
 import type { RootState, ThunkExtraArg } from "@/common/store"
 import type {
-  ProjectMemberAgent,
+  MemberResourceKind,
+  MemberRoles,
   ProjectMembership,
   ProjectRole,
 } from "./project-memberships.models"
@@ -17,54 +17,6 @@ export const listProjectMemberships = createAsyncThunk<ProjectMembership[], void
     const organizationId = getCurrentId({ state, name: "organizationId" })
     const projectId = getCurrentId({ state, name: "projectId" })
     return await services.projectMemberships.getAll({ organizationId, projectId })
-  },
-)
-
-export const updateProjectMembershipRole = createAsyncThunk<
-  ProjectMembership,
-  { memberUserId: string; role: EditableProjectMembershipRoleDto },
-  ThunkConfig
->(
-  "projectMemberships/updateRole",
-  async ({ memberUserId, role }, { extra: { services }, getState }) => {
-    const state = getState()
-    const organizationId = getCurrentId({ state, name: "organizationId" })
-    const projectId = getCurrentId({ state, name: "projectId" })
-    return await services.projectMemberships.updateOne({
-      organizationId,
-      projectId,
-      memberUserId,
-      role,
-    })
-  },
-)
-
-export const removeProjectMembership = createAsyncThunk<
-  void,
-  { memberUserId: string },
-  ThunkConfig
->("projectMemberships/remove", async ({ memberUserId }, { extra: { services }, getState }) => {
-  const state = getState()
-  const organizationId = getCurrentId({ state, name: "organizationId" })
-  const projectId = getCurrentId({ state, name: "projectId" })
-  return await services.projectMemberships.remove({ organizationId, projectId, memberUserId })
-})
-
-export const listProjectMemberAgents = createAsyncThunk<
-  ProjectMemberAgent[],
-  { memberUserId: string },
-  ThunkConfig
->(
-  "projectMemberships/listMemberAgents",
-  async ({ memberUserId }, { extra: { services }, getState }) => {
-    const state = getState()
-    const organizationId = getCurrentId({ state, name: "organizationId" })
-    const projectId = getCurrentId({ state, name: "projectId" })
-    return await services.projectMemberships.getMemberAgents({
-      organizationId,
-      projectId,
-      memberUserId,
-    })
   },
 )
 
@@ -109,3 +61,84 @@ export const removeProjectMembers = createAsyncThunk<
   const projectId = getCurrentId({ state, name: "projectId" })
   return await services.projectMemberships.removeMany({ organizationId, projectId, memberUserIds })
 })
+
+/** The current member's roles on the workspace, its agents and its review campaigns. */
+export const loadMemberRoles = createAsyncThunk<MemberRoles, void, ThunkConfig>(
+  "projectMemberships/loadMemberRoles",
+  async (_, { extra: { services }, getState }) => {
+    const state = getState()
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    const memberUserId = getCurrentId({ state, name: "memberUserId" })
+    return await services.projectMemberships.getMemberRoles({
+      organizationId,
+      projectId,
+      memberUserId,
+    })
+  },
+)
+
+type ResourceRoleChange = { kind: MemberResourceKind; resourceId: string; roleKey: string }
+
+/** Gives the current member a role on a resource of the workspace. */
+export const addMemberResourceRole = createAsyncThunk<void, ResourceRoleChange, ThunkConfig>(
+  "projectMemberships/addMemberResourceRole",
+  async ({ kind, resourceId, roleKey }, { extra: { services }, getState }) => {
+    const state = getState()
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    const memberUserId = getCurrentId({ state, name: "memberUserId" })
+    const scope = { organizationId, projectId, memberUserId }
+    switch (kind) {
+      case "project":
+        await services.projectMemberships.addRoles({
+          organizationId,
+          projectId,
+          memberUserIds: [memberUserId],
+          roleKeys: [roleKey],
+        })
+        return
+      case "agent":
+        return services.projectMemberships.addAgentRole({ ...scope, agentId: resourceId, roleKey })
+      case "review_campaign":
+        return services.projectMemberships.addCampaignRole({
+          ...scope,
+          reviewCampaignId: resourceId,
+          roleKey,
+        })
+    }
+  },
+)
+
+/** Takes a role from the current member on a resource. A campaign role goes by its row. */
+export const removeMemberResourceRole = createAsyncThunk<
+  void,
+  ResourceRoleChange & { membershipId: string },
+  ThunkConfig
+>(
+  "projectMemberships/removeMemberResourceRole",
+  async ({ kind, resourceId, roleKey, membershipId }, { extra: { services }, getState }) => {
+    const state = getState()
+    const organizationId = getCurrentId({ state, name: "organizationId" })
+    const projectId = getCurrentId({ state, name: "projectId" })
+    const memberUserId = getCurrentId({ state, name: "memberUserId" })
+    const scope = { organizationId, projectId, memberUserId }
+    switch (kind) {
+      case "project":
+        return services.projectMemberships.removeRole({ ...scope, roleKey })
+      case "agent":
+        return services.projectMemberships.removeAgentRole({
+          ...scope,
+          agentId: resourceId,
+          roleKey,
+        })
+      case "review_campaign":
+        return services.projectMemberships.revokeCampaignRole({
+          organizationId,
+          projectId,
+          reviewCampaignId: resourceId,
+          membershipId,
+        })
+    }
+  },
+)
