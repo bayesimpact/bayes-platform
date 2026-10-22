@@ -67,6 +67,9 @@ stories, with `--base-url` for an environment's.
   document runs, CSV setups and CSV runs (`features/extraction`). The sidebar's history is
   `features/history`, the agent switcher `features/agents`, the envelope of invitations
   `features/invitations`, the terms and the name `features/account`.
+- The sidebar's colors, in `src/styles/global.css`: unlike the platform's other tokens, the
+  `--sidebar-*` ones derive from `--primary` (mixed in `oklab`, which keeps its hue), so the
+  sidebar takes each install's color from its `theme.css`.
 - Shared compositions, in `src/components/shared/`: `SidePanel` for every panel docked beside a
   page, `HeaderActions` for the actions of the bar above it, `DataTable` for every table.
 - A conversation keys its messages by position: a message keeps its element when its id changes

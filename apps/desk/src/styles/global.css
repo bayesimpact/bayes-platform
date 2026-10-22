@@ -79,14 +79,17 @@
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
+  /* The sidebar takes the install's color rather than a neutral grey: a faint wash of --primary
+     for its surface, a stronger one for the open item, and --primary itself for the agent's tile.
+     An install that changes --primary in its theme changes the sidebar with it. */
+  --sidebar: color-mix(in oklab, var(--primary) 4%, var(--background));
   --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: color-mix(in oklab, var(--primary) 11%, var(--background));
+  --sidebar-accent-foreground: color-mix(in oklab, var(--primary) 55%, var(--foreground));
+  --sidebar-border: color-mix(in oklab, var(--primary) 12%, var(--border));
+  --sidebar-ring: var(--primary);
   /* The highlighter yellow of an annotated passage, and of the bubbles that number annotations,
      with a dark amber ink that reads on it. They come from point-by-point. */
   --quote-mark: rgb(242 196 64 / 0.32);
