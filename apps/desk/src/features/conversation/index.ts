@@ -1,5 +1,6 @@
 export { stopReplyStream } from "./api/reply-streams"
 export { ConversationSkeleton } from "./components/ConversationSkeleton"
+export { ConversationTitle } from "./components/ConversationTitle"
 export { ConversationView } from "./components/ConversationView"
 export { NewConversation } from "./components/NewConversation"
 export { loadConversation } from "./load-conversation"

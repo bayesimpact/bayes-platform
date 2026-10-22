@@ -40,6 +40,18 @@ describe("a conversation", () => {
     expect(screen.getByText("Used tools")).toBeInTheDocument()
   })
 
+  it("is named in the bar above it, in place of the agent", async () => {
+    const world = serveDeskWorld()
+    const title = required(conversationOf(world).title, "the conversation's title")
+    renderApp(conversationUrlOf(world))
+
+    await screen.findByText(/Here is a short comparison/)
+    // The sidebar's link, the person's first message, and the bar above the conversation.
+    expect(screen.getAllByText(title)).toHaveLength(3)
+    // The agent stays named by the switcher only.
+    expect(screen.getAllByText("Helpful Assistant")).toHaveLength(1)
+  })
+
   it("offers to try again when it could not load, and loads it", async () => {
     const world = serveDeskWorld()
     server.use(mockRoute(DeskConversationsRoutes.getMessages, () => apiError(503), { once: true }))

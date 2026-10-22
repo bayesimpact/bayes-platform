@@ -1,4 +1,4 @@
-import { createFileRoute, notFound, Outlet } from "@tanstack/react-router"
+import { createFileRoute, notFound, Outlet, useMatch } from "@tanstack/react-router"
 import { DeskShell } from "@/components/shared/DeskShell"
 import { DeskShellSkeleton } from "@/components/shared/DeskShellSkeleton"
 import { RouteErrorState } from "@/components/shared/RouteErrorState"
@@ -9,6 +9,7 @@ import {
   loadDeskAgents,
   rememberLastAgent,
 } from "@/features/agents"
+import { ConversationTitle } from "@/features/conversation"
 import { AgentHistorySection, NewSessionLink, prefetchAgentHistory } from "@/features/history"
 import { uuidParams } from "@/lib/not-found"
 import { DeskSidebarFooter } from "@/routes/-components/DeskSidebarFooter"
@@ -38,6 +39,11 @@ export const Route = createFileRoute("/_authenticated/o/$organizationId/p/$proje
 
 function AgentLayout() {
   const { agent, historyAgent } = Route.useRouteContext()
+  // The bar names the open conversation, and the agent on its other pages.
+  const conversation = useMatch({
+    from: "/_authenticated/o/$organizationId/p/$projectId/a/$agentId/as/$agentSessionId",
+    shouldThrow: false,
+  })
   return (
     <DeskShell
       header={<AgentSidebarHeader currentAgent={agent} />}
@@ -50,7 +56,7 @@ function AgentLayout() {
         </>
       }
       footer={<DeskSidebarFooter />}
-      title={agent.name}
+      title={conversation ? <ConversationTitle conversation={conversation.params} /> : agent.name}
     >
       <Outlet />
     </DeskShell>

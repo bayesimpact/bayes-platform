@@ -1,6 +1,5 @@
 import type { ConversationParamsDto } from "@caseai-connect/desk-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
-import { useQuery } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import { EllipsisIcon, Trash2Icon } from "lucide-react"
 import { useState } from "react"
@@ -11,8 +10,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { conversationsQueryOptions, DeleteEntryDialog } from "@/features/history"
+import { DeleteEntryDialog } from "@/features/history"
 import { agentParamsOf } from "@/lib/agent-params"
+import { useConversationTitle } from "../hooks/use-conversation-title"
 
 export type ConversationMenuProps = {
   conversation: ConversationParamsDto
@@ -27,11 +27,7 @@ export function ConversationMenu({ conversation }: ConversationMenuProps) {
   const navigate = useNavigate()
   const [isDeleting, setIsDeleting] = useState(false)
   const agent = agentParamsOf(conversation)
-  // useQuery: the history's list, which the sidebar loads, only names the conversation.
-  const { data: conversations = [] } = useQuery(conversationsQueryOptions(conversation))
-  const title =
-    conversations.find((candidate) => candidate.id === conversation.agentSessionId)?.title ??
-    t`New conversation`
+  const title = useConversationTitle(conversation)
 
   return (
     <>

@@ -564,7 +564,7 @@ msgstr "Plus d’actions"
 msgid "Name"
 msgstr "Nom"
 
-#: src/features/conversation/components/ConversationMenu.tsx
+#: src/features/conversation/hooks/use-conversation-title.ts
 #: src/features/history/components/NewSessionLink.tsx
 #: src/features/history/history-entries.ts
 msgid "New conversation"
