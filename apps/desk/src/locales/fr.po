@@ -200,7 +200,7 @@ msgid "Before you start"
 msgstr "Avant de commencer"
 
 #: src/features/account/components/EditNameDialog.tsx:84
-#: src/features/conversation/components/FeedbackDialog.tsx:107
+#: src/features/conversation/components/FeedbackDialog.tsx:111
 #: src/features/extraction/components/CsvSetup.tsx:140
 #: src/features/extraction/components/DeleteDocumentDialog.tsx:60
 #: src/features/history/components/DeleteEntryDialog.tsx:78
@@ -328,9 +328,9 @@ msgstr "Supprimer ce document ?"
 msgid "Delete this extraction?"
 msgstr "Supprimer cette extraction ?"
 
-#: src/features/conversation/components/FeedbackDialog.tsx:99
-msgid "Describe the problem in a few words, up to 2,000 characters."
-msgstr "Décrivez le problème en quelques mots, 2 000 caractères au plus."
+#: src/features/conversation/components/FeedbackDialog.tsx:101
+msgid "Describe the problem in a few words, up to {maxLength} characters."
+msgstr "Décrivez le problème en quelques mots, {maxLength} caractères au plus."
 
 #: src/features/extraction/components/ExtractionFailure.tsx:65
 msgid "Details"
@@ -742,12 +742,12 @@ msgstr "Retirer {fileName}"
 msgid "Remove this annotation"
 msgstr "Retirer cette annotation"
 
-#: src/features/conversation/components/FeedbackDialog.tsx:63
-#: src/features/conversation/components/FeedbackDialog.tsx:70
+#: src/features/conversation/components/FeedbackDialog.tsx:65
+#: src/features/conversation/components/FeedbackDialog.tsx:72
 msgid "Report a problem"
 msgstr "Signaler un problème"
 
-#: src/features/conversation/components/FeedbackDialog.tsx:77
+#: src/features/conversation/components/FeedbackDialog.tsx:79
 msgid "Report a problem with this reply"
 msgstr "Signaler un problème avec cette réponse"
 
@@ -842,7 +842,7 @@ msgstr "Recherche dans les ressources"
 msgid "Send"
 msgstr "Envoyer"
 
-#: src/features/conversation/components/FeedbackDialog.tsx:110
+#: src/features/conversation/components/FeedbackDialog.tsx:114
 msgid "Send the report"
 msgstr "Envoyer le signalement"
 
@@ -949,7 +949,7 @@ msgstr "testeur"
 msgid "Text"
 msgstr "Texte"
 
-#: src/features/conversation/components/FeedbackDialog.tsx:48
+#: src/features/conversation/components/FeedbackDialog.tsx:50
 msgid "Thank you. Your report was sent."
 msgstr "Merci, votre signalement a été envoyé."
 
@@ -1116,7 +1116,7 @@ msgstr "Le modèle qui lit le document n’a pas répondu. Réessayez dans un in
 msgid "The people of your projects see you by this name."
 msgstr "Les membres de vos projets vous voient sous ce nom."
 
-#: src/features/conversation/components/FeedbackDialog.tsx:80
+#: src/features/conversation/components/FeedbackDialog.tsx:82
 msgid "The people who run this agent read every report to improve it."
 msgstr "Les personnes qui gèrent cet agent lisent chaque signalement pour l'améliorer."
 
@@ -1124,7 +1124,7 @@ msgstr "Les personnes qui gèrent cet agent lisent chaque signalement pour l'am�
 msgid "The reply stopped before it finished."
 msgstr "La réponse s'est arrêtée avant la fin."
 
-#: src/features/conversation/components/FeedbackDialog.tsx:52
+#: src/features/conversation/components/FeedbackDialog.tsx:54
 msgid "The report could not be sent. Try again."
 msgstr "Le signalement n'a pas pu être envoyé. Réessayez."
 
@@ -1244,7 +1244,7 @@ msgstr "Ce que l'agent a noté"
 msgid "What the agent remembers"
 msgstr "Ce que l'agent retient"
 
-#: src/features/conversation/components/FeedbackDialog.tsx:89
+#: src/features/conversation/components/FeedbackDialog.tsx:91
 msgid "What went wrong?"
 msgstr "Qu'est-ce qui n'allait pas ?"
 
