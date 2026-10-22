@@ -2,6 +2,7 @@ import { act, screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { useState } from "react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+import { Toaster } from "@/components/ui/sonner"
 import { renderWithI18n } from "@/test/render-with-i18n"
 import type { OutgoingMessage } from "../chat-messages"
 import { Composer } from "./Composer"
@@ -80,5 +81,45 @@ describe("the dictation", () => {
     vi.unstubAllGlobals()
     renderWithI18n(<ComposerWithDraft onSend={vi.fn()} />)
     expect(screen.queryByRole("button", { name: "Dictate your message" })).not.toBeInTheDocument()
+  })
+})
+
+describe("the attachment", () => {
+  /** Picks a file in the paperclip's picker, which has no name of its own: it is hidden. */
+  async function pickFile(file: File) {
+    const onSend = vi.fn()
+    const { container } = renderWithI18n(
+      <>
+        <ComposerWithDraft onSend={onSend} />
+        <Toaster />
+      </>,
+    )
+    const picker = container.querySelector<HTMLInputElement>("input[type=file]")
+    if (!picker) throw new Error("The composer has no file picker")
+    await userEvent.upload(picker, file, { applyAccept: false })
+    return onSend
+  }
+
+  it("leaves with the message", async () => {
+    const file = new File(["%PDF"], "plan.pdf", { type: "application/pdf" })
+    const onSend = await pickFile(file)
+
+    await userEvent.type(screen.getByRole("textbox"), "Read this{Enter}")
+
+    expect(onSend).toHaveBeenCalledWith({ content: "Read this", attachment: { file } })
+  })
+
+  it("refuses a file the contract refuses, and names its limits", async () => {
+    const tooLarge = new File(["%PDF"], "plan.pdf", { type: "application/pdf" })
+    Object.defineProperty(tooLarge, "size", { value: 11 * 1000 * 1000 })
+    await pickFile(tooLarge)
+    expect(await screen.findByText("Attach a file of 10 MB at most.")).toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Remove plan.pdf" })).not.toBeInTheDocument()
+  })
+
+  it("refuses a file of another type", async () => {
+    await pickFile(new File(["text"], "notes.txt", { type: "text/plain" }))
+    expect(await screen.findByText("Attach a PDF, PNG or JPEG file.")).toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Remove notes.txt" })).not.toBeInTheDocument()
   })
 })

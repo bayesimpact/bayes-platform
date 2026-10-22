@@ -31,7 +31,7 @@ msgstr "(facultatif)"
 msgid "(required)"
 msgstr "(obligatoire)"
 
-#: src/features/conversation/components/Composer.tsx:200
+#: src/features/conversation/components/Composer.tsx:177
 msgid "{annotationCount, plural, one {Send with # annotation} other {Send with # annotations}}"
 msgstr "{annotationCount, plural, one {Envoyer avec # annotation} other {Envoyer avec # annotations}}"
 
@@ -95,11 +95,11 @@ msgstr "{rowCount, plural, one {Extraire la première ligne} other {Extraire les
 msgid "{running, plural, one {# running} other {# running}}"
 msgstr "{running, plural, one {# en cours} other {# en cours}}"
 
-#: src/features/conversation/components/Composer.tsx:151
+#: src/features/conversation/components/Composer.tsx:128
 msgid "<0/> to send"
 msgstr "<0/> pour envoyer"
 
-#: src/features/conversation/components/Composer.tsx:157
+#: src/features/conversation/components/Composer.tsx:134
 msgid "<0><1/><2/></0> for a new line"
 msgstr "<0><1/><2/></0> pour aller à la ligne"
 
@@ -175,15 +175,15 @@ msgstr "Annotez, puis appuyez sur Entrée pour garder la note"
 msgid "As {role}"
 msgstr "En tant que {role}"
 
-#: src/features/conversation/components/Composer.tsx:180
+#: src/features/conversation/components/Composer.tsx:157
 msgid "Attach a file"
 msgstr "Joindre un fichier"
 
-#: src/features/conversation/components/Composer.tsx:98
-msgid "Attach a file of 10 MB at most."
-msgstr "Joignez un fichier de 10 Mo au plus."
+#: src/features/conversation/hooks/use-attachment.ts:40
+msgid "Attach a file of {maxSize} at most."
+msgstr "Joignez un fichier de {maxSize} au plus."
 
-#: src/features/conversation/components/Composer.tsx:94
+#: src/features/conversation/hooks/use-attachment.ts:38
 msgid "Attach a PDF, PNG or JPEG file."
 msgstr "Joignez un fichier PDF, PNG ou JPEG."
 
@@ -385,7 +385,7 @@ msgid "Email address missing"
 msgstr "Adresse email manquante"
 
 #. The keyboard key
-#: src/features/conversation/components/Composer.tsx:235
+#: src/features/conversation/components/EnterKey.tsx:15
 msgid "Enter"
 msgstr "Entrée"
 
@@ -540,7 +540,7 @@ msgstr "Chargement de la carte interactive…"
 msgid "member"
 msgstr "membre"
 
-#: src/features/conversation/components/Composer.tsx:131
+#: src/features/conversation/components/Composer.tsx:108
 msgid "Message to {agentName}"
 msgstr "Message à {agentName}"
 
@@ -734,7 +734,7 @@ msgstr "Retenir"
 msgid "Remembering what matters"
 msgstr "Mémorisation de l'essentiel"
 
-#: src/features/conversation/components/Composer.tsx:120
+#: src/features/conversation/components/Composer.tsx:97
 msgid "Remove {fileName}"
 msgstr "Retirer {fileName}"
 
@@ -838,7 +838,7 @@ msgstr "Recherche dans la base de connaissances"
 msgid "Searching the resources"
 msgstr "Recherche dans les ressources"
 
-#: src/features/conversation/components/Composer.tsx:206
+#: src/features/conversation/components/Composer.tsx:183
 msgid "Send"
 msgstr "Envoyer"
 
@@ -855,7 +855,7 @@ msgid "Set up the extraction of {name}"
 msgstr "Configurer l’extraction de {name}"
 
 #. The keyboard key
-#: src/features/conversation/components/Composer.tsx:246
+#: src/features/conversation/components/ShiftKey.tsx:11
 msgid "Shift"
 msgstr "Maj"
 
@@ -974,7 +974,7 @@ msgstr "L'agent a tout oublié à votre sujet."
 msgid "The agent found nothing to fill in in this document."
 msgstr "L’agent n’a rien trouvé à remplir dans ce document."
 
-#: src/features/conversation/components/Composer.tsx:187
+#: src/features/conversation/components/Composer.tsx:164
 msgid "The agent is answering…"
 msgstr "L'agent répond…"
 
@@ -1159,6 +1159,10 @@ msgstr "La connexion échoue à chaque fois"
 #: src/features/conversation/components/ToolSteps.tsx:71
 msgid "Thinking…"
 msgstr "Réflexion…"
+
+#: src/features/conversation/hooks/use-attachment.ts:39
+msgid "This file is empty."
+msgstr "Ce fichier est vide."
 
 #: src/components/shared/RouteErrorState.tsx:56
 msgid "This page could not load"
