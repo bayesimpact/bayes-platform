@@ -34,7 +34,7 @@ function buildMockAgentMembershipsService(
 }
 
 const meta = {
-  title: "routes/studio/project/agent/memberships",
+  title: "routes/studio/project/agent/members",
   parameters: { layout: "fullscreen" },
   argTypes: {
     ...studioStoryArgTypes,

@@ -56,7 +56,7 @@ function buildMockProjectMembershipsService(
 }
 
 const meta = {
-  title: "routes/studio/project/membership",
+  title: "routes/studio/project/member",
   parameters: { layout: "fullscreen" },
   argTypes: {
     ...studioStoryArgTypes,
@@ -99,6 +99,9 @@ const decorator = buildDecorator<StoryArgs>(({ withMemberAgents, memberRole, ...
       baseSeeds,
       seed.studio.projectMemberships(memberships),
       seed.studio.projectMemberAgents(memberAgents),
+      // The members route above this page waits for both.
+      seed.studio.projectAssignableRoles(SAMPLE_PROJECT_ROLES),
+      seed.studio.projectPendingInvitations([]),
       seed.currentMemberUserId(FIXED_MEMBER_USER_ID),
     ),
     services: {
