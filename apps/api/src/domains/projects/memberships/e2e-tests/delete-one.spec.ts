@@ -96,6 +96,48 @@ describe("Project membership - deleteOne", () => {
       token: accessToken,
     })
 
+  describe("guards", () => {
+    it("refuses to let someone remove themselves", async () => {
+      const { user } = await createContext()
+      memberUserId = user.id
+
+      expectResponse(await subject(), 403, "Cannot remove yourself from the project")
+    })
+
+    it("refuses to remove the last owner", async () => {
+      const { organization, project, user: owner } = await createContext()
+      const { addedUser: admin } = await addMemberByEmailToProject({
+        repositories,
+        organization,
+        project,
+        user: { email: "admin@example.com", authSubject: "oidc|admin" },
+        projectMembership: { role: "admin" },
+      })
+      authSubject = admin.authSubject!
+      memberUserId = owner.id
+
+      expectResponse(await subject(), 403, "Cannot remove the last owner of the project")
+    })
+
+    it("removes an owner while another one remains", async () => {
+      const { project, user: owner } = await createContext()
+      const { addedUser: coOwner } = await addMemberByEmailToProject({
+        repositories,
+        project,
+        user: { email: "co-owner@example.com", authSubject: "oidc|co-owner" },
+        projectMembership: { role: "owner" },
+      })
+      memberUserId = coOwner.id
+
+      expectResponse(await subject(), 200)
+      const coOwnerRows = await repositories.userMembershipRepository.find({
+        where: { userId: coOwner.id, resourceType: "project", resourceId: project.id },
+      })
+      expect(coOwnerRows).toEqual([])
+      void owner
+    })
+  })
+
   it("should successfully remove a membership", async () => {
     await createContext()
 

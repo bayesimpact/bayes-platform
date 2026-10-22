@@ -80,7 +80,7 @@ const decorator = buildDecorator<StoryArgs>(({ withMemberAgents, memberRole, ...
   const memberAgents = withMemberAgents
     ? agents.map((agent, index) =>
         projectMemberAgentFactory
-          .transient({ agent, membership })
+          .transient({ agent })
           .build(index === agents.length - 1 ? { role: null } : {}),
       )
     : []

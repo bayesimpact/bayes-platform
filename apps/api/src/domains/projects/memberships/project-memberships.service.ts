@@ -289,7 +289,7 @@ export class ProjectMembershipsService {
       if (!membership) return
 
       if (membership.userId === callerUserId) {
-        throw new Error("Cannot remove yourself from the project")
+        throw new ForbiddenException("Cannot remove yourself from the project")
       }
 
       if (hasRole(membership, PROJECT_ROLES.owner)) {
@@ -298,7 +298,7 @@ export class ProjectMembershipsService {
           roleKey: PROJECT_ROLES.owner,
         })
         if (ownerCount <= 1) {
-          throw new Error("Cannot remove the last owner of the project")
+          throw new ForbiddenException("Cannot remove the last owner of the project")
         }
       }
 

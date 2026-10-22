@@ -84,7 +84,6 @@ export const projectMembershipFactory = ProjectMembershipFactory.define(
 
 type MemberAgentTransientParams = {
   agent: Agent
-  membership?: ProjectMembership
 }
 
 class ProjectMemberAgentFactory extends Factory<ProjectMemberAgent, MemberAgentTransientParams> {}

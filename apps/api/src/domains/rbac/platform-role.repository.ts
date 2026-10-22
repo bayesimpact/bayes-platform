@@ -49,9 +49,8 @@ export class PlatformRoleRepository {
 
   /**
    * Returns true when a membership was revoked, false when there was none.
-   * Hard delete, like UserMembershipRepository.deleteMembership: the unique
-   * index on (user, role) for global memberships ignores deleted_at, so a
-   * soft-deleted row would block a later grant.
+   * Hard delete: the unique index on (user, role) for global memberships
+   * ignores deleted_at, so a soft-deleted row would block a later grant.
    */
   async revokeGlobalRole(userId: string, roleKey: PlatformRoleKey): Promise<boolean> {
     const result: unknown = await this.transactionService.getManager().query(
