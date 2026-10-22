@@ -1,9 +1,10 @@
 import type { JSONSchema7 } from "ai"
 import type {
+  LLMCallContext,
   LLMChatMessage,
   LLMConfig,
-  LLMMetadata,
   SpecificProviderOptions,
+  TelemetryMetadata,
 } from "@/common/interfaces/llm-provider.interface"
 import { removeNullish } from "@/common/utils/remove-nullish"
 
@@ -30,29 +31,29 @@ export abstract class AISDKLLMBuilders {
 
   protected buildMetadata({
     config,
-    metadata,
+    callContext,
     schema,
-    tags,
+    telemetryMetadata,
   }: {
     config: LLMConfig
-    metadata: LLMMetadata
+    callContext: LLMCallContext
     schema?: JSONSchema7
-    tags: Record<string, string | number | string[]>
-  }): Record<string, string | number | string[]> {
+    telemetryMetadata: TelemetryMetadata
+  }): TelemetryMetadata {
     return removeNullish({
       // Our trace id groups all the turns of a run; the trace backend shows it
       // as a session, and TRACE_URL_TEMPLATE links to it by this id.
-      sessionId: metadata.traceId,
-      agentSessionId: metadata.agentSessionId,
-      parentSessionId: metadata.parentSessionId,
-      userId: `o:${metadata.organizationId} / p:${metadata.projectId}`,
-      currentTurn: metadata.currentTurn,
-      revision: metadata.revision,
+      sessionId: callContext.traceId,
+      agentSessionId: callContext.agentSessionId,
+      parentSessionId: callContext.parentSessionId,
+      userId: `o:${callContext.organizationId} / p:${callContext.projectId}`,
+      currentTurn: callContext.currentTurn,
+      revision: callContext.revision,
       outputSchema: JSON.stringify(schema),
       availableTools: JSON.stringify(config.tools),
-      spanLabel: metadata.spanLabel,
-      ...metadata?.tags,
-      ...tags,
+      spanLabel: callContext.spanLabel,
+      ...callContext?.additionalMetadata,
+      ...telemetryMetadata,
     })
   }
 

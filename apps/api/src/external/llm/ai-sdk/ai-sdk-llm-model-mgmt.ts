@@ -11,11 +11,12 @@ import { trace } from "@opentelemetry/api"
 import { wrapLanguageModel } from "ai"
 import type { ZodType, z } from "zod"
 import type {
+  LLMCallContext,
   LLMChatMessage,
   LLMConfig,
-  LLMMetadata,
   LLMModelOptions,
   LLMProvider,
+  TelemetryMetadata,
 } from "@/common/interfaces/llm-provider.interface"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import type { SpecificProviderOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-builders"
@@ -149,18 +150,16 @@ export abstract class AISDKLLMModelMgmt<
   abstract getLanguageModel(args: {
     config: LLMConfig
     callOrigin: CallOrigin
-    metadata: LLMMetadata
+    callContext: LLMCallContext
   })
-  getProviderMetadata(config: LLMConfig): Record<string, string | number | string[]> {
+  getProviderMetadata(config: LLMConfig): TelemetryMetadata {
     return {
       provider: this.getAgentProvider(),
       model: config.model,
       ...removeNullish(this.getTelemetryMetadata(config)),
     }
   }
-  protected abstract getTelemetryMetadata(
-    config: LLMConfig,
-  ): Record<string, string | number | string[]>
+  protected abstract getTelemetryMetadata(config: LLMConfig): TelemetryMetadata
   abstract getAgentProvider(): Provider
 
   protected abstract readonly modelOptions: Record<AgentModelOf<Provider>, ModelOptions>
@@ -486,7 +485,7 @@ export abstract class AISDKLLMModelMgmt<
   protected getLanguageModelWithRawCapture(args: {
     config: LLMConfig
     callOrigin: CallOrigin
-    metadata: LLMMetadata
+    callContext: LLMCallContext
     /**
      * Request-scoped sink for tool calls the model verbalized in the text
      * channel. The sanitizer removes the tag before anything downstream sees

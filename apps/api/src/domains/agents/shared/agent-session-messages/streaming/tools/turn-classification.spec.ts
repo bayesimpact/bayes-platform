@@ -1,5 +1,5 @@
 import { ToolName } from "@caseai-connect/api-contracts"
-import type { LLMMetadata, LLMProvider } from "@/common/interfaces/llm-provider.interface"
+import type { LLMCallContext, LLMProvider } from "@/common/interfaces/llm-provider.interface"
 import type { RetrievedDocumentChunk } from "@/domains/documents/embeddings/document-chunk.types"
 import { createRetrievedChunksRegistry } from "./retrieved-chunks-registry"
 import type { ToolExecutionLog } from "./tool-execution-log"
@@ -25,7 +25,7 @@ const chunk = (overrides: Partial<RetrievedDocumentChunk>): RetrievedDocumentChu
   ...overrides,
 })
 
-const metadata: LLMMetadata = {
+const callContext: LLMCallContext = {
   traceId: "trace-1",
   agentSessionId: "session-1",
   currentTurn: 1,
@@ -33,7 +33,7 @@ const metadata: LLMMetadata = {
   agentId: "agent-1",
   revision: 1,
   projectId: "project-1",
-  tags: { environment: "**TEST**" },
+  additionalMetadata: { environment: "**TEST**" },
 }
 
 const connectScope = { organizationId: "org-1", projectId: "project-1" }
@@ -152,7 +152,7 @@ describe("buildTurnClassificationPrompt", () => {
 
 describe("runTurnClassification", () => {
   const baseParams = {
-    metadata,
+    callContext,
     buildConfig,
     earlierMessages: [],
     userMessage: "How many days of leave?",
@@ -199,9 +199,9 @@ describe("runTurnClassification", () => {
       suggestedTitle: "Leave",
     })
     // The classification call is tagged so traces can be filtered.
-    expect(generateStructuredOutput.mock.calls[0]?.[0]?.metadata.tags["tool.name"]).toBe(
-      "turn-classification",
-    )
+    expect(
+      generateStructuredOutput.mock.calls[0]?.[0]?.callContext.additionalMetadata["tool.name"],
+    ).toBe("turn-classification")
   })
 
   it("asks the classifier for the sources when nothing was cited inline", async () => {
@@ -312,7 +312,7 @@ describe("runTurnClassification", () => {
 
   describe("runTurnClassification - handoff", () => {
     const handoffParams = {
-      metadata,
+      callContext,
       buildConfig,
       earlierMessages: [],
       userMessage: "Doe",

@@ -52,7 +52,7 @@ export class EvaluationConversationRunLlmService extends LlmServiceBase {
       persistsForms: false,
     }
 
-    const { config, metadata, messages, mcpClose, citations, classifyTurn } =
+    const { config, callContext, messages, mcpClose, citations, classifyTurn } =
       await this.agentLlmRequestService.buildLLMRequest({
         agentSessionScope: { agent, agentSettings, session, connectScope },
         includeSessionMetadataTools: false,
@@ -70,7 +70,7 @@ export class EvaluationConversationRunLlmService extends LlmServiceBase {
       const chunks = this.getProviderForModel(config.model).streamChatResponse({
         messages,
         config,
-        metadata,
+        callContext,
       })
       for await (const chunk of chunks) {
         output += citations.feed(chunk)

@@ -1,6 +1,6 @@
 import { ToolName } from "@caseai-connect/api-contracts"
 import { wrapLanguageModel } from "ai"
-import type { LLMMetadata, LLMProvider } from "@/common/interfaces/llm-provider.interface"
+import type { LLMCallContext, LLMProvider } from "@/common/interfaces/llm-provider.interface"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { promptHelpers } from "@/domains/agents/shared/agent-session-messages/streaming/master-promts/helpers"
 import {
@@ -164,7 +164,7 @@ Always answer in English.
 
 ${promptHelpers.now()}`
 
-  const metadata: LLMMetadata = {
+  const callContext: LLMCallContext = {
     traceId: `live-regression-independent-tools-${model}`,
     agentSessionId: "live-regression-independent-tools-session",
     currentTurn: 1,
@@ -172,7 +172,7 @@ ${promptHelpers.now()}`
     agentId: "agent-1",
     revision: 1,
     projectId: connectScope.projectId,
-    tags: {
+    additionalMetadata: {
       "test.name": "live-provider-regressions",
       "test.case": "independent-tools",
       "agent.model": model,
@@ -193,7 +193,7 @@ ${promptHelpers.now()}`
       fireAndForgetToolNames: [ToolName.SurfaceResources],
       serviceTier: undefined,
     },
-    metadata,
+    callContext,
   })
   let text = ""
   for await (const chunk of chunks) text += chunk

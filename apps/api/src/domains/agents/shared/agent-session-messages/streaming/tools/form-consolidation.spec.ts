@@ -1,5 +1,5 @@
 import { describe, expect, it, jest } from "@jest/globals"
-import type { LLMMetadata, LLMProvider } from "@/common/interfaces/llm-provider.interface"
+import type { LLMCallContext, LLMProvider } from "@/common/interfaces/llm-provider.interface"
 import {
   buildConsolidationPrompt,
   buildConsolidationSchema,
@@ -19,7 +19,7 @@ const schema = {
   },
 }
 
-const metadata = {
+const callContext = {
   traceId: "trace",
   agentSessionId: "session",
   agentId: "child",
@@ -27,8 +27,8 @@ const metadata = {
   projectId: "project",
   organizationId: "organization",
   currentTurn: 2,
-  tags: { "agent.class": "sub-agent" },
-} as LLMMetadata
+  additionalMetadata: { "agent.class": "sub-agent" },
+} as LLMCallContext
 
 describe("handoffTranscriptWindow", () => {
   const messages: TranscriptMessage[] = [
@@ -118,7 +118,7 @@ describe("runFormConsolidation", () => {
     const added = await runFormConsolidation({
       provider: { generateStructuredOutput } as unknown as LLMProvider,
       buildConfig,
-      metadata,
+      callContext,
       schema,
       transcript: [{ role: "user", content: "John, 42" }],
       state: { forName: "John" },
@@ -126,12 +126,12 @@ describe("runFormConsolidation", () => {
     })
     expect(added).toEqual({ age: 42 })
     const calls = generateStructuredOutput.mock.calls as unknown as Array<
-      [{ metadata: LLMMetadata }]
+      [{ callContext: LLMCallContext }]
     >
     const call = calls[0]?.[0]
     if (!call) throw new Error("the model was not called")
-    expect(call.metadata.tags["tool.name"]).toBe("form-consolidation")
-    expect(call.metadata.spanLabel).toBe("consolidation")
+    expect(call.callContext.additionalMetadata["tool.name"]).toBe("form-consolidation")
+    expect(call.callContext.spanLabel).toBe("consolidation")
   })
 
   it("does nothing when the form is complete or the transcript empty", async () => {
@@ -140,7 +140,7 @@ describe("runFormConsolidation", () => {
     await runFormConsolidation({
       provider,
       buildConfig,
-      metadata,
+      callContext,
       schema,
       transcript: [],
       state: {},
@@ -149,7 +149,7 @@ describe("runFormConsolidation", () => {
     await runFormConsolidation({
       provider,
       buildConfig,
-      metadata,
+      callContext,
       schema,
       transcript: [{ role: "user", content: "x" }],
       state: { forName: "a", age: 1, region: "North", consent: false },
@@ -165,7 +165,7 @@ describe("runFormConsolidation", () => {
     const added = await runFormConsolidation({
       provider: { generateStructuredOutput } as unknown as LLMProvider,
       buildConfig,
-      metadata,
+      callContext,
       schema,
       transcript: [{ role: "user", content: "x" }],
       state: {},

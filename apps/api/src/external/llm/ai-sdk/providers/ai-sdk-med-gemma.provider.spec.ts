@@ -4,7 +4,7 @@ import { BatchSpanProcessor, ConsoleSpanExporter } from "@opentelemetry/sdk-trac
 import { NodeTracerProvider } from "@opentelemetry/sdk-trace-node"
 import { jsonSchema, tool } from "ai"
 import { z } from "zod"
-import type { LLMConfig, LLMMetadata } from "@/common/interfaces/llm-provider.interface"
+import type { LLMCallContext, LLMConfig } from "@/common/interfaces/llm-provider.interface"
 import { getAgentModelKey } from "@/external/llm/agent-provider"
 import { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
 import { AISDKMedGemmaProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-med-gemma.provider"
@@ -133,7 +133,7 @@ describe("AISDKMedGemmaProvider through the AI SDK (vLLM simulated)", () => {
   const API_KEY_ENV = "VLLM_MEDGEMMA10_27B_APIKEY" // gitleaks:allow (the name of the variable, not a key)
   const savedEnv = { url: process.env[URL_ENV], apiKey: process.env[API_KEY_ENV] }
 
-  const metadata: LLMMetadata = {
+  const callContext: LLMCallContext = {
     traceId: "trace-id",
     agentSessionId: "agent-session-id",
     currentTurn: 1,
@@ -141,7 +141,7 @@ describe("AISDKMedGemmaProvider through the AI SDK (vLLM simulated)", () => {
     projectId: "project-id",
     agentId: "agent-id",
     revision: 1,
-    tags: {},
+    additionalMetadata: {},
   }
 
   // Tools route the chat turn to the custom MedGemma model.
@@ -176,7 +176,7 @@ describe("AISDKMedGemmaProvider through the AI SDK (vLLM simulated)", () => {
     for await (const chunk of provider.streamChatResponse({
       messages: [{ role: "user", content: "What does it cost?" }],
       config,
-      metadata,
+      callContext,
     })) {
       text += chunk
     }
@@ -251,7 +251,7 @@ describe("AISDKMedGemmaProvider through the AI SDK (vLLM simulated)", () => {
           }),
         },
       } as LLMConfig,
-      metadata,
+      callContext,
     })) {
       text += chunk
     }
@@ -299,7 +299,7 @@ describe("AISDKMedGemmaProvider through the AI SDK (vLLM simulated)", () => {
       message: { role: "user", content: "Give it a title." },
       schema: { type: "object", properties: { title: { type: "string" } } },
       config,
-      metadata,
+      callContext,
     })
 
     expect(output).toEqual({ title: "Pricing" })

@@ -2,12 +2,12 @@ import { AgentModel } from "@caseai-connect/api-contracts"
 import { tool } from "ai"
 import { z } from "zod"
 import {
+  callContext,
   collect,
   configFor,
   gemini,
   installFakeFetch,
   installWarningCollector,
-  metadata,
   openAiChat,
 } from "@/external/llm/ai-sdk/non-regression/non-regression.harness"
 import { AISDKGemmaProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-gemma.provider"
@@ -72,7 +72,7 @@ describe("AI SDK non-regression - request and response", () => {
     it("calls the model on the EU endpoint of the project, with a Google access token", async () => {
       fakeFetch.respondWith(gemini.text("Hello"))
 
-      await provider.generateText({ prompt: "Hi", config: configFor(model), metadata })
+      await provider.generateText({ prompt: "Hi", config: configFor(model), callContext })
 
       const request = fakeFetch.onlyRequest()
       expect(request.method).toBe("POST")
@@ -89,7 +89,7 @@ describe("AI SDK non-regression - request and response", () => {
         provider.streamChatResponse({
           messages: [{ role: "user", content: "Hi" }],
           config: configFor(model),
-          metadata,
+          callContext,
         }),
       )
 
@@ -107,7 +107,7 @@ describe("AI SDK non-regression - request and response", () => {
             { role: "user", content: "How are you?" },
           ],
           config: configFor(model, { systemPrompt: "Be brief." }),
-          metadata,
+          callContext,
         }),
       )
 
@@ -130,7 +130,7 @@ describe("AI SDK non-regression - request and response", () => {
       await provider.generateText({
         prompt: "Hi",
         config: configFor(model, { serviceTier }),
-        metadata,
+        callContext,
       })
 
       expect(fakeFetch.onlyRequest().headers["x-vertex-ai-llm-shared-request-type"]).toBe(
@@ -145,7 +145,7 @@ describe("AI SDK non-regression - request and response", () => {
         provider.streamChatResponse({
           messages: [{ role: "user", content: "Hi" }],
           config: configFor(model),
-          metadata,
+          callContext,
         }),
       )
 
@@ -163,7 +163,7 @@ describe("AI SDK non-regression - request and response", () => {
         provider.streamChatResponse({
           messages: [{ role: "user", content: "Weather in Paris?" }],
           config: configFor(model, { tools }),
-          metadata,
+          callContext,
         }),
       )
 
@@ -214,7 +214,7 @@ describe("AI SDK non-regression - request and response", () => {
         message: { role: "user", content: "Summarize" },
         schema: SUMMARY_SCHEMA,
         config: configFor(model),
-        metadata,
+        callContext,
       })
 
       expect(output).toEqual({ title: "Plan", summary: "Short" })
@@ -231,7 +231,7 @@ describe("AI SDK non-regression - request and response", () => {
     it("calls the chat completions of the model's endpoint, with a Google access token", async () => {
       fakeFetch.respondWith(openAiChat.text("Hello"))
 
-      await provider.generateText({ prompt: "Hi", config: configFor(model), metadata })
+      await provider.generateText({ prompt: "Hi", config: configFor(model), callContext })
 
       const request = fakeFetch.onlyRequest()
       expect(request.url).toBe("https://gemma.vllm.test/v1/chat/completions")
@@ -252,7 +252,7 @@ describe("AI SDK non-regression - request and response", () => {
         provider.streamChatResponse({
           messages: [{ role: "user", content: "Hi" }],
           config: configFor(model),
-          metadata,
+          callContext,
         }),
       )
 
@@ -274,7 +274,7 @@ describe("AI SDK non-regression - request and response", () => {
         provider.streamChatResponse({
           messages: [{ role: "user", content: "Weather in Paris?" }],
           config: configFor(model, { tools }),
-          metadata,
+          callContext,
         }),
       )
 
@@ -305,7 +305,7 @@ describe("AI SDK non-regression - request and response", () => {
         message: { role: "user", content: "Summarize" },
         schema: SUMMARY_SCHEMA,
         config: configFor(model),
-        metadata,
+        callContext,
       })
 
     it("asks for JSON of the schema and reads the object from the text", async () => {

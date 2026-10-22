@@ -5,7 +5,7 @@ import type { AgentProvider } from "@caseai-connect/api-contracts"
 import { NotImplementedException } from "@nestjs/common"
 import { asSchema, type ToolSet } from "ai"
 import { GoogleAuth } from "google-auth-library"
-import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"
+import type { LLMConfig, TelemetryMetadata } from "@/common/interfaces/llm-provider.interface"
 import { getAgentModelKey } from "@/external/llm/agent-provider"
 import type { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
 import { AISDKLLMProviderBase } from "@/external/llm/ai-sdk/ai-sdk-llm-provider-base"
@@ -43,7 +43,7 @@ export abstract class AISDKVllmProviderBase<
   }
 
   /** Nothing beyond the provider and the model, which every call already carries. */
-  protected getTelemetryMetadata(_config: LLMConfig): Record<string, string | number | string[]> {
+  protected getTelemetryMetadata(_config: LLMConfig): TelemetryMetadata {
     return {}
   }
 

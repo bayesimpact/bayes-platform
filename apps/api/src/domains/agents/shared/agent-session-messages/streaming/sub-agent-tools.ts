@@ -3,9 +3,9 @@ import { trace } from "@opentelemetry/api"
 import type { ToolSet } from "ai"
 import type {
   BuildLLMConfigParams,
+  LLMCallContext,
   LLMConfig,
   LLMFeatures,
-  LLMMetadata,
   LLMProvider,
 } from "@/common/interfaces/llm-provider.interface"
 import type { Agent } from "@/domains/agents/agent.entity"
@@ -318,7 +318,7 @@ async function runSubAgentTool({
       llmFeatures,
     })
 
-    const metadata = buildSubAgentMetadata({
+    const callContext = buildSubAgentCallContext({
       childAgent,
       childAgentSettings,
       agentSessionScope,
@@ -346,7 +346,7 @@ async function runSubAgentTool({
           const chunks = provider.streamChatResponse({
             messages: [{ role: "user", content: userMessage }],
             config,
-            metadata,
+            callContext,
           })
 
           // The child's inline citations are stripped from the answer the
@@ -371,7 +371,7 @@ async function runSubAgentTool({
                   priorityCallsEnabled: childAgentSettings.priorityCallsEnabled,
                   llmFeatures,
                 }),
-              metadata,
+              callContext,
               earlierMessages: [],
               userMessage,
               answerText: answer,
@@ -503,7 +503,7 @@ function buildSubAgentInstructions(childAgentSettings: AgentSettings): string {
   ].join("\n")
 }
 
-function buildSubAgentMetadata({
+function buildSubAgentCallContext({
   childAgent,
   childAgentSettings,
   agentSessionScope,
@@ -515,7 +515,7 @@ function buildSubAgentMetadata({
   childAgentSettings: AgentSettings
   childSession: StreamingSession
   subAgentTraceId: string
-}): LLMMetadata {
+}): LLMCallContext {
   const {
     connectScope,
     agent: parentAgent,
@@ -536,7 +536,7 @@ function buildSubAgentMetadata({
     projectId: childAgent.projectId,
     organizationId: session?.organizationId ?? connectScope.organizationId,
     currentTurn: session?.messages?.filter((message) => message.role === "user").length ?? 0,
-    tags: {
+    additionalMetadata: {
       "agent.name": childAgent.name,
       "agent.revision": childAgentSettings.revision,
       "agent.type": childAgent.type,

@@ -3,12 +3,12 @@ import type { LLMServiceTier } from "@/common/interfaces/llm-provider.interface"
 import type { AISDKLLMProviderBase } from "@/external/llm/ai-sdk/ai-sdk-llm-provider-base"
 import {
   type CapturedRequest,
+  callContext,
   collect,
   configFor,
   gemini,
   installFakeFetch,
   installWarningCollector,
-  metadata,
   modelOptionLeaves,
   modelsOf,
   openAiChat,
@@ -165,12 +165,12 @@ describe("AI SDK non-regression - model options reach the request", () => {
     const config = configFor(model, { modelOptions, serviceTier })
     const text =
       call === "generateText"
-        ? await providerUnderTest.instance.generateText({ prompt: "Hi", config, metadata })
+        ? await providerUnderTest.instance.generateText({ prompt: "Hi", config, callContext })
         : await collect(
             providerUnderTest.instance.streamChatResponse({
               messages: [{ role: "user", content: "Hi" }],
               config,
-              metadata,
+              callContext,
             }),
           )
     expect(text).toBe("Hello")

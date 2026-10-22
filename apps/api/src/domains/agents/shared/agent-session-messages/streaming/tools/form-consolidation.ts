@@ -6,8 +6,8 @@ import {
 import { Logger } from "@nestjs/common"
 import type { z } from "zod"
 import type {
+  LLMCallContext,
   LLMConfig,
-  LLMMetadata,
   LLMProvider,
 } from "@/common/interfaces/llm-provider.interface"
 import { castToolInputParameters } from "@/common/zod-helper"
@@ -192,7 +192,7 @@ export function pickMissingFields({
 export async function runFormConsolidation({
   provider,
   buildConfig,
-  metadata,
+  callContext,
   schema,
   transcript,
   state,
@@ -200,7 +200,7 @@ export async function runFormConsolidation({
 }: {
   provider: LLMProvider
   buildConfig: (systemPrompt: string) => LLMConfig
-  metadata: LLMMetadata
+  callContext: LLMCallContext
   schema: OutputJsonSchema
   transcript: TranscriptMessage[]
   state: Record<string, unknown>
@@ -221,16 +221,21 @@ export async function runFormConsolidation({
       message: { role: "user", content: userContent },
       schema: buildConsolidationSchema(schema),
       config: buildConfig(systemPrompt),
-      metadata: {
-        ...metadata,
-        tags: { ...metadata.tags, "tool.name": "form-consolidation" },
-        spanLabel: metadata.spanLabel ? `${metadata.spanLabel} · consolidation` : "consolidation",
+      callContext: {
+        ...callContext,
+        additionalMetadata: {
+          ...callContext.additionalMetadata,
+          "tool.name": "form-consolidation",
+        },
+        spanLabel: callContext.spanLabel
+          ? `${callContext.spanLabel} · consolidation`
+          : "consolidation",
       },
     })
     return pickMissingFields({ state, extracted })
   } catch (error) {
     logger.error(
-      `form consolidation failed (agent ${metadata.agentId}, session ${metadata.agentSessionId}): ${error instanceof Error ? error.message : error}`,
+      `form consolidation failed (agent ${callContext.agentId}, session ${callContext.agentSessionId}): ${error instanceof Error ? error.message : error}`,
     )
     return {}
   }

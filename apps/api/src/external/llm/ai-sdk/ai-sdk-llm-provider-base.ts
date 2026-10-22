@@ -3,9 +3,9 @@ import { Logger } from "@nestjs/common"
 import { trace } from "@opentelemetry/api"
 import { generateText, jsonSchema, Output, ToolLoopAgent } from "ai"
 import type {
+  LLMCallContext,
   LLMChatMessage,
   LLMConfig,
-  LLMMetadata,
   LLMProvider,
 } from "@/common/interfaces/llm-provider.interface"
 import { removeNullish } from "@/common/utils/remove-nullish"
@@ -35,11 +35,11 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
   async *streamChatResponse({
     messages,
     config,
-    metadata,
+    callContext,
   }: {
     messages: LLMChatMessage[]
     config: LLMConfig
-    metadata: LLMMetadata
+    callContext: LLMCallContext
   }): AsyncGenerator<string, void, unknown> {
     const callOrigin = config.tools
       ? CallOrigin.streamChatResponse_withTools
@@ -49,7 +49,7 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
 
     const systemMessage = messages.find((msg) => msg.role === "system")?.content
     const functionId = this.buildFunctionIdForStreamChatResponse(aiSDKMessages)
-    const tags = this.getTelemetryMetadata(config)
+    const telemetryMetadata = this.getTelemetryMetadata(config)
     // Request-scoped: tool calls the model verbalized in the text channel
     // instead of emitting them. Collected by the raw-capture middleware and
     // recovered after the stream (see recoverLeakedToolCalls).
@@ -57,7 +57,7 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
     const modelWithoutLeakedToolCalls = this.getLanguageModelWithRawCapture({
       config,
       callOrigin,
-      metadata,
+      callContext,
     })
 
     const systemPrompt = this.applySpecificToSystemPrompt({
@@ -67,7 +67,12 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
     })
 
     const agent = new ToolLoopAgent({
-      model: this.getLanguageModelWithRawCapture({ config, callOrigin, metadata, leakedToolCalls }),
+      model: this.getLanguageModelWithRawCapture({
+        config,
+        callOrigin,
+        callContext,
+        leakedToolCalls,
+      }),
       // Passed as instructions, not as a system message in `messages`: the AI SDK
       // warns on every call otherwise (prompt injection risk).
       ...(systemPrompt ? { instructions: systemPrompt } : {}),
@@ -79,15 +84,15 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
       experimental_repairToolCall: this.buildToolCallRepair({
         model: modelWithoutLeakedToolCalls,
         config,
-        metadata,
+        callContext,
         functionId,
-        tags,
+        telemetryMetadata,
       }),
       experimental_telemetry: {
         isEnabled: true,
         functionId,
         metadata: removeNullish({
-          ...this.buildMetadata({ config, metadata, tags }),
+          ...this.buildMetadata({ config, callContext, telemetryMetadata }),
           userMessage: this.buildUserMessageForTelemetry(aiSDKMessages),
         }),
       },
@@ -126,34 +131,34 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
     await this.recoverLeakedToolCalls({
       model: modelWithoutLeakedToolCalls,
       config,
-      metadata,
+      callContext,
       functionId,
       leakedToolCalls,
       streamResult,
-      tags,
+      telemetryMetadata,
     })
   }
 
   async generateText({
     prompt,
     config,
-    metadata,
+    callContext,
   }: {
     prompt: string
     config: LLMConfig
-    metadata: LLMMetadata
+    callContext: LLMCallContext
   }): Promise<string> {
     const callOrigin = CallOrigin.generateText
     this.checkConfigProviderAndModel(config)
-    const tags = this.getTelemetryMetadata(config)
+    const telemetryMetadata = this.getTelemetryMetadata(config)
     const { text } = await generateText({
-      model: this.getLanguageModelWithRawCapture({ config, callOrigin, metadata }),
+      model: this.getLanguageModelWithRawCapture({ config, callOrigin, callContext }),
       system: config.systemPrompt,
       prompt,
       experimental_telemetry: {
         isEnabled: true,
         functionId: "LLMProvider.generateText",
-        metadata: this.buildMetadata({ config, metadata, tags }),
+        metadata: this.buildMetadata({ config, callContext, telemetryMetadata }),
       },
       ...this.buildSpecificProviderOptions({ config }),
     })
@@ -164,21 +169,21 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
     message,
     schema,
     config,
-    metadata,
+    callContext,
   }: {
     message: LLMChatMessage
     schema: Record<string, unknown>
     config: LLMConfig
-    metadata: LLMMetadata
+    callContext: LLMCallContext
   }): Promise<Record<string, unknown>> {
     const callOrigin = CallOrigin.generateStructuredOutput
     this.checkConfigProviderAndModel(config)
     message = this.applySpecificToStructuredOutputMessage({ message, config })
 
     const aiSDKMessages = this.toConversationMessages([message], "generate structured output")
-    const tags = this.getTelemetryMetadata(config)
+    const telemetryMetadata = this.getTelemetryMetadata(config)
     const result = await generateText({
-      model: this.getLanguageModelWithRawCapture({ config, callOrigin, metadata }),
+      model: this.getLanguageModelWithRawCapture({ config, callOrigin, callContext }),
       messages: aiSDKMessages,
       system: config.systemPrompt,
       output: Output.object({
@@ -189,9 +194,9 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
         functionId: "LLMProvider.generateStructuredOutput",
         metadata: this.buildMetadata({
           config,
-          metadata,
+          callContext,
           schema,
-          tags,
+          telemetryMetadata,
         }),
       },
       ...this.buildSpecificProviderOptions({ config }),

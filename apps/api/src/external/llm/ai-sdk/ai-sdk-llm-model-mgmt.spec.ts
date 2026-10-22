@@ -11,9 +11,10 @@ import { simulateReadableStream } from "ai"
 import { MockLanguageModelV3 } from "ai/test"
 import { z } from "zod"
 import type {
+  LLMCallContext,
   LLMChatMessage,
   LLMConfig,
-  LLMMetadata,
+  TelemetryMetadata,
 } from "@/common/interfaces/llm-provider.interface"
 import type { SpecificProviderOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-builders"
 import {
@@ -60,7 +61,7 @@ const mockConfig: LLMConfig = {
   serviceTier: undefined,
 }
 
-const mockMetadata: LLMMetadata = {
+const mockCallContext: LLMCallContext = {
   traceId: "trace-id",
   agentSessionId: "agent-session-id",
   currentTurn: 1,
@@ -68,7 +69,7 @@ const mockMetadata: LLMMetadata = {
   projectId: "project-id",
   agentId: "agent-id",
   revision: 1,
-  tags: {},
+  additionalMetadata: {},
 }
 
 class TestModelMgmt extends AISDKLLMModelMgmt<AgentProvider._Mock> {
@@ -97,11 +98,11 @@ class TestModelMgmt extends AISDKLLMModelMgmt<AgentProvider._Mock> {
     return this.getLanguageModelWithRawCapture({
       config: mockConfig,
       callOrigin: CallOrigin.streamChatResponse_withTools,
-      metadata: mockMetadata,
+      callContext: mockCallContext,
       leakedToolCalls,
     })
   }
-  getTelemetryMetadata(_config: LLMConfig): Record<string, string | number | string[]> {
+  getTelemetryMetadata(_config: LLMConfig): TelemetryMetadata {
     return {}
   }
 

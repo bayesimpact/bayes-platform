@@ -1,7 +1,7 @@
 import type { AgentModel, AgentProvider } from "@caseai-connect/api-contracts"
 import { AgentModelToAgentProvider } from "@caseai-connect/api-contracts"
 import { z } from "zod"
-import type { LLMConfig, LLMMetadata } from "@/common/interfaces/llm-provider.interface"
+import type { LLMCallContext, LLMConfig } from "@/common/interfaces/llm-provider.interface"
 import type { AISDKLLMProviderBase } from "@/external/llm/ai-sdk/ai-sdk-llm-provider-base"
 
 /**
@@ -290,7 +290,7 @@ export const openResponses = {
   },
 }
 
-export const metadata: LLMMetadata = {
+export const callContext: LLMCallContext = {
   traceId: "trace-1",
   organizationId: "organization-1",
   projectId: "project-1",
@@ -298,7 +298,7 @@ export const metadata: LLMMetadata = {
   agentSessionId: "session-1",
   currentTurn: 1,
   revision: 1,
-  tags: {},
+  additionalMetadata: {},
 }
 
 export function configFor(

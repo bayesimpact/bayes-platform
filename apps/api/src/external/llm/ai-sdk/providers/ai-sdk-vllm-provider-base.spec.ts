@@ -3,7 +3,7 @@ import { AgentModel, type AgentModelOf, AgentProvider } from "@caseai-connect/ap
 import { jsonSchema, type ToolSet, tool } from "ai"
 import { GoogleAuth } from "google-auth-library"
 import { z } from "zod"
-import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"
+import type { LLMConfig, TelemetryMetadata } from "@/common/interfaces/llm-provider.interface"
 import { zNullableType } from "@/common/zod-helper"
 import { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
 import type { ModelInfos, ModelOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
@@ -38,7 +38,7 @@ class TestVllmProvider extends AISDKVllmProviderBase<AgentProvider.Gemma> {
   authFor(): Pick<GoogleAuth, "getClient"> {
     return this.auth
   }
-  getTelemetryMetadata(_config: LLMConfig): Record<string, string | number | string[]> {
+  getTelemetryMetadata(_config: LLMConfig): TelemetryMetadata {
     return {}
   }
 }

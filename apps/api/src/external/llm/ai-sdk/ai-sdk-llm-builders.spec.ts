@@ -2,9 +2,10 @@ import { AgentModel } from "@caseai-connect/api-contracts"
 import { type JSONSchema7, tool } from "ai"
 import { z } from "zod"
 import type {
+  LLMCallContext,
   LLMChatMessage,
   LLMConfig,
-  LLMMetadata,
+  TelemetryMetadata,
 } from "@/common/interfaces/llm-provider.interface"
 import {
   AISDKLLMBuilders,
@@ -15,9 +16,9 @@ import type { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
 type BuildArgs = {
   config: LLMConfig
   callOrigin: CallOrigin
-  metadata: LLMMetadata
+  callContext: LLMCallContext
   schema?: JSONSchema7
-  tags: Record<string, string | number | string[]>
+  telemetryMetadata: TelemetryMetadata
 }
 
 class TestBuilders extends AISDKLLMBuilders {
@@ -45,7 +46,7 @@ describe("AISDKLLMBuilders", () => {
     serviceTier: undefined,
   }
 
-  const metadata: LLMMetadata = {
+  const callContext: LLMCallContext = {
     traceId: "trace-id",
     agentSessionId: "agent-session-id",
     currentTurn: 2,
@@ -53,7 +54,7 @@ describe("AISDKLLMBuilders", () => {
     projectId: "project-id",
     agentId: "agent-id",
     revision: 3,
-    tags: { "metadata-tag": "metadata-tag" },
+    additionalMetadata: { "metadata-tag": "metadata-tag" },
   }
 
   describe("buildFunctionIdForStreamChatResponse", () => {
@@ -113,7 +114,7 @@ describe("AISDKLLMBuilders", () => {
   })
 
   describe("buildMetadata", () => {
-    it("maps the call metadata and merges the tags", () => {
+    it("maps the call context and merges the additional and telemetry metadata", () => {
       const tools = {
         lookup: tool({
           description: "Looks up a topic",
@@ -124,13 +125,13 @@ describe("AISDKLLMBuilders", () => {
 
       const result = builders.metadataFor({
         config: { ...config, tools },
-        metadata: {
-          ...metadata,
+        callContext: {
+          ...callContext,
           parentSessionId: "parent-session-id",
           spanLabel: "classification",
         },
         schema,
-        tags: { "call-tag": "call-tag" },
+        telemetryMetadata: { "call-tag": "call-tag" },
       })
 
       expect(result).toEqual({
@@ -149,7 +150,7 @@ describe("AISDKLLMBuilders", () => {
     })
 
     it("leaves out the fields that are not set", () => {
-      const result = builders.metadataFor({ config, metadata, tags: {} })
+      const result = builders.metadataFor({ config, callContext, telemetryMetadata: {} })
 
       expect(result).toEqual({
         sessionId: "trace-id",

@@ -93,7 +93,10 @@ export type LLMConfig =
       serviceTier: LLMServiceTier
     }
 export type LLMServiceTier = "priority" | "flex" | undefined
-export type LLMMetadata = (
+/** What a call's telemetry carries, flattened onto its spans. */
+export type TelemetryMetadata = Record<string, string | number | string[]>
+
+export type LLMCallContext = (
   | {
       evaluationReportId?: never
       agentSessionId: string
@@ -110,7 +113,7 @@ export type LLMMetadata = (
   agentId: string
   revision: number
   projectId: string
-  tags: Record<string, string | number | string[]>
+  additionalMetadata: TelemetryMetadata
   /**
    * Session of the parent run, set by sub-agents so their dedicated traces link
    * back to it.
@@ -144,28 +147,28 @@ export interface LLMProvider {
   streamChatResponse({
     messages,
     config,
-    metadata,
+    callContext,
   }: {
     messages: LLMChatMessage[]
     config: LLMConfig
-    metadata: LLMMetadata
+    callContext: LLMCallContext
   }): AsyncGenerator<string, void, unknown>
 
   generateText({
     prompt,
     config,
-    metadata,
+    callContext,
   }: {
     prompt: string
     config: LLMConfig
-    metadata: LLMMetadata
+    callContext: LLMCallContext
   }): Promise<string>
 
   generateStructuredOutput(params: {
     message: LLMChatMessage
     schema: Record<string, unknown>
     config: LLMConfig
-    metadata: LLMMetadata
+    callContext: LLMCallContext
   }): Promise<Record<string, unknown>>
 }
 export interface LLMFile {

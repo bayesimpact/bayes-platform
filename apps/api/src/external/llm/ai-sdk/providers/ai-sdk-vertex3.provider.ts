@@ -3,7 +3,11 @@ import { AgentModel, type AgentModelOf, AgentProvider } from "@caseai-connect/ap
 import { Injectable } from "@nestjs/common"
 import type { LanguageModel } from "ai"
 import { z } from "zod"
-import type { LLMConfig, LLMModelOptions } from "@/common/interfaces/llm-provider.interface"
+import type {
+  LLMConfig,
+  LLMModelOptions,
+  TelemetryMetadata,
+} from "@/common/interfaces/llm-provider.interface"
 import type { SpecificProviderOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-builders"
 import type { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
 import {
@@ -236,7 +240,7 @@ export class AISDKVertex3Provider extends AISDKLLMProviderBase<AgentProvider.Ver
     return {}
   }
 
-  getTelemetryMetadata(config: LLMConfig): Record<string, string | number | string[]> {
+  getTelemetryMetadata(config: LLMConfig): TelemetryMetadata {
     return {
       project: this.vertexProject,
       location: this.locationForModel(config.model),

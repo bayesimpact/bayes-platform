@@ -4,9 +4,9 @@ import type { FilePart, ImagePart } from "ai"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import type {
   BuildLLMConfigParams,
+  LLMCallContext,
   LLMChatMessage,
   LLMConfig,
-  LLMMetadata,
   LLMProvider,
 } from "@/common/interfaces/llm-provider.interface"
 import type { Agent } from "@/domains/agents/agent.entity"
@@ -39,7 +39,7 @@ import { ToolsService } from "./tools.service"
 
 export type BuiltLLMRequest = {
   config: LLMConfig
-  metadata: LLMMetadata
+  callContext: LLMCallContext
   messages: LLMChatMessage[]
   mcpClose: (() => Promise<void>) | undefined
   /**
@@ -146,7 +146,7 @@ export class AgentLlmRequestService {
       llmFeatures,
     })
 
-    const metadata: LLMMetadata = this.buildLLMData({
+    const callContext: LLMCallContext = this.buildLLMData({
       session,
       agent,
       agentSettings,
@@ -194,7 +194,7 @@ export class AgentLlmRequestService {
             priorityCallsEnabled: agentSettings.priorityCallsEnabled,
             llmFeatures,
           }),
-        metadata,
+        callContext,
         earlierMessages: messages.slice(0, -1),
         userMessage: currentUserMessage ? llmMessageText(currentUserMessage) : "",
         answerText,
@@ -202,7 +202,7 @@ export class AgentLlmRequestService {
       })
     }
 
-    return { config, metadata, messages, mcpClose, citations, classifyTurn }
+    return { config, callContext, messages, mcpClose, citations, classifyTurn }
   }
 
   private buildLLMData({
@@ -217,11 +217,11 @@ export class AgentLlmRequestService {
     agentSettings: AgentSettings
     hasSubAgentTools: boolean
     spanLabel?: string
-  }): LLMMetadata {
+  }): LLMCallContext {
     this.logger.log(
       `Agent "${agent.name}" (${agent.id}) trace: ${getTraceUrl(session.traceId) ?? session.traceId} (session ${session.id})`,
     )
-    const metadata = {
+    const additionalMetadata = {
       "agent.name": agent.name,
       "agent.revision": agentSettings.revision,
       "agent.type": agent.type,
@@ -235,7 +235,7 @@ export class AgentLlmRequestService {
       projectId: agent.projectId,
       organizationId: session.organizationId,
       currentTurn: session.messages.filter((message) => message.role === "user").length,
-      tags: metadata,
+      additionalMetadata,
       ...(spanLabel ? { spanLabel } : {}),
     }
   }

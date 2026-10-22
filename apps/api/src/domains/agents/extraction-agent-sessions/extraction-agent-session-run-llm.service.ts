@@ -6,7 +6,7 @@ import { JSONParseError, TypeValidationError } from "ai"
 import type { Repository } from "typeorm"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
-import type { LLMChatMessage, LLMMetadata } from "@/common/interfaces/llm-provider.interface"
+import type { LLMCallContext, LLMChatMessage } from "@/common/interfaces/llm-provider.interface"
 import { todaysDatePromptLine } from "@/common/utils/todays-date-prompt-line"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import type { Document } from "@/domains/documents/document.entity"
@@ -124,7 +124,7 @@ export class ExtractionAgentSessionRunLlmService extends LlmServiceBase {
           priorityCallsEnabled: agentSettings.priorityCallsEnabled,
           llmFeatures,
         }),
-        metadata: this.buildLLMMetadata({ agent, agentSettings, run, connectScope }),
+        callContext: this.buildLLMCallContext({ agent, agentSettings, run, connectScope }),
       })
 
       run.status = "success"
@@ -276,7 +276,7 @@ export class ExtractionAgentSessionRunLlmService extends LlmServiceBase {
     return llmMessage
   }
 
-  private buildLLMMetadata({
+  private buildLLMCallContext({
     agent,
     agentSettings,
     run,
@@ -286,7 +286,7 @@ export class ExtractionAgentSessionRunLlmService extends LlmServiceBase {
     agentSettings: AgentSettings
     run: ExtractionAgentSession
     connectScope: RequiredConnectScope
-  }): LLMMetadata {
+  }): LLMCallContext {
     return {
       traceId: run.traceId,
       organizationId: connectScope.organizationId,
@@ -295,7 +295,7 @@ export class ExtractionAgentSessionRunLlmService extends LlmServiceBase {
       revision: agentSettings.revision,
       projectId: connectScope.projectId,
       currentTurn: 1,
-      tags: {
+      additionalMetadata: {
         "agent.name": agent.name,
         "agent.revision": agentSettings.revision,
         "agent.type": agent.type,

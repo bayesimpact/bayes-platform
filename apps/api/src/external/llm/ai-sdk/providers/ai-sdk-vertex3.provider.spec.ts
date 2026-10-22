@@ -323,10 +323,10 @@ describe("AISDKVertex3Provider thinking level", () => {
   })
 
   it("tags the call with the level it runs on", () => {
-    const tags = new AISDKVertex3Provider().getTelemetryMetadata(
+    const telemetryMetadata = new AISDKVertex3Provider().getTelemetryMetadata(
       buildConfig(AgentModel.Gemini35Flash, "low"),
     )
-    expect(tags.thinkingLevel).toBe("LOW")
+    expect(telemetryMetadata.thinkingLevel).toBe("LOW")
   })
 
   it("throws on a model the provider does not serve", () => {

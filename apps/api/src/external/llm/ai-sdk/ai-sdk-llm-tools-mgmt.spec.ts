@@ -17,7 +17,11 @@ import {
 } from "ai"
 import { MockLanguageModelV3 } from "ai/test"
 import { z } from "zod"
-import type { LLMConfig, LLMMetadata } from "@/common/interfaces/llm-provider.interface"
+import type {
+  LLMCallContext,
+  LLMConfig,
+  TelemetryMetadata,
+} from "@/common/interfaces/llm-provider.interface"
 import type { SpecificProviderOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-builders"
 import {
   AISDKLLMToolsMgmt,
@@ -29,9 +33,9 @@ import { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.p
 type CallArgs = {
   model: LanguageModelV3
   config: LLMConfig
-  metadata: LLMMetadata
+  callContext: LLMCallContext
   functionId: string
-  tags: Record<string, string | number | string[]>
+  telemetryMetadata: TelemetryMetadata
 }
 
 type ExecutedSteps = Array<{ toolResults: Array<{ toolName: string; output: unknown }> }>
@@ -162,7 +166,7 @@ async function shouldStop(
   return results.some(Boolean)
 }
 
-const metadata: LLMMetadata = {
+const callContext: LLMCallContext = {
   traceId: "trace-id",
   agentSessionId: "agent-session-id",
   currentTurn: 1,
@@ -170,7 +174,7 @@ const metadata: LLMMetadata = {
   projectId: "project-id",
   agentId: "agent-id",
   revision: 1,
-  tags: {},
+  additionalMetadata: {},
 }
 
 const baseConfig: LLMConfig = {
@@ -184,9 +188,9 @@ function buildCallArgs(model: LanguageModelV3, config: LLMConfig = baseConfig): 
   return {
     model,
     config,
-    metadata,
+    callContext,
     functionId: "function-id",
-    tags: {},
+    telemetryMetadata: {},
   }
 }
 
@@ -315,7 +319,7 @@ describe("AISDKLLMToolsMgmt", () => {
         provider.resetMock()
       })
 
-      const metadata: LLMMetadata = {
+      const callContext: LLMCallContext = {
         traceId: "trace-1",
         agentSessionId: "session-1",
         currentTurn: 1,
@@ -323,7 +327,7 @@ describe("AISDKLLMToolsMgmt", () => {
         agentId: "agent-1",
         revision: 1,
         projectId: "project-1",
-        tags: {},
+        additionalMetadata: {},
       }
 
       const buildConfig = ({
@@ -349,7 +353,7 @@ describe("AISDKLLMToolsMgmt", () => {
         for await (const chunk of provider.streamChatResponse({
           messages: [{ role: "user", content: "Non applicable." }],
           config,
-          metadata,
+          callContext,
         })) {
           text += chunk
         }
@@ -613,7 +617,7 @@ describe("AISDKLLMToolsMgmt", () => {
         provider.resetMock()
       })
 
-      const metadata: LLMMetadata = {
+      const callContext: LLMCallContext = {
         traceId: "trace-1",
         agentSessionId: "session-1",
         currentTurn: 1,
@@ -621,7 +625,7 @@ describe("AISDKLLMToolsMgmt", () => {
         agentId: "agent-1",
         revision: 1,
         projectId: "project-1",
-        tags: {},
+        additionalMetadata: {},
       }
 
       const buildConfig = ({
@@ -651,7 +655,7 @@ describe("AISDKLLMToolsMgmt", () => {
         for await (const chunk of provider.streamChatResponse({
           messages: [{ role: "user", content: "Je veux parler à quelqu'un." }],
           config,
-          metadata,
+          callContext,
         })) {
           text += chunk
         }
