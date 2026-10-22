@@ -5,12 +5,14 @@ import type {
   CsvExtractionRunDetailOutputDto,
   ExtractionRunOutputDto,
 } from "@caseai-connect/desk-contracts"
+import type { I18n, MessageDescriptor } from "@lingui/core"
+import { msg } from "@lingui/core/macro"
 
 /** The agent whose history the sidebar shows: its type says which lists make it. */
 export type HistoryAgent = AgentParamsDto & { type: AgentTypeDto }
 
 /** How an entry's run went, when it can still be pending or has failed. */
-type HistoryEntryState = "done" | "pending" | "failed"
+export type HistoryEntryState = "done" | "pending" | "failed"
 
 /** One line of the history: a conversation, or the extraction of a document or a CSV file. */
 export type HistoryEntry =
@@ -29,6 +31,19 @@ export type HistoryEntry =
       state: HistoryEntryState
       createdAt: number
     }
+
+/** What an entry is named when it has no name of its own, for each kind. */
+const UNTITLED_ENTRY_TITLES = {
+  conversation: msg`New conversation`,
+  extraction: msg`Untitled document`,
+  csv: msg({ message: "CSV extraction", comment: "An extraction of every row of a spreadsheet" }),
+} as const satisfies Record<HistoryEntry["kind"], MessageDescriptor>
+
+/** An entry's title, as the history, its menu and its toasts show it. */
+export function entryTitleOf(entry: HistoryEntry, i18n: I18n): string {
+  const name = entry.kind === "conversation" ? entry.title : entry.fileName
+  return name ?? i18n._(UNTITLED_ENTRY_TITLES[entry.kind])
+}
 
 export function conversationEntries(conversations: ConversationSessionOutputDto[]): HistoryEntry[] {
   return conversations.map((conversation) => ({
@@ -112,7 +127,6 @@ export function groupByPeriod(entries: HistoryEntry[], now: number): HistoryGrou
   })
 }
 
-/** Whether an extraction of the history still goes on, so the history follows it. */
 /** Whether one of these extractions of a document still goes on. */
 export function hasPendingExtractionRun(runs: ExtractionRunOutputDto[] | undefined): boolean {
   return (runs ?? []).some((run) => run.status === "pending")

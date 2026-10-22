@@ -17,8 +17,8 @@ export type DeleteEntryDialogProps = {
   entry: DeletedEntry
   /** The entry's name, as the page or the history shows it. */
   title: string
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  isOpen: boolean
+  onOpenChange: (isOpen: boolean) => void
   onDeleted: () => void
 }
 
@@ -27,7 +27,7 @@ export function DeleteEntryDialog({
   agent,
   entry,
   title,
-  open,
+  isOpen,
   onOpenChange,
   onDeleted,
 }: DeleteEntryDialogProps) {
@@ -43,7 +43,7 @@ export function DeleteEntryDialog({
     })
 
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
+    <AlertDialog open={isOpen} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>

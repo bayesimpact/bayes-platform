@@ -1,19 +1,23 @@
-import { Trans, useLingui } from "@lingui/react/macro"
+import { useLingui } from "@lingui/react/macro"
 import { Link } from "@tanstack/react-router"
-import { CircleAlertIcon, LoaderCircleIcon } from "lucide-react"
+import { RunStateIcon } from "@/components/shared/RunStateIcon"
 import { SidebarMenuButton } from "@/components/ui/sidebar"
 import { agentParamsOf } from "@/lib/agent-params"
-import type { HistoryAgent, HistoryEntry } from "../history-entries"
+import { RUN_STATE_LABELS, type RunState } from "@/lib/run-state"
+import type { HistoryAgent, HistoryEntry, HistoryEntryState } from "../history-entries"
 
 export type HistoryEntryLinkProps = {
   agent: HistoryAgent
   entry: HistoryEntry
+  /** The entry's name, as `entryTitleOf` gives it. */
+  title: string
 }
 
+const className = "data-[status=active]:bg-sidebar-accent data-[status=active]:font-medium"
+
 /** One line of the history, which opens its conversation or extraction. */
-export function HistoryEntryLink({ agent, entry }: HistoryEntryLinkProps) {
+export function HistoryEntryLink({ agent, entry, title }: HistoryEntryLinkProps) {
   const agentParams = agentParamsOf(agent)
-  const className = "data-[status=active]:bg-sidebar-accent data-[status=active]:font-medium"
   switch (entry.kind) {
     case "conversation":
       return (
@@ -26,7 +30,7 @@ export function HistoryEntryLink({ agent, entry }: HistoryEntryLinkProps) {
             />
           }
         >
-          <span className="truncate">{entry.title ?? <Trans>New conversation</Trans>}</span>
+          <span className="truncate">{title}</span>
         </SidebarMenuButton>
       )
     case "extraction":
@@ -40,7 +44,7 @@ export function HistoryEntryLink({ agent, entry }: HistoryEntryLinkProps) {
             />
           }
         >
-          <span className="truncate">{entry.fileName ?? <Trans>Untitled document</Trans>}</span>
+          <span className="truncate">{title}</span>
           <RunStateMark state={entry.state} />
         </SidebarMenuButton>
       )
@@ -55,35 +59,33 @@ export function HistoryEntryLink({ agent, entry }: HistoryEntryLinkProps) {
             />
           }
         >
-          <span className="truncate">
-            {entry.fileName ?? (
-              <Trans comment="An extraction of every row of a spreadsheet">CSV extraction</Trans>
-            )}
-          </span>
+          <span className="truncate">{title}</span>
           <RunStateMark state={entry.state} />
         </SidebarMenuButton>
       )
+    default:
+      return entry satisfies never
   }
 }
 
+/** The mark of an extraction in the history: while it runs and once it failed, none once done. */
+const RUN_STATE_MARKS = {
+  pending: "running",
+  failed: "failed",
+  done: null,
+} as const satisfies Record<HistoryEntryState, RunState | null>
+
 type RunStateMarkProps = {
-  state: Extract<HistoryEntry, { state: unknown }>["state"]
+  state: HistoryEntryState
 }
 
-/** A small mark on the extractions still running or failed; nothing on the ones done. */
 function RunStateMark({ state }: RunStateMarkProps) {
-  const { t } = useLingui()
-  if (state === "pending")
-    return (
-      <LoaderCircleIcon
-        role="img"
-        aria-label={t`In progress`}
-        className="ml-auto animate-spin text-muted-foreground motion-reduce:animate-none"
-      />
-    )
-  if (state === "failed")
-    return (
-      <CircleAlertIcon role="img" aria-label={t`Failed`} className="ml-auto text-destructive" />
-    )
-  return null
+  const { i18n } = useLingui()
+  const runState = RUN_STATE_MARKS[state]
+  if (!runState) return null
+  return (
+    <span role="img" aria-label={i18n._(RUN_STATE_LABELS[runState])} className="ml-auto flex">
+      <RunStateIcon state={runState} isMuted className="size-4 shrink-0" />
+    </span>
+  )
 }

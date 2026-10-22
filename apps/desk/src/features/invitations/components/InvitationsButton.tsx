@@ -5,6 +5,7 @@ import { MailIcon } from "lucide-react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { RELATIVE_TIME_INTERVAL_IN_MILLISECONDS, useNow } from "@/hooks/use-now"
 import { useAnswerInvitation } from "../api/mutations"
 import { myInvitationsQueryOptions } from "../api/queries"
 import { InvitationItem } from "./InvitationItem"
@@ -20,6 +21,8 @@ export function InvitationsButton() {
   const answer = useAnswerInvitation()
   const count = invitations.length
   const [isOpen, setIsOpen] = useState(false)
+  // The invitations' ages move only while the person reads them.
+  const now = useNow(RELATIVE_TIME_INTERVAL_IN_MILLISECONDS, isOpen)
 
   const label = t({
     message: plural(count, { one: "# pending invitation", other: "# pending invitations" }),
@@ -58,6 +61,7 @@ export function InvitationsButton() {
             <InvitationItem
               key={invitation.id}
               invitation={invitation}
+              now={now}
               isAnswering={answer.isPending && answer.variables?.invitationId === invitation.id}
               onAnswer={(choice) =>
                 answer.mutate(

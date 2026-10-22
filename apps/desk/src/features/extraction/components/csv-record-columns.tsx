@@ -2,8 +2,8 @@ import type { CsvColumnDto, CsvExtractionRecordOutputDto } from "@caseai-connect
 import type { MessageDescriptor } from "@lingui/core"
 import { msg } from "@lingui/core/macro"
 import { type ColumnDef, createColumnHelper } from "@tanstack/react-table"
+import { fieldLabelOf } from "@/lib/field-text"
 import { fileValueOf, sortKeys } from "../csv-records"
-import { fieldLabelOf } from "../extraction-fields"
 import { FieldValue } from "./FieldValue"
 import { RecordStatusIcon } from "./RecordStatusIcon"
 

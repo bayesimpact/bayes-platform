@@ -1,3 +1,4 @@
+import { setupI18n } from "@lingui/core"
 import { describe, expect, it } from "vitest"
 import { formFieldsOf } from "./form-fields"
 
@@ -25,7 +26,7 @@ describe("formFieldsOf", () => {
           propertyOrdering: ["teamSize", "plan", "startDate"],
         },
       ),
-      "en",
+      setupI18n({ locale: "en", messages: { en: {} } }),
     )
 
     expect(fields.map((field) => [field.label, field.value])).toEqual([
@@ -37,12 +38,27 @@ describe("formFieldsOf", () => {
   })
 
   it("writes lists and numbers as text in the person's language", () => {
-    const fields = formFieldsOf(form({ topics: ["Billing", "Support"], seats: 1200 }), "fr")
+    const fields = formFieldsOf(
+      form({ topics: ["Billing", "Support"], seats: 1200 }),
+      setupI18n({ locale: "fr", messages: { fr: {} } }),
+    )
 
     // French groups thousands with a narrow no-break space.
     expect(fields.map((field) => field.value?.replace(/\s/g, " "))).toEqual([
       "Billing, Support",
       "1 200",
+    ])
+  })
+
+  it("writes a yes or no answer as a word, as the extraction's fields do", () => {
+    const fields = formFieldsOf(
+      form({ hasAccount: true, wantsCall: false }),
+      setupI18n({ locale: "en", messages: { en: {} } }),
+    )
+
+    expect(fields.map((field) => [field.label, field.value])).toEqual([
+      ["Has account", "Yes"],
+      ["Wants call", "No"],
     ])
   })
 })

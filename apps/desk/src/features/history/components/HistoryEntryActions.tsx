@@ -57,7 +57,7 @@ export function HistoryEntryActions({ agent, entry, title }: HistoryEntryActions
         agent={agent}
         entry={entry}
         title={title}
-        open={isConfirming}
+        isOpen={isConfirming}
         onOpenChange={setIsConfirming}
         onDeleted={handleDeleted}
       />

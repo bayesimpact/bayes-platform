@@ -9,7 +9,7 @@ export type FormFieldsProps = {
 /** The fields of a form, in the schema's order, with the value the agent noted or a dash. */
 export function FormFields({ form }: FormFieldsProps) {
   const { i18n } = useLingui()
-  const fields = formFieldsOf(form, i18n.locale)
+  const fields = formFieldsOf(form, i18n)
   if (fields.length === 0) {
     return (
       <p className="text-muted-foreground">

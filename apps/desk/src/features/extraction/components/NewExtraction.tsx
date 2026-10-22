@@ -1,10 +1,17 @@
-import type { AgentParamsDto, ExtractionDocumentOutputDto } from "@caseai-connect/desk-contracts"
+import {
+  type AgentParamsDto,
+  EXTRACTION_MAX_BYTES,
+  type ExtractionDocumentOutputDto,
+} from "@caseai-connect/desk-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import { useState } from "react"
 import { toast } from "sonner"
 import { extractionDocumentsQueryOptions } from "@/features/history"
+import { useAbortOnUnmount } from "@/hooks/use-abort-on-unmount"
+import { RELATIVE_TIME_INTERVAL_IN_MILLISECONDS, useNow } from "@/hooks/use-now"
+import { fileSizeOf } from "@/lib/file-size"
 import {
   type StartedExtraction,
   type UploadStep,
@@ -23,18 +30,21 @@ export type NewExtractionProps = {
 
 /**
  * A new extraction, as a new conversation in the Claude app: the place to drop the file, and the
- * documents uploaded before, to extract one again.
+ * documents uploaded before, to extract one again. Leaving the page stops an upload.
  */
 export function NewExtraction({ agent, agentName }: NewExtractionProps) {
-  const { t } = useLingui()
+  const { t, i18n } = useLingui()
   const navigate = useNavigate()
+  const now = useNow(RELATIVE_TIME_INTERVAL_IN_MILLISECONDS, true)
   const { data: documents } = useSuspenseQuery(extractionDocumentsQueryOptions(agent))
   const uploadAndExtract = useUploadAndExtract(agent)
   const extractDocument = useExtractDocument(agent)
+  const nextUploadSignal = useAbortOnUnmount()
   const [upload, setUpload] = useState<{ fileName: string; step: UploadStep } | null>(null)
-  const [deleted, setDeleted] = useState<ExtractionDocumentOutputDto | null>(null)
+  const [documentToDelete, setDocumentToDelete] = useState<ExtractionDocumentOutputDto | null>(null)
+  const maxSize = fileSizeOf(EXTRACTION_MAX_BYTES, i18n.locale)
 
-  const open = (started: StartedExtraction) =>
+  const openStarted = (started: StartedExtraction) =>
     started.kind === "run"
       ? navigate({
           to: "/o/$organizationId/p/$projectId/a/$agentId/extraction/runs/$extractionRunId",
@@ -57,16 +67,20 @@ export function NewExtraction({ agent, agentName }: NewExtractionProps) {
     if (problem) {
       const messages = {
         type: t`${name} cannot be read. Give a PDF, a PNG or JPEG image, a text or a CSV file.`,
-        size: t`${name} is larger than 25 MB.`,
+        size: t`${name} is larger than ${maxSize}.`,
         empty: t`${name} is empty.`,
       }
       toast.error(messages[problem])
       return
     }
     uploadAndExtract.mutate(
-      { file, onStep: (step) => setUpload({ fileName: name, step }) },
       {
-        onSuccess: (started) => void open(started),
+        file,
+        onStep: (step) => setUpload({ fileName: name, step }),
+        signal: nextUploadSignal(),
+      },
+      {
+        onSuccess: (started) => void openStarted(started),
         onError: () => {
           setUpload(null)
           toast.error(t`${name} could not be uploaded. Try again.`)
@@ -77,11 +91,11 @@ export function NewExtraction({ agent, agentName }: NewExtractionProps) {
 
   const handleExtract = (document: ExtractionDocumentOutputDto) => {
     if (fileKindOf(document) === "csv") {
-      void open({ kind: "csv", documentId: document.id })
+      void openStarted({ kind: "csv", documentId: document.id })
       return
     }
     extractDocument.mutate(document.id, {
-      onSuccess: (runId) => void open({ kind: "run", runId }),
+      onSuccess: (runId) => void openStarted({ kind: "run", runId }),
       onError: () => toast.error(t`The extraction could not start. Try again.`),
     })
   }
@@ -91,14 +105,19 @@ export function NewExtraction({ agent, agentName }: NewExtractionProps) {
       <h1 className="text-center text-3xl font-semibold tracking-tight text-balance">
         <Trans>What should {agentName} read?</Trans>
       </h1>
-      <FileDropZone onFiles={handleFiles} upload={upload} />
+      <FileDropZone onFiles={handleFiles} upload={upload} maxSize={maxSize} />
       <RecentDocuments
         documents={documents}
+        now={now}
         busyDocumentId={extractDocument.isPending ? (extractDocument.variables ?? null) : null}
         onExtract={handleExtract}
-        onDelete={setDeleted}
+        onDelete={setDocumentToDelete}
       />
-      <DeleteDocumentDialog agent={agent} document={deleted} onClose={() => setDeleted(null)} />
+      <DeleteDocumentDialog
+        agent={agent}
+        document={documentToDelete}
+        onClose={() => setDocumentToDelete(null)}
+      />
     </div>
   )
 }

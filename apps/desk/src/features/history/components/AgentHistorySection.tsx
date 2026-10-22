@@ -2,10 +2,10 @@ import { Trans } from "@lingui/react/macro"
 import { useQueryErrorResetBoundary } from "@tanstack/react-query"
 import { CatchBoundary, type ErrorComponentProps } from "@tanstack/react-router"
 import { Suspense } from "react"
+import { SidebarEntriesSkeleton } from "@/components/shared/SidebarEntriesSkeleton"
 import { Button } from "@/components/ui/button"
 import type { HistoryAgent } from "../history-entries"
 import { AgentHistory } from "./AgentHistory"
-import { AgentHistorySkeleton } from "./AgentHistorySkeleton"
 
 export type AgentHistorySectionProps = {
   agent: HistoryAgent
@@ -18,7 +18,7 @@ export type AgentHistorySectionProps = {
 export function AgentHistorySection({ agent }: AgentHistorySectionProps) {
   return (
     <CatchBoundary getResetKey={() => agent.agentId} errorComponent={HistoryErrorState}>
-      <Suspense fallback={<AgentHistorySkeleton />}>
+      <Suspense fallback={<SidebarEntriesSkeleton />}>
         <AgentHistory agent={agent} />
       </Suspense>
     </CatchBoundary>

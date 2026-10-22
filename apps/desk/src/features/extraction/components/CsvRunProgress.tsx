@@ -9,7 +9,7 @@ export type CsvRunProgressProps = {
 
 /** How far a CSV run went: a bar of the rows done, and the ones that failed or still run. */
 export function CsvRunProgress({ run }: CsvRunProgressProps) {
-  const { t } = useLingui()
+  const { t, i18n } = useLingui()
   const summary = run.summary
   const isLive = isCsvRunLive(run.status)
   if (!summary) {
@@ -22,7 +22,8 @@ export function CsvRunProgress({ run }: CsvRunProgressProps) {
     )
   }
   const { total, processed, errors, running } = summary
-  const percent = total === 0 ? 100 : Math.round((processed / total) * 100)
+  const ratio = total === 0 ? 1 : processed / total
+  const percent = new Intl.NumberFormat(i18n.locale, { style: "percent" }).format(ratio)
   return (
     <section className="flex flex-col gap-3 rounded-2xl border bg-background p-4 dark:bg-card">
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-sm">
@@ -42,10 +43,10 @@ export function CsvRunProgress({ run }: CsvRunProgressProps) {
               <Plural value={running} one="# running" other="# running" />
             </span>
           ) : null}
-          <span>{percent} %</span>
+          <span>{percent}</span>
         </p>
       </div>
-      <Progress value={percent} aria-label={t`Rows done`} />
+      <Progress value={ratio * 100} aria-label={t`Rows done`} />
     </section>
   )
 }

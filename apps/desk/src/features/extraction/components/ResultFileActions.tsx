@@ -1,4 +1,4 @@
-import { useLingui } from "@lingui/react/macro"
+import { Trans, useLingui } from "@lingui/react/macro"
 import { DownloadIcon } from "lucide-react"
 import { CopyButton } from "@/components/shared/CopyButton"
 import { Button } from "@/components/ui/button"
@@ -29,7 +29,9 @@ export function ResultFileActions({ json, fileName }: ResultFileActionsProps) {
         >
           <DownloadIcon aria-hidden className="size-3.5" />
         </TooltipTrigger>
-        <TooltipContent>{t`Download ${fileName}`}</TooltipContent>
+        <TooltipContent>
+          <Trans>Download {fileName}</Trans>
+        </TooltipContent>
       </Tooltip>
     </>
   )

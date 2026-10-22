@@ -4,6 +4,7 @@ import { useQuery, useSuspenseQuery } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import { useState } from "react"
 import { DeleteEntryDialog, extractionDocumentsQueryOptions } from "@/features/history"
+import { RELATIVE_TIME_INTERVAL_IN_MILLISECONDS, useNow } from "@/hooks/use-now"
 import { durationOf } from "@/lib/format-time"
 import { csvRecordsQueryOptions, csvRunQueryOptions, isCsvRunLive } from "../api/queries"
 import { shownFileColumnsOf } from "../csv-records"
@@ -35,6 +36,7 @@ export function CsvRunView({ agent, csvRunId, page, onPageChange }: CsvRunViewPr
   const { data: run } = useSuspenseQuery(csvRunQueryOptions(agent, csvRunId))
   const { data: documents } = useSuspenseQuery(extractionDocumentsQueryOptions(agent))
   const isLive = isCsvRunLive(run.status)
+  const now = useNow(RELATIVE_TIME_INTERVAL_IN_MILLISECONDS, true)
   // useQuery: another page or order keeps the rows shown until its rows arrive.
   const records = useQuery(csvRecordsQueryOptions(agent, csvRunId, page, isLive))
   // What shows beside or over the table: a row in full, and the confirmation of a deletion.
@@ -67,7 +69,7 @@ export function CsvRunView({ agent, csvRunId, page, onPageChange }: CsvRunViewPr
             status={<RunStatusBadge state={CSV_RUN_STATES[run.status]} />}
             createdAt={run.createdAt}
             duration={isLive ? undefined : t`Took ${tookTime}`}
-            now={Date.now()}
+            now={now}
           />
           <CsvRunProgress run={run} />
           {records.isError && !records.data ? (
@@ -99,7 +101,7 @@ export function CsvRunView({ agent, csvRunId, page, onPageChange }: CsvRunViewPr
         agent={agent}
         entry={{ kind: "csv", id: csvRunId }}
         title={title}
-        open={overlay.isDeleting}
+        isOpen={overlay.isDeleting}
         onOpenChange={(isDeleting) => setOverlay((current) => ({ ...current, isDeleting }))}
         onDeleted={() =>
           void navigate({

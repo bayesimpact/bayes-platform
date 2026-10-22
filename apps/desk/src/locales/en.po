@@ -35,7 +35,7 @@ msgstr "(required)"
 msgid "{annotationCount, plural, one {Send with # annotation} other {Send with # annotations}}"
 msgstr "{annotationCount, plural, one {Send with # annotation} other {Send with # annotations}}"
 
-#: src/features/invitations/components/InvitationsButton.tsx:24
+#: src/features/invitations/components/InvitationsButton.tsx:27
 msgid "{count, plural, one {# pending invitation} other {# pending invitations}}"
 msgstr "{count, plural, one {# pending invitation} other {# pending invitations}}"
 
@@ -47,33 +47,33 @@ msgstr "{count, plural, one {Used # source} other {Used # sources}}"
 msgid "{count, plural, one {Used a tool} other {Used tools}}"
 msgstr "{count, plural, one {Used a tool} other {Used tools}}"
 
-#: src/features/extraction/components/CsvRunProgress.tsx:37
+#: src/features/extraction/components/CsvRunProgress.tsx:38
 msgid "{errors, plural, one {# failed} other {# failed}}"
 msgstr "{errors, plural, one {# failed} other {# failed}}"
 
-#: src/features/extraction/components/RecentDocuments.tsx:53
+#: src/features/extraction/components/RecentDocuments.tsx:57
 msgid "{hiddenCount, plural, one {Show # more document} other {Show # more documents}}"
 msgstr "{hiddenCount, plural, one {Show # more document} other {Show # more documents}}"
 
-#: src/features/extraction/components/NewExtraction.tsx:59
+#: src/features/extraction/components/NewExtraction.tsx:69
 msgid "{name} cannot be read. Give a PDF, a PNG or JPEG image, a text or a CSV file."
 msgstr "{name} cannot be read. Give a PDF, a PNG or JPEG image, a text or a CSV file."
 
-#: src/features/extraction/components/NewExtraction.tsx:72
+#: src/features/extraction/components/NewExtraction.tsx:86
 msgid "{name} could not be uploaded. Try again."
 msgstr "{name} could not be uploaded. Try again."
 
-#: src/features/extraction/components/NewExtraction.tsx:61
+#: src/features/extraction/components/NewExtraction.tsx:71
 msgid "{name} is empty."
 msgstr "{name} is empty."
 
-#: src/features/history/hooks/use-finished-run-toasts.ts:48
+#: src/features/history/hooks/use-finished-run-toasts.ts:52
 msgid "{name} is extracted."
 msgstr "{name} is extracted."
 
-#: src/features/extraction/components/NewExtraction.tsx:60
-msgid "{name} is larger than 25 MB."
-msgstr "{name} is larger than 25 MB."
+#: src/features/extraction/components/NewExtraction.tsx:70
+msgid "{name} is larger than {maxSize}."
+msgstr "{name} is larger than {maxSize}."
 
 #: src/features/extraction/components/DeleteDocumentDialog.tsx:34
 msgid "{name} was deleted."
@@ -84,7 +84,7 @@ msgstr "{name} was deleted."
 msgid "{name}, menu of {email}"
 msgstr "{name}, menu of {email}"
 
-#: src/features/extraction/components/CsvRunProgress.tsx:30
+#: src/features/extraction/components/CsvRunProgress.tsx:31
 msgid "{processed} of {total, plural, one {# row} other {# rows}}"
 msgstr "{processed} of {total, plural, one {# row} other {# rows}}"
 
@@ -92,7 +92,7 @@ msgstr "{processed} of {total, plural, one {# row} other {# rows}}"
 msgid "{rowCount, plural, one {Extract the first row} other {Extract the first # rows}}"
 msgstr "{rowCount, plural, one {Extract the first row} other {Extract the first # rows}}"
 
-#: src/features/extraction/components/CsvRunProgress.tsx:42
+#: src/features/extraction/components/CsvRunProgress.tsx:43
 msgid "{running, plural, one {# running} other {# running}}"
 msgstr "{running, plural, one {# running} other {# running}}"
 
@@ -116,7 +116,7 @@ msgstr "A new version of the Desk is available"
 msgid "A new version of the Desk is available. Reload the page."
 msgstr "A new version of the Desk is available. Reload the page."
 
-#: src/features/invitations/components/InvitationItem.tsx:55
+#: src/features/invitations/components/InvitationItem.tsx:58
 msgid "Accept"
 msgstr "Accept"
 
@@ -128,7 +128,7 @@ msgstr "Accept and continue"
 msgid "Accept the general conditions and the privacy policy to continue."
 msgstr "Accept the general conditions and the privacy policy to continue."
 
-#: src/features/invitations/components/InvitationItem.tsx:53
+#: src/features/invitations/components/InvitationItem.tsx:56
 msgid "Accept the invitation to {name}"
 msgstr "Accept the invitation to {name}"
 
@@ -141,13 +141,13 @@ msgid "Actions on {title}"
 msgstr "Actions on {title}"
 
 #. The role an invitation grants
-#: src/features/invitations/components/InvitationItem.tsx:25
+#: src/features/invitations/components/InvitationItem.tsx:28
 msgid "admin"
 msgstr "admin"
 
 #. What an invitation gives access to
 #: src/features/conversation/components/FormsPanel.tsx:28
-#: src/features/invitations/components/InvitationItem.tsx:17
+#: src/features/invitations/components/InvitationItem.tsx:20
 msgid "Agent"
 msgstr "Agent"
 
@@ -172,7 +172,7 @@ msgstr "An account is waiting for your email address, but your identity provider
 msgid "Annotate and press Enter to keep it"
 msgstr "Annotate and press Enter to keep it"
 
-#: src/features/invitations/components/InvitationItem.tsx:43
+#: src/features/invitations/components/InvitationItem.tsx:46
 msgid "As {role}"
 msgstr "As {role}"
 
@@ -214,7 +214,7 @@ msgstr "Cancel"
 msgid "Check your connection, then try again."
 msgstr "Check your connection, then try again."
 
-#: src/features/extraction/components/FileDropZone.tsx:122
+#: src/features/extraction/components/FileDropZone.tsx:127
 msgid "Choose a file"
 msgstr "Choose a file"
 
@@ -246,11 +246,11 @@ msgstr "Contact your administrator."
 msgid "Copied"
 msgstr "Copied"
 
-#: src/features/extraction/components/ResultFields.tsx:32
+#: src/features/extraction/components/ResultFields.tsx:33
 msgid "Copy {label}"
 msgstr "Copy {label}"
 
-#: src/components/shared/HighlightedCodeBlock.tsx:44
+#: src/components/shared/HighlightedCodeBlock.tsx:91
 msgid "Copy the code"
 msgstr "Copy the code"
 
@@ -266,20 +266,17 @@ msgstr "Copy the message"
 msgid "Copy the reply"
 msgstr "Copy the reply"
 
-#: src/features/extraction/components/DocumentRow.tsx:34
+#. The kind of a document the person uploaded
+#: src/features/extraction/components/DocumentRow.tsx:37
 msgid "CSV"
 msgstr "CSV"
 
 #. An extraction of every row of a spreadsheet
-#. An extraction of every row of a spreadsheet
-#. An extraction of every row of a spreadsheet
-#: src/features/history/components/HistoryEntryLink.tsx:60
-#: src/features/history/components/HistoryList.tsx:46
-#: src/features/history/hooks/use-finished-run-toasts.ts:34
+#: src/features/history/history-entries.ts:39
 msgid "CSV extraction"
 msgstr "CSV extraction"
 
-#: src/features/extraction/components/CsvRunView.tsx:48
+#: src/features/extraction/components/CsvRunView.tsx:50
 #: src/features/extraction/components/CsvSetup.tsx:43
 msgid "CSV file"
 msgstr "CSV file"
@@ -289,11 +286,11 @@ msgstr "CSV file"
 msgid "Ctrl"
 msgstr "Ctrl"
 
-#: src/features/invitations/components/InvitationItem.tsx:64
+#: src/features/invitations/components/InvitationItem.tsx:67
 msgid "Decline"
 msgstr "Decline"
 
-#: src/features/invitations/components/InvitationItem.tsx:62
+#: src/features/invitations/components/InvitationItem.tsx:65
 msgid "Decline the invitation to {name}"
 msgstr "Decline the invitation to {name}"
 
@@ -303,8 +300,8 @@ msgstr "Decline the invitation to {name}"
 msgid "Delete"
 msgstr "Delete"
 
-#: src/features/extraction/components/DocumentRow.tsx:74
-#: src/features/extraction/components/DocumentRow.tsx:82
+#: src/features/extraction/components/DocumentRow.tsx:81
+#: src/features/extraction/components/DocumentRow.tsx:90
 msgid "Delete {name}"
 msgstr "Delete {name}"
 
@@ -312,7 +309,7 @@ msgstr "Delete {name}"
 msgid "Delete the conversation"
 msgstr "Delete the conversation"
 
-#: src/features/extraction/components/CsvRunActions.tsx:101
+#: src/features/extraction/components/CsvRunActions.tsx:102
 #: src/features/extraction/components/ExtractionRunActions.tsx:72
 msgid "Delete the extraction"
 msgstr "Delete the extraction"
@@ -346,25 +343,24 @@ msgid "Don't remember"
 msgstr "Don't remember"
 
 #. A run that ended well
-#: src/features/extraction/components/RecordStatusIcon.tsx:14
-#: src/features/extraction/components/RunStatusBadge.tsx:34
+#: src/lib/run-state.ts:11
 msgid "Done"
 msgstr "Done"
 
 #: src/features/extraction/components/ResultFileActions.tsx:25
-#: src/features/extraction/components/ResultFileActions.tsx:32
+#: src/features/extraction/components/ResultFileActions.tsx:33
 msgid "Download {fileName}"
 msgstr "Download {fileName}"
 
-#: src/features/extraction/components/CsvRunActions.tsx:88
+#: src/features/extraction/components/CsvRunActions.tsx:89
 msgid "Download the results"
 msgstr "Download the results"
 
-#: src/features/extraction/components/FileDropZone.tsx:116
+#: src/features/extraction/components/FileDropZone.tsx:121
 msgid "Drop a file here, or <0>browse</0>"
 msgstr "Drop a file here, or <0>browse</0>"
 
-#: src/features/extraction/components/FileDropZone.tsx:111
+#: src/features/extraction/components/FileDropZone.tsx:116
 msgid "Drop the file to extract it"
 msgstr "Drop the file to extract it"
 
@@ -394,11 +390,12 @@ msgstr "Enter"
 msgid "Every row of the file"
 msgstr "Every row of the file"
 
-#: src/features/extraction/components/DocumentRow.tsx:65
+#. Starts the extraction of a document
+#: src/features/extraction/components/DocumentRow.tsx:71
 msgid "Extract"
 msgstr "Extract"
 
-#: src/features/extraction/components/DocumentRow.tsx:60
+#: src/features/extraction/components/DocumentRow.tsx:63
 msgid "Extract {name}"
 msgstr "Extract {name}"
 
@@ -411,9 +408,7 @@ msgid "Extract every row"
 msgstr "Extract every row"
 
 #. A run that ended with an error
-#: src/features/extraction/components/RecordStatusIcon.tsx:15
-#: src/features/extraction/components/RunStatusBadge.tsx:35
-#: src/features/history/components/HistoryEntryLink.tsx:86
+#: src/lib/run-state.ts:12
 msgid "Failed"
 msgstr "Failed"
 
@@ -422,9 +417,14 @@ msgstr "Failed"
 msgid "Fields"
 msgstr "Fields"
 
-#: src/features/extraction/components/DocumentRow.tsx:35
+#. The kind of a document the person uploaded
+#: src/features/extraction/components/DocumentRow.tsx:38
 msgid "File"
 msgstr "File"
+
+#: src/features/extraction/components/FileDropZone.tsx:69
+msgid "File to extract"
+msgstr "File to extract"
 
 #: src/features/conversation/components/ToolSteps.tsx:21
 msgid "Filling in the form"
@@ -460,7 +460,7 @@ msgstr "From the file"
 msgid "general conditions of service"
 msgstr "general conditions of service"
 
-#: src/features/extraction/components/NewExtraction.tsx:52
+#: src/features/extraction/components/NewExtraction.tsx:62
 msgid "Give the agent one file at a time."
 msgstr "Give the agent one file at a time."
 
@@ -501,12 +501,14 @@ msgstr "If it keeps happening, contact your administrator with the message below
 msgid "If the page stays blank, its site does not allow being shown here: open it in a new tab."
 msgstr "If the page stays blank, its site does not allow being shown here: open it in a new tab."
 
+#. The kind of a document the person uploaded
 #: src/components/shared/Markdown.tsx:51
-#: src/features/extraction/components/DocumentRow.tsx:32
+#: src/features/extraction/components/DocumentRow.tsx:35
 msgid "Image"
 msgstr "Image"
 
-#: src/features/history/components/HistoryEntryLink.tsx:80
+#. A run going on
+#: src/lib/run-state.ts:10
 msgid "In progress"
 msgstr "In progress"
 
@@ -514,7 +516,7 @@ msgstr "In progress"
 msgid "Interactive card"
 msgstr "Interactive card"
 
-#: src/features/invitations/components/InvitationsButton.tsx:52
+#: src/features/invitations/components/InvitationsButton.tsx:55
 msgid "Invitations"
 msgstr "Invitations"
 
@@ -537,7 +539,7 @@ msgid "Loading the interactive card…"
 msgstr "Loading the interactive card…"
 
 #. The role an invitation grants
-#: src/features/invitations/components/InvitationItem.tsx:26
+#: src/features/invitations/components/InvitationItem.tsx:29
 msgid "member"
 msgstr "member"
 
@@ -551,7 +553,7 @@ msgid "Message to {agentName}"
 msgstr "Message to {agentName}"
 
 #: src/features/conversation/components/ConversationMenu.tsx:40
-#: src/features/extraction/components/CsvRunActions.tsx:94
+#: src/features/extraction/components/CsvRunActions.tsx:95
 #: src/features/extraction/components/ExtractionRunActions.tsx:60
 msgid "More actions"
 msgstr "More actions"
@@ -561,9 +563,8 @@ msgid "Name"
 msgstr "Name"
 
 #: src/features/conversation/components/ConversationMenu.tsx:34
-#: src/features/history/components/HistoryEntryLink.tsx:29
-#: src/features/history/components/HistoryList.tsx:40
 #: src/features/history/components/NewSessionLink.tsx:37
+#: src/features/history/history-entries.ts:37
 msgid "New conversation"
 msgstr "New conversation"
 
@@ -571,11 +572,13 @@ msgstr "New conversation"
 msgid "New extraction"
 msgstr "New extraction"
 
-#: src/features/extraction/components/CsvRecordsTable.tsx:112
+#: src/features/extraction/components/CsvRecordsTable.tsx:114
 msgid "Next page"
 msgstr "Next page"
 
+#. A field an agent filled in with false
 #: src/features/extraction/components/FieldValue.tsx:46
+#: src/lib/field-text.ts:22
 msgid "No"
 msgstr "No"
 
@@ -595,7 +598,7 @@ msgstr "No extractions yet"
 msgid "No passage to show."
 msgstr "No passage to show."
 
-#: src/features/extraction/components/CsvRecordsTable.tsx:87
+#: src/features/extraction/components/CsvRecordsTable.tsx:89
 msgid "No rows"
 msgstr "No rows"
 
@@ -616,11 +619,13 @@ msgstr "Nothing noted yet."
 msgid "Number of rows to try"
 msgstr "Number of rows to try"
 
-#: src/features/history/components/HistoryList.tsx:34
+#. The history's entries of more than 30 days ago
+#: src/features/history/components/HistoryList.tsx:38
 msgid "Older"
 msgstr "Older"
 
-#: src/features/history/hooks/use-finished-run-toasts.ts:47
+#. Opens the extraction a toast says ended
+#: src/features/history/hooks/use-finished-run-toasts.ts:49
 msgid "Open"
 msgstr "Open"
 
@@ -653,7 +658,7 @@ msgid "Open the verification email your identity provider sent you, and check yo
 msgstr "Open the verification email your identity provider sent you, and check your spam folder. Click the link it contains, then try again."
 
 #. The role an invitation grants
-#: src/features/invitations/components/InvitationItem.tsx:24
+#: src/features/invitations/components/InvitationItem.tsx:27
 msgid "owner"
 msgstr "owner"
 
@@ -661,31 +666,32 @@ msgstr "owner"
 msgid "Page not found"
 msgstr "Page not found"
 
-#: src/features/extraction/components/CsvRecordsTable.tsx:91
+#: src/features/extraction/components/CsvRecordsTable.tsx:93
 msgid "Pages of the results"
 msgstr "Pages of the results"
 
-#: src/features/extraction/components/DocumentRow.tsx:31
+#. The kind of a document the person uploaded
+#: src/features/extraction/components/DocumentRow.tsx:34
 msgid "PDF"
 msgstr "PDF"
 
-#: src/features/extraction/components/FileDropZone.tsx:128
-msgid "PDF, image, text or CSV file, up to 25 MB. A CSV file runs row by row."
-msgstr "PDF, image, text or CSV file, up to 25 MB. A CSV file runs row by row."
+#: src/features/extraction/components/FileDropZone.tsx:133
+msgid "PDF, image, text or CSV file, up to {maxSize}. A CSV file runs row by row."
+msgstr "PDF, image, text or CSV file, up to {maxSize}. A CSV file runs row by row."
 
 #: src/features/conversation/components/ToolSteps.tsx:20
 msgid "Picking useful resources"
 msgstr "Picking useful resources"
 
-#: src/features/history/components/HistoryList.tsx:33
+#: src/features/history/components/HistoryList.tsx:37
 msgid "Previous 30 days"
 msgstr "Previous 30 days"
 
-#: src/features/history/components/HistoryList.tsx:32
+#: src/features/history/components/HistoryList.tsx:36
 msgid "Previous 7 days"
 msgstr "Previous 7 days"
 
-#: src/features/extraction/components/CsvRecordsTable.tsx:103
+#: src/features/extraction/components/CsvRecordsTable.tsx:105
 msgid "Previous page"
 msgstr "Previous page"
 
@@ -694,7 +700,7 @@ msgid "privacy policy"
 msgstr "privacy policy"
 
 #. What an invitation gives access to
-#: src/features/invitations/components/InvitationItem.tsx:16
+#: src/features/invitations/components/InvitationItem.tsx:19
 msgid "Project"
 msgstr "Project"
 
@@ -760,7 +766,7 @@ msgstr "Resize the panel"
 msgid "Resize the sidebar"
 msgstr "Resize the sidebar"
 
-#: src/features/extraction/components/CsvRecordsTable.tsx:80
+#: src/features/extraction/components/CsvRecordsTable.tsx:82
 msgid "Results"
 msgstr "Results"
 
@@ -769,12 +775,12 @@ msgid "Retry"
 msgstr "Retry"
 
 #. What an invitation gives access to
-#: src/features/invitations/components/InvitationItem.tsx:18
+#: src/features/invitations/components/InvitationItem.tsx:21
 msgid "Review campaign"
 msgstr "Review campaign"
 
 #. The role an invitation grants
-#: src/features/invitations/components/InvitationItem.tsx:28
+#: src/features/invitations/components/InvitationItem.tsx:31
 msgid "reviewer"
 msgstr "reviewer"
 
@@ -796,27 +802,17 @@ msgstr "Row {rowNumber}"
 msgid "Rows"
 msgstr "Rows"
 
-#: src/features/extraction/components/CsvRecordsTable.tsx:95
+#: src/features/extraction/components/CsvRecordsTable.tsx:97
 msgid "Rows {first}–{last} of {total}"
 msgstr "Rows {first}–{last} of {total}"
 
-#: src/features/extraction/components/CsvRunProgress.tsx:48
+#: src/features/extraction/components/CsvRunProgress.tsx:49
 msgid "Rows done"
 msgstr "Rows done"
-
-#. A run in progress
-#: src/features/extraction/components/RecordStatusIcon.tsx:17
-#: src/features/extraction/components/RunStatusBadge.tsx:33
-msgid "Running"
-msgstr "Running"
 
 #: src/features/account/components/EditNameDialog.tsx:88
 msgid "Save"
 msgstr "Save"
-
-#: src/features/extraction/components/ResultJson.tsx:38
-msgid "Scroll long lines"
-msgstr "Scroll long lines"
 
 #: src/features/conversation/components/ConversationView.tsx:158
 msgid "Scroll to the latest message"
@@ -848,11 +844,12 @@ msgstr "Send"
 msgid "Send the report"
 msgstr "Send the report"
 
-#: src/features/extraction/components/DocumentRow.tsx:65
+#. Opens the setup of a CSV file's extraction
+#: src/features/extraction/components/DocumentRow.tsx:69
 msgid "Set up"
 msgstr "Set up"
 
-#: src/features/extraction/components/DocumentRow.tsx:60
+#: src/features/extraction/components/DocumentRow.tsx:63
 msgid "Set up the extraction of {name}"
 msgstr "Set up the extraction of {name}"
 
@@ -865,13 +862,13 @@ msgstr "Shift"
 msgid "Should the agent remember this?"
 msgstr "Should the agent remember this?"
 
+#: src/components/shared/HighlightedCodeBlock.tsx:121
 #: src/features/conversation/components/UserMessageText.tsx:44
-#: src/features/extraction/components/ResultJson.tsx:93
 msgid "Show less"
 msgstr "Show less"
 
+#: src/components/shared/HighlightedCodeBlock.tsx:121
 #: src/features/conversation/components/UserMessageText.tsx:44
-#: src/features/extraction/components/ResultJson.tsx:93
 msgid "Show more"
 msgstr "Show more"
 
@@ -907,11 +904,11 @@ msgid "Something went wrong while it read it. Try again."
 msgstr "Something went wrong while it read it. Try again."
 
 #. A run waiting for its turn
-#: src/features/extraction/components/RunStatusBadge.tsx:32
+#: src/lib/run-state.ts:9
 msgid "Starting"
 msgstr "Starting"
 
-#: src/features/extraction/components/FileDropZone.tsx:103
+#: src/features/extraction/components/FileDropZone.tsx:108
 msgid "Starting the extraction…"
 msgstr "Starting the extraction…"
 
@@ -929,8 +926,7 @@ msgid "Stop the dictation"
 msgstr "Stop the dictation"
 
 #. A run the person stopped
-#: src/features/extraction/components/RecordStatusIcon.tsx:23
-#: src/features/extraction/components/RunStatusBadge.tsx:36
+#: src/lib/run-state.ts:13
 msgid "Stopped"
 msgstr "Stopped"
 
@@ -943,11 +939,17 @@ msgid "Terms"
 msgstr "Terms"
 
 #. The role an invitation grants
-#: src/features/invitations/components/InvitationItem.tsx:27
+#: src/features/invitations/components/InvitationItem.tsx:30
 msgid "tester"
 msgstr "tester"
 
-#: src/features/extraction/components/DocumentRow.tsx:33
+#. The language of a code block that names none
+#: src/components/shared/HighlightedCodeBlock.tsx:64
+msgid "text"
+msgstr "text"
+
+#. The kind of a document the person uploaded
+#: src/features/extraction/components/DocumentRow.tsx:36
 msgid "Text"
 msgstr "Text"
 
@@ -980,11 +982,11 @@ msgstr "The agent found nothing to fill in in this document."
 msgid "The agent is answering…"
 msgstr "The agent is answering…"
 
-#: src/features/extraction/components/ExtractionPending.tsx:21
+#: src/features/extraction/components/ExtractionPending.tsx:22
 msgid "The agent is reading the document"
 msgstr "The agent is reading the document"
 
-#: src/features/extraction/components/ExtractionPending.tsx:26
+#: src/features/extraction/components/ExtractionPending.tsx:27
 msgid "The agent is reading the document…"
 msgstr "The agent is reading the document…"
 
@@ -1065,8 +1067,8 @@ msgid "The extraction could not be deleted. Try again."
 msgstr "The extraction could not be deleted. Try again."
 
 #: src/features/extraction/components/CsvSetup.tsx:69
-#: src/features/extraction/components/ExtractionRunView.tsx:58
-#: src/features/extraction/components/NewExtraction.tsx:85
+#: src/features/extraction/components/ExtractionRunView.tsx:61
+#: src/features/extraction/components/NewExtraction.tsx:99
 msgid "The extraction could not start. Try again."
 msgstr "The extraction could not start. Try again."
 
@@ -1074,7 +1076,7 @@ msgstr "The extraction could not start. Try again."
 msgid "The extraction of \"{title}\" and its results will be deleted. The document stays in your documents. This cannot be undone."
 msgstr "The extraction of \"{title}\" and its results will be deleted. The document stays in your documents. This cannot be undone."
 
-#: src/features/history/hooks/use-finished-run-toasts.ts:49
+#: src/features/history/hooks/use-finished-run-toasts.ts:53
 msgid "The extraction of {name} failed."
 msgstr "The extraction of {name} failed."
 
@@ -1094,7 +1096,7 @@ msgstr "The file could not be opened. Try again."
 msgid "The file could not be uploaded. Try again."
 msgstr "The file could not be uploaded. Try again."
 
-#: src/features/extraction/components/CsvRecordsTable.tsx:87
+#: src/features/extraction/components/CsvRecordsTable.tsx:89
 msgid "The first rows come in a moment…"
 msgstr "The first rows come in a moment…"
 
@@ -1106,7 +1108,7 @@ msgstr "The first rows only, to try the setup"
 msgid "The history could not load."
 msgstr "The history could not load."
 
-#: src/features/invitations/api/mutations.ts:37
+#: src/features/invitations/api/mutations.ts:35
 msgid "The invitation could not be answered. Try again."
 msgstr "The invitation could not be answered. Try again."
 
@@ -1146,13 +1148,17 @@ msgstr "The rows could not load. Check your connection, then try again."
 msgid "The run could not be stopped. Try again."
 msgstr "The run could not be stopped. Try again."
 
-#: src/features/extraction/components/CsvRunActions.tsx:74
+#: src/features/extraction/components/CsvRunActions.tsx:75
 msgid "The run could not start again. Try again."
 msgstr "The run could not start again. Try again."
 
 #: src/features/extraction/components/CsvRunProgress.tsx:19
 msgid "The run is about to start…"
 msgstr "The run is about to start…"
+
+#: src/features/extraction/components/CsvRunActions.tsx:74
+msgid "The run started again."
+msgstr "The run started again."
 
 #: src/features/extraction/components/CsvRunActions.tsx:56
 msgid "The run stopped. The rows done stay."
@@ -1182,19 +1188,19 @@ msgstr "This reply was interrupted before it finished."
 msgid "This sign-in started too long ago, or another tab started a new one, and this tab can no longer complete it."
 msgstr "This sign-in started too long ago, or another tab started a new one, and this tab can no longer complete it."
 
-#: src/features/history/components/HistoryList.tsx:30
+#: src/features/history/components/HistoryList.tsx:34
 msgid "Today"
 msgstr "Today"
 
-#: src/features/extraction/components/CsvRunView.tsx:69
-#: src/features/extraction/components/ExtractionRunView.tsx:76
+#: src/features/extraction/components/CsvRunView.tsx:71
+#: src/features/extraction/components/ExtractionRunView.tsx:79
 msgid "Took {tookTime}"
 msgstr "Took {tookTime}"
 
 #: src/components/shared/RouteErrorState.tsx:60
 #: src/components/shared/SignInProblemPage.tsx:103
 #: src/features/extraction/components/CsvRecordsError.tsx:21
-#: src/features/extraction/components/CsvRunActions.tsx:80
+#: src/features/extraction/components/CsvRunActions.tsx:81
 #: src/features/extraction/components/ExtractionFailure.tsx:59
 #: src/features/history/components/AgentHistorySection.tsx:40
 msgid "Try again"
@@ -1210,15 +1216,13 @@ msgstr "Try again to sign in. If this page comes back, close the other tabs of t
 
 #: src/features/conversation/components/SourceItem.tsx:31
 #: src/features/extraction/components/DeleteDocumentDialog.tsx:27
-#: src/features/extraction/components/DocumentRow.tsx:29
-#: src/features/extraction/components/ExtractionRunView.tsx:46
-#: src/features/history/components/HistoryEntryLink.tsx:43
-#: src/features/history/components/HistoryList.tsx:42
-#: src/features/history/hooks/use-finished-run-toasts.ts:35
+#: src/features/extraction/components/DocumentRow.tsx:32
+#: src/features/extraction/components/ExtractionRunView.tsx:47
+#: src/features/history/history-entries.ts:38
 msgid "Untitled document"
 msgstr "Untitled document"
 
-#: src/features/extraction/components/FileDropZone.tsx:101
+#: src/features/extraction/components/FileDropZone.tsx:106
 msgid "Uploading…"
 msgstr "Uploading…"
 
@@ -1234,7 +1238,7 @@ msgstr "Verify your email"
 msgid "Waiting for your answer"
 msgstr "Waiting for your answer"
 
-#: src/features/extraction/components/NewExtraction.tsx:92
+#: src/features/extraction/components/NewExtraction.tsx:106
 msgid "What should {agentName} read?"
 msgstr "What should {agentName} read?"
 
@@ -1258,8 +1262,7 @@ msgstr "What went wrong?"
 msgid "When someone gives you access to an agent, it appears here."
 msgstr "When someone gives you access to an agent, it appears here."
 
-#: src/features/extraction/components/ResultJson.tsx:38
-#: src/features/extraction/components/ResultJson.tsx:54
+#: src/components/shared/HighlightedCodeBlock.tsx:56
 msgid "Wrap long lines"
 msgstr "Wrap long lines"
 
@@ -1275,19 +1278,21 @@ msgstr "Write the fact in {maxLength} characters at most."
 msgid "Write the fact to remember."
 msgstr "Write the fact to remember."
 
+#. A field an agent filled in with true
 #: src/features/extraction/components/FieldValue.tsx:41
+#: src/lib/field-text.ts:21
 msgid "Yes"
 msgstr "Yes"
 
-#: src/features/history/components/HistoryList.tsx:31
+#: src/features/history/components/HistoryList.tsx:35
 msgid "Yesterday"
 msgstr "Yesterday"
 
-#: src/features/extraction/components/ExtractionPending.tsx:39
+#: src/features/extraction/components/ExtractionPending.tsx:40
 msgid "You can leave this page: the extraction goes on, and its mark in the sidebar turns once it ends."
 msgstr "You can leave this page: the extraction goes on, and its mark in the sidebar turns once it ends."
 
-#: src/features/invitations/api/mutations.ts:30
+#: src/features/invitations/api/mutations.ts:33
 msgid "You declined the invitation to {targetName}."
 msgstr "You declined the invitation to {targetName}."
 
@@ -1295,7 +1300,7 @@ msgstr "You declined the invitation to {targetName}."
 msgid "You don't have access to an agent yet"
 msgstr "You don't have access to an agent yet"
 
-#: src/features/invitations/api/mutations.ts:33
+#: src/features/invitations/api/mutations.ts:32
 msgid "You joined {targetName}."
 msgstr "You joined {targetName}."
 
@@ -1304,7 +1309,7 @@ msgstr "You joined {targetName}."
 msgid "Your answer could not be saved. Try again."
 msgstr "Your answer could not be saved. Try again."
 
-#: src/features/extraction/components/RecentDocuments.tsx:33
+#: src/features/extraction/components/RecentDocuments.tsx:36
 msgid "Your documents"
 msgstr "Your documents"
 

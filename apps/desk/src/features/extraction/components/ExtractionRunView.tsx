@@ -9,6 +9,7 @@ import {
   extractionDocumentsQueryOptions,
   extractionRunsQueryOptions,
 } from "@/features/history"
+import { RELATIVE_TIME_INTERVAL_IN_MILLISECONDS, useNow } from "@/hooks/use-now"
 import { durationOf } from "@/lib/format-time"
 import { useExtractDocument } from "../api/mutations"
 import { extractionRunQueryOptions } from "../api/queries"
@@ -45,6 +46,8 @@ export function ExtractionRunView({ agent, runId }: ExtractionRunViewProps) {
     document?.fileName ?? runs.find((candidate) => candidate.id === runId)?.documentFileName ?? null
   const title = documentName ?? t`Untitled document`
   const isPending = run.status === "pending"
+  // While the agent reads, the page counts the seconds; after, the run's age moves by the minute.
+  const now = useNow(isPending ? 1000 : RELATIVE_TIME_INTERVAL_IN_MILLISECONDS, true)
   const tookTime = durationOf(run.updatedAt - run.createdAt, i18n.locale)
   const detail = typeof run.errorDetails?.message === "string" ? run.errorDetails.message : null
 
@@ -74,9 +77,9 @@ export function ExtractionRunView({ agent, runId }: ExtractionRunViewProps) {
         status={<RunStatusBadge state={EXTRACTION_RUN_STATES[run.status]} />}
         createdAt={run.createdAt}
         duration={isPending ? undefined : t`Took ${tookTime}`}
-        now={Date.now()}
+        now={now}
       />
-      {isPending ? <ExtractionPending createdAt={run.createdAt} /> : null}
+      {isPending ? <ExtractionPending createdAt={run.createdAt} now={now} /> : null}
       {run.status === "failed" ? (
         <ExtractionFailure
           errorCode={run.errorCode}
@@ -92,7 +95,7 @@ export function ExtractionRunView({ agent, runId }: ExtractionRunViewProps) {
         agent={agent}
         entry={{ kind: "extraction", id: runId }}
         title={title}
-        open={isDeleting}
+        isOpen={isDeleting}
         onOpenChange={setIsDeleting}
         onDeleted={() =>
           void navigate({

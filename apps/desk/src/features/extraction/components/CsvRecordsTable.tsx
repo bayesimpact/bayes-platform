@@ -69,10 +69,12 @@ export function CsvRecordsTable({
     },
   })
 
-  const first = records.total === 0 ? 0 : records.page * CSV_RECORDS_PAGE_SIZE + 1
-  const last = Math.min(records.total, (records.page + 1) * CSV_RECORDS_PAGE_SIZE)
-  const total = records.total
-  const hasNext = last < records.total
+  const firstRow = records.total === 0 ? 0 : records.page * CSV_RECORDS_PAGE_SIZE + 1
+  const lastRow = Math.min(records.total, (records.page + 1) * CSV_RECORDS_PAGE_SIZE)
+  const hasNext = lastRow < records.total
+  const first = i18n.number(firstRow)
+  const last = i18n.number(lastRow)
+  const total = i18n.number(records.total)
 
   return (
     <section aria-labelledby={headingId} className="flex flex-col gap-2">

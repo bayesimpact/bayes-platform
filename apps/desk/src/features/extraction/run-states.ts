@@ -1,10 +1,9 @@
 import type {
+  CsvExtractionRecordOutputDto,
   CsvExtractionRunStatusDto,
   ExtractionRunStatusDto,
 } from "@caseai-connect/desk-contracts"
-
-/** Where a run stands, as both kinds of run show it. */
-export type RunState = "starting" | "running" | "done" | "failed" | "stopped"
+import type { RunState } from "@/lib/run-state"
 
 /** Where the extraction of a document stands, for each status the API sends. */
 export const EXTRACTION_RUN_STATES = {
@@ -21,3 +20,11 @@ export const CSV_RUN_STATES = {
   failed: "failed",
   cancelled: "stopped",
 } as const satisfies Record<CsvExtractionRunStatusDto, RunState>
+
+/** Where a row of a CSV run stands, for each status the API sends. */
+export const CSV_RECORD_STATES = {
+  running: "running",
+  success: "done",
+  error: "failed",
+  cancelled: "stopped",
+} as const satisfies Record<CsvExtractionRecordOutputDto["status"], RunState>

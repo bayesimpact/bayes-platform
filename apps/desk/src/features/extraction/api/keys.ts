@@ -9,6 +9,8 @@ export const extractionKeys = {
     [...extractionKeys.agent(agentId), "csv-files", documentId, "columns"] as const,
   csvRun: (agentId: string, csvRunId: string) =>
     [...extractionKeys.agent(agentId), "csv-runs", csvRunId] as const,
+  csvRunRecords: (agentId: string, csvRunId: string) =>
+    [...extractionKeys.csvRun(agentId, csvRunId), "records"] as const,
   csvRecords: (agentId: string, csvRunId: string, page: CsvRecordsPage) =>
-    [...extractionKeys.csvRun(agentId, csvRunId), "records", page] as const,
+    [...extractionKeys.csvRunRecords(agentId, csvRunId), page] as const,
 }

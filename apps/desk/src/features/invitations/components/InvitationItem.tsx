@@ -2,15 +2,18 @@ import type { InvitationOutputDto } from "@caseai-connect/desk-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { RelativeTime } from "@/components/shared/RelativeTime"
 import { Button } from "@/components/ui/button"
+import type { InvitationAnswer } from "../api/mutations"
 
 export type InvitationItemProps = {
   invitation: InvitationOutputDto
+  /** The time the list shows, for the invitation's age. */
+  now: number
   isAnswering: boolean
-  onAnswer: (answer: "accept" | "decline") => void
+  onAnswer: (answer: InvitationAnswer) => void
 }
 
 /** One pending invitation: what it opens, where, with which role, and the two answers. */
-export function InvitationItem({ invitation, isAnswering, onAnswer }: InvitationItemProps) {
+export function InvitationItem({ invitation, now, isAnswering, onAnswer }: InvitationItemProps) {
   const { t } = useLingui()
   const targetLabels = {
     project: t({ message: "Project", comment: "What an invitation gives access to" }),
@@ -42,7 +45,7 @@ export function InvitationItem({ invitation, isAnswering, onAnswer }: Invitation
         <p className="flex items-center gap-1 text-xs text-muted-foreground">
           <Trans>As {role}</Trans>
           <span aria-hidden>·</span>
-          <RelativeTime moment={invitation.invitedAt} now={Date.now()} />
+          <RelativeTime moment={invitation.invitedAt} now={now} />
         </p>
       </div>
       <div className="flex gap-2">

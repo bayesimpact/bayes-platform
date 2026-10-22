@@ -1,6 +1,8 @@
+import { EXTRACTION_MAX_BYTES } from "@caseai-connect/desk-contracts"
 import { screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { beforeEach, describe, expect, it, vi } from "vitest"
+import { fileSizeOf } from "@/lib/file-size"
 import { extractionUrlsOf } from "@/test/extraction-urls"
 import { buildExtractionAgentWorld } from "@/test/factories/desk-world.factory"
 import { worldHandlers } from "@/test/msw/handlers"
@@ -73,5 +75,23 @@ describe("a new extraction", () => {
     const again = await screen.findByRole("region", { name: "Your documents" })
     await userEvent.click(within(again).getByRole("button", { name: "Extract contract.pdf" }))
     expect(await screen.findByRole("heading", { name: "contract.pdf" })).toBeInTheDocument()
+  })
+})
+
+describe("a file too large for an extraction", () => {
+  it("is refused, with the limit the contracts set", async () => {
+    const world = buildExtractionAgentWorld()
+    server.use(...worldHandlers(world))
+    renderApp(extractionUrlsOf(world).newExtractionUrl)
+    const file = new File(["%PDF-1.7"], "archive.pdf", { type: "application/pdf" })
+    Object.defineProperty(file, "size", { value: EXTRACTION_MAX_BYTES + 1 })
+
+    await userEvent.upload(await screen.findByLabelText("File to extract"), file)
+
+    const limit = fileSizeOf(EXTRACTION_MAX_BYTES, "en")
+    expect(await screen.findByText(`archive.pdf is larger than ${limit}.`)).toBeInTheDocument()
+    expect(
+      screen.getByText(`PDF, image, text or CSV file, up to ${limit}.`, { exact: false }),
+    ).toBeInTheDocument()
   })
 })

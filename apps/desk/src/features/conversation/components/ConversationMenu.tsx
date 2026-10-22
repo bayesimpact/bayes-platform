@@ -52,7 +52,7 @@ export function ConversationMenu({ conversation }: ConversationMenuProps) {
         agent={agent}
         entry={{ kind: "conversation", id: conversation.agentSessionId }}
         title={title}
-        open={isDeleting}
+        isOpen={isDeleting}
         onOpenChange={setIsDeleting}
         onDeleted={() =>
           void navigate({ to: "/o/$organizationId/p/$projectId/a/$agentId", params: agent })

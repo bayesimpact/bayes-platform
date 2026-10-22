@@ -71,6 +71,7 @@ export function CsvRunActions({ agent, run, onDelete }: CsvRunActionsProps) {
           disabled={retry.isPending}
           onClick={() =>
             retry.mutate(run.id, {
+              onSuccess: () => toast.success(t`The run started again.`),
               onError: () => toast.error(t`The run could not start again. Try again.`),
             })
           }

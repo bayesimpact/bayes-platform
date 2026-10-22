@@ -1,4 +1,4 @@
-import { screen, within } from "@testing-library/react"
+import { screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { HttpResponse, http } from "msw"
 import { beforeEach, describe, expect, it, vi } from "vitest"
@@ -93,5 +93,25 @@ describe("an extraction of a CSV file", () => {
 
     expect(await screen.findByText(/of 10 rows/)).toBeInTheDocument()
     expect(router.state.location.pathname).toMatch(/\/extraction\/csv-runs\//)
+  })
+})
+
+describe("a failed extraction of a CSV file", () => {
+  it("starts again, says so, and its rows refresh at once", async () => {
+    const world = buildExtractionAgentWorld()
+    server.use(...worldHandlers(world))
+    const [run] = world.csvExtractionRuns[world.agents[0]?.id ?? ""] ?? []
+    if (!run) throw new Error("The world has a CSV run")
+    run.status = "failed"
+    renderApp(extractionUrlsOf(world).csvRunUrl)
+
+    expect(await screen.findByText("The model did not answer in time.")).toBeInTheDocument()
+    await userEvent.click(screen.getByRole("button", { name: "Try again" }))
+
+    expect(await screen.findByText("The run started again.")).toBeInTheDocument()
+    // Sooner than the next poll of the rows: the retry refreshed them.
+    await waitFor(() =>
+      expect(screen.queryByText("The model did not answer in time.")).not.toBeInTheDocument(),
+    )
   })
 })

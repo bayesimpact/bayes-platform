@@ -7,7 +7,9 @@ import {
   SidebarMenu,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import { RELATIVE_TIME_INTERVAL_IN_MILLISECONDS, useNow } from "@/hooks/use-now"
 import {
+  entryTitleOf,
   groupByPeriod,
   type HistoryAgent,
   type HistoryEntry,
@@ -25,44 +27,35 @@ export type HistoryListProps = {
 
 /** The history of an agent in the sidebar, grouped by period, newest first. */
 export function HistoryList({ agent, entries, empty }: HistoryListProps) {
-  const { t } = useLingui()
+  const { t, i18n } = useLingui()
+  // The periods move at midnight: a minute late is fine.
+  const now = useNow(RELATIVE_TIME_INTERVAL_IN_MILLISECONDS, true)
   const periodLabels: Record<HistoryPeriod, string> = {
     today: t`Today`,
     yesterday: t`Yesterday`,
     previous7Days: t`Previous 7 days`,
     previous30Days: t`Previous 30 days`,
-    older: t`Older`,
-  }
-
-  const titleOf = (entry: HistoryEntry) => {
-    switch (entry.kind) {
-      case "conversation":
-        return entry.title ?? t`New conversation`
-      case "extraction":
-        return entry.fileName ?? t`Untitled document`
-      case "csv":
-        return (
-          entry.fileName ??
-          t({ message: "CSV extraction", comment: "An extraction of every row of a spreadsheet" })
-        )
-    }
+    older: t({ message: "Older", comment: "The history's entries of more than 30 days ago" }),
   }
 
   if (entries.length === 0) {
     return <p className="px-4 py-2 text-sm text-muted-foreground">{empty}</p>
   }
 
-  return groupByPeriod(entries, Date.now()).map((group) => (
+  return groupByPeriod(entries, now).map((group) => (
     <SidebarGroup key={group.period}>
       <SidebarGroupLabel>{periodLabels[group.period]}</SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu>
-          {group.entries.map((entry) => (
-            <SidebarMenuItem key={entry.id}>
-              <HistoryEntryLink agent={agent} entry={entry} />
-              <HistoryEntryActions agent={agent} entry={entry} title={titleOf(entry)} />
-            </SidebarMenuItem>
-          ))}
+          {group.entries.map((entry) => {
+            const title = entryTitleOf(entry, i18n)
+            return (
+              <SidebarMenuItem key={entry.id}>
+                <HistoryEntryLink agent={agent} entry={entry} title={title} />
+                <HistoryEntryActions agent={agent} entry={entry} title={title} />
+              </SidebarMenuItem>
+            )
+          })}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>

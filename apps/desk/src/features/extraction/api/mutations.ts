@@ -1,7 +1,6 @@
 import type { AgentParamsDto } from "@caseai-connect/desk-contracts"
 import {
   type CsvColumnDto,
-  type CsvExtractionRunDetailOutputDto,
   DeskCsvExtractionsRoutes,
   DeskDocumentsRoutes,
   DeskExtractionsRoutes,
@@ -14,6 +13,7 @@ import { openInTab } from "@/lib/safe-url"
 import { putFileToSignedUrl } from "@/lib/upload-file"
 import { extractionMimeTypeOf } from "../extraction-files"
 import { extractionKeys } from "./keys"
+import { csvRunQueryOptions } from "./queries"
 
 /** What a new file starts: the extraction of a document, or the setup of a CSV file's run. */
 export type StartedExtraction = { kind: "run"; runId: string } | { kind: "csv"; documentId: string }
@@ -23,7 +23,7 @@ export type UploadStep = "uploading" | "starting"
 
 /**
  * Uploads a file for an extraction, then starts it: a document runs at once; a CSV file waits for
- * the person to choose what the agent reads in its rows.
+ * the person to choose what the agent reads in its rows. Aborting `signal` stops it at any step.
  */
 export function useUploadAndExtract(agent: AgentParamsDto) {
   const queryClient = useQueryClient()
@@ -32,9 +32,11 @@ export function useUploadAndExtract(agent: AgentParamsDto) {
     mutationFn: async ({
       file,
       onStep,
+      signal,
     }: {
       file: File
       onStep: (step: UploadStep) => void
+      signal: AbortSignal
     }): Promise<StartedExtraction> => {
       const mimeType = extractionMimeTypeOf(file)
       if (!mimeType) throw new Error("An extraction cannot read this type of file")
@@ -44,14 +46,20 @@ export function useUploadAndExtract(agent: AgentParamsDto) {
         body: presignExtractionDocumentInputSchema.parse({
           file: { fileName: file.name, mimeType, size: file.size },
         }),
+        signal,
       })
-      await putFileToSignedUrl(uploadUrl, file, mimeType)
-      await apiRequest(DeskExtractionsRoutes.confirmDocument, { params, body: { documentId } })
+      await putFileToSignedUrl(uploadUrl, file, mimeType, signal)
+      await apiRequest(DeskExtractionsRoutes.confirmDocument, {
+        params,
+        body: { documentId },
+        signal,
+      })
       if (mimeType === "text/csv") return { kind: "csv", documentId }
       onStep("starting")
       const { runId } = await apiRequest(DeskExtractionsRoutes.executeOne, {
         params,
         body: { documentId },
+        signal,
       })
       return { kind: "run", runId }
     },
@@ -104,18 +112,23 @@ export function useStartCsvExtraction(agent: AgentParamsDto) {
         params,
         body: { csvDocumentId, columnSchema },
       })
-      const run = await apiRequest(DeskCsvExtractionsRoutes.executeOne, {
+      return apiRequest(DeskCsvExtractionsRoutes.executeOne, {
         params: { ...params, agentCsvExtractionRunId: created.id },
         body: { recordLimit },
       })
-      queryClient.setQueryData(extractionKeys.csvRun(agent.agentId, run.id), run)
-      return run.id
+    },
+    // The run's page opens on the run the API just answered, without asking for it again.
+    onSuccess: (run) => {
+      queryClient.setQueryData(csvRunQueryOptions(agent, run.id).queryKey, run)
     },
     onSettled: () => invalidateAgentHistory(queryClient, agent.agentId),
   })
 }
 
-/** Stops a CSV run, or starts it again, and shows the run as the API answers it. */
+/**
+ * Stops a CSV run, or starts it again: the page shows the run as the API answers it, and its rows
+ * refresh, since the action changed them.
+ */
 function useCsvRunAction(
   agent: AgentParamsDto,
   route: typeof DeskCsvExtractionsRoutes.cancelOne | typeof DeskCsvExtractionsRoutes.retryOne,
@@ -124,11 +137,16 @@ function useCsvRunAction(
   return useMutation({
     mutationFn: (csvRunId: string) =>
       apiRequest(route, { params: { ...agent, agentCsvExtractionRunId: csvRunId } }),
-    onSuccess: (run: CsvExtractionRunDetailOutputDto) => {
-      queryClient.setQueryData(extractionKeys.csvRun(agent.agentId, run.id), run)
-      void queryClient.invalidateQueries({ queryKey: extractionKeys.csvRun(agent.agentId, run.id) })
+    onSuccess: (run) => {
+      queryClient.setQueryData(csvRunQueryOptions(agent, run.id).queryKey, run)
     },
-    onSettled: () => invalidateAgentHistory(queryClient, agent.agentId),
+    onSettled: (_run, _error, csvRunId) =>
+      Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: extractionKeys.csvRunRecords(agent.agentId, csvRunId),
+        }),
+        invalidateAgentHistory(queryClient, agent.agentId),
+      ]),
   })
 }
 

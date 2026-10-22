@@ -61,10 +61,10 @@ export function CsvSetup({ agent, documentId }: CsvSetupProps) {
         recordLimit: setup.scope.kind === "all" ? null : setup.scope.count,
       },
       {
-        onSuccess: (csvRunId) =>
+        onSuccess: (run) =>
           void navigate({
             to: "/o/$organizationId/p/$projectId/a/$agentId/extraction/csv-runs/$csvRunId",
-            params: { ...agent, csvRunId },
+            params: { ...agent, csvRunId: run.id },
           }),
         onError: () => toast.error(t`The extraction could not start. Try again.`),
       },

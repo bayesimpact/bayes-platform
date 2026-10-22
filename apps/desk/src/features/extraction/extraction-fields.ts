@@ -1,22 +1,7 @@
+import { fieldLabelOf } from "@/lib/field-text"
+
 /** One field the agent filled in: its key in the agent's schema, a label and its value. */
 export type ExtractedField = { key: string; label: string; value: unknown }
-
-/**
- * A field's key as words, since the Desk does not read the agent's schema:
- * `numberOfParagraphs`, `number_of_paragraphs` and `number-of-paragraphs` read "Number of
- * paragraphs".
- */
-export function fieldLabelOf(key: string): string {
-  const words = key
-    .replace(/([a-z\d])([A-Z])/g, "$1 $2")
-    .replace(/([A-Z]+)([A-Z][a-z])/g, "$1 $2")
-    .split(/[\s_\-.]+/)
-    .filter((word) => word !== "")
-    // An acronym keeps its capitals: "PDF url" stays "PDF url".
-    .map((word) => (word === word.toUpperCase() && word.length > 1 ? word : word.toLowerCase()))
-  const sentence = words.join(" ")
-  return sentence.charAt(0).toUpperCase() + sentence.slice(1)
-}
 
 /** The fields of a result, in the order the agent wrote them. */
 export function extractedFieldsOf(result: Record<string, unknown>): ExtractedField[] {
@@ -38,17 +23,6 @@ export function isEmptyValue(value: unknown): boolean {
   if (typeof value === "string") return value.trim() === ""
   if (Array.isArray(value)) return value.length === 0
   return false
-}
-
-/** A value as plain text, to copy it or to show it in one line. */
-export function plainTextOf(value: unknown): string {
-  if (value === null || value === undefined) return ""
-  if (typeof value === "string") return value
-  if (typeof value === "number" || typeof value === "boolean") return String(value)
-  if (Array.isArray(value) && value.every((item) => typeof item !== "object" || item === null)) {
-    return value.map((item) => plainTextOf(item)).join(", ")
-  }
-  return JSON.stringify(value, null, 2)
 }
 
 /** A result as the JSON a person downloads or copies. */

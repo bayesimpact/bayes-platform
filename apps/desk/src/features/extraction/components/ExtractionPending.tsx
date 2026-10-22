@@ -1,19 +1,20 @@
 import { Trans, useLingui } from "@lingui/react/macro"
+import { cn } from "cn"
 import { Skeleton } from "@/components/ui/skeleton"
-import { useNow } from "@/hooks/use-now"
 import { durationOf } from "@/lib/format-time"
 
 export type ExtractionPendingProps = {
   createdAt: number
+  /** The time the page shows, which moves every second while the agent reads. */
+  now: number
 }
 
 /**
  * What a page shows while the agent reads the document: how long it has been reading, the shape
  * of the fields to come, and that the person may leave.
  */
-export function ExtractionPending({ createdAt }: ExtractionPendingProps) {
+export function ExtractionPending({ createdAt, now }: ExtractionPendingProps) {
   const { t, i18n } = useLingui()
-  const now = useNow(1000, true)
   const elapsed = durationOf(now - createdAt, i18n.locale)
   return (
     <section
@@ -29,9 +30,9 @@ export function ExtractionPending({ createdAt }: ExtractionPendingProps) {
       </div>
       <div aria-hidden className="flex flex-col gap-3">
         {["w-2/3", "w-1/2", "w-5/6", "w-1/3"].map((width) => (
-          <div key={width} className="grid grid-cols-[minmax(8rem,1fr)_2fr] gap-4">
+          <div key={width} className="grid grid-cols-3 gap-4">
             <Skeleton className="h-4 w-3/4" />
-            <Skeleton className={`h-4 ${width}`} />
+            <Skeleton className={cn("col-span-2 h-4", width)} />
           </div>
         ))}
       </div>

@@ -76,10 +76,10 @@ export function FieldValue({ value, isCompact = false }: FieldValueProps) {
   if (isRecord(value)) {
     const fields = extractedFieldsOf(value)
     return (
-      <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
+      <dl className="flex flex-col gap-1">
         {fields.map((field) => (
-          <div key={field.key} className="contents">
-            <dt className="text-muted-foreground">{field.label}</dt>
+          <div key={field.key} className="flex gap-3">
+            <dt className="shrink-0 text-muted-foreground">{field.label}</dt>
             <dd className="min-w-0">
               <FieldValue value={field.value} isCompact={isCompact} />
             </dd>

@@ -8,6 +8,8 @@ const SHOWN_AT_FIRST = 5
 
 export type RecentDocumentsProps = {
   documents: ExtractionDocumentOutputDto[]
+  /** The time the page shows, for the documents' ages. */
+  now: number
   /** The document being extracted again, whose row shows it. */
   busyDocumentId: string | null
   onExtract: (document: ExtractionDocumentOutputDto) => void
@@ -17,6 +19,7 @@ export type RecentDocumentsProps = {
 /** The documents the person uploaded before, newest first, to extract one again. */
 export function RecentDocuments({
   documents,
+  now,
   busyDocumentId,
   onExtract,
   onDelete,
@@ -37,6 +40,7 @@ export function RecentDocuments({
           <DocumentRow
             key={document.id}
             document={document}
+            now={now}
             isBusy={busyDocumentId === document.id}
             isDisabled={busyDocumentId !== null}
             onExtract={() => onExtract(document)}
