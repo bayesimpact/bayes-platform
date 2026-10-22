@@ -107,7 +107,7 @@ Is the pdf-converter deployed? "auto" follows the storage mode.
 {{- if kindIs "bool" $enabled -}}
 {{- if $enabled -}}true{{- end -}}
 {{- else if eq (toString $enabled) "auto" -}}
-{{- if eq .Values.storage.mode "gcs" -}}true{{- end -}}
+{{- if has .Values.storage.mode (list "s3" "gcs") -}}true{{- end -}}
 {{- else if eq (toString $enabled) "true" -}}true{{- end -}}
 {{- end -}}
 
@@ -199,10 +199,8 @@ on other chart values.
 - name: API_PUBLIC_URL
   value: {{ trimSuffix "/" .Values.urls.api | quote }}
 {{- end }}
-{{- if eq .Values.storage.mode "gcs" }}
-- name: GCS_STORAGE_BUCKET_NAME
-  value: {{ required "storage.gcs.bucket is required when storage.mode is gcs" .Values.storage.gcs.bucket | quote }}
-{{- else }}
+{{- include "bayes-platform.bucketEnv" . }}
+{{- if eq .Values.storage.mode "local" }}
 - name: LOCAL_STORAGE_SERVER_BASE_URL
   value: {{ .Values.urls.api | quote }}
 {{- end }}
@@ -232,6 +230,44 @@ envFrom: the shared ConfigMap and the application Secret.
 {{- if or .Values.secrets.existingSecret .Values.secrets.create }}
 - secretRef:
     name: {{ include "bayes-platform.secretName" . }}
+{{- end }}
+{{- end -}}
+
+{{/*
+Bucket of the s3 and gcs storage modes, shared by the API, the workers and the
+pdf-converter: they read the same variables.
+*/}}
+{{- define "bayes-platform.bucketEnv" -}}
+{{- if eq .Values.storage.mode "s3" }}
+- name: STORAGE_BACKEND
+  value: s3
+- name: S3_BUCKET
+  value: {{ required "storage.s3.bucket is required when storage.mode is s3" .Values.storage.s3.bucket | quote }}
+- name: S3_ENDPOINT
+  value: {{ .Values.storage.s3.endpoint | quote }}
+- name: S3_PUBLIC_ENDPOINT
+  value: {{ .Values.storage.s3.publicEndpoint | quote }}
+- name: S3_REGION
+  value: {{ .Values.storage.s3.region | quote }}
+- name: S3_FORCE_PATH_STYLE
+  value: {{ .Values.storage.s3.forcePathStyle | toString | quote }}
+{{- if and .Values.storage.s3.accessKeyIdKey .Values.storage.s3.secretAccessKeyKey }}
+- name: S3_ACCESS_KEY_ID
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "bayes-platform.secretName" . }}
+      key: {{ .Values.storage.s3.accessKeyIdKey }}
+- name: S3_SECRET_ACCESS_KEY
+  valueFrom:
+    secretKeyRef:
+      name: {{ include "bayes-platform.secretName" . }}
+      key: {{ .Values.storage.s3.secretAccessKeyKey }}
+{{- end }}
+{{- else if eq .Values.storage.mode "gcs" }}
+- name: STORAGE_BACKEND
+  value: gcs
+- name: GCS_STORAGE_BUCKET_NAME
+  value: {{ required "storage.gcs.bucket is required when storage.mode is gcs" .Values.storage.gcs.bucket | quote }}
 {{- end }}
 {{- end -}}
 
