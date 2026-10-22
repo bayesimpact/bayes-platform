@@ -10,7 +10,7 @@ import {
   buildSeveralProjectsWorld,
 } from "@/test/factories/desk-world.factory"
 import { termsHandlers } from "@/test/msw/handlers"
-import type { DeskStoryParameters } from "@/test/msw/story-worker"
+import type { DeskStoryParameters } from "@/test/msw/story-api"
 import { DeskStory } from "./DeskStory"
 
 /**
@@ -19,8 +19,10 @@ import { DeskStory } from "./DeskStory"
  */
 const meta = {
   title: "Desk",
-  render: (_args, { loaded }) => (
-    <DeskStory url={typeof loaded.deskUrl === "string" ? loaded.deskUrl : "/app/"} />
+  // Keyed by story: the next story starts a Desk of its own, on its own world, rather than keep
+  // the router and the cache of the previous one.
+  render: (_args, { id, loaded }) => (
+    <DeskStory key={id} url={typeof loaded.deskUrl === "string" ? loaded.deskUrl : "/app/"} />
   ),
 } satisfies Meta
 

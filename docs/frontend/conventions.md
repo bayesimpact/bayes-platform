@@ -235,7 +235,9 @@ or editing the boundaries' configuration.
   handlers and opens a page of it, from which the person goes anywhere, as in the app: one story
   per state of the world (several projects, no agent, terms to accept, a failure, a long load),
   and one per page worth showing. A component with states of its own may add stories next to it.
-  Nothing of the mock mode reaches the production build.
+  The stories answer the app's `fetch` calls with MSW's `getResponse` rather than a Service
+  Worker, which the browser of Claude Desktop cannot register. Nothing of the mock mode reaches
+  the production build.
 - Playwright covers the critical journeys against a worktree environment, once they exist.
 - Every bug fix comes with the test that would have caught it. Ids in tests come from
   `crypto.randomUUID()`.

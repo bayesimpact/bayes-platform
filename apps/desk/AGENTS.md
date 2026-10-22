@@ -48,10 +48,12 @@ Run them from the repository root.
 In a worktree with an environment, never start `dev` on the host: the environment's `desk` service
 runs it, under the `desk` profile (`bayes wt up --with desk`), at `<WT_ORIGIN>/app/`. Its Storybook
 runs under the `storybook-desk` profile (`bayes wt up --with storybook-desk`, or the `front`
-preset), at `<WT_SCHEME>://<name>-desk-storybook.<WT_TOOLS_DOMAIN>`. In the main checkout,
-`npm run storybook -w @caseai-connect/desk` serves it on port 6009, with its MCP server at `/mcp`
-(`storybook-desk` in `.mcp.json`). The `storybook-screenshot` skill captures its stories, with
-`--base-url` for an environment's.
+preset), at `<WT_SCHEME>://<name>-desk-storybook.<WT_TOOLS_DOMAIN>`, the link to share. The browser
+of Claude Desktop blocks the scripts of that public domain: open it there at
+`http://<name>-desk-storybook.connect.localhost:8800`, which the environment serves too. In the
+main checkout, `npm run storybook -w @caseai-connect/desk` serves it on port 6009, with its MCP
+server at `/mcp` (`storybook-desk` in `.mcp.json`). The `storybook-screenshot` skill captures its
+stories, with `--base-url` for an environment's.
 
 ## Where things are
 
@@ -74,7 +76,7 @@ preset), at `<WT_SCHEME>://<name>-desk-storybook.<WT_TOOLS_DOMAIN>`. In the main
   `src/app/query-client.ts`.
 - The mocked API: `src/test/msw/handlers.ts`, with the factories of `src/test/factories/`.
 - The stories: `src/stories/Desk.stories.tsx`. Each one sets its `desk` parameter (a world, handlers
-  that win over it, a starting page), which `src/test/msw/story-worker.ts` serves with ids that are
+  that win over it, a starting page), which `src/test/msw/story-api.ts` serves with ids that are
   the same on every load. A new state of the Desk is a new story there.
 
 ## Until the cutover
