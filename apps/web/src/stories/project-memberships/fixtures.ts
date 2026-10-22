@@ -20,6 +20,9 @@ const [ownerRole, adminRole, memberRole] = mockProjectRoles as [
   ProjectRoleOption,
 ]
 
+/** The workspace roles the API offers to give: owner is set at creation. */
+export const mockGrantableProjectRoles: ProjectRoleOption[] = [adminRole, memberRole]
+
 export const mockCurrentUserId = "user-me"
 
 function buildMember(

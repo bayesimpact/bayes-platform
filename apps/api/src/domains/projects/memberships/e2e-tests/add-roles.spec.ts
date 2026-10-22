@@ -103,20 +103,34 @@ describe("Project membership - addRoles", () => {
 
     const response = await subject({
       userIds: [first.id, second.id],
-      roleKeys: ["project_owner"],
+      roleKeys: ["project_admin"],
     })
 
     expectResponse(response, 201)
     expect(
-      response.body.data.map((member) => [member.userId, member.roles.map((role) => role.key)]),
+      response.body.data.map((member) => [
+        member.userId,
+        member.roles.map((role) => role.key).sort(),
+      ]),
     ).toEqual(
       expect.arrayContaining([
-        [first.id, ["project_owner", "project_member"]],
-        [second.id, ["project_owner", "project_member"]],
+        [first.id, ["project_admin", "project_member"]],
+        [second.id, ["project_admin", "project_member"]],
       ]),
     )
-    expect(await roleKeysOf(first.id)).toEqual(["project_member", "project_owner"])
+    expect(await roleKeysOf(first.id)).toEqual(["project_admin", "project_member"])
     await expectActivityCreated("projectMembership.addRoles")
+  })
+
+  it("refuses the owner role, and changes nobody", async () => {
+    const { first } = await createContext()
+
+    expectResponse(
+      await subject({ userIds: [first.id], roleKeys: ["project_owner"] }),
+      403,
+      "The owner role is not given or taken here",
+    )
+    expect(await roleKeysOf(first.id)).toEqual(["project_member"])
   })
 
   it("makes a new admin admin of every agent of the project", async () => {

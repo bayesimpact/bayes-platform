@@ -66,7 +66,7 @@ export function MembersTable({
 }: {
   scope: MembersTableScope
   members: MembersTableMember[]
-  /** The roles a member can be given on the resource. */
+  /** The roles a member can be given on the resource. Owner roles are never given here. */
   roles: ProjectRoleOption[]
   currentUserId: string
   canUpdateRoles: boolean
@@ -197,12 +197,28 @@ export function MembersTable({
     getPaginationRowModel: getPaginationRowModel(),
   })
 
+  // The filter also offers the roles members hold but nobody is given here, such as owner.
+  const filterRoles = useMemo(() => {
+    const grantableKeys = new Set(roles.map((role) => role.key))
+    const heldOnly = new Map<string, ProjectRoleOption>()
+    for (const member of members) {
+      for (const role of member.roles) {
+        if (!grantableKeys.has(role.key)) heldOnly.set(role.key, role)
+      }
+    }
+    return [...heldOnly.values(), ...roles]
+  }, [members, roles])
+
   const selectedMembers = members.filter((member) => rowSelection[member.userId])
-  const ownerCount = members.filter(isOwner).length
-  const removeBlockedReason =
-    ownerCount > 0 && selectedMembers.filter(isOwner).length === ownerCount
-      ? t(`projectMembership:table.removeBlocked.${scope}`)
-      : null
+  const selectedOwnerCount = selectedMembers.filter(isOwner).length
+  // A workspace keeps at least one owner; an agent's owners are never removed here.
+  const isRemoveBlocked =
+    scope === "agent"
+      ? selectedOwnerCount > 0
+      : selectedOwnerCount > 0 && selectedOwnerCount === members.filter(isOwner).length
+  const removeBlockedReason = isRemoveBlocked
+    ? t(`projectMembership:table.removeBlocked.${scope}`)
+    : null
 
   const resetFilters = () => {
     setSearch("")
@@ -247,7 +263,7 @@ export function MembersTable({
           setSearch(value)
           setPagination((current) => ({ ...current, pageIndex: 0 }))
         }}
-        roles={roles}
+        roles={filterRoles}
         roleFilter={roleFilter}
         onRoleFilterChange={(roleKeys) => {
           setRoleFilter(roleKeys)

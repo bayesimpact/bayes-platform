@@ -5,10 +5,10 @@ import { expect, fireEvent, fn, userEvent, within } from "storybook/test"
 import { MembersTable } from "@/studio/features/project-memberships/components/members-table/MembersTable"
 import {
   mockCurrentUserId,
+  mockGrantableProjectRoles,
   mockManyMembers,
   mockMe,
   mockOwners,
-  mockProjectRoles,
 } from "./fixtures"
 
 const meta = {
@@ -31,7 +31,7 @@ const meta = {
   args: {
     scope: "project",
     members: mockManyMembers,
-    roles: mockProjectRoles,
+    roles: mockGrantableProjectRoles,
     currentUserId: mockCurrentUserId,
     canUpdateRoles: true,
     canRemoveMembers: true,

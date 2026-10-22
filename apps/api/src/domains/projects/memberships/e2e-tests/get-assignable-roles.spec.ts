@@ -89,7 +89,7 @@ describe("Project membership - getAssignableRoles", () => {
     return rows.map((row) => row.rbacRole?.key).sort()
   }
 
-  it("lists the roles of the catalog per kind of resource, in catalog order", async () => {
+  it("lists the roles a member can be given per kind of resource, in catalog order", async () => {
     await createContext()
 
     const response = await request({
@@ -100,14 +100,10 @@ describe("Project membership - getAssignableRoles", () => {
 
     expectResponse(response, 200)
     const { project, agent, review_campaign } = response.body.data
-    expect(project.map((role) => role.key)).toEqual([
-      "project_owner",
-      "project_admin",
-      "project_member",
-    ])
-    expect(project[0]?.name).toBe("Project Owner")
-    // The conversation reviewer role stays a backoffice grant.
-    expect(agent.map((role) => role.key)).toEqual(["agent_owner", "agent_admin", "agent_member"])
+    expect(project.map((role) => role.key)).toEqual(["project_admin", "project_member"])
+    expect(project[0]?.name).toBe("Project Admin")
+    // Owner roles are set at creation, and the conversation reviewer role is a backoffice grant.
+    expect(agent.map((role) => role.key)).toEqual(["agent_admin", "agent_member"])
     expect(review_campaign.map((role) => role.key)).toEqual([
       "review_campaign_tester",
       "review_campaign_reviewer",

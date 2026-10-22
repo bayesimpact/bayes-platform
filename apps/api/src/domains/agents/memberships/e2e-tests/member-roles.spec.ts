@@ -135,15 +135,20 @@ describe("Agent Memberships - addRole and removeRole", () => {
     expectResponse(await addRole(owner.id, "agent_admin"), 403, "Cannot change your own role")
   })
 
-  it("keeps the agent's last owner", async () => {
+  it("neither gives nor takes the owner role", async () => {
     const { owner, member } = await createContext()
+
+    expectResponse(
+      await addRole(member.id, "agent_owner"),
+      403,
+      "The owner role is not given or taken here",
+    )
     await addRole(member.id, "agent_admin")
     authSubject = member.authSubject!
-
     expectResponse(
       await removeRole(owner.id, "agent_owner"),
       403,
-      "Cannot remove the last owner of the agent",
+      "The owner role is not given or taken here",
     )
   })
 })

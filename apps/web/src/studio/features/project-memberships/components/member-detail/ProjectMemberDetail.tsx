@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next"
 import { ConfirmDialog } from "@/common/components/ConfirmDialog"
 import { GridHeader } from "@/common/components/grid/Grid"
 import { NeverSignedInBadge } from "@/common/components/NeverSignedInBadge"
-import { PROJECT_OWNER_ROLE_KEY } from "../members-table/members-table.models"
+import { OWNER_ROLE_KEY } from "../members-table/members-table.models"
 import { useRoleLabel } from "../members-table/role-label"
 import type { MemberDetailMember, MemberResourceRoles, RoleOption } from "./member-detail.models"
 import { ResourceRolesSection } from "./ResourceRolesSection"
@@ -23,7 +23,6 @@ export function ProjectMemberDetail({
   workspace,
   agents,
   campaigns,
-  isLastOwner,
   onAddRole,
   onRemoveRole,
   onBack,
@@ -33,8 +32,6 @@ export function ProjectMemberDetail({
   workspace: MemberResourceRoles
   agents: MemberResourceRoles[]
   campaigns: MemberResourceRoles[]
-  /** True when the member is the workspace's only `project_owner`. */
-  isLastOwner: boolean
   /** Rejects with an `Error` whose message is shown on the page. */
   onAddRole: (resource: MemberResourceRoles, roleKey: string) => Promise<void>
   /** Rejects with an `Error` whose message is shown in the dialog. */
@@ -53,10 +50,11 @@ export function ProjectMemberDetail({
   const isSelf = member.userId === currentUserId
   const displayName = member.userName ?? member.userEmail
 
+  // Owner roles are set when the workspace or the agent is created, never changed here.
   const lockedRolesFor = (resource: MemberResourceRoles): Record<string, string> =>
-    resource.kind === "project" && isLastOwner
-      ? { [PROJECT_OWNER_ROLE_KEY]: t("projectMembership:memberDetail.lastOwner") }
-      : {}
+    resource.kind === "review_campaign"
+      ? {}
+      : { [OWNER_ROLE_KEY[resource.kind]]: t("projectMembership:memberDetail.ownerLocked") }
 
   const handleAddRole = async (resource: MemberResourceRoles, role: RoleOption) => {
     setAddError(null)

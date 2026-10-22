@@ -14,7 +14,10 @@ import { agentMembershipFactory } from "@/studio/features/agent-memberships/agen
 import type { AgentMembership } from "@/studio/features/agent-memberships/agent-memberships.models"
 import type { IAgentMembershipsSpi } from "@/studio/features/agent-memberships/agent-memberships.spi"
 import { pendingInvitationFactory } from "@/studio/features/invitations/invitations.factory"
-import { SAMPLE_AGENT_ROLES } from "@/studio/features/project-memberships/project-memberships.factory"
+import {
+  SAMPLE_AGENT_ROLES,
+  SAMPLE_ASSIGNABLE_ROLES,
+} from "@/studio/features/project-memberships/project-memberships.factory"
 import { StudioRoutes } from "@/studio/routes/helpers"
 import { studioRoutes } from "@/studio/routes/StudioRoutes"
 
@@ -96,7 +99,7 @@ const decorator = buildDecorator<StoryArgs>(
         seed.agents([currentAgent, ...restAgents], { currentId: currentAgent.id }),
         seed.conversationAgentSessions({ [currentAgent.id]: [] }),
         seed.studio.agentMemberships(memberships),
-        seed.studio.agentAssignableRoles(SAMPLE_AGENT_ROLES),
+        seed.studio.agentAssignableRoles(SAMPLE_ASSIGNABLE_ROLES.agent),
         seed.studio.agentHistory({ agentId: currentAgent.id, versions: [currentAgentSettings] }),
         seed.studio.agentPendingInvitations(
           withPendingInvitations

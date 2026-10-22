@@ -66,7 +66,7 @@
       "addRoles": "Add roles",
       "removeBlocked": {
         "project": "A workspace keeps at least one owner. Unselect an owner to remove the others.",
-        "agent": "An agent keeps at least one owner. Unselect an owner to remove the others."
+        "agent": "An agent's owners are not removed here. Unselect them to remove the others."
       },
       "genericError": "Something went wrong. Try again.",
       "addRolesDialog": {
@@ -97,7 +97,6 @@
       "addErrorDetail": "{{role}} on {{resource}}: {{error}}",
       "addError": "The role could not be added. Try again.",
       "removeError": "The role could not be removed. Try again.",
-      "lastOwner": "A workspace keeps at least one owner.",
       "workspace": {
         "title": "Workspace",
         "description": "What they can do across this workspace.",
@@ -136,7 +135,8 @@
         "draft": "Draft",
         "active": "Active",
         "closed": "Closed"
-      }
+      },
+      "ownerLocked": "The owner role is set when the workspace or the agent is created, and is not changed here."
     }
   }
 }

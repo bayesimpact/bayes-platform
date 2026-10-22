@@ -99,8 +99,10 @@ function resource(
   heldRoles: RoleOption[],
   detail?: string,
 ): MemberResourceRoles {
-  const grantableRoles =
+  // Owner roles are set at creation, never given from the member page.
+  const grantableRoles = (
     kind === "project" ? mockProjectRoles : kind === "agent" ? mockAgentRoles : mockCampaignRoles
+  ).filter((role) => !role.key.endsWith("_owner"))
   return {
     kind,
     resourceId,

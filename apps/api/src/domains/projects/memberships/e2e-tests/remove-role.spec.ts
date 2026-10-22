@@ -156,7 +156,7 @@ describe("Project membership - removeRole", () => {
     )
   })
 
-  it("refuses to take the last owner's ownership", async () => {
+  it("does not take the owner role", async () => {
     const { owner, first } = await createContext()
     await giveRole(owner.id, "project_admin")
     await giveRole(first.id, "project_admin")
@@ -165,7 +165,7 @@ describe("Project membership - removeRole", () => {
     expectResponse(
       await subject(owner.id, "project_owner"),
       403,
-      "Cannot remove the last owner of the project",
+      "The owner role is not given or taken here",
     )
   })
 

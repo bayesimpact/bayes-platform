@@ -17,7 +17,11 @@ import {
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { PermissionService } from "@/domains/rbac/permission.service"
 import type { RoleGrant } from "@/domains/rbac/permission.types"
-import { AGENT_CONVERSATION_REVIEWER_ROLE, PROJECT_ROLES } from "@/domains/rbac/rbac.constants"
+import {
+  AGENT_CONVERSATION_REVIEWER_ROLE,
+  AGENT_ROLES,
+  PROJECT_ROLES,
+} from "@/domains/rbac/rbac.constants"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { UserRepository } from "@/domains/users/user.repository"
 import type {
@@ -306,7 +310,8 @@ export class ProjectMembershipsService {
 
   /**
    * The roles a member can be given on the project, an agent and a review campaign, in catalog
-   * order. App install roles stay out of it.
+   * order. Owner roles stay out: they are set when the workspace or the agent is created. App
+   * install roles stay out too.
    */
   async listAssignableRoles(): Promise<Record<MemberResourceRoles["kind"], CatalogRole[]>> {
     const { roles } = await this.permissionService.getCatalog()
@@ -315,17 +320,17 @@ export class ProjectMembershipsService {
         .filter((role) => role.scopeType === scopeType && !excludedKeys.includes(role.key))
         .map((role) => ({ key: role.key, name: role.name }))
     return {
-      project: catalogRoles("project"),
+      project: catalogRoles("project", [PROJECT_ROLES.owner]),
       // The conversation reviewer role is granted in the backoffice only.
-      agent: catalogRoles("agent", [AGENT_CONVERSATION_REVIEWER_ROLE]),
+      agent: catalogRoles("agent", [AGENT_ROLES.owner, AGENT_CONVERSATION_REVIEWER_ROLE]),
       review_campaign: catalogRoles("review_campaign"),
     }
   }
 
   /**
    * Gives the roles to several members of the project, all or nothing. Nobody changes their own
-   * roles. `project_owner` and `project_admin` also make the member admin of every agent of the
-   * project, as for an invited admin.
+   * roles, and nobody is made owner here. `project_admin` also makes the member admin of every
+   * agent of the project, as for an invited admin.
    */
   async addRolesToMembers({
     callerUserId,
@@ -389,6 +394,9 @@ export class ProjectMembershipsService {
     if (memberUserId === callerUserId) {
       throw new ForbiddenException("Cannot change your own role")
     }
+    if (roleKey === PROJECT_ROLES.owner) {
+      throw new ForbiddenException("The owner role is not given or taken here")
+    }
 
     const membership = await this.transactionService.run(async () => {
       const existing = await this.projectMembershipRepository.findByUserAndProject({
@@ -401,9 +409,6 @@ export class ProjectMembershipsService {
       }
       if (existing.roles.length === 1) {
         throw new BadRequestException("A member keeps at least one role: remove the member instead")
-      }
-      if (roleKey === PROJECT_ROLES.owner) {
-        await this.assertOwnersRemain({ projectId, removedOwnerCount: 1 })
       }
 
       await this.projectMembershipRepository.removeRole({
@@ -452,6 +457,9 @@ export class ProjectMembershipsService {
   }
 
   private async assertAssignable(roleKeys: string[]): Promise<void> {
+    if (roleKeys.includes(PROJECT_ROLES.owner)) {
+      throw new ForbiddenException("The owner role is not given or taken here")
+    }
     const assignableKeys = new Set(
       (await this.listAssignableRoles()).project.map((role) => role.key),
     )

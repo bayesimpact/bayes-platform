@@ -76,7 +76,6 @@ const meta = {
     workspace: mockWorkspace,
     agents: mockAgents,
     campaigns: mockCampaigns,
-    isLastOwner: false,
     onAddRole: fn(async () => {}),
     onRemoveRole: fn(async () => {}),
     onBack: fn(),
@@ -137,9 +136,9 @@ export const RemoveRoleFails: Story = {
   },
 }
 
-/** The member is the workspace's only owner: that role cannot be removed, and its tooltip says why. */
-export const LastOwner: Story = {
-  args: { workspace: mockOwnerWorkspace, isLastOwner: true },
+/** The member owns the workspace: that role is never removed here, and its tooltip says why. */
+export const Owner: Story = {
+  args: { workspace: mockOwnerWorkspace },
 }
 
 /** The viewer's own page: every role shows, none can be changed. */

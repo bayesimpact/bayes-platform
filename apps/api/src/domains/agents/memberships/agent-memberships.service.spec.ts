@@ -161,28 +161,13 @@ describe("AgentMembershipsService", () => {
       ).rejects.toThrow("Cannot remove yourself from the agent")
     })
 
-    it("removes an owner while another owner remains", async () => {
+    it("throws when attempting to remove an owner", async () => {
       const { agent, user: requester } = await createOrganizationWithAgent(repositories)
       const { user: ownerUser } = await createOrganizationWithProject(repositories)
-      const ownerMembership = await saveAgentMembership({
+      await saveAgentMembership({
         repositories,
         membership: agentMembershipFactory.transient({ agent, user: ownerUser }).owner().build(),
       })
-
-      await service.removeAgentMembership({
-        callerUserId: requester.id,
-        memberUserId: ownerMembership.userId,
-        agentId: agent.id,
-      })
-
-      expect(
-        await service.findAgentMembership({ userId: ownerUser.id, agentId: agent.id }),
-      ).toBeNull()
-    })
-
-    it("throws when attempting to remove the last owner", async () => {
-      const { agent, user: ownerUser } = await createOrganizationWithAgent(repositories)
-      const { user: requester } = await createOrganizationWithProject(repositories)
 
       await expect(
         service.removeAgentMembership({
@@ -190,7 +175,7 @@ describe("AgentMembershipsService", () => {
           memberUserId: ownerUser.id,
           agentId: agent.id,
         }),
-      ).rejects.toThrow("Cannot remove the last owner of the agent")
+      ).rejects.toThrow("Cannot remove owner from the agent")
     })
   })
 

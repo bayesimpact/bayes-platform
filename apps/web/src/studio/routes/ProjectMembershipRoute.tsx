@@ -10,7 +10,6 @@ import { LoadingRoute } from "@/common/routes/LoadingRoute"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import type { MemberResourceRoles } from "@/studio/features/project-memberships/components/member-detail/member-detail.models"
 import { ProjectMemberDetail } from "@/studio/features/project-memberships/components/member-detail/ProjectMemberDetail"
-import { PROJECT_OWNER_ROLE_KEY } from "@/studio/features/project-memberships/components/members-table/members-table.models"
 import type { MemberResource } from "@/studio/features/project-memberships/project-memberships.models"
 import {
   selectAssignableRoles,
@@ -58,15 +57,8 @@ function WithData() {
   const { abilities } = useAbility()
   const me = useValue(selectMe)
   const projectId = useAppSelector(selectCurrentProjectId)
-  const memberships = useValue(selectProjectMemberships)
   const assignableRoles = useValue(selectAssignableRoles)
   const { member, workspace, agents, campaigns } = useValue(selectMemberRoles)
-
-  const ownerCount = memberships.filter((membership) =>
-    membership.roles.some((role) => role.key === PROJECT_OWNER_ROLE_KEY),
-  ).length
-  const isLastOwner =
-    ownerCount === 1 && member.roles.some((role) => role.key === PROJECT_OWNER_ROLE_KEY)
 
   // What the viewer may change comes from their own permissions on each resource.
   const canManage = (resource: MemberResource) => {
@@ -127,7 +119,6 @@ function WithData() {
       workspace={toResourceRoles(workspace)}
       agents={agents.map(toResourceRoles)}
       campaigns={campaigns.map(toResourceRoles)}
-      isLastOwner={isLastOwner}
       onAddRole={handleAddRole}
       onRemoveRole={handleRemoveRole}
       onBack={() => navigate(-1)}

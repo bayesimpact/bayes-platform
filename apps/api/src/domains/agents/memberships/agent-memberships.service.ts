@@ -184,17 +184,8 @@ export class AgentMembershipsService {
     }
     await this.transactionService.run(async () => {
       const memberships = await this.findAgentMemberships({ userIds: memberUserIds, agentId })
-      const removedOwnerCount = memberships.filter((membership) =>
-        hasRole(membership, AGENT_ROLES.owner),
-      ).length
-      if (removedOwnerCount > 0) {
-        const ownerCount = await this.agentMembershipRepository.countHolders({
-          agentId,
-          roleKey: AGENT_ROLES.owner,
-        })
-        if (ownerCount <= removedOwnerCount) {
-          throw new ForbiddenException("Cannot remove the last owner of the agent")
-        }
+      if (memberships.some((membership) => hasRole(membership, AGENT_ROLES.owner))) {
+        throw new ForbiddenException("Cannot remove owner from the agent")
       }
 
       for (const membership of memberships) {
@@ -367,9 +358,7 @@ export class AgentMembershipsService {
     projectId: string
     roleKey: string
   }): Promise<void> {
-    if (!MEMBER_ROLE_KEYS.includes(roleKey)) {
-      throw new BadRequestException(`Not an agent member role: ${roleKey}`)
-    }
+    assertGrantable([roleKey])
     if (memberUserId === callerUserId) {
       throw new ForbiddenException("Cannot change your own role")
     }
@@ -402,10 +391,7 @@ export class AgentMembershipsService {
     projectId: string
     roleKeys: string[]
   }): Promise<void> {
-    const unknownKeys = roleKeys.filter((roleKey) => !MEMBER_ROLE_KEYS.includes(roleKey))
-    if (unknownKeys.length > 0) {
-      throw new BadRequestException(`Not an agent member role: ${unknownKeys.join(", ")}`)
-    }
+    assertGrantable(roleKeys)
     if (memberUserIds.includes(callerUserId)) {
       throw new ForbiddenException("Cannot change your own role")
     }
@@ -425,10 +411,7 @@ export class AgentMembershipsService {
     })
   }
 
-  /**
-   * Takes a member role from someone on the agent. Nobody changes their own roles, and the agent
-   * keeps at least one owner.
-   */
+  /** Takes an admin or member role from someone on the agent. Nobody changes their own roles. */
   async removeMemberRole({
     callerUserId,
     memberUserId,
@@ -440,9 +423,7 @@ export class AgentMembershipsService {
     agentId: string
     roleKey: string
   }): Promise<void> {
-    if (!MEMBER_ROLE_KEYS.includes(roleKey)) {
-      throw new BadRequestException(`Not an agent member role: ${roleKey}`)
-    }
+    assertGrantable([roleKey])
     if (memberUserId === callerUserId) {
       throw new ForbiddenException("Cannot change your own role")
     }
@@ -451,16 +432,21 @@ export class AgentMembershipsService {
       if (!membership || !hasRole(membership, roleKey)) {
         throw new NotFoundException(`The member does not hold ${roleKey}`)
       }
-      if (roleKey === AGENT_ROLES.owner) {
-        const ownerCount = await this.agentMembershipRepository.countHolders({
-          agentId,
-          roleKey: AGENT_ROLES.owner,
-        })
-        if (ownerCount <= 1) {
-          throw new ForbiddenException("Cannot remove the last owner of the agent")
-        }
-      }
       await this.agentMembershipRepository.removeRole({ userId: memberUserId, agentId, roleKey })
     })
+  }
+}
+
+/**
+ * The agent roles these routes give and take: admin and member. The owner role is set when the
+ * agent is created, and the conversation reviewer role is a backoffice grant.
+ */
+function assertGrantable(roleKeys: string[]): void {
+  const unknownKeys = roleKeys.filter((roleKey) => !MEMBER_ROLE_KEYS.includes(roleKey))
+  if (unknownKeys.length > 0) {
+    throw new BadRequestException(`Not an agent member role: ${unknownKeys.join(", ")}`)
+  }
+  if (roleKeys.includes(AGENT_ROLES.owner)) {
+    throw new ForbiddenException("The owner role is not given or taken here")
   }
 }

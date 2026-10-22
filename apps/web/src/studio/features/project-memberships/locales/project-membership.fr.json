@@ -66,7 +66,7 @@
       "addRoles": "Ajouter des rôles",
       "removeBlocked": {
         "project": "Un espace de travail garde au moins un propriétaire. Désélectionnez un propriétaire pour retirer les autres.",
-        "agent": "Un agent garde au moins un propriétaire. Désélectionnez un propriétaire pour retirer les autres."
+        "agent": "Les propriétaires d'un agent ne se retirent pas ici. Désélectionnez-les pour retirer les autres."
       },
       "genericError": "Une erreur est survenue. Réessayez.",
       "addRolesDialog": {
@@ -97,7 +97,6 @@
       "addErrorDetail": "{{role}} sur {{resource}} : {{error}}",
       "addError": "Le rôle n'a pas pu être ajouté. Réessayez.",
       "removeError": "Le rôle n'a pas pu être retiré. Réessayez.",
-      "lastOwner": "Un espace de travail garde au moins un propriétaire.",
       "workspace": {
         "title": "Espace de travail",
         "description": "Ce qu'ils peuvent faire dans tout cet espace de travail.",
@@ -136,7 +135,8 @@
         "draft": "Brouillon",
         "active": "Active",
         "closed": "Clôturée"
-      }
+      },
+      "ownerLocked": "Le rôle de propriétaire est attribué à la création de l'espace de travail ou de l'agent, et ne se change pas ici."
     }
   }
 }

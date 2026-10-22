@@ -111,10 +111,11 @@ export const SAMPLE_CAMPAIGN_ROLES: ProjectRole[] = [
   { key: "review_campaign_reviewer", name: "Review Campaign Reviewer" },
 ]
 
-/** The catalog roles offered on each kind of resource, as the API lists them. */
+/** The roles offered on each kind of resource, as the API lists them. */
 export const SAMPLE_ASSIGNABLE_ROLES: AssignableRoles = {
-  project: SAMPLE_PROJECT_ROLES,
-  agent: SAMPLE_AGENT_ROLES,
+  // Owner roles are set at creation, never given from the members pages.
+  project: SAMPLE_PROJECT_ROLES.filter(({ key }) => key !== "project_owner"),
+  agent: SAMPLE_AGENT_ROLES.filter(({ key }) => key !== "agent_owner"),
   review_campaign: SAMPLE_CAMPAIGN_ROLES,
 }
 

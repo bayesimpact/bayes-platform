@@ -14,6 +14,7 @@ import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { AgentsModule } from "../../agents.module"
+import { addUserToAgent } from "../agent-membership.factory"
 
 describe("Agent Memberships - addRoles and deleteMany", () => {
   let app: INestApplication<App>
@@ -72,7 +73,7 @@ describe("Agent Memberships - addRoles and deleteMany", () => {
       ).addedUser
     const first = await addProjectMember("first@example.com")
     const second = await addProjectMember("second@example.com")
-    return { owner, first, second }
+    return { owner, agent, first, second }
   }
 
   const addRoles = (userIds: string[], roleKeys: string[]) =>
@@ -152,13 +153,28 @@ describe("Agent Memberships - addRoles and deleteMany", () => {
     expect(await roleKeysOn(second.id)).toEqual([])
   })
 
-  it("removes an owner while another owner remains", async () => {
+  it("refuses the owner role", async () => {
     const { first } = await createContext()
-    expectResponse(await addRoles([first.id], ["agent_owner"]), 201)
 
-    expectResponse(await deleteMany([first.id]), 200)
-
+    expectResponse(
+      await addRoles([first.id], ["agent_owner"]),
+      403,
+      "The owner role is not given or taken here",
+    )
     expect(await roleKeysOn(first.id)).toEqual([])
+  })
+
+  it("removes nobody when one of them owns the agent", async () => {
+    const { agent, first, second } = await createContext()
+    await addUserToAgent({ repositories, agent, user: first, membership: { role: "owner" } })
+    expectResponse(await addRoles([second.id], ["agent_member"]), 201)
+
+    expectResponse(
+      await deleteMany([first.id, second.id]),
+      403,
+      "Cannot remove owner from the agent",
+    )
+    expect(await roleKeysOn(second.id)).toEqual(["agent_member"])
   })
 
   it("removes nobody when one of the users is not a member of the agent", async () => {

@@ -35,8 +35,8 @@ export const ProjectMembershipRoutes = {
   }),
   /**
    * Gives roles to several members, all or nothing, and returns them. Needs `project.member.update`.
-   * Nobody changes their own roles. `project_owner` and `project_admin` also make them admin of
-   * every agent of the workspace.
+   * Nobody changes their own roles, and nobody is made owner here. `project_admin` also makes them
+   * admin of every agent of the workspace.
    */
   addRoles: defineRoute<
     ResponseData<ProjectMembershipDto[]>,
@@ -47,7 +47,7 @@ export const ProjectMembershipRoutes = {
   }),
   /**
    * Takes one role from a member and returns them. Needs `project.member.update`. Nobody changes
-   * their own roles, a member keeps at least one role, and the workspace its last owner.
+   * their own roles, a member keeps at least one role, and the owner role is not taken here.
    */
   removeRole: defineRoute<ResponseData<ProjectMembershipDto>>({
     method: "delete",
