@@ -3,6 +3,7 @@ import {
   DeskConversationsRoutes,
   type ReplyStreamEventDto,
   replyStreamEventSchema,
+  TOOL_NAMES,
 } from "@caseai-connect/desk-contracts"
 import type { QueryClient } from "@tanstack/react-query"
 import { z } from "zod"
@@ -27,10 +28,10 @@ import { registerReplyStream, unregisterReplyStream } from "./reply-streams"
 import { uploadAttachment } from "./upload-attachment"
 
 /** The tools that change a form of the conversation, which comes with the agent's history. */
-const FORM_TOOLS = new Set(["fillForm", "consolidateForm"])
+const FORM_TOOLS: ReadonlySet<string> = new Set([TOOL_NAMES.fillForm, TOOL_NAMES.consolidateForm])
 
 /** The tools that change what the agent remembers about the person. */
-const MEMORY_TOOLS = new Set(["saveMemory", "forgetMemory"])
+const MEMORY_TOOLS: ReadonlySet<string> = new Set([TOOL_NAMES.saveMemory, TOOL_NAMES.forgetMemory])
 
 /** An event of the stream, or the failure to read one. */
 type ReadEvent = { event: ReplyStreamEventDto } | { failure: ReplyFailure }

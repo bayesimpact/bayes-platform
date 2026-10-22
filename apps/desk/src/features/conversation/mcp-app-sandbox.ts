@@ -1,5 +1,6 @@
 import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js"
-import type { JSONRPCMessage } from "@modelcontextprotocol/sdk/types.js"
+import { type JSONRPCMessage, JSONRPCMessageSchema } from "@modelcontextprotocol/sdk/types.js"
+import { isRecord } from "@/lib/is-record"
 
 /** The envelope of every message between the Desk and an app's sandbox. */
 const ENVELOPE_TYPE = "desk/mcp-app"
@@ -52,17 +53,13 @@ iframe{display:block;border:0;width:100%;height:100%}
 export const SANDBOX_FRAME_PERMISSIONS =
   "allow-scripts allow-popups allow-popups-to-escape-sandbox allow-downloads"
 
-type Envelope = { type: string; sandboxId: string; message?: JSONRPCMessage }
-
-function isEnvelopeOf(data: unknown, type: string, sandboxId: string): data is Envelope {
-  return (
-    typeof data === "object" &&
-    data !== null &&
-    "type" in data &&
-    data.type === type &&
-    "sandboxId" in data &&
-    data.sandboxId === sandboxId
-  )
+/** Whether a posted message is an envelope of this type from this sandbox. */
+function isEnvelopeOf(
+  data: unknown,
+  type: string,
+  sandboxId: string,
+): data is Record<string, unknown> {
+  return isRecord(data) && data.type === type && data.sandboxId === sandboxId
 }
 
 /**
@@ -104,9 +101,15 @@ export class SandboxTransport implements Transport {
     this.sandboxId = sandboxId
   }
 
+  /** Relays what the app sends, once the SDK's schema proves it a JSON-RPC message. */
   private readonly handleMessage = (event: MessageEvent) => {
-    if (!isEnvelopeOf(event.data, ENVELOPE_TYPE, this.sandboxId) || !event.data.message) return
-    this.onmessage?.(event.data.message)
+    if (!isEnvelopeOf(event.data, ENVELOPE_TYPE, this.sandboxId)) return
+    const parsed = JSONRPCMessageSchema.safeParse(event.data.message)
+    if (!parsed.success) {
+      this.onerror?.(new Error(`The app sent a message that is not JSON-RPC: ${parsed.error}`))
+      return
+    }
+    this.onmessage?.(parsed.data)
   }
 
   async start(): Promise<void> {

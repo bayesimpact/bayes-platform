@@ -16,8 +16,6 @@ msgid "\"{title}\" and its messages will be deleted. This cannot be undone."
 msgstr "\"{title}\" and its messages will be deleted. This cannot be undone."
 
 #: src/components/shared/ExternalLink.tsx:20
-#: src/features/conversation/components/ResourceCard.tsx:85
-#: src/features/conversation/components/ResourcePanel.tsx:37
 msgid "(opens in a new tab)"
 msgstr "(opens in a new tab)"
 
@@ -31,7 +29,7 @@ msgstr "(optional)"
 msgid "(required)"
 msgstr "(required)"
 
-#: src/features/conversation/components/Composer.tsx:200
+#: src/features/conversation/components/Composer.tsx:177
 msgid "{annotationCount, plural, one {Send with # annotation} other {Send with # annotations}}"
 msgstr "{annotationCount, plural, one {Send with # annotation} other {Send with # annotations}}"
 
@@ -47,7 +45,7 @@ msgstr "{count, plural, one {Memory (#)} other {Memory (#)}}"
 msgid "{count, plural, one {Used # source} other {Used # sources}}"
 msgstr "{count, plural, one {Used # source} other {Used # sources}}"
 
-#: src/features/conversation/components/ToolSteps.tsx:91
+#: src/features/conversation/components/ToolSteps.tsx:98
 msgid "{count, plural, one {Used a tool} other {Used tools}}"
 msgstr "{count, plural, one {Used a tool} other {Used tools}}"
 
@@ -95,11 +93,11 @@ msgstr "{rowCount, plural, one {Extract the first row} other {Extract the first 
 msgid "{running, plural, one {# running} other {# running}}"
 msgstr "{running, plural, one {# running} other {# running}}"
 
-#: src/features/conversation/components/Composer.tsx:151
+#: src/features/conversation/components/Composer.tsx:128
 msgid "<0/> to send"
 msgstr "<0/> to send"
 
-#: src/features/conversation/components/Composer.tsx:157
+#: src/features/conversation/components/Composer.tsx:134
 msgid "<0><1/><2/></0> for a new line"
 msgstr "<0><1/><2/></0> for a new line"
 
@@ -111,7 +109,7 @@ msgstr "<0>Read</0>: the agent reads it. <1>Keep</1>: shown beside the results. 
 msgid "A new version of the Desk is available"
 msgstr "A new version of the Desk is available"
 
-#: src/features/conversation/components/ReplyError.tsx:29
+#: src/features/conversation/components/ReplyError.tsx:16
 msgid "A new version of the Desk is available. Reload the page."
 msgstr "A new version of the Desk is available. Reload the page."
 
@@ -175,15 +173,15 @@ msgstr "Annotate and press Enter to keep it"
 msgid "As {role}"
 msgstr "As {role}"
 
-#: src/features/conversation/components/Composer.tsx:180
+#: src/features/conversation/components/Composer.tsx:157
 msgid "Attach a file"
 msgstr "Attach a file"
 
-#: src/features/conversation/components/Composer.tsx:98
-msgid "Attach a file of 10 MB at most."
-msgstr "Attach a file of 10 MB at most."
+#: src/features/conversation/hooks/use-attachment.ts:40
+msgid "Attach a file of {maxSize} at most."
+msgstr "Attach a file of {maxSize} at most."
 
-#: src/features/conversation/components/Composer.tsx:94
+#: src/features/conversation/hooks/use-attachment.ts:38
 msgid "Attach a PDF, PNG or JPEG file."
 msgstr "Attach a PDF, PNG or JPEG file."
 
@@ -200,7 +198,7 @@ msgid "Before you start"
 msgstr "Before you start"
 
 #: src/features/account/components/EditNameDialog.tsx:84
-#: src/features/conversation/components/FeedbackDialog.tsx:107
+#: src/features/conversation/components/FeedbackDialog.tsx:111
 #: src/features/extraction/components/CsvSetup.tsx:140
 #: src/features/extraction/components/DeleteDocumentDialog.tsx:60
 #: src/features/history/components/DeleteEntryDialog.tsx:78
@@ -233,7 +231,7 @@ msgstr "Columns"
 msgid "Completed form"
 msgstr "Completed form"
 
-#: src/features/conversation/components/ToolSteps.tsx:22
+#: src/features/conversation/components/ToolSteps.tsx:23
 msgid "Completing the form"
 msgstr "Completing the form"
 
@@ -261,7 +259,7 @@ msgstr "Copy the JSON"
 msgid "Copy the message"
 msgstr "Copy the message"
 
-#: src/features/conversation/components/AssistantMessageView.tsx:96
+#: src/features/conversation/components/AssistantMessageView.tsx:97
 msgid "Copy the reply"
 msgstr "Copy the reply"
 
@@ -328,9 +326,9 @@ msgstr "Delete this document?"
 msgid "Delete this extraction?"
 msgstr "Delete this extraction?"
 
-#: src/features/conversation/components/FeedbackDialog.tsx:99
-msgid "Describe the problem in a few words, up to 2,000 characters."
-msgstr "Describe the problem in a few words, up to 2,000 characters."
+#: src/features/conversation/components/FeedbackDialog.tsx:101
+msgid "Describe the problem in a few words, up to {maxLength} characters."
+msgstr "Describe the problem in a few words, up to {maxLength} characters."
 
 #: src/features/extraction/components/ExtractionFailure.tsx:65
 msgid "Details"
@@ -385,7 +383,7 @@ msgid "Email address missing"
 msgstr "Email address missing"
 
 #. The keyboard key
-#: src/features/conversation/components/Composer.tsx:235
+#: src/features/conversation/components/EnterKey.tsx:15
 msgid "Enter"
 msgstr "Enter"
 
@@ -425,7 +423,7 @@ msgstr "Fields"
 msgid "File"
 msgstr "File"
 
-#: src/features/conversation/components/ToolSteps.tsx:21
+#: src/features/conversation/components/ToolSteps.tsx:22
 msgid "Filling in the form"
 msgstr "Filling in the form"
 
@@ -442,7 +440,7 @@ msgstr "Forget everything"
 msgid "Forget everything?"
 msgstr "Forget everything?"
 
-#: src/features/conversation/components/ToolSteps.tsx:25
+#: src/features/conversation/components/ToolSteps.tsx:26
 msgid "Forgetting what you asked"
 msgstr "Forgetting what you asked"
 
@@ -463,7 +461,7 @@ msgstr "general conditions of service"
 msgid "Give the agent one file at a time."
 msgstr "Give the agent one file at a time."
 
-#: src/features/conversation/components/ToolSteps.tsx:23
+#: src/features/conversation/components/ToolSteps.tsx:24
 msgid "Handing the conversation back"
 msgstr "Handing the conversation back"
 
@@ -475,7 +473,7 @@ msgstr "Hide the sidebar"
 msgid "Home of the Desk"
 msgstr "Home of the Desk"
 
-#: src/features/conversation/components/ConversationView.tsx:95
+#: src/features/conversation/components/ConversationView.tsx:92
 #: src/features/conversation/components/NewConversation.tsx:22
 msgid "How can I help you today?"
 msgstr "How can I help you today?"
@@ -496,7 +494,7 @@ msgstr "I accept the privacy policy"
 msgid "If it keeps happening, contact your administrator with the message below."
 msgstr "If it keeps happening, contact your administrator with the message below."
 
-#: src/features/conversation/components/ResourcePanel.tsx:72
+#: src/features/conversation/components/ResourcePanel.tsx:70
 msgid "If the page stays blank, its site does not allow being shown here: open it in a new tab."
 msgstr "If the page stays blank, its site does not allow being shown here: open it in a new tab."
 
@@ -540,7 +538,7 @@ msgstr "Loading the interactive card…"
 msgid "member"
 msgstr "member"
 
-#: src/features/conversation/components/Composer.tsx:131
+#: src/features/conversation/components/Composer.tsx:108
 msgid "Message to {agentName}"
 msgstr "Message to {agentName}"
 
@@ -585,7 +583,7 @@ msgstr "No conversations yet"
 msgid "No extractions yet"
 msgstr "No extractions yet"
 
-#: src/features/conversation/components/SourceItem.tsx:74
+#: src/features/conversation/components/SourceItem.tsx:75
 msgid "No passage to show."
 msgstr "No passage to show."
 
@@ -622,15 +620,15 @@ msgstr "Open"
 msgid "Open {name}"
 msgstr "Open {name}"
 
-#: src/features/conversation/components/SourceItem.tsx:54
+#: src/features/conversation/components/SourceItem.tsx:55
 msgid "Open {title}"
 msgstr "Open {title}"
 
-#: src/features/conversation/components/ResourcePanel.tsx:35
+#: src/features/conversation/components/ResourcePanel.tsx:34
 msgid "Open in a new tab"
 msgstr "Open in a new tab"
 
-#: src/features/conversation/components/ResourcePanel.tsx:33
+#: src/features/conversation/components/ResourcePanel.tsx:32
 msgid "Open on YouTube"
 msgstr "Open on YouTube"
 
@@ -671,7 +669,7 @@ msgstr "PDF"
 msgid "PDF, image, text or CSV file, up to 25 MB. A CSV file runs row by row."
 msgstr "PDF, image, text or CSV file, up to 25 MB. A CSV file runs row by row."
 
-#: src/features/conversation/components/ToolSteps.tsx:20
+#: src/features/conversation/components/ToolSteps.tsx:21
 msgid "Picking useful resources"
 msgstr "Picking useful resources"
 
@@ -730,11 +728,11 @@ msgstr "Reload the page to keep going."
 msgid "Remember"
 msgstr "Remember"
 
-#: src/features/conversation/components/ToolSteps.tsx:24
+#: src/features/conversation/components/ToolSteps.tsx:25
 msgid "Remembering what matters"
 msgstr "Remembering what matters"
 
-#: src/features/conversation/components/Composer.tsx:120
+#: src/features/conversation/components/Composer.tsx:97
 msgid "Remove {fileName}"
 msgstr "Remove {fileName}"
 
@@ -742,12 +740,12 @@ msgstr "Remove {fileName}"
 msgid "Remove this annotation"
 msgstr "Remove this annotation"
 
-#: src/features/conversation/components/FeedbackDialog.tsx:63
-#: src/features/conversation/components/FeedbackDialog.tsx:70
+#: src/features/conversation/components/FeedbackDialog.tsx:65
+#: src/features/conversation/components/FeedbackDialog.tsx:72
 msgid "Report a problem"
 msgstr "Report a problem"
 
-#: src/features/conversation/components/FeedbackDialog.tsx:77
+#: src/features/conversation/components/FeedbackDialog.tsx:79
 msgid "Report a problem with this reply"
 msgstr "Report a problem with this reply"
 
@@ -763,7 +761,7 @@ msgstr "Resize the sidebar"
 msgid "Results"
 msgstr "Results"
 
-#: src/features/conversation/components/ConversationView.tsx:149
+#: src/features/conversation/components/ConversationView.tsx:146
 msgid "Retry"
 msgstr "Retry"
 
@@ -816,7 +814,7 @@ msgstr "Save"
 msgid "Scroll long lines"
 msgstr "Scroll long lines"
 
-#: src/features/conversation/components/ConversationView.tsx:158
+#: src/features/conversation/components/ConversationView.tsx:156
 msgid "Scroll to the latest message"
 msgstr "Scroll to the latest message"
 
@@ -829,20 +827,20 @@ msgstr "Search an agent"
 msgid "Search an agent or a project"
 msgstr "Search an agent or a project"
 
-#: src/features/conversation/components/ToolSteps.tsx:17
+#: src/features/conversation/components/ToolSteps.tsx:18
 msgid "Searching the knowledge base"
 msgstr "Searching the knowledge base"
 
-#: src/features/conversation/components/ToolSteps.tsx:18
 #: src/features/conversation/components/ToolSteps.tsx:19
+#: src/features/conversation/components/ToolSteps.tsx:20
 msgid "Searching the resources"
 msgstr "Searching the resources"
 
-#: src/features/conversation/components/Composer.tsx:206
+#: src/features/conversation/components/Composer.tsx:183
 msgid "Send"
 msgstr "Send"
 
-#: src/features/conversation/components/FeedbackDialog.tsx:110
+#: src/features/conversation/components/FeedbackDialog.tsx:114
 msgid "Send the report"
 msgstr "Send the report"
 
@@ -855,7 +853,7 @@ msgid "Set up the extraction of {name}"
 msgstr "Set up the extraction of {name}"
 
 #. The keyboard key
-#: src/features/conversation/components/Composer.tsx:246
+#: src/features/conversation/components/ShiftKey.tsx:11
 msgid "Shift"
 msgstr "Shift"
 
@@ -949,7 +947,7 @@ msgstr "tester"
 msgid "Text"
 msgstr "Text"
 
-#: src/features/conversation/components/FeedbackDialog.tsx:48
+#: src/features/conversation/components/FeedbackDialog.tsx:50
 msgid "Thank you. Your report was sent."
 msgstr "Thank you. Your report was sent."
 
@@ -958,7 +956,7 @@ msgstr "Thank you. Your report was sent."
 msgid "The agent could not answer for this row."
 msgstr "The agent could not answer for this row."
 
-#: src/features/conversation/components/ReplyError.tsx:19
+#: src/features/conversation/components/ReplyError.tsx:26
 msgid "The agent could not answer."
 msgstr "The agent could not answer."
 
@@ -974,7 +972,7 @@ msgstr "The agent forgot everything about you."
 msgid "The agent found nothing to fill in in this document."
 msgstr "The agent found nothing to fill in in this document."
 
-#: src/features/conversation/components/Composer.tsx:187
+#: src/features/conversation/components/Composer.tsx:164
 msgid "The agent is answering…"
 msgstr "The agent is answering…"
 
@@ -1022,11 +1020,11 @@ msgstr "The conversation could not be deleted. Try again."
 msgid "The conversation could not start. Try again."
 msgstr "The conversation could not start. Try again."
 
-#: src/features/conversation/components/ReplyError.tsx:27
+#: src/features/conversation/components/ReplyError.tsx:15
 msgid "The Desk could not reach the agent. Check your connection."
 msgstr "The Desk could not reach the agent. Check your connection."
 
-#: src/features/conversation/hooks/use-dictation.ts:26
+#: src/features/conversation/hooks/use-dictation.ts:35
 msgid "The Desk may not use your microphone. Allow it in your browser, then try again."
 msgstr "The Desk may not use your microphone. Allow it in your browser, then try again."
 
@@ -1034,7 +1032,7 @@ msgstr "The Desk may not use your microphone. Allow it in your browser, then try
 msgid "The Desk needs it to find your invitations. Contact your administrator."
 msgstr "The Desk needs it to find your invitations. Contact your administrator."
 
-#: src/features/conversation/hooks/use-dictation.ts:27
+#: src/features/conversation/hooks/use-dictation.ts:36
 msgid "The dictation stopped. Try again."
 msgstr "The dictation stopped. Try again."
 
@@ -1046,7 +1044,7 @@ msgstr "The document could not be deleted. Try again."
 msgid "The document could not be opened."
 msgstr "The document could not be opened."
 
-#: src/features/conversation/components/SourceItem.tsx:37
+#: src/features/conversation/components/SourceItem.tsx:38
 msgid "The document could not be opened. Try again."
 msgstr "The document could not be opened. Try again."
 
@@ -1084,7 +1082,7 @@ msgstr "The fact to remember"
 msgid "The file could not be opened. Try again."
 msgstr "The file could not be opened. Try again."
 
-#: src/features/conversation/components/ReplyError.tsx:23
+#: src/features/conversation/components/ReplyError.tsx:13
 msgid "The file could not be uploaded. Try again."
 msgstr "The file could not be uploaded. Try again."
 
@@ -1116,15 +1114,15 @@ msgstr "The model that reads the document did not answer. Try again in a moment.
 msgid "The people of your projects see you by this name."
 msgstr "The people of your projects see you by this name."
 
-#: src/features/conversation/components/FeedbackDialog.tsx:80
+#: src/features/conversation/components/FeedbackDialog.tsx:82
 msgid "The people who run this agent read every report to improve it."
 msgstr "The people who run this agent read every report to improve it."
 
-#: src/features/conversation/components/ReplyError.tsx:25
+#: src/features/conversation/components/ReplyError.tsx:14
 msgid "The reply stopped before it finished."
 msgstr "The reply stopped before it finished."
 
-#: src/features/conversation/components/FeedbackDialog.tsx:52
+#: src/features/conversation/components/FeedbackDialog.tsx:54
 msgid "The report could not be sent. Try again."
 msgstr "The report could not be sent. Try again."
 
@@ -1156,9 +1154,13 @@ msgstr "The run stopped. The rows done stay."
 msgid "The sign-in keeps failing"
 msgstr "The sign-in keeps failing"
 
-#: src/features/conversation/components/ToolSteps.tsx:64
+#: src/features/conversation/components/ToolSteps.tsx:71
 msgid "Thinking…"
 msgstr "Thinking…"
+
+#: src/features/conversation/hooks/use-attachment.ts:39
+msgid "This file is empty."
+msgstr "This file is empty."
 
 #: src/components/shared/RouteErrorState.tsx:56
 msgid "This page could not load"
@@ -1168,7 +1170,7 @@ msgstr "This page could not load"
 msgid "This page does not exist, or you cannot open it."
 msgstr "This page does not exist, or you cannot open it."
 
-#: src/features/conversation/components/AssistantMessageView.tsx:91
+#: src/features/conversation/components/AssistantMessageView.tsx:92
 msgid "This reply was interrupted before it finished."
 msgstr "This reply was interrupted before it finished."
 
@@ -1202,7 +1204,7 @@ msgstr "Try again in a moment. If this page comes back, sign out, then sign in a
 msgid "Try again to sign in. If this page comes back, close the other tabs of the Desk."
 msgstr "Try again to sign in. If this page comes back, close the other tabs of the Desk."
 
-#: src/features/conversation/components/SourceItem.tsx:31
+#: src/features/conversation/components/SourceItem.tsx:32
 #: src/features/extraction/components/DeleteDocumentDialog.tsx:27
 #: src/features/extraction/components/DocumentRow.tsx:29
 #: src/features/extraction/components/ExtractionRunView.tsx:46
@@ -1216,7 +1218,7 @@ msgstr "Untitled document"
 msgid "Uploading…"
 msgstr "Uploading…"
 
-#: src/features/conversation/components/ToolSteps.tsx:50
+#: src/features/conversation/components/ToolSteps.tsx:58
 msgid "Using a tool"
 msgstr "Using a tool"
 
@@ -1244,7 +1246,7 @@ msgstr "What the agent noted"
 msgid "What the agent remembers"
 msgstr "What the agent remembers"
 
-#: src/features/conversation/components/FeedbackDialog.tsx:89
+#: src/features/conversation/components/FeedbackDialog.tsx:91
 msgid "What went wrong?"
 msgstr "What went wrong?"
 

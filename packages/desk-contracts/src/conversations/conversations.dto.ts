@@ -14,6 +14,26 @@ export const createdConversationOutputSchema = z.object({
 export type CreatedConversationOutputDto = z.output<typeof createdConversationOutputSchema>
 
 /**
+ * The tools of the platform the Desk knows by name: it reads their calls, names them to the
+ * person or refreshes what they change. An agent may call others, which keep a plain `string`.
+ */
+export const TOOL_NAMES = {
+  lookupKnowledgeBase: "lookup_knowledge_base",
+  searchResources: "search_resources",
+  smartSearch: "smart_search",
+  surfaceResources: "surfaceResources",
+  fillForm: "fillForm",
+  consolidateForm: "consolidateForm",
+  concludeHandoff: "concludeHandoff",
+  saveMemory: "saveMemory",
+  forgetMemory: "forgetMemory",
+  sources: "sources",
+  recalculateConversationSessionMetadata: "recalculateConversationSessionMetadata",
+} as const
+
+export type ToolName = (typeof TOOL_NAMES)[keyof typeof TOOL_NAMES]
+
+/**
  * A tool an agent called while it answered. Its arguments and result depend on the tool: the
  * Desk reads those of a few tools with the schemas below, and ignores the others.
  */
@@ -119,9 +139,12 @@ export type ReplyStreamEventDto = z.output<typeof replyStreamEventSchema>
 /** The params of the routes under one message. */
 export const messageParamsSchema = projectParamsSchema.extend({ agentMessageId: z.uuid() })
 
+/** The longest report a person can write on a reply. */
+export const MESSAGE_FEEDBACK_MAX_LENGTH = 2000
+
 /** A problem the person reports on one of the agent's replies. */
 export const messageFeedbackInputSchema = z.strictObject({
-  content: z.string().trim().min(1).max(2000),
+  content: z.string().trim().min(1).max(MESSAGE_FEEDBACK_MAX_LENGTH),
 })
 
 export type MessageFeedbackInputDto = z.input<typeof messageFeedbackInputSchema>

@@ -65,6 +65,14 @@ export function composeMessage(
   )
 }
 
+/** Whether two ranges start and end at the same places, as one selection read twice does. */
+export function isSameRange(first: Range, second: Range): boolean {
+  return (
+    first.compareBoundaryPoints(Range.START_TO_START, second) === 0 &&
+    first.compareBoundaryPoints(Range.END_TO_END, second) === 0
+  )
+}
+
 /**
  * The passage of a reply the person selected, with where it stands on the screen and the element
  * its number would be drawn in, or `null` when the selection is empty or leaves the reply it

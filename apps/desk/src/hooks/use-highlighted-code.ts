@@ -1,52 +1,55 @@
-import * as React from "react"
-
+import { type ReactNode, useEffect, useState } from "react"
 import { loadHighlighter } from "@/lib/highlighter"
 
-export function useHighlightedCode(value: string, language: string) {
+type Highlighter = NonNullable<Awaited<ReturnType<typeof loadHighlighter>>>
+type GrammarState = Parameters<Highlighter["highlight"]>[1]
+
+/** The complete lines of the code highlighted so far, and the grammar state after them. */
+type HighlightedLines = {
+  highlighter: Highlighter | null
+  text: string
+  lines: ReactNode[]
+  state?: GrammarState
+}
+
+/**
+ * The lines of some code, highlighted once its language loads and plain until then. While the
+ * code streams, only its new lines are tokenized, from the grammar state of the last complete
+ * one, and the line still being written on every render.
+ */
+export function useHighlightedCode(value: string, language: string): ReactNode[] {
   // A trailing newline would render as an extra empty line.
   const code = value.endsWith("\n") ? value.slice(0, -1) : value
-  const [loaded, setLoaded] = React.useState<{
+  const [loaded, setLoaded] = useState<{
     language: string
-    highlighter: Awaited<ReturnType<typeof loadHighlighter>>
+    highlighter: Highlighter | null
   } | null>(null)
   const highlighter = loaded?.language === language ? loaded.highlighter : null
 
-  React.useEffect(() => {
-    let cancelled = false
-
+  // The highlighter loads outside React, which an effect follows.
+  useEffect(() => {
+    let isCancelled = false
     loadHighlighter(language)
       .then((next) => {
-        if (!cancelled) {
-          setLoaded({ language, highlighter: next })
-        }
+        if (!isCancelled) setLoaded({ language, highlighter: next })
       })
-      .catch(() => {})
-
+      .catch((error: unknown) => {
+        console.error(`The highlighting of ${language} could not load:`, error)
+      })
     return () => {
-      cancelled = true
+      isCancelled = true
     }
   }, [language])
 
-  // The complete lines, highlighted. While the code streams, only the new
-  // lines are tokenized, starting from the grammar state of the last one.
-  const [done, setDone] = React.useState<{
-    highlighter: typeof highlighter
-    text: string
-    lines: React.ReactNode[]
-    state?: Parameters<NonNullable<typeof highlighter>["highlight"]>[1]
-  }>({ highlighter: null, text: "", lines: [] })
-
+  // The lines highlighted on earlier renders, kept in state as React allows during render.
+  const [done, setDone] = useState<HighlightedLines>({ highlighter: null, text: "", lines: [] })
   let next = done
-
   if (next.highlighter !== highlighter || !code.startsWith(next.text)) {
     next = { highlighter, text: "", lines: [] }
   }
-
   const end = code.lastIndexOf("\n") + 1
-
   if (highlighter && end > next.text.length) {
     const result = highlighter.highlight(code.slice(next.text.length, end - 1), next.state)
-
     next = {
       highlighter,
       text: code.slice(0, end),
@@ -54,19 +57,10 @@ export function useHighlightedCode(value: string, language: string) {
       state: result.state,
     }
   }
+  if (next !== done) setDone(next)
 
-  if (next !== done) {
-    setDone(next)
-  }
-
+  if (!highlighter) return code.split("\n")
   // The last line is still being written, so it is tokenized on every render.
   const tail = code.slice(end)
-
-  return React.useMemo(() => {
-    if (!highlighter) {
-      return code.split("\n")
-    }
-
-    return [...next.lines, highlighter.highlight(tail, next.state).lines[0]]
-  }, [code, highlighter, next, tail])
+  return [...next.lines, highlighter.highlight(tail, next.state).lines[0]]
 }

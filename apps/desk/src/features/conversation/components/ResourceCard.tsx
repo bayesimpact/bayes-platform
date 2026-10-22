@@ -1,14 +1,14 @@
-import { useLingui } from "@lingui/react/macro"
+import { cn } from "cn"
 import { ArrowUpRightIcon, PlayIcon } from "lucide-react"
-import { useState } from "react"
+import { type MouseEvent, useState } from "react"
 import { toResourceUrl } from "@/lib/safe-url"
 import type { ChatResource } from "../chat-messages"
 import { type OpenedResource, openedResourceOf, resourceMediaOf } from "../resource-media"
 
 export type ResourceCardProps = {
   resource: ChatResource
-  /** Opens the resource beside the conversation; without it, the card opens it in a new tab. */
-  onOpenResource?: (resource: OpenedResource) => void
+  /** Opens the resource beside the conversation. */
+  onOpenResource: (resource: OpenedResource) => void
 }
 
 /**
@@ -18,7 +18,6 @@ export type ResourceCardProps = {
  * that is neither a web page nor a library file shows the card without a link.
  */
 export function ResourceCard({ resource, onOpenResource }: ResourceCardProps) {
-  const { t } = useLingui()
   const [hasMediaFailed, setHasMediaFailed] = useState(false)
   const url = toResourceUrl(resource.link)
   const media = url && !hasMediaFailed ? resourceMediaOf(resource.link, url) : null
@@ -34,7 +33,7 @@ export function ResourceCard({ resource, onOpenResource }: ResourceCardProps) {
             onError={() => setHasMediaFailed(true)}
           />
           <span className="absolute inset-0 flex items-center justify-center">
-            <span className="flex size-12 items-center justify-center rounded-full bg-black/70 text-white">
+            <span className="flex size-12 items-center justify-center rounded-full bg-foreground/70 text-background">
               <PlayIcon aria-hidden className="size-6 translate-x-0.5 fill-current" />
             </span>
           </span>
@@ -66,23 +65,30 @@ export function ResourceCard({ resource, onOpenResource }: ResourceCardProps) {
 
   const className = "flex h-full flex-col overflow-hidden rounded-xl border text-sm"
   if (url === null) return <div className={className}>{body}</div>
+
+  const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    // A click with a modifier, or another button, keeps the browser's own new tab.
+    const isPlainClick =
+      event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey
+    if (!isPlainClick) return
+    event.preventDefault()
+    onOpenResource(openedResourceOf(resource, url, media))
+  }
+
   return (
+    // Not the shared ExternalLink, which tells screen readers the link opens a new tab: a plain
+    // click, or Enter, opens the side panel, and only a modifier keeps the browser's new tab.
     <a
       href={url}
       target="_blank"
       rel="noopener noreferrer"
-      onClick={(event) => {
-        // A click with a modifier, or another button, keeps the browser's own new tab.
-        const isPlainClick =
-          event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey
-        if (!onOpenResource || !isPlainClick) return
-        event.preventDefault()
-        onOpenResource(openedResourceOf(resource, url, media))
-      }}
-      className={`${className} transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none`}
+      onClick={handleClick}
+      className={cn(
+        className,
+        "transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
+      )}
     >
       {body}
-      {onOpenResource ? null : <span className="sr-only">{t`(opens in a new tab)`}</span>}
     </a>
   )
 }
