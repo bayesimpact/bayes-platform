@@ -61,6 +61,11 @@ export const FeatureFlags = [
     key: "agent-memory",
     description: "Let conversation agents remember facts about signed-in users.",
   }),
+  featureFlag({
+    key: "local-embeddings",
+    description:
+      "(beta) Embed project documents with local HuggingFace models (bge-m3) and pick the retrieval model per agent.",
+  }),
 ] as const
 export type FeatureFlagKey = (typeof FeatureFlags)[number]["key"]
 export type FeatureFlagsDto = FeatureFlagKey[]

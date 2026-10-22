@@ -34,6 +34,7 @@ export type AgentSettingsCreateFields = Pick<
       | "priorityCallsEnabled"
       | "deletedTemperature"
       | "memoryMode"
+      | "embeddingModel"
     >
   >
 
@@ -51,5 +52,6 @@ export type AgentSettingsUpdateFields = Partial<
     | "priorityCallsEnabled"
     | "providerOptions"
     | "memoryMode"
+    | "embeddingModel"
   >
 >

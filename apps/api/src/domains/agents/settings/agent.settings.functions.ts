@@ -41,6 +41,7 @@ const agentSettingsFieldKeys: (keyof AgentSettingsCreateFields)[] = [
   "priorityCallsEnabled",
   "providerOptions",
   "memoryMode",
+  "embeddingModel",
 ]
 
 export function extractAgentSettingsCreateFields<T extends object>(

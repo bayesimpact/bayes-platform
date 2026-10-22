@@ -53,6 +53,10 @@ serviceAccount:
 #   SMTP_USER, SMTP_PASSWORD     optional, SMTP credentials for the invitation emails
 #   VLLM_<MODEL>_URL, VLLM_<MODEL>_APIKEY
 #                                one pair per self-hosted model
+#   EMBEDDER_API_KEY             optional, shared by the bundled embedder and its callers
+#                                (embedder.apiKeySecretKey)
+#   EMBEDDER_BGE_M3_URL, EMBEDDER_BGE_M3_API_KEY
+#                                optional, an embedder outside the release (instead of `embedder`)
 #   DATABASE_PASSWORD            only with externalDatabase (bundled Postgres generates its own)
 #   BULLMQ_REDIS_URL             only with externalRedis
 secrets:
@@ -238,6 +242,8 @@ cpuWorkers:
     - extraction-agent-session-queue
     - conversation-retention-sweep
     - pdf-exports-sweep
+    # Re-embeds a project with a self-hosted model: HTTP calls to the embedder only.
+    - project-embedding-reembed
   # Without GPU workers, the CPU pool also takes the document embeddings
   # (Docling disabled: text extraction without OCR).
   takeEmbeddingsWhenNoGpu: true
@@ -301,6 +307,44 @@ pdfConverter:
       memory: 512Mi
     limits:
       memory: 2Gi
+  nodeSelector: {}
+  tolerations: []
+
+# Self-hosted embedding models (feature flag `local-embeddings`), served over
+# HTTP by apps/embedder (BAAI/bge-m3). The API and the workers call it for the
+# chunks of a document and for chat queries. Off by default: projects then only
+# see the Vertex model. Set `url` instead of `enabled` to use an embedder that
+# runs elsewhere. On CPU, queries are quick but re-embedding a large project
+# is slow: a GPU (gpu.enabled) is worth it when whole projects are re-embedded.
+embedder:
+  enabled: false
+  # An embedder outside the release, e.g. http://embedder.ml:3003. Takes
+  # precedence over the bundled one.
+  url: ""
+  image: embedder
+  replicas: 1
+  port: 3003
+  # Models loaded at startup and served (baked into the image).
+  models: BAAI/bge-m3
+  # Key of the application Secret holding a bearer token the embedder requires
+  # and the API and the workers send. Empty: no token (cluster-internal only).
+  apiKeySecretKey: ""
+  # Chat turns wait this long for a query vector before using the Vertex model.
+  queryTimeoutMs: "3000"
+  gpu:
+    enabled: false
+    count: 1
+    # Same as gpuWorkers.gpu: the accelerator label of the GPU node pool, and
+    # where the cluster mounts the NVIDIA driver libraries when needed. Build
+    # the image with --build-arg TORCH_INDEX_URL=https://download.pytorch.org/whl/cu128.
+    nodeSelector: {}
+    driverLibraryPath: ""
+  resources:
+    requests:
+      cpu: "2"
+      memory: 4Gi
+    limits:
+      memory: 8Gi
   nodeSelector: {}
   tolerations: []
 

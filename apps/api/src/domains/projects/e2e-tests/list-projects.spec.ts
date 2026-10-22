@@ -171,6 +171,8 @@ describe("Projects - listProjects", () => {
     expect([...(permissionsByName.Admin ?? [])].sort()).toEqual(
       [
         DOCUMENT_SOURCE_READ_PERMISSION,
+        "document.read",
+        "document.update",
         "desk.ui.read",
         "studio.ui.read",
         "evaluation.ui.read",
