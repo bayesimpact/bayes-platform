@@ -1,4 +1,4 @@
-import { AgentsRoutes } from "@caseai-connect/api-contracts"
+import { AGENT_SCOPED_PERMISSIONS, AgentsRoutes } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
@@ -12,10 +12,12 @@ import { removeNullish } from "@/common/utils/remove-nullish"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { addMemberByEmailToProject } from "@/domains/projects/memberships/project-membership.factory"
 import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { AgentsModule } from "../agents.module"
+import { grantConversationReview } from "../conversation-reviewers/agent-conversation-reviewer.factory"
 import { addUserToAgent } from "../memberships/agent-membership.factory"
 
 describe("Agents - getAll", () => {
@@ -172,6 +174,56 @@ describe("Agents - getAll", () => {
 
     expectResponse(response, 200)
     expect(response.body.data.map((agent) => agent.name)).toEqual(["Published Agent"])
+  })
+
+  it("should return the caller's permissions on each agent, and leave out agents they only review", async () => {
+    const { organization, project } = await createContext()
+    const [ownedAgent, usedAgent, reviewedAgent] = await repositories.agentRepository.save([
+      agentFactory.transient({ organization, project }).build({ name: "Owned Agent" }),
+      agentFactory.transient({ organization, project }).build({ name: "Used Agent" }),
+      agentFactory.transient({ organization, project }).build({ name: "Reviewed Agent" }),
+    ])
+    if (!ownedAgent || !usedAgent || !reviewedAgent) throw new Error("agents not saved")
+    await repositories.agentSettingsRepository.save(
+      [ownedAgent, usedAgent, reviewedAgent].map((agent) =>
+        agentSettingsFactory.transient({ organization, project, agent }).build(),
+      ),
+    )
+    // A workspace member: their agent roles alone decide what they may do.
+    const { addedUser: member } = await addMemberByEmailToProject({
+      repositories,
+      organization,
+      project,
+      user: { email: "member@example.com", authSubject: "oidc|member" },
+      projectMembership: { role: "member" },
+    })
+    await addUserToAgent({
+      repositories,
+      agent: ownedAgent,
+      user: member,
+      membership: { role: "owner" },
+    })
+    await addUserToAgent({
+      repositories,
+      agent: usedAgent,
+      user: member,
+      membership: { role: "member" },
+    })
+    await grantConversationReview({ repositories, user: member, agent: reviewedAgent })
+    authSubject = "oidc|member"
+
+    const response = await subject()
+
+    expectResponse(response, 200)
+    const permissionsByName = Object.fromEntries(
+      response.body.data.map((agent) => [agent.name, agent.permissions]),
+    )
+    expect(Object.keys(permissionsByName).sort()).toEqual(["Owned Agent", "Used Agent"])
+    expect([...(permissionsByName["Owned Agent"] ?? [])].sort()).toEqual(
+      [...AGENT_SCOPED_PERMISSIONS].sort(),
+    )
+    // agent.read is not in the whitelist: a plain member gets no action.
+    expect(permissionsByName["Used Agent"]).toEqual([])
   })
 
   it("should return empty array when project has no agents", async () => {
