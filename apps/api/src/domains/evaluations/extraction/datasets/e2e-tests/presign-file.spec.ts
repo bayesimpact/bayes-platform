@@ -118,6 +118,7 @@ describe("EvaluationExtractionDatasets - presignFile", () => {
       storagePath: `evaluation-extraction-datasets/${res.body.data.documentId}.csv`,
       mimeType: "text/csv",
       expiresInSeconds: 900,
+      contentLength: 2048,
     })
   })
 
