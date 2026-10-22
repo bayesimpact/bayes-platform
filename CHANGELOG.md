@@ -8,6 +8,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+- Embedded public chat shows the document sources used in an answer.
 
 - Agent duplication: copy an agent into a new draft, from its draft or published settings, from the studio or MCP.
 - Test cases: save a good or bad agent answer into an evaluation dataset, from the playground or feedback.
@@ -181,6 +182,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [26.09.1] - 2026-09-02
 
 ### Added
+- Embedded public chat shows matching resources from the agent's libraries as cards.
 
 ### Changed
 
