@@ -12,6 +12,7 @@ import {
   TraceLine,
   TraceTitle,
 } from "@/components/ui/trace"
+import { hasOwnKey } from "@/lib/has-own-key"
 
 /** What a person reads while the agent uses a tool. The tools missing here read as a generic step. */
 const TOOL_LABELS = {
@@ -25,11 +26,6 @@ const TOOL_LABELS = {
   [TOOL_NAMES.saveMemory]: msg`Remembering what matters`,
   [TOOL_NAMES.forgetMemory]: msg`Forgetting what you asked`,
 } satisfies Partial<Record<ToolName, MessageDescriptor>>
-
-/** Whether a tool has a label of its own: `Object.hasOwn`, as `in` also matches `constructor`. */
-function isLabeledTool(toolName: string): toolName is keyof typeof TOOL_LABELS {
-  return Object.hasOwn(TOOL_LABELS, toolName)
-}
 
 /**
  * Tools the platform calls for itself after the reply, which say nothing to the person as steps:
@@ -55,7 +51,7 @@ export function ToolSteps({ toolNames, isWriting, hasText }: ToolStepsProps) {
   const { t } = useLingui()
   const steps = toolNames.filter((toolName) => !HIDDEN_TOOLS.has(toolName))
   const labelOf = (toolName: string) =>
-    isLabeledTool(toolName) ? t(TOOL_LABELS[toolName]) : t`Using a tool`
+    hasOwnKey(TOOL_LABELS, toolName) ? t(TOOL_LABELS[toolName]) : t`Using a tool`
 
   if (isWriting) {
     const isThinking = !hasText && steps.length === 0

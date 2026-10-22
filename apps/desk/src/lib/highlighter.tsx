@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react"
 import { createHighlighterCore, type GrammarState, type HighlighterCore } from "shiki/core"
 import { createJavaScriptRegexEngine } from "shiki/engine/javascript"
+import { hasOwnKey } from "./has-own-key"
 
 /** The languages the Desk highlights, each loaded the first time a code block uses it. */
 const LANGUAGES = {
@@ -33,11 +34,6 @@ const ALIASES = {
   yml: "yaml",
   zsh: "bash",
 } satisfies Record<string, Language>
-
-/** Whether an object has this key of its own: `in` also matches inherited keys, as `constructor`. */
-function hasOwnKey<T extends object>(object: T, key: string): key is Extract<keyof T, string> {
-  return Object.hasOwn(object, key)
-}
 
 let highlighter: Promise<HighlighterCore> | undefined
 

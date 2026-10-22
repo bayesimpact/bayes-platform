@@ -14,6 +14,7 @@ import type {
   MyProjectOutputDto,
   ProjectAgentOutputDto,
 } from "@caseai-connect/desk-contracts"
+import { TOOL_NAMES } from "@caseai-connect/desk-contracts"
 import { RELEASE_NOTES_APP_HTML } from "../fixtures/mcp-app"
 import {
   buildConversationMessage,
@@ -107,7 +108,7 @@ function buildExchange(question: string, createdAt: number): ConversationMessage
       toolCalls: [
         buildToolCall({ name: "lookup_knowledge_base" }),
         buildToolCall({
-          name: "surfaceResources",
+          name: TOOL_NAMES.surfaceResources,
           arguments: {
             resources: [
               {
@@ -126,7 +127,7 @@ function buildExchange(question: string, createdAt: number): ConversationMessage
           },
         }),
         buildToolCall({
-          name: "sources",
+          name: TOOL_NAMES.sources,
           arguments: {
             sources: [
               {
@@ -310,7 +311,7 @@ function addMemories(world: DeskWorld, agentId: string): void {
     ...reply,
     toolCalls: [
       ...(reply.toolCalls ?? []),
-      buildToolCall({ name: "saveMemory", result: { memories: facts } }),
+      buildToolCall({ name: TOOL_NAMES.saveMemory, result: { memories: facts } }),
     ],
   })
 }

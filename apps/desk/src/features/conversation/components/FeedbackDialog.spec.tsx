@@ -1,24 +1,17 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { DeskConversationsRoutes } from "@caseai-connect/desk-contracts"
+import { QueryClientProvider } from "@tanstack/react-query"
 import { screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { HttpResponse, http } from "msw"
-import { describe, expect, it, vi } from "vitest"
+import { describe, expect, it } from "vitest"
+import { createQueryClient } from "@/app/query-client"
 import { Toaster } from "@/components/ui/sonner"
+import { apiError, mockRoute } from "@/test/msw/mock-route"
 import { server } from "@/test/msw/server"
 import { renderWithI18n } from "@/test/render-with-i18n"
 import { FeedbackDialog } from "./FeedbackDialog"
 
-vi.mock("@/lib/auth/session", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/lib/auth/session")>()),
-  hasSession: async () => true,
-  getAccessToken: async () => "test-token",
-}))
-
-const feedbackPath =
-  "*/api/organizations/:organizationId/projects/:projectId/agent-messages/:agentMessageId/feedbacks"
-
 function renderDialog() {
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  const queryClient = createQueryClient({ isRetrying: false })
   const conversation = {
     organizationId: crypto.randomUUID(),
     projectId: crypto.randomUUID(),
@@ -41,11 +34,7 @@ async function sendReport(content: string) {
 
 describe("FeedbackDialog", () => {
   it("sends the report, says so and closes", async () => {
-    server.use(
-      http.post(feedbackPath, () =>
-        HttpResponse.json({ data: { success: true } }, { status: 201 }),
-      ),
-    )
+    server.use(mockRoute(DeskConversationsRoutes.createMessageFeedback, () => ({ success: true })))
     renderDialog()
 
     await sendReport("The prices are out of date.")
@@ -55,7 +44,7 @@ describe("FeedbackDialog", () => {
   })
 
   it("says the report failed, and keeps it to send again", async () => {
-    server.use(http.post(feedbackPath, () => HttpResponse.json({}, { status: 500 })))
+    server.use(mockRoute(DeskConversationsRoutes.createMessageFeedback, () => apiError(500)))
     renderDialog()
 
     await sendReport("The prices are out of date.")

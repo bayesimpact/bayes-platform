@@ -45,7 +45,7 @@ msgstr "{count, plural, one {Memory (#)} other {Memory (#)}}"
 msgid "{count, plural, one {Used # source} other {Used # sources}}"
 msgstr "{count, plural, one {Used # source} other {Used # sources}}"
 
-#: src/features/conversation/components/ToolSteps.tsx:98
+#: src/features/conversation/components/ToolSteps.tsx:94
 msgid "{count, plural, one {Used a tool} other {Used tools}}"
 msgstr "{count, plural, one {Used a tool} other {Used tools}}"
 
@@ -231,7 +231,7 @@ msgstr "Columns"
 msgid "Completed form"
 msgstr "Completed form"
 
-#: src/features/conversation/components/ToolSteps.tsx:23
+#: src/features/conversation/components/ToolSteps.tsx:24
 msgid "Completing the form"
 msgstr "Completing the form"
 
@@ -423,7 +423,7 @@ msgstr "Fields"
 msgid "File"
 msgstr "File"
 
-#: src/features/conversation/components/ToolSteps.tsx:22
+#: src/features/conversation/components/ToolSteps.tsx:23
 msgid "Filling in the form"
 msgstr "Filling in the form"
 
@@ -440,7 +440,7 @@ msgstr "Forget everything"
 msgid "Forget everything?"
 msgstr "Forget everything?"
 
-#: src/features/conversation/components/ToolSteps.tsx:26
+#: src/features/conversation/components/ToolSteps.tsx:27
 msgid "Forgetting what you asked"
 msgstr "Forgetting what you asked"
 
@@ -461,7 +461,7 @@ msgstr "general conditions of service"
 msgid "Give the agent one file at a time."
 msgstr "Give the agent one file at a time."
 
-#: src/features/conversation/components/ToolSteps.tsx:24
+#: src/features/conversation/components/ToolSteps.tsx:25
 msgid "Handing the conversation back"
 msgstr "Handing the conversation back"
 
@@ -669,7 +669,7 @@ msgstr "PDF"
 msgid "PDF, image, text or CSV file, up to 25 MB. A CSV file runs row by row."
 msgstr "PDF, image, text or CSV file, up to 25 MB. A CSV file runs row by row."
 
-#: src/features/conversation/components/ToolSteps.tsx:21
+#: src/features/conversation/components/ToolSteps.tsx:22
 msgid "Picking useful resources"
 msgstr "Picking useful resources"
 
@@ -728,7 +728,7 @@ msgstr "Reload the page to keep going."
 msgid "Remember"
 msgstr "Remember"
 
-#: src/features/conversation/components/ToolSteps.tsx:25
+#: src/features/conversation/components/ToolSteps.tsx:26
 msgid "Remembering what matters"
 msgstr "Remembering what matters"
 
@@ -827,12 +827,12 @@ msgstr "Search an agent"
 msgid "Search an agent or a project"
 msgstr "Search an agent or a project"
 
-#: src/features/conversation/components/ToolSteps.tsx:18
+#: src/features/conversation/components/ToolSteps.tsx:19
 msgid "Searching the knowledge base"
 msgstr "Searching the knowledge base"
 
-#: src/features/conversation/components/ToolSteps.tsx:19
 #: src/features/conversation/components/ToolSteps.tsx:20
+#: src/features/conversation/components/ToolSteps.tsx:21
 msgid "Searching the resources"
 msgstr "Searching the resources"
 
@@ -1154,7 +1154,7 @@ msgstr "The run stopped. The rows done stay."
 msgid "The sign-in keeps failing"
 msgstr "The sign-in keeps failing"
 
-#: src/features/conversation/components/ToolSteps.tsx:71
+#: src/features/conversation/components/ToolSteps.tsx:67
 msgid "Thinking…"
 msgstr "Thinking…"
 
@@ -1218,7 +1218,7 @@ msgstr "Untitled document"
 msgid "Uploading…"
 msgstr "Uploading…"
 
-#: src/features/conversation/components/ToolSteps.tsx:58
+#: src/features/conversation/components/ToolSteps.tsx:54
 msgid "Using a tool"
 msgstr "Using a tool"
 
