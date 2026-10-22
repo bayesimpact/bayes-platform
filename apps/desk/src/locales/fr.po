@@ -15,8 +15,7 @@ msgstr "« {name} » ne sera plus proposé pour une extraction. Ses extractions 
 msgid "\"{title}\" and its messages will be deleted. This cannot be undone."
 msgstr "« {title} » et ses messages seront supprimés. Cette action est définitive."
 
-#: src/components/shared/Markdown.tsx:44
-#: src/components/shared/Markdown.tsx:66
+#: src/components/shared/ExternalLink.tsx:20
 #: src/features/conversation/components/ResourceCard.tsx:85
 #: src/features/conversation/components/ResourcePanel.tsx:37
 msgid "(opens in a new tab)"
@@ -501,7 +500,7 @@ msgstr "Si cela se reproduit, contactez votre administrateur avec le message ci-
 msgid "If the page stays blank, its site does not allow being shown here: open it in a new tab."
 msgstr "Si la page reste vide, son site refuse d’être affiché ici : ouvrez-la dans un nouvel onglet."
 
-#: src/components/shared/Markdown.tsx:56
+#: src/components/shared/Markdown.tsx:51
 #: src/features/extraction/components/DocumentRow.tsx:31
 msgid "Image"
 msgstr "Image"
@@ -570,7 +569,7 @@ msgstr "Nouvelle extraction"
 msgid "Next page"
 msgstr "Page suivante"
 
-#: src/features/extraction/components/FieldValue.tsx:45
+#: src/features/extraction/components/FieldValue.tsx:46
 msgid "No"
 msgstr "Non"
 
@@ -599,7 +598,7 @@ msgid "No values in the first rows"
 msgstr "Aucune valeur dans les premières lignes"
 
 #. A field of the document the agent found no value for
-#: src/features/extraction/components/FieldValue.tsx:22
+#: src/features/extraction/components/FieldValue.tsx:23
 msgid "Not found"
 msgstr "Non trouvé"
 
@@ -1266,7 +1265,7 @@ msgstr "Écrivez un nom de 1 à 100 caractères."
 msgid "Write the fact in 300 characters at most."
 msgstr "Écrivez l'information en 300 caractères au plus."
 
-#: src/features/extraction/components/FieldValue.tsx:40
+#: src/features/extraction/components/FieldValue.tsx:41
 msgid "Yes"
 msgstr "Oui"
 

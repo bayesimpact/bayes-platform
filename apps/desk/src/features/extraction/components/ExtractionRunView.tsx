@@ -9,7 +9,7 @@ import {
   extractionDocumentsQueryOptions,
   extractionRunsQueryOptions,
 } from "@/features/history"
-import { durationOf } from "@/lib/relative-time"
+import { durationOf } from "@/lib/format-time"
 import { useExtractDocument } from "../api/mutations"
 import { extractionRunQueryOptions } from "../api/queries"
 import { fileKindOf } from "../extraction-files"

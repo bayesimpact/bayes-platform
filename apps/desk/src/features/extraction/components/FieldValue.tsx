@@ -1,6 +1,7 @@
 import { Trans, useLingui } from "@lingui/react/macro"
 import { CheckIcon, XIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { isRecord } from "@/lib/is-record"
 import { extractedFieldsOf, isEmptyValue } from "../extraction-fields"
 
 export type FieldValueProps = {
@@ -72,9 +73,8 @@ export function FieldValue({ value, isCompact = false }: FieldValueProps) {
       </ol>
     )
   }
-  if (typeof value === "object" && value !== null) {
-    // Safe: an object of a JSON result, whose keys are strings.
-    const fields = extractedFieldsOf(value as Record<string, unknown>)
+  if (isRecord(value)) {
+    const fields = extractedFieldsOf(value)
     return (
       <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
         {fields.map((field) => (

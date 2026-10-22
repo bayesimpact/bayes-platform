@@ -1,7 +1,7 @@
 import { Trans, useLingui } from "@lingui/react/macro"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useNow } from "@/hooks/use-now"
-import { durationOf } from "@/lib/relative-time"
+import { durationOf } from "@/lib/format-time"
 
 export type ExtractionPendingProps = {
   createdAt: number

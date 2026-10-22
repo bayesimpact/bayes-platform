@@ -1,7 +1,7 @@
 import { useLingui } from "@lingui/react/macro"
-import { ExternalLinkIcon } from "lucide-react"
 import type { ComponentProps } from "react"
 import { type ExtraProps, Streamdown, useIsCodeFenceIncomplete } from "streamdown"
+import { ExternalLink } from "./ExternalLink"
 import { HighlightedCodeBlock } from "./HighlightedCodeBlock"
 
 export type MarkdownProps = {
@@ -30,19 +30,14 @@ export function Markdown({ children, isStreaming = false }: MarkdownProps) {
 }
 
 function MarkdownLink({ node, children, href, ...props }: ComponentProps<"a"> & ExtraProps) {
-  const { t } = useLingui()
   return (
-    <a
+    <ExternalLink
       {...props}
       href={href}
-      target="_blank"
-      rel="noopener noreferrer"
       className="inline-flex items-baseline gap-0.5 font-medium text-primary underline underline-offset-4"
     >
       {children}
-      <ExternalLinkIcon aria-hidden className="size-3 self-center" />
-      <span className="sr-only">{t`(opens in a new tab)`}</span>
-    </a>
+    </ExternalLink>
   )
 }
 
@@ -55,16 +50,12 @@ function MarkdownImage({ src, alt }: ComponentProps<"img"> & ExtraProps) {
   if (typeof src !== "string" || src === "") return null
   const label = alt || t`Image`
   return (
-    <a
+    <ExternalLink
       href={src}
-      target="_blank"
-      rel="noopener noreferrer"
       className="inline-flex items-baseline gap-0.5 font-medium text-primary underline underline-offset-4"
     >
       {label}
-      <ExternalLinkIcon aria-hidden className="size-3 self-center" />
-      <span className="sr-only">{t`(opens in a new tab)`}</span>
-    </a>
+    </ExternalLink>
   )
 }
 

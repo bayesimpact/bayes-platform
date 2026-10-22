@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { durationOf, fullDateTimeOf, relativeTimeOf } from "./relative-time"
+import { durationOf, fullDateTimeOf, relativeTimeOf } from "./format-time"
 
 const now = new Date(2026, 9, 21, 15, 1).getTime()
 const minutes = (count: number) => now - count * 60 * 1000
