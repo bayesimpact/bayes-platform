@@ -1,11 +1,26 @@
-import { type ProjectMemberAgentDto, ProjectMembershipRoutes } from "@caseai-connect/api-contracts"
-import { Controller, Delete, Get, Req, UseGuards } from "@nestjs/common"
+import {
+  deleteProjectMembersSchema,
+  type ProjectMemberAgentDto,
+  ProjectMembershipRoutes,
+} from "@caseai-connect/api-contracts"
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Post,
+  Req,
+  UseGuards,
+  UsePipes,
+} from "@nestjs/common"
 import type {
   EndpointRequestWithProject,
   EndpointRequestWithProjectMembership,
 } from "@/common/context/request.interface"
 import { AddContext, RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
+import { ZodValidationPipe } from "@/common/zod-validation-pipe"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { toMembershipRoleDto, unionRolePermissions } from "@/domains/memberships/membership-roles"
@@ -78,6 +93,30 @@ export class ProjectMembershipsController {
       callerUserId: request.user.id,
       memberUserId: memberProjectMembership.userId,
       projectId: project.id,
+    })
+
+    return { data: { success: true } }
+  }
+
+  @Get(ProjectMembershipRoutes.getAssignableRoles.path)
+  @CheckPermission(PROJECT_MEMBER_READ_PERMISSION, "project")
+  async getAssignableRoles(): Promise<typeof ProjectMembershipRoutes.getAssignableRoles.response> {
+    return { data: await this.projectMembershipsService.listAssignableRoles() }
+  }
+
+  @Post(ProjectMembershipRoutes.deleteMany.path)
+  @HttpCode(200)
+  @CheckPermission(PROJECT_MEMBER_DELETE_PERMISSION, "project")
+  @UsePipes(new ZodValidationPipe(deleteProjectMembersSchema))
+  @TrackActivity({ action: "projectMembership.deleteMany" })
+  async removeProjectMemberships(
+    @Req() request: EndpointRequestWithProject,
+    @Body() { payload }: typeof ProjectMembershipRoutes.deleteMany.request,
+  ): Promise<typeof ProjectMembershipRoutes.deleteMany.response> {
+    await this.projectMembershipsService.removeProjectMemberships({
+      callerUserId: request.user.id,
+      memberUserIds: payload.userIds,
+      projectId: request.project.id,
     })
 
     return { data: { success: true } }

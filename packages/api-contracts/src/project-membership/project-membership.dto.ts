@@ -1,3 +1,4 @@
+import { z } from "zod"
 import type { TimeType } from "../generic"
 import type { MembershipRoleDto } from "../rbac/membership-role.dto"
 
@@ -24,3 +25,31 @@ export type ProjectMembershipDto = {
 export type UpdateProjectMembershipRequestDto = {
   role: EditableProjectMembershipRoleDto
 }
+
+/** A role of the RBAC catalog that can be given on a workspace (`scope_type = project`). */
+export type ProjectRoleDto = {
+  key: string
+  name: string
+}
+
+/** How many members one bulk call can act on. */
+export const MAX_MEMBERS_PER_BULK_ACTION = 200
+
+const bulkUserIdsSchema = z
+  .array(z.string().uuid())
+  .min(1)
+  .max(MAX_MEMBERS_PER_BULK_ACTION)
+  .refine((userIds) => new Set(userIds).size === userIds.length, "User ids must be unique")
+
+/** Gives the roles to every member listed. All or nothing: one refusal changes nobody. */
+export const addProjectMemberRolesSchema = z.object({
+  userIds: bulkUserIdsSchema,
+  roleKeys: z.array(z.string().min(1)).min(1).max(20),
+})
+export type AddProjectMemberRolesRequestDto = z.infer<typeof addProjectMemberRolesSchema>
+
+/** Removes every member listed from the workspace. All or nothing: one refusal removes nobody. */
+export const deleteProjectMembersSchema = z.object({
+  userIds: bulkUserIdsSchema,
+})
+export type DeleteProjectMembersRequestDto = z.infer<typeof deleteProjectMembersSchema>

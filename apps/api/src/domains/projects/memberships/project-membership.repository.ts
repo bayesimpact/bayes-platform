@@ -81,6 +81,29 @@ export class ProjectMembershipRepository {
     return this.toModel(group, project)
   }
 
+  /** The human members among the users, one model per person; users who are not members are left out. */
+  async findAllByUsersAndProject({
+    userIds,
+    projectId,
+  }: {
+    userIds: string[]
+    projectId: string
+  }): Promise<ProjectMembershipModel[]> {
+    if (userIds.length === 0) return []
+
+    const rows = await this.userMembershipRepo().find({
+      where: {
+        userId: In(userIds),
+        resourceType: PROJECT_RESOURCE_TYPE,
+        resourceId: projectId,
+        user: HUMAN_USER_TYPE_FILTER,
+      },
+      relations: MEMBERSHIP_RELATIONS,
+    })
+    const project = await this.projectRepo().findOneOrFail({ where: { id: projectId } })
+    return groupMembershipRows(rows).map((group) => this.toModel(group, project))
+  }
+
   async findAnyByUserAndOrganization({
     userId,
     organizationId,
@@ -167,6 +190,25 @@ export class ProjectMembershipRepository {
       return
     }
     await this.userMembershipRepo().update({ ...where, roleId: fromRoleId }, { roleId: toRoleId })
+  }
+
+  /** Takes the role from the person on the project. Does nothing when they do not hold it. */
+  async removeRole({
+    userId,
+    projectId,
+    roleKey,
+  }: {
+    userId: string
+    projectId: string
+    roleKey: string
+  }): Promise<void> {
+    const roleId = await requireRoleId(this.transactionService.getManager(), roleKey)
+    await this.userMembershipRepo().delete({
+      userId,
+      resourceType: PROJECT_RESOURCE_TYPE,
+      resourceId: projectId,
+      roleId,
+    })
   }
 
   async countHolders({ projectId, roleKey }: { projectId: string; roleKey: string }) {
