@@ -475,7 +475,7 @@ msgstr "Hide the sidebar"
 msgid "Home of the Desk"
 msgstr "Home of the Desk"
 
-#: src/features/conversation/components/ConversationView.tsx:95
+#: src/features/conversation/components/ConversationView.tsx:92
 #: src/features/conversation/components/NewConversation.tsx:22
 msgid "How can I help you today?"
 msgstr "How can I help you today?"
@@ -763,7 +763,7 @@ msgstr "Resize the sidebar"
 msgid "Results"
 msgstr "Results"
 
-#: src/features/conversation/components/ConversationView.tsx:149
+#: src/features/conversation/components/ConversationView.tsx:146
 msgid "Retry"
 msgstr "Retry"
 
@@ -816,7 +816,7 @@ msgstr "Save"
 msgid "Scroll long lines"
 msgstr "Scroll long lines"
 
-#: src/features/conversation/components/ConversationView.tsx:158
+#: src/features/conversation/components/ConversationView.tsx:156
 msgid "Scroll to the latest message"
 msgstr "Scroll to the latest message"
 

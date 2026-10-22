@@ -1,5 +1,5 @@
 import type { ConversationParamsDto } from "@caseai-connect/desk-contracts"
-import { Trans, useLingui } from "@lingui/react/macro"
+import { Trans } from "@lingui/react/macro"
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query"
 import { ArrowDownIcon, RotateCcwIcon } from "lucide-react"
 import { useId, useState } from "react"
@@ -14,13 +14,13 @@ import {
   MessageScrollerViewport,
 } from "@/components/ui/message-scroller"
 import { MemoryButton, MemoryPanel } from "@/features/memory"
-import { ANNOTATION_LAYER_ATTRIBUTE, composeMessage } from "../annotation"
-import { useSendMessage } from "../api/mutations"
+import { useNow } from "@/hooks/use-now"
+import { ANNOTATION_LAYER_ATTRIBUTE } from "../annotation"
 import { mcpAppsHtmlQueryOptions, messagesQueryOptions } from "../api/queries"
 import { findRetryableMessage, isWriting } from "../chat-messages"
-import { useAnnotations } from "../hooks/use-annotations"
 import { useConversationForms } from "../hooks/use-conversation-forms"
-import type { OpenedResource } from "../resource-media"
+import { useConversationPanel } from "../hooks/use-conversation-panel"
+import { useConversationSend } from "../hooks/use-conversation-send"
 import { ChatMessageView } from "./ChatMessageView"
 import { Composer } from "./Composer"
 import { ConversationMenu } from "./ConversationMenu"
@@ -28,6 +28,9 @@ import { FormsButton } from "./FormsButton"
 import { FormsPanel } from "./FormsPanel"
 import { QuoteReplyPopover } from "./QuoteReplyPopover"
 import { ResourcePanel } from "./ResourcePanel"
+
+/** The times of a conversation read in minutes: its clock moves once a minute. */
+const CLOCK_INTERVAL_IN_MILLISECONDS = 60_000
 
 export type ConversationViewProps = {
   conversation: ConversationParamsDto
@@ -45,21 +48,15 @@ export function ConversationView({
   agentName,
   hasSourcesTool,
 }: ConversationViewProps) {
-  const { t } = useLingui()
   const { data: messages } = useSuspenseQuery(messagesQueryOptions(conversation))
-  const sendMessage = useSendMessage(conversation)
-  const now = Date.now()
-  const isBusy = sendMessage.isPending || messages.some((message) => isWriting(message, now))
+  const sending = useConversationSend(conversation)
+  const now = useNow(CLOCK_INTERVAL_IN_MILLISECONDS, true)
+  const isBusy = sending.isSending || messages.some((message) => isWriting(message, now))
   const retryableMessage = isBusy ? null : findRetryableMessage(messages, now)
   const forms = useConversationForms(conversation)
   const [draft, setDraft] = useState("")
   const composerId = useId()
-  const annotations = useAnnotations()
-  // The panel docked beside the conversation, as an artifact in the Claude app, if one is open.
-  const [openPanel, setOpenPanel] = useState<"memory" | "forms" | OpenedResource | null>(null)
-  const togglePanel = (panel: "memory" | "forms") =>
-    setOpenPanel((current) => (current === panel ? null : panel))
-  const openedResource = typeof openPanel === "object" ? openPanel : null
+  const panel = useConversationPanel()
   const hasSettledApps = messages.some(
     (message) => message.mcpApps.length > 0 && message.status !== "streaming",
   )
@@ -75,14 +72,14 @@ export function ConversationView({
       <HeaderActions>
         <MemoryButton
           agent={conversation}
-          isOpen={openPanel === "memory"}
-          onToggle={() => togglePanel("memory")}
+          isOpen={panel.isMemoryOpen}
+          onToggle={() => panel.toggle("memory")}
         />
         {forms.length > 0 ? (
           <FormsButton
             forms={forms}
-            isOpen={openPanel === "forms"}
-            onToggle={() => togglePanel("forms")}
+            isOpen={panel.isFormsOpen}
+            onToggle={() => panel.toggle("forms")}
           />
         ) : null}
         <ConversationMenu conversation={conversation} />
@@ -96,8 +93,8 @@ export function ConversationView({
               </h1>
             ) : (
               <QuoteReplyPopover
-                annotations={annotations.annotations}
-                onSave={annotations.save}
+                annotations={sending.annotations}
+                onSave={sending.saveAnnotation}
                 messageBoxId={composerId}
               >
                 <MessageScroller>
@@ -134,7 +131,7 @@ export function ConversationView({
                               hasSourcesTool={hasSourcesTool}
                               appsHtml={appsHtml}
                               onAppMessage={setDraft}
-                              onOpenResource={setOpenPanel}
+                              onOpenResource={panel.openResource}
                             />
                           </MessageScrollerItem>
                         ))}
@@ -143,7 +140,7 @@ export function ConversationView({
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => sendMessage.mutate(retryableMessage)}
+                              onClick={() => sending.retry(retryableMessage)}
                             >
                               <RotateCcwIcon aria-hidden />
                               <Trans>Retry</Trans>
@@ -155,7 +152,9 @@ export function ConversationView({
                   </MessageScrollerViewport>
                   <MessageScrollerButton>
                     <ArrowDownIcon aria-hidden />
-                    <span className="sr-only">{t`Scroll to the latest message`}</span>
+                    <span className="sr-only">
+                      <Trans>Scroll to the latest message</Trans>
+                    </span>
                   </MessageScrollerButton>
                 </MessageScroller>
               </QuoteReplyPopover>
@@ -168,27 +167,20 @@ export function ConversationView({
               content={draft}
               onContentChange={setDraft}
               isBusy={isBusy}
-              annotationCount={annotations.annotations.length}
-              onSend={(outgoing) => {
-                // The annotations leave with the message, each on a line of its own.
-                const content = composeMessage(outgoing.content, annotations.annotations)
-                sendMessage.mutate({ ...outgoing, content })
-                annotations.clear()
-              }}
+              annotationCount={sending.annotations.length}
+              onSend={sending.send}
             />
           </div>
         </div>
-        {openPanel === "memory" ? (
-          <MemoryPanel agent={conversation} onClose={() => setOpenPanel(null)} />
+        {panel.isMemoryOpen ? <MemoryPanel agent={conversation} onClose={panel.close} /> : null}
+        {panel.isFormsOpen && forms.length > 0 ? (
+          <FormsPanel forms={forms} onClose={panel.close} />
         ) : null}
-        {openPanel === "forms" && forms.length > 0 ? (
-          <FormsPanel forms={forms} onClose={() => setOpenPanel(null)} />
-        ) : null}
-        {openedResource ? (
+        {panel.openedResource ? (
           <ResourcePanel
-            key={openedResource.url}
-            resource={openedResource}
-            onClose={() => setOpenPanel(null)}
+            key={panel.openedResource.url}
+            resource={panel.openedResource}
+            onClose={panel.close}
           />
         ) : null}
       </div>

@@ -475,7 +475,7 @@ msgstr "Masquer la barre latérale"
 msgid "Home of the Desk"
 msgstr "Accueil du Desk"
 
-#: src/features/conversation/components/ConversationView.tsx:95
+#: src/features/conversation/components/ConversationView.tsx:92
 #: src/features/conversation/components/NewConversation.tsx:22
 msgid "How can I help you today?"
 msgstr "Comment puis-je vous aider aujourd'hui ?"
@@ -763,7 +763,7 @@ msgstr "Redimensionner le panneau latéral"
 msgid "Results"
 msgstr "Résultats"
 
-#: src/features/conversation/components/ConversationView.tsx:149
+#: src/features/conversation/components/ConversationView.tsx:146
 msgid "Retry"
 msgstr "Réessayer"
 
@@ -816,7 +816,7 @@ msgstr "Enregistrer"
 msgid "Scroll long lines"
 msgstr "Faire défiler les longues lignes"
 
-#: src/features/conversation/components/ConversationView.tsx:158
+#: src/features/conversation/components/ConversationView.tsx:156
 msgid "Scroll to the latest message"
 msgstr "Aller au dernier message"
 
