@@ -4,7 +4,7 @@ import type {
   ProjectPermission,
 } from "@caseai-connect/api-contracts"
 import { useCallback, useMemo } from "react"
-import { selectAgentsData } from "@/common/features/agents/agents.selectors"
+import { selectAgentsDataIfInjected } from "@/common/features/agents/agents.selectors"
 import { selectReviewCampaignMemberships } from "@/common/features/me/me.selectors"
 import { holdsRole } from "@/common/features/memberships/membership-roles"
 import { selectOrganizationsList } from "@/common/features/organizations/organizations.selectors"
@@ -16,7 +16,7 @@ export function useAbility() {
   const organizations = useAppSelector(selectOrganizationsList)
   const myProjects = useAppSelector(selectMyProjectsList)
   const reviewCampaignMemberships = useAppSelector(selectReviewCampaignMemberships)
-  const agentsData = useAppSelector(selectAgentsData)
+  const agentsData = useAppSelector(selectAgentsDataIfInjected)
 
   const hasOrganizationPermission = useCallback(
     ({
@@ -45,7 +45,7 @@ export function useAbility() {
   // The project's agents come with the caller's permissions on each.
   const hasAgentPermission = useCallback(
     ({ agentId, permission }: { agentId: string | null; permission: AgentPermission }) => {
-      if (!agentId || !ADS.isFulfilled(agentsData)) return false
+      if (!agentId || !agentsData || !ADS.isFulfilled(agentsData)) return false
       const agent = agentsData.value.find((item) => item.id === agentId)
       return agent?.permissions.includes(permission) ?? false
     },
