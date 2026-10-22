@@ -144,6 +144,10 @@
   html {
     @apply font-sans;
   }
+  /* Lucide draws at 2px, which reads heavy next to the Desk's text: every icon gets a lighter line. */
+  svg.lucide {
+    stroke-width: 1.5;
+  }
 }
 
 /* A passage of a reply turns highlighter yellow as the person selects it, and stays so while they
