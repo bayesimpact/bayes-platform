@@ -4,6 +4,7 @@ import {
   type MyProjectOutputDto,
   myOrganizationOutputSchema,
   myProjectOutputSchema,
+  SOURCES_TOOL_FEATURE_FLAG,
 } from "@caseai-connect/desk-contracts"
 
 /** An organization of `GET organizations/mine`, checked against the contract. */
@@ -27,7 +28,7 @@ export function buildMyProject(
     name: "Pricing",
     organizationId: organization.id,
     permissions: ["project.read", DESK_UI_READ_PERMISSION],
-    featureFlags: ["sources-tool"],
+    featureFlags: [SOURCES_TOOL_FEATURE_FLAG],
     ...overrides,
   })
 }

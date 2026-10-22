@@ -10,6 +10,15 @@ export function readLastAgentId(): string | null {
   }
 }
 
+/** Forgets the agent the person opened last, so the Desk opens on its first agent next time. */
+export function forgetLastAgent(): void {
+  try {
+    window.localStorage.removeItem(LAST_AGENT_KEY)
+  } catch {
+    // Storage can be blocked: there is nothing to forget then.
+  }
+}
+
 /** Remembers the agent the person opened, so the Desk opens on it next time. */
 export function rememberLastAgent(agentId: string): void {
   try {

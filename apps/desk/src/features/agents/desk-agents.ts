@@ -1,4 +1,8 @@
-import type { AgentTypeDto, ProjectAgentOutputDto } from "@caseai-connect/desk-contracts"
+import {
+  type AgentTypeDto,
+  type ProjectAgentOutputDto,
+  SOURCES_TOOL_FEATURE_FLAG,
+} from "@caseai-connect/desk-contracts"
 import { notFound } from "@tanstack/react-router"
 import type { DeskProject } from "./desk-projects"
 
@@ -14,7 +18,7 @@ export function requireAgentType(agent: DeskAgent, type: AgentTypeDto): void {
 
 /** Whether the agent's project shows the sources a reply relied on (its `sources-tool` feature). */
 export const hasSourcesTool = (agent: DeskAgent): boolean =>
-  agent.project.featureFlags.includes("sources-tool")
+  agent.project.featureFlags.includes(SOURCES_TOOL_FEATURE_FLAG)
 
 /** The agents of a project, in the order the menu shows them. */
 export type DeskProjectAgents = {

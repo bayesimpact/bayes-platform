@@ -8,5 +8,5 @@ export {
   requireAgentType,
 } from "./desk-agents"
 export { agentPathParams, findAgent, findProjectDefaultAgent } from "./find-agent"
-export { readLastAgentId, rememberLastAgent } from "./last-agent"
+export { forgetLastAgent, readLastAgentId, rememberLastAgent } from "./last-agent"
 export { loadDeskAgents } from "./load-desk-agents"

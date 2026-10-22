@@ -1,4 +1,4 @@
-import { useLingui } from "@lingui/react/macro"
+import { Trans } from "@lingui/react/macro"
 import { ExternalLinkIcon } from "lucide-react"
 import type { ComponentProps } from "react"
 
@@ -12,12 +12,13 @@ export type ExternalLinkProps = Omit<ComponentProps<"a">, "target" | "rel"> & {
  * page it opens no hold on the Desk's.
  */
 export function ExternalLink({ children, hasIcon = true, ...props }: ExternalLinkProps) {
-  const { t } = useLingui()
   return (
     <a {...props} target="_blank" rel="noopener noreferrer">
       {children}
       {hasIcon ? <ExternalLinkIcon aria-hidden className="size-3 shrink-0 self-center" /> : null}
-      <span className="sr-only">{t`(opens in a new tab)`}</span>
+      <span className="sr-only">
+        <Trans>(opens in a new tab)</Trans>
+      </span>
     </a>
   )
 }

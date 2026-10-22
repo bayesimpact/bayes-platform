@@ -1,4 +1,5 @@
 import { getResponse, type RequestHandler } from "msw"
+import { forgetLastAgent } from "@/features/agents"
 import { buildDeskWorld, type DeskWorld } from "../factories/desk-world.factory"
 import { installStableIds } from "../stable-ids"
 import { deskHandlers } from "./handlers"
@@ -49,11 +50,7 @@ function mockFetch(): void {
 export function serveStoryWorld(parameters: DeskStoryParameters = {}): string {
   mockFetch()
   // The agent a previous story left open would decide which one this story opens.
-  try {
-    window.localStorage.removeItem("desk.lastAgentId")
-  } catch {
-    // Blocked storage keeps nothing from one story to the next anyway.
-  }
+  forgetLastAgent()
   installStableIds()
   const world = (parameters.world ?? buildDeskWorld)()
   storyHandlers = [...(parameters.handlers?.() ?? []), ...deskHandlers(world)]
