@@ -1,17 +1,23 @@
 import { getResponse, type RequestHandler } from "msw"
 import { buildDeskWorld, type DeskWorld } from "../factories/desk-world.factory"
 import { installStableIds } from "../stable-ids"
-import { meHandlers, worldHandlers } from "./handlers"
+import { deskHandlers } from "./handlers"
 
 /** What a story of the whole Desk sets in its `desk` parameter. */
 export type DeskStoryParameters = {
   /** The world the mocked API answers from: the main case by default. */
   world?: () => DeskWorld
-  /** Handlers that win over the world's, such as a failure or an answer that never comes. */
-  handlers?: RequestHandler[]
+  /**
+   * Handlers that win over the world's, such as a failure or an answer that never comes, built on
+   * each load so the story starts afresh.
+   */
+  handlers?: () => RequestHandler[]
   /** The page the story opens: the home by default. */
   url?: (world: DeskWorld) => string
 }
+
+/** The `parameters` of a story of the whole Desk, typed. */
+export const desk = (parameters: DeskStoryParameters = {}) => ({ desk: parameters })
 
 /** The handlers of the story on screen. */
 let storyHandlers: RequestHandler[] = []
@@ -26,11 +32,14 @@ function mockFetch(): void {
   if (isFetchMocked) return
   isFetchMocked = true
   const networkFetch = window.fetch.bind(window)
-  window.fetch = async (input, init) => {
+  const storyFetch: typeof window.fetch = async (input, init) => {
     const request = new Request(input, init)
     const response = await getResponse(storyHandlers, request.clone())
     return response ?? networkFetch(request)
   }
+  // Defined rather than assigned: another interceptor, such as MSW's server when the tests render
+  // the stories, may have made `fetch` read-only.
+  Object.defineProperty(window, "fetch", { value: storyFetch, configurable: true, writable: true })
 }
 
 /**
@@ -47,6 +56,6 @@ export function serveStoryWorld(parameters: DeskStoryParameters = {}): string {
   }
   installStableIds()
   const world = (parameters.world ?? buildDeskWorld)()
-  storyHandlers = [...(parameters.handlers ?? []), ...meHandlers(), ...worldHandlers(world)]
+  storyHandlers = [...(parameters.handlers?.() ?? []), ...deskHandlers(world)]
   return parameters.url?.(world) ?? "/app/"
 }

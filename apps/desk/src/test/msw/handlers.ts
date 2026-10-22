@@ -1,33 +1,31 @@
-import type { MeOutputDto, MyProjectOutputDto } from "@caseai-connect/desk-contracts"
-import { delay, HttpResponse, http } from "msw"
+import {
+  DeskAccountRoutes,
+  DeskAgentSessionsRoutes,
+  DeskAgentsRoutes,
+  DeskConversationsRoutes,
+  DeskDocumentsRoutes,
+  DeskInvitationsRoutes,
+  DeskMemoriesRoutes,
+  DeskOrganizationsRoutes,
+  DeskProjectsRoutes,
+  type MemoryOutputDto,
+  type MeOutputDto,
+} from "@caseai-connect/desk-contracts"
+import { HttpResponse, http } from "msw"
 import { buildMe } from "../factories/account.factory"
 import {
   buildConversationMessage,
   buildConversationSession,
+  buildToolCall,
 } from "../factories/agent-sessions.factory"
-import { buildDeskWorld, type DeskWorld, RELEASE_NOTES_APP } from "../factories/desk-world.factory"
-import { RELEASE_NOTES_APP_HTML } from "../fixtures/mcp-app"
+import { buildDeskWorld, type DeskWorld } from "../factories/desk-world.factory"
 import { extractionHandlers } from "./extraction-handlers"
+import { apiError, type MockStreamFrame, mockRoute, mockStreamRoute } from "./mock-route"
 
-const agentPath = "*/api/organizations/:organizationId/projects/:projectId/agents/:agentId"
-const messagesPath = `${agentPath}/agent-sessions/live/:agentSessionId/messages`
+type ReplyFrame = MockStreamFrame<typeof DeskConversationsRoutes.streamReply>
 
-/** One server-sent event, as Nest writes it. */
-const sseFrame = (data: unknown) => `id: 1\ndata: ${JSON.stringify(data)}\n\n`
-
-/** A reply streamed in a few chunks, with a pause between them as a real agent takes. */
-function replyStream(frames: string[]): ReadableStream<Uint8Array> {
-  const encoder = new TextEncoder()
-  return new ReadableStream({
-    async start(controller) {
-      for (const frame of frames) {
-        await delay()
-        controller.enqueue(encoder.encode(frame))
-      }
-      controller.close()
-    },
-  })
-}
+/** Where the mocked storage takes the attachments, outside the API. */
+const ATTACHMENT_STORAGE_ORIGIN = "https://storage.example.org"
 
 /** The words of a reply, two by two, as the chunks of its stream. */
 function chunksOf(text: string): string[] {
@@ -40,12 +38,11 @@ function chunksOf(text: string): string[] {
 }
 
 /** `GET me`, answered with the given person, who accepted the terms, and their new name. */
-export const meHandlers = (me: MeOutputDto = buildMe()) => [
-  http.get("*/api/me", () => HttpResponse.json({ data: me })),
-  http.patch("*/api/me", async ({ request }) => {
-    const { payload } = (await request.json()) as { payload: { name: string } }
+const meHandlers = (me: MeOutputDto = buildMe()) => [
+  mockRoute(DeskAccountRoutes.getMe, () => me),
+  mockRoute(DeskAccountRoutes.patchMe, ({ payload }) => {
     me.user.name = payload.name
-    return HttpResponse.json({ data: { success: true } })
+    return { success: true }
   }),
 ]
 
@@ -53,30 +50,25 @@ export const meHandlers = (me: MeOutputDto = buildMe()) => [
 export function termsHandlers() {
   const me = buildMe({ termsAccepted: false })
   return [
-    http.get("*/api/me", () => HttpResponse.json({ data: me })),
-    http.post("*/api/me/terms-acceptances", () => {
+    mockRoute(DeskAccountRoutes.getMe, () => me),
+    mockRoute(DeskAccountRoutes.acceptTerms, () => {
       me.user.termsAccepted = true
-      return HttpResponse.json({ data: { success: true } }, { status: 201 })
+      return { success: true }
     }),
   ]
 }
 
-/** `GET projects/mine`, answered with the given projects. */
-const myProjectsHandler = (projects: MyProjectOutputDto[]) =>
-  http.get("*/api/projects/mine", () => HttpResponse.json({ data: projects }))
-
 /** The routes that read a world: projects, organizations, agents and each agent's history. */
 export function worldHandlers(world: DeskWorld) {
   return [
-    myProjectsHandler(world.projects),
-    http.get("*/api/organizations/mine", () => HttpResponse.json({ data: world.organizations })),
-    http.get("*/api/organizations/:organizationId/projects/:projectId/agents", ({ params }) =>
-      HttpResponse.json({
-        data: world.agents.filter((agent) => agent.projectId === params.projectId),
-      }),
+    mockRoute(DeskProjectsRoutes.getAllMine, () => world.projects),
+    mockRoute(DeskOrganizationsRoutes.getAllMine, () => world.organizations),
+    mockRoute(DeskAgentsRoutes.getAllOfProject, ({ params }) =>
+      world.agents.filter((agent) => agent.projectId === params.projectId),
     ),
-    http.post(`${agentPath}/conversation-agent-sessions/live`, ({ params }) =>
-      HttpResponse.json({ data: world.conversations[String(params.agentId)] ?? [] }),
+    mockRoute(
+      DeskAgentSessionsRoutes.getConversations,
+      ({ params }) => world.conversations[params.agentId] ?? [],
     ),
     ...conversationHandlers(world),
     ...memoryHandlers(world),
@@ -85,63 +77,54 @@ export function worldHandlers(world: DeskWorld) {
   ]
 }
 
+/** The API as each test starts from it: the person, and the main world, built afresh. */
+export function deskHandlers(world: DeskWorld = buildDeskWorld()) {
+  return [...meHandlers(), ...worldHandlers(world)]
+}
+
 /** The person's invitations: an accepted one adds its agent to the world. */
 function invitationHandlers(world: DeskWorld) {
   const answer = (invitationId: string, isAccepted: boolean) => {
     const pending = world.invitations.find((entry) => entry.invitation.id === invitationId)
-    if (!pending) return new HttpResponse(null, { status: 404 })
+    if (!pending) return apiError(404)
     world.invitations = world.invitations.filter((entry) => entry !== pending)
     if (isAccepted && pending.grantsAgent) world.agents.push(pending.grantsAgent)
-    return HttpResponse.json({ data: { success: true } }, { status: 201 })
+    return { success: true }
   }
   return [
-    http.get("*/api/me/invitations", () =>
-      HttpResponse.json({
-        data: { invitations: world.invitations.map((entry) => entry.invitation) },
-      }),
-    ),
-    http.post("*/api/me/invitations/:invitationId/accept", ({ params }) =>
-      answer(String(params.invitationId), true),
-    ),
-    http.post("*/api/me/invitations/:invitationId/decline", ({ params }) =>
-      answer(String(params.invitationId), false),
-    ),
+    mockRoute(DeskInvitationsRoutes.getMine, () => ({
+      invitations: world.invitations.map((entry) => entry.invitation),
+    })),
+    mockRoute(DeskInvitationsRoutes.acceptOne, ({ params }) => answer(params.invitationId, true)),
+    mockRoute(DeskInvitationsRoutes.declineOne, ({ params }) => answer(params.invitationId, false)),
   ]
 }
 
 /** What each agent remembers about the person: read it, forget facts, answer proposals. */
 function memoryHandlers(world: DeskWorld) {
-  const memoriesPath = `${agentPath}/memories/live`
   return [
-    http.get(memoriesPath, ({ params }) =>
-      HttpResponse.json({ data: world.memories[String(params.agentId)] ?? [] }),
-    ),
-    http.delete(`${memoriesPath}/:memoryId`, ({ params }) => {
-      const agentId = String(params.agentId)
-      world.memories[agentId] = (world.memories[agentId] ?? []).filter(
+    mockRoute(DeskMemoriesRoutes.getAll, ({ params }) => world.memories[params.agentId] ?? []),
+    mockRoute(DeskMemoriesRoutes.deleteOne, ({ params }) => {
+      world.memories[params.agentId] = (world.memories[params.agentId] ?? []).filter(
         (memory) => memory.id !== params.memoryId,
       )
-      return HttpResponse.json({ data: { success: true } })
+      return { success: true }
     }),
-    http.delete(memoriesPath, ({ params }) => {
-      world.memories[String(params.agentId)] = []
-      return HttpResponse.json({ data: { success: true } })
+    mockRoute(DeskMemoriesRoutes.deleteAll, ({ params }) => {
+      world.memories[params.agentId] = []
+      return { success: true }
     }),
-    http.post(`${memoriesPath}/resolve-proposals`, async ({ params, request }) => {
-      const agentId = String(params.agentId)
-      const body = (await request.json()) as {
-        payload: { decisions: { memoryId: string; decision: string; content?: string }[] }
+    mockRoute(DeskMemoriesRoutes.resolveProposals, ({ params, payload }) => {
+      for (const decision of payload.decisions) {
+        world.memories[params.agentId] = (world.memories[params.agentId] ?? []).flatMap(
+          (memory): MemoryOutputDto[] => {
+            if (memory.id !== decision.memoryId) return [memory]
+            if (decision.decision === "reject") return []
+            return [{ ...memory, status: "saved", content: decision.content ?? memory.content }]
+          },
+        )
       }
-      for (const decision of body.payload.decisions) {
-        world.memories[agentId] = (world.memories[agentId] ?? []).flatMap((memory) => {
-          if (memory.id !== decision.memoryId) return [memory]
-          if (decision.decision === "reject") return []
-          return [
-            { ...memory, status: "saved" as const, content: decision.content ?? memory.content },
-          ]
-        })
-      }
-      return HttpResponse.json({ data: world.memories[agentId] ?? [] })
+      return world.memories[params.agentId] ?? []
     }),
   ]
 }
@@ -149,118 +132,91 @@ function memoryHandlers(world: DeskWorld) {
 /** A person's conversations: start one, read its messages, send a message, delete it. */
 function conversationHandlers(world: DeskWorld) {
   return [
-    http.post(`${agentPath}/conversation-agent-sessions/live/create`, ({ params }) => {
-      const agentId = String(params.agentId)
+    mockRoute(DeskConversationsRoutes.createOne, ({ params }) => {
       const conversation = buildConversationSession({ title: undefined, createdAt: Date.now() })
-      world.conversations[agentId] = [conversation, ...(world.conversations[agentId] ?? [])]
+      world.conversations[params.agentId] = [
+        conversation,
+        ...(world.conversations[params.agentId] ?? []),
+      ]
       world.messages[conversation.id] = [buildConversationMessage({ createdAt: Date.now() })]
-      return HttpResponse.json({ data: { id: conversation.id } }, { status: 201 })
+      return { id: conversation.id }
     }),
-    http.post(
-      `${agentPath}/conversation-agent-sessions/live/:agentSessionId/delete`,
-      ({ params }) => {
-        const agentId = String(params.agentId)
-        world.conversations[agentId] = (world.conversations[agentId] ?? []).filter(
-          (conversation) => conversation.id !== params.agentSessionId,
-        )
-        // As the API does, a deleted conversation's messages are gone with it.
-        delete world.messages[String(params.agentSessionId)]
-        return HttpResponse.json({ data: { success: true } }, { status: 201 })
-      },
-    ),
-    http.post(
-      "*/api/organizations/:organizationId/projects/:projectId/agent-messages/:agentMessageId/feedbacks",
-      async ({ params, request }) => {
-        const body = (await request.json()) as { payload: { content: string } }
-        world.feedbacks.push({
-          agentMessageId: String(params.agentMessageId),
-          content: body.payload.content,
-        })
-        return HttpResponse.json({ data: { success: true } }, { status: 201 })
-      },
-    ),
-    http.get(
-      "*/api/organizations/:organizationId/projects/:projectId/documents/:documentId/is-public",
-      () => HttpResponse.json({ data: { isPublicDocument: true } }),
-    ),
-    http.get(
-      "*/api/organizations/:organizationId/projects/:projectId/documents/:documentId/temporary-url",
-      () => HttpResponse.json({ data: { url: "https://example.org/pricing-guide.pdf" } }),
-    ),
-    http.post(`${messagesPath}/mcp-app-html`, () =>
-      HttpResponse.json(
-        { data: [{ ...RELEASE_NOTES_APP, html: RELEASE_NOTES_APP_HTML }] },
-        { status: 201 },
-      ),
-    ),
-    http.post(`${messagesPath}/attachment-document/presign`, () => {
-      const attachmentDocumentId = crypto.randomUUID()
-      return HttpResponse.json(
-        {
-          data: {
-            attachmentDocumentId,
-            uploadUrl: `https://storage.example.org/uploads/${attachmentDocumentId}`,
-          },
-        },
-        { status: 201 },
+    mockRoute(DeskConversationsRoutes.deleteOne, ({ params }) => {
+      world.conversations[params.agentId] = (world.conversations[params.agentId] ?? []).filter(
+        (conversation) => conversation.id !== params.agentSessionId,
+      )
+      // As the API does, a deleted conversation's messages are gone with it.
+      delete world.messages[params.agentSessionId]
+      return { success: true }
+    }),
+    mockRoute(DeskConversationsRoutes.createMessageFeedback, ({ params, payload }) => {
+      world.feedbacks.push({ agentMessageId: params.agentMessageId, content: payload.content })
+      return { success: true }
+    }),
+    mockRoute(DeskDocumentsRoutes.getIsPublic, () => ({ isPublicDocument: true })),
+    mockRoute(DeskDocumentsRoutes.getTemporaryUrl, () => ({
+      url: "https://example.org/pricing-guide.pdf",
+    })),
+    // The HTML of the apps the conversation's replies show.
+    mockRoute(DeskConversationsRoutes.getMcpAppsHtml, ({ params }) => {
+      const shownApps = (world.messages[params.agentSessionId] ?? [])
+        .flatMap((message) => message.toolCalls ?? [])
+        .flatMap((toolCall) => (toolCall.mcpApp ? [toolCall.mcpApp] : []))
+      return world.mcpAppsHtml.filter((app) =>
+        shownApps.some(
+          (shown) => shown.mcpServerId === app.mcpServerId && shown.resourceUri === app.resourceUri,
+        ),
       )
     }),
+    mockRoute(DeskConversationsRoutes.presignAttachment, () => {
+      const attachmentDocumentId = crypto.randomUUID()
+      return {
+        attachmentDocumentId,
+        uploadUrl: `${ATTACHMENT_STORAGE_ORIGIN}/uploads/${attachmentDocumentId}`,
+      }
+    }),
+    // The signed URL of the storage, which no contract describes: it takes the file's bytes.
     http.put(
-      "https://storage.example.org/uploads/:attachmentDocumentId",
+      `${ATTACHMENT_STORAGE_ORIGIN}/uploads/:attachmentDocumentId`,
       () => new HttpResponse(null, { status: 200 }),
     ),
-    http.post(
-      `${messagesPath}/attachment-document/:attachmentDocumentId/temporary-url`,
-      ({ params }) =>
-        HttpResponse.json(
-          { data: { url: `https://storage.example.org/files/${params.attachmentDocumentId}` } },
-          { status: 201 },
-        ),
-    ),
-    http.post(messagesPath, ({ params }) => {
-      const messages = world.messages[String(params.agentSessionId)]
-      return messages
-        ? HttpResponse.json({ data: messages }, { status: 201 })
-        : new HttpResponse(null, { status: 404 })
+    mockRoute(DeskConversationsRoutes.getAttachmentUrl, ({ params }) => ({
+      url: `${ATTACHMENT_STORAGE_ORIGIN}/files/${params.attachmentDocumentId}`,
+    })),
+    mockRoute(DeskConversationsRoutes.getMessages, ({ params }) => {
+      const messages = world.messages[params.agentSessionId]
+      return messages ?? apiError(404)
     }),
-    http.get(`${messagesPath}/stream`, ({ params, request }) => {
-      const agentSessionId = String(params.agentSessionId)
-      const query = JSON.parse(new URL(request.url).searchParams.get("q") ?? "{}")
-      const content: string = query.payload?.content ?? ""
-      const attachmentDocumentId: string | undefined = query.payload?.attachmentDocumentId
+    mockStreamRoute(DeskConversationsRoutes.streamReply, ({ params, query }) => {
+      const { content, attachmentDocumentId } = query.q.payload
       const reply = buildConversationMessage({
         content:
           `Here is what I found about "${content}". ` +
           "The answer depends on your plan, so here are the options that apply to you:\n\n" +
           "1. **Starter**, for a single team.\n2. **Pro**, for several teams.\n\n" +
           '```json\n{ "plan": "pro", "seats": 5 }\n```',
-        toolCalls: [{ id: crypto.randomUUID(), name: "lookup_knowledge_base" }],
+        toolCalls: [buildToolCall({ name: "lookup_knowledge_base" })],
       })
-      world.messages[agentSessionId] = [
-        ...(world.messages[agentSessionId] ?? []),
+      world.messages[params.agentSessionId] = [
+        ...(world.messages[params.agentSessionId] ?? []),
         buildConversationMessage({ role: "user", content, attachmentDocumentId }),
         reply,
       ]
-      const agentId = String(params.agentId)
-      for (const conversation of world.conversations[agentId] ?? []) {
-        if (conversation.id === agentSessionId && conversation.title === undefined) {
+      for (const conversation of world.conversations[params.agentId] ?? []) {
+        if (conversation.id === params.agentSessionId && conversation.title === undefined) {
           conversation.title = content.slice(0, 40)
         }
       }
-      const frames = [
-        sseFrame({ type: "start", messageId: reply.id }),
-        sseFrame({ type: "notify_client", toolName: "lookup_knowledge_base" }),
-        ...chunksOf(reply.content).map((chunk) =>
-          sseFrame({ type: "chunk", messageId: reply.id, content: chunk }),
+      return [
+        { event: { type: "start", messageId: reply.id } },
+        { event: { type: "notify_client", toolName: "lookup_knowledge_base" } },
+        ...chunksOf(reply.content).map(
+          (chunk): ReplyFrame => ({
+            event: { type: "chunk", messageId: reply.id, content: chunk },
+          }),
         ),
-        sseFrame({ type: "end", messageId: reply.id, fullContent: reply.content }),
+        { event: { type: "end", messageId: reply.id, fullContent: reply.content } },
       ]
-      return new HttpResponse(replyStream(frames), {
-        headers: { "Content-Type": "text/event-stream" },
-      })
     }),
   ]
 }
-
-/** The API as the tests start from: one project, one agent. */
-export const handlers = [...meHandlers(), ...worldHandlers(buildDeskWorld())]

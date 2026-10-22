@@ -1,5 +1,4 @@
 import { setupServer } from "msw/node"
-import { handlers } from "./handlers"
 
-/** The mocked API of the component tests. */
-export const server = setupServer(...handlers)
+/** The mocked API of the component tests: `setup.ts` gives it a fresh world before each test. */
+export const server = setupServer()

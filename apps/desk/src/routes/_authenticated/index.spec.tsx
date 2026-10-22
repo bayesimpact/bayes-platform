@@ -1,42 +1,44 @@
+import { DeskProjectsRoutes } from "@caseai-connect/desk-contracts"
 import { screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { HttpResponse, http } from "msw"
-import { beforeEach, describe, expect, it, vi } from "vitest"
-import { activateLocale } from "@/app/i18n"
+import { HttpResponse } from "msw"
+import { describe, expect, it, vi } from "vitest"
+import { activateLocale, detectLocale } from "@/app/i18n"
+import { rememberLastAgent } from "@/features/agents"
+import { agentOf, agentUrlOf, routerPathOf } from "@/test/desk-urls"
 import {
   buildDeskWorld,
   buildNoAgentWorld,
   buildSeveralAgentsWorld,
   buildSeveralProjectsWorld,
 } from "@/test/factories/desk-world.factory"
-import { meHandlers, termsHandlers, worldHandlers } from "@/test/msw/handlers"
+import { termsHandlers, worldHandlers } from "@/test/msw/handlers"
+import { apiError, mockRoute } from "@/test/msw/mock-route"
 import { server } from "@/test/msw/server"
 import { renderApp } from "@/test/render-app"
 
-vi.mock("@/lib/auth/session", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/lib/auth/session")>()),
-  hasSession: async () => true,
-  getAccessToken: async () => "test-token",
-}))
-
-beforeEach(() => {
-  window.localStorage.clear()
-})
+/**
+ * Checks the groups of the agent switcher's list, each named by its project and organization, in
+ * their order on screen.
+ */
+async function expectSwitcherGroups(names: string[]) {
+  const list = await screen.findByRole("listbox")
+  expect(within(list).getAllByRole("group")).toEqual(
+    names.map((name) => within(list).getByRole("group", { name })),
+  )
+}
 
 describe("the Desk's home", () => {
   it("opens a new conversation with the only agent, with its history and no switcher", async () => {
     const world = buildDeskWorld()
     server.use(...worldHandlers(world))
-    const [assistant] = world.agents
     const { router } = renderApp("/app/")
 
     expect(
       await screen.findByRole("heading", { name: "How can I help you today?" }),
     ).toBeInTheDocument()
     expect(screen.getByRole("textbox", { name: "Message to Helpful Assistant" })).toHaveFocus()
-    expect(router.state.location.pathname).toBe(
-      `/o/${world.organizations[0]?.id}/p/${assistant?.projectId}/a/${assistant?.id}`,
-    )
+    expect(router.state.location.pathname).toBe(routerPathOf(agentUrlOf(world)))
     expect(screen.queryByRole("combobox", { name: /Switch agent/ })).not.toBeInTheDocument()
     // The sidebar names the agent, as the switcher would, and the bar above the page does too.
     expect(screen.getAllByText("Helpful Assistant")).toHaveLength(2)
@@ -74,13 +76,12 @@ describe("the Desk's home", () => {
     renderApp("/app/")
 
     await userEvent.click(await screen.findByRole("combobox", { name: /Switch agent/ }))
-    const list = await screen.findByRole("listbox")
 
-    expect(
-      within(list)
-        .getAllByRole("group")
-        .map((group) => group.firstChild?.textContent),
-    ).toEqual(["Help center · Operations", "Pricing · Product", "Support · Product"])
+    await expectSwitcherGroups([
+      "Help center · Operations",
+      "Pricing · Product",
+      "Support · Product",
+    ])
   })
 
   it("finds an agent by its name or its project's in the switcher", async () => {
@@ -95,12 +96,8 @@ describe("the Desk's home", () => {
         .map((option) => option.textContent)
 
     await userEvent.type(search, "help center")
-    expect(optionNames().length).toBeGreaterThan(0)
-    expect(
-      within(screen.getByRole("listbox"))
-        .getAllByRole("group")
-        .map((group) => group.firstChild?.textContent),
-    ).toEqual(["Help center · Operations"])
+    expect(optionNames()).toEqual(["Help Center Guide"])
+    await expectSwitcherGroups(["Help center · Operations"])
 
     await userEvent.clear(search)
     await userEvent.type(search, "nothing like this")
@@ -111,8 +108,7 @@ describe("the Desk's home", () => {
   it("opens the agent the person used last", async () => {
     const world = buildSeveralAgentsWorld()
     server.use(...worldHandlers(world))
-    const writer = world.agents.find((agent) => agent.name === "Writing Helper")
-    window.localStorage.setItem("desk.lastAgentId", writer?.id ?? "")
+    rememberLastAgent(agentOf(world, "Writing Helper").id)
     renderApp("/app/")
 
     expect(
@@ -128,11 +124,7 @@ describe("the Desk's home", () => {
   })
 
   it("offers to try again when the projects could not load, and loads them", async () => {
-    server.use(
-      http.get("*/api/projects/mine", () => new HttpResponse(null, { status: 503 }), {
-        once: true,
-      }),
-    )
+    server.use(mockRoute(DeskProjectsRoutes.getAllMine, () => apiError(503), { once: true }))
     renderApp("/app/")
 
     await userEvent.click(await screen.findByRole("button", { name: "Try again" }))
@@ -144,7 +136,12 @@ describe("the Desk's home", () => {
 
   it("offers to reload when the API answers another version of the contract", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {})
-    server.use(http.get("*/api/projects/mine", () => HttpResponse.json({ data: [{ id: "x" }] })))
+    // A project without its fields, which the schema refuses: sent as is, past the contract.
+    server.use(
+      mockRoute(DeskProjectsRoutes.getAllMine, () =>
+        HttpResponse.json({ data: [{ id: crypto.randomUUID() }] }),
+      ),
+    )
     renderApp("/app/")
 
     expect(await screen.findByRole("button", { name: "Reload" })).toBeInTheDocument()
@@ -157,6 +154,20 @@ describe("the Desk's home", () => {
     expect(
       await screen.findByRole("heading", { name: "Comment puis-je vous aider aujourd'hui ?" }),
     ).toBeInTheDocument()
+  })
+
+  it("switches to the language the person chooses, and keeps it for the next visit", async () => {
+    renderApp("/app/")
+
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Open the menu of alex@example.org" }),
+    )
+    await userEvent.click(await screen.findByRole("menuitemradio", { name: "Français" }))
+
+    expect(
+      await screen.findByRole("heading", { name: "Comment puis-je vous aider aujourd'hui ?" }),
+    ).toBeInTheDocument()
+    expect(detectLocale()).toBe("fr")
   })
 
   it("is where an organization's URL leads", async () => {
@@ -198,12 +209,32 @@ describe("the invitations", () => {
     // Without an invitation left, the envelope goes.
     expect(screen.queryByRole("button", { name: /pending invitation/ })).not.toBeInTheDocument()
   })
+
+  it("can be declined, which leaves the person without the agent", async () => {
+    const world = buildNoAgentWorld()
+    server.use(...worldHandlers(world))
+    renderApp("/app/")
+
+    await userEvent.click(await screen.findByRole("button", { name: "1 pending invitation" }))
+    const dialog = await screen.findByRole("dialog")
+    await userEvent.click(
+      within(dialog).getByRole("button", {
+        name: "Decline the invitation to Release Notes Writer",
+      }),
+    )
+
+    expect(
+      await screen.findByText("You declined the invitation to Release Notes Writer."),
+    ).toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: /pending invitation/ })).not.toBeInTheDocument()
+    expect(screen.getByText("You don't have access to an agent yet")).toBeInTheDocument()
+    expect(world.agents).toEqual([])
+  })
 })
 
 describe("the terms", () => {
   it("come before the Desk, which opens once the required ones are accepted", async () => {
-    const world = buildDeskWorld()
-    server.use(...worldHandlers(world), ...termsHandlers())
+    server.use(...termsHandlers())
     renderApp("/app/")
 
     expect(await screen.findByRole("heading", { name: "Before you start" })).toBeInTheDocument()
@@ -236,8 +267,6 @@ describe("the terms", () => {
 
 describe("the person's name", () => {
   it("is edited from the user menu, and shows at once", async () => {
-    // A person of their own: the rename must not reach the other tests.
-    server.use(...worldHandlers(buildDeskWorld()), ...meHandlers())
     renderApp("/app/")
 
     await userEvent.click(
