@@ -96,7 +96,7 @@ describe("ActivitiesInterceptor", () => {
     })
   })
 
-  it("records the member's user id as the entity of a member action", async () => {
+  it("records the member's user as the entity of a member action", async () => {
     const reflector = {
       getAllAndOverride: jest.fn().mockReturnValue({
         action: "projectMembership.delete",
@@ -126,7 +126,7 @@ describe("ActivitiesInterceptor", () => {
     expect(activitiesService.createActivity).toHaveBeenCalledWith(
       expect.objectContaining({
         entityId: "member-user-id",
-        entityType: "memberProjectMembership",
+        entityType: "user",
       }),
     )
   })

@@ -165,7 +165,7 @@ Controllers and guards MUST follow the context resolver pattern for resource loa
 @RequireContext("organization", "project")
 @Controller()
 export class ExampleController {
-  @Delete("organizations/:organizationId/projects/:projectId/memberships/:userId")
+  @Delete("organizations/:organizationId/projects/:projectId/users/:userId")
   @AddContext("projectMembership")
   @CheckPermission(PROJECT_MEMBER_DELETE_PERMISSION, "project")
   async remove(@Req() request: EndpointRequestWithProjectMembership) {

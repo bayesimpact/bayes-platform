@@ -105,11 +105,11 @@ export class ActivitiesInterceptor implements NestInterceptor {
 
     const value = request[entityFrom]
     // A member has no id of its own: the person and the resource identify it, so the activity
-    // records the person.
+    // records the person, as a `user` entity.
     if (MEMBER_ENTITIES.has(entityFrom)) {
       const userId = (value as { userId?: unknown } | undefined)?.userId
       return typeof userId === "string"
-        ? { entityId: userId, entityType: entityFrom }
+        ? { entityId: userId, entityType: "user" }
         : { entityId: null, entityType: null }
     }
     if (

@@ -56,8 +56,9 @@ per role.** Their permissions there are the union of those roles.
 * **A member is a person on a resource, with no id of its own.** Reads group
   rows by person: the organization, project and agent membership models carry
   `userId`, the resource and `roles` (catalog key, name, scope, and the row
-  that holds each). The member routes take the person's id
-  (`.../memberships/:userId`), and so do the activity logs of member actions.
+  that holds each). The member routes name the person: `.../projects/:projectId/users`
+  and `.../users/:userId`, the same under an agent. The activity logs of member
+  actions record a `user` entity.
   Only a role has a row id, which campaign revocations and future per-role
   changes target.
 * **DTOs expose `roles: { membershipId, key, name, scopeType }[]`** in place

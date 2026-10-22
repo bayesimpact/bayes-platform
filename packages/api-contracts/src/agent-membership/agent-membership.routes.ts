@@ -5,10 +5,10 @@ import type { AgentMembershipDto } from "./agent-membership.dto"
 export const AgentMembershipRoutes = {
   getAll: defineRoute<ResponseData<AgentMembershipDto[]>>({
     method: "get",
-    path: "organizations/:organizationId/projects/:projectId/agents/:agentId/memberships",
+    path: "organizations/:organizationId/projects/:projectId/agents/:agentId/users",
   }),
   deleteOne: defineRoute<ResponseData<SuccessResponseDTO>>({
     method: "delete",
-    path: "organizations/:organizationId/projects/:projectId/agents/:agentId/memberships/:userId",
+    path: "organizations/:organizationId/projects/:projectId/agents/:agentId/users/:userId",
   }),
 }

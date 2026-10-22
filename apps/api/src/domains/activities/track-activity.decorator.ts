@@ -5,7 +5,7 @@ export const TRACK_ACTIVITY_METADATA_KEY = "track_activity"
 /**
  * Resolved resource on `EndpointRequest` (and variants) whose `.id` is stored as `entity_id`
  * / `entity_type` when the action is not a `.create`. For a member (`memberProjectMembership`,
- * `memberAgentMembership`), `entity_id` is the member's user id.
+ * `memberAgentMembership`), the entity is the member's user: `entity_type` is `user`.
  */
 export type TrackActivityEntityFrom =
   | "organizationMembership"
