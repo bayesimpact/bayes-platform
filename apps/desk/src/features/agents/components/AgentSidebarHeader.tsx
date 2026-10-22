@@ -17,7 +17,7 @@ export function AgentSidebarHeader({ currentAgent }: AgentSidebarHeaderProps) {
     return <AgentSwitcher groups={groups} currentAgent={currentAgent} />
   }
   return (
-    <div className="flex h-12 items-center gap-2 p-2 text-sm">
+    <div className="flex h-8 items-center gap-2 p-2 text-sm">
       <AgentIdentity agent={currentAgent} showProject={false} />
     </div>
   )

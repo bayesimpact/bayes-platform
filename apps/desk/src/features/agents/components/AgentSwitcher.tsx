@@ -69,7 +69,8 @@ export function AgentSwitcher({ groups, currentAgent }: AgentSwitcherProps) {
           <ComboboxTrigger
             render={
               <SidebarMenuButton
-                size="lg"
+                // Two lines with the project's name above the agent's, one line otherwise.
+                size={hasSeveralProjects ? "lg" : "default"}
                 aria-label={t`Switch agent, current agent: ${agentName}`}
                 className="aria-expanded:bg-sidebar-accent [&>svg:last-child]:ml-auto"
               />

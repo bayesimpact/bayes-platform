@@ -6,7 +6,7 @@ import { SidebarEntriesSkeleton } from "./SidebarEntriesSkeleton"
 export function DeskShellSkeleton() {
   return (
     <DeskShell
-      header={<Skeleton className="h-12 w-full" />}
+      header={<Skeleton className="h-8 w-full" />}
       sidebar={<SidebarEntriesSkeleton />}
       footer={<Skeleton className="h-8 w-32" />}
     >
