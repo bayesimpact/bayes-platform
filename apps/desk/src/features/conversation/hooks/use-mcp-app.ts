@@ -102,8 +102,8 @@ export function useMcpApp(
         )
       })
       await bridge.connect(new SandboxTransport(frame, sandboxId))
-      // The HTML closes no frame of the sandbox page early.
-      await bridge.sendSandboxResourceReady({ html: html.replaceAll("</iframe", "<\\/iframe") })
+      // The HTML travels as data and becomes a blob: the app gets it exactly as its server wrote it.
+      await bridge.sendSandboxResourceReady({ html })
       await initialized
       if (controller.signal.aborted) return
       isInitialized = true

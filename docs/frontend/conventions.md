@@ -155,7 +155,9 @@ or editing the boundaries' configuration.
   holds filters, pagination, sorting and tabs, and a loader that reads search params declares them
   in `loaderDeps`. Docs: [search params](https://tanstack.com/router/latest/docs/framework/react/guide/search-params.md), [path params](https://tanstack.com/router/latest/docs/framework/react/guide/path-params.md).
 - A loader starts every query its screen needs, in parallel, through the router context:
-  `context.queryClient.query({ ...xxxQueryOptions(...), staleTime: "static" })`. Loaders live in
+  `context.queryClient.query({ ...xxxQueryOptions(...), staleTime: loaderStaleTime })`
+  (`lib/start-query.ts`): the cached data as it is, unless a mutation invalidated it, which a plain
+  `"static"` would ignore for a query no component observes. Loaders live in
   the feature's `load-*.ts` as `loadX(queryClient, params, deps?)`, where `params` are the route's,
   and wrap their reads in `orNotFound` (`lib/not-found.ts`), which turns the API's 403, 404 and 422
   into the not-found page. A guard shared by routes, such as `requireAgentType`, lives in a

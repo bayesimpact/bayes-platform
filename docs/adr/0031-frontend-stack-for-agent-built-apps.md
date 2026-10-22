@@ -242,9 +242,12 @@ second one starts (section 7).
   in `lib/not-found.ts`). The URL holds filters, pagination, sorting and tabs, and a loader that
   reads search params declares them in `loaderDeps`.
 * A loader starts every query its screen needs, in parallel, through the QueryClient of the router
-  context: `context.queryClient.query({ ...xxxQueryOptions(...), staleTime: "static" })`, the form
-  TanStack Query 5.102 gives for the deprecated `ensureQueryData`. The loader returns cached data
-  at once, and the component's `useSuspenseQuery` refreshes it in the background when it is stale.
+  context: `context.queryClient.query({ ...xxxQueryOptions(...), staleTime: loaderStaleTime })`,
+  the form TanStack Query 5.102 gives for the deprecated `ensureQueryData`. The loader returns
+  cached data at once, and the component's `useSuspenseQuery` refreshes it in the background when
+  it is stale. `loaderStaleTime` is `"static"` unless the query was invalidated: a plain
+  `"static"` returns even an invalidated query's data, so a mutation's invalidation of a query no
+  component observes would never reach the next loader.
   A query a loader does not wait for starts the same way, its error swallowed for the section that
   reads it (`startQuery` in `lib/start-query.ts`), since `prefetchQuery` is deprecated too. Each
   feature's loaders sit in its `load-*.ts`, as `loadX(queryClient, params, deps?)`, and turn the

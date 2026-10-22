@@ -5,6 +5,7 @@ import {
   failStreamingReplies,
   findRetryableMessage,
   type ReplyCursor,
+  setAttachmentDocument,
   startTurn,
   toChatMessages,
 } from "./chat-messages"
@@ -126,6 +127,27 @@ describe("findRetryableMessage", () => {
     expect(findRetryableMessage(failStreamingReplies(messages, "ended"), now)).toEqual({
       content: "Compare the plans",
       attachment: null,
+    })
+  })
+
+  it("sends again a file whose upload failed, and an uploaded one by its document", () => {
+    const file = new File(["%PDF-1.7"], "invoice.pdf", { type: "application/pdf" })
+    const messages = startTurn(
+      [],
+      { content: "Read this invoice", attachment: { file } },
+      { userMessageId: "user", replyId: "reply" },
+      now,
+    )
+
+    expect(findRetryableMessage(failStreamingReplies(messages, "upload"), now)).toEqual({
+      content: "Read this invoice",
+      attachment: { file },
+    })
+    const documentId = crypto.randomUUID()
+    const uploaded = setAttachmentDocument(messages, "user", documentId)
+    expect(findRetryableMessage(failStreamingReplies(uploaded, "ended"), now)).toEqual({
+      content: "Read this invoice",
+      attachment: { documentId },
     })
   })
 

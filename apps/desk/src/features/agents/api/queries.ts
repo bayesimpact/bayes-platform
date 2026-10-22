@@ -38,8 +38,8 @@ export const deskAgentsQueryOptions = () =>
 
 /**
  * Loads again the person's agents, after they joined a project or an agent: the loaders read them
- * as static, so they must be fresh before the page reloads its data.
+ * again once invalidated, when the page reloads its data.
  */
 export async function refreshDeskAgents(queryClient: QueryClient): Promise<void> {
-  await queryClient.refetchQueries({ queryKey: deskAgentsQueryOptions().queryKey })
+  await queryClient.invalidateQueries({ queryKey: deskAgentsQueryOptions().queryKey })
 }

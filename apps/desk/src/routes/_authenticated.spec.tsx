@@ -7,11 +7,12 @@ import { server } from "@/test/msw/server"
 import { renderApp } from "@/test/render-app"
 
 const signIn = vi.hoisted(() => vi.fn())
+const hasSession = vi.hoisted(() => vi.fn(async () => true))
 
 // The sign-in is watched here: this mock wins over the one of setup.ts.
 vi.mock("@/lib/auth/session", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/auth/session")>()),
-  hasSession: async () => true,
+  hasSession,
   getAccessToken: async () => "test-token",
   endSession: async () => undefined,
   signIn,
@@ -19,6 +20,7 @@ vi.mock("@/lib/auth/session", async (importOriginal) => ({
 
 beforeEach(() => {
   signIn.mockClear()
+  hasSession.mockResolvedValue(true)
 })
 
 const refuseMe = (message: string) =>
@@ -56,5 +58,24 @@ describe("a session that ends again right after a new sign-in", () => {
     renderApp("/app/")
 
     await vi.waitFor(() => expect(signIn).toHaveBeenCalledTimes(1))
+  })
+})
+
+describe("a session the browser does not keep", () => {
+  it("starts a sign-in when none started lately", async () => {
+    hasSession.mockResolvedValue(false)
+    renderApp("/app/")
+
+    await vi.waitFor(() => expect(signIn).toHaveBeenCalledTimes(1))
+  })
+
+  it("stops after a sign-in a moment ago, and says so, rather than loop", async () => {
+    // A sign-in completed a moment ago, but the browser kept no session from it.
+    expect(claimAutomaticSignIn()).toBe(true)
+    hasSession.mockResolvedValue(false)
+    renderApp("/app/")
+
+    expect(await screen.findByText("The sign-in keeps failing")).toBeInTheDocument()
+    expect(signIn).not.toHaveBeenCalled()
   })
 })

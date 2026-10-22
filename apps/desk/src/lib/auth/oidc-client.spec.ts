@@ -97,6 +97,21 @@ describe("getAccessToken", () => {
     expect(userManagerMock.signinSilent).toHaveBeenCalledTimes(1)
   })
 
+  it("refreshes for a caller that forces it, even while a plain refresh goes on", async () => {
+    // The plain refresh finds the token another tab stored, which the API refused to the other.
+    userManagerMock.getUser.mockResolvedValueOnce(expiredUser).mockResolvedValue(freshUser)
+    userManagerMock.signinSilent.mockResolvedValue({ access_token: "refreshed" })
+
+    const [plain, forced] = await Promise.all([
+      getAccessToken(),
+      getAccessToken({ forceRefresh: true }),
+    ])
+
+    expect(plain).toBe("fresh")
+    expect(forced).toBe("refreshed")
+    expect(userManagerMock.signinSilent).toHaveBeenCalledTimes(1)
+  })
+
   it("reuses the token another tab refreshed while this one waited for the lock", async () => {
     userManagerMock.getUser.mockResolvedValueOnce(expiredUser).mockResolvedValueOnce(freshUser)
     await expect(getAccessToken()).resolves.toBe("fresh")

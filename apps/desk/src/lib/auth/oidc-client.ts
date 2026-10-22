@@ -55,20 +55,27 @@ export async function getAccessToken({ forceRefresh = false } = {}): Promise<str
 /**
  * Every refresh goes through here, the background renewal included. With refresh token rotation,
  * two refreshes in parallel send the same refresh token twice: the second one fails with
- * invalid_grant, and some providers then revoke the whole token family. `tokenRefreshPromise`
- * shares one refresh between the callers of this tab, the Web Lock between the Desk's tabs.
+ * invalid_grant, and some providers then revoke the whole token family. `tokenRefresh` shares
+ * one refresh between the callers of this tab, the Web Lock between the Desk's tabs. A forced
+ * refresh never joins a plain one, which may keep the stored token the API just refused: it runs
+ * after it instead.
  */
-let tokenRefreshPromise: Promise<string> | null = null
+let tokenRefresh: { promise: Promise<string>; isForced: boolean } | null = null
 
 const REFRESH_LOCK_NAME = "desk-oidc-token-refresh"
 
 function refreshSession({ forceRefresh }: { forceRefresh: boolean }): Promise<string> {
-  if (!tokenRefreshPromise) {
-    tokenRefreshPromise = withRefreshLock(() => refreshUnderLock({ forceRefresh })).finally(() => {
-      tokenRefreshPromise = null
-    })
+  if (tokenRefresh && (tokenRefresh.isForced || !forceRefresh)) return tokenRefresh.promise
+  const previous = tokenRefresh?.promise.catch(() => undefined) ?? Promise.resolve()
+  const refresh = previous.then(() => withRefreshLock(() => refreshUnderLock({ forceRefresh })))
+  const current = {
+    promise: refresh.finally(() => {
+      if (tokenRefresh === current) tokenRefresh = null
+    }),
+    isForced: forceRefresh,
   }
-  return tokenRefreshPromise
+  tokenRefresh = current
+  return current.promise
 }
 
 async function withRefreshLock(task: () => Promise<string>): Promise<string> {

@@ -68,7 +68,7 @@ function MarkdownCode({
   // Streamdown marks fenced code with data-block. Everything else is inline.
   if (!("data-block" in props)) {
     return (
-      <code className="rounded-sm bg-muted px-1 py-0.5 font-mono text-[0.9em]" {...props}>
+      <code className="rounded-sm bg-muted px-1 py-0.5 font-mono text-code-inline" {...props}>
         {children}
       </code>
     )

@@ -1,5 +1,6 @@
 import { appBasePath, isMockMode } from "@/app/config"
 import * as oidcClient from "./oidc-client"
+import { releaseAutomaticSignIn } from "./sign-in-problems"
 
 /**
  * The Desk's session: the OIDC client's, or in mock mode a signed-in stand-in, since the mock mode
@@ -41,6 +42,8 @@ export function endSession(): Promise<void> {
 }
 
 export async function signOut(): Promise<void> {
+  // The person signs out on purpose: their next sign-in, even a moment later, is no loop.
+  releaseAutomaticSignIn()
   if (!isMockMode) return oidcClient.signOut()
   window.location.assign(appBasePath)
 }

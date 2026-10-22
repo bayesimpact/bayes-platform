@@ -7,7 +7,7 @@ export type ServerSentEvent = {
 /**
  * Reads server-sent events from a response body, as they arrive. Frames end with a blank line;
  * `id:`, `retry:` and comment lines, which Nest writes too, are skipped. A frame with neither data
- * nor an event name is dropped.
+ * nor an event name is dropped. Line ends may be `\n`, `\r\n` or `\r`, even split across chunks.
  */
 export async function* readServerSentEvents(
   body: ReadableStream<Uint8Array>,
@@ -15,21 +15,37 @@ export async function* readServerSentEvents(
   const reader = body.getReader()
   const decoder = new TextDecoder()
   let buffer = ""
+  // A chunk that ends with "\r" may end in the middle of a "\r\n": it waits for the next one.
+  let pendingCarriageReturn = ""
   let isDone = false
+  const append = (text: string) => {
+    const pending = pendingCarriageReturn + text
+    pendingCarriageReturn = pending.endsWith("\r") ? "\r" : ""
+    const complete = pendingCarriageReturn ? pending.slice(0, -1) : pending
+    buffer += complete.replace(/\r\n?/g, "\n")
+  }
+  // The frames the buffer holds whole, which leave it.
+  function* takeFrames(): Generator<ServerSentEvent> {
+    let frameEnd = buffer.indexOf("\n\n")
+    while (frameEnd !== -1) {
+      const frame = parseFrame(buffer.slice(0, frameEnd))
+      buffer = buffer.slice(frameEnd + 2)
+      if (frame) yield frame
+      frameEnd = buffer.indexOf("\n\n")
+    }
+  }
   try {
     while (true) {
       const { value, done } = await reader.read()
       isDone = done
       if (done) break
-      buffer += decoder.decode(value, { stream: true }).replace(/\r\n?/g, "\n")
-      let frameEnd = buffer.indexOf("\n\n")
-      while (frameEnd !== -1) {
-        const frame = parseFrame(buffer.slice(0, frameEnd))
-        buffer = buffer.slice(frameEnd + 2)
-        if (frame) yield frame
-        frameEnd = buffer.indexOf("\n\n")
-      }
+      append(decoder.decode(value, { stream: true }))
+      yield* takeFrames()
     }
+    // The decoder's last bytes, and a "\r" that ended the body, end their lines.
+    append(decoder.decode())
+    buffer += pendingCarriageReturn ? "\n" : ""
+    yield* takeFrames()
     const lastFrame = parseFrame(buffer)
     if (lastFrame) yield lastFrame
   } finally {

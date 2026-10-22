@@ -1,6 +1,7 @@
 import type { ConversationParamsDto } from "@caseai-connect/desk-contracts"
 import type { QueryClient } from "@tanstack/react-query"
 import { orNotFound } from "@/lib/not-found"
+import { loaderStaleTime } from "@/lib/start-query"
 import { messagesQueryOptions } from "./api/queries"
 
 /**
@@ -12,6 +13,6 @@ export async function loadConversation(
   conversation: ConversationParamsDto,
 ): Promise<void> {
   await orNotFound(() =>
-    queryClient.query({ ...messagesQueryOptions(conversation), staleTime: "static" }),
+    queryClient.query({ ...messagesQueryOptions(conversation), staleTime: loaderStaleTime }),
   )
 }

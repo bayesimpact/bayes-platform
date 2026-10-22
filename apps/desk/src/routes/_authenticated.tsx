@@ -3,7 +3,13 @@ import { Suspense } from "react"
 import { DeskShellSkeleton } from "@/components/shared/DeskShellSkeleton"
 import { RouteErrorState } from "@/components/shared/RouteErrorState"
 import { meQueryOptions, TermsGate } from "@/features/account"
-import { hasSession, readLoginHint, signIn } from "@/lib/auth/session"
+import {
+  claimAutomaticSignIn,
+  hasSession,
+  readLoginHint,
+  SignInLoopError,
+  signIn,
+} from "@/lib/auth/session"
 import { startQuery } from "@/lib/start-query"
 
 /**
@@ -13,6 +19,9 @@ import { startQuery } from "@/lib/start-query"
 export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async ({ location }) => {
     if (await hasSession()) return
+    // A session the browser did not keep after a sign-in a moment ago would send the person back
+    // to the provider in a loop: the Desk stops and explains, as the API client does.
+    if (!claimAutomaticSignIn()) throw new SignInLoopError()
     await signIn({ returnTo: location.publicHref, loginHint: readLoginHint(location.searchStr) })
     // The provider's page replaces this one: wait for it rather than render the route.
     await new Promise<never>(() => {})

@@ -2,7 +2,7 @@ import type { AgentParamsDto } from "@caseai-connect/desk-contracts"
 import type { QueryClient } from "@tanstack/react-query"
 import { extractionDocumentsQueryOptions } from "@/features/history"
 import { orNotFound } from "@/lib/not-found"
-import { startQuery } from "@/lib/start-query"
+import { loaderStaleTime, startQuery } from "@/lib/start-query"
 import {
   csvColumnsQueryOptions,
   csvRecordsQueryOptions,
@@ -13,7 +13,7 @@ import {
 import type { CsvRecordsPage } from "./schemas"
 
 const documentsOf = (queryClient: QueryClient, agent: AgentParamsDto) =>
-  queryClient.query({ ...extractionDocumentsQueryOptions(agent), staleTime: "static" })
+  queryClient.query({ ...extractionDocumentsQueryOptions(agent), staleTime: loaderStaleTime })
 
 /** Loads the person's documents for a new extraction's page. */
 export async function loadNewExtraction(
@@ -32,7 +32,7 @@ export async function loadExtractionRun(
     Promise.all([
       queryClient.query({
         ...extractionRunQueryOptions(params, params.extractionRunId),
-        staleTime: "static",
+        staleTime: loaderStaleTime,
       }),
       documentsOf(queryClient, params),
     ]),
@@ -48,7 +48,7 @@ export async function loadCsvSetup(
     Promise.all([
       queryClient.query({
         ...csvColumnsQueryOptions(params, params.documentId),
-        staleTime: "static",
+        staleTime: loaderStaleTime,
       }),
       documentsOf(queryClient, params),
     ]),
@@ -66,7 +66,10 @@ export async function loadCsvRun(
 ): Promise<void> {
   const [run] = await orNotFound(() =>
     Promise.all([
-      queryClient.query({ ...csvRunQueryOptions(params, params.csvRunId), staleTime: "static" }),
+      queryClient.query({
+        ...csvRunQueryOptions(params, params.csvRunId),
+        staleTime: loaderStaleTime,
+      }),
       documentsOf(queryClient, params),
     ]),
   )

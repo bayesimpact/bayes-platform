@@ -41,6 +41,34 @@ describe("readServerSentEvents", () => {
     ])
   })
 
+  it("reads CRLF line ends, even when a chunk ends between the CR and the LF", async () => {
+    const events = await readAll([
+      "event: message\r",
+      '\ndata: {"type":"start"}\r\n\r',
+      '\ndata: {"type":"end"}\r\n\r\n',
+    ])
+
+    expect(events).toEqual([
+      { event: "message", data: '{"type":"start"}' },
+      { event: null, data: '{"type":"end"}' },
+    ])
+  })
+
+  it("flushes the decoder at the end, so a broken last character still shows", async () => {
+    const bytes = new TextEncoder().encode("data: café")
+    const body = new ReadableStream<Uint8Array>({
+      start(controller) {
+        // The body ends one byte into the two bytes of "é".
+        controller.enqueue(bytes.slice(0, -1))
+        controller.close()
+      },
+    })
+    const events = []
+    for await (const event of readServerSentEvents(body)) events.push(event)
+
+    expect(events).toEqual([{ event: null, data: "caf\uFFFD" }])
+  })
+
   it("reads a last frame the server closed without a blank line", async () => {
     expect(await readAll(['data: {"type":"end"}'])).toEqual([
       { event: null, data: '{"type":"end"}' },

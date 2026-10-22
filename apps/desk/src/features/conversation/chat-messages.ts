@@ -22,11 +22,13 @@ export type ReplyFailure = "ended" | "unreachable" | "contract" | "upload"
 
 /**
  * The file attached to a person's message: its uploaded document once known, and its name while
- * the message is local (the API does not send it back).
+ * the message is local (the API does not send it back). A local message also keeps the file
+ * itself until it is uploaded, so a retry after a failed upload sends it again.
  */
 export type ChatAttachment = {
   documentId: string | null
   fileName: string | null
+  file?: File
 }
 
 /** What a person sends: their text, and a file to attach, picked or already uploaded. */
@@ -193,7 +195,7 @@ export function startTurn(
     attachment === null
       ? null
       : "file" in attachment
-        ? { documentId: null, fileName: attachment.file.name }
+        ? { documentId: null, fileName: attachment.file.name, file: attachment.file }
         : { documentId: attachment.documentId, fileName: null }
   return [
     ...messages,
@@ -309,8 +311,14 @@ export function findRetryableMessage(messages: ChatMessage[], now: number): Outg
   if (!isFailed) return null
   const userMessage = [...messages].reverse().find((message) => message.role === "user")
   if (!userMessage) return null
-  const documentId = userMessage.attachment?.documentId
-  return { content: userMessage.content, attachment: documentId ? { documentId } : null }
+  const attachment = userMessage.attachment
+  // An uploaded file goes again by its document; one whose upload failed goes again as a file.
+  const outgoingAttachment = attachment?.documentId
+    ? { documentId: attachment.documentId }
+    : attachment?.file
+      ? { file: attachment.file }
+      : null
+  return { content: userMessage.content, attachment: outgoingAttachment }
 }
 
 /** Notes the uploaded document of the local message of a file, so a retry can send it again. */
