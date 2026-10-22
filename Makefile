@@ -263,6 +263,10 @@ ci-checks: npm-ci
 MAIN_CHECKOUT := $(shell dirname "$$(git rev-parse --path-format=absolute --git-common-dir)")
 ifeq ($(GITHUB_ACTIONS),true)
 DB_TESTS_COMPOSE := docker compose -f infra/database/docker-compose.yaml -f infra/database/docker-compose.test.yaml
+# The S3 integration tests (apps/api, *.spec.ts guarded by S3_TEST_ENDPOINT)
+# run against the SeaweedFS that db-tests starts. Locally they are skipped
+# unless S3_TEST_ENDPOINT is set (docker compose --profile storage up -d seaweedfs).
+export S3_TEST_ENDPOINT := http://localhost:8333
 else
 DB_TESTS_COMPOSE := docker compose -f $(MAIN_CHECKOUT)/infra/database/docker-compose.yaml
 endif
@@ -272,7 +276,11 @@ endif
 # the final server listens, so the migrations that follow never race it.
 db-tests:
 ifeq ($(GITHUB_ACTIONS),true)
-	$(DB_TESTS_COMPOSE) up -d
+	$(DB_TESTS_COMPOSE) --profile storage up -d pgvector redis seaweedfs
+	@for attempt in $$(seq 1 60); do \
+	  curl -s -o /dev/null http://localhost:8333/ && break; \
+	  sleep 1; \
+	done
 else
 	$(DB_TESTS_COMPOSE) up -d --no-recreate pgvector redis
 endif

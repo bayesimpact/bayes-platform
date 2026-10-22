@@ -7,7 +7,7 @@ This chart installs the full platform on a Kubernetes cluster:
 | api | NestJS API (`/api`, `/public`), and the web front it serves at `/` | `app` |
 | cpu-workers | async jobs (extraction, crawling, evaluations) | `cpu-workers` |
 | gpu-workers | document embeddings with Docling on one GPU (optional) | `gpu-workers` |
-| pdf-converter | PDF to page images for image-only LLMs (GCS storage only) | `pdf-converter` |
+| pdf-converter | PDF to page images for image-only LLMs (`s3` or `gcs` storage) | `pdf-converter` |
 | web-embed | the embeddable widget and its `launcher.js` | `web-embed` |
 | help | the help center | `help` |
 | postgresql | bundled Postgres with pgvector (optional) | `pgvector/pgvector` |
@@ -180,6 +180,7 @@ See `values-managed.example.yaml`. The differences with the default:
 
 - `postgresql.enabled: false` and `externalDatabase.*`. `externalDatabase.ssl` is `require` by default (Cloud SQL refuses plain connections when its `ssl_mode` is `ENCRYPTED_ONLY`); set `verify-full` and `sslCaSecretKey` to check the server certificate. The `vector` extension is created by the first migration when the database user is allowed to; otherwise run `CREATE EXTENSION IF NOT EXISTS vector;` once as an administrator. The database user also needs the `CREATEROLE` attribute: the analytics migration creates the `analytics_reader` role (see "Analytics readers"). A Cloud SQL user created through the Cloud SQL API or console has it; a user created with `CREATE USER` in SQL does not, and the migration Job fails with `Only roles with the CREATEROLE attribute may create roles`. Grant it once as an administrator: `ALTER ROLE <user> CREATEROLE;`.
 - `redis.enabled: false` and `BULLMQ_REDIS_URL` in the Secret (`redis://` or `rediss://`, password in the URL). When the instance signs its certificate with its own CA (Memorystore with in-transit encryption), put the CA certificate (PEM) in the Secret and name its key in `externalRedis.sslCaSecretKey`.
+- `storage.mode: s3` with `storage.s3.bucket` and, for a self-hosted store such as SeaweedFS, `storage.s3.endpoint` (reached by the pods) and `storage.s3.publicEndpoint` (reached by the browsers, which upload and download with signed URLs: the host is part of the signature). The access key pair goes in the Secret under `S3_ACCESS_KEY_ID` and `S3_SECRET_ACCESS_KEY`; leave `storage.s3.accessKeyIdKey` and `storage.s3.secretAccessKeyKey` empty to use an IAM role instead. The bucket must accept cross-origin `PUT` and `GET` from the web front. This mode also enables the `pdf-converter`.
 - `storage.mode: gcs` with `storage.gcs.bucket`. The pods reach the bucket through the service account (`serviceAccount.annotations` for GKE Workload Identity). This mode also enables the `pdf-converter`. The API signs upload and download URLs: with Workload Identity there is no private key, so the Google service account needs `roles/iam.serviceAccountTokenCreator` on itself (the `signBlob` permission), on top of `roles/storage.objectAdmin` on the bucket. Without it, uploads fail with `Permission 'iam.serviceAccounts.signBlob' denied`.
 - `gpuWorkers.enabled: true` with `gpuWorkers.gpu.nodeSelector` set to the label of your GPU node pool. The pods request `nvidia.com/gpu: 1` and tolerate the `nvidia.com/gpu` taint. On GKE also set `gpuWorkers.gpu.driverLibraryPath: /usr/local/nvidia/lib64`: GKE mounts the NVIDIA driver libraries there without putting them on the loader path, and without it Torch silently runs on the CPU (Docling then hits its timeout on large documents). Clusters with the NVIDIA container toolkit or GPU Operator need nothing.
 
@@ -234,7 +235,7 @@ See `values.yaml`. Every key is documented in place. The main sections:
 | `config` | the non-secret environment shared by the API and the workers |
 | `postgresql`, `externalDatabase` | bundled or external database |
 | `redis`, `externalRedis` | bundled or external Redis |
-| `storage` | `local` volume or `gcs` bucket |
+| `storage` | `local` volume, `s3` or `gcs` bucket |
 | `api`, `cpuWorkers`, `gpuWorkers`, `pdfConverter`, `webEmbed`, `help` | one block per component: replicas, resources, placement |
 | `otelCollector`, `phoenix` | optional collector and Phoenix for the LLM traces (see "LLM traces") |
 | `migrations` | the migration Job |
@@ -244,5 +245,4 @@ See `values.yaml`. Every key is documented in place. The main sections:
 
 - One OpenID Connect provider per install. People are invited by email in the members screens and accept in the app. The customer creates their accounts in the identity provider. Invitation emails are optional: set `config.SMTP_HOST`, `config.SMTP_FROM` and the `SMTP_USER` / `SMTP_PASSWORD` secret keys, otherwise admins copy each invitation link.
 - Embeddings need Vertex AI. LLM calls can go to any OpenAI-compatible endpoint (`VLLM_*` secrets).
-- The local document storage has no S3 backend. Use the `gcs` mode or a `ReadWriteMany` volume.
 - The API has no health route yet, so its probes check the TCP port.
