@@ -187,11 +187,7 @@ export class AgentsService {
     userId: string
     agentId: string
   }): Promise<string[]> {
-    const permissionsByAgentId = await this.permissionService.listResourcePermissions(
-      userId,
-      "agent.read",
-    )
-    return permissionsByAgentId.get(agentId) ?? []
+    return this.permissionService.listResourcePermissionsFor(userId, "agent.read", agentId)
   }
 
   /**

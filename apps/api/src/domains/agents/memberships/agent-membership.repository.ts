@@ -88,6 +88,22 @@ export class AgentMembershipRepository {
     return this.toModels(groupMembershipRows(rows))
   }
 
+  async findByUsersAndAgent({
+    userIds,
+    agentId,
+  }: {
+    userIds: string[]
+    agentId: string
+  }): Promise<AgentMembershipModel[]> {
+    if (userIds.length === 0) return []
+
+    const rows = await this.userMembershipRepo().find({
+      where: { userId: In(userIds), resourceType: AGENT_RESOURCE_TYPE, resourceId: agentId },
+      relations: MEMBERSHIP_RELATIONS,
+    })
+    return this.toModels(groupMembershipRows(rows))
+  }
+
   /** Gives the person the role on the agent. Does nothing when they already hold it. */
   async addRole({
     userId,

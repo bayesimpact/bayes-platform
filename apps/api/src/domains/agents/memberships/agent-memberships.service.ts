@@ -207,13 +207,13 @@ export class AgentMembershipsService {
     userIds: string[]
     agentId: string
   }): Promise<AgentMembershipModel[]> {
-    const memberships = await Promise.all(
-      userIds.map((userId) => this.findAgentMembership({ userId, agentId })),
-    )
-    return memberships.map((membership) => {
-      if (!membership) throw new NotFoundException("Some of the users are not members of the agent")
-      return membership
-    })
+    const memberships = (
+      await this.agentMembershipRepository.findByUsersAndAgent({ userIds, agentId })
+    ).flatMap((membership) => toMemberView(membership) ?? [])
+    if (memberships.length !== userIds.length) {
+      throw new NotFoundException("Some of the users are not members of the agent")
+    }
+    return memberships
   }
 
   /**

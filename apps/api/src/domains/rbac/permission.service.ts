@@ -330,6 +330,71 @@ export class PermissionService {
   }
 
   /**
+   * listResourcePermissions for one resource: the same rules, without listing every resource of
+   * the type. Empty when the user cannot read the resource.
+   */
+  async listResourcePermissionsFor(
+    userId: string,
+    readPermission: ResourceReadPermission,
+    resourceId: string,
+  ): Promise<string[]> {
+    const resource: PermissionResource = {
+      type: READ_PERMISSION_RESOURCE_TYPE_MAP[readPermission],
+      id: resourceId,
+    }
+    const permissions = new Set(await this.listDirectPermissions(userId, resource))
+    const resourceTypePermissions: readonly string[] = RESOURCE_TYPE_PERMISSIONS_MAP[resource.type]
+
+    for (const parentResourceType of PARENT_RESOURCE_TYPE_MAP[resource.type]) {
+      const parentResourceId = await this.fetchParentResourceId(resource, parentResourceType)
+      if (!parentResourceId) continue
+      const parentPermissions = await this.listDirectPermissions(userId, {
+        type: parentResourceType,
+        id: parentResourceId,
+      })
+      // the parent qualifies when its roles grant the read permission, as in listResourcePermissions
+      if (!parentPermissions.includes(readPermission)) continue
+      for (const permission of parentPermissions) {
+        if (resourceTypePermissions.includes(permission)) permissions.add(permission)
+      }
+    }
+
+    if (isProjectPermissionFromReviewCampaign(resource.type, readPermission)) {
+      const campaignPermissions =
+        (
+          await this.listProjectPermissionsFromReviewCampaigns(
+            userId,
+            [...PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN],
+            resourceId,
+          )
+        ).get(resourceId) ?? []
+      if (campaignPermissions.includes(readPermission)) {
+        for (const permission of campaignPermissions) permissions.add(permission)
+      }
+    }
+
+    return permissions.has(readPermission) ? [...permissions] : []
+  }
+
+  /** Permissions granted by the roles the user holds directly on one resource. */
+  private async listDirectPermissions(
+    userId: string,
+    resource: PermissionResource,
+  ): Promise<string[]> {
+    const rows: PermissionRow[] = await this.dataSource.query(
+      `SELECT DISTINCT role_permission.permission_key AS "permissionKey"
+       FROM user_membership membership
+       INNER JOIN role_permission ON role_permission.role_id = membership.role_id
+       WHERE membership.user_id = $1
+         AND membership.resource_type = $2
+         AND membership.resource_id = $3
+         AND membership.deleted_at IS NULL`,
+      [userId, resource.type, resource.id],
+    )
+    return rows.map((row) => row.permissionKey)
+  }
+
+  /**
    * Project permissions given by the review campaign roles the user holds, per project of the
    * campaigns (or of the given project only), restricted to the given keys, all within
    * PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN. A role only gives them while its campaign is in one
