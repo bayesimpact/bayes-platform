@@ -89,13 +89,19 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
     authSubject = addedUser.authSubject!
   }
 
-  const subject = async (type: BaseAgentSessionTypeDto, agentSettingsRevision?: number) =>
+  const subject = async (
+    type: BaseAgentSessionTypeDto,
+    agentSettingsRevision?: number,
+    variables?: Record<string, string>,
+  ) =>
     request({
       route: ConversationAgentSessionsRoutes[type].createOne,
       pathParams: removeNullish({ organizationId, projectId, agentId }),
       token: accessToken,
       request:
-        agentSettingsRevision === undefined ? undefined : { payload: { agentSettingsRevision } },
+        agentSettingsRevision === undefined && variables === undefined
+          ? undefined
+          : { payload: { agentSettingsRevision, variables } },
     })
 
   const seedRevision = async ({
@@ -262,6 +268,144 @@ describe("ConversationAgentSessionsRoutes.createOne", () => {
       const response = await subject("playground", 2)
 
       expectResponse(response, 422)
+    })
+  })
+
+  describe("prompt variables", () => {
+    const variableInstructions = "Summarize {{topic}} for {{audience}}"
+
+    const declareVariables = async (variables?: Record<string, string> | null) => {
+      await repositories.agentSettingsRepository.update(agentSettingsId, {
+        instructions: variableInstructions,
+        variables: variables ?? null,
+      })
+    }
+
+    it("refuses the session when a declared variable has no value", async () => {
+      await createContext("owner")
+      await declareVariables()
+
+      const response = await subject("live")
+
+      expectResponse(response, 400, "Missing prompt variables: topic, audience")
+      expect(response.body).toMatchObject({
+        code: "MISSING_PROMPT_VARIABLES",
+        missing: ["topic", "audience"],
+      })
+      expect(
+        await repositories.conversationAgentSessionRepository.find({
+          where: { agentId },
+        }),
+      ).toHaveLength(0)
+    })
+
+    it("falls back to the revision's default when the caller sends no value", async () => {
+      await createContext("owner")
+      await declareVariables({ topic: "the product tour" })
+
+      const response = await subject("live", undefined, { audience: "support agents" })
+
+      expectResponse(response, 201)
+      const createdSession = await repositories.conversationAgentSessionRepository.findOne({
+        where: { id: response.body.data.id },
+      })
+      expect(createdSession?.variables).toEqual({
+        topic: "the product tour",
+        audience: "support agents",
+      })
+    })
+
+    it("lets the caller's value win over the revision's default", async () => {
+      await createContext("owner")
+      await declareVariables({ topic: "the product tour" })
+
+      const response = await subject("live", undefined, {
+        topic: "the refund policy",
+        audience: "support agents",
+      })
+
+      expectResponse(response, 201)
+      const createdSession = await repositories.conversationAgentSessionRepository.findOne({
+        where: { id: response.body.data.id },
+      })
+      expect(createdSession?.variables).toEqual({
+        topic: "the refund policy",
+        audience: "support agents",
+      })
+    })
+
+    it("stores the values the caller supplies for every declared variable", async () => {
+      await createContext("owner")
+      await declareVariables()
+
+      const response = await subject("live", undefined, {
+        topic: "the new pricing page",
+        audience: "support agents",
+      })
+
+      expectResponse(response, 201)
+      const createdSession = await repositories.conversationAgentSessionRepository.findOne({
+        where: { id: response.body.data.id },
+      })
+      expect(createdSession?.variables).toEqual({
+        topic: "the new pricing page",
+        audience: "support agents",
+      })
+    })
+
+    it("treats a blank value as missing", async () => {
+      await createContext("owner")
+      await declareVariables()
+
+      const response = await subject("live", undefined, {
+        topic: "   ",
+        audience: "support agents",
+      })
+
+      expectResponse(response, 400, "Missing prompt variables: topic")
+      expect(response.body).toMatchObject({
+        code: "MISSING_PROMPT_VARIABLES",
+        missing: ["topic"],
+      })
+    })
+
+    it("treats a blank value as missing, so the revision's default is stored", async () => {
+      await createContext("owner")
+      await declareVariables({ topic: "the product tour" })
+
+      const response = await subject("live", undefined, {
+        topic: "   ",
+        audience: "support agents",
+      })
+
+      expectResponse(response, 201)
+      const createdSession = await repositories.conversationAgentSessionRepository.findOne({
+        where: { id: response.body.data.id },
+      })
+      expect(createdSession?.variables).toEqual({
+        topic: "the product tour",
+        audience: "support agents",
+      })
+    })
+
+    it("ignores values for variables the instructions do not declare", async () => {
+      await createContext("owner")
+      await declareVariables()
+
+      const response = await subject("live", undefined, {
+        topic: "the new pricing page",
+        audience: "support agents",
+        extra: "dropped",
+      })
+
+      expectResponse(response, 201)
+      const createdSession = await repositories.conversationAgentSessionRepository.findOne({
+        where: { id: response.body.data.id },
+      })
+      expect(createdSession?.variables).toEqual({
+        topic: "the new pricing page",
+        audience: "support agents",
+      })
     })
   })
 })

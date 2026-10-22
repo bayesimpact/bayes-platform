@@ -4,8 +4,8 @@ highlight: API
 description: Construisez votre propre client de chat sur un agent public. Routes, en-têtes, événements envoyés par le serveur, codes d'erreur et limites de l'API de chat publique, version 1.
 category: developers
 order: 1
-updated: 2026-09-10
-apiVersion: "1.0"
+updated: 2026-10-22
+apiVersion: "1.1"
 ---
 
 import PublicApiBaseUrl from "@/components/PublicApiBaseUrl.astro"
@@ -39,7 +39,7 @@ Toutes les routes de la version 1 commencent par `/public/v1/agents/{embedToken}
 
 ## Version
 
-Cette page documente la version **1.0**. La version majeure est dans le chemin (`v1`). Les
+Cette page documente la version **1.1**. La version majeure est dans le chemin (`v1`). Les
 versions mineures ajoutent des champs ou des routes et ne changent jamais l'existant. Le
 [journal des modifications](/fr/public-chat-api-changelog) liste chaque version. Votre
 client doit ignorer les champs et les types d'événements inconnus. Il reste ainsi
@@ -135,6 +135,7 @@ curl -X POST "$API_BASE/public/v1/agents/$EMBED_TOKEN/sessions" \
 | Champ de requête | Type | Description |
 |---|---|---|
 | `payload.externalVisitorId` | string, optionnel | Votre identifiant stable du visiteur. Les outils le reçoivent. N'y mettez pas de donnée personnelle |
+| `payload.variables` | objet, optionnel | Valeurs des `{{variables}}` que les instructions de l'agent déclarent, par nom de variable |
 
 ```json
 {
@@ -145,7 +146,29 @@ curl -X POST "$API_BASE/public/v1/agents/$EMBED_TOKEN/sessions" \
 }
 ```
 
-Statut : `201`. Erreurs : `401`, `403`.
+Statut : `201`. Erreurs : `400`, `401`, `403`.
+
+### Variables du prompt
+
+Un agent peut déclarer des `{{variables}}` dans ses instructions. Chaque variable déclarée
+doit être fournie à la création de la session :
+
+- envoyez sa valeur dans `payload.variables`, par son nom ;
+- à défaut, la valeur configurée en **défaut** dans l'onglet Embed de l'agent est utilisée ;
+- si les deux manquent, la session est refusée avec un `400` :
+
+```json
+{
+  "statusCode": 400,
+  "message": "Missing prompt variables: topic",
+  "error": "Bad Request",
+  "code": "MISSING_PROMPT_VARIABLES",
+  "missing": ["topic"]
+}
+```
+
+Les valeurs sont substituées dans le prompt de l'agent avant chaque réponse. Une chaîne
+vide compte comme manquante. Les valeurs de variables non déclarées sont ignorées.
 
 Quand l'agent a un message d'accueil, la session commence par ce message comme premier
 message `assistant`. Lisez-le avec [Lire une session](#lire-une-session).
@@ -373,6 +396,7 @@ Les réponses d'erreur sont en JSON :
 | `401` | `Invalid session token` | Le jeton et la session ne correspondent pas | Créez une nouvelle session |
 | `401` | `Session does not belong to this agent` | Session créée avec un autre jeton d'intégration | Créez une nouvelle session |
 | `404` | `Cannot GET /public/...` | Chemin ou méthode inconnu | Vérifiez le tableau des routes |
+| `400` | `Missing prompt variables: ...` | Les instructions de l'agent déclarent des `{{variables}}` sans valeur ni défaut | Envoyez les valeurs dans `payload.variables`. Le corps porte aussi `code: "MISSING_PROMPT_VARIABLES"` et une liste `missing` |
 | `400` | (message de l'analyseur) | Corps JSON mal formé | Corrigez le corps. Cette réponse n'a pas de champ `error` |
 | `413` | `request entity too large` | Corps de plus de 500 ko | Raccourcissez le corps. Cette réponse n'a pas de champ `error` |
 | `500` | `Internal server error` | Défaut du serveur | Réessayez plus tard |

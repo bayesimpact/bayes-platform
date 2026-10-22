@@ -4,8 +4,8 @@ highlight: API
 description: Build your own chat client on a public agent. Routes, headers, server-sent events, error codes and limits of the public chat API, version 1.
 category: developers
 order: 1
-updated: 2026-09-10
-apiVersion: "1.0"
+updated: 2026-10-22
+apiVersion: "1.1"
 ---
 
 import PublicApiBaseUrl from "@/components/PublicApiBaseUrl.astro"
@@ -38,7 +38,7 @@ All routes of version 1 start with `/public/v1/agents/{embedToken}`.
 
 ## Version
 
-This page documents version **1.0**. The major version is in the path (`v1`). Minor versions
+This page documents version **1.1**. The major version is in the path (`v1`). Minor versions
 add fields or routes and never change existing ones. The
 [changelog](/en/public-chat-api-changelog) lists every version. Your client must ignore
 unknown fields and unknown event types. This keeps it compatible with future minor versions.
@@ -132,6 +132,7 @@ curl -X POST "$API_BASE/public/v1/agents/$EMBED_TOKEN/sessions" \
 | Request field | Type | Description |
 |---|---|---|
 | `payload.externalVisitorId` | string, optional | Your own stable identifier for the visitor. Tools receive it. Do not put personal data in it |
+| `payload.variables` | object, optional | Values for the `{{variables}}` the agent's instructions declare, by variable name |
 
 ```json
 {
@@ -142,7 +143,30 @@ curl -X POST "$API_BASE/public/v1/agents/$EMBED_TOKEN/sessions" \
 }
 ```
 
-Status: `201`. Errors: `401`, `403`.
+Status: `201`. Errors: `400`, `401`, `403`.
+
+### Prompt variables
+
+An agent can declare `{{variables}}` in its instructions. Each declared variable must be
+supplied when you create the session:
+
+- Send its value in `payload.variables`, by name.
+- When you do not send it, the value configured as a **default** on the agent's Embed tab
+  is used.
+- When neither is available, the session is refused with a `400`:
+
+```json
+{
+  "statusCode": 400,
+  "message": "Missing prompt variables: topic",
+  "error": "Bad Request",
+  "code": "MISSING_PROMPT_VARIABLES",
+  "missing": ["topic"]
+}
+```
+
+The values are substituted into the agent's prompt before every reply. A blank string is
+treated as missing. Values for variables the instructions do not declare are ignored.
 
 When the agent has a greeting message, the session starts with that message as its first
 `assistant` message. Read it with [Get a session](#get-a-session).
@@ -368,6 +392,7 @@ Error responses are JSON:
 | `401` | `Invalid session token` | Token and session do not match | Create a new session |
 | `401` | `Session does not belong to this agent` | Session created with another embed token | Create a new session |
 | `404` | `Cannot GET /public/...` | Unknown path or method | Check the route table |
+| `400` | `Missing prompt variables: ...` | The agent's instructions declare `{{variables}}` with no value and no default | Send the values in `payload.variables`. The body also carries `code: "MISSING_PROMPT_VARIABLES"` and a `missing` list |
 | `400` | (parser message) | Malformed JSON body | Fix the body. This response has no `error` field |
 | `413` | `request entity too large` | Body over 500 kB | Shorten the body. This response has no `error` field |
 | `500` | `Internal server error` | Server fault | Retry later |

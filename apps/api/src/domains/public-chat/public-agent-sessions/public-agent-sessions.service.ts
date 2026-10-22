@@ -4,6 +4,7 @@ import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
+import { resolveSessionStartPromptVariables } from "@/common/utils/prompt-variables"
 import { AgentSessionCategory } from "@/domains/agents/session-categories/agent-session-category.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
@@ -100,6 +101,7 @@ export class PublicAgentSessionsService {
   async createSession(
     embedConfig: AgentEmbedConfig,
     externalVisitorId?: string,
+    callerVariables?: Record<string, string>,
   ): Promise<{ session: PublicAgentSession; sessionToken: string }> {
     const sessionToken = crypto.randomUUID()
     const sessionTokenHash = crypto.createHash("sha256").update(sessionToken).digest("hex")
@@ -122,6 +124,7 @@ export class PublicAgentSessionsService {
       sessionTokenHash,
       externalVisitorId: externalVisitorId ?? null,
       lastActivityAt: new Date(),
+      variables: resolveSessionStartPromptVariables(agentSettings, callerVariables),
     })
 
     const savedSession = await this.publicAgentSessionRepository.save(session)

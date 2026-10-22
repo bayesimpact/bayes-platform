@@ -41,6 +41,7 @@ export const agentSettingsFactory = AgentSettingsFactory.define(
       id: params.id || randomUUID(),
       revision: params.revision ?? 1,
       instructions: params.instructions || `This is a test default prompt for bot ${sequence}`,
+      variables: (params.variables as Record<string, string> | undefined) ?? null,
       model: params.model || AgentModel._Mock,
       deletedTemperature: params.deletedTemperature ?? 0.7,
       locale: params.locale || AgentLocale.EN,

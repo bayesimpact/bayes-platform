@@ -5,6 +5,7 @@ import { v4 } from "uuid"
 
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
+import { resolveSessionStartPromptVariables } from "@/common/utils/prompt-variables"
 import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import type {
   BaseAgentSessionType,
@@ -168,11 +169,18 @@ export class ConversationAgentSessionsService {
     agentSettingsId,
     userId,
     type,
+    variables,
   }: {
     connectScope: RequiredConnectScope
     agentSettingsId: string
     userId: string
     type: ConversationAgentSessionType
+    /**
+     * Values of the {{variables}} the settings revision's instructions declare.
+     * A declared variable without a value falls back to the revision's defaults;
+     * with neither, the session is refused (400 MISSING_PROMPT_VARIABLES).
+     */
+    variables?: Record<string, string>
   }): Promise<ConversationAgentSession> {
     const agentSettings = await this.agentSettingsConnectRepository.getOneById(
       connectScope,
@@ -189,6 +197,7 @@ export class ConversationAgentSessionsService {
         type,
         expiresAt: null,
         traceId: v4(),
+        variables: resolveSessionStartPromptVariables(agentSettings, variables),
       },
     )
 

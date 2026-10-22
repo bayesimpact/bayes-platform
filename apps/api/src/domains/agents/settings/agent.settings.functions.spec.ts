@@ -19,6 +19,7 @@ const fullFields: AgentSettingsCreateFields = {
   locale: AgentLocale.EN,
   outputJsonSchema: { type: "object" },
   greetingMessage: "Hello there",
+  variables: { topic: "the product tour" },
 }
 
 describe("extractAgentSettingsCreateFields", () => {
@@ -106,6 +107,24 @@ describe("requiresNewAgentSettingsRevision", () => {
         modifiedAgentSettings: {},
       }),
     ).toBe(false)
+  })
+
+  it("treats a resended variables map with the same content as no change", () => {
+    expect(
+      requiresUpdateAgentSettings({
+        initialAgentSettings: { variables: { topic: "the product tour" } },
+        modifiedAgentSettings: { variables: { topic: "the product tour" } },
+      }),
+    ).toBe(false)
+  })
+
+  it("returns true when the variables map content changes", () => {
+    expect(
+      requiresUpdateAgentSettings({
+        initialAgentSettings: { variables: { topic: "the product tour" } },
+        modifiedAgentSettings: { variables: { topic: "the refund policy" } },
+      }),
+    ).toBe(true)
   })
 
   it("returns true when a field value changes", () => {

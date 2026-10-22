@@ -11,10 +11,10 @@ export default {
     )
     return response.data.data.map(fromDto)
   },
-  createOne: async ({ type, agentSettingsRevision, ...params }) => {
+  createOne: async ({ type, agentSettingsRevision, variables, ...params }) => {
     const axios = getAxiosInstance()
     const payload: typeof ConversationAgentSessionsRoutes.live.createOne.request = {
-      payload: { agentSettingsRevision },
+      payload: { agentSettingsRevision, variables },
     }
     const response = await axios.post<
       typeof ConversationAgentSessionsRoutes.live.createOne.response

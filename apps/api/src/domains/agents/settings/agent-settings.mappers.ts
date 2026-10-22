@@ -48,6 +48,7 @@ export function toAgentSettingsDto({
     hasCategories,
     id: agentSettings.id,
     instructions: agentSettings.instructions,
+    variables: agentSettings.variables,
     isArchived: agentSettings.isArchived,
     isDraft: agentSettings.isDraft,
     locale: agentSettings.locale,

@@ -54,7 +54,7 @@ describe("PublicChat - createSession", () => {
     return { organization, project, agent, agentSettings, embedConfig }
   }
 
-  const subject = (payload?: { externalVisitorId?: string }) =>
+  const subject = (payload?: { externalVisitorId?: string; variables?: Record<string, string> }) =>
     request(app.getHttpServer())
       .post(`/public/v1/agents/${embedToken}/sessions`)
       .set("Connection", "close")
@@ -176,5 +176,103 @@ describe("PublicChat - createSession", () => {
     expect(response2.status).toBe(201)
     expect(response1.body.data.sessionToken).not.toBe(response2.body.data.sessionToken)
     expect(response1.body.data.sessionId).not.toBe(response2.body.data.sessionId)
+  })
+
+  describe("prompt variables", () => {
+    const variableInstructions = "Summarize {{topic}} for {{audience}}"
+
+    const findSavedSession = async (sessionId: string) =>
+      repositories.publicAgentSessionRepository.findOne({ where: { id: sessionId } })
+
+    it("refuses the session when a declared variable has no value and no default", async () => {
+      await createContext({ agentSettings: { instructions: variableInstructions } })
+      const response = await subject()
+
+      expect(response.status).toBe(400)
+      expect(response.body).toEqual({
+        statusCode: 400,
+        message: "Missing prompt variables: topic, audience",
+        error: "Bad Request",
+        code: "MISSING_PROMPT_VARIABLES",
+        missing: ["topic", "audience"],
+      })
+      expect(await repositories.publicAgentSessionRepository.find()).toHaveLength(0)
+    })
+
+    it("stores the values the caller supplies for every declared variable", async () => {
+      await createContext({ agentSettings: { instructions: variableInstructions } })
+      const response = await subject({
+        variables: { topic: "the new pricing page", audience: "support agents" },
+      })
+
+      expect(response.status).toBe(201)
+      const savedSession = await findSavedSession(response.body.data.sessionId)
+      expect(savedSession?.variables).toEqual({
+        topic: "the new pricing page",
+        audience: "support agents",
+      })
+    })
+
+    it("falls back to the published settings default when the caller sends no value", async () => {
+      await createContext({
+        agentSettings: {
+          instructions: variableInstructions,
+          variables: { topic: "the product tour" },
+        },
+      })
+      const response = await subject({ variables: { audience: "support agents" } })
+
+      expect(response.status).toBe(201)
+      const savedSession = await findSavedSession(response.body.data.sessionId)
+      expect(savedSession?.variables).toEqual({
+        topic: "the product tour",
+        audience: "support agents",
+      })
+    })
+
+    it("lets the caller's value win over the published settings default", async () => {
+      await createContext({
+        agentSettings: {
+          instructions: variableInstructions,
+          variables: { topic: "the product tour" },
+        },
+      })
+      const response = await subject({
+        variables: { topic: "the refund policy", audience: "support agents" },
+      })
+
+      expect(response.status).toBe(201)
+      const savedSession = await findSavedSession(response.body.data.sessionId)
+      expect(savedSession?.variables).toEqual({
+        topic: "the refund policy",
+        audience: "support agents",
+      })
+    })
+
+    it("treats a blank value as missing", async () => {
+      await createContext({ agentSettings: { instructions: variableInstructions } })
+      const response = await subject({ variables: { topic: "   ", audience: "support agents" } })
+
+      expect(response.status).toBe(400)
+      expect(response.body.missing).toEqual(["topic"])
+    })
+
+    it("ignores values for variables the instructions do not declare", async () => {
+      await createContext({ agentSettings: { instructions: "Summarize {{topic}}" } })
+      const response = await subject({ variables: { topic: "the new pricing page", extra: "x" } })
+
+      expect(response.status).toBe(201)
+      const savedSession = await findSavedSession(response.body.data.sessionId)
+      expect(savedSession?.variables).toEqual({ topic: "the new pricing page" })
+    })
+
+    it("stores no variables for an agent that declares none, even if the caller sends some", async () => {
+      await createContext()
+      const response = await subject({ variables: { topic: "the new pricing page" } })
+
+      expect(response.status).toBe(201)
+      const savedSession = await findSavedSession(response.body.data.sessionId)
+      expect(savedSession?.variables).toBeNull()
+    })
   })
 })
