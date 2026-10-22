@@ -88,8 +88,10 @@ export function useSpeechRecognition({
 
   const start = () => {
     settledRef.current = ""
+    const recognition = recognitionRef.current
+    if (recognition === null) return
     try {
-      recognitionRef.current?.start()
+      recognition.start()
     } catch {
       // Started twice, as a double click does: the first start goes on.
     }

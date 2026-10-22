@@ -44,7 +44,7 @@ export function SidePanel({ title, description, onClose, footer, children }: Sid
   const openerRef = useRef<Element | null>(null)
   // The focus is outside React, which an effect moves when the panel opens and closes.
   useEffect(() => {
-    openerRef.current ??= document.activeElement
+    if (openerRef.current === null) openerRef.current = document.activeElement
     const opener = openerRef.current
     titleRef.current?.focus()
     return () => {

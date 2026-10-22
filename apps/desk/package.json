@@ -15,7 +15,8 @@
     "i18n:extract": "lingui extract --clean",
     "i18n:check": "lingui check sync && lingui check missing",
     "check:boundaries": "depcruise src && knip",
-    "check": "npm run typecheck && biome check . && npm run check:boundaries && npm run i18n:check && npm run test"
+    "check:components": "node scripts/check-component-files.mjs",
+    "check": "npm run typecheck && biome check . && npm run check:components && npm run check:boundaries && npm run i18n:check && npm run test"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

@@ -439,11 +439,29 @@ export function ConversationListHeader({ count, onCreate }: ConversationListHead
 * Playwright covers the critical journeys (sign-in, a conversation, a document run, a CSV run)
   against a worktree environment, with the real API and database. It joins once the journeys are
   written; until then the route specs and the stories cover them on the mocked API.
+* Tests and stories are part of every change, never a follow-up: a new behaviour comes with the
+  spec that checks it, a new state of a screen (empty, loading, error, a role, a long list) with
+  its story, and a changed screen updates its specs and stories in the same change. They are how a
+  change shows what it breaks, on purpose or not: a spec fails on a behaviour that moved, and the
+  stories, which the tests render one by one, fail on a page that no longer renders and show a
+  reviewer the rest. An agent writes code fast; without them, nobody sees what it changed beyond
+  what it was asked. A change without its tests and stories is not done.
 * Every bug fix comes with the test that would have caught it. Ids in tests come from
   `randomUUID()`, since `z.uuid()` rejects the hand-written ids some existing specs use.
 * `npm run check -w @caseai-connect/desk` runs the typecheck, Biome, dependency-cruiser, knip, the
   translation checks and Vitest. It passes after each significant change, on top of the repo's
   completion criteria.
+* A rule a tool can check is checked by a tool, since an agent forgets a written rule and never a
+  failing check. Biome's GritQL plugins (`apps/desk/biome-plugins/`) hold the rules a syntax
+  pattern shows, such as an unjustified `useQuery`, an effect that only sets a state, or a
+  `useReactTable` without `"use no memo"`; a script checks that a component file exports one
+  component, named like the file. The React Compiler fails the dev server, Storybook and the tests
+  on any component it gives up on (`panicThreshold`): it leaves such a component unmemoized without
+  a word, and its reason most often names code that breaks a rule of React. The production build
+  keeps the default and ships the component unmemoized.
+* What no tool sees goes to a review: the `frontend-conventions-reviewer` agent
+  (`.claude/agents/`) reads a diff against the conventions, and the `end-feature` skill runs it
+  before the PR.
 
 ### 2.12 The Desk contract
 
@@ -650,10 +668,17 @@ The kit's way of working comes with its stack:
   2.9), and the Desk's dictation.
 * One way to do each thing, little magic, small verified changes, and no unrequested refactor
   alongside a feature.
-* Never guess an API: read the library's documentation first, from its official source. Many of
-  the stack's libraries publish it for agents, as an `llms.txt` index or as a Markdown version of
-  each page (`https://lingui.dev/ref/macro.md`), which costs the fewest tokens. When the
-  documentation contradicts these rules, stop, explain, propose a change and wait for a human's go.
+* Never guess an API. A signature comes from the types in `node_modules`, which describe the exact
+  version installed, where an agent's memory and the documentation's `latest` may describe
+  another. How and why come from the official documentation, which the conventions link next to
+  the rule each page supports, rather than to a site's home: an agent that is sure of itself
+  seldom looks something up, and a precise link costs it one read. Many of the stack's libraries
+  publish their pages for agents, as an `llms.txt` index or as a Markdown version of each page
+  (`https://lingui.dev/ref/macro.md`), which costs the fewest tokens. When the documentation
+  contradicts these rules, stop, explain, propose a change and wait for a human's go.
+* Follow the reference files `apps/desk/AGENTS.md` names, one per kind of code (a route with its
+  loader, a query, a mutation, a form, a table, a stream): an agent imitates code more faithfully
+  than it applies a written rule.
 * Ask a human before an architecture decision, a new dependency, a version change or an action on
   a shared or remote system. A human types every secret.
 * The first PR carries one real endpoint and the screen that reads it, end to end: contract, guards,
@@ -674,8 +699,9 @@ The kit's way of working comes with its stack:
 * Definition of done: `check` passes with no ignored warning, `vite build` works, and the build
   served under `/app/` by `vite preview` loads and reloads a deep link. Screens load through their
   loader and `useSuspenseQuery` with skeletons, each `useQuery` carries its justification, error
-  states offer a retry, empty states exist, every new text has its French translation, and the
-  screen was checked at desktop and phone widths. No API type is written by hand, and there is no
+  states offer a retry, empty states exist, every new text has its French translation, every new
+  behaviour has its spec and every new state its story, and the screen was checked at desktop and
+  phone widths. No API type is written by hand, and there is no
   dead code, `console.log`, unflagged TODO or unjustified dependency. The work ends with a summary
   of what was done, what remains, the decisions these rules did not cover, and the actions left to a
   human, such as registering a redirect URI with an install's identity provider.

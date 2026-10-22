@@ -5,6 +5,11 @@
   "files": {
     "includes": ["**", "!src/routeTree.gen.ts"]
   },
+  "plugins": [
+    "./biome-plugins/use-query-justified.grit",
+    "./biome-plugins/no-effect-setting-state.grit",
+    "./biome-plugins/table-without-memo.grit"
+  ],
   "linter": {
     "rules": {
       "style": {
@@ -19,6 +24,15 @@
             "allow": ["error"]
           }
         }
+      },
+      "complexity": {
+        "noExcessiveLinesPerFunction": {
+          "level": "error",
+          "options": {
+            "maxLines": 200,
+            "skipBlankLines": true
+          }
+        }
       }
     }
   },
@@ -29,6 +43,16 @@
         "rules": {
           "style": {
             "noDefaultExport": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["**/*.spec.ts", "**/*.spec.tsx"],
+      "linter": {
+        "rules": {
+          "complexity": {
+            "noExcessiveLinesPerFunction": "off"
           }
         }
       }

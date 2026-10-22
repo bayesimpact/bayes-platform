@@ -1,6 +1,6 @@
 ---
 name: end-feature
-description: Run the last steps before ending a feature. Shows a form where you can check/uncheck which final steps to run — update changelog, create a branch, run tests-parallel, create a PR — then executes the selected steps in that order.
+description: Run the last steps before ending a feature. Shows a form where you can check/uncheck which final steps to run — update changelog, create a branch, review the frontend conventions, run tests-parallel, create a PR — then executes the selected steps in that order.
 user_invocable: true
 ---
 
@@ -12,10 +12,11 @@ Before doing anything, call `AskUserQuestion` with a single **multi-select** que
 
 - **Update changelog** — add an entry under `## [Unreleased]` in `CHANGELOG.md`
 - **Create a branch** — move current work onto a feature branch
+- **Review the frontend conventions** — a subagent reviews the diff of an ADR 0031 app against `docs/frontend/conventions.md`
 - **Run tests-parallel** — `make tests-parallel`
 - **Create a PR** — open a pull request with `gh`
 
-All steps are pre-selected by default EXCEPT the changelog, which is optional: pre-select it only when the change is visible to end users or security-relevant. Leave it unchecked for internal work — refactors, CI/tooling, docs, tests. Mention in the question why you left it unchecked; the user can still check it.
+All steps are pre-selected by default EXCEPT the changelog, which is optional: pre-select it only when the change is visible to end users or security-relevant. Leave it unchecked for internal work — refactors, CI/tooling, docs, tests. Mention in the question why you left it unchecked; the user can still check it. Pre-select the frontend review only when the diff touches `apps/desk`, `packages/desk-contracts` or `docs/frontend/`.
 
 Use `header: "Steps"`, `multiSelect: true`. Whatever the user leaves checked is the set to run.
 
@@ -42,7 +43,15 @@ Only if checked. First run `git status` and `git branch --show-current`.
 - If already on a feature branch (not `main`), keep it and say so — don't create another.
 - If on `main`, create and switch to a new branch: `git switch -c <name>`. Derive a short kebab-case name from the changelog entry / diff (e.g. `feat/agent-mcp-servers`). Uncommitted changes carry over to the new branch automatically.
 
-## 3. Run tests-parallel
+## 3. Review the frontend conventions
+
+Only if checked. Dispatch the `frontend-conventions-reviewer` subagent (Agent tool, `subagent_type: "frontend-conventions-reviewer"`) on the current branch's diff. It reports what breaks the rules no tool checks, and edits nothing.
+
+- Fix each finding, then run `npm run check -w @caseai-connect/desk` again.
+- A finding you disagree with goes to the user with your reasoning; do not skip it silently.
+- Once the findings are fixed or settled, go on. Commit the fixes with the feature's other changes.
+
+## 4. Run tests-parallel
 
 Only if checked. Run the repo's parallel test target from the root:
 
@@ -52,7 +61,7 @@ make tests-parallel
 
 This spins up the test DB, runs migrations, and runs the API test suite in parallel. If it fails, **stop** and report the failure — do not proceed to the PR. Let the user fix and re-run.
 
-## 4. Create a PR
+## 5. Create a PR
 
 Only if checked. This requires committed work on a feature branch (not `main`).
 
@@ -72,6 +81,6 @@ Only if checked. This requires committed work on a feature branch (not `main`).
 
 ## Notes
 
-- Respect the order: changelog → branch → tests → PR. Never reorder.
+- Respect the order: changelog → branch → frontend review → tests → PR. Never reorder.
 - If the user unchecks everything, there is nothing to do — say so.
 - If a step's precondition isn't met (e.g. "Create a PR" checked but still on `main` with "Create a branch" unchecked), point out the conflict and ask before proceeding rather than guessing.

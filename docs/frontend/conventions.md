@@ -7,20 +7,27 @@ to it in its own `AGENTS.md`, and its `CLAUDE.md` imports both files. `apps/web`
 rules (ADR 0010, 0011 and 0012) until each of its apps is rebuilt here.
 
 A tool checks every rule it can. The app's `npm run check -w <app>` gives the verdict: the
-typecheck, Biome, dependency-cruiser, knip, the translation checks and Vitest. It passes after each
-significant change, on top of the repository's completion criteria.
+typecheck, Biome with the app's GritQL plugins (`biome-plugins/`), the component files check,
+dependency-cruiser, knip, the translation checks and Vitest. It passes after each significant
+change, on top of the repository's completion criteria. A plugin's false positive is silenced
+where it occurs, with `// biome-ignore lint/plugin/<plugin>: <why>`. What no tool sees goes to the
+`frontend-conventions-reviewer` agent, which the `end-feature` skill runs before the PR.
 
 ## Before you write code
 
 - Read the root `CLAUDE.md`, this file, the app's `AGENTS.md`, and `apps/api/CLAUDE.md` when the
   task touches the app's endpoints. These files win over habit.
-- Follow the patterns already in the app. When in doubt, find an example there and imitate it, then
-  read the library's documentation.
-- Never guess an API: read the library's documentation first, from its official source. Many of
-  them publish it for agents, which costs the fewest tokens: `https://lingui.dev/ref/macro.md`,
-  `https://ui.shadcn.com/llms.txt`, `https://zod.dev/llms.txt`, TanStack's guides under
-  `https://tanstack.com/router/latest/docs` and `https://tanstack.com/query/latest/docs`. When the
-  documentation contradicts these rules, stop, explain, propose a change and wait for a human's go.
+- Follow the patterns already in the app. When in doubt, start from the reference file the app's
+  `AGENTS.md` names for that kind of code and imitate it, then read the library's documentation.
+- Never guess an API. A signature comes from the types in `node_modules` (at the root, or in the
+  app's own when it pins another version): they describe the exact version installed, where the
+  documentation and memory may describe another. How and why come from the official
+  documentation, starting with the pages the rules below link. Most of them serve Markdown for
+  agents, which costs the fewest tokens: a TanStack, react.dev, shadcn or Base UI page with `.md`
+  added, and `llms.txt` elsewhere (`https://zod.dev/llms.txt`, `https://vitest.dev/llms.txt`,
+  `https://storybook.js.org/llms.txt`). TanStack Table is read under `/table/v8/`, the version
+  installed. When the documentation contradicts these rules, stop, explain, propose a change and
+  wait for a human's go.
 - Reading `apps/web` to learn what a screen does today is fine. Its code is never imported, copied
   or taken as a model. Two exceptions were copied once, each with a human's go: the sign-in
   module at the start, and the Desk's dictation, on the browser's speech recognition.
@@ -110,14 +117,26 @@ or editing the boundaries' configuration.
   indexes an object only through `hasOwnKey` (`lib/has-own-key.ts`): `in` and a plain lookup also
   match inherited keys such as `constructor`.
 - **Components.** One exported component per file, named like the file (`ProjectCard.tsx` exports
-  `ProjectCard`), with named exports only; a default export is for config files. A component stays
-  under about 200 lines, beyond which it splits into sub-components or hooks. Presentational
+  `ProjectCard`), with named exports only; a default export is for config files
+  (`scripts/check-component-files.mjs` checks the files in `PascalCase.tsx`). A function stays
+  under 200 lines, blank lines aside (Biome's `noExcessiveLinesPerFunction`, specs excepted): a
+  component beyond splits into sub-components or hooks. Presentational
   components take props and return JSX, and their logic lives in hooks. Props are typed by a
   `ProjectCardProps` type declared just above the component. No `useEffect` to derive state, to
   sync server data or to pass data up to a parent: compute it, let TanStack Query hold it, or call
   the parent's callback where the data arrives. An effect subscribes to something outside React
   (a DOM event, the router, a timer); a callback it reads goes through `useEffectEvent`, never a
-  ref written during render.
+  ref written during render. The `no-effect-setting-state` plugin catches an effect that only sets
+  a state. Docs: [You might not need an
+  effect](https://react.dev/learn/you-might-not-need-an-effect.md),
+  [`useEffectEvent`](https://react.dev/reference/react/useEffectEvent.md).
+- **React Compiler.** A component or hook the compiler gives up on fails the dev server, Storybook
+  and the tests, with the compiler's reason (`panicThreshold` in `vite.config.ts`). Rewrite the
+  code it names, whether it breaks a rule of React or uses a syntax the compiler does not handle
+  yet (`??=`, an optional call inside a `try`). `"use no memo"` is kept for a library the compiler
+  cannot follow, such as TanStack Table v8, with a comment. Docs: [React
+  Compiler](https://react.dev/learn/react-compiler.md),
+  [`"use no memo"`](https://react.dev/reference/react-compiler/directives/use-no-memo.md).
 - **Naming.** Component files in `PascalCase.tsx`, other files in `kebab-case.ts(x)`. Hooks are
   `useXxx`, internal handlers `handleXxx`, handler props `onXxx`, booleans `isXxx`, `hasXxx` or
   `canXxx`. Loop variables get descriptive names.
@@ -134,16 +153,17 @@ or editing the boundaries' configuration.
   feature's `schemas.ts`, and path params through `params.parse`: `uuidParams("agentSessionId")`
   (`lib/not-found.ts`) makes a page whose id is not a UUID not found, before any request. The URL
   holds filters, pagination, sorting and tabs, and a loader that reads search params declares them
-  in `loaderDeps`.
+  in `loaderDeps`. Docs: [search params](https://tanstack.com/router/latest/docs/framework/react/guide/search-params.md), [path params](https://tanstack.com/router/latest/docs/framework/react/guide/path-params.md).
 - A loader starts every query its screen needs, in parallel, through the router context:
   `context.queryClient.query({ ...xxxQueryOptions(...), staleTime: "static" })`. Loaders live in
   the feature's `load-*.ts` as `loadX(queryClient, params, deps?)`, where `params` are the route's,
   and wrap their reads in `orNotFound` (`lib/not-found.ts`), which turns the API's 403, 404 and 422
   into the not-found page. A guard shared by routes, such as `requireAgentType`, lives in a
-  feature, never repeated in each route.
+  feature, never repeated in each route. Docs: [data loading](https://tanstack.com/router/latest/docs/framework/react/guide/data-loading.md), [with TanStack
+  Query](https://tanstack.com/router/latest/docs/framework/react/guide/external-data-loading.md).
 - Components read with `useSuspenseQuery` or `useSuspenseQueries`, so data is always defined: no
   `isLoading`, no `data?.`, no `if (!data)`. A component never chains `useSuspenseQuery` calls on
-  queries its loader did not start.
+  queries its loader did not start. Docs: [Suspense](https://tanstack.com/query/latest/docs/framework/react/guides/suspense.md).
 - Each route that loads data has a `pendingComponent` shaped like the page (skeletons, never a
   full-page spinner), which the router shows after 200 ms and keeps at least 300 ms
   (`defaultPendingMs`, `defaultPendingMinMs`), so a fast page shows none and a slow one does not
@@ -152,14 +172,17 @@ or editing the boundaries' configuration.
   loader with `startQuery` (`lib/start-query.ts`; `prefetchQuery` is deprecated) and waits in a
   local `Suspense` with its own skeleton, as the Desk's sidebar history does. `__root.tsx` holds the
   global error boundary and the not-found page.
-- `useQuery` is an exception, justified in a one-line comment: a conditional query, optional data
-  such as a badge, or live search with `placeholderData: keepPreviousData`.
+- `useQuery` is an exception, justified in a `// useQuery: <why>` comment in the same function,
+  which the `use-query-justified` plugin requires: a conditional query, optional data such as a
+  badge, or live search with `placeholderData: keepPreviousData` (docs: [placeholder
+  data](https://tanstack.com/query/latest/docs/framework/react/guides/placeholder-query-data.md)).
 - Each feature has a query key factory in `api/keys.ts` (`accountKeys.me()`), and each query is a
   `queryOptions` factory in `api/queries.ts`, shared by loaders and components. The cache is read
   and written through `xxxQueryOptions(...).queryKey`, which carries the data's type, never through
   a bare key and a type argument (`setQueryData<T>`). The router's
   `defaultPreloadStaleTime` is 0. Queries never retry a 4xx, a broken contract or an ended
-  session, and mutations never retry.
+  session, and mutations never retry. Docs: [query keys](https://tanstack.com/query/latest/docs/framework/react/guides/query-keys.md), [query
+  options](https://tanstack.com/query/latest/docs/framework/react/guides/query-options.md).
 
 ## Network code, mutations, forms and tables
 
@@ -180,7 +203,9 @@ or editing the boundaries' configuration.
   changed, on a 500 too, so the mutation settles once the data is fresh and its caller's next page
   reads it. A deletion removes the entity's own queries (`removeQueries`), or a step back in the
   browser would show it again. Mutations never suspend: the UI reads `isPending`. Optimistic
-  updates are kept for the places whose UX needs them, starting with the chat.
+  updates are kept for the places whose UX needs them, starting with the chat. Docs:
+  [invalidation](https://tanstack.com/query/latest/docs/framework/react/guides/invalidations-from-mutations.md), [updates from a
+  response](https://tanstack.com/query/latest/docs/framework/react/guides/updates-from-mutation-responses.md).
 - Feedback: a toast at the call site, through `mutate`'s callbacks; at hook level only when the
   caller may unmount before the answer, with a comment saying so; an inline error only inside a
   dialog.
@@ -193,14 +218,18 @@ or editing the boundaries' configuration.
   way, `form.handleSubmit((values) => mutation.mutate(values, { onSuccess, onError }))`, never
   `mutateAsync`, which React Hook Form rethrows as an unhandled rejection. The submit button is
   disabled while `isPending`, and a submitted form confirms its outcome with a toast. A limit the
-  text names (a size, a length) comes from the contracts and reads through `Intl`.
+  text names (a size, a length) comes from the contracts and reads through `Intl`. Docs: [shadcn's
+  forms](https://ui.shadcn.com/docs/forms/react-hook-form.md),
+  [`useWatch`](https://react-hook-form.com/docs/usewatch.md).
 - Every data table goes through one `DataTable` in `components/shared/`, with its column
   definitions in `features/<feature>/components/<entity>-columns.tsx`. A server-paginated table
   keeps its state in validated search params and uses TanStack Table's manual pagination, sorting
   and filtering. A small list loaded whole sorts and filters on the client. Every table has an
   empty state and a skeleton. TanStack Table v8 changes its table in place, which the React
   Compiler cannot memoize: a component that calls `useReactTable` opens with the `"use no memo"`
-  directive and a comment that says why.
+  directive and a comment that says why, which the `table-without-memo` plugin checks. Docs:
+  [pagination](https://tanstack.com/table/v8/docs/guide/pagination.md),
+  [sorting](https://tanstack.com/table/v8/docs/guide/sorting.md).
 - State, in order of preference: a derived value, `useState`, the URL, TanStack Query. Server data
   is never copied into a client store; seeding a form from a query is fine. No empty `catch`.
 
@@ -224,7 +253,8 @@ or editing the boundaries' configuration.
   or copy it from `packages/ui`. Change a generated component only when composition falls short,
   minimally and with no business logic. Extend components with `cva`.
 - Base UI composes with a `render` prop where Radix used `asChild`. A link styled as a button is a
-  `Link` with `buttonVariants()`, so it keeps its link role.
+  `Link` with `buttonVariants()`, so it keeps its link role. Docs:
+  [composition](https://base-ui.com/react/handbook/composition.md).
 - Tailwind only: no stylesheet, CSS module or inline style beyond `src/styles/global.css`, which
   loads Tailwind, the stylesheets shadcn relies on and the design tokens. The token values are the
   platform's (`packages/ui/src/global.css`). Conditional classes go through `cn()`, colors and
@@ -241,7 +271,8 @@ or editing the boundaries' configuration.
   `useLingui()` in attributes and toasts, `<Plural>` and `plural` for counts, `msg` for text
   defined outside a component. Variables and inline components go inside the message
   (`<Trans>Delete {title}?</Trans>`). Name a variable before you put it in a message, so the
-  catalog says `{count}` rather than `{0}`.
+  catalog says `{count}` rather than `{0}`. Docs: [macros](https://lingui.dev/ref/macro.md),
+  [`useLingui`](https://lingui.dev/ref/react.md).
 - The same English with two meanings gets a `context`, and a `comment` tells the translator what a
   short text refers to. Zod messages shown in forms go through Lingui too.
 - After a text changes, run `npm run i18n:extract -w <app>` and write the new French entries of
@@ -257,6 +288,10 @@ or editing the boundaries' configuration.
 
 ## Tests
 
+- Tests and stories are part of every change, never a follow-up. A new behaviour comes with the
+  spec that checks it, a new state of a screen (empty, loading, error, a role, a long list) with
+  its story, and a changed screen updates its specs and stories in the same change. They show what
+  a change breaks, on purpose or not, so a change without them is not done.
 - Vitest runs two projects: `*.spec.ts` in node for pure logic (the client, the sign-in, schemas),
   and `*.spec.tsx` in happy-dom for components and routes. A test checks what a person sees,
   queries by role and label in English, and uses `data-testid` as a last resort.
@@ -307,7 +342,7 @@ the first phase (see Endpoints). One folder per area holds `{area}.dto.ts` and `
   `z.strictObject`. A field that may have no value is `.nullable()`.
 - Query values travel as strings: numbers use `z.coerce.number<string>()`, flags `z.stringbool()`,
   a sort key is a `z.enum`, and nested filters travel as one JSON parameter through a `z.codec`.
-  The client builds the query string with `z.encode`.
+  The client builds the query string with `z.encode`. Docs: [codecs](https://zod.dev/codecs).
 - Lists keep the API's offset pagination (`items`, `total`, `page`, `limit`, a 0-based page and a
   limit of 100 at most).
 
@@ -349,7 +384,8 @@ and empty states.
   its base by `vite preview` loads and reloads a deep link.
 - Screens load through their loader and `useSuspenseQuery` with skeletons, each `useQuery` carries
   its justification, error states offer a retry, empty states exist, every new text has its French
-  translation, and the screen was checked at desktop and phone widths.
+  translation, every new behaviour has its spec and every new state its story, and the screen was
+  checked at desktop and phone widths.
 - No API type is written by hand, and there is no dead code, `console.log`, unflagged TODO or
   unjustified dependency.
 - The work ends with a summary of what was done, what remains, the decisions these rules did not

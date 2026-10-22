@@ -10,7 +10,7 @@ import { defineConfig, loadEnv } from "vite"
 // The local certificates of the API, which serve connect.localhost over HTTPS when they exist.
 const certsDirectory = fileURLToPath(new URL("../api/.certs/", import.meta.url))
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ command, mode }) => {
   const env = loadEnv(mode, import.meta.dirname, "")
   const https = existsSync(`${certsDirectory}key.pem`)
     ? {
@@ -43,7 +43,18 @@ export default defineConfig(({ mode }) => {
       react({
         babel: {
           // Lingui's macros compile before the React Compiler sees the components.
-          plugins: ["@lingui/babel-plugin-lingui-macro", "babel-plugin-react-compiler"],
+          plugins: [
+            "@lingui/babel-plugin-lingui-macro",
+            [
+              "babel-plugin-react-compiler",
+              {
+                // A component the compiler gives up on stays unmemoized without a word, and most
+                // often breaks a rule of React: the dev server, Storybook and the tests fail on it.
+                // The production build keeps the default and ships it unmemoized.
+                panicThreshold: command === "serve" ? "all_errors" : "none",
+              },
+            ],
+          ],
         },
       }),
       lingui(),

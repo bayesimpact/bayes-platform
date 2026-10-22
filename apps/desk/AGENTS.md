@@ -55,6 +55,24 @@ main checkout, `npm run storybook -w @caseai-connect/desk` serves it on port 600
 server at `/mcp` (`storybook-desk` in `.mcp.json`). The `storybook-screenshot` skill captures its
 stories, with `--base-url` for an environment's.
 
+## Reference files
+
+Before writing a kind of code, read the file that shows it here and imitate it: each one follows
+the conventions as they stand. When a rule changes, its reference file changes in the same PR.
+
+| Kind of code | Reference |
+|---|---|
+| A route with its loader, search params, pending and error components | `src/routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/extraction/csv-runs/$csvRunId.tsx` |
+| A loader | `src/features/extraction/load-extraction.ts` |
+| Query keys and query options | `src/features/account/api/keys.ts`, `src/features/account/api/queries.ts` |
+| A mutation and its cache refresh | `src/features/account/api/mutations.ts` |
+| A form | `src/features/account/components/EditNameDialog.tsx` |
+| A table, its columns and its skeleton | `src/features/extraction/components/CsvRecordsTable.tsx`, `csv-record-columns.tsx`, `CsvRecordsSkeleton.tsx` |
+| A stream | `src/features/conversation/api/stream-reply.ts` |
+| A route's spec | `src/routes/_authenticated/o/$organizationId/p/$projectId/a/$agentId/extraction/csv-runs/$csvRunId.spec.tsx` |
+| An MSW handler and its factory | `src/test/msw/extraction-handlers.ts`, `src/test/factories/extractions.factory.ts` |
+| A story | `src/stories/Desk.stories.tsx` |
+
 ## Where things are
 
 - The home: `src/routes/_authenticated/index.tsx`, which opens the last agent the person used,
