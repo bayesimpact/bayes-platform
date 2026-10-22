@@ -503,6 +503,7 @@ msgstr "If it keeps happening, contact your administrator with the message below
 msgid "If the page stays blank, its site does not allow being shown here: open it in a new tab."
 msgstr "If the page stays blank, its site does not allow being shown here: open it in a new tab."
 
+#. An image in a reply, which names none
 #. The kind of a document the person uploaded
 #: src/components/shared/Markdown.tsx
 #: src/features/extraction/components/DocumentRow.tsx
@@ -711,6 +712,7 @@ msgstr "Project"
 msgid "Read"
 msgstr "Read"
 
+#. The agent reads every column of the file
 #: src/features/extraction/components/CsvSetup.tsx
 msgid "Read all"
 msgstr "Read all"
@@ -799,6 +801,7 @@ msgstr "Row"
 msgid "Row {rowNumber}"
 msgstr "Row {rowNumber}"
 
+#. Heading: which rows of a CSV file the agent reads
 #: src/features/extraction/components/CsvRowScope.tsx
 msgid "Rows"
 msgstr "Rows"
@@ -894,6 +897,7 @@ msgstr "Sign-in failed"
 msgid "Skip"
 msgstr "Skip"
 
+#. Every column of the file is left out
 #: src/features/extraction/components/CsvSetup.tsx
 msgid "Skip all"
 msgstr "Skip all"

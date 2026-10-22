@@ -1,7 +1,12 @@
-import { DeskProjectsRoutes } from "@caseai-connect/desk-contracts"
+import {
+  DeskAgentSessionsRoutes,
+  DeskConversationsRoutes,
+  DeskProjectsRoutes,
+} from "@caseai-connect/desk-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { delay } from "msw"
-import { conversationUrlOf, extractionUrlsOf } from "@/test/desk-urls"
+import { userEvent, within } from "storybook/test"
+import { agentUrlOf, conversationUrlOf, extractionUrlsOf } from "@/test/desk-urls"
 import {
   buildEmptyHistoryWorld,
   buildExtractionAgentWorld,
@@ -10,7 +15,7 @@ import {
   buildSeveralProjectsWorld,
 } from "@/test/factories/desk-world.factory"
 import { termsHandlers } from "@/test/msw/handlers"
-import { apiError, mockRoute } from "@/test/msw/mock-route"
+import { apiError, mockRoute, mockStreamRoute } from "@/test/msw/mock-route"
 import { desk } from "@/test/msw/story-api"
 import { DeskStory } from "./DeskStory"
 
@@ -65,6 +70,14 @@ export const NewExtraction: Story = {
   }),
 }
 
+/** The notes are still being read: the page shows the agent reading, then the result. */
+export const ExtractionPending: Story = {
+  parameters: desk({
+    world: buildExtractionAgentWorld,
+    url: (world) => extractionUrlsOf(world).runUrl("meeting-notes.md"),
+  }),
+}
+
 export const ExtractionResult: Story = {
   parameters: desk({
     world: buildExtractionAgentWorld,
@@ -91,6 +104,46 @@ export const CsvRun: Story = {
     world: buildExtractionAgentWorld,
     url: (world) => extractionUrlsOf(world).csvRunUrl("articles.csv"),
   }),
+}
+
+/**
+ * The agent fails its reply to the message the story sends, with the server's reason, and
+ * answers the retry.
+ */
+export const ReplyFails: Story = {
+  parameters: desk({
+    url: (world) => conversationUrlOf(world),
+    handlers: () => [
+      mockStreamRoute(
+        DeskConversationsRoutes.streamReply,
+        () => [{ thrownError: "The model is overloaded" }],
+        { once: true },
+      ),
+    ],
+  }),
+  // A reply fails only once the person sent a message: the story sends one, in either language.
+  play: async ({ canvasElement }) => {
+    const composer = await within(canvasElement).findByRole(
+      "textbox",
+      { name: /Helpful Assistant/ },
+      { timeout: 5000 },
+    )
+    await userEvent.type(composer, "Hello{Enter}")
+  },
+}
+
+/** The sidebar's history fails to load, and loads on "Try again". */
+export const HistoryFailsToLoad: Story = {
+  parameters: desk({
+    handlers: () => [
+      mockRoute(DeskAgentSessionsRoutes.getConversations, () => apiError(503), { once: true }),
+    ],
+  }),
+}
+
+/** A conversation that is not in the world, nor the person's. */
+export const PageNotFound: Story = {
+  parameters: desk({ url: (world) => `${agentUrlOf(world)}/as/${crypto.randomUUID()}` }),
 }
 
 export const ProjectsFailToLoad: Story = {

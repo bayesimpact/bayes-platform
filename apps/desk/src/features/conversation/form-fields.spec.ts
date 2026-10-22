@@ -17,6 +17,14 @@ const form = (
 })
 
 describe("formFieldsOf", () => {
+  it("reads no value for a field named like a key every object inherits", () => {
+    const fields = formFieldsOf(
+      form({}, { properties: { constructor: { type: "string" } } }),
+      setupI18n({ locale: "en", messages: { en: {} } }),
+    )
+    expect(fields).toEqual([{ key: "constructor", label: "Constructor", value: null }])
+  })
+
   it("lists the schema's fields in its order, then the values it does not list", () => {
     const fields = formFieldsOf(
       form(

@@ -1,7 +1,8 @@
-import type { InvitationOutputDto } from "@caseai-connect/desk-contracts"
+import type { InvitationOutputDto, InvitationTargetTypeDto } from "@caseai-connect/desk-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { RelativeTime } from "@/components/shared/RelativeTime"
 import { Button } from "@/components/ui/button"
+import { hasOwnKey } from "@/lib/has-own-key"
 import type { InvitationAnswer } from "../api/mutations"
 
 export type InvitationItemProps = {
@@ -22,7 +23,8 @@ export function InvitationItem({ invitation, now, isAnswering, onAnswer }: Invit
       message: "Review campaign",
       comment: "What an invitation gives access to",
     }),
-  }
+  } satisfies Record<InvitationTargetTypeDto, string>
+  // The API names the role in a string of its own, which may be one the Desk does not know yet.
   const roleLabels: Record<string, string> = {
     owner: t({ message: "owner", comment: "The role an invitation grants" }),
     admin: t({ message: "admin", comment: "The role an invitation grants" }),
@@ -30,7 +32,9 @@ export function InvitationItem({ invitation, now, isAnswering, onAnswer }: Invit
     tester: t({ message: "tester", comment: "The role an invitation grants" }),
     reviewer: t({ message: "reviewer", comment: "The role an invitation grants" }),
   }
-  const role = roleLabels[invitation.role] ?? invitation.role
+  const role = hasOwnKey(roleLabels, invitation.role)
+    ? roleLabels[invitation.role]
+    : invitation.role
   const name = invitation.targetName
   return (
     <li className="flex flex-col gap-2 px-3 py-3">

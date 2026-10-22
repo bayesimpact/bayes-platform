@@ -1,4 +1,5 @@
 import type { CsvColumnDto } from "@caseai-connect/desk-contracts"
+import { hasOwnKey } from "@/lib/has-own-key"
 
 /** The columns of the file a run's results show beside the answers: the read and kept ones. */
 export function shownFileColumnsOf(columnSchema: Record<string, CsvColumnDto>): CsvColumnDto[] {
@@ -17,7 +18,7 @@ export const sortKeys = {
 
 /** A row's value in a column of the file, as one line of text. */
 export function fileValueOf(inputData: Record<string, unknown> | null, columnId: string): string {
-  const value = inputData?.[columnId]
+  const value = inputData && hasOwnKey(inputData, columnId) ? inputData[columnId] : undefined
   if (value === null || value === undefined) return ""
   return typeof value === "string" ? value : JSON.stringify(value)
 }

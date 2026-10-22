@@ -1,7 +1,8 @@
 import { useLingui } from "@lingui/react"
 import { composeStories, composeStory, setProjectAnnotations } from "@storybook/react-vite"
 import { useQueryClient } from "@tanstack/react-query"
-import { render, screen } from "@testing-library/react"
+import { render, screen, within } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import { describe, expect, it } from "vitest"
 import previewAnnotations from "../../.storybook/preview"
 import * as stories from "./Desk.stories"
@@ -15,7 +16,14 @@ function LocaleAndCache() {
   return <p>{`Locale ${i18n.locale}, ${isRetrying ? "retrying" : "not retrying"}`}</p>
 }
 
-const { ProjectsFailToLoad, Loading, ...pageStories } = composeStories(stories)
+const {
+  ReplyFails,
+  HistoryFailsToLoad,
+  PageNotFound,
+  ProjectsFailToLoad,
+  Loading,
+  ...pageStories
+} = composeStories(stories)
 
 /** Each story of a page, and what it shows once that page loaded: every story is listed. */
 const PAGES = {
@@ -50,6 +58,10 @@ const PAGES = {
   NewExtraction: {
     Story: pageStories.NewExtraction,
     loaded: () => screen.findByRole("heading", { name: "What should Document Reader read?" }),
+  },
+  ExtractionPending: {
+    Story: pageStories.ExtractionPending,
+    loaded: () => screen.findByText("The agent is reading the document…"),
   },
   ExtractionResult: {
     Story: pageStories.ExtractionResult,
@@ -87,6 +99,36 @@ describe("the stories of the Desk", () => {
 
     expect(await loaded()).toBeInTheDocument()
     expectNoErrorPage()
+  })
+
+  it("ReplyFails shows the server's reason once its message is sent, and answers the retry", async () => {
+    await ReplyFails.load()
+    const { container } = render(<ReplyFails />)
+    await ReplyFails.play?.({ canvasElement: container })
+
+    const alert = await screen.findByRole("alert")
+    expect(within(alert).getByText("The model is overloaded")).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole("button", { name: "Retry" }))
+    expect(await screen.findByText(/Here is what I found about "Hello"/)).toBeInTheDocument()
+  })
+
+  it("HistoryFailsToLoad keeps the page, and loads the history on its retry", async () => {
+    await HistoryFailsToLoad.load()
+    render(<HistoryFailsToLoad />)
+
+    expect(await screen.findByText("The history could not load.")).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: "How can I help you today?" })).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole("button", { name: "Try again" }))
+    expect(await screen.findByRole("link", { name: "Compare the plans" })).toBeInTheDocument()
+  })
+
+  it("PageNotFound says so", async () => {
+    await PageNotFound.load()
+    render(<PageNotFound />)
+
+    expect(await screen.findByText("Page not found")).toBeInTheDocument()
   })
 
   it("ProjectsFailToLoad shows its error at once, with a retry", async () => {

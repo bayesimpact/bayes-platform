@@ -1,6 +1,7 @@
 import type { ConversationFormOutputDto } from "@caseai-connect/desk-contracts"
 import type { I18n } from "@lingui/core"
 import { fieldLabelOf, fieldTextOf } from "@/lib/field-text"
+import { hasOwnKey } from "@/lib/has-own-key"
 
 /** A field of a form as the panel shows it: its label, and its value as text, if noted. */
 export type FormFieldView = {
@@ -18,7 +19,7 @@ export function formFieldsOf(form: ConversationFormOutputDto, i18n: I18n): FormF
     form.outputJsonSchema?.propertyOrdering ?? Object.keys(form.outputJsonSchema?.properties ?? {})
   const extraKeys = Object.keys(form.state).filter((key) => !schemaKeys.includes(key))
   return [...schemaKeys, ...extraKeys].map((key) => {
-    const text = fieldTextOf(form.state[key], i18n)
+    const text = fieldTextOf(hasOwnKey(form.state, key) ? form.state[key] : undefined, i18n)
     return { key, label: fieldLabelOf(key), value: text === "" ? null : text }
   })
 }

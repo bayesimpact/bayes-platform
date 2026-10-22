@@ -26,14 +26,14 @@ export type EditNameDialogProps = {
 
 /** Renames the person, as the people of their projects see them. */
 export function EditNameDialog({ name, isOpen, onOpenChange }: EditNameDialogProps) {
-  const { t } = useLingui()
+  const { t, i18n } = useLingui()
   const inputId = useId()
   const updateName = useUpdateName()
   const form = useForm({
     resolver: zodResolver(updateMeInputSchema),
     values: { name },
   })
-  const maxLength = USER_NAME_MAX_LENGTH
+  const maxLength = i18n.number(USER_NAME_MAX_LENGTH)
 
   const handleSubmit = form.handleSubmit((values) =>
     updateName.mutate(values, {

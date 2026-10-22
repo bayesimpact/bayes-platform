@@ -503,6 +503,7 @@ msgstr "Si cela se reproduit, contactez votre administrateur avec le message ci-
 msgid "If the page stays blank, its site does not allow being shown here: open it in a new tab."
 msgstr "Si la page reste vide, son site refuse d’être affiché ici : ouvrez-la dans un nouvel onglet."
 
+#. An image in a reply, which names none
 #. The kind of a document the person uploaded
 #: src/components/shared/Markdown.tsx
 #: src/features/extraction/components/DocumentRow.tsx
@@ -711,6 +712,7 @@ msgstr "Projet"
 msgid "Read"
 msgstr "Lire"
 
+#. The agent reads every column of the file
 #: src/features/extraction/components/CsvSetup.tsx
 msgid "Read all"
 msgstr "Tout lire"
@@ -799,6 +801,7 @@ msgstr "Ligne"
 msgid "Row {rowNumber}"
 msgstr "Ligne {rowNumber}"
 
+#. Heading: which rows of a CSV file the agent reads
 #: src/features/extraction/components/CsvRowScope.tsx
 msgid "Rows"
 msgstr "Lignes"
@@ -894,6 +897,7 @@ msgstr "Connexion impossible"
 msgid "Skip"
 msgstr "Ignorer"
 
+#. Every column of the file is left out
 #: src/features/extraction/components/CsvSetup.tsx
 msgid "Skip all"
 msgstr "Tout ignorer"

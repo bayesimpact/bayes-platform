@@ -1,4 +1,9 @@
-import type { AgentParamsDto, ConversationParamsDto } from "@caseai-connect/desk-contracts"
+import type {
+  AgentParamsDto,
+  ConversationParamsDto,
+  MessageFeedbackInputDto,
+  MessageParamsDto,
+} from "@caseai-connect/desk-contracts"
 import { DeskConversationsRoutes, DeskDocumentsRoutes } from "@caseai-connect/desk-contracts"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
@@ -19,7 +24,10 @@ export function useSendMessage(conversation: ConversationParamsDto) {
 /** Reports a problem with one of the agent's replies. */
 export function useSendFeedback(conversation: ConversationParamsDto) {
   return useMutation({
-    mutationFn: ({ agentMessageId, content }: { agentMessageId: string; content: string }) =>
+    mutationFn: ({
+      agentMessageId,
+      content,
+    }: MessageFeedbackInputDto & Pick<MessageParamsDto, "agentMessageId">) =>
       apiRequest(DeskConversationsRoutes.createMessageFeedback, {
         params: { ...conversation, agentMessageId },
         body: { content },

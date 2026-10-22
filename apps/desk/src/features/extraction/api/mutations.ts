@@ -1,9 +1,10 @@
 import type { AgentParamsDto } from "@caseai-connect/desk-contracts"
 import {
-  type CsvColumnDto,
+  type CreateCsvExtractionRunInputDto,
   DeskCsvExtractionsRoutes,
   DeskDocumentsRoutes,
   DeskExtractionsRoutes,
+  type ExecuteCsvExtractionRunInputDto,
   presignExtractionDocumentInputSchema,
 } from "@caseai-connect/desk-contracts"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
@@ -108,11 +109,7 @@ export function useStartCsvExtraction(agent: AgentParamsDto) {
       csvDocumentId,
       columnSchema,
       recordLimit,
-    }: {
-      csvDocumentId: string
-      columnSchema: Record<string, CsvColumnDto>
-      recordLimit: number | null
-    }) => {
+    }: CreateCsvExtractionRunInputDto & ExecuteCsvExtractionRunInputDto) => {
       const created = await apiRequest(DeskCsvExtractionsRoutes.createOne, {
         params,
         body: { csvDocumentId, columnSchema },

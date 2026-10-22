@@ -4,6 +4,7 @@ import { Trans, useLingui } from "@lingui/react/macro"
 import { CircleAlertIcon, RotateCcwIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { hasOwnKey } from "@/lib/has-own-key"
 
 /** The errors that a new try would meet again, which then offer none. */
 const LASTING_ERRORS = new Set(["PDF_PAGE_LIMIT_EXCEEDED"])
@@ -31,7 +32,7 @@ export function ExtractionFailure({
   onRetry,
 }: ExtractionFailureProps) {
   const { i18n } = useLingui()
-  const reason = errorCode ? REASONS[errorCode] : undefined
+  const reason = errorCode && hasOwnKey(REASONS, errorCode) ? REASONS[errorCode] : undefined
   return (
     <section
       role="alert"

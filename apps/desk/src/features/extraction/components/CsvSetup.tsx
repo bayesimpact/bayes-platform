@@ -94,7 +94,7 @@ export function CsvSetup({ agent, documentId }: CsvSetupProps) {
               className="h-auto px-1"
               onClick={() => setAllRoles("input")}
             >
-              <Trans>Read all</Trans>
+              <Trans comment="The agent reads every column of the file">Read all</Trans>
             </Button>
             <span aria-hidden className="text-muted-foreground">
               ·
@@ -105,7 +105,7 @@ export function CsvSetup({ agent, documentId }: CsvSetupProps) {
               className="h-auto px-1"
               onClick={() => setAllRoles("ignore")}
             >
-              <Trans>Skip all</Trans>
+              <Trans comment="Every column of the file is left out">Skip all</Trans>
             </Button>
           </div>
         </div>

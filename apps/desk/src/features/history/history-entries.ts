@@ -3,6 +3,7 @@ import type {
   AgentTypeDto,
   ConversationSessionOutputDto,
   CsvExtractionRunDetailOutputDto,
+  ExtractionDocumentOutputDto,
   ExtractionRunOutputDto,
 } from "@caseai-connect/desk-contracts"
 import type { I18n, MessageDescriptor } from "@lingui/core"
@@ -61,7 +62,7 @@ export function conversationEntries(conversations: ConversationSessionOutputDto[
 export function extractionEntries(
   extractionRuns: ExtractionRunOutputDto[],
   csvExtractionRuns: CsvExtractionRunDetailOutputDto[],
-  documents: { id: string; fileName?: string }[],
+  documents: Pick<ExtractionDocumentOutputDto, "id" | "fileName">[],
 ): HistoryEntry[] {
   const fileNames = new Map(documents.map((document) => [document.id, document.fileName ?? null]))
   const runs: HistoryEntry[] = extractionRuns.map((run) => ({

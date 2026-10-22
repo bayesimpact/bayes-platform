@@ -21,8 +21,9 @@ export function CsvRunProgress({ run }: CsvRunProgressProps) {
       </section>
     )
   }
-  const { total, processed, errors, running } = summary
-  const ratio = total === 0 ? 1 : processed / total
+  const { total, processed: processedRows, errors, running } = summary
+  const processed = i18n.number(processedRows)
+  const ratio = total === 0 ? 1 : processedRows / total
   const percent = new Intl.NumberFormat(i18n.locale, { style: "percent" }).format(ratio)
   return (
     <section className="flex flex-col gap-3 rounded-2xl border bg-background p-4 dark:bg-card">

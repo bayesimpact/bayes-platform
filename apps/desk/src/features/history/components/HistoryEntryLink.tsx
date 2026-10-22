@@ -2,8 +2,8 @@ import { useLingui } from "@lingui/react/macro"
 import { Link } from "@tanstack/react-router"
 import { RunStateIcon } from "@/components/shared/RunStateIcon"
 import { SidebarMenuButton } from "@/components/ui/sidebar"
-import { agentParamsOf } from "@/lib/agent-params"
 import { RUN_STATE_LABELS, type RunState } from "@/lib/run-state"
+import { entryLinkOptions } from "../entry-link"
 import type { HistoryAgent, HistoryEntry, HistoryEntryState } from "../history-entries"
 
 export type HistoryEntryLinkProps = {
@@ -17,55 +17,12 @@ const className = "data-[status=active]:bg-sidebar-accent data-[status=active]:f
 
 /** One line of the history, which opens its conversation or extraction. */
 export function HistoryEntryLink({ agent, entry, title }: HistoryEntryLinkProps) {
-  const agentParams = agentParamsOf(agent)
-  switch (entry.kind) {
-    case "conversation":
-      return (
-        <SidebarMenuButton
-          className={className}
-          render={
-            <Link
-              to="/o/$organizationId/p/$projectId/a/$agentId/as/$agentSessionId"
-              params={{ ...agentParams, agentSessionId: entry.id }}
-            />
-          }
-        >
-          <span className="truncate">{title}</span>
-        </SidebarMenuButton>
-      )
-    case "extraction":
-      return (
-        <SidebarMenuButton
-          className={className}
-          render={
-            <Link
-              to="/o/$organizationId/p/$projectId/a/$agentId/extraction/runs/$extractionRunId"
-              params={{ ...agentParams, extractionRunId: entry.id }}
-            />
-          }
-        >
-          <span className="truncate">{title}</span>
-          <RunStateMark state={entry.state} />
-        </SidebarMenuButton>
-      )
-    case "csv":
-      return (
-        <SidebarMenuButton
-          className={className}
-          render={
-            <Link
-              to="/o/$organizationId/p/$projectId/a/$agentId/extraction/csv-runs/$csvRunId"
-              params={{ ...agentParams, csvRunId: entry.id }}
-            />
-          }
-        >
-          <span className="truncate">{title}</span>
-          <RunStateMark state={entry.state} />
-        </SidebarMenuButton>
-      )
-    default:
-      return entry satisfies never
-  }
+  return (
+    <SidebarMenuButton className={className} render={<Link {...entryLinkOptions(agent, entry)} />}>
+      <span className="truncate">{title}</span>
+      {entry.kind === "conversation" ? null : <RunStateMark state={entry.state} />}
+    </SidebarMenuButton>
+  )
 }
 
 /** The mark of an extraction in the history: while it runs and once it failed, none once done. */

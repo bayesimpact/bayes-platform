@@ -3,6 +3,7 @@ import type { MessageDescriptor } from "@lingui/core"
 import { msg } from "@lingui/core/macro"
 import { type ColumnDef, createColumnHelper } from "@tanstack/react-table"
 import { fieldLabelOf } from "@/lib/field-text"
+import { hasOwnKey } from "@/lib/has-own-key"
 import { fileValueOf, sortKeys } from "../csv-records"
 import { FieldValue } from "./FieldValue"
 import { RecordStatusIcon } from "./RecordStatusIcon"
@@ -63,21 +64,28 @@ export function recordColumnsOf({
         id: "answers",
         header: translate(recordColumnLabels.answers),
         columns: answerFields.map((field, position) =>
-          columnHelper.accessor((record) => record.agentRawOutput?.[field], {
-            id: sortKeys.answer(field),
-            header: fieldLabelOf(field),
-            cell: (context) => {
-              const record = context.row.original
-              if (record.agentRawOutput) return <FieldValue value={context.getValue()} isCompact />
-              // A failed row says why under its first answer.
-              return position === 0 && record.status === "error" ? (
-                <span className="line-clamp-2 text-destructive">
-                  {record.errorDetails ?? translate(recordColumnLabels.failed)}
-                </span>
-              ) : null
+          columnHelper.accessor(
+            (record) =>
+              record.agentRawOutput && hasOwnKey(record.agentRawOutput, field)
+                ? record.agentRawOutput[field]
+                : undefined,
+            {
+              id: sortKeys.answer(field),
+              header: fieldLabelOf(field),
+              cell: (context) => {
+                const record = context.row.original
+                if (record.agentRawOutput)
+                  return <FieldValue value={context.getValue()} isCompact />
+                // A failed row says why under its first answer.
+                return position === 0 && record.status === "error" ? (
+                  <span className="line-clamp-2 text-destructive">
+                    {record.errorDetails ?? translate(recordColumnLabels.failed)}
+                  </span>
+                ) : null
+              },
+              meta: { cellClassName: "min-w-48 max-w-80 whitespace-normal" },
             },
-            meta: { cellClassName: "min-w-48 max-w-80 whitespace-normal" },
-          }),
+          ),
         ),
       }),
     )

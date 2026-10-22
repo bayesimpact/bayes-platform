@@ -24,7 +24,7 @@ export function CsvRowScope({ scope, onScopeChange }: CsvRowScopeProps) {
   return (
     <section aria-labelledby={headingId} className="flex flex-col gap-2">
       <h2 id={headingId} className="px-1 text-sm font-medium">
-        <Trans>Rows</Trans>
+        <Trans comment="Heading: which rows of a CSV file the agent reads">Rows</Trans>
       </h2>
       <RadioGroup
         value={scope.kind}

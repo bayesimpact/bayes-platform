@@ -3,7 +3,7 @@ import {
   resolveMemoryProposalsInputSchema,
 } from "@caseai-connect/desk-contracts"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Trans } from "@lingui/react/macro"
+import { Trans, useLingui } from "@lingui/react/macro"
 import { useId } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { z } from "zod"
@@ -30,12 +30,13 @@ export function MemoryRewordForm({
   onSave,
   onCancel,
 }: MemoryRewordFormProps) {
+  const { i18n } = useLingui()
   const contentId = useId()
   const form = useForm({
     resolver: zodResolver(rewordSchema),
     defaultValues: { content: initialContent },
   })
-  const maxLength = MEMORY_MAX_LENGTH
+  const maxLength = i18n.number(MEMORY_MAX_LENGTH)
   const handleSubmit = form.handleSubmit((values) => onSave(values.content))
 
   return (

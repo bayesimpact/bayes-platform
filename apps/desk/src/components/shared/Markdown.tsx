@@ -48,7 +48,7 @@ function MarkdownLink({ node, children, href, ...props }: ComponentProps<"a"> & 
 function MarkdownImage({ src, alt }: ComponentProps<"img"> & ExtraProps) {
   const { t } = useLingui()
   if (typeof src !== "string" || src === "") return null
-  const label = alt || t`Image`
+  const label = alt || t({ message: "Image", comment: "An image in a reply, which names none" })
   return (
     <ExternalLink
       href={src}

@@ -139,6 +139,8 @@ export type ReplyStreamEventDto = z.output<typeof replyStreamEventSchema>
 /** The params of the routes under one message. */
 export const messageParamsSchema = projectParamsSchema.extend({ agentMessageId: z.uuid() })
 
+export type MessageParamsDto = z.output<typeof messageParamsSchema>
+
 /** The longest report a person can write on a reply. */
 export const MESSAGE_FEEDBACK_MAX_LENGTH = 2000
 

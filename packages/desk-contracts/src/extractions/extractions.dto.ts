@@ -164,10 +164,14 @@ export const createCsvExtractionRunInputSchema = z.strictObject({
   columnSchema: z.record(z.string(), csvColumnSchema),
 })
 
+export type CreateCsvExtractionRunInputDto = z.input<typeof createCsvExtractionRunInputSchema>
+
 /** Starts a run: on every row, or on the first ones only. */
 export const executeCsvExtractionRunInputSchema = z.strictObject({
   recordLimit: z.number().int().positive().nullable(),
 })
+
+export type ExecuteCsvExtractionRunInputDto = z.input<typeof executeCsvExtractionRunInputSchema>
 
 export const csvExtractionRecordStatusSchema = z.enum(["running", "success", "error", "cancelled"])
 

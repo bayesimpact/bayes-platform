@@ -2,7 +2,7 @@ import { useLingui } from "@lingui/react/macro"
 import { useNavigate, useParams } from "@tanstack/react-router"
 import { useEffect, useRef } from "react"
 import { toast } from "sonner"
-import { agentParamsOf } from "@/lib/agent-params"
+import { entryLinkOptions } from "../entry-link"
 import {
   entryTitleOf,
   type HistoryAgent,
@@ -34,20 +34,9 @@ export function useFinishedRunToasts(agent: HistoryAgent, entries: HistoryEntry[
       if (entry.kind === "conversation" || entry.state === "pending") continue
       if (previousStates.get(entry.id) !== "pending" || entry.id === openId) continue
       const name = entryTitleOf(entry, i18n)
-      const agentParams = agentParamsOf(agent)
-      const openEntry = () =>
-        entry.kind === "csv"
-          ? navigate({
-              to: "/o/$organizationId/p/$projectId/a/$agentId/extraction/csv-runs/$csvRunId",
-              params: { ...agentParams, csvRunId: entry.id },
-            })
-          : navigate({
-              to: "/o/$organizationId/p/$projectId/a/$agentId/extraction/runs/$extractionRunId",
-              params: { ...agentParams, extractionRunId: entry.id },
-            })
       const action = {
         label: t({ message: "Open", comment: "Opens the extraction a toast says ended" }),
-        onClick: () => void openEntry(),
+        onClick: () => void navigate(entryLinkOptions(agent, entry)),
       }
       if (entry.state === "done") toast.success(t`${name} is extracted.`, { action })
       else toast.error(t`The extraction of ${name} failed.`, { action })

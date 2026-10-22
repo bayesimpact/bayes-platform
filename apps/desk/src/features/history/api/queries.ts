@@ -41,7 +41,9 @@ export const csvExtractionRunsQueryOptions = (agent: AgentParamsDto) =>
 
 /**
  * The documents the person uploaded for an extraction agent, newest first: the history names a
- * CSV run by its file, and a new extraction offers them again.
+ * CSV run by its file, and a new extraction offers them again. It lives here rather than in
+ * `features/extraction`, which imports this feature: the history needs it, and the other way
+ * round would make the two features import each other.
  */
 export const extractionDocumentsQueryOptions = (agent: AgentParamsDto) =>
   queryOptions({
