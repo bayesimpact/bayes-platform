@@ -1,4 +1,4 @@
-import { DeskAgentSessionsRoutes } from "@caseai-connect/desk-contracts"
+import { DeskAgentSessionsRoutes, DeskConversationsRoutes } from "@caseai-connect/desk-contracts"
 import { screen } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it } from "vitest"
@@ -8,6 +8,7 @@ import {
   buildExtractionAgentWorld,
   buildSeveralProjectsWorld,
 } from "@/test/factories/desk-world.factory"
+import { hiddenFileInput } from "@/test/file-input"
 import { worldHandlers } from "@/test/msw/handlers"
 import { apiError, mockRoute } from "@/test/msw/mock-route"
 import { server } from "@/test/msw/server"
@@ -53,6 +54,29 @@ describe("an agent's pages", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "Try again" }))
     expect(await screen.findByText("No conversations yet")).toBeInTheDocument()
+  })
+
+  it("keep the first message and its file when the conversation could not start", async () => {
+    const world = buildEmptyHistoryWorld()
+    server.use(
+      mockRoute(DeskConversationsRoutes.createOne, () => apiError(503), { once: true }),
+      ...worldHandlers(world),
+    )
+    const { router } = renderApp(agentUrlOf(world))
+
+    const messageBox = await screen.findByRole("textbox", { name: "Message to Helpful Assistant" })
+    await userEvent.upload(
+      hiddenFileInput(),
+      new File(["%PDF-1.7"], "invoice.pdf", { type: "application/pdf" }),
+    )
+    await userEvent.type(messageBox, "Read this invoice{Enter}")
+
+    expect(
+      await screen.findByText("The conversation could not start. Try again."),
+    ).toBeInTheDocument()
+    expect(messageBox).toHaveValue("Read this invoice")
+    expect(screen.getByRole("button", { name: "Remove invoice.pdf" })).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe(routerPathOf(agentUrlOf(world)))
   })
 
   it("are not found for an agent the person cannot use", async () => {

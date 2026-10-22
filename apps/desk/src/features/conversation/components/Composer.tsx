@@ -27,7 +27,11 @@ export type ComposerProps = {
   isBusy: boolean
   /** How many annotations of the replies leave with the message, which can then be empty. */
   annotationCount?: number
-  onSend: (message: OutgoingMessage) => void
+  /**
+   * Sends the message, which the box clears at once. `restore` puts its text and file back in the
+   * box, for a message that could not leave.
+   */
+  onSend: (message: OutgoingMessage, restore: () => void) => void
 }
 
 /**
@@ -54,7 +58,12 @@ export function Composer({
     if (!canSend) return
     dictation.stop()
     const { file } = attachment
-    onSend({ content: content.trim(), attachment: file ? { file } : null })
+    const sentContent = content.trim()
+    const restore = () => {
+      onContentChange(sentContent)
+      if (file) attachment.pick(file)
+    }
+    onSend({ content: sentContent, attachment: file ? { file } : null }, restore)
     onContentChange("")
     attachment.clear()
   }

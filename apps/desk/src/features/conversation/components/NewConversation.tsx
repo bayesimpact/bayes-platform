@@ -1,6 +1,7 @@
 import type { AgentParamsDto } from "@caseai-connect/desk-contracts"
-import { Trans } from "@lingui/react/macro"
+import { Trans, useLingui } from "@lingui/react/macro"
 import { useState } from "react"
+import { toast } from "sonner"
 import { useStartConversation } from "../api/mutations"
 import { Composer } from "./Composer"
 
@@ -14,6 +15,7 @@ export type NewConversationProps = {
  * box. The first message creates the conversation and opens it.
  */
 export function NewConversation({ agent, agentName }: NewConversationProps) {
+  const { t } = useLingui()
   const startConversation = useStartConversation(agent)
   const [draft, setDraft] = useState("")
   return (
@@ -27,13 +29,16 @@ export function NewConversation({ agent, agentName }: NewConversationProps) {
           content={draft}
           onContentChange={setDraft}
           isBusy={startConversation.isPending}
-          onSend={(outgoing) => startConversation.mutate(outgoing)}
+          onSend={(outgoing, restore) =>
+            // Only the creation can fail here: a reply that fails shows in the conversation.
+            startConversation.mutate(outgoing, {
+              onError: () => {
+                restore()
+                toast.error(t`The conversation could not start. Try again.`)
+              },
+            })
+          }
         />
-        {startConversation.isError ? (
-          <p role="alert" className="mt-2 text-sm text-destructive">
-            <Trans>The conversation could not start. Try again.</Trans>
-          </p>
-        ) : null}
       </div>
     </div>
   )

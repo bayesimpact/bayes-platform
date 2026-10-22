@@ -121,6 +121,7 @@ export function extractionHandlers(world: DeskWorld) {
       world.extractionDocuments[params.agentId] = documentsOf(params.agentId).filter(
         (document) => document.id !== params.documentId,
       )
+      delete world.csvColumns[params.documentId]
       return { success: true }
     }),
     mockRoute(DeskExtractionsRoutes.executeOne, ({ params, payload }) => {

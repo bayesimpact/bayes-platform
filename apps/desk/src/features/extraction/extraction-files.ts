@@ -1,4 +1,5 @@
 import { EXTRACTION_MAX_BYTES, EXTRACTION_MIME_TYPES } from "@caseai-connect/desk-contracts"
+import { hasOwnKey } from "@/lib/has-own-key"
 
 type ExtractionMimeType = (typeof EXTRACTION_MIME_TYPES)[number]
 
@@ -29,7 +30,9 @@ export function extractionMimeTypeOf(file: {
   type: string
 }): ExtractionMimeType | null {
   const extension = file.name.split(".").at(-1)?.toLowerCase() ?? ""
-  const byExtension = TYPES_BY_EXTENSION[extension]
+  const byExtension = hasOwnKey(TYPES_BY_EXTENSION, extension)
+    ? TYPES_BY_EXTENSION[extension]
+    : undefined
   if (byExtension === "text/csv") return byExtension
   if (isExtractionMimeType(file.type)) return file.type
   return byExtension ?? null

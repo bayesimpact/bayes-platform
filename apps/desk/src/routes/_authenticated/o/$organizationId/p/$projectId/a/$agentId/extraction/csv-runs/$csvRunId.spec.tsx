@@ -1,6 +1,7 @@
 import { DeskAgentSessionsRoutes, DeskCsvExtractionsRoutes } from "@caseai-connect/desk-contracts"
 import { act, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
+import { delay } from "msw"
 import { describe, expect, it, onTestFinished, vi } from "vitest"
 import { agentOf, extractionUrlsOf } from "@/test/desk-urls"
 import { buildExtractionAgentWorld, type DeskWorld } from "@/test/factories/desk-world.factory"
@@ -89,6 +90,38 @@ describe("an extraction of a CSV file", () => {
 
     expect(await screen.findByRole("columnheader", { name: "Agent's answers" })).toBeInTheDocument()
     expect(screen.getByRole("columnheader", { name: /^Topic/ })).toBeInTheDocument()
+  })
+
+  it("reads its rows once more when it ends, so that none stays in progress", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    onTestFinished(() => {
+      vi.useRealTimers()
+    })
+    const world = serveExtractionWorld()
+    const run = restartRun(world)
+    // The run ends between two polls: the rows' poll reads them just before their end, and the
+    // run's, answered a moment later, finds it over.
+    server.use(
+      mockRoute(DeskAgentSessionsRoutes.getCsvExtractionRuns, () => [run]),
+      mockRoute(DeskCsvExtractionsRoutes.getOne, () => run, { once: true }),
+      mockRoute(DeskCsvExtractionsRoutes.getOne, async () => {
+        await delay(100)
+        for (const record of world.csvRecords[run.id] ?? []) record.status = "success"
+        run.status = "completed"
+        return run
+      }),
+    )
+    renderApp(extractionUrlsOf(world).csvRunUrl("articles.csv"))
+
+    const rows = await screen.findByRole("table")
+    expect(within(rows).getAllByRole("img", { name: "In progress" })).not.toHaveLength(0)
+    await act(() => vi.advanceTimersByTimeAsync(POLL_INTERVAL_IN_MILLISECONDS + 200))
+
+    await waitFor(() =>
+      expect(
+        within(screen.getByRole("table")).queryAllByRole("img", { name: "In progress" }),
+      ).toHaveLength(0),
+    )
   })
 
   it("stops while it runs, and keeps the rows done", async () => {

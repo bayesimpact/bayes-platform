@@ -18,6 +18,11 @@ describe("extractionMimeTypeOf", () => {
     )
   })
 
+  it("refuses a file whose extension names a key every object inherits", () => {
+    expect(extractionMimeTypeOf({ name: "notes.constructor", type: "" })).toBe(null)
+    expect(extractionMimeTypeOf({ name: "notes.__proto__", type: "" })).toBe(null)
+  })
+
   it("refuses a file an extraction cannot read", () => {
     expect(
       extractionMimeTypeOf({ name: "slides.pptx", type: "application/vnd.ms-powerpoint" }),
@@ -35,6 +40,11 @@ describe("fileProblemOf", () => {
 })
 
 describe("fileKindOf", () => {
+  it("reads a document named with an inherited key as another kind of file", () => {
+    expect(fileKindOf({ fileName: "notes.constructor" })).toBe("other")
+    expect(fileKindOf({ fileName: "notes.__proto__" })).toBe("other")
+  })
+
   it("groups the files by how they show and run", () => {
     expect(fileKindOf({ mimeType: "image/jpeg" })).toBe("image")
     expect(fileKindOf({ mimeType: "text/csv" })).toBe("csv")

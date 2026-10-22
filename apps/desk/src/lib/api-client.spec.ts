@@ -171,6 +171,19 @@ describe("apiRequest", () => {
     expect(session.signIn).not.toHaveBeenCalled()
   })
 
+  it("signs in again when the API's message only names a key every object inherits", async () => {
+    server.use(
+      http.get("http://desk.test/api/test/items/:itemId", () =>
+        HttpResponse.json({ statusCode: 401, message: "constructor" }, { status: 401 }),
+      ),
+    )
+
+    await expect(
+      apiRequest(TestRoutes.getItem, { params: { itemId }, query: { page: 0 } }),
+    ).rejects.toBeInstanceOf(session.AuthenticationRequiredError)
+    expect(session.signIn).toHaveBeenCalled()
+  })
+
   it("stops when a new sign-in started a moment ago, rather than loop", async () => {
     session.claimAutomaticSignIn.mockReturnValueOnce(false)
     server.use(

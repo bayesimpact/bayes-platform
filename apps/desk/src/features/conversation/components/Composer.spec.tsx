@@ -70,7 +70,10 @@ describe("the dictation", () => {
     expect(messageBox).toHaveValue("Hello how are you?")
 
     await userEvent.click(screen.getByRole("button", { name: "Send" }))
-    expect(onSend).toHaveBeenCalledWith({ content: "Hello how are you?", attachment: null })
+    expect(onSend).toHaveBeenCalledWith(
+      { content: "Hello how are you?", attachment: null },
+      expect.any(Function),
+    )
     // A word heard after the message left does not write the box again.
     act(() => FakeSpeechRecognition.current?.say("late", true))
     expect(messageBox).toHaveValue("")
@@ -106,7 +109,10 @@ describe("the attachment", () => {
 
     await userEvent.type(screen.getByRole("textbox"), "Read this{Enter}")
 
-    expect(onSend).toHaveBeenCalledWith({ content: "Read this", attachment: { file } })
+    expect(onSend).toHaveBeenCalledWith(
+      { content: "Read this", attachment: { file } },
+      expect.any(Function),
+    )
   })
 
   it("refuses a file the contract refuses, and names its limits", async () => {

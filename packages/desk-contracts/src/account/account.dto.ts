@@ -67,8 +67,9 @@ export type SignInRefusal = (typeof SIGN_IN_REFUSALS)[keyof typeof SIGN_IN_REFUS
 /** The refusal an API message names, or `null` for any other message. */
 export function signInRefusalOf(message: unknown): SignInRefusal | null {
   if (typeof message !== "string") return null
-  return message in SIGN_IN_REFUSALS
-    ? // Safe: `in` just found the message among the keys.
+  // `in` would also match the keys every object inherits, such as `constructor`.
+  return Object.hasOwn(SIGN_IN_REFUSALS, message)
+    ? // Safe: `Object.hasOwn` just found the message among the object's own keys.
       SIGN_IN_REFUSALS[message as keyof typeof SIGN_IN_REFUSALS]
     : null
 }

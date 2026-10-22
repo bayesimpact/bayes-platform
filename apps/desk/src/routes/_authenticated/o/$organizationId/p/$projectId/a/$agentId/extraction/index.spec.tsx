@@ -83,6 +83,26 @@ describe("a new extraction", () => {
       within(documents).queryByRole("button", { name: "Extract contract.pdf" }),
     ).not.toBeInTheDocument()
   })
+
+  it("forgets a deleted CSV file, whose setup a step forward no longer shows", async () => {
+    const world = serveExtractionWorld()
+    const { router } = renderApp(extractionUrlsOf(world).newExtractionUrl)
+
+    const documents = await screen.findByRole("region", { name: "Your documents" })
+    await userEvent.click(
+      within(documents).getByRole("button", { name: "Set up the extraction of articles.csv" }),
+    )
+    await screen.findByRole("heading", { name: "articles.csv" })
+    router.history.back()
+    const again = await screen.findByRole("region", { name: "Your documents" })
+    await userEvent.click(within(again).getByRole("button", { name: "Delete articles.csv" }))
+    const dialog = await screen.findByRole("alertdialog", { name: "Delete this document?" })
+    await userEvent.click(within(dialog).getByRole("button", { name: "Delete" }))
+    await screen.findByText("articles.csv was deleted.")
+
+    router.history.forward()
+    expect(await screen.findByText("Page not found")).toBeInTheDocument()
+  })
 })
 
 describe("a file too large for an extraction", () => {

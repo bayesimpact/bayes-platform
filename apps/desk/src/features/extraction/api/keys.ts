@@ -11,6 +11,6 @@ export const extractionKeys = {
     [...extractionKeys.agent(agentId), "csv-runs", csvRunId] as const,
   csvRunRecords: (agentId: string, csvRunId: string) =>
     [...extractionKeys.csvRun(agentId, csvRunId), "records"] as const,
-  csvRecords: (agentId: string, csvRunId: string, page: CsvRecordsPage) =>
-    [...extractionKeys.csvRunRecords(agentId, csvRunId), page] as const,
+  csvRecords: (agentId: string, csvRunId: string, page: CsvRecordsPage, isLive: boolean) =>
+    [...extractionKeys.csvRunRecords(agentId, csvRunId), page, { isLive }] as const,
 }

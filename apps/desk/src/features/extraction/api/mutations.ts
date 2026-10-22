@@ -90,6 +90,11 @@ export function useDeleteExtractionDocument(agent: AgentParamsDto) {
       apiRequest(DeskExtractionsRoutes.deleteMyDocument, {
         params: { ...agent, documentId },
       }),
+    // The document's own queries go with it, such as its CSV columns, kept for good: a step back
+    // in the browser would otherwise show the setup of a file that no longer exists.
+    onSuccess: (_, documentId) => {
+      queryClient.removeQueries({ predicate: (query) => query.queryKey.includes(documentId) })
+    },
     onSettled: () => invalidateAgentHistory(queryClient, agent.agentId),
   })
 }

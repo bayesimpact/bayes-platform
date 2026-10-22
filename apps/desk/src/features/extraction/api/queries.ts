@@ -80,7 +80,8 @@ function isAwaited(run: CsvExtractionRunDetailOutputDto | undefined): boolean {
 
 /**
  * A page of a CSV run's rows. While the run goes on, the page refreshes with it; another page
- * keeps the rows shown until it arrives.
+ * keeps the rows shown until it arrives. Whether the run goes on is part of the key: the rows read
+ * once more when it ends, since their last poll may predate the last rows' end.
  */
 export const csvRecordsQueryOptions = (
   agent: AgentParamsDto,
@@ -89,7 +90,7 @@ export const csvRecordsQueryOptions = (
   isLive: boolean,
 ) =>
   queryOptions({
-    queryKey: extractionKeys.csvRecords(agent.agentId, csvRunId, page),
+    queryKey: extractionKeys.csvRecords(agent.agentId, csvRunId, page, isLive),
     queryFn: ({ signal }) =>
       apiRequest(DeskCsvExtractionsRoutes.getRecords, {
         params: { ...agent, agentCsvExtractionRunId: csvRunId },
