@@ -6,7 +6,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@caseai-connect/ui/shad/card"
+import { type ColumnDef, getCoreRowModel, useReactTable } from "@tanstack/react-table"
+import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
+import { DataTable } from "@/common/components/data-table/DataTable"
 import { Loader } from "@/common/components/Loader"
 import { ADS } from "@/common/store/async-data-status"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
@@ -94,91 +97,78 @@ function RecordsTable({
   pageIndex: number
   onPageChange: (pageIndex: number) => void
 }) {
+  // TanStack Table keeps one table instance across renders, so the React Compiler would
+  // memoize its row model and show stale rows after a page change.
+  "use no memo"
   const { t } = useTranslation()
   const totalPages = Math.max(1, Math.ceil(total / DEFAULT_PAGE_SIZE))
 
+  const columns = useMemo<ColumnDef<EvaluationConversationDatasetRecord>[]>(
+    () => [
+      {
+        id: "index",
+        header: () => "#",
+        cell: ({ row }) => (
+          <span className="font-mono text-xs text-muted-foreground/60 select-none">
+            {pageIndex * DEFAULT_PAGE_SIZE + row.index + 1}
+          </span>
+        ),
+        size: 48,
+      },
+      {
+        id: "input",
+        header: () => t("evaluationConversationDataset:record.props.input"),
+        cell: ({ row }) => <TruncatedCell value={row.original.input} />,
+        size: 300,
+      },
+      {
+        id: "expectedOutput",
+        header: () => t("evaluationConversationDataset:record.props.expectedOutput"),
+        cell: ({ row }) => <TruncatedCell value={row.original.expectedOutput} />,
+        size: 300,
+      },
+      {
+        id: "comment",
+        header: () => t("evaluationConversationDataset:record.props.comment"),
+        // Why the expected output is the reference, for a record saved from an answer.
+        cell: ({ row }) =>
+          row.original.comment ? <TruncatedCell value={row.original.comment} /> : null,
+        size: 240,
+      },
+      {
+        id: "actions",
+        header: () => null,
+        cell: ({ row }) => (
+          <div className="flex items-center justify-end gap-1">
+            <UpdateEvaluationConversationDatasetRecordDialog
+              datasetId={datasetId}
+              record={row.original}
+            />
+            <DeleteEvaluationConversationDatasetRecordButton
+              datasetId={datasetId}
+              recordId={row.original.id}
+            />
+          </div>
+        ),
+        size: 96,
+      },
+    ],
+    [t, datasetId, pageIndex],
+  )
+
+  const table = useReactTable({
+    data: records,
+    columns,
+    getRowId: (record) => record.id,
+    getCoreRowModel: getCoreRowModel(),
+  })
+
   return (
     <CardContent>
-      <div className="rounded-lg border overflow-x-auto">
-        <table className="w-full caption-bottom text-sm">
-          <thead className="bg-muted/50 sticky top-0 z-10 [&_tr]:border-b">
-            <tr className="border-b transition-colors">
-              <th
-                className="text-foreground h-auto px-2 py-2 text-left align-bottom font-medium whitespace-nowrap"
-                style={{ width: 48 }}
-              >
-                #
-              </th>
-              <th className="text-foreground h-auto px-2 py-2 text-left align-bottom font-medium whitespace-nowrap">
-                {t("evaluationConversationDataset:record.props.input")}
-              </th>
-              <th className="text-foreground h-auto px-2 py-2 text-left align-bottom font-medium whitespace-nowrap">
-                {t("evaluationConversationDataset:record.props.expectedOutput")}
-              </th>
-              <th className="text-foreground h-auto px-2 py-2 text-left align-bottom font-medium whitespace-nowrap">
-                {t("evaluationConversationDataset:record.props.comment")}
-              </th>
-              <th
-                className="text-foreground h-auto px-2 py-2 text-left align-bottom font-medium whitespace-nowrap"
-                style={{ width: 96 }}
-              />
-            </tr>
-          </thead>
-          <tbody>
-            {records.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="h-24 text-center text-muted-foreground p-2">
-                  {t("status:noResults")}
-                </td>
-              </tr>
-            ) : (
-              records.map((record, recordIndex) => (
-                <tr
-                  key={record.id}
-                  className={`border-b transition-colors hover:bg-muted/50 ${recordIndex % 2 !== 0 ? "bg-muted/30" : ""}`}
-                >
-                  <td className="p-2 align-middle whitespace-nowrap">
-                    <span className="font-mono text-xs text-muted-foreground/60 select-none">
-                      {pageIndex * DEFAULT_PAGE_SIZE + recordIndex + 1}
-                    </span>
-                  </td>
-                  <td
-                    className="p-2 align-middle whitespace-nowrap"
-                    style={{ width: 300, maxWidth: 400 }}
-                  >
-                    <TruncatedCell value={record.input} />
-                  </td>
-                  <td
-                    className="p-2 align-middle whitespace-nowrap"
-                    style={{ width: 300, maxWidth: 400 }}
-                  >
-                    <TruncatedCell value={record.expectedOutput} />
-                  </td>
-                  <td
-                    className="p-2 align-middle whitespace-nowrap"
-                    style={{ width: 240, maxWidth: 320 }}
-                  >
-                    {/* Why the expected output is the reference, for a record saved from an answer. */}
-                    {record.comment && <TruncatedCell value={record.comment} />}
-                  </td>
-                  <td className="p-2 align-middle whitespace-nowrap">
-                    <div className="flex items-center justify-end gap-1">
-                      <UpdateEvaluationConversationDatasetRecordDialog
-                        datasetId={datasetId}
-                        record={record}
-                      />
-                      <DeleteEvaluationConversationDatasetRecordButton
-                        datasetId={datasetId}
-                        recordId={record.id}
-                      />
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+      <DataTable
+        table={table}
+        empty={<p className="py-8 text-center text-muted-foreground">{t("status:noResults")}</p>}
+      />
 
       {totalPages > 1 && (
         <PaginationControls

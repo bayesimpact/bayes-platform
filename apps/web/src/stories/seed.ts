@@ -318,6 +318,10 @@ export const seed = {
     return { currentIds: { extractionRunId: id } }
   },
 
+  currentCsvRunId(id: string | null): StoryPreloadedState {
+    return { currentIds: { csvRunId: id } }
+  },
+
   agentSessionMessages(messages: AgentSessionMessage[]): StoryPreloadedState {
     return { agentSessionMessages: { data: ads.fulfilled(messages) } }
   },
@@ -522,8 +526,10 @@ export const seed = {
       options: { currentId?: string | null } = {},
     ): StoryPreloadedState {
       const currentId = options.currentId ?? null
+      // The slice clears its records when the route sets a dataset id it does not hold yet,
+      // and stories have no middleware to load them again: it starts on the current one.
       return mergeSeeds(
-        { conversationDatasets: { data: ads.fulfilled(datasets) } },
+        { conversationDatasets: { data: ads.fulfilled(datasets), currentDatasetId: currentId } },
         { currentIds: { datasetId: currentId } },
       )
     },
