@@ -5,40 +5,41 @@ import {
 } from "@caseai-connect/desk-contracts"
 import { type QueryClient, queryOptions } from "@tanstack/react-query"
 import { apiRequest } from "@/lib/api-client"
-import { organizationKeys, projectKeys } from "./keys"
+import { type DeskProjectAgents, groupDeskAgents } from "../desk-agents"
+import { listDeskProjects } from "../desk-projects"
+import { deskAgentKeys } from "./keys"
 
-/** The projects the signed-in person can read, with their permissions (`GET projects/mine`). */
-export const myProjectsQueryOptions = () =>
+/**
+ * The agents the person can use in the Desk, grouped by project: the projects
+ * (`GET projects/mine`) and organizations (`GET organizations/mine`) in parallel, then the
+ * published agents of every Desk project in parallel. One key holds them all, so a new project
+ * never leaves a reader waiting on a query of its own that does not exist yet.
+ */
+export const deskAgentsQueryOptions = () =>
   queryOptions({
-    queryKey: projectKeys.mine(),
-    queryFn: ({ signal }) => apiRequest(DeskProjectsRoutes.getAllMine, { signal }),
-  })
-
-/** The organizations the signed-in person can read (`GET organizations/mine`). */
-export const myOrganizationsQueryOptions = () =>
-  queryOptions({
-    queryKey: organizationKeys.mine(),
-    queryFn: ({ signal }) => apiRequest(DeskOrganizationsRoutes.getAllMine, { signal }),
-  })
-
-/** The published agents of a project the person is a member of, sorted by name. */
-export const projectAgentsQueryOptions = (project: { id: string; organizationId: string }) =>
-  queryOptions({
-    queryKey: projectKeys.agents(project.id),
-    queryFn: ({ signal }) =>
-      apiRequest(DeskAgentsRoutes.getAllOfProject, {
-        params: { organizationId: project.organizationId, projectId: project.id },
-        signal,
-      }),
+    queryKey: deskAgentKeys.all,
+    queryFn: async ({ signal }): Promise<DeskProjectAgents[]> => {
+      const [projects, organizations] = await Promise.all([
+        apiRequest(DeskProjectsRoutes.getAllMine, { signal }),
+        apiRequest(DeskOrganizationsRoutes.getAllMine, { signal }),
+      ])
+      const deskProjects = listDeskProjects(projects, organizations)
+      const agentsOfProjects = await Promise.all(
+        deskProjects.map((project) =>
+          apiRequest(DeskAgentsRoutes.getAllOfProject, {
+            params: { organizationId: project.organization.id, projectId: project.id },
+            signal,
+          }),
+        ),
+      )
+      return groupDeskAgents(deskProjects, agentsOfProjects)
+    },
   })
 
 /**
- * Loads again the person's projects, organizations and agents, after they joined a project or an
- * agent: the loaders read them as static, so they must be fresh before the page reloads its data.
+ * Loads again the person's agents, after they joined a project or an agent: the loaders read them
+ * as static, so they must be fresh before the page reloads its data.
  */
 export async function refreshDeskAgents(queryClient: QueryClient): Promise<void> {
-  await Promise.all([
-    queryClient.refetchQueries({ queryKey: projectKeys.all }),
-    queryClient.refetchQueries({ queryKey: organizationKeys.all }),
-  ])
+  await queryClient.refetchQueries({ queryKey: deskAgentsQueryOptions().queryKey })
 }

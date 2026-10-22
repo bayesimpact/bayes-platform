@@ -1,27 +1,8 @@
-import { useSuspenseQueries } from "@tanstack/react-query"
-import {
-  myOrganizationsQueryOptions,
-  myProjectsQueryOptions,
-  projectAgentsQueryOptions,
-} from "../api/queries"
-import { type DeskProjectAgents, groupDeskAgents } from "../desk-agents"
-import { listDeskProjects } from "../desk-projects"
+import { useSuspenseQuery } from "@tanstack/react-query"
+import { deskAgentsQueryOptions } from "../api/queries"
+import type { DeskProjectAgents } from "../desk-agents"
 
-/** The agents of every Desk project, from the queries `loadDeskAgents` started. */
+/** The agents of every Desk project, from the query `loadDeskAgents` started. */
 export function useDeskAgentGroups(): DeskProjectAgents[] {
-  const projects = useSuspenseQueries({
-    queries: [myProjectsQueryOptions(), myOrganizationsQueryOptions()],
-    combine: ([myProjects, myOrganizations]) =>
-      listDeskProjects(myProjects.data, myOrganizations.data),
-  })
-  return useSuspenseQueries({
-    queries: projects.map((project) =>
-      projectAgentsQueryOptions({ id: project.id, organizationId: project.organization.id }),
-    ),
-    combine: (results) =>
-      groupDeskAgents(
-        projects,
-        results.map((result) => result.data),
-      ),
-  })
+  return useSuspenseQuery(deskAgentsQueryOptions()).data
 }
