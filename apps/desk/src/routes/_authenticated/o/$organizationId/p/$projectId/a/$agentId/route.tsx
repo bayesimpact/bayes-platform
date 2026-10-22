@@ -2,7 +2,6 @@ import { createFileRoute, notFound, Outlet } from "@tanstack/react-router"
 import { DeskShell } from "@/components/shared/DeskShell"
 import { DeskShellSkeleton } from "@/components/shared/DeskShellSkeleton"
 import { RouteErrorState } from "@/components/shared/RouteErrorState"
-import { CurrentUserMenu } from "@/features/account"
 import {
   AgentSidebarHeader,
   agentPathParams,
@@ -11,8 +10,8 @@ import {
   rememberLastAgent,
 } from "@/features/agents"
 import { AgentHistorySection, NewSessionLink, prefetchAgentHistory } from "@/features/history"
-import { InvitationsButton } from "@/features/invitations"
 import { uuidParams } from "@/lib/not-found"
+import { DeskSidebarFooter } from "@/routes/-components/DeskSidebarFooter"
 
 /**
  * The frame of every page of an agent: the sidebar with the agent switcher and the agent's
@@ -50,14 +49,7 @@ function AgentLayout() {
           <AgentHistorySection agent={historyAgent} />
         </>
       }
-      footer={
-        <div className="flex items-center gap-1">
-          <div className="min-w-0 flex-1">
-            <CurrentUserMenu />
-          </div>
-          <InvitationsButton />
-        </div>
-      }
+      footer={<DeskSidebarFooter />}
       title={agent.name}
     >
       <Outlet />

@@ -29,7 +29,9 @@ export function CopyButton({ text, label: copyLabel }: CopyButtonProps) {
     }
   }
 
-  const label = isCopied ? t`Copied` : copyLabel
+  const label = isCopied
+    ? t({ message: "Copied", comment: "The copy button, once it copied its text" })
+    : copyLabel
   return (
     <Tooltip>
       <TooltipTrigger

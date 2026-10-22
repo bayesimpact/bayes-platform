@@ -132,7 +132,7 @@ msgstr "Accept the general conditions and the privacy policy to continue."
 msgid "Accept the invitation to {name}"
 msgstr "Accept the invitation to {name}"
 
-#: src/components/shared/SignInProblemPage.tsx:41
+#: src/components/shared/SignInProblemPage.tsx:34
 msgid "Account already exists"
 msgstr "Account already exists"
 
@@ -146,8 +146,13 @@ msgid "admin"
 msgstr "admin"
 
 #. What an invitation gives access to
-#: src/features/conversation/components/FormsPanel.tsx:28
 #: src/features/invitations/components/InvitationItem.tsx:20
+msgid "Agent"
+msgstr "Agent"
+
+#. The agent that fills in a form, when it has no name
+#: src/features/conversation/components/FormsPanel.tsx:30
+msgctxt "form"
 msgid "Agent"
 msgstr "Agent"
 
@@ -160,11 +165,11 @@ msgstr "Agent's answers"
 msgid "AI systems usage policy"
 msgstr "AI systems usage policy"
 
-#: src/components/shared/SignInProblemPage.tsx:43
+#: src/components/shared/SignInProblemPage.tsx:35
 msgid "An account already exists for your email address, and this platform does not link a new sign-in to an existing account."
 msgstr "An account already exists for your email address, and this platform does not link a new sign-in to an existing account."
 
-#: src/components/shared/SignInProblemPage.tsx:23
+#: src/components/shared/SignInProblemPage.tsx:25
 msgid "An account is waiting for your email address, but your identity provider has not verified it yet."
 msgstr "An account is waiting for your email address, but your identity provider has not verified it yet."
 
@@ -222,7 +227,7 @@ msgstr "Choose a file"
 msgid "Choose at least one column for the agent to read."
 msgstr "Choose at least one column for the agent to read."
 
-#: src/components/shared/SidePanel.tsx:88
+#: src/components/shared/SidePanel.tsx:87
 msgid "Close the panel"
 msgstr "Close the panel"
 
@@ -238,11 +243,12 @@ msgstr "Completed form"
 msgid "Completing the form"
 msgstr "Completing the form"
 
-#: src/components/shared/SignInProblemPage.tsx:48
+#: src/components/shared/SignInProblemPage.tsx:36
 msgid "Contact your administrator."
 msgstr "Contact your administrator."
 
-#: src/components/shared/CopyButton.tsx:32
+#. The copy button, once it copied its text
+#: src/components/shared/CopyButton.tsx:33
 msgid "Copied"
 msgstr "Copied"
 
@@ -330,6 +336,7 @@ msgstr "Delete this extraction?"
 msgid "Describe the problem in a few words, up to 2,000 characters."
 msgstr "Describe the problem in a few words, up to 2,000 characters."
 
+#. Shows the API's own words on why the extraction failed
 #: src/features/extraction/components/ExtractionFailure.tsx:65
 msgid "Details"
 msgstr "Details"
@@ -364,7 +371,7 @@ msgstr "Drop a file here, or <0>browse</0>"
 msgid "Drop the file to extract it"
 msgstr "Drop the file to extract it"
 
-#: src/components/shared/SignInProblemPage.tsx:52
+#: src/components/shared/SignInProblemPage.tsx:40
 msgid "Each new sign-in ended at once, so the Desk stopped starting new ones."
 msgstr "Each new sign-in ended at once, so the Desk stopped starting new ones."
 
@@ -377,7 +384,7 @@ msgstr "Edit annotation {number}"
 msgid "Edit your name"
 msgstr "Edit your name"
 
-#: src/components/shared/SignInProblemPage.tsx:36
+#: src/components/shared/SignInProblemPage.tsx:29
 msgid "Email address missing"
 msgstr "Email address missing"
 
@@ -493,7 +500,7 @@ msgstr "I accept the general conditions of service"
 msgid "I accept the privacy policy"
 msgstr "I accept the privacy policy"
 
-#: src/components/shared/SignInProblemPage.tsx:74
+#: src/components/shared/SignInProblemPage.tsx:51
 msgid "If it keeps happening, contact your administrator with the message below."
 msgstr "If it keeps happening, contact your administrator with the message below."
 
@@ -526,7 +533,7 @@ msgid "just now"
 msgstr "just now"
 
 #. The column shows beside the results, unread
-#: src/features/extraction/components/ColumnRoleRow.tsx:42
+#: src/features/extraction/components/ColumnRoleRow.tsx:46
 msgid "Keep"
 msgstr "Keep"
 
@@ -582,7 +589,7 @@ msgstr "Next page"
 msgid "No"
 msgstr "No"
 
-#: src/features/agents/components/AgentSwitcher.tsx:88
+#: src/features/agents/components/AgentSwitcher.tsx:89
 msgid "No agent matches this search."
 msgstr "No agent matches this search."
 
@@ -602,7 +609,7 @@ msgstr "No passage to show."
 msgid "No rows"
 msgstr "No rows"
 
-#: src/features/extraction/components/ColumnRoleRow.tsx:23
+#: src/features/extraction/components/ColumnRoleRow.tsx:27
 msgid "No values in the first rows"
 msgstr "No values in the first rows"
 
@@ -653,7 +660,7 @@ msgstr "Open row {rowNumber}"
 msgid "Open the document"
 msgstr "Open the document"
 
-#: src/components/shared/SignInProblemPage.tsx:29
+#: src/components/shared/SignInProblemPage.tsx:26
 msgid "Open the verification email your identity provider sent you, and check your spam folder. Click the link it contains, then try again."
 msgstr "Open the verification email your identity provider sent you, and check your spam folder. Click the link it contains, then try again."
 
@@ -705,7 +712,7 @@ msgid "Project"
 msgstr "Project"
 
 #. The agent reads this column
-#: src/features/extraction/components/ColumnRoleRow.tsx:39
+#: src/features/extraction/components/ColumnRoleRow.tsx:43
 msgid "Read"
 msgstr "Read"
 
@@ -758,11 +765,11 @@ msgstr "Report a problem"
 msgid "Report a problem with this reply"
 msgstr "Report a problem with this reply"
 
-#: src/components/shared/SidePanel.tsx:77
+#: src/components/shared/SidePanel.tsx:76
 msgid "Resize the panel"
 msgstr "Resize the panel"
 
-#: src/components/shared/DeskShell.tsx:59
+#: src/components/shared/DeskShell.tsx:58
 msgid "Resize the sidebar"
 msgstr "Resize the sidebar"
 
@@ -876,22 +883,22 @@ msgstr "Show more"
 msgid "Show the sidebar"
 msgstr "Show the sidebar"
 
-#: src/components/shared/SignInProblemPage.tsx:107
+#: src/components/shared/SignInProblemPage.tsx:85
 #: src/features/account/components/TermsPage.tsx:116
 #: src/features/account/components/UserMenu.tsx:86
 msgid "Sign out"
 msgstr "Sign out"
 
-#: src/components/shared/SignInProblemPage.tsx:58
+#: src/components/shared/SignInProblemPage.tsx:44
 msgid "Sign-in expired"
 msgstr "Sign-in expired"
 
-#: src/components/shared/SignInProblemPage.tsx:72
+#: src/components/shared/SignInProblemPage.tsx:49
 msgid "Sign-in failed"
 msgstr "Sign-in failed"
 
 #. The column is left out
-#: src/features/extraction/components/ColumnRoleRow.tsx:45
+#: src/features/extraction/components/ColumnRoleRow.tsx:49
 msgid "Skip"
 msgstr "Skip"
 
@@ -912,6 +919,7 @@ msgstr "Starting"
 msgid "Starting the extraction…"
 msgstr "Starting the extraction…"
 
+#. Where a row of a CSV run stands
 #: src/features/extraction/components/csv-record-columns.tsx:15
 msgid "Status"
 msgstr "Status"
@@ -1038,7 +1046,7 @@ msgstr "The Desk could not reach the agent. Check your connection."
 msgid "The Desk may not use your microphone. Allow it in your browser, then try again."
 msgstr "The Desk may not use your microphone. Allow it in your browser, then try again."
 
-#: src/components/shared/SignInProblemPage.tsx:38
+#: src/components/shared/SignInProblemPage.tsx:31
 msgid "The Desk needs it to find your invitations. Contact your administrator."
 msgstr "The Desk needs it to find your invitations. Contact your administrator."
 
@@ -1164,7 +1172,7 @@ msgstr "The run started again."
 msgid "The run stopped. The rows done stay."
 msgstr "The run stopped. The rows done stay."
 
-#: src/components/shared/SignInProblemPage.tsx:51
+#: src/components/shared/SignInProblemPage.tsx:39
 msgid "The sign-in keeps failing"
 msgstr "The sign-in keeps failing"
 
@@ -1184,7 +1192,7 @@ msgstr "This page does not exist, or you cannot open it."
 msgid "This reply was interrupted before it finished."
 msgstr "This reply was interrupted before it finished."
 
-#: src/components/shared/SignInProblemPage.tsx:60
+#: src/components/shared/SignInProblemPage.tsx:45
 msgid "This sign-in started too long ago, or another tab started a new one, and this tab can no longer complete it."
 msgstr "This sign-in started too long ago, or another tab started a new one, and this tab can no longer complete it."
 
@@ -1198,7 +1206,7 @@ msgid "Took {tookTime}"
 msgstr "Took {tookTime}"
 
 #: src/components/shared/RouteErrorState.tsx:60
-#: src/components/shared/SignInProblemPage.tsx:103
+#: src/components/shared/SignInProblemPage.tsx:81
 #: src/features/extraction/components/CsvRecordsError.tsx:21
 #: src/features/extraction/components/CsvRunActions.tsx:81
 #: src/features/extraction/components/ExtractionFailure.tsx:59
@@ -1206,11 +1214,11 @@ msgstr "Took {tookTime}"
 msgid "Try again"
 msgstr "Try again"
 
-#: src/components/shared/SignInProblemPage.tsx:54
+#: src/components/shared/SignInProblemPage.tsx:41
 msgid "Try again in a moment. If this page comes back, sign out, then sign in again."
 msgstr "Try again in a moment. If this page comes back, sign out, then sign in again."
 
-#: src/components/shared/SignInProblemPage.tsx:66
+#: src/components/shared/SignInProblemPage.tsx:46
 msgid "Try again to sign in. If this page comes back, close the other tabs of the Desk."
 msgstr "Try again to sign in. If this page comes back, close the other tabs of the Desk."
 
@@ -1230,7 +1238,7 @@ msgstr "Uploading…"
 msgid "Using a tool"
 msgstr "Using a tool"
 
-#: src/components/shared/SignInProblemPage.tsx:21
+#: src/components/shared/SignInProblemPage.tsx:24
 msgid "Verify your email"
 msgstr "Verify your email"
 
@@ -1242,7 +1250,7 @@ msgstr "Waiting for your answer"
 msgid "What should {agentName} read?"
 msgstr "What should {agentName} read?"
 
-#: src/features/extraction/components/ColumnRoleRow.tsx:27
+#: src/features/extraction/components/ColumnRoleRow.tsx:31
 msgid "What the agent does with {name}"
 msgstr "What the agent does with {name}"
 
@@ -1258,7 +1266,7 @@ msgstr "What the agent remembers"
 msgid "What went wrong?"
 msgstr "What went wrong?"
 
-#: src/features/sessions/components/NoAgentState.tsx:11
+#: src/features/agents/components/NoAgentState.tsx:11
 msgid "When someone gives you access to an agent, it appears here."
 msgstr "When someone gives you access to an agent, it appears here."
 
@@ -1296,7 +1304,7 @@ msgstr "You can leave this page: the extraction goes on, and its mark in the sid
 msgid "You declined the invitation to {targetName}."
 msgstr "You declined the invitation to {targetName}."
 
-#: src/features/sessions/components/NoAgentState.tsx:10
+#: src/features/agents/components/NoAgentState.tsx:10
 msgid "You don't have access to an agent yet"
 msgstr "You don't have access to an agent yet"
 
@@ -1313,11 +1321,11 @@ msgstr "Your answer could not be saved. Try again."
 msgid "Your documents"
 msgstr "Your documents"
 
-#: src/components/shared/SignInProblemPage.tsx:37
+#: src/components/shared/SignInProblemPage.tsx:30
 msgid "Your identity provider did not share your email address with the Desk."
 msgstr "Your identity provider did not share your email address with the Desk."
 
-#: src/components/shared/SignInProblemPage.tsx:73
+#: src/components/shared/SignInProblemPage.tsx:50
 msgid "Your identity provider refused the sign-in."
 msgstr "Your identity provider refused the sign-in."
 

@@ -17,6 +17,13 @@ declare global {
   }
 }
 
+declare module "react" {
+  /** A CSS custom property a style sets for its classes to read, such as `--sidebar-width`. */
+  interface CSSProperties {
+    [property: `--${string}`]: string | number | undefined
+  }
+}
+
 /** A catalog of src/locales, compiled by Lingui's Vite plugin on import. */
 declare module "*.po" {
   export const messages: Messages

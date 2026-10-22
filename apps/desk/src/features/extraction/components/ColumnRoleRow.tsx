@@ -1,4 +1,8 @@
-import type { CsvColumnRoleDto, CsvFileColumnOutputDto } from "@caseai-connect/desk-contracts"
+import {
+  type CsvColumnRoleDto,
+  type CsvFileColumnOutputDto,
+  csvColumnRoleSchema,
+} from "@caseai-connect/desk-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { cn } from "cn"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
@@ -31,8 +35,8 @@ export function ColumnRoleRow({ column, role, onRoleChange }: ColumnRoleRowProps
         value={[role]}
         // A toggle group lets every item go: the role stays when the person clicks it again.
         onValueChange={(values) => {
-          const [next] = values
-          if (next === "input" || next === "reference" || next === "ignore") onRoleChange(next)
+          const next = csvColumnRoleSchema.safeParse(values[0])
+          if (next.success) onRoleChange(next.data)
         }}
       >
         <ToggleGroupItem value="input">

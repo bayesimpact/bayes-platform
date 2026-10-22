@@ -62,7 +62,9 @@ export function ExtractionFailure({
         {detail ? (
           <Collapsible className="w-full">
             <CollapsibleTrigger className="text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">
-              <Trans>Details</Trans>
+              <Trans comment="Shows the API's own words on why the extraction failed">
+                Details
+              </Trans>
             </CollapsibleTrigger>
             <CollapsibleContent>
               <pre className="mt-2 rounded-lg bg-muted p-2 font-mono text-xs whitespace-pre-wrap text-muted-foreground">

@@ -25,7 +25,16 @@ export function FormsPanel({ forms, onClose }: FormsPanelProps) {
         {forms.map((form) => (
           <section key={form.agentId} className="flex flex-col gap-3">
             {forms.length > 1 ? (
-              <h3 className="font-medium">{form.agentName ?? <Trans>Agent</Trans>}</h3>
+              <h3 className="font-medium">
+                {form.agentName ?? (
+                  <Trans
+                    context="form"
+                    comment="The agent that fills in a form, when it has no name"
+                  >
+                    Agent
+                  </Trans>
+                )}
+              </h3>
             ) : null}
             <FormFields form={form} />
           </section>

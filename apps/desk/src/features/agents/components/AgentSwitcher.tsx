@@ -1,4 +1,4 @@
-import { useLingui } from "@lingui/react/macro"
+import { Trans, useLingui } from "@lingui/react/macro"
 import { useNavigate } from "@tanstack/react-router"
 import { Fragment } from "react"
 import {
@@ -85,7 +85,9 @@ export function AgentSwitcher({ groups, currentAgent }: AgentSwitcherProps) {
               }
               aria-label={t`Search an agent`}
             />
-            <ComboboxEmpty>{t`No agent matches this search.`}</ComboboxEmpty>
+            <ComboboxEmpty>
+              <Trans>No agent matches this search.</Trans>
+            </ComboboxEmpty>
             <ComboboxList>
               {(item: (typeof items)[number], index: number) => (
                 <Fragment key={item.value}>

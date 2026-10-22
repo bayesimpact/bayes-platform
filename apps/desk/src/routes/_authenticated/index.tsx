@@ -3,16 +3,15 @@ import { DeskLogo } from "@/components/shared/DeskLogo"
 import { DeskShell } from "@/components/shared/DeskShell"
 import { DeskShellSkeleton } from "@/components/shared/DeskShellSkeleton"
 import { RouteErrorState } from "@/components/shared/RouteErrorState"
-import { CurrentUserMenu } from "@/features/account"
 import {
   agentPathParams,
   chooseDefaultAgent,
   flattenDeskAgents,
   loadDeskAgents,
+  NoAgentState,
   readLastAgentId,
 } from "@/features/agents"
-import { InvitationsButton } from "@/features/invitations"
-import { NoAgentState } from "@/features/sessions"
+import { DeskSidebarFooter } from "@/routes/-components/DeskSidebarFooter"
 
 /** The Desk's home opens a new session with the default agent, or says there is none yet. */
 export const Route = createFileRoute("/_authenticated/")({
@@ -34,17 +33,7 @@ export const Route = createFileRoute("/_authenticated/")({
 
 function NoAgentRoute() {
   return (
-    <DeskShell
-      header={<DeskLogo />}
-      footer={
-        <div className="flex items-center gap-1">
-          <div className="min-w-0 flex-1">
-            <CurrentUserMenu />
-          </div>
-          <InvitationsButton />
-        </div>
-      }
-    >
+    <DeskShell header={<DeskLogo />} footer={<DeskSidebarFooter />}>
       <NoAgentState />
     </DeskShell>
   )

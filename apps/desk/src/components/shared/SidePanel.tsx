@@ -1,14 +1,9 @@
 import { useLingui } from "@lingui/react/macro"
 import { XIcon } from "lucide-react"
-import {
-  type CSSProperties,
-  type KeyboardEvent,
-  type ReactNode,
-  useEffect,
-  useId,
-  useRef,
-} from "react"
+import { type KeyboardEvent, type ReactNode, useEffect, useId, useRef } from "react"
 import { Button } from "@/components/ui/button"
+import { useInertPageBehind } from "@/hooks/use-inert-page-behind"
+import { useMediaQuery } from "@/hooks/use-media-query"
 import { useResizableWidth } from "@/hooks/use-resizable-width"
 import { ResizeHandle } from "./ResizeHandle"
 
@@ -25,7 +20,7 @@ export type SidePanelProps = {
  * A panel docked on the right of the page, beside it rather than over it, as an artifact opens in
  * the Claude app: a card with rounded corners and a soft shadow, a little apart from the window's
  * edge, while the page stays in view and usable. Below a laptop's width, which leaves too
- * little room for both, it covers the page.
+ * little room for both, it covers the page, which turns inert behind it as behind a dialog.
  *
  * Opening it moves the focus to its title, so the keyboard and screen readers land in it; Escape
  * closes it from anywhere inside, and the focus goes back to what opened it.
@@ -34,6 +29,10 @@ export function SidePanel({ title, description, onClose, footer, children }: Sid
   const { t } = useLingui()
   const titleId = useId()
   const titleRef = useRef<HTMLHeadingElement>(null)
+  const panelRef = useRef<HTMLElement>(null)
+  // Tailwind's `lg`, from which the panel docks beside the page.
+  const isDocked = useMediaQuery("(min-width: 64rem)")
+  useInertPageBehind(panelRef, !isDocked, '[data-slot="sidebar-wrapper"]')
   const panelWidth = useResizableWidth({
     storageKey: "desk.sidePanelWidth",
     defaultWidth: 384,
@@ -66,10 +65,10 @@ export function SidePanel({ title, description, onClose, footer, children }: Sid
 
   return (
     <aside
+      ref={panelRef}
       onKeyDown={handleKeyDown}
       aria-labelledby={titleId}
-      // Safe: a custom property, which React's style type does not list.
-      style={{ "--side-panel-width": `${panelWidth.width}px` } as CSSProperties}
+      style={{ "--side-panel-width": `${panelWidth.width}px` }}
       className="fixed inset-0 z-30 flex flex-col bg-background duration-200 animate-in fade-in-0 slide-in-from-right-4 lg:relative lg:inset-auto lg:z-20 lg:my-2 lg:mr-2 lg:w-(--side-panel-width) lg:shrink-0 lg:rounded-xl lg:border lg:border-foreground/15 lg:shadow-sm"
     >
       <ResizeHandle

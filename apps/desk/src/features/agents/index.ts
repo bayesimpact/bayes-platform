@@ -1,5 +1,6 @@
 export { refreshDeskAgents } from "./api/queries"
 export { AgentSidebarHeader } from "./components/AgentSidebarHeader"
+export { NoAgentState } from "./components/NoAgentState"
 export {
   chooseDefaultAgent,
   flattenDeskAgents,

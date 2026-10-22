@@ -21,7 +21,7 @@ const TYPES_BY_EXTENSION: Record<string, ExtractionMimeType> = {
 }
 
 const isExtractionMimeType = (type: string): type is ExtractionMimeType =>
-  (EXTRACTION_MIME_TYPES as readonly string[]).includes(type)
+  EXTRACTION_MIME_TYPES.some((mimeType) => mimeType === type)
 
 /** The type the API takes for a file, or `null` when an extraction cannot read it. */
 export function extractionMimeTypeOf(file: {

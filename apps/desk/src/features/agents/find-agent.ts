@@ -1,15 +1,10 @@
+import type { AgentParamsDto } from "@caseai-connect/desk-contracts"
 import {
   chooseDefaultAgent,
   type DeskAgent,
   type DeskProjectAgents,
   flattenDeskAgents,
 } from "./desk-agents"
-
-export type AgentParamsDto = {
-  organizationId: string
-  projectId: string
-  agentId: string
-}
 
 /** The agent of a URL, when the person can use it and it sits in that project. */
 export function findAgent(groups: DeskProjectAgents[], params: AgentParamsDto): DeskAgent | null {

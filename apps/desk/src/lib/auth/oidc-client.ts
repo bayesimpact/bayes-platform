@@ -3,8 +3,9 @@ import { appBasePath, appConfig } from "@/app/config"
 import { buildOidcSettings, OIDC_STORE_PREFIX } from "./oidc-settings"
 
 /**
- * The Desk's sign-in, started from a copy of apps/web's (ADR 0031, section 2.9). It changes with
- * the Desk from now on, never in step with apps/web.
+ * The Desk's sign-in on the install's identity provider: one OIDC client, which signs the person
+ * in and out, completes the provider's return, renews the token before it expires, refreshes it
+ * once under a lock shared by the tabs, and follows the sign-out of another tab.
  */
 
 /** The Desk's root URL on this origin, with its trailing slash: `https://host/app/`. */

@@ -12,8 +12,12 @@ export {
   claimAutomaticSignIn,
   claimLostStateRetry,
   releaseAutomaticSignIn,
+  type SignInCallbackSearch,
   SignInLoopError,
+  type SignInProblem,
   SignInRefusedError,
+  signInCallbackProblemOf,
+  signInCallbackSearchSchema,
 } from "./sign-in-problems"
 
 export function hasSession(): Promise<boolean> {

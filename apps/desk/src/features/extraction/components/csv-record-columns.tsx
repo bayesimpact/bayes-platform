@@ -12,7 +12,7 @@ const columnHelper = createColumnHelper<CsvExtractionRecordOutputDto>()
 /** The texts of the headers, which the table translates. */
 const recordColumnLabels = {
   row: msg({ message: "Row", comment: "The number of a row of a CSV file" }),
-  status: msg`Status`,
+  status: msg({ message: "Status", comment: "Where a row of a CSV run stands" }),
   answers: msg`Agent's answers`,
   file: msg`From the file`,
   failed: msg`The agent could not answer for this row.`,
@@ -42,10 +42,10 @@ export function recordColumnsOf({
       cell: (context) => (
         <button
           type="button"
-          aria-label={openLabel(context.getValue<number>())}
+          aria-label={openLabel(context.getValue())}
           className="rounded-sm text-muted-foreground tabular-nums underline-offset-4 hover:text-foreground hover:underline focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
         >
-          {context.getValue<number>()}
+          {context.getValue()}
         </button>
       ),
       meta: { headerClassName: "w-14", cellClassName: "w-14" },
@@ -94,7 +94,7 @@ export function recordColumnsOf({
             header: column.finalName,
             cell: (context) => (
               <span className="line-clamp-2 break-words text-muted-foreground">
-                {context.getValue<string>()}
+                {context.getValue()}
               </span>
             ),
             meta: {

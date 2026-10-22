@@ -1,6 +1,6 @@
 import { useLingui } from "@lingui/react/macro"
-import { useRouterState } from "@tanstack/react-router"
-import { type CSSProperties, type ReactNode, useEffect, useState } from "react"
+import { useRouter } from "@tanstack/react-router"
+import { type ReactNode, useEffect, useState } from "react"
 import {
   Sidebar,
   SidebarContent,
@@ -44,8 +44,7 @@ export function DeskShell({ header, sidebar, footer, title, children }: DeskShel
   })
   return (
     <SidebarProvider
-      // Safe: a custom property, which React's style type does not list.
-      style={{ "--sidebar-width": `${sidebarWidth.width}px` } as CSSProperties}
+      style={{ "--sidebar-width": `${sidebarWidth.width}px` }}
       // The sidebar eases its width when it opens or closes, but follows a drag at once.
       className={sidebarWidth.isResizing ? "**:transition-none" : undefined}
     >
@@ -80,14 +79,18 @@ export function DeskShell({ header, sidebar, footer, title, children }: DeskShel
 
 /**
  * At phone width, the sidebar opens over the page: a link chosen in it closes it, as the page it
- * opens should show. Navigation is outside React's state, which an effect follows.
+ * opens should show. The router tells when a navigation to another page ends, which an effect
+ * subscribes to.
  */
 function CloseSidebarOnNavigation() {
-  const pathname = useRouterState({ select: (state) => state.location.pathname })
+  const router = useRouter()
   const { setOpenMobile } = useSidebar()
-  // biome-ignore lint/correctness/useExhaustiveDependencies: the path is what triggers it.
-  useEffect(() => {
-    setOpenMobile(false)
-  }, [pathname, setOpenMobile])
+  useEffect(
+    () =>
+      router.subscribe("onResolved", (event) => {
+        if (event.pathChanged) setOpenMobile(false)
+      }),
+    [router, setOpenMobile],
+  )
   return null
 }

@@ -1,4 +1,8 @@
 import type { SignInRefusal } from "@caseai-connect/desk-contracts"
+import { z } from "zod"
+
+/** Why the person cannot get in: a refusal of the API, a loop, a lost or a refused sign-in. */
+export type SignInProblem = SignInRefusal | "loop" | "lostState" | "providerRefused"
 
 /**
  * The API refused the person's first sign-in, and would refuse a new one the same way: the Desk
@@ -54,6 +58,49 @@ export function claimAutomaticSignIn(): boolean {
 /** Whether a lost sign-in state may be tried again on its own now: once a minute at most. */
 export function claimLostStateRetry(): boolean {
   return claimOnce(LOST_STATE_RETRY_KEY, LOST_STATE_RETRY_WINDOW_IN_MILLISECONDS)
+}
+
+/**
+ * What the provider's return says when it refuses, in the query of the callback (RFC 6749,
+ * section 4.1.2.1). A value that does not fit is left out.
+ */
+export const signInCallbackSearchSchema = z.object({
+  error: z.string().optional().catch(undefined),
+  error_description: z.string().optional().catch(undefined),
+})
+
+export type SignInCallbackSearch = z.output<typeof signInCallbackSearchSchema>
+
+/** The words of oidc-client-ts when the state of the sign-in the provider returned from is gone. */
+const LOST_STATE_MESSAGE = "No matching state found in storage"
+
+/**
+ * Whether completing a sign-in failed because this tab lost its state: its storage was cleared,
+ * or another tab started a new sign-in. A new sign-in fixes it, unlike a refusal.
+ */
+function isLostStateError(error: unknown): boolean {
+  return error instanceof Error && error.message.includes(LOST_STATE_MESSAGE)
+}
+
+/** Why completing a sign-in failed, with the provider's words when it refused. */
+export type SignInCallbackProblem =
+  | { problem: "lostState" }
+  | { problem: "providerRefused"; detail: string }
+
+/**
+ * Why completing a sign-in failed: this tab lost its state, which a new sign-in fixes, or the
+ * provider refused, in its own words for support, else in the error's.
+ */
+export function signInCallbackProblemOf(
+  error: unknown,
+  search: SignInCallbackSearch,
+): SignInCallbackProblem {
+  if (isLostStateError(error)) return { problem: "lostState" }
+  const detail =
+    search.error_description ??
+    search.error ??
+    (error instanceof Error ? error.message : String(error))
+  return { problem: "providerRefused", detail }
 }
 
 /** Lets the Desk start a new sign-in at once, when the person asks for one themselves. */
