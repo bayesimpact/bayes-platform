@@ -165,7 +165,7 @@ Controllers and guards MUST follow the context resolver pattern for resource loa
 @RequireContext("organization", "project")
 @Controller()
 export class ExampleController {
-  @Delete("organizations/:organizationId/projects/:projectId/memberships/:membershipId")
+  @Delete("organizations/:organizationId/projects/:projectId/users/:userId")
   @AddContext("projectMembership")
   @CheckPermission(PROJECT_MEMBER_DELETE_PERMISSION, "project")
   async remove(@Req() request: EndpointRequestWithProjectMembership) {
@@ -370,7 +370,7 @@ A new capability touches all of these in one change:
 2. Import it in `apps/api/src/domains/rbac/rbac.constants.ts`, grant it in `ORGANIZATION_ROLE_PERMISSIONS` / `PROJECT_ROLE_PERMISSIONS` / `AGENT_ROLE_PERMISSIONS` / `REVIEW_CAMPAIGN_ROLE_PERMISSIONS`, and describe it in `PERMISSION_DESCRIPTIONS`. Add it to `READ_PERMISSION_RESOURCE_TYPE_MAP` when it is used for listing, and to `RESOURCE_TYPE_PERMISSIONS_MAP` when a parent membership should pass it down to a child resource. A project key granted on a review campaign role also goes in `PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN`.
 3. Update the matching table in `docs/rbac-permission-matrix.md` and run the `check-permission-matrix` skill.
 4. Ship a data migration that inserts the `role_permission` rows, modelled on `src/migrations/1790269217250-analytics-read-permissions.ts` (`up` inserts with `ON CONFLICT DO NOTHING`, `down` deletes). `migration:generate` cannot emit it because there is no schema diff. The running app never re-reads the constants: tests and `seed:rbac` go through `RbacService`, production only knows the migration.
-5. Protect the route with `@CheckPermission(permission)` for a global check, or `@CheckPermission(permission, "organization" | "project" | "agent" | "temp_agent" | "review_campaign")` for a scoped one, with `CheckPermissionGuard` after `JwtAuthGuard` and `UserGuard`. Keep the context resolver or domain guard that puts the resource id on the request. The permission guard only answers whether the permission holds. A key in `PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN` checked on `"project"` also lets that project's campaign testers or reviewers in, so pick a narrower key when they must stay out.
+5. Protect the route with `@CheckPermission(permission)` for a global check, or `@CheckPermission(permission, "organization" | "project" | "agent" | "review_campaign")` for a scoped one, with `CheckPermissionGuard` after `JwtAuthGuard` and `UserGuard`. Keep the context resolver or domain guard that puts the resource id on the request. The permission guard only answers whether the permission holds. A key in `PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN` checked on `"project"` also lets that project's campaign testers or reviewers in, so pick a narrower key when they must stay out.
 6. A service that lists resources calls `PermissionService.listResourceIds(userId, permission)` or `listResourcePermissions(userId, permission)`, then loads those ids through its custom repository. Pass the key you mean: `backoffice.organization.read` is never rewritten to `organization.read`.
 
 Feature services do not query `user_membership` or `role_permission`, and do not compare `membership.role` against a list of allowed roles. Every access check goes through `@CheckPermission` on the route or through `PermissionService`. Do not write a per-domain policy class or a guard that evaluates one.
@@ -449,6 +449,16 @@ const project = this.repo().create({ name: "My Project", organizationId, organiz
 ```
 
 Prefer passing the foreign key ID for consistency.
+
+### Singular Relations: `Relation<T>`
+
+Type a `@ManyToOne` or `@OneToOne` property whose type is the related class as `Relation<T>` (`import { type Relation } from "typeorm"`): SWC's decorator metadata otherwise reads the class and throws `Cannot access 'User' before initialization` in an import cycle. Arrays (`User[]`) and unions (`User | null`) need nothing.
+
+```typescript
+@ManyToOne(() => User)
+@JoinColumn({ name: "user_id" })
+user!: Relation<User>
+```
 
 ### Register New Entities in `ALL_ENTITIES`
 

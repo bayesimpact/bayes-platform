@@ -43,7 +43,14 @@ export const Default: Story = {
       const { baseSeeds, project } = buildStudioData(args)
       const documents = withDocuments
         ? [
-            documentFactory.transient({ project }).build({ sourceType: "webCrawl" }),
+            documentFactory.transient({ project }).build({
+              sourceType: "webCrawl",
+              pages: [
+                { url: "https://example.com/" },
+                { url: "https://example.com/pricing" },
+                { url: "https://example.com/support/getting-started" },
+              ],
+            }),
             documentFactory
               .transient({ project })
               .build({ sourceType: "webCrawl", embeddingStatus: "pending" }),

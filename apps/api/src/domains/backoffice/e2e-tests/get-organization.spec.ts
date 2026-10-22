@@ -83,7 +83,7 @@ describe("Backoffice - get organization", () => {
         userId: user.id,
         userEmail: user.email,
         userName: user.name,
-        role: "owner",
+        roles: [expect.objectContaining({ key: "org_owner", scopeType: "organization" })],
       },
     ])
     expect(returned.projects).toEqual([

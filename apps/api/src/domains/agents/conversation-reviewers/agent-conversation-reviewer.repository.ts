@@ -1,13 +1,9 @@
 import { Injectable } from "@nestjs/common"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
-import {
-  AGENT_CONVERSATION_REVIEWER_MEMBERSHIP_ROLE,
-  AGENT_CONVERSATION_REVIEWER_ROLE,
-} from "@/domains/rbac/rbac.constants"
+import { AGENT_CONVERSATION_REVIEWER_ROLE } from "@/domains/rbac/rbac.constants"
 
-/** The rows holding `agent_conversation_reviewer`, one per person and agent (resource id = agent id). */
-const TEMP_AGENT_RESOURCE_TYPE = "temp_agent" as const
+const AGENT_RESOURCE_TYPE = "agent" as const
 
 export type AgentConversationReviewerRecord = {
   userId: string
@@ -28,9 +24,9 @@ function affectedRows(result: unknown): number {
 }
 
 /**
- * Grants of the `agent_conversation_reviewer` role, stored in `user_membership` on `temp_agent`
- * rows so they never mix with the person's single role on the `agent` resource. The unique index
- * on (user, resource id, resource type) keeps one grant per person and agent.
+ * Grants of the `agent_conversation_reviewer` role: `user_membership` rows on the agent, next to
+ * the person's owner, admin or member row there if any. The unique index on (user, resource
+ * type, resource id, role) keeps one grant per person and agent.
  *
  * Raw SQL, like PlatformRoleRepository: the membership and role tables belong to other domains.
  * Participates in the ambient transaction via TransactionService.getManager().
@@ -43,10 +39,12 @@ export class AgentConversationReviewerRepository {
     const rows: { agentId: string }[] = await this.transactionService.getManager().query(
       `SELECT membership.resource_id AS "agentId"
        FROM "user_membership" AS membership
+       INNER JOIN "role" AS role ON role.id = membership.role_id
        WHERE membership.user_id = $1
          AND membership.resource_type = $2
+         AND role.key = $3
          AND membership.deleted_at IS NULL`,
-      [userId, TEMP_AGENT_RESOURCE_TYPE],
+      [userId, AGENT_RESOURCE_TYPE, AGENT_CONVERSATION_REVIEWER_ROLE],
     )
     return rows.map((row) => row.agentId)
   }
@@ -59,31 +57,27 @@ export class AgentConversationReviewerRepository {
               "user".name AS "name",
               membership.created_at AS "grantedAt"
        FROM "user_membership" AS membership
+       INNER JOIN "role" AS role ON role.id = membership.role_id
        INNER JOIN "user" ON "user".id = membership.user_id
        WHERE membership.resource_type = $1
          AND membership.resource_id = $2
+         AND role.key = $3
          AND membership.deleted_at IS NULL
        ORDER BY LOWER("user".email)`,
-      [TEMP_AGENT_RESOURCE_TYPE, agentId],
+      [AGENT_RESOURCE_TYPE, agentId, AGENT_CONVERSATION_REVIEWER_ROLE],
     )
   }
 
   /** Returns true when the role was granted, false when the user already had it. */
   async grant({ userId, agentId }: { userId: string; agentId: string }): Promise<boolean> {
     const result: unknown = await this.transactionService.getManager().query(
-      `INSERT INTO "user_membership" ("user_id", "resource_type", "resource_id", "role", "role_id")
-       SELECT $1, $2, $3, $4, role.id
+      `INSERT INTO "user_membership" ("user_id", "resource_type", "resource_id", "role_id")
+       SELECT $1, $2, $3, role.id
        FROM "role" AS role
-       WHERE role.key = $5
+       WHERE role.key = $4
        ON CONFLICT DO NOTHING
        RETURNING id`,
-      [
-        userId,
-        TEMP_AGENT_RESOURCE_TYPE,
-        agentId,
-        AGENT_CONVERSATION_REVIEWER_MEMBERSHIP_ROLE,
-        AGENT_CONVERSATION_REVIEWER_ROLE,
-      ],
+      [userId, AGENT_RESOURCE_TYPE, agentId, AGENT_CONVERSATION_REVIEWER_ROLE],
     )
     return affectedRows(result) > 0
   }
@@ -94,12 +88,15 @@ export class AgentConversationReviewerRepository {
    */
   async revoke({ userId, agentId }: { userId: string; agentId: string }): Promise<boolean> {
     const result: unknown = await this.transactionService.getManager().query(
-      `DELETE FROM "user_membership"
-       WHERE user_id = $1
-         AND resource_type = $2
-         AND resource_id = $3
-       RETURNING id`,
-      [userId, TEMP_AGENT_RESOURCE_TYPE, agentId],
+      `DELETE FROM "user_membership" AS membership
+       USING "role" AS role
+       WHERE role.id = membership.role_id
+         AND role.key = $4
+         AND membership.user_id = $1
+         AND membership.resource_type = $2
+         AND membership.resource_id = $3
+       RETURNING membership.id`,
+      [userId, AGENT_RESOURCE_TYPE, agentId, AGENT_CONVERSATION_REVIEWER_ROLE],
     )
     return affectedRows(result) > 0
   }

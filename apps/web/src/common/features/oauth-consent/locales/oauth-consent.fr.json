@@ -1,30 +1,34 @@
 {
   "oauthConsent": {
     "headline": "{{name}} demande l'accès à vos projets",
-    "redirectHost": "Vous serez renvoyé vers {{host}}.",
     "verified": "Vérifiée",
-    "verifiedHint": "Le domaine de cette application a été vérifié.",
     "unverified": "Non vérifiée",
-    "unverifiedHint": "Ce nom est déclaré par l'application elle-même. Ne continuez que si vous faites confiance à {{host}}.",
+    "mcpVerified": "Domaine vérifié · redirection vers <host>{{host}}</host>",
+    "mcpUnverified": "Client non vérifié · redirection vers <host>{{host}}</host>",
     "projects": "Projets",
-    "projectsHint": "L'application n'accède qu'aux projets que vous sélectionnez.",
+    "projectsHint": "L'application n'accède qu'aux projets sélectionnés.",
     "permissions": "Permissions",
     "permissionUnavailable": "Aucun des projets sélectionnés ne le permet.",
-    "selectProjectFirst": "Sélectionnez d'abord un projet.",
-    "noProjects": "Vous n'avez encore aucun projet à partager. Refusez pour revenir à l'application.",
+    "permissionRequired": "Cochez au moins une permission.",
+    "projectRequired": "Sélectionnez au moins un projet.",
+    "noProjects": "Vous n'avez encore aucun projet à partager.",
     "approve": "Autoriser l'accès",
     "approving": "Autorisation…",
     "approved": "Accès accordé. Vous pouvez revenir à {{name}}.",
     "denied": "Accès refusé. Vous pouvez revenir à {{name}}.",
     "invalidRequest": "Ce lien d'autorisation est incomplet ou mal formé. Recommencez depuis l'application.",
-    "appHeadline": "Installer {{name}} sur un espace de travail",
-    "appVerifiedHint": "Cette application est enregistrée par la plateforme.",
+    "appHeadline": "{{name}} demande l'accès à votre espace de travail Bayes",
+    "appVerified": "Application vérifiée · redirection vers <host>{{host}}</host>",
+    "appUnverified": "Application non vérifiée · redirection vers <host>{{host}}</host>",
     "workspace": "Espace de travail",
-    "workspaceHint": "L'application n'accède qu'à l'espace de travail sélectionné, avec son propre compte.",
+    "workspaceHint": "L'application y agira avec son propre compte.",
+    "cancelToApp": "Annuler et revenir à {{name}}",
+    "cancelTerminal": "Annuler et revenir au terminal",
+    "appRevocability": "L'accès peut être révoqué à tout moment depuis les <settings>applications installées</settings> de cet espace. {{name}} n'atteint que l'espace que vous sélectionnez.",
     "selectWorkspaceFirst": "Sélectionnez d'abord un espace de travail.",
     "appPermissionUnavailable": "Vous n'avez pas cette permission sur cet espace de travail.",
-    "noWorkspaces": "Vous ne possédez ni n'administrez aucun espace de travail où installer cette application. Refusez pour revenir à l'application.",
-    "install": "Installer",
+    "noWorkspaces": "Vous ne possédez ni n'administrez aucun espace de travail où installer cette application.",
+    "install": "Installer {{name}}",
     "installing": "Installation…",
     "installed": "{{name}} est installée. Vous pouvez y revenir.",
     "permission": {
@@ -40,6 +44,10 @@
         "name": "Modifier les brouillons d'agents",
         "description": "Changer les réglages en brouillon des agents que vous possédez ou administrez dans les projets sélectionnés (modèle, instructions). La publication reste dans le studio."
       }
+    },
+    "resource": {
+      "project": "Projets",
+      "agent": "Agents"
     },
     "appPermission": {
       "document_read": {
@@ -113,6 +121,21 @@
     },
     "notifications": {
       "approveError": "L'accès n'a pas pu être accordé"
+    },
+    "appResource": {
+      "document": "Documents",
+      "document_source": "Sources de documents",
+      "document_tag": "Tags de documents",
+      "project": "Espace de travail",
+      "agent": "Agents"
+    },
+    "permissionAction": {
+      "read": "Lire",
+      "create": "Créer",
+      "update": "Modifier",
+      "delete": "Supprimer",
+      "conversation_session_external_create": "Discussions externes",
+      "settings_draft_update": "Modifier les brouillons"
     }
   }
 }

@@ -4,6 +4,7 @@ import { InjectDataSource } from "@nestjs/typeorm"
 import { DataSource } from "typeorm"
 import type { PermissionResource, PermissionResourceType, RoleGrant } from "./permission.types"
 import {
+  AGENT_CONVERSATION_REVIEWER_ROLE,
   BACKOFFICE_USER_READ_PERMISSION,
   CATALOG_ROLE_KEYS,
   PARENT_RESOURCE_TYPE_MAP,
@@ -391,8 +392,8 @@ export class PermissionService {
 
   /**
    * All permissions granted by roles held directly on resources of the given type,
-   * restricted to the resources whose role also grants the given permission.
-   * (the permission gates WHICH resources qualify; the full permission set is returned)
+   * restricted to the resources where one of the user's roles grants the given permission.
+   * (the permission gates WHICH resources qualify; the union of the user's roles there is returned)
    */
   private async listDirectResourcePermissionsMatchingPermission(
     userId: string,
@@ -410,8 +411,13 @@ export class PermissionService {
          AND membership.deleted_at IS NULL
          AND EXISTS (
            SELECT 1
-           FROM role_permission required_permission
-           WHERE required_permission.role_id = membership.role_id
+           FROM user_membership gate_membership
+           INNER JOIN role_permission required_permission
+             ON required_permission.role_id = gate_membership.role_id
+           WHERE gate_membership.user_id = membership.user_id
+             AND gate_membership.resource_type = membership.resource_type
+             AND gate_membership.resource_id = membership.resource_id
+             AND gate_membership.deleted_at IS NULL
              AND required_permission.permission_key = $3
          )`,
       [userId, resourceType, permission],
@@ -459,7 +465,9 @@ export class PermissionService {
    *   of every project of the org)
    *
    * NOTE: agent memberships are covered when the agent role grants `user.read`
-   * (agent_owner / agent_admin) and `role_id` is set on the membership.
+   * (agent_owner / agent_admin) and `role_id` is set on the membership. A conversation
+   * reviewer grant does not make its holder visible: the backoffice manages it, not the
+   * agent's admins.
    */
   async listUserIds(userId: string): Promise<ResourceIdsScope> {
     if (await this.hasGlobal(userId, BACKOFFICE_USER_READ_PERMISSION)) {
@@ -475,6 +483,7 @@ export class PermissionService {
          ON other_membership.resource_type = my_membership.resource_type
          AND other_membership.resource_id = my_membership.resource_id
          AND other_membership.deleted_at IS NULL
+         AND other_membership.role_id NOT IN (SELECT role.id FROM role WHERE role.key = $4)
        INNER JOIN "user" other_user
          ON other_user.id = other_membership.user_id
          AND other_user.deleted_at IS NULL
@@ -482,7 +491,7 @@ export class PermissionService {
        WHERE my_membership.user_id = $1
          AND my_membership.resource_id IS NOT NULL
          AND my_membership.deleted_at IS NULL`,
-      [userId, USER_READ_PERMISSION, "human"],
+      [userId, USER_READ_PERMISSION, "human", AGENT_CONVERSATION_REVIEWER_ROLE],
     )
 
     const visibleUserIds = new Set<string>([userId, ...rows.map((row) => row.userId)])
@@ -603,15 +612,21 @@ export class PermissionService {
     return rows[0]?.parentResourceId ?? null
   }
 
+  /** Per resource, the union of the permissions of every role the user holds on it. */
   private groupPermissionsByResourceId(rows: ResourcePermissionRow[]): Map<string, string[]> {
-    const permissionsByResourceId = new Map<string, string[]>()
+    const permissionsByResourceId = new Map<string, Set<string>>()
     for (const row of rows) {
-      const resourcePermissions = permissionsByResourceId.get(row.resourceId) ?? []
-      resourcePermissions.push(row.permissionKey)
+      const resourcePermissions = permissionsByResourceId.get(row.resourceId) ?? new Set()
+      resourcePermissions.add(row.permissionKey)
       permissionsByResourceId.set(row.resourceId, resourcePermissions)
     }
 
-    return permissionsByResourceId
+    return new Map(
+      [...permissionsByResourceId].map(([resourceId, permissions]) => [
+        resourceId,
+        [...permissions],
+      ]),
+    )
   }
 
   private groupRoleGrantsByRoleId(rows: RoleGrantRow[]): Map<string, RoleGrant> {
@@ -677,9 +692,6 @@ const ALL_ALIVE_RESOURCE_IDS_QUERIES: Record<PermissionResourceType, string> = {
   agent: `SELECT agent.id AS "resourceId"
           FROM agent
           WHERE agent.deleted_at IS NULL`,
-  temp_agent: `SELECT agent.id AS "resourceId"
-               FROM agent
-               WHERE agent.deleted_at IS NULL`,
   review_campaign: `SELECT review_campaign.id AS "resourceId"
                     FROM review_campaign
                     WHERE review_campaign.deleted_at IS NULL`,

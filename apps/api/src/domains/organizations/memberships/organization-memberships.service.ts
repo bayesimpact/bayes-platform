@@ -1,7 +1,9 @@
 import { Injectable } from "@nestjs/common"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
+import { hasRole } from "@/domains/memberships/membership-roles"
 import type { Organization } from "@/domains/organizations/organization.entity"
+import { ORGANIZATION_ROLES } from "@/domains/rbac/rbac.constants"
 import type { OrganizationMembershipModel } from "./organization-membership.model"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { OrganizationMembershipRepository } from "./organization-membership.repository"
@@ -40,12 +42,6 @@ export class OrganizationMembershipsService {
     return this.organizationMembershipRepository.findAllByOrganization(organizationId)
   }
 
-  async listAdminAndOwnerMembershipsForUser(
-    userId: string,
-  ): Promise<OrganizationMembershipModel[]> {
-    return this.organizationMembershipRepository.findAdminAndOwnerByUser(userId)
-  }
-
   async listMembershipsByOrganizationIds(
     organizationIds: string[],
   ): Promise<OrganizationMembershipModel[]> {
@@ -76,17 +72,17 @@ export class OrganizationMembershipsService {
       this.organizationMembershipRepository.createMembership({
         userId,
         organizationId,
-        role: "owner",
+        roleKey: ORGANIZATION_ROLES.owner,
       }),
     )
   }
 
   /**
-   * Ensures the user has an admin (or higher) organization membership.
+   * Ensures the user holds `org_admin` or `org_owner` on the organization.
    *
-   * - If they are already admin or owner, no-op.
-   * - If they are a member, promotes them to admin.
-   * - If they have no membership, creates an admin one.
+   * - If they already hold one of them, no-op.
+   * - If they hold `org_member`, switches it to admin.
+   * - Otherwise adds an admin row.
    */
   async upsertOrganizationAdminMembership({
     userId,
@@ -101,29 +97,34 @@ export class OrganizationMembershipsService {
         organizationId,
       })
 
-      if (existing?.role === "admin" || existing?.role === "owner") return
+      if (
+        existing &&
+        (hasRole(existing, ORGANIZATION_ROLES.admin) || hasRole(existing, ORGANIZATION_ROLES.owner))
+      ) {
+        return
+      }
 
-      if (existing) {
-        await this.organizationMembershipRepository.updateRole({
-          membershipId: existing.id,
+      if (existing && hasRole(existing, ORGANIZATION_ROLES.member)) {
+        await this.organizationMembershipRepository.switchRole({
           userId,
           organizationId,
-          role: "admin",
+          fromRoleKey: ORGANIZATION_ROLES.member,
+          toRoleKey: ORGANIZATION_ROLES.admin,
         })
         return
       }
 
-      await this.organizationMembershipRepository.createMembership({
+      await this.organizationMembershipRepository.addRole({
         userId,
         organizationId,
-        role: "admin",
+        roleKey: ORGANIZATION_ROLES.admin,
       })
     })
   }
 
   /**
-   * Ensures the user has a member-level organization membership.
-   * No-op when any membership already exists.
+   * Ensures the user has a role on the organization.
+   * No-op when they already hold any.
    */
   async upsertOrganizationMemberMembership({
     userId,
@@ -142,7 +143,7 @@ export class OrganizationMembershipsService {
       await this.organizationMembershipRepository.createMembership({
         userId,
         organizationId,
-        role: "member",
+        roleKey: ORGANIZATION_ROLES.member,
       })
     })
   }

@@ -1,17 +1,9 @@
-import { Button } from "@caseai-connect/ui/shad/button"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@caseai-connect/ui/shad/table"
-import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table"
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react"
+import { type ColumnDef, getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { BackofficeProjectRoutes } from "@/backoffice/routes/helpers"
+import { DataTable } from "@/common/components/data-table/DataTable"
+import { DEFAULT_PAGE_SIZE, PaginationControls } from "@/common/components/shared/RecordTableParts"
 import { useMount } from "@/common/hooks/use-mount"
 import { useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
@@ -20,8 +12,6 @@ import type { BackofficeProjectListItem } from "../backoffice.models"
 import { selectBackofficeProjects, selectBackofficeProjectsQuery } from "../backoffice.selectors"
 import { backofficeActions } from "../backoffice.slice"
 import { FeatureFlagCell, SearchField } from "./BackofficeTable"
-
-const DEFAULT_PAGE_SIZE = 10
 
 export function ProjectsPanel() {
   const projects = useAppSelector(selectBackofficeProjects)
@@ -41,6 +31,9 @@ export function ProjectsPanel() {
 }
 
 function WithData() {
+  // TanStack Table keeps one table instance across renders, so the React Compiler would
+  // memoize its row model and show stale rows after a search or a page change.
+  "use no memo"
   const projects = useValue(selectBackofficeProjects)
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
@@ -69,40 +62,46 @@ function WithData() {
     () => [
       {
         accessorKey: "name",
-        header: () => <span className="text-muted-foreground">Project</span>,
+        header: () => "Project",
         cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
       },
       {
         accessorKey: "organizationName",
-        header: () => <span className="text-muted-foreground">Organization</span>,
+        header: () => "Organization",
         cell: ({ row }) => (
           <span className="text-sm text-muted-foreground">{row.original.organizationName}</span>
         ),
       },
       {
         id: "featureFlags",
-        header: () => <span className="text-muted-foreground">Feature flags</span>,
+        header: () => "Feature flags",
         cell: ({ row }) => (
-          <FeatureFlagCell
-            projectName={row.original.name}
-            enabledFlags={row.original.featureFlags}
-            onAdd={(featureFlagKey) =>
-              dispatch(
-                backofficeActions.addFeatureFlag({
-                  projectId: row.original.id,
-                  featureFlagKey,
-                }),
-              )
-            }
-            onRemove={(featureFlagKey) =>
-              dispatch(
-                backofficeActions.removeFeatureFlag({
-                  projectId: row.original.id,
-                  featureFlagKey,
-                }),
-              )
-            }
-          />
+          // The row opens the project on click: the flags button and its dialog (portaled, but
+          // inside this React tree) must not.
+          // biome-ignore lint/a11y/noStaticElementInteractions: only stops the click from reaching the row
+          // biome-ignore lint/a11y/useKeyWithClickEvents: keyboard events never reach the row
+          <div onClick={(event) => event.stopPropagation()}>
+            <FeatureFlagCell
+              projectName={row.original.name}
+              enabledFlags={row.original.featureFlags}
+              onAdd={(featureFlagKey) =>
+                dispatch(
+                  backofficeActions.addFeatureFlag({
+                    projectId: row.original.id,
+                    featureFlagKey,
+                  }),
+                )
+              }
+              onRemove={(featureFlagKey) =>
+                dispatch(
+                  backofficeActions.removeFeatureFlag({
+                    projectId: row.original.id,
+                    featureFlagKey,
+                  }),
+                )
+              }
+            />
+          </div>
         ),
       },
     ],
@@ -131,18 +130,6 @@ function WithData() {
     )
   }
 
-  const handleRowClick = (event: React.MouseEvent, projectId: string) => {
-    const target = event.target as HTMLElement
-    // Ignore clicks that bubble through the React tree from portaled UI (e.g. the
-    // feature-flags dialog/overlay), which are not DOM descendants of the row.
-    if (!event.currentTarget.contains(target)) return
-    if (target.closest("[data-no-navigate]")) return
-    navigate(BackofficeProjectRoutes.project.build({ projectId }))
-  }
-
-  const from = projects.total === 0 ? 0 : projects.page * pageSize + 1
-  const to = Math.min((projects.page + 1) * pageSize, projects.total)
-
   return (
     <>
       <div className="p-4 border-b">
@@ -152,74 +139,22 @@ function WithData() {
           placeholder="Search by name or UUID…"
         />
       </div>
-      <Table>
-        <TableHeader className="bg-muted/50">
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <TableHead key={header.id}>
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(header.column.columnDef.header, header.getContext())}
-                </TableHead>
-              ))}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows.length > 0 ? (
-            table.getRowModel().rows.map((row) => (
-              <TableRow
-                key={row.id}
-                className="cursor-pointer hover:bg-muted/50"
-                onClick={(event) => handleRowClick(event, row.original.id)}
-              >
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell
-                colSpan={columns.length}
-                className="h-24 text-center text-muted-foreground"
-              >
-                No results
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-      <div className="flex items-center justify-between p-4 border-t">
-        <span className="text-sm text-muted-foreground">
-          {projects.total === 0 ? "No projects" : `${from}–${to} of ${projects.total}`}
-        </span>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={projects.page <= 0}
-            onClick={() => goToPage(projects.page - 1)}
-          >
-            <ChevronLeftIcon className="size-4" />
-            Previous
-          </Button>
-          <span className="text-sm text-muted-foreground">
-            {projects.page + 1} / {pageCount}
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={projects.page >= pageCount - 1}
-            onClick={() => goToPage(projects.page + 1)}
-          >
-            Next
-            <ChevronRightIcon className="size-4" />
-          </Button>
-        </div>
+      <div className="p-4">
+        <DataTable
+          table={table}
+          onRowClick={(project) =>
+            navigate(BackofficeProjectRoutes.project.build({ projectId: project.id }))
+          }
+          empty={<p className="py-8 text-center text-muted-foreground">No results</p>}
+        />
+        {projects.total > 0 && (
+          <PaginationControls
+            pageIndex={projects.page}
+            pageCount={pageCount}
+            total={projects.total}
+            onPageChange={goToPage}
+          />
+        )}
       </div>
     </>
   )

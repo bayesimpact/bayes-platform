@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto"
 import { ProjectMembershipRoutes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
@@ -28,7 +29,7 @@ describe("Project membership - getMemberAgents", () => {
 
   let organizationId: string
   let projectId: string
-  let membershipId: string
+  let memberUserId: string | null = randomUUID()
   let accessToken: string | undefined = "token"
   let authSubject = "oidc|123"
 
@@ -58,7 +59,7 @@ describe("Project membership - getMemberAgents", () => {
   const subject = async () =>
     request({
       route: ProjectMembershipRoutes.getMemberAgents,
-      pathParams: removeNullish({ organizationId, projectId, membershipId }),
+      pathParams: removeNullish({ organizationId, projectId, userId: memberUserId }),
       token: accessToken,
     })
 
@@ -75,7 +76,7 @@ describe("Project membership - getMemberAgents", () => {
         userId: user.id,
       },
     })
-    membershipId = ownerMembership.id
+    memberUserId = ownerMembership.userId
 
     const agentWithMembership = await repositories.agentRepository.save(
       agentFactory.transient({ organization, project }).build({ name: "Agent A" }),
@@ -101,9 +102,8 @@ describe("Project membership - getMemberAgents", () => {
     expect(rowA).toMatchObject({
       agentName: "Agent A",
       agentType: "conversation",
-      role: "admin",
+      roles: [expect.objectContaining({ key: "agent_admin", scopeType: "agent" })],
     })
-    expect(rowA?.membershipId).toBeTruthy()
     expect([...(rowA?.permissions ?? [])].sort()).toEqual(
       [...AGENT_ROLE_PERMISSIONS.agent_admin].sort(),
     )
@@ -111,18 +111,17 @@ describe("Project membership - getMemberAgents", () => {
     const rowB = rows.find((row: { agentId: string }) => row.agentId === agentWithoutMembership.id)
     expect(rowB).toMatchObject({
       agentName: "Agent B",
-      role: null,
-      membershipId: null,
+      roles: [],
       permissions: [],
     })
   })
 
-  it("should 404 when membershipId does not belong to the project", async () => {
+  it("should 404 when the user is not a member of the project", async () => {
     const { user, organization, project } = await createOrganizationWithProject(repositories)
     organizationId = organization.id
     projectId = project.id
     authSubject = user.authSubject!
-    membershipId = "00000000-0000-0000-0000-000000000000"
+    memberUserId = randomUUID()
 
     const response = await subject()
     expectResponse(response, 404)

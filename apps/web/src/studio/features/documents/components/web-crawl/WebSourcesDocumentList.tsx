@@ -1,6 +1,5 @@
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
-import { Collapsible, CollapsibleTrigger } from "@caseai-connect/ui/shad/collapsible"
 import {
   Dialog,
   DialogContent,
@@ -16,15 +15,8 @@ import {
   DropdownMenuTrigger,
 } from "@caseai-connect/ui/shad/dropdown-menu"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@caseai-connect/ui/shad/sheet"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@caseai-connect/ui/shad/table"
 import { cn } from "@caseai-connect/ui/utils"
+import { type ColumnDef, getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import {
   ChevronDownIcon,
   ChevronRightIcon,
@@ -39,9 +31,10 @@ import {
   SquareIcon,
   Trash2Icon,
 } from "lucide-react"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
+import { DataTable, type DataTableColumnMeta } from "@/common/components/data-table/DataTable"
 import { GridHeader } from "@/common/components/grid/Grid"
 import { MarkdownWrapper } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/MarkdownWrapper"
 import { useGetProjectRoute } from "@/common/hooks/use-get-path"
@@ -71,8 +64,12 @@ import { CrawlUrlButton } from "./CrawlUrlButton"
 import { EmptyWebSources } from "./EmptyWebSources"
 
 export function WebSourcesDocumentList() {
+  // TanStack Table keeps one table instance across renders, so the React Compiler would
+  // memoize its row model and show stale rows after a row is expanded.
+  "use no memo"
   const documents = useValue(selectDocumentsData)
   const documentTags = useValue(selectDocumentTagsData)
+  const crawlProgress = useAppSelector(selectCrawlProgressByDocumentId)
   const navigate = useNavigate()
   const { t } = useTranslation()
 
@@ -82,6 +79,90 @@ export function WebSourcesDocumentList() {
   const handleBack = () => navigate(getProjectRoute)
 
   const hasDocuments = visibleDocuments.length > 0
+
+  const columns = useMemo<ColumnDef<Document>[]>(
+    () => [
+      {
+        id: "title",
+        header: () => t("document:props.title"),
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            {row.getCanExpand() && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-6 shrink-0"
+                aria-expanded={row.getIsExpanded()}
+                onClick={row.getToggleExpandedHandler()}
+              >
+                {row.getIsExpanded() ? (
+                  <ChevronDownIcon className="size-4" />
+                ) : (
+                  <ChevronRightIcon className="size-4" />
+                )}
+              </Button>
+            )}
+            <div className="flex items-center gap-1.5">
+              <GlobeIcon className="size-4 text-muted-foreground shrink-0" />
+              <span className="truncate">{row.original.title}</span>
+            </div>
+          </div>
+        ),
+      },
+      {
+        id: "pages",
+        header: () => t("document:props.pages"),
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">{row.original.pages?.length || "—"}</span>
+        ),
+      },
+      {
+        id: "tags",
+        header: () => t("document:props.tags"),
+        cell: ({ row }) => (
+          <div className="flex flex-wrap gap-1">
+            {row.original.tagIds.map((tagId) => (
+              <Badge key={tagId} variant="secondary" className="text-xs">
+                {getTagFullPath(documentTags, tagId)}
+              </Badge>
+            ))}
+          </div>
+        ),
+      },
+      {
+        id: "embeddingStatus",
+        header: () => t("document:props.embeddingStatus"),
+        cell: ({ row }) => (
+          <CrawlingStatusBadge
+            status={row.original.embeddingStatus}
+            pagesCrawled={crawlProgress[row.original.id]}
+          />
+        ),
+      },
+      {
+        id: "updatedAt",
+        header: () => t("document:props.updatedAt"),
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">{buildSince(row.original.updatedAt)}</span>
+        ),
+      },
+      {
+        id: "actions",
+        meta: { className: "w-10" } satisfies DataTableColumnMeta,
+        header: () => null,
+        cell: ({ row }) => <DocumentActions document={row.original} documentTags={documentTags} />,
+      },
+    ],
+    [crawlProgress, documentTags, t],
+  )
+
+  const table = useReactTable({
+    data: visibleDocuments,
+    columns,
+    getRowId: (document) => document.id,
+    getRowCanExpand: (row) => (row.original.pages?.length ?? 0) > 0,
+    getCoreRowModel: getCoreRowModel(),
+  })
 
   return (
     <div className="w-full">
@@ -101,114 +182,35 @@ export function WebSourcesDocumentList() {
       <div className={cn("flex flex-col gap-6 bg-white", hasDocuments && "p-6")}>
         {!hasDocuments && <EmptyWebSources />}
         {hasDocuments && (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="font-medium rounded-tl-lg bg-muted">
-                  {t("document:props.title")}
-                </TableHead>
-                <TableHead className="font-medium bg-muted">{t("document:props.pages")}</TableHead>
-                <TableHead className="font-medium bg-muted">{t("document:props.tags")}</TableHead>
-                <TableHead className="font-medium bg-muted">
-                  {t("document:props.embeddingStatus")}
-                </TableHead>
-                <TableHead className="font-medium bg-muted">
-                  {t("document:props.updatedAt")}
-                </TableHead>
-                <TableHead className="w-10 rounded-tr-lg bg-muted" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {visibleDocuments.map((document) => (
-                <DocumentRow key={document.id} document={document} documentTags={documentTags} />
-              ))}
-            </TableBody>
-          </Table>
+          <DataTable
+            table={table}
+            empty={null}
+            renderExpanded={(row) => <CrawledPages pages={row.original.pages ?? []} />}
+          />
         )}
       </div>
     </div>
   )
 }
 
-function DocumentRow({
-  document,
-  documentTags,
-}: {
-  document: Document
-  documentTags: DocumentTag[]
-}) {
-  const date = buildSince(document.updatedAt)
-  const isWebCrawl = document.sourceType === "webCrawl"
-  const hasPages = document.pages && document.pages.length > 0
-  const pagesCrawled = useAppSelector(selectCrawlProgressByDocumentId)[document.id]
-
-  const [isOpen, setIsOpen] = useState(false)
-
+function CrawledPages({ pages }: { pages: NonNullable<Document["pages"]> }) {
   return (
-    <>
-      <TableRow>
-        <TableCell>
-          <div className="flex items-center gap-2">
-            {hasPages && (
-              <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-                <CollapsibleTrigger asChild>
-                  <Button variant="ghost" size="icon" className="size-6 shrink-0">
-                    {isOpen ? (
-                      <ChevronDownIcon className="size-4" />
-                    ) : (
-                      <ChevronRightIcon className="size-4" />
-                    )}
-                  </Button>
-                </CollapsibleTrigger>
-              </Collapsible>
-            )}
-            <div className="flex items-center gap-1.5">
-              {isWebCrawl && <GlobeIcon className="size-4 text-muted-foreground shrink-0" />}
-              <span className="truncate">{document.title}</span>
-            </div>
-          </div>
-        </TableCell>
-
-        <TableCell className="text-muted-foreground">
-          {hasPages ? document.pages!.length : "—"}
-        </TableCell>
-
-        <TableCell>
-          <div className="flex flex-wrap gap-1">
-            {document.tagIds.map((tagId) => (
-              <Badge key={tagId} variant="secondary" className="text-xs">
-                {getTagFullPath(documentTags, tagId)}
-              </Badge>
-            ))}
-          </div>
-        </TableCell>
-        <TableCell>
-          <CrawlingStatusBadge status={document.embeddingStatus} pagesCrawled={pagesCrawled} />
-        </TableCell>
-        <TableCell className="text-muted-foreground">{date}</TableCell>
-        <TableCell>
-          <DocumentActions document={document} documentTags={documentTags} />
-        </TableCell>
-      </TableRow>
-      {document.pages && isOpen
-        ? document.pages.map((page) => (
-            <TableRow key={page.url} className="bg-muted/30">
-              <TableCell colSpan={5} className="pl-16 max-w-0">
-                <a
-                  href={page.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  title={page.url}
-                  className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors min-w-0"
-                >
-                  <ExternalLinkIcon className="size-3.5 shrink-0" />
-                  <span className="block truncate min-w-0 flex-1">{page.url}</span>
-                </a>
-              </TableCell>
-            </TableRow>
-          ))
-        : null}
-    </>
+    <ul className="divide-y">
+      {pages.map((page) => (
+        <li key={page.url} className="py-2 pr-2 pl-16">
+          <a
+            href={page.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            title={page.url}
+            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors min-w-0"
+          >
+            <ExternalLinkIcon className="size-3.5 shrink-0" />
+            <span className="block truncate min-w-0 flex-1">{page.url}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
   )
 }
 

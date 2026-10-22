@@ -141,7 +141,6 @@ describe("Projects - Auth", () => {
           userId: user.id,
           resourceType: "organization",
           resourceId: otherOrganization.id,
-          role: "member",
           roleId: memberRole.id,
         }),
       )

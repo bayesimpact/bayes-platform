@@ -2,7 +2,6 @@ import { randomUUID } from "node:crypto"
 import {
   AgentSessionMessagesRoutes,
   type BaseAgentSessionTypeDto,
-  type ProjectMembershipRoleDto,
 } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
@@ -22,6 +21,7 @@ import {
   createOrganizationWithAgent,
   createOrganizationWithAgentMessage,
 } from "@/domains/organizations/organization.factory"
+import type { ProjectMembershipRole } from "@/domains/projects/memberships/project-membership.types"
 import { addUserToReviewCampaign } from "@/domains/review-campaigns/memberships/review-campaign-membership.factory"
 import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
 import {
@@ -82,7 +82,7 @@ describe("Agent Session Messages - Auth", () => {
   // Seeds an organization/project (membership at `role`) + conversation agent, a session of `type`
   // owned by the caller with one message, and an attachment document, so every route has a target.
   const createContextForRole = async (
-    role: ProjectMembershipRoleDto,
+    role: ProjectMembershipRole,
     type: BaseAgentSessionTypeDto = "live",
   ) => {
     const { organization, project, agent, agentSession, agentMessage, user } =

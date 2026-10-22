@@ -1,11 +1,6 @@
-import {
-  type AgentMembershipRoleDto,
-  type FeatureFlagKey,
-  FeatureFlags,
-  type OrganizationMembershipRoleDto,
-  type ProjectMembershipRoleDto,
-} from "@caseai-connect/api-contracts"
+import { type FeatureFlagKey, FeatureFlags } from "@caseai-connect/api-contracts"
 import { ROLES } from "@/common/features/me/me.models"
+import type { LegacyMembershipRole } from "@/common/features/memberships/membership-roles"
 import type { Project } from "@/common/features/projects/projects.models"
 
 export function sortRecentlyCreated<T extends { createdAt: number }>(a: T, b: T) {
@@ -13,9 +8,9 @@ export function sortRecentlyCreated<T extends { createdAt: number }>(a: T, b: T)
 }
 
 export type BaseStoryArgs = {
-  organizationMembershipRole: OrganizationMembershipRoleDto
-  projectMembershipRole: ProjectMembershipRoleDto
-  agentMembershipRole: AgentMembershipRoleDto
+  organizationMembershipRole: LegacyMembershipRole
+  projectMembershipRole: LegacyMembershipRole
+  agentMembershipRole: LegacyMembershipRole
   featureFlags?: Project["featureFlags"]
 }
 

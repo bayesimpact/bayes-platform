@@ -4,96 +4,61 @@ import { In, type Repository } from "typeorm"
 import { TransactionService } from "@/common/transaction/transaction.service"
 import { Agent } from "@/domains/agents/agent.entity"
 import {
-  getMembershipResourceId,
-  UserMembership,
-} from "@/domains/memberships/user-membership.entity"
-import { resolveAgentRoleId } from "@/domains/rbac/resolve-agent-role-id"
+  groupMembershipRows,
+  type MembershipRowGroup,
+  resourceIdOf,
+} from "@/domains/memberships/membership-roles"
+import { UserMembership } from "@/domains/memberships/user-membership.entity"
+import { requireRoleId } from "@/domains/rbac/resolve-role-id"
 import { HUMAN_USER_TYPE_FILTER } from "@/domains/users/service-user.helpers"
 import type { AgentMembershipModel } from "./agent-membership.model"
-import type { AgentMembershipRole } from "./agent-membership.types"
 
 const AGENT_RESOURCE_TYPE = "agent" as const
+const MEMBERSHIP_RELATIONS = { user: true, rbacRole: true } as const
 
 /**
  * Repository for agent memberships.
  *
- * Reads and writes the unified `user_membership` table with
- * `resourceType = 'agent'`.
+ * Reads and writes the unified `user_membership` table with `resourceType = 'agent'`. A person
+ * holds one row per role on an agent; reads group them into one model per person.
  */
 @Injectable()
 export class AgentMembershipRepository {
   constructor(private readonly transactionService: TransactionService) {}
 
-  async findById({
-    membershipId,
-    agentId,
-  }: {
-    membershipId: string
-    agentId?: string
-  }): Promise<AgentMembershipModel | null> {
-    const membership = await this.userMembershipRepo().findOne({
-      where: {
-        id: membershipId,
-        resourceType: AGENT_RESOURCE_TYPE,
-        ...(agentId ? { resourceId: agentId } : {}),
-      },
-      relations: ["user"],
-    })
-    if (!membership) return null
-    if (!membership.resourceId) return null
-
-    const agent = await this.agentRepo().findOne({ where: { id: membership.resourceId } })
-    if (!agent) return null
-
-    return this.toModel(membership, agent)
-  }
-
   async findAllByAgent(agentId: string): Promise<AgentMembershipModel[]> {
-    const memberships = await this.userMembershipRepo().find({
+    const rows = await this.userMembershipRepo().find({
       where: {
         resourceType: AGENT_RESOURCE_TYPE,
         resourceId: agentId,
         user: HUMAN_USER_TYPE_FILTER,
       },
-      relations: ["user"],
-      order: { createdAt: "DESC" },
+      relations: MEMBERSHIP_RELATIONS,
     })
     const agent = await this.agentRepo().findOneOrFail({ where: { id: agentId } })
-    return memberships.map((membership) => this.toModel(membership, agent))
+    return this.newestFirst(groupMembershipRows(rows)).map((group) => this.toModel(group, agent))
   }
 
   async findAllByUser(userId: string): Promise<AgentMembershipModel[]> {
-    const memberships = await this.userMembershipRepo().find({
+    const rows = await this.userMembershipRepo().find({
       where: { userId, resourceType: AGENT_RESOURCE_TYPE },
-      relations: ["user"],
-      order: { createdAt: "DESC" },
+      relations: MEMBERSHIP_RELATIONS,
     })
-    return this.toModels(memberships)
-  }
-
-  async findAdminAndOwnerByUser(userId: string): Promise<AgentMembershipModel[]> {
-    const memberships = await this.userMembershipRepo().find({
-      where: [
-        { userId, resourceType: AGENT_RESOURCE_TYPE, role: "admin" },
-        { userId, resourceType: AGENT_RESOURCE_TYPE, role: "owner" },
-      ],
-      relations: ["user"],
-    })
-    return this.toModels(memberships)
+    return this.toModels(this.newestFirst(groupMembershipRows(rows)))
   }
 
   async findAllByAgentIds(agentIds: string[]): Promise<AgentMembershipModel[]> {
     if (agentIds.length === 0) return []
 
-    const memberships = await this.userMembershipRepo().find({
+    const rows = await this.userMembershipRepo().find({
       where: {
         resourceType: AGENT_RESOURCE_TYPE,
         resourceId: In(agentIds),
         user: HUMAN_USER_TYPE_FILTER,
       },
-      relations: ["user"],
+      relations: MEMBERSHIP_RELATIONS,
     })
-    return this.toModels(memberships)
+    return this.toModels(groupMembershipRows(rows))
   }
 
   async findByUserAndAgent({
@@ -103,20 +68,8 @@ export class AgentMembershipRepository {
     userId: string
     agentId: string
   }): Promise<AgentMembershipModel | null> {
-    const membership = await this.userMembershipRepo().findOne({
-      where: {
-        userId,
-        resourceType: AGENT_RESOURCE_TYPE,
-        resourceId: agentId,
-      },
-      relations: ["user"],
-    })
-    if (!membership) return null
-
-    const agent = await this.agentRepo().findOne({ where: { id: agentId } })
-    if (!agent) return null
-
-    return this.toModel(membership, agent)
+    const [membership] = await this.findByUserAndAgents({ userId, agentIds: [agentId] })
+    return membership ?? null
   }
 
   async findByUserAndAgents({
@@ -128,97 +81,100 @@ export class AgentMembershipRepository {
   }): Promise<AgentMembershipModel[]> {
     if (agentIds.length === 0) return []
 
-    const memberships = await this.userMembershipRepo().find({
+    const rows = await this.userMembershipRepo().find({
       where: { userId, resourceType: AGENT_RESOURCE_TYPE, resourceId: In(agentIds) },
-      relations: ["user"],
+      relations: MEMBERSHIP_RELATIONS,
     })
-    return this.toModels(memberships)
+    return this.toModels(groupMembershipRows(rows))
+  }
+
+  /** Gives the person the role on the agent. Does nothing when they already hold it. */
+  async addRole({
+    userId,
+    agentId,
+    roleKey,
+  }: {
+    userId: string
+    agentId: string
+    roleKey: string
+  }): Promise<void> {
+    const roleId = await requireRoleId(this.transactionService.getManager(), roleKey)
+    await this.userMembershipRepo()
+      .createQueryBuilder()
+      .insert()
+      .values({ userId, resourceType: AGENT_RESOURCE_TYPE, resourceId: agentId, roleId })
+      .orIgnore()
+      .execute()
+  }
+
+  /**
+   * Moves the person from one role to another on the agent, keeping the row (and so its id) when
+   * they did not hold the new role yet. Does nothing when they do not hold the old one.
+   */
+  async switchRole({
+    userId,
+    agentId,
+    fromRoleKey,
+    toRoleKey,
+  }: {
+    userId: string
+    agentId: string
+    fromRoleKey: string
+    toRoleKey: string
+  }): Promise<void> {
+    const manager = this.transactionService.getManager()
+    const fromRoleId = await requireRoleId(manager, fromRoleKey)
+    const toRoleId = await requireRoleId(manager, toRoleKey)
+    const where = { userId, resourceType: AGENT_RESOURCE_TYPE, resourceId: agentId }
+
+    const holdsTarget = await this.userMembershipRepo().exists({
+      where: { ...where, roleId: toRoleId },
+    })
+    if (holdsTarget) {
+      await this.userMembershipRepo().delete({ ...where, roleId: fromRoleId })
+      return
+    }
+    await this.userMembershipRepo().update({ ...where, roleId: fromRoleId }, { roleId: toRoleId })
   }
 
   async createMembership({
     userId,
     agentId,
-    role,
+    roleKey,
   }: {
     userId: string
     agentId: string
-    role: AgentMembershipRole
+    roleKey: string
   }): Promise<AgentMembershipModel> {
-    const manager = this.transactionService.getManager()
-    const roleId = await resolveAgentRoleId(manager, role)
-    const saved = await this.userMembershipRepo().save(
-      this.userMembershipRepo().create({
-        userId,
-        resourceType: AGENT_RESOURCE_TYPE,
-        resourceId: agentId,
-        role,
-        roleId,
-      }),
-    )
-    const withUser = await this.userMembershipRepo().findOneOrFail({
-      where: { id: saved.id },
-      relations: ["user"],
-    })
-    const agent = await this.agentRepo().findOneOrFail({ where: { id: agentId } })
-    return this.toModel(withUser, agent)
+    await this.addRole({ userId, agentId, roleKey })
+    const membership = await this.findByUserAndAgent({ userId, agentId })
+    if (!membership) throw new Error(`Agent ${agentId} not found`)
+    return membership
   }
 
-  async updateRole({
-    membershipId,
-    agentId,
-    role,
-  }: {
-    membershipId: string
-    userId: string
-    agentId: string
-    role: AgentMembershipRole
-  }): Promise<void> {
-    const manager = this.transactionService.getManager()
-    const roleId = await resolveAgentRoleId(manager, role)
-    await this.userMembershipRepo().update(
-      {
-        id: membershipId,
-        resourceType: AGENT_RESOURCE_TYPE,
-        resourceId: agentId,
-      },
-      { role, roleId },
-    )
-  }
-
-  async deleteMembership({
-    membershipId,
-    agentId,
-    userId,
-  }: {
-    membershipId: string
-    agentId: string
-    userId: string
-  }): Promise<void> {
-    await this.userMembershipRepo().delete({
-      id: membershipId,
-      userId,
-      resourceType: AGENT_RESOURCE_TYPE,
-      resourceId: agentId,
-    })
-  }
-
+  /** Removes the roles the person holds on the agents, or every role when `roleKeys` is omitted. */
   async deleteMembershipsForUserAndAgents({
     userId,
     agentIds,
+    roleKeys,
   }: {
     userId: string
     agentIds: string[]
+    roleKeys?: string[]
   }): Promise<void> {
     if (agentIds.length === 0) return
 
-    await this.userMembershipRepo()
-      .createQueryBuilder()
-      .delete()
-      .where(
-        '"user_id" = :userId AND "resource_type" = :resourceType AND "resource_id" = ANY(:agentIds)',
-        { userId, resourceType: AGENT_RESOURCE_TYPE, agentIds },
-      )
-      .execute()
+    await this.transactionService.getManager().query(
+      `DELETE FROM user_membership AS membership
+       WHERE membership.user_id = $1
+         AND membership.resource_type = $2
+         AND membership.resource_id = ANY($3)
+         AND (
+           $4::varchar[] IS NULL
+           OR membership.role_id IN (SELECT role.id FROM role WHERE role.key = ANY($4))
+         )`,
+      [userId, AGENT_RESOURCE_TYPE, agentIds, roleKeys ?? null],
+    )
   }
 
   async softDeleteAllByAgent(agentId: string): Promise<void> {
@@ -236,39 +192,31 @@ export class AgentMembershipRepository {
     return this.transactionService.getManager().getRepository(Agent)
   }
 
-  private async toModels(memberships: UserMembership[]): Promise<AgentMembershipModel[]> {
-    if (memberships.length === 0) return []
+  private newestFirst(groups: MembershipRowGroup[]): MembershipRowGroup[] {
+    return [...groups].sort((left, right) => right.createdAt.getTime() - left.createdAt.getTime())
+  }
 
-    const agentIds = [
-      ...new Set(
-        memberships
-          .map((membership) => membership.resourceId)
-          .filter((resourceId): resourceId is string => resourceId !== null),
-      ),
-    ]
+  private async toModels(groups: MembershipRowGroup[]): Promise<AgentMembershipModel[]> {
+    if (groups.length === 0) return []
+
+    const agentIds = [...new Set(groups.map((group) => resourceIdOf(group)))]
     const agents = await this.agentRepo().find({ where: { id: In(agentIds) } })
     const agentById = new Map(agents.map((agent) => [agent.id, agent]))
 
-    return memberships.flatMap((membership) => {
-      if (!membership.resourceId) {
-        return []
-      }
-      const agent = agentById.get(membership.resourceId)
-      return agent ? [this.toModel(membership, agent)] : []
+    return groups.flatMap((group) => {
+      const agent = agentById.get(resourceIdOf(group))
+      return agent ? [this.toModel(group, agent)] : []
     })
   }
 
-  private toModel(membership: UserMembership, agent: Agent): AgentMembershipModel {
+  private toModel(group: MembershipRowGroup, agent: Agent): AgentMembershipModel {
     return {
-      id: membership.id,
-      userId: membership.userId,
-      agentId: getMembershipResourceId(membership),
-      role: membership.role as AgentMembershipRole,
-      roleId: membership.roleId,
-      createdAt: membership.createdAt,
-      updatedAt: membership.updatedAt,
-      deletedAt: membership.deletedAt,
-      user: membership.user,
+      userId: group.userId,
+      agentId: resourceIdOf(group),
+      roles: group.roles,
+      createdAt: group.createdAt,
+      updatedAt: group.updatedAt,
+      user: group.user,
       agent,
     }
   }

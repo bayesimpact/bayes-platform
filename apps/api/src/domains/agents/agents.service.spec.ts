@@ -8,6 +8,7 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { agentFactory } from "@/domains/agents/agent.factory"
+import { grantConversationReview } from "@/domains/agents/conversation-reviewers/agent-conversation-reviewer.factory"
 import {
   createOrganizationWithAgent,
   createOrganizationWithProject,
@@ -122,6 +123,7 @@ describe("AgentsService", () => {
 
       const memberships = await repositories.userMembershipRepository.find({
         where: { resourceType: "agent", resourceId: agent.id },
+        relations: { rbacRole: true },
       })
 
       // Owner (creator) + admin = 2 memberships
@@ -129,11 +131,11 @@ describe("AgentsService", () => {
 
       const ownerMembership = memberships.find((membership) => membership.userId === user.id)
       expect(ownerMembership).toBeDefined()
-      expect(ownerMembership?.role).toBe("owner")
+      expect(ownerMembership?.rbacRole?.key).toBe("agent_owner")
 
       const adminMembership = memberships.find((membership) => membership.userId === adminUser.id)
       expect(adminMembership).toBeDefined()
-      expect(adminMembership?.role).toBe("admin")
+      expect(adminMembership?.rbacRole?.key).toBe("agent_admin")
 
       // Member should NOT have an agent membership
       const memberMembership = memberships.find((membership) => membership.userId === memberUser.id)
@@ -420,7 +422,8 @@ describe("AgentsService", () => {
     })
 
     it("should soft-delete agent memberships when deleting an agent", async () => {
-      const { agent } = await createOrganizationWithAgent(repositories)
+      const { agent, user } = await createOrganizationWithAgent(repositories)
+      await grantConversationReview({ repositories, user, agent })
 
       await service.deleteAgent(agent)
 
@@ -433,7 +436,8 @@ describe("AgentsService", () => {
         where: { resourceType: "agent", resourceId: agent.id },
         withDeleted: true,
       })
-      expect(softDeletedMemberships.length).toBeGreaterThan(0)
+      // the owner row and the conversation review grant
+      expect(softDeletedMemberships).toHaveLength(2)
       expect(softDeletedMemberships.every((membership) => membership.deletedAt !== null)).toBe(true)
     })
   })

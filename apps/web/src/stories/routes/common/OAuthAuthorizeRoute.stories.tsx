@@ -1,3 +1,5 @@
+import { APP_GRANTABLE_PERMISSIONS } from "@caseai-connect/api-contracts"
+import { faker } from "@faker-js/faker"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { Provider } from "react-redux"
 import { createMemoryRouter, RouterProvider } from "react-router-dom"
@@ -16,6 +18,8 @@ type StoryArgs = {
   kind: "mcp" | "app"
   verified: boolean
   withProjects: boolean
+  singleWorkspace: boolean
+  manyItems: boolean
   invalidRequest: boolean
 }
 
@@ -54,27 +58,55 @@ const appWorkspaces = [
     organizationName: "Acme",
     availablePermissions: ["document.read"],
   }),
+  oauthConsentProjectFactory.build({
+    name: "Product handbook and release notes",
+    organizationName: "Globex",
+    availablePermissions: appPermissions,
+  }),
 ]
 
-function buildPage({ kind, verified, withProjects }: StoryArgs) {
+const manyAppWorkspaces = [
+  { organizationName: "Acme", names: ["Support", "Pricing", "Sales", "Marketing", "Finance"] },
+  { organizationName: "Globex", names: ["Product", "Design", "Research", "Engineering"] },
+  { organizationName: "Initech", names: ["Operations", "Legal", "Onboarding", "Partners"] },
+].flatMap(({ organizationName, names }) => {
+  const organizationId = faker.string.uuid()
+  return names.map((name) =>
+    oauthConsentProjectFactory.build({
+      name,
+      organizationId,
+      organizationName,
+      availablePermissions: [...APP_GRANTABLE_PERMISSIONS],
+    }),
+  )
+})
+
+function appWorkspacesFor({ withProjects, singleWorkspace, manyItems }: StoryArgs) {
+  if (!withProjects) return []
+  if (manyItems) return manyAppWorkspaces
+  return singleWorkspace ? appWorkspaces.slice(0, 1) : appWorkspaces
+}
+
+function buildPage(args: StoryArgs) {
+  const { kind, verified } = args
   if (kind === "app") {
     return oauthConsentPageFactory.build({
       client: {
         kind: "app",
         name: "Helpful Assistant",
         redirectHost: "app.example.com",
-        verified: true,
+        verified,
         description: "Keeps the workspace's documents in sync with a website.",
       },
-      projects: withProjects ? appWorkspaces : [],
-      grantablePermissions: appPermissions,
+      projects: appWorkspacesFor(args),
+      grantablePermissions: args.manyItems ? [...APP_GRANTABLE_PERMISSIONS] : appPermissions,
     })
   }
   return oauthConsentPageFactory.build({
     client: verified
       ? { name: "Helpful Assistant", redirectHost: "app.example.com", verified: true }
       : { name: "Helpful Assistant", redirectHost: "127.0.0.1", verified: false },
-    projects: withProjects ? projects : [],
+    projects: args.withProjects ? (args.singleWorkspace ? projects.slice(0, 1) : projects) : [],
   })
 }
 
@@ -104,12 +136,16 @@ const meta = {
     kind: { control: "inline-radio", options: ["mcp", "app"] },
     verified: { control: "boolean" },
     withProjects: { control: "boolean" },
+    singleWorkspace: { control: "boolean" },
+    manyItems: { control: "boolean" },
     invalidRequest: { control: "boolean" },
   },
   args: {
     kind: "mcp",
     verified: true,
     withProjects: true,
+    singleWorkspace: false,
+    manyItems: false,
     invalidRequest: false,
   },
   render: renderRoute,
@@ -118,19 +154,40 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-export const Verified: Story = {}
+/** An MCP client, such as an AI assistant, asks to act as the person on the projects they pick. */
+export const McpConnect: Story = {}
 
-export const Unverified: Story = {
+/** An MCP client whose name the platform has not verified: the screen warns before access is granted. */
+export const McpConnectUnverified: Story = {
   args: { verified: false },
 }
 
-export const NoProjects: Story = {
+/** A single project is picked from the start, so the permissions show. */
+export const McpConnectOneProject: Story = {
+  args: { singleWorkspace: true },
+}
+
+export const McpConnectNoProjects: Story = {
   args: { withProjects: false },
 }
 
-/** An app installed on one workspace, with the permissions of its manifest. */
+/** An app installed on one workspace chosen from the list, with the permissions of its manifest. */
 export const AppInstall: Story = {
   args: { kind: "app" },
+}
+
+/** An app the platform has not registered: the screen warns before the person installs it. */
+export const AppInstallUnverified: Story = {
+  args: { kind: "app", verified: false },
+}
+
+export const AppInstallOneWorkspace: Story = {
+  args: { kind: "app", singleWorkspace: true },
+}
+
+/** Many workspaces go in a select, and every permission an app can ask for fits in a few rows. */
+export const AppInstallManyItems: Story = {
+  args: { kind: "app", manyItems: true },
 }
 
 export const AppInstallNoWorkspaces: Story = {

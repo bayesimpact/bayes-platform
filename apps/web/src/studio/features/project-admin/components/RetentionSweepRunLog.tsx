@@ -1,16 +1,11 @@
 import { Badge } from "@caseai-connect/ui/shad/badge"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@caseai-connect/ui/shad/table"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/ui/shad/tooltip"
+import { type ColumnDef, getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import { format } from "date-fns"
 import { InfoIcon } from "lucide-react"
+import { useMemo } from "react"
 import { useTranslation } from "react-i18next"
+import { DataTable } from "@/common/components/data-table/DataTable"
 import { MarkdownWrapper } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/MarkdownWrapper"
 import type {
   RetentionSweepRun,
@@ -42,46 +37,63 @@ export function RetentionSweepRunLog({ log }: { log: RetentionSweepRuns }) {
       {log.runs.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t("projectAdmin:retention.logEmpty")}</p>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t("projectAdmin:retention.columnDate")}</TableHead>
-              <TableHead>{t("projectAdmin:retention.columnPurged")}</TableHead>
-              <TableHead>{t("projectAdmin:retention.columnStatus")}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {log.runs.map((run) => (
-              <RetentionSweepRunRow key={run.id} run={run} />
-            ))}
-          </TableBody>
-        </Table>
+        <RetentionSweepRunTable runs={log.runs} />
       )}
     </div>
   )
 }
 
-function RetentionSweepRunRow({ run }: { run: RetentionSweepRun }) {
+function RetentionSweepRunTable({ runs }: { runs: RetentionSweepRun[] }) {
+  // TanStack Table keeps one table instance across renders, so the React Compiler would
+  // memoize its row model and show stale rows.
+  "use no memo"
+  const { t } = useTranslation()
   const locale = getLocale()
 
+  const columns = useMemo<ColumnDef<RetentionSweepRun>[]>(
+    () => [
+      {
+        id: "date",
+        header: () => t("projectAdmin:retention.columnDate"),
+        cell: ({ row }) => format(row.original.ranAt, "PPp", { locale }),
+      },
+      {
+        id: "purged",
+        header: () => t("projectAdmin:retention.columnPurged"),
+        cell: ({ row }) => row.original.purgedCount,
+      },
+      {
+        id: "status",
+        header: () => t("projectAdmin:retention.columnStatus"),
+        cell: ({ row }) => <RetentionSweepRunStatusCell run={row.original} />,
+      },
+    ],
+    [t, locale],
+  )
+
+  const table = useReactTable({
+    data: runs,
+    columns,
+    getRowId: (run) => run.id,
+    getCoreRowModel: getCoreRowModel(),
+  })
+
+  return <DataTable table={table} empty={t("projectAdmin:retention.logEmpty")} />
+}
+
+function RetentionSweepRunStatusCell({ run }: { run: RetentionSweepRun }) {
   return (
-    <TableRow>
-      <TableCell>{format(run.ranAt, "PPp", { locale })}</TableCell>
-      <TableCell>{run.purgedCount}</TableCell>
-      <TableCell>
-        <span className="inline-flex items-center gap-1.5">
-          <Badge variant={STATUS_VARIANTS[run.status]}>{run.status}</Badge>
-          {/* The run report shows on hover of the info icon. */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <InfoIcon className="size-3.5 cursor-help text-muted-foreground" />
-            </TooltipTrigger>
-            <TooltipContent side="left" className="max-w-sm">
-              <MarkdownWrapper content={run.report} />
-            </TooltipContent>
-          </Tooltip>
-        </span>
-      </TableCell>
-    </TableRow>
+    <span className="inline-flex items-center gap-1.5">
+      <Badge variant={STATUS_VARIANTS[run.status]}>{run.status}</Badge>
+      {/* The run report shows on hover of the info icon. */}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <InfoIcon className="size-3.5 cursor-help text-muted-foreground" />
+        </TooltipTrigger>
+        <TooltipContent side="left" className="max-w-sm">
+          <MarkdownWrapper content={run.report} />
+        </TooltipContent>
+      </Tooltip>
+    </span>
   )
 }

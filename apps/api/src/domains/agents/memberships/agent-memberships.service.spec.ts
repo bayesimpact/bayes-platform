@@ -58,11 +58,10 @@ describe("AgentMembershipsService", () => {
         userId: user.id,
       })
 
-      expect(membership.role).toBe("owner")
-      expect(membership.roleId).not.toBeNull()
+      expect(membership.roles.map((role) => role.key)).toEqual(["agent_owner"])
 
       const savedMembership = await repositories.userMembershipRepository.findOneOrFail({
-        where: { id: membership.id },
+        where: { id: membership.roles[0]?.membershipId },
       })
       const agentOwnerRole = await repositories.roleRepository.findOneOrFail({
         where: { key: AGENT_ROLES.owner },
@@ -80,8 +79,8 @@ describe("AgentMembershipsService", () => {
       await addUserToProject({ repositories, project, user: member })
 
       await service.removeAgentMembership({
-        userId: user.id,
-        membershipId: membership.id,
+        callerUserId: user.id,
+        memberUserId: membership.userId,
         agentId: agent.id,
       })
 
@@ -97,8 +96,8 @@ describe("AgentMembershipsService", () => {
       await addUserToProject({ repositories, project, user: member })
 
       await service.removeAgentMembership({
-        userId: user.id,
-        membershipId: membership.id,
+        callerUserId: user.id,
+        memberUserId: membership.userId,
         agentId: agent.id,
       })
 
@@ -108,6 +107,7 @@ describe("AgentMembershipsService", () => {
           resourceId: project.id,
           userId: member.id,
         },
+        relations: { rbacRole: true },
       })
       expect(projectMembership).not.toBeNull()
     })
@@ -125,8 +125,8 @@ describe("AgentMembershipsService", () => {
       })
 
       await service.removeAgentMembership({
-        userId: user.id,
-        membershipId: membership.id,
+        callerUserId: user.id,
+        memberUserId: membership.userId,
         agentId: agent.id,
       })
 
@@ -136,6 +136,7 @@ describe("AgentMembershipsService", () => {
           resourceId: organization.id,
           userId: member.id,
         },
+        relations: { rbacRole: true },
       })
       expect(orgMembership).not.toBeNull()
     })
@@ -148,12 +149,13 @@ describe("AgentMembershipsService", () => {
           resourceId: agent.id,
           userId: user.id,
         },
+        relations: { rbacRole: true },
       })
 
       await expect(
         service.removeAgentMembership({
-          userId: user.id,
-          membershipId: ownerMembership.id,
+          callerUserId: user.id,
+          memberUserId: ownerMembership.userId,
           agentId: agent.id,
         }),
       ).rejects.toThrow("Cannot remove yourself from the agent")
@@ -169,8 +171,8 @@ describe("AgentMembershipsService", () => {
 
       await expect(
         service.removeAgentMembership({
-          userId: requester.id,
-          membershipId: ownerMembership.id,
+          callerUserId: requester.id,
+          memberUserId: ownerMembership.userId,
           agentId: agent.id,
         }),
       ).rejects.toThrow("Cannot remove owner from the agent")
@@ -215,13 +217,14 @@ describe("AgentMembershipsService", () => {
 
       const memberships = await repositories.userMembershipRepository.find({
         where: { userId: demotedUser.id, resourceType: "agent" },
+        relations: { rbacRole: true },
       })
       const roleByAgentId = new Map(
-        memberships.map((membership) => [membership.resourceId, membership.role]),
+        memberships.map((membership) => [membership.resourceId, membership.rbacRole?.key]),
       )
-      expect(roleByAgentId.get(adminAgent.id)).toBe("member")
-      expect(roleByAgentId.get(ownedAgent.id)).toBe("owner")
-      expect(roleByAgentId.get(otherProjectAgent.id)).toBe("admin")
+      expect(roleByAgentId.get(adminAgent.id)).toBe("agent_member")
+      expect(roleByAgentId.get(ownedAgent.id)).toBe("agent_owner")
+      expect(roleByAgentId.get(otherProjectAgent.id)).toBe("agent_admin")
 
       const demotedMembership = memberships.find(
         (membership) => membership.resourceId === adminAgent.id,

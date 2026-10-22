@@ -330,13 +330,14 @@ describe("AgentDuplicationService", () => {
 
     const memberships = await repositories.userMembershipRepository.find({
       where: { resourceType: "agent", resourceId: agent.id },
+      relations: { rbacRole: true },
     })
     const roleByUserId = Object.fromEntries(
-      memberships.map((membership) => [membership.userId, membership.role]),
+      memberships.map((membership) => [membership.userId, membership.rbacRole?.key]),
     )
     expect(roleByUserId).toEqual({
-      [source.user.id]: "owner",
-      [projectAdmin.id]: "admin",
+      [source.user.id]: "agent_owner",
+      [projectAdmin.id]: "agent_admin",
     })
   })
 

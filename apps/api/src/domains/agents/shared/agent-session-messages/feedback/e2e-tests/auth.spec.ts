@@ -1,8 +1,5 @@
 import { randomUUID } from "node:crypto"
-import {
-  AgentMessageFeedbackRoutes,
-  type ProjectMembershipRoleDto,
-} from "@caseai-connect/api-contracts"
+import { AgentMessageFeedbackRoutes } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
@@ -20,6 +17,7 @@ import {
   createOrganizationWithAgent,
   createOrganizationWithAgentMessage,
 } from "@/domains/organizations/organization.factory"
+import type { ProjectMembershipRole } from "@/domains/projects/memberships/project-membership.types"
 import { addUserToReviewCampaign } from "@/domains/review-campaigns/memberships/review-campaign-membership.factory"
 import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
 import {
@@ -73,7 +71,7 @@ describe("Agent Message Feedback - Auth", () => {
     await app.close()
   })
 
-  const createContextForRole = async (role: ProjectMembershipRoleDto) => {
+  const createContextForRole = async (role: ProjectMembershipRole) => {
     const { organization, project, agent, agentMessage, user } =
       await createOrganizationWithAgentMessage({
         repositories,

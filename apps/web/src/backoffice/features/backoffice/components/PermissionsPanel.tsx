@@ -1,13 +1,7 @@
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@caseai-connect/ui/shad/table"
+import { type ColumnDef, getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import { CheckIcon } from "lucide-react"
 import { useMemo, useState } from "react"
+import { DataTable, type DataTableColumnMeta } from "@/common/components/data-table/DataTable"
 import { useMount } from "@/common/hooks/use-mount"
 import { useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
@@ -96,6 +90,9 @@ function ScopeMatrix({
   scopeType: (typeof SCOPE_ORDER)[number]
   search: string
 }) {
+  // TanStack Table keeps one table instance across renders, so the React Compiler would
+  // memoize its row model and show stale rows after a search.
+  "use no memo"
   const scopeRoles = useMemo(
     () => catalog.roles.filter((role) => role.scopeType === scopeType),
     [catalog.roles, scopeType],
@@ -129,6 +126,61 @@ function ScopeMatrix({
       .sort((left, right) => left.localeCompare(right))
   }, [scopeRoles, search, descriptionByKey])
 
+  const columns = useMemo<ColumnDef<string>[]>(
+    () => [
+      {
+        id: "permission",
+        meta: { className: "min-w-64" } satisfies DataTableColumnMeta,
+        header: () => "Permission",
+        cell: ({ row }) => {
+          const permissionKey = row.original
+          return (
+            <div className="flex flex-col">
+              <span className="font-mono text-xs">
+                {permissionKey}
+                {appliesOnCampaignProject(scopeType, permissionKey) && (
+                  <span className="ml-2 font-sans text-[10px] text-muted-foreground">
+                    on the campaign's project
+                  </span>
+                )}
+              </span>
+              {descriptionByKey.get(permissionKey) && (
+                <span className="text-xs text-muted-foreground">
+                  {descriptionByKey.get(permissionKey)}
+                </span>
+              )}
+            </div>
+          )
+        },
+      },
+      ...scopeRoles.map(
+        (role): ColumnDef<string> => ({
+          id: role.key,
+          meta: { className: "text-center whitespace-nowrap" } satisfies DataTableColumnMeta,
+          header: () => (
+            <div className="flex flex-col items-center gap-0.5">
+              <span>{role.name}</span>
+              <span className="font-mono text-[10px] font-normal">{role.key}</span>
+            </div>
+          ),
+          cell: ({ row }) => (
+            <div className="text-center">
+              <GrantMark role={role} permissionKey={row.original} />
+            </div>
+          ),
+        }),
+      ),
+    ],
+    [scopeRoles, scopeType, descriptionByKey],
+  )
+
+  const table = useReactTable({
+    data: permissionKeys,
+    columns,
+    getRowId: (permissionKey) => permissionKey,
+    getCoreRowModel: getCoreRowModel(),
+  })
+
   if (scopeRoles.length === 0 || permissionKeys.length === 0) return null
 
   return (
@@ -137,53 +189,8 @@ function ScopeMatrix({
         <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>
         {caption && <p className="text-xs text-muted-foreground">{caption}</p>}
       </div>
-      <div className="border rounded-lg overflow-x-auto">
-        <Table>
-          <TableHeader className="bg-muted/50">
-            <TableRow>
-              <TableHead className="min-w-64">Permission</TableHead>
-              {scopeRoles.map((role) => (
-                <TableHead key={role.key} className="text-center whitespace-nowrap">
-                  <div className="flex flex-col items-center gap-0.5">
-                    <span>{role.name}</span>
-                    <span className="font-mono text-[10px] font-normal text-muted-foreground">
-                      {role.key}
-                    </span>
-                  </div>
-                </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {permissionKeys.map((permissionKey) => (
-              <TableRow key={permissionKey}>
-                <TableCell>
-                  <div className="flex flex-col">
-                    <span className="font-mono text-xs">
-                      {permissionKey}
-                      {appliesOnCampaignProject(scopeType, permissionKey) && (
-                        <span className="ml-2 font-sans text-[10px] text-muted-foreground">
-                          on the campaign's project
-                        </span>
-                      )}
-                    </span>
-                    {descriptionByKey.get(permissionKey) && (
-                      <span className="text-xs text-muted-foreground">
-                        {descriptionByKey.get(permissionKey)}
-                      </span>
-                    )}
-                  </div>
-                </TableCell>
-                {scopeRoles.map((role) => (
-                  <TableCell key={role.key} className="text-center">
-                    <GrantMark role={role} permissionKey={permissionKey} />
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      {/* A scope with no matching permission is hidden above, so the table is never empty. */}
+      <DataTable table={table} empty={null} />
     </section>
   )
 }

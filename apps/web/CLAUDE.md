@@ -156,6 +156,22 @@ listenerMiddleware.startListening({
 
 ---
 
+## List Tables
+
+### Every list table uses the shared `DataTable`
+
+**Rule**: a screen that lists records (rows of the same kind, with columns) renders them through [DataTable](src/common/components/data-table/DataTable.tsx), fed by a TanStack table. Never hand-write the markup, neither a bare `<table>` nor the shadcn `Table` parts.
+
+- Reference: [ProjectMembersTable.tsx](src/studio/features/project-memberships/components/members-table/ProjectMembersTable.tsx). Stories: `common/DataTable`.
+- The caller owns the TanStack table (columns, sorting, filters, selection, pagination). `DataTable` owns the look: border, muted header labels, empty state, selected rows, row click, expanded rows (`renderExpanded`).
+- Selection goes through `buildSelectionColumn` and `DataTableBulkBar`. Sorting, search and paging go through `RecordTableParts` (`SortableFilterableHeader`, `PaginationControls`).
+- Layout goes in the column: `meta.className` for the header cell, `meta.cellClassName` for body cells, and `size` for a fixed width that truncates long values.
+- A component that reads the TanStack table instance starts with `"use no memo"`: the React Compiler would otherwise memoize the row model and show stale rows.
+- When `DataTable` lacks something a screen needs, add it to `DataTable` (with a story) rather than forking the markup.
+- Out of scope: grids that are not lists, such as editors (`OutputSchemaBuilder`), matrices (`ReportSessionMatrix`, the run comparisons), data previews (`FilePreview`) and rendered markdown.
+
+---
+
 ## Form Component Architecture
 
 See [ADR 0012](../../docs/adr/0012-form-architecture.md) for full rationale. [ResourceForm.tsx](src/studio/features/resource-libraries/components/ResourceForm.tsx) is the canonical reference — copy it.

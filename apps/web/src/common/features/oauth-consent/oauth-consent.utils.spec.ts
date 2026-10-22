@@ -3,6 +3,7 @@ import { oauthConsentProjectFactory } from "./oauth-consent.factory"
 import {
   availablePermissionsFor,
   buildOAuthDeniedUrl,
+  groupConsentProjectsByOrganization,
   parseOAuthAuthorizationRequest,
   permissionsFromScope,
 } from "./oauth-consent.utils"
@@ -48,6 +49,39 @@ describe("buildOAuthDeniedUrl", () => {
     expect(buildOAuthDeniedUrl({ redirectUri: "com.example.app:/callback" })).toBe(
       "com.example.app:/callback?error=access_denied",
     )
+  })
+})
+
+describe("groupConsentProjectsByOrganization", () => {
+  it("groups projects under their organization, in list order, sorted A to Z", () => {
+    const firstOrganizationId = "org-acme"
+    const support = oauthConsentProjectFactory.build({
+      name: "Support",
+      organizationId: firstOrganizationId,
+      organizationName: "Acme",
+    })
+    const pricing = oauthConsentProjectFactory.build({
+      name: "Pricing",
+      organizationId: firstOrganizationId,
+      organizationName: "Acme",
+    })
+    const product = oauthConsentProjectFactory.build({
+      name: "Product",
+      organizationName: "Globex",
+    })
+
+    expect(groupConsentProjectsByOrganization([support, pricing, product])).toEqual([
+      {
+        organizationId: firstOrganizationId,
+        organizationName: "Acme",
+        projects: [pricing, support],
+      },
+      {
+        organizationId: product.organizationId,
+        organizationName: "Globex",
+        projects: [product],
+      },
+    ])
   })
 })
 

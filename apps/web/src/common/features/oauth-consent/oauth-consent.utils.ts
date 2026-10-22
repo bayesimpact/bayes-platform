@@ -33,6 +33,34 @@ export function buildOAuthDeniedUrl({
   return url.toString()
 }
 
+export type OAuthConsentOrganizationGroup = {
+  organizationId: string
+  organizationName: string
+  projects: OAuthConsentProject[]
+}
+
+/** Keeps organization order from the project list, as the project picker does, and sorts each organization's projects A to Z. */
+export function groupConsentProjectsByOrganization(
+  projects: OAuthConsentProject[],
+): OAuthConsentOrganizationGroup[] {
+  const groups = new Map<string, OAuthConsentOrganizationGroup>()
+  for (const project of projects) {
+    const group = groups.get(project.organizationId) ?? {
+      organizationId: project.organizationId,
+      organizationName: project.organizationName,
+      projects: [],
+    }
+    group.projects.push(project)
+    groups.set(project.organizationId, group)
+  }
+  for (const group of groups.values()) {
+    group.projects.sort((first, second) =>
+      first.name.localeCompare(second.name, undefined, { sensitivity: "base", numeric: true }),
+    )
+  }
+  return [...groups.values()]
+}
+
 /** Permissions at least one of the selected projects allows. */
 export function availablePermissionsFor(
   projects: OAuthConsentProject[],
