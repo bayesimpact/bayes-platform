@@ -6,9 +6,14 @@ import { createAgentChatSession, deleteAgentSession } from "./base-agent-session
 // Create typed listener middleware
 export const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()
 function registerListeners() {
-  // Refresh Agent sessions when one is created or deleted
+  // Refresh Agent sessions when one is created or deleted. A failed creation refreshes them too:
+  // its pending case emptied the list, which would otherwise stay loading.
   listenerMiddleware.startListening({
-    matcher: isAnyOf(createAgentChatSession.fulfilled, deleteAgentSession.fulfilled),
+    matcher: isAnyOf(
+      createAgentChatSession.fulfilled,
+      createAgentChatSession.rejected,
+      deleteAgentSession.fulfilled,
+    ),
     effect: async (action, listenerApi) => {
       // @ts-expect-error
       const { agentId, agentType } = action.meta.arg
