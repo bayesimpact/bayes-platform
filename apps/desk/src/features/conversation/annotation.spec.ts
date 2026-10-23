@@ -141,6 +141,17 @@ describe("citedPassagesOf", () => {
     expect(citedPassagesOf([first, reply, written])).toEqual([])
   })
 
+  it("numbers every passage of the conversation in order, whatever its message", () => {
+    const quoting = (content: string) => ({ id: crypto.randomUUID(), role: "user", content })
+    const numbers = citedPassagesOf([
+      reply,
+      quoting("<quote>Two</quote> a\n<quote>plans</quote> b"),
+      greeting,
+      quoting("<quote>Hello</quote> c"),
+    ]).map((cited) => cited.number)
+    expect(numbers).toEqual([1, 2, 3])
+  })
+
   it("gives each passage a key of its message and its place", () => {
     const message = { id: crypto.randomUUID(), role: "user", content: "<quote>Two plans</quote>" }
     const [cited] = citedPassagesOf([reply, message])

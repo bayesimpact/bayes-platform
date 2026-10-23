@@ -371,7 +371,7 @@ msgstr "Déposez le fichier pour l’extraire"
 msgid "Each new sign-in ended at once, so the Desk stopped starting new ones."
 msgstr "Chaque nouvelle connexion s’est terminée aussitôt : le Desk a cessé d’en relancer."
 
-#: src/features/conversation/components/AnnotationBadge.tsx
+#: src/features/conversation/components/QuoteReplyPopover.tsx
 msgid "Edit annotation {number}"
 msgstr "Modifier l'annotation {number}"
 
@@ -863,6 +863,10 @@ msgstr "Maj"
 #: src/features/memory/components/MemoryProposals.tsx
 msgid "Should the agent remember this?"
 msgstr "L'agent doit-il retenir ceci ?"
+
+#: src/features/conversation/components/CitedPassageBadges.tsx
+msgid "Show annotation {number} in its message"
+msgstr "Voir l'annotation {number} dans son message"
 
 #: src/features/conversation/components/CitedPassageChip.tsx
 msgid "Show in the reply"

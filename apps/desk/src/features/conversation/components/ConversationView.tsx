@@ -23,6 +23,7 @@ import { useConversationForms } from "../hooks/use-conversation-forms"
 import { useConversationPanel } from "../hooks/use-conversation-panel"
 import { useConversationSend } from "../hooks/use-conversation-send"
 import { ChatMessageView } from "./ChatMessageView"
+import { CitedPassageBadges } from "./CitedPassageBadges"
 import { Composer } from "./Composer"
 import { ConversationMenu } from "./ConversationMenu"
 import { FormsButton } from "./FormsButton"
@@ -100,8 +101,12 @@ export function ConversationView({
                 annotations={sending.annotations}
                 onSave={sending.saveAnnotation}
                 messageBoxId={composerId}
+                firstNumber={citedPassages.nextNumber}
                 onReplyClick={citedPassages.showChipAt}
               >
+                {messageLayer ? (
+                  <CitedPassageBadges citedPassages={citedPassages} layer={messageLayer} />
+                ) : null}
                 <MessageScroller>
                   <MessageScrollerViewport>
                     {/*

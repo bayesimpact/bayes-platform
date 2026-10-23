@@ -371,7 +371,7 @@ msgstr "Drop the file to extract it"
 msgid "Each new sign-in ended at once, so the Desk stopped starting new ones."
 msgstr "Each new sign-in ended at once, so the Desk stopped starting new ones."
 
-#: src/features/conversation/components/AnnotationBadge.tsx
+#: src/features/conversation/components/QuoteReplyPopover.tsx
 msgid "Edit annotation {number}"
 msgstr "Edit annotation {number}"
 
@@ -863,6 +863,10 @@ msgstr "Shift"
 #: src/features/memory/components/MemoryProposals.tsx
 msgid "Should the agent remember this?"
 msgstr "Should the agent remember this?"
+
+#: src/features/conversation/components/CitedPassageBadges.tsx
+msgid "Show annotation {number} in its message"
+msgstr "Show annotation {number} in its message"
 
 #: src/features/conversation/components/CitedPassageChip.tsx
 msgid "Show in the reply"

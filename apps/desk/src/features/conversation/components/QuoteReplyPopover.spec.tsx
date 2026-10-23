@@ -15,6 +15,7 @@ function AnnotatedReply() {
         annotations={annotations}
         onSave={(annotation) => setAnnotations((current) => saveAnnotation(current, annotation))}
         messageBoxId="message-box"
+        firstNumber={1}
         onReplyClick={() => {}}
       >
         <div data-annotation-layer="">

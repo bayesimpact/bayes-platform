@@ -16,8 +16,8 @@ import type { ReplyClick } from "./use-settled-selection"
 /** How long the passage or the chip a person jumped to stands out. */
 const JUMP_IN_MILLISECONDS = 1500
 
-/** A passage found in a reply: where it stands, and the message that quotes it. */
-type FoundPassage = { range: Range; messageId: string }
+/** A passage found in a reply: where it stands, the message that quotes it, and its number. */
+type FoundPassage = { range: Range; messageId: string; number: number }
 
 /** A jump between a chip and its passage, which stands out a moment: the chip or the passage. */
 type Jump = { chipKey: string | null; passage: Range | null }
@@ -29,6 +29,7 @@ type Jump = { chipKey: string | null; passage: Range | null }
  * in `layer`, the element the conversation's messages render in.
  */
 export function useCitedPassages(messages: ChatMessage[], layer: HTMLElement | null) {
+  const citedPassages = citedPassagesOf(messages)
   // The passages found, by their key: the chips of the others jump nowhere.
   const [found, setFound] = useState(new Map<string, FoundPassage>())
   const [jump, setJump] = useState<Jump | null>(null)
@@ -50,12 +51,12 @@ export function useCitedPassages(messages: ChatMessage[], layer: HTMLElement | n
       return index
     }
     const passages = new Map<string, FoundPassage>()
-    for (const cited of citedPassagesOf(messages)) {
+    for (const cited of citedPassages) {
       for (const replyId of cited.replyIds) {
         const index = indexOf(replyId)
         const range = index ? findPassage(index, cited.passage, cited.occurrence) : null
         if (range) {
-          passages.set(cited.key, { range, messageId: cited.messageId })
+          passages.set(cited.key, { range, messageId: cited.messageId, number: cited.number })
           break
         }
       }
@@ -93,8 +94,27 @@ export function useCitedPassages(messages: ChatMessage[], layer: HTMLElement | n
     }
   }, [jump])
 
+  const showChip = (chipKey: string) => {
+    const passage = found.get(chipKey)
+    if (!passage || !layer) return
+    const { messageId } = passage
+    setUnfoldedIds((current) => (current.includes(messageId) ? current : [...current, messageId]))
+    setJump({ chipKey, passage: null })
+    // Once its message unfolded, the chip shows where it stands.
+    requestAnimationFrame(() => {
+      const chip = Array.from(
+        layer.querySelectorAll<HTMLElement>(`[${CITED_PASSAGE_ATTRIBUTE}]`),
+      ).find((element) => element.getAttribute(CITED_PASSAGE_ATTRIBUTE) === chipKey)
+      chip?.scrollIntoView({ block: "center", behavior: "smooth" })
+    })
+  }
+
   return {
     foundKeys: [...found.keys()],
+    /** The passages found, with their number and where they stand, for their bubbles. */
+    numbered: [...found].map(([key, { range, number }]) => ({ key, range, number })),
+    /** The number of the next annotation, after every passage the messages quote. */
+    nextNumber: citedPassages.length + 1,
     jumpedKey: jump?.chipKey ?? null,
     unfoldedIds,
     /** Scrolls to the passage a chip quotes, which stands out a moment. */
@@ -104,21 +124,14 @@ export function useCitedPassages(messages: ChatMessage[], layer: HTMLElement | n
       passage.startContainer.parentElement?.scrollIntoView({ block: "center", behavior: "smooth" })
       setJump({ chipKey: null, passage })
     },
+    /** Scrolls to the chip that quotes a passage, which stands out a moment. */
+    showChip,
     /** Scrolls from a click on a quoted passage to the chip that quotes it, the latest first. */
     showChipAt: (click: ReplyClick) => {
-      const [chipKey, passage] =
-        [...found].reverse().find(([, { range }]) => isPointInRange(range, click.x, click.y)) ?? []
-      if (!chipKey || !passage || !layer) return
-      const { messageId } = passage
-      setUnfoldedIds((current) => (current.includes(messageId) ? current : [...current, messageId]))
-      setJump({ chipKey, passage: null })
-      // Once its message unfolded, the chip shows where it stands.
-      requestAnimationFrame(() => {
-        const chip = Array.from(
-          layer.querySelectorAll<HTMLElement>(`[${CITED_PASSAGE_ATTRIBUTE}]`),
-        ).find((element) => element.getAttribute(CITED_PASSAGE_ATTRIBUTE) === chipKey)
-        chip?.scrollIntoView({ block: "center", behavior: "smooth" })
-      })
+      const chipKey = [...found]
+        .reverse()
+        .find(([, { range }]) => isPointInRange(range, click.x, click.y))?.[0]
+      if (chipKey) showChip(chipKey)
     },
   }
 }

@@ -135,6 +135,11 @@ export type CitedPassage = {
   replyIds: string[]
   /** Which occurrence of its text in that reply, from 1: the first when it names no reply. */
   occurrence: number
+  /**
+   * Its number in the conversation, from 1: the passages are numbered in order across messages,
+   * and the annotations waiting for the next message go on from the last.
+   */
+  number: number
 }
 
 /** The key of the passage at that place of a message. */
@@ -146,32 +151,36 @@ export function citedPassageKey(messageId: string, position: number): string {
 export function citedPassagesOf(
   messages: { id: string; role: string; content: string }[],
 ): CitedPassage[] {
-  return messages.flatMap((message, index) => {
-    if (message.role !== "user") return []
-    const replyIds = messages
-      .slice(0, index)
-      .filter((earlier) => earlier.role === "assistant")
-      .map((reply) => reply.id)
-      .reverse()
-    if (replyIds.length === 0) return []
-    return messageSegmentsOf(message.content).flatMap((segment, position): CitedPassage[] => {
-      if (segment.kind !== "quote") return []
-      // A message names its reply since passages are anchored; an older one, or a reply gone,
-      // falls back to a search.
-      const source =
-        segment.source && replyIds.includes(segment.source.replyId) ? segment.source : null
-      return [
-        {
-          key: citedPassageKey(message.id, position),
-          messageId: message.id,
-          position,
-          passage: segment.text,
-          replyIds: source ? [source.replyId] : replyIds,
-          occurrence: source?.occurrence ?? 1,
+  return messages
+    .flatMap((message, index) => {
+      if (message.role !== "user") return []
+      const replyIds = messages
+        .slice(0, index)
+        .filter((earlier) => earlier.role === "assistant")
+        .map((reply) => reply.id)
+        .reverse()
+      if (replyIds.length === 0) return []
+      return messageSegmentsOf(message.content).flatMap(
+        (segment, position): Omit<CitedPassage, "number">[] => {
+          if (segment.kind !== "quote") return []
+          // A message names its reply since passages are anchored; an older one, or a reply gone,
+          // falls back to a search.
+          const source =
+            segment.source && replyIds.includes(segment.source.replyId) ? segment.source : null
+          return [
+            {
+              key: citedPassageKey(message.id, position),
+              messageId: message.id,
+              position,
+              passage: segment.text,
+              replyIds: source ? [source.replyId] : replyIds,
+              occurrence: source?.occurrence ?? 1,
+            },
+          ]
         },
-      ]
+      )
     })
-  })
+    .map((cited, index) => ({ ...cited, number: index + 1 }))
 }
 
 /** The message with one more annotation, on a line of its own after what is written. */

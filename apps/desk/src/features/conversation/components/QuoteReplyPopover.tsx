@@ -17,6 +17,8 @@ export type QuoteReplyPopoverProps = {
   onSave: (annotation: Annotation) => void
   /** The id of the message box, which gets the focus once the box closes. */
   messageBoxId: string
+  /** The number of the first annotation, after the passages the conversation's messages quote. */
+  firstNumber: number
   /** A click on the text of a reply, off the annotations, as on a passage a message quoted. */
   onReplyClick: (click: ReplyClick) => void
   children: ReactNode
@@ -31,6 +33,7 @@ export function QuoteReplyPopover({
   annotations,
   onSave,
   messageBoxId,
+  firstNumber,
   onReplyClick,
   children,
 }: QuoteReplyPopoverProps) {
@@ -97,14 +100,19 @@ export function QuoteReplyPopover({
   return (
     <>
       {children}
-      {annotations.map((annotation, index) => (
-        <AnnotationBadge
-          key={annotation.id}
-          annotation={annotation}
-          number={index + 1}
-          onOpen={() => handleOpen(annotation)}
-        />
-      ))}
+      {annotations.map((annotation, index) => {
+        const number = firstNumber + index
+        return (
+          <AnnotationBadge
+            key={annotation.id}
+            range={annotation.range}
+            layer={annotation.layer}
+            number={number}
+            label={t`Edit annotation ${number}`}
+            onOpen={() => handleOpen(annotation)}
+          />
+        )
+      })}
       <Popover
         open={editing !== null}
         onOpenChange={(isOpen) => (isOpen ? null : handleOpen(null))}
