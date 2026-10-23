@@ -147,7 +147,6 @@ describe("AISDKLLMBuilders", () => {
         "model.name": AgentModel._Mock,
         "model.thinking.level": "LOW",
         currentTurn: 2,
-        revision: 3,
         outputSchema: JSON.stringify(schema),
         availableTools: JSON.stringify(tools),
         spanLabel: "classification",
@@ -162,7 +161,6 @@ describe("AISDKLLMBuilders", () => {
         agentSessionId: "agent-session-id",
         userId: "o:organization-id / p:project-id",
         currentTurn: 2,
-        revision: 3,
       })
     })
   })

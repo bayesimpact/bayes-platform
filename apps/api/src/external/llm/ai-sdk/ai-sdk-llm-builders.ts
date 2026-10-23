@@ -49,7 +49,6 @@ export abstract class AISDKLLMBuilders {
       parentSessionId: callContext.parentSessionId,
       userId: `o:${callContext.organizationId} / p:${callContext.projectId}`,
       currentTurn: callContext.currentTurn,
-      revision: callContext.revision,
       outputSchema: JSON.stringify(schema),
       availableTools: JSON.stringify(config.tools),
       spanLabel: callContext.spanLabel,
