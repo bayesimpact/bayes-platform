@@ -130,6 +130,10 @@ projects.map((project) => project.name)
 
 **Rule**: When generating sample/mock data (Storybook stories, test fixtures, seed scripts, factory overrides), use domain-neutral examples — generic agent names like "Helpful Assistant", tags like "Product/Pricing/Support", schemas with `{ title, summary }`. Do NOT infer a vertical from weak signals (the `MedGemma` model enum, a `gemma` feature flag, the repo name). Only use domain-specific samples if the user explicitly asks for them; if unsure, ask rather than guess.
 
+## Communication
+
+Mirror the user's language. When replying in French, use simplified technical French: short sentences, simple words, active voice, one idea per sentence — no nominal chains, no nested clauses. When replying in English, use Simplified Technical English (STE): the same plain, short, active style.
+
 ## Completion Criteria
 
 Before marking any work as completed, run and verify:

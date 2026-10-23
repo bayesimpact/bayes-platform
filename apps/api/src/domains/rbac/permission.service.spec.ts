@@ -17,6 +17,7 @@ import { addUserToProject } from "@/domains/projects/memberships/project-members
 import { projectFactory } from "@/domains/projects/project.factory"
 import { PermissionService } from "@/domains/rbac/permission.service"
 import {
+  AGENT_CONVERSATION_REVIEW_CATEGORY_READ_PERMISSION,
   AGENT_CONVERSATION_REVIEW_PERMISSION,
   AGENT_CONVERSATION_REVIEWER_ROLE,
   AGENT_CONVERSATION_SESSION_CREATE_PERMISSION,
@@ -128,39 +129,48 @@ describe("PermissionService", () => {
     )
   }
 
-  describe("agent.conversation.review", () => {
-    it("is granted on the agents the user reviews only", async () => {
+  describe("agent.conversation.review and agent.conversation.review.category.read", () => {
+    const reviewPermissions = [
+      AGENT_CONVERSATION_REVIEW_PERMISSION,
+      AGENT_CONVERSATION_REVIEW_CATEGORY_READ_PERMISSION,
+    ]
+
+    it("are granted on the agents the user reviews only", async () => {
       const repositories = setup.getAllRepositories()
       const { user, organization, project, agent } = await createOrganizationWithAgent(repositories)
       const otherAgent = agentFactory.transient({ organization, project }).build()
       await repositories.agentRepository.save(otherAgent)
       await grantConversationReview({ repositories, user, agent })
 
-      await expect(
-        service.has(user.id, AGENT_CONVERSATION_REVIEW_PERMISSION, {
-          type: "agent",
-          id: agent.id,
-        }),
-      ).resolves.toBe(true)
-      await expect(
-        service.has(user.id, AGENT_CONVERSATION_REVIEW_PERMISSION, {
-          type: "agent",
-          id: otherAgent.id,
-        }),
-      ).resolves.toBe(false)
+      for (const permission of reviewPermissions) {
+        await expect(
+          service.has(user.id, permission, {
+            type: "agent",
+            id: agent.id,
+          }),
+        ).resolves.toBe(true)
+        await expect(
+          service.has(user.id, permission, {
+            type: "agent",
+            id: otherAgent.id,
+          }),
+        ).resolves.toBe(false)
+      }
     })
 
-    it("is not granted by any other role, agent owner and superadmin included", async () => {
+    it("are not granted by any other role, agent owner and superadmin included", async () => {
       const repositories = setup.getAllRepositories()
       const { user, agent } = await createOrganizationWithAgent(repositories)
       await assignPlatformSuperadminToUser({ repositories, user })
 
-      await expect(
-        service.has(user.id, AGENT_CONVERSATION_REVIEW_PERMISSION, {
-          type: "agent",
-          id: agent.id,
-        }),
-      ).resolves.toBe(false)
+      for (const permission of reviewPermissions) {
+        await expect(
+          service.has(user.id, permission, {
+            type: "agent",
+            id: agent.id,
+          }),
+        ).resolves.toBe(false)
+      }
     })
 
     it("adds to the user's role on the agent without changing it", async () => {

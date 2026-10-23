@@ -117,3 +117,36 @@ export const conversationReviewLookupSchema = z.object({
 })
 
 export type ConversationReviewLookupDto = z.infer<typeof conversationReviewLookupSchema>
+
+/** The `categoryId` query value of the review session list that lists the sessions no category tagged. */
+export const CONVERSATION_REVIEW_UNCATEGORIZED_CATEGORY = "uncategorized"
+
+/**
+ * One row of the safety review session list: a session of the agent, whoever had it, grouped
+ * under the category that tagged it. A session tagged with several categories appears once
+ * per category, the same way the category analytics count it. Sessions carry no content:
+ * only the id to open them from the review screen.
+ */
+export type ConversationReviewSessionRowDto = {
+  sessionId: string
+  kind: "conversation" | "public"
+  /** Conversation sessions only: the live or playground use, or a review campaign tester's. */
+  conversationType?: ConversationAgentSessionTypeDto
+  /** True when the session was spawned by a parent agent that delegated to it. */
+  isSubSession: boolean
+  /** Public sessions only: the embed or an installed App. */
+  channel?: "embed" | "app"
+  /** Null for sessions no category tagged; the UI names them "uncategorized". */
+  categoryId: string | null
+  /** Category name, or the uncategorized label for sessions no category tagged. */
+  categoryName: string
+  createdAt: TimeType
+}
+
+/** One page of the safety review session list, grouped by category. */
+export type PaginatedConversationReviewSessionsDto = {
+  sessions: ConversationReviewSessionRowDto[]
+  total: number
+  page: number
+  limit: number
+}
