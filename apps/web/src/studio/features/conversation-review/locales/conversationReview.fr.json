@@ -2,13 +2,37 @@
   "conversationReview": {
     "menu": "Sécurité",
     "pageTitle": "Revue de sécurité",
+    "tabs": {
+      "sessionId": "Identifiant de session",
+      "byCategory": "Par catégorie"
+    },
     "form": {
       "label": "Identifiant de session",
       "placeholder": "ex. 3f2b8c1e-…",
       "invalid": "Saisissez un identifiant de session valide."
     },
+    "byCategory": {
+      "select": {
+        "placeholder": "Choisir une catégorie",
+        "uncategorized": "Sans catégorie"
+      },
+      "chooseCategory": "Choisissez une catégorie pour lister ses sessions.",
+      "emptyTitle": "Aucune session dans cette catégorie",
+      "emptyDescription": "Aucune session de cet agent n'est étiquetée par cette catégorie.",
+      "error": "Échec du chargement de la liste des sessions.",
+      "table": {
+        "date": "Date",
+        "type": "Type",
+        "session": "Session"
+      },
+      "pagination": {
+        "count": "Page {{page}} sur {{pages}} · {{total}} sessions",
+        "previous": "Précédent",
+        "next": "Suivant"
+      }
+    },
     "notice": "Chaque session ouverte ici est enregistrée dans le journal d'activité.",
-    "empty": "Collez un identifiant de session pour lire la session.",
+    "empty": "Collez un identifiant de session ou choisissez-en un dans la liste pour le lire.",
     "notFound": "Aucune session de cet agent n'a cet identifiant.",
     "session": {
       "live": "Live",

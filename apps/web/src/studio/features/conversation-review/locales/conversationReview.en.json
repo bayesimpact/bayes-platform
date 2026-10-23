@@ -2,13 +2,37 @@
   "conversationReview": {
     "menu": "Safety",
     "pageTitle": "Safety review",
+    "tabs": {
+      "sessionId": "Session id",
+      "byCategory": "By category"
+    },
     "form": {
       "label": "Session id",
       "placeholder": "e.g. 3f2b8c1e-…",
       "invalid": "Enter a valid session id."
     },
+    "byCategory": {
+      "select": {
+        "placeholder": "Choose a category",
+        "uncategorized": "No category"
+      },
+      "chooseCategory": "Choose a category to list its sessions.",
+      "emptyTitle": "No sessions in this category",
+      "emptyDescription": "No session of this agent was tagged with this category.",
+      "error": "Failed to load the session list.",
+      "table": {
+        "date": "Date",
+        "type": "Type",
+        "session": "Session"
+      },
+      "pagination": {
+        "count": "Page {{page}} of {{pages}} · {{total}} sessions",
+        "previous": "Previous",
+        "next": "Next"
+      }
+    },
     "notice": "Every session you open here is recorded in the activity log.",
-    "empty": "Paste a session id to read the session.",
+    "empty": "Paste a session id or pick one from the list to read it.",
     "notFound": "No session of this agent has this session id.",
     "session": {
       "live": "Live",

@@ -169,7 +169,7 @@ The `project.review_campaign.*` permissions are not inherited either: an organiz
 
 Scoped to one agent via `user_membership` (`resource_type = 'agent'`).
 
-`agent_conversation_reviewer` is a row of its own on the agent, next to the person's owner, admin or member row if they have one. Routes check it with `@CheckPermission(AGENT_CONVERSATION_REVIEW_PERMISSION, "agent")`, and no parent passes `agent.conversation.review` down. Nobody holds it by default, superadmins included; a holder of `backoffice.conversation_reviewer.update` grants it person by person from the backoffice agent page. The studio leaves it alone: the agent's member list, member removals and the project removal cascade only touch `agent_owner`, `agent_admin` and `agent_member`, and a reviewer grant does not make its holder visible through `user.read`.
+`agent_conversation_reviewer` is a row of its own on the agent, next to the person's owner, admin or member row if they have one. Its two permissions are checked with `@CheckPermission(AGENT_CONVERSATION_REVIEW_PERMISSION, "agent")` to read a conversation from its session id, and `@CheckPermission(AGENT_CONVERSATION_REVIEW_CATEGORY_READ_PERMISSION, "agent")` to list the agent's sessions grouped by category, and no parent passes either down. Nobody holds it by default, superadmins included; a holder of `backoffice.conversation_reviewer.update` grants it person by person from the backoffice agent page. The studio leaves it alone: the agent's member list, member removals and the project removal cascade only touch `agent_owner`, `agent_admin` and `agent_member`, and a reviewer grant does not make its holder visible through `user.read`.
 
 The two analytics permissions are never inherited from a parent resource: an organization role does not open a project's analytics, and a project role does not open an agent's analytics.
 
@@ -202,6 +202,7 @@ The same goes for `agent.settings.draft.update`, `agent.settings.draft.publish`,
 | `user.read` — see the agent's members | ✅ | ✅ | — | — |
 | `backoffice.agent.read` — see the agent in the backoffice | ✅ | ✅ | — | — |
 | `agent.conversation.review` — read any conversation of the agent from its session id (safety review) | — | — | — | ✅ |
+| `agent.conversation.review.category.read` — list the agent's sessions grouped by category (safety review) | — | — | — | ✅ |
 
 ## Review campaign roles
 

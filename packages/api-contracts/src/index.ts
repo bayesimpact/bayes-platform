@@ -20,7 +20,10 @@ export * from "./agents/agents.dto"
 export { AgentsRoutes } from "./agents/agents.routes"
 // Conversation Agent Sessions
 export type * from "./agents/conversation-agent-sessions/conversation-agent-sessions.dto"
-export { conversationReviewLookupSchema } from "./agents/conversation-agent-sessions/conversation-agent-sessions.dto"
+export {
+  CONVERSATION_REVIEW_UNCATEGORIZED_CATEGORY,
+  conversationReviewLookupSchema,
+} from "./agents/conversation-agent-sessions/conversation-agent-sessions.dto"
 export {
   ConversationAgentSessionsRoutes,
   ConversationReviewRoutes,

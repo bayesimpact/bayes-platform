@@ -1,5 +1,6 @@
 import {
   AGENT_ANALYTICS_READ_PERMISSION,
+  AGENT_CONVERSATION_REVIEW_CATEGORY_READ_PERMISSION,
   AGENT_CONVERSATION_REVIEW_PERMISSION,
   AGENT_CONVERSATION_SESSION_CREATE_PERMISSION,
   AGENT_CONVERSATION_SESSION_DELETE_PERMISSION,
@@ -135,6 +136,7 @@ import type { PermissionResourceType } from "./permission.types"
  */
 export {
   AGENT_ANALYTICS_READ_PERMISSION,
+  AGENT_CONVERSATION_REVIEW_CATEGORY_READ_PERMISSION,
   AGENT_CONVERSATION_REVIEW_PERMISSION,
   AGENT_CONVERSATION_SESSION_EXTERNAL_CREATE_PERMISSION,
   AGENT_MEMBER_DELETE_PERMISSION,
@@ -624,7 +626,10 @@ export const AGENT_ROLE_PERMISSIONS = {
   ],
   agent_member: ["agent.read"],
   // Not held by owner, admin or member: granted person by person from the backoffice.
-  [AGENT_CONVERSATION_REVIEWER_ROLE]: [AGENT_CONVERSATION_REVIEW_PERMISSION],
+  [AGENT_CONVERSATION_REVIEWER_ROLE]: [
+    AGENT_CONVERSATION_REVIEW_PERMISSION,
+    AGENT_CONVERSATION_REVIEW_CATEGORY_READ_PERMISSION,
+  ],
 } as const satisfies Record<string, readonly string[]>
 
 /**
@@ -955,6 +960,8 @@ export const PERMISSION_DESCRIPTIONS: Record<string, string> = {
   [BACKOFFICE_USER_READ_PERMISSION]: "See every user in the backoffice",
   [AGENT_CONVERSATION_REVIEW_PERMISSION]:
     "Read any conversation of an agent from its session id, for safety review",
+  [AGENT_CONVERSATION_REVIEW_CATEGORY_READ_PERMISSION]:
+    "List the sessions of an agent grouped by category, for safety review",
   [BACKOFFICE_CONVERSATION_REVIEWER_UPDATE_PERMISSION]:
     "Grant or revoke, agent by agent, the right to read any of its conversations for safety review",
 }
