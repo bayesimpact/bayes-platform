@@ -35,8 +35,9 @@ export function UserMessageText({ messageId, content, citedPassages }: UserMessa
       <div
         ref={textRef}
         id={textId}
+        // The size of the replies, which the bubble's own small text would not take.
         className={cn(
-          "whitespace-pre-wrap",
+          "text-message whitespace-pre-wrap",
           !isExpanded && "max-h-64 overflow-hidden",
           isCollapsed && "mask-b-from-60%",
         )}
