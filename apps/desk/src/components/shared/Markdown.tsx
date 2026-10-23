@@ -18,7 +18,9 @@ export type MarkdownProps = {
 export function Markdown({ children, isStreaming = false }: MarkdownProps) {
   return (
     <Streamdown
-      className="flex flex-col gap-3 text-sm leading-relaxed"
+      // One spacing between blocks: Streamdown's own `space-y-4`, which this one replaces, would
+      // add up with a flex gap.
+      className="space-y-3 text-sm leading-relaxed"
       controls={false}
       // Links open in a new tab without Streamdown's confirmation, whose text is not translated.
       linkSafety={{ enabled: false }}
