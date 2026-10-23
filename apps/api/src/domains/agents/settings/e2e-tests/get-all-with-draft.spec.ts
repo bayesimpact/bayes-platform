@@ -170,6 +170,7 @@ describe("Agent Settings - getAllWithDraft", () => {
       name: "Second",
       description: "The second revision",
       instructions: "Rev 2 instructions",
+      variables: null,
       greetingMessage: "Hello there",
       locale: AgentLocale.FR,
       model: AgentModel.Gemini25Flash,

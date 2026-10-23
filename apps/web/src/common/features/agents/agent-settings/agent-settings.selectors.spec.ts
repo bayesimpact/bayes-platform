@@ -7,7 +7,10 @@ import type { RootState } from "@/common/store"
 import { ADS } from "@/common/store/async-data-status"
 import { agentSettingsFactory } from "./agent-settings.factory"
 import type { AgentSettings } from "./agent-settings.models"
-import { selectAgentSettingsDataByAgentId } from "./agent-settings.selectors"
+import {
+  selectAgentSettingsDataByAgentId,
+  selectPlaygroundAgentSettings,
+} from "./agent-settings.selectors"
 
 const project = projectFactory.transient({ organization: organizationFactory.build() }).build()
 
@@ -48,5 +51,37 @@ describe("selectAgentSettingsDataByAgentId", () => {
     expect(
       selectAgentSettingsDataByAgentId({ agentId: agent.id, includeDraft: true })(state).value,
     ).toBe(draft)
+  })
+})
+
+describe("selectPlaygroundAgentSettings", () => {
+  const buildStateWithSlice = (agent: Agent, history: AgentSettings[]) =>
+    ({
+      agentSettings: {
+        history: { [agent.id]: { status: ADS.Fulfilled, error: null, value: history } },
+        playgroundRevisionByAgentId: {},
+      },
+    }) as unknown as RootState
+
+  it("reads the settings of the revision the playground runs, draft-first", () => {
+    const agent = agentFactory
+      .transient({ project })
+      .build({ currentRevision: { number: 1 }, draftRevision: { number: 2 } })
+    const published = agentSettingsFactory.transient({ agent }).build({ revision: 1 })
+    const draft = agentSettingsFactory.transient({ agent }).build({ revision: 2, isDraft: true })
+
+    expect(
+      selectPlaygroundAgentSettings({ agentId: agent.id })(
+        buildStateWithSlice(agent, [draft, published]),
+      ),
+    ).toBe(draft)
+  })
+
+  it("returns null, without throwing, when the agentSettings slice is absent from the store", () => {
+    // The desk store registers no agentSettings slice at all.
+    const state = {} as unknown as RootState
+    const agent = agentFactory.transient({ project }).build()
+
+    expect(selectPlaygroundAgentSettings({ agentId: agent.id })(state)).toBeNull()
   })
 })

@@ -20,7 +20,10 @@ export * from "./agents/agents.dto"
 export { AgentsRoutes } from "./agents/agents.routes"
 // Conversation Agent Sessions
 export type * from "./agents/conversation-agent-sessions/conversation-agent-sessions.dto"
-export { conversationReviewLookupSchema } from "./agents/conversation-agent-sessions/conversation-agent-sessions.dto"
+export {
+  CONVERSATION_REVIEW_UNCATEGORIZED_CATEGORY,
+  conversationReviewLookupSchema,
+} from "./agents/conversation-agent-sessions/conversation-agent-sessions.dto"
 export {
   ConversationAgentSessionsRoutes,
   ConversationReviewRoutes,
@@ -137,6 +140,8 @@ export {
   updateProjectSchema,
 } from "./projects/projects.dto"
 export { ProjectsRoutes } from "./projects/projects.routes"
+// Prompt Variables
+export * from "./prompt-variables/prompt-variables"
 // Public Chat (anonymous embed access)
 export type * from "./public-chat/public-chat.dto"
 export {

@@ -5,6 +5,8 @@ import {
   agentModelsCatalogFactory,
   defaultAgentModels,
 } from "@/common/features/agents/agent.factory"
+import { conversationAgentSessionFactory } from "@/common/features/agents/agent-sessions/agent-session.factory"
+import type { IConversationAgentSessionsSpi } from "@/common/features/agents/agent-sessions/conversation/conversation-agent-sessions.spi"
 import type { AgentSettings } from "@/common/features/agents/agent-settings/agent-settings.models"
 import type { IAgentSettingsSpi } from "@/common/features/agents/agent-settings/agent-settings.spi"
 import type { Agent } from "@/common/features/agents/agents.models"
@@ -91,6 +93,20 @@ function buildMockAgentSettingsService(agentSettingsHistory: AgentSettings[]): I
     createOne: async () => {
       throw new Error("createOne is not supported in this story")
     },
+  }
+}
+/** Creates a playground session on demand so the "Start chat" flow works inside the story. */
+function buildMockConversationAgentSessionsService(): IConversationAgentSessionsSpi {
+  return {
+    getAll: async () => [],
+    createOne: async (params) =>
+      conversationAgentSessionFactory
+        .transient({ agent: { id: params.agentId } })
+        .build({ type: "playground" }),
+    deleteOne: async () => {
+      throw new Error("deleteOne is not supported in this story")
+    },
+    listSubSessions: async () => [],
   }
 }
 
@@ -212,4 +228,115 @@ export const ConversationAgentWithPriorityCalls: Story = {
     withPriorityCalls: true,
   },
   decorators: ConversationAgent.decorators,
+}
+
+/**
+ * The General tab with the prompt-variables section: the agent's instructions (edited right
+ * above it) declare `{{topic}}` and the settings hold a default for it, so the section renders
+ * with that default filled in.
+ */
+export const GeneralTabWithPromptVariables: Story = {
+  args: {
+    featureFlags: ["agent-prompt-variables"],
+    withAgents: true,
+  },
+  decorators: [
+    buildDecorator<StoryArgs>((args) => {
+      const { baseSeeds, agents, project } = buildStudioData({ ...args, withAgents: true })
+      const [firstAgent] = agents
+      if (!firstAgent) {
+        throw new Error("Prompt variables route story requires an agent")
+      }
+      // The factory randomizes the agent type; the embed tab only exists for conversation agents.
+      const agent = agentFactory.transient({ project }).build({
+        id: firstAgent.id,
+        name: "Helpful Assistant",
+        type: "conversation",
+        currentRevision: { number: 3 },
+      })
+      const agentSettings = {
+        agentId: agent.id,
+        name: "Helpful Assistant",
+        description: "Answers questions about a given topic.",
+        revision: 3,
+        isDraft: false,
+        model: defaultAgentModels.agent,
+        instructions: "You are a helpful assistant. Answer the user's questions about {{topic}}.",
+        variables: { topic: "The new pricing page" } as Record<string, string>,
+      } as AgentSettings
+
+      return {
+        state: mergeSeeds(
+          baseSeeds,
+          seed.agents([agent], { currentId: agent.id }),
+          seed.studio.agentHistory({ agentId: agent.id, versions: [agentSettings] }),
+          seed.conversationAgentSessions({ [agent.id]: [] }),
+          seed.studio.documentTags([]),
+          seed.studio.mcpServers([]),
+        ),
+        services: {
+          agents: buildMockAgentsService([agent]),
+          agentSettings: buildMockAgentSettingsService([agentSettings]),
+        },
+      }
+    }),
+  ],
+}
+
+/**
+ * Starting a playground chat for an agent whose instructions declare {{variables}}: the
+ * sidebar's "New Chat" opens a dialog to collect the values instead of creating the session
+ * right away. {{topic}} has a default in the settings, so its field is optional and "Start
+ * chat" is enabled from the start; blanks fall back to the default.
+ */
+export const PlaygroundSessionStartWithPromptVariables: Story = {
+  args: {
+    featureFlags: ["agent-prompt-variables"],
+    withAgents: true,
+  },
+  decorators: [
+    buildDecorator<StoryArgs>((args) => {
+      // isStudioInterface() reads window.location, which still points at Storybook inside the
+      // story iframe: serve the studio prefix so the session the story creates is a "playground" one.
+      window.history.pushState({}, "", StudioRoutes.home.path)
+      const { baseSeeds, agents, project } = buildStudioData({ ...args, withAgents: true })
+      const [firstAgent] = agents
+      if (!firstAgent) {
+        throw new Error("Prompt variables session story requires an agent")
+      }
+      // The factory randomizes the agent type; the session creator only supports conversation.
+      const agent = agentFactory.transient({ project }).build({
+        id: firstAgent.id,
+        name: "Helpful Assistant",
+        type: "conversation",
+        currentRevision: { number: 3 },
+      })
+      const agentSettings = {
+        agentId: agent.id,
+        name: "Helpful Assistant",
+        description: "Answers questions about a given topic.",
+        revision: 3,
+        isDraft: false,
+        model: defaultAgentModels.agent,
+        instructions: "You are a helpful assistant. Answer the user's questions about {{topic}}.",
+        variables: { topic: "The new pricing page" } as Record<string, string>,
+      } as AgentSettings
+
+      return {
+        state: mergeSeeds(
+          baseSeeds,
+          seed.agents([agent], { currentId: agent.id }),
+          seed.studio.agentHistory({ agentId: agent.id, versions: [agentSettings] }),
+          seed.conversationAgentSessions({ [agent.id]: [] }),
+          seed.studio.documentTags([]),
+          seed.studio.mcpServers([]),
+        ),
+        services: {
+          agents: buildMockAgentsService([agent]),
+          agentSettings: buildMockAgentSettingsService([agentSettings]),
+          conversationAgentSessions: buildMockConversationAgentSessionsService(),
+        },
+      }
+    }),
+  ],
 }

@@ -30,6 +30,10 @@ export const FeatureFlags = [
     description: "(tests purpose only) Access and utilize mistral models.",
   }),
   featureFlag({
+    key: "qwen",
+    description: "Access and utilize qwen models.",
+  }),
+  featureFlag({
     key: "llm-priority-calls",
     description: "Access and set priority for Gemini 3.x models",
   }),
@@ -60,6 +64,11 @@ export const FeatureFlags = [
   featureFlag({
     key: "agent-memory",
     description: "Let conversation agents remember facts about signed-in users.",
+  }),
+  featureFlag({
+    key: "agent-prompt-variables",
+    description:
+      "Collect values for the variables an agent declares in its instructions, at session start, with defaults set on the agent's settings.",
   }),
 ] as const
 export type FeatureFlagKey = (typeof FeatureFlags)[number]["key"]

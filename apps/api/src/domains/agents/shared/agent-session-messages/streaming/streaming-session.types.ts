@@ -25,6 +25,16 @@ export type PublicStreamingSessionProxy = {
    */
   externalVisitorId?: string | null
   messages: AgentMessage[]
+  /**
+   * Values of the {{variables}} resolved at session creation (the
+   * public_agent_session row), substituted into the prompt of every turn.
+   */
+  variables?: Record<string, string> | null
+  /**
+   * Defaults of the agent's published settings, re-read for the turn: they force
+   * a value into a variable the agent declared after the session was created.
+   */
+  variableDefaults?: Record<string, string> | null
 }
 
 export type StreamingSession = ConversationAgentSession | PublicStreamingSessionProxy

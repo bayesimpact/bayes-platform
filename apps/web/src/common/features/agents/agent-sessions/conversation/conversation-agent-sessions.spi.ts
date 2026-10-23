@@ -12,9 +12,13 @@ type BaseParams = {
 }
 export interface IConversationAgentSessionsSpi {
   getAll: (params: BaseParams) => Promise<ConversationAgentSession[]>
-  /** `agentSettingsRevision` is for the playground only: the API rejects it on a live session. */
+  /**
+   * `agentSettingsRevision` is for the playground only: the API rejects it on a live session.
+   * `variables` carries the values for the revision's declared {{variables}}; a declared
+   * variable without a value falls back to the revision's defaults.
+   */
   createOne: (
-    params: BaseParams & { agentSettingsRevision?: number },
+    params: BaseParams & { agentSettingsRevision?: number; variables?: Record<string, string> },
   ) => Promise<ConversationAgentSession>
   deleteOne: (params: BaseParams & { agentSessionId: string }) => Promise<SuccessResponseDTO>
   listSubSessions: (

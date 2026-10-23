@@ -14,6 +14,7 @@
       "outputJsonSchema": "Schéma JSON de sortie",
       "fillFormEnabled": "Remplissage de formulaire",
       "priorityCallsEnabled": "Appels prioritaires",
+      "promptVariables": "Variables de prompt",
       "schemaBuilder": {
         "advancedMode": "Mode avancé",
         "visualMode": "Éditeur visuel",
@@ -219,6 +220,10 @@
       "bannerTextLabel": "Texte du bandeau",
       "bannerTextDescription": "Message optionnel affiché en permanence au-dessus de la conversation, sur la page publique et dans le widget. Utilisez-le pour préciser le contexte, par exemple une version de test ou le public visé.",
       "bannerTextPlaceholder": "Version de test, réservée à l'équipe pilote"
+    },
+    "promptVariables": {
+      "title": "Variables de prompt",
+      "description": "Valeurs par défaut des variables que l'agent déclare dans ses instructions. Utilisées quand une session démarre sans valeur pour l'une d'entre elles."
     },
     "source_one": "{{count}} source",
     "source_other": "{{count}} sources",

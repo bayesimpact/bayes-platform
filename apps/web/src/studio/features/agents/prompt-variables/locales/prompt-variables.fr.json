@@ -1,0 +1,15 @@
+{
+  "promptVariables": {
+    "title": "Variables de prompt",
+    "description": "Valeurs des variables que l'agent déclare dans ses instructions. Chacune est substituée dans le prompt avant un appel au modèle.",
+    "empty": "Cet agent ne déclare aucune variable dans ses instructions.",
+    "required": "Requis",
+    "default": "Défaut : {{value}}",
+    "clear": "Effacer {{name}}",
+    "valuePlaceholder": "Saisir une valeur",
+    "dialog": {
+      "description": "Définissez les valeurs à utiliser pour cette discussion. Laissez un champ vide pour utiliser la valeur par défaut de l'agent.",
+      "start": "Démarrer la discussion"
+    }
+  }
+}

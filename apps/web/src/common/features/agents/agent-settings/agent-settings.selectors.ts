@@ -93,3 +93,30 @@ export const selectPlaygroundRevision = ({ agentId }: { agentId: string }) =>
       })
     },
   )
+
+/**
+ * Settings of the revision the playground runs — what a new playground session tests.
+ * The `agentSettings` slice is only registered in the Studio store, so the inputs read it
+ * defensively: on interfaces without the slice (e.g. the desk) this returns `null`, which
+ * is the same as while the history is still loading.
+ */
+export const selectPlaygroundAgentSettings = ({ agentId }: { agentId: string }) =>
+  createSelector(
+    [
+      (state: RootState) => state.agentSettings?.history,
+      (state: RootState) => state.agentSettings?.playgroundRevisionByAgentId,
+    ],
+    (history, revisionByAgentId): AgentSettings | null => {
+      if (!history || !revisionByAgentId) return null
+      const agentHistory = history[agentId]
+      if (!agentHistory || !ADS.isFulfilled(agentHistory)) return null
+
+      const revision = resolveEffectiveRevision({
+        versions: agentHistory.value,
+        chosenRevision: revisionByAgentId[agentId],
+      })
+      if (revision === undefined) return null
+
+      return agentHistory.value.find((settings) => settings.revision === revision) ?? null
+    },
+  )

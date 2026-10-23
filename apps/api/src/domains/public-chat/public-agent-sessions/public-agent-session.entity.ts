@@ -12,6 +12,8 @@ import { PublicAgentSessionCategory } from "./public-agent-session-category.enti
 @Entity("public_agent_session")
 @Index(["sessionTokenHash"])
 @Index(["appInstallationId"])
+/** The agent's sessions, read newest first: the review list and the category analytics. */
+@Index(["agentId", "createdAt"])
 @Check(
   "CHK_public_agent_session_one_channel",
   '("embed_config_id" IS NULL) <> ("app_installation_id" IS NULL)',
@@ -48,6 +50,14 @@ export class PublicAgentSession extends Base4AllEntity {
   /** The sub-agent in control while a handoff is in progress (see ConversationAgentSession). */
   @Column({ type: "uuid", name: "active_agent_id", nullable: true })
   activeAgentId!: string | null
+
+  /**
+   * Values of the {{variables}} the agent's instructions declared at session
+   * creation (caller values over the published settings defaults of the time),
+   * substituted into the prompt before every model call.
+   */
+  @Column({ type: "jsonb", name: "variables", nullable: true, default: null })
+  variables!: Record<string, string> | null
 
   // Set when the retention sweep purged this session's content (GDPR). The
   // session and message rows survive for analytics; content fields are emptied
