@@ -187,8 +187,11 @@ externalRedis:
 # ---------------------------------------------------------------------------
 # local: documents on a volume shared by the API and the workers. The volume
 #        needs ReadWriteMany when the pods run on several nodes.
+# s3:    any S3-compatible bucket (SeaweedFS, AWS S3, the GCS XML API with
+#        HMAC keys). The browsers upload and download directly with signed
+#        URLs, so publicEndpoint must be reachable from them.
 # gcs:   a Google Cloud Storage bucket, credentials through Workload Identity.
-#        Required by the pdf-converter (image-only LLMs).
+# The pdf-converter (image-only LLMs) needs s3 or gcs.
 storage:
   mode: local
   local:
@@ -196,6 +199,20 @@ storage:
     accessModes:
       - ReadWriteMany
     size: 50Gi
+  s3:
+    bucket: ""
+    # Endpoint the pods reach (http://seaweedfs-s3:8333). Empty: AWS S3.
+    endpoint: ""
+    # Endpoint the browsers reach (https://storage.example.org), when it
+    # differs from endpoint: the host is part of the URL signature.
+    publicEndpoint: ""
+    region: us-east-1
+    # true for SeaweedFS and most self-hosted stores.
+    forcePathStyle: true
+    # Keys of the access key pair in secrets.existingSecret. Leave both empty
+    # to use the SDK default chain (IAM role, environment).
+    accessKeyIdKey: S3_ACCESS_KEY_ID
+    secretAccessKeyKey: S3_SECRET_ACCESS_KEY
   gcs:
     bucket: ""
 
@@ -288,8 +305,8 @@ gpuWorkers:
   affinity: {}
   podAnnotations: {}
 
-# Renders PDFs to PNG page images for image-only LLMs. Works on the GCS
-# storage only; enabled automatically when storage.mode is gcs.
+# Renders PDFs to PNG page images for image-only LLMs. Works on a bucket
+# only; enabled automatically when storage.mode is s3 or gcs.
 pdfConverter:
   enabled: auto
   image: pdf-converter

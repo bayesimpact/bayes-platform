@@ -1,6 +1,5 @@
 import { z } from "zod"
 import {
-  DOCUMENT_UPLOAD_CONTENT_LENGTH_RANGE_HEADER,
   DOCUMENT_UPLOAD_MAX_BYTES,
   type DocumentEmbeddingStatus,
   isAllowedMimeType,
@@ -86,9 +85,10 @@ export type AppDocumentCreatedDto = {
   embeddingStatus: DocumentEmbeddingStatus
 }
 
+/** The upload URL is signed for this exact size: a body of another size is rejected. */
 export type AppDocumentUploadHeadersDto = {
   "Content-Type": string
-  [DOCUMENT_UPLOAD_CONTENT_LENGTH_RANGE_HEADER]: string
+  "Content-Length": string
 }
 
 /** JSON create omits the upload fields. A file upload adds them. */
