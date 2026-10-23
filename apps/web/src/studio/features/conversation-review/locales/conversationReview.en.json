@@ -26,9 +26,7 @@
         "session": "Session"
       },
       "pagination": {
-        "count": "Page {{page}} of {{pages}} · {{total}} sessions",
-        "previous": "Previous",
-        "next": "Next"
+        "count": "Page {{page}} of {{pages}} · {{total}} sessions"
       }
     },
     "notice": "Every session you open here is recorded in the activity log.",
@@ -65,12 +63,7 @@
     },
     "extraction": {
       "document": "Document: {{title}}",
-      "errorCode": "Error code: {{code}}",
-      "status": {
-        "pending": "Pending",
-        "success": "Succeeded",
-        "failed": "Failed"
-      }
+      "errorCode": "Error code: {{code}}"
     }
   }
 }

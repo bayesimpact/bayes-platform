@@ -237,7 +237,7 @@ function SessionListPagination({
           onClick={() => onPageChange(page - 1)}
         >
           <ChevronLeftIcon />
-          {t("byCategory.pagination.previous")}
+          {t("actions:previous")}
         </Button>
         <Button
           variant="outline"
@@ -245,7 +245,7 @@ function SessionListPagination({
           disabled={page >= pageCount}
           onClick={() => onPageChange(page + 1)}
         >
-          {t("byCategory.pagination.next")}
+          {t("actions:next")}
           <ChevronRightIcon />
         </Button>
       </div>

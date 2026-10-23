@@ -26,9 +26,7 @@
         "session": "Session"
       },
       "pagination": {
-        "count": "Page {{page}} sur {{pages}} · {{total}} sessions",
-        "previous": "Précédent",
-        "next": "Suivant"
+        "count": "Page {{page}} sur {{pages}} · {{total}} sessions"
       }
     },
     "notice": "Chaque session ouverte ici est enregistrée dans le journal d'activité.",
@@ -65,12 +63,7 @@
     },
     "extraction": {
       "document": "Document : {{title}}",
-      "errorCode": "Code d'erreur : {{code}}",
-      "status": {
-        "pending": "En attente",
-        "success": "Réussie",
-        "failed": "Échec"
-      }
+      "errorCode": "Code d'erreur : {{code}}"
     }
   }
 }
