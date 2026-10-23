@@ -75,7 +75,7 @@ export const PROVIDER_CASES: ProviderCase[] = [
   },
   {
     label: "Mistral Small 3.1 24B (vLLM)",
-    model: AgentModel.MistralSmall31_24B,
+    model: AgentModel.MistralSmall32_24B,
     buildProvider: () => new AISDKMistralProvider(),
     unavailableReason: vllmUnavailableReason("VLLM_MISTRALSMALL31_24B_URL"),
   },

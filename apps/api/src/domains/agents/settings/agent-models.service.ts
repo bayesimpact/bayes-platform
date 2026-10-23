@@ -18,6 +18,7 @@ const PROVIDERS_WITH_FEATURE_FLAGS: Partial<Record<AgentProvider, FeatureFlagKey
   [AgentProvider.MedGemma]: "medgemma",
   [AgentProvider.Gemma]: "gemma",
   [AgentProvider.Mistral]: "mistral",
+  [AgentProvider.Qwen]: "qwen",
 }
 
 export type AgentModelData = {
