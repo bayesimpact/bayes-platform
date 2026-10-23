@@ -1,5 +1,4 @@
 import type {
-  AgentMembershipRoleDto,
   AppGrantablePermission,
   AppManifestDto,
   BackofficeAgentDetailDto,
@@ -27,15 +26,18 @@ import type {
   BackofficeUserReviewCampaignMembershipDto,
   CurrentTermsDto,
   FeatureFlagKey,
-  OrganizationMembershipRoleDto,
+  MembershipRoleDto,
   PaginatedBackofficeAgentsDto,
   PaginatedBackofficeOrganizationsDto,
   PaginatedBackofficeProjectsDto,
   PaginatedBackofficeUsersDto,
-  ProjectMembershipRoleDto,
   ReviewCampaignMembershipRole,
   TimeType,
 } from "@caseai-connect/api-contracts"
+import {
+  type LegacyMembershipRole,
+  toLegacyRole,
+} from "@/common/features/memberships/membership-roles"
 
 export type BackofficeProject = {
   id: string
@@ -56,7 +58,7 @@ export type BackofficeOrganizationMember = {
   userId: string
   userEmail: string
   userName: string | null
-  role: OrganizationMembershipRoleDto
+  role: LegacyMembershipRole
 }
 
 export type BackofficeOrganizationProject = {
@@ -85,7 +87,7 @@ export type BackofficeAgentMember = {
   userId: string
   userEmail: string
   userName: string | null
-  role: AgentMembershipRoleDto
+  role: LegacyMembershipRole
 }
 
 export type BackofficeAgentDetail = {
@@ -138,7 +140,7 @@ const toBackofficeAgentMember = (dto: BackofficeAgentMemberDto): BackofficeAgent
   userId: dto.userId,
   userEmail: dto.userEmail,
   userName: dto.userName,
-  role: dto.role,
+  role: toLegacyRole(dto.roles) ?? "member",
 })
 
 export const toBackofficeAgentDetail = (dto: BackofficeAgentDetailDto): BackofficeAgentDetail => ({
@@ -171,7 +173,7 @@ export type BackofficeProjectMember = {
   userId: string
   userEmail: string
   userName: string | null
-  role: ProjectMembershipRoleDto
+  role: LegacyMembershipRole
 }
 
 export type BackofficeProjectAgent = {
@@ -221,7 +223,7 @@ const toBackofficeProjectMember = (dto: BackofficeProjectMemberDto): BackofficeP
   userId: dto.userId,
   userEmail: dto.userEmail,
   userName: dto.userName,
-  role: dto.role,
+  role: toLegacyRole(dto.roles) ?? "member",
 })
 
 const toBackofficeProjectAgent = (dto: BackofficeProjectAgentDto): BackofficeProjectAgent => ({
@@ -258,7 +260,7 @@ export type BackofficeUserGlobalRole = {
 export type BackofficeUserOrganizationMembership = {
   organizationId: string
   organizationName: string
-  role: OrganizationMembershipRoleDto
+  role: LegacyMembershipRole
   roleKey: string | null
   permissions: string[]
 }
@@ -266,7 +268,7 @@ export type BackofficeUserOrganizationMembership = {
 export type BackofficeUserProjectMembership = {
   projectId: string
   projectName: string
-  role: ProjectMembershipRoleDto
+  role: LegacyMembershipRole
   roleKey: string | null
   permissions: string[]
 }
@@ -274,7 +276,7 @@ export type BackofficeUserProjectMembership = {
 export type BackofficeUserAgentMembership = {
   agentId: string
   agentName: string
-  role: AgentMembershipRoleDto
+  role: LegacyMembershipRole
   roleKey: string | null
   permissions: string[]
 }
@@ -284,7 +286,7 @@ export type BackofficeUserReviewCampaignMembership = {
   campaignName: string
   projectId: string
   role: ReviewCampaignMembershipRole
-  /** The `review_campaign_*` RBAC role, null on a legacy row that never got one. */
+  /** The `review_campaign_*` RBAC roles, comma-separated. */
   roleKey: string | null
   permissions: string[]
 }
@@ -341,7 +343,7 @@ const toBackofficeOrganizationMember = (
   userId: dto.userId,
   userEmail: dto.userEmail,
   userName: dto.userName,
-  role: dto.role,
+  role: toLegacyRole(dto.roles) ?? "member",
 })
 
 const toBackofficeOrganizationProject = (
@@ -401,13 +403,17 @@ export const toPaginatedBackofficeUsers = (
   limit: dto.limit,
 })
 
+/** The catalog keys of the roles, comma-separated, or null without one. */
+const toRoleKeys = (roles: MembershipRoleDto[]): string | null =>
+  roles.length > 0 ? roles.map((role) => role.key).join(", ") : null
+
 const toBackofficeUserOrganizationMembership = (
   dto: BackofficeUserOrganizationMembershipDto,
 ): BackofficeUserOrganizationMembership => ({
   organizationId: dto.organizationId,
   organizationName: dto.organizationName,
-  role: dto.role,
-  roleKey: dto.roleKey,
+  role: toLegacyRole(dto.roles) ?? "member",
+  roleKey: toRoleKeys(dto.roles),
   permissions: dto.permissions,
 })
 
@@ -416,8 +422,8 @@ const toBackofficeUserProjectMembership = (
 ): BackofficeUserProjectMembership => ({
   projectId: dto.projectId,
   projectName: dto.projectName,
-  role: dto.role,
-  roleKey: dto.roleKey,
+  role: toLegacyRole(dto.roles) ?? "member",
+  roleKey: toRoleKeys(dto.roles),
   permissions: dto.permissions,
 })
 
@@ -426,8 +432,8 @@ const toBackofficeUserAgentMembership = (
 ): BackofficeUserAgentMembership => ({
   agentId: dto.agentId,
   agentName: dto.agentName,
-  role: dto.role,
-  roleKey: dto.roleKey,
+  role: toLegacyRole(dto.roles) ?? "member",
+  roleKey: toRoleKeys(dto.roles),
   permissions: dto.permissions,
 })
 
@@ -437,8 +443,8 @@ const toBackofficeUserReviewCampaignMembership = (
   campaignId: dto.campaignId,
   campaignName: dto.campaignName,
   projectId: dto.projectId,
-  role: dto.role,
-  roleKey: dto.roleKey,
+  role: dto.roles.some((role) => role.key === "review_campaign_tester") ? "tester" : "reviewer",
+  roleKey: toRoleKeys(dto.roles),
   permissions: dto.permissions,
 })
 

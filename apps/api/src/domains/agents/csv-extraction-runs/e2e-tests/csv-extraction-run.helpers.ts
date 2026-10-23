@@ -1,10 +1,10 @@
-import type { ProjectMembershipRoleDto } from "@caseai-connect/api-contracts"
 import type { AllRepositories } from "@/common/test/test-transaction-manager"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import type { BaseAgentSessionType } from "@/domains/agents/base-agent-sessions/base-agent-sessions.types"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { documentFactory } from "@/domains/documents/document.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
+import type { ProjectMembershipRole } from "@/domains/projects/memberships/project-membership.types"
 import type { AgentCsvExtractionRunStatus } from "../agent-csv-extraction-run.entity"
 import { agentCsvExtractionRunFactory } from "../agent-csv-extraction-run.factory"
 
@@ -19,7 +19,7 @@ export async function createCsvExtractionRunContext({
   authSubject,
 }: {
   repositories: AllRepositories
-  role?: ProjectMembershipRoleDto
+  role?: ProjectMembershipRole
   authSubject: string
 }) {
   const { user, organization, project, agent, agentSettings } = await createOrganizationWithAgent(

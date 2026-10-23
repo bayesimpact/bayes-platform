@@ -2,6 +2,7 @@ import type { AgentDto } from "../agents/agents.dto"
 import type { ConversationAgentSessionDto } from "../agents/conversation-agent-sessions/conversation-agent-sessions.dto"
 import type { AgentSettingsDto } from "../agents/settings/agent-settings.dto"
 import type { TimeType } from "../generic"
+import type { MembershipRoleDto } from "../rbac/membership-role.dto"
 
 export type ReviewCampaignStatus = "draft" | "active" | "closed"
 export type ReviewCampaignMembershipRole = "tester" | "reviewer"
@@ -44,13 +45,13 @@ export type ReviewCampaignDto = {
 }
 
 export type ReviewCampaignMembershipDto = {
-  id: string
   campaignId: string
   userId: string
   userEmail: string
   /** False while the member was added by email and has never signed in. */
   userHasSignedIn: boolean
-  role: ReviewCampaignMembershipRole
+  /** Tester, reviewer or both: each role is its own membership row, revoked on its own. */
+  roles: MembershipRoleDto[]
 }
 
 export type CampaignAggregatesDto = {

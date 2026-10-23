@@ -4,10 +4,10 @@ import {
   selectAgentMemberships,
   selectReviewCampaignMemberships,
 } from "@/common/features/me/me.selectors"
+import { holdsRole } from "@/common/features/memberships/membership-roles"
 import { selectOrganizationsList } from "@/common/features/organizations/organizations.selectors"
 import { selectMyProjectsList } from "@/common/features/projects/projects.selectors"
 import { useAppSelector } from "@/common/store/hooks"
-import { SUPER_ROLES } from "../features/me/me.models"
 
 export function useAbility() {
   const organizations = useAppSelector(selectOrganizationsList)
@@ -79,7 +79,7 @@ export function useAbility() {
     ({ projectId }: { projectId: string | null }) =>
       !!reviewCampaignMemberships?.some(
         (membership) =>
-          membership.role === "tester" &&
+          holdsRole(membership.roles, "review_campaign_tester") &&
           membership.campaignStatus === "active" &&
           membership.projectId === projectId,
       ),
@@ -90,7 +90,7 @@ export function useAbility() {
     ({ projectId }: { projectId: string | null }) =>
       !!reviewCampaignMemberships?.some(
         (membership) =>
-          membership.role === "reviewer" &&
+          holdsRole(membership.roles, "review_campaign_reviewer") &&
           membership.campaignStatus !== "draft" &&
           membership.projectId === projectId,
       ),
@@ -100,7 +100,9 @@ export function useAbility() {
   const canManageAgent = useCallback(
     ({ agentId }: { agentId: string | null }) => {
       const isAgentOwnerOrAdmin = [...(agentMemberships ?? [])].some(
-        (membership) => membership.agentId === agentId && SUPER_ROLES.includes(membership.role),
+        (membership) =>
+          membership.agentId === agentId &&
+          holdsRole(membership.roles, "agent_owner", "agent_admin"),
       )
       return isAgentOwnerOrAdmin
     },

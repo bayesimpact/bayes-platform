@@ -6,12 +6,26 @@ import {
   getMembershipResourceId,
   UserMembership,
 } from "@/domains/memberships/user-membership.entity"
+import { REVIEW_CAMPAIGN_ROLES } from "@/domains/rbac/rbac.constants"
 import { resolveReviewCampaignRoleId } from "@/domains/rbac/resolve-review-campaign-role-id"
 import { ReviewCampaign } from "../review-campaign.entity"
 import type { ReviewCampaignMembershipRole } from "../review-campaigns.types"
 import type { ReviewCampaignMembershipModel } from "./review-campaign-membership.model"
 
 const REVIEW_CAMPAIGN_RESOURCE_TYPE = "review_campaign" as const
+const MEMBERSHIP_RELATIONS = { user: true, rbacRole: true } as const
+
+const ROLE_BY_ROLE_KEY = new Map<string, ReviewCampaignMembershipRole>(
+  Object.entries(REVIEW_CAMPAIGN_ROLES).map(([role, roleKey]) => [
+    roleKey,
+    role as ReviewCampaignMembershipRole,
+  ]),
+)
+
+/** Matches the rows holding a campaign role, or the given one. A row without a role is ignored. */
+function campaignRoleFilter(role?: ReviewCampaignMembershipRole) {
+  return { key: role ? REVIEW_CAMPAIGN_ROLES[role] : In(Object.values(REVIEW_CAMPAIGN_ROLES)) }
+}
 
 /**
  * Repository for review-campaign memberships.
@@ -20,7 +34,8 @@ const REVIEW_CAMPAIGN_RESOURCE_TYPE = "review_campaign" as const
  * `resourceType = 'review_campaign'`.
  *
  * A user may hold both `tester` and `reviewer` roles on the same campaign;
- * each role is a separate row, holding the matching `review_campaign_*` RBAC role.
+ * each role is a separate row, holding the matching `review_campaign_*` RBAC role. The model is
+ * one row: its `role` is read from `role_id`.
  */
 @Injectable()
 export class ReviewCampaignMembershipRepository {
@@ -38,8 +53,9 @@ export class ReviewCampaignMembershipRepository {
         id: membershipId,
         resourceType: REVIEW_CAMPAIGN_RESOURCE_TYPE,
         resourceId: campaignId,
+        rbacRole: campaignRoleFilter(),
       },
-      relations: ["user"],
+      relations: MEMBERSHIP_RELATIONS,
     })
     if (!membership) return null
 
@@ -63,9 +79,9 @@ export class ReviewCampaignMembershipRepository {
         userId,
         resourceType: REVIEW_CAMPAIGN_RESOURCE_TYPE,
         resourceId: campaignId,
-        role,
+        rbacRole: campaignRoleFilter(role),
       },
-      relations: ["user"],
+      relations: MEMBERSHIP_RELATIONS,
     })
     if (!membership) return null
 
@@ -77,18 +93,26 @@ export class ReviewCampaignMembershipRepository {
 
   async findAllByCampaign(campaignId: string): Promise<ReviewCampaignMembershipModel[]> {
     const memberships = await this.userMembershipRepo().find({
-      where: { resourceType: REVIEW_CAMPAIGN_RESOURCE_TYPE, resourceId: campaignId },
-      relations: ["user"],
+      where: {
+        resourceType: REVIEW_CAMPAIGN_RESOURCE_TYPE,
+        resourceId: campaignId,
+        rbacRole: campaignRoleFilter(),
+      },
+      relations: MEMBERSHIP_RELATIONS,
       order: { createdAt: "ASC" },
     })
     const campaign = await this.campaignRepo().findOneOrFail({ where: { id: campaignId } })
-    return memberships.map((membership) => this.toModel(membership, campaign))
+    return memberships.flatMap((membership) => this.toModel(membership, campaign) ?? [])
   }
 
   async findAllByUser(userId: string): Promise<ReviewCampaignMembershipModel[]> {
     const memberships = await this.userMembershipRepo().find({
-      where: { userId, resourceType: REVIEW_CAMPAIGN_RESOURCE_TYPE },
-      relations: ["user"],
+      where: {
+        userId,
+        resourceType: REVIEW_CAMPAIGN_RESOURCE_TYPE,
+        rbacRole: campaignRoleFilter(),
+      },
+      relations: MEMBERSHIP_RELATIONS,
       order: { createdAt: "DESC" },
     })
     return this.toModels(memberships)
@@ -102,7 +126,12 @@ export class ReviewCampaignMembershipRepository {
     role: ReviewCampaignMembershipRole
   }): Promise<ReviewCampaignMembershipModel[]> {
     const memberships = await this.userMembershipRepo().find({
-      where: { userId, resourceType: REVIEW_CAMPAIGN_RESOURCE_TYPE, role },
+      where: {
+        userId,
+        resourceType: REVIEW_CAMPAIGN_RESOURCE_TYPE,
+        rbacRole: campaignRoleFilter(role),
+      },
+      relations: { rbacRole: true },
       order: { createdAt: "DESC" },
     })
     return this.toModels(memberships)
@@ -121,44 +150,28 @@ export class ReviewCampaignMembershipRepository {
     organizationId: string
     projectId: string
   }): Promise<ReviewCampaignMembershipModel> {
-    const membershipRepo = this.userMembershipRepo()
-    const existing = await membershipRepo.findOne({
-      where: {
-        userId,
-        resourceType: REVIEW_CAMPAIGN_RESOURCE_TYPE,
-        resourceId: campaignId,
-        role,
-      },
-      relations: ["user"],
-    })
+    const existing = await this.findByUserCampaignAndRole({ userId, campaignId, role })
+    if (existing) return existing
 
     const roleId = await resolveReviewCampaignRoleId(this.transactionService.getManager(), role)
-
-    if (existing) {
-      // A row written before the campaign roles existed (or by an older pod) gets its role here.
-      if (!existing.roleId && roleId) {
-        await membershipRepo.update({ id: existing.id }, { roleId })
-        existing.roleId = roleId
-      }
-      const campaign = await this.campaignRepo().findOneOrFail({ where: { id: campaignId } })
-      return this.toModel(existing, campaign)
+    if (!roleId) {
+      throw new Error(`Role ${REVIEW_CAMPAIGN_ROLES[role]} not found: is the RBAC catalog seeded?`)
     }
-
-    const saved = await membershipRepo.save(
-      membershipRepo.create({
+    await this.userMembershipRepo()
+      .createQueryBuilder()
+      .insert()
+      .values({
         userId,
         resourceType: REVIEW_CAMPAIGN_RESOURCE_TYPE,
         resourceId: campaignId,
-        role,
         roleId,
-      }),
-    )
-    const withUser = await membershipRepo.findOneOrFail({
-      where: { id: saved.id },
-      relations: ["user"],
-    })
-    const campaign = await this.campaignRepo().findOneOrFail({ where: { id: campaignId } })
-    return this.toModel(withUser, campaign)
+      })
+      .orIgnore()
+      .execute()
+
+    const created = await this.findByUserCampaignAndRole({ userId, campaignId, role })
+    if (!created) throw new Error(`Review campaign ${campaignId} not found`)
+    return created
   }
 
   async deleteMembership({
@@ -172,13 +185,23 @@ export class ReviewCampaignMembershipRepository {
     userId: string
     role: ReviewCampaignMembershipRole
   }): Promise<void> {
-    await this.userMembershipRepo().delete({
-      id: membershipId,
-      userId,
-      resourceType: REVIEW_CAMPAIGN_RESOURCE_TYPE,
-      resourceId: campaignId,
-      role,
-    })
+    await this.transactionService.getManager().query(
+      `DELETE FROM user_membership AS membership
+       USING role
+       WHERE membership.id = $1
+         AND membership.user_id = $2
+         AND membership.resource_type = $3
+         AND membership.resource_id = $4
+         AND role.id = membership.role_id
+         AND role.key = $5`,
+      [
+        membershipId,
+        userId,
+        REVIEW_CAMPAIGN_RESOURCE_TYPE,
+        campaignId,
+        REVIEW_CAMPAIGN_ROLES[role],
+      ],
+    )
   }
 
   async softDeleteAllByCampaign(campaignId: string): Promise<void> {
@@ -214,22 +237,33 @@ export class ReviewCampaignMembershipRepository {
         return []
       }
       const campaign = campaignById.get(membership.resourceId)
-      return campaign ? [this.toModel(membership, campaign)] : []
+      return campaign ? (this.toModel(membership, campaign) ?? []) : []
     })
   }
 
+  /** Null for a row that holds no campaign role. */
   private toModel(
     membership: UserMembership,
     campaign: ReviewCampaign,
-  ): ReviewCampaignMembershipModel {
+  ): ReviewCampaignMembershipModel | null {
+    const rbacRole = membership.rbacRole
+    const role = rbacRole ? ROLE_BY_ROLE_KEY.get(rbacRole.key) : undefined
+    if (!rbacRole || !role) return null
+
     return {
       id: membership.id,
       userId: membership.userId,
       campaignId: getMembershipResourceId(membership),
       organizationId: campaign.organizationId,
       projectId: campaign.projectId,
-      role: membership.role as ReviewCampaignMembershipRole,
-      roleId: membership.roleId,
+      role,
+      membershipRole: {
+        membershipId: membership.id,
+        roleId: rbacRole.id,
+        key: rbacRole.key,
+        name: rbacRole.name,
+        scopeType: rbacRole.scopeType,
+      },
       createdAt: membership.createdAt,
       updatedAt: membership.updatedAt,
       deletedAt: membership.deletedAt,

@@ -4,7 +4,6 @@ import type {
   AgentCsvExtractionRunRecordDto,
   AgentCsvExtractionRunStatusChangedEventDto,
   AgentCsvExtractionRunsRoutes,
-  ProjectMembershipRoleDto,
 } from "@caseai-connect/api-contracts"
 import {
   ForbiddenException,
@@ -32,6 +31,8 @@ import {
   FILE_STORAGE_SERVICE,
   type IFileStorage,
 } from "@/domains/documents/storage/file-storage.interface"
+import type { MembershipRole } from "@/domains/memberships/membership-roles"
+import { PROJECT_ROLES } from "@/domains/rbac/rbac.constants"
 import { getTraceUrl } from "@/external/llm/trace-url"
 import type { BaseAgentSessionType } from "../base-agent-sessions/base-agent-sessions.types"
 import type { AgentCsvExtractionRun } from "./agent-csv-extraction-run.entity"
@@ -81,7 +82,7 @@ export abstract class AgentCsvExtractionRunsController {
     const agentSettings = await this.resolveAgentSettings({
       connectScope,
       agentId: request.agent.id,
-      role: request.projectMembership?.role,
+      projectRoles: request.projectMembership?.roles ?? [],
       revision: payload.agentSettingsRevision,
     })
     const run = await this.agentCsvExtractionRunsService.createRun({
@@ -102,19 +103,19 @@ export abstract class AgentCsvExtractionRunsController {
   /**
    * Settings the run is pinned to.
    *
-   * Choosing a version is gated on the caller's project role. Admins and owners are exactly the
+   * Choosing a version is gated on the caller's project roles. Admins and owners are exactly the
    * roles that can list the versions, since the settings history endpoint sits behind the same
    * check. Everyone else keeps getting the newest published revision.
    */
   private async resolveAgentSettings({
     connectScope,
     agentId,
-    role,
+    projectRoles,
     revision,
   }: {
     connectScope: RequiredConnectScope
     agentId: string
-    role: ProjectMembershipRoleDto | undefined
+    projectRoles: MembershipRole[]
     revision: number | undefined
   }): Promise<AgentSettings> {
     if (revision === undefined) {
@@ -125,7 +126,11 @@ export abstract class AgentCsvExtractionRunsController {
     if (!(Number.isInteger(revision) && revision > 0 && revision <= 2147483647)) {
       throw new ForbiddenException("Settings version must be an integer")
     }
-    if (role !== "admin" && role !== "owner") {
+    const managesAgent = projectRoles.some(
+      (projectRole) =>
+        projectRole.key === PROJECT_ROLES.admin || projectRole.key === PROJECT_ROLES.owner,
+    )
+    if (!managesAgent) {
       throw new ForbiddenException("Choosing a settings version requires managing the agent")
     }
 

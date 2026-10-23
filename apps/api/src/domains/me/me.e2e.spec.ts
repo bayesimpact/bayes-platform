@@ -145,7 +145,7 @@ describe("MeController (e2e)", () => {
       expect(response.body.data.user.memberships.organizationMemberships).toHaveLength(1)
       expect(response.body.data.user.memberships.organizationMemberships[0]).toMatchObject({
         organizationId: organization.id,
-        role: "owner",
+        roles: [expect.objectContaining({ key: "org_owner", scopeType: "organization" })],
       })
       expect(response.body.data.organizations).toHaveLength(1)
       expect(response.body.data.organizations[0]).toMatchObject({
@@ -167,17 +167,17 @@ describe("MeController (e2e)", () => {
       expect(memberships.organizationMemberships).toHaveLength(1)
       expect(memberships.organizationMemberships[0]).toMatchObject({
         organizationId: organization.id,
-        role: "owner",
+        roles: [expect.objectContaining({ key: "org_owner" })],
       })
       expect(memberships.projectMemberships).toHaveLength(1)
       expect(memberships.projectMemberships[0]).toMatchObject({
         projectId: project.id,
-        role: "owner",
+        roles: [expect.objectContaining({ key: "project_owner" })],
       })
       expect(memberships.agentMemberships).toHaveLength(1)
       expect(memberships.agentMemberships[0]).toMatchObject({
         agentId: agent.id,
-        role: "owner",
+        roles: [expect.objectContaining({ key: "agent_owner" })],
       })
     })
 
@@ -213,20 +213,17 @@ describe("MeController (e2e)", () => {
       const response = await subject()
       expectResponse(response, 200)
 
-      const memberships = response.body.data.user.memberships.reviewCampaignMemberships as Array<{
-        campaignId: string
-        role: "tester" | "reviewer"
-        campaignStatus: "draft" | "active" | "closed"
-        projectId: string
-      }>
+      const memberships = response.body.data.user.memberships.reviewCampaignMemberships
       expect(memberships).toHaveLength(2)
-      const reviewer = memberships.find((m) => m.role === "reviewer")
+      const holds = (roleKey: string) => (membership: (typeof memberships)[number]) =>
+        membership.roles.some((role) => role.key === roleKey)
+      const reviewer = memberships.find(holds("review_campaign_reviewer"))
       expect(reviewer).toMatchObject({
         campaignId: activeCampaign.id,
         projectId: project.id,
         campaignStatus: "active",
       })
-      const tester = memberships.find((m) => m.role === "tester")
+      const tester = memberships.find(holds("review_campaign_tester"))
       expect(tester).toMatchObject({
         campaignId: draftCampaign.id,
         projectId: project.id,
@@ -243,9 +240,14 @@ describe("MeController (e2e)", () => {
 
       expectResponse(response, 200)
       expect(response.body.data.user.conversationReviewAgentIds).toEqual([agent.id])
-      // The review adds to the user's role on the agent: it is not a membership of its own.
-      expect(response.body.data.user.memberships.agentMemberships).toEqual([
-        expect.objectContaining({ agentId: agent.id, role: "owner" }),
+      // The review is a second role on the agent, next to the user's ownership.
+      const [agentMembership, ...otherAgentMemberships] =
+        response.body.data.user.memberships.agentMemberships
+      expect(otherAgentMemberships).toEqual([])
+      expect(agentMembership?.agentId).toBe(agent.id)
+      expect(agentMembership?.roles.map((role) => role.key)).toEqual([
+        "agent_owner",
+        "agent_conversation_reviewer",
       ])
     })
 

@@ -26,6 +26,7 @@ export const Empty: Story = {
       state: mergeSeeds(
         seed.currentProject(mockProject),
         seed.tester.context(mockCampaignContext),
+        seed.currentReviewCampaignId(mockCampaignContext.id),
         reviewerSessionsSeed([]),
       ),
     }),
@@ -38,6 +39,7 @@ export const WithMixedSessions: Story = {
       state: mergeSeeds(
         seed.currentProject(mockProject),
         seed.tester.context(mockCampaignContext),
+        seed.currentReviewCampaignId(mockCampaignContext.id),
         reviewerSessionsSeed(mockReviewerSessions),
       ),
     }),
@@ -50,6 +52,7 @@ export const SingleSession: Story = {
       state: mergeSeeds(
         seed.currentProject(mockProject),
         seed.tester.context(mockCampaignContext),
+        seed.currentReviewCampaignId(mockCampaignContext.id),
         reviewerSessionsSeed([mockReviewerSessions[0]!]),
       ),
     }),

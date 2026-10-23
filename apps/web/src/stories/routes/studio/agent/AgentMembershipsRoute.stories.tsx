@@ -70,12 +70,14 @@ export const Default: Story = {
         .transient({ agent: currentAgent })
         .build({ revision: currentAgent.currentRevision?.number ?? 1 })
 
+      const buildMember = (role: AgentMembership["role"]): AgentMembership => {
+        const { roles: _roles, ...member } = agentMembershipFactory
+          .transient({ agent: currentAgent })
+          .build()
+        return { ...member, role }
+      }
       const memberships = withMemberships
-        ? [
-            agentMembershipFactory.transient({ agent: currentAgent }).build({ role: "owner" }),
-            agentMembershipFactory.transient({ agent: currentAgent }).build({ role: "member" }),
-            agentMembershipFactory.transient({ agent: currentAgent }).build({ role: "member" }),
-          ]
+        ? [buildMember("owner"), buildMember("member"), buildMember("member")]
         : []
 
       return {

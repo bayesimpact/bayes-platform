@@ -74,7 +74,6 @@ export const saveAgentMembership = async ({
       userId: membership.userId,
       resourceType: "agent",
       resourceId: membership.agentId,
-      role: membership.role,
       roleId: rbacRole?.id ?? null,
     }),
   )

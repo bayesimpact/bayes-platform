@@ -8,7 +8,6 @@ import type {
 } from "@/common/context/request.interface"
 import type { Agent } from "@/domains/agents/agent.entity"
 import type { Document } from "@/domains/documents/document.entity"
-import { organizationMembershipFactory } from "@/domains/organizations/memberships/organization-membership.factory"
 import type { Organization } from "@/domains/organizations/organization.entity"
 import type { Project } from "@/domains/projects/project.entity"
 import type { User } from "@/domains/users/user.entity"
@@ -63,7 +62,11 @@ export const endpointRequestWithOrganizationFactory = Factory.define<
   return {
     ...baseRequest,
     organizationId: organization.id,
-    organizationMembership: organizationMembershipFactory.transient({ organization, user }).build(),
+    organizationMembership: {
+      userId: baseRequest.user.id,
+      organizationId: organization.id,
+      roles: [],
+    },
   } satisfies EndpointRequestWithOrganizationMembership
 })
 

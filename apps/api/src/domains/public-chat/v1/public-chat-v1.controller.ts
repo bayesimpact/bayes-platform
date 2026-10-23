@@ -57,6 +57,7 @@ export class PublicChatV1Controller extends PublicChatController {
     const { session, sessionToken } = await this.publicChatService.createSession(
       request.embedConfig,
       body.payload?.externalVisitorId,
+      body.payload?.variables,
     )
     return { data: toCreatePublicSessionResponseDto(session, sessionToken) }
   }

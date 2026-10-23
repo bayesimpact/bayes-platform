@@ -61,6 +61,11 @@ export const FeatureFlags = [
     key: "agent-memory",
     description: "Let conversation agents remember facts about signed-in users.",
   }),
+  featureFlag({
+    key: "agent-prompt-variables",
+    description:
+      "Collect values for the variables an agent declares in its instructions, at session start, with defaults set on the agent's settings.",
+  }),
 ] as const
 export type FeatureFlagKey = (typeof FeatureFlags)[number]["key"]
 export type FeatureFlagsDto = FeatureFlagKey[]

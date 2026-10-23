@@ -43,8 +43,10 @@ const slice = createSlice({
 
     builder.addCase(agentMembershipsThunks.remove.fulfilled, (state, action) => {
       if (ADS.isFulfilled(state.data)) {
-        const { membershipId } = action.meta.arg
-        state.data.value = state.data.value.filter((membership) => membership.id !== membershipId)
+        const { memberUserId } = action.meta.arg
+        state.data.value = state.data.value.filter(
+          (membership) => membership.userId !== memberUserId,
+        )
       }
     })
 

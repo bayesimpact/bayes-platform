@@ -1,0 +1,15 @@
+{
+  "promptVariables": {
+    "title": "Prompt variables",
+    "description": "Values for the variables the agent declares in its instructions. Each one is substituted into the prompt before a model call.",
+    "empty": "This agent does not declare any variables in its instructions.",
+    "required": "Required",
+    "default": "Default: {{value}}",
+    "clear": "Clear {{name}}",
+    "valuePlaceholder": "Enter a value",
+    "dialog": {
+      "description": "Set the values to use for this chat. Leave a field blank to use the agent default.",
+      "start": "Start chat"
+    }
+  }
+}

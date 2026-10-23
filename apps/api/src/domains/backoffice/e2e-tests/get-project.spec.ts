@@ -75,7 +75,7 @@ describe("Backoffice - get project", () => {
         userId: user.id,
         userEmail: user.email,
         userName: user.name,
-        role: "owner",
+        roles: [expect.objectContaining({ key: "project_owner", scopeType: "project" })],
       },
     ])
     expect(returned.agents).toEqual([

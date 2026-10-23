@@ -41,7 +41,11 @@ import type {
   EvaluationConversationRunRecord,
   PaginatedEvaluationConversationRunRecords,
 } from "@/eval/features/evaluation-conversation-runs/evaluation-conversation-runs.models"
-import type { EvaluationExtractionDataset } from "@/eval/features/evaluation-extraction-datasets/evaluation-extraction-datasets.models"
+import type {
+  EvaluationExtractionDataset,
+  EvaluationExtractionDatasetFile,
+  PaginatedEvaluationExtractionDatasetRecords,
+} from "@/eval/features/evaluation-extraction-datasets/evaluation-extraction-datasets.models"
 import type {
   EvaluationExtractionRun,
   EvaluationExtractionRunRecord,
@@ -240,8 +244,8 @@ export const seed = {
     return { currentIds: { reviewCampaignId: id } }
   },
 
-  currentMembershipId(id: string | null): StoryPreloadedState {
-    return { currentIds: { membershipId: id } }
+  currentMemberUserId(id: string | null): StoryPreloadedState {
+    return { currentIds: { memberUserId: id } }
   },
 
   currentResourceLibraryId(id: string | null): StoryPreloadedState {
@@ -312,6 +316,10 @@ export const seed = {
 
   currentExtractionRunId(id: string | null): StoryPreloadedState {
     return { currentIds: { extractionRunId: id } }
+  },
+
+  currentCsvRunId(id: string | null): StoryPreloadedState {
+    return { currentIds: { csvRunId: id } }
   },
 
   agentSessionMessages(messages: AgentSessionMessage[]): StoryPreloadedState {
@@ -518,8 +526,10 @@ export const seed = {
       options: { currentId?: string | null } = {},
     ): StoryPreloadedState {
       const currentId = options.currentId ?? null
+      // The slice clears its records when the route sets a dataset id it does not hold yet,
+      // and stories have no middleware to load them again: it starts on the current one.
       return mergeSeeds(
-        { conversationDatasets: { data: ads.fulfilled(datasets) } },
+        { conversationDatasets: { data: ads.fulfilled(datasets), currentDatasetId: currentId } },
         { currentIds: { datasetId: currentId } },
       )
     },
@@ -569,13 +579,22 @@ export const seed = {
 
     extractionDatasets(
       datasets: EvaluationExtractionDataset[],
-      options: { currentId?: string | null } = {},
+      options: { currentId?: string | null; files?: EvaluationExtractionDatasetFile[] } = {},
     ): StoryPreloadedState {
       const currentId = options.currentId ?? null
+      // The datasets route also gates on the uploaded files, which only its mount
+      // middleware loads: stories run without middleware, so they are seeded here.
+      const files = options.files ?? []
       return mergeSeeds(
-        { extractionDatasets: { data: ads.fulfilled(datasets) } },
+        { extractionDatasets: { data: ads.fulfilled(datasets), files: ads.fulfilled(files) } },
         { currentIds: { datasetId: currentId } },
       )
+    },
+
+    extractionDatasetRecords(
+      records: PaginatedEvaluationExtractionDatasetRecords,
+    ): StoryPreloadedState {
+      return { extractionDatasets: { records: ads.fulfilled(records) } }
     },
 
     extractionRuns(

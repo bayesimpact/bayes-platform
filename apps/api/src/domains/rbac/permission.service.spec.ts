@@ -7,11 +7,11 @@ import {
 } from "@/common/test/test-database"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { grantConversationReview } from "@/domains/agents/conversation-reviewers/agent-conversation-reviewer.factory"
-import { UserMembership } from "@/domains/memberships/user-membership.entity"
 import { userMembershipFactory } from "@/domains/memberships/user-membership.factory"
 import {
   createOrganizationWithAgent,
   createOrganizationWithOwner,
+  createOrganizationWithProject,
 } from "@/domains/organizations/organization.factory"
 import { addUserToProject } from "@/domains/projects/memberships/project-membership.factory"
 import { projectFactory } from "@/domains/projects/project.factory"
@@ -123,14 +123,13 @@ describe("PermissionService", () => {
         userId,
         resourceType: "organization",
         resourceId: organizationId,
-        role: "member",
         roleId: role.id,
       }),
     )
   }
 
   describe("agent.conversation.review", () => {
-    it("is granted on the temp_agent resource of the agents the user reviews only", async () => {
+    it("is granted on the agents the user reviews only", async () => {
       const repositories = setup.getAllRepositories()
       const { user, organization, project, agent } = await createOrganizationWithAgent(repositories)
       const otherAgent = agentFactory.transient({ organization, project }).build()
@@ -139,13 +138,13 @@ describe("PermissionService", () => {
 
       await expect(
         service.has(user.id, AGENT_CONVERSATION_REVIEW_PERMISSION, {
-          type: "temp_agent",
+          type: "agent",
           id: agent.id,
         }),
       ).resolves.toBe(true)
       await expect(
         service.has(user.id, AGENT_CONVERSATION_REVIEW_PERMISSION, {
-          type: "temp_agent",
+          type: "agent",
           id: otherAgent.id,
         }),
       ).resolves.toBe(false)
@@ -158,7 +157,7 @@ describe("PermissionService", () => {
 
       await expect(
         service.has(user.id, AGENT_CONVERSATION_REVIEW_PERMISSION, {
-          type: "temp_agent",
+          type: "agent",
           id: agent.id,
         }),
       ).resolves.toBe(false)
@@ -169,14 +168,59 @@ describe("PermissionService", () => {
       const { user, agent } = await createOrganizationWithAgent(repositories)
       await grantConversationReview({ repositories, user, agent })
 
-      // The owner keeps every owner permission on the agent resource.
+      // The owner keeps every owner permission on the agent, and gets the review on top.
       await expect(
         service.has(user.id, "agent.update", { type: "agent", id: agent.id }),
       ).resolves.toBe(true)
-      // The review is never read from the agent resource itself.
       await expect(
         service.has(user.id, AGENT_CONVERSATION_REVIEW_PERMISSION, { type: "agent", id: agent.id }),
-      ).resolves.toBe(false)
+      ).resolves.toBe(true)
+    })
+  })
+
+  describe("several roles on one resource", () => {
+    it("grants the union of the roles a person holds on a project", async () => {
+      const repositories = setup.getAllRepositories()
+      const { project } = await createOrganizationWithProject(repositories)
+      const { user } = await addUserToProject({
+        repositories,
+        project,
+        membership: { role: "member" },
+      })
+      const adminRole = await repositories.roleRepository.findOneOrFail({
+        where: { key: PROJECT_ROLES.admin },
+      })
+      await repositories.userMembershipRepository.save(
+        userMembershipFactory.build({
+          userId: user.id,
+          resourceType: "project",
+          resourceId: project.id,
+          roleId: adminRole.id,
+        }),
+      )
+      const expectedPermissions = [
+        ...new Set([
+          ...PROJECT_ROLE_PERMISSIONS.project_member,
+          ...PROJECT_ROLE_PERMISSIONS.project_admin,
+        ]),
+      ].sort()
+      const adminOnlyPermission = PROJECT_ROLE_PERMISSIONS.project_admin.find(
+        (permission) =>
+          !(PROJECT_ROLE_PERMISSIONS.project_member as readonly string[]).includes(permission),
+      )
+
+      const permissionsByProjectId = await service.listResourcePermissions(
+        user.id,
+        PROJECT_READ_PERMISSION,
+      )
+
+      expect([...(permissionsByProjectId.get(project.id) ?? [])].sort()).toEqual(
+        expectedPermissions,
+      )
+      expect(adminOnlyPermission).toBeDefined()
+      await expect(
+        service.has(user.id, adminOnlyPermission ?? "", { type: "project", id: project.id }),
+      ).resolves.toBe(true)
     })
   })
 
@@ -468,7 +512,6 @@ describe("PermissionService", () => {
         userId: user.id,
         resourceType: "global",
         resourceId: null,
-        role: "member",
         roleId: superadminRole.id,
       }),
     )
@@ -546,7 +589,6 @@ describe("PermissionService", () => {
         userId: adminUser.id,
         resourceType: "organization",
         resourceId: organization.id,
-        role: "admin",
         roleId: (
           await repositories.roleRepository.findOneOrFail({
             where: { key: ORGANIZATION_ROLES.admin },
@@ -577,7 +619,6 @@ describe("PermissionService", () => {
         userId: superadmin.id,
         resourceType: "global",
         resourceId: null,
-        role: "member",
         roleId: platformSuperadminRole.id,
       }),
     )
@@ -620,7 +661,6 @@ describe("PermissionService", () => {
         userId: memberUser.id,
         resourceType: "organization",
         resourceId: organization.id,
-        role: "member",
         roleId: (
           await repositories.roleRepository.findOneOrFail({
             where: { key: ORGANIZATION_ROLES.member },
@@ -649,7 +689,6 @@ describe("PermissionService", () => {
         userId: user.id,
         resourceType: "global",
         resourceId: null,
-        role: "member",
         roleId: platformSuperadminRole.id,
       }),
     )
@@ -669,7 +708,6 @@ describe("PermissionService", () => {
         userId: user.id,
         resourceType: "global",
         resourceId: null,
-        role: "member",
         roleId: platformStaffRole.id,
       }),
     )
@@ -697,7 +735,6 @@ describe("PermissionService", () => {
         userId: user.id,
         resourceType: "global",
         resourceId: null,
-        role: "member",
         roleId: platformStaffRole.id,
       }),
     )
@@ -722,7 +759,6 @@ describe("PermissionService", () => {
         userId: user.id,
         resourceType: "global",
         resourceId: null,
-        role: "member",
         roleId: platformStaffRole.id,
       }),
     )
@@ -748,14 +784,12 @@ describe("PermissionService", () => {
         userId: staff.id,
         resourceType: "global",
         resourceId: null,
-        role: "member",
         roleId: platformStaffRole.id,
       }),
       userMembershipFactory.build({
         userId: superadmin.id,
         resourceType: "global",
         resourceId: null,
-        role: "member",
         roleId: platformSuperadminRole.id,
       }),
     ])
@@ -778,7 +812,6 @@ describe("PermissionService", () => {
         userId: user.id,
         resourceType: "global",
         resourceId: null,
-        role: "member",
         roleId: platformSuperadminRole.id,
       }),
     )
@@ -800,6 +833,18 @@ describe("PermissionService", () => {
   })
 
   describe("listUserIds", () => {
+    it("does not show an agent's conversation reviewers to its admins", async () => {
+      const repositories = setup.getAllRepositories()
+      const { user: owner, agent } = await createOrganizationWithAgent(repositories)
+      const reviewer = userFactory.build()
+      await repositories.userRepository.save(reviewer)
+      await grantConversationReview({ repositories, user: reviewer, agent })
+
+      const scope = await service.listUserIds(owner.id)
+
+      expect(scope.scope === "ids" && scope.ids.includes(reviewer.id)).toBe(false)
+    })
+
     it("returns the whole directory scope for backoffice.user.read holders", async () => {
       const repositories = setup.getAllRepositories()
       const superadmin = userFactory.build({ email: "superadmin@bayesimpact.org" })
@@ -812,7 +857,6 @@ describe("PermissionService", () => {
           userId: superadmin.id,
           resourceType: "global",
           resourceId: null,
-          role: "member",
           roleId: platformSuperadminRole.id,
         }),
       )
@@ -835,7 +879,6 @@ describe("PermissionService", () => {
           userId: fellowMember.id,
           resourceType: "organization",
           resourceId: organization.id,
-          role: "member",
           roleId: memberRole.id,
         }),
       )
@@ -866,7 +909,6 @@ describe("PermissionService", () => {
           userId: serviceUser.id,
           resourceType: "organization",
           resourceId: organization.id,
-          role: "member",
           roleId: memberRole.id,
         }),
       )
@@ -895,7 +937,6 @@ describe("PermissionService", () => {
           userId: memberUser.id,
           resourceType: "organization",
           resourceId: organization.id,
-          role: "member",
           roleId: memberRole.id,
         }),
       )
@@ -934,7 +975,6 @@ describe("PermissionService", () => {
           userId: superadmin.id,
           resourceType: "global",
           resourceId: null,
-          role: "member",
           roleId: platformSuperadminRole.id,
         }),
       )
@@ -973,7 +1013,6 @@ describe("PermissionService", () => {
           userId: memberUser.id,
           resourceType: "organization",
           resourceId: organization.id,
-          role: "member",
           roleId: memberRole.id,
         }),
       )
@@ -1033,7 +1072,6 @@ describe("PermissionService", () => {
           userId: projectUser.id,
           resourceType: "project",
           resourceId: project.id,
-          role: "member",
         }),
       )
 
@@ -1094,14 +1132,12 @@ describe("PermissionService", () => {
             userId: user.id,
             resourceType: "organization",
             resourceId: organizationA.id,
-            role: "member",
             roleId: orgRole.id,
           }),
           userMembershipFactory.build({
             userId: user.id,
             resourceType: "project",
             resourceId: projectB.id,
-            role: "owner",
             roleId: projectOwnerRole.id,
           }),
         ])
@@ -1175,7 +1211,6 @@ describe("PermissionService", () => {
           userId: projectUser.id,
           resourceType: "project",
           resourceId: project.id,
-          role: "member",
           roleId: projectMemberRole.id,
         }),
       )
@@ -1230,7 +1265,6 @@ describe("PermissionService", () => {
           userId: user.id,
           resourceType: "project",
           resourceId: project.id,
-          role: "owner",
           roleId: projectOwnerRole.id,
         }),
       )
@@ -1272,7 +1306,6 @@ describe("PermissionService", () => {
             userId: projectUser.id,
             resourceType: "project",
             resourceId: project.id,
-            role: "member",
             roleId: projectRole.id,
           }),
         )
@@ -1354,7 +1387,6 @@ describe("PermissionService", () => {
           userId: user.id,
           resourceType: "project",
           resourceId: ownedProject.id,
-          role: "owner",
           roleId: projectOwnerRole.id,
         }),
       )
@@ -1386,7 +1418,6 @@ describe("PermissionService", () => {
           userId: projectUser.id,
           resourceType: "project",
           resourceId: project.id,
-          role: "member",
           roleId: projectMemberRole.id,
           deletedAt: new Date(),
         }),
@@ -1460,7 +1491,6 @@ describe("PermissionService", () => {
           userId: projectUser.id,
           resourceType: "project",
           resourceId: project.id,
-          role: "owner",
           roleId: projectOwnerRole.id,
         }),
       )
@@ -1497,7 +1527,6 @@ describe("PermissionService", () => {
           userId: projectUser.id,
           resourceType: "project",
           resourceId: project.id,
-          role: "owner",
           roleId: projectOwnerRole.id,
         }),
       )
@@ -1574,14 +1603,12 @@ describe("PermissionService", () => {
             userId: user.id,
             resourceType: "organization",
             resourceId: organizationA.id,
-            role: "member",
             roleId: orgRole.id,
           }),
           userMembershipFactory.build({
             userId: user.id,
             resourceType: "project",
             resourceId: projectB.id,
-            role: "owner",
             roleId: projectOwnerRole.id,
           }),
         ])
@@ -1650,7 +1677,6 @@ describe("PermissionService", () => {
           userId: adminUser.id,
           resourceType: "organization",
           resourceId: organization.id,
-          role: "admin",
           roleId: adminRole.id,
         }),
       )
@@ -1692,7 +1718,6 @@ describe("PermissionService", () => {
           userId: projectUser.id,
           resourceType: "project",
           resourceId: project.id,
-          role: "owner",
           roleId: projectOwnerRole.id,
         }),
       )
@@ -1722,14 +1747,12 @@ describe("PermissionService", () => {
           userId: ownerUser.id,
           resourceType: "project",
           resourceId: project.id,
-          role: "owner",
           roleId: projectOwnerRole.id,
         }),
         userMembershipFactory.build({
           userId: adminUser.id,
           resourceType: "project",
           resourceId: project.id,
-          role: "admin",
           roleId: projectAdminRole.id,
         }),
       ])
@@ -1766,7 +1789,6 @@ describe("PermissionService", () => {
           userId: memberUser.id,
           resourceType: "project",
           resourceId: project.id,
-          role: "member",
           roleId: projectMemberRole.id,
         }),
       )
@@ -1822,7 +1844,6 @@ describe("PermissionService", () => {
           userId: memberUser.id,
           resourceType: "organization",
           resourceId: organization.id,
-          role: "member",
           roleId: memberRole.id,
         }),
       )
@@ -1846,7 +1867,6 @@ describe("PermissionService", () => {
           userId: user.id,
           resourceType: "organization",
           resourceId: organizationB.id,
-          role: "member",
           roleId: memberRole.id,
         }),
       )
@@ -1887,7 +1907,6 @@ describe("PermissionService", () => {
           userId: projectUser.id,
           resourceType: "project",
           resourceId: project.id,
-          role: "owner",
           roleId: projectOwnerRole.id,
         }),
       )
@@ -1930,7 +1949,6 @@ describe("PermissionService", () => {
             userId: orgUser.id,
             resourceType: "organization",
             resourceId: organization.id,
-            role: "member",
             roleId: orgRole.id,
           }),
         )
@@ -1980,7 +1998,6 @@ describe("PermissionService", () => {
           userId: projectUser.id,
           resourceType: "project",
           resourceId: project.id,
-          role: "owner",
           roleId: projectOwnerRole.id,
         }),
       )
@@ -2031,7 +2048,6 @@ describe("PermissionService", () => {
           userId: projectUser.id,
           resourceType: "project",
           resourceId: project.id,
-          role: "owner",
           roleId: projectOwnerRole.id,
         }),
       )
@@ -2096,7 +2112,6 @@ describe("PermissionService", () => {
             userId: orgUser.id,
             resourceType: "organization",
             resourceId: organization.id,
-            role: "member",
             roleId: orgRole.id,
           }),
         )
@@ -2219,146 +2234,5 @@ describe("RbacService", () => {
         .map((rolePermission) => rolePermission.permissionKey)
       expect(grantedKeys.sort()).toEqual([...REVIEW_CAMPAIGN_ROLE_PERMISSIONS[roleKey]].sort())
     }
-  })
-
-  it("assigns role_id on organization memberships", async () => {
-    const repositories = setup.getAllRepositories()
-    const { user, organization } = await createOrganizationWithOwner(repositories)
-
-    await service.assignRoleIdsToOrganizationMemberships()
-
-    const membership = await setup.getRepository(UserMembership).findOneOrFail({
-      where: { userId: user.id, resourceId: organization.id, resourceType: "organization" },
-    })
-    const orgOwnerRole = await setup.getRepository(Role).findOneOrFail({
-      where: { key: ORGANIZATION_ROLES.owner },
-    })
-    expect(membership.roleId).toBe(orgOwnerRole.id)
-  })
-
-  it("assigns role_id on project memberships", async () => {
-    await service.seedProjectRolesAndPermissions()
-    const repositories = setup.getAllRepositories()
-    const { organization } = await createOrganizationWithOwner(repositories)
-    const project = projectFactory.transient({ organization }).build()
-    await repositories.projectRepository.save(project)
-
-    const projectUser = userFactory.build()
-    await repositories.userRepository.save(projectUser)
-    // legacy membership without role_id, as written before the RBAC catalog existed
-    await repositories.userMembershipRepository.save(
-      userMembershipFactory.build({
-        userId: projectUser.id,
-        resourceType: "project",
-        resourceId: project.id,
-        role: "member",
-        roleId: null,
-      }),
-    )
-
-    await service.assignRoleIdsToProjectMemberships()
-
-    const membership = await setup.getRepository(UserMembership).findOneOrFail({
-      where: { userId: projectUser.id, resourceId: project.id, resourceType: "project" },
-    })
-    const projectMemberRole = await setup.getRepository(Role).findOneOrFail({
-      where: { key: PROJECT_ROLES.member },
-    })
-    expect(membership.roleId).toBe(projectMemberRole.id)
-  })
-
-  it("assigns role_id on agent memberships", async () => {
-    await service.seedAgentRolesAndPermissions()
-    const repositories = setup.getAllRepositories()
-    const { organization } = await createOrganizationWithOwner(repositories)
-    const project = projectFactory.transient({ organization }).build()
-    await repositories.projectRepository.save(project)
-    const agent = agentFactory.transient({ project, organization }).build()
-    await repositories.agentRepository.save(agent)
-
-    const agentUser = userFactory.build()
-    await repositories.userRepository.save(agentUser)
-    await repositories.userMembershipRepository.save(
-      userMembershipFactory.build({
-        userId: agentUser.id,
-        resourceType: "agent",
-        resourceId: agent.id,
-        role: "member",
-        roleId: null,
-      }),
-    )
-
-    await service.assignRoleIdsToAgentMemberships()
-
-    const membership = await setup.getRepository(UserMembership).findOneOrFail({
-      where: { userId: agentUser.id, resourceId: agent.id, resourceType: "agent" },
-    })
-    const agentMemberRole = await setup.getRepository(Role).findOneOrFail({
-      where: { key: AGENT_ROLES.member },
-    })
-    expect(membership.roleId).toBe(agentMemberRole.id)
-  })
-
-  it("assigns role_id on review campaign memberships of people still in the project", async () => {
-    await service.seedReviewCampaignRolesAndPermissions()
-    const repositories = setup.getAllRepositories()
-    const { organization, project, agent, agentSettings } =
-      await createOrganizationWithAgent(repositories)
-    const campaign = await repositories.reviewCampaignRepository.save(
-      reviewCampaignFactory
-        .active()
-        .transient({ organization, project, agent, agentSettings })
-        .build(),
-    )
-    const { user: stillInProject } = await addUserToProject({
-      repositories,
-      project,
-      membership: { role: "member" },
-    })
-    // removed from the project by an admin: the campaign rows stayed, the project row did not
-    const removedFromProject = await repositories.userRepository.save(userFactory.build())
-    // legacy rows without role_id, as written before the review campaign roles existed
-    for (const user of [stillInProject, removedFromProject]) {
-      await repositories.userMembershipRepository.save([
-        userMembershipFactory.build({
-          userId: user.id,
-          resourceType: "review_campaign",
-          resourceId: campaign.id,
-          role: "tester",
-          roleId: null,
-        }),
-        userMembershipFactory.build({
-          userId: user.id,
-          resourceType: "review_campaign",
-          resourceId: campaign.id,
-          role: "reviewer",
-          roleId: null,
-        }),
-      ])
-    }
-
-    await service.assignRoleIdsToReviewCampaignMemberships()
-
-    const roleKeysOf = async (userId: string) =>
-      (
-        await setup.getRepository(UserMembership).find({
-          where: { userId, resourceType: "review_campaign" },
-          relations: ["rbacRole"],
-        })
-      )
-        .map((membership) => [membership.role, membership.rbacRole?.key ?? null])
-        .sort()
-    await expect(roleKeysOf(stillInProject.id)).resolves.toEqual(
-      [
-        ["reviewer", REVIEW_CAMPAIGN_ROLES.reviewer],
-        ["tester", REVIEW_CAMPAIGN_ROLES.tester],
-      ].sort(),
-    )
-    await expect(roleKeysOf(removedFromProject.id)).resolves.toEqual(
-      [
-        ["reviewer", null],
-        ["tester", null],
-      ].sort(),
-    )
   })
 })

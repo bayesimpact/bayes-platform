@@ -71,8 +71,9 @@ describe("ReviewCampaignMembershipsService", () => {
           userId: user.id,
           resourceId: campaign.id,
           resourceType: "review_campaign",
-          role: "tester",
+          rbacRole: { key: "review_campaign_tester" },
         },
+        relations: { rbacRole: true },
       })
       expect(unified).not.toBeNull()
     })
@@ -102,6 +103,7 @@ describe("ReviewCampaignMembershipsService", () => {
           resourceId: campaign.id,
           resourceType: "review_campaign",
         },
+        relations: { rbacRole: true },
       })
       expect(unified).toHaveLength(2)
     })
@@ -147,9 +149,10 @@ describe("ReviewCampaignMembershipsService", () => {
           resourceId: campaign.id,
           resourceType: "review_campaign",
         },
+        relations: { rbacRole: true },
       })
       expect(remainingUnified).toHaveLength(1)
-      expect(remainingUnified[0]?.role).toBe("reviewer")
+      expect(remainingUnified[0]?.rbacRole?.key).toBe("review_campaign_reviewer")
     })
   })
 })

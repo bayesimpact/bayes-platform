@@ -187,6 +187,8 @@ export class StreamingLlmService extends LlmServiceBase {
     notifyClient,
     sessionState,
     externalVisitorId,
+    promptVariables,
+    promptVariableDefaults,
     handoff,
     persistUserMessage = true,
   }: {
@@ -207,6 +209,10 @@ export class StreamingLlmService extends LlmServiceBase {
     sessionState: SessionStateTarget
     /** Identifier the embedding page attached to the session, if any. */
     externalVisitorId?: string | null
+    /** {{variables}} resolved at session creation and stored on the session row. */
+    promptVariables?: Record<string, string> | null
+    /** Defaults of the agent's published settings, re-read at turn time. */
+    promptVariableDefaults?: Record<string, string> | null
   }): AsyncGenerator<StreamEvent, void, unknown> {
     await recoverAbortedStreams({
       agentMessageConnectRepository: this.agentMessageConnectRepository,
@@ -256,6 +262,8 @@ export class StreamingLlmService extends LlmServiceBase {
       externalVisitorId,
       messages,
       persistsForms: true,
+      variables: promptVariables,
+      variableDefaults: promptVariableDefaults,
     }
 
     let fullContent = ""

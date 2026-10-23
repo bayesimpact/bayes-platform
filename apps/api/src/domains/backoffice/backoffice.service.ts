@@ -8,6 +8,7 @@ import { AgentConversationReviewersService } from "@/domains/agents/conversation
 import type { AgentMembershipModel } from "@/domains/agents/memberships/agent-membership.model"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentMembershipsService } from "@/domains/agents/memberships/agent-memberships.service"
+import { listRoleIds } from "@/domains/memberships/membership-roles"
 import type { OrganizationMembershipModel } from "@/domains/organizations/memberships/organization-membership.model"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { OrganizationMembershipsService } from "@/domains/organizations/memberships/organization-memberships.service"
@@ -73,7 +74,7 @@ function sortReviewCampaignMembershipsByCampaignName(
       sensitivity: "base",
     })
     if (campaignNameCompare !== 0) return campaignNameCompare
-    return left.role.localeCompare(right.role)
+    return left.membershipRole.key.localeCompare(right.membershipRole.key)
   })
 }
 
@@ -469,11 +470,9 @@ export class BackofficeService {
     ])
 
     const membershipRoleIds = [
-      ...organizationMemberships,
-      ...projectMemberships,
-      ...agentMemberships,
-      ...reviewCampaignMemberships,
-    ].flatMap((membership) => (membership.roleId ? [membership.roleId] : []))
+      ...listRoleIds([...organizationMemberships, ...projectMemberships, ...agentMemberships]),
+      ...reviewCampaignMemberships.map((membership) => membership.membershipRole.roleId),
+    ]
     const roleGrantsByRoleId = await this.permissionService.listRoleGrants(membershipRoleIds)
 
     return {

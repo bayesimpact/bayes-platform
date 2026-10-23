@@ -23,22 +23,15 @@ import {
   FormMessage,
 } from "@caseai-connect/ui/shad/form"
 import { Input } from "@caseai-connect/ui/shad/input"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@caseai-connect/ui/shad/table"
 import { Textarea } from "@caseai-connect/ui/shad/textarea"
 import { cn } from "@caseai-connect/ui/utils"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table"
+import { type ColumnDef, getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import { PencilIcon, PlusIcon, Trash2Icon } from "lucide-react"
 import { useMemo, useState } from "react"
 import { useForm } from "react-hook-form"
 import type { z } from "zod"
+import { DataTable, type DataTableColumnMeta } from "@/common/components/data-table/DataTable"
 import { useMount } from "@/common/hooks/use-mount"
 import { useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
@@ -85,6 +78,9 @@ export function AppsPanel() {
 }
 
 function WithData() {
+  // TanStack Table keeps one table instance across renders, so the React Compiler would
+  // memoize its row model and show stale rows after a search.
+  "use no memo"
   const manifests = useValue(selectAppManifests)
   const [searchInput, setSearchInput] = useState("")
   const [dialog, setDialog] = useState<DialogState>({ kind: "closed" })
@@ -100,70 +96,77 @@ function WithData() {
     })
   }, [manifests, searchInput])
 
-  const columns: ColumnDef<AppManifest>[] = [
-    {
-      accessorKey: "name",
-      header: () => <span className="text-muted-foreground">App</span>,
-      cell: ({ row }) => (
-        <div className="flex items-center gap-3">
-          <AppLogo src={row.original.logoUrl} />
-          <div className="flex min-w-0 flex-col">
-            <span className="font-medium">{row.original.name}</span>
-            <span className="text-xs text-muted-foreground">{row.original.slug}</span>
+  const columns = useMemo<ColumnDef<AppManifest>[]>(
+    () => [
+      {
+        accessorKey: "name",
+        header: () => "App",
+        meta: { cellClassName: "align-top" } satisfies DataTableColumnMeta,
+        cell: ({ row }) => (
+          <div className="flex items-center gap-3">
+            <AppLogo src={row.original.logoUrl} />
+            <div className="flex min-w-0 flex-col">
+              <span className="font-medium">{row.original.name}</span>
+              <span className="text-xs text-muted-foreground">{row.original.slug}</span>
+            </div>
           </div>
-        </div>
-      ),
-    },
-    {
-      accessorKey: "grantablePermissions",
-      header: () => <span className="text-muted-foreground">Grantable permissions</span>,
-      cell: ({ row }) => {
-        const groups = groupAppGrantablePermissions(row.original.grantablePermissions)
-        if (groups.length === 0) {
-          return <span className="text-sm text-muted-foreground">None</span>
-        }
-        return (
-          <div className="flex flex-col gap-1">
-            {groups.map((group) => (
-              <p key={group.resourceType} className="text-sm">
-                <span className="text-muted-foreground">{group.label}: </span>
-                {group.permissions
-                  .map((permission) => appGrantablePermissionActionLabel(permission))
-                  .join(", ")}
-              </p>
-            ))}
-          </div>
-        )
+        ),
       },
-    },
-    {
-      id: "actions",
-      header: () => null,
-      cell: ({ row }) => (
-        <div className="flex items-center justify-end gap-1">
-          <AppOAuthClientButton manifest={row.original} />
-          <Button
-            type="button"
-            size="icon-sm"
-            variant="ghost"
-            onClick={() => setDialog({ kind: "edit", manifest: row.original })}
-            aria-label={`Edit ${row.original.name}`}
-          >
-            <PencilIcon className="size-4" />
-          </Button>
-          <Button
-            type="button"
-            size="icon-sm"
-            variant="ghost"
-            onClick={() => setDialog({ kind: "delete", manifest: row.original })}
-            aria-label={`Delete ${row.original.name}`}
-          >
-            <Trash2Icon className="size-4" />
-          </Button>
-        </div>
-      ),
-    },
-  ]
+      {
+        accessorKey: "grantablePermissions",
+        header: () => "Grantable permissions",
+        // Takes the remaining width, so the actions stay at the right edge.
+        meta: { className: "w-full", cellClassName: "align-top" } satisfies DataTableColumnMeta,
+        cell: ({ row }) => {
+          const groups = groupAppGrantablePermissions(row.original.grantablePermissions)
+          if (groups.length === 0) {
+            return <span className="text-sm text-muted-foreground">None</span>
+          }
+          return (
+            <div className="flex flex-col gap-1 whitespace-normal">
+              {groups.map((group) => (
+                <p key={group.resourceType} className="text-sm">
+                  <span className="text-muted-foreground">{group.label}: </span>
+                  {group.permissions
+                    .map((permission) => appGrantablePermissionActionLabel(permission))
+                    .join(", ")}
+                </p>
+              ))}
+            </div>
+          )
+        },
+      },
+      {
+        id: "actions",
+        meta: { cellClassName: "align-top" } satisfies DataTableColumnMeta,
+        header: () => null,
+        cell: ({ row }) => (
+          <div className="flex items-center justify-end gap-1">
+            <AppOAuthClientButton manifest={row.original} />
+            <Button
+              type="button"
+              size="icon-sm"
+              variant="ghost"
+              onClick={() => setDialog({ kind: "edit", manifest: row.original })}
+              aria-label={`Edit ${row.original.name}`}
+            >
+              <PencilIcon className="size-4" />
+            </Button>
+            <Button
+              type="button"
+              size="icon-sm"
+              variant="ghost"
+              onClick={() => setDialog({ kind: "delete", manifest: row.original })}
+              aria-label={`Delete ${row.original.name}`}
+            >
+              <Trash2Icon className="size-4" />
+            </Button>
+          </div>
+        ),
+      },
+    ],
+    [],
+  )
 
   const table = useReactTable({
     data: filteredManifests,
@@ -186,44 +189,12 @@ function WithData() {
           Create app
         </Button>
       </div>
-      <Table>
-        <TableHeader className="bg-muted/50">
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <TableHead key={header.id}>
-                  {flexRender(header.column.columnDef.header, header.getContext())}
-                </TableHead>
-              ))}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={columns.length} className="text-center text-muted-foreground">
-                No apps yet
-              </TableCell>
-            </TableRow>
-          ) : (
-            table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell
-                    key={cell.id}
-                    className={cn(
-                      "align-top",
-                      cell.column.id === "grantablePermissions" && "w-full whitespace-normal",
-                    )}
-                  >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
+      <div className="p-4">
+        <DataTable
+          table={table}
+          empty={<p className="text-center text-muted-foreground">No apps yet</p>}
+        />
+      </div>
       {(dialog.kind === "create" || dialog.kind === "edit") && (
         <AppManifestFormDialog
           key={dialog.kind === "edit" ? dialog.manifest.id : "create"}

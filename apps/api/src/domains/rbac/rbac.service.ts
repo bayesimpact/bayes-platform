@@ -55,7 +55,7 @@ export class RbacService {
     @InjectRepository(Role) private readonly roleRepository: Repository<Role>,
     @InjectRepository(RolePermission)
     private readonly rolePermissionRepository: Repository<RolePermission>,
-    @InjectDataSource() private readonly dataSource: DataSource,
+    @InjectDataSource() readonly _dataSource: DataSource,
   ) {}
 
   /**
@@ -116,82 +116,6 @@ export class RbacService {
       defaultScope: "review_campaign",
     })
     await this.linkRolePermissions(rolesByKey, REVIEW_CAMPAIGN_ROLE_PERMISSIONS)
-  }
-
-  /** Maps legacy org membership roles to RBAC role_id. Org rows only. */
-  async assignRoleIdsToOrganizationMemberships(): Promise<number> {
-    return this.assignRoleIdsToMemberships("organization", ORGANIZATION_ROLES)
-  }
-
-  /** Maps legacy project membership roles to RBAC role_id. Project rows only. */
-  async assignRoleIdsToProjectMemberships(): Promise<number> {
-    return this.assignRoleIdsToMemberships("project", PROJECT_ROLES)
-  }
-
-  /** Maps legacy agent membership roles to RBAC role_id. Agent rows only. */
-  async assignRoleIdsToAgentMemberships(): Promise<number> {
-    return this.assignRoleIdsToMemberships("agent", AGENT_ROLES)
-  }
-
-  /**
-   * Maps legacy tester / reviewer roles to RBAC role_id. Review campaign rows only, and only for
-   * people who still hold a project row on the campaign's project, like migration
-   * `ReviewCampaignRoles1791800888000`: a legacy row without one belongs to someone an admin
-   * removed from the project.
-   */
-  async assignRoleIdsToReviewCampaignMemberships(): Promise<number> {
-    let updatedCount = 0
-
-    for (const [legacyRole, roleKey] of Object.entries(REVIEW_CAMPAIGN_ROLES)) {
-      const updatedRows: { id: string }[] = await this.dataSource.query(
-        `UPDATE user_membership AS membership
-         SET role_id = role.id
-         FROM role
-         WHERE membership.resource_type = 'review_campaign'
-           AND membership.role_id IS NULL
-           AND membership.role = $1
-           AND role.key = $2
-           AND EXISTS (
-             SELECT 1
-             FROM review_campaign
-             INNER JOIN user_membership AS project_membership
-               ON project_membership.resource_id = review_campaign.project_id
-               AND project_membership.resource_type = 'project'
-               AND project_membership.deleted_at IS NULL
-             WHERE review_campaign.id = membership.resource_id
-               AND project_membership.user_id = membership.user_id
-           )
-         RETURNING membership.id`,
-        [legacyRole, roleKey],
-      )
-      updatedCount += updatedRows.length
-    }
-
-    return updatedCount
-  }
-
-  private async assignRoleIdsToMemberships(
-    resourceType: "organization" | "project" | "agent",
-    rolesByLegacyRole: Record<string, string>,
-  ): Promise<number> {
-    let updatedCount = 0
-
-    for (const [legacyRole, roleKey] of Object.entries(rolesByLegacyRole)) {
-      const updatedRows: { id: string }[] = await this.dataSource.query(
-        `UPDATE user_membership AS membership
-         SET role_id = role.id
-         FROM role
-         WHERE membership.resource_type = $1
-           AND membership.role_id IS NULL
-           AND membership.role = $2
-           AND role.key = $3
-         RETURNING membership.id`,
-        [resourceType, legacyRole, roleKey],
-      )
-      updatedCount += updatedRows.length
-    }
-
-    return updatedCount
   }
 
   private async upsertRoles({

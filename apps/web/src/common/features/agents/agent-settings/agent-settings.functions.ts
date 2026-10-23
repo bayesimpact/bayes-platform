@@ -12,6 +12,7 @@ export const agentSettingsDiffKeys = [
   "outputJsonSchema",
   "fillFormEnabled",
   "priorityCallsEnabled",
+  "variables",
 ] as const
 
 export type AgentSettingsDiffKey = (typeof agentSettingsDiffKeys)[number]
@@ -27,6 +28,7 @@ export const agentSettingsDiffFileNames: Record<AgentSettingsDiffKey, string> = 
   outputJsonSchema: "output-json-schema.json",
   fillFormEnabled: "fill-form-enabled.txt",
   priorityCallsEnabled: "priority-calls-enabled.txt",
+  variables: "prompt-variables.json",
 }
 
 export const agentSettingsDiffLabelKeys: Record<AgentSettingsDiffKey, string> = {
@@ -39,6 +41,7 @@ export const agentSettingsDiffLabelKeys: Record<AgentSettingsDiffKey, string> = 
   outputJsonSchema: "agentSettings:props.outputJsonSchema",
   fillFormEnabled: "agentSettings:props.fillFormEnabled",
   priorityCallsEnabled: "agentSettings:props.priorityCallsEnabled",
+  variables: "agentSettings:props.promptVariables",
 }
 
 export function serializeAgentSettingsField(
@@ -47,7 +50,8 @@ export function serializeAgentSettingsField(
 ): string {
   const value = agent[key]
   if (value === undefined || value === null) return ""
-  if (key === "outputJsonSchema" || key === "providerOptions") return JSON.stringify(value, null, 2)
+  if (key === "outputJsonSchema" || key === "providerOptions" || key === "variables")
+    return JSON.stringify(value, null, 2)
   return String(value)
 }
 

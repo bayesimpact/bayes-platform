@@ -67,7 +67,7 @@ export function ProjectMembershipList() {
           {filteredMemberships.map((membership) => (
             <ProjectMembershipItem
               organizationId={project.organizationId}
-              key={membership.id}
+              key={membership.userId}
               membership={membership}
             />
           ))}

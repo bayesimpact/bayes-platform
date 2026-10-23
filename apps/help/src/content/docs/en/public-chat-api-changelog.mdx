@@ -4,11 +4,11 @@ highlight: changelog
 description: Every version of the public chat API, with the date, the changes and the migration steps when a change is breaking.
 category: developers
 order: 3
-updated: 2026-09-10
-apiVersion: "1.0"
+updated: 2026-10-22
+apiVersion: "1.1"
 ---
 
-This page lists every version of the public chat API. The current version is **1.0**.
+This page lists every version of the public chat API. The current version is **1.1**.
 Minor versions add things and keep existing clients working. Major versions can break
 clients and come with a deprecation period. See the
 [versioning and deprecation policy](/en/public-chat-api-versioning).
@@ -33,6 +33,24 @@ clients and come with a deprecation period. See the
   ### Migration
   - ... (mandatory for a major version)
 */}
+
+## 1.1 (2026-10-22)
+
+### Added
+
+- `payload.variables` on [create a session](/en/public-chat-api#create-a-session): an agent
+  can declare `{{variables}}` in its instructions, and the caller supplies their values at
+  session start. Each value is substituted into the agent's prompt before every reply.
+- A declared variable without a caller value falls back to the **default** configured on the
+  agent's Embed tab.
+- When a declared variable has neither a caller value nor a default, the session is refused
+  with a `400` whose body carries `code: "MISSING_PROMPT_VARIABLES"` and the `missing`
+  list of variable names.
+
+### Migration
+
+- None. Existing clients keep working: `payload.variables` is optional, and agents that
+  declare no `{{variables}}` behave exactly as before.
 
 ## 1.0 (2026-09-09)
 

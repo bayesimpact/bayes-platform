@@ -14,6 +14,7 @@
       "outputJsonSchema": "Output JSON Schema",
       "fillFormEnabled": "Form filling",
       "priorityCallsEnabled": "Priority calls",
+      "promptVariables": "Prompt variables",
       "schemaBuilder": {
         "advancedMode": "Advanced mode",
         "visualMode": "Visual editor",
@@ -219,6 +220,10 @@
       "bannerTextLabel": "Banner text",
       "bannerTextDescription": "Optional notice pinned above the conversation, on the public page and in the widget. Use it to state the context, such as a test version or the intended audience.",
       "bannerTextPlaceholder": "Test version, for the pilot team only"
+    },
+    "promptVariables": {
+      "title": "Prompt variables",
+      "description": "Default values for the variables the agent declares in its instructions. Used when a session starts without a value for one of them."
     },
     "source_one": "{{count}} source",
     "source_other": "{{count}} sources",

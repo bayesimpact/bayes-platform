@@ -16,22 +16,16 @@ import {
   FormMessage,
 } from "@caseai-connect/ui/shad/form"
 import { Input } from "@caseai-connect/ui/shad/input"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@caseai-connect/ui/shad/table"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table"
-import { ChevronLeftIcon, ChevronRightIcon, PlusIcon } from "lucide-react"
+import { type ColumnDef, getCoreRowModel, useReactTable } from "@tanstack/react-table"
+import { PlusIcon } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useForm } from "react-hook-form"
 import { useNavigate } from "react-router-dom"
 import type { z } from "zod"
 import { BackofficeOrganizationRoutes } from "@/backoffice/routes/helpers"
+import { DataTable } from "@/common/components/data-table/DataTable"
+import { DEFAULT_PAGE_SIZE, PaginationControls } from "@/common/components/shared/RecordTableParts"
 import { selectCanCreateOrganization } from "@/common/features/me/me.selectors"
 import { useMount } from "@/common/hooks/use-mount"
 import { useValue } from "@/common/hooks/use-value"
@@ -46,8 +40,6 @@ import { backofficeActions } from "../backoffice.slice"
 import { SearchField } from "./BackofficeTable"
 
 type CreateOrganizationFormValues = z.infer<typeof createBackofficeOrganizationSchema>
-
-const DEFAULT_PAGE_SIZE = 10
 
 export function OrganizationsPanel() {
   const organizations = useAppSelector(selectBackofficeOrganizations)
@@ -67,6 +59,9 @@ export function OrganizationsPanel() {
 }
 
 function WithData() {
+  // TanStack Table keeps one table instance across renders, so the React Compiler would
+  // memoize its row model and show stale rows after a search or a page change.
+  "use no memo"
   const organizations = useValue(selectBackofficeOrganizations)
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
@@ -96,7 +91,7 @@ function WithData() {
     () => [
       {
         accessorKey: "name",
-        header: () => <span className="text-muted-foreground">Organization</span>,
+        header: () => "Organization",
         cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
       },
     ],
@@ -129,9 +124,6 @@ function WithData() {
     navigate(BackofficeOrganizationRoutes.organization.build({ organizationId }))
   }
 
-  const from = organizations.total === 0 ? 0 : organizations.page * pageSize + 1
-  const to = Math.min((organizations.page + 1) * pageSize, organizations.total)
-
   return (
     <>
       <div className="p-4 border-b flex items-center justify-between gap-2">
@@ -144,76 +136,20 @@ function WithData() {
         </div>
         {canCreateOrganization && <CreateOrganizationDialog />}
       </div>
-      <Table>
-        <TableHeader className="bg-muted/50">
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <TableHead key={header.id}>
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(header.column.columnDef.header, header.getContext())}
-                </TableHead>
-              ))}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows.length > 0 ? (
-            table.getRowModel().rows.map((row) => (
-              <TableRow
-                key={row.id}
-                className="cursor-pointer hover:bg-muted/50"
-                onClick={() => handleRowClick(row.original.id)}
-              >
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell
-                colSpan={columns.length}
-                className="h-24 text-center text-muted-foreground"
-              >
-                No results
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-      <div className="flex items-center justify-between p-4 border-t">
-        <span className="text-sm text-muted-foreground">
-          {organizations.total === 0
-            ? "No organizations"
-            : `${from}–${to} of ${organizations.total}`}
-        </span>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={organizations.page <= 0}
-            onClick={() => goToPage(organizations.page - 1)}
-          >
-            <ChevronLeftIcon className="size-4" />
-            Previous
-          </Button>
-          <span className="text-sm text-muted-foreground">
-            {organizations.page + 1} / {pageCount}
-          </span>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={organizations.page >= pageCount - 1}
-            onClick={() => goToPage(organizations.page + 1)}
-          >
-            Next
-            <ChevronRightIcon className="size-4" />
-          </Button>
-        </div>
+      <div className="p-4">
+        <DataTable
+          table={table}
+          onRowClick={(organization) => handleRowClick(organization.id)}
+          empty={<p className="py-8 text-center text-muted-foreground">No results</p>}
+        />
+        {organizations.total > 0 && (
+          <PaginationControls
+            pageIndex={organizations.page}
+            pageCount={pageCount}
+            total={organizations.total}
+            onPageChange={goToPage}
+          />
+        )}
       </div>
     </>
   )

@@ -3,7 +3,6 @@ import {
   type BaseAgentSessionTypeDto,
   ExtractionAgentSessionsRoutes,
   MimeTypes,
-  type ProjectMembershipRoleDto,
 } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
@@ -18,6 +17,7 @@ import { removeNullish } from "@/common/utils/remove-nullish"
 import { FILE_STORAGE_SERVICE } from "@/domains/documents/storage/file-storage.interface"
 import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
 import { createOrganizationWithAgentSession } from "@/domains/organizations/organization.factory"
+import type { ProjectMembershipRole } from "@/domains/projects/memberships/project-membership.types"
 import { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.provider"
 import {
   mockForeignAuthSubject,
@@ -100,7 +100,7 @@ describe("ExtractionAgentSessions - Auth", () => {
   // Seeds an organization/project (membership at `role`) + extraction agent, and a run of `type`
   // owned by the caller so the getOne and delete routes have a resolvable target.
   const createContextForRole = async (
-    role: ProjectMembershipRoleDto,
+    role: ProjectMembershipRole,
     type: BaseAgentSessionTypeDto = "live",
   ) => {
     const { organization, project, agent, agentSettings, document, agentSession, user } =

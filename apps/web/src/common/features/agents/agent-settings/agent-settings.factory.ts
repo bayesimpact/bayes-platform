@@ -70,6 +70,7 @@ export const agentSettingsFactory = AgentSettingsFactory.define(({ params, trans
     revision: params.revision ?? 1,
     name: params.name ?? "",
     description: params.description ?? "",
+    variables: (params.variables as Record<string, string> | undefined) ?? null,
     isDraft: !!params.isDraft,
     isArchived: !!params.isArchived,
     locale: params.locale ?? AgentLocale.EN,

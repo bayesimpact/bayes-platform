@@ -10,6 +10,7 @@ import type {
   LLMConfig,
   LLMProvider,
 } from "@/common/interfaces/llm-provider.interface"
+import { resolveSessionPromptVariables } from "@/common/utils/prompt-variables"
 import type { Agent } from "@/domains/agents/agent.entity"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -107,7 +108,15 @@ export class AgentLlmRequestService {
      */
     syntheticUserContent?: string
   }): Promise<BuiltLLMRequest> {
-    const { session, agent, agentSettings, connectScope } = agentSessionScope
+    const { session, agent, connectScope } = agentSessionScope
+
+    // {{variables}} declared in the instructions are resolved against the
+    // session's stored values (and, for public sessions, the published settings
+    // defaults re-read at turn time) before the prompt is built. A variable
+    // with no value and no default refuses the turn (prompt-variables.ts).
+    // The scope is kept in sync so the tools see the same resolved settings.
+    const agentSettings = resolveSessionPromptVariables(agentSessionScope.agentSettings, session)
+    agentSessionScope.agentSettings = agentSettings
 
     const {
       tools,

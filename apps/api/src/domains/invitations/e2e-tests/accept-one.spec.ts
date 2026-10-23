@@ -18,6 +18,7 @@ import {
 } from "@/common/test/test-database"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { ConversationAgentSessionsModule } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.module"
+import { grantConversationReview } from "@/domains/agents/conversation-reviewers/agent-conversation-reviewer.factory"
 import { MeModule } from "@/domains/me/me.module"
 import { userMembershipFactory } from "@/domains/memberships/user-membership.factory"
 import {
@@ -217,6 +218,29 @@ describe("Invitations - acceptOne", () => {
     })
   })
 
+  describe("agent target, invitee who only reviews the agent", () => {
+    it("gives agent member access next to the review grant", async () => {
+      const { agent } = await createOrganizationWithAgent(repositories, {
+        user: { authSubject: ownerSubject },
+      })
+      const invitee = await createInvitee()
+      await grantConversationReview({ repositories, user: invitee, agent })
+      const invitation = await repositories.invitationRepository.save(
+        invitationFactory.transient({ user: invitee, agent }).build(),
+      )
+
+      expectResponse(await subject(invitation.id), 201)
+
+      const agentRow = await findAgentMembershipRow(repositories, {
+        userId: invitee.id,
+        agentId: agent.id,
+      })
+      expect(agentRow?.roleKeys.sort()).toEqual(
+        ["agent_conversation_reviewer", "agent_member"].sort(),
+      )
+    })
+  })
+
   describe("review campaign target", () => {
     const createCampaignInvitation = async (
       status: "active" | "closed",
@@ -292,7 +316,7 @@ describe("Invitations - acceptOne", () => {
       expect(projectRow?.role).toBe("member")
     })
 
-    it("sets the role on a campaign row the invitee holds without one", async () => {
+    it("gives the tester role next to a campaign row that holds no role", async () => {
       const { reviewCampaign, invitee, invitation } = await createCampaignInvitation(
         "active",
         "tester",
@@ -302,7 +326,6 @@ describe("Invitations - acceptOne", () => {
           userId: invitee.id,
           resourceType: "review_campaign",
           resourceId: reviewCampaign.id,
-          role: "tester",
           roleId: null,
         }),
       )
@@ -317,9 +340,10 @@ describe("Invitations - acceptOne", () => {
           resourceId: reviewCampaign.id,
         },
       })
-      expect(campaignRows.map((campaignRow) => [campaignRow.id, campaignRow.roleId])).toEqual([
-        [roleLessRow.id, testerRole.id],
-      ])
+      expect(campaignRows.map((campaignRow) => campaignRow.roleId).sort()).toEqual(
+        [testerRole.id, null].sort(),
+      )
+      expect(campaignRows.some((campaignRow) => campaignRow.id === roleLessRow.id)).toBe(true)
     })
 
     it("lets an invited tester chat with the campaign agent until the campaign closes", async () => {

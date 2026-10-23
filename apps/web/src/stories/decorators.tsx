@@ -7,6 +7,7 @@ import { backofficeSliceList } from "@/backoffice/store/slices"
 import { selectCurrentAgentSessionId } from "@/common/features/agents/agent-sessions/current-agent-session-id/current-agent-session-id.selectors"
 import { selectCurrentExtractionRunId } from "@/common/features/agents/agent-sessions/extraction/extraction-agent-sessions.selectors"
 import { selectCurrentAgentId } from "@/common/features/agents/agents.selectors"
+import { selectCurrentCsvRunId } from "@/common/features/agents/csv-extraction-runs/agent-csv-extraction-runs.selectors"
 import { selectCurrentOrganizationId } from "@/common/features/organizations/organizations.selectors"
 import { selectCurrentProjectId } from "@/common/features/projects/projects.selectors"
 import { selectCurrentReviewCampaignId } from "@/common/features/review-campaigns/current-review-campaign-id/current-review-campaign-id.selectors"
@@ -139,6 +140,7 @@ function useReplaceIds(path: string) {
   const agentId = useAppSelector(selectCurrentAgentId)
   const agentSessionId = useAppSelector(selectCurrentAgentSessionId)
   const extractionRunId = useAppSelector(selectCurrentExtractionRunId)
+  const csvRunId = useAppSelector(selectCurrentCsvRunId)
   const reviewCampaignId = useAppSelector(selectCurrentReviewCampaignId)
   const reviewerSessionId = useAppSelector(selectCurrentReviewerSessionId)
   const resourceLibraryId = useAppSelector(selectCurrentResourceLibraryId)
@@ -151,6 +153,7 @@ function useReplaceIds(path: string) {
   if (agentId) path = path.replace(":agentId", agentId)
   if (agentSessionId) path = path.replace(":agentSessionId", agentSessionId)
   if (extractionRunId) path = path.replace(":extractionRunId", extractionRunId)
+  if (csvRunId) path = path.replace(":csvRunId", csvRunId)
   if (reviewCampaignId) path = path.replace(":reviewCampaignId", reviewCampaignId)
   if (reviewerSessionId) path = path.replace(":reviewerSessionId", reviewerSessionId)
   if (resourceLibraryId) path = path.replace(":resourceLibraryId", resourceLibraryId)

@@ -8,6 +8,7 @@ import {
   userFactory,
 } from "@/common/features/me/me.factory"
 import type { User } from "@/common/features/me/me.models"
+import { buildMembershipRoleDto } from "@/common/features/memberships/membership-roles.factory"
 import { organizationFactory } from "@/common/features/organizations/organization.factory"
 import type { Organization } from "@/common/features/organizations/organizations.models"
 import { myProjectFactory, projectFactory } from "@/common/features/projects/projects.factory"
@@ -61,19 +62,25 @@ export function buildStudioData(input: StudioStoryArgs): {
   } = input
   const organization = organizationFactory.build()
   const organizationMemberships = [
-    organizationMembershipFactory
-      .transient({ organization })
-      .build({ role: organizationMembershipRole }),
+    organizationMembershipFactory.transient({ organization }).build({
+      roles: [
+        buildMembershipRoleDto({ scopeType: "organization", role: organizationMembershipRole }),
+      ],
+    }),
   ]
   const project = projectFactory.transient({ organization }).build()
   const projectMemberships = [
-    projectMembershipFactory.transient({ project }).build({ role: projectMembershipRole }),
+    projectMembershipFactory.transient({ project }).build({
+      roles: [buildMembershipRoleDto({ scopeType: "project", role: projectMembershipRole })],
+    }),
   ]
   const agents = withAgents
     ? agentFactory.transient({ project }).buildList(3).sort(sortRecentlyCreated)
     : []
   const agentMemberships = agents.map((agent) =>
-    agentMembershipFactory.transient({ agent }).build({ role: agentMembershipRole }),
+    agentMembershipFactory.transient({ agent }).build({
+      roles: [buildMembershipRoleDto({ scopeType: "agent", role: agentMembershipRole })],
+    }),
   )
   const user = userFactory
     .transient({ organizationMemberships, projectMemberships, agentMemberships })

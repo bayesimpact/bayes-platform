@@ -66,7 +66,7 @@ function WithData() {
 
         <GridContent>
           {memberships.map((membership) => (
-            <AgentMembershipItem key={membership.id} membership={membership} />
+            <AgentMembershipItem key={membership.userId} membership={membership} />
           ))}
 
           <GridCard className="bg-muted/35">

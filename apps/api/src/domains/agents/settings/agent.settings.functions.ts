@@ -41,6 +41,7 @@ const agentSettingsFieldKeys: (keyof AgentSettingsCreateFields)[] = [
   "priorityCallsEnabled",
   "providerOptions",
   "memoryMode",
+  "variables",
 ]
 
 export function extractAgentSettingsCreateFields<T extends object>(
@@ -83,9 +84,9 @@ export function requiresUpdateAgentSettings({
     const modifiedValue = modifiedAgentSettings[key]
 
     if (initialValue === undefined && modifiedValue === undefined) continue
-    // The model options are an object: compared by value, so resending them unchanged does not
-    // create a revision.
-    if (key === "providerOptions") {
+    // The object fields (model options, variable defaults) are compared by value, so
+    // resending them unchanged does not create a revision.
+    if (key === "providerOptions" || key === "variables") {
       if (JSON.stringify(initialValue ?? null) !== JSON.stringify(modifiedValue ?? null))
         return true
       continue

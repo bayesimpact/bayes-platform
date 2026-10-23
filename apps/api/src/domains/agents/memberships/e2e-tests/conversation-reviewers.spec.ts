@@ -18,8 +18,9 @@ import { grantConversationReview } from "../../conversation-reviewers/agent-conv
 import { addMemberByEmailToAgent } from "../agent-membership.factory"
 
 /**
- * `agent_conversation_reviewer` sits on `temp_agent` rows. These tests pin that the agent's roles,
- * and everything read from them, stay as they were when someone is granted the review.
+ * `agent_conversation_reviewer` is a row of its own on the agent, next to the person's member
+ * role. The backoffice grants and revokes it: these tests pin that the studio's member list and
+ * removals leave it alone.
  */
 describe("Agent Memberships - conversation reviewers", () => {
   let app: INestApplication<App>
@@ -84,9 +85,15 @@ describe("Agent Memberships - conversation reviewers", () => {
 
     expectResponse(response, 200)
     const rolesByUserId = Object.fromEntries(
-      response.body.data.map((membership) => [membership.userId, membership.role]),
+      response.body.data.map((membership) => [
+        membership.userId,
+        membership.roles.map((role) => role.key),
+      ]),
     )
-    expect(rolesByUserId).toEqual({ [context.user.id]: "owner", [context.member.id]: "member" })
+    expect(rolesByUserId).toEqual({
+      [context.user.id]: ["agent_owner"],
+      [context.member.id]: ["agent_member"],
+    })
   })
 
   it("lets an owner who reviews the agent keep managing its members", async () => {
@@ -94,5 +101,45 @@ describe("Agent Memberships - conversation reviewers", () => {
     await grantConversationReview({ repositories, user: context.user, agent: context.agent })
 
     expectResponse(await listMembers(context), 200)
+  })
+
+  const removeMember = (context: Awaited<ReturnType<typeof createContext>>, userId: string) =>
+    request({
+      route: AgentMembershipRoutes.deleteOne,
+      pathParams: {
+        organizationId: context.organization.id,
+        projectId: context.project.id,
+        agentId: context.agent.id,
+        userId,
+      },
+      token: "token",
+    })
+
+  const roleKeysOn = async (userId: string, agentId: string) => {
+    const rows = await repositories.userMembershipRepository.find({
+      where: { userId, resourceType: "agent", resourceId: agentId },
+      relations: { rbacRole: true },
+    })
+    return rows.map((row) => row.rbacRole?.key).sort()
+  }
+
+  it("removes a member's role from the agent and keeps their review grant", async () => {
+    const context = await createContext()
+    await grantConversationReview({ repositories, user: context.member, agent: context.agent })
+    expectResponse(await removeMember(context, context.member.id), 200)
+
+    expect(await roleKeysOn(context.member.id, context.agent.id)).toEqual([
+      "agent_conversation_reviewer",
+    ])
+  })
+
+  it("leaves a person who only reviews the agent as they are", async () => {
+    const context = await createContext()
+    const reviewer = userFactory.build()
+    await repositories.userRepository.save(reviewer)
+    await grantConversationReview({ repositories, user: reviewer, agent: context.agent })
+    expectResponse(await removeMember(context, reviewer.id), 200)
+
+    expect(await roleKeysOn(reviewer.id, context.agent.id)).toEqual(["agent_conversation_reviewer"])
   })
 })

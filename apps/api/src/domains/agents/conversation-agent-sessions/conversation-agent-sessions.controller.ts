@@ -88,6 +88,7 @@ export abstract class ConversationAgentSessionsController {
       agentSettingsId: agentSettings.id,
       userId: request.user.id,
       type: this.type,
+      variables: body?.payload?.variables,
     })
     return { data: toDto(this.type, new Map())(session) }
   }

@@ -7,6 +7,8 @@ Source of truth in code:
 
 This document mirrors those files. Whenever a role or a role/permission grant changes, update the matching table here in the same PR (see `.cursor/rules/permission-matrix.mdc` and the `check-permission-matrix` Claude skill).
 
+A person can hold several roles on one organization, project, agent or review campaign: each role is its own `user_membership` row, and what the person can do there is the union of those roles ([ADR 0032](adr/0032-several-roles-per-resource.md)). Redundant combinations, such as `project_owner` with `project_admin`, are allowed. The role is `role_id`; the legacy `role` column is no longer read or written.
+
 ## Global roles
 
 Global roles are stored as `user_membership` rows with `resource_type = 'global'`. `platform_staff` is renamed from `org_creator` and seeded by email domain (`SeedPlatformStaffByEmailDomain` / `ORGANIZATION_CREATOR_EMAIL_DOMAIN`). `platform_superadmin` is seeded from `BACKOFFICE_AUTHORIZED_EMAILS` by `SeedPlatformSuperadminByEmails`. The app itself never reads those env vars for authorization. `platform_staff` holds global `backoffice.project.read`. `backoffice.app.manage` is superadmin-only: it manages the app manifests and their OAuth clients. `backoffice.conversation_reviewer.update` lets the backoffice grant or revoke `agent_conversation_reviewer` on an agent (see Agent roles).
@@ -167,7 +169,7 @@ The `project.review_campaign.*` permissions are not inherited either: an organiz
 
 Scoped to one agent via `user_membership` (`resource_type = 'agent'`).
 
-`agent_conversation_reviewer` is the exception: it is held on a `temp_agent` row (`resource_id` = the agent's id) so it adds to the person's single owner, admin or member role on the agent instead of replacing it. Routes check it with `@CheckPermission(AGENT_CONVERSATION_REVIEW_PERMISSION, "temp_agent")`. Nobody holds it by default, superadmins included; a holder of `backoffice.conversation_reviewer.update` grants it person by person from the backoffice agent page. `temp_agent` has no parent and passes nothing down. It is a stopgap until the team decides whether `user_membership` should allow several roles per person on one agent.
+`agent_conversation_reviewer` is a row of its own on the agent, next to the person's owner, admin or member row if they have one. Routes check it with `@CheckPermission(AGENT_CONVERSATION_REVIEW_PERMISSION, "agent")`, and no parent passes `agent.conversation.review` down. Nobody holds it by default, superadmins included; a holder of `backoffice.conversation_reviewer.update` grants it person by person from the backoffice agent page. The studio leaves it alone: the agent's member list, member removals and the project removal cascade only touch `agent_owner`, `agent_admin` and `agent_member`, and a reviewer grant does not make its holder visible through `user.read`.
 
 The two analytics permissions are never inherited from a parent resource: an organization role does not open a project's analytics, and a project role does not open an agent's analytics.
 
@@ -203,9 +205,9 @@ The same goes for `agent.settings.draft.update`, `agent.settings.draft.publish`,
 
 ## Review campaign roles
 
-Scoped to one review campaign via `user_membership` (`resource_type = 'review_campaign'`, `resource_id` = the campaign's id). Each row keeps its legacy `role` column (`tester` or `reviewer`) and holds the matching RBAC role in `role_id`. A person can hold both roles on one campaign: each one is its own row.
+Scoped to one review campaign via `user_membership` (`resource_type = 'review_campaign'`, `resource_id` = the campaign's id). Each row holds `review_campaign_tester` or `review_campaign_reviewer` in `role_id`. A person can hold both roles on one campaign: each one is its own row, revoked on its own.
 
-Accepting an invitation to a campaign gives `review_campaign_tester` or `review_campaign_reviewer` on that campaign, plus `org_member` on the organization, since every organization-scoped route needs an organization row. It gives no project role. An invitation treats a campaign row without `role_id` as no access, so a new invitation to the same campaign and role repairs it. Removing someone from a project also deletes their tester and reviewer roles on that project's campaigns. Since a participant stays `org_member`, provisioning one as a workspace owner later reports `granted_without_organization_admin` (preview: `would_grant_without_organization_admin`), and staff promote them on the organization by hand.
+Accepting an invitation to a campaign gives `review_campaign_tester` or `review_campaign_reviewer` on that campaign, plus `org_member` on the organization, since every organization-scoped route needs an organization row. It gives no project role. A campaign row without `role_id` gives nothing and is not read, so a new invitation to the same campaign adds a row with the role. Removing someone from a project also deletes their tester and reviewer roles on that project's campaigns. Since a participant stays `org_member`, provisioning one as a workspace owner later reports `granted_without_organization_admin` (preview: `would_grant_without_organization_admin`), and staff promote them on the organization by hand.
 
 People who joined a campaign before these roles existed keep the `project_member` row the old invitation flow gave them. Migration `1791800888000-review-campaign-roles` deletes none of those rows, and sets `role_id` only for people who still hold a project row on the campaign's project. Migration `1792143739000-review-campaign-roles-backfill` runs the same backfill again, for the rows that pods running the old flow wrote while `1791800888000` rolled out. A later migration removes the `project_member` rows that campaign invitations created, once every running pod knows the campaign roles.
 

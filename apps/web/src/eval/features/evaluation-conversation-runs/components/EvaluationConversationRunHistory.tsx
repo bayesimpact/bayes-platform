@@ -7,12 +7,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@caseai-connect/ui/shad/card"
-import { Checkbox } from "@caseai-connect/ui/shad/checkbox"
-import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table"
+import { type ColumnDef, getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import { ArrowRightIcon, GitCompareIcon } from "lucide-react"
 import { useCallback, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
+import { DataTable } from "@/common/components/data-table/DataTable"
+import { buildSelectionColumn } from "@/common/components/data-table/selection-column"
 import { selectAgentsData } from "@/common/features/agents/agents.selectors"
 import { useValue } from "@/common/hooks/use-value"
 import { buildSince } from "@/common/utils/build-date"
@@ -24,6 +25,9 @@ import { DeleteEvaluationConversationRunButton } from "./DeleteEvaluationConvers
 import { RunStatusBadge } from "./RunStatusBadge"
 
 export function EvaluationConversationRunHistory({ runs }: { runs: EvaluationConversationRun[] }) {
+  // TanStack Table keeps one table instance across renders, so the React Compiler would
+  // memoize its row model and miss selection changes, which the compare button reads.
+  "use no memo"
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { buildConversationRunPath, buildConversationComparePath } =
@@ -46,30 +50,7 @@ export function EvaluationConversationRunHistory({ runs }: { runs: EvaluationCon
 
   const columns = useMemo<ColumnDef<EvaluationConversationRun>[]>(
     () => [
-      {
-        id: "select",
-        header: ({ table }) => (
-          <Checkbox
-            checked={
-              table.getIsAllRowsSelected()
-                ? true
-                : table.getIsSomeRowsSelected()
-                  ? "indeterminate"
-                  : false
-            }
-            onCheckedChange={(value) => table.toggleAllRowsSelected(!!value)}
-            aria-label={t("actions:selectAll")}
-          />
-        ),
-        cell: ({ row }) => (
-          <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label={t("actions:select")}
-          />
-        ),
-        size: 40,
-      },
+      buildSelectionColumn<EvaluationConversationRun>({ rowLabel: () => t("actions:select") }),
       {
         id: "id",
         header: () => t("evaluationConversationRun:history.columns.id"),
@@ -78,13 +59,11 @@ export function EvaluationConversationRunHistory({ runs }: { runs: EvaluationCon
             {shortRunId(row.original.id)}
           </span>
         ),
-        size: 120,
       },
       {
         id: "status",
         header: () => t("evaluationConversationRun:history.columns.status"),
         cell: ({ row }) => <RunStatusBadge status={row.original.status} />,
-        size: 120,
       },
       {
         id: "date",
@@ -94,7 +73,6 @@ export function EvaluationConversationRunHistory({ runs }: { runs: EvaluationCon
             {buildSince(row.original.updatedAt)}
           </span>
         ),
-        size: 140,
       },
       {
         id: "agent",
@@ -104,7 +82,6 @@ export function EvaluationConversationRunHistory({ runs }: { runs: EvaluationCon
           if (!agentName) return <span className="text-muted-foreground">-</span>
           return <span className="text-sm">{agentName}</span>
         },
-        size: 180,
       },
       {
         id: "version",
@@ -116,7 +93,6 @@ export function EvaluationConversationRunHistory({ runs }: { runs: EvaluationCon
             })}
           </span>
         ),
-        size: 90,
       },
       {
         id: "model",
@@ -126,7 +102,6 @@ export function EvaluationConversationRunHistory({ runs }: { runs: EvaluationCon
             {row.original.agentSettings.model}
           </span>
         ),
-        size: 200,
       },
       {
         id: "judgeModel",
@@ -134,7 +109,6 @@ export function EvaluationConversationRunHistory({ runs }: { runs: EvaluationCon
         cell: ({ row }) => (
           <span className="text-sm font-mono whitespace-nowrap">{row.original.judgeModel}</span>
         ),
-        size: 200,
       },
       {
         id: "averageScore",
@@ -152,7 +126,6 @@ export function EvaluationConversationRunHistory({ runs }: { runs: EvaluationCon
             </span>
           )
         },
-        size: 120,
       },
       {
         id: "records",
@@ -162,11 +135,10 @@ export function EvaluationConversationRunHistory({ runs }: { runs: EvaluationCon
             {row.original.summary?.total ?? 0}
           </span>
         ),
-        size: 100,
       },
       {
         id: "actions",
-        header: () => <></>,
+        header: () => null,
         cell: ({ row }) => (
           <div className="flex items-center justify-end gap-2">
             <AgentMetadataDialog
@@ -183,7 +155,6 @@ export function EvaluationConversationRunHistory({ runs }: { runs: EvaluationCon
             </Button>
           </div>
         ),
-        size: 160,
       },
     ],
     [t, agentNameById, handleOpen],
@@ -227,39 +198,8 @@ export function EvaluationConversationRunHistory({ runs }: { runs: EvaluationCon
         </CardAction>
       </CardHeader>
       <CardContent>
-        <div className="rounded-lg border overflow-x-auto">
-          <table className="w-full caption-bottom text-sm">
-            <thead className="bg-muted/50 [&_tr]:border-b">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <tr key={headerGroup.id} className="border-b transition-colors">
-                  {headerGroup.headers.map((header) => (
-                    <th
-                      key={header.id}
-                      className="text-foreground h-auto px-3 py-2 text-left align-bottom font-medium whitespace-nowrap"
-                      style={{ width: header.getSize() }}
-                    >
-                      {flexRender(header.column.columnDef.header, header.getContext())}
-                    </th>
-                  ))}
-                </tr>
-              ))}
-            </thead>
-            <tbody>
-              {table.getRowModel().rows.map((row) => (
-                <tr
-                  key={row.id}
-                  className={`border-b transition-colors hover:bg-muted/50 ${row.index % 2 !== 0 ? "bg-muted/30" : ""}`}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="p-3 align-middle">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        {/* The history is hidden while there is no run, so the table never shows empty. */}
+        <DataTable table={table} empty={null} />
       </CardContent>
     </Card>
   )

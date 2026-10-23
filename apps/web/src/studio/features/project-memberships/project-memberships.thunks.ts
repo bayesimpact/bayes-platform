@@ -18,18 +18,18 @@ export const listProjectMemberships = createAsyncThunk<ProjectMembership[], void
 
 export const updateProjectMembershipRole = createAsyncThunk<
   ProjectMembership,
-  { membershipId: string; role: EditableProjectMembershipRoleDto },
+  { memberUserId: string; role: EditableProjectMembershipRoleDto },
   ThunkConfig
 >(
   "projectMemberships/updateRole",
-  async ({ membershipId, role }, { extra: { services }, getState }) => {
+  async ({ memberUserId, role }, { extra: { services }, getState }) => {
     const state = getState()
     const organizationId = getCurrentId({ state, name: "organizationId" })
     const projectId = getCurrentId({ state, name: "projectId" })
     return await services.projectMemberships.updateOne({
       organizationId,
       projectId,
-      membershipId,
+      memberUserId,
       role,
     })
   },
@@ -37,29 +37,29 @@ export const updateProjectMembershipRole = createAsyncThunk<
 
 export const removeProjectMembership = createAsyncThunk<
   void,
-  { membershipId: string },
+  { memberUserId: string },
   ThunkConfig
->("projectMemberships/remove", async ({ membershipId }, { extra: { services }, getState }) => {
+>("projectMemberships/remove", async ({ memberUserId }, { extra: { services }, getState }) => {
   const state = getState()
   const organizationId = getCurrentId({ state, name: "organizationId" })
   const projectId = getCurrentId({ state, name: "projectId" })
-  return await services.projectMemberships.remove({ organizationId, projectId, membershipId })
+  return await services.projectMemberships.remove({ organizationId, projectId, memberUserId })
 })
 
 export const listProjectMemberAgents = createAsyncThunk<
   ProjectMemberAgent[],
-  { membershipId: string },
+  { memberUserId: string },
   ThunkConfig
 >(
   "projectMemberships/listMemberAgents",
-  async ({ membershipId }, { extra: { services }, getState }) => {
+  async ({ memberUserId }, { extra: { services }, getState }) => {
     const state = getState()
     const organizationId = getCurrentId({ state, name: "organizationId" })
     const projectId = getCurrentId({ state, name: "projectId" })
     return await services.projectMemberships.getMemberAgents({
       organizationId,
       projectId,
-      membershipId,
+      memberUserId,
     })
   },
 )

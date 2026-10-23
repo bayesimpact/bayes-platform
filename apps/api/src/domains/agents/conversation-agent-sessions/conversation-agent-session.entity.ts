@@ -32,6 +32,11 @@ export class ConversationAgentSession extends ConnectEntityBase {
   @Column({ type: "uuid", name: "active_agent_id", nullable: true })
   activeAgentId!: string | null
 
+  // Values of the {{variables}} the agent's instructions declared at session
+  // creation, substituted into the prompt before every model call.
+  @Column({ type: "jsonb", name: "variables", nullable: true, default: null })
+  variables!: Record<string, string> | null
+
   // The parent agent session that spawned this sub-session, if any. Used to
   // find-or-create a single conversation sub-session per parent conversation so
   // the sub-agent's turns land in one persistent trace. Its presence is what

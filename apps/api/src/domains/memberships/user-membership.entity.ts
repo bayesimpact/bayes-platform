@@ -17,24 +17,16 @@ export type UserMembershipResourceType =
   | "organization"
   | "project"
   | "agent"
-  | "temp_agent"
   | "review_campaign"
   | "global"
 
-/** All roles that can appear in the unified membership table. */
-export type UserMembershipRole = "owner" | "admin" | "member" | "tester" | "reviewer"
-
 /**
- * Unified membership table consolidating organization_membership, project_membership,
- * agent_membership, and review_campaign_membership.
+ * Unified membership table: one row per role a person holds on a resource (ADR 0032).
  *
  * Unique-index strategy:
- *  - One row per (userId, resourceId, resourceType) for organization/project/agent
- *    (a user holds exactly one role per resource).
- *  - One row per (userId, resourceId, resourceType, role) for review_campaign
- *    (a user can simultaneously hold both "tester" and "reviewer" roles on the same campaign).
- *  - One row per (userId, roleId) for global assignments
- *    (a user holds a given global role at most once).
+ *  - One row per (userId, resourceType, resourceId, roleId) on organizations, projects, agents
+ *    and review campaigns: a person can hold several roles on one resource, each role once.
+ *  - One row per (userId, roleId) for global assignments, whose resource id is NULL.
  *
  * NOTE: We deliberately do NOT extend Base4AllEntity here to avoid a PK constraint name
  * collision.  The historical "user_membership" table (later renamed to "organization_membership"
@@ -44,13 +36,9 @@ export type UserMembershipRole = "owner" | "admin" | "member" | "tester" | "revi
  * explicit `primaryKeyConstraintName` here we get a distinct, stable name.
  */
 @Entity("user_membership")
-@Index("UQ_user_membership_non_campaign", ["userId", "resourceId", "resourceType"], {
+@Index("UQ_user_membership_role", ["userId", "resourceType", "resourceId", "roleId"], {
   unique: true,
-  where: `"resource_type" <> 'review_campaign'`,
-})
-@Index("UQ_user_membership_campaign", ["userId", "resourceId", "resourceType", "role"], {
-  unique: true,
-  where: `"resource_type" = 'review_campaign'`,
+  where: `"resource_type" <> 'global'`,
 })
 @Index("UQ_user_membership_global", ["userId", "roleId"], {
   unique: true,
@@ -78,9 +66,12 @@ export class UserMembership {
   @Column({ type: "uuid", name: "resource_id", nullable: true })
   resourceId!: string | null
 
-  /** Legacy role column for backward compatibility with the old user_membership table. */
-  @Column({ type: "varchar" })
-  role!: UserMembershipRole
+  /**
+   * Legacy owner / admin / member / tester / reviewer string, no longer read or written: the role
+   * is `roleId`. Kept nullable until a follow-up drops the column.
+   */
+  @Column({ type: "varchar", nullable: true })
+  role!: string | null
 
   @Column({ type: "uuid", name: "role_id", nullable: true })
   roleId!: string | null

@@ -3,6 +3,7 @@ import { Factory } from "fishery"
 import type { Project } from "@/common/features/projects/projects.models"
 import type {
   EvaluationExtractionDataset,
+  EvaluationExtractionDatasetRecordRow,
   EvaluationExtractionDatasetSchemaColumn,
 } from "./evaluation-extraction-datasets.models"
 
@@ -75,3 +76,32 @@ export const evaluationExtractionDatasetFactory = EvaluationExtractionDatasetFac
     }
   },
 )
+
+type EvaluationExtractionDatasetRecordRowTransientParams = {
+  dataset: EvaluationExtractionDataset
+}
+
+class EvaluationExtractionDatasetRecordRowFactory extends Factory<
+  EvaluationExtractionDatasetRecordRow,
+  EvaluationExtractionDatasetRecordRowTransientParams
+> {}
+
+// Row values are keyed by schema column id, as the record table reads them.
+export const evaluationExtractionDatasetRecordRowFactory =
+  EvaluationExtractionDatasetRecordRowFactory.define(({ params, transientParams }) => {
+    const { dataset } = transientParams
+    if (!dataset) {
+      throw new Error(
+        "Dataset must be provided in transient params to build an EvaluationExtractionDatasetRecordRow",
+      )
+    }
+
+    return {
+      id: params.id ?? faker.string.uuid(),
+      data:
+        (params.data as Record<string, unknown> | undefined) ??
+        Object.fromEntries(
+          Object.values(dataset.schemaMapping).map((column) => [column.id, faker.lorem.words(3)]),
+        ),
+    }
+  })

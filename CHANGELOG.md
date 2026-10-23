@@ -11,6 +11,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 - Agent duplication: copy an agent into a new draft, from its draft or published settings, from the studio or MCP.
 - Test cases: save a good or bad agent answer into an evaluation dataset, from the playground or feedback.
+- (beta) Prompt variables: agents can now declare `{{variables}}` in their instructions, with their values supplied when a session starts.
 
 ### Changed
 

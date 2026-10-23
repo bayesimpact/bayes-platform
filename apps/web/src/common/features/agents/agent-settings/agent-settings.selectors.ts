@@ -93,3 +93,24 @@ export const selectPlaygroundRevision = ({ agentId }: { agentId: string }) =>
       })
     },
   )
+
+/**
+ * Settings of the revision the playground runs — what a new playground session tests.
+ * `null` while the history is still loading.
+ */
+export const selectPlaygroundAgentSettings = ({ agentId }: { agentId: string }) =>
+  createSelector(
+    [selectAgentSettingsHistoryData, selectPlaygroundRevisions],
+    (history, revisionByAgentId): AgentSettings | null => {
+      const agentHistory = history[agentId]
+      if (!agentHistory || !ADS.isFulfilled(agentHistory)) return null
+
+      const revision = resolveEffectiveRevision({
+        versions: agentHistory.value,
+        chosenRevision: revisionByAgentId[agentId],
+      })
+      if (revision === undefined) return null
+
+      return agentHistory.value.find((settings) => settings.revision === revision) ?? null
+    },
+  )
