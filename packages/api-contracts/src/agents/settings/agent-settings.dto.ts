@@ -18,7 +18,10 @@ export enum AgentModel {
   Gemini38Flash = "gemini-3.8-flash",
   MedGemma10_27B = "google/medgemma-27b-it",
   Gemma4_26B = "google/gemma-4-26b-A4B-it",
+  Gemma4_31B = "google/gemma-4-31B-it",
   MistralSmall31_24B = "mistralai/Mistral-Small-3.1-24B-Instruct-2503",
+  MistralSmall32_24B = "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  Qwen38_27B = "Qwen/Qwen3.8-27B",
   _Mock = "mock-language-model-v3",
 }
 
@@ -28,6 +31,7 @@ export enum AgentProvider {
   Vertex = "VERTEX",
   Mistral = "MISTRAL",
   Vertex3 = "VERTEX-3",
+  Qwen = "QWEN",
   _Mock = "MOCK",
 }
 export const AgentModelToAgentProvider = {
@@ -41,7 +45,10 @@ export const AgentModelToAgentProvider = {
   [AgentModel.Gemini38Flash]: AgentProvider.Vertex3,
   [AgentModel.MedGemma10_27B]: AgentProvider.MedGemma,
   [AgentModel.Gemma4_26B]: AgentProvider.Gemma,
+  [AgentModel.Gemma4_31B]: AgentProvider.Gemma,
   [AgentModel.MistralSmall31_24B]: AgentProvider.Mistral,
+  [AgentModel.MistralSmall32_24B]: AgentProvider.Mistral,
+  [AgentModel.Qwen38_27B]: AgentProvider.Qwen,
   [AgentModel._Mock]: AgentProvider._Mock,
 } as const satisfies Record<AgentModel, AgentProvider>
 

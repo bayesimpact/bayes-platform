@@ -5,6 +5,7 @@ import { AISDKGemmaProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-gemma
 import { AISDKMedGemmaProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-med-gemma.provider"
 import { AISDKMistralProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mistral.provider"
 import { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.provider"
+import { AISDKQwenProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-qwen.provider"
 import { AISDKVertexProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-vertex.provider"
 import { AISDKVertex3Provider } from "@/external/llm/ai-sdk/providers/ai-sdk-vertex3.provider"
 
@@ -12,6 +13,7 @@ const providers: { [Provider in AgentProvider]: AISDKLLMProviderBase<Provider> }
   [AgentProvider.Gemma]: new AISDKGemmaProvider(),
   [AgentProvider.MedGemma]: new AISDKMedGemmaProvider(),
   [AgentProvider.Mistral]: new AISDKMistralProvider(),
+  [AgentProvider.Qwen]: new AISDKQwenProvider(),
   [AgentProvider.Vertex]: new AISDKVertexProvider(),
   [AgentProvider.Vertex3]: new AISDKVertex3Provider(),
   [AgentProvider._Mock]: new AISDKMockProvider(),
@@ -104,6 +106,10 @@ const CATALOG: {
   {
     model: AgentModel.MedGemma10_27B,
     provider: AgentProvider.MedGemma,
+    deprecation: {
+      deprecatedOn: "2026-10-23",
+      recommendedReplacement: AgentModel.Gemma4_26B,
+    },
     isDefault: false,
     defaultOptions: { temperature: 0 },
   },
@@ -111,13 +117,35 @@ const CATALOG: {
     model: AgentModel.Gemma4_26B,
     provider: AgentProvider.Gemma,
     isDefault: false,
-    defaultOptions: { temperature: 0 },
+    defaultOptions: { temperature: 1 },
+  },
+  {
+    model: AgentModel.Gemma4_31B,
+    provider: AgentProvider.Gemma,
+    isDefault: false,
+    defaultOptions: { temperature: 1 },
   },
   {
     model: AgentModel.MistralSmall31_24B,
     provider: AgentProvider.Mistral,
+    deprecation: {
+      deprecatedOn: "2026-10-20",
+      recommendedReplacement: AgentModel.MistralSmall32_24B,
+    },
     isDefault: false,
     defaultOptions: { temperature: 0 },
+  },
+  {
+    model: AgentModel.MistralSmall32_24B,
+    provider: AgentProvider.Mistral,
+    isDefault: false,
+    defaultOptions: { temperature: 0.15 },
+  },
+  {
+    model: AgentModel.Qwen38_27B,
+    provider: AgentProvider.Qwen,
+    isDefault: false,
+    defaultOptions: { temperature: 0.7 },
   },
   {
     model: AgentModel._Mock,

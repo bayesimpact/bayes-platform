@@ -4,7 +4,6 @@ import type { JSONSchema7, JSONSchema7Definition, LanguageModelV3 } from "@ai-sd
 import type { AgentProvider } from "@caseai-connect/api-contracts"
 import { NotImplementedException } from "@nestjs/common"
 import { asSchema, type ToolSet } from "ai"
-import { GoogleAuth } from "google-auth-library"
 import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"
 import { getAgentModelKey } from "@/external/llm/agent-provider"
 import type { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
@@ -22,45 +21,23 @@ export abstract class AISDKVllmProviderBase<
   /** Name shown in the traces and tags, e.g. "Gemma Provider". */
   protected abstract readonly providerName: string
 
-  private googleAuth?: Pick<GoogleAuth, "getClient">
-
-  /**
-   * One client for the provider's lifetime, so the access token is cached
-   * instead of fetched again for every model built. Created on first use:
-   * a provider that never calls the OpenAI-compatible chat API (MedGemma)
-   * does not need one.
-   */
-  protected get auth(): Pick<GoogleAuth, "getClient"> {
-    this.googleAuth ??= new GoogleAuth({
-      scopes: ["https://www.googleapis.com/auth/cloud-platform"],
-    })
-    return this.googleAuth
-  }
-
   /** By default every call goes through the OpenAI-compatible chat API. */
   getLanguageModel({ config }: { config: LLMConfig; callOrigin: CallOrigin }): LanguageModelV3 {
     return this.createOpenAiCompatibleChatModel(config)
   }
 
   /**
-   * The OpenAI-compatible chat model, authenticated with a Google access token
-   * (the vLLM endpoints sit behind Google Cloud authentication).
+   * The OpenAI-compatible chat model. The API key of the model goes in the
+   * `Authorization: Bearer` header, which is what vLLM checks when it runs
+   * with `--api-key`.
    */
   protected createOpenAiCompatibleChatModel(config: LLMConfig): LanguageModelV3 {
-    const auth = this.auth
-    const fetchForCall = this.fetchFor(config)
     const { url, apiKey } = this.getModelEnvSettings(config.model)
     return createOpenAI({
       name: this.providerName,
       baseURL: url,
       apiKey,
-      fetch: async (requestUrl, init) => {
-        const client = await auth.getClient()
-        const { token } = await client.getAccessToken()
-        const headers = new Headers(init?.headers)
-        headers.set("Authorization", `Bearer ${token}`)
-        return fetchForCall(requestUrl, { ...init, headers })
-      },
+      fetch: this.fetchFor(config),
     }).chat(config.model)
   }
 

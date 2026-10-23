@@ -5,6 +5,7 @@ import { AISDKGemmaProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-gemma
 import { AISDKMedGemmaProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-med-gemma.provider"
 import { AISDKMistralProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mistral.provider"
 import { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.provider"
+import { AISDKQwenProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-qwen.provider"
 import { AISDKVertexProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-vertex.provider"
 import { AISDKVertex3Provider } from "@/external/llm/ai-sdk/providers/ai-sdk-vertex3.provider"
 
@@ -15,6 +16,7 @@ const LLM_AVAILABLE_PROVIDERS = {
   [AgentProvider.Mistral]: AISDKMistralProvider,
   [AgentProvider.MedGemma]: AISDKMedGemmaProvider,
   [AgentProvider.Gemma]: AISDKGemmaProvider,
+  [AgentProvider.Qwen]: AISDKQwenProvider,
 } satisfies Record<AgentProvider, Type<LLMProvider>>
 
 export const LLM_PROVIDERS = "LLMProviders"

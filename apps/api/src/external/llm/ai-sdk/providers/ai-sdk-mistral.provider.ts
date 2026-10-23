@@ -24,9 +24,23 @@ export class AISDKMistralProvider extends AISDKVllmProviderBase<AgentProvider.Mi
         temperature: 0,
       },
     ),
+    // Mistral's recommended temperature (generation_config.json).
+    [AgentModel.MistralSmall32_24B]: defineModelOptions(
+      z.object({ temperature: z.number().min(0).max(2) }),
+      {
+        temperature: 0.15,
+      },
+    ),
   }
   protected readonly modelInfos: Record<MistralAgentModel, ModelInfos> = {
-    [AgentModel.MistralSmall31_24B]: {},
+    // Its vLLM service was replaced by the 3.2 one: an agent still on it must move.
+    [AgentModel.MistralSmall31_24B]: {
+      deprecation: {
+        deprecatedOn: "2026-10-20",
+        recommendedReplacement: AgentModel.MistralSmall32_24B,
+      },
+    },
+    [AgentModel.MistralSmall32_24B]: {},
   }
 
   getAgentProvider(): AgentProvider.Mistral {

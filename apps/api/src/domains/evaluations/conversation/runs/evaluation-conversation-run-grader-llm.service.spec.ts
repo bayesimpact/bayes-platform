@@ -32,6 +32,7 @@ describe("EvaluationConversationRunGraderLLMService", () => {
       [AgentProvider.Mistral]: vertexProvider as unknown as LLMProvider,
       [AgentProvider.MedGemma]: vertexProvider as unknown as LLMProvider,
       [AgentProvider.Gemma]: vertexProvider as unknown as LLMProvider,
+      [AgentProvider.Qwen]: vertexProvider as unknown as LLMProvider,
     })
   })
 

@@ -239,7 +239,7 @@ describe("AI SDK non-regression - request and response", () => {
     const provider = new AISDKGemmaProvider()
     const model = AgentModel.Gemma4_26B
 
-    it("calls the chat completions of the model's endpoint, with a Google access token", async () => {
+    it("calls the chat completions of the model's endpoint, with the model's API key", async () => {
       fakeFetch.respondWith(openAiChat.text("Hello"))
 
       await provider.generateText({
@@ -251,7 +251,7 @@ describe("AI SDK non-regression - request and response", () => {
 
       const request = fakeFetch.onlyRequest()
       expect(request.url).toBe("https://gemma.vllm.test/v1/chat/completions")
-      expect(request.headers.authorization).toBe("Bearer test-access-token")
+      expect(request.headers.authorization).toBe("Bearer test-api-key")
       expect(request.body).toMatchObject({
         model,
         messages: [

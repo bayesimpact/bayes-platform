@@ -145,7 +145,7 @@ describe("AISDKMistralProvider.applySpecificToStructuredOutputMessage", () => {
 describe("AISDKMistralProvider.applySpecificToSystemPrompt", () => {
   const provider = new TestAISDKMistralProvider()
   const config = {
-    model: AgentModel.MistralSmall31_24B,
+    model: AgentModel.MistralSmall32_24B,
     tools: {
       search_documents: tool({
         description: "Searches the documents.",

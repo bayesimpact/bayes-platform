@@ -20,6 +20,7 @@ import {
 import { AISDKGemmaProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-gemma.provider"
 import { AISDKMedGemmaProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-med-gemma.provider"
 import { AISDKMistralProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mistral.provider"
+import { AISDKQwenProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-qwen.provider"
 import { AISDKVertexProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-vertex.provider"
 import { AISDKVertex3Provider } from "@/external/llm/ai-sdk/providers/ai-sdk-vertex3.provider"
 
@@ -31,7 +32,14 @@ jest.mock("google-auth-library", () => ({
 
 process.env.GOOGLE_VERTEX_PROJECT = "test-project"
 process.env.GOOGLE_VERTEX_LOCATION = "europe-west1"
-for (const key of ["GEMMA4_26B", "MISTRALSMALL31_24B", "MEDGEMMA10_27B"]) {
+for (const key of [
+  "GEMMA4_26B",
+  "GEMMA4_31B",
+  "MISTRALSMALL31_24B",
+  "MISTRALSMALL32_24B",
+  "MEDGEMMA10_27B",
+  "QWEN38_27B",
+]) {
   process.env[`VLLM_${key}_URL`] = `https://${key.toLowerCase()}.vllm.test/`
   process.env[`VLLM_${key}_APIKEY`] = "test-api-key"
 }
@@ -99,6 +107,15 @@ const PROVIDERS: ProviderUnderTest[] = [
   {
     provider: AgentProvider.Mistral,
     instance: new AISDKMistralProvider(),
+    locations: OPENAI_LOCATIONS,
+    responseFor: {
+      generateText: () => openAiChat.text("Hello"),
+      streamChatResponse: () => openAiChat.streamedText(["Hel", "lo"]),
+    },
+  },
+  {
+    provider: AgentProvider.Qwen,
+    instance: new AISDKQwenProvider(),
     locations: OPENAI_LOCATIONS,
     responseFor: {
       generateText: () => openAiChat.text("Hello"),

@@ -1,17 +1,12 @@
 import type { JSONSchema7Definition, LanguageModelV3CallOptions } from "@ai-sdk/provider"
 import { AgentModel, type AgentModelOf, AgentProvider } from "@caseai-connect/api-contracts"
 import { jsonSchema, type ToolSet, tool } from "ai"
-import { GoogleAuth } from "google-auth-library"
 import { z } from "zod"
 import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"
 import { zNullableType } from "@/common/zod-helper"
 import { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
 import type { ModelInfos, ModelOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
 import { AISDKVllmProviderBase } from "@/external/llm/ai-sdk/providers/ai-sdk-vllm-provider-base"
-
-jest.mock("google-auth-library", () => ({
-  GoogleAuth: jest.fn().mockImplementation(() => ({ getClient: jest.fn() })),
-}))
 
 const URL_ENV = "VLLM_GEMMA4_26B_URL"
 const API_KEY_ENV = "VLLM_GEMMA4_26B_APIKEY" // gitleaks:allow (the name of the variable, not a key)
@@ -34,17 +29,6 @@ class TestVllmProvider extends AISDKVllmProviderBase<AgentProvider.Gemma> {
   }
   modelEnvSettingsFor(model: string): { url: string; apiKey: string } {
     return this.getModelEnvSettings(model)
-  }
-  authFor(): Pick<GoogleAuth, "getClient"> {
-    return this.auth
-  }
-}
-
-class TestVllmProviderWithFakeAuth extends TestVllmProvider {
-  protected get auth(): Pick<GoogleAuth, "getClient"> {
-    return {
-      getClient: async () => ({ getAccessToken: async () => ({ token: "google-access-token" }) }),
-    } as unknown as Pick<GoogleAuth, "getClient">
   }
 }
 
@@ -81,7 +65,6 @@ describe("AISDKVllmProviderBase", () => {
 
   afterEach(() => {
     jest.restoreAllMocks()
-    jest.mocked(GoogleAuth).mockClear()
     for (const [name, value] of [
       [URL_ENV, savedEnv.url],
       [API_KEY_ENV, savedEnv.apiKey],
@@ -131,8 +114,7 @@ describe("AISDKVllmProviderBase", () => {
   })
 
   describe("getLanguageModel", () => {
-    it("calls the OpenAI-compatible chat API of the model with a Google access token", async () => {
-      const provider = new TestVllmProviderWithFakeAuth()
+    it("calls the OpenAI-compatible chat API of the model with its API key", async () => {
       const fetchSpy = jest
         .spyOn(globalThis, "fetch")
         .mockResolvedValue(chatCompletionResponse("Hello, how can I help?"))
@@ -145,25 +127,13 @@ describe("AISDKVllmProviderBase", () => {
       expect(result.content).toEqual([{ type: "text", text: "Hello, how can I help?" }])
       const [requestUrl, init] = fetchSpy.mock.calls[0] ?? []
       expect(String(requestUrl)).toBe("https://gemma.example.com/v1/chat/completions")
-      expect(new Headers(init?.headers).get("Authorization")).toBe("Bearer google-access-token")
+      expect(new Headers(init?.headers).get("Authorization")).toBe("Bearer vllm-api-key")
     })
 
     it("names the model after the provider", () => {
       const model = provider.getLanguageModel({ config, callOrigin: CallOrigin.generateText })
       expect(model.provider).toContain("Test Provider")
       expect(model.modelId).toBe(AgentModel.Gemma4_26B)
-    })
-  })
-
-  describe("auth", () => {
-    it("creates the Google client on first use only, then reuses it", () => {
-      expect(GoogleAuth).not.toHaveBeenCalled()
-
-      const first = provider.authFor()
-      const second = provider.authFor()
-
-      expect(GoogleAuth).toHaveBeenCalledTimes(1)
-      expect(second).toBe(first)
     })
   })
 
