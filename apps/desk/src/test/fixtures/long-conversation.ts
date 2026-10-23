@@ -1,12 +1,25 @@
 /**
  * A long conversation for the stories: the person plans the launch of a new plan with the agent
- * over four exchanges, and each reply uses another part of Markdown (headings, nested lists,
- * tables, a quote, code, a checklist).
+ * over five exchanges, and each reply uses another part of Markdown (headings, nested lists,
+ * tables, a quote, code, a checklist). From the second message on, the person annotates passages
+ * of the reply before, which the world adds to their message as the message box sends them.
  */
 export const LONG_CONVERSATION_TITLE = "Plan the launch of the Team plan"
 
+/** A passage of the reply before and the person's note on it. */
+type LongConversationAnnotation = {
+  passage: string
+  note: string
+  /** Which occurrence of the passage's text in the reply, from 1: the first by default. */
+  occurrence?: number
+}
+
 /** The messages of the conversation, oldest first, after the agent's greeting. */
-export const LONG_CONVERSATION_EXCHANGES: { question: string; reply: string }[] = [
+export const LONG_CONVERSATION_EXCHANGES: {
+  question: string
+  annotations?: LongConversationAnnotation[]
+  reply: string
+}[] = [
   {
     question: [
       "We want to launch a new Team plan next month, between Starter and Pro.",
@@ -68,6 +81,16 @@ export const LONG_CONVERSATION_EXCHANGES: { question: string; reply: string }[] 
       "",
       "Does the plan still hold? If not, what would you change first?",
     ].join("\n"),
+    annotations: [
+      {
+        passage: "Offer the plan to about 50 Starter customers who already invite colleagues.",
+        note: "Is 50 still right with the constraints above?",
+      },
+      {
+        passage: "The first risk matters most",
+        note: "Agreed, the Pro team will ask about it first. How do we show it on the comparison page?",
+      },
+    ],
     reply: [
       "The plan holds, but two dates move. With three people in support during week 3, the first group must stay small, and the public launch must wait for the 15th.",
       "",
@@ -98,6 +121,12 @@ export const LONG_CONVERSATION_EXCHANGES: { question: string; reply: string }[] 
   {
     question:
       "Great. Can you draft the announcement email for the current customers, and the five questions of the FAQ you think matter most? Keep the email short, people don't read long emails.",
+    annotations: [
+      { passage: "keep the higher price", note: "Product agrees, we keep it." },
+      { passage: "The FAQ comes first.", note: "Yes, so start with it below the email." },
+      // The reply says "the first group" four times: this is the second.
+      { passage: "the first group", note: "The same 20 customers, or 20 new ones?", occurrence: 2 },
+    ],
     reply: [
       "Here is the email, under 120 words, then the five questions.",
       "",
@@ -141,6 +170,16 @@ export const LONG_CONVERSATION_EXCHANGES: { question: string; reply: string }[] 
       "",
       "What should the event look like for the Team plan, and what should the billing team check before the launch?",
     ].join("\n"),
+    annotations: [
+      {
+        passage: "The shared workspaces become read-only for the people beyond the first one.",
+        note: "Product confirmed this rule, you can drop the warning.",
+      },
+      {
+        passage: "Nothing is deleted when you change plans.",
+        note: "Even after a year on Starter?",
+      },
+    ],
     reply: [
       "The event can keep the shape of the one you send today, with the new plan in `plan` and the seat limit in `limits`. Here is an example:",
       "",
@@ -175,6 +214,30 @@ export const LONG_CONVERSATION_EXCHANGES: { question: string; reply: string }[] 
       "- [ ] An event that fails is retried, and someone gets an alert after the third failure.",
       "",
       "Run these checks in week 2, before the first group opens: a billing error seen by the first customers would cost more trust than any other bug of the launch.",
+    ].join("\n"),
+  },
+  {
+    // A message of annotations only, as the message box sends one with nothing written.
+    question: "",
+    annotations: [
+      {
+        passage: "use customerId and occurredAt as the key",
+        note: "We already do this for invoices, so this one is covered.",
+      },
+      {
+        passage: "someone gets an alert after the third failure",
+        note: "Who: billing or support?",
+      },
+    ],
+    reply: [
+      "Billing, because only billing can fix an invoice. Support should still hear about it, so they know what to tell a customer who writes in.",
+      "",
+      "A simple split:",
+      "",
+      "- **Billing** gets the alert and owns the fix.",
+      "- **Support** gets a short daily summary of the failed events, with the customers they affect.",
+      "",
+      "Since you already key invoices on the same fields, the duplicate check is the one item you can tick today.",
     ].join("\n"),
   },
 ]

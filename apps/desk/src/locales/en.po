@@ -864,6 +864,14 @@ msgstr "Shift"
 msgid "Should the agent remember this?"
 msgstr "Should the agent remember this?"
 
+#: src/features/conversation/components/CitedPassageChip.tsx
+msgid "Show in the reply"
+msgstr "Show in the reply"
+
+#: src/features/conversation/components/CitedPassageChip.tsx
+msgid "Show in the reply: {passage}"
+msgstr "Show in the reply: {passage}"
+
 #: src/components/shared/HighlightedCodeBlock.tsx
 #: src/features/conversation/components/UserMessageText.tsx
 msgid "Show less"

@@ -25,6 +25,7 @@
   --color-chart-5: var(--chart-5);
   --color-annotation: var(--annotation);
   --color-annotation-foreground: var(--annotation-foreground);
+  --color-quote-mark: var(--quote-mark);
   --color-chart-4: var(--chart-4);
   --color-chart-3: var(--chart-3);
   --color-chart-2: var(--chart-2);
@@ -95,6 +96,9 @@
   /* The highlighter yellow of an annotated passage, and of the bubbles that number annotations,
      with a dark amber ink that reads on it. They come from point-by-point. */
   --quote-mark: rgb(242 196 64 / 0.32);
+  /* A passage a sent message quoted, paler, and the one a person just jumped to, brighter. */
+  --quote-cited: rgb(242 196 64 / 0.16);
+  --quote-jump: rgb(242 196 64 / 0.6);
   --annotation: rgb(242 196 64);
   --annotation-foreground: rgb(58 45 6);
 }
@@ -132,6 +136,8 @@
   --sidebar-border: oklch(0.269 0 0);
   --sidebar-ring: oklch(0.439 0 0);
   --quote-mark: rgb(242 196 64 / 0.24);
+  --quote-cited: rgb(242 196 64 / 0.12);
+  --quote-jump: rgb(242 196 64 / 0.45);
   --annotation: rgb(240 197 69);
   --annotation-foreground: rgb(42 32 4);
 }
@@ -160,4 +166,15 @@
 
 ::highlight(desk-quote) {
   background-color: var(--quote-mark);
+}
+
+/* The passages the messages sent quoted stay highlighted in their reply, paler, and the one a
+   person jumps to from its chip stands out a moment (src/features/conversation/hooks/
+   use-cited-passages.ts). */
+::highlight(desk-cited) {
+  background-color: var(--quote-cited);
+}
+
+::highlight(desk-cited-jump) {
+  background-color: var(--quote-jump);
 }

@@ -15,6 +15,7 @@ import type {
   ProjectAgentOutputDto,
 } from "@caseai-connect/desk-contracts"
 import { TOOL_NAMES } from "@caseai-connect/desk-contracts"
+import { composeMessage } from "@/features/conversation/annotation"
 import { LONG_CONVERSATION_EXCHANGES, LONG_CONVERSATION_TITLE } from "../fixtures/long-conversation"
 import { RELEASE_NOTES_APP_HTML } from "../fixtures/mcp-app"
 import {
@@ -393,11 +394,15 @@ export function buildQuotedMessageWorld(): DeskWorld {
   const [assistant] = world.agents
   const [firstConversation] = world.conversations[assistant?.id ?? ""] ?? []
   const messages = world.messages[firstConversation?.id ?? ""]
-  if (!messages) return world
+  const replyId = messages?.at(-1)?.id
+  if (!messages || !replyId) return world
   messages.push(
     buildConversationMessage({
       role: "user",
-      content: "Thanks, two questions:\n`two plans` is there a free one?\n`webhooks` how many?",
+      content: composeMessage("Thanks, two questions:", [
+        { passage: "two plans", note: "is there a free one?", source: { replyId, occurrence: 1 } },
+        { passage: "webhooks", note: "how many?", source: { replyId, occurrence: 1 } },
+      ]),
     }),
     buildConversationMessage({
       content: "There is no free plan, and the Pro plan allows up to 20 webhooks.",
@@ -407,8 +412,9 @@ export function buildQuotedMessageWorld(): DeskWorld {
 }
 
 /**
- * The main case, with a long conversation at the top of the history: four exchanges whose replies
- * use headings, nested lists, tables, a quote, code and a checklist.
+ * The main case, with a long conversation at the top of the history: five exchanges whose replies
+ * use headings, nested lists, tables, a quote, code and a checklist, and whose messages annotate
+ * passages of the reply before.
  */
 export function buildLongConversationWorld(): DeskWorld {
   const world = buildDeskWorld()
@@ -417,16 +423,27 @@ export function buildLongConversationWorld(): DeskWorld {
   const createdAt = daysAgo(0)
   const conversation = buildConversationSession({ title: LONG_CONVERSATION_TITLE, createdAt })
   world.conversations[assistant.id] = [conversation, ...(world.conversations[assistant.id] ?? [])]
-  world.messages[conversation.id] = [
-    buildConversationMessage({ createdAt }),
-    ...LONG_CONVERSATION_EXCHANGES.flatMap(({ question, reply }, index) => {
-      const askedAt = createdAt + index * 5 * MINUTE_IN_MILLISECONDS
-      return [
-        buildConversationMessage({ role: "user", content: question, createdAt: askedAt }),
-        buildConversationMessage({ content: reply, createdAt: askedAt + MINUTE_IN_MILLISECONDS }),
-      ]
-    }),
-  ]
+  const messages = [buildConversationMessage({ createdAt })]
+  for (const [
+    index,
+    { question, annotations = [], reply },
+  ] of LONG_CONVERSATION_EXCHANGES.entries()) {
+    // Each message annotates the reply before it, which it names, as the message box does.
+    const replyId = messages.at(-1)?.id ?? ""
+    const askedAt = createdAt + index * 5 * MINUTE_IN_MILLISECONDS
+    const content = composeMessage(
+      question,
+      annotations.map((annotation) => ({
+        ...annotation,
+        source: { replyId, occurrence: annotation.occurrence ?? 1 },
+      })),
+    )
+    messages.push(
+      buildConversationMessage({ role: "user", content, createdAt: askedAt }),
+      buildConversationMessage({ content: reply, createdAt: askedAt + MINUTE_IN_MILLISECONDS }),
+    )
+  }
+  world.messages[conversation.id] = messages
   return world
 }
 

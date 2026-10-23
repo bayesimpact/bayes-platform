@@ -1,5 +1,5 @@
 import type { ConversationParamsDto } from "@caseai-connect/desk-contracts"
-import { composeMessage } from "../annotation"
+import { composeMessage, quoteSourceOf } from "../annotation"
 import { useSendMessage } from "../api/mutations"
 import type { OutgoingMessage } from "../chat-messages"
 import { useAnnotations } from "./use-annotations"
@@ -17,7 +17,13 @@ export function useConversationSend(conversation: ConversationParamsDto) {
     saveAnnotation: annotations.save,
     isSending: sendMessage.isPending,
     send: (outgoing: OutgoingMessage) => {
-      const content = composeMessage(outgoing.content, annotations.annotations)
+      const content = composeMessage(
+        outgoing.content,
+        annotations.annotations.map((annotation) => ({
+          ...annotation,
+          source: quoteSourceOf(annotation),
+        })),
+      )
       sendMessage.mutate({ ...outgoing, content })
       annotations.clear()
     },

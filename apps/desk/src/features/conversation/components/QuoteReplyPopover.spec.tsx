@@ -15,6 +15,7 @@ function AnnotatedReply() {
         annotations={annotations}
         onSave={(annotation) => setAnnotations((current) => saveAnnotation(current, annotation))}
         messageBoxId="message-box"
+        onReplyClick={() => {}}
       >
         <div data-annotation-layer="">
           <p data-quotable="">{REPLY}</p>

@@ -32,7 +32,10 @@ export const QuotedMessage: Story = {
   }),
 }
 
-/** A long conversation of four exchanges, with replies built of headings, tables and code. */
+/**
+ * A long conversation of five exchanges, with replies built of headings, tables and code, and
+ * messages that annotate passages of the reply before.
+ */
 export const LongConversation: Story = {
   parameters: desk({
     world: buildLongConversationWorld,

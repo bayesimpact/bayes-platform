@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { clearQuoteHighlights, isPointInRange, showQuoteHighlights } from "@/lib/quote-highlight"
 import { type Annotation, isSameRange, readQuotableSelection } from "../annotation"
-import { useSettledSelection } from "../hooks/use-settled-selection"
+import { type ReplyClick, useSettledSelection } from "../hooks/use-settled-selection"
 import { AnnotationBadge } from "./AnnotationBadge"
 
 export type QuoteReplyPopoverProps = {
@@ -17,6 +17,8 @@ export type QuoteReplyPopoverProps = {
   onSave: (annotation: Annotation) => void
   /** The id of the message box, which gets the focus once the box closes. */
   messageBoxId: string
+  /** A click on the text of a reply, off the annotations, as on a passage a message quoted. */
+  onReplyClick: (click: ReplyClick) => void
   children: ReactNode
 }
 
@@ -29,6 +31,7 @@ export function QuoteReplyPopover({
   annotations,
   onSave,
   messageBoxId,
+  onReplyClick,
   children,
 }: QuoteReplyPopoverProps) {
   const { t } = useLingui()
@@ -60,12 +63,15 @@ export function QuoteReplyPopover({
         note: "",
         range: selected.range,
         layer: selected.layer,
+        reply: selected.reply,
+        occurrence: selected.occurrence,
       })
       return
     }
     const clicked =
       click && annotations.find((annotation) => isPointInRange(annotation.range, click.x, click.y))
     if (clicked) handleOpen(clicked)
+    else if (click) onReplyClick(click)
   })
 
   const hasNote = editing !== null && editing.note.trim() !== ""

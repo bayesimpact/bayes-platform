@@ -864,6 +864,14 @@ msgstr "Maj"
 msgid "Should the agent remember this?"
 msgstr "L'agent doit-il retenir ceci ?"
 
+#: src/features/conversation/components/CitedPassageChip.tsx
+msgid "Show in the reply"
+msgstr "Voir dans la réponse"
+
+#: src/features/conversation/components/CitedPassageChip.tsx
+msgid "Show in the reply: {passage}"
+msgstr "Voir dans la réponse : {passage}"
+
 #: src/components/shared/HighlightedCodeBlock.tsx
 #: src/features/conversation/components/UserMessageText.tsx
 msgid "Show less"

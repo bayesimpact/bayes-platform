@@ -18,6 +18,7 @@ import { useNow } from "@/hooks/use-now"
 import { ANNOTATION_LAYER_ATTRIBUTE } from "../annotation"
 import { mcpAppsHtmlQueryOptions, messagesQueryOptions } from "../api/queries"
 import { findRetryableMessage, isBeingWritten } from "../chat-messages"
+import { useCitedPassages } from "../hooks/use-cited-passages"
 import { useConversationForms } from "../hooks/use-conversation-forms"
 import { useConversationPanel } from "../hooks/use-conversation-panel"
 import { useConversationSend } from "../hooks/use-conversation-send"
@@ -57,6 +58,9 @@ export function ConversationView({
   const [draft, setDraft] = useState("")
   const composerId = useId()
   const panel = useConversationPanel()
+  // The element the messages render in, where the passages they quote are found.
+  const [messageLayer, setMessageLayer] = useState<HTMLElement | null>(null)
+  const citedPassages = useCitedPassages(messages, messageLayer)
   const hasSettledApps = messages.some(
     (message) => message.mcpApps.length > 0 && message.status !== "streaming",
   )
@@ -96,6 +100,7 @@ export function ConversationView({
                 annotations={sending.annotations}
                 onSave={sending.saveAnnotation}
                 messageBoxId={composerId}
+                onReplyClick={citedPassages.showChipAt}
               >
                 <MessageScroller>
                   <MessageScrollerViewport>
@@ -104,6 +109,7 @@ export function ConversationView({
                       children to scroll to a new message, and fills the height in its place.
                     */}
                     <div
+                      ref={setMessageLayer}
                       className="relative flex h-max min-h-full flex-col"
                       {...{ [ANNOTATION_LAYER_ATTRIBUTE]: "" }}
                     >
@@ -132,6 +138,7 @@ export function ConversationView({
                               appsHtml={appsHtml}
                               onAppMessage={setDraft}
                               onOpenResource={panel.openResource}
+                              citedPassages={citedPassages}
                             />
                           </MessageScrollerItem>
                         ))}

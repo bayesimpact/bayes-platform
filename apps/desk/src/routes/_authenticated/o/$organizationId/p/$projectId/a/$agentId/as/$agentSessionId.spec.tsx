@@ -3,7 +3,12 @@ import { fireEvent, screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 import { agentUrlOf, conversationOf, conversationUrlOf } from "@/test/desk-urls"
-import { buildDeskWorld, type DeskWorld } from "@/test/factories/desk-world.factory"
+import { buildConversationMessage } from "@/test/factories/agent-sessions.factory"
+import {
+  buildDeskWorld,
+  buildQuotedMessageWorld,
+  type DeskWorld,
+} from "@/test/factories/desk-world.factory"
 import { hiddenFileInput } from "@/test/file-input"
 import { writeMessage } from "@/test/message-box"
 import { worldHandlers } from "@/test/msw/handlers"
@@ -144,7 +149,7 @@ describe("a conversation", () => {
     )
   })
 
-  it("shows the passages the person quoted, or wrote between backticks, as chips", async () => {
+  it("shows the code the person wrote between backticks as chips", async () => {
     const world = serveDeskWorld()
     renderApp(conversationUrlOf(world))
 
@@ -153,6 +158,59 @@ describe("a conversation", () => {
 
     const chip = await screen.findByText("the Pro plan", { selector: "code" })
     expect(chip.parentElement).toHaveTextContent("the Pro plan is it per seat?")
+  })
+
+  it("jumps from a passage a message quoted to where it stands in the reply", async () => {
+    const world = buildQuotedMessageWorld()
+    server.use(...worldHandlers(world))
+    const scrollIntoView = vi.spyOn(Element.prototype, "scrollIntoView")
+    renderApp(conversationUrlOf(world))
+
+    // The passages stand in bold text and in inline code of the reply.
+    await userEvent.click(
+      await screen.findByRole("button", { name: "Show in the reply: two plans" }),
+    )
+    expect(scrollIntoView).toHaveBeenCalledWith(expect.objectContaining({ block: "center" }))
+    expect(scrollIntoView.mock.contexts.at(-1)).toHaveTextContent("two plans")
+    expect(screen.getByRole("button", { name: "Show in the reply: webhooks" })).toBeVisible()
+    scrollIntoView.mockRestore()
+  })
+
+  it("jumps to the occurrence of a passage the message names, not to an earlier one", async () => {
+    const world = buildDeskWorld()
+    const messages = world.messages[conversationOf(world).id] ?? []
+    const reply = buildConversationMessage({
+      content: "Nothing changed yet.\n\nThe change comes next week.",
+    })
+    messages.push(
+      reply,
+      buildConversationMessage({
+        role: "user",
+        content: `<quote reply="${reply.id}" occurrence="2">change</quote> which one?`,
+      }),
+    )
+    server.use(...worldHandlers(world))
+    const scrollIntoView = vi.spyOn(Element.prototype, "scrollIntoView")
+    renderApp(conversationUrlOf(world))
+
+    await userEvent.click(await screen.findByRole("button", { name: "Show in the reply: change" }))
+    expect(scrollIntoView.mock.contexts.at(-1)).toHaveTextContent("The change comes next week.")
+    scrollIntoView.mockRestore()
+  })
+
+  it("keeps as a plain chip code the person wrote, though a reply holds the same text", async () => {
+    const world = buildQuotedMessageWorld()
+    server.use(...worldHandlers(world))
+    renderApp(conversationUrlOf(world))
+
+    const messageBox = await screen.findByRole("textbox", { name: "Message to Helpful Assistant" })
+    await writeMessage(messageBox, "`two plans` which one is cheaper?", { send: true })
+
+    await screen.findByText("which one is cheaper?", { exact: false })
+    expect(
+      await screen.findByRole("button", { name: "Show in the reply: two plans" }),
+    ).toBeVisible()
+    expect(screen.getAllByRole("button", { name: "Show in the reply: two plans" })).toHaveLength(1)
   })
 
   it("keeps showing a new message in place once the server saved it", async () => {
@@ -379,8 +437,9 @@ describe("a conversation", () => {
     expect(screen.queryByTitle("Interactive card")).not.toBeInTheDocument()
   })
 
-  it("sends every annotated passage of a reply with the next message", async () => {
+  it("sends every annotated passage of a reply with the next message, naming the reply", async () => {
     const world = serveDeskWorld()
+    const replyId = required(savedMessagesOf(world).at(-1), "the reply").id
     renderApp(conversationUrlOf(world))
 
     const select = (element: HTMLElement, start: number, end: number) => {
@@ -407,7 +466,10 @@ describe("a conversation", () => {
       expect(savedMessagesOf(world)).toContainEqual(
         expect.objectContaining({
           role: "user",
-          content: "`Pro plan` is it billed per seat?\n`shared workspaces` how many?",
+          content: [
+            `<quote reply="${replyId}" occurrence="1">Pro plan</quote> is it billed per seat?`,
+            `<quote reply="${replyId}" occurrence="1">shared workspaces</quote> how many?`,
+          ].join("\n"),
         }),
       ),
     )

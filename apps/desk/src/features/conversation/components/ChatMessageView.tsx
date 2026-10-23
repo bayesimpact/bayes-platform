@@ -5,6 +5,7 @@ import { RelativeTime } from "@/components/shared/RelativeTime"
 import { Bubble, BubbleContent } from "@/components/ui/bubble"
 import { Message, MessageContent } from "@/components/ui/message"
 import type { ChatMessage } from "../chat-messages"
+import type { CitedPassages } from "../hooks/use-cited-passages"
 import type { AppsHtml } from "../mcp-apps"
 import type { OpenedResource } from "../resource-media"
 import { AssistantMessageView } from "./AssistantMessageView"
@@ -22,6 +23,8 @@ export type ChatMessageViewProps = {
   onAppMessage: (text: string) => void
   /** Opens a resource a reply points to beside the conversation. */
   onOpenResource: (resource: OpenedResource) => void
+  /** The passages the person's messages quote, which their chips jump to. */
+  citedPassages: CitedPassages
 }
 
 /** One message: the person's in a bubble on the right, the agent's on the left with its steps. */
@@ -33,6 +36,7 @@ export function ChatMessageView({
   appsHtml,
   onAppMessage,
   onOpenResource,
+  citedPassages,
 }: ChatMessageViewProps) {
   const { t } = useLingui()
   if (message.role === "user") {
@@ -44,7 +48,11 @@ export function ChatMessageView({
           ) : null}
           <Bubble align="end" variant="muted">
             <BubbleContent>
-              <UserMessageText content={message.content} />
+              <UserMessageText
+                messageId={message.id}
+                content={message.content}
+                citedPassages={citedPassages}
+              />
             </BubbleContent>
           </Bubble>
           <MessageActions>

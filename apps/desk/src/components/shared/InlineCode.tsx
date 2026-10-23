@@ -1,3 +1,4 @@
+import { cn } from "cn"
 import type { ReactNode } from "react"
 
 /**
@@ -9,6 +10,8 @@ export const inlineCodeClassName =
 
 export type InlineCodeProps = {
   children: ReactNode
+  /** Classes that change its look, such as the yellow of a passage quoted from a reply. */
+  className?: string
 }
 
 /**
@@ -16,6 +19,6 @@ export type InlineCodeProps = {
  * code, the passages a person quotes in their message, and the message box as they write. A chip
  * that wraps keeps its edges on each line.
  */
-export function InlineCode({ children }: InlineCodeProps) {
-  return <code className={inlineCodeClassName}>{children}</code>
+export function InlineCode({ children, className }: InlineCodeProps) {
+  return <code className={cn(inlineCodeClassName, className)}>{children}</code>
 }

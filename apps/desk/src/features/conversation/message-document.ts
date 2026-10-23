@@ -1,5 +1,5 @@
 import type { JSONContent } from "@tiptap/react"
-import { messageSegmentsOf } from "./annotation"
+import { codeSegmentsOf } from "./annotation"
 
 /**
  * The message box holds a document, the rest of the Desk a string: a line per paragraph, and the
@@ -12,7 +12,7 @@ export function messageDocumentOf(text: string): JSONContent {
   return {
     type: "doc",
     content: text.split("\n").map((line) => {
-      const segments = messageSegmentsOf(line)
+      const segments = codeSegmentsOf(line)
       return segments.length === 0
         ? { type: "paragraph" }
         : {
