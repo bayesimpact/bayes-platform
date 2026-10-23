@@ -2,7 +2,10 @@ import { DeskConversationsRoutes } from "@caseai-connect/desk-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { userEvent, within } from "storybook/test"
 import { conversationUrlOf } from "@/test/desk-urls"
-import { buildEmptyHistoryWorld } from "@/test/factories/desk-world.factory"
+import {
+  buildEmptyHistoryWorld,
+  buildQuotedMessageWorld,
+} from "@/test/factories/desk-world.factory"
 import { mockStreamRoute } from "@/test/msw/mock-route"
 import { desk } from "@/test/msw/story-api"
 import { deskMeta } from "./desk-meta"
@@ -18,6 +21,14 @@ type Story = StoryObj<typeof meta>
 
 export const Conversation: Story = {
   parameters: desk({ url: (world) => conversationUrlOf(world) }),
+}
+
+/** The person quoted passages of a reply in their message: they show as chips. */
+export const QuotedMessage: Story = {
+  parameters: desk({
+    world: buildQuotedMessageWorld,
+    url: (world) => conversationUrlOf(world),
+  }),
 }
 
 export const FirstConversation: Story = {
@@ -40,12 +51,15 @@ export const ReplyFails: Story = {
     ],
   }),
   // A reply fails only once the person sent a message: the story sends one, in either language.
+  // It pastes it, which the editor of the box reads whole in the tests' DOM too.
   play: async ({ canvasElement }) => {
     const composer = await within(canvasElement).findByRole(
       "textbox",
       { name: /Helpful Assistant/ },
       { timeout: 5000 },
     )
-    await userEvent.type(composer, "Hello{Enter}")
+    await userEvent.click(composer)
+    await userEvent.paste("Hello")
+    await userEvent.keyboard("{Enter}")
   },
 }

@@ -1,5 +1,5 @@
 import { DeskAccountRoutes, DeskProjectsRoutes } from "@caseai-connect/desk-contracts"
-import { screen, within } from "@testing-library/react"
+import { screen, waitFor, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { HttpResponse } from "msw"
 import { describe, expect, it, vi } from "vitest"
@@ -37,7 +37,10 @@ describe("the Desk's home", () => {
     expect(
       await screen.findByRole("heading", { name: "How can I help you today?" }),
     ).toBeInTheDocument()
-    expect(screen.getByRole("textbox", { name: "Message to Helpful Assistant" })).toHaveFocus()
+    // The editor of the message box takes the focus once it is set up.
+    await waitFor(() =>
+      expect(screen.getByRole("textbox", { name: "Message to Helpful Assistant" })).toHaveFocus(),
+    )
     expect(router.state.location.pathname).toBe(routerPathOf(agentUrlOf(world)))
     expect(screen.queryByRole("combobox", { name: /Switch agent/ })).not.toBeInTheDocument()
     // The open sidebar names the agent, as the switcher would: the bar above the page does not.

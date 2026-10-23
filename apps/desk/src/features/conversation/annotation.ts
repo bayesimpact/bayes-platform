@@ -30,6 +30,22 @@ export function annotationLine(passage: string, note: string): string {
   return trimmedNote === "" ? `\`${quoted}\`` : `\`${quoted}\` ${trimmedNote}`
 }
 
+/** A piece of a person's message: plain text, or a passage they put between backticks. */
+export type MessageSegment = { kind: "text" | "code"; text: string }
+
+/**
+ * A person's message cut into its plain text and its passages between backticks, which the
+ * conversation shows as chips: the passages they quoted from a reply, and code they wrote. A
+ * backtick left open stays plain text.
+ */
+export function messageSegmentsOf(content: string): MessageSegment[] {
+  return content
+    .split(/`([^`\n]+)`/)
+    .flatMap((text, index): MessageSegment[] =>
+      text === "" ? [] : [{ kind: index % 2 === 1 ? "code" : "text", text }],
+    )
+}
+
 /** The message with one more annotation, on a line of its own after what is written. */
 function appendAnnotation(draft: string, line: string): string {
   const written = draft.trimEnd()

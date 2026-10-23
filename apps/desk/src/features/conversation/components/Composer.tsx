@@ -1,19 +1,15 @@
 import { plural } from "@lingui/core/macro"
 import { Trans, useLingui } from "@lingui/react/macro"
 import { ArrowUpIcon, FileIcon, PaperclipIcon, XIcon } from "lucide-react"
-import { type ChangeEvent, type FormEvent, type KeyboardEvent, useId, useRef } from "react"
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupButton,
-  InputGroupTextarea,
-} from "@/components/ui/input-group"
+import { type ChangeEvent, type FormEvent, useId, useRef } from "react"
+import { InputGroup, InputGroupAddon, InputGroupButton } from "@/components/ui/input-group"
 import { KbdGroup } from "@/components/ui/kbd"
 import type { OutgoingMessage } from "../chat-messages"
 import { useAttachment } from "../hooks/use-attachment"
 import { useDictation } from "../hooks/use-dictation"
 import { DictationButton } from "./DictationButton"
 import { EnterKey } from "./EnterKey"
+import { MessageEditor } from "./MessageEditor"
 import { ShiftKey } from "./ShiftKey"
 
 export type ComposerProps = {
@@ -73,13 +69,6 @@ export function Composer({
     handleSend()
   }
 
-  const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    // Enter while an input method composes a word confirms the word, not the message.
-    if (event.key !== "Enter" || event.shiftKey || event.nativeEvent.isComposing) return
-    event.preventDefault()
-    handleSend()
-  }
-
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const picked = event.target.files?.[0] ?? null
     // The same file can be picked again after it was removed.
@@ -112,15 +101,13 @@ export function Composer({
           </InputGroupAddon>
         ) : null}
         <div className="relative w-full">
-          <InputGroupTextarea
+          <MessageEditor
             id={inputId}
-            aria-label={t`Message to ${agentName}`}
-            aria-describedby={hintId}
-            value={content}
-            onChange={(event) => onContentChange(event.target.value)}
-            onKeyDown={handleKeyDown}
-            autoFocus
-            className="max-h-60 min-h-14 px-4 pt-4 pb-2 text-base leading-relaxed md:text-base"
+            label={t`Message to ${agentName}`}
+            describedBy={hintId}
+            content={content}
+            onContentChange={onContentChange}
+            onSubmit={handleSend}
           />
           {/*
             The keys to send and to start a line, drawn as keys where a placeholder would stand:

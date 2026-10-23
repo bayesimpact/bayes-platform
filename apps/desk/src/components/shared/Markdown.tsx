@@ -3,6 +3,7 @@ import type { ComponentProps } from "react"
 import { type ExtraProps, Streamdown, useIsCodeFenceIncomplete } from "streamdown"
 import { ExternalLink } from "./ExternalLink"
 import { HighlightedCodeBlock } from "./HighlightedCodeBlock"
+import { InlineCode } from "./InlineCode"
 
 export type MarkdownProps = {
   children: string
@@ -66,13 +67,7 @@ function MarkdownCode({
   ...props
 }: ComponentProps<"code"> & ExtraProps) {
   // Streamdown marks fenced code with data-block. Everything else is inline.
-  if (!("data-block" in props)) {
-    return (
-      <code className="rounded-sm bg-muted px-1 py-0.5 font-mono text-code-inline" {...props}>
-        {children}
-      </code>
-    )
-  }
+  if (!("data-block" in props)) return <InlineCode>{children}</InlineCode>
   return (
     <MarkdownCodeBlock
       code={typeof children === "string" ? children : ""}

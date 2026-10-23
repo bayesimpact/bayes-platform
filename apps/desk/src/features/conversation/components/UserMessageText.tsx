@@ -1,7 +1,9 @@
 import { Trans } from "@lingui/react/macro"
 import { cn } from "cn"
 import { useId, useRef, useState } from "react"
+import { InlineCode } from "@/components/shared/InlineCode"
 import { Button } from "@/components/ui/button"
+import { messageSegmentsOf } from "../annotation"
 import { useIsOverflowing } from "../hooks/use-is-overflowing"
 
 export type UserMessageTextProps = {
@@ -10,7 +12,8 @@ export type UserMessageTextProps = {
 
 /**
  * The text of the person's message, collapsed past about ten lines, as in the Claude app: it fades
- * out at the bottom, and a button lets it out in full or folds it back.
+ * out at the bottom, and a button lets it out in full or folds it back. The passages between
+ * backticks, such as the ones quoted from a reply, show as chips.
  */
 export function UserMessageText({ content }: UserMessageTextProps) {
   const textRef = useRef<HTMLDivElement>(null)
@@ -30,7 +33,16 @@ export function UserMessageText({ content }: UserMessageTextProps) {
           isCollapsed && "mask-b-from-60%",
         )}
       >
-        <div>{content}</div>
+        <div>
+          {messageSegmentsOf(content).map((segment, position) =>
+            segment.kind === "code" ? (
+              // biome-ignore lint/suspicious/noArrayIndexKey: the segments of one message never move.
+              <InlineCode key={position}>{segment.text}</InlineCode>
+            ) : (
+              segment.text
+            ),
+          )}
+        </div>
       </div>
       {isOverflowing ? (
         <Button

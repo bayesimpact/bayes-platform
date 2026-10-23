@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event"
 import { useState } from "react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { Toaster } from "@/components/ui/sonner"
+import { writeMessage } from "@/test/message-box"
 import { renderWithI18n } from "@/test/render-with-i18n"
 import type { OutgoingMessage } from "../chat-messages"
 import { Composer } from "./Composer"
@@ -60,14 +61,14 @@ describe("the dictation", () => {
     const onSend = vi.fn()
     renderWithI18n(<ComposerWithDraft onSend={onSend} />)
     const messageBox = screen.getByRole("textbox", { name: "Message to Helpful Assistant" })
-    await userEvent.type(messageBox, "Hello")
+    await writeMessage(messageBox, "Hello")
 
     await userEvent.click(screen.getByRole("button", { name: "Dictate your message" }))
     expect(FakeSpeechRecognition.current?.lang).toBe("en-US")
     act(() => FakeSpeechRecognition.current?.say("how are", false))
-    expect(messageBox).toHaveValue("Hello how are")
+    expect(messageBox.textContent).toBe("Hello how are")
     act(() => FakeSpeechRecognition.current?.say("how are you?", true))
-    expect(messageBox).toHaveValue("Hello how are you?")
+    expect(messageBox.textContent).toBe("Hello how are you?")
 
     await userEvent.click(screen.getByRole("button", { name: "Send" }))
     expect(onSend).toHaveBeenCalledWith(
@@ -76,7 +77,7 @@ describe("the dictation", () => {
     )
     // A word heard after the message left does not write the box again.
     act(() => FakeSpeechRecognition.current?.say("late", true))
-    expect(messageBox).toHaveValue("")
+    expect(messageBox.textContent).toBe("")
     expect(screen.getByRole("button", { name: "Dictate your message" })).toBeInTheDocument()
   })
 
@@ -107,7 +108,7 @@ describe("the attachment", () => {
     const file = new File(["%PDF"], "plan.pdf", { type: "application/pdf" })
     const onSend = await pickFile(file)
 
-    await userEvent.type(screen.getByRole("textbox"), "Read this{Enter}")
+    await writeMessage(screen.getByRole("textbox"), "Read this", { send: true })
 
     expect(onSend).toHaveBeenCalledWith(
       { content: "Read this", attachment: { file } },
@@ -127,5 +128,48 @@ describe("the attachment", () => {
     await pickFile(new File(["text"], "notes.txt", { type: "text/plain" }))
     expect(await screen.findByText("Attach a PDF, PNG or JPEG file.")).toBeInTheDocument()
     expect(screen.queryByRole("button", { name: "Remove notes.txt" })).not.toBeInTheDocument()
+  })
+})
+
+describe("the passages between backticks", () => {
+  it("become a chip as soon as their second backtick is typed, and leave as text", async () => {
+    const onSend = vi.fn()
+    renderWithI18n(<ComposerWithDraft onSend={onSend} />)
+    const messageBox = screen.getByRole("textbox", { name: "Message to Helpful Assistant" })
+
+    // The tests' DOM feeds the editor badly one key at a time: the text before the second
+    // backtick is pasted, then that backtick alone is typed, as the key that makes the chip.
+    await writeMessage(messageBox, "Fix `max")
+    expect(messageBox.querySelector("code")).toBeNull()
+    await userEvent.keyboard("`")
+    expect(messageBox.querySelector("code")?.textContent).toBe("max")
+    await userEvent.paste(" now")
+    expect(messageBox.textContent).toBe("Fix max now")
+
+    await userEvent.keyboard("{Enter}")
+    expect(onSend).toHaveBeenCalledWith(
+      { content: "Fix `max` now", attachment: null },
+      expect.any(Function),
+    )
+  })
+
+  it("keep their chips when pasted, and Shift+Enter starts a new line", async () => {
+    const onSend = vi.fn()
+    renderWithI18n(<ComposerWithDraft onSend={onSend} />)
+    const messageBox = screen.getByRole("textbox", { name: "Message to Helpful Assistant" })
+
+    await writeMessage(messageBox, "`[Company Name]` Toto Inc.")
+    await userEvent.keyboard("{Shift>}{Enter}{/Shift}")
+    await userEvent.paste("`Your Title` CEO")
+    expect([...messageBox.querySelectorAll("code")].map((chip) => chip.textContent)).toEqual([
+      "[Company Name]",
+      "Your Title",
+    ])
+
+    await userEvent.keyboard("{Enter}")
+    expect(onSend).toHaveBeenCalledWith(
+      { content: "`[Company Name]` Toto Inc.\n`Your Title` CEO", attachment: null },
+      expect.any(Function),
+    )
   })
 })

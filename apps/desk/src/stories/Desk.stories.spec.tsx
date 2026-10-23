@@ -38,6 +38,10 @@ const PAGES = {
     Story: pageStories.Conversation,
     loaded: () => screen.findByText(/Here is a short comparison/),
   },
+  QuotedMessage: {
+    Story: pageStories.QuotedMessage,
+    loaded: () => screen.findByText("two plans", { selector: "code" }),
+  },
   FirstConversation: {
     Story: pageStories.FirstConversation,
     loaded: () => screen.findByText("No conversations yet"),

@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from "vitest"
 import { agentUrlOf, conversationOf, conversationUrlOf } from "@/test/desk-urls"
 import { buildDeskWorld, type DeskWorld } from "@/test/factories/desk-world.factory"
 import { hiddenFileInput } from "@/test/file-input"
+import { writeMessage } from "@/test/message-box"
 import { worldHandlers } from "@/test/msw/handlers"
 import { apiError, mockRoute, mockStreamRoute } from "@/test/msw/mock-route"
 import { server } from "@/test/msw/server"
@@ -130,17 +131,28 @@ describe("a conversation", () => {
     renderApp(conversationUrlOf(world))
 
     const messageBox = await screen.findByRole("textbox", { name: "Message to Helpful Assistant" })
-    await userEvent.type(messageBox, "Which plan suits a team of five?{Enter}")
+    await writeMessage(messageBox, "Which plan suits a team of five?", { send: true })
 
     expect(
       await screen.findByText(/Here is what I found about "Which plan suits a team of five\?"/),
     ).toBeInTheDocument()
     expect(screen.getByText("Which plan suits a team of five?")).toBeInTheDocument()
-    expect(messageBox).toHaveValue("")
+    expect(messageBox.textContent).toBe("")
     // The greeting, the first reply and the new one.
     await waitFor(() =>
       expect(screen.getAllByRole("button", { name: "Copy the reply" })).toHaveLength(3),
     )
+  })
+
+  it("shows the passages the person quoted, or wrote between backticks, as chips", async () => {
+    const world = serveDeskWorld()
+    renderApp(conversationUrlOf(world))
+
+    const messageBox = await screen.findByRole("textbox", { name: "Message to Helpful Assistant" })
+    await writeMessage(messageBox, "`the Pro plan` is it per seat?", { send: true })
+
+    const chip = await screen.findByText("the Pro plan", { selector: "code" })
+    expect(chip.parentElement).toHaveTextContent("the Pro plan is it per seat?")
   })
 
   it("keeps showing a new message in place once the server saved it", async () => {
@@ -148,7 +160,7 @@ describe("a conversation", () => {
     renderApp(conversationUrlOf(world))
 
     const messageBox = await screen.findByRole("textbox", { name: "Message to Helpful Assistant" })
-    await userEvent.type(messageBox, "Which plan suits a team of five?{Enter}")
+    await writeMessage(messageBox, "Which plan suits a team of five?", { send: true })
     // The scroller would read a new element as a new message to scroll to: the sent one keeps its.
     const sentMessage = screen.getByText("Which plan suits a team of five?")
 
@@ -163,9 +175,10 @@ describe("a conversation", () => {
     const world = serveDeskWorld()
     const { router } = renderApp(agentUrlOf(world))
 
-    await userEvent.type(
+    await writeMessage(
       await screen.findByRole("textbox", { name: "Message to Helpful Assistant" }),
-      "Summarize our refund policy{Enter}",
+      "Summarize our refund policy",
+      { send: true },
     )
 
     expect(
@@ -188,9 +201,10 @@ describe("a conversation", () => {
     )
     renderApp(conversationUrlOf(world))
 
-    await userEvent.type(
+    await writeMessage(
       await screen.findByRole("textbox", { name: "Message to Helpful Assistant" }),
-      "Hello{Enter}",
+      "Hello",
+      { send: true },
     )
 
     const alert = await screen.findByRole("alert")
@@ -212,9 +226,10 @@ describe("a conversation", () => {
     )
     renderApp(conversationUrlOf(world))
 
-    await userEvent.type(
+    await writeMessage(
       await screen.findByRole("textbox", { name: "Message to Helpful Assistant" }),
-      "Hello{Enter}",
+      "Hello",
+      { send: true },
     )
 
     expect(await screen.findByText("The reply stopped before it finished.")).toBeInTheDocument()
@@ -262,9 +277,10 @@ describe("a conversation", () => {
     const file = new File(["%PDF-1.7"], "invoice.pdf", { type: "application/pdf" })
     await userEvent.upload(hiddenFileInput(), file)
     expect(screen.getByRole("button", { name: "Remove invoice.pdf" })).toBeInTheDocument()
-    await userEvent.type(
+    await writeMessage(
       screen.getByRole("textbox", { name: "Message to Helpful Assistant" }),
-      "Read this invoice{Enter}",
+      "Read this invoice",
+      { send: true },
     )
 
     expect(
@@ -382,7 +398,7 @@ describe("a conversation", () => {
     select(await screen.findByText(/The Pro plan also adds/), 4, 12)
     await userEvent.type(await noteBox(), "is it billed per seat?")
     select(screen.getByText(/shared workspaces/), 0, 17)
-    await userEvent.type(await noteBox(), "how many?{Enter}")
+    await writeMessage(await noteBox(), "how many?", { send: true })
 
     await userEvent.click(screen.getByRole("button", { name: "Send with 2 annotations" }))
 

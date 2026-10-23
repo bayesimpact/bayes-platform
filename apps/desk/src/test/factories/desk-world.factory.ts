@@ -381,6 +381,28 @@ export function buildExtractionAgentWorld(): DeskWorld {
   return world
 }
 
+/**
+ * The main case, where the person answered the first reply with notes on passages they quoted
+ * from it, which their message shows as chips, and the agent replied.
+ */
+export function buildQuotedMessageWorld(): DeskWorld {
+  const world = buildDeskWorld()
+  const [assistant] = world.agents
+  const [firstConversation] = world.conversations[assistant?.id ?? ""] ?? []
+  const messages = world.messages[firstConversation?.id ?? ""]
+  if (!messages) return world
+  messages.push(
+    buildConversationMessage({
+      role: "user",
+      content: "Thanks, two questions:\n`two plans` is there a free one?\n`webhooks` how many?",
+    }),
+    buildConversationMessage({
+      content: "There is no free plan, and the Pro plan allows up to 20 webhooks.",
+    }),
+  )
+  return world
+}
+
 /** The main case, before the first conversation. */
 export function buildEmptyHistoryWorld(): DeskWorld {
   const world = buildDeskWorld()

@@ -49,7 +49,7 @@ where it occurs, with `// biome-ignore lint/plugin/<plugin>: <why>`. What no too
 | Tables | TanStack Table v8, rendered with the shadcn `Table` |
 | Text | Lingui: English in the components, French in a PO catalog |
 | UI | Tailwind CSS v4, shadcn/ui on Base UI generated into the app, `cva`, `cn()` from `cn`, lucide-react, sonner |
-| Chat and content | `@shadcn/react` for the message scroller, streamdown and shiki for Markdown and code, `@modelcontextprotocol/ext-apps` and `sdk` for MCP Apps |
+| Chat and content | `@shadcn/react` for the message scroller, streamdown and shiki for Markdown and code, `@modelcontextprotocol/ext-apps` and `sdk` for MCP Apps, Tiptap for the message box (document, paragraph, text, code and hard break only) |
 | Sign-in | `oidc-client-ts`, in the app's `lib/auth/` |
 | Tests | Vitest with Testing Library and happy-dom, MSW 2, Storybook 10, Playwright |
 | Quality | Biome, dependency-cruiser, knip |
@@ -305,7 +305,9 @@ or editing the boundaries' configuration.
 - `src/test/setup.ts` gives every test a fresh mocked world, a signed-in session and empty
   storage, so a spec holds none of that setup. `renderApp(url)` renders the whole app at a URL on
   the mocked API, with the app's query client (`createQueryClient({ isRetrying: false })`);
-  `renderWithI18n(ui)` renders a component with the active locale. URLs come from
+  `renderWithI18n(ui)` renders a component with the active locale, and `writeMessage(box, text)`
+  (`src/test/message-box.ts`) writes in the message box as a paste does: the tests' DOM drops
+  letters typed one key at a time into its editor. URLs come from
   `src/test/desk-urls.ts`, whose helpers throw when the world lacks what they name.
 - Storybook (`npm run storybook -w <app>`) serves the app on the same handlers, without the API
   or a sign-in, in Vite's `mock` mode. A story of the whole app builds its own world of the

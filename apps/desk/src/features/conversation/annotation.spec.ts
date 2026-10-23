@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { annotationLine, composeMessage, saveAnnotation } from "./annotation"
+import { annotationLine, composeMessage, messageSegmentsOf, saveAnnotation } from "./annotation"
 
 describe("annotationLine", () => {
   it("quotes the passage on one line, then the note", () => {
@@ -42,5 +42,25 @@ describe("composeMessage", () => {
       "First thought\n`Pro plan` is it per seat?\n`webhooks` which events?",
     )
     expect(composeMessage("", annotations.slice(0, 1))).toBe("`Pro plan` is it per seat?")
+  })
+})
+
+describe("messageSegmentsOf", () => {
+  it("cuts a message into its text and its passages between backticks", () => {
+    expect(
+      messageSegmentsOf("Compare these:\n`[Company Name]` Toto Inc.\n`Your Title` CEO"),
+    ).toEqual([
+      { kind: "text", text: "Compare these:\n" },
+      { kind: "code", text: "[Company Name]" },
+      { kind: "text", text: " Toto Inc.\n" },
+      { kind: "code", text: "Your Title" },
+      { kind: "text", text: " CEO" },
+    ])
+  })
+
+  it("leaves a backtick left open, an empty pair and a passage across lines as text", () => {
+    for (const content of ["an open ` backtick", "an empty `` pair", "a `passage\nacross` lines"]) {
+      expect(messageSegmentsOf(content)).toEqual([{ kind: "text", text: content }])
+    }
   })
 })

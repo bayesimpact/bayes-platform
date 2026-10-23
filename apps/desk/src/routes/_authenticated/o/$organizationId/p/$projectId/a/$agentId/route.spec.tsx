@@ -9,6 +9,7 @@ import {
   buildSeveralProjectsWorld,
 } from "@/test/factories/desk-world.factory"
 import { hiddenFileInput } from "@/test/file-input"
+import { writeMessage } from "@/test/message-box"
 import { worldHandlers } from "@/test/msw/handlers"
 import { apiError, mockRoute } from "@/test/msw/mock-route"
 import { server } from "@/test/msw/server"
@@ -69,12 +70,12 @@ describe("an agent's pages", () => {
       hiddenFileInput(),
       new File(["%PDF-1.7"], "invoice.pdf", { type: "application/pdf" }),
     )
-    await userEvent.type(messageBox, "Read this invoice{Enter}")
+    await writeMessage(messageBox, "Read this invoice", { send: true })
 
     expect(
       await screen.findByText("The conversation could not start. Try again."),
     ).toBeInTheDocument()
-    expect(messageBox).toHaveValue("Read this invoice")
+    expect(messageBox.textContent).toBe("Read this invoice")
     expect(screen.getByRole("button", { name: "Remove invoice.pdf" })).toBeInTheDocument()
     expect(router.state.location.pathname).toBe(routerPathOf(agentUrlOf(world)))
   })
