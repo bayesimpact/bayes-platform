@@ -42,6 +42,10 @@ const PAGES = {
     Story: pageStories.QuotedMessage,
     loaded: () => screen.findByText("two plans", { selector: "code" }),
   },
+  LongConversation: {
+    Story: pageStories.LongConversation,
+    loaded: () => screen.findByRole("heading", { name: "What the billing team should check" }),
+  },
   FirstConversation: {
     Story: pageStories.FirstConversation,
     loaded: () => screen.findByText("No conversations yet"),

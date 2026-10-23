@@ -4,6 +4,7 @@ import { userEvent, within } from "storybook/test"
 import { conversationUrlOf } from "@/test/desk-urls"
 import {
   buildEmptyHistoryWorld,
+  buildLongConversationWorld,
   buildQuotedMessageWorld,
 } from "@/test/factories/desk-world.factory"
 import { mockStreamRoute } from "@/test/msw/mock-route"
@@ -27,6 +28,14 @@ export const Conversation: Story = {
 export const QuotedMessage: Story = {
   parameters: desk({
     world: buildQuotedMessageWorld,
+    url: (world) => conversationUrlOf(world),
+  }),
+}
+
+/** A long conversation of four exchanges, with replies built of headings, tables and code. */
+export const LongConversation: Story = {
+  parameters: desk({
+    world: buildLongConversationWorld,
     url: (world) => conversationUrlOf(world),
   }),
 }

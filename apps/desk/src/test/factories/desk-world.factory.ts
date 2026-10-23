@@ -15,6 +15,7 @@ import type {
   ProjectAgentOutputDto,
 } from "@caseai-connect/desk-contracts"
 import { TOOL_NAMES } from "@caseai-connect/desk-contracts"
+import { LONG_CONVERSATION_EXCHANGES, LONG_CONVERSATION_TITLE } from "../fixtures/long-conversation"
 import { RELEASE_NOTES_APP_HTML } from "../fixtures/mcp-app"
 import {
   buildConversationMessage,
@@ -64,6 +65,8 @@ export type DeskWorld = {
   /** The current HTML of the MCP Apps the replies show. */
   mcpAppsHtml: McpAppHtmlOutputDto[]
 }
+
+const MINUTE_IN_MILLISECONDS = 60 * 1000
 
 function emptyWorld(): DeskWorld {
   return {
@@ -400,6 +403,30 @@ export function buildQuotedMessageWorld(): DeskWorld {
       content: "There is no free plan, and the Pro plan allows up to 20 webhooks.",
     }),
   )
+  return world
+}
+
+/**
+ * The main case, with a long conversation at the top of the history: four exchanges whose replies
+ * use headings, nested lists, tables, a quote, code and a checklist.
+ */
+export function buildLongConversationWorld(): DeskWorld {
+  const world = buildDeskWorld()
+  const [assistant] = world.agents
+  if (!assistant) return world
+  const createdAt = daysAgo(0)
+  const conversation = buildConversationSession({ title: LONG_CONVERSATION_TITLE, createdAt })
+  world.conversations[assistant.id] = [conversation, ...(world.conversations[assistant.id] ?? [])]
+  world.messages[conversation.id] = [
+    buildConversationMessage({ createdAt }),
+    ...LONG_CONVERSATION_EXCHANGES.flatMap(({ question, reply }, index) => {
+      const askedAt = createdAt + index * 5 * MINUTE_IN_MILLISECONDS
+      return [
+        buildConversationMessage({ role: "user", content: question, createdAt: askedAt }),
+        buildConversationMessage({ content: reply, createdAt: askedAt + MINUTE_IN_MILLISECONDS }),
+      ]
+    }),
+  ]
   return world
 }
 
