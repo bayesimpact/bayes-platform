@@ -19,7 +19,7 @@ import {
   PROJECT_AGENT_MESSAGE_FEEDBACK_READ_PERMISSION,
 } from "@/domains/rbac/rbac.constants"
 import { UserGuard } from "@/domains/users/user.guard"
-import { getTraceUrl } from "@/external/llm/trace-url"
+import { telemetryTraceUrl } from "@/external/llm/telemetry"
 import type { AgentMessage } from "../agent-message.entity"
 import type { AgentMessageFeedback } from "./agent-message-feedback.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -94,7 +94,7 @@ function toDto({
     .map((f) => {
       const agentMessage = agentMessageEntities.find((m) => m.id === f.agentMessageId)
       const traceUrl = agentMessage?.session(agentType)?.traceId
-        ? getTraceUrl(agentMessage.session(agentType)!.traceId)
+        ? telemetryTraceUrl(agentMessage.session(agentType)!.traceId)
         : undefined
       if (!agentMessage) return null
       return {

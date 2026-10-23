@@ -11,9 +11,9 @@ import { simulateReadableStream } from "ai"
 import { MockLanguageModelV3 } from "ai/test"
 import { z } from "zod"
 import type {
+  LLMCallContext,
   LLMChatMessage,
   LLMConfig,
-  LLMMetadata,
 } from "@/common/interfaces/llm-provider.interface"
 import type { SpecificProviderOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-builders"
 import {
@@ -25,7 +25,7 @@ import {
 import {
   AISDKLLMModelMgmt,
   defineModelOptions,
-  type ModelMetadata,
+  type ModelInfos,
   type ModelOptions,
   type RepeatedStepTextFilter,
   type StreamPartLike,
@@ -60,7 +60,7 @@ const mockConfig: LLMConfig = {
   serviceTier: undefined,
 }
 
-const mockMetadata: LLMMetadata = {
+const mockCallContext: LLMCallContext = {
   traceId: "trace-id",
   agentSessionId: "agent-session-id",
   currentTurn: 1,
@@ -68,11 +68,10 @@ const mockMetadata: LLMMetadata = {
   projectId: "project-id",
   agentId: "agent-id",
   revision: 1,
-  tags: [],
 }
 
 class TestModelMgmt extends AISDKLLMModelMgmt<AgentProvider._Mock> {
-  protected readonly modelMetadata: Record<AgentModel._Mock, ModelMetadata> = {
+  protected readonly modelInfos: Record<AgentModel._Mock, ModelInfos> = {
     [AgentModel._Mock]: {},
   }
   protected readonly modelOptions: Record<AgentModel._Mock, ModelOptions> = {
@@ -97,12 +96,9 @@ class TestModelMgmt extends AISDKLLMModelMgmt<AgentProvider._Mock> {
     return this.getLanguageModelWithRawCapture({
       config: mockConfig,
       callOrigin: CallOrigin.streamChatResponse_withTools,
-      metadata: mockMetadata,
+      callContext: mockCallContext,
       leakedToolCalls,
     })
-  }
-  getTags(_config: LLMConfig): string[] {
-    return []
   }
 
   parseStructuredOutputTextFor(text: string): Record<string, unknown> {

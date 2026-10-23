@@ -8,7 +8,7 @@ import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"
 import { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
 import {
   defineModelOptions,
-  type ModelMetadata,
+  type ModelInfos,
   type ModelOptions,
 } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
 import { AISDKVllmProviderBase } from "@/external/llm/ai-sdk/providers/ai-sdk-vllm-provider-base"
@@ -32,7 +32,7 @@ export class AISDKMedGemmaProvider extends AISDKVllmProviderBase<AgentProvider.M
       },
     ),
   }
-  protected readonly modelMetadata: Record<MedGemmaAgentModel, ModelMetadata> = {
+  protected readonly modelInfos: Record<MedGemmaAgentModel, ModelInfos> = {
     // Replaced by Gemma 4, which serves the same projects on the same platform.
     [AgentModel.MedGemma10_27B]: {
       deprecation: {

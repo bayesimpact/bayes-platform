@@ -43,12 +43,11 @@ processors:
           - set(span.attributes["openinference.span.kind"], "EMBEDDING") where IsMatch(span.name, "\\.doEmbed$")
           - set(span.attributes["openinference.span.kind"], "TOOL") where span.attributes["ai.toolCall.name"] != nil
 
-          # Session, user, tags (from ai.telemetry.metadata, set by the platform)
+          # Session and user (from ai.telemetry.metadata, set by the platform)
           # The side calls of a turn stay out of the session: in a worker (no HTTP
           # span) they are their own trace and would read as the last answer.
           - set(span.attributes["session.id"], span.attributes["ai.telemetry.metadata.sessionId"]) where span.attributes["ai.telemetry.metadata.sessionId"] != nil and not IsMatch(span.attributes["ai.telemetry.metadata.spanLabel"], "classification|consolidation")
           - set(span.attributes["user.id"], span.attributes["ai.telemetry.metadata.userId"]) where span.attributes["ai.telemetry.metadata.userId"] != nil
-          - set(span.attributes["tag.tags"], span.attributes["ai.telemetry.metadata.tags"]) where span.attributes["ai.telemetry.metadata.tags"] != nil
 
           # Model and tokens (LLM spans)
           - set(span.attributes["llm.model_name"], span.attributes["gen_ai.request.model"]) where span.attributes["gen_ai.request.model"] != nil

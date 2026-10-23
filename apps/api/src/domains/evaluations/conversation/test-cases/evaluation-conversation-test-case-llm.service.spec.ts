@@ -69,18 +69,18 @@ describe("EvaluationConversationTestCaseLlmService", () => {
     expect(mistralProvider.getInternalCallModelOptions).toHaveBeenCalledWith(
       AgentModel.MistralSmall31_24B,
     )
-    const [{ config, metadata }] = mistralProvider.generateText.mock.calls[0]
+    const [{ config, callContext, additionalMetadata }] = mistralProvider.generateText.mock.calls[0]
     expect(config).toMatchObject({
       model: AgentModel.MistralSmall31_24B,
       modelOptions: { temperature: 0 },
     })
-    expect(metadata).toMatchObject({
+    expect(callContext).toMatchObject({
       agentId: agent.id,
       agentSessionId: "session-1",
       organizationId: organization.id,
       projectId: project.id,
-      tags: ["test-case"],
     })
+    expect(additionalMetadata).toEqual({ agent: { type: "Test Case Agent" } })
   })
 
   it("shows the conversation, the answer and the comment to the model", async () => {

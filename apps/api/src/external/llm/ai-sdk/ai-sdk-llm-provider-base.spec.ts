@@ -8,15 +8,15 @@ import { simulateReadableStream, tool } from "ai"
 import { MockLanguageModelV3 } from "ai/test"
 import { z } from "zod"
 import type {
+  LLMCallContext,
   LLMChatMessage,
   LLMConfig,
-  LLMMetadata,
   LLMProvider,
 } from "@/common/interfaces/llm-provider.interface"
 import { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
 import {
   defineModelOptions,
-  type ModelMetadata,
+  type ModelInfos,
   type ModelOptions,
 } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
 import { AISDKLLMProviderBase } from "@/external/llm/ai-sdk/ai-sdk-llm-provider-base"
@@ -29,9 +29,9 @@ class TestProvider<
       temperature: 0,
     }),
   } as Record<AgentModelOf<Provider>, ModelOptions>
-  protected readonly modelMetadata = {
+  protected readonly modelInfos = {
     [AgentModel._Mock]: {},
-  } as Record<AgentModelOf<Provider>, ModelMetadata>
+  } as Record<AgentModelOf<Provider>, ModelInfos>
 
   constructor(
     private readonly agentProvider: Provider,
@@ -44,21 +44,18 @@ class TestProvider<
     return this.agentProvider
   }
   /** The call each model was built for. */
-  readonly languageModelCalls: Array<{ callOrigin: CallOrigin; metadata: LLMMetadata }> = []
+  readonly languageModelCalls: Array<{ callOrigin: CallOrigin; callContext: LLMCallContext }> = []
 
   getLanguageModel({
     callOrigin,
-    metadata,
+    callContext,
   }: {
     config: LLMConfig
     callOrigin: CallOrigin
-    metadata: LLMMetadata
+    callContext: LLMCallContext
   }): LanguageModelV3 {
-    this.languageModelCalls.push({ callOrigin, metadata })
+    this.languageModelCalls.push({ callOrigin, callContext })
     return this.model
-  }
-  getTags(_config: LLMConfig): string[] {
-    return ["test-tag"]
   }
 }
 
@@ -129,7 +126,7 @@ function buildGenerateModel(text: string): MockLanguageModelV3 {
   })
 }
 
-const metadata: LLMMetadata = {
+const callContext: LLMCallContext = {
   traceId: "trace-id",
   agentSessionId: "agent-session-id",
   currentTurn: 1,
@@ -137,7 +134,6 @@ const metadata: LLMMetadata = {
   projectId: "project-id",
   agentId: "agent-id",
   revision: 1,
-  tags: [],
 }
 
 const mockConfig: LLMConfig = {
@@ -153,7 +149,12 @@ async function collect(
   config: LLMConfig = mockConfig,
 ): Promise<string> {
   let text = ""
-  for await (const chunk of provider.streamChatResponse({ messages, config, metadata })) {
+  for await (const chunk of provider.streamChatResponse({
+    additionalMetadata: {},
+    messages,
+    config,
+    callContext,
+  })) {
     text += chunk
   }
   return text
@@ -233,7 +234,7 @@ describe("AISDKLLMProviderBase", () => {
 
       expect(providerWithoutTools.languageModelCalls[0]).toMatchObject({
         callOrigin: CallOrigin.streamChatResponse,
-        metadata: { agentId: "agent-id" },
+        callContext: { agentId: "agent-id" },
       })
       expect(providerWithTools.languageModelCalls[0]?.callOrigin).toBe(
         CallOrigin.streamChatResponse_withTools,
@@ -349,9 +350,10 @@ describe("AISDKLLMProviderBase", () => {
       const provider = new TestProvider(AgentProvider._Mock, model)
 
       const text = await provider.generateText({
+        additionalMetadata: {},
         prompt: "Summarize this.",
         config: mockConfig,
-        metadata,
+        callContext,
       })
 
       expect(text).toBe("A short summary.")
@@ -367,9 +369,10 @@ describe("AISDKLLMProviderBase", () => {
 
       await expect(
         provider.generateText({
+          additionalMetadata: {},
           prompt: "Summarize this.",
           config: { ...mockConfig, model: AgentModel.Gemini25Flash } as LLMConfig,
-          metadata,
+          callContext,
         }),
       ).rejects.toThrow("invalid association")
       expect(model.doGenerateCalls).toHaveLength(0)
@@ -388,10 +391,11 @@ describe("AISDKLLMProviderBase", () => {
       const provider = new TestProvider(AgentProvider._Mock, model)
 
       const output = await provider.generateStructuredOutput({
+        additionalMetadata: {},
         message: { role: "user", content: "Give it a title." },
         schema,
         config: mockConfig,
-        metadata,
+        callContext,
       })
 
       expect(output).toEqual({ title: "Pricing" })
@@ -406,10 +410,11 @@ describe("AISDKLLMProviderBase", () => {
 
       await expect(
         provider.generateStructuredOutput({
+          additionalMetadata: {},
           message: { role: "system", content: "System only" },
           schema,
           config: mockConfig,
-          metadata,
+          callContext,
         }),
       ).rejects.toThrow("no valid messages provided")
     })
@@ -419,10 +424,11 @@ describe("AISDKLLMProviderBase", () => {
       const provider = new TestProviderWithStructuredOutputHooks(AgentProvider._Mock, model)
 
       await provider.generateStructuredOutput({
+        additionalMetadata: {},
         message: { role: "user", content: "Give it a title." },
         schema,
         config: mockConfig,
-        metadata,
+        callContext,
       })
 
       expect(JSON.stringify(model.doGenerateCalls[0]?.prompt)).toContain(
@@ -435,10 +441,11 @@ describe("AISDKLLMProviderBase", () => {
       const provider = new TestProviderWithStructuredOutputHooks(AgentProvider._Mock, model)
 
       const output = await provider.generateStructuredOutput({
+        additionalMetadata: {},
         message: { role: "user", content: "Give it a title." },
         schema,
         config: mockConfig,
-        metadata,
+        callContext,
       })
 
       expect(output).toEqual({ title: "Pricing", readBy: "provider" })

@@ -1,10 +1,11 @@
-import { AgentModel } from "@caseai-connect/api-contracts"
+import { AgentModel, AgentProvider } from "@caseai-connect/api-contracts"
 import { type JSONSchema7, tool } from "ai"
 import { z } from "zod"
 import type {
+  LLMCallContext,
   LLMChatMessage,
   LLMConfig,
-  LLMMetadata,
+  TelemetryMetadata,
 } from "@/common/interfaces/llm-provider.interface"
 import {
   AISDKLLMBuilders,
@@ -15,9 +16,9 @@ import type { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
 type BuildArgs = {
   config: LLMConfig
   callOrigin: CallOrigin
-  metadata: LLMMetadata
+  callContext: LLMCallContext
   schema?: JSONSchema7
-  tags: string[]
+  telemetryMetadata: TelemetryMetadata
 }
 
 class TestBuilders extends AISDKLLMBuilders {
@@ -45,7 +46,7 @@ describe("AISDKLLMBuilders", () => {
     serviceTier: undefined,
   }
 
-  const metadata: LLMMetadata = {
+  const callContext: LLMCallContext = {
     traceId: "trace-id",
     agentSessionId: "agent-session-id",
     currentTurn: 2,
@@ -53,7 +54,6 @@ describe("AISDKLLMBuilders", () => {
     projectId: "project-id",
     agentId: "agent-id",
     revision: 3,
-    tags: ["metadata-tag"],
   }
 
   describe("buildFunctionIdForStreamChatResponse", () => {
@@ -113,7 +113,7 @@ describe("AISDKLLMBuilders", () => {
   })
 
   describe("buildMetadata", () => {
-    it("maps the call metadata and merges the tags", () => {
+    it("keeps the call context keys and flattens the nested metadata", () => {
       const tools = {
         lookup: tool({
           description: "Looks up a topic",
@@ -124,13 +124,17 @@ describe("AISDKLLMBuilders", () => {
 
       const result = builders.metadataFor({
         config: { ...config, tools },
-        metadata: {
-          ...metadata,
+        callContext: {
+          ...callContext,
           parentSessionId: "parent-session-id",
           spanLabel: "classification",
         },
         schema,
-        tags: ["call-tag"],
+        telemetryMetadata: {
+          agent: { type: "Helpful Assistant" },
+          provider: { name: AgentProvider._Mock },
+          model: { name: AgentModel._Mock, thinkingLevel: "LOW" },
+        },
       })
 
       expect(result).toEqual({
@@ -138,9 +142,11 @@ describe("AISDKLLMBuilders", () => {
         agentSessionId: "agent-session-id",
         parentSessionId: "parent-session-id",
         userId: "o:organization-id / p:project-id",
-        tags: ["metadata-tag", "call-tag"],
+        "agent.type": "Helpful Assistant",
+        "provider.name": AgentProvider._Mock,
+        "model.name": AgentModel._Mock,
+        "model.thinking.level": "LOW",
         currentTurn: 2,
-        revision: 3,
         outputSchema: JSON.stringify(schema),
         availableTools: JSON.stringify(tools),
         spanLabel: "classification",
@@ -148,15 +154,13 @@ describe("AISDKLLMBuilders", () => {
     })
 
     it("leaves out the fields that are not set", () => {
-      const result = builders.metadataFor({ config, metadata, tags: [] })
+      const result = builders.metadataFor({ config, callContext, telemetryMetadata: {} })
 
       expect(result).toEqual({
         sessionId: "trace-id",
         agentSessionId: "agent-session-id",
         userId: "o:organization-id / p:project-id",
-        tags: ["metadata-tag"],
         currentTurn: 2,
-        revision: 3,
       })
     })
   })

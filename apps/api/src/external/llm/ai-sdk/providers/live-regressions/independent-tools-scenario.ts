@@ -1,6 +1,6 @@
 import { ToolName } from "@caseai-connect/api-contracts"
 import { wrapLanguageModel } from "ai"
-import type { LLMMetadata, LLMProvider } from "@/common/interfaces/llm-provider.interface"
+import type { LLMCallContext, LLMProvider } from "@/common/interfaces/llm-provider.interface"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { promptHelpers } from "@/domains/agents/shared/agent-session-messages/streaming/master-promts/helpers"
 import {
@@ -15,6 +15,7 @@ import {
 } from "@/domains/agents/shared/agent-session-messages/streaming/tools/surfaced-resources-registry"
 import type { ToolExecutionLog } from "@/domains/agents/shared/agent-session-messages/streaming/tools/tool-execution-log"
 import type { AISDKLLMProviderBase } from "@/external/llm/ai-sdk/ai-sdk-llm-provider-base"
+import { telemetryAdditionalMetadata } from "@/external/llm/telemetry"
 import { HANDBOOK_CHUNKS } from "./employee-handbook.fixture"
 
 /**
@@ -164,7 +165,7 @@ Always answer in English.
 
 ${promptHelpers.now()}`
 
-  const metadata: LLMMetadata = {
+  const callContext: LLMCallContext = {
     traceId: `live-regression-independent-tools-${model}`,
     agentSessionId: "live-regression-independent-tools-session",
     currentTurn: 1,
@@ -172,8 +173,11 @@ ${promptHelpers.now()}`
     agentId: "agent-1",
     revision: 1,
     projectId: connectScope.projectId,
-    tags: ["live-provider-regressions", "independent-tools", model],
   }
+  const additionalMetadata = telemetryAdditionalMetadata({
+    model,
+    test: { name: "live-provider-regressions", case: "independent-tools" },
+  })
 
   const counted = withGenerationCounter(provider)
   const chunks = counted.provider.streamChatResponse({
@@ -189,7 +193,8 @@ ${promptHelpers.now()}`
       fireAndForgetToolNames: [ToolName.SurfaceResources],
       serviceTier: undefined,
     },
-    metadata,
+    callContext,
+    additionalMetadata,
   })
   let text = ""
   for await (const chunk of chunks) text += chunk
