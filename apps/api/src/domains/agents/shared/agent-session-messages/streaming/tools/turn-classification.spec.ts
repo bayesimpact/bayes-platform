@@ -110,6 +110,22 @@ describe("buildTurnClassificationSchema", () => {
     expect(properties.chunkIds?.items?.enum).toEqual(["c1", "c2"])
     expect(full.required).toEqual(["suggestedTitle", "categoryNames", "chunkIds"])
   })
+
+  it("declares the announced hand-over as a nullable enum without enum next to anyOf", () => {
+    const schema = buildTurnClassificationSchema({
+      availableCategoryNames: [],
+      chunkAliases: [],
+      announcedHandoffToolNames: ["ask_billing", "ask_support"],
+    })
+    const properties = schema.properties as Record<string, Record<string, unknown>>
+    const announcedHandoffTo = properties.announcedHandoffTo
+    expect(announcedHandoffTo?.anyOf).toEqual([
+      { type: "string", enum: ["ask_billing", "ask_support"] },
+      { type: "null" },
+    ])
+    expect(announcedHandoffTo).not.toHaveProperty("enum")
+    expect(announcedHandoffTo).not.toHaveProperty("type")
+  })
 })
 
 describe("buildTurnClassificationPrompt", () => {
