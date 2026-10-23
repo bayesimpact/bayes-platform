@@ -9,7 +9,7 @@ type AgentRevision = { revision: number }
  * The metadata a caller adds to its LLM calls, under `agent.*`, `run.*`, `test.*` and
  * `environment`. A call that serves a tool adds `tool` on top of its caller's metadata.
  */
-export function buildAdditionalMetadata({
+export function telemetryAdditionalMetadata({
   agent,
   agentSettings,
   model,

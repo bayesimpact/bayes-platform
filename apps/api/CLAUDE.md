@@ -509,7 +509,7 @@ Commit both baseline files alongside the entity change.
 
 ## LLM telemetry metadata
 
-An LLM call takes its metadata as `additionalMetadata`, next to `callContext`. Build it with `buildAdditionalMetadata` (`src/external/llm/additional-metadata.ts`), never as an `AdditionalMetadata` literal. A side call (turn classification, form consolidation) spreads its caller's metadata and adds `tool: { name }`. The provider adds `provider.*` and `model.*` itself through `getProviderMetadata` and `getModelMetadata`.
+An LLM call takes its metadata as `additionalMetadata`, next to `callContext`. Build it with `telemetryAdditionalMetadata` (`src/external/llm/telemetry/telemetry-additional-metadata.ts`), never as an `AdditionalMetadata` literal. A side call (turn classification, form consolidation) spreads its caller's metadata and adds `tool: { name }`. The provider adds `provider.*` and `model.*` itself through `getProviderMetadata` and `getModelMetadata`.
 
 Span attribute names are read by the gateway mapping in `deploy/helm/bayes-platform/files/otel-collector.yaml`. Check it before renaming or removing one. See [ADR 0005](../../docs/adr/0005-gcp-native-observability.md).
 

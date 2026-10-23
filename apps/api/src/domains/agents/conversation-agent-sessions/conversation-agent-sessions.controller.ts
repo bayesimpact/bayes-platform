@@ -12,7 +12,7 @@ import type { RequiredConnectScope } from "@/common/entities/connect-required-fi
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import { toConversationFormDto } from "@/domains/agents/shared/conversation-forms/conversation-form.mapper"
-import { getTraceUrl } from "@/external/llm/trace-url"
+import { telemetryTraceUrl } from "@/external/llm/telemetry"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { BaseAgentSessionsService } from "../base-agent-sessions/base-agent-sessions.service"
 import type { BaseAgentSessionType } from "../base-agent-sessions/base-agent-sessions.types"
@@ -189,7 +189,7 @@ function toDto(
 ) {
   return (entity: ConversationAgentSession): ConversationAgentSessionDto => {
     // FIXME: should use this.permissionService.listGlobalPermissions(user.id) to determine if the user can view the trace
-    const traceUrl = agentSessionType === "live" ? undefined : getTraceUrl(entity.traceId)
+    const traceUrl = agentSessionType === "live" ? undefined : telemetryTraceUrl(entity.traceId)
     return {
       id: entity.id,
       agentId: entity.agentId,

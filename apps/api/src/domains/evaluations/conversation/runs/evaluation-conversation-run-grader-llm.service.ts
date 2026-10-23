@@ -3,8 +3,8 @@ import { Inject, Injectable, UnprocessableEntityException } from "@nestjs/common
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import type { LLMCallContext } from "@/common/interfaces/llm-provider.interface"
 import { LlmServiceBase } from "@/external/llm"
-import { buildAdditionalMetadata } from "@/external/llm/additional-metadata"
 import { LLM_PROVIDERS, type LlmProviders } from "@/external/llm/llm.module"
+import { telemetryAdditionalMetadata } from "@/external/llm/telemetry"
 
 /**
  * LLM judge for conversation evaluation runs, ported from the legacy
@@ -77,7 +77,7 @@ ${
     //fixme: remove when specific agent for rating(in db) for rating with mock
     const generatedByMock = AgentModelToAgentProvider[generatorModel] === AgentProvider._Mock
     if (generatedByMock) ratingAgent.model = AgentModel._Mock
-    const additionalMetadata = buildAdditionalMetadata({
+    const additionalMetadata = telemetryAdditionalMetadata({
       agent: { type: "Rating Agent" },
       environment: generatedByMock ? "**TEST**" : undefined,
     })

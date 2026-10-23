@@ -15,8 +15,7 @@ import type { AgentSettingsService } from "@/domains/agents/settings/agent-setti
 import type { AgentSubAgent } from "@/domains/agents/sub-agents/agent-sub-agent.entity"
 import type { AgentSubAgentsService } from "@/domains/agents/sub-agents/agent-sub-agents.service"
 import type { ProjectsService } from "@/domains/projects/projects.service"
-import { buildAdditionalMetadata } from "@/external/llm/additional-metadata"
-import { getTraceUrl } from "@/external/llm/trace-url"
+import { telemetryAdditionalMetadata, telemetryTraceUrl } from "@/external/llm/telemetry"
 import { isLLMVisibleMessage } from "./llm-visible-message.helper"
 import type { AgentSessionScope, OnExecute, StreamingSession } from "./streaming-session.types"
 import type { ActiveAgentController } from "./tools/active-agent-controller"
@@ -279,7 +278,7 @@ async function runSubAgentTool({
   // copyable pointer from the parent trace to the child's.
   const activeSpan = trace.getActiveSpan()
   activeSpan?.setAttribute("ai.telemetry.metadata.subAgentTraceId", subAgentTraceId)
-  const subAgentTraceUrl = getTraceUrl(subAgentTraceId)
+  const subAgentTraceUrl = telemetryTraceUrl(subAgentTraceId)
   if (subAgentTraceUrl) {
     activeSpan?.setAttribute("ai.telemetry.metadata.subAgentTraceUrl", subAgentTraceUrl)
   }
@@ -326,7 +325,7 @@ async function runSubAgentTool({
       childSession,
       subAgentTraceId,
     })
-    const additionalMetadata = buildAdditionalMetadata({
+    const additionalMetadata = telemetryAdditionalMetadata({
       agent: childAgent,
       agentSettings: childAgentSettings,
       agentClass: "sub-agent",
@@ -338,8 +337,8 @@ async function runSubAgentTool({
     })
 
     logger.log(
-      `Sub-agent "${childAgent.name}" (${childAgent.id}) trace: ${getTraceUrl(subAgentTraceId) ?? subAgentTraceId} ` +
-        `(parent "${agentSessionScope.agent.name}" trace: ${getTraceUrl(agentSessionScope.session.traceId) ?? agentSessionScope.session.traceId})`,
+      `Sub-agent "${childAgent.name}" (${childAgent.id}) trace: ${telemetryTraceUrl(subAgentTraceId) ?? subAgentTraceId} ` +
+        `(parent "${agentSessionScope.agent.name}" trace: ${telemetryTraceUrl(agentSessionScope.session.traceId) ?? agentSessionScope.session.traceId})`,
     )
 
     // Run the sub-agent's LLM call inside a fresh OTEL root span so its spans get

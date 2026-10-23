@@ -7,7 +7,7 @@ import type {
   TelemetryMetadata,
 } from "@/common/interfaces/llm-provider.interface"
 import { removeNullish } from "@/common/utils/remove-nullish"
-import { flattenToSpanAttributes, type SpanAttributes } from "@/external/llm/span-attributes"
+import { type SpanAttributes, telemetrySpanAttributes } from "@/external/llm/telemetry"
 
 export type { SpecificProviderOptions } from "@/common/interfaces/llm-provider.interface"
 
@@ -54,7 +54,7 @@ export abstract class AISDKLLMBuilders {
       availableTools: JSON.stringify(config.tools),
       spanLabel: callContext.spanLabel,
       // The context above keeps its keys: the trace backend reads sessionId and userId as is.
-      ...flattenToSpanAttributes(telemetryMetadata),
+      ...telemetrySpanAttributes(telemetryMetadata),
     })
   }
 

@@ -136,7 +136,7 @@ export type AdditionalMetadata = {
 }
 
 /**
- * All the metadata of a call, nested by level. `flattenToSpanAttributes` turns it into span
+ * All the metadata of a call, nested by level. `telemetrySpanAttributes` turns it into span
  * attributes, the path of each value in dot case as its key (`model.thinking.level`).
  */
 export type TelemetryMetadata = {

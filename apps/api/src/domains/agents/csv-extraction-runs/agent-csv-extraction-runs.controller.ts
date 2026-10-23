@@ -33,7 +33,7 @@ import {
 } from "@/domains/documents/storage/file-storage.interface"
 import type { MembershipRole } from "@/domains/memberships/membership-roles"
 import { PROJECT_ROLES } from "@/domains/rbac/rbac.constants"
-import { getTraceUrl } from "@/external/llm/trace-url"
+import { telemetryTraceUrl } from "@/external/llm/telemetry"
 import type { BaseAgentSessionType } from "../base-agent-sessions/base-agent-sessions.types"
 import type { AgentCsvExtractionRun } from "./agent-csv-extraction-run.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -442,7 +442,7 @@ function toAgentCsvExtractionRunRecordDto(
     inputData: record.inputData,
     agentRawOutput: record.agentRawOutput,
     errorDetails: record.errorDetails,
-    traceUrl: record.traceId ? (getTraceUrl(record.traceId) ?? null) : null,
+    traceUrl: record.traceId ? (telemetryTraceUrl(record.traceId) ?? null) : null,
     createdAt: record.createdAt.getTime(),
     updatedAt: record.updatedAt.getTime(),
   }

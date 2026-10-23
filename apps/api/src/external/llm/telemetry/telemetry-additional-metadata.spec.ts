@@ -1,9 +1,9 @@
-import { buildAdditionalMetadata } from "@/external/llm/additional-metadata"
+import { telemetryAdditionalMetadata } from "@/external/llm/telemetry/telemetry-additional-metadata"
 
-describe("buildAdditionalMetadata", () => {
+describe("telemetryAdditionalMetadata", () => {
   it("describes the agent from its entity and its settings", () => {
     expect(
-      buildAdditionalMetadata({
+      telemetryAdditionalMetadata({
         agent: { name: "Helpful Assistant", type: "conversation" },
         agentSettings: { revision: 3 },
         agentClass: "parent-agent",
@@ -19,7 +19,7 @@ describe("buildAdditionalMetadata", () => {
   })
 
   it("adds the agent that called a sub-agent, with the trace of its run", () => {
-    const metadata = buildAdditionalMetadata({
+    const metadata = telemetryAdditionalMetadata({
       agent: { name: "Support", type: "conversation" },
       agentSettings: { revision: 1 },
       agentClass: "sub-agent",
@@ -39,12 +39,14 @@ describe("buildAdditionalMetadata", () => {
   })
 
   it("sets the run, test and environment levels it is given, and leaves out the others", () => {
-    expect(buildAdditionalMetadata({ agent: { type: "Rating Agent" }, runTag: "batch" })).toEqual({
+    expect(
+      telemetryAdditionalMetadata({ agent: { type: "Rating Agent" }, runTag: "batch" }),
+    ).toEqual({
       agent: { type: "Rating Agent" },
       run: { tag: "batch" },
     })
     expect(
-      buildAdditionalMetadata({
+      telemetryAdditionalMetadata({
         model: "mock",
         test: { name: "live-provider-regressions", case: "rag" },
         environment: "**TEST**",

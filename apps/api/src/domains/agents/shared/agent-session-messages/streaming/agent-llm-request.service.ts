@@ -21,9 +21,8 @@ import {
 } from "@/domains/documents/storage/file-storage.interface"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectsService } from "@/domains/projects/projects.service"
-import { buildAdditionalMetadata } from "@/external/llm/additional-metadata"
 import { modelRequiresPdfAsImages } from "@/external/llm/agent-provider"
-import { getTraceUrl } from "@/external/llm/trace-url"
+import { telemetryAdditionalMetadata, telemetryTraceUrl } from "@/external/llm/telemetry"
 import type { AgentMessage } from "../agent-message.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentMessageAttachmentDocumentsService } from "../agent-message-attachment-documents.service"
@@ -170,7 +169,7 @@ export class AgentLlmRequestService {
           ? "resume"
           : undefined,
     })
-    const additionalMetadata = buildAdditionalMetadata({
+    const additionalMetadata = telemetryAdditionalMetadata({
       agent,
       agentSettings,
       agentClass: hasSubAgentTools ? "parent-agent" : undefined,
@@ -234,7 +233,7 @@ export class AgentLlmRequestService {
     spanLabel?: string
   }): LLMCallContext {
     this.logger.log(
-      `Agent "${agent.name}" (${agent.id}) trace: ${getTraceUrl(session.traceId) ?? session.traceId} (session ${session.id})`,
+      `Agent "${agent.name}" (${agent.id}) trace: ${telemetryTraceUrl(session.traceId) ?? session.traceId} (session ${session.id})`,
     )
     return {
       traceId: session.traceId,

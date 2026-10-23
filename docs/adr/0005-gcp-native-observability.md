@@ -25,7 +25,7 @@ Every LLM call carries telemetry metadata (`ai.telemetry.metadata.*`):
 - `userId`: organization and project.
 - `userMessage` on chat turns: the last user message, shown as the input of the turn instead of the whole prompt.
 - `currentTurn`, `spanLabel`, `agentSessionId`, `parentSessionId` for sub-agents.
-- The nested metadata of the call, flattened with its path in dot case as the key: `provider.*` and `model.*` from the provider, then what the caller adds through `buildAdditionalMetadata` (`agent.*`, `tool.name`, `run.tag`, `test.*`, `environment`).
+- The nested metadata of the call, flattened with its path in dot case as the key: `provider.*` and `model.*` from the provider, then what the caller adds through `telemetryAdditionalMetadata` (`agent.*`, `tool.name`, `run.tag`, `test.*`, `environment`).
 
 The mapping lives in one file, `deploy/helm/bayes-platform/files/otel-collector.yaml`: the chart's optional collector and the local compose mount it, the gateway of our clusters copies its processors. The chart also has an optional Phoenix, not production ready (no authentication, SQLite by default), for a demo or a small install.
 

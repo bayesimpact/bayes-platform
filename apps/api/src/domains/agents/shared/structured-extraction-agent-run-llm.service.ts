@@ -4,8 +4,8 @@ import type { RequiredConnectScope } from "@/common/entities/connect-required-fi
 import type { LLMCallContext, LLMChatMessage } from "@/common/interfaces/llm-provider.interface"
 import { todaysDatePromptLine } from "@/common/utils/todays-date-prompt-line"
 import { LlmServiceBase } from "@/external/llm"
-import { buildAdditionalMetadata } from "@/external/llm/additional-metadata"
 import { LLM_PROVIDERS, type LlmProviders } from "@/external/llm/llm.module"
+import { telemetryAdditionalMetadata } from "@/external/llm/telemetry"
 import type { AgentWithSettingsRunJobPayload } from "./agent-with-settings-run.types"
 
 /**
@@ -101,7 +101,7 @@ export class StructuredExtractionAgentRunLlmService extends LlmServiceBase {
       revision: agentWithSettings.settings.revision,
       projectId: connectScope.projectId,
     }
-    const additionalMetadata = buildAdditionalMetadata({
+    const additionalMetadata = telemetryAdditionalMetadata({
       agent: agentWithSettings.settings,
       agentSettings: agentWithSettings.settings,
       runTag,

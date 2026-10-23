@@ -4,8 +4,8 @@ import { v4 } from "uuid"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import type { LLMCallContext } from "@/common/interfaces/llm-provider.interface"
 import { LlmServiceBase } from "@/external/llm"
-import { buildAdditionalMetadata } from "@/external/llm/additional-metadata"
 import { LLM_PROVIDERS, type LlmProviders } from "@/external/llm/llm.module"
+import { telemetryAdditionalMetadata } from "@/external/llm/telemetry"
 
 /** The agent revision that wrote the saved answer. */
 export type TestCaseAnsweringRevision = { agentId: string; revision: number; model: AgentModel }
@@ -132,7 +132,7 @@ ${text}
       prompt,
       config,
       callContext,
-      additionalMetadata: buildAdditionalMetadata({ agent: { type: "Test Case Agent" } }),
+      additionalMetadata: telemetryAdditionalMetadata({ agent: { type: "Test Case Agent" } }),
     })
     const draft = text.trim()
     if (!draft) {

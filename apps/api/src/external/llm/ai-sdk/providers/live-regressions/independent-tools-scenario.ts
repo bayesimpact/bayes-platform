@@ -14,8 +14,8 @@ import {
   type SurfaceableLibrary,
 } from "@/domains/agents/shared/agent-session-messages/streaming/tools/surfaced-resources-registry"
 import type { ToolExecutionLog } from "@/domains/agents/shared/agent-session-messages/streaming/tools/tool-execution-log"
-import { buildAdditionalMetadata } from "@/external/llm/additional-metadata"
 import type { AISDKLLMProviderBase } from "@/external/llm/ai-sdk/ai-sdk-llm-provider-base"
+import { telemetryAdditionalMetadata } from "@/external/llm/telemetry"
 import { HANDBOOK_CHUNKS } from "./employee-handbook.fixture"
 
 /**
@@ -174,7 +174,7 @@ ${promptHelpers.now()}`
     revision: 1,
     projectId: connectScope.projectId,
   }
-  const additionalMetadata = buildAdditionalMetadata({
+  const additionalMetadata = telemetryAdditionalMetadata({
     model,
     test: { name: "live-provider-regressions", case: "independent-tools" },
   })

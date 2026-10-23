@@ -16,7 +16,7 @@ import {
   runTurnClassification,
   type SessionMetadataRecalculator,
 } from "@/domains/agents/shared/agent-session-messages/streaming/tools/turn-classification"
-import { buildAdditionalMetadata } from "@/external/llm/additional-metadata"
+import { telemetryAdditionalMetadata } from "@/external/llm/telemetry"
 import { HANDBOOK_CHUNKS } from "./employee-handbook.fixture"
 import { buildFatSystemPrompt } from "./fat-prompt.fixture"
 
@@ -117,7 +117,7 @@ Your purpose is to assist users by answering their questions about the company e
 Always answer in English.`
 
   const callContext = buildCallContext({ model, scenario: "rag" })
-  const additionalMetadata = buildAdditionalMetadata({
+  const additionalMetadata = telemetryAdditionalMetadata({
     model,
     test: { name: "live-provider-regressions", case: "rag" },
   })
@@ -186,7 +186,7 @@ export async function runFatPromptTurnScenario({
   }
 
   const callContext = buildCallContext({ model, scenario: "fat-prompt" })
-  const additionalMetadata = buildAdditionalMetadata({
+  const additionalMetadata = telemetryAdditionalMetadata({
     model,
     test: { name: "live-provider-regressions", case: "fat-prompt" },
   })
