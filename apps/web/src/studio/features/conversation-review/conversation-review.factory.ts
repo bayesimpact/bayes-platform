@@ -1,6 +1,11 @@
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
-import type { ConversationReview, ConversationReviewMessage } from "./conversation-review.models"
+import type {
+  ConversationReview,
+  ConversationReviewMessage,
+  ConversationReviewSessionRow,
+  PaginatedConversationReviewSessions,
+} from "./conversation-review.models"
 
 export const conversationReviewMessageFactory = Factory.define<ConversationReviewMessage>(
   ({ params, sequence }) => ({
@@ -40,3 +45,32 @@ export const conversationReviewFactory = Factory.define<ConversationReview>(({ p
     messages: params.messages ?? [],
   }
 })
+
+export const conversationReviewSessionRowFactory = Factory.define<ConversationReviewSessionRow>(
+  ({ params, sequence }) => {
+    const kind = params.kind ?? (sequence % 3 === 0 ? "public" : "conversation")
+    return {
+      sessionId: params.sessionId ?? faker.string.uuid(),
+      kind,
+      ...(kind === "conversation"
+        ? {
+            conversationType:
+              params.conversationType ?? (sequence % 2 === 0 ? "live" : "playground"),
+          }
+        : {}),
+      isSubSession: params.isSubSession ?? false,
+      ...(kind === "public" ? { channel: params.channel ?? "embed" } : {}),
+      categoryId: params.categoryId ?? null,
+      categoryName: params.categoryName ?? "Support",
+      createdAt: params.createdAt ?? faker.date.recent().getTime(),
+    }
+  },
+)
+
+export const paginatedConversationReviewSessionsFactory =
+  Factory.define<PaginatedConversationReviewSessions>(({ params }) => ({
+    sessions: params.sessions ?? [],
+    total: params.total ?? 0,
+    page: params.page ?? 1,
+    limit: params.limit ?? 20,
+  }))

@@ -1,4 +1,4 @@
-import { Column, JoinColumn, ManyToOne, OneToMany, type Relation } from "typeorm"
+import { Column, Index, JoinColumn, ManyToOne, OneToMany, type Relation } from "typeorm"
 import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
 import { Agent } from "@/domains/agents/agent.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
@@ -10,6 +10,9 @@ import { ConversationForm } from "../shared/conversation-forms/conversation-form
 import { ConversationAgentSessionCategory } from "./conversation-agent-session-category.entity"
 
 @ConnectEntity("conversation_agent_session", "agentId", "type")
+// The safety review list sorts an agent's sessions newest first. The base index above ends
+// on `type`, so without this the date sort is a top-N sort of every session of the agent.
+@Index(["organizationId", "projectId", "agentId", "createdAt"])
 export class ConversationAgentSession extends ConnectEntityBase {
   @Column({ type: "uuid", name: "agent_id" })
   agentId!: string

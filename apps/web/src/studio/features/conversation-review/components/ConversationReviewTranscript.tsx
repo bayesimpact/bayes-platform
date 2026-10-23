@@ -78,7 +78,7 @@ function ExtractionReview({ extraction }: { extraction: ExtractionSessionReview 
       <div className="flex flex-wrap items-center gap-2">
         <span>{t("extraction.document", { title: extraction.documentTitle })}</span>
         <Badge variant={extraction.status === "failed" ? "warning" : "secondary"}>
-          {t(`extraction.status.${extraction.status}`)}
+          {t(`status:${extraction.status}`)}
         </Badge>
       </div>
       {extraction.errorCode && (

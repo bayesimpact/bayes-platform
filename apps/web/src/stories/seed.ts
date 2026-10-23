@@ -58,7 +58,11 @@ import type {
   AnalyticsDailyPoint,
 } from "@/studio/features/analytics/project/analytics.models"
 import type { AppInstallation } from "@/studio/features/app-installations/app-installations.models"
-import type { ConversationReview } from "@/studio/features/conversation-review/conversation-review.models"
+import type {
+  ConversationReview,
+  ConversationReviewTab,
+  PaginatedConversationReviewSessions,
+} from "@/studio/features/conversation-review/conversation-review.models"
 import type { DocumentSource } from "@/studio/features/document-sources/document-sources.models"
 import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"
 import type { Document } from "@/studio/features/documents/documents.models"
@@ -421,6 +425,32 @@ export const seed = {
 
     conversationReview(review: ConversationReview): StoryPreloadedState {
       return { conversationReview: { review: ads.fulfilled(review) } }
+    },
+
+    /**
+     * The safety review session list, one category at a time. `categoryId` is the listed
+     * category, null for the sessions no category tagged.
+     */
+    conversationReviewSessions(
+      sessions: PaginatedConversationReviewSessions,
+      options?: {
+        categoryId?: string | null
+        selectedSessionId?: string
+        reviewTab?: ConversationReviewTab
+      },
+    ): StoryPreloadedState {
+      return {
+        conversationReview: {
+          sessions: ads.fulfilled(sessions),
+          ...(options?.categoryId !== undefined ? { sessionsCategoryId: options.categoryId } : {}),
+          ...(options?.selectedSessionId ? { selectedSessionId: options.selectedSessionId } : {}),
+          ...(options?.reviewTab ? { reviewTab: options.reviewTab } : {}),
+        },
+      }
+    },
+
+    conversationReviewTab(reviewTab: ConversationReviewTab): StoryPreloadedState {
+      return { conversationReview: { reviewTab } }
     },
 
     agentSubAgents(subAgents: AgentSubAgent[]): StoryPreloadedState {

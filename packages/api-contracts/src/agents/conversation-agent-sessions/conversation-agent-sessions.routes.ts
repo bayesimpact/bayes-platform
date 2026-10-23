@@ -5,6 +5,7 @@ import type {
   ConversationAgentSessionDto,
   ConversationReviewDto,
   ConversationSubSessionDto,
+  PaginatedConversationReviewSessionsDto,
 } from "./conversation-agent-sessions.dto"
 
 /** Live and playground sessions each get their own route set, so each has its own permissions. */
@@ -64,5 +65,16 @@ export const ConversationReviewRoutes = {
   getOne: defineRoute<ResponseData<ConversationReviewDto>>({
     method: "get",
     path: "/organizations/:organizationId/projects/:projectId/agents/:agentId/conversation-review/:agentSessionId",
+  }),
+  /**
+   * Safety review session list, grouped by category: the sessions of the agent that a category
+   * tagged (plus the untagged ones, listed under the uncategorized entry), as rows of session
+   * ids to open from the review screen. Needs `agent.conversation.review.category.read` on the
+   * agent, granted by the same `agent_conversation_reviewer` role as `agent.conversation.review`.
+   * Query: `categoryId` (a category id, or `uncategorized`), `page`, `limit`.
+   */
+  listSessions: defineRoute<ResponseData<PaginatedConversationReviewSessionsDto>>({
+    method: "get",
+    path: "/organizations/:organizationId/projects/:projectId/agents/:agentId/conversation-review/sessions",
   }),
 }
