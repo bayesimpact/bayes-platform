@@ -14,6 +14,7 @@ import {
   type SurfaceableLibrary,
 } from "@/domains/agents/shared/agent-session-messages/streaming/tools/surfaced-resources-registry"
 import type { ToolExecutionLog } from "@/domains/agents/shared/agent-session-messages/streaming/tools/tool-execution-log"
+import { buildAdditionalMetadata } from "@/external/llm/additional-metadata"
 import type { AISDKLLMProviderBase } from "@/external/llm/ai-sdk/ai-sdk-llm-provider-base"
 import { HANDBOOK_CHUNKS } from "./employee-handbook.fixture"
 
@@ -172,12 +173,11 @@ ${promptHelpers.now()}`
     agentId: "agent-1",
     revision: 1,
     projectId: connectScope.projectId,
-    additionalMetadata: {
-      "test.name": "live-provider-regressions",
-      "test.case": "independent-tools",
-      "agent.model": model,
-    },
   }
+  const additionalMetadata = buildAdditionalMetadata({
+    model,
+    test: { name: "live-provider-regressions", case: "independent-tools" },
+  })
 
   const counted = withGenerationCounter(provider)
   const chunks = counted.provider.streamChatResponse({
@@ -194,6 +194,7 @@ ${promptHelpers.now()}`
       serviceTier: undefined,
     },
     callContext,
+    additionalMetadata,
   })
   let text = ""
   for await (const chunk of chunks) text += chunk

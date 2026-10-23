@@ -16,9 +16,8 @@ import type {
   LLMConfig,
   LLMModelOptions,
   LLMProvider,
-  TelemetryMetadata,
+  ModelMetadata,
 } from "@/common/interfaces/llm-provider.interface"
-import { removeNullish } from "@/common/utils/remove-nullish"
 import type { SpecificProviderOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-builders"
 import {
   type CallOrigin,
@@ -94,7 +93,7 @@ export type StreamPartLike =
   | { type: "finish-step" }
   | { type: "text-delta"; text: string }
   | { type: string }
-
+4
 export type StreamSanitizer = {
   /** Cleaned text that is safe to emit for this chunk (may be empty while holding back). */
   feed(chunk: string): string
@@ -152,14 +151,10 @@ export abstract class AISDKLLMModelMgmt<
     callOrigin: CallOrigin
     callContext: LLMCallContext
   })
-  getProviderMetadata(config: LLMConfig): TelemetryMetadata {
-    return {
-      provider: this.getAgentProvider(),
-      model: config.model,
-      ...removeNullish(this.getTelemetryMetadata(config)),
-    }
+  /** What the call's model and settings say of it, sent under `model.*`. Providers add their own. */
+  getModelMetadata(config: LLMConfig): ModelMetadata {
+    return { name: config.model }
   }
-  protected abstract getTelemetryMetadata(config: LLMConfig): TelemetryMetadata
   abstract getAgentProvider(): Provider
 
   protected abstract readonly modelOptions: Record<AgentModelOf<Provider>, ModelOptions>

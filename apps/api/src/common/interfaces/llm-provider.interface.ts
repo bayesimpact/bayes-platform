@@ -93,8 +93,56 @@ export type LLMConfig =
       serviceTier: LLMServiceTier
     }
 export type LLMServiceTier = "priority" | "flex" | undefined
-/** What a call's telemetry carries, flattened onto its spans. */
-export type TelemetryMetadata = Record<string, string | number | string[]>
+/** What the provider says of itself, sent under `provider.*`. */
+export type ProviderMetadata = {
+  name?: AgentProvider
+  /** Google Cloud project of the Vertex endpoints. */
+  project?: string
+  /** Region of the provider's endpoint, when it does not depend on the model. */
+  location?: string
+}
+
+/** What the model and the call's settings say of the call, sent under `model.*`. */
+export type ModelMetadata = {
+  name?: string
+  /** Region the model runs in, when the provider routes by model. */
+  location?: string
+  thinkingLevel?: string
+  serviceTier?: string
+}
+
+type AgentTelemetry = {
+  name?: string
+  revision?: number
+  type?: string
+  /** Set on a run that calls sub-agents, and on the sub-agent runs. */
+  class?: "parent-agent" | "sub-agent"
+  model?: string
+  /** The agent that called this sub-agent, and the trace of its run. */
+  parent?: { name?: string; revision?: number; type?: string; trace?: string }
+}
+
+/**
+ * What the caller adds about the call, under `agent.*`, `tool.*`, `run.*` and `test.*`: each
+ * sub-object gives its name as the prefix of its keys.
+ */
+export type AdditionalMetadata = {
+  agent?: AgentTelemetry
+  tool?: { name?: string }
+  /** The batch job an extraction runs for, e.g. "agent-csv-extraction-run". */
+  run?: { tag?: string }
+  test?: { name?: string; case?: string }
+  environment?: string
+}
+
+/**
+ * All the metadata of a call, nested by level. `flattenToSpanAttributes` turns it into span
+ * attributes, the path of each value in dot case as its key (`model.thinking.level`).
+ */
+export type TelemetryMetadata = {
+  provider?: ProviderMetadata
+  model?: ModelMetadata
+} & AdditionalMetadata
 
 export type LLMCallContext = (
   | {
@@ -113,7 +161,6 @@ export type LLMCallContext = (
   agentId: string
   revision: number
   projectId: string
-  additionalMetadata: TelemetryMetadata
   /**
    * Session of the parent run, set by sub-agents so their dedicated traces link
    * back to it.
@@ -148,20 +195,24 @@ export interface LLMProvider {
     messages,
     config,
     callContext,
+    additionalMetadata,
   }: {
     messages: LLMChatMessage[]
     config: LLMConfig
     callContext: LLMCallContext
+    additionalMetadata: AdditionalMetadata
   }): AsyncGenerator<string, void, unknown>
 
   generateText({
     prompt,
     config,
     callContext,
+    additionalMetadata,
   }: {
     prompt: string
     config: LLMConfig
     callContext: LLMCallContext
+    additionalMetadata: AdditionalMetadata
   }): Promise<string>
 
   generateStructuredOutput(params: {
@@ -169,6 +220,7 @@ export interface LLMProvider {
     schema: Record<string, unknown>
     config: LLMConfig
     callContext: LLMCallContext
+    additionalMetadata: AdditionalMetadata
   }): Promise<Record<string, unknown>>
 }
 export interface LLMFile {

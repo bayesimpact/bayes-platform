@@ -3,7 +3,7 @@ import { AgentModel, type AgentModelOf, AgentProvider } from "@caseai-connect/ap
 import { jsonSchema, type ToolSet, tool } from "ai"
 import { GoogleAuth } from "google-auth-library"
 import { z } from "zod"
-import type { LLMConfig, TelemetryMetadata } from "@/common/interfaces/llm-provider.interface"
+import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"
 import { zNullableType } from "@/common/zod-helper"
 import { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
 import type { ModelInfos, ModelOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
@@ -37,9 +37,6 @@ class TestVllmProvider extends AISDKVllmProviderBase<AgentProvider.Gemma> {
   }
   authFor(): Pick<GoogleAuth, "getClient"> {
     return this.auth
-  }
-  getTelemetryMetadata(_config: LLMConfig): TelemetryMetadata {
-    return {}
   }
 }
 
@@ -123,12 +120,13 @@ describe("AISDKVllmProviderBase", () => {
     })
   })
 
-  describe("getProviderMetadata", () => {
-    it("tags the provider and the model", () => {
-      expect(provider.getProviderMetadata(config)).toEqual({
-        provider: AgentProvider.Gemma,
-        model: AgentModel.Gemma4_26B,
-      })
+  describe("telemetry metadata", () => {
+    it("names the provider", () => {
+      expect(provider.getProviderMetadata()).toEqual({ name: AgentProvider.Gemma })
+    })
+
+    it("names the model", () => {
+      expect(provider.getModelMetadata(config)).toEqual({ name: AgentModel.Gemma4_26B })
     })
   })
 

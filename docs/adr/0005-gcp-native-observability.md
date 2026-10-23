@@ -24,13 +24,14 @@ Every LLM call carries telemetry metadata (`ai.telemetry.metadata.*`):
 - `sessionId`: our trace id, persisted on the session or run. It groups all the turns of a run; the trace backend shows it as a session.
 - `userId`: organization and project.
 - `userMessage` on chat turns: the last user message, shown as the input of the turn instead of the whole prompt.
-- `tags`, `currentTurn`, `spanLabel`, `agentSessionId`, `parentSessionId` for sub-agents.
+- `currentTurn`, `spanLabel`, `agentSessionId`, `parentSessionId` for sub-agents.
+- The nested metadata of the call, flattened with its path in dot case as the key: `provider.*` and `model.*` from the provider, then what the caller adds through `buildAdditionalMetadata` (`agent.*`, `tool.name`, `run.tag`, `test.*`, `environment`).
 
 The mapping lives in one file, `deploy/helm/bayes-platform/files/otel-collector.yaml`: the chart's optional collector and the local compose mount it, the gateway of our clusters copies its processors. The chart also has an optional Phoenix, not production ready (no authentication, SQLite by default), for a demo or a small install.
 
 The gateway names the top operation of a turn "Turn #4" (or "Turn #4 · classification" with a `spanLabel`), and keeps the side calls of a turn (classification, consolidation) as children, so the session shows the answer of each turn.
 
-Each turn is its own OTEL trace. A sub-agent runs under a fresh root span, so its spans form their own trace and session, linked back to the parent by `parentSessionId` and a `parent-trace:` tag.
+Each turn is its own OTEL trace. A sub-agent runs under a fresh root span, so its spans form their own trace and session, linked back to the parent by `parentSessionId` and `agent.parent.trace`.
 
 ## Trace links
 

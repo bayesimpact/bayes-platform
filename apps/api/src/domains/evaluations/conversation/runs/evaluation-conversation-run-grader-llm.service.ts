@@ -3,6 +3,7 @@ import { Inject, Injectable, UnprocessableEntityException } from "@nestjs/common
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import type { LLMCallContext } from "@/common/interfaces/llm-provider.interface"
 import { LlmServiceBase } from "@/external/llm"
+import { buildAdditionalMetadata } from "@/external/llm/additional-metadata"
 import { LLM_PROVIDERS, type LlmProviders } from "@/external/llm/llm.module"
 
 /**
@@ -71,15 +72,15 @@ ${
       revision: 0,
       projectId: connectScope.projectId,
       organizationId: connectScope.organizationId,
-      additionalMetadata: { "agent.type": "Rating Agent" },
       spanLabel: "grading",
     }
-
     //fixme: remove when specific agent for rating(in db) for rating with mock
-    if (AgentModelToAgentProvider[generatorModel] === AgentProvider._Mock) {
-      ratingAgent.model = AgentModel._Mock
-      callContext.additionalMetadata.environment = "**TEST**"
-    }
+    const generatedByMock = AgentModelToAgentProvider[generatorModel] === AgentProvider._Mock
+    if (generatedByMock) ratingAgent.model = AgentModel._Mock
+    const additionalMetadata = buildAdditionalMetadata({
+      agent: { type: "Rating Agent" },
+      environment: generatedByMock ? "**TEST**" : undefined,
+    })
 
     const provider = this.getProviderForModel(ratingAgent.model)
     const llmConfig = this.buildLLMConfig({
@@ -108,6 +109,7 @@ ${generatedOutput}
 return only the rating value (0 to 5), no sentence`,
       config: llmConfig,
       callContext: callContext,
+      additionalMetadata,
     })
 
     return this.parseScore(response)

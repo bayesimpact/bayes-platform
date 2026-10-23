@@ -5,6 +5,7 @@ import type { FilePart, ImagePart, ToolSet } from "ai"
 import { v4 } from "uuid"
 import { z } from "zod"
 import type {
+  AdditionalMetadata,
   LLMCallContext,
   LLMChatMessage,
   LLMProvider,
@@ -18,6 +19,8 @@ import {
   expectIncludesAtLeastOne,
   includesInsensitive,
 } from "@/external/llm/ai-sdk/providers/spec-tools"
+
+const additionalMetadata: AdditionalMetadata = { environment: "**TEST**" }
 
 // biome-ignore lint/complexity/noStaticOnlyClass: helper
 export class ProviderSpecs {
@@ -47,7 +50,6 @@ export class ProviderSpecs {
       currentTurn: 0,
       organizationId: "organizationId",
       projectId: "projectId",
-      additionalMetadata: { environment: "**TEST**" },
       traceId: v4(),
     }
   }
@@ -71,7 +73,7 @@ export class ProviderSpecs {
       systemPrompt: ProviderSpecs.systemPrompt,
       serviceTier,
     }
-    const result = await provider.generateText({ prompt, config, callContext })
+    const result = await provider.generateText({ additionalMetadata, prompt, config, callContext })
     expect(result).toBeDefined()
     expectIncludes(result, "Elvis")
   }
@@ -94,7 +96,12 @@ export class ProviderSpecs {
       systemPrompt: ProviderSpecs.systemPrompt,
       serviceTier,
     }
-    const stream = provider.streamChatResponse({ messages, config, callContext })
+    const stream = provider.streamChatResponse({
+      additionalMetadata,
+      messages,
+      config,
+      callContext,
+    })
     const results = await ProviderSpecs.streamToStringArray(stream)
     expect(results).toBeDefined()
     expect(results.length).toBeGreaterThan(0)
@@ -180,7 +187,12 @@ export class ProviderSpecs {
     const callContext = ProviderSpecs.getCallContext()
     const traceId = callContext.traceId
     callContext.currentTurn = chatMessages.filter((message) => message.role === "user").length
-    let stream = provider.streamChatResponse({ messages: chatMessages, config, callContext })
+    let stream = provider.streamChatResponse({
+      additionalMetadata,
+      messages: chatMessages,
+      config,
+      callContext,
+    })
     let results = await ProviderSpecs.streamToStringArray(stream)
     expect(results).toBeDefined()
     expect(results.length).toBeGreaterThan(0)
@@ -197,6 +209,7 @@ export class ProviderSpecs {
     callContext2.currentTurn = chatMessages.filter((message) => message.role === "user").length
     callContext2.traceId = traceId
     stream = provider.streamChatResponse({
+      additionalMetadata,
       messages: chatMessages,
       config,
       callContext: callContext2,
@@ -217,6 +230,7 @@ export class ProviderSpecs {
     callContext3.currentTurn = chatMessages.filter((message) => message.role === "user").length
     callContext3.traceId = traceId
     stream = provider.streamChatResponse({
+      additionalMetadata,
       messages: chatMessages,
       config,
       callContext: callContext3,
@@ -237,6 +251,7 @@ export class ProviderSpecs {
     callContext4.currentTurn = chatMessages.filter((message) => message.role === "user").length
     callContext4.traceId = traceId
     stream = provider.streamChatResponse({
+      additionalMetadata,
       messages: chatMessages,
       config,
       callContext: callContext4,
@@ -257,6 +272,7 @@ export class ProviderSpecs {
     callContext5.currentTurn = chatMessages.filter((message) => message.role === "user").length
     callContext5.traceId = traceId
     stream = provider.streamChatResponse({
+      additionalMetadata,
       messages: chatMessages,
       config,
       callContext: callContext5,
@@ -353,7 +369,12 @@ export class ProviderSpecs {
     const callContext = ProviderSpecs.getCallContext()
     const traceId = callContext.traceId
     callContext.currentTurn = chatMessages.filter((message) => message.role === "user").length
-    let stream = provider.streamChatResponse({ messages: chatMessages, config, callContext })
+    let stream = provider.streamChatResponse({
+      additionalMetadata,
+      messages: chatMessages,
+      config,
+      callContext,
+    })
     let results = await ProviderSpecs.streamToStringArray(stream)
     expect(results).toBeDefined()
     expect(results.length).toBeGreaterThan(0)
@@ -370,6 +391,7 @@ export class ProviderSpecs {
     callContext2.currentTurn = chatMessages.filter((message) => message.role === "user").length
     callContext2.traceId = traceId
     stream = provider.streamChatResponse({
+      additionalMetadata,
       messages: chatMessages,
       config,
       callContext: callContext2,
@@ -390,6 +412,7 @@ export class ProviderSpecs {
     callContext3.currentTurn = chatMessages.filter((message) => message.role === "user").length
     callContext3.traceId = traceId
     stream = provider.streamChatResponse({
+      additionalMetadata,
       messages: chatMessages,
       config,
       callContext: callContext3,
@@ -410,6 +433,7 @@ export class ProviderSpecs {
     callContext4.currentTurn = chatMessages.filter((message) => message.role === "user").length
     callContext4.traceId = traceId
     stream = provider.streamChatResponse({
+      additionalMetadata,
       messages: chatMessages,
       config,
       callContext: callContext4,
@@ -430,6 +454,7 @@ export class ProviderSpecs {
     callContext5.currentTurn = chatMessages.filter((message) => message.role === "user").length
     callContext5.traceId = traceId
     stream = provider.streamChatResponse({
+      additionalMetadata,
       messages: chatMessages,
       config,
       callContext: callContext5,
@@ -503,7 +528,12 @@ Always answer in English.`
     const callContext = ProviderSpecs.getCallContext()
     const traceId = callContext.traceId
     callContext.currentTurn = chatMessages.filter((message) => message.role === "user").length
-    let stream = provider.streamChatResponse({ messages: chatMessages, config, callContext })
+    let stream = provider.streamChatResponse({
+      additionalMetadata,
+      messages: chatMessages,
+      config,
+      callContext,
+    })
     let results = await ProviderSpecs.streamToStringArray(stream)
     expect(results).toBeDefined()
     expect(results.length).toBeGreaterThan(0)
@@ -518,6 +548,7 @@ Always answer in English.`
     callContext2.currentTurn = chatMessages.filter((message) => message.role === "user").length
     callContext2.traceId = traceId
     stream = provider.streamChatResponse({
+      additionalMetadata,
       messages: chatMessages,
       config,
       callContext: callContext2,
@@ -537,6 +568,7 @@ Always answer in English.`
     callContext3.currentTurn = chatMessages.filter((message) => message.role === "user").length
     callContext3.traceId = traceId
     stream = provider.streamChatResponse({
+      additionalMetadata,
       messages: chatMessages,
       config,
       callContext: callContext3,
@@ -641,7 +673,12 @@ Always answer in English.`
     const callContext = ProviderSpecs.getCallContext()
     const traceId = callContext.traceId
     callContext.currentTurn = chatMessages.filter((message) => message.role === "user").length
-    let stream = provider.streamChatResponse({ messages: chatMessages, config, callContext })
+    let stream = provider.streamChatResponse({
+      additionalMetadata,
+      messages: chatMessages,
+      config,
+      callContext,
+    })
     let results = await ProviderSpecs.streamToStringArray(stream)
     expect(results).toBeDefined()
     expect(results.length).toBeGreaterThan(0)
@@ -661,6 +698,7 @@ Always answer in English.`
     callContext2.currentTurn = chatMessages.filter((message) => message.role === "user").length
     callContext2.traceId = traceId
     stream = provider.streamChatResponse({
+      additionalMetadata,
       messages: chatMessages,
       config,
       callContext: callContext2,
@@ -684,6 +722,7 @@ Always answer in English.`
     callContext3.currentTurn = chatMessages.filter((message) => message.role === "user").length
     callContext3.traceId = traceId
     stream = provider.streamChatResponse({
+      additionalMetadata,
       messages: chatMessages,
       config,
       callContext: callContext3,
@@ -755,6 +794,7 @@ DO NOT HALLUCINATE VALUES, return only values that you find in the file; if no v
       serviceTier,
     }
     const result = await provider.generateStructuredOutput({
+      additionalMetadata,
       message,
       schema: schema.toJSONSchema(),
       config,
@@ -811,6 +851,7 @@ Output the full list unchanged, except for the constant named ‘Pi’, which mu
       serviceTier,
     }
     const result = await provider.generateStructuredOutput({
+      additionalMetadata,
       message,
       schema: schema.toJSONSchema(),
       config,
@@ -938,6 +979,7 @@ Output the full list unchanged, except for the constant named ‘Pi’, which mu
       serviceTier,
     }
     const result = await provider.generateStructuredOutput({
+      additionalMetadata,
       message,
       schema: schema.toJSONSchema(),
       config,

@@ -298,7 +298,6 @@ export const callContext: LLMCallContext = {
   agentSessionId: "session-1",
   currentTurn: 1,
   revision: 1,
-  additionalMetadata: {},
 }
 
 export function configFor(

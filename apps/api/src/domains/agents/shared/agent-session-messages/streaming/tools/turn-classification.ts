@@ -3,6 +3,7 @@ import { Logger } from "@nestjs/common"
 import { z } from "zod"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import type {
+  AdditionalMetadata,
   LLMCallContext,
   LLMChatMessage,
   LLMConfig,
@@ -100,6 +101,7 @@ export type HandoffClassificationConfig = {
       provider: LLMProvider
       buildConfig: (systemPrompt: string) => LLMConfig
       callContext: LLMCallContext
+      additionalMetadata: AdditionalMetadata
     }
   }) => Promise<void>
 }
@@ -391,6 +393,7 @@ export async function runTurnClassification({
   provider,
   buildConfig,
   callContext,
+  additionalMetadata,
   earlierMessages,
   userMessage,
   answerText,
@@ -401,6 +404,8 @@ export async function runTurnClassification({
   /** Builds the LLM config for the classification call from its system prompt. */
   buildConfig: (systemPrompt: string) => LLMConfig
   callContext: LLMCallContext
+  /** The replying agent's metadata, which the classification call adds its tool name to. */
+  additionalMetadata: AdditionalMetadata
   earlierMessages: LLMChatMessage[]
   userMessage: string
   answerText: string
@@ -462,14 +467,11 @@ export async function runTurnClassification({
       config: buildConfig(systemPrompt),
       callContext: {
         ...callContext,
-        additionalMetadata: {
-          ...callContext.additionalMetadata,
-          "tool.name": "turn-classification",
-        },
         spanLabel: callContext.spanLabel
           ? `${callContext.spanLabel} · classification`
           : "classification",
       },
+      additionalMetadata: { ...additionalMetadata, tool: { name: "turn-classification" } },
     })
     const parsed = turnClassificationOutputSchema.safeParse(rawOutput)
     if (!parsed.success) {
@@ -493,7 +495,7 @@ export async function runTurnClassification({
         await handoff.conclude({
           summary: parsed.data.handoffSummary ?? "",
           detectedByClassifier: !concludedByTool,
-          llm: { provider, buildConfig, callContext },
+          llm: { provider, buildConfig, callContext, additionalMetadata },
         })
       }
     }

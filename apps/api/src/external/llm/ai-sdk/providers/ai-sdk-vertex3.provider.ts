@@ -6,7 +6,8 @@ import { z } from "zod"
 import type {
   LLMConfig,
   LLMModelOptions,
-  TelemetryMetadata,
+  ModelMetadata,
+  ProviderMetadata,
 } from "@/common/interfaces/llm-provider.interface"
 import type { SpecificProviderOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-builders"
 import type { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
@@ -240,12 +241,16 @@ export class AISDKVertex3Provider extends AISDKLLMProviderBase<AgentProvider.Ver
     return {}
   }
 
-  getTelemetryMetadata(config: LLMConfig): TelemetryMetadata {
+  override getProviderMetadata(): ProviderMetadata {
+    return { ...super.getProviderMetadata(), project: this.vertexProject }
+  }
+
+  override getModelMetadata(config: LLMConfig): ModelMetadata {
     return {
-      project: this.vertexProject,
+      ...super.getModelMetadata(config),
       location: this.locationForModel(config.model),
       thinkingLevel: this.thinkingLevelTag(config).toUpperCase(),
-      ...(config.serviceTier ? { serviceTier: config.serviceTier.toUpperCase() } : {}),
+      serviceTier: config.serviceTier?.toUpperCase(),
     }
   }
 }

@@ -4,6 +4,7 @@ import type { RequiredConnectScope } from "@/common/entities/connect-required-fi
 import type { LLMCallContext, LLMChatMessage } from "@/common/interfaces/llm-provider.interface"
 import { todaysDatePromptLine } from "@/common/utils/todays-date-prompt-line"
 import { LlmServiceBase } from "@/external/llm"
+import { buildAdditionalMetadata } from "@/external/llm/additional-metadata"
 import { LLM_PROVIDERS, type LlmProviders } from "@/external/llm/llm.module"
 import type { AgentWithSettingsRunJobPayload } from "./agent-with-settings-run.types"
 
@@ -99,13 +100,12 @@ export class StructuredExtractionAgentRunLlmService extends LlmServiceBase {
       agentId: agentWithSettings.settings.id,
       revision: agentWithSettings.settings.revision,
       projectId: connectScope.projectId,
-      additionalMetadata: {
-        "agent.name": agentWithSettings.settings.name,
-        "agent.revision": agentWithSettings.settings.revision,
-        "agent.type": agentWithSettings.settings.type,
-        runTag: runTag,
-      },
     }
+    const additionalMetadata = buildAdditionalMetadata({
+      agent: agentWithSettings.settings,
+      agentSettings: agentWithSettings.settings,
+      runTag,
+    })
 
     const output = await this.getProviderForModel(
       agentWithSettings.settings.model,
@@ -114,6 +114,7 @@ export class StructuredExtractionAgentRunLlmService extends LlmServiceBase {
       schema: agentWithSettings.settings.outputJsonSchema,
       config: llmConfig,
       callContext: callContext,
+      additionalMetadata,
     })
 
     return { output, traceId }

@@ -1,5 +1,9 @@
 import { describe, expect, it, jest } from "@jest/globals"
-import type { LLMCallContext, LLMProvider } from "@/common/interfaces/llm-provider.interface"
+import type {
+  AdditionalMetadata,
+  LLMCallContext,
+  LLMProvider,
+} from "@/common/interfaces/llm-provider.interface"
 import {
   buildConsolidationPrompt,
   buildConsolidationSchema,
@@ -27,8 +31,8 @@ const callContext = {
   projectId: "project",
   organizationId: "organization",
   currentTurn: 2,
-  additionalMetadata: { "agent.class": "sub-agent" },
 } as LLMCallContext
+const additionalMetadata: AdditionalMetadata = { agent: { class: "sub-agent" } }
 
 describe("handoffTranscriptWindow", () => {
   const messages: TranscriptMessage[] = [
@@ -116,6 +120,7 @@ describe("runFormConsolidation", () => {
       consent: null,
     }))
     const added = await runFormConsolidation({
+      additionalMetadata,
       provider: { generateStructuredOutput } as unknown as LLMProvider,
       buildConfig,
       callContext,
@@ -126,11 +131,14 @@ describe("runFormConsolidation", () => {
     })
     expect(added).toEqual({ age: 42 })
     const calls = generateStructuredOutput.mock.calls as unknown as Array<
-      [{ callContext: LLMCallContext }]
+      [{ callContext: LLMCallContext; additionalMetadata: AdditionalMetadata }]
     >
     const call = calls[0]?.[0]
     if (!call) throw new Error("the model was not called")
-    expect(call.callContext.additionalMetadata["tool.name"]).toBe("form-consolidation")
+    expect(call.additionalMetadata).toEqual({
+      agent: { class: "sub-agent" },
+      tool: { name: "form-consolidation" },
+    })
     expect(call.callContext.spanLabel).toBe("consolidation")
   })
 
@@ -138,6 +146,7 @@ describe("runFormConsolidation", () => {
     const generateStructuredOutput = jest.fn(async () => ({}))
     const provider = { generateStructuredOutput } as unknown as LLMProvider
     await runFormConsolidation({
+      additionalMetadata,
       provider,
       buildConfig,
       callContext,
@@ -147,6 +156,7 @@ describe("runFormConsolidation", () => {
       agentName: "Identity",
     })
     await runFormConsolidation({
+      additionalMetadata,
       provider,
       buildConfig,
       callContext,
@@ -163,6 +173,7 @@ describe("runFormConsolidation", () => {
       throw new Error("boom")
     })
     const added = await runFormConsolidation({
+      additionalMetadata,
       provider: { generateStructuredOutput } as unknown as LLMProvider,
       buildConfig,
       callContext,

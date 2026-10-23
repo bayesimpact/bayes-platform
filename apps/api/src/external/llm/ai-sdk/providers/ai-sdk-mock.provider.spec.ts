@@ -4,6 +4,7 @@ import { tool } from "ai"
 import { v4 } from "uuid"
 import { z } from "zod"
 import type {
+  AdditionalMetadata,
   LLMCallContext,
   LLMChatMessage,
   LLMConfig,
@@ -11,6 +12,8 @@ import type {
 } from "@/common/interfaces/llm-provider.interface"
 import { MAX_STREAM_OUTPUT_TOKENS } from "@/external/llm/ai-sdk/ai-sdk-llm-provider-base"
 import { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.provider"
+
+const additionalMetadata: AdditionalMetadata = { environment: "**TEST**" }
 
 describe("AISDKMockProvider", () => {
   let provider: AISDKMockProvider
@@ -32,7 +35,6 @@ describe("AISDKMockProvider", () => {
       currentTurn: 0,
       organizationId: "organizationId",
       projectId: "projectId",
-      additionalMetadata: { environment: "**TEST**" },
       traceId: "traceId",
       revision: 1,
     }
@@ -43,7 +45,12 @@ describe("AISDKMockProvider", () => {
   })
 
   it("streamChatResponse - default mock value", async () => {
-    const stream = provider.streamChatResponse({ messages, config, callContext })
+    const stream = provider.streamChatResponse({
+      additionalMetadata,
+      messages,
+      config,
+      callContext,
+    })
     const results = await streamToStringArray(stream)
     expect(results).toBeDefined()
     expect(results.length).toBeGreaterThan(0)
@@ -51,7 +58,12 @@ describe("AISDKMockProvider", () => {
   })
 
   it("generateText - default mock value", async () => {
-    const result = await provider.generateText({ prompt: "", config, callContext })
+    const result = await provider.generateText({
+      additionalMetadata,
+      prompt: "",
+      config,
+      callContext,
+    })
     expect(result).toBe("Hello, I'm the text default mock value!")
   })
 
@@ -77,6 +89,7 @@ describe("AISDKMockProvider", () => {
     }
 
     const result = await provider.generateStructuredOutput({
+      additionalMetadata,
       message,
       schema: schema.toJSONSchema(),
       config,
@@ -90,16 +103,36 @@ describe("AISDKMockProvider", () => {
 
   it("addTextTurn - returns the specified value", async () => {
     provider.addTextTurn(callContext.agentId, "76")
-    const result = await provider.generateText({ prompt: "", config, callContext })
+    const result = await provider.generateText({
+      additionalMetadata,
+      prompt: "",
+      config,
+      callContext,
+    })
     expect(result).toBe("76")
   })
 
   it("addTextTurn - returns the specified values in order", async () => {
     provider.addTextTurn(callContext.agentId, "first", "second")
 
-    const first = await provider.generateText({ prompt: "", config, callContext })
-    const second = await provider.generateText({ prompt: "", config, callContext })
-    const third = await provider.generateText({ prompt: "", config, callContext })
+    const first = await provider.generateText({
+      additionalMetadata,
+      prompt: "",
+      config,
+      callContext,
+    })
+    const second = await provider.generateText({
+      additionalMetadata,
+      prompt: "",
+      config,
+      callContext,
+    })
+    const third = await provider.generateText({
+      additionalMetadata,
+      prompt: "",
+      config,
+      callContext,
+    })
 
     expect(first).toBe("first")
     expect(second).toBe("second")
@@ -111,11 +144,13 @@ describe("AISDKMockProvider", () => {
     provider.addTextTurn("agent-b", "from B")
 
     const fromB = await provider.generateText({
+      additionalMetadata,
       prompt: "",
       config,
       callContext: { ...callContext, agentId: "agent-b" },
     })
     const fromA = await provider.generateText({
+      additionalMetadata,
       prompt: "",
       config,
       callContext: { ...callContext, agentId: "agent-a" },
@@ -128,7 +163,7 @@ describe("AISDKMockProvider", () => {
   it("addStreamTurn - should works", async () => {
     provider.addStreamTurn(callContext.agentId, ["He", "l", "lo!"])
     const results = await streamToStringArray(
-      provider.streamChatResponse({ messages, config, callContext }),
+      provider.streamChatResponse({ additionalMetadata, messages, config, callContext }),
     )
     // The AI SDK may coalesce consecutive text deltas, so assert on the content.
     expect(results.length).toBeGreaterThan(0)
@@ -137,7 +172,9 @@ describe("AISDKMockProvider", () => {
 
   it("streamChatResponse - limits the output tokens of each step", async () => {
     provider.addStreamTurn(callContext.agentId, ["Hello!"])
-    await streamToStringArray(provider.streamChatResponse({ messages, config, callContext }))
+    await streamToStringArray(
+      provider.streamChatResponse({ additionalMetadata, messages, config, callContext }),
+    )
 
     expect(provider.getCalls().at(-1)?.maxOutputTokens).toBe(MAX_STREAM_OUTPUT_TOKENS)
   })
@@ -149,7 +186,9 @@ describe("AISDKMockProvider", () => {
     )
 
     await expect(
-      streamToStringArray(provider.streamChatResponse({ messages, config, callContext })),
+      streamToStringArray(
+        provider.streamChatResponse({ additionalMetadata, messages, config, callContext }),
+      ),
     ).rejects.toThrow("Unsupported chat content part type: 'file'")
   })
 
@@ -175,7 +214,12 @@ describe("AISDKMockProvider", () => {
     provider.addTextTurn(callContext.agentId, "final answer")
 
     const results = await streamToStringArray(
-      provider.streamChatResponse({ messages, config: toolConfig, callContext }),
+      provider.streamChatResponse({
+        additionalMetadata,
+        messages,
+        config: toolConfig,
+        callContext,
+      }),
     )
 
     expect(executed).toEqual([{ text: "hi" }])

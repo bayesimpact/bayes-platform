@@ -165,9 +165,15 @@ describe("AI SDK non-regression - model options reach the request", () => {
     const config = configFor(model, { modelOptions, serviceTier })
     const text =
       call === "generateText"
-        ? await providerUnderTest.instance.generateText({ prompt: "Hi", config, callContext })
+        ? await providerUnderTest.instance.generateText({
+            additionalMetadata: {},
+            prompt: "Hi",
+            config,
+            callContext,
+          })
         : await collect(
             providerUnderTest.instance.streamChatResponse({
+              additionalMetadata: {},
               messages: [{ role: "user", content: "Hi" }],
               config,
               callContext,

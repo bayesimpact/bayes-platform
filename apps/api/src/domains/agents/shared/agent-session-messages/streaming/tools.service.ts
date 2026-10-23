@@ -778,6 +778,7 @@ export class ToolsService {
       provider: llm.provider,
       buildConfig: llm.buildConfig,
       callContext: llm.callContext,
+      additionalMetadata: llm.additionalMetadata,
       schema: parsedSchema.data,
       transcript,
       state: form?.state ?? {},

@@ -16,6 +16,7 @@ import {
   runTurnClassification,
   type SessionMetadataRecalculator,
 } from "@/domains/agents/shared/agent-session-messages/streaming/tools/turn-classification"
+import { buildAdditionalMetadata } from "@/external/llm/additional-metadata"
 import { HANDBOOK_CHUNKS } from "./employee-handbook.fixture"
 import { buildFatSystemPrompt } from "./fat-prompt.fixture"
 
@@ -71,11 +72,6 @@ function buildCallContext({
     agentId: "agent-1",
     revision: 1,
     projectId: "project-1",
-    additionalMetadata: {
-      "test.name": "live-provider-regressions",
-      "test.case": scenario,
-      "agent.model": model,
-    },
   }
 }
 
@@ -121,6 +117,10 @@ Your purpose is to assist users by answering their questions about the company e
 Always answer in English.`
 
   const callContext = buildCallContext({ model, scenario: "rag" })
+  const additionalMetadata = buildAdditionalMetadata({
+    model,
+    test: { name: "live-provider-regressions", case: "rag" },
+  })
   const chunks = provider.streamChatResponse({
     messages: [
       { role: "system", content: systemPrompt },
@@ -133,6 +133,7 @@ Always answer in English.`
       serviceTier: undefined,
     },
     callContext,
+    additionalMetadata,
   })
 
   const citations = createInlineCitationExtractor()
@@ -154,6 +155,7 @@ Always answer in English.`
     provider,
     buildConfig: buildConfig(model),
     callContext,
+    additionalMetadata,
     earlierMessages: [],
     userMessage,
     answerText: text,
@@ -184,6 +186,10 @@ export async function runFatPromptTurnScenario({
   }
 
   const callContext = buildCallContext({ model, scenario: "fat-prompt" })
+  const additionalMetadata = buildAdditionalMetadata({
+    model,
+    test: { name: "live-provider-regressions", case: "fat-prompt" },
+  })
   const earlierMessages = [
     {
       role: "assistant" as const,
@@ -202,6 +208,7 @@ export async function runFatPromptTurnScenario({
       serviceTier: undefined,
     },
     callContext,
+    additionalMetadata,
   })
 
   let text = ""
@@ -220,6 +227,7 @@ export async function runFatPromptTurnScenario({
     provider,
     buildConfig: buildConfig(model),
     callContext,
+    additionalMetadata,
     earlierMessages,
     userMessage,
     answerText: text,

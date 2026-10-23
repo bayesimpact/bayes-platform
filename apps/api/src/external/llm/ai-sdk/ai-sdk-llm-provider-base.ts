@@ -3,10 +3,13 @@ import { Logger } from "@nestjs/common"
 import { trace } from "@opentelemetry/api"
 import { generateText, jsonSchema, Output, ToolLoopAgent } from "ai"
 import type {
+  AdditionalMetadata,
   LLMCallContext,
   LLMChatMessage,
   LLMConfig,
   LLMProvider,
+  ProviderMetadata,
+  TelemetryMetadata,
 } from "@/common/interfaces/llm-provider.interface"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
@@ -32,14 +35,33 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
   extends AISDKLLMFetchMgmt<Provider>
   implements LLMProvider
 {
+  /** What the provider says of itself, sent under `provider.*`. Providers add their own. */
+  getProviderMetadata(): ProviderMetadata {
+    return { name: this.getAgentProvider() }
+  }
+
+  /** All the metadata of a call: the caller's, then the provider and model levels. */
+  private getTelemetryMetadata(
+    config: LLMConfig,
+    additionalMetadata: AdditionalMetadata,
+  ): TelemetryMetadata {
+    return {
+      ...additionalMetadata,
+      provider: this.getProviderMetadata(),
+      model: this.getModelMetadata(config),
+    }
+  }
+
   async *streamChatResponse({
     messages,
     config,
     callContext,
+    additionalMetadata,
   }: {
     messages: LLMChatMessage[]
     config: LLMConfig
     callContext: LLMCallContext
+    additionalMetadata: AdditionalMetadata
   }): AsyncGenerator<string, void, unknown> {
     const callOrigin = config.tools
       ? CallOrigin.streamChatResponse_withTools
@@ -49,7 +71,7 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
 
     const systemMessage = messages.find((msg) => msg.role === "system")?.content
     const functionId = this.buildFunctionIdForStreamChatResponse(aiSDKMessages)
-    const telemetryMetadata = this.getTelemetryMetadata(config)
+    const telemetryMetadata = this.getTelemetryMetadata(config, additionalMetadata)
     // Request-scoped: tool calls the model verbalized in the text channel
     // instead of emitting them. Collected by the raw-capture middleware and
     // recovered after the stream (see recoverLeakedToolCalls).
@@ -143,14 +165,16 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
     prompt,
     config,
     callContext,
+    additionalMetadata,
   }: {
     prompt: string
     config: LLMConfig
     callContext: LLMCallContext
+    additionalMetadata: AdditionalMetadata
   }): Promise<string> {
     const callOrigin = CallOrigin.generateText
     this.checkConfigProviderAndModel(config)
-    const telemetryMetadata = this.getTelemetryMetadata(config)
+    const telemetryMetadata = this.getTelemetryMetadata(config, additionalMetadata)
     const { text } = await generateText({
       model: this.getLanguageModelWithRawCapture({ config, callOrigin, callContext }),
       system: config.systemPrompt,
@@ -170,18 +194,20 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
     schema,
     config,
     callContext,
+    additionalMetadata,
   }: {
     message: LLMChatMessage
     schema: Record<string, unknown>
     config: LLMConfig
     callContext: LLMCallContext
+    additionalMetadata: AdditionalMetadata
   }): Promise<Record<string, unknown>> {
     const callOrigin = CallOrigin.generateStructuredOutput
     this.checkConfigProviderAndModel(config)
     message = this.applySpecificToStructuredOutputMessage({ message, config })
 
     const aiSDKMessages = this.toConversationMessages([message], "generate structured output")
-    const telemetryMetadata = this.getTelemetryMetadata(config)
+    const telemetryMetadata = this.getTelemetryMetadata(config, additionalMetadata)
     const result = await generateText({
       model: this.getLanguageModelWithRawCapture({ config, callOrigin, callContext }),
       messages: aiSDKMessages,

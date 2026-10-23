@@ -3,6 +3,7 @@ import { Inject, Injectable, Logger } from "@nestjs/common"
 import type { FilePart, ImagePart } from "ai"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import type {
+  AdditionalMetadata,
   BuildLLMConfigParams,
   LLMCallContext,
   LLMChatMessage,
@@ -19,6 +20,7 @@ import {
 } from "@/domains/documents/storage/file-storage.interface"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectsService } from "@/domains/projects/projects.service"
+import { buildAdditionalMetadata } from "@/external/llm/additional-metadata"
 import { modelRequiresPdfAsImages } from "@/external/llm/agent-provider"
 import { getTraceUrl } from "@/external/llm/trace-url"
 import type { AgentMessage } from "../agent-message.entity"
@@ -40,6 +42,7 @@ import { ToolsService } from "./tools.service"
 export type BuiltLLMRequest = {
   config: LLMConfig
   callContext: LLMCallContext
+  additionalMetadata: AdditionalMetadata
   messages: LLMChatMessage[]
   mcpClose: (() => Promise<void>) | undefined
   /**
@@ -150,7 +153,6 @@ export class AgentLlmRequestService {
       session,
       agent,
       agentSettings,
-      hasSubAgentTools,
       // Traces: the turns of one user message share a number; the label says
       // which one is the sub-agent's, and which one the parent's resumption.
       spanLabel: agentSessionScope.handoff
@@ -158,6 +160,11 @@ export class AgentLlmRequestService {
         : syntheticUserContent !== undefined
           ? "resume"
           : undefined,
+    })
+    const additionalMetadata = buildAdditionalMetadata({
+      agent,
+      agentSettings,
+      agentClass: hasSubAgentTools ? "parent-agent" : undefined,
     })
 
     const messages = await this.convertToLLMFormat(session.messages)
@@ -195,6 +202,7 @@ export class AgentLlmRequestService {
             llmFeatures,
           }),
         callContext,
+        additionalMetadata,
         earlierMessages: messages.slice(0, -1),
         userMessage: currentUserMessage ? llmMessageText(currentUserMessage) : "",
         answerText,
@@ -202,31 +210,23 @@ export class AgentLlmRequestService {
       })
     }
 
-    return { config, callContext, messages, mcpClose, citations, classifyTurn }
+    return { config, callContext, additionalMetadata, messages, mcpClose, citations, classifyTurn }
   }
 
   private buildLLMData({
     session,
     agent,
     agentSettings,
-    hasSubAgentTools,
     spanLabel,
   }: {
     session: StreamingSession
     agent: Agent
     agentSettings: AgentSettings
-    hasSubAgentTools: boolean
     spanLabel?: string
   }): LLMCallContext {
     this.logger.log(
       `Agent "${agent.name}" (${agent.id}) trace: ${getTraceUrl(session.traceId) ?? session.traceId} (session ${session.id})`,
     )
-    const additionalMetadata = {
-      "agent.name": agent.name,
-      "agent.revision": agentSettings.revision,
-      "agent.type": agent.type,
-      ...(hasSubAgentTools ? { "agent:class": "parent-agent" } : {}),
-    }
     return {
       traceId: session.traceId,
       agentSessionId: session.id,
@@ -235,7 +235,6 @@ export class AgentLlmRequestService {
       projectId: agent.projectId,
       organizationId: session.organizationId,
       currentTurn: session.messages.filter((message) => message.role === "user").length,
-      additionalMetadata,
       ...(spanLabel ? { spanLabel } : {}),
     }
   }

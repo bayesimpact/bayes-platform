@@ -141,7 +141,6 @@ describe("AISDKMedGemmaProvider through the AI SDK (vLLM simulated)", () => {
     projectId: "project-id",
     agentId: "agent-id",
     revision: 1,
-    additionalMetadata: {},
   }
 
   // Tools route the chat turn to the custom MedGemma model.
@@ -174,6 +173,7 @@ describe("AISDKMedGemmaProvider through the AI SDK (vLLM simulated)", () => {
   const collect = async (provider: AISDKMedGemmaProvider) => {
     let text = ""
     for await (const chunk of provider.streamChatResponse({
+      additionalMetadata: {},
       messages: [{ role: "user", content: "What does it cost?" }],
       config,
       callContext,
@@ -240,6 +240,7 @@ describe("AISDKMedGemmaProvider through the AI SDK (vLLM simulated)", () => {
 
     let text = ""
     for await (const chunk of new AISDKMedGemmaProvider().streamChatResponse({
+      additionalMetadata: {},
       messages: [{ role: "user", content: "What does it cost?" }],
       config: {
         ...config,
@@ -296,6 +297,7 @@ describe("AISDKMedGemmaProvider through the AI SDK (vLLM simulated)", () => {
     )
 
     const output = await new AISDKMedGemmaProvider().generateStructuredOutput({
+      additionalMetadata: {},
       message: { role: "user", content: "Give it a title." },
       schema: { type: "object", properties: { title: { type: "string" } } },
       config,

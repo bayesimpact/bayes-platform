@@ -2,7 +2,7 @@ import type { LanguageModelV3 } from "@ai-sdk/provider"
 import { AgentModel, AgentProvider } from "@caseai-connect/api-contracts"
 import { Agent, fetch as undiciFetch } from "undici"
 import { z } from "zod"
-import type { LLMConfig, TelemetryMetadata } from "@/common/interfaces/llm-provider.interface"
+import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"
 import { AISDKLLMFetchMgmt } from "@/external/llm/ai-sdk/ai-sdk-llm-fetch-mgmt"
 import {
   defineModelOptions,
@@ -30,9 +30,6 @@ class TestFetchMgmt extends AISDKLLMFetchMgmt<AgentProvider._Mock> {
   }
   getLanguageModel(): LanguageModelV3 {
     throw new Error("TestFetchMgmt builds no model")
-  }
-  getTelemetryMetadata(): TelemetryMetadata {
-    return {}
   }
 
   fetchForConfig(config: LLMConfig): typeof globalThis.fetch {

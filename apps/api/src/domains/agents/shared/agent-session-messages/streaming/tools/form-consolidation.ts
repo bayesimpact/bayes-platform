@@ -6,6 +6,7 @@ import {
 import { Logger } from "@nestjs/common"
 import type { z } from "zod"
 import type {
+  AdditionalMetadata,
   LLMCallContext,
   LLMConfig,
   LLMProvider,
@@ -193,6 +194,7 @@ export async function runFormConsolidation({
   provider,
   buildConfig,
   callContext,
+  additionalMetadata,
   schema,
   transcript,
   state,
@@ -201,6 +203,7 @@ export async function runFormConsolidation({
   provider: LLMProvider
   buildConfig: (systemPrompt: string) => LLMConfig
   callContext: LLMCallContext
+  additionalMetadata: AdditionalMetadata
   schema: OutputJsonSchema
   transcript: TranscriptMessage[]
   state: Record<string, unknown>
@@ -223,14 +226,11 @@ export async function runFormConsolidation({
       config: buildConfig(systemPrompt),
       callContext: {
         ...callContext,
-        additionalMetadata: {
-          ...callContext.additionalMetadata,
-          "tool.name": "form-consolidation",
-        },
         spanLabel: callContext.spanLabel
           ? `${callContext.spanLabel} · consolidation`
           : "consolidation",
       },
+      additionalMetadata: { ...additionalMetadata, tool: { name: "form-consolidation" } },
     })
     return pickMissingFields({ state, extracted })
   } catch (error) {

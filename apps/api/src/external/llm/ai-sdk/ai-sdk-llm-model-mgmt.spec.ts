@@ -14,7 +14,6 @@ import type {
   LLMCallContext,
   LLMChatMessage,
   LLMConfig,
-  TelemetryMetadata,
 } from "@/common/interfaces/llm-provider.interface"
 import type { SpecificProviderOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-builders"
 import {
@@ -69,7 +68,6 @@ const mockCallContext: LLMCallContext = {
   projectId: "project-id",
   agentId: "agent-id",
   revision: 1,
-  additionalMetadata: {},
 }
 
 class TestModelMgmt extends AISDKLLMModelMgmt<AgentProvider._Mock> {
@@ -101,9 +99,6 @@ class TestModelMgmt extends AISDKLLMModelMgmt<AgentProvider._Mock> {
       callContext: mockCallContext,
       leakedToolCalls,
     })
-  }
-  getTelemetryMetadata(_config: LLMConfig): TelemetryMetadata {
-    return {}
   }
 
   parseStructuredOutputTextFor(text: string): Record<string, unknown> {

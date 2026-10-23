@@ -174,7 +174,6 @@ const callContext: LLMCallContext = {
   projectId: "project-id",
   agentId: "agent-id",
   revision: 1,
-  additionalMetadata: {},
 }
 
 const baseConfig: LLMConfig = {
@@ -327,7 +326,6 @@ describe("AISDKLLMToolsMgmt", () => {
         agentId: "agent-1",
         revision: 1,
         projectId: "project-1",
-        additionalMetadata: {},
       }
 
       const buildConfig = ({
@@ -351,6 +349,7 @@ describe("AISDKLLMToolsMgmt", () => {
       const streamAll = async (config: LLMConfig) => {
         let text = ""
         for await (const chunk of provider.streamChatResponse({
+          additionalMetadata: {},
           messages: [{ role: "user", content: "Non applicable." }],
           config,
           callContext,
@@ -625,7 +624,6 @@ describe("AISDKLLMToolsMgmt", () => {
         agentId: "agent-1",
         revision: 1,
         projectId: "project-1",
-        additionalMetadata: {},
       }
 
       const buildConfig = ({
@@ -653,6 +651,7 @@ describe("AISDKLLMToolsMgmt", () => {
       const streamAll = async (config: LLMConfig) => {
         let text = ""
         for await (const chunk of provider.streamChatResponse({
+          additionalMetadata: {},
           messages: [{ role: "user", content: "Je veux parler à quelqu'un." }],
           config,
           callContext,

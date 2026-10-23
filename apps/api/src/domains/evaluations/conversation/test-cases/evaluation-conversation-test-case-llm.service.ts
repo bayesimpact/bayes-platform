@@ -4,6 +4,7 @@ import { v4 } from "uuid"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import type { LLMCallContext } from "@/common/interfaces/llm-provider.interface"
 import { LlmServiceBase } from "@/external/llm"
+import { buildAdditionalMetadata } from "@/external/llm/additional-metadata"
 import { LLM_PROVIDERS, type LlmProviders } from "@/external/llm/llm.module"
 
 /** The agent revision that wrote the saved answer. */
@@ -125,13 +126,13 @@ ${text}
       revision: agentSettings.revision,
       projectId: connectScope.projectId,
       organizationId: connectScope.organizationId,
-      additionalMetadata: { "agent.type": "Test Case Agent" },
       spanLabel,
     }
     const text = await provider.generateText({
       prompt,
       config,
       callContext,
+      additionalMetadata: buildAdditionalMetadata({ agent: { type: "Test Case Agent" } }),
     })
     const draft = text.trim()
     if (!draft) {

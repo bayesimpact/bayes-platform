@@ -72,7 +72,12 @@ describe("AI SDK non-regression - request and response", () => {
     it("calls the model on the EU endpoint of the project, with a Google access token", async () => {
       fakeFetch.respondWith(gemini.text("Hello"))
 
-      await provider.generateText({ prompt: "Hi", config: configFor(model), callContext })
+      await provider.generateText({
+        additionalMetadata: {},
+        prompt: "Hi",
+        config: configFor(model),
+        callContext,
+      })
 
       const request = fakeFetch.onlyRequest()
       expect(request.method).toBe("POST")
@@ -87,6 +92,7 @@ describe("AI SDK non-regression - request and response", () => {
 
       await collect(
         provider.streamChatResponse({
+          additionalMetadata: {},
           messages: [{ role: "user", content: "Hi" }],
           config: configFor(model),
           callContext,
@@ -101,6 +107,7 @@ describe("AI SDK non-regression - request and response", () => {
 
       await collect(
         provider.streamChatResponse({
+          additionalMetadata: {},
           messages: [
             { role: "user", content: "Hi" },
             { role: "assistant", content: "Hello, how can I help?" },
@@ -128,6 +135,7 @@ describe("AI SDK non-regression - request and response", () => {
       fakeFetch.respondWith(gemini.text("Hello"))
 
       await provider.generateText({
+        additionalMetadata: {},
         prompt: "Hi",
         config: configFor(model, { serviceTier }),
         callContext,
@@ -143,6 +151,7 @@ describe("AI SDK non-regression - request and response", () => {
 
       const text = await collect(
         provider.streamChatResponse({
+          additionalMetadata: {},
           messages: [{ role: "user", content: "Hi" }],
           config: configFor(model),
           callContext,
@@ -161,6 +170,7 @@ describe("AI SDK non-regression - request and response", () => {
 
       const text = await collect(
         provider.streamChatResponse({
+          additionalMetadata: {},
           messages: [{ role: "user", content: "Weather in Paris?" }],
           config: configFor(model, { tools }),
           callContext,
@@ -211,6 +221,7 @@ describe("AI SDK non-regression - request and response", () => {
       fakeFetch.respondWith(gemini.text(JSON.stringify({ title: "Plan", summary: "Short" })))
 
       const output = await provider.generateStructuredOutput({
+        additionalMetadata: {},
         message: { role: "user", content: "Summarize" },
         schema: SUMMARY_SCHEMA,
         config: configFor(model),
@@ -231,7 +242,12 @@ describe("AI SDK non-regression - request and response", () => {
     it("calls the chat completions of the model's endpoint, with a Google access token", async () => {
       fakeFetch.respondWith(openAiChat.text("Hello"))
 
-      await provider.generateText({ prompt: "Hi", config: configFor(model), callContext })
+      await provider.generateText({
+        additionalMetadata: {},
+        prompt: "Hi",
+        config: configFor(model),
+        callContext,
+      })
 
       const request = fakeFetch.onlyRequest()
       expect(request.url).toBe("https://gemma.vllm.test/v1/chat/completions")
@@ -250,6 +266,7 @@ describe("AI SDK non-regression - request and response", () => {
 
       const text = await collect(
         provider.streamChatResponse({
+          additionalMetadata: {},
           messages: [{ role: "user", content: "Hi" }],
           config: configFor(model),
           callContext,
@@ -272,6 +289,7 @@ describe("AI SDK non-regression - request and response", () => {
 
       const text = await collect(
         provider.streamChatResponse({
+          additionalMetadata: {},
           messages: [{ role: "user", content: "Weather in Paris?" }],
           config: configFor(model, { tools }),
           callContext,
@@ -302,6 +320,7 @@ describe("AI SDK non-regression - request and response", () => {
 
     const structuredOutput = () =>
       provider.generateStructuredOutput({
+        additionalMetadata: {},
         message: { role: "user", content: "Summarize" },
         schema: SUMMARY_SCHEMA,
         config: configFor(model),

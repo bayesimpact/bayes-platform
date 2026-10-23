@@ -7,6 +7,7 @@ import type {
   TelemetryMetadata,
 } from "@/common/interfaces/llm-provider.interface"
 import { removeNullish } from "@/common/utils/remove-nullish"
+import { flattenToSpanAttributes, type SpanAttributes } from "@/external/llm/span-attributes"
 
 export type { SpecificProviderOptions } from "@/common/interfaces/llm-provider.interface"
 
@@ -39,7 +40,7 @@ export abstract class AISDKLLMBuilders {
     callContext: LLMCallContext
     schema?: JSONSchema7
     telemetryMetadata: TelemetryMetadata
-  }): TelemetryMetadata {
+  }): SpanAttributes {
     return removeNullish({
       // Our trace id groups all the turns of a run; the trace backend shows it
       // as a session, and TRACE_URL_TEMPLATE links to it by this id.
@@ -52,8 +53,8 @@ export abstract class AISDKLLMBuilders {
       outputSchema: JSON.stringify(schema),
       availableTools: JSON.stringify(config.tools),
       spanLabel: callContext.spanLabel,
-      ...callContext?.additionalMetadata,
-      ...telemetryMetadata,
+      // The context above keeps its keys: the trace backend reads sessionId and userId as is.
+      ...flattenToSpanAttributes(telemetryMetadata),
     })
   }
 

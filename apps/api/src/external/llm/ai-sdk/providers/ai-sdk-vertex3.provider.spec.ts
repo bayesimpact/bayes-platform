@@ -25,7 +25,7 @@ const testModels = Object.values(AgentModel)
 // runs everywhere — unlike the live generation specs below, which need credentials.
 describe("AISDKVertex3Provider location routing", () => {
   const locationOf = (model: AgentModel) =>
-    new AISDKVertex3Provider().getTelemetryMetadata({
+    new AISDKVertex3Provider().getModelMetadata({
       model,
       modelOptions: { temperature: 0 },
       serviceTier: undefined,
@@ -64,7 +64,7 @@ describe("AISDKVertex3Provider location routing", () => {
     const provider = new ProviderServingOutsideEu()
     const config: LLMConfig = { model: AgentModel.Gemini36Flash, serviceTier: undefined }
 
-    expect(provider.getTelemetryMetadata(config).location).toBe("global")
+    expect(provider.getModelMetadata(config).location).toBe("global")
     expect(provider.getModelInfos(AgentModel.Gemini36Flash).servedOutsideEu).toBe(true)
   })
 })
@@ -323,10 +323,10 @@ describe("AISDKVertex3Provider thinking level", () => {
   })
 
   it("tags the call with the level it runs on", () => {
-    const telemetryMetadata = new AISDKVertex3Provider().getTelemetryMetadata(
+    const modelMetadata = new AISDKVertex3Provider().getModelMetadata(
       buildConfig(AgentModel.Gemini35Flash, "low"),
     )
-    expect(telemetryMetadata.thinkingLevel).toBe("LOW")
+    expect(modelMetadata.thinkingLevel).toBe("LOW")
   })
 
   it("throws on a model the provider does not serve", () => {

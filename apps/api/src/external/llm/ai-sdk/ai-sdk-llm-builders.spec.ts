@@ -1,4 +1,4 @@
-import { AgentModel } from "@caseai-connect/api-contracts"
+import { AgentModel, AgentProvider } from "@caseai-connect/api-contracts"
 import { type JSONSchema7, tool } from "ai"
 import { z } from "zod"
 import type {
@@ -54,7 +54,6 @@ describe("AISDKLLMBuilders", () => {
     projectId: "project-id",
     agentId: "agent-id",
     revision: 3,
-    additionalMetadata: { "metadata-tag": "metadata-tag" },
   }
 
   describe("buildFunctionIdForStreamChatResponse", () => {
@@ -114,7 +113,7 @@ describe("AISDKLLMBuilders", () => {
   })
 
   describe("buildMetadata", () => {
-    it("maps the call context and merges the additional and telemetry metadata", () => {
+    it("keeps the call context keys and flattens the nested metadata", () => {
       const tools = {
         lookup: tool({
           description: "Looks up a topic",
@@ -131,7 +130,11 @@ describe("AISDKLLMBuilders", () => {
           spanLabel: "classification",
         },
         schema,
-        telemetryMetadata: { "call-tag": "call-tag" },
+        telemetryMetadata: {
+          agent: { type: "Helpful Assistant" },
+          provider: { name: AgentProvider._Mock },
+          model: { name: AgentModel._Mock, thinkingLevel: "LOW" },
+        },
       })
 
       expect(result).toEqual({
@@ -139,8 +142,10 @@ describe("AISDKLLMBuilders", () => {
         agentSessionId: "agent-session-id",
         parentSessionId: "parent-session-id",
         userId: "o:organization-id / p:project-id",
-        "metadata-tag": "metadata-tag",
-        "call-tag": "call-tag",
+        "agent.type": "Helpful Assistant",
+        "provider.name": AgentProvider._Mock,
+        "model.name": AgentModel._Mock,
+        "model.thinking.level": "LOW",
         currentTurn: 2,
         revision: 3,
         outputSchema: JSON.stringify(schema),
@@ -158,7 +163,6 @@ describe("AISDKLLMBuilders", () => {
         userId: "o:organization-id / p:project-id",
         currentTurn: 2,
         revision: 3,
-        "metadata-tag": "metadata-tag",
       })
     })
   })

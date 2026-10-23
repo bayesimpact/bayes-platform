@@ -1,6 +1,7 @@
 import { DocumentsRagMode } from "@caseai-connect/api-contracts"
 import { tool } from "ai"
 import { z } from "zod"
+import type { AdditionalMetadata } from "@/common/interfaces/llm-provider.interface"
 import { buildSubAgentTools } from "./sub-agent-tools"
 import type { ToolExecutionLog } from "./tools/tool-execution-log"
 
@@ -270,9 +271,9 @@ describe("buildSubAgentTools", () => {
           traceId: string
           agentSessionId: string
           parentSessionId?: string
-          additionalMetadata: string[]
         }
       | undefined
+    let capturedMetadata: AdditionalMetadata | undefined
 
     const { tools } = await buildSubAgentTools({
       activeAgentController: {
@@ -323,9 +324,10 @@ describe("buildSubAgentTools", () => {
       generateMasterPrompt: () => "system prompt",
       getProviderForModel: () =>
         ({
-          streamChatResponse: async function* ({ messages, callContext }) {
+          streamChatResponse: async function* ({ messages, callContext, additionalMetadata }) {
             capturedMessages = messages
             capturedCallContext = callContext
+            capturedMetadata = additionalMetadata
             yield "form answer"
           },
         }) as never,
@@ -358,8 +360,8 @@ describe("buildSubAgentTools", () => {
     expect(capturedCallContext?.traceId).toBe("sub-trace-id")
     expect(capturedCallContext?.agentSessionId).toBe("sub-session-id")
     expect(capturedCallContext?.parentSessionId).toBe("parent-session-id")
-    expect(capturedCallContext?.additionalMetadata["agent.parent.trace"]).toBe("parent-trace-id")
-    expect(capturedCallContext?.additionalMetadata["agent.class"]).toBe("sub-agent")
+    expect(capturedMetadata?.agent?.parent?.trace).toBe("parent-trace-id")
+    expect(capturedMetadata?.agent?.class).toBe("sub-agent")
   })
 
   it("runs a conversation sub-agent against a dedicated conversation sub-session", async () => {
@@ -405,9 +407,9 @@ describe("buildSubAgentTools", () => {
           traceId: string
           agentSessionId: string
           parentSessionId?: string
-          additionalMetadata: string[]
         }
       | undefined
+    let capturedMetadata: AdditionalMetadata | undefined
 
     const { tools } = await buildSubAgentTools({
       activeAgentController: {
@@ -458,9 +460,10 @@ describe("buildSubAgentTools", () => {
       generateMasterPrompt: () => "system prompt",
       getProviderForModel: () =>
         ({
-          streamChatResponse: async function* ({ messages, callContext }) {
+          streamChatResponse: async function* ({ messages, callContext, additionalMetadata }) {
             capturedMessages = messages
             capturedCallContext = callContext
+            capturedMetadata = additionalMetadata
             yield "pricing answer"
           },
         }) as never,
@@ -492,8 +495,8 @@ describe("buildSubAgentTools", () => {
     expect(capturedCallContext?.traceId).toBe("sub-trace-id")
     expect(capturedCallContext?.agentSessionId).toBe("sub-session-id")
     expect(capturedCallContext?.parentSessionId).toBe("parent-session-id")
-    expect(capturedCallContext?.additionalMetadata["agent.parent.trace"]).toBe("parent-trace-id")
-    expect(capturedCallContext?.additionalMetadata["agent.class"]).toBe("sub-agent")
+    expect(capturedMetadata?.agent?.parent?.trace).toBe("parent-trace-id")
+    expect(capturedMetadata?.agent?.class).toBe("sub-agent")
   })
 
   it("does not offer a sub-agent that was never published", async () => {

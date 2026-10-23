@@ -12,7 +12,6 @@ import type {
   LLMChatMessage,
   LLMConfig,
   LLMProvider,
-  TelemetryMetadata,
 } from "@/common/interfaces/llm-provider.interface"
 import { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
 import {
@@ -57,9 +56,6 @@ class TestProvider<
   }): LanguageModelV3 {
     this.languageModelCalls.push({ callOrigin, callContext })
     return this.model
-  }
-  getTelemetryMetadata(_config: LLMConfig): TelemetryMetadata {
-    return { test: "tag" }
   }
 }
 
@@ -138,7 +134,6 @@ const callContext: LLMCallContext = {
   projectId: "project-id",
   agentId: "agent-id",
   revision: 1,
-  additionalMetadata: {},
 }
 
 const mockConfig: LLMConfig = {
@@ -154,7 +149,12 @@ async function collect(
   config: LLMConfig = mockConfig,
 ): Promise<string> {
   let text = ""
-  for await (const chunk of provider.streamChatResponse({ messages, config, callContext })) {
+  for await (const chunk of provider.streamChatResponse({
+    additionalMetadata: {},
+    messages,
+    config,
+    callContext,
+  })) {
     text += chunk
   }
   return text
@@ -350,6 +350,7 @@ describe("AISDKLLMProviderBase", () => {
       const provider = new TestProvider(AgentProvider._Mock, model)
 
       const text = await provider.generateText({
+        additionalMetadata: {},
         prompt: "Summarize this.",
         config: mockConfig,
         callContext,
@@ -368,6 +369,7 @@ describe("AISDKLLMProviderBase", () => {
 
       await expect(
         provider.generateText({
+          additionalMetadata: {},
           prompt: "Summarize this.",
           config: { ...mockConfig, model: AgentModel.Gemini25Flash } as LLMConfig,
           callContext,
@@ -389,6 +391,7 @@ describe("AISDKLLMProviderBase", () => {
       const provider = new TestProvider(AgentProvider._Mock, model)
 
       const output = await provider.generateStructuredOutput({
+        additionalMetadata: {},
         message: { role: "user", content: "Give it a title." },
         schema,
         config: mockConfig,
@@ -407,6 +410,7 @@ describe("AISDKLLMProviderBase", () => {
 
       await expect(
         provider.generateStructuredOutput({
+          additionalMetadata: {},
           message: { role: "system", content: "System only" },
           schema,
           config: mockConfig,
@@ -420,6 +424,7 @@ describe("AISDKLLMProviderBase", () => {
       const provider = new TestProviderWithStructuredOutputHooks(AgentProvider._Mock, model)
 
       await provider.generateStructuredOutput({
+        additionalMetadata: {},
         message: { role: "user", content: "Give it a title." },
         schema,
         config: mockConfig,
@@ -436,6 +441,7 @@ describe("AISDKLLMProviderBase", () => {
       const provider = new TestProviderWithStructuredOutputHooks(AgentProvider._Mock, model)
 
       const output = await provider.generateStructuredOutput({
+        additionalMetadata: {},
         message: { role: "user", content: "Give it a title." },
         schema,
         config: mockConfig,

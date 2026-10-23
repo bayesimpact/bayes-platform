@@ -9,7 +9,6 @@ import type {
   LLMChatMessage,
   LLMConfig,
   MockValue,
-  TelemetryMetadata,
 } from "@/common/interfaces/llm-provider.interface"
 import { generateRandomFromJSONSchema } from "@/common/test/random-generator"
 import { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
@@ -151,10 +150,6 @@ export class AISDKMockProvider extends AISDKLLMProviderBase<AgentProvider._Mock>
         },
       ],
     }
-  }
-
-  protected getTelemetryMetadata(_config: LLMConfig): TelemetryMetadata {
-    return {}
   }
 
   getLanguageModel({

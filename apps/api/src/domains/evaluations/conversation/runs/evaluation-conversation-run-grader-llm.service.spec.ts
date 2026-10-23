@@ -97,7 +97,7 @@ describe("EvaluationConversationRunGraderLLMService", () => {
     expect(callArguments.prompt).toContain("The expected answer")
     expect(callArguments.prompt).toContain("<%value>")
     expect(callArguments.prompt).toContain("The generated answer")
-    expect(callArguments.callContext.additionalMetadata["agent.type"]).toBe("Rating Agent")
+    expect(callArguments.additionalMetadata.agent?.type).toBe("Rating Agent")
     expect(callArguments.callContext.traceId).toBe("trace-1")
   })
 
@@ -162,7 +162,7 @@ describe("EvaluationConversationRunGraderLLMService", () => {
     expect(mockProvider.generateText).toHaveBeenCalledTimes(1)
     const callArguments = mockProvider.generateText.mock.calls[0]![0]
     expect(callArguments.config.model).toBe(AgentModel._Mock)
-    expect(callArguments.callContext.additionalMetadata["agent.type"]).toBe("Rating Agent")
-    expect(callArguments.callContext.additionalMetadata.environment).toBe("**TEST**")
+    expect(callArguments.additionalMetadata.agent?.type).toBe("Rating Agent")
+    expect(callArguments.additionalMetadata.environment).toBe("**TEST**")
   })
 })

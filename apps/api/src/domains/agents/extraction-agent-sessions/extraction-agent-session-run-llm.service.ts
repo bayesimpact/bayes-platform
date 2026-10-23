@@ -22,6 +22,7 @@ import {
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectRepository } from "@/domains/projects/project.repository"
 import { LlmServiceBase } from "@/external/llm"
+import { buildAdditionalMetadata } from "@/external/llm/additional-metadata"
 import { modelRequiresPdfAsImages } from "@/external/llm/agent-provider"
 import { LLM_PROVIDERS, type LlmProviders } from "@/external/llm/llm.module"
 import type { Agent } from "../agent.entity"
@@ -125,6 +126,7 @@ export class ExtractionAgentSessionRunLlmService extends LlmServiceBase {
           llmFeatures,
         }),
         callContext: this.buildLLMCallContext({ agent, agentSettings, run, connectScope }),
+        additionalMetadata: buildAdditionalMetadata({ agent, agentSettings }),
       })
 
       run.status = "success"
@@ -295,11 +297,6 @@ export class ExtractionAgentSessionRunLlmService extends LlmServiceBase {
       revision: agentSettings.revision,
       projectId: connectScope.projectId,
       currentTurn: 1,
-      additionalMetadata: {
-        "agent.name": agent.name,
-        "agent.revision": agentSettings.revision,
-        "agent.type": agent.type,
-      },
     }
   }
 }
