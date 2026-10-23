@@ -68,6 +68,7 @@ const toAgentSettings = (dto: AgentSettingsDto): AgentSettings => ({
   hasCategories: dto.hasCategories,
   id: dto.id,
   instructions: dto.instructions,
+  variables: dto.variables,
   isArchived: dto.isArchived,
   isDraft: dto.isDraft,
   locale: dto.locale,

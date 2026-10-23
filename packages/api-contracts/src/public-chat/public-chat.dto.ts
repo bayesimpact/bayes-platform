@@ -87,6 +87,13 @@ export type PublicAgentSessionDto = {
 
 export type CreatePublicSessionRequestDto = {
   externalVisitorId?: string
+  /**
+   * Values of the {{variables}} declared in the agent's instructions. A declared
+   * variable without a value here falls back to the default set on the agent's
+   * (published) settings; with neither, the session is refused with a 400 whose
+   * body carries `code: "MISSING_PROMPT_VARIABLES"` and the `missing` list.
+   */
+  variables?: Record<string, string>
 }
 
 export type CreatePublicSessionResponseDto = {

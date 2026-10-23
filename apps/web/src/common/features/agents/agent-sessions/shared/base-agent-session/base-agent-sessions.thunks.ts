@@ -19,11 +19,17 @@ type BaseAgentSession = ConversationAgentSession | ExtractionAgentSession
 
 export const createAgentChatSession = createAsyncThunk<
   BaseAgentSession,
-  { agentType: Agent["type"]; agentId: string; onSuccess?: (agentSessionId: string) => void },
+  {
+    agentType: Agent["type"]
+    agentId: string
+    /** Values for the {{variables}} the settings revision declares; blanks fall back to its defaults. */
+    variables?: Record<string, string>
+    onSuccess?: (agentSessionId: string) => void
+  },
   ThunkConfig
 >(
   "agentSession/createAgentChatSession",
-  async ({ agentType, agentId }, { extra: { services }, getState }) => {
+  async ({ agentType, agentId, variables }, { extra: { services }, getState }) => {
     if (agentType !== "conversation") {
       throw new Error(`Creation of ${agentType} agent session is not supported yet`)
     }
@@ -42,6 +48,7 @@ export const createAgentChatSession = createAsyncThunk<
       agentId,
       type,
       agentSettingsRevision,
+      variables,
     })
   },
 )

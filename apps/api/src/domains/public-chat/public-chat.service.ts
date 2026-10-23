@@ -43,8 +43,13 @@ export class PublicChatService {
   async createSession(
     embedConfig: AgentEmbedConfig,
     externalVisitorId?: string,
+    callerVariables?: Record<string, string>,
   ): Promise<{ session: PublicAgentSession; sessionToken: string }> {
-    return this.publicAgentSessionsService.createSession(embedConfig, externalVisitorId)
+    return this.publicAgentSessionsService.createSession(
+      embedConfig,
+      externalVisitorId,
+      callerVariables,
+    )
   }
 
   /**
@@ -141,6 +146,11 @@ export class PublicChatService {
             activeAgent: this.publicAgentSessionsService,
           },
           externalVisitorId: publicSession.externalVisitorId,
+          promptVariables: publicSession.variables,
+          // Defaults of the active agent's settings, re-read for the turn: they
+          // force a value into a variable the agent declared after the session
+          // was created.
+          promptVariableDefaults: active.agentSettings.variables ?? null,
         }),
     })
     yield* coalesceTurnsIntoOneReply(turns)

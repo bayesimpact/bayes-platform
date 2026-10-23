@@ -137,6 +137,8 @@ export {
   updateProjectSchema,
 } from "./projects/projects.dto"
 export { ProjectsRoutes } from "./projects/projects.routes"
+// Prompt Variables
+export * from "./prompt-variables/prompt-variables"
 // Public Chat (anonymous embed access)
 export type * from "./public-chat/public-chat.dto"
 export {

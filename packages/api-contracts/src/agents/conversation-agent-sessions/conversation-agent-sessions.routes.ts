@@ -26,6 +26,12 @@ function defineConversationAgentSessionsRoutes(type: BaseAgentSessionTypeDto) {
          * session with the latest published one.
          */
         agentSettingsRevision?: number
+        /**
+         * Values of the {{variables}} the settings revision's instructions declare.
+         * A declared variable without a value falls back to the revision's defaults;
+         * with neither, the session is refused with a 400 `MISSING_PROMPT_VARIABLES`.
+         */
+        variables?: Record<string, string>
       }>
     >({
       method: "post",

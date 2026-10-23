@@ -113,6 +113,11 @@ export type AgentSettingsDto = {
   hasCategories?: boolean
   id: string
   instructions: string
+  /**
+   * Defaults of the {{variables}} the instructions declare: used by every channel
+   * when it starts a session without a value for one of them.
+   */
+  variables: Record<string, string> | null
   isArchived: boolean
   isDraft: boolean
   locale: AgentLocale
@@ -220,6 +225,10 @@ export const agentSettingsValidationSchema = z.object({
   resourceLibraryIds: z.array(z.string().uuid()).optional(),
   memoryMode: z.enum(AgentMemoryMode),
   providerOptions: z.record(z.string(), z.unknown()),
+  // Defaults of the {{variables}} the instructions declare. Keys are the declared
+  // variable names (the session-side resolution drops any value for an undeclared one).
+  // Optional on the update payloads: omitting it keeps the stored defaults, `null` clears.
+  variables: z.record(z.string(), z.string()).nullable().optional(),
 })
 
 export const refineOutputJsonSchema = {
@@ -289,7 +298,7 @@ export const updateAgentSettingsOutputSchema = z.object({
 const greetingMessageUpdateSchema = z.string().max(2000).nullable().optional()
 
 export const updateAgentSettingsGeneralSchema = agentSettingsValidationSchema
-  .pick({ locale: true, instructions: true })
+  .pick({ locale: true, instructions: true, variables: true })
   .extend({
     name: z.string().trim().min(3).max(100),
     greetingMessage: greetingMessageUpdateSchema,

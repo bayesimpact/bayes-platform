@@ -32,17 +32,19 @@ export type AgentEditorOrchestration = {
   subAgents: AgentSubAgent[]
 }
 
-type TabKey =
-  | "general"
-  | "model"
-  | "output"
-  | "sources"
-  | "resourceLibraries"
-  | "tools"
-  | "categories"
-  | "orchestration"
-  | "mcpServers"
-  | "embed"
+export const agentEditorTabKeys = [
+  "general",
+  "model",
+  "output",
+  "sources",
+  "resourceLibraries",
+  "tools",
+  "categories",
+  "orchestration",
+  "mcpServers",
+  "embed",
+] as const
+export type TabKey = (typeof agentEditorTabKeys)[number]
 
 type DirtyHandler = (dirty: boolean) => void
 type TabConfig = {
@@ -61,12 +63,15 @@ export function AgentEditor({
   agentSettings,
   className,
   orchestration,
+  defaultTab,
   onDirtyChange,
 }: {
   agent: Agent
   agentSettings: AgentSettings
   className?: string
   orchestration?: AgentEditorOrchestration
+  /** Which tab to open on (defaults to "general"). Deep links pass the `?tab=` param through. */
+  defaultTab?: TabKey
   /** Reports whether the active tab has unsaved changes, e.g. to disable a publish action. */
   onDirtyChange?: (dirty: boolean) => void
 }) {
@@ -186,7 +191,7 @@ export function AgentEditor({
   }, [agent, agentSettings, project, hasFeature, orchestration, projectMcpServers, t])
 
   const [nav, setNav] = useState<{ active: TabKey; pending: TabKey | null }>({
-    active: "general",
+    active: defaultTab ?? "general",
     pending: null,
   })
   const [dirty, setDirty] = useState(false)

@@ -35,6 +35,11 @@ export class AgentSettings extends ConnectEntityBase {
   @Column({ type: "text", name: "instructions", nullable: false })
   instructions!: string
 
+  // Defaults of the {{variables}} the instructions declare: the fallback every
+  // channel uses when it starts a session without a value for one of them.
+  @Column({ type: "jsonb", name: "variables", nullable: true, default: null })
+  variables!: Record<string, string> | null
+
   @Column({ type: "varchar", nullable: false })
   model!: AgentModel
 

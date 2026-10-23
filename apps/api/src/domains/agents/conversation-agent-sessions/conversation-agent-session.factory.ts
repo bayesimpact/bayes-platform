@@ -64,6 +64,7 @@ export const conversationAgentSessionFactory = ConversationAgentSessionFactory.d
       type: params.type || (params.campaignId ? "review_campaign_tester" : "playground"),
       title: params.title ?? null,
       activeAgentId: params.activeAgentId ?? null,
+      variables: (params.variables as Record<string, string> | undefined) ?? null,
       parentSessionId: params.parentSessionId ?? null,
       isSubSession: (params.parentSessionId ?? null) !== null,
       expiresAt: params.expiresAt ?? defaultExpiresAt,
