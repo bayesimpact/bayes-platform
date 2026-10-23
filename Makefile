@@ -276,11 +276,7 @@ endif
 # the final server listens, so the migrations that follow never race it.
 db-tests:
 ifeq ($(GITHUB_ACTIONS),true)
-	$(DB_TESTS_COMPOSE) --profile storage up -d pgvector redis seaweedfs
-	@for attempt in $$(seq 1 60); do \
-	  curl -s -o /dev/null http://localhost:8333/ && break; \
-	  sleep 1; \
-	done
+	$(DB_TESTS_COMPOSE) --profile storage up -d --wait --wait-timeout 180 pgvector redis seaweedfs
 else
 	$(DB_TESTS_COMPOSE) up -d --no-recreate pgvector redis
 endif
