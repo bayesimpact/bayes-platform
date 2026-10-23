@@ -2,7 +2,6 @@ import { cn } from "@caseai-connect/ui/utils"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import { Grid, GridCard, GridContent, GridHeader } from "@/common/components/grid/Grid"
-import { BaseAgentSessionCreator } from "@/common/features/agents/agent-sessions/shared/base-agent-session/components/BaseAgentSessionCreator"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { getAgentIcon } from "@/common/features/agents/components/AgentIcon"
 import { selectCanReviewConversationsOfAgent } from "@/common/features/me/me.selectors"
@@ -15,6 +14,7 @@ import { useAppSelector } from "@/common/store/hooks"
 import { AgentActions } from "./AgentActions"
 import { AgentAnalyticsCard } from "./AgentAnalyticsCard"
 import { FeedbackButton } from "./FeedbackButton"
+import { PlaygroundAgentSessionCreator } from "./PlaygroundAgentSessionCreator"
 
 export function AgentSessionListHeader({
   agent,
@@ -120,7 +120,7 @@ function CreateSessionButton({
       <GridCard.Body>
         <GridCard.Title>{t(`${prefix}:create.title`)}</GridCard.Title>
         <GridCard.Description>{t(`${prefix}:create.description`)}</GridCard.Description>
-        <BaseAgentSessionCreator
+        <PlaygroundAgentSessionCreator
           agentType={agent.type}
           type="button"
           ids={{ organizationId, projectId, agentId: agent.id }}
