@@ -1,5 +1,12 @@
 import { type ChildProcess, spawn } from "node:child_process"
 import { availableParallelism, cpus } from "node:os"
+// Aliased: `resolve` would shadow the promise resolver in `runCommand`.
+import { resolve as resolvePath } from "node:path"
+import { config as dotenvConfig } from "dotenv"
+
+// Local default for the worker count lives in `.env.test` (TEST_MAX_WORKERS). No override:
+// a shell or CI value (TEST_WORKERS / TEST_MAX_WORKERS) still wins.
+dotenvConfig({ path: resolvePath(__dirname, "../../.env.test"), quiet: true })
 
 type RunCommandResult = {
   exitCode: number

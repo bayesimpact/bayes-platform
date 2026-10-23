@@ -12,6 +12,9 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Agent duplication: copy an agent into a new draft, from its draft or published settings, from the studio or MCP.
 - Test cases: save a good or bad agent answer into an evaluation dataset, from the playground or feedback.
 - (beta) Prompt variables: agents can now declare `{{variables}}` in their instructions, with their values supplied when a session starts.
+- Safety review: list an agent's sessions grouped by category and open one to read it, next to the session id lookup.
+- Agents: Qwen3.8-27B is available as a self-hosted model for projects that enable it.
+- Agents: Gemma 4 31B is available as a self-hosted model for projects with Gemma models.
 - Self-hosting: documents can now be stored on any S3-compatible storage.
 
 ### Changed
@@ -19,6 +22,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Safety review: reviewers can now open embedded chat and extraction sessions, not only studio conversations.
 - AI assistants connected to the platform before this release must reconnect once to keep listing and editing agents.
 - App installation: a clearer authorization screen showing the app, the workspace to choose and each permission.
+- Agents: Mistral Small 3.2 replaces Mistral Small 3.1.
+- Agents: Gemma 4 replaces the retired MedGemma model.
 - Apps API: document upload URLs now accept only the declared file size, sent as `Content-Length`.
 
 ### Fixed

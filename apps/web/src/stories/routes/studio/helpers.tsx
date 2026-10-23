@@ -42,6 +42,7 @@ function flaggedProvidersOf(featureFlags: string[]): AgentProvider[] {
     medgemma: AgentProvider.MedGemma,
     gemma: AgentProvider.Gemma,
     mistral: AgentProvider.Mistral,
+    qwen: AgentProvider.Qwen,
   }
   return featureFlags.flatMap((flag) => (providerByFlag[flag] ? [providerByFlag[flag]] : []))
 }

@@ -12,6 +12,8 @@ import { PublicAgentSessionCategory } from "./public-agent-session-category.enti
 @Entity("public_agent_session")
 @Index(["sessionTokenHash"])
 @Index(["appInstallationId"])
+/** The agent's sessions, read newest first: the review list and the category analytics. */
+@Index(["agentId", "createdAt"])
 @Check(
   "CHK_public_agent_session_one_channel",
   '("embed_config_id" IS NULL) <> ("app_installation_id" IS NULL)',

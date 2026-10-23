@@ -151,9 +151,9 @@ describe("formatAgentModelLabel", () => {
       "gemini-3.6-flash",
       "gemini-3.7-flash",
       "gemini-3.8-flash",
-      "google/medgemma-27b-it",
       "google/gemma-4-26b-A4B-it",
-      "mistralai/Mistral-Small-3.1-24B-Instruct-2503",
+      "google/gemma-4-31B-it",
+      "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
     ])
   })
 
@@ -203,8 +203,12 @@ describe("buildAgentModelOptions", () => {
   })
 
   it("keeps the recommended replacements and the default models available", () => {
-    const options = buildAgentModelOptions(catalog)
-    const replacements = catalog.models.flatMap((entry) =>
+    // A replacement may sit behind the same feature flag as the model it replaces.
+    const flagged = agentModelsCatalogFactory
+      .transient({ flaggedProviders: [AgentProvider.Gemma, AgentProvider.Mistral] })
+      .build()
+    const options = buildAgentModelOptions(flagged)
+    const replacements = flagged.models.flatMap((entry) =>
       entry.deprecation ? [entry.deprecation.recommendedReplacement] : [],
     )
 
@@ -214,15 +218,23 @@ describe("buildAgentModelOptions", () => {
   })
 
   it.each([
-    [AgentProvider.MedGemma, AgentModel.MedGemma10_27B],
-    [AgentProvider.Gemma, AgentModel.Gemma4_26B],
-    [AgentProvider.Mistral, AgentModel.MistralSmall31_24B],
-  ])("adds only the %s model once the API says it is available", (provider, model) => {
+    [AgentProvider.Gemma, AgentModel.Gemma4_26B, AgentModel.Gemma4_31B],
+    [AgentProvider.Mistral, AgentModel.MistralSmall32_24B],
+    [AgentProvider.Qwen, AgentModel.Qwen38_27B],
+  ])("adds only the %s models once the API says they are available", (provider, ...models) => {
     const options = buildAgentModelOptions(
       agentModelsCatalogFactory.transient({ flaggedProviders: [provider] }).build(),
     )
 
-    expect(options).toEqual([...buildAgentModelOptions(catalog), model])
+    expect(options).toEqual([...buildAgentModelOptions(catalog), ...models])
+  })
+
+  it("adds no model for the medgemma flag: MedGemma is retired", () => {
+    const options = buildAgentModelOptions(
+      agentModelsCatalogFactory.transient({ flaggedProviders: [AgentProvider.MedGemma] }).build(),
+    )
+
+    expect(options).toEqual(buildAgentModelOptions(catalog))
   })
 })
 
@@ -237,7 +249,9 @@ describe("describeModelOptionFields", () => {
     AgentModel.Gemini25Pro,
     AgentModel.MedGemma10_27B,
     AgentModel.Gemma4_26B,
-    AgentModel.MistralSmall31_24B,
+    AgentModel.Gemma4_31B,
+    AgentModel.MistralSmall32_24B,
+    AgentModel.Qwen38_27B,
   ])("offers only a temperature for %s", (model) => {
     expect(fieldsOf(model)).toEqual({ temperature })
   })

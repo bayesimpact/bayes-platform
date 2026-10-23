@@ -93,7 +93,10 @@ describe("Agents - getAvailableModels", () => {
       AgentModel.Gemini38Flash,
       AgentModel.MedGemma10_27B,
       AgentModel.Gemma4_26B,
+      AgentModel.Gemma4_31B,
       AgentModel.MistralSmall31_24B,
+      AgentModel.MistralSmall32_24B,
+      AgentModel.Qwen38_27B,
     ])
   })
 
@@ -158,7 +161,9 @@ describe("Agents - getAvailableModels", () => {
     for (const model of [
       AgentModel.MedGemma10_27B,
       AgentModel.Gemma4_26B,
-      AgentModel.MistralSmall31_24B,
+      AgentModel.Gemma4_31B,
+      AgentModel.MistralSmall32_24B,
+      AgentModel.Qwen38_27B,
     ]) {
       expect(entryOf(models, model)?.isAvailable).toBe(false)
     }
@@ -170,7 +175,7 @@ describe("Agents - getAvailableModels", () => {
     const { models } = await subject()
 
     expect(entryOf(models, AgentModel.Gemma4_26B)?.isAvailable).toBe(true)
-    expect(entryOf(models, AgentModel.MistralSmall31_24B)?.isAvailable).toBe(false)
+    expect(entryOf(models, AgentModel.MistralSmall32_24B)?.isAvailable).toBe(false)
   })
 
   it("no longer offers a model past its deprecation date, but still describes it", async () => {
