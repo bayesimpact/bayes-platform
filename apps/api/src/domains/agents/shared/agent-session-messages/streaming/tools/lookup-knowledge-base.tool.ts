@@ -1,4 +1,5 @@
 import { ToolName } from "@caseai-connect/api-contracts"
+import { Logger } from "@nestjs/common"
 import { tool } from "ai"
 import { z } from "zod"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
@@ -6,7 +7,55 @@ import type { DocumentChunkRetrievalService } from "@/domains/documents/embeddin
 import type { RetrievedChunksRegistry } from "./retrieved-chunks-registry"
 import type { ToolExecutionLog } from "./tool-execution-log"
 
+const logger = new Logger("LookupKnowledgeBaseTool")
+
 export const DEFAULT_TOP_K = 20
+
+/**
+ * Upper bound on the characters one lookup returns to the model, all chunks
+ * together. topK bounds the number of chunks, never their size: a parent
+ * chunk is a whole heading section and one lookup was measured at 203k
+ * characters (~65k tokens), half of the 131k-token window of Gemma 4 on
+ * vLLM. Two lookups in one step overflowed it and the turn failed.
+ *
+ * 60k characters is ~20k tokens: three lookups in one step fit next to a
+ * large MCP result, the history and the 16k tokens reserved for the output.
+ */
+export const MAX_LOOKUP_OUTPUT_CHARACTERS = 60_000
+
+/**
+ * A chunk cut to fewer characters than this is noise rather than a passage,
+ * so the budget stops before it instead of returning a stub.
+ */
+const MIN_TRUNCATED_CHUNK_CHARACTERS = 200
+
+/**
+ * Keeps chunks in score order until the budget is reached. The first chunk
+ * that does not fit is cut to the remaining budget, the rest are dropped.
+ */
+export function fitChunksToBudget<Chunk extends { content: string }>({
+  chunks,
+  budget,
+}: {
+  chunks: Chunk[]
+  budget: number
+}): { chunks: Chunk[]; truncatedChunkCount: number } {
+  const keptChunks: Chunk[] = []
+  let remaining = budget
+  for (const chunk of chunks) {
+    if (chunk.content.length <= remaining) {
+      keptChunks.push(chunk)
+      remaining -= chunk.content.length
+      continue
+    }
+    if (remaining >= MIN_TRUNCATED_CHUNK_CHARACTERS) {
+      keptChunks.push({ ...chunk, content: chunk.content.slice(0, remaining) })
+      return { chunks: keptChunks, truncatedChunkCount: 1 }
+    }
+    break
+  }
+  return { chunks: keptChunks, truncatedChunkCount: 0 }
+}
 
 /**
  * Wording is tuned for small open-weight models (Gemma class), which under-call
@@ -79,7 +128,12 @@ export type LookupKnowledgeBaseExecution = {
     chunkIds: string[]
     documentIds: string[]
     documentTagIds: string[]
+    /** Chunks the retrieval found, before the output budget. */
+    retrievedChunkCount: number
+    /** Chunks returned to the model, after the output budget. */
     returnedChunkCount: number
+    /** 1 when the last returned chunk was cut to the budget, 0 otherwise. */
+    truncatedChunkCount: number
     topK: number
   }
 }
@@ -93,7 +147,9 @@ export function buildLookupKnowledgeBaseToolExecutionLog(
       query: execution.input.query,
       topK: DEFAULT_TOP_K,
       documentTagIds: execution.result.documentTagIds,
+      retrievedChunkCount: execution.result.retrievedChunkCount,
       returnedChunkCount: execution.result.returnedChunkCount,
+      truncatedChunkCount: execution.result.truncatedChunkCount,
       chunkIds: execution.result.chunkIds,
       documentIds: execution.result.documentIds,
     },
@@ -135,20 +191,40 @@ export function lookupKnowledgeBaseTool({
         topK: DEFAULT_TOP_K,
         documentTagIds,
       })
-      const modelVisibleChunks = retrievedChunks.map((chunk) => ({
+      const { chunks: returnedChunks, truncatedChunkCount } = fitChunksToBudget({
+        chunks: retrievedChunks,
+        budget: MAX_LOOKUP_OUTPUT_CHARACTERS,
+      })
+      if (returnedChunks.length < retrievedChunks.length || truncatedChunkCount > 0) {
+        logger.warn("Knowledge base lookup output cut to the character budget", {
+          projectId: connectScope.projectId,
+          retrievedChunkCount: retrievedChunks.length,
+          returnedChunkCount: returnedChunks.length,
+          truncatedChunkCount,
+          retrievedCharacters: retrievedChunks.reduce(
+            (total, chunk) => total + chunk.content.length,
+            0,
+          ),
+          budget: MAX_LOOKUP_OUTPUT_CHARACTERS,
+        })
+      }
+      // Only returned chunks get an alias: the model can cite nothing else.
+      const modelVisibleChunks = returnedChunks.map((chunk) => ({
         id: retrievedChunksRegistry?.register(chunk) ?? chunk.chunkId,
         documentTitle: chunk.documentTitle,
         content: chunk.content,
       }))
-      const documentIds = [...new Set(retrievedChunks.map((chunk) => chunk.documentId))]
+      const documentIds = [...new Set(returnedChunks.map((chunk) => chunk.documentId))]
       await onExecute(
         buildLookupKnowledgeBaseToolExecutionLog({
           input,
           result: {
-            chunkIds: retrievedChunks.map((chunk) => chunk.chunkId),
+            chunkIds: returnedChunks.map((chunk) => chunk.chunkId),
             documentIds,
             documentTagIds,
-            returnedChunkCount: retrievedChunks.length,
+            retrievedChunkCount: retrievedChunks.length,
+            returnedChunkCount: returnedChunks.length,
+            truncatedChunkCount,
             topK: DEFAULT_TOP_K,
           },
         }),
@@ -156,7 +232,7 @@ export function lookupKnowledgeBaseTool({
       return {
         retrievedChunks: modelVisibleChunks,
         retrievalMetadata: {
-          returnedChunkCount: retrievedChunks.length,
+          returnedChunkCount: returnedChunks.length,
           topK: DEFAULT_TOP_K,
         },
       }

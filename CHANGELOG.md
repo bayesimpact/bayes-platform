@@ -43,6 +43,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Fixed
 - Sign-in: a sign-in left open for a long time now completes on its own and returns to the last page.
 - (beta) MCP App cards: a stray punctuation mark no longer shows up as a reply next to a card.
+- Knowledge base: a lookup now returns a bounded amount of text, so several lookups in one reply no longer exceed the model's limit.
+- Chat: when a reply is still too long for the model, the chat shows a readable message instead of the provider's error.
 
 ### Security
 

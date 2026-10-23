@@ -94,7 +94,20 @@ export abstract class AISDKLLMProviderBase<Provider extends AgentProvider = Agen
       ...this.buildSpecificProviderOptions({ config }),
     })
 
-    const streamResult = await agent.stream({ messages: aiSDKMessages })
+    // Without onError the AI SDK prints each stream failure with
+    // console.error: ~37 unstructured lines per failure, which bypass the
+    // Nest logger and inflate the error-log alerts. The agent forwards the
+    // option to streamText, though its own stream parameters do not type it.
+    const streamOptions = {
+      messages: aiSDKMessages,
+      onError: ({ error }: { error: unknown }) => {
+        logger.error("Stream failed", {
+          model: config.model,
+          error: error instanceof Error ? error.message : String(error),
+        })
+      },
+    } as Parameters<typeof agent.stream>[0]
+    const streamResult = await agent.stream(streamOptions)
 
     // The AI SDK never throws stream failures at the consumer: they surface
     // as `error` parts on fullStream, which textStream filters out — the
