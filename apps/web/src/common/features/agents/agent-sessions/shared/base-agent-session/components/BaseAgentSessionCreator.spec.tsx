@@ -20,6 +20,15 @@ vi.mock("@/studio/routes/helpers", async (importOriginal) => ({
   isStudioInterface: vi.fn(),
 }))
 
+// No DOM under vitest: the button hands over its click handler so a test can call it.
+let clickButton: ((event: unknown) => void) | undefined
+vi.mock("@caseai-connect/ui/shad/button", () => ({
+  Button: ({ onClick }: { onClick: (event: unknown) => void }) => {
+    clickButton = onClick
+    return null
+  },
+}))
+
 const organization = organizationFactory.build()
 const project = projectFactory.transient({ organization }).build()
 const agent = agentFactory.transient({ project }).build({ type: "conversation" })
@@ -28,7 +37,7 @@ const ids = { agentId: agent.id, projectId: project.id, organizationId: organiza
 /** The slices every app registers: Desk has no `agentSettings` slice. */
 const deskState = {
   projects: { data: { status: ADS.Fulfilled, error: null, value: [project] } },
-  currentIds: { projectId: project.id },
+  currentIds: { organizationId: organization.id, projectId: project.id },
 }
 
 const studioState = {
@@ -45,9 +54,20 @@ const studioState = {
   },
 }
 
-function renderCreator(state: object) {
+function renderCreator(
+  state: object,
+  { type = "menu", createOne = vi.fn() }: { type?: "button" | "menu"; createOne?: () => void } = {},
+) {
+  const store = configureStore({
+    reducer: () => state,
+    middleware: (getDefaultMiddleware) =>
+      getDefaultMiddleware({
+        thunk: { extraArgument: { services: { conversationAgentSessions: { createOne } } } },
+        serializableCheck: false,
+      }),
+  })
   return renderToStaticMarkup(
-    <Provider store={configureStore({ reducer: () => state })}>
+    <Provider store={store}>
       <MemoryRouter>
         <RoutesBuilderProvider
           build={{
@@ -59,7 +79,7 @@ function renderCreator(state: object) {
           }}
         >
           <SidebarProvider>
-            <BaseAgentSessionCreator agentType="conversation" type="menu" ids={ids} />
+            <BaseAgentSessionCreator agentType="conversation" type={type} ids={ids} />
           </SidebarProvider>
         </RoutesBuilderProvider>
       </MemoryRouter>
@@ -74,6 +94,17 @@ describe("BaseAgentSessionCreator", () => {
     vi.mocked(isStudioInterface).mockReturnValue(false)
 
     expect(renderCreator(deskState)).toContain("conversationAgentSession:create.button")
+  })
+
+  it("creates a Desk session without passing the click event on as variables", async () => {
+    vi.mocked(isStudioInterface).mockReturnValue(false)
+    const createOne = vi.fn().mockResolvedValue({ id: "new-session" })
+    renderCreator(deskState, { type: "button", createOne })
+
+    clickButton?.({ type: "click" })
+
+    await vi.waitFor(() => expect(createOne).toHaveBeenCalled())
+    expect(createOne).toHaveBeenCalledWith(expect.objectContaining({ variables: undefined }))
   })
 
   it("renders in the Studio playground, which reads the tested agent settings", () => {

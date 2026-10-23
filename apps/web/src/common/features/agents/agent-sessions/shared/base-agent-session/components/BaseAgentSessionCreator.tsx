@@ -94,8 +94,9 @@ function useCreateSession({ agentType, ids }: Pick<SessionCreatorProps, "agentTy
   )
 }
 
+// The click event is dropped: forwarded to `createSession`, it would be sent as the variables.
 function useThrottledClick(onClick: () => void) {
-  return useMemo(() => throttle(onClick, 2000, { trailing: false }), [onClick])
+  return useMemo(() => throttle(() => onClick(), 2000, { trailing: false }), [onClick])
 }
 
 function SessionCreatorTrigger({
