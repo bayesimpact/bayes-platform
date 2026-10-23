@@ -30,6 +30,10 @@ export const FeatureFlags = [
     description: "(tests purpose only) Access and utilize mistral models.",
   }),
   featureFlag({
+    key: "qwen",
+    description: "Access and utilize qwen models.",
+  }),
+  featureFlag({
     key: "llm-priority-calls",
     description: "Access and set priority for Gemini 3.x models",
   }),

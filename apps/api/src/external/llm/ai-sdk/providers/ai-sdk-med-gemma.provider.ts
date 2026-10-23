@@ -33,7 +33,13 @@ export class AISDKMedGemmaProvider extends AISDKVllmProviderBase<AgentProvider.M
     ),
   }
   protected readonly modelMetadata: Record<MedGemmaAgentModel, ModelMetadata> = {
-    [AgentModel.MedGemma10_27B]: {},
+    // Replaced by Gemma 4, which serves the same projects on the same platform.
+    [AgentModel.MedGemma10_27B]: {
+      deprecation: {
+        deprecatedOn: "2026-10-23",
+        recommendedReplacement: AgentModel.Gemma4_26B,
+      },
+    },
   }
   /** MedGemma uses a different API depending on the call. */
   override getLanguageModel({

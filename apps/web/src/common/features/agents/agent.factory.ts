@@ -82,6 +82,12 @@ const temperatureOnlyOptions = {
   defaultOptions: { temperature: 0 },
 }
 
+/** A temperature-only model whose recommended default temperature is not 0. */
+const temperatureOnlyOptionsDefaultingTo = (temperature: number) => ({
+  ...temperatureOnlyOptions,
+  defaultOptions: { temperature },
+})
+
 /** The options of a Gemini 3.x model: a thinking level, and a temperature for the oldest ones. */
 function vertex3Options({
   temperature,
@@ -189,7 +195,10 @@ const CATALOG: Omit<AgentModelEntry, "isAvailable">[] = [
   {
     model: AgentModel.MedGemma10_27B,
     provider: AgentProvider.MedGemma,
-    deprecation: null,
+    deprecation: {
+      deprecatedOn: "2026-10-23",
+      recommendedReplacement: AgentModel.Gemma4_26B,
+    },
     servedOutsideEu: false,
     ...temperatureOnlyOptions,
   },
@@ -198,19 +207,48 @@ const CATALOG: Omit<AgentModelEntry, "isAvailable">[] = [
     provider: AgentProvider.Gemma,
     deprecation: null,
     servedOutsideEu: false,
-    ...temperatureOnlyOptions,
+    ...temperatureOnlyOptionsDefaultingTo(1),
+  },
+  {
+    model: AgentModel.Gemma4_31B,
+    provider: AgentProvider.Gemma,
+    deprecation: null,
+    servedOutsideEu: false,
+    ...temperatureOnlyOptionsDefaultingTo(1),
   },
   {
     model: AgentModel.MistralSmall31_24B,
     provider: AgentProvider.Mistral,
-    deprecation: null,
+    deprecation: {
+      deprecatedOn: "2026-10-20",
+      recommendedReplacement: AgentModel.MistralSmall32_24B,
+    },
     servedOutsideEu: false,
     ...temperatureOnlyOptions,
+  },
+  {
+    model: AgentModel.MistralSmall32_24B,
+    provider: AgentProvider.Mistral,
+    deprecation: null,
+    servedOutsideEu: false,
+    ...temperatureOnlyOptionsDefaultingTo(0.15),
+  },
+  {
+    model: AgentModel.Qwen38_27B,
+    provider: AgentProvider.Qwen,
+    deprecation: null,
+    servedOutsideEu: false,
+    ...temperatureOnlyOptionsDefaultingTo(0.7),
   },
 ]
 
 /** Models past their deprecation date: the API no longer offers them. */
-const RETIRED_MODELS: AgentModel[] = [AgentModel.Gemini25Flash, AgentModel.Gemini25Pro]
+const RETIRED_MODELS: AgentModel[] = [
+  AgentModel.Gemini25Flash,
+  AgentModel.Gemini25Pro,
+  AgentModel.MistralSmall31_24B,
+  AgentModel.MedGemma10_27B,
+]
 
 /** The default options of a model, as the API sends them. */
 export function catalogDefaultOptions(model: string): Record<string, unknown> {
