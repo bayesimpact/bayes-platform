@@ -84,7 +84,7 @@ runtime.**
   named like it make every symbol and every string on screen greppable.
 * **One way to do each thing.** Every app on the stack follows the same conventions, written once,
   and two recipes cover most changes.
-* **An agent can see its work.** The mock mode renders every screen without the API, a worktree
+* **An agent can see its work.** Storybook renders every screen without the API, a worktree
   environment runs the real stack, and Playwright drives both.
 * **Well-known libraries, read before use.** The stack sticks to libraries with large and current
   documentation, and an agent reads that documentation before it uses an API.
@@ -99,14 +99,14 @@ runtime.**
 | API client | One `fetch` wrapper driven by the route objects and their schemas |
 | Validation | Zod 4, schemas shared with the API through `@caseai-connect/desk-contracts` |
 | Forms | React Hook Form, `zodResolver`, shadcn `Field` components |
-| Tables | TanStack Table v9 (section 2.3), rendered with the shadcn `Table` |
+| Tables | TanStack Table v8 (section 2.3), rendered with the shadcn `Table` |
 | Text | Lingui: English in the components, French in a PO catalog (section 2.10) |
 | UI | Tailwind CSS v4 and shadcn/ui components on Base UI, generated into the Desk, `cva`, `cn()`, lucide-react, sonner |
 | Sign-in | `oidc-client-ts`, in the Desk's own sign-in module (section 2.9) |
-| Tests | Vitest with Testing Library and happy-dom, MSW 2, Playwright |
+| Tests | Vitest with Testing Library and happy-dom, MSW 2, Storybook 10 (section 2.11), Playwright |
 | Quality | Biome, dependency-cruiser, knip |
 
-No Redux, react-router, axios, i18next, Radix or Storybook. Zustand is the only client store
+No Redux, react-router, axios, i18next or Radix. Zustand is the only client store
 allowed, for real global client state and with a human's go.
 
 ### 2.3 Versions and monorepo tooling
@@ -125,23 +125,22 @@ instead, as `@caseai-connect/desk` (private, 0.0.0). The shared lockfile and the
   [monthly dependency check](../monthly-dependency-check.md).
 * A library new to the monorepo enters at its latest stable version: TanStack Router and Query,
   Lingui, Base UI, Testing Library's React package, happy-dom, Playwright, knip. Three choices
-  follow from the lockfile. TanStack Table starts on v9, the first version compatible with the
-  React Compiler, next to the v8 of `apps/web`. MSW stays on 2, which the monorepo's Vitest 4
-  expects, and moves to 3 with Vitest 5. Component tests use happy-dom, since jsdom 30 nests under
-  `apps/desk` and moves the `undici` the API runs on.
-* The latest TanStack Router plugin and knip need Zod 4.6, so the Desk moves the hoisted Zod from
-  4.4.3 to 4.6.7 for every workspace, the API included. The PR that adds them runs the API suite,
-  as does any Desk PR whose lockfile moves a version the API loads.
+  follow from the lockfile. TanStack Table uses the v8 of `apps/web`, one copy for both: v8
+  changes its table in place, which the React Compiler cannot memoize, so the components that call
+  `useReactTable` opt out of it with `"use no memo"`, until a move to v9, the first version
+  compatible with the compiler. Storybook uses the 10 of `apps/web` too. MSW stays on 2, which
+  the monorepo's Vitest 4 expects, and moves to 3 with Vitest 5. Component tests use happy-dom,
+  since jsdom 30 nests under `apps/desk` and moves the `undici` the API runs on.
+* The Desk and its contracts use the Zod 4 the monorepo resolves (4.4 today). Any Desk PR whose
+  lockfile moves a version the API loads runs the API suite.
 * The Desk's dependencies arrive in one deliberate update of the existing `package-lock.json`,
   with npm 11 as in the images. Regenerating the lockfile over a filled `node_modules` drops Linux
   binaries, and `--legacy-peer-deps` prunes peers the API needs, so neither is used. The diff also
   carries about a hundred lines of flag churn. `@hookform/resolvers` stays on 5, since 6.0.0 fails
   to install on a peer conflict.
-* The Desk uses TypeScript 5.9, as `apps/web` does: TypeScript 7.0 ships without a compiler API,
-  which dependency-cruiser, the Nest CLI and ts-jest still need. The kit's fallback, TypeScript 7's
-  `tsc` beside TypeScript 6 for the tools, is not used either: its `@typescript/native` alias
-  hoists and takes over the `tsc` of every workspace without a TypeScript of its own, whose
-  `baseUrl` TypeScript 7 rejects.
+* The Desk type-checks with the monorepo's TypeScript 7 (`tsc`, the root `@typescript/native`
+  alias), while the tools that need a compiler API (dependency-cruiser, Storybook) get TypeScript
+  6 through the root `typescript` alias, as the root `CLAUDE.md` describes.
 * The Desk's tsconfig is already written for 7: `moduleResolution: "bundler"`, no `baseUrl`,
   relative `paths` (`@/*` to `./src/*`), `strict`, `noUncheckedIndexedAccess`,
   `noImplicitOverride`, `noFallthroughCasesInSwitch`, `verbatimModuleSyntax`,
@@ -174,14 +173,18 @@ apps/desk/
       hooks/                hooks that do not touch the network
       schemas.ts            schemas of the app only: a form with no endpoint, a .refine
       index.ts              what the rest of the app may import, and nothing more
+      load-*.ts             the loaders of the feature's routes
     components/ui/          shadcn components, generated by its CLI
-    components/shared/      DataTable, ConfirmDialog, FileDropzone and other compositions
-    lib/                    api-client.ts, stream.ts, auth/, utils.ts
+    components/shared/      DataTable, SidePanel, ExternalLink and other compositions
+    hooks/                  hooks shared by features, such as useNow
+    lib/                    api-client.ts, stream.ts, auth/, polling.ts, not-found.ts and other
+                            code shared by features
     locales/                en.po (source), fr.po
-    styles/                 global.css: Tailwind and the design tokens
-    test/                   setup, MSW handlers, fixture factories
-  e2e/                      Playwright journeys
-packages/desk-contracts/    the Desk's routes and Zod schemas, shared with the API
+    stories/                stories of the whole Desk, one per state of its mocked world
+    styles/                 global.css (Tailwind and the design tokens), shadcn.css
+    test/                   setup, MSW handlers, fixture factories, render helpers
+  .storybook/               Storybook on the MSW handlers
+packages/desk-contracts/    the Desk's routes and Zod schemas
 ```
 
 dependency-cruiser enforces the direction of imports between the folders of `src/`:
@@ -189,7 +192,7 @@ dependency-cruiser enforces the direction of imports between the folders of `src
 * `routes/` imports feature `index.ts` files, `components/`, `lib/` and `app/`.
 * A feature imports another feature through its `index.ts` only, and preferably not at all: shared
   code moves to `lib/` or `components/shared/`.
-* `components/` and `lib/` import neither `features/` nor `routes/`.
+* `components/`, `hooks/` and `lib/` import neither `features/` nor `routes/`.
 * The Desk imports nothing from another app or from a package another app owns: `apps/web`,
   `apps/api`, `packages/ui` and `packages/api-contracts` are out of bounds. Its only workspace
   dependency is `@caseai-connect/desk-contracts`. Only `lib/auth/` imports `oidc-client-ts`.
@@ -229,17 +232,26 @@ second one starts (section 7).
 * The Desk keeps today's URLs, so bookmarks and links from Studio keep working:
   `/app/o/$organizationId/p/$projectId`, and under it `/a/$agentId`,
   `/a/$agentId/as/$agentSessionId`, `/a/$agentId/extraction`,
+  `/a/$agentId/extraction/csv/$documentId` (the setup of a CSV file's run, new),
   `/a/$agentId/extraction/csv-runs/$csvRunId` and `/a/$agentId/extraction/runs/$extractionRunId`.
   `/app` becomes the Desk's home (section 2.9), and `/app/o/$organizationId` redirects to it; today
   the first shows an endless loader and the second the not-found page.
 * Route files compose features and hold no business logic. Search params are validated by Zod 4
-  schemas given directly to `validateSearch`, with no adapter, and path params by Zod schemas
-  through `params.parse`. The URL holds filters, pagination, sorting and tabs, and a loader that
+  schemas given directly to `validateSearch`, with no adapter, and path params through
+  `params.parse`: an id that is not a UUID makes the page not found before any request (`uuidParams`
+  in `lib/not-found.ts`). The URL holds filters, pagination, sorting and tabs, and a loader that
   reads search params declares them in `loaderDeps`.
 * A loader starts every query its screen needs, in parallel, through the QueryClient of the router
-  context: `context.queryClient.query({ ...xxxQueryOptions(...), staleTime: "static" })`, the form
-  TanStack Query 5.102 gives for the deprecated `ensureQueryData`. The loader returns cached data
-  at once, and the component's `useSuspenseQuery` refreshes it in the background when it is stale.
+  context: `context.queryClient.query({ ...xxxQueryOptions(...), staleTime: loaderStaleTime })`,
+  the form TanStack Query 5.102 gives for the deprecated `ensureQueryData`. The loader returns
+  cached data at once, and the component's `useSuspenseQuery` refreshes it in the background when
+  it is stale. `loaderStaleTime` is `"static"` unless the query was invalidated: a plain
+  `"static"` returns even an invalidated query's data, so a mutation's invalidation of a query no
+  component observes would never reach the next loader.
+  A query a loader does not wait for starts the same way, its error swallowed for the section that
+  reads it (`startQuery` in `lib/start-query.ts`), since `prefetchQuery` is deprecated too. Each
+  feature's loaders sit in its `load-*.ts`, as `loadX(queryClient, params, deps?)`, and turn the
+  API's 403, 404 and 422 into the not-found page (`orNotFound`).
 * Components read with `useSuspenseQuery` or `useSuspenseQueries`, so data is always defined: no
   `isLoading`, no `data?.`, no `if (!data)`. A component never chains `useSuspenseQuery` calls on
   queries its loader did not start, since each would wait for the one before.
@@ -249,8 +261,10 @@ second one starts (section 7).
   boundary.
 * `useQuery` is an exception, justified in a one-line comment: a conditional query, optional data
   such as a badge, or live search with `placeholderData: keepPreviousData`.
-* Each feature has a query key factory (`conversationKeys.detail(id)`), and each query is a
+* Each feature has a query key factory (`conversationKeys.messages(id)`), and each query is a
   `queryOptions` factory in `features/<feature>/api/queries.ts`, shared by loaders and components.
+  The cache is read and written through `xxxQueryOptions(...).queryKey`, which carries the data's
+  type, never through a bare key and a type argument.
   The router's `defaultPreloadStaleTime` is 0, so TanStack Query alone decides freshness. Queries
   never retry a 4xx, and mutations never retry.
 
@@ -270,8 +284,9 @@ second one starts (section 7).
   wrapper, as the kit prescribes. `useWatch` replaces `watch()`, which the React Compiler cannot
   memoize.
 * A 400 from a Desk endpoint carries the Zod issues (section 2.13), and the mutation maps them onto
-  the fields with `setError`. Other failures become a toast. The submit button is disabled while the
-  form submits, and a submitted form confirms its outcome with a toast.
+  the fields with `setError`. Other failures become a toast. In phase 1, the existing endpoints
+  answer a 400 with one message string, and every API failure becomes a toast. The submit button is
+  disabled while the form submits, and a submitted form confirms its outcome with a toast.
 * Every data table goes through one `DataTable` in `components/shared/`. Column definitions sit in
   `features/<feature>/components/<entity>-columns.tsx`, typed on the row type. A server-paginated
   table uses TanStack Table's manual pagination, sorting and filtering. Its state lives in
@@ -302,6 +317,10 @@ status stream with `fetch` and a reader that also accepts the `id:` lines Nest w
   `streaming`, its query refetches every 2 s (`refetchInterval`), with a pause while the tab is
   hidden, until the status settles. After 3 failures in a row or 30 minutes, the reply shows as
   interrupted.
+* **Document and CSV run status, phase 1.** Until the Desk's status stream exists, the queries of
+  a run and of the history poll while a run goes on (`pollWhile` in `lib/polling.ts`): every 2 s
+  on a run's page, every 5 s in the history, while the tab is visible, and no more after 3 failures
+  in a row. A CSV run keeps polling for a minute after it ends, while its results file arrives.
 * **Document and CSV run status.** One status stream per agent stays open while runs are in
   progress and a mounted screen reads it, and reconnects with an exponential backoff from 1 s to
   15 s. Its events patch a run's status in the cache, and a final status invalidates the affected
@@ -329,10 +348,13 @@ edits the conversation's query.
   clears the QueryClient and invalidates the router, and so does a session that ends in another
   Desk tab or on a failed refresh.
 * **Home, invitations, access and terms.** `/app` shows the caller's pending agent invitations, to
-  accept or decline, and the projects where they hold `desk.ui.read`. An agent invitation's link
-  opens the Desk (section 2.13). Desk endpoints answer 403 to a caller without `desk.ui.read`
-  (section 2.13), and when `GET {project}` (section 3) does, the Desk shows its not-found page. A
-  person who has not accepted the current terms accepts them in the Desk before anything else.
+  accept or decline, and the projects where they hold `desk.ui.read`. In phase 1, `/app` opens the
+  agent the person used last, or the first one; it shows a page of its own only when there is no
+  agent, and the invitations wait behind an envelope at the bottom of the sidebar. An agent
+  invitation's link opens the Desk (section 2.13). Desk endpoints answer 403 to a caller without
+  `desk.ui.read` (section 2.13), and when `GET {project}` (section 3) does, the Desk shows its
+  not-found page. A person who has not accepted the current terms accepts them in the Desk before
+  anything else.
 * **Runtime configuration.** One build serves every install. `src/app/config.ts` reads
   `window.__CONFIG__`, which the API injects into the Desk's `index.html` from an allowlist of the
   Desk's own (`DESK_*` variables, with the OIDC defaults the API already derives), and falls back
@@ -396,9 +418,9 @@ export function ConversationListHeader({ count, onCreate }: ConversationListHead
   agent settings (`.claude/settings.json` for Claude Code), so every session in the repo has them,
   kept up to date by Lingui. When a skill and these rules disagree, on where the catalogs live for
   example, these rules win.
-* The Desk keeps its own language choice: the browser's language first, then the person's pick in
-  the user menu. Dates and numbers go through `Intl`. Zod messages shown in forms go through Lingui
-  too. `<html translate="no">` stays, because browser translation breaks streamed text.
+* The Desk keeps its own language choice: the person's pick in the user menu first, else the
+  browser's language. Dates and numbers go through `Intl`. Zod messages shown in forms go through
+  Lingui too. `<html translate="no">` stays, because browser translation breaks streamed text.
 * Code, identifiers, commits and source texts are in English.
 
 ### 2.11 Tests and quality gate
@@ -411,27 +433,52 @@ export function ConversationListHeader({ count, onCreate }: ConversationListHead
   Handlers live in `src/test/msw/`. Their fixtures come from factories whose output goes through the
   Desk response schemas, so a mock cannot drift from the contract. Stream handlers return a
   `ReadableStream`, since MSW's `sse()` only intercepts `EventSource`.
-* A mock mode (`npm run dev:mock -w @caseai-connect/desk`) serves the Desk with the same handlers
-  in the browser, to build or check a screen without the API. It takes the place of the route
-  stories of ADR 0010.
+* Storybook (`npm run storybook -w @caseai-connect/desk`) serves the Desk on the same handlers, to
+  build or check a screen without the API. Each story of `src/stories/` builds its own world of
+  the handlers and opens the whole Desk at a page, with a memory history: the person navigates
+  from there as in the Desk, so a story is both a state and the start of a journey. It takes the
+  place of the route stories of ADR 0010, and of the mock mode the first version had (section 5).
+  The worktree environment serves it, which makes a state easy to share.
 * Playwright covers the critical journeys (sign-in, a conversation, a document run, a CSV run)
-  against a worktree environment, with the real API and database.
+  against a worktree environment, with the real API and database. It joins once the journeys are
+  written; until then the route specs and the stories cover them on the mocked API.
+* Tests and stories are part of every change, never a follow-up: a new behaviour comes with the
+  spec that checks it, a new state of a screen (empty, loading, error, a role, a long list) with
+  its story, and a changed screen updates its specs and stories in the same change. They are how a
+  change shows what it breaks, on purpose or not: a spec fails on a behaviour that moved, and the
+  stories, which the tests render one by one, fail on a page that no longer renders and show a
+  reviewer the rest. An agent writes code fast; without them, nobody sees what it changed beyond
+  what it was asked. A change without its tests and stories is not done.
 * Every bug fix comes with the test that would have caught it. Ids in tests come from
   `randomUUID()`, since `z.uuid()` rejects the hand-written ids some existing specs use.
 * `npm run check -w @caseai-connect/desk` runs the typecheck, Biome, dependency-cruiser, knip, the
   translation checks and Vitest. It passes after each significant change, on top of the repo's
   completion criteria.
+* A rule a tool can check is checked by a tool, since an agent forgets a written rule and never a
+  failing check. Biome's GritQL plugins (`apps/desk/biome-plugins/`) hold the rules a syntax
+  pattern shows, such as an unjustified `useQuery`, an effect that only sets a state, or a
+  `useReactTable` without `"use no memo"`; a script checks that a component file exports one
+  component, named like the file. The React Compiler fails the dev server, Storybook and the tests
+  on any component it gives up on (`panicThreshold`): it leaves such a component unmemoized without
+  a word, and its reason most often names code that breaks a rule of React. The production build
+  keeps the default and ships the component unmemoized.
+* What no tool sees goes to a review: the `frontend-conventions-reviewer` agent
+  (`.claude/agents/`) reads a diff against the conventions, and the `end-feature` skill runs it
+  before the PR.
 
 ### 2.12 The Desk contract
 
 Desk contracts live in a package of their own, `packages/desk-contracts`
 (`@caseai-connect/desk-contracts`), written the way `packages/api-contracts` is: one folder per area
-(`project`, `account`, `conversations`, `memories`, `extraction`), each with an `{area}.dto.ts` that
+(`account`, `agent-sessions`, `agents`, `conversations`, `documents`, `extractions`,
+`invitations`, `memories`, `organizations`, `projects`, and `common` for the error body and the
+params every area extends), each with an `{area}.dto.ts` that
 holds the Zod schemas and an `{area}.routes.ts`, the `{ payload }` and `{ data }` envelopes, the
 CRUD keys `getAll`, `getOne`, `createOne`, `updateOne` and `deleteOne`, and one `Desk{Area}Routes`
 object per area. It depends on Zod alone and imports nothing from `packages/api-contracts`. The
-Desk resolves it as source through its `exports`. The API requires its CommonJS build at runtime and
-maps it to its source in Jest, as it does for `api-contracts`.
+Desk resolves it as source through its `exports`. Once Desk endpoints exist (section 2.13), the API
+requires its CommonJS build at runtime and maps it to its source in Jest, as it does for
+`api-contracts`; in phase 1 the API does not import it.
 
 * A route is declared with `defineSchemaRoute`, a helper of the package. It takes the method, the
   path and the schemas of the params, query, body and response, plus the event schema of a stream,
@@ -462,10 +509,21 @@ maps it to its source in Jest, as it does for `api-contracts`.
   `limit`, with a 0-based page and a limit of 100 at most, which maps onto TanStack Table pages. The
   kit's cursor pagination is not adopted.
 * Reads are GET, which fits TanStack Query and HTTP semantics.
-* Contract files compile under the TypeScript 5.5 the API uses as well as the Desk's 5.9, so they
-  keep to 5.5 syntax.
+* The params of every route extend `agentParamsSchema` or `projectParamsSchema` of `common/`, and
+  each area exports the `Dto` of the params the Desk passes (`AgentParamsDto`,
+  `ConversationParamsDto`). The Desk's client keeps the keys a route declares, so a caller passes
+  a wider object as it is.
 
 ### 2.13 Desk endpoints on the API
+
+**Phase 1 (Alexis, 2026-10-21).** The Desk is first built on the API as it is, and this section
+waits for the backend to be rebuilt, once the Desk's screens are right. Until then, `apps/api`
+changes as little as possible and only in its usual way. The Desk reads the existing endpoints,
+filtering on the client what they return for every app, and a missing endpoint is written like the
+other routes and controllers of `apps/api`, with `ZodValidationPipe` on its body.
+`packages/desk-contracts` describes the routes the Desk calls and the fields it reads, the Desk
+checks every response against it, and the API does not import it. `docs/frontend/conventions.md`
+holds the rules of this phase.
 
 * The Desk is the first app with endpoints of its own, and the next apps follow the same pattern: a
   contracts package, a path prefix and an API module named after the app, and an access guard on the
@@ -608,14 +666,22 @@ The kit's way of working comes with its stack:
   then into the rules.
 * Follow the patterns already in `apps/desk`. When in doubt, find an example there and imitate it,
   then read the library's documentation. Reading `apps/web` to learn what a screen does today is
-  fine, but its code follows ADR 0011 and is never imported, copied or taken as a model. The
-  sign-in module is the one exception, copied once at the start (section 2.9).
+  fine, but its code follows ADR 0011 and is never imported, copied or taken as a model. Two
+  exceptions were copied once, each with a human's go: the sign-in module at the start (section
+  2.9), and the Desk's dictation.
 * One way to do each thing, little magic, small verified changes, and no unrequested refactor
   alongside a feature.
-* Never guess an API: read the library's documentation first, from its official source. Many of
-  the stack's libraries publish it for agents, as an `llms.txt` index or as a Markdown version of
-  each page (`https://lingui.dev/ref/macro.md`), which costs the fewest tokens. When the
-  documentation contradicts these rules, stop, explain, propose a change and wait for a human's go.
+* Never guess an API. A signature comes from the types in `node_modules`, which describe the exact
+  version installed, where an agent's memory and the documentation's `latest` may describe
+  another. How and why come from the official documentation, which the conventions link next to
+  the rule each page supports, rather than to a site's home: an agent that is sure of itself
+  seldom looks something up, and a precise link costs it one read. Many of the stack's libraries
+  publish their pages for agents, as an `llms.txt` index or as a Markdown version of each page
+  (`https://lingui.dev/ref/macro.md`), which costs the fewest tokens. When the documentation
+  contradicts these rules, stop, explain, propose a change and wait for a human's go.
+* Follow the reference files `apps/desk/AGENTS.md` names, one per kind of code (a route with its
+  loader, a query, a mutation, a form, a table, a stream): an agent imitates code more faithfully
+  than it applies a written rule.
 * Ask a human before an architecture decision, a new dependency, a version change or an action on
   a shared or remote system. A human types every secret.
 * The first PR carries one real endpoint and the screen that reads it, end to end: contract, guards,
@@ -636,8 +702,9 @@ The kit's way of working comes with its stack:
 * Definition of done: `check` passes with no ignored warning, `vite build` works, and the build
   served under `/app/` by `vite preview` loads and reloads a deep link. Screens load through their
   loader and `useSuspenseQuery` with skeletons, each `useQuery` carries its justification, error
-  states offer a retry, empty states exist, every new text has its French translation, and the
-  screen was checked at desktop and phone widths. No API type is written by hand, and there is no
+  states offer a retry, empty states exist, every new text has its French translation, every new
+  behaviour has its spec and every new state its story, and the screen was checked at desktop and
+  phone widths. No API type is written by hand, and there is no
   dead code, `console.log`, unflagged TODO or unjustified dependency. The work ends with a summary
   of what was done, what remains, the decisions these rules did not cover, and the actions left to a
   human, such as registering a redirect URI with an install's identity provider.
@@ -711,9 +778,10 @@ part of it invalidates.
 * The repo holds two frontend conventions, two translation libraries and two primitive libraries
   until the last app leaves `apps/web`: ADR 0011, i18next and Radix there, this ADR, Lingui and Base
   UI on the new stack. The skills scoped to
-  `apps/web` (`check-use-state`, `check-factories-and-stories`, `storybook-screenshot`, the
-  frontend half of `crud-generator`) do not apply to the new stack, and its `check` script, mock
-  mode and recipe skills take their place.
+  `apps/web` (`check-use-state`, `check-factories-and-stories`, the frontend half of
+  `crud-generator`) do not apply to the new stack, and its `check` script, Storybook and recipe
+  skills take their place. `storybook-screenshot` works on the Desk's stories once given the
+  Storybook's URL.
 * Responses are parsed twice, once by each side. Zod 4 keeps that small for Desk payloads; if large
   transcripts make it visible, `z.compile` (Zod 4.5 and later) is the first lever.
 * The cutover needs a second build served at `/app`, the Desk's theme mount and redirect URIs in
@@ -754,8 +822,12 @@ part of it invalidates.
   and a deployed API.
 * **ISO date strings with Zod codecs.** The rest of the API sends epoch milliseconds, and one
   convention is easier to hold than two.
-* **Storybook stories per route.** MSW handlers, the mock mode and Playwright cover the same need;
-  stories can come back later on the same handlers.
+* **A mock mode instead of Storybook.** The first version served the Desk on the handlers with
+  `npm run dev:mock` and picked a state with `?mock=<scenario>`. Storybook replaced it on
+  2026-10-21, on the same handlers: a story keeps a state at a link, the worktree environment
+  serves and shares it, screenshots come per story, and a story of the whole Desk still lets the
+  person go from page to page. The address bar no longer follows the page, which the story's
+  starting page makes up for.
 
 ## 6. Open questions
 

@@ -1,0 +1,1342 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2026-10-20 22:25+0200\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: fr\n"
+
+#: src/features/extraction/components/DeleteDocumentDialog.tsx
+msgid "\"{name}\" will no longer be offered for an extraction. Its past extractions stay in the history."
+msgstr "« {name} » ne sera plus proposé pour une extraction. Ses extractions passées restent dans l’historique."
+
+#: src/features/history/components/DeleteEntryDialog.tsx
+msgid "\"{title}\" and its messages will be deleted. This cannot be undone."
+msgstr "« {title} » et ses messages seront supprimés. Cette action est définitive."
+
+#: src/components/shared/ExternalLink.tsx
+msgid "(opens in a new tab)"
+msgstr "(s'ouvre dans un nouvel onglet)"
+
+#. A document the person may accept or not
+#: src/features/account/components/TermsCheckbox.tsx
+msgid "(optional)"
+msgstr "(facultatif)"
+
+#. A document the person must accept
+#: src/features/account/components/TermsCheckbox.tsx
+msgid "(required)"
+msgstr "(obligatoire)"
+
+#: src/features/conversation/components/Composer.tsx
+msgid "{annotationCount, plural, one {Send with # annotation} other {Send with # annotations}}"
+msgstr "{annotationCount, plural, one {Envoyer avec # annotation} other {Envoyer avec # annotations}}"
+
+#: src/features/invitations/components/InvitationsButton.tsx
+msgid "{count, plural, one {# pending invitation} other {# pending invitations}}"
+msgstr "{count, plural, one {# invitation en attente} other {# invitations en attente}}"
+
+#: src/features/conversation/components/SourcesList.tsx
+msgid "{count, plural, one {Used # source} other {Used # sources}}"
+msgstr "{count, plural, one {# source utilisée} other {# sources utilisées}}"
+
+#: src/features/conversation/components/ToolSteps.tsx
+msgid "{count, plural, one {Used a tool} other {Used tools}}"
+msgstr "{count, plural, one {A utilisé un outil} other {A utilisé des outils}}"
+
+#: src/features/extraction/components/CsvRunProgress.tsx
+msgid "{errors, plural, one {# failed} other {# failed}}"
+msgstr "{errors, plural, one {# en échec} other {# en échec}}"
+
+#: src/features/extraction/components/RecentDocuments.tsx
+msgid "{hiddenCount, plural, one {Show # more document} other {Show # more documents}}"
+msgstr "{hiddenCount, plural, one {Afficher # autre document} other {Afficher # autres documents}}"
+
+#: src/features/extraction/components/NewExtraction.tsx
+msgid "{name} cannot be read. Give a PDF, a PNG or JPEG image, a text or a CSV file."
+msgstr "{name} ne peut pas être lu. Donnez un PDF, une image PNG ou JPEG, un texte ou un fichier CSV."
+
+#: src/features/extraction/components/NewExtraction.tsx
+msgid "{name} could not be uploaded. Try again."
+msgstr "{name} n’a pas pu être envoyé. Réessayez."
+
+#: src/features/extraction/components/NewExtraction.tsx
+msgid "{name} is empty."
+msgstr "{name} est vide."
+
+#: src/features/history/hooks/use-finished-run-toasts.ts
+msgid "{name} is extracted."
+msgstr "{name} est extrait."
+
+#: src/features/extraction/components/NewExtraction.tsx
+msgid "{name} is larger than {maxSize}."
+msgstr "{name} dépasse {maxSize}."
+
+#: src/features/extraction/components/DeleteDocumentDialog.tsx
+msgid "{name} was deleted."
+msgstr "{name} a été supprimé."
+
+#. The button of the person's menu, which shows their name
+#: src/features/account/components/UserMenu.tsx
+msgid "{name}, menu of {email}"
+msgstr "{name}, menu de {email}"
+
+#: src/features/extraction/components/CsvRunProgress.tsx
+msgid "{processed} of {total, plural, one {# row} other {# rows}}"
+msgstr "{processed} sur {total, plural, one {# ligne} other {# lignes}}"
+
+#: src/features/extraction/components/CsvSetup.tsx
+msgid "{rowCount, plural, one {Extract the first row} other {Extract the first # rows}}"
+msgstr "{rowCount, plural, one {Extraire la première ligne} other {Extraire les # premières lignes}}"
+
+#: src/features/extraction/components/CsvRunProgress.tsx
+msgid "{running, plural, one {# running} other {# running}}"
+msgstr "{running, plural, one {# en cours} other {# en cours}}"
+
+#: src/features/conversation/components/Composer.tsx
+msgid "<0/> to send"
+msgstr "<0/> pour envoyer"
+
+#: src/features/conversation/components/Composer.tsx
+msgid "<0><1/><2/></0> for a new line"
+msgstr "<0><1/><2/></0> pour aller à la ligne"
+
+#: src/features/extraction/components/CsvSetup.tsx
+msgid "<0>Read</0>: the agent reads it. <1>Keep</1>: shown beside the results. <2>Skip</2>: left out."
+msgstr "<0>Lire</0> : l’agent la lit. <1>Garder</1> : affichée à côté des résultats. <2>Ignorer</2> : laissée de côté."
+
+#: src/components/shared/RouteErrorState.tsx
+msgid "A new version of the Desk is available"
+msgstr "Une nouvelle version du Desk est disponible"
+
+#: src/features/conversation/components/ReplyError.tsx
+msgid "A new version of the Desk is available. Reload the page."
+msgstr "Une nouvelle version du Desk est disponible. Rechargez la page."
+
+#: src/features/invitations/components/InvitationItem.tsx
+msgid "Accept"
+msgstr "Accepter"
+
+#: src/features/account/components/TermsPage.tsx
+msgid "Accept and continue"
+msgstr "Valider et continuer"
+
+#: src/features/account/components/TermsPage.tsx
+msgid "Accept the general conditions and the privacy policy to continue."
+msgstr "Acceptez les conditions générales et la politique de confidentialité pour continuer."
+
+#: src/features/invitations/components/InvitationItem.tsx
+msgid "Accept the invitation to {name}"
+msgstr "Accepter l’invitation à {name}"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Account already exists"
+msgstr "Compte déjà existant"
+
+#: src/features/history/components/HistoryEntryActions.tsx
+msgid "Actions on {title}"
+msgstr "Actions sur {title}"
+
+#. The role an invitation grants
+#: src/features/invitations/components/InvitationItem.tsx
+msgid "admin"
+msgstr "administrateur"
+
+#. What an invitation gives access to
+#: src/features/invitations/components/InvitationItem.tsx
+msgid "Agent"
+msgstr "Agent"
+
+#. The agent that fills in a form, when it has no name
+#: src/features/conversation/components/FormsPanel.tsx
+msgctxt "form"
+msgid "Agent"
+msgstr "Agent"
+
+#: src/features/extraction/components/csv-record-columns.tsx
+#: src/features/extraction/components/CsvRecordPanel.tsx
+msgid "Agent's answers"
+msgstr "Réponses de l’agent"
+
+#: src/features/account/components/TermsPage.tsx
+msgid "AI systems usage policy"
+msgstr "politique d’utilisation des systèmes d’intelligence artificielle"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "An account already exists for your email address, and this platform does not link a new sign-in to an existing account."
+msgstr "Un compte existe déjà pour votre adresse email, et cette plateforme ne relie pas une nouvelle connexion à un compte existant."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "An account is waiting for your email address, but your identity provider has not verified it yet."
+msgstr "Un compte attend votre adresse email, mais votre fournisseur d’identité ne l’a pas encore vérifiée."
+
+#: src/features/conversation/components/QuoteReplyPopover.tsx
+msgid "Annotate and press Enter to keep it"
+msgstr "Annotez, puis appuyez sur Entrée pour garder la note"
+
+#: src/features/invitations/components/InvitationItem.tsx
+msgid "As {role}"
+msgstr "En tant que {role}"
+
+#: src/features/conversation/components/Composer.tsx
+msgid "Attach a file"
+msgstr "Joindre un fichier"
+
+#: src/features/conversation/hooks/use-attachment.ts
+msgid "Attach a file of {maxSize} at most."
+msgstr "Joignez un fichier de {maxSize} au plus."
+
+#: src/features/conversation/hooks/use-attachment.ts
+msgid "Attach a PDF, PNG or JPEG file."
+msgstr "Joignez un fichier PDF, PNG ou JPEG."
+
+#: src/features/conversation/components/AttachmentChip.tsx
+msgid "Attachment"
+msgstr "Pièce jointe"
+
+#: src/components/shared/NotFoundState.tsx
+msgid "Back to the Desk"
+msgstr "Retour au Desk"
+
+#: src/features/account/components/TermsPage.tsx
+msgid "Before you start"
+msgstr "Avant de commencer"
+
+#: src/features/account/components/EditNameDialog.tsx
+#: src/features/conversation/components/FeedbackDialog.tsx
+#: src/features/extraction/components/CsvSetup.tsx
+#: src/features/extraction/components/DeleteDocumentDialog.tsx
+#: src/features/history/components/DeleteEntryDialog.tsx
+#: src/features/memory/components/MemoryPanel.tsx
+#: src/features/memory/components/MemoryRewordForm.tsx
+msgid "Cancel"
+msgstr "Annuler"
+
+#: src/components/shared/RouteErrorState.tsx
+msgid "Check your connection, then try again."
+msgstr "Vérifiez votre connexion, puis réessayez."
+
+#: src/features/extraction/components/FileDropZone.tsx
+msgid "Choose a file"
+msgstr "Choisir un fichier"
+
+#: src/features/extraction/components/CsvSetup.tsx
+msgid "Choose at least one column for the agent to read."
+msgstr "Choisissez au moins une colonne que l’agent lira."
+
+#: src/components/shared/SidePanel.tsx
+msgid "Close the panel"
+msgstr "Fermer le panneau"
+
+#: src/features/extraction/components/CsvSetup.tsx
+msgid "Columns"
+msgstr "Colonnes"
+
+#: src/features/conversation/components/FormsButton.tsx
+msgid "Completed form"
+msgstr "Formulaire complété"
+
+#: src/features/conversation/components/ToolSteps.tsx
+msgid "Completing the form"
+msgstr "Finalisation du formulaire"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Contact your administrator."
+msgstr "Contactez votre administrateur."
+
+#. The copy button, once it copied its text
+#: src/components/shared/CopyButton.tsx
+msgid "Copied"
+msgstr "Copié"
+
+#: src/features/extraction/components/ResultFields.tsx
+msgid "Copy {label}"
+msgstr "Copier {label}"
+
+#: src/components/shared/HighlightedCodeBlock.tsx
+msgid "Copy the code"
+msgstr "Copier le code"
+
+#: src/features/extraction/components/ResultFileActions.tsx
+msgid "Copy the JSON"
+msgstr "Copier le JSON"
+
+#: src/features/conversation/components/ChatMessageView.tsx
+msgid "Copy the message"
+msgstr "Copier le message"
+
+#: src/features/conversation/components/AssistantMessageView.tsx
+msgid "Copy the reply"
+msgstr "Copier la réponse"
+
+#. The kind of a document the person uploaded
+#: src/features/extraction/components/DocumentRow.tsx
+msgid "CSV"
+msgstr "CSV"
+
+#. An extraction of every row of a spreadsheet
+#: src/features/history/history-entries.ts
+msgid "CSV extraction"
+msgstr "Extraction CSV"
+
+#: src/features/extraction/components/CsvRunView.tsx
+#: src/features/extraction/components/CsvSetup.tsx
+msgid "CSV file"
+msgstr "Fichier CSV"
+
+#. The Control key of a keyboard
+#: src/components/shared/SidebarToggle.tsx
+msgid "Ctrl"
+msgstr "Ctrl"
+
+#: src/features/invitations/components/InvitationItem.tsx
+msgid "Decline"
+msgstr "Refuser"
+
+#: src/features/invitations/components/InvitationItem.tsx
+msgid "Decline the invitation to {name}"
+msgstr "Refuser l’invitation à {name}"
+
+#: src/features/extraction/components/DeleteDocumentDialog.tsx
+#: src/features/history/components/DeleteEntryDialog.tsx
+#: src/features/history/components/HistoryEntryActions.tsx
+msgid "Delete"
+msgstr "Supprimer"
+
+#: src/features/extraction/components/DocumentRow.tsx
+msgid "Delete {name}"
+msgstr "Supprimer {name}"
+
+#: src/features/conversation/components/ConversationMenu.tsx
+msgid "Delete the conversation"
+msgstr "Supprimer la conversation"
+
+#: src/features/extraction/components/CsvRunActions.tsx
+#: src/features/extraction/components/ExtractionRunActions.tsx
+msgid "Delete the extraction"
+msgstr "Supprimer l’extraction"
+
+#: src/features/history/components/DeleteEntryDialog.tsx
+msgid "Delete this conversation?"
+msgstr "Supprimer cette conversation ?"
+
+#: src/features/extraction/components/DeleteDocumentDialog.tsx
+msgid "Delete this document?"
+msgstr "Supprimer ce document ?"
+
+#: src/features/history/components/DeleteEntryDialog.tsx
+msgid "Delete this extraction?"
+msgstr "Supprimer cette extraction ?"
+
+#: src/features/conversation/components/FeedbackDialog.tsx
+msgid "Describe the problem in a few words, up to {maxLength} characters."
+msgstr "Décrivez le problème en quelques mots, {maxLength} caractères au plus."
+
+#. Shows the API's own words on why the extraction failed
+#: src/features/extraction/components/ExtractionFailure.tsx
+msgid "Details"
+msgstr "Détails"
+
+#: src/features/conversation/components/DictationButton.tsx
+msgid "Dictate your message"
+msgstr "Dicter votre message"
+
+#: src/features/memory/components/MemoryProposals.tsx
+msgid "Don't remember"
+msgstr "Ne pas retenir"
+
+#. A run that ended well
+#: src/lib/run-state.ts
+msgid "Done"
+msgstr "Terminée"
+
+#: src/features/extraction/components/ResultFileActions.tsx
+msgid "Download {fileName}"
+msgstr "Télécharger {fileName}"
+
+#: src/features/extraction/components/CsvRunActions.tsx
+msgid "Download the results"
+msgstr "Télécharger les résultats"
+
+#: src/features/extraction/components/FileDropZone.tsx
+msgid "Drop a file here, or <0>browse</0>"
+msgstr "Déposez un fichier ici, ou <0>parcourez</0>"
+
+#: src/features/extraction/components/FileDropZone.tsx
+msgid "Drop the file to extract it"
+msgstr "Déposez le fichier pour l’extraire"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Each new sign-in ended at once, so the Desk stopped starting new ones."
+msgstr "Chaque nouvelle connexion s’est terminée aussitôt : le Desk a cessé d’en relancer."
+
+#: src/features/conversation/components/AnnotationBadge.tsx
+msgid "Edit annotation {number}"
+msgstr "Modifier l'annotation {number}"
+
+#: src/features/account/components/EditNameDialog.tsx
+#: src/features/account/components/UserMenu.tsx
+msgid "Edit your name"
+msgstr "Modifier votre nom"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Email address missing"
+msgstr "Adresse email manquante"
+
+#. The keyboard key
+#: src/features/conversation/components/EnterKey.tsx
+msgid "Enter"
+msgstr "Entrée"
+
+#: src/features/extraction/components/CsvRowScope.tsx
+msgid "Every row of the file"
+msgstr "Toutes les lignes du fichier"
+
+#. Starts the extraction of a document
+#: src/features/extraction/components/DocumentRow.tsx
+msgid "Extract"
+msgstr "Extraire"
+
+#: src/features/extraction/components/DocumentRow.tsx
+msgid "Extract {name}"
+msgstr "Extraire {name}"
+
+#: src/features/extraction/components/ExtractionRunActions.tsx
+msgid "Extract again"
+msgstr "Extraire à nouveau"
+
+#: src/features/extraction/components/CsvSetup.tsx
+msgid "Extract every row"
+msgstr "Extraire toutes les lignes"
+
+#. A run that ended with an error
+#: src/lib/run-state.ts
+msgid "Failed"
+msgstr "Échec"
+
+#. The view of a result as named values
+#: src/features/extraction/components/ExtractionResult.tsx
+msgid "Fields"
+msgstr "Champs"
+
+#. The kind of a document the person uploaded
+#: src/features/extraction/components/DocumentRow.tsx
+msgid "File"
+msgstr "Fichier"
+
+#: src/features/extraction/components/FileDropZone.tsx
+msgid "File to extract"
+msgstr "Fichier à extraire"
+
+#: src/features/conversation/components/ToolSteps.tsx
+msgid "Filling in the form"
+msgstr "Remplissage du formulaire"
+
+#: src/features/memory/components/MemoryPanel.tsx
+msgid "Forget \"{content}\""
+msgstr "Oublier « {content} »"
+
+#: src/features/memory/components/MemoryPanel.tsx
+msgid "Forget everything"
+msgstr "Tout oublier"
+
+#: src/features/memory/components/MemoryPanel.tsx
+msgid "Forget everything?"
+msgstr "Tout oublier ?"
+
+#: src/features/conversation/components/ToolSteps.tsx
+msgid "Forgetting what you asked"
+msgstr "Oubli de ce que vous avez demandé"
+
+#: src/features/conversation/components/FormsButton.tsx
+msgid "Form in progress"
+msgstr "Formulaire en cours"
+
+#: src/features/extraction/components/csv-record-columns.tsx
+#: src/features/extraction/components/CsvRecordPanel.tsx
+msgid "From the file"
+msgstr "Du fichier"
+
+#: src/features/account/components/TermsPage.tsx
+msgid "general conditions of service"
+msgstr "conditions générales de service"
+
+#: src/features/extraction/components/NewExtraction.tsx
+msgid "Give the agent one file at a time."
+msgstr "Donnez un seul fichier à la fois à l’agent."
+
+#: src/features/conversation/components/ToolSteps.tsx
+msgid "Handing the conversation back"
+msgstr "Retour à l'agent précédent"
+
+#: src/components/shared/SidebarToggle.tsx
+msgid "Hide the sidebar"
+msgstr "Masquer la barre latérale"
+
+#: src/components/shared/DeskLogo.tsx
+msgid "Home of the Desk"
+msgstr "Accueil du Desk"
+
+#: src/features/conversation/components/ConversationView.tsx
+#: src/features/conversation/components/NewConversation.tsx
+msgid "How can I help you today?"
+msgstr "Comment puis-je vous aider aujourd'hui ?"
+
+#: src/features/account/components/TermsPage.tsx
+msgid "I accept the AI systems usage policy"
+msgstr "J’accepte la politique d’utilisation des systèmes d’intelligence artificielle"
+
+#: src/features/account/components/TermsPage.tsx
+msgid "I accept the general conditions of service"
+msgstr "J’accepte les conditions générales de service"
+
+#: src/features/account/components/TermsPage.tsx
+msgid "I accept the privacy policy"
+msgstr "J’accepte la politique de confidentialité"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "If it keeps happening, contact your administrator with the message below."
+msgstr "Si cela se reproduit, contactez votre administrateur avec le message ci-dessous."
+
+#: src/features/conversation/components/ResourcePanel.tsx
+msgid "If the page stays blank, its site does not allow being shown here: open it in a new tab."
+msgstr "Si la page reste vide, son site refuse d’être affiché ici : ouvrez-la dans un nouvel onglet."
+
+#. An image in a reply, which names none
+#. The kind of a document the person uploaded
+#: src/components/shared/Markdown.tsx
+#: src/features/extraction/components/DocumentRow.tsx
+msgid "Image"
+msgstr "Image"
+
+#. A run going on
+#: src/lib/run-state.ts
+msgid "In progress"
+msgstr "En cours"
+
+#: src/features/conversation/components/McpAppCard.tsx
+msgid "Interactive card"
+msgstr "Carte interactive"
+
+#: src/features/invitations/components/InvitationsButton.tsx
+msgid "Invitations"
+msgstr "Invitations"
+
+#. Something that happened less than a minute ago
+#: src/components/shared/RelativeTime.tsx
+msgid "just now"
+msgstr "à l'instant"
+
+#. The column shows beside the results, unread
+#: src/features/extraction/components/ColumnRoleRow.tsx
+msgid "Keep"
+msgstr "Garder"
+
+#: src/features/account/components/UserMenu.tsx
+msgid "Language"
+msgstr "Langue"
+
+#: src/features/conversation/components/McpAppPlaceholder.tsx
+msgid "Loading the interactive card…"
+msgstr "Chargement de la carte interactive…"
+
+#. The role an invitation grants
+#: src/features/invitations/components/InvitationItem.tsx
+msgid "member"
+msgstr "membre"
+
+#. The button that opens what the agent remembers, with the number of facts
+#: src/features/memory/components/MemoryButton.tsx
+msgid "Memory ({count})"
+msgstr "Mémoire ({count})"
+
+#: src/features/conversation/components/Composer.tsx
+msgid "Message to {agentName}"
+msgstr "Message à {agentName}"
+
+#: src/features/conversation/components/ConversationMenu.tsx
+#: src/features/extraction/components/CsvRunActions.tsx
+#: src/features/extraction/components/ExtractionRunActions.tsx
+msgid "More actions"
+msgstr "Plus d’actions"
+
+#: src/features/account/components/EditNameDialog.tsx
+msgid "Name"
+msgstr "Nom"
+
+#: src/features/conversation/hooks/use-conversation-title.ts
+#: src/features/history/components/NewSessionLink.tsx
+#: src/features/history/history-entries.ts
+msgid "New conversation"
+msgstr "Nouvelle conversation"
+
+#: src/features/history/components/NewSessionLink.tsx
+msgid "New extraction"
+msgstr "Nouvelle extraction"
+
+#: src/features/extraction/components/CsvRecordsTable.tsx
+msgid "Next page"
+msgstr "Page suivante"
+
+#. A field an agent filled in with false
+#: src/features/extraction/components/FieldValue.tsx
+#: src/lib/field-text.ts
+msgid "No"
+msgstr "Non"
+
+#: src/features/agents/components/AgentSwitcher.tsx
+msgid "No agent matches this search."
+msgstr "Aucun agent ne correspond à cette recherche."
+
+#: src/features/history/components/AgentHistory.tsx
+msgid "No conversations yet"
+msgstr "Aucune conversation pour l'instant"
+
+#: src/features/history/components/AgentHistory.tsx
+msgid "No extractions yet"
+msgstr "Aucune extraction pour l'instant"
+
+#: src/features/conversation/components/SourceItem.tsx
+msgid "No passage to show."
+msgstr "Aucun passage à afficher."
+
+#: src/features/extraction/components/CsvRecordsTable.tsx
+msgid "No rows"
+msgstr "Aucune ligne"
+
+#: src/features/extraction/components/ColumnRoleRow.tsx
+msgid "No values in the first rows"
+msgstr "Aucune valeur dans les premières lignes"
+
+#. A field of the document the agent found no value for
+#: src/features/extraction/components/FieldValue.tsx
+msgid "Not found"
+msgstr "Non trouvé"
+
+#: src/features/conversation/components/FormFields.tsx
+msgid "Nothing noted yet."
+msgstr "Rien de noté pour l'instant."
+
+#: src/features/extraction/components/CsvRowScope.tsx
+msgid "Number of rows to try"
+msgstr "Nombre de lignes à essayer"
+
+#. The history's entries of more than 30 days ago
+#: src/features/history/components/HistoryList.tsx
+msgid "Older"
+msgstr "Plus ancien"
+
+#. Opens the extraction a toast says ended
+#: src/features/history/hooks/use-finished-run-toasts.ts
+msgid "Open"
+msgstr "Ouvrir"
+
+#: src/features/conversation/components/AttachmentChip.tsx
+msgid "Open {name}"
+msgstr "Ouvrir {name}"
+
+#: src/features/conversation/components/SourceItem.tsx
+msgid "Open {title}"
+msgstr "Ouvrir {title}"
+
+#: src/features/conversation/components/ResourcePanel.tsx
+msgid "Open in a new tab"
+msgstr "Ouvrir dans un nouvel onglet"
+
+#: src/features/conversation/components/ResourcePanel.tsx
+msgid "Open on YouTube"
+msgstr "Ouvrir sur YouTube"
+
+#: src/features/extraction/components/CsvRecordsTable.tsx
+msgid "Open row {rowNumber}"
+msgstr "Ouvrir la ligne {rowNumber}"
+
+#: src/features/extraction/components/ExtractionRunActions.tsx
+msgid "Open the document"
+msgstr "Ouvrir le document"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Open the verification email your identity provider sent you, and check your spam folder. Click the link it contains, then try again."
+msgstr "Ouvrez l’email de vérification envoyé par votre fournisseur d’identité, en regardant aussi dans vos spams. Cliquez sur le lien qu’il contient, puis réessayez."
+
+#. The role an invitation grants
+#: src/features/invitations/components/InvitationItem.tsx
+msgid "owner"
+msgstr "propriétaire"
+
+#: src/components/shared/NotFoundState.tsx
+msgid "Page not found"
+msgstr "Page introuvable"
+
+#: src/features/extraction/components/CsvRecordsTable.tsx
+msgid "Pages of the results"
+msgstr "Pages des résultats"
+
+#. The kind of a document the person uploaded
+#: src/features/extraction/components/DocumentRow.tsx
+msgid "PDF"
+msgstr "PDF"
+
+#: src/features/extraction/components/FileDropZone.tsx
+msgid "PDF, image, text or CSV file, up to {maxSize}. A CSV file runs row by row."
+msgstr "PDF, image, texte ou fichier CSV, jusqu’à {maxSize}. Un fichier CSV est traité ligne par ligne."
+
+#: src/features/conversation/components/ToolSteps.tsx
+msgid "Picking useful resources"
+msgstr "Sélection de ressources utiles"
+
+#: src/features/history/components/HistoryList.tsx
+msgid "Previous 30 days"
+msgstr "30 derniers jours"
+
+#: src/features/history/components/HistoryList.tsx
+msgid "Previous 7 days"
+msgstr "7 derniers jours"
+
+#: src/features/extraction/components/CsvRecordsTable.tsx
+msgid "Previous page"
+msgstr "Page précédente"
+
+#: src/features/account/components/TermsPage.tsx
+msgid "privacy policy"
+msgstr "politique de confidentialité"
+
+#. What an invitation gives access to
+#: src/features/invitations/components/InvitationItem.tsx
+msgid "Project"
+msgstr "Projet"
+
+#. The agent reads this column
+#: src/features/extraction/components/ColumnRoleRow.tsx
+msgid "Read"
+msgstr "Lire"
+
+#. The agent reads every column of the file
+#: src/features/extraction/components/CsvSetup.tsx
+msgid "Read all"
+msgstr "Tout lire"
+
+#: src/features/account/components/TermsPage.tsx
+msgid "Read and accept the terms of the Desk to continue."
+msgstr "Prenez connaissance des conditions du Desk et acceptez-les pour continuer."
+
+#. The link to a document of the terms, named after it for screen readers
+#: src/features/account/components/TermsCheckbox.tsx
+msgid "Read it<0>: the {documentName}</0>"
+msgstr "Lire<0> : {documentName}</0>"
+
+#: src/components/shared/RouteErrorState.tsx
+msgid "Reload"
+msgstr "Recharger"
+
+#: src/components/shared/RouteErrorState.tsx
+msgid "Reload the page to keep going."
+msgstr "Rechargez la page pour continuer."
+
+#. Saves the fact the agent proposed in its memory
+#. Saves the reworded fact in the agent's memory
+#: src/features/memory/components/MemoryProposals.tsx
+#: src/features/memory/components/MemoryRewordForm.tsx
+msgid "Remember"
+msgstr "Retenir"
+
+#: src/features/conversation/components/ToolSteps.tsx
+msgid "Remembering what matters"
+msgstr "Mémorisation de l'essentiel"
+
+#: src/features/conversation/components/Composer.tsx
+msgid "Remove {fileName}"
+msgstr "Retirer {fileName}"
+
+#: src/features/conversation/components/QuoteReplyPopover.tsx
+msgid "Remove this annotation"
+msgstr "Retirer cette annotation"
+
+#: src/features/conversation/components/FeedbackDialog.tsx
+msgid "Report a problem"
+msgstr "Signaler un problème"
+
+#: src/features/conversation/components/FeedbackDialog.tsx
+msgid "Report a problem with this reply"
+msgstr "Signaler un problème avec cette réponse"
+
+#: src/components/shared/SidePanel.tsx
+msgid "Resize the panel"
+msgstr "Redimensionner le panneau"
+
+#: src/components/shared/DeskShell.tsx
+msgid "Resize the sidebar"
+msgstr "Redimensionner le panneau latéral"
+
+#: src/features/extraction/components/CsvRecordsTable.tsx
+msgid "Results"
+msgstr "Résultats"
+
+#: src/features/conversation/components/ConversationView.tsx
+msgid "Retry"
+msgstr "Réessayer"
+
+#. What an invitation gives access to
+#: src/features/invitations/components/InvitationItem.tsx
+msgid "Review campaign"
+msgstr "Campagne de revue"
+
+#. The role an invitation grants
+#: src/features/invitations/components/InvitationItem.tsx
+msgid "reviewer"
+msgstr "relecteur"
+
+#. Opens a field to rewrite the fact before the agent remembers it
+#: src/features/memory/components/MemoryProposals.tsx
+msgid "Reword"
+msgstr "Reformuler"
+
+#. The number of a row of a CSV file
+#: src/features/extraction/components/csv-record-columns.tsx
+msgid "Row"
+msgstr "Ligne"
+
+#: src/features/extraction/components/CsvRecordPanel.tsx
+msgid "Row {rowNumber}"
+msgstr "Ligne {rowNumber}"
+
+#. Heading: which rows of a CSV file the agent reads
+#: src/features/extraction/components/CsvRowScope.tsx
+msgid "Rows"
+msgstr "Lignes"
+
+#: src/features/extraction/components/CsvRecordsTable.tsx
+msgid "Rows {first}–{last} of {total}"
+msgstr "Lignes {first} à {last} sur {total}"
+
+#: src/features/extraction/components/CsvRunProgress.tsx
+msgid "Rows done"
+msgstr "Lignes traitées"
+
+#: src/features/account/components/EditNameDialog.tsx
+msgid "Save"
+msgstr "Enregistrer"
+
+#: src/features/conversation/components/ConversationView.tsx
+msgid "Scroll to the latest message"
+msgstr "Aller au dernier message"
+
+#: src/features/agents/components/AgentSwitcher.tsx
+msgid "Search an agent"
+msgstr "Rechercher un agent"
+
+#: src/features/agents/components/AgentSwitcher.tsx
+msgid "Search an agent or a project"
+msgstr "Rechercher un agent ou un projet"
+
+#: src/features/conversation/components/ToolSteps.tsx
+msgid "Searching the knowledge base"
+msgstr "Recherche dans la base de connaissances"
+
+#: src/features/conversation/components/ToolSteps.tsx
+msgid "Searching the resources"
+msgstr "Recherche dans les ressources"
+
+#: src/features/conversation/components/Composer.tsx
+msgid "Send"
+msgstr "Envoyer"
+
+#: src/features/conversation/components/FeedbackDialog.tsx
+msgid "Send the report"
+msgstr "Envoyer le signalement"
+
+#. Opens the setup of a CSV file's extraction
+#: src/features/extraction/components/DocumentRow.tsx
+msgid "Set up"
+msgstr "Configurer"
+
+#: src/features/extraction/components/DocumentRow.tsx
+msgid "Set up the extraction of {name}"
+msgstr "Configurer l’extraction de {name}"
+
+#. The keyboard key
+#: src/features/conversation/components/ShiftKey.tsx
+msgid "Shift"
+msgstr "Maj"
+
+#: src/features/memory/components/MemoryProposals.tsx
+msgid "Should the agent remember this?"
+msgstr "L'agent doit-il retenir ceci ?"
+
+#: src/components/shared/HighlightedCodeBlock.tsx
+#: src/features/conversation/components/UserMessageText.tsx
+msgid "Show less"
+msgstr "Afficher moins"
+
+#: src/components/shared/HighlightedCodeBlock.tsx
+#: src/features/conversation/components/UserMessageText.tsx
+msgid "Show more"
+msgstr "Afficher plus"
+
+#: src/components/shared/SidebarToggle.tsx
+msgid "Show the sidebar"
+msgstr "Afficher la barre latérale"
+
+#: src/components/shared/SignInProblemPage.tsx
+#: src/features/account/components/TermsPage.tsx
+#: src/features/account/components/UserMenu.tsx
+msgid "Sign out"
+msgstr "Se déconnecter"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Sign-in expired"
+msgstr "Connexion expirée"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Sign-in failed"
+msgstr "Connexion impossible"
+
+#. The column is left out
+#: src/features/extraction/components/ColumnRoleRow.tsx
+msgid "Skip"
+msgstr "Ignorer"
+
+#. Every column of the file is left out
+#: src/features/extraction/components/CsvSetup.tsx
+msgid "Skip all"
+msgstr "Tout ignorer"
+
+#: src/features/extraction/components/ExtractionFailure.tsx
+msgid "Something went wrong while it read it. Try again."
+msgstr "Un problème est survenu pendant la lecture. Réessayez."
+
+#. A run waiting for its turn
+#: src/lib/run-state.ts
+msgid "Starting"
+msgstr "Démarrage"
+
+#: src/features/extraction/components/FileDropZone.tsx
+msgid "Starting the extraction…"
+msgstr "Démarrage de l’extraction…"
+
+#. Where a row of a CSV run stands
+#: src/features/extraction/components/csv-record-columns.tsx
+msgid "Status"
+msgstr "Statut"
+
+#. Stops a run in progress
+#: src/features/extraction/components/CsvRunActions.tsx
+msgid "Stop"
+msgstr "Arrêter"
+
+#: src/features/conversation/components/DictationButton.tsx
+msgid "Stop the dictation"
+msgstr "Arrêter la dictée"
+
+#. A run the person stopped
+#: src/lib/run-state.ts
+msgid "Stopped"
+msgstr "Arrêtée"
+
+#: src/features/agents/components/AgentSwitcher.tsx
+msgid "Switch agent, current agent: {agentName}"
+msgstr "Changer d'agent, agent actuel : {agentName}"
+
+#: src/features/account/components/TermsPage.tsx
+msgid "Terms"
+msgstr "Conditions"
+
+#. The role an invitation grants
+#: src/features/invitations/components/InvitationItem.tsx
+msgid "tester"
+msgstr "testeur"
+
+#. The language of a code block that names none
+#: src/components/shared/HighlightedCodeBlock.tsx
+msgid "text"
+msgstr "texte"
+
+#. The kind of a document the person uploaded
+#: src/features/extraction/components/DocumentRow.tsx
+msgid "Text"
+msgstr "Texte"
+
+#: src/features/conversation/components/FeedbackDialog.tsx
+msgid "Thank you. Your report was sent."
+msgstr "Merci, votre signalement a été envoyé."
+
+#: src/features/extraction/components/csv-record-columns.tsx
+#: src/features/extraction/components/CsvRecordPanel.tsx
+msgid "The agent could not answer for this row."
+msgstr "L’agent n’a pas pu répondre pour cette ligne."
+
+#: src/features/conversation/components/ReplyError.tsx
+msgid "The agent could not answer."
+msgstr "L'agent n'a pas pu répondre."
+
+#: src/features/extraction/components/ExtractionFailure.tsx
+msgid "The agent could not read the document"
+msgstr "L’agent n’a pas pu lire le document"
+
+#: src/features/memory/components/MemoryPanel.tsx
+msgid "The agent forgot everything about you."
+msgstr "L'agent a tout oublié à votre sujet."
+
+#: src/features/extraction/components/ExtractionResult.tsx
+msgid "The agent found nothing to fill in in this document."
+msgstr "L’agent n’a rien trouvé à remplir dans ce document."
+
+#: src/features/conversation/components/Composer.tsx
+msgid "The agent is answering…"
+msgstr "L'agent répond…"
+
+#: src/features/extraction/components/ExtractionPending.tsx
+msgid "The agent is reading the document"
+msgstr "L’agent lit le document"
+
+#: src/features/extraction/components/ExtractionPending.tsx
+msgid "The agent is reading the document…"
+msgstr "L’agent lit le document…"
+
+#: src/features/memory/components/MemoryProposals.tsx
+msgid "The agent remembers"
+msgstr "L'agent retient"
+
+#: src/features/memory/components/MemoryPanel.tsx
+msgid "The agent remembers nothing about you."
+msgstr "L'agent ne retient rien à votre sujet."
+
+#: src/features/extraction/components/CsvSetup.tsx
+msgid "The agent runs once per row. Choose what it reads in each one."
+msgstr "L’agent passe sur chaque ligne. Choisissez ce qu’il y lit."
+
+#: src/features/memory/components/MemoryPanel.tsx
+msgid "The agent uses these facts in your next conversations. Only you see them."
+msgstr "L'agent s'en sert dans vos prochaines conversations. Vous seul les voyez."
+
+#: src/features/memory/components/MemoryPanel.tsx
+msgid "The agent will forget every fact it remembers about you."
+msgstr "L'agent oubliera tout ce qu'il a retenu à votre sujet."
+
+#: src/features/memory/components/MemoryProposals.tsx
+msgid "The agent will remember it."
+msgstr "L’agent s’en souviendra."
+
+#: src/features/extraction/components/ExtractionFailure.tsx
+msgid "The agent's answer did not fit the fields it fills in. Extracting again often works."
+msgstr "La réponse de l’agent ne correspondait pas aux champs à remplir. Une nouvelle extraction suffit souvent."
+
+#: src/features/conversation/components/FormsPanel.tsx
+msgid "The answers the agent collected from the conversation, as it fills them in."
+msgstr "Les réponses que l'agent a recueillies dans la conversation, au fur et à mesure."
+
+#: src/features/history/components/DeleteEntryDialog.tsx
+msgid "The conversation could not be deleted. Try again."
+msgstr "La conversation n'a pas pu être supprimée. Réessayez."
+
+#: src/features/conversation/components/NewConversation.tsx
+msgid "The conversation could not start. Try again."
+msgstr "La conversation n'a pas pu démarrer. Réessayez."
+
+#: src/features/conversation/components/ReplyError.tsx
+msgid "The Desk could not reach the agent. Check your connection."
+msgstr "Le Desk n'a pas pu joindre l'agent. Vérifiez votre connexion."
+
+#: src/features/conversation/hooks/use-dictation.ts
+msgid "The Desk may not use your microphone. Allow it in your browser, then try again."
+msgstr "Le Desk n’a pas accès à votre micro. Autorisez-le dans votre navigateur, puis réessayez."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "The Desk needs it to find your invitations. Contact your administrator."
+msgstr "Le Desk en a besoin pour retrouver vos invitations. Contactez votre administrateur."
+
+#: src/features/conversation/hooks/use-dictation.ts
+msgid "The dictation stopped. Try again."
+msgstr "La dictée s’est arrêtée. Réessayez."
+
+#: src/features/extraction/components/DeleteDocumentDialog.tsx
+msgid "The document could not be deleted. Try again."
+msgstr "Le document n’a pas pu être supprimé. Réessayez."
+
+#: src/features/extraction/components/ExtractionRunActions.tsx
+msgid "The document could not be opened."
+msgstr "Le document n’a pas pu être ouvert."
+
+#: src/features/conversation/components/SourceItem.tsx
+msgid "The document could not be opened. Try again."
+msgstr "Le document n'a pas pu être ouvert. Réessayez."
+
+#: src/features/extraction/components/ExtractionFailure.tsx
+msgid "The document has more pages than the agent can read at once. Split it, then extract each part."
+msgstr "Le document a plus de pages que l’agent ne peut en lire d’un coup. Découpez-le, puis extrayez chaque partie."
+
+#: src/features/history/components/DeleteEntryDialog.tsx
+msgid "The extraction could not be deleted. Try again."
+msgstr "L’extraction n’a pas pu être supprimée. Réessayez."
+
+#: src/features/extraction/components/CsvSetup.tsx
+#: src/features/extraction/components/ExtractionRunView.tsx
+#: src/features/extraction/components/NewExtraction.tsx
+msgid "The extraction could not start. Try again."
+msgstr "L’extraction n’a pas pu démarrer. Réessayez."
+
+#: src/features/history/components/DeleteEntryDialog.tsx
+msgid "The extraction of \"{title}\" and its results will be deleted. The document stays in your documents. This cannot be undone."
+msgstr "L’extraction de « {title} » et ses résultats seront supprimés. Le document reste dans vos documents. Cette action est définitive."
+
+#: src/features/history/hooks/use-finished-run-toasts.ts
+msgid "The extraction of {name} failed."
+msgstr "L’extraction de {name} a échoué."
+
+#: src/features/memory/components/MemoryPanel.tsx
+msgid "The fact could not be forgotten. Try again."
+msgstr "Cette information n'a pas pu être oubliée. Réessayez."
+
+#: src/features/memory/components/MemoryRewordForm.tsx
+msgid "The fact to remember"
+msgstr "L'information à retenir"
+
+#: src/features/conversation/components/AttachmentChip.tsx
+msgid "The file could not be opened. Try again."
+msgstr "Le fichier n'a pas pu être ouvert. Réessayez."
+
+#: src/features/conversation/components/ReplyError.tsx
+msgid "The file could not be uploaded. Try again."
+msgstr "Le fichier n'a pas pu être envoyé. Réessayez."
+
+#: src/features/extraction/components/CsvRecordsTable.tsx
+msgid "The first rows come in a moment…"
+msgstr "Les premières lignes arrivent dans un instant…"
+
+#: src/features/extraction/components/CsvRowScope.tsx
+msgid "The first rows only, to try the setup"
+msgstr "Les premières lignes seulement, pour essayer la configuration"
+
+#: src/features/history/components/AgentHistorySection.tsx
+msgid "The history could not load."
+msgstr "L'historique n'a pas pu se charger."
+
+#: src/features/invitations/api/mutations.ts
+msgid "The invitation could not be answered. Try again."
+msgstr "L’invitation n’a pas pu recevoir de réponse. Réessayez."
+
+#: src/features/memory/components/MemoryPanel.tsx
+msgid "The memory could not be cleared. Try again."
+msgstr "La mémoire n'a pas pu être effacée. Réessayez."
+
+#: src/features/extraction/components/ExtractionFailure.tsx
+msgid "The model that reads the document did not answer. Try again in a moment."
+msgstr "Le modèle qui lit le document n’a pas répondu. Réessayez dans un instant."
+
+#: src/features/account/components/EditNameDialog.tsx
+msgid "The people of your projects see you by this name."
+msgstr "Les membres de vos projets vous voient sous ce nom."
+
+#: src/features/conversation/components/FeedbackDialog.tsx
+msgid "The people who run this agent read every report to improve it."
+msgstr "Les personnes qui gèrent cet agent lisent chaque signalement pour l'améliorer."
+
+#: src/features/conversation/components/ReplyError.tsx
+msgid "The reply stopped before it finished."
+msgstr "La réponse s'est arrêtée avant la fin."
+
+#: src/features/conversation/components/FeedbackDialog.tsx
+msgid "The report could not be sent. Try again."
+msgstr "Le signalement n'a pas pu être envoyé. Réessayez."
+
+#: src/features/extraction/components/CsvRunActions.tsx
+msgid "The results file could not be opened."
+msgstr "Le fichier des résultats n’a pas pu être ouvert."
+
+#: src/features/extraction/components/CsvRecordsError.tsx
+msgid "The rows could not load. Check your connection, then try again."
+msgstr "Les lignes n’ont pas pu se charger. Vérifiez votre connexion, puis réessayez."
+
+#: src/features/extraction/components/CsvRunActions.tsx
+msgid "The run could not be stopped. Try again."
+msgstr "L’extraction n’a pas pu être arrêtée. Réessayez."
+
+#: src/features/extraction/components/CsvRunActions.tsx
+msgid "The run could not start again. Try again."
+msgstr "L’extraction n’a pas pu redémarrer. Réessayez."
+
+#: src/features/extraction/components/CsvRunProgress.tsx
+msgid "The run is about to start…"
+msgstr "L’extraction va démarrer…"
+
+#: src/features/extraction/components/CsvRunActions.tsx
+msgid "The run started again."
+msgstr "L’extraction a redémarré."
+
+#: src/features/extraction/components/CsvRunActions.tsx
+msgid "The run stopped. The rows done stay."
+msgstr "L’extraction est arrêtée. Les lignes déjà traitées restent."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "The sign-in keeps failing"
+msgstr "La connexion échoue à chaque fois"
+
+#: src/features/conversation/components/ToolSteps.tsx
+msgid "Thinking…"
+msgstr "Réflexion…"
+
+#: src/features/conversation/hooks/use-attachment.ts
+msgid "This file is empty."
+msgstr "Ce fichier est vide."
+
+#: src/components/shared/RouteErrorState.tsx
+msgid "This page could not load"
+msgstr "Cette page n’a pas pu se charger"
+
+#: src/components/shared/NotFoundState.tsx
+msgid "This page does not exist, or you cannot open it."
+msgstr "Cette page n’existe pas, ou vous ne pouvez pas l’ouvrir."
+
+#: src/features/conversation/components/AssistantMessageView.tsx
+msgid "This reply was interrupted before it finished."
+msgstr "Cette réponse a été interrompue avant la fin."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "This sign-in started too long ago, or another tab started a new one, and this tab can no longer complete it."
+msgstr "Cette connexion a commencé il y a trop longtemps, ou un autre onglet en a lancé une nouvelle, et cet onglet ne peut plus la terminer."
+
+#: src/features/history/components/HistoryList.tsx
+msgid "Today"
+msgstr "Aujourd'hui"
+
+#: src/features/extraction/components/CsvRunView.tsx
+#: src/features/extraction/components/ExtractionRunView.tsx
+msgid "Took {tookTime}"
+msgstr "Durée : {tookTime}"
+
+#: src/components/shared/RouteErrorState.tsx
+#: src/components/shared/SignInProblemPage.tsx
+#: src/features/extraction/components/CsvRecordsError.tsx
+#: src/features/extraction/components/CsvRunActions.tsx
+#: src/features/extraction/components/ExtractionFailure.tsx
+#: src/features/history/components/AgentHistorySection.tsx
+msgid "Try again"
+msgstr "Réessayer"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Try again in a moment. If this page comes back, sign out, then sign in again."
+msgstr "Réessayez dans un instant. Si cette page revient, déconnectez-vous, puis reconnectez-vous."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Try again to sign in. If this page comes back, close the other tabs of the Desk."
+msgstr "Réessayez pour vous connecter. Si cette page revient, fermez les autres onglets du Desk."
+
+#: src/features/conversation/components/SourceItem.tsx
+#: src/features/extraction/components/DeleteDocumentDialog.tsx
+#: src/features/extraction/components/DocumentRow.tsx
+#: src/features/extraction/components/ExtractionRunView.tsx
+#: src/features/history/history-entries.ts
+msgid "Untitled document"
+msgstr "Document sans titre"
+
+#: src/features/extraction/components/FileDropZone.tsx
+msgid "Uploading…"
+msgstr "Envoi en cours…"
+
+#: src/features/conversation/components/ToolSteps.tsx
+msgid "Using a tool"
+msgstr "Utilisation d'un outil"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Verify your email"
+msgstr "Vérifiez votre email"
+
+#: src/features/memory/components/MemoryPanel.tsx
+msgid "Waiting for your answer"
+msgstr "En attente de votre réponse"
+
+#: src/features/extraction/components/NewExtraction.tsx
+msgid "What should {agentName} read?"
+msgstr "Que doit lire {agentName} ?"
+
+#: src/features/extraction/components/ColumnRoleRow.tsx
+msgid "What the agent does with {name}"
+msgstr "Ce que l’agent fait de {name}"
+
+#: src/features/conversation/components/FormsPanel.tsx
+msgid "What the agent noted"
+msgstr "Ce que l'agent a noté"
+
+#: src/features/memory/components/MemoryPanel.tsx
+msgid "What the agent remembers"
+msgstr "Ce que l'agent retient"
+
+#: src/features/conversation/components/FeedbackDialog.tsx
+msgid "What went wrong?"
+msgstr "Qu'est-ce qui n'allait pas ?"
+
+#: src/features/agents/components/NoAgentState.tsx
+msgid "When someone gives you access to an agent, it appears here."
+msgstr "Quand quelqu'un vous donne accès à un agent, il apparaît ici."
+
+#: src/components/shared/HighlightedCodeBlock.tsx
+msgid "Wrap long lines"
+msgstr "Renvoyer les longues lignes à la ligne"
+
+#: src/features/account/components/EditNameDialog.tsx
+msgid "Write a name of 1 to {maxLength} characters."
+msgstr "Écrivez un nom de 1 à {maxLength} caractères."
+
+#: src/features/memory/components/MemoryRewordForm.tsx
+msgid "Write the fact in {maxLength} characters at most."
+msgstr "Écrivez l'information en {maxLength} caractères au plus."
+
+#: src/features/memory/components/MemoryRewordForm.tsx
+msgid "Write the fact to remember."
+msgstr "Écrivez l'information à retenir."
+
+#. A field an agent filled in with true
+#: src/features/extraction/components/FieldValue.tsx
+#: src/lib/field-text.ts
+msgid "Yes"
+msgstr "Oui"
+
+#: src/features/history/components/HistoryList.tsx
+msgid "Yesterday"
+msgstr "Hier"
+
+#: src/features/extraction/components/ExtractionPending.tsx
+msgid "You can leave this page: the extraction goes on, and its mark in the sidebar turns once it ends."
+msgstr "Vous pouvez quitter cette page : l’extraction continue, et sa marque dans la barre latérale change une fois terminée."
+
+#: src/features/invitations/api/mutations.ts
+msgid "You declined the invitation to {targetName}."
+msgstr "Vous avez refusé l’invitation à {targetName}."
+
+#: src/features/agents/components/NoAgentState.tsx
+msgid "You don't have access to an agent yet"
+msgstr "Vous n'avez encore accès à aucun agent"
+
+#: src/features/invitations/api/mutations.ts
+msgid "You joined {targetName}."
+msgstr "Vous avez rejoint {targetName}."
+
+#: src/features/account/components/TermsPage.tsx
+#: src/features/memory/components/MemoryProposals.tsx
+msgid "Your answer could not be saved. Try again."
+msgstr "Votre réponse n'a pas pu être enregistrée. Réessayez."
+
+#: src/features/extraction/components/RecentDocuments.tsx
+msgid "Your documents"
+msgstr "Vos documents"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Your identity provider did not share your email address with the Desk."
+msgstr "Votre fournisseur d’identité n’a pas transmis votre adresse email au Desk."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Your identity provider refused the sign-in."
+msgstr "Votre fournisseur d’identité a refusé la connexion."
+
+#: src/features/account/components/EditNameDialog.tsx
+msgid "Your name could not be saved. Try again."
+msgstr "Votre nom n’a pas pu être enregistré. Réessayez."
+
+#: src/features/account/components/EditNameDialog.tsx
+msgid "Your name was saved."
+msgstr "Votre nom a été enregistré."
+
+#: src/features/conversation/components/QuoteReplyPopover.tsx
+msgid "Your note on this passage"
+msgstr "Votre note sur ce passage"

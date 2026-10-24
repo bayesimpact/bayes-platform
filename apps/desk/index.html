@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en" translate="no">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Browser translation rewrites the text nodes React owns while a reply streams, which freezes
+         the text and crashes React. The Desk translates itself, so it is off for the document. -->
+    <meta name="google" content="notranslate" />
+    <link rel="icon" type="image/svg+xml" href="%BASE_URL%theme/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Desk</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <!-- The install's theme, read at runtime. In the body on purpose: Vite puts the bundle's
+         stylesheet in the head, and the later sheet wins the cascade. -->
+    <link rel="stylesheet" href="%BASE_URL%theme/theme.css" />
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

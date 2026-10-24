@@ -1,0 +1,7 @@
+language js
+
+// An effect whose whole body sets a state derives that state: compute it during the render.
+`useEffect($callback, $dependencies)` as $effect where {
+  $callback <: r"(?s)\(\)\s*=>\s*(?:\{\s*)?set[A-Z]\w*\([^;{}]*\);?\s*\}?",
+  register_diagnostic(span=$effect, message="This effect only sets a state from other values: compute the value during the render instead (https://react.dev/learn/you-might-not-need-an-effect.md).", severity="error")
+}

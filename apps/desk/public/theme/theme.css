@@ -1,0 +1,6 @@
+/* Default theme of the Desk, read at runtime from /app/theme/theme.css (see index.html): each install
+   mounts its own files over public/theme, so a deployment changes it without rebuilding. Distinct
+   from the platform's default on purpose, so local dev is never mistaken for an install. */
+:root {
+  --primary: oklch(62.8% 0.2 303.9);
+}
