@@ -474,6 +474,10 @@ msgstr "Give the agent one file at a time."
 msgid "Handing the conversation back"
 msgstr "Handing the conversation back"
 
+#: src/features/account/components/UserMenu.tsx
+msgid "Help center"
+msgstr "Help center"
+
 #: src/components/shared/SidebarToggle.tsx
 msgid "Hide the sidebar"
 msgstr "Hide the sidebar"

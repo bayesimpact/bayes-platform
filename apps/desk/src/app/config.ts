@@ -17,7 +17,16 @@ const authorizationParamsSchema = optionalText.transform((raw, context) => {
   }
 })
 
-const apiModeConfigSchema = z.object({
+/** A link the install may set, such as its help center: absent, blank or an http(s) URL. */
+const optionalUrl = optionalText.pipe(z.url({ protocol: /^https?$/ }).optional())
+
+/** What every mode of the Desk configures. */
+const sharedConfigSchema = z.object({
+  /** The install's help center, which the user menu links to when it is set. */
+  helpCenterUrl: optionalUrl,
+})
+
+const apiModeConfigSchema = sharedConfigSchema.extend({
   mode: z.literal("api"),
   oidcAuthority: z.url(),
   oidcClientId: z.string().min(1),
@@ -27,7 +36,7 @@ const apiModeConfigSchema = z.object({
 })
 
 /** The mock mode serves every screen from the MSW handlers, with no API and no sign-in: Storybook. */
-const mockModeConfigSchema = z.object({ mode: z.literal("mock") })
+const mockModeConfigSchema = sharedConfigSchema.extend({ mode: z.literal("mock") })
 
 const configSchema = z.discriminatedUnion("mode", [apiModeConfigSchema, mockModeConfigSchema])
 
@@ -47,9 +56,11 @@ export const isMockMode = import.meta.env.MODE === "mock"
 
 function readConfig(): AppConfig {
   const env = import.meta.env
-  if (isMockMode) return { mode: "mock" }
+  // The stories show the help center's link, with a sample address.
+  if (isMockMode) return { mode: "mock", helpCenterUrl: "https://help.example.org" }
 
   const buildTime = {
+    helpCenterUrl: env.VITE_HELP_CENTER_URL,
     oidcAuthority: env.VITE_OIDC_AUTHORITY,
     oidcClientId: env.VITE_OIDC_CLIENT_ID,
     oidcAudience: env.VITE_OIDC_AUDIENCE,

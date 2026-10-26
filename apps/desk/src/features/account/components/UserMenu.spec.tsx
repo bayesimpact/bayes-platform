@@ -7,9 +7,17 @@ import { UserMenu } from "./UserMenu"
 
 const { user } = buildMe()
 
-const renderMenu = () => {
+const renderMenu = ({ helpCenterUrl = null }: { helpCenterUrl?: string | null } = {}) => {
   const handlers = { onLocaleChange: vi.fn(), onEditName: vi.fn(), onSignOut: vi.fn() }
-  renderWithI18n(<UserMenu user={user} locale="en" locales={["en", "fr"]} {...handlers} />)
+  renderWithI18n(
+    <UserMenu
+      user={user}
+      locale="en"
+      locales={["en", "fr"]}
+      helpCenterUrl={helpCenterUrl}
+      {...handlers}
+    />,
+  )
   return handlers
 }
 
@@ -33,6 +41,29 @@ describe("UserMenu", () => {
     await userEvent.click(await screen.findByRole("menuitemradio", { name: "Français" }))
 
     expect(onLocaleChange).toHaveBeenCalledWith("fr")
+  })
+
+  it("links to the install's help center, in a new tab", async () => {
+    renderMenu({ helpCenterUrl: "https://help.example.org/" })
+
+    await userEvent.click(
+      screen.getByRole("button", { name: `${user.name}, menu of ${user.email}` }),
+    )
+    const link = await screen.findByRole("menuitem", { name: /Help center/ })
+
+    expect(link).toHaveAttribute("href", "https://help.example.org/")
+    expect(link).toHaveAttribute("target", "_blank")
+  })
+
+  it("shows no help center when the install has none", async () => {
+    renderMenu()
+
+    await userEvent.click(
+      screen.getByRole("button", { name: `${user.name}, menu of ${user.email}` }),
+    )
+    await screen.findByRole("menuitem", { name: "Sign out" })
+
+    expect(screen.queryByRole("menuitem", { name: /Help center/ })).not.toBeInTheDocument()
   })
 
   it("signs out", async () => {

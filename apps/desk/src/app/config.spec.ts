@@ -28,6 +28,7 @@ describe("the Desk's configuration", () => {
 
     expect(config).toEqual({
       mode: "api",
+      helpCenterUrl: undefined,
       oidcAuthority: "https://idp.example.org",
       oidcClientId: "desk-tests",
       oidcAudience: undefined,
@@ -66,6 +67,12 @@ describe("the Desk's configuration", () => {
     expect(config).toMatchObject({ oidcAuthorizationParams: { organization: "org_123" } })
   })
 
+  it("reads the install's help center", async () => {
+    const config = await readConfigWith({ injected: { helpCenterUrl: "https://help.example.org" } })
+
+    expect(config).toMatchObject({ helpCenterUrl: "https://help.example.org" })
+  })
+
   it("refuses to start on an invalid configuration, and says what is wrong", async () => {
     await expect(readConfigWith({ injected: { oidcAuthority: "not a URL" } })).rejects.toThrow(
       /The Desk's configuration is invalid[\s\S]*oidcAuthority/,
@@ -73,5 +80,8 @@ describe("the Desk's configuration", () => {
     await expect(
       readConfigWith({ injected: { oidcAuthorizationParams: "organization=org_123" } }),
     ).rejects.toThrow(/must be a JSON object of strings/)
+    await expect(
+      readConfigWith({ injected: { helpCenterUrl: "javascript:alert(1)" } }),
+    ).rejects.toThrow(/helpCenterUrl/)
   })
 })

@@ -1,7 +1,8 @@
 import type { MeUserOutputDto } from "@caseai-connect/desk-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
-import { ChevronDownIcon, LogOutIcon, PencilIcon } from "lucide-react"
+import { ChevronDownIcon, CircleHelpIcon, LogOutIcon, PencilIcon } from "lucide-react"
 import { isLocale, type Locale } from "@/app/i18n"
+import { ExternalLink } from "@/components/shared/ExternalLink"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -19,6 +20,8 @@ export type UserMenuProps = {
   user: MeUserOutputDto
   locale: Locale
   locales: readonly Locale[]
+  /** The install's help center, opened in a new tab; `null` when the install has none. */
+  helpCenterUrl: string | null
   onLocaleChange: (locale: Locale) => void
   onEditName: () => void
   onSignOut: () => void
@@ -34,6 +37,7 @@ export function UserMenu({
   user,
   locale,
   locales,
+  helpCenterUrl,
   onLocaleChange,
   onEditName,
   onSignOut,
@@ -81,6 +85,12 @@ export function UserMenu({
           </DropdownMenuRadioGroup>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
+        {helpCenterUrl ? (
+          <DropdownMenuItem render={<ExternalLink href={helpCenterUrl} hasIcon={false} />}>
+            <CircleHelpIcon aria-hidden />
+            <Trans>Help center</Trans>
+          </DropdownMenuItem>
+        ) : null}
         <DropdownMenuItem onClick={onSignOut}>
           <LogOutIcon aria-hidden />
           <Trans>Sign out</Trans>
