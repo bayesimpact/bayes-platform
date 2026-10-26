@@ -69,6 +69,44 @@ describe("a new extraction", () => {
     expect(await screen.findByRole("heading", { name: "contract.pdf" })).toBeInTheDocument()
   })
 
+  it("shows a document's details beside the page, and extracts it from there", async () => {
+    const world = serveExtractionWorld()
+    renderApp(extractionUrlsOf(world).newExtractionUrl)
+
+    const documents = await screen.findByRole("region", { name: "Your documents" })
+    await userEvent.click(
+      within(documents).getByRole("button", { name: "Details of meeting-notes.md" }),
+    )
+    const panel = await screen.findByRole("complementary", { name: "meeting-notes.md" })
+
+    expect(within(panel).getByText("text/markdown")).toBeInTheDocument()
+    expect(within(panel).getByText("French")).toBeInTheDocument()
+    expect(within(panel).getByRole("heading", { name: "Réunion d'équipe" })).toBeInTheDocument()
+    expect(
+      within(documents).getByRole("button", { name: "Details of meeting-notes.md" }),
+    ).toHaveAttribute("aria-expanded", "true")
+
+    await userEvent.click(within(panel).getByRole("button", { name: "Extract" }))
+    expect(await screen.findByRole("heading", { name: "meeting-notes.md" })).toBeInTheDocument()
+  })
+
+  it("says when the agent has read no text of a document yet", async () => {
+    const world = serveExtractionWorld()
+    renderApp(extractionUrlsOf(world).newExtractionUrl)
+
+    const documents = await screen.findByRole("region", { name: "Your documents" })
+    await userEvent.click(
+      within(documents).getByRole("button", { name: "Details of contract.pdf" }),
+    )
+    const panel = await screen.findByRole("complementary", { name: "contract.pdf" })
+
+    expect(
+      within(panel).getByText("The agent reads the document's text in its first extraction."),
+    ).toBeInTheDocument()
+    await userEvent.click(within(panel).getByRole("button", { name: "Close the panel" }))
+    expect(screen.queryByRole("complementary", { name: "contract.pdf" })).not.toBeInTheDocument()
+  })
+
   it("deletes a document uploaded before, after a confirmation", async () => {
     const world = serveExtractionWorld()
     renderApp(extractionUrlsOf(world).newExtractionUrl)

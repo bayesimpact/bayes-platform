@@ -79,7 +79,12 @@ export const extractionDocumentOutputSchema = z.object({
   fileName: z.string().optional(),
   mimeType: z.string().optional(),
   size: z.number().optional(),
+  /** The language the API detected in the document. */
+  language: z.enum(["en", "fr"]),
+  /** The text read in the document, as Markdown; `null` until an extraction reads it. */
+  content: z.string().nullable(),
   createdAt: z.number(),
+  updatedAt: z.number(),
 })
 
 export type ExtractionDocumentOutputDto = z.output<typeof extractionDocumentOutputSchema>

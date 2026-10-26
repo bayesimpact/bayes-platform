@@ -142,6 +142,10 @@ msgstr "Compte déjà existant"
 msgid "Actions on {title}"
 msgstr "Actions sur {title}"
 
+#: src/features/extraction/components/DocumentPanel.tsx
+msgid "Added"
+msgstr "Ajouté le"
+
 #. The role an invitation grants
 #: src/features/invitations/components/InvitationItem.tsx
 msgid "admin"
@@ -275,7 +279,7 @@ msgid "Copy the reply"
 msgstr "Copier la réponse"
 
 #. The kind of a document the person uploaded
-#: src/features/extraction/components/DocumentRow.tsx
+#: src/features/extraction/file-kind-labels.ts
 msgid "CSV"
 msgstr "CSV"
 
@@ -342,6 +346,10 @@ msgstr "Décrivez le problème en quelques mots, {maxLength} caractères au plus
 msgid "Details"
 msgstr "Détails"
 
+#: src/features/extraction/components/DocumentRow.tsx
+msgid "Details of {name}"
+msgstr "Détails de {name}"
+
 #: src/features/conversation/components/DictationButton.tsx
 msgid "Dictate your message"
 msgstr "Dicter votre message"
@@ -398,6 +406,8 @@ msgid "Every row of the file"
 msgstr "Toutes les lignes du fichier"
 
 #. Starts the extraction of a document
+#. Starts the extraction of a document
+#: src/features/extraction/components/DocumentPanel.tsx
 #: src/features/extraction/components/DocumentRow.tsx
 msgid "Extract"
 msgstr "Extraire"
@@ -425,9 +435,13 @@ msgid "Fields"
 msgstr "Champs"
 
 #. The kind of a document the person uploaded
-#: src/features/extraction/components/DocumentRow.tsx
+#: src/features/extraction/file-kind-labels.ts
 msgid "File"
 msgstr "Fichier"
+
+#: src/features/extraction/components/DocumentPanel.tsx
+msgid "File name"
+msgstr "Nom du fichier"
 
 #: src/features/extraction/components/FileDropZone.tsx
 msgid "File to extract"
@@ -514,7 +528,7 @@ msgstr "Si la page reste vide, son site refuse d’être affiché ici : ouvrez-l
 #. An image in a reply, which names none
 #. The kind of a document the person uploaded
 #: src/components/shared/Markdown.tsx
-#: src/features/extraction/components/DocumentRow.tsx
+#: src/features/extraction/file-kind-labels.ts
 msgid "Image"
 msgstr "Image"
 
@@ -542,8 +556,13 @@ msgid "Keep"
 msgstr "Garder"
 
 #: src/features/account/components/UserMenu.tsx
+#: src/features/extraction/components/DocumentPanel.tsx
 msgid "Language"
 msgstr "Langue"
+
+#: src/features/extraction/components/DocumentPanel.tsx
+msgid "Last updated"
+msgstr "Modifié le"
 
 #: src/features/conversation/components/McpAppPlaceholder.tsx
 msgid "Loading the interactive card…"
@@ -682,7 +701,7 @@ msgid "Pages of the results"
 msgstr "Pages des résultats"
 
 #. The kind of a document the person uploaded
-#: src/features/extraction/components/DocumentRow.tsx
+#: src/features/extraction/file-kind-labels.ts
 msgid "PDF"
 msgstr "PDF"
 
@@ -871,6 +890,11 @@ msgstr "Envoyer avec {tasks}"
 msgid "Set up"
 msgstr "Configurer"
 
+#. Opens the setup of a CSV file's extraction
+#: src/features/extraction/components/DocumentPanel.tsx
+msgid "Set up the extraction"
+msgstr "Configurer l'extraction"
+
 #: src/features/extraction/components/DocumentRow.tsx
 msgid "Set up the extraction of {name}"
 msgstr "Configurer l’extraction de {name}"
@@ -923,6 +947,10 @@ msgstr "Connexion expirée"
 #: src/components/shared/SignInProblemPage.tsx
 msgid "Sign-in failed"
 msgstr "Connexion impossible"
+
+#: src/features/extraction/components/DocumentPanel.tsx
+msgid "Size"
+msgstr "Taille"
 
 #. The column is left out
 #: src/features/extraction/components/ColumnRoleRow.tsx
@@ -985,9 +1013,13 @@ msgid "text"
 msgstr "texte"
 
 #. The kind of a document the person uploaded
-#: src/features/extraction/components/DocumentRow.tsx
+#: src/features/extraction/file-kind-labels.ts
 msgid "Text"
 msgstr "Texte"
+
+#: src/features/extraction/components/DocumentPanel.tsx
+msgid "Text read in the document"
+msgstr "Texte lu dans le document"
 
 #: src/features/conversation/components/FeedbackDialog.tsx
 msgid "Thank you. Your report was sent."
@@ -1025,6 +1057,10 @@ msgstr "L’agent lit le document"
 #: src/features/extraction/components/ExtractionPending.tsx
 msgid "The agent is reading the document…"
 msgstr "L’agent lit le document…"
+
+#: src/features/extraction/components/DocumentPanel.tsx
+msgid "The agent reads the document's text in its first extraction."
+msgstr "L'agent lit le texte du document lors de sa première extraction."
 
 #: src/features/memory/components/MemoryProposals.tsx
 msgid "The agent remembers"
@@ -1258,12 +1294,17 @@ msgstr "Réessayez dans un instant. Si cette page revient, déconnectez-vous, pu
 msgid "Try again to sign in. If this page comes back, close the other tabs of the Desk."
 msgstr "Réessayez pour vous connecter. Si cette page revient, fermez les autres onglets du Desk."
 
+#: src/features/extraction/components/DocumentPanel.tsx
+msgid "Type"
+msgstr "Type"
+
 #: src/features/conversation/components/TaskChecksList.tsx
 msgid "Unticked: {text}"
 msgstr "Décochée : {text}"
 
 #: src/features/conversation/components/SourceItem.tsx
 #: src/features/extraction/components/DeleteDocumentDialog.tsx
+#: src/features/extraction/components/DocumentPanel.tsx
 #: src/features/extraction/components/DocumentRow.tsx
 #: src/features/extraction/components/ExtractionRunView.tsx
 #: src/features/history/history-entries.ts

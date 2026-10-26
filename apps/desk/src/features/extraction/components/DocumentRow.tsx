@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { fileSizeOf } from "@/lib/file-size"
 import { fileKindOf } from "../extraction-files"
+import { FILE_KIND_LABELS } from "../file-kind-labels"
 import { FileKindIcon } from "./FileKindIcon"
 
 export type DocumentRowProps = {
@@ -14,37 +15,50 @@ export type DocumentRowProps = {
   now: number
   isBusy: boolean
   isDisabled: boolean
+  /** Whether its details are open beside the page. */
+  isOpen: boolean
+  onOpen: () => void
   onExtract: () => void
   onDelete: () => void
 }
 
-/** A document the person uploaded before: its name, kind, size and age, and what to do with it. */
+/**
+ * A document the person uploaded before: its name, kind, size and age, which open its details,
+ * and what to do with it.
+ */
 export function DocumentRow({
   document,
   now,
   isBusy,
   isDisabled,
+  isOpen,
+  onOpen,
   onExtract,
   onDelete,
 }: DocumentRowProps) {
   const { t, i18n } = useLingui()
   const kind = fileKindOf(document)
   const name = document.fileName ?? t`Untitled document`
-  const kindLabels = {
-    pdf: t({ message: "PDF", comment: "The kind of a document the person uploaded" }),
-    image: t({ message: "Image", comment: "The kind of a document the person uploaded" }),
-    text: t({ message: "Text", comment: "The kind of a document the person uploaded" }),
-    csv: t({ message: "CSV", comment: "The kind of a document the person uploaded" }),
-    other: t({ message: "File", comment: "The kind of a document the person uploaded" }),
-  } satisfies Record<typeof kind, string>
 
   return (
-    <li className="group/row flex items-center gap-3 px-3 py-2.5 first:rounded-t-2xl last:rounded-b-2xl hover:bg-muted/40">
+    <li
+      data-state={isOpen ? "selected" : undefined}
+      className="group/row relative flex items-center gap-3 px-3 py-2.5 first:rounded-t-2xl last:rounded-b-2xl hover:bg-muted/40 data-[state=selected]:bg-muted"
+    >
       <FileKindIcon kind={kind} className="text-muted-foreground" />
       <div className="flex min-w-0 flex-1 flex-col">
-        <span className="truncate text-sm font-medium">{name}</span>
+        {/* Its area covers the row, so a click anywhere but on the actions opens the details. */}
+        <button
+          type="button"
+          aria-label={t`Details of ${name}`}
+          aria-expanded={isOpen}
+          onClick={onOpen}
+          className="truncate text-left text-sm font-medium outline-none after:absolute after:inset-0 after:rounded-xl focus-visible:after:ring-3 focus-visible:after:ring-inset focus-visible:after:ring-ring/50"
+        >
+          {name}
+        </button>
         <span className="flex items-center gap-1 text-xs text-muted-foreground">
-          <span>{kindLabels[kind]}</span>
+          <span>{t(FILE_KIND_LABELS[kind])}</span>
           {document.size !== undefined ? (
             <>
               <span aria-hidden>·</span>
@@ -58,6 +72,7 @@ export function DocumentRow({
       <Button
         variant="outline"
         size="sm"
+        className="relative"
         disabled={isDisabled}
         onClick={onExtract}
         aria-label={kind === "csv" ? t`Set up the extraction of ${name}` : t`Extract ${name}`}
@@ -84,7 +99,7 @@ export function DocumentRow({
               disabled={isDisabled}
               aria-label={t`Delete ${name}`}
               onClick={onDelete}
-              className="text-muted-foreground opacity-0 transition-opacity group-hover/row:opacity-100 focus-visible:opacity-100 pointer-coarse:opacity-100"
+              className="relative text-muted-foreground opacity-0 transition-opacity group-hover/row:opacity-100 focus-visible:opacity-100 pointer-coarse:opacity-100"
             />
           }
         >

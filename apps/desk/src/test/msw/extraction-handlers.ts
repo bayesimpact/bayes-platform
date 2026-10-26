@@ -36,7 +36,10 @@ const MAX_ROWS = 30
  * runs that advance a few rows per poll. A file whose name holds "fail" fails, to show it.
  */
 export function extractionHandlers(world: DeskWorld) {
-  const presigned = new Map<string, Omit<ExtractionDocumentOutputDto, "id" | "createdAt">>()
+  const presigned = new Map<
+    string,
+    Pick<ExtractionDocumentOutputDto, "fileName" | "mimeType" | "size">
+  >()
   const documentsOf = (agentId: string) => {
     world.extractionDocuments[agentId] ??= []
     return world.extractionDocuments[agentId]
@@ -111,7 +114,12 @@ export function extractionHandlers(world: DeskWorld) {
     mockRoute(DeskExtractionsRoutes.confirmDocument, ({ params, payload }) => {
       const file = presigned.get(payload.documentId)
       if (!file) return apiError(404)
-      const document = buildExtractionDocument({ id: payload.documentId, ...file })
+      const document = buildExtractionDocument({
+        id: payload.documentId,
+        ...file,
+        // The agent reads the document's text in its first extraction.
+        content: null,
+      })
       documentsOf(params.agentId).unshift(document)
       if (file.mimeType === "text/csv") world.csvColumns[document.id] = buildCsvFileColumns()
       return document

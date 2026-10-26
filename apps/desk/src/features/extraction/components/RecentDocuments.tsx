@@ -12,15 +12,20 @@ export type RecentDocumentsProps = {
   now: number
   /** The document being extracted again, whose row shows it. */
   busyDocumentId: string | null
+  /** The document whose details are open beside the page. */
+  openDocumentId: string | null
+  onOpen: (document: ExtractionDocumentOutputDto) => void
   onExtract: (document: ExtractionDocumentOutputDto) => void
   onDelete: (document: ExtractionDocumentOutputDto) => void
 }
 
-/** The documents the person uploaded before, newest first, to extract one again. */
+/** The documents the person uploaded before, newest first, to see one or extract it again. */
 export function RecentDocuments({
   documents,
   now,
   busyDocumentId,
+  openDocumentId,
+  onOpen,
   onExtract,
   onDelete,
 }: RecentDocumentsProps) {
@@ -43,6 +48,8 @@ export function RecentDocuments({
             now={now}
             isBusy={busyDocumentId === document.id}
             isDisabled={busyDocumentId !== null}
+            isOpen={openDocumentId === document.id}
+            onOpen={() => onOpen(document)}
             onExtract={() => onExtract(document)}
             onDelete={() => onDelete(document)}
           />

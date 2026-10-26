@@ -21,11 +21,12 @@ function LocaleAndCache() {
 const { HistoryFailsToLoad, PageNotFound, ProjectsFailToLoad, Loading, ...generalPages } =
   composeStories(generalStories)
 const { ReplyFails, ...conversationPages } = composeStories(conversationStories)
+const { DocumentDetails, ...extractionPages } = composeStories(extractionStories)
 /** The stories of a page, from the three folders of Storybook. */
 const pageStories = {
   ...generalPages,
   ...conversationPages,
-  ...composeStories(extractionStories),
+  ...extractionPages,
 }
 
 /** Each story of a page, and what it shows once that page loaded: every story is listed. */
@@ -122,6 +123,15 @@ describe("the stories of the Desk", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "Retry" }))
     expect(await screen.findByText(/Here is what I found about "Hello"/)).toBeInTheDocument()
+  })
+
+  it("DocumentDetails opens the details of a document beside the page", async () => {
+    await DocumentDetails.load()
+    const { container } = render(<DocumentDetails />)
+    await DocumentDetails.play?.({ canvasElement: container })
+
+    const panel = await screen.findByRole("complementary", { name: "quarterly-report.pdf" })
+    expect(within(panel).getByRole("heading", { name: "Quarterly report" })).toBeInTheDocument()
   })
 
   it("HistoryFailsToLoad keeps the page, and loads the history on its retry", async () => {

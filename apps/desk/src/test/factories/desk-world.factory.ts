@@ -200,20 +200,29 @@ function addExtractionHistory(world: DeskWorld, agent: ProjectAgentOutputDto): v
     fileName: "meeting-notes.md",
     mimeType: "text/markdown",
     size: 18_000,
+    language: "fr",
+    content: "# Réunion d'équipe\n\n- Lancer la recherche plus rapide\n- Revoir les exports",
     createdAt: daysAgo(0),
   })
   const scan = buildExtractionDocument({
     fileName: "scanned-manual.pdf",
     size: 24_500_000,
+    content: null,
     createdAt: daysAgo(2),
   })
   const articles = buildExtractionDocument({
     fileName: "articles.csv",
     mimeType: "text/csv",
     size: 64_000,
+    content: null,
     createdAt: daysAgo(1),
   })
-  const contract = buildExtractionDocument({ fileName: "contract.pdf", createdAt: daysAgo(6) })
+  const contract = buildExtractionDocument({
+    fileName: "contract.pdf",
+    content: null,
+    createdAt: daysAgo(6),
+    updatedAt: daysAgo(6),
+  })
   world.extractionDocuments[agent.id] = [report, notes, articles, scan, contract]
 
   const runOf = (document: ExtractionDocumentOutputDto, status: "success" | "pending" | "failed") =>

@@ -20,6 +20,7 @@ import {
 } from "../api/mutations"
 import { fileKindOf, fileProblemOf } from "../extraction-files"
 import { DeleteDocumentDialog } from "./DeleteDocumentDialog"
+import { DocumentPanel } from "./DocumentPanel"
 import { FileDropZone } from "./FileDropZone"
 import { RecentDocuments } from "./RecentDocuments"
 
@@ -30,7 +31,8 @@ export type NewExtractionProps = {
 
 /**
  * A new extraction, as a new conversation in the Claude app: the place to drop the file, and the
- * documents uploaded before, to extract one again. Leaving the page stops an upload.
+ * documents uploaded before, to see one beside the page or extract it again. Leaving the page
+ * stops an upload.
  */
 export function NewExtraction({ agent, agentName }: NewExtractionProps) {
   const { t, i18n } = useLingui()
@@ -42,6 +44,10 @@ export function NewExtraction({ agent, agentName }: NewExtractionProps) {
   const nextUploadSignal = useAbortOnUnmount()
   const [upload, setUpload] = useState<{ fileName: string; step: UploadStep } | null>(null)
   const [documentToDelete, setDocumentToDelete] = useState<ExtractionDocumentOutputDto | null>(null)
+  const [openDocumentId, setOpenDocumentId] = useState<string | null>(null)
+  // The details follow the list: a deleted document closes them.
+  const openDocument = documents.find((document) => document.id === openDocumentId) ?? null
+  const busyDocumentId = extractDocument.isPending ? (extractDocument.variables ?? null) : null
   const maxSize = fileSizeOf(EXTRACTION_MAX_BYTES, i18n.locale)
 
   const openStarted = (started: StartedExtraction) =>
@@ -101,18 +107,34 @@ export function NewExtraction({ agent, agentName }: NewExtractionProps) {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center gap-8 px-4 pt-16 pb-16 md:pt-24">
-      <h1 className="text-center text-3xl font-semibold tracking-tight text-balance">
-        <Trans>What should {agentName} read?</Trans>
-      </h1>
-      <FileDropZone onFiles={handleFiles} upload={upload} maxSize={maxSize} />
-      <RecentDocuments
-        documents={documents}
-        now={now}
-        busyDocumentId={extractDocument.isPending ? (extractDocument.variables ?? null) : null}
-        onExtract={handleExtract}
-        onDelete={setDocumentToDelete}
-      />
+    <div className="flex min-h-0 min-w-0 flex-1">
+      <div className="min-w-0 flex-1 overflow-y-auto">
+        <div className="mx-auto flex w-full max-w-2xl flex-col items-center gap-8 px-4 pt-16 pb-16 md:pt-24">
+          <h1 className="text-center text-3xl font-semibold tracking-tight text-balance">
+            <Trans>What should {agentName} read?</Trans>
+          </h1>
+          <FileDropZone onFiles={handleFiles} upload={upload} maxSize={maxSize} />
+          <RecentDocuments
+            documents={documents}
+            now={now}
+            busyDocumentId={busyDocumentId}
+            openDocumentId={openDocument?.id ?? null}
+            onOpen={(document) => setOpenDocumentId(document.id)}
+            onExtract={handleExtract}
+            onDelete={setDocumentToDelete}
+          />
+        </div>
+      </div>
+      {openDocument ? (
+        <DocumentPanel
+          key={openDocument.id}
+          document={openDocument}
+          isExtracting={busyDocumentId === openDocument.id}
+          isDisabled={busyDocumentId !== null}
+          onExtract={() => handleExtract(openDocument)}
+          onClose={() => setOpenDocumentId(null)}
+        />
+      ) : null}
       <DeleteDocumentDialog
         agent={agent}
         document={documentToDelete}

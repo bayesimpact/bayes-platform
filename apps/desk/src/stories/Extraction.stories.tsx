@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
+import { userEvent, within } from "storybook/test"
 import { extractionUrlsOf } from "@/test/desk-urls"
 import { buildExtractionAgentWorld } from "@/test/factories/desk-world.factory"
 import { desk } from "@/test/msw/story-api"
@@ -18,6 +19,24 @@ export const NewExtraction: Story = {
     world: buildExtractionAgentWorld,
     url: (world) => extractionUrlsOf(world).newExtractionUrl,
   }),
+}
+
+/** A document's details beside the page: the story opens those of the quarterly report. */
+export const DocumentDetails: Story = {
+  parameters: desk({
+    world: buildExtractionAgentWorld,
+    url: (world) => extractionUrlsOf(world).newExtractionUrl,
+  }),
+  play: async ({ canvasElement }) => {
+    // The page's own list: the sidebar's history names the report too.
+    const page = await within(canvasElement).findByRole("main", {}, { timeout: 5000 })
+    const details = await within(page).findByRole(
+      "button",
+      { name: /quarterly-report\.pdf/, expanded: false },
+      { timeout: 5000 },
+    )
+    await userEvent.click(details)
+  },
 }
 
 /** The notes are still being read: the page shows the agent reading, then the result. */

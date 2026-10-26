@@ -13,6 +13,17 @@ import {
 } from "@caseai-connect/desk-contracts"
 import { daysAgo } from "./agent-sessions.factory"
 
+/** The text read in a document, as a neutral sample. */
+const SAMPLE_CONTENT = `# Quarterly report
+
+The product gained two features this quarter, and support answered faster.
+
+| Topic | Change |
+| --- | --- |
+| Product | Two new features |
+| Pricing | No change |
+| Support | Answers in half the time |`
+
 /** A document the person uploaded for an extraction, checked against the contract. */
 export function buildExtractionDocument(
   overrides: Partial<ExtractionDocumentOutputDto> = {},
@@ -22,7 +33,10 @@ export function buildExtractionDocument(
     fileName: "quarterly-report.pdf",
     mimeType: "application/pdf",
     size: 2_400_000,
+    language: "en",
+    content: SAMPLE_CONTENT,
     createdAt: daysAgo(0),
+    updatedAt: daysAgo(0),
     ...overrides,
   })
 }
