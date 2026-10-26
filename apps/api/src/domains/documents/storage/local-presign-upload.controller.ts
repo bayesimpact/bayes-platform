@@ -12,7 +12,11 @@ import type { Request } from "express"
 import type { IFileStorage } from "./file-storage.interface"
 import { FILE_STORAGE_SERVICE } from "./file-storage.interface"
 // biome-ignore lint/style/useImportType: not a type
-import { LocalStorageService, UploadSizeMismatchError } from "./local-storage.service"
+import {
+  LocalStorageService,
+  UploadSizeMismatchError,
+  UploadTooLargeError,
+} from "./local-storage.service"
 
 @Controller()
 export class LocalPresignUploadController {
@@ -25,16 +29,11 @@ export class LocalPresignUploadController {
     if (typeof localStorage.handleLocalUpload !== "function") {
       throw new BadRequestException("Local presign upload is not available in this environment.")
     }
-    const chunks: Buffer[] = []
-    await new Promise<void>((resolve, reject) => {
-      req.on("data", (chunk: Buffer) => chunks.push(chunk))
-      req.on("end", resolve)
-      req.on("error", reject)
-    })
     try {
-      await localStorage.handleLocalUpload(token, Buffer.concat(chunks))
+      const fileBuffer = await localStorage.readUploadBody(token, req)
+      await localStorage.handleLocalUpload(token, fileBuffer)
     } catch (error) {
-      if (error instanceof UploadSizeMismatchError) {
+      if (error instanceof UploadSizeMismatchError || error instanceof UploadTooLargeError) {
         throw new BadRequestException(error.message)
       }
       throw error

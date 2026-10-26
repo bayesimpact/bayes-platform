@@ -1,4 +1,7 @@
-import { AgentSessionMessagesRoutes } from "@caseai-connect/api-contracts"
+import {
+  AGENT_SESSION_MESSAGE_ATTACHMENT_MAX_BYTES,
+  AgentSessionMessagesRoutes,
+} from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import {
@@ -142,5 +145,48 @@ describe("AgentSessionMessagesRoutes.presignAttachmentDocument", () => {
       422,
       "Invalid file type: text/plain. Allowed types: PDF, PNG, or JPEG.",
     )
+  })
+
+  it("should accept an attachment document of the maximum size", async () => {
+    await createContext()
+
+    const response = await subject({
+      fileName: "support-notes.pdf",
+      mimeType: "application/pdf",
+      size: AGENT_SESSION_MESSAGE_ATTACHMENT_MAX_BYTES,
+    })
+
+    expectResponse(response, 201)
+    const attachmentDocument = await repositories.agentMessageAttachmentDocumentRepository.findOne({
+      where: { id: response.body.data.attachmentDocumentId },
+    })
+    expect(attachmentDocument?.size).toBe(AGENT_SESSION_MESSAGE_ATTACHMENT_MAX_BYTES)
+  })
+
+  it("should reject an attachment document above the maximum size without signing a URL", async () => {
+    await createContext()
+
+    const response = await subject({
+      fileName: "support-notes.pdf",
+      mimeType: "application/pdf",
+      size: AGENT_SESSION_MESSAGE_ATTACHMENT_MAX_BYTES + 1,
+    })
+
+    expectResponse(response, 400)
+    expect(response.body.data).toBeUndefined()
+    await expect(repositories.agentMessageAttachmentDocumentRepository.count()).resolves.toBe(0)
+  })
+
+  it.each([0, -1, 12.5])("should reject an attachment document of size %p", async (size) => {
+    await createContext()
+
+    const response = await subject({
+      fileName: "support-notes.pdf",
+      mimeType: "application/pdf",
+      size,
+    })
+
+    expectResponse(response, 400)
+    await expect(repositories.agentMessageAttachmentDocumentRepository.count()).resolves.toBe(0)
   })
 })

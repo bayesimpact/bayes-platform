@@ -123,9 +123,6 @@ export abstract class AgentMessagesController {
     if (!payload.mimeType) {
       throw new UnprocessableEntityException("File MIME type is required.")
     }
-    if (typeof payload.size !== "number" || !Number.isFinite(payload.size) || payload.size <= 0) {
-      throw new UnprocessableEntityException("File size must be greater than zero.")
-    }
     if (!agentSessionMessageAttachmentAllowedMimeTypes.includes(payload.mimeType)) {
       throw new UnprocessableEntityException(
         `Invalid file type: ${payload.mimeType}. Allowed types: PDF, PNG, or JPEG.`,
