@@ -2,9 +2,6 @@ import { randomUUID } from "node:crypto"
 import { Readable } from "node:stream"
 import {
   type AppDocumentUploadHeadersDto,
-  DOCUMENT_UPLOAD_CONTENT_LENGTH_RANGE_HEADER,
-  DOCUMENT_UPLOAD_MAX_BYTES,
-  documentUploadContentLengthRange,
   isAllowedMimeType,
   MimeTypes,
   type PresignFileRequestItemDto,
@@ -143,6 +140,7 @@ export class DocumentsService {
       storagePath,
       mimeType: file.mimeType,
       expiresInSeconds: 900, // 15 minutes
+      contentLength: file.size,
     })
 
     await this.createDocument({
@@ -493,7 +491,7 @@ export class DocumentsService {
       storagePath: storageRelativePath,
       mimeType: params.mimeType,
       expiresInSeconds: 900,
-      maxBytes: DOCUMENT_UPLOAD_MAX_BYTES,
+      contentLength: params.size,
     })
     const document = await this.createDocument({
       connectScope: params.connectScope,
@@ -517,7 +515,7 @@ export class DocumentsService {
       uploadUrl,
       uploadHeaders: {
         "Content-Type": params.mimeType,
-        [DOCUMENT_UPLOAD_CONTENT_LENGTH_RANGE_HEADER]: documentUploadContentLengthRange(),
+        "Content-Length": String(params.size),
       },
     }
   }

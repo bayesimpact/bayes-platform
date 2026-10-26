@@ -13,7 +13,7 @@ import (
 	"cloud.google.com/go/storage"
 )
 
-// errObjectNotFound normalizes "missing object" across the real GCS store and
+// errObjectNotFound normalizes "missing object" across the real stores and
 // test fakes so the handler can map it to a 404.
 var errObjectNotFound = errors.New("object not found")
 
@@ -39,11 +39,6 @@ type signedURLOptions struct {
 // uploadOptions describes how one object is written.
 type uploadOptions struct {
 	ContentType string
-	// ExpiresAt, when set, is stamped on the object as its GCS custom time so
-	// the sweep in apps/api deletes it exactly when its signed URL stops
-	// working, whatever TTL the sweep itself is configured with. Zero leaves
-	// the object without a custom time.
-	ExpiresAt time.Time
 }
 
 type objectStore interface {
@@ -84,8 +79,6 @@ func (store *gcsStore) Download(ctx context.Context, object string, maxBytes int
 func (store *gcsStore) Upload(ctx context.Context, object string, data []byte, opts uploadOptions) error {
 	writer := store.bucket.Object(object).NewWriter(ctx)
 	writer.ContentType = opts.ContentType
-	// Writer embeds ObjectAttrs; a zero CustomTime is simply not sent.
-	writer.CustomTime = opts.ExpiresAt
 	// The payload is fully in memory and small (a page PNG or an exported
 	// PDF); ChunkSize 0 uploads it in a single request instead of staging a
 	// 16MiB resumable buffer.

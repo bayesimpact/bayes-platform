@@ -13,3 +13,13 @@ services:
       - "synchronous_commit=off"
       - "-c"
       - "full_page_writes=off"
+  seaweedfs:
+    volumes:
+      - type: bind
+        source: ./seaweedfs/s3.json
+        target: /etc/seaweedfs/s3.json
+        read_only: true
+      - type: tmpfs
+        target: /data
+        tmpfs:
+          size: 256M
