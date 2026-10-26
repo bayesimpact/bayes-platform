@@ -14,6 +14,7 @@ const renderMenu = ({ helpCenterUrl = null }: { helpCenterUrl?: string | null } 
       user={user}
       locale="en"
       locales={["en", "fr"]}
+      homeUrl="/onboarding"
       helpCenterUrl={helpCenterUrl}
       {...handlers}
     />,
@@ -41,6 +42,18 @@ describe("UserMenu", () => {
     await userEvent.click(await screen.findByRole("menuitemradio", { name: "Français" }))
 
     expect(onLocaleChange).toHaveBeenCalledWith("fr")
+  })
+
+  it("goes back to the platform's home, in the same tab", async () => {
+    renderMenu()
+
+    await userEvent.click(
+      screen.getByRole("button", { name: `${user.name}, menu of ${user.email}` }),
+    )
+    const link = await screen.findByRole("menuitem", { name: "Home" })
+
+    expect(link).toHaveAttribute("href", "/onboarding")
+    expect(link).not.toHaveAttribute("target")
   })
 
   it("links to the install's help center, in a new tab", async () => {

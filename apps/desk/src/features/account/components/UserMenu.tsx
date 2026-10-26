@@ -1,6 +1,6 @@
 import type { MeUserOutputDto } from "@caseai-connect/desk-contracts"
 import { Trans, useLingui } from "@lingui/react/macro"
-import { ChevronDownIcon, CircleHelpIcon, LogOutIcon, PencilIcon } from "lucide-react"
+import { ChevronDownIcon, CircleHelpIcon, HouseIcon, LogOutIcon, PencilIcon } from "lucide-react"
 import { isLocale, type Locale } from "@/app/i18n"
 import { ExternalLink } from "@/components/shared/ExternalLink"
 import { Button } from "@/components/ui/button"
@@ -20,6 +20,8 @@ export type UserMenuProps = {
   user: MeUserOutputDto
   locale: Locale
   locales: readonly Locale[]
+  /** The platform's home, outside the Desk, opened in the same tab. */
+  homeUrl: string
   /** The install's help center, opened in a new tab; `null` when the install has none. */
   helpCenterUrl: string | null
   onLocaleChange: (locale: Locale) => void
@@ -37,6 +39,7 @@ export function UserMenu({
   user,
   locale,
   locales,
+  homeUrl,
   helpCenterUrl,
   onLocaleChange,
   onEditName,
@@ -85,6 +88,14 @@ export function UserMenu({
           </DropdownMenuRadioGroup>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
+        {/* Another app of the platform: a plain link, which leaves the Desk's router. */}
+        {/* biome-ignore lint/a11y/useAnchorContent: Base UI renders the item's icon and text inside the link. */}
+        <DropdownMenuItem render={<a href={homeUrl} />}>
+          <HouseIcon aria-hidden />
+          <Trans comment="Opens the platform's home, which lists the person's apps, outside the Desk">
+            Home
+          </Trans>
+        </DropdownMenuItem>
         {helpCenterUrl ? (
           <DropdownMenuItem render={<ExternalLink href={helpCenterUrl} hasIcon={false} />}>
             <CircleHelpIcon aria-hidden />

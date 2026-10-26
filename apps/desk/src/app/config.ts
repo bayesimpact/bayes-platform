@@ -85,3 +85,9 @@ export const appConfig = readConfig()
  * to `/`, so the tests run the Desk under its real path.
  */
 export const appBasePath = "/app/"
+
+/**
+ * The platform's home, on the Desk's origin: the page of apps/web that lists the person's apps,
+ * which the user menu links to.
+ */
+export const platformHomePath = "/onboarding"

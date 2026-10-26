@@ -496,6 +496,11 @@ msgstr "Centre d'aide"
 msgid "Hide the sidebar"
 msgstr "Masquer la barre latérale"
 
+#. Opens the platform's home, which lists the person's apps, outside the Desk
+#: src/features/account/components/UserMenu.tsx
+msgid "Home"
+msgstr "Accueil"
+
 #: src/components/shared/DeskLogo.tsx
 msgid "Home of the Desk"
 msgstr "Accueil du Desk"
