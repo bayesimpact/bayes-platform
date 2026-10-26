@@ -22,6 +22,7 @@ import { useCitedPassages } from "../hooks/use-cited-passages"
 import { useConversationForms } from "../hooks/use-conversation-forms"
 import { useConversationPanel } from "../hooks/use-conversation-panel"
 import { useConversationSend } from "../hooks/use-conversation-send"
+import { withAppMessage } from "../mcp-apps"
 import { ChatMessageView } from "./ChatMessageView"
 import { CitedPassageBadges } from "./CitedPassageBadges"
 import { Composer } from "./Composer"
@@ -71,6 +72,11 @@ export function ConversationView({
     enabled: hasSettledApps,
   })
   const appsHtml = { htmls: mcpAppsHtml.data ?? [], isPending: mcpAppsHtml.isPending }
+  // An app's message joins what the person wrote, and the focus goes to the box to send it.
+  const handleAppMessage = (text: string) => {
+    setDraft((current) => withAppMessage(current, text))
+    document.getElementById(composerId)?.focus()
+  }
 
   return (
     <MessageScrollerProvider autoScroll>
@@ -141,7 +147,7 @@ export function ConversationView({
                               now={now}
                               hasSourcesTool={hasSourcesTool}
                               appsHtml={appsHtml}
-                              onAppMessage={setDraft}
+                              onAppMessage={handleAppMessage}
                               onOpenResource={panel.openResource}
                               citedPassages={citedPassages}
                               taskChecks={sending.taskChecks}

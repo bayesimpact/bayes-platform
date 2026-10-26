@@ -62,6 +62,14 @@ export function appMessageText(content: ContentBlock[]): string {
   return textsOf(content).join("\n\n")
 }
 
+/**
+ * The message box once an app put its text in it: after what the person already wrote, as a
+ * paragraph of its own, so an app never erases their words.
+ */
+export function withAppMessage(draft: string, text: string): string {
+  return draft.trim() === "" ? text : `${draft.trimEnd()}\n\n${text}`
+}
+
 /** Whether a reply's text says something: a lone "." beside a card says nothing. */
 export function hasMeaningfulText(text: string): boolean {
   return /[\p{L}\p{N}]/u.test(text)

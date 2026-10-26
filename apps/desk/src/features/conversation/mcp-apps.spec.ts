@@ -8,6 +8,7 @@ import {
   toCallToolResult,
   toolResultText,
   unavailableApps,
+  withAppMessage,
 } from "./mcp-apps"
 
 const app = (overrides: Partial<ChatMcpApp> = {}): ChatMcpApp => ({
@@ -51,6 +52,13 @@ describe("the texts of tools and apps", () => {
     expect(toolResultText({ content: blocks })).toBe("First\nSecond")
     expect(appMessageText(blocks)).toBe("First\n\nSecond")
     expect(toolResultText("not a result")).toBe("")
+  })
+
+  it("adds an app's message after what the person wrote, or fills an empty box with it", () => {
+    expect(withAppMessage("Thanks, and also: \n", "I picked plan B")).toBe(
+      "Thanks, and also:\n\nI picked plan B",
+    )
+    expect(withAppMessage("  ", "I picked plan B")).toBe("I picked plan B")
   })
 
   it("wraps a result without content as the structured content of an empty text", () => {
