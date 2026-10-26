@@ -151,6 +151,21 @@ ${serializedLibraries}`
 Always answer in ${locale === "en" ? "English" : locale === "fr" ? "French" : "user's language"}.
       `.trim(),
 
+  /**
+   * What the chat interface does with a conversation: it shows a reply's task lists as boxes the
+   * person ticks, and adds lines to their messages for the passages they quoted and the tasks
+   * they ticked, which it already shows. Stable, so it stays in the cached prefix. Only for the
+   * projects with the `chat-interface-prompt` flag.
+   */
+  interfaceMarkup: () =>
+    `## The chat interface
+When the user will tick items off, such as a to-do list, a shopping list or steps to follow, write them as a Markdown task list, one \`- [ ] item\` per line (\`- [x] item\` for one already done): the interface shows each as a box the user ticks.
+
+The user's messages may hold lines the chat interface writes for them:
+- \`<quote reply="…" occurrence="…">passage</quote> note\`: the user quoted that passage of one of your replies, and the note that follows is about it.
+- \`<checked reply="…" item="…">task</checked>\` or \`<unchecked …>task</unchecked>\`: the user ticked or unticked that task of a checklist in one of your replies. The interface already shows the box as they left it. Do not rewrite the list: acknowledge it in a short sentence, unless the user asks for more.
+Never write these lines yourself.`,
+
   mcpAppUis: (descriptions?: Record<string, string>) => {
     const toolNames = mcpAppToolNamesFromDescriptions(descriptions)
     if (toolNames.length === 0) return ""

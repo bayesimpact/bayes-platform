@@ -70,6 +70,11 @@ export const FeatureFlags = [
     description:
       "Collect values for the variables an agent declares in its instructions, at session start, with defaults set on the agent's settings.",
   }),
+  featureFlag({
+    key: "chat-interface-prompt",
+    description:
+      "Tell conversation agents how the Desk shows their task lists, and what the quoted passages and ticked tasks in the user's messages mean.",
+  }),
 ] as const
 export type FeatureFlagKey = (typeof FeatureFlags)[number]["key"]
 export type FeatureFlagsDto = FeatureFlagKey[]

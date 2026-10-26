@@ -136,7 +136,10 @@ export class AgentLlmRequestService {
     })
 
     const toolNames = tools ? Object.keys(tools) : []
-    const llmFeatures = await this.projectsService.getLlmFeatures(connectScope)
+    const [llmFeatures, hasChatInterfacePrompt] = await Promise.all([
+      this.projectsService.getLlmFeatures(connectScope),
+      this.projectsService.hasFeature({ connectScope, feature: "chat-interface-prompt" }),
+    ])
     const config = buildLLMConfig({
       systemPrompt: generateMasterPrompt({
         agent,
@@ -147,6 +150,7 @@ export class AgentLlmRequestService {
           ? { parentAgentName: agentSessionScope.handoff.parentAgent.name }
           : undefined,
         contextSections: promptSections,
+        hasChatInterfacePrompt,
       }),
       model: agentSettings.model,
       modelOptions: agentSettings.providerOptions,
