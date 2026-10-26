@@ -1,8 +1,12 @@
-import { AgentSessionMessagesRoutes } from "@caseai-connect/api-contracts"
+import {
+  AgentSessionMessagesRoutes,
+  presignAgentSessionMessageAttachmentDocumentSchema,
+} from "@caseai-connect/api-contracts"
 import { Body, Controller, HttpCode, HttpStatus, Param, Post, Req, UseGuards } from "@nestjs/common"
 import type { EndpointRequestWithAgentSession } from "@/common/context/request.interface"
 import { RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
+import { ZodValidationPipe } from "@/common/zod-validation-pipe"
 import type { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
@@ -53,7 +57,8 @@ export class LiveAgentMessagesController extends AgentMessagesController {
   @HttpCode(HttpStatus.CREATED)
   presignAttachmentDocument(
     @Req() request: EndpointRequestWithAgentSession<ConversationAgentSession>,
-    @Body() { payload }: typeof Routes.presignAttachmentDocument.request,
+    @Body(new ZodValidationPipe(presignAgentSessionMessageAttachmentDocumentSchema))
+    { payload }: typeof Routes.presignAttachmentDocument.request,
   ): Promise<typeof Routes.presignAttachmentDocument.response> {
     return this.handlePresignAttachmentDocument(request, payload)
   }
