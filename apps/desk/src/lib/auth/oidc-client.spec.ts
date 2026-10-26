@@ -6,6 +6,7 @@ const userManagerMock = vi.hoisted(() => ({
   signinSilent: vi.fn(),
   signinRedirect: vi.fn(),
   signinRedirectCallback: vi.fn(),
+  signoutRedirect: vi.fn(),
   removeUser: vi.fn(),
   settings: {
     accessTokenExpiringNotificationTimeInSeconds: 60,
@@ -35,6 +36,7 @@ const {
   hasSession,
   onSessionEnded,
   signIn,
+  signOut,
   takeTabReturnTo,
 } = await import("./oidc-client")
 
@@ -250,6 +252,26 @@ describe("the end of a session", () => {
       storageListener({ key: "oidc.user:https://idp.example.org:platform-web", newValue: null })
     }
     expect(listener).toHaveBeenCalledTimes(2)
+    unsubscribe()
+  })
+})
+
+// Last: signing out lasts until the page leaves, which a test's page never does.
+describe("signing out", () => {
+  it("reads no session until the page leaves, so nothing starts a new sign-in", async () => {
+    userManagerMock.getUser.mockResolvedValue(freshUser)
+    const listener = vi.fn()
+    const unsubscribe = onSessionEnded(listener)
+
+    await signOut()
+    const settled = vi.fn()
+    void hasSession().then(settled, settled)
+    void getAccessToken().then(settled, settled)
+    await new Promise((resolve) => setTimeout(resolve, 10))
+
+    expect(userManagerMock.signoutRedirect).toHaveBeenCalledWith({ id_token_hint: undefined })
+    expect(settled).not.toHaveBeenCalled()
+    expect(listener).not.toHaveBeenCalled()
     unsubscribe()
   })
 })

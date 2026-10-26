@@ -36,6 +36,7 @@ export class AuthenticationRequiredError extends Error {
 
 /** Whether a session exists, or can be renewed with its refresh token. */
 export async function hasSession(): Promise<boolean> {
+  if (isSigningOut) return untilThePageLeaves()
   const user = await getUserManager().getUser()
   return Boolean(user && (!user.expired || user.refresh_token))
 }
@@ -46,6 +47,7 @@ export async function hasSession(): Promise<boolean> {
  * @throws {AuthenticationRequiredError} when there is no session or the provider refuses to refresh it
  */
 export async function getAccessToken({ forceRefresh = false } = {}): Promise<string> {
+  if (isSigningOut) return untilThePageLeaves()
   const user = await getUserManager().getUser()
   if (!user) throw new AuthenticationRequiredError("No session. The person needs to sign in.")
   if (!forceRefresh && !user.expired && user.access_token) return user.access_token
@@ -235,13 +237,26 @@ function watchOtherTabs(userManager: UserManager): void {
 }
 
 /**
+ * Whether the person is signing out: the page leaves for the provider, or reloads, at once. Until
+ * it does, nothing reads the session, or the page would see none and start a new sign-in, which
+ * the Desk would take for a loop once the person comes back.
+ */
+let isSigningOut = false
+
+/** A promise that never settles: what waits on it ends with the page. */
+function untilThePageLeaves(): Promise<never> {
+  return new Promise<never>(() => {})
+}
+
+/**
  * Ends the session at the provider when it supports RP-initiated logout (`end_session_endpoint`),
- * otherwise only in the Desk, then returns to the Desk's home.
+ * otherwise only in the Desk, then returns to the Desk's home. The page leaves at once, so it
+ * neither clears its data nor reloads its pages: another tab learns of it from the storage.
  */
 export async function signOut(): Promise<void> {
+  isSigningOut = true
   const userManager = getUserManager()
   const user = await userManager.getUser()
-  notifySessionEnded()
   try {
     await userManager.signoutRedirect({ id_token_hint: user?.id_token })
   } catch {
