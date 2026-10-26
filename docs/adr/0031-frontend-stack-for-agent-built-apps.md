@@ -631,8 +631,10 @@ holds the rules of this phase.
   change also fixes the comments that still say the image serves `apps/web` at `/app/`.
 * **Cutover.** Until the Desk matches today's screens, the image leaves it out and `apps/web` keeps
   serving `/app`. Every install registers the Desk's redirect URIs with its identity provider
-  beforehand. One release then starts serving the Desk and deletes `apps/web/src/desk` and the code
-  only it used.
+  beforehand. One release then starts serving the Desk, and a later one deletes `apps/web/src/desk`
+  and the code only it used, once the Desk has run in production. Until then the server answers
+  `/app`, and the hub of `apps/web` opens it with a full page load, so the old screens no longer
+  show.
 * **Worktree environments.** A `desk` service, under a `desk` profile, runs the Vite dev server. On
   the environment's host it takes the paths that match `^/app(/|$)`, as the API router matches its
   own, with a redirect from `/app` to `/app/`. Its Traefik priority sits between those of the API

@@ -31,8 +31,9 @@ holds what is specific to the Desk.
   once a minute at most. Queries never retry these errors.
 - Terms: the layout of the signed-in pages waits for `me` and shows the terms to accept before any
   page, as apps/web does. It is the one section that holds its pages back, on purpose.
-- Configuration: the API injects `window.__CONFIG__` when it serves the Desk; in dev, the
-  `VITE_OIDC_*` values of `apps/desk/.env` stand in (see `.env-example`).
+- Configuration: the API injects `window.__CONFIG__` when it serves the Desk, from the `WEB_*`
+  variables it gives apps/web (`helpCenterUrl`, the `oidc*` keys); in dev, the `VITE_*` values of
+  `apps/desk/.env` stand in (see `.env-example`).
 
 ## Commands
 
@@ -123,8 +124,12 @@ the conventions as they stand. When a rule changes, its reference file changes i
   `src/stories/StoryProviders.tsx`.
   `src/stories/Desk.stories.spec.tsx` renders every story in the tests.
 
-## Until the cutover
+## In production
 
-The image does not serve the Desk yet: `apps/web` keeps serving `/app` in production until the Desk
-matches today's screens (ADR 0031, section 2.14). Never change `apps/web/src/desk` for the Desk's
-sake.
+The `app-runtime` image builds the Desk (the `desk-build` stage of `apps/api/Dockerfile`) and the
+API serves it at `/app`, ahead of `apps/web` (`DESK_APP_DIST_DIR`, `registerWebApp` in
+`apps/api/src/common/web-app`), with the same injected configuration as `apps/web` and the
+install's theme mounted over `dist/theme` (`web.deskDistDir` in the Helm chart). Each install
+registers `<origin>/app/auth/callback` and `<origin>/app/` with its identity provider.
+`apps/web/src/desk` still exists until a later change deletes it, with the code only it used:
+never change it for the Desk's sake.
