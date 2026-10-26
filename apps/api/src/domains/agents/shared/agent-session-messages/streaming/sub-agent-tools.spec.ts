@@ -1,6 +1,7 @@
 import { DocumentsRagMode } from "@caseai-connect/api-contracts"
 import { tool } from "ai"
 import { z } from "zod"
+import type { AdditionalMetadata } from "@/common/interfaces/llm-provider.interface"
 import { buildSubAgentTools } from "./sub-agent-tools"
 import type { ToolExecutionLog } from "./tools/tool-execution-log"
 
@@ -265,9 +266,14 @@ describe("buildSubAgentTools", () => {
     }
     const findOrCreateSubSession = jest.fn().mockResolvedValue(subSession)
     let capturedMessages: { role: string; content: string }[] = []
-    let capturedMetadata:
-      | { traceId: string; agentSessionId: string; parentSessionId?: string; tags: string[] }
+    let capturedCallContext:
+      | {
+          traceId: string
+          agentSessionId: string
+          parentSessionId?: string
+        }
       | undefined
+    let capturedMetadata: AdditionalMetadata | undefined
 
     const { tools } = await buildSubAgentTools({
       activeAgentController: {
@@ -318,9 +324,10 @@ describe("buildSubAgentTools", () => {
       generateMasterPrompt: () => "system prompt",
       getProviderForModel: () =>
         ({
-          streamChatResponse: async function* ({ messages, metadata }) {
+          streamChatResponse: async function* ({ messages, callContext, additionalMetadata }) {
             capturedMessages = messages
-            capturedMetadata = metadata
+            capturedCallContext = callContext
+            capturedMetadata = additionalMetadata
             yield "form answer"
           },
         }) as never,
@@ -350,11 +357,11 @@ describe("buildSubAgentTools", () => {
     expect(result.answer).toBe("form answer")
     // The fillForm-enabled sub-agent gets its own dedicated trace (the
     // sub-session's), linked back to the parent run via a tag and parentSessionId.
-    expect(capturedMetadata?.traceId).toBe("sub-trace-id")
-    expect(capturedMetadata?.agentSessionId).toBe("sub-session-id")
-    expect(capturedMetadata?.parentSessionId).toBe("parent-session-id")
-    expect(capturedMetadata?.tags).toContain("parent-trace:parent-trace-id")
-    expect(capturedMetadata?.tags).toContain("sub-agent")
+    expect(capturedCallContext?.traceId).toBe("sub-trace-id")
+    expect(capturedCallContext?.agentSessionId).toBe("sub-session-id")
+    expect(capturedCallContext?.parentSessionId).toBe("parent-session-id")
+    expect(capturedMetadata?.agent?.parent?.trace).toBe("parent-trace-id")
+    expect(capturedMetadata?.agent?.class).toBe("sub-agent")
   })
 
   it("runs a conversation sub-agent against a dedicated conversation sub-session", async () => {
@@ -395,9 +402,14 @@ describe("buildSubAgentTools", () => {
     }
     const findOrCreateSubSession = jest.fn().mockResolvedValue(subSession)
     let capturedMessages: { role: string; content: string }[] = []
-    let capturedMetadata:
-      | { traceId: string; agentSessionId: string; parentSessionId?: string; tags: string[] }
+    let capturedCallContext:
+      | {
+          traceId: string
+          agentSessionId: string
+          parentSessionId?: string
+        }
       | undefined
+    let capturedMetadata: AdditionalMetadata | undefined
 
     const { tools } = await buildSubAgentTools({
       activeAgentController: {
@@ -448,9 +460,10 @@ describe("buildSubAgentTools", () => {
       generateMasterPrompt: () => "system prompt",
       getProviderForModel: () =>
         ({
-          streamChatResponse: async function* ({ messages, metadata }) {
+          streamChatResponse: async function* ({ messages, callContext, additionalMetadata }) {
             capturedMessages = messages
-            capturedMetadata = metadata
+            capturedCallContext = callContext
+            capturedMetadata = additionalMetadata
             yield "pricing answer"
           },
         }) as never,
@@ -479,11 +492,11 @@ describe("buildSubAgentTools", () => {
     expect(result.answer).toBe("pricing answer")
     // The conversation sub-agent gets its own dedicated trace (the sub-session's),
     // linked back to the parent run via a tag and parentSessionId.
-    expect(capturedMetadata?.traceId).toBe("sub-trace-id")
-    expect(capturedMetadata?.agentSessionId).toBe("sub-session-id")
-    expect(capturedMetadata?.parentSessionId).toBe("parent-session-id")
-    expect(capturedMetadata?.tags).toContain("parent-trace:parent-trace-id")
-    expect(capturedMetadata?.tags).toContain("sub-agent")
+    expect(capturedCallContext?.traceId).toBe("sub-trace-id")
+    expect(capturedCallContext?.agentSessionId).toBe("sub-session-id")
+    expect(capturedCallContext?.parentSessionId).toBe("parent-session-id")
+    expect(capturedMetadata?.agent?.parent?.trace).toBe("parent-trace-id")
+    expect(capturedMetadata?.agent?.class).toBe("sub-agent")
   })
 
   it("does not offer a sub-agent that was never published", async () => {

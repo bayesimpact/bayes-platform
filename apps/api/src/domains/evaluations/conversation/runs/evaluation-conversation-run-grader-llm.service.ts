@@ -1,9 +1,10 @@
 import { AgentModel, AgentModelToAgentProvider, AgentProvider } from "@caseai-connect/api-contracts"
 import { Inject, Injectable, UnprocessableEntityException } from "@nestjs/common"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
-import type { LLMMetadata } from "@/common/interfaces/llm-provider.interface"
+import type { LLMCallContext } from "@/common/interfaces/llm-provider.interface"
 import { LlmServiceBase } from "@/external/llm"
 import { LLM_PROVIDERS, type LlmProviders } from "@/external/llm/llm.module"
+import { telemetryAdditionalMetadata } from "@/external/llm/telemetry"
 
 /**
  * LLM judge for conversation evaluation runs, ported from the legacy
@@ -58,11 +59,12 @@ ${
     : ""
 }`,
       model: judgeModel,
+      modelOptions: { temperature: 0 },
       priorityCallsEnabled: false,
       llmFeatures: { priorityCalls: false, flexWorkers: false },
     }
 
-    const llmMetadata: LLMMetadata = {
+    const callContext: LLMCallContext = {
       traceId,
       agentSessionId: traceId,
       currentTurn: 1,
@@ -70,15 +72,15 @@ ${
       revision: 0,
       projectId: connectScope.projectId,
       organizationId: connectScope.organizationId,
-      tags: ["*Rating Agent*"],
       spanLabel: "grading",
     }
-
     //fixme: remove when specific agent for rating(in db) for rating with mock
-    if (AgentModelToAgentProvider[generatorModel] === AgentProvider._Mock) {
-      ratingAgent.model = AgentModel._Mock
-      llmMetadata.tags.unshift("**TEST**")
-    }
+    const generatedByMock = AgentModelToAgentProvider[generatorModel] === AgentProvider._Mock
+    if (generatedByMock) ratingAgent.model = AgentModel._Mock
+    const additionalMetadata = telemetryAdditionalMetadata({
+      agent: { type: "Rating Agent" },
+      environment: generatedByMock ? "**TEST**" : undefined,
+    })
 
     const provider = this.getProviderForModel(ratingAgent.model)
     const llmConfig = this.buildLLMConfig({
@@ -106,7 +108,8 @@ ${generatedOutput}
 
 return only the rating value (0 to 5), no sentence`,
       config: llmConfig,
-      metadata: llmMetadata,
+      callContext: callContext,
+      additionalMetadata,
     })
 
     return this.parseScore(response)

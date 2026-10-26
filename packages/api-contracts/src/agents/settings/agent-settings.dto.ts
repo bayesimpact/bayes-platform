@@ -18,7 +18,10 @@ export enum AgentModel {
   Gemini38Flash = "gemini-3.8-flash",
   MedGemma10_27B = "google/medgemma-27b-it",
   Gemma4_26B = "google/gemma-4-26b-A4B-it",
+  Gemma4_31B = "google/gemma-4-31B-it",
   MistralSmall31_24B = "mistralai/Mistral-Small-3.1-24B-Instruct-2503",
+  MistralSmall32_24B = "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
+  Qwen38_27B = "Qwen/Qwen3.8-27B",
   _Mock = "mock-language-model-v3",
 }
 
@@ -28,6 +31,7 @@ export enum AgentProvider {
   Vertex = "VERTEX",
   Mistral = "MISTRAL",
   Vertex3 = "VERTEX-3",
+  Qwen = "QWEN",
   _Mock = "MOCK",
 }
 export const AgentModelToAgentProvider = {
@@ -41,7 +45,10 @@ export const AgentModelToAgentProvider = {
   [AgentModel.Gemini38Flash]: AgentProvider.Vertex3,
   [AgentModel.MedGemma10_27B]: AgentProvider.MedGemma,
   [AgentModel.Gemma4_26B]: AgentProvider.Gemma,
+  [AgentModel.Gemma4_31B]: AgentProvider.Gemma,
   [AgentModel.MistralSmall31_24B]: AgentProvider.Mistral,
+  [AgentModel.MistralSmall32_24B]: AgentProvider.Mistral,
+  [AgentModel.Qwen38_27B]: AgentProvider.Qwen,
   [AgentModel._Mock]: AgentProvider._Mock,
 } as const satisfies Record<AgentModel, AgentProvider>
 
@@ -113,6 +120,11 @@ export type AgentSettingsDto = {
   hasCategories?: boolean
   id: string
   instructions: string
+  /**
+   * Defaults of the {{variables}} the instructions declare: used by every channel
+   * when it starts a session without a value for one of them.
+   */
+  variables: Record<string, string> | null
   isArchived: boolean
   isDraft: boolean
   locale: AgentLocale
@@ -220,6 +232,10 @@ export const agentSettingsValidationSchema = z.object({
   resourceLibraryIds: z.array(z.string().uuid()).optional(),
   memoryMode: z.enum(AgentMemoryMode),
   providerOptions: z.record(z.string(), z.unknown()),
+  // Defaults of the {{variables}} the instructions declare. Keys are the declared
+  // variable names (the session-side resolution drops any value for an undeclared one).
+  // Optional on the update payloads: omitting it keeps the stored defaults, `null` clears.
+  variables: z.record(z.string(), z.string()).nullable().optional(),
 })
 
 export const refineOutputJsonSchema = {
@@ -289,7 +305,7 @@ export const updateAgentSettingsOutputSchema = z.object({
 const greetingMessageUpdateSchema = z.string().max(2000).nullable().optional()
 
 export const updateAgentSettingsGeneralSchema = agentSettingsValidationSchema
-  .pick({ locale: true, instructions: true })
+  .pick({ locale: true, instructions: true, variables: true })
   .extend({
     name: z.string().trim().min(3).max(100),
     greetingMessage: greetingMessageUpdateSchema,

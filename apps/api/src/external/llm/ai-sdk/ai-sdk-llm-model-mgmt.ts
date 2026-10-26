@@ -11,11 +11,12 @@ import { trace } from "@opentelemetry/api"
 import { wrapLanguageModel } from "ai"
 import type { ZodType, z } from "zod"
 import type {
+  LLMCallContext,
   LLMChatMessage,
   LLMConfig,
-  LLMMetadata,
   LLMModelOptions,
   LLMProvider,
+  ModelMetadata,
 } from "@/common/interfaces/llm-provider.interface"
 import type { SpecificProviderOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-builders"
 import {
@@ -42,11 +43,7 @@ const logger = new Logger("AISDKLLMModelMgmt")
 // stripped), we treat it as leaked-marker content and drop it too.
 const CHANNEL_KEYWORDS = "thought|analysis|reasoning|finalize|commentary|final"
 
-/**
- * What the catalog says of a model. Every field is optional, but each provider declares an
- * entry for every model it serves: a new model cannot ship without one.
- */
-export type ModelMetadata = {
+export type ModelInfos = {
   /** Set when the provider retires the model, with the model to move to. */
   deprecation?: AgentModelDeprecation
   /**
@@ -96,7 +93,7 @@ export type StreamPartLike =
   | { type: "finish-step" }
   | { type: "text-delta"; text: string }
   | { type: string }
-
+4
 export type StreamSanitizer = {
   /** Cleaned text that is safe to emit for this chunk (may be empty while holding back). */
   feed(chunk: string): string
@@ -152,17 +149,20 @@ export abstract class AISDKLLMModelMgmt<
   abstract getLanguageModel(args: {
     config: LLMConfig
     callOrigin: CallOrigin
-    metadata: LLMMetadata
+    callContext: LLMCallContext
   })
-  abstract getTags(config: LLMConfig): string[]
+  /** What the call's model and settings say of it, sent under `model.*`. Providers add their own. */
+  getModelMetadata(config: LLMConfig): ModelMetadata {
+    return { name: config.model }
+  }
   abstract getAgentProvider(): Provider
 
   protected abstract readonly modelOptions: Record<AgentModelOf<Provider>, ModelOptions>
   /** What the catalog says of each model the provider serves (retirement, data residency). */
-  protected abstract readonly modelMetadata: Record<AgentModelOf<Provider>, ModelMetadata>
+  protected abstract readonly modelInfos: Record<AgentModelOf<Provider>, ModelInfos>
 
-  getModelMetadata(agentModel: AgentModel): ModelMetadata {
-    return this.modelMetadata[this.toProviderAgentModel(agentModel)]
+  getModelInfos(agentModel: AgentModel): ModelInfos {
+    return this.modelInfos[this.toProviderAgentModel(agentModel)]
   }
 
   getModelOptionsSchema(agentModel: AgentModel): ZodType<SpecificProviderOptions> {
@@ -480,7 +480,7 @@ export abstract class AISDKLLMModelMgmt<
   protected getLanguageModelWithRawCapture(args: {
     config: LLMConfig
     callOrigin: CallOrigin
-    metadata: LLMMetadata
+    callContext: LLMCallContext
     /**
      * Request-scoped sink for tool calls the model verbalized in the text
      * channel. The sanitizer removes the tag before anything downstream sees

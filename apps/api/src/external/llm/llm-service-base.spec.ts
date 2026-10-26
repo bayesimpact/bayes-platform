@@ -16,6 +16,7 @@ const llmProviders: LlmProviders = {
   [AgentProvider.Mistral]: providerNamed("mistral"),
   [AgentProvider.MedGemma]: providerNamed("medgemma"),
   [AgentProvider.Gemma]: providerNamed("gemma"),
+  [AgentProvider.Qwen]: providerNamed("qwen"),
 }
 
 class TestLlmService extends LlmServiceBase {
@@ -36,9 +37,11 @@ describe("LlmServiceBase.getProviderForModel", () => {
     [AgentModel._Mock, "mock"],
     [AgentModel.Gemini25Flash, "vertex"],
     [AgentModel.Gemini35FlashLite, "vertex3"],
-    [AgentModel.MistralSmall31_24B, "mistral"],
+    [AgentModel.MistralSmall32_24B, "mistral"],
     [AgentModel.MedGemma10_27B, "medgemma"],
     [AgentModel.Gemma4_26B, "gemma"],
+    [AgentModel.Gemma4_31B, "gemma"],
+    [AgentModel.Qwen38_27B, "qwen"],
   ])("serves %s with the %s provider", (model, providerName) => {
     const provider = new TestLlmService().providerFor(model) as unknown as { name: string }
     expect(provider.name).toBe(providerName)

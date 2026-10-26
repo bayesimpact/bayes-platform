@@ -10,7 +10,11 @@ import {
   type ToolCallRepairFunction,
   type ToolSet,
 } from "ai"
-import type { LLMConfig, LLMMetadata } from "@/common/interfaces/llm-provider.interface"
+import type {
+  LLMCallContext,
+  LLMConfig,
+  TelemetryMetadata,
+} from "@/common/interfaces/llm-provider.interface"
 import { AISDKLLMBuilders } from "@/external/llm/ai-sdk/ai-sdk-llm-builders"
 
 // Hallucinated tool-call syntax that Gemini models (lite especially) leak
@@ -113,15 +117,15 @@ export abstract class AISDKLLMToolsMgmt extends AISDKLLMBuilders {
   protected buildToolCallRepair({
     model,
     config,
-    metadata,
+    callContext,
     functionId,
-    tags,
+    telemetryMetadata,
   }: {
     model: LanguageModelV3
     config: LLMConfig
-    metadata: LLMMetadata
+    callContext: LLMCallContext
     functionId: string
-    tags: string[]
+    telemetryMetadata: TelemetryMetadata
   }): ToolCallRepairFunction<ToolSet> {
     return async ({ toolCall, tools, error }) => {
       if (!InvalidToolInputError.isInstance(error)) return null
@@ -131,9 +135,9 @@ export abstract class AISDKLLMToolsMgmt extends AISDKLLMBuilders {
         const repaired = await this.regenerateToolInput({
           model,
           config,
-          metadata,
+          callContext,
           functionId,
-          tags,
+          telemetryMetadata,
           inputSchema,
           instruction:
             "The arguments of a tool call are not valid JSON. Return them as valid arguments, verbatim: copy every value exactly as written, invent nothing, and drop nothing.",
@@ -158,9 +162,9 @@ export abstract class AISDKLLMToolsMgmt extends AISDKLLMBuilders {
   private async regenerateToolInput({
     model,
     config,
-    metadata,
+    callContext,
     functionId,
-    tags,
+    telemetryMetadata,
     inputSchema,
     instruction,
     malformed,
@@ -169,9 +173,9 @@ export abstract class AISDKLLMToolsMgmt extends AISDKLLMBuilders {
   }: {
     model: LanguageModelV3
     config: LLMConfig
-    metadata: LLMMetadata
+    callContext: LLMCallContext
     functionId: string
-    tags: string[]
+    telemetryMetadata: TelemetryMetadata
     inputSchema: NonNullable<Parameters<typeof asSchema>[0]>
     instruction: string
     malformed: string
@@ -193,7 +197,10 @@ ${malformed}`,
       experimental_telemetry: {
         isEnabled: true,
         functionId,
-        metadata: { ...this.buildMetadata({ config, metadata, tags }), [telemetryKey]: toolName },
+        metadata: {
+          ...this.buildMetadata({ config, callContext, telemetryMetadata }),
+          [telemetryKey]: toolName,
+        },
       },
       ...this.buildSpecificProviderOptions({ config }),
     })
@@ -222,21 +229,21 @@ ${malformed}`,
   protected async recoverLeakedToolCalls({
     model,
     config,
-    metadata,
+    callContext,
     functionId,
     leakedToolCalls,
     streamResult,
-    tags,
+    telemetryMetadata,
   }: {
     model: LanguageModelV3
     config: LLMConfig
-    metadata: LLMMetadata
+    callContext: LLMCallContext
     functionId: string
     leakedToolCalls: LeakedToolCall[]
     streamResult: {
       steps: PromiseLike<Array<{ toolResults: Array<{ toolName: string; output: unknown }> }>>
     }
-    tags: string[]
+    telemetryMetadata: TelemetryMetadata
   }): Promise<void> {
     if (leakedToolCalls.length === 0) return
     const tools = config.tools
@@ -262,11 +269,11 @@ ${malformed}`,
         await this.recoverLeakedToolCall({
           model,
           config,
-          metadata,
+          callContext,
           functionId,
           leakedCall,
           tools,
-          tags,
+          telemetryMetadata,
         })
       } catch (error) {
         this.leakedToolCallLogger.error(
@@ -279,19 +286,19 @@ ${malformed}`,
   private async recoverLeakedToolCall({
     model,
     config,
-    metadata,
+    callContext,
     functionId,
     leakedCall,
     tools,
-    tags,
+    telemetryMetadata,
   }: {
     model: LanguageModelV3
     config: LLMConfig
-    metadata: LLMMetadata
+    callContext: LLMCallContext
     functionId: string
     leakedCall: LeakedToolCall
     tools: ToolSet
-    tags: string[]
+    telemetryMetadata: TelemetryMetadata
   }): Promise<void> {
     const tool = tools[leakedCall.name]
     if (!tool?.execute) {
@@ -330,7 +337,7 @@ ${leakedCall.raw}`,
         isEnabled: true,
         functionId,
         metadata: {
-          ...this.buildMetadata({ config, metadata, tags }),
+          ...this.buildMetadata({ config, callContext, telemetryMetadata }),
           recoveredLeakedToolCall: leakedCall.name,
         },
       },

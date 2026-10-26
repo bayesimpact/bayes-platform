@@ -24,11 +24,13 @@ export async function getEmbedConfig(embedToken: string): Promise<EmbedPublicCon
 export async function createSession(
   embedToken: string,
   externalVisitorId?: string,
+  /** Values of the {{variables}} the agent's instructions declare (API 1.1). */
+  variables?: Record<string, string>,
 ): Promise<CreatePublicSessionResponseDto> {
   const response = await fetch(routeUrl(PublicChatRoutes.createSession.getPath({ embedToken })), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ payload: { externalVisitorId } }),
+    body: JSON.stringify({ payload: { externalVisitorId, variables } }),
   })
   if (!response.ok) throw new ApiError(response.status, "Failed to create session")
   const json = (await response.json()) as { data: CreatePublicSessionResponseDto }

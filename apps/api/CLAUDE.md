@@ -501,9 +501,17 @@ Commit both baseline files alongside the entity change.
 
 ## Test Commands
 
-- **Full suite**: `npm run test:parallel` (from `apps/api`). Provisions per-worker DBs (`connect_test_w1`..`w6`), isolates each worker's transactional state, cleans up after. Do NOT use plain `npm run test` for the full suite — it runs `--runInBand` against a single DB and leaks state across suites, producing flaky failures.
+- **Full suite**: `npm run test:parallel` (from `apps/api`). Provisions per-worker DBs (`connect_test_w1..w{n}`, `n` from `TEST_MAX_WORKERS` in `.env.test`, override with `TEST_WORKERS=N`), isolates each worker's transactional state, cleans up after. Do NOT use plain `npm run test` for the full suite — it runs `--runInBand` against a single DB and leaks state across suites, producing flaky failures.
 - **Single file iteration**: `npx jest --colors --runInBand --forceExit <path>`. `--forceExit` is required — leaked async handles otherwise hang the runner. Don't pipe Jest output through `| tail` etc.; it can block the runner indefinitely.
 - **Per-worker DB bootstrap is off-limits**: `src/scripts/dbs4tests-create.ts` and adjacent worker-DB scripts are user-owned infrastructure. If `test:parallel` fails with a `permission denied for schema public` or similar bootstrap error, **stop and report** — don't patch the script.
+
+---
+
+## LLM telemetry metadata
+
+An LLM call takes its metadata as `additionalMetadata`, next to `callContext`. Build it with `telemetryAdditionalMetadata` (`src/external/llm/telemetry/telemetry-additional-metadata.ts`), never as an `AdditionalMetadata` literal. A side call (turn classification, form consolidation) spreads its caller's metadata and adds `tool: { name }`. The provider adds `provider.*` and `model.*` itself through `getProviderMetadata` and `getModelMetadata`.
+
+Span attribute names are read by the gateway mapping in `deploy/helm/bayes-platform/files/otel-collector.yaml`. Check it before renaming or removing one. See [ADR 0005](../../docs/adr/0005-gcp-native-observability.md).
 
 ---
 

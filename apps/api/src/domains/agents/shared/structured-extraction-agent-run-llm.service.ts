@@ -1,10 +1,11 @@
 import { Inject, Injectable, UnprocessableEntityException } from "@nestjs/common"
 import { v4 } from "uuid"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
-import type { LLMChatMessage, LLMMetadata } from "@/common/interfaces/llm-provider.interface"
+import type { LLMCallContext, LLMChatMessage } from "@/common/interfaces/llm-provider.interface"
 import { todaysDatePromptLine } from "@/common/utils/todays-date-prompt-line"
 import { LlmServiceBase } from "@/external/llm"
 import { LLM_PROVIDERS, type LlmProviders } from "@/external/llm/llm.module"
+import { telemetryAdditionalMetadata } from "@/external/llm/telemetry"
 import type { AgentWithSettingsRunJobPayload } from "./agent-with-settings-run.types"
 
 /**
@@ -91,7 +92,7 @@ export class StructuredExtractionAgentRunLlmService extends LlmServiceBase {
       llmFeatures: agentWithSettings.llmFeatures,
     })
 
-    const llmMetadata: LLMMetadata = {
+    const callContext: LLMCallContext = {
       traceId,
       agentSessionId: traceId,
       currentTurn: 1,
@@ -99,13 +100,12 @@ export class StructuredExtractionAgentRunLlmService extends LlmServiceBase {
       agentId: agentWithSettings.settings.id,
       revision: agentWithSettings.settings.revision,
       projectId: connectScope.projectId,
-      tags: [
-        agentWithSettings.settings.name,
-        `rev-${agentWithSettings.settings.revision}`,
-        agentWithSettings.settings.type,
-        runTag,
-      ],
     }
+    const additionalMetadata = telemetryAdditionalMetadata({
+      agent: agentWithSettings.settings,
+      agentSettings: agentWithSettings.settings,
+      runTag,
+    })
 
     const output = await this.getProviderForModel(
       agentWithSettings.settings.model,
@@ -113,7 +113,8 @@ export class StructuredExtractionAgentRunLlmService extends LlmServiceBase {
       message: llmMessage,
       schema: agentWithSettings.settings.outputJsonSchema,
       config: llmConfig,
-      metadata: llmMetadata,
+      callContext: callContext,
+      additionalMetadata,
     })
 
     return { output, traceId }

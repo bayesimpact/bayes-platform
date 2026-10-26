@@ -6,7 +6,7 @@ import { JSONParseError, TypeValidationError } from "ai"
 import type { Repository } from "typeorm"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
-import type { LLMChatMessage, LLMMetadata } from "@/common/interfaces/llm-provider.interface"
+import type { LLMCallContext, LLMChatMessage } from "@/common/interfaces/llm-provider.interface"
 import { todaysDatePromptLine } from "@/common/utils/todays-date-prompt-line"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import type { Document } from "@/domains/documents/document.entity"
@@ -24,6 +24,7 @@ import { ProjectRepository } from "@/domains/projects/project.repository"
 import { LlmServiceBase } from "@/external/llm"
 import { modelRequiresPdfAsImages } from "@/external/llm/agent-provider"
 import { LLM_PROVIDERS, type LlmProviders } from "@/external/llm/llm.module"
+import { telemetryAdditionalMetadata } from "@/external/llm/telemetry"
 import type { Agent } from "../agent.entity"
 import { ExtractionAgentSession } from "./extraction-agent-session.entity"
 import type { ExecuteExtractionAgentSessionJobPayload } from "./extraction-agent-session.types"
@@ -124,7 +125,8 @@ export class ExtractionAgentSessionRunLlmService extends LlmServiceBase {
           priorityCallsEnabled: agentSettings.priorityCallsEnabled,
           llmFeatures,
         }),
-        metadata: this.buildLLMMetadata({ agent, agentSettings, run, connectScope }),
+        callContext: this.buildLLMCallContext({ agent, agentSettings, run, connectScope }),
+        additionalMetadata: telemetryAdditionalMetadata({ agent, agentSettings }),
       })
 
       run.status = "success"
@@ -276,7 +278,7 @@ export class ExtractionAgentSessionRunLlmService extends LlmServiceBase {
     return llmMessage
   }
 
-  private buildLLMMetadata({
+  private buildLLMCallContext({
     agent,
     agentSettings,
     run,
@@ -286,7 +288,7 @@ export class ExtractionAgentSessionRunLlmService extends LlmServiceBase {
     agentSettings: AgentSettings
     run: ExtractionAgentSession
     connectScope: RequiredConnectScope
-  }): LLMMetadata {
+  }): LLMCallContext {
     return {
       traceId: run.traceId,
       organizationId: connectScope.organizationId,
@@ -295,7 +297,6 @@ export class ExtractionAgentSessionRunLlmService extends LlmServiceBase {
       revision: agentSettings.revision,
       projectId: connectScope.projectId,
       currentTurn: 1,
-      tags: [agent.name, `rev-${agentSettings.revision}`, agent.type],
     }
   }
 }

@@ -35,6 +35,7 @@ export const publicAgentSessionFactory = PublicAgentSessionFactory.define(
       projectId: transientParams.embedConfig?.projectId ?? params.projectId ?? randomUUID(),
       sessionTokenHash: appInstallationId ? null : (params.sessionTokenHash ?? sessionTokenHash),
       externalVisitorId: params.externalVisitorId ?? null,
+      variables: (params.variables as Record<string, string> | undefined) ?? null,
       lastActivityAt: params.lastActivityAt ?? now,
       title: params.title ?? null,
       activeAgentId: params.activeAgentId ?? null,

@@ -3,12 +3,17 @@ import { AgentModel, type AgentModelOf, AgentProvider } from "@caseai-connect/ap
 import { Injectable } from "@nestjs/common"
 import type { LanguageModel } from "ai"
 import { z } from "zod"
-import type { LLMConfig, LLMModelOptions } from "@/common/interfaces/llm-provider.interface"
+import type {
+  LLMConfig,
+  LLMModelOptions,
+  ModelMetadata,
+  ProviderMetadata,
+} from "@/common/interfaces/llm-provider.interface"
 import type { SpecificProviderOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-builders"
 import type { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
 import {
   defineModelOptions,
-  type ModelMetadata,
+  type ModelInfos,
   type ModelOptions,
 } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
 import { AISDKLLMProviderBase } from "@/external/llm/ai-sdk/ai-sdk-llm-provider-base"
@@ -170,7 +175,7 @@ export class AISDKVertex3Provider extends AISDKLLMProviderBase<AgentProvider.Ver
    * model ships global-only, set `servedOutsideEu` here: the routing and the "(non-EU)" label of
    * the model pickers follow together.
    */
-  protected readonly modelMetadata: Record<Vertex3AgentModel, ModelMetadata> = {
+  protected readonly modelInfos: Record<Vertex3AgentModel, ModelInfos> = {
     [AgentModel.Gemini31FlashLite]: {},
     [AgentModel.Gemini35FlashLite]: {},
     [AgentModel.Gemini35Flash]: {},
@@ -185,7 +190,7 @@ export class AISDKVertex3Provider extends AISDKLLMProviderBase<AgentProvider.Ver
    * NOT guarantee EU data processing. Every other model stays on "eu" (data residency).
    */
   private locationForModel(model: string): VertexLocation {
-    return this.modelMetadata[this.toProviderAgentModel(model)].servedOutsideEu ? "global" : "eu"
+    return this.modelInfos[this.toProviderAgentModel(model)].servedOutsideEu ? "global" : "eu"
   }
 
   getLanguageModel({ config }: { config: LLMConfig; callOrigin: CallOrigin }): LanguageModel {
@@ -236,10 +241,16 @@ export class AISDKVertex3Provider extends AISDKLLMProviderBase<AgentProvider.Ver
     return {}
   }
 
-  getTags(config: LLMConfig): string[] {
-    const tags = [this.vertexProject, this.locationForModel(config.model), config.model]
-    if (config.serviceTier) tags.push(config.serviceTier.toUpperCase())
-    tags.push(this.thinkingLevelTag(config).toUpperCase())
-    return tags
+  override getProviderMetadata(): ProviderMetadata {
+    return { ...super.getProviderMetadata(), project: this.vertexProject }
+  }
+
+  override getModelMetadata(config: LLMConfig): ModelMetadata {
+    return {
+      ...super.getModelMetadata(config),
+      location: this.locationForModel(config.model),
+      thinkingLevel: this.thinkingLevelTag(config).toUpperCase(),
+      serviceTier: config.serviceTier?.toUpperCase(),
+    }
   }
 }

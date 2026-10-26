@@ -369,6 +369,43 @@ describe("Agent Settings - updateOne", () => {
     expect(updatedAgentSettings?.greetingMessage).toBeNull()
   })
 
+  it("should update and clear variables", async () => {
+    await createContext()
+
+    const setResponse = await subject({ payload: { variables: { topic: "the product tour" } } })
+    expectResponse(setResponse, 200)
+
+    let updatedAgentSettings = await repositories.agentSettingsRepository.findOne({
+      where: { agentId, revision: 2 },
+    })
+    expect(updatedAgentSettings?.isDraft).toBeTruthy()
+    expect(updatedAgentSettings?.variables).toEqual({ topic: "the product tour" })
+
+    const clearResponse = await subject({ payload: { variables: null } })
+    expectResponse(clearResponse, 200)
+
+    updatedAgentSettings = await repositories.agentSettingsRepository.findOne({
+      where: { agentId, revision: 2 },
+    })
+    expect(updatedAgentSettings?.variables).toBeNull()
+  })
+
+  it("does not start a draft when resending the variables unchanged", async () => {
+    await createContext()
+
+    const response = await subject({ payload: { variables: { topic: "the product tour" } } })
+    expectResponse(response, 200)
+
+    const resendResponse = await subject({
+      payload: { variables: { topic: "the product tour" } },
+    })
+    expectResponse(resendResponse, 200)
+
+    const revisions = await repositories.agentSettingsRepository.find({ where: { agentId } })
+    expect(revisions).toHaveLength(2) // the published revision and the one draft
+    expect(revisions.filter((revision) => revision.isDraft)).toHaveLength(1)
+  })
+
   it("should preserve stored tags when switching documentsRagMode to none", async () => {
     const { organization, project, agent, agentSettings } = await createContext()
     const documentTag = documentTagFactory.transient({ organization, project }).build()

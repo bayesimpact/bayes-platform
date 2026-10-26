@@ -32,6 +32,14 @@ export const BACKOFFICE_CONVERSATION_REVIEWER_UPDATE_PERMISSION =
  */
 export const AGENT_CONVERSATION_REVIEW_PERMISSION = "agent.conversation.review" as const
 
+/**
+ * List an agent's conversations, grouped by category, for safety review: the session list the
+ * reviewer picks a session from. Scoped to the agent and held only by the
+ * `agent_conversation_reviewer` role, granted with `agent.conversation.review` and no other role.
+ */
+export const AGENT_CONVERSATION_REVIEW_CATEGORY_READ_PERMISSION =
+  "agent.conversation.review.category.read" as const
+
 /** AppManifest back-office CRUD, and the OAuth client of each app. Superadmin only. */
 export const BACKOFFICE_APP_MANAGE_PERMISSION = "backoffice.app.manage" as const
 

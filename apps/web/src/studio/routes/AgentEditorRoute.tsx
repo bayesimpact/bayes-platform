@@ -1,7 +1,7 @@
 import { ButtonGroup } from "@caseai-connect/ui/shad/button-group"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useSearchParams } from "react-router-dom"
 import { Grid, GridHeader } from "@/common/components/grid/Grid"
 import { selectAgentsData, selectCurrentAgentData } from "@/common/features/agents/agents.selectors"
 import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
@@ -15,6 +15,8 @@ import { agentSubAgentsActions } from "@/studio/features/agent-sub-agents/agent-
 import {
   AgentEditor,
   type AgentEditorOrchestration,
+  agentEditorTabKeys,
+  type TabKey,
 } from "@/studio/features/agents/components/AgentEditor"
 import { selectAgentSettingsDataByAgentId } from "../../common/features/agents/agent-settings/agent-settings.selectors"
 import { AgentSettingsCreateButton } from "../features/agents/agent-settings/components/AgentSettingsCreateButton"
@@ -64,6 +66,13 @@ function WithData({ orchestration }: { orchestration?: AgentEditorOrchestration 
   const handleBack = () => navigate(agentRoute)
   const [editorDirty, setEditorDirty] = useState(false)
 
+  // Optional deep link: ?tab=embed opens the editor on that tab (falls back to "general").
+  const [searchParams] = useSearchParams()
+  const tabParam = searchParams.get("tab")
+  const defaultTab = agentEditorTabKeys.includes(tabParam as TabKey)
+    ? (tabParam as TabKey)
+    : undefined
+
   return (
     <Grid cols={0}>
       <GridHeader
@@ -87,6 +96,7 @@ function WithData({ orchestration }: { orchestration?: AgentEditorOrchestration 
         agentSettings={agentSettings}
         className="bg-white p-6"
         orchestration={orchestration}
+        defaultTab={defaultTab}
         onDirtyChange={setEditorDirty}
       />
     </Grid>
