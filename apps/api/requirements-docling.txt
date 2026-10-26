@@ -7,6 +7,9 @@ docling
 # docling-ibm-models excludes the transformers 5.x releases it does not support;
 # leave the upper bound to it so security fixes flow (CVE-2026-4372, CVE-2026-5241).
 transformers>=4.42.0
+# Security floors for transitive packages: docling-core 2.104.0 accepts pillow 13.
+pillow>=13.0.0
+filelock>=4.2.1
 llama-index-core
 llama-index-readers-docling
 llama-index-node-parser-docling
