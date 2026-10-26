@@ -162,7 +162,7 @@ listenerMiddleware.startListening({
 
 **Rule**: a screen that lists records (rows of the same kind, with columns) renders them through [DataTable](src/common/components/data-table/DataTable.tsx), fed by a TanStack table. Never hand-write the markup, neither a bare `<table>` nor the shadcn `Table` parts.
 
-- Reference: [ProjectMembersTable.tsx](src/studio/features/project-memberships/components/members-table/ProjectMembersTable.tsx). Stories: `common/DataTable`.
+- Reference: [MembersTable.tsx](src/studio/features/project-memberships/components/members-table/MembersTable.tsx). Stories: `common/DataTable`.
 - The caller owns the TanStack table (columns, sorting, filters, selection, pagination). `DataTable` owns the look: border, muted header labels, empty state, selected rows, row click, expanded rows (`renderExpanded`).
 - Selection goes through `buildSelectionColumn` and `DataTableBulkBar`. Sorting, search and paging go through `RecordTableParts` (`SortableFilterableHeader`, `PaginationControls`).
 - Layout goes in the column: `meta.className` for the header cell, `meta.cellClassName` for body cells, and `size` for a fixed width that truncates long values.

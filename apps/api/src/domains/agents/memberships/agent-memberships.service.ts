@@ -1,4 +1,9 @@
-import { Injectable } from "@nestjs/common"
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
 import type { AgentSummary } from "@/domains/agents/agent.repository"
@@ -144,12 +149,6 @@ export class AgentMembershipsService {
     await this.agentMembershipRepository.softDeleteAllByAgent(agentId)
   }
 
-  /**
-   * Removes a person's member roles on the agent. A conversation reviewer grant stays: only the
-   * backoffice revokes it. Nobody removes themselves, and the agent's owner stays.
-   * If the user was added by email and never signed in, also removes the
-   * account once it has no membership left.
-   */
   async removeAgentMembership({
     callerUserId,
     memberUserId,
@@ -159,25 +158,62 @@ export class AgentMembershipsService {
     memberUserId: string
     agentId: string
   }): Promise<void> {
-    return this.transactionService.run(async () => {
-      const membership = await this.findAgentMembership({ userId: memberUserId, agentId })
-      if (!membership) return
+    // Someone who only reviews the agent's conversations holds no member role: nothing to remove.
+    const membership = await this.findAgentMembership({ userId: memberUserId, agentId })
+    if (!membership) return
+    await this.removeAgentMemberships({ callerUserId, memberUserIds: [memberUserId], agentId })
+  }
 
-      if (membership.userId === callerUserId) {
-        throw new Error("Cannot remove yourself from the agent")
+  /**
+   * Removes several people's member roles on the agent, all or nothing. A conversation reviewer
+   * grant stays: only the backoffice revokes it. Nobody removes themselves, and the agent keeps an
+   * owner. Someone added by email who never signed in also loses the account once it has no
+   * membership left.
+   */
+  async removeAgentMemberships({
+    callerUserId,
+    memberUserIds,
+    agentId,
+  }: {
+    callerUserId: string
+    memberUserIds: string[]
+    agentId: string
+  }): Promise<void> {
+    if (memberUserIds.includes(callerUserId)) {
+      throw new ForbiddenException("Cannot remove yourself from the agent")
+    }
+    await this.transactionService.run(async () => {
+      const memberships = await this.findAgentMemberships({ userIds: memberUserIds, agentId })
+      if (memberships.some((membership) => hasRole(membership, AGENT_ROLES.owner))) {
+        throw new ForbiddenException("Cannot remove owner from the agent")
       }
-      if (hasRole(membership, AGENT_ROLES.owner)) {
-        throw new Error("Cannot remove owner from the agent")
+
+      for (const membership of memberships) {
+        await this.agentMembershipRepository.deleteMembershipsForUserAndAgents({
+          userId: membership.userId,
+          agentIds: [agentId],
+          roleKeys: [...MEMBER_ROLE_KEYS],
+        })
+        await this.userRepository.deleteIfUnusedPlaceholder({ userId: membership.userId })
       }
-
-      await this.agentMembershipRepository.deleteMembershipsForUserAndAgents({
-        userId: membership.userId,
-        agentIds: [agentId],
-        roleKeys: [...MEMBER_ROLE_KEYS],
-      })
-
-      await this.userRepository.deleteIfUnusedPlaceholder({ userId: membership.userId })
     })
+  }
+
+  /** The members' roles on the agent. Refuses the call when one of them holds none. */
+  private async findAgentMemberships({
+    userIds,
+    agentId,
+  }: {
+    userIds: string[]
+    agentId: string
+  }): Promise<AgentMembershipModel[]> {
+    const memberships = (
+      await this.agentMembershipRepository.findByUsersAndAgent({ userIds, agentId })
+    ).flatMap((membership) => toMemberView(membership) ?? [])
+    if (memberships.length !== userIds.length) {
+      throw new NotFoundException("Some of the users are not members of the agent")
+    }
+    return memberships
   }
 
   /**
@@ -303,5 +339,114 @@ export class AgentMembershipsService {
       agentIds,
       roleKeys: [...MEMBER_ROLE_KEYS],
     })
+  }
+
+  /**
+   * Gives a member of the project a member role on the agent (owner, admin or member). Nobody
+   * changes their own roles. The conversation reviewer role stays a backoffice grant.
+   */
+  async addMemberRole({
+    callerUserId,
+    memberUserId,
+    agentId,
+    projectId,
+    roleKey,
+  }: {
+    callerUserId: string
+    memberUserId: string
+    agentId: string
+    projectId: string
+    roleKey: string
+  }): Promise<void> {
+    assertGrantable([roleKey])
+    if (memberUserId === callerUserId) {
+      throw new ForbiddenException("Cannot change your own role")
+    }
+    await this.transactionService.run(async () => {
+      const projectMembership = await this.projectMembershipRepository.findByUserAndProject({
+        userId: memberUserId,
+        projectId,
+      })
+      if (!projectMembership) {
+        throw new NotFoundException("The user is not a member of the project")
+      }
+      await this.agentMembershipRepository.addRole({ userId: memberUserId, agentId, roleKey })
+    })
+  }
+
+  /**
+   * Gives the roles on the agent to several members of the workspace, all or nothing. Nobody
+   * changes their own roles.
+   */
+  async addRolesToMembers({
+    callerUserId,
+    memberUserIds,
+    agentId,
+    projectId,
+    roleKeys,
+  }: {
+    callerUserId: string
+    memberUserIds: string[]
+    agentId: string
+    projectId: string
+    roleKeys: string[]
+  }): Promise<void> {
+    assertGrantable(roleKeys)
+    if (memberUserIds.includes(callerUserId)) {
+      throw new ForbiddenException("Cannot change your own role")
+    }
+    await this.transactionService.run(async () => {
+      const projectMemberships = await this.projectMembershipRepository.findAllByUsersAndProject({
+        userIds: memberUserIds,
+        projectId,
+      })
+      if (projectMemberships.length !== memberUserIds.length) {
+        throw new NotFoundException("Some of the users are not members of the project")
+      }
+      for (const userId of memberUserIds) {
+        for (const roleKey of roleKeys) {
+          await this.agentMembershipRepository.addRole({ userId, agentId, roleKey })
+        }
+      }
+    })
+  }
+
+  /** Takes an admin or member role from someone on the agent. Nobody changes their own roles. */
+  async removeMemberRole({
+    callerUserId,
+    memberUserId,
+    agentId,
+    roleKey,
+  }: {
+    callerUserId: string
+    memberUserId: string
+    agentId: string
+    roleKey: string
+  }): Promise<void> {
+    assertGrantable([roleKey])
+    if (memberUserId === callerUserId) {
+      throw new ForbiddenException("Cannot change your own role")
+    }
+    await this.transactionService.run(async () => {
+      const membership = await this.findAgentMembership({ userId: memberUserId, agentId })
+      if (!membership || !hasRole(membership, roleKey)) {
+        throw new NotFoundException(`The member does not hold ${roleKey}`)
+      }
+      await this.agentMembershipRepository.removeRole({ userId: memberUserId, agentId, roleKey })
+    })
+  }
+}
+
+/**
+ * The agent roles these routes give and take: admin and member. The owner role is set when the
+ * agent is created, and the conversation reviewer role is a backoffice grant.
+ */
+function assertGrantable(roleKeys: string[]): void {
+  const unknownKeys = roleKeys.filter((roleKey) => !MEMBER_ROLE_KEYS.includes(roleKey))
+  if (unknownKeys.length > 0) {
+    throw new BadRequestException(`Not an agent member role: ${unknownKeys.join(", ")}`)
+  }
+  if (roleKeys.includes(AGENT_ROLES.owner)) {
+    throw new ForbiddenException("The owner role is not given or taken here")
   }
 }

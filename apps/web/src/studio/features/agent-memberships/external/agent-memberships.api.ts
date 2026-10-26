@@ -1,5 +1,4 @@
 import { type AgentMembershipDto, AgentMembershipRoutes } from "@caseai-connect/api-contracts"
-import { toLegacyRole } from "@/common/features/memberships/membership-roles"
 import { getAxiosInstance } from "@/external/axios"
 import type { AgentMembership } from "../agent-memberships.models"
 import type { IAgentMembershipsSpi } from "../agent-memberships.spi"
@@ -12,15 +11,24 @@ export default {
     )
     return response.data.data.map(fromDto)
   },
-  remove: async ({ organizationId, projectId, agentId, memberUserId }) => {
+  addRoles: async ({ organizationId, projectId, agentId, memberUserIds, roleKeys }) => {
     const axios = getAxiosInstance()
-    await axios.delete(
-      AgentMembershipRoutes.deleteOne.getPath({
-        organizationId,
-        projectId,
-        agentId,
-        userId: memberUserId,
-      }),
+    const payload: typeof AgentMembershipRoutes.addRoles.request = {
+      payload: { userIds: memberUserIds, roleKeys },
+    }
+    await axios.post(
+      AgentMembershipRoutes.addRoles.getPath({ organizationId, projectId, agentId }),
+      payload,
+    )
+  },
+  removeMany: async ({ organizationId, projectId, agentId, memberUserIds }) => {
+    const axios = getAxiosInstance()
+    const payload: typeof AgentMembershipRoutes.deleteMany.request = {
+      payload: { userIds: memberUserIds },
+    }
+    await axios.post(
+      AgentMembershipRoutes.deleteMany.getPath({ organizationId, projectId, agentId }),
+      payload,
     )
   },
 } satisfies IAgentMembershipsSpi
@@ -32,5 +40,5 @@ const fromDto = (dto: AgentMembershipDto): AgentMembership => ({
   userEmail: dto.userEmail,
   userHasSignedIn: dto.userHasSignedIn,
   createdAt: dto.createdAt,
-  role: toLegacyRole(dto.roles) ?? "member",
+  roles: dto.roles.map((role) => ({ key: role.key, name: role.name })),
 })

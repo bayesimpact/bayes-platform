@@ -1,19 +1,23 @@
-import type {
-  AgentDto,
-  AgentRevisionDto,
-  AgentSubAgentDto,
-  AgentWithDraftDto,
+import {
+  type AgentDto,
+  type AgentRevisionDto,
+  type AgentSubAgentDto,
+  type AgentWithDraftDto,
+  isAgentPermission,
 } from "@caseai-connect/api-contracts"
 import type { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import type { Agent } from "./agent.entity"
 import type { AgentSubAgent } from "./sub-agents/agent-sub-agent.entity"
 
+/** `permissions` are the caller's on the agent; the DTO keeps the ones the studio reads. */
 export function toAgentDto({
   agent,
   agentSettings,
+  permissions,
 }: {
   agent: Agent
   agentSettings: AgentSettings
+  permissions: string[]
 }): AgentDto {
   return {
     createdAt: agent.createdAt.getTime(),
@@ -22,6 +26,7 @@ export function toAgentDto({
     name: agent.name,
     projectId: agent.projectId,
     type: agent.type,
+    permissions: permissions.filter(isAgentPermission),
   }
 }
 
@@ -30,10 +35,12 @@ export function toAgentWithDraftDto({
   agent,
   currentAgentSettings,
   draftAgentSettings,
+  permissions,
 }: {
   agent: Agent
   currentAgentSettings?: AgentSettings
   draftAgentSettings?: AgentSettings
+  permissions: string[]
 }): AgentWithDraftDto {
   return {
     createdAt: agent.createdAt.getTime(),
@@ -43,6 +50,7 @@ export function toAgentWithDraftDto({
     name: agent.name,
     projectId: agent.projectId,
     type: agent.type,
+    permissions: permissions.filter(isAgentPermission),
   }
 }
 

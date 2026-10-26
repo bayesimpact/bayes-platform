@@ -66,6 +66,7 @@ const toAgent = (dto: AgentWithDraftDto): Agent => ({
   name: dto.name,
   projectId: dto.projectId,
   type: dto.type,
+  permissions: dto.permissions,
   ...(dto.currentRevision && { currentRevision: toAgentRevision(dto.currentRevision) }),
   ...(dto.draftRevision && { draftRevision: toAgentRevision(dto.draftRevision) }),
 })

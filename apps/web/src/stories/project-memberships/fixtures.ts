@@ -20,6 +20,9 @@ const [ownerRole, adminRole, memberRole] = mockProjectRoles as [
   ProjectRoleOption,
 ]
 
+/** The workspace roles the API offers to give: owner is set at creation. */
+export const mockGrantableProjectRoles: ProjectRoleOption[] = [adminRole, memberRole]
+
 export const mockCurrentUserId = "user-me"
 
 function buildMember(
@@ -30,7 +33,6 @@ function buildMember(
   const firstName = faker.person.firstName()
   const lastName = faker.person.lastName()
   return {
-    id: `membership-${index}`,
     userId: `user-${index}`,
     userName: `${firstName} ${lastName}`,
     userEmail: faker.internet.email({ firstName, lastName }).toLowerCase(),
@@ -41,7 +43,6 @@ function buildMember(
 }
 
 export const mockMe = buildMember(0, {
-  id: "membership-me",
   userId: mockCurrentUserId,
   roles: [ownerRole],
 })

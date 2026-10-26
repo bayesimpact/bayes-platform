@@ -37,6 +37,7 @@
     "agent.member.read": "Voir les membres d'un agent et leur rôle",
     "agent.member.invite": "Inviter des personnes sur un agent, et révoquer les invitations en attente",
     "agent.member.delete": "Retirer un membre d'un agent",
+    "agent.member.update": "Donner un rôle sur un agent à un membre, ou le lui retirer",
     "desk.ui.read": "Ouvrir l'application Desk d'un projet",
     "studio.ui.read": "Ouvrir l'application Studio d'un projet",
     "evaluation.ui.read": "Ouvrir l'application d'évaluation d'un projet",

@@ -1,5 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
+import type { LegacyMembershipRole } from "@/common/features/memberships/membership-roles"
 import { buildDecorator, render } from "@/stories/decorators"
+import { buildMockProjectMembershipsService } from "@/stories/project-memberships/mock-services"
 import {
   buildStudioData,
   type StudioStoryArgs,
@@ -8,56 +10,30 @@ import {
 } from "@/stories/routes/studio/helpers"
 import { mergeSeeds, seed } from "@/stories/seed"
 import {
-  projectMemberAgentFactory,
+  memberRolesFactory,
   projectMembershipFactory,
+  SAMPLE_ASSIGNABLE_ROLES,
 } from "@/studio/features/project-memberships/project-memberships.factory"
-import type {
-  ProjectMemberAgent,
-  ProjectMembership,
-} from "@/studio/features/project-memberships/project-memberships.models"
-import type { IProjectMembershipsSpi } from "@/studio/features/project-memberships/project-memberships.spi"
 import { StudioRoutes } from "@/studio/routes/helpers"
 import { studioRoutes } from "@/studio/routes/StudioRoutes"
 
 type StoryArgs = StudioStoryArgs & {
-  withMemberAgents?: boolean
-  memberRole?: ProjectMembership["role"]
+  memberRole?: LegacyMembershipRole
 }
 
 const FIXED_MEMBER_USER_ID = "member-user-fixture-1"
 
-function buildMockProjectMembershipsService(
-  overrides: { memberships?: ProjectMembership[]; memberAgents?: ProjectMemberAgent[] } = {},
-): IProjectMembershipsSpi {
-  return {
-    async getAll() {
-      return overrides.memberships ?? []
-    },
-    async updateOne({ memberUserId, role }) {
-      const membership = overrides.memberships?.find((item) => item.userId === memberUserId)
-      if (!membership) throw new Error(`Unknown membership ${memberUserId}`)
-      return { ...membership, role }
-    },
-    async remove() {},
-    async getMemberAgents() {
-      return overrides.memberAgents ?? []
-    },
-  }
-}
-
 const meta = {
-  title: "routes/studio/project/membership",
+  title: "routes/studio/project/member",
   parameters: { layout: "fullscreen" },
   argTypes: {
     ...studioStoryArgTypes,
     withAgents: { control: undefined },
-    withMemberAgents: { control: "boolean" },
     memberRole: { control: "select", options: ["owner", "admin", "member"] },
   },
   args: {
     ...studioStoryArgs,
     withAgents: true,
-    withMemberAgents: false,
     memberRole: "member",
   },
   render: render({
@@ -69,44 +45,36 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-const decorator = buildDecorator<StoryArgs>(({ withMemberAgents, memberRole, ...args }) => {
+const decorator = buildDecorator<StoryArgs>(({ memberRole, ...args }) => {
   const { baseSeeds, project, agents } = buildStudioData(args)
   const membership = projectMembershipFactory
-    .transient({ project })
-    .build({ userId: FIXED_MEMBER_USER_ID, role: memberRole ?? "member" })
-  const otherMemberships = [
-    projectMembershipFactory.transient({ project }).build({ role: "owner" }),
+    .transient({ project, role: memberRole ?? "member" })
+    .build({ userId: FIXED_MEMBER_USER_ID })
+  const memberships = [
+    membership,
+    projectMembershipFactory.transient({ project, role: "owner" }).build(),
   ]
-  const memberAgents = withMemberAgents
-    ? agents.map((agent, index) =>
-        projectMemberAgentFactory
-          .transient({ agent })
-          .build(index === agents.length - 1 ? { role: null } : {}),
-      )
-    : []
-  const memberships = [membership, ...otherMemberships]
+  const memberRoles = memberRolesFactory
+    .transient({ membership, projectName: project.name, agents })
+    .build()
 
   return {
     state: mergeSeeds(
       baseSeeds,
       seed.studio.projectMemberships(memberships),
-      seed.studio.projectMemberAgents(memberAgents),
+      seed.studio.projectMemberRoles(memberRoles),
+      // The members route above this page waits for both.
+      seed.studio.assignableRoles(SAMPLE_ASSIGNABLE_ROLES),
+      seed.studio.projectPendingInvitations([]),
       seed.currentMemberUserId(FIXED_MEMBER_USER_ID),
     ),
     services: {
-      projectMemberships: buildMockProjectMembershipsService({
-        memberships,
-        memberAgents,
-      }),
+      projectMemberships: buildMockProjectMembershipsService({ memberships, memberRoles }),
     },
   }
 })
 
+/** A member with roles on the workspace, an agent and a campaign, as a manager sees them. */
 export const Default: Story = {
-  decorators: [decorator],
-}
-
-export const WithMemberAgents: Story = {
-  args: { withMemberAgents: true },
   decorators: [decorator],
 }

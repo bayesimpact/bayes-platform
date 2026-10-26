@@ -1,14 +1,29 @@
-import { type ProjectMemberAgentDto, ProjectMembershipRoutes } from "@caseai-connect/api-contracts"
-import { Controller, Delete, Get, Req, UseGuards } from "@nestjs/common"
+import {
+  deleteProjectMembersSchema,
+  type MemberResourceRolesDto,
+  ProjectMembershipRoutes,
+} from "@caseai-connect/api-contracts"
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Post,
+  Req,
+  UseGuards,
+  UsePipes,
+} from "@nestjs/common"
 import type {
   EndpointRequestWithProject,
   EndpointRequestWithProjectMembership,
 } from "@/common/context/request.interface"
 import { AddContext, RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
+import { ZodValidationPipe } from "@/common/zod-validation-pipe"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
-import { toMembershipRoleDto, unionRolePermissions } from "@/domains/memberships/membership-roles"
+import { toMembershipRoleDto } from "@/domains/memberships/membership-roles"
 import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
 import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
 import {
@@ -17,6 +32,7 @@ import {
 } from "@/domains/rbac/rbac.constants"
 import { UserGuard } from "@/domains/users/user.guard"
 import { toProjectMembershipDto } from "./project-membership.mapper"
+import type { MemberResourceRoles } from "./project-membership.model"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectMembershipsService } from "./project-memberships.service"
 
@@ -41,28 +57,30 @@ export class ProjectMembershipsController {
     }
   }
 
-  @Get(ProjectMembershipRoutes.getMemberAgents.path)
+  @Get(ProjectMembershipRoutes.getMemberRoles.path)
   @AddContext("projectMembership")
   @CheckPermission(PROJECT_MEMBER_READ_PERMISSION, "project")
-  async getMemberAgents(
+  async getMemberRoles(
     @Req() request: EndpointRequestWithProjectMembership,
-  ): Promise<typeof ProjectMembershipRoutes.getMemberAgents.response> {
-    const { project, memberProjectMembership } = request
+  ): Promise<typeof ProjectMembershipRoutes.getMemberRoles.response> {
+    const { membership, roleGrantsByRoleId, workspace, agents, campaigns } =
+      await this.projectMembershipsService.getMemberRoles({
+        memberUserId: request.memberProjectMembership.userId,
+        projectId: request.project.id,
+      })
 
-    const { entries, roleGrantsByRoleId } = await this.projectMembershipsService.listMemberAgents({
-      projectId: project.id,
-      userId: memberProjectMembership.userId,
+    const toResourceDto = (resource: MemberResourceRoles): MemberResourceRolesDto => ({
+      ...resource,
+      roles: resource.roles.map(toMembershipRoleDto),
     })
-
-    const data: ProjectMemberAgentDto[] = entries.map(({ agent, membership }) => ({
-      agentId: agent.id,
-      agentName: agent.name,
-      agentType: agent.type,
-      roles: membership?.roles.map(toMembershipRoleDto) ?? [],
-      permissions: membership ? unionRolePermissions(membership.roles, roleGrantsByRoleId) : [],
-    }))
-
-    return { data }
+    return {
+      data: {
+        member: toProjectMembershipDto(membership, roleGrantsByRoleId),
+        workspace: toResourceDto(workspace),
+        agents: agents.map(toResourceDto),
+        campaigns: campaigns.map(toResourceDto),
+      },
+    }
   }
 
   @Delete(ProjectMembershipRoutes.deleteOne.path)
@@ -78,6 +96,30 @@ export class ProjectMembershipsController {
       callerUserId: request.user.id,
       memberUserId: memberProjectMembership.userId,
       projectId: project.id,
+    })
+
+    return { data: { success: true } }
+  }
+
+  @Get(ProjectMembershipRoutes.getAssignableRoles.path)
+  @CheckPermission(PROJECT_MEMBER_READ_PERMISSION, "project")
+  async getAssignableRoles(): Promise<typeof ProjectMembershipRoutes.getAssignableRoles.response> {
+    return { data: await this.projectMembershipsService.listAssignableRoles() }
+  }
+
+  @Post(ProjectMembershipRoutes.deleteMany.path)
+  @HttpCode(200)
+  @CheckPermission(PROJECT_MEMBER_DELETE_PERMISSION, "project")
+  @UsePipes(new ZodValidationPipe(deleteProjectMembersSchema))
+  @TrackActivity({ action: "projectMembership.deleteMany" })
+  async removeProjectMemberships(
+    @Req() request: EndpointRequestWithProject,
+    @Body() { payload }: typeof ProjectMembershipRoutes.deleteMany.request,
+  ): Promise<typeof ProjectMembershipRoutes.deleteMany.response> {
+    await this.projectMembershipsService.removeProjectMemberships({
+      callerUserId: request.user.id,
+      memberUserIds: payload.userIds,
+      projectId: request.project.id,
     })
 
     return { data: { success: true } }

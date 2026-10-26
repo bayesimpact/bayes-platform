@@ -1,6 +1,7 @@
 import { Button } from "@caseai-connect/ui/shad/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/ui/shad/tooltip"
 import { ShieldPlusIcon, Trash2Icon } from "lucide-react"
+import { useTranslation } from "react-i18next"
 import { DataTableBulkBar } from "@/common/components/data-table/DataTableBulkBar"
 
 /** Shown above the table while members are selected. */
@@ -22,15 +23,16 @@ export function MembersBulkActionBar({
   onRemove: () => void
   onClearSelection: () => void
 }) {
+  const { t } = useTranslation()
   return (
     <DataTableBulkBar
-      label={selectedCount === 1 ? "1 member selected" : `${selectedCount} members selected`}
+      label={t("projectMembership:table.selected", { count: selectedCount })}
       onClearSelection={onClearSelection}
     >
       {canUpdateRoles && (
         <Button variant="outline" size="sm" onClick={onAddRoles}>
           <ShieldPlusIcon />
-          Add roles
+          {t("projectMembership:table.addRoles")}
         </Button>
       )}
       {canRemoveMembers &&
@@ -45,7 +47,7 @@ export function MembersBulkActionBar({
                 className="cursor-not-allowed opacity-50"
               >
                 <Trash2Icon />
-                Remove
+                {t("actions:remove")}
               </Button>
             </TooltipTrigger>
             <TooltipContent>{removeBlockedReason}</TooltipContent>
@@ -53,7 +55,7 @@ export function MembersBulkActionBar({
         ) : (
           <Button variant="outline" size="sm" onClick={onRemove}>
             <Trash2Icon />
-            Remove
+            {t("actions:remove")}
           </Button>
         ))}
     </DataTableBulkBar>

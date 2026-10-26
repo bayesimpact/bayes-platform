@@ -132,12 +132,12 @@ describe("Project Memberships - Auth", () => {
     })
   })
 
-  describe("ProjectMembershipRoutes.getMemberAgents", () => {
+  describe("ProjectMembershipRoutes.getMemberRoles", () => {
     let memberUserId: string | null = randomUUID()
 
     const subject = async () =>
       request({
-        route: ProjectMembershipRoutes.getMemberAgents,
+        route: ProjectMembershipRoutes.getMemberRoles,
         pathParams: removeNullish({ organizationId, projectId, userId: memberUserId }),
         token: accessToken ?? undefined,
       })
@@ -266,71 +266,159 @@ describe("Project Memberships - Auth", () => {
     })
   })
 
-  describe("ProjectMembershipRoutes.updateOne", () => {
-    let memberUserId: string | null = randomUUID()
+  /** A member of the caller's project the bulk routes can act on. */
+  const addTarget = async (organization: Organization, project: { id: string }) => {
+    const { addedUser } = await addMemberByEmailToProject({
+      repositories,
+      organization,
+      project: project as Parameters<typeof addMemberByEmailToProject>[0]["project"],
+      user: { email: `target-${randomUUID()}@example.com`, authSubject: `oidc|${randomUUID()}` },
+      projectMembership: { role: "member" },
+    })
+    return addedUser
+  }
 
+  describe("ProjectMembershipRoutes.getAssignableRoles", () => {
     const subject = async () =>
       request({
-        route: ProjectMembershipRoutes.updateOne,
-        pathParams: removeNullish({ organizationId, projectId, userId: memberUserId }),
+        route: ProjectMembershipRoutes.getAssignableRoles,
+        pathParams: removeNullish({ organizationId, projectId }),
         token: accessToken ?? undefined,
-        request: { payload: { role: "admin" } },
       })
-
-    const createContextForRoleWithMembership = async (
-      role: "owner" | "admin" | "member" = "owner",
-    ) => {
-      const { organization, project } = await createContextForRole(role)
-
-      const { membership } = await addMemberByEmailToProject({
-        repositories,
-        organization,
-        project,
-        projectMembership: { role: "member" },
-      })
-      memberUserId = membership.userId
-
-      return { organization, project, membership }
-    }
-
-    beforeEach(() => {
-      memberUserId = randomUUID()
-    })
 
     it("requires an authentication token", async () => {
       accessToken = null
       expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
     })
-    it("requires a valid organization ID", async () => {
-      await createContextForRoleWithMembership("owner")
-      organizationId = null
-      expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
+    it("doesn't allow a simple member", async () => {
+      await createContextForRole("member")
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
-    it("requires the user to be a member of the organization", async () => {
-      await createContextForRoleWithMembership("owner")
-      authSubject = mockForeignAuthSubject()
-      expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
+    it("allows the owner and the admin", async () => {
+      await createContextForRole("owner")
+      expectResponse(await subject(), 200)
+      await clearTestDatabase(setup.dataSource)
+      await createContextForRole("admin")
+      expectResponse(await subject(), 200)
     })
-    it("requires an existing project ID", async () => {
-      await createContextForRoleWithMembership("owner")
-      projectId = randomUUID()
-      expectResponse(await subject(), 404)
+  })
+
+  describe("ProjectMembershipRoutes.addRoles", () => {
+    let userIds: string[] = [randomUUID()]
+    const subject = async () =>
+      request({
+        route: ProjectMembershipRoutes.addRoles,
+        pathParams: removeNullish({ organizationId, projectId }),
+        token: accessToken ?? undefined,
+        request: { payload: { userIds, roleKeys: ["project_admin"] } },
+      })
+
+    const createContext = async (role: "owner" | "admin" | "member") => {
+      const { organization, project } = await createContextForRole(role)
+      userIds = [(await addTarget(organization, project)).id]
+    }
+
+    it("requires an authentication token", async () => {
+      accessToken = null
+      expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+    it("doesn't allow a simple member", async () => {
+      await createContext("member")
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("allows the owner", async () => {
+      await createContext("owner")
+      expectResponse(await subject(), 201)
+    })
+    it("allows the admin", async () => {
+      await createContext("admin")
+      expectResponse(await subject(), 201)
+    })
+  })
+
+  describe("ProjectMembershipRoutes.removeRole", () => {
+    let memberUserId: string = randomUUID()
+    const subject = async () =>
+      request({
+        route: ProjectMembershipRoutes.removeRole,
+        pathParams: removeNullish({
+          organizationId,
+          projectId,
+          userId: memberUserId,
+          roleKey: "project_member",
+        }),
+        token: accessToken ?? undefined,
+      })
+
+    const createContext = async (role: "owner" | "admin" | "member") => {
+      const { organization, project } = await createContextForRole(role)
+      const target = await addTarget(organization, project)
+      const adminRole = await repositories.roleRepository.findOneOrFail({
+        where: { key: "project_admin" },
+      })
+      await repositories.userMembershipRepository.save(
+        repositories.userMembershipRepository.create({
+          userId: target.id,
+          resourceType: "project",
+          resourceId: project.id,
+          roleId: adminRole.id,
+        }),
+      )
+      memberUserId = target.id
+    }
+
+    it("requires an authentication token", async () => {
+      accessToken = null
+      expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+    it("doesn't allow a simple member", async () => {
+      await createContext("member")
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("allows the owner", async () => {
+      await createContext("owner")
+      expectResponse(await subject(), 200)
+    })
+    it("allows the admin", async () => {
+      await createContext("admin")
+      expectResponse(await subject(), 200)
     })
     it("requires an existing member", async () => {
-      await createContextForRoleWithMembership("owner")
+      await createContext("owner")
       memberUserId = randomUUID()
       expectResponse(await subject(), 404)
     })
-    it("doesn't allow a simple member to change a role", async () => {
-      await createContextForRoleWithMembership("member")
+  })
+
+  describe("ProjectMembershipRoutes.deleteMany", () => {
+    let userIds: string[] = [randomUUID()]
+    const subject = async () =>
+      request({
+        route: ProjectMembershipRoutes.deleteMany,
+        pathParams: removeNullish({ organizationId, projectId }),
+        token: accessToken ?? undefined,
+        request: { payload: { userIds } },
+      })
+
+    const createContext = async (role: "owner" | "admin" | "member") => {
+      const { organization, project } = await createContextForRole(role)
+      userIds = [(await addTarget(organization, project)).id]
+    }
+
+    it("requires an authentication token", async () => {
+      accessToken = null
+      expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+    it("doesn't allow a simple member", async () => {
+      await createContext("member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
-    it("allows the owner to change a role", async () => {
-      await createContextForRoleWithMembership("owner")
+    it("allows the owner", async () => {
+      await createContext("owner")
       expectResponse(await subject(), 200)
     })
-    it("allows an admin to change a role", async () => {
-      await createContextForRoleWithMembership("admin")
+    it("allows the admin", async () => {
+      await createContext("admin")
       expectResponse(await subject(), 200)
     })
   })

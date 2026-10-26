@@ -15,6 +15,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Safety review: list an agent's sessions grouped by category and open one to read it, next to the session id lookup.
 - Agents: Qwen3.8-27B is available as a self-hosted model for projects that enable it.
 - Agents: Gemma 4 31B is available as a self-hosted model for projects with Gemma models.
+- Workspace and agent members: a table of every role, with search, role filter, and bulk role or member changes.
 - Self-hosting: documents can now be stored on any S3-compatible storage.
 
 ### Changed

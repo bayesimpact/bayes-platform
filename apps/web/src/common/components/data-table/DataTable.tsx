@@ -9,6 +9,7 @@ import {
 import { cn } from "@caseai-connect/ui/utils"
 import {
   type ColumnDef,
+  defaultColumnSizing,
   flexRender,
   type Row,
   type Table as TanStackTable,
@@ -59,7 +60,7 @@ export function DataTable<TData>({
                 <TableHead
                   key={header.id}
                   colSpan={header.colSpan}
-                  style={columnWidth(header.column.columnDef)}
+                  style={columnWidth(table, header.column.columnDef)}
                   className={cn(
                     "text-muted-foreground",
                     (header.column.columnDef.meta as DataTableColumnMeta | undefined)?.className,
@@ -89,7 +90,7 @@ export function DataTable<TData>({
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
                       key={cell.id}
-                      style={columnWidth(cell.column.columnDef, { capped: true })}
+                      style={columnWidth(table, cell.column.columnDef, { capped: true })}
                       className={
                         (cell.column.columnDef.meta as DataTableColumnMeta | undefined)
                           ?.cellClassName
@@ -115,11 +116,17 @@ export function DataTable<TData>({
   )
 }
 
-/** The width a column asked for with `size`. TanStack gives every column a default size, so only an explicit one counts. */
+/**
+ * The width a column asked for with `size`. TanStack merges its default column into every
+ * `columnDef`, so a column without `size` reads the default one (150): only another value counts,
+ * and a column that wants exactly the default width cannot ask for it.
+ */
 function columnWidth<TData>(
+  table: TanStackTable<TData>,
   columnDef: ColumnDef<TData>,
   { capped = false }: { capped?: boolean } = {},
 ): CSSProperties | undefined {
-  if (columnDef.size === undefined) return undefined
+  const defaultSize = table.options.defaultColumn?.size ?? defaultColumnSizing.size
+  if (columnDef.size === undefined || columnDef.size === defaultSize) return undefined
   return capped ? { width: columnDef.size, maxWidth: columnDef.size } : { width: columnDef.size }
 }
