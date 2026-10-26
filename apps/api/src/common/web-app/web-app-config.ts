@@ -20,7 +20,20 @@ export type WebAppSettings = {
 }
 
 export function getWebAppSettings(env: NodeJS.ProcessEnv = process.env): WebAppSettings | null {
-  const distDir = env.WEB_APP_DIST_DIR?.trim()
+  return readDistSettings(env.WEB_APP_DIST_DIR)
+}
+
+/**
+ * The Desk (apps/desk) served by the API at `/app`, ahead of the web front, from the
+ * `app-runtime` image. Enabled when DESK_APP_DIST_DIR points to a built `apps/desk/dist` folder,
+ * whose files Vite built for the `/app/` base.
+ */
+export function getDeskAppSettings(env: NodeJS.ProcessEnv = process.env): WebAppSettings | null {
+  return readDistSettings(env.DESK_APP_DIST_DIR)
+}
+
+function readDistSettings(rawDistDir: string | undefined): WebAppSettings | null {
+  const distDir = rawDistDir?.trim()
   if (!distDir) return null
   const indexHtmlPath = join(distDir, "index.html")
   if (!existsSync(indexHtmlPath)) return null
@@ -29,7 +42,8 @@ export function getWebAppSettings(env: NodeJS.ProcessEnv = process.env): WebAppS
 
 /**
  * Runtime configuration handed to the browser as `window.__CONFIG__`.
- * Keys match `RuntimeConfig` in apps/web/src/config/runtime-config.ts.
+ * Keys match `RuntimeConfig` in apps/web/src/config/runtime-config.ts. The Desk
+ * gets the same one and reads its own keys (apps/desk/src/app/config.ts).
  * Public by construction: never put a secret here.
  */
 export type WebAppRuntimeConfig = Record<string, string>

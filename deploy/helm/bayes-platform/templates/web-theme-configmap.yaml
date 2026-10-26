@@ -1,6 +1,7 @@
 {{- if and .Values.api.enabled .Values.web.theme.enabled }}
-# Tenant theme of the web front: the three files of dist/theme, mounted over
-# the ones built into the image (web.theme). All three are served as they are.
+# Tenant theme of the web front and the Desk: the three files of dist/theme,
+# mounted over the ones built into the image (web.theme). All three are served
+# as they are.
 apiVersion: v1
 kind: ConfigMap
 metadata:
