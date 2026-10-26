@@ -130,7 +130,9 @@ func TestMCPConvertMarkdownHappyPath(t *testing.T) {
 		t.Fatalf("unmarshal structured content %s: %v", structured, err)
 	}
 
-	const wantObject = "tmp/pdf-exports/fixed-id/Rapport final.pdf"
+	// The sweep in apps/api deletes the object from the expiry in its name,
+	// so it must be the exact instant the signed URL stops working.
+	const wantObject = "tmp/pdf-exports/1788783300-fixed-id/Rapport final.pdf"
 	if output.FileName != "Rapport final.pdf" {
 		t.Fatalf("expected fileName %q, got %q", "Rapport final.pdf", output.FileName)
 	}
@@ -158,12 +160,6 @@ func TestMCPConvertMarkdownHappyPath(t *testing.T) {
 	}
 	if store.contentTypes[wantObject] != "application/pdf" {
 		t.Fatalf("expected content type application/pdf, got %q", store.contentTypes[wantObject])
-	}
-	// The sweep in apps/api deletes the object from this stamp, so it must be
-	// the exact instant the signed URL stops working.
-	if wantCustomTime := testExportNow.Add(15 * time.Minute); !store.customTimes[wantObject].Equal(wantCustomTime) {
-		t.Fatalf("expected the object custom time to equal the url expiry %s, got %s",
-			wantCustomTime, store.customTimes[wantObject])
 	}
 	if store.signedDownloadFileNames[wantObject] != "Rapport final.pdf" {
 		t.Fatalf("expected the signed url to carry the download file name %q, got %q",
@@ -316,7 +312,7 @@ func TestMCPConvertMarkdownSlowRenderKeepsUploadBudget(t *testing.T) {
 		t.Fatalf("expected a successful call after a slow render, got %s", resultText(t, result))
 	}
 
-	const wantObject = "tmp/pdf-exports/fixed-id/document.pdf"
+	const wantObject = "tmp/pdf-exports/1788783300-fixed-id/document.pdf"
 	if _, found := store.objects[wantObject]; !found {
 		t.Fatalf("expected an upload at %q, store has %v", wantObject, store.objects)
 	}

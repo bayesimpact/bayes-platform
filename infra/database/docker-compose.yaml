@@ -1,8 +1,9 @@
 # Local dev stack, one compose project for everything (`connect-db`).
 # A plain `docker compose up -d` (and the CI) starts pgvector and redis only.
-# Profiles: `mail` (Mailpit), `keycloak`, `oidc-picker`, `traces` (otel-collector,
-# Phoenix), `analytics` (Grafana), `router` (Traefik and the dashboard of the
-# worktree environments), `bull-board`. See the README for the commands.
+# Profiles: `storage` (SeaweedFS), `mail` (Mailpit), `keycloak`, `oidc-picker`,
+# `traces` (otel-collector, Phoenix), `analytics` (Grafana), `router` (Traefik
+# and the dashboard of the worktree environments), `bull-board`. See the README
+# for the commands.
 #
 # Mounts of files and folders that must exist use the long syntax with
 # `create_host_path: false`: a missing source then fails `docker compose up`
@@ -51,6 +52,45 @@ services:
     restart: unless-stopped
     ports:
       - "${REDIS_PORT:-6379}:6379"
+  # S3-compatible object storage (SeaweedFS, all components in one process):
+  # http://localhost:8333, keys in ./seaweedfs/s3.json. The API and the
+  # pdf-converter use it with STORAGE_BACKEND=s3 (see apps/api/.env-example).
+  # Profile `storage`: a plain `docker compose up` leaves it off, the CI
+  # (make db-tests) starts it for the S3 integration tests.
+  seaweedfs:
+    image: chrislusf/seaweedfs:4.48
+    profiles: [storage]
+    restart: unless-stopped
+    ports:
+      - "${SEAWEEDFS_S3_PORT:-8333}:8333"
+    command:
+      - "server"
+      - "-dir=/data"
+      # The master also listens on localhost, for the healthcheck.
+      - "-ip.bind=0.0.0.0"
+      # Each bucket gets its own volumes, and the default volume size (30 GB)
+      # leaves almost no volume on a small disk (the CI tmpfs): writes then fail
+      # with an internal error. Small volumes and an explicit cap fix it.
+      - "-master.volumeSizeLimitMB=32"
+      - "-volume.max=100"
+      - "-s3"
+      - "-s3.port=8333"
+      - "-s3.config=/etc/seaweedfs/s3.json"
+    # The S3 port answers before a write can succeed. Healthy means the master
+    # has a writable volume (/dir/assign gives a file id) and the filer answers.
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9333/dir/assign | grep -q fid && wget -q -O /dev/null http://localhost:8888/"]
+      interval: 2s
+      timeout: 5s
+      retries: 60
+    volumes:
+      - type: bind
+        source: ./seaweedfs/s3.json
+        target: /etc/seaweedfs/s3.json
+        read_only: true
+        bind:
+          create_host_path: false
+      - ./dontsave/seaweedfs:/data
   # Grafana on the analytics schema: http://localhost:3300, no login.
   # Datasource provisioned from ./grafana, dashboards from the Helm chart
   # (deploy/helm/bayes-platform/dashboards), the same files the cluster gets.

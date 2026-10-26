@@ -17,7 +17,7 @@ export class LocalStorageService implements IFileStorage {
   private readonly baseUrl: string
   private readonly pendingUploads = new Map<
     string,
-    { storagePath: string; expiresAt: number; maxBytes?: number }
+    { storagePath: string; expiresAt: number; contentLength: number }
   >()
 
   constructor(private readonly configService: ConfigService) {
@@ -28,18 +28,18 @@ export class LocalStorageService implements IFileStorage {
   async generateSignedUploadUrl({
     storagePath,
     expiresInSeconds,
-    maxBytes,
+    contentLength,
   }: {
     storagePath: string
     mimeType: string
     expiresInSeconds: number
-    maxBytes?: number
+    contentLength: number
   }): Promise<string> {
     const token = uuidv4()
     this.pendingUploads.set(token, {
       storagePath,
       expiresAt: Date.now() + expiresInSeconds * 1000,
-      maxBytes,
+      contentLength,
     })
     return `${this.baseUrl}${PRIVATE_API_PATH}/local-presign-upload/${token}`
   }
@@ -53,8 +53,8 @@ export class LocalStorageService implements IFileStorage {
       this.pendingUploads.delete(token)
       throw new Error("Upload token expired.")
     }
-    if (pending.maxBytes !== undefined && fileBuffer.length > pending.maxBytes) {
-      throw new UploadTooLargeError()
+    if (fileBuffer.length !== pending.contentLength) {
+      throw new UploadSizeMismatchError()
     }
     const destinationPath = path.join(this.dir, pending.storagePath)
     const destinationDir = path.dirname(destinationPath)
@@ -145,9 +145,9 @@ export class LocalStorageService implements IFileStorage {
   }
 }
 
-export class UploadTooLargeError extends Error {
+export class UploadSizeMismatchError extends Error {
   constructor() {
-    super("Upload exceeds the maximum size.")
-    this.name = "UploadTooLargeError"
+    super("Upload size does not match the signed size.")
+    this.name = "UploadSizeMismatchError"
   }
 }

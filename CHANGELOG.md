@@ -16,6 +16,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Agents: Qwen3.8-27B is available as a self-hosted model for projects that enable it.
 - Agents: Gemma 4 31B is available as a self-hosted model for projects with Gemma models.
 - Workspace and agent members: a table of every role, with search, role filter, and bulk role or member changes.
+- Self-hosting: documents can now be stored on any S3-compatible storage.
 
 ### Changed
 
@@ -24,6 +25,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - App installation: a clearer authorization screen showing the app, the workspace to choose and each permission.
 - Agents: Mistral Small 3.2 replaces Mistral Small 3.1.
 - Agents: Gemma 4 replaces the retired MedGemma model.
+- Apps API: document upload URLs now accept only the declared file size, sent as `Content-Length`.
 
 ### Fixed
 - Review campaigns: test conversations no longer appear among your App conversations.

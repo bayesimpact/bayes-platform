@@ -34,8 +34,7 @@ spec:
           env:
             - name: PORT
               value: {{ .Values.pdfConverter.port | quote }}
-            - name: GCS_STORAGE_BUCKET_NAME
-              value: {{ .Values.storage.gcs.bucket | quote }}
+            {{- include "bayes-platform.bucketEnv" . | trim | nindent 12 }}
           livenessProbe:
             httpGet:
               path: /healthz
