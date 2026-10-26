@@ -49,7 +49,7 @@ where it occurs, with `// biome-ignore lint/plugin/<plugin>: <why>`. What no too
 | Tables | TanStack Table v8, rendered with the shadcn `Table` |
 | Text | Lingui: English in the components, French in a PO catalog |
 | UI | Tailwind CSS v4, shadcn/ui on Base UI generated into the app, `cva`, `cn()` from `cn`, lucide-react, sonner |
-| Chat and content | `@shadcn/react` for the message scroller, streamdown and shiki for Markdown and code, `@modelcontextprotocol/ext-apps` and `sdk` for MCP Apps, Tiptap for the message box (document, paragraph, text, code and hard break only) |
+| Chat and content | `@shadcn/react` for the message scroller, streamdown and shiki for Markdown and code, `@modelcontextprotocol/ext-apps` and `sdk` for MCP Apps, Tiptap for the message box (document, paragraph, text, code and hard break only: any other extension waits for a human's go) |
 | Sign-in | `oidc-client-ts`, in the app's `lib/auth/` |
 | Tests | Vitest with Testing Library and happy-dom, MSW 2, Storybook 10, Playwright |
 | Quality | Biome, dependency-cruiser, knip |
@@ -405,6 +405,9 @@ and empty states.
   `.env` file.
 - Code copied from one feature into another instead of moved to `lib/` or `components/shared/`.
 - An import from another app or from a package another app owns.
+- A Tiptap extension or plugin beyond those of the stack without a human's go, given before it is
+  installed. An extension reads what the person pastes or drops and decides what the editor turns
+  into HTML: links, images, embeds or raw HTML open a way for injected content and data leaks.
 - Editing an `AGENTS.md`, this file, a tsconfig, the app's `biome.json`, or the dependency-cruiser,
   knip, Lingui, Vitest or Playwright configuration without a human's go.
 - Disabling a lint rule, a type check, a translation check or a test to make `check` pass.
