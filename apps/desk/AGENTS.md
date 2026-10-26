@@ -131,5 +131,5 @@ API serves it at `/app`, ahead of `apps/web` (`DESK_APP_DIST_DIR`, `registerWebA
 `apps/api/src/common/web-app`), with the same injected configuration as `apps/web` and the
 install's theme mounted over `dist/theme` (`web.deskDistDir` in the Helm chart). Each install
 registers `<origin>/app/auth/callback` and `<origin>/app/` with its identity provider.
-`apps/web/src/desk` still exists until a later change deletes it, with the code only it used:
-never change it for the Desk's sake.
+The old Desk of `apps/web` is gone: `apps/web` only links to the Desk, through `DeskRoutes` in
+`apps/web/src/common/routes/desk-routes.ts`.

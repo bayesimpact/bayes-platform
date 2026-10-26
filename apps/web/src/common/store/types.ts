@@ -1,6 +1,5 @@
 import type { ThunkDispatch, UnknownAction } from "@reduxjs/toolkit"
 import type { BackofficeState } from "@/backoffice/store/types"
-import type { DeskState } from "@/desk/store/types"
 import type { Services } from "@/di/services"
 import type { EvalState } from "@/eval/store/types"
 import type { ReviewerState } from "@/reviewer/store/types"
@@ -16,7 +15,6 @@ export type RootState =
         // @ts-expect-error - Mapped type over array of slices to construct RootState shape
         [K in R as K["name"]]: ReturnType<K["reducer"]>
       } & StudioState &
-        DeskState &
         EvalState &
         TesterState &
         ReviewerState &

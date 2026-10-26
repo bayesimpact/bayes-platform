@@ -1,19 +1,12 @@
 import { createContext, useContext } from "react"
-import type { DeskRoutes } from "@/desk/routes/helpers"
 import type { StudioRoutes } from "@/studio/routes/helpers"
 
-type BuildProjectRoute = typeof StudioRoutes.project.build | typeof DeskRoutes.project.build
-type BuildAgentRoute = typeof StudioRoutes.agent.build | typeof DeskRoutes.agent.build
-type BuildAgentSessionRoute =
-  | typeof StudioRoutes.agentSession.build
-  | typeof DeskRoutes.agentSession.build
-export type BuildAgentExtractionCsvRunRoute =
-  | typeof StudioRoutes.agentExtractionCsvRun.build
-  | typeof DeskRoutes.agentExtractionCsvRun.build
+type BuildProjectRoute = typeof StudioRoutes.project.build
+type BuildAgentRoute = typeof StudioRoutes.agent.build
+type BuildAgentSessionRoute = typeof StudioRoutes.agentSession.build
+export type BuildAgentExtractionCsvRunRoute = typeof StudioRoutes.agentExtractionCsvRun.build
 
-export type BuildAgentExtractionRunRoute =
-  | typeof StudioRoutes.agentExtractionRun.build
-  | typeof DeskRoutes.agentExtractionRun.build
+export type BuildAgentExtractionRunRoute = typeof StudioRoutes.agentExtractionRun.build
 
 export interface UseBuildRoutesContextValue {
   build: {
