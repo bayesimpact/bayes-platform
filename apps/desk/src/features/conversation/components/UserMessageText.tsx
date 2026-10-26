@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/button"
 import { citedPassageKey, messageSegmentsOf } from "../annotation"
 import type { CitedPassages } from "../hooks/use-cited-passages"
 import { useIsOverflowing } from "../hooks/use-is-overflowing"
+import { taskChecksOf } from "../task-checks"
 import { CitedPassageChip } from "./CitedPassageChip"
+import { TaskChecksList } from "./TaskChecksList"
 
 export type UserMessageTextProps = {
   messageId: string
@@ -19,7 +21,7 @@ export type UserMessageTextProps = {
  * out at the bottom, and a button lets it out in full or folds it back. The passages between
  * The passages quoted from a reply and the code between backticks show as chips: a quoted
  * passage found in its reply jumps to where it stands there, and a jump back from that passage
- * unfolds the message.
+ * unfolds the message. The tasks it ticked or unticked are listed under it.
  */
 export function UserMessageText({ messageId, content, citedPassages }: UserMessageTextProps) {
   const textRef = useRef<HTMLDivElement>(null)
@@ -29,6 +31,8 @@ export function UserMessageText({ messageId, content, citedPassages }: UserMessa
   const isExpanded = expandedChoice ?? citedPassages.unfoldedIds.includes(messageId)
   const isOverflowing = useIsOverflowing(textRef, !isExpanded)
   const isCollapsed = isOverflowing && !isExpanded
+  const segments = messageSegmentsOf(content)
+  const checks = taskChecksOf(content)
 
   return (
     <>
@@ -43,7 +47,7 @@ export function UserMessageText({ messageId, content, citedPassages }: UserMessa
         )}
       >
         <div>
-          {messageSegmentsOf(content).map((segment, position) => {
+          {segments.map((segment, position) => {
             if (segment.kind === "text") return segment.text
             const key = citedPassageKey(messageId, position)
             return citedPassages.foundKeys.includes(key) ? (
@@ -71,6 +75,11 @@ export function UserMessageText({ messageId, content, citedPassages }: UserMessa
         >
           {isExpanded ? <Trans>Show less</Trans> : <Trans>Show more</Trans>}
         </Button>
+      ) : null}
+      {checks.length > 0 ? (
+        <div className={cn(segments.length > 0 && "mt-2")}>
+          <TaskChecksList checks={checks} />
+        </div>
       ) : null}
     </>
   )

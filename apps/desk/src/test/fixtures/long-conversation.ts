@@ -18,6 +18,8 @@ type LongConversationAnnotation = {
 export const LONG_CONVERSATION_EXCHANGES: {
   question: string
   annotations?: LongConversationAnnotation[]
+  /** The tasks of the reply before that the person ticked, by their place from 1. */
+  tickedTasks?: { item: number; text: string }[]
   reply: string
 }[] = [
   {
@@ -229,6 +231,12 @@ export const LONG_CONVERSATION_EXCHANGES: {
         note: "Who: billing or support?",
       },
     ],
+    tickedTasks: [
+      {
+        item: 4,
+        text: "The same event received twice creates one invoice only: use customerId and occurredAt as the key.",
+      },
+    ],
     reply: [
       "Billing, because only billing can fix an invoice. Support should still hear about it, so they know what to tell a customer who writes in.",
       "",
@@ -237,7 +245,10 @@ export const LONG_CONVERSATION_EXCHANGES: {
       "- **Billing** gets the alert and owns the fix.",
       "- **Support** gets a short daily summary of the failed events, with the customers they affect.",
       "",
-      "Since you already key invoices on the same fields, the duplicate check is the one item you can tick today.",
+      "Since you already key invoices on the same fields, the duplicate check is the one item you can tick today:",
+      "",
+      "- [x] The same event received twice creates one invoice only.",
+      "- [ ] An event that fails is retried, and billing gets the alert after the third failure.",
     ].join("\n"),
   },
 ]

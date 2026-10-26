@@ -198,6 +198,77 @@ describe("a conversation", () => {
     scrollIntoView.mockRestore()
   })
 
+  it("sends the tasks the person ticked with their next message, which hides them", async () => {
+    const world = buildDeskWorld()
+    const reply = buildConversationMessage({
+      content: "- [ ] Freeze the scope\n- [x] Set the price",
+    })
+    world.messages[conversationOf(world).id]?.push(reply)
+    server.use(...worldHandlers(world))
+    renderApp(conversationUrlOf(world))
+
+    const task = await screen.findByRole("checkbox", { name: "Freeze the scope" })
+    await userEvent.click(task)
+    expect(task).toBeChecked()
+    expect(screen.getByRole("button", { name: "Send with 1 changed task" })).toHaveTextContent("1")
+    const messageBox = screen.getByRole("textbox", { name: "Message to Helpful Assistant" })
+    await writeMessage(messageBox, "Done", { send: true })
+
+    await waitFor(() =>
+      expect(savedMessagesOf(world)).toContainEqual(
+        expect.objectContaining({
+          role: "user",
+          content: `Done\n<checked reply="${reply.id}" item="1">Freeze the scope</checked>`,
+        }),
+      ),
+    )
+    expect(screen.getByRole("checkbox", { name: "Freeze the scope" })).toBeChecked()
+    expect(screen.queryByText(/<checked/)).toBeNull()
+  })
+
+  it("sends changed tasks alone, which the person's message lists", async () => {
+    const world = buildDeskWorld()
+    const reply = buildConversationMessage({
+      content: "- [ ] Freeze the scope\n- [x] Set the price",
+    })
+    world.messages[conversationOf(world).id]?.push(reply)
+    server.use(...worldHandlers(world))
+    renderApp(conversationUrlOf(world))
+
+    await userEvent.click(await screen.findByRole("checkbox", { name: "Set the price" }))
+    await userEvent.click(screen.getByRole("button", { name: "Send with 1 changed task" }))
+
+    await waitFor(() =>
+      expect(savedMessagesOf(world)).toContainEqual(
+        expect.objectContaining({
+          role: "user",
+          content: `<unchecked reply="${reply.id}" item="2">Set the price</unchecked>`,
+        }),
+      ),
+    )
+    expect(await screen.findByRole("listitem", { name: "Unticked: Set the price" })).toBeVisible()
+  })
+
+  it("shows each task as the person's messages last left it", async () => {
+    const world = buildDeskWorld()
+    const reply = buildConversationMessage({
+      content: "- [ ] Freeze the scope\n- [x] Set the price",
+    })
+    world.messages[conversationOf(world).id]?.push(
+      reply,
+      buildConversationMessage({
+        role: "user",
+        content: `Thanks\n<unchecked reply="${reply.id}" item="2">Set the price</unchecked>`,
+      }),
+    )
+    server.use(...worldHandlers(world))
+    renderApp(conversationUrlOf(world))
+
+    expect(await screen.findByRole("checkbox", { name: "Set the price" })).not.toBeChecked()
+    expect(screen.getByRole("checkbox", { name: "Freeze the scope" })).not.toBeChecked()
+    expect(screen.getByText("Thanks")).toBeVisible()
+  })
+
   it("keeps as a plain chip code the person wrote, though a reply holds the same text", async () => {
     const world = buildQuotedMessageWorld()
     server.use(...worldHandlers(world))

@@ -6,6 +6,7 @@ import { Bubble, BubbleContent } from "@/components/ui/bubble"
 import { Message, MessageContent } from "@/components/ui/message"
 import type { ChatMessage } from "../chat-messages"
 import type { CitedPassages } from "../hooks/use-cited-passages"
+import type { TaskChecks } from "../hooks/use-task-checks"
 import type { AppsHtml } from "../mcp-apps"
 import type { OpenedResource } from "../resource-media"
 import { AssistantMessageView } from "./AssistantMessageView"
@@ -25,6 +26,8 @@ export type ChatMessageViewProps = {
   onOpenResource: (resource: OpenedResource) => void
   /** The passages the person's messages quote, which their chips jump to. */
   citedPassages: CitedPassages
+  /** The tasks of the replies, as the person left them, and their ticks. */
+  taskChecks: TaskChecks
 }
 
 /** One message: the person's in a bubble on the right, the agent's on the left with its steps. */
@@ -37,6 +40,7 @@ export function ChatMessageView({
   onAppMessage,
   onOpenResource,
   citedPassages,
+  taskChecks,
 }: ChatMessageViewProps) {
   const { t } = useLingui()
   if (message.role === "user") {
@@ -79,6 +83,7 @@ export function ChatMessageView({
       appsHtml={appsHtml}
       onAppMessage={onAppMessage}
       onOpenResource={onOpenResource}
+      taskChecks={taskChecks}
     />
   )
 }

@@ -1,4 +1,4 @@
-import { act, screen } from "@testing-library/react"
+import { act, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { useState } from "react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
@@ -171,5 +171,37 @@ describe("the passages between backticks", () => {
       { content: "`[Company Name]` Toto Inc.\n`Your Title` CEO", attachment: null },
       expect.any(Function),
     )
+  })
+})
+
+describe("the send button", () => {
+  const renderComposer = (counts: { annotationCount?: number; taskCount?: number }) =>
+    renderWithI18n(
+      <Composer
+        agentName="Helpful Assistant"
+        content=""
+        onContentChange={() => {}}
+        isBusy={false}
+        onSend={() => {}}
+        {...counts}
+      />,
+    )
+
+  it("counts the annotations and the changed tasks that leave with the message, apart", () => {
+    renderComposer({ annotationCount: 2, taskCount: 1 })
+
+    const send = screen.getByRole("button", { name: "Send with 2 annotations and 1 changed task" })
+    // Annotations in their yellow, tasks in the theme's color.
+    expect(within(send).getByText("2")).toHaveClass("bg-annotation")
+    expect(within(send).getByText("1")).toHaveClass("bg-primary")
+    expect(send).toBeEnabled()
+  })
+
+  it("sends changed tasks alone, as annotations alone", () => {
+    renderComposer({ taskCount: 2 })
+
+    const send = screen.getByRole("button", { name: "Send with 2 changed tasks" })
+    expect(within(send).getByText("2")).toHaveClass("bg-primary")
+    expect(send).toBeEnabled()
   })
 })

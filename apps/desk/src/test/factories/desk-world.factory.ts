@@ -16,6 +16,7 @@ import type {
 } from "@caseai-connect/desk-contracts"
 import { TOOL_NAMES } from "@caseai-connect/desk-contracts"
 import { composeMessage } from "@/features/conversation/annotation"
+import { taskCheckLine } from "@/features/conversation/task-checks"
 import { LONG_CONVERSATION_EXCHANGES, LONG_CONVERSATION_TITLE } from "../fixtures/long-conversation"
 import { RELEASE_NOTES_APP_HTML } from "../fixtures/mcp-app"
 import {
@@ -426,9 +427,10 @@ export function buildLongConversationWorld(): DeskWorld {
   const messages = [buildConversationMessage({ createdAt })]
   for (const [
     index,
-    { question, annotations = [], reply },
+    { question, annotations = [], tickedTasks = [], reply },
   ] of LONG_CONVERSATION_EXCHANGES.entries()) {
-    // Each message annotates the reply before it, which it names, as the message box does.
+    // Each message annotates the reply before it and ticks its tasks, naming it, as the message
+    // box does.
     const replyId = messages.at(-1)?.id ?? ""
     const askedAt = createdAt + index * 5 * MINUTE_IN_MILLISECONDS
     const content = composeMessage(
@@ -437,6 +439,7 @@ export function buildLongConversationWorld(): DeskWorld {
         ...annotation,
         source: { replyId, occurrence: annotation.occurrence ?? 1 },
       })),
+      tickedTasks.map((task) => taskCheckLine({ replyId, isChecked: true, ...task })),
     )
     messages.push(
       buildConversationMessage({ role: "user", content, createdAt: askedAt }),

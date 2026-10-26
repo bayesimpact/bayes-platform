@@ -89,6 +89,13 @@ describe("messageSegmentsOf", () => {
     ])
   })
 
+  it("leaves out the lines that tick tasks, with their line break", () => {
+    const replyId = crypto.randomUUID()
+    expect(
+      messageSegmentsOf(`Done.\n<checked reply="${replyId}" item="1">Freeze the scope</checked>`),
+    ).toEqual([{ kind: "text", text: "Done." }])
+  })
+
   it("leaves a backtick left open, an empty pair and a passage across lines as text", () => {
     for (const content of ["an open ` backtick", "an empty `` pair", "a `passage\nacross` lines"]) {
       expect(messageSegmentsOf(content)).toEqual([{ kind: "text", text: content }])

@@ -30,8 +30,8 @@ msgid "(required)"
 msgstr "(required)"
 
 #: src/features/conversation/components/Composer.tsx
-msgid "{annotationCount, plural, one {Send with # annotation} other {Send with # annotations}}"
-msgstr "{annotationCount, plural, one {Send with # annotation} other {Send with # annotations}}"
+msgid "{annotationCount, plural, one {# annotation} other {# annotations}}"
+msgstr "{annotationCount, plural, one {# annotation} other {# annotations}}"
 
 #: src/features/invitations/components/InvitationsButton.tsx
 msgid "{count, plural, one {# pending invitation} other {# pending invitations}}"
@@ -93,6 +93,10 @@ msgstr "{rowCount, plural, one {Extract the first row} other {Extract the first 
 #: src/features/extraction/components/CsvRunProgress.tsx
 msgid "{running, plural, one {# running} other {# running}}"
 msgstr "{running, plural, one {# running} other {# running}}"
+
+#: src/features/conversation/components/Composer.tsx
+msgid "{taskCount, plural, one {# changed task} other {# changed tasks}}"
+msgstr "{taskCount, plural, one {# changed task} other {# changed tasks}}"
 
 #: src/features/conversation/components/Composer.tsx
 msgid "<0/> to send"
@@ -846,6 +850,18 @@ msgstr "Send"
 msgid "Send the report"
 msgstr "Send the report"
 
+#: src/features/conversation/components/Composer.tsx
+msgid "Send with {annotations}"
+msgstr "Send with {annotations}"
+
+#: src/features/conversation/components/Composer.tsx
+msgid "Send with {annotations} and {tasks}"
+msgstr "Send with {annotations} and {tasks}"
+
+#: src/features/conversation/components/Composer.tsx
+msgid "Send with {tasks}"
+msgstr "Send with {tasks}"
+
 #. Opens the setup of a CSV file's extraction
 #: src/features/extraction/components/DocumentRow.tsx
 msgid "Set up"
@@ -1208,6 +1224,10 @@ msgstr "This reply was interrupted before it finished."
 msgid "This sign-in started too long ago, or another tab started a new one, and this tab can no longer complete it."
 msgstr "This sign-in started too long ago, or another tab started a new one, and this tab can no longer complete it."
 
+#: src/features/conversation/components/TaskChecksList.tsx
+msgid "Ticked: {text}"
+msgstr "Ticked: {text}"
+
 #: src/features/history/components/HistoryList.tsx
 msgid "Today"
 msgstr "Today"
@@ -1233,6 +1253,10 @@ msgstr "Try again in a moment. If this page comes back, sign out, then sign in a
 #: src/components/shared/SignInProblemPage.tsx
 msgid "Try again to sign in. If this page comes back, close the other tabs of the Desk."
 msgstr "Try again to sign in. If this page comes back, close the other tabs of the Desk."
+
+#: src/features/conversation/components/TaskChecksList.tsx
+msgid "Unticked: {text}"
+msgstr "Unticked: {text}"
 
 #: src/features/conversation/components/SourceItem.tsx
 #: src/features/extraction/components/DeleteDocumentDialog.tsx

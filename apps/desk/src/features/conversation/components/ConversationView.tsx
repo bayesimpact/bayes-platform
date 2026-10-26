@@ -51,7 +51,7 @@ export function ConversationView({
   hasSourcesTool,
 }: ConversationViewProps) {
   const { data: messages } = useSuspenseQuery(messagesQueryOptions(conversation))
-  const sending = useConversationSend(conversation)
+  const sending = useConversationSend(conversation, messages)
   const now = useNow(CLOCK_INTERVAL_IN_MILLISECONDS, true)
   const isBusy = sending.isSending || messages.some((message) => isBeingWritten(message, now))
   const retryableMessage = isBusy ? null : findRetryableMessage(messages, now)
@@ -144,6 +144,7 @@ export function ConversationView({
                               onAppMessage={setDraft}
                               onOpenResource={panel.openResource}
                               citedPassages={citedPassages}
+                              taskChecks={sending.taskChecks}
                             />
                           </MessageScrollerItem>
                         ))}
@@ -180,6 +181,7 @@ export function ConversationView({
               onContentChange={setDraft}
               isBusy={isBusy}
               annotationCount={sending.annotations.length}
+              taskCount={sending.taskChecks.pending.length}
               onSend={sending.send}
             />
           </div>

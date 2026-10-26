@@ -1,5 +1,6 @@
 import { indexPassages, occurrenceAt } from "@/lib/quote-highlight"
 import { isLocalMessageId } from "./chat-messages"
+import { withoutTaskChecks } from "./task-checks"
 
 /** The attribute that marks the text of a reply the person can quote, set to the reply's id. */
 export const QUOTABLE_ATTRIBUTE = "data-quotable"
@@ -103,7 +104,9 @@ const QUOTE_PATTERN = /<quote(?: reply="([^"\n]+)" occurrence="(\d+)")?>([^\n]+?
  * A person's message cut into its plain text, the passages they quoted from a reply and the code
  * they wrote, which the conversation shows as chips.
  */
-export function messageSegmentsOf(content: string): MessageSegment[] {
+export function messageSegmentsOf(message: string): MessageSegment[] {
+  // The lines that tick tasks leave with the message for the agent, but the conversation hides them.
+  const content = withoutTaskChecks(message)
   const segments: MessageSegment[] = []
   let textStart = 0
   for (const match of content.matchAll(QUOTE_PATTERN)) {
@@ -183,8 +186,8 @@ export function citedPassagesOf(
     .map((cited, index) => ({ ...cited, number: index + 1 }))
 }
 
-/** The message with one more annotation, on a line of its own after what is written. */
-function appendAnnotation(draft: string, line: string): string {
+/** The message with one more line, such as an annotation, after what is written. */
+function appendLine(draft: string, line: string): string {
   const written = draft.trimEnd()
   return written === "" ? line : `${written}\n${line}`
 }
@@ -206,19 +209,19 @@ export function saveAnnotation<Saved extends { id: string; note: string }>(
   return annotations.map((existing) => (existing.id === annotation.id ? annotation : existing))
 }
 
-/** The message sent: what the person wrote, then one line per annotation, in their order. */
+/**
+ * The message sent: what the person wrote, then one line per annotation, in their order, then the
+ * other lines that leave with it, such as the tasks they ticked.
+ */
 export function composeMessage(
   draft: string,
   annotations: { passage: string; note: string; source?: QuoteSource | null }[],
+  otherLines: string[] = [],
 ): string {
-  return annotations.reduce(
-    (message, annotation) =>
-      appendAnnotation(
-        message,
-        annotationLine(annotation.passage, annotation.note, annotation.source),
-      ),
-    draft.trim(),
+  const annotationLines = annotations.map((annotation) =>
+    annotationLine(annotation.passage, annotation.note, annotation.source),
   )
+  return [...annotationLines, ...otherLines].reduce(appendLine, draft.trim())
 }
 
 /** Whether two ranges start and end at the same places, as one selection read twice does. */

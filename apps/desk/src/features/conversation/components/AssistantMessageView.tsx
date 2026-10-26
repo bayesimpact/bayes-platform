@@ -8,6 +8,7 @@ import { Message, MessageContent } from "@/components/ui/message"
 import { MemoryProposals } from "@/features/memory"
 import { QUOTABLE_ATTRIBUTE } from "../annotation"
 import { type ChatMessage, isBeingWritten, isLocalMessageId } from "../chat-messages"
+import type { TaskChecks } from "../hooks/use-task-checks"
 import { type AppsHtml, hasMeaningfulText, toolResultText, unavailableApps } from "../mcp-apps"
 import type { OpenedResource } from "../resource-media"
 import { FeedbackDialog } from "./FeedbackDialog"
@@ -28,6 +29,8 @@ export type AssistantMessageViewProps = {
   onAppMessage: (text: string) => void
   /** Opens a resource a reply points to beside the conversation. */
   onOpenResource: (resource: OpenedResource) => void
+  /** The tasks of the replies, as the person left them, and their ticks. */
+  taskChecks: TaskChecks
 }
 
 /**
@@ -43,6 +46,7 @@ export function AssistantMessageView({
   appsHtml,
   onAppMessage,
   onOpenResource,
+  taskChecks,
 }: AssistantMessageViewProps) {
   const { t } = useLingui()
   const [failedAppIds, setFailedAppIds] = useState<string[]>([])
@@ -63,7 +67,19 @@ export function AssistantMessageView({
           // A passage of a settled reply can be annotated, and the messages after find the
           // passages they quote in it by its id.
           <div {...(isWriting ? {} : { [QUOTABLE_ATTRIBUTE]: message.id })}>
-            <Markdown isStreaming={isWriting}>{text}</Markdown>
+            <Markdown
+              isStreaming={isWriting}
+              taskStates={taskChecks.statesOf(message.id)}
+              // A settled reply's tasks can be ticked once it has the server's id, which the
+              // ticks name.
+              onTaskToggle={
+                isWriting || isLocalMessageId(message.id)
+                  ? undefined
+                  : (task) => taskChecks.toggle({ replyId: message.id, ...task })
+              }
+            >
+              {text}
+            </Markdown>
           </div>
         ) : null}
         {message.mcpApps.length > 0 && !isWriting ? (

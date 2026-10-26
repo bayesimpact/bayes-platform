@@ -1,5 +1,6 @@
 import { plural } from "@lingui/core/macro"
 import { Trans, useLingui } from "@lingui/react/macro"
+import { cn } from "cn"
 import { ArrowUpIcon, FileIcon, PaperclipIcon, XIcon } from "lucide-react"
 import { type ChangeEvent, type FormEvent, useId, useRef } from "react"
 import { InputGroup, InputGroupAddon, InputGroupButton } from "@/components/ui/input-group"
@@ -23,6 +24,8 @@ export type ComposerProps = {
   isBusy: boolean
   /** How many annotations of the replies leave with the message, which can then be empty. */
   annotationCount?: number
+  /** How many tasks of the replies the person ticked or unticked, which can leave alone too. */
+  taskCount?: number
   /**
    * Sends the message, which the box clears at once. `restore` puts its text and file back in the
    * box, for a message that could not leave.
@@ -41,14 +44,16 @@ export function Composer({
   onContentChange,
   isBusy,
   annotationCount = 0,
+  taskCount = 0,
   onSend,
 }: ComposerProps) {
   const { t } = useLingui()
+  const sendLabel = useSendLabel(annotationCount, taskCount)
   const attachment = useAttachment()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const hintId = useId()
   const dictation = useDictation({ content, onContentChange })
-  const canSend = !isBusy && (content.trim().length > 0 || annotationCount > 0)
+  const canSend = !isBusy && (content.trim().length > 0 || annotationCount > 0 || taskCount > 0)
 
   const handleSend = () => {
     if (!canSend) return
@@ -168,24 +173,27 @@ export function Composer({
             variant="default"
             className="relative size-8 rounded-full disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100"
             disabled={!canSend}
-            aria-label={
-              annotationCount > 0
-                ? t({
-                    message: plural(annotationCount, {
-                      one: "Send with # annotation",
-                      other: "Send with # annotations",
-                    }),
-                  })
-                : t`Send`
-            }
+            aria-label={sendLabel}
           >
             <ArrowUpIcon aria-hidden />
-            {annotationCount > 0 ? (
-              <span
-                aria-hidden
-                className="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-annotation text-xs leading-none font-semibold text-annotation-foreground ring-2 ring-background"
-              >
-                {annotationCount}
+            {/*
+              What leaves with the message, side by side: the tasks ticked or unticked in the
+              theme's color, and the annotations in their yellow.
+            */}
+            {taskCount > 0 || annotationCount > 0 ? (
+              <span aria-hidden className="absolute -top-1 -right-1 flex gap-0.5">
+                {taskCount > 0 ? (
+                  <span className={cn(SEND_BUBBLE_CLASS, "bg-primary text-primary-foreground")}>
+                    {taskCount}
+                  </span>
+                ) : null}
+                {annotationCount > 0 ? (
+                  <span
+                    className={cn(SEND_BUBBLE_CLASS, "bg-annotation text-annotation-foreground")}
+                  >
+                    {annotationCount}
+                  </span>
+                ) : null}
               </span>
             ) : null}
           </InputGroupButton>
@@ -193,4 +201,23 @@ export function Composer({
       </InputGroup>
     </form>
   )
+}
+
+/** A count on the send button, of the annotations or of the changed tasks. */
+const SEND_BUBBLE_CLASS =
+  "flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-xs leading-none font-semibold ring-2 ring-background"
+
+/** The name of the send button, with what leaves with the message. */
+function useSendLabel(annotationCount: number, taskCount: number): string {
+  const { t } = useLingui()
+  const annotations = t({
+    message: plural(annotationCount, { one: "# annotation", other: "# annotations" }),
+  })
+  const tasks = t({
+    message: plural(taskCount, { one: "# changed task", other: "# changed tasks" }),
+  })
+  if (annotationCount > 0 && taskCount > 0) return t`Send with ${annotations} and ${tasks}`
+  if (annotationCount > 0) return t`Send with ${annotations}`
+  if (taskCount > 0) return t`Send with ${tasks}`
+  return t`Send`
 }
