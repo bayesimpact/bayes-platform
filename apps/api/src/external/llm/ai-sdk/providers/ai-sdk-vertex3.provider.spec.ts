@@ -4,7 +4,7 @@ import { BatchSpanProcessor, ConsoleSpanExporter } from "@opentelemetry/sdk-trac
 import { NodeTracerProvider } from "@opentelemetry/sdk-trace-node"
 import type { LLMConfig, LLMServiceTier } from "@/common/interfaces/llm-provider.interface"
 import { getAgentModelKey } from "@/external/llm/agent-provider"
-import type { ModelMetadata } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
+import type { ModelInfos } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
 import { AISDKVertex3Provider } from "@/external/llm/ai-sdk/providers/ai-sdk-vertex3.provider"
 import { ProviderSpecs } from "@/external/llm/ai-sdk/providers/provider-specs"
 import { gcpCredentialsCheck } from "@/external/llm/ai-sdk/providers/spec-gcp-tools"
@@ -25,11 +25,11 @@ const testModels = Object.values(AgentModel)
 // runs everywhere — unlike the live generation specs below, which need credentials.
 describe("AISDKVertex3Provider location routing", () => {
   const locationOf = (model: AgentModel) =>
-    new AISDKVertex3Provider().getTags({
+    new AISDKVertex3Provider().getModelMetadata({
       model,
       modelOptions: { temperature: 0 },
       serviceTier: undefined,
-    })[1]
+    }).location
 
   it("keeps every vertex 3 model on the eu endpoint", () => {
     const vertex3Models = Object.values(AgentModel).filter(
@@ -44,14 +44,14 @@ describe("AISDKVertex3Provider location routing", () => {
   it("routes a model flagged as served outside the EU through the global endpoint", () => {
     // No model carries the flag today: a provider declaring it is enough to test the routing.
     class ProviderServingOutsideEu extends AISDKVertex3Provider {
-      protected override readonly modelMetadata: Record<
+      protected override readonly modelInfos: Record<
         | AgentModel.Gemini31FlashLite
         | AgentModel.Gemini35FlashLite
         | AgentModel.Gemini35Flash
         | AgentModel.Gemini36Flash
         | AgentModel.Gemini37Flash
         | AgentModel.Gemini38Flash,
-        ModelMetadata
+        ModelInfos
       > = {
         [AgentModel.Gemini31FlashLite]: {},
         [AgentModel.Gemini35FlashLite]: {},
@@ -64,8 +64,8 @@ describe("AISDKVertex3Provider location routing", () => {
     const provider = new ProviderServingOutsideEu()
     const config: LLMConfig = { model: AgentModel.Gemini36Flash, serviceTier: undefined }
 
-    expect(provider.getTags(config)[1]).toBe("global")
-    expect(provider.getModelMetadata(AgentModel.Gemini36Flash).servedOutsideEu).toBe(true)
+    expect(provider.getModelMetadata(config).location).toBe("global")
+    expect(provider.getModelInfos(AgentModel.Gemini36Flash).servedOutsideEu).toBe(true)
   })
 })
 
@@ -323,8 +323,10 @@ describe("AISDKVertex3Provider thinking level", () => {
   })
 
   it("tags the call with the level it runs on", () => {
-    const tags = new AISDKVertex3Provider().getTags(buildConfig(AgentModel.Gemini35Flash, "low"))
-    expect(tags.at(-1)).toBe("LOW")
+    const modelMetadata = new AISDKVertex3Provider().getModelMetadata(
+      buildConfig(AgentModel.Gemini35Flash, "low"),
+    )
+    expect(modelMetadata.thinkingLevel).toBe("LOW")
   })
 
   it("throws on a model the provider does not serve", () => {

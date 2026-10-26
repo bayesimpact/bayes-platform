@@ -26,10 +26,6 @@ export abstract class AISDKVllmProviderBase<
     return this.createOpenAiCompatibleChatModel(config)
   }
 
-  getTags(config: LLMConfig): string[] {
-    return [this.providerName, config.model]
-  }
-
   /**
    * The OpenAI-compatible chat model. The API key of the model goes in the
    * `Authorization: Bearer` header, which is what vLLM checks when it runs

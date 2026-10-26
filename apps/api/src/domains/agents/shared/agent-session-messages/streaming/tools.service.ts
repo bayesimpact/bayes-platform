@@ -777,7 +777,8 @@ export class ToolsService {
     const added = await runFormConsolidation({
       provider: llm.provider,
       buildConfig: llm.buildConfig,
-      metadata: llm.metadata,
+      callContext: llm.callContext,
+      additionalMetadata: llm.additionalMetadata,
       schema: parsedSchema.data,
       transcript,
       state: form?.state ?? {},

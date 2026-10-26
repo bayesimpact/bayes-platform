@@ -3,10 +3,11 @@ import { Inject, Injectable, Logger } from "@nestjs/common"
 import type { FilePart, ImagePart } from "ai"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import type {
+  AdditionalMetadata,
   BuildLLMConfigParams,
+  LLMCallContext,
   LLMChatMessage,
   LLMConfig,
-  LLMMetadata,
   LLMProvider,
 } from "@/common/interfaces/llm-provider.interface"
 import { resolveSessionPromptVariables } from "@/common/utils/prompt-variables"
@@ -21,7 +22,7 @@ import {
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectsService } from "@/domains/projects/projects.service"
 import { modelRequiresPdfAsImages } from "@/external/llm/agent-provider"
-import { getTraceUrl } from "@/external/llm/trace-url"
+import { telemetryAdditionalMetadata, telemetryTraceUrl } from "@/external/llm/telemetry"
 import type { AgentMessage } from "../agent-message.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentMessageAttachmentDocumentsService } from "../agent-message-attachment-documents.service"
@@ -40,7 +41,8 @@ import { ToolsService } from "./tools.service"
 
 export type BuiltLLMRequest = {
   config: LLMConfig
-  metadata: LLMMetadata
+  callContext: LLMCallContext
+  additionalMetadata: AdditionalMetadata
   messages: LLMChatMessage[]
   mcpClose: (() => Promise<void>) | undefined
   /**
@@ -88,7 +90,6 @@ export class AgentLlmRequestService {
     onToolExecute,
     attachmentDocumentId,
     includeSessionMetadataTools = true,
-    extraTags = [],
     sessionState,
     syntheticUserContent,
   }: {
@@ -98,7 +99,6 @@ export class AgentLlmRequestService {
     onToolExecute: OnExecute
     attachmentDocumentId?: string
     includeSessionMetadataTools?: boolean
-    extraTags?: string[]
     sessionState?: SessionStateTarget
     /**
      * A user-role message appended for this call only, never persisted nor
@@ -161,12 +161,10 @@ export class AgentLlmRequestService {
       llmFeatures,
     })
 
-    const metadata: LLMMetadata = this.buildLLMData({
+    const callContext: LLMCallContext = this.buildLLMData({
       session,
       agent,
       agentSettings,
-      hasSubAgentTools,
-      extraTags,
       // Traces: the turns of one user message share a number; the label says
       // which one is the sub-agent's, and which one the parent's resumption.
       spanLabel: agentSessionScope.handoff
@@ -174,6 +172,11 @@ export class AgentLlmRequestService {
         : syntheticUserContent !== undefined
           ? "resume"
           : undefined,
+    })
+    const additionalMetadata = telemetryAdditionalMetadata({
+      agent,
+      agentSettings,
+      agentClass: hasSubAgentTools ? "parent-agent" : undefined,
     })
 
     const messages = await this.convertToLLMFormat(session.messages)
@@ -210,7 +213,8 @@ export class AgentLlmRequestService {
             priorityCallsEnabled: agentSettings.priorityCallsEnabled,
             llmFeatures,
           }),
-        metadata,
+        callContext,
+        additionalMetadata,
         earlierMessages: messages.slice(0, -1),
         userMessage: currentUserMessage ? llmMessageText(currentUserMessage) : "",
         answerText,
@@ -218,28 +222,23 @@ export class AgentLlmRequestService {
       })
     }
 
-    return { config, metadata, messages, mcpClose, citations, classifyTurn }
+    return { config, callContext, additionalMetadata, messages, mcpClose, citations, classifyTurn }
   }
 
   private buildLLMData({
     session,
     agent,
     agentSettings,
-    hasSubAgentTools,
-    extraTags,
     spanLabel,
   }: {
     session: StreamingSession
     agent: Agent
     agentSettings: AgentSettings
-    hasSubAgentTools: boolean
-    extraTags: string[]
     spanLabel?: string
-  }): LLMMetadata {
+  }): LLMCallContext {
     this.logger.log(
-      `Agent "${agent.name}" (${agent.id}) trace: ${getTraceUrl(session.traceId) ?? session.traceId} (session ${session.id})`,
+      `Agent "${agent.name}" (${agent.id}) trace: ${telemetryTraceUrl(session.traceId) ?? session.traceId} (session ${session.id})`,
     )
-    const tags = [agent.name, `rev-${agentSettings.revision}`, agent.type, ...extraTags]
     return {
       traceId: session.traceId,
       agentSessionId: session.id,
@@ -248,7 +247,6 @@ export class AgentLlmRequestService {
       projectId: agent.projectId,
       organizationId: session.organizationId,
       currentTurn: session.messages.filter((message) => message.role === "user").length,
-      tags: hasSubAgentTools ? [...tags, "parent-agent"] : tags,
       ...(spanLabel ? { spanLabel } : {}),
     }
   }

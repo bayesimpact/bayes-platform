@@ -92,7 +92,11 @@ export class AgentsController {
       userId: request.user.id,
     })
 
-    return { data: toAgentDto({ agent, agentSettings }) }
+    const permissions = await this.agentsService.listPermissionsOnAgent({
+      userId: request.user.id,
+      agentId: agent.id,
+    })
+    return { data: toAgentDto({ agent, agentSettings, permissions }) }
   }
 
   /**
@@ -126,7 +130,13 @@ export class AgentsController {
       source,
       userId: request.user.id,
     })
-    return { data: toAgentWithDraftDto({ agent, draftAgentSettings: agentSettings }) }
+    const permissions = await this.agentsService.listPermissionsOnAgent({
+      userId: request.user.id,
+      agentId: agent.id,
+    })
+    return {
+      data: toAgentWithDraftDto({ agent, draftAgentSettings: agentSettings, permissions }),
+    }
   }
 
   @Get(AgentsRoutes.getAll.path)
@@ -135,7 +145,7 @@ export class AgentsController {
     @Req() request: EndpointRequestWithProject,
   ): Promise<typeof AgentsRoutes.getAll.response> {
     const connectScope = getRequiredConnectScope(request)
-    const agents = await this.agentsService.listAgents({
+    const { agents, permissionsByAgentId } = await this.agentsService.listAgents({
       userId: request.user.id,
       connectScope,
     })
@@ -145,7 +155,8 @@ export class AgentsController {
           connectScope,
           agentId: agent.id,
         })
-        return agentSettings ? [toAgentDto({ agent, agentSettings })] : []
+        const permissions = permissionsByAgentId.get(agent.id) ?? []
+        return agentSettings ? [toAgentDto({ agent, agentSettings, permissions })] : []
       }),
     )
     // An agent that was never published, such as a fresh copy, cannot be used yet.
@@ -174,7 +185,7 @@ export class AgentsController {
     @Req() request: EndpointRequestWithProject,
   ): Promise<typeof AgentsRoutes.getAllWithDrafts.response> {
     const connectScope = getRequiredConnectScope(request)
-    const agents = await this.agentsService.listAgents({
+    const { agents, permissionsByAgentId } = await this.agentsService.listAgents({
       userId: request.user.id,
       connectScope,
     })
@@ -197,6 +208,7 @@ export class AgentsController {
           agent,
           currentAgentSettings,
           draftAgentSettings: hasDraft ? draftAgentSettings : undefined,
+          permissions: permissionsByAgentId.get(agent.id) ?? [],
         })
       }),
     )

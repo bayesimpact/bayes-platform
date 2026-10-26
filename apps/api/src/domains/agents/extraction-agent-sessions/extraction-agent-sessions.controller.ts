@@ -24,7 +24,7 @@ import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.s
 import { toDocumentDto } from "@/domains/documents/documents.helpers"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentsService } from "@/domains/documents/documents.service"
-import { getTraceUrl } from "@/external/llm/trace-url"
+import { telemetryTraceUrl } from "@/external/llm/telemetry"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { BaseAgentSessionsService } from "../base-agent-sessions/base-agent-sessions.service"
 import type { BaseAgentSessionType } from "../base-agent-sessions/base-agent-sessions.types"
@@ -245,7 +245,7 @@ export abstract class ExtractionAgentSessionsController {
 
 function toSummaryDto(agentSessionType: BaseAgentSessionType) {
   return (entity: ExtractionAgentSession): ExtractionAgentSessionSummaryDto => {
-    const traceUrl = agentSessionType === "live" ? undefined : getTraceUrl(entity.traceId)
+    const traceUrl = agentSessionType === "live" ? undefined : telemetryTraceUrl(entity.traceId)
     return {
       id: entity.id,
       agentId: entity.agentId,

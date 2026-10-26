@@ -1,5 +1,9 @@
 import { ToolName } from "@caseai-connect/api-contracts"
-import type { LLMMetadata, LLMProvider } from "@/common/interfaces/llm-provider.interface"
+import type {
+  AdditionalMetadata,
+  LLMCallContext,
+  LLMProvider,
+} from "@/common/interfaces/llm-provider.interface"
 import type { RetrievedDocumentChunk } from "@/domains/documents/embeddings/document-chunk.types"
 import { createRetrievedChunksRegistry } from "./retrieved-chunks-registry"
 import type { ToolExecutionLog } from "./tool-execution-log"
@@ -25,7 +29,7 @@ const chunk = (overrides: Partial<RetrievedDocumentChunk>): RetrievedDocumentChu
   ...overrides,
 })
 
-const metadata: LLMMetadata = {
+const callContext: LLMCallContext = {
   traceId: "trace-1",
   agentSessionId: "session-1",
   currentTurn: 1,
@@ -33,8 +37,8 @@ const metadata: LLMMetadata = {
   agentId: "agent-1",
   revision: 1,
   projectId: "project-1",
-  tags: ["test"],
 }
+const additionalMetadata: AdditionalMetadata = { environment: "**TEST**" }
 
 const connectScope = { organizationId: "org-1", projectId: "project-1" }
 
@@ -152,7 +156,7 @@ describe("buildTurnClassificationPrompt", () => {
 
 describe("runTurnClassification", () => {
   const baseParams = {
-    metadata,
+    callContext,
     buildConfig,
     earlierMessages: [],
     userMessage: "How many days of leave?",
@@ -167,6 +171,7 @@ describe("runTurnClassification", () => {
     const recalculator = fakeRecalculator()
 
     await runTurnClassification({
+      additionalMetadata,
       ...baseParams,
       context: {
         retrievedChunksRegistry: registry,
@@ -199,7 +204,7 @@ describe("runTurnClassification", () => {
       suggestedTitle: "Leave",
     })
     // The classification call is tagged so traces can be filtered.
-    expect(generateStructuredOutput.mock.calls[0]?.[0]?.metadata.tags).toContain(
+    expect(generateStructuredOutput.mock.calls[0]?.[0]?.additionalMetadata.tool?.name).toBe(
       "turn-classification",
     )
   })
@@ -216,6 +221,7 @@ describe("runTurnClassification", () => {
     const recalculator = fakeRecalculator()
 
     await runTurnClassification({
+      additionalMetadata,
       ...baseParams,
       context: {
         retrievedChunksRegistry: registry,
@@ -249,6 +255,7 @@ describe("runTurnClassification", () => {
     const { provider, generateStructuredOutput } = fakeProvider({})
 
     await runTurnClassification({
+      additionalMetadata,
       ...baseParams,
       context: { retrievedChunksRegistry: registry, onExecute: () => undefined },
       provider,
@@ -272,6 +279,7 @@ describe("runTurnClassification", () => {
 
     await expect(
       runTurnClassification({
+        additionalMetadata,
         ...baseParams,
         context,
         provider: fakeProvider(new Error("provider down")).provider,
@@ -280,6 +288,7 @@ describe("runTurnClassification", () => {
     ).resolves.toBeUndefined()
     await expect(
       runTurnClassification({
+        additionalMetadata,
         ...baseParams,
         context,
         provider: fakeProvider({ suggestedTitle: 42 }).provider,
@@ -292,6 +301,7 @@ describe("runTurnClassification", () => {
   it("truncates an overlong title instead of dropping the report", async () => {
     const recalculator = fakeRecalculator()
     await runTurnClassification({
+      additionalMetadata,
       ...baseParams,
       context: {
         sessionMetadata: {
@@ -312,7 +322,7 @@ describe("runTurnClassification", () => {
 
   describe("runTurnClassification - handoff", () => {
     const handoffParams = {
-      metadata,
+      callContext,
       buildConfig,
       earlierMessages: [],
       userMessage: "Doe",
@@ -344,6 +354,7 @@ describe("runTurnClassification", () => {
       const executions: ToolExecutionLog[] = []
 
       await runTurnClassification({
+        additionalMetadata,
         ...handoffParams,
         context: { handoff, onExecute: (execution) => void executions.push(execution) },
         provider,
@@ -373,6 +384,7 @@ describe("runTurnClassification", () => {
       const { handoff, conclude } = fakeHandoff(true)
 
       await runTurnClassification({
+        additionalMetadata,
         ...handoffParams,
         context: { handoff, onExecute: () => undefined },
         provider,
@@ -392,6 +404,7 @@ describe("runTurnClassification", () => {
       const { handoff, conclude } = fakeHandoff(false)
 
       await runTurnClassification({
+        additionalMetadata,
         ...handoffParams,
         answerText: "Thanks John. And your last name?",
         context: { handoff, onExecute: () => undefined },

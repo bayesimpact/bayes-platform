@@ -35,13 +35,11 @@ export class EvaluationConversationRunLlmService extends LlmServiceBase {
     agentSettings,
     connectScope,
     userContent,
-    extraTags,
   }: {
     agent: Agent
     agentSettings: AgentSettings
     connectScope: RequiredConnectScope
     userContent: string
-    extraTags?: string[]
   }): Promise<{ output: string; traceId: string }> {
     const traceId = v4()
     const userMessage = { role: "user", content: userContent, status: null } as AgentMessage
@@ -54,11 +52,10 @@ export class EvaluationConversationRunLlmService extends LlmServiceBase {
       persistsForms: false,
     }
 
-    const { config, metadata, messages, mcpClose, citations, classifyTurn } =
+    const { config, callContext, additionalMetadata, messages, mcpClose, citations, classifyTurn } =
       await this.agentLlmRequestService.buildLLMRequest({
         agentSessionScope: { agent, agentSettings, session, connectScope },
         includeSessionMetadataTools: false,
-        extraTags,
         onToolExecute: (toolExecution) => {
           this.logger.log(
             `Tool "${toolExecution.toolName}" executed during single-turn run (trace ${traceId})`,
@@ -73,7 +70,8 @@ export class EvaluationConversationRunLlmService extends LlmServiceBase {
       const chunks = this.getProviderForModel(config.model).streamChatResponse({
         messages,
         config,
-        metadata,
+        callContext,
+        additionalMetadata,
       })
       for await (const chunk of chunks) {
         output += citations.feed(chunk)

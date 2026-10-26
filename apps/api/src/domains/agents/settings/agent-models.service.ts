@@ -47,14 +47,14 @@ export class AgentModelsService {
       .map((agentModel) => {
         const agentProvider = AgentModelToAgentProvider[agentModel]
         const llmProvider = this.llmProviders[agentProvider]
-        const metadata = llmProvider.getModelMetadata(agentModel)
+        const modelInfos = llmProvider.getModelInfos(agentModel)
         return {
           agentModel,
           agentProvider,
           isAvailable:
-            availableProviders.has(agentProvider) && !this.isModelRetired(metadata.deprecation),
-          agentModelDeprecation: metadata.deprecation ?? null,
-          servedOutsideEu: metadata.servedOutsideEu === true,
+            availableProviders.has(agentProvider) && !this.isModelRetired(modelInfos.deprecation),
+          agentModelDeprecation: modelInfos.deprecation ?? null,
+          servedOutsideEu: modelInfos.servedOutsideEu === true,
           optionsSchema: z.toJSONSchema(llmProvider.getModelOptionsSchema(agentModel)) as Record<
             string,
             unknown
@@ -72,7 +72,7 @@ export class AgentModelsService {
     if (!this.listAvailableProviders(features).has(provider))
       throw new BadRequestException(`Model ${model} is not available in this project`)
     const llmProvider = this.llmProviders[provider]
-    if (this.isModelRetired(llmProvider.getModelMetadata(model as AgentModel).deprecation))
+    if (this.isModelRetired(llmProvider.getModelInfos(model as AgentModel).deprecation))
       throw new BadRequestException(`Model ${model} is no longer available`)
   }
 

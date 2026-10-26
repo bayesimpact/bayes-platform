@@ -145,6 +145,7 @@ export abstract class AgentMessagesController {
       storagePath: storageRelativePath,
       mimeType: payload.mimeType,
       expiresInSeconds: 900,
+      contentLength: payload.size,
     })
 
     await this.agentMessageAttachmentDocumentsService.createAttachmentDocument({

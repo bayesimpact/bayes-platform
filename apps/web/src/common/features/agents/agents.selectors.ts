@@ -5,6 +5,11 @@ import type { Agent, AgentModelsCatalog } from "./agents.models"
 
 export const selectAgentsData = (state: RootState) => state.agents.data
 
+// The slice is injected in Studio, Desk, Tester and Eval only: shared code that also runs
+// elsewhere (onboarding, backoffice) reads it through this selector.
+export const selectAgentsDataIfInjected = (state: RootState): AsyncData<Agent[]> | null =>
+  state.agents?.data ?? null
+
 export const selectCurrentAgentId = (state: RootState) => state.currentIds.agentId
 
 export const selectCurrentAgentData = createSelector(

@@ -24,7 +24,10 @@ const metricReader = isOtlpExportEnabled
 
 export const sdk = new NodeSDK({
   spanProcessors,
-  ...(metricReader && { metricReader }),
+  // Always explicit: without metricReaders, NodeSDK builds a default OTLP reader from the
+  // environment, whose 60 s export timer is never stopped (in tests it kept every finished
+  // test file's module graph in memory).
+  metricReaders: metricReader ? [metricReader] : [],
   instrumentations: isTest ? [] : [new NestInstrumentation(), new PgInstrumentation()],
 })
 

@@ -3,6 +3,7 @@ import type { LLMProvider } from "@/common/interfaces/llm-provider.interface"
 import { AISDKGemmaProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-gemma.provider"
 import { AISDKMedGemmaProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-med-gemma.provider"
 import { AISDKMistralProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mistral.provider"
+import { AISDKQwenProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-qwen.provider"
 import { AISDKVertexProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-vertex.provider"
 import { AISDKVertex3Provider } from "@/external/llm/ai-sdk/providers/ai-sdk-vertex3.provider"
 
@@ -29,6 +30,12 @@ export const PROVIDER_CASES: ProviderCase[] = [
     model: AgentModel.Gemma4_26B,
     buildProvider: () => new AISDKGemmaProvider(),
     unavailableReason: vllmUnavailableReason("VLLM_GEMMA4_26B_URL"),
+  },
+  {
+    label: "Gemma 4 31B (vLLM)",
+    model: AgentModel.Gemma4_31B,
+    buildProvider: () => new AISDKGemmaProvider(),
+    unavailableReason: vllmUnavailableReason("VLLM_GEMMA4_31B_URL"),
   },
   {
     label: "Gemini 3.8 Flash (Vertex3)",
@@ -74,10 +81,16 @@ export const PROVIDER_CASES: ProviderCase[] = [
     unavailableReason: () => null,
   },
   {
-    label: "Mistral Small 3.1 24B (vLLM)",
+    label: "Mistral Small 3.2 24B (vLLM)",
     model: AgentModel.MistralSmall32_24B,
     buildProvider: () => new AISDKMistralProvider(),
-    unavailableReason: vllmUnavailableReason("VLLM_MISTRALSMALL31_24B_URL"),
+    unavailableReason: vllmUnavailableReason("VLLM_MISTRALSMALL32_24B_URL"),
+  },
+  {
+    label: "Qwen3.8 27B (vLLM)",
+    model: AgentModel.Qwen38_27B,
+    buildProvider: () => new AISDKQwenProvider(),
+    unavailableReason: vllmUnavailableReason("VLLM_QWEN38_27B_URL"),
   },
   {
     label: "MedGemma 27B (vLLM, custom prompt-based tools)",

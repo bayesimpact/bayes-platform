@@ -1,22 +1,39 @@
-import type { EditableProjectMembershipRoleDto } from "@caseai-connect/api-contracts"
-import type { ProjectMemberAgent, ProjectMembership } from "./project-memberships.models"
+import type { AssignableRoles, MemberRoles, ProjectMembership } from "./project-memberships.models"
+
+type MemberScope = { organizationId: string; projectId: string; memberUserId: string }
 
 export interface IProjectMembershipsSpi {
   getAll: (params: { organizationId: string; projectId: string }) => Promise<ProjectMembership[]>
-  updateOne: (params: {
+  getAssignableRoles: (params: {
     organizationId: string
     projectId: string
-    memberUserId: string
-    role: EditableProjectMembershipRoleDto
-  }) => Promise<ProjectMembership>
-  remove: (params: {
+  }) => Promise<AssignableRoles>
+  /** All or nothing. Returns the members with their new roles. */
+  addRoles: (params: {
     organizationId: string
     projectId: string
-    memberUserId: string
+    memberUserIds: string[]
+    roleKeys: string[]
+  }) => Promise<ProjectMembership[]>
+  /** All or nothing. */
+  removeMany: (params: {
+    organizationId: string
+    projectId: string
+    memberUserIds: string[]
   }) => Promise<void>
-  getMemberAgents: (params: {
+  getMemberRoles: (params: MemberScope) => Promise<MemberRoles>
+  /** Takes one workspace role from the member. */
+  removeRole: (params: MemberScope & { roleKey: string }) => Promise<void>
+  addAgentRole: (params: MemberScope & { agentId: string; roleKey: string }) => Promise<void>
+  removeAgentRole: (params: MemberScope & { agentId: string; roleKey: string }) => Promise<void>
+  addCampaignRole: (
+    params: MemberScope & { reviewCampaignId: string; roleKey: string },
+  ) => Promise<void>
+  /** A campaign role is revoked by its membership row. */
+  revokeCampaignRole: (params: {
     organizationId: string
     projectId: string
-    memberUserId: string
-  }) => Promise<ProjectMemberAgent[]>
+    reviewCampaignId: string
+    membershipId: string
+  }) => Promise<void>
 }

@@ -41,7 +41,7 @@ import {
   EVALUATION_EXTRACTION_RUN_UPDATE_PERMISSION,
 } from "@/domains/rbac/rbac.constants"
 import { UserGuard } from "@/domains/users/user.guard"
-import { getTraceUrl } from "@/external/llm/trace-url"
+import { telemetryTraceUrl } from "@/external/llm/telemetry"
 import type { EvaluationExtractionRun } from "./evaluation-extraction-run.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { EvaluationExtractionRunCsvExportService } from "./evaluation-extraction-run-csv-export.service"
@@ -335,7 +335,7 @@ function toEvaluationExtractionRunRecordDto(
     agentRawOutput: record.agentRawOutput,
     errorDetails: record.errorDetails,
     datasetRecordData: record.evaluationExtractionDatasetRecord?.data ?? null,
-    traceUrl: record.traceId ? (getTraceUrl(record.traceId) ?? null) : null,
+    traceUrl: record.traceId ? (telemetryTraceUrl(record.traceId) ?? null) : null,
     createdAt: record.createdAt.getTime(),
     updatedAt: record.updatedAt.getTime(),
   }

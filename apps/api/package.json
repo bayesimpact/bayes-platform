@@ -54,6 +54,8 @@
     "@ai-sdk/google": "^3.0.13",
     "@ai-sdk/google-vertex": "^4.0.142",
     "@ai-sdk/mcp": "^1.0.30",
+    "@aws-sdk/client-s3": "^3.1155.0",
+    "@aws-sdk/s3-request-presigner": "^3.1155.0",
     "@caseai-connect/api-contracts": "*",
     "@google-cloud/aiplatform": "^6.5.0",
     "@google-cloud/storage": "^7.18.0",

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   Injectable,
@@ -14,6 +15,9 @@ import { TransactionService } from "@/common/transaction/transaction.service"
 import { Agent } from "@/domains/agents/agent.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { ProjectMembershipsService } from "@/domains/projects/memberships/project-memberships.service"
+import { REVIEW_CAMPAIGN_ROLES } from "@/domains/rbac/rbac.constants"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ReviewCampaignMembershipsService } from "./memberships/review-campaign-memberships.service"
 import { ReviewCampaign } from "./review-campaign.entity"
@@ -57,6 +61,7 @@ export class ReviewCampaignsService {
     private readonly agentSettingsService: AgentSettingsService,
     private readonly testerService: TesterService,
     private readonly transactionService: TransactionService,
+    private readonly projectMembershipsService: ProjectMembershipsService,
   ) {
     this.reviewCampaignConnectRepository = new ConnectRepository(
       reviewCampaignOrmRepository,
@@ -299,4 +304,61 @@ export class ReviewCampaignsService {
       role: membership.role,
     })
   }
+
+  /**
+   * Gives a member of the campaign's project a tester or reviewer role on it, without an
+   * invitation. Nobody changes their own roles, and a closed campaign takes no new role.
+   */
+  async addMemberRole({
+    connectScope,
+    reviewCampaignId,
+    callerUserId,
+    memberUserId,
+    roleKey,
+  }: {
+    connectScope: RequiredConnectScope
+    reviewCampaignId: string
+    callerUserId: string
+    memberUserId: string
+    roleKey: string
+  }): Promise<void> {
+    const role = CAMPAIGN_ROLE_BY_KEY.get(roleKey)
+    if (!role) throw new BadRequestException(`Not a review campaign role: ${roleKey}`)
+    if (memberUserId === callerUserId) {
+      throw new ForbiddenException("Cannot change your own role")
+    }
+
+    const campaign = await this.reviewCampaignConnectRepository.getOneById(
+      connectScope,
+      reviewCampaignId,
+    )
+    if (!campaign) {
+      throw new NotFoundException(`Review campaign ${reviewCampaignId} not found`)
+    }
+    if (campaign.status === "closed") {
+      throw new ForbiddenException("Cannot add roles to a closed campaign")
+    }
+    const membership = await this.projectMembershipsService.findProjectMembership({
+      userId: memberUserId,
+      projectId: campaign.projectId,
+    })
+    if (!membership) {
+      throw new NotFoundException("The user is not a member of the project")
+    }
+
+    await this.reviewCampaignMembershipsService.acceptCampaignMembership({
+      campaignId: campaign.id,
+      userId: memberUserId,
+      role,
+      organizationId: campaign.organizationId,
+      projectId: campaign.projectId,
+    })
+  }
 }
+
+const CAMPAIGN_ROLE_BY_KEY = new Map<string, keyof typeof REVIEW_CAMPAIGN_ROLES>(
+  Object.entries(REVIEW_CAMPAIGN_ROLES).map(([role, roleKey]) => [
+    roleKey,
+    role as keyof typeof REVIEW_CAMPAIGN_ROLES,
+  ]),
+)

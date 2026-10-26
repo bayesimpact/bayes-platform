@@ -2,10 +2,10 @@
 
 Dedicated service that rasterizes PDFs into PNG page images for image-only LLMs
 (Gemma, MedGemma), and exposes an MCP tool that exports markdown as a downloadable
-PDF. Page rasterizing happens in WebAssembly (`go-pdfium` + `wazero`) and is
-GCS-native: PDFs are fetched from GCS, rendered in isolation, and pages are streamed
-directly to GCS. Markdown-to-PDF rendering is pure Go (`internal/mdpdf`). No local
-storage or subprocess management needed.
+PDF. Page rasterizing happens in WebAssembly (`go-pdfium` + `wazero`) and works on the
+platform bucket: PDFs are fetched from it, rendered in isolation, and pages are written
+back to it. The bucket is S3-compatible (`STORAGE_BACKEND=s3`) or GCS. Markdown-to-PDF
+rendering is pure Go (`internal/mdpdf`). No local storage or subprocess management needed.
 
 ## Endpoints
 
@@ -109,17 +109,19 @@ honours a `hostContext.locale` sent by a host, on `ui/initialize` or on
 
 ### The `tmp/pdf-exports/` prefix and the TTL contract
 
-Every export is written once to `{PDF_EXPORT_TMP_PREFIX}{uuid}/{fileName}` and this
-service never deletes it — `SignedURL` only hands out a link that stops working after
-`PDF_EXPORT_TTL_MINUTES`, the object itself stays in GCS. The upload stamps that same
-expiry on the object as its GCS `customTime`, so the object carries its own lifetime.
-Deleting it is the API's job: a worker sweeps `PDF_EXPORT_TMP_PREFIX` and removes
-objects whose `customTime` is in the past, without needing its own copy of the TTL.
+Every export is written once to `{PDF_EXPORT_TMP_PREFIX}{expiry}-{uuid}/{fileName}`,
+where `{expiry}` is the instant the signed link stops working, in Unix seconds. This
+service never deletes it: `SignedURL` only hands out a link that stops working after
+`PDF_EXPORT_TTL_MINUTES`, the object itself stays in the bucket. Deleting it is the
+API's job: a worker lists `PDF_EXPORT_TMP_PREFIX` and removes objects whose expiry is
+in the past, on any storage and without its own copy of the TTL.
 If that sweep is ever disabled, exported PDFs accumulate in the bucket.
 
 ### Signing requirements
 
-Minting a signed URL needs a credential that can sign, not just a bearer token:
+With `STORAGE_BACKEND=s3`, signing is local with the access key pair, and the links
+are signed for `S3_PUBLIC_ENDPOINT` when it is set. With GCS, minting a signed URL needs
+a credential that can sign, not just a bearer token:
 
 - Locally, `GOOGLE_APPLICATION_CREDENTIALS` must point at a service-account key file.
 - On Cloud Run, the service's own service account needs
@@ -146,12 +148,12 @@ Sans and DejaVu Sans Mono (Bitstream Vera licence, see
 ### MCP-specific environment variables
 
 - `PDF_EXPORT_TTL_MINUTES` (default `15`, max `10080`) — how long a signed download link
-  stays valid; capped at seven days because that is GCS V4 signing's own limit — a
+  stays valid; capped at seven days because that is the V4 and SigV4 signing limit: a
   higher value starts the service and then fails every export once uploaded. Only this
-  service needs it: the expiry is stamped on each object, and the API workers' copy of
-  the variable is a fallback for objects written before that stamp existed.
+  service needs it: the expiry is in each object name, and the API workers' copy of
+  the variable is a fallback for objects written before that naming existed.
 - `PDF_EXPORT_MAX_MARKDOWN_BYTES` (default `1048576`, 1 MiB) — markdown input size cap.
-- `PDF_EXPORT_TMP_PREFIX` (default `tmp/pdf-exports/`) — GCS prefix exports are written
+- `PDF_EXPORT_TMP_PREFIX` (default `tmp/pdf-exports/`) — object prefix exports are written
   under; must be a relative object path ending with `/`.
 - `PDF_CONVERTER_RENDER_TIMEOUT_MS` (default `60000`, 60s) — budget for waiting for a
   render slot plus rendering the markdown; on expiry the tool answers "could not render
@@ -180,14 +182,17 @@ service is only bound on the developer's machine.
 
 ## Environment variables
 
-- `GCS_STORAGE_BUCKET_NAME` (required) — GCS bucket for source PDFs and rendered pages.
+- `STORAGE_BACKEND`: `s3` or `gcs`. Unset: `gcs` when `GCS_STORAGE_BUCKET_NAME` is set.
+- `S3_BUCKET`, `S3_ENDPOINT`, `S3_PUBLIC_ENDPOINT`, `S3_REGION`, `S3_ACCESS_KEY_ID`,
+  `S3_SECRET_ACCESS_KEY`, `S3_FORCE_PATH_STYLE`: the S3-compatible bucket, read like the API.
+- `GCS_STORAGE_BUCKET_NAME`: GCS bucket for source PDFs and rendered pages.
 - `PORT` (default `3002`) — listen port.
 - `PDF_CONVERTER_MAX_PDF_BYTES` (default `52428800`, 50MB) — source PDF size limit.
 - `PDF_CONVERTER_RENDER_TIMEOUT_MS` (default `60000`, 60s) — hard per-request deadline for rendering work; must stay below the API client's 120s request timeout.
 - `PDF_CONVERTER_UPLOAD_TIMEOUT_MS` (default `30000`, 30s) — separate deadline for signing and uploading an exported PDF once it is rendered; the sum with the render timeout must stay below the API client's 120s request timeout.
 - `PDF_EXPORT_TTL_MINUTES` (default `15`, max `10080`) — how long a signed PDF export download link stays valid; see [MCP endpoint](#mcp-endpoint).
 - `PDF_EXPORT_MAX_MARKDOWN_BYTES` (default `1048576`, 1 MiB) — markdown input size cap for the PDF export tool.
-- `PDF_EXPORT_TMP_PREFIX` (default `tmp/pdf-exports/`) — GCS prefix PDF exports are written under.
+- `PDF_EXPORT_TMP_PREFIX` (default `tmp/pdf-exports/`) — object prefix PDF exports are written under.
 
 ## Local development
 

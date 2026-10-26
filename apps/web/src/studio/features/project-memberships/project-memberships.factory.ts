@@ -1,10 +1,31 @@
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
 import type { Agent } from "@/common/features/agents/agents.models"
+import type { LegacyMembershipRole } from "@/common/features/memberships/membership-roles"
 import type { Project } from "@/common/features/projects/projects.models"
-import type { ProjectMemberAgent, ProjectMembership } from "./project-memberships.models"
+import type {
+  AssignableRoles,
+  HeldRole,
+  MemberRoles,
+  ProjectMembership,
+  ProjectRole,
+} from "./project-memberships.models"
 
-const SAMPLE_PROJECT_ROLE_PERMISSIONS: Record<ProjectMembership["role"], string[]> = {
+/** The `project` roles of the RBAC catalog, in catalog order, as the API names them. */
+export const SAMPLE_PROJECT_ROLES: ProjectRole[] = [
+  { key: "project_owner", name: "Project Owner" },
+  { key: "project_admin", name: "Project Admin" },
+  { key: "project_member", name: "Project Member" },
+]
+
+/** The catalog role of an owner / admin / member shorthand. */
+export function sampleProjectRole(role: LegacyMembershipRole): ProjectRole {
+  const projectRole = SAMPLE_PROJECT_ROLES.find(({ key }) => key === `project_${role}`)
+  if (!projectRole) throw new Error(`Unknown project role ${role}`)
+  return projectRole
+}
+
+const SAMPLE_PROJECT_ROLE_PERMISSIONS: Record<LegacyMembershipRole, string[]> = {
   owner: [
     "project.read",
     "project.update",
@@ -46,14 +67,10 @@ const SAMPLE_PROJECT_ROLE_PERMISSIONS: Record<ProjectMembership["role"], string[
   member: ["project.read", "desk.ui.read"],
 }
 
-const SAMPLE_AGENT_ROLE_PERMISSIONS: Record<NonNullable<ProjectMemberAgent["role"]>, string[]> = {
-  owner: ["agent.read", "agent.update", "agent.delete", "agent.member.invite"],
-  admin: ["agent.read", "agent.update", "agent.delete", "agent.member.invite"],
-  member: ["agent.read"],
-}
-
 type MembershipTransientParams = {
   project: Project
+  /** The member's one role, when `roles` is not given. Member by default. */
+  role: LegacyMembershipRole
 }
 
 class ProjectMembershipFactory extends Factory<ProjectMembership, MembershipTransientParams> {}
@@ -68,7 +85,7 @@ export const projectMembershipFactory = ProjectMembershipFactory.define(
     }
     const firstName = faker.person.firstName()
     const lastName = faker.person.lastName()
-    const role = params.role ?? "member"
+    const role = transientParams.role ?? "member"
     return {
       projectId: project.id,
       userId: params.userId ?? faker.string.uuid(),
@@ -76,31 +93,80 @@ export const projectMembershipFactory = ProjectMembershipFactory.define(
       userEmail: params.userEmail ?? faker.internet.email({ firstName, lastName }).toLowerCase(),
       userHasSignedIn: params.userHasSignedIn ?? true,
       createdAt: params.createdAt ?? faker.date.past().getTime(),
-      role,
-      permissions: params.permissions ?? SAMPLE_PROJECT_ROLE_PERMISSIONS[role],
+      roles: [sampleProjectRole(role)],
+      permissions: SAMPLE_PROJECT_ROLE_PERMISSIONS[role],
     } satisfies ProjectMembership
   },
 )
 
-type MemberAgentTransientParams = {
-  agent: Agent
+/** The `agent` and `review_campaign` roles the member page offers, as the API names them. */
+export const SAMPLE_AGENT_ROLES: ProjectRole[] = [
+  { key: "agent_owner", name: "Agent Owner" },
+  { key: "agent_admin", name: "Agent Admin" },
+  { key: "agent_member", name: "Agent Member" },
+]
+
+export const SAMPLE_CAMPAIGN_ROLES: ProjectRole[] = [
+  { key: "review_campaign_tester", name: "Review Campaign Tester" },
+  { key: "review_campaign_reviewer", name: "Review Campaign Reviewer" },
+]
+
+/** The roles offered on each kind of resource, as the API lists them. */
+export const SAMPLE_ASSIGNABLE_ROLES: AssignableRoles = {
+  // Owner roles are set at creation, never given from the members pages.
+  project: SAMPLE_PROJECT_ROLES.filter(({ key }) => key !== "project_owner"),
+  agent: SAMPLE_AGENT_ROLES.filter(({ key }) => key !== "agent_owner"),
+  review_campaign: SAMPLE_CAMPAIGN_ROLES,
 }
 
-class ProjectMemberAgentFactory extends Factory<ProjectMemberAgent, MemberAgentTransientParams> {}
+const held = (role: ProjectRole): HeldRole => ({ ...role, membershipId: faker.string.uuid() })
 
-export const projectMemberAgentFactory = ProjectMemberAgentFactory.define(
-  ({ params, transientParams }) => {
-    const { agent } = transientParams
-    if (!agent) {
-      throw new Error("Agent must be provided in transient params to build a ProjectMemberAgent")
-    }
-    const role = params.role === undefined ? "member" : params.role
-    return {
-      agentId: params.agentId ?? agent.id,
-      agentName: params.agentName ?? agent.name,
-      agentType: params.agentType ?? agent.type,
-      role,
-      permissions: params.permissions ?? (role ? SAMPLE_AGENT_ROLE_PERMISSIONS[role] : []),
-    } satisfies ProjectMemberAgent
-  },
-)
+type MemberRolesTransientParams = {
+  membership: ProjectMembership
+  projectName: string
+  /** The project's agents; the member holds `agent_member` on the first one. */
+  agents: Agent[]
+}
+
+class MemberRolesFactory extends Factory<MemberRoles, MemberRolesTransientParams> {}
+
+/** A member's roles on the workspace and its agents, and one active campaign they test. */
+export const memberRolesFactory = MemberRolesFactory.define(({ transientParams }) => {
+  const { membership, projectName, agents = [] } = transientParams
+  if (!membership) {
+    throw new Error("Membership must be provided in transient params to build MemberRoles")
+  }
+  const memberRole = SAMPLE_AGENT_ROLES[2]
+  const testerRole = SAMPLE_CAMPAIGN_ROLES[0]
+  return {
+    member: membership,
+    workspace: {
+      kind: "project",
+      resourceId: membership.projectId,
+      resourceName: projectName ?? faker.commerce.productName(),
+      detail: null,
+      roles: membership.roles.map(held),
+      permissions: membership.permissions,
+    },
+    agents: agents.map((agent, index) => ({
+      kind: "agent",
+      resourceId: agent.id,
+      resourceName: agent.name,
+      detail: agent.type,
+      roles: index === 0 && memberRole ? [held(memberRole)] : [],
+      permissions: index === 0 ? ["agent.read"] : [],
+    })),
+    campaigns: testerRole
+      ? [
+          {
+            kind: "review_campaign",
+            resourceId: faker.string.uuid(),
+            resourceName: faker.commerce.productName(),
+            detail: "active",
+            roles: [held(testerRole)],
+            permissions: ["review_campaign.read"],
+          },
+        ]
+      : [],
+  } satisfies MemberRoles
+})

@@ -1,7 +1,7 @@
 import { ToolName } from "@caseai-connect/api-contracts"
 import type {
+  LLMCallContext,
   LLMConfig,
-  LLMMetadata,
   LLMProvider,
 } from "@/common/interfaces/llm-provider.interface"
 import { createInlineCitationExtractor } from "@/domains/agents/shared/agent-session-messages/streaming/tools/inline-citations"
@@ -16,6 +16,7 @@ import {
   runTurnClassification,
   type SessionMetadataRecalculator,
 } from "@/domains/agents/shared/agent-session-messages/streaming/tools/turn-classification"
+import { telemetryAdditionalMetadata } from "@/external/llm/telemetry"
 import { HANDBOOK_CHUNKS } from "./employee-handbook.fixture"
 import { buildFatSystemPrompt } from "./fat-prompt.fixture"
 
@@ -56,7 +57,13 @@ function buildConfig(model: string): (systemPrompt: string) => LLMConfig {
   })
 }
 
-function buildMetadata({ model, scenario }: { model: string; scenario: string }): LLMMetadata {
+function buildCallContext({
+  model,
+  scenario,
+}: {
+  model: string
+  scenario: string
+}): LLMCallContext {
   return {
     traceId: `live-regression-${scenario}-${model}`,
     agentSessionId: `live-regression-${scenario}-session`,
@@ -65,7 +72,6 @@ function buildMetadata({ model, scenario }: { model: string; scenario: string })
     agentId: "agent-1",
     revision: 1,
     projectId: "project-1",
-    tags: ["live-provider-regressions", scenario, model],
   }
 }
 
@@ -110,7 +116,11 @@ Your purpose is to assist users by answering their questions about the company e
 ## Response language:
 Always answer in English.`
 
-  const metadata = buildMetadata({ model, scenario: "rag" })
+  const callContext = buildCallContext({ model, scenario: "rag" })
+  const additionalMetadata = telemetryAdditionalMetadata({
+    model,
+    test: { name: "live-provider-regressions", case: "rag" },
+  })
   const chunks = provider.streamChatResponse({
     messages: [
       { role: "system", content: systemPrompt },
@@ -122,7 +132,8 @@ Always answer in English.`
       tools: { [ToolName.LookupKnowledgeBase]: lookupTool },
       serviceTier: undefined,
     },
-    metadata,
+    callContext,
+    additionalMetadata,
   })
 
   const citations = createInlineCitationExtractor()
@@ -143,7 +154,8 @@ Always answer in English.`
     },
     provider,
     buildConfig: buildConfig(model),
-    metadata,
+    callContext,
+    additionalMetadata,
     earlierMessages: [],
     userMessage,
     answerText: text,
@@ -173,7 +185,11 @@ export async function runFatPromptTurnScenario({
     toolExecutions.push(toolExecution)
   }
 
-  const metadata = buildMetadata({ model, scenario: "fat-prompt" })
+  const callContext = buildCallContext({ model, scenario: "fat-prompt" })
+  const additionalMetadata = telemetryAdditionalMetadata({
+    model,
+    test: { name: "live-provider-regressions", case: "fat-prompt" },
+  })
   const earlierMessages = [
     {
       role: "assistant" as const,
@@ -191,7 +207,8 @@ export async function runFatPromptTurnScenario({
       modelOptions: { temperature: 0 },
       serviceTier: undefined,
     },
-    metadata,
+    callContext,
+    additionalMetadata,
   })
 
   let text = ""
@@ -209,7 +226,8 @@ export async function runFatPromptTurnScenario({
     },
     provider,
     buildConfig: buildConfig(model),
-    metadata,
+    callContext,
+    additionalMetadata,
     earlierMessages,
     userMessage,
     answerText: text,

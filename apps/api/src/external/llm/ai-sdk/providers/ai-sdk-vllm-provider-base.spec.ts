@@ -5,7 +5,7 @@ import { z } from "zod"
 import type { LLMConfig } from "@/common/interfaces/llm-provider.interface"
 import { zNullableType } from "@/common/zod-helper"
 import { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
-import type { ModelMetadata, ModelOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
+import type { ModelInfos, ModelOptions } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
 import { AISDKVllmProviderBase } from "@/external/llm/ai-sdk/providers/ai-sdk-vllm-provider-base"
 
 const URL_ENV = "VLLM_GEMMA4_26B_URL"
@@ -15,7 +15,7 @@ class TestVllmProvider extends AISDKVllmProviderBase<AgentProvider.Gemma> {
   protected readonly providerName = "Test Provider"
   // The tests never read the model options.
   protected readonly modelOptions = {} as Record<AgentModelOf<AgentProvider.Gemma>, ModelOptions>
-  protected readonly modelMetadata = {} as Record<AgentModelOf<AgentProvider.Gemma>, ModelMetadata>
+  protected readonly modelInfos = {} as Record<AgentModelOf<AgentProvider.Gemma>, ModelInfos>
 
   getAgentProvider(): AgentProvider.Gemma {
     return AgentProvider.Gemma
@@ -103,9 +103,13 @@ describe("AISDKVllmProviderBase", () => {
     })
   })
 
-  describe("getTags", () => {
-    it("tags the provider and the model", () => {
-      expect(provider.getTags(config)).toEqual(["Test Provider", AgentModel.Gemma4_26B])
+  describe("telemetry metadata", () => {
+    it("names the provider", () => {
+      expect(provider.getProviderMetadata()).toEqual({ name: AgentProvider.Gemma })
+    })
+
+    it("names the model", () => {
+      expect(provider.getModelMetadata(config)).toEqual({ name: AgentModel.Gemma4_26B })
     })
   })
 

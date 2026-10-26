@@ -3,7 +3,7 @@ export type * from "./agent-embed-configs/agent-embed-configs.dto"
 export { AgentEmbedConfigsRoutes } from "./agent-embed-configs/agent-embed-configs.routes"
 
 // Agent Membership
-export type * from "./agent-membership/agent-membership.dto"
+export * from "./agent-membership/agent-membership.dto"
 export { AgentMembershipRoutes } from "./agent-membership/agent-membership.routes"
 
 // Agent Message Feedback
@@ -130,7 +130,7 @@ export { OrganizationsRoutes } from "./organizations/organizations.routes"
 export type * from "./project-agent-session-categories/project-agent-session-categories.dto"
 export { ProjectAgentSessionCategoriesRoutes } from "./project-agent-session-categories/project-agent-session-categories.routes"
 // Project Membership
-export type * from "./project-membership/project-membership.dto"
+export * from "./project-membership/project-membership.dto"
 export { ProjectMembershipRoutes } from "./project-membership/project-membership.routes"
 // Projects
 export type * from "./projects/projects.dto"

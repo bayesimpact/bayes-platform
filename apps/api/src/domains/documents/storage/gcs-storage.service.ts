@@ -1,8 +1,4 @@
 import type { Readable } from "node:stream"
-import {
-  DOCUMENT_UPLOAD_CONTENT_LENGTH_RANGE_HEADER,
-  documentUploadContentLengthRange,
-} from "@caseai-connect/api-contracts"
 import { Storage } from "@google-cloud/storage"
 import { Injectable, InternalServerErrorException, Logger } from "@nestjs/common"
 import type { ConfigService } from "@nestjs/config"
@@ -110,12 +106,12 @@ export class GcsStorageService implements IFileStorage {
     storagePath,
     mimeType,
     expiresInSeconds,
-    maxBytes,
+    contentLength,
   }: {
     storagePath: string
     mimeType: string
     expiresInSeconds: number
-    maxBytes?: number
+    contentLength: number
   }): Promise<string> {
     const [url] = await this.storage
       .bucket(this.bucketName)
@@ -125,14 +121,7 @@ export class GcsStorageService implements IFileStorage {
         action: "write",
         expires: Date.now() + expiresInSeconds * 1000,
         contentType: mimeType,
-        ...(maxBytes !== undefined
-          ? {
-              extensionHeaders: {
-                [DOCUMENT_UPLOAD_CONTENT_LENGTH_RANGE_HEADER]:
-                  documentUploadContentLengthRange(maxBytes),
-              },
-            }
-          : {}),
+        extensionHeaders: { "content-length": String(contentLength) },
       })
     return url
   }

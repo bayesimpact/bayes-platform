@@ -8,7 +8,7 @@ import {
 } from "@tanstack/react-table"
 import { Trash2Icon } from "lucide-react"
 import { useState } from "react"
-import { fn, userEvent, within } from "storybook/test"
+import { expect, fn, userEvent, within } from "storybook/test"
 import { DataTable } from "@/common/components/data-table/DataTable"
 import { DataTableBulkBar } from "@/common/components/data-table/DataTableBulkBar"
 import { buildSelectionColumn } from "@/common/components/data-table/selection-column"
@@ -85,6 +85,20 @@ type Story = StoryObj<typeof meta>
 
 /** Rows with a checkbox column; a click on a row opens it. */
 export const Selectable: Story = {}
+
+/**
+ * The checkbox column stays narrow and the data columns share the rest: TanStack's default column
+ * size must not become a width (regression of #1087, where every column got 150px).
+ */
+export const NarrowCheckboxColumn: Story = {
+  play: async ({ canvasElement }) => {
+    const [checkboxHeader, titleHeader] = within(canvasElement).getAllByRole("columnheader")
+    const checkboxWidth = checkboxHeader?.getBoundingClientRect().width ?? 0
+    const titleWidth = titleHeader?.getBoundingClientRect().width ?? 0
+    await expect(checkboxWidth).toBeLessThan(60)
+    await expect(titleWidth).toBeGreaterThan(checkboxWidth * 3)
+  },
+}
 
 /** Two rows selected: the bulk bar shows above the table. */
 export const WithSelection: Story = {

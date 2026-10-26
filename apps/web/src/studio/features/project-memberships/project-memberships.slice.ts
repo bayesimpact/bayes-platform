@@ -2,24 +2,29 @@ import { createSlice } from "@reduxjs/toolkit"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
 import type { PendingInvitations } from "@/studio/features/invitations/invitations.models"
 import { listInvitationsForTarget } from "@/studio/features/invitations/invitations.thunks"
-import type { ProjectMemberAgent, ProjectMembership } from "./project-memberships.models"
+import type { AssignableRoles, MemberRoles, ProjectMembership } from "./project-memberships.models"
 import {
-  listProjectMemberAgents,
+  addProjectMemberRoles,
+  listAssignableRoles,
   listProjectMemberships,
-  removeProjectMembership,
-  updateProjectMembershipRole,
+  loadMemberRoles,
+  removeProjectMembers,
 } from "./project-memberships.thunks"
 
 interface State {
   data: AsyncData<ProjectMembership[]>
-  memberAgents: AsyncData<ProjectMemberAgent[]>
+  /** The current member's roles on the workspace, its agents and its campaigns. */
+  memberRoles: AsyncData<MemberRoles>
   pendingInvitations: AsyncData<PendingInvitations>
+  /** The roles a member can be given on the workspace, an agent or a review campaign. */
+  assignableRoles: AsyncData<AssignableRoles>
 }
 
 const initialState: State = {
   data: defaultAsyncData,
-  memberAgents: defaultAsyncData,
+  memberRoles: defaultAsyncData,
   pendingInvitations: defaultAsyncData,
+  assignableRoles: defaultAsyncData,
 }
 
 const slice = createSlice({
@@ -29,7 +34,9 @@ const slice = createSlice({
     mount: () => {},
     unmount: () => {},
     memberMount: () => {},
-    memberUnmount: () => {},
+    memberUnmount: (state) => {
+      state.memberRoles = defaultAsyncData
+    },
     reset: () => initialState,
   },
   extraReducers: (builder) => {
@@ -50,22 +57,36 @@ const slice = createSlice({
         state.data.error = action.error.message || "Failed to list project memberships"
       })
 
-    builder.addCase(updateProjectMembershipRole.fulfilled, (state, action) => {
+    builder.addCase(addProjectMemberRoles.fulfilled, (state, action) => {
       if (ADS.isFulfilled(state.data)) {
-        state.data.value = state.data.value.map((membership) =>
-          membership.userId === action.payload.userId ? action.payload : membership,
+        const updatedByUserId = new Map(action.payload.map((member) => [member.userId, member]))
+        state.data.value = state.data.value.map(
+          (membership) => updatedByUserId.get(membership.userId) ?? membership,
         )
       }
     })
 
-    builder.addCase(removeProjectMembership.fulfilled, (state, action) => {
+    builder.addCase(removeProjectMembers.fulfilled, (state, action) => {
       if (ADS.isFulfilled(state.data)) {
-        const { memberUserId } = action.meta.arg
+        const removedUserIds = new Set(action.meta.arg.memberUserIds)
         state.data.value = state.data.value.filter(
-          (membership) => membership.userId !== memberUserId,
+          (membership) => !removedUserIds.has(membership.userId),
         )
       }
     })
+
+    builder
+      .addCase(listAssignableRoles.pending, (state) => {
+        if (!ADS.isFulfilled(state.assignableRoles)) state.assignableRoles.status = ADS.Loading
+        state.assignableRoles.error = null
+      })
+      .addCase(listAssignableRoles.fulfilled, (state, action) => {
+        state.assignableRoles = { status: ADS.Fulfilled, error: null, value: action.payload }
+      })
+      .addCase(listAssignableRoles.rejected, (state, action) => {
+        state.assignableRoles.status = ADS.Error
+        state.assignableRoles.error = action.error.message || "Failed to list the assignable roles"
+      })
 
     builder
       .addCase(listInvitationsForTarget.pending, (state, action) => {
@@ -91,20 +112,16 @@ const slice = createSlice({
       })
 
     builder
-      .addCase(listProjectMemberAgents.pending, (state) => {
-        if (!ADS.isFulfilled(state.memberAgents)) state.memberAgents.status = ADS.Loading
-        state.memberAgents.error = null
+      .addCase(loadMemberRoles.pending, (state) => {
+        if (!ADS.isFulfilled(state.memberRoles)) state.memberRoles.status = ADS.Loading
+        state.memberRoles.error = null
       })
-      .addCase(listProjectMemberAgents.fulfilled, (state, action) => {
-        state.memberAgents = {
-          status: ADS.Fulfilled,
-          error: null,
-          value: action.payload,
-        }
+      .addCase(loadMemberRoles.fulfilled, (state, action) => {
+        state.memberRoles = { status: ADS.Fulfilled, error: null, value: action.payload }
       })
-      .addCase(listProjectMemberAgents.rejected, (state, action) => {
-        state.memberAgents.status = ADS.Error
-        state.memberAgents.error = action.error.message || "Failed to list member agents"
+      .addCase(loadMemberRoles.rejected, (state, action) => {
+        state.memberRoles.status = ADS.Error
+        state.memberRoles.error = action.error.message || "Failed to load the member's roles"
       })
   },
 })

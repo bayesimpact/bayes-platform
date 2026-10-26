@@ -10,7 +10,9 @@ import {
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@caseai-connect/ui/shad/input-group"
 import { ChevronDownIcon, SearchIcon, XIcon } from "lucide-react"
 import type { ReactNode } from "react"
+import { useTranslation } from "react-i18next"
 import type { ProjectRoleOption } from "./members-table.models"
+import { useRoleLabel } from "./role-label"
 
 export function MembersTableToolbar({
   search,
@@ -30,6 +32,8 @@ export function MembersTableToolbar({
   /** Rendered at the end of the toolbar, for the invite button. */
   action?: ReactNode
 }) {
+  const { t } = useTranslation()
+  const roleName = useRoleLabel()
   const hasFilters = search.length > 0 || roleFilter.length > 0
 
   const toggleRole = (roleKey: string, checked: boolean) =>
@@ -37,12 +41,14 @@ export function MembersTableToolbar({
       checked ? [...roleFilter, roleKey] : roleFilter.filter((key) => key !== roleKey),
     )
 
+  const filteredRole =
+    roleFilter.length === 1 ? roles.find((role) => role.key === roleFilter[0]) : undefined
   const roleLabel =
     roleFilter.length === 0
-      ? "All roles"
-      : roleFilter.length === 1
-        ? (roles.find((role) => role.key === roleFilter[0])?.name ?? "1 role")
-        : `${roleFilter.length} roles`
+      ? t("projectMembership:table.allRoles")
+      : filteredRole
+        ? roleName(filteredRole)
+        : t("projectMembership:table.rolesCount", { count: roleFilter.length })
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -52,7 +58,7 @@ export function MembersTableToolbar({
         </InputGroupAddon>
         <InputGroupInput
           type="search"
-          placeholder="Search by name or email…"
+          placeholder={t("projectMembership:list.searchPlaceholder")}
           value={search}
           onChange={(event) => onSearchChange(event.target.value)}
         />
@@ -66,7 +72,7 @@ export function MembersTableToolbar({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-56">
-          <DropdownMenuLabel>Filter by role</DropdownMenuLabel>
+          <DropdownMenuLabel>{t("projectMembership:table.filterByRole")}</DropdownMenuLabel>
           <DropdownMenuSeparator />
           {roles.map((role) => (
             <DropdownMenuCheckboxItem
@@ -75,7 +81,7 @@ export function MembersTableToolbar({
               onCheckedChange={(checked) => toggleRole(role.key, checked)}
               onSelect={(event) => event.preventDefault()}
             >
-              {role.name}
+              {roleName(role)}
             </DropdownMenuCheckboxItem>
           ))}
         </DropdownMenuContent>
@@ -84,7 +90,7 @@ export function MembersTableToolbar({
       {hasFilters && (
         <Button variant="ghost" size="sm" className="h-9" onClick={onClearFilters}>
           <XIcon />
-          Clear filters
+          {t("projectMembership:table.clearFilters")}
         </Button>
       )}
 

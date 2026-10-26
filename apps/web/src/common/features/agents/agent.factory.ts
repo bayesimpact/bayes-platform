@@ -1,6 +1,7 @@
-import { AgentModel, AgentProvider } from "@caseai-connect/api-contracts"
+import { AGENT_SCOPED_PERMISSIONS, AgentModel, AgentProvider } from "@caseai-connect/api-contracts"
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
+import type { LegacyMembershipRole } from "@/common/features/memberships/membership-roles"
 import type { Project } from "@/common/features/projects/projects.models"
 import type { Agent, AgentModelEntry, AgentModelsCatalog } from "./agents.models"
 
@@ -8,6 +9,8 @@ type AgentTransientParams = {
   project: Project
   /** False for an agent that was never published, such as a fresh copy: a draft revision only. */
   published?: boolean
+  /** The viewer's role on the agent: an owner or admin manages it, a member only uses it. */
+  role?: LegacyMembershipRole
 }
 
 const AGENT_NAMES = [
@@ -27,7 +30,7 @@ class AgentFactory extends Factory<Agent, AgentTransientParams> {
 }
 
 export const agentFactory = AgentFactory.define(({ params, transientParams }) => {
-  const { project, published = true } = transientParams
+  const { project, published = true, role = "owner" } = transientParams
   if (!project) {
     throw new Error("Project must be provided in transient params to build an Agent")
   }
@@ -55,6 +58,7 @@ export const agentFactory = AgentFactory.define(({ params, transientParams }) =>
           number: params.draftRevision.number ?? 1,
         }
       : undefined,
+    permissions: params.permissions ?? (role === "member" ? [] : [...AGENT_SCOPED_PERMISSIONS]),
   } satisfies Agent
 })
 

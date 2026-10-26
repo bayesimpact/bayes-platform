@@ -5,16 +5,16 @@ import { type LanguageModel, simulateReadableStream } from "ai"
 import { MockLanguageModelV3 } from "ai/test"
 import { z } from "zod"
 import type {
+  LLMCallContext,
   LLMChatMessage,
   LLMConfig,
-  LLMMetadata,
   MockValue,
 } from "@/common/interfaces/llm-provider.interface"
 import { generateRandomFromJSONSchema } from "@/common/test/random-generator"
 import { CallOrigin } from "@/external/llm/ai-sdk/ai-sdk-llm-common"
 import {
   defineModelOptions,
-  type ModelMetadata,
+  type ModelInfos,
   type ModelOptions,
 } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
 import { AISDKLLMProviderBase } from "@/external/llm/ai-sdk/ai-sdk-llm-provider-base"
@@ -118,7 +118,7 @@ export class AISDKMockProvider extends AISDKLLMProviderBase<AgentProvider._Mock>
       temperature: 0,
     }),
   }
-  protected readonly modelMetadata: Record<MockAgentModel, ModelMetadata> = {
+  protected readonly modelInfos: Record<MockAgentModel, ModelInfos> = {
     [AgentModel._Mock]: {},
   }
 
@@ -152,20 +152,16 @@ export class AISDKMockProvider extends AISDKLLMProviderBase<AgentProvider._Mock>
     }
   }
 
-  getTags(config: LLMConfig): string[] {
-    return ["MOCK-LLM", config.model]
-  }
-
   getLanguageModel({
     callOrigin,
-    metadata,
+    callContext,
   }: {
     config: LLMConfig
     callOrigin: CallOrigin
-    metadata: LLMMetadata
+    callContext: LLMCallContext
   }): LanguageModel {
     // The scripted answers are queued by agent.
-    const agentId = metadata.agentId
+    const agentId = callContext.agentId
     return new MockLanguageModelV3({
       // Pass file/image URLs through instead of downloading them: attachments
       // are signed storage URLs that are unreachable from the test process.

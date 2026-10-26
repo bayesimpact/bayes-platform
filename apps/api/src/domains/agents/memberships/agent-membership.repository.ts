@@ -88,6 +88,22 @@ export class AgentMembershipRepository {
     return this.toModels(groupMembershipRows(rows))
   }
 
+  async findByUsersAndAgent({
+    userIds,
+    agentId,
+  }: {
+    userIds: string[]
+    agentId: string
+  }): Promise<AgentMembershipModel[]> {
+    if (userIds.length === 0) return []
+
+    const rows = await this.userMembershipRepo().find({
+      where: { userId: In(userIds), resourceType: AGENT_RESOURCE_TYPE, resourceId: agentId },
+      relations: MEMBERSHIP_RELATIONS,
+    })
+    return this.toModels(groupMembershipRows(rows))
+  }
+
   /** Gives the person the role on the agent. Does nothing when they already hold it. */
   async addRole({
     userId,
@@ -135,6 +151,31 @@ export class AgentMembershipRepository {
       return
     }
     await this.userMembershipRepo().update({ ...where, roleId: fromRoleId }, { roleId: toRoleId })
+  }
+
+  /** Takes the role from the person on the agent. Does nothing when they do not hold it. */
+  async removeRole({
+    userId,
+    agentId,
+    roleKey,
+  }: {
+    userId: string
+    agentId: string
+    roleKey: string
+  }): Promise<void> {
+    const roleId = await requireRoleId(this.transactionService.getManager(), roleKey)
+    await this.userMembershipRepo().delete({
+      userId,
+      resourceType: AGENT_RESOURCE_TYPE,
+      resourceId: agentId,
+      roleId,
+    })
+  }
+
+  async countHolders({ agentId, roleKey }: { agentId: string; roleKey: string }) {
+    return this.userMembershipRepo().count({
+      where: { resourceType: AGENT_RESOURCE_TYPE, resourceId: agentId, rbacRole: { key: roleKey } },
+    })
   }
 
   async createMembership({

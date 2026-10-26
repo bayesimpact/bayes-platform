@@ -1,19 +1,22 @@
-import type { OrganizationPermission, ProjectPermission } from "@caseai-connect/api-contracts"
+import type {
+  AgentPermission,
+  OrganizationPermission,
+  ProjectPermission,
+} from "@caseai-connect/api-contracts"
 import { useCallback, useMemo } from "react"
-import {
-  selectAgentMemberships,
-  selectReviewCampaignMemberships,
-} from "@/common/features/me/me.selectors"
+import { selectAgentsDataIfInjected } from "@/common/features/agents/agents.selectors"
+import { selectReviewCampaignMemberships } from "@/common/features/me/me.selectors"
 import { holdsRole } from "@/common/features/memberships/membership-roles"
 import { selectOrganizationsList } from "@/common/features/organizations/organizations.selectors"
 import { selectMyProjectsList } from "@/common/features/projects/projects.selectors"
+import { ADS } from "@/common/store/async-data-status"
 import { useAppSelector } from "@/common/store/hooks"
 
 export function useAbility() {
   const organizations = useAppSelector(selectOrganizationsList)
   const myProjects = useAppSelector(selectMyProjectsList)
-  const agentMemberships = useAppSelector(selectAgentMemberships)
   const reviewCampaignMemberships = useAppSelector(selectReviewCampaignMemberships)
+  const agentsData = useAppSelector(selectAgentsDataIfInjected)
 
   const hasOrganizationPermission = useCallback(
     ({
@@ -37,6 +40,16 @@ export function useAbility() {
       return project?.permissions.includes(permission) ?? false
     },
     [myProjects],
+  )
+
+  // The project's agents come with the caller's permissions on each.
+  const hasAgentPermission = useCallback(
+    ({ agentId, permission }: { agentId: string | null; permission: AgentPermission }) => {
+      if (!agentId || !agentsData || !ADS.isFulfilled(agentsData)) return false
+      const agent = agentsData.value.find((item) => item.id === agentId)
+      return agent?.permissions.includes(permission) ?? false
+    },
+    [agentsData],
   )
 
   const canCreateProject = useCallback(
@@ -75,6 +88,30 @@ export function useAbility() {
     [hasProjectPermission],
   )
 
+  const canRemoveProjectMembers = useCallback(
+    ({ projectId }: { projectId: string | null }) =>
+      hasProjectPermission({ projectId, permission: "project.member.delete" }),
+    [hasProjectPermission],
+  )
+
+  const canUpdateCampaignMembers = useCallback(
+    ({ projectId }: { projectId: string | null }) =>
+      hasProjectPermission({ projectId, permission: "project.review_campaign.member.invite" }),
+    [hasProjectPermission],
+  )
+
+  const canUpdateAgentMembers = useCallback(
+    ({ agentId }: { agentId: string | null }) =>
+      hasAgentPermission({ agentId, permission: "agent.member.update" }),
+    [hasAgentPermission],
+  )
+
+  const canRemoveAgentMembers = useCallback(
+    ({ agentId }: { agentId: string | null }) =>
+      hasAgentPermission({ agentId, permission: "agent.member.delete" }),
+    [hasAgentPermission],
+  )
+
   const canAccessTester = useCallback(
     ({ projectId }: { projectId: string | null }) =>
       !!reviewCampaignMemberships?.some(
@@ -98,15 +135,9 @@ export function useAbility() {
   )
 
   const canManageAgent = useCallback(
-    ({ agentId }: { agentId: string | null }) => {
-      const isAgentOwnerOrAdmin = [...(agentMemberships ?? [])].some(
-        (membership) =>
-          membership.agentId === agentId &&
-          holdsRole(membership.roles, "agent_owner", "agent_admin"),
-      )
-      return isAgentOwnerOrAdmin
-    },
-    [agentMemberships],
+    ({ agentId }: { agentId: string | null }) =>
+      hasAgentPermission({ agentId, permission: "agent.update" }),
+    [hasAgentPermission],
   )
 
   // The copy is a new agent of the project: managing the agent is not enough on its own.
@@ -145,6 +176,10 @@ export function useAbility() {
         canRenameOrganization,
         canSaveTestCase,
         canUpdateProjectMemberRole,
+        canRemoveProjectMembers,
+        canUpdateCampaignMembers,
+        canUpdateAgentMembers,
+        canRemoveAgentMembers,
       },
     }),
     [
@@ -160,6 +195,10 @@ export function useAbility() {
       canRenameOrganization,
       canSaveTestCase,
       canUpdateProjectMemberRole,
+      canRemoveProjectMembers,
+      canUpdateCampaignMembers,
+      canUpdateAgentMembers,
+      canRemoveAgentMembers,
     ],
   )
 }

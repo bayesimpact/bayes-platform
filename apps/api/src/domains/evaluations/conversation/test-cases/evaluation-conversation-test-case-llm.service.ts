@@ -2,9 +2,10 @@ import type { AgentModel } from "@caseai-connect/api-contracts"
 import { Inject, Injectable, UnprocessableEntityException } from "@nestjs/common"
 import { v4 } from "uuid"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
-import type { LLMMetadata } from "@/common/interfaces/llm-provider.interface"
+import type { LLMCallContext } from "@/common/interfaces/llm-provider.interface"
 import { LlmServiceBase } from "@/external/llm"
 import { LLM_PROVIDERS, type LlmProviders } from "@/external/llm/llm.module"
+import { telemetryAdditionalMetadata } from "@/external/llm/telemetry"
 
 /** The agent revision that wrote the saved answer. */
 export type TestCaseAnsweringRevision = { agentId: string; revision: number; model: AgentModel }
@@ -117,7 +118,7 @@ ${text}
       priorityCallsEnabled: false,
       llmFeatures: { priorityCalls: false, flexWorkers: false },
     })
-    const metadata: LLMMetadata = {
+    const callContext: LLMCallContext = {
       traceId: v4(),
       agentSessionId,
       currentTurn: 0,
@@ -125,13 +126,13 @@ ${text}
       revision: agentSettings.revision,
       projectId: connectScope.projectId,
       organizationId: connectScope.organizationId,
-      tags: ["test-case"],
       spanLabel,
     }
     const text = await provider.generateText({
       prompt,
       config,
-      metadata,
+      callContext,
+      additionalMetadata: telemetryAdditionalMetadata({ agent: { type: "Test Case Agent" } }),
     })
     const draft = text.trim()
     if (!draft) {

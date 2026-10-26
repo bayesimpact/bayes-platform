@@ -1,7 +1,3 @@
-import {
-  DOCUMENT_UPLOAD_CONTENT_LENGTH_RANGE_HEADER,
-  documentUploadContentLengthRange,
-} from "@caseai-connect/api-contracts"
 import { BadRequestException, NotFoundException } from "@nestjs/common"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { LocalStorageService } from "../storage/local-storage.service"
@@ -43,7 +39,7 @@ describe("project document file upload", () => {
     expect(pending.uploadUrl).toContain("/local-presign-upload/")
     expect(pending.uploadHeaders).toEqual({
       "Content-Type": "application/pdf",
-      [DOCUMENT_UPLOAD_CONTENT_LENGTH_RANGE_HEADER]: documentUploadContentLengthRange(),
+      "Content-Length": "8",
     })
     expect(enqueue).not.toHaveBeenCalled()
 

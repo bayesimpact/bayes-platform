@@ -3,7 +3,7 @@ import { Injectable } from "@nestjs/common"
 import { z } from "zod"
 import {
   defineModelOptions,
-  type ModelMetadata,
+  type ModelInfos,
   type ModelOptions,
 } from "@/external/llm/ai-sdk/ai-sdk-llm-model-mgmt"
 import { AISDKVllmProviderBase } from "@/external/llm/ai-sdk/providers/ai-sdk-vllm-provider-base"
@@ -23,7 +23,7 @@ export class AISDKQwenProvider extends AISDKVllmProviderBase<AgentProvider.Qwen>
       },
     ),
   }
-  protected readonly modelMetadata: Record<QwenAgentModel, ModelMetadata> = {
+  protected readonly modelInfos: Record<QwenAgentModel, ModelInfos> = {
     [AgentModel.Qwen38_27B]: {},
   }
 

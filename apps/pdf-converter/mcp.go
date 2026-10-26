@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 	"unicode"
@@ -31,7 +32,7 @@ const (
 	// maxFileNameRunes caps the sanitized download name well below the GCS
 	// object-name limit while leaving room for the prefix and the id.
 	maxFileNameRunes = 100
-	// maxPdfExportTTLMinutes is GCS V4 signing's own limit (seven days); a
+	// maxPdfExportTTLMinutes is the V4 and SigV4 signing limit (seven days); a
 	// config above this would start the service and then fail every export
 	// once uploaded.
 	maxPdfExportTTLMinutes = 7 * 24 * 60
@@ -70,6 +71,14 @@ func (cfg pdfExportConfig) now() time.Time {
 		return time.Now()
 	}
 	return cfg.Now()
+}
+
+// exportObjectName puts the instant the signed URL stops working in the
+// object name, as Unix seconds before the id: the sweep in apps/api reads it
+// from a plain listing, on any storage, so the converter alone decides how
+// long an export lives.
+func exportObjectName(prefix string, expires time.Time, id string, fileName string) string {
+	return prefix + strconv.FormatInt(expires.Unix(), 10) + "-" + id + "/" + fileName
 }
 
 func (cfg pdfExportConfig) newID() string {
@@ -169,8 +178,8 @@ func (exporter *pdfExporter) convert(
 	// Sign before uploading: BucketHandle.SignedURL does not need the object
 	// to exist, and signing first means a signing failure never leaves an
 	// orphaned upload in the bucket.
-	object := exporter.cfg.TmpPrefix + exporter.cfg.newID() + "/" + fileName
 	expires := exporter.cfg.now().Add(exporter.cfg.TTL)
+	object := exportObjectName(exporter.cfg.TmpPrefix, expires, exporter.cfg.newID(), fileName)
 	downloadURL, err := exporter.store.SignedURL(storeCtx, object, signedURLOptions{
 		Expires:          expires,
 		DownloadFileName: fileName,
@@ -179,11 +188,8 @@ func (exporter *pdfExporter) convert(
 		log.Printf("pdf export signing of %s failed: %v", object, err)
 		return nil, convertMarkdownOutput{}, errors.New("could not store the PDF, try again")
 	}
-	// The expiry travels with the object: the API sweep reads it back as the
-	// GCS custom time, so the converter alone decides how long an export lives.
 	if err := exporter.store.Upload(storeCtx, object, rendered.PDF, uploadOptions{
 		ContentType: "application/pdf",
-		ExpiresAt:   expires,
 	}); err != nil {
 		log.Printf("pdf export upload to %s failed: %v", object, err)
 		return nil, convertMarkdownOutput{}, errors.New("could not store the PDF, try again")

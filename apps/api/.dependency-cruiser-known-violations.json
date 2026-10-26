@@ -3959,6 +3959,15 @@
   },
   {
     "type": "dependency",
+    "from": "src/domains/agents/settings/agent-models.service.ts",
+    "to": "src/domains/projects/projects.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
     "from": "src/domains/agents/settings/agent-settings.service.ts",
     "to": "src/domains/documents/tags/document-tags.service.ts",
     "rule": {
@@ -4195,6 +4204,15 @@
     "type": "dependency",
     "from": "src/domains/evaluations/conversation/runs/evaluation-conversation-run-llm.service.ts",
     "to": "src/domains/agents/shared/agent-session-messages/streaming/agent-llm-request.service.ts",
+    "rule": {
+      "severity": "warn",
+      "name": "no-cross-domain-service-reach"
+    }
+  },
+  {
+    "type": "dependency",
+    "from": "src/domains/evaluations/conversation/runs/evaluation-conversation-runs.controller.ts",
+    "to": "src/domains/agents/settings/agent-models.service.ts",
     "rule": {
       "severity": "warn",
       "name": "no-cross-domain-service-reach"

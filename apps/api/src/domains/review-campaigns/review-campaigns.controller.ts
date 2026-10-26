@@ -1,4 +1,5 @@
 import {
+  addMemberRoleSchema,
   type CampaignAggregatesDto,
   type ReviewCampaignDetailDto,
   type ReviewCampaignDto,
@@ -13,6 +14,8 @@ import type {
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
 import { AddContext, RequireContext } from "@/common/context/require-context.decorator"
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
+import { ZodValidationPipe } from "@/common/zod-validation-pipe"
+import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
 import { toMembershipRoleDto } from "@/domains/memberships/membership-roles"
 import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
@@ -21,6 +24,7 @@ import {
   PROJECT_REVIEW_CAMPAIGN_CREATE_PERMISSION,
   PROJECT_REVIEW_CAMPAIGN_DELETE_PERMISSION,
   PROJECT_REVIEW_CAMPAIGN_MEMBER_DELETE_PERMISSION,
+  PROJECT_REVIEW_CAMPAIGN_MEMBER_INVITE_PERMISSION,
   PROJECT_REVIEW_CAMPAIGN_READ_PERMISSION,
   PROJECT_REVIEW_CAMPAIGN_UPDATE_PERMISSION,
 } from "@/domains/rbac/rbac.constants"
@@ -102,6 +106,26 @@ export class ReviewCampaignsController {
     await this.reviewCampaignsService.deleteCampaign({
       connectScope: getRequiredConnectScope(request),
       reviewCampaignId: request.reviewCampaign.id,
+    })
+    return { data: { success: true } }
+  }
+
+  @Post(ReviewCampaignsRoutes.addMemberRole.path)
+  @AddContext("reviewCampaign")
+  @CheckPermission(PROJECT_REVIEW_CAMPAIGN_MEMBER_INVITE_PERMISSION, "project")
+  @TrackActivity({ action: "reviewCampaignMembership.addRole" })
+  async addMemberRole(
+    @Req() request: EndpointRequestWithReviewCampaign,
+    @Param("userId") memberUserId: string,
+    @Body(new ZodValidationPipe(addMemberRoleSchema))
+    { payload }: typeof ReviewCampaignsRoutes.addMemberRole.request,
+  ): Promise<typeof ReviewCampaignsRoutes.addMemberRole.response> {
+    await this.reviewCampaignsService.addMemberRole({
+      connectScope: getRequiredConnectScope(request),
+      reviewCampaignId: request.reviewCampaign.id,
+      callerUserId: request.user.id,
+      memberUserId,
+      roleKey: payload.roleKey,
     })
     return { data: { success: true } }
   }

@@ -2,7 +2,7 @@ name: PDF Converter CI
 
 on:
   pull_request:
-    paths: ["apps/pdf-converter/**"]
+    paths: ["apps/pdf-converter/**", "infra/database/seaweedfs/**", ".github/workflows/pdf-converter-ci.yml"]
   push:
     branches: [main]
     paths: ["apps/pdf-converter/**"]
@@ -20,4 +20,23 @@ jobs:
           go-version-file: apps/pdf-converter/go.mod
           cache-dependency-path: apps/pdf-converter/go.sum
       - run: go vet ./...
+      # SeaweedFS for the S3 store tests (store_s3_test.go), same image and
+      # keys as infra/database. Without S3_TEST_ENDPOINT those tests skip.
+      - name: Start SeaweedFS
+        working-directory: .
+        run: |
+          docker run -d --name seaweedfs -p 8333:8333 \
+            -v "$PWD/infra/database/seaweedfs/s3.json:/etc/seaweedfs/s3.json:ro" \
+            --health-cmd 'wget -qO- http://localhost:9333/dir/assign | grep -q fid && wget -q -O /dev/null http://localhost:8888/' \
+            --health-interval 2s --health-retries 60 \
+            chrislusf/seaweedfs:4.48 server -dir=/data -ip.bind=0.0.0.0 \
+              -master.volumeSizeLimitMB=32 -volume.max=100 -s3 -s3.port=8333 -s3.config=/etc/seaweedfs/s3.json
+          # The S3 port answers before a write can succeed: wait for the healthcheck.
+          for attempt in $(seq 1 90); do
+            [ "$(docker inspect -f '{{.State.Health.Status}}' seaweedfs)" = healthy ] && exit 0
+            sleep 2
+          done
+          docker logs seaweedfs; exit 1
       - run: go test ./...
+        env:
+          S3_TEST_ENDPOINT: http://localhost:8333

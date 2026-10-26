@@ -1,4 +1,3 @@
-import type { Bucket, File } from "@google-cloud/storage"
 import { Inject, Injectable, Logger } from "@nestjs/common"
 import { getPdfExportTmpPrefix, getPdfExportTtlMinutes } from "./pdf-exports.config"
 import {
@@ -8,6 +7,7 @@ import {
   PDF_EXPORTS_SWEEP_MAX_PAGES_PER_RUN,
   PDF_EXPORTS_SWEEP_PAGE_SIZE,
 } from "./pdf-exports.constants"
+import type { PdfExportsBucket, PdfExportsObject } from "./pdf-exports-bucket"
 
 export type PdfExportsSweepResult = {
   scanned: number
@@ -18,26 +18,24 @@ export type PdfExportsSweepResult = {
 
 /**
  * Deletes temporary PDF exports written by `apps/pdf-converter` once their
- * signed download URLs have expired. GCS lifecycle rules only express whole
+ * signed download URLs have expired. Bucket lifecycle rules only express whole
  * days, so this sweep is what actually enforces the minutes-scale TTL.
  *
- * The converter stamps each export's URL expiry on the object as its GCS
- * `customTime`, so the writer alone decides when an export dies and the sweep
- * never has to agree with it on a TTL. Objects without `customTime` were
- * written before that stamp existed and fall back to `timeCreated` plus the
- * locally configured TTL.
+ * The converter writes each export under `<prefix><expiry in Unix seconds>-<id>/`,
+ * so the writer alone decides when an export dies, the sweep never has to agree
+ * with it on a TTL, and a plain listing is enough on any storage. Objects whose
+ * name carries no expiry were written before that naming and fall back to their
+ * creation date plus the locally configured TTL.
  */
 @Injectable()
 export class PdfExportsSweepService {
   private readonly logger = new Logger(PdfExportsSweepService.name)
 
-  constructor(@Inject(PDF_EXPORTS_BUCKET) private readonly bucket: Bucket | null) {}
+  constructor(@Inject(PDF_EXPORTS_BUCKET) private readonly bucket: PdfExportsBucket | null) {}
 
   async sweepExpiredExports(now = new Date()): Promise<PdfExportsSweepResult> {
     if (this.bucket === null) {
-      this.logger.log(
-        "No GCS bucket configured (GCS_STORAGE_BUCKET_NAME unset); skipping the PDF export sweep.",
-      )
+      this.logger.log("No bucket configured (local file storage); skipping the PDF export sweep.")
       return { scanned: 0, deleted: 0, failed: 0, skipped: true }
     }
 
@@ -55,46 +53,41 @@ export class PdfExportsSweepService {
     let pageToken: string | undefined
 
     for (let pageIndex = 0; pageIndex < PDF_EXPORTS_SWEEP_MAX_PAGES_PER_RUN; pageIndex += 1) {
-      const [files, nextQuery] = await this.bucket.getFiles({
+      const page = await this.bucket.listPage({
         prefix,
-        autoPaginate: false,
-        maxResults: PDF_EXPORTS_SWEEP_PAGE_SIZE,
+        pageSize: PDF_EXPORTS_SWEEP_PAGE_SIZE,
         pageToken,
       })
-      scanned += files.length
+      scanned += page.objects.length
 
-      const expiredFiles: File[] = []
-      for (const file of files) {
-        const expiresAt = parseCustomTime(file)
+      const expiredObjects: PdfExportsObject[] = []
+      for (const object of page.objects) {
+        const expiresAt = parseExpiryFromName(object.name, prefix)
         if (expiresAt !== undefined) {
           if (expiresAt < expiryCutoff) {
-            expiredFiles.push(file)
+            expiredObjects.push(object)
           }
           continue
         }
-        // Legacy fallback for objects written before the converter stamped
-        // the expiry; it can be removed once no such object is left.
-        const createdAt = parseTimeCreated(file)
-        if (createdAt === undefined) {
+        // Legacy fallback for objects written before the expiry was in the
+        // name; it can be removed once no such object is left.
+        if (object.createdAt === undefined) {
           withoutExpiry += 1
           continue
         }
-        if (createdAt < legacyCreationCutoff) {
-          expiredFiles.push(file)
+        if (object.createdAt < legacyCreationCutoff) {
+          expiredObjects.push(object)
         }
       }
 
-      const pageCounts = await this.deleteFiles(expiredFiles)
+      const pageCounts = await this.deleteObjects(this.bucket, expiredObjects)
       deleted += pageCounts.deleted
       failed += pageCounts.failed
 
-      // `nextQuery` is undefined (and carries no page token) on the last page.
-      const nextPageToken = (nextQuery as { pageToken?: string } | undefined)?.pageToken
-      if (nextPageToken === undefined) {
-        pageToken = undefined
+      pageToken = page.nextPageToken
+      if (pageToken === undefined) {
         break
       }
-      pageToken = nextPageToken
     }
 
     if (pageToken !== undefined) {
@@ -109,19 +102,20 @@ export class PdfExportsSweepService {
     return { scanned, deleted, failed, skipped: false }
   }
 
-  private async deleteFiles(files: File[]): Promise<{ deleted: number; failed: number }> {
+  private async deleteObjects(
+    bucket: PdfExportsBucket,
+    objects: PdfExportsObject[],
+  ): Promise<{ deleted: number; failed: number }> {
     let deleted = 0
     let failed = 0
 
     for (
       let chunkStart = 0;
-      chunkStart < files.length;
+      chunkStart < objects.length;
       chunkStart += PDF_EXPORTS_DELETE_CHUNK_SIZE
     ) {
-      const chunk = files.slice(chunkStart, chunkStart + PDF_EXPORTS_DELETE_CHUNK_SIZE)
-      const outcomes = await Promise.allSettled(
-        chunk.map((file) => file.delete({ ignoreNotFound: true })),
-      )
+      const chunk = objects.slice(chunkStart, chunkStart + PDF_EXPORTS_DELETE_CHUNK_SIZE)
+      const outcomes = await Promise.allSettled(chunk.map((object) => bucket.delete(object.name)))
       outcomes.forEach((outcome, indexInChunk) => {
         if (outcome.status === "fulfilled") {
           deleted += 1
@@ -130,8 +124,8 @@ export class PdfExportsSweepService {
         failed += 1
         const reason =
           outcome.reason instanceof Error ? outcome.reason.message : String(outcome.reason)
-        const fileName = chunk[indexInChunk]?.name ?? "unknown"
-        this.logger.warn(`Failed to delete expired PDF export ${fileName}: ${reason}`)
+        const objectName = chunk[indexInChunk]?.name ?? "unknown"
+        this.logger.warn(`Failed to delete expired PDF export ${objectName}: ${reason}`)
       })
     }
 
@@ -139,20 +133,14 @@ export class PdfExportsSweepService {
   }
 }
 
-/** URL expiry the converter stamped as the GCS custom time, `undefined` when missing or unparseable. */
-function parseCustomTime(file: File): Date | undefined {
-  return parseMetadataDate(file.metadata?.customTime)
-}
-
-/** Creation date from the object metadata, `undefined` when it is missing or unparseable. */
-function parseTimeCreated(file: File): Date | undefined {
-  return parseMetadataDate(file.metadata?.timeCreated)
-}
-
-function parseMetadataDate(rawValue: string | undefined): Date | undefined {
-  if (rawValue === undefined) {
+/** URL expiry the converter put in the object name, `undefined` for a legacy name. */
+export function parseExpiryFromName(name: string, prefix: string): Date | undefined {
+  if (!name.startsWith(prefix)) {
     return undefined
   }
-  const parsed = new Date(rawValue)
-  return Number.isNaN(parsed.getTime()) ? undefined : parsed
+  const match = /^(\d+)-[^/]+\//.exec(name.slice(prefix.length))
+  if (!match?.[1]) {
+    return undefined
+  }
+  return new Date(Number(match[1]) * 1000)
 }

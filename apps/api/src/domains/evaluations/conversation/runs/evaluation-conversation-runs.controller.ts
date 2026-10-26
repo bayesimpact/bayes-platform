@@ -44,7 +44,7 @@ import {
   EVALUATION_CONVERSATION_RUN_UPDATE_PERMISSION,
 } from "@/domains/rbac/rbac.constants"
 import { UserGuard } from "@/domains/users/user.guard"
-import { getTraceUrl } from "@/external/llm/trace-url"
+import { telemetryTraceUrl } from "@/external/llm/telemetry"
 import type { EvaluationConversationRun } from "./evaluation-conversation-run.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { EvaluationConversationRunStatusNotifierService } from "./evaluation-conversation-run-status-notifier.service"
@@ -333,7 +333,7 @@ function toEvaluationConversationRunRecordDto(
     output: record.output,
     score: record.score,
     errorDetails: record.errorDetails,
-    traceUrl: record.traceId ? (getTraceUrl(record.traceId) ?? null) : null,
+    traceUrl: record.traceId ? (telemetryTraceUrl(record.traceId) ?? null) : null,
     createdAt: record.createdAt.getTime(),
     updatedAt: record.updatedAt.getTime(),
   }

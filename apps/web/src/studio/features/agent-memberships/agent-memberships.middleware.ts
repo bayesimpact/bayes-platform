@@ -1,4 +1,4 @@
-import { createListenerMiddleware } from "@reduxjs/toolkit"
+import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit"
 import { selectCurrentAgentId } from "@/common/features/agents/agents.selectors"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import type { AppDispatch, RootState } from "@/common/store/types"
@@ -19,6 +19,7 @@ function registerListeners() {
       if (!agentId) return
       await Promise.all([
         listenerApi.dispatch(agentMembershipsActions.list()),
+        listenerApi.dispatch(agentMembershipsActions.listAssignableRoles()),
         listenerApi.dispatch(listInvitationsForTarget({ targetType: "agent", targetId: agentId })),
       ])
     },
@@ -30,16 +31,14 @@ function registerListeners() {
     },
   })
 
-  // Refresh list after member removal
+  // Refresh the list after roles change or members leave
   listenerMiddleware.startListening({
-    actionCreator: agentMembershipsActions.remove.fulfilled,
+    matcher: isAnyOf(
+      agentMembershipsActions.addRoles.fulfilled,
+      agentMembershipsActions.removeMany.fulfilled,
+    ),
     effect: async (_, listenerApi) => {
-      const agentId = selectCurrentAgentId(listenerApi.getState())
-      if (!agentId) return
-      await Promise.all([
-        listenerApi.dispatch(agentMembershipsActions.list()),
-        listenerApi.dispatch(listInvitationsForTarget({ targetType: "agent", targetId: agentId })),
-      ])
+      await listenerApi.dispatch(agentMembershipsActions.list())
     },
   })
 
@@ -89,23 +88,25 @@ function registerListeners() {
   })
 
   listenerMiddleware.startListening({
-    actionCreator: agentMembershipsActions.remove.fulfilled,
-    effect: async (_, listenerApi) => {
+    actionCreator: agentMembershipsActions.addRoles.fulfilled,
+    effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          titleKey: "agentMembership:notifications.removed",
+          titleKey: "agentMembership:notifications.rolesAdded",
+          titleValues: { count: action.meta.arg.memberUserIds.length },
           type: "success",
         }),
       )
     },
   })
   listenerMiddleware.startListening({
-    actionCreator: agentMembershipsActions.remove.rejected,
-    effect: async (_, listenerApi) => {
+    actionCreator: agentMembershipsActions.removeMany.fulfilled,
+    effect: async (action, listenerApi) => {
       listenerApi.dispatch(
         notificationsActions.show({
-          titleKey: "agentMembership:notifications.removeError",
-          type: "error",
+          titleKey: "agentMembership:notifications.membersRemoved",
+          titleValues: { count: action.meta.arg.memberUserIds.length },
+          type: "success",
         }),
       )
     },

@@ -313,9 +313,52 @@ describe("AgentsService", () => {
       })
 
       // Assert
-      expect(result).toHaveLength(2)
-      expect(result.map((t) => t.name)).toContain("Template 1")
-      expect(result.map((t) => t.name)).toContain("Template 2")
+      expect(result.agents.map((agent) => agent.name)).toEqual(["Template 1", "Template 2"])
+      expect(result.permissionsByAgentId.get(agent1.id)).toContain("agent.read")
+    })
+
+    it("should leave out agents the user only reviews conversations of", async () => {
+      const { organization, project, agent } = await createOrganizationWithAgent(repositories)
+      const memberUser = await repositories.userRepository.save(userFactory.build())
+      await addUserToProject({
+        repositories,
+        project,
+        user: memberUser,
+        membership: { role: "member" },
+      })
+      await grantConversationReview({ repositories, user: memberUser, agent })
+
+      const result = await service.listAgents({
+        connectScope: { organizationId: organization.id, projectId: project.id },
+        userId: memberUser.id,
+      })
+
+      expect(result.agents).toEqual([])
+    })
+
+    it("should return an agent member's agent with read-only permissions", async () => {
+      const { organization, project, agent } = await createOrganizationWithAgent(repositories)
+      const memberUser = await repositories.userRepository.save(userFactory.build())
+      await addUserToProject({
+        repositories,
+        project,
+        user: memberUser,
+        membership: { role: "member" },
+      })
+      await addUserToAgent({
+        repositories,
+        agent,
+        user: memberUser,
+        membership: { role: "member" },
+      })
+
+      const result = await service.listAgents({
+        connectScope: { organizationId: organization.id, projectId: project.id },
+        userId: memberUser.id,
+      })
+
+      expect(result.agents.map(({ id }) => id)).toEqual([agent.id])
+      expect(result.permissionsByAgentId.get(agent.id)).toEqual(["agent.read"])
     })
 
     it("should return empty array when project has no Agents", async () => {
@@ -328,7 +371,7 @@ describe("AgentsService", () => {
       })
 
       // Assert
-      expect(result).toEqual([])
+      expect(result.agents).toEqual([])
     })
 
     it("should return Agents ordered by name DESC", async () => {
@@ -351,8 +394,8 @@ describe("AgentsService", () => {
       })
 
       // Assert
-      expect(result).toHaveLength(2)
-      const [first, second] = result
+      expect(result.agents).toHaveLength(2)
+      const [first, second] = result.agents
       expect(first!.name).toBe("First Template")
       expect(second!.name).toBe("Second Template")
     })

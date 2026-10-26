@@ -18,6 +18,7 @@ import {
 } from "@tanstack/react-table"
 import { ChevronRightIcon } from "lucide-react"
 import { type ReactNode, useMemo, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { ConfirmDialog } from "@/common/components/ConfirmDialog"
 import { DataTable, type DataTableColumnMeta } from "@/common/components/data-table/DataTable"
 import { buildSelectionColumn } from "@/common/components/data-table/selection-column"
@@ -33,15 +34,13 @@ import { MembersBulkActionBar } from "./MembersBulkActionBar"
 import { MembersTableToolbar } from "./MembersTableToolbar"
 import {
   type MembersTableMember,
-  PROJECT_OWNER_ROLE_KEY,
+  type MembersTableScope,
+  OWNER_ROLE_KEY,
   type ProjectRoleOption,
 } from "./members-table.models"
+import { useRoleLabel } from "./role-label"
 
 type PendingAction = "addRoles" | "remove" | null
-
-function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : "Something went wrong. Try again."
-}
 
 function matchesSearch(member: MembersTableMember, query: string): boolean {
   if (!query) return true
@@ -49,15 +48,12 @@ function matchesSearch(member: MembersTableMember, query: string): boolean {
   return name.includes(query) || member.userEmail.toLowerCase().includes(query)
 }
 
-function isOwner(member: MembersTableMember): boolean {
-  return member.roles.some((role) => role.key === PROJECT_OWNER_ROLE_KEY)
-}
-
 /**
- * The workspace members, with search, filters and bulk actions. Presentational: the caller
- * passes the members, what the viewer may do, and the handlers that call the API.
+ * The members of a workspace or an agent, with search, filters and bulk actions. Presentational:
+ * the caller passes the members, what the viewer may do, and the handlers that call the API.
  */
-export function ProjectMembersTable({
+export function MembersTable({
+  scope,
   members,
   roles,
   currentUserId,
@@ -68,22 +64,25 @@ export function ProjectMembersTable({
   onOpenMember,
   toolbarAction,
 }: {
+  scope: MembersTableScope
   members: MembersTableMember[]
-  /** The roles a member can be given on the workspace (`scope_type = project`). */
+  /** The roles a member can be given on the resource. Owner roles are never given here. */
   roles: ProjectRoleOption[]
   currentUserId: string
   canUpdateRoles: boolean
   canRemoveMembers: boolean
   /** Rejects with an `Error` whose message is shown in the dialog. */
-  onAddRoles: (memberIds: string[], roleKeys: string[]) => Promise<void>
+  onAddRoles: (userIds: string[], roleKeys: string[]) => Promise<void>
   /** Rejects with an `Error` whose message is shown in the dialog. */
-  onRemoveMembers: (memberIds: string[]) => Promise<void>
-  onOpenMember: (memberId: string) => void
+  onRemoveMembers: (userIds: string[]) => Promise<void>
+  onOpenMember: (userId: string) => void
   toolbarAction?: ReactNode
 }) {
   // TanStack Table keeps one table instance across renders, so the React Compiler would
   // memoize its row model and show stale rows after a search or a filter.
   "use no memo"
+  const { t } = useTranslation()
+  const roleLabel = useRoleLabel()
   const [search, setSearch] = useState("")
   const [roleFilter, setRoleFilter] = useState<string[]>([])
   const [sorting, setSorting] = useState<SortingState>([{ id: "member", desc: false }])
@@ -94,6 +93,9 @@ export function ProjectMembersTable({
   const [isConfirming, setIsConfirming] = useState(false)
 
   const canSelect = canUpdateRoles || canRemoveMembers
+  const ownerRoleKey = OWNER_ROLE_KEY[scope]
+  const isOwner = (member: MembersTableMember) =>
+    member.roles.some((role) => role.key === ownerRoleKey)
 
   const filteredMembers = useMemo(() => {
     const query = search.trim().toLowerCase()
@@ -106,21 +108,26 @@ export function ProjectMembersTable({
 
   const columns = useMemo<ColumnDef<MembersTableMember>[]>(() => {
     const selectColumn = buildSelectionColumn<MembersTableMember>({
-      rowLabel: (member) => `Select ${member.userName ?? member.userEmail}`,
+      rowLabel: (member) =>
+        t("projectMembership:table.selectMember", { name: member.userName ?? member.userEmail }),
     })
     const dataColumns: ColumnDef<MembersTableMember>[] = [
       {
         id: "member",
         accessorFn: (member) => member.userName ?? member.userEmail,
         enableColumnFilter: false,
-        header: ({ column }) => <SortableFilterableHeader column={column} label="Member" />,
+        header: ({ column }) => (
+          <SortableFilterableHeader column={column} label={t("projectMembership:table.member")} />
+        ),
         cell: ({ row }) => {
           const member = row.original
           return (
             <div className="flex flex-col">
               <span className="flex items-center gap-2 font-medium">
                 {member.userName ?? member.userEmail}
-                {member.userId === currentUserId && <Badge variant="secondary">You</Badge>}
+                {member.userId === currentUserId && (
+                  <Badge variant="secondary">{t("projectMembership:table.you")}</Badge>
+                )}
                 {!member.userHasSignedIn && <NeverSignedInBadge />}
               </span>
               {member.userName && (
@@ -133,18 +140,19 @@ export function ProjectMembersTable({
       {
         id: "roles",
         enableSorting: false,
-        header: () => <span className="text-muted-foreground">Roles</span>,
+        header: () => (
+          <span className="text-muted-foreground">{t("projectMembership:table.roles")}</span>
+        ),
         cell: ({ row }) =>
           row.original.roles.length === 0 ? (
-            <span className="text-sm text-muted-foreground">No role</span>
+            <span className="text-sm text-muted-foreground">
+              {t("projectMembership:table.noRole")}
+            </span>
           ) : (
             <div className="flex flex-wrap gap-1">
               {row.original.roles.map((role) => (
-                <Badge
-                  key={role.key}
-                  variant={role.key === PROJECT_OWNER_ROLE_KEY ? "default" : "outline"}
-                >
-                  {role.name}
+                <Badge key={role.key} variant={role.key === ownerRoleKey ? "default" : "outline"}>
+                  {roleLabel(role)}
                 </Badge>
               ))}
             </div>
@@ -154,7 +162,9 @@ export function ProjectMembersTable({
         id: "joined",
         accessorFn: (member) => member.createdAt,
         enableColumnFilter: false,
-        header: ({ column }) => <SortableFilterableHeader column={column} label="Joined" />,
+        header: ({ column }) => (
+          <SortableFilterableHeader column={column} label={t("projectMembership:table.joined")} />
+        ),
         cell: ({ row }) => (
           <span className="text-sm text-muted-foreground">
             {buildSince(row.original.createdAt)}
@@ -170,13 +180,13 @@ export function ProjectMembersTable({
       },
     ]
     return canSelect ? [selectColumn, ...dataColumns] : dataColumns
-  }, [canSelect, currentUserId])
+  }, [canSelect, currentUserId, ownerRoleKey, t, roleLabel])
 
   const table = useReactTable({
     data: filteredMembers,
     columns,
     state: { sorting, rowSelection, pagination },
-    getRowId: (member) => member.id,
+    getRowId: (member) => member.userId,
     // Nobody changes their own roles or removes themselves from here.
     enableRowSelection: (row) => canSelect && row.original.userId !== currentUserId,
     onSortingChange: setSorting,
@@ -187,12 +197,28 @@ export function ProjectMembersTable({
     getPaginationRowModel: getPaginationRowModel(),
   })
 
-  const selectedMembers = members.filter((member) => rowSelection[member.id])
-  const ownerCount = members.filter(isOwner).length
-  const removeBlockedReason =
-    ownerCount > 0 && selectedMembers.filter(isOwner).length === ownerCount
-      ? "A workspace keeps at least one owner. Unselect an owner to remove the others."
-      : null
+  // The filter also offers the roles members hold but nobody is given here, such as owner.
+  const filterRoles = useMemo(() => {
+    const grantableKeys = new Set(roles.map((role) => role.key))
+    const heldOnly = new Map<string, ProjectRoleOption>()
+    for (const member of members) {
+      for (const role of member.roles) {
+        if (!grantableKeys.has(role.key)) heldOnly.set(role.key, role)
+      }
+    }
+    return [...heldOnly.values(), ...roles]
+  }, [members, roles])
+
+  const selectedMembers = members.filter((member) => rowSelection[member.userId])
+  const selectedOwnerCount = selectedMembers.filter(isOwner).length
+  // A workspace keeps at least one owner; an agent's owners are never removed here.
+  const isRemoveBlocked =
+    scope === "agent"
+      ? selectedOwnerCount > 0
+      : selectedOwnerCount > 0 && selectedOwnerCount === members.filter(isOwner).length
+  const removeBlockedReason = isRemoveBlocked
+    ? t(`projectMembership:table.removeBlocked.${scope}`)
+    : null
 
   const resetFilters = () => {
     setSearch("")
@@ -213,17 +239,19 @@ export function ProjectMembersTable({
       setRowSelection({})
       setPendingAction(null)
     } catch (error) {
-      setActionError(errorMessage(error))
+      setActionError(
+        error instanceof Error ? error.message : t("projectMembership:table.genericError"),
+      )
     } finally {
       setIsConfirming(false)
     }
   }
 
-  const selectedIds = selectedMembers.map((member) => member.id)
-  const removeTitle =
-    selectedMembers.length === 1
-      ? `Remove ${selectedMembers[0]?.userName ?? selectedMembers[0]?.userEmail}?`
-      : `Remove ${selectedMembers.length} members?`
+  const selectedIds = selectedMembers.map((member) => member.userId)
+  const removeTitle = t("projectMembership:table.removeDialog.title", {
+    count: selectedMembers.length,
+    name: selectedMembers[0]?.userName ?? selectedMembers[0]?.userEmail,
+  })
 
   const pageCount = table.getPageCount()
 
@@ -235,7 +263,7 @@ export function ProjectMembersTable({
           setSearch(value)
           setPagination((current) => ({ ...current, pageIndex: 0 }))
         }}
-        roles={roles}
+        roles={filterRoles}
         roleFilter={roleFilter}
         onRoleFilterChange={(roleKeys) => {
           setRoleFilter(roleKeys)
@@ -259,16 +287,16 @@ export function ProjectMembersTable({
 
       <DataTable
         table={table}
-        onRowClick={(member) => onOpenMember(member.id)}
+        onRowClick={(member) => onOpenMember(member.userId)}
         empty={
           <Empty>
             <EmptyHeader>
-              <EmptyTitle>No member matches</EmptyTitle>
-              <EmptyDescription>Try another search or remove a filter.</EmptyDescription>
+              <EmptyTitle>{t("projectMembership:table.empty.title")}</EmptyTitle>
+              <EmptyDescription>{t("projectMembership:table.empty.description")}</EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
               <Button variant="outline" size="sm" onClick={resetFilters}>
-                Clear filters
+                {t("projectMembership:table.clearFilters")}
               </Button>
             </EmptyContent>
           </Empty>
@@ -287,6 +315,7 @@ export function ProjectMembersTable({
       {/* Mounted only while open, so each opening starts with no role picked. */}
       {pendingAction === "addRoles" && (
         <AddRolesDialog
+          scope={scope}
           open
           memberCount={selectedMembers.length}
           roles={roles}
@@ -300,8 +329,8 @@ export function ProjectMembersTable({
       <ConfirmDialog
         open={pendingAction === "remove"}
         title={removeTitle}
-        description="They lose access to this workspace, its agents and its review campaigns. This cannot be undone."
-        confirmLabel="Remove"
+        description={t(`projectMembership:table.removeDialog.description.${scope}`)}
+        confirmLabel={t("actions:remove")}
         error={actionError}
         isConfirming={isConfirming}
         onCancel={closeDialog}

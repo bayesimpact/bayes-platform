@@ -3,9 +3,10 @@ import { Logger } from "@nestjs/common"
 import { z } from "zod"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import type {
+  AdditionalMetadata,
+  LLMCallContext,
   LLMChatMessage,
   LLMConfig,
-  LLMMetadata,
   LLMProvider,
 } from "@/common/interfaces/llm-provider.interface"
 import type { OnExecute } from "../streaming-session.types"
@@ -99,7 +100,8 @@ export type HandoffClassificationConfig = {
     llm: {
       provider: LLMProvider
       buildConfig: (systemPrompt: string) => LLMConfig
-      metadata: LLMMetadata
+      callContext: LLMCallContext
+      additionalMetadata: AdditionalMetadata
     }
   }) => Promise<void>
 }
@@ -390,7 +392,8 @@ export async function runTurnClassification({
   context,
   provider,
   buildConfig,
-  metadata,
+  callContext,
+  additionalMetadata,
   earlierMessages,
   userMessage,
   answerText,
@@ -400,7 +403,9 @@ export async function runTurnClassification({
   provider: LLMProvider
   /** Builds the LLM config for the classification call from its system prompt. */
   buildConfig: (systemPrompt: string) => LLMConfig
-  metadata: LLMMetadata
+  callContext: LLMCallContext
+  /** The replying agent's metadata, which the classification call adds its tool name to. */
+  additionalMetadata: AdditionalMetadata
   earlierMessages: LLMChatMessage[]
   userMessage: string
   answerText: string
@@ -460,11 +465,13 @@ export async function runTurnClassification({
       message: { role: "user", content: userContent },
       schema,
       config: buildConfig(systemPrompt),
-      metadata: {
-        ...metadata,
-        tags: [...metadata.tags, "turn-classification"],
-        spanLabel: metadata.spanLabel ? `${metadata.spanLabel} · classification` : "classification",
+      callContext: {
+        ...callContext,
+        spanLabel: callContext.spanLabel
+          ? `${callContext.spanLabel} · classification`
+          : "classification",
       },
+      additionalMetadata: { ...additionalMetadata, tool: { name: "turn-classification" } },
     })
     const parsed = turnClassificationOutputSchema.safeParse(rawOutput)
     if (!parsed.success) {
@@ -488,7 +495,7 @@ export async function runTurnClassification({
         await handoff.conclude({
           summary: parsed.data.handoffSummary ?? "",
           detectedByClassifier: !concludedByTool,
-          llm: { provider, buildConfig, metadata },
+          llm: { provider, buildConfig, callContext, additionalMetadata },
         })
       }
     }
@@ -515,7 +522,7 @@ export async function runTurnClassification({
     }
   } catch (error) {
     logger.error(
-      `turn classification failed (agent ${metadata.agentId}, session ${metadata.agentSessionId}): ${error instanceof Error ? error.message : error}`,
+      `turn classification failed (agent ${callContext.agentId}, session ${callContext.agentSessionId}): ${error instanceof Error ? error.message : error}`,
     )
   }
 }

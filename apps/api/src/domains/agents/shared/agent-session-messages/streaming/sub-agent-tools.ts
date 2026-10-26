@@ -3,9 +3,9 @@ import { trace } from "@opentelemetry/api"
 import type { ToolSet } from "ai"
 import type {
   BuildLLMConfigParams,
+  LLMCallContext,
   LLMConfig,
   LLMFeatures,
-  LLMMetadata,
   LLMProvider,
 } from "@/common/interfaces/llm-provider.interface"
 import type { Agent } from "@/domains/agents/agent.entity"
@@ -15,7 +15,7 @@ import type { AgentSettingsService } from "@/domains/agents/settings/agent-setti
 import type { AgentSubAgent } from "@/domains/agents/sub-agents/agent-sub-agent.entity"
 import type { AgentSubAgentsService } from "@/domains/agents/sub-agents/agent-sub-agents.service"
 import type { ProjectsService } from "@/domains/projects/projects.service"
-import { getTraceUrl } from "@/external/llm/trace-url"
+import { telemetryAdditionalMetadata, telemetryTraceUrl } from "@/external/llm/telemetry"
 import { isLLMVisibleMessage } from "./llm-visible-message.helper"
 import type { AgentSessionScope, OnExecute, StreamingSession } from "./streaming-session.types"
 import type { ActiveAgentController } from "./tools/active-agent-controller"
@@ -278,7 +278,7 @@ async function runSubAgentTool({
   // copyable pointer from the parent trace to the child's.
   const activeSpan = trace.getActiveSpan()
   activeSpan?.setAttribute("ai.telemetry.metadata.subAgentTraceId", subAgentTraceId)
-  const subAgentTraceUrl = getTraceUrl(subAgentTraceId)
+  const subAgentTraceUrl = telemetryTraceUrl(subAgentTraceId)
   if (subAgentTraceUrl) {
     activeSpan?.setAttribute("ai.telemetry.metadata.subAgentTraceUrl", subAgentTraceUrl)
   }
@@ -318,17 +318,27 @@ async function runSubAgentTool({
       llmFeatures,
     })
 
-    const metadata = buildSubAgentMetadata({
+    const callContext = buildSubAgentCallContext({
       childAgent,
       childAgentSettings,
       agentSessionScope,
       childSession,
       subAgentTraceId,
     })
+    const additionalMetadata = telemetryAdditionalMetadata({
+      agent: childAgent,
+      agentSettings: childAgentSettings,
+      agentClass: "sub-agent",
+      parent: {
+        agent: agentSessionScope.agent,
+        agentSettings: agentSessionScope.agentSettings,
+        trace: agentSessionScope.session.traceId,
+      },
+    })
 
     logger.log(
-      `Sub-agent "${childAgent.name}" (${childAgent.id}) trace: ${getTraceUrl(subAgentTraceId) ?? subAgentTraceId} ` +
-        `(parent "${agentSessionScope.agent.name}" trace: ${getTraceUrl(agentSessionScope.session.traceId) ?? agentSessionScope.session.traceId})`,
+      `Sub-agent "${childAgent.name}" (${childAgent.id}) trace: ${telemetryTraceUrl(subAgentTraceId) ?? subAgentTraceId} ` +
+        `(parent "${agentSessionScope.agent.name}" trace: ${telemetryTraceUrl(agentSessionScope.session.traceId) ?? agentSessionScope.session.traceId})`,
     )
 
     // Run the sub-agent's LLM call inside a fresh OTEL root span so its spans get
@@ -346,7 +356,8 @@ async function runSubAgentTool({
           const chunks = provider.streamChatResponse({
             messages: [{ role: "user", content: userMessage }],
             config,
-            metadata,
+            callContext,
+            additionalMetadata,
           })
 
           // The child's inline citations are stripped from the answer the
@@ -371,7 +382,8 @@ async function runSubAgentTool({
                   priorityCallsEnabled: childAgentSettings.priorityCallsEnabled,
                   llmFeatures,
                 }),
-              metadata,
+              callContext,
+              additionalMetadata,
               earlierMessages: [],
               userMessage,
               answerText: answer,
@@ -503,7 +515,7 @@ function buildSubAgentInstructions(childAgentSettings: AgentSettings): string {
   ].join("\n")
 }
 
-function buildSubAgentMetadata({
+function buildSubAgentCallContext({
   childAgent,
   childAgentSettings,
   agentSessionScope,
@@ -515,13 +527,8 @@ function buildSubAgentMetadata({
   childAgentSettings: AgentSettings
   childSession: StreamingSession
   subAgentTraceId: string
-}): LLMMetadata {
-  const {
-    connectScope,
-    agent: parentAgent,
-    agentSettings: parentAgentSettings,
-    session,
-  } = agentSessionScope
+}): LLMCallContext {
+  const { connectScope, session } = agentSessionScope
 
   // The sub-agent runs inside a fresh OTEL root span (see runSubAgentTool), so its
   // spans get their own OTEL trace id and group under this dedicated trace id
@@ -536,15 +543,5 @@ function buildSubAgentMetadata({
     projectId: childAgent.projectId,
     organizationId: session?.organizationId ?? connectScope.organizationId,
     currentTurn: session?.messages?.filter((message) => message.role === "user").length ?? 0,
-    tags: [
-      childAgent.name,
-      `rev-${childAgentSettings.revision}`,
-      childAgent.type,
-      "sub-agent",
-      `parent-${parentAgent.name}`,
-      `parent-rev-${parentAgentSettings.revision}`,
-      `parent-type-${parentAgent.type}`,
-      `parent-trace:${session.traceId}`,
-    ],
   }
 }

@@ -2,17 +2,12 @@
   "agentMembership": {
     "members": "Membres",
     "props": {
-      "userName": "Nom d'utilisateur",
-      "userEmail": "Email d'utilisateur",
-      "status": "Statut",
-      "createdAt": "Créé le",
       "validation": {
         "emailDuplicate": "Email déjà ajouté",
         "emailInvalid": "Email invalide"
       }
     },
     "create": {
-      "button": "Inviter des utilisateurs",
       "title": "Inviter des utilisateurs",
       "description": "Entrez l'adresse email des personnes qui doivent utiliser cet agent. Elles acceptent l'invitation après s'être connectées.",
       "label": "Adresse email",
@@ -24,25 +19,16 @@
     },
     "list": {
       "title": "Membres de {{agentName}}",
-      "description": "Invitez les personnes qui peuvent utiliser votre agent.",
-      "empty": {
-        "title": "Aucun membre",
-        "description": "Invitez les personnes qui peuvent utiliser votre agent."
-      }
-    },
-    "remove": {
-      "dialog": {
-        "title": "Retirer {{name}} ?",
-        "description": "Ce membre sera retiré de l'agent. Cette action est irréversible.",
-        "confirm": "Retirer"
-      }
+      "description": "Les personnes qui peuvent utiliser cet agent, et leurs rôles sur cet agent."
     },
     "notifications": {
       "invitationsSentByEmail": "Invitations envoyées par e-mail",
       "peopleInvited": "Personnes invitées",
       "inviteError": "L'invitation des personnes a échoué",
-      "removed": "Membre retiré avec succès",
-      "removeError": "Le retrait du membre a échoué"
+      "rolesAdded_one": "Rôles ajoutés à {{count}} membre",
+      "rolesAdded_other": "Rôles ajoutés à {{count}} membres",
+      "membersRemoved_one": "{{count}} membre retiré",
+      "membersRemoved_other": "{{count}} membres retirés"
     }
   }
 }

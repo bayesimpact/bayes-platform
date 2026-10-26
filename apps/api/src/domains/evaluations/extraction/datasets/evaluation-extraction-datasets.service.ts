@@ -113,6 +113,7 @@ export class EvaluationExtractionDatasetsService {
       storagePath: storageRelativePath,
       mimeType: file.mimeType,
       expiresInSeconds: UPLOAD_URL_EXPIRES_IN_SECONDS,
+      contentLength: file.size,
     })
 
     const document = await this.datasetDocumentRepository.createPending(connectScope, {

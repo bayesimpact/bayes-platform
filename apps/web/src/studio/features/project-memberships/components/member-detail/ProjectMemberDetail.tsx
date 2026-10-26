@@ -2,24 +2,16 @@ import { Alert, AlertDescription, AlertTitle } from "@caseai-connect/ui/shad/ale
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { BotIcon, InfoIcon, LayoutGridIcon, MegaphoneIcon, TriangleAlertIcon } from "lucide-react"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import { ConfirmDialog } from "@/common/components/ConfirmDialog"
 import { GridHeader } from "@/common/components/grid/Grid"
 import { NeverSignedInBadge } from "@/common/components/NeverSignedInBadge"
-import { PROJECT_OWNER_ROLE_KEY } from "../members-table/members-table.models"
+import { OWNER_ROLE_KEY } from "../members-table/members-table.models"
+import { useRoleLabel } from "../members-table/role-label"
 import type { MemberDetailMember, MemberResourceRoles, RoleOption } from "./member-detail.models"
 import { ResourceRolesSection } from "./ResourceRolesSection"
 
 type PendingRemoval = { resource: MemberResourceRoles; role: RoleOption }
-
-function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : "Something went wrong. Try again."
-}
-
-const REMOVAL_EFFECT: Record<MemberResourceRoles["kind"], string> = {
-  project: "Their permissions on this workspace change right away.",
-  agent: "Their permissions on this agent change right away.",
-  review_campaign: "Their part in this review campaign changes right away.",
-}
 
 /**
  * A member's roles on the workspace, its agents and its review campaigns. Presentational: the
@@ -31,7 +23,6 @@ export function ProjectMemberDetail({
   workspace,
   agents,
   campaigns,
-  isLastOwner,
   onAddRole,
   onRemoveRole,
   onBack,
@@ -41,33 +32,42 @@ export function ProjectMemberDetail({
   workspace: MemberResourceRoles
   agents: MemberResourceRoles[]
   campaigns: MemberResourceRoles[]
-  /** True when the member is the workspace's only `project_owner`. */
-  isLastOwner: boolean
   /** Rejects with an `Error` whose message is shown on the page. */
   onAddRole: (resource: MemberResourceRoles, roleKey: string) => Promise<void>
   /** Rejects with an `Error` whose message is shown in the dialog. */
   onRemoveRole: (resource: MemberResourceRoles, roleKey: string) => Promise<void>
   onBack: () => void
 }) {
+  const { t } = useTranslation()
+  const roleLabel = useRoleLabel()
   const [pendingRemoval, setPendingRemoval] = useState<PendingRemoval | null>(null)
   const [removalError, setRemovalError] = useState<string | null>(null)
   const [isRemoving, setIsRemoving] = useState(false)
   const [addError, setAddError] = useState<string | null>(null)
 
+  const errorMessage = (error: unknown) =>
+    error instanceof Error ? error.message : t("projectMembership:table.genericError")
   const isSelf = member.userId === currentUserId
   const displayName = member.userName ?? member.userEmail
 
+  // Owner roles are set when the workspace or the agent is created, never changed here.
   const lockedRolesFor = (resource: MemberResourceRoles): Record<string, string> =>
-    resource.kind === "project" && isLastOwner
-      ? { [PROJECT_OWNER_ROLE_KEY]: "A workspace keeps at least one owner." }
-      : {}
+    resource.kind === "review_campaign"
+      ? {}
+      : { [OWNER_ROLE_KEY[resource.kind]]: t("projectMembership:memberDetail.ownerLocked") }
 
   const handleAddRole = async (resource: MemberResourceRoles, role: RoleOption) => {
     setAddError(null)
     try {
       await onAddRole(resource, role.key)
     } catch (error) {
-      setAddError(`${role.name} on ${resource.resourceName}: ${errorMessage(error)}`)
+      setAddError(
+        t("projectMembership:memberDetail.addErrorDetail", {
+          role: roleLabel(role),
+          resource: resource.resourceName,
+          error: errorMessage(error),
+        }),
+      )
     }
   }
 
@@ -105,7 +105,7 @@ export function ProjectMemberDetail({
         title={
           <span className="flex items-center gap-2">
             {displayName}
-            {isSelf && <Badge variant="secondary">You</Badge>}
+            {isSelf && <Badge variant="secondary">{t("projectMembership:memberDetail.you")}</Badge>}
             {!member.userHasSignedIn && <NeverSignedInBadge />}
           </span>
         }
@@ -116,41 +116,41 @@ export function ProjectMemberDetail({
         {isSelf && (
           <Alert>
             <InfoIcon />
-            <AlertTitle>This is your own page</AlertTitle>
+            <AlertTitle>{t("projectMembership:memberDetail.selfTitle")}</AlertTitle>
             <AlertDescription>
-              Nobody changes their own roles. Another manager of this workspace can change them.
+              {t("projectMembership:memberDetail.selfDescription")}
             </AlertDescription>
           </Alert>
         )}
         {addError && (
           <Alert variant="destructive">
             <TriangleAlertIcon />
-            <AlertTitle>The role was not added</AlertTitle>
+            <AlertTitle>{t("projectMembership:memberDetail.addErrorTitle")}</AlertTitle>
             <AlertDescription>{addError}</AlertDescription>
           </Alert>
         )}
 
         <ResourceRolesSection
           icon={LayoutGridIcon}
-          title="Workspace"
-          description="What they can do across this workspace."
-          emptyLabel="No role on this workspace."
+          title={t("projectMembership:memberDetail.workspace.title")}
+          description={t("projectMembership:memberDetail.workspace.description")}
+          emptyLabel={t("projectMembership:memberDetail.workspace.empty")}
           resources={[workspace]}
           {...sectionProps}
         />
         <ResourceRolesSection
           icon={BotIcon}
-          title="Agents"
-          description="Their roles on each agent of the workspace."
-          emptyLabel="This workspace has no agents."
+          title={t("projectMembership:memberDetail.agents.title")}
+          description={t("projectMembership:memberDetail.agents.description")}
+          emptyLabel={t("projectMembership:memberDetail.agents.empty")}
           resources={agents}
           {...sectionProps}
         />
         <ResourceRolesSection
           icon={MegaphoneIcon}
-          title="Review campaigns"
-          description="Whether they test the agent or review the conversations, campaign by campaign."
-          emptyLabel="This workspace has no review campaigns."
+          title={t("projectMembership:memberDetail.campaigns.title")}
+          description={t("projectMembership:memberDetail.campaigns.description")}
+          emptyLabel={t("projectMembership:memberDetail.campaigns.empty")}
           resources={campaigns}
           {...sectionProps}
         />
@@ -160,11 +160,20 @@ export function ProjectMemberDetail({
         open={pendingRemoval !== null}
         title={
           pendingRemoval
-            ? `Remove ${pendingRemoval.role.name} on ${pendingRemoval.resource.resourceName}?`
+            ? t("projectMembership:memberDetail.removeDialog.title", {
+                role: roleLabel(pendingRemoval.role),
+                resource: pendingRemoval.resource.resourceName,
+              })
             : ""
         }
-        description={pendingRemoval ? REMOVAL_EFFECT[pendingRemoval.resource.kind] : undefined}
-        confirmLabel="Remove"
+        description={
+          pendingRemoval
+            ? t(
+                `projectMembership:memberDetail.removeDialog.effect.${pendingRemoval.resource.kind}`,
+              )
+            : undefined
+        }
+        confirmLabel={t("actions:remove")}
         error={removalError}
         isConfirming={isRemoving}
         onCancel={closeRemoval}
