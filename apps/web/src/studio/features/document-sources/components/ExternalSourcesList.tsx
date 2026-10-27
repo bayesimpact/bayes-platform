@@ -22,6 +22,7 @@ import { useGetProjectRoute } from "@/common/hooks/use-get-path"
 import { useValue } from "@/common/hooks/use-value"
 import { useAppDispatch } from "@/common/store/hooks"
 import { buildSince } from "@/common/utils/build-date"
+import { DocumentTagsSheet } from "@/studio/features/document-tags/components/DocumentTagsSheet"
 import { selectDocumentTagsData } from "@/studio/features/document-tags/document-tags.selectors"
 import { getTagFullPath } from "@/studio/features/documents/components/DocumentList"
 import { DocumentTagPicker } from "@/studio/features/documents/components/DocumentTagPicker"
@@ -37,6 +38,9 @@ export function ExternalSourcesList() {
   // memoize its row model and show stale rows after a deletion.
   "use no memo"
   const documentSources = useValue(selectDocumentSourcesData)
+  const documentTags = useValue(selectDocumentTagsData)
+  const project = useValue(selectCurrentProjectData)
+  const canUpdate = project.permissions.includes(DOCUMENT_SOURCE_UPDATE_PERMISSION)
   const { t } = useTranslation("documentSource")
   const navigate = useNavigate()
   const projectRoute = useGetProjectRoute()
@@ -100,6 +104,7 @@ export function ExternalSourcesList() {
         onBack={() => navigate(projectRoute)}
         title={t("title")}
         description={t("description")}
+        action={canUpdate ? <DocumentTagsSheet documentTags={documentTags} /> : undefined}
       />
       <div className="bg-white p-6">
         <DataTable
