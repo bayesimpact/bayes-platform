@@ -1,6 +1,9 @@
 import type { DocumentSourceStatus } from "@caseai-connect/api-contracts"
 import { Injectable, NotFoundException } from "@nestjs/common"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { DocumentTagsService } from "../tags/document-tags.service"
+import type { DocumentTagsUpdateFields } from "../tags/document-tags.types"
 import type { DocumentSource } from "./document-source.entity"
 import type {
   CreateDocumentSourceFields,
@@ -23,18 +26,29 @@ export type DocumentSourceSummary = {
   indexedDocumentCount: number
   lastSyncedAt: Date | null
   status: DocumentSourceStatus
+  tagIds: string[]
 }
 
 @Injectable()
 export class DocumentSourcesService {
-  constructor(private readonly documentSourceRepository: DocumentSourceRepository) {}
+  constructor(
+    private readonly documentSourceRepository: DocumentSourceRepository,
+    private readonly documentTagsService: DocumentTagsService,
+  ) {}
 
   async listSummaries(connectScope: RequiredConnectScope): Promise<DocumentSourceSummary[]> {
-    const [documentSources, stats] = await Promise.all([
+    const [documentSources, stats, tagLinks] = await Promise.all([
       this.documentSourceRepository.listWithApp(connectScope),
       this.documentSourceRepository.listStats(connectScope),
+      this.documentSourceRepository.listTagLinks(connectScope),
     ])
     const statsBySourceId = new Map(stats.map((stat) => [stat.documentSourceId, stat]))
+    const tagIdsBySourceId = new Map<string, string[]>()
+    for (const tagLink of tagLinks) {
+      const tagIds = tagIdsBySourceId.get(tagLink.documentSourceId) ?? []
+      tagIds.push(tagLink.documentTagId)
+      tagIdsBySourceId.set(tagLink.documentSourceId, tagIds)
+    }
 
     return documentSources.map(({ documentSource, app }) => {
       const stat = statsBySourceId.get(documentSource.id)
@@ -52,6 +66,7 @@ export class DocumentSourcesService {
         indexedDocumentCount: stat?.indexedDocumentCount ?? 0,
         lastSyncedAt: stat?.lastSyncedAt ?? null,
         status: failedDocumentCount > 0 ? "error" : "ready",
+        tagIds: tagIdsBySourceId.get(documentSource.id) ?? [],
       }
     })
   }
@@ -86,6 +101,24 @@ export class DocumentSourcesService {
     return documentSource
   }
 
+  async updateTags(
+    connectScope: RequiredConnectScope,
+    id: string,
+    { tagsToAdd, tagsToRemove }: DocumentTagsUpdateFields,
+  ): Promise<DocumentSource> {
+    const documentSource = await this.documentSourceRepository.findOneWithTags(connectScope, id)
+    if (!documentSource) {
+      throw new NotFoundException(`Document source ${id} not found`)
+    }
+    const tags = await this.documentTagsService.resolveTagChanges({
+      connectScope,
+      currentTags: documentSource.tags ?? [],
+      tagsToAdd,
+      tagsToRemove,
+    })
+    return this.documentSourceRepository.saveTags(documentSource, uniqueById(tags))
+  }
+
   async deleteOne(connectScope: RequiredConnectScope, id: string): Promise<void> {
     const deleted = await this.documentSourceRepository.deleteOne(connectScope, id)
     if (!deleted) {
@@ -99,4 +132,8 @@ export class DocumentSourcesService {
       throw new NotFoundException(`Document source ${id} not found`)
     }
   }
+}
+
+function uniqueById<T extends { id: string }>(items: T[]): T[] {
+  return [...new Map(items.map((item) => [item.id, item])).values()]
 }

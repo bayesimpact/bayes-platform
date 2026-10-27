@@ -6,6 +6,7 @@
     "columns": {
       "source": "Source",
       "app": "App",
+      "tags": "Tags",
       "docs": "Docs",
       "lastSync": "Last sync",
       "status": "Status"
@@ -17,6 +18,9 @@
     "empty": {
       "title": "No external source yet",
       "description": "Sources appear here once an app syncs documents to this workspace."
+    },
+    "notifications": {
+      "tagsUpdateError": "The tags of the source could not be updated"
     }
   }
 }

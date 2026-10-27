@@ -231,6 +231,7 @@ export type DocumentSourceSummaryDto = {
   indexedDocumentCount: number
   lastSyncedAt: TimeType | null
   status: DocumentSourceStatus
+  tagIds: DocumentTagDto["id"][]
   createdAt: TimeType
   updatedAt: TimeType
 }

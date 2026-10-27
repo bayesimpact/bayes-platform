@@ -1,7 +1,11 @@
 import { createSlice } from "@reduxjs/toolkit"
 import { ADS, type AsyncData, defaultAsyncData } from "@/common/store/async-data-status"
 import type { DocumentSource } from "./document-sources.models"
-import { deleteDocumentSource, listDocumentSources } from "./document-sources.thunks"
+import {
+  deleteDocumentSource,
+  listDocumentSources,
+  updateDocumentSourceTags,
+} from "./document-sources.thunks"
 
 interface State {
   data: AsyncData<DocumentSource[]>
@@ -35,6 +39,13 @@ const slice = createSlice({
       .addCase(listDocumentSources.rejected, (state, action) => {
         state.data.status = ADS.Error
         state.data.error = action.error.message || "Failed to list document sources"
+      })
+      .addCase(updateDocumentSourceTags.fulfilled, (state, action) => {
+        if (!ADS.isFulfilled(state.data)) return
+        const documentSource = state.data.value.find(
+          (candidate) => candidate.id === action.payload.documentSourceId,
+        )
+        if (documentSource) documentSource.tagIds = action.payload.tagIds
       })
       .addCase(deleteDocumentSource.fulfilled, (state, action) => {
         if (!ADS.isFulfilled(state.data)) return

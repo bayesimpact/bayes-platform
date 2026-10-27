@@ -177,6 +177,9 @@ WITH
   del_document_document_tag AS (
     DELETE FROM "document_document_tag"
   ),
+  del_document_source_document_tag AS (
+    DELETE FROM "document_source_document_tag"
+  ),
   del_agent_document_tag AS (
     DELETE FROM "agent_document_tag"
   ),
