@@ -47,3 +47,15 @@ describeWithS3("S3PdfExportsBucket (integration)", () => {
     expect(afterDelete.objects.map((object) => object.name)).toEqual(["tmp/pdf-exports/2-b/b.pdf"])
   })
 })
+
+describe("S3PdfExportsBucket on a store that answers 404 to a delete of a missing key", () => {
+  it("treats the delete of a missing key as done, as GCS answers 404", async () => {
+    const notFound = Object.assign(new Error("The specified key does not exist."), {
+      $metadata: { httpStatusCode: 404 },
+    })
+    const client = { send: jest.fn().mockRejectedValue(notFound) } as unknown as S3Client
+    await expect(
+      new S3PdfExportsBucket(client, "documents").delete("tmp/x.pdf"),
+    ).resolves.toBeUndefined()
+  })
+})

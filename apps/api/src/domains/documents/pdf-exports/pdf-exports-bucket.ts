@@ -1,5 +1,6 @@
 import { DeleteObjectCommand, ListObjectsV2Command, type S3Client } from "@aws-sdk/client-s3"
 import type { Bucket } from "@google-cloud/storage"
+import { isS3NotFound } from "../storage/s3-storage.service"
 
 export type PdfExportsObject = {
   name: string
@@ -50,7 +51,12 @@ export class S3PdfExportsBucket implements PdfExportsBucket {
   }
 
   async delete(name: string): Promise<void> {
-    await this.client.send(new DeleteObjectCommand({ Bucket: this.bucketName, Key: name }))
+    // The S3 API of GCS answers 404 for a missing key, where S3 answers 204.
+    try {
+      await this.client.send(new DeleteObjectCommand({ Bucket: this.bucketName, Key: name }))
+    } catch (error) {
+      if (!isS3NotFound(error)) throw error
+    }
   }
 }
 

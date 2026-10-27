@@ -94,3 +94,30 @@ describeWithS3("S3StorageService (integration)", () => {
     await expect(service.readFile(storagePath)).resolves.toEqual(body)
   })
 })
+
+describe("S3StorageService on a store that answers 404 to a delete of a missing key", () => {
+  // The S3 API of GCS answers 404 (NoSuchKey) where S3 answers 204.
+  const notFound = Object.assign(new Error("The specified key does not exist."), {
+    name: "NoSuchKey",
+    $metadata: { httpStatusCode: 404 },
+  })
+  const configService = {
+    get: (key: string) => (key === "S3_BUCKET" ? "documents" : undefined),
+  } as unknown as ConfigService
+  const serviceWithSend = (send: jest.Mock) => {
+    const service = new S3StorageService(configService)
+    ;(service as unknown as { client: { send: jest.Mock } }).client.send = send
+    return service
+  }
+
+  it("treats the delete of a missing key as done", async () => {
+    const service = serviceWithSend(jest.fn().mockRejectedValue(notFound))
+    await expect(service.deleteFile("org1/proj1/missing.pdf")).resolves.toBeUndefined()
+  })
+
+  it("still fails on another error", async () => {
+    const denied = Object.assign(new Error("Access denied"), { $metadata: { httpStatusCode: 403 } })
+    const service = serviceWithSend(jest.fn().mockRejectedValue(denied))
+    await expect(service.deleteFile("org1/proj1/file.pdf")).rejects.toThrow("Access denied")
+  })
+})
