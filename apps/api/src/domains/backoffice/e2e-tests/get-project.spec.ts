@@ -112,6 +112,7 @@ describe("Backoffice - get project", () => {
       token: "token",
     })
     expectResponse(response, 200)
+    expect(response.body.data.permissions).toContain("backoffice.project.update")
     expect(response.body.data.organization.permissions).toContain("backoffice.organization.read")
     expect(response.body.data.agents[0]?.permissions).toContain("backoffice.agent.read")
     expect(response.body.data.members).toEqual([expect.objectContaining({ canRead: true })])
@@ -125,6 +126,8 @@ describe("Backoffice - get project", () => {
       token: "token",
     })
     expectResponse(response, 200)
+    expect(response.body.data.permissions).toContain("backoffice.project.read")
+    expect(response.body.data.permissions).not.toContain("backoffice.project.update")
     expect(response.body.data.organization.permissions).not.toContain(
       "backoffice.organization.read",
     )

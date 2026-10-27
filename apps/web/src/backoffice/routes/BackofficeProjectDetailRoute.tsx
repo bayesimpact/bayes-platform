@@ -1,6 +1,7 @@
 import {
   BACKOFFICE_AGENT_READ_PERMISSION,
   BACKOFFICE_ORGANIZATION_READ_PERMISSION,
+  BACKOFFICE_PROJECT_UPDATE_PERMISSION,
 } from "@caseai-connect/api-contracts"
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
@@ -80,6 +81,7 @@ function WithData() {
         <FeatureFlagCell
           projectName={project.name}
           enabledFlags={project.featureFlags}
+          canUpdate={project.permissions.includes(BACKOFFICE_PROJECT_UPDATE_PERMISSION)}
           onAdd={(featureFlagKey) =>
             dispatch(backofficeActions.addFeatureFlag({ projectId: project.id, featureFlagKey }))
           }

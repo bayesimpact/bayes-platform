@@ -10,8 +10,10 @@ import {
 } from "@/common/test/test-database"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { RbacModule } from "@/domains/rbac/rbac.module"
+import { userFactory } from "@/domains/users/user.factory"
 import { mockOidcEmailForSub, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import {
+  assignPlatformStaffToUser,
   assignPlatformSuperadminToUser,
   ensureRbacCatalog,
 } from "../../../../test/rbac-test.helpers"
@@ -132,5 +134,37 @@ describe("Backoffice - list projects", () => {
         (listedProject: { id: string }) => listedProject.id === matchingProject.id,
       ),
     ).toBe(true)
+  })
+
+  it("gives each project the caller's permissions on it", async () => {
+    const { project } = await createAuthorizedContext()
+    const response = await request({
+      route: BackofficeRoutes.listProjects,
+      token: "token",
+    })
+    expectResponse(response, 200)
+    const returned = response.body.data.projects.find(
+      (listedProject: { id: string }) => listedProject.id === project.id,
+    )
+    expect(returned?.permissions).toEqual(
+      expect.arrayContaining(["backoffice.project.read", "backoffice.project.update"]),
+    )
+  })
+
+  it("gives no update permission to a caller who can only read the projects", async () => {
+    const { project } = await createOrganizationWithAgent(repositories)
+    const viewer = userFactory.build({ authSubject, email: mockOidcEmailForSub(authSubject) })
+    await repositories.userRepository.save(viewer)
+    await assignPlatformStaffToUser({ repositories, user: viewer })
+    const response = await request({
+      route: BackofficeRoutes.listProjects,
+      token: "token",
+    })
+    expectResponse(response, 200)
+    const returned = response.body.data.projects.find(
+      (listedProject: { id: string }) => listedProject.id === project.id,
+    )
+    expect(returned?.permissions).toContain("backoffice.project.read")
+    expect(returned?.permissions).not.toContain("backoffice.project.update")
   })
 })
