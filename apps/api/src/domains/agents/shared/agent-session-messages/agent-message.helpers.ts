@@ -3,6 +3,7 @@ import type {
   AgentSessionMessageDto,
   AgentSessionToolCallDto,
 } from "@caseai-connect/api-contracts"
+import type { McpAppResource } from "@/external/mcp/mcp-app-resource"
 import type { AgentMessage, AgentMessageToolCall } from "./agent-message.entity"
 
 const MCP_APP_HTML_CACHE_KEY_SEPARATOR = "::"
@@ -15,36 +16,39 @@ export function mcpAppHtmlCacheKey(mcpServerId: string, resourceUri: string): st
  * The live HTML map as the client receives it: one entry per server and `ui://` the
  * transcript points at. The client matches each tool call's pointer against it.
  */
-export function toMcpAppHtmlDtos(htmlByKey: Map<string, string>): AgentSessionMcpAppHtmlDto[] {
-  return [...htmlByKey].map(([cacheKey, html]) => {
+export function toMcpAppHtmlDtos(
+  htmlByKey: Map<string, McpAppResource>,
+): AgentSessionMcpAppHtmlDto[] {
+  return [...htmlByKey].map(([cacheKey, { html, csp }]) => {
     // A server id is a uuid and never contains the separator, so the first one splits the key.
     const separatorIndex = cacheKey.indexOf(MCP_APP_HTML_CACHE_KEY_SEPARATOR)
     return {
       mcpServerId: cacheKey.slice(0, separatorIndex),
       resourceUri: cacheKey.slice(separatorIndex + MCP_APP_HTML_CACHE_KEY_SEPARATOR.length),
       html,
+      ...(csp ? { csp } : {}),
     }
   })
 }
 
 function liveHtmlForMcpApp(
   mcpApp: { mcpServerId?: string; resourceUri: string },
-  htmlByKey: Map<string, string>,
+  htmlByKey: Map<string, McpAppResource>,
 ): string | undefined {
   if (mcpApp.mcpServerId) {
-    return htmlByKey.get(mcpAppHtmlCacheKey(mcpApp.mcpServerId, mcpApp.resourceUri))
+    return htmlByKey.get(mcpAppHtmlCacheKey(mcpApp.mcpServerId, mcpApp.resourceUri))?.html
   }
 
   const suffix = `::${mcpApp.resourceUri}`
-  for (const [cacheKey, html] of htmlByKey) {
-    if (cacheKey.endsWith(suffix)) return html
+  for (const [cacheKey, appResource] of htmlByKey) {
+    if (cacheKey.endsWith(suffix)) return appResource.html
   }
   return undefined
 }
 
 export function applyLiveMcpAppHtml(
   toolCalls: AgentMessageToolCall[] | null | undefined,
-  htmlByKey: Map<string, string>,
+  htmlByKey: Map<string, McpAppResource>,
 ): AgentSessionToolCallDto[] | undefined {
   if (!toolCalls) return undefined
 
@@ -66,7 +70,7 @@ export function applyLiveMcpAppHtml(
 
 export function toDto(
   message: AgentMessage,
-  htmlByKey: Map<string, string> = new Map(),
+  htmlByKey: Map<string, McpAppResource> = new Map(),
 ): AgentSessionMessageDto {
   if (!message.agentSettings) {
     throw new Error("Agent settings must be loaded to convert message to DTO")
@@ -89,7 +93,7 @@ export function toDto(
 
 export function toDtos(
   messages: AgentMessage[],
-  htmlByKey: Map<string, string> = new Map(),
+  htmlByKey: Map<string, McpAppResource> = new Map(),
 ): AgentSessionMessageDto[] {
   return messages.map((message) => toDto(message, htmlByKey))
 }

@@ -31,7 +31,7 @@ import { type EnabledMcpServer, McpServersService } from "@/domains/mcp-servers/
 import { ProjectsService } from "@/domains/projects/projects.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { McpClientService } from "@/external/mcp"
-import { readMcpAppHtml } from "@/external/mcp/mcp-app-resource"
+import { readMcpAppResource } from "@/external/mcp/mcp-app-resource"
 import { getMcpAppResourceUri } from "@/external/mcp/mcp-app-resource-uri"
 import { applyMcpAppToolDescription } from "@/external/mcp/mcp-app-tool-description"
 import type { McpSession } from "@/external/mcp/mcp-client.service"
@@ -371,7 +371,7 @@ export class ToolsService {
     if (validatedAppResources.has(cacheKey)) return true
 
     try {
-      readMcpAppHtml({
+      readMcpAppResource({
         resource: await mcpSession.readResource(resourceUri),
         resourceUri,
       })

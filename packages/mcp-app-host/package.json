@@ -1,0 +1,23 @@
+{
+  "name": "@caseai-connect/mcp-app-host",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@caseai-connect/api-contracts": "*",
+    "@modelcontextprotocol/ext-apps": "^1.7.5",
+    "@modelcontextprotocol/sdk": "^1.29.0"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "*",
+    "vitest": "^4.0.0"
+  }
+}

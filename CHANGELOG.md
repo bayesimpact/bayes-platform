@@ -31,6 +31,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Review campaigns: test conversations no longer appear among your App conversations.
 
 ### Security
+- MCP App cards: each card now runs in its own isolated frame, limited to the domains it declares.
 
 ## [26.10.4] - 2026-10-18
 

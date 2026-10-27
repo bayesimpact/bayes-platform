@@ -11,6 +11,7 @@ import type {
   AgentSessionMcpAppDto,
   AgentSessionMcpAppHtmlDto,
   AgentSessionToolCallDto,
+  McpAppCspDto,
   StreamEventPayload,
   ToolName,
 } from "../agents/shared/agent-session-messages/agent-session-messages.dto"
@@ -58,11 +59,24 @@ export type PublicToolCallDto = {
   mcpApp?: PublicMcpAppDto
 }
 
+/**
+ * Domains an MCP App declares in its resource metadata (`_meta.ui.csp`). The client builds
+ * the card's Content Security Policy from them.
+ */
+export type PublicMcpAppCspDto = {
+  connectDomains?: string[]
+  resourceDomains?: string[]
+  frameDomains?: string[]
+  baseUriDomains?: string[]
+}
+
 /** Current HTML of one MCP App card, served by the `mcp-app-html` route. */
 export type PublicMcpAppHtmlDto = {
   mcpServerId: string
   resourceUri: string
   html: string
+  /** Absent when the app declares no domain: the strictest policy applies. */
+  csp?: PublicMcpAppCspDto
 }
 
 export type PublicSessionMessageDto = {
@@ -121,6 +135,7 @@ export type PublicStreamEventPayload =
 export type PublicContractPins = [
   Assert<Equals<PublicMcpAppDto, AgentSessionMcpAppDto>>,
   Assert<Equals<PublicToolCallDto, AgentSessionToolCallDto>>,
+  Assert<Equals<PublicMcpAppCspDto, McpAppCspDto>>,
   Assert<Equals<PublicMcpAppHtmlDto, AgentSessionMcpAppHtmlDto>>,
   Assert<Equals<PublicStreamEventPayload, StreamEventPayload>>,
   Assert<Equals<typeof PUBLIC_API_MAJOR, "v1">>,
