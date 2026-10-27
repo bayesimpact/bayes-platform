@@ -174,6 +174,7 @@ export type BackofficeProjectMember = {
   userEmail: string
   userName: string | null
   role: LegacyMembershipRole
+  canRead: boolean
 }
 
 export type BackofficeProjectAgent = {
@@ -230,6 +231,7 @@ const toBackofficeProjectMember = (dto: BackofficeProjectMemberDto): BackofficeP
   userEmail: dto.userEmail,
   userName: dto.userName,
   role: toLegacyRole(dto.roles) ?? "member",
+  canRead: dto.canRead,
 })
 
 const toBackofficeProjectAgent = (dto: BackofficeProjectAgentDto): BackofficeProjectAgent => ({

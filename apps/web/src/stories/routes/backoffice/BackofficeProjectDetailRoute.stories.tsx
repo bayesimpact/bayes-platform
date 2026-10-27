@@ -6,6 +6,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite"
 import {
   backofficeProjectAgentFactory,
   backofficeProjectDetailFactory,
+  backofficeProjectMemberFactory,
 } from "@/backoffice/features/backoffice/backoffice.factory"
 import { backofficeRoutes } from "@/backoffice/routes/BackofficeRoutes"
 import { BackofficeProjectRoutes } from "@/backoffice/routes/helpers"
@@ -24,34 +25,38 @@ const BACKOFFICE_STORY_PROJECT_ID = "9a1e5c3b-2d4f-4b6a-8c7d-0e1f2a3b4c5d"
 type StoryArgs = BackofficeStoryArgs & {
   canReadOrganization?: boolean
   canReadAgents?: boolean
+  canReadMembers?: boolean
 }
 
-const decorator = buildDecorator<StoryArgs>(({ canReadOrganization, canReadAgents, ...args }) => {
-  const { baseSeeds, organizations, users } = buildBackofficeData(args)
-  const projectDetail = backofficeProjectDetailFactory.build({
-    id: BACKOFFICE_STORY_PROJECT_ID,
-    organization: {
-      name: "Acme Corp",
-      permissions: canReadOrganization ? [BACKOFFICE_ORGANIZATION_READ_PERMISSION] : [],
-    },
-    agents: ["Helpful Assistant", "Support Agent"].map((name) =>
-      backofficeProjectAgentFactory.build({
-        name,
-        permissions: canReadAgents ? [BACKOFFICE_AGENT_READ_PERMISSION] : [],
-      }),
-    ),
-  })
-  return {
-    state: mergeSeeds(baseSeeds, seed.backoffice.projectDetail(projectDetail)),
-    services: {
-      backoffice: buildMockBackofficeService({
-        organizations,
-        users,
-        projectDetails: { [projectDetail.id]: projectDetail },
-      }),
-    },
-  }
-})
+const decorator = buildDecorator<StoryArgs>(
+  ({ canReadOrganization, canReadAgents, canReadMembers, ...args }) => {
+    const { baseSeeds, organizations, users } = buildBackofficeData(args)
+    const projectDetail = backofficeProjectDetailFactory.build({
+      id: BACKOFFICE_STORY_PROJECT_ID,
+      organization: {
+        name: "Acme Corp",
+        permissions: canReadOrganization ? [BACKOFFICE_ORGANIZATION_READ_PERMISSION] : [],
+      },
+      members: backofficeProjectMemberFactory.buildList(2, { canRead: canReadMembers }),
+      agents: ["Helpful Assistant", "Support Agent"].map((name) =>
+        backofficeProjectAgentFactory.build({
+          name,
+          permissions: canReadAgents ? [BACKOFFICE_AGENT_READ_PERMISSION] : [],
+        }),
+      ),
+    })
+    return {
+      state: mergeSeeds(baseSeeds, seed.backoffice.projectDetail(projectDetail)),
+      services: {
+        backoffice: buildMockBackofficeService({
+          organizations,
+          users,
+          projectDetails: { [projectDetail.id]: projectDetail },
+        }),
+      },
+    }
+  },
+)
 
 const meta = {
   title: "routes/backoffice/projects/detail",
@@ -60,8 +65,14 @@ const meta = {
     ...backofficeStoryArgTypes,
     canReadOrganization: { control: "boolean" },
     canReadAgents: { control: "boolean" },
+    canReadMembers: { control: "boolean" },
   },
-  args: { ...backofficeStoryArgs, canReadOrganization: true, canReadAgents: true },
+  args: {
+    ...backofficeStoryArgs,
+    canReadOrganization: true,
+    canReadAgents: true,
+    canReadMembers: true,
+  },
   decorators: [decorator],
   render: render({
     path: BackofficeProjectRoutes.project.build({ projectId: BACKOFFICE_STORY_PROJECT_ID }),
@@ -80,4 +91,12 @@ export const WithoutOrganizationAccess: Story = {
 
 export const WithoutOrganizationAndAgentAccess: Story = {
   args: { canReadOrganization: false, canReadAgents: false },
+}
+
+export const WithoutMemberAccess: Story = {
+  args: { canReadMembers: false },
+}
+
+export const ProjectAccessOnly: Story = {
+  args: { canReadOrganization: false, canReadAgents: false, canReadMembers: false },
 }

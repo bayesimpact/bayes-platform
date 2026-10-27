@@ -97,7 +97,9 @@ function WithData() {
             label: member.userEmail,
             sublabel: member.userName ?? undefined,
             role: member.role,
-            to: BackofficeUserRoutes.user.build({ userId: member.userId }),
+            to: member.canRead
+              ? BackofficeUserRoutes.user.build({ userId: member.userId })
+              : undefined,
           }))}
           emptyText="No members"
         />

@@ -149,6 +149,7 @@ export const backofficeProjectMemberFactory = BackofficeProjectMemberFactory.def
     userEmail: params.userEmail ?? faker.internet.email().toLowerCase(),
     userName: params.userName ?? faker.person.fullName(),
     role: params.role ?? "member",
+    canRead: params.canRead ?? true,
   }),
 )
 

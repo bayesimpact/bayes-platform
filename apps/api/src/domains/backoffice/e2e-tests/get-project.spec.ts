@@ -92,6 +92,7 @@ describe("Backoffice - get project", () => {
         userEmail: user.email,
         userName: user.name,
         roles: [expect.objectContaining({ key: "project_owner", scopeType: "project" })],
+        canRead: true,
       },
     ])
     expect(returned.agents).toEqual([
@@ -103,7 +104,7 @@ describe("Backoffice - get project", () => {
     ])
   })
 
-  it("gives a global role its permissions on the organization and the agents", async () => {
+  it("gives a global role its permissions on the organization, the agents and the members", async () => {
     const { project } = await createContextViewedWithGlobalRole(assignPlatformSuperadminToUser)
     const response = await request({
       route: BackofficeRoutes.getProject,
@@ -113,9 +114,10 @@ describe("Backoffice - get project", () => {
     expectResponse(response, 200)
     expect(response.body.data.organization.permissions).toContain("backoffice.organization.read")
     expect(response.body.data.agents[0]?.permissions).toContain("backoffice.agent.read")
+    expect(response.body.data.members).toEqual([expect.objectContaining({ canRead: true })])
   })
 
-  it("gives no read permission on the organization and the agents to a caller who can only read the project", async () => {
+  it("gives no read permission on the organization, the agents and the members to a caller who can only read the project", async () => {
     const { project, agent } = await createContextViewedWithGlobalRole(assignPlatformStaffToUser)
     const response = await request({
       route: BackofficeRoutes.getProject,
@@ -127,6 +129,7 @@ describe("Backoffice - get project", () => {
       "backoffice.organization.read",
     )
     expect(response.body.data.agents).toEqual([{ id: agent.id, name: agent.name, permissions: [] }])
+    expect(response.body.data.members).toEqual([expect.objectContaining({ canRead: false })])
   })
 
   it("returns empty members and agents for a project with none", async () => {

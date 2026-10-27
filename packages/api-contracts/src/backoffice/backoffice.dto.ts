@@ -77,6 +77,7 @@ export type BackofficeProjectMemberDto = {
   userEmail: string
   userName: string | null
   roles: MembershipRoleDto[]
+  canRead: boolean
 }
 
 export type BackofficeProjectAgentDto = {

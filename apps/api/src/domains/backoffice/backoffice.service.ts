@@ -408,6 +408,7 @@ export class BackofficeService {
     project: Project
     organizationPermissions: string[]
     members: ProjectMembershipModel[]
+    visibleUsers: ResourceIdsScope
     agents: { agent: Agent; permissions: string[] }[]
   } | null> {
     const project = await this.projectRepository
@@ -431,10 +432,10 @@ export class BackofficeService {
         .getMany(),
     ])
 
-    // the page links to the organization and to each agent: the caller needs their permissions
-    // to know which links lead somewhere
+    // the page links to the organization, to each agent and to each member: the caller needs
+    // their permissions to know which links lead somewhere
     const globalPermissions = await this.permissionService.listGlobalPermissions(requestingUserId)
-    const [organizationPermissions, agentsPermissions] = await Promise.all([
+    const [organizationPermissions, agentsPermissions, visibleUsers] = await Promise.all([
       this.listPermissionsOn({
         userId: requestingUserId,
         globalPermissions,
@@ -451,12 +452,14 @@ export class BackofficeService {
           }),
         ),
       ),
+      this.findVisibleUserIds(requestingUserId),
     ])
 
     return {
       project,
       organizationPermissions,
       members,
+      visibleUsers,
       agents: agents.map((agent, index) => ({
         agent,
         permissions: agentsPermissions[index] ?? [],
