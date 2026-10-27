@@ -17,6 +17,7 @@ export type DocumentSource = {
   indexedDocumentCount: number
   lastSyncedAt: TimeType | null
   status: DocumentSourceStatus
+  tagIds: string[]
   createdAt: TimeType
   updatedAt: TimeType
 }

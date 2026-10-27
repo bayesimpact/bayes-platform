@@ -102,6 +102,32 @@
   },
   {
     "type": "cycle",
+    "from": "src/domains/documents/sources/document-source.entity.ts",
+    "to": "src/domains/documents/tags/document-tag.entity.ts",
+    "rule": {
+      "severity": "error",
+      "name": "no-circular"
+    },
+    "cycle": [
+      {
+        "name": "src/domains/documents/tags/document-tag.entity.ts",
+        "dependencyTypes": [
+          "aliased",
+          "aliased-tsconfig",
+          "aliased-tsconfig-paths",
+          "local",
+          "type-only",
+          "import"
+        ]
+      },
+      {
+        "name": "src/domains/documents/sources/document-source.entity.ts",
+        "dependencyTypes": ["local", "type-only", "import"]
+      }
+    ]
+  },
+  {
+    "type": "cycle",
     "from": "src/domains/agents/agent.entity.ts",
     "to": "src/domains/mcp-servers/agent-mcp-server.entity.ts",
     "rule": {

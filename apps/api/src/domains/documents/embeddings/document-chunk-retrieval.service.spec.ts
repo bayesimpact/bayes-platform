@@ -141,5 +141,9 @@ describe("DocumentChunkRetrievalService", () => {
       expect.stringContaining("document_document_tag"),
       { documentTagIds: ["tag-1", "tag-2"] },
     )
+    expect(innerQueryBuilder.andWhere).toHaveBeenCalledWith(
+      expect.stringContaining("document_source_document_tag"),
+      { documentTagIds: ["tag-1", "tag-2"] },
+    )
   })
 })

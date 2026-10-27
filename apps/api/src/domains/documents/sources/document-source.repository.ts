@@ -4,6 +4,7 @@ import type { RequiredConnectScope } from "@/common/entities/connect-required-fi
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
 import { Document } from "@/domains/documents/document.entity"
+import type { DocumentTag } from "@/domains/documents/tags/document-tag.entity"
 import { DocumentSource } from "./document-source.entity"
 
 const UNIQUE_VIOLATION = "23505"
@@ -31,6 +32,11 @@ export type DocumentSourceAppRecord = {
 export type DocumentSourceWithApp = {
   documentSource: DocumentSource
   app: DocumentSourceAppRecord | null
+}
+
+export type DocumentSourceTagLink = {
+  documentSourceId: string
+  documentTagId: string
 }
 
 export type DocumentSourceStats = {
@@ -92,6 +98,20 @@ export class DocumentSourceRepository {
     }))
   }
 
+  async listTagLinks(connectScope: RequiredConnectScope): Promise<DocumentSourceTagLink[]> {
+    const rows: DocumentSourceTagLink[] = await this.repo()
+      .createQueryBuilder("documentSource")
+      .innerJoin("documentSource.tags", "tag")
+      .select("documentSource.id", "documentSourceId")
+      .addSelect("tag.id", "documentTagId")
+      .where("documentSource.organizationId = :organizationId", {
+        organizationId: connectScope.organizationId,
+      })
+      .andWhere("documentSource.projectId = :projectId", { projectId: connectScope.projectId })
+      .getRawMany()
+    return rows
+  }
+
   async listWithApp(connectScope: RequiredConnectScope): Promise<DocumentSourceWithApp[]> {
     const { entities, raw } = await this.repo()
       .createQueryBuilder("documentSource")
@@ -116,14 +136,24 @@ export class DocumentSourceRepository {
     })
   }
 
-  findOne(connectScope: RequiredConnectScope, id: string): Promise<DocumentSource | null> {
+  findOne(
+    connectScope: RequiredConnectScope,
+    id: string,
+    options?: { withTags?: boolean },
+  ): Promise<DocumentSource | null> {
     return this.repo().findOne({
       where: {
         id,
         organizationId: connectScope.organizationId,
         projectId: connectScope.projectId,
       },
+      ...(options?.withTags ? { relations: ["tags"] } : {}),
     })
+  }
+
+  saveTags(documentSource: DocumentSource, tags: DocumentTag[]): Promise<DocumentSource> {
+    documentSource.tags = tags
+    return this.repo().save(documentSource)
   }
 
   async createOne(

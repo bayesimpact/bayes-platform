@@ -1,6 +1,16 @@
-import { Column, Index, JoinColumn, ManyToOne, OneToMany, type Relation } from "typeorm"
+import {
+  Column,
+  Index,
+  JoinColumn,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  OneToMany,
+  type Relation,
+} from "typeorm"
 import { ConnectEntity, ConnectEntityBase } from "@/common/entities/connect-entity"
 import { Document } from "@/domains/documents/document.entity"
+import type { DocumentTag } from "@/domains/documents/tags/document-tag.entity"
 import { Project } from "@/domains/projects/project.entity"
 
 // Declared on the entity so migration:generate emits it and later generates do not drop it.
@@ -49,4 +59,13 @@ export class DocumentSource extends ConnectEntityBase {
     (document) => document.documentSource,
   )
   documents!: Document[]
+
+  /** Inherited by every document of the source when an agent retrieves by tag. */
+  @ManyToMany("DocumentTag", (tag: DocumentTag) => tag.documentSources)
+  @JoinTable({
+    name: "document_source_document_tag",
+    joinColumn: { name: "document_source_id", referencedColumnName: "id" },
+    inverseJoinColumn: { name: "document_tag_id", referencedColumnName: "id" },
+  })
+  tags!: DocumentTag[]
 }

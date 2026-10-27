@@ -6,6 +6,7 @@
     "columns": {
       "source": "Source",
       "app": "Application",
+      "tags": "Tags",
       "docs": "Docs",
       "lastSync": "Dernière synchro",
       "status": "Statut"

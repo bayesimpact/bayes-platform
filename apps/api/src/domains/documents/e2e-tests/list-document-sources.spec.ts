@@ -10,6 +10,8 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { createDocumentForProject } from "@/domains/documents/document.factory"
+import { DocumentTag } from "@/domains/documents/tags/document-tag.entity"
+import { documentTagFactory } from "@/domains/documents/tags/document-tag.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
@@ -110,6 +112,7 @@ describe("Document sources - getAll", () => {
         indexedDocumentCount: 0,
         lastSyncedAt: syncedAt.getTime(),
         status: "error",
+        tagIds: [],
       }),
     ])
   })
@@ -180,5 +183,85 @@ describe("Document sources - getAll", () => {
       token: accessToken,
     })
     expectResponse(response, 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+  })
+
+  describe("updateOne", () => {
+    const createSourceAndTags = async (role: "owner" | "admin" | "member" = "admin") => {
+      const { organization, project } = await createContext(role)
+      const connectScope = { organizationId: organization.id, projectId: project.id }
+      const documentSource = await documentSourcesService.createOne(connectScope, {
+        name: "Helpful Assistant",
+        type: "site",
+        externalId: "site-1",
+        baseUrl: null,
+        config: null,
+      })
+      const [productTag, pricingTag] = await setup
+        .getRepository(DocumentTag)
+        .save([
+          documentTagFactory.transient({ organization, project }).build({ name: "Product" }),
+          documentTagFactory.transient({ organization, project }).build({ name: "Pricing" }),
+        ])
+      return { documentSource, productTag: productTag!, pricingTag: pricingTag! }
+    }
+
+    const update = (
+      documentSourceId: string,
+      payload: { tagsToAdd?: string[]; tagsToRemove?: string[] },
+    ) =>
+      request({
+        route: DocumentSourcesRoutes.updateOne,
+        pathParams: removeNullish({ organizationId, projectId, documentSourceId }),
+        token: accessToken,
+        request: { payload },
+      })
+
+    it("adds and removes tags on a source for a project admin", async () => {
+      const { documentSource, productTag, pricingTag } = await createSourceAndTags()
+
+      expectResponse(
+        await update(documentSource.id, { tagsToAdd: [productTag.id, pricingTag.id] }),
+        200,
+      )
+      const [listedWithTwoTags] = (await subject()).body.data
+      expect([...(listedWithTwoTags?.tagIds ?? [])].sort()).toEqual(
+        [productTag.id, pricingTag.id].sort(),
+      )
+
+      expectResponse(await update(documentSource.id, { tagsToRemove: [productTag.id] }), 200)
+      expect((await subject()).body.data[0]?.tagIds).toEqual([pricingTag.id])
+    })
+
+    it("ignores a tag that the source already has", async () => {
+      const { documentSource, productTag } = await createSourceAndTags()
+
+      expectResponse(await update(documentSource.id, { tagsToAdd: [productTag.id] }), 200)
+      expectResponse(await update(documentSource.id, { tagsToAdd: [productTag.id] }), 200)
+      expect((await subject()).body.data[0]?.tagIds).toEqual([productTag.id])
+    })
+
+    it("rejects a tag of another project", async () => {
+      const { documentSource } = await createSourceAndTags()
+      const { organization: otherOrganization, project: otherProject } =
+        await createOrganizationWithProject(repositories)
+      const otherTag = await setup
+        .getRepository(DocumentTag)
+        .save(
+          documentTagFactory
+            .transient({ organization: otherOrganization, project: otherProject })
+            .build(),
+        )
+
+      expectResponse(await update(documentSource.id, { tagsToAdd: [otherTag.id] }), 404)
+    })
+
+    it("does not allow a project member to tag a source", async () => {
+      const { documentSource, productTag } = await createSourceAndTags("member")
+      expectResponse(
+        await update(documentSource.id, { tagsToAdd: [productTag.id] }),
+        403,
+        AUTH_ERRORS.UNAUTHORIZED_RESOURCE,
+      )
+    })
   })
 })

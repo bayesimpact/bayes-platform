@@ -28,6 +28,7 @@ export const documentTagFactory = DocumentTagFactory.define(
       updatedAt: params.updatedAt || now,
       deletedAt: params.deletedAt || null,
       documents: params.documents || [],
+      documentSources: params.documentSources || [],
       agents: params.agents || [],
     } satisfies DocumentTag
   },

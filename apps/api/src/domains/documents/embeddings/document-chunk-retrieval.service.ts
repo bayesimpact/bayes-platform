@@ -195,12 +195,21 @@ export class DocumentChunkRetrievalService {
       return
     }
 
+    // A document matches through its own tags or through the tags of its document source.
     queryBuilder.andWhere(
-      `EXISTS (
-        SELECT 1
-        FROM document_document_tag document_tag_link
-        WHERE document_tag_link.document_id = document.id
-          AND document_tag_link.document_tag_id IN (:...documentTagIds)
+      `(
+        EXISTS (
+          SELECT 1
+          FROM document_document_tag document_tag_link
+          WHERE document_tag_link.document_id = document.id
+            AND document_tag_link.document_tag_id IN (:...documentTagIds)
+        )
+        OR EXISTS (
+          SELECT 1
+          FROM document_source_document_tag source_tag_link
+          WHERE source_tag_link.document_source_id = document.document_source_id
+            AND source_tag_link.document_tag_id IN (:...documentTagIds)
+        )
       )`,
       { documentTagIds },
     )
