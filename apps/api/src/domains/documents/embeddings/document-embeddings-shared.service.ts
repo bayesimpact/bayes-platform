@@ -13,13 +13,8 @@ import { resolveEmbeddingModelNames } from "./document-embeddings.config"
 import type { CreateDocumentEmbeddingsJobPayload } from "./document-embeddings.types"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { EmbedderService } from "./embedders/embedder.service"
-import type { Embeddings } from "./embedders/embedders.types"
-import { toSparseVectorSql } from "./embedders/sparse-weights"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectEmbeddingModelRepository } from "./project-embedding-models/project-embedding-model.repository"
-
-/** Vectors of one model for every chunk of a document; `sparse` only for models with a lexical head. */
-export type ModelEmbeddings = Embeddings
 
 type ChunkInsertionScope = {
   documentId: string
@@ -73,7 +68,7 @@ export class DocumentEmbeddingsSharedService {
   }: {
     chunks: string[]
     projectId: string
-  }): Promise<Map<string, ModelEmbeddings>> {
+  }): Promise<Map<string, number[][]>> {
     const modelNames = [
       ...resolveEmbeddingModelNames(),
       ...(await this.projectEmbeddingModelRepository.listActiveModelNames(projectId)),
@@ -87,8 +82,8 @@ export class DocumentEmbeddingsSharedService {
   }: {
     chunks: string[]
     modelNames: string[]
-  }): Promise<Map<string, ModelEmbeddings>> {
-    const embeddingsByModelName = new Map<string, ModelEmbeddings>()
+  }): Promise<Map<string, number[][]>> {
+    const embeddingsByModelName = new Map<string, number[][]>()
     for (const modelName of new Set(modelNames)) {
       embeddingsByModelName.set(
         modelName,
@@ -109,8 +104,8 @@ export class DocumentEmbeddingsSharedService {
   }: {
     projectId: string
     chunks: string[]
-    embeddingsByModelName: Map<string, ModelEmbeddings>
-  }): Promise<Map<string, ModelEmbeddings>> {
+    embeddingsByModelName: Map<string, number[][]>
+  }): Promise<Map<string, number[][]>> {
     const activeModelNames =
       await this.projectEmbeddingModelRepository.listActiveModelNames(projectId)
     const missingModelNames = activeModelNames.filter(
@@ -135,7 +130,7 @@ export class DocumentEmbeddingsSharedService {
     chunks: string[]
     doclingChunks?: DoclingChunk[]
     doclingParentChunks?: DoclingParentChunk[]
-    embeddingsByModelName: Map<string, ModelEmbeddings>
+    embeddingsByModelName: Map<string, number[][]>
   }): Promise<void> {
     const completeEmbeddingsByModelName = await this.addModelsEnabledMeanwhile({
       projectId: scope.projectId,
@@ -185,7 +180,7 @@ export class DocumentEmbeddingsSharedService {
     scope: ChunkInsertionScope
     chunks: string[]
     doclingChunks?: DoclingChunk[]
-    embeddingsByModelName: Map<string, ModelEmbeddings>
+    embeddingsByModelName: Map<string, number[][]>
   }): Promise<void> {
     for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
       const doclingChunk = doclingChunks?.[chunkIndex]
@@ -248,7 +243,7 @@ export class DocumentEmbeddingsSharedService {
     scope: ChunkInsertionScope
     chunkId: string
     chunkIndex: number
-    embeddingsByModelName: Map<string, ModelEmbeddings>
+    embeddingsByModelName: Map<string, number[][]>
   }): Promise<void> {
     for (const [embeddingModelName, embeddings] of embeddingsByModelName.entries()) {
       // NOTE: raw SQL because TypeORM 0.3.28 does not support pgvector columns.
@@ -261,19 +256,9 @@ export class DocumentEmbeddingsSharedService {
           scope.projectId,
           chunkId,
           embeddingModelName,
-          toSql(embeddings.dense[chunkIndex]),
+          toSql(embeddings[chunkIndex]),
         ],
       )
-      const sparseEmbedding = toSparseVectorSql(embeddingModelName, embeddings.sparse?.[chunkIndex])
-      if (sparseEmbedding !== null) {
-        await this.dataSource.query(
-          `INSERT INTO document_chunk_sparse_embedding (document_chunk_embedding_id, sparse_embedding)
-           SELECT id, $3::sparsevec FROM document_chunk_embedding
-           WHERE document_chunk_id = $1 AND model_name = $2
-           ON CONFLICT (document_chunk_embedding_id) DO NOTHING`,
-          [chunkId, embeddingModelName, sparseEmbedding],
-        )
-      }
     }
   }
 

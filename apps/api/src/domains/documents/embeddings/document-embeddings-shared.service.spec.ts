@@ -12,10 +12,9 @@ function buildSharedService() {
   const dataSource = { query: jest.fn().mockResolvedValue([]) }
   const projectEmbeddingModelRepository = { listActiveModelNames: jest.fn().mockResolvedValue([]) }
   const embedderService = {
-    embedDocuments: jest.fn(async ({ texts }: { modelName: string; texts: string[] }) => ({
-      dense: texts.map(() => [0.1, 0.2]),
-      sparse: null,
-    })),
+    embedDocuments: jest.fn(async ({ texts }: { modelName: string; texts: string[] }) =>
+      texts.map(() => [0.1, 0.2]),
+    ),
   }
   const service = new DocumentEmbeddingsSharedService(
     {} as DocumentsService,
@@ -55,7 +54,7 @@ describe("DocumentEmbeddingsSharedService", () => {
       "gemini-embedding-001",
       EmbeddingModel.BgeM3,
     ])
-    expect(embeddingsByModelName.get(EmbeddingModel.BgeM3)?.dense).toHaveLength(2)
+    expect(embeddingsByModelName.get(EmbeddingModel.BgeM3)).toHaveLength(2)
   })
 
   it("fails when an enabled embedder fails, so the document keeps one set of chunks", async () => {
@@ -65,7 +64,7 @@ describe("DocumentEmbeddingsSharedService", () => {
       if (modelName === EmbeddingModel.BgeM3) {
         throw new Error("Embedder BAAI/bge-m3 answered 503")
       }
-      return { dense: texts.map(() => [0.1]), sparse: null }
+      return texts.map(() => [0.1])
     })
 
     await expect(

@@ -1,5 +1,0 @@
-# HTTP embedder (apps/embedder): sentence-transformers loads BAAI/bge-m3 from the HuggingFace hub,
-# FastAPI serves it. Torch comes first, from the index matching the hardware (see Dockerfile).
-fastapi>=0.115,<1
-uvicorn[standard]>=0.32,<1
-sentence-transformers>=5.1,<6

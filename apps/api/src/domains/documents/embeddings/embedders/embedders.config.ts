@@ -2,8 +2,10 @@ import { EmbeddingModel, isLocalEmbeddingModel } from "@caseai-connect/api-contr
 import { readPositiveIntEnv } from "@/config/positive-int-env"
 
 /**
- * Environment prefix of each self-hosted model: `EMBEDDER_<KEY>_URL` and `EMBEDDER_<KEY>_API_KEY`.
- * A model of the catalog with no URL in the environment is simply not offered by the deployment.
+ * Environment prefix of each self-hosted model: `EMBEDDER_<KEY>_URL` (base URL of an OpenAI
+ * embeddings server, without /v1), `EMBEDDER_<KEY>_API_KEY` and `EMBEDDER_<KEY>_MODEL` (the name
+ * the server knows the model by, when it is not the catalog id, e.g. `bge-m3` on Ollama). A model
+ * of the catalog with no URL in the environment is simply not offered by the deployment.
  */
 const HTTP_EMBEDDER_ENV_KEYS: Partial<Record<EmbeddingModel, string>> = {
   [EmbeddingModel.BgeM3]: "BGE_M3",
@@ -16,6 +18,7 @@ const DEFAULT_EMBEDDER_QUERY_TIMEOUT_MS = 3_000
 export type HttpEmbedderConfig = {
   url: string
   apiKey: string | undefined
+  servedModelName: string
 }
 
 export function resolveHttpEmbedderConfig(modelName: string): HttpEmbedderConfig | undefined {
@@ -27,6 +30,7 @@ export function resolveHttpEmbedderConfig(modelName: string): HttpEmbedderConfig
   return {
     url: url.replace(/\/+$/, ""),
     apiKey: process.env[`EMBEDDER_${envKey}_API_KEY`]?.trim() || undefined,
+    servedModelName: process.env[`EMBEDDER_${envKey}_MODEL`]?.trim() || modelName,
   }
 }
 

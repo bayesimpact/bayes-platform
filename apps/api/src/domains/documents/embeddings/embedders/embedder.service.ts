@@ -14,19 +14,13 @@ import {
   type HttpEmbedderConfig,
   resolveHttpEmbedderConfig,
 } from "./embedders.config"
-import type {
-  EmbedderInputType,
-  Embeddings,
-  HttpEmbedRequest,
-  HttpEmbedResponse,
-  QueryEmbedding,
-  SparseWeights,
-} from "./embedders.types"
+import type { OpenAiEmbeddingsRequest, OpenAiEmbeddingsResponse } from "./embedders.types"
 
 /**
  * The one way the platform turns text into vectors, for chunks and queries alike. Self-hosted
- * models of the catalog are reached over HTTP (`POST {url}/v1/embed`); every other model name is
- * a Vertex model called through the AI SDK.
+ * models of the catalog are reached through the OpenAI embeddings API (`POST {url}/v1/embeddings`),
+ * served by any compatible server; every other model name is a Vertex model called through the
+ * AI SDK.
  */
 @Injectable()
 export class EmbedderService {
@@ -45,27 +39,22 @@ export class EmbedderService {
     }
   }
 
+  /** One vector per text, in order. */
   async embedDocuments({
     modelName,
     texts,
   }: {
     modelName: string
     texts: string[]
-  }): Promise<Embeddings> {
-    if (texts.length === 0) return { dense: [], sparse: null }
+  }): Promise<number[][]> {
+    if (texts.length === 0) return []
     const httpConfig = this.resolveHttpConfigOrThrow(modelName)
     return httpConfig
       ? this.embedDocumentsOverHttp({ modelName, texts, config: httpConfig })
       : this.embedDocumentsWithVertex({ modelName, texts })
   }
 
-  async embedQuery({
-    modelName,
-    text,
-  }: {
-    modelName: string
-    text: string
-  }): Promise<QueryEmbedding> {
+  async embedQuery({ modelName, text }: { modelName: string; text: string }): Promise<number[]> {
     const httpConfig = this.resolveHttpConfigOrThrow(modelName)
     if (!httpConfig) {
       const { project, location } = resolveVertexConfig()
@@ -73,21 +62,19 @@ export class EmbedderService {
         model: createVertex({ project, location }).textEmbeddingModel(modelName),
         value: text,
       })
-      return { embedding, sparseEmbedding: null }
+      return embedding
     }
 
-    const { dense, sparse } = await this.requestHttpEmbeddings({
+    const [embedding] = await this.requestHttpEmbeddings({
       modelName,
       config: httpConfig,
       texts: [text],
-      inputType: "query",
       timeoutMs: getEmbedderQueryTimeoutMs(),
     })
-    const [embedding] = dense
     if (!embedding) {
       throw new Error(`Embedder ${modelName} returned no vector for the query`)
     }
-    return { embedding, sparseEmbedding: sparse?.[0] ?? null }
+    return embedding
   }
 
   private resolveHttpConfigOrThrow(modelName: string): HttpEmbedderConfig | undefined {
@@ -102,22 +89,22 @@ export class EmbedderService {
   }: {
     modelName: string
     texts: string[]
-  }): Promise<Embeddings> {
+  }): Promise<number[][]> {
     const { project, location } = resolveVertexConfig()
     const batchSize = resolveMaxVertexEmbeddingBatchSize()
     this.logger.log(
       `Creating embeddings with Vertex model ${modelName} in project ${project}, location ${location}`,
     )
     const embeddingModel = createVertex({ project, location }).textEmbeddingModel(modelName)
-    const dense: number[][] = []
+    const vectors: number[][] = []
     for (let batchStartIndex = 0; batchStartIndex < texts.length; batchStartIndex += batchSize) {
       const { embeddings } = await embedMany({
         model: embeddingModel,
         values: texts.slice(batchStartIndex, batchStartIndex + batchSize),
       })
-      dense.push(...embeddings)
+      vectors.push(...embeddings)
     }
-    return { dense, sparse: null }
+    return vectors
   }
 
   private async embedDocumentsOverHttp({
@@ -128,50 +115,41 @@ export class EmbedderService {
     modelName: string
     texts: string[]
     config: HttpEmbedderConfig
-  }): Promise<Embeddings> {
+  }): Promise<number[][]> {
     this.logger.log(`Creating embeddings with embedder ${modelName}`)
     const batchSize = getEmbedderBatchSize()
     const timeoutMs = getEmbedderRequestTimeoutMs()
-    const dense: number[][] = []
-    const sparse: SparseWeights[] = []
-    let hasSparse = false
+    const vectors: number[][] = []
     for (let batchStartIndex = 0; batchStartIndex < texts.length; batchStartIndex += batchSize) {
-      const batch = await this.requestHttpEmbeddings({
-        modelName,
-        config,
-        texts: texts.slice(batchStartIndex, batchStartIndex + batchSize),
-        inputType: "document",
-        timeoutMs,
-      })
-      dense.push(...batch.dense)
-      if (batch.sparse) {
-        hasSparse = true
-        sparse.push(...batch.sparse)
-      }
-    }
-    if (hasSparse && sparse.length !== dense.length) {
-      throw new Error(
-        `Embedder ${modelName} returned lexical weights for only some of the ${texts.length} texts`,
+      vectors.push(
+        ...(await this.requestHttpEmbeddings({
+          modelName,
+          config,
+          texts: texts.slice(batchStartIndex, batchStartIndex + batchSize),
+          timeoutMs,
+        })),
       )
     }
-    return { dense, sparse: hasSparse ? sparse : null }
+    return vectors
   }
 
   private async requestHttpEmbeddings({
     modelName,
     config,
     texts,
-    inputType,
     timeoutMs,
   }: {
     modelName: string
     config: HttpEmbedderConfig
     texts: string[]
-    inputType: EmbedderInputType
     timeoutMs: number
-  }): Promise<Embeddings> {
-    const body: HttpEmbedRequest = { model: modelName, texts, input_type: inputType }
-    const response = await fetch(`${config.url}/v1/embed`, {
+  }): Promise<number[][]> {
+    const body: OpenAiEmbeddingsRequest = {
+      model: config.servedModelName,
+      input: texts,
+      encoding_format: "float",
+    }
+    const response = await fetch(`${config.url}/v1/embeddings`, {
       method: "POST",
       headers: {
         "content-type": "application/json",
@@ -185,18 +163,16 @@ export class EmbedderService {
       throw new Error(`Embedder ${modelName} answered ${response.status}: ${detail}`)
     }
 
-    const payload = (await response.json()) as Partial<HttpEmbedResponse>
-    if (!Array.isArray(payload.dense) || payload.dense.length !== texts.length) {
+    const payload = (await response.json()) as Partial<OpenAiEmbeddingsResponse>
+    const data = Array.isArray(payload.data) ? payload.data : []
+    if (data.length !== texts.length) {
       throw new Error(
-        `Embedder ${modelName} returned ${Array.isArray(payload.dense) ? payload.dense.length : "no"} vectors for ${texts.length} texts`,
+        `Embedder ${modelName} returned ${data.length} vectors for ${texts.length} texts`,
       )
     }
-    const sparse = Array.isArray(payload.sparse) ? payload.sparse : null
-    if (sparse && sparse.length !== texts.length) {
-      throw new Error(
-        `Embedder ${modelName} returned ${sparse.length} lexical weight maps for ${texts.length} texts`,
-      )
-    }
-    return { dense: payload.dense, sparse }
+    // The API may answer out of order: `index` is the position of the input.
+    return [...data]
+      .sort((first, second) => first.index - second.index)
+      .map((item) => item.embedding)
   }
 }

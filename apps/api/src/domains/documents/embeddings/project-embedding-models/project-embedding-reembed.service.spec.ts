@@ -63,10 +63,7 @@ describe("ProjectEmbeddingReembedService", () => {
     chunkRepository.findChunksMissingEmbedding
       .mockResolvedValueOnce([buildChunk(1), buildChunk(2)])
       .mockResolvedValueOnce([])
-    embedder.embedDocuments.mockResolvedValue({
-      dense: [[0.1], [0.2]],
-      sparse: [{ "5": 0.3 }, { "9": 0.1 }],
-    })
+    embedder.embedDocuments.mockResolvedValue([[0.1], [0.2]])
     chunkRepository.insertEmbeddingsIgnoringConflicts.mockResolvedValue(2)
 
     await service.reembedProjectChunks(payload)
@@ -91,12 +88,10 @@ describe("ProjectEmbeddingReembedService", () => {
         chunkId: "chunk-1",
         modelName: EmbeddingModel.BgeM3,
         embedding: [0.1],
-        sparseEmbedding: { "5": 0.3 },
       }),
       expect.objectContaining({
         chunkId: "chunk-2",
         embedding: [0.2],
-        sparseEmbedding: { "9": 0.1 },
       }),
     ])
     expect(modelsService.updateProgress).toHaveBeenCalledWith({ id: "row-1", processedChunks: 3 })

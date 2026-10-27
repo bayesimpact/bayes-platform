@@ -307,16 +307,16 @@ If `docling` is not recognized, restart the terminal and make sure your Python S
 
 ### Self-hosted embedding models (optional, feature flag `local-embeddings`)
 
-Projects with the flag can embed their documents with open-weight models (BAAI/bge-m3 for now), served over HTTP by `apps/embedder`. Start the shared embedder and point the API and the workers at it:
+Projects with the flag can embed their documents with open-weight models (BAAI/bge-m3 for now), served by any server of the OpenAI embeddings API (`POST /v1/embeddings`). On a laptop, Ollama or Infinity serve bge-m3; on a GPU, vLLM with `--runner pooling`. Point the API and the workers at it:
 
 ```bash
-docker compose -f infra/database/docker-compose.yaml --profile embeddings up -d embedder
 # apps/api/.env
-EMBEDDER_BGE_M3_URL=http://localhost:3003
+EMBEDDER_BGE_M3_URL=http://localhost:11434   # the server's base URL, without /v1
+EMBEDDER_BGE_M3_MODEL=bge-m3                  # Ollama's name for it; unset for vLLM
 WORKER_QUEUE_NAMES=...,project-embedding-reembed
 ```
 
-Worktree environments already point at it. To run it on the host instead (Apple Silicon), see `apps/embedder/README.md`. Then toggle the `local-embeddings` flag on the project in the back-office and enable a model from an agent's Model tab. See ADR 0028.
+Then toggle the `local-embeddings` flag on the project in the back-office and enable the model from an agent's Model tab. See ADR 0028.
 
 Docling-related environment variables:
 

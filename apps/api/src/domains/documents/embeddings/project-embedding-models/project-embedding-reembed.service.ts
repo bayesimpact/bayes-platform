@@ -54,7 +54,7 @@ export class ProjectEmbeddingReembedService {
         })
         if (chunks.length === 0) break
 
-        const { dense, sparse } = await this.embedderService.embedDocuments({
+        const vectors = await this.embedderService.embedDocuments({
           modelName,
           texts: chunks.map((chunk) => chunk.embedText),
         })
@@ -64,8 +64,7 @@ export class ProjectEmbeddingReembedService {
             projectId: chunk.projectId,
             chunkId: chunk.id,
             modelName,
-            embedding: dense[index] ?? [],
-            sparseEmbedding: sparse?.[index] ?? null,
+            embedding: vectors[index] ?? [],
           })),
         )
         processedChunks += insertedCount

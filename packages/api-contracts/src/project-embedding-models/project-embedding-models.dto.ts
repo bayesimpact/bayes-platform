@@ -5,10 +5,10 @@ import type { TimeType } from "../generic"
  * Embedding models the platform can use for document retrieval.
  *
  * `gemini-embedding-001` is the historical default, computed for every project through Vertex.
- * The local (self-hosted) models are served over HTTP by an embedder the deployment runs
- * (apps/embedder, `EMBEDDER_<MODEL>_URL`) and only exist for projects with the
- * `local-embeddings` feature flag. The enum value is the exact
- * `model_name` persisted on `document_chunk_embedding`.
+ * The local (self-hosted) models are served through the OpenAI embeddings API by a server the
+ * deployment runs (vLLM, text-embeddings-inference..., `EMBEDDER_<MODEL>_URL`) and only exist for
+ * projects with the `local-embeddings` feature flag. The enum value is the exact `model_name`
+ * persisted on `document_chunk_embedding`.
  */
 export enum EmbeddingModel {
   GeminiEmbedding001 = "gemini-embedding-001",
@@ -26,11 +26,6 @@ export type EmbeddingModelMetadata = {
   /** Vector size the model produces. Informational: the storage column is untyped. */
   dimensions: number
   label: string
-  /**
-   * Set for models that also produce lexical (sparse) weights. Retrieval then ranks by
-   * `1 × dense cosine + weight × sparse inner product`; `dimensions` is the vocabulary size.
-   */
-  sparse?: { dimensions: number; weight: number }
 }
 
 /**
@@ -47,8 +42,6 @@ export const EmbeddingModelCatalog: Record<EmbeddingModel, EmbeddingModelMetadat
     provider: EmbeddingProvider.Local,
     dimensions: 1024,
     label: "BGE-M3 (local)",
-    // Dense + sparse weighted 1 : 0.3, as in the BGE M3 paper (Chen et al., 2024).
-    sparse: { dimensions: 250002, weight: 0.3 },
   },
 }
 

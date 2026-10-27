@@ -54,7 +54,7 @@ describe("EmbedderService", () => {
     }))
     const texts = Array.from({ length: 501 }, (_, index) => `chunk-${index}`)
 
-    const { dense, sparse } = await service.embedDocuments({
+    const vectors = await service.embedDocuments({
       modelName: "gemini-embedding-001",
       texts,
     })
@@ -62,56 +62,58 @@ describe("EmbedderService", () => {
     expect(jest.mocked(embedMany).mock.calls.map(([params]) => params.values.length)).toEqual([
       250, 250, 1,
     ])
-    expect(dense).toHaveLength(501)
-    expect(sparse).toBeNull()
+    expect(vectors).toHaveLength(501)
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
-  it("embeds a self-hosted model's chunks over HTTP, in batches, with its key", async () => {
+  it("embeds a self-hosted model's chunks with the OpenAI API, in batches, with its key", async () => {
     respondWith({
-      dimensions: 2,
-      dense: [
-        [1, 0],
-        [0, 1],
+      data: [
+        { index: 1, embedding: [0, 1] },
+        { index: 0, embedding: [1, 0] },
       ],
-      sparse: [{ "5": 0.3 }, { "9": 0.1 }],
     })
-    respondWith({ dimensions: 2, dense: [[1, 1]], sparse: [{ "7": 0.2 }] })
+    respondWith({ data: [{ index: 0, embedding: [1, 1] }] })
 
-    const embeddings = await service.embedDocuments({
+    const vectors = await service.embedDocuments({
       modelName: EmbeddingModel.BgeM3,
       texts: ["a", "b", "c"],
     })
 
-    expect(embeddings).toEqual({
-      dense: [
-        [1, 0],
-        [0, 1],
-        [1, 1],
-      ],
-      sparse: [{ "5": 0.3 }, { "9": 0.1 }, { "7": 0.2 }],
-    })
+    expect(vectors).toEqual([
+      [1, 0],
+      [0, 1],
+      [1, 1],
+    ])
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit]
-    expect(url).toBe("http://embedder:3003/v1/embed")
+    expect(url).toBe("http://embedder:3003/v1/embeddings")
     expect(init.headers).toEqual(expect.objectContaining({ authorization: "Bearer secret" }))
     expect(JSON.parse(String(init.body))).toEqual({
       model: EmbeddingModel.BgeM3,
-      texts: ["a", "b"],
-      input_type: "document",
+      input: ["a", "b"],
+      encoding_format: "float",
     })
   })
 
-  it("embeds a query over HTTP and returns its lexical weights", async () => {
-    respondWith({ dimensions: 2, dense: [[0.4, 0.5]], sparse: [{ "12": 0.2 }] })
+  it("sends the name the server knows the model by", async () => {
+    process.env.EMBEDDER_BGE_M3_MODEL = "bge-m3"
+    respondWith({ data: [{ index: 0, embedding: [0.4] }] })
 
-    const queryEmbedding = await service.embedQuery({
-      modelName: EmbeddingModel.BgeM3,
-      text: "question",
-    })
+    await service.embedQuery({ modelName: EmbeddingModel.BgeM3, text: "question" })
 
-    expect(queryEmbedding).toEqual({ embedding: [0.4, 0.5], sparseEmbedding: { "12": 0.2 } })
     const [, init] = fetchMock.mock.calls[0] as [string, RequestInit]
-    expect(JSON.parse(String(init.body)).input_type).toBe("query")
+    expect(JSON.parse(String(init.body)).model).toBe("bge-m3")
+    delete process.env.EMBEDDER_BGE_M3_MODEL
+  })
+
+  it("embeds a query with the OpenAI API", async () => {
+    respondWith({ data: [{ index: 0, embedding: [0.4, 0.5] }] })
+
+    await expect(
+      service.embedQuery({ modelName: EmbeddingModel.BgeM3, text: "question" }),
+    ).resolves.toEqual([0.4, 0.5])
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit]
+    expect(JSON.parse(String(init.body)).input).toEqual(["question"])
   })
 
   it("embeds a query with Vertex for any other model", async () => {
@@ -119,7 +121,7 @@ describe("EmbedderService", () => {
 
     await expect(
       service.embedQuery({ modelName: "gemini-embedding-001", text: "question" }),
-    ).resolves.toEqual({ embedding: [0.1], sparseEmbedding: null })
+    ).resolves.toEqual([0.1])
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
@@ -132,7 +134,7 @@ describe("EmbedderService", () => {
   })
 
   it("rejects a response with fewer vectors than texts", async () => {
-    respondWith({ dimensions: 2, dense: [[1, 0]], sparse: null })
+    respondWith({ data: [{ index: 0, embedding: [1, 0] }] })
 
     await expect(
       service.embedDocuments({ modelName: EmbeddingModel.BgeM3, texts: ["a", "b"] }),

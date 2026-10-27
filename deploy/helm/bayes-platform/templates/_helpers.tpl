@@ -112,18 +112,6 @@ Is the pdf-converter deployed? "auto" follows the storage mode.
 {{- end -}}
 
 {{/*
-URL of the embedder serving the self-hosted embedding models: embedder.url, or
-the bundled embedder. Empty when there is none.
-*/}}
-{{- define "bayes-platform.embedderUrl" -}}
-{{- if .Values.embedder.url -}}
-{{- trimSuffix "/" .Values.embedder.url -}}
-{{- else if .Values.embedder.enabled -}}
-{{- printf "http://%s:%d" (include "bayes-platform.componentName" (dict "root" . "component" "embedder")) (int .Values.embedder.port) -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
 Phoenix the collector sends the traces to: otelCollector.phoenix.endpoint, or
 the bundled Phoenix.
 */}}
@@ -234,19 +222,6 @@ on other chart values.
   value: {{ printf "http://%s:%d" (include "bayes-platform.componentName" (dict "root" . "component" "pdf-converter")) (int .Values.pdfConverter.port) | quote }}
 - name: PDF_CONVERTER_AUTH
   value: none
-{{- end }}
-{{- with include "bayes-platform.embedderUrl" . }}
-- name: EMBEDDER_BGE_M3_URL
-  value: {{ . | quote }}
-- name: EMBEDDER_QUERY_TIMEOUT_MS
-  value: {{ $.Values.embedder.queryTimeoutMs | quote }}
-{{- if $.Values.embedder.apiKeySecretKey }}
-- name: EMBEDDER_BGE_M3_API_KEY
-  valueFrom:
-    secretKeyRef:
-      name: {{ include "bayes-platform.secretName" $ }}
-      key: {{ $.Values.embedder.apiKeySecretKey }}
-{{- end }}
 {{- end }}
 {{- end -}}
 

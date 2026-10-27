@@ -1,31 +1,13 @@
-export type EmbedderInputType = "query" | "document"
-
-/** Lexical weights of one text: vocabulary token id (as a string) to weight. */
-export type SparseWeights = Record<string, number>
-
-/** One dense vector per text, plus lexical weights when the model has a sparse head. */
-export type Embeddings = {
-  dense: number[][]
-  sparse: SparseWeights[] | null
-}
-
-export type QueryEmbedding = {
-  embedding: number[]
-  sparseEmbedding: SparseWeights | null
-}
-
 /**
- * Body of `POST {url}/v1/embed`, the contract every HTTP embedder serves (see apps/embedder).
- * `model` lets one server host several models.
+ * Body of `POST {url}/v1/embeddings`, the OpenAI embeddings API that every self-hosted embedder
+ * serves (vLLM, text-embeddings-inference, Ollama, Infinity...).
  */
-export type HttpEmbedRequest = {
+export type OpenAiEmbeddingsRequest = {
   model: string
-  texts: string[]
-  input_type: EmbedderInputType
+  input: string[]
+  encoding_format: "float"
 }
 
-export type HttpEmbedResponse = {
-  dimensions: number
-  dense: number[][]
-  sparse: SparseWeights[] | null
+export type OpenAiEmbeddingsResponse = {
+  data: { index: number; embedding: number[] }[]
 }

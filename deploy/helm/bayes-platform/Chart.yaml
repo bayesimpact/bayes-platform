@@ -1,6 +1,6 @@
 apiVersion: v2
 name: bayes-platform
-description: The Bayes platform (API, web front ends, async workers, PDF converter, embedder) on Kubernetes, with optional bundled Postgres and Redis.
+description: The Bayes platform (API, web front ends, async workers, PDF converter) on Kubernetes, with optional bundled Postgres and Redis.
 type: application
 version: 0.1.0
 appVersion: "main"

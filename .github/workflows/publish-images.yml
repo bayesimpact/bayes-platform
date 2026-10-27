@@ -1,7 +1,7 @@
 name: Publish images
 
 # On every push to main and on every release tag: the checks and the tests
-# run in parallel with the build of the container images. The images are
+# run in parallel with the build of the six container images. The images are
 # published, and the deployment repository notified, only when the tests
 # pass. A release tag does not run the tests again: it waits for the main run
 # of its commit and publishes once that run succeeded.
@@ -159,24 +159,6 @@ jobs:
             runner: ubuntu-latest
             cache_from: |
               type=registry,ref=ghcr.io/bayesimpact/bayes-platform/cache:pdf-converter
-          # CPU torch and the bge-m3 weights (about 3 GB).
-          - image: embedder
-            dockerfile: apps/embedder/Dockerfile
-            target: ""
-            runner: ubuntu-latest
-            cache_from: |
-              type=registry,ref=ghcr.io/bayesimpact/bayes-platform/cache:embedder
-          # CUDA torch for a GPU host (about 8 GB): on the self-hosted runner,
-          # like gpu-workers, so the Torch layers stay on its builder.
-          - image: embedder-gpu
-            dockerfile: apps/embedder/Dockerfile
-            target: ""
-            runner: self-hosted
-            builder: platform
-            build_args: |
-              TORCH_INDEX_URL=https://download.pytorch.org/whl/cu128
-            cache_from: |
-              type=registry,ref=ghcr.io/bayesimpact/bayes-platform/cache:embedder-gpu
           - image: web-embed
             dockerfile: apps/web-embed/Dockerfile
             target: ""
@@ -237,7 +219,6 @@ jobs:
           file: ${{ matrix.dockerfile }}
           target: ${{ matrix.target }}
           builder: ${{ matrix.builder }}
-          build-args: ${{ matrix.build_args }}
           platforms: linux/amd64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
@@ -262,7 +243,7 @@ jobs:
           subject-digest: ${{ steps.build.outputs.digest }}
           push-to-registry: true
 
-  # Tests green: add the deployment tags to the images (manifest only,
+  # Tests green: add the deployment tags to the six images (manifest only,
   # no rebuild) and tell the deployment repository which tag is ready. The
   # staging cluster follows main; the deployment repository turns the event
   # into a pull request on its values and Flux deploys.
@@ -301,7 +282,7 @@ jobs:
           else
             # "main": what a chart installed from a checkout of main pulls (its
             # appVersion is "main"). main-<run number>-<sha>: sortable, the
-            # same for every image of one run, what the deployments follow.
+            # same for the six images of one run, what the deployments follow.
             echo "tags=main latest main-${{ github.run_number }}-$SHORT_SHA" >> "$GITHUB_OUTPUT"
             echo "deploy_tag=main-${{ github.run_number }}-$SHORT_SHA" >> "$GITHUB_OUTPUT"
           fi
@@ -310,7 +291,7 @@ jobs:
       - name: Add the tags to the images
         run: |
           set -e
-          for image in app cpu-workers gpu-workers pdf-converter embedder embedder-gpu web-embed help; do
+          for image in app cpu-workers gpu-workers pdf-converter web-embed help; do
             args=()
             for tag in ${{ steps.tags.outputs.tags }}; do
               args+=(--tag "${IMAGE_BASE}/${image}:${tag}")

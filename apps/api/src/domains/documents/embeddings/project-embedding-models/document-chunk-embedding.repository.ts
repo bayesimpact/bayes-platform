@@ -2,8 +2,6 @@ import { Injectable } from "@nestjs/common"
 import { toSql } from "pgvector"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
-import type { SparseWeights } from "../embedders/embedders.types"
-import { hasSparseWeights, toSparseVectorSql } from "../embedders/sparse-weights"
 
 export type ChunkToEmbed = {
   id: string
@@ -18,7 +16,6 @@ export type ChunkEmbeddingRow = {
   chunkId: string
   modelName: string
   embedding: number[]
-  sparseEmbedding: SparseWeights | null
 }
 
 /**
@@ -35,23 +32,13 @@ const ELIGIBLE_CHUNKS_SQL = `
     AND document.source_type IN ('project', 'webCrawl', 'app')
 `
 
-/**
- * A chunk still needs the model when it has no row for it, or when the model produces lexical
- * weights ($3) and the row has none yet (rows written before sparse support).
- */
+/** A chunk still needs the model ($2) when it has no row for it. */
 const MISSING_EMBEDDING_SQL = `
   AND NOT EXISTS (
     SELECT 1 FROM document_chunk_embedding embedding
     WHERE embedding.document_chunk_id = chunk.id
       AND embedding.model_name = $2
       AND embedding.deleted_at IS NULL
-      AND (
-        NOT $3::boolean
-        OR EXISTS (
-          SELECT 1 FROM document_chunk_sparse_embedding sparse
-          WHERE sparse.document_chunk_embedding_id = embedding.id
-        )
-      )
   )
 `
 
@@ -80,7 +67,7 @@ export class DocumentChunkEmbeddingRepository {
   }): Promise<number> {
     const rows: { count: string }[] = await this.query(
       `SELECT COUNT(*)::text AS count ${ELIGIBLE_CHUNKS_SQL} ${MISSING_EMBEDDING_SQL}`,
-      [projectId, modelName, hasSparseWeights(modelName)],
+      [projectId, modelName],
     )
     return Number(rows[0]?.count ?? 0)
   }
@@ -103,8 +90,8 @@ export class DocumentChunkEmbeddingRepository {
       `SELECT chunk.id, chunk.organization_id, chunk.project_id, chunk.embed_text
        ${ELIGIBLE_CHUNKS_SQL} ${MISSING_EMBEDDING_SQL}
        ORDER BY chunk.id
-       LIMIT $4`,
-      [projectId, modelName, hasSparseWeights(modelName), limit],
+       LIMIT $3`,
+      [projectId, modelName, limit],
     )
     return rows.map((row) => ({
       id: row.id,
@@ -116,14 +103,12 @@ export class DocumentChunkEmbeddingRepository {
 
   /**
    * Inserts one embedding row per chunk, skipping the (chunk, model) pairs that already exist so
-   * the re-embedding job and a concurrent document job never collide. Lexical weights go to
-   * document_chunk_sparse_embedding, attached to the dense row (new or already there, which is
-   * how rows written before sparse support get theirs). Returns the count of chunks completed:
-   * new dense rows, or new sparse rows for a model with lexical weights.
+   * the re-embedding job and a concurrent document job never collide. Returns the count of rows
+   * inserted.
    */
   async insertEmbeddingsIgnoringConflicts(rows: ChunkEmbeddingRow[]): Promise<number> {
     if (rows.length === 0) return 0
-    // One statement per batch: on a GPU the model outruns per-row round trips to Postgres.
+    // One statement per batch: the embedder outruns per-row round trips to Postgres.
     const valuesSql = rows
       .map((_row, index) => {
         const offset = index * 5
@@ -137,7 +122,7 @@ export class DocumentChunkEmbeddingRepository {
       row.modelName,
       toSql(row.embedding),
     ])
-    const insertedDense: unknown[] = await this.query(
+    const inserted: unknown[] = await this.query(
       `INSERT INTO document_chunk_embedding (id, created_at, updated_at, organization_id, project_id, document_chunk_id, model_name, embedding)
        VALUES ${valuesSql}
        ON CONFLICT (document_chunk_id, model_name) DO NOTHING
@@ -145,35 +130,6 @@ export class DocumentChunkEmbeddingRepository {
       parameters,
     )
 
-    const sparseRows = rows.filter((row) => row.sparseEmbedding !== null)
-    if (sparseRows.length === 0) return insertedDense.length
-    return this.insertSparseEmbeddings(sparseRows)
-  }
-
-  /** Attaches lexical weights to the existing (chunk, model) rows that have none yet. */
-  private async insertSparseEmbeddings(rows: ChunkEmbeddingRow[]): Promise<number> {
-    const valuesSql = rows
-      .map(
-        (_row, index) =>
-          `($${index * 3 + 1}::uuid, $${index * 3 + 2}, $${index * 3 + 3}::sparsevec)`,
-      )
-      .join(", ")
-    const parameters = rows.flatMap((row) => [
-      row.chunkId,
-      row.modelName,
-      toSparseVectorSql(row.modelName, row.sparseEmbedding),
-    ])
-    const inserted: unknown[] = await this.query(
-      `INSERT INTO document_chunk_sparse_embedding (document_chunk_embedding_id, sparse_embedding)
-       SELECT embedding.id, weights.sparse_embedding
-       FROM (VALUES ${valuesSql}) AS weights (document_chunk_id, model_name, sparse_embedding)
-       INNER JOIN document_chunk_embedding embedding
-         ON embedding.document_chunk_id = weights.document_chunk_id
-        AND embedding.model_name = weights.model_name
-       ON CONFLICT (document_chunk_embedding_id) DO NOTHING
-       RETURNING document_chunk_embedding_id`,
-      parameters,
-    )
     return inserted.length
   }
 
