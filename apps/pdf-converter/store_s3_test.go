@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"strings"
 	"testing"
@@ -46,6 +47,43 @@ func newTestS3Store(t *testing.T) *s3Store {
 		t.Fatalf("create bucket: %v", err)
 	}
 	return store
+}
+
+// Cloud Storage rewrites Accept-Encoding before checking the signature: the
+// header must be sent but left out of SignedHeaders.
+func TestS3StoreLeavesAcceptEncodingUnsigned(t *testing.T) {
+	var authorization, acceptEncoding string
+	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		authorization = request.Header.Get("Authorization")
+		acceptEncoding = request.Header.Get("Accept-Encoding")
+		writer.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+	ctx := context.Background()
+	store, err := newS3Store(ctx, s3Settings{
+		Bucket:          "documents",
+		Endpoint:        server.URL,
+		AccessKeyID:     "access-key",
+		SecretAccessKey: "secret-key",
+		ForcePathStyle:  true,
+	})
+	if err != nil {
+		t.Fatalf("new s3 store: %v", err)
+	}
+
+	if err := store.Upload(ctx, "tmp/test.pdf", []byte("%PDF-1.4 test"), uploadOptions{ContentType: "application/pdf"}); err != nil {
+		t.Fatalf("upload: %v", err)
+	}
+
+	if !strings.Contains(authorization, "SignedHeaders=") {
+		t.Fatalf("expected a SigV4 authorization, got %q", authorization)
+	}
+	if strings.Contains(authorization, "accept-encoding") {
+		t.Fatalf("expected accept-encoding out of the signed headers, got %q", authorization)
+	}
+	if acceptEncoding != "identity" {
+		t.Fatalf("expected Accept-Encoding identity to be sent, got %q", acceptEncoding)
+	}
 }
 
 func TestS3StoreRoundTrip(t *testing.T) {
