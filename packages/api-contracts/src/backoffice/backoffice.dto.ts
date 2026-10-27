@@ -63,6 +63,7 @@ export type BackofficeProjectListItemDto = {
   organizationName: string
   createdAt: TimeType
   featureFlags: FeatureFlagsDto
+  permissions: string[]
 }
 
 export type PaginatedBackofficeProjectsDto = {
@@ -98,6 +99,7 @@ export type BackofficeProjectDetailDto = {
   organization: BackofficeProjectOrganizationDto
   createdAt: TimeType
   featureFlags: FeatureFlagsDto
+  permissions: string[]
   members: BackofficeProjectMemberDto[]
   agents: BackofficeProjectAgentDto[]
 }

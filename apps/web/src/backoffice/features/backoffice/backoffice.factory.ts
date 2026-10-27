@@ -1,6 +1,8 @@
 import {
   BACKOFFICE_AGENT_READ_PERMISSION,
   BACKOFFICE_ORGANIZATION_READ_PERMISSION,
+  BACKOFFICE_PROJECT_READ_PERMISSION,
+  BACKOFFICE_PROJECT_UPDATE_PERMISSION,
   type ReviewCampaignMembershipRole,
   type TermsDocumentType,
   type TimeType,
@@ -138,6 +140,10 @@ export const backofficeProjectListItemFactory = BackofficeProjectListItemFactory
     organizationName: params.organizationName ?? faker.company.name(),
     createdAt: (params.createdAt ?? faker.date.past().getTime()) as TimeType,
     featureFlags: params.featureFlags ?? [],
+    permissions: params.permissions ?? [
+      BACKOFFICE_PROJECT_READ_PERMISSION,
+      BACKOFFICE_PROJECT_UPDATE_PERMISSION,
+    ],
   }),
 )
 
@@ -174,6 +180,10 @@ export const backofficeProjectDetailFactory = BackofficeProjectDetailFactory.def
     },
     createdAt: (params.createdAt ?? faker.date.past().getTime()) as TimeType,
     featureFlags: params.featureFlags ?? [],
+    permissions: params.permissions ?? [
+      BACKOFFICE_PROJECT_READ_PERMISSION,
+      BACKOFFICE_PROJECT_UPDATE_PERMISSION,
+    ],
     members: params.members ?? [],
     agents: params.agents ?? [],
   }),

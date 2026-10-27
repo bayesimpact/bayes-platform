@@ -1,6 +1,8 @@
 import {
   BACKOFFICE_AGENT_READ_PERMISSION,
   BACKOFFICE_ORGANIZATION_READ_PERMISSION,
+  BACKOFFICE_PROJECT_READ_PERMISSION,
+  BACKOFFICE_PROJECT_UPDATE_PERMISSION,
 } from "@caseai-connect/api-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import {
@@ -26,13 +28,18 @@ type StoryArgs = BackofficeStoryArgs & {
   canReadOrganization?: boolean
   canReadAgents?: boolean
   canReadMembers?: boolean
+  canUpdateProject?: boolean
 }
 
 const decorator = buildDecorator<StoryArgs>(
-  ({ canReadOrganization, canReadAgents, canReadMembers, ...args }) => {
+  ({ canReadOrganization, canReadAgents, canReadMembers, canUpdateProject, ...args }) => {
     const { baseSeeds, organizations, users } = buildBackofficeData(args)
     const projectDetail = backofficeProjectDetailFactory.build({
       id: BACKOFFICE_STORY_PROJECT_ID,
+      featureFlags: ["gemma"],
+      permissions: canUpdateProject
+        ? [BACKOFFICE_PROJECT_READ_PERMISSION, BACKOFFICE_PROJECT_UPDATE_PERMISSION]
+        : [BACKOFFICE_PROJECT_READ_PERMISSION],
       organization: {
         name: "Acme Corp",
         permissions: canReadOrganization ? [BACKOFFICE_ORGANIZATION_READ_PERMISSION] : [],
@@ -66,12 +73,14 @@ const meta = {
     canReadOrganization: { control: "boolean" },
     canReadAgents: { control: "boolean" },
     canReadMembers: { control: "boolean" },
+    canUpdateProject: { control: "boolean" },
   },
   args: {
     ...backofficeStoryArgs,
     canReadOrganization: true,
     canReadAgents: true,
     canReadMembers: true,
+    canUpdateProject: true,
   },
   decorators: [decorator],
   render: render({
@@ -97,6 +106,15 @@ export const WithoutMemberAccess: Story = {
   args: { canReadMembers: false },
 }
 
+export const WithoutProjectUpdate: Story = {
+  args: { canUpdateProject: false },
+}
+
 export const ProjectAccessOnly: Story = {
-  args: { canReadOrganization: false, canReadAgents: false, canReadMembers: false },
+  args: {
+    canReadOrganization: false,
+    canReadAgents: false,
+    canReadMembers: false,
+    canUpdateProject: false,
+  },
 }
