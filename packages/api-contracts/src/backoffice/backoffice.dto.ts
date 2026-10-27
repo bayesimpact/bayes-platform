@@ -82,13 +82,19 @@ export type BackofficeProjectMemberDto = {
 export type BackofficeProjectAgentDto = {
   id: string
   name: string
+  permissions: string[]
+}
+
+export type BackofficeProjectOrganizationDto = {
+  id: string
+  name: string
+  permissions: string[]
 }
 
 export type BackofficeProjectDetailDto = {
   id: string
   name: string
-  organizationId: string
-  organizationName: string
+  organization: BackofficeProjectOrganizationDto
   createdAt: TimeType
   featureFlags: FeatureFlagsDto
   members: BackofficeProjectMemberDto[]

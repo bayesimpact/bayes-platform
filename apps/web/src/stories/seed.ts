@@ -1,6 +1,7 @@
 import type {
   AppManifest,
   BackofficeAgentDetail,
+  BackofficeProjectDetail,
   BackofficeRbacCatalog,
   BackofficeUserDetail,
   PaginatedBackofficeAgents,
@@ -540,6 +541,10 @@ export const seed = {
 
     agentDetail(agentDetail: BackofficeAgentDetail): StoryPreloadedState {
       return { backoffice: { agentDetail: ads.fulfilled(agentDetail) } }
+    },
+
+    projectDetail(projectDetail: BackofficeProjectDetail): StoryPreloadedState {
+      return { backoffice: { projectDetail: ads.fulfilled(projectDetail) } }
     },
 
     userDetail(userDetail: BackofficeUserDetail): StoryPreloadedState {

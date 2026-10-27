@@ -10,8 +10,10 @@ import {
 } from "@/common/test/test-database"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { RbacModule } from "@/domains/rbac/rbac.module"
+import { userFactory } from "@/domains/users/user.factory"
 import { mockOidcEmailForSub, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import {
+  assignPlatformStaffToUser,
   assignPlatformSuperadminToUser,
   ensureRbacCatalog,
 } from "../../../../test/rbac-test.helpers"
@@ -57,6 +59,17 @@ describe("Backoffice - get project", () => {
     return context
   }
 
+  // a project created by someone else, viewed by a caller holding only a global role
+  const createContextViewedWithGlobalRole = async (
+    assignGlobalRole: typeof assignPlatformStaffToUser,
+  ) => {
+    const context = await createOrganizationWithAgent(repositories)
+    const viewer = userFactory.build({ authSubject, email: mockOidcEmailForSub(authSubject) })
+    await repositories.userRepository.save(viewer)
+    await assignGlobalRole({ repositories, user: viewer })
+    return context
+  }
+
   it("returns the project detail with members and agents", async () => {
     const { project, organization, user, agent } = await createAuthorizedContext()
     const response = await request({
@@ -68,8 +81,11 @@ describe("Backoffice - get project", () => {
     const returned = response.body.data
     expect(returned.id).toBe(project.id)
     expect(returned.name).toBe(project.name)
-    expect(returned.organizationId).toBe(organization.id)
-    expect(returned.organizationName).toBe(organization.name)
+    expect(returned.organization).toEqual({
+      id: organization.id,
+      name: organization.name,
+      permissions: expect.arrayContaining(["backoffice.organization.read"]),
+    })
     expect(returned.members).toEqual([
       {
         userId: user.id,
@@ -82,8 +98,35 @@ describe("Backoffice - get project", () => {
       {
         id: agent.id,
         name: agent.name,
+        permissions: expect.arrayContaining(["backoffice.agent.read"]),
       },
     ])
+  })
+
+  it("gives a global role its permissions on the organization and the agents", async () => {
+    const { project } = await createContextViewedWithGlobalRole(assignPlatformSuperadminToUser)
+    const response = await request({
+      route: BackofficeRoutes.getProject,
+      pathParams: { projectId: project.id },
+      token: "token",
+    })
+    expectResponse(response, 200)
+    expect(response.body.data.organization.permissions).toContain("backoffice.organization.read")
+    expect(response.body.data.agents[0]?.permissions).toContain("backoffice.agent.read")
+  })
+
+  it("gives no read permission on the organization and the agents to a caller who can only read the project", async () => {
+    const { project, agent } = await createContextViewedWithGlobalRole(assignPlatformStaffToUser)
+    const response = await request({
+      route: BackofficeRoutes.getProject,
+      pathParams: { projectId: project.id },
+      token: "token",
+    })
+    expectResponse(response, 200)
+    expect(response.body.data.organization.permissions).not.toContain(
+      "backoffice.organization.read",
+    )
+    expect(response.body.data.agents).toEqual([{ id: agent.id, name: agent.name, permissions: [] }])
   })
 
   it("returns empty members and agents for a project with none", async () => {

@@ -179,13 +179,19 @@ export type BackofficeProjectMember = {
 export type BackofficeProjectAgent = {
   id: string
   name: string
+  permissions: string[]
+}
+
+export type BackofficeProjectOrganization = {
+  id: string
+  name: string
+  permissions: string[]
 }
 
 export type BackofficeProjectDetail = {
   id: string
   name: string
-  organizationId: string
-  organizationName: string
+  organization: BackofficeProjectOrganization
   createdAt: TimeType
   featureFlags: FeatureFlagKey[]
   members: BackofficeProjectMember[]
@@ -229,6 +235,7 @@ const toBackofficeProjectMember = (dto: BackofficeProjectMemberDto): BackofficeP
 const toBackofficeProjectAgent = (dto: BackofficeProjectAgentDto): BackofficeProjectAgent => ({
   id: dto.id,
   name: dto.name,
+  permissions: dto.permissions,
 })
 
 export const toBackofficeProjectDetail = (
@@ -236,8 +243,11 @@ export const toBackofficeProjectDetail = (
 ): BackofficeProjectDetail => ({
   id: dto.id,
   name: dto.name,
-  organizationId: dto.organizationId,
-  organizationName: dto.organizationName,
+  organization: {
+    id: dto.organization.id,
+    name: dto.organization.name,
+    permissions: dto.organization.permissions,
+  },
   createdAt: dto.createdAt,
   featureFlags: dto.featureFlags,
   members: dto.members.map(toBackofficeProjectMember),

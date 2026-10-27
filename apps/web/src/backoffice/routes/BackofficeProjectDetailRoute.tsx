@@ -1,3 +1,7 @@
+import {
+  BACKOFFICE_AGENT_READ_PERMISSION,
+  BACKOFFICE_ORGANIZATION_READ_PERMISSION,
+} from "@caseai-connect/api-contracts"
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
 import { ArrowLeftIcon, ExternalLinkIcon } from "lucide-react"
@@ -59,15 +63,19 @@ function WithData() {
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-1">
           <h2 className="text-xl font-semibold">{project.name}</h2>
-          <Link
-            to={BackofficeOrganizationRoutes.organization.build({
-              organizationId: project.organizationId,
-            })}
-            className="text-muted-foreground hover:underline flex items-center gap-1 w-fit"
-          >
-            {project.organizationName}
-            <ExternalLinkIcon className="size-3 opacity-60" />
-          </Link>
+          {project.organization.permissions.includes(BACKOFFICE_ORGANIZATION_READ_PERMISSION) ? (
+            <Link
+              to={BackofficeOrganizationRoutes.organization.build({
+                organizationId: project.organization.id,
+              })}
+              className="text-muted-foreground hover:underline flex items-center gap-1 w-fit"
+            >
+              {project.organization.name}
+              <ExternalLinkIcon className="size-3 opacity-60" />
+            </Link>
+          ) : (
+            <p className="text-muted-foreground">{project.organization.name}</p>
+          )}
         </div>
         <FeatureFlagCell
           projectName={project.name}
@@ -98,7 +106,9 @@ function WithData() {
           items={project.agents.map((agent) => ({
             key: agent.id,
             label: agent.name,
-            to: BackofficeAgentRoutes.agent.build({ agentId: agent.id }),
+            to: agent.permissions.includes(BACKOFFICE_AGENT_READ_PERMISSION)
+              ? BackofficeAgentRoutes.agent.build({ agentId: agent.id })
+              : undefined,
           }))}
           emptyText="No agents"
         />
