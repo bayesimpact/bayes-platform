@@ -13,6 +13,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/aws/smithy-go/middleware"
+	smithyhttp "github.com/aws/smithy-go/transport/http"
 )
 
 // s3Settings mirrors the S3_* variables the API reads, so both services
@@ -63,6 +65,7 @@ func newS3Store(ctx context.Context, settings s3Settings) (*s3Store, error) {
 			// stores reject them.
 			options.RequestChecksumCalculation = aws.RequestChecksumCalculationWhenRequired
 			options.ResponseChecksumValidation = aws.ResponseChecksumValidationWhenRequired
+			options.APIOptions = append(options.APIOptions, leaveAcceptEncodingUnsigned)
 		})
 	}
 	client := newClient(settings.Endpoint)
@@ -71,6 +74,36 @@ func newS3Store(ctx context.Context, settings s3Settings) (*s3Store, error) {
 		signingClient = newClient(settings.PublicEndpoint)
 	}
 	return &s3Store{bucket: settings.Bucket, client: client, presign: s3.NewPresignClient(signingClient)}, nil
+}
+
+type acceptEncodingKey struct{}
+
+// leaveAcceptEncodingUnsigned keeps Accept-Encoding out of the request
+// signature. The SDK sends and signs "Accept-Encoding: identity"; the front
+// end of Cloud Storage rewrites that header before checking the signature, so
+// every call fails with SignatureDoesNotMatch. The header is still sent.
+func leaveAcceptEncodingUnsigned(stack *middleware.Stack) error {
+	remove := middleware.FinalizeMiddlewareFunc("RemoveAcceptEncoding",
+		func(ctx context.Context, in middleware.FinalizeInput, next middleware.FinalizeHandler) (middleware.FinalizeOutput, middleware.Metadata, error) {
+			if request, ok := in.Request.(*smithyhttp.Request); ok {
+				ctx = middleware.WithStackValue(ctx, acceptEncodingKey{}, request.Header.Get("Accept-Encoding"))
+				request.Header.Del("Accept-Encoding")
+			}
+			return next.HandleFinalize(ctx, in)
+		})
+	restore := middleware.FinalizeMiddlewareFunc("RestoreAcceptEncoding",
+		func(ctx context.Context, in middleware.FinalizeInput, next middleware.FinalizeHandler) (middleware.FinalizeOutput, middleware.Metadata, error) {
+			if request, ok := in.Request.(*smithyhttp.Request); ok {
+				if value, _ := middleware.GetStackValue(ctx, acceptEncodingKey{}).(string); value != "" {
+					request.Header.Set("Accept-Encoding", value)
+				}
+			}
+			return next.HandleFinalize(ctx, in)
+		})
+	if err := stack.Finalize.Insert(remove, "Signing", middleware.Before); err != nil {
+		return err
+	}
+	return stack.Finalize.Insert(restore, "Signing", middleware.After)
 }
 
 // Download checks the size the response announces, then caps the read at
