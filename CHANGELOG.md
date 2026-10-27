@@ -10,6 +10,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Added
 
 - Backoffice: superadmins can run one-off maintenance jobs and follow their progress from a new Maintenance tab.
+- External sources: tag a source, and agents filtering by those tags search all of its documents.
 
 ### Changed
 

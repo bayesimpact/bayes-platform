@@ -110,6 +110,7 @@ describe("Document sources - getAll", () => {
         indexedDocumentCount: 0,
         lastSyncedAt: syncedAt.getTime(),
         status: "error",
+        tagIds: [],
       }),
     ])
   })

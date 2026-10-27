@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto"
 import {
+  DocumentSourcesRoutes,
   DocumentsRoutes,
   MimeTypes,
   PUBLIC_DOCUMENTS_TAG_NAME,
@@ -31,6 +32,7 @@ import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { Document } from "../document.entity"
 import { DocumentsModule } from "../documents.module"
+import { DocumentSourcesService } from "../sources/document-sources.service"
 import { withDocumentAuthAndEmbeddingsMocks } from "../test-overrides"
 
 describe("Documents - Auth", () => {
@@ -580,6 +582,60 @@ describe("Documents - Auth", () => {
         403,
         AUTH_ERRORS.UNAUTHORIZED_RESOURCE,
       )
+    })
+  })
+
+  describe("DocumentSourcesRoutes.updateOne", () => {
+    let documentSourceId: string | null = "random-document-source-id"
+    let documentTagId = "random-document-tag-id"
+
+    const createSourceForRole = async (role: "owner" | "admin" | "member") => {
+      const context = await createContextForRole(role)
+      const connectScope = {
+        organizationId: context.organization.id,
+        projectId: context.project.id,
+      }
+      const documentSource = await setup.module
+        .get(DocumentSourcesService)
+        .createOne(connectScope, {
+          name: "Helpful Assistant",
+          type: "site",
+          externalId: "site-1",
+          baseUrl: null,
+          config: null,
+        })
+      const documentTag = await setup
+        .getRepository(DocumentTag)
+        .save(documentTagFactory.transient(context).build({ name: "Product" }))
+      documentSourceId = documentSource.id
+      documentTagId = documentTag.id
+      return context
+    }
+
+    const subject = async () =>
+      request({
+        route: DocumentSourcesRoutes.updateOne,
+        pathParams: removeNullish({ organizationId, projectId, documentSourceId }),
+        token: accessToken ?? undefined,
+        request: { payload: { tagsToAdd: [documentTagId] } },
+      })
+
+    it("requires an authentication token", async () => {
+      accessToken = null
+      expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+    it("forbids an organization admin who holds no project role", async () => {
+      const context = await createSourceForRole("owner")
+      await switchToOrganizationAdminWithoutProjectRole(context)
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("doesn't allow a simple member to tag a source", async () => {
+      await createSourceForRole("member")
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it.each([["owner"], ["admin"]] as const)("allows a project %s", async (role) => {
+      await createSourceForRole(role)
+      expectResponse(await subject(), 200)
     })
   })
 })

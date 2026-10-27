@@ -139,9 +139,13 @@ export function toBackofficeAgentDetailDto(
   }
 }
 
-export function toBackofficeProjectListItemDto(
-  project: Project & { organization?: { name: string } },
-): BackofficeProjectListItemDto {
+export function toBackofficeProjectListItemDto({
+  project,
+  permissions,
+}: {
+  project: Project & { organization?: { name: string } }
+  permissions: string[]
+}): BackofficeProjectListItemDto {
   return {
     id: project.id,
     name: project.name,
@@ -149,17 +153,20 @@ export function toBackofficeProjectListItemDto(
     organizationName: project.organization?.name ?? "",
     createdAt: project.createdAt.getTime() as TimeType,
     featureFlags: toFeatureFlagsDto(project.featureFlags),
+    permissions,
   }
 }
 
 export function toBackofficeProjectDetailDto({
   project,
+  permissions,
   organizationPermissions,
   members,
   visibleUsers,
   agents,
 }: {
   project: Project & { organization?: { name: string } }
+  permissions: string[]
   organizationPermissions: string[]
   members: ProjectMembershipModel[]
   visibleUsers: ResourceIdsScope
@@ -175,6 +182,7 @@ export function toBackofficeProjectDetailDto({
     },
     createdAt: project.createdAt.getTime() as TimeType,
     featureFlags: toFeatureFlagsDto(project.featureFlags),
+    permissions,
     members: members.map(
       (membership): BackofficeProjectMemberDto => ({
         userId: membership.userId,

@@ -168,6 +168,7 @@ export type BackofficeProjectListItem = {
   organizationName: string
   createdAt: TimeType
   featureFlags: FeatureFlagKey[]
+  permissions: string[]
 }
 
 export type BackofficeProjectMember = {
@@ -196,6 +197,7 @@ export type BackofficeProjectDetail = {
   organization: BackofficeProjectOrganization
   createdAt: TimeType
   featureFlags: FeatureFlagKey[]
+  permissions: string[]
   members: BackofficeProjectMember[]
   agents: BackofficeProjectAgent[]
 }
@@ -216,6 +218,7 @@ export const toBackofficeProjectListItem = (
   organizationName: dto.organizationName,
   createdAt: dto.createdAt,
   featureFlags: dto.featureFlags,
+  permissions: dto.permissions,
 })
 
 export const toPaginatedBackofficeProjects = (
@@ -253,6 +256,7 @@ export const toBackofficeProjectDetail = (
   },
   createdAt: dto.createdAt,
   featureFlags: dto.featureFlags,
+  permissions: dto.permissions,
   members: dto.members.map(toBackofficeProjectMember),
   agents: dto.agents.map(toBackofficeProjectAgent),
 })

@@ -1,10 +1,21 @@
 import {
   DOCUMENT_SOURCE_DELETE_PERMISSION,
   DOCUMENT_SOURCE_READ_PERMISSION,
+  DOCUMENT_SOURCE_UPDATE_PERMISSION,
   type DocumentSourceSummaryDto,
   DocumentSourcesRoutes,
 } from "@caseai-connect/api-contracts"
-import { Controller, Delete, Get, NotFoundException, Param, Req, UseGuards } from "@nestjs/common"
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  NotFoundException,
+  Param,
+  Patch,
+  Req,
+  UseGuards,
+} from "@nestjs/common"
 import type { EndpointRequestWithProject } from "@/common/context/request.interface"
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
 import { RequireContext } from "@/common/context/require-context.decorator"
@@ -38,6 +49,21 @@ export class DocumentSourcesController {
     return { data: documentSources.map(toDocumentSourceSummaryDto) }
   }
 
+  @CheckPermission(DOCUMENT_SOURCE_UPDATE_PERMISSION, "project")
+  @Patch(DocumentSourcesRoutes.updateOne.path)
+  async updateOne(
+    @Req() request: EndpointRequestWithProject,
+    @Param("documentSourceId") documentSourceId: string,
+    @Body() { payload }: typeof DocumentSourcesRoutes.updateOne.request,
+  ): Promise<typeof DocumentSourcesRoutes.updateOne.response> {
+    await this.documentSourcesService.updateTags(
+      getRequiredConnectScope(request),
+      documentSourceId,
+      payload,
+    )
+    return { data: { success: true } }
+  }
+
   @CheckPermission(DOCUMENT_SOURCE_DELETE_PERMISSION, "project")
   @Delete(DocumentSourcesRoutes.deleteOne.path)
   async deleteOne(
@@ -66,6 +92,7 @@ function toDocumentSourceSummaryDto(documentSource: {
   indexedDocumentCount: number
   lastSyncedAt: Date | null
   status: DocumentSourceSummaryDto["status"]
+  tagIds: string[]
   createdAt: Date
   updatedAt: Date
 }): DocumentSourceSummaryDto {
@@ -80,6 +107,7 @@ function toDocumentSourceSummaryDto(documentSource: {
     indexedDocumentCount: documentSource.indexedDocumentCount,
     lastSyncedAt: documentSource.lastSyncedAt?.getTime() ?? null,
     status: documentSource.status,
+    tagIds: documentSource.tagIds,
     createdAt: documentSource.createdAt.getTime(),
     updatedAt: documentSource.updatedAt.getTime(),
   }

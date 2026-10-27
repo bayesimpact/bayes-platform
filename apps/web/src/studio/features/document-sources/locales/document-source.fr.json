@@ -6,6 +6,7 @@
     "columns": {
       "source": "Source",
       "app": "Application",
+      "tags": "Tags",
       "docs": "Docs",
       "lastSync": "Dernière synchro",
       "status": "Statut"
@@ -22,6 +23,9 @@
       "badge": "Ancien crawler web",
       "title": "Certaines sources viennent de l'ancien crawler web",
       "description": "Leurs pages restent disponibles pour vos agents, mais plus rien ne les met à jour. Pour modifier une de ces sources ou crawler à nouveau son site, contactez-nous."
+    },
+    "notifications": {
+      "tagsUpdateError": "La mise à jour des tags de la source a échoué"
     }
   }
 }

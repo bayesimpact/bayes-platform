@@ -340,7 +340,7 @@ export class BackofficeService {
     page: number
     limit: number
     search?: string
-  }): Promise<{ projects: Project[]; total: number }> {
+  }): Promise<{ projects: { project: Project; permissions: string[] }[]; total: number }> {
     const qb = this.projectRepository
       .createQueryBuilder("project")
       .leftJoin("project.organization", "org")
@@ -376,7 +376,20 @@ export class BackofficeService {
 
     const projects = await this.attachFeatureFlagsToProjects(rawProjects)
 
-    return { projects, total }
+    // each row edits its feature flags: the caller needs its permissions on the project to know
+    // whether it may
+    const permissionsByProjectId = await this.listPermissionsByResourceId({
+      userId,
+      readPermission: BACKOFFICE_PROJECT_READ_PERMISSION,
+    })
+
+    return {
+      projects: projects.map((project) => ({
+        project,
+        permissions: permissionsByProjectId(project.id),
+      })),
+      total,
+    }
   }
 
   private async attachFeatureFlagsToProjects(projects: Project[]): Promise<Project[]> {
@@ -406,6 +419,7 @@ export class BackofficeService {
     targetProjectId: string
   }): Promise<{
     project: Project
+    permissions: string[]
     organizationPermissions: string[]
     members: ProjectMembershipModel[]
     visibleUsers: ResourceIdsScope
@@ -432,31 +446,39 @@ export class BackofficeService {
         .getMany(),
     ])
 
-    // the page links to the organization, to each agent and to each member: the caller needs
-    // their permissions to know which links lead somewhere
+    // the page edits the project's feature flags and links to the organization, to each agent and
+    // to each member: the caller needs their permissions to know what it may do
     const globalPermissions = await this.permissionService.listGlobalPermissions(requestingUserId)
-    const [organizationPermissions, agentsPermissions, visibleUsers] = await Promise.all([
-      this.listPermissionsOn({
-        userId: requestingUserId,
-        globalPermissions,
-        readPermission: BACKOFFICE_ORGANIZATION_READ_PERMISSION,
-        resourceId: project.organizationId,
-      }),
-      Promise.all(
-        agents.map((agent) =>
-          this.listPermissionsOn({
-            userId: requestingUserId,
-            globalPermissions,
-            readPermission: BACKOFFICE_AGENT_READ_PERMISSION,
-            resourceId: agent.id,
-          }),
+    const [permissions, organizationPermissions, agentsPermissions, visibleUsers] =
+      await Promise.all([
+        this.listPermissionsOn({
+          userId: requestingUserId,
+          globalPermissions,
+          readPermission: BACKOFFICE_PROJECT_READ_PERMISSION,
+          resourceId: project.id,
+        }),
+        this.listPermissionsOn({
+          userId: requestingUserId,
+          globalPermissions,
+          readPermission: BACKOFFICE_ORGANIZATION_READ_PERMISSION,
+          resourceId: project.organizationId,
+        }),
+        Promise.all(
+          agents.map((agent) =>
+            this.listPermissionsOn({
+              userId: requestingUserId,
+              globalPermissions,
+              readPermission: BACKOFFICE_AGENT_READ_PERMISSION,
+              resourceId: agent.id,
+            }),
+          ),
         ),
-      ),
-      this.findVisibleUserIds(requestingUserId),
-    ])
+        this.findVisibleUserIds(requestingUserId),
+      ])
 
     return {
       project,
+      permissions,
       organizationPermissions,
       members,
       visibleUsers,
@@ -465,6 +487,34 @@ export class BackofficeService {
         permissions: agentsPermissions[index] ?? [],
       })),
     }
+  }
+
+  /**
+   * The caller's permissions on every resource of a type, global roles included, in one pass:
+   * listResourcePermissions only reads memberships, as listResourcePermissionsFor does.
+   */
+  private async listPermissionsByResourceId({
+    userId,
+    readPermission,
+  }: {
+    userId: string
+    readPermission: ResourceReadPermission
+  }): Promise<(resourceId: string) => string[]> {
+    const resourceTypePermissions: readonly string[] =
+      RESOURCE_TYPE_PERMISSIONS_MAP[READ_PERMISSION_RESOURCE_TYPE_MAP[readPermission]]
+    const [globalPermissions, permissionsByResourceId] = await Promise.all([
+      this.permissionService.listGlobalPermissions(userId),
+      this.permissionService.listResourcePermissions(userId, readPermission),
+    ])
+    const globalResourcePermissions = globalPermissions.filter((permission) =>
+      resourceTypePermissions.includes(permission),
+    )
+    return (resourceId) => [
+      ...new Set([
+        ...(permissionsByResourceId.get(resourceId) ?? []),
+        ...globalResourcePermissions,
+      ]),
+    ]
   }
 
   /**

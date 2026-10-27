@@ -51,6 +51,9 @@ export class DocumentTagRepository {
     await manager.query("DELETE FROM document_document_tag WHERE document_tag_id = $1", [
       documentTagId,
     ])
+    await manager.query("DELETE FROM document_source_document_tag WHERE document_tag_id = $1", [
+      documentTagId,
+    ])
     await manager.query("DELETE FROM agent_document_tag WHERE document_tag_id = $1", [
       documentTagId,
     ])
