@@ -49,7 +49,6 @@ serviceAccount:
 #   OAUTH_SIGNING_PRIVATE_KEY    RSA private PEM, signs the OAuth access tokens (literal \n is accepted)
 #   OAUTH_SIGNING_PUBLIC_KEY     RSA public PEM, verifies the OAuth access tokens
 #   DIAGNOSTICS_SECRET           optional, protects the diagnostics endpoint
-#   SPIDER_API_KEY               optional, web crawling provider (cpu workers)
 #   SMTP_USER, SMTP_PASSWORD     optional, SMTP credentials for the invitation emails
 #   VLLM_<MODEL>_URL, VLLM_<MODEL>_APIKEY
 #                                one pair per self-hosted model
@@ -249,12 +248,11 @@ cpuWorkers:
     - evaluation-conversation-run-execute-queue
     - agent-csv-extraction-run-queue
     - agent-csv-extraction-run-execute-queue
-    - url-crawling
     - document-embeddings-stuck-sweep
-    - web-source-embeddings
     - extraction-agent-session-queue
     - conversation-retention-sweep
     - pdf-exports-sweep
+    - maintenance-jobs
   # Without GPU workers, the CPU pool also takes the document embeddings
   # (Docling disabled: text extraction without OCR).
   takeEmbeddingsWhenNoGpu: true

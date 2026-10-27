@@ -15,7 +15,9 @@
       "appCreateError": "Failed to create app",
       "appUpdateError": "Failed to update app",
       "appDeleteError": "Failed to delete app",
-      "appOAuthClientError": "Failed to load or update the app's OAuth client"
+      "appOAuthClientError": "Failed to load or update the app's OAuth client",
+      "maintenanceJobStarted": "Maintenance job started",
+      "maintenanceJobStartError": "Failed to start the maintenance job"
     }
   }
 }

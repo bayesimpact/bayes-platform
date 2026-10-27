@@ -31,3 +31,7 @@ export const BackofficePermissionsRoutes = {
 export const BackofficeAppsRoutes = {
   apps: home.extend("/apps"),
 }
+
+export const BackofficeMaintenanceJobsRoutes = {
+  maintenanceJobs: home.extend("/maintenance-jobs"),
+}

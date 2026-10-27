@@ -1,3 +1,5 @@
+import { LEGACY_WEB_CRAWL_DOCUMENT_SOURCE_TYPE } from "@caseai-connect/api-contracts"
+import { Alert, AlertDescription, AlertTitle } from "@caseai-connect/ui/shad/alert"
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
 import {
@@ -9,7 +11,7 @@ import {
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@caseai-connect/ui/shad/empty"
 import { Popover, PopoverContent, PopoverTrigger } from "@caseai-connect/ui/shad/popover"
 import { type ColumnDef, getCoreRowModel, useReactTable } from "@tanstack/react-table"
-import { EllipsisVerticalIcon, Trash2Icon } from "lucide-react"
+import { EllipsisVerticalIcon, InfoIcon, Trash2Icon } from "lucide-react"
 import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
@@ -46,7 +48,7 @@ export function ExternalSourcesList() {
       {
         id: "app",
         header: () => t("columns.app"),
-        cell: ({ row }) => <DocumentSourceAppCell app={row.original.app} />,
+        cell: ({ row }) => <DocumentSourceAppCell documentSource={row.original} />,
       },
       {
         id: "docs",
@@ -91,7 +93,14 @@ export function ExternalSourcesList() {
         title={t("title")}
         description={t("description")}
       />
-      <div className="bg-white p-6">
+      <div className="flex flex-col gap-4 bg-white p-6">
+        {documentSources.some(isLegacyWebCrawlSource) && (
+          <Alert>
+            <InfoIcon />
+            <AlertTitle>{t("legacyWebCrawl.title")}</AlertTitle>
+            <AlertDescription>{t("legacyWebCrawl.description")}</AlertDescription>
+          </Alert>
+        )}
         <DataTable
           table={table}
           empty={
@@ -152,8 +161,18 @@ function DocumentSourceActions({ documentSource }: { documentSource: DocumentSou
   )
 }
 
-function DocumentSourceAppCell({ app }: { app: DocumentSource["app"] }) {
-  if (!app) return null
+function isLegacyWebCrawlSource(documentSource: DocumentSource): boolean {
+  return documentSource.type === LEGACY_WEB_CRAWL_DOCUMENT_SOURCE_TYPE
+}
+
+function DocumentSourceAppCell({ documentSource }: { documentSource: DocumentSource }) {
+  const { t } = useTranslation("documentSource")
+  const { app } = documentSource
+  if (!app) {
+    return isLegacyWebCrawlSource(documentSource) ? (
+      <Badge variant="outline">{t("legacyWebCrawl.badge")}</Badge>
+    ) : null
+  }
   return (
     <div className="flex items-center gap-2">
       {app.logoUrl && <img src={app.logoUrl} alt="" className="size-6 rounded object-contain" />}

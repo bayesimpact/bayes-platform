@@ -242,7 +242,7 @@ Every feature guide is **two paired artifacts** that must stay identical in
 2. A paired animated walkthrough component: `src/components/<Feature>Walkthrough.astro`
 
 References to copy from (most complete first): `DocumentsWalkthrough.astro`,
-`WebSourcesWalkthrough.astro`, `ResourceLibrariesWalkthrough.astro`.
+`ResourceLibrariesWalkthrough.astro`.
 
 ## One-shot recipe
 
@@ -275,7 +275,7 @@ exactly; otherwise infer from the code and proceed without asking.
 
 Reconstruct the ordered actions from the code and cut **one animation step per
 discrete action or screen** — fine-grained, like the existing guides
-(resource-libraries = 10, web-sources = 13, documents = 8 steps). The recurring
+(resource-libraries = 10, documents = 8 steps). The recurring
 shape to look for and reuse:
 
 1. Open **Sources** in the sidebar (backdrop = workspace overview, spot Sources).
@@ -285,7 +285,7 @@ shape to look for and reuse:
    observe the fields).
 5. The **result** row in the table — wait for `Embedding Status` = Ready where
    relevant (observe the status).
-6. Per-row **`⋮` menu** (View / Edit / Recrawl / Download / Delete as applicable)
+6. Per-row **`⋮` menu** (View / Edit / Download / Delete as applicable)
    — spot the dots.
 7. Secondary flows the feature actually has: expand a row, **tag** it (Edit → Add
    tag → Update), **bulk-select** + toolbar (Add tag / Remove tag / Delete),
@@ -349,7 +349,7 @@ Some features only render when a **feature flag** is enabled on the project — 
 Phase-1 render inventory records this (§Fidelity Phase 1). Flags live in `apps/web`:
 grep `feature="<key>"` and `hasFeature("<key>")` (e.g. in `StudioRoutes.tsx`,
 `SidebarFooterChildren.tsx`, `AgentEditor.tsx`, the `*Button.tsx` gates). Known
-flags that gate a documented feature: `web-sources`, `project-analytics`,
+flags that gate a documented feature: `project-analytics`,
 `evaluation` (Evaluations **and** Evaluation dashboard), `agent-orchestration`,
 `agent-embed`, `agent-mcp`.
 
@@ -392,8 +392,8 @@ feature:
 
 - **`guides-agents`** — Agents (creating/configuring agents). *Registered, no guide
   yet.*
-- **`guides-sources`** — Sources & knowledge (Documents, Web sources, Resource
-  libraries, tags).
+- **`guides-sources`** — Sources & knowledge (Documents, Resource libraries,
+  tags).
 - **`guides-team`** — Team & access (members, access by email, roles, Admin settings).
 - **`guides-eval`** — Evaluation & insights (Evaluations, Review campaigns,
   Analytics). *Registered, no guide yet.*
@@ -463,7 +463,7 @@ not, a step or label is missing.
 - **Neutral sample data** — no vertical inferred (see root CLAUDE.md). Use generic
   names (`handbook.pdf`, `example.com`, "Getting started"), not the doc's own
   domain samples (e.g. medical "Patient 1").
-- Cross-link sibling guides where relevant (`/en/web-sources`, `/fr/web-sources`).
+- Cross-link sibling guides where relevant (`/en/documents`, `/fr/documents`).
 
 ## Walkthrough component spec (what MUST be identical across all guides)
 
@@ -509,7 +509,7 @@ not, a step or label is missing.
   (`scan-text`), **Form Agent** (`form`).
 - Settings group: workspace name **Demo** + **Settings/Paramètres**; **Evaluations**
   (`list-checks`, chevron) · **Analytics** (`bar-chart-3`) · **Sources**
-  (`database-zap`, chevron) ▸ **Documents** (`file`) / **Web sources** (`globe`) /
+  (`database-zap`, chevron) ▸ **Documents** (`file`) /
   **Resource libraries** (`library-big`) · **Members** (`users`) · **Admin**
   (`settings-2`).
 - User footer: **Alex Martin** / `alex.martin@example.com` (`chevrons-up-down`).
@@ -519,13 +519,13 @@ not, a step or label is missing.
 ## Icon map (feature → exact Lucide name)
 
 conversation agent `bot-message-square` · extraction `scan-text` · form `form` ·
-Documents `file` · Web sources `globe` · Resource libraries `library-big` ·
+Documents `file` · Resource libraries `library-big` ·
 Sources group `database-zap` · Evaluations `list-checks` · Analytics `bar-chart-3`
 · Members `users` · Admin `settings-2` · Review campaigns `megaphone` · new/add
 `plus` · close `x` · back `arrow-left` · card arrow / next `arrow-right` · chevrons
 `chevron-right` / `chevron-down` · user `chevrons-up-down` · sidebar toggle
 `panel-left` · row menu `ellipsis-vertical` · view `info` · edit `pencil` · delete
-`trash-2` · recrawl `refresh-cw` · download `file-down` · upload `upload-cloud` ·
+`trash-2` · download `file-down` · upload `upload-cloud` ·
 tags (button) `tags` · single tag `tag` · external link `external-link` · check
 `check`.
 

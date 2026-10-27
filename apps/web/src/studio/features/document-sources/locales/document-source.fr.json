@@ -17,6 +17,11 @@
     "empty": {
       "title": "Aucune source externe",
       "description": "Les sources apparaissent ici dès qu'une application synchronise des documents vers cet espace de travail."
+    },
+    "legacyWebCrawl": {
+      "badge": "Ancien crawler web",
+      "title": "Certaines sources viennent de l'ancien crawler web",
+      "description": "Leurs pages restent disponibles pour vos agents, mais plus rien ne les met à jour. Pour modifier une de ces sources ou crawler à nouveau son site, contactez-nous."
     }
   }
 }

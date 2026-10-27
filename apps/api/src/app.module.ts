@@ -25,6 +25,7 @@ import { StorageModule } from "./domains/documents/storage/storage.module"
 import { DocumentTagsModule } from "./domains/documents/tags/document-tags.module"
 import { EvaluationsModule } from "./domains/evaluations/evaluations.module"
 import { InvitationsModule } from "./domains/invitations/invitations.module"
+import { MaintenanceJobsModule } from "./domains/maintenance-jobs/maintenance-jobs.module"
 import { McpEndpointModule } from "./domains/mcp-endpoint/mcp-endpoint.module"
 import { MeModule } from "./domains/me/me.module"
 import { OAuthModule } from "./domains/oauth/oauth.module"
@@ -62,6 +63,7 @@ import { UsersModule } from "./domains/users/users.module"
     AppsModule,
     AuthModule,
     BackofficeModule,
+    MaintenanceJobsModule,
     ConversationAgentSessionsModule,
     DiagnosticsModule,
     HealthModule,

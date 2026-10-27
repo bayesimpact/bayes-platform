@@ -43,7 +43,7 @@ export class Document extends ConnectEntityBase {
     | "extraction" // is the input an extraction run reads (pdf, csv...)
     | "evaluationExtractionRun"
     | "agentCsvExtractionRun" // is the output an extraction run produces (usually a CSV file).
-    | "webCrawl"
+    | "webCrawl" // legacy: one document per crawled site, pages as JSON in content; migrated to document sources by a maintenance job
     | "app" // created through the apps documents API; retrieved with project documents, hidden from the studio library
 
   @Column({ type: "uuid", name: "user_id", nullable: true })

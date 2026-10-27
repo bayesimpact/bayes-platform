@@ -14,6 +14,7 @@ import type {
   BackofficeRbacCatalog,
   BackofficeUserDetail,
   CreateAppManifestInput,
+  MaintenanceJob,
   PaginatedBackofficeAgents,
   PaginatedBackofficeOrganizations,
   PaginatedBackofficeProjects,
@@ -197,6 +198,22 @@ const createAppOAuthClientSecret = createAsyncThunk<AppOAuthClientSecret, string
     services.backoffice.createAppOAuthClientSecret(appManifestId),
 )
 
+const listMaintenanceJobs = createAsyncThunk<MaintenanceJob[], void, ThunkConfig>(
+  "backoffice/listMaintenanceJobs",
+  async (_, { extra: { services } }) => services.backoffice.listMaintenanceJobs(),
+)
+
+const runMaintenanceJob = createAsyncThunk<MaintenanceJob, string, ThunkConfig>(
+  "backoffice/runMaintenanceJob",
+  async (jobKey, { extra: { services } }) => {
+    try {
+      return await services.backoffice.runMaintenanceJob(jobKey)
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, "Something went wrong, please try again."))
+    }
+  },
+)
+
 export const backofficeThunks = {
   listOrganizations,
   getOrganization,
@@ -220,4 +237,6 @@ export const backofficeThunks = {
   deleteAppManifest,
   getAppOAuthClient,
   createAppOAuthClientSecret,
+  listMaintenanceJobs,
+  runMaintenanceJob,
 }

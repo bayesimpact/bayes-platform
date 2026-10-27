@@ -155,6 +155,7 @@ export class DocumentChunkRetrievalService {
         embeddingStatus: "completed",
       })
       .andWhere("document.source_type IN (:...allowedSourceTypes)", {
+        // webCrawl: the legacy web crawls stay searchable until the maintenance job migrates them.
         allowedSourceTypes: ["project", "webCrawl", "app"],
       })
       .andWhere("chunk.deleted_at IS NULL")

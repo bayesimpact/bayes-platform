@@ -26,7 +26,6 @@ import {
   CloudAlertIcon,
   DatabaseZapIcon,
   FileIcon,
-  GlobeIcon,
   LibraryBigIcon,
   ListChecksIcon,
   Loader2Icon,
@@ -183,9 +182,6 @@ function NavSources({
               projectId={projectId}
               permissions={permissions}
             />
-            <RestrictedFeature feature="web-sources">
-              <NavWebSources organizationId={organizationId} projectId={projectId} />
-            </RestrictedFeature>
             <NavResourceLibraries organizationId={organizationId} projectId={projectId} />
           </SidebarMenuSub>
         </CollapsibleContent>
@@ -242,29 +238,6 @@ function NavExternalSources({
         <Link to={path}>
           <PlugIcon />
           <span>{t("nav")}</span>
-        </Link>
-      </SidebarMenuSubButton>
-    </SidebarMenuSubItem>
-  )
-}
-
-function NavWebSources({
-  organizationId,
-  projectId,
-}: {
-  organizationId: string
-  projectId: string
-}) {
-  const { t } = useTranslation()
-  const { isRoute } = useIsRoute()
-  const isActive = isRoute(StudioRoutes.webSources.path)
-  const path = StudioRoutes.webSources.build({ organizationId, projectId })
-  return (
-    <SidebarMenuSubItem>
-      <SidebarMenuSubButton isActive={isActive} asChild>
-        <Link to={path}>
-          <GlobeIcon />
-          <span>{t("document:filter.webSources")}</span>
         </Link>
       </SidebarMenuSubButton>
     </SidebarMenuSubItem>

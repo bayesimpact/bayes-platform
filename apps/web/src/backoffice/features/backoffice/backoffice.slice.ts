@@ -7,6 +7,7 @@ import type {
   BackofficeProjectDetail,
   BackofficeRbacCatalog,
   BackofficeUserDetail,
+  MaintenanceJob,
   PaginatedBackofficeAgents,
   PaginatedBackofficeOrganizations,
   PaginatedBackofficeProjects,
@@ -37,6 +38,7 @@ interface State {
   rbacCatalog: AsyncData<BackofficeRbacCatalog>
   termsDocuments: AsyncData<TermsDocuments>
   appManifests: AsyncData<AppManifest[]>
+  maintenanceJobs: AsyncData<MaintenanceJob[]>
 }
 
 const defaultListQuery: ListQuery = { page: 0, limit: 10, search: "" }
@@ -57,6 +59,7 @@ const initialState: State = {
   rbacCatalog: defaultAsyncData,
   termsDocuments: defaultAsyncData,
   appManifests: defaultAsyncData,
+  maintenanceJobs: defaultAsyncData,
 }
 
 const slice = createSlice({
@@ -78,6 +81,8 @@ const slice = createSlice({
     rbacCatalogUnmount: () => {},
     appsPanelMount: () => {},
     appsPanelUnmount: () => {},
+    maintenanceJobsPanelMount: () => {},
+    maintenanceJobsPanelUnmount: () => {},
     resetOrganizationDetail: (state) => {
       state.organizationDetail = defaultAsyncData
     },
@@ -377,6 +382,28 @@ const slice = createSlice({
           error: action.error.message || "Failed to fetch apps",
           value: null,
         }
+      })
+
+    builder
+      .addCase(backofficeThunks.listMaintenanceJobs.pending, (state) => {
+        if (!ADS.isFulfilled(state.maintenanceJobs)) state.maintenanceJobs.status = ADS.Loading
+        state.maintenanceJobs.error = null
+      })
+      .addCase(backofficeThunks.listMaintenanceJobs.fulfilled, (state, action) => {
+        state.maintenanceJobs = { status: ADS.Fulfilled, error: null, value: action.payload }
+      })
+      .addCase(backofficeThunks.listMaintenanceJobs.rejected, (state, action) => {
+        state.maintenanceJobs = {
+          status: ADS.Error,
+          error: action.error.message || "Failed to fetch maintenance jobs",
+          value: null,
+        }
+      })
+      .addCase(backofficeThunks.runMaintenanceJob.fulfilled, (state, action) => {
+        if (!ADS.isFulfilled(state.maintenanceJobs)) return
+        state.maintenanceJobs.value = state.maintenanceJobs.value.map((job) =>
+          job.key === action.payload.key ? action.payload : job,
+        )
       })
   },
 })

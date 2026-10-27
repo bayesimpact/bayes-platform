@@ -46,10 +46,6 @@ export const FeatureFlags = [
     description: "View project-level analytics and usage charts in the studio.",
   }),
   featureFlag({
-    key: "web-sources",
-    description: "Crawl a website and index its pages as documents.",
-  }),
-  featureFlag({
     key: "agent-mcp",
     description: "Connect MCP servers to agents for external tool access.",
   }),
