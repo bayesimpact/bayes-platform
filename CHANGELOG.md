@@ -13,6 +13,16 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Fixed
 
+### Security
+
+## [26.10.6] - 2026-10-27
+
+### Added
+
+### Changed
+
+### Fixed
+
 - PDF export: exported PDFs are created again when documents are stored in Google Cloud Storage.
 
 ### Security
