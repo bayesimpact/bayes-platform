@@ -55,7 +55,7 @@ func newS3Store(ctx context.Context, settings s3Settings) (*s3Store, error) {
 		}
 		awsConfig = loaded
 	}
-	newClient := func(endpoint string) *s3.Client {
+	newClient := func(endpoint string, apiOptions ...func(*middleware.Stack) error) *s3.Client {
 		return s3.NewFromConfig(awsConfig, func(options *s3.Options) {
 			if endpoint != "" {
 				options.BaseEndpoint = aws.String(endpoint)
@@ -65,14 +65,17 @@ func newS3Store(ctx context.Context, settings s3Settings) (*s3Store, error) {
 			// stores reject them.
 			options.RequestChecksumCalculation = aws.RequestChecksumCalculationWhenRequired
 			options.ResponseChecksumValidation = aws.ResponseChecksumValidationWhenRequired
-			options.APIOptions = append(options.APIOptions, leaveAcceptEncodingUnsigned)
+			options.APIOptions = append(options.APIOptions, apiOptions...)
 		})
 	}
-	client := newClient(settings.Endpoint)
-	signingClient := client
-	if settings.PublicEndpoint != "" && settings.PublicEndpoint != settings.Endpoint {
-		signingClient = newClient(settings.PublicEndpoint)
+	client := newClient(settings.Endpoint, leaveAcceptEncodingUnsigned)
+	// Presigning swaps out the "Signing" step that leaveAcceptEncodingUnsigned
+	// attaches to, and a presigned URL carries no Accept-Encoding anyway.
+	signingEndpoint := settings.Endpoint
+	if settings.PublicEndpoint != "" {
+		signingEndpoint = settings.PublicEndpoint
 	}
+	signingClient := newClient(signingEndpoint)
 	return &s3Store{bucket: settings.Bucket, client: client, presign: s3.NewPresignClient(signingClient)}, nil
 }
 
