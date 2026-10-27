@@ -31,6 +31,7 @@ import type { OrganizationMembershipModel } from "@/domains/organizations/member
 import type { Organization } from "@/domains/organizations/organization.entity"
 import type { ProjectMembershipModel } from "@/domains/projects/memberships/project-membership.model"
 import type { Project } from "@/domains/projects/project.entity"
+import type { ResourceIdsScope } from "@/domains/rbac/permission.service"
 import type { RoleGrant } from "@/domains/rbac/permission.types"
 import type { User } from "@/domains/users/user.entity"
 import type { ReviewCampaignMembershipModel } from "../review-campaigns/memberships/review-campaign-membership.model"
@@ -151,16 +152,27 @@ export function toBackofficeProjectListItemDto(
   }
 }
 
-export function toBackofficeProjectDetailDto(
-  project: Project & { organization?: { name: string } },
-  members: ProjectMembershipModel[],
-  agents: Agent[],
-): BackofficeProjectDetailDto {
+export function toBackofficeProjectDetailDto({
+  project,
+  organizationPermissions,
+  members,
+  visibleUsers,
+  agents,
+}: {
+  project: Project & { organization?: { name: string } }
+  organizationPermissions: string[]
+  members: ProjectMembershipModel[]
+  visibleUsers: ResourceIdsScope
+  agents: { agent: Agent; permissions: string[] }[]
+}): BackofficeProjectDetailDto {
   return {
     id: project.id,
     name: project.name,
-    organizationId: project.organizationId,
-    organizationName: project.organization?.name ?? "",
+    organization: {
+      id: project.organizationId,
+      name: project.organization?.name ?? "",
+      permissions: organizationPermissions,
+    },
     createdAt: project.createdAt.getTime() as TimeType,
     featureFlags: toFeatureFlagsDto(project.featureFlags),
     members: members.map(
@@ -169,12 +181,14 @@ export function toBackofficeProjectDetailDto(
         userEmail: membership.user?.email ?? "",
         userName: membership.user?.name ?? null,
         roles: membership.roles.map(toMembershipRoleDto),
+        canRead: visibleUsers.scope === "all" || visibleUsers.ids.includes(membership.userId),
       }),
     ),
     agents: agents.map(
-      (agent): BackofficeProjectAgentDto => ({
+      ({ agent, permissions }): BackofficeProjectAgentDto => ({
         id: agent.id,
         name: agent.name,
+        permissions,
       }),
     ),
   }

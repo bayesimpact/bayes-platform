@@ -1,7 +1,9 @@
-import type {
-  ReviewCampaignMembershipRole,
-  TermsDocumentType,
-  TimeType,
+import {
+  BACKOFFICE_AGENT_READ_PERMISSION,
+  BACKOFFICE_ORGANIZATION_READ_PERMISSION,
+  type ReviewCampaignMembershipRole,
+  type TermsDocumentType,
+  type TimeType,
 } from "@caseai-connect/api-contracts"
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
@@ -147,6 +149,7 @@ export const backofficeProjectMemberFactory = BackofficeProjectMemberFactory.def
     userEmail: params.userEmail ?? faker.internet.email().toLowerCase(),
     userName: params.userName ?? faker.person.fullName(),
     role: params.role ?? "member",
+    canRead: params.canRead ?? true,
   }),
 )
 
@@ -155,6 +158,7 @@ class BackofficeProjectAgentFactory extends Factory<BackofficeProjectAgent> {}
 export const backofficeProjectAgentFactory = BackofficeProjectAgentFactory.define(({ params }) => ({
   id: params.id ?? faker.string.uuid(),
   name: params.name ?? "Helpful Assistant",
+  permissions: params.permissions ?? [BACKOFFICE_AGENT_READ_PERMISSION],
 }))
 
 class BackofficeProjectDetailFactory extends Factory<BackofficeProjectDetail> {}
@@ -163,8 +167,11 @@ export const backofficeProjectDetailFactory = BackofficeProjectDetailFactory.def
   ({ params }) => ({
     id: params.id ?? faker.string.uuid(),
     name: params.name ?? faker.commerce.productName(),
-    organizationId: params.organizationId ?? faker.string.uuid(),
-    organizationName: params.organizationName ?? faker.company.name(),
+    organization: {
+      id: params.organization?.id ?? faker.string.uuid(),
+      name: params.organization?.name ?? faker.company.name(),
+      permissions: params.organization?.permissions ?? [BACKOFFICE_ORGANIZATION_READ_PERMISSION],
+    },
     createdAt: (params.createdAt ?? faker.date.past().getTime()) as TimeType,
     featureFlags: params.featureFlags ?? [],
     members: params.members ?? [],

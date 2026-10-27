@@ -22,6 +22,9 @@ import {
   BACKOFFICE_AGENT_READ_PERMISSION,
   BACKOFFICE_ORGANIZATION_READ_PERMISSION,
   BACKOFFICE_PROJECT_READ_PERMISSION,
+  READ_PERMISSION_RESOURCE_TYPE_MAP,
+  RESOURCE_TYPE_PERMISSIONS_MAP,
+  type ResourceReadPermission,
 } from "@/domains/rbac/rbac.constants"
 import { Agent } from "../agents/agent.entity"
 import { FeatureFlag } from "../feature-flags/feature-flag.entity"
@@ -395,10 +398,18 @@ export class BackofficeService {
     }))
   }
 
-  async getProjectDetail({ targetProjectId }: { targetProjectId: string }): Promise<{
+  async getProjectDetail({
+    requestingUserId,
+    targetProjectId,
+  }: {
+    requestingUserId: string
+    targetProjectId: string
+  }): Promise<{
     project: Project
+    organizationPermissions: string[]
     members: ProjectMembershipModel[]
-    agents: Agent[]
+    visibleUsers: ResourceIdsScope
+    agents: { agent: Agent; permissions: string[] }[]
   } | null> {
     const project = await this.projectRepository
       .createQueryBuilder("project")
@@ -421,7 +432,70 @@ export class BackofficeService {
         .getMany(),
     ])
 
-    return { project, members, agents }
+    // the page links to the organization, to each agent and to each member: the caller needs
+    // their permissions to know which links lead somewhere
+    const globalPermissions = await this.permissionService.listGlobalPermissions(requestingUserId)
+    const [organizationPermissions, agentsPermissions, visibleUsers] = await Promise.all([
+      this.listPermissionsOn({
+        userId: requestingUserId,
+        globalPermissions,
+        readPermission: BACKOFFICE_ORGANIZATION_READ_PERMISSION,
+        resourceId: project.organizationId,
+      }),
+      Promise.all(
+        agents.map((agent) =>
+          this.listPermissionsOn({
+            userId: requestingUserId,
+            globalPermissions,
+            readPermission: BACKOFFICE_AGENT_READ_PERMISSION,
+            resourceId: agent.id,
+          }),
+        ),
+      ),
+      this.findVisibleUserIds(requestingUserId),
+    ])
+
+    return {
+      project,
+      organizationPermissions,
+      members,
+      visibleUsers,
+      agents: agents.map((agent, index) => ({
+        agent,
+        permissions: agentsPermissions[index] ?? [],
+      })),
+    }
+  }
+
+  /**
+   * The caller's permissions on one resource, global roles included: listResourcePermissionsFor
+   * only reads the memberships on the resource and its parents, so a platform role would
+   * otherwise get none.
+   */
+  private async listPermissionsOn({
+    userId,
+    globalPermissions,
+    readPermission,
+    resourceId,
+  }: {
+    userId: string
+    globalPermissions: string[]
+    readPermission: ResourceReadPermission
+    resourceId: string
+  }): Promise<string[]> {
+    const resourceTypePermissions: readonly string[] =
+      RESOURCE_TYPE_PERMISSIONS_MAP[READ_PERMISSION_RESOURCE_TYPE_MAP[readPermission]]
+    const resourcePermissions = await this.permissionService.listResourcePermissionsFor(
+      userId,
+      readPermission,
+      resourceId,
+    )
+    return [
+      ...new Set([
+        ...resourcePermissions,
+        ...globalPermissions.filter((permission) => resourceTypePermissions.includes(permission)),
+      ]),
+    ]
   }
 
   async getUserDetail({
