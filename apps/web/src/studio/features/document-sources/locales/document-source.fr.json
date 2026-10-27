@@ -18,6 +18,9 @@
     "empty": {
       "title": "Aucune source externe",
       "description": "Les sources apparaissent ici dès qu'une application synchronise des documents vers cet espace de travail."
+    },
+    "notifications": {
+      "tagsUpdateError": "La mise à jour des tags de la source a échoué"
     }
   }
 }

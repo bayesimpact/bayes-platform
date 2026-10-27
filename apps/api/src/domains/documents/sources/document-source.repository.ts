@@ -1,5 +1,6 @@
 import { ConflictException, Injectable } from "@nestjs/common"
 import { QueryFailedError, type Repository } from "typeorm"
+import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
@@ -99,15 +100,11 @@ export class DocumentSourceRepository {
   }
 
   async listTagLinks(connectScope: RequiredConnectScope): Promise<DocumentSourceTagLink[]> {
-    const rows: DocumentSourceTagLink[] = await this.repo()
-      .createQueryBuilder("documentSource")
+    const rows: DocumentSourceTagLink[] = await this.connectRepo()
+      .newQueryBuilderWithConnectScope(connectScope)
       .innerJoin("documentSource.tags", "tag")
       .select("documentSource.id", "documentSourceId")
       .addSelect("tag.id", "documentTagId")
-      .where("documentSource.organizationId = :organizationId", {
-        organizationId: connectScope.organizationId,
-      })
-      .andWhere("documentSource.projectId = :projectId", { projectId: connectScope.projectId })
       .getRawMany()
     return rows
   }
@@ -136,19 +133,18 @@ export class DocumentSourceRepository {
     })
   }
 
-  findOne(
-    connectScope: RequiredConnectScope,
-    id: string,
-    options?: { withTags?: boolean },
-  ): Promise<DocumentSource | null> {
+  findOne(connectScope: RequiredConnectScope, id: string): Promise<DocumentSource | null> {
     return this.repo().findOne({
       where: {
         id,
         organizationId: connectScope.organizationId,
         projectId: connectScope.projectId,
       },
-      ...(options?.withTags ? { relations: ["tags"] } : {}),
     })
+  }
+
+  findOneWithTags(connectScope: RequiredConnectScope, id: string): Promise<DocumentSource | null> {
+    return this.connectRepo().getOneById(connectScope, id, { relations: ["tags"] })
   }
 
   saveTags(documentSource: DocumentSource, tags: DocumentTag[]): Promise<DocumentSource> {
@@ -220,6 +216,10 @@ export class DocumentSourceRepository {
       throw error
     }
     return true
+  }
+
+  private connectRepo(): ConnectRepository<DocumentSource> {
+    return new ConnectRepository(this.repo(), "documentSource")
   }
 
   private repo(): Repository<DocumentSource> {

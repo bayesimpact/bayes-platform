@@ -106,9 +106,7 @@ export class DocumentSourcesService {
     id: string,
     { tagsToAdd, tagsToRemove }: DocumentTagsUpdateFields,
   ): Promise<DocumentSource> {
-    const documentSource = await this.documentSourceRepository.findOne(connectScope, id, {
-      withTags: true,
-    })
+    const documentSource = await this.documentSourceRepository.findOneWithTags(connectScope, id)
     if (!documentSource) {
       throw new NotFoundException(`Document source ${id} not found`)
     }
