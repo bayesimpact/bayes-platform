@@ -17,6 +17,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Fixed
 
+- Resource libraries: the upload button of a resource being edited now opens the file picker instead of saving the resource.
+
 ### Security
 
 ## [26.10.7] - 2026-10-28
