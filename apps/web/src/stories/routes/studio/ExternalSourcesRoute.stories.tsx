@@ -70,6 +70,18 @@ function studioState({ withSources, withLegacyWebCrawlSources, canUpdate, ...arg
           tagIds: [productTag!.id, pricingTag!.id],
         }),
         documentSourceFactory.transient({ project: readableProject }).build({
+          name: "Support center",
+          type: "site",
+          baseUrl: "https://support.example.com/",
+          app: {
+            name: "Site crawler",
+            logoUrl: "https://placehold.co/160x40/png?text=Site+crawler",
+          },
+          documentCount: 38,
+          indexedDocumentCount: 38,
+          status: "ready",
+        }),
+        documentSourceFactory.transient({ project: readableProject }).build({
           name: "Pricing notes",
           type: "folder",
           baseUrl: null,

@@ -232,9 +232,11 @@ function DocumentSourceAppCell({ documentSource }: { documentSource: DocumentSou
     ) : null
   }
   return (
-    <div className="flex items-center gap-2">
-      {app.logoUrl && <img src={app.logoUrl} alt="" className="size-6 rounded object-contain" />}
-      <span className="text-sm text-muted-foreground">{app.name}</span>
+    <div className="flex flex-col items-start gap-1">
+      {app.logoUrl && (
+        <img src={app.logoUrl} alt="" className="h-8 w-auto max-w-32 rounded object-contain" />
+      )}
+      <span className="text-xs text-muted-foreground">{app.name}</span>
     </div>
   )
 }
