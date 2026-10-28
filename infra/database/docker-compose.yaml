@@ -60,7 +60,7 @@ services:
   # through Traefik at s3.<DEV_DOMAIN> or s3.connect.localhost (the host is
   # part of the signature, so S3_PUBLIC_ENDPOINT names it).
   # Profile `storage`: a plain `docker compose up` leaves it off, the CI
-  # (make db-tests) and `bayes wt` start it.
+  # (make db-tests) and the worktree tooling start it.
   seaweedfs:
     image: chrislusf/seaweedfs:4.48
     profiles: [storage]
