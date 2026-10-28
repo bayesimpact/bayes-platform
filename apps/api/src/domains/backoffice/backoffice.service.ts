@@ -334,13 +334,17 @@ export class BackofficeService {
     page: number
     limit: number
     search?: string
-  }): Promise<{ users: User[]; total: number }> {
+  }): Promise<{
+    users: User[]
+    total: number
+    globalRolesByUserId: Map<string, { key: string; name: string }[]>
+  }> {
     const qb = this.userRepository.createQueryBuilder("user").orderBy("LOWER(user.email)", "ASC")
 
     const visibleUsers = await this.findVisibleUserIds(userId)
     if (visibleUsers.scope === "ids") {
       if (visibleUsers.ids.length === 0) {
-        return { users: [], total: 0 }
+        return { users: [], total: 0, globalRolesByUserId: new Map() }
       }
       qb.andWhere("user.id IN (:...visibleUserIds)", {
         visibleUserIds: visibleUsers.ids,
@@ -365,7 +369,10 @@ export class BackofficeService {
       .take(limit)
       .getManyAndCount()
 
-    return { users, total }
+    const globalRolesByUserId = await this.platformRoleService.listGlobalRolesByUserIds(
+      users.map((user) => user.id),
+    )
+    return { users, total, globalRolesByUserId }
   }
 
   async listProjects({

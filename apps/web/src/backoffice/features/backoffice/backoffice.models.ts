@@ -266,6 +266,7 @@ export type BackofficeUser = {
   email: string
   name: string | null
   createdAt: TimeType
+  globalRoles: { key: string; name: string }[]
 }
 
 export type BackofficeUserGlobalRole = {
@@ -402,6 +403,10 @@ export const toBackofficeUser = (dto: BackofficeUserDto): BackofficeUser => ({
   email: dto.email,
   name: dto.name,
   createdAt: dto.createdAt,
+  globalRoles: dto.globalRoles.map((globalRole) => ({
+    key: globalRole.key,
+    name: globalRole.name,
+  })),
 })
 
 export type PaginatedBackofficeUsers = {

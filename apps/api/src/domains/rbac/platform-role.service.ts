@@ -46,6 +46,12 @@ export class PlatformRoleService {
     return this.platformRoleRepository.countGlobalRoleHolders(roleKey)
   }
 
+  listGlobalRolesByUserIds(
+    userIds: string[],
+  ): Promise<Map<string, { key: string; name: string }[]>> {
+    return this.platformRoleRepository.listGlobalRolesByUserIds(userIds)
+  }
+
   listGlobalRoles(userId: string): Promise<string[]> {
     return this.platformRoleRepository.listGlobalRoleKeys(userId)
   }

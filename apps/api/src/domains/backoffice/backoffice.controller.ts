@@ -203,7 +203,7 @@ export class BackofficeController {
     const { user } = request
     const page = Math.max(0, Number(pageParam) || 0)
     const limit = Math.min(100, Math.max(1, Number(limitParam) || 10))
-    const { users, total } = await this.backofficeService.listUsers({
+    const { users, total, globalRolesByUserId } = await this.backofficeService.listUsers({
       userId: user.id,
       page,
       limit,
@@ -211,7 +211,9 @@ export class BackofficeController {
     })
     return {
       data: {
-        users: users.map(toBackofficeUserDto),
+        users: users.map((listedUser) =>
+          toBackofficeUserDto(listedUser, globalRolesByUserId.get(listedUser.id) ?? []),
+        ),
         total,
         page,
         limit,

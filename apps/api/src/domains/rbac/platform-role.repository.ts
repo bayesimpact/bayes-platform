@@ -87,6 +87,31 @@ export class PlatformRoleRepository {
     return rows[0]?.holderCount ?? 0
   }
 
+  /** The global roles of each user, sorted by key. Users with none are absent from the map. */
+  async listGlobalRolesByUserIds(
+    userIds: string[],
+  ): Promise<Map<string, { key: string; name: string }[]>> {
+    const rolesByUserId = new Map<string, { key: string; name: string }[]>()
+    if (userIds.length === 0) return rolesByUserId
+    const rows: { userId: string; roleKey: string; roleName: string }[] =
+      await this.transactionService.getManager().query(
+        `SELECT membership.user_id AS "userId", role.key AS "roleKey", role.name AS "roleName"
+         FROM "user_membership" AS membership
+         INNER JOIN "role" AS role ON role.id = membership.role_id
+         WHERE membership.user_id = ANY($1::uuid[])
+           AND membership.resource_type = 'global'
+           AND membership.deleted_at IS NULL
+         ORDER BY role.key`,
+        [userIds],
+      )
+    for (const row of rows) {
+      const userRoles = rolesByUserId.get(row.userId) ?? []
+      userRoles.push({ key: row.roleKey, name: row.roleName })
+      rolesByUserId.set(row.userId, userRoles)
+    }
+    return rolesByUserId
+  }
+
   /** Keys of the global roles held by the user, sorted. */
   async listGlobalRoleKeys(userId: string): Promise<string[]> {
     const rows: { roleKey: string }[] = await this.transactionService.getManager().query(

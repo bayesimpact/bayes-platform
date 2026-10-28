@@ -161,6 +161,13 @@ export type BackofficeUserDto = {
   email: string
   name: string | null
   createdAt: TimeType
+  /** The user's global roles, by key: none for most users. */
+  globalRoles: BackofficeUserGlobalRoleSummaryDto[]
+}
+
+export type BackofficeUserGlobalRoleSummaryDto = {
+  key: string
+  name: string
 }
 
 export type PaginatedBackofficeUsersDto = {

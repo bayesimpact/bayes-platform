@@ -256,6 +256,7 @@ export const backofficeUserFactory = BackofficeUserFactory.define(({ params }) =
     email: params.email ?? faker.internet.email({ firstName, lastName }).toLowerCase(),
     name: params.name ?? `${firstName} ${lastName}`,
     createdAt: (params.createdAt ?? faker.date.past().getTime()) as TimeType,
+    globalRoles: params.globalRoles ?? [],
   }
 })
 

@@ -195,7 +195,15 @@ function buildProjectsPage(): PaginatedBackofficeProjects {
 function buildUsersPage(): PaginatedBackofficeUsers {
   const total = 24
   const pageSize = 10
-  const users: BackofficeUser[] = backofficeUserFactory.buildList(pageSize)
+  const users: BackofficeUser[] = [
+    backofficeUserFactory.build({
+      globalRoles: [{ key: "platform_superadmin", name: "Platform Superadmin" }],
+    }),
+    backofficeUserFactory.build({
+      globalRoles: [{ key: "platform_org_creator", name: "Platform Organization Creator" }],
+    }),
+    ...backofficeUserFactory.buildList(pageSize - 2),
+  ]
   return paginatedBackofficeUsersFactory.build({ users, total, page: 0, limit: pageSize })
 }
 
