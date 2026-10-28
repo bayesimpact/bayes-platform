@@ -1,0 +1,63 @@
+{
+  "extractionAgentSession": {
+    "create": {
+      "button": "Nueva extracción",
+      "title": "Nueva extracción",
+      "description": "Seleccione un documento para ejecutar la extracción.",
+      "processingMessage": "Procesando... Esto puede tardar un poco..."
+    },
+    "list": {
+      "title": "Extracciones"
+    },
+    "result": {
+      "view": {
+        "button": "Ver JSON",
+        "title": "Resultado de la extracción",
+        "error": "El resultado de la extracción no está disponible."
+      },
+      "download": {
+        "button": "Descargar JSON"
+      },
+      "duration": "Duración: {{duration}}"
+    },
+    "document": {
+      "props": {
+        "name": "Nombre",
+        "createdAt": "Fecha de creación"
+      },
+      "empty": {
+        "title": "Aún no hay documentos",
+        "description": "Suba un PDF o una imagen para empezar."
+      }
+    },
+    "lastExtraction": {
+      "info": "Esta es su sesión de extracción más reciente. Puede encontrarla en el historial si quiere acceder a ella más tarde."
+    },
+    "playground": {
+      "title": "Entorno de pruebas",
+      "description": "Pruebe su agente con distintas entradas y configuraciones"
+    },
+    "history": {
+      "button": "Historial",
+      "title": "Historial",
+      "description": "Consulte el historial de sus sesiones de agente"
+    },
+    "delete": {
+      "confirm": {
+        "title": "Eliminar extracción",
+        "description": "Esta extracción se eliminará de forma permanente. Esta acción no se puede deshacer.",
+        "submit": "Eliminar"
+      }
+    },
+    "notifications": {
+      "completed": "Extracción completada correctamente",
+      "failed": "La extracción falló",
+      "uploading": "Subiendo {{fileName}}...",
+      "executionFailed": "No se pudo ejecutar la extracción",
+      "documentsDeleted": "Documento(s) eliminado(s) correctamente",
+      "documentsDeleteError": "No se pudieron eliminar los documentos",
+      "deleted": "Extracción eliminada correctamente",
+      "deleteError": "No se pudo eliminar la extracción"
+    }
+  }
+}

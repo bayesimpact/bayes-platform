@@ -1,0 +1,95 @@
+{
+  "agent": {
+    "agent": "Agent",
+    "agents": "Agenten",
+    "selectAgent": "Agent auswählen",
+    "props": {
+      "createdAt": "Erstellt am",
+      "name": "Name",
+      "placeholders": {
+        "name": "Namen des Agenten eingeben"
+      },
+      "validation": {
+        "nameMinLength": "Der Name muss mindestens 3 Zeichen lang sein"
+      }
+    },
+    "create": {
+      "button": "Agent erstellen",
+      "title": "Neuer Agent",
+      "description": "Ein Agent kann je nach Typ und Konfiguration bestimmte Aufgaben ausführen.",
+      "typeDialog": {
+        "title": "Agententyp",
+        "description": "Wählen Sie den Typ, bevor Sie Ihren Agenten konfigurieren.",
+        "conversation": "Konversation",
+        "extraction": "Extraktion",
+        "form": "Formular"
+      },
+      "conversationDialog": {
+        "title": "Konversationsagent erstellen",
+        "description": "Neuen Konversationsagenten für {{projectName}} erstellen"
+      },
+      "extractionDialog": {
+        "title": "Extraktionsagent erstellen",
+        "description": "Neuen Extraktionsagenten für {{projectName}} erstellen"
+      },
+      "formDialog": {
+        "title": "Formularagent erstellen",
+        "description": "Neuen Formularagenten für {{projectName}} erstellen"
+      }
+    },
+    "update": {
+      "conversation": {
+        "title": "Konversationsagent bearbeiten",
+        "description": "Details dieses Konversationsagenten bearbeiten"
+      },
+      "extraction": {
+        "title": "Extraktionsagent bearbeiten",
+        "description": "Details dieses Extraktionsagenten bearbeiten"
+      }
+    },
+    "delete": {
+      "title": "Agent löschen",
+      "description": "Möchten Sie „{{name}}“ wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden."
+    },
+    "duplicate": {
+      "title": "Agent duplizieren",
+      "description": "Die Kopie übernimmt Einstellungen, Tools, Sub-Agenten und Quellen von „{{name}}“. Sie beginnt als Entwurf: Veröffentlichen Sie sie in ihrem Editor, sobald sie bereit ist. Unterhaltungen, Analysen und Einbettungseinstellungen werden nicht kopiert.",
+      "defaultName": "{{name}} (Kopie)",
+      "source": {
+        "label": "Zu kopierende Einstellungen",
+        "draft": "Entwurf (Version {{number}})",
+        "draftDescription": "Der Stand im Editor, noch nicht veröffentlicht.",
+        "published": "Veröffentlichte Version {{number}}",
+        "publishedDescription": "Die Version, mit der Benutzer derzeit sprechen."
+      }
+    },
+    "list": {
+      "title": "Agenten",
+      "description": "Agenten für {{projectName}} verwalten"
+    },
+    "model": {
+      "deprecatedSuffix": "(veraltet)",
+      "nonEuSuffix": "(außerhalb der EU)",
+      "deprecation": {
+        "title": "HANDLUNGSBEDARF: {{model}} wird am {{date}} eingestellt",
+        "description": "Stellen Sie diesen Agenten auf {{replacement}} um und testen Sie ihn vor diesem Datum erneut. Danach schlagen Durchläufe mit {{model}} fehl."
+      },
+      "retirement": {
+        "title": "HANDLUNGSBEDARF: {{model}} wurde am {{date}} eingestellt",
+        "description": "Durchläufe mit {{model}} schlagen jetzt fehl. Stellen Sie diesen Agenten auf {{replacement}} um und testen Sie ihn erneut."
+      },
+      "unavailable": "Dieses Modell ist nicht mehr verfügbar. Wählen Sie ein neues Modell aus der Liste."
+    },
+    "playground": "Playground",
+    "notifications": {
+      "updated": "Agent erfolgreich aktualisiert",
+      "updateError": "Agent konnte nicht aktualisiert werden",
+      "deleted": "Agent erfolgreich gelöscht",
+      "deleteError": "Agent konnte nicht gelöscht werden",
+      "created": "Agent erfolgreich erstellt",
+      "createError": "Agent konnte nicht erstellt werden",
+      "duplicated": "Agent als Entwurf dupliziert",
+      "duplicateError": "Agent konnte nicht dupliziert werden"
+    }
+  }
+}

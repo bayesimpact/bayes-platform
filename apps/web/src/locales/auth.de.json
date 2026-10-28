@@ -1,0 +1,37 @@
+{
+  "auth": {
+    "callbackError": {
+      "title": "Anmeldung fehlgeschlagen",
+      "hint": "Der Identitätsanbieter hat die Anmeldung abgelehnt. Wenn das Problem weiterhin besteht, wenden Sie sich mit der obigen Meldung an den Administrator dieser Plattform.",
+      "retry": "erneut versuchen",
+      "logout": "abmelden",
+      "lostState": {
+        "title": "Anmeldung abgelaufen",
+        "message": "Diese Anmeldung wurde vor zu langer Zeit gestartet oder ein anderer Tab hat eine neue begonnen, sodass dieser Tab sie nicht mehr abschließen kann.",
+        "hint": "Klicken Sie auf „erneut versuchen“, um sich anzumelden. Wenn diese Seite wieder erscheint, schließen Sie zuerst die anderen Tabs dieser Plattform."
+      },
+      "signInRefused": {
+        "emailNotVerified": {
+          "title": "E-Mail-Adresse bestätigen",
+          "message": "Für Ihre E-Mail-Adresse wartet ein Konto, aber Ihr Identitätsanbieter hat sie noch nicht bestätigt.",
+          "hint": "Öffnen Sie die Bestätigungs-E-Mail Ihres Identitätsanbieters und prüfen Sie auch Ihren Spam-Ordner. Klicken Sie auf den enthaltenen Link und dann auf „erneut versuchen“."
+        },
+        "emailRequired": {
+          "title": "E-Mail-Adresse fehlt",
+          "message": "Ihr Identitätsanbieter hat Ihre E-Mail-Adresse nicht an diese Plattform übermittelt.",
+          "hint": "Die Plattform benötigt sie, um Ihre Einladungen zu finden. Wenden Sie sich an den Administrator dieser Plattform."
+        },
+        "emailLinkingDisabled": {
+          "title": "Konto existiert bereits",
+          "message": "Für Ihre E-Mail-Adresse existiert bereits ein Konto, und diese Plattform verknüpft Anmeldungen nicht mit bestehenden Konten.",
+          "hint": "Wenden Sie sich an den Administrator dieser Plattform."
+        }
+      }
+    },
+    "noAccess": {
+      "title": "Noch kein Zugriff",
+      "description": "Ihr Konto ist aktiv, aber Sie haben keinen Arbeitsbereich und keine offene Einladung. Bitten Sie Ihren Administrator, Sie einzuladen.",
+      "logout": "abmelden"
+    }
+  }
+}

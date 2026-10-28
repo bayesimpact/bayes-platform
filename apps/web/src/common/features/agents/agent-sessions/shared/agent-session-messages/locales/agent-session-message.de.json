@@ -1,0 +1,29 @@
+{
+  "agentSessionMessage": {
+    "attachment": "Anhang",
+    "navigator": {
+      "title": "Zu einer Nachricht springen",
+      "trigger": "Zu einer Nachricht springen",
+      "search": "Fragen durchsuchen…",
+      "empty": "Keine passende Frage"
+    },
+    "thinking": [
+      "Denkt nach…",
+      "Denkt weiter nach…",
+      "Arbeitet daran…",
+      "Stellt Zusammenhänge her…",
+      "Fügt alles zusammen…",
+      "Beginnt zu schreiben…"
+    ],
+    "interrupted": "Diese Antwort wurde vor dem Ende unterbrochen.",
+    "mcpApp": {
+      "loading": "Interaktive Karte wird geladen…"
+    },
+    "steps": {
+      "working_one": "Bearbeitet {{count}} Schritt",
+      "working_other": "Bearbeitet {{count}} Schritte",
+      "summary_one": "{{count}} Schritt bearbeitet",
+      "summary_other": "{{count}} Schritte bearbeitet"
+    }
+  }
+}

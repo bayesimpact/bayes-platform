@@ -1,0 +1,47 @@
+{
+  "project": {
+    "settings": "Configuración",
+    "project": "Espacio de trabajo",
+    "projects": "Espacios de trabajo",
+    "props": {
+      "name": "Nombre",
+      "createdAt": "Fecha de creación",
+      "updatedAt": "Fecha de actualización",
+      "placeholders": {
+        "name": "Introduzca el nombre del espacio de trabajo"
+      },
+      "validation": {
+        "name": "El nombre del espacio de trabajo es obligatorio"
+      }
+    },
+    "list": {
+      "title": "Gestione sus espacios de trabajo"
+    },
+    "create": {
+      "button": "Crear espacio de trabajo",
+      "title": "Nuevo espacio de trabajo",
+      "description": "Gestione sus agentes conversacionales, agentes de formulario y otros tipos de agentes.",
+      "dialog": {
+        "title": "Crear espacio de trabajo",
+        "description": "Crear un nuevo espacio de trabajo para {{organizationName}}"
+      }
+    },
+    "update": {
+      "title": "Actualizar espacio de trabajo",
+      "description": "Actualizar la información del espacio de trabajo"
+    },
+    "delete": {
+      "title": "Eliminar espacio de trabajo",
+      "description": "¿Está seguro de que desea eliminar {{name}}? Esta acción es irreversible."
+    },
+    "notifications": {
+      "created": "Espacio de trabajo creado correctamente",
+      "createError": "No se pudo crear el espacio de trabajo",
+      "updated": "Espacio de trabajo actualizado correctamente",
+      "updateError": "No se pudo actualizar el espacio de trabajo",
+      "deleted": "Espacio de trabajo eliminado correctamente",
+      "deleteError": "No se pudo eliminar el espacio de trabajo",
+      "conversationCategoriesUpdateError": "No se pudieron actualizar las categorías de conversación"
+    }
+  }
+}

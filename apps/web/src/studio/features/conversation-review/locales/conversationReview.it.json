@@ -1,0 +1,69 @@
+{
+  "conversationReview": {
+    "menu": "Sicurezza",
+    "pageTitle": "Verifica di sicurezza",
+    "tabs": {
+      "sessionId": "ID sessione",
+      "byCategory": "Per categoria"
+    },
+    "form": {
+      "label": "ID sessione",
+      "placeholder": "es. 3f2b8c1e-…",
+      "invalid": "Inserisci un ID sessione valido."
+    },
+    "byCategory": {
+      "select": {
+        "placeholder": "Scegli una categoria",
+        "uncategorized": "Nessuna categoria"
+      },
+      "chooseCategory": "Scegli una categoria per elencarne le sessioni.",
+      "emptyTitle": "Nessuna sessione in questa categoria",
+      "emptyDescription": "Nessuna sessione di questo agente è stata classificata in questa categoria.",
+      "error": "Impossibile caricare l'elenco delle sessioni.",
+      "table": {
+        "date": "Data",
+        "type": "Tipo",
+        "session": "Sessione"
+      },
+      "pagination": {
+        "count": "Pagina {{page}} di {{pages}} · {{total}} sessioni"
+      }
+    },
+    "notice": "Ogni sessione aperta qui viene registrata nel registro attività.",
+    "empty": "Incolla un ID sessione o scegline una dall'elenco per leggerla.",
+    "notFound": "Nessuna sessione di questo agente ha questo ID.",
+    "session": {
+      "live": "In produzione",
+      "playground": "Area di prova",
+      "review_campaign_tester": "Campagna di revisione",
+      "subSession": "Sotto-sessione",
+      "purged": "Contenuto eliminato dalla politica di conservazione",
+      "startedAt": "Avviata il {{date}}",
+      "noMessages": "Questa sessione non contiene messaggi.",
+      "externalVisitorId": "ID visitatore: {{id}}"
+    },
+    "roles": {
+      "user": "Utente",
+      "assistant": "Agente",
+      "tool": "Strumento"
+    },
+    "status": {
+      "streaming": "In fase di scrittura",
+      "aborted": "Interrotto",
+      "error": "Non riuscito"
+    },
+    "tools": "Strumenti: {{names}}",
+    "kind": {
+      "public": "Sessione pubblica",
+      "extraction": "Estrazione"
+    },
+    "channel": {
+      "embed": "Incorporato",
+      "app": "App"
+    },
+    "extraction": {
+      "document": "Documento: {{title}}",
+      "errorCode": "Codice di errore: {{code}}"
+    }
+  }
+}

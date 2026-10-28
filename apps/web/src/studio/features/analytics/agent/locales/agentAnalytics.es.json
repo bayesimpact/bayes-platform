@@ -1,0 +1,32 @@
+{
+  "agentAnalytics": {
+    "list": {
+      "title": "Analítica",
+      "description": "Métricas de conversación de este agente.",
+      "pageTitle": "Analítica del agente"
+    },
+    "dateRangePlaceholder": "Rango de fechas",
+    "conversationsChart": {
+      "title": "Conversaciones por día",
+      "description": "Sesiones conversacionales iniciadas cada día con este agente",
+      "metricLabel": "Total de conversaciones"
+    },
+    "avgQuestionsChart": {
+      "title": "Prom. de preguntas del usuario por sesión",
+      "description": "Promedio de mensajes del usuario por sesión y por día para este agente",
+      "metricLabel": "Por día"
+    },
+    "categoriesChart": {
+      "title": "Conversaciones por categoría",
+      "description": "Categorías ordenadas por volumen de conversaciones en el periodo para este agente. Haga clic en una fila para ver su volumen diario.",
+      "noDataState": "No se encontraron sesiones categorizadas en este rango de fechas.",
+      "uncategorizedLabel": "Sin categoría",
+      "columns": {
+        "category": "Categoría",
+        "conversations": "Conversaciones",
+        "share": "Porcentaje",
+        "trend": "Tendencia"
+      }
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "user": {
+    "props": {
+      "email": "Correo electrónico",
+      "name": "Nombre"
+    },
+    "logout": "Cerrar sesión",
+    "helpCenter": "Centro de ayuda",
+    "editProfile": "Editar perfil",
+    "connectedApps": "Aplicaciones conectadas",
+    "editProfileDialog": {
+      "title": "Editar perfil",
+      "namePlaceholder": "Su nombre",
+      "language": "Idioma",
+      "save": "Guardar",
+      "cancel": "Cancelar"
+    }
+  },
+  "me": {
+    "props": {
+      "user": "Usuario",
+      "organizations": "Organizaciones"
+    },
+    "invitations": {
+      "title": "Invitaciones pendientes",
+      "description": "Acepte una invitación para obtener acceso.",
+      "projectBadge": "Proyecto",
+      "agentBadge": "Agente",
+      "reviewCampaignBadge": "Campaña de revisión",
+      "roleLabel": "Rol"
+    },
+    "notifications": {
+      "invitationAnswerError": "No se pudo responder a la invitación",
+      "apiUnreachable": "No se puede acceder a la API",
+      "apiUnreachableDescription": "Compruebe que la API está en funcionamiento y que CORS está configurado para el origen de esta aplicación web.",
+      "profileUpdated": "Perfil actualizado"
+    }
+  },
+  "termsAcceptance": {
+    "title": "Condiciones y cumplimiento",
+    "intro": "Para continuar, revise y acepte los siguientes documentos.",
+    "checkboxes": {
+      "generalConditions": "Acepto las condiciones generales del servicio (obligatorio)",
+      "privacyPolicy": "Acepto la política de privacidad (obligatorio)",
+      "aiUsagePolicy": "Acepto la política de uso de sistemas de IA (opcional)"
+    },
+    "version": "Versión {{version}}",
+    "submit": "Aceptar y continuar",
+    "errors": {
+      "mandatoryRequired": "Debe aceptar las condiciones generales y la política de privacidad para continuar."
+    }
+  }
+}

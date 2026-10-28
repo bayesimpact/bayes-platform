@@ -1,0 +1,63 @@
+{
+  "extractionAgentSession": {
+    "create": {
+      "button": "Neue Extraktion",
+      "title": "Neue Extraktion",
+      "description": "Wählen Sie ein Dokument für die Extraktion aus.",
+      "processingMessage": "Wird verarbeitet... Dies kann eine Weile dauern..."
+    },
+    "list": {
+      "title": "Extraktionen"
+    },
+    "result": {
+      "view": {
+        "button": "JSON anzeigen",
+        "title": "Extraktionsergebnis",
+        "error": "Das Extraktionsergebnis ist nicht verfügbar."
+      },
+      "download": {
+        "button": "JSON herunterladen"
+      },
+      "duration": "Dauer: {{duration}}"
+    },
+    "document": {
+      "props": {
+        "name": "Name",
+        "createdAt": "Erstellt"
+      },
+      "empty": {
+        "title": "Noch keine Dokumente",
+        "description": "Laden Sie ein PDF oder Bild hoch, um zu beginnen."
+      }
+    },
+    "lastExtraction": {
+      "info": "Dies ist Ihre letzte Extraktionssitzung. Sie finden sie später im Verlauf."
+    },
+    "playground": {
+      "title": "Playground",
+      "description": "Testen Sie Ihren Agenten mit verschiedenen Eingaben und Einstellungen"
+    },
+    "history": {
+      "button": "Verlauf",
+      "title": "Verlauf",
+      "description": "Verlauf Ihrer Agentensitzungen ansehen"
+    },
+    "delete": {
+      "confirm": {
+        "title": "Extraktion löschen",
+        "description": "Diese Extraktion wird endgültig gelöscht. Dies kann nicht rückgängig gemacht werden.",
+        "submit": "Löschen"
+      }
+    },
+    "notifications": {
+      "completed": "Extraktion erfolgreich abgeschlossen",
+      "failed": "Extraktion fehlgeschlagen",
+      "uploading": "{{fileName}} wird hochgeladen...",
+      "executionFailed": "Ausführung der Extraktion fehlgeschlagen",
+      "documentsDeleted": "Dokument(e) erfolgreich gelöscht",
+      "documentsDeleteError": "Dokument(e) konnten nicht gelöscht werden",
+      "deleted": "Extraktion erfolgreich gelöscht",
+      "deleteError": "Extraktion konnte nicht gelöscht werden"
+    }
+  }
+}

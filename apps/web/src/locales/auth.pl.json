@@ -1,0 +1,37 @@
+{
+  "auth": {
+    "callbackError": {
+      "title": "Logowanie nie powiodło się",
+      "hint": "Dostawca tożsamości odrzucił logowanie. Jeśli problem się powtarza, skontaktuj się z administratorem platformy i przekaż mu powyższy komunikat.",
+      "retry": "spróbuj ponownie",
+      "logout": "wyloguj się",
+      "lostState": {
+        "title": "Logowanie wygasło",
+        "message": "To logowanie rozpoczęto zbyt dawno lub inna karta rozpoczęła nowe, więc ta karta nie może go już dokończyć.",
+        "hint": "Kliknij „spróbuj ponownie”, aby się zalogować. Jeśli ta strona wróci, najpierw zamknij inne karty tej platformy."
+      },
+      "signInRefused": {
+        "emailNotVerified": {
+          "title": "Zweryfikuj adres e-mail",
+          "message": "Na Twój adres e-mail czeka konto, ale dostawca tożsamości jeszcze go nie zweryfikował.",
+          "hint": "Otwórz wiadomość weryfikacyjną od dostawcy tożsamości i sprawdź folder spam. Kliknij zawarty w niej link, a następnie „spróbuj ponownie”."
+        },
+        "emailRequired": {
+          "title": "Brak adresu e-mail",
+          "message": "Dostawca tożsamości nie udostępnił tej platformie Twojego adresu e-mail.",
+          "hint": "Platforma potrzebuje go, aby znaleźć Twoje zaproszenia. Skontaktuj się z administratorem platformy."
+        },
+        "emailLinkingDisabled": {
+          "title": "Konto już istnieje",
+          "message": "Dla Twojego adresu e-mail istnieje już konto, a ta platforma nie łączy logowań z istniejącymi kontami.",
+          "hint": "Skontaktuj się z administratorem platformy."
+        }
+      }
+    },
+    "noAccess": {
+      "title": "Brak dostępu",
+      "description": "Twoje konto jest aktywne, ale nie masz żadnej przestrzeni roboczej ani oczekującego zaproszenia. Poproś administratora o zaproszenie.",
+      "logout": "wyloguj się"
+    }
+  }
+}

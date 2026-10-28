@@ -1,0 +1,80 @@
+{
+  "testCase": {
+    "saveAsTestCase": "Als Testfall speichern",
+    "dialog": {
+      "judgeDescription": "Machen Sie diese Antwort zu einem Testfall, der bei jedem Durchlauf des Datensatzes erneut ausgeführt wird.",
+      "reviewDescription": "Prüfen Sie, was der Datensatz enthalten wird. Ein Durchlauf sendet die Eingabe an den Agenten und bewertet seine Antwort anhand der erwarteten Antwort.",
+      "drafting": "Testfall wird entworfen…",
+      "draftingWithExpectedOutput": "Testfall und Zielantwort werden entworfen…",
+      "draftFailedTitle": "Der Testfall konnte nicht entworfen werden",
+      "draftFailedDescription": "Das LLM hat nicht geantwortet. Versuchen Sie es erneut oder gehen Sie zurück und ändern Sie Ihre Auswahl."
+    },
+    "verdict": {
+      "label": "Ist das die Antwort, die der Agent geben sollte?",
+      "good": {
+        "title": "Gute Antwort",
+        "description": "Die Antwort wird zur Referenz, an der der Agent gemessen wird."
+      },
+      "bad": {
+        "title": "Schlechte Antwort",
+        "description": "Beschreiben Sie, was falsch ist, und ein LLM entwirft die Zielantwort."
+      }
+    },
+    "comment": {
+      "good": {
+        "label": "Was ist gut an dieser Antwort?",
+        "placeholder": "Was der Agent richtig gemacht hat und beibehalten soll",
+        "description": "Optional. Wird mit dem Testfall gespeichert, damit alle, die den Datensatz lesen, wissen, warum diese Antwort die Referenz ist."
+      },
+      "bad": {
+        "label": "Was ist falsch an dieser Antwort?",
+        "placeholder": "Was der Agent falsch gemacht, ausgelassen oder nicht hätte sagen sollen",
+        "description": "Ein LLM macht daraus die Antwort, die der Agent hätte geben sollen. Wird mit dem Testfall gespeichert."
+      },
+      "fromReport": "Aus der Meldung des Benutzers übernommen. Bearbeiten Sie den Text, falls er nicht zutrifft.",
+      "required": "Beschreiben Sie, was an dieser Antwort falsch ist."
+    },
+    "dataset": {
+      "label": "Datensatz",
+      "recordCount_one": "{{count}} Eintrag",
+      "recordCount_other": "{{count}} Einträge",
+      "newDataset": "Neuer Datensatz",
+      "newDatasetName": "Name des neuen Datensatzes",
+      "newDatasetSuffix": "{{name}} (neu)",
+      "nameTooShort": "Der Name eines Datensatzes muss mindestens {{count}} Zeichen lang sein."
+    },
+    "review": {
+      "to": "in",
+      "input": "Eingabe",
+      "anonymize": "Anonymisieren",
+      "anonymized": "Anonymisiert",
+      "inputModes": {
+        "conversation": "Kontext der Unterhaltung",
+        "lastMessage": "Exakte letzte Nachricht"
+      },
+      "inputHints": {
+        "firstTurn": "Diese Antwort bezieht sich auf die erste Nachricht, daher enthält diese Nachricht die gesamte Unterhaltung.",
+        "conversation_one": "Von einem LLM aus dem vorherigen Wortwechsel verfasst, damit die Frage für sich allein steht, wenn ein Durchlauf sie erneut stellt.",
+        "conversation_other": "Von einem LLM aus den {{count}} vorherigen Wortwechseln verfasst, damit die Frage für sich allein steht, wenn ein Durchlauf sie erneut stellt.",
+        "lastMessage_one": "Die letzte Nachricht des Benutzers wie gesendet. Ein Durchlauf wiederholt den vorherigen Wortwechsel nicht.",
+        "lastMessage_other": "Die letzte Nachricht des Benutzers wie gesendet. Ein Durchlauf wiederholt die {{count}} vorherigen Wortwechsel nicht."
+      },
+      "expectedOutput": "Erwartete Antwort",
+      "expectedOutputHints": {
+        "good": "Die Antwort des Agenten, gespeichert als Referenz für die Bewertung jedes Durchlaufs.",
+        "bad": "Von einem LLM anhand Ihrer Kritik entworfen. Jeder Durchlauf wird daran gemessen."
+      },
+      "save": "Testfall speichern",
+      "errors": {
+        "inputRequired": "Die Eingabe darf nicht leer sein.",
+        "expectedOutputRequired": "Die erwartete Antwort darf nicht leer sein.",
+        "draftInput": "Die Frage konnte nicht entworfen werden. Versuchen Sie es erneut oder schreiben Sie sie selbst.",
+        "anonymize": "Die Eingabe konnte nicht anonymisiert werden. Versuchen Sie es erneut.",
+        "save": "Der Testfall konnte nicht gespeichert werden. Versuchen Sie es erneut."
+      }
+    },
+    "notifications": {
+      "saved": "Testfall in {{name}} gespeichert"
+    }
+  }
+}

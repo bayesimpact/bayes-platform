@@ -1,0 +1,52 @@
+{
+  "mcpServers": {
+    "title": "Servidores MCP",
+    "description": "Gestione los servidores de herramientas externas conectados a este proyecto.",
+    "builtIn": "Integrado",
+    "empty": "Aún no hay servidores MCP configurados. Añada uno para dar a sus agentes acceso a herramientas externas.",
+    "actions": {
+      "newServer": "Nuevo servidor"
+    },
+    "create": {
+      "title": "Añadir servidor MCP",
+      "description": "Conecte un servidor MCP externo a este proyecto."
+    },
+    "delete": {
+      "title": "Eliminar servidor MCP",
+      "description": "¿Está seguro de que desea eliminar \"{{name}}\"? Los agentes que usan este servidor perderán el acceso a sus herramientas."
+    },
+    "fields": {
+      "name": "Nombre",
+      "namePlaceholder": "Introduzca el nombre del servidor",
+      "url": "URL",
+      "authMethod": "Autenticación",
+      "authMethodApiKey": "Clave de API",
+      "authMethodOauth": "OAuth",
+      "authMethodNone": "Ninguna",
+      "oauthHint": "Una vez creado el servidor, haga clic en Autorizar en su tarjeta.",
+      "apiKey": "Clave de API",
+      "apiKeyPlaceholder": "Introduzca la clave de API del servidor"
+    },
+    "oauthCallback": {
+      "errorTitle": "Error de autorización",
+      "denied": "El proveedor denegó la autorización.",
+      "missingContext": "Este enlace de autorización no es válido o ha caducado. Vuelva a empezar desde la página de servidores MCP.",
+      "failed": "El servidor rechazó la autorización. Vuelva a empezar desde la página de servidores MCP."
+    },
+    "oauth": {
+      "authorize": "Autorizar",
+      "connected": "Conectado mediante OAuth"
+    },
+    "notifications": {
+      "created": "Servidor MCP creado",
+      "createError": "No se pudo crear el servidor MCP",
+      "deleted": "Servidor MCP eliminado",
+      "deleteError": "No se pudo eliminar el servidor MCP",
+      "enabled": "Servidor MCP activado",
+      "disabled": "Servidor MCP desactivado",
+      "enableError": "No se pudo activar el servidor MCP",
+      "disableError": "No se pudo desactivar el servidor MCP",
+      "authorizationError": "No se pudo autorizar el servidor MCP"
+    }
+  }
+}

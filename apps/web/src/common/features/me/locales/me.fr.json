@@ -11,6 +11,7 @@
     "editProfileDialog": {
       "title": "Modifier le profil",
       "namePlaceholder": "Votre nom",
+      "language": "Langue",
       "save": "Enregistrer",
       "cancel": "Annuler"
     }

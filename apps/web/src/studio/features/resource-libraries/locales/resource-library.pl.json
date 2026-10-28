@@ -1,0 +1,81 @@
+{
+  "resourceLibrary": {
+    "title": "Biblioteki zasobów",
+    "description": "Grupuj zasoby, które asystent może pokazywać użytkownikom.",
+    "empty": "Brak bibliotek zasobów. Utwórz bibliotekę, aby agenci tego projektu mogli pokazywać zasoby.",
+    "resourceCount_one": "{{count}} zasób",
+    "resourceCount_few": "{{count}} zasoby",
+    "resourceCount_many": "{{count}} zasobów",
+    "resourceCount_other": "{{count}} zasobu",
+    "manage": "Zarządzaj bibliotekami",
+    "actions": {
+      "newLibrary": "Nowa biblioteka"
+    },
+    "table": {
+      "title": "Tytuł",
+      "description": "Opis",
+      "link": "Link",
+      "actions": "Akcje"
+    },
+    "preview": {
+      "title": "Podgląd zasobu"
+    },
+    "form": {
+      "titleLabel": "Tytuł",
+      "titlePlaceholder": "Pierwsze kroki",
+      "titleRequired": "Tytuł jest wymagany",
+      "resources": "Zasoby",
+      "noResources": "Brak zasobów."
+    },
+    "resourceForm": {
+      "createTitle": "Nowy zasób",
+      "editTitle": "Edytuj zasób",
+      "titleLabel": "Tytuł",
+      "titlePlaceholder": "Tytuł zasobu",
+      "descriptionLabel": "Opis",
+      "descriptionPlaceholder": "Wyświetlany użytkownikom na karcie zasobu",
+      "matchingHintsLabel": "Wskazówki dopasowania (niewidoczne dla użytkowników)",
+      "matchingHintsPlaceholder": "Słowa kluczowe, synonimy lub wskazówki typu „użyj, gdy…”, dzięki którym asystent dopasowuje zasoby do próśb użytkowników",
+      "charactersUsed": "{{count}}/{{max}} znaków",
+      "required": "To pole jest wymagane"
+    },
+    "link": {
+      "url": "URL",
+      "file": "Przesłany plik",
+      "urlPlaceholder": "https://example.com/resource",
+      "urlInvalid": "Wpisz prawidłowy URL https://"
+    },
+    "create": {
+      "title": "Nowa biblioteka zasobów"
+    },
+    "delete": {
+      "title": "Usuń bibliotekę zasobów",
+      "description": "Usunąć „{{title}}”? Agenci, którzy z niej korzystają, stracą dostęp do jej zasobów."
+    },
+    "removeResource": {
+      "title": "Usuń zasób",
+      "description": "Usunąć „{{title}}” z tej biblioteki?"
+    },
+    "agentTab": {
+      "label": "Biblioteki zasobów",
+      "description": "Asystent może pokazywać zasoby z wybranych bibliotek, gdy prośba użytkownika pasuje do tytułu lub opisu zasobu."
+    },
+    "picker": {
+      "addLibrary": "Dodaj bibliotekę",
+      "searchPlaceholder": "Szukaj bibliotek...",
+      "noResults": "Nie znaleziono bibliotek"
+    },
+    "notifications": {
+      "created": "Utworzono bibliotekę zasobów",
+      "createError": "Nie udało się utworzyć biblioteki zasobów",
+      "updated": "Zaktualizowano bibliotekę zasobów",
+      "updateError": "Nie udało się zaktualizować biblioteki zasobów",
+      "deleted": "Usunięto bibliotekę zasobów",
+      "deleteError": "Nie udało się usunąć biblioteki zasobów",
+      "resourceSaved": "Zapisano zasób",
+      "resourceSaveError": "Nie udało się zapisać zasobu",
+      "resourceDeleted": "Usunięto zasób",
+      "resourceDeleteError": "Nie udało się usunąć zasobu"
+    }
+  }
+}

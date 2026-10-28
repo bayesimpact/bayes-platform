@@ -1,0 +1,40 @@
+{
+  "projectAdmin": {
+    "navLabel": "Administracja",
+    "title": "Administracja",
+    "description": "Zarządzaj ustawieniami przestrzeni roboczej.",
+    "tabs": {
+      "general": "Ogólne",
+      "agentSessionCategories": "Kategorie rozmów",
+      "retention": "Polityka przechowywania"
+    },
+    "general": {
+      "title": "Ogólne",
+      "description": "Zaktualizuj ogólne ustawienia tej przestrzeni roboczej.",
+      "workspaceName": "Nazwa przestrzeni roboczej"
+    },
+    "agentSessionCategories": {
+      "title": "Kategorie rozmów",
+      "description": "Zarządzaj kategoriami służącymi do automatycznej klasyfikacji rozmów w tej przestrzeni roboczej.",
+      "addCategory": "Dodaj kategorię",
+      "addDialogTitle": "Dodaj kategorię rozmów",
+      "categoryNamePlaceholder": "Nazwa kategorii",
+      "empty": "Brak kategorii.",
+      "removeCategory": "Usuń: {{name}}",
+      "assignToAllConversationalAgents": "Włącz także dla wszystkich istniejących agentów konwersacyjnych",
+      "removeDialogTitle": "Usunąć kategorię rozmów?",
+      "removeDialogDescription": "Kategoria „{{name}}” zostanie usunięta z listy kategorii przestrzeni roboczej."
+    },
+    "retention": {
+      "title": "Polityka przechowywania",
+      "retentionLabel": "Przechowywanie rozmów (dni)",
+      "retentionHelp": "Treść rozmów starszych niż podana liczba dni jest trwale usuwana. Statystyki użycia pozostają. Od 1 do 3650 dni.",
+      "logTitle": "Dziennik czyszczenia",
+      "nextRun": "Następne czyszczenie: {{date}}",
+      "logEmpty": "Nie przeprowadzono jeszcze czyszczenia.",
+      "columnDate": "Data",
+      "columnPurged": "Usunięte rozmowy",
+      "columnStatus": "Status"
+    }
+  }
+}

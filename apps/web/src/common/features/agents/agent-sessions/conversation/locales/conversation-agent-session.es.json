@@ -1,0 +1,38 @@
+{
+  "conversationAgentSession": {
+    "props": {
+      "type": "Tipo",
+      "createdAt": "Fecha de creación",
+      "updatedAt": "Fecha de actualización",
+      "traceUrl": "URL de traza",
+      "result": "Resultado del formulario"
+    },
+    "create": {
+      "button": "Nuevo chat",
+      "title": "Nuevo chat",
+      "description": "Inicie un chat con su agente."
+    },
+    "list": {
+      "title": "Sesiones de chat"
+    },
+    "chat": {
+      "title": "Entorno de pruebas",
+      "placeholder": "Haga su pregunta..."
+    },
+    "subAgentResults": {
+      "title": "Estado de los formularios de los subagentes",
+      "description": "Resultados recopilados por los subagentes de formulario en los que este agente delegó."
+    },
+    "formState": {
+      "show": "Estado del formulario",
+      "description": "La información que el agente ha recopilado hasta ahora.",
+      "thisAgent": "Este agente"
+    },
+    "delete": {
+      "confirm": {
+        "title": "Eliminar chat",
+        "description": "Este chat y sus mensajes se eliminarán de forma permanente. Esta acción no se puede deshacer."
+      }
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "agentAnalytics": {
+    "list": {
+      "title": "Analysen",
+      "description": "Unterhaltungskennzahlen für diesen Agenten.",
+      "pageTitle": "Agentenanalysen"
+    },
+    "dateRangePlaceholder": "Zeitraum",
+    "conversationsChart": {
+      "title": "Unterhaltungen pro Tag",
+      "description": "Täglich gestartete Unterhaltungssitzungen für diesen Agenten",
+      "metricLabel": "Unterhaltungen gesamt"
+    },
+    "avgQuestionsChart": {
+      "title": "Ø Benutzerfragen pro Sitzung",
+      "description": "Durchschnittliche Benutzernachrichten pro Sitzung und Tag für diesen Agenten",
+      "metricLabel": "Pro Tag"
+    },
+    "categoriesChart": {
+      "title": "Unterhaltungen nach Kategorie",
+      "description": "Kategorien dieses Agenten, sortiert nach Anzahl der Unterhaltungen im Zeitraum. Klicken Sie auf eine Zeile, um den täglichen Verlauf zu sehen.",
+      "noDataState": "Keine kategorisierten Sitzungen in diesem Zeitraum gefunden.",
+      "uncategorizedLabel": "Ohne Kategorie",
+      "columns": {
+        "category": "Kategorie",
+        "conversations": "Unterhaltungen",
+        "share": "Anteil",
+        "trend": "Trend"
+      }
+    }
+  }
+}

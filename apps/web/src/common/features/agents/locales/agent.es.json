@@ -1,0 +1,95 @@
+{
+  "agent": {
+    "agent": "Agente",
+    "agents": "Agentes",
+    "selectAgent": "Seleccionar agente",
+    "props": {
+      "createdAt": "Fecha de creación",
+      "name": "Nombre",
+      "placeholders": {
+        "name": "Introduzca el nombre del agente"
+      },
+      "validation": {
+        "nameMinLength": "El nombre debe tener al menos 3 caracteres"
+      }
+    },
+    "create": {
+      "button": "Crear agente",
+      "title": "Nuevo agente",
+      "description": "Un agente puede realizar tareas específicas según su tipo y su configuración.",
+      "typeDialog": {
+        "title": "Tipo de agente",
+        "description": "Elija el tipo antes de configurar su agente.",
+        "conversation": "Conversación",
+        "extraction": "Extracción",
+        "form": "Formulario"
+      },
+      "conversationDialog": {
+        "title": "Crear agente conversacional",
+        "description": "Crear un nuevo agente conversacional para {{projectName}}"
+      },
+      "extractionDialog": {
+        "title": "Crear agente de extracción",
+        "description": "Crear un nuevo agente de extracción para {{projectName}}"
+      },
+      "formDialog": {
+        "title": "Crear agente de formulario",
+        "description": "Crear un nuevo agente de formulario para {{projectName}}"
+      }
+    },
+    "update": {
+      "conversation": {
+        "title": "Editar agente conversacional",
+        "description": "Editar los detalles de este agente conversacional"
+      },
+      "extraction": {
+        "title": "Editar agente de extracción",
+        "description": "Editar los detalles de este agente de extracción"
+      }
+    },
+    "delete": {
+      "title": "Eliminar agente",
+      "description": "¿Está seguro de que desea eliminar \"{{name}}\"? Esta acción es irreversible."
+    },
+    "duplicate": {
+      "title": "Duplicar agente",
+      "description": "La copia recibe la configuración, las herramientas, los subagentes y las fuentes de \"{{name}}\". Empieza como borrador: publíquela desde su editor cuando esté lista. Las conversaciones, la analítica y la configuración de integración no se copian.",
+      "defaultName": "{{name}} (copia)",
+      "source": {
+        "label": "Configuración que copiar",
+        "draft": "Borrador (versión {{number}})",
+        "draftDescription": "Lo que muestra el editor, aún sin publicar.",
+        "published": "Versión publicada {{number}}",
+        "publishedDescription": "La versión que usan hoy los usuarios."
+      }
+    },
+    "list": {
+      "title": "Agentes",
+      "description": "Gestionar los agentes de {{projectName}}"
+    },
+    "model": {
+      "deprecatedSuffix": "(obsoleto)",
+      "nonEuSuffix": "(fuera de la UE)",
+      "deprecation": {
+        "title": "ACCIÓN NECESARIA: {{model}} se retirará el {{date}}",
+        "description": "Actualice este agente a {{replacement}} y vuelva a probarlo antes de esa fecha. Después, las ejecuciones con {{model}} empezarán a fallar."
+      },
+      "retirement": {
+        "title": "ACCIÓN NECESARIA: {{model}} se retiró el {{date}}",
+        "description": "Las ejecuciones con {{model}} ahora fallan. Actualice este agente a {{replacement}} y vuelva a probarlo."
+      },
+      "unavailable": "Este modelo ya no está disponible. Seleccione un nuevo modelo de la lista."
+    },
+    "playground": "Entorno de pruebas",
+    "notifications": {
+      "updated": "Agente actualizado correctamente",
+      "updateError": "No se pudo actualizar el agente",
+      "deleted": "Agente eliminado correctamente",
+      "deleteError": "No se pudo eliminar el agente",
+      "created": "Agente creado correctamente",
+      "createError": "No se pudo crear el agente",
+      "duplicated": "Agente duplicado como borrador",
+      "duplicateError": "No se pudo duplicar el agente"
+    }
+  }
+}

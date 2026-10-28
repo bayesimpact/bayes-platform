@@ -1,0 +1,38 @@
+{
+  "organization": {
+    "organization": "Organizacja",
+    "organizations": "Organizacje",
+    "createForm": {
+      "title": "Utwórz organizację",
+      "description": "Skonfiguruj organizację, aby kontynuować.",
+      "labelName": "Nazwa organizacji",
+      "placeholderName": "Wpisz nazwę organizacji",
+      "submit": "Utwórz organizację",
+      "submitting": "Tworzenie organizacji...",
+      "validation": {
+        "minNameLength": "Nazwa organizacji musi mieć co najmniej 3 znaki"
+      }
+    },
+    "props": {
+      "name": "Nazwa",
+      "role": "Rola"
+    },
+    "list": {
+      "title": "Witaj, {{name}}!",
+      "description": "Wybierz organizację."
+    },
+    "editDialog": {
+      "title": "Edytuj organizację",
+      "buttonLabel": "Edytuj",
+      "namePlaceholder": "Wpisz nazwę organizacji",
+      "cancel": "Anuluj",
+      "save": "Zapisz"
+    },
+    "notifications": {
+      "created": "Utworzono organizację",
+      "createError": "Nie udało się utworzyć organizacji",
+      "renamed": "Zmieniono nazwę organizacji",
+      "renameError": "Nie udało się zmienić nazwy organizacji"
+    }
+  }
+}

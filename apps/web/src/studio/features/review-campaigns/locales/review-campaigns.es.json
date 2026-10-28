@@ -1,0 +1,261 @@
+{
+  "reviewCampaigns": {
+    "reviewCampaigns": "Campañas de revisión",
+    "title": "Campañas de revisión",
+    "subtitle": "Evalúe agentes con testers y revisores.",
+    "new": "Nueva campaña",
+    "loading": "Cargando…",
+    "dashboardCard": {
+      "title": "Campañas de revisión",
+      "description": "Pida a testers y revisores que evalúen un agente."
+    },
+    "empty": {
+      "title": "Aún no hay campañas de revisión",
+      "description": "Cree una campaña para que testers y revisores evalúen un agente."
+    },
+    "table": {
+      "name": "Nombre",
+      "status": "Estado",
+      "members": "Miembros",
+      "created": "Creada",
+      "updated": "Actualizada",
+      "actions": "Acciones",
+      "editAria": "Editar {{name}}",
+      "deleteAria": "Eliminar {{name}}"
+    },
+    "status": {
+      "draft": "Borrador",
+      "active": "Activa",
+      "closed": "Cerrada"
+    },
+    "editor": {
+      "createTitle": "Nueva campaña de revisión",
+      "editTitle": "Editar campaña de revisión",
+      "createDescription": "Configure el agente, las preguntas y los participantes antes de activarla.",
+      "editDescription": "Gestione la configuración, los participantes y el ciclo de vida.",
+      "noticeSaveFirst": "Guarde primero la campaña y luego invite a los participantes.",
+      "noticeActivateFirst": "Active la campaña antes de invitar a los participantes, para que puedan aceptar y encontrarla en su lista.",
+      "tabs": {
+        "summary": "Resumen",
+        "general": "General",
+        "questions": "Preguntas",
+        "participants": "Participantes",
+        "preview": "Vista previa"
+      },
+      "fields": {
+        "name": "Nombre",
+        "namePlaceholder": "p. ej., Agente de soporte: revisión T2",
+        "description": "Descripción",
+        "descriptionPlaceholder": "¿Qué estamos evaluando?",
+        "agent": "Agente evaluado",
+        "agentPlaceholder": "Seleccione un agente"
+      },
+      "actions": {
+        "create": "Crear campaña",
+        "save": "Guardar",
+        "activate": "Activar",
+        "close": "Cerrar",
+        "delete": "Eliminar"
+      },
+      "validation": {
+        "nameRequired": "El nombre de la campaña es obligatorio",
+        "agentRequired": "El agente es obligatorio"
+      }
+    },
+    "defaults": {
+      "campaignName": "Campaña de {{agent}} — {{date}}",
+      "campaignNameNoAgent": "Nueva campaña de revisión — {{date}}",
+      "description": "Evalúe las respuestas del agente y comparta su opinión.",
+      "perSession": {
+        "q1": {
+          "prompt": "¿Fue clara la respuesta del agente?"
+        },
+        "q2": {
+          "prompt": "¿Respondió el agente a su pregunta?",
+          "options": {
+            "yes": "Sí",
+            "partially": "Parcialmente",
+            "no": "No"
+          }
+        }
+      },
+      "endOfPhase": {
+        "q1": {
+          "prompt": "¿Cuál es su satisfacción general con este agente?"
+        }
+      },
+      "reviewer": {
+        "q1": {
+          "prompt": "¿Eran exactas las respuestas del agente?"
+        }
+      }
+    },
+    "questions": {
+      "perSession": {
+        "label": "Tester: preguntas por sesión",
+        "description": "Se hacen después de cada sesión que completa el tester."
+      },
+      "endOfPhase": {
+        "label": "Tester: preguntas de fin de fase",
+        "description": "Se hacen una sola vez, cuando el tester termina de participar."
+      },
+      "reviewer": {
+        "label": "Preguntas para revisores",
+        "description": "Se muestran a los revisores mientras revisan una sesión."
+      },
+      "types": {
+        "rating": "Puntuación (1–5)",
+        "single-choice": "Opción única",
+        "free-text": "Texto libre"
+      },
+      "prompt": "Pregunta",
+      "promptPlaceholder": "p. ej., ¿Fue clara la respuesta?",
+      "type": "Tipo",
+      "options": "Opciones (separadas por comas)",
+      "optionsPlaceholder": "Sí, No, No lo sé",
+      "required": "Obligatoria",
+      "factual": "Factual",
+      "factualHint": "(visible para los revisores durante la revisión a ciegas)",
+      "factualTooltip": "Las preguntas factuales (lo que ocurrió en la sesión) siguen visibles para los revisores durante la revisión a ciegas. Las preguntas de opinión se ocultan hasta que el revisor envía su propia revisión.",
+      "add": "Añadir pregunta",
+      "moveUp": "Subir",
+      "moveDown": "Bajar",
+      "remove": "Quitar pregunta",
+      "empty": "Aún no hay preguntas."
+    },
+    "participants": {
+      "inviteTitle": "Invitar a participantes",
+      "emailsLabel": "Correos electrónicos (separados por comas o saltos de línea)",
+      "emailsPlaceholder": "alice@example.com, bob@example.com",
+      "roleLabel": "Rol",
+      "tester": "Tester",
+      "reviewer": "Revisor",
+      "send": "Invitar",
+      "empty": "Aún no hay participantes.",
+      "email": "Correo electrónico",
+      "actions": "Acciones",
+      "revoke": "Revocar",
+      "pendingInvitations": {
+        "title": "Invitaciones pendientes",
+        "description": "Personas invitadas a esta campaña que aún no han respondido."
+      },
+      "revokeDialog": {
+        "title": "¿Revocar a {{email}}?",
+        "description": "El participante se quitará de la campaña. Esta acción no se puede deshacer.",
+        "confirm": "Revocar"
+      },
+      "status": "Estado"
+    },
+    "preview": {
+      "perSessionTitle": "Después de cada sesión",
+      "perSessionDescription": "Lo que ve un tester al cerrar una sesión.",
+      "endOfPhaseTitle": "Encuesta de fin de fase",
+      "endOfPhaseDescription": "Lo que ve un tester cuando termina de participar.",
+      "overallRating": "Puntuación general",
+      "comment": "Comentario",
+      "commentPlaceholder": "Comentario del tester…",
+      "answerPlaceholder": "Respuesta del tester…",
+      "submit": "Enviar",
+      "starsAria": "{{count}} estrellas",
+      "ratingAria": "Puntuación de 5 estrellas (vista previa)",
+      "untitled": "Sin título",
+      "noOptions": "No hay opciones configuradas.",
+      "noContent": "Aún no hay contenido."
+    },
+    "summary": {
+      "pending": "Los resultados agregados estarán disponibles cuando se cierre la campaña.",
+      "viewFullReport": "Ver informe completo",
+      "meanTesterRating": "Puntuación media de los testers",
+      "meanTesterRatingHint": "Promedio de las puntuaciones generales por sesión.",
+      "sessions": "Sesiones",
+      "sessionsHint": "Total de sesiones iniciadas por los testers.",
+      "endOfPhaseSurveys": "Encuestas de fin de fase",
+      "endOfPhaseSurveysHint": "Testers que enviaron la encuesta final."
+    },
+    "dialogs": {
+      "activate": {
+        "title": "¿Activar “{{name}}”?",
+        "description": "Una vez activada, la configuración (agente, preguntas) queda bloqueada y la campaña es visible para sus testers y revisores. Aún podrá añadir más participantes.",
+        "confirm": "Activar"
+      },
+      "close": {
+        "title": "¿Cerrar “{{name}}”?",
+        "description": "Al cerrar una campaña se congelan todas las opiniones de los testers y las revisiones de los revisores. Los participantes ya no podrán enviar nuevas sesiones, opiniones ni encuestas. Esta acción no se puede deshacer.",
+        "confirm": "Cerrar campaña"
+      },
+      "delete": {
+        "title": "¿Eliminar “{{name}}”?",
+        "description": "Se eliminarán de forma permanente la campaña en borrador y su configuración. Solo se pueden eliminar los borradores: las campañas activas o cerradas deben conservarse para auditoría.",
+        "confirm": "Eliminar"
+      },
+      "cancel": "Cancelar"
+    },
+    "notifications": {
+      "createSuccess": "Campaña de revisión creada correctamente",
+      "createError": "No se pudo crear la campaña de revisión",
+      "updateSuccess": "Campaña de revisión actualizada correctamente",
+      "updateError": "No se pudo actualizar la campaña de revisión",
+      "deleteSuccess": "Campaña de revisión eliminada correctamente",
+      "deleteError": "No se pudo eliminar la campaña de revisión",
+      "revokeSuccess": "Participación revocada",
+      "revokeError": "No se pudo revocar la participación",
+      "invitationsSentByEmail": "Invitaciones enviadas por correo electrónico",
+      "peopleInvited": "Personas invitadas",
+      "inviteError": "No se pudo invitar a las personas"
+    },
+    "report": {
+      "title": "Informe de la campaña",
+      "back": "Volver",
+      "loading": "Cargando informe…",
+      "downloadCsv": "Descargar CSV",
+      "downloading": "Descargando…",
+      "testerPerSession": {
+        "title": "Tester: preguntas por sesión",
+        "description": "Una respuesta por sesión de tester."
+      },
+      "testerEndOfPhase": {
+        "title": "Tester: preguntas de fin de fase",
+        "description": "Una respuesta por cada tester que completó la encuesta final."
+      },
+      "reviewer": {
+        "title": "Preguntas para revisores",
+        "description": "Una respuesta por revisión de revisor en todas las sesiones."
+      },
+      "sessionMatrix": {
+        "title": "Matriz de sesiones",
+        "description": "Puntuaciones de testers y revisores por sesión. La dispersión es la diferencia entre la puntuación más baja y la más alta de los revisores; una dispersión alta indica desacuerdo entre revisores.",
+        "session": "Sesión",
+        "started": "Iniciada",
+        "tester": "Tester",
+        "reviewers": "Revisores",
+        "meanReviewer": "Media de revisores",
+        "spread": "Dispersión",
+        "emptyTitle": "Aún no hay sesiones",
+        "emptyDescription": "La matriz de sesiones se completa a medida que los testers inician sesiones en esta campaña."
+      },
+      "headline": {
+        "sessions": "Sesiones",
+        "sessionsHint": "{{count}} testers distintos",
+        "meanTesterRating": "Puntuación media de los testers",
+        "meanTesterRatingHint": "{{count}} respuestas por sesión",
+        "meanReviewerRating": "Puntuación media de los revisores",
+        "meanReviewerRatingHint": "{{count}} revisiones de revisores",
+        "meanEndOfPhase": "Media de fin de fase",
+        "meanEndOfPhaseHint": "De las encuestas finales de los testers"
+      },
+      "distribution": {
+        "types": {
+          "rating": "Puntuación",
+          "single-choice": "Opción única",
+          "free-text": "Texto libre"
+        },
+        "responses_one": "{{count}} respuesta",
+        "responses_other": "{{count}} respuestas",
+        "responses_many": "{{count}} respuestas",
+        "freeTextNotice": "Las respuestas de texto libre no se resumen aquí: revise las sesiones individuales para leerlas.",
+        "noResponses": "Aún no hay respuestas.",
+        "barAria": "{{count}} respuestas ({{percent}} %)"
+      }
+    }
+  }
+}

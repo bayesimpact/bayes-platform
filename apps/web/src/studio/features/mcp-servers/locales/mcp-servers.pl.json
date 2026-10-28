@@ -1,0 +1,52 @@
+{
+  "mcpServers": {
+    "title": "Serwery MCP",
+    "description": "Zarządzaj zewnętrznymi serwerami narzędzi połączonymi z tym projektem.",
+    "builtIn": "Wbudowany",
+    "empty": "Brak skonfigurowanych serwerów MCP. Dodaj serwer, aby dać agentom dostęp do zewnętrznych narzędzi.",
+    "actions": {
+      "newServer": "Nowy serwer"
+    },
+    "create": {
+      "title": "Dodaj serwer MCP",
+      "description": "Połącz zewnętrzny serwer MCP z tym projektem."
+    },
+    "delete": {
+      "title": "Usuń serwer MCP",
+      "description": "Czy na pewno chcesz usunąć „{{name}}”? Agenci korzystający z tego serwera stracą dostęp do jego narzędzi."
+    },
+    "fields": {
+      "name": "Nazwa",
+      "namePlaceholder": "Wpisz nazwę serwera",
+      "url": "URL",
+      "authMethod": "Uwierzytelnianie",
+      "authMethodApiKey": "Klucz API",
+      "authMethodOauth": "OAuth",
+      "authMethodNone": "Brak",
+      "oauthHint": "Po utworzeniu serwera kliknij „Autoryzuj” na jego karcie.",
+      "apiKey": "Klucz API",
+      "apiKeyPlaceholder": "Wpisz klucz API serwera"
+    },
+    "oauthCallback": {
+      "errorTitle": "Autoryzacja nie powiodła się",
+      "denied": "Dostawca odmówił autoryzacji.",
+      "missingContext": "Ten link autoryzacyjny jest nieprawidłowy lub wygasł. Zacznij od nowa na stronie serwerów MCP.",
+      "failed": "Serwer odrzucił autoryzację. Zacznij od nowa na stronie serwerów MCP."
+    },
+    "oauth": {
+      "authorize": "Autoryzuj",
+      "connected": "Połączono przez OAuth"
+    },
+    "notifications": {
+      "created": "Utworzono serwer MCP",
+      "createError": "Nie udało się utworzyć serwera MCP",
+      "deleted": "Usunięto serwer MCP",
+      "deleteError": "Nie udało się usunąć serwera MCP",
+      "enabled": "Włączono serwer MCP",
+      "disabled": "Wyłączono serwer MCP",
+      "enableError": "Nie udało się włączyć serwera MCP",
+      "disableError": "Nie udało się wyłączyć serwera MCP",
+      "authorizationError": "Autoryzacja serwera MCP nie powiodła się"
+    }
+  }
+}

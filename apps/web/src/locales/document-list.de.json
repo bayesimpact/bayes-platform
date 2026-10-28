@@ -1,0 +1,15 @@
+{
+  "documentList": {
+    "props": {
+      "name": "Name",
+      "createdAt": "Erstellt am"
+    },
+    "selected_one": "{{count}} ausgewählt",
+    "selected_other": "{{count}} ausgewählt",
+    "delete": {
+      "title_one": "Dokument löschen",
+      "title_other": "{{count}} Dokumente löschen",
+      "description": "Diese Aktion kann nicht rückgängig gemacht werden. Die ausgewählten Dokumente werden endgültig gelöscht."
+    }
+  }
+}

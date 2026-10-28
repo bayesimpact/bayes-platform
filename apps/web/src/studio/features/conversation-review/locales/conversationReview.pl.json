@@ -1,0 +1,69 @@
+{
+  "conversationReview": {
+    "menu": "Bezpieczeństwo",
+    "pageTitle": "Przegląd bezpieczeństwa",
+    "tabs": {
+      "sessionId": "ID sesji",
+      "byCategory": "Według kategorii"
+    },
+    "form": {
+      "label": "ID sesji",
+      "placeholder": "np. 3f2b8c1e-…",
+      "invalid": "Wpisz prawidłowe ID sesji."
+    },
+    "byCategory": {
+      "select": {
+        "placeholder": "Wybierz kategorię",
+        "uncategorized": "Bez kategorii"
+      },
+      "chooseCategory": "Wybierz kategorię, aby wyświetlić jej sesje.",
+      "emptyTitle": "Brak sesji w tej kategorii",
+      "emptyDescription": "Żadna sesja tego agenta nie została oznaczona tą kategorią.",
+      "error": "Nie udało się wczytać listy sesji.",
+      "table": {
+        "date": "Data",
+        "type": "Typ",
+        "session": "Sesja"
+      },
+      "pagination": {
+        "count": "Strona {{page}} z {{pages}} · sesje: {{total}}"
+      }
+    },
+    "notice": "Każda otwarta tutaj sesja jest rejestrowana w dzienniku aktywności.",
+    "empty": "Wklej ID sesji lub wybierz sesję z listy, aby ją wyświetlić.",
+    "notFound": "Żadna sesja tego agenta nie ma takiego ID.",
+    "session": {
+      "live": "Produkcyjna",
+      "playground": "Playground",
+      "review_campaign_tester": "Kampania recenzji",
+      "subSession": "Podsesja",
+      "purged": "Treść usunięta zgodnie z polityką przechowywania",
+      "startedAt": "Rozpoczęto {{date}}",
+      "noMessages": "Ta sesja nie zawiera wiadomości.",
+      "externalVisitorId": "ID odwiedzającego: {{id}}"
+    },
+    "roles": {
+      "user": "Użytkownik",
+      "assistant": "Agent",
+      "tool": "Narzędzie"
+    },
+    "status": {
+      "streaming": "Wciąż generowana",
+      "aborted": "Przerwana",
+      "error": "Błąd"
+    },
+    "tools": "Narzędzia: {{names}}",
+    "kind": {
+      "public": "Sesja publiczna",
+      "extraction": "Ekstrakcja"
+    },
+    "channel": {
+      "embed": "Osadzanie",
+      "app": "Aplikacja"
+    },
+    "extraction": {
+      "document": "Dokument: {{title}}",
+      "errorCode": "Kod błędu: {{code}}"
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "auth": {
+    "callbackError": {
+      "title": "Accesso non riuscito",
+      "hint": "Il provider di identità ha rifiutato l'accesso. Se il problema persiste, contatta l'amministratore di questa piattaforma riportando il messaggio qui sopra.",
+      "retry": "riprova",
+      "logout": "esci",
+      "lostState": {
+        "title": "Accesso scaduto",
+        "message": "Questo accesso è stato avviato troppo tempo fa, oppure un'altra scheda ne ha avviato uno nuovo, e questa scheda non può più completarlo.",
+        "hint": "Fai clic su riprova per accedere. Se questa pagina ricompare, chiudi prima le altre schede di questa piattaforma."
+      },
+      "signInRefused": {
+        "emailNotVerified": {
+          "title": "Verifica la tua email",
+          "message": "Un account attende il tuo indirizzo email, ma il tuo provider di identità non lo ha ancora verificato.",
+          "hint": "Apri l'email di verifica inviata dal tuo provider di identità e controlla anche la cartella spam. Fai clic sul link che contiene, poi su riprova."
+        },
+        "emailRequired": {
+          "title": "Indirizzo email mancante",
+          "message": "Il tuo provider di identità non ha condiviso il tuo indirizzo email con questa piattaforma.",
+          "hint": "La piattaforma ne ha bisogno per trovare i tuoi inviti. Contatta l'amministratore di questa piattaforma."
+        },
+        "emailLinkingDisabled": {
+          "title": "Account già esistente",
+          "message": "Esiste già un account per il tuo indirizzo email e questa piattaforma non collega gli accessi ad account esistenti.",
+          "hint": "Contatta l'amministratore di questa piattaforma."
+        }
+      }
+    },
+    "noAccess": {
+      "title": "Nessun accesso per ora",
+      "description": "Il tuo account è attivo, ma non hai alcuno spazio di lavoro né inviti in attesa. Chiedi al tuo amministratore di invitarti.",
+      "logout": "esci"
+    }
+  }
+}

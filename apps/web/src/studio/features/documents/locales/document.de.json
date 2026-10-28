@@ -1,0 +1,114 @@
+{
+  "document": {
+    "document": "Dokument",
+    "documents": "Dokumente",
+    "sources": "Quellen",
+    "uploading": "Dokumente werden hochgeladen... {{processed}} von {{total}}",
+    "props": {
+      "createdAt": "Erstellt am",
+      "updatedAt": "Aktualisiert am",
+      "deletedAt": "Gelöscht am",
+      "title": "Titel",
+      "content": "Inhalt",
+      "fileName": "Dateiname",
+      "language": "Sprache",
+      "mimeType": "MIME-Typ",
+      "embeddingStatus": "Embedding-Status",
+      "embeddingError": "Embedding-Fehler",
+      "embeddingStatuses": {
+        "pending": "Ausstehend",
+        "queued": "In Warteschlange",
+        "processing": "In Bearbeitung",
+        "completed": "Bereit",
+        "failed": "Fehlgeschlagen"
+      },
+      "size": "Größe",
+      "storageRelativePath": "Relativer Speicherpfad",
+      "tags": "Tags"
+    },
+    "update": {
+      "title": "{{documentTitle}} bearbeiten",
+      "titleRequired": "Ein Titel ist erforderlich"
+    },
+    "delete": {
+      "title": "{{documentTitle}} löschen",
+      "description": "Möchten Sie dieses Dokument wirklich löschen? Dies kann nicht rückgängig gemacht werden."
+    },
+    "reprocess": {
+      "cta": "Neu verarbeiten"
+    },
+    "bulk": {
+      "selected_one": "{{count}} ausgewählt",
+      "selected_other": "{{count}} ausgewählt",
+      "delete": {
+        "title_one": "{{count}} Dokument löschen",
+        "title_other": "{{count}} Dokumente löschen",
+        "description": "Möchten Sie die ausgewählten Dokumente wirklich löschen? Dies kann nicht rückgängig gemacht werden."
+      },
+      "addTag": {
+        "title_one": "Tags zu {{count}} Dokument hinzufügen",
+        "title_other": "Tags zu {{count}} Dokumenten hinzufügen",
+        "description": "Wählen Sie Tags, die auf alle ausgewählten Dokumente angewendet werden.",
+        "confirm": "Anwenden"
+      },
+      "removeTag": {
+        "cta": "Tag entfernen",
+        "title_one": "Tags von {{count}} Dokument entfernen",
+        "title_other": "Tags von {{count}} Dokumenten entfernen",
+        "description": "Wählen Sie Tags, die von allen ausgewählten Dokumenten entfernt werden.",
+        "empty": "Die ausgewählten Dokumente haben keine Tags.",
+        "confirm": "Entfernen"
+      }
+    },
+    "download": "Herunterladen",
+    "publicTag": {
+      "disclaimer": {
+        "title": "Dokument öffentlich zugänglich machen?",
+        "description": "Dieses Dokument ist für alle Benutzer im Chat dieses Projekts sichtbar und herunterladbar. Sie können den Tag jederzeit entfernen, um den Zugriff zu widerrufen.",
+        "confirm": "Öffentlich machen"
+      }
+    },
+    "list": {
+      "description": "Erweitern Sie das Wissen und die Fähigkeiten Ihrer Agenten durch Dokumente.",
+      "empty": {
+        "title": "Noch keine Dokumente",
+        "description": "Laden Sie Ihr erstes Dokument hoch, um zu beginnen."
+      }
+    },
+    "filter": {
+      "all": "Alle",
+      "uploaded": "Dokumente"
+    },
+    "upload": {
+      "tagDialog": {
+        "title": "Tags für diesen Upload",
+        "description": "Optional: Wählen Sie Tags, die auf alle Dateien dieses Uploads angewendet werden.",
+        "fileCountSentence_one": "Sie laden gleich eine Datei hoch.",
+        "fileCountSentence_other": "Sie laden gleich {{count}} Dateien hoch.",
+        "nameLabel": "Name (optional)",
+        "confirm": "Hochladen"
+      }
+    },
+    "notifications": {
+      "uploadFailedCount_one": "{{count}} Dokument konnte nicht hochgeladen werden",
+      "uploadFailedCount_other": "{{count}} Dokumente konnten nicht hochgeladen werden",
+      "uploading": "{{fileName}} wird hochgeladen...",
+      "uploaded": "{{fileName}} erfolgreich hochgeladen",
+      "uploadError": "{{fileName}} konnte nicht hochgeladen werden",
+      "uploadErrorWithReason": "Fehler beim Hochladen der Datei „{{fileName}}“",
+      "updated": "Dokument erfolgreich aktualisiert",
+      "updateError": "Dokument konnte nicht aktualisiert werden",
+      "deleted": "Dokument erfolgreich gelöscht",
+      "deleteError": "Dokument konnte nicht gelöscht werden",
+      "bulkDeleted_one": "{{count}} Dokument erfolgreich gelöscht",
+      "bulkDeleted_other": "{{count}} Dokumente erfolgreich gelöscht",
+      "bulkDeleteError": "Dokumente konnten nicht gelöscht werden",
+      "tagsAdded_one": "Tags zu {{count}} Dokument hinzugefügt",
+      "tagsAdded_other": "Tags zu {{count}} Dokumenten hinzugefügt",
+      "tagsAddError": "Tags konnten nicht zu den Dokumenten hinzugefügt werden",
+      "tagsRemoved_one": "Tags von {{count}} Dokument entfernt",
+      "tagsRemoved_other": "Tags von {{count}} Dokumenten entfernt",
+      "tagsRemoveError": "Tags konnten nicht von den Dokumenten entfernt werden"
+    }
+  }
+}

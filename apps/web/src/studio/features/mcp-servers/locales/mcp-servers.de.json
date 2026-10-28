@@ -1,0 +1,52 @@
+{
+  "mcpServers": {
+    "title": "MCP-Server",
+    "description": "Externe Tool-Server verwalten, die mit diesem Projekt verbunden sind.",
+    "builtIn": "Integriert",
+    "empty": "Noch keine MCP-Server konfiguriert. Fügen Sie einen hinzu, um Ihren Agenten Zugriff auf externe Tools zu geben.",
+    "actions": {
+      "newServer": "Neuer Server"
+    },
+    "create": {
+      "title": "MCP-Server hinzufügen",
+      "description": "Einen externen MCP-Server mit diesem Projekt verbinden."
+    },
+    "delete": {
+      "title": "MCP-Server löschen",
+      "description": "Möchten Sie „{{name}}“ wirklich löschen? Agenten, die diesen Server nutzen, verlieren den Zugriff auf seine Tools."
+    },
+    "fields": {
+      "name": "Name",
+      "namePlaceholder": "Servernamen eingeben",
+      "url": "URL",
+      "authMethod": "Authentifizierung",
+      "authMethodApiKey": "API-Schlüssel",
+      "authMethodOauth": "OAuth",
+      "authMethodNone": "Keine",
+      "oauthHint": "Nach dem Erstellen klicken Sie auf der Serverkarte auf „Autorisieren“.",
+      "apiKey": "API-Schlüssel",
+      "apiKeyPlaceholder": "API-Schlüssel des Servers eingeben"
+    },
+    "oauthCallback": {
+      "errorTitle": "Autorisierung fehlgeschlagen",
+      "denied": "Die Autorisierung wurde vom Anbieter verweigert.",
+      "missingContext": "Dieser Autorisierungslink ist ungültig oder abgelaufen. Beginnen Sie erneut auf der Seite „MCP-Server“.",
+      "failed": "Der Server hat die Autorisierung abgelehnt. Beginnen Sie erneut auf der Seite „MCP-Server“."
+    },
+    "oauth": {
+      "authorize": "Autorisieren",
+      "connected": "Über OAuth verbunden"
+    },
+    "notifications": {
+      "created": "MCP-Server erstellt",
+      "createError": "MCP-Server konnte nicht erstellt werden",
+      "deleted": "MCP-Server gelöscht",
+      "deleteError": "MCP-Server konnte nicht gelöscht werden",
+      "enabled": "MCP-Server aktiviert",
+      "disabled": "MCP-Server deaktiviert",
+      "enableError": "MCP-Server konnte nicht aktiviert werden",
+      "disableError": "MCP-Server konnte nicht deaktiviert werden",
+      "authorizationError": "Autorisierung des MCP-Servers fehlgeschlagen"
+    }
+  }
+}
