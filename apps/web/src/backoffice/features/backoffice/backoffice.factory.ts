@@ -155,7 +155,6 @@ export const backofficeProjectMemberFactory = BackofficeProjectMemberFactory.def
     userEmail: params.userEmail ?? faker.internet.email().toLowerCase(),
     userName: params.userName ?? faker.person.fullName(),
     role: params.role ?? "member",
-    canRead: params.canRead ?? true,
   }),
 )
 
@@ -185,6 +184,7 @@ export const backofficeProjectDetailFactory = BackofficeProjectDetailFactory.def
       BACKOFFICE_PROJECT_UPDATE_PERMISSION,
     ],
     members: params.members ?? [],
+    hiddenMemberCount: params.hiddenMemberCount ?? 0,
     agents: params.agents ?? [],
   }),
 )
