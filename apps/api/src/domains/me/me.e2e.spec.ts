@@ -278,6 +278,7 @@ describe("MeController (e2e)", () => {
         "backoffice.agent.read",
         "backoffice.app.manage",
         "backoffice.conversation_reviewer.update",
+        "backoffice.global_role.update",
         "backoffice.maintenance_job.run",
         "backoffice.organization.read",
         "backoffice.project.read",

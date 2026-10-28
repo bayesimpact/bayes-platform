@@ -12,6 +12,7 @@ import type { BackofficeUser } from "../backoffice.models"
 import { selectBackofficeUsers, selectBackofficeUsersQuery } from "../backoffice.selectors"
 import { backofficeActions } from "../backoffice.slice"
 import { SearchField } from "./BackofficeTable"
+import { RolePermissionBadge } from "./RolePermissionBadge"
 
 export function UsersPanel() {
   const users = useAppSelector(selectBackofficeUsers)
@@ -71,6 +72,22 @@ function WithData() {
             )}
           </div>
         ),
+      },
+      {
+        id: "globalRoles",
+        header: () => "Global roles",
+        cell: ({ row }) =>
+          row.original.globalRoles.length === 0 ? null : (
+            <div className="flex flex-wrap gap-1.5">
+              {row.original.globalRoles.map((globalRole) => (
+                <RolePermissionBadge
+                  key={globalRole.key}
+                  role={globalRole.name}
+                  roleKey={globalRole.key}
+                />
+              ))}
+            </div>
+          ),
       },
     ],
     [],

@@ -1,7 +1,11 @@
 import type { TestingModule } from "@nestjs/testing"
 import type { AllRepositories } from "@/common/test/test-transaction-manager"
 import { userMembershipFactory } from "@/domains/memberships/user-membership.factory"
-import { PLATFORM_STAFF_ROLE, PLATFORM_SUPERADMIN_ROLE } from "@/domains/rbac/rbac.constants"
+import {
+  PLATFORM_ORG_CREATOR_ROLE,
+  PLATFORM_STAFF_ROLE,
+  PLATFORM_SUPERADMIN_ROLE,
+} from "@/domains/rbac/rbac.constants"
 import { RbacService } from "@/domains/rbac/rbac.service"
 import type { User } from "@/domains/users/user.entity"
 
@@ -56,4 +60,11 @@ export async function assignPlatformSuperadminToUser(params: {
   user: User
 }): Promise<void> {
   await assignGlobalRoleToUser({ ...params, roleKey: PLATFORM_SUPERADMIN_ROLE })
+}
+
+export async function assignPlatformOrgCreatorToUser(params: {
+  repositories: AllRepositories
+  user: User
+}): Promise<void> {
+  await assignGlobalRoleToUser({ ...params, roleKey: PLATFORM_ORG_CREATOR_ROLE })
 }

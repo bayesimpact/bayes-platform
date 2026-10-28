@@ -32,6 +32,9 @@ export const selectCanUpdateConversationReviewers = (state: RootState): boolean 
   state.me.data.value?.globalPermissions.includes("backoffice.conversation_reviewer.update") ??
   false
 
+export const selectCanUpdateGlobalRoles = (state: RootState): boolean =>
+  state.me.data.value?.globalPermissions.includes("backoffice.global_role.update") ?? false
+
 export const selectTermsAccepted = (state: RootState): boolean =>
   state.me.data.value?.termsAccepted ?? false
 

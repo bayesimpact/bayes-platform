@@ -211,6 +211,37 @@ function registerListeners() {
     })
   }
 
+  // The user page reloads so its global roles show what the server now holds.
+  for (const globalRoleThunk of [
+    backofficeActions.grantUserGlobalRole,
+    backofficeActions.revokeUserGlobalRole,
+  ]) {
+    listenerMiddleware.startListening({
+      actionCreator: globalRoleThunk.fulfilled,
+      effect: async (action, listenerApi) => {
+        listenerApi.dispatch(
+          notificationsActions.show({
+            titleKey: "backoffice:notifications.globalRolesUpdated",
+            type: "success",
+          }),
+        )
+        listenerApi.dispatch(backofficeActions.getUser(action.payload.userId))
+      },
+    })
+    listenerMiddleware.startListening({
+      actionCreator: globalRoleThunk.rejected,
+      effect: async (action, listenerApi) => {
+        listenerApi.dispatch(
+          notificationsActions.show({
+            titleKey: "backoffice:notifications.globalRolesUpdateError",
+            description: action.error.message,
+            type: "error",
+          }),
+        )
+      },
+    })
+  }
+
   listenerMiddleware.startListening({
     actionCreator: backofficeActions.updateTermsDocuments.fulfilled,
     effect: async (_, listenerApi) => {

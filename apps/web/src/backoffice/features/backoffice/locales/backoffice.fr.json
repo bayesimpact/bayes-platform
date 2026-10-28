@@ -7,6 +7,8 @@
       "projectUpdateError": "La mise à jour de l'espace de travail dans le backoffice a échoué",
       "conversationReviewersUpdated": "Relecteurs de conversations mis à jour",
       "conversationReviewersUpdateError": "La mise à jour des relecteurs de conversations a échoué",
+      "globalRolesUpdated": "Rôles globaux mis à jour",
+      "globalRolesUpdateError": "La mise à jour des rôles globaux a échoué",
       "termsDocumentsSaved": "Documents des conditions d'utilisation enregistrés",
       "termsDocumentsSaveError": "L'enregistrement des documents des conditions d'utilisation a échoué",
       "appCreated": "Application créée",
