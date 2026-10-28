@@ -207,12 +207,16 @@ export function toBackofficeProjectDetailDto({
   }
 }
 
-export function toBackofficeUserDto(user: User): BackofficeUserDto {
+export function toBackofficeUserDto(
+  user: User,
+  globalRoles: { key: string; name: string }[],
+): BackofficeUserDto {
   return {
     id: user.id,
     email: user.email,
     name: user.name,
     createdAt: user.createdAt.getTime() as TimeType,
+    globalRoles,
   }
 }
 

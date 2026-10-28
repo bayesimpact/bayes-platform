@@ -37,6 +37,7 @@ import {
   BACKOFFICE_AGENT_READ_PERMISSION,
   BACKOFFICE_APP_MANAGE_PERMISSION,
   BACKOFFICE_CONVERSATION_REVIEWER_UPDATE_PERMISSION,
+  BACKOFFICE_GLOBAL_ROLE_UPDATE_PERMISSION,
   BACKOFFICE_MAINTENANCE_JOB_RUN_PERMISSION,
   BACKOFFICE_ORGANIZATION_READ_PERMISSION,
   BACKOFFICE_PROJECT_READ_PERMISSION,
@@ -162,6 +163,7 @@ export {
   type AppGrantablePermission,
   BACKOFFICE_AGENT_READ_PERMISSION,
   BACKOFFICE_APP_MANAGE_PERMISSION,
+  BACKOFFICE_GLOBAL_ROLE_UPDATE_PERMISSION,
   BACKOFFICE_MAINTENANCE_JOB_RUN_PERMISSION,
   BACKOFFICE_ORGANIZATION_READ_PERMISSION,
   BACKOFFICE_PROJECT_READ_PERMISSION,
@@ -281,6 +283,12 @@ export const PLATFORM_STAFF_ROLE = "platform_staff" as const
 
 export const PLATFORM_SUPERADMIN_ROLE = "platform_superadmin" as const
 
+/**
+ * Global role that only creates organizations from the backoffice. Not named `org_creator`: that
+ * key was renamed to `platform_staff` (RenameOrgCreatorToPlatformStaff1785254576514).
+ */
+export const PLATFORM_ORG_CREATOR_ROLE = "platform_org_creator" as const
+
 export const PROJECT_ROLES = {
   owner: "project_owner",
   admin: "project_admin",
@@ -383,8 +391,11 @@ export const ORGANIZATION_ROLE_PERMISSIONS = {
     BACKOFFICE_AGENT_READ_PERMISSION,
     BACKOFFICE_USER_READ_PERMISSION,
     BACKOFFICE_CONVERSATION_REVIEWER_UPDATE_PERMISSION,
+    BACKOFFICE_GLOBAL_ROLE_UPDATE_PERMISSION,
     ORGANIZATION_CREATE_PERMISSION,
   ],
+  // backoffice.read opens the backoffice, where organizations are created.
+  [PLATFORM_ORG_CREATOR_ROLE]: [BACKOFFICE_READ_PERMISSION, ORGANIZATION_CREATE_PERMISSION],
 } as const satisfies Record<string, readonly string[]>
 
 /** Permissions granted per project role key. */
@@ -783,6 +794,7 @@ export const PARENT_RESOURCE_TYPE_MAP = {
 export const CATALOG_ROLE_KEYS = [
   PLATFORM_STAFF_ROLE,
   PLATFORM_SUPERADMIN_ROLE,
+  PLATFORM_ORG_CREATOR_ROLE,
   ORGANIZATION_ROLES.owner,
   ORGANIZATION_ROLES.admin,
   ORGANIZATION_ROLES.member,
@@ -974,4 +986,5 @@ export const PERMISSION_DESCRIPTIONS: Record<string, string> = {
     "List the sessions of an agent grouped by category, for safety review",
   [BACKOFFICE_CONVERSATION_REVIEWER_UPDATE_PERMISSION]:
     "Grant or revoke, agent by agent, the right to read any of its conversations for safety review",
+  [BACKOFFICE_GLOBAL_ROLE_UPDATE_PERMISSION]: "Grant or revoke a user's global roles",
 }

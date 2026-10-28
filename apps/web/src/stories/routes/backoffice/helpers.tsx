@@ -52,6 +52,7 @@ export type BackofficeStoryArgs = {
   isMaintenanceJobRunAuthorized: boolean
   canCreateOrganization: boolean
   canUpdateConversationReviewers: boolean
+  canUpdateGlobalRoles: boolean
   withOrganizations: boolean
   withAgents: boolean
   withProjects: boolean
@@ -67,6 +68,7 @@ export const backofficeStoryArgs = {
   isMaintenanceJobRunAuthorized: false,
   canCreateOrganization: true,
   canUpdateConversationReviewers: true,
+  canUpdateGlobalRoles: true,
   withOrganizations: true,
   withAgents: true,
   withProjects: true,
@@ -82,6 +84,7 @@ export const backofficeStoryArgTypes = {
   isMaintenanceJobRunAuthorized: { control: "boolean" },
   canCreateOrganization: { control: "boolean" },
   canUpdateConversationReviewers: { control: "boolean" },
+  canUpdateGlobalRoles: { control: "boolean" },
   withOrganizations: { control: "boolean" },
   withAgents: { control: "boolean" },
   withProjects: { control: "boolean" },
@@ -110,6 +113,7 @@ export function buildBackofficeData(args: BackofficeStoryArgs): {
       ...(args.canUpdateConversationReviewers
         ? (["backoffice.conversation_reviewer.update"] as const)
         : []),
+      ...(args.canUpdateGlobalRoles ? (["backoffice.global_role.update"] as const) : []),
     ],
   })
 
@@ -191,7 +195,15 @@ function buildProjectsPage(): PaginatedBackofficeProjects {
 function buildUsersPage(): PaginatedBackofficeUsers {
   const total = 24
   const pageSize = 10
-  const users: BackofficeUser[] = backofficeUserFactory.buildList(pageSize)
+  const users: BackofficeUser[] = [
+    backofficeUserFactory.build({
+      globalRoles: [{ key: "platform_superadmin", name: "Platform Superadmin" }],
+    }),
+    backofficeUserFactory.build({
+      globalRoles: [{ key: "platform_org_creator", name: "Platform Organization Creator" }],
+    }),
+    ...backofficeUserFactory.buildList(pageSize - 2),
+  ]
   return paginatedBackofficeUsersFactory.build({ users, total, page: 0, limit: pageSize })
 }
 
@@ -281,6 +293,8 @@ export function buildMockBackofficeService(overrides: {
     },
     async grantAgentConversationReviewer() {},
     async revokeAgentConversationReviewer() {},
+    async grantUserGlobalRole() {},
+    async revokeUserGlobalRole() {},
     async getRbacCatalog() {
       if (!rbacCatalog) return backofficeRbacCatalogFactory.build()
       return rbacCatalog

@@ -1,4 +1,4 @@
-import type { FeatureFlagKey } from "@caseai-connect/api-contracts"
+import type { BackofficeGlobalRoleKey, FeatureFlagKey } from "@caseai-connect/api-contracts"
 import type {
   AppManifest,
   AppOAuthClient,
@@ -48,6 +48,14 @@ export interface IBackofficeSpi {
     search?: string
   }) => Promise<PaginatedBackofficeUsers>
   getUser: (userId: string) => Promise<BackofficeUserDetail>
+  grantUserGlobalRole: (params: {
+    userId: string
+    roleKey: BackofficeGlobalRoleKey
+  }) => Promise<void>
+  revokeUserGlobalRole: (params: {
+    userId: string
+    roleKey: BackofficeGlobalRoleKey
+  }) => Promise<void>
   getRbacCatalog: () => Promise<BackofficeRbacCatalog>
   addFeatureFlag: (params: { projectId: string; featureFlagKey: FeatureFlagKey }) => Promise<void>
   removeFeatureFlag: (params: {
