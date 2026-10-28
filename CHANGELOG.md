@@ -10,13 +10,26 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Added
 
 - Backoffice: superadmins can run one-off maintenance jobs and follow their progress from a new Maintenance tab.
-- External sources: tag a source, and agents filtering by those tags search all of its documents.
 
 ### Changed
 
 - Web sources: crawled websites now appear as external sources, and recrawling one goes through the Bayes team.
 
 ### Fixed
+
+### Security
+
+## [26.10.7] - 2026-10-28
+
+### Added
+
+- External sources: tag a source, and agents filtering by those tags search all of its documents.
+
+### Changed
+
+### Fixed
+
+- PDF export: the download link of an exported PDF works again with Google Cloud Storage.
 
 ### Security
 

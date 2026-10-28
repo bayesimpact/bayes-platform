@@ -84,6 +84,17 @@ func TestS3StoreLeavesAcceptEncodingUnsigned(t *testing.T) {
 	if acceptEncoding != "identity" {
 		t.Fatalf("expected Accept-Encoding identity to be sent, got %q", acceptEncoding)
 	}
+
+	signed, err := store.SignedURL(ctx, "tmp/test.pdf", signedURLOptions{
+		Expires:          time.Now().Add(time.Minute),
+		DownloadFileName: "test.pdf",
+	})
+	if err != nil {
+		t.Fatalf("sign: %v", err)
+	}
+	if !strings.Contains(signed, "X-Amz-Signature=") || strings.Contains(signed, "accept-encoding") {
+		t.Fatalf("expected a presigned URL without accept-encoding, got %q", signed)
+	}
 }
 
 func TestS3StoreRoundTrip(t *testing.T) {
