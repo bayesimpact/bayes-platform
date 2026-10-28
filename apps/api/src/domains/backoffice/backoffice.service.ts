@@ -1,4 +1,4 @@
-import type { FeatureFlagKey } from "@caseai-connect/api-contracts"
+import type { BackofficeGlobalRoleKey, FeatureFlagKey } from "@caseai-connect/api-contracts"
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import { In, type Repository } from "typeorm"
@@ -18,10 +18,13 @@ import { ProjectMembershipsService } from "@/domains/projects/memberships/projec
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { PermissionService, type ResourceIdsScope } from "@/domains/rbac/permission.service"
 import type { RoleGrant } from "@/domains/rbac/permission.types"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { PlatformRoleService } from "@/domains/rbac/platform-role.service"
 import {
   BACKOFFICE_AGENT_READ_PERMISSION,
   BACKOFFICE_ORGANIZATION_READ_PERMISSION,
   BACKOFFICE_PROJECT_READ_PERMISSION,
+  PLATFORM_SUPERADMIN_ROLE,
   READ_PERMISSION_RESOURCE_TYPE_MAP,
   RESOURCE_TYPE_PERMISSIONS_MAP,
   type ResourceReadPermission,
@@ -33,6 +36,7 @@ import { Project } from "../projects/project.entity"
 import type { ReviewCampaignMembershipModel } from "../review-campaigns/memberships/review-campaign-membership.model"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ReviewCampaignMembershipsService } from "../review-campaigns/memberships/review-campaign-memberships.service"
+import { isServiceUser } from "../users/service-user.helpers"
 import { User } from "../users/user.entity"
 
 function sortMembershipsByUserEmail<TMembership extends { user: { email: string } }>(
@@ -97,6 +101,7 @@ export class BackofficeService {
     private readonly reviewCampaignMembershipsService: ReviewCampaignMembershipsService,
     private readonly permissionService: PermissionService,
     private readonly agentConversationReviewersService: AgentConversationReviewersService,
+    private readonly platformRoleService: PlatformRoleService,
   ) {}
 
   async createOrganization({
@@ -284,6 +289,39 @@ export class BackofficeService {
     userId: string
   }): Promise<void> {
     await this.agentConversationReviewersService.revoke({ userId, agentId })
+  }
+
+  async grantUserGlobalRole({
+    userId,
+    roleKey,
+  }: {
+    userId: string
+    roleKey: BackofficeGlobalRoleKey
+  }): Promise<void> {
+    const user = await this.userRepository.findOne({ where: { id: userId } })
+    if (!user) throw new NotFoundException(`User ${userId} not found`)
+    if (isServiceUser(user)) throw new BadRequestException("A service user holds no global role")
+    await this.platformRoleService.grantGlobalRole(userId, roleKey)
+  }
+
+  async revokeUserGlobalRole({
+    userId,
+    roleKey,
+  }: {
+    userId: string
+    roleKey: BackofficeGlobalRoleKey
+  }): Promise<void> {
+    if (roleKey === PLATFORM_SUPERADMIN_ROLE) {
+      const [heldRoleKeys, superadminCount] = await Promise.all([
+        this.platformRoleService.listGlobalRoles(userId),
+        this.platformRoleService.countGlobalRoleHolders(PLATFORM_SUPERADMIN_ROLE),
+      ])
+      // Nobody could grant a global role from the backoffice any more.
+      if (heldRoleKeys.includes(PLATFORM_SUPERADMIN_ROLE) && superadminCount <= 1) {
+        throw new BadRequestException("The last platform superadmin cannot lose the role")
+      }
+    }
+    await this.platformRoleService.revokeGlobalRole(userId, roleKey)
   }
 
   async listUsers({

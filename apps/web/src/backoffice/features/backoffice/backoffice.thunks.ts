@@ -1,4 +1,4 @@
-import type { FeatureFlagKey } from "@caseai-connect/api-contracts"
+import type { BackofficeGlobalRoleKey, FeatureFlagKey } from "@caseai-connect/api-contracts"
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import type { RootState, ThunkExtraArg } from "@/common/store"
 import { getApiErrorMessage } from "@/common/utils/api-error"
@@ -124,6 +124,32 @@ const getUser = createAsyncThunk<BackofficeUserDetail, string, ThunkConfig>(
   },
 )
 
+const grantUserGlobalRole = createAsyncThunk<
+  { userId: string; roleKey: BackofficeGlobalRoleKey },
+  { userId: string; roleKey: BackofficeGlobalRoleKey },
+  ThunkConfig
+>("backoffice/grantUserGlobalRole", async (params, { extra: { services } }) => {
+  try {
+    await services.backoffice.grantUserGlobalRole(params)
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, "Something went wrong, please try again."))
+  }
+  return params
+})
+
+const revokeUserGlobalRole = createAsyncThunk<
+  { userId: string; roleKey: BackofficeGlobalRoleKey },
+  { userId: string; roleKey: BackofficeGlobalRoleKey },
+  ThunkConfig
+>("backoffice/revokeUserGlobalRole", async (params, { extra: { services } }) => {
+  try {
+    await services.backoffice.revokeUserGlobalRole(params)
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, "Something went wrong, please try again."))
+  }
+  return params
+})
+
 const getRbacCatalog = createAsyncThunk<BackofficeRbacCatalog, void, ThunkConfig>(
   "backoffice/getRbacCatalog",
   async (_, { extra: { services } }) => services.backoffice.getRbacCatalog(),
@@ -226,6 +252,8 @@ export const backofficeThunks = {
   getProject,
   listUsers,
   getUser,
+  grantUserGlobalRole,
+  revokeUserGlobalRole,
   getRbacCatalog,
   addFeatureFlag,
   removeFeatureFlag,

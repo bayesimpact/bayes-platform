@@ -10,6 +10,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Added
 
 - Backoffice: superadmins can run one-off maintenance jobs and follow their progress from a new Maintenance tab.
+- Backoffice: superadmins can grant global roles from a user's page, including a new role that only creates organizations.
 
 ### Changed
 

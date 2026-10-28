@@ -1,9 +1,16 @@
 import { Injectable } from "@nestjs/common"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
-import type { PLATFORM_STAFF_ROLE, PLATFORM_SUPERADMIN_ROLE } from "./rbac.constants"
+import type {
+  PLATFORM_ORG_CREATOR_ROLE,
+  PLATFORM_STAFF_ROLE,
+  PLATFORM_SUPERADMIN_ROLE,
+} from "./rbac.constants"
 
-export type PlatformRoleKey = typeof PLATFORM_STAFF_ROLE | typeof PLATFORM_SUPERADMIN_ROLE
+export type PlatformRoleKey =
+  | typeof PLATFORM_STAFF_ROLE
+  | typeof PLATFORM_SUPERADMIN_ROLE
+  | typeof PLATFORM_ORG_CREATOR_ROLE
 
 /**
  * TypeORM's raw query returns the rows for SELECT and INSERT ... RETURNING,
@@ -64,6 +71,20 @@ export class PlatformRoleRepository {
       [userId, roleKey],
     )
     return affectedRows(result) > 0
+  }
+
+  /** Number of users holding the global role. */
+  async countGlobalRoleHolders(roleKey: PlatformRoleKey): Promise<number> {
+    const rows: { holderCount: number }[] = await this.transactionService.getManager().query(
+      `SELECT COUNT(*)::int AS "holderCount"
+       FROM "user_membership" AS membership
+       INNER JOIN "role" AS role ON role.id = membership.role_id
+       WHERE role.key = $1
+         AND membership.resource_type = 'global'
+         AND membership.deleted_at IS NULL`,
+      [roleKey],
+    )
+    return rows[0]?.holderCount ?? 0
   }
 
   /** Keys of the global roles held by the user, sorted. */

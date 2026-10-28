@@ -11,22 +11,23 @@ A person can hold several roles on one organization, project, agent or review ca
 
 ## Global roles
 
-Global roles are stored as `user_membership` rows with `resource_type = 'global'`. `platform_staff` is renamed from `org_creator` and seeded by email domain (`SeedPlatformStaffByEmailDomain` / `ORGANIZATION_CREATOR_EMAIL_DOMAIN`). `platform_superadmin` is seeded from `BACKOFFICE_AUTHORIZED_EMAILS` by `SeedPlatformSuperadminByEmails`. The app itself never reads those env vars for authorization. `platform_staff` holds global `backoffice.project.read`. It does not hold `backoffice.user.read`, so the backoffice project page lists only the members it can read as users through `listUserIds`, and counts the others. `backoffice.app.manage` is superadmin-only: it manages the app manifests and their OAuth clients. `backoffice.maintenance_job.run` is superadmin-only: it lists and runs the one-off maintenance jobs of the backoffice. `backoffice.conversation_reviewer.update` lets the backoffice grant or revoke `agent_conversation_reviewer` on an agent (see Agent roles).
+Global roles are stored as `user_membership` rows with `resource_type = 'global'`. `platform_staff` is renamed from `org_creator` and seeded by email domain (`SeedPlatformStaffByEmailDomain` / `ORGANIZATION_CREATOR_EMAIL_DOMAIN`). `platform_superadmin` is seeded from `BACKOFFICE_AUTHORIZED_EMAILS` by `SeedPlatformSuperadminByEmails`. The app itself never reads those env vars for authorization. `platform_staff` holds global `backoffice.project.read`. It does not hold `backoffice.user.read`, so the backoffice project page lists only the members it can read as users through `listUserIds`, and counts the others. `backoffice.app.manage` is superadmin-only: it manages the app manifests and their OAuth clients. `backoffice.maintenance_job.run` is superadmin-only: it lists and runs the one-off maintenance jobs of the backoffice. `backoffice.conversation_reviewer.update` lets the backoffice grant or revoke `agent_conversation_reviewer` on an agent (see Agent roles). `platform_org_creator` only opens the backoffice and creates organizations, as their owner. `backoffice.global_role.update` is superadmin-only: it grants or revokes the global roles of a user from the backoffice user page, and the last superadmin cannot lose that role.
 
-| Permission | `platform_staff` | `platform_superadmin` |
-|---|---|---|
-| `backoffice.app.manage` — manage app definitions in the backoffice | — | ✅ |
-| `backoffice.maintenance_job.run` — see and run the one-off maintenance jobs of the backoffice | — | ✅ |
-| `backoffice.read` — access `/backoffice` routes | ✅ | ✅ |
-| `trace.read` — see trace links | ✅ | ✅ |
-| `backoffice.terms.update` — manage terms documents | — | ✅ |
-| `backoffice.organization.read` — see every organization in the backoffice | — | ✅ |
-| `backoffice.project.read` — see every project in the backoffice | ✅ | ✅ |
-| `backoffice.project.update` — mutate projects from the backoffice (e.g. feature flags) | — | ✅ |
-| `backoffice.agent.read` — see every agent in the backoffice | — | ✅ |
-| `backoffice.user.read` — see every user in the backoffice | — | ✅ |
-| `organization.create` — create organizations | — | ✅ |
-| `backoffice.conversation_reviewer.update` — grant or revoke, agent by agent, the right to read any of its conversations | — | ✅ |
+| Permission | `platform_staff` | `platform_superadmin` | `platform_org_creator` |
+|---|---|---|---|
+| `backoffice.app.manage` — manage app definitions in the backoffice | — | ✅ | — |
+| `backoffice.maintenance_job.run` — see and run the one-off maintenance jobs of the backoffice | — | ✅ | — |
+| `backoffice.read` — access `/backoffice` routes | ✅ | ✅ | ✅ |
+| `trace.read` — see trace links | ✅ | ✅ | — |
+| `backoffice.terms.update` — manage terms documents | — | ✅ | — |
+| `backoffice.organization.read` — see every organization in the backoffice | — | ✅ | — |
+| `backoffice.project.read` — see every project in the backoffice | ✅ | ✅ | — |
+| `backoffice.project.update` — mutate projects from the backoffice (e.g. feature flags) | — | ✅ | — |
+| `backoffice.agent.read` — see every agent in the backoffice | — | ✅ | — |
+| `backoffice.user.read` — see every user in the backoffice | — | ✅ | — |
+| `organization.create` — create organizations | — | ✅ | ✅ |
+| `backoffice.conversation_reviewer.update` — grant or revoke, agent by agent, the right to read any of its conversations | — | ✅ | — |
+| `backoffice.global_role.update` — grant or revoke a user's global roles | — | ✅ | — |
 
 ## Organization roles
 

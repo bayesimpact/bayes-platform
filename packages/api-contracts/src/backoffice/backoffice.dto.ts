@@ -189,6 +189,23 @@ export type BackofficeRbacCatalogDto = {
   permissions: BackofficeRbacPermissionDto[]
 }
 
+/** The global roles a superadmin grants or revokes from the backoffice user page. */
+export const BACKOFFICE_GLOBAL_ROLE_KEYS = [
+  "platform_superadmin",
+  "platform_staff",
+  "platform_org_creator",
+] as const
+
+export type BackofficeGlobalRoleKey = (typeof BACKOFFICE_GLOBAL_ROLE_KEYS)[number]
+
+export const grantBackofficeUserGlobalRoleSchema = z.object({
+  roleKey: z.enum(BACKOFFICE_GLOBAL_ROLE_KEYS),
+})
+
+export type GrantBackofficeUserGlobalRoleRequestDto = z.infer<
+  typeof grantBackofficeUserGlobalRoleSchema
+>
+
 export type BackofficeUserGlobalRoleDto = {
   key: string
   name: string
