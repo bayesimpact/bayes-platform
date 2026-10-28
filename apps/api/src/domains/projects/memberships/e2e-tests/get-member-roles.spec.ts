@@ -91,14 +91,14 @@ describe("Project membership - getMemberRoles", () => {
       organization,
       project,
       user: { email: "member@example.com", authSubject: "oidc|member" },
-      projectMembership: { role: "member" },
+      projectMembership: { roleKeys: ["project_member"] },
     })
     memberUserId = member.id
     await saveAgentMembership({
       repositories,
       membership: agentMembershipFactory
         .transient({ agent, user: member })
-        .build({ role: "member" }),
+        .build({ roleKeys: ["agent_member"] }),
     })
     const otherAgent = await repositories.agentRepository.save(
       agentFactory.transient({ organization, project }).build({ name: "Agent B" }),
@@ -112,7 +112,7 @@ describe("Project membership - getMemberRoles", () => {
     await saveReviewCampaignMembership({
       repositories,
       membership: reviewCampaignMembershipFactory
-        .tester()
+        .withRoles("review_campaign_tester")
         .transient({ organization, project, campaign, user: member })
         .build(),
     })

@@ -60,7 +60,7 @@ describe("Documents - deleteOne", () => {
       repositories,
       {
         user: { authSubject },
-        projectMembership: { role: "admin" },
+        projectMembership: { roleKeys: ["project_admin"] },
       },
     )
     organizationId = organization.id

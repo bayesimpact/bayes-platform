@@ -21,10 +21,10 @@ import {
   reviewCampaignMembershipFactory,
   saveReviewCampaignMembership,
 } from "../../memberships/review-campaign-membership.factory"
+import type { ReviewCampaignRoleKey } from "../../memberships/review-campaign-membership.types"
 import { reviewCampaignFactory } from "../../review-campaign.factory"
 import { reviewCampaignStatusErrorMessage } from "../../review-campaign-status"
 import { ReviewCampaignsModule } from "../../review-campaigns.module"
-import type { ReviewCampaignMembershipRole } from "../../review-campaigns.types"
 
 describe("ReviewCampaigns - Tester auth", () => {
   let app: INestApplication<App>
@@ -68,7 +68,7 @@ describe("ReviewCampaigns - Tester auth", () => {
 
   const seedAsTester = async (
     campaignStatus: "draft" | "active" | "closed" = "active",
-    role: ReviewCampaignMembershipRole = "tester",
+    roleKey: ReviewCampaignRoleKey = "review_campaign_tester",
   ) => {
     const { organization, project, user, agent, agentSettings } = await createOrganizationWithAgent(
       repositories,
@@ -90,7 +90,7 @@ describe("ReviewCampaigns - Tester auth", () => {
       repositories,
       membership: reviewCampaignMembershipFactory
         .transient({ organization, project, campaign, user })
-        .build({ role }),
+        .build({ roleKeys: [roleKey] }),
     })
     organizationId = organization.id
     projectId = project.id
@@ -99,7 +99,7 @@ describe("ReviewCampaigns - Tester auth", () => {
   }
 
   const seedAsReviewerOnly = (campaignStatus: "draft" | "active" | "closed" = "active") =>
-    seedAsTester(campaignStatus, "reviewer")
+    seedAsTester(campaignStatus, "review_campaign_reviewer")
 
   // A campaign session started by the caller, for the routes nested under a session.
   const seedOwnSession = async ({
@@ -218,7 +218,7 @@ describe("ReviewCampaigns - Tester auth", () => {
       await saveReviewCampaignMembership({
         repositories,
         membership: reviewCampaignMembershipFactory
-          .reviewer()
+          .withRoles("review_campaign_reviewer")
           .transient({ organization, project, campaign, user })
           .build(),
       })
@@ -242,7 +242,7 @@ describe("ReviewCampaigns - Tester auth", () => {
       await saveReviewCampaignMembership({
         repositories,
         membership: reviewCampaignMembershipFactory
-          .reviewer()
+          .withRoles("review_campaign_reviewer")
           .transient({ organization, project, campaign, user })
           .build(),
       })
@@ -490,7 +490,7 @@ describe("ReviewCampaigns - Tester auth", () => {
         organization,
         project,
         campaign,
-        role: "tester",
+        roleKeys: ["review_campaign_tester"],
         user: { authSubject, email: mockOidcEmailForSub(authSubject) },
       })
       organizationId = organization.id

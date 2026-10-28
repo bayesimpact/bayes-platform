@@ -16,12 +16,12 @@ import {
   agentMembershipFactory,
   saveAgentMembership,
 } from "@/domains/agents/memberships/agent-membership.factory"
-import type { AgentMembershipRole } from "@/domains/agents/memberships/agent-membership.types"
+import type { AgentRoleKey } from "@/domains/agents/memberships/agent-membership.types"
 import {
   createOrganizationWithAgent,
   createOrganizationWithProject,
 } from "@/domains/organizations/organization.factory"
-import type { ProjectMembershipRole } from "@/domains/projects/memberships/project-membership.types"
+import type { ProjectRoleKey } from "@/domains/projects/memberships/project-membership.types"
 import { mockForeignAuthSubject, setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
@@ -68,12 +68,12 @@ describe("Agent Memories - Auth", () => {
   })
 
   const seedContext = async (options: {
-    projectRole: ProjectMembershipRole
-    agentMembership: AgentMembershipRole | "none"
+    projectRole: ProjectRoleKey
+    agentMembership: AgentRoleKey | "none"
   }) => {
     const { organization, project, user } = await createOrganizationWithProject(repositories, {
       user: { authSubject },
-      projectMembership: { role: options.projectRole },
+      projectMembership: { roleKeys: [options.projectRole] },
     })
     const agent = agentFactory.transient({ organization, project }).build()
     await repositories.agentRepository.save(agent)
@@ -82,7 +82,8 @@ describe("Agent Memories - Auth", () => {
         repositories,
         membership: agentMembershipFactory
           .transient({ user, agent })
-          .build({ role: options.agentMembership }),
+          .withRoles(options.agentMembership)
+          .build(),
       })
     }
     organizationId = organization.id
@@ -163,28 +164,28 @@ describe("Agent Memories - Auth", () => {
   })
 
   it("allows project members who are agent members: the people who chat with it", async () => {
-    await seedContext({ projectRole: "member", agentMembership: "member" })
+    await seedContext({ projectRole: "project_member", agentMembership: "agent_member" })
     await expectAuthorized()
   })
 
   it("allows project owners, who can read every agent of the project", async () => {
-    await seedContext({ projectRole: "owner", agentMembership: "none" })
+    await seedContext({ projectRole: "project_owner", agentMembership: "none" })
     await expectAuthorized()
   })
 
   it("does not allow project members without access to the agent", async () => {
-    await seedContext({ projectRole: "member", agentMembership: "none" })
+    await seedContext({ projectRole: "project_member", agentMembership: "none" })
     await expectAll(403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
   })
 
   it("requires an existing agent ID for the project", async () => {
-    await seedContext({ projectRole: "owner", agentMembership: "owner" })
+    await seedContext({ projectRole: "project_owner", agentMembership: "agent_owner" })
     agentId = randomUUID()
     await expectAll(404)
   })
 
   it("rejects an unknown session type", async () => {
-    await seedContext({ projectRole: "owner", agentMembership: "owner" })
+    await seedContext({ projectRole: "project_owner", agentMembership: "agent_owner" })
     sessionType = "public"
     await expectAll(400)
   })

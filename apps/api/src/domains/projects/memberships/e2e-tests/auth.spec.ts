@@ -13,6 +13,7 @@ import { removeNullish } from "@/common/utils/remove-nullish"
 import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
 import type { Organization } from "@/domains/organizations/organization.entity"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import type { ProjectRoleKey } from "@/domains/projects/memberships/project-membership.types"
 import {
   mockForeignAuthSubject,
   mockOidcEmailForSub,
@@ -60,10 +61,10 @@ describe("Project Memberships - Auth", () => {
     await app.close()
   })
 
-  const createContextForRole = async (role: "owner" | "admin" | "member" = "owner") => {
+  const createContextForRole = async (role: ProjectRoleKey = "project_owner") => {
     const { organization, project, user } = await createOrganizationWithProject(repositories, {
       user: { authSubject },
-      projectMembership: { role },
+      projectMembership: { roleKeys: [role] },
     })
     organizationId = organization.id
     projectId = project.id
@@ -81,7 +82,7 @@ describe("Project Memberships - Auth", () => {
         authSubject: organizationAdminAuthSubject,
         email: mockOidcEmailForSub(organizationAdminAuthSubject),
       },
-      membership: { role: "admin" },
+      membership: { roleKeys: ["org_admin"] },
     })
     authSubject = organizationAdminAuthSubject
   }
@@ -99,34 +100,34 @@ describe("Project Memberships - Auth", () => {
       expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
     })
     it("requires a valid organization ID", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       organizationId = null
       expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
     })
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("requires an existing project ID", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       projectId = randomUUID()
       expectResponse(await subject(), 404)
     })
     it("doesn't allow a simple member to list project memberships", async () => {
-      await createContextForRole("member")
+      await createContextForRole("project_member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
     it("allows the owner to list project memberships", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       expectResponse(await subject(), 200)
     })
     it("allows the admin to list project memberships", async () => {
-      await createContextForRole("admin")
+      await createContextForRole("project_admin")
       expectResponse(await subject(), 200)
     })
     it("forbids an organization admin without a project role from listing", async () => {
-      const { organization } = await createContextForRole("owner")
+      const { organization } = await createContextForRole("project_owner")
       await switchToOrganizationAdminWithoutProjectRole(organization)
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
@@ -142,9 +143,7 @@ describe("Project Memberships - Auth", () => {
         token: accessToken ?? undefined,
       })
 
-    const createContextForRoleWithMembership = async (
-      role: "owner" | "admin" | "member" = "owner",
-    ) => {
+    const createContextForRoleWithMembership = async (role: ProjectRoleKey = "project_owner") => {
       const { organization, project } = await createContextForRole(role)
 
       const { membership } = await addMemberByEmailToProject({
@@ -166,25 +165,25 @@ describe("Project Memberships - Auth", () => {
       expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
     })
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRoleWithMembership("owner")
+      await createContextForRoleWithMembership("project_owner")
       authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to see a member's agents", async () => {
-      await createContextForRoleWithMembership("member")
+      await createContextForRoleWithMembership("project_member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
     it("forbids an organization admin without a project role from seeing a member's agents", async () => {
-      const { organization } = await createContextForRoleWithMembership("owner")
+      const { organization } = await createContextForRoleWithMembership("project_owner")
       await switchToOrganizationAdminWithoutProjectRole(organization)
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
     it("allows the owner to see a member's agents", async () => {
-      await createContextForRoleWithMembership("owner")
+      await createContextForRoleWithMembership("project_owner")
       expectResponse(await subject(), 200)
     })
     it("allows the admin to see a member's agents", async () => {
-      await createContextForRoleWithMembership("admin")
+      await createContextForRoleWithMembership("project_admin")
       expectResponse(await subject(), 200)
     })
   })
@@ -199,9 +198,7 @@ describe("Project Memberships - Auth", () => {
         token: accessToken ?? undefined,
       })
 
-    const createContextForRoleWithMembership = async (
-      role: "owner" | "admin" | "member" = "owner",
-    ) => {
+    const createContextForRoleWithMembership = async (role: ProjectRoleKey = "project_owner") => {
       const { organization, project } = await createContextForRole(role)
 
       // A member added by email who has not signed in yet
@@ -224,31 +221,31 @@ describe("Project Memberships - Auth", () => {
       expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
     })
     it("requires a valid organization ID", async () => {
-      await createContextForRoleWithMembership("owner")
+      await createContextForRoleWithMembership("project_owner")
       organizationId = null
       expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
     })
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRoleWithMembership("owner")
+      await createContextForRoleWithMembership("project_owner")
       authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("requires an existing project ID", async () => {
-      await createContextForRoleWithMembership("owner")
+      await createContextForRoleWithMembership("project_owner")
       projectId = randomUUID()
       expectResponse(await subject(), 404)
     })
     it("requires an existing member", async () => {
-      await createContextForRoleWithMembership("owner")
+      await createContextForRoleWithMembership("project_owner")
       memberUserId = randomUUID()
       expectResponse(await subject(), 404)
     })
     it("doesn't allow a simple member to remove project memberships", async () => {
-      await createContextForRoleWithMembership("member")
+      await createContextForRoleWithMembership("project_member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
     it("forbids an organization admin without a project role from removing a membership", async () => {
-      const { organization, membership } = await createContextForRoleWithMembership("owner")
+      const { organization, membership } = await createContextForRoleWithMembership("project_owner")
       await switchToOrganizationAdminWithoutProjectRole(organization)
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
 
@@ -257,11 +254,11 @@ describe("Project Memberships - Auth", () => {
       ).not.toBeNull()
     })
     it("allows the owner to remove a membership", async () => {
-      await createContextForRoleWithMembership("owner")
+      await createContextForRoleWithMembership("project_owner")
       expectResponse(await subject(), 200)
     })
     it("allows the admin to remove a membership", async () => {
-      await createContextForRoleWithMembership("admin")
+      await createContextForRoleWithMembership("project_admin")
       expectResponse(await subject(), 200)
     })
   })
@@ -273,7 +270,7 @@ describe("Project Memberships - Auth", () => {
       organization,
       project: project as Parameters<typeof addMemberByEmailToProject>[0]["project"],
       user: { email: `target-${randomUUID()}@example.com`, authSubject: `oidc|${randomUUID()}` },
-      projectMembership: { role: "member" },
+      projectMembership: { roleKeys: ["project_member"] },
     })
     return addedUser
   }
@@ -291,14 +288,14 @@ describe("Project Memberships - Auth", () => {
       expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
     })
     it("doesn't allow a simple member", async () => {
-      await createContextForRole("member")
+      await createContextForRole("project_member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
     it("allows the owner and the admin", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       expectResponse(await subject(), 200)
       await clearTestDatabase(setup.dataSource)
-      await createContextForRole("admin")
+      await createContextForRole("project_admin")
       expectResponse(await subject(), 200)
     })
   })
@@ -313,7 +310,7 @@ describe("Project Memberships - Auth", () => {
         request: { payload: { userIds, roleKeys: ["project_admin"] } },
       })
 
-    const createContext = async (role: "owner" | "admin" | "member") => {
+    const createContext = async (role: ProjectRoleKey) => {
       const { organization, project } = await createContextForRole(role)
       userIds = [(await addTarget(organization, project)).id]
     }
@@ -323,15 +320,15 @@ describe("Project Memberships - Auth", () => {
       expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
     })
     it("doesn't allow a simple member", async () => {
-      await createContext("member")
+      await createContext("project_member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
     it("allows the owner", async () => {
-      await createContext("owner")
+      await createContext("project_owner")
       expectResponse(await subject(), 201)
     })
     it("allows the admin", async () => {
-      await createContext("admin")
+      await createContext("project_admin")
       expectResponse(await subject(), 201)
     })
   })
@@ -350,7 +347,7 @@ describe("Project Memberships - Auth", () => {
         token: accessToken ?? undefined,
       })
 
-    const createContext = async (role: "owner" | "admin" | "member") => {
+    const createContext = async (role: ProjectRoleKey) => {
       const { organization, project } = await createContextForRole(role)
       const target = await addTarget(organization, project)
       const adminRole = await repositories.roleRepository.findOneOrFail({
@@ -372,19 +369,19 @@ describe("Project Memberships - Auth", () => {
       expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
     })
     it("doesn't allow a simple member", async () => {
-      await createContext("member")
+      await createContext("project_member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
     it("allows the owner", async () => {
-      await createContext("owner")
+      await createContext("project_owner")
       expectResponse(await subject(), 200)
     })
     it("allows the admin", async () => {
-      await createContext("admin")
+      await createContext("project_admin")
       expectResponse(await subject(), 200)
     })
     it("requires an existing member", async () => {
-      await createContext("owner")
+      await createContext("project_owner")
       memberUserId = randomUUID()
       expectResponse(await subject(), 404)
     })
@@ -400,7 +397,7 @@ describe("Project Memberships - Auth", () => {
         request: { payload: { userIds } },
       })
 
-    const createContext = async (role: "owner" | "admin" | "member") => {
+    const createContext = async (role: ProjectRoleKey) => {
       const { organization, project } = await createContextForRole(role)
       userIds = [(await addTarget(organization, project)).id]
     }
@@ -410,15 +407,15 @@ describe("Project Memberships - Auth", () => {
       expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
     })
     it("doesn't allow a simple member", async () => {
-      await createContext("member")
+      await createContext("project_member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
     it("allows the owner", async () => {
-      await createContext("owner")
+      await createContext("project_owner")
       expectResponse(await subject(), 200)
     })
     it("allows the admin", async () => {
-      await createContext("admin")
+      await createContext("project_admin")
       expectResponse(await subject(), 200)
     })
   })

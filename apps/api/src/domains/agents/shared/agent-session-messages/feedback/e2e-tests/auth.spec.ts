@@ -17,8 +17,9 @@ import {
   createOrganizationWithAgent,
   createOrganizationWithAgentMessage,
 } from "@/domains/organizations/organization.factory"
-import type { ProjectMembershipRole } from "@/domains/projects/memberships/project-membership.types"
+import type { ProjectRoleKey } from "@/domains/projects/memberships/project-membership.types"
 import { addUserToReviewCampaign } from "@/domains/review-campaigns/memberships/review-campaign-membership.factory"
+import type { ReviewCampaignRoleKey } from "@/domains/review-campaigns/memberships/review-campaign-membership.types"
 import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
 import {
   mockForeignAuthSubject,
@@ -71,14 +72,14 @@ describe("Agent Message Feedback - Auth", () => {
     await app.close()
   })
 
-  const createContextForRole = async (role: ProjectMembershipRole) => {
+  const createContextForRole = async (role: ProjectRoleKey) => {
     const { organization, project, agent, agentMessage, user } =
       await createOrganizationWithAgentMessage({
         repositories,
         params: {
           user: { authSubject, email: mockOidcEmailForSub(authSubject) },
-          organizationMembership: { role: "member" },
-          projectMembership: { role },
+          organizationMembership: { roleKeys: ["org_member"] },
+          projectMembership: { roleKeys: [role] },
         },
         agentType: "conversation",
       })
@@ -103,7 +104,7 @@ describe("Agent Message Feedback - Auth", () => {
         authSubject: organizationAdminAuthSubject,
         email: mockOidcEmailForSub(organizationAdminAuthSubject),
       },
-      membership: { role: "admin" },
+      membership: { roleKeys: ["org_admin"] },
     })
     authSubject = organizationAdminAuthSubject
   }
@@ -123,30 +124,34 @@ describe("Agent Message Feedback - Auth", () => {
     })
 
     it("requires a valid organization ID", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       organizationId = null
       expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
     })
 
     it("requires a valid project ID", async () => {
-      await createContextForRole("member")
+      await createContextForRole("project_member")
       projectId = null
       expectResponse(await subject(), 404)
     })
 
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("member")
+      await createContextForRole("project_member")
       authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
 
     it("forbids an organization admin who holds no project role", async () => {
-      const context = await createContextForRole("owner")
+      const context = await createContextForRole("project_owner")
       await switchToOrganizationAdminWithoutProjectRole(context)
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
 
-    it.each([["owner"], ["admin"], ["member"]] as const)("allows a project %s", async (role) => {
+    it.each([
+      ["project_owner"],
+      ["project_admin"],
+      ["project_member"],
+    ] as const)("allows a %s", async (role) => {
       await createContextForRole(role)
       expectResponse(await subject(), 201)
     })
@@ -166,41 +171,41 @@ describe("Agent Message Feedback - Auth", () => {
     })
 
     it("requires a valid organization ID", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       organizationId = null
       expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
     })
 
     it("requires a valid project ID", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       projectId = null
       expectResponse(await subject(), 404)
     })
 
     it("requires a valid agent ID", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       agentId = null
       expectResponse(await subject(), 404)
     })
 
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
 
     it("forbids an organization admin who holds no project role", async () => {
-      const context = await createContextForRole("owner")
+      const context = await createContextForRole("project_owner")
       await switchToOrganizationAdminWithoutProjectRole(context)
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
 
     it("forbids a plain project member", async () => {
-      await createContextForRole("member")
+      await createContextForRole("project_member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
 
-    it.each([["owner"], ["admin"]] as const)("allows a project %s", async (role) => {
+    it.each([["project_owner"], ["project_admin"]] as const)("allows a %s", async (role) => {
       await createContextForRole(role)
       expectResponse(await subject(), 200)
     })
@@ -208,7 +213,9 @@ describe("Agent Message Feedback - Auth", () => {
 
   // A tester's campaign role gives the feedback key on the campaign's project, without a project row.
   describe("review campaign participants", () => {
-    const createCampaignParticipantContext = async (role: "tester" | "reviewer" = "tester") => {
+    const createCampaignParticipantContext = async (
+      roleKey: ReviewCampaignRoleKey = "review_campaign_tester",
+    ) => {
       const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
         repositories,
         { agent: { type: "conversation" } },
@@ -225,7 +232,7 @@ describe("Agent Message Feedback - Auth", () => {
         organization,
         project,
         campaign,
-        role,
+        roleKeys: [roleKey],
         user: {
           authSubject: participantAuthSubject,
           email: mockOidcEmailForSub(participantAuthSubject),
@@ -280,7 +287,7 @@ describe("Agent Message Feedback - Auth", () => {
     })
 
     it("forbids a reviewer-only participant", async () => {
-      await createCampaignParticipantContext("reviewer")
+      await createCampaignParticipantContext("review_campaign_reviewer")
       expectResponse(await createFeedback(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
 

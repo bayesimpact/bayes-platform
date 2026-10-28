@@ -78,7 +78,7 @@ describe("BackofficeService", () => {
         repositories,
         project: administeredProject,
         user: viewer,
-        membership: { role: "admin" },
+        membership: { roleKeys: ["project_admin"] },
       })
 
       const permissionsByProjectId = await listPermissionsByProjectId(viewer.id)

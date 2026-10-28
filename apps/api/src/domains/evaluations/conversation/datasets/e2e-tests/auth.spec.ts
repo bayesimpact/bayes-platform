@@ -14,7 +14,7 @@ import { removeNullish } from "@/common/utils/remove-nullish"
 import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
 import type { Organization } from "@/domains/organizations/organization.entity"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
-import type { ProjectMembershipRole } from "@/domains/projects/memberships/project-membership.types"
+import type { ProjectRoleKey } from "@/domains/projects/memberships/project-membership.types"
 import {
   mockForeignAuthSubject,
   mockOidcEmailForSub,
@@ -69,10 +69,10 @@ describe("EvaluationConversationDatasets - Auth", () => {
     await app.close()
   })
 
-  const createContextForRole = async (role: ProjectMembershipRole = "owner") => {
+  const createContextForRole = async (role: ProjectRoleKey = "project_owner") => {
     const { user, organization, project } = await createOrganizationWithProject(repositories, {
       user: { authSubject, email: mockOidcEmailForSub(authSubject) },
-      projectMembership: { role },
+      projectMembership: { roleKeys: [role] },
     })
     organizationId = organization.id
     projectId = project.id
@@ -103,7 +103,7 @@ describe("EvaluationConversationDatasets - Auth", () => {
         authSubject: organizationAdminAuthSubject,
         email: mockOidcEmailForSub(organizationAdminAuthSubject),
       },
-      membership: { role: "admin" },
+      membership: { roleKeys: ["org_admin"] },
     })
     authSubject = organizationAdminAuthSubject
   }
@@ -125,26 +125,26 @@ describe("EvaluationConversationDatasets - Auth", () => {
       expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
     })
     it("requires a valid project ID", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       projectId = null
       expectResponse(await subject(), 404)
     })
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to get all datasets", async () => {
-      await createContextForRole("member")
+      await createContextForRole("project_member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
     it("doesn't allow an organization admin without a project role to get all datasets", async () => {
-      const { organization } = await createContextForRole("owner")
+      const { organization } = await createContextForRole("project_owner")
       await switchToOrganizationAdminWithoutProjectRole(organization)
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
     it("allows a project admin to get all datasets", async () => {
-      await createContextForRole("admin")
+      await createContextForRole("project_admin")
       expectResponse(await subject(), 200)
     })
   })
@@ -166,17 +166,17 @@ describe("EvaluationConversationDatasets - Auth", () => {
       expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
     })
     it("requires a valid project ID", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       projectId = null
       expectResponse(await subject(), 404)
     })
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to get records", async () => {
-      await createContextForRole("member")
+      await createContextForRole("project_member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
   })
@@ -205,21 +205,21 @@ describe("EvaluationConversationDatasets - Auth", () => {
       expectResponse(await subject(payload), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
     })
     it("requires a valid project ID", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       projectId = null
       expectResponse(await subject(payload), 404)
     })
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       authSubject = mockForeignAuthSubject()
       expectResponse(await subject(payload), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to create a dataset", async () => {
-      await createContextForRole("member")
+      await createContextForRole("project_member")
       expectResponse(await subject(payload), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
     it("doesn't allow an organization admin without a project role to create a dataset", async () => {
-      const { organization } = await createContextForRole("owner")
+      const { organization } = await createContextForRole("project_owner")
       await switchToOrganizationAdminWithoutProjectRole(organization)
       expectResponse(await subject(payload), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
@@ -249,17 +249,17 @@ describe("EvaluationConversationDatasets - Auth", () => {
       expectResponse(await subject(payload), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
     })
     it("requires a valid project ID", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       projectId = null
       expectResponse(await subject(payload), 404)
     })
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       authSubject = mockForeignAuthSubject()
       expectResponse(await subject(payload), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to rename a dataset", async () => {
-      await createContextForRole("member")
+      await createContextForRole("project_member")
       expectResponse(await subject(payload), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
   })
@@ -281,28 +281,28 @@ describe("EvaluationConversationDatasets - Auth", () => {
       expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
     })
     it("requires a valid project ID", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       projectId = null
       expectResponse(await subject(), 404)
     })
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to delete a dataset", async () => {
-      const { organization, project } = await createContextForRole("member")
+      const { organization, project } = await createContextForRole("project_member")
       await createDataset({ organization, project })
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
     it("doesn't allow an organization admin without a project role to delete a dataset", async () => {
-      const { organization, project } = await createContextForRole("owner")
+      const { organization, project } = await createContextForRole("project_owner")
       await createDataset({ organization, project })
       await switchToOrganizationAdminWithoutProjectRole(organization)
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
     it("allows a project admin to delete a dataset", async () => {
-      const { organization, project } = await createContextForRole("admin")
+      const { organization, project } = await createContextForRole("project_admin")
       await createDataset({ organization, project })
       expectResponse(await subject(), 200)
     })
@@ -332,21 +332,21 @@ describe("EvaluationConversationDatasets - Auth", () => {
       expectResponse(await subject(payload), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
     })
     it("requires a valid project ID", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       projectId = null
       expectResponse(await subject(payload), 404)
     })
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       authSubject = mockForeignAuthSubject()
       expectResponse(await subject(payload), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("requires the dataset to exist in the project", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       expectResponse(await subject(payload), 404)
     })
     it("doesn't allow a simple member to create a record", async () => {
-      const { organization, project } = await createContextForRole("member")
+      const { organization, project } = await createContextForRole("project_member")
       await createDataset({ organization, project })
       expectResponse(await subject(payload), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
@@ -378,21 +378,21 @@ describe("EvaluationConversationDatasets - Auth", () => {
       expectResponse(await subject(payload), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
     })
     it("requires a valid project ID", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       projectId = null
       expectResponse(await subject(payload), 404)
     })
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       authSubject = mockForeignAuthSubject()
       expectResponse(await subject(payload), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("requires the dataset to exist in the project", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       expectResponse(await subject(payload), 404)
     })
     it("doesn't allow a simple member to create records", async () => {
-      const { organization, project } = await createContextForRole("member")
+      const { organization, project } = await createContextForRole("project_member")
       await createDataset({ organization, project })
       expectResponse(await subject(payload), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
@@ -422,26 +422,26 @@ describe("EvaluationConversationDatasets - Auth", () => {
       expectResponse(await subject(payload), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
     })
     it("requires a valid project ID", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       projectId = null
       expectResponse(await subject(payload), 404)
     })
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       authSubject = mockForeignAuthSubject()
       expectResponse(await subject(payload), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("requires the dataset to exist in the project", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       expectResponse(await subject(payload), 404)
     })
     it("doesn't allow a simple member to update a record", async () => {
-      const { organization, project } = await createContextForRole("member")
+      const { organization, project } = await createContextForRole("project_member")
       await createDataset({ organization, project })
       expectResponse(await subject(payload), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
     it("doesn't allow an organization admin without a project role to update a record", async () => {
-      const { organization, project } = await createContextForRole("owner")
+      const { organization, project } = await createContextForRole("project_owner")
       await createDataset({ organization, project })
       await switchToOrganizationAdminWithoutProjectRole(organization)
       expectResponse(await subject(payload), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
@@ -465,21 +465,21 @@ describe("EvaluationConversationDatasets - Auth", () => {
       expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
     })
     it("requires a valid project ID", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       projectId = null
       expectResponse(await subject(), 404)
     })
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("requires the dataset to exist in the project", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       expectResponse(await subject(), 404)
     })
     it("doesn't allow a simple member to delete a record", async () => {
-      const { organization, project } = await createContextForRole("member")
+      const { organization, project } = await createContextForRole("project_member")
       await createDataset({ organization, project })
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })

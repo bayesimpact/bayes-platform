@@ -76,7 +76,7 @@ describe("ExtractionAgentSessions - deleteMyDocument", () => {
   // A plain project member: the role the project documents route turns away.
   const createContext = async () => {
     const { user, organization, project, agent } = await createOrganizationWithAgent(repositories, {
-      projectMembership: { role: "member" },
+      projectMembership: { roleKeys: ["project_member"] },
       agent: { type: "extraction" },
       agentSettings: { model: AgentModel._Mock },
     })

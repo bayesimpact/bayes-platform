@@ -136,7 +136,7 @@ describe("ProjectMembershipsService", () => {
         repositories,
         project,
         user: invitedUser,
-        membership: { role: "member" },
+        membership: { roleKeys: ["project_member"] },
       })
       const createAdminAgentMembershipsSpy = jest
         .spyOn(agentMembershipsService, "createAdminAgentMembershipsForUserInProject")
@@ -185,7 +185,7 @@ describe("ProjectMembershipsService", () => {
         repositories,
         project,
         user: placeholderUser,
-        membership: { role: "admin" },
+        membership: { roleKeys: ["project_admin"] },
       })
       const deleteAgentMembershipsSpy = jest
         .spyOn(agentMembershipsService, "deleteAgentMembershipsForUserInProject")
@@ -238,7 +238,7 @@ describe("ProjectMembershipsService", () => {
       const { membership } = await addUserToProject({
         repositories,
         project,
-        membership: { role: "member" },
+        membership: { roleKeys: ["project_member"] },
       })
       await giveRole({
         userId: membership.userId,
@@ -292,10 +292,15 @@ describe("ProjectMembershipsService", () => {
       const { membership, user: member } = await addUserToProject({
         repositories,
         project,
-        membership: { role: "member" },
+        membership: { roleKeys: ["project_member"] },
       })
       await giveRole({ userId: member.id, projectId: project.id, roleKey: PROJECT_ROLES.admin })
-      await addUserToAgent({ repositories, agent, user: member, membership: { role: "admin" } })
+      await addUserToAgent({
+        repositories,
+        agent,
+        user: member,
+        membership: { roleKeys: ["agent_admin"] },
+      })
       await grantConversationReview({ repositories, user: member, agent })
 
       await service.removeProjectMembership({
@@ -318,7 +323,7 @@ describe("ProjectMembershipsService", () => {
       const { membership: coOwnerMembership, user: coOwner } = await addUserToProject({
         repositories,
         project,
-        membership: { role: "owner" },
+        membership: { roleKeys: ["project_owner"] },
       })
       const ownerMembership = await service.findProjectMembership({
         userId: owner.id,
@@ -337,7 +342,7 @@ describe("ProjectMembershipsService", () => {
       const { user: admin } = await addUserToProject({
         repositories,
         project,
-        membership: { role: "admin" },
+        membership: { roleKeys: ["project_admin"] },
       })
       await expect(
         service.removeProjectMembership({

@@ -116,16 +116,16 @@ describe("Invitations - acceptOne", () => {
             userId: invitee.id,
             projectId: project.id,
           })
-        )?.role,
-      ).toBe("admin")
+        )?.roleKeys,
+      ).toEqual(["project_admin"])
       expect(
         (
           await findOrganizationMembershipRow(repositories, {
             userId: invitee.id,
             organizationId: organization.id,
           })
-        )?.role,
-      ).toBe("admin")
+        )?.roleKeys,
+      ).toEqual(["org_admin"])
       const acceptedInvitation = await repositories.invitationRepository.findOneByOrFail({
         id: invitation.id,
       })
@@ -146,8 +146,8 @@ describe("Invitations - acceptOne", () => {
             userId: invitee.id,
             projectId: project.id,
           })
-        )?.role,
-      ).toBe("admin")
+        )?.roleKeys,
+      ).toEqual(["project_admin"])
     })
 
     it("does nothing the second time", async () => {
@@ -197,24 +197,24 @@ describe("Invitations - acceptOne", () => {
 
       expect(
         (await findAgentMembershipRow(repositories, { userId: invitee.id, agentId: agent.id }))
-          ?.role,
-      ).toBe("member")
+          ?.roleKeys,
+      ).toEqual(["agent_member"])
       expect(
         (
           await findProjectMembershipRow(repositories, {
             userId: invitee.id,
             projectId: project.id,
           })
-        )?.role,
-      ).toBe("member")
+        )?.roleKeys,
+      ).toEqual(["project_member"])
       expect(
         (
           await findOrganizationMembershipRow(repositories, {
             userId: invitee.id,
             organizationId: organization.id,
           })
-        )?.role,
-      ).toBe("member")
+        )?.roleKeys,
+      ).toEqual(["org_member"])
     })
   })
 
@@ -280,7 +280,7 @@ describe("Invitations - acceptOne", () => {
           await findReviewCampaignMembershipRow(repositories, {
             userId: invitee.id,
             campaignId: reviewCampaign.id,
-            role,
+            roleKey: REVIEW_CAMPAIGN_ROLES[role],
           })
         )?.roleId,
       ).toBe(campaignRole.id)
@@ -290,8 +290,8 @@ describe("Invitations - acceptOne", () => {
             userId: invitee.id,
             organizationId: organization.id,
           })
-        )?.role,
-      ).toBe("member")
+        )?.roleKeys,
+      ).toEqual(["org_member"])
       expect(
         await findProjectMembershipRow(repositories, { userId: invitee.id, projectId: project.id }),
       ).toBeNull()
@@ -303,7 +303,7 @@ describe("Invitations - acceptOne", () => {
         repositories,
         project,
         user: invitee,
-        membership: { role: "member" },
+        membership: { roleKeys: ["project_member"] },
       })
 
       expectResponse(await subject(invitation.id), 201)
@@ -313,7 +313,7 @@ describe("Invitations - acceptOne", () => {
         projectId: project.id,
       })
       expect(projectRow?.id).toBe(projectMembership.id)
-      expect(projectRow?.role).toBe("member")
+      expect(projectRow?.roleKeys).toEqual(["project_member"])
     })
 
     it("gives the tester role next to a campaign row that holds no role", async () => {

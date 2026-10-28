@@ -116,7 +116,7 @@ describe("Organizations - updateOne", () => {
     const { user: memberUser } = await addUserToOrganization({
       repositories,
       organization,
-      membership: { role: "member" },
+      membership: { roleKeys: ["org_member"] },
     })
     authSubject = memberUser.authSubject!
 
@@ -141,7 +141,7 @@ describe("Organizations - updateOne", () => {
     const { user: adminUser } = await addUserToOrganization({
       repositories,
       organization,
-      membership: { role: "admin" },
+      membership: { roleKeys: ["org_admin"] },
     })
     authSubject = adminUser.authSubject!
 
