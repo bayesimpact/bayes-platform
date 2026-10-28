@@ -9,6 +9,16 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Security
+
+## [26.10.7] - 2026-10-28
+
+### Added
+
 - External sources: tag a source, and agents filtering by those tags search all of its documents.
 
 ### Changed
