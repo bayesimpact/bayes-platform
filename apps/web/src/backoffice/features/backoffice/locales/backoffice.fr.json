@@ -15,7 +15,9 @@
       "appCreateError": "La création de l'application a échoué",
       "appUpdateError": "La mise à jour de l'application a échoué",
       "appDeleteError": "La suppression de l'application a échoué",
-      "appOAuthClientError": "Le client OAuth de l'application n'a pas pu être chargé ou mis à jour"
+      "appOAuthClientError": "Le client OAuth de l'application n'a pas pu être chargé ou mis à jour",
+      "maintenanceJobStarted": "Job de maintenance lancé",
+      "maintenanceJobStartError": "Impossible de lancer le job de maintenance"
     }
   }
 }

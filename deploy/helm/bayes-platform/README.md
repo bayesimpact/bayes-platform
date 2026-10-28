@@ -5,7 +5,7 @@ This chart installs the full platform on a Kubernetes cluster:
 | Component | What it is | Image |
 |---|---|---|
 | api | NestJS API (`/api`, `/public`), and the web front it serves at `/` | `app` |
-| cpu-workers | async jobs (extraction, crawling, evaluations) | `cpu-workers` |
+| cpu-workers | async jobs (extraction, evaluations, maintenance jobs) | `cpu-workers` |
 | gpu-workers | document embeddings with Docling on one GPU (optional) | `gpu-workers` |
 | pdf-converter | PDF to page images for image-only LLMs (`s3` or `gcs` storage) | `pdf-converter` |
 | web-embed | the embeddable widget and its `launcher.js` | `web-embed` |

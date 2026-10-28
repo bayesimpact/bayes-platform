@@ -48,7 +48,6 @@ import { ReviewCampaignReportRoute } from "./ReviewCampaignReportRoute"
 import { StudioAgentRoute } from "./StudioAgentRoute"
 import { StudioAgentSessionRoute } from "./StudioAgentSessionRoute"
 import { StudioRoute } from "./StudioRoute"
-import { WebSourcesRoute } from "./WebSourcesRoute"
 
 export const studioRoutes = {
   path: StudioRoutes.home.path,
@@ -83,14 +82,6 @@ export const studioRoutes = {
         {
           path: StudioRoutes.externalSources.path,
           element: <ExternalSourcesRoute />,
-        },
-        {
-          path: StudioRoutes.webSources.path,
-          element: (
-            <RestrictedFeature feature="web-sources">
-              <WebSourcesRoute />
-            </RestrictedFeature>
-          ),
         },
         {
           path: StudioRoutes.mcpServers.path,

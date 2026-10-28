@@ -4,6 +4,7 @@ import type {
   BackofficeAgentDetailDto,
   BackofficeAgentListItemDto,
   BackofficeAgentMemberDto,
+  BackofficeMaintenanceJobDto,
   BackofficeOrganizationDetailDto,
   BackofficeOrganizationDto,
   BackofficeOrganizationMemberDto,
@@ -558,4 +559,34 @@ export const toAppManifest = (dto: AppManifestDto): AppManifest => ({
   grantablePermissions: dto.grantablePermissions,
   allowedRedirectUris: dto.allowedRedirectUris,
   createdAt: dto.createdAt,
+})
+
+export type MaintenanceJobRunState = "waiting" | "active" | "completed" | "failed"
+
+export type MaintenanceJobRun = {
+  state: MaintenanceJobRunState
+  requestedAt: TimeType
+  finishedAt: TimeType | null
+  progress: { done: number; total: number } | null
+  summary: string | null
+  error: string | null
+}
+
+/** A one-off data migration the workers run across every organization. */
+export type MaintenanceJob = {
+  key: string
+  title: string
+  description: string
+  remainingCount: number
+  remainingSummary: string
+  lastRun: MaintenanceJobRun | null
+}
+
+export const toMaintenanceJob = (dto: BackofficeMaintenanceJobDto): MaintenanceJob => ({
+  key: dto.key,
+  title: dto.title,
+  description: dto.description,
+  remainingCount: dto.remainingCount,
+  remainingSummary: dto.remainingSummary,
+  lastRun: dto.lastRun,
 })

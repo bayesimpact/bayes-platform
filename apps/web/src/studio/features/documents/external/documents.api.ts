@@ -7,7 +7,7 @@ import { getAxiosInstance } from "@/external/axios"
 import type { Document } from "../documents.models"
 import type { IDocumentsSpi } from "../documents.spi"
 import { fromDocumentDto, putFileToSignedUrl } from "./documents.mappers"
-import { streamDocumentCrawlProgress, streamDocumentEmbeddingStatus } from "./documents-streaming"
+import { streamDocumentEmbeddingStatus } from "./documents-streaming"
 
 export default {
   getAll: async ({ organizationId, projectId, sourceType }) => {
@@ -76,35 +76,6 @@ export default {
       signal,
       onStatusChanged,
     })
-  },
-  streamCrawlProgress: async ({ organizationId, projectId, signal, onProgressChanged }) => {
-    await streamDocumentCrawlProgress({
-      organizationId,
-      projectId,
-      signal,
-      onProgressChanged,
-    })
-  },
-  crawlUrl: async ({ organizationId, projectId, url, name }) => {
-    const axios = getAxiosInstance()
-    const response = await axios.post<typeof DocumentsRoutes.crawlUrl.response>(
-      DocumentsRoutes.crawlUrl.getPath({ organizationId, projectId }),
-      { payload: { url, name } } satisfies typeof DocumentsRoutes.crawlUrl.request,
-    )
-    return response.data.data
-  },
-  reCrawlUrl: async ({ organizationId, projectId, documentId }) => {
-    const axios = getAxiosInstance()
-    const response = await axios.post<typeof DocumentsRoutes.reCrawlUrl.response>(
-      DocumentsRoutes.reCrawlUrl.getPath({ organizationId, projectId, documentId }),
-    )
-    return response.data.data
-  },
-  cancelCrawl: async ({ organizationId, projectId, documentId }) => {
-    const axios = getAxiosInstance()
-    await axios.post<typeof DocumentsRoutes.cancelCrawl.response>(
-      DocumentsRoutes.cancelCrawl.getPath({ organizationId, projectId, documentId }),
-    )
   },
 } satisfies IDocumentsSpi
 

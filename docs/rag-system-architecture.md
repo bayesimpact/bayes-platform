@@ -65,7 +65,7 @@ When a file is uploaded through `DocumentsController.uploadOne`:
 - file type and size are validated (max 10 MB)
 - file is saved via configured file storage (`local` or `GCS`, depending on runtime config)
 - a `document` row is created with:
-  - `sourceType` (`"project" | "extraction" | "evaluationExtractionRun" | "agentCsvExtractionRun" | "webCrawl"`)
+  - `sourceType` (`"project" | "extraction" | "evaluationExtractionRun" | "agentCsvExtractionRun" | "app"`, plus the legacy `"webCrawl"` until the maintenance job migrates it)
   - file metadata (`mimeType`, `fileName`, `storageRelativePath`, etc.)
   - initial `embeddingStatus = "pending"`
 

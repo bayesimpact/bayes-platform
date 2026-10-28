@@ -10,6 +10,7 @@ import type {
   BackofficeRbacCatalog,
   BackofficeUserDetail,
   CreateAppManifestInput,
+  MaintenanceJob,
   PaginatedBackofficeAgents,
   PaginatedBackofficeOrganizations,
   PaginatedBackofficeProjects,
@@ -63,6 +64,8 @@ export interface IBackofficeSpi {
     input: UpdateAppManifestInput
   }) => Promise<AppManifest>
   deleteAppManifest: (appManifestId: string) => Promise<void>
+  listMaintenanceJobs: () => Promise<MaintenanceJob[]>
+  runMaintenanceJob: (jobKey: string) => Promise<MaintenanceJob>
   getAppOAuthClient: (appManifestId: string) => Promise<AppOAuthClient>
   createAppOAuthClientSecret: (appManifestId: string) => Promise<AppOAuthClientSecret>
 }

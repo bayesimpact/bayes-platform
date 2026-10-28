@@ -43,6 +43,12 @@ export const AGENT_CONVERSATION_REVIEW_CATEGORY_READ_PERMISSION =
 /** AppManifest back-office CRUD, and the OAuth client of each app. Superadmin only. */
 export const BACKOFFICE_APP_MANAGE_PERMISSION = "backoffice.app.manage" as const
 
+/**
+ * See and run the maintenance jobs of the backoffice: one-off data migrations that run in the
+ * workers across every organization. Superadmin only.
+ */
+export const BACKOFFICE_MAINTENANCE_JOB_RUN_PERMISSION = "backoffice.maintenance_job.run" as const
+
 export const DOCUMENT_READ_PERMISSION = "document.read" as const
 
 export const DOCUMENT_CREATE_PERMISSION = "document.create" as const
@@ -616,5 +622,6 @@ export type GlobalPermission =
   | typeof BACKOFFICE_TERMS_UPDATE_PERMISSION
   | typeof BACKOFFICE_CONVERSATION_REVIEWER_UPDATE_PERMISSION
   | typeof BACKOFFICE_APP_MANAGE_PERMISSION
+  | typeof BACKOFFICE_MAINTENANCE_JOB_RUN_PERMISSION
 
 export type OrganizationPermission = OrganizationScopedPermission

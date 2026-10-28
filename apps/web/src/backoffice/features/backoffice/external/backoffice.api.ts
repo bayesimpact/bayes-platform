@@ -8,6 +8,7 @@ import {
   toBackofficeProjectDetail,
   toBackofficeRbacCatalog,
   toBackofficeUserDetail,
+  toMaintenanceJob,
   toPaginatedBackofficeAgents,
   toPaginatedBackofficeOrganizations,
   toPaginatedBackofficeProjects,
@@ -174,6 +175,20 @@ export default {
   deleteAppManifest: async (appManifestId) => {
     const axios = getAxiosInstance()
     await axios.delete(AppsRoutes.deleteOne.getPath({ appManifestId }))
+  },
+  listMaintenanceJobs: async () => {
+    const axios = getAxiosInstance()
+    const response = await axios.get<typeof BackofficeRoutes.listMaintenanceJobs.response>(
+      BackofficeRoutes.listMaintenanceJobs.getPath(),
+    )
+    return response.data.data.jobs.map(toMaintenanceJob)
+  },
+  runMaintenanceJob: async (jobKey) => {
+    const axios = getAxiosInstance()
+    const response = await axios.post<typeof BackofficeRoutes.runMaintenanceJob.response>(
+      BackofficeRoutes.runMaintenanceJob.getPath({ jobKey }),
+    )
+    return toMaintenanceJob(response.data.data)
   },
   getAppOAuthClient: async (appManifestId) => {
     const axios = getAxiosInstance()

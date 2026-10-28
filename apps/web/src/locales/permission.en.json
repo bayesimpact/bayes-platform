@@ -84,6 +84,7 @@
     "user.read": "See the users who are members of a resource",
     "trace.read": "See trace links",
     "backoffice.app.manage": "Manage app definitions in the backoffice",
+    "backoffice.maintenance_job.run": "See and run the one-off maintenance jobs of the backoffice",
     "backoffice.read": "Access /backoffice routes",
     "backoffice.terms.update": "Manage terms documents",
     "backoffice.organization.read": "See organizations in the backoffice",

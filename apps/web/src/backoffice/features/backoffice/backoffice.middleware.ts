@@ -7,6 +7,8 @@ import { notificationsActions } from "@/common/features/notifications/notificati
 import type { AppDispatch, RootState } from "@/common/store/types"
 import { backofficeActions } from "./backoffice.slice"
 
+const MAINTENANCE_JOBS_REFRESH_INTERVAL_MS = 3000
+
 const listenerMiddleware = createListenerMiddleware<RootState, AppDispatch>()
 
 function registerListeners() {
@@ -66,6 +68,59 @@ function registerListeners() {
     actionCreator: backofficeActions.appsPanelMount,
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(backofficeActions.listAppManifests())
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: backofficeActions.maintenanceJobsPanelMount,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(backofficeActions.listMaintenanceJobs())
+    },
+  })
+
+  // While a run is waiting or active, the panel reloads every few seconds to follow its progress.
+  listenerMiddleware.startListening({
+    matcher: isAnyOf(
+      backofficeActions.listMaintenanceJobs.fulfilled,
+      backofficeActions.runMaintenanceJob.fulfilled,
+    ),
+    effect: async (_, listenerApi) => {
+      listenerApi.cancelActiveListeners()
+      const maintenanceJobs = listenerApi.getState().backoffice.maintenanceJobs.value ?? []
+      const isRunning = maintenanceJobs.some(
+        (job) => job.lastRun?.state === "waiting" || job.lastRun?.state === "active",
+      )
+      if (!isRunning) return
+      const panelClosed = await listenerApi.condition(
+        backofficeActions.maintenanceJobsPanelUnmount.match,
+        MAINTENANCE_JOBS_REFRESH_INTERVAL_MS,
+      )
+      if (!panelClosed) listenerApi.dispatch(backofficeActions.listMaintenanceJobs())
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: backofficeActions.runMaintenanceJob.fulfilled,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({
+          titleKey: "backoffice:notifications.maintenanceJobStarted",
+          type: "success",
+        }),
+      )
+    },
+  })
+
+  listenerMiddleware.startListening({
+    actionCreator: backofficeActions.runMaintenanceJob.rejected,
+    effect: async (action, listenerApi) => {
+      listenerApi.dispatch(
+        notificationsActions.show({
+          titleKey: "backoffice:notifications.maintenanceJobStartError",
+          description: action.error.message,
+          type: "error",
+        }),
+      )
     },
   })
 
