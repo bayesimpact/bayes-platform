@@ -11,6 +11,7 @@ import { useValue } from "@/common/hooks/use-value"
 import { useAppSelector } from "@/common/store/hooks"
 import { DotsBackground } from "@/studio/components/DotsBackground"
 import { SidebarAgentCreatorButton } from "@/studio/features/agents/components/AgentCreator"
+import { PlaygroundAgentSessionCreator } from "@/studio/features/agents/components/PlaygroundAgentSessionCreator"
 import { selectUploaderState } from "../features/documents/documents.selectors"
 import { useHelpLauncher } from "../hooks/use-help-launcher"
 import { StudioRoutes } from "../routes/helpers"
@@ -42,6 +43,7 @@ export function StudioLayout({ children }: { children: React.ReactNode }) {
           organizationId={organization.id}
           project={project}
           action={<SidebarAgentCreatorButton project={project} />}
+          sessionCreator={PlaygroundAgentSessionCreator}
         />
       }
       user={{ name: user.name, email: user.email }}
