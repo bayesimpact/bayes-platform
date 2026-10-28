@@ -1,6 +1,7 @@
 import { type EmbeddingModel, isLocalEmbeddingModel } from "@caseai-connect/api-contracts"
 import { Injectable, Logger } from "@nestjs/common"
 import { InjectDataSource } from "@nestjs/typeorm"
+import { trace } from "@opentelemetry/api"
 import { toSql } from "pgvector"
 import type { DataSource, SelectQueryBuilder } from "typeorm"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
@@ -48,6 +49,7 @@ export class DocumentChunkRetrievalService {
       return []
     }
     const { modelName, embedding } = embedded
+    this.recordEmbeddingModelOnSpan({ requestedModel: embeddingModel, modelName })
 
     const normalizedTopK = this.normalizeTopK(topK)
     const normalizedDocumentTagIds = this.normalizeDocumentTagIds(documentTagIds)
@@ -65,6 +67,24 @@ export class DocumentChunkRetrievalService {
       chunkCount: results.length,
     })
     return results
+  }
+
+  /**
+   * Shows in the trace which model embedded the query. The AI SDK runs the lookup tool inside an
+   * `ai.toolCall` span, so Phoenix lists these next to the tool's input and output.
+   */
+  private recordEmbeddingModelOnSpan({
+    requestedModel,
+    modelName,
+  }: {
+    requestedModel?: EmbeddingModel | null
+    modelName: string
+  }): void {
+    const activeSpan = trace.getActiveSpan()
+    activeSpan?.setAttribute("ai.telemetry.metadata.embeddingModel", modelName)
+    if (requestedModel && isLocalEmbeddingModel(requestedModel) && requestedModel !== modelName) {
+      activeSpan?.setAttribute("ai.telemetry.metadata.embeddingFallbackFrom", requestedModel)
+    }
   }
 
   private resolvePrimaryModelName(): string | undefined {

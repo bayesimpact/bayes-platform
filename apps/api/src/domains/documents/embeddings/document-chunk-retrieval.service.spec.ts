@@ -1,4 +1,5 @@
 import { EmbeddingModel, isLocalEmbeddingModel } from "@caseai-connect/api-contracts"
+import { trace } from "@opentelemetry/api"
 import { embed } from "ai"
 import { DocumentChunkRetrievalService } from "./document-chunk-retrieval.service"
 import { EmbedderService } from "./embedders/embedder.service"
@@ -150,6 +151,36 @@ describe("DocumentChunkRetrievalService", () => {
     expect(innerQueryBuilder.andWhere).toHaveBeenCalledWith("embedding.model_name = :modelName", {
       modelName: "gemini-embedding-001",
     })
+  })
+
+  it("records the model that embedded the query on the active span, with the fallback", async () => {
+    const getRawMany = jest.fn().mockResolvedValue([])
+    const innerQueryBuilder = buildInnerQueryBuilderMock()
+    const outerQueryBuilder = buildOuterQueryBuilderMock(getRawMany)
+    mockIsCompleted.mockResolvedValue(false)
+    const mockedEmbed = embed as jest.MockedFunction<typeof embed>
+    mockedEmbed.mockResolvedValue({ embedding: [0.1] } as never)
+    const setAttribute = jest.fn()
+    const getActiveSpan = jest
+      .spyOn(trace, "getActiveSpan")
+      .mockReturnValue({ setAttribute } as never)
+    const service = buildService({ innerQueryBuilder, outerQueryBuilder })
+
+    await service.retrieveTopChunks({
+      connectScope: { organizationId: "organization-1", projectId: "project-1" },
+      query: "question",
+      embeddingModel: EmbeddingModel.BgeM3,
+    })
+
+    expect(setAttribute).toHaveBeenCalledWith(
+      "ai.telemetry.metadata.embeddingModel",
+      "gemini-embedding-001",
+    )
+    expect(setAttribute).toHaveBeenCalledWith(
+      "ai.telemetry.metadata.embeddingFallbackFrom",
+      EmbeddingModel.BgeM3,
+    )
+    getActiveSpan.mockRestore()
   })
 
   it("retrieves top chunks for a project scope", async () => {

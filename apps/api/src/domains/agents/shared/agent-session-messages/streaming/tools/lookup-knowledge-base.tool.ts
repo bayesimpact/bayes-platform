@@ -81,6 +81,8 @@ export type LookupKnowledgeBaseExecution = {
     documentTagIds: string[]
     returnedChunkCount: number
     topK: number
+    /** The model that embedded the query, read from the chunks: unknown when none came back. */
+    embeddingModel?: string
   }
 }
 
@@ -96,6 +98,7 @@ export function buildLookupKnowledgeBaseToolExecutionLog(
       returnedChunkCount: execution.result.returnedChunkCount,
       chunkIds: execution.result.chunkIds,
       documentIds: execution.result.documentIds,
+      embeddingModel: execution.result.embeddingModel,
     },
   }
 }
@@ -154,6 +157,7 @@ export function lookupKnowledgeBaseTool({
             documentTagIds,
             returnedChunkCount: retrievedChunks.length,
             topK: DEFAULT_TOP_K,
+            embeddingModel: retrievedChunks[0]?.modelName,
           },
         }),
       )
