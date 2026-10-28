@@ -229,12 +229,18 @@
     "source_other": "{{count}} sources",
     "source_zero": "Aucune source",
     "model": {
+      "generation": {
+        "title": "Génération des réponses",
+        "description": "Le modèle qui rédige les réponses de l'agent."
+      },
       "priorityCalls": {
         "title": "Appels prioritaires",
         "description": "Temps de réponse plus bas et plus stable, pour un coût par appel plus élevé."
       },
       "embeddingModel": {
-        "description": "Modèle utilisé pour chercher dans la base de connaissances. Les modèles locaux apparaissent une fois les documents du projet vectorisés avec eux."
+        "title": "Recherche dans les documents",
+        "description": "Le modèle qui trouve, dans les documents du projet, les passages liés à chaque question.",
+        "help": "Les modèles locaux apparaissent une fois les documents du projet vectorisés avec eux."
       }
     },
     "tools": {

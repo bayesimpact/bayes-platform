@@ -1,5 +1,10 @@
-import { AgentModel } from "@caseai-connect/api-contracts"
+import {
+  AgentModel,
+  DOCUMENT_READ_PERMISSION,
+  DOCUMENT_UPDATE_PERMISSION,
+} from "@caseai-connect/api-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
+import { userEvent, within } from "storybook/test"
 import {
   agentFactory,
   agentModelsCatalogFactory,
@@ -20,6 +25,8 @@ import {
 } from "@/stories/routes/studio/helpers"
 import { mergeSeeds, seed } from "@/stories/seed"
 import { agentSubAgentFactory } from "@/studio/features/agent-sub-agents/agent-sub-agents.factory"
+import { projectEmbeddingModelFactory } from "@/studio/features/project-embedding-models/project-embedding-models.factory"
+import type { IProjectEmbeddingModelsSpi } from "@/studio/features/project-embedding-models/project-embedding-models.spi"
 import { StudioRoutes } from "@/studio/routes/helpers"
 import { studioRoutes } from "@/studio/routes/StudioRoutes"
 
@@ -33,6 +40,8 @@ type StoryArgs = StudioStoryArgs & {
   withPriorityCalls?: boolean
   /** A fresh copy: its only revision is draft 1, never published. */
   unpublished?: boolean
+  /** bge-m3 finished embedding the project; pair it with the `local-embeddings` flag. */
+  withEmbeddingModels?: boolean
 }
 
 /** Older revisions of the agent so the version history sheet has content to compare. */
@@ -95,6 +104,16 @@ function buildMockAgentSettingsService(agentSettingsHistory: AgentSettings[]): I
     },
   }
 }
+function buildMockProjectEmbeddingModelsService(
+  embeddingModels: ReturnType<typeof projectEmbeddingModelFactory.build>[],
+): IProjectEmbeddingModelsSpi {
+  return {
+    getAll: async () => embeddingModels,
+    createOne: async () => {
+      throw new Error("createOne is not supported in this story")
+    },
+  }
+}
 /** Creates a playground session on demand so the "Start chat" flow works inside the story. */
 function buildMockConversationAgentSessionsService(): IConversationAgentSessionsSpi {
   return {
@@ -120,6 +139,7 @@ const meta = {
     withDeprecatedModel: { control: "boolean" },
     withPriorityCalls: { control: "boolean" },
     unpublished: { control: "boolean" },
+    withEmbeddingModels: { control: "boolean" },
   },
   args: {
     ...studioStoryArgs,
@@ -130,6 +150,7 @@ const meta = {
     withDeprecatedModel: false,
     withPriorityCalls: false,
     unpublished: false,
+    withEmbeddingModels: false,
   },
   render: render({ routes: studioRoutes, path: StudioRoutes.agentEdit.path }),
 } satisfies Meta<StoryArgs>
@@ -146,22 +167,41 @@ export const ConversationAgent: Story = {
         withDeprecatedModel,
         withPriorityCalls,
         unpublished,
+        withEmbeddingModels,
         ...args
       }) => {
         const { baseSeeds, agents, project } = buildStudioData({ ...args, withAgents: true })
+        // Listing and enabling embedding models need the document permissions on the project.
+        const embeddingSeeds = withEmbeddingModels
+          ? seed.projects(
+              [
+                {
+                  ...project,
+                  featureFlags: args.featureFlags ?? project.featureFlags,
+                  permissions: [DOCUMENT_READ_PERMISSION, DOCUMENT_UPDATE_PERMISSION],
+                },
+              ],
+              { currentId: project.id },
+            )
+          : {}
+        const embeddingModels = withEmbeddingModels
+          ? [projectEmbeddingModelFactory.completed().transient({ project }).build()]
+          : []
         const [firstAgent, ...rawChildAgents] = agents
         if (!firstAgent) {
           throw new Error("Agent editor route story requires a parent agent")
         }
+        // A conversation agent: the agent list drops the conversations of any other type.
         const rawParentAgent = unpublished
           ? agentFactory
               .unpublished()
               .transient({ project })
-              .build({ id: firstAgent.id, name: firstAgent.name, type: firstAgent.type })
-          : firstAgent
+              .build({ id: firstAgent.id, name: firstAgent.name, type: "conversation" })
+          : { ...firstAgent, type: "conversation" as const }
         const parentAgentSettings = {
           agentId: rawParentAgent.id,
           name: "Helpful Assistant",
+          instructions: "You are a helpful assistant.",
           revision: 3,
           isDraft: !!withDraft,
           model: withDeprecatedModel ? AgentModel.Gemini25Flash : defaultAgentModels.agent,
@@ -199,10 +239,12 @@ export const ConversationAgent: Story = {
             // The agent layout above the editor lists the agent's conversations.
             seed.conversationAgentSessions({ [rawParentAgent.id]: [] }),
             seed.studio.mcpServers([]),
+            embeddingSeeds,
           ),
           services: {
             agents: buildMockAgentsService(allAgents),
             agentSettings: buildMockAgentSettingsService(versions),
+            projectEmbeddingModels: buildMockProjectEmbeddingModelsService(embeddingModels),
           },
         }
       },
@@ -228,6 +270,26 @@ export const ConversationAgentWithPriorityCalls: Story = {
     withPriorityCalls: true,
   },
   decorators: ConversationAgent.decorators,
+}
+
+/**
+ * The Model tab with its two sections: answer generation, then document search, where bge-m3
+ * finished embedding the project and the viewer can manage the project's models.
+ */
+export const ModelTabWithEmbeddingModels: Story = {
+  args: {
+    featureFlags: [...studioStoryArgs.featureFlags, "agent-orchestration", "local-embeddings"],
+    withEmbeddingModels: true,
+  },
+  decorators: ConversationAgent.decorators,
+  play: async ({ canvasElement }) => {
+    const modelTab = await within(canvasElement).findByRole(
+      "tab",
+      { name: "Model" },
+      { timeout: 10_000 },
+    )
+    await userEvent.click(modelTab)
+  },
 }
 
 /**

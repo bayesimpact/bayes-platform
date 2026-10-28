@@ -229,12 +229,18 @@
     "source_other": "{{count}} sources",
     "source_zero": "No sources",
     "model": {
+      "generation": {
+        "title": "Answer generation",
+        "description": "The model that writes the agent's answers."
+      },
       "priorityCalls": {
         "title": "Priority calls",
         "description": "Lower and more stable response time, at a higher cost per call."
       },
       "embeddingModel": {
-        "description": "Model used to search the knowledge base. Local models appear once the project finished embedding its documents with them."
+        "title": "Document search",
+        "description": "The model that finds the passages of the project's documents that match each question.",
+        "help": "Local models appear once the project finished embedding its documents with them."
       }
     },
     "tools": {

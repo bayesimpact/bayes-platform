@@ -22,7 +22,7 @@ import {
 } from "@caseai-connect/ui/shad/select"
 import { Switch } from "@caseai-connect/ui/shad/switch"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useMemo } from "react"
+import { type ReactNode, useMemo } from "react"
 import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import type { z } from "zod"
@@ -126,124 +126,132 @@ export function ModelTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid gap-4 md:grid-cols-2">
-          <FormField
-            control={form.control}
-            name="model"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t("agentSettings:props.model")}</FormLabel>
-                <Select
-                  onValueChange={(model) => {
-                    field.onChange(model)
-                    form.setValue(
-                      "providerOptions",
-                      modelOptionsForPickedModel({ catalog, agentSettings, model }),
-                      { shouldDirty: true },
-                    )
-                  }}
-                  value={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t("agentSettings:props.placeholders.model")} />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {/* The agent's model stays shown once the project can no longer pick it. */}
-                    {!models.includes(agentSettings.model) && (
-                      <SelectItem value={agentSettings.model} disabled>
-                        {formatAgentModelLabel(agentSettings.model, catalog, modelLabelSuffixes)}
-                      </SelectItem>
-                    )}
-                    {models.map((model) => (
-                      <SelectItem key={model} value={model}>
-                        {formatAgentModelLabel(model, catalog, modelLabelSuffixes)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {!models.includes(field.value) && (
-                  <FormDescription className="text-destructive">
-                    {t("agent:model.unavailable")}
-                  </FormDescription>
-                )}
-                <FormMessage />
-              </FormItem>
-            )}
+        <section className="space-y-4 rounded-lg border p-4">
+          <ModelTabSectionHeader
+            title={t("agentSettings:model.generation.title")}
+            description={t("agentSettings:model.generation.description")}
           />
+          <div className="grid gap-4 md:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="model"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("agentSettings:props.model")}</FormLabel>
+                  <Select
+                    onValueChange={(model) => {
+                      field.onChange(model)
+                      form.setValue(
+                        "providerOptions",
+                        modelOptionsForPickedModel({ catalog, agentSettings, model }),
+                        { shouldDirty: true },
+                      )
+                    }}
+                    value={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t("agentSettings:props.placeholders.model")} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {/* The agent's model stays shown once the project can no longer pick it. */}
+                      {!models.includes(agentSettings.model) && (
+                        <SelectItem value={agentSettings.model} disabled>
+                          {formatAgentModelLabel(agentSettings.model, catalog, modelLabelSuffixes)}
+                        </SelectItem>
+                      )}
+                      {models.map((model) => (
+                        <SelectItem key={model} value={model}>
+                          {formatAgentModelLabel(model, catalog, modelLabelSuffixes)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {!models.includes(field.value) && (
+                    <FormDescription className="text-destructive">
+                      {t("agent:model.unavailable")}
+                    </FormDescription>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="providerOptions"
-            render={({ field }) => (
-              <FormItem className="contents">
-                <ModelOptionsFields
-                  fields={optionFields}
-                  value={field.value}
-                  onChange={field.onChange}
-                />
-                <FormMessage className="md:col-span-2" />
-              </FormItem>
-            )}
-          />
-        </div>
+            <FormField
+              control={form.control}
+              name="providerOptions"
+              render={({ field }) => (
+                <FormItem className="contents">
+                  <ModelOptionsFields
+                    fields={optionFields}
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
+                  <FormMessage className="md:col-span-2" />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {priorityCallsAvailable && (
+            <FormField
+              control={form.control}
+              name="priorityCallsEnabled"
+              render={({ field }) => (
+                <FormItem className="flex items-center justify-between gap-4 border-t pt-4">
+                  <div className="space-y-1">
+                    <FormLabel>{t("agentSettings:model.priorityCalls.title")}</FormLabel>
+                    <FormDescription>
+                      {t("agentSettings:model.priorityCalls.description")}
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch checked={field.value} onCheckedChange={field.onChange} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          )}
+        </section>
 
         {/* The whole embedding section is a flagged beta: without it, agents stay on the default model. */}
         <RestrictedFeature feature="local-embeddings">
-          <FormField
-            control={form.control}
-            name="embeddingModel"
-            render={({ field }) => (
-              <FormItem>
-                <div className="flex items-center justify-between gap-2">
+          <section className="space-y-4 rounded-lg border p-4">
+            <ModelTabSectionHeader
+              title={t("agentSettings:model.embeddingModel.title")}
+              description={t("agentSettings:model.embeddingModel.description")}
+              action={canManageEmbeddingModels && <EmbeddingModelManager />}
+            />
+            <FormField
+              control={form.control}
+              name="embeddingModel"
+              render={({ field }) => (
+                <FormItem>
                   <FormLabel>{t("agentSettings:props.embeddingModel")}</FormLabel>
-                  {canManageEmbeddingModels && <EmbeddingModelManager />}
-                </div>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger className="md:w-1/2">
-                      <SelectValue
-                        placeholder={t("agentSettings:props.placeholders.embeddingModel")}
-                      />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {embeddingModelOptions.map((embeddingModel) => (
-                      <SelectItem key={embeddingModel} value={embeddingModel}>
-                        {EmbeddingModelCatalog[embeddingModel]?.label ?? embeddingModel}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormDescription>
-                  {t("agentSettings:model.embeddingModel.description")}
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="md:w-1/2">
+                        <SelectValue
+                          placeholder={t("agentSettings:props.placeholders.embeddingModel")}
+                        />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {embeddingModelOptions.map((embeddingModel) => (
+                        <SelectItem key={embeddingModel} value={embeddingModel}>
+                          {EmbeddingModelCatalog[embeddingModel]?.label ?? embeddingModel}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>{t("agentSettings:model.embeddingModel.help")}</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </section>
         </RestrictedFeature>
-
-        {priorityCallsAvailable && (
-          <FormField
-            control={form.control}
-            name="priorityCallsEnabled"
-            render={({ field }) => (
-              <FormItem className="flex items-center justify-between gap-4 rounded-lg border p-4">
-                <div className="space-y-1">
-                  <FormLabel>{t("agentSettings:model.priorityCalls.title")}</FormLabel>
-                  <FormDescription>
-                    {t("agentSettings:model.priorityCalls.description")}
-                  </FormDescription>
-                </div>
-                <FormControl>
-                  <Switch checked={field.value} onCheckedChange={field.onChange} />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-        )}
 
         <TabSaveButton
           isSubmitting={form.formState.isSubmitting}
@@ -252,5 +260,25 @@ export function ModelTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
         />
       </form>
     </Form>
+  )
+}
+
+function ModelTabSectionHeader({
+  title,
+  description,
+  action,
+}: {
+  title: string
+  description: string
+  action?: ReactNode
+}) {
+  return (
+    <div className="flex items-start justify-between gap-4">
+      <div className="space-y-1">
+        <h3 className="font-medium text-sm">{title}</h3>
+        <p className="text-muted-foreground text-sm">{description}</p>
+      </div>
+      {action}
+    </div>
   )
 }
