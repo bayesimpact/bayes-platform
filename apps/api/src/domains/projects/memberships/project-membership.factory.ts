@@ -62,7 +62,7 @@ export const saveProjectMembership = async ({
   repositories: AllRepositories
   membership: ProjectMembershipFixture
 }) => {
-  const [saved] = await saveUserMembershipRows({
+  await saveUserMembershipRows({
     repositories,
     id: membership.id,
     userId: membership.userId,
@@ -70,7 +70,7 @@ export const saveProjectMembership = async ({
     resourceId: membership.projectId,
     roleKeys: membership.roleKeys,
   })
-  return { ...membership, id: saved?.id ?? membership.id }
+  return membership
 }
 
 export const addUserToProject = async ({

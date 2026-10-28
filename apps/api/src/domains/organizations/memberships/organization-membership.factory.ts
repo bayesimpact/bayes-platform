@@ -61,7 +61,7 @@ export const saveOrgMembership = async ({
   repositories: AllRepositories
   membership: OrganizationMembershipFixture
 }) => {
-  const [saved] = await saveUserMembershipRows({
+  await saveUserMembershipRows({
     repositories,
     id: membership.id,
     userId: membership.userId,
@@ -69,7 +69,7 @@ export const saveOrgMembership = async ({
     resourceId: membership.organizationId,
     roleKeys: membership.roleKeys,
   })
-  return { ...membership, id: saved?.id ?? membership.id }
+  return membership
 }
 
 export const addUserToOrganization = async ({

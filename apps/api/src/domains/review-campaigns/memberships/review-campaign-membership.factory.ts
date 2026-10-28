@@ -73,7 +73,7 @@ export const saveReviewCampaignMembership = async ({
   repositories: AllRepositories
   membership: ReviewCampaignMembershipFixture
 }) => {
-  const [saved] = await saveUserMembershipRows({
+  await saveUserMembershipRows({
     repositories,
     id: membership.id,
     userId: membership.userId,
@@ -82,7 +82,7 @@ export const saveReviewCampaignMembership = async ({
     roleKeys: membership.roleKeys,
     requireCatalogRoles: true,
   })
-  return { ...membership, id: saved?.id ?? membership.id }
+  return membership
 }
 
 /**

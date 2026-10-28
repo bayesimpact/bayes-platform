@@ -43,9 +43,9 @@ export const userMembershipFactory = UserMembershipFactory.define(({ params, tra
 })
 
 /**
- * Saves one `user_membership` row per role key on a resource, the first one under `id`. A key the
- * catalog lacks gives a row without a role, or throws with `requireCatalogRoles`. Returns the rows
- * in the order of `roleKeys`.
+ * Saves one `user_membership` row per role key on a resource, the first one under `id`. Throws
+ * without a key. A key the catalog lacks gives a row without a role, or throws with
+ * `requireCatalogRoles`. Returns the rows in the order of `roleKeys`.
  */
 export const saveUserMembershipRows = async ({
   repositories,
@@ -64,6 +64,7 @@ export const saveUserMembershipRows = async ({
   roleKeys: readonly string[]
   requireCatalogRoles?: boolean
 }) => {
+  if (roleKeys.length === 0) throw new Error("A membership needs at least one role key")
   const roles = await repositories.roleRepository.find({ where: { key: In([...roleKeys]) } })
   const missingRoleKey = roleKeys.find((roleKey) => !roles.some((role) => role.key === roleKey))
   if (requireCatalogRoles && missingRoleKey) {
