@@ -72,7 +72,7 @@ describe("Projects Analytics - getConversationsPerDay", () => {
   const createContext = async () => {
     const { organization, project, user } = await createOrganizationWithProject(repositories, {
       user: { authSubject },
-      projectMembership: { role: "admin" },
+      projectMembership: { roleKeys: ["project_admin"] },
     })
     organizationId = organization.id
     projectId = project.id
@@ -85,7 +85,7 @@ describe("Projects Analytics - getConversationsPerDay", () => {
       repositories,
       membership: agentMembershipFactory
         .transient({ user, agent: primaryAgent })
-        .build({ role: "admin" }),
+        .build({ roleKeys: ["agent_admin"] }),
     })
     const primaryAgentSettings = agentSettingsFactory
       .transient({ organization, project, agent: primaryAgent })

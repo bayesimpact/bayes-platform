@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto"
 import { Factory } from "fishery"
 import type { AllRepositories } from "@/common/test/test-transaction-manager"
-import { userMembershipFactory } from "@/domains/memberships/user-membership.factory"
+import { saveUserMembershipRows } from "@/domains/memberships/user-membership.factory"
 import {
   organizationMembershipFactory,
   saveOrgMembership,
@@ -12,7 +12,7 @@ import { PROJECT_ROLES } from "@/domains/rbac/rbac.constants"
 import type { User } from "@/domains/users/user.entity"
 import { userFactory } from "@/domains/users/user.factory"
 import type { Project } from "../project.entity"
-import type { ProjectMembershipFixture, ProjectMembershipRole } from "./project-membership.types"
+import type { ProjectMembershipFixture, ProjectRoleKey } from "./project-membership.types"
 
 type ProjectMembershipTransientParams = {
   project: Project
@@ -23,16 +23,8 @@ class ProjectMembershipFactory extends Factory<
   ProjectMembershipFixture,
   ProjectMembershipTransientParams
 > {
-  member() {
-    return this.params({ role: "member" })
-  }
-
-  admin() {
-    return this.params({ role: "admin" })
-  }
-
-  owner() {
-    return this.params({ role: "owner" })
+  withRoles(...roleKeys: ProjectRoleKey[]) {
+    return this.params({ roleKeys })
   }
 }
 
@@ -55,13 +47,13 @@ export const projectMembershipFactory = ProjectMembershipFactory.define(
       deletedAt: params.deletedAt || null,
       project: transientParams.project,
       user: transientParams.user,
-      role: (params.role || "member") as ProjectMembershipRole,
+      roleKeys: (params.roleKeys as ProjectRoleKey[] | undefined) ?? [PROJECT_ROLES.member],
     } satisfies ProjectMembershipFixture
   },
 )
 
 /**
- * Saves a project membership to `user_membership`.
+ * Saves a project membership to `user_membership`, one row per role key.
  */
 export const saveProjectMembership = async ({
   repositories,
@@ -70,19 +62,15 @@ export const saveProjectMembership = async ({
   repositories: AllRepositories
   membership: ProjectMembershipFixture
 }) => {
-  const roleKey = PROJECT_ROLES[membership.role]
-  const rbacRole = await repositories.roleRepository.findOne({ where: { key: roleKey } })
-
-  const saved = await repositories.userMembershipRepository.save(
-    userMembershipFactory.build({
-      id: membership.id,
-      userId: membership.userId,
-      resourceType: "project",
-      resourceId: membership.projectId,
-      roleId: rbacRole?.id ?? null,
-    }),
-  )
-  return { ...membership, id: saved.id }
+  await saveUserMembershipRows({
+    repositories,
+    id: membership.id,
+    userId: membership.userId,
+    resourceType: "project",
+    resourceId: membership.projectId,
+    roleKeys: membership.roleKeys,
+  })
+  return membership
 }
 
 export const addUserToProject = async ({

@@ -16,6 +16,7 @@ import {
   PROJECT_READ_PERMISSION,
 } from "@/domains/rbac/rbac.constants"
 import { addUserToReviewCampaign } from "@/domains/review-campaigns/memberships/review-campaign-membership.factory"
+import type { ReviewCampaignRoleKey } from "@/domains/review-campaigns/memberships/review-campaign-membership.types"
 import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
 import type { ReviewCampaignStatus } from "@/domains/review-campaigns/review-campaigns.types"
 import { mockOidcEmailForSub, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
@@ -60,10 +61,10 @@ describe("Projects - getAllMine", () => {
   // second project the caller has nothing on.
   const createCampaignParticipantContext = async ({
     status = "active",
-    role = "tester",
+    roleKey = "review_campaign_tester",
   }: {
     status?: ReviewCampaignStatus
-    role?: "tester" | "reviewer"
+    roleKey?: ReviewCampaignRoleKey
   } = {}) => {
     const { organization, project, agent, agentSettings } =
       await createOrganizationWithAgent(repositories)
@@ -79,7 +80,7 @@ describe("Projects - getAllMine", () => {
       organization,
       project,
       campaign,
-      role,
+      roleKeys: [roleKey],
       user: {
         authSubject: participantAuthSubject,
         email: mockOidcEmailForSub(participantAuthSubject),
@@ -121,7 +122,10 @@ describe("Projects - getAllMine", () => {
     ["active"],
     ["closed"],
   ] as const)("lists the campaign's project for a reviewer of an %s campaign", async (status) => {
-    const { project } = await createCampaignParticipantContext({ status, role: "reviewer" })
+    const { project } = await createCampaignParticipantContext({
+      status,
+      roleKey: "review_campaign_reviewer",
+    })
 
     const response = await subject()
 
@@ -142,7 +146,12 @@ describe("Projects - getAllMine", () => {
 
   it("lists the project once for a tester who is also a project member, with both sets of keys", async () => {
     const { project, user } = await createCampaignParticipantContext()
-    await addUserToProject({ repositories, project, user, membership: { role: "member" } })
+    await addUserToProject({
+      repositories,
+      project,
+      user,
+      membership: { roleKeys: ["project_member"] },
+    })
 
     const response = await subject()
 

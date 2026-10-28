@@ -18,7 +18,6 @@ import { UserRepository } from "@/domains/users/user.repository"
 import type { AgentMembershipModel } from "./agent-membership.model"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentMembershipRepository } from "./agent-membership.repository"
-import type { AgentMembershipRole } from "./agent-membership.types"
 
 /**
  * The agent roles managed from the studio. `agent_conversation_reviewer` is granted and revoked
@@ -127,7 +126,7 @@ export class AgentMembershipsService {
   }: {
     agentId: string
     userId: string
-    role?: AgentMembershipRole
+    role?: keyof typeof AGENT_ROLES
   }): Promise<AgentMembershipModel | null> {
     return this.transactionService.run(async () => {
       const existing = await this.findAgentMembership({ userId, agentId })

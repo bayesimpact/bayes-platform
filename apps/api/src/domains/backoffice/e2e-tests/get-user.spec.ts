@@ -84,7 +84,7 @@ describe("Backoffice - get user", () => {
     await saveReviewCampaignMembership({
       repositories,
       membership: reviewCampaignMembershipFactory
-        .reviewer()
+        .withRoles("review_campaign_reviewer")
         .transient({ organization, project, campaign: reviewCampaign, user })
         .build(),
     })

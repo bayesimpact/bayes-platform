@@ -21,6 +21,7 @@ import {
   reviewCampaignMembershipFactory,
   saveReviewCampaignMembership,
 } from "../../memberships/review-campaign-membership.factory"
+import type { ReviewCampaignRoleKey } from "../../memberships/review-campaign-membership.types"
 import { reviewCampaignFactory } from "../../review-campaign.factory"
 import { reviewCampaignStatusErrorMessage } from "../../review-campaign-status"
 import { ReviewCampaignsModule } from "../../review-campaigns.module"
@@ -67,10 +68,10 @@ describe("ReviewCampaigns - Reviewer auth", () => {
 
   const seedReviewableSession = async ({
     campaignStatus = "active",
-    callerRole = "reviewer",
+    callerRoleKey = "review_campaign_reviewer",
   }: {
     campaignStatus?: "draft" | "active" | "closed"
-    callerRole?: "reviewer" | "tester" | "none"
+    callerRoleKey?: ReviewCampaignRoleKey | null
   } = {}) => {
     const {
       organization,
@@ -94,10 +95,11 @@ describe("ReviewCampaigns - Reviewer auth", () => {
     const campaign = await repositories.reviewCampaignRepository.save(
       factory.transient({ organization, project, agent, agentSettings }).build(),
     )
-    if (callerRole !== "none") {
+    if (callerRoleKey) {
       await saveReviewCampaignMembership({
         repositories,
-        membership: reviewCampaignMembershipFactory[callerRole]()
+        membership: reviewCampaignMembershipFactory
+          .withRoles(callerRoleKey)
           .transient({ organization, project, campaign, user: caller })
           .build(),
       })
@@ -126,11 +128,11 @@ describe("ReviewCampaigns - Reviewer auth", () => {
       expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
     })
     it("forbids non-members (403)", async () => {
-      await seedReviewableSession({ callerRole: "none" })
+      await seedReviewableSession({ callerRoleKey: null })
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
     it("forbids tester-only members (no reviewer role) (403)", async () => {
-      await seedReviewableSession({ callerRole: "tester" })
+      await seedReviewableSession({ callerRoleKey: "review_campaign_tester" })
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
     it("forbids reviewers on draft campaigns (403)", async () => {
@@ -156,11 +158,11 @@ describe("ReviewCampaigns - Reviewer auth", () => {
       expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
     })
     it("forbids non-members (403)", async () => {
-      await seedReviewableSession({ callerRole: "none" })
+      await seedReviewableSession({ callerRoleKey: null })
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
     it("forbids tester-only members (no reviewer role) (403)", async () => {
-      await seedReviewableSession({ callerRole: "tester" })
+      await seedReviewableSession({ callerRoleKey: "review_campaign_tester" })
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
     it("forbids reviewers on draft campaigns (403)", async () => {
@@ -187,11 +189,11 @@ describe("ReviewCampaigns - Reviewer auth", () => {
       expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
     })
     it("forbids non-members (403)", async () => {
-      await seedReviewableSession({ callerRole: "none" })
+      await seedReviewableSession({ callerRoleKey: null })
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
     it("forbids tester-only members (no reviewer role) (403)", async () => {
-      await seedReviewableSession({ callerRole: "tester" })
+      await seedReviewableSession({ callerRoleKey: "review_campaign_tester" })
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
     it("forbids reviewers on closed campaigns (403)", async () => {
@@ -225,7 +227,7 @@ describe("ReviewCampaigns - Reviewer auth", () => {
       expectResponse(await subject(), 404)
     })
     it("forbids tester-only members (no reviewer role) (403)", async () => {
-      await seedReviewableSession({ callerRole: "tester" })
+      await seedReviewableSession({ callerRoleKey: "review_campaign_tester" })
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
     it("forbids reviewers on closed campaigns (403)", async () => {
@@ -252,7 +254,7 @@ describe("ReviewCampaigns - Reviewer auth", () => {
         organization,
         project,
         campaign,
-        role: "reviewer",
+        roleKeys: ["review_campaign_reviewer"],
         user: { authSubject, email: mockOidcEmailForSub(authSubject) },
       })
       const tester = await repositories.userRepository.save(

@@ -12,7 +12,7 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
-import type { ProjectMembershipRole } from "@/domains/projects/memberships/project-membership.types"
+import type { ProjectRoleKey } from "@/domains/projects/memberships/project-membership.types"
 import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { AgentCsvExtractionRunsModule } from "../agent-csv-extraction-runs.module"
@@ -71,7 +71,7 @@ describe("AgentCsvExtractionRuns - createOne", () => {
 
   let context: Awaited<ReturnType<typeof createCsvExtractionRunContext>>
 
-  const createContext = async (role: ProjectMembershipRole = "owner") => {
+  const createContext = async (role: ProjectRoleKey = "project_owner") => {
     context = await createCsvExtractionRunContext({ repositories, authSubject, role })
     organizationId = context.organization.id
     projectId = context.project.id
@@ -169,7 +169,7 @@ describe("AgentCsvExtractionRuns - createOne", () => {
   })
 
   it("pins the run to the draft when an admin asks for its revision", async () => {
-    await createContext("admin")
+    await createContext("project_admin")
     const draft = await seedRevision({ revision: 2, isDraft: true })
 
     const response = await subject(2)
@@ -193,7 +193,7 @@ describe("AgentCsvExtractionRuns - createOne", () => {
   it("returns 403 when a plain member asks for a revision", async () => {
     // Only the roles that can list the versions may choose one. A member creating a run keeps
     // getting the published version.
-    await createContext("member")
+    await createContext("project_member")
     await seedRevision({ revision: 2, isDraft: true })
 
     expectResponse(await subject(2), 403)
@@ -204,7 +204,7 @@ describe("AgentCsvExtractionRuns - createOne", () => {
     // plain member can create a run as long as they don't choose a version.
     // Without this, a grant change that quietly blocked members here would go unnoticed while
     // the 403 test above kept passing.
-    await createContext("member")
+    await createContext("project_member")
 
     const response = await subject()
 

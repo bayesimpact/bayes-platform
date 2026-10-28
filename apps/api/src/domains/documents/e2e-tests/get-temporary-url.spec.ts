@@ -109,7 +109,7 @@ describe("Documents - getTemporaryUrl", () => {
     expect(url).toContain(storagePath)
   })
   it("should let a simple member download a public document", async () => {
-    await createContext({ projectMembership: { role: "member" }, isPublic: true })
+    await createContext({ projectMembership: { roleKeys: ["project_member"] }, isPublic: true })
 
     const response = await subject()
 
@@ -121,7 +121,7 @@ describe("Documents - getTemporaryUrl", () => {
   })
 
   it("should forbid a simple member from downloading a non-public document", async () => {
-    await createContext({ projectMembership: { role: "member" }, isPublic: false })
+    await createContext({ projectMembership: { roleKeys: ["project_member"] }, isPublic: false })
 
     const response = await subject()
 

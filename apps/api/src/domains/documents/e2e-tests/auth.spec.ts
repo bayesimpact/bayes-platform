@@ -24,6 +24,7 @@ import {
   createOrganizationWithAgent,
   createOrganizationWithDocument,
 } from "@/domains/organizations/organization.factory"
+import type { ProjectRoleKey } from "@/domains/projects/memberships/project-membership.types"
 import { projectFactory } from "@/domains/projects/project.factory"
 import { addUserToReviewCampaign } from "@/domains/review-campaigns/memberships/review-campaign-membership.factory"
 import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
@@ -78,12 +79,12 @@ describe("Documents - Auth", () => {
   })
 
   const createContextForRole = async (
-    role: "owner" | "admin" | "member" = "owner",
+    role: ProjectRoleKey = "project_owner",
     document: Partial<Document> = {},
   ) => {
     const created = await createOrganizationWithDocument(repositories, {
       user: { authSubject },
-      projectMembership: { role },
+      projectMembership: { roleKeys: [role] },
       document,
     })
     organizationId = created.organization.id
@@ -105,7 +106,7 @@ describe("Documents - Auth", () => {
         authSubject: organizationAdminAuthSubject,
         email: mockOidcEmailForSub(organizationAdminAuthSubject),
       },
-      membership: { role: "admin" },
+      membership: { roleKeys: ["org_admin"] },
     })
     authSubject = organizationAdminAuthSubject
   }
@@ -126,15 +127,15 @@ describe("Documents - Auth", () => {
       expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
     })
     it("forbids an organization admin who holds no project role", async () => {
-      const context = await createContextForRole("owner")
+      const context = await createContextForRole("project_owner")
       await switchToOrganizationAdminWithoutProjectRole(context)
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
     it("doesn't allow a simple member to upload a document", async () => {
-      await createContextForRole("member")
+      await createContextForRole("project_member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
-    it.each([["owner"], ["admin"]] as const)("allows a project %s", async (role) => {
+    it.each([["project_owner"], ["project_admin"]] as const)("allows a %s", async (role) => {
       await createContextForRole(role)
       expectResponse(await subject(), 201)
     })
@@ -154,15 +155,15 @@ describe("Documents - Auth", () => {
       expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
     })
     it("forbids an organization admin who holds no project role", async () => {
-      const context = await createContextForRole("owner", { uploadStatus: "pending" })
+      const context = await createContextForRole("project_owner", { uploadStatus: "pending" })
       await switchToOrganizationAdminWithoutProjectRole(context)
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
     it("doesn't allow a simple member to confirm an upload", async () => {
-      await createContextForRole("member", { uploadStatus: "pending" })
+      await createContextForRole("project_member", { uploadStatus: "pending" })
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
-    it.each([["owner"], ["admin"]] as const)("allows a project %s", async (role) => {
+    it.each([["project_owner"], ["project_admin"]] as const)("allows a %s", async (role) => {
       await createContextForRole(role, { uploadStatus: "pending" })
       expectResponse(await subject(), 201)
     })
@@ -182,7 +183,7 @@ describe("Documents - Auth", () => {
       expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
     })
     it("requires the document to be part of the project", async () => {
-      const { organization } = await createContextForRole("owner")
+      const { organization } = await createContextForRole("project_owner")
       const project2 = await repositories.projectRepository.save(
         projectFactory.transient({ organization }).build(),
       )
@@ -190,15 +191,15 @@ describe("Documents - Auth", () => {
       expectResponse(await subject(), 404)
     })
     it("forbids an organization admin who holds no project role", async () => {
-      const context = await createContextForRole("owner")
+      const context = await createContextForRole("project_owner")
       await switchToOrganizationAdminWithoutProjectRole(context)
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
     it("doesn't allow a simple member to update a document", async () => {
-      await createContextForRole("member")
+      await createContextForRole("project_member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
-    it.each([["owner"], ["admin"]] as const)("allows a project %s", async (role) => {
+    it.each([["project_owner"], ["project_admin"]] as const)("allows a %s", async (role) => {
       await createContextForRole(role)
       expectResponse(await subject(), 200)
     })
@@ -222,25 +223,25 @@ describe("Documents - Auth", () => {
       expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
     })
     it("requires a valid project ID", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       projectId = null // reset to a non-null value
       expectResponse(await subject(), 404)
     })
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to get all documents", async () => {
-      await createContextForRole("member")
+      await createContextForRole("project_member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
     it("forbids an organization admin who holds no project role", async () => {
-      const context = await createContextForRole("owner")
+      const context = await createContextForRole("project_owner")
       await switchToOrganizationAdminWithoutProjectRole(context)
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
-    it.each([["owner"], ["admin"]] as const)("allows a project %s", async (role) => {
+    it.each([["project_owner"], ["project_admin"]] as const)("allows a %s", async (role) => {
       await createContextForRole(role)
       expectResponse(await subject(), 200)
     })
@@ -263,21 +264,21 @@ describe("Documents - Auth", () => {
       expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
     })
     it("requires a valid project ID", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       projectId = null
       expectResponse(await subject(), 404)
     })
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to stream embedding statuses", async () => {
-      await createContextForRole("member")
+      await createContextForRole("project_member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
     it("forbids an organization admin who holds no project role", async () => {
-      const context = await createContextForRole("owner")
+      const context = await createContextForRole("project_owner")
       await switchToOrganizationAdminWithoutProjectRole(context)
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
@@ -300,18 +301,18 @@ describe("Documents - Auth", () => {
       expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
     })
     it("requires a valid project ID", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       // Use a valid UUID format that doesn't exist in the database
       projectId = randomUUID()
       expectResponse(await subject(), 404)
     })
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("requires the document to be part of the project", async () => {
-      const { organization } = await createContextForRole("owner")
+      const { organization } = await createContextForRole("project_owner")
       const project2 = await repositories.projectRepository.save(
         projectFactory.transient({ organization }).build(),
       )
@@ -319,15 +320,15 @@ describe("Documents - Auth", () => {
       expectResponse(await subject(), 404) //exception thrown by guard
     })
     it("doesn't allow a simple member to delete a document", async () => {
-      await createContextForRole("member")
+      await createContextForRole("project_member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
     it("forbids an organization admin who holds no project role", async () => {
-      const context = await createContextForRole("owner")
+      const context = await createContextForRole("project_owner")
       await switchToOrganizationAdminWithoutProjectRole(context)
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
-    it.each([["owner"], ["admin"]] as const)("allows a project %s", async (role) => {
+    it.each([["project_owner"], ["project_admin"]] as const)("allows a %s", async (role) => {
       await createContextForRole(role)
       expectResponse(await subject(), 200)
     })
@@ -350,18 +351,18 @@ describe("Documents - Auth", () => {
       expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
     })
     it("requires a valid project ID", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       // Use a valid UUID format that doesn't exist in the database
       projectId = randomUUID()
       expectResponse(await subject(), 404)
     })
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("requires the document to be part of the project", async () => {
-      const { organization } = await createContextForRole("owner")
+      const { organization } = await createContextForRole("project_owner")
       const project2 = await repositories.projectRepository.save(
         projectFactory.transient({ organization }).build(),
       )
@@ -369,11 +370,11 @@ describe("Documents - Auth", () => {
       expectResponse(await subject(), 404) //exception thrown by guard
     })
     it("forbids an organization admin who holds no project role", async () => {
-      const context = await createContextForRole("owner")
+      const context = await createContextForRole("project_owner")
       await switchToOrganizationAdminWithoutProjectRole(context)
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
-    it.each([["owner"], ["admin"]] as const)("allows a project %s", async (role) => {
+    it.each([["project_owner"], ["project_admin"]] as const)("allows a %s", async (role) => {
       await createContextForRole(role)
       expectResponse(await subject(), 201)
     })
@@ -396,17 +397,17 @@ describe("Documents - Auth", () => {
       expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
     })
     it("requires a valid project ID", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       projectId = randomUUID()
       expectResponse(await subject(), 404)
     })
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("requires the document to be part of the project", async () => {
-      const { organization } = await createContextForRole("owner")
+      const { organization } = await createContextForRole("project_owner")
       const project2 = await repositories.projectRepository.save(
         projectFactory.transient({ organization }).build(),
       )
@@ -414,11 +415,15 @@ describe("Documents - Auth", () => {
       expectResponse(await subject(), 404)
     })
     it("forbids an organization admin who holds no project role", async () => {
-      const context = await createContextForRole("owner")
+      const context = await createContextForRole("project_owner")
       await switchToOrganizationAdminWithoutProjectRole(context)
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
-    it.each([["owner"], ["admin"], ["member"]] as const)("allows a project %s", async (role) => {
+    it.each([
+      ["project_owner"],
+      ["project_admin"],
+      ["project_member"],
+    ] as const)("allows a %s", async (role) => {
       await createContextForRole(role)
       expectResponse(await subject(), 200)
     })
@@ -441,17 +446,17 @@ describe("Documents - Auth", () => {
       expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
     })
     it("requires a valid project ID", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       projectId = randomUUID()
       expectResponse(await subject(), 404)
     })
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("requires the document to be part of the project", async () => {
-      const { organization } = await createContextForRole("owner")
+      const { organization } = await createContextForRole("project_owner")
       const project2 = await repositories.projectRepository.save(
         projectFactory.transient({ organization }).build(),
       )
@@ -459,15 +464,15 @@ describe("Documents - Auth", () => {
       expectResponse(await subject(), 404)
     })
     it("doesn't allow a simple member to reprocess a document", async () => {
-      await createContextForRole("member")
+      await createContextForRole("project_member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
     it("forbids an organization admin who holds no project role", async () => {
-      const context = await createContextForRole("owner")
+      const context = await createContextForRole("project_owner")
       await switchToOrganizationAdminWithoutProjectRole(context)
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
-    it.each([["owner"], ["admin"]] as const)("allows a project %s", async (role) => {
+    it.each([["project_owner"], ["project_admin"]] as const)("allows a %s", async (role) => {
       await createContextForRole(role, { sourceType: "project", embeddingStatus: "failed" })
       expectResponse(await subject(), 201)
     })
@@ -475,7 +480,10 @@ describe("Documents - Auth", () => {
 
   // A campaign role gives `project.read` on the campaign's project, without a project row, but no
   // document key.
-  describe.each([["tester"], ["reviewer"]] as const)("a review campaign %s", (role) => {
+  describe.each([
+    ["review_campaign_tester"],
+    ["review_campaign_reviewer"],
+  ] as const)("a %s", (roleKey) => {
     const createCampaignParticipantContext = async ({ isPublic }: { isPublic: boolean }) => {
       const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
         repositories,
@@ -505,7 +513,7 @@ describe("Documents - Auth", () => {
         organization,
         project,
         campaign,
-        role,
+        roleKeys: [roleKey],
         user: {
           authSubject: participantAuthSubject,
           email: mockOidcEmailForSub(participantAuthSubject),
@@ -589,7 +597,7 @@ describe("Documents - Auth", () => {
     let documentSourceId: string | null = "random-document-source-id"
     let documentTagId = "random-document-tag-id"
 
-    const createSourceForRole = async (role: "owner" | "admin" | "member") => {
+    const createSourceForRole = async (role: ProjectRoleKey) => {
       const context = await createContextForRole(role)
       const connectScope = {
         organizationId: context.organization.id,
@@ -625,15 +633,15 @@ describe("Documents - Auth", () => {
       expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
     })
     it("forbids an organization admin who holds no project role", async () => {
-      const context = await createSourceForRole("owner")
+      const context = await createSourceForRole("project_owner")
       await switchToOrganizationAdminWithoutProjectRole(context)
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
     it("doesn't allow a simple member to tag a source", async () => {
-      await createSourceForRole("member")
+      await createSourceForRole("project_member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
-    it.each([["owner"], ["admin"]] as const)("allows a project %s", async (role) => {
+    it.each([["project_owner"], ["project_admin"]] as const)("allows a %s", async (role) => {
       await createSourceForRole(role)
       expectResponse(await subject(), 200)
     })

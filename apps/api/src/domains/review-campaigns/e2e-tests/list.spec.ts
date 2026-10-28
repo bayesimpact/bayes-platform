@@ -104,14 +104,14 @@ describe("ReviewCampaigns - list", () => {
     await saveReviewCampaignMembership({
       repositories,
       membership: reviewCampaignMembershipFactory
-        .tester()
+        .withRoles("review_campaign_tester")
         .transient({ organization, project, campaign: withMembers, user })
         .build(),
     })
     await saveReviewCampaignMembership({
       repositories,
       membership: reviewCampaignMembershipFactory
-        .reviewer()
+        .withRoles("review_campaign_reviewer")
         .transient({ organization, project, campaign: withMembers, user })
         .build(),
     })

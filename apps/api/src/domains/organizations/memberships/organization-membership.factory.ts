@@ -1,14 +1,14 @@
 import { randomUUID } from "node:crypto"
 import { Factory } from "fishery"
 import type { AllRepositories } from "@/common/test/test-transaction-manager"
-import { userMembershipFactory } from "@/domains/memberships/user-membership.factory"
+import { saveUserMembershipRows } from "@/domains/memberships/user-membership.factory"
 import { ORGANIZATION_ROLES } from "@/domains/rbac/rbac.constants"
 import type { User } from "@/domains/users/user.entity"
 import { userFactory } from "../../users/user.factory"
 import type { Organization } from "../organization.entity"
 import type {
   OrganizationMembershipFixture,
-  OrganizationMembershipRole,
+  OrganizationRoleKey,
 } from "./organization-membership.types"
 
 type OrganizationMembershipTransientParams = {
@@ -20,16 +20,8 @@ class OrganizationMembershipFactory extends Factory<
   OrganizationMembershipFixture,
   OrganizationMembershipTransientParams
 > {
-  member() {
-    return this.params({ role: "member" })
-  }
-
-  admin() {
-    return this.params({ role: "admin" })
-  }
-
-  owner() {
-    return this.params({ role: "owner" })
+  withRoles(...roleKeys: OrganizationRoleKey[]) {
+    return this.params({ roleKeys })
   }
 }
 
@@ -47,7 +39,9 @@ export const organizationMembershipFactory = OrganizationMembershipFactory.defin
       id: params.id || randomUUID(),
       userId: transientParams.user.id,
       organizationId: transientParams.organization.id,
-      role: (params.role || "member") as OrganizationMembershipRole,
+      roleKeys: (params.roleKeys as OrganizationRoleKey[] | undefined) ?? [
+        ORGANIZATION_ROLES.member,
+      ],
       createdAt: params.createdAt || now,
       updatedAt: params.updatedAt || now,
       deletedAt: params.deletedAt || null,
@@ -58,7 +52,7 @@ export const organizationMembershipFactory = OrganizationMembershipFactory.defin
 )
 
 /**
- * Saves an organization membership to `user_membership`.
+ * Saves an organization membership to `user_membership`, one row per role key.
  */
 export const saveOrgMembership = async ({
   repositories,
@@ -67,19 +61,15 @@ export const saveOrgMembership = async ({
   repositories: AllRepositories
   membership: OrganizationMembershipFixture
 }) => {
-  const roleKey = ORGANIZATION_ROLES[membership.role]
-  const rbacRole = await repositories.roleRepository.findOne({ where: { key: roleKey } })
-
-  const saved = await repositories.userMembershipRepository.save(
-    userMembershipFactory.build({
-      id: membership.id,
-      userId: membership.userId,
-      resourceType: "organization",
-      resourceId: membership.organizationId,
-      roleId: rbacRole?.id ?? null,
-    }),
-  )
-  return { ...membership, id: saved.id }
+  await saveUserMembershipRows({
+    repositories,
+    id: membership.id,
+    userId: membership.userId,
+    resourceType: "organization",
+    resourceId: membership.organizationId,
+    roleKeys: membership.roleKeys,
+  })
+  return membership
 }
 
 export const addUserToOrganization = async ({

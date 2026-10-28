@@ -68,7 +68,7 @@ describe("Agent Memberships - addRoles and deleteMany", () => {
           organization,
           project,
           user: { email, authSubject: `oidc|${email}` },
-          projectMembership: { role: "member" },
+          projectMembership: { roleKeys: ["project_member"] },
         })
       ).addedUser
     const first = await addProjectMember("first@example.com")
@@ -166,7 +166,12 @@ describe("Agent Memberships - addRoles and deleteMany", () => {
 
   it("removes nobody when one of them owns the agent", async () => {
     const { agent, first, second } = await createContext()
-    await addUserToAgent({ repositories, agent, user: first, membership: { role: "owner" } })
+    await addUserToAgent({
+      repositories,
+      agent,
+      user: first,
+      membership: { roleKeys: ["agent_owner"] },
+    })
     expectResponse(await addRoles([second.id], ["agent_member"]), 201)
 
     expectResponse(

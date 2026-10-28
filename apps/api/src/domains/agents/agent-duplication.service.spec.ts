@@ -297,7 +297,7 @@ describe("AgentDuplicationService", () => {
     const { user: agentMember } = await addUserToAgent({
       repositories,
       agent: source.agent,
-      membership: { role: "member" },
+      membership: { roleKeys: ["agent_member"] },
     })
 
     const { agent } = await duplicate(source)
@@ -323,7 +323,7 @@ describe("AgentDuplicationService", () => {
       repositories,
       project: source.project,
       user: projectAdmin,
-      membership: { role: "admin" },
+      membership: { roleKeys: ["project_admin"] },
     })
 
     const { agent } = await duplicate(source)

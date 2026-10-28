@@ -66,7 +66,7 @@ describe("Project membership - removeRole", () => {
           organization,
           project,
           user: { email, authSubject: `oidc|${randomUUID()}` },
-          projectMembership: { role: "member" },
+          projectMembership: { roleKeys: ["project_member"] },
         })
       ).addedUser
     const first = await addMember("first@example.com")

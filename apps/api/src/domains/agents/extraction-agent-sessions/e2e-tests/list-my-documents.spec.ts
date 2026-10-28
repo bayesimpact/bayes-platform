@@ -13,6 +13,7 @@ import {
   createOrganizationWithAgent,
   createOrganizationWithProject,
 } from "@/domains/organizations/organization.factory"
+import type { ProjectRoleKey } from "@/domains/projects/memberships/project-membership.types"
 import { createSingleUser } from "@/domains/users/user.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
@@ -54,9 +55,9 @@ describe("ExtractionAgentSessions - listMyDocuments", () => {
     await app.close()
   })
 
-  const createContext = async (role: "owner" | "admin" | "member" = "member") => {
+  const createContext = async (role: ProjectRoleKey = "project_member") => {
     const { user, organization, project, agent } = await createOrganizationWithAgent(repositories, {
-      projectMembership: { role },
+      projectMembership: { roleKeys: [role] },
       agent: { type: "extraction" },
       agentSettings: { model: AgentModel._Mock },
     })

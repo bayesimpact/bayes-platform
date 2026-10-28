@@ -79,7 +79,7 @@ describe("ReviewCampaigns - revokeMembership", () => {
     const membership = await saveReviewCampaignMembership({
       repositories,
       membership: reviewCampaignMembershipFactory
-        .tester()
+        .withRoles("review_campaign_tester")
         .transient({ organization, project, campaign, user })
         .build(),
     })

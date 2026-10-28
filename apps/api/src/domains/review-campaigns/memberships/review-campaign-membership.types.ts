@@ -1,6 +1,10 @@
+import type { REVIEW_CAMPAIGN_ROLES } from "@/domains/rbac/rbac.constants"
 import type { User } from "@/domains/users/user.entity"
 import type { ReviewCampaign } from "../review-campaign.entity"
-import type { ReviewCampaignMembershipRole } from "../review-campaigns.types"
+
+/** A `review_campaign_*` catalog role key (`REVIEW_CAMPAIGN_ROLES`). */
+export type ReviewCampaignRoleKey =
+  (typeof REVIEW_CAMPAIGN_ROLES)[keyof typeof REVIEW_CAMPAIGN_ROLES]
 
 /** Plain-object shape used by test factories before persistence. */
 export type ReviewCampaignMembershipFixture = {
@@ -9,8 +13,8 @@ export type ReviewCampaignMembershipFixture = {
   campaignId: string
   organizationId: string
   projectId: string
-  role: ReviewCampaignMembershipRole
-  roleId: string | null
+  /** One `user_membership` row per role key. */
+  roleKeys: ReviewCampaignRoleKey[]
   createdAt: Date
   updatedAt: Date
   deletedAt: Date | null

@@ -24,6 +24,7 @@ import {
   projectMembershipFactory,
   saveProjectMembership,
 } from "@/domains/projects/memberships/project-membership.factory"
+import type { ProjectRoleKey } from "@/domains/projects/memberships/project-membership.types"
 import type { Project } from "@/domains/projects/project.entity"
 import { userFactory } from "@/domains/users/user.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
@@ -139,14 +140,14 @@ describe("ReviewCampaigns - Report", () => {
     await saveReviewCampaignMembership({
       repositories,
       membership: reviewCampaignMembershipFactory
-        .reviewer()
+        .withRoles("review_campaign_reviewer")
         .transient({ organization, project, campaign, user: reviewerA })
         .build(),
     })
     await saveReviewCampaignMembership({
       repositories,
       membership: reviewCampaignMembershipFactory
-        .reviewer()
+        .withRoles("review_campaign_reviewer")
         .transient({ organization, project, campaign, user: reviewerB })
         .build(),
     })
@@ -279,14 +280,14 @@ describe("ReviewCampaigns - Report", () => {
   const addProjectMember = async ({
     organization,
     project,
-    role,
+    roleKey,
   }: {
     organization: Organization
     project: Project
-    role: "admin" | "member"
+    roleKey: ProjectRoleKey
   }) => {
     const user = await repositories.userRepository.save(
-      userFactory.build({ email: `project-${role}-${randomUUID()}@example.com` }),
+      userFactory.build({ email: `${roleKey}-${randomUUID()}@example.com` }),
     )
     await saveOrgMembership({
       repositories,
@@ -294,7 +295,7 @@ describe("ReviewCampaigns - Report", () => {
     })
     await saveProjectMembership({
       repositories,
-      membership: projectMembershipFactory[role]().transient({ user, project }).build(),
+      membership: projectMembershipFactory.withRoles(roleKey).transient({ user, project }).build(),
     })
     return user
   }
@@ -416,7 +417,7 @@ describe("ReviewCampaigns - Report", () => {
 
   it("allows a project admin who takes no part in the campaign", async () => {
     const { organization, project } = await seedReportableCampaign()
-    const projectAdmin = await addProjectMember({ organization, project, role: "admin" })
+    const projectAdmin = await addProjectMember({ organization, project, roleKey: "project_admin" })
     authSubject = projectAdmin.authSubject!
 
     expectResponse(await subject(), 200)
@@ -424,7 +425,11 @@ describe("ReviewCampaigns - Report", () => {
 
   it("forbids a project member who takes no part in the campaign (403)", async () => {
     const { organization, project } = await seedReportableCampaign()
-    const projectMember = await addProjectMember({ organization, project, role: "member" })
+    const projectMember = await addProjectMember({
+      organization,
+      project,
+      roleKey: "project_member",
+    })
     authSubject = projectMember.authSubject!
 
     expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
@@ -442,12 +447,15 @@ describe("ReviewCampaigns - Report", () => {
     })
     await saveProjectMembership({
       repositories,
-      membership: projectMembershipFactory.member().transient({ user: tester, project }).build(),
+      membership: projectMembershipFactory
+        .withRoles("project_member")
+        .transient({ user: tester, project })
+        .build(),
     })
     await saveReviewCampaignMembership({
       repositories,
       membership: reviewCampaignMembershipFactory
-        .tester()
+        .withRoles("review_campaign_tester")
         .transient({ organization, project, campaign, user: tester })
         .build(),
     })

@@ -141,7 +141,12 @@ describe("Backoffice - get project", () => {
   it("shows a caller who can only read the project the members they can read as users", async () => {
     const { project, viewer } = await createContextViewedWithGlobalRole(assignPlatformStaffToUser)
     // project_member does not grant user.read: the caller only reads themself
-    await addUserToProject({ repositories, project, user: viewer, membership: { role: "member" } })
+    await addUserToProject({
+      repositories,
+      project,
+      user: viewer,
+      membership: { roleKeys: ["project_member"] },
+    })
     const response = await request({
       route: BackofficeRoutes.getProject,
       pathParams: { projectId: project.id },
@@ -156,7 +161,12 @@ describe("Backoffice - get project", () => {
 
   it("shows every member to a caller who holds user.read on the project", async () => {
     const { project, viewer } = await createContextViewedWithGlobalRole(assignPlatformStaffToUser)
-    await addUserToProject({ repositories, project, user: viewer, membership: { role: "admin" } })
+    await addUserToProject({
+      repositories,
+      project,
+      user: viewer,
+      membership: { roleKeys: ["project_admin"] },
+    })
     const response = await request({
       route: BackofficeRoutes.getProject,
       pathParams: { projectId: project.id },

@@ -67,7 +67,7 @@ describe("Agent Memberships - addRole and removeRole", () => {
       organization,
       project,
       user: { email: "member@example.com", authSubject: "oidc|member" },
-      projectMembership: { role: "member" },
+      projectMembership: { roleKeys: ["project_member"] },
     })
     return { owner, agent, member }
   }

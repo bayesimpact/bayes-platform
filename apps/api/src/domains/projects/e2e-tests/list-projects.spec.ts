@@ -157,13 +157,13 @@ describe("Projects - listProjects", () => {
       repositories,
       project: adminProject,
       user,
-      membership: { role: "admin" },
+      membership: { roleKeys: ["project_admin"] },
     })
     await addUserToProject({
       repositories,
       project: memberProject,
       user,
-      membership: { role: "member" },
+      membership: { roleKeys: ["project_member"] },
     })
 
     const response = await subject()
@@ -217,7 +217,7 @@ describe("Projects - listProjects", () => {
       organization,
       project: campaignProject,
       campaign,
-      role: "tester",
+      roleKeys: ["review_campaign_tester"],
       user: { authSubject: testerAuthSubject, email: mockOidcEmailForSub(testerAuthSubject) },
     })
     authSubject = testerAuthSubject

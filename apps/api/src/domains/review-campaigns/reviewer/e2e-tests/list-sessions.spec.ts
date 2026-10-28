@@ -78,7 +78,7 @@ describe("ReviewCampaigns - Reviewer list sessions", () => {
     await saveReviewCampaignMembership({
       repositories,
       membership: reviewCampaignMembershipFactory
-        .reviewer()
+        .withRoles("review_campaign_reviewer")
         .transient({ organization, project, campaign, user: reviewer })
         .build(),
     })

@@ -287,7 +287,10 @@ user.id = randomUUID()
 
 // ✅ Correct
 const user = userFactory.build({ email: "test@example.com" })
-const membership = userMembershipFactory.owner().transient({ user, organization }).build()
+const membership = organizationMembershipFactory
+  .withRoles("org_owner")
+  .transient({ user, organization })
+  .build()
 const project = projectFactory.transient({ organization: org }).build()
 ```
 

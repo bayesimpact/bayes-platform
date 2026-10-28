@@ -31,7 +31,7 @@ describe("listMessagesForSession", () => {
       repositories,
       membership: organizationMembershipFactory
         .transient({ organization: testOrganization, user: testUser })
-        .owner()
+        .withRoles("org_owner")
         .build(),
     })
 
@@ -79,7 +79,7 @@ describe("stale streaming recovery", () => {
       repositories,
       membership: organizationMembershipFactory
         .transient({ organization: testOrganization, user: testUser })
-        .owner()
+        .withRoles("org_owner")
         .build(),
     })
 

@@ -197,14 +197,14 @@ describe("MeController (e2e)", () => {
       await saveReviewCampaignMembership({
         repositories,
         membership: reviewCampaignMembershipFactory
-          .reviewer()
+          .withRoles("review_campaign_reviewer")
           .transient({ organization, project, campaign: activeCampaign, user })
           .build(),
       })
       await saveReviewCampaignMembership({
         repositories,
         membership: reviewCampaignMembershipFactory
-          .tester()
+          .withRoles("review_campaign_tester")
           .transient({ organization, project, campaign: draftCampaign, user })
           .build(),
       })

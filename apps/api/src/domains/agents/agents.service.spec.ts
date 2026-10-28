@@ -90,7 +90,7 @@ describe("AgentsService", () => {
         repositories,
         project,
         user: adminUser,
-        membership: { role: "admin" },
+        membership: { roleKeys: ["project_admin"] },
       })
 
       // Add a third user as a project member (should NOT get agent membership)
@@ -100,7 +100,7 @@ describe("AgentsService", () => {
         repositories,
         project,
         user: memberUser,
-        membership: { role: "member" },
+        membership: { roleKeys: ["project_member"] },
       })
 
       const { agent } = await service.createAgent({
@@ -324,7 +324,7 @@ describe("AgentsService", () => {
         repositories,
         project,
         user: memberUser,
-        membership: { role: "member" },
+        membership: { roleKeys: ["project_member"] },
       })
       await grantConversationReview({ repositories, user: memberUser, agent })
 
@@ -343,13 +343,13 @@ describe("AgentsService", () => {
         repositories,
         project,
         user: memberUser,
-        membership: { role: "member" },
+        membership: { roleKeys: ["project_member"] },
       })
       await addUserToAgent({
         repositories,
         agent,
         user: memberUser,
-        membership: { role: "member" },
+        membership: { roleKeys: ["agent_member"] },
       })
 
       const result = await service.listAgents({

@@ -16,8 +16,9 @@ import {
   agentMembershipFactory,
   saveAgentMembership,
 } from "@/domains/agents/memberships/agent-membership.factory"
-import type { AgentMembershipRole } from "@/domains/agents/memberships/agent-membership.types"
+import type { AgentRoleKey } from "@/domains/agents/memberships/agent-membership.types"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import type { ProjectRoleKey } from "@/domains/projects/memberships/project-membership.types"
 import { mockForeignAuthSubject, setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
@@ -64,10 +65,10 @@ describe("Projects Analytics - Auth", () => {
     await app.close()
   })
 
-  const createContextForRole = async (role: "owner" | "admin" | "member" = "owner") => {
+  const createContextForRole = async (role: ProjectRoleKey = "project_owner") => {
     const { organization, project, user } = await createOrganizationWithProject(repositories, {
       user: { authSubject },
-      projectMembership: { role },
+      projectMembership: { roleKeys: [role] },
     })
     organizationId = organization.id
     projectId = project.id
@@ -109,32 +110,32 @@ describe("Projects Analytics - Auth", () => {
   })
 
   it("requires the user to be a member of the organization", async () => {
-    await createContextForRole("owner")
+    await createContextForRole("project_owner")
     authSubject = mockForeignAuthSubject()
     expectResponse(await subjectConversations(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     expectResponse(await subjectAvg(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
   })
 
   it("allows admins to list analytics for a project", async () => {
-    await createContextForRole("admin")
+    await createContextForRole("project_admin")
     expectResponse(await subjectConversations(), 200)
     expectResponse(await subjectAvg(), 200)
   })
 
   it("allows owners to list analytics for a project", async () => {
-    await createContextForRole("owner")
+    await createContextForRole("project_owner")
     expectResponse(await subjectConversations(), 200)
     expectResponse(await subjectAvg(), 200)
   })
 
   it("doesn't allow members to list analytics for a project", async () => {
-    await createContextForRole("member")
+    await createContextForRole("project_member")
     expectResponse(await subjectConversations(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     expectResponse(await subjectAvg(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
   })
 
   it("requires an existing project ID", async () => {
-    await createContextForRole("owner")
+    await createContextForRole("project_owner")
     projectId = randomUUID()
     expectResponse(await subjectConversations(), 404)
     expectResponse(await subjectAvg(), 404)
@@ -143,8 +144,8 @@ describe("Projects Analytics - Auth", () => {
   describe("filtering on one agent", () => {
     let filteredAgentId: string
 
-    const createContextWithAgent = async (agentMembership: AgentMembershipRole | "none") => {
-      const { organization, project, user } = await createContextForRole("owner")
+    const createContextWithAgent = async (agentMembership: AgentRoleKey | "none") => {
+      const { organization, project, user } = await createContextForRole("project_owner")
       const agent = agentFactory.transient({ organization, project }).build()
       await repositories.agentRepository.save(agent)
       if (agentMembership !== "none") {
@@ -152,7 +153,7 @@ describe("Projects Analytics - Auth", () => {
           repositories,
           membership: agentMembershipFactory
             .transient({ user, agent })
-            .build({ role: agentMembership }),
+            .build({ roleKeys: [agentMembership] }),
         })
       }
       filteredAgentId = agent.id
@@ -181,7 +182,7 @@ describe("Projects Analytics - Auth", () => {
     })
 
     it("doesn't allow project owners to filter on an agent they are only a member of", async () => {
-      await createContextWithAgent("member")
+      await createContextWithAgent("agent_member")
       expectResponse(
         await subjectFiltered(AnalyticsRoutes.getConversationsPerDay),
         403,
@@ -190,7 +191,7 @@ describe("Projects Analytics - Auth", () => {
     })
 
     it("allows project owners to filter on an agent they are an admin of", async () => {
-      await createContextWithAgent("admin")
+      await createContextWithAgent("agent_admin")
       expectResponse(await subjectFiltered(AnalyticsRoutes.getConversationsPerDay), 200)
       expectResponse(
         await subjectFiltered(AnalyticsRoutes.getAvgUserQuestionsPerSessionPerDay),

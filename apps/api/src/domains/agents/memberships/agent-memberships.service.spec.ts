@@ -120,7 +120,7 @@ describe("AgentMembershipsService", () => {
         repositories,
         membership: organizationMembershipFactory
           .transient({ user: member, organization })
-          .member()
+          .withRoles("org_member")
           .build(),
       })
 
@@ -166,7 +166,10 @@ describe("AgentMembershipsService", () => {
       const { user: ownerUser } = await createOrganizationWithProject(repositories)
       await saveAgentMembership({
         repositories,
-        membership: agentMembershipFactory.transient({ agent, user: ownerUser }).owner().build(),
+        membership: agentMembershipFactory
+          .transient({ agent, user: ownerUser })
+          .withRoles("agent_owner")
+          .build(),
       })
 
       await expect(
@@ -196,17 +199,18 @@ describe("AgentMembershipsService", () => {
       const { user: demotedUser } = await addUserToAgent({
         repositories,
         agent: adminAgent,
-        membership: { role: "admin" },
+        membership: { roleKeys: ["agent_admin"] },
       })
-      for (const [agent, role] of [
-        [ownedAgent, "owner"],
-        [otherProjectAgent, "admin"],
+      for (const [agent, roleKey] of [
+        [ownedAgent, "agent_owner"],
+        [otherProjectAgent, "agent_admin"],
       ] as const) {
         await saveAgentMembership({
           repositories,
           membership: agentMembershipFactory
             .transient({ agent, user: demotedUser })
-            .build({ role }),
+            .withRoles(roleKey)
+            .build(),
         })
       }
 

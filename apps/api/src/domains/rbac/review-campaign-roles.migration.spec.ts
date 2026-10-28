@@ -81,8 +81,13 @@ describe("ReviewCampaignRoles1791800888000", () => {
     )
 
     const addOrganizationMember = async () =>
-      (await addUserToOrganization({ repositories, organization, membership: { role: "member" } }))
-        .user
+      (
+        await addUserToOrganization({
+          repositories,
+          organization,
+          membership: { roleKeys: ["org_member"] },
+        })
+      ).user
 
     const addLegacyCampaignRow = (user: User, role: ReviewCampaignMembershipRole) =>
       repositories.userMembershipRepository.save(

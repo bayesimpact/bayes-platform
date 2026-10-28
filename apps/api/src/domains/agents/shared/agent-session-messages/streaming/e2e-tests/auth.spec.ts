@@ -18,7 +18,7 @@ import { removeNullish } from "@/common/utils/remove-nullish"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
 import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
 import { createOrganizationWithAgentSession } from "@/domains/organizations/organization.factory"
-import type { ProjectMembershipRole } from "@/domains/projects/memberships/project-membership.types"
+import type { ProjectRoleKey } from "@/domains/projects/memberships/project-membership.types"
 import {
   mockForeignAuthSubject,
   mockOidcEmailForSub,
@@ -70,7 +70,7 @@ describe("Agent Session Messages - stream - Auth", () => {
   // Seeds an organization/project (membership at `role`) + conversation agent, and a session of
   // `type` owned by the caller.
   const createContextForRole = async (
-    role: ProjectMembershipRole,
+    role: ProjectRoleKey,
     type: BaseAgentSessionTypeDto = "live",
   ) => {
     const { organization, project, agent, agentSession, user } =
@@ -78,7 +78,7 @@ describe("Agent Session Messages - stream - Auth", () => {
         repositories,
         params: {
           user: { authSubject, email: mockOidcEmailForSub(authSubject) },
-          projectMembership: { role },
+          projectMembership: { roleKeys: [role] },
           agentSession: { type },
         },
         agentType: "conversation",
@@ -111,7 +111,7 @@ describe("Agent Session Messages - stream - Auth", () => {
         authSubject: organizationAdminAuthSubject,
         email: mockOidcEmailForSub(organizationAdminAuthSubject),
       },
-      membership: { role: "admin" },
+      membership: { roleKeys: ["org_admin"] },
     })
     const agentSession = conversationAgentSessionFactory
       .transient({ organization, project, agent, user })
@@ -158,31 +158,31 @@ describe("Agent Session Messages - stream - Auth", () => {
     })
 
     it("requires a valid organization ID", async () => {
-      await createContextForRole("owner", type)
+      await createContextForRole("project_owner", type)
       organizationId = null
       expectResponse(await subject(type), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
     })
 
     it("requires a valid agent ID", async () => {
-      await createContextForRole("owner", type)
+      await createContextForRole("project_owner", type)
       agentId = null
       expectResponse(await subject(type), 404)
     })
 
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("owner", type)
+      await createContextForRole("project_owner", type)
       authSubject = mockForeignAuthSubject()
       expectResponse(await subject(type), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
 
     it("answers 404 for an unknown session", async () => {
-      await createContextForRole("owner", type)
+      await createContextForRole("project_owner", type)
       agentSessionId = randomUUID()
       expectResponse(await subject(type), 404)
     })
 
     it("forbids an organization admin who holds no project role", async () => {
-      const context = await createContextForRole("owner", type)
+      const context = await createContextForRole("project_owner", type)
       await switchToOrganizationAdminWithoutProjectRole(context)
       expectResponse(await subject(type), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
@@ -190,34 +190,34 @@ describe("Agent Session Messages - stream - Auth", () => {
 
   // The live route is open to every project role, the playground route to owners and admins only.
   it.each([
-    ["owner"],
-    ["admin"],
-    ["member"],
-  ] as const)("lets a project %s stream on the live route", async (role) => {
+    ["project_owner"],
+    ["project_admin"],
+    ["project_member"],
+  ] as const)("lets a %s stream on the live route", async (role) => {
     await createContextForRole(role, "live")
     await expectStreamed(await subject("live"))
   })
 
   it.each([
-    ["owner"],
-    ["admin"],
-  ] as const)("lets a project %s stream on the playground route", async (role) => {
+    ["project_owner"],
+    ["project_admin"],
+  ] as const)("lets a %s stream on the playground route", async (role) => {
     await createContextForRole(role, "playground")
     await expectStreamed(await subject("playground"))
   })
 
   it("forbids a plain member on the playground route", async () => {
-    await createContextForRole("member", "playground")
+    await createContextForRole("project_member", "playground")
     expectResponse(await subject("playground"), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
   })
 
   it("turns away a playground session on the live route", async () => {
-    await createContextForRole("owner", "playground")
+    await createContextForRole("project_owner", "playground")
     await expectTurnedAway(await subject("live"))
   })
 
   it("turns away a live session on the playground route", async () => {
-    await createContextForRole("owner", "live")
+    await createContextForRole("project_owner", "live")
     await expectTurnedAway(await subject("playground"))
   })
 })

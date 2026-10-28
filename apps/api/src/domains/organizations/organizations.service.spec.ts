@@ -230,7 +230,7 @@ describe("OrganizationsService", () => {
         repositories,
         membership: organizationMembershipFactory
           .transient({ user, organization: joinedOrganization })
-          .build({ role: "member" }),
+          .build({ roleKeys: ["org_member"] }),
       })
 
       const result = await service.listOrganizations(user.id)
@@ -252,14 +252,14 @@ describe("OrganizationsService", () => {
       await saveOrgMembership({
         repositories,
         membership: organizationMembershipFactory
-          .owner()
+          .withRoles("org_owner")
           .transient({ user, organization: acme })
           .build(),
       })
       await saveOrgMembership({
         repositories,
         membership: organizationMembershipFactory
-          .owner()
+          .withRoles("org_owner")
           .transient({ user, organization: northwind })
           .build(),
       })

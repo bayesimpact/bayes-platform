@@ -52,7 +52,7 @@ describe("Documents - getAll", () => {
 
   const createContext = async () => {
     const { user, organization, project } = await createOrganizationWithProject(repositories, {
-      projectMembership: { role: "admin" },
+      projectMembership: { roleKeys: ["project_admin"] },
     })
     organizationId = organization.id
     projectId = project.id
