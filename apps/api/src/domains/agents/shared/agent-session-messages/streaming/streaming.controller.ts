@@ -42,11 +42,11 @@ export abstract class StreamingController {
 
   protected handleStream(
     request: EndpointRequestWithAgentSession<ConversationAgentSession>,
-    query: string,
+    body: unknown,
   ): Observable<MessageEvent> {
     if (request.agentSession.type !== this.type) throw new NotFoundException()
 
-    const payload = parseStreamPayload(query)
+    const payload = parseStreamPayload(body)
     const userContent = payload.content
     const attachmentDocumentId = payload.attachmentDocumentId
     const agentSettingsRevision = payload.agentSettingsRevision
@@ -143,24 +143,16 @@ const isOptionalInteger = (value: unknown): value is number | undefined =>
   value === undefined || Number.isInteger(value)
 
 /**
- * The stream is a GET, so its payload travels JSON-encoded in `?q=`. Only the parse is guarded:
- * a wider try would rewrite every downstream failure as "Invalid query format" and hide which
- * version was rejected and why.
+ * The stream is a POST and its payload travels in the body, so the message never lands in a URL
+ * that proxies may refuse for its length and access logs keep.
  *
- * What comes out of the parse is checked rather than trusted. The query is caller-controlled, and
- * `agentSettingsRevision` goes straight to TypeORM: a string or an object there surfaces as a
- * driver error instead of a clean rejection.
+ * The body is checked rather than trusted. It is caller-controlled, and `agentSettingsRevision`
+ * goes straight to TypeORM: a string or an object there surfaces as a driver error instead of a
+ * clean rejection.
  */
-function parseStreamPayload(query: string): StreamPayload {
-  let parsed: unknown
-  try {
-    parsed = JSON.parse(query)
-  } catch (_) {
-    throw new ForbiddenException("Invalid query format")
-  }
-
-  const payload = isRecord(parsed) ? parsed.payload : undefined
-  if (!isRecord(payload)) throw new ForbiddenException("Invalid query format")
+function parseStreamPayload(body: unknown): StreamPayload {
+  const payload = isRecord(body) ? body.payload : undefined
+  if (!isRecord(payload)) throw new ForbiddenException("Invalid request body")
 
   const { content, attachmentDocumentId, agentSettingsRevision } = payload
   if (typeof content !== "string") throw new ForbiddenException("Missing user content")
