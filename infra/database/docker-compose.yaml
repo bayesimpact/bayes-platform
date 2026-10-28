@@ -53,10 +53,14 @@ services:
     ports:
       - "${REDIS_PORT:-6379}:6379"
   # S3-compatible object storage (SeaweedFS, all components in one process):
-  # http://localhost:8333, keys in ./seaweedfs/s3.json. The API and the
-  # pdf-converter use it with STORAGE_BACKEND=s3 (see apps/api/.env-example).
+  # http://localhost:8333, keys in ./seaweedfs/s3.json. The dev document
+  # storage of the machine: one bucket, connect-documents, shared by the main
+  # checkout and every worktree environment, like the connect database.
+  # Containers reach it at http://seaweedfs:8333; browsers use the signed URLs
+  # through Traefik at s3.<DEV_DOMAIN> or s3.connect.localhost (the host is
+  # part of the signature, so S3_PUBLIC_ENDPOINT names it).
   # Profile `storage`: a plain `docker compose up` leaves it off, the CI
-  # (make db-tests) starts it for the S3 integration tests.
+  # (make db-tests) and the worktree tooling start it.
   seaweedfs:
     image: chrislusf/seaweedfs:4.48
     profiles: [storage]
@@ -83,6 +87,10 @@ services:
       interval: 2s
       timeout: 5s
       retries: 60
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.s3.rule: Host(`s3.${DEV_DOMAIN:-connect.localhost}`) || Host(`s3.connect.localhost`)
+      traefik.http.services.s3.loadbalancer.server.port: "8333"
     volumes:
       - type: bind
         source: ./seaweedfs/s3.json

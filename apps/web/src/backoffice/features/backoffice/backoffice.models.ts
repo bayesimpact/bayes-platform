@@ -176,7 +176,6 @@ export type BackofficeProjectMember = {
   userEmail: string
   userName: string | null
   role: LegacyMembershipRole
-  canRead: boolean
 }
 
 export type BackofficeProjectAgent = {
@@ -199,6 +198,7 @@ export type BackofficeProjectDetail = {
   featureFlags: FeatureFlagKey[]
   permissions: string[]
   members: BackofficeProjectMember[]
+  hiddenMemberCount: number
   agents: BackofficeProjectAgent[]
 }
 
@@ -235,7 +235,6 @@ const toBackofficeProjectMember = (dto: BackofficeProjectMemberDto): BackofficeP
   userEmail: dto.userEmail,
   userName: dto.userName,
   role: toLegacyRole(dto.roles) ?? "member",
-  canRead: dto.canRead,
 })
 
 const toBackofficeProjectAgent = (dto: BackofficeProjectAgentDto): BackofficeProjectAgent => ({
@@ -258,6 +257,7 @@ export const toBackofficeProjectDetail = (
   featureFlags: dto.featureFlags,
   permissions: dto.permissions,
   members: dto.members.map(toBackofficeProjectMember),
+  hiddenMemberCount: dto.hiddenMemberCount,
   agents: dto.agents.map(toBackofficeProjectAgent),
 })
 

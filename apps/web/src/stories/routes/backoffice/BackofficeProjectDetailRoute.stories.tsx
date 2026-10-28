@@ -27,12 +27,22 @@ const BACKOFFICE_STORY_PROJECT_ID = "9a1e5c3b-2d4f-4b6a-8c7d-0e1f2a3b4c5d"
 type StoryArgs = BackofficeStoryArgs & {
   canReadOrganization?: boolean
   canReadAgents?: boolean
-  canReadMembers?: boolean
+  /** Members the caller may read as users. */
+  visibleMembers?: number
+  /** Members the caller may not read, which the API leaves out and only counts. */
+  hiddenMembers?: number
   canUpdateProject?: boolean
 }
 
 const decorator = buildDecorator<StoryArgs>(
-  ({ canReadOrganization, canReadAgents, canReadMembers, canUpdateProject, ...args }) => {
+  ({
+    canReadOrganization,
+    canReadAgents,
+    visibleMembers,
+    hiddenMembers,
+    canUpdateProject,
+    ...args
+  }) => {
     const { baseSeeds, organizations, users } = buildBackofficeData(args)
     const projectDetail = backofficeProjectDetailFactory.build({
       id: BACKOFFICE_STORY_PROJECT_ID,
@@ -44,7 +54,8 @@ const decorator = buildDecorator<StoryArgs>(
         name: "Acme Corp",
         permissions: canReadOrganization ? [BACKOFFICE_ORGANIZATION_READ_PERMISSION] : [],
       },
-      members: backofficeProjectMemberFactory.buildList(2, { canRead: canReadMembers }),
+      members: backofficeProjectMemberFactory.buildList(visibleMembers ?? 0),
+      hiddenMemberCount: hiddenMembers ?? 0,
       agents: ["Helpful Assistant", "Support Agent"].map((name) =>
         backofficeProjectAgentFactory.build({
           name,
@@ -72,14 +83,16 @@ const meta = {
     ...backofficeStoryArgTypes,
     canReadOrganization: { control: "boolean" },
     canReadAgents: { control: "boolean" },
-    canReadMembers: { control: "boolean" },
+    visibleMembers: { control: { type: "number", min: 0 } },
+    hiddenMembers: { control: { type: "number", min: 0 } },
     canUpdateProject: { control: "boolean" },
   },
   args: {
     ...backofficeStoryArgs,
     canReadOrganization: true,
     canReadAgents: true,
-    canReadMembers: true,
+    visibleMembers: 2,
+    hiddenMembers: 0,
     canUpdateProject: true,
   },
   decorators: [decorator],
@@ -103,7 +116,19 @@ export const WithoutOrganizationAndAgentAccess: Story = {
 }
 
 export const WithoutMemberAccess: Story = {
-  args: { canReadMembers: false },
+  args: { visibleMembers: 0, hiddenMembers: 3 },
+}
+
+export const SomeMembersHidden: Story = {
+  args: { visibleMembers: 1, hiddenMembers: 2 },
+}
+
+export const OneMemberHidden: Story = {
+  args: { visibleMembers: 2, hiddenMembers: 1 },
+}
+
+export const WithoutMembers: Story = {
+  args: { visibleMembers: 0, hiddenMembers: 0 },
 }
 
 export const WithoutProjectUpdate: Story = {
@@ -114,7 +139,8 @@ export const ProjectAccessOnly: Story = {
   args: {
     canReadOrganization: false,
     canReadAgents: false,
-    canReadMembers: false,
+    visibleMembers: 0,
+    hiddenMembers: 3,
     canUpdateProject: false,
   },
 }

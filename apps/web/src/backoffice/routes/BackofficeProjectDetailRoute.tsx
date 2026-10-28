@@ -3,10 +3,11 @@ import {
   BACKOFFICE_ORGANIZATION_READ_PERMISSION,
   BACKOFFICE_PROJECT_UPDATE_PERMISSION,
 } from "@caseai-connect/api-contracts"
+import { Alert, AlertDescription, AlertTitle } from "@caseai-connect/ui/shad/alert"
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
-import { ArrowLeftIcon, ExternalLinkIcon } from "lucide-react"
-import { useEffect } from "react"
+import { ArrowLeftIcon, ExternalLinkIcon, LockIcon } from "lucide-react"
+import { type ReactNode, useEffect } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
@@ -99,11 +100,17 @@ function WithData() {
             label: member.userEmail,
             sublabel: member.userName ?? undefined,
             role: member.role,
-            to: member.canRead
-              ? BackofficeUserRoutes.user.build({ userId: member.userId })
-              : undefined,
+            to: BackofficeUserRoutes.user.build({ userId: member.userId }),
           }))}
-          emptyText="No members"
+          emptyText={project.hiddenMemberCount > 0 ? undefined : "No members"}
+          notice={
+            project.hiddenMemberCount > 0 && (
+              <HiddenMembersNotice
+                count={project.hiddenMemberCount}
+                hasVisibleMembers={project.members.length > 0}
+              />
+            )
+          }
         />
         <DetailSection
           title="Agents"
@@ -121,16 +128,42 @@ function WithData() {
   )
 }
 
+function HiddenMembersNotice({
+  count,
+  hasVisibleMembers,
+}: {
+  count: number
+  hasVisibleMembers: boolean
+}) {
+  const members = count === 1 ? "1 member" : `${count} members`
+  return (
+    <Alert className="rounded-none border-0 border-t bg-muted/30 first:border-t-0">
+      <LockIcon />
+      <AlertTitle>
+        {hasVisibleMembers ? `${members} not shown` : `This project has ${members}`}
+      </AlertTitle>
+      <AlertDescription>
+        Reading a project does not let you see who its members are. That takes the right to read
+        users: backoffice.user.read, or user.read on their organization, project or agent.
+      </AlertDescription>
+    </Alert>
+  )
+}
+
 type DetailItem = { key: string; label: string; sublabel?: string; role?: string; to?: string }
 
 function DetailSection({
   title,
   items,
   emptyText,
+  notice,
 }: {
   title: string
   items: DetailItem[]
-  emptyText: string
+  /** Shown when there are no items; omit it when the notice already explains why. */
+  emptyText?: string
+  /** Shown under the items. */
+  notice?: ReactNode
 }) {
   return (
     <div className="border rounded-lg overflow-hidden">
@@ -138,7 +171,9 @@ function DetailSection({
         <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>
       </div>
       {items.length === 0 ? (
-        <p className="px-4 py-6 text-sm text-muted-foreground text-center italic">{emptyText}</p>
+        emptyText && (
+          <p className="px-4 py-6 text-sm text-muted-foreground text-center italic">{emptyText}</p>
+        )
       ) : (
         <ul className="divide-y">
           {items.map((item) =>
@@ -182,6 +217,7 @@ function DetailSection({
           )}
         </ul>
       )}
+      {notice}
     </div>
   )
 }
