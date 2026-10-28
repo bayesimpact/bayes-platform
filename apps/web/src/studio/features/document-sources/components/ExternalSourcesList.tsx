@@ -14,7 +14,7 @@ import {
 import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@caseai-connect/ui/shad/empty"
 import { Popover, PopoverContent, PopoverTrigger } from "@caseai-connect/ui/shad/popover"
 import { type ColumnDef, getCoreRowModel, useReactTable } from "@tanstack/react-table"
-import { EllipsisVerticalIcon, InfoIcon, Trash2Icon, XIcon } from "lucide-react"
+import { EllipsisVerticalIcon, Trash2Icon, TriangleAlertIcon, XIcon } from "lucide-react"
 import { useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
@@ -112,8 +112,8 @@ export function ExternalSourcesList() {
       />
       <div className="flex flex-col gap-4 bg-white p-6">
         {documentSources.some(isLegacyWebCrawlSource) && (
-          <Alert>
-            <InfoIcon />
+          <Alert variant="warning">
+            <TriangleAlertIcon />
             <AlertTitle>{t("legacyWebCrawl.title")}</AlertTitle>
             <AlertDescription>{t("legacyWebCrawl.description")}</AlertDescription>
           </Alert>
