@@ -1,0 +1,262 @@
+{
+  "reviewCampaigns": {
+    "reviewCampaigns": "Kampanie recenzji",
+    "title": "Kampanie recenzji",
+    "subtitle": "Oceniaj agentów z pomocą testerów i recenzentów.",
+    "new": "Nowa kampania",
+    "loading": "Wczytywanie…",
+    "dashboardCard": {
+      "title": "Kampanie recenzji",
+      "description": "Poproś testerów i recenzentów o ocenę agenta."
+    },
+    "empty": {
+      "title": "Brak kampanii recenzji",
+      "description": "Utwórz kampanię, aby testerzy i recenzenci mogli ocenić agenta."
+    },
+    "table": {
+      "name": "Nazwa",
+      "status": "Status",
+      "members": "Członkowie",
+      "created": "Utworzono",
+      "updated": "Zaktualizowano",
+      "actions": "Akcje",
+      "editAria": "Edytuj: {{name}}",
+      "deleteAria": "Usuń: {{name}}"
+    },
+    "status": {
+      "draft": "Wersja robocza",
+      "active": "Aktywna",
+      "closed": "Zamknięta"
+    },
+    "editor": {
+      "createTitle": "Nowa kampania recenzji",
+      "editTitle": "Edytuj kampanię recenzji",
+      "createDescription": "Skonfiguruj agenta, pytania i uczestników przed aktywacją.",
+      "editDescription": "Zarządzaj konfiguracją, uczestnikami i cyklem życia.",
+      "noticeSaveFirst": "Najpierw zapisz kampanię, a potem zaproś uczestników.",
+      "noticeActivateFirst": "Aktywuj kampanię przed zaproszeniem uczestników, aby mogli zaakceptować zaproszenie i znaleźć ją na swojej liście.",
+      "tabs": {
+        "summary": "Podsumowanie",
+        "general": "Ogólne",
+        "questions": "Pytania",
+        "participants": "Uczestnicy",
+        "preview": "Podgląd"
+      },
+      "fields": {
+        "name": "Nazwa",
+        "namePlaceholder": "np. Agent wsparcia – recenzja Q2",
+        "description": "Opis",
+        "descriptionPlaceholder": "Co oceniamy?",
+        "agent": "Oceniany agent",
+        "agentPlaceholder": "Wybierz agenta"
+      },
+      "actions": {
+        "create": "Utwórz kampanię",
+        "save": "Zapisz",
+        "activate": "Aktywuj",
+        "close": "Zamknij",
+        "delete": "Usuń"
+      },
+      "validation": {
+        "nameRequired": "Nazwa kampanii jest wymagana",
+        "agentRequired": "Agent jest wymagany"
+      }
+    },
+    "defaults": {
+      "campaignName": "Kampania: {{agent}} – {{date}}",
+      "campaignNameNoAgent": "Nowa kampania recenzji – {{date}}",
+      "description": "Oceń odpowiedzi agenta i podziel się opinią.",
+      "perSession": {
+        "q1": {
+          "prompt": "Czy odpowiedź agenta była jasna?"
+        },
+        "q2": {
+          "prompt": "Czy agent odpowiedział na Twoje pytanie?",
+          "options": {
+            "yes": "Tak",
+            "partially": "Częściowo",
+            "no": "Nie"
+          }
+        }
+      },
+      "endOfPhase": {
+        "q1": {
+          "prompt": "Jak ogólnie oceniasz tego agenta?"
+        }
+      },
+      "reviewer": {
+        "q1": {
+          "prompt": "Czy odpowiedzi agenta były zgodne z faktami?"
+        }
+      }
+    },
+    "questions": {
+      "perSession": {
+        "label": "Tester – pytania po każdej sesji",
+        "description": "Zadawane po każdej sesji ukończonej przez testera."
+      },
+      "endOfPhase": {
+        "label": "Tester – pytania końcowe",
+        "description": "Zadawane raz, gdy tester kończy udział."
+      },
+      "reviewer": {
+        "label": "Pytania dla recenzentów",
+        "description": "Wyświetlane recenzentom podczas recenzowania sesji."
+      },
+      "types": {
+        "rating": "Ocena (1–5)",
+        "single-choice": "Jednokrotny wybór",
+        "free-text": "Dowolny tekst"
+      },
+      "prompt": "Treść pytania",
+      "promptPlaceholder": "np. Czy odpowiedź była jasna?",
+      "type": "Typ",
+      "options": "Opcje (oddzielone przecinkami)",
+      "optionsPlaceholder": "Tak, Nie, Nie wiem",
+      "required": "Wymagane",
+      "factual": "Dotyczy faktów",
+      "factualHint": "(widoczne dla recenzentów w trybie ślepym)",
+      "factualTooltip": "Pytania o fakty (co wydarzyło się w sesji) pozostają widoczne dla recenzentów podczas ślepej recenzji. Pytania o opinię są ukryte, dopóki recenzent nie wyśle własnej recenzji.",
+      "add": "Dodaj pytanie",
+      "moveUp": "Przenieś w górę",
+      "moveDown": "Przenieś w dół",
+      "remove": "Usuń pytanie",
+      "empty": "Brak pytań."
+    },
+    "participants": {
+      "inviteTitle": "Zaproś uczestników",
+      "emailsLabel": "Adresy e-mail (oddzielone przecinkiem lub nowym wierszem)",
+      "emailsPlaceholder": "alice@example.com, bob@example.com",
+      "roleLabel": "Rola",
+      "tester": "Tester",
+      "reviewer": "Recenzent",
+      "send": "Zaproś",
+      "empty": "Brak uczestników.",
+      "email": "E-mail",
+      "actions": "Akcje",
+      "revoke": "Cofnij dostęp",
+      "pendingInvitations": {
+        "title": "Oczekujące zaproszenia",
+        "description": "Osoby zaproszone do tej kampanii, które jeszcze nie odpowiedziały."
+      },
+      "revokeDialog": {
+        "title": "Cofnąć dostęp dla {{email}}?",
+        "description": "Uczestnik zostanie usunięty z kampanii. Tej operacji nie można cofnąć.",
+        "confirm": "Cofnij dostęp"
+      },
+      "status": "Status"
+    },
+    "preview": {
+      "perSessionTitle": "Po każdej sesji",
+      "perSessionDescription": "Co widzi tester po zamknięciu sesji.",
+      "endOfPhaseTitle": "Ankieta końcowa",
+      "endOfPhaseDescription": "Co widzi tester po zakończeniu udziału.",
+      "overallRating": "Ocena ogólna",
+      "comment": "Komentarz",
+      "commentPlaceholder": "Komentarz testera…",
+      "answerPlaceholder": "Odpowiedź testera…",
+      "submit": "Wyślij",
+      "starsAria": "Gwiazdki: {{count}}",
+      "ratingAria": "Ocena w skali 5 gwiazdek (podgląd)",
+      "untitled": "Bez tytułu",
+      "noOptions": "Nie skonfigurowano opcji.",
+      "noContent": "Brak treści."
+    },
+    "summary": {
+      "pending": "Zbiorcze wyniki będą dostępne po zamknięciu kampanii.",
+      "viewFullReport": "Zobacz pełny raport",
+      "meanTesterRating": "Średnia ocena testerów",
+      "meanTesterRatingHint": "Średnia ogólnych ocen z poszczególnych sesji.",
+      "sessions": "Sesje",
+      "sessionsHint": "Łączna liczba sesji rozpoczętych przez testerów.",
+      "endOfPhaseSurveys": "Ankiety końcowe",
+      "endOfPhaseSurveysHint": "Testerzy, którzy wysłali ankietę końcową."
+    },
+    "dialogs": {
+      "activate": {
+        "title": "Aktywować „{{name}}”?",
+        "description": "Po aktywacji konfiguracja (agent, pytania) zostaje zablokowana, a kampania staje się widoczna dla testerów i recenzentów. Nadal można dodawać uczestników.",
+        "confirm": "Aktywuj"
+      },
+      "close": {
+        "title": "Zamknąć „{{name}}”?",
+        "description": "Zamknięcie kampanii zamraża wszystkie opinie testerów i recenzje. Uczestnicy nie będą mogli przesyłać nowych sesji, opinii ani ankiet. Tej operacji nie można cofnąć.",
+        "confirm": "Zamknij kampanię"
+      },
+      "delete": {
+        "title": "Usunąć „{{name}}”?",
+        "description": "Spowoduje to trwałe usunięcie kampanii w wersji roboczej i jej konfiguracji. Usuwać można tylko wersje robocze: kampanie aktywne i zamknięte muszą zostać zachowane do audytu.",
+        "confirm": "Usuń"
+      },
+      "cancel": "Anuluj"
+    },
+    "notifications": {
+      "createSuccess": "Utworzono kampanię recenzji",
+      "createError": "Nie udało się utworzyć kampanii recenzji",
+      "updateSuccess": "Zaktualizowano kampanię recenzji",
+      "updateError": "Nie udało się zaktualizować kampanii recenzji",
+      "deleteSuccess": "Usunięto kampanię recenzji",
+      "deleteError": "Nie udało się usunąć kampanii recenzji",
+      "revokeSuccess": "Cofnięto członkostwo",
+      "revokeError": "Nie udało się cofnąć członkostwa",
+      "invitationsSentByEmail": "Zaproszenia wysłane e-mailem",
+      "peopleInvited": "Zaproszono osoby",
+      "inviteError": "Nie udało się zaprosić osób"
+    },
+    "report": {
+      "title": "Raport kampanii",
+      "back": "Wstecz",
+      "loading": "Wczytywanie raportu…",
+      "downloadCsv": "Pobierz CSV",
+      "downloading": "Pobieranie…",
+      "testerPerSession": {
+        "title": "Tester – pytania po każdej sesji",
+        "description": "Jedna odpowiedź na sesję testera."
+      },
+      "testerEndOfPhase": {
+        "title": "Tester – pytania końcowe",
+        "description": "Jedna odpowiedź na testera, który wypełnił ankietę końcową."
+      },
+      "reviewer": {
+        "title": "Pytania dla recenzentów",
+        "description": "Jedna odpowiedź na każdą recenzję, ze wszystkich sesji."
+      },
+      "sessionMatrix": {
+        "title": "Macierz sesji",
+        "description": "Oceny testera i recenzentów dla każdej sesji. Rozrzut to różnica między najniższą a najwyższą oceną recenzenta: duży rozrzut sugeruje brak zgody między recenzentami.",
+        "session": "Sesja",
+        "started": "Rozpoczęto",
+        "tester": "Tester",
+        "reviewers": "Recenzenci",
+        "meanReviewer": "Średnia recenzentów",
+        "spread": "Rozrzut",
+        "emptyTitle": "Brak sesji",
+        "emptyDescription": "Macierz sesji wypełni się, gdy testerzy rozpoczną sesje w tej kampanii."
+      },
+      "headline": {
+        "sessions": "Sesje",
+        "sessionsHint": "Testerzy: {{count}}",
+        "meanTesterRating": "Średnia ocena testerów",
+        "meanTesterRatingHint": "Odpowiedzi po sesjach: {{count}}",
+        "meanReviewerRating": "Średnia ocena recenzentów",
+        "meanReviewerRatingHint": "Recenzje: {{count}}",
+        "meanEndOfPhase": "Średnia końcowa",
+        "meanEndOfPhaseHint": "Z końcowych ankiet testerów"
+      },
+      "distribution": {
+        "types": {
+          "rating": "Ocena",
+          "single-choice": "Jednokrotny wybór",
+          "free-text": "Dowolny tekst"
+        },
+        "responses_one": "{{count}} odpowiedź",
+        "responses_few": "{{count}} odpowiedzi",
+        "responses_many": "{{count}} odpowiedzi",
+        "responses_other": "{{count}} odpowiedzi",
+        "freeTextNotice": "Odpowiedzi tekstowe nie są tu podsumowywane: aby je przeczytać, przejrzyj poszczególne sesje.",
+        "noResponses": "Brak odpowiedzi.",
+        "barAria": "Odpowiedzi: {{count}} ({{percent}}%)"
+      }
+    }
+  }
+}

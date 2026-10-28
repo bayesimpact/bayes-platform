@@ -1,0 +1,19 @@
+{
+  "invitations": {
+    "pendingSection": {
+      "title": "Offene Einladungen",
+      "description": "Diese Personen erhalten Zugriff, sobald sie die Einladung in der App annehmen.",
+      "signInHint": "Senden Sie jeder Person ihren Einladungslink. Sie muss sich mit genau der E-Mail-Adresse anmelden oder registrieren, die in ihrer Einladung angezeigt wird, sonst sieht sie die Einladung nicht."
+    },
+    "pendingItem": {
+      "description": "Eingeladen {{invitedAt}}",
+      "revoke": "Einladung löschen",
+      "copyLink": "Einladungslink kopieren",
+      "linkCopied": "Einladungslink kopiert"
+    },
+    "deleteDialog": {
+      "title": "Einladung löschen?",
+      "description": "{{email}} kann diese Einladung nicht mehr annehmen."
+    }
+  }
+}

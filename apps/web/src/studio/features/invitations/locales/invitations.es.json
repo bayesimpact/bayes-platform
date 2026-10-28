@@ -1,0 +1,19 @@
+{
+  "invitations": {
+    "pendingSection": {
+      "title": "Invitaciones pendientes",
+      "description": "Estas personas obtendrán acceso cuando acepten la invitación en la aplicación.",
+      "signInHint": "Envíe a cada persona su enlace de invitación. Debe iniciar sesión, o registrarse, con la misma dirección de correo electrónico que aparece en su invitación; de lo contrario, no la verá."
+    },
+    "pendingItem": {
+      "description": "Invitación enviada {{invitedAt}}",
+      "revoke": "Eliminar invitación",
+      "copyLink": "Copiar enlace de invitación",
+      "linkCopied": "Enlace de invitación copiado"
+    },
+    "deleteDialog": {
+      "title": "¿Eliminar la invitación?",
+      "description": "{{email}} ya no podrá aceptar esta invitación."
+    }
+  }
+}

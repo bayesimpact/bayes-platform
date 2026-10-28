@@ -1,0 +1,21 @@
+{
+  "appInstallations": {
+    "title": "Verbundene Apps",
+    "description": "Apps, die auf dieses Projekt zugreifen können.",
+    "empty": {
+      "title": "Noch keine verbundene App",
+      "description": "Apps, die Sie mit diesem Projekt verbinden, erscheinen hier zusammen mit ihren Zugriffsrechten."
+    },
+    "installedOn": "Verbunden am {{date}}",
+    "noPermissions": "Keine Berechtigung gewährt",
+    "revoke": {
+      "action": "Widerrufen",
+      "title": "{{name}} widerrufen?",
+      "description": "{{name}} verliert sofort den Zugriff auf dieses Projekt. Für eine erneute Installation ist eine neue Autorisierung nötig."
+    },
+    "notifications": {
+      "revoked": "Zugriff der App widerrufen",
+      "revokeError": "App konnte nicht widerrufen werden"
+    }
+  }
+}

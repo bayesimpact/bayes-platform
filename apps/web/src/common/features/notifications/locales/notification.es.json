@@ -1,0 +1,9 @@
+{
+  "notification": {
+    "props": {
+      "title": "Título",
+      "description": "Descripción",
+      "type": "Tipo"
+    }
+  }
+}

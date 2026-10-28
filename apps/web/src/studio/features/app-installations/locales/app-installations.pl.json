@@ -1,0 +1,21 @@
+{
+  "appInstallations": {
+    "title": "Połączone aplikacje",
+    "description": "Aplikacje z dostępem do tego projektu.",
+    "empty": {
+      "title": "Brak połączonych aplikacji",
+      "description": "Aplikacje połączone z tym projektem pojawią się tutaj wraz z zakresem dostępu."
+    },
+    "installedOn": "Połączono {{date}}",
+    "noPermissions": "Nie przyznano uprawnień",
+    "revoke": {
+      "action": "Cofnij dostęp",
+      "title": "Cofnąć dostęp aplikacji {{name}}?",
+      "description": "{{name}} od razu straci dostęp do tego projektu. Ponowna instalacja wymaga nowej autoryzacji."
+    },
+    "notifications": {
+      "revoked": "Cofnięto dostęp aplikacji",
+      "revokeError": "Nie udało się cofnąć dostępu aplikacji"
+    }
+  }
+}

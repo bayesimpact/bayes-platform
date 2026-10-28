@@ -1,0 +1,40 @@
+{
+  "projectAdmin": {
+    "navLabel": "Administración",
+    "title": "Administración",
+    "description": "Gestione la configuración de su espacio de trabajo.",
+    "tabs": {
+      "general": "General",
+      "agentSessionCategories": "Categorías de conversación",
+      "retention": "Política de conservación"
+    },
+    "general": {
+      "title": "General",
+      "description": "Actualice la configuración general de este espacio de trabajo.",
+      "workspaceName": "Nombre del espacio de trabajo"
+    },
+    "agentSessionCategories": {
+      "title": "Categorías de conversación",
+      "description": "Gestione las categorías que se usan para clasificar automáticamente las conversaciones de este espacio de trabajo.",
+      "addCategory": "Añadir categoría",
+      "addDialogTitle": "Añadir categoría de conversación",
+      "categoryNamePlaceholder": "Nombre de la categoría",
+      "empty": "Aún no hay categorías.",
+      "removeCategory": "Quitar {{name}}",
+      "assignToAllConversationalAgents": "Activar también para todos los agentes conversacionales existentes",
+      "removeDialogTitle": "¿Quitar la categoría de conversación?",
+      "removeDialogDescription": "Se quitará \"{{name}}\" de la lista de categorías del espacio de trabajo."
+    },
+    "retention": {
+      "title": "Política de conservación",
+      "retentionLabel": "Conservación de conversaciones (días)",
+      "retentionHelp": "El contenido de las conversaciones más antiguas se borra de forma permanente. Las estadísticas de uso se mantienen. Entre 1 y 3650 días.",
+      "logTitle": "Registro de purgas",
+      "nextRun": "Próxima purga: {{date}}",
+      "logEmpty": "Aún no se ha ejecutado ninguna purga.",
+      "columnDate": "Fecha",
+      "columnPurged": "Conversaciones borradas",
+      "columnStatus": "Estado"
+    }
+  }
+}

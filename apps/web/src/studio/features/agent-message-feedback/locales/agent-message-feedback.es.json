@@ -1,0 +1,32 @@
+{
+  "agentMessageFeedback": {
+    "feedback": "Comentarios",
+    "props": {
+      "agentMessageContent": "Contenido del mensaje del agente",
+      "traceUrl": "URL de traza",
+      "sessionId": "ID de sesión:",
+      "messageId": "ID de mensaje:",
+      "content": "Contenido",
+      "createdAt": "Fecha de creación",
+      "placeholders": {
+        "content": "Describa el problema que encontró con este mensaje..."
+      }
+    },
+    "create": {
+      "button": "Notificar",
+      "title": "Notificar un problema con este mensaje",
+      "description": "Indique los detalles del problema que encontró con este mensaje. Sus comentarios nos ayudarán a mejorar nuestros agentes."
+    },
+    "list": {
+      "description": "Gestione los comentarios sobre los mensajes del agente.",
+      "empty": {
+        "title": "Aún no hay comentarios",
+        "description": "No hay comentarios sobre los mensajes del agente."
+      }
+    },
+    "notifications": {
+      "submitted": "Comentarios enviados correctamente",
+      "submitError": "No se pudieron enviar los comentarios"
+    }
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "agent": {
+    "agent": "Agent",
+    "agents": "Agenci",
+    "selectAgent": "Wybierz agenta",
+    "props": {
+      "createdAt": "Utworzono",
+      "name": "Nazwa",
+      "placeholders": {
+        "name": "Wpisz nazwę agenta"
+      },
+      "validation": {
+        "nameMinLength": "Nazwa musi mieć co najmniej 3 znaki"
+      }
+    },
+    "create": {
+      "button": "Utwórz agenta",
+      "title": "Nowy agent",
+      "description": "Agent wykonuje określone zadania zgodnie ze swoim typem i konfiguracją.",
+      "typeDialog": {
+        "title": "Typ agenta",
+        "description": "Wybierz typ przed skonfigurowaniem agenta.",
+        "conversation": "Rozmowa",
+        "extraction": "Ekstrakcja",
+        "form": "Formularz"
+      },
+      "conversationDialog": {
+        "title": "Utwórz agenta konwersacyjnego",
+        "description": "Utwórz nowego agenta konwersacyjnego w projekcie {{projectName}}"
+      },
+      "extractionDialog": {
+        "title": "Utwórz agenta ekstrakcji",
+        "description": "Utwórz nowego agenta ekstrakcji w projekcie {{projectName}}"
+      },
+      "formDialog": {
+        "title": "Utwórz agenta formularza",
+        "description": "Utwórz nowego agenta formularza w projekcie {{projectName}}"
+      }
+    },
+    "update": {
+      "conversation": {
+        "title": "Edytuj agenta konwersacyjnego",
+        "description": "Edytuj szczegóły tego agenta konwersacyjnego"
+      },
+      "extraction": {
+        "title": "Edytuj agenta ekstrakcji",
+        "description": "Edytuj szczegóły tego agenta ekstrakcji"
+      }
+    },
+    "delete": {
+      "title": "Usuń agenta",
+      "description": "Czy na pewno chcesz usunąć „{{name}}”? Tej operacji nie można cofnąć."
+    },
+    "duplicate": {
+      "title": "Zduplikuj agenta",
+      "description": "Kopia otrzyma ustawienia, narzędzia, subagentów i źródła agenta „{{name}}”. Powstanie jako wersja robocza: opublikuj ją w edytorze, gdy będzie gotowa. Rozmowy, analityka i ustawienia osadzania nie są kopiowane.",
+      "defaultName": "{{name}} (kopia)",
+      "source": {
+        "label": "Ustawienia do skopiowania",
+        "draft": "Wersja robocza (v{{number}})",
+        "draftDescription": "Stan widoczny w edytorze, jeszcze nieopublikowany.",
+        "published": "Opublikowana wersja {{number}}",
+        "publishedDescription": "Z tą wersją rozmawiają dziś użytkownicy."
+      }
+    },
+    "list": {
+      "title": "Agenci",
+      "description": "Zarządzaj agentami projektu {{projectName}}"
+    },
+    "model": {
+      "deprecatedSuffix": "(przestarzały)",
+      "nonEuSuffix": "(spoza UE)",
+      "deprecation": {
+        "title": "WYMAGANE DZIAŁANIE: model {{model}} zostanie wycofany {{date}}",
+        "description": "Przełącz tego agenta na {{replacement}} i przetestuj go ponownie przed tą datą. Po niej uruchomienia na {{model}} zaczną kończyć się błędem."
+      },
+      "retirement": {
+        "title": "WYMAGANE DZIAŁANIE: model {{model}} został wycofany {{date}}",
+        "description": "Uruchomienia na {{model}} kończą się teraz błędem. Przełącz tego agenta na {{replacement}} i przetestuj go ponownie."
+      },
+      "unavailable": "Ten model nie jest już dostępny. Wybierz nowy model z listy."
+    },
+    "playground": "Playground",
+    "notifications": {
+      "updated": "Zaktualizowano agenta",
+      "updateError": "Nie udało się zaktualizować agenta",
+      "deleted": "Usunięto agenta",
+      "deleteError": "Nie udało się usunąć agenta",
+      "created": "Utworzono agenta",
+      "createError": "Nie udało się utworzyć agenta",
+      "duplicated": "Zduplikowano agenta jako wersję roboczą",
+      "duplicateError": "Nie udało się zduplikować agenta"
+    }
+  }
+}

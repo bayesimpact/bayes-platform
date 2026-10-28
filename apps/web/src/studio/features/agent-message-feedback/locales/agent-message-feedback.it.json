@@ -1,0 +1,32 @@
+{
+  "agentMessageFeedback": {
+    "feedback": "Feedback",
+    "props": {
+      "agentMessageContent": "Contenuto del messaggio dell'agente",
+      "traceUrl": "URL della traccia",
+      "sessionId": "ID sessione:",
+      "messageId": "ID messaggio:",
+      "content": "Contenuto",
+      "createdAt": "Creato il",
+      "placeholders": {
+        "content": "Descrivi il problema riscontrato con questo messaggio..."
+      }
+    },
+    "create": {
+      "button": "Segnala",
+      "title": "Segnala un problema con questo messaggio",
+      "description": "Fornisci i dettagli del problema riscontrato con questo messaggio. Il tuo feedback ci aiuterà a migliorare i nostri agenti."
+    },
+    "list": {
+      "description": "Gestisci i feedback sui messaggi degli agenti.",
+      "empty": {
+        "title": "Ancora nessun feedback",
+        "description": "Nessun feedback sui messaggi dell'agente."
+      }
+    },
+    "notifications": {
+      "submitted": "Feedback inviato",
+      "submitError": "Impossibile inviare il feedback"
+    }
+  }
+}

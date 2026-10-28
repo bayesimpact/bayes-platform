@@ -1,0 +1,19 @@
+{
+  "invitations": {
+    "pendingSection": {
+      "title": "Oczekujące zaproszenia",
+      "description": "Te osoby uzyskają dostęp po zaakceptowaniu zaproszenia w aplikacji.",
+      "signInHint": "Wyślij każdej osobie jej link z zaproszeniem. Musi się zalogować lub zarejestrować przy użyciu dokładnie tego adresu e-mail, który podano w zaproszeniu, inaczej go nie zobaczy."
+    },
+    "pendingItem": {
+      "description": "Zaproszono {{invitedAt}}",
+      "revoke": "Usuń zaproszenie",
+      "copyLink": "Skopiuj link z zaproszeniem",
+      "linkCopied": "Skopiowano link z zaproszeniem"
+    },
+    "deleteDialog": {
+      "title": "Usunąć zaproszenie?",
+      "description": "Osoba {{email}} nie będzie już mogła zaakceptować tego zaproszenia."
+    }
+  }
+}

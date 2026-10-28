@@ -1,0 +1,154 @@
+{
+  "projectMembership": {
+    "members": "Członkowie",
+    "props": {
+      "validation": {
+        "emailDuplicate": "Ten adres e-mail został już dodany",
+        "emailInvalid": "Nieprawidłowy adres e-mail"
+      }
+    },
+    "create": {
+      "button": "Zaproś administratorów",
+      "title": "Zaproś administratorów",
+      "description": "Wpisz adresy e-mail osób, które mają zarządzać tą przestrzenią roboczą. Zaakceptują zaproszenie po zalogowaniu.",
+      "label": "Adres e-mail",
+      "placeholder": "Wpisz adres e-mail"
+    },
+    "pendingInvitations": {
+      "title": "Oczekujące zaproszenia",
+      "description": "Osoby zaproszone do tego projektu, które jeszcze nie odpowiedziały."
+    },
+    "list": {
+      "title": "Członkowie: {{projectName}}",
+      "description": "Wszyscy z dostępem do tego projektu: właściciele, administratorzy oraz członkowie dodani przez agenta lub kampanię recenzji.",
+      "searchPlaceholder": "Szukaj po nazwisku lub e-mailu…",
+      "empty": {
+        "title": "Brak członków",
+        "description": "Zaproś osoby do przestrzeni roboczej, aby współpracować."
+      }
+    },
+    "notifications": {
+      "invitationsSentByEmail": "Zaproszenia wysłane e-mailem",
+      "peopleInvited": "Zaproszono osoby",
+      "inviteError": "Nie udało się zaprosić osób",
+      "rolesAdded_one": "Dodano role {{count}} członkowi",
+      "rolesAdded_few": "Dodano role {{count}} członkom",
+      "rolesAdded_many": "Dodano role {{count}} członkom",
+      "rolesAdded_other": "Dodano role {{count}} członka",
+      "membersRemoved_one": "Usunięto {{count}} członka",
+      "membersRemoved_few": "Usunięto {{count}} członków",
+      "membersRemoved_many": "Usunięto {{count}} członków",
+      "membersRemoved_other": "Usunięto {{count}} członka"
+    },
+    "roleNames": {
+      "project_owner": "Właściciel",
+      "project_admin": "Administrator",
+      "project_member": "Członek",
+      "agent_owner": "Właściciel",
+      "agent_admin": "Administrator",
+      "agent_member": "Członek",
+      "review_campaign_tester": "Tester",
+      "review_campaign_reviewer": "Recenzent"
+    },
+    "table": {
+      "allRoles": "Wszystkie role",
+      "rolesCount": "Role: {{count}}",
+      "filterByRole": "Filtruj według roli",
+      "clearFilters": "Wyczyść filtry",
+      "member": "Członek",
+      "roles": "Role",
+      "joined": "Data dołączenia",
+      "noRole": "Brak roli",
+      "you": "Ty",
+      "selectMember": "Zaznacz: {{name}}",
+      "empty": {
+        "title": "Brak pasujących członków",
+        "description": "Spróbuj innego wyszukiwania lub usuń filtr."
+      },
+      "selected_one": "Zaznaczono {{count}} członka",
+      "selected_few": "Zaznaczono {{count}} członków",
+      "selected_many": "Zaznaczono {{count}} członków",
+      "selected_other": "Zaznaczono {{count}} członka",
+      "addRoles": "Dodaj role",
+      "removeBlocked": {
+        "project": "Przestrzeń robocza musi mieć co najmniej jednego właściciela. Odznacz właściciela, aby usunąć pozostałych.",
+        "agent": "Właścicieli agenta nie usuwa się tutaj. Odznacz ich, aby usunąć pozostałych."
+      },
+      "genericError": "Coś poszło nie tak. Spróbuj ponownie.",
+      "addRolesDialog": {
+        "title_one": "Dodaj role {{count}} członkowi",
+        "title_few": "Dodaj role {{count}} członkom",
+        "title_many": "Dodaj role {{count}} członkom",
+        "title_other": "Dodaj role {{count}} członka",
+        "description": {
+          "project": "Role zostaną dodane do już posiadanych. Uprawnienia w tej przestrzeni roboczej zmienią się od razu.",
+          "agent": "Role zostaną dodane do już posiadanych. Uprawnienia w tym agencie zmienią się od razu."
+        },
+        "pickOne": "Wybierz co najmniej jedną rolę.",
+        "error": "Nie udało się dodać ról. Spróbuj ponownie."
+      },
+      "removeDialog": {
+        "title_one": "Usunąć {{name}}?",
+        "title_few": "Usunąć {{count}} członków?",
+        "title_many": "Usunąć {{count}} członków?",
+        "title_other": "Usunąć {{count}} członka?",
+        "description": {
+          "project": "Stracą dostęp do tej przestrzeni roboczej, jej agentów i kampanii recenzji. Tej operacji nie można cofnąć.",
+          "agent": "Stracą role w tym agencie, ale pozostaną członkami przestrzeni roboczej. Tej operacji nie można cofnąć."
+        },
+        "error": "Nie udało się usunąć członków. Spróbuj ponownie."
+      }
+    },
+    "memberDetail": {
+      "you": "Ty",
+      "selfTitle": "To Twoja strona",
+      "selfDescription": "Nie możesz zmieniać własnych ról. Może to zrobić inna osoba zarządzająca tą przestrzenią roboczą.",
+      "addErrorTitle": "Nie dodano roli",
+      "addErrorDetail": "{{role}} ({{resource}}): {{error}}",
+      "addError": "Nie udało się dodać roli. Spróbuj ponownie.",
+      "removeError": "Nie udało się usunąć roli. Spróbuj ponownie.",
+      "workspace": {
+        "title": "Przestrzeń robocza",
+        "description": "Co ta osoba może robić w całej przestrzeni roboczej.",
+        "empty": "Brak roli w tej przestrzeni roboczej."
+      },
+      "agents": {
+        "title": "Agenci",
+        "description": "Role w każdym agencie przestrzeni roboczej.",
+        "empty": "Ta przestrzeń robocza nie ma agentów."
+      },
+      "campaigns": {
+        "title": "Kampanie recenzji",
+        "description": "Rola tej osoby w każdej kampanii: testowanie agenta lub recenzowanie rozmów.",
+        "empty": "Ta przestrzeń robocza nie ma kampanii recenzji."
+      },
+      "removeDialog": {
+        "title": "Usunąć rolę {{role}} ({{resource}})?",
+        "effect": {
+          "project": "Uprawnienia w tej przestrzeni roboczej zmienią się od razu.",
+          "agent": "Uprawnienia w tym agencie zmienią się od razu.",
+          "review_campaign": "Udział w tej kampanii recenzji zmieni się od razu."
+        }
+      },
+      "noAccess": "Brak dostępu",
+      "cannotRemove": "Nie można usunąć roli {{role}}",
+      "removeRole": "Usuń rolę {{role}}",
+      "addRoleOn": "Dodaj rolę: {{resource}}",
+      "addRole": "Dodaj rolę",
+      "addARole": "Dodaj rolę",
+      "permissions_one": "{{count}} uprawnienie",
+      "permissions_few": "{{count}} uprawnienia",
+      "permissions_many": "{{count}} uprawnień",
+      "permissions_other": "{{count}} uprawnienia",
+      "details": {
+        "conversation": "Rozmowa",
+        "extraction": "Ekstrakcja",
+        "form": "Formularz",
+        "draft": "Wersja robocza",
+        "active": "Aktywna",
+        "closed": "Zamknięta"
+      },
+      "ownerLocked": "Rola właściciela jest ustalana przy tworzeniu przestrzeni roboczej lub agenta i nie można jej tutaj zmienić."
+    }
+  }
+}

@@ -1,0 +1,268 @@
+{
+  "agentSettings": {
+    "agentSettings": "Configuración del agente",
+    "agentSettingsHistory": "Historial de configuración del agente",
+    "selectAgentSettings": "Seleccionar configuración del agente",
+    "props": {
+      "createdAt": "Fecha de creación",
+      "instructions": "Instrucciones",
+      "formConfiguration": "Configuración del formulario",
+      "greeting": "Mensaje de bienvenida",
+      "documentsRagMode": "Fuente de las respuestas",
+      "locale": "Idioma",
+      "model": "Modelo",
+      "outputJsonSchema": "Esquema JSON de salida",
+      "fillFormEnabled": "Completar formularios",
+      "priorityCallsEnabled": "Llamadas prioritarias",
+      "promptVariables": "Variables del prompt",
+      "schemaBuilder": {
+        "advancedMode": "Modo avanzado",
+        "visualMode": "Editor visual",
+        "addField": "Añadir campo",
+        "removeField": "Quitar campo",
+        "empty": "Aún no hay campos. Añada un campo para empezar.",
+        "fieldName": "Nombre del campo",
+        "fieldNameEmpty": "Definir nombre del campo",
+        "fieldNamePlaceholder": "p. ej., país",
+        "type": "Tipo",
+        "description": "Descripción",
+        "descriptionEmpty": "Añadir descripción",
+        "descriptionPlaceholder": "Pregunta o pista que usa el asistente para rellenar este campo",
+        "expandDescription": "Ampliar",
+        "required": "Obligatorio",
+        "dragHandle": "Arrastrar para reordenar",
+        "orderQuestions": "Hacer las preguntas en este orden",
+        "orderQuestionsHint": "Si está activado, el asistente pide cada campo en el orden siguiente. Desactívelo para que elija el orden.",
+        "enumValuesEmpty": "Añadir opciones",
+        "enumValues_one": "{{count}} opción",
+        "enumValues_other": "{{count}} opciones",
+        "enumValues_many": "{{count}} opciones",
+        "enumValuesPlaceholder": "Añadir una opción",
+        "enumValueAdd": "Añadir opción",
+        "enumValueRemove": "Quitar la opción {{value}}",
+        "enumValuesHint": "El asistente solo puede elegir uno de estos valores.",
+        "rangeEmpty": "Definir rango",
+        "rangeBoth": "{{min}} – {{max}}",
+        "rangeMinOnly": "Mín. {{min}}",
+        "rangeMaxOnly": "Máx. {{max}}",
+        "rangeMin": "Mínimo",
+        "rangeMax": "Máximo",
+        "rangeHint": "Opcional. Deje un límite vacío para no limitar ese extremo.",
+        "types": {
+          "string": "Texto",
+          "number": "Número",
+          "boolean": "Sí / No",
+          "array": "Lista",
+          "enum": "Opción",
+          "object": "Objeto"
+        }
+      },
+      "temperature": "Temperatura",
+      "updatedAt": "Fecha de actualización",
+      "documentTags": "Etiquetas de documentos",
+      "agentSessionCategories": "Categorías de conversación",
+      "agentSessionCategoriesInUse": "Las categorías ya usadas en las conversaciones de este agente no se pueden desmarcar.",
+      "documentsRagModeOptions": {
+        "none": "Responder solo con el conocimiento del modelo",
+        "all": "Buscar en todos los documentos",
+        "tags": "Buscar por etiquetas de documentos"
+      },
+      "placeholders": {
+        "instructions": "Introduzca las instrucciones que el agente debe seguir al responder al usuario",
+        "greeting": "Mensaje de bienvenida opcional que el agente envía primero al iniciar una nueva conversación",
+        "documentsRagMode": "Seleccione el uso de los documentos",
+        "model": "Seleccione un modelo",
+        "outputJsonSchema": "{\n \"type\": \"object\", \"properties\": {\n    \"field\": { \"type\": \"string\", \"description\": \"blablabla\" }\n  },\n  \"required\": [\"field\"]\n}",
+        "temperature": "Introduzca la temperatura 0.0 - 2.0",
+        "locale": "Seleccione el idioma de las respuestas del agente",
+        "thinkingLevel": "Seleccione el nivel de razonamiento"
+      },
+      "validation": {
+        "nameMinLength": "El nombre debe tener al menos 3 caracteres",
+        "promptRequired": "Las instrucciones son obligatorias",
+        "temperatureInvalid": "La temperatura debe estar entre 0.0 y 2.0",
+        "outputJsonSchemaRequired": "El esquema JSON de salida es obligatorio",
+        "outputJsonSchemaInvalid": "El esquema JSON de salida debe ser un objeto JSON válido"
+      },
+      "thinkingLevel": "Nivel de razonamiento",
+      "thinkingLevels": {
+        "minimal": "Mínimo",
+        "low": "Bajo",
+        "medium": "Medio",
+        "high": "Alto"
+      },
+      "modelOptions": "Opciones del modelo"
+    },
+    "defaultPromptDialog": {
+      "title": "Instrucciones",
+      "description": "Estas instrucciones definen el comportamiento del agente.",
+      "button": "Ver instrucciones"
+    },
+    "tabs": {
+      "general": "General",
+      "model": "Modelo",
+      "output": "Salida",
+      "sources": "Fuentes",
+      "resourceLibraries": "Bibliotecas de recursos",
+      "tools": "Herramientas",
+      "categories": "Categorías de conversación",
+      "orchestration": "Orquestación",
+      "embed": "Integración",
+      "mcpServers": "Servidores MCP"
+    },
+    "mcpServers": {
+      "label": "Servidores MCP",
+      "manage": "Gestionar servidores",
+      "emptyTitle": "No hay servidores MCP",
+      "emptyDescription": "Añada servidores MCP a este proyecto para dar a sus agentes acceso a herramientas externas.",
+      "builtInDescription": "Integrado en la plataforma, no requiere configuración."
+    },
+    "unsavedChanges": {
+      "title": "Cambios sin guardar",
+      "description": "Tiene cambios sin guardar que se perderán. ¿Desea descartarlos?"
+    },
+    "create": {
+      "button": "Guardar versión",
+      "noDraft": "No hay ningún borrador que crear. Guarde primero un cambio para crear una nueva versión en borrador.",
+      "unsavedChanges": "Guarde o descarte sus cambios antes de publicar.",
+      "optional": "Opcional",
+      "props": {
+        "revisionName": "Nombre de la versión",
+        "revisionDesc": "Descripción de la versión",
+        "placeholders": {
+          "revisionName": "Asigne un nombre a esta versión",
+          "revisionDesc": "Describa qué cambió en esta versión"
+        }
+      },
+      "dialog": {
+        "title": "¿Guardar la versión {{revision}}?",
+        "description": "La versión {{revision}} pasa a ser la configuración con la que funciona este agente. Los cambios posteriores inician una nueva versión en borrador.",
+        "submit": "Guardar versión"
+      }
+    },
+    "history": {
+      "button": "Historial",
+      "title": "Historial de versiones",
+      "description": "Explore, compare y restaure configuraciones anteriores de {{name}}.",
+      "loadError": "No se pudo cargar el historial de versiones",
+      "revisionLabel": "Versión {{revision}}",
+      "currentBadge": "Actual",
+      "revisionBadge": "v{{revision}}",
+      "revisionBadgeAria": "Versión {{revision}} de la configuración del agente",
+      "messageRevisionTooltip": "Respondido con la versión {{revision}}",
+      "runRevisionTooltip": "Extraído con la versión {{revision}}",
+      "headerRevisionTooltip": "Los nuevos mensajes usan la versión {{revision}}",
+      "compareWithPrevious": "Cambios en esta versión",
+      "compareWithCurrent": "Comparar con la actual",
+      "compareWithDraft": "Comparar con el borrador",
+      "comparing": "Cambios de la versión {{before}} a la versión {{after}}.",
+      "noChangesTitle": "Sin diferencias",
+      "noChangesDescription": "Estas dos versiones tienen la misma configuración.",
+      "onlyVersionTitle": "Solo hay una versión",
+      "onlyVersionDescription": "Este agente tiene una sola versión de configuración, así que aún no hay nada que comparar.",
+      "restore": "Restaurar esta versión",
+      "restoreDialog": {
+        "title": "¿Restaurar la versión {{revision}}?",
+        "description": "La configuración de la versión {{revision}} se copiará como una nueva versión y pasará a ser la configuración actual. No se elimina ninguna versión."
+      },
+      "draft": "Borrador"
+    },
+    "version": {
+      "ariaLabel": "Versión de la configuración que usan los nuevos mensajes",
+      "extractionAriaLabel": "Versión de la configuración que usan las extracciones",
+      "placeholder": "Seleccionar una versión",
+      "item": "v{{revision}} — {{detail}}",
+      "current": "Actual ({{date}})"
+    },
+    "orchestration": {
+      "selectedTitle": "Subagentes",
+      "availableTitle": "Agentes conversacionales disponibles",
+      "emptyTitle": "No hay subagentes",
+      "emptyDescription": "Este agente responde directamente sin delegar en otro agente.",
+      "noAvailableAgents": "No hay otros agentes conversacionales disponibles.",
+      "missingAgent": "Agente no encontrado",
+      "add": "Añadir",
+      "remove": "Quitar",
+      "enabled": "Activado",
+      "disabled": "Desactivado",
+      "toolName": "Nombre de la herramienta",
+      "toolNamePlaceholder": "ask_specialist_agent",
+      "description": "Descripción de la herramienta",
+      "defaultDescription": "Derivar las solicitudes especializadas a {{name}}.",
+      "mode": "Modo",
+      "modeRelay": "Consultado",
+      "modeHandoff": "Toma el control",
+      "modeRelayHint": "El orquestador consulta a este agente durante un intercambio y responde él mismo al usuario.",
+      "modeHandoffHint": "Este agente habla directamente con el usuario hasta terminar su parte y luego devuelve la conversación.",
+      "unpublishedHint": "No se ofrece al orquestador hasta que se publique.",
+      "talkingTo": "Conversando con {{name}}"
+    },
+    "embed": {
+      "loading": "Cargando la configuración de integración…",
+      "loadError": "No se pudo cargar la configuración de integración.",
+      "enabledLabel": "Activar integración",
+      "enabledDescription": "Permitir que {{name}} se integre en sitios web externos mediante un iframe.",
+      "snippetLabel": "Código de integración",
+      "snippetDescription": "Pegue esta etiqueta <script> antes de la etiqueta de cierre </body> en cada página donde quiera que aparezca el widget de chat.",
+      "snippetHint": "Atributos opcionales: data-color=\"#2563eb\" (color del botón), data-locale=\"fr\" (idioma del widget), data-display-mode=\"drawer\" (panel lateral en lugar de burbuja), data-hint=\"¿Necesita ayuda?\" (información que se muestra al cargar y al pasar el cursor).",
+      "publicPageLabel": "Enlace de la página pública",
+      "publicPageDescription": "Comparta este enlace, o un código QR del mismo, para que {{name}} esté disponible sin un sitio web anfitrión.",
+      "publicPageHint": "La página solo funciona mientras la integración está activada. Añada &locale=fr para forzar el idioma.",
+      "allowedOriginsLabel": "Orígenes permitidos",
+      "allowedOriginsDescription": "Lista de orígenes permitidos separados por comas (p. ej., https://app.example.com). Déjela vacía para permitir todos los orígenes.",
+      "allowedOriginsPlaceholder": "https://app.example.com, https://staging.example.com",
+      "titleLabel": "Título del widget",
+      "titleDescription": "Título que se muestra en la cabecera del chat. Si se deja vacío, se usa {{name}}.",
+      "logoUrlLabel": "URL del logotipo",
+      "logoUrlDescription": "URL de la imagen del logotipo que se muestra en la cabecera del chat.",
+      "logoUrlPlaceholder": "https://example.com/logo.png",
+      "primaryColorLabel": "Color de marca",
+      "primaryColorDescription": "Color principal de la cabecera del widget de chat. Introduzca un valor hexadecimal (p. ej., #2563eb).",
+      "bannerTextLabel": "Texto del aviso",
+      "bannerTextDescription": "Aviso opcional fijado sobre la conversación, en la página pública y en el widget. Úselo para indicar el contexto, como una versión de prueba o el público al que se dirige.",
+      "bannerTextPlaceholder": "Versión de prueba, solo para el equipo piloto"
+    },
+    "promptVariables": {
+      "title": "Variables del prompt",
+      "description": "Valores predeterminados de las variables que el agente declara en sus instrucciones. Se usan cuando una sesión empieza sin valor para alguna de ellas."
+    },
+    "source_one": "{{count}} fuente",
+    "source_other": "{{count}} fuentes",
+    "source_many": "{{count}} fuentes",
+    "source_zero": "Sin fuentes",
+    "model": {
+      "priorityCalls": {
+        "title": "Llamadas prioritarias",
+        "description": "Tiempo de respuesta menor y más estable, con un costo por llamada más alto."
+      }
+    },
+    "tools": {
+      "fillForm": {
+        "title": "Completar formularios",
+        "description": "Permite al agente rellenar un formulario estructurado a partir de las respuestas del usuario durante la conversación.",
+        "schemaDescription": "Defina los campos del formulario que el agente debe rellenar. El orden de los campos es el orden en que el agente hace sus preguntas."
+      },
+      "memory": {
+        "title": "Memoria",
+        "description": "Permite al agente recordar datos sobre cada usuario conectado entre conversaciones. Los usuarios pueden ver y eliminar lo que recuerda.",
+        "modes": {
+          "off": "Desactivada",
+          "ask": "Preguntar antes de guardar",
+          "auto": "Guardar automáticamente"
+        }
+      }
+    },
+    "notifications": {
+      "versionRestored": "Versión del agente restaurada correctamente",
+      "versionRestoreError": "No se pudo restaurar la versión del agente",
+      "versionPublished": "Versión del agente publicada correctamente",
+      "versionPublishError": "No se pudo publicar la versión del agente",
+      "updated": "Agente actualizado correctamente",
+      "updateError": "No se pudo actualizar el agente",
+      "embedConfigUpdated": "Configuración de integración actualizada correctamente",
+      "embedConfigUpdateError": "No se pudo actualizar la configuración de integración",
+      "subAgentsUpdated": "Subagentes actualizados correctamente",
+      "subAgentsUpdateError": "No se pudieron actualizar los subagentes"
+    }
+  }
+}

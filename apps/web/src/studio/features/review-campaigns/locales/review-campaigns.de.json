@@ -1,0 +1,260 @@
+{
+  "reviewCampaigns": {
+    "reviewCampaigns": "Review-Kampagnen",
+    "title": "Review-Kampagnen",
+    "subtitle": "Agenten mit Testern und Reviewern evaluieren.",
+    "new": "Neue Kampagne",
+    "loading": "Wird geladen…",
+    "dashboardCard": {
+      "title": "Review-Kampagnen",
+      "description": "Lassen Sie einen Agenten von Testern und Reviewern evaluieren."
+    },
+    "empty": {
+      "title": "Noch keine Review-Kampagnen",
+      "description": "Erstellen Sie eine Kampagne, damit Tester und Reviewer einen Agenten evaluieren können."
+    },
+    "table": {
+      "name": "Name",
+      "status": "Status",
+      "members": "Mitglieder",
+      "created": "Erstellt",
+      "updated": "Aktualisiert",
+      "actions": "Aktionen",
+      "editAria": "{{name}} bearbeiten",
+      "deleteAria": "{{name}} löschen"
+    },
+    "status": {
+      "draft": "Entwurf",
+      "active": "Aktiv",
+      "closed": "Abgeschlossen"
+    },
+    "editor": {
+      "createTitle": "Neue Review-Kampagne",
+      "editTitle": "Review-Kampagne bearbeiten",
+      "createDescription": "Konfigurieren Sie Agent, Fragen und Teilnehmende vor der Aktivierung.",
+      "editDescription": "Konfiguration, Teilnehmende und Lebenszyklus verwalten.",
+      "noticeSaveFirst": "Speichern Sie zuerst die Kampagne und laden Sie dann Teilnehmende ein.",
+      "noticeActivateFirst": "Aktivieren Sie die Kampagne, bevor Sie Teilnehmende einladen, damit diese annehmen und sie in ihrer Liste finden können.",
+      "tabs": {
+        "summary": "Übersicht",
+        "general": "Allgemein",
+        "questions": "Fragen",
+        "participants": "Teilnehmende",
+        "preview": "Vorschau"
+      },
+      "fields": {
+        "name": "Name",
+        "namePlaceholder": "z. B. Support-Agent – Review Q2",
+        "description": "Beschreibung",
+        "descriptionPlaceholder": "Was wird evaluiert?",
+        "agent": "Zielagent",
+        "agentPlaceholder": "Agent auswählen"
+      },
+      "actions": {
+        "create": "Kampagne erstellen",
+        "save": "Speichern",
+        "activate": "Aktivieren",
+        "close": "Abschließen",
+        "delete": "Löschen"
+      },
+      "validation": {
+        "nameRequired": "Der Kampagnenname ist erforderlich",
+        "agentRequired": "Ein Agent ist erforderlich"
+      }
+    },
+    "defaults": {
+      "campaignName": "Kampagne für {{agent}} – {{date}}",
+      "campaignNameNoAgent": "Neue Review-Kampagne – {{date}}",
+      "description": "Bewerten Sie die Antworten des Agenten und teilen Sie Ihr Feedback.",
+      "perSession": {
+        "q1": {
+          "prompt": "War die Antwort des Agenten klar?"
+        },
+        "q2": {
+          "prompt": "Hat der Agent Ihre Frage beantwortet?",
+          "options": {
+            "yes": "Ja",
+            "partially": "Teilweise",
+            "no": "Nein"
+          }
+        }
+      },
+      "endOfPhase": {
+        "q1": {
+          "prompt": "Wie zufrieden sind Sie insgesamt mit diesem Agenten?"
+        }
+      },
+      "reviewer": {
+        "q1": {
+          "prompt": "Waren die Antworten des Agenten sachlich korrekt?"
+        }
+      }
+    },
+    "questions": {
+      "perSession": {
+        "label": "Tester – Fragen pro Sitzung",
+        "description": "Wird nach jeder abgeschlossenen Sitzung des Testers gestellt."
+      },
+      "endOfPhase": {
+        "label": "Tester – Fragen zum Phasenende",
+        "description": "Wird einmal gestellt, wenn der Tester seine Teilnahme beendet."
+      },
+      "reviewer": {
+        "label": "Reviewer-Fragen",
+        "description": "Wird Reviewern beim Prüfen einer Sitzung angezeigt."
+      },
+      "types": {
+        "rating": "Bewertung (1–5)",
+        "single-choice": "Einfachauswahl",
+        "free-text": "Freitext"
+      },
+      "prompt": "Frage",
+      "promptPlaceholder": "z. B. War die Antwort klar?",
+      "type": "Typ",
+      "options": "Optionen (durch Kommas getrennt)",
+      "optionsPlaceholder": "Ja, Nein, Unsicher",
+      "required": "Pflichtfeld",
+      "factual": "Faktenfrage",
+      "factualHint": "(für Reviewer beim Blind-Review sichtbar)",
+      "factualTooltip": "Faktische Fragen (was in der Sitzung passiert ist) bleiben für Reviewer beim Blind-Review sichtbar. Meinungsfragen sind ausgeblendet, bis der Reviewer sein eigenes Review abgesendet hat.",
+      "add": "Frage hinzufügen",
+      "moveUp": "Nach oben",
+      "moveDown": "Nach unten",
+      "remove": "Frage entfernen",
+      "empty": "Noch keine Fragen."
+    },
+    "participants": {
+      "inviteTitle": "Teilnehmende einladen",
+      "emailsLabel": "E-Mail-Adressen (durch Komma oder Zeilenumbruch getrennt)",
+      "emailsPlaceholder": "alice@example.com, bob@example.com",
+      "roleLabel": "Rolle",
+      "tester": "Tester",
+      "reviewer": "Reviewer",
+      "send": "Einladen",
+      "empty": "Noch keine Teilnehmenden.",
+      "email": "E-Mail",
+      "actions": "Aktionen",
+      "revoke": "Widerrufen",
+      "pendingInvitations": {
+        "title": "Offene Einladungen",
+        "description": "Zu dieser Kampagne eingeladene Personen, die noch nicht geantwortet haben."
+      },
+      "revokeDialog": {
+        "title": "{{email}} widerrufen?",
+        "description": "Die Person wird aus der Kampagne entfernt. Dies kann nicht rückgängig gemacht werden.",
+        "confirm": "Widerrufen"
+      },
+      "status": "Status"
+    },
+    "preview": {
+      "perSessionTitle": "Nach jeder Sitzung",
+      "perSessionDescription": "Was ein Tester beim Schließen einer Sitzung sieht.",
+      "endOfPhaseTitle": "Umfrage zum Phasenende",
+      "endOfPhaseDescription": "Was ein Tester sieht, wenn er seine Teilnahme beendet.",
+      "overallRating": "Gesamtbewertung",
+      "comment": "Kommentar",
+      "commentPlaceholder": "Kommentar des Testers…",
+      "answerPlaceholder": "Antwort des Testers…",
+      "submit": "Absenden",
+      "starsAria": "{{count}} Sterne",
+      "ratingAria": "5-Sterne-Bewertung (Vorschau)",
+      "untitled": "Ohne Titel",
+      "noOptions": "Keine Optionen konfiguriert.",
+      "noContent": "Noch kein Inhalt."
+    },
+    "summary": {
+      "pending": "Aggregierte Ergebnisse sind verfügbar, sobald die Kampagne abgeschlossen ist.",
+      "viewFullReport": "Vollständigen Bericht anzeigen",
+      "meanTesterRating": "Ø Bewertung der Tester",
+      "meanTesterRatingHint": "Durchschnitt der Gesamtbewertungen pro Sitzung.",
+      "sessions": "Sitzungen",
+      "sessionsHint": "Von Testern gestartete Sitzungen insgesamt.",
+      "endOfPhaseSurveys": "Umfragen zum Phasenende",
+      "endOfPhaseSurveysHint": "Tester, die die Abschlussumfrage abgesendet haben."
+    },
+    "dialogs": {
+      "activate": {
+        "title": "„{{name}}“ aktivieren?",
+        "description": "Nach der Aktivierung ist die Konfiguration (Agent, Fragen) gesperrt und die Kampagne für ihre Tester und Reviewer sichtbar. Sie können weiterhin Teilnehmende hinzufügen.",
+        "confirm": "Aktivieren"
+      },
+      "close": {
+        "title": "„{{name}}“ abschließen?",
+        "description": "Durch das Abschließen werden das gesamte Tester-Feedback und alle Reviews der Reviewer eingefroren. Teilnehmende können keine neuen Sitzungen, kein Feedback und keine Umfragen mehr absenden. Dies kann nicht rückgängig gemacht werden.",
+        "confirm": "Kampagne abschließen"
+      },
+      "delete": {
+        "title": "„{{name}}“ löschen?",
+        "description": "Damit werden der Kampagnenentwurf und seine Konfiguration endgültig gelöscht. Nur Entwürfe können gelöscht werden – aktive oder abgeschlossene Kampagnen müssen für Audits aufbewahrt werden.",
+        "confirm": "Löschen"
+      },
+      "cancel": "Abbrechen"
+    },
+    "notifications": {
+      "createSuccess": "Review-Kampagne erfolgreich erstellt",
+      "createError": "Review-Kampagne konnte nicht erstellt werden",
+      "updateSuccess": "Review-Kampagne erfolgreich aktualisiert",
+      "updateError": "Review-Kampagne konnte nicht aktualisiert werden",
+      "deleteSuccess": "Review-Kampagne erfolgreich gelöscht",
+      "deleteError": "Review-Kampagne konnte nicht gelöscht werden",
+      "revokeSuccess": "Mitgliedschaft widerrufen",
+      "revokeError": "Mitgliedschaft konnte nicht widerrufen werden",
+      "invitationsSentByEmail": "Einladungen per E-Mail gesendet",
+      "peopleInvited": "Personen eingeladen",
+      "inviteError": "Personen konnten nicht eingeladen werden"
+    },
+    "report": {
+      "title": "Kampagnenbericht",
+      "back": "Zurück",
+      "loading": "Bericht wird geladen…",
+      "downloadCsv": "CSV herunterladen",
+      "downloading": "Wird heruntergeladen…",
+      "testerPerSession": {
+        "title": "Tester – Fragen pro Sitzung",
+        "description": "Eine Antwort pro Testersitzung."
+      },
+      "testerEndOfPhase": {
+        "title": "Tester – Fragen zum Phasenende",
+        "description": "Eine Antwort pro Tester, der die Abschlussumfrage ausgefüllt hat."
+      },
+      "reviewer": {
+        "title": "Reviewer-Fragen",
+        "description": "Eine Antwort pro Review, über alle Sitzungen hinweg."
+      },
+      "sessionMatrix": {
+        "title": "Sitzungsmatrix",
+        "description": "Bewertungen von Testern und Reviewern pro Sitzung. Die Streuung ist die Differenz zwischen der niedrigsten und der höchsten Reviewer-Bewertung – eine hohe Streuung deutet auf Uneinigkeit unter den Reviewern hin.",
+        "session": "Sitzung",
+        "started": "Gestartet",
+        "tester": "Tester",
+        "reviewers": "Reviewer",
+        "meanReviewer": "Ø Reviewer",
+        "spread": "Streuung",
+        "emptyTitle": "Noch keine Sitzungen",
+        "emptyDescription": "Die Sitzungsmatrix füllt sich, sobald Tester Sitzungen in dieser Kampagne starten."
+      },
+      "headline": {
+        "sessions": "Sitzungen",
+        "sessionsHint": "{{count}} verschiedene Tester",
+        "meanTesterRating": "Ø Bewertung der Tester",
+        "meanTesterRatingHint": "{{count}} Antworten pro Sitzung",
+        "meanReviewerRating": "Ø Bewertung der Reviewer",
+        "meanReviewerRatingHint": "{{count}} Reviewer-Reviews",
+        "meanEndOfPhase": "Ø Abschlussumfrage",
+        "meanEndOfPhaseHint": "Aus den Abschlussumfragen der Tester"
+      },
+      "distribution": {
+        "types": {
+          "rating": "Bewertung",
+          "single-choice": "Einfachauswahl",
+          "free-text": "Freitext"
+        },
+        "responses_one": "{{count}} Antwort",
+        "responses_other": "{{count}} Antworten",
+        "freeTextNotice": "Freitextantworten werden hier nicht zusammengefasst – sehen Sie sich die einzelnen Sitzungen an, um sie zu lesen.",
+        "noResponses": "Noch keine Antworten.",
+        "barAria": "{{count}} Antworten ({{percent}} %)"
+      }
+    }
+  }
+}

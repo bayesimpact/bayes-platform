@@ -1,0 +1,261 @@
+{
+  "reviewCampaigns": {
+    "reviewCampaigns": "Campagne di revisione",
+    "title": "Campagne di revisione",
+    "subtitle": "Valuta gli agenti con tester e revisori.",
+    "new": "Nuova campagna",
+    "loading": "Caricamento…",
+    "dashboardCard": {
+      "title": "Campagne di revisione",
+      "description": "Chiedi a tester e revisori di valutare un agente."
+    },
+    "empty": {
+      "title": "Ancora nessuna campagna di revisione",
+      "description": "Crea una campagna perché tester e revisori possano valutare un agente."
+    },
+    "table": {
+      "name": "Nome",
+      "status": "Stato",
+      "members": "Membri",
+      "created": "Creata",
+      "updated": "Aggiornata",
+      "actions": "Azioni",
+      "editAria": "Modifica {{name}}",
+      "deleteAria": "Elimina {{name}}"
+    },
+    "status": {
+      "draft": "Bozza",
+      "active": "Attiva",
+      "closed": "Chiusa"
+    },
+    "editor": {
+      "createTitle": "Nuova campagna di revisione",
+      "editTitle": "Modifica campagna di revisione",
+      "createDescription": "Configura agente, domande e partecipanti prima dell'attivazione.",
+      "editDescription": "Gestisci configurazione, partecipanti e ciclo di vita.",
+      "noticeSaveFirst": "Salva prima la campagna, poi invita i partecipanti.",
+      "noticeActivateFirst": "Attiva la campagna prima di invitare i partecipanti, così potranno accettare e trovarla nel loro elenco.",
+      "tabs": {
+        "summary": "Riepilogo",
+        "general": "Generale",
+        "questions": "Domande",
+        "participants": "Partecipanti",
+        "preview": "Anteprima"
+      },
+      "fields": {
+        "name": "Nome",
+        "namePlaceholder": "es. Agente di supporto, revisione T2",
+        "description": "Descrizione",
+        "descriptionPlaceholder": "Che cosa stiamo valutando?",
+        "agent": "Agente da valutare",
+        "agentPlaceholder": "Seleziona un agente"
+      },
+      "actions": {
+        "create": "Crea campagna",
+        "save": "Salva",
+        "activate": "Attiva",
+        "close": "Chiudi",
+        "delete": "Elimina"
+      },
+      "validation": {
+        "nameRequired": "Il nome della campagna è obbligatorio",
+        "agentRequired": "L'agente è obbligatorio"
+      }
+    },
+    "defaults": {
+      "campaignName": "Campagna per {{agent}} - {{date}}",
+      "campaignNameNoAgent": "Nuova campagna di revisione - {{date}}",
+      "description": "Valuta le risposte dell'agente e condividi il tuo feedback.",
+      "perSession": {
+        "q1": {
+          "prompt": "La risposta dell'agente era chiara?"
+        },
+        "q2": {
+          "prompt": "L'agente ha risposto alla tua domanda?",
+          "options": {
+            "yes": "Sì",
+            "partially": "In parte",
+            "no": "No"
+          }
+        }
+      },
+      "endOfPhase": {
+        "q1": {
+          "prompt": "Soddisfazione complessiva per questo agente?"
+        }
+      },
+      "reviewer": {
+        "q1": {
+          "prompt": "Le risposte dell'agente erano fattualmente corrette?"
+        }
+      }
+    },
+    "questions": {
+      "perSession": {
+        "label": "Tester: domande per sessione",
+        "description": "Poste dopo ogni sessione completata dal tester."
+      },
+      "endOfPhase": {
+        "label": "Tester: domande di fine fase",
+        "description": "Poste una sola volta quando il tester termina la partecipazione."
+      },
+      "reviewer": {
+        "label": "Domande per i revisori",
+        "description": "Mostrate ai revisori durante la revisione di una sessione."
+      },
+      "types": {
+        "rating": "Valutazione (1-5)",
+        "single-choice": "Scelta singola",
+        "free-text": "Testo libero"
+      },
+      "prompt": "Domanda",
+      "promptPlaceholder": "es. La risposta era chiara?",
+      "type": "Tipo",
+      "options": "Opzioni (separate da virgola)",
+      "optionsPlaceholder": "Sì, No, Non so",
+      "required": "Obbligatoria",
+      "factual": "Fattuale",
+      "factualHint": "(visibile ai revisori durante la revisione alla cieca)",
+      "factualTooltip": "Le domande fattuali (che cosa è successo nella sessione) restano visibili ai revisori durante la revisione alla cieca. Le domande di opinione restano nascoste finché il revisore non invia la propria revisione.",
+      "add": "Aggiungi domanda",
+      "moveUp": "Sposta su",
+      "moveDown": "Sposta giù",
+      "remove": "Rimuovi domanda",
+      "empty": "Ancora nessuna domanda."
+    },
+    "participants": {
+      "inviteTitle": "Invita partecipanti",
+      "emailsLabel": "Email (separate da virgola o a capo)",
+      "emailsPlaceholder": "alice@example.com, bob@example.com",
+      "roleLabel": "Ruolo",
+      "tester": "Tester",
+      "reviewer": "Revisore",
+      "send": "Invita",
+      "empty": "Ancora nessun partecipante.",
+      "email": "Email",
+      "actions": "Azioni",
+      "revoke": "Revoca",
+      "pendingInvitations": {
+        "title": "Inviti in attesa",
+        "description": "Persone invitate a questa campagna che non hanno ancora risposto."
+      },
+      "revokeDialog": {
+        "title": "Revocare {{email}}?",
+        "description": "Il partecipante verrà rimosso dalla campagna. Questa azione non può essere annullata.",
+        "confirm": "Revoca"
+      },
+      "status": "Stato"
+    },
+    "preview": {
+      "perSessionTitle": "Dopo ogni sessione",
+      "perSessionDescription": "Ciò che vede un tester quando chiude una sessione.",
+      "endOfPhaseTitle": "Questionario di fine fase",
+      "endOfPhaseDescription": "Ciò che vede un tester quando termina la partecipazione.",
+      "overallRating": "Valutazione complessiva",
+      "comment": "Commento",
+      "commentPlaceholder": "Commento del tester…",
+      "answerPlaceholder": "Risposta del tester…",
+      "submit": "Invia",
+      "starsAria": "{{count}} stelle",
+      "ratingAria": "Valutazione a 5 stelle (anteprima)",
+      "untitled": "Senza titolo",
+      "noOptions": "Nessuna opzione configurata.",
+      "noContent": "Ancora nessun contenuto."
+    },
+    "summary": {
+      "pending": "I risultati aggregati saranno disponibili alla chiusura della campagna.",
+      "viewFullReport": "Visualizza report completo",
+      "meanTesterRating": "Valutazione media dei tester",
+      "meanTesterRatingHint": "Media delle valutazioni complessive per sessione.",
+      "sessions": "Sessioni",
+      "sessionsHint": "Totale delle sessioni avviate dai tester.",
+      "endOfPhaseSurveys": "Questionari di fine fase",
+      "endOfPhaseSurveysHint": "Tester che hanno inviato il questionario finale."
+    },
+    "dialogs": {
+      "activate": {
+        "title": "Attivare “{{name}}”?",
+        "description": "Una volta attivata, la configurazione (agente, domande) viene bloccata e la campagna diventa visibile ai suoi tester e revisori. Potrai comunque aggiungere altri partecipanti.",
+        "confirm": "Attiva"
+      },
+      "close": {
+        "title": "Chiudere “{{name}}”?",
+        "description": "La chiusura di una campagna congela tutti i feedback dei tester e le revisioni dei revisori. I partecipanti non potranno più inviare nuove sessioni, feedback o questionari. L'operazione non può essere annullata.",
+        "confirm": "Chiudi campagna"
+      },
+      "delete": {
+        "title": "Eliminare “{{name}}”?",
+        "description": "La campagna in bozza e la sua configurazione verranno eliminate definitivamente. Solo le bozze possono essere eliminate: le campagne attive o chiuse vanno conservate per l'audit.",
+        "confirm": "Elimina"
+      },
+      "cancel": "Annulla"
+    },
+    "notifications": {
+      "createSuccess": "Campagna di revisione creata",
+      "createError": "Creazione della campagna di revisione non riuscita",
+      "updateSuccess": "Campagna di revisione aggiornata",
+      "updateError": "Aggiornamento della campagna di revisione non riuscito",
+      "deleteSuccess": "Campagna di revisione eliminata",
+      "deleteError": "Eliminazione della campagna di revisione non riuscita",
+      "revokeSuccess": "Partecipazione revocata",
+      "revokeError": "Impossibile revocare la partecipazione",
+      "invitationsSentByEmail": "Inviti inviati per email",
+      "peopleInvited": "Persone invitate",
+      "inviteError": "Impossibile invitare le persone"
+    },
+    "report": {
+      "title": "Report della campagna",
+      "back": "Indietro",
+      "loading": "Caricamento del report…",
+      "downloadCsv": "Scarica CSV",
+      "downloading": "Download in corso…",
+      "testerPerSession": {
+        "title": "Tester: domande per sessione",
+        "description": "Una risposta per sessione di ogni tester."
+      },
+      "testerEndOfPhase": {
+        "title": "Tester: domande di fine fase",
+        "description": "Una risposta per ogni tester che ha completato il questionario finale."
+      },
+      "reviewer": {
+        "title": "Domande per i revisori",
+        "description": "Una risposta per ogni revisione, su tutte le sessioni."
+      },
+      "sessionMatrix": {
+        "title": "Matrice delle sessioni",
+        "description": "Valutazioni del tester e dei revisori per sessione. Lo scarto è la differenza tra la valutazione più bassa e quella più alta dei revisori: uno scarto elevato indica un disaccordo tra revisori.",
+        "session": "Sessione",
+        "started": "Avviata",
+        "tester": "Tester",
+        "reviewers": "Revisori",
+        "meanReviewer": "Media revisori",
+        "spread": "Scarto",
+        "emptyTitle": "Ancora nessuna sessione",
+        "emptyDescription": "La matrice delle sessioni si riempie man mano che i tester avviano sessioni in questa campagna."
+      },
+      "headline": {
+        "sessions": "Sessioni",
+        "sessionsHint": "{{count}} tester distinti",
+        "meanTesterRating": "Valutazione media dei tester",
+        "meanTesterRatingHint": "{{count}} risposte per sessione",
+        "meanReviewerRating": "Valutazione media dei revisori",
+        "meanReviewerRatingHint": "{{count}} revisioni",
+        "meanEndOfPhase": "Media di fine fase",
+        "meanEndOfPhaseHint": "Dai questionari finali dei tester"
+      },
+      "distribution": {
+        "types": {
+          "rating": "Valutazione",
+          "single-choice": "Scelta singola",
+          "free-text": "Testo libero"
+        },
+        "responses_one": "{{count}} risposta",
+        "responses_other": "{{count}} risposte",
+        "responses_many": "{{count}} risposte",
+        "freeTextNotice": "Le risposte a testo libero non sono riepilogate qui: consulta le singole sessioni per leggerle.",
+        "noResponses": "Ancora nessuna risposta.",
+        "barAria": "{{count}} risposte ({{percent}}%)"
+      }
+    }
+  }
+}

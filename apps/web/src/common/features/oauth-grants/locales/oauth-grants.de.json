@@ -1,0 +1,16 @@
+{
+  "oauthGrants": {
+    "title": "Verbundene Apps",
+    "description": "Apps, denen Sie über MCP Zugriff auf Ihre Projekte gewährt haben.",
+    "empty": "Keine App verbunden. Apps, die Sie über MCP verbinden, erscheinen hier.",
+    "unnamedApp": "Unbenannte App",
+    "projects": "Projekte",
+    "permissions": "Berechtigungen",
+    "connectedOn": "Verbunden am {{date}}",
+    "lastUsed": "Zuletzt verwendet {{since}}",
+    "neverUsed": "Nie verwendet",
+    "revokeTitle": "{{name}} widerrufen?",
+    "revokeDescription": "{{name}} verliert bei der nächsten Anfrage den Zugriff.",
+    "revokeError": "Der Zugriff konnte nicht widerrufen werden. Versuchen Sie es erneut."
+  }
+}

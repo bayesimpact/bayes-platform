@@ -14,17 +14,26 @@ locales/
 └── status.fr.json         # Global French translations
 ```
 
+## Languages
+
+`SUPPORTED_LANGUAGES` in `loader.ts` lists the UI languages: `en`, `fr`, `de`, `it`, `es`, `pl`.
+English is the source and the fallback for any missing key.
+
+`locales.spec.ts` checks every translation against its English file: same keys, the same
+`{{placeholders}}` and tags, no empty string, and the plural forms the language needs. Polish
+needs `_one`, `_few`, `_many` and `_other` where English has `_one` and `_other`.
+
 ## How It Works
 
 ### Automatic Locale Discovery
 
 Locale files are **automatically discovered** from two sources:
 
-1. **Feature-specific locales**: `/src/features/*/locales/*.{en,fr}.json`
+1. **Feature-specific locales**: `/src/features/*/locales/*.{en,fr,de,it,es,pl}.json`
    - Each feature can have its own translation files
    - Example: `src/features/agents/locales/agent.en.json`
 
-2. **Global locales**: `/src/locales/*.{en,fr}.json`
+2. **Global locales**: `/src/locales/*.{en,fr,de,it,es,pl}.json`
    - Shared translations used across multiple features
 
 The `loadLocaleResources()` function in `src/i18n.ts` uses Vite's `import.meta.glob` to dynamically load and merge all locale files by language.
@@ -37,6 +46,9 @@ To add translations for a new feature:
 2. Add translation files:
    - `your-feature.en.json`
    - `your-feature.fr.json`
+   - `your-feature.de.json`, `.it.json`, `.es.json`, `.pl.json` for features of the studio (and
+     `common`). Other apps (desk, eval, tester, reviewer, backoffice) are English and French only
+     for now: the other languages fall back to English there.
 3. No manual imports needed! The loader will discover them automatically.
 
 Example structure for a new feature:

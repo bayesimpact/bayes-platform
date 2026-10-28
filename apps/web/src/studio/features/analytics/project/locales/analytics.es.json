@@ -1,0 +1,24 @@
+{
+  "analytics": {
+    "analytics": "Analítica",
+    "list": {
+      "title": "Analítica",
+      "description": "Consulte la analítica de su proyecto: conversaciones, promedio de preguntas por sesión y más."
+    },
+    "agentFilter": {
+      "placeholder": "Filtrar por agente",
+      "allAgents": "Todos los agentes"
+    },
+    "dateRangePlaceholder": "Rango de fechas",
+    "conversationsChart": {
+      "title": "Conversaciones por día",
+      "description": "Número de sesiones conversacionales iniciadas cada día",
+      "metricLabel": "Total de conversaciones"
+    },
+    "avgQuestionsChart": {
+      "title": "Prom. de preguntas del usuario por sesión",
+      "description": "Promedio de mensajes del usuario por sesión y por día",
+      "metricLabel": "Por día"
+    }
+  }
+}

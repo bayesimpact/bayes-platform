@@ -1,0 +1,24 @@
+{
+  "analytics": {
+    "analytics": "Analysen",
+    "list": {
+      "title": "Analysen",
+      "description": "Analysen für Ihr Projekt ansehen, darunter Unterhaltungen, durchschnittliche Fragen pro Sitzung und mehr."
+    },
+    "agentFilter": {
+      "placeholder": "Nach Agent filtern",
+      "allAgents": "Alle Agenten"
+    },
+    "dateRangePlaceholder": "Zeitraum",
+    "conversationsChart": {
+      "title": "Unterhaltungen pro Tag",
+      "description": "Anzahl der täglich gestarteten Unterhaltungssitzungen",
+      "metricLabel": "Unterhaltungen gesamt"
+    },
+    "avgQuestionsChart": {
+      "title": "Ø Benutzerfragen pro Sitzung",
+      "description": "Durchschnittliche Benutzernachrichten pro Sitzung und Tag",
+      "metricLabel": "Pro Tag"
+    }
+  }
+}

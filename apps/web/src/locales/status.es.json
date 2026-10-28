@@ -1,0 +1,42 @@
+{
+  "status": {
+    "done": "Terminado",
+    "draft": "Borrador",
+    "error": "Error",
+    "failed": "Fallido",
+    "idle": "Inactivo",
+    "loading": "Cargando",
+    "noResults": "No se encontraron resultados.",
+    "neverSignedIn": "Nunca ha iniciado sesión",
+    "pending": "Pendiente",
+    "published": "Publicado",
+    "ready": "Listo",
+    "success": "Éxito",
+    "thinking": "Pensando",
+    "activity": {
+      "default": "Pensando…",
+      "usingTool": "Llamando a una herramienta…",
+      "searchingResources": "Buscando recursos…",
+      "smartSearch": "Buscando…",
+      "lookupKnowledgeBase": "Buscando en la base de conocimientos…",
+      "gatheringSources": "Recopilando fuentes…",
+      "surfacingResources": "Mostrando recursos…",
+      "fillingForm": "Rellenando el formulario…",
+      "completingForm": "Completando el formulario…",
+      "handingBack": "Devolviendo la conversación…",
+      "savingMemory": "Guardando en la memoria…",
+      "forgettingMemory": "Olvidando…",
+      "recalculating": "Actualizando la sesión…"
+    },
+    "asyncLoading": "Cargando...",
+    "asyncError": "Error: {{statusCode}}",
+    "asyncUnknownError": "Se produjo un error desconocido.",
+    "notFound": {
+      "title": "404 Página no encontrada",
+      "description": "La página que busca no existe.",
+      "home": "Ir al inicio",
+      "oops": "¡Ups!"
+    },
+    "somethingWentWrong": "Algo salió mal"
+  }
+}

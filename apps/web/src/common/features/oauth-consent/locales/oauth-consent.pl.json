@@ -1,0 +1,141 @@
+{
+  "oauthConsent": {
+    "headline": "{{name}} prosi o dostęp do Twoich projektów",
+    "verified": "Zweryfikowano",
+    "unverified": "Nie zweryfikowano",
+    "mcpVerified": "Zweryfikowana domena · przekierowuje do <host>{{host}}</host>",
+    "mcpUnverified": "Niezweryfikowany klient · przekierowuje do <host>{{host}}</host>",
+    "projects": "Projekty",
+    "projectsHint": "Aplikacja ma dostęp tylko do wybranych projektów.",
+    "permissions": "Uprawnienia",
+    "permissionUnavailable": "Żaden z wybranych projektów na to nie pozwala.",
+    "permissionRequired": "Zaznacz co najmniej jedno uprawnienie.",
+    "projectRequired": "Wybierz co najmniej jeden projekt.",
+    "noProjects": "Nie masz jeszcze żadnego projektu do udostępnienia.",
+    "approve": "Zezwól na dostęp",
+    "approving": "Zezwalanie…",
+    "approved": "Przyznano dostęp. Możesz wrócić do aplikacji {{name}}.",
+    "denied": "Odmówiono dostępu. Możesz wrócić do aplikacji {{name}}.",
+    "invalidRequest": "Ten link autoryzacyjny jest niekompletny lub nieprawidłowy. Zacznij od nowa w aplikacji.",
+    "appHeadline": "{{name}} prosi o dostęp do Twojej przestrzeni roboczej Bayes",
+    "appVerified": "Zweryfikowana aplikacja · przekierowuje do <host>{{host}}</host>",
+    "appUnverified": "Niezweryfikowana aplikacja · przekierowuje do <host>{{host}}</host>",
+    "workspace": "Przestrzeń robocza",
+    "workspaceHint": "Aplikacja będzie w niej działać z własnego konta.",
+    "cancelToApp": "Anuluj i wróć do aplikacji {{name}}",
+    "cancelTerminal": "Anuluj i wróć do terminala",
+    "appRevocability": "Dostęp można cofnąć w dowolnym momencie w <settings>zainstalowanych aplikacjach</settings> tej przestrzeni roboczej. {{name}} ma dostęp tylko do wybranej przestrzeni roboczej.",
+    "selectWorkspaceFirst": "Najpierw wybierz przestrzeń roboczą.",
+    "appPermissionUnavailable": "Nie masz tego uprawnienia w tej przestrzeni roboczej.",
+    "noWorkspaces": "Nie jesteś właścicielem ani administratorem żadnej przestrzeni roboczej, w której można zainstalować tę aplikację.",
+    "install": "Zainstaluj {{name}}",
+    "installing": "Instalowanie…",
+    "installed": "Zainstalowano aplikację {{name}}. Możesz do niej wrócić.",
+    "permission": {
+      "project_read": {
+        "name": "Wyświetlanie projektów",
+        "description": "Odczyt wybranych projektów i ich ustawień."
+      },
+      "agent_create": {
+        "name": "Tworzenie agentów",
+        "description": "Dodawanie nowych agentów do wybranych projektów, w tym kopii agentów, których jesteś tam właścicielem lub administratorem."
+      },
+      "agent_settings_draft_update": {
+        "name": "Edycja wersji roboczych agentów",
+        "description": "Zmiana ustawień roboczych agentów, których jesteś właścicielem lub administratorem w wybranych projektach (model, instrukcje). Publikowanie pozostaje w Studio."
+      }
+    },
+    "resource": {
+      "project": "Projekty",
+      "agent": "Agenci"
+    },
+    "appPermission": {
+      "document_read": {
+        "name": "Odczyt dokumentów",
+        "description": "Dostęp do tytułów, treści i metadanych dokumentów w tej przestrzeni roboczej."
+      },
+      "document_create": {
+        "name": "Tworzenie dokumentów",
+        "description": "Dodawanie nowych dokumentów do przestrzeni roboczej. Istniejące dokumenty nie zostaną zmienione."
+      },
+      "document_update": {
+        "name": "Edycja dokumentów",
+        "description": "Edycja treści istniejących dokumentów w tej przestrzeni roboczej."
+      },
+      "document_delete": {
+        "name": "Usuwanie dokumentów",
+        "description": "Trwałe usuwanie dokumentów z tej przestrzeni roboczej."
+      },
+      "document_source_read": {
+        "name": "Odczyt źródeł dokumentów",
+        "description": "Wyświetlanie źródeł dokumentów zarejestrowanych w tej przestrzeni roboczej."
+      },
+      "document_source_create": {
+        "name": "Tworzenie źródeł dokumentów",
+        "description": "Rejestrowanie nazwanego źródła dokumentów w tej przestrzeni roboczej."
+      },
+      "document_source_update": {
+        "name": "Edycja źródeł dokumentów",
+        "description": "Zmiana nazwy lub ustawień źródła dokumentów."
+      },
+      "document_source_delete": {
+        "name": "Usuwanie źródeł dokumentów",
+        "description": "Usuwanie źródła dokumentów, do którego nie są przypisane żadne dokumenty."
+      },
+      "document_tag_read": {
+        "name": "Odczyt tagów dokumentów",
+        "description": "Wyświetlanie tagów dokumentów w tej przestrzeni roboczej."
+      },
+      "document_tag_create": {
+        "name": "Tworzenie tagów dokumentów",
+        "description": "Dodawanie tagu dokumentów do tej przestrzeni roboczej."
+      },
+      "document_tag_update": {
+        "name": "Edycja tagów dokumentów",
+        "description": "Zmiana nazwy tagu dokumentów, jego opisu lub tagu nadrzędnego."
+      },
+      "document_tag_delete": {
+        "name": "Usuwanie tagów dokumentów",
+        "description": "Usuwanie tagu dokumentów z tej przestrzeni roboczej."
+      },
+      "project_read": {
+        "name": "Odczyt przestrzeni roboczej",
+        "description": "Wyświetlanie tej przestrzeni roboczej i jej ustawień."
+      },
+      "project_update": {
+        "name": "Edycja przestrzeni roboczej",
+        "description": "Zmiana ustawień tej przestrzeni roboczej."
+      },
+      "project_delete": {
+        "name": "Usuwanie przestrzeni roboczej",
+        "description": "Trwałe usunięcie tej przestrzeni roboczej."
+      },
+      "agent_read": {
+        "name": "Odczyt agentów",
+        "description": "Wyświetlanie agentów tej przestrzeni roboczej."
+      },
+      "agent_conversation_session_external_create": {
+        "name": "Czat z agentami dla osób spoza Bayes",
+        "description": "Osoby piszące do tej aplikacji mogą rozmawiać z agentami tej przestrzeni roboczej bez konta Bayes."
+      }
+    },
+    "notifications": {
+      "approveError": "Nie udało się przyznać dostępu"
+    },
+    "appResource": {
+      "document": "Dokumenty",
+      "document_source": "Źródła dokumentów",
+      "document_tag": "Tagi dokumentów",
+      "project": "Przestrzeń robocza",
+      "agent": "Agenci"
+    },
+    "permissionAction": {
+      "read": "Odczyt",
+      "create": "Tworzenie",
+      "update": "Edycja",
+      "delete": "Usuwanie",
+      "conversation_session_external_create": "Czaty zewnętrzne",
+      "settings_draft_update": "Edycja wersji roboczych"
+    }
+  }
+}

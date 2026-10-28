@@ -1,0 +1,83 @@
+{
+  "testCase": {
+    "saveAsTestCase": "Salva come caso di test",
+    "dialog": {
+      "judgeDescription": "Trasforma questa risposta in un caso di test, rieseguito a ogni esecuzione del dataset.",
+      "reviewDescription": "Controlla che cosa conterrà il dataset. Un'esecuzione invia l'input all'agente e valuta la sua risposta rispetto a quella attesa.",
+      "drafting": "Stesura del caso di test…",
+      "draftingWithExpectedOutput": "Stesura del caso di test e della risposta da ottenere…",
+      "draftFailedTitle": "Impossibile redigere il caso di test",
+      "draftFailedDescription": "L'LLM non ha risposto. Riprova, oppure torna indietro e modifica le tue scelte."
+    },
+    "verdict": {
+      "label": "È questa la risposta che l'agente dovrebbe dare?",
+      "good": {
+        "title": "Risposta corretta",
+        "description": "La risposta diventa il riferimento su cui viene valutato l'agente."
+      },
+      "bad": {
+        "title": "Risposta errata",
+        "description": "Indica cosa non va e un LLM redigerà la risposta da ottenere."
+      }
+    },
+    "comment": {
+      "good": {
+        "label": "Che cosa va bene in questa risposta?",
+        "placeholder": "Ciò che l'agente ha fatto bene e deve continuare a fare",
+        "description": "Facoltativo. Conservato con il caso di test, così chi legge il dataset sa perché questa risposta è il riferimento."
+      },
+      "bad": {
+        "label": "Che cosa non va in questa risposta?",
+        "placeholder": "Ciò che l'agente ha sbagliato, omesso o non avrebbe dovuto dire",
+        "description": "Un LLM lo trasforma nella risposta che l'agente avrebbe dovuto dare. Conservato con il caso di test."
+      },
+      "fromReport": "Ripreso dalla segnalazione dell'utente. Modificalo se non coglie il punto.",
+      "required": "Indica cosa non va in questa risposta."
+    },
+    "dataset": {
+      "label": "Dataset",
+      "recordCount_one": "{{count}} record",
+      "recordCount_other": "{{count}} record",
+      "recordCount_many": "{{count}} record",
+      "newDataset": "Nuovo dataset",
+      "newDatasetName": "Nome del nuovo dataset",
+      "newDatasetSuffix": "{{name}} (nuovo)",
+      "nameTooShort": "Il nome di un dataset deve contenere almeno {{count}} caratteri."
+    },
+    "review": {
+      "to": "in",
+      "input": "Input",
+      "anonymize": "Anonimizza",
+      "anonymized": "Anonimizzato",
+      "inputModes": {
+        "conversation": "Contesto della conversazione",
+        "lastMessage": "Ultimo messaggio esatto"
+      },
+      "inputHints": {
+        "firstTurn": "Questa risposta segue il primo messaggio, quindi quel messaggio contiene l'intera conversazione.",
+        "conversation_one": "Scritto da un LLM a partire dal turno precedente, così la domanda è autonoma quando un'esecuzione la ripropone.",
+        "conversation_other": "Scritto da un LLM a partire dai {{count}} turni precedenti, così la domanda è autonoma quando un'esecuzione la ripropone.",
+        "conversation_many": "Scritto da un LLM a partire dai {{count}} turni precedenti, così la domanda è autonoma quando un'esecuzione la ripropone.",
+        "lastMessage_one": "L'ultimo messaggio dell'utente così come è stato inviato. Un'esecuzione non ripropone il turno precedente.",
+        "lastMessage_other": "L'ultimo messaggio dell'utente così come è stato inviato. Un'esecuzione non ripropone i {{count}} turni precedenti.",
+        "lastMessage_many": "L'ultimo messaggio dell'utente così come è stato inviato. Un'esecuzione non ripropone i {{count}} turni precedenti."
+      },
+      "expectedOutput": "Risposta attesa",
+      "expectedOutputHints": {
+        "good": "La risposta dell'agente, conservata come riferimento su cui viene valutata ogni esecuzione.",
+        "bad": "Redatta da un LLM in base a ciò che hai indicato come errato. Ogni esecuzione viene valutata su di essa."
+      },
+      "save": "Salva caso di test",
+      "errors": {
+        "inputRequired": "L'input non può essere vuoto.",
+        "expectedOutputRequired": "La risposta attesa non può essere vuota.",
+        "draftInput": "Impossibile redigere la domanda. Riprova, oppure scrivila tu.",
+        "anonymize": "Impossibile anonimizzare l'input. Riprova.",
+        "save": "Impossibile salvare il caso di test. Riprova."
+      }
+    },
+    "notifications": {
+      "saved": "Caso di test salvato in {{name}}"
+    }
+  }
+}

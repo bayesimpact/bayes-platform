@@ -1,0 +1,270 @@
+{
+  "agentSettings": {
+    "agentSettings": "Ustawienia agenta",
+    "agentSettingsHistory": "Historia ustawień agenta",
+    "selectAgentSettings": "Wybierz ustawienia agenta",
+    "props": {
+      "createdAt": "Utworzono",
+      "instructions": "Instrukcje",
+      "formConfiguration": "Konfiguracja formularza",
+      "greeting": "Powitanie",
+      "documentsRagMode": "Źródło odpowiedzi",
+      "locale": "Język",
+      "model": "Model",
+      "outputJsonSchema": "Schemat JSON wyniku",
+      "fillFormEnabled": "Wypełnianie formularza",
+      "priorityCallsEnabled": "Wywołania priorytetowe",
+      "promptVariables": "Zmienne promptu",
+      "schemaBuilder": {
+        "advancedMode": "Tryb zaawansowany",
+        "visualMode": "Edytor wizualny",
+        "addField": "Dodaj pole",
+        "removeField": "Usuń pole",
+        "empty": "Brak pól. Dodaj pole, aby zacząć.",
+        "fieldName": "Nazwa pola",
+        "fieldNameEmpty": "Ustaw nazwę pola",
+        "fieldNamePlaceholder": "np. kraj",
+        "type": "Typ",
+        "description": "Opis",
+        "descriptionEmpty": "Dodaj opis",
+        "descriptionPlaceholder": "Pytanie lub wskazówka, której asystent używa do wypełnienia tego pola",
+        "expandDescription": "Rozwiń",
+        "required": "Wymagane",
+        "dragHandle": "Przeciągnij, aby zmienić kolejność",
+        "orderQuestions": "Zadawaj pytania w tej kolejności",
+        "orderQuestionsHint": "Po włączeniu asystent pyta o pola w kolejności podanej niżej. Wyłącz, aby sam wybierał kolejność.",
+        "enumValuesEmpty": "Dodaj opcje",
+        "enumValues_one": "{{count}} opcja",
+        "enumValues_few": "{{count}} opcje",
+        "enumValues_many": "{{count}} opcji",
+        "enumValues_other": "{{count}} opcji",
+        "enumValuesPlaceholder": "Dodaj opcję",
+        "enumValueAdd": "Dodaj opcję",
+        "enumValueRemove": "Usuń opcję {{value}}",
+        "enumValuesHint": "Asystent może wybrać tylko jedną z tych wartości.",
+        "rangeEmpty": "Ustaw zakres",
+        "rangeBoth": "{{min}} – {{max}}",
+        "rangeMinOnly": "Min. {{min}}",
+        "rangeMaxOnly": "Maks. {{max}}",
+        "rangeMin": "Minimum",
+        "rangeMax": "Maksimum",
+        "rangeHint": "Opcjonalne. Pozostaw jedną z granic pustą, aby nie ograniczać zakresu z tej strony.",
+        "types": {
+          "string": "Tekst",
+          "number": "Liczba",
+          "boolean": "Tak / Nie",
+          "array": "Lista",
+          "enum": "Wybór",
+          "object": "Obiekt"
+        }
+      },
+      "temperature": "Temperatura",
+      "updatedAt": "Zaktualizowano",
+      "documentTags": "Tagi dokumentów",
+      "agentSessionCategories": "Kategorie rozmów",
+      "agentSessionCategoriesInUse": "Kategorii użytych już w rozmowach tego agenta nie można odznaczyć.",
+      "documentsRagModeOptions": {
+        "none": "Odpowiadaj tylko na podstawie wiedzy modelu",
+        "all": "Przeszukuj wszystkie dokumenty",
+        "tags": "Przeszukuj według tagów dokumentów"
+      },
+      "placeholders": {
+        "instructions": "Wpisz instrukcje, którymi agent ma się kierować, odpowiadając użytkownikowi",
+        "greeting": "Opcjonalne powitanie wysyłane przez agenta na początku nowej rozmowy",
+        "documentsRagMode": "Wybierz sposób użycia dokumentów",
+        "model": "Wybierz model",
+        "outputJsonSchema": "{\n \"type\": \"object\", \"properties\": {\n    \"field\": { \"type\": \"string\", \"description\": \"blablabla\" }\n  },\n  \"required\": [\"field\"]\n}",
+        "temperature": "Wpisz temperaturę 0.0–2.0",
+        "locale": "Wybierz język odpowiedzi agenta",
+        "thinkingLevel": "Wybierz poziom rozumowania"
+      },
+      "validation": {
+        "nameMinLength": "Nazwa musi mieć co najmniej 3 znaki",
+        "promptRequired": "Instrukcje są wymagane",
+        "temperatureInvalid": "Temperatura musi mieścić się w zakresie od 0.0 do 2.0",
+        "outputJsonSchemaRequired": "Schemat JSON wyniku jest wymagany",
+        "outputJsonSchemaInvalid": "Schemat JSON wyniku musi być prawidłowym obiektem JSON"
+      },
+      "thinkingLevel": "Poziom rozumowania",
+      "thinkingLevels": {
+        "minimal": "Minimalny",
+        "low": "Niski",
+        "medium": "Średni",
+        "high": "Wysoki"
+      },
+      "modelOptions": "Opcje modelu"
+    },
+    "defaultPromptDialog": {
+      "title": "Instrukcje",
+      "description": "Te instrukcje określają zachowanie agenta.",
+      "button": "Pokaż instrukcje"
+    },
+    "tabs": {
+      "general": "Ogólne",
+      "model": "Model",
+      "output": "Wynik",
+      "sources": "Źródła",
+      "resourceLibraries": "Biblioteki zasobów",
+      "tools": "Narzędzia",
+      "categories": "Kategorie rozmów",
+      "orchestration": "Orkiestracja",
+      "embed": "Osadzanie",
+      "mcpServers": "Serwery MCP"
+    },
+    "mcpServers": {
+      "label": "Serwery MCP",
+      "manage": "Zarządzaj serwerami",
+      "emptyTitle": "Brak serwerów MCP",
+      "emptyDescription": "Dodaj serwery MCP do tego projektu, aby dać agentom dostęp do zewnętrznych narzędzi.",
+      "builtInDescription": "Wbudowany w platformę, nie wymaga konfiguracji."
+    },
+    "unsavedChanges": {
+      "title": "Niezapisane zmiany",
+      "description": "Masz niezapisane zmiany, które zostaną utracone. Czy chcesz je odrzucić?"
+    },
+    "create": {
+      "button": "Zapisz wersję",
+      "noDraft": "Brak wersji roboczej. Najpierw zapisz zmianę, aby utworzyć nową wersję roboczą.",
+      "unsavedChanges": "Przed publikacją zapisz lub odrzuć zmiany.",
+      "optional": "Opcjonalne",
+      "props": {
+        "revisionName": "Nazwa wersji",
+        "revisionDesc": "Opis wersji",
+        "placeholders": {
+          "revisionName": "Nazwij tę wersję",
+          "revisionDesc": "Opisz, co zmieniło się w tej wersji"
+        }
+      },
+      "dialog": {
+        "title": "Zapisać wersję {{revision}}?",
+        "description": "Agent będzie działał z ustawieniami wersji {{revision}}. Kolejne zmiany utworzą nową wersję roboczą.",
+        "submit": "Zapisz wersję"
+      }
+    },
+    "history": {
+      "button": "Historia",
+      "title": "Historia wersji",
+      "description": "Przeglądaj, porównuj i przywracaj wcześniejsze ustawienia agenta {{name}}.",
+      "loadError": "Nie udało się wczytać historii wersji",
+      "revisionLabel": "Wersja {{revision}}",
+      "currentBadge": "Bieżąca",
+      "revisionBadge": "v{{revision}}",
+      "revisionBadgeAria": "Wersja {{revision}} ustawień agenta",
+      "messageRevisionTooltip": "Odpowiedź udzielona w wersji {{revision}}",
+      "runRevisionTooltip": "Ekstrakcja wykonana w wersji {{revision}}",
+      "headerRevisionTooltip": "Nowe wiadomości korzystają z wersji {{revision}}",
+      "compareWithPrevious": "Zmiany w tej wersji",
+      "compareWithCurrent": "Porównaj z bieżącą",
+      "compareWithDraft": "Porównaj z wersją roboczą",
+      "comparing": "Zmiany od wersji {{before}} do wersji {{after}}.",
+      "noChangesTitle": "Brak różnic",
+      "noChangesDescription": "Te dwie wersje mają identyczne ustawienia.",
+      "onlyVersionTitle": "Tylko jedna wersja",
+      "onlyVersionDescription": "Ten agent ma tylko jedną wersję ustawień, więc nie ma jeszcze czego porównywać.",
+      "restore": "Przywróć tę wersję",
+      "restoreDialog": {
+        "title": "Przywrócić wersję {{revision}}?",
+        "description": "Ustawienia wersji {{revision}} zostaną skopiowane jako nowa wersja i staną się bieżącymi ustawieniami. Żadna wersja nie zostanie usunięta."
+      },
+      "draft": "Wersja robocza"
+    },
+    "version": {
+      "ariaLabel": "Wersja ustawień dla nowych wiadomości",
+      "extractionAriaLabel": "Wersja ustawień dla ekstrakcji",
+      "placeholder": "Wybierz wersję",
+      "item": "v{{revision}} — {{detail}}",
+      "current": "Bieżąca ({{date}})"
+    },
+    "orchestration": {
+      "selectedTitle": "Subagenci",
+      "availableTitle": "Dostępni agenci konwersacyjni",
+      "emptyTitle": "Brak subagentów",
+      "emptyDescription": "Ten agent odpowiada bezpośrednio, bez przekazywania zadań innemu agentowi.",
+      "noAvailableAgents": "Brak innych dostępnych agentów konwersacyjnych.",
+      "missingAgent": "Brakujący agent",
+      "add": "Dodaj",
+      "remove": "Usuń",
+      "enabled": "Włączony",
+      "disabled": "Wyłączony",
+      "toolName": "Nazwa narzędzia",
+      "toolNamePlaceholder": "ask_specialist_agent",
+      "description": "Opis narzędzia",
+      "defaultDescription": "Przekazuj specjalistyczne prośby do agenta {{name}}.",
+      "mode": "Tryb",
+      "modeRelay": "Konsultowany",
+      "modeHandoff": "Przejmuje rozmowę",
+      "modeRelayHint": "Orkiestrator wywołuje tego agenta na jedną wymianę i sam odpowiada użytkownikowi.",
+      "modeHandoffHint": "Ten agent rozmawia z użytkownikiem bezpośrednio, aż wykona swoją część, a potem oddaje rozmowę.",
+      "unpublishedHint": "Niedostępny dla orkiestratora, dopóki nie zostanie opublikowany.",
+      "talkingTo": "Rozmowa z: {{name}}"
+    },
+    "embed": {
+      "loading": "Wczytywanie konfiguracji osadzania…",
+      "loadError": "Nie udało się wczytać konfiguracji osadzania.",
+      "enabledLabel": "Włącz osadzanie",
+      "enabledDescription": "Zezwól na osadzanie agenta {{name}} na zewnętrznych stronach za pomocą iframe.",
+      "snippetLabel": "Kod do osadzenia",
+      "snippetDescription": "Wklej ten tag <script> przed zamykającym tagiem </body> na każdej stronie, na której ma się pojawić widżet czatu.",
+      "snippetHint": "Opcjonalne atrybuty: data-color=\"#2563eb\" (kolor przycisku), data-locale=\"fr\" (język widżetu), data-display-mode=\"drawer\" (panel boczny zamiast dymka), data-hint=\"Potrzebujesz pomocy?\" (podpowiedź wyświetlana po wczytaniu i najechaniu).",
+      "publicPageLabel": "Link do strony publicznej",
+      "publicPageDescription": "Udostępnij ten link lub jego kod QR, aby agent {{name}} był dostępny bez strony hosta.",
+      "publicPageHint": "Strona działa tylko przy włączonym osadzaniu. Dodaj &locale=fr, aby wymusić język.",
+      "allowedOriginsLabel": "Dozwolone źródła",
+      "allowedOriginsDescription": "Lista dozwolonych źródeł oddzielonych przecinkami (np. https://app.example.com). Pozostaw puste, aby zezwolić na wszystkie.",
+      "allowedOriginsPlaceholder": "https://app.example.com, https://staging.example.com",
+      "titleLabel": "Tytuł widżetu",
+      "titleDescription": "Tytuł wyświetlany w nagłówku czatu. Domyślnie {{name}}, jeśli pole jest puste.",
+      "logoUrlLabel": "URL logo",
+      "logoUrlDescription": "URL obrazu logo wyświetlanego w nagłówku czatu.",
+      "logoUrlPlaceholder": "https://example.com/logo.png",
+      "primaryColorLabel": "Kolor marki",
+      "primaryColorDescription": "Główny kolor nagłówka widżetu czatu. Wpisz wartość szesnastkową (np. #2563eb).",
+      "bannerTextLabel": "Tekst banera",
+      "bannerTextDescription": "Opcjonalna informacja przypięta nad rozmową na stronie publicznej i w widżecie. Służy do określenia kontekstu, np. wersji testowej lub grupy docelowej.",
+      "bannerTextPlaceholder": "Wersja testowa, tylko dla zespołu pilotażowego"
+    },
+    "promptVariables": {
+      "title": "Zmienne promptu",
+      "description": "Domyślne wartości zmiennych zadeklarowanych przez agenta w instrukcjach. Używane, gdy sesja rozpoczyna się bez wartości dla którejś z nich."
+    },
+    "source_one": "{{count}} źródło",
+    "source_few": "{{count}} źródła",
+    "source_many": "{{count}} źródeł",
+    "source_other": "{{count}} źródła",
+    "source_zero": "Brak źródeł",
+    "model": {
+      "priorityCalls": {
+        "title": "Wywołania priorytetowe",
+        "description": "Krótszy i stabilniejszy czas odpowiedzi przy wyższym koszcie wywołania."
+      }
+    },
+    "tools": {
+      "fillForm": {
+        "title": "Wypełnianie formularza",
+        "description": "Pozwól agentowi wypełniać ustrukturyzowany formularz na podstawie odpowiedzi użytkownika podczas rozmowy.",
+        "schemaDescription": "Zdefiniuj pola formularza, które agent ma wypełnić. Kolejność pól to kolejność, w jakiej agent zadaje pytania."
+      },
+      "memory": {
+        "title": "Pamięć",
+        "description": "Pozwól agentowi zapamiętywać fakty o każdym zalogowanym użytkowniku między rozmowami. Użytkownicy widzą i mogą usuwać to, co agent pamięta.",
+        "modes": {
+          "off": "Wyłączona",
+          "ask": "Pytaj przed zapisaniem",
+          "auto": "Zapisuj automatycznie"
+        }
+      }
+    },
+    "notifications": {
+      "versionRestored": "Przywrócono wersję agenta",
+      "versionRestoreError": "Nie udało się przywrócić wersji agenta",
+      "versionPublished": "Opublikowano wersję agenta",
+      "versionPublishError": "Nie udało się opublikować wersji agenta",
+      "updated": "Zaktualizowano agenta",
+      "updateError": "Nie udało się zaktualizować agenta",
+      "embedConfigUpdated": "Zaktualizowano konfigurację osadzania",
+      "embedConfigUpdateError": "Nie udało się zaktualizować konfiguracji osadzania",
+      "subAgentsUpdated": "Zaktualizowano subagentów",
+      "subAgentsUpdateError": "Nie udało się zaktualizować subagentów"
+    }
+  }
+}

@@ -1,0 +1,142 @@
+{
+  "projectMembership": {
+    "members": "Mitglieder",
+    "props": {
+      "validation": {
+        "emailDuplicate": "E-Mail-Adresse bereits hinzugefügt",
+        "emailInvalid": "Ungültige E-Mail-Adresse"
+      }
+    },
+    "create": {
+      "button": "Admins einladen",
+      "title": "Admins einladen",
+      "description": "Geben Sie die E-Mail-Adressen der Personen ein, die diesen Arbeitsbereich verwalten sollen. Sie nehmen die Einladung nach der Anmeldung an.",
+      "label": "E-Mail-Adresse",
+      "placeholder": "E-Mail-Adresse eingeben"
+    },
+    "pendingInvitations": {
+      "title": "Offene Einladungen",
+      "description": "Zu diesem Projekt eingeladene Personen, die noch nicht geantwortet haben."
+    },
+    "list": {
+      "title": "Mitglieder von {{projectName}}",
+      "description": "Alle mit Zugriff auf dieses Projekt: Inhaber, Admins und Mitglieder, die über einen Agenten oder eine Review-Kampagne hinzugefügt wurden.",
+      "searchPlaceholder": "Nach Name oder E-Mail suchen…",
+      "empty": {
+        "title": "Keine Mitglieder",
+        "description": "Laden Sie Personen in Ihren Arbeitsbereich ein, um zusammenzuarbeiten."
+      }
+    },
+    "notifications": {
+      "invitationsSentByEmail": "Einladungen per E-Mail gesendet",
+      "peopleInvited": "Personen eingeladen",
+      "inviteError": "Personen konnten nicht eingeladen werden",
+      "rolesAdded_one": "Rollen für {{count}} Mitglied hinzugefügt",
+      "rolesAdded_other": "Rollen für {{count}} Mitglieder hinzugefügt",
+      "membersRemoved_one": "{{count}} Mitglied entfernt",
+      "membersRemoved_other": "{{count}} Mitglieder entfernt"
+    },
+    "roleNames": {
+      "project_owner": "Inhaber",
+      "project_admin": "Admin",
+      "project_member": "Mitglied",
+      "agent_owner": "Inhaber",
+      "agent_admin": "Admin",
+      "agent_member": "Mitglied",
+      "review_campaign_tester": "Tester",
+      "review_campaign_reviewer": "Reviewer"
+    },
+    "table": {
+      "allRoles": "Alle Rollen",
+      "rolesCount": "{{count}} Rollen",
+      "filterByRole": "Nach Rolle filtern",
+      "clearFilters": "Filter zurücksetzen",
+      "member": "Mitglied",
+      "roles": "Rollen",
+      "joined": "Beigetreten",
+      "noRole": "Keine Rolle",
+      "you": "Sie",
+      "selectMember": "{{name}} auswählen",
+      "empty": {
+        "title": "Kein passendes Mitglied",
+        "description": "Versuchen Sie eine andere Suche oder entfernen Sie einen Filter."
+      },
+      "selected_one": "{{count}} Mitglied ausgewählt",
+      "selected_other": "{{count}} Mitglieder ausgewählt",
+      "addRoles": "Rollen hinzufügen",
+      "removeBlocked": {
+        "project": "Ein Arbeitsbereich braucht mindestens einen Inhaber. Heben Sie die Auswahl eines Inhabers auf, um die anderen zu entfernen.",
+        "agent": "Die Inhaber eines Agenten werden hier nicht entfernt. Heben Sie ihre Auswahl auf, um die anderen zu entfernen."
+      },
+      "genericError": "Etwas ist schiefgelaufen. Versuchen Sie es erneut.",
+      "addRolesDialog": {
+        "title_one": "Rollen für {{count}} Mitglied hinzufügen",
+        "title_other": "Rollen für {{count}} Mitglieder hinzufügen",
+        "description": {
+          "project": "Die Rollen kommen zu den bestehenden hinzu. Die Berechtigungen für diesen Arbeitsbereich ändern sich sofort.",
+          "agent": "Die Rollen kommen zu den bestehenden hinzu. Die Berechtigungen für diesen Agenten ändern sich sofort."
+        },
+        "pickOne": "Wählen Sie mindestens eine Rolle aus.",
+        "error": "Die Rollen konnten nicht hinzugefügt werden. Versuchen Sie es erneut."
+      },
+      "removeDialog": {
+        "title_one": "{{name}} entfernen?",
+        "title_other": "{{count}} Mitglieder entfernen?",
+        "description": {
+          "project": "Sie verlieren den Zugriff auf diesen Arbeitsbereich, seine Agenten und seine Review-Kampagnen. Dies kann nicht rückgängig gemacht werden.",
+          "agent": "Sie verlieren ihre Rollen für diesen Agenten und bleiben Mitglieder des Arbeitsbereichs. Dies kann nicht rückgängig gemacht werden."
+        },
+        "error": "Die Mitglieder konnten nicht entfernt werden. Versuchen Sie es erneut."
+      }
+    },
+    "memberDetail": {
+      "you": "Sie",
+      "selfTitle": "Dies ist Ihre eigene Seite",
+      "selfDescription": "Sie können Ihre eigenen Rollen nicht ändern. Eine andere Person, die diesen Arbeitsbereich verwaltet, kann sie ändern.",
+      "addErrorTitle": "Die Rolle wurde nicht hinzugefügt",
+      "addErrorDetail": "{{role}} für {{resource}}: {{error}}",
+      "addError": "Die Rolle konnte nicht hinzugefügt werden. Versuchen Sie es erneut.",
+      "removeError": "Die Rolle konnte nicht entfernt werden. Versuchen Sie es erneut.",
+      "workspace": {
+        "title": "Arbeitsbereich",
+        "description": "Was die Person im gesamten Arbeitsbereich tun kann.",
+        "empty": "Keine Rolle in diesem Arbeitsbereich."
+      },
+      "agents": {
+        "title": "Agenten",
+        "description": "Die Rollen der Person für jeden Agenten des Arbeitsbereichs.",
+        "empty": "Dieser Arbeitsbereich hat keine Agenten."
+      },
+      "campaigns": {
+        "title": "Review-Kampagnen",
+        "description": "Ob die Person den Agenten testet oder die Unterhaltungen prüft, Kampagne für Kampagne.",
+        "empty": "Dieser Arbeitsbereich hat keine Review-Kampagnen."
+      },
+      "removeDialog": {
+        "title": "{{role}} für {{resource}} entfernen?",
+        "effect": {
+          "project": "Die Berechtigungen für diesen Arbeitsbereich ändern sich sofort.",
+          "agent": "Die Berechtigungen für diesen Agenten ändern sich sofort.",
+          "review_campaign": "Die Beteiligung an dieser Review-Kampagne ändert sich sofort."
+        }
+      },
+      "noAccess": "Kein Zugriff",
+      "cannotRemove": "{{role}} kann nicht entfernt werden",
+      "removeRole": "{{role}} entfernen",
+      "addRoleOn": "Rolle für {{resource}} hinzufügen",
+      "addRole": "Rolle hinzufügen",
+      "addARole": "Eine Rolle hinzufügen",
+      "permissions_one": "{{count}} Berechtigung",
+      "permissions_other": "{{count}} Berechtigungen",
+      "details": {
+        "conversation": "Konversation",
+        "extraction": "Extraktion",
+        "form": "Formular",
+        "draft": "Entwurf",
+        "active": "Aktiv",
+        "closed": "Abgeschlossen"
+      },
+      "ownerLocked": "Die Inhaberrolle wird beim Erstellen des Arbeitsbereichs oder des Agenten festgelegt und kann hier nicht geändert werden."
+    }
+  }
+}

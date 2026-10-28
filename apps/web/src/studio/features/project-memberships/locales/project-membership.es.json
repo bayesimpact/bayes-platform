@@ -1,0 +1,148 @@
+{
+  "projectMembership": {
+    "members": "Miembros",
+    "props": {
+      "validation": {
+        "emailDuplicate": "Correo electrónico ya añadido",
+        "emailInvalid": "Dirección de correo electrónico no válida"
+      }
+    },
+    "create": {
+      "button": "Invitar a administradores",
+      "title": "Invitar a administradores",
+      "description": "Introduzca las direcciones de correo electrónico de las personas que deben gestionar este espacio de trabajo. Aceptarán la invitación después de iniciar sesión.",
+      "label": "Dirección de correo electrónico",
+      "placeholder": "Introduzca la dirección de correo electrónico"
+    },
+    "pendingInvitations": {
+      "title": "Invitaciones pendientes",
+      "description": "Personas invitadas a este proyecto que aún no han respondido."
+    },
+    "list": {
+      "title": "Miembros de {{projectName}}",
+      "description": "Todas las personas con acceso a este proyecto: propietarios, administradores y miembros añadidos a través de un agente o de una campaña de revisión.",
+      "searchPlaceholder": "Buscar por nombre o correo electrónico…",
+      "empty": {
+        "title": "No hay miembros",
+        "description": "Invite a personas a su espacio de trabajo para colaborar."
+      }
+    },
+    "notifications": {
+      "invitationsSentByEmail": "Invitaciones enviadas por correo electrónico",
+      "peopleInvited": "Personas invitadas",
+      "inviteError": "No se pudo invitar a las personas",
+      "rolesAdded_one": "Roles añadidos a {{count}} miembro",
+      "rolesAdded_other": "Roles añadidos a {{count}} miembros",
+      "rolesAdded_many": "Roles añadidos a {{count}} miembros",
+      "membersRemoved_one": "{{count}} miembro eliminado",
+      "membersRemoved_other": "{{count}} miembros eliminados",
+      "membersRemoved_many": "{{count}} miembros eliminados"
+    },
+    "roleNames": {
+      "project_owner": "Propietario",
+      "project_admin": "Administrador",
+      "project_member": "Miembro",
+      "agent_owner": "Propietario",
+      "agent_admin": "Administrador",
+      "agent_member": "Miembro",
+      "review_campaign_tester": "Tester",
+      "review_campaign_reviewer": "Revisor"
+    },
+    "table": {
+      "allRoles": "Todos los roles",
+      "rolesCount": "{{count}} roles",
+      "filterByRole": "Filtrar por rol",
+      "clearFilters": "Borrar filtros",
+      "member": "Miembro",
+      "roles": "Roles",
+      "joined": "Incorporación",
+      "noRole": "Sin rol",
+      "you": "Usted",
+      "selectMember": "Seleccionar a {{name}}",
+      "empty": {
+        "title": "Ningún miembro coincide",
+        "description": "Pruebe con otra búsqueda o quite un filtro."
+      },
+      "selected_one": "{{count}} miembro seleccionado",
+      "selected_other": "{{count}} miembros seleccionados",
+      "selected_many": "{{count}} miembros seleccionados",
+      "addRoles": "Añadir roles",
+      "removeBlocked": {
+        "project": "Un espacio de trabajo conserva al menos un propietario. Deseleccione a un propietario para quitar a los demás.",
+        "agent": "Los propietarios de un agente no se quitan aquí. Deselecciónelos para quitar a los demás."
+      },
+      "genericError": "Algo salió mal. Inténtelo de nuevo.",
+      "addRolesDialog": {
+        "title_one": "Añadir roles a {{count}} miembro",
+        "title_other": "Añadir roles a {{count}} miembros",
+        "title_many": "Añadir roles a {{count}} miembros",
+        "description": {
+          "project": "Los roles se suman a los que ya tienen. Sus permisos en este espacio de trabajo cambian de inmediato.",
+          "agent": "Los roles se suman a los que ya tienen. Sus permisos en este agente cambian de inmediato."
+        },
+        "pickOne": "Elija al menos un rol.",
+        "error": "No se pudieron añadir los roles. Inténtelo de nuevo."
+      },
+      "removeDialog": {
+        "title_one": "¿Quitar a {{name}}?",
+        "title_other": "¿Quitar a {{count}} miembros?",
+        "title_many": "¿Quitar a {{count}} miembros?",
+        "description": {
+          "project": "Perderán el acceso a este espacio de trabajo, a sus agentes y a sus campañas de revisión. Esta acción no se puede deshacer.",
+          "agent": "Perderán sus roles en este agente y seguirán siendo miembros del espacio de trabajo. Esta acción no se puede deshacer."
+        },
+        "error": "No se pudo quitar a los miembros. Inténtelo de nuevo."
+      }
+    },
+    "memberDetail": {
+      "you": "Usted",
+      "selfTitle": "Esta es su propia página",
+      "selfDescription": "Nadie puede cambiar sus propios roles. Otro responsable de este espacio de trabajo puede cambiarlos.",
+      "addErrorTitle": "No se añadió el rol",
+      "addErrorDetail": "{{role}} en {{resource}}: {{error}}",
+      "addError": "No se pudo añadir el rol. Inténtelo de nuevo.",
+      "removeError": "No se pudo quitar el rol. Inténtelo de nuevo.",
+      "workspace": {
+        "title": "Espacio de trabajo",
+        "description": "Lo que puede hacer en todo este espacio de trabajo.",
+        "empty": "Ningún rol en este espacio de trabajo."
+      },
+      "agents": {
+        "title": "Agentes",
+        "description": "Sus roles en cada agente del espacio de trabajo.",
+        "empty": "Este espacio de trabajo no tiene agentes."
+      },
+      "campaigns": {
+        "title": "Campañas de revisión",
+        "description": "Si prueba el agente o revisa las conversaciones, campaña por campaña.",
+        "empty": "Este espacio de trabajo no tiene campañas de revisión."
+      },
+      "removeDialog": {
+        "title": "¿Quitar {{role}} en {{resource}}?",
+        "effect": {
+          "project": "Sus permisos en este espacio de trabajo cambian de inmediato.",
+          "agent": "Sus permisos en este agente cambian de inmediato.",
+          "review_campaign": "Su participación en esta campaña de revisión cambia de inmediato."
+        }
+      },
+      "noAccess": "Sin acceso",
+      "cannotRemove": "No se puede quitar {{role}}",
+      "removeRole": "Quitar {{role}}",
+      "addRoleOn": "Añadir un rol en {{resource}}",
+      "addRole": "Añadir rol",
+      "addARole": "Añadir un rol",
+      "permissions_one": "{{count}} permiso",
+      "permissions_other": "{{count}} permisos",
+      "permissions_many": "{{count}} permisos",
+      "details": {
+        "conversation": "Conversación",
+        "extraction": "Extracción",
+        "form": "Formulario",
+        "draft": "Borrador",
+        "active": "Activa",
+        "closed": "Cerrada"
+      },
+      "ownerLocked": "El rol de propietario se asigna al crear el espacio de trabajo o el agente, y no se cambia aquí."
+    }
+  }
+}

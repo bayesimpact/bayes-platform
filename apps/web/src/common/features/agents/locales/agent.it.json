@@ -1,0 +1,95 @@
+{
+  "agent": {
+    "agent": "Agente",
+    "agents": "Agenti",
+    "selectAgent": "Seleziona agente",
+    "props": {
+      "createdAt": "Creato il",
+      "name": "Nome",
+      "placeholders": {
+        "name": "Inserisci il nome dell'agente"
+      },
+      "validation": {
+        "nameMinLength": "Il nome deve contenere almeno 3 caratteri"
+      }
+    },
+    "create": {
+      "button": "Crea agente",
+      "title": "Nuovo agente",
+      "description": "Un agente può svolgere attività specifiche in base al suo tipo e alla sua configurazione.",
+      "typeDialog": {
+        "title": "Tipo di agente",
+        "description": "Scegli il tipo prima di configurare l'agente.",
+        "conversation": "Conversazione",
+        "extraction": "Estrazione",
+        "form": "Modulo"
+      },
+      "conversationDialog": {
+        "title": "Crea agente conversazionale",
+        "description": "Crea un nuovo agente conversazionale per {{projectName}}"
+      },
+      "extractionDialog": {
+        "title": "Crea agente di estrazione",
+        "description": "Crea un nuovo agente di estrazione per {{projectName}}"
+      },
+      "formDialog": {
+        "title": "Crea agente per moduli",
+        "description": "Crea un nuovo agente per moduli per {{projectName}}"
+      }
+    },
+    "update": {
+      "conversation": {
+        "title": "Modifica agente conversazionale",
+        "description": "Modifica i dettagli di questo agente conversazionale"
+      },
+      "extraction": {
+        "title": "Modifica agente di estrazione",
+        "description": "Modifica i dettagli di questo agente di estrazione"
+      }
+    },
+    "delete": {
+      "title": "Elimina agente",
+      "description": "Vuoi davvero eliminare \"{{name}}\"? Questa azione è irreversibile."
+    },
+    "duplicate": {
+      "title": "Duplica agente",
+      "description": "La copia riprende impostazioni, strumenti, sotto-agenti e fonti di \"{{name}}\". Parte come bozza: pubblicala dal suo editor quando è pronta. Conversazioni, analisi e impostazioni di incorporamento non vengono copiate.",
+      "defaultName": "{{name}} (copia)",
+      "source": {
+        "label": "Impostazioni da copiare",
+        "draft": "Bozza (versione {{number}})",
+        "draftDescription": "Ciò che mostra l'editor, non ancora pubblicato.",
+        "published": "Versione pubblicata {{number}}",
+        "publishedDescription": "La versione usata oggi dagli utenti."
+      }
+    },
+    "list": {
+      "title": "Agenti",
+      "description": "Gestisci gli agenti di {{projectName}}"
+    },
+    "model": {
+      "deprecatedSuffix": "(deprecato)",
+      "nonEuSuffix": "(extra UE)",
+      "deprecation": {
+        "title": "AZIONE RICHIESTA: {{model}} verrà ritirato il {{date}}",
+        "description": "Aggiorna questo agente a {{replacement}} e testalo di nuovo prima di quella data. Dopo, le esecuzioni su {{model}} non funzioneranno più."
+      },
+      "retirement": {
+        "title": "AZIONE RICHIESTA: {{model}} è stato ritirato il {{date}}",
+        "description": "Le esecuzioni su {{model}} non funzionano più. Aggiorna questo agente a {{replacement}} e testalo di nuovo."
+      },
+      "unavailable": "Questo modello non è più disponibile. Seleziona un nuovo modello dall'elenco."
+    },
+    "playground": "Area di prova",
+    "notifications": {
+      "updated": "Agente aggiornato",
+      "updateError": "Aggiornamento dell'agente non riuscito",
+      "deleted": "Agente eliminato",
+      "deleteError": "Eliminazione dell'agente non riuscita",
+      "created": "Agente creato",
+      "createError": "Creazione dell'agente non riuscita",
+      "duplicated": "Agente duplicato come bozza",
+      "duplicateError": "Duplicazione dell'agente non riuscita"
+    }
+  }
+}

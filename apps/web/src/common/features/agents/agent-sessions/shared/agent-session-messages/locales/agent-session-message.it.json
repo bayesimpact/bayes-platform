@@ -1,0 +1,31 @@
+{
+  "agentSessionMessage": {
+    "attachment": "Allegato",
+    "navigator": {
+      "title": "Vai a un messaggio",
+      "trigger": "Vai a un messaggio",
+      "search": "Cerca domande…",
+      "empty": "Nessuna domanda corrispondente"
+    },
+    "thinking": [
+      "Sto riflettendo…",
+      "Sto ancora riflettendo…",
+      "Ci sto lavorando…",
+      "Sto collegando i punti…",
+      "Sto mettendo insieme tutto…",
+      "Inizio a scrivere…"
+    ],
+    "interrupted": "Questa risposta è stata interrotta prima di essere completata.",
+    "mcpApp": {
+      "loading": "Caricamento della scheda interattiva…"
+    },
+    "steps": {
+      "working_one": "Elaborazione di {{count}} passaggio",
+      "working_other": "Elaborazione di {{count}} passaggi",
+      "working_many": "Elaborazione di {{count}} passaggi",
+      "summary_one": "{{count}} passaggio completato",
+      "summary_other": "{{count}} passaggi completati",
+      "summary_many": "{{count}} passaggi completati"
+    }
+  }
+}
