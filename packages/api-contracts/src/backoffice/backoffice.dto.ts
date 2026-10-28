@@ -78,7 +78,6 @@ export type BackofficeProjectMemberDto = {
   userEmail: string
   userName: string | null
   roles: MembershipRoleDto[]
-  canRead: boolean
 }
 
 export type BackofficeProjectAgentDto = {
@@ -100,7 +99,10 @@ export type BackofficeProjectDetailDto = {
   createdAt: TimeType
   featureFlags: FeatureFlagsDto
   permissions: string[]
+  /** Only the members the caller may read. */
   members: BackofficeProjectMemberDto[]
+  /** How many members the caller may not read, left out of `members`. */
+  hiddenMemberCount: number
   agents: BackofficeProjectAgentDto[]
 }
 

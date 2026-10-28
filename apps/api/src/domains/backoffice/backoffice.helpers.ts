@@ -172,6 +172,11 @@ export function toBackofficeProjectDetailDto({
   visibleUsers: ResourceIdsScope
   agents: { agent: Agent; permissions: string[] }[]
 }): BackofficeProjectDetailDto {
+  // reading the project does not grant reading its members: a member the caller cannot read as a
+  // user is left out, so the page cannot be used to list users
+  const readableMembers = members.filter(
+    (membership) => visibleUsers.scope === "all" || visibleUsers.ids.includes(membership.userId),
+  )
   return {
     id: project.id,
     name: project.name,
@@ -183,15 +188,15 @@ export function toBackofficeProjectDetailDto({
     createdAt: project.createdAt.getTime() as TimeType,
     featureFlags: toFeatureFlagsDto(project.featureFlags),
     permissions,
-    members: members.map(
+    members: readableMembers.map(
       (membership): BackofficeProjectMemberDto => ({
         userId: membership.userId,
         userEmail: membership.user?.email ?? "",
         userName: membership.user?.name ?? null,
         roles: membership.roles.map(toMembershipRoleDto),
-        canRead: visibleUsers.scope === "all" || visibleUsers.ids.includes(membership.userId),
       }),
     ),
+    hiddenMemberCount: members.length - readableMembers.length,
     agents: agents.map(
       ({ agent, permissions }): BackofficeProjectAgentDto => ({
         id: agent.id,
