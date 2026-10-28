@@ -17,6 +17,8 @@ import {
   FILE_STORAGE_SERVICE,
   type IFileStorage,
 } from "@/domains/documents/storage/file-storage.interface"
+import { DocumentTag } from "@/domains/documents/tags/document-tag.entity"
+import { documentTagFactory } from "@/domains/documents/tags/document-tag.factory"
 import { withDocumentEmbeddingsBatchServiceMock } from "@/domains/documents/test-overrides"
 import { createOrganizationWithAgentSession } from "@/domains/organizations/organization.factory"
 import type { MaintenanceJobProgress } from "../maintenance-job.interface"
@@ -236,6 +238,32 @@ describe("LegacyWebCrawlMigrationJob", () => {
       [legacyDocument.id],
     )
     expect(chunks).toHaveLength(0)
+  })
+
+  it("gives the source the tags of the legacy document", async () => {
+    const { organization, project, connectScope, legacyDocument, userId } = await createContext()
+    const [productTag, pricingTag] = await setup.dataSource
+      .getRepository(DocumentTag)
+      .save(
+        ["Product", "Pricing"].map((name) =>
+          documentTagFactory.transient({ organization, project }).build({ name }),
+        ),
+      )
+    legacyDocument.tags = [productTag!, pricingTag!]
+    await repositories.documentRepository.save(legacyDocument)
+
+    await run(userId)
+    await run(userId)
+
+    const [source] = await documentSourcesService.getAll(connectScope)
+    const tagLinks: { documentTagId: string }[] = await setup.dataSource.query(
+      `SELECT document_tag_id AS "documentTagId" FROM document_source_document_tag
+       WHERE document_source_id = $1`,
+      [source?.id],
+    )
+    expect(tagLinks.map((tagLink) => tagLink.documentTagId).sort()).toEqual(
+      [productTag!.id, pricingTag!.id].sort(),
+    )
   })
 
   it("does nothing more when it runs again", async () => {

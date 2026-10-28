@@ -24,8 +24,9 @@ import { LegacyWebCrawlDocumentRepository } from "./legacy-web-crawl-document.re
 /**
  * Turns each legacy web crawl (one document holding every page of a site as JSON) into a document
  * source of type `legacy-web-crawl` with one document per page, embedded like the pages the site
- * crawler app sends. Then it removes the legacy document: its citations in conversations, its
- * chunks and the document itself.
+ * crawler app sends. The source takes the tags of the legacy document, which its pages inherit.
+ * Then it removes the legacy document: its citations in conversations, its chunks and the
+ * document itself.
  *
  * Idempotent: the source is found again by its external id, and a source left half-filled by an
  * interrupted run is emptied and filled again. The legacy document goes last, so a document still
@@ -36,7 +37,7 @@ export class LegacyWebCrawlMigrationJob implements MaintenanceJob {
   readonly key = "legacy-web-crawl-to-document-sources"
   readonly title = "Legacy web crawls to document sources"
   readonly description =
-    "Turns each site crawled by the former web crawler into a document source with one document per page, embeds the pages again, then removes the former document and its citations in conversations."
+    "Turns each site crawled by the former web crawler into a document source with one document per page and the tags of the former document, embeds the pages again, then removes the former document and its citations in conversations."
 
   private readonly logger = new Logger(LegacyWebCrawlMigrationJob.name)
 
@@ -105,6 +106,10 @@ export class LegacyWebCrawlMigrationJob implements MaintenanceJob {
     // A crawl that never ended has no page: there is nothing to keep, only the document to remove.
     if (pages.length > 0) {
       const sourceId = await this.findOrCreateSource({ connectScope, document })
+      await this.legacyWebCrawlDocumentRepository.copyTagsToSource({
+        documentId: document.id,
+        documentSourceId: sourceId,
+      })
       for (const page of pages) {
         await this.createPageDocument({ connectScope, sourceId, page, requestedByUserId })
       }

@@ -112,6 +112,25 @@ export class LegacyWebCrawlDocumentRepository {
     return affectedRows(result)
   }
 
+  /**
+   * Gives the source the tags of the legacy document. Its page documents inherit them when an agent
+   * retrieves by tag. Tags the source already has are kept.
+   */
+  async copyTagsToSource({
+    documentId,
+    documentSourceId,
+  }: {
+    documentId: string
+    documentSourceId: string
+  }): Promise<void> {
+    await this.transactionService.getManager().query(
+      `INSERT INTO "document_source_document_tag" (document_source_id, document_tag_id)
+       SELECT $2, document_tag_id FROM "document_document_tag" WHERE document_id = $1
+       ON CONFLICT DO NOTHING`,
+      [documentId, documentSourceId],
+    )
+  }
+
   /** Hard-deletes the chunks of the document. Their embeddings go with them (cascade). */
   async deleteChunks(documentId: string): Promise<void> {
     const manager = this.transactionService.getManager()
