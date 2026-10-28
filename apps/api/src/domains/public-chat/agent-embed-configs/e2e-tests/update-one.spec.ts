@@ -45,9 +45,9 @@ describe("AgentEmbedConfigs Management - PATCH one", () => {
     authSubject = `oidc|${randomUUID()}`
     const { organization, project, agent } = await createOrganizationWithAgent(repositories, {
       user: { authSubject },
-      organizationMembership: { role: "member" },
-      projectMembership: { role: "owner" },
-      agentMembership: { role: "owner" },
+      organizationMembership: { roleKeys: ["org_member"] },
+      projectMembership: { roleKeys: ["project_owner"] },
+      agentMembership: { roleKeys: ["agent_owner"] },
     })
     organizationId = organization.id
     projectId = project.id

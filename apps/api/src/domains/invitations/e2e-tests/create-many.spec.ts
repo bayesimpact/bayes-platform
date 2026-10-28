@@ -279,7 +279,7 @@ describe("Invitations - createMany", () => {
         await findReviewCampaignMembershipRow(repositories, {
           userId: invitedUser.id,
           campaignId: campaign.id,
-          role: "reviewer",
+          roleKey: "review_campaign_reviewer",
         }),
       ).toBeNull()
     })
@@ -350,7 +350,7 @@ describe("Invitations - createMany", () => {
       await saveReviewCampaignMembership({
         repositories,
         membership: reviewCampaignMembershipFactory
-          .tester()
+          .withRoles("review_campaign_tester")
           .transient({ organization, project, campaign, user: participant })
           .build(),
       })

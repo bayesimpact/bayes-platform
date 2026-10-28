@@ -10,6 +10,7 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import type { ProjectRoleKey } from "@/domains/projects/memberships/project-membership.types"
 import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { ResourceLibrariesModule } from "../resource-libraries.module"
@@ -44,9 +45,9 @@ describe("ResourceLibraries - uploadResourceFile", () => {
     await app.close()
   })
 
-  const createContext = async (role: "owner" | "admin" | "member" = "owner") => {
+  const createContext = async (role: ProjectRoleKey = "project_owner") => {
     const { user, organization, project } = await createOrganizationWithProject(repositories, {
-      projectMembership: { role },
+      projectMembership: { roleKeys: [role] },
     })
     organizationId = organization.id
     projectId = project.id
@@ -77,7 +78,7 @@ describe("ResourceLibraries - uploadResourceFile", () => {
   })
 
   it("forbids a simple member from uploading", async () => {
-    await createContext("member")
+    await createContext("project_member")
     const response = await uploadFile()
     expect(response.status).toBe(403)
   })

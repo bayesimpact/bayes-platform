@@ -4,7 +4,7 @@ import type { BaseAgentSessionType } from "@/domains/agents/base-agent-sessions/
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { documentFactory } from "@/domains/documents/document.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
-import type { ProjectMembershipRole } from "@/domains/projects/memberships/project-membership.types"
+import type { ProjectRoleKey } from "@/domains/projects/memberships/project-membership.types"
 import type { AgentCsvExtractionRunStatus } from "../agent-csv-extraction-run.entity"
 import { agentCsvExtractionRunFactory } from "../agent-csv-extraction-run.factory"
 
@@ -15,18 +15,18 @@ import { agentCsvExtractionRunFactory } from "../agent-csv-extraction-run.factor
  */
 export async function createCsvExtractionRunContext({
   repositories,
-  role = "owner",
+  role = "project_owner",
   authSubject,
 }: {
   repositories: AllRepositories
-  role?: ProjectMembershipRole
+  role?: ProjectRoleKey
   authSubject: string
 }) {
   const { user, organization, project, agent, agentSettings } = await createOrganizationWithAgent(
     repositories,
     {
       user: { authSubject },
-      projectMembership: { role },
+      projectMembership: { roleKeys: [role] },
       agent: { type: "extraction" },
     },
   )

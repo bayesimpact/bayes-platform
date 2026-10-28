@@ -20,9 +20,10 @@ import {
   createOrganizationWithAgent,
   createOrganizationWithAgentSession,
 } from "@/domains/organizations/organization.factory"
-import type { ProjectMembershipRole } from "@/domains/projects/memberships/project-membership.types"
+import type { ProjectRoleKey } from "@/domains/projects/memberships/project-membership.types"
 import { projectFactory } from "@/domains/projects/project.factory"
 import { addUserToReviewCampaign } from "@/domains/review-campaigns/memberships/review-campaign-membership.factory"
+import type { ReviewCampaignRoleKey } from "@/domains/review-campaigns/memberships/review-campaign-membership.types"
 import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
 import type { ReviewCampaignStatus } from "@/domains/review-campaigns/review-campaigns.types"
 import {
@@ -79,7 +80,7 @@ describe("Agent Sessions - Auth", () => {
   // Seeds an organization/project (membership at `role`) + conversation agent, and a session of
   // `type` owned by the caller so the delete and sub-session routes have a resolvable target.
   const createContextForRole = async (
-    role: ProjectMembershipRole,
+    role: ProjectRoleKey,
     type: BaseAgentSessionTypeDto = "live",
   ) => {
     const { organization, project, agent, agentSession, user } =
@@ -87,7 +88,7 @@ describe("Agent Sessions - Auth", () => {
         repositories,
         params: {
           user: { authSubject, email: mockOidcEmailForSub(authSubject) },
-          projectMembership: { role },
+          projectMembership: { roleKeys: [role] },
           agentSession: { type },
         },
         agentType: "conversation",
@@ -119,7 +120,7 @@ describe("Agent Sessions - Auth", () => {
         authSubject: organizationAdminAuthSubject,
         email: mockOidcEmailForSub(organizationAdminAuthSubject),
       },
-      membership: { role: "admin" },
+      membership: { roleKeys: ["org_admin"] },
     })
     const agentSession = conversationAgentSessionFactory
       .transient({ organization, project, agent, user })
@@ -140,25 +141,25 @@ describe("Agent Sessions - Auth", () => {
       })
 
       it("requires a valid organization ID", async () => {
-        await createContextForRole("owner", type)
+        await createContextForRole("project_owner", type)
         organizationId = null
         expectResponse(await subject(type), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
       })
 
       it("requires a valid agent ID", async () => {
-        await createContextForRole("owner", type)
+        await createContextForRole("project_owner", type)
         agentId = null
         expectResponse(await subject(type), 404)
       })
 
       it("requires the user to be a member of the organization", async () => {
-        await createContextForRole("owner", type)
+        await createContextForRole("project_owner", type)
         authSubject = mockForeignAuthSubject()
         expectResponse(await subject(type), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
       })
 
       it("forbids an organization admin who holds no project role", async () => {
-        const context = await createContextForRole("owner", type)
+        const context = await createContextForRole("project_owner", type)
         await switchToOrganizationAdminWithoutProjectRole(context)
         expectResponse(await subject(type), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
       })
@@ -170,24 +171,24 @@ describe("Agent Sessions - Auth", () => {
     subject: (type: BaseAgentSessionTypeDto) => ReturnType<Requester>,
   ) => {
     it.each([
-      ["owner"],
-      ["admin"],
-      ["member"],
+      ["project_owner"],
+      ["project_admin"],
+      ["project_member"],
     ] as const)("allows a project %s on the live routes", async (role) => {
       await createContextForRole(role, "live")
       expectResponse(await subject("live"), 201)
     })
 
     it.each([
-      ["owner"],
-      ["admin"],
+      ["project_owner"],
+      ["project_admin"],
     ] as const)("allows a project %s on the playground routes", async (role) => {
       await createContextForRole(role, "playground")
       expectResponse(await subject("playground"), 201)
     })
 
     it("forbids a plain member on the playground routes", async () => {
-      await createContextForRole("member", "playground")
+      await createContextForRole("project_member", "playground")
       expectResponse(await subject("playground"), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
   }
@@ -228,18 +229,18 @@ describe("Agent Sessions - Auth", () => {
     describeRoleChecks(subject)
 
     it("answers 404 for an unknown session", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       agentSessionId = randomUUID()
       expectResponse(await subject("live"), 404)
     })
 
     it("answers 404 for a playground session on the live routes", async () => {
-      await createContextForRole("owner", "playground")
+      await createContextForRole("project_owner", "playground")
       expectResponse(await subject("live"), 404)
     })
 
     it("answers 404 for a live session on the playground routes", async () => {
-      await createContextForRole("owner", "live")
+      await createContextForRole("project_owner", "live")
       expectResponse(await subject("playground"), 404)
     })
   })
@@ -260,10 +261,10 @@ describe("Agent Sessions - Auth", () => {
   describe("review campaign participants", () => {
     const createCampaignParticipantContext = async ({
       status = "active",
-      role = "tester",
+      roleKey = "review_campaign_tester",
     }: {
       status?: ReviewCampaignStatus
-      role?: "tester" | "reviewer"
+      roleKey?: ReviewCampaignRoleKey
     } = {}) => {
       const { organization, project, agent, agentSettings } = await createOrganizationWithAgent(
         repositories,
@@ -280,7 +281,7 @@ describe("Agent Sessions - Auth", () => {
         organization,
         project,
         campaign,
-        role,
+        roleKeys: [roleKey],
         user: {
           authSubject: participantAuthSubject,
           email: mockOidcEmailForSub(participantAuthSubject),
@@ -331,7 +332,7 @@ describe("Agent Sessions - Auth", () => {
         ["active"],
         ["closed"],
       ] as const)("forbids a reviewer-only participant (%s campaign)", async (status) => {
-        await createCampaignParticipantContext({ status, role: "reviewer" })
+        await createCampaignParticipantContext({ status, roleKey: "review_campaign_reviewer" })
         expectResponse(await subject(routeKey), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
       })
 

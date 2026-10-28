@@ -20,6 +20,7 @@ import { AgentsModule } from "@/domains/agents/agents.module"
 import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
 import type { Organization } from "@/domains/organizations/organization.entity"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import type { ProjectRoleKey } from "@/domains/projects/memberships/project-membership.types"
 import { projectFactory } from "@/domains/projects/project.factory"
 import {
   mockForeignAuthSubject,
@@ -31,8 +32,6 @@ import { expectResponse, type Requester, testRequester } from "../../../../test/
 import { EncryptionService } from "../encryption.service"
 import { mcpServerFactory } from "../mcp-server.factory"
 import { McpServersModule } from "../mcp-servers.module"
-
-type ProjectRole = "owner" | "admin" | "member"
 
 // The OAuth routes reach out to the MCP server once the guard lets them
 // through. No test here exercises a provider, so every call answers 404.
@@ -90,11 +89,11 @@ describe("McpServers - auth and scoping", () => {
     await app.close()
   })
 
-  const createContextForRole = async (role: ProjectRole = "owner") => {
+  const createContextForRole = async (role: ProjectRoleKey = "project_owner") => {
     const { organization, project } = await createOrganizationWithProject(repositories, {
       user: { authSubject },
-      organizationMembership: { role: "member" },
-      projectMembership: { role },
+      organizationMembership: { roleKeys: ["org_member"] },
+      projectMembership: { roleKeys: [role] },
     })
     organizationId = organization.id
     projectId = project.id
@@ -131,7 +130,7 @@ describe("McpServers - auth and scoping", () => {
         authSubject: organizationAdminAuthSubject,
         email: mockOidcEmailForSub(organizationAdminAuthSubject),
       },
-      membership: { role: "admin" },
+      membership: { roleKeys: ["org_admin"] },
     })
     authSubject = organizationAdminAuthSubject
   }
@@ -163,29 +162,32 @@ describe("McpServers - auth and scoping", () => {
       })
 
     it("requires an authentication token", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       accessToken = null
       expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
     })
 
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
 
-    it.each<ProjectRole>(["owner", "admin"])("allows a project %s to create", async (role) => {
+    it.each<ProjectRoleKey>([
+      "project_owner",
+      "project_admin",
+    ])("allows a %s to create", async (role) => {
       await createContextForRole(role)
       expectResponse(await subject(), 201)
     })
 
     it("forbids a simple project member from creating", async () => {
-      await createContextForRole("member")
+      await createContextForRole("project_member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
 
     it("forbids an organization admin without a project role from creating", async () => {
-      const { organization } = await createContextForRole("owner")
+      const { organization } = await createContextForRole("project_owner")
       await switchToOrganizationAdminWithoutProjectRole(organization)
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
@@ -200,19 +202,19 @@ describe("McpServers - auth and scoping", () => {
       })
 
     it("requires an authentication token", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       accessToken = null
       expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
     })
 
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
 
     it("allows a simple project member to list", async () => {
-      const { mcpServer } = await createContextForRole("member")
+      const { mcpServer } = await createContextForRole("project_member")
       // Factory config is not decryptable, replace with one created through the API as owner.
       await repositories.mcpServerRepository.delete({ id: mcpServer.id })
 
@@ -223,13 +225,13 @@ describe("McpServers - auth and scoping", () => {
     })
 
     it("forbids an organization admin without a project role from listing", async () => {
-      const { organization } = await createContextForRole("owner")
+      const { organization } = await createContextForRole("project_owner")
       await switchToOrganizationAdminWithoutProjectRole(organization)
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
 
     it("returns the decrypted URL and never the API key", async () => {
-      const { mcpServer } = await createContextForRole("owner")
+      const { mcpServer } = await createContextForRole("project_owner")
       await repositories.mcpServerRepository.delete({ id: mcpServer.id })
       await request({
         route: McpServersRoutes.createOne,
@@ -253,7 +255,7 @@ describe("McpServers - auth and scoping", () => {
     })
 
     it("does not list servers from another project of the same organization", async () => {
-      const { organization, mcpServer } = await createContextForRole("owner")
+      const { organization, mcpServer } = await createContextForRole("project_owner")
       await repositories.mcpServerRepository.delete({ id: mcpServer.id })
       await createServerInOtherProject(organization)
       await request({
@@ -279,13 +281,13 @@ describe("McpServers - auth and scoping", () => {
       })
 
     it("requires an authentication token", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       accessToken = null
       expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
     })
 
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
 
@@ -294,13 +296,16 @@ describe("McpServers - auth and scoping", () => {
       ).not.toBeNull()
     })
 
-    it.each<ProjectRole>(["owner", "admin"])("allows a project %s to delete", async (role) => {
+    it.each<ProjectRoleKey>([
+      "project_owner",
+      "project_admin",
+    ])("allows a %s to delete", async (role) => {
       await createContextForRole(role)
       expectResponse(await subject(), 200)
     })
 
     it("forbids a simple project member from deleting", async () => {
-      await createContextForRole("member")
+      await createContextForRole("project_member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
 
       expect(
@@ -309,7 +314,7 @@ describe("McpServers - auth and scoping", () => {
     })
 
     it("forbids an organization admin without a project role from deleting", async () => {
-      const { organization } = await createContextForRole("owner")
+      const { organization } = await createContextForRole("project_owner")
       await switchToOrganizationAdminWithoutProjectRole(organization)
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
 
@@ -319,13 +324,13 @@ describe("McpServers - auth and scoping", () => {
     })
 
     it("returns 404 for an unknown server", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       mcpServerId = randomUUID()
       expectResponse(await subject(), 404)
     })
 
     it("returns 404 for a server of another project in the same organization", async () => {
-      const { organization } = await createContextForRole("owner")
+      const { organization } = await createContextForRole("project_owner")
       const { foreignServer } = await createServerInOtherProject(organization)
       mcpServerId = foreignServer.id
 
@@ -337,7 +342,7 @@ describe("McpServers - auth and scoping", () => {
     })
 
     it("returns 404 for a preset server", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       const preset = mcpServerFactory.preset("auth-preset").build()
       await repositories.mcpServerRepository.save(preset)
       mcpServerId = preset.id
@@ -346,7 +351,7 @@ describe("McpServers - auth and scoping", () => {
     })
 
     it("also removes the agent links of the deleted server", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       await repositories.agentMcpServerRepository.save(
         repositories.agentMcpServerRepository.create({ agentId, mcpServerId, enabled: true }),
       )
@@ -368,24 +373,27 @@ describe("McpServers - auth and scoping", () => {
       })
 
     it("requires an authentication token", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       accessToken = null
       expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
     })
 
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
 
-    it.each<ProjectRole>(["owner", "admin"])("allows a project %s to enable", async (role) => {
+    it.each<ProjectRoleKey>([
+      "project_owner",
+      "project_admin",
+    ])("allows a %s to enable", async (role) => {
       await createContextForRole(role)
       expectResponse(await subject(), 201)
     })
 
     it("forbids a simple project member from enabling", async () => {
-      await createContextForRole("member")
+      await createContextForRole("project_member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
 
       expect(
@@ -394,7 +402,7 @@ describe("McpServers - auth and scoping", () => {
     })
 
     it("returns 404 for a server of another project", async () => {
-      const { organization } = await createContextForRole("owner")
+      const { organization } = await createContextForRole("project_owner")
       const { foreignServer } = await createServerInOtherProject(organization)
       mcpServerId = foreignServer.id
 
@@ -411,18 +419,21 @@ describe("McpServers - auth and scoping", () => {
       })
 
     it("requires an authentication token", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       accessToken = null
       expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
     })
 
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
 
-    it.each<ProjectRole>(["owner", "admin"])("allows a project %s to disable", async (role) => {
+    it.each<ProjectRoleKey>([
+      "project_owner",
+      "project_admin",
+    ])("allows a %s to disable", async (role) => {
       await createContextForRole(role)
       await repositories.agentMcpServerRepository.save(
         repositories.agentMcpServerRepository.create({ agentId, mcpServerId, enabled: true }),
@@ -438,7 +449,7 @@ describe("McpServers - auth and scoping", () => {
     })
 
     it("forbids a simple project member from disabling", async () => {
-      await createContextForRole("member")
+      await createContextForRole("project_member")
       await repositories.agentMcpServerRepository.save(
         repositories.agentMcpServerRepository.create({ agentId, mcpServerId, enabled: true }),
       )
@@ -451,7 +462,7 @@ describe("McpServers - auth and scoping", () => {
     })
 
     it("returns 404 for a server of another project", async () => {
-      const { organization } = await createContextForRole("owner")
+      const { organization } = await createContextForRole("project_owner")
       const { foreignServer } = await createServerInOtherProject(organization)
       mcpServerId = foreignServer.id
 
@@ -459,7 +470,7 @@ describe("McpServers - auth and scoping", () => {
     })
 
     it("succeeds even when no link exists", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       expectResponse(await subject(), 200)
     })
   })
@@ -482,13 +493,13 @@ describe("McpServers - auth and scoping", () => {
     })
 
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
 
     it("forbids a simple project member from initiating", async () => {
-      await createContextForRole("member")
+      await createContextForRole("project_member")
       await giveServerDecryptableConfig()
 
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
@@ -496,7 +507,10 @@ describe("McpServers - auth and scoping", () => {
       expect(fetchMock).not.toHaveBeenCalled()
     })
 
-    it.each<ProjectRole>(["owner", "admin"])("allows a project %s to initiate", async (role) => {
+    it.each<ProjectRoleKey>([
+      "project_owner",
+      "project_admin",
+    ])("allows a %s to initiate", async (role) => {
       await createContextForRole(role)
       await giveServerDecryptableConfig()
 
@@ -507,7 +521,7 @@ describe("McpServers - auth and scoping", () => {
     })
 
     it("returns 404 for a server of another project", async () => {
-      const { organization } = await createContextForRole("owner")
+      const { organization } = await createContextForRole("project_owner")
       const { foreignServer } = await createServerInOtherProject(organization)
       mcpServerId = foreignServer.id
 
@@ -530,19 +544,22 @@ describe("McpServers - auth and scoping", () => {
     })
 
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
 
     it("forbids a simple project member from completing", async () => {
-      await createContextForRole("member")
+      await createContextForRole("project_member")
       await giveServerDecryptableConfig()
 
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
 
-    it.each<ProjectRole>(["owner", "admin"])("allows a project %s to complete", async (role) => {
+    it.each<ProjectRoleKey>([
+      "project_owner",
+      "project_admin",
+    ])("allows a %s to complete", async (role) => {
       await createContextForRole(role)
       await giveServerDecryptableConfig()
 
@@ -551,7 +568,7 @@ describe("McpServers - auth and scoping", () => {
     })
 
     it("returns 404 for a server of another project", async () => {
-      const { organization } = await createContextForRole("owner")
+      const { organization } = await createContextForRole("project_owner")
       const { foreignServer } = await createServerInOtherProject(organization)
       mcpServerId = foreignServer.id
 

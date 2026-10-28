@@ -15,6 +15,7 @@ import { addUserToOrganization } from "@/domains/organizations/memberships/organ
 import type { Organization } from "@/domains/organizations/organization.entity"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { addUserToProject } from "@/domains/projects/memberships/project-membership.factory"
+import type { ProjectRoleKey } from "@/domains/projects/memberships/project-membership.types"
 import type { Project } from "@/domains/projects/project.entity"
 import {
   mockForeignAuthSubject,
@@ -25,8 +26,7 @@ import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 import { AgentsModule } from "../../agents.module"
 import { addMemberByEmailToAgent } from "../agent-membership.factory"
-
-type Role = "owner" | "admin" | "member"
+import type { AgentRoleKey } from "../agent-membership.types"
 
 describe("Agent Memberships - Auth", () => {
   let app: INestApplication<App>
@@ -73,14 +73,14 @@ describe("Agent Memberships - Auth", () => {
     projectRole,
     agentRole,
   }: {
-    projectRole: Role
-    agentRole: Role
+    projectRole: ProjectRoleKey
+    agentRole: AgentRoleKey
   }) => {
     const { organization, agent } = await createOrganizationWithAgent(repositories, {
       user: { authSubject },
-      organizationMembership: { role: "member" },
-      projectMembership: { role: projectRole },
-      agentMembership: { role: agentRole },
+      organizationMembership: { roleKeys: ["org_member"] },
+      projectMembership: { roleKeys: [projectRole] },
+      agentMembership: { roleKeys: [agentRole] },
     })
     const { membership, addedUser } = await addMemberByEmailToAgent({ repositories, agent })
     // A member of the project too, as role changes on the agent require.
@@ -88,7 +88,7 @@ describe("Agent Memberships - Auth", () => {
       repositories,
       project: { id: agent.projectId } as Project,
       user: addedUser,
-      membership: { role: "member" },
+      membership: { roleKeys: ["project_member"] },
     })
     organizationId = organization.id
     projectId = agent.projectId
@@ -107,7 +107,7 @@ describe("Agent Memberships - Auth", () => {
         authSubject: organizationAdminAuthSubject,
         email: mockOidcEmailForSub(organizationAdminAuthSubject),
       },
-      membership: { role: "admin" },
+      membership: { roleKeys: ["org_admin"] },
     })
     authSubject = organizationAdminAuthSubject
   }
@@ -174,17 +174,17 @@ describe("Agent Memberships - Auth", () => {
   })
 
   it("requires the user to be a member of the organization", async () => {
-    await createContextForRoles({ projectRole: "owner", agentRole: "owner" })
+    await createContextForRoles({ projectRole: "project_owner", agentRole: "agent_owner" })
     authSubject = mockForeignAuthSubject()
     expectResponse(await getAll(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     expectResponse(await deleteOne(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
   })
 
-  it.each<Role>([
-    "owner",
-    "admin",
+  it.each<AgentRoleKey>([
+    "agent_owner",
+    "agent_admin",
   ])("lets an agent %s list and remove members, even as a project member", async (role) => {
-    await createContextForRoles({ projectRole: "member", agentRole: role })
+    await createContextForRoles({ projectRole: "project_member", agentRole: role })
     expectResponse(await getAll(), 200)
     expectResponse(await addRole(), 201)
     expectResponse(await removeRole(), 200)
@@ -192,13 +192,16 @@ describe("Agent Memberships - Auth", () => {
     expectResponse(await deleteOne(), 200)
   })
 
-  it.each<Role>(["owner", "admin"])("lets an agent %s remove members in bulk", async (role) => {
-    await createContextForRoles({ projectRole: "member", agentRole: role })
+  it.each<AgentRoleKey>([
+    "agent_owner",
+    "agent_admin",
+  ])("lets an agent %s remove members in bulk", async (role) => {
+    await createContextForRoles({ projectRole: "project_member", agentRole: role })
     expectResponse(await deleteMany(), 200)
   })
 
   it("doesn't let an agent member list or remove members", async () => {
-    await createContextForRoles({ projectRole: "member", agentRole: "member" })
+    await createContextForRoles({ projectRole: "project_member", agentRole: "agent_member" })
     expectResponse(await getAll(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     expectResponse(await deleteOne(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     expectResponse(await addRole(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
@@ -208,15 +211,15 @@ describe("Agent Memberships - Auth", () => {
   })
 
   it("doesn't let an agent member who owns the project list or remove members", async () => {
-    await createContextForRoles({ projectRole: "owner", agentRole: "member" })
+    await createContextForRoles({ projectRole: "project_owner", agentRole: "agent_member" })
     expectResponse(await getAll(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     expectResponse(await deleteOne(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
   })
 
   it("doesn't let an organization admin outside the project list or remove members", async () => {
     const { organization } = await createContextForRoles({
-      projectRole: "owner",
-      agentRole: "owner",
+      projectRole: "project_owner",
+      agentRole: "agent_owner",
     })
     await switchToOrganizationAdminWithoutProjectRole(organization)
     expectResponse(await getAll(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)

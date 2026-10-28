@@ -72,6 +72,7 @@ import {
   reviewCampaignMembershipFactory,
   saveReviewCampaignMembership,
 } from "@/domains/review-campaigns/memberships/review-campaign-membership.factory"
+import type { ReviewCampaignRoleKey } from "@/domains/review-campaigns/memberships/review-campaign-membership.types"
 import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import { USER_TYPE_SERVICE } from "@/domains/users/user.types"
@@ -199,7 +200,7 @@ describe("PermissionService", () => {
       const { user } = await addUserToProject({
         repositories,
         project,
-        membership: { role: "member" },
+        membership: { roleKeys: ["project_member"] },
       })
       const adminRole = await repositories.roleRepository.findOneOrFail({
         where: { key: PROJECT_ROLES.admin },
@@ -259,7 +260,7 @@ describe("PermissionService", () => {
 
     const joinCampaign = async (
       context: Awaited<ReturnType<typeof createCampaign>>,
-      role: keyof typeof REVIEW_CAMPAIGN_ROLES,
+      roleKey: ReviewCampaignRoleKey,
     ) => {
       const repositories = setup.getAllRepositories()
       const user = await repositories.userRepository.save(userFactory.build())
@@ -272,7 +273,7 @@ describe("PermissionService", () => {
             campaign: context.campaign,
             user,
           })
-          .build({ role }),
+          .build({ roleKeys: [roleKey] }),
       })
       return user
     }
@@ -291,8 +292,8 @@ describe("PermissionService", () => {
           })
           .build(),
       )
-      const tester = await joinCampaign(context, "tester")
-      const reviewer = await joinCampaign(context, "reviewer")
+      const tester = await joinCampaign(context, "review_campaign_tester")
+      const reviewer = await joinCampaign(context, "review_campaign_reviewer")
       const campaign = { type: "review_campaign" as const, id: context.campaign.id }
 
       await expect(
@@ -324,12 +325,12 @@ describe("PermissionService", () => {
       const { user: projectMember } = await addUserToProject({
         repositories,
         project: context.project,
-        membership: { role: "member" },
+        membership: { roleKeys: ["project_member"] },
       })
       const { user: projectAdmin } = await addUserToProject({
         repositories,
         project: context.project,
-        membership: { role: "admin" },
+        membership: { roleKeys: ["project_admin"] },
       })
       const campaign = { type: "review_campaign" as const, id: context.campaign.id }
 
@@ -355,8 +356,8 @@ describe("PermissionService", () => {
       const context = await createCampaign()
       const otherProject = projectFactory.transient({ organization: context.organization }).build()
       await repositories.projectRepository.save(otherProject)
-      const tester = await joinCampaign(context, "tester")
-      const reviewer = await joinCampaign(context, "reviewer")
+      const tester = await joinCampaign(context, "review_campaign_tester")
+      const reviewer = await joinCampaign(context, "review_campaign_reviewer")
       const project = { type: "project" as const, id: context.project.id }
 
       await expect(
@@ -384,7 +385,7 @@ describe("PermissionService", () => {
 
     it("lists the campaign's project with the keys the campaign role gives", async () => {
       const context = await createCampaign()
-      const tester = await joinCampaign(context, "tester")
+      const tester = await joinCampaign(context, "review_campaign_tester")
 
       await expect(service.listResourceIds(tester.id, PROJECT_READ_PERMISSION)).resolves.toEqual([
         context.project.id,
@@ -415,7 +416,7 @@ describe("PermissionService", () => {
 
     it("gives a tester nothing on the project once the campaign is closed", async () => {
       const context = await createCampaign()
-      const tester = await joinCampaign(context, "tester")
+      const tester = await joinCampaign(context, "review_campaign_tester")
       await setCampaignStatus(context, "closed")
       const project = { type: "project" as const, id: context.project.id }
 
@@ -435,7 +436,7 @@ describe("PermissionService", () => {
 
     it("keeps a reviewer's project.read once the campaign is closed", async () => {
       const context = await createCampaign()
-      const reviewer = await joinCampaign(context, "reviewer")
+      const reviewer = await joinCampaign(context, "review_campaign_reviewer")
       await setCampaignStatus(context, "closed")
 
       await expect(
@@ -452,7 +453,7 @@ describe("PermissionService", () => {
     it("gives the reviewer role's project.read, and only that, to someone holding both roles on a closed campaign", async () => {
       const repositories = setup.getAllRepositories()
       const context = await createCampaign()
-      const participant = await joinCampaign(context, "tester")
+      const participant = await joinCampaign(context, "review_campaign_tester")
       await saveReviewCampaignMembership({
         repositories,
         membership: reviewCampaignMembershipFactory
@@ -462,7 +463,7 @@ describe("PermissionService", () => {
             campaign: context.campaign,
             user: participant,
           })
-          .build({ role: "reviewer" }),
+          .build({ roleKeys: ["review_campaign_reviewer"] }),
       })
       await setCampaignStatus(context, "closed")
 
@@ -475,8 +476,8 @@ describe("PermissionService", () => {
 
     it("gives nothing on the project while the campaign is a draft", async () => {
       const context = await createCampaign()
-      const tester = await joinCampaign(context, "tester")
-      const reviewer = await joinCampaign(context, "reviewer")
+      const tester = await joinCampaign(context, "review_campaign_tester")
+      const reviewer = await joinCampaign(context, "review_campaign_reviewer")
       await setCampaignStatus(context, "draft")
       const project = { type: "project" as const, id: context.project.id }
 
@@ -487,7 +488,7 @@ describe("PermissionService", () => {
     it("gives nothing on the project once the campaign is deleted", async () => {
       const repositories = setup.getAllRepositories()
       const context = await createCampaign()
-      const tester = await joinCampaign(context, "tester")
+      const tester = await joinCampaign(context, "review_campaign_tester")
       await repositories.reviewCampaignRepository.softDelete({ id: context.campaign.id })
 
       await expect(
@@ -1184,20 +1185,20 @@ describe("PermissionService", () => {
         repositories,
         project,
         user: projectAdmin,
-        membership: { role: "admin" },
+        membership: { roleKeys: ["project_admin"] },
       })
       const agentMember = await saveUser()
       await addUserToProject({
         repositories,
         project,
         user: agentMember,
-        membership: { role: "member" },
+        membership: { roleKeys: ["project_member"] },
       })
       await addUserToAgent({
         repositories,
         agent,
         user: agentMember,
-        membership: { role: "member" },
+        membership: { roleKeys: ["agent_member"] },
       })
       const reviewer = await saveUser()
       await grantConversationReview({ repositories, user: reviewer, agent })

@@ -24,7 +24,9 @@ import {
 import { appManifestFactory } from "@/domains/apps/app-manifest.factory"
 import { AppsService } from "@/domains/apps/apps.service"
 import { withDocumentEmbeddingsBatchServiceMock } from "@/domains/documents/test-overrides"
+import type { OrganizationRoleKey } from "@/domains/organizations/memberships/organization-membership.types"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import type { ProjectRoleKey } from "@/domains/projects/memberships/project-membership.types"
 import { USER_TYPE_SERVICE } from "@/domains/users/user.types"
 import { listenOnLoopback, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import {
@@ -80,10 +82,16 @@ describe("OAuth authorization server - app installs", () => {
     await app.close()
   })
 
-  const createContext = async (role: "owner" | "member" = "owner") => {
+  const createContext = async ({
+    organizationRoleKey = "org_owner",
+    projectRoleKey = "project_owner",
+  }: {
+    organizationRoleKey?: OrganizationRoleKey
+    projectRoleKey?: ProjectRoleKey
+  } = {}) => {
     const { user, organization, project } = await createOrganizationWithProject(repositories, {
-      organizationMembership: { role },
-      projectMembership: { role },
+      organizationMembership: { roleKeys: [organizationRoleKey] },
+      projectMembership: { roleKeys: [projectRoleKey] },
     })
     authSubject = user.authSubject!
     return { user, organization, project }
@@ -252,7 +260,7 @@ describe("OAuth authorization server - app installs", () => {
     })
 
     it("offers no project to a project member", async () => {
-      await createContext("member")
+      await createContext({ organizationRoleKey: "org_member", projectRoleKey: "project_member" })
       const { clientId } = await createAppClient()
 
       const response = await getConsent(clientId)

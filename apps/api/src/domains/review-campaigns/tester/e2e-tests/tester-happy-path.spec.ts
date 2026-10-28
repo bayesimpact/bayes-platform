@@ -89,7 +89,7 @@ describe("ReviewCampaigns - Tester happy path", () => {
     await saveReviewCampaignMembership({
       repositories,
       membership: reviewCampaignMembershipFactory
-        .tester()
+        .withRoles("review_campaign_tester")
         .transient({ organization, project, campaign, user })
         .build(),
     })
@@ -156,7 +156,7 @@ describe("ReviewCampaigns - Tester happy path", () => {
     await saveReviewCampaignMembership({
       repositories,
       membership: reviewCampaignMembershipFactory
-        .reviewer()
+        .withRoles("review_campaign_reviewer")
         .transient({ organization, project, campaign: reviewerCampaign, user: callerUser })
         .build(),
     })
@@ -213,14 +213,14 @@ describe("ReviewCampaigns - Tester happy path", () => {
     await saveReviewCampaignMembership({
       repositories,
       membership: reviewCampaignMembershipFactory
-        .reviewer()
+        .withRoles("review_campaign_reviewer")
         .transient({ organization, project, campaign: closedCampaign, user: callerUser })
         .build(),
     })
     await saveReviewCampaignMembership({
       repositories,
       membership: reviewCampaignMembershipFactory
-        .reviewer()
+        .withRoles("review_campaign_reviewer")
         .transient({ organization, project, campaign: draftCampaign, user: callerUser })
         .build(),
     })

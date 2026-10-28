@@ -13,7 +13,7 @@ import {
   setupTransactionalTestDatabase,
   teardownTestDatabase,
 } from "@/common/test/test-transaction-manager"
-import type { ProjectMembershipRole } from "@/domains/projects/memberships/project-membership.types"
+import type { ProjectRoleKey } from "@/domains/projects/memberships/project-membership.types"
 import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { AgentCsvExtractionRunStatusStreamService } from "../agent-csv-extraction-run-status-stream.service"
 import { AgentCsvExtractionRunsModule } from "../agent-csv-extraction-runs.module"
@@ -75,7 +75,7 @@ describe("AgentCsvExtractionRuns.streamRunStatus", () => {
     await app.close()
   })
 
-  const createContext = async (role: ProjectMembershipRole = "owner") => {
+  const createContext = async (role: ProjectRoleKey = "project_owner") => {
     const context = await createCsvExtractionRunContext({ repositories, role, authSubject })
     organizationId = context.organization.id
     projectId = context.project.id
@@ -209,7 +209,7 @@ describe("AgentCsvExtractionRuns.streamRunStatus", () => {
   })
 
   it("should stream to a plain member only their own runs and the runs without a creator", async () => {
-    await createContext("member")
+    await createContext("project_member")
 
     const colleagueEvent = buildEvent({
       userId: "00000000-0000-0000-0000-0000000000aa",
@@ -237,7 +237,7 @@ describe("AgentCsvExtractionRuns.streamRunStatus", () => {
   })
 
   it("should not stream a colleague's runs to a project admin", async () => {
-    await createContext("admin")
+    await createContext("project_admin")
 
     const colleagueEvent = buildEvent({
       userId: "00000000-0000-0000-0000-0000000000aa",
