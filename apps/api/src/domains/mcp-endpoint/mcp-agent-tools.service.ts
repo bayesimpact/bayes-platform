@@ -73,7 +73,7 @@ export type McpAgent = {
 
 export type McpAgentSettingsFields = Pick<
   PartialUpdateAgentSettingsDto,
-  "instructions" | "model" | "locale" | "greetingMessage"
+  "instructions" | "model" | "greetingMessage"
 >
 
 /** The draft revision the change went into: the published version does not change. */

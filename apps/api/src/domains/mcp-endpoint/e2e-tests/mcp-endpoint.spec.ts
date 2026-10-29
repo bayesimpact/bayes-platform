@@ -1,8 +1,4 @@
-import {
-  AgentLocale,
-  AgentModel,
-  type OAuthGrantablePermission,
-} from "@caseai-connect/api-contracts"
+import { AgentModel, type OAuthGrantablePermission } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client"
 import type { INestApplication } from "@nestjs/common"
@@ -348,7 +344,7 @@ describe("MCP endpoint", () => {
       })
       await client.callTool({
         name: "update_agent",
-        arguments: { agentId, locale: AgentLocale.FR },
+        arguments: { agentId, instructions: "Answer briefly." },
       })
 
       const revisions = await setup
@@ -358,7 +354,7 @@ describe("MCP endpoint", () => {
       expect(revisions[1]).toMatchObject({
         isDraft: true,
         model: AgentModel.Gemini38Flash,
-        locale: AgentLocale.FR,
+        instructions: "Answer briefly.",
       })
       await client.close()
     })

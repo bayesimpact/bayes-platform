@@ -113,9 +113,8 @@
   var PROTOCOL_VERSION = "2026-01-26";
   var INITIALIZE_ID = 1;
 
-  // The card speaks the agent's language. The server stamps it on <html lang>
-  // from the Accept-Language header the platform sends with every MCP call,
-  // and a host may still override it through hostContext.locale (MCP Apps).
+  // The card speaks the host's language, read from hostContext.locale (MCP
+  // Apps) at initialization and on every host-context-changed notification.
   // Every visible string is picked from this dictionary at render time;
   // English is the fallback for a missing or unknown locale.
   var MESSAGES = {
@@ -496,7 +495,7 @@
     new window.ResizeObserver(sendSizeChanged).observe(document.documentElement);
   }
 
-  // Start in the language the server stamped on the document.
+  // Start in the document's language (English) until the host gives its own.
   setLocale(document.documentElement.lang);
   render();
   send({

@@ -1,4 +1,4 @@
-import { AgentLocale, AgentModel, DocumentsRagMode } from "@caseai-connect/api-contracts"
+import { AgentModel, DocumentsRagMode } from "@caseai-connect/api-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { agentFactory } from "@/common/features/agents/agent.factory"
 import {
@@ -24,7 +24,6 @@ const baseSettings = agentSettingsFactory.transient({ agent }).build({
   instructions: "You are a helpful assistant.\nAnswer clearly and concisely.",
   model: AgentModel.Gemini25Flash,
   providerOptions: { temperature: 0.7 },
-  locale: AgentLocale.EN,
   documentsRagMode: DocumentsRagMode.None,
   greetingMessage: undefined,
   outputJsonSchema: undefined,

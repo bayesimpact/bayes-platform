@@ -1,9 +1,4 @@
-import type {
-  AgentLocale,
-  AgentMemoryMode,
-  AgentModel,
-  DocumentsRagMode,
-} from "@caseai-connect/api-contracts"
+import type { AgentMemoryMode, AgentModel, DocumentsRagMode } from "@caseai-connect/api-contracts"
 import { Column, JoinColumn, ManyToOne, type Relation } from "typeorm"
 import { ConnectEntityBase, ConnectEntityWithUniqueIndex } from "@/common/entities/connect-entity"
 import { Agent } from "@/domains/agents/agent.entity"
@@ -58,9 +53,6 @@ export class AgentSettings extends ConnectEntityBase {
     },
   })
   deletedTemperature!: number
-
-  @Column({ type: "varchar", nullable: false })
-  locale!: AgentLocale
 
   @Column({ type: "varchar", name: "documents_rag_mode", default: "all", nullable: false })
   documentsRagMode!: DocumentsRagMode

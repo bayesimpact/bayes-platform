@@ -1,5 +1,4 @@
 import {
-  AgentLocale,
   AgentModel,
   AgentSettingsRoutes,
   AgentsRoutes,
@@ -108,7 +107,6 @@ describe("Agents - resource library selection", () => {
     instructions: "You are helpful",
     documentsRagMode: DocumentsRagMode.All,
     model: AgentModel.Gemini31FlashLite,
-    locale: AgentLocale.EN,
     tagsToAdd: [] as string[],
     projectAgentSessionCategoryIds: [] as string[],
   }

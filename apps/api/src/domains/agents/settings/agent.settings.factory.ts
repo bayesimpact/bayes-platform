@@ -1,10 +1,5 @@
 import { randomUUID } from "node:crypto"
-import {
-  AgentLocale,
-  AgentMemoryMode,
-  AgentModel,
-  DocumentsRagMode,
-} from "@caseai-connect/api-contracts"
+import { AgentMemoryMode, AgentModel, DocumentsRagMode } from "@caseai-connect/api-contracts"
 import { Factory } from "fishery"
 import type { RequiredScopeTransientParams } from "@/common/entities/connect-required-fields"
 import type { Agent } from "@/domains/agents/agent.entity"
@@ -44,7 +39,6 @@ export const agentSettingsFactory = AgentSettingsFactory.define(
       variables: (params.variables as Record<string, string> | undefined) ?? null,
       model: params.model || AgentModel._Mock,
       deletedTemperature: params.deletedTemperature ?? 0.7,
-      locale: params.locale || AgentLocale.EN,
       documentsRagMode: params.documentsRagMode || DocumentsRagMode.All,
       greetingMessage: params.greetingMessage ?? null,
       outputJsonSchema: params.outputJsonSchema ?? null,

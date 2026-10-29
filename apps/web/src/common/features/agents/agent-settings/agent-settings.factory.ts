@@ -1,5 +1,4 @@
 import {
-  AgentLocale,
   AgentMemoryMode,
   DocumentsRagMode,
   type outputJsonSchemaSchema,
@@ -73,7 +72,6 @@ export const agentSettingsFactory = AgentSettingsFactory.define(({ params, trans
     variables: (params.variables as Record<string, string> | undefined) ?? null,
     isDraft: !!params.isDraft,
     isArchived: !!params.isArchived,
-    locale: params.locale ?? AgentLocale.EN,
     model: params.model ?? defaultAgentModels.agent,
     projectAgentSessionCategoryIds: params.projectAgentSessionCategoryIds ?? [],
     providerOptions:

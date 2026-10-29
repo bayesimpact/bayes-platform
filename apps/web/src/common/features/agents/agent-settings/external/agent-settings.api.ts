@@ -71,7 +71,6 @@ const toAgentSettings = (dto: AgentSettingsDto): AgentSettings => ({
   variables: dto.variables,
   isArchived: dto.isArchived,
   isDraft: dto.isDraft,
-  locale: dto.locale,
   mcpServers: dto.mcpServers,
   model: dto.model,
   name: dto.name,

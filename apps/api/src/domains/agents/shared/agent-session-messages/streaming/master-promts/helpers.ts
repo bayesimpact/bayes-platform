@@ -146,11 +146,6 @@ You have access to the following resources. When the user's request matches a re
 ${serializedLibraries}`
   },
 
-  language: (locale: string) =>
-    `## Response language:
-Always answer in ${locale === "en" ? "English" : locale === "fr" ? "French" : "user's language"}.
-      `.trim(),
-
   mcpAppUis: (descriptions?: Record<string, string>) => {
     const toolNames = mcpAppToolNamesFromDescriptions(descriptions)
     if (toolNames.length === 0) return ""

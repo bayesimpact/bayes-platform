@@ -27,7 +27,7 @@ export function useReportDirty(isDirty: boolean, onDirtyChange: (dirty: boolean)
  * Return only the fields the user actually changed. Each tab PATCHes a partial payload, so
  * sending unchanged fields makes the API re-persist them — which can create a spurious
  * agent-settings revision even when the settings did not change (e.g. renaming an agent must
- * not re-write `instructions`/`locale`/`greetingMessage`).
+ * not re-write `instructions`/`greetingMessage`).
  */
 export function pickDirtyFields<TValues extends FieldValues>(
   values: TValues,

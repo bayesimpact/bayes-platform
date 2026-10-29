@@ -1,5 +1,4 @@
 import {
-  AgentLocale,
   AgentMemoryMode,
   AgentModel,
   AgentSettingsRoutes,
@@ -148,7 +147,6 @@ describe("Agent Settings - getAllWithDraft", () => {
       revisionDesc: "The second revision",
       instructions: "Rev 2 instructions",
       greetingMessage: "Hello there",
-      locale: AgentLocale.FR,
       model: AgentModel.Gemini25Flash,
       documentsRagMode: DocumentsRagMode.None,
       fillFormEnabled: true,
@@ -172,7 +170,6 @@ describe("Agent Settings - getAllWithDraft", () => {
       instructions: "Rev 2 instructions",
       variables: null,
       greetingMessage: "Hello there",
-      locale: AgentLocale.FR,
       model: AgentModel.Gemini25Flash,
       documentsRagMode: DocumentsRagMode.None,
       fillFormEnabled: true,

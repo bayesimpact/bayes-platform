@@ -118,7 +118,6 @@ describe("EvaluationConversationRuns - getOne", () => {
     expect(res.body.data.agentSettings).toEqual({
       documentsRagMode: agentSettings.documentsRagMode,
       instructions: agentSettings.instructions,
-      locale: agentSettings.locale,
       model: agentSettings.model,
       revision: agentSettings.revision,
       providerOptions: agentSettings.providerOptions,

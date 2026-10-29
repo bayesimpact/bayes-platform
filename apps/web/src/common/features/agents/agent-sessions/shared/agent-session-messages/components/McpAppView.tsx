@@ -14,6 +14,8 @@ const SANDBOX_RPC_TYPE = "caseai/sandbox-rpc"
 const BOOTSTRAP_READY_METHOD = "caseai/sandbox-bootstrap-ready"
 const SANDBOX_ID_PLACEHOLDER = "__SANDBOX_ID__"
 const TOOL_RESULT_RETRY_DELAYS_MS = [50, 250] as const
+// The app has no dark mode, so guests are told to render light.
+const BASE_HOST_CONTEXT = { displayMode: "inline", platform: "web", theme: "light" } as const
 
 /**
  * Outer proxy (unique origin vs the host). It creates an inner iframe and
@@ -209,6 +211,12 @@ export function McpAppView({
   onRenderFailed?: () => void
 }) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
+  // The card speaks the studio's language: sent at the handshake, then on every language
+  // change through host-context-changed, so switching language does not reload the card.
+  const { i18n } = useTranslation()
+  const locale = i18n.language
+  const localeRef = useRef(locale)
+  const initializedBridgeRef = useRef<AppBridge | null>(null)
   const [hasFailed, setHasFailed] = useState(false)
   // The guest completed `ui/initialize`: until then the frame is blank and a placeholder covers it.
   const [isInitialized, setIsInitialized] = useState(false)
@@ -221,6 +229,11 @@ export function McpAppView({
     onRenderFailedRef.current = onRenderFailed
     onMessageRef.current = onMessage
   })
+
+  useEffect(() => {
+    localeRef.current = locale
+    initializedBridgeRef.current?.setHostContext({ ...BASE_HOST_CONTEXT, locale })
+  }, [locale])
 
   useEffect(() => {
     const iframe = iframeRef.current
@@ -248,10 +261,7 @@ export function McpAppView({
             openLinks: {},
             ...(onMessageRef.current ? { message: { text: {} } } : {}),
           },
-          {
-            // The app has no dark mode, so guests are told to render light.
-            hostContext: { displayMode: "inline", platform: "web", theme: "light" },
-          },
+          { hostContext: { ...BASE_HOST_CONTEXT, locale: localeRef.current } },
         )
         bridge = appBridge
 
@@ -315,6 +325,7 @@ export function McpAppView({
         if (thisAttempt !== attempt || cancelled) return
 
         console.debug("MCP App initialized")
+        initializedBridgeRef.current = appBridge
         setIsInitialized(true)
         // Apps often register `ontoolresult` after `connect()`, so the first
         // notification is dropped and the UI stays on its loading shell.
@@ -367,6 +378,7 @@ export function McpAppView({
     return () => {
       cancelled = true
       attempt += 1
+      initializedBridgeRef.current = null
       window.clearTimeout(loadTimeoutId)
       for (const timeoutId of retryTimeoutIds) {
         window.clearTimeout(timeoutId)

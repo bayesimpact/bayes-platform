@@ -23,7 +23,6 @@ describe("buildSubAgentTools", () => {
       revision: 1,
       deletedTemperature: 0,
       providerOptions: { temperature: 0.6 },
-      locale: "en",
       documentsRagMode: DocumentsRagMode.None,
     }
     const parentAgent = { ...childAgent, id: "parent-agent-id", name: "Orchestrator" }
@@ -114,7 +113,6 @@ describe("buildSubAgentTools", () => {
       model: "mock-model",
       revision: 1,
       deletedTemperature: 0,
-      locale: "en",
       documentsRagMode: DocumentsRagMode.None,
     }
     const parentAgent = {
@@ -239,7 +237,6 @@ describe("buildSubAgentTools", () => {
       instructions: "Collect the user details.",
       model: "mock-model",
       deletedTemperature: 0,
-      locale: "en",
       revision: 1,
       documentsRagMode: DocumentsRagMode.None,
       fillFormEnabled: true,
@@ -380,7 +377,6 @@ describe("buildSubAgentTools", () => {
       model: "mock-model",
       revision: 1,
       deletedTemperature: 0,
-      locale: "en",
       documentsRagMode: DocumentsRagMode.None,
     }
     const parentAgent = {

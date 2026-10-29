@@ -1,4 +1,4 @@
-import { AgentLocale, AgentModel, DocumentsRagMode } from "@caseai-connect/api-contracts"
+import { AgentModel, DocumentsRagMode } from "@caseai-connect/api-contracts"
 import { describe, expect, it } from "@jest/globals"
 import type {
   AgentSettingsCreateFields,
@@ -16,7 +16,6 @@ const fullFields: AgentSettingsCreateFields = {
   providerOptions: {},
   model: AgentModel._Mock,
   deletedTemperature: 0.7,
-  locale: AgentLocale.EN,
   outputJsonSchema: { type: "object" },
   greetingMessage: "Hello there",
   variables: { topic: "the product tour" },
