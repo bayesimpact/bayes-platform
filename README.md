@@ -120,7 +120,8 @@ the other services start with their profile, from `infra/database`:
 The `router` profile serves every `*.connect.localhost` host on
 http://127.0.0.1:8800 (`ROUTER_PORT` in `infra/database/.env`): the worktree
 environments, plus http://phoenix.connect.localhost:8800,
-http://mail.connect.localhost:8800, http://grafana.connect.localhost:8800 and
+http://mail.connect.localhost:8800, http://grafana.connect.localhost:8800, the
+files of the SeaweedFS document storage at http://seaweedfs.connect.localhost:8800 and
 Traefik's own dashboard at http://traefik.connect.localhost:8800/dashboard/.
 Chrome and Firefox resolve `*.localhost` by themselves; Safari does not. On the
 dev VM, forward port 8800 to your laptop (VS Code does it, with the settings of

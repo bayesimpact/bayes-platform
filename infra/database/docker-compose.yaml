@@ -87,10 +87,16 @@ services:
       interval: 2s
       timeout: 5s
       retries: 60
+    # Two routes: the S3 API, and the filer's web UI (browse, download, upload and delete files, no
+    # login) on seaweedfs.<domain>. Traefik only listens on 127.0.0.1.
     labels:
       traefik.enable: "true"
       traefik.http.routers.s3.rule: Host(`s3.${DEV_DOMAIN:-connect.localhost}`) || Host(`s3.connect.localhost`)
+      traefik.http.routers.s3.service: s3
       traefik.http.services.s3.loadbalancer.server.port: "8333"
+      traefik.http.routers.seaweedfs.rule: Host(`seaweedfs.${DEV_DOMAIN:-connect.localhost}`) || Host(`seaweedfs.connect.localhost`)
+      traefik.http.routers.seaweedfs.service: seaweedfs
+      traefik.http.services.seaweedfs.loadbalancer.server.port: "8888"
     volumes:
       - type: bind
         source: ./seaweedfs/s3.json
