@@ -67,18 +67,19 @@ export class UserMembership {
   resourceId!: string | null
 
   /**
-   * Legacy owner / admin / member / tester / reviewer string, no longer read or written: the role
-   * is `roleId`. Kept nullable until a follow-up drops the column.
+   * Legacy owner / admin / member / tester / reviewer string. The role is `roleId`: the app never
+   * selects, inserts or updates this column, so a pod running this code survives the next release,
+   * which drops it.
    */
-  @Column({ type: "varchar", nullable: true })
-  role!: string | null
+  @Column({ type: "varchar", nullable: true, select: false, insert: false, update: false })
+  role?: string | null
 
-  @Column({ type: "uuid", name: "role_id", nullable: true })
-  roleId!: string | null
+  @Column({ type: "uuid", name: "role_id" })
+  roleId!: string
 
-  @ManyToOne(() => Role, { nullable: true })
+  @ManyToOne(() => Role, { nullable: false })
   @JoinColumn({ name: "role_id" })
-  rbacRole!: Role | null
+  rbacRole!: Relation<Role>
 
   @ManyToOne(() => User)
   @JoinColumn({ name: "user_id" })
