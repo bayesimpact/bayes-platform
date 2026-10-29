@@ -198,6 +198,14 @@ export const STUDIO_UI_READ_PERMISSION = "studio.ui.read" as const
 export const EVALUATION_UI_READ_PERMISSION = "evaluation.ui.read" as const
 
 /**
+ * The tester and reviewer apps of a project. Only a review campaign role gives them, on the
+ * campaign's project, while the campaign status lets the role take part.
+ */
+export const TESTER_UI_READ_PERMISSION = "tester.ui.read" as const
+
+export const REVIEWER_UI_READ_PERMISSION = "reviewer.ui.read" as const
+
+/**
  * Evaluation extraction datasets and the files they are built from. Scoped to the
  * project and never inherited from the organization.
  */
@@ -570,6 +578,8 @@ export const PROJECT_SCOPED_PERMISSIONS = [
   DESK_UI_READ_PERMISSION,
   STUDIO_UI_READ_PERMISSION,
   EVALUATION_UI_READ_PERMISSION,
+  TESTER_UI_READ_PERMISSION,
+  REVIEWER_UI_READ_PERMISSION,
   DOCUMENT_SOURCE_READ_PERMISSION,
   DOCUMENT_SOURCE_UPDATE_PERMISSION,
   PROJECT_MEMBER_UPDATE_PERMISSION,
@@ -611,38 +621,6 @@ const AGENT_SCOPED_PERMISSION_SET: ReadonlySet<string> = new Set(AGENT_SCOPED_PE
 
 export function isAgentPermission(permission: string): permission is AgentPermission {
   return AGENT_SCOPED_PERMISSION_SET.has(permission)
-}
-
-/**
- * Review-campaign-scoped permissions exposed on `ReviewCampaignMembershipForMeDto.permissions`:
- * what the tester and reviewer apps gate on a campaign.
- */
-export const REVIEW_CAMPAIGN_SCOPED_PERMISSIONS = [
-  REVIEW_CAMPAIGN_READ_PERMISSION,
-  REVIEW_CAMPAIGN_TESTER_SESSION_READ_PERMISSION,
-  REVIEW_CAMPAIGN_TESTER_SESSION_CREATE_PERMISSION,
-  REVIEW_CAMPAIGN_TESTER_SESSION_DELETE_PERMISSION,
-  REVIEW_CAMPAIGN_TESTER_FEEDBACK_CREATE_PERMISSION,
-  REVIEW_CAMPAIGN_TESTER_FEEDBACK_UPDATE_PERMISSION,
-  REVIEW_CAMPAIGN_TESTER_SURVEY_READ_PERMISSION,
-  REVIEW_CAMPAIGN_TESTER_SURVEY_CREATE_PERMISSION,
-  REVIEW_CAMPAIGN_TESTER_SURVEY_UPDATE_PERMISSION,
-  REVIEW_CAMPAIGN_REVIEWER_SESSION_READ_PERMISSION,
-  REVIEW_CAMPAIGN_REVIEWER_REVIEW_CREATE_PERMISSION,
-  REVIEW_CAMPAIGN_REVIEWER_REVIEW_UPDATE_PERMISSION,
-  REVIEW_CAMPAIGN_REPORT_READ_PERMISSION,
-] as const
-
-export type ReviewCampaignPermission = (typeof REVIEW_CAMPAIGN_SCOPED_PERMISSIONS)[number]
-
-const REVIEW_CAMPAIGN_SCOPED_PERMISSION_SET: ReadonlySet<string> = new Set(
-  REVIEW_CAMPAIGN_SCOPED_PERMISSIONS,
-)
-
-export function isReviewCampaignPermission(
-  permission: string,
-): permission is ReviewCampaignPermission {
-  return REVIEW_CAMPAIGN_SCOPED_PERMISSION_SET.has(permission)
 }
 
 export type GlobalPermission =

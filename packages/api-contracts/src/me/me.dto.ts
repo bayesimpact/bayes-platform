@@ -1,28 +1,8 @@
 import { z } from "zod"
-import type { AgentMembershipDto } from "../agent-membership/agent-membership.dto"
 import type { CurrentTermsDto } from "../backoffice/backoffice.dto"
 import type { TimeType } from "../generic"
-import type { OrganizationDto, OrganizationMembershipDto } from "../organizations/organizations.dto"
-import type { ProjectMembershipDto } from "../project-membership/project-membership.dto"
-import type { GlobalPermission, ReviewCampaignPermission } from "../rbac/permissions"
-
-export type ReviewCampaignMembershipForMeDto = {
-  campaignId: string
-  organizationId: string
-  projectId: string
-  /**
-   * What the user can do on the campaign now. A role gives nothing while the campaign is outside
-   * its statuses: testers only on an active campaign, reviewers also once it is closed.
-   */
-  permissions: ReviewCampaignPermission[]
-}
-
-export type UserMembershipsDto = {
-  organizationMemberships: Pick<OrganizationMembershipDto, "organizationId" | "roles">[]
-  projectMemberships: Pick<ProjectMembershipDto, "projectId" | "roles">[]
-  agentMemberships: Pick<AgentMembershipDto, "agentId" | "roles">[]
-  reviewCampaignMemberships: ReviewCampaignMembershipForMeDto[]
-}
+import type { OrganizationDto } from "../organizations/organizations.dto"
+import type { GlobalPermission } from "../rbac/permissions"
 
 export type UserDto = {
   id: string
@@ -31,7 +11,6 @@ export type UserDto = {
   globalPermissions: GlobalPermission[]
   /** The agents whose conversations this user was granted to read for safety review. */
   conversationReviewAgentIds: string[]
-  memberships: UserMembershipsDto
   termsAccepted: boolean
 }
 

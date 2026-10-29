@@ -2,8 +2,6 @@ import type {
   AgentMembershipDto,
   OrganizationMembershipDto,
   ProjectMembershipDto,
-  ReviewCampaignMembershipForMeDto,
-  ReviewCampaignPermission,
 } from "@caseai-connect/api-contracts"
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
@@ -13,23 +11,9 @@ import type { Organization } from "@/common/features/organizations/organizations
 import type { Project } from "@/common/features/projects/projects.models"
 import type { User } from "./me.models"
 
-type UserTransientParams = {
-  organizationMemberships?: OrganizationMembershipDto[]
-  projectMemberships?: ProjectMembershipDto[]
-  agentMemberships?: AgentMembershipDto[]
-  reviewCampaignMemberships?: ReviewCampaignMembershipForMeDto[]
-}
+class UserFactory extends Factory<User> {}
 
-class UserFactory extends Factory<User, UserTransientParams> {}
-
-export const userFactory = UserFactory.define(({ params, transientParams }) => {
-  const {
-    organizationMemberships = [],
-    projectMemberships = [],
-    agentMemberships = [],
-    reviewCampaignMemberships = [],
-  } = transientParams
-
+export const userFactory = UserFactory.define(({ params }) => {
   const firstName = faker.person.firstName()
   const lastName = faker.person.lastName()
 
@@ -40,13 +24,6 @@ export const userFactory = UserFactory.define(({ params, transientParams }) => {
     globalPermissions: params.globalPermissions ?? [],
     conversationReviewAgentIds: params.conversationReviewAgentIds ?? [],
     termsAccepted: params.termsAccepted ?? true,
-    memberships: {
-      organizationMemberships,
-      projectMemberships,
-      agentMemberships,
-      reviewCampaignMemberships,
-      ...params.memberships,
-    },
   } satisfies User
 })
 
@@ -137,66 +114,5 @@ export const agentMembershipFactory = AgentMembershipFactory.define(
       roles: [buildMembershipRoleDto({ scopeType: "agent", role: "member" })],
       createdAt: params.createdAt ?? faker.date.past().getTime(),
     } satisfies AgentMembershipDto
-  },
-)
-
-type ReviewCampaignMembershipTransientParams = {
-  project: Project
-}
-
-/** What the API gives a tester on an active campaign. */
-const TESTER_PERMISSIONS: ReviewCampaignPermission[] = [
-  "review_campaign.read",
-  "review_campaign.tester_session.read",
-  "review_campaign.tester_session.create",
-  "review_campaign.tester_session.delete",
-  "review_campaign.tester_feedback.create",
-  "review_campaign.tester_feedback.update",
-  "review_campaign.tester_survey.read",
-  "review_campaign.tester_survey.create",
-  "review_campaign.tester_survey.update",
-]
-
-/** What the API gives a reviewer on an active or closed campaign. */
-const REVIEWER_PERMISSIONS: ReviewCampaignPermission[] = [
-  "review_campaign.read",
-  "review_campaign.reviewer_session.read",
-  "review_campaign.reviewer_review.create",
-  "review_campaign.reviewer_review.update",
-  "review_campaign.report.read",
-]
-
-class ReviewCampaignMembershipFactory extends Factory<
-  ReviewCampaignMembershipForMeDto,
-  ReviewCampaignMembershipTransientParams
-> {
-  asTester() {
-    return this.params({ permissions: TESTER_PERMISSIONS })
-  }
-
-  asReviewer() {
-    return this.params({ permissions: REVIEWER_PERMISSIONS })
-  }
-
-  /** A membership whose campaign gives nothing now, such as a draft. */
-  withoutAccess() {
-    return this.params({ permissions: [] })
-  }
-}
-
-export const reviewCampaignMembershipFactory = ReviewCampaignMembershipFactory.define(
-  ({ params, transientParams }) => {
-    const { project } = transientParams
-    if (!project) {
-      throw new Error(
-        "Project must be provided in transient params to build a ReviewCampaignMembership",
-      )
-    }
-    return {
-      campaignId: params.campaignId ?? faker.string.uuid(),
-      organizationId: project.organizationId,
-      projectId: project.id,
-      permissions: params.permissions ?? REVIEWER_PERMISSIONS,
-    } satisfies ReviewCampaignMembershipForMeDto
   },
 )

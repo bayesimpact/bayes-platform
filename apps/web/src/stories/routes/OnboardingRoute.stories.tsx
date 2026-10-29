@@ -1,12 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
-import {
-  organizationMembershipFactory,
-  projectMembershipFactory,
-  reviewCampaignMembershipFactory,
-  userFactory,
-} from "@/common/features/me/me.factory"
+import { userFactory } from "@/common/features/me/me.factory"
 import type { User } from "@/common/features/me/me.models"
-import { buildMembershipRoleDto } from "@/common/features/memberships/membership-roles.factory"
 import { organizationFactory } from "@/common/features/organizations/organization.factory"
 import { myProjectFactory, projectFactory } from "@/common/features/projects/projects.factory"
 import { RouteNames } from "@/common/routes/helpers"
@@ -54,62 +48,28 @@ function buildData(args: StoryArgs) {
       (organization) => organization.id === project.organizationId,
     )
     if (!organization) throw new Error("Project organization not found")
-    return myProjectFactory.transient({ organization, role: projectMembershipRole }).build({
-      id: project.id,
-      name: project.name,
-      featureFlags: project.featureFlags,
-    })
+    const myProject = myProjectFactory
+      .transient({ organization, role: projectMembershipRole })
+      .build({ id: project.id, name: project.name, featureFlags: project.featureFlags })
+    if (project.id !== firstProject?.id) return myProject
+    // A review campaign on the first project opens its tester or reviewer app.
+    return {
+      ...myProject,
+      permissions: [
+        ...myProject.permissions,
+        ...(withReviewCampaignMembershipsAsTester ? ["tester.ui.read"] : []),
+        ...(withReviewCampaignMembershipsAsReviewer ? ["reviewer.ui.read"] : []),
+      ],
+    }
   })
 
-  const organizationMemberships = organizations.map((organization) =>
-    organizationMembershipFactory.transient({ organization }).build({
-      roles: [
-        buildMembershipRoleDto({ scopeType: "organization", role: organizationMembershipRole }),
-      ],
-    }),
-  )
-  const projectMemberships = allProjects.map((project) =>
-    projectMembershipFactory.transient({ project }).build({
-      roles: [buildMembershipRoleDto({ scopeType: "project", role: projectMembershipRole })],
-    }),
-  )
-
-  const reviewCampaignMemberships =
-    (withReviewCampaignMembershipsAsTester || withReviewCampaignMembershipsAsReviewer) &&
-    firstProject
-      ? [
-          ...(withReviewCampaignMembershipsAsTester
-            ? [
-                reviewCampaignMembershipFactory
-                  .asTester()
-                  .transient({ project: firstProject })
-                  .build(),
-              ]
-            : []),
-          ...(withReviewCampaignMembershipsAsReviewer
-            ? [
-                reviewCampaignMembershipFactory
-                  .asReviewer()
-                  .transient({ project: firstProject })
-                  .build(),
-              ]
-            : []),
-        ]
-      : []
   const invitations = withPendingInvitations
     ? [
         pendingInvitationFactory.build({ targetType: "project" }),
         pendingInvitationFactory.build({ targetType: "agent" }),
       ]
     : []
-  return {
-    organizations,
-    myProjects,
-    invitations,
-    organizationMemberships,
-    projectMemberships,
-    reviewCampaignMemberships,
-  }
+  return { organizations, myProjects, invitations }
 }
 
 const meta = {
@@ -136,13 +96,7 @@ const meta = {
   decorators: [
     buildDecorator<StoryArgs>((args) => {
       const data = buildData(args)
-      const user: User = userFactory
-        .transient({
-          organizationMemberships: data.organizationMemberships,
-          projectMemberships: data.projectMemberships,
-          reviewCampaignMemberships: data.reviewCampaignMemberships,
-        })
-        .build()
+      const user: User = userFactory.build()
 
       return {
         state: mergeSeeds(

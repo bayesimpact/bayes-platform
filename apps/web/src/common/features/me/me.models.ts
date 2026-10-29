@@ -2,7 +2,6 @@ import type {
   CurrentTermsDto,
   GlobalPermission,
   TermsDocumentDto,
-  UserMembershipsDto,
 } from "@caseai-connect/api-contracts"
 import type { LegacyMembershipRole } from "@/common/features/memberships/membership-roles"
 
@@ -18,7 +17,6 @@ export type User = {
   globalPermissions: GlobalPermission[]
   /** The agents whose conversations this user was granted to read for safety review. */
   conversationReviewAgentIds: string[]
-  memberships: UserMembershipsDto
   termsAccepted: boolean
 }
 

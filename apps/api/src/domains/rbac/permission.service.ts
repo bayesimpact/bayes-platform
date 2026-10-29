@@ -395,38 +395,6 @@ export class PermissionService {
   }
 
   /**
-   * Permissions granted by the review campaign roles the user holds, per campaign. A role only
-   * counts while its campaign is in one of its REVIEW_CAMPAIGN_STATUSES_GIVING_PROJECT_PERMISSIONS,
-   * so a tester gets nothing on a closed campaign and nobody gets anything on a draft.
-   */
-  async listReviewCampaignPermissionsInGivingStatus(
-    userId: string,
-  ): Promise<Map<string, string[]>> {
-    const rows: ResourcePermissionRow[] = await this.dataSource.query(
-      `SELECT DISTINCT review_campaign.id AS "resourceId",
-              role_permission.permission_key AS "permissionKey"
-       FROM user_membership membership
-       INNER JOIN role ON role.id = membership.role_id
-       INNER JOIN role_permission ON role_permission.role_id = membership.role_id
-       INNER JOIN review_campaign ON review_campaign.id = membership.resource_id
-         AND review_campaign.deleted_at IS NULL
-       INNER JOIN unnest($2::text[], $3::text[]) AS giving_status(role_key, campaign_status)
-         ON giving_status.role_key = role.key
-         AND giving_status.campaign_status = review_campaign.status
-       WHERE membership.user_id = $1
-         AND membership.resource_type = 'review_campaign'
-         AND membership.deleted_at IS NULL`,
-      [
-        userId,
-        STATUS_GIVING_PROJECT_PERMISSIONS_ROLE_KEYS,
-        STATUS_GIVING_PROJECT_PERMISSIONS_STATUSES,
-      ],
-    )
-
-    return this.groupPermissionsByResourceId(rows)
-  }
-
-  /**
    * Project permissions given by the review campaign roles the user holds, per project of the
    * campaigns (or of the given project only), restricted to the given keys, all within
    * PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN. A role only gives them while its campaign is in one

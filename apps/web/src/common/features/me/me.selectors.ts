@@ -41,6 +41,3 @@ export const selectCurrentTerms = (state: RootState) => state.me.currentTerms
 
 export const selectCanCreateOrganization = (state: RootState): boolean =>
   state.me.data.value?.globalPermissions.includes("organization.create") ?? false
-
-export const selectReviewCampaignMemberships = (state: RootState) =>
-  state.me.data.value?.memberships.reviewCampaignMemberships

@@ -401,6 +401,7 @@ describe("PermissionService", () => {
           AGENT_CONVERSATION_SESSION_READ_PERMISSION,
           AGENT_CONVERSATION_SESSION_CREATE_PERMISSION,
           "project.agent_message_feedback.create",
+          "tester.ui.read",
         ].sort(),
       )
     })
@@ -450,7 +451,7 @@ describe("PermissionService", () => {
       ])
     })
 
-    it("gives the reviewer role's project.read, and only that, to someone holding both roles on a closed campaign", async () => {
+    it("gives only the reviewer role's project keys to someone holding both roles on a closed campaign", async () => {
       const repositories = setup.getAllRepositories()
       const context = await createCampaign()
       const participant = await joinCampaign(context, "review_campaign_tester")
@@ -471,7 +472,9 @@ describe("PermissionService", () => {
         participant.id,
         PROJECT_READ_PERMISSION,
       )
-      expect(permissionsByProjectId.get(context.project.id)).toEqual([PROJECT_READ_PERMISSION])
+      expect(permissionsByProjectId.get(context.project.id)?.sort()).toEqual(
+        [PROJECT_READ_PERMISSION, "reviewer.ui.read"].sort(),
+      )
     })
 
     it("gives nothing on the project while the campaign is a draft", async () => {

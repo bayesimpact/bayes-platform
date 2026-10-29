@@ -13,11 +13,6 @@ import {
   createOrganizationWithOwner,
 } from "@/domains/organizations/organization.factory"
 import { RbacModule } from "@/domains/rbac/rbac.module"
-import {
-  reviewCampaignMembershipFactory,
-  saveReviewCampaignMembership,
-} from "@/domains/review-campaigns/memberships/review-campaign-membership.factory"
-import { reviewCampaignFactory } from "@/domains/review-campaigns/review-campaign.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import { setupUserGuardForTesting } from "../../../test/e2e.helpers"
 import {
@@ -121,12 +116,8 @@ describe("MeController (e2e)", () => {
         name: soloUser.name,
         globalPermissions: [],
         conversationReviewAgentIds: [],
-        memberships: {
-          organizationMemberships: [],
-          projectMemberships: [],
-          agentMemberships: [],
-        },
       })
+      expect(response.body.data.user).not.toHaveProperty("memberships")
       expect(response.body.data.organizations).toEqual([])
     })
 
@@ -142,93 +133,12 @@ describe("MeController (e2e)", () => {
         name: user.name,
         globalPermissions: [],
       })
-      expect(response.body.data.user.memberships.organizationMemberships).toHaveLength(1)
-      expect(response.body.data.user.memberships.organizationMemberships[0]).toMatchObject({
-        organizationId: organization.id,
-        roles: [expect.objectContaining({ key: "org_owner", scopeType: "organization" })],
-      })
       expect(response.body.data.organizations).toHaveLength(1)
       expect(response.body.data.organizations[0]).toMatchObject({
         id: organization.id,
         name: organization.name,
         permissions: expect.arrayContaining(["organization.read"]),
       })
-    })
-
-    it("returns all membership types", async () => {
-      const { user, organization, project, agent } = await createOrganizationWithAgent(repositories)
-      authSubject = user.authSubject!
-
-      const response = await subject()
-
-      expectResponse(response, 200)
-
-      const { memberships } = response.body.data.user
-      expect(memberships.organizationMemberships).toHaveLength(1)
-      expect(memberships.organizationMemberships[0]).toMatchObject({
-        organizationId: organization.id,
-        roles: [expect.objectContaining({ key: "org_owner" })],
-      })
-      expect(memberships.projectMemberships).toHaveLength(1)
-      expect(memberships.projectMemberships[0]).toMatchObject({
-        projectId: project.id,
-        roles: [expect.objectContaining({ key: "project_owner" })],
-      })
-      expect(memberships.agentMemberships).toHaveLength(1)
-      expect(memberships.agentMemberships[0]).toMatchObject({
-        agentId: agent.id,
-        roles: [expect.objectContaining({ key: "agent_owner" })],
-      })
-    })
-
-    it("returns review-campaign memberships with the permissions their status gives", async () => {
-      const { user, organization, project, agent, agentSettings } =
-        await createOrganizationWithAgent(repositories, { agent: { type: "conversation" } })
-      const buildCampaign = (status: "draft" | "active" | "closed") =>
-        repositories.reviewCampaignRepository.save(
-          reviewCampaignFactory[status]()
-            .transient({ organization, project, agent, agentSettings })
-            .build(),
-        )
-      const activeCampaign = await buildCampaign("active")
-      const closedCampaign = await buildCampaign("closed")
-      const draftCampaign = await buildCampaign("draft")
-      const memberships: [
-        typeof activeCampaign,
-        "review_campaign_tester" | "review_campaign_reviewer",
-      ][] = [
-        [activeCampaign, "review_campaign_tester"],
-        [closedCampaign, "review_campaign_tester"],
-        [closedCampaign, "review_campaign_reviewer"],
-        [draftCampaign, "review_campaign_reviewer"],
-      ]
-      for (const [campaign, roleKey] of memberships) {
-        await saveReviewCampaignMembership({
-          repositories,
-          membership: reviewCampaignMembershipFactory
-            .withRoles(roleKey)
-            .transient({ organization, project, campaign, user })
-            .build(),
-        })
-      }
-      authSubject = user.authSubject!
-
-      const response = await subject()
-      expectResponse(response, 200)
-
-      const campaignMemberships = response.body.data.user.memberships.reviewCampaignMemberships
-      expect(campaignMemberships).toHaveLength(3)
-      const permissionsOf = (campaignId: string) =>
-        campaignMemberships.find((membership) => membership.campaignId === campaignId)?.permissions
-      // A tester takes part while the campaign is active.
-      expect(permissionsOf(activeCampaign.id)).toContain("review_campaign.tester_session.create")
-      // Once it is closed, only the reviewer role still gives something.
-      const closedPermissions = permissionsOf(closedCampaign.id)
-      expect(closedPermissions).toContain("review_campaign.reviewer_session.read")
-      expect(closedPermissions).not.toContain("review_campaign.tester_session.read")
-      // A draft gives nothing.
-      expect(permissionsOf(draftCampaign.id)).toEqual([])
-      expect(campaignMemberships[0]).not.toHaveProperty("roles")
     })
 
     it("returns the agents the user was granted to review", async () => {
@@ -240,15 +150,6 @@ describe("MeController (e2e)", () => {
 
       expectResponse(response, 200)
       expect(response.body.data.user.conversationReviewAgentIds).toEqual([agent.id])
-      // The review is a second role on the agent, next to the user's ownership.
-      const [agentMembership, ...otherAgentMemberships] =
-        response.body.data.user.memberships.agentMemberships
-      expect(otherAgentMemberships).toEqual([])
-      expect(agentMembership?.agentId).toBe(agent.id)
-      expect(agentMembership?.roles.map((role) => role.key)).toEqual([
-        "agent_owner",
-        "agent_conversation_reviewer",
-      ])
     })
 
     it("returns global permissions of platform_staff users", async () => {
