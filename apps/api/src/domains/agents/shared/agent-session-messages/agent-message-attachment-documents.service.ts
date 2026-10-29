@@ -79,7 +79,7 @@ export class AgentMessageAttachmentDocumentsService {
 
   /**
    * Caches the rendered page count for a PDF attachment, so future chat turns
-   * referencing the same attachment reuse the already-rendered GCS pages
+   * referencing the same attachment reuse the already-rendered pages
    * instead of asking the pdf-converter service to render again.
    */
   async updatePdfPageCount({

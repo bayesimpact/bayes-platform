@@ -4,7 +4,8 @@ Dedicated service that rasterizes PDFs into PNG page images for image-only LLMs
 (Gemma, MedGemma), and exposes an MCP tool that exports markdown as a downloadable
 PDF. Page rasterizing happens in WebAssembly (`go-pdfium` + `wazero`) and works on the
 platform bucket: PDFs are fetched from it, rendered in isolation, and pages are written
-back to it. The bucket is S3-compatible (`STORAGE_BACKEND=s3`) or GCS. Markdown-to-PDF
+back to it. The bucket is S3-compatible (`STORAGE_BACKEND=s3`): a Cloud Storage bucket is
+reached through its S3 API with HMAC keys. Markdown-to-PDF
 rendering is pure Go (`internal/mdpdf`). No local storage or subprocess management needed.
 
 ## Endpoints
@@ -17,8 +18,8 @@ rendering is pure Go (`internal/mdpdf`). No local storage or subprocess manageme
 
 `POST /render-document` requires a JSON body with:
 
-- `sourceObject` (string, required) — relative GCS object path to the source PDF (e.g., `org/project/document.pdf`).
-- `outputPrefix` (string, required) — relative GCS object path prefix where pages are saved; must end with `/` (e.g., `org/project/output/`).
+- `sourceObject` (string, required) — relative object path to the source PDF (e.g., `org/project/document.pdf`).
+- `outputPrefix` (string, required) — relative object path prefix where pages are saved; must end with `/` (e.g., `org/project/output/`).
 - `maxPages` (integer, 1–100, required) — reject PDFs with more pages (HTTP 422).
 - `maxPixelsPerPage` (integer, 1–16000000, required) — clamp each page's rendered bitmap height and width.
 
@@ -28,10 +29,10 @@ Response on success: `{ "pageCount": <int> }` (HTTP 200).
 
 Errors are:
 - **400** — invalid PDF, malformed JSON body, invalid parameters, or invalid object paths.
-- **404** — source PDF not found in GCS.
+- **404** — source PDF not found in the bucket.
 - **413** — source PDF exceeds `PDF_CONVERTER_MAX_PDF_BYTES`.
 - **422** — PDF has more pages than `maxPages`; nothing is rendered and the body includes the document's `pageCount`.
-- **500** — server error (e.g., failed to upload page to GCS).
+- **500** — server error (e.g., failed to upload page to the bucket).
 - **504** — rendering exceeded `PDF_CONVERTER_RENDER_TIMEOUT_MS` (or the caller disconnected); the pdfium instance is killed and re-created, so a hostile PDF cannot wedge the service.
 
 ## MCP endpoint
@@ -57,7 +58,7 @@ Input:
 - `markdown` (required) — GitHub Flavored Markdown, up to `PDF_EXPORT_MAX_MARKDOWN_BYTES`.
 - `fileName` (optional) — characters outside letters, digits, dot, underscore, space and
   dash are stripped and `.pdf` is appended; defaults to `document.pdf`. Letters and
-  digits are Unicode, so `Résumé.pdf` or `報告.pdf` survive intact (GCS object names are
+  digits are Unicode, so `Résumé.pdf` or `報告.pdf` survive intact (object names are
   UTF-8), while path separators, quotes and control characters never do. The signed
   URL's `Content-Disposition` carries both an ASCII fallback (`filename=`) and the real
   UTF-8 name (RFC 5987 `filename*=`).
@@ -68,7 +69,7 @@ Output on success:
 
 ```json
 {
-  "downloadUrl": "https://storage.googleapis.com/...",
+  "downloadUrl": "https://storage.example.org/...",
   "fileName": "Quarterly report.pdf",
   "pageCount": 3,
   "sizeBytes": 48213,
@@ -119,17 +120,9 @@ If that sweep is ever disabled, exported PDFs accumulate in the bucket.
 
 ### Signing requirements
 
-With `STORAGE_BACKEND=s3`, signing is local with the access key pair, and the links
-are signed for `S3_PUBLIC_ENDPOINT` when it is set. With GCS, minting a signed URL needs
-a credential that can sign, not just a bearer token:
-
-- Locally, `GOOGLE_APPLICATION_CREDENTIALS` must point at a service-account key file.
-- On Cloud Run, the service's own service account needs
-  `roles/iam.serviceAccountTokenCreator` on itself, and the project needs the IAM
-  Credentials API enabled — the runtime then signs remotely via `signBlob` instead of a
-  local private key.
-- Plain user Application Default Credentials (e.g. from `gcloud auth
-  application-default login`) cannot sign; `SignedURL` fails with a credential error.
+Signing is local with the access key pair, and the links are signed for
+`S3_PUBLIC_ENDPOINT` when it is set. On Cloud Storage, the HMAC key's service account
+needs read access to the objects it signs.
 
 ### Supported markdown and known limits
 
@@ -148,7 +141,7 @@ Sans and DejaVu Sans Mono (Bitstream Vera licence, see
 ### MCP-specific environment variables
 
 - `PDF_EXPORT_TTL_MINUTES` (default `15`, max `10080`) — how long a signed download link
-  stays valid; capped at seven days because that is the V4 and SigV4 signing limit: a
+  stays valid; capped at seven days because that is the SigV4 signing limit: a
   higher value starts the service and then fails every export once uploaded. Only this
   service needs it: the expiry is in each object name, and the API workers' copy of
   the variable is a fallback for objects written before that naming existed.
@@ -182,10 +175,9 @@ service is only bound on the developer's machine.
 
 ## Environment variables
 
-- `STORAGE_BACKEND`: `s3` or `gcs`. Unset: `gcs` when `GCS_STORAGE_BUCKET_NAME` is set.
+- `STORAGE_BACKEND`: `s3`, required.
 - `S3_BUCKET`, `S3_ENDPOINT`, `S3_PUBLIC_ENDPOINT`, `S3_REGION`, `S3_ACCESS_KEY_ID`,
   `S3_SECRET_ACCESS_KEY`, `S3_FORCE_PATH_STYLE`: the S3-compatible bucket, read like the API.
-- `GCS_STORAGE_BUCKET_NAME`: GCS bucket for source PDFs and rendered pages.
 - `PORT` (default `3002`) — listen port.
 - `PDF_CONVERTER_MAX_PDF_BYTES` (default `52428800`, 50MB) — source PDF size limit.
 - `PDF_CONVERTER_RENDER_TIMEOUT_MS` (default `60000`, 60s) — hard per-request deadline for rendering work; must stay below the API client's 120s request timeout.
@@ -203,13 +195,10 @@ service together with the API and the web app. Without `go` on `PATH` or without
 To run it on its own:
 
 ```bash
-# Start the converter (requires GOOGLE_APPLICATION_CREDENTIALS pointing to a service account)
-PORT=3002 \
-  GCS_STORAGE_BUCKET_NAME=<dev-bucket> \
-  GOOGLE_APPLICATION_CREDENTIALS=<path-to-service-account-json> \
-  go run .
+# Start the converter against the local SeaweedFS (reads .env, see .env-example)
+PORT=3002 go run .
 
-# Smoke-test with a source object and a dev bucket:
+# Smoke-test with a source object of the bucket:
 curl -sS -X POST -H "Content-Type: application/json" \
   -d '{"sourceObject":"test.pdf","outputPrefix":"output/","maxPages":20,"maxPixelsPerPage":4000000}' \
   "http://localhost:3002/render-document"

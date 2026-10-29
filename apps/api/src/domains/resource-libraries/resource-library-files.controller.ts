@@ -11,7 +11,7 @@ import { ResourceLibrariesService } from "./resource-libraries.service"
 /**
  * Public, unauthenticated capability endpoint. The link is keyed by the library + resource UUIDs and
  * only ever signs a storage path that lives under the matching project's own prefix, so it is safe
- * to surface to anonymous / embedded chat users. It 302-redirects to a freshly signed GCS URL.
+ * to surface to anonymous / embedded chat users. It 302-redirects to a freshly signed storage URL.
  */
 @Controller()
 export class ResourceLibraryFilesController {

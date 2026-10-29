@@ -1,4 +1,4 @@
-# Example: GKE with managed services (Cloud SQL, Memorystore, GCS, Vertex AI)
+# Example: GKE with managed services (Cloud SQL, Memorystore, Cloud Storage, Vertex AI)
 # and a GPU node pool. Secrets come from an existing Kubernetes Secret, filled
 # by External Secrets Operator from Secret Manager.
 #
@@ -51,10 +51,15 @@ redis:
 externalRedis:
   sslCaSecretKey: BULLMQ_REDIS_TLS_CA
 
+# The bucket through the Cloud Storage S3 API. The HMAC key pair of a service
+# account with access to it goes in the secret (S3_ACCESS_KEY_ID,
+# S3_SECRET_ACCESS_KEY).
 storage:
-  mode: gcs
-  gcs:
+  mode: s3
+  s3:
     bucket: my-project-platform-files
+    endpoint: https://storage.googleapis.com
+    forcePathStyle: true
 
 gpuWorkers:
   enabled: true

@@ -285,7 +285,7 @@ export class DocumentsService {
 
   /**
    * Caches the rendered page count for a PDF document, so future extraction
-   * runs referencing the same document reuse the already-rendered GCS pages
+   * runs referencing the same document reuse the already-rendered pages
    * instead of asking the pdf-converter service to render again.
    */
   async updatePdfPageCount({

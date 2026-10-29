@@ -1,5 +1,4 @@
 import { DeleteObjectCommand, ListObjectsV2Command, type S3Client } from "@aws-sdk/client-s3"
-import type { Bucket } from "@google-cloud/storage"
 import { isS3NotFound } from "../storage/s3-storage.service"
 
 export type PdfExportsObject = {
@@ -8,7 +7,7 @@ export type PdfExportsObject = {
   createdAt?: Date
 }
 
-/** The two bucket operations the sweep needs, on any storage backend. */
+/** The two bucket operations the sweep needs. */
 export interface PdfExportsBucket {
   listPage(query: { prefix: string; pageSize: number; pageToken?: string }): Promise<{
     objects: PdfExportsObject[]
@@ -58,45 +57,4 @@ export class S3PdfExportsBucket implements PdfExportsBucket {
       if (!isS3NotFound(error)) throw error
     }
   }
-}
-
-export class GcsPdfExportsBucket implements PdfExportsBucket {
-  constructor(private readonly bucket: Bucket) {}
-
-  async listPage({
-    prefix,
-    pageSize,
-    pageToken,
-  }: {
-    prefix: string
-    pageSize: number
-    pageToken?: string
-  }) {
-    const [files, nextQuery] = await this.bucket.getFiles({
-      prefix,
-      autoPaginate: false,
-      maxResults: pageSize,
-      pageToken,
-    })
-    return {
-      objects: files.map((file) => ({
-        name: file.name,
-        createdAt: parseDate(file.metadata?.timeCreated),
-      })),
-      // `nextQuery` is undefined (and carries no page token) on the last page.
-      nextPageToken: (nextQuery as { pageToken?: string } | undefined)?.pageToken,
-    }
-  }
-
-  async delete(name: string): Promise<void> {
-    await this.bucket.file(name).delete({ ignoreNotFound: true })
-  }
-}
-
-function parseDate(rawValue: string | undefined): Date | undefined {
-  if (rawValue === undefined) {
-    return undefined
-  }
-  const parsed = new Date(rawValue)
-  return Number.isNaN(parsed.getTime()) ? undefined : parsed
 }

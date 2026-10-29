@@ -79,7 +79,7 @@ export default {
   },
 } satisfies IDocumentsSpi
 
-// Presign → upload directly to GCS → confirm. Shared by uploadOne and uploadMany.
+// Presign → upload directly to the bucket → confirm. Shared by uploadOne and uploadMany.
 async function presignUploadAndConfirm({
   organizationId,
   projectId,
@@ -116,7 +116,7 @@ async function presignUploadAndConfirm({
     throw new Error(`Presign response is missing data`)
   }
 
-  // 2. Upload directly to GCS
+  // 2. Upload directly to the bucket
   await putFileToSignedUrl({ uploadUrl: presigned.uploadUrl, file })
 
   // 3. Confirm — backend marks as uploaded and enqueues embeddings

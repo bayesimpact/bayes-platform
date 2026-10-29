@@ -209,8 +209,7 @@ Tool executions are also persisted in message history as `"tool"` messages with 
 
 ### Storage/Infra Variables Used in the Flow
 
-- `GCS_STORAGE_BUCKET_NAME` (when using GCS storage backend)
-- `GCS_CREDENTIALS` / `GOOGLE_APPLICATION_CREDENTIALS` (GCS auth, depending on deployment)
+- `STORAGE_BACKEND` (`s3` or `local`) and `S3_*` (bucket, endpoint and keys of the S3 backend)
 - `LOCAL_STORAGE_SERVER_BASE_URL` (for local storage URL resolution where relevant)
 
 ### External Services

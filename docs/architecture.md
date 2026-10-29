@@ -60,7 +60,7 @@ graph TB
     %% API flows
     API -- "TypeORM<br/>Cloud SQL Proxy (Unix Socket)" --> PG
     API -- "BullMQ<br/>Enqueue jobs" --> REDIS
-    API -- "GCS SDK<br/>File upload/download" --> GCS
+    API -- "S3 API (HMAC keys)<br/>File upload/download" --> GCS
     API -- "AI SDK<br/>LLM inference" --> VERTEX
     API -- "OTLP" --> OTEL
     API -- "Discovery, JWKS, userinfo" --> IDP
@@ -98,7 +98,7 @@ graph TB
 | Web App | OIDC provider | HTTPS | Login, token refresh (authorization code + PKCE) |
 | API | PostgreSQL (Cloud SQL) | Unix Socket (Cloud SQL Proxy) | Data persistence |
 | API | Redis | TCP 6379 (TLS in prod) | BullMQ job enqueue |
-| API | GCS | HTTPS | File upload/download |
+| API | GCS | HTTPS (S3 API, HMAC keys) | File upload/download |
 | API | Vertex AI (europe-west1) | HTTPS (gRPC) | LLM inference |
 | API | OIDC provider | HTTPS | Discovery, JWKS, userinfo |
 | API | OpenTelemetry gateway | OTLP/HTTP | Traces and metrics |

@@ -14,14 +14,19 @@ describe("resolveStorageBackend", () => {
     ).toBe("local")
   })
 
-  it("falls back to gcs when a GCS bucket is configured, local otherwise", () => {
-    expect(resolveStorageBackend(configWith({ GCS_STORAGE_BUCKET_NAME: "a-bucket" }))).toBe("gcs")
+  it("falls back to local", () => {
     expect(resolveStorageBackend(configWith({}))).toBe("local")
   })
 
+  it("rejects a GCS bucket without STORAGE_BACKEND", () => {
+    expect(() =>
+      resolveStorageBackend(configWith({ GCS_STORAGE_BUCKET_NAME: "a-bucket" })),
+    ).toThrow("GCS_STORAGE_BUCKET_NAME is no longer read")
+  })
+
   it("rejects an unknown backend", () => {
-    expect(() => resolveStorageBackend(configWith({ STORAGE_BACKEND: "minio" }))).toThrow(
-      "Invalid STORAGE_BACKEND: minio. Use s3, gcs or local.",
+    expect(() => resolveStorageBackend(configWith({ STORAGE_BACKEND: "gcs" }))).toThrow(
+      "Invalid STORAGE_BACKEND: gcs. Use s3 or local.",
     )
   })
 })

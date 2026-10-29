@@ -4,13 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
-	"net/http"
-	"net/url"
 	"strings"
 	"time"
-
-	"cloud.google.com/go/storage"
 )
 
 // errObjectNotFound normalizes "missing object" across the real stores and
@@ -45,72 +40,6 @@ type objectStore interface {
 	Download(ctx context.Context, object string, maxBytes int64) ([]byte, error)
 	Upload(ctx context.Context, object string, data []byte, opts uploadOptions) error
 	SignedURL(ctx context.Context, object string, opts signedURLOptions) (string, error)
-}
-
-type gcsStore struct {
-	bucket *storage.BucketHandle
-}
-
-// Download enforces maxBytes on the same object generation it reads: the size
-// in reader.Attrs comes from the read response itself, so it cannot diverge
-// from the bytes (unlike a separate Attrs call, which races with overwrites).
-func (store *gcsStore) Download(ctx context.Context, object string, maxBytes int64) ([]byte, error) {
-	reader, err := store.bucket.Object(object).NewReader(ctx)
-	if errors.Is(err, storage.ErrObjectNotExist) {
-		return nil, errObjectNotFound
-	}
-	if err != nil {
-		return nil, fmt.Errorf("open %s: %w", object, err)
-	}
-	defer reader.Close()
-	if reader.Attrs.Size > maxBytes {
-		return nil, &objectTooLargeError{size: reader.Attrs.Size, maxBytes: maxBytes}
-	}
-	data, err := io.ReadAll(io.LimitReader(reader, maxBytes+1))
-	if err != nil {
-		return nil, fmt.Errorf("read %s: %w", object, err)
-	}
-	if int64(len(data)) > maxBytes {
-		return nil, &objectTooLargeError{size: int64(len(data)), maxBytes: maxBytes}
-	}
-	return data, nil
-}
-
-func (store *gcsStore) Upload(ctx context.Context, object string, data []byte, opts uploadOptions) error {
-	writer := store.bucket.Object(object).NewWriter(ctx)
-	writer.ContentType = opts.ContentType
-	// The payload is fully in memory and small (a page PNG or an exported
-	// PDF); ChunkSize 0 uploads it in a single request instead of staging a
-	// 16MiB resumable buffer.
-	writer.ChunkSize = 0
-	if _, err := writer.Write(data); err != nil {
-		writer.Close()
-		return fmt.Errorf("write %s: %w", object, err)
-	}
-	if err := writer.Close(); err != nil {
-		return fmt.Errorf("close %s: %w", object, err)
-	}
-	return nil
-}
-
-// SignedURL mints a V4 GET URL that hands the object straight to the browser
-// as a download. Signing needs a credential that can sign: a service-account
-// key locally, or the IAM Credentials API on Cloud Run. ctx is unused by
-// BucketHandle.SignedURL but stays on the interface for symmetry with the
-// other methods.
-func (store *gcsStore) SignedURL(ctx context.Context, object string, opts signedURLOptions) (string, error) {
-	signed, err := store.bucket.SignedURL(object, &storage.SignedURLOptions{
-		Scheme:  storage.SigningSchemeV4,
-		Method:  http.MethodGet,
-		Expires: opts.Expires,
-		QueryParameters: url.Values{
-			"response-content-disposition": {contentDisposition(opts.DownloadFileName)},
-		},
-	})
-	if err != nil {
-		return "", fmt.Errorf("sign %s: %w", object, err)
-	}
-	return signed, nil
 }
 
 // contentDisposition builds the attachment header for a download name that may
