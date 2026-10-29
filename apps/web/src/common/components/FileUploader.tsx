@@ -59,8 +59,8 @@ export function FileUploader({
         await onProcessFiles?.(files).finally(() => {
           setStatus(undefined)
           setFiles([])
-          onProcessEnd?.("success")
         })
+        onProcessEnd?.("success")
       } catch (error) {
         console.error(error)
         setStatus("error")
