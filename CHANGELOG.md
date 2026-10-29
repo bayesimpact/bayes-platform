@@ -17,6 +17,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Security
 
+- Embedded agents in tag mode now search only the documents that carry their tags.
+
 ## [26.10.8] - 2026-10-29
 
 ### Added
