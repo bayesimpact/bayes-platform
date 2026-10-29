@@ -122,7 +122,6 @@ x-backend-env: &backend-env
   # The API also writes <url>/mcp into the built-in PDF export MCP server of its database at boot.
   PDF_CONVERTER_URL: http://pdf-converter:3002
   GOOGLE_APPLICATION_CREDENTIALS: ${WT_GCP_CREDENTIALS_IN_CONTAINER}
-  GCS_CREDENTIALS: ""
   DOCUMENT_EXTRACTOR_DOCLING_ENABLED: "false"
   FRONTEND_URL: ${WT_ORIGIN},${WT_EMBED_ORIGIN},${WT_LEGACY_ORIGIN},${WT_LEGACY_EMBED_ORIGIN}
   APP_PUBLIC_URL: ${WT_ORIGIN}

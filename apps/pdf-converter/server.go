@@ -16,7 +16,7 @@ import (
 )
 
 // uploadConcurrency bounds parallel page uploads per request; enough to hide
-// GCS latency behind rendering without holding many page buffers in memory.
+// storage latency behind rendering without holding many page buffers in memory.
 const uploadConcurrency = 4
 
 type renderDocumentRequest struct {
@@ -110,7 +110,7 @@ func newServer(
 		renderCtx, cancelRender := context.WithTimeout(request.Context(), renderTimeout)
 		defer cancelRender()
 		// Pages upload concurrently with rendering: emit hands each PNG to a
-		// bounded errgroup so GCS round trips overlap with pdfium instead of
+		// bounded errgroup so bucket round trips overlap with pdfium instead of
 		// blocking it. SetLimit gives backpressure — at most
 		// uploadConcurrency page buffers are in flight at once.
 		uploads, uploadCtx := errgroup.WithContext(renderCtx)

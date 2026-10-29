@@ -1,5 +1,5 @@
 // pdf-converter: PDF -> PNG page rasterizer for image-only LLMs, reading and
-// writing the platform bucket (S3-compatible or GCS), plus an MCP endpoint
+// writing the platform bucket (S3-compatible), plus an MCP endpoint
 // that exports markdown as a downloadable PDF.
 package main
 
@@ -12,7 +12,6 @@ import (
 	"strings"
 	"time"
 
-	"cloud.google.com/go/storage"
 	"github.com/joho/godotenv"
 
 	"github.com/bayesimpact/bayes-platform/apps/pdf-converter/internal/render"
@@ -67,7 +66,7 @@ func main() {
 			log.Fatalf("invalid PDF_EXPORT_TTL_MINUTES: %q", fromEnv)
 		}
 		if parsed > maxPdfExportTTLMinutes {
-			log.Fatalf("invalid PDF_EXPORT_TTL_MINUTES: %q exceeds the %d minute GCS signing limit",
+			log.Fatalf("invalid PDF_EXPORT_TTL_MINUTES: %q exceeds the %d minute SigV4 signing limit",
 				fromEnv, maxPdfExportTTLMinutes)
 		}
 		exportTTL = time.Duration(parsed) * time.Minute
@@ -107,44 +106,27 @@ func main() {
 	log.Fatal(http.ListenAndServe(":"+port, server))
 }
 
-// newObjectStore reads the same variables as the API: STORAGE_BACKEND picks
-// s3 or gcs, and without it a GCS bucket name means gcs.
+// newObjectStore reads the same variables as the API. A Cloud Storage bucket is
+// reached through its S3 API, with HMAC keys.
 func newObjectStore(ctx context.Context) (objectStore, string) {
-	backend := os.Getenv("STORAGE_BACKEND")
-	if backend == "" && os.Getenv("GCS_STORAGE_BUCKET_NAME") != "" {
-		backend = "gcs"
+	if backend := os.Getenv("STORAGE_BACKEND"); backend != "s3" {
+		log.Fatalf("STORAGE_BACKEND must be s3, got %q: the converter needs a bucket (see .env-example)", backend)
 	}
-	switch backend {
-	case "s3":
-		settings := s3Settings{
-			Bucket:          os.Getenv("S3_BUCKET"),
-			Endpoint:        os.Getenv("S3_ENDPOINT"),
-			PublicEndpoint:  os.Getenv("S3_PUBLIC_ENDPOINT"),
-			Region:          os.Getenv("S3_REGION"),
-			AccessKeyID:     os.Getenv("S3_ACCESS_KEY_ID"),
-			SecretAccessKey: os.Getenv("S3_SECRET_ACCESS_KEY"),
-			ForcePathStyle:  os.Getenv("S3_FORCE_PATH_STYLE") == "true",
-		}
-		if settings.Bucket == "" {
-			log.Fatal("S3_BUCKET is required when STORAGE_BACKEND is s3 (see .env-example)")
-		}
-		store, err := newS3Store(ctx, settings)
-		if err != nil {
-			log.Fatalf("s3 client: %v", err)
-		}
-		return store, "s3 bucket " + settings.Bucket
-	case "gcs":
-		bucketName := os.Getenv("GCS_STORAGE_BUCKET_NAME")
-		if bucketName == "" {
-			log.Fatal("GCS_STORAGE_BUCKET_NAME is required when STORAGE_BACKEND is gcs (see .env-example)")
-		}
-		client, err := storage.NewClient(ctx)
-		if err != nil {
-			log.Fatalf("gcs client: %v", err)
-		}
-		return &gcsStore{bucket: client.Bucket(bucketName)}, "gcs bucket " + bucketName
-	default:
-		log.Fatalf("STORAGE_BACKEND must be s3 or gcs, got %q: the converter needs a bucket (see .env-example)", backend)
-		return nil, ""
+	settings := s3Settings{
+		Bucket:          os.Getenv("S3_BUCKET"),
+		Endpoint:        os.Getenv("S3_ENDPOINT"),
+		PublicEndpoint:  os.Getenv("S3_PUBLIC_ENDPOINT"),
+		Region:          os.Getenv("S3_REGION"),
+		AccessKeyID:     os.Getenv("S3_ACCESS_KEY_ID"),
+		SecretAccessKey: os.Getenv("S3_SECRET_ACCESS_KEY"),
+		ForcePathStyle:  os.Getenv("S3_FORCE_PATH_STYLE") == "true",
 	}
+	if settings.Bucket == "" {
+		log.Fatal("S3_BUCKET is required (see .env-example)")
+	}
+	store, err := newS3Store(ctx, settings)
+	if err != nil {
+		log.Fatalf("s3 client: %v", err)
+	}
+	return store, "s3 bucket " + settings.Bucket
 }
