@@ -4,8 +4,8 @@ highlight: API
 description: Construisez votre propre client de chat sur un agent public. Routes, en-têtes, événements envoyés par le serveur, codes d'erreur et limites de l'API de chat publique, version 1.
 category: developers
 order: 1
-updated: 2026-10-22
-apiVersion: "1.1"
+updated: 2026-10-26
+apiVersion: "1.2"
 ---
 
 import PublicApiBaseUrl from "@/components/PublicApiBaseUrl.astro"
@@ -39,7 +39,7 @@ Toutes les routes de la version 1 commencent par `/public/v1/agents/{embedToken}
 
 ## Version
 
-Cette page documente la version **1.1**. La version majeure est dans le chemin (`v1`). Les
+Cette page documente la version **1.2**. La version majeure est dans le chemin (`v1`). Les
 versions mineures ajoutent des champs ou des routes et ne changent jamais l'existant. Le
 [journal des modifications](/fr/public-chat-api-changelog) liste chaque version. Votre
 client doit ignorer les champs et les types d'événements inconnus. Il reste ainsi
@@ -257,7 +257,11 @@ et seulement quand un message a des `toolCalls[].mcpApp`.
     {
       "mcpServerId": "3d5f7a9b-1c2e-4f3a-9b4c-5d6e7f8a9b0c",
       "resourceUri": "ui://order-summary/card.html",
-      "html": "<!doctype html>..."
+      "html": "<!doctype html>...",
+      "csp": {
+        "connectDomains": ["https://api.example.com"],
+        "resourceDomains": ["https://cdn.example.com"]
+      }
     }
   ]
 }
@@ -265,6 +269,12 @@ et seulement quand un message a des `toolCalls[].mcpApp`.
 
 Associez une carte à son message avec `mcpServerId` et `resourceUri`. Le tableau est vide
 quand aucune carte n'existe.
+
+`csp` liste les domaines que la carte déclare dans les métadonnées de sa ressource MCP
+(`_meta.ui.csp` de la spécification MCP Apps) : `connectDomains`, `resourceDomains`,
+`frameDomains` et `baseUriDomains`. Il est absent quand la carte n'en déclare aucun. Si vous
+affichez les cartes vous-même, construisez la Content Security Policy de la carte à partir de
+cette liste et bloquez tous les autres domaines.
 
 Statut : `200`. Erreurs : `401`, `403`.
 

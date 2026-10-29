@@ -84,11 +84,13 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY apps/web/package.json ./apps/web/
 COPY packages/api-contracts/package.json ./packages/api-contracts/
+COPY packages/mcp-app-host/package.json ./packages/mcp-app-host/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 COPY packages/ui/package.json ./packages/ui/
 
 RUN npm ci \
     --workspace=@caseai-connect/web \
+    --workspace=@caseai-connect/mcp-app-host \
     --workspace=@caseai-connect/ui \
     --workspace=@caseai-connect/api-contracts \
     --include-workspace-root

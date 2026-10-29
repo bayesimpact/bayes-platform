@@ -33,11 +33,28 @@ export type AgentSessionMcpAppDto = {
   html?: string
 }
 
+/**
+ * Domains an MCP App declares in its resource metadata (`_meta.ui.csp` of the MCP Apps spec).
+ * The host builds the card's Content Security Policy from them, and blocks every other domain.
+ */
+export type McpAppCspDto = {
+  /** Origins the app may reach with fetch, XHR or WebSocket (`connect-src`). */
+  connectDomains?: string[]
+  /** Origins the app may load scripts, styles, images, fonts and media from. */
+  resourceDomains?: string[]
+  /** Origins the app may embed in a frame (`frame-src`). */
+  frameDomains?: string[]
+  /** Origins the app's `<base>` may point at (`base-uri`). */
+  baseUriDomains?: string[]
+}
+
 /** Current HTML of one MCP App card used in a session, keyed by the server that serves it. */
 export type AgentSessionMcpAppHtmlDto = {
   mcpServerId: string
   resourceUri: string
   html: string
+  /** The domains the app declares. Absent when it declares none: the strictest policy applies. */
+  csp?: McpAppCspDto
 }
 
 export type AgentSessionToolCallDto = {

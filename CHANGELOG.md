@@ -76,6 +76,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Checkboxes now clearly show when they are checked.
 
 ### Security
+- MCP App cards: each card now runs in its own isolated frame, limited to the domains it declares.
 
 - Dependencies: server libraries and Docker images are updated to patch known vulnerabilities.
 

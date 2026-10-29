@@ -52,9 +52,9 @@ describe("McpAppHtmlService", () => {
     })
 
     expect(readResource).toHaveBeenCalledWith(resourceUri)
-    expect(htmlByKey.get(mcpAppHtmlCacheKey(mcpServerId, resourceUri))).toBe(
-      "<html>new card</html>",
-    )
+    expect(htmlByKey.get(mcpAppHtmlCacheKey(mcpServerId, resourceUri))).toEqual({
+      html: "<html>new card</html>",
+    })
     expect(close).toHaveBeenCalled()
   })
 

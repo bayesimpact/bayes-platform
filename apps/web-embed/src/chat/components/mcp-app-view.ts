@@ -2,10 +2,13 @@ import type {
   AgentSessionMcpAppDto,
   AgentSessionMcpAppHtmlDto,
   AgentSessionToolCallDto,
+  McpAppCspDto,
 } from "@caseai-connect/api-contracts"
 
 export type McpAppViewModel = {
   html: string
+  /** The domains the card declares, for its Content Security Policy. */
+  csp?: McpAppCspDto
   toolInput: Record<string, unknown>
   toolResult: unknown
 }
@@ -28,21 +31,22 @@ export function hasMcpAppCard(toolCall: AgentSessionToolCallDto): boolean {
 }
 
 /**
- * Current HTML for a card pointer. The HTML embedded on the tool call wins (stories); otherwise
+ * Current HTML for a card pointer, with the domains it declares. The HTML embedded on the tool call wins (stories); otherwise
  * the entry read from the same server, or, for a pointer recorded without a server id, the
  * entry any server returned for that `ui://`.
  */
 export function findMcpAppHtml(
   mcpApp: AgentSessionMcpAppDto,
   htmlEntries: AgentSessionMcpAppHtmlDto[],
-): string | undefined {
-  if (typeof mcpApp.html === "string" && mcpApp.html.trim().length > 0) return mcpApp.html
+): Pick<McpAppViewModel, "html" | "csp"> | undefined {
+  if (typeof mcpApp.html === "string" && mcpApp.html.trim().length > 0) return { html: mcpApp.html }
   const entry = htmlEntries.find(
     (candidate) =>
       candidate.resourceUri === mcpApp.resourceUri &&
       (!mcpApp.mcpServerId || candidate.mcpServerId === mcpApp.mcpServerId),
   )
-  return entry && entry.html.trim().length > 0 ? entry.html : undefined
+  if (!entry || entry.html.trim().length === 0) return undefined
+  return entry.csp ? { html: entry.html, csp: entry.csp } : { html: entry.html }
 }
 
 export function getRenderableMcpApp(
@@ -50,11 +54,11 @@ export function getRenderableMcpApp(
   htmlEntries: AgentSessionMcpAppHtmlDto[] = [],
 ): McpAppViewModel | undefined {
   if (!toolCall.mcpApp || toolCall.result === undefined) return undefined
-  const html = findMcpAppHtml(toolCall.mcpApp, htmlEntries)
-  if (html === undefined) return undefined
+  const source = findMcpAppHtml(toolCall.mcpApp, htmlEntries)
+  if (source === undefined) return undefined
 
   return {
-    html,
+    ...source,
     toolInput: toolCall.arguments,
     toolResult: toolCall.result,
   }
@@ -103,14 +107,4 @@ export function getFailedMcpAppFallbackText(
     .map((toolCall) => getMcpAppToolResultText(toolCall.result))
     .filter((text) => text.length > 0)
     .join("\n\n")
-}
-
-/** Only `http:`/`https:` links are safe to open in a new tab from an MCP App. */
-export function isOpenableLink(url: string): boolean {
-  try {
-    const parsed = new URL(url)
-    return parsed.protocol === "http:" || parsed.protocol === "https:"
-  } catch {
-    return false
-  }
 }

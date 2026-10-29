@@ -153,6 +153,79 @@ export const MESSAGE_CARD_HTML = `<!DOCTYPE html>
   </body>
 </html>`
 
+/**
+ * A stand-in guest that tests its own sandbox and lists what it found: whether it can reach the
+ * frame around it, use storage, and call a server. The call is to `https://example.com`, so
+ * the result depends on the domains the card declares.
+ */
+export const SANDBOX_PROBE_CARD_HTML = `<!DOCTYPE html>
+<html>
+  <body style="font: 13px sans-serif; margin: 8px;">
+    <ul id="results"></ul>
+    <script>
+      (function () {
+        function send(message) {
+          window.parent.postMessage(Object.assign({ jsonrpc: "2.0" }, message), "*")
+        }
+        function notifySize() {
+          send({
+            method: "ui/notifications/size-changed",
+            params: { height: document.documentElement.getBoundingClientRect().height },
+          })
+        }
+        function report(label, outcome) {
+          var item = document.createElement("li")
+          item.textContent = label + ": " + outcome
+          document.getElementById("results").appendChild(item)
+          notifySize()
+        }
+        var blockedByPolicy = []
+        document.addEventListener("securitypolicyviolation", function (event) {
+          blockedByPolicy.push(event.effectiveDirective)
+        })
+        try {
+          report("Read the frame around the card", window.parent.document ? "allowed" : "blocked")
+        } catch (error) {
+          report("Read the frame around the card", "blocked")
+        }
+        try {
+          window.localStorage.getItem("probe")
+          report("Use storage", "allowed")
+        } catch (error) {
+          report("Use storage", "blocked")
+        }
+        fetch("https://example.com", { mode: "no-cors" })
+          .then(function () {
+            report("Call https://example.com", "allowed")
+          })
+          .catch(function () {
+            setTimeout(function () {
+              var byPolicy = blockedByPolicy.indexOf("connect-src") !== -1
+              report("Call https://example.com", byPolicy ? "blocked by the policy" : "failed")
+            }, 0)
+          })
+        window.addEventListener("message", function (event) {
+          if (event.source !== window.parent) return
+          var message = event.data
+          if (message && message.jsonrpc === "2.0" && message.id === 1 && message.result) {
+            send({ method: "ui/notifications/initialized" })
+          }
+        })
+        send({
+          id: 1,
+          method: "ui/initialize",
+          params: {
+            appInfo: { name: "sample", version: "0" },
+            appCapabilities: {},
+            protocolVersion: "${LATEST_PROTOCOL_VERSION}",
+          },
+        })
+        notifySize()
+      })()
+    </script>
+  </body>
+</html>`
+
 const EXPIRY_WINDOW_MS = 15 * 60 * 1000
 
 /**
@@ -229,4 +302,16 @@ function CardAboveInput(props: React.ComponentProps<typeof McpAppView>) {
       />
     </div>
   )
+}
+
+/** A card that declares no domain: it reaches neither the page around it nor any server. */
+export const SandboxStrictPolicy: Story = {
+  args: { html: SANDBOX_PROBE_CARD_HTML },
+  render: (args) => <McpAppView {...args} toolResult={buildToolResult(EXPIRY_WINDOW_MS)} />,
+}
+
+/** A card that declares `https://example.com`: it may call that server, and only that one. */
+export const SandboxDeclaredDomain: Story = {
+  args: { html: SANDBOX_PROBE_CARD_HTML, csp: { connectDomains: ["https://example.com"] } },
+  render: (args) => <McpAppView {...args} toolResult={buildToolResult(EXPIRY_WINDOW_MS)} />,
 }

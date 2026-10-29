@@ -5,7 +5,7 @@ import type { EnabledMcpServer } from "@/domains/mcp-servers/mcp-servers.service
 import { McpServersService } from "@/domains/mcp-servers/mcp-servers.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { McpClientService } from "@/external/mcp"
-import { readMcpAppHtml } from "@/external/mcp/mcp-app-resource"
+import { type McpAppResource, readMcpAppResource } from "@/external/mcp/mcp-app-resource"
 import type { McpSession } from "@/external/mcp/mcp-client.service"
 import type { McpConversationContext } from "@/external/mcp/mcp-request-headers"
 import { mcpAppHtmlCacheKey } from "./agent-message.helpers"
@@ -93,7 +93,7 @@ export class McpAppHtmlService {
   ) {}
 
   /**
-   * Current HTML keyed by `mcpServerId::resourceUri`. Empty when the timeline
+   * Current HTML, with the domains each card declares, keyed by `mcpServerId::resourceUri`. Empty when the timeline
    * has no MCP Apps, so we never open an MCP connection for ordinary chats.
    */
   async readLiveHtml({
@@ -114,12 +114,12 @@ export class McpAppHtmlService {
      * settings lookup, and a session whose agent has no settings still answers.
      */
     resolveLocale?: () => Promise<string | null>
-  }): Promise<Map<string, string>> {
+  }): Promise<Map<string, McpAppResource>> {
     const refs = collectMcpAppRefs(messages)
     if (refs.length === 0) return new Map()
 
     const enabledServers = await this.mcpServersService.getEnabledServersForAgent(agentId)
-    const htmlByKey = new Map<string, string>()
+    const htmlByKey = new Map<string, McpAppResource>()
     const locale = resolveLocale ? await resolveLocale() : null
     const context: McpConversationContext = { agentId, sessionId, externalVisitorId, locale }
 
@@ -142,7 +142,7 @@ export class McpAppHtmlService {
     server,
   }: {
     context: McpConversationContext
-    htmlByKey: Map<string, string>
+    htmlByKey: Map<string, McpAppResource>
     resourceUris: Set<string>
     server: EnabledMcpServer
   }): Promise<void> {
@@ -157,7 +157,7 @@ export class McpAppHtmlService {
   }
 
   /**
-   * Best-effort `resources/read`. MIME / URI checks live in `readMcpAppHtml`.
+   * Best-effort `resources/read`. MIME / URI checks live in `readMcpAppResource`.
    * Failures are logged without payloads and left out of the map so one bad
    * card cannot fail the message list.
    */
@@ -167,17 +167,17 @@ export class McpAppHtmlService {
     mcpSession,
     resourceUri,
   }: {
-    htmlByKey: Map<string, string>
+    htmlByKey: Map<string, McpAppResource>
     mcpServerId: string
     mcpSession: McpSession
     resourceUri: string
   }): Promise<void> {
     try {
-      const html = readMcpAppHtml({
+      const appResource = readMcpAppResource({
         resourceUri,
         resource: await mcpSession.readResource(resourceUri),
       })
-      htmlByKey.set(mcpAppHtmlCacheKey(mcpServerId, resourceUri), html)
+      htmlByKey.set(mcpAppHtmlCacheKey(mcpServerId, resourceUri), appResource)
       this.logger.log("MCP App resource read", { mcpServerId, resourceUri })
     } catch (error) {
       this.logger.warn("MCP App resource read failed", {

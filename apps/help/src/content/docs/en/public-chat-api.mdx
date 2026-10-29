@@ -4,8 +4,8 @@ highlight: API
 description: Build your own chat client on a public agent. Routes, headers, server-sent events, error codes and limits of the public chat API, version 1.
 category: developers
 order: 1
-updated: 2026-10-22
-apiVersion: "1.1"
+updated: 2026-10-26
+apiVersion: "1.2"
 ---
 
 import PublicApiBaseUrl from "@/components/PublicApiBaseUrl.astro"
@@ -38,7 +38,7 @@ All routes of version 1 start with `/public/v1/agents/{embedToken}`.
 
 ## Version
 
-This page documents version **1.1**. The major version is in the path (`v1`). Minor versions
+This page documents version **1.2**. The major version is in the path (`v1`). Minor versions
 add fields or routes and never change existing ones. The
 [changelog](/en/public-chat-api-changelog) lists every version. Your client must ignore
 unknown fields and unknown event types. This keeps it compatible with future minor versions.
@@ -255,7 +255,11 @@ a message has `toolCalls[].mcpApp`.
     {
       "mcpServerId": "3d5f7a9b-1c2e-4f3a-9b4c-5d6e7f8a9b0c",
       "resourceUri": "ui://order-summary/card.html",
-      "html": "<!doctype html>..."
+      "html": "<!doctype html>...",
+      "csp": {
+        "connectDomains": ["https://api.example.com"],
+        "resourceDomains": ["https://cdn.example.com"]
+      }
     }
   ]
 }
@@ -263,6 +267,11 @@ a message has `toolCalls[].mcpApp`.
 
 Match a card to its message with `mcpServerId` and `resourceUri`. The array is empty when
 no card exists.
+
+`csp` lists the domains the card declares in its MCP resource metadata (`_meta.ui.csp` of
+the MCP Apps specification): `connectDomains`, `resourceDomains`, `frameDomains` and
+`baseUriDomains`. It is absent when the card declares none. If you render cards yourself,
+build the card's Content Security Policy from it and block every other domain.
 
 Status: `200`. Errors: `401`, `403`.
 
