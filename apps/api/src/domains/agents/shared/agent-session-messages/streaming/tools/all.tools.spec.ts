@@ -786,7 +786,6 @@ describe("Tools execution", () => {
         context: expect.objectContaining({
           agentId: agent.id,
           sessionId: session.id,
-          locale: agentSettings.locale,
         }),
       }),
     )

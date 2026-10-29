@@ -9,7 +9,6 @@
       "formConfiguration": "Form Configuration",
       "greeting": "Greeting",
       "documentsRagMode": "Answer source",
-      "locale": "Locale",
       "model": "Model",
       "outputJsonSchema": "Output JSON Schema",
       "fillFormEnabled": "Form filling",
@@ -73,7 +72,6 @@
         "model": "Select model",
         "outputJsonSchema": "{\n \"type\": \"object\", \"properties\": {\n    \"field\": { \"type\": \"string\", \"description\": \"blablabla\" }\n  },\n  \"required\": [\"field\"]\n}",
         "temperature": "Enter temperature 0.0 - 2.0",
-        "locale": "Select language for agent responses",
         "thinkingLevel": "Select thinking level"
       },
       "validation": {

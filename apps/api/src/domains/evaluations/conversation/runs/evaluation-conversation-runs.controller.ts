@@ -313,7 +313,6 @@ function toEvaluationConversationRunAgentSettingsDto(
   return {
     documentsRagMode: agentSettings.documentsRagMode,
     instructions: agentSettings.instructions,
-    locale: agentSettings.locale,
     model: agentSettings.model,
     revision: agentSettings.revision,
     providerOptions: agentSettings.providerOptions,
