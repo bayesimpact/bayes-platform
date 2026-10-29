@@ -1,0 +1,53 @@
+{
+  "user": {
+    "props": {
+      "email": "E-Mail",
+      "name": "Name"
+    },
+    "logout": "Abmelden",
+    "helpCenter": "Hilfecenter",
+    "editProfile": "Profil bearbeiten",
+    "connectedApps": "Verbundene Apps",
+    "editProfileDialog": {
+      "title": "Profil bearbeiten",
+      "namePlaceholder": "Ihr Name",
+      "language": "Sprache",
+      "save": "Speichern",
+      "cancel": "Abbrechen"
+    }
+  },
+  "me": {
+    "props": {
+      "user": "Benutzer",
+      "organizations": "Organisationen"
+    },
+    "invitations": {
+      "title": "Offene Einladungen",
+      "description": "Nehmen Sie eine Einladung an, um Zugriff zu erhalten.",
+      "projectBadge": "Projekt",
+      "agentBadge": "Agent",
+      "reviewCampaignBadge": "Review-Kampagne",
+      "roleLabel": "Rolle"
+    },
+    "notifications": {
+      "invitationAnswerError": "Die Einladung konnte nicht beantwortet werden",
+      "apiUnreachable": "API nicht erreichbar",
+      "apiUnreachableDescription": "Bitte prüfen Sie, ob die API läuft und CORS für den Ursprung dieser Web-App konfiguriert ist.",
+      "profileUpdated": "Profil aktualisiert"
+    }
+  },
+  "termsAcceptance": {
+    "title": "Bedingungen und Compliance",
+    "intro": "Um fortzufahren, lesen und akzeptieren Sie bitte die folgenden Dokumente.",
+    "checkboxes": {
+      "generalConditions": "Ich akzeptiere die Allgemeinen Nutzungsbedingungen (erforderlich)",
+      "privacyPolicy": "Ich akzeptiere die Datenschutzerklärung (erforderlich)",
+      "aiUsagePolicy": "Ich akzeptiere die Richtlinie zur Nutzung von KI-Systemen (optional)"
+    },
+    "version": "Version {{version}}",
+    "submit": "Akzeptieren und fortfahren",
+    "errors": {
+      "mandatoryRequired": "Sie müssen die Allgemeinen Nutzungsbedingungen und die Datenschutzerklärung akzeptieren, um fortzufahren."
+    }
+  }
+}

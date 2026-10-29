@@ -1,0 +1,37 @@
+{
+  "auth": {
+    "callbackError": {
+      "title": "Error al iniciar sesión",
+      "hint": "El proveedor de identidad rechazó el inicio de sesión. Si el problema persiste, póngase en contacto con el administrador de esta plataforma e indíquele el mensaje anterior.",
+      "retry": "reintentar",
+      "logout": "cerrar sesión",
+      "lostState": {
+        "title": "Inicio de sesión caducado",
+        "message": "Este inicio de sesión comenzó hace demasiado tiempo, o se inició otro en otra pestaña, y esta pestaña ya no puede completarlo.",
+        "hint": "Haga clic en reintentar para iniciar sesión. Si vuelve a ver esta página, cierre primero las demás pestañas de esta plataforma."
+      },
+      "signInRefused": {
+        "emailNotVerified": {
+          "title": "Verifique su correo electrónico",
+          "message": "Hay una cuenta esperando su dirección de correo electrónico, pero su proveedor de identidad aún no la ha verificado.",
+          "hint": "Abra el correo de verificación que le envió su proveedor de identidad y revise también la carpeta de spam. Haga clic en el enlace que contiene y luego en reintentar."
+        },
+        "emailRequired": {
+          "title": "Falta la dirección de correo electrónico",
+          "message": "Su proveedor de identidad no compartió su dirección de correo electrónico con esta plataforma.",
+          "hint": "La plataforma la necesita para encontrar sus invitaciones. Póngase en contacto con el administrador de esta plataforma."
+        },
+        "emailLinkingDisabled": {
+          "title": "La cuenta ya existe",
+          "message": "Ya existe una cuenta para su dirección de correo electrónico, y esta plataforma no vincula los inicios de sesión a cuentas existentes.",
+          "hint": "Póngase en contacto con el administrador de esta plataforma."
+        }
+      }
+    },
+    "noAccess": {
+      "title": "Aún sin acceso",
+      "description": "Su cuenta está activa, pero no tiene ningún espacio de trabajo ni invitaciones pendientes. Pida una invitación a su administrador.",
+      "logout": "cerrar sesión"
+    }
+  }
+}

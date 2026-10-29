@@ -1,0 +1,15 @@
+{
+  "promptVariables": {
+    "title": "Zmienne promptu",
+    "description": "Wartości zmiennych zadeklarowanych przez agenta w instrukcjach. Każda jest podstawiana do promptu przed wywołaniem modelu.",
+    "empty": "Ten agent nie deklaruje żadnych zmiennych w instrukcjach.",
+    "required": "Wymagane",
+    "default": "Domyślnie: {{value}}",
+    "clear": "Wyczyść: {{name}}",
+    "valuePlaceholder": "Wpisz wartość",
+    "dialog": {
+      "description": "Ustaw wartości dla tego czatu. Pozostaw pole puste, aby użyć wartości domyślnej agenta.",
+      "start": "Rozpocznij czat"
+    }
+  }
+}

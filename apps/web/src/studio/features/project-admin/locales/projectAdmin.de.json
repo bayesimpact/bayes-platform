@@ -1,0 +1,40 @@
+{
+  "projectAdmin": {
+    "navLabel": "Admin",
+    "title": "Admin",
+    "description": "Einstellungen Ihres Arbeitsbereichs verwalten.",
+    "tabs": {
+      "general": "Allgemein",
+      "agentSessionCategories": "Unterhaltungskategorien",
+      "retention": "Aufbewahrungsrichtlinie"
+    },
+    "general": {
+      "title": "Allgemein",
+      "description": "Allgemeine Einstellungen dieses Arbeitsbereichs aktualisieren.",
+      "workspaceName": "Name des Arbeitsbereichs"
+    },
+    "agentSessionCategories": {
+      "title": "Unterhaltungskategorien",
+      "description": "Kategorien verwalten, mit denen die Unterhaltungen dieses Arbeitsbereichs automatisch klassifiziert werden.",
+      "addCategory": "Kategorie hinzufügen",
+      "addDialogTitle": "Unterhaltungskategorie hinzufügen",
+      "categoryNamePlaceholder": "Name der Kategorie",
+      "empty": "Noch keine Kategorien.",
+      "removeCategory": "{{name}} entfernen",
+      "assignToAllConversationalAgents": "Auch für alle bestehenden Konversationsagenten aktivieren",
+      "removeDialogTitle": "Unterhaltungskategorie entfernen?",
+      "removeDialogDescription": "„{{name}}“ wird aus der Kategorienliste des Arbeitsbereichs entfernt."
+    },
+    "retention": {
+      "title": "Aufbewahrungsrichtlinie",
+      "retentionLabel": "Aufbewahrung von Unterhaltungen (Tage)",
+      "retentionHelp": "Bei Unterhaltungen, die älter sind, wird der Inhalt endgültig gelöscht. Nutzungsstatistiken bleiben erhalten. Zwischen 1 und 3650 Tagen.",
+      "logTitle": "Löschprotokoll",
+      "nextRun": "Nächste Löschung: {{date}}",
+      "logEmpty": "Bisher wurde keine Löschung ausgeführt.",
+      "columnDate": "Datum",
+      "columnPurged": "Gelöschte Unterhaltungen",
+      "columnStatus": "Status"
+    }
+  }
+}

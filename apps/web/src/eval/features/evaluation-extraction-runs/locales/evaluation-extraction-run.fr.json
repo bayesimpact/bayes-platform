@@ -118,6 +118,7 @@
     "agentMetadata": {
       "title": "Configuration de l'agent",
       "viewAgent": "Voir l'agent",
+      "openInStudio": "Ouvrir dans le Studio",
       "notFound": "Agent introuvable",
       "model": "Modèle",
       "locale": "Langue",

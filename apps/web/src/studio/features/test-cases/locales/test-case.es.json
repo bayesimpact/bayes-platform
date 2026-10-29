@@ -1,0 +1,83 @@
+{
+  "testCase": {
+    "saveAsTestCase": "Guardar como caso de prueba",
+    "dialog": {
+      "judgeDescription": "Convierta esta respuesta en un caso de prueba, que se volverá a reproducir cada vez que se ejecute el conjunto de datos.",
+      "reviewDescription": "Compruebe lo que contendrá el conjunto de datos. Una ejecución envía la entrada al agente y califica su respuesta frente a la esperada.",
+      "drafting": "Redactando el caso de prueba…",
+      "draftingWithExpectedOutput": "Redactando el caso de prueba y la respuesta esperada…",
+      "draftFailedTitle": "No se pudo redactar el caso de prueba",
+      "draftFailedDescription": "El LLM no respondió. Inténtelo de nuevo, o vuelva atrás y cambie sus opciones."
+    },
+    "verdict": {
+      "label": "¿Es esta la respuesta que debería dar el agente?",
+      "good": {
+        "title": "Buena respuesta",
+        "description": "La respuesta pasa a ser la referencia con la que se califica al agente."
+      },
+      "bad": {
+        "title": "Mala respuesta",
+        "description": "Indique qué está mal y un LLM redactará la respuesta esperada."
+      }
+    },
+    "comment": {
+      "good": {
+        "label": "¿Qué tiene de bueno esta respuesta?",
+        "placeholder": "Lo que el agente hizo bien y debe seguir haciendo",
+        "description": "Opcional. Se guarda con el caso de prueba para que quien lea el conjunto de datos sepa por qué esta respuesta es la referencia."
+      },
+      "bad": {
+        "label": "¿Qué está mal en esta respuesta?",
+        "placeholder": "Lo que el agente dijo mal, omitió o no debería haber dicho",
+        "description": "Un LLM lo convierte en la respuesta que el agente debería haber dado. Se guarda con el caso de prueba."
+      },
+      "fromReport": "Tomado del problema que notificó el usuario. Edítelo si no refleja lo esencial.",
+      "required": "Indique qué está mal en esta respuesta."
+    },
+    "dataset": {
+      "label": "Conjunto de datos",
+      "recordCount_one": "{{count}} registro",
+      "recordCount_other": "{{count}} registros",
+      "recordCount_many": "{{count}} registros",
+      "newDataset": "Nuevo conjunto de datos",
+      "newDatasetName": "Nombre del nuevo conjunto de datos",
+      "newDatasetSuffix": "{{name}} (nuevo)",
+      "nameTooShort": "El nombre de un conjunto de datos necesita al menos {{count}} caracteres."
+    },
+    "review": {
+      "to": "en",
+      "input": "Entrada",
+      "anonymize": "Anonimizar",
+      "anonymized": "Anonimizada",
+      "inputModes": {
+        "conversation": "Contexto de la conversación",
+        "lastMessage": "Último mensaje exacto"
+      },
+      "inputHints": {
+        "firstTurn": "Esta respuesta contesta al primer mensaje, así que ese mensaje contiene toda la conversación.",
+        "conversation_one": "Redactada por un LLM a partir del turno anterior, para que la pregunta se entienda por sí sola cuando una ejecución la reproduzca.",
+        "conversation_other": "Redactada por un LLM a partir de los {{count}} turnos anteriores, para que la pregunta se entienda por sí sola cuando una ejecución la reproduzca.",
+        "conversation_many": "Redactada por un LLM a partir de los {{count}} turnos anteriores, para que la pregunta se entienda por sí sola cuando una ejecución la reproduzca.",
+        "lastMessage_one": "El último mensaje del usuario tal como se envió. Una ejecución no reproduce el turno anterior.",
+        "lastMessage_other": "El último mensaje del usuario tal como se envió. Una ejecución no reproduce los {{count}} turnos anteriores.",
+        "lastMessage_many": "El último mensaje del usuario tal como se envió. Una ejecución no reproduce los {{count}} turnos anteriores."
+      },
+      "expectedOutput": "Respuesta esperada",
+      "expectedOutputHints": {
+        "good": "La respuesta del agente, guardada como referencia para calificar cada ejecución.",
+        "bad": "Redactada por un LLM a partir de lo que usted indicó que está mal. Cada ejecución se califica frente a ella."
+      },
+      "save": "Guardar caso de prueba",
+      "errors": {
+        "inputRequired": "La entrada no puede estar vacía.",
+        "expectedOutputRequired": "La respuesta esperada no puede estar vacía.",
+        "draftInput": "No se pudo redactar la pregunta. Inténtelo de nuevo o escríbala usted mismo.",
+        "anonymize": "No se pudo anonimizar la entrada. Inténtelo de nuevo.",
+        "save": "No se pudo guardar el caso de prueba. Inténtelo de nuevo."
+      }
+    },
+    "notifications": {
+      "saved": "Caso de prueba guardado en {{name}}"
+    }
+  }
+}

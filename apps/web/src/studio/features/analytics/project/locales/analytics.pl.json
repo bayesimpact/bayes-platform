@@ -1,0 +1,24 @@
+{
+  "analytics": {
+    "analytics": "Analityka",
+    "list": {
+      "title": "Analityka",
+      "description": "Analityka projektu: rozmowy, średnia liczba pytań na sesję i więcej."
+    },
+    "agentFilter": {
+      "placeholder": "Filtruj według agenta",
+      "allAgents": "Wszyscy agenci"
+    },
+    "dateRangePlaceholder": "Zakres dat",
+    "conversationsChart": {
+      "title": "Rozmowy dziennie",
+      "description": "Liczba sesji konwersacyjnych rozpoczętych każdego dnia",
+      "metricLabel": "Łącznie rozmów"
+    },
+    "avgQuestionsChart": {
+      "title": "Śr. liczba pytań użytkownika na sesję",
+      "description": "Średnia liczba wiadomości użytkownika na sesję w danym dniu",
+      "metricLabel": "Dziennie"
+    }
+  }
+}

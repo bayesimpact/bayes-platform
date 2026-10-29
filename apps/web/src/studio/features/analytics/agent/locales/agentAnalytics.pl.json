@@ -1,0 +1,32 @@
+{
+  "agentAnalytics": {
+    "list": {
+      "title": "Analityka",
+      "description": "Metryki rozmów tego agenta.",
+      "pageTitle": "Analityka agenta"
+    },
+    "dateRangePlaceholder": "Zakres dat",
+    "conversationsChart": {
+      "title": "Rozmowy dziennie",
+      "description": "Sesje konwersacyjne tego agenta rozpoczęte każdego dnia",
+      "metricLabel": "Łącznie rozmów"
+    },
+    "avgQuestionsChart": {
+      "title": "Śr. liczba pytań użytkownika na sesję",
+      "description": "Średnia liczba wiadomości użytkownika na sesję w danym dniu dla tego agenta",
+      "metricLabel": "Dziennie"
+    },
+    "categoriesChart": {
+      "title": "Rozmowy według kategorii",
+      "description": "Kategorie uszeregowane według liczby rozmów tego agenta w okresie. Kliknij wiersz, aby zobaczyć dzienną liczbę.",
+      "noDataState": "Brak skategoryzowanych sesji w tym zakresie dat.",
+      "uncategorizedLabel": "Bez kategorii",
+      "columns": {
+        "category": "Kategoria",
+        "conversations": "Rozmowy",
+        "share": "Udział",
+        "trend": "Trend"
+      }
+    }
+  }
+}

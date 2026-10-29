@@ -1,0 +1,42 @@
+{
+  "status": {
+    "done": "Fertig",
+    "draft": "Entwurf",
+    "error": "Fehler",
+    "failed": "Fehlgeschlagen",
+    "idle": "Inaktiv",
+    "loading": "Wird geladen",
+    "noResults": "Keine Ergebnisse gefunden.",
+    "neverSignedIn": "Nie angemeldet",
+    "pending": "Ausstehend",
+    "published": "Veröffentlicht",
+    "ready": "Bereit",
+    "success": "Erfolgreich",
+    "thinking": "Denkt nach",
+    "activity": {
+      "default": "Denkt nach…",
+      "usingTool": "Tool wird aufgerufen…",
+      "searchingResources": "Ressourcen werden durchsucht…",
+      "smartSearch": "Suche läuft…",
+      "lookupKnowledgeBase": "Wissensdatenbank wird durchsucht…",
+      "gatheringSources": "Quellen werden gesammelt…",
+      "surfacingResources": "Ressourcen werden bereitgestellt…",
+      "fillingForm": "Formular wird ausgefüllt…",
+      "completingForm": "Formular wird vervollständigt…",
+      "handingBack": "Unterhaltung wird zurückgegeben…",
+      "savingMemory": "Wird gemerkt…",
+      "forgettingMemory": "Wird vergessen…",
+      "recalculating": "Sitzung wird aktualisiert…"
+    },
+    "asyncLoading": "Wird geladen...",
+    "asyncError": "Fehler: {{statusCode}}",
+    "asyncUnknownError": "Ein unbekannter Fehler ist aufgetreten.",
+    "notFound": {
+      "title": "404 Nicht gefunden",
+      "description": "Die gesuchte Seite existiert nicht.",
+      "home": "Zur Startseite",
+      "oops": "Hoppla!"
+    },
+    "somethingWentWrong": "Etwas ist schiefgelaufen"
+  }
+}

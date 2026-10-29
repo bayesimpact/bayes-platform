@@ -1,0 +1,42 @@
+{
+  "status": {
+    "done": "Zakończono",
+    "draft": "Wersja robocza",
+    "error": "Błąd",
+    "failed": "Niepowodzenie",
+    "idle": "Bezczynne",
+    "loading": "Wczytywanie",
+    "noResults": "Brak wyników.",
+    "neverSignedIn": "Brak logowania",
+    "pending": "Oczekujące",
+    "published": "Opublikowano",
+    "ready": "Gotowe",
+    "success": "Sukces",
+    "thinking": "Myślenie",
+    "activity": {
+      "default": "Myślę…",
+      "usingTool": "Wywołuję narzędzie…",
+      "searchingResources": "Przeszukuję zasoby…",
+      "smartSearch": "Szukam…",
+      "lookupKnowledgeBase": "Przeszukuję bazę wiedzy…",
+      "gatheringSources": "Zbieram źródła…",
+      "surfacingResources": "Wyszukuję zasoby…",
+      "fillingForm": "Wypełniam formularz…",
+      "completingForm": "Uzupełniam formularz…",
+      "handingBack": "Przekazuję rozmowę z powrotem…",
+      "savingMemory": "Zapamiętuję…",
+      "forgettingMemory": "Zapominam…",
+      "recalculating": "Aktualizuję sesję…"
+    },
+    "asyncLoading": "Wczytywanie...",
+    "asyncError": "Błąd: {{statusCode}}",
+    "asyncUnknownError": "Wystąpił nieznany błąd.",
+    "notFound": {
+      "title": "404 – nie znaleziono",
+      "description": "Strona, której szukasz, nie istnieje.",
+      "home": "Strona główna",
+      "oops": "Ups!"
+    },
+    "somethingWentWrong": "Coś poszło nie tak"
+  }
+}

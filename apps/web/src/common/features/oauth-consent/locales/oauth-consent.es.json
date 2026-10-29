@@ -1,0 +1,141 @@
+{
+  "oauthConsent": {
+    "headline": "{{name}} solicita acceso a sus proyectos",
+    "verified": "Verificada",
+    "unverified": "No verificada",
+    "mcpVerified": "Dominio verificado · redirige a <host>{{host}}</host>",
+    "mcpUnverified": "Cliente no verificado · redirige a <host>{{host}}</host>",
+    "projects": "Proyectos",
+    "projectsHint": "La aplicación solo accede a los proyectos que seleccione.",
+    "permissions": "Permisos",
+    "permissionUnavailable": "Ninguno de los proyectos seleccionados lo permite.",
+    "permissionRequired": "Marque al menos un permiso.",
+    "projectRequired": "Seleccione al menos un proyecto.",
+    "noProjects": "Aún no tiene ningún proyecto para compartir.",
+    "approve": "Permitir acceso",
+    "approving": "Autorizando…",
+    "approved": "Acceso concedido. Puede volver a {{name}}.",
+    "denied": "Acceso denegado. Puede volver a {{name}}.",
+    "invalidRequest": "Este enlace de autorización está incompleto o mal formado. Vuelva a empezar desde la aplicación.",
+    "appHeadline": "{{name}} solicita acceso a su espacio de trabajo de Bayes",
+    "appVerified": "Aplicación verificada · redirige a <host>{{host}}</host>",
+    "appUnverified": "Aplicación no verificada · redirige a <host>{{host}}</host>",
+    "workspace": "Espacio de trabajo",
+    "workspaceHint": "La aplicación actuará allí con su propia cuenta.",
+    "cancelToApp": "Cancelar y volver a {{name}}",
+    "cancelTerminal": "Cancelar y volver al terminal",
+    "appRevocability": "El acceso se puede revocar en cualquier momento desde las <settings>aplicaciones instaladas</settings> de este espacio de trabajo. {{name}} solo accede al espacio de trabajo que seleccione.",
+    "selectWorkspaceFirst": "Seleccione primero un espacio de trabajo.",
+    "appPermissionUnavailable": "No tiene este permiso en este espacio de trabajo.",
+    "noWorkspaces": "No es propietario ni administrador de ningún espacio de trabajo donde instalar esta aplicación.",
+    "install": "Instalar {{name}}",
+    "installing": "Instalando…",
+    "installed": "{{name}} está instalada. Puede volver a ella.",
+    "permission": {
+      "project_read": {
+        "name": "Ver los proyectos",
+        "description": "Leer los proyectos seleccionados y su configuración."
+      },
+      "agent_create": {
+        "name": "Crear agentes",
+        "description": "Añadir nuevos agentes a los proyectos seleccionados, incluidas copias de los agentes de los que es propietario o administrador en ellos."
+      },
+      "agent_settings_draft_update": {
+        "name": "Editar borradores de agentes",
+        "description": "Cambiar la configuración en borrador de los agentes de los que es propietario o administrador en los proyectos seleccionados (modelo, instrucciones). La publicación se sigue haciendo en Studio."
+      }
+    },
+    "resource": {
+      "project": "Proyectos",
+      "agent": "Agentes"
+    },
+    "appPermission": {
+      "document_read": {
+        "name": "Leer documentos",
+        "description": "Acceder a los títulos, el contenido y los metadatos de los documentos de este espacio de trabajo."
+      },
+      "document_create": {
+        "name": "Crear documentos",
+        "description": "Añadir nuevos documentos al espacio de trabajo. Los documentos existentes no se modificarán."
+      },
+      "document_update": {
+        "name": "Actualizar documentos",
+        "description": "Editar el contenido de los documentos existentes en este espacio de trabajo."
+      },
+      "document_delete": {
+        "name": "Eliminar documentos",
+        "description": "Eliminar documentos de forma permanente de este espacio de trabajo."
+      },
+      "document_source_read": {
+        "name": "Leer fuentes de documentos",
+        "description": "Ver las fuentes de documentos registradas en este espacio de trabajo."
+      },
+      "document_source_create": {
+        "name": "Crear fuentes de documentos",
+        "description": "Registrar una fuente de documentos con nombre en este espacio de trabajo."
+      },
+      "document_source_update": {
+        "name": "Actualizar fuentes de documentos",
+        "description": "Renombrar una fuente de documentos o cambiar su configuración."
+      },
+      "document_source_delete": {
+        "name": "Eliminar fuentes de documentos",
+        "description": "Eliminar una fuente de documentos que no tenga documentos asociados."
+      },
+      "document_tag_read": {
+        "name": "Leer etiquetas de documentos",
+        "description": "Ver las etiquetas de documentos de este espacio de trabajo."
+      },
+      "document_tag_create": {
+        "name": "Crear etiquetas de documentos",
+        "description": "Añadir una etiqueta de documento a este espacio de trabajo."
+      },
+      "document_tag_update": {
+        "name": "Actualizar etiquetas de documentos",
+        "description": "Renombrar una etiqueta de documento o cambiar su descripción y su etiqueta superior."
+      },
+      "document_tag_delete": {
+        "name": "Eliminar etiquetas de documentos",
+        "description": "Eliminar una etiqueta de documento de este espacio de trabajo."
+      },
+      "project_read": {
+        "name": "Leer el espacio de trabajo",
+        "description": "Ver este espacio de trabajo y su configuración."
+      },
+      "project_update": {
+        "name": "Actualizar el espacio de trabajo",
+        "description": "Cambiar la configuración de este espacio de trabajo."
+      },
+      "project_delete": {
+        "name": "Eliminar el espacio de trabajo",
+        "description": "Eliminar este espacio de trabajo de forma permanente."
+      },
+      "agent_read": {
+        "name": "Leer agentes",
+        "description": "Ver los agentes de este espacio de trabajo."
+      },
+      "agent_conversation_session_external_create": {
+        "name": "Chatear con agentes para personas ajenas a Bayes",
+        "description": "Las personas que escriben a esta aplicación pueden chatear con los agentes de este espacio de trabajo sin una cuenta de Bayes."
+      }
+    },
+    "notifications": {
+      "approveError": "No se pudo conceder el acceso"
+    },
+    "appResource": {
+      "document": "Documentos",
+      "document_source": "Fuentes de documentos",
+      "document_tag": "Etiquetas de documentos",
+      "project": "Espacio de trabajo",
+      "agent": "Agentes"
+    },
+    "permissionAction": {
+      "read": "Leer",
+      "create": "Crear",
+      "update": "Editar",
+      "delete": "Eliminar",
+      "conversation_session_external_create": "Chats externos",
+      "settings_draft_update": "Editar borradores"
+    }
+  }
+}

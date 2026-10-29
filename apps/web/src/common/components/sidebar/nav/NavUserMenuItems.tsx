@@ -22,8 +22,6 @@ export function NavUserMenuItems({ onOpenDialog }: Props) {
 
       <HelpCenter />
 
-      <LanguageSelector />
-
       <DropdownMenuSeparator />
 
       <LogOutButton />
@@ -88,23 +86,4 @@ function LogOutButton() {
       {t("logout")}
     </DropdownMenuItem>
   )
-}
-
-function LanguageSelector() {
-  const { i18n } = useTranslation()
-  if (i18n.language === "fr") {
-    return (
-      <DropdownMenuItem onSelect={() => i18n.changeLanguage("en")}>
-        <span>🇺🇸</span>
-        <span className="ml-0.5">Switch to English</span>
-      </DropdownMenuItem>
-    )
-  } else {
-    return (
-      <DropdownMenuItem onSelect={() => i18n.changeLanguage("fr")}>
-        <span>🇫🇷</span>
-        <span className="ml-0.5">Choisir le Français</span>
-      </DropdownMenuItem>
-    )
-  }
 }

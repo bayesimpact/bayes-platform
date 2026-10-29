@@ -1,0 +1,15 @@
+{
+  "promptVariables": {
+    "title": "Prompt-Variablen",
+    "description": "Werte für die Variablen, die der Agent in seinen Anweisungen deklariert. Jeder Wert wird vor einem Modellaufruf in den Prompt eingesetzt.",
+    "empty": "Dieser Agent deklariert keine Variablen in seinen Anweisungen.",
+    "required": "Erforderlich",
+    "default": "Standard: {{value}}",
+    "clear": "{{name}} leeren",
+    "valuePlaceholder": "Wert eingeben",
+    "dialog": {
+      "description": "Legen Sie die Werte für diesen Chat fest. Lassen Sie ein Feld leer, um den Standardwert des Agenten zu verwenden.",
+      "start": "Chat starten"
+    }
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "extractionAgentSession": {
+    "create": {
+      "button": "Nuova estrazione",
+      "title": "Nuova estrazione",
+      "description": "Seleziona un documento su cui eseguire l'estrazione.",
+      "processingMessage": "Elaborazione in corso... Potrebbe richiedere un po' di tempo..."
+    },
+    "list": {
+      "title": "Estrazioni"
+    },
+    "result": {
+      "view": {
+        "button": "Visualizza JSON",
+        "title": "Risultato dell'estrazione",
+        "error": "Il risultato dell'estrazione non è disponibile."
+      },
+      "download": {
+        "button": "Scarica JSON"
+      },
+      "duration": "Durata: {{duration}}"
+    },
+    "document": {
+      "props": {
+        "name": "Nome",
+        "createdAt": "Creato"
+      },
+      "empty": {
+        "title": "Ancora nessun documento",
+        "description": "Carica un PDF o un'immagine per iniziare."
+      }
+    },
+    "lastExtraction": {
+      "info": "Questa è la tua ultima sessione di estrazione. Puoi ritrovarla nella cronologia se vuoi accedervi in seguito."
+    },
+    "playground": {
+      "title": "Area di prova",
+      "description": "Prova il tuo agente con input e impostazioni diversi"
+    },
+    "history": {
+      "button": "Cronologia",
+      "title": "Cronologia",
+      "description": "Visualizza la cronologia delle sessioni del tuo agente"
+    },
+    "delete": {
+      "confirm": {
+        "title": "Elimina estrazione",
+        "description": "Questa estrazione verrà eliminata definitivamente. Questa azione non può essere annullata.",
+        "submit": "Elimina"
+      }
+    },
+    "notifications": {
+      "completed": "Estrazione completata",
+      "failed": "Estrazione non riuscita",
+      "uploading": "Caricamento di {{fileName}}...",
+      "executionFailed": "Esecuzione dell'estrazione non riuscita",
+      "documentsDeleted": "Documenti eliminati",
+      "documentsDeleteError": "Impossibile eliminare i documenti",
+      "deleted": "Estrazione eliminata",
+      "deleteError": "Eliminazione dell'estrazione non riuscita"
+    }
+  }
+}

@@ -1,0 +1,123 @@
+{
+  "document": {
+    "document": "Documento",
+    "documents": "Documentos",
+    "sources": "Fuentes",
+    "uploading": "Subiendo documentos... {{processed}} de {{total}}",
+    "props": {
+      "createdAt": "Fecha de creación",
+      "updatedAt": "Fecha de actualización",
+      "deletedAt": "Fecha de eliminación",
+      "title": "Título",
+      "content": "Contenido",
+      "fileName": "Nombre de archivo",
+      "language": "Idioma",
+      "mimeType": "Tipo MIME",
+      "embeddingStatus": "Estado de los embeddings",
+      "embeddingError": "Error de embeddings",
+      "embeddingStatuses": {
+        "pending": "Pendiente",
+        "queued": "En cola",
+        "processing": "Procesando",
+        "completed": "Listo",
+        "failed": "Fallido"
+      },
+      "size": "Tamaño",
+      "storageRelativePath": "Ruta relativa de almacenamiento",
+      "tags": "Etiquetas"
+    },
+    "update": {
+      "title": "Editar {{documentTitle}}",
+      "titleRequired": "El título es obligatorio"
+    },
+    "delete": {
+      "title": "Eliminar {{documentTitle}}",
+      "description": "¿Está seguro de que desea eliminar este documento? Esta acción no se puede deshacer."
+    },
+    "reprocess": {
+      "cta": "Volver a procesar"
+    },
+    "bulk": {
+      "selected_one": "{{count}} seleccionado",
+      "selected_other": "{{count}} seleccionados",
+      "selected_many": "{{count}} seleccionados",
+      "delete": {
+        "title_one": "Eliminar {{count}} documento",
+        "title_other": "Eliminar {{count}} documentos",
+        "title_many": "Eliminar {{count}} documentos",
+        "description": "¿Está seguro de que desea eliminar los documentos seleccionados? Esta acción no se puede deshacer."
+      },
+      "addTag": {
+        "title_one": "Añadir etiquetas a {{count}} documento",
+        "title_other": "Añadir etiquetas a {{count}} documentos",
+        "title_many": "Añadir etiquetas a {{count}} documentos",
+        "description": "Elija las etiquetas que se aplicarán a cada documento seleccionado.",
+        "confirm": "Aplicar"
+      },
+      "removeTag": {
+        "cta": "Quitar etiqueta",
+        "title_one": "Quitar etiquetas de {{count}} documento",
+        "title_other": "Quitar etiquetas de {{count}} documentos",
+        "title_many": "Quitar etiquetas de {{count}} documentos",
+        "description": "Elija las etiquetas que se quitarán de cada documento seleccionado.",
+        "empty": "Los documentos seleccionados no tienen etiquetas.",
+        "confirm": "Quitar"
+      }
+    },
+    "download": "Descargar",
+    "publicTag": {
+      "disclaimer": {
+        "title": "¿Hacer público el documento?",
+        "description": "Todos los usuarios del chat de este proyecto podrán ver y descargar este documento. Quite la etiqueta en cualquier momento para revocar el acceso.",
+        "confirm": "Hacer público"
+      }
+    },
+    "list": {
+      "description": "Amplíe los conocimientos y las capacidades de sus agentes añadiendo documentos.",
+      "empty": {
+        "title": "Aún no hay documentos",
+        "description": "Suba su primer documento para empezar."
+      }
+    },
+    "filter": {
+      "all": "Todos",
+      "uploaded": "Documentos"
+    },
+    "upload": {
+      "tagDialog": {
+        "title": "Etiquetas para esta subida",
+        "description": "Opcional: elija etiquetas para aplicar a cada archivo de esta subida.",
+        "fileCountSentence_one": "Va a subir un archivo.",
+        "fileCountSentence_other": "Va a subir {{count}} archivos.",
+        "fileCountSentence_many": "Va a subir {{count}} archivos.",
+        "nameLabel": "Nombre (opcional)",
+        "confirm": "Subir"
+      }
+    },
+    "notifications": {
+      "uploadFailedCount_one": "No se pudo subir {{count}} documento",
+      "uploadFailedCount_other": "No se pudieron subir {{count}} documentos",
+      "uploadFailedCount_many": "No se pudieron subir {{count}} documentos",
+      "uploading": "Subiendo {{fileName}}...",
+      "uploaded": "{{fileName}} se subió correctamente",
+      "uploadError": "No se pudo subir {{fileName}}",
+      "uploadErrorWithReason": "Error al subir el archivo \"{{fileName}}\"",
+      "updated": "Documento actualizado correctamente",
+      "updateError": "No se pudo actualizar el documento",
+      "deleted": "Documento eliminado correctamente",
+      "deleteError": "No se pudo eliminar el documento",
+      "bulkDeleted_one": "{{count}} documento eliminado correctamente",
+      "bulkDeleted_other": "{{count}} documentos eliminados correctamente",
+      "bulkDeleted_many": "{{count}} documentos eliminados correctamente",
+      "bulkDeleteError": "No se pudieron eliminar los documentos",
+      "tagsAdded_one": "Etiquetas añadidas a {{count}} documento",
+      "tagsAdded_other": "Etiquetas añadidas a {{count}} documentos",
+      "tagsAdded_many": "Etiquetas añadidas a {{count}} documentos",
+      "tagsAddError": "No se pudieron añadir etiquetas a los documentos",
+      "tagsRemoved_one": "Etiquetas quitadas de {{count}} documento",
+      "tagsRemoved_other": "Etiquetas quitadas de {{count}} documentos",
+      "tagsRemoved_many": "Etiquetas quitadas de {{count}} documentos",
+      "tagsRemoveError": "No se pudieron quitar etiquetas de los documentos"
+    }
+  }
+}

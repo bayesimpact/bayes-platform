@@ -1,0 +1,16 @@
+{
+  "oauthGrants": {
+    "title": "Aplicaciones conectadas",
+    "description": "Aplicaciones a las que ha permitido acceder a sus proyectos a través de MCP.",
+    "empty": "No hay ninguna aplicación conectada. Las aplicaciones que conecte a través de MCP aparecerán aquí.",
+    "unnamedApp": "Aplicación sin nombre",
+    "projects": "Proyectos",
+    "permissions": "Permisos",
+    "connectedOn": "Conectada el {{date}}",
+    "lastUsed": "Último uso {{since}}",
+    "neverUsed": "Nunca utilizada",
+    "revokeTitle": "¿Revocar {{name}}?",
+    "revokeDescription": "{{name}} perderá el acceso en su próxima solicitud.",
+    "revokeError": "No se pudo revocar el acceso. Inténtelo de nuevo."
+  }
+}

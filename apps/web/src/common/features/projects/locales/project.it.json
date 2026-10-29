@@ -1,0 +1,47 @@
+{
+  "project": {
+    "settings": "Impostazioni",
+    "project": "Spazio di lavoro",
+    "projects": "Spazi di lavoro",
+    "props": {
+      "name": "Nome",
+      "createdAt": "Creato il",
+      "updatedAt": "Aggiornato il",
+      "placeholders": {
+        "name": "Inserisci il nome dello spazio di lavoro"
+      },
+      "validation": {
+        "name": "Il nome dello spazio di lavoro è obbligatorio"
+      }
+    },
+    "list": {
+      "title": "Gestisci i tuoi spazi di lavoro"
+    },
+    "create": {
+      "button": "Crea spazio di lavoro",
+      "title": "Nuovo spazio di lavoro",
+      "description": "Gestisci i tuoi agenti conversazionali, agenti per moduli e altri tipi di agenti.",
+      "dialog": {
+        "title": "Crea spazio di lavoro",
+        "description": "Crea un nuovo spazio di lavoro per {{organizationName}}"
+      }
+    },
+    "update": {
+      "title": "Aggiorna spazio di lavoro",
+      "description": "Aggiorna le informazioni dello spazio di lavoro"
+    },
+    "delete": {
+      "title": "Elimina spazio di lavoro",
+      "description": "Vuoi davvero eliminare {{name}}? Questa azione è irreversibile."
+    },
+    "notifications": {
+      "created": "Progetto creato",
+      "createError": "Creazione del progetto non riuscita",
+      "updated": "Progetto aggiornato",
+      "updateError": "Aggiornamento del progetto non riuscito",
+      "deleted": "Progetto eliminato",
+      "deleteError": "Eliminazione del progetto non riuscita",
+      "conversationCategoriesUpdateError": "Impossibile aggiornare le categorie di conversazione"
+    }
+  }
+}

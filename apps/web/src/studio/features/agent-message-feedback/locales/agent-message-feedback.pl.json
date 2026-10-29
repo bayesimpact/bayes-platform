@@ -1,0 +1,32 @@
+{
+  "agentMessageFeedback": {
+    "feedback": "Opinie",
+    "props": {
+      "agentMessageContent": "Treść wiadomości agenta",
+      "traceUrl": "URL śladu",
+      "sessionId": "ID sesji:",
+      "messageId": "ID wiadomości:",
+      "content": "Treść",
+      "createdAt": "Utworzono",
+      "placeholders": {
+        "content": "Opisz problem, który wystąpił w tej wiadomości..."
+      }
+    },
+    "create": {
+      "button": "Zgłoś",
+      "title": "Zgłoś problem z tą wiadomością",
+      "description": "Opisz szczegółowo problem, który wystąpił w tej wiadomości. Twoja opinia pomoże nam ulepszyć naszych agentów."
+    },
+    "list": {
+      "description": "Zarządzaj opiniami o wiadomościach agentów.",
+      "empty": {
+        "title": "Brak opinii",
+        "description": "Brak opinii o wiadomościach agenta."
+      }
+    },
+    "notifications": {
+      "submitted": "Wysłano opinię",
+      "submitError": "Nie udało się wysłać opinii"
+    }
+  }
+}

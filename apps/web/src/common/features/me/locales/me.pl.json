@@ -1,0 +1,53 @@
+{
+  "user": {
+    "props": {
+      "email": "E-mail",
+      "name": "Imię i nazwisko"
+    },
+    "logout": "Wyloguj się",
+    "helpCenter": "Centrum pomocy",
+    "editProfile": "Edytuj profil",
+    "connectedApps": "Połączone aplikacje",
+    "editProfileDialog": {
+      "title": "Edytuj profil",
+      "namePlaceholder": "Twoje imię i nazwisko",
+      "language": "Język",
+      "save": "Zapisz",
+      "cancel": "Anuluj"
+    }
+  },
+  "me": {
+    "props": {
+      "user": "Użytkownik",
+      "organizations": "Organizacje"
+    },
+    "invitations": {
+      "title": "Oczekujące zaproszenia",
+      "description": "Zaakceptuj zaproszenie, aby uzyskać dostęp.",
+      "projectBadge": "Projekt",
+      "agentBadge": "Agent",
+      "reviewCampaignBadge": "Kampania recenzji",
+      "roleLabel": "Rola"
+    },
+    "notifications": {
+      "invitationAnswerError": "Nie udało się odpowiedzieć na zaproszenie",
+      "apiUnreachable": "Brak połączenia z API",
+      "apiUnreachableDescription": "Sprawdź, czy API działa i czy CORS jest skonfigurowany dla źródła tej aplikacji webowej.",
+      "profileUpdated": "Zaktualizowano profil"
+    }
+  },
+  "termsAcceptance": {
+    "title": "Regulaminy i zgodność",
+    "intro": "Aby kontynuować, zapoznaj się z poniższymi dokumentami i zaakceptuj je.",
+    "checkboxes": {
+      "generalConditions": "Akceptuję Ogólne warunki świadczenia usług (wymagane)",
+      "privacyPolicy": "Akceptuję Politykę prywatności (wymagane)",
+      "aiUsagePolicy": "Akceptuję Politykę korzystania z systemów AI (opcjonalne)"
+    },
+    "version": "Wersja {{version}}",
+    "submit": "Zaakceptuj i kontynuuj",
+    "errors": {
+      "mandatoryRequired": "Aby kontynuować, musisz zaakceptować Ogólne warunki oraz Politykę prywatności."
+    }
+  }
+}

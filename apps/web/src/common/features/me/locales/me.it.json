@@ -1,0 +1,53 @@
+{
+  "user": {
+    "props": {
+      "email": "Email",
+      "name": "Nome"
+    },
+    "logout": "Esci",
+    "helpCenter": "Centro assistenza",
+    "editProfile": "Modifica profilo",
+    "connectedApps": "App connesse",
+    "editProfileDialog": {
+      "title": "Modifica profilo",
+      "namePlaceholder": "Il tuo nome",
+      "language": "Lingua",
+      "save": "Salva",
+      "cancel": "Annulla"
+    }
+  },
+  "me": {
+    "props": {
+      "user": "Utente",
+      "organizations": "Organizzazioni"
+    },
+    "invitations": {
+      "title": "Inviti in attesa",
+      "description": "Accetta un invito per ottenere l'accesso.",
+      "projectBadge": "Progetto",
+      "agentBadge": "Agente",
+      "reviewCampaignBadge": "Campagna di revisione",
+      "roleLabel": "Ruolo"
+    },
+    "notifications": {
+      "invitationAnswerError": "Impossibile rispondere all'invito",
+      "apiUnreachable": "Impossibile raggiungere l'API",
+      "apiUnreachableDescription": "Verifica che l'API sia in esecuzione e che CORS sia configurato per l'origine di questa web app.",
+      "profileUpdated": "Profilo aggiornato"
+    }
+  },
+  "termsAcceptance": {
+    "title": "Condizioni e conformità",
+    "intro": "Per continuare, leggi e accetta i seguenti documenti.",
+    "checkboxes": {
+      "generalConditions": "Accetto le Condizioni generali di servizio (obbligatorio)",
+      "privacyPolicy": "Accetto l'Informativa sulla privacy (obbligatorio)",
+      "aiUsagePolicy": "Accetto la Politica di utilizzo dei sistemi di IA (facoltativo)"
+    },
+    "version": "Versione {{version}}",
+    "submit": "Accetta e continua",
+    "errors": {
+      "mandatoryRequired": "Per continuare devi accettare le Condizioni generali e l'Informativa sulla privacy."
+    }
+  }
+}

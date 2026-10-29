@@ -1,0 +1,69 @@
+{
+  "conversationReview": {
+    "menu": "Sicherheit",
+    "pageTitle": "Sicherheitsprüfung",
+    "tabs": {
+      "sessionId": "Sitzungs-ID",
+      "byCategory": "Nach Kategorie"
+    },
+    "form": {
+      "label": "Sitzungs-ID",
+      "placeholder": "z. B. 3f2b8c1e-…",
+      "invalid": "Geben Sie eine gültige Sitzungs-ID ein."
+    },
+    "byCategory": {
+      "select": {
+        "placeholder": "Kategorie wählen",
+        "uncategorized": "Ohne Kategorie"
+      },
+      "chooseCategory": "Wählen Sie eine Kategorie, um ihre Sitzungen aufzulisten.",
+      "emptyTitle": "Keine Sitzungen in dieser Kategorie",
+      "emptyDescription": "Keine Sitzung dieses Agenten wurde mit dieser Kategorie markiert.",
+      "error": "Die Sitzungsliste konnte nicht geladen werden.",
+      "table": {
+        "date": "Datum",
+        "type": "Typ",
+        "session": "Sitzung"
+      },
+      "pagination": {
+        "count": "Seite {{page}} von {{pages}} · {{total}} Sitzungen"
+      }
+    },
+    "notice": "Jede Sitzung, die Sie hier öffnen, wird im Aktivitätsprotokoll erfasst.",
+    "empty": "Fügen Sie eine Sitzungs-ID ein oder wählen Sie eine aus der Liste, um sie zu lesen.",
+    "notFound": "Keine Sitzung dieses Agenten hat diese Sitzungs-ID.",
+    "session": {
+      "live": "Live",
+      "playground": "Playground",
+      "review_campaign_tester": "Review-Kampagne",
+      "subSession": "Untersitzung",
+      "purged": "Inhalt durch die Aufbewahrungsrichtlinie gelöscht",
+      "startedAt": "Gestartet am {{date}}",
+      "noMessages": "Diese Sitzung enthält keine Nachrichten.",
+      "externalVisitorId": "Besucher-ID: {{id}}"
+    },
+    "roles": {
+      "user": "Benutzer",
+      "assistant": "Agent",
+      "tool": "Tool"
+    },
+    "status": {
+      "streaming": "Wird noch geschrieben",
+      "aborted": "Unterbrochen",
+      "error": "Fehlgeschlagen"
+    },
+    "tools": "Tools: {{names}}",
+    "kind": {
+      "public": "Öffentliche Sitzung",
+      "extraction": "Extraktion"
+    },
+    "channel": {
+      "embed": "Einbettung",
+      "app": "App"
+    },
+    "extraction": {
+      "document": "Dokument: {{title}}",
+      "errorCode": "Fehlercode: {{code}}"
+    }
+  }
+}

@@ -1,0 +1,141 @@
+{
+  "oauthConsent": {
+    "headline": "{{name}} möchte auf Ihre Projekte zugreifen",
+    "verified": "Verifiziert",
+    "unverified": "Nicht verifiziert",
+    "mcpVerified": "Verifizierte Domain · leitet weiter zu <host>{{host}}</host>",
+    "mcpUnverified": "Nicht verifizierter Client · leitet weiter zu <host>{{host}}</host>",
+    "projects": "Projekte",
+    "projectsHint": "Die App hat nur Zugriff auf die Projekte, die Sie auswählen.",
+    "permissions": "Berechtigungen",
+    "permissionUnavailable": "Keines der ausgewählten Projekte erlaubt dies.",
+    "permissionRequired": "Wählen Sie mindestens eine Berechtigung aus.",
+    "projectRequired": "Wählen Sie mindestens ein Projekt aus.",
+    "noProjects": "Sie haben noch kein Projekt, das Sie freigeben können.",
+    "approve": "Zugriff erlauben",
+    "approving": "Wird erlaubt…",
+    "approved": "Zugriff gewährt. Sie können zu {{name}} zurückkehren.",
+    "denied": "Zugriff verweigert. Sie können zu {{name}} zurückkehren.",
+    "invalidRequest": "Dieser Autorisierungslink ist unvollständig oder fehlerhaft. Beginnen Sie erneut in der App.",
+    "appHeadline": "{{name}} möchte auf Ihren Bayes-Arbeitsbereich zugreifen",
+    "appVerified": "Verifizierte App · leitet weiter zu <host>{{host}}</host>",
+    "appUnverified": "Nicht verifizierte App · leitet weiter zu <host>{{host}}</host>",
+    "workspace": "Arbeitsbereich",
+    "workspaceHint": "Die App handelt dort mit ihrem eigenen Konto.",
+    "cancelToApp": "Abbrechen und zu {{name}} zurückkehren",
+    "cancelTerminal": "Abbrechen und zum Terminal zurückkehren",
+    "appRevocability": "Der Zugriff kann jederzeit unter <settings>Installierte Apps</settings> dieses Arbeitsbereichs widerrufen werden. {{name}} hat nur Zugriff auf den Arbeitsbereich, den Sie auswählen.",
+    "selectWorkspaceFirst": "Wählen Sie zuerst einen Arbeitsbereich aus.",
+    "appPermissionUnavailable": "Sie haben diese Berechtigung in diesem Arbeitsbereich nicht.",
+    "noWorkspaces": "Sie besitzen oder verwalten keinen Arbeitsbereich, in dem diese App installiert werden kann.",
+    "install": "{{name}} installieren",
+    "installing": "Wird installiert…",
+    "installed": "{{name}} ist installiert. Sie können zur App zurückkehren.",
+    "permission": {
+      "project_read": {
+        "name": "Projekte ansehen",
+        "description": "Die ausgewählten Projekte und ihre Einstellungen lesen."
+      },
+      "agent_create": {
+        "name": "Agenten erstellen",
+        "description": "Neue Agenten zu den ausgewählten Projekten hinzufügen, einschließlich Kopien der Agenten, die Sie dort besitzen oder verwalten."
+      },
+      "agent_settings_draft_update": {
+        "name": "Agentenentwürfe bearbeiten",
+        "description": "Die Entwurfseinstellungen der Agenten ändern, die Sie in den ausgewählten Projekten besitzen oder verwalten (Modell, Anweisungen). Veröffentlicht wird weiterhin im Studio."
+      }
+    },
+    "resource": {
+      "project": "Projekte",
+      "agent": "Agenten"
+    },
+    "appPermission": {
+      "document_read": {
+        "name": "Dokumente lesen",
+        "description": "Auf Titel, Inhalte und Metadaten der Dokumente in diesem Arbeitsbereich zugreifen."
+      },
+      "document_create": {
+        "name": "Dokumente erstellen",
+        "description": "Neue Dokumente zum Arbeitsbereich hinzufügen. Bestehende Dokumente werden nicht geändert."
+      },
+      "document_update": {
+        "name": "Dokumente aktualisieren",
+        "description": "Den Inhalt bestehender Dokumente in diesem Arbeitsbereich bearbeiten."
+      },
+      "document_delete": {
+        "name": "Dokumente löschen",
+        "description": "Dokumente endgültig aus diesem Arbeitsbereich entfernen."
+      },
+      "document_source_read": {
+        "name": "Dokumentquellen lesen",
+        "description": "Die in diesem Arbeitsbereich registrierten Dokumentquellen ansehen."
+      },
+      "document_source_create": {
+        "name": "Dokumentquellen erstellen",
+        "description": "Eine benannte Dokumentquelle in diesem Arbeitsbereich registrieren."
+      },
+      "document_source_update": {
+        "name": "Dokumentquellen aktualisieren",
+        "description": "Eine Dokumentquelle umbenennen oder ihre Einstellungen ändern."
+      },
+      "document_source_delete": {
+        "name": "Dokumentquellen löschen",
+        "description": "Eine Dokumentquelle ohne zugeordnete Dokumente entfernen."
+      },
+      "document_tag_read": {
+        "name": "Dokument-Tags lesen",
+        "description": "Die Dokument-Tags in diesem Arbeitsbereich ansehen."
+      },
+      "document_tag_create": {
+        "name": "Dokument-Tags erstellen",
+        "description": "Einen Dokument-Tag zu diesem Arbeitsbereich hinzufügen."
+      },
+      "document_tag_update": {
+        "name": "Dokument-Tags aktualisieren",
+        "description": "Einen Dokument-Tag umbenennen oder seine Beschreibung und seinen übergeordneten Tag ändern."
+      },
+      "document_tag_delete": {
+        "name": "Dokument-Tags löschen",
+        "description": "Einen Dokument-Tag aus diesem Arbeitsbereich entfernen."
+      },
+      "project_read": {
+        "name": "Arbeitsbereich lesen",
+        "description": "Diesen Arbeitsbereich und seine Einstellungen ansehen."
+      },
+      "project_update": {
+        "name": "Arbeitsbereich aktualisieren",
+        "description": "Die Einstellungen dieses Arbeitsbereichs ändern."
+      },
+      "project_delete": {
+        "name": "Arbeitsbereich löschen",
+        "description": "Diesen Arbeitsbereich endgültig löschen."
+      },
+      "agent_read": {
+        "name": "Agenten lesen",
+        "description": "Die Agenten dieses Arbeitsbereichs ansehen."
+      },
+      "agent_conversation_session_external_create": {
+        "name": "Chats mit Agenten für Personen außerhalb von Bayes",
+        "description": "Personen, die dieser App schreiben, können ohne Bayes-Konto mit den Agenten dieses Arbeitsbereichs chatten."
+      }
+    },
+    "notifications": {
+      "approveError": "Der Zugriff konnte nicht gewährt werden"
+    },
+    "appResource": {
+      "document": "Dokumente",
+      "document_source": "Dokumentquellen",
+      "document_tag": "Dokument-Tags",
+      "project": "Arbeitsbereich",
+      "agent": "Agenten"
+    },
+    "permissionAction": {
+      "read": "Lesen",
+      "create": "Erstellen",
+      "update": "Bearbeiten",
+      "delete": "Löschen",
+      "conversation_session_external_create": "Externe Chats",
+      "settings_draft_update": "Entwürfe bearbeiten"
+    }
+  }
+}

@@ -1,0 +1,141 @@
+{
+  "oauthConsent": {
+    "headline": "{{name}} vuole accedere ai tuoi progetti",
+    "verified": "Verificato",
+    "unverified": "Non verificato",
+    "mcpVerified": "Dominio verificato · reindirizza a <host>{{host}}</host>",
+    "mcpUnverified": "Client non verificato · reindirizza a <host>{{host}}</host>",
+    "projects": "Progetti",
+    "projectsHint": "L'app accede solo ai progetti che selezioni.",
+    "permissions": "Autorizzazioni",
+    "permissionUnavailable": "Nessuno dei progetti selezionati la consente.",
+    "permissionRequired": "Seleziona almeno un'autorizzazione.",
+    "projectRequired": "Seleziona almeno un progetto.",
+    "noProjects": "Non hai ancora alcun progetto da condividere.",
+    "approve": "Consenti l'accesso",
+    "approving": "Autorizzazione in corso…",
+    "approved": "Accesso concesso. Puoi tornare a {{name}}.",
+    "denied": "Accesso negato. Puoi tornare a {{name}}.",
+    "invalidRequest": "Questo link di autorizzazione è incompleto o non valido. Ricomincia dall'app.",
+    "appHeadline": "{{name}} vuole accedere al tuo spazio di lavoro Bayes",
+    "appVerified": "App verificata · reindirizza a <host>{{host}}</host>",
+    "appUnverified": "App non verificata · reindirizza a <host>{{host}}</host>",
+    "workspace": "Spazio di lavoro",
+    "workspaceHint": "L'app vi agirà con il proprio account.",
+    "cancelToApp": "Annulla e torna a {{name}}",
+    "cancelTerminal": "Annulla e torna al terminale",
+    "appRevocability": "L'accesso può essere revocato in qualsiasi momento dalle <settings>app installate</settings> di questo spazio di lavoro. {{name}} accede solo allo spazio di lavoro che selezioni.",
+    "selectWorkspaceFirst": "Seleziona prima uno spazio di lavoro.",
+    "appPermissionUnavailable": "Non disponi di questa autorizzazione in questo spazio di lavoro.",
+    "noWorkspaces": "Non possiedi né amministri alcuno spazio di lavoro su cui installare questa app.",
+    "install": "Installa {{name}}",
+    "installing": "Installazione…",
+    "installed": "{{name}} è installata. Puoi tornare all'app.",
+    "permission": {
+      "project_read": {
+        "name": "Vedere i progetti",
+        "description": "Leggere i progetti selezionati e le relative impostazioni."
+      },
+      "agent_create": {
+        "name": "Creare agenti",
+        "description": "Aggiungere nuovi agenti ai progetti selezionati, incluse copie degli agenti di cui sei proprietario o amministratore."
+      },
+      "agent_settings_draft_update": {
+        "name": "Modificare le bozze degli agenti",
+        "description": "Modificare le impostazioni in bozza degli agenti di cui sei proprietario o amministratore nei progetti selezionati (modello, istruzioni). La pubblicazione resta nello studio."
+      }
+    },
+    "resource": {
+      "project": "Progetti",
+      "agent": "Agenti"
+    },
+    "appPermission": {
+      "document_read": {
+        "name": "Leggere i documenti",
+        "description": "Accedere a titoli, contenuto e metadati dei documenti di questo spazio di lavoro."
+      },
+      "document_create": {
+        "name": "Creare documenti",
+        "description": "Aggiungere nuovi documenti allo spazio di lavoro. I documenti esistenti non verranno modificati."
+      },
+      "document_update": {
+        "name": "Modificare documenti",
+        "description": "Modificare il contenuto dei documenti esistenti in questo spazio di lavoro."
+      },
+      "document_delete": {
+        "name": "Eliminare documenti",
+        "description": "Rimuovere definitivamente documenti da questo spazio di lavoro."
+      },
+      "document_source_read": {
+        "name": "Leggere le origini dei documenti",
+        "description": "Vedere le origini dei documenti registrate in questo spazio di lavoro."
+      },
+      "document_source_create": {
+        "name": "Creare origini dei documenti",
+        "description": "Registrare un'origine dei documenti con nome in questo spazio di lavoro."
+      },
+      "document_source_update": {
+        "name": "Modificare le origini dei documenti",
+        "description": "Rinominare un'origine dei documenti o modificarne le impostazioni."
+      },
+      "document_source_delete": {
+        "name": "Eliminare origini dei documenti",
+        "description": "Rimuovere un'origine dei documenti a cui non è collegato alcun documento."
+      },
+      "document_tag_read": {
+        "name": "Leggere i tag dei documenti",
+        "description": "Vedere i tag dei documenti di questo spazio di lavoro."
+      },
+      "document_tag_create": {
+        "name": "Creare tag per documenti",
+        "description": "Aggiungere un tag per documenti a questo spazio di lavoro."
+      },
+      "document_tag_update": {
+        "name": "Modificare i tag dei documenti",
+        "description": "Rinominare un tag per documenti o modificarne la descrizione e il tag padre."
+      },
+      "document_tag_delete": {
+        "name": "Eliminare tag per documenti",
+        "description": "Rimuovere un tag per documenti da questo spazio di lavoro."
+      },
+      "project_read": {
+        "name": "Leggere lo spazio di lavoro",
+        "description": "Vedere questo spazio di lavoro e le sue impostazioni."
+      },
+      "project_update": {
+        "name": "Modificare lo spazio di lavoro",
+        "description": "Modificare le impostazioni di questo spazio di lavoro."
+      },
+      "project_delete": {
+        "name": "Eliminare lo spazio di lavoro",
+        "description": "Eliminare definitivamente questo spazio di lavoro."
+      },
+      "agent_read": {
+        "name": "Leggere gli agenti",
+        "description": "Vedere gli agenti di questo spazio di lavoro."
+      },
+      "agent_conversation_session_external_create": {
+        "name": "Chattare con gli agenti per persone esterne a Bayes",
+        "description": "Le persone che scrivono a questa app possono chattare con gli agenti di questo spazio di lavoro senza un account Bayes."
+      }
+    },
+    "notifications": {
+      "approveError": "Impossibile concedere l'accesso"
+    },
+    "appResource": {
+      "document": "Documenti",
+      "document_source": "Origini dei documenti",
+      "document_tag": "Tag dei documenti",
+      "project": "Spazio di lavoro",
+      "agent": "Agenti"
+    },
+    "permissionAction": {
+      "read": "Lettura",
+      "create": "Creazione",
+      "update": "Modifica",
+      "delete": "Eliminazione",
+      "conversation_session_external_create": "Chat esterne",
+      "settings_draft_update": "Modifica bozze"
+    }
+  }
+}

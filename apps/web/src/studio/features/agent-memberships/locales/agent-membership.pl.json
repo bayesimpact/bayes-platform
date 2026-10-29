@@ -1,0 +1,38 @@
+{
+  "agentMembership": {
+    "members": "Członkowie",
+    "props": {
+      "validation": {
+        "emailDuplicate": "Ten adres e-mail został już dodany",
+        "emailInvalid": "Nieprawidłowy adres e-mail"
+      }
+    },
+    "create": {
+      "title": "Zaproś użytkowników",
+      "description": "Wpisz adresy e-mail osób, które mają korzystać z tego agenta. Zaakceptują zaproszenie po zalogowaniu.",
+      "label": "Adres e-mail",
+      "placeholder": "Wpisz adres e-mail"
+    },
+    "pendingInvitations": {
+      "title": "Oczekujące zaproszenia",
+      "description": "Osoby zaproszone do tego agenta, które jeszcze nie odpowiedziały."
+    },
+    "list": {
+      "title": "Członkowie agenta {{agentName}}",
+      "description": "Wszyscy, którzy mogą korzystać z tego agenta, oraz ich role."
+    },
+    "notifications": {
+      "invitationsSentByEmail": "Zaproszenia wysłane e-mailem",
+      "peopleInvited": "Zaproszono osoby",
+      "inviteError": "Nie udało się zaprosić osób",
+      "rolesAdded_one": "Dodano role {{count}} członkowi",
+      "rolesAdded_few": "Dodano role {{count}} członkom",
+      "rolesAdded_many": "Dodano role {{count}} członkom",
+      "rolesAdded_other": "Dodano role {{count}} członka",
+      "membersRemoved_one": "Usunięto {{count}} członka",
+      "membersRemoved_few": "Usunięto {{count}} członków",
+      "membersRemoved_many": "Usunięto {{count}} członków",
+      "membersRemoved_other": "Usunięto {{count}} członka"
+    }
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "agentCsvExtractionRun": {
+    "dialog": {
+      "title": "Ejecutar extracción CSV",
+      "description": "Procese cada registro con el agente.",
+      "uploadStep": "Subir CSV",
+      "columnsStep": "Configurar columnas",
+      "scopeStep": "Configuración de la ejecución",
+      "upload": "Subir un archivo CSV",
+      "selectFile": "Seleccionar archivo",
+      "run": "Ejecutar",
+      "cancel": "Cancelar",
+      "back": "Volver",
+      "next": "Siguiente"
+    },
+    "columns": {
+      "title": "Configurar los roles de las columnas",
+      "description": "Seleccione el rol de cada columna de su archivo CSV.",
+      "roles": {
+        "input": "Entrada",
+        "reference": "Referencia",
+        "ignore": "Ignorar"
+      },
+      "selectAll": "Seleccionar todo",
+      "selectedCount": "{{count}} seleccionadas",
+      "bulkApply": "Aplicar rol a las seleccionadas",
+      "columnHeader": "Columna",
+      "roleHeader": "Rol"
+    },
+    "results": {
+      "title": "Resultados de la extracción CSV",
+      "summary": "Resumen",
+      "processing": "Procesando registros...",
+      "total": "Total",
+      "processed": "Procesados",
+      "errors": "Errores",
+      "remaining_one": "{{count}} restante",
+      "remaining_other": "{{count}} restantes",
+      "remaining_many": "{{count}} restantes",
+      "remaining_zero": "{{count}} restantes",
+      "duration": "Duración: {{duration}}",
+      "cancel": "Cancelar",
+      "retry": "Reintentar",
+      "exportCsv": "Exportar CSV",
+      "running": "En curso",
+      "success": "Éxito",
+      "error": "Error",
+      "pending": "Pendiente",
+      "completed": "Completado",
+      "failed": "Fallido",
+      "cancelled": "Cancelado",
+      "index": "#",
+      "status": "Estado",
+      "output": "Salida",
+      "errorDetails": "Detalles del error",
+      "noRecords": "No se encontraron registros",
+      "processingDescription": "{{processed}} de {{total}} registros procesados."
+    },
+    "delete": {
+      "confirm": {
+        "title": "Eliminar extracción CSV",
+        "description": "Esta extracción CSV se eliminará de forma permanente. Esta acción no se puede deshacer.",
+        "submit": "Eliminar"
+      }
+    },
+    "notifications": {
+      "started": "Ejecución de extracción CSV iniciada",
+      "startError": "No se pudo iniciar la ejecución de extracción CSV",
+      "completed": "Ejecución de extracción CSV completada correctamente",
+      "failed": "La ejecución de extracción CSV falló",
+      "deleted": "Extracción eliminada correctamente",
+      "deleteError": "No se pudo eliminar la extracción",
+      "cancelled": "Ejecución cancelada"
+    }
+  }
+}

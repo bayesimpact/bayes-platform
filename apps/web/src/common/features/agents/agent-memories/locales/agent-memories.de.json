@@ -1,0 +1,27 @@
+{
+  "agentMemories": {
+    "card": {
+      "saved": "Im Gedächtnis gespeichert",
+      "proposalTitle": "Für das nächste Mal merken?",
+      "proposalDescription": "Der Agent schlägt vor, sich diese Information für Ihre nächsten Unterhaltungen zu merken.",
+      "save": "Ja, merken",
+      "reject": "Nein, nicht merken",
+      "rewordLabel": "Oder umformulieren",
+      "rewordPlaceholder": "Formulieren Sie die Information so, wie sie gemerkt werden soll",
+      "submit": "Bestätigen",
+      "skip": "Später",
+      "answeredSaved": "Gemerkt",
+      "answeredRejected": "Nicht gemerkt"
+    },
+    "panel": {
+      "button": "Gedächtnis",
+      "title": "Was sich der Agent merkt",
+      "description": "Informationen, die sich dieser Agent zwischen Unterhaltungen über Sie merkt. Nur Sie können sie sehen.",
+      "playgroundDescription": "Das Playground-Gedächtnis ist getrennt von dem, was sich der Agent in Live-Unterhaltungen merkt.",
+      "empty": "Der Agent hat sich noch nichts über Sie gemerkt.",
+      "pending": "Wartet auf Ihre Antwort",
+      "clearAll": "Alles vergessen",
+      "clearAllConfirm": "Alles vergessen, was sich der Agent über Sie gemerkt hat?"
+    }
+  }
+}
