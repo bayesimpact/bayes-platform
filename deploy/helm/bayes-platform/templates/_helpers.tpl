@@ -133,6 +133,10 @@ on other chart values.
 {{- define "bayes-platform.sharedEnv" -}}
 - name: NODE_ENV
   value: production
+# The deployed image tag (26.10.7, main-1234-abc1234): the image itself cannot
+# know it, the tags are added after the build.
+- name: APP_VERSION
+  value: {{ include "bayes-platform.imageTag" . | quote }}
 - name: DATABASE_HOST
   value: {{ include "bayes-platform.databaseHost" . | quote }}
 - name: DATABASE_PORT

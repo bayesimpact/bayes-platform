@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 import {
   getAppPathname,
+  getDisplayedAppVersion,
   mergeRuntimeConfig,
   type RuntimeConfig,
   resolveApiUrl,
@@ -83,5 +84,19 @@ describe("resolveApiUrl", () => {
     expect(resolveApiUrl("https://api.example.org/api/", origin)).toBe(
       "https://api.example.org/api",
     )
+  })
+})
+
+describe("getDisplayedAppVersion", () => {
+  it("shows the deployed tag", () => {
+    expect(getDisplayedAppVersion({ appVersion: "26.10.7", gitSha: "a8618c1ed" })).toBe("26.10.7")
+  })
+
+  it("falls back to the short commit", () => {
+    expect(getDisplayedAppVersion({ appVersion: " ", gitSha: "a8618c1ed0000" })).toBe("a8618c1")
+  })
+
+  it("is undefined when nothing is known", () => {
+    expect(getDisplayedAppVersion({})).toBeUndefined()
   })
 })

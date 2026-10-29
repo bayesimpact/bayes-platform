@@ -10,6 +10,8 @@
 #   PUBLIC_API_BASE_URL  the API base URL shown on the public API pages
 #   PUBLIC_SITE_URL      canonical links and sitemap; Astro requires a valid
 #                        URL at build time, hence a placeholder host
+#   APP_VERSION          the deployed version shown in the footer (Helm sets
+#                        the image tag), hidden when unset
 #
 FROM node:24.21.0-bookworm-slim AS build
 
@@ -25,6 +27,7 @@ RUN npm ci \
 
 ENV PUBLIC_APP_URL=__PUBLIC_APP_URL__ \
     PUBLIC_API_BASE_URL=__PUBLIC_API_BASE_URL__ \
+    PUBLIC_APP_VERSION=__PUBLIC_APP_VERSION__ \
     PUBLIC_SITE_URL=https://public-site-url.placeholder.invalid
 
 RUN npx turbo run build --filter=@caseai-connect/help
