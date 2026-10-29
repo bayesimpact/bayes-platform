@@ -66,14 +66,6 @@ export class UserMembership {
   @Column({ type: "uuid", name: "resource_id", nullable: true })
   resourceId!: string | null
 
-  /**
-   * Legacy owner / admin / member / tester / reviewer string. The role is `roleId`: the app never
-   * selects, inserts or updates this column, so a pod running this code survives the next release,
-   * which drops it.
-   */
-  @Column({ type: "varchar", nullable: true, select: false, insert: false, update: false })
-  role?: string | null
-
   @Column({ type: "uuid", name: "role_id" })
   roleId!: string
 

@@ -1,10 +1,11 @@
 import { Logger } from "@nestjs/common"
 import { NestFactory } from "@nestjs/core"
-import { DataSource } from "typeorm"
+import { DataSource, In } from "typeorm"
 import { AppModule } from "@/app.module"
 import { Agent } from "@/domains/agents/agent.entity"
 import { UserMembership } from "@/domains/memberships/user-membership.entity"
 import { Project } from "@/domains/projects/project.entity"
+import { PROJECT_ROLES, REVIEW_CAMPAIGN_ROLES } from "@/domains/rbac/rbac.constants"
 import { resolveReviewCampaignRoleId } from "@/domains/rbac/resolve-review-campaign-role-id"
 import { ReviewCampaign } from "@/domains/review-campaigns/review-campaign.entity"
 import { User } from "@/domains/users/user.entity"
@@ -50,10 +51,11 @@ async function main(): Promise<void> {
     }
 
     const projectMemberships = await userMembershipRepo.find({
-      where: [
-        { userId: user.id, resourceType: "project", role: "owner" },
-        { userId: user.id, resourceType: "project", role: "admin" },
-      ],
+      where: {
+        userId: user.id,
+        resourceType: "project",
+        rbacRole: { key: In([PROJECT_ROLES.owner, PROJECT_ROLES.admin]) },
+      },
       order: { createdAt: "DESC" },
     })
     const firstProjectMembership = projectMemberships[0]
@@ -142,7 +144,7 @@ async function main(): Promise<void> {
         resourceType: "review_campaign",
         resourceId: campaign.id,
         userId: user.id,
-        role: "tester",
+        rbacRole: { key: REVIEW_CAMPAIGN_ROLES.tester },
       },
     })
     if (existingMembership) {
@@ -153,7 +155,6 @@ async function main(): Promise<void> {
           userId: user.id,
           resourceType: "review_campaign",
           resourceId: campaign.id,
-          role: "tester",
           roleId: await resolveReviewCampaignRoleId(dataSource.manager, "tester"),
         }),
       )
