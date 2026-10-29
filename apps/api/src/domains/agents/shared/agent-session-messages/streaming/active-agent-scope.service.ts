@@ -9,6 +9,13 @@ import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.s
 import type { ActiveTurnAgent } from "./handoff-turn-loop"
 
 /**
+ * The agent relations the tools builder reads (the MCP servers are queried on
+ * their own). Every path that loads an agent to answer a turn loads these:
+ * without `documentTags`, an agent in tag RAG mode searches every document.
+ */
+export const TURN_AGENT_RELATIONS = ["documentTags", "sessionCategories", "resourceLibraries"]
+
+/**
  * Who answers the next turn of a session. The session's own agent unless a
  * handoff is in progress, in which case the sub-agent recorded as the active
  * agent answers, with its latest published settings: the playground's version
@@ -43,9 +50,7 @@ export class ActiveAgentScopeService {
     const activeAgent = await this.agentsService.findAgentById({
       connectScope,
       agentId: activeAgentId,
-      // The relations the tools builder reads (the MCP servers are queried
-      // on their own): the same the request context loads for the root agent.
-      relations: ["documentTags", "sessionCategories", "resourceLibraries"],
+      relations: TURN_AGENT_RELATIONS,
     })
     if (!activeAgent || activeAgent.type !== "conversation") {
       this.logger.warn(

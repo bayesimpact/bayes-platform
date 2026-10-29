@@ -80,4 +80,26 @@ describe("PublicChatService", () => {
     await expect(readLiveHtml.mock.calls[0]?.[0].resolveLocale()).resolves.toBe("fr")
     expect(result).toBe(htmlByKey)
   })
+
+  it("loads the agent's document tags before answering, so tag RAG mode filters", async () => {
+    const findOne = jest.fn().mockResolvedValue(null)
+    const service = new PublicChatService(
+      { findOne } as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+      {} as never,
+    )
+
+    await expect(service.streamResponse(session, "Hello", jest.fn()).next()).rejects.toThrow(
+      "Agent not found",
+    )
+
+    expect(findOne).toHaveBeenCalledWith({
+      where: { id: session.agentId },
+      relations: expect.arrayContaining(["documentTags"]),
+    })
+  })
 })
