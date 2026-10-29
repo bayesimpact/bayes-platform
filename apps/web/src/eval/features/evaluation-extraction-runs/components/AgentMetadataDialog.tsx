@@ -120,10 +120,6 @@ function WithData({
                 mono
               />
               <MetadataField
-                label={t("evaluationExtractionRun:agentMetadata.locale")}
-                value={agentSettings.locale}
-              />
-              <MetadataField
                 label={t("evaluationExtractionRun:agentMetadata.documentsRagMode")}
                 value={agentSettings.documentsRagMode}
               />

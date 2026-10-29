@@ -1,6 +1,5 @@
 import { randomUUID } from "node:crypto"
 import {
-  AgentLocale,
   AgentModel,
   AgentSubAgentsRoutes,
   AgentsRoutes,
@@ -441,7 +440,6 @@ describe("Agents - Auth", () => {
             instructions: "This is a default prompt",
             documentsRagMode: DocumentsRagMode.All,
             model: AgentModel.Gemini35Flash,
-            locale: AgentLocale.EN,
             tagsToAdd: [],
             projectAgentSessionCategoryIds: [],
           },

@@ -106,7 +106,6 @@ export const createAgentSchema = agentValidationSchema
       documentsRagMode: true,
       greetingMessage: true,
       instructions: true,
-      locale: true,
       model: true,
       outputJsonSchema: true,
       projectAgentSessionCategoryIds: true,

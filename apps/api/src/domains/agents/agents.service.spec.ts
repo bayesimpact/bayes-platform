@@ -1,4 +1,4 @@
-import { AgentLocale, AgentModel, DocumentsRagMode } from "@caseai-connect/api-contracts"
+import { AgentModel, DocumentsRagMode } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import { UnprocessableEntityException } from "@nestjs/common"
 import {
@@ -60,7 +60,6 @@ describe("AgentsService", () => {
           providerOptions: {},
           model: AgentModel.Gemini25Flash,
           deletedTemperature: 0,
-          locale: AgentLocale.EN,
         },
         userId: user.id,
       })
@@ -116,7 +115,6 @@ describe("AgentsService", () => {
           providerOptions: {},
           model: AgentModel.Gemini25Flash,
           deletedTemperature: 0,
-          locale: AgentLocale.EN,
         },
         userId: user.id,
       })
@@ -159,7 +157,6 @@ describe("AgentsService", () => {
             providerOptions: {},
             model: AgentModel.Gemini25Flash,
             deletedTemperature: 0,
-            locale: AgentLocale.EN,
           },
           userId: user.id,
         })
@@ -187,7 +184,6 @@ describe("AgentsService", () => {
           providerOptions: {},
           model: AgentModel.Gemini25Flash,
           deletedTemperature: 0,
-          locale: AgentLocale.EN,
         },
         userId: user.id,
       })
@@ -209,7 +205,6 @@ describe("AgentsService", () => {
           providerOptions: {},
           model: AgentModel.Gemini25Flash,
           deletedTemperature: 0,
-          locale: AgentLocale.EN,
         },
         userId: user.id,
       })
@@ -230,7 +225,6 @@ describe("AgentsService", () => {
           providerOptions: {},
           model: AgentModel.Gemini25Flash,
           deletedTemperature: 0,
-          locale: AgentLocale.EN,
         },
         userId: user.id,
       })
@@ -253,7 +247,6 @@ describe("AgentsService", () => {
           providerOptions: {},
           model: AgentModel.Gemini25Flash,
           deletedTemperature: 0,
-          locale: AgentLocale.EN,
         },
         userId: user.id,
       })
@@ -277,7 +270,6 @@ describe("AgentsService", () => {
             providerOptions: {},
             model: AgentModel.Gemini25Flash,
             deletedTemperature: 0,
-            locale: AgentLocale.EN,
             type: "extraction",
           },
           userId: user.id,

@@ -6,7 +6,7 @@ import { buildOutputJsonSchema } from "./default-agent-values.helpers"
 export const formAgentDefaultValues = {
   prompt:
     runtimeConfig.defaultFormAgentPrompt ??
-    `Your main task is to help the user fill out the form by asking questions and providing guidance. Ask one question at a time to fill out the form.`,
+    `Your main task is to help the user fill out the form by asking questions and providing guidance. Ask one question at a time to fill out the form. Always answer in the language of the user's last message.`,
 
   getOutputJsonSchema: () => {
     const envSchema = runtimeConfig.defaultFormAgentSchema

@@ -51,7 +51,6 @@ export function toAgentSettingsDto({
     variables: agentSettings.variables,
     isArchived: agentSettings.isArchived,
     isDraft: agentSettings.isDraft,
-    locale: agentSettings.locale,
     mcpServers,
     model: agentSettings.model,
     name: agentSettings.revisionName,

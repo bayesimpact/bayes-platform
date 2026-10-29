@@ -1,9 +1,4 @@
-import {
-  AgentLocale,
-  AgentModel,
-  AgentsRoutes,
-  DocumentsRagMode,
-} from "@caseai-connect/api-contracts"
+import { AgentModel, AgentsRoutes, DocumentsRagMode } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
@@ -91,7 +86,6 @@ describe("Agents - createOne", () => {
       instructions: "This is a default prompt",
       documentsRagMode: DocumentsRagMode.All,
       model: AgentModel.Gemma4_26B,
-      locale: AgentLocale.EN,
       tagsToAdd: [],
       projectAgentSessionCategoryIds: [],
     },
@@ -183,7 +177,6 @@ describe("Agents - createOne", () => {
         instructions: "This is a default prompt",
         documentsRagMode: DocumentsRagMode.All,
         model: AgentModel.Gemini31FlashLite,
-        locale: AgentLocale.EN,
         tagsToAdd: [],
         projectAgentSessionCategoryIds: [],
       },
@@ -210,7 +203,6 @@ describe("Agents - createOne", () => {
     })
     expect(agentSettings?.instructions).toBe("This is a default prompt")
     expect(agentSettings?.model).toBe(AgentModel.Gemini31FlashLite)
-    expect(agentSettings?.locale).toBe(AgentLocale.EN)
     expect(agentSettings?.documentsRagMode).toBe(DocumentsRagMode.All)
     await expectActivityCreated("agent.create")
   })
@@ -225,7 +217,6 @@ describe("Agents - createOne", () => {
         instructions: "This is a default prompt",
         documentsRagMode: DocumentsRagMode.All,
         model: AgentModel.Gemini31FlashLite,
-        locale: AgentLocale.EN,
         tagsToAdd: [],
         projectAgentSessionCategoryIds: [],
       },
@@ -261,7 +252,6 @@ describe("Agents - createOne", () => {
         greetingMessage: "Hi! How can I help you today?",
         documentsRagMode: DocumentsRagMode.All,
         model: AgentModel.Gemini31FlashLite,
-        locale: AgentLocale.EN,
         tagsToAdd: [],
         projectAgentSessionCategoryIds: [],
       },
@@ -285,7 +275,6 @@ describe("Agents - createOne", () => {
         instructions: "This is a default prompt",
         documentsRagMode: DocumentsRagMode.All,
         model: AgentModel.Gemini31FlashLite,
-        locale: AgentLocale.EN,
         tagsToAdd: [],
         projectAgentSessionCategoryIds: [],
       },
@@ -309,7 +298,6 @@ describe("Agents - createOne", () => {
         instructions: "This is a default prompt",
         documentsRagMode: DocumentsRagMode.All,
         model: AgentModel.Gemini31FlashLite,
-        locale: AgentLocale.EN,
         fillFormEnabled: true,
         outputJsonSchema: {
           type: "object",
@@ -342,7 +330,6 @@ describe("Agents - createOne", () => {
         instructions: "This is a default prompt",
         documentsRagMode: DocumentsRagMode.All,
         model: AgentModel.Gemini31FlashLite,
-        locale: AgentLocale.EN,
         fillFormEnabled: true,
         tagsToAdd: [],
         projectAgentSessionCategoryIds: [],
@@ -368,7 +355,6 @@ describe("Agents - createOne", () => {
         instructions: "This is a default prompt",
         documentsRagMode: DocumentsRagMode.Tags,
         model: AgentModel.Gemini31FlashLite,
-        locale: AgentLocale.EN,
         tagsToAdd: [documentTag.id],
         projectAgentSessionCategoryIds: [],
       },
@@ -404,7 +390,6 @@ describe("Agents - createOne", () => {
         instructions: "This is a default prompt",
         documentsRagMode: DocumentsRagMode.All,
         model: AgentModel.Gemini31FlashLite,
-        locale: AgentLocale.EN,
         tagsToAdd: [],
         projectAgentSessionCategoryIds: [projectCategory.id],
       },

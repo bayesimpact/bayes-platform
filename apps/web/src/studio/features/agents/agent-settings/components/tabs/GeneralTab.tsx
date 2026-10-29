@@ -1,5 +1,4 @@
 import {
-  AgentLocale,
   extractPromptVariables,
   updateAgentSettingsGeneralSchema,
 } from "@caseai-connect/api-contracts"
@@ -12,13 +11,6 @@ import {
   FormMessage,
 } from "@caseai-connect/ui/shad/form"
 import { Input } from "@caseai-connect/ui/shad/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@caseai-connect/ui/shad/select"
 import { Textarea } from "@caseai-connect/ui/shad/textarea"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useState } from "react"
@@ -67,7 +59,6 @@ export function GeneralTab({
     resolver: zodResolver(updateAgentSettingsGeneralSchema),
     defaultValues: {
       name: agent.name,
-      locale: agentSettings.locale,
       instructions: agentSettings.instructions,
       greetingMessage: agentSettings.greetingMessage ?? null,
     },
@@ -102,31 +93,6 @@ export function GeneralTab({
                 <FormControl>
                   <Input placeholder={t("agent:props.placeholders.name")} {...field} />
                 </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="locale"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t("agentSettings:props.locale")}</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t("agentSettings:props.placeholders.locale")} />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {Object.entries(AgentLocale).map(([key, value]) => (
-                      <SelectItem key={key} value={value}>
-                        {value}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
                 <FormMessage />
               </FormItem>
             )}
