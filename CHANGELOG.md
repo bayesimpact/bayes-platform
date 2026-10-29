@@ -20,6 +20,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 - Resource libraries: the upload button of a resource being edited now opens the file picker instead of saving the resource.
 - Resource libraries: a file that fails to upload now shows an error instead of nothing.
+- Resource libraries: the missing link error waits for the form to be sent, and clears once a file is uploaded.
 
 ### Security
 
