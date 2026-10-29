@@ -154,9 +154,6 @@ export class ReviewCampaignMembershipRepository {
     if (existing) return existing
 
     const roleId = await resolveReviewCampaignRoleId(this.transactionService.getManager(), role)
-    if (!roleId) {
-      throw new Error(`Role ${REVIEW_CAMPAIGN_ROLES[role]} not found: is the RBAC catalog seeded?`)
-    }
     await this.userMembershipRepo()
       .createQueryBuilder()
       .insert()
