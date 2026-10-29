@@ -181,54 +181,54 @@ describe("MeController (e2e)", () => {
       })
     })
 
-    it("returns review-campaign memberships with role + campaign status", async () => {
+    it("returns review-campaign memberships with the permissions their status gives", async () => {
       const { user, organization, project, agent, agentSettings } =
         await createOrganizationWithAgent(repositories, { agent: { type: "conversation" } })
-
-      const activeCampaign = await repositories.reviewCampaignRepository.save(
-        reviewCampaignFactory
-          .active()
-          .transient({ organization, project, agent, agentSettings })
-          .build(),
-      )
-      const draftCampaign = await repositories.reviewCampaignRepository.save(
-        reviewCampaignFactory.transient({ organization, project, agent, agentSettings }).build(),
-      )
-      await saveReviewCampaignMembership({
-        repositories,
-        membership: reviewCampaignMembershipFactory
-          .withRoles("review_campaign_reviewer")
-          .transient({ organization, project, campaign: activeCampaign, user })
-          .build(),
-      })
-      await saveReviewCampaignMembership({
-        repositories,
-        membership: reviewCampaignMembershipFactory
-          .withRoles("review_campaign_tester")
-          .transient({ organization, project, campaign: draftCampaign, user })
-          .build(),
-      })
+      const buildCampaign = (status: "draft" | "active" | "closed") =>
+        repositories.reviewCampaignRepository.save(
+          reviewCampaignFactory[status]()
+            .transient({ organization, project, agent, agentSettings })
+            .build(),
+        )
+      const activeCampaign = await buildCampaign("active")
+      const closedCampaign = await buildCampaign("closed")
+      const draftCampaign = await buildCampaign("draft")
+      const memberships: [
+        typeof activeCampaign,
+        "review_campaign_tester" | "review_campaign_reviewer",
+      ][] = [
+        [activeCampaign, "review_campaign_tester"],
+        [closedCampaign, "review_campaign_tester"],
+        [closedCampaign, "review_campaign_reviewer"],
+        [draftCampaign, "review_campaign_reviewer"],
+      ]
+      for (const [campaign, roleKey] of memberships) {
+        await saveReviewCampaignMembership({
+          repositories,
+          membership: reviewCampaignMembershipFactory
+            .withRoles(roleKey)
+            .transient({ organization, project, campaign, user })
+            .build(),
+        })
+      }
       authSubject = user.authSubject!
 
       const response = await subject()
       expectResponse(response, 200)
 
-      const memberships = response.body.data.user.memberships.reviewCampaignMemberships
-      expect(memberships).toHaveLength(2)
-      const holds = (roleKey: string) => (membership: (typeof memberships)[number]) =>
-        membership.roles.some((role) => role.key === roleKey)
-      const reviewer = memberships.find(holds("review_campaign_reviewer"))
-      expect(reviewer).toMatchObject({
-        campaignId: activeCampaign.id,
-        projectId: project.id,
-        campaignStatus: "active",
-      })
-      const tester = memberships.find(holds("review_campaign_tester"))
-      expect(tester).toMatchObject({
-        campaignId: draftCampaign.id,
-        projectId: project.id,
-        campaignStatus: "draft",
-      })
+      const campaignMemberships = response.body.data.user.memberships.reviewCampaignMemberships
+      expect(campaignMemberships).toHaveLength(3)
+      const permissionsOf = (campaignId: string) =>
+        campaignMemberships.find((membership) => membership.campaignId === campaignId)?.permissions
+      // A tester takes part while the campaign is active.
+      expect(permissionsOf(activeCampaign.id)).toContain("review_campaign.tester_session.create")
+      // Once it is closed, only the reviewer role still gives something.
+      const closedPermissions = permissionsOf(closedCampaign.id)
+      expect(closedPermissions).toContain("review_campaign.reviewer_session.read")
+      expect(closedPermissions).not.toContain("review_campaign.tester_session.read")
+      // A draft gives nothing.
+      expect(permissionsOf(draftCampaign.id)).toEqual([])
+      expect(campaignMemberships[0]).not.toHaveProperty("roles")
     })
 
     it("returns the agents the user was granted to review", async () => {

@@ -2,11 +2,11 @@ import type {
   AgentPermission,
   OrganizationPermission,
   ProjectPermission,
+  ReviewCampaignPermission,
 } from "@caseai-connect/api-contracts"
 import { useCallback, useMemo } from "react"
 import { selectAgentsDataIfInjected } from "@/common/features/agents/agents.selectors"
 import { selectReviewCampaignMemberships } from "@/common/features/me/me.selectors"
-import { holdsRole } from "@/common/features/memberships/membership-roles"
 import { selectOrganizationsList } from "@/common/features/organizations/organizations.selectors"
 import { selectMyProjectsList } from "@/common/features/projects/projects.selectors"
 import { ADS } from "@/common/store/async-data-status"
@@ -50,6 +50,24 @@ export function useAbility() {
       return agent?.permissions.includes(permission) ?? false
     },
     [agentsData],
+  )
+
+  // A campaign gives its permissions only while its status allows them, so this already says
+  // whether the tester or reviewer app is open on the project.
+  const hasReviewCampaignPermissionInProject = useCallback(
+    ({
+      projectId,
+      permission,
+    }: {
+      projectId: string | null
+      permission: ReviewCampaignPermission
+    }) =>
+      !!projectId &&
+      !!reviewCampaignMemberships?.some(
+        (membership) =>
+          membership.projectId === projectId && membership.permissions.includes(permission),
+      ),
+    [reviewCampaignMemberships],
   )
 
   const canCreateProject = useCallback(
@@ -114,24 +132,20 @@ export function useAbility() {
 
   const canAccessTester = useCallback(
     ({ projectId }: { projectId: string | null }) =>
-      !!reviewCampaignMemberships?.some(
-        (membership) =>
-          holdsRole(membership.roles, "review_campaign_tester") &&
-          membership.campaignStatus === "active" &&
-          membership.projectId === projectId,
-      ),
-    [reviewCampaignMemberships],
+      hasReviewCampaignPermissionInProject({
+        projectId,
+        permission: "review_campaign.tester_session.read",
+      }),
+    [hasReviewCampaignPermissionInProject],
   )
 
   const canAccessReviewer = useCallback(
     ({ projectId }: { projectId: string | null }) =>
-      !!reviewCampaignMemberships?.some(
-        (membership) =>
-          holdsRole(membership.roles, "review_campaign_reviewer") &&
-          membership.campaignStatus !== "draft" &&
-          membership.projectId === projectId,
-      ),
-    [reviewCampaignMemberships],
+      hasReviewCampaignPermissionInProject({
+        projectId,
+        permission: "review_campaign.reviewer_session.read",
+      }),
+    [hasReviewCampaignPermissionInProject],
   )
 
   const canManageAgent = useCallback(

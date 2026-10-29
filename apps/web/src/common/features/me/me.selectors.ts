@@ -1,4 +1,3 @@
-import { holdsRole } from "@/common/features/memberships/membership-roles"
 import type { RootState } from "@/common/store"
 
 export const selectMe = (state: RootState) => state.me.data
@@ -43,39 +42,5 @@ export const selectCurrentTerms = (state: RootState) => state.me.currentTerms
 export const selectCanCreateOrganization = (state: RootState): boolean =>
   state.me.data.value?.globalPermissions.includes("organization.create") ?? false
 
-export const selectOrganizationMemberships = (state: RootState) =>
-  state.me.data.value?.memberships.organizationMemberships
-
-export const selectProjectMemberships = (state: RootState) =>
-  state.me.data.value?.memberships.projectMemberships
-
 export const selectReviewCampaignMemberships = (state: RootState) =>
   state.me.data.value?.memberships.reviewCampaignMemberships
-
-export const selectCanAccessStudioForOrganizationId =
-  (organizationId: string) =>
-  (state: RootState): boolean => {
-    const memberships = state.me.data.value?.memberships
-    if (!memberships) return false
-    return memberships.organizationMemberships.some(
-      (membership) =>
-        membership.organizationId === organizationId &&
-        holdsRole(membership.roles, "org_owner", "org_admin"),
-    )
-  }
-
-/**
- * Review-campaign memberships available from the app switcher. Mirrors the
- * `listMyCampaigns` server filter: testers only see active campaigns, while
- * reviewers keep read access on closed campaigns.
- */
-export const selectMyAccessibleReviewCampaignMemberships =
-  (role: "tester" | "reviewer") => (state: RootState) => {
-    const memberships = state.me.data.value?.memberships.reviewCampaignMemberships
-    if (!memberships) return []
-    return memberships.filter((membership) => {
-      if (!holdsRole(membership.roles, `review_campaign_${role}`)) return false
-      if (role === "reviewer") return membership.campaignStatus !== "draft"
-      return membership.campaignStatus === "active"
-    })
-  }

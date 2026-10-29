@@ -1,10 +1,16 @@
 import type {
   GlobalPermission,
   ReviewCampaignMembershipForMeDto,
+  ReviewCampaignPermission,
   UserDto,
   UserMembershipsDto,
 } from "@caseai-connect/api-contracts"
-import { buildNameFromEmail, MeRoutes, updateMeSchema } from "@caseai-connect/api-contracts"
+import {
+  buildNameFromEmail,
+  isReviewCampaignPermission,
+  MeRoutes,
+  updateMeSchema,
+} from "@caseai-connect/api-contracts"
 import { Body, Controller, Get, Patch, Req, UseGuards, UsePipes } from "@nestjs/common"
 import type { EndpointRequest } from "@/common/context/request.interface"
 import { ZodValidationPipe } from "@/common/zod-validation-pipe"
@@ -63,6 +69,7 @@ export class MeController {
       latestAcceptance,
       globalPermissions,
       conversationReviewAgentIds,
+      reviewCampaignPermissions,
     ] = await Promise.all([
       this.organizationsService.listOrganizations(user.id),
       this.meService.getUserMemberships(user.id),
@@ -70,6 +77,7 @@ export class MeController {
       this.termsComplianceService.getLatestAcceptanceForUser(user.id),
       this.permissionService.listGlobalPermissions(user.id),
       this.agentConversationReviewersService.listAgentIdsForUser(user.id),
+      this.permissionService.listReviewCampaignPermissionsInGivingStatus(user.id),
     ])
     return {
       data: {
@@ -80,6 +88,7 @@ export class MeController {
           latestAcceptance,
           globalPermissions,
           conversationReviewAgentIds,
+          reviewCampaignPermissions,
         }),
         organizations: organizations.map(toOrganizationDto),
         currentTerms: toCurrentTermsDto(termsDocuments),
@@ -95,6 +104,7 @@ function toUserDto({
   latestAcceptance,
   globalPermissions,
   conversationReviewAgentIds,
+  reviewCampaignPermissions,
 }: {
   user: { id: string; email: string; name: string | null }
   memberships: Awaited<ReturnType<MeService["getUserMemberships"]>>
@@ -102,6 +112,7 @@ function toUserDto({
   latestAcceptance: Awaited<ReturnType<TermsComplianceService["getLatestAcceptanceForUser"]>>
   globalPermissions: string[]
   conversationReviewAgentIds: string[]
+  reviewCampaignPermissions: Map<string, string[]>
 }): UserDto {
   return {
     id: user.id,
@@ -109,13 +120,14 @@ function toUserDto({
     name: user.name ?? buildNameFromEmail(user.email),
     globalPermissions: globalPermissions as GlobalPermission[],
     conversationReviewAgentIds,
-    memberships: toUserMembershipDto(memberships),
+    memberships: toUserMembershipDto(memberships, reviewCampaignPermissions),
     termsAccepted: isAcceptanceUpToDate(latestAcceptance, termsDocuments),
   }
 }
 
 function toUserMembershipDto(
   membership: Awaited<ReturnType<MeService["getUserMemberships"]>>,
+  reviewCampaignPermissions: Map<string, string[]>,
 ): UserMembershipsDto {
   return {
     organizationMemberships: membership.organizationMemberships.map((orgMembership) => ({
@@ -131,40 +143,41 @@ function toUserMembershipDto(
       roles: agentMembership.roles.map(toMembershipRoleDto),
     })),
     // Skip rows where the campaign was somehow not loaded (defensive — relation
-    // is non-null in the schema). Surface campaignStatus so the UI can mirror
-    // listMyCampaigns' active-only filter without an extra round-trip.
+    // is non-null in the schema).
     reviewCampaignMemberships: toReviewCampaignMembershipsForMeDto(
       membership.reviewCampaignMemberships.filter(
         (campaignMembership) => !!campaignMembership.campaign,
       ),
+      reviewCampaignPermissions,
     ),
   }
 }
 
-/** One entry per campaign, with the user's roles on it (tester, reviewer or both). */
+/**
+ * One entry per campaign, with what the user can do on it now. The front reads these permissions
+ * and never the roles, so the campaign status rules stay in the API.
+ */
 function toReviewCampaignMembershipsForMeDto(
   memberships: ReviewCampaignMembershipModel[],
+  reviewCampaignPermissions: Map<string, string[]>,
 ): ReviewCampaignMembershipForMeDto[] {
-  const membershipsByCampaignId = new Map<string, ReviewCampaignMembershipModel[]>()
+  const membershipByCampaignId = new Map<string, ReviewCampaignMembershipModel>()
   for (const membership of memberships) {
-    const campaignMemberships = membershipsByCampaignId.get(membership.campaignId)
-    if (campaignMemberships) campaignMemberships.push(membership)
-    else membershipsByCampaignId.set(membership.campaignId, [membership])
+    if (!membershipByCampaignId.has(membership.campaignId)) {
+      membershipByCampaignId.set(membership.campaignId, membership)
+    }
   }
 
-  return [...membershipsByCampaignId.values()].flatMap((campaignMemberships) => {
-    const [first] = campaignMemberships
-    if (!first) return []
-    return [
-      {
-        campaignId: first.campaignId,
-        organizationId: first.organizationId,
-        projectId: first.projectId,
-        roles: campaignMemberships.map((membership) =>
-          toMembershipRoleDto(membership.membershipRole),
-        ),
-        campaignStatus: first.campaign.status,
-      },
-    ]
-  })
+  return [...membershipByCampaignId.values()].map((membership) => ({
+    campaignId: membership.campaignId,
+    organizationId: membership.organizationId,
+    projectId: membership.projectId,
+    permissions: toReviewCampaignPermissions(
+      reviewCampaignPermissions.get(membership.campaignId) ?? [],
+    ),
+  }))
+}
+
+function toReviewCampaignPermissions(permissions: string[]): ReviewCampaignPermission[] {
+  return permissions.filter(isReviewCampaignPermission)
 }

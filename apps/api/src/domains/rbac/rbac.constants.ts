@@ -697,7 +697,8 @@ export const PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN = [
 /**
  * Campaign statuses under which each campaign role gives its project keys, matching when the
  * tester and reviewer apps open: testers while the campaign is active, reviewers also once it is
- * closed. A draft campaign gives nothing.
+ * closed. A draft campaign gives nothing. The campaign permissions on `/me` follow the same
+ * statuses, so the web app opens the tester and reviewer apps from them alone.
  */
 export const REVIEW_CAMPAIGN_STATUSES_GIVING_PROJECT_PERMISSIONS = {
   [REVIEW_CAMPAIGN_ROLES.tester]: ["active"],

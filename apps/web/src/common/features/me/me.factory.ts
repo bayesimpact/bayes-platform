@@ -3,6 +3,7 @@ import type {
   OrganizationMembershipDto,
   ProjectMembershipDto,
   ReviewCampaignMembershipForMeDto,
+  ReviewCampaignPermission,
 } from "@caseai-connect/api-contracts"
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
@@ -143,10 +144,45 @@ type ReviewCampaignMembershipTransientParams = {
   project: Project
 }
 
+/** What the API gives a tester on an active campaign. */
+const TESTER_PERMISSIONS: ReviewCampaignPermission[] = [
+  "review_campaign.read",
+  "review_campaign.tester_session.read",
+  "review_campaign.tester_session.create",
+  "review_campaign.tester_session.delete",
+  "review_campaign.tester_feedback.create",
+  "review_campaign.tester_feedback.update",
+  "review_campaign.tester_survey.read",
+  "review_campaign.tester_survey.create",
+  "review_campaign.tester_survey.update",
+]
+
+/** What the API gives a reviewer on an active or closed campaign. */
+const REVIEWER_PERMISSIONS: ReviewCampaignPermission[] = [
+  "review_campaign.read",
+  "review_campaign.reviewer_session.read",
+  "review_campaign.reviewer_review.create",
+  "review_campaign.reviewer_review.update",
+  "review_campaign.report.read",
+]
+
 class ReviewCampaignMembershipFactory extends Factory<
   ReviewCampaignMembershipForMeDto,
   ReviewCampaignMembershipTransientParams
-> {}
+> {
+  asTester() {
+    return this.params({ permissions: TESTER_PERMISSIONS })
+  }
+
+  asReviewer() {
+    return this.params({ permissions: REVIEWER_PERMISSIONS })
+  }
+
+  /** A membership whose campaign gives nothing now, such as a draft. */
+  withoutAccess() {
+    return this.params({ permissions: [] })
+  }
+}
 
 export const reviewCampaignMembershipFactory = ReviewCampaignMembershipFactory.define(
   ({ params, transientParams }) => {
@@ -160,8 +196,7 @@ export const reviewCampaignMembershipFactory = ReviewCampaignMembershipFactory.d
       campaignId: params.campaignId ?? faker.string.uuid(),
       organizationId: project.organizationId,
       projectId: project.id,
-      roles: [buildMembershipRoleDto({ scopeType: "review_campaign", role: "reviewer" })],
-      campaignStatus: params.campaignStatus ?? "active",
+      permissions: params.permissions ?? REVIEWER_PERMISSIONS,
     } satisfies ReviewCampaignMembershipForMeDto
   },
 )

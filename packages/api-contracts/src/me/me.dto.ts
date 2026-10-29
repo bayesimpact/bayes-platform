@@ -4,16 +4,17 @@ import type { CurrentTermsDto } from "../backoffice/backoffice.dto"
 import type { TimeType } from "../generic"
 import type { OrganizationDto, OrganizationMembershipDto } from "../organizations/organizations.dto"
 import type { ProjectMembershipDto } from "../project-membership/project-membership.dto"
-import type { MembershipRoleDto } from "../rbac/membership-role.dto"
-import type { GlobalPermission } from "../rbac/permissions"
-import type { ReviewCampaignStatus } from "../review-campaigns/review-campaigns.dto"
+import type { GlobalPermission, ReviewCampaignPermission } from "../rbac/permissions"
 
 export type ReviewCampaignMembershipForMeDto = {
   campaignId: string
   organizationId: string
   projectId: string
-  roles: MembershipRoleDto[]
-  campaignStatus: ReviewCampaignStatus
+  /**
+   * What the user can do on the campaign now. A role gives nothing while the campaign is outside
+   * its statuses: testers only on an active campaign, reviewers also once it is closed.
+   */
+  permissions: ReviewCampaignPermission[]
 }
 
 export type UserMembershipsDto = {

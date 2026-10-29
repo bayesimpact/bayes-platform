@@ -80,18 +80,18 @@ function buildData(args: StoryArgs) {
       ? [
           ...(withReviewCampaignMembershipsAsTester
             ? [
-                reviewCampaignMembershipFactory.transient({ project: firstProject }).build({
-                  roles: [buildMembershipRoleDto({ scopeType: "review_campaign", role: "tester" })],
-                }),
+                reviewCampaignMembershipFactory
+                  .asTester()
+                  .transient({ project: firstProject })
+                  .build(),
               ]
             : []),
           ...(withReviewCampaignMembershipsAsReviewer
             ? [
-                reviewCampaignMembershipFactory.transient({ project: firstProject }).build({
-                  roles: [
-                    buildMembershipRoleDto({ scopeType: "review_campaign", role: "reviewer" }),
-                  ],
-                }),
+                reviewCampaignMembershipFactory
+                  .asReviewer()
+                  .transient({ project: firstProject })
+                  .build(),
               ]
             : []),
         ]
