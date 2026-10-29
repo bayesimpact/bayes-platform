@@ -135,4 +135,9 @@ export class ApiError extends Error {
   get isUnauthorized() {
     return this.status === 401 || this.status === 403
   }
+
+  /** The retention purge emptied the session (API 2.0): start a new one. */
+  get isSessionExpired() {
+    return this.status === 410
+  }
 }

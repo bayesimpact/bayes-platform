@@ -56,6 +56,8 @@ export type EmbedChatProps = {
   hideHeader?: boolean
   /** Optional notice pinned above the conversation (e.g. "Test version, staff only"). */
   bannerText?: string
+  /** The previous conversation expired: say so above the new one until the next message. */
+  isPreviousSessionExpired?: boolean
 }
 
 export function EmbedChat(props: EmbedChatProps) {
@@ -90,6 +92,7 @@ function EmbedChatInner({
   onNewConversation,
   hideHeader = false,
   bannerText,
+  isPreviousSessionExpired = false,
 }: EmbedChatProps) {
   const { t } = useTranslation("chat")
   const chatEndRef = useRef<HTMLDivElement>(null)
@@ -127,6 +130,11 @@ function EmbedChatInner({
       {bannerText && <ChatBanner text={bannerText} />}
 
       <ChatContent>
+        {isPreviousSessionExpired && (
+          <p role="note" className="text-center text-xs text-gray-500">
+            {t("status.sessionExpired")}
+          </p>
+        )}
         {messages.map((message) => (
           <ChatMessage
             key={message.id}

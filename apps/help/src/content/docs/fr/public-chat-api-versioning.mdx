@@ -4,8 +4,8 @@ highlight: Versions
 description: Comment l'API de chat publique est versionnée, ce qui compte comme un changement compatible ou cassant, et combien de temps une ancienne version reste disponible.
 category: developers
 order: 2
-updated: 2026-10-22
-apiVersion: "1.1"
+updated: 2026-10-29
+apiVersion: "1.2"
 ---
 
 L'API de chat publique est un contrat. Cette page explique comment elle évolue et comment
@@ -44,6 +44,10 @@ optionnel obligatoire, ou changer un code de statut, un message d'erreur ou le f
 flux. Une version majeure est servie sous un nouveau préfixe de chemin, par exemple
 `/public/v2/...`. La majeure précédente continue de répondre sur ses propres chemins
 pendant la période de dépréciation.
+
+Jusqu'à nouvel ordre, un changement cassant sort comme une version mineure, sur les mêmes
+chemins. Le [journal des modifications](/fr/public-chat-api-changelog) le liste sous
+**Modifié**, avec les étapes de migration.
 
 ## Politique de dépréciation
 

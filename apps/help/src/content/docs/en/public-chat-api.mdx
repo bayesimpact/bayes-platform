@@ -4,8 +4,8 @@ highlight: API
 description: Build your own chat client on a public agent. Routes, headers, server-sent events, error codes and limits of the public chat API, version 1.
 category: developers
 order: 1
-updated: 2026-10-22
-apiVersion: "1.1"
+updated: 2026-10-29
+apiVersion: "1.2"
 ---
 
 import PublicApiBaseUrl from "@/components/PublicApiBaseUrl.astro"
@@ -38,7 +38,7 @@ All routes of version 1 start with `/public/v1/agents/{embedToken}`.
 
 ## Version
 
-This page documents version **1.1**. The major version is in the path (`v1`). Minor versions
+This page documents version **1.2**. The major version is in the path (`v1`). Minor versions
 add fields or routes and never change existing ones. The
 [changelog](/en/public-chat-api-changelog) lists every version. Your client must ignore
 unknown fields and unknown event types. This keeps it compatible with future minor versions.
@@ -57,8 +57,9 @@ A **session** is one conversation. [Create a session](#create-a-session) returns
 is returned once. The server stores only a hash of it. Store it on your side.
 
 Session tokens do not expire. The workspace retention rule can empty the conversation
-content later (see [Limits and lifetimes](#limits-and-lifetimes)). When a session route
-answers `401`, discard the stored session and create a new one.
+later (see [Limits and lifetimes](#limits-and-lifetimes)). Session routes then answer
+`410`. When a session route answers `401` or `410`, discard the stored session and create
+a new one. On `410`, you can tell the user that the previous conversation expired.
 
 ## Conventions
 
@@ -236,7 +237,7 @@ progress for 5 minutes becomes `aborted`.
 
 The `mcpApp` pointer never carries HTML here. Read it with the next route.
 
-Status: `200`. Errors: `401`, `403`.
+Status: `200`. Errors: `401`, `403`, `410`.
 
 ### Get MCP App card HTML
 
@@ -264,7 +265,7 @@ a message has `toolCalls[].mcpApp`.
 Match a card to its message with `mcpServerId` and `resourceUri`. The array is empty when
 no card exists.
 
-Status: `200`. Errors: `401`, `403`.
+Status: `200`. Errors: `401`, `403`, `410`.
 
 ### Send a message and stream the reply
 
@@ -297,7 +298,7 @@ the response body as a stream (see [Quick start](#quick-start)). `POST` on this 
 returns `404`.
 
 Status: `200` with `Content-Type: text/event-stream`. Errors before the stream starts:
-`401`, `403`. Errors on the payload arrive inside the stream (see below).
+`401`, `403`, `410`. Errors on the payload arrive inside the stream (see below).
 
 After the final event, read the session again to get the persisted reply and its
 `toolCalls`. The stream carries text only.
@@ -391,6 +392,7 @@ Error responses are JSON:
 | `401` | `Missing session token` | No `X-Session-Token` header | Send the header |
 | `401` | `Invalid session token` | Token and session do not match | Create a new session |
 | `401` | `Session does not belong to this agent` | Session created with another embed token | Create a new session |
+| `410` | `Session expired` | The retention rule emptied the conversation | Create a new session. The body also carries `code: "SESSION_EXPIRED"` |
 | `404` | `Cannot GET /public/...` | Unknown path or method | Check the route table |
 | `400` | `Missing prompt variables: ...` | The agent's instructions declare `{{variables}}` with no value and no default | Send the values in `payload.variables`. The body also carries `code: "MISSING_PROMPT_VARIABLES"` and a `missing` list |
 | `400` | (parser message) | Malformed JSON body | Fix the body. This response has no `error` field |
@@ -421,8 +423,8 @@ calls send no `Origin` header and are not filtered by the list.
 - No rate limit is enforced today. Use the API fairly. A limit would be announced on the
   [changelog](/en/public-chat-api-changelog) as a minor change, with `429` responses.
 - Session content follows the workspace retention rule (30 days after creation by
-  default). After that, the messages have empty `content` and no `toolCalls`. The session
-  identifier and token still work. Create a new session for a new conversation.
+  default). After that, every session route answers `410` with
+  `code: "SESSION_EXPIRED"`. Create a new session for a new conversation.
 
 ## Quick start
 
@@ -490,7 +492,7 @@ await send("Hello!", (text) => process.stdout.write(text))
 console.log(await readSession())
 ```
 
-Handle `401` on a session route by clearing the stored session and creating a new one.
+Handle `401` and `410` on a session route by clearing the stored session and creating a new one.
 
 ## Related pages
 
