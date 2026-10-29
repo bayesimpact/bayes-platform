@@ -10,7 +10,10 @@ import type { AgentMessage } from "@/domains/agents/shared/agent-session-message
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { McpAppHtmlService } from "@/domains/agents/shared/agent-session-messages/mcp-app-html.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { ActiveAgentScopeService } from "@/domains/agents/shared/agent-session-messages/streaming/active-agent-scope.service"
+import {
+  ActiveAgentScopeService,
+  TURN_AGENT_RELATIONS,
+} from "@/domains/agents/shared/agent-session-messages/streaming/active-agent-scope.service"
 import { runHandoffTurns } from "@/domains/agents/shared/agent-session-messages/streaming/handoff-turn-loop"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { StreamingLlmService } from "@/domains/agents/shared/agent-session-messages/streaming/streaming-llm.service"
@@ -83,7 +86,7 @@ export class PublicChatService {
   ): AsyncGenerator<StreamEvent, void, unknown> {
     const agent = await this.agentRepository.findOne({
       where: { id: publicSession.agentId },
-      relations: ["resourceLibraries", "sessionCategories"],
+      relations: TURN_AGENT_RELATIONS,
     })
     if (!agent) throw new NotFoundException("Agent not found")
 
