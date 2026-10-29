@@ -36,8 +36,8 @@ const COLUMNS_SET_HERE = [
  * `down()` restores the column, read back from that line ("en" without it). The added lines and
  * revisions stay.
  */
-export class DropAgentSettingsLocale1793197135401 implements MigrationInterface {
-  name = "DropAgentSettingsLocale1793197135401"
+export class DropAgentSettingsLocale1793270703000 implements MigrationInterface {
+  name = "DropAgentSettingsLocale1793270703000"
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
