@@ -629,7 +629,10 @@ describe("Documents - Auth", () => {
       await createContextForRole("project_member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
-    it.each([["project_owner"], ["project_admin"]] as const)("allows a %s to list", async (role) => {
+    it.each([
+      ["project_owner"],
+      ["project_admin"],
+    ] as const)("allows a %s to list", async (role) => {
       await createContextForRole(role)
       expectResponse(await subject(), 200)
     })
@@ -674,7 +677,10 @@ describe("Documents - Auth", () => {
       await createContextWithFeature("project_member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
-    it.each([["project_owner"], ["project_admin"]] as const)("allows a %s to enable a model", async (role) => {
+    it.each([
+      ["project_owner"],
+      ["project_admin"],
+    ] as const)("allows a %s to enable a model", async (role) => {
       await createContextWithFeature(role)
       expectResponse(await subject(), 201)
     })
