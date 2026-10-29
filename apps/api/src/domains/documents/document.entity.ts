@@ -61,7 +61,7 @@ export class Document extends ConnectEntityBase {
   @Column({ name: "upload_status", nullable: false, default: "uploaded" })
   uploadStatus!: "pending" | "uploaded"
 
-  /** Rendered PNG page count in GCS (derived/{id}/page-{n}.png); null = not rendered. PDFs only. */
+  /** Rendered PNG page count in the bucket (derived/{id}/page-{n}.png); null = not rendered. PDFs only. */
   @Column({ type: "integer", name: "pdf_page_count", nullable: true })
   pdfPageCount!: number | null
 

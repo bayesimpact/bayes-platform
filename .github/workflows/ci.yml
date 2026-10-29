@@ -189,6 +189,8 @@ jobs:
       - name: Run PDF converter tests
         if: needs.changes.outputs.pdf-converter-tests == 'true'
         working-directory: apps/pdf-converter
-        run: go test ./...
+        # -count=1: the Go test cache cannot see SeaweedFS, so a cached pass
+        # would skip the S3 round trip.
+        run: go test -count=1 ./...
         env:
           S3_TEST_ENDPOINT: http://localhost:8333

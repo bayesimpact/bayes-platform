@@ -15,6 +15,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Changed
 
 - Web sources: crawled websites now appear as external sources, and recrawling one goes through the Bayes team.
+- Self-hosting: Google Cloud Storage buckets now connect through their S3 API with HMAC keys, replacing the gcs storage mode.
 
 ### Fixed
 

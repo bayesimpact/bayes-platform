@@ -29,7 +29,7 @@ const (
 	// sweep them by prefix.
 	defaultPdfExportPrefix = "tmp/pdf-exports/"
 	pdfExportMaxPages      = 200
-	// maxFileNameRunes caps the sanitized download name well below the GCS
+	// maxFileNameRunes caps the sanitized download name well below the S3
 	// object-name limit while leaving room for the prefix and the id.
 	maxFileNameRunes = 100
 	// maxPdfExportTTLMinutes is the V4 and SigV4 signing limit (seven days); a
@@ -226,7 +226,7 @@ func humanSize(bytes int64) string {
 
 // sanitizeFileName turns an agent-supplied name into a safe single-segment
 // object name ending in .pdf. Unicode letters and digits are kept, so an
-// accented or non-Latin name survives (GCS object names are UTF-8); everything
+// accented or non-Latin name survives (object names are UTF-8); everything
 // outside letters, digits, dot, underscore, space and dash is dropped, which
 // also removes path separators, quotes and control characters. The download
 // header quotes an ASCII fallback next to the real name, see store.SignedURL.

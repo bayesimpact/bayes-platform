@@ -2,7 +2,7 @@ import { readPositiveIntEnv } from "@/config/positive-int-env"
 
 const DEFAULT_SWEEP_INTERVAL_SECONDS = 300 // 5 minutes
 const DEFAULT_TTL_MINUTES = 15
-/** GCS V4 signing caps a signed URL at seven days, and the converter rejects anything above it. */
+/** SigV4 presigning caps a signed URL at seven days, and the converter rejects anything above it. */
 const MAX_TTL_MINUTES = 7 * 24 * 60
 const DEFAULT_TMP_PREFIX = "tmp/pdf-exports/"
 
