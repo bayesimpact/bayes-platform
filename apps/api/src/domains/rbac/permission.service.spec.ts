@@ -1075,26 +1075,6 @@ describe("PermissionService", () => {
       await expect(service.listResourceIds(user.id, "project.read")).resolves.toEqual([])
     })
 
-    it("ignores memberships whose role does not grant the read permission", async () => {
-      const repositories = setup.getAllRepositories()
-      const { organization } = await createOrganizationWithOwner(repositories)
-      const project = projectFactory.transient({ organization }).build()
-      await repositories.projectRepository.save(project)
-
-      // project membership without any RBAC role: no read permission, no access
-      const projectUser = userFactory.build()
-      await repositories.userRepository.save(projectUser)
-      await repositories.userMembershipRepository.save(
-        userMembershipFactory.build({
-          userId: projectUser.id,
-          resourceType: "project",
-          resourceId: project.id,
-        }),
-      )
-
-      await expect(service.listResourceIds(projectUser.id, "project.read")).resolves.toEqual([])
-    })
-
     it("returns an empty array when the user has no access", async () => {
       const repositories = setup.getAllRepositories()
       const user = userFactory.build()

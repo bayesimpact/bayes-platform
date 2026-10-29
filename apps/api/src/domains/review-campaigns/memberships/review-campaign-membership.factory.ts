@@ -80,7 +80,6 @@ export const saveReviewCampaignMembership = async ({
     resourceType: "review_campaign",
     resourceId: membership.campaignId,
     roleKeys: membership.roleKeys,
-    requireCatalogRoles: true,
   })
   return membership
 }
