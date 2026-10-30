@@ -96,10 +96,19 @@ export class AgentsService {
       resourceLibraries,
     })
     const agentSettingsValues = extractAgentSettingsCreateFields(agentFields)
+    if (agentSettingsValues.embeddingModel !== undefined) {
+      await this.agentSettingsService.validateEmbeddingModel({
+        connectScope,
+        embeddingModel: agentSettingsValues.embeddingModel,
+      })
+    }
+    const embeddingModel =
+      agentSettingsValues.embeddingModel ??
+      (await this.agentSettingsService.resolveDefaultEmbeddingModel(connectScope))
     const agentSettings = await this.agentSettingsService.updateSettings({
       connectScope,
       agentId: agent.id,
-      agentSettings: { ...agentSettingsValues, outputJsonSchema, greetingMessage },
+      agentSettings: { ...agentSettingsValues, outputJsonSchema, greetingMessage, embeddingModel },
     })
 
     if (projectAgentSessionCategoryIds !== undefined) {

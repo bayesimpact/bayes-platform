@@ -3,6 +3,7 @@ import {
   AgentModel,
   AgentSettingsRoutes,
   DocumentsRagMode,
+  EmbeddingModel,
 } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
@@ -172,6 +173,7 @@ describe("Agent Settings - getAllWithDraft", () => {
       greetingMessage: "Hello there",
       model: AgentModel.Gemini25Flash,
       documentsRagMode: DocumentsRagMode.None,
+      embeddingModel: EmbeddingModel.GeminiEmbedding001,
       fillFormEnabled: true,
       outputJsonSchema: { type: "object", properties: { title: { type: "string" } } },
       isDraft: false,

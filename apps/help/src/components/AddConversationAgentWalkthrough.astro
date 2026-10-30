@@ -3,10 +3,11 @@
  * Walkthrough of the "add a conversation agent" flow. Derived from the real
  * components (verified, not copied blind): AgentCreator.tsx (dialog),
  * AgentEditor.tsx (tab order + conditions) and each tab component
- * (AgentGeneralTab/ModelTab/SourcesTab/ResourceLibrariesTab/SessionCategoriesTab/
+ * (AgentGeneralTab/ModelTab/SourcesTab/SessionCategoriesTab/
  * OrchestrationTab + AgentEmbedTab). Labels are verbatim from the agent /
  * resourceLibrary / actions locales (EN + FR). Depicts the fully-provisioned
- * conversation agent (all 7 tabs: categories + orchestration + embed enabled).
+ * conversation agent (all 6 tabs: categories + orchestration + embed enabled). The
+ * Sources tab holds the documents and the resource libraries (re-derived 2026-10-30).
  * Uses the PRODUCT (coral) palette, pinned locally. Derived 2026-07-13.
  */
 type Lang = "en" | "fr"
@@ -26,13 +27,14 @@ const STRINGS = {
     typeLabel: "Agent type", typeConversation: "Conversation", typeExtraction: "Extraction", typeForm: "Form",
     nameLabel: "Name", namePlaceholder: "Enter agent name", agentName: "Helpful Assistant",
     editTitle: "Edit Conversation Agent", editDesc: "Edit details for this conversation agent",
-    tabGeneral: "General", tabModel: "Model", tabSources: "Sources", tabResources: "Resource libraries",
+    tabGeneral: "General", tabModel: "Model", tabSources: "Sources",
     tabCategories: "Conversation categories", tabOrchestration: "Orchestration", tabEmbed: "Embed",
     localeLabel: "Locale", localeValue: "EN",
     greetingLabel: "Greeting", greetingValue: "Hi! How can I help you today?",
     instructionsLabel: "Instructions",
     instructionsValue: "You are a helpful assistant. Answer the user's questions clearly and, when relevant, base your answers on the workspace's documents.",
     modelLabel: "Model", modelPlaceholder: "Select model", tempLabel: "Temperature", tempValue: "0.7",
+    docsTitle: "Documents", docsDesc: "The workspace's documents the agent searches to answer.",
     answerSourceLabel: "Answer source", answerSourceValue: "Search by document tags",
     docTagsLabel: "Document Tags", tag1: "Getting started", tag2: "Product",
     resourcesLabel: "Resource libraries", manage: "Manage libraries",
@@ -56,8 +58,8 @@ const STRINGS = {
       "Give your agent a name, then click Create.",
       "General: set the Name, Locale, Greeting and Instructions, then Save.",
       "Model: choose the Model and Temperature, then Save.",
-      "Sources: choose the Answer source — model only, all documents, or by tags.",
-      "Resource libraries: attach the libraries the agent can surface.",
+      "Sources: under Documents, choose the Answer source — model only, all documents, or by tags.",
+      "Sources: under Resource libraries, attach the libraries the agent can surface, then Save.",
       "Conversation categories: tick the categories that apply to this agent.",
       "Orchestration: add sub-agents this agent can delegate to.",
       "Embed: enable the widget, copy the snippet, set origins and branding, then Update.",
@@ -76,13 +78,14 @@ const STRINGS = {
     typeLabel: "Type d'agent", typeConversation: "Conversation", typeExtraction: "Extraction", typeForm: "Formulaire",
     nameLabel: "Nom", namePlaceholder: "Entrez le nom de l'agent", agentName: "Helpful Assistant",
     editTitle: "Modifier l'agent conversationnel", editDesc: "Modifier les détails de cet agent conversationnel",
-    tabGeneral: "Général", tabModel: "Modèle", tabSources: "Sources", tabResources: "Bibliothèques de ressources",
+    tabGeneral: "Général", tabModel: "Modèle", tabSources: "Sources",
     tabCategories: "Catégories de conversation", tabOrchestration: "Orchestration", tabEmbed: "Intégration",
     localeLabel: "Langue", localeValue: "EN",
     greetingLabel: "Message d'accueil", greetingValue: "Bonjour ! Comment puis-je vous aider aujourd'hui ?",
     instructionsLabel: "Instructions",
     instructionsValue: "Vous êtes un assistant utile. Répondez clairement aux questions de l'utilisateur et, si pertinent, appuyez vos réponses sur les documents de l'espace de travail.",
     modelLabel: "Modèle", modelPlaceholder: "Sélectionnez le modèle", tempLabel: "Température", tempValue: "0.7",
+    docsTitle: "Documents", docsDesc: "Les documents de l'espace de travail dans lesquels l'agent cherche pour répondre.",
     answerSourceLabel: "Source de réponse", answerSourceValue: "Recherche dans les documents étiquetés",
     docTagsLabel: "Étiquettes de document", tag1: "Getting started", tag2: "Product",
     resourcesLabel: "Bibliothèques de ressources", manage: "Gérer les bibliothèques",
@@ -106,8 +109,8 @@ const STRINGS = {
       "Donnez un nom à votre agent, puis cliquez sur Créer.",
       "Général : définissez le Nom, la Langue, le Message d'accueil et les Instructions, puis Enregistrez.",
       "Modèle : choisissez le Modèle et la Température, puis Enregistrez.",
-      "Sources : choisissez la Source de réponse — le modèle, tous les documents, ou par étiquettes.",
-      "Bibliothèques de ressources : rattachez les bibliothèques que l'agent peut proposer.",
+      "Sources : sous Documents, choisissez la Source de réponse — le modèle, tous les documents, ou par étiquettes.",
+      "Sources : sous Bibliothèques de ressources, rattachez les bibliothèques que l'agent peut proposer, puis Enregistrez.",
       "Catégories de conversation : cochez les catégories qui s'appliquent à cet agent.",
       "Orchestration : ajoutez des sous-agents auxquels cet agent peut déléguer.",
       "Intégration : activez le widget, copiez l'extrait, réglez origines et marque, puis Mettez à jour.",
@@ -121,7 +124,6 @@ const TABS = [
   { key: "general", label: s.tabGeneral },
   { key: "model", label: s.tabModel },
   { key: "sources", label: s.tabSources },
-  { key: "resources", label: s.tabResources },
   { key: "categories", label: s.tabCategories },
   { key: "orchestration", label: s.tabOrchestration },
   { key: "embed", label: s.tabEmbed },
@@ -134,7 +136,7 @@ const steps = [
   { page: "editorGeneral", spot: "", observe: ["obsGeneral"] },
   { page: "editorModel", spot: "tab-model", observe: ["obsModel"] },
   { page: "editorSources", spot: "tab-sources", observe: ["obsSources"] },
-  { page: "editorResources", spot: "tab-resources", observe: ["obsResources"] },
+  { page: "editorSources", spot: "btnAddLibrary", observe: ["obsResources"] },
   { page: "editorCategories", spot: "tab-categories", observe: ["obsCategories"] },
   { page: "editorOrchestration", spot: "tab-orchestration", observe: ["obsOrchestration"] },
   { page: "editorEmbed", spot: "tab-embed", observe: ["obsEmbed"] },
@@ -252,7 +254,7 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
           </div>
         </div>
 
-        <!-- editor: Sources (step 6) -->
+        <!-- editor: Sources, documents then resource libraries (steps 6 and 7) -->
         <div class="page" data-page="editorSources">
           <div class="page-head">
             <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
@@ -260,36 +262,28 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
           </div>
           <div class="editor">
             <div class="tablist">{TABS.map((tb) => <span class:list={["tab", tb.key === "sources" && "on"]} id={tb.key === "sources" ? "tab-sources" : undefined}>{tb.label}</span>)}</div>
-            <div class="tabbody" id="obsSources">
-              <div class="grid2">
-                <div class="fld"><p class="lbl">{s.answerSourceLabel}</p><span class="select"><span>{s.answerSourceValue}</span><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></div>
-              </div>
-              <div class="fld">
-                <p class="lbl">{s.docTagsLabel}</p>
-                <div class="row">
-                  <span class="badge">{s.tag1} <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span>
-                  <span class="badge">{s.tag2} <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span>
+            <div class="tabbody">
+              <div class="sect" id="obsSources">
+                <p class="lbl sect-ttl">{s.docsTitle}</p>
+                <p class="hint">{s.docsDesc}</p>
+                <div class="grid2">
+                  <div class="fld"><p class="lbl">{s.answerSourceLabel}</p><span class="select"><span>{s.answerSourceValue}</span><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></div>
+                </div>
+                <div class="fld">
+                  <p class="lbl">{s.docTagsLabel}</p>
+                  <div class="row">
+                    <span class="badge">{s.tag1} <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span>
+                    <span class="badge">{s.tag2} <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div class="editor-foot"><span class="btn">{s.save}</span></div>
-          </div>
-        </div>
-
-        <!-- editor: Resource libraries (step 7) -->
-        <div class="page" data-page="editorResources">
-          <div class="page-head">
-            <span class="backbtn"><svg viewBox="0 0 24 24"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg></span>
-            <span><span class="ttl">{s.editTitle}</span><span class="desc">{s.editDesc}</span></span>
-          </div>
-          <div class="editor">
-            <div class="tablist">{TABS.map((tb) => <span class:list={["tab", tb.key === "resources" && "on"]} id={tb.key === "resources" ? "tab-resources" : undefined}>{tb.label}</span>)}</div>
-            <div class="tabbody" id="obsResources">
-              <div class="res-head"><p class="lbl" style="margin:0">{s.resourcesLabel}</p><span class="manage">{s.manage} <svg viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></span></div>
-              <p class="hint">{s.resourcesDesc}</p>
-              <div class="row">
-                <span class="badge">{s.sampleLibrary} <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span>
-                <span class="btn outline sm"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg> {s.addLibrary}</span>
+              <div class="sect" id="obsResources">
+                <div class="res-head"><p class="lbl" style="margin:0">{s.resourcesLabel}</p><span class="manage">{s.manage} <svg viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg></span></div>
+                <p class="hint">{s.resourcesDesc}</p>
+                <div class="row">
+                  <span class="badge">{s.sampleLibrary} <svg viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span>
+                  <span class="btn outline sm" id="btnAddLibrary"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg> {s.addLibrary}</span>
+                </div>
               </div>
             </div>
             <div class="editor-foot"><span class="btn">{s.save}</span></div>
@@ -566,6 +560,9 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
   .caw .res-head { display: flex; align-items: center; justify-content: space-between; }
   .caw .manage { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.78rem; color: var(--muted-foreground); }
   .caw .hint { font-size: 0.74rem; color: var(--muted-foreground); margin: 0.3rem 0 0; }
+  .caw .sect { border: 1px solid var(--border); border-radius: 0.5rem; padding: 0.6rem 0.75rem; }
+  .caw .sect + .sect { margin-top: 0.7rem; }
+  .caw .sect-ttl { margin: 0; font-weight: 600; }
   .caw .badge { display: inline-flex; align-items: center; gap: 0.3rem; background: var(--secondary); color: var(--secondary-foreground); border-radius: 8px; padding: 0.25rem 0.5rem; font-size: 0.76rem; }
   .caw .badge svg { font-size: 0.78rem; color: var(--muted-foreground); }
   .caw .pill { display: inline-flex; align-items: center; gap: 0.3rem; border: 1px solid var(--border); border-radius: 999px; padding: 0.3rem 0.7rem; font-size: 0.76rem; background: var(--background); }

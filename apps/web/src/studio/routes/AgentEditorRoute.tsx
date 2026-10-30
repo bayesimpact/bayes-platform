@@ -1,3 +1,4 @@
+import { DOCUMENT_READ_PERMISSION } from "@caseai-connect/api-contracts"
 import { ButtonGroup } from "@caseai-connect/ui/shad/button-group"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -18,6 +19,7 @@ import {
   agentEditorTabKeys,
   type TabKey,
 } from "@/studio/features/agents/components/AgentEditor"
+import { projectEmbeddingModelsActions } from "@/studio/features/project-embedding-models/project-embedding-models.slice"
 import { selectAgentSettingsDataByAgentId } from "../../common/features/agents/agent-settings/agent-settings.selectors"
 import { AgentSettingsCreateButton } from "../features/agents/agent-settings/components/AgentSettingsCreateButton"
 import { AgentSettingsHistory } from "../features/agents/agent-settings/components/AgentSettingsHistory"
@@ -33,6 +35,13 @@ export function AgentEditorRoute() {
     agent.type === "conversation" && project.featureFlags.includes("agent-orchestration")
 
   useMount({ actions: agentSubAgentsActions, condition: hasOrchestration })
+  // Listing the project's embedding models needs the right to see its documents.
+  useMount({
+    actions: projectEmbeddingModelsActions,
+    condition:
+      project.featureFlags.includes("embedding-models") &&
+      project.permissions.includes(DOCUMENT_READ_PERMISSION),
+  })
 
   if (hasOrchestration) {
     return (

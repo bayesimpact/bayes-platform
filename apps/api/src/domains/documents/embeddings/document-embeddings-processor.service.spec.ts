@@ -7,6 +7,8 @@ import type { DocumentEmbeddingStatusNotifierService } from "./document-embeddin
 import { DocumentEmbeddingsProcessorService } from "./document-embeddings-processor.service"
 import { DocumentEmbeddingsSharedService } from "./document-embeddings-shared.service"
 import type { DocumentTextExtractorService } from "./document-text-extractor.service"
+import type { EmbedderService } from "./embedders/embedder.service"
+import type { ProjectEmbeddingModelsService } from "./project-embedding-models/project-embedding-models.service"
 
 type ProcessorInternals = {
   extractDocumentChunks: (
@@ -16,7 +18,10 @@ type ProcessorInternals = {
 
 type SharedServiceInternals = {
   findDocumentOrThrow: (payload: Record<string, string>) => Promise<Document>
-  generateEmbeddingsByModel: (chunks: string[]) => Promise<Map<string, number[][]>>
+  generateEmbeddingsByModel: (params: {
+    chunks: string[]
+    connectScope: { organizationId: string; projectId: string }
+  }) => Promise<Map<string, number[][]>>
   insertChunks: (params: Record<string, unknown>) => Promise<void>
   markDocumentStatus: (document: Document, status: Document["embeddingStatus"]) => Promise<void>
 }
@@ -25,10 +30,16 @@ function buildSharedService(): DocumentEmbeddingsSharedService {
   const documentsService = {} as DocumentsService
   const embeddingStatusNotifierService = {} as DocumentEmbeddingStatusNotifierService
   const dataSource = { query: jest.fn() } as unknown as DataSource
+  const projectEmbeddingModelsService = {
+    listActiveModelNames: jest.fn().mockResolvedValue([]),
+  } as unknown as ProjectEmbeddingModelsService
+  const embedderService = { embedDocuments: jest.fn() } as unknown as EmbedderService
   return new DocumentEmbeddingsSharedService(
     documentsService,
     embeddingStatusNotifierService,
     dataSource,
+    projectEmbeddingModelsService,
+    embedderService,
   )
 }
 

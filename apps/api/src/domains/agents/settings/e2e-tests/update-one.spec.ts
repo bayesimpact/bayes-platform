@@ -1,4 +1,9 @@
-import { AgentModel, AgentSettingsRoutes, DocumentsRagMode } from "@caseai-connect/api-contracts"
+import {
+  AgentModel,
+  AgentSettingsRoutes,
+  DocumentsRagMode,
+  EmbeddingModel,
+} from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
@@ -11,9 +16,11 @@ import {
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
+import { projectEmbeddingModelFactory } from "@/domains/documents/embeddings/project-embedding-models/project-embedding-model.factory"
 import { DocumentTag } from "@/domains/documents/tags/document-tag.entity"
 import { documentTagFactory } from "@/domains/documents/tags/document-tag.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
+import { resourceLibraryFactory } from "@/domains/resource-libraries/resource-library.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
@@ -239,6 +246,65 @@ describe("Agent Settings - updateOne", () => {
     await expectActivityCreated("agentSettings.update")
   })
 
+  it("rejects an embedding model the project has not finished embedding with", async () => {
+    const { organization, project } = await createContext()
+    await repositories.projectEmbeddingModelRepository.save(
+      projectEmbeddingModelFactory
+        .transient({ organization, project })
+        .build({ status: "processing", modelName: EmbeddingModel.BgeM3 }),
+    )
+
+    const response = await subject({ payload: { embeddingModel: EmbeddingModel.BgeM3 } })
+
+    expectResponse(
+      response,
+      422,
+      `Embedding model ${EmbeddingModel.BgeM3} is not ready for this project yet`,
+    )
+  })
+
+  it("accepts an embedding model once the project completed it", async () => {
+    const { organization, project } = await createContext()
+    await repositories.projectEmbeddingModelRepository.save(
+      projectEmbeddingModelFactory.completed().transient({ organization, project }).build(),
+    )
+
+    const response = await subject({ payload: { embeddingModel: EmbeddingModel.BgeM3 } })
+
+    expectResponse(response, 200)
+    const updatedAgentSettings = await repositories.agentSettingsRepository.findOne({
+      where: { agentId, revision: 2 },
+    })
+    expect(updatedAgentSettings?.embeddingModel).toBe(EmbeddingModel.BgeM3)
+  })
+
+  it("accepts a model a new project got from the deployment", async () => {
+    await createContext()
+
+    const response = await subject({
+      payload: { embeddingModel: EmbeddingModel.GeminiEmbedding001 },
+    })
+
+    expectResponse(response, 200)
+  })
+
+  it("rejects a Vertex model the project does not embed with", async () => {
+    const { organization, project } = await createContext()
+    await repositories.projectEmbeddingModelRepository.save(
+      projectEmbeddingModelFactory.default().transient({ organization, project }).build(),
+    )
+
+    const response = await subject({
+      payload: { embeddingModel: EmbeddingModel.GeminiEmbedding001 },
+    })
+
+    expectResponse(
+      response,
+      422,
+      `Embedding model ${EmbeddingModel.GeminiEmbedding001} is not ready for this project yet`,
+    )
+  })
+
   it("should leave the other fields untouched on a partial update", async () => {
     const { agentSettings } = await createContext()
 
@@ -440,6 +506,40 @@ describe("Agent Settings - updateOne", () => {
     })
     expect(updatedAgentSettings?.isDraft).toBeTruthy()
     expect(updatedAgentSettings?.documentsRagMode).toBe(DocumentsRagMode.None)
+  })
+
+  it("saves the documents and the resource libraries of the Sources tab in one request", async () => {
+    const { organization, project } = await createContext()
+    const documentTag = await setup
+      .getRepository(DocumentTag)
+      .save(documentTagFactory.transient({ organization, project }).build())
+    const resourceLibrary = await repositories.resourceLibraryRepository.save(
+      resourceLibraryFactory.transient({ organization, project }).build(),
+    )
+
+    const response = await subject({
+      payload: {
+        documentsRagMode: DocumentsRagMode.Tags,
+        documentTagIds: [documentTag.id],
+        tagsToAdd: [documentTag.id],
+        tagsToRemove: [],
+        resourceLibraryIds: [resourceLibrary.id],
+      },
+    })
+
+    expectResponse(response, 200)
+    const updatedAgent = await repositories.agentRepository.findOne({
+      where: { id: agentId },
+      relations: ["documentTags", "resourceLibraries"],
+    })
+    expect(updatedAgent?.documentTags.map((savedTag) => savedTag.id)).toEqual([documentTag.id])
+    expect(updatedAgent?.resourceLibraries.map((library) => library.id)).toEqual([
+      resourceLibrary.id,
+    ])
+    const updatedAgentSettings = await repositories.agentSettingsRepository.findOne({
+      where: { agentId, revision: 2 },
+    })
+    expect(updatedAgentSettings?.documentsRagMode).toBe(DocumentsRagMode.Tags)
   })
 
   it("should update selected project categories", async () => {

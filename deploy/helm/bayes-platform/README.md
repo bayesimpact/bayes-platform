@@ -174,6 +174,12 @@ The API and the workers send their traces and metrics over OTLP to `config.OTEL_
 
 The chart deploys no queue dashboard. To examine or retry BullMQ jobs, run Bull Board as a separate Deployment on the same Redis, with oauth2-proxy in front for the OpenID Connect sign-in: see [infra/bull-board/README.md](../../../infra/bull-board/README.md).
 
+## Self-hosted embedding models
+
+A project starts with the models of `DOCUMENT_EMBEDDING_MODELS`. With the `embedding-models` feature flag, it can also embed its documents with BAAI/bge-m3 and let each agent search with it. The model runs outside the chart, on any server of the OpenAI embeddings API (`POST /v1/embeddings`): vLLM (`--runner pooling`), text-embeddings-inference, Ollama... Put its URL and key in the application Secret, next to the `VLLM_<MODEL>_*` keys: `EMBEDDER_BGE_M3_URL` and `EMBEDDER_BGE_M3_API_KEY`. Without them, bge-m3 cannot be enabled.
+
+The `project-embedding-reembed` queue, listed in `cpuWorkers.queues`, embeds a project's documents when an admin enables a model.
+
 ## Managed services
 
 See `values-managed.example.yaml`. The differences with the default:
