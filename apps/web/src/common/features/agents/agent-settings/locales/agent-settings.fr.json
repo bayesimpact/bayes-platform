@@ -102,7 +102,6 @@
       "model": "Modèle",
       "output": "Sortie",
       "sources": "Sources",
-      "resourceLibraries": "Bibliothèques de ressources",
       "tools": "Outils",
       "categories": "Catégories de conversation",
       "orchestration": "Orchestration",
@@ -240,7 +239,8 @@
       "embeddingModel": {
         "title": "Recherche dans les documents",
         "description": "Le modèle qui trouve, dans les documents du projet, les passages liés à chaque question.",
-        "help": "Un modèle apparaît une fois les documents du projet vectorisés avec lui."
+        "help": "Un modèle apparaît une fois les documents du projet vectorisés avec lui.",
+        "chooseDocuments": "Choisir les documents consultés"
       }
     },
     "tools": {
@@ -270,6 +270,13 @@
       "embedConfigUpdateError": "La mise à jour de la configuration d'intégration a échoué",
       "subAgentsUpdated": "Sous-agents mis à jour avec succès",
       "subAgentsUpdateError": "La mise à jour des sous-agents a échoué"
+    },
+    "sources": {
+      "documents": {
+        "title": "Documents",
+        "description": "Les documents du projet dans lesquels l'agent cherche pour répondre.",
+        "embeddingModel": "Modèle d'embedding : {{model}}"
+      }
     }
   }
 }

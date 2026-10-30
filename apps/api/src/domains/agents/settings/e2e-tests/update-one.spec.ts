@@ -20,6 +20,7 @@ import { projectEmbeddingModelFactory } from "@/domains/documents/embeddings/pro
 import { DocumentTag } from "@/domains/documents/tags/document-tag.entity"
 import { documentTagFactory } from "@/domains/documents/tags/document-tag.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
+import { resourceLibraryFactory } from "@/domains/resource-libraries/resource-library.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
@@ -505,6 +506,40 @@ describe("Agent Settings - updateOne", () => {
     })
     expect(updatedAgentSettings?.isDraft).toBeTruthy()
     expect(updatedAgentSettings?.documentsRagMode).toBe(DocumentsRagMode.None)
+  })
+
+  it("saves the documents and the resource libraries of the Sources tab in one request", async () => {
+    const { organization, project } = await createContext()
+    const documentTag = await setup
+      .getRepository(DocumentTag)
+      .save(documentTagFactory.transient({ organization, project }).build())
+    const resourceLibrary = await repositories.resourceLibraryRepository.save(
+      resourceLibraryFactory.transient({ organization, project }).build(),
+    )
+
+    const response = await subject({
+      payload: {
+        documentsRagMode: DocumentsRagMode.Tags,
+        documentTagIds: [documentTag.id],
+        tagsToAdd: [documentTag.id],
+        tagsToRemove: [],
+        resourceLibraryIds: [resourceLibrary.id],
+      },
+    })
+
+    expectResponse(response, 200)
+    const updatedAgent = await repositories.agentRepository.findOne({
+      where: { id: agentId },
+      relations: ["documentTags", "resourceLibraries"],
+    })
+    expect(updatedAgent?.documentTags.map((savedTag) => savedTag.id)).toEqual([documentTag.id])
+    expect(updatedAgent?.resourceLibraries.map((library) => library.id)).toEqual([
+      resourceLibrary.id,
+    ])
+    const updatedAgentSettings = await repositories.agentSettingsRepository.findOne({
+      where: { agentId, revision: 2 },
+    })
+    expect(updatedAgentSettings?.documentsRagMode).toBe(DocumentsRagMode.Tags)
   })
 
   it("should update selected project categories", async () => {

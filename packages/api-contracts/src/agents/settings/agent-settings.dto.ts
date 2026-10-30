@@ -318,9 +318,11 @@ export type UpdateAgentSettingsModelDto = z.infer<typeof updateAgentSettingsMode
 
 export type UpdateAgentSettingsOutputDto = z.infer<typeof updateAgentSettingsOutputSchema>
 
+// The Sources tab edits what the agent answers from: its documents and its resource libraries.
 export const updateAgentSettingsSourcesSchema = agentSettingsValidationSchema
   .pick({ documentsRagMode: true, documentTagIds: true })
   .extend({
+    resourceLibraryIds: z.array(z.string().uuid()),
     tagsToAdd: updateDocumentTagsSchema.required().shape.tagsToAdd,
     tagsToRemove: updateDocumentTagsSchema.required().shape.tagsToRemove,
   })
@@ -332,16 +334,12 @@ export type UpdateAgentSettingsSourcesDto = z.infer<typeof updateAgentSettingsSo
 
 export const updateAgentSettingsSourcesFormSchema = agentSettingsValidationSchema
   .pick({ documentsRagMode: true, documentTagIds: true })
+  .extend({ resourceLibraryIds: z.array(z.string().uuid()) })
   .refine(hasRequiredDocumentTags, {
     message: "At least one document tag is required when documentsRagMode is 'tags'",
     path: ["documentTagIds"],
   })
 export type UpdateAgentSettingsSourcesFormDto = z.infer<typeof updateAgentSettingsSourcesFormSchema>
-
-export const updateAgentSettingsResourcesSchema = agentSettingsValidationSchema
-  .pick({ resourceLibraryIds: true })
-  .extend({ resourceLibraryIds: z.array(z.string().uuid()) })
-export type UpdateAgentSettingsResourcesDto = z.infer<typeof updateAgentSettingsResourcesSchema>
 
 // The Tools tab toggles optional tools on a conversation agent. fillForm's form
 // definition is the agent's outputJsonSchema; it must be present when the tool is

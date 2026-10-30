@@ -102,7 +102,6 @@
       "model": "Model",
       "output": "Output",
       "sources": "Sources",
-      "resourceLibraries": "Resource libraries",
       "tools": "Tools",
       "categories": "Conversation categories",
       "orchestration": "Orchestration",
@@ -240,7 +239,8 @@
       "embeddingModel": {
         "title": "Document search",
         "description": "The model that finds the passages of the project's documents that match each question.",
-        "help": "A model appears once the project finished embedding its documents with it."
+        "help": "A model appears once the project finished embedding its documents with it.",
+        "chooseDocuments": "Choose the documents searched"
       }
     },
     "tools": {
@@ -270,6 +270,13 @@
       "embedConfigUpdateError": "Failed to update embed config",
       "subAgentsUpdated": "Sub-agents updated successfully",
       "subAgentsUpdateError": "Failed to update sub-agents"
+    },
+    "sources": {
+      "documents": {
+        "title": "Documents",
+        "description": "The project's documents the agent searches to answer.",
+        "embeddingModel": "Embedding model: {{model}}"
+      }
     }
   }
 }

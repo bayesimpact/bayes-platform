@@ -21,7 +21,7 @@ import {
 } from "@caseai-connect/ui/shad/select"
 import { Switch } from "@caseai-connect/ui/shad/switch"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { type ReactNode, useMemo } from "react"
+import { useMemo } from "react"
 import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import type { z } from "zod"
@@ -43,6 +43,8 @@ import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { EmbeddingModelManager } from "@/studio/features/project-embedding-models/components/EmbeddingModelManager"
 import { selectCompletedProjectEmbeddingModels } from "@/studio/features/project-embedding-models/project-embedding-models.selectors"
 import { type AgentTabFormProps, useReportDirty } from "../agent-tab-form.shared"
+import { AgentTabLink } from "./AgentTabLink"
+import { AgentTabSectionHeader } from "./AgentTabSectionHeader"
 import { ModelOptionsFields } from "./ModelOptionsFields"
 import {
   buildModelTabDefaultValues,
@@ -53,7 +55,14 @@ import { TabSaveButton } from "./TabSaveButton"
 
 type FormValues = z.infer<typeof updateAgentSettingsModelSchema>
 
-export function ModelTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
+export function ModelTab({
+  agentSettings,
+  onDirtyChange,
+  onOpenSourcesTab,
+}: AgentTabFormProps & {
+  /** Set for agents that search documents: links the embedding model to the documents searched. */
+  onOpenSourcesTab?: () => void
+}) {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const project = useValue(selectCurrentProjectData)
@@ -125,7 +134,7 @@ export function ModelTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
     <Form {...form}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <section className="space-y-4 rounded-lg border p-4">
-          <ModelTabSectionHeader
+          <AgentTabSectionHeader
             title={t("agentSettings:model.generation.title")}
             description={t("agentSettings:model.generation.description")}
           />
@@ -216,7 +225,7 @@ export function ModelTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
         {/* The whole embedding section is a flagged beta: without it, agents keep their model. */}
         <RestrictedFeature feature="embedding-models">
           <section className="space-y-4 rounded-lg border p-4">
-            <ModelTabSectionHeader
+            <AgentTabSectionHeader
               title={t("agentSettings:model.embeddingModel.title")}
               description={t("agentSettings:model.embeddingModel.description")}
               action={canManageEmbeddingModels && <EmbeddingModelManager />}
@@ -226,7 +235,14 @@ export function ModelTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
               name="embeddingModel"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t("agentSettings:props.embeddingModel")}</FormLabel>
+                  <div className="flex items-center justify-between gap-4">
+                    <FormLabel>{t("agentSettings:props.embeddingModel")}</FormLabel>
+                    {onOpenSourcesTab && (
+                      <AgentTabLink onClick={onOpenSourcesTab}>
+                        {t("agentSettings:model.embeddingModel.chooseDocuments")}
+                      </AgentTabLink>
+                    )}
+                  </div>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger className="md:w-1/2">
@@ -258,25 +274,5 @@ export function ModelTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
         />
       </form>
     </Form>
-  )
-}
-
-function ModelTabSectionHeader({
-  title,
-  description,
-  action,
-}: {
-  title: string
-  description: string
-  action?: ReactNode
-}) {
-  return (
-    <div className="flex items-start justify-between gap-4">
-      <div className="space-y-1">
-        <h3 className="font-medium text-sm">{title}</h3>
-        <p className="text-muted-foreground text-sm">{description}</p>
-      </div>
-      {action}
-    </div>
   )
 }
