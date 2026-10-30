@@ -4,12 +4,12 @@ highlight: Journal
 description: Chaque version de l'API de chat publique, avec la date, les changements et les étapes de migration quand un changement est cassant.
 category: developers
 order: 3
-updated: 2026-10-22
-apiVersion: "1.1"
+updated: 2026-10-29
+apiVersion: "1.2"
 ---
 
 Cette page liste chaque version de l'API de chat publique. La version courante est la
-**1.1**. Les versions mineures ajoutent des éléments et gardent les clients existants
+**1.2**. Les versions mineures ajoutent des éléments et gardent les clients existants
 fonctionnels. Les versions majeures peuvent casser des clients et viennent avec une période
 de dépréciation. Voir la
 [politique de versions et de dépréciation](/fr/public-chat-api-versioning).
@@ -34,6 +34,21 @@ de dépréciation. Voir la
   ### Migration
   - ... (obligatoire pour une version majeure)
 */}
+
+## 1.2 (2026-10-29)
+
+### Modifié
+
+- Une session vidée par la règle de rétention de l'espace de travail est maintenant
+  refusée. Chaque route de session répond `410` avec `message: "Session expired"` et
+  `code: "SESSION_EXPIRED"`. Avant, la session répondait `200` avec des messages au
+  `content` vide.
+
+### Migration
+
+- Traitez un `410` sur une route de session comme un `401` : oubliez la session stockée et
+  créez-en une nouvelle. Vous pouvez dire à l'utilisateur que la conversation précédente a
+  expiré.
 
 ## 1.1 (2026-10-22)
 

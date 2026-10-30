@@ -4,8 +4,8 @@ highlight: API
 description: Construisez votre propre client de chat sur un agent public. Routes, en-têtes, événements envoyés par le serveur, codes d'erreur et limites de l'API de chat publique, version 1.
 category: developers
 order: 1
-updated: 2026-10-22
-apiVersion: "1.1"
+updated: 2026-10-29
+apiVersion: "1.2"
 ---
 
 import PublicApiBaseUrl from "@/components/PublicApiBaseUrl.astro"
@@ -39,7 +39,7 @@ Toutes les routes de la version 1 commencent par `/public/v1/agents/{embedToken}
 
 ## Version
 
-Cette page documente la version **1.1**. La version majeure est dans le chemin (`v1`). Les
+Cette page documente la version **1.2**. La version majeure est dans le chemin (`v1`). Les
 versions mineures ajoutent des champs ou des routes et ne changent jamais l'existant. Le
 [journal des modifications](/fr/public-chat-api-changelog) liste chaque version. Votre
 client doit ignorer les champs et les types d'événements inconnus. Il reste ainsi
@@ -60,8 +60,10 @@ jeton est renvoyé une seule fois. Le serveur n'en conserve qu'une empreinte. St
 votre côté.
 
 Les jetons de session n'expirent pas. La règle de rétention de l'espace de travail peut
-vider le contenu de la conversation plus tard (voir [Limites et durées](#limites-et-durées)).
-Quand une route de session répond `401`, oubliez la session stockée et créez-en une nouvelle.
+vider la conversation plus tard (voir [Limites et durées](#limites-et-durées)). Les routes
+de session répondent alors `410`. Quand une route de session répond `401` ou `410`, oubliez
+la session stockée et créez-en une nouvelle. Sur un `410`, vous pouvez dire à l'utilisateur
+que la conversation précédente a expiré.
 
 ## Conventions
 
@@ -238,7 +240,7 @@ réponse sans progression pendant 5 minutes passe à `aborted`.
 
 Le pointeur `mcpApp` ne contient jamais de HTML ici. Lisez-le avec la route suivante.
 
-Statut : `200`. Erreurs : `401`, `403`.
+Statut : `200`. Erreurs : `401`, `403`, `410`.
 
 ### Lire le HTML des cartes MCP App
 
@@ -266,7 +268,7 @@ et seulement quand un message a des `toolCalls[].mcpApp`.
 Associez une carte à son message avec `mcpServerId` et `resourceUri`. Le tableau est vide
 quand aucune carte n'existe.
 
-Statut : `200`. Erreurs : `401`, `403`.
+Statut : `200`. Erreurs : `401`, `403`, `410`.
 
 ### Envoyer un message et recevoir la réponse en flux
 
@@ -299,7 +301,7 @@ Utilisez `fetch` et lisez le corps de la réponse en flux (voir
 [Démarrage rapide](#démarrage-rapide)). `POST` sur ce chemin renvoie `404`.
 
 Statut : `200` avec `Content-Type: text/event-stream`. Erreurs avant le début du flux :
-`401`, `403`. Les erreurs de charge utile arrivent dans le flux (voir plus bas).
+`401`, `403`, `410`. Les erreurs de charge utile arrivent dans le flux (voir plus bas).
 
 Après le dernier événement, relisez la session pour obtenir la réponse enregistrée et ses
 `toolCalls`. Le flux ne transporte que du texte.
@@ -395,6 +397,7 @@ Les réponses d'erreur sont en JSON :
 | `401` | `Missing session token` | Pas d'en-tête `X-Session-Token` | Envoyez l'en-tête |
 | `401` | `Invalid session token` | Le jeton et la session ne correspondent pas | Créez une nouvelle session |
 | `401` | `Session does not belong to this agent` | Session créée avec un autre jeton d'intégration | Créez une nouvelle session |
+| `410` | `Session expired` | La règle de rétention a vidé la conversation | Créez une nouvelle session. Le corps porte aussi `code: "SESSION_EXPIRED"` |
 | `404` | `Cannot GET /public/...` | Chemin ou méthode inconnu | Vérifiez le tableau des routes |
 | `400` | `Missing prompt variables: ...` | Les instructions de l'agent déclarent des `{{variables}}` sans valeur ni défaut | Envoyez les valeurs dans `payload.variables`. Le corps porte aussi `code: "MISSING_PROMPT_VARIABLES"` et une liste `missing` |
 | `400` | (message de l'analyseur) | Corps JSON mal formé | Corrigez le corps. Cette réponse n'a pas de champ `error` |
@@ -427,9 +430,8 @@ liste.
   limite serait annoncée dans le [journal des modifications](/fr/public-chat-api-changelog)
   comme un changement mineur, avec des réponses `429`.
 - Le contenu des sessions suit la règle de rétention de l'espace de travail (30 jours après
-  la création par défaut). Ensuite, les messages ont un `content` vide et pas de
-  `toolCalls`. L'identifiant et le jeton de session fonctionnent toujours. Créez une
-  nouvelle session pour une nouvelle conversation.
+  la création par défaut). Ensuite, toutes les routes de session répondent `410` avec
+  `code: "SESSION_EXPIRED"`. Créez une nouvelle session pour une nouvelle conversation.
 
 ## Démarrage rapide
 
@@ -497,8 +499,8 @@ await send("Hello!", (text) => process.stdout.write(text))
 console.log(await readSession())
 ```
 
-Traitez un `401` sur une route de session en effaçant la session stockée et en créant une
-nouvelle session.
+Traitez un `401` ou un `410` sur une route de session en effaçant la session stockée et en
+créant une nouvelle session.
 
 ## Pages liées
 

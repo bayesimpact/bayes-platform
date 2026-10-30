@@ -4,11 +4,11 @@ highlight: changelog
 description: Every version of the public chat API, with the date, the changes and the migration steps when a change is breaking.
 category: developers
 order: 3
-updated: 2026-10-22
-apiVersion: "1.1"
+updated: 2026-10-29
+apiVersion: "1.2"
 ---
 
-This page lists every version of the public chat API. The current version is **1.1**.
+This page lists every version of the public chat API. The current version is **1.2**.
 Minor versions add things and keep existing clients working. Major versions can break
 clients and come with a deprecation period. See the
 [versioning and deprecation policy](/en/public-chat-api-versioning).
@@ -33,6 +33,19 @@ clients and come with a deprecation period. See the
   ### Migration
   - ... (mandatory for a major version)
 */}
+
+## 1.2 (2026-10-29)
+
+### Changed
+
+- A session emptied by the workspace retention rule is now refused. Every session route
+  answers `410` with `message: "Session expired"` and `code: "SESSION_EXPIRED"`. Before,
+  the session answered `200` with messages that had empty `content`.
+
+### Migration
+
+- Handle `410` on a session route like `401`: discard the stored session and create a new
+  one. You can tell the user that the previous conversation expired.
 
 ## 1.1 (2026-10-22)
 

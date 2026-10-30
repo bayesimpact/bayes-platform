@@ -21,7 +21,8 @@
       "connecting": "Connecting…",
       "errorAccessDisabled": "This chat widget is not available.",
       "errorSessionFailed": "Unable to start a chat session. Please try again.",
-      "errorUnknown": "Unable to connect."
+      "errorUnknown": "Unable to connect.",
+      "sessionExpired": "Your previous conversation has expired."
     }
   }
 }

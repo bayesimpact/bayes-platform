@@ -13,6 +13,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Changed
 
+- Embedded agents: an expired conversation now tells the visitor it expired and opens a new one.
 - Agents: the answer language now lives in the agent's instructions, which replace the French/English setting.
 
 ### Fixed
