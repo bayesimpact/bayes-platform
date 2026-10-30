@@ -14,6 +14,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Changed
 
+- Public chat API: version 2 is out, and version 1 stops answering on 2027-05-31.
 - Embedded agents: an expired conversation now tells the visitor it expired and opens a new one.
 - Agents: the answer language now lives in the agent's instructions, which replace the French/English setting.
 
@@ -22,6 +23,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Security
 
 - Embedded agents in tag mode now search only the documents that carry their tags.
+- Embedded agents: visitor messages no longer appear in URLs or server access logs.
 
 ## [26.10.8] - 2026-10-29
 

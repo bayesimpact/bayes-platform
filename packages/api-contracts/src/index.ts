@@ -148,13 +148,14 @@ export { ProjectsRoutes } from "./projects/projects.routes"
 // Prompt Variables
 export * from "./prompt-variables/prompt-variables"
 // Public Chat (anonymous embed access)
-export type * from "./public-chat/public-chat.dto"
-export {
-  PUBLIC_PATH_PREFIX,
-  PublicChatLegacyRoutes,
-  PublicChatRoutes,
-} from "./public-chat/public-chat.routes"
-export { PUBLIC_API_MAJOR, PUBLIC_API_VERSION } from "./public-chat/public-chat.version"
+// One namespace per major, so a consumer always names the major it speaks.
+export { PUBLIC_PATH_PREFIX } from "./public-chat/public-chat.prefix"
+export type * as PublicChatV1 from "./public-chat/v1/public-chat-v1.dto"
+export { PublicChatV1Routes } from "./public-chat/v1/public-chat-v1.routes"
+export { PUBLIC_API_V1_MAJOR, PUBLIC_API_V1_VERSION } from "./public-chat/v1/public-chat-v1.version"
+export type * as PublicChatV2 from "./public-chat/v2/public-chat-v2.dto"
+export { PublicChatV2Routes } from "./public-chat/v2/public-chat-v2.routes"
+export { PUBLIC_API_V2_MAJOR, PUBLIC_API_V2_VERSION } from "./public-chat/v2/public-chat-v2.version"
 // RBAC
 export type * from "./rbac/membership-role.dto"
 export * from "./rbac/permissions"

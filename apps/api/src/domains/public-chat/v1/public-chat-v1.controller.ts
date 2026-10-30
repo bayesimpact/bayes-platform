@@ -1,5 +1,5 @@
 import type { StreamEvent, StreamEventPayload } from "@caseai-connect/api-contracts"
-import { PublicChatRoutes } from "@caseai-connect/api-contracts"
+import { PublicChatV1Routes } from "@caseai-connect/api-contracts"
 import type { MessageEvent } from "@nestjs/common"
 import {
   BadRequestException,
@@ -29,31 +29,25 @@ import {
 
 /**
  * Public chat API v1 at `/public/v1/agents/:embedToken/...`, a versioned contract with
- * external integrators (`docs/public-api-contract.md`). New integrations use these paths.
- *
- * The unprefixed paths that predate versioning are served by `legacy/`, which has its own
- * controller and its own mappers and is frozen on its pre-versioning shape. Nothing is
- * shared but the injected service, so what is added here never reaches them.
- *
- * Before adding a `v2/` folder, follow "Shipping a new major version" in
- * `docs/public-api-contract.md`: the DTOs and route definitions must be split per major in
- * `api-contracts` first, or the new mappers will silently change what v1 serves.
+ * external integrators (`docs/public-api-contract.md`). Deprecated since v2 and served until
+ * the stop date published on the help site. Frozen: new work goes to `v2/`, which shares
+ * nothing with this folder but the injected service.
  */
 @UseGuards(EmbedTokenGuard)
 @Controller()
 export class PublicChatV1Controller extends PublicChatController {
   private readonly logger = new Logger(PublicChatV1Controller.name)
 
-  @Get(PublicChatRoutes.getConfig.path)
-  getConfig(@Req() request: PublicChatRequest): typeof PublicChatRoutes.getConfig.response {
+  @Get(PublicChatV1Routes.getConfig.path)
+  getConfig(@Req() request: PublicChatRequest): typeof PublicChatV1Routes.getConfig.response {
     return { data: toEmbedPublicConfigDto(request.embedConfig) }
   }
 
-  @Post(PublicChatRoutes.createSession.path)
+  @Post(PublicChatV1Routes.createSession.path)
   async createSession(
     @Req() request: PublicChatRequest,
-    @Body() body: typeof PublicChatRoutes.createSession.request,
-  ): Promise<typeof PublicChatRoutes.createSession.response> {
+    @Body() body: typeof PublicChatV1Routes.createSession.request,
+  ): Promise<typeof PublicChatV1Routes.createSession.response> {
     const { session, sessionToken } = await this.publicChatService.createSession(
       request.embedConfig,
       body.payload?.externalVisitorId,
@@ -63,25 +57,25 @@ export class PublicChatV1Controller extends PublicChatController {
   }
 
   @UseGuards(PublicSessionTokenGuard)
-  @Get(PublicChatRoutes.getSession.path)
+  @Get(PublicChatV1Routes.getSession.path)
   async getSession(
     @Req() request: PublicChatSessionRequest,
-  ): Promise<typeof PublicChatRoutes.getSession.response> {
+  ): Promise<typeof PublicChatV1Routes.getSession.response> {
     const { session, messages } = await this.publicChatService.getSession(request.publicSession)
     return { data: toPublicAgentSessionDto(session, messages) }
   }
 
   @UseGuards(PublicSessionTokenGuard)
-  @Get(PublicChatRoutes.getMcpAppHtml.path)
+  @Get(PublicChatV1Routes.getMcpAppHtml.path)
   async getMcpAppHtml(
     @Req() request: PublicChatSessionRequest,
-  ): Promise<typeof PublicChatRoutes.getMcpAppHtml.response> {
+  ): Promise<typeof PublicChatV1Routes.getMcpAppHtml.response> {
     const htmlByKey = await this.publicChatService.getMcpAppHtml(request.publicSession)
     return { data: toMcpAppHtmlDtos(htmlByKey) }
   }
 
   @UseGuards(PublicSessionTokenGuard)
-  @Sse(PublicChatRoutes.streamMessages.path, { method: 0 /* GET */ })
+  @Sse(PublicChatV1Routes.streamMessages.path, { method: 0 /* GET */ })
   streamMessages(
     @Req() request: PublicChatSessionRequest,
     @Query("q") query: string,
@@ -148,9 +142,9 @@ function toStreamEvent(payload: StreamEventPayload): StreamEvent {
 }
 
 function parseStreamQuery(query: string): string {
-  let parsedQuery: typeof PublicChatRoutes.streamMessages.request
+  let parsedQuery: typeof PublicChatV1Routes.streamMessages.request
   try {
-    parsedQuery = JSON.parse(query) as typeof PublicChatRoutes.streamMessages.request
+    parsedQuery = JSON.parse(query) as typeof PublicChatV1Routes.streamMessages.request
   } catch {
     throw new BadRequestException("Invalid query format")
   }

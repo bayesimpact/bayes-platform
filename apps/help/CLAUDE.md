@@ -573,4 +573,4 @@ integrators. They are reference pages, not walkthrough guides:
   controller and guards, and `public-contract.spec.ts`. Never the old `docs/` file.
 - These pages are part of the frozen public contract (`docs/public-api-contract.md`):
   editing them needs a maintainer's go and the `public-contract-approved` label, and
-  their `apiVersion` must equal `PUBLIC_API_VERSION`.
+  their `apiVersion` must equal the newest major's `PUBLIC_API_V<n>_VERSION`.

@@ -1,10 +1,9 @@
 import { randomUUID } from "node:crypto"
+import type { PublicChatV1 } from "@caseai-connect/api-contracts"
 import {
-  PUBLIC_API_MAJOR,
+  PUBLIC_API_V1_MAJOR,
   PUBLIC_PATH_PREFIX,
-  PublicChatLegacyRoutes,
-  PublicChatRoutes,
-  type PublicStreamEventPayload,
+  PublicChatV1Routes,
 } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
@@ -37,7 +36,7 @@ describe("PublicChat - contract v1", () => {
   let sessionId: string
   let sessionToken: string
 
-  const publicBase = `/${PUBLIC_PATH_PREFIX}/${PUBLIC_API_MAJOR}/agents/:embedToken`
+  const publicBase = `/${PUBLIC_PATH_PREFIX}/${PUBLIC_API_V1_MAJOR}/agents/:embedToken`
   const hostOrigin = "https://host-page.example"
 
   beforeAll(async () => {
@@ -69,29 +68,30 @@ describe("PublicChat - contract v1", () => {
 
   const pathParams = () => ({ embedToken, sessionId })
 
-  const parseDataEvents = (text: string) => parseSseDataEvents<PublicStreamEventPayload>(text)
+  const parseDataEvents = (text: string) =>
+    parseSseDataEvents<PublicChatV1.PublicStreamEventPayload>(text)
 
   describe("routes", () => {
     it("declares the v1 paths and methods", () => {
       expect(PUBLIC_PATH_PREFIX).toBe("public")
-      expect(PUBLIC_API_MAJOR).toBe("v1")
-      expect(PublicChatRoutes.getConfig).toMatchObject({
+      expect(PUBLIC_API_V1_MAJOR).toBe("v1")
+      expect(PublicChatV1Routes.getConfig).toMatchObject({
         method: "get",
         path: `${publicBase}/config`,
       })
-      expect(PublicChatRoutes.createSession).toMatchObject({
+      expect(PublicChatV1Routes.createSession).toMatchObject({
         method: "post",
         path: `${publicBase}/sessions`,
       })
-      expect(PublicChatRoutes.getSession).toMatchObject({
+      expect(PublicChatV1Routes.getSession).toMatchObject({
         method: "get",
         path: `${publicBase}/sessions/:sessionId`,
       })
-      expect(PublicChatRoutes.getMcpAppHtml).toMatchObject({
+      expect(PublicChatV1Routes.getMcpAppHtml).toMatchObject({
         method: "get",
         path: `${publicBase}/sessions/:sessionId/mcp-app-html`,
       })
-      expect(PublicChatRoutes.streamMessages).toMatchObject({
+      expect(PublicChatV1Routes.streamMessages).toMatchObject({
         method: "get",
         path: `${publicBase}/sessions/:sessionId/messages/stream`,
       })
@@ -100,7 +100,7 @@ describe("PublicChat - contract v1", () => {
     it("does not accept POST on the stream path", async () => {
       await createContext()
       const response = await request(app.getHttpServer())
-        .post(PublicChatRoutes.streamMessages.getPath(pathParams()))
+        .post(PublicChatV1Routes.streamMessages.getPath(pathParams()))
         .set("Connection", "close")
         .set("X-Session-Token", sessionToken)
         .send({ payload: { content: "Hello" } })
@@ -121,7 +121,7 @@ describe("PublicChat - contract v1", () => {
 
     it("401 Invalid embed token", async () => {
       const response = await request(app.getHttpServer())
-        .get(PublicChatRoutes.getConfig.getPath({ embedToken: randomUUID() }))
+        .get(PublicChatV1Routes.getConfig.getPath({ embedToken: randomUUID() }))
         .set("Connection", "close")
       expectError(response, 401, "Invalid embed token", "Unauthorized")
     })
@@ -133,7 +133,7 @@ describe("PublicChat - contract v1", () => {
         .build({ isEnabled: false })
       await repositories.agentEmbedConfigRepository.save(disabledConfig)
       const response = await request(app.getHttpServer())
-        .get(PublicChatRoutes.getConfig.getPath({ embedToken: disabledConfig.embedToken }))
+        .get(PublicChatV1Routes.getConfig.getPath({ embedToken: disabledConfig.embedToken }))
         .set("Connection", "close")
       expectError(response, 403, "Embed access is disabled for this agent", "Forbidden")
     })
@@ -145,7 +145,7 @@ describe("PublicChat - contract v1", () => {
         .build({ isEnabled: true, allowedOrigins: ["https://allowed.example"] })
       await repositories.agentEmbedConfigRepository.save(restrictedConfig)
       const response = await request(app.getHttpServer())
-        .get(PublicChatRoutes.getConfig.getPath({ embedToken: restrictedConfig.embedToken }))
+        .get(PublicChatV1Routes.getConfig.getPath({ embedToken: restrictedConfig.embedToken }))
         .set("Connection", "close")
         .set("Origin", hostOrigin)
       expectError(response, 403, "Origin not allowed", "Forbidden")
@@ -154,7 +154,7 @@ describe("PublicChat - contract v1", () => {
     it("401 Missing session token", async () => {
       await createContext()
       const response = await request(app.getHttpServer())
-        .get(PublicChatRoutes.getSession.getPath(pathParams()))
+        .get(PublicChatV1Routes.getSession.getPath(pathParams()))
         .set("Connection", "close")
       expectError(response, 401, "Missing session token", "Unauthorized")
     })
@@ -162,7 +162,7 @@ describe("PublicChat - contract v1", () => {
     it("401 Invalid session token", async () => {
       await createContext()
       const response = await request(app.getHttpServer())
-        .get(PublicChatRoutes.getSession.getPath(pathParams()))
+        .get(PublicChatV1Routes.getSession.getPath(pathParams()))
         .set("Connection", "close")
         .set("X-Session-Token", "wrong-token")
       expectError(response, 401, "Invalid session token", "Unauthorized")
@@ -176,7 +176,9 @@ describe("PublicChat - contract v1", () => {
         .build({ isEnabled: true })
       await repositories.agentEmbedConfigRepository.save(otherConfig)
       const response = await request(app.getHttpServer())
-        .get(PublicChatRoutes.getSession.getPath({ embedToken: otherConfig.embedToken, sessionId }))
+        .get(
+          PublicChatV1Routes.getSession.getPath({ embedToken: otherConfig.embedToken, sessionId }),
+        )
         .set("Connection", "close")
         .set("X-Session-Token", sessionToken)
       expectError(response, 401, "Session does not belong to this agent", "Unauthorized")
@@ -186,7 +188,7 @@ describe("PublicChat - contract v1", () => {
       await createContext()
       await repositories.publicAgentSessionRepository.update(sessionId, { purgedAt: new Date() })
       const response = await request(app.getHttpServer())
-        .get(PublicChatRoutes.getSession.getPath(pathParams()))
+        .get(PublicChatV1Routes.getSession.getPath(pathParams()))
         .set("Connection", "close")
         .set("X-Session-Token", sessionToken)
       expect(response.status).toBe(410)
@@ -202,7 +204,7 @@ describe("PublicChat - contract v1", () => {
   describe("server-sent events", () => {
     const stream = (query: string) =>
       request(app.getHttpServer())
-        .get(PublicChatRoutes.streamMessages.getPath(pathParams()))
+        .get(PublicChatV1Routes.streamMessages.getPath(pathParams()))
         .query({ q: query })
         .set("Connection", "close")
         .set("X-Session-Token", sessionToken)
@@ -233,7 +235,7 @@ describe("PublicChat - contract v1", () => {
       const endEvent = events.at(-1)
       const startEvent = events[0]
       const chunks = events.filter(
-        (event): event is Extract<PublicStreamEventPayload, { type: "chunk" }> =>
+        (event): event is Extract<PublicChatV1.PublicStreamEventPayload, { type: "chunk" }> =>
           event.type === "chunk",
       )
       expect(endEvent?.type === "end" && endEvent.fullContent).toBe(
@@ -266,23 +268,21 @@ describe("PublicChat - contract v1", () => {
   })
 
   describe("CORS", () => {
-    it("reflects the caller origin on public routes, v1 and legacy", async () => {
+    it("reflects the caller origin on public routes", async () => {
       await createContext()
-      for (const route of [PublicChatRoutes.getConfig, PublicChatLegacyRoutes.getConfig]) {
-        const response = await request(app.getHttpServer())
-          .get(route.getPath(pathParams()))
-          .set("Connection", "close")
-          .set("Origin", hostOrigin)
-        expect(response.status).toBe(200)
-        expect(response.headers["access-control-allow-origin"]).toBe(hostOrigin)
-        expect(response.headers["access-control-allow-credentials"]).toBeUndefined()
-      }
+      const response = await request(app.getHttpServer())
+        .get(PublicChatV1Routes.getConfig.getPath(pathParams()))
+        .set("Connection", "close")
+        .set("Origin", hostOrigin)
+      expect(response.status).toBe(200)
+      expect(response.headers["access-control-allow-origin"]).toBe(hostOrigin)
+      expect(response.headers["access-control-allow-credentials"]).toBeUndefined()
     })
 
     it("answers the preflight with the requested headers allowed", async () => {
       await createContext()
       const response = await request(app.getHttpServer())
-        .options(PublicChatRoutes.getSession.getPath(pathParams()))
+        .options(PublicChatV1Routes.getSession.getPath(pathParams()))
         .set("Connection", "close")
         .set("Origin", hostOrigin)
         .set("Access-Control-Request-Method", "GET")

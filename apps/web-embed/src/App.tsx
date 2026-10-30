@@ -1,7 +1,7 @@
 import type {
   AgentSessionMessageDto,
   EmbedDisplayMode,
-  EmbedPublicConfigDto,
+  PublicChatV2,
 } from "@caseai-connect/api-contracts"
 import { useEffect, useMemo, useState } from "react"
 import { I18nextProvider, useTranslation } from "react-i18next"
@@ -100,7 +100,7 @@ function LiveChat({
   hideHeader: boolean
   onClose: () => void
 }) {
-  const [remoteConfig, setRemoteConfig] = useState<EmbedPublicConfigDto | null>(null)
+  const [remoteConfig, setRemoteConfig] = useState<PublicChatV2.EmbedPublicConfigDto | null>(null)
 
   useEffect(() => {
     getEmbedConfig(embedToken)

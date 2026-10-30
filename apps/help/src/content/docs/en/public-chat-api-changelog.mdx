@@ -4,11 +4,11 @@ highlight: changelog
 description: Every version of the public chat API, with the date, the changes and the migration steps when a change is breaking.
 category: developers
 order: 3
-updated: 2026-10-29
-apiVersion: "1.2"
+updated: 2026-10-30
+apiVersion: "2.0"
 ---
 
-This page lists every version of the public chat API. The current version is **1.2**.
+This page lists every version of the public chat API. The current version is **2.0**.
 Minor versions add things and keep existing clients working. Major versions can break
 clients and come with a deprecation period. See the
 [versioning and deprecation policy](/en/public-chat-api-versioning).
@@ -33,6 +33,36 @@ clients and come with a deprecation period. See the
   ### Migration
   - ... (mandatory for a major version)
 */}
+
+## 2.0 (2026-10-30)
+
+### Changed
+
+- Every route moves under `/public/v2/agents/{embedToken}/`. Requests, responses and errors
+  keep the shape they had in 1.2, except the stream below.
+- [Send a message and stream the reply](/en/public-chat-api#send-a-message-and-stream-the-reply)
+  is now `POST /public/v2/agents/{embedToken}/sessions/{sessionId}/stream`. The message
+  travels in the JSON body, so it no longer reaches URL limits or access logs. The
+  response is the same stream.
+- A body without a `payload` object ends the stream with the error `Invalid request body`.
+
+### Removed
+
+- The `GET .../messages/stream?q=...` route and its stream error `Invalid query format`.
+  v2 does not serve them.
+
+### Deprecated
+
+- Version 1 (`/public/v1/...`). It keeps answering as in 1.2 until **2027-05-31**. After
+  that date its paths answer `404`.
+
+### Migration
+
+- Replace `/public/v1/` with `/public/v2/` in every URL. Session ids and tokens created
+  on v1 keep working on v2.
+- Send the message to `POST .../sessions/{sessionId}/stream` as a JSON body,
+  `{ "payload": { "content": "..." } }`, with the `Content-Type: application/json`
+  header, instead of the `q` parameter of the `GET` route.
 
 ## 1.2 (2026-10-29)
 

@@ -7,10 +7,10 @@ import {
   toCreatePublicSessionResponseDto,
   toEmbedPublicConfigDto,
   toPublicAgentSessionDto,
-} from "./public-chat-legacy.mappers"
+} from "./public-chat-v2.mappers"
 
-describe("public chat legacy mappers", () => {
-  it("exposes the pre-versioning branding fields only, without the banner", () => {
+describe("public chat v2 mappers", () => {
+  it("exposes branding only from the embed configuration", () => {
     const organization = organizationFactory.build()
     const project = projectFactory.transient({ organization }).build()
     const agent = agentFactory
@@ -20,7 +20,7 @@ describe("public chat legacy mappers", () => {
       title: "Help Center",
       logoUrl: null,
       primaryColor: "#2563eb",
-      bannerText: "Test version",
+      bannerText: null,
     })
 
     expect(toEmbedPublicConfigDto(embedConfig)).toEqual({
@@ -28,6 +28,7 @@ describe("public chat legacy mappers", () => {
       title: "Help Center",
       logoUrl: null,
       primaryColor: "#2563eb",
+      bannerText: null,
     })
   })
 
