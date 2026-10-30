@@ -29,7 +29,6 @@ const toUser = (dto: UserDto): User => ({
   name: dto.name,
   globalPermissions: dto.globalPermissions,
   conversationReviewAgentIds: dto.conversationReviewAgentIds,
-  memberships: dto.memberships,
   termsAccepted: dto.termsAccepted,
 })
 

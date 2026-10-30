@@ -5,8 +5,6 @@ import type {
 } from "@caseai-connect/api-contracts"
 import { useCallback, useMemo } from "react"
 import { selectAgentsDataIfInjected } from "@/common/features/agents/agents.selectors"
-import { selectReviewCampaignMemberships } from "@/common/features/me/me.selectors"
-import { holdsRole } from "@/common/features/memberships/membership-roles"
 import { selectOrganizationsList } from "@/common/features/organizations/organizations.selectors"
 import { selectMyProjectsList } from "@/common/features/projects/projects.selectors"
 import { ADS } from "@/common/store/async-data-status"
@@ -15,7 +13,6 @@ import { useAppSelector } from "@/common/store/hooks"
 export function useAbility() {
   const organizations = useAppSelector(selectOrganizationsList)
   const myProjects = useAppSelector(selectMyProjectsList)
-  const reviewCampaignMemberships = useAppSelector(selectReviewCampaignMemberships)
   const agentsData = useAppSelector(selectAgentsDataIfInjected)
 
   const hasOrganizationPermission = useCallback(
@@ -114,24 +111,14 @@ export function useAbility() {
 
   const canAccessTester = useCallback(
     ({ projectId }: { projectId: string | null }) =>
-      !!reviewCampaignMemberships?.some(
-        (membership) =>
-          holdsRole(membership.roles, "review_campaign_tester") &&
-          membership.campaignStatus === "active" &&
-          membership.projectId === projectId,
-      ),
-    [reviewCampaignMemberships],
+      hasProjectPermission({ projectId, permission: "tester.ui.read" }),
+    [hasProjectPermission],
   )
 
   const canAccessReviewer = useCallback(
     ({ projectId }: { projectId: string | null }) =>
-      !!reviewCampaignMemberships?.some(
-        (membership) =>
-          holdsRole(membership.roles, "review_campaign_reviewer") &&
-          membership.campaignStatus !== "draft" &&
-          membership.projectId === projectId,
-      ),
-    [reviewCampaignMemberships],
+      hasProjectPermission({ projectId, permission: "reviewer.ui.read" }),
+    [hasProjectPermission],
   )
 
   const canManageAgent = useCallback(

@@ -1,27 +1,8 @@
 import { z } from "zod"
-import type { AgentMembershipDto } from "../agent-membership/agent-membership.dto"
 import type { CurrentTermsDto } from "../backoffice/backoffice.dto"
 import type { TimeType } from "../generic"
-import type { OrganizationDto, OrganizationMembershipDto } from "../organizations/organizations.dto"
-import type { ProjectMembershipDto } from "../project-membership/project-membership.dto"
-import type { MembershipRoleDto } from "../rbac/membership-role.dto"
+import type { OrganizationDto } from "../organizations/organizations.dto"
 import type { GlobalPermission } from "../rbac/permissions"
-import type { ReviewCampaignStatus } from "../review-campaigns/review-campaigns.dto"
-
-export type ReviewCampaignMembershipForMeDto = {
-  campaignId: string
-  organizationId: string
-  projectId: string
-  roles: MembershipRoleDto[]
-  campaignStatus: ReviewCampaignStatus
-}
-
-export type UserMembershipsDto = {
-  organizationMemberships: Pick<OrganizationMembershipDto, "organizationId" | "roles">[]
-  projectMemberships: Pick<ProjectMembershipDto, "projectId" | "roles">[]
-  agentMemberships: Pick<AgentMembershipDto, "agentId" | "roles">[]
-  reviewCampaignMemberships: ReviewCampaignMembershipForMeDto[]
-}
 
 export type UserDto = {
   id: string
@@ -30,7 +11,6 @@ export type UserDto = {
   globalPermissions: GlobalPermission[]
   /** The agents whose conversations this user was granted to read for safety review. */
   conversationReviewAgentIds: string[]
-  memberships: UserMembershipsDto
   termsAccepted: boolean
 }
 

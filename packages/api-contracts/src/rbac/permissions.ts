@@ -198,6 +198,14 @@ export const STUDIO_UI_READ_PERMISSION = "studio.ui.read" as const
 export const EVALUATION_UI_READ_PERMISSION = "evaluation.ui.read" as const
 
 /**
+ * The tester and reviewer apps of a project. Only a review campaign role gives them, on the
+ * campaign's project, while the campaign status lets the role take part.
+ */
+export const TESTER_UI_READ_PERMISSION = "tester.ui.read" as const
+
+export const REVIEWER_UI_READ_PERMISSION = "reviewer.ui.read" as const
+
+/**
  * Evaluation extraction datasets and the files they are built from. Scoped to the
  * project and never inherited from the organization.
  */
@@ -570,6 +578,8 @@ export const PROJECT_SCOPED_PERMISSIONS = [
   DESK_UI_READ_PERMISSION,
   STUDIO_UI_READ_PERMISSION,
   EVALUATION_UI_READ_PERMISSION,
+  TESTER_UI_READ_PERMISSION,
+  REVIEWER_UI_READ_PERMISSION,
   DOCUMENT_SOURCE_READ_PERMISSION,
   DOCUMENT_SOURCE_UPDATE_PERMISSION,
   PROJECT_MEMBER_UPDATE_PERMISSION,

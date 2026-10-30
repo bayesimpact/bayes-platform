@@ -2,7 +2,6 @@ import type {
   AgentMembershipDto,
   OrganizationMembershipDto,
   ProjectMembershipDto,
-  ReviewCampaignMembershipForMeDto,
 } from "@caseai-connect/api-contracts"
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
@@ -12,23 +11,9 @@ import type { Organization } from "@/common/features/organizations/organizations
 import type { Project } from "@/common/features/projects/projects.models"
 import type { User } from "./me.models"
 
-type UserTransientParams = {
-  organizationMemberships?: OrganizationMembershipDto[]
-  projectMemberships?: ProjectMembershipDto[]
-  agentMemberships?: AgentMembershipDto[]
-  reviewCampaignMemberships?: ReviewCampaignMembershipForMeDto[]
-}
+class UserFactory extends Factory<User> {}
 
-class UserFactory extends Factory<User, UserTransientParams> {}
-
-export const userFactory = UserFactory.define(({ params, transientParams }) => {
-  const {
-    organizationMemberships = [],
-    projectMemberships = [],
-    agentMemberships = [],
-    reviewCampaignMemberships = [],
-  } = transientParams
-
+export const userFactory = UserFactory.define(({ params }) => {
   const firstName = faker.person.firstName()
   const lastName = faker.person.lastName()
 
@@ -39,13 +24,6 @@ export const userFactory = UserFactory.define(({ params, transientParams }) => {
     globalPermissions: params.globalPermissions ?? [],
     conversationReviewAgentIds: params.conversationReviewAgentIds ?? [],
     termsAccepted: params.termsAccepted ?? true,
-    memberships: {
-      organizationMemberships,
-      projectMemberships,
-      agentMemberships,
-      reviewCampaignMemberships,
-      ...params.memberships,
-    },
   } satisfies User
 })
 
@@ -136,32 +114,5 @@ export const agentMembershipFactory = AgentMembershipFactory.define(
       roles: [buildMembershipRoleDto({ scopeType: "agent", role: "member" })],
       createdAt: params.createdAt ?? faker.date.past().getTime(),
     } satisfies AgentMembershipDto
-  },
-)
-
-type ReviewCampaignMembershipTransientParams = {
-  project: Project
-}
-
-class ReviewCampaignMembershipFactory extends Factory<
-  ReviewCampaignMembershipForMeDto,
-  ReviewCampaignMembershipTransientParams
-> {}
-
-export const reviewCampaignMembershipFactory = ReviewCampaignMembershipFactory.define(
-  ({ params, transientParams }) => {
-    const { project } = transientParams
-    if (!project) {
-      throw new Error(
-        "Project must be provided in transient params to build a ReviewCampaignMembership",
-      )
-    }
-    return {
-      campaignId: params.campaignId ?? faker.string.uuid(),
-      organizationId: project.organizationId,
-      projectId: project.id,
-      roles: [buildMembershipRoleDto({ scopeType: "review_campaign", role: "reviewer" })],
-      campaignStatus: params.campaignStatus ?? "active",
-    } satisfies ReviewCampaignMembershipForMeDto
   },
 )
