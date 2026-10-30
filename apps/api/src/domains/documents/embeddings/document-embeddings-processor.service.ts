@@ -36,7 +36,7 @@ export class DocumentEmbeddingsProcessorService {
       const extractionResult = await this.extractDocumentChunks(document)
       const embeddingsByModelName = await this.sharedService.generateEmbeddingsByModel({
         chunks: extractionResult.chunks,
-        projectId: payload.projectId,
+        connectScope: { organizationId: payload.organizationId, projectId: payload.projectId },
       })
 
       await this.sharedService.insertChunks({

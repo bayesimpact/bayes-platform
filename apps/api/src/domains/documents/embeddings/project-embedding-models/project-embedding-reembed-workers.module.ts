@@ -8,7 +8,7 @@ import { PROJECT_EMBEDDING_REEMBED_QUEUE_NAME } from "./project-embedding-reembe
 import { ProjectEmbeddingReembedService } from "./project-embedding-reembed.service"
 import { ProjectEmbeddingReembedWorker } from "./project-embedding-reembed.worker"
 
-/** Consumer side of the re-embedding queue. Runs on the GPU pool next to the local models. */
+/** Consumer side of the re-embedding queue. Runs on any worker, since it only makes HTTP calls. */
 @Module({
   imports: [
     BullModule.registerQueue({

@@ -2,6 +2,7 @@ import {
   AgentModel,
   DOCUMENT_READ_PERMISSION,
   DOCUMENT_UPDATE_PERMISSION,
+  EmbeddingModel,
 } from "@caseai-connect/api-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { userEvent, within } from "storybook/test"
@@ -40,7 +41,7 @@ type StoryArgs = StudioStoryArgs & {
   withPriorityCalls?: boolean
   /** A fresh copy: its only revision is draft 1, never published. */
   unpublished?: boolean
-  /** bge-m3 finished embedding the project; pair it with the `local-embeddings` flag. */
+  /** Gemini (default) and bge-m3 embedded the project; pair it with the `embedding-models` flag. */
   withEmbeddingModels?: boolean
 }
 
@@ -92,15 +93,15 @@ function buildMockAgentSettingsService(agentSettingsHistory: AgentSettings[]): I
     getFillFormOutputJsonSchema: async ({ revision }) =>
       agentSettingsHistory.find((agentSettings) => agentSettings.revision === revision)
         ?.outputJsonSchema,
-    updateOne: async () => {
-      throw new Error("updateOne is not supported in this story")
-    },
 
     restoreOne: async () => {
       throw new Error("restoreOne is not supported in this story")
     },
     createOne: async () => {
       throw new Error("createOne is not supported in this story")
+    },
+    updateOne: async () => {
+      throw new Error("updateOne is not supported in this story")
     },
   }
 }
@@ -111,6 +112,9 @@ function buildMockProjectEmbeddingModelsService(
     getAll: async () => embeddingModels,
     createOne: async () => {
       throw new Error("createOne is not supported in this story")
+    },
+    updateOne: async () => {
+      throw new Error("updateOne is not supported in this story")
     },
   }
 }
@@ -185,7 +189,13 @@ export const ConversationAgent: Story = {
             )
           : {}
         const embeddingModels = withEmbeddingModels
-          ? [projectEmbeddingModelFactory.completed().transient({ project }).build()]
+          ? [
+              projectEmbeddingModelFactory
+                .default()
+                .transient({ project })
+                .build({ modelName: EmbeddingModel.GeminiEmbedding001 }),
+              projectEmbeddingModelFactory.completed().transient({ project }).build(),
+            ]
           : []
         const [firstAgent, ...rawChildAgents] = agents
         if (!firstAgent) {
@@ -278,7 +288,7 @@ export const ConversationAgentWithPriorityCalls: Story = {
  */
 export const ModelTabWithEmbeddingModels: Story = {
   args: {
-    featureFlags: [...studioStoryArgs.featureFlags, "agent-orchestration", "local-embeddings"],
+    featureFlags: [...studioStoryArgs.featureFlags, "agent-orchestration", "embedding-models"],
     withEmbeddingModels: true,
   },
   decorators: ConversationAgent.decorators,

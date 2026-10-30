@@ -17,11 +17,12 @@ import { expectResponse, type Requester, testRequester } from "../../../../../..
 import { DocumentsModule } from "../../../documents.module"
 import { withDocumentAuthAndEmbeddingsMocks } from "../../../test-overrides"
 import { projectEmbeddingModelFactory } from "../project-embedding-model.factory"
-import { LOCAL_EMBEDDINGS_FEATURE_DISABLED_ERROR_MESSAGE } from "../project-embedding-models.controller"
+import { EMBEDDING_MODELS_FEATURE_DISABLED_ERROR_MESSAGE } from "../project-embedding-models.controller"
 import {
   EMBEDDING_MODEL_ALREADY_PROCESSING_ERROR_MESSAGE,
   EMBEDDING_MODEL_NOT_CONFIGURED_ERROR_MESSAGE,
-  EMBEDDING_MODEL_NOT_LOCAL_ERROR_MESSAGE,
+  EMBEDDING_MODEL_NOT_FOUND_ERROR_MESSAGE,
+  EMBEDDING_MODEL_NOT_READY_ERROR_MESSAGE,
 } from "../project-embedding-models.service"
 import {
   PROJECT_EMBEDDING_REEMBED_BATCH_SERVICE,
@@ -79,7 +80,7 @@ describe("Project Embedding Models", () => {
       await addFeature({
         featureFlagRepository: repositories.featureFlagRepository,
         projectId: project.id,
-        featureFlagKey: "local-embeddings",
+        featureFlagKey: "embedding-models",
       })
     }
     organizationId = organization.id
@@ -103,7 +104,15 @@ describe("Project Embedding Models", () => {
       request: { payload: { modelName } },
     })
 
-  it("enables a local model on the project and enqueues the re-embedding job", async () => {
+  const subjectSetDefault = async (projectEmbeddingModelId: string) =>
+    request({
+      route: ProjectEmbeddingModelsRoutes.updateOne,
+      pathParams: removeNullish({ organizationId, projectId, projectEmbeddingModelId }),
+      token: accessToken,
+      request: { payload: { isDefault: true } },
+    })
+
+  it("enables a model on the project and enqueues the re-embedding job", async () => {
     await createContext()
 
     const response = await subject()
@@ -131,20 +140,27 @@ describe("Project Embedding Models", () => {
     })
   })
 
-  it("rejects when the project does not have the local-embeddings feature", async () => {
+  it("rejects when the project does not have the embedding-models feature", async () => {
     await createContext({ withFeature: false })
 
     const response = await subject()
 
-    expectResponse(response, 403, LOCAL_EMBEDDINGS_FEATURE_DISABLED_ERROR_MESSAGE)
+    expectResponse(response, 403, EMBEDDING_MODELS_FEATURE_DISABLED_ERROR_MESSAGE)
   })
 
-  it("rejects the Vertex model, which every project already has", async () => {
-    await createContext()
+  it("enables a Vertex model the project does not have yet", async () => {
+    const { organization, project } = await createContext()
+    await repositories.projectEmbeddingModelRepository.save(
+      projectEmbeddingModelFactory.default().transient({ organization, project }).build(),
+    )
 
     const response = await subject(EmbeddingModel.GeminiEmbedding001)
 
-    expectResponse(response, 400, EMBEDDING_MODEL_NOT_LOCAL_ERROR_MESSAGE)
+    expectResponse(response, 201)
+    expect(response.body.data).toEqual(
+      expect.objectContaining({ modelName: EmbeddingModel.GeminiEmbedding001, status: "pending" }),
+    )
+    expect(reembedBatchServiceMock.enqueueReembedProjectChunks).toHaveBeenCalledTimes(1)
   })
 
   it("rejects a model the deployment has no embedder for", async () => {
@@ -204,13 +220,20 @@ describe("Project Embedding Models", () => {
     expect(response.body.data.status).toBe("completed")
   })
 
-  it("returns an empty list when no local model was enabled", async () => {
+  it("gives a new project the deployment's models, ready and the first as default", async () => {
     await createContext()
 
     const response = await subjectGetAll()
 
     expectResponse(response, 200)
-    expect(response.body.data).toEqual([])
+    expect(response.body.data).toEqual([
+      expect.objectContaining({
+        projectId,
+        modelName: EmbeddingModel.GeminiEmbedding001,
+        status: "completed",
+        isDefault: true,
+      }),
+    ])
   })
 
   it("lists the project's models with their progress, and not another project's", async () => {
@@ -242,7 +265,61 @@ describe("Project Embedding Models", () => {
         totalChunks: 40,
         processedChunks: 12,
         error: null,
+        isDefault: false,
       }),
     ])
+  })
+
+  it("makes a completed model the project's default", async () => {
+    const { organization, project } = await createContext()
+    const previousDefault = await repositories.projectEmbeddingModelRepository.save(
+      projectEmbeddingModelFactory
+        .default()
+        .transient({ organization, project })
+        .build({ modelName: EmbeddingModel.GeminiEmbedding001 }),
+    )
+    const bgeM3 = await repositories.projectEmbeddingModelRepository.save(
+      projectEmbeddingModelFactory.completed().transient({ organization, project }).build(),
+    )
+
+    const response = await subjectSetDefault(bgeM3.id)
+
+    expectResponse(response, 200)
+    expect(response.body.data).toEqual(expect.objectContaining({ id: bgeM3.id, isDefault: true }))
+    const rows = await repositories.projectEmbeddingModelRepository.find({ where: { projectId } })
+    expect(Object.fromEntries(rows.map((row) => [row.id, row.isDefault]))).toEqual({
+      [previousDefault.id]: false,
+      [bgeM3.id]: true,
+    })
+  })
+
+  it("refuses to make a model still embedding the project the default", async () => {
+    const { organization, project } = await createContext()
+    const processing = await repositories.projectEmbeddingModelRepository.save(
+      projectEmbeddingModelFactory
+        .transient({ organization, project })
+        .build({ status: "processing" }),
+    )
+
+    const response = await subjectSetDefault(processing.id)
+
+    expectResponse(response, 422, EMBEDDING_MODEL_NOT_READY_ERROR_MESSAGE)
+  })
+
+  it("refuses to make another project's model the default", async () => {
+    const { organization } = await createContext()
+    const otherProject = await repositories.projectRepository.save(
+      projectFactory.transient({ organization }).build(),
+    )
+    const otherModel = await repositories.projectEmbeddingModelRepository.save(
+      projectEmbeddingModelFactory
+        .completed()
+        .transient({ organization, project: otherProject })
+        .build(),
+    )
+
+    const response = await subjectSetDefault(otherModel.id)
+
+    expectResponse(response, 404, EMBEDDING_MODEL_NOT_FOUND_ERROR_MESSAGE)
   })
 })

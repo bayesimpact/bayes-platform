@@ -1,6 +1,6 @@
 import {
   AgentModel,
-  DEFAULT_EMBEDDING_MODEL,
+  EmbeddingModel,
   type UpdateAgentSettingsModelDto,
 } from "@caseai-connect/api-contracts"
 import { describe, expect, it } from "vitest"
@@ -69,7 +69,7 @@ describe("buildModelTabDefaultValues", () => {
       model: AgentModel.Gemini35Flash,
       providerOptions: { temperature: 0.4, ...thinkingOptions("low") },
       priorityCallsEnabled: true,
-      embeddingModel: DEFAULT_EMBEDDING_MODEL,
+      embeddingModel: EmbeddingModel.GeminiEmbedding001,
     })
   })
 
@@ -87,7 +87,7 @@ describe("buildModelTabSubmit", () => {
     model: AgentModel.Gemini35Flash,
     providerOptions: { temperature: 1, ...thinkingOptions("medium") },
     priorityCallsEnabled: false,
-    embeddingModel: DEFAULT_EMBEDDING_MODEL,
+    embeddingModel: EmbeddingModel.GeminiEmbedding001,
   }
 
   it("saves only the fields the user changed", () => {

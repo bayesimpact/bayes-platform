@@ -200,13 +200,13 @@ Tool executions are also persisted in message history as `"tool"` messages with 
 
 - `GOOGLE_VERTEX_PROJECT`
 - `GOOGLE_VERTEX_LOCATION`
-- `DOCUMENT_EMBEDDING_MODELS` (comma-separated; first model is used for retrieval query embedding)
+- `DOCUMENT_EMBEDDING_MODELS` (comma-separated; the models a new project starts with, the first as its default)
 - `BULLMQ_REDIS_URL` (defaults to `redis://localhost:6379` if unset)
 - `DOCUMENT_EMBEDDINGS_QUEUE_NAME` (optional, defaults to `document-embeddings`)
 - `DOCUMENT_EXTRACTOR_DOCLING_ENABLED` (optional, defaults to `true`)
 - `DOCUMENT_CHUNKER_COMMAND` (optional path override for `apps/api/bin/document_chunker`)
 - `DOCUMENT_EXTRACTOR_DOCLING_TIMEOUT_MS` (optional, extraction timeout and worker health-check timeout source)
-- `EMBEDDER_BGE_M3_URL`, `EMBEDDER_BGE_M3_API_KEY` (API and workers, optional): the OpenAI embeddings server (`POST {url}/v1/embeddings`) serving bge-m3 for projects with the `local-embeddings` feature flag. Unset, the model is not offered.
+- `EMBEDDER_BGE_M3_URL`, `EMBEDDER_BGE_M3_API_KEY` (API and workers, optional): the OpenAI embeddings server (`POST {url}/v1/embeddings`) serving bge-m3 for projects with the `embedding-models` feature flag. Unset, the model cannot be enabled.
 - `EMBEDDER_BATCH_SIZE`, `EMBEDDER_REQUEST_TIMEOUT_MS`, `EMBEDDER_QUERY_TIMEOUT_MS` (optional embedder tuning)
 
 ### Storage/Infra Variables Used in the Flow
@@ -236,9 +236,9 @@ In deployment, workers are started separately with:
 
 When Docling extraction is enabled, workers fail fast at startup if the Docling CLI health check fails.
 
-### Self-hosted embedding models (feature flag `local-embeddings`)
+### Embedding models per project (feature flag `embedding-models`)
 
-A project admin enables a self-hosted model from the agent editor Model tab. This creates a `project_embedding_model` row and a `project-embedding-reembed` job: a worker sends every retrievable chunk of the project that has no vector for the model yet to the model's embeddings server (batches of `EMBEDDER_BATCH_SIZE`, conflict-safe inserts, progress on the row polled by the studio). Meanwhile new uploads are embedded with the Vertex model plus every active self-hosted model of the project; an embedder failure fails the document like a Vertex failure. Once the row is `completed`, agents of the project can pick the model as their retrieval model.
+Every project has a `project_embedding_model` row per model it embeds with, whatever the provider, and one of them is its default. A new project gets the models of `DOCUMENT_EMBEDDING_MODELS` on first read, completed since it has no chunk yet. A project admin enables another model from the agent editor Model tab. This creates a `project_embedding_model` row and a `project-embedding-reembed` job: a worker sends every retrievable chunk of the project that has no vector for the model yet to the model's embeddings server (batches of `EMBEDDER_BATCH_SIZE`, conflict-safe inserts, progress on the row polled by the studio). Meanwhile new uploads are embedded with every active model of the project; an embedder failure fails the document. Once the row is `completed`, agents of the project can pick the model as their retrieval model, and an admin can make it the default of new agents.
 
 ### Re-index behavior
 
@@ -250,7 +250,7 @@ On reprocessing a document, existing `document_chunk` rows are deleted first, th
 
 - File-extension validator in upload currently allows only a narrower list (`png|jpeg|jpg|pdf|txt|csv`) than MIME checks.
 - No ANN vector index (e.g. HNSW/IVFFlat) is created in migration for `embedding`; retrieval uses direct `<=>` ordering. The column is untyped (one dimension per `model_name`), so an index would be a per-model partial index over a cast expression.
-- When an agent's self-hosted model is unavailable (embedder down, timeout) retrieval silently uses the Vertex model; the only signal is a warning log.
+- When an agent's model is not ready or its embedder fails (down, timeout), retrieval uses the project's next ready model; the signals are a warning log and `embeddingFallbackFrom` on the trace.
 - No re-ranker is used today; chunk ranking is only the initial vector similarity ranking from pgvector.
 - Retrieval only considers `source_type = "project"` and `embedding_status = "completed"`.
 - Tool input caps `topK` at 10.

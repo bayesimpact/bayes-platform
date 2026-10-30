@@ -4,13 +4,16 @@ import type { DocumentsService } from "../documents.service"
 import type { DocumentEmbeddingStatusNotifierService } from "./document-embedding-status-notifier.service"
 import { DocumentEmbeddingsSharedService } from "./document-embeddings-shared.service"
 import type { EmbedderService } from "./embedders/embedder.service"
-import type { ProjectEmbeddingModelRepository } from "./project-embedding-models/project-embedding-model.repository"
+import type { ProjectEmbeddingModelsService } from "./project-embedding-models/project-embedding-models.service"
 
 const scope = { documentId: "document-1", organizationId: "organization-1", projectId: "project-1" }
+const connectScope = { organizationId: scope.organizationId, projectId: scope.projectId }
 
 function buildSharedService() {
   const dataSource = { query: jest.fn().mockResolvedValue([]) }
-  const projectEmbeddingModelRepository = { listActiveModelNames: jest.fn().mockResolvedValue([]) }
+  const projectEmbeddingModelsService = {
+    listActiveModelNames: jest.fn().mockResolvedValue([EmbeddingModel.GeminiEmbedding001]),
+  }
   const embedderService = {
     embedDocuments: jest.fn(async ({ texts }: { modelName: string; texts: string[] }) =>
       texts.map(() => [0.1, 0.2]),
@@ -20,10 +23,10 @@ function buildSharedService() {
     {} as DocumentsService,
     {} as DocumentEmbeddingStatusNotifierService,
     dataSource as unknown as DataSource,
-    projectEmbeddingModelRepository as unknown as ProjectEmbeddingModelRepository,
+    projectEmbeddingModelsService as unknown as ProjectEmbeddingModelsService,
     embedderService as unknown as EmbedderService,
   )
-  return { service, dataSource, projectEmbeddingModelRepository, embedderService }
+  return { service, dataSource, projectEmbeddingModelsService, embedderService }
 }
 
 function embeddingModelNamesInserted(dataSource: { query: jest.Mock }): unknown[] {
@@ -33,17 +36,16 @@ function embeddingModelNamesInserted(dataSource: { query: jest.Mock }): unknown[
 }
 
 describe("DocumentEmbeddingsSharedService", () => {
-  beforeEach(() => {
-    process.env.DOCUMENT_EMBEDDING_MODELS = "gemini-embedding-001"
-  })
-
-  it("embeds the chunks with the Vertex models and the project's enabled models", async () => {
-    const { service, projectEmbeddingModelRepository, embedderService } = buildSharedService()
-    projectEmbeddingModelRepository.listActiveModelNames.mockResolvedValue([EmbeddingModel.BgeM3])
+  it("embeds the chunks with every model the project enabled", async () => {
+    const { service, projectEmbeddingModelsService, embedderService } = buildSharedService()
+    projectEmbeddingModelsService.listActiveModelNames.mockResolvedValue([
+      EmbeddingModel.GeminiEmbedding001,
+      EmbeddingModel.BgeM3,
+    ])
 
     const embeddingsByModelName = await service.generateEmbeddingsByModel({
       chunks: ["first", "second"],
-      projectId: scope.projectId,
+      connectScope,
     })
 
     expect(embedderService.embedDocuments.mock.calls.map(([params]) => params.modelName)).toEqual([
@@ -58,8 +60,11 @@ describe("DocumentEmbeddingsSharedService", () => {
   })
 
   it("fails when an enabled embedder fails, so the document keeps one set of chunks", async () => {
-    const { service, projectEmbeddingModelRepository, embedderService } = buildSharedService()
-    projectEmbeddingModelRepository.listActiveModelNames.mockResolvedValue([EmbeddingModel.BgeM3])
+    const { service, projectEmbeddingModelsService, embedderService } = buildSharedService()
+    projectEmbeddingModelsService.listActiveModelNames.mockResolvedValue([
+      EmbeddingModel.GeminiEmbedding001,
+      EmbeddingModel.BgeM3,
+    ])
     embedderService.embedDocuments.mockImplementation(async ({ modelName, texts }) => {
       if (modelName === EmbeddingModel.BgeM3) {
         throw new Error("Embedder BAAI/bge-m3 answered 503")
@@ -68,18 +73,21 @@ describe("DocumentEmbeddingsSharedService", () => {
     })
 
     await expect(
-      service.generateEmbeddingsByModel({ chunks: ["first"], projectId: scope.projectId }),
+      service.generateEmbeddingsByModel({ chunks: ["first"], connectScope }),
     ).rejects.toThrow("answered 503")
   })
 
   it("also embeds with a model the project enabled while the document was processing", async () => {
-    const { service, dataSource, projectEmbeddingModelRepository, embedderService } =
+    const { service, dataSource, projectEmbeddingModelsService, embedderService } =
       buildSharedService()
     const embeddingsByModelName = await service.generateEmbeddingsByModel({
       chunks: ["first"],
-      projectId: scope.projectId,
+      connectScope,
     })
-    projectEmbeddingModelRepository.listActiveModelNames.mockResolvedValue([EmbeddingModel.BgeM3])
+    projectEmbeddingModelsService.listActiveModelNames.mockResolvedValue([
+      EmbeddingModel.GeminiEmbedding001,
+      EmbeddingModel.BgeM3,
+    ])
 
     await service.insertChunks({ scope, chunks: ["first"], embeddingsByModelName })
 

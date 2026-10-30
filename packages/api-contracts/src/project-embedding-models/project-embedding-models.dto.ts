@@ -2,23 +2,20 @@ import { z } from "zod"
 import type { TimeType } from "../generic"
 
 /**
- * Embedding models the platform can use for document retrieval.
- *
- * `gemini-embedding-001` is the historical default, computed for every project through Vertex.
- * The local (self-hosted) models are served through the OpenAI embeddings API by a server the
- * deployment runs (vLLM, text-embeddings-inference..., `EMBEDDER_<MODEL>_URL`) and only exist for
- * projects with the `local-embeddings` feature flag. The enum value is the exact `model_name`
- * persisted on `document_chunk_embedding`.
+ * Embedding models the platform can use for document retrieval. A project embeds its documents
+ * with the models it enabled, and each agent searches with one of them. The enum value is the
+ * exact `model_name` persisted on `document_chunk_embedding`.
  */
 export enum EmbeddingModel {
   GeminiEmbedding001 = "gemini-embedding-001",
   BgeM3 = "BAAI/bge-m3",
 }
 
+/** How the platform reaches a model: the only place where models differ. */
 export enum EmbeddingProvider {
   Vertex = "VERTEX",
-  /** Self-hosted, reached over HTTP. */
-  Local = "LOCAL",
+  /** A server speaking the OpenAI embeddings API (vLLM, text-embeddings-inference...). */
+  OpenAiCompatible = "OPENAI_COMPATIBLE",
 }
 
 export type EmbeddingModelMetadata = {
@@ -36,17 +33,16 @@ export const EmbeddingModelCatalog: Record<EmbeddingModel, EmbeddingModelMetadat
   [EmbeddingModel.GeminiEmbedding001]: {
     provider: EmbeddingProvider.Vertex,
     dimensions: 3072,
-    label: "Gemini Embedding 001 (Vertex)",
+    label: "Gemini Embedding 001",
   },
   [EmbeddingModel.BgeM3]: {
-    provider: EmbeddingProvider.Local,
+    provider: EmbeddingProvider.OpenAiCompatible,
     dimensions: 1024,
-    label: "BGE-M3 (local)",
+    label: "BGE-M3",
   },
 }
 
-/** Model every project has, given to new agents (and to the agents created before the choice existed). */
-export const DEFAULT_EMBEDDING_MODEL = EmbeddingModel.GeminiEmbedding001
+export const EMBEDDING_MODELS = Object.values(EmbeddingModel)
 
 /** Same catalog, read as a plain string lookup so a stale stored value is a miss, not a crash. */
 const embeddingModelMetadata: Partial<Record<string, EmbeddingModelMetadata>> =
@@ -56,16 +52,8 @@ export function getEmbeddingModelMetadata(model: string): EmbeddingModelMetadata
   return embeddingModelMetadata[model]
 }
 
-export function isLocalEmbeddingModel(model: string): model is EmbeddingModel {
-  return embeddingModelMetadata[model]?.provider === EmbeddingProvider.Local
-}
-
-export const LOCAL_EMBEDDING_MODELS: EmbeddingModel[] = (
-  Object.keys(EmbeddingModelCatalog) as EmbeddingModel[]
-).filter((model) => isLocalEmbeddingModel(model))
-
 /**
- * Lifecycle of a local model on a project.
+ * Lifecycle of a model on a project.
  * - pending: enabled, the re-embedding job is queued
  * - processing: the job embeds the existing chunks, `processedChunks` grows
  * - completed: every chunk has a vector, agents can retrieve with the model
@@ -81,6 +69,8 @@ export type ProjectEmbeddingModelDto = {
   totalChunks: number
   processedChunks: number
   error: string | null
+  /** The model new agents of the project search with. One per project. */
+  isDefault: boolean
   createdAt: TimeType
   updatedAt: TimeType
 }
@@ -90,4 +80,12 @@ export const enableProjectEmbeddingModelSchema = z.object({
 })
 export type EnableProjectEmbeddingModelRequestDto = z.infer<
   typeof enableProjectEmbeddingModelSchema
+>
+
+/** Makes a completed model the project's default: the only change a model takes. */
+export const updateProjectEmbeddingModelSchema = z.object({
+  isDefault: z.literal(true),
+})
+export type UpdateProjectEmbeddingModelRequestDto = z.infer<
+  typeof updateProjectEmbeddingModelSchema
 >

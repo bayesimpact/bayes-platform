@@ -1,4 +1,4 @@
-import { type AgentModel, isLocalEmbeddingModel } from "@caseai-connect/api-contracts"
+import type { AgentModel, EmbeddingModel } from "@caseai-connect/api-contracts"
 import { Injectable, NotFoundException, UnprocessableEntityException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import { In, type Repository } from "typeorm"
@@ -509,7 +509,7 @@ export class AgentSettingsService {
     }
   }
 
-  /** A local model is only selectable once the project enabled it and finished embedding. */
+  /** A model is only selectable once the project enabled it and finished embedding with it. */
   async validateEmbeddingModel({
     connectScope,
     embeddingModel,
@@ -517,18 +517,18 @@ export class AgentSettingsService {
     connectScope: RequiredConnectScope
     embeddingModel: AgentSettings["embeddingModel"]
   }): Promise<void> {
-    if (!isLocalEmbeddingModel(embeddingModel)) return
-
-    // Enabling a model needs the `local-embeddings` flag, so a completed row implies the flag.
-    const isReady = await this.projectEmbeddingModelsService.isCompleted({
-      projectId: connectScope.projectId,
-      modelName: embeddingModel,
-    })
-    if (!isReady) {
+    const completedModelNames =
+      await this.projectEmbeddingModelsService.listCompletedModelNames(connectScope)
+    if (!completedModelNames.includes(embeddingModel)) {
       throw new UnprocessableEntityException(
         `Embedding model ${embeddingModel} is not ready for this project yet`,
       )
     }
+  }
+
+  /** The model a new agent searches with when its creator picks none. */
+  async resolveDefaultEmbeddingModel(connectScope: RequiredConnectScope): Promise<EmbeddingModel> {
+    return this.projectEmbeddingModelsService.resolveDefaultModelName(connectScope)
   }
 
   validateFillFormAgent({

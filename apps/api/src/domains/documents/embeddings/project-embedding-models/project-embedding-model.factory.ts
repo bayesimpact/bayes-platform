@@ -14,6 +14,10 @@ class ProjectEmbeddingModelFactory extends Factory<
     return this.params({ status: "completed", totalChunks: 10, processedChunks: 10 })
   }
 
+  default() {
+    return this.completed().params({ isDefault: true })
+  }
+
   failed() {
     return this.params({ status: "failed", error: "Embedding job failed" })
   }
@@ -36,6 +40,7 @@ export const projectEmbeddingModelFactory = ProjectEmbeddingModelFactory.define(
       totalChunks: params.totalChunks ?? 0,
       processedChunks: params.processedChunks ?? 0,
       error: params.error ?? null,
+      isDefault: params.isDefault ?? false,
       organizationId: transientParams.organization.id,
       projectId: transientParams.project.id,
       createdAt: params.createdAt || now,

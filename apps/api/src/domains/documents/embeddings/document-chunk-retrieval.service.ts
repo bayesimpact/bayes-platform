@@ -1,4 +1,4 @@
-import { type EmbeddingModel, isLocalEmbeddingModel } from "@caseai-connect/api-contracts"
+import type { EmbeddingModel } from "@caseai-connect/api-contracts"
 import { Injectable, Logger } from "@nestjs/common"
 import { InjectDataSource } from "@nestjs/typeorm"
 import { trace } from "@opentelemetry/api"
@@ -7,13 +7,10 @@ import type { DataSource, SelectQueryBuilder } from "typeorm"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { DEFAULT_TOP_K } from "@/domains/agents/shared/agent-session-messages/streaming/tools/lookup-knowledge-base.tool"
 import type { RetrievedDocumentChunk } from "./document-chunk.types"
-import { resolveEmbeddingModelNames } from "./document-embeddings.config"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { EmbedderService } from "./embedders/embedder.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { DocumentChunkEmbeddingRepository } from "./project-embedding-models/document-chunk-embedding.repository"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { ProjectEmbeddingModelRepository } from "./project-embedding-models/project-embedding-model.repository"
+import { ProjectEmbeddingModelsService } from "./project-embedding-models/project-embedding-models.service"
 
 @Injectable()
 export class DocumentChunkRetrievalService {
@@ -21,9 +18,8 @@ export class DocumentChunkRetrievalService {
 
   constructor(
     @InjectDataSource() private readonly dataSource: DataSource,
-    private readonly projectEmbeddingModelRepository: ProjectEmbeddingModelRepository,
+    private readonly projectEmbeddingModelsService: ProjectEmbeddingModelsService,
     private readonly embedderService: EmbedderService,
-    private readonly documentChunkEmbeddingRepository: DocumentChunkEmbeddingRepository,
   ) {}
 
   async retrieveTopChunks({
@@ -37,20 +33,24 @@ export class DocumentChunkRetrievalService {
     query: string
     topK?: number
     documentTagIds?: string[]
-    /** The agent's model. Undefined means the platform default (first of DOCUMENT_EMBEDDING_MODELS). */
+    /** The agent's model. Undefined means the project's default. */
     embeddingModel?: EmbeddingModel
   }): Promise<RetrievedDocumentChunk[]> {
     const retrievalQueryText = this.buildRetrievalQueryText({
       query,
     })
-    const requestedModel = embeddingModel ?? this.resolvePrimaryModelName()
+    // The project's ready models, its default first: the only ones with every chunk embedded.
+    const completedModels =
+      await this.projectEmbeddingModelsService.listCompletedModelNames(connectScope)
+    const requestedModel = embeddingModel ?? completedModels[0]
     const embedded = await this.embedQueryWithAvailableModel({
       connectScope,
       query: retrievalQueryText,
       requestedModel,
+      completedModels,
     })
     if (!embedded) {
-      await this.reportMissingEmbeddings({ connectScope, requestedModel })
+      this.reportMissingEmbeddings({ connectScope, requestedModel })
       return []
     }
     const { modelName, embedding } = embedded
@@ -93,86 +93,63 @@ export class DocumentChunkRetrievalService {
   }
 
   /**
-   * No model with vectors: a project without documents is expected, but a project whose vectors
-   * all belong to other models would answer from nothing, so it shows in the logs and the trace.
+   * Every project has a ready model, so no usable one means the project lost them or every
+   * embedder failed: the answer would come from nothing, so it shows in the logs and the trace.
    */
-  private async reportMissingEmbeddings({
+  private reportMissingEmbeddings({
     connectScope,
     requestedModel,
   }: {
     connectScope: RequiredConnectScope
     requestedModel: string | undefined
-  }): Promise<void> {
-    if (!(await this.documentChunkEmbeddingRepository.hasAnyEmbedding(connectScope))) return
+  }): void {
     this.logger.warn(
-      `No vectors of ${requestedModel ?? "any configured model"} for project ${connectScope.projectId}: retrieval returns no passage until the project is re-embedded`,
+      `No usable embedding model (requested ${requestedModel ?? "none"}) for project ${connectScope.projectId}: retrieval returns no passage`,
     )
     trace.getActiveSpan()?.setAttribute("ai.telemetry.metadata.embeddingModelMissing", true)
   }
 
-  private resolvePrimaryModelName(): string | undefined {
-    return resolveEmbeddingModelNames()[0]
-  }
-
   /**
-   * Embeds the query with the agent's model when the project has its vectors, and otherwise with
-   * the first configured Vertex model that has them. An embedder failure (down, timeout) moves to
-   * the next model with a warning rather than failing the chat turn: the answer is a little less
-   * relevant, not absent.
+   * Embeds the query with the agent's model when the project finished embedding with it, and
+   * otherwise with the next ready model of the project. An embedder failure (down, timeout) moves
+   * to the next model with a warning rather than failing the chat turn: the answer is a little
+   * less relevant, not absent.
    */
   private async embedQueryWithAvailableModel({
     connectScope,
     query,
     requestedModel,
+    completedModels,
   }: {
     connectScope: RequiredConnectScope
     query: string
     requestedModel: string | undefined
+    completedModels: string[]
   }): Promise<{ modelName: string; embedding: number[] } | undefined> {
+    if (requestedModel && !completedModels.includes(requestedModel)) {
+      this.logger.warn(
+        `Project ${connectScope.projectId} has not finished embedding with ${requestedModel}, trying its other models`,
+      )
+    }
     const candidateModels = [
-      ...new Set([...(requestedModel ? [requestedModel] : []), ...resolveEmbeddingModelNames()]),
+      ...new Set([
+        ...(requestedModel && completedModels.includes(requestedModel) ? [requestedModel] : []),
+        ...completedModels,
+      ]),
     ]
     for (const modelName of candidateModels) {
-      if (!(await this.hasVectors({ connectScope, modelName }))) {
-        if (modelName === requestedModel) {
-          this.logger.warn(
-            `Project ${connectScope.projectId} has no vectors of ${modelName}, trying the next configured model`,
-          )
-        }
-        continue
-      }
       try {
         const embedding = await this.embedderService.embedQuery({ modelName, text: query })
         return { modelName, embedding }
       } catch (error) {
         this.logger.warn(
-          `Query embedding with ${modelName} failed for project ${connectScope.projectId}, trying the next configured model: ${
+          `Query embedding with ${modelName} failed for project ${connectScope.projectId}, trying the next model: ${
             error instanceof Error ? error.message : String(error)
           }`,
         )
       }
     }
     return undefined
-  }
-
-  /**
-   * A local model counts once its re-embedding job completed, so a half-embedded project never
-   * serves a partial index. A Vertex model writes every new chunk, so any vector of it counts.
-   */
-  private async hasVectors({
-    connectScope,
-    modelName,
-  }: {
-    connectScope: RequiredConnectScope
-    modelName: string
-  }): Promise<boolean> {
-    if (isLocalEmbeddingModel(modelName)) {
-      return this.projectEmbeddingModelRepository.isCompleted({
-        projectId: connectScope.projectId,
-        modelName,
-      })
-    }
-    return this.documentChunkEmbeddingRepository.hasEmbedding({ connectScope, modelName })
   }
 
   private normalizeTopK(topK: number): number {

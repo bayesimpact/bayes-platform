@@ -10,7 +10,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Added
 
 - Desk: the user menu now shows the deployed platform version, as the Studio menu does.
-- (beta) Self-hosted embedding models: projects can enable bge-m3, and each agent can search its documents with it.
+- (beta) Embedding models: projects choose which models embed their documents, such as bge-m3, and each agent which one it searches with.
 
 ### Changed
 

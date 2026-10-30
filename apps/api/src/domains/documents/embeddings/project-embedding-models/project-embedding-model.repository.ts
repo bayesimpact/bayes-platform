@@ -30,17 +30,43 @@ export class ProjectEmbeddingModelRepository {
     return found[0] ?? null
   }
 
+  async findOneById(
+    connectScope: RequiredConnectScope,
+    id: string,
+  ): Promise<ProjectEmbeddingModel | null> {
+    const found = await this.connectRepo().find(connectScope, { where: { id } })
+    return found[0] ?? null
+  }
+
   async findById(id: string): Promise<ProjectEmbeddingModel | null> {
     return this.repo().findOne({ where: { id } })
   }
 
-  /** Local models new chunks of the project must be embedded with, in enabling order. */
+  /** Models new chunks of the project must be embedded with, in enabling order. */
   async listActiveModelNames(projectId: string): Promise<EmbeddingModel[]> {
     const rows = await this.repo().find({
       where: { projectId, status: In(ACTIVE_STATUSES) },
       order: { createdAt: "ASC" },
     })
     return rows.map((row) => row.modelName)
+  }
+
+  /** Models agents of the project can search with: the default first, then in enabling order. */
+  async listCompletedModelNames(projectId: string): Promise<EmbeddingModel[]> {
+    const rows = await this.repo().find({
+      where: { projectId, status: "completed" },
+      order: { isDefault: "DESC", createdAt: "ASC" },
+    })
+    return rows.map((row) => row.modelName)
+  }
+
+  async findDefaultModelName(projectId: string): Promise<EmbeddingModel | null> {
+    const row = await this.repo().findOne({ where: { projectId, isDefault: true } })
+    return row?.modelName ?? null
+  }
+
+  async hasAny(projectId: string): Promise<boolean> {
+    return this.repo().exists({ where: { projectId } })
   }
 
   async isCompleted({
@@ -63,7 +89,49 @@ export class ProjectEmbeddingModelRepository {
       totalChunks: 0,
       processedChunks: 0,
       error: null,
+      isDefault: false,
     })
+  }
+
+  /**
+   * Completed rows for a project with no chunk yet, the first model as default. Ignores rows
+   * another request created meanwhile, so two first reads never fail on the unique indexes.
+   */
+  async createCompletedIgnoringConflicts(
+    connectScope: RequiredConnectScope,
+    modelNames: EmbeddingModel[],
+  ): Promise<void> {
+    if (modelNames.length === 0) return
+    await this.repo()
+      .createQueryBuilder()
+      .insert()
+      .values(
+        modelNames.map((modelName, index) => ({
+          organizationId: connectScope.organizationId,
+          projectId: connectScope.projectId,
+          modelName,
+          status: "completed" as const,
+          isDefault: index === 0,
+        })),
+      )
+      .orIgnore()
+      .execute()
+  }
+
+  /** Unsets the previous default first: the unique index allows one per project. */
+  async setDefault(connectScope: RequiredConnectScope, id: string): Promise<void> {
+    await this.repo().update(
+      {
+        organizationId: connectScope.organizationId,
+        projectId: connectScope.projectId,
+        isDefault: true,
+      },
+      { isDefault: false },
+    )
+    await this.repo().update(
+      { id, organizationId: connectScope.organizationId, projectId: connectScope.projectId },
+      { isDefault: true },
+    )
   }
 
   /** Returns the saved row, or null when it no longer exists. */

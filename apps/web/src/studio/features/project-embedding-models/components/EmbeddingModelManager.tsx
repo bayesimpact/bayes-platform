@@ -1,7 +1,7 @@
 import {
+  EMBEDDING_MODELS,
   type EmbeddingModel,
   EmbeddingModelCatalog,
-  LOCAL_EMBEDDING_MODELS,
 } from "@caseai-connect/api-contracts"
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
@@ -17,11 +17,15 @@ import {
   selectProjectEmbeddingModels,
   selectProjectEmbeddingModelsData,
 } from "../project-embedding-models.selectors"
-import { enableProjectEmbeddingModel } from "../project-embedding-models.thunks"
+import {
+  enableProjectEmbeddingModel,
+  setDefaultProjectEmbeddingModel,
+} from "../project-embedding-models.thunks"
 
 /**
- * Lists the local models of the catalog with their state on the current project and lets a
- * project admin enable one, which launches the re-embedding of the project's documents.
+ * Lists the models of the catalog with their state on the current project and lets a project
+ * admin enable one, which launches the embedding of the project's documents, or make a ready one
+ * the default of new agents.
  */
 export function EmbeddingModelManager() {
   const { t } = useTranslation()
@@ -45,7 +49,7 @@ export function EmbeddingModelManager() {
           <p className="text-muted-foreground text-xs">{t("projectEmbeddingModels:description")}</p>
         </div>
         <ul className="space-y-3">
-          {LOCAL_EMBEDDING_MODELS.map((modelName) => (
+          {EMBEDDING_MODELS.map((modelName) => (
             <EmbeddingModelRow
               key={modelName}
               modelName={modelName}
@@ -87,7 +91,16 @@ function EmbeddingModelRow({
             {modelName} · {t("projectEmbeddingModels:dimensions", { count: metadata.dimensions })}
           </p>
         </div>
-        {isLoaded ? <EmbeddingModelStatusBadge status={status} /> : <Spinner className="size-4" />}
+        {isLoaded ? (
+          <div className="flex shrink-0 items-center gap-1">
+            {model?.isDefault && (
+              <Badge variant="outline">{t("projectEmbeddingModels:default")}</Badge>
+            )}
+            <EmbeddingModelStatusBadge status={status} />
+          </div>
+        ) : (
+          <Spinner className="size-4" />
+        )}
       </div>
 
       {isRunning && (
@@ -122,6 +135,19 @@ function EmbeddingModelRow({
             })}
           </p>
         </div>
+      )}
+
+      {status === "completed" && model && !model.isDefault && (
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          onClick={() =>
+            dispatch(setDefaultProjectEmbeddingModel({ projectEmbeddingModelId: model.id }))
+          }
+        >
+          {t("projectEmbeddingModels:setDefault")}
+        </Button>
       )}
 
       {status !== "completed" && (

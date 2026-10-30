@@ -1,13 +1,16 @@
-import { type EmbeddingModel, isLocalEmbeddingModel } from "@caseai-connect/api-contracts"
+import type { EmbeddingModel } from "@caseai-connect/api-contracts"
 import {
-  BadRequestException,
   ConflictException,
   Inject,
   Injectable,
   Logger,
+  NotFoundException,
   UnprocessableEntityException,
 } from "@nestjs/common"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { TransactionService } from "@/common/transaction/transaction.service"
+import { resolveEmbeddingModelNames } from "../document-embeddings.config"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { EmbedderService } from "../embedders/embedder.service"
 import type { ProjectEmbeddingModel } from "./project-embedding-model.entity"
@@ -20,12 +23,13 @@ import {
   type ProjectEmbeddingReembedBatchService,
 } from "./project-embedding-reembed-batch.interface"
 
-export const EMBEDDING_MODEL_NOT_LOCAL_ERROR_MESSAGE =
-  "Only local embedding models can be enabled on a project."
 export const EMBEDDING_MODEL_NOT_CONFIGURED_ERROR_MESSAGE =
   "This embedding model has no embedder configured on this deployment."
 export const EMBEDDING_MODEL_ALREADY_PROCESSING_ERROR_MESSAGE =
   "This embedding model is already being processed for the project."
+export const EMBEDDING_MODEL_NOT_FOUND_ERROR_MESSAGE = "Embedding model not found for this project."
+export const EMBEDDING_MODEL_NOT_READY_ERROR_MESSAGE =
+  "This embedding model has not finished embedding the project's documents."
 
 @Injectable()
 export class ProjectEmbeddingModelsService {
@@ -36,14 +40,29 @@ export class ProjectEmbeddingModelsService {
     @Inject(PROJECT_EMBEDDING_REEMBED_BATCH_SERVICE)
     private readonly reembedBatchService: ProjectEmbeddingReembedBatchService,
     private readonly embedderService: EmbedderService,
+    private readonly transactionService: TransactionService,
   ) {}
 
   async list(connectScope: RequiredConnectScope): Promise<ProjectEmbeddingModel[]> {
+    await this.ensureProjectModels(connectScope)
     return this.projectEmbeddingModelRepository.findAllByScope(connectScope)
   }
 
   /**
-   * Enables a local model on the project and launches the job that embeds the existing chunks.
+   * A project starts with the models of the deployment (`DOCUMENT_EMBEDDING_MODELS`, the first
+   * as default), completed since it has no chunk yet. Done on first read rather than at project
+   * creation, so every way of creating a project is covered.
+   */
+  async ensureProjectModels(connectScope: RequiredConnectScope): Promise<void> {
+    if (await this.projectEmbeddingModelRepository.hasAny(connectScope.projectId)) return
+    await this.projectEmbeddingModelRepository.createCompletedIgnoringConflicts(
+      connectScope,
+      resolveEmbeddingModelNames() as EmbeddingModel[],
+    )
+  }
+
+  /**
+   * Enables a model on the project and launches the job that embeds the existing chunks.
    * A completed model is returned as is, a failed or stuck one is retried, a running one is refused.
    */
   async enable({
@@ -53,12 +72,12 @@ export class ProjectEmbeddingModelsService {
     connectScope: RequiredConnectScope
     modelName: EmbeddingModel
   }): Promise<ProjectEmbeddingModel> {
-    if (!isLocalEmbeddingModel(modelName)) {
-      throw new BadRequestException(EMBEDDING_MODEL_NOT_LOCAL_ERROR_MESSAGE)
-    }
     if (!this.embedderService.isAvailable(modelName)) {
       throw new UnprocessableEntityException(EMBEDDING_MODEL_NOT_CONFIGURED_ERROR_MESSAGE)
     }
+    // A new project first gets the deployment's models, so the enabled one never stands alone
+    // without a default.
+    await this.ensureProjectModels(connectScope)
 
     const existing = await this.projectEmbeddingModelRepository.findOneByModelName(
       connectScope,
@@ -102,6 +121,29 @@ export class ProjectEmbeddingModelsService {
     }
     this.logger.log(`Enabled embedding model ${modelName} on project ${row.projectId}`)
     return row
+  }
+
+  /** Makes a completed model the one new agents of the project search with. */
+  async setDefault({
+    connectScope,
+    projectEmbeddingModelId,
+  }: {
+    connectScope: RequiredConnectScope
+    projectEmbeddingModelId: string
+  }): Promise<ProjectEmbeddingModel> {
+    const row = await this.projectEmbeddingModelRepository.findOneById(
+      connectScope,
+      projectEmbeddingModelId,
+    )
+    if (!row) throw new NotFoundException(EMBEDDING_MODEL_NOT_FOUND_ERROR_MESSAGE)
+    if (row.status !== "completed") {
+      throw new UnprocessableEntityException(EMBEDDING_MODEL_NOT_READY_ERROR_MESSAGE)
+    }
+    if (row.isDefault) return row
+    await this.transactionService.run(() =>
+      this.projectEmbeddingModelRepository.setDefault(connectScope, row.id),
+    )
+    return { ...row, isDefault: true }
   }
 
   async findById(id: string): Promise<ProjectEmbeddingModel | null> {
@@ -154,11 +196,31 @@ export class ProjectEmbeddingModelsService {
     await this.projectEmbeddingModelRepository.updateProgress(id, fields)
   }
 
-  async listActiveModelNames(projectId: string): Promise<EmbeddingModel[]> {
-    return this.projectEmbeddingModelRepository.listActiveModelNames(projectId)
+  /** Models new chunks of the project are embedded with. */
+  async listActiveModelNames(connectScope: RequiredConnectScope): Promise<EmbeddingModel[]> {
+    await this.ensureProjectModels(connectScope)
+    return this.projectEmbeddingModelRepository.listActiveModelNames(connectScope.projectId)
   }
 
-  async isCompleted(params: { projectId: string; modelName: EmbeddingModel }): Promise<boolean> {
-    return this.projectEmbeddingModelRepository.isCompleted(params)
+  /** Models agents of the project can search with, the default first. */
+  async listCompletedModelNames(connectScope: RequiredConnectScope): Promise<EmbeddingModel[]> {
+    await this.ensureProjectModels(connectScope)
+    return this.projectEmbeddingModelRepository.listCompletedModelNames(connectScope.projectId)
+  }
+
+  /** The model a new agent of the project searches with. */
+  async resolveDefaultModelName(connectScope: RequiredConnectScope): Promise<EmbeddingModel> {
+    await this.ensureProjectModels(connectScope)
+    const defaultModelName = await this.projectEmbeddingModelRepository.findDefaultModelName(
+      connectScope.projectId,
+    )
+    const [firstCompleted] = await this.projectEmbeddingModelRepository.listCompletedModelNames(
+      connectScope.projectId,
+    )
+    const modelName = defaultModelName ?? firstCompleted
+    if (!modelName) {
+      throw new UnprocessableEntityException(EMBEDDING_MODEL_NOT_READY_ERROR_MESSAGE)
+    }
+    return modelName
   }
 }

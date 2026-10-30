@@ -18,6 +18,8 @@ Constraints:
 - The API image has no Python runtime. The GPU workers image ships Python for Docling only.
 - `document_chunk_embedding.embedding` was declared `vector(3072)`, the Gemini size.
 - The feature must stay invisible for projects that did not opt in.
+- A deployment's default model is configuration, not a rule: one deployment may default to
+  bge-m3, another to Vertex.
 
 ## Decision
 
@@ -39,11 +41,15 @@ Constraints:
    SPLADE models only, and vLLM exposes them through its own pooling API, one task per server. A
    hybrid ranking can come later, for example from Postgres full-text search, once an evaluation
    shows its worth.
-5. **Per-project rows drive the rollout.** `project_embedding_model` stores, for each self-hosted
-   model a project enabled, the status and progress of the job that embeds the existing chunks.
-   New uploads are embedded with the Vertex models plus every active model of their project. An
-   embedder failure fails the document, as a Vertex failure does, so a document always has the
-   same chunks for every model.
+5. **Every model of a project has a row, whatever its provider.** `project_embedding_model`
+   stores, for each model a project embeds with, the status and progress of the job that embeds
+   the existing chunks, and which one is the project's default (one per project, a partial unique
+   index). The provider only decides the transport, inside `EmbedderService`: no rule elsewhere
+   depends on it. A new project gets the models of `DOCUMENT_EMBEDDING_MODELS` on first read,
+   completed since it has no chunk, the first as default; the migration gives existing projects a
+   completed row for each model their vectors were written with. New uploads are embedded with
+   every active model of their project. An embedder failure fails the document, so a document
+   always has the same chunks for every model.
 6. **The re-embedding job is idempotent and resumable.** It only touches chunks with no row for
    the model and inserts with `ON CONFLICT DO NOTHING`. It runs on any worker, since it only makes
    HTTP calls. One BullMQ job per row (`jobId` from the row id): enabling a model whose job is gone
@@ -53,16 +59,16 @@ Constraints:
    its own size. Retrieval always filters on `model_name`, so a distance never mixes sizes. No ANN
    index existed, so nothing is lost; per-model partial indexes over a cast remain possible
    (tracked in issue #1012).
-8. **The agent names its retrieval model** (`agent_settings.embedding_model`, never null, existing
-   agents set to `gemini-embedding-001`). A null "default" would move every agent to a new model
-   the day the platform default changes, onto vectors their project may not have. A self-hosted
-   model is only selectable once the project finished embedding with it, and only with the
-   `local-embeddings` flag.
-9. **Retrieval checks the vectors exist before it searches.** It uses the agent's model when the
-   project has its vectors (a completed job for a self-hosted model, any vector for a Vertex one),
-   and otherwise the first model of `DOCUMENT_EMBEDDING_MODELS` that has them. An embedder failure
-   also moves to the next model. Each fallback is a warning in the logs and
-   `embeddingFallbackFrom` on the trace. When no model has the project's vectors, retrieval returns
+8. **The agent names its retrieval model** (`agent_settings.embedding_model`, never null, no
+   column default, existing agents set to `gemini-embedding-001`). A new agent takes its project's
+   default. A null "default" would move every agent the day the default changes, onto vectors
+   their project may not have. A model is only selectable once the project finished embedding with
+   it. The `embedding-models` flag shows the choice in the studio and gates enabling a model and
+   changing the default.
+9. **Retrieval only searches a ready model of the project.** It uses the agent's model when the
+   project's row for it is completed, and otherwise the project's other completed models, the
+   default first. An embedder failure also moves to the next model. Each fallback is a warning in
+   the logs and `embeddingFallbackFrom` on the trace. When no model is usable, retrieval returns
    nothing and the trace carries `embeddingModelMissing`: a silent empty search is the failure this
    guards against.
 

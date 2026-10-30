@@ -29,3 +29,18 @@ export const enableProjectEmbeddingModel = createAsyncThunk<
     modelName,
   })
 })
+
+export const setDefaultProjectEmbeddingModel = createAsyncThunk<
+  ProjectEmbeddingModel,
+  { projectEmbeddingModelId: string },
+  ThunkConfig
+>(
+  "projectEmbeddingModels/updateOne",
+  async ({ projectEmbeddingModelId }, { extra: { services }, getState }) => {
+    return await services.projectEmbeddingModels.updateOne({
+      ...getScopeParams(getState()),
+      projectEmbeddingModelId,
+      isDefault: true,
+    })
+  },
+)

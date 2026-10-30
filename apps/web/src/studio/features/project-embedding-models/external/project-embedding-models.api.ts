@@ -22,6 +22,18 @@ export default {
     )
     return toProjectEmbeddingModel(response.data.data)
   },
+  updateOne: async ({ organizationId, projectId, projectEmbeddingModelId, isDefault }) => {
+    const axios = getAxiosInstance()
+    const response = await axios.patch<typeof ProjectEmbeddingModelsRoutes.updateOne.response>(
+      ProjectEmbeddingModelsRoutes.updateOne.getPath({
+        organizationId,
+        projectId,
+        projectEmbeddingModelId,
+      }),
+      { payload: { isDefault } } satisfies typeof ProjectEmbeddingModelsRoutes.updateOne.request,
+    )
+    return toProjectEmbeddingModel(response.data.data)
+  },
 } satisfies IProjectEmbeddingModelsSpi
 
 const toProjectEmbeddingModel = (dto: ProjectEmbeddingModelDto): ProjectEmbeddingModel => ({
@@ -32,6 +44,7 @@ const toProjectEmbeddingModel = (dto: ProjectEmbeddingModelDto): ProjectEmbeddin
   totalChunks: dto.totalChunks,
   processedChunks: dto.processedChunks,
   error: dto.error ?? null,
+  isDefault: dto.isDefault,
   createdAt: dto.createdAt,
   updatedAt: dto.updatedAt,
 })

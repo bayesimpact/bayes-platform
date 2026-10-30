@@ -6,6 +6,7 @@ import { projectEmbeddingModelsActions } from "./project-embedding-models.slice"
 import {
   enableProjectEmbeddingModel,
   listProjectEmbeddingModels,
+  setDefaultProjectEmbeddingModel,
 } from "./project-embedding-models.thunks"
 
 // A re-embedding job reports its progress on the row; refresh while one is running.
@@ -60,6 +61,26 @@ function registerListeners() {
       listenerApi.dispatch(
         notificationsActions.show({
           title: action.error.message || "Could not enable the embedding model",
+          type: "error",
+        }),
+      )
+    },
+  })
+
+  // The previous default changed too: reload the list rather than patch two rows.
+  listenerMiddleware.startListening({
+    actionCreator: setDefaultProjectEmbeddingModel.fulfilled,
+    effect: async (_, listenerApi) => {
+      listenerApi.dispatch(listProjectEmbeddingModels())
+    },
+  })
+  listenerMiddleware.startListening({
+    actionCreator: setDefaultProjectEmbeddingModel.rejected,
+    effect: async (action, listenerApi) => {
+      listenerApi.dispatch(listProjectEmbeddingModels())
+      listenerApi.dispatch(
+        notificationsActions.show({
+          title: action.error.message || "Could not change the default embedding model",
           type: "error",
         }),
       )

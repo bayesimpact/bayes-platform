@@ -305,9 +305,9 @@ docling --version
 
 If `docling` is not recognized, restart the terminal and make sure your Python Scripts directory is in `PATH`.
 
-### Self-hosted embedding models (optional, feature flag `local-embeddings`)
+### Embedding models (optional, feature flag `embedding-models`)
 
-Projects with the flag can embed their documents with open-weight models (BAAI/bge-m3 for now), served by any server of the OpenAI embeddings API (`POST /v1/embeddings`). On a laptop, Ollama or Infinity serve bge-m3; on a GPU, vLLM with `--runner pooling`. Point the API and the workers at it:
+Each project embeds its documents with the models it enabled, starting with those of `DOCUMENT_EMBEDDING_MODELS`. With the flag, a project can add others, such as the open-weight BAAI/bge-m3, served by any server of the OpenAI embeddings API (`POST /v1/embeddings`). On a laptop, Ollama or Infinity serve bge-m3; on a GPU, vLLM with `--runner pooling`. Point the API and the workers at it:
 
 ```bash
 # apps/api/.env
@@ -316,7 +316,7 @@ EMBEDDER_BGE_M3_MODEL=bge-m3                  # Ollama's name for it; unset for 
 WORKER_QUEUE_NAMES=...,project-embedding-reembed
 ```
 
-Then toggle the `local-embeddings` flag on the project in the back-office and enable the model from an agent's Model tab. See ADR 0028.
+Then toggle the `embedding-models` flag on the project in the back-office, enable the model from an agent's Model tab, and pick it for the agent or make it the project's default. See ADR 0028.
 
 Docling-related environment variables:
 

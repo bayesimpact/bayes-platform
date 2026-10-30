@@ -245,7 +245,7 @@ describe("Agent Settings - updateOne", () => {
     await expectActivityCreated("agentSettings.update")
   })
 
-  it("rejects a local embedding model the project has not finished embedding with", async () => {
+  it("rejects an embedding model the project has not finished embedding with", async () => {
     const { organization, project } = await createContext()
     await repositories.projectEmbeddingModelRepository.save(
       projectEmbeddingModelFactory
@@ -262,7 +262,7 @@ describe("Agent Settings - updateOne", () => {
     )
   })
 
-  it("accepts a local embedding model once the project completed it", async () => {
+  it("accepts an embedding model once the project completed it", async () => {
     const { organization, project } = await createContext()
     await repositories.projectEmbeddingModelRepository.save(
       projectEmbeddingModelFactory.completed().transient({ organization, project }).build(),
@@ -277,7 +277,7 @@ describe("Agent Settings - updateOne", () => {
     expect(updatedAgentSettings?.embeddingModel).toBe(EmbeddingModel.BgeM3)
   })
 
-  it("always accepts the default Vertex embedding model", async () => {
+  it("accepts a model a new project got from the deployment", async () => {
     await createContext()
 
     const response = await subject({
@@ -285,6 +285,23 @@ describe("Agent Settings - updateOne", () => {
     })
 
     expectResponse(response, 200)
+  })
+
+  it("rejects a Vertex model the project does not embed with", async () => {
+    const { organization, project } = await createContext()
+    await repositories.projectEmbeddingModelRepository.save(
+      projectEmbeddingModelFactory.default().transient({ organization, project }).build(),
+    )
+
+    const response = await subject({
+      payload: { embeddingModel: EmbeddingModel.GeminiEmbedding001 },
+    })
+
+    expectResponse(
+      response,
+      422,
+      `Embedding model ${EmbeddingModel.GeminiEmbedding001} is not ready for this project yet`,
+    )
   })
 
   it("should leave the other fields untouched on a partial update", async () => {

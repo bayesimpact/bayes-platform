@@ -1,5 +1,4 @@
 import {
-  DEFAULT_EMBEDDING_MODEL,
   DOCUMENT_UPDATE_PERMISSION,
   EmbeddingModelCatalog,
   updateAgentSettingsModelSchema,
@@ -68,11 +67,10 @@ export function ModelTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
   const completedEmbeddingModels = useAppSelector(selectCompletedProjectEmbeddingModels)
   // Enabling a model re-embeds every document of the project.
   const canManageEmbeddingModels = project.permissions.includes(DOCUMENT_UPDATE_PERMISSION)
-  // The default model is always offered; a local model once the project finished embedding with
-  // it. Keep the agent's current value listed even if it is no longer ready.
+  // A model is offered once the project finished embedding with it. Keep the agent's current
+  // value listed even if it is no longer ready.
   const embeddingModelOptions = [
     ...new Set([
-      DEFAULT_EMBEDDING_MODEL,
       ...completedEmbeddingModels.map((model) => model.modelName),
       agentSettings.embeddingModel,
     ]),
@@ -215,8 +213,8 @@ export function ModelTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
           )}
         </section>
 
-        {/* The whole embedding section is a flagged beta: without it, agents stay on the default model. */}
-        <RestrictedFeature feature="local-embeddings">
+        {/* The whole embedding section is a flagged beta: without it, agents keep their model. */}
+        <RestrictedFeature feature="embedding-models">
           <section className="space-y-4 rounded-lg border p-4">
             <ModelTabSectionHeader
               title={t("agentSettings:model.embeddingModel.title")}

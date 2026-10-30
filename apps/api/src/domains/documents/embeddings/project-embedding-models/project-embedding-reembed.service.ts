@@ -9,7 +9,7 @@ import { ProjectEmbeddingModelsService } from "./project-embedding-models.servic
 import type { ReembedProjectChunksJobPayload } from "./project-embedding-reembed.types"
 
 /**
- * Embeds every retrievable chunk of a project with a local model. Idempotent and resumable: it
+ * Embeds every retrievable chunk of a project with a model it enabled. Idempotent and resumable: it
  * only touches chunks with no row for the model and inserts with conflict skipping, so a retry
  * after a crash, or a document job running at the same time, never duplicates work.
  */

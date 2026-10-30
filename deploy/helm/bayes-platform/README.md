@@ -176,9 +176,9 @@ The chart deploys no queue dashboard. To examine or retry BullMQ jobs, run Bull 
 
 ## Self-hosted embedding models
 
-Projects with the `local-embeddings` feature flag can embed their documents with BAAI/bge-m3 and let each agent search with it. The model runs outside the chart, on any server of the OpenAI embeddings API (`POST /v1/embeddings`): vLLM (`--runner pooling`), text-embeddings-inference, Ollama... Put its URL and key in the application Secret, next to the `VLLM_<MODEL>_*` keys: `EMBEDDER_BGE_M3_URL` and `EMBEDDER_BGE_M3_API_KEY`. Without them, projects only see the Vertex model.
+A project starts with the models of `DOCUMENT_EMBEDDING_MODELS`. With the `embedding-models` feature flag, it can also embed its documents with BAAI/bge-m3 and let each agent search with it. The model runs outside the chart, on any server of the OpenAI embeddings API (`POST /v1/embeddings`): vLLM (`--runner pooling`), text-embeddings-inference, Ollama... Put its URL and key in the application Secret, next to the `VLLM_<MODEL>_*` keys: `EMBEDDER_BGE_M3_URL` and `EMBEDDER_BGE_M3_API_KEY`. Without them, bge-m3 cannot be enabled.
 
-The `project-embedding-reembed` queue, listed in `cpuWorkers.queues`, re-embeds a project when an admin enables the model.
+The `project-embedding-reembed` queue, listed in `cpuWorkers.queues`, embeds a project's documents when an admin enables a model.
 
 ## Managed services
 

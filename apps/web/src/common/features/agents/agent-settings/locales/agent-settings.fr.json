@@ -240,7 +240,7 @@
       "embeddingModel": {
         "title": "Recherche dans les documents",
         "description": "Le modèle qui trouve, dans les documents du projet, les passages liés à chaque question.",
-        "help": "Les modèles locaux apparaissent une fois les documents du projet vectorisés avec eux."
+        "help": "Un modèle apparaît une fois les documents du projet vectorisés avec lui."
       }
     },
     "tools": {

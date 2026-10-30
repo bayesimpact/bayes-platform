@@ -3,18 +3,18 @@ import { Injectable, Logger, NotFoundException } from "@nestjs/common"
 import { InjectDataSource } from "@nestjs/typeorm"
 import { toSql } from "pgvector"
 import type { DataSource } from "typeorm"
+import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import type { DoclingChunk, DoclingParentChunk } from "@/external/docling/docling.types"
 import type { Document } from "../document.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentsService } from "../documents.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentEmbeddingStatusNotifierService } from "./document-embedding-status-notifier.service"
-import { resolveEmbeddingModelNames } from "./document-embeddings.config"
 import type { CreateDocumentEmbeddingsJobPayload } from "./document-embeddings.types"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { EmbedderService } from "./embedders/embedder.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { ProjectEmbeddingModelRepository } from "./project-embedding-models/project-embedding-model.repository"
+import { ProjectEmbeddingModelsService } from "./project-embedding-models/project-embedding-models.service"
 
 type ChunkInsertionScope = {
   documentId: string
@@ -30,7 +30,7 @@ export class DocumentEmbeddingsSharedService {
     private readonly documentsService: DocumentsService,
     private readonly embeddingStatusNotifierService: DocumentEmbeddingStatusNotifierService,
     @InjectDataSource() private readonly dataSource: DataSource,
-    private readonly projectEmbeddingModelRepository: ProjectEmbeddingModelRepository,
+    private readonly projectEmbeddingModelsService: ProjectEmbeddingModelsService,
     private readonly embedderService: EmbedderService,
   ) {}
 
@@ -58,21 +58,18 @@ export class DocumentEmbeddingsSharedService {
   }
 
   /**
-   * One vector per chunk for the Vertex models of the deployment, plus one per self-hosted model
-   * the project enabled (so a new upload is retrievable with every model an agent may pick). Any
-   * embedder failing fails the document: its chunks stay consistent across models.
+   * One vector per chunk for every model the project enabled, so a new upload is retrievable with
+   * every model an agent may pick. Any embedder failing fails the document: its chunks stay
+   * consistent across models.
    */
   async generateEmbeddingsByModel({
     chunks,
-    projectId,
+    connectScope,
   }: {
     chunks: string[]
-    projectId: string
+    connectScope: RequiredConnectScope
   }): Promise<Map<string, number[][]>> {
-    const modelNames = [
-      ...resolveEmbeddingModelNames(),
-      ...(await this.projectEmbeddingModelRepository.listActiveModelNames(projectId)),
-    ]
+    const modelNames = await this.projectEmbeddingModelsService.listActiveModelNames(connectScope)
     return this.embedWithModels({ chunks, modelNames })
   }
 
@@ -98,16 +95,17 @@ export class DocumentEmbeddingsSharedService {
    * reads completed documents, so the document job covers them itself before writing its chunks.
    */
   private async addModelsEnabledMeanwhile({
-    projectId,
+    connectScope,
     chunks,
     embeddingsByModelName,
   }: {
-    projectId: string
+    connectScope: RequiredConnectScope
     chunks: string[]
     embeddingsByModelName: Map<string, number[][]>
   }): Promise<Map<string, number[][]>> {
+    const { projectId } = connectScope
     const activeModelNames =
-      await this.projectEmbeddingModelRepository.listActiveModelNames(projectId)
+      await this.projectEmbeddingModelsService.listActiveModelNames(connectScope)
     const missingModelNames = activeModelNames.filter(
       (modelName) => !embeddingsByModelName.has(modelName),
     )
@@ -133,7 +131,7 @@ export class DocumentEmbeddingsSharedService {
     embeddingsByModelName: Map<string, number[][]>
   }): Promise<void> {
     const completeEmbeddingsByModelName = await this.addModelsEnabledMeanwhile({
-      projectId: scope.projectId,
+      connectScope: { organizationId: scope.organizationId, projectId: scope.projectId },
       chunks,
       embeddingsByModelName,
     })

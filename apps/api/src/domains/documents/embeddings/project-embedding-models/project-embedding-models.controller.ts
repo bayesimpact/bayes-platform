@@ -2,6 +2,7 @@ import {
   enableProjectEmbeddingModelSchema,
   type ProjectEmbeddingModelDto,
   ProjectEmbeddingModelsRoutes,
+  updateProjectEmbeddingModelSchema,
 } from "@caseai-connect/api-contracts"
 import {
   Body,
@@ -10,6 +11,9 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Param,
+  ParseUUIDPipe,
+  Patch,
   Post,
   Request,
   UseGuards,
@@ -31,12 +35,12 @@ import type { ProjectEmbeddingModel } from "./project-embedding-model.entity"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectEmbeddingModelsService } from "./project-embedding-models.service"
 
-export const LOCAL_EMBEDDINGS_FEATURE_DISABLED_ERROR_MESSAGE =
-  "Local embeddings are not enabled for this project."
+export const EMBEDDING_MODELS_FEATURE_DISABLED_ERROR_MESSAGE =
+  "Embedding models are not enabled for this project."
 
 /**
- * Embedding models of a project. Listing them needs the right to see the documents, and enabling
- * one the right to update them, since it re-embeds every document of the project.
+ * Embedding models of a project. Listing them needs the right to see the documents, and changing
+ * them the right to update them, since enabling one re-embeds every document of the project.
  */
 @UseGuards(JwtAuthGuard, UserGuard, ResourceContextGuard, CheckPermissionGuard)
 @RequireContext("organization", "project")
@@ -66,19 +70,41 @@ export class ProjectEmbeddingModelsController {
     @Request() req: EndpointRequestWithProject,
   ): Promise<typeof ProjectEmbeddingModelsRoutes.createOne.response> {
     const connectScope = getRequiredConnectScope(req)
-    const hasFeature = await this.projectsService.hasFeature({
-      connectScope,
-      feature: "local-embeddings",
-    })
-    if (!hasFeature) {
-      throw new ForbiddenException(LOCAL_EMBEDDINGS_FEATURE_DISABLED_ERROR_MESSAGE)
-    }
-
+    await this.assertFeatureEnabled(connectScope)
     const row = await this.projectEmbeddingModelsService.enable({
       connectScope,
       modelName: payload.modelName,
     })
     return { data: toProjectEmbeddingModelDto(row) }
+  }
+
+  @CheckPermission(DOCUMENT_UPDATE_PERMISSION, "project")
+  @Patch(ProjectEmbeddingModelsRoutes.updateOne.path)
+  async updateOne(
+    @Param("projectEmbeddingModelId", new ParseUUIDPipe()) projectEmbeddingModelId: string,
+    @Body(new ZodValidationPipe(updateProjectEmbeddingModelSchema))
+    _body: typeof ProjectEmbeddingModelsRoutes.updateOne.request,
+    @Request() req: EndpointRequestWithProject,
+  ): Promise<typeof ProjectEmbeddingModelsRoutes.updateOne.response> {
+    const connectScope = getRequiredConnectScope(req)
+    await this.assertFeatureEnabled(connectScope)
+    const row = await this.projectEmbeddingModelsService.setDefault({
+      connectScope,
+      projectEmbeddingModelId,
+    })
+    return { data: toProjectEmbeddingModelDto(row) }
+  }
+
+  private async assertFeatureEnabled(
+    connectScope: ReturnType<typeof getRequiredConnectScope>,
+  ): Promise<void> {
+    const hasFeature = await this.projectsService.hasFeature({
+      connectScope,
+      feature: "embedding-models",
+    })
+    if (!hasFeature) {
+      throw new ForbiddenException(EMBEDDING_MODELS_FEATURE_DISABLED_ERROR_MESSAGE)
+    }
   }
 }
 
@@ -93,6 +119,7 @@ function toProjectEmbeddingModelDto(
     totalChunks: projectEmbeddingModel.totalChunks,
     processedChunks: projectEmbeddingModel.processedChunks,
     error: projectEmbeddingModel.error ?? null,
+    isDefault: projectEmbeddingModel.isDefault,
     createdAt: projectEmbeddingModel.createdAt.getTime(),
     updatedAt: projectEmbeddingModel.updatedAt.getTime(),
   }

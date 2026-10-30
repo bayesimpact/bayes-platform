@@ -16,6 +16,10 @@ class ProjectEmbeddingModelFactory extends Factory<
     return this.params({ status: "completed", totalChunks: 120, processedChunks: 120 })
   }
 
+  default() {
+    return this.completed().params({ isDefault: true })
+  }
+
   processing() {
     return this.params({ status: "processing", totalChunks: 120, processedChunks: 45 })
   }
@@ -23,7 +27,7 @@ class ProjectEmbeddingModelFactory extends Factory<
   failed() {
     return this.params({
       status: "failed",
-      error: "Local embeddings are not enabled on this worker",
+      error: "Embedder BAAI/bge-m3 answered 503",
     })
   }
 }
@@ -45,6 +49,7 @@ export const projectEmbeddingModelFactory = ProjectEmbeddingModelFactory.define(
       totalChunks: params.totalChunks ?? 0,
       processedChunks: params.processedChunks ?? 0,
       error: params.error ?? null,
+      isDefault: params.isDefault ?? false,
       createdAt: params.createdAt ?? faker.date.past().getTime(),
       updatedAt: params.updatedAt ?? faker.date.recent().getTime(),
     } satisfies ProjectEmbeddingModel

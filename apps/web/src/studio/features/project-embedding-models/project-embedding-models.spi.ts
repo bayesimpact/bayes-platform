@@ -8,6 +8,10 @@ type ScopeParams = {
 
 export interface IProjectEmbeddingModelsSpi {
   getAll(params: ScopeParams): Promise<ProjectEmbeddingModel[]>
-  /** Enables a local model on the project and starts re-embedding its documents. */
+  /** Enables a model on the project and starts embedding its documents with it. */
   createOne(params: ScopeParams & { modelName: EmbeddingModel }): Promise<ProjectEmbeddingModel>
+  /** Makes a completed model the one new agents of the project search with. */
+  updateOne(
+    params: ScopeParams & { projectEmbeddingModelId: string; isDefault: true },
+  ): Promise<ProjectEmbeddingModel>
 }

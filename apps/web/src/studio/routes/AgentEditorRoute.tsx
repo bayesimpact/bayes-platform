@@ -39,7 +39,7 @@ export function AgentEditorRoute() {
   useMount({
     actions: projectEmbeddingModelsActions,
     condition:
-      project.featureFlags.includes("local-embeddings") &&
+      project.featureFlags.includes("embedding-models") &&
       project.permissions.includes(DOCUMENT_READ_PERMISSION),
   })
 

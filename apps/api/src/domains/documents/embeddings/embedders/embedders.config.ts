@@ -1,8 +1,17 @@
-import { EmbeddingModel, isLocalEmbeddingModel } from "@caseai-connect/api-contracts"
+import {
+  EmbeddingModel,
+  EmbeddingProvider,
+  getEmbeddingModelMetadata,
+} from "@caseai-connect/api-contracts"
 import { readPositiveIntEnv } from "@/config/positive-int-env"
 
+/** Models served by an OpenAI embeddings server; every other model name goes to Vertex. */
+export function isOpenAiCompatibleModel(modelName: string): modelName is EmbeddingModel {
+  return getEmbeddingModelMetadata(modelName)?.provider === EmbeddingProvider.OpenAiCompatible
+}
+
 /**
- * Environment prefix of each self-hosted model: `EMBEDDER_<KEY>_URL` (base URL of an OpenAI
+ * Environment prefix of each OpenAI-compatible model: `EMBEDDER_<KEY>_URL` (base URL of an OpenAI
  * embeddings server, without /v1), `EMBEDDER_<KEY>_API_KEY` and `EMBEDDER_<KEY>_MODEL` (the name
  * the server knows the model by, when it is not the catalog id, e.g. `bge-m3` on Ollama). A model
  * of the catalog with no URL in the environment is simply not offered by the deployment.
@@ -22,7 +31,7 @@ export type HttpEmbedderConfig = {
 }
 
 export function resolveHttpEmbedderConfig(modelName: string): HttpEmbedderConfig | undefined {
-  if (!isLocalEmbeddingModel(modelName)) return undefined
+  if (!isOpenAiCompatibleModel(modelName)) return undefined
   const envKey = HTTP_EMBEDDER_ENV_KEYS[modelName]
   if (!envKey) return undefined
   const url = process.env[`EMBEDDER_${envKey}_URL`]?.trim()
@@ -36,11 +45,11 @@ export function resolveHttpEmbedderConfig(modelName: string): HttpEmbedderConfig
 
 /** Name of the variable that makes a model available, for error messages. */
 export function getHttpEmbedderUrlVariable(modelName: string): string {
-  const envKey = isLocalEmbeddingModel(modelName) ? HTTP_EMBEDDER_ENV_KEYS[modelName] : undefined
+  const envKey = isOpenAiCompatibleModel(modelName) ? HTTP_EMBEDDER_ENV_KEYS[modelName] : undefined
   return envKey ? `EMBEDDER_${envKey}_URL` : "an EMBEDDER_<MODEL>_URL variable"
 }
 
-/** Chunks sent to a self-hosted embedder per request. */
+/** Chunks sent to an OpenAI-compatible embedder per request. */
 export function getEmbedderBatchSize(): number {
   return readPositiveIntEnv("EMBEDDER_BATCH_SIZE", { defaultValue: DEFAULT_EMBEDDER_BATCH_SIZE })
 }

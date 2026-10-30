@@ -2,8 +2,8 @@ import { randomUUID } from "node:crypto"
 import {
   AgentMemoryMode,
   AgentModel,
-  DEFAULT_EMBEDDING_MODEL,
   DocumentsRagMode,
+  EmbeddingModel,
 } from "@caseai-connect/api-contracts"
 import { Factory } from "fishery"
 import type { RequiredScopeTransientParams } from "@/common/entities/connect-required-fields"
@@ -51,7 +51,7 @@ export const agentSettingsFactory = AgentSettingsFactory.define(
       priorityCallsEnabled: params.priorityCallsEnabled ?? false,
       providerOptions: params.providerOptions ?? {},
       memoryMode: params.memoryMode || AgentMemoryMode.Off,
-      embeddingModel: params.embeddingModel ?? DEFAULT_EMBEDDING_MODEL,
+      embeddingModel: params.embeddingModel ?? EmbeddingModel.GeminiEmbedding001,
       organizationId: transientParams.organization.id,
       projectId: transientParams.project.id,
       agentId: transientParams.agent.id,

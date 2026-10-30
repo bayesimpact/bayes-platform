@@ -1,9 +1,8 @@
-import {
-  type AgentMemoryMode,
-  type AgentModel,
-  DEFAULT_EMBEDDING_MODEL,
-  type DocumentsRagMode,
-  type EmbeddingModel,
+import type {
+  AgentMemoryMode,
+  AgentModel,
+  DocumentsRagMode,
+  EmbeddingModel,
 } from "@caseai-connect/api-contracts"
 import { Column, JoinColumn, ManyToOne, type Relation } from "typeorm"
 import { ConnectEntityBase, ConnectEntityWithUniqueIndex } from "@/common/entities/connect-entity"
@@ -64,16 +63,11 @@ export class AgentSettings extends ConnectEntityBase {
   documentsRagMode!: DocumentsRagMode
 
   /**
-   * The model the knowledge base lookup embeds the query with. Always a real name, never "the
-   * default": changing the platform default must not move existing agents to vectors their
-   * project may not have.
+   * The model the knowledge base lookup embeds the query with, one of its project's. Always a
+   * real name, never "the default": a project changing its default must not move existing agents.
+   * A new agent takes the project's default.
    */
-  @Column({
-    type: "varchar",
-    name: "embedding_model",
-    nullable: false,
-    default: DEFAULT_EMBEDDING_MODEL,
-  })
+  @Column({ type: "varchar", name: "embedding_model", nullable: false })
   embeddingModel!: EmbeddingModel
 
   @Column({ type: "text", nullable: true, name: "greeting_message" })

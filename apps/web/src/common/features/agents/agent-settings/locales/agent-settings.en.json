@@ -240,7 +240,7 @@
       "embeddingModel": {
         "title": "Document search",
         "description": "The model that finds the passages of the project's documents that match each question.",
-        "help": "Local models appear once the project finished embedding its documents with them."
+        "help": "A model appears once the project finished embedding its documents with it."
       }
     },
     "tools": {

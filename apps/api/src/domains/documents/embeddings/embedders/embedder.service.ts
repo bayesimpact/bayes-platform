@@ -1,5 +1,4 @@
 import { createVertex } from "@ai-sdk/google-vertex"
-import { isLocalEmbeddingModel } from "@caseai-connect/api-contracts"
 import { Injectable, Logger } from "@nestjs/common"
 import { embed, embedMany } from "ai"
 import {
@@ -12,23 +11,24 @@ import {
   getEmbedderRequestTimeoutMs,
   getHttpEmbedderUrlVariable,
   type HttpEmbedderConfig,
+  isOpenAiCompatibleModel,
   resolveHttpEmbedderConfig,
 } from "./embedders.config"
 import type { OpenAiEmbeddingsRequest, OpenAiEmbeddingsResponse } from "./embedders.types"
 
 /**
- * The one way the platform turns text into vectors, for chunks and queries alike. Self-hosted
- * models of the catalog are reached through the OpenAI embeddings API (`POST {url}/v1/embeddings`),
- * served by any compatible server; every other model name is a Vertex model called through the
- * AI SDK.
+ * The one way the platform turns text into vectors, for chunks and queries alike, and the only
+ * place where a model's provider matters. OpenAI-compatible models of the catalog are reached
+ * through the OpenAI embeddings API (`POST {url}/v1/embeddings`), served by any compatible server;
+ * every other model name is a Vertex model called through the AI SDK.
  */
 @Injectable()
 export class EmbedderService {
   private readonly logger = new Logger(EmbedderService.name)
 
-  /** Vertex models are always there; a self-hosted model needs its URL in the environment. */
+  /** Vertex models are always there; an OpenAI-compatible model needs its URL in the environment. */
   isAvailable(modelName: string): boolean {
-    return !isLocalEmbeddingModel(modelName) || resolveHttpEmbedderConfig(modelName) !== undefined
+    return !isOpenAiCompatibleModel(modelName) || resolveHttpEmbedderConfig(modelName) !== undefined
   }
 
   assertAvailable(modelName: string): void {
@@ -78,7 +78,7 @@ export class EmbedderService {
   }
 
   private resolveHttpConfigOrThrow(modelName: string): HttpEmbedderConfig | undefined {
-    if (!isLocalEmbeddingModel(modelName)) return undefined
+    if (!isOpenAiCompatibleModel(modelName)) return undefined
     this.assertAvailable(modelName)
     return resolveHttpEmbedderConfig(modelName)
   }

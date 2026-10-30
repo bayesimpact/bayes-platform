@@ -1,13 +1,15 @@
 {
   "projectEmbeddingModels": {
     "manage": "Manage models",
-    "title": "Local embedding models",
-    "description": "Enabling a model embeds every document of the project with it. Once done, agents can retrieve with it.",
+    "title": "Embedding models",
+    "description": "Enabling a model embeds every document of the project with it. Once done, agents can retrieve with it. New agents use the default model.",
     "notEnabled": "Not enabled",
     "processing": "Processing",
     "completed": "Ready",
     "progress": "{{processed}} / {{total}} chunks",
     "dimensions": "{{count}} dimensions",
-    "retryResumes": "Retry picks up where it left off: {{processed}} / {{total}} chunks already embedded."
+    "retryResumes": "Retry picks up where it left off: {{processed}} / {{total}} chunks already embedded.",
+    "default": "Default",
+    "setDefault": "Make default"
   }
 }
