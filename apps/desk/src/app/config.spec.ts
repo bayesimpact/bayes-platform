@@ -29,6 +29,8 @@ describe("the Desk's configuration", () => {
     expect(config).toEqual({
       mode: "api",
       helpCenterUrl: undefined,
+      appVersion: undefined,
+      gitSha: undefined,
       oidcAuthority: "https://idp.example.org",
       oidcClientId: "desk-tests",
       oidcAudience: undefined,
@@ -71,6 +73,20 @@ describe("the Desk's configuration", () => {
     const config = await readConfigWith({ injected: { helpCenterUrl: "https://help.example.org" } })
 
     expect(config).toMatchObject({ helpCenterUrl: "https://help.example.org" })
+  })
+
+  it("shows the deployed tag as the version, or else the short commit", async () => {
+    const { displayedVersion } = await import("./config")
+
+    expect(displayedVersion({ appVersion: "26.10.7", gitSha: "a8618c1ed0000" })).toBe("26.10.7")
+    expect(displayedVersion({ appVersion: undefined, gitSha: "a8618c1ed0000" })).toBe("a8618c1")
+    expect(displayedVersion({ appVersion: undefined, gitSha: undefined })).toBeUndefined()
+  })
+
+  it("reads a blank version as no version", async () => {
+    const config = await readConfigWith({ injected: { appVersion: " ", gitSha: "a8618c1ed0000" } })
+
+    expect(config).toMatchObject({ appVersion: undefined, gitSha: "a8618c1ed0000" })
   })
 
   it("refuses to start on an invalid configuration, and says what is wrong", async () => {

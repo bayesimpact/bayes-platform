@@ -9,6 +9,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 
+- Desk: the user menu now shows the deployed platform version, as the Studio menu does.
+
 ### Changed
 
 - Agents: the answer language now lives in the agent's instructions, which replace the French/English setting.

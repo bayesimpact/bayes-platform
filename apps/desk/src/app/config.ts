@@ -24,6 +24,10 @@ const optionalUrl = optionalText.pipe(z.url({ protocol: /^https?$/ }).optional()
 const sharedConfigSchema = z.object({
   /** The install's help center, which the user menu links to when it is set. */
   helpCenterUrl: optionalUrl,
+  /** The deployed image tag (`26.10.7`, `main-1234-abc1234`), which the deployment sets. */
+  appVersion: optionalText,
+  /** The commit the image was built from. */
+  gitSha: optionalText,
 })
 
 const apiModeConfigSchema = sharedConfigSchema.extend({
@@ -56,11 +60,20 @@ export const isMockMode = import.meta.env.MODE === "mock"
 
 function readConfig(): AppConfig {
   const env = import.meta.env
-  // The stories show the help center's link, with a sample address.
-  if (isMockMode) return { mode: "mock", helpCenterUrl: "https://help.example.org" }
+  // The stories show the help center's link and the version, with sample values.
+  if (isMockMode) {
+    return {
+      mode: "mock",
+      helpCenterUrl: "https://help.example.org",
+      appVersion: "26.10.7",
+      gitSha: undefined,
+    }
+  }
 
   const buildTime = {
     helpCenterUrl: env.VITE_HELP_CENTER_URL,
+    appVersion: env.VITE_APP_VERSION,
+    gitSha: env.VITE_GIT_SHA,
     oidcAuthority: env.VITE_OIDC_AUTHORITY,
     oidcClientId: env.VITE_OIDC_CLIENT_ID,
     oidcAudience: env.VITE_OIDC_AUDIENCE,
@@ -78,6 +91,17 @@ function readConfig(): AppConfig {
 }
 
 export const appConfig = readConfig()
+
+/**
+ * The version the user menu shows: the deployed tag, or the short commit when only the build knows
+ * it. Undefined when neither is set, as in local dev.
+ */
+export function displayedVersion({
+  appVersion,
+  gitSha,
+}: Pick<AppConfig, "appVersion" | "gitSha">): string | undefined {
+  return appVersion ?? gitSha?.slice(0, 7)
+}
 
 /**
  * The path the Desk is served under, with its slashes, which the API serves it at: Vite's `base` in

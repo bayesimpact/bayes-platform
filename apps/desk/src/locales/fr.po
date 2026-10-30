@@ -1328,6 +1328,11 @@ msgstr "Utilisation d'un outil"
 msgid "Verify your email"
 msgstr "Vérifiez votre email"
 
+#. The version of the platform the install runs: a release such as 26.10.7, or a short commit hash
+#: src/features/account/components/UserMenu.tsx
+msgid "Version {version}"
+msgstr "Version {version}"
+
 #: src/features/memory/components/MemoryPanel.tsx
 msgid "Waiting for your answer"
 msgstr "En attente de votre réponse"

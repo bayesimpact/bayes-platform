@@ -32,7 +32,8 @@ holds what is specific to the Desk.
 - Terms: the layout of the signed-in pages waits for `me` and shows the terms to accept before any
   page, as apps/web does. It is the one section that holds its pages back, on purpose.
 - Configuration: the API injects `window.__CONFIG__` when it serves the Desk, from the `WEB_*`
-  variables it gives apps/web (`helpCenterUrl`, the `oidc*` keys); in dev, the `VITE_*` values of
+  variables it gives apps/web (`helpCenterUrl`, the `oidc*` keys), and the version it runs
+  (`appVersion`, `gitSha`), which the user menu shows; in dev, the `VITE_*` values of
   `apps/desk/.env` stand in (see `.env-example`).
 
 ## Commands
