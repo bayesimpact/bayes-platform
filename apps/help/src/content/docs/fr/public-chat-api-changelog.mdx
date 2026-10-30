@@ -4,12 +4,12 @@ highlight: Journal
 description: Chaque version de l'API de chat publique, avec la date, les changements et les étapes de migration quand un changement est cassant.
 category: developers
 order: 3
-updated: 2026-10-29
-apiVersion: "1.2"
+updated: 2026-10-30
+apiVersion: "1.3"
 ---
 
 Cette page liste chaque version de l'API de chat publique. La version courante est la
-**1.2**. Les versions mineures ajoutent des éléments et gardent les clients existants
+**1.3**. Les versions mineures ajoutent des éléments et gardent les clients existants
 fonctionnels. Les versions majeures peuvent casser des clients et viennent avec une période
 de dépréciation. Voir la
 [politique de versions et de dépréciation](/fr/public-chat-api-versioning).
@@ -34,6 +34,27 @@ de dépréciation. Voir la
   ### Migration
   - ... (obligatoire pour une version majeure)
 */}
+
+## 1.3 (2026-10-30)
+
+### Ajouté
+
+- [Envoyer un message et recevoir la réponse en flux](/fr/public-chat-api#envoyer-un-message-et-recevoir-la-réponse-en-flux)
+  avec `POST /public/v1/agents/{embedToken}/sessions/{sessionId}/stream`. Le message voyage
+  dans le corps JSON. Il n'atteint donc plus les limites d'URL ni les journaux d'accès. La
+  réponse est le même flux.
+- L'erreur de flux `Invalid request body`, pour un corps `POST` sans objet `payload`.
+
+### Déprécié
+
+- `GET .../sessions/{sessionId}/messages/stream?q=...`, qui envoie le message dans l'URL.
+  Cette route reste servie sur la v1 et renvoie le même flux.
+
+### Migration
+
+- Aucune obligatoire. Pour migrer, envoyez `{ "payload": { "content": "..." } }` en corps
+  JSON à la route `POST` au lieu du paramètre `q`. Ajoutez l'en-tête
+  `Content-Type: application/json`.
 
 ## 1.2 (2026-10-29)
 

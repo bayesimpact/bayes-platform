@@ -4,7 +4,7 @@
  * major for a breaking change. The major is also the path segment of the routes
  * (`/public/v1/...`), see `PUBLIC_API_MAJOR`.
  */
-export const PUBLIC_API_VERSION = "1.2"
+export const PUBLIC_API_VERSION = "1.3"
 
 /** `"1.0"` gives `"v1"`: the path segment a version string belongs to. */
 type MajorOf<Version extends string> = Version extends `${infer Major}.${string}`

@@ -4,8 +4,8 @@ highlight: API
 description: Construisez votre propre client de chat sur un agent public. Routes, en-têtes, événements envoyés par le serveur, codes d'erreur et limites de l'API de chat publique, version 1.
 category: developers
 order: 1
-updated: 2026-10-29
-apiVersion: "1.2"
+updated: 2026-10-30
+apiVersion: "1.3"
 ---
 
 import PublicApiBaseUrl from "@/components/PublicApiBaseUrl.astro"
@@ -39,7 +39,7 @@ Toutes les routes de la version 1 commencent par `/public/v1/agents/{embedToken}
 
 ## Version
 
-Cette page documente la version **1.2**. La version majeure est dans le chemin (`v1`). Les
+Cette page documente la version **1.3**. La version majeure est dans le chemin (`v1`). Les
 versions mineures ajoutent des champs ou des routes et ne changent jamais l'existant. Le
 [journal des modifications](/fr/public-chat-api-changelog) liste chaque version. Votre
 client doit ignorer les champs et les types d'événements inconnus. Il reste ainsi
@@ -83,7 +83,8 @@ que la conversation précédente a expiré.
 | `POST` | `/public/v1/agents/{embedToken}/sessions` | Créer une session |
 | `GET` | `/public/v1/agents/{embedToken}/sessions/{sessionId}` | Lire une session et ses messages |
 | `GET` | `/public/v1/agents/{embedToken}/sessions/{sessionId}/mcp-app-html` | Lire le HTML des cartes MCP App |
-| `GET` | `/public/v1/agents/{embedToken}/sessions/{sessionId}/messages/stream` | Envoyer un message et recevoir la réponse en flux |
+| `POST` | `/public/v1/agents/{embedToken}/sessions/{sessionId}/stream` | Envoyer un message et recevoir la réponse en flux |
+| `GET` | `/public/v1/agents/{embedToken}/sessions/{sessionId}/messages/stream` | Déprécié : la même chose, avec le message dans l'URL |
 
 ### Lire la configuration de l'agent
 
@@ -273,38 +274,56 @@ Statut : `200`. Erreurs : `401`, `403`, `410`.
 ### Envoyer un message et recevoir la réponse en flux
 
 ```
+POST /public/v1/agents/{embedToken}/sessions/{sessionId}/stream
+X-Session-Token: {sessionToken}
+Content-Type: application/json
+Accept: text/event-stream
+```
+
+Envoie le message du visiteur et renvoie la réponse sous forme
+d'[événements envoyés par le serveur](#événements-envoyés-par-le-serveur). Le message
+voyage dans le corps JSON.
+
+| Champ du corps | Type | Description |
+|---|---|---|
+| `payload.content` | string, obligatoire | Le message du visiteur. Ne doit pas être vide |
+
+```bash
+curl -N -X POST "$API_BASE/public/v1/agents/$EMBED_TOKEN/sessions/$SESSION_ID/stream" \
+  -H "X-Session-Token: $SESSION_TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "Accept: text/event-stream" \
+  -d '{"payload":{"content":"What is your return policy?"}}'
+```
+
+L'API `EventSource` du navigateur ne peut pas envoyer de corps ni l'en-tête
+`X-Session-Token`. Utilisez `fetch` et lisez le corps de la réponse en flux (voir
+[Démarrage rapide](#démarrage-rapide)).
+
+Statut : `200` avec `Content-Type: text/event-stream`. Erreurs avant le début du flux :
+`401`, `403`, `410`. Les erreurs sur le corps arrivent dans le flux (voir plus bas).
+
+Après le dernier événement, relisez la session pour obtenir la réponse enregistrée et ses
+`toolCalls`. Le flux ne transporte que du texte.
+
+### Envoyer un message dans l'URL (déprécié)
+
+```
 GET /public/v1/agents/{embedToken}/sessions/{sessionId}/messages/stream?q={encodedPayload}
 X-Session-Token: {sessionToken}
 Accept: text/event-stream
 ```
 
-Envoie le message du visiteur et renvoie la réponse sous forme
-d'[événements envoyés par le serveur](#événements-envoyés-par-le-serveur). La charge utile
-voyage encodée dans le paramètre de requête `q`, ce qui permet d'utiliser `GET` :
+Déprécié depuis la 1.3. Utilisez la route `POST` ci-dessus. Cette route reste servie sur
+la v1 et renvoie le même flux. La charge utile voyage encodée dans le paramètre de requête
+`q` :
 
 ```js
 const q = encodeURIComponent(JSON.stringify({ payload: { content: "What is your return policy?" } }))
 ```
 
-| Champ de la charge utile | Type | Description |
-|---|---|---|
-| `payload.content` | string, obligatoire | Le message du visiteur. Ne doit pas être vide |
-
-```bash
-curl -N "$API_BASE/public/v1/agents/$EMBED_TOKEN/sessions/$SESSION_ID/messages/stream?q=%7B%22payload%22%3A%7B%22content%22%3A%22Hello%22%7D%7D" \
-  -H "X-Session-Token: $SESSION_TOKEN" \
-  -H "Accept: text/event-stream"
-```
-
-L'API `EventSource` du navigateur ne peut pas envoyer l'en-tête `X-Session-Token`.
-Utilisez `fetch` et lisez le corps de la réponse en flux (voir
-[Démarrage rapide](#démarrage-rapide)). `POST` sur ce chemin renvoie `404`.
-
-Statut : `200` avec `Content-Type: text/event-stream`. Erreurs avant le début du flux :
-`401`, `403`, `410`. Les erreurs de charge utile arrivent dans le flux (voir plus bas).
-
-Après le dernier événement, relisez la session pour obtenir la réponse enregistrée et ses
-`toolCalls`. Le flux ne transporte que du texte.
+Un message dans l'URL peut dépasser la limite d'URL d'un proxy, et les journaux d'accès
+gardent son texte. `POST` sur ce chemin renvoie `404`.
 
 ## Événements envoyés par le serveur
 
@@ -366,7 +385,8 @@ data: {"type":"error","messageId":"","error":"User content must not be empty"}
 
 | `error` | Cause |
 |---|---|
-| `Invalid query format` | `q` n'est pas du JSON valide |
+| `Invalid request body` | Le corps `POST` n'a pas d'objet `payload`, ou `payload.content` n'est pas une chaîne |
+| `Invalid query format` | `q` n'est pas du JSON valide (route `GET` dépréciée) |
 | `User content must not be empty` | `payload.content` est absent ou vide |
 | `Agent not found` | L'agent a été supprimé |
 | `Internal server error` | Défaut du serveur. Réessayez plus tard |
@@ -404,7 +424,7 @@ Les réponses d'erreur sont en JSON :
 | `413` | `request entity too large` | Corps de plus de 500 ko | Raccourcissez le corps. Cette réponse n'a pas de champ `error` |
 | `500` | `Internal server error` | Défaut du serveur | Réessayez plus tard |
 
-La route de flux signale les erreurs de charge utile dans le flux, voir
+Les routes de flux signalent les erreurs de charge utile dans le flux, voir
 [Erreurs au niveau du flux](#erreurs-au-niveau-du-flux).
 
 ## CORS
@@ -424,7 +444,8 @@ liste.
 ## Limites et durées
 
 - Les corps de requête JSON sont limités à 500 ko (`413` ci-dessus).
-- La requête de flux voyage dans l'URL. Gardez le paramètre `q` encodé sous 8 ko.
+- Le flux `GET` déprécié transporte le message dans l'URL. Gardez le paramètre `q` encodé
+  sous 8 ko, ou utilisez le flux `POST`.
 - Une réponse par requête de flux. Attendez `end` avant d'envoyer le message suivant.
 - Aucune limite de débit n'est appliquée aujourd'hui. Utilisez l'API raisonnablement. Une
   limite serait annoncée dans le [journal des modifications](/fr/public-chat-api-changelog)
@@ -465,9 +486,14 @@ const sessionHeaders = { "X-Session-Token": session.sessionToken }
 
 // 2. Envoyer un message et recevoir la réponse en flux
 async function send(content, onChunk) {
-  const q = encodeURIComponent(JSON.stringify({ payload: { content } }))
-  const response = await api(`${sessionPath}/messages/stream?q=${q}`, {
-    headers: { ...sessionHeaders, Accept: "text/event-stream" },
+  const response = await api(`${sessionPath}/stream`, {
+    method: "POST",
+    headers: {
+      ...sessionHeaders,
+      "Content-Type": "application/json",
+      Accept: "text/event-stream",
+    },
+    body: JSON.stringify({ payload: { content } }),
   })
   const reader = response.body.getReader()
   const decoder = new TextDecoder()

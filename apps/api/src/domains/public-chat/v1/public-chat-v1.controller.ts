@@ -6,11 +6,14 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
   HttpException,
+  HttpStatus,
   Logger,
   Post,
   Query,
   Req,
+  RequestMethod,
   Sse,
   UseGuards,
 } from "@nestjs/common"
@@ -80,13 +83,24 @@ export class PublicChatV1Controller extends PublicChatController {
     return { data: toMcpAppHtmlDtos(htmlByKey) }
   }
 
+  /** Deprecated since 1.3 in favour of `streamReply`, which keeps the message out of the URL. */
   @UseGuards(PublicSessionTokenGuard)
-  @Sse(PublicChatRoutes.streamMessages.path, { method: 0 /* GET */ })
+  @Sse(PublicChatRoutes.streamMessages.path, { method: RequestMethod.GET })
   streamMessages(
     @Req() request: PublicChatSessionRequest,
     @Query("q") query: string,
   ): Observable<MessageEvent> {
-    return this.buildStream(request.publicSession, query)
+    return this.buildStream(request.publicSession, () => parseStreamQuery(query))
+  }
+
+  @UseGuards(PublicSessionTokenGuard)
+  @Sse(PublicChatRoutes.streamReply.path, { method: RequestMethod.POST })
+  @HttpCode(HttpStatus.OK)
+  streamReply(
+    @Req() request: PublicChatSessionRequest,
+    @Body() body: unknown,
+  ): Observable<MessageEvent> {
+    return this.buildStream(request.publicSession, () => parseStreamBody(body))
   }
 
   /**
@@ -97,7 +111,10 @@ export class PublicChatV1Controller extends PublicChatController {
    * contract. The generation layer emits its own error event before throwing, which is
    * not doubled here.
    */
-  private buildStream(publicSession: PublicAgentSession, query: string): Observable<StreamEvent> {
+  private buildStream(
+    publicSession: PublicAgentSession,
+    readUserContent: () => string,
+  ): Observable<StreamEvent> {
     return new Observable<StreamEvent>((subscriber) => {
       let messageId = ""
       let lastEventType: StreamEventPayload["type"] | undefined
@@ -118,7 +135,7 @@ export class PublicChatV1Controller extends PublicChatController {
 
       let userContent: string
       try {
-        userContent = parseStreamQuery(query)
+        userContent = readUserContent()
       } catch (error) {
         fail(error)
         return
@@ -154,7 +171,24 @@ function parseStreamQuery(query: string): string {
   } catch {
     throw new BadRequestException("Invalid query format")
   }
-  const userContent = parsedQuery.payload?.content
+  return requireUserContent(parsedQuery)
+}
+
+/** The body is untyped on the wire: anything but `{ payload: { content: string } }` is refused. */
+function parseStreamBody(body: unknown): string {
+  const payload = (body as { payload?: unknown } | null)?.payload
+  if (typeof payload !== "object" || payload === null) {
+    throw new BadRequestException("Invalid request body")
+  }
+  const content = (payload as { content?: unknown }).content
+  if (content !== undefined && typeof content !== "string") {
+    throw new BadRequestException("Invalid request body")
+  }
+  return requireUserContent(body as typeof PublicChatRoutes.streamReply.request)
+}
+
+function requireUserContent(request: typeof PublicChatRoutes.streamMessages.request): string {
+  const userContent = request.payload?.content
   if (!userContent?.trim()) {
     throw new BadRequestException("User content must not be empty")
   }

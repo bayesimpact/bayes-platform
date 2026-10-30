@@ -54,6 +54,8 @@ function buildPublicChatRoutes<ConfigDto>(agentBasePath: string) {
      * the route stays reachable with GET. Each `data:` line of the response is one
      * JSON-encoded `PublicStreamEventPayload`; the `ResponseData` wrapper does not apply.
      * On v1, failures reach the client as a `{ type: "error" }` event on a 200 response.
+     * Deprecated on v1 since 1.3 in favour of `streamReply`, which takes the message in the
+     * body; still served, and the only stream of the unprefixed paths.
      */
     streamMessages: defineRoute<
       ResponseData<PublicStreamEventPayload>,
@@ -80,6 +82,21 @@ export const PublicChatRoutes = {
   getMcpAppHtml: defineRoute<ResponseData<PublicMcpAppHtmlDto[]>>({
     method: "get",
     path: `${v1AgentBasePath}/sessions/:sessionId/mcp-app-html`,
+  }),
+
+  /**
+   * Same server-sent events as `streamMessages`, with the payload in the JSON body instead
+   * of the URL: a long message cannot exceed a proxy's URL limit, and access logs never
+   * hold its text. Answers 200. The path is not under `messages/` so that no
+   * `POST .../messages/:messageId` route can ever catch it. Added in 1.3, so the unprefixed
+   * paths do not carry it.
+   */
+  streamReply: defineRoute<
+    ResponseData<PublicStreamEventPayload>,
+    RequestPayload<PublicChatStreamRequestDto>
+  >({
+    method: "post",
+    path: `${v1AgentBasePath}/sessions/:sessionId/stream`,
   }),
 }
 

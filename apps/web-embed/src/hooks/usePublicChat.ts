@@ -9,7 +9,7 @@ import {
   createSession,
   getMcpAppHtml,
   getSession,
-  streamMessages,
+  streamReply,
 } from "../api/public-chat-api"
 import { hasMcpAppPointer } from "../chat/components/mcp-app-view"
 
@@ -337,7 +337,7 @@ export function usePublicChat(embedToken: string): UsePublicChatResult {
           let realMessageId = tempAssistantId
           let shouldHydrate = false
 
-          for await (const event of streamMessages(
+          for await (const event of streamReply(
             embedToken,
             session.sessionId,
             session.sessionToken,

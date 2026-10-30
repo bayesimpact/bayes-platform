@@ -4,11 +4,11 @@ highlight: changelog
 description: Every version of the public chat API, with the date, the changes and the migration steps when a change is breaking.
 category: developers
 order: 3
-updated: 2026-10-29
-apiVersion: "1.2"
+updated: 2026-10-30
+apiVersion: "1.3"
 ---
 
-This page lists every version of the public chat API. The current version is **1.2**.
+This page lists every version of the public chat API. The current version is **1.3**.
 Minor versions add things and keep existing clients working. Major versions can break
 clients and come with a deprecation period. See the
 [versioning and deprecation policy](/en/public-chat-api-versioning).
@@ -33,6 +33,28 @@ clients and come with a deprecation period. See the
   ### Migration
   - ... (mandatory for a major version)
 */}
+
+## 1.3 (2026-10-30)
+
+### Added
+
+- [Send a message and stream the reply](/en/public-chat-api#send-a-message-and-stream-the-reply)
+  with `POST /public/v1/agents/{embedToken}/sessions/{sessionId}/stream`. The message
+  travels in the JSON body, so it no longer reaches URL limits or access logs. The response
+  is the same stream.
+- The stream-level error `Invalid request body`, for a `POST` body without a `payload`
+  object.
+
+### Deprecated
+
+- `GET .../sessions/{sessionId}/messages/stream?q=...`, which sends the message in the URL.
+  It stays served on v1 and returns the same stream.
+
+### Migration
+
+- None required. To move, send `{ "payload": { "content": "..." } }` as a JSON body to the
+  `POST` route instead of the `q` parameter. Add the `Content-Type: application/json`
+  header.
 
 ## 1.2 (2026-10-29)
 

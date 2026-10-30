@@ -78,18 +78,27 @@ export async function getMcpAppHtml(
  *
  * Yields parsed PublicStreamEventPayload objects as they arrive.
  */
-export async function* streamMessages(
+export async function* streamReply(
   embedToken: string,
   sessionId: string,
   sessionToken: string,
   content: string,
 ): AsyncGenerator<PublicStreamEventPayload, void, unknown> {
-  const query = encodeURIComponent(JSON.stringify({ payload: { content } }))
-  const url = `${routeUrl(PublicChatRoutes.streamMessages.getPath({ embedToken, sessionId }))}?q=${query}`
-
-  const response = await fetch(url, {
-    headers: { "X-Session-Token": sessionToken, Accept: "text/event-stream" },
-  })
+  // The message travels in the body (API 1.3): never in the URL, where proxies cap its length
+  // and access logs keep its text.
+  const body: typeof PublicChatRoutes.streamReply.request = { payload: { content } }
+  const response = await fetch(
+    routeUrl(PublicChatRoutes.streamReply.getPath({ embedToken, sessionId })),
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Session-Token": sessionToken,
+        Accept: "text/event-stream",
+      },
+      body: JSON.stringify(body),
+    },
+  )
   if (!response.ok || !response.body) throw new ApiError(response.status, "Failed to start stream")
 
   const reader = response.body.getReader()

@@ -4,8 +4,8 @@ highlight: API
 description: Build your own chat client on a public agent. Routes, headers, server-sent events, error codes and limits of the public chat API, version 1.
 category: developers
 order: 1
-updated: 2026-10-29
-apiVersion: "1.2"
+updated: 2026-10-30
+apiVersion: "1.3"
 ---
 
 import PublicApiBaseUrl from "@/components/PublicApiBaseUrl.astro"
@@ -38,7 +38,7 @@ All routes of version 1 start with `/public/v1/agents/{embedToken}`.
 
 ## Version
 
-This page documents version **1.2**. The major version is in the path (`v1`). Minor versions
+This page documents version **1.3**. The major version is in the path (`v1`). Minor versions
 add fields or routes and never change existing ones. The
 [changelog](/en/public-chat-api-changelog) lists every version. Your client must ignore
 unknown fields and unknown event types. This keeps it compatible with future minor versions.
@@ -79,7 +79,8 @@ a new one. On `410`, you can tell the user that the previous conversation expire
 | `POST` | `/public/v1/agents/{embedToken}/sessions` | Create a session |
 | `GET` | `/public/v1/agents/{embedToken}/sessions/{sessionId}` | Read a session and its messages |
 | `GET` | `/public/v1/agents/{embedToken}/sessions/{sessionId}/mcp-app-html` | Read the HTML of MCP App cards |
-| `GET` | `/public/v1/agents/{embedToken}/sessions/{sessionId}/messages/stream` | Send a message and stream the reply |
+| `POST` | `/public/v1/agents/{embedToken}/sessions/{sessionId}/stream` | Send a message and stream the reply |
+| `GET` | `/public/v1/agents/{embedToken}/sessions/{sessionId}/messages/stream` | Deprecated: the same, with the message in the URL |
 
 ### Get the agent configuration
 
@@ -270,38 +271,53 @@ Status: `200`. Errors: `401`, `403`, `410`.
 ### Send a message and stream the reply
 
 ```
+POST /public/v1/agents/{embedToken}/sessions/{sessionId}/stream
+X-Session-Token: {sessionToken}
+Content-Type: application/json
+Accept: text/event-stream
+```
+
+Sends the visitor's message and returns the reply as
+[server-sent events](#server-sent-events). The message travels in the JSON body.
+
+| Body field | Type | Description |
+|---|---|---|
+| `payload.content` | string, required | The visitor's message. Must not be empty |
+
+```bash
+curl -N -X POST "$API_BASE/public/v1/agents/$EMBED_TOKEN/sessions/$SESSION_ID/stream" \
+  -H "X-Session-Token: $SESSION_TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "Accept: text/event-stream" \
+  -d '{"payload":{"content":"What is your return policy?"}}'
+```
+
+The browser `EventSource` API cannot send a body or the `X-Session-Token` header. Use
+`fetch` and read the response body as a stream (see [Quick start](#quick-start)).
+
+Status: `200` with `Content-Type: text/event-stream`. Errors before the stream starts:
+`401`, `403`, `410`. Errors on the body arrive inside the stream (see below).
+
+After the final event, read the session again to get the persisted reply and its
+`toolCalls`. The stream carries text only.
+
+### Send a message in the URL (deprecated)
+
+```
 GET /public/v1/agents/{embedToken}/sessions/{sessionId}/messages/stream?q={encodedPayload}
 X-Session-Token: {sessionToken}
 Accept: text/event-stream
 ```
 
-Sends the visitor's message and returns the reply as
-[server-sent events](#server-sent-events). The payload travels URL-encoded in the `q`
-query parameter, so the route works with `GET`:
+Deprecated since 1.3. Use the `POST` route above. This route stays served on v1 and returns
+the same stream. The payload travels URL-encoded in the `q` query parameter:
 
 ```js
 const q = encodeURIComponent(JSON.stringify({ payload: { content: "What is your return policy?" } }))
 ```
 
-| Payload field | Type | Description |
-|---|---|---|
-| `payload.content` | string, required | The visitor's message. Must not be empty |
-
-```bash
-curl -N "$API_BASE/public/v1/agents/$EMBED_TOKEN/sessions/$SESSION_ID/messages/stream?q=%7B%22payload%22%3A%7B%22content%22%3A%22Hello%22%7D%7D" \
-  -H "X-Session-Token: $SESSION_TOKEN" \
-  -H "Accept: text/event-stream"
-```
-
-The browser `EventSource` API cannot send the `X-Session-Token` header. Use `fetch` and read
-the response body as a stream (see [Quick start](#quick-start)). `POST` on this path
-returns `404`.
-
-Status: `200` with `Content-Type: text/event-stream`. Errors before the stream starts:
-`401`, `403`, `410`. Errors on the payload arrive inside the stream (see below).
-
-After the final event, read the session again to get the persisted reply and its
-`toolCalls`. The stream carries text only.
+A message in the URL can exceed the URL limit of a proxy, and access logs keep its text.
+`POST` on this path returns `404`.
 
 ## Server-sent events
 
@@ -362,7 +378,8 @@ data: {"type":"error","messageId":"","error":"User content must not be empty"}
 
 | `error` | Cause |
 |---|---|
-| `Invalid query format` | `q` is not valid JSON |
+| `Invalid request body` | The `POST` body has no `payload` object, or `payload.content` is not a string |
+| `Invalid query format` | `q` is not valid JSON (deprecated `GET` route) |
 | `User content must not be empty` | `payload.content` is missing or blank |
 | `Agent not found` | The agent was deleted |
 | `Internal server error` | Server fault. Retry later |
@@ -399,7 +416,7 @@ Error responses are JSON:
 | `413` | `request entity too large` | Body over 500 kB | Shorten the body. This response has no `error` field |
 | `500` | `Internal server error` | Server fault | Retry later |
 
-The stream route reports payload errors inside the stream, see
+The stream routes report payload errors inside the stream, see
 [Stream-level errors](#stream-level-errors).
 
 ## CORS
@@ -418,7 +435,8 @@ calls send no `Origin` header and are not filtered by the list.
 ## Limits and lifetimes
 
 - JSON request bodies are limited to 500 kB (`413` above).
-- The stream request travels in the URL. Keep the encoded `q` parameter under 8 kB.
+- The deprecated `GET` stream carries the message in the URL. Keep the encoded `q`
+  parameter under 8 kB, or use the `POST` stream.
 - One reply per stream request. Wait for `end` before you send the next message.
 - No rate limit is enforced today. Use the API fairly. A limit would be announced on the
   [changelog](/en/public-chat-api-changelog) as a minor change, with `429` responses.
@@ -458,9 +476,14 @@ const sessionHeaders = { "X-Session-Token": session.sessionToken }
 
 // 2. Send a message and stream the reply
 async function send(content, onChunk) {
-  const q = encodeURIComponent(JSON.stringify({ payload: { content } }))
-  const response = await api(`${sessionPath}/messages/stream?q=${q}`, {
-    headers: { ...sessionHeaders, Accept: "text/event-stream" },
+  const response = await api(`${sessionPath}/stream`, {
+    method: "POST",
+    headers: {
+      ...sessionHeaders,
+      "Content-Type": "application/json",
+      Accept: "text/event-stream",
+    },
+    body: JSON.stringify({ payload: { content } }),
   })
   const reader = response.body.getReader()
   const decoder = new TextDecoder()

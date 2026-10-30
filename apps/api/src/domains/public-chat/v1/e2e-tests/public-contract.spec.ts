@@ -95,6 +95,14 @@ describe("PublicChat - contract v1", () => {
         method: "get",
         path: `${publicBase}/sessions/:sessionId/messages/stream`,
       })
+      expect(PublicChatRoutes.streamReply).toMatchObject({
+        method: "post",
+        path: `${publicBase}/sessions/:sessionId/stream`,
+      })
+    })
+
+    it("does not serve the POST stream on the unprefixed paths", () => {
+      expect(PublicChatLegacyRoutes).not.toHaveProperty("streamReply")
     })
 
     it("does not accept POST on the stream path", async () => {
@@ -207,9 +215,23 @@ describe("PublicChat - contract v1", () => {
         .set("Connection", "close")
         .set("X-Session-Token", sessionToken)
 
-    it("frames each event as id + data, start then chunks then end", async () => {
+    const streamReply = (body: unknown) =>
+      request(app.getHttpServer())
+        .post(PublicChatRoutes.streamReply.getPath(pathParams()))
+        .send(body as object)
+        .set("Connection", "close")
+        .set("X-Session-Token", sessionToken)
+
+    const sendHello = {
+      "GET ?q=": () => stream(JSON.stringify({ payload: { content: "Hello" } })),
+      "POST body": () => streamReply({ payload: { content: "Hello" } }),
+    }
+
+    it.each(
+      Object.entries(sendHello),
+    )("frames each event as id + data, start then chunks then end (%s)", async (_name, send) => {
       await createContext()
-      const response = await stream(JSON.stringify({ payload: { content: "Hello" } }))
+      const response = await send()
       expect(response.status).toBe(200)
       expect(response.headers["content-type"]).toMatch(/^text\/event-stream/)
       expect(response.text.startsWith("\n")).toBe(true)
@@ -263,9 +285,43 @@ describe("PublicChat - contract v1", () => {
         { type: "error", messageId: "", error: "User content must not be empty" },
       ])
     })
+
+    it("rejects an invalid POST body as one error event inside the stream, not as a JSON error", async () => {
+      await createContext()
+      const response = await streamReply({ payload: null })
+      expect(response.status).toBe(200)
+      expect(response.headers["content-type"]).toMatch(/^text\/event-stream/)
+      expect(response.text).not.toContain("event:")
+      expect(parseDataEvents(response.text)).toEqual([
+        { type: "error", messageId: "", error: "Invalid request body" },
+      ])
+    })
+
+    it("rejects an empty message in the POST body as one error event inside the stream", async () => {
+      await createContext()
+      const response = await streamReply({ payload: { content: "   " } })
+      expect(response.status).toBe(200)
+      expect(parseDataEvents(response.text)).toEqual([
+        { type: "error", messageId: "", error: "User content must not be empty" },
+      ])
+    })
   })
 
   describe("CORS", () => {
+    it("answers the preflight of the POST stream with a JSON body", async () => {
+      await createContext()
+      const response = await request(app.getHttpServer())
+        .options(PublicChatRoutes.streamReply.getPath(pathParams()))
+        .set("Connection", "close")
+        .set("Origin", hostOrigin)
+        .set("Access-Control-Request-Method", "POST")
+        .set("Access-Control-Request-Headers", "content-type,x-session-token")
+      expect(response.status).toBe(204)
+      expect(response.headers["access-control-allow-origin"]).toBe(hostOrigin)
+      expect(response.headers["access-control-allow-methods"]).toContain("POST")
+      expect(response.headers["access-control-allow-headers"]).toBe("content-type,x-session-token")
+    })
+
     it("reflects the caller origin on public routes, v1 and legacy", async () => {
       await createContext()
       for (const route of [PublicChatRoutes.getConfig, PublicChatLegacyRoutes.getConfig]) {
