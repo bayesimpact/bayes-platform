@@ -11,6 +11,8 @@ declare global {
     readonly VITE_OIDC_SCOPE?: string
     readonly VITE_OIDC_AUTHORIZATION_PARAMS?: string
     readonly VITE_HELP_CENTER_URL?: string
+    readonly VITE_APP_VERSION?: string
+    readonly VITE_GIT_SHA?: string
   }
 
   // biome-ignore lint/style/useConsistentTypeDefinitions: it augments a declaration, which only an interface can.
