@@ -226,6 +226,7 @@ describe("Projects - listProjects", () => {
 
     expectResponse(response, 200)
     expect(response.body.data.map((project) => project.name)).toEqual(["Campaign"])
-    expect(response.body.data[0]?.permissions).toEqual([])
+    // Only the tester app opens: no studio, desk or evaluation key.
+    expect(response.body.data[0]?.permissions).toEqual(["tester.ui.read"])
   })
 })
