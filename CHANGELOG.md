@@ -17,6 +17,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Embedded agents: an expired conversation now tells the visitor it expired and opens a new one.
 - Agents: the answer language now lives in the agent's instructions, which replace the French/English setting.
 - Self-hosting: Google Cloud Storage buckets now connect through their S3 API with HMAC keys, replacing the gcs storage mode.
+- Desk: a rebuilt Desk replaces the previous one, and lets you quote and annotate passages of a reply.
 
 ### Fixed
 
