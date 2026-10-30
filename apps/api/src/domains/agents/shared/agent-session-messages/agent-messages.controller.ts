@@ -7,8 +7,6 @@ import { v4 } from "uuid"
 import type { EndpointRequestWithAgentSession } from "@/common/context/request.interface"
 import { getRequiredConnectScope } from "@/common/context/request-context.helpers"
 import type { ConversationAgentSessionType } from "@/domains/agents/base-agent-sessions/base-agent-sessions.types"
-// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { AgentSettingsService } from "@/domains/agents/settings/agent-settings.service"
 import {
   extractFileExtension,
   normalizeUploadedFileName,
@@ -47,7 +45,6 @@ export abstract class AgentMessagesController {
     private readonly agentMessageAttachmentDocumentsService: AgentMessageAttachmentDocumentsService,
     private readonly conversationAgentSessionsService: ConversationAgentSessionsService,
     private readonly mcpAppHtmlService: McpAppHtmlService,
-    private readonly agentSettingsService: AgentSettingsService,
   ) {}
 
   protected async handleGetAll(
@@ -79,16 +76,6 @@ export abstract class AgentMessagesController {
       agentId: request.agent.id,
       sessionId: agentSessionId,
       messages,
-      // Cards are re-read in the agent's published language: a draft under
-      // edit does not change what an existing conversation shows. An agent
-      // that was never published, such as a copy, has only its draft's.
-      resolveLocale: async () => {
-        const agentSettings = await this.agentSettingsService.getLastPublishedOrDraft({
-          connectScope,
-          agentId: request.agent.id,
-        })
-        return agentSettings.locale
-      },
     })
     return { data: toMcpAppHtmlDtos(htmlByKey) }
   }
@@ -122,9 +109,6 @@ export abstract class AgentMessagesController {
     }
     if (!payload.mimeType) {
       throw new UnprocessableEntityException("File MIME type is required.")
-    }
-    if (typeof payload.size !== "number" || !Number.isFinite(payload.size) || payload.size <= 0) {
-      throw new UnprocessableEntityException("File size must be greater than zero.")
     }
     if (!agentSessionMessageAttachmentAllowedMimeTypes.includes(payload.mimeType)) {
       throw new UnprocessableEntityException(

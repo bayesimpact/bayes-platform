@@ -8,6 +8,7 @@ import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { selectBackofficeUserDetail } from "../features/backoffice/backoffice.selectors"
 import { backofficeActions } from "../features/backoffice/backoffice.slice"
 import { RolePermissionBadge } from "../features/backoffice/components/RolePermissionBadge"
+import { UserGlobalRolesSection } from "../features/backoffice/components/UserGlobalRolesSection"
 import {
   BackofficeAgentRoutes,
   BackofficeOrganizationRoutes,
@@ -59,22 +60,7 @@ function WithData() {
         {user.name && <p className="text-muted-foreground">{user.name}</p>}
       </div>
 
-      {user.globalRoles.length > 0 && (
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium text-muted-foreground">Global roles</h3>
-          <p className="text-xs text-muted-foreground">These roles apply everywhere.</p>
-          <div className="flex flex-wrap gap-2">
-            {user.globalRoles.map((globalRole) => (
-              <RolePermissionBadge
-                key={globalRole.key}
-                role={globalRole.name}
-                roleKey={globalRole.key}
-                permissions={globalRole.permissions}
-              />
-            ))}
-          </div>
-        </div>
-      )}
+      <UserGlobalRolesSection userId={user.id} globalRoles={user.globalRoles} />
 
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
         <MembershipSection

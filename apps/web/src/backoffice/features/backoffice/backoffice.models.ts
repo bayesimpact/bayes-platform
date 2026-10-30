@@ -4,6 +4,7 @@ import type {
   BackofficeAgentDetailDto,
   BackofficeAgentListItemDto,
   BackofficeAgentMemberDto,
+  BackofficeMaintenanceJobDto,
   BackofficeOrganizationDetailDto,
   BackofficeOrganizationDto,
   BackofficeOrganizationMemberDto,
@@ -167,6 +168,7 @@ export type BackofficeProjectListItem = {
   organizationName: string
   createdAt: TimeType
   featureFlags: FeatureFlagKey[]
+  permissions: string[]
 }
 
 export type BackofficeProjectMember = {
@@ -179,16 +181,24 @@ export type BackofficeProjectMember = {
 export type BackofficeProjectAgent = {
   id: string
   name: string
+  permissions: string[]
+}
+
+export type BackofficeProjectOrganization = {
+  id: string
+  name: string
+  permissions: string[]
 }
 
 export type BackofficeProjectDetail = {
   id: string
   name: string
-  organizationId: string
-  organizationName: string
+  organization: BackofficeProjectOrganization
   createdAt: TimeType
   featureFlags: FeatureFlagKey[]
+  permissions: string[]
   members: BackofficeProjectMember[]
+  hiddenMemberCount: number
   agents: BackofficeProjectAgent[]
 }
 
@@ -208,6 +218,7 @@ export const toBackofficeProjectListItem = (
   organizationName: dto.organizationName,
   createdAt: dto.createdAt,
   featureFlags: dto.featureFlags,
+  permissions: dto.permissions,
 })
 
 export const toPaginatedBackofficeProjects = (
@@ -229,6 +240,7 @@ const toBackofficeProjectMember = (dto: BackofficeProjectMemberDto): BackofficeP
 const toBackofficeProjectAgent = (dto: BackofficeProjectAgentDto): BackofficeProjectAgent => ({
   id: dto.id,
   name: dto.name,
+  permissions: dto.permissions,
 })
 
 export const toBackofficeProjectDetail = (
@@ -236,11 +248,16 @@ export const toBackofficeProjectDetail = (
 ): BackofficeProjectDetail => ({
   id: dto.id,
   name: dto.name,
-  organizationId: dto.organizationId,
-  organizationName: dto.organizationName,
+  organization: {
+    id: dto.organization.id,
+    name: dto.organization.name,
+    permissions: dto.organization.permissions,
+  },
   createdAt: dto.createdAt,
   featureFlags: dto.featureFlags,
+  permissions: dto.permissions,
   members: dto.members.map(toBackofficeProjectMember),
+  hiddenMemberCount: dto.hiddenMemberCount,
   agents: dto.agents.map(toBackofficeProjectAgent),
 })
 
@@ -249,6 +266,7 @@ export type BackofficeUser = {
   email: string
   name: string | null
   createdAt: TimeType
+  globalRoles: { key: string; name: string }[]
 }
 
 export type BackofficeUserGlobalRole = {
@@ -385,6 +403,10 @@ export const toBackofficeUser = (dto: BackofficeUserDto): BackofficeUser => ({
   email: dto.email,
   name: dto.name,
   createdAt: dto.createdAt,
+  globalRoles: dto.globalRoles.map((globalRole) => ({
+    key: globalRole.key,
+    name: globalRole.name,
+  })),
 })
 
 export type PaginatedBackofficeUsers = {
@@ -542,4 +564,34 @@ export const toAppManifest = (dto: AppManifestDto): AppManifest => ({
   grantablePermissions: dto.grantablePermissions,
   allowedRedirectUris: dto.allowedRedirectUris,
   createdAt: dto.createdAt,
+})
+
+export type MaintenanceJobRunState = "waiting" | "active" | "completed" | "failed"
+
+export type MaintenanceJobRun = {
+  state: MaintenanceJobRunState
+  requestedAt: TimeType
+  finishedAt: TimeType | null
+  progress: { done: number; total: number } | null
+  summary: string | null
+  error: string | null
+}
+
+/** A one-off data migration the workers run across every organization. */
+export type MaintenanceJob = {
+  key: string
+  title: string
+  description: string
+  remainingCount: number
+  remainingSummary: string
+  lastRun: MaintenanceJobRun | null
+}
+
+export const toMaintenanceJob = (dto: BackofficeMaintenanceJobDto): MaintenanceJob => ({
+  key: dto.key,
+  title: dto.title,
+  description: dto.description,
+  remainingCount: dto.remainingCount,
+  remainingSummary: dto.remainingSummary,
+  lastRun: dto.lastRun,
 })

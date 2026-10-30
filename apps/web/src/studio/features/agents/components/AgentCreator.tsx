@@ -1,4 +1,4 @@
-import { AgentLocale, type CreateAgentDto } from "@caseai-connect/api-contracts"
+import type { CreateAgentDto } from "@caseai-connect/api-contracts"
 import { Button } from "@caseai-connect/ui/shad/button"
 import {
   Dialog,
@@ -67,7 +67,7 @@ function AgentCreatorDialog({
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const [selectedChoice, setSelectedChoice] = useState<AgentCreationChoice>(defaultChoice)
@@ -87,11 +87,9 @@ function AgentCreatorDialog({
 
   const handleCreate = () => {
     if (!catalog) return
-    const language = i18n.language.startsWith("fr") ? AgentLocale.FR : AgentLocale.EN
     const fields: CreateAgentDto = {
       ...getDefaultFormValues({
         creationChoice: selectedChoice,
-        language,
         defaultModel: catalog.defaults.agent,
         defaultModelOptions: defaultModelOptions(catalog, catalog.defaults.agent),
       }),

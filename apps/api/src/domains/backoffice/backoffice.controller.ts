@@ -1,9 +1,12 @@
 import {
+  BACKOFFICE_GLOBAL_ROLE_KEYS,
+  type BackofficeGlobalRoleKey,
   BackofficeRoutes,
   createBackofficeOrganizationSchema,
   type FeatureFlagKey,
   FeatureFlags,
   grantBackofficeAgentConversationReviewerSchema,
+  grantBackofficeUserGlobalRoleSchema,
 } from "@caseai-connect/api-contracts"
 import {
   BadRequestException,
@@ -29,6 +32,7 @@ import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
 import {
   BACKOFFICE_AGENT_READ_PERMISSION,
   BACKOFFICE_CONVERSATION_REVIEWER_UPDATE_PERMISSION,
+  BACKOFFICE_GLOBAL_ROLE_UPDATE_PERMISSION,
   BACKOFFICE_ORGANIZATION_READ_PERMISSION,
   BACKOFFICE_PROJECT_READ_PERMISSION,
   BACKOFFICE_PROJECT_UPDATE_PERMISSION,
@@ -58,6 +62,15 @@ function assertValidFeatureFlagKey(value: string): FeatureFlagKey {
     throw new BadRequestException(`Unknown feature flag key: ${value}`)
   }
   return value as FeatureFlagKey
+}
+
+const VALID_GLOBAL_ROLE_KEYS = new Set<string>(BACKOFFICE_GLOBAL_ROLE_KEYS)
+
+function assertValidGlobalRoleKey(value: string): BackofficeGlobalRoleKey {
+  if (!VALID_GLOBAL_ROLE_KEYS.has(value)) {
+    throw new BadRequestException(`Unknown global role: ${value}`)
+  }
+  return value as BackofficeGlobalRoleKey
 }
 
 // BackofficeGuard keeps `backoffice.read` as a baseline on every route: org and project roles hold
@@ -190,7 +203,7 @@ export class BackofficeController {
     const { user } = request
     const page = Math.max(0, Number(pageParam) || 0)
     const limit = Math.min(100, Math.max(1, Number(limitParam) || 10))
-    const { users, total } = await this.backofficeService.listUsers({
+    const { users, total, globalRolesByUserId } = await this.backofficeService.listUsers({
       userId: user.id,
       page,
       limit,
@@ -198,7 +211,9 @@ export class BackofficeController {
     })
     return {
       data: {
-        users: users.map(toBackofficeUserDto),
+        users: users.map((listedUser) =>
+          toBackofficeUserDto(listedUser, globalRolesByUserId.get(listedUser.id) ?? []),
+        ),
         total,
         page,
         limit,
@@ -229,6 +244,32 @@ export class BackofficeController {
         result.roleGrantsByRoleId,
       ),
     }
+  }
+
+  @Post(BackofficeRoutes.grantUserGlobalRole.path)
+  @CheckPermission(BACKOFFICE_GLOBAL_ROLE_UPDATE_PERMISSION)
+  @TrackActivity({ action: "backoffice.user.global_role.grant" })
+  async grantUserGlobalRole(
+    @Param("userId", new ParseUUIDPipe()) userId: string,
+    @Body(new ZodValidationPipe(grantBackofficeUserGlobalRoleSchema))
+    body: typeof BackofficeRoutes.grantUserGlobalRole.request,
+  ): Promise<typeof BackofficeRoutes.grantUserGlobalRole.response> {
+    await this.backofficeService.grantUserGlobalRole({ userId, roleKey: body.payload.roleKey })
+    return { data: { success: true } }
+  }
+
+  @Delete(BackofficeRoutes.revokeUserGlobalRole.path)
+  @CheckPermission(BACKOFFICE_GLOBAL_ROLE_UPDATE_PERMISSION)
+  @TrackActivity({ action: "backoffice.user.global_role.revoke" })
+  async revokeUserGlobalRole(
+    @Param("userId", new ParseUUIDPipe()) userId: string,
+    @Param("roleKey") roleKeyParam: string,
+  ): Promise<typeof BackofficeRoutes.revokeUserGlobalRole.response> {
+    await this.backofficeService.revokeUserGlobalRole({
+      userId,
+      roleKey: assertValidGlobalRoleKey(roleKeyParam),
+    })
+    return { data: { success: true } }
   }
 
   @Get(BackofficeRoutes.getRbacCatalog.path)
@@ -268,14 +309,16 @@ export class BackofficeController {
   @Get(BackofficeRoutes.getProject.path)
   @CheckPermission(BACKOFFICE_PROJECT_READ_PERMISSION, "project")
   async getProject(
+    @Req() request: EndpointRequest,
     @Param("projectId") projectId: string,
   ): Promise<typeof BackofficeRoutes.getProject.response> {
     const result = await this.backofficeService.getProjectDetail({
+      requestingUserId: request.user.id,
       targetProjectId: projectId,
     })
     if (!result) throw new NotFoundException(`Project ${projectId} not found`)
     return {
-      data: toBackofficeProjectDetailDto(result.project, result.members, result.agents),
+      data: toBackofficeProjectDetailDto(result),
     }
   }
 

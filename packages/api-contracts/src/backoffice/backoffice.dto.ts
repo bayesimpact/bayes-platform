@@ -63,6 +63,7 @@ export type BackofficeProjectListItemDto = {
   organizationName: string
   createdAt: TimeType
   featureFlags: FeatureFlagsDto
+  permissions: string[]
 }
 
 export type PaginatedBackofficeProjectsDto = {
@@ -82,16 +83,26 @@ export type BackofficeProjectMemberDto = {
 export type BackofficeProjectAgentDto = {
   id: string
   name: string
+  permissions: string[]
+}
+
+export type BackofficeProjectOrganizationDto = {
+  id: string
+  name: string
+  permissions: string[]
 }
 
 export type BackofficeProjectDetailDto = {
   id: string
   name: string
-  organizationId: string
-  organizationName: string
+  organization: BackofficeProjectOrganizationDto
   createdAt: TimeType
   featureFlags: FeatureFlagsDto
+  permissions: string[]
+  /** Only the members the caller may read. */
   members: BackofficeProjectMemberDto[]
+  /** How many members the caller may not read, left out of `members`. */
+  hiddenMemberCount: number
   agents: BackofficeProjectAgentDto[]
 }
 
@@ -150,6 +161,13 @@ export type BackofficeUserDto = {
   email: string
   name: string | null
   createdAt: TimeType
+  /** The user's global roles, by key: none for most users. */
+  globalRoles: BackofficeUserGlobalRoleSummaryDto[]
+}
+
+export type BackofficeUserGlobalRoleSummaryDto = {
+  key: string
+  name: string
 }
 
 export type PaginatedBackofficeUsersDto = {
@@ -177,6 +195,23 @@ export type BackofficeRbacCatalogDto = {
   roles: BackofficeRbacRoleDto[]
   permissions: BackofficeRbacPermissionDto[]
 }
+
+/** The global roles a superadmin grants or revokes from the backoffice user page. */
+export const BACKOFFICE_GLOBAL_ROLE_KEYS = [
+  "platform_superadmin",
+  "platform_staff",
+  "platform_org_creator",
+] as const
+
+export type BackofficeGlobalRoleKey = (typeof BACKOFFICE_GLOBAL_ROLE_KEYS)[number]
+
+export const grantBackofficeUserGlobalRoleSchema = z.object({
+  roleKey: z.enum(BACKOFFICE_GLOBAL_ROLE_KEYS),
+})
+
+export type GrantBackofficeUserGlobalRoleRequestDto = z.infer<
+  typeof grantBackofficeUserGlobalRoleSchema
+>
 
 export type BackofficeUserGlobalRoleDto = {
   key: string
@@ -262,4 +297,37 @@ export type UpdateTermsDocumentsRequestDto = {
   generalConditions: UpdateTermsDocumentInputDto
   privacyPolicy: UpdateTermsDocumentInputDto
   aiUsagePolicy: UpdateTermsDocumentInputDto
+}
+
+/** Where the last run of a maintenance job stands, as BullMQ reports it. */
+export type BackofficeMaintenanceJobRunState = "waiting" | "active" | "completed" | "failed"
+
+export type BackofficeMaintenanceJobRunDto = {
+  state: BackofficeMaintenanceJobRunState
+  requestedAt: TimeType
+  finishedAt: TimeType | null
+  /** Items handled so far out of the total, while the run is active or once it is done. */
+  progress: { done: number; total: number } | null
+  /** What the run did, written by the job when it ends. */
+  summary: string | null
+  error: string | null
+}
+
+/**
+ * A one-off maintenance job: a data migration run in the workers across every organization.
+ * It is removed from the code once it has nothing left to do on every platform.
+ */
+export type BackofficeMaintenanceJobDto = {
+  key: string
+  title: string
+  description: string
+  /** How many items the job still has to handle. Zero means there is nothing left to run. */
+  remainingCount: number
+  /** The same, in words, e.g. "3 web crawls in 2 projects". */
+  remainingSummary: string
+  lastRun: BackofficeMaintenanceJobRunDto | null
+}
+
+export type ListBackofficeMaintenanceJobsResponseDto = {
+  jobs: BackofficeMaintenanceJobDto[]
 }

@@ -1,7 +1,13 @@
+import {
+  BACKOFFICE_AGENT_READ_PERMISSION,
+  BACKOFFICE_ORGANIZATION_READ_PERMISSION,
+  BACKOFFICE_PROJECT_UPDATE_PERMISSION,
+} from "@caseai-connect/api-contracts"
+import { Alert, AlertDescription, AlertTitle } from "@caseai-connect/ui/shad/alert"
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
-import { ArrowLeftIcon, ExternalLinkIcon } from "lucide-react"
-import { useEffect } from "react"
+import { ArrowLeftIcon, ExternalLinkIcon, LockIcon } from "lucide-react"
+import { type ReactNode, useEffect } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
@@ -59,19 +65,24 @@ function WithData() {
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-1">
           <h2 className="text-xl font-semibold">{project.name}</h2>
-          <Link
-            to={BackofficeOrganizationRoutes.organization.build({
-              organizationId: project.organizationId,
-            })}
-            className="text-muted-foreground hover:underline flex items-center gap-1 w-fit"
-          >
-            {project.organizationName}
-            <ExternalLinkIcon className="size-3 opacity-60" />
-          </Link>
+          {project.organization.permissions.includes(BACKOFFICE_ORGANIZATION_READ_PERMISSION) ? (
+            <Link
+              to={BackofficeOrganizationRoutes.organization.build({
+                organizationId: project.organization.id,
+              })}
+              className="text-muted-foreground hover:underline flex items-center gap-1 w-fit"
+            >
+              {project.organization.name}
+              <ExternalLinkIcon className="size-3 opacity-60" />
+            </Link>
+          ) : (
+            <p className="text-muted-foreground">{project.organization.name}</p>
+          )}
         </div>
         <FeatureFlagCell
           projectName={project.name}
           enabledFlags={project.featureFlags}
+          canUpdate={project.permissions.includes(BACKOFFICE_PROJECT_UPDATE_PERMISSION)}
           onAdd={(featureFlagKey) =>
             dispatch(backofficeActions.addFeatureFlag({ projectId: project.id, featureFlagKey }))
           }
@@ -91,19 +102,51 @@ function WithData() {
             role: member.role,
             to: BackofficeUserRoutes.user.build({ userId: member.userId }),
           }))}
-          emptyText="No members"
+          emptyText={project.hiddenMemberCount > 0 ? undefined : "No members"}
+          notice={
+            project.hiddenMemberCount > 0 && (
+              <HiddenMembersNotice
+                count={project.hiddenMemberCount}
+                hasVisibleMembers={project.members.length > 0}
+              />
+            )
+          }
         />
         <DetailSection
           title="Agents"
           items={project.agents.map((agent) => ({
             key: agent.id,
             label: agent.name,
-            to: BackofficeAgentRoutes.agent.build({ agentId: agent.id }),
+            to: agent.permissions.includes(BACKOFFICE_AGENT_READ_PERMISSION)
+              ? BackofficeAgentRoutes.agent.build({ agentId: agent.id })
+              : undefined,
           }))}
           emptyText="No agents"
         />
       </div>
     </div>
+  )
+}
+
+function HiddenMembersNotice({
+  count,
+  hasVisibleMembers,
+}: {
+  count: number
+  hasVisibleMembers: boolean
+}) {
+  const members = count === 1 ? "1 member" : `${count} members`
+  return (
+    <Alert className="rounded-none border-0 border-t bg-muted/30 first:border-t-0">
+      <LockIcon />
+      <AlertTitle>
+        {hasVisibleMembers ? `${members} not shown` : `This project has ${members}`}
+      </AlertTitle>
+      <AlertDescription>
+        Reading a project does not let you see who its members are. That takes the right to read
+        users: backoffice.user.read, or user.read on their organization, project or agent.
+      </AlertDescription>
+    </Alert>
   )
 }
 
@@ -113,10 +156,14 @@ function DetailSection({
   title,
   items,
   emptyText,
+  notice,
 }: {
   title: string
   items: DetailItem[]
-  emptyText: string
+  /** Shown when there are no items; omit it when the notice already explains why. */
+  emptyText?: string
+  /** Shown under the items. */
+  notice?: ReactNode
 }) {
   return (
     <div className="border rounded-lg overflow-hidden">
@@ -124,7 +171,9 @@ function DetailSection({
         <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>
       </div>
       {items.length === 0 ? (
-        <p className="px-4 py-6 text-sm text-muted-foreground text-center italic">{emptyText}</p>
+        emptyText && (
+          <p className="px-4 py-6 text-sm text-muted-foreground text-center italic">{emptyText}</p>
+        )
       ) : (
         <ul className="divide-y">
           {items.map((item) =>
@@ -168,6 +217,7 @@ function DetailSection({
           )}
         </ul>
       )}
+      {notice}
     </div>
   )
 }

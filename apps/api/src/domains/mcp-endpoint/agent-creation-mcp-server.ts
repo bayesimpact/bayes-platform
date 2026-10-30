@@ -1,5 +1,4 @@
 import {
-  AgentLocale,
   AgentModel,
   agentTypeSchema,
   duplicateAgentSchema,
@@ -48,7 +47,6 @@ const createAgentInputSchema = z.object({
     .enum(AgentModel)
     .default(AGENT_DEFAULT_MODELS.agent)
     .describe("Language model of the agent."),
-  locale: z.enum(AgentLocale).default(AgentLocale.EN).describe("Language the agent speaks."),
   greetingMessage: z
     .string()
     .max(2000)
@@ -83,7 +81,6 @@ const updateAgentInputSchema = z.object({
   agentId: z.uuid().describe("Id of the agent, from list_agents or create_agent."),
   model: z.enum(AgentModel).optional().describe("New language model of the agent."),
   instructions: z.string().min(1).optional().describe("New system prompt of the agent."),
-  locale: z.enum(AgentLocale).optional().describe("New language of the agent."),
   greetingMessage: z
     .string()
     .max(2000)

@@ -43,6 +43,15 @@ export const AGENT_CONVERSATION_REVIEW_CATEGORY_READ_PERMISSION =
 /** AppManifest back-office CRUD, and the OAuth client of each app. Superadmin only. */
 export const BACKOFFICE_APP_MANAGE_PERMISSION = "backoffice.app.manage" as const
 
+/**
+ * See and run the maintenance jobs of the backoffice: one-off data migrations that run in the
+ * workers across every organization. Superadmin only.
+ */
+export const BACKOFFICE_MAINTENANCE_JOB_RUN_PERMISSION = "backoffice.maintenance_job.run" as const
+
+/** Grant or revoke a user's global roles from the backoffice user page. Superadmin only. */
+export const BACKOFFICE_GLOBAL_ROLE_UPDATE_PERMISSION = "backoffice.global_role.update" as const
+
 export const DOCUMENT_READ_PERMISSION = "document.read" as const
 
 export const DOCUMENT_CREATE_PERMISSION = "document.create" as const
@@ -562,6 +571,7 @@ export const PROJECT_SCOPED_PERMISSIONS = [
   STUDIO_UI_READ_PERMISSION,
   EVALUATION_UI_READ_PERMISSION,
   DOCUMENT_SOURCE_READ_PERMISSION,
+  DOCUMENT_SOURCE_UPDATE_PERMISSION,
   PROJECT_MEMBER_UPDATE_PERMISSION,
   PROJECT_MEMBER_DELETE_PERMISSION,
   PROJECT_REVIEW_CAMPAIGN_MEMBER_INVITE_PERMISSION,
@@ -615,5 +625,7 @@ export type GlobalPermission =
   | typeof BACKOFFICE_TERMS_UPDATE_PERMISSION
   | typeof BACKOFFICE_CONVERSATION_REVIEWER_UPDATE_PERMISSION
   | typeof BACKOFFICE_APP_MANAGE_PERMISSION
+  | typeof BACKOFFICE_MAINTENANCE_JOB_RUN_PERMISSION
+  | typeof BACKOFFICE_GLOBAL_ROLE_UPDATE_PERMISSION
 
 export type OrganizationPermission = OrganizationScopedPermission

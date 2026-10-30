@@ -2,13 +2,13 @@ import type { DocumentTagDto } from "../document-tags/document-tag.dto"
 import type { TimeType } from "../generic"
 
 export const DOCUMENT_EMBEDDING_STATUS_CHANGED_CHANNEL_DTO = "document_embedding_status_changed"
-export const DOCUMENT_CRAWL_PROGRESS_CHANGED_CHANNEL_DTO = "document_crawl_progress_changed"
 
 export type DocumentSourceType =
   | "project"
   | "extraction"
   | "evaluationExtractionRun"
   | "agentCsvExtractionRun"
+  /** Legacy web crawl, one document per site: migrated to document sources by a maintenance job. */
   | "webCrawl"
   | "app"
 export type DocumentEmbeddingStatus = "pending" | "queued" | "processing" | "completed" | "failed"
@@ -23,17 +23,6 @@ export type DocumentEmbeddingStatusChangedEventPayload = {
 }
 export type DocumentEmbeddingStatusChangedEventDto = MessageEvent &
   DocumentEmbeddingStatusChangedEventPayload
-
-export type DocumentCrawlProgressChangedEventPayload = {
-  type: typeof DOCUMENT_CRAWL_PROGRESS_CHANGED_CHANNEL_DTO
-  documentId: string
-  organizationId: string
-  projectId: string
-  pagesCrawled: number
-  updatedAt: TimeType
-}
-export type DocumentCrawlProgressChangedEventDto = MessageEvent &
-  DocumentCrawlProgressChangedEventPayload
 
 export type PresignFileRequestItemDto = {
   fileName: string
@@ -61,7 +50,6 @@ export type DocumentDto = {
   id: string
   language: "en" | "fr"
   mimeType?: MimeTypes
-  pages?: { url: string; markdown?: string }[]
   projectId: string
   size?: number
   sourceType: DocumentSourceType
@@ -70,19 +58,6 @@ export type DocumentDto = {
   tagIds: DocumentTagDto["id"][]
   title: string
   updatedAt: TimeType
-}
-
-export type CrawlUrlRequestDto = {
-  url: string
-  name?: string
-}
-
-export type CrawlUrlResponseDto = {
-  message: string
-}
-
-export type ReCrawlUrlResponseDto = {
-  message: string
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types
@@ -212,6 +187,12 @@ export function isAllowedMimeType(mimeType: string): boolean {
   return new Set(ALLOWED_MIME_TYPE_STRINGS).has(mimeType)
 }
 
+/**
+ * `type` of the document sources the legacy web crawls became: one per crawled site, with one
+ * document per page. Nothing refreshes them: the site crawler app takes over on request.
+ */
+export const LEGACY_WEB_CRAWL_DOCUMENT_SOURCE_TYPE = "legacy-web-crawl"
+
 /** Studio list row for a document source registered by an external app. */
 export type DocumentSourceStatus = "ready" | "error"
 
@@ -231,6 +212,7 @@ export type DocumentSourceSummaryDto = {
   indexedDocumentCount: number
   lastSyncedAt: TimeType | null
   status: DocumentSourceStatus
+  tagIds: DocumentTagDto["id"][]
   createdAt: TimeType
   updatedAt: TimeType
 }

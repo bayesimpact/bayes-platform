@@ -9,9 +9,12 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
+import { addUserToProject } from "@/domains/projects/memberships/project-membership.factory"
 import { RbacModule } from "@/domains/rbac/rbac.module"
+import { userFactory } from "@/domains/users/user.factory"
 import { mockOidcEmailForSub, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import {
+  assignPlatformStaffToUser,
   assignPlatformSuperadminToUser,
   ensureRbacCatalog,
 } from "../../../../test/rbac-test.helpers"
@@ -57,6 +60,17 @@ describe("Backoffice - get project", () => {
     return context
   }
 
+  // a project created by someone else, viewed by a caller holding only a global role
+  const createContextViewedWithGlobalRole = async (
+    assignGlobalRole: typeof assignPlatformStaffToUser,
+  ) => {
+    const context = await createOrganizationWithAgent(repositories)
+    const viewer = userFactory.build({ authSubject, email: mockOidcEmailForSub(authSubject) })
+    await repositories.userRepository.save(viewer)
+    await assignGlobalRole({ repositories, user: viewer })
+    return { ...context, viewer }
+  }
+
   it("returns the project detail with members and agents", async () => {
     const { project, organization, user, agent } = await createAuthorizedContext()
     const response = await request({
@@ -68,8 +82,11 @@ describe("Backoffice - get project", () => {
     const returned = response.body.data
     expect(returned.id).toBe(project.id)
     expect(returned.name).toBe(project.name)
-    expect(returned.organizationId).toBe(organization.id)
-    expect(returned.organizationName).toBe(organization.name)
+    expect(returned.organization).toEqual({
+      id: organization.id,
+      name: organization.name,
+      permissions: expect.arrayContaining(["backoffice.organization.read"]),
+    })
     expect(returned.members).toEqual([
       {
         userId: user.id,
@@ -78,12 +95,86 @@ describe("Backoffice - get project", () => {
         roles: [expect.objectContaining({ key: "project_owner", scopeType: "project" })],
       },
     ])
+    expect(returned.hiddenMemberCount).toBe(0)
     expect(returned.agents).toEqual([
       {
         id: agent.id,
         name: agent.name,
+        permissions: expect.arrayContaining(["backoffice.agent.read"]),
       },
     ])
+  })
+
+  it("gives a global role its permissions on the organization, the agents and the members", async () => {
+    const { project } = await createContextViewedWithGlobalRole(assignPlatformSuperadminToUser)
+    const response = await request({
+      route: BackofficeRoutes.getProject,
+      pathParams: { projectId: project.id },
+      token: "token",
+    })
+    expectResponse(response, 200)
+    expect(response.body.data.permissions).toContain("backoffice.project.update")
+    expect(response.body.data.organization.permissions).toContain("backoffice.organization.read")
+    expect(response.body.data.agents[0]?.permissions).toContain("backoffice.agent.read")
+    expect(response.body.data.members).toHaveLength(1)
+    expect(response.body.data.hiddenMemberCount).toBe(0)
+  })
+
+  it("gives no read permission on the organization, the agents and the members to a caller who can only read the project", async () => {
+    const { project, agent } = await createContextViewedWithGlobalRole(assignPlatformStaffToUser)
+    const response = await request({
+      route: BackofficeRoutes.getProject,
+      pathParams: { projectId: project.id },
+      token: "token",
+    })
+    expectResponse(response, 200)
+    expect(response.body.data.permissions).toContain("backoffice.project.read")
+    expect(response.body.data.permissions).not.toContain("backoffice.project.update")
+    expect(response.body.data.organization.permissions).not.toContain(
+      "backoffice.organization.read",
+    )
+    expect(response.body.data.agents).toEqual([{ id: agent.id, name: agent.name, permissions: [] }])
+    expect(response.body.data.members).toEqual([])
+    expect(response.body.data.hiddenMemberCount).toBe(1)
+  })
+
+  it("shows a caller who can only read the project the members they can read as users", async () => {
+    const { project, viewer } = await createContextViewedWithGlobalRole(assignPlatformStaffToUser)
+    // project_member does not grant user.read: the caller only reads themself
+    await addUserToProject({
+      repositories,
+      project,
+      user: viewer,
+      membership: { roleKeys: ["project_member"] },
+    })
+    const response = await request({
+      route: BackofficeRoutes.getProject,
+      pathParams: { projectId: project.id },
+      token: "token",
+    })
+    expectResponse(response, 200)
+    expect(response.body.data.members).toEqual([
+      expect.objectContaining({ userId: viewer.id, userEmail: viewer.email }),
+    ])
+    expect(response.body.data.hiddenMemberCount).toBe(1)
+  })
+
+  it("shows every member to a caller who holds user.read on the project", async () => {
+    const { project, viewer } = await createContextViewedWithGlobalRole(assignPlatformStaffToUser)
+    await addUserToProject({
+      repositories,
+      project,
+      user: viewer,
+      membership: { roleKeys: ["project_admin"] },
+    })
+    const response = await request({
+      route: BackofficeRoutes.getProject,
+      pathParams: { projectId: project.id },
+      token: "token",
+    })
+    expectResponse(response, 200)
+    expect(response.body.data.members).toHaveLength(2)
+    expect(response.body.data.hiddenMemberCount).toBe(0)
   })
 
   it("returns empty members and agents for a project with none", async () => {
@@ -101,6 +192,7 @@ describe("Backoffice - get project", () => {
     })
     expectResponse(response, 200)
     expect(response.body.data.members).toEqual([])
+    expect(response.body.data.hiddenMemberCount).toBe(0)
     expect(response.body.data.agents).toEqual([])
   })
 

@@ -1,5 +1,4 @@
 import {
-  type AgentLocale,
   type AgentModel,
   type CreateAgentDto,
   DocumentsRagMode,
@@ -23,12 +22,10 @@ export type AgentCreationChoice = Agent["type"] | "form"
  */
 export function getDefaultFormValues({
   creationChoice,
-  language,
   defaultModel,
   defaultModelOptions,
 }: {
   creationChoice: AgentCreationChoice
-  language: AgentLocale
   /** The model a new agent starts on, from the catalog. */
   defaultModel: AgentModel
   /** That model's default options, from the catalog. */
@@ -40,7 +37,6 @@ export function getDefaultFormValues({
     documentsRagMode: DocumentsRagMode.All,
     model: defaultModel,
     providerOptions: defaultModelOptions,
-    locale: language,
     tagsToAdd: [],
     projectAgentSessionCategoryIds: [],
     resourceLibraryIds: [],

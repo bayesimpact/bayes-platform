@@ -20,16 +20,11 @@
         "queued": "En file",
         "processing": "En cours",
         "completed": "Prêt",
-        "failed": "Échoué",
-        "crawling": "Exploration",
-        "crawlingWithCount": "Exploration — {{count}} pages",
-        "embedding": "Indexation",
-        "ready": "Prêt"
+        "failed": "Échoué"
       },
       "size": "Taille",
       "storageRelativePath": "Chemin de stockage relatif",
-      "tags": "Tags",
-      "pages": "Pages"
+      "tags": "Tags"
     },
     "update": {
       "title": "Modifier {{documentTitle}}",
@@ -38,17 +33,6 @@
     "delete": {
       "title": "Supprimer {{documentTitle}}",
       "description": "Êtes-vous sûr de vouloir supprimer ce document ? Cette action est irréversible."
-    },
-    "recrawl": "Ré-explorer le site",
-    "stopCrawl": "Arrêter l'exploration",
-    "crawl": {
-      "button": "Explorer un site web",
-      "title": "Explorer un site web",
-      "description": "Entrez une URL à explorer. L'intégralité du site sera indexée en arrière-plan.",
-      "urlLabel": "URL du site web",
-      "nameLabel": "Nom (optionnel)",
-      "namePlaceholder": "ex : Site de documentation",
-      "submit": "Lancer l'exploration"
     },
     "reprocess": {
       "cta": "Relancer le traitement"
@@ -91,18 +75,9 @@
         "description": "Téléversez votre premier document pour commencer."
       }
     },
-    "webSources": {
-      "title": "Sites web",
-      "description": "Améliorez les connaissances et les capacités de vos agents en explorant des sites web.",
-      "empty": {
-        "title": "Aucun site web exploré pour le moment",
-        "description": "Entrez une URL pour commencer à explorer un site web et indexer son contenu."
-      }
-    },
     "filter": {
       "all": "Tous",
-      "uploaded": "Documents",
-      "webSources": "Sites web"
+      "uploaded": "Documents"
     },
     "upload": {
       "tagDialog": {
@@ -133,9 +108,7 @@
       "tagsAddError": "L'ajout des étiquettes aux documents a échoué",
       "tagsRemoved_one": "Étiquettes retirées de {{count}} document",
       "tagsRemoved_other": "Étiquettes retirées de {{count}} documents",
-      "tagsRemoveError": "Le retrait des étiquettes des documents a échoué",
-      "crawlStarted": "Exploration de {{url}}. Les documents apparaîtront au fur et à mesure de leur traitement.",
-      "crawlError": "L'exploration du site a échoué"
+      "tagsRemoveError": "Le retrait des étiquettes des documents a échoué"
     }
   }
 }

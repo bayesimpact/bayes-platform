@@ -13,6 +13,7 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { AgentsModule } from "@/domains/agents/agents.module"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import type { ProjectRoleKey } from "@/domains/projects/memberships/project-membership.types"
 import { mockForeignAuthSubject, setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../test/request"
 
@@ -53,10 +54,10 @@ describe("ProjectAgentSessionCategories - Auth", () => {
     await app.close()
   })
 
-  const createContextForRole = async (role: "owner" | "admin" | "member" = "owner") => {
+  const createContextForRole = async (role: ProjectRoleKey = "project_owner") => {
     const { organization, project } = await createOrganizationWithProject(repositories, {
       user: { authSubject },
-      projectMembership: { role },
+      projectMembership: { roleKeys: [role] },
     })
     organizationId = organization.id
     projectId = project.id
@@ -86,7 +87,7 @@ describe("ProjectAgentSessionCategories - Auth", () => {
     })
 
     it("requires a valid project ID", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       projectId = randomUUID()
       expectResponse(
         await subject({ payload: { name: "Support", assignToAllConversationalAgents: false } }),
@@ -95,7 +96,7 @@ describe("ProjectAgentSessionCategories - Auth", () => {
     })
 
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       authSubject = mockForeignAuthSubject()
       expectResponse(
         await subject({ payload: { name: "Support", assignToAllConversationalAgents: false } }),
@@ -105,7 +106,7 @@ describe("ProjectAgentSessionCategories - Auth", () => {
     })
 
     it("does not allow a simple member to create a category", async () => {
-      await createContextForRole("member")
+      await createContextForRole("project_member")
       expectResponse(
         await subject({ payload: { name: "Support", assignToAllConversationalAgents: false } }),
         403,
@@ -114,7 +115,7 @@ describe("ProjectAgentSessionCategories - Auth", () => {
     })
 
     it("allows an admin to create a category", async () => {
-      await createContextForRole("admin")
+      await createContextForRole("project_admin")
       expectResponse(
         await subject({ payload: { name: "Support", assignToAllConversationalAgents: false } }),
         201,
@@ -122,7 +123,7 @@ describe("ProjectAgentSessionCategories - Auth", () => {
     })
 
     it("allows an owner to create a category", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       expectResponse(
         await subject({ payload: { name: "Support", assignToAllConversationalAgents: false } }),
         201,
@@ -149,24 +150,24 @@ describe("ProjectAgentSessionCategories - Auth", () => {
     })
 
     it("requires a valid project ID", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       projectId = randomUUID()
       expectResponse(await subject(), 404)
     })
 
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
 
     it("does not allow a simple member to delete a category", async () => {
-      await createContextForRole("member")
+      await createContextForRole("project_member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
 
     it("allows an owner to delete a category (returns 200 even if category not found)", async () => {
-      await createContextForRole("owner")
+      await createContextForRole("project_owner")
       expectResponse(await subject(), 200)
     })
   })

@@ -1,7 +1,11 @@
-import type {
-  ReviewCampaignMembershipRole,
-  TermsDocumentType,
-  TimeType,
+import {
+  BACKOFFICE_AGENT_READ_PERMISSION,
+  BACKOFFICE_ORGANIZATION_READ_PERMISSION,
+  BACKOFFICE_PROJECT_READ_PERMISSION,
+  BACKOFFICE_PROJECT_UPDATE_PERMISSION,
+  type ReviewCampaignMembershipRole,
+  type TermsDocumentType,
+  type TimeType,
 } from "@caseai-connect/api-contracts"
 import { faker } from "@faker-js/faker"
 import { Factory } from "fishery"
@@ -28,6 +32,8 @@ import type {
   BackofficeUserOrganizationMembership,
   BackofficeUserProjectMembership,
   BackofficeUserReviewCampaignMembership,
+  MaintenanceJob,
+  MaintenanceJobRun,
   PaginatedBackofficeAgents,
   PaginatedBackofficeOrganizations,
   PaginatedBackofficeProjects,
@@ -136,6 +142,10 @@ export const backofficeProjectListItemFactory = BackofficeProjectListItemFactory
     organizationName: params.organizationName ?? faker.company.name(),
     createdAt: (params.createdAt ?? faker.date.past().getTime()) as TimeType,
     featureFlags: params.featureFlags ?? [],
+    permissions: params.permissions ?? [
+      BACKOFFICE_PROJECT_READ_PERMISSION,
+      BACKOFFICE_PROJECT_UPDATE_PERMISSION,
+    ],
   }),
 )
 
@@ -155,6 +165,7 @@ class BackofficeProjectAgentFactory extends Factory<BackofficeProjectAgent> {}
 export const backofficeProjectAgentFactory = BackofficeProjectAgentFactory.define(({ params }) => ({
   id: params.id ?? faker.string.uuid(),
   name: params.name ?? "Helpful Assistant",
+  permissions: params.permissions ?? [BACKOFFICE_AGENT_READ_PERMISSION],
 }))
 
 class BackofficeProjectDetailFactory extends Factory<BackofficeProjectDetail> {}
@@ -163,11 +174,19 @@ export const backofficeProjectDetailFactory = BackofficeProjectDetailFactory.def
   ({ params }) => ({
     id: params.id ?? faker.string.uuid(),
     name: params.name ?? faker.commerce.productName(),
-    organizationId: params.organizationId ?? faker.string.uuid(),
-    organizationName: params.organizationName ?? faker.company.name(),
+    organization: {
+      id: params.organization?.id ?? faker.string.uuid(),
+      name: params.organization?.name ?? faker.company.name(),
+      permissions: params.organization?.permissions ?? [BACKOFFICE_ORGANIZATION_READ_PERMISSION],
+    },
     createdAt: (params.createdAt ?? faker.date.past().getTime()) as TimeType,
     featureFlags: params.featureFlags ?? [],
+    permissions: params.permissions ?? [
+      BACKOFFICE_PROJECT_READ_PERMISSION,
+      BACKOFFICE_PROJECT_UPDATE_PERMISSION,
+    ],
     members: params.members ?? [],
+    hiddenMemberCount: params.hiddenMemberCount ?? 0,
     agents: params.agents ?? [],
   }),
 )
@@ -237,6 +256,7 @@ export const backofficeUserFactory = BackofficeUserFactory.define(({ params }) =
     email: params.email ?? faker.internet.email({ firstName, lastName }).toLowerCase(),
     name: params.name ?? `${firstName} ${lastName}`,
     createdAt: (params.createdAt ?? faker.date.past().getTime()) as TimeType,
+    globalRoles: params.globalRoles ?? [],
   }
 })
 
@@ -650,4 +670,37 @@ export const appManifestFactory = AppManifestFactory.define(({ params, sequence 
     "https://app.example.com/auth/bayes/callback",
   ],
   createdAt: (params.createdAt ?? faker.date.past().getTime()) as TimeType,
+}))
+
+class MaintenanceJobRunFactory extends Factory<MaintenanceJobRun> {}
+
+export const maintenanceJobRunFactory = MaintenanceJobRunFactory.define(({ params }) => {
+  const state = params.state ?? "completed"
+  const requestedAt = params.requestedAt ?? faker.date.recent().getTime()
+  const isFinished = state === "completed" || state === "failed"
+  return {
+    state,
+    requestedAt: requestedAt as TimeType,
+    finishedAt: (params.finishedAt ??
+      (isFinished ? requestedAt + 60_000 : null)) as TimeType | null,
+    progress: params.progress
+      ? { done: params.progress.done ?? 0, total: params.progress.total ?? 0 }
+      : state === "waiting"
+        ? null
+        : { done: 3, total: isFinished ? 3 : 8 },
+    summary: params.summary ?? (state === "completed" ? "3 items migrated." : null),
+    error: params.error ?? (state === "failed" ? "Connection lost while migrating." : null),
+  }
+})
+
+class MaintenanceJobFactory extends Factory<MaintenanceJob> {}
+
+export const maintenanceJobFactory = MaintenanceJobFactory.define(({ params, sequence }) => ({
+  key: params.key ?? `sample-maintenance-job-${sequence}`,
+  title: params.title ?? "Sample maintenance job",
+  description:
+    params.description ?? "Moves sample records to their new shape, across every organization.",
+  remainingCount: params.remainingCount ?? 8,
+  remainingSummary: params.remainingSummary ?? "8 records in 3 projects",
+  lastRun: params.lastRun ? maintenanceJobRunFactory.build(params.lastRun) : null,
 }))

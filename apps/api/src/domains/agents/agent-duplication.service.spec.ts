@@ -1,9 +1,4 @@
-import {
-  AgentLocale,
-  AgentMemoryMode,
-  AgentModel,
-  DocumentsRagMode,
-} from "@caseai-connect/api-contracts"
+import { AgentMemoryMode, AgentModel, DocumentsRagMode } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import { NotFoundException, UnprocessableEntityException } from "@nestjs/common"
 import {
@@ -74,7 +69,6 @@ describe("AgentDuplicationService", () => {
         instructions: "Answer questions about the product.",
         model: AgentModel.Gemini35Flash,
         providerOptions: sourceModelOptions,
-        locale: AgentLocale.FR,
         documentsRagMode: DocumentsRagMode.Tags,
         greetingMessage: "Hello!",
         outputJsonSchema: { type: "object", properties: { title: { type: "string" } } },
@@ -297,7 +291,7 @@ describe("AgentDuplicationService", () => {
     const { user: agentMember } = await addUserToAgent({
       repositories,
       agent: source.agent,
-      membership: { role: "member" },
+      membership: { roleKeys: ["agent_member"] },
     })
 
     const { agent } = await duplicate(source)
@@ -323,7 +317,7 @@ describe("AgentDuplicationService", () => {
       repositories,
       project: source.project,
       user: projectAdmin,
-      membership: { role: "admin" },
+      membership: { roleKeys: ["project_admin"] },
     })
 
     const { agent } = await duplicate(source)

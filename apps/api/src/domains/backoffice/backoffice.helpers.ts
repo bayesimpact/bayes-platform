@@ -31,6 +31,7 @@ import type { OrganizationMembershipModel } from "@/domains/organizations/member
 import type { Organization } from "@/domains/organizations/organization.entity"
 import type { ProjectMembershipModel } from "@/domains/projects/memberships/project-membership.model"
 import type { Project } from "@/domains/projects/project.entity"
+import type { ResourceIdsScope } from "@/domains/rbac/permission.service"
 import type { RoleGrant } from "@/domains/rbac/permission.types"
 import type { User } from "@/domains/users/user.entity"
 import type { ReviewCampaignMembershipModel } from "../review-campaigns/memberships/review-campaign-membership.model"
@@ -138,9 +139,13 @@ export function toBackofficeAgentDetailDto(
   }
 }
 
-export function toBackofficeProjectListItemDto(
-  project: Project & { organization?: { name: string } },
-): BackofficeProjectListItemDto {
+export function toBackofficeProjectListItemDto({
+  project,
+  permissions,
+}: {
+  project: Project & { organization?: { name: string } }
+  permissions: string[]
+}): BackofficeProjectListItemDto {
   return {
     id: project.id,
     name: project.name,
@@ -148,22 +153,42 @@ export function toBackofficeProjectListItemDto(
     organizationName: project.organization?.name ?? "",
     createdAt: project.createdAt.getTime() as TimeType,
     featureFlags: toFeatureFlagsDto(project.featureFlags),
+    permissions,
   }
 }
 
-export function toBackofficeProjectDetailDto(
-  project: Project & { organization?: { name: string } },
-  members: ProjectMembershipModel[],
-  agents: Agent[],
-): BackofficeProjectDetailDto {
+export function toBackofficeProjectDetailDto({
+  project,
+  permissions,
+  organizationPermissions,
+  members,
+  visibleUsers,
+  agents,
+}: {
+  project: Project & { organization?: { name: string } }
+  permissions: string[]
+  organizationPermissions: string[]
+  members: ProjectMembershipModel[]
+  visibleUsers: ResourceIdsScope
+  agents: { agent: Agent; permissions: string[] }[]
+}): BackofficeProjectDetailDto {
+  // reading the project does not grant reading its members: a member the caller cannot read as a
+  // user is left out, so the page cannot be used to list users
+  const readableMembers = members.filter(
+    (membership) => visibleUsers.scope === "all" || visibleUsers.ids.includes(membership.userId),
+  )
   return {
     id: project.id,
     name: project.name,
-    organizationId: project.organizationId,
-    organizationName: project.organization?.name ?? "",
+    organization: {
+      id: project.organizationId,
+      name: project.organization?.name ?? "",
+      permissions: organizationPermissions,
+    },
     createdAt: project.createdAt.getTime() as TimeType,
     featureFlags: toFeatureFlagsDto(project.featureFlags),
-    members: members.map(
+    permissions,
+    members: readableMembers.map(
       (membership): BackofficeProjectMemberDto => ({
         userId: membership.userId,
         userEmail: membership.user?.email ?? "",
@@ -171,21 +196,27 @@ export function toBackofficeProjectDetailDto(
         roles: membership.roles.map(toMembershipRoleDto),
       }),
     ),
+    hiddenMemberCount: members.length - readableMembers.length,
     agents: agents.map(
-      (agent): BackofficeProjectAgentDto => ({
+      ({ agent, permissions }): BackofficeProjectAgentDto => ({
         id: agent.id,
         name: agent.name,
+        permissions,
       }),
     ),
   }
 }
 
-export function toBackofficeUserDto(user: User): BackofficeUserDto {
+export function toBackofficeUserDto(
+  user: User,
+  globalRoles: { key: string; name: string }[],
+): BackofficeUserDto {
   return {
     id: user.id,
     email: user.email,
     name: user.name,
     createdAt: user.createdAt.getTime() as TimeType,
+    globalRoles,
   }
 }
 

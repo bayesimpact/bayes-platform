@@ -1,23 +1,19 @@
 import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit"
 import { notificationsActions } from "@/common/features/notifications/notifications.slice"
 import { projectsActions } from "@/common/features/projects/projects.slice"
-import { ADS } from "@/common/store/async-data-status"
 import type { AppDispatch, RootState } from "@/common/store/types"
 import {
   createDocumentTag,
   deleteDocumentTag,
   updateDocumentTag,
 } from "@/studio/features/document-tags/document-tags.thunks"
-import { selectDocumentsData, selectUploaderState } from "./documents.selectors"
+import { selectUploaderState } from "./documents.selectors"
 import { documentsActions } from "./documents.slice"
 import {
   addTagsToDocuments,
-  cancelCrawl,
-  crawlUrl,
   deleteDocument,
   deleteDocuments,
   listDocuments,
-  reCrawlUrl,
   removeTagsFromDocuments,
   updateDocument,
   uploadDocument,
@@ -25,9 +21,7 @@ import {
 } from "./documents.thunks"
 import {
   handleDocumentsContextChanged,
-  startDocumentCrawlProgressStream,
   startDocumentEmbeddingStatusStream,
-  stopDocumentCrawlProgressStream,
   stopDocumentEmbeddingStatusStream,
   syncDocumentEmbeddingStatusStreamWithDocuments,
 } from "./documents-stream-status"
@@ -46,22 +40,6 @@ function registerListeners() {
     actionCreator: documentsActions.projectUnmount,
     effect: async (_, listenerApi) => {
       listenerApi.dispatch(documentsActions.stopEmbeddingStatusStream())
-    },
-  })
-
-  listenerMiddleware.startListening({
-    actionCreator: documentsActions.webSourcesMount,
-    effect: async (_, listenerApi) => {
-      listenerApi.dispatch(documentsActions.setCurrentSourceType({ sourceType: "webCrawl" }))
-      listenerApi.dispatch(documentsActions.startEmbeddingStatusStream())
-      listenerApi.dispatch(documentsActions.startCrawlProgressStream())
-    },
-  })
-  listenerMiddleware.startListening({
-    actionCreator: documentsActions.webSourcesUnmount,
-    effect: async (_, listenerApi) => {
-      listenerApi.dispatch(documentsActions.stopEmbeddingStatusStream())
-      listenerApi.dispatch(documentsActions.stopCrawlProgressStream())
     },
   })
 
@@ -95,36 +73,9 @@ function registerListeners() {
   })
 
   listenerMiddleware.startListening({
-    actionCreator: documentsActions.startCrawlProgressStream,
-    effect: async (_, listenerApi) => {
-      await startDocumentCrawlProgressStream(listenerApi)
-    },
-  })
-
-  listenerMiddleware.startListening({
-    actionCreator: documentsActions.stopCrawlProgressStream,
-    effect: async () => {
-      stopDocumentCrawlProgressStream()
-    },
-  })
-
-  listenerMiddleware.startListening({
     actionCreator: documentsActions.patchDocumentEmbeddingStatus,
-    effect: async (action, listenerApi) => {
+    effect: async (_, listenerApi) => {
       syncDocumentEmbeddingStatusStreamWithDocuments(listenerApi)
-
-      if (action.payload.embeddingStatus !== "completed") return
-
-      // Refetch documents when a webCrawl document finishes embedding
-      // so the content (crawled pages) is available for the dropdown
-      const state = listenerApi.getState()
-      const documents = selectDocumentsData(state)
-      if (!ADS.isFulfilled(documents)) return
-      const document = documents.value.find((document) => document.id === action.payload.documentId)
-      if (document?.sourceType === "webCrawl") {
-        // FIXME: potentially refetching the entire list is inefficient, consider only refetching the updated document
-        listenerApi.dispatch(listDocuments())
-      }
     },
   })
 
@@ -141,9 +92,6 @@ function registerListeners() {
       // Document changes
       uploadDocument.fulfilled,
       uploadDocuments.fulfilled,
-      crawlUrl.fulfilled,
-      reCrawlUrl.fulfilled,
-      cancelCrawl.fulfilled,
       updateDocument.fulfilled,
       deleteDocument.fulfilled,
       deleteDocuments.fulfilled,
@@ -351,30 +299,6 @@ function registerListeners() {
       listenerApi.dispatch(
         notificationsActions.show({
           titleKey: "document:notifications.tagsRemoveError",
-          type: "error",
-        }),
-      )
-    },
-  })
-
-  listenerMiddleware.startListening({
-    actionCreator: crawlUrl.fulfilled,
-    effect: async (action, listenerApi) => {
-      listenerApi.dispatch(
-        notificationsActions.show({
-          titleKey: "document:notifications.crawlStarted",
-          titleValues: { url: action.meta.arg.url },
-          type: "success",
-        }),
-      )
-    },
-  })
-  listenerMiddleware.startListening({
-    actionCreator: crawlUrl.rejected,
-    effect: async (_, listenerApi) => {
-      listenerApi.dispatch(
-        notificationsActions.show({
-          titleKey: "document:notifications.crawlError",
           type: "error",
         }),
       )

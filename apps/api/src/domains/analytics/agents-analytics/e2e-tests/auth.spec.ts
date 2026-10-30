@@ -16,7 +16,7 @@ import {
   agentMembershipFactory,
   saveAgentMembership,
 } from "@/domains/agents/memberships/agent-membership.factory"
-import type { AgentMembershipRole } from "@/domains/agents/memberships/agent-membership.types"
+import type { AgentRoleKey } from "@/domains/agents/memberships/agent-membership.types"
 import {
   createOrganizationWithAgent,
   createOrganizationWithProject,
@@ -25,7 +25,7 @@ import {
   projectMembershipFactory,
   saveProjectMembership,
 } from "@/domains/projects/memberships/project-membership.factory"
-import type { ProjectMembershipRole } from "@/domains/projects/memberships/project-membership.types"
+import type { ProjectRoleKey } from "@/domains/projects/memberships/project-membership.types"
 import { projectFactory } from "@/domains/projects/project.factory"
 import { mockForeignAuthSubject, setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
@@ -76,12 +76,12 @@ describe("Agents Analytics - Auth", () => {
   })
 
   const seedContext = async (options: {
-    projectRole: ProjectMembershipRole
-    agentMembership: AgentMembershipRole | "none"
+    projectRole: ProjectRoleKey
+    agentMembership: AgentRoleKey | "none"
   }) => {
     const { organization, project, user } = await createOrganizationWithProject(repositories, {
       user: { authSubject },
-      projectMembership: { role: options.projectRole },
+      projectMembership: { roleKeys: [options.projectRole] },
     })
     const agent = agentFactory.transient({ organization, project }).build()
     await repositories.agentRepository.save(agent)
@@ -90,7 +90,7 @@ describe("Agents Analytics - Auth", () => {
         repositories,
         membership: agentMembershipFactory
           .transient({ user, agent })
-          .build({ role: options.agentMembership }),
+          .build({ roleKeys: [options.agentMembership] }),
       })
     }
     organizationId = organization.id
@@ -165,7 +165,7 @@ describe("Agents Analytics - Auth", () => {
   it("allows agent owners who are only project members", async () => {
     await createOrganizationWithAgent(repositories, {
       user: { authSubject },
-      projectMembership: { role: "member" },
+      projectMembership: { roleKeys: ["project_member"] },
     }).then(({ organization, project, agent }) => {
       organizationId = organization.id
       projectId = project.id
@@ -185,21 +185,21 @@ describe("Agents Analytics - Auth", () => {
   })
 
   it("does not allow project owners without agent membership", async () => {
-    await seedContext({ projectRole: "owner", agentMembership: "none" })
+    await seedContext({ projectRole: "project_owner", agentMembership: "none" })
     expectResponse(await subjectConversations(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     expectResponse(await subjectAvg(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     expectResponse(await subjectByCategoryPerDay(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
   })
 
   it("allows project admins who are only agent admins", async () => {
-    await seedContext({ projectRole: "admin", agentMembership: "admin" })
+    await seedContext({ projectRole: "project_admin", agentMembership: "agent_admin" })
     expectResponse(await subjectConversations(), 200)
     expectResponse(await subjectAvg(), 200)
     expectResponse(await subjectByCategoryPerDay(), 200)
   })
 
   it("does not allow project members who are only agent members", async () => {
-    await seedContext({ projectRole: "member", agentMembership: "member" })
+    await seedContext({ projectRole: "project_member", agentMembership: "agent_member" })
     expectResponse(await subjectConversations(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     expectResponse(await subjectAvg(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     expectResponse(await subjectByCategoryPerDay(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
@@ -213,7 +213,7 @@ describe("Agents Analytics - Auth", () => {
     const _otherProjectMembership = await saveProjectMembership({
       repositories,
       membership: projectMembershipFactory
-        .owner()
+        .withRoles("project_owner")
         .transient({ user, project: otherProject })
         .build(),
     })

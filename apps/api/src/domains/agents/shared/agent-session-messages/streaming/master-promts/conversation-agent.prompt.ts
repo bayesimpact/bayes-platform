@@ -38,7 +38,5 @@ ${handoff ? promptHelpers.handoff(handoff) : ""}
 
 ${contextSections.join("\n\n")}
 
-${promptHelpers.language(agentSettings.locale)}
-
 ${promptHelpers.now()}`
 }

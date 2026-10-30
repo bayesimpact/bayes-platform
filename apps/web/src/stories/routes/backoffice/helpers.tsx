@@ -14,6 +14,7 @@ import {
   backofficeUserOrganizationMembershipFactory,
   backofficeUserProjectMembershipFactory,
   backofficeUserReviewCampaignMembershipFactory,
+  maintenanceJobRunFactory,
   paginatedBackofficeAgentsFactory,
   paginatedBackofficeOrganizationsFactory,
   paginatedBackofficeProjectsFactory,
@@ -31,6 +32,7 @@ import type {
   BackofficeRbacCatalog,
   BackofficeUser,
   BackofficeUserDetail,
+  MaintenanceJob,
   PaginatedBackofficeAgents,
   PaginatedBackofficeOrganizations,
   PaginatedBackofficeProjects,
@@ -47,8 +49,10 @@ export type BackofficeStoryArgs = {
   isBackofficeAuthorized: boolean
   isTermsManagementAuthorized: boolean
   isAppManagementAuthorized: boolean
+  isMaintenanceJobRunAuthorized: boolean
   canCreateOrganization: boolean
   canUpdateConversationReviewers: boolean
+  canUpdateGlobalRoles: boolean
   withOrganizations: boolean
   withAgents: boolean
   withProjects: boolean
@@ -61,8 +65,10 @@ export const backofficeStoryArgs = {
   isBackofficeAuthorized: true,
   isTermsManagementAuthorized: false,
   isAppManagementAuthorized: false,
+  isMaintenanceJobRunAuthorized: false,
   canCreateOrganization: true,
   canUpdateConversationReviewers: true,
+  canUpdateGlobalRoles: true,
   withOrganizations: true,
   withAgents: true,
   withProjects: true,
@@ -75,8 +81,10 @@ export const backofficeStoryArgTypes = {
   isBackofficeAuthorized: { control: "boolean" },
   isTermsManagementAuthorized: { control: "boolean" },
   isAppManagementAuthorized: { control: "boolean" },
+  isMaintenanceJobRunAuthorized: { control: "boolean" },
   canCreateOrganization: { control: "boolean" },
   canUpdateConversationReviewers: { control: "boolean" },
+  canUpdateGlobalRoles: { control: "boolean" },
   withOrganizations: { control: "boolean" },
   withAgents: { control: "boolean" },
   withProjects: { control: "boolean" },
@@ -100,10 +108,12 @@ export function buildBackofficeData(args: BackofficeStoryArgs): {
       ...(args.isBackofficeAuthorized ? (["backoffice.read"] as const) : []),
       ...(args.isTermsManagementAuthorized ? (["backoffice.terms.update"] as const) : []),
       ...(args.isAppManagementAuthorized ? (["backoffice.app.manage"] as const) : []),
+      ...(args.isMaintenanceJobRunAuthorized ? (["backoffice.maintenance_job.run"] as const) : []),
       ...(args.canCreateOrganization ? (["organization.create"] as const) : []),
       ...(args.canUpdateConversationReviewers
         ? (["backoffice.conversation_reviewer.update"] as const)
         : []),
+      ...(args.canUpdateGlobalRoles ? (["backoffice.global_role.update"] as const) : []),
     ],
   })
 
@@ -185,7 +195,15 @@ function buildProjectsPage(): PaginatedBackofficeProjects {
 function buildUsersPage(): PaginatedBackofficeUsers {
   const total = 24
   const pageSize = 10
-  const users: BackofficeUser[] = backofficeUserFactory.buildList(pageSize)
+  const users: BackofficeUser[] = [
+    backofficeUserFactory.build({
+      globalRoles: [{ key: "platform_superadmin", name: "Platform Superadmin" }],
+    }),
+    backofficeUserFactory.build({
+      globalRoles: [{ key: "platform_org_creator", name: "Platform Organization Creator" }],
+    }),
+    ...backofficeUserFactory.buildList(pageSize - 2),
+  ]
   return paginatedBackofficeUsersFactory.build({ users, total, page: 0, limit: pageSize })
 }
 
@@ -201,6 +219,7 @@ export function buildMockBackofficeService(overrides: {
   rbacCatalog?: BackofficeRbacCatalog | null
   termsDocuments?: TermsDocuments | null
   appManifests?: AppManifest[]
+  maintenanceJobs?: MaintenanceJob[]
 }): IBackofficeSpi {
   const organizations =
     overrides.organizations ??
@@ -226,6 +245,7 @@ export function buildMockBackofficeService(overrides: {
   const rbacCatalog = overrides.rbacCatalog ?? null
   const termsDocuments = overrides.termsDocuments ?? null
   let appManifests = overrides.appManifests ?? []
+  let maintenanceJobs = overrides.maintenanceJobs ?? []
   const appClientIds = new Map<string, string>()
   return {
     async listOrganizations() {
@@ -273,6 +293,8 @@ export function buildMockBackofficeService(overrides: {
     },
     async grantAgentConversationReviewer() {},
     async revokeAgentConversationReviewer() {},
+    async grantUserGlobalRole() {},
+    async revokeUserGlobalRole() {},
     async getRbacCatalog() {
       if (!rbacCatalog) return backofficeRbacCatalogFactory.build()
       return rbacCatalog
@@ -289,6 +311,19 @@ export function buildMockBackofficeService(overrides: {
     },
     async listAppManifests() {
       return appManifests
+    },
+    async listMaintenanceJobs() {
+      return maintenanceJobs
+    },
+    async runMaintenanceJob(jobKey) {
+      const current = maintenanceJobs.find((job) => job.key === jobKey)
+      if (!current) throw new Error(`No maintenance job ${jobKey} seeded in mock service`)
+      const started = {
+        ...current,
+        lastRun: maintenanceJobRunFactory.build({ state: "waiting", requestedAt: Date.now() }),
+      }
+      maintenanceJobs = maintenanceJobs.map((job) => (job.key === jobKey ? started : job))
+      return started
     },
     async createAppManifest(input) {
       const created = appManifestFactory.build(input)

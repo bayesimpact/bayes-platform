@@ -20,7 +20,7 @@ const STRINGS = {
     org: "Bayes Impact Demo", studio: "Studio", agents: "Agents",
     agent1: "Bayes Assistant", conversationAgent: "Conversation Agent", extractionAgent: "Extraction Agent", formAgent: "Form Agent",
     settingsName: "Demo", settings: "Settings", evaluations: "Evaluations", analytics: "Analytics", sources: "Sources",
-    documents: "Documents", webSources: "Web sources", resourceLibraries: "Resource libraries", members: "Members", admin: "Admin",
+    documents: "Documents", resourceLibraries: "Resource libraries", members: "Members", admin: "Admin",
     userName: "Alex Martin", userEmail: "alex.martin@example.com",
     workspace: "Workspace", conversation: "Conversation", extraction: "Extraction", form: "Form",
     timeAgo: "About 1 hour ago", create: "Create",
@@ -59,7 +59,7 @@ const STRINGS = {
     org: "Bayes Impact Demo", studio: "Studio", agents: "Agents",
     agent1: "Bayes Assistant", conversationAgent: "Conversation Agent", extractionAgent: "Extraction Agent", formAgent: "Form Agent",
     settingsName: "Demo", settings: "Paramètres", evaluations: "Évaluations", analytics: "Analytique", sources: "Sources",
-    documents: "Documents", webSources: "Sites web", resourceLibraries: "Bibliothèques de ressources", members: "Membres", admin: "Admin",
+    documents: "Documents", resourceLibraries: "Bibliothèques de ressources", members: "Membres", admin: "Admin",
     userName: "Alex Martin", userEmail: "alex.martin@example.com",
     workspace: "Espace de travail", conversation: "Conversation", extraction: "Extraction", form: "Formulaire",
     timeAgo: "Il y a environ 1 heure", create: "Créer",
@@ -133,7 +133,6 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
         <div class="navitem" id="navSources"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 15 21.84"/><path d="M21 5V8"/><path d="M21 12L18 17H22L19 22"/><path d="M3 12A9 3 0 0 0 14.59 14.87"/></svg><span>{s.sources}</span><svg class="chev" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></div>
         <div class="subwrap" id="sourcesSub">
           <div class="subitem"><svg viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg><span>{s.documents}</span></div>
-          <div class="subitem"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg><span>{s.webSources}</span></div>
           <div class="subitem"><svg viewBox="0 0 24 24"><rect width="8" height="18" x="3" y="3" rx="1"/><path d="M7 3v18"/><path d="M20.4 18.9c.2.5-.1 1.1-.6 1.3l-1.9.7c-.5.2-1.1-.1-1.3-.6L11.1 5.1c-.2-.5.1-1.1.6-1.3l1.9-.7c.5-.2 1.1.1 1.3.6Z"/></svg><span>{s.resourceLibraries}</span></div>
         </div>
         <div class="navitem" id="navMembers"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg><span>{s.members}</span></div>

@@ -11,6 +11,7 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { createDocumentForProject } from "@/domains/documents/document.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import type { ProjectRoleKey } from "@/domains/projects/memberships/project-membership.types"
 import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { DocumentsModule } from "../documents.module"
@@ -54,9 +55,9 @@ describe("Document sources - getAll", () => {
     await app.close()
   })
 
-  const createContext = async (role: "owner" | "admin" | "member" = "owner") => {
+  const createContext = async (role: ProjectRoleKey = "project_owner") => {
     const { user, organization, project } = await createOrganizationWithProject(repositories, {
-      projectMembership: { role },
+      projectMembership: { roleKeys: [role] },
     })
     organizationId = organization.id
     projectId = project.id
@@ -72,7 +73,7 @@ describe("Document sources - getAll", () => {
     })
 
   it("returns feeds with document count, last sync, and status", async () => {
-    const { organization, project } = await createContext("admin")
+    const { organization, project } = await createContext("project_admin")
     const connectScope = { organizationId: organization.id, projectId: project.id }
     const documentSource = await documentSourcesService.createOne(connectScope, {
       name: "Site crawler",
@@ -110,6 +111,7 @@ describe("Document sources - getAll", () => {
         indexedDocumentCount: 0,
         lastSyncedAt: syncedAt.getTime(),
         status: "error",
+        tagIds: [],
       }),
     ])
   })
@@ -121,12 +123,12 @@ describe("Document sources - getAll", () => {
   })
 
   it("does not allow a project member to list feeds", async () => {
-    await createContext("member")
+    await createContext("project_member")
     expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
   })
 
   it("deletes a source and its documents for a project admin", async () => {
-    const { organization, project } = await createContext("admin")
+    const { organization, project } = await createContext("project_admin")
     const connectScope = { organizationId: organization.id, projectId: project.id }
     const documentSource = await documentSourcesService.createOne(connectScope, {
       name: "Helpful Assistant",
@@ -158,7 +160,7 @@ describe("Document sources - getAll", () => {
   })
 
   it("does not allow a project member to delete a source", async () => {
-    const { organization, project } = await createContext("member")
+    const { organization, project } = await createContext("project_member")
     const documentSource = await documentSourcesService.createOne(
       { organizationId: organization.id, projectId: project.id },
       {

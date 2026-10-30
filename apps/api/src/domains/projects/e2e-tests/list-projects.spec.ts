@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto"
 import {
   AGENT_CREATE_PERMISSION,
   DOCUMENT_SOURCE_READ_PERMISSION,
+  DOCUMENT_SOURCE_UPDATE_PERMISSION,
   EVALUATION_CONVERSATION_DATASET_CREATE_PERMISSION,
   EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION,
   PROJECT_APP_INSTALLATION_CREATE_PERMISSION,
@@ -156,13 +157,13 @@ describe("Projects - listProjects", () => {
       repositories,
       project: adminProject,
       user,
-      membership: { role: "admin" },
+      membership: { roleKeys: ["project_admin"] },
     })
     await addUserToProject({
       repositories,
       project: memberProject,
       user,
-      membership: { role: "member" },
+      membership: { roleKeys: ["project_member"] },
     })
 
     const response = await subject()
@@ -174,6 +175,7 @@ describe("Projects - listProjects", () => {
     expect([...(permissionsByName.Admin ?? [])].sort()).toEqual(
       [
         DOCUMENT_SOURCE_READ_PERMISSION,
+        DOCUMENT_SOURCE_UPDATE_PERMISSION,
         "desk.ui.read",
         "studio.ui.read",
         "evaluation.ui.read",
@@ -215,7 +217,7 @@ describe("Projects - listProjects", () => {
       organization,
       project: campaignProject,
       campaign,
-      role: "tester",
+      roleKeys: ["review_campaign_tester"],
       user: { authSubject: testerAuthSubject, email: mockOidcEmailForSub(testerAuthSubject) },
     })
     authSubject = testerAuthSubject

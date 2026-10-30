@@ -1,15 +1,17 @@
 import type { Organization } from "@/domains/organizations/organization.entity"
+import type { ORGANIZATION_ROLES } from "@/domains/rbac/rbac.constants"
 import type { User } from "@/domains/users/user.entity"
 
-/** Shorthand for the `org_*` catalog roles (`ORGANIZATION_ROLES`), used by test fixtures. */
-export type OrganizationMembershipRole = "owner" | "admin" | "member"
+/** An `org_*` catalog role key (`ORGANIZATION_ROLES`). */
+export type OrganizationRoleKey = (typeof ORGANIZATION_ROLES)[keyof typeof ORGANIZATION_ROLES]
 
 /** Plain-object shape used by test factories before persistence. */
 export type OrganizationMembershipFixture = {
   id: string
   userId: string
   organizationId: string
-  role: OrganizationMembershipRole
+  /** One `user_membership` row per role key. */
+  roleKeys: OrganizationRoleKey[]
   createdAt: Date
   updatedAt: Date
   deletedAt: Date | null

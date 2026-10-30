@@ -1,10 +1,10 @@
 import { enUS, fr } from "date-fns/locale"
 import { afterEach, describe, expect, it, vi } from "vitest"
-import { getLocale, getSpeechRecognitionLanguage, toAgentLocale } from "./get-locale"
+import { getLocale, getSpeechRecognitionLanguage, toUiLocale } from "./get-locale"
 
-describe("toAgentLocale", () => {
+describe("toUiLocale", () => {
   it.each(["fr", "fr-FR", "fr-CA", "FR"])("maps %s to fr", (language) => {
-    expect(toAgentLocale(language)).toBe("fr")
+    expect(toUiLocale(language)).toBe("fr")
   })
 
   it.each([
@@ -16,7 +16,7 @@ describe("toAgentLocale", () => {
     null,
     undefined,
   ])("falls back to en for %s", (language) => {
-    expect(toAgentLocale(language)).toBe("en")
+    expect(toUiLocale(language)).toBe("en")
   })
 })
 

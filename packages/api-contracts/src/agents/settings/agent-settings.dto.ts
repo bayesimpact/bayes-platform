@@ -91,11 +91,6 @@ export enum AgentMemoryMode {
   Auto = "auto",
 }
 
-export enum AgentLocale {
-  EN = "en",
-  FR = "fr",
-}
-
 export enum DocumentsRagMode {
   All = "all",
   None = "none",
@@ -127,7 +122,6 @@ export type AgentSettingsDto = {
   variables: Record<string, string> | null
   isArchived: boolean
   isDraft: boolean
-  locale: AgentLocale
   mcpServers: AgentMcpServerDto[]
   model: AgentModel
   name?: string
@@ -224,7 +218,6 @@ export const agentSettingsValidationSchema = z.object({
   documentTagIds: z.array(documentTagSchema.shape.id),
   documentsRagMode: z.enum(DocumentsRagMode),
   fillFormEnabled: z.boolean(),
-  locale: z.enum(AgentLocale),
   priorityCallsEnabled: z.boolean(),
   model: z.enum(AgentModel),
   outputJsonSchema: outputJsonSchemaSchema.optional(),
@@ -281,7 +274,6 @@ export const updateAgentSettingsSchema = agentSettingsValidationSchema
     instructions: true,
     documentTagIds: true,
     documentsRagMode: true,
-    locale: true,
     model: true,
     outputJsonSchema: true,
     projectAgentSessionCategoryIds: true,
@@ -305,7 +297,7 @@ export const updateAgentSettingsOutputSchema = z.object({
 const greetingMessageUpdateSchema = z.string().max(2000).nullable().optional()
 
 export const updateAgentSettingsGeneralSchema = agentSettingsValidationSchema
-  .pick({ locale: true, instructions: true, variables: true })
+  .pick({ instructions: true, variables: true })
   .extend({
     name: z.string().trim().min(3).max(100),
     greetingMessage: greetingMessageUpdateSchema,

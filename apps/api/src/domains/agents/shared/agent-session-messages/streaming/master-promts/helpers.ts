@@ -146,11 +146,6 @@ You have access to the following resources. When the user's request matches a re
 ${serializedLibraries}`
   },
 
-  language: (locale: string) =>
-    `## Response language:
-Always answer in ${locale === "en" ? "English" : locale === "fr" ? "French" : "user's language"}.
-      `.trim(),
-
   /**
    * What the chat interface does with a conversation: it shows a reply's task lists as boxes the
    * person ticks, and adds lines to their messages for the passages they quoted and the tasks

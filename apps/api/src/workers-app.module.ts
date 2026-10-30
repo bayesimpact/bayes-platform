@@ -15,10 +15,6 @@ import {
 import { AgentCsvExtractionRunWorkersModule } from "./domains/agents/csv-extraction-runs/agent-csv-extraction-run-workers.module"
 import { EXTRACTION_AGENT_SESSION_QUEUE_NAME } from "./domains/agents/extraction-agent-sessions/extraction-agent-session.constants"
 import { ExtractionAgentSessionWorkersModule } from "./domains/agents/extraction-agent-sessions/extraction-agent-session-workers.module"
-import { URL_CRAWLING_QUEUE_NAME } from "./domains/documents/crawling/url-crawling.constants"
-import { UrlCrawlingWorkersModule } from "./domains/documents/crawling/url-crawling-workers.module"
-import { WEB_SOURCE_EMBEDDINGS_QUEUE_NAME } from "./domains/documents/crawling/web-source-embeddings.constants"
-import { WebSourceEmbeddingsWorkersModule } from "./domains/documents/crawling/web-source-embeddings-workers.module"
 import { DOCUMENT_EMBEDDINGS_QUEUE_NAME } from "./domains/documents/embeddings/document-embeddings.constants"
 import { DOCUMENT_EMBEDDINGS_STUCK_SWEEP_QUEUE_NAME } from "./domains/documents/embeddings/document-embeddings-stuck.constants"
 import { DocumentEmbeddingsStuckSweepWorkersModule } from "./domains/documents/embeddings/document-embeddings-stuck-sweep-workers.module"
@@ -36,6 +32,8 @@ import {
   EVALUATION_EXTRACTION_RUN_QUEUE_NAME,
 } from "./domains/evaluations/extraction/runs/evaluation-extraction-run.constants"
 import { EvaluationExtractionRunWorkersModule } from "./domains/evaluations/extraction/runs/evaluation-extraction-run-workers.module"
+import { MAINTENANCE_JOBS_QUEUE_NAME } from "./domains/maintenance-jobs/maintenance-jobs.constants"
+import { MaintenanceJobsWorkersModule } from "./domains/maintenance-jobs/maintenance-jobs-workers.module"
 import { parseEnabledWorkerQueueNames } from "./worker-pools"
 
 /**
@@ -65,10 +63,6 @@ export const WORKER_MODULE_REGISTRY: { module: Type<unknown>; queues: string[] }
     queues: [EXTRACTION_AGENT_SESSION_QUEUE_NAME],
   },
   {
-    module: UrlCrawlingWorkersModule,
-    queues: [URL_CRAWLING_QUEUE_NAME],
-  },
-  {
     module: DocumentEmbeddingsWorkersModule,
     queues: [DOCUMENT_EMBEDDINGS_QUEUE_NAME],
   },
@@ -77,16 +71,16 @@ export const WORKER_MODULE_REGISTRY: { module: Type<unknown>; queues: string[] }
     queues: [DOCUMENT_EMBEDDINGS_STUCK_SWEEP_QUEUE_NAME],
   },
   {
-    module: WebSourceEmbeddingsWorkersModule,
-    queues: [WEB_SOURCE_EMBEDDINGS_QUEUE_NAME],
-  },
-  {
     module: ConversationRetentionSweepWorkersModule,
     queues: [CONVERSATION_RETENTION_SWEEP_QUEUE_NAME],
   },
   {
     module: PdfExportsSweepWorkersModule,
     queues: [PDF_EXPORTS_SWEEP_QUEUE_NAME],
+  },
+  {
+    module: MaintenanceJobsWorkersModule,
+    queues: [MAINTENANCE_JOBS_QUEUE_NAME],
   },
 ]
 

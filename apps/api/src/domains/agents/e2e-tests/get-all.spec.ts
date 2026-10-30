@@ -195,19 +195,19 @@ describe("Agents - getAll", () => {
       organization,
       project,
       user: { email: "member@example.com", authSubject: "oidc|member" },
-      projectMembership: { role: "member" },
+      projectMembership: { roleKeys: ["project_member"] },
     })
     await addUserToAgent({
       repositories,
       agent: ownedAgent,
       user: member,
-      membership: { role: "owner" },
+      membership: { roleKeys: ["agent_owner"] },
     })
     await addUserToAgent({
       repositories,
       agent: usedAgent,
       user: member,
-      membership: { role: "member" },
+      membership: { roleKeys: ["agent_member"] },
     })
     await grantConversationReview({ repositories, user: member, agent: reviewedAgent })
     authSubject = "oidc|member"

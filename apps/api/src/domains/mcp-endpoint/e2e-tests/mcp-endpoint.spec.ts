@@ -1,8 +1,4 @@
-import {
-  AgentLocale,
-  AgentModel,
-  type OAuthGrantablePermission,
-} from "@caseai-connect/api-contracts"
+import { AgentModel, type OAuthGrantablePermission } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client"
 import type { INestApplication } from "@nestjs/common"
@@ -19,11 +15,13 @@ import { configureGlobalPrefix } from "@/config/api-prefix"
 import { Agent } from "@/domains/agents/agent.entity"
 import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { obtainTokens, resetRateLimits } from "@/domains/oauth/e2e-tests/oauth-test.helpers"
+import type { OrganizationRoleKey } from "@/domains/organizations/memberships/organization-membership.types"
 import {
   createOrganizationWithAgent,
   createOrganizationWithProject,
 } from "@/domains/organizations/organization.factory"
 import { addUserToProject } from "@/domains/projects/memberships/project-membership.factory"
+import type { ProjectRoleKey } from "@/domains/projects/memberships/project-membership.types"
 import { listenOnLoopback, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import {
@@ -75,10 +73,13 @@ describe("MCP endpoint", () => {
     await app.close()
   })
 
-  const createContext = async (role: "owner" | "member" = "owner") => {
+  const createContext = async (
+    organizationRole: OrganizationRoleKey = "org_owner",
+    projectRole: ProjectRoleKey = "project_owner",
+  ) => {
     const { user, organization, project } = await createOrganizationWithProject(repositories, {
-      organizationMembership: { role },
-      projectMembership: { role },
+      organizationMembership: { roleKeys: [organizationRole] },
+      projectMembership: { roleKeys: [projectRole] },
     })
     authSubject = user.authSubject!
     return { user, organization, project }
@@ -343,7 +344,7 @@ describe("MCP endpoint", () => {
       })
       await client.callTool({
         name: "update_agent",
-        arguments: { agentId, locale: AgentLocale.FR },
+        arguments: { agentId, instructions: "Answer briefly." },
       })
 
       const revisions = await setup
@@ -353,7 +354,7 @@ describe("MCP endpoint", () => {
       expect(revisions[1]).toMatchObject({
         isDraft: true,
         model: AgentModel.Gemini38Flash,
-        locale: AgentLocale.FR,
+        instructions: "Answer briefly.",
       })
       await client.close()
     })
@@ -496,7 +497,7 @@ describe("MCP endpoint", () => {
         repositories,
         project: otherProject,
         user,
-        membership: { role: "owner" },
+        membership: { roleKeys: ["project_owner"] },
       })
       authSubject = user.authSubject!
       const client = await connect(await grantAccess([otherProject.id]))
@@ -531,19 +532,19 @@ describe("MCP endpoint", () => {
     it.each([
       {
         case: "a project owner who is only a member of the agent",
-        project: "owner",
-        agent: "member",
+        project: "project_owner",
+        agent: "agent_member",
       },
       {
         case: "an agent owner who cannot create agents in the project",
-        project: "member",
-        agent: "owner",
+        project: "project_member",
+        agent: "agent_owner",
       },
     ] as const)("refuses $case, even with the whole grant", async (roles) => {
       const { user, agent } = await createOrganizationWithAgent(repositories, {
-        organizationMembership: { role: "member" },
-        projectMembership: { role: roles.project },
-        agentMembership: { role: roles.agent },
+        organizationMembership: { roleKeys: ["org_member"] },
+        projectMembership: { roleKeys: [roles.project] },
+        agentMembership: { roleKeys: [roles.agent] },
       })
       authSubject = user.authSubject!
       const client = await connect(await grantAccess([agent.projectId]))
@@ -567,13 +568,13 @@ describe("MCP endpoint", () => {
     })
 
     it.each([
-      { case: "hides it from an agent member", agent: "member", listed: false },
-      { case: "shows it to its owner", agent: "owner", listed: true },
+      { case: "hides it from an agent member", agent: "agent_member", listed: false },
+      { case: "shows it to its owner", agent: "agent_owner", listed: true },
     ] as const)("lists a never-published agent only to people who see its draft: $case", async (roles) => {
       const { user, agent } = await createOrganizationWithAgent(repositories, {
-        organizationMembership: { role: "member" },
-        projectMembership: { role: "member" },
-        agentMembership: { role: roles.agent },
+        organizationMembership: { roleKeys: ["org_member"] },
+        projectMembership: { roleKeys: ["project_member"] },
+        agentMembership: { roleKeys: [roles.agent] },
         agentSettings: { isDraft: true },
       })
       authSubject = user.authSubject!
@@ -599,7 +600,7 @@ describe("MCP endpoint", () => {
         repositories,
         project: otherProject,
         user,
-        membership: { role: "owner" },
+        membership: { roleKeys: ["project_owner"] },
       })
       authSubject = user.authSubject!
       const client = await connect(await grantAccess([project.id]))
@@ -634,7 +635,7 @@ describe("MCP endpoint", () => {
     })
 
     it("does not create agents for a project member, even with the grant", async () => {
-      const { project } = await createContext("member")
+      const { project } = await createContext("org_member", "project_member")
       const client = await connect(await grantAccess([project.id]))
 
       const result = await client.callTool({

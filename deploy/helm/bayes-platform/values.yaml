@@ -49,7 +49,6 @@ serviceAccount:
 #   OAUTH_SIGNING_PRIVATE_KEY    RSA private PEM, signs the OAuth access tokens (literal \n is accepted)
 #   OAUTH_SIGNING_PUBLIC_KEY     RSA public PEM, verifies the OAuth access tokens
 #   DIAGNOSTICS_SECRET           optional, protects the diagnostics endpoint
-#   SPIDER_API_KEY               optional, web crawling provider (cpu workers)
 #   SMTP_USER, SMTP_PASSWORD     optional, SMTP credentials for the invitation emails
 #   VLLM_<MODEL>_URL, VLLM_<MODEL>_APIKEY
 #                                one pair per self-hosted model
@@ -187,11 +186,10 @@ externalRedis:
 # ---------------------------------------------------------------------------
 # local: documents on a volume shared by the API and the workers. The volume
 #        needs ReadWriteMany when the pods run on several nodes.
-# s3:    any S3-compatible bucket (SeaweedFS, AWS S3, the GCS XML API with
-#        HMAC keys). The browsers upload and download directly with signed
-#        URLs, so publicEndpoint must be reachable from them.
-# gcs:   a Google Cloud Storage bucket, credentials through Workload Identity.
-# The pdf-converter (image-only LLMs) needs s3 or gcs.
+# s3:    any S3-compatible bucket (SeaweedFS, AWS S3, Cloud Storage through
+#        its S3 API with HMAC keys). The browsers upload and download directly
+#        with signed URLs, so publicEndpoint must be reachable from them.
+# The pdf-converter (image-only LLMs) needs s3.
 storage:
   mode: local
   local:
@@ -213,8 +211,6 @@ storage:
     # to use the SDK default chain (IAM role, environment).
     accessKeyIdKey: S3_ACCESS_KEY_ID
     secretAccessKeyKey: S3_SECRET_ACCESS_KEY
-  gcs:
-    bucket: ""
 
 # ---------------------------------------------------------------------------
 # Components
@@ -249,12 +245,11 @@ cpuWorkers:
     - evaluation-conversation-run-execute-queue
     - agent-csv-extraction-run-queue
     - agent-csv-extraction-run-execute-queue
-    - url-crawling
     - document-embeddings-stuck-sweep
-    - web-source-embeddings
     - extraction-agent-session-queue
     - conversation-retention-sweep
     - pdf-exports-sweep
+    - maintenance-jobs
   # Without GPU workers, the CPU pool also takes the document embeddings
   # (Docling disabled: text extraction without OCR).
   takeEmbeddingsWhenNoGpu: true
@@ -306,7 +301,7 @@ gpuWorkers:
   podAnnotations: {}
 
 # Renders PDFs to PNG page images for image-only LLMs. Works on a bucket
-# only; enabled automatically when storage.mode is s3 or gcs.
+# only; enabled automatically when storage.mode is s3.
 pdfConverter:
   enabled: auto
   image: pdf-converter

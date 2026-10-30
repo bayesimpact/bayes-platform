@@ -2,6 +2,7 @@ import { createReadStream } from "node:fs"
 import * as fs from "node:fs/promises"
 import * as path from "node:path"
 import type { Readable } from "node:stream"
+import { DOCUMENT_UPLOAD_MAX_BYTES } from "@caseai-connect/api-contracts"
 import { Injectable, Logger } from "@nestjs/common"
 import type { ConfigService } from "@nestjs/config"
 import { v4 as uuidv4 } from "uuid"
@@ -9,6 +10,12 @@ import type { RequiredConnectScope } from "@/common/entities/connect-required-fi
 import type { MulterFile } from "@/common/types"
 import { PRIVATE_API_PATH } from "@/config/api-prefix"
 import type { IFileStorage } from "./file-storage.interface"
+
+/**
+ * Largest body a local upload reads, whatever size was signed: the largest file any client
+ * uploads, a document.
+ */
+export const LOCAL_UPLOAD_MAX_BYTES = DOCUMENT_UPLOAD_MAX_BYTES
 
 @Injectable()
 export class LocalStorageService implements IFileStorage {
@@ -42,6 +49,39 @@ export class LocalStorageService implements IFileStorage {
       contentLength,
     })
     return `${this.baseUrl}${PRIVATE_API_PATH}/local-presign-upload/${token}`
+  }
+
+  /**
+   * Reads the body of a local upload and stops as soon as it passes the signed size or
+   * `LOCAL_UPLOAD_MAX_BYTES`, so a caller never makes the API buffer more than that.
+   */
+  readUploadBody(token: string, body: Readable): Promise<Buffer> {
+    const pending = this.pendingUploads.get(token)
+    if (!pending) {
+      return Promise.reject(new Error("Upload token not found or already used."))
+    }
+    const maxBytes = Math.min(pending.contentLength, LOCAL_UPLOAD_MAX_BYTES)
+    return new Promise<Buffer>((resolve, reject) => {
+      const chunks: Buffer[] = []
+      let receivedBytes = 0
+      const onData = (chunk: Buffer) => {
+        receivedBytes += chunk.length
+        if (receivedBytes > maxBytes) {
+          body.off("data", onData)
+          body.pause()
+          reject(
+            maxBytes < pending.contentLength
+              ? new UploadTooLargeError()
+              : new UploadSizeMismatchError(),
+          )
+          return
+        }
+        chunks.push(chunk)
+      }
+      body.on("data", onData)
+      body.on("end", () => resolve(Buffer.concat(chunks)))
+      body.on("error", reject)
+    })
   }
 
   async handleLocalUpload(token: string, fileBuffer: Buffer): Promise<void> {
@@ -149,5 +189,12 @@ export class UploadSizeMismatchError extends Error {
   constructor() {
     super("Upload size does not match the signed size.")
     this.name = "UploadSizeMismatchError"
+  }
+}
+
+export class UploadTooLargeError extends Error {
+  constructor() {
+    super(`Upload is larger than the local storage maximum of ${LOCAL_UPLOAD_MAX_BYTES} bytes.`)
+    this.name = "UploadTooLargeError"
   }
 }

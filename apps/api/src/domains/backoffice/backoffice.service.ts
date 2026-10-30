@@ -1,4 +1,4 @@
-import type { FeatureFlagKey } from "@caseai-connect/api-contracts"
+import type { BackofficeGlobalRoleKey, FeatureFlagKey } from "@caseai-connect/api-contracts"
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import { In, type Repository } from "typeorm"
@@ -18,10 +18,16 @@ import { ProjectMembershipsService } from "@/domains/projects/memberships/projec
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { PermissionService, type ResourceIdsScope } from "@/domains/rbac/permission.service"
 import type { RoleGrant } from "@/domains/rbac/permission.types"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { PlatformRoleService } from "@/domains/rbac/platform-role.service"
 import {
   BACKOFFICE_AGENT_READ_PERMISSION,
   BACKOFFICE_ORGANIZATION_READ_PERMISSION,
   BACKOFFICE_PROJECT_READ_PERMISSION,
+  PLATFORM_SUPERADMIN_ROLE,
+  READ_PERMISSION_RESOURCE_TYPE_MAP,
+  RESOURCE_TYPE_PERMISSIONS_MAP,
+  type ResourceReadPermission,
 } from "@/domains/rbac/rbac.constants"
 import { Agent } from "../agents/agent.entity"
 import { FeatureFlag } from "../feature-flags/feature-flag.entity"
@@ -30,6 +36,7 @@ import { Project } from "../projects/project.entity"
 import type { ReviewCampaignMembershipModel } from "../review-campaigns/memberships/review-campaign-membership.model"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ReviewCampaignMembershipsService } from "../review-campaigns/memberships/review-campaign-memberships.service"
+import { isServiceUser } from "../users/service-user.helpers"
 import { User } from "../users/user.entity"
 
 function sortMembershipsByUserEmail<TMembership extends { user: { email: string } }>(
@@ -94,6 +101,7 @@ export class BackofficeService {
     private readonly reviewCampaignMembershipsService: ReviewCampaignMembershipsService,
     private readonly permissionService: PermissionService,
     private readonly agentConversationReviewersService: AgentConversationReviewersService,
+    private readonly platformRoleService: PlatformRoleService,
   ) {}
 
   async createOrganization({
@@ -283,6 +291,39 @@ export class BackofficeService {
     await this.agentConversationReviewersService.revoke({ userId, agentId })
   }
 
+  async grantUserGlobalRole({
+    userId,
+    roleKey,
+  }: {
+    userId: string
+    roleKey: BackofficeGlobalRoleKey
+  }): Promise<void> {
+    const user = await this.userRepository.findOne({ where: { id: userId } })
+    if (!user) throw new NotFoundException(`User ${userId} not found`)
+    if (isServiceUser(user)) throw new BadRequestException("A service user holds no global role")
+    await this.platformRoleService.grantGlobalRole(userId, roleKey)
+  }
+
+  async revokeUserGlobalRole({
+    userId,
+    roleKey,
+  }: {
+    userId: string
+    roleKey: BackofficeGlobalRoleKey
+  }): Promise<void> {
+    if (roleKey === PLATFORM_SUPERADMIN_ROLE) {
+      const [heldRoleKeys, superadminCount] = await Promise.all([
+        this.platformRoleService.listGlobalRoles(userId),
+        this.platformRoleService.countGlobalRoleHolders(PLATFORM_SUPERADMIN_ROLE),
+      ])
+      // Nobody could grant a global role from the backoffice any more.
+      if (heldRoleKeys.includes(PLATFORM_SUPERADMIN_ROLE) && superadminCount <= 1) {
+        throw new BadRequestException("The last platform superadmin cannot lose the role")
+      }
+    }
+    await this.platformRoleService.revokeGlobalRole(userId, roleKey)
+  }
+
   async listUsers({
     userId,
     page,
@@ -293,13 +334,17 @@ export class BackofficeService {
     page: number
     limit: number
     search?: string
-  }): Promise<{ users: User[]; total: number }> {
+  }): Promise<{
+    users: User[]
+    total: number
+    globalRolesByUserId: Map<string, { key: string; name: string }[]>
+  }> {
     const qb = this.userRepository.createQueryBuilder("user").orderBy("LOWER(user.email)", "ASC")
 
     const visibleUsers = await this.findVisibleUserIds(userId)
     if (visibleUsers.scope === "ids") {
       if (visibleUsers.ids.length === 0) {
-        return { users: [], total: 0 }
+        return { users: [], total: 0, globalRolesByUserId: new Map() }
       }
       qb.andWhere("user.id IN (:...visibleUserIds)", {
         visibleUserIds: visibleUsers.ids,
@@ -324,7 +369,10 @@ export class BackofficeService {
       .take(limit)
       .getManyAndCount()
 
-    return { users, total }
+    const globalRolesByUserId = await this.platformRoleService.listGlobalRolesByUserIds(
+      users.map((user) => user.id),
+    )
+    return { users, total, globalRolesByUserId }
   }
 
   async listProjects({
@@ -337,7 +385,7 @@ export class BackofficeService {
     page: number
     limit: number
     search?: string
-  }): Promise<{ projects: Project[]; total: number }> {
+  }): Promise<{ projects: { project: Project; permissions: string[] }[]; total: number }> {
     const qb = this.projectRepository
       .createQueryBuilder("project")
       .leftJoin("project.organization", "org")
@@ -373,7 +421,20 @@ export class BackofficeService {
 
     const projects = await this.attachFeatureFlagsToProjects(rawProjects)
 
-    return { projects, total }
+    // each row edits its feature flags: the caller needs its permissions on the project to know
+    // whether it may
+    const permissionsByProjectId = await this.listPermissionsByResourceId({
+      userId,
+      readPermission: BACKOFFICE_PROJECT_READ_PERMISSION,
+    })
+
+    return {
+      projects: projects.map((project) => ({
+        project,
+        permissions: permissionsByProjectId(project.id),
+      })),
+      total,
+    }
   }
 
   private async attachFeatureFlagsToProjects(projects: Project[]): Promise<Project[]> {
@@ -395,10 +456,19 @@ export class BackofficeService {
     }))
   }
 
-  async getProjectDetail({ targetProjectId }: { targetProjectId: string }): Promise<{
+  async getProjectDetail({
+    requestingUserId,
+    targetProjectId,
+  }: {
+    requestingUserId: string
+    targetProjectId: string
+  }): Promise<{
     project: Project
+    permissions: string[]
+    organizationPermissions: string[]
     members: ProjectMembershipModel[]
-    agents: Agent[]
+    visibleUsers: ResourceIdsScope
+    agents: { agent: Agent; permissions: string[] }[]
   } | null> {
     const project = await this.projectRepository
       .createQueryBuilder("project")
@@ -421,7 +491,106 @@ export class BackofficeService {
         .getMany(),
     ])
 
-    return { project, members, agents }
+    // the page edits the project's feature flags and links to the organization, to each agent and
+    // to each member: the caller needs their permissions to know what it may do
+    const globalPermissions = await this.permissionService.listGlobalPermissions(requestingUserId)
+    const [permissions, organizationPermissions, agentsPermissions, visibleUsers] =
+      await Promise.all([
+        this.listPermissionsOn({
+          userId: requestingUserId,
+          globalPermissions,
+          readPermission: BACKOFFICE_PROJECT_READ_PERMISSION,
+          resourceId: project.id,
+        }),
+        this.listPermissionsOn({
+          userId: requestingUserId,
+          globalPermissions,
+          readPermission: BACKOFFICE_ORGANIZATION_READ_PERMISSION,
+          resourceId: project.organizationId,
+        }),
+        Promise.all(
+          agents.map((agent) =>
+            this.listPermissionsOn({
+              userId: requestingUserId,
+              globalPermissions,
+              readPermission: BACKOFFICE_AGENT_READ_PERMISSION,
+              resourceId: agent.id,
+            }),
+          ),
+        ),
+        this.findVisibleUserIds(requestingUserId),
+      ])
+
+    return {
+      project,
+      permissions,
+      organizationPermissions,
+      members,
+      visibleUsers,
+      agents: agents.map((agent, index) => ({
+        agent,
+        permissions: agentsPermissions[index] ?? [],
+      })),
+    }
+  }
+
+  /**
+   * The caller's permissions on every resource of a type, global roles included, in one pass:
+   * listResourcePermissions only reads memberships, as listResourcePermissionsFor does.
+   */
+  private async listPermissionsByResourceId({
+    userId,
+    readPermission,
+  }: {
+    userId: string
+    readPermission: ResourceReadPermission
+  }): Promise<(resourceId: string) => string[]> {
+    const resourceTypePermissions: readonly string[] =
+      RESOURCE_TYPE_PERMISSIONS_MAP[READ_PERMISSION_RESOURCE_TYPE_MAP[readPermission]]
+    const [globalPermissions, permissionsByResourceId] = await Promise.all([
+      this.permissionService.listGlobalPermissions(userId),
+      this.permissionService.listResourcePermissions(userId, readPermission),
+    ])
+    const globalResourcePermissions = globalPermissions.filter((permission) =>
+      resourceTypePermissions.includes(permission),
+    )
+    return (resourceId) => [
+      ...new Set([
+        ...(permissionsByResourceId.get(resourceId) ?? []),
+        ...globalResourcePermissions,
+      ]),
+    ]
+  }
+
+  /**
+   * The caller's permissions on one resource, global roles included: listResourcePermissionsFor
+   * only reads the memberships on the resource and its parents, so a platform role would
+   * otherwise get none.
+   */
+  private async listPermissionsOn({
+    userId,
+    globalPermissions,
+    readPermission,
+    resourceId,
+  }: {
+    userId: string
+    globalPermissions: string[]
+    readPermission: ResourceReadPermission
+    resourceId: string
+  }): Promise<string[]> {
+    const resourceTypePermissions: readonly string[] =
+      RESOURCE_TYPE_PERMISSIONS_MAP[READ_PERMISSION_RESOURCE_TYPE_MAP[readPermission]]
+    const resourcePermissions = await this.permissionService.listResourcePermissionsFor(
+      userId,
+      readPermission,
+      resourceId,
+    )
+    return [
+      ...new Set([
+        ...resourcePermissions,
+        ...globalPermissions.filter((permission) => resourceTypePermissions.includes(permission)),
+      ]),
+    ]
   }
 
   async getUserDetail({

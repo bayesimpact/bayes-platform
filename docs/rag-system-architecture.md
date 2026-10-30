@@ -65,7 +65,7 @@ When a file is uploaded through `DocumentsController.uploadOne`:
 - file type and size are validated (max 10 MB)
 - file is saved via configured file storage (`local` or `GCS`, depending on runtime config)
 - a `document` row is created with:
-  - `sourceType` (`"project" | "extraction" | "evaluationExtractionRun" | "agentCsvExtractionRun" | "webCrawl"`)
+  - `sourceType` (`"project" | "extraction" | "evaluationExtractionRun" | "agentCsvExtractionRun" | "app"`, plus the legacy `"webCrawl"` until the maintenance job migrates it)
   - file metadata (`mimeType`, `fileName`, `storageRelativePath`, etc.)
   - initial `embeddingStatus = "pending"`
 
@@ -209,8 +209,7 @@ Tool executions are also persisted in message history as `"tool"` messages with 
 
 ### Storage/Infra Variables Used in the Flow
 
-- `GCS_STORAGE_BUCKET_NAME` (when using GCS storage backend)
-- `GCS_CREDENTIALS` / `GOOGLE_APPLICATION_CREDENTIALS` (GCS auth, depending on deployment)
+- `STORAGE_BACKEND` (`s3` or `local`) and `S3_*` (bucket, endpoint and keys of the S3 backend)
 - `LOCAL_STORAGE_SERVER_BASE_URL` (for local storage URL resolution where relevant)
 
 ### External Services

@@ -213,7 +213,7 @@ export class ExtractionAgentSessionRunLlmService extends LlmServiceBase {
       case "application/pdf": {
         if (modelRequiresPdfAsImages(model)) {
           // Image-only models: send one rendered page image URL per page. The
-          // pages live in GCS (rendered once by pdf-converter, cached)
+          // pages live in the bucket (rendered once by pdf-converter, cached)
           const imageUrls = await this.pdfPagesService.getImageUrls({
             document: {
               storageRelativePath: document.storageRelativePath,

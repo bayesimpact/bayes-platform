@@ -27,7 +27,7 @@ describe("createSession", () => {
 
     const membership = organizationMembershipFactory
       .transient({ user: testUser, organization: testOrganization })
-      .member()
+      .withRoles("org_member")
       .build()
     await saveOrgMembership({ repositories, membership })
 
@@ -63,7 +63,7 @@ describe("createSession", () => {
 
     const membership = organizationMembershipFactory
       .transient({ user: testUser, organization: testOrganization })
-      .member()
+      .withRoles("org_member")
       .build()
     await saveOrgMembership({ repositories, membership })
 
@@ -101,7 +101,7 @@ describe("createSession", () => {
 
     const membership = organizationMembershipFactory
       .transient({ user: testUser, organization: testOrganization })
-      .member()
+      .withRoles("org_member")
       .build()
     await saveOrgMembership({ repositories, membership })
 
@@ -155,7 +155,7 @@ describe("createSession", () => {
 
     const membership = organizationMembershipFactory
       .transient({ user: testUser, organization: testOrganization })
-      .member()
+      .withRoles("org_member")
       .build()
     await saveOrgMembership({ repositories, membership })
 
@@ -188,7 +188,7 @@ describe("createSession", () => {
 
     const membership = organizationMembershipFactory
       .transient({ user: testUser, organization: testOrganization })
-      .member()
+      .withRoles("org_member")
       .build()
     await saveOrgMembership({ repositories, membership })
 

@@ -1,8 +1,10 @@
 import type {
   AppManifest,
   BackofficeAgentDetail,
+  BackofficeProjectDetail,
   BackofficeRbacCatalog,
   BackofficeUserDetail,
+  MaintenanceJob,
   PaginatedBackofficeAgents,
   PaginatedBackofficeOrganizations,
   PaginatedBackofficeProjects,
@@ -542,6 +544,10 @@ export const seed = {
       return { backoffice: { agentDetail: ads.fulfilled(agentDetail) } }
     },
 
+    projectDetail(projectDetail: BackofficeProjectDetail): StoryPreloadedState {
+      return { backoffice: { projectDetail: ads.fulfilled(projectDetail) } }
+    },
+
     userDetail(userDetail: BackofficeUserDetail): StoryPreloadedState {
       return { backoffice: { userDetail: ads.fulfilled(userDetail) } }
     },
@@ -556,6 +562,9 @@ export const seed = {
 
     appManifests(appManifests: AppManifest[]): StoryPreloadedState {
       return { backoffice: { appManifests: ads.fulfilled(appManifests) } }
+    },
+    maintenanceJobs(maintenanceJobs: MaintenanceJob[]): StoryPreloadedState {
+      return { backoffice: { maintenanceJobs: ads.fulfilled(maintenanceJobs) } }
     },
   },
 

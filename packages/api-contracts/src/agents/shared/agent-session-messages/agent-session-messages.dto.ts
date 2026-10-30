@@ -1,3 +1,4 @@
+import { z } from "zod"
 import type { TimeType } from "../../../generic"
 
 export enum ToolName {
@@ -83,11 +84,24 @@ export const agentSessionMessageAttachmentAllowedMimeTypesForFileUploader = Obje
   agentSessionMessageAttachmentAllowedMimeTypes.map((mimeType) => [mimeType, true]),
 ) as Partial<Record<AgentSessionMessageAttachmentMimeType, boolean>>
 
+/** Maximum message attachment size in bytes. Matches the chat uploaders (10 MiB). */
+export const AGENT_SESSION_MESSAGE_ATTACHMENT_MAX_BYTES = 10 * 1024 * 1024
+
 export type PresignAgentSessionMessageAttachmentDocumentRequestDto = {
   fileName: string
   mimeType: AgentSessionMessageAttachmentMimeType
   size: number
 }
+
+/**
+ * The size is the one the signed upload URL is bound to, so it is capped here, before any URL
+ * is made. The file name and MIME type keep their checks in the controller.
+ */
+export const presignAgentSessionMessageAttachmentDocumentSchema = z.object({
+  fileName: z.string(),
+  mimeType: z.string(),
+  size: z.number().int().positive().max(AGENT_SESSION_MESSAGE_ATTACHMENT_MAX_BYTES),
+})
 
 export type PresignAgentSessionMessageAttachmentDocumentResponseDto = {
   attachmentDocumentId: string

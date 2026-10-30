@@ -148,6 +148,11 @@ COPY --from=api-prod-deps /app/apps/api/node_modules /app/apps/api/node_modules
 COPY --from=build /app/packages/api-contracts /app/packages/api-contracts
 COPY --from=build /app/apps/api/dist /app/apps/api/dist
 
+# Commit built, from the build argument. The release version is not known yet:
+# the deployment passes it as APP_VERSION.
+ARG GIT_SHA=""
+ENV GIT_SHA=$GIT_SHA
+
 #
 # 🚀 API Runtime (no Docling)
 #
@@ -243,5 +248,10 @@ COPY --from=api-prod-deps /app/node_modules node_modules
 COPY --from=api-prod-deps /app/apps/api/node_modules /app/apps/api/node_modules
 COPY --from=build /app/packages/api-contracts /app/packages/api-contracts
 COPY --from=build /app/apps/api/dist /app/apps/api/dist
+
+# Commit built, from the build argument. The release version is not known yet:
+# the deployment passes it as APP_VERSION.
+ARG GIT_SHA=""
+ENV GIT_SHA=$GIT_SHA
 
 CMD ["node", "--enable-source-maps", "/app/apps/api/dist/workers-main.js"]

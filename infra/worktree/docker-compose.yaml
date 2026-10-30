@@ -5,7 +5,7 @@
 # with this file.
 # Only the core runs by default: the API, the web app, the sign-in, Redis and the contracts'
 # watcher, after init, db and migrate. Every other service has a profile of its name, which the
-# tooling turns on through COMPOSE_PROFILES (its presets: bayes wt up --preset, --with).
+# tooling turns on through COMPOSE_PROFILES (its presets, and services added or removed).
 # See infra/worktree/README.md.
 #
 # - The worktree is mounted at its own absolute path, so logs and stack traces show paths you
@@ -98,9 +98,22 @@ x-tools-env: &tools-env
   <<: *node-env
   __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS: .${WT_TOOLS_DOMAIN:-${WT_DOMAIN}}
 
+# Document storage: the machine's SeaweedFS of the shared stack (infra/database, profile
+# `storage`), one bucket shared with the main checkout, like the connect database. Containers
+# reach it on the shared network; browsers get URLs signed for its Traefik host.
+x-s3-env: &s3-env
+  STORAGE_BACKEND: s3
+  S3_BUCKET: connect-documents
+  S3_ENDPOINT: http://seaweedfs:8333
+  S3_PUBLIC_ENDPOINT: ${WT_SCHEME}://s3.${WT_TOOLS_DOMAIN:-${WT_DOMAIN}}${WT_PORT_SUFFIX}
+  S3_REGION: us-east-1
+  S3_ACCESS_KEY_ID: local-dev-access-key
+  S3_SECRET_ACCESS_KEY: local-dev-secret-key
+  S3_FORCE_PATH_STYLE: "true"
+
 # Process env wins over apps/api/.env (dotenv without override, @nestjs/config).
 x-backend-env: &backend-env
-  <<: *node-env
+  <<: [*node-env, *s3-env]
   DATABASE_HOST: pgvector
   DATABASE_PORT: "5432"
   DATABASE_NAME: ${WT_DB}
@@ -110,7 +123,6 @@ x-backend-env: &backend-env
   # The API also writes <url>/mcp into the built-in PDF export MCP server of its database at boot.
   PDF_CONVERTER_URL: http://pdf-converter:3002
   GOOGLE_APPLICATION_CREDENTIALS: ${WT_GCP_CREDENTIALS_IN_CONTAINER}
-  GCS_CREDENTIALS: ""
   DOCUMENT_EXTRACTOR_DOCLING_ENABLED: "false"
   FRONTEND_URL: ${WT_ORIGIN},${WT_EMBED_ORIGIN},${WT_LEGACY_ORIGIN},${WT_LEGACY_EMBED_ORIGIN}
   APP_PUBLIC_URL: ${WT_ORIGIN}
@@ -627,11 +639,13 @@ services:
     init: true
     user: "${WT_UID}:${WT_GID}"
     working_dir: ${WT_PATH}/apps/pdf-converter
+    # The shared network reaches SeaweedFS.
+    networks: [default, shared]
     volumes:
       - *worktree
-      - *gcp
       - { type: volume, source: go-cache, target: /go-cache }
     environment:
+      <<: *s3-env
       HOME: /tmp
       GOMODCACHE: /go-cache/mod
       GOCACHE: /go-cache/build
@@ -639,8 +653,6 @@ services:
       GOFLAGS: -buildvcs=false
       GOTOOLCHAIN: local
       PORT: "3002"
-      GCS_STORAGE_BUCKET_NAME: ${WT_GCS_BUCKET}
-      GOOGLE_APPLICATION_CREDENTIALS: ${WT_GCP_CREDENTIALS_IN_CONTAINER}
     depends_on: *after-init
     command: ["go", "run", "."]
     healthcheck:

@@ -49,6 +49,15 @@ describe("buildWebAppRuntimeConfig", () => {
     })
   })
 
+  it("hands the deployed version and the built commit to the browser", () => {
+    const config = buildWebAppRuntimeConfig({
+      APP_VERSION: "26.10.7",
+      GIT_SHA: "a8618c1ed0000000000000000000000000000000",
+    })
+    expect(config.appVersion).toBe("26.10.7")
+    expect(config.gitSha).toBe("a8618c1ed0000000000000000000000000000000")
+  })
+
   it("maps WEB_* variables and lets them override the defaults", () => {
     const config = buildWebAppRuntimeConfig({
       OIDC_ISSUER_URL: "https://idp.internal/realms/acme",

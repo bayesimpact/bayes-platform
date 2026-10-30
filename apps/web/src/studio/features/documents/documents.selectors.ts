@@ -29,19 +29,4 @@ export const selectHasDocumentsInProgress = createSelector(
   },
 )
 
-export const selectIsCrawlProgressStreamActive = (state: RootState) =>
-  state.documents.crawlProgressStream.isActive
-
-export const selectHasDocumentsCrawling = createSelector([selectDocumentsData], (documentsData) => {
-  if (!ADS.isFulfilled(documentsData)) {
-    return false
-  }
-  return documentsData.value.some(
-    (document) => document.sourceType === "webCrawl" && document.embeddingStatus === "pending",
-  )
-})
-
-export const selectCrawlProgressByDocumentId = (state: RootState) =>
-  state.documents.crawlProgressByDocumentId
-
 export const selectDocumentSourceType = (state: RootState) => state.documents.currentSourceType

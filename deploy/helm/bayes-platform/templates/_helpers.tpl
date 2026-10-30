@@ -107,7 +107,7 @@ Is the pdf-converter deployed? "auto" follows the storage mode.
 {{- if kindIs "bool" $enabled -}}
 {{- if $enabled -}}true{{- end -}}
 {{- else if eq (toString $enabled) "auto" -}}
-{{- if has .Values.storage.mode (list "s3" "gcs") -}}true{{- end -}}
+{{- if eq .Values.storage.mode "s3" -}}true{{- end -}}
 {{- else if eq (toString $enabled) "true" -}}true{{- end -}}
 {{- end -}}
 
@@ -133,6 +133,10 @@ on other chart values.
 {{- define "bayes-platform.sharedEnv" -}}
 - name: NODE_ENV
   value: production
+# The deployed image tag (26.10.7, main-1234-abc1234): the image itself cannot
+# know it, the tags are added after the build.
+- name: APP_VERSION
+  value: {{ include "bayes-platform.imageTag" . | quote }}
 - name: DATABASE_HOST
   value: {{ include "bayes-platform.databaseHost" . | quote }}
 - name: DATABASE_PORT
@@ -234,7 +238,7 @@ envFrom: the shared ConfigMap and the application Secret.
 {{- end -}}
 
 {{/*
-Bucket of the s3 and gcs storage modes, shared by the API, the workers and the
+Bucket of the s3 storage mode, shared by the API, the workers and the
 pdf-converter: they read the same variables.
 */}}
 {{- define "bayes-platform.bucketEnv" -}}
@@ -263,11 +267,8 @@ pdf-converter: they read the same variables.
       name: {{ include "bayes-platform.secretName" . }}
       key: {{ .Values.storage.s3.secretAccessKeyKey }}
 {{- end }}
-{{- else if eq .Values.storage.mode "gcs" }}
-- name: STORAGE_BACKEND
-  value: gcs
-- name: GCS_STORAGE_BUCKET_NAME
-  value: {{ required "storage.gcs.bucket is required when storage.mode is gcs" .Values.storage.gcs.bucket | quote }}
+{{- else if ne .Values.storage.mode "local" }}
+{{- fail "storage.mode must be local or s3. A Cloud Storage bucket uses s3: endpoint https://storage.googleapis.com and HMAC keys." }}
 {{- end }}
 {{- end -}}
 
