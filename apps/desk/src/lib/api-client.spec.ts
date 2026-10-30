@@ -1,4 +1,4 @@
-import { defineSchemaRoute } from "@caseai-connect/desk-contracts"
+import { defineSchemaRoute, defineStreamRoute } from "@caseai-connect/desk-contracts"
 import { HttpResponse, http } from "msw"
 import { setupServer } from "msw/node"
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest"
@@ -21,7 +21,9 @@ const session = vi.hoisted(() => ({
 }))
 vi.mock("@/lib/auth/session", () => session)
 
-const { ApiError, ContractMismatchError, apiRequest } = await import("./api-client")
+const { ApiError, ContractMismatchError, apiRequest, apiStreamResponse } = await import(
+  "./api-client"
+)
 
 const itemId = crypto.randomUUID()
 
@@ -38,6 +40,13 @@ const TestRoutes = {
     path: "test/items",
     body: z.strictObject({ title: z.string() }),
     response: z.object({ title: z.string() }),
+  }),
+  streamItem: defineStreamRoute({
+    method: "post",
+    path: "test/items/:itemId/stream",
+    params: z.strictObject({ itemId: z.uuid() }),
+    body: z.strictObject({ content: z.string() }),
+    event: z.object({ type: z.string() }),
   }),
 }
 
@@ -197,5 +206,35 @@ describe("apiRequest", () => {
       apiRequest(TestRoutes.getItem, { params: { itemId }, query: { page: 0 } }),
     ).rejects.toBeInstanceOf(session.SignInLoopError)
     expect(session.signIn).not.toHaveBeenCalled()
+  })
+})
+
+describe("apiStreamResponse", () => {
+  it("posts the message in the body, and keeps it out of the URL", async () => {
+    let received: { url: string; body: unknown; accept: string | null } | undefined
+    server.use(
+      http.post("http://desk.test/api/test/items/:itemId/stream", async ({ request }) => {
+        received = {
+          url: request.url,
+          body: await request.json(),
+          accept: request.headers.get("Accept"),
+        }
+        return new HttpResponse('data: {"type":"end"}\n\n', {
+          headers: { "Content-Type": "text/event-stream" },
+        })
+      }),
+    )
+
+    const response = await apiStreamResponse(TestRoutes.streamItem, {
+      params: { itemId },
+      body: { content: "A private message" },
+    })
+
+    expect(response.ok).toBe(true)
+    expect(received).toEqual({
+      url: `http://desk.test/api/test/items/${itemId}/stream`,
+      body: { payload: { content: "A private message" } },
+      accept: "text/event-stream",
+    })
   })
 })
