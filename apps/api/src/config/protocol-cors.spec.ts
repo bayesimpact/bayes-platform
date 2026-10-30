@@ -29,7 +29,7 @@ describe("withOpenProtocolCors", () => {
   })
 
   it("leaves the public API and everything else to the existing policy", () => {
-    expect(optionsFor("/public/agents/token123/config").origin).toBe(true)
+    expect(optionsFor("/public/v1/agents/token123/config").origin).toBe(true)
     expect(optionsFor("/organizations/1/projects").origin).toEqual(frontendUrls)
     expect(optionsFor(undefined).origin).toEqual(frontendUrls)
   })

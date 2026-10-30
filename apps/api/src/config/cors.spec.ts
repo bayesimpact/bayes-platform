@@ -55,7 +55,7 @@ describe("buildCorsOptionsDelegate", () => {
   }
 
   it("reflects the origin on public embed endpoints", () => {
-    expect(optionsFor("/public/agents/token123/config").origin).toBe(true)
+    expect(optionsFor("/public/v1/agents/token123/config").origin).toBe(true)
   })
 
   it("pins origins to the frontend URLs everywhere else", () => {
@@ -71,7 +71,7 @@ describe("buildCorsOptionsDelegate", () => {
   })
 
   it("never enables credentialed CORS", () => {
-    expect(optionsFor("/public/agents/token123/config").credentials).toBeUndefined()
+    expect(optionsFor("/public/v1/agents/token123/config").credentials).toBeUndefined()
     expect(optionsFor("/organizations/1/projects").credentials).toBeUndefined()
   })
 })

@@ -26,7 +26,7 @@ import { PublicAgentSessionsService } from "./public-agent-sessions/public-agent
 
 /**
  * Domain operations behind the public chat API. Returns entities and raw values; the
- * per-version controllers (`v1/`, `legacy/`) shape them into their contract's DTOs.
+ * per-version controllers (`v1/`) shape them into their contract's DTOs.
  */
 @Injectable()
 export class PublicChatService {

@@ -31,11 +31,7 @@ import {
 
 /**
  * Public chat API v1 at `/public/v1/agents/:embedToken/...`, a versioned contract with
- * external integrators (`docs/public-api-contract.md`). New integrations use these paths.
- *
- * The unprefixed paths that predate versioning are served by `legacy/`, which has its own
- * controller and its own mappers and is frozen on its pre-versioning shape. Nothing is
- * shared but the injected service, so what is added here never reaches them.
+ * external integrators (`docs/public-api-contract.md`).
  *
  * Before adding a `v2/` folder, follow "Shipping a new major version" in
  * `docs/public-api-contract.md`: the DTOs and route definitions must be split per major in

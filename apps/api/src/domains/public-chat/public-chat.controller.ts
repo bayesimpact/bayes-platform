@@ -6,10 +6,9 @@ import { PublicChatService } from "./public-chat.service"
  * Base of the public chat API controllers, a versioned contract with external
  * integrators (`docs/public-api-contract.md`).
  *
- * Each served contract has its own folder and controller extending this class: `v1/`
- * (`/public/v1/...`) and `legacy/` (the unprefixed paths that predate versioning, kept
- * until the last integrator migrates). Every controller carries the full body of each of
- * its routes and its own DTO mappers, so a contract can change without touching another.
+ * Each served contract has its own folder and controller extending this class, today `v1/`
+ * (`/public/v1/...`). Every controller carries the full body of each of its routes and its
+ * own DTO mappers, so a contract can change without touching another.
  * Nothing is shared here but the injected service, which returns entities, never DTOs.
  *
  * Before adding a `v2/` folder, follow the "Shipping a new major version" checklist

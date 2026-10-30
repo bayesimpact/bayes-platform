@@ -27,18 +27,6 @@ export type EmbedPublicConfigDto = {
   bannerText: string | null
 }
 
-/**
- * Config served on the unprefixed paths (`/public/agents/...`), which predate versioning.
- * Snippets deployed against them never received `bannerText`, so it is not added there.
- * Retired with those paths once the last integrator moves to v1.
- */
-export type LegacyEmbedPublicConfigDto = {
-  agentName: string
-  title: string | null
-  logoUrl: string | null
-  primaryColor: string | null
-}
-
 /** Name of a tool the agent ran: a built-in tool or any MCP tool name. */
 export type PublicToolName = ToolName | (string & {})
 
@@ -101,10 +89,7 @@ export type CreatePublicSessionResponseDto = {
   sessionToken: string
 }
 
-/**
- * Payload of the stream routes: the JSON body of `streamReply` on v1, or URL-encoded in the
- * `q` query parameter of `streamMessages` on the unprefixed paths.
- */
+/** Payload of the stream route, sent as its JSON body. */
 export type PublicChatStreamRequestDto = {
   content: string
 }
