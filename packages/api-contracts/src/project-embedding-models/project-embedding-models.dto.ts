@@ -45,7 +45,7 @@ export const EmbeddingModelCatalog: Record<EmbeddingModel, EmbeddingModelMetadat
   },
 }
 
-/** Model every project has and every agent retrieves with unless it picks another one. */
+/** Model every project has, given to new agents (and to the agents created before the choice existed). */
 export const DEFAULT_EMBEDDING_MODEL = EmbeddingModel.GeminiEmbedding001
 
 /** Same catalog, read as a plain string lookup so a stale stored value is a miss, not a crash. */

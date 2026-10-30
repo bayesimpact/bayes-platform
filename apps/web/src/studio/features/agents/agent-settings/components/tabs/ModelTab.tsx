@@ -68,13 +68,13 @@ export function ModelTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
   const completedEmbeddingModels = useAppSelector(selectCompletedProjectEmbeddingModels)
   // Enabling a model re-embeds every document of the project.
   const canManageEmbeddingModels = project.permissions.includes(DOCUMENT_UPDATE_PERMISSION)
-  // The default model always applies; a local model is offered once the project finished
-  // embedding with it. Keep the agent's current value listed even if it is no longer ready.
+  // The default model is always offered; a local model once the project finished embedding with
+  // it. Keep the agent's current value listed even if it is no longer ready.
   const embeddingModelOptions = [
     ...new Set([
       DEFAULT_EMBEDDING_MODEL,
       ...completedEmbeddingModels.map((model) => model.modelName),
-      agentSettings.embeddingModel ?? DEFAULT_EMBEDDING_MODEL,
+      agentSettings.embeddingModel,
     ]),
   ]
 

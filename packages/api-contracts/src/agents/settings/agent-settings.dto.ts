@@ -110,8 +110,8 @@ export type AgentSettingsDto = {
   description?: string
   documentsRagMode: DocumentsRagMode
   documentTagIds: DocumentTagDto["id"][]
-  /** Embedding model the knowledge base lookup retrieves with. Absent means the Vertex default. */
-  embeddingModel?: EmbeddingModel
+  /** Embedding model the knowledge base lookup retrieves with. */
+  embeddingModel: EmbeddingModel
   fillFormEnabled: boolean
   priorityCallsEnabled: boolean
   greetingMessage?: string

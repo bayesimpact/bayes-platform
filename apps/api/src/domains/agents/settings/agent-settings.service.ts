@@ -517,7 +517,7 @@ export class AgentSettingsService {
     connectScope: RequiredConnectScope
     embeddingModel: AgentSettings["embeddingModel"]
   }): Promise<void> {
-    if (!embeddingModel || !isLocalEmbeddingModel(embeddingModel)) return
+    if (!isLocalEmbeddingModel(embeddingModel)) return
 
     // Enabling a model needs the `local-embeddings` flag, so a completed row implies the flag.
     const isReady = await this.projectEmbeddingModelsService.isCompleted({

@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common"
 import { toSql } from "pgvector"
+import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
 
@@ -49,6 +50,36 @@ const MISSING_EMBEDDING_SQL = `
 @Injectable()
 export class DocumentChunkEmbeddingRepository {
   constructor(private readonly transactionService: TransactionService) {}
+
+  /** Whether the project has at least one live vector of the model. */
+  async hasEmbedding({
+    connectScope,
+    modelName,
+  }: {
+    connectScope: RequiredConnectScope
+    modelName: string
+  }): Promise<boolean> {
+    const rows: { found: boolean }[] = await this.query(
+      `SELECT EXISTS (
+         SELECT 1 FROM document_chunk_embedding
+         WHERE organization_id = $1 AND project_id = $2 AND model_name = $3 AND deleted_at IS NULL
+       ) AS found`,
+      [connectScope.organizationId, connectScope.projectId, modelName],
+    )
+    return rows[0]?.found === true
+  }
+
+  /** Whether the project has any live vector, whatever the model. */
+  async hasAnyEmbedding(connectScope: RequiredConnectScope): Promise<boolean> {
+    const rows: { found: boolean }[] = await this.query(
+      `SELECT EXISTS (
+         SELECT 1 FROM document_chunk_embedding
+         WHERE organization_id = $1 AND project_id = $2 AND deleted_at IS NULL
+       ) AS found`,
+      [connectScope.organizationId, connectScope.projectId],
+    )
+    return rows[0]?.found === true
+  }
 
   async countEligibleChunks(projectId: string): Promise<number> {
     const rows: { count: string }[] = await this.query(

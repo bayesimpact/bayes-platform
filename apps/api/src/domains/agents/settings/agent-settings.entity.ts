@@ -1,8 +1,9 @@
-import type {
-  AgentMemoryMode,
-  AgentModel,
-  DocumentsRagMode,
-  EmbeddingModel,
+import {
+  type AgentMemoryMode,
+  type AgentModel,
+  DEFAULT_EMBEDDING_MODEL,
+  type DocumentsRagMode,
+  type EmbeddingModel,
 } from "@caseai-connect/api-contracts"
 import { Column, JoinColumn, ManyToOne, type Relation } from "typeorm"
 import { ConnectEntityBase, ConnectEntityWithUniqueIndex } from "@/common/entities/connect-entity"
@@ -62,9 +63,18 @@ export class AgentSettings extends ConnectEntityBase {
   @Column({ type: "varchar", name: "documents_rag_mode", default: "all", nullable: false })
   documentsRagMode!: DocumentsRagMode
 
-  /** Null means the Vertex default (DEFAULT_EMBEDDING_MODEL); a value names a local model. */
-  @Column({ type: "varchar", name: "embedding_model", nullable: true })
-  embeddingModel!: EmbeddingModel | null
+  /**
+   * The model the knowledge base lookup embeds the query with. Always a real name, never "the
+   * default": changing the platform default must not move existing agents to vectors their
+   * project may not have.
+   */
+  @Column({
+    type: "varchar",
+    name: "embedding_model",
+    nullable: false,
+    default: DEFAULT_EMBEDDING_MODEL,
+  })
+  embeddingModel!: EmbeddingModel
 
   @Column({ type: "text", nullable: true, name: "greeting_message" })
   greetingMessage!: string | null

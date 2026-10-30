@@ -53,10 +53,18 @@ Constraints:
    its own size. Retrieval always filters on `model_name`, so a distance never mixes sizes. No ANN
    index existed, so nothing is lost; per-model partial indexes over a cast remain possible
    (tracked in issue #1012).
-8. **The agent picks its retrieval model** (`agent_settings.embedding_model`, null meaning the
-   default). A self-hosted model is only selectable once the project finished embedding with it,
-   and only with the `local-embeddings` flag. When its embedder fails at query time, retrieval falls
-   back to the Vertex model with a warning: a slightly less relevant answer beats no answer.
+8. **The agent names its retrieval model** (`agent_settings.embedding_model`, never null, existing
+   agents set to `gemini-embedding-001`). A null "default" would move every agent to a new model
+   the day the platform default changes, onto vectors their project may not have. A self-hosted
+   model is only selectable once the project finished embedding with it, and only with the
+   `local-embeddings` flag.
+9. **Retrieval checks the vectors exist before it searches.** It uses the agent's model when the
+   project has its vectors (a completed job for a self-hosted model, any vector for a Vertex one),
+   and otherwise the first model of `DOCUMENT_EMBEDDING_MODELS` that has them. An embedder failure
+   also moves to the next model. Each fallback is a warning in the logs and
+   `embeddingFallbackFrom` on the trace. When no model has the project's vectors, retrieval returns
+   nothing and the trace carries `embeddingModelMissing`: a silent empty search is the failure this
+   guards against.
 
 ## Alternatives
 

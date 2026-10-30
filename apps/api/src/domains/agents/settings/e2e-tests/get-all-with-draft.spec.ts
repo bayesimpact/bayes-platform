@@ -2,6 +2,7 @@ import {
   AgentMemoryMode,
   AgentModel,
   AgentSettingsRoutes,
+  DEFAULT_EMBEDDING_MODEL,
   DocumentsRagMode,
 } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
@@ -172,6 +173,7 @@ describe("Agent Settings - getAllWithDraft", () => {
       greetingMessage: "Hello there",
       model: AgentModel.Gemini25Flash,
       documentsRagMode: DocumentsRagMode.None,
+      embeddingModel: DEFAULT_EMBEDDING_MODEL,
       fillFormEnabled: true,
       outputJsonSchema: { type: "object", properties: { title: { type: "string" } } },
       isDraft: false,

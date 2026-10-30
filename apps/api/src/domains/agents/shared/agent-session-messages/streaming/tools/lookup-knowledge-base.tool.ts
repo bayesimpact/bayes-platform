@@ -115,8 +115,8 @@ export function lookupKnowledgeBaseTool({
   connectScope: RequiredConnectScope
   documentTagIds?: string[]
   retrievalService: DocumentChunkRetrievalService
-  /** The agent's retrieval model; undefined or null means the platform default. */
-  embeddingModel?: EmbeddingModel | null
+  /** The agent's retrieval model; undefined means the platform default. */
+  embeddingModel?: EmbeddingModel
   retrievedChunksRegistry?: RetrievedChunksRegistry
   /** Adds the inline citation rule to the description (sources reporting on). */
   citeInline?: boolean

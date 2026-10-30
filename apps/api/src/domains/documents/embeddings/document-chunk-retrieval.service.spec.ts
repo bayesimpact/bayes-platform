@@ -47,6 +47,8 @@ function buildOuterQueryBuilderMock(getRawMany: jest.Mock) {
 }
 
 const mockIsCompleted = jest.fn()
+const mockHasEmbedding = jest.fn()
+const mockHasAnyEmbedding = jest.fn()
 const mockEmbedQueryLocally = jest.fn()
 // Vertex goes through the real service (on the mocked AI SDK); self-hosted models are stubbed.
 const vertexEmbedderService = new EmbedderService()
@@ -73,6 +75,7 @@ function buildService({
     } as never,
     { isCompleted: mockIsCompleted } as never,
     embedderService as never,
+    { hasEmbedding: mockHasEmbedding, hasAnyEmbedding: mockHasAnyEmbedding } as never,
   )
 }
 
@@ -84,6 +87,8 @@ describe("DocumentChunkRetrievalService", () => {
     process.env.DOCUMENT_EMBEDDING_MODELS = "gemini-embedding-001"
     mockTextEmbeddingModel.mockReturnValue("embedding-model")
     mockIsCompleted.mockResolvedValue(false)
+    mockHasEmbedding.mockResolvedValue(true)
+    mockHasAnyEmbedding.mockResolvedValue(true)
   })
 
   it("retrieves with the agent's local model once the project has it ready", async () => {
@@ -151,6 +156,104 @@ describe("DocumentChunkRetrievalService", () => {
     expect(innerQueryBuilder.andWhere).toHaveBeenCalledWith("embedding.model_name = :modelName", {
       modelName: "gemini-embedding-001",
     })
+  })
+
+  it("keeps an agent on its Vertex model when the platform default changed", async () => {
+    process.env.DOCUMENT_EMBEDDING_MODELS = "text-embedding-005,gemini-embedding-001"
+    const getRawMany = jest.fn().mockResolvedValue([])
+    const innerQueryBuilder = buildInnerQueryBuilderMock()
+    const outerQueryBuilder = buildOuterQueryBuilderMock(getRawMany)
+    const mockedEmbed = embed as jest.MockedFunction<typeof embed>
+    mockedEmbed.mockResolvedValue({ embedding: [0.1] } as never)
+    const service = buildService({ innerQueryBuilder, outerQueryBuilder })
+
+    await service.retrieveTopChunks({
+      connectScope: { organizationId: "organization-1", projectId: "project-1" },
+      query: "question",
+      embeddingModel: EmbeddingModel.GeminiEmbedding001,
+    })
+
+    expect(mockTextEmbeddingModel).toHaveBeenCalledWith("gemini-embedding-001")
+    expect(innerQueryBuilder.andWhere).toHaveBeenCalledWith("embedding.model_name = :modelName", {
+      modelName: "gemini-embedding-001",
+    })
+  })
+
+  it("falls back to a configured model with vectors when the agent's model has none", async () => {
+    process.env.DOCUMENT_EMBEDDING_MODELS = "gemini-embedding-001,text-embedding-005"
+    mockHasEmbedding.mockImplementation(
+      async ({ modelName }: { modelName: string }) => modelName === "text-embedding-005",
+    )
+    const getRawMany = jest.fn().mockResolvedValue([])
+    const innerQueryBuilder = buildInnerQueryBuilderMock()
+    const outerQueryBuilder = buildOuterQueryBuilderMock(getRawMany)
+    const mockedEmbed = embed as jest.MockedFunction<typeof embed>
+    mockedEmbed.mockResolvedValue({ embedding: [0.1] } as never)
+    const setAttribute = jest.fn()
+    const getActiveSpan = jest
+      .spyOn(trace, "getActiveSpan")
+      .mockReturnValue({ setAttribute } as never)
+    const service = buildService({ innerQueryBuilder, outerQueryBuilder })
+
+    await service.retrieveTopChunks({
+      connectScope: { organizationId: "organization-1", projectId: "project-1" },
+      query: "question",
+      embeddingModel: EmbeddingModel.GeminiEmbedding001,
+    })
+
+    expect(innerQueryBuilder.andWhere).toHaveBeenCalledWith("embedding.model_name = :modelName", {
+      modelName: "text-embedding-005",
+    })
+    expect(setAttribute).toHaveBeenCalledWith(
+      "ai.telemetry.metadata.embeddingFallbackFrom",
+      "gemini-embedding-001",
+    )
+    getActiveSpan.mockRestore()
+  })
+
+  it("returns no passage and flags the trace when no model has the project's vectors", async () => {
+    mockHasEmbedding.mockResolvedValue(false)
+    const getRawMany = jest.fn()
+    const innerQueryBuilder = buildInnerQueryBuilderMock()
+    const outerQueryBuilder = buildOuterQueryBuilderMock(getRawMany)
+    const setAttribute = jest.fn()
+    const getActiveSpan = jest
+      .spyOn(trace, "getActiveSpan")
+      .mockReturnValue({ setAttribute } as never)
+    const service = buildService({ innerQueryBuilder, outerQueryBuilder })
+
+    const chunks = await service.retrieveTopChunks({
+      connectScope: { organizationId: "organization-1", projectId: "project-1" },
+      query: "question",
+      embeddingModel: EmbeddingModel.GeminiEmbedding001,
+    })
+
+    expect(chunks).toEqual([])
+    expect(embed).not.toHaveBeenCalled()
+    expect(getRawMany).not.toHaveBeenCalled()
+    expect(setAttribute).toHaveBeenCalledWith("ai.telemetry.metadata.embeddingModelMissing", true)
+    getActiveSpan.mockRestore()
+  })
+
+  it("stays quiet for a project that has no vector yet", async () => {
+    mockHasEmbedding.mockResolvedValue(false)
+    mockHasAnyEmbedding.mockResolvedValue(false)
+    const innerQueryBuilder = buildInnerQueryBuilderMock()
+    const outerQueryBuilder = buildOuterQueryBuilderMock(jest.fn())
+    const setAttribute = jest.fn()
+    const getActiveSpan = jest
+      .spyOn(trace, "getActiveSpan")
+      .mockReturnValue({ setAttribute } as never)
+    const service = buildService({ innerQueryBuilder, outerQueryBuilder })
+
+    const chunks = await service.retrieveTopChunks({
+      connectScope: { organizationId: "organization-1", projectId: "project-1" },
+      query: "question",
+    })
+
+    expect(chunks).toEqual([])
+    expect(setAttribute).not.toHaveBeenCalled()
+    getActiveSpan.mockRestore()
   })
 
   it("records the model that embedded the query on the active span, with the fallback", async () => {
