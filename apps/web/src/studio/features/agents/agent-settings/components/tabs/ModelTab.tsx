@@ -1,4 +1,8 @@
-import { updateAgentSettingsModelSchema } from "@caseai-connect/api-contracts"
+import {
+  DOCUMENT_UPDATE_PERMISSION,
+  EmbeddingModelCatalog,
+  updateAgentSettingsModelSchema,
+} from "@caseai-connect/api-contracts"
 import {
   Form,
   FormControl,
@@ -21,6 +25,7 @@ import { useMemo } from "react"
 import { useForm } from "react-hook-form"
 import { useTranslation } from "react-i18next"
 import type { z } from "zod"
+import { RestrictedFeature } from "@/common/components/RestrictedFeature"
 import {
   buildAgentModelOptions,
   describeModelOptionFields,
@@ -34,8 +39,12 @@ import { selectAvailableModelsData } from "@/common/features/agents/agents.selec
 import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
 import { useFeatureFlags } from "@/common/hooks/use-feature-flags"
 import { useValue } from "@/common/hooks/use-value"
-import { useAppDispatch } from "@/common/store/hooks"
+import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
+import { EmbeddingModelManager } from "@/studio/features/project-embedding-models/components/EmbeddingModelManager"
+import { selectCompletedProjectEmbeddingModels } from "@/studio/features/project-embedding-models/project-embedding-models.selectors"
 import { type AgentTabFormProps, useReportDirty } from "../agent-tab-form.shared"
+import { AgentTabLink } from "./AgentTabLink"
+import { AgentTabSectionHeader } from "./AgentTabSectionHeader"
 import { ModelOptionsFields } from "./ModelOptionsFields"
 import {
   buildModelTabDefaultValues,
@@ -46,7 +55,14 @@ import { TabSaveButton } from "./TabSaveButton"
 
 type FormValues = z.infer<typeof updateAgentSettingsModelSchema>
 
-export function ModelTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
+export function ModelTab({
+  agentSettings,
+  onDirtyChange,
+  onOpenSourcesTab,
+}: AgentTabFormProps & {
+  /** Set for agents that search documents: links the embedding model to the documents searched. */
+  onOpenSourcesTab?: () => void
+}) {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const project = useValue(selectCurrentProjectData)
@@ -57,6 +73,17 @@ export function ModelTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
     deprecatedSuffix: t("agent:model.deprecatedSuffix"),
     nonEuSuffix: t("agent:model.nonEuSuffix"),
   }
+  const completedEmbeddingModels = useAppSelector(selectCompletedProjectEmbeddingModels)
+  // Enabling a model re-embeds every document of the project.
+  const canManageEmbeddingModels = project.permissions.includes(DOCUMENT_UPDATE_PERMISSION)
+  // A model is offered once the project finished embedding with it. Keep the agent's current
+  // value listed even if it is no longer ready.
+  const embeddingModelOptions = [
+    ...new Set([
+      ...completedEmbeddingModels.map((model) => model.modelName),
+      agentSettings.embeddingModel,
+    ]),
+  ]
 
   // The contract schema, plus the temperature range of the selected model (from its schema).
   const formSchema = useMemo(
@@ -106,88 +133,139 @@ export function ModelTab({ agentSettings, onDirtyChange }: AgentTabFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid gap-4 md:grid-cols-2">
-          <FormField
-            control={form.control}
-            name="model"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t("agentSettings:props.model")}</FormLabel>
-                <Select
-                  onValueChange={(model) => {
-                    field.onChange(model)
-                    form.setValue(
-                      "providerOptions",
-                      modelOptionsForPickedModel({ catalog, agentSettings, model }),
-                      { shouldDirty: true },
-                    )
-                  }}
-                  value={field.value}
-                >
+        <section className="space-y-4 rounded-lg border p-4">
+          <AgentTabSectionHeader
+            title={t("agentSettings:model.generation.title")}
+            description={t("agentSettings:model.generation.description")}
+          />
+          <div className="grid gap-4 md:grid-cols-2">
+            <FormField
+              control={form.control}
+              name="model"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t("agentSettings:props.model")}</FormLabel>
+                  <Select
+                    onValueChange={(model) => {
+                      field.onChange(model)
+                      form.setValue(
+                        "providerOptions",
+                        modelOptionsForPickedModel({ catalog, agentSettings, model }),
+                        { shouldDirty: true },
+                      )
+                    }}
+                    value={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t("agentSettings:props.placeholders.model")} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {/* The agent's model stays shown once the project can no longer pick it. */}
+                      {!models.includes(agentSettings.model) && (
+                        <SelectItem value={agentSettings.model} disabled>
+                          {formatAgentModelLabel(agentSettings.model, catalog, modelLabelSuffixes)}
+                        </SelectItem>
+                      )}
+                      {models.map((model) => (
+                        <SelectItem key={model} value={model}>
+                          {formatAgentModelLabel(model, catalog, modelLabelSuffixes)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {!models.includes(field.value) && (
+                    <FormDescription className="text-destructive">
+                      {t("agent:model.unavailable")}
+                    </FormDescription>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="providerOptions"
+              render={({ field }) => (
+                <FormItem className="contents">
+                  <ModelOptionsFields
+                    fields={optionFields}
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
+                  <FormMessage className="md:col-span-2" />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          {priorityCallsAvailable && (
+            <FormField
+              control={form.control}
+              name="priorityCallsEnabled"
+              render={({ field }) => (
+                <FormItem className="flex items-center justify-between gap-4 border-t pt-4">
+                  <div className="space-y-1">
+                    <FormLabel>{t("agentSettings:model.priorityCalls.title")}</FormLabel>
+                    <FormDescription>
+                      {t("agentSettings:model.priorityCalls.description")}
+                    </FormDescription>
+                  </div>
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t("agentSettings:props.placeholders.model")} />
-                    </SelectTrigger>
+                    <Switch checked={field.value} onCheckedChange={field.onChange} />
                   </FormControl>
-                  <SelectContent>
-                    {/* The agent's model stays shown once the project can no longer pick it. */}
-                    {!models.includes(agentSettings.model) && (
-                      <SelectItem value={agentSettings.model} disabled>
-                        {formatAgentModelLabel(agentSettings.model, catalog, modelLabelSuffixes)}
-                      </SelectItem>
+                </FormItem>
+              )}
+            />
+          )}
+        </section>
+
+        {/* The whole embedding section is a flagged beta: without it, agents keep their model. */}
+        <RestrictedFeature feature="embedding-models">
+          <section className="space-y-4 rounded-lg border p-4">
+            <AgentTabSectionHeader
+              title={t("agentSettings:model.embeddingModel.title")}
+              description={t("agentSettings:model.embeddingModel.description")}
+              action={canManageEmbeddingModels && <EmbeddingModelManager />}
+            />
+            <FormField
+              control={form.control}
+              name="embeddingModel"
+              render={({ field }) => (
+                <FormItem>
+                  <div className="flex items-center justify-between gap-4">
+                    <FormLabel>{t("agentSettings:props.embeddingModel")}</FormLabel>
+                    {onOpenSourcesTab && (
+                      <AgentTabLink onClick={onOpenSourcesTab}>
+                        {t("agentSettings:model.embeddingModel.chooseDocuments")}
+                      </AgentTabLink>
                     )}
-                    {models.map((model) => (
-                      <SelectItem key={model} value={model}>
-                        {formatAgentModelLabel(model, catalog, modelLabelSuffixes)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {!models.includes(field.value) && (
-                  <FormDescription className="text-destructive">
-                    {t("agent:model.unavailable")}
-                  </FormDescription>
-                )}
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="providerOptions"
-            render={({ field }) => (
-              <FormItem className="contents">
-                <ModelOptionsFields
-                  fields={optionFields}
-                  value={field.value}
-                  onChange={field.onChange}
-                />
-                <FormMessage className="md:col-span-2" />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        {priorityCallsAvailable && (
-          <FormField
-            control={form.control}
-            name="priorityCallsEnabled"
-            render={({ field }) => (
-              <FormItem className="flex items-center justify-between gap-4 rounded-lg border p-4">
-                <div className="space-y-1">
-                  <FormLabel>{t("agentSettings:model.priorityCalls.title")}</FormLabel>
-                  <FormDescription>
-                    {t("agentSettings:model.priorityCalls.description")}
-                  </FormDescription>
-                </div>
-                <FormControl>
-                  <Switch checked={field.value} onCheckedChange={field.onChange} />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-        )}
+                  </div>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="md:w-1/2">
+                        <SelectValue
+                          placeholder={t("agentSettings:props.placeholders.embeddingModel")}
+                        />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {embeddingModelOptions.map((embeddingModel) => (
+                        <SelectItem key={embeddingModel} value={embeddingModel}>
+                          {EmbeddingModelCatalog[embeddingModel]?.label ?? embeddingModel}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>{t("agentSettings:model.embeddingModel.help")}</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </section>
+        </RestrictedFeature>
 
         <TabSaveButton
           isSubmitting={form.formState.isSubmitting}

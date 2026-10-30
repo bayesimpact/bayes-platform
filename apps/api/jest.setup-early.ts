@@ -12,6 +12,8 @@ process.env.WORKER_QUEUE_NAMES ??= "all"
 process.env.WORKERS_HEALTH_QUEUE_NAME ??= "document-embeddings"
 // Required by every worker process (no default in code), see pdf-exports.constants.ts.
 process.env.PDF_EXPORTS_SWEEP_QUEUE_NAME ??= "pdf-exports-sweep"
+// A new project gets these models on first read (no default in code), see document-embeddings.config.ts.
+process.env.DOCUMENT_EMBEDDING_MODELS ??= "gemini-embedding-001"
 
 if (!process.env.OAUTH_SIGNING_PRIVATE_KEY || !process.env.OAUTH_SIGNING_PUBLIC_KEY) {
   const { privateKey, publicKey } = generateKeyPairSync("rsa", {
