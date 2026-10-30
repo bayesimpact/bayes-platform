@@ -8,6 +8,7 @@
     "helpCenter": "Help Center",
     "editProfile": "Edit profile",
     "connectedApps": "Connected apps",
+    "version": "Version {{version}}",
     "editProfileDialog": {
       "title": "Edit profile",
       "namePlaceholder": "Your name",

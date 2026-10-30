@@ -4,6 +4,7 @@ import type {
   BackofficeAgentDetailDto,
   BackofficeAgentListItemDto,
   BackofficeAgentMemberDto,
+  BackofficeMaintenanceJobDto,
   BackofficeOrganizationDetailDto,
   BackofficeOrganizationDto,
   BackofficeOrganizationMemberDto,
@@ -175,7 +176,6 @@ export type BackofficeProjectMember = {
   userEmail: string
   userName: string | null
   role: LegacyMembershipRole
-  canRead: boolean
 }
 
 export type BackofficeProjectAgent = {
@@ -198,6 +198,7 @@ export type BackofficeProjectDetail = {
   featureFlags: FeatureFlagKey[]
   permissions: string[]
   members: BackofficeProjectMember[]
+  hiddenMemberCount: number
   agents: BackofficeProjectAgent[]
 }
 
@@ -234,7 +235,6 @@ const toBackofficeProjectMember = (dto: BackofficeProjectMemberDto): BackofficeP
   userEmail: dto.userEmail,
   userName: dto.userName,
   role: toLegacyRole(dto.roles) ?? "member",
-  canRead: dto.canRead,
 })
 
 const toBackofficeProjectAgent = (dto: BackofficeProjectAgentDto): BackofficeProjectAgent => ({
@@ -257,6 +257,7 @@ export const toBackofficeProjectDetail = (
   featureFlags: dto.featureFlags,
   permissions: dto.permissions,
   members: dto.members.map(toBackofficeProjectMember),
+  hiddenMemberCount: dto.hiddenMemberCount,
   agents: dto.agents.map(toBackofficeProjectAgent),
 })
 
@@ -265,6 +266,7 @@ export type BackofficeUser = {
   email: string
   name: string | null
   createdAt: TimeType
+  globalRoles: { key: string; name: string }[]
 }
 
 export type BackofficeUserGlobalRole = {
@@ -401,6 +403,10 @@ export const toBackofficeUser = (dto: BackofficeUserDto): BackofficeUser => ({
   email: dto.email,
   name: dto.name,
   createdAt: dto.createdAt,
+  globalRoles: dto.globalRoles.map((globalRole) => ({
+    key: globalRole.key,
+    name: globalRole.name,
+  })),
 })
 
 export type PaginatedBackofficeUsers = {
@@ -558,4 +564,34 @@ export const toAppManifest = (dto: AppManifestDto): AppManifest => ({
   grantablePermissions: dto.grantablePermissions,
   allowedRedirectUris: dto.allowedRedirectUris,
   createdAt: dto.createdAt,
+})
+
+export type MaintenanceJobRunState = "waiting" | "active" | "completed" | "failed"
+
+export type MaintenanceJobRun = {
+  state: MaintenanceJobRunState
+  requestedAt: TimeType
+  finishedAt: TimeType | null
+  progress: { done: number; total: number } | null
+  summary: string | null
+  error: string | null
+}
+
+/** A one-off data migration the workers run across every organization. */
+export type MaintenanceJob = {
+  key: string
+  title: string
+  description: string
+  remainingCount: number
+  remainingSummary: string
+  lastRun: MaintenanceJobRun | null
+}
+
+export const toMaintenanceJob = (dto: BackofficeMaintenanceJobDto): MaintenanceJob => ({
+  key: dto.key,
+  title: dto.title,
+  description: dto.description,
+  remainingCount: dto.remainingCount,
+  remainingSummary: dto.remainingSummary,
+  lastRun: dto.lastRun,
 })

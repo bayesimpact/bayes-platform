@@ -59,8 +59,8 @@ export function FileUploader({
         await onProcessFiles?.(files).finally(() => {
           setStatus(undefined)
           setFiles([])
-          onProcessEnd?.("success")
         })
+        onProcessEnd?.("success")
       } catch (error) {
         console.error(error)
         setStatus("error")
@@ -130,7 +130,7 @@ export function FileUploader({
       {children ? (
         children
       ) : (
-        <Button className="w-full" disabled={disabled}>
+        <Button type="button" className="w-full" disabled={disabled}>
           {disabled ? (
             <Loader2Icon className="size-5 animate-spin" />
           ) : (

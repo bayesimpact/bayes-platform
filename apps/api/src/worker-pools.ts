@@ -4,8 +4,6 @@ import {
   AGENT_CSV_EXTRACTION_RUN_QUEUE_NAME,
 } from "./domains/agents/csv-extraction-runs/agent-csv-extraction-run.constants"
 import { EXTRACTION_AGENT_SESSION_QUEUE_NAME } from "./domains/agents/extraction-agent-sessions/extraction-agent-session.constants"
-import { URL_CRAWLING_QUEUE_NAME } from "./domains/documents/crawling/url-crawling.constants"
-import { WEB_SOURCE_EMBEDDINGS_QUEUE_NAME } from "./domains/documents/crawling/web-source-embeddings.constants"
 import { DOCUMENT_EMBEDDINGS_QUEUE_NAME } from "./domains/documents/embeddings/document-embeddings.constants"
 import { DOCUMENT_EMBEDDINGS_STUCK_SWEEP_QUEUE_NAME } from "./domains/documents/embeddings/document-embeddings-stuck.constants"
 import { PDF_EXPORTS_SWEEP_QUEUE_NAME } from "./domains/documents/pdf-exports/pdf-exports.constants"
@@ -17,6 +15,7 @@ import {
   EVALUATION_EXTRACTION_RUN_EXECUTE_QUEUE_NAME,
   EVALUATION_EXTRACTION_RUN_QUEUE_NAME,
 } from "./domains/evaluations/extraction/runs/evaluation-extraction-run.constants"
+import { MAINTENANCE_JOBS_QUEUE_NAME } from "./domains/maintenance-jobs/maintenance-jobs.constants"
 
 /**
  * Every queue a worker process can consume. Built from the queue-name
@@ -31,12 +30,11 @@ export const KNOWN_WORKER_QUEUE_NAMES: readonly string[] = [
   AGENT_CSV_EXTRACTION_RUN_QUEUE_NAME,
   AGENT_CSV_EXTRACTION_RUN_EXECUTE_QUEUE_NAME,
   EXTRACTION_AGENT_SESSION_QUEUE_NAME,
-  URL_CRAWLING_QUEUE_NAME,
   DOCUMENT_EMBEDDINGS_QUEUE_NAME,
   DOCUMENT_EMBEDDINGS_STUCK_SWEEP_QUEUE_NAME,
-  WEB_SOURCE_EMBEDDINGS_QUEUE_NAME,
   CONVERSATION_RETENTION_SWEEP_QUEUE_NAME,
   PDF_EXPORTS_SWEEP_QUEUE_NAME,
+  MAINTENANCE_JOBS_QUEUE_NAME,
 ]
 
 export const WORKER_QUEUE_NAMES_ENV = "WORKER_QUEUE_NAMES"

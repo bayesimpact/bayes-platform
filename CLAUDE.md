@@ -7,9 +7,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This is a Turborepo monorepo with the following structure:
 
 - `apps/api` - NestJS backend application (runs on port 3000)
-- `apps/pdf-converter` - Go service rendering PDFs to PNG page images in the platform bucket (S3-compatible or GCS) for image-only LLMs (Gemma, MedGemma), runs on port 3002 and serves the PDF export MCP endpoint at `/mcp`; `npm run dev` starts it when Go is installed and `apps/pdf-converter/.env` exists
+- `apps/pdf-converter` - Go service rendering PDFs to PNG page images in the platform bucket (S3-compatible) for image-only LLMs (Gemma, MedGemma), runs on port 3002 and serves the PDF export MCP endpoint at `/mcp`; `npm run dev` starts it when Go is installed and `apps/pdf-converter/.env` exists
+- `apps/desk` - The Desk, rebuilt on the frontend stack of ADR 0031 (Vite, TanStack Router and Query, shadcn on Base UI, Lingui), runs on port 5177 at `/app/`; see `apps/desk/AGENTS.md`
 - `apps/web` - Vite + React frontend application (runs on port 5173)
 - `packages/@caseai-connect/api-contracts` - Shared API contracts and DTOs
+- `packages/@caseai-connect/desk-contracts` - The Desk's view of the API: the routes it calls and the Zod schemas of their responses, which `apps/desk` checks at runtime
 - `packages/@repo/typescript-config` - Shared TypeScript configurations
 - `packages/@caseai-connect/ui` - Shared React component library
 
@@ -48,6 +50,11 @@ All commands should be run from the root directory using Turbo (via npm scripts)
 - Modular structure with feature-based modules under `apps/api/src/domains/`
 - Uses dependency injection and decorators pattern
 - See `apps/api/CLAUDE.md` for detailed API rules
+
+### Desk Application
+- The first app rebuilt on the stack of [ADR 0031](docs/adr/0031-frontend-stack-for-agent-built-apps.md): an app of its own that shares no code with `apps/web`. In its first phase it reads the API's existing endpoints and changes nothing in `apps/api`
+- Its rules: `docs/frontend/conventions.md`, shared by every app of that stack, and `apps/desk/AGENTS.md`
+- Its gate: `npm run check -w @caseai-connect/desk`, on top of the completion criteria below
 
 ### Web Application
 - Vite + React (SPA) with React Compiler enabled via `babel-plugin-react-compiler`
@@ -141,5 +148,6 @@ Before marking any work as completed, run and verify:
 1. `npm run biome:check` — formatting and linting must pass
 2. `npm run typecheck` — no TypeScript errors
 3. `npm run test` — all tests must pass (API work)
+4. `npm run check -w @caseai-connect/desk` — when the Desk or its contracts changed
 
 Work is NOT complete until all applicable commands pass with exit code 0.

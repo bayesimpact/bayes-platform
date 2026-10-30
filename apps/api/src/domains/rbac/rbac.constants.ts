@@ -37,6 +37,8 @@ import {
   BACKOFFICE_AGENT_READ_PERMISSION,
   BACKOFFICE_APP_MANAGE_PERMISSION,
   BACKOFFICE_CONVERSATION_REVIEWER_UPDATE_PERMISSION,
+  BACKOFFICE_GLOBAL_ROLE_UPDATE_PERMISSION,
+  BACKOFFICE_MAINTENANCE_JOB_RUN_PERMISSION,
   BACKOFFICE_ORGANIZATION_READ_PERMISSION,
   BACKOFFICE_PROJECT_READ_PERMISSION,
   BACKOFFICE_PROJECT_UPDATE_PERMISSION,
@@ -125,7 +127,9 @@ import {
   REVIEW_CAMPAIGN_TESTER_SURVEY_CREATE_PERMISSION,
   REVIEW_CAMPAIGN_TESTER_SURVEY_READ_PERMISSION,
   REVIEW_CAMPAIGN_TESTER_SURVEY_UPDATE_PERMISSION,
+  REVIEWER_UI_READ_PERMISSION,
   STUDIO_UI_READ_PERMISSION,
+  TESTER_UI_READ_PERMISSION,
   TRACE_READ_PERMISSION,
   USER_READ_PERMISSION,
 } from "@caseai-connect/api-contracts"
@@ -161,6 +165,8 @@ export {
   type AppGrantablePermission,
   BACKOFFICE_AGENT_READ_PERMISSION,
   BACKOFFICE_APP_MANAGE_PERMISSION,
+  BACKOFFICE_GLOBAL_ROLE_UPDATE_PERMISSION,
+  BACKOFFICE_MAINTENANCE_JOB_RUN_PERMISSION,
   BACKOFFICE_ORGANIZATION_READ_PERMISSION,
   BACKOFFICE_PROJECT_READ_PERMISSION,
   BACKOFFICE_PROJECT_UPDATE_PERMISSION,
@@ -169,6 +175,8 @@ export {
   BACKOFFICE_CONVERSATION_REVIEWER_UPDATE_PERMISSION,
   BACKOFFICE_USER_READ_PERMISSION,
   DESK_UI_READ_PERMISSION,
+  REVIEWER_UI_READ_PERMISSION,
+  TESTER_UI_READ_PERMISSION,
   AGENT_CONVERSATION_SESSION_CREATE_PERMISSION,
   AGENT_CONVERSATION_SESSION_DELETE_PERMISSION,
   AGENT_CONVERSATION_SESSION_PLAYGROUND_CREATE_PERMISSION,
@@ -279,6 +287,12 @@ export const PLATFORM_STAFF_ROLE = "platform_staff" as const
 
 export const PLATFORM_SUPERADMIN_ROLE = "platform_superadmin" as const
 
+/**
+ * Global role that only creates organizations from the backoffice. Not named `org_creator`: that
+ * key was renamed to `platform_staff` (RenameOrgCreatorToPlatformStaff1785254576514).
+ */
+export const PLATFORM_ORG_CREATOR_ROLE = "platform_org_creator" as const
+
 export const PROJECT_ROLES = {
   owner: "project_owner",
   admin: "project_admin",
@@ -371,6 +385,7 @@ export const ORGANIZATION_ROLE_PERMISSIONS = {
   ],
   [PLATFORM_SUPERADMIN_ROLE]: [
     BACKOFFICE_APP_MANAGE_PERMISSION,
+    BACKOFFICE_MAINTENANCE_JOB_RUN_PERMISSION,
     BACKOFFICE_READ_PERMISSION,
     TRACE_READ_PERMISSION,
     BACKOFFICE_TERMS_UPDATE_PERMISSION,
@@ -380,8 +395,11 @@ export const ORGANIZATION_ROLE_PERMISSIONS = {
     BACKOFFICE_AGENT_READ_PERMISSION,
     BACKOFFICE_USER_READ_PERMISSION,
     BACKOFFICE_CONVERSATION_REVIEWER_UPDATE_PERMISSION,
+    BACKOFFICE_GLOBAL_ROLE_UPDATE_PERMISSION,
     ORGANIZATION_CREATE_PERMISSION,
   ],
+  // backoffice.read opens the backoffice, where organizations are created.
+  [PLATFORM_ORG_CREATOR_ROLE]: [BACKOFFICE_READ_PERMISSION, ORGANIZATION_CREATE_PERMISSION],
 } as const satisfies Record<string, readonly string[]>
 
 /** Permissions granted per project role key. */
@@ -652,6 +670,7 @@ export const REVIEW_CAMPAIGN_ROLE_PERMISSIONS = {
     REVIEW_CAMPAIGN_TESTER_SURVEY_CREATE_PERMISSION,
     REVIEW_CAMPAIGN_TESTER_SURVEY_UPDATE_PERMISSION,
     PROJECT_READ_PERMISSION,
+    TESTER_UI_READ_PERMISSION,
     AGENT_CONVERSATION_SESSION_READ_PERMISSION,
     AGENT_CONVERSATION_SESSION_CREATE_PERMISSION,
     PROJECT_AGENT_MESSAGE_FEEDBACK_CREATE_PERMISSION,
@@ -663,18 +682,21 @@ export const REVIEW_CAMPAIGN_ROLE_PERMISSIONS = {
     REVIEW_CAMPAIGN_REVIEWER_REVIEW_UPDATE_PERMISSION,
     REVIEW_CAMPAIGN_REPORT_READ_PERMISSION,
     PROJECT_READ_PERMISSION,
+    REVIEWER_UI_READ_PERMISSION,
   ],
 } as const satisfies Record<string, readonly string[]>
 
 /**
  * Project permissions a review campaign role gives on the campaign's project, without a project
- * role: both roles see the project, and a tester can chat with its agents. The live session routes
+ * role: both roles see the project and open their app on it, and a tester can chat with its agents. The live session routes
  * check these keys on the project, so this reaches every agent of the project, as a project member
  * could, until the session keys move to the agent. Every non-`review_campaign.*` key of
  * REVIEW_CAMPAIGN_ROLE_PERMISSIONS must be listed here (rbac.constants.spec.ts checks it).
  */
 export const PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN = [
   PROJECT_READ_PERMISSION,
+  TESTER_UI_READ_PERMISSION,
+  REVIEWER_UI_READ_PERMISSION,
   AGENT_CONVERSATION_SESSION_READ_PERMISSION,
   AGENT_CONVERSATION_SESSION_CREATE_PERMISSION,
   PROJECT_AGENT_MESSAGE_FEEDBACK_CREATE_PERMISSION,
@@ -780,6 +802,7 @@ export const PARENT_RESOURCE_TYPE_MAP = {
 export const CATALOG_ROLE_KEYS = [
   PLATFORM_STAFF_ROLE,
   PLATFORM_SUPERADMIN_ROLE,
+  PLATFORM_ORG_CREATOR_ROLE,
   ORGANIZATION_ROLES.owner,
   ORGANIZATION_ROLES.admin,
   ORGANIZATION_ROLES.member,
@@ -835,6 +858,8 @@ export const PERMISSION_DESCRIPTIONS: Record<string, string> = {
   [DESK_UI_READ_PERMISSION]: "Open a project's desk app",
   [STUDIO_UI_READ_PERMISSION]: "Open a project's studio app",
   [EVALUATION_UI_READ_PERMISSION]: "Open a project's evaluation app",
+  [TESTER_UI_READ_PERMISSION]: "Open a project's tester app",
+  [REVIEWER_UI_READ_PERMISSION]: "Open a project's reviewer app",
   [DOCUMENT_READ_PERMISSION]: "See a document",
   [DOCUMENT_CREATE_PERMISSION]: "Create documents in a project",
   [DOCUMENT_UPDATE_PERMISSION]: "Update a document",
@@ -955,6 +980,8 @@ export const PERMISSION_DESCRIPTIONS: Record<string, string> = {
   [USER_READ_PERMISSION]: "See the users who are members of a resource",
   [TRACE_READ_PERMISSION]: "See trace links",
   [BACKOFFICE_APP_MANAGE_PERMISSION]: "Manage app definitions in the backoffice",
+  [BACKOFFICE_MAINTENANCE_JOB_RUN_PERMISSION]:
+    "See and run the one-off maintenance jobs of the backoffice",
   [BACKOFFICE_READ_PERMISSION]: "Access /backoffice routes",
   [BACKOFFICE_TERMS_UPDATE_PERMISSION]: "Manage terms documents",
   [BACKOFFICE_ORGANIZATION_READ_PERMISSION]: "See organizations in the backoffice",
@@ -969,4 +996,5 @@ export const PERMISSION_DESCRIPTIONS: Record<string, string> = {
     "List the sessions of an agent grouped by category, for safety review",
   [BACKOFFICE_CONVERSATION_REVIEWER_UPDATE_PERMISSION]:
     "Grant or revoke, agent by agent, the right to read any of its conversations for safety review",
+  [BACKOFFICE_GLOBAL_ROLE_UPDATE_PERMISSION]: "Grant or revoke a user's global roles",
 }

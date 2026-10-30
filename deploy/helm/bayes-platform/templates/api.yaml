@@ -97,6 +97,10 @@ spec:
             - name: web-theme
               mountPath: {{ .Values.web.distDir }}/theme
               readOnly: true
+            # The Desk, served at /app, takes the same theme.
+            - name: web-theme
+              mountPath: {{ .Values.web.deskDistDir }}/theme
+              readOnly: true
             {{- end }}
           securityContext:
             allowPrivilegeEscalation: false

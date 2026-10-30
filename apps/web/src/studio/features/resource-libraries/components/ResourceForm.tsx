@@ -70,7 +70,7 @@ export function ResourceForm({
     },
   })
 
-  const { control, handleSubmit, watch, setValue, formState } = form
+  const { control, handleSubmit, watch, setValue, trigger, formState } = form
   const linkErrorMessage = formState.errors.url?.message ?? formState.errors.linkType?.message
 
   const handleFormSubmit = async (values: FormValues) => {
@@ -79,12 +79,15 @@ export function ResourceForm({
   }
 
   // ResourceLinkField edits linkType/url/file together, so mirror its output back into the three
-  // form fields rather than binding a single FormField to it.
+  // form fields rather than binding a single FormField to it. They are validated together once all
+  // three are set: validating linkType alone would flag a file not uploaded yet. Like the other
+  // fields, they are revalidated on change only after a first submit.
   const linkResource: Resource = { ...initialResource, ...watch() }
   const handleLinkChange = (next: Resource) => {
-    setValue("linkType", next.linkType, { shouldDirty: true, shouldValidate: true })
-    setValue("url", next.url, { shouldDirty: true, shouldValidate: true })
-    setValue("file", next.file, { shouldDirty: true, shouldValidate: true })
+    setValue("linkType", next.linkType, { shouldDirty: true })
+    setValue("url", next.url, { shouldDirty: true })
+    setValue("file", next.file, { shouldDirty: true })
+    if (formState.isSubmitted) void trigger(["linkType", "url", "file"])
   }
 
   return (

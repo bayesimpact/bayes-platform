@@ -121,7 +121,7 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
     await saveReviewCampaignMembership({
       repositories,
       membership: reviewCampaignMembershipFactory
-        .reviewer()
+        .withRoles("review_campaign_reviewer")
         .transient({ organization, project, campaign, user: reviewer })
         .build(),
     })
@@ -214,7 +214,7 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
     await saveReviewCampaignMembership({
       repositories,
       membership: reviewCampaignMembershipFactory
-        .reviewer()
+        .withRoles("review_campaign_reviewer")
         .transient({ organization, project, campaign, user: otherReviewer })
         .build(),
     })
@@ -299,7 +299,7 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
     await saveReviewCampaignMembership({
       repositories,
       membership: reviewCampaignMembershipFactory
-        .reviewer()
+        .withRoles("review_campaign_reviewer")
         .transient({
           organization,
           project,
@@ -387,7 +387,7 @@ describe("ReviewCampaigns - Reviewer session detail (blind redaction)", () => {
     await saveReviewCampaignMembership({
       repositories,
       membership: reviewCampaignMembershipFactory
-        .reviewer()
+        .withRoles("review_campaign_reviewer")
         .transient({ organization, project, campaign, user: callerUser })
         .build(),
     })

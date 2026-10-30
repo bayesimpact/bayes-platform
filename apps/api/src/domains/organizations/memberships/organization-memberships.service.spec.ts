@@ -109,7 +109,7 @@ describe("OrganizationMembershipsService", () => {
         {
           user: { email: "multimember@example.com" },
           organization: { name: "Org 1" },
-          organizationMembership: { role: "owner" },
+          organizationMembership: { roleKeys: ["org_owner"] },
         },
       )
 
@@ -120,7 +120,7 @@ describe("OrganizationMembershipsService", () => {
         repositories,
         membership: organizationMembershipFactory
           .transient({ user, organization: savedOrganization2 })
-          .member()
+          .withRoles("org_member")
           .build(),
       })
 
@@ -170,7 +170,7 @@ describe("OrganizationMembershipsService", () => {
 
     it("promotes a member to admin", async () => {
       const { user, organization } = await createOrganizationWithOwner(repositories, {
-        organizationMembership: { role: "member" },
+        organizationMembership: { roleKeys: ["org_member"] },
       })
 
       await service.upsertOrganizationAdminMembership({
@@ -279,7 +279,7 @@ describe("OrganizationMembershipsService", () => {
         repositories,
         membership: organizationMembershipFactory
           .transient({ user: serviceUser, organization })
-          .member()
+          .withRoles("org_member")
           .build(),
       })
 

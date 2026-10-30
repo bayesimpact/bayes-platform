@@ -1,7 +1,7 @@
 import { mkdtempSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { buildWebAppRuntimeConfig, getWebAppSettings } from "./web-app-config"
+import { buildWebAppRuntimeConfig, getDeskAppSettings, getWebAppSettings } from "./web-app-config"
 
 describe("getWebAppSettings", () => {
   it("is disabled when WEB_APP_DIST_DIR is unset", () => {
@@ -23,6 +23,19 @@ describe("getWebAppSettings", () => {
   })
 })
 
+describe("getDeskAppSettings", () => {
+  it("points to the Desk's index.html when DESK_APP_DIST_DIR holds its build", () => {
+    const distDir = mkdtempSync(join(tmpdir(), "desk-app-"))
+    expect(getDeskAppSettings({ DESK_APP_DIST_DIR: distDir })).toBeNull()
+    writeFileSync(join(distDir, "index.html"), "<html></html>")
+    expect(getDeskAppSettings({ DESK_APP_DIST_DIR: distDir })).toEqual({
+      distDir,
+      indexHtmlPath: join(distDir, "index.html"),
+    })
+    expect(getDeskAppSettings({ WEB_APP_DIST_DIR: distDir })).toBeNull()
+  })
+})
+
 describe("buildWebAppRuntimeConfig", () => {
   it("defaults to /api on the page origin and the OIDC provider the API validates", () => {
     const config = buildWebAppRuntimeConfig({
@@ -34,6 +47,15 @@ describe("buildWebAppRuntimeConfig", () => {
       oidcAuthority: "https://idp.example.org/realms/acme",
       oidcAudience: "platform-api",
     })
+  })
+
+  it("hands the deployed version and the built commit to the browser", () => {
+    const config = buildWebAppRuntimeConfig({
+      APP_VERSION: "26.10.7",
+      GIT_SHA: "a8618c1ed0000000000000000000000000000000",
+    })
+    expect(config.appVersion).toBe("26.10.7")
+    expect(config.gitSha).toBe("a8618c1ed0000000000000000000000000000000")
   })
 
   it("maps WEB_* variables and lets them override the defaults", () => {

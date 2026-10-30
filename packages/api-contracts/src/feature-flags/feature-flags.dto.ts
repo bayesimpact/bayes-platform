@@ -46,10 +46,6 @@ export const FeatureFlags = [
     description: "View project-level analytics and usage charts in the studio.",
   }),
   featureFlag({
-    key: "web-sources",
-    description: "Crawl a website and index its pages as documents.",
-  }),
-  featureFlag({
     key: "agent-mcp",
     description: "Connect MCP servers to agents for external tool access.",
   }),
@@ -69,6 +65,11 @@ export const FeatureFlags = [
     key: "agent-prompt-variables",
     description:
       "Collect values for the variables an agent declares in its instructions, at session start, with defaults set on the agent's settings.",
+  }),
+  featureFlag({
+    key: "chat-interface-prompt",
+    description:
+      "Tell conversation agents how the Desk shows their task lists, and what the quoted passages and ticked tasks in the user's messages mean.",
   }),
 ] as const
 export type FeatureFlagKey = (typeof FeatureFlags)[number]["key"]

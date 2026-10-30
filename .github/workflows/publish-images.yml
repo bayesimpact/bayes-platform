@@ -223,6 +223,10 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          # Read by the API image only (GIT_SHA): the version tag comes later,
+          # from the deployment (APP_VERSION).
+          build-args: |
+            GIT_SHA=${{ github.sha }}
           # BuildKit cache in the registry, all stages (mode=max): the images
           # that share a Dockerfile reuse each other's build stages, and the
           # 10 GB limit of the GitHub Actions cache does not apply (the GPU

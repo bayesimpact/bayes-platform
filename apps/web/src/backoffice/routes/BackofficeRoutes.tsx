@@ -2,6 +2,7 @@ import { Navigate } from "react-router-dom"
 import { BackofficeAgentDetailRoute } from "./BackofficeAgentDetailRoute"
 import { BackofficeAgentsListRoute } from "./BackofficeAgentsListRoute"
 import { BackofficeAppsRoute } from "./BackofficeAppsRoute"
+import { BackofficeMaintenanceJobsRoute } from "./BackofficeMaintenanceJobsRoute"
 import { BackofficeOrganizationDetailRoute } from "./BackofficeOrganizationDetailRoute"
 import { BackofficeOrganizationsRoute } from "./BackofficeOrganizationsRoute"
 import { BackofficePermissionsRoute } from "./BackofficePermissionsRoute"
@@ -64,6 +65,10 @@ export const backofficeRoutes = {
     {
       path: "terms",
       element: <BackofficeTermsRoute />,
+    },
+    {
+      path: "maintenance-jobs",
+      element: <BackofficeMaintenanceJobsRoute />,
     },
   ],
 }

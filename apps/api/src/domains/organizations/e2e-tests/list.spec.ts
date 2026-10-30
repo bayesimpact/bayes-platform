@@ -108,7 +108,7 @@ describe("Organizations - listOrganizations", () => {
     const { user: memberUser } = await addUserToOrganization({
       repositories,
       organization,
-      membership: { role: "member" },
+      membership: { roleKeys: ["org_member"] },
     })
     authSubject = memberUser.authSubject!
 
@@ -136,14 +136,14 @@ describe("Organizations - listOrganizations", () => {
     await saveOrgMembership({
       repositories,
       membership: organizationMembershipFactory
-        .owner()
+        .withRoles("org_owner")
         .transient({ user, organization: acme })
         .build(),
     })
     await saveOrgMembership({
       repositories,
       membership: organizationMembershipFactory
-        .owner()
+        .withRoles("org_owner")
         .transient({ user, organization: northwind })
         .build(),
     })

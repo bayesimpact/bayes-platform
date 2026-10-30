@@ -12,6 +12,8 @@ jobs:
       help-only: ${{ steps.filter.outputs.help-only }}
       api-tests: ${{ steps.filter.outputs.api-tests }}
       web-tests: ${{ steps.filter.outputs.web-tests }}
+      desk-tests: ${{ steps.filter.outputs.desk-tests }}
+      pdf-converter-tests: ${{ steps.filter.outputs.pdf-converter-tests }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -45,6 +47,20 @@ jobs:
             echo "web-tests=true" >> "$GITHUB_OUTPUT"
           else
             echo "web-tests=false" >> "$GITHUB_OUTPUT"
+          fi
+          # The Desk's tests, translation checks and build run when the Desk,
+          # its contracts or the dependencies changed.
+          if echo "$CHANGED" | grep -qE '^(apps/desk/|packages/desk-contracts/|package\.json$|package-lock\.json$)'; then
+            echo "desk-tests=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "desk-tests=false" >> "$GITHUB_OUTPUT"
+          fi
+          # The PDF converter tests (Go, with SeaweedFS for the S3 store) run
+          # when the service, the SeaweedFS keys or this workflow changed.
+          if echo "$CHANGED" | grep -qE '^(apps/pdf-converter/|infra/database/seaweedfs/|\.github/workflows/ci\.yml$)'; then
+            echo "pdf-converter-tests=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "pdf-converter-tests=false" >> "$GITHUB_OUTPUT"
           fi
 
   ci-checks:
@@ -133,3 +149,95 @@ jobs:
       - name: Run web tests
         if: needs.changes.outputs.web-tests == 'true'
         run: npm run test --workspace=@caseai-connect/web
+
+  desk-tests:
+    needs: changes
+    runs-on: ubuntu-latest
+    steps:
+      - name: Skip, nothing the Desk checks exercise changed
+        if: needs.changes.outputs.desk-tests == 'false'
+        run: echo "Skipping the Desk checks, no change under apps/desk, packages/desk-contracts, package.json or package-lock.json"
+
+      - name: Checkout code
+        if: needs.changes.outputs.desk-tests == 'true'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      # After the checkout: the npm cache key is read from package-lock.json.
+      - name: Use Node.js
+        if: needs.changes.outputs.desk-tests == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          cache: npm
+
+      - name: Install dependencies
+        if: needs.changes.outputs.desk-tests == 'true'
+        run: npm ci
+
+      # The typecheck, Biome and check:boundaries run in ci-checks, through turbo.
+      - name: Check the translation catalogs
+        if: needs.changes.outputs.desk-tests == 'true'
+        run: npm run i18n:check --workspace=@caseai-connect/desk
+
+      - name: Run Desk tests
+        if: needs.changes.outputs.desk-tests == 'true'
+        run: npm run test --workspace=@caseai-connect/desk
+
+      - name: Build the Desk
+        if: needs.changes.outputs.desk-tests == 'true'
+        run: npm run build --workspace=@caseai-connect/desk
+
+  pdf-converter-tests:
+    needs: changes
+    runs-on: ubuntu-latest
+    steps:
+      - name: Skip, nothing the PDF converter tests exercise changed
+        if: needs.changes.outputs.pdf-converter-tests == 'false'
+        run: echo "Skipping the PDF converter tests, no change under apps/pdf-converter or infra/database/seaweedfs"
+
+      - name: Checkout code
+        if: needs.changes.outputs.pdf-converter-tests == 'true'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Use Go
+        if: needs.changes.outputs.pdf-converter-tests == 'true'
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: apps/pdf-converter/go.mod
+          cache-dependency-path: apps/pdf-converter/go.sum
+
+      - name: Vet
+        if: needs.changes.outputs.pdf-converter-tests == 'true'
+        working-directory: apps/pdf-converter
+        run: go vet ./...
+
+      # SeaweedFS for the S3 store tests (store_s3_test.go), same image and
+      # keys as infra/database. Without S3_TEST_ENDPOINT those tests skip.
+      - name: Start SeaweedFS
+        if: needs.changes.outputs.pdf-converter-tests == 'true'
+        run: |
+          docker run -d --name seaweedfs -p 8333:8333 \
+            -v "$PWD/infra/database/seaweedfs/s3.json:/etc/seaweedfs/s3.json:ro" \
+            --health-cmd 'wget -qO- http://localhost:9333/dir/assign | grep -q fid && wget -q -O /dev/null http://localhost:8888/' \
+            --health-interval 2s --health-retries 60 \
+            chrislusf/seaweedfs:4.48 server -dir=/data -ip.bind=0.0.0.0 \
+              -master.volumeSizeLimitMB=32 -volume.max=100 -s3 -s3.port=8333 -s3.config=/etc/seaweedfs/s3.json
+          # The S3 port answers before a write can succeed: wait for the healthcheck.
+          for attempt in $(seq 1 90); do
+            [ "$(docker inspect -f '{{.State.Health.Status}}' seaweedfs)" = healthy ] && exit 0
+            sleep 2
+          done
+          docker logs seaweedfs; exit 1
+
+      - name: Run PDF converter tests
+        if: needs.changes.outputs.pdf-converter-tests == 'true'
+        working-directory: apps/pdf-converter
+        # -count=1: the Go test cache cannot see SeaweedFS, so a cached pass
+        # would skip the S3 round trip.
+        run: go test -count=1 ./...
+        env:
+          S3_TEST_ENDPOINT: http://localhost:8333

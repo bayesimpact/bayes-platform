@@ -138,7 +138,7 @@ describe("Agents Analytics - getConversationsPerDay", () => {
 
   it("scopes counts to the requested agent only", async () => {
     const { organization, project, user } = await createOrganizationWithProject(repositories, {
-      projectMembership: { role: "owner" },
+      projectMembership: { roleKeys: ["project_owner"] },
     })
     organizationId = organization.id
     projectId = project.id
@@ -149,7 +149,10 @@ describe("Agents Analytics - getConversationsPerDay", () => {
     await repositories.agentRepository.save([agentPrimary, agentOther])
     await saveAgentMembership({
       repositories,
-      membership: agentMembershipFactory.owner().transient({ user, agent: agentPrimary }).build(),
+      membership: agentMembershipFactory
+        .withRoles("agent_owner")
+        .transient({ user, agent: agentPrimary })
+        .build(),
     })
 
     const primarySession = conversationAgentSessionFactory

@@ -1,9 +1,5 @@
 import { z } from "zod"
-import {
-  type AgentLocale,
-  AgentModel,
-  type DocumentsRagMode,
-} from "../agents/settings/agent-settings.dto"
+import { AgentModel, type DocumentsRagMode } from "../agents/settings/agent-settings.dto"
 import type { TimeType } from "../generic"
 
 export const EVALUATION_CONVERSATION_RUN_STATUS_CHANGED_CHANNEL_DTO =
@@ -33,7 +29,6 @@ export type EvaluationConversationRunSummaryDto = {
 export type EvaluationConversationRunAgentSettingsDto = {
   documentsRagMode: DocumentsRagMode
   instructions: string
-  locale: AgentLocale
   model: AgentModel
   revision: number
   /** The options of the model (its temperature, its thinking level...), as the revision set them. */

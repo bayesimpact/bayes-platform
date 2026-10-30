@@ -10,8 +10,10 @@ import {
 } from "@/common/test/test-database"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { RbacModule } from "@/domains/rbac/rbac.module"
+import { userFactory } from "@/domains/users/user.factory"
 import { mockOidcEmailForSub, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import {
+  assignPlatformOrgCreatorToUser,
   assignPlatformSuperadminToUser,
   ensureRbacCatalog,
 } from "../../../../test/rbac-test.helpers"
@@ -71,6 +73,27 @@ describe("Backoffice - list users", () => {
     const returned = users.find((candidate: { id: string }) => candidate.id === user.id)
     expect(returned).toBeDefined()
     expect(returned?.email).toBe(user.email)
+  })
+
+  it("lists each user's global roles, and none for the others", async () => {
+    const { user } = await createAuthorizedContext()
+    const creator = userFactory.build({ email: "creator@example.com" })
+    const plainUser = userFactory.build({ email: "plain@example.com" })
+    await repositories.userRepository.save([creator, plainUser])
+    await assignPlatformOrgCreatorToUser({ repositories, user: creator })
+
+    const response = await request({ route: BackofficeRoutes.listUsers, token: "token" })
+    expectResponse(response, 200)
+    const globalRolesById = new Map(
+      response.body.data.users.map((listedUser) => [listedUser.id, listedUser.globalRoles]),
+    )
+    expect(globalRolesById.get(user.id)).toEqual([
+      { key: "platform_superadmin", name: "Platform Superadmin" },
+    ])
+    expect(globalRolesById.get(creator.id)).toEqual([
+      { key: "platform_org_creator", name: "Platform Organization Creator" },
+    ])
+    expect(globalRolesById.get(plainUser.id)).toEqual([])
   })
 
   it("returns an empty list when no users match", async () => {

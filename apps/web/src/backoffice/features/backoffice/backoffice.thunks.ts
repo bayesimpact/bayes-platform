@@ -1,4 +1,4 @@
-import type { FeatureFlagKey } from "@caseai-connect/api-contracts"
+import type { BackofficeGlobalRoleKey, FeatureFlagKey } from "@caseai-connect/api-contracts"
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import type { RootState, ThunkExtraArg } from "@/common/store"
 import { getApiErrorMessage } from "@/common/utils/api-error"
@@ -14,6 +14,7 @@ import type {
   BackofficeRbacCatalog,
   BackofficeUserDetail,
   CreateAppManifestInput,
+  MaintenanceJob,
   PaginatedBackofficeAgents,
   PaginatedBackofficeOrganizations,
   PaginatedBackofficeProjects,
@@ -123,6 +124,32 @@ const getUser = createAsyncThunk<BackofficeUserDetail, string, ThunkConfig>(
   },
 )
 
+const grantUserGlobalRole = createAsyncThunk<
+  { userId: string; roleKey: BackofficeGlobalRoleKey },
+  { userId: string; roleKey: BackofficeGlobalRoleKey },
+  ThunkConfig
+>("backoffice/grantUserGlobalRole", async (params, { extra: { services } }) => {
+  try {
+    await services.backoffice.grantUserGlobalRole(params)
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, "Something went wrong, please try again."))
+  }
+  return params
+})
+
+const revokeUserGlobalRole = createAsyncThunk<
+  { userId: string; roleKey: BackofficeGlobalRoleKey },
+  { userId: string; roleKey: BackofficeGlobalRoleKey },
+  ThunkConfig
+>("backoffice/revokeUserGlobalRole", async (params, { extra: { services } }) => {
+  try {
+    await services.backoffice.revokeUserGlobalRole(params)
+  } catch (error) {
+    throw new Error(getApiErrorMessage(error, "Something went wrong, please try again."))
+  }
+  return params
+})
+
 const getRbacCatalog = createAsyncThunk<BackofficeRbacCatalog, void, ThunkConfig>(
   "backoffice/getRbacCatalog",
   async (_, { extra: { services } }) => services.backoffice.getRbacCatalog(),
@@ -197,6 +224,22 @@ const createAppOAuthClientSecret = createAsyncThunk<AppOAuthClientSecret, string
     services.backoffice.createAppOAuthClientSecret(appManifestId),
 )
 
+const listMaintenanceJobs = createAsyncThunk<MaintenanceJob[], void, ThunkConfig>(
+  "backoffice/listMaintenanceJobs",
+  async (_, { extra: { services } }) => services.backoffice.listMaintenanceJobs(),
+)
+
+const runMaintenanceJob = createAsyncThunk<MaintenanceJob, string, ThunkConfig>(
+  "backoffice/runMaintenanceJob",
+  async (jobKey, { extra: { services } }) => {
+    try {
+      return await services.backoffice.runMaintenanceJob(jobKey)
+    } catch (error) {
+      throw new Error(getApiErrorMessage(error, "Something went wrong, please try again."))
+    }
+  },
+)
+
 export const backofficeThunks = {
   listOrganizations,
   getOrganization,
@@ -209,6 +252,8 @@ export const backofficeThunks = {
   getProject,
   listUsers,
   getUser,
+  grantUserGlobalRole,
+  revokeUserGlobalRole,
   getRbacCatalog,
   addFeatureFlag,
   removeFeatureFlag,
@@ -220,4 +265,6 @@ export const backofficeThunks = {
   deleteAppManifest,
   getAppOAuthClient,
   createAppOAuthClientSecret,
+  listMaintenanceJobs,
+  runMaintenanceJob,
 }

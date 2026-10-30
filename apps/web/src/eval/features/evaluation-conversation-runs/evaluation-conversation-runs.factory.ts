@@ -66,7 +66,6 @@ export const evaluationConversationRunFactory = EvaluationConversationRunFactory
       agentSettings: {
         documentsRagMode: params.agentSettings?.documentsRagMode ?? agentSettings.documentsRagMode,
         instructions: params.agentSettings?.instructions ?? agentSettings.instructions,
-        locale: params.agentSettings?.locale ?? agentSettings.locale,
         model: params.agentSettings?.model ?? agentSettings.model,
         revision: params.agentSettings?.revision ?? agentSettings.revision,
         providerOptions: params.agentSettings?.providerOptions ?? agentSettings.providerOptions,

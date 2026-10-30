@@ -19,14 +19,12 @@ import {
 } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { GridCard } from "@/common/components/grid/Grid"
-import { selectMyAccessibleReviewCampaignMemberships } from "@/common/features/me/me.selectors"
 import type { OrganizationWithProjects } from "@/common/features/organizations/organizations.selectors"
 import type { MyProject } from "@/common/features/projects/projects.models"
 import { useAbility } from "@/common/hooks/use-ability"
 import { useFeatureFlags } from "@/common/hooks/use-feature-flags"
-import { useAppSelector } from "@/common/store/hooks"
+import { DeskRoutes } from "@/common/routes/desk-routes"
 import { toAppHref } from "@/config/runtime-config"
-import { DeskRoutes } from "@/desk/routes/helpers"
 import { EvalRoutes } from "@/eval/routes/helpers"
 import { ReviewerRoutes } from "@/reviewer/routes/helpers"
 import { StudioRoutes } from "@/studio/routes/helpers"
@@ -125,16 +123,6 @@ function useAvailableApps({
   const { t } = useTranslation()
   const { abilities } = useAbility()
   const { hasFeature } = useFeatureFlags(project)
-  const testerMemberships = useAppSelector(selectMyAccessibleReviewCampaignMemberships("tester"))
-  const hasTesterCampaignInProject = testerMemberships.some(
-    (membership) => membership.projectId === project.id,
-  )
-  const reviewerMemberships = useAppSelector(
-    selectMyAccessibleReviewCampaignMemberships("reviewer"),
-  )
-  const hasReviewerCampaignInProject = reviewerMemberships.some(
-    (membership) => membership.projectId === project.id,
-  )
 
   const apps: AppData[] = []
 
@@ -147,10 +135,10 @@ function useAvailableApps({
   if (hasFeature("evaluation") && abilities.canAccessEvaluation({ projectId: project.id }))
     apps.push(getAppData({ app: "eval", organizationId, projectId: project.id, t }))
 
-  if (hasTesterCampaignInProject)
+  if (abilities.canAccessTester({ projectId: project.id }))
     apps.push(getAppData({ app: "tester", organizationId, projectId: project.id, t }))
 
-  if (hasReviewerCampaignInProject)
+  if (abilities.canAccessReviewer({ projectId: project.id }))
     apps.push(getAppData({ app: "reviewer", organizationId, projectId: project.id, t }))
 
   return apps

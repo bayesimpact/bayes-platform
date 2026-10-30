@@ -9,6 +9,7 @@ export function buildConversationAgentPrompt({
   toolNames,
   handoff,
   contextSections = [],
+  hasChatInterfacePrompt = false,
 }: {
   agent: Agent
   agentSettings: AgentSettings
@@ -16,6 +17,8 @@ export function buildConversationAgentPrompt({
   toolNames: string[]
   handoff?: { parentAgentName: string }
   contextSections?: string[]
+  /** Whether the project explains the chat interface to its agents (its `chat-interface-prompt` flag). */
+  hasChatInterfacePrompt?: boolean
 }): string {
   // Keep the volatile timestamp LAST so the stable content above forms a
   // byte-stable prefix that Vertex/Gemini implicit caching can reuse across
@@ -29,11 +32,11 @@ ${promptHelpers.tools({ names: toolNames, descriptions: toolDescriptions, agentS
 
 ${promptHelpers.mcpAppUis(toolDescriptions)}
 
+${hasChatInterfacePrompt ? promptHelpers.interfaceMarkup() : ""}
+
 ${handoff ? promptHelpers.handoff(handoff) : ""}
 
 ${contextSections.join("\n\n")}
-
-${promptHelpers.language(agentSettings.locale)}
 
 ${promptHelpers.now()}`
 }

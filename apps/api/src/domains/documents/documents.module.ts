@@ -13,10 +13,6 @@ import { Project } from "@/domains/projects/project.entity"
 import { ProjectsModule } from "@/domains/projects/projects.module"
 import { RbacModule } from "@/domains/rbac/rbac.module"
 import { UsersModule } from "@/domains/users/users.module"
-import { CrawlingController } from "./crawling/crawling.controller"
-import { DocumentCrawlProgressStreamService } from "./crawling/document-crawl-progress-stream.service"
-import { UrlCrawlingBatchModule } from "./crawling/url-crawling-batch.module"
-import { WebSourceEmbeddingsBatchModule } from "./crawling/web-source-embeddings-batch.module"
 import { Document } from "./document.entity"
 import { DocumentsController } from "./documents.controller"
 import { DocumentsService } from "./documents.service"
@@ -58,8 +54,6 @@ import { DocumentTagsModule } from "./tags/document-tags.module"
     RbacModule,
     StorageModule,
     DocumentEmbeddingsBatchModule,
-    UrlCrawlingBatchModule,
-    WebSourceEmbeddingsBatchModule,
     PdfPagesModule,
   ],
   providers: [
@@ -68,7 +62,6 @@ import { DocumentTagsModule } from "./tags/document-tags.module"
     DocumentSourceRepository,
     DocumentEmbeddingStatusStreamService,
     DocumentEmbeddingStatusNotifierService,
-    DocumentCrawlProgressStreamService,
     DocumentChunkRetrievalService,
     ResourceContextGuard,
     OrganizationContextResolver,
@@ -78,7 +71,6 @@ import { DocumentTagsModule } from "./tags/document-tags.module"
   controllers: [
     DocumentsController,
     DocumentSourcesController,
-    CrawlingController,
     ...(process.env.NODE_ENV !== "production" ? [LocalPresignUploadController] : []),
   ],
   exports: [DocumentsService, DocumentSourcesService, DocumentChunkRetrievalService],

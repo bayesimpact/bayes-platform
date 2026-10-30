@@ -16,7 +16,9 @@
         "https://connect.localhost:5173/*",
         "https://connect.localhost:5174/*",
         "http://localhost:5173/*",
-        "https://connect.localhost:3000/*"
+        "https://connect.localhost:3000/*",
+        "https://connect.localhost:5177/app/*",
+        "http://localhost:5177/app/*"
       ],
       "webOrigins": ["+"],
       "attributes": {

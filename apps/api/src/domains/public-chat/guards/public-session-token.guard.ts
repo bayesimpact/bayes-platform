@@ -2,6 +2,7 @@ import crypto from "node:crypto"
 import {
   type CanActivate,
   type ExecutionContext,
+  GoneException,
   Injectable,
   UnauthorizedException,
 } from "@nestjs/common"
@@ -42,6 +43,16 @@ export class PublicSessionTokenGuard implements CanActivate {
 
     if (publicSession.embedConfigId !== request.embedConfig.id) {
       throw new UnauthorizedException("Session does not belong to this agent")
+    }
+
+    // The retention purge emptied this conversation: the client starts a new session.
+    if (publicSession.purgedAt) {
+      throw new GoneException({
+        statusCode: 410,
+        message: "Session expired",
+        error: "Gone",
+        code: "SESSION_EXPIRED",
+      })
     }
 
     request.publicSession = publicSession

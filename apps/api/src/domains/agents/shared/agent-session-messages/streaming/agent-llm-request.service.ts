@@ -136,7 +136,10 @@ export class AgentLlmRequestService {
     })
 
     const toolNames = tools ? Object.keys(tools) : []
-    const llmFeatures = await this.projectsService.getLlmFeatures(connectScope)
+    const [llmFeatures, hasChatInterfacePrompt] = await Promise.all([
+      this.projectsService.getLlmFeatures(connectScope),
+      this.projectsService.hasFeature({ connectScope, feature: "chat-interface-prompt" }),
+    ])
     const config = buildLLMConfig({
       systemPrompt: generateMasterPrompt({
         agent,
@@ -147,6 +150,7 @@ export class AgentLlmRequestService {
           ? { parentAgentName: agentSessionScope.handoff.parentAgent.name }
           : undefined,
         contextSections: promptSections,
+        hasChatInterfacePrompt,
       }),
       model: agentSettings.model,
       modelOptions: agentSettings.providerOptions,
@@ -279,7 +283,7 @@ export class AgentLlmRequestService {
         {
           if (modelRequiresPdfAsImages(model)) {
             // Image-only models: send one rendered page image URL per page. The
-            // pages live in GCS (rendered once by pdf-converter, cached)
+            // pages live in the bucket (rendered once by pdf-converter, cached)
             const imageUrls = await this.pdfPagesService.getImageUrls({
               document: attachmentDocument,
               onPageCountUpdate: async (pdfPageCount: number) => {

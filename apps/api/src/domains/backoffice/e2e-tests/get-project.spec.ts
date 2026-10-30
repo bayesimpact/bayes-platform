@@ -9,6 +9,7 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
+import { addUserToProject } from "@/domains/projects/memberships/project-membership.factory"
 import { RbacModule } from "@/domains/rbac/rbac.module"
 import { userFactory } from "@/domains/users/user.factory"
 import { mockOidcEmailForSub, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
@@ -67,7 +68,7 @@ describe("Backoffice - get project", () => {
     const viewer = userFactory.build({ authSubject, email: mockOidcEmailForSub(authSubject) })
     await repositories.userRepository.save(viewer)
     await assignGlobalRole({ repositories, user: viewer })
-    return context
+    return { ...context, viewer }
   }
 
   it("returns the project detail with members and agents", async () => {
@@ -92,9 +93,9 @@ describe("Backoffice - get project", () => {
         userEmail: user.email,
         userName: user.name,
         roles: [expect.objectContaining({ key: "project_owner", scopeType: "project" })],
-        canRead: true,
       },
     ])
+    expect(returned.hiddenMemberCount).toBe(0)
     expect(returned.agents).toEqual([
       {
         id: agent.id,
@@ -115,7 +116,8 @@ describe("Backoffice - get project", () => {
     expect(response.body.data.permissions).toContain("backoffice.project.update")
     expect(response.body.data.organization.permissions).toContain("backoffice.organization.read")
     expect(response.body.data.agents[0]?.permissions).toContain("backoffice.agent.read")
-    expect(response.body.data.members).toEqual([expect.objectContaining({ canRead: true })])
+    expect(response.body.data.members).toHaveLength(1)
+    expect(response.body.data.hiddenMemberCount).toBe(0)
   })
 
   it("gives no read permission on the organization, the agents and the members to a caller who can only read the project", async () => {
@@ -132,7 +134,47 @@ describe("Backoffice - get project", () => {
       "backoffice.organization.read",
     )
     expect(response.body.data.agents).toEqual([{ id: agent.id, name: agent.name, permissions: [] }])
-    expect(response.body.data.members).toEqual([expect.objectContaining({ canRead: false })])
+    expect(response.body.data.members).toEqual([])
+    expect(response.body.data.hiddenMemberCount).toBe(1)
+  })
+
+  it("shows a caller who can only read the project the members they can read as users", async () => {
+    const { project, viewer } = await createContextViewedWithGlobalRole(assignPlatformStaffToUser)
+    // project_member does not grant user.read: the caller only reads themself
+    await addUserToProject({
+      repositories,
+      project,
+      user: viewer,
+      membership: { roleKeys: ["project_member"] },
+    })
+    const response = await request({
+      route: BackofficeRoutes.getProject,
+      pathParams: { projectId: project.id },
+      token: "token",
+    })
+    expectResponse(response, 200)
+    expect(response.body.data.members).toEqual([
+      expect.objectContaining({ userId: viewer.id, userEmail: viewer.email }),
+    ])
+    expect(response.body.data.hiddenMemberCount).toBe(1)
+  })
+
+  it("shows every member to a caller who holds user.read on the project", async () => {
+    const { project, viewer } = await createContextViewedWithGlobalRole(assignPlatformStaffToUser)
+    await addUserToProject({
+      repositories,
+      project,
+      user: viewer,
+      membership: { roleKeys: ["project_admin"] },
+    })
+    const response = await request({
+      route: BackofficeRoutes.getProject,
+      pathParams: { projectId: project.id },
+      token: "token",
+    })
+    expectResponse(response, 200)
+    expect(response.body.data.members).toHaveLength(2)
+    expect(response.body.data.hiddenMemberCount).toBe(0)
   })
 
   it("returns empty members and agents for a project with none", async () => {
@@ -150,6 +192,7 @@ describe("Backoffice - get project", () => {
     })
     expectResponse(response, 200)
     expect(response.body.data.members).toEqual([])
+    expect(response.body.data.hiddenMemberCount).toBe(0)
     expect(response.body.data.agents).toEqual([])
   })
 

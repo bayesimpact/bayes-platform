@@ -70,8 +70,10 @@ export {
 // Backoffice
 export type * from "./backoffice/backoffice.dto"
 export {
+  BACKOFFICE_GLOBAL_ROLE_KEYS,
   createBackofficeOrganizationSchema,
   grantBackofficeAgentConversationReviewerSchema,
+  grantBackofficeUserGlobalRoleSchema,
 } from "./backoffice/backoffice.dto"
 export { BackofficeRoutes } from "./backoffice/backoffice.routes"
 // Document Tags

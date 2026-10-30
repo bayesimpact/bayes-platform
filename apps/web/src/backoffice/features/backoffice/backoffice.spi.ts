@@ -1,4 +1,4 @@
-import type { FeatureFlagKey } from "@caseai-connect/api-contracts"
+import type { BackofficeGlobalRoleKey, FeatureFlagKey } from "@caseai-connect/api-contracts"
 import type {
   AppManifest,
   AppOAuthClient,
@@ -10,6 +10,7 @@ import type {
   BackofficeRbacCatalog,
   BackofficeUserDetail,
   CreateAppManifestInput,
+  MaintenanceJob,
   PaginatedBackofficeAgents,
   PaginatedBackofficeOrganizations,
   PaginatedBackofficeProjects,
@@ -47,6 +48,14 @@ export interface IBackofficeSpi {
     search?: string
   }) => Promise<PaginatedBackofficeUsers>
   getUser: (userId: string) => Promise<BackofficeUserDetail>
+  grantUserGlobalRole: (params: {
+    userId: string
+    roleKey: BackofficeGlobalRoleKey
+  }) => Promise<void>
+  revokeUserGlobalRole: (params: {
+    userId: string
+    roleKey: BackofficeGlobalRoleKey
+  }) => Promise<void>
   getRbacCatalog: () => Promise<BackofficeRbacCatalog>
   addFeatureFlag: (params: { projectId: string; featureFlagKey: FeatureFlagKey }) => Promise<void>
   removeFeatureFlag: (params: {
@@ -63,6 +72,8 @@ export interface IBackofficeSpi {
     input: UpdateAppManifestInput
   }) => Promise<AppManifest>
   deleteAppManifest: (appManifestId: string) => Promise<void>
+  listMaintenanceJobs: () => Promise<MaintenanceJob[]>
+  runMaintenanceJob: (jobKey: string) => Promise<MaintenanceJob>
   getAppOAuthClient: (appManifestId: string) => Promise<AppOAuthClient>
   createAppOAuthClientSecret: (appManifestId: string) => Promise<AppOAuthClientSecret>
 }

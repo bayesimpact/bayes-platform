@@ -28,6 +28,7 @@ const { values: options } = parseArgs({
     globals: { type: "string", default: "" },
     lang: { type: "string", default: "fr" },
     port: { type: "string", default: "6006" },
+    "base-url": { type: "string" },
     width: { type: "string", default: "1400" },
     height: { type: "string", default: "900" },
     "full-page": { type: "boolean", default: false },
@@ -47,6 +48,8 @@ if (options.help || !options.story) {
   --globals    Storybook globals, same syntax
   --lang       Comma-separated languages, one screenshot each (default: fr)
   --port       Storybook port (default: 6006)
+  --base-url   Storybook's URL instead of localhost and --port, such as a worktree environment's:
+               https://<name>-desk-storybook.connect.bayes-dev.org
   --width      Viewport width (default: 1400)
   --height     Viewport height (default: 900)
   --full-page  Capture the whole scrollable page instead of the viewport
@@ -84,7 +87,7 @@ function loadPlaywright() {
 }
 
 const { chromium } = loadPlaywright()
-const baseUrl = `http://localhost:${options.port}`
+const baseUrl = options["base-url"]?.replace(/\/$/u, "") ?? `http://localhost:${options.port}`
 
 let browser
 try {
@@ -109,7 +112,8 @@ for (const language of options.lang.split(",").map((value) => value.trim())) {
     viewport: { width: Number(options.width), height: Number(options.height) },
     locale: language,
   })
-  // The app's i18next language detector reads localStorage first.
+  // The web app's i18next language detector reads localStorage first; the Desk follows the
+  // browser's language, which `locale` sets.
   await page.addInitScript((lng) => localStorage.setItem("i18nextLng", lng), language)
 
   const problems = []
@@ -135,7 +139,11 @@ for (const language of options.lang.split(",").map((value) => value.trim())) {
   // Storybook expects ":" and ";" unescaped in args and globals.
   const url = `${baseUrl}/iframe.html?${query.toString().replaceAll("%3A", ":").replaceAll("%3B", ";").replaceAll("%21", "!")}`
 
-  await page.goto(url, { waitUntil: "networkidle" })
+  await page.goto(url, { waitUntil: "load" })
+  // A story of a page that loads forever never goes idle: it is captured as it stands.
+  await page.waitForLoadState("networkidle", { timeout: 15000 }).catch(() => {
+    problems.push("the network never went idle: a request is still pending")
+  })
   if (options["wait-for"]) await page.waitForSelector(options["wait-for"], { timeout: 15000 })
   await page.waitForTimeout(Number(options.wait))
 

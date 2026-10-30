@@ -29,7 +29,7 @@ const (
 	// sweep them by prefix.
 	defaultPdfExportPrefix = "tmp/pdf-exports/"
 	pdfExportMaxPages      = 200
-	// maxFileNameRunes caps the sanitized download name well below the GCS
+	// maxFileNameRunes caps the sanitized download name well below the S3
 	// object-name limit while leaving room for the prefix and the id.
 	maxFileNameRunes = 100
 	// maxPdfExportTTLMinutes is the V4 and SigV4 signing limit (seven days); a
@@ -226,7 +226,7 @@ func humanSize(bytes int64) string {
 
 // sanitizeFileName turns an agent-supplied name into a safe single-segment
 // object name ending in .pdf. Unicode letters and digits are kept, so an
-// accented or non-Latin name survives (GCS object names are UTF-8); everything
+// accented or non-Latin name survives (object names are UTF-8); everything
 // outside letters, digits, dot, underscore, space and dash is dropped, which
 // also removes path separators, quotes and control characters. The download
 // header quotes an ASCII fallback next to the real name, see store.SignedURL.
@@ -295,39 +295,15 @@ func newMCPServer(store objectStore, cfg pdfExportConfig) *mcp.Server {
 		Title:       "PDF download card",
 		Description: "MCP App card showing the generated PDF and its download button.",
 		MIMEType:    mcpAppMIMEType,
-	}, func(_ context.Context, req *mcp.ReadResourceRequest) (*mcp.ReadResourceResult, error) {
-		var header http.Header
-		if req != nil && req.Extra != nil {
-			header = req.Extra.Header
-		}
+	}, func(_ context.Context, _ *mcp.ReadResourceRequest) (*mcp.ReadResourceResult, error) {
 		return &mcp.ReadResourceResult{Contents: []*mcp.ResourceContents{{
 			URI:      downloadCardURI,
 			MIMEType: mcpAppMIMEType,
-			Text:     localizedDownloadCard(cardLanguage(header)),
+			Text:     downloadCardHTML,
 		}}}, nil
 	})
 
 	return server
-}
-
-// cardLanguage picks the card's language from the Accept-Language header the
-// platform sends on every MCP call with the agent's configured language. Only
-// the first tag is considered: French renders French, anything else English.
-func cardLanguage(header http.Header) string {
-	first, _, _ := strings.Cut(header.Get("Accept-Language"), ",")
-	tag, _, _ := strings.Cut(first, ";")
-	tag = strings.ToLower(strings.TrimSpace(tag))
-	if tag == "fr" || strings.HasPrefix(tag, "fr-") {
-		return "fr"
-	}
-	return "en"
-}
-
-// localizedDownloadCard stamps the language on the card's root element. The
-// card's script reads it back as its starting language, so the same HTML
-// serves both languages without a second file.
-func localizedDownloadCard(lang string) string {
-	return strings.Replace(downloadCardHTML, `<html lang="en">`, `<html lang="`+lang+`">`, 1)
 }
 
 func newMCPHandler(store objectStore, cfg pdfExportConfig) http.Handler {

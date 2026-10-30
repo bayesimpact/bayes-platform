@@ -86,12 +86,12 @@ describe("Project membership - getAll", () => {
     const { user: admin } = await addUserToProject({
       repositories,
       project,
-      membership: { role: "admin" },
+      membership: { roleKeys: ["project_admin"] },
     })
     const { user: member } = await addUserToProject({
       repositories,
       project,
-      membership: { role: "member" },
+      membership: { roleKeys: ["project_member"] },
     })
 
     const response = await subject()

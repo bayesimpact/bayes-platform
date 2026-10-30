@@ -5,9 +5,9 @@ This chart installs the full platform on a Kubernetes cluster:
 | Component | What it is | Image |
 |---|---|---|
 | api | NestJS API (`/api`, `/public`), and the web front it serves at `/` | `app` |
-| cpu-workers | async jobs (extraction, crawling, evaluations) | `cpu-workers` |
+| cpu-workers | async jobs (extraction, evaluations, maintenance jobs) | `cpu-workers` |
 | gpu-workers | document embeddings with Docling on one GPU (optional) | `gpu-workers` |
-| pdf-converter | PDF to page images for image-only LLMs (`s3` or `gcs` storage) | `pdf-converter` |
+| pdf-converter | PDF to page images for image-only LLMs (`s3` storage) | `pdf-converter` |
 | web-embed | the embeddable widget and its `launcher.js` | `web-embed` |
 | help | the help center | `help` |
 | postgresql | bundled Postgres with pgvector (optional) | `pgvector/pgvector` |
@@ -16,7 +16,7 @@ This chart installs the full platform on a Kubernetes cluster:
 Two ways to run it:
 
 - **Self-contained**: bundled Postgres and Redis, documents on a volume. The default `values.yaml`. Good for a test cluster or a small install.
-- **Managed services**: external Postgres, external Redis, a GCS bucket, a GPU node pool. See `values-managed.example.yaml`.
+- **Managed services**: external Postgres, external Redis, a Cloud Storage bucket through its S3 API, a GPU node pool. See `values-managed.example.yaml`.
 
 ## Requirements
 
@@ -122,7 +122,7 @@ ingress:
   tls: true
 ```
 
-Point the three DNS names (`api`, `webEmbed`, `help`) at the ingress controller. `/api/healthz` is not reachable through it (403): the probes call the pod directly, and the endpoint queries the database on every call. Set `ingress.healthzAllowFrom` to the ranges of an uptime checker that must call it. In the identity provider, add the `web` URL to the redirect URIs, post-logout redirect URIs and web origins of the web app client.
+Point the three DNS names (`api`, `webEmbed`, `help`) at the ingress controller. `/api/healthz` is not reachable through it (403): the probes call the pod directly, and the endpoint queries the database on every call. Set `ingress.healthzAllowFrom` to the ranges of an uptime checker that must call it. In the identity provider, add the `web` URL to the redirect URIs, post-logout redirect URIs and web origins of the web app client. The Desk, which the same image serves at `/app` with the same client, needs two more: `<web URL>/app/auth/callback` as a redirect URI and `<web URL>/app/` as a post-logout redirect URI.
 
 The database migrations run as a Job after the first install and before every upgrade. The Job of the last run stays, succeeded or failed, until the next upgrade replaces it. To read its output:
 
@@ -181,7 +181,7 @@ See `values-managed.example.yaml`. The differences with the default:
 - `postgresql.enabled: false` and `externalDatabase.*`. `externalDatabase.ssl` is `require` by default (Cloud SQL refuses plain connections when its `ssl_mode` is `ENCRYPTED_ONLY`); set `verify-full` and `sslCaSecretKey` to check the server certificate. The `vector` extension is created by the first migration when the database user is allowed to; otherwise run `CREATE EXTENSION IF NOT EXISTS vector;` once as an administrator. The database user also needs the `CREATEROLE` attribute: the analytics migration creates the `analytics_reader` role (see "Analytics readers"). A Cloud SQL user created through the Cloud SQL API or console has it; a user created with `CREATE USER` in SQL does not, and the migration Job fails with `Only roles with the CREATEROLE attribute may create roles`. Grant it once as an administrator: `ALTER ROLE <user> CREATEROLE;`.
 - `redis.enabled: false` and `BULLMQ_REDIS_URL` in the Secret (`redis://` or `rediss://`, password in the URL). When the instance signs its certificate with its own CA (Memorystore with in-transit encryption), put the CA certificate (PEM) in the Secret and name its key in `externalRedis.sslCaSecretKey`.
 - `storage.mode: s3` with `storage.s3.bucket` and, for a self-hosted store such as SeaweedFS, `storage.s3.endpoint` (reached by the pods) and `storage.s3.publicEndpoint` (reached by the browsers, which upload and download with signed URLs: the host is part of the signature). The access key pair goes in the Secret under `S3_ACCESS_KEY_ID` and `S3_SECRET_ACCESS_KEY`; leave `storage.s3.accessKeyIdKey` and `storage.s3.secretAccessKeyKey` empty to use an IAM role instead. The bucket must accept cross-origin `PUT` and `GET` from the web front. This mode also enables the `pdf-converter`.
-- `storage.mode: gcs` with `storage.gcs.bucket`. The pods reach the bucket through the service account (`serviceAccount.annotations` for GKE Workload Identity). This mode also enables the `pdf-converter`. The API signs upload and download URLs: with Workload Identity there is no private key, so the Google service account needs `roles/iam.serviceAccountTokenCreator` on itself (the `signBlob` permission), on top of `roles/storage.objectAdmin` on the bucket. Without it, uploads fail with `Permission 'iam.serviceAccounts.signBlob' denied`.
+- A Cloud Storage bucket uses `storage.mode: s3` too, through its S3 API: `storage.s3.endpoint: https://storage.googleapis.com`, `forcePathStyle: true`, and the HMAC key pair of a service account with `roles/storage.objectAdmin` on the bucket in the Secret. The CORS configuration of the bucket allows `PUT` and `GET` from the web front.
 - `gpuWorkers.enabled: true` with `gpuWorkers.gpu.nodeSelector` set to the label of your GPU node pool. The pods request `nvidia.com/gpu: 1` and tolerate the `nvidia.com/gpu` taint. On GKE also set `gpuWorkers.gpu.driverLibraryPath: /usr/local/nvidia/lib64`: GKE mounts the NVIDIA driver libraries there without putting them on the loader path, and without it Torch silently runs on the CPU (Docling then hits its timeout on large documents). Clusters with the NVIDIA container toolkit or GPU Operator need nothing.
 
 ## Title and theme
@@ -202,7 +202,7 @@ web:
       <svg ...>...</svg>
 ```
 
-All three files must be given: the mount replaces the whole `theme/` folder. A change to `web.theme` rolls the API pods.
+All three files must be given: the mount replaces the whole `theme/` folder. The same files are mounted over the Desk's (`web.deskDistDir`), which reads them at `/app/theme/`. A change to `web.theme` rolls the API pods.
 
 The help center has its own accent, `--brand-primary`, used by its feature walkthroughs. Same mechanism, one file: `help.theme.enabled: true` and `help.theme.css` with `:root { --brand-primary: ...; }`, usually the web front's `--primary`. A change rolls the help pods.
 
@@ -235,7 +235,7 @@ See `values.yaml`. Every key is documented in place. The main sections:
 | `config` | the non-secret environment shared by the API and the workers |
 | `postgresql`, `externalDatabase` | bundled or external database |
 | `redis`, `externalRedis` | bundled or external Redis |
-| `storage` | `local` volume, `s3` or `gcs` bucket |
+| `storage` | `local` volume or `s3` bucket |
 | `api`, `cpuWorkers`, `gpuWorkers`, `pdfConverter`, `webEmbed`, `help` | one block per component: replicas, resources, placement |
 | `otelCollector`, `phoenix` | optional collector and Phoenix for the LLM traces (see "LLM traces") |
 | `migrations` | the migration Job |

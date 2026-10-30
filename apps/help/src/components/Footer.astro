@@ -5,6 +5,9 @@ import { getLocaleFromPath, localizedPath } from "@/i18n/utils"
 const locale = getLocaleFromPath(Astro.url.pathname)
 const t = useTranslations(locale)
 const appUrl = import.meta.env.PUBLIC_APP_URL as string | undefined
+// The deployed version. The image builds it as a placeholder, replaced at container start
+// (docker/40-runtime-config.sh); an empty value there hides it (see .footer-version).
+const appVersion = import.meta.env.PUBLIC_APP_VERSION as string | undefined
 
 // bayesimpact.org's footer, mirrored from the website repo's BaseLayout (its menu, its copy line,
 // its styles), so the help center ends like every page of the site. Its pages are served at
@@ -101,6 +104,13 @@ const isExternal = (href: string) => href.startsWith("http")
     © {new Date().getFullYear()} Bayes Impact, association de loi 1901 (SIREN 813 821 279, FR) et 501(c)(3) (EIN 47-1102475, US), 146 rue de Rivoli, 75001 Paris.
     <a href={site("/legal-notices")}>{t("footer.legalNotice")}</a>
     <a href={site("/privacy-policy")}>{t("footer.privacyPolicy")}</a>
+    {
+      appVersion && (
+        <span class="footer-version" data-version={appVersion}>
+          {t("footer.version")} {appVersion}
+        </span>
+      )
+    }
   </div>
 </footer>
 
@@ -221,6 +231,12 @@ const isExternal = (href: string) => href.startsWith("http")
   }
   .footer-copy a:hover {
     color: var(--ink);
+  }
+  .footer-version {
+    margin-left: 12px;
+  }
+  .footer-version[data-version=""] {
+    display: none;
   }
   @media (max-width: 900px) {
     .hc-footer {

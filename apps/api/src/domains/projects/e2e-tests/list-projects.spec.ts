@@ -157,13 +157,13 @@ describe("Projects - listProjects", () => {
       repositories,
       project: adminProject,
       user,
-      membership: { role: "admin" },
+      membership: { roleKeys: ["project_admin"] },
     })
     await addUserToProject({
       repositories,
       project: memberProject,
       user,
-      membership: { role: "member" },
+      membership: { roleKeys: ["project_member"] },
     })
 
     const response = await subject()
@@ -217,7 +217,7 @@ describe("Projects - listProjects", () => {
       organization,
       project: campaignProject,
       campaign,
-      role: "tester",
+      roleKeys: ["review_campaign_tester"],
       user: { authSubject: testerAuthSubject, email: mockOidcEmailForSub(testerAuthSubject) },
     })
     authSubject = testerAuthSubject
@@ -226,6 +226,7 @@ describe("Projects - listProjects", () => {
 
     expectResponse(response, 200)
     expect(response.body.data.map((project) => project.name)).toEqual(["Campaign"])
-    expect(response.body.data[0]?.permissions).toEqual([])
+    // Only the tester app opens: no studio, desk or evaluation key.
+    expect(response.body.data[0]?.permissions).toEqual(["tester.ui.read"])
   })
 })

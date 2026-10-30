@@ -9,7 +9,6 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
-import { userMembershipFactory } from "@/domains/memberships/user-membership.factory"
 import {
   createOrganizationWithAgent,
   createOrganizationWithProject,
@@ -279,7 +278,7 @@ describe("Invitations - createMany", () => {
         await findReviewCampaignMembershipRow(repositories, {
           userId: invitedUser.id,
           campaignId: campaign.id,
-          role: "reviewer",
+          roleKey: "review_campaign_reviewer",
         }),
       ).toBeNull()
     })
@@ -308,34 +307,6 @@ describe("Invitations - createMany", () => {
       )
     })
 
-    it("invites again someone whose campaign row holds no role", async () => {
-      const campaign = await createCampaign("active")
-      const participant = await repositories.userRepository.save(
-        userFactory.build({ email: "participant@example.com" }),
-      )
-      await repositories.userMembershipRepository.save(
-        userMembershipFactory.build({
-          userId: participant.id,
-          resourceType: "review_campaign",
-          resourceId: campaign.id,
-          roleId: null,
-        }),
-      )
-
-      const response = await subject(
-        { reviewCampaign: campaign },
-        { emails: [participant.email], role: "tester" },
-      )
-
-      expectResponse(response, 201)
-      expect(response.body.data.invitations).toEqual([
-        expect.objectContaining({ invitedEmail: participant.email, role: "tester" }),
-      ])
-      expect(
-        await findPendingInvitation({ userId: participant.id, targetId: campaign.id }),
-      ).not.toBeNull()
-    })
-
     it("skips someone who already holds the campaign role", async () => {
       const campaign = await createCampaign("active")
       const participant = await repositories.userRepository.save(
@@ -350,7 +321,7 @@ describe("Invitations - createMany", () => {
       await saveReviewCampaignMembership({
         repositories,
         membership: reviewCampaignMembershipFactory
-          .tester()
+          .withRoles("review_campaign_tester")
           .transient({ organization, project, campaign, user: participant })
           .build(),
       })

@@ -115,8 +115,17 @@ function LiveChat({
     logoUrl: remoteConfig?.logoUrl ?? undefined,
   }
 
-  const { status, messages, mcpAppHtml, isMcpAppHtmlLoading, isStreaming, errorKey, send, reset } =
-    usePublicChat(embedToken)
+  const {
+    status,
+    messages,
+    mcpAppHtml,
+    isMcpAppHtmlLoading,
+    isStreaming,
+    isPreviousSessionExpired,
+    errorKey,
+    send,
+    reset,
+  } = usePublicChat(embedToken)
 
   useEffect(() => {
     function onMessage(event: MessageEvent) {
@@ -146,6 +155,7 @@ function LiveChat({
     <EmbedChat
       agentName={remoteConfig?.title ?? remoteConfig?.agentName}
       bannerText={remoteConfig?.bannerText ?? undefined}
+      isPreviousSessionExpired={isPreviousSessionExpired}
       theme={theme}
       locale={locale}
       displayMode={displayMode}

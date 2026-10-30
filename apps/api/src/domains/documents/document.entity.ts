@@ -43,7 +43,7 @@ export class Document extends ConnectEntityBase {
     | "extraction" // is the input an extraction run reads (pdf, csv...)
     | "evaluationExtractionRun"
     | "agentCsvExtractionRun" // is the output an extraction run produces (usually a CSV file).
-    | "webCrawl"
+    | "webCrawl" // legacy: one document per crawled site, pages as JSON in content; migrated to document sources by a maintenance job
     | "app" // created through the apps documents API; retrieved with project documents, hidden from the studio library
 
   @Column({ type: "uuid", name: "user_id", nullable: true })
@@ -61,7 +61,7 @@ export class Document extends ConnectEntityBase {
   @Column({ name: "upload_status", nullable: false, default: "uploaded" })
   uploadStatus!: "pending" | "uploaded"
 
-  /** Rendered PNG page count in GCS (derived/{id}/page-{n}.png); null = not rendered. PDFs only. */
+  /** Rendered PNG page count in the bucket (derived/{id}/page-{n}.png); null = not rendered. PDFs only. */
   @Column({ type: "integer", name: "pdf_page_count", nullable: true })
   pdfPageCount!: number | null
 

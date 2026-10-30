@@ -1,12 +1,12 @@
 import { randomUUID } from "node:crypto"
 import { Factory } from "fishery"
 import type { AllRepositories } from "@/common/test/test-transaction-manager"
-import { userMembershipFactory } from "@/domains/memberships/user-membership.factory"
+import { saveUserMembershipRows } from "@/domains/memberships/user-membership.factory"
 import { AGENT_ROLES } from "@/domains/rbac/rbac.constants"
 import type { User } from "@/domains/users/user.entity"
 import { userFactory } from "@/domains/users/user.factory"
 import type { Agent } from "../agent.entity"
-import type { AgentMembershipFixture, AgentMembershipRole } from "./agent-membership.types"
+import type { AgentMembershipFixture, AgentRoleKey } from "./agent-membership.types"
 
 type AgentMembershipTransientParams = {
   agent: Agent
@@ -17,16 +17,8 @@ class AgentMembershipFactory extends Factory<
   AgentMembershipFixture,
   AgentMembershipTransientParams
 > {
-  member() {
-    return this.params({ role: "member" })
-  }
-
-  admin() {
-    return this.params({ role: "admin" })
-  }
-
-  owner() {
-    return this.params({ role: "owner" })
+  withRoles(...roleKeys: AgentRoleKey[]) {
+    return this.params({ roleKeys })
   }
 }
 
@@ -44,8 +36,7 @@ export const agentMembershipFactory = AgentMembershipFactory.define(
       id: params.id || randomUUID(),
       agentId: transientParams.agent.id,
       userId: transientParams.user.id,
-      role: (params.role || "member") as AgentMembershipRole,
-      roleId: params.roleId ?? null,
+      roleKeys: (params.roleKeys as AgentRoleKey[] | undefined) ?? [AGENT_ROLES.member],
       createdAt: params.createdAt || now,
       updatedAt: params.updatedAt || now,
       deletedAt: params.deletedAt || null,
@@ -56,7 +47,7 @@ export const agentMembershipFactory = AgentMembershipFactory.define(
 )
 
 /**
- * Saves an agent membership to `user_membership`.
+ * Saves an agent membership to `user_membership`, one row per role key.
  */
 export const saveAgentMembership = async ({
   repositories,
@@ -65,19 +56,15 @@ export const saveAgentMembership = async ({
   repositories: AllRepositories
   membership: AgentMembershipFixture
 }) => {
-  const roleKey = AGENT_ROLES[membership.role]
-  const rbacRole = await repositories.roleRepository.findOne({ where: { key: roleKey } })
-
-  const saved = await repositories.userMembershipRepository.save(
-    userMembershipFactory.build({
-      id: membership.id,
-      userId: membership.userId,
-      resourceType: "agent",
-      resourceId: membership.agentId,
-      roleId: rbacRole?.id ?? null,
-    }),
-  )
-  return { ...membership, id: saved.id, roleId: saved.roleId }
+  await saveUserMembershipRows({
+    repositories,
+    id: membership.id,
+    userId: membership.userId,
+    resourceType: "agent",
+    resourceId: membership.agentId,
+    roleKeys: membership.roleKeys,
+  })
+  return membership
 }
 
 export const addUserToAgent = async ({

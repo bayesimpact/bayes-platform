@@ -9,6 +9,44 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 
+- Desk: the user menu now shows the deployed platform version, as the Studio menu does.
+
+### Changed
+
+- Embedded agents: an expired conversation now tells the visitor it expired and opens a new one.
+- Agents: the answer language now lives in the agent's instructions, which replace the French/English setting.
+
+### Fixed
+
+### Security
+
+- Embedded agents in tag mode now search only the documents that carry their tags.
+
+## [26.10.8] - 2026-10-29
+
+### Added
+
+- Backoffice: superadmins can run one-off maintenance jobs and follow their progress from a new Maintenance tab.
+- Backoffice: superadmins can grant global roles from a user's page, including a new role that only creates organizations.
+- Version display: the user menu and the help center footer now show the deployed platform version.
+
+### Changed
+
+- Web sources: crawled websites now appear as external sources, and recrawling one goes through the Bayes team.
+- Self-hosting: Google Cloud Storage buckets now connect through their S3 API with HMAC keys, replacing the gcs storage mode.
+
+### Fixed
+
+- Resource libraries: the upload button of a resource being edited now opens the file picker instead of saving the resource.
+- Resource libraries: a file that fails to upload now shows an error instead of nothing.
+- Resource libraries: the missing link error waits for the form to be sent, and clears once a file is uploaded.
+
+### Security
+
+## [26.10.7] - 2026-10-28
+
+### Added
+
 - External sources: tag a source, and agents filtering by those tags search all of its documents.
 
 ### Changed

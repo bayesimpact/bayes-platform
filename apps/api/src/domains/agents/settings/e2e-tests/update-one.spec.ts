@@ -242,7 +242,9 @@ describe("Agent Settings - updateOne", () => {
   it("should leave the other fields untouched on a partial update", async () => {
     const { agentSettings } = await createContext()
 
-    const response = await subject({ payload: { locale: agentSettings.locale } })
+    const response = await subject({
+      payload: { documentsRagMode: agentSettings.documentsRagMode },
+    })
 
     expectResponse(response, 200)
 

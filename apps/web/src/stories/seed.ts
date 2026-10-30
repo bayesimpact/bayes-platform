@@ -4,6 +4,7 @@ import type {
   BackofficeProjectDetail,
   BackofficeRbacCatalog,
   BackofficeUserDetail,
+  MaintenanceJob,
   PaginatedBackofficeAgents,
   PaginatedBackofficeOrganizations,
   PaginatedBackofficeProjects,
@@ -561,6 +562,9 @@ export const seed = {
 
     appManifests(appManifests: AppManifest[]): StoryPreloadedState {
       return { backoffice: { appManifests: ads.fulfilled(appManifests) } }
+    },
+    maintenanceJobs(maintenanceJobs: MaintenanceJob[]): StoryPreloadedState {
+      return { backoffice: { maintenanceJobs: ads.fulfilled(maintenanceJobs) } }
     },
   },
 

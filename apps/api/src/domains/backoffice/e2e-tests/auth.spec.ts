@@ -13,6 +13,8 @@ import { createOrganizationWithOwner } from "@/domains/organizations/organizatio
 import { RbacModule } from "@/domains/rbac/rbac.module"
 import { mockOidcEmailForSub, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import {
+  assignPlatformOrgCreatorToUser,
+  assignPlatformStaffToUser,
   assignPlatformSuperadminToUser,
   ensureRbacCatalog,
 } from "../../../../test/rbac-test.helpers"
@@ -249,6 +251,22 @@ describe("Backoffice - Auth", () => {
     it("allows authorized users to create an organization", async () => {
       await createAuthorizedUser()
       expectResponse(await subject(), 201)
+    })
+
+    it("allows a platform organization creator to create an organization", async () => {
+      const { user } = await createOrganizationWithOwner(repositories, {
+        user: { authSubject, email: mockOidcEmailForSub(authSubject) },
+      })
+      await assignPlatformOrgCreatorToUser({ repositories, user })
+      expectResponse(await subject(), 201)
+    })
+
+    it("rejects platform staff, who do not hold organization.create", async () => {
+      const { user } = await createOrganizationWithOwner(repositories, {
+        user: { authSubject, email: mockOidcEmailForSub(authSubject) },
+      })
+      await assignPlatformStaffToUser({ repositories, user })
+      expectResponse(await subject(), 403)
     })
   })
 

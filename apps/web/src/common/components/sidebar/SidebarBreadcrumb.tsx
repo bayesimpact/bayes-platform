@@ -10,7 +10,6 @@ import { BreadcrumbProjectAnalytics } from "@/common/components/breadcrumb/Bread
 import { BreadcrumbProjectMembership } from "@/common/components/breadcrumb/BreadcrumbProjectMembership"
 import type { Organization } from "@/common/features/organizations/organizations.models"
 import { useBreakpoint } from "@/common/hooks/use-breakpoint"
-import type { DeskRoutes } from "@/desk/routes/helpers"
 import type { StudioRoutes } from "@/studio/routes/helpers"
 import { BreadcrumbReviewCampaigns } from "../breadcrumb/BreadcrumbReviewCampaigns"
 
@@ -19,7 +18,7 @@ export function SidebarBreadcrumb({
   routes,
 }: {
   organization: Organization
-  routes: typeof StudioRoutes | typeof DeskRoutes
+  routes: typeof StudioRoutes
 }) {
   const { isShortViewport } = useBreakpoint()
   if (isShortViewport) return null
