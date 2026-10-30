@@ -181,6 +181,22 @@ describe("PublicChat - contract v1", () => {
         .set("X-Session-Token", sessionToken)
       expectError(response, 401, "Session does not belong to this agent", "Unauthorized")
     })
+
+    it("410 Session expired", async () => {
+      await createContext()
+      await repositories.publicAgentSessionRepository.update(sessionId, { purgedAt: new Date() })
+      const response = await request(app.getHttpServer())
+        .get(PublicChatRoutes.getSession.getPath(pathParams()))
+        .set("Connection", "close")
+        .set("X-Session-Token", sessionToken)
+      expect(response.status).toBe(410)
+      expect(response.body).toEqual({
+        statusCode: 410,
+        message: "Session expired",
+        error: "Gone",
+        code: "SESSION_EXPIRED",
+      })
+    })
   })
 
   describe("server-sent events", () => {

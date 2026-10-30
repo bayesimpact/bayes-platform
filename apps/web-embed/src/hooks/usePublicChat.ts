@@ -120,6 +120,8 @@ export type UsePublicChatResult = {
   /** The MCP servers have not answered yet: cards without HTML show a placeholder. */
   isMcpAppHtmlLoading: boolean
   isStreaming: boolean
+  /** The stored conversation expired and was replaced by a new one: shown until the next message. */
+  isPreviousSessionExpired: boolean
   errorKey: PublicChatErrorKey | null
   send: (content: string) => void
   reset: () => void
@@ -131,6 +133,7 @@ export function usePublicChat(embedToken: string): UsePublicChatResult {
   const [mcpAppHtml, setMcpAppHtml] = useState<McpAppHtmlState>(NO_MCP_APP_HTML)
   const [isStreaming, setIsStreaming] = useState(false)
   const [errorKey, setErrorKey] = useState<PublicChatErrorKey | null>(null)
+  const [isPreviousSessionExpired, setIsPreviousSessionExpired] = useState(false)
 
   // Keep session in a ref so stream callbacks always see the latest value
   // without re-triggering effects.
@@ -217,12 +220,13 @@ export function usePublicChat(embedToken: string): UsePublicChatResult {
           return
         } catch (err) {
           if (!stillCurrent()) return
-          // 401/403 → session expired or invalid, create a new one below
-          if (!(err instanceof ApiError && err.isUnauthorized)) {
+          // 401/403 → session invalid, 410 → session expired: create a new one below
+          if (!(err instanceof ApiError && (err.isUnauthorized || err.isSessionExpired))) {
             setErrorKey("status.errorUnknown")
             setStatus("error")
             return
           }
+          setIsPreviousSessionExpired(err.isSessionExpired)
           clearSession(embedToken)
         }
       }
@@ -278,7 +282,8 @@ export function usePublicChat(embedToken: string): UsePublicChatResult {
             }
           } catch (err) {
             if (!stillCurrent()) return
-            if (err instanceof ApiError && err.isUnauthorized) {
+            if (err instanceof ApiError && (err.isUnauthorized || err.isSessionExpired)) {
+              setIsPreviousSessionExpired(err.isSessionExpired)
               await startFreshSession(nonce).catch((error) => failInit(error, nonce))
               return
             }
@@ -304,6 +309,7 @@ export function usePublicChat(embedToken: string): UsePublicChatResult {
 
   const reset = useCallback(() => {
     const nonce = ++resetNonceRef.current
+    setIsPreviousSessionExpired(false)
     void startFreshSession(nonce).catch((err) => failInit(err, nonce))
   }, [failInit, startFreshSession])
 
@@ -315,6 +321,7 @@ export function usePublicChat(embedToken: string): UsePublicChatResult {
 
       const tempUserId = `user-${Date.now()}`
       const tempAssistantId = `assistant-${Date.now()}`
+      setIsPreviousSessionExpired(false)
 
       // Optimistic update: user message + empty streaming placeholder
       setMessages((prev) => [
@@ -401,8 +408,15 @@ export function usePublicChat(embedToken: string): UsePublicChatResult {
               // Keep streamed text if the hydrate fetch fails
             }
           }
-        } catch {
+        } catch (err) {
           if (resetNonceRef.current !== nonce) return
+          // Expired while the widget was open: every retry would fail, so start a new session.
+          if (err instanceof ApiError && err.isSessionExpired) {
+            const freshNonce = ++resetNonceRef.current
+            setIsPreviousSessionExpired(true)
+            void startFreshSession(freshNonce).catch((error) => failInit(error, freshNonce))
+            return
+          }
           setMessages((prev) =>
             prev.map((message) =>
               message.id === tempAssistantId || message.status === "streaming"
@@ -417,7 +431,7 @@ export function usePublicChat(embedToken: string): UsePublicChatResult {
         }
       })()
     },
-    [embedToken, isStreaming, loadMcpAppHtml],
+    [embedToken, failInit, isStreaming, loadMcpAppHtml, startFreshSession],
   )
 
   return {
@@ -426,6 +440,7 @@ export function usePublicChat(embedToken: string): UsePublicChatResult {
     mcpAppHtml: mcpAppHtml.entries,
     isMcpAppHtmlLoading: mcpAppHtml.isLoading,
     isStreaming,
+    isPreviousSessionExpired,
     errorKey,
     send,
     reset,

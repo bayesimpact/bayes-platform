@@ -186,6 +186,15 @@ describe("PublicChat - streamMessages", () => {
     expect(response.status).toBe(401)
   })
 
+  it("should return 410 SESSION_EXPIRED when the retention purge emptied the session", async () => {
+    const { session } = await createContext()
+    await repositories.publicAgentSessionRepository.update(session.id, { purgedAt: new Date() })
+
+    const response = await subject("Hello")
+    expect(response.status).toBe(410)
+    expect(response.body.code).toBe("SESSION_EXPIRED")
+  })
+
   it("streams a handoff as one reply: the hand-over sentence and the sub-agent's first question", async () => {
     const { organization, project, agent, session } = await createContext()
     const child = await repositories.agentRepository.save(

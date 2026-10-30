@@ -46,6 +46,13 @@ export const Empty: Story = {
   },
 }
 
+export const PreviousSessionExpired: Story = {
+  args: {
+    messages: emptyConversation,
+    isPreviousSessionExpired: true,
+  },
+}
+
 export const ShortConversation: Story = {
   args: {
     messages: shortConversation,

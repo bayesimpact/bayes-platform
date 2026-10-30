@@ -180,6 +180,14 @@ describe("PublicChat - Auth", () => {
       expect(response.status).toBe(401)
     })
 
+    it("returns 410 SESSION_EXPIRED when the retention purge emptied the session", async () => {
+      const { session } = await createContext()
+      await repositories.publicAgentSessionRepository.update(session.id, { purgedAt: new Date() })
+      const response = await subject()
+      expect(response.status).toBe(410)
+      expect(response.body.code).toBe("SESSION_EXPIRED")
+    })
+
     it("returns 200 with valid token", async () => {
       await createContext()
       const response = await subject()
@@ -217,6 +225,14 @@ describe("PublicChat - Auth", () => {
       sessionToken = "wrong-token"
       const response = await subject()
       expect(response.status).toBe(401)
+    })
+
+    it("returns 410 SESSION_EXPIRED when the retention purge emptied the session", async () => {
+      const { session } = await createContext()
+      await repositories.publicAgentSessionRepository.update(session.id, { purgedAt: new Date() })
+      const response = await subject()
+      expect(response.status).toBe(410)
+      expect(response.body.code).toBe("SESSION_EXPIRED")
     })
 
     it("returns 200 with an empty list for a session without cards", async () => {
