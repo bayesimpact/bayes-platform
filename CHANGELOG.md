@@ -9,6 +9,16 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Security
+
+## [26.10.9] - 2026-10-30
+
+### Added
+
 - Version display: the Studio and Desk user menus and the help center footer now show the deployed platform version.
 - (beta) Embedding models: projects choose which models embed their documents, such as bge-m3, and each agent which one it searches with.
 
