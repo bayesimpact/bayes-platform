@@ -8,7 +8,7 @@ import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { AuthModule } from "@/domains/auth/auth.module"
 import { Document } from "@/domains/documents/document.entity"
 import { StorageModule } from "@/domains/documents/storage/storage.module"
-import { UserMembership } from "@/domains/memberships/user-membership.entity"
+import { RoleGrant } from "@/domains/memberships/role-grant.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
 import { Project } from "@/domains/projects/project.entity"
@@ -54,7 +54,7 @@ export const moduleFeatures = [
   ExtractionAgentSession,
   Organization,
   Project,
-  UserMembership,
+  RoleGrant,
 ]
 
 export const moduleProviders = [

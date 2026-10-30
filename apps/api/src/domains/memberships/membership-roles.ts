@@ -1,8 +1,8 @@
 import type { MembershipRoleDto } from "@caseai-connect/api-contracts"
 import { CATALOG_ROLE_KEYS, type RoleScopeType } from "@/domains/rbac/rbac.constants"
-import type { UserMembership } from "./user-membership.entity"
+import type { RoleGrant } from "./role-grant.entity"
 
-/** One role a person holds on a resource: a `user_membership` row and the catalog role it holds. */
+/** One role a person holds on a resource: a `role_grant` row and the catalog role it holds. */
 export type MembershipRole = {
   membershipId: string
   roleId: string
@@ -20,8 +20,8 @@ export type MembershipRowGroup = {
   userId: string
   resourceId: string | null
   /** The `user` relation of the rows, when it was loaded. */
-  user: UserMembership["user"]
-  rows: UserMembership[]
+  user: RoleGrant["user"]
+  rows: RoleGrant[]
   roles: MembershipRole[]
   /** When the person got their first role on the resource. */
   createdAt: Date
@@ -33,7 +33,7 @@ const CATALOG_ORDER: ReadonlyMap<string, number> = new Map(
   CATALOG_ROLE_KEYS.map((roleKey, index) => [roleKey, index]),
 )
 
-function compareRows(left: UserMembership, right: UserMembership): number {
+function compareRows(left: RoleGrant, right: RoleGrant): number {
   const byDate = left.createdAt.getTime() - right.createdAt.getTime()
   return byDate !== 0 ? byDate : left.id.localeCompare(right.id)
 }
@@ -45,12 +45,12 @@ function compareRoles(left: MembershipRole, right: MembershipRole): number {
 }
 
 /**
- * Groups `user_membership` rows by person and resource, in the order each group first appears.
+ * Groups `role_grant` rows by person and resource, in the order each group first appears.
  * Rows must be loaded with their `rbacRole` relation. A row without a role (never backfilled)
  * still makes the person a member, with no role from that row.
  */
-export function groupMembershipRows(rows: UserMembership[]): MembershipRowGroup[] {
-  const groups = new Map<string, UserMembership[]>()
+export function groupMembershipRows(rows: RoleGrant[]): MembershipRowGroup[] {
+  const groups = new Map<string, RoleGrant[]>()
   for (const row of rows) {
     const groupKey = `${row.userId}:${row.resourceType}:${row.resourceId}`
     const group = groups.get(groupKey)

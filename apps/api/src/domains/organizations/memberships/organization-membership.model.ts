@@ -5,12 +5,12 @@ import type { User } from "@/domains/users/user.entity"
 /**
  * What `OrganizationContextResolver` puts on the request for the caller: who they are on the
  * organization and the roles they hold there. No row id or dates: a person can hold several
- * `user_membership` rows on one organization (one per role), and nothing reads them here.
+ * `role_grant` rows on one organization (one per role), and nothing reads them here.
  */
 export type OrganizationMembershipContextModel = {
   userId: string
   organizationId: string
-  /** Every role the person holds on the organization, one `user_membership` row each. */
+  /** Every role the person holds on the organization, one `role_grant` row each. */
   roles: MembershipRole[]
 }
 

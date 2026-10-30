@@ -4,7 +4,7 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
-import { UserMembership } from "@/domains/memberships/user-membership.entity"
+import { RoleGrant } from "@/domains/memberships/role-grant.entity"
 import { User } from "@/domains/users/user.entity"
 import { userFactory } from "@/domains/users/user.factory"
 import { ensureRbacCatalog } from "../../../test/rbac-test.helpers"
@@ -21,7 +21,7 @@ import { OrganizationsService } from "./organizations.service"
 describe("OrganizationsService", () => {
   let service: OrganizationsService
   let organizationRepository: Repository<Organization>
-  let userMembershipRepository: Repository<UserMembership>
+  let roleGrantRepository: Repository<RoleGrant>
   let userRepository: Repository<User>
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
 
@@ -32,7 +32,7 @@ describe("OrganizationsService", () => {
     await ensureRbacCatalog(setup.module)
     service = setup.module.get<OrganizationsService>(OrganizationsService)
     organizationRepository = setup.getRepository(Organization)
-    userMembershipRepository = setup.getRepository(UserMembership)
+    roleGrantRepository = setup.getRepository(RoleGrant)
     setup.getRepository(FeatureFlag)
     userRepository = setup.getRepository(User)
   })
@@ -72,7 +72,7 @@ describe("OrganizationsService", () => {
       expect(savedOrganization?.name).toBe("Test Organization")
 
       // Verify membership was created with owner role
-      const membership = await userMembershipRepository.findOne({
+      const membership = await roleGrantRepository.findOne({
         where: {
           userId: savedUser.id,
           resourceId: result.id,
@@ -98,7 +98,7 @@ describe("OrganizationsService", () => {
       })
 
       // Assert - Verify the membership links user and organization correctly
-      const membership = await userMembershipRepository.findOne({
+      const membership = await roleGrantRepository.findOne({
         where: {
           userId: savedUser.id,
           resourceId: organization.id,
@@ -134,7 +134,7 @@ describe("OrganizationsService", () => {
       expect(result1.id).not.toBe(result2.id)
 
       // Verify both memberships exist
-      const memberships = await userMembershipRepository.find({
+      const memberships = await roleGrantRepository.find({
         where: { userId: savedUser.id, resourceType: "organization" },
         relations: { rbacRole: true },
       })

@@ -10,7 +10,7 @@ export type ProjectMembershipFixture = {
   id: string
   userId: string
   projectId: string
-  /** One `user_membership` row per role key. */
+  /** One `role_grant` row per role key. */
   roleKeys: ProjectRoleKey[]
   createdAt: Date
   updatedAt: Date

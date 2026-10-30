@@ -55,7 +55,7 @@ export class PermissionService {
   async listGlobalPermissions(userId: string): Promise<string[]> {
     const rows: PermissionRow[] = await this.dataSource.query(
       `SELECT DISTINCT role_permission.permission_key AS "permissionKey"
-       FROM user_membership membership
+       FROM role_grant membership
        INNER JOIN role_permission ON role_permission.role_id = membership.role_id
        WHERE membership.user_id = $1
          AND membership.resource_type = 'global'
@@ -90,7 +90,7 @@ export class PermissionService {
       `SELECT role.key AS "roleKey",
               role.name AS "roleName",
               role_permission.permission_key AS "permissionKey"
-       FROM user_membership membership
+       FROM role_grant membership
        INNER JOIN role ON role.id = membership.role_id
        LEFT JOIN role_permission ON role_permission.role_id = role.id
        WHERE membership.user_id = $1
@@ -383,7 +383,7 @@ export class PermissionService {
   ): Promise<string[]> {
     const rows: PermissionRow[] = await this.dataSource.query(
       `SELECT DISTINCT role_permission.permission_key AS "permissionKey"
-       FROM user_membership membership
+       FROM role_grant membership
        INNER JOIN role_permission ON role_permission.role_id = membership.role_id
        WHERE membership.user_id = $1
          AND membership.resource_type = $2
@@ -408,7 +408,7 @@ export class PermissionService {
     const rows: ResourcePermissionRow[] = await this.dataSource.query(
       `SELECT DISTINCT review_campaign.project_id AS "resourceId",
               role_permission.permission_key AS "permissionKey"
-       FROM user_membership membership
+       FROM role_grant membership
        INNER JOIN role ON role.id = membership.role_id
        INNER JOIN role_permission ON role_permission.role_id = membership.role_id
        INNER JOIN review_campaign ON review_campaign.id = membership.resource_id
@@ -443,7 +443,7 @@ export class PermissionService {
     const rows: ResourcePermissionRow[] = await this.dataSource.query(
       `SELECT membership.resource_id AS "resourceId",
               role_permission.permission_key AS "permissionKey"
-       FROM user_membership membership
+       FROM role_grant membership
        INNER JOIN role_permission ON role_permission.role_id = membership.role_id
        WHERE membership.user_id = $1
          AND membership.resource_type = $2
@@ -468,7 +468,7 @@ export class PermissionService {
     const rows: ResourcePermissionRow[] = await this.dataSource.query(
       `SELECT membership.resource_id AS "resourceId",
               role_permission.permission_key AS "permissionKey"
-       FROM user_membership membership
+       FROM role_grant membership
        INNER JOIN role_permission ON role_permission.role_id = membership.role_id
        WHERE membership.user_id = $1
          AND membership.resource_type = $2
@@ -476,7 +476,7 @@ export class PermissionService {
          AND membership.deleted_at IS NULL
          AND EXISTS (
            SELECT 1
-           FROM user_membership gate_membership
+           FROM role_grant gate_membership
            INNER JOIN role_permission required_permission
              ON required_permission.role_id = gate_membership.role_id
            WHERE gate_membership.user_id = membership.user_id
@@ -498,7 +498,7 @@ export class PermissionService {
   ): Promise<string[]> {
     const rows: ResourceIdRow[] = await this.dataSource.query(
       `SELECT DISTINCT membership.resource_id AS "resourceId"
-       FROM user_membership membership
+       FROM role_grant membership
        INNER JOIN role_permission ON role_permission.role_id = membership.role_id
        WHERE membership.user_id = $1
          AND membership.resource_type = $2
@@ -541,10 +541,10 @@ export class PermissionService {
 
     const rows: UserIdRow[] = await this.dataSource.query(
       `SELECT DISTINCT other_membership.user_id AS "userId"
-       FROM user_membership my_membership
+       FROM role_grant my_membership
        INNER JOIN role_permission ON role_permission.role_id = my_membership.role_id
          AND role_permission.permission_key = $2
-       INNER JOIN user_membership other_membership
+       INNER JOIN role_grant other_membership
          ON other_membership.resource_type = my_membership.resource_type
          AND other_membership.resource_id = my_membership.resource_id
          AND other_membership.deleted_at IS NULL
@@ -566,7 +566,7 @@ export class PermissionService {
   async hasGlobal(userId: string, permission: string): Promise<boolean> {
     const matches: { allowed: number }[] = await this.dataSource.query(
       `SELECT 1 AS allowed
-       FROM user_membership membership
+       FROM role_grant membership
        INNER JOIN role_permission ON role_permission.role_id = membership.role_id
        WHERE membership.user_id = $1
          AND membership.resource_type = 'global'
@@ -648,7 +648,7 @@ export class PermissionService {
   ): Promise<boolean> {
     const matches: { allowed: number }[] = await this.dataSource.query(
       `SELECT 1 AS allowed
-       FROM user_membership membership
+       FROM role_grant membership
        INNER JOIN role_permission ON role_permission.role_id = membership.role_id
        WHERE membership.user_id = $1
          AND membership.resource_type = $2

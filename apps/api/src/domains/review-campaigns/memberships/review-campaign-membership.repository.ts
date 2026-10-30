@@ -2,10 +2,7 @@ import { Injectable } from "@nestjs/common"
 import { In, type Repository } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
-import {
-  getMembershipResourceId,
-  UserMembership,
-} from "@/domains/memberships/user-membership.entity"
+import { getMembershipResourceId, RoleGrant } from "@/domains/memberships/role-grant.entity"
 import { REVIEW_CAMPAIGN_ROLES } from "@/domains/rbac/rbac.constants"
 import { resolveReviewCampaignRoleId } from "@/domains/rbac/resolve-review-campaign-role-id"
 import { ReviewCampaign } from "../review-campaign.entity"
@@ -30,7 +27,7 @@ function campaignRoleFilter(role?: ReviewCampaignMembershipRole) {
 /**
  * Repository for review-campaign memberships.
  *
- * Reads and writes the unified `user_membership` table with
+ * Reads and writes the unified `role_grant` table with
  * `resourceType = 'review_campaign'`.
  *
  * A user may hold both `tester` and `reviewer` roles on the same campaign;
@@ -48,7 +45,7 @@ export class ReviewCampaignMembershipRepository {
     membershipId: string
     campaignId: string
   }): Promise<ReviewCampaignMembershipModel | null> {
-    const membership = await this.userMembershipRepo().findOne({
+    const membership = await this.roleGrantRepo().findOne({
       where: {
         id: membershipId,
         resourceType: REVIEW_CAMPAIGN_RESOURCE_TYPE,
@@ -74,7 +71,7 @@ export class ReviewCampaignMembershipRepository {
     campaignId: string
     role: ReviewCampaignMembershipRole
   }): Promise<ReviewCampaignMembershipModel | null> {
-    const membership = await this.userMembershipRepo().findOne({
+    const membership = await this.roleGrantRepo().findOne({
       where: {
         userId,
         resourceType: REVIEW_CAMPAIGN_RESOURCE_TYPE,
@@ -92,7 +89,7 @@ export class ReviewCampaignMembershipRepository {
   }
 
   async findAllByCampaign(campaignId: string): Promise<ReviewCampaignMembershipModel[]> {
-    const memberships = await this.userMembershipRepo().find({
+    const memberships = await this.roleGrantRepo().find({
       where: {
         resourceType: REVIEW_CAMPAIGN_RESOURCE_TYPE,
         resourceId: campaignId,
@@ -106,7 +103,7 @@ export class ReviewCampaignMembershipRepository {
   }
 
   async findAllByUser(userId: string): Promise<ReviewCampaignMembershipModel[]> {
-    const memberships = await this.userMembershipRepo().find({
+    const memberships = await this.roleGrantRepo().find({
       where: {
         userId,
         resourceType: REVIEW_CAMPAIGN_RESOURCE_TYPE,
@@ -125,7 +122,7 @@ export class ReviewCampaignMembershipRepository {
     userId: string
     role: ReviewCampaignMembershipRole
   }): Promise<ReviewCampaignMembershipModel[]> {
-    const memberships = await this.userMembershipRepo().find({
+    const memberships = await this.roleGrantRepo().find({
       where: {
         userId,
         resourceType: REVIEW_CAMPAIGN_RESOURCE_TYPE,
@@ -154,7 +151,7 @@ export class ReviewCampaignMembershipRepository {
     if (existing) return existing
 
     const roleId = await resolveReviewCampaignRoleId(this.transactionService.getManager(), role)
-    await this.userMembershipRepo()
+    await this.roleGrantRepo()
       .createQueryBuilder()
       .insert()
       .values({
@@ -183,7 +180,7 @@ export class ReviewCampaignMembershipRepository {
     role: ReviewCampaignMembershipRole
   }): Promise<void> {
     await this.transactionService.getManager().query(
-      `DELETE FROM user_membership AS membership
+      `DELETE FROM role_grant AS membership
        USING role
        WHERE membership.id = $1
          AND membership.user_id = $2
@@ -202,21 +199,21 @@ export class ReviewCampaignMembershipRepository {
   }
 
   async softDeleteAllByCampaign(campaignId: string): Promise<void> {
-    await this.userMembershipRepo().softDelete({
+    await this.roleGrantRepo().softDelete({
       resourceType: REVIEW_CAMPAIGN_RESOURCE_TYPE,
       resourceId: campaignId,
     })
   }
 
-  private userMembershipRepo(): Repository<UserMembership> {
-    return this.transactionService.getManager().getRepository(UserMembership)
+  private roleGrantRepo(): Repository<RoleGrant> {
+    return this.transactionService.getManager().getRepository(RoleGrant)
   }
 
   private campaignRepo(): Repository<ReviewCampaign> {
     return this.transactionService.getManager().getRepository(ReviewCampaign)
   }
 
-  private async toModels(memberships: UserMembership[]): Promise<ReviewCampaignMembershipModel[]> {
+  private async toModels(memberships: RoleGrant[]): Promise<ReviewCampaignMembershipModel[]> {
     if (memberships.length === 0) return []
 
     const campaignIds = [
@@ -240,7 +237,7 @@ export class ReviewCampaignMembershipRepository {
 
   /** Null for a row that holds no campaign role. */
   private toModel(
-    membership: UserMembership,
+    membership: RoleGrant,
     campaign: ReviewCampaign,
   ): ReviewCampaignMembershipModel | null {
     const rbacRole = membership.rbacRole

@@ -4,7 +4,7 @@ import type { Repository } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DataSource } from "typeorm"
 import { groupMembershipRows } from "@/domains/memberships/membership-roles"
-import { UserMembership } from "@/domains/memberships/user-membership.entity"
+import { RoleGrant } from "@/domains/memberships/role-grant.entity"
 import type { ProjectMembershipContextModel } from "@/domains/projects/memberships/project-membership.model"
 import { Project } from "@/domains/projects/project.entity"
 import type { ContextResolver, ResolvableRequest } from "../context-resolver.interface"
@@ -38,7 +38,7 @@ export class ProjectContextResolver implements ContextResolver {
       })) ?? undefined
     if (!project) throw new NotFoundException()
 
-    const userMembershipRows = await this.dataSource.getRepository(UserMembership).find({
+    const roleGrantRows = await this.dataSource.getRepository(RoleGrant).find({
       where: {
         userId: request.user.id,
         resourceId: project.id,
@@ -49,7 +49,7 @@ export class ProjectContextResolver implements ContextResolver {
     // One row per role the caller holds on the project (ADR 0032), and none for an organization
     // admin or owner who reaches it through the organization. The request carries the roles,
     // read from the rows' `role_id`.
-    const [group] = groupMembershipRows(userMembershipRows)
+    const [group] = groupMembershipRows(roleGrantRows)
     const projectMembership: ProjectMembershipContextModel | undefined = group
       ? { userId: request.user.id, projectId: project.id, roles: group.roles }
       : undefined

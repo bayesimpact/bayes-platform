@@ -3,7 +3,7 @@ import { AUTH_ERRORS } from "@/common/errors/auth-errors"
 import { getOidcEmailLinkingPolicy, type OidcEmailLinkingPolicy } from "@/domains/auth/oidc-config"
 import { normalizeOidcName, type OidcUserInfo } from "@/domains/auth/oidc-userinfo.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { UserMembershipRepository } from "@/domains/memberships/user-membership.repository"
+import { RoleGrantRepository } from "@/domains/memberships/role-grant.repository"
 import {
   buildServiceUserAuthSubject,
   buildServiceUserEmail,
@@ -20,7 +20,7 @@ import { USER_TYPE_HUMAN, USER_TYPE_SERVICE } from "./user.types"
 export class UsersService {
   constructor(
     private readonly userRepository: UserRepository,
-    private readonly userMembershipRepository: UserMembershipRepository,
+    private readonly roleGrantRepository: RoleGrantRepository,
   ) {}
 
   async findByAuthSubject(authSubject: string): Promise<User | null> {
@@ -67,7 +67,7 @@ export class UsersService {
    * project membership whose legacy role stays `"member"` and whose `roleId`
    * is the installation custom role (created in the install ticket).
    */
-  async attachServiceUserMemberships(params: {
+  async attachServiceRoleGrants(params: {
     userId: string
     organizationId: string
     projectId: string
@@ -78,7 +78,7 @@ export class UsersService {
       throw new BadRequestException("Only service users can be attached as app installations")
     }
 
-    await this.userMembershipRepository.insertServiceUserInstallMemberships(params)
+    await this.roleGrantRepository.insertServiceUserInstallMemberships(params)
   }
 
   async updateUser(userId: string, name: string): Promise<User> {

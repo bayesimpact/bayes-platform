@@ -217,7 +217,7 @@ File: `apps/api/src/domains/{featureName}/{entityNamePlural}.module.ts`
 
 Pattern: `apps/api/src/domains/projects/projects.module.ts`
 
-- `TypeOrmModule.forFeature([{EntityName}, ...related entities needed for scoping])` — always include `Project`, `UserMembership`, `ProjectMembership` if entity is project-scoped
+- `TypeOrmModule.forFeature([{EntityName}, ...related entities needed for scoping])` — always include `Project`, `RoleGrant`, `ProjectMembership` if entity is project-scoped
 - Include: `OrganizationsModule`, `ProjectsModule`, `UsersModule`, `AuthModule`, `RbacModule` (provides `CheckPermissionGuard`)
 - Providers: `[{EntityName}sService, {EntityName}Repository, ResourceContextGuard, OrganizationContextResolver, ProjectContextResolver]`
 - Add `{EntityName}ContextResolver` to providers if GetOne/Update/Delete are requested (needed for `@AddContext`)

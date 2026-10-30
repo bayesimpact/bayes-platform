@@ -5,7 +5,7 @@ import {
 } from "@/common/test/test-transaction-manager"
 import { TransactionService } from "@/common/transaction/transaction.service"
 import { MembershipsModule } from "@/domains/memberships/memberships.module"
-import { userMembershipFactory } from "@/domains/memberships/user-membership.factory"
+import { roleGrantFactory } from "@/domains/memberships/role-grant.factory"
 import { OrganizationMembershipsService } from "@/domains/organizations/memberships/organization-memberships.service"
 import { organizationFactory } from "@/domains/organizations/organization.factory"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
@@ -27,9 +27,9 @@ describe("WorkspaceOwnerProvisioningService", () => {
   let projectRepository: ReturnType<
     Awaited<ReturnType<typeof setupTransactionalTestDatabase>>["getAllRepositories"]
   >["projectRepository"]
-  let userMembershipRepository: ReturnType<
+  let roleGrantRepository: ReturnType<
     Awaited<ReturnType<typeof setupTransactionalTestDatabase>>["getAllRepositories"]
-  >["userMembershipRepository"]
+  >["roleGrantRepository"]
 
   const roleIdOf = async (roleKey: string) =>
     (await setup.getAllRepositories().roleRepository.findOneOrFail({ where: { key: roleKey } })).id
@@ -41,7 +41,7 @@ describe("WorkspaceOwnerProvisioningService", () => {
     const repositories = setup.getAllRepositories()
     userRepository = repositories.userRepository
     organizationRepository = repositories.organizationRepository
-    userMembershipRepository = repositories.userMembershipRepository
+    roleGrantRepository = repositories.roleGrantRepository
     projectRepository = repositories.projectRepository
     await ensureRbacCatalog(setup.module)
     const organizationMembershipsService = setup.module.get(OrganizationMembershipsService)
@@ -88,7 +88,7 @@ describe("WorkspaceOwnerProvisioningService", () => {
       expect(project!.name).toBe("New Org")
       expect(project!.organizationId).toBe(result.organizationId)
 
-      const orgMembership = await userMembershipRepository.findOne({
+      const orgMembership = await roleGrantRepository.findOne({
         where: {
           userId: result.userId,
           resourceId: result.organizationId,
@@ -99,7 +99,7 @@ describe("WorkspaceOwnerProvisioningService", () => {
       expect(orgMembership).toBeDefined()
       expect(orgMembership!.rbacRole?.key).toBe("org_admin")
 
-      const projectMembership = await userMembershipRepository.findOne({
+      const projectMembership = await roleGrantRepository.findOne({
         where: {
           userId: result.userId,
           resourceId: result.projectId,
@@ -153,8 +153,8 @@ describe("WorkspaceOwnerProvisioningService", () => {
       })
       await projectRepository.save(project)
 
-      await userMembershipRepository.save(
-        userMembershipFactory.build({
+      await roleGrantRepository.save(
+        roleGrantFactory.build({
           userId: existingUser.id,
           resourceId: project.id,
           resourceType: "project",
@@ -178,8 +178,8 @@ describe("WorkspaceOwnerProvisioningService", () => {
       const project = projectRepository.create({ organizationId: existingOrg.id, name: "Test Org" })
       await projectRepository.save(project)
       // org member row and no project row, as a review campaign invitation now leaves
-      await userMembershipRepository.save(
-        userMembershipFactory.build({
+      await roleGrantRepository.save(
+        roleGrantFactory.build({
           userId: existingUser.id,
           resourceId: existingOrg.id,
           resourceType: "organization",
@@ -194,7 +194,7 @@ describe("WorkspaceOwnerProvisioningService", () => {
 
       expect(result.status).toBe("granted_without_organization_admin")
       expect(result.projectId).toBe(project.id)
-      const organizationMembership = await userMembershipRepository.findOneOrFail({
+      const organizationMembership = await roleGrantRepository.findOneOrFail({
         where: {
           userId: existingUser.id,
           resourceId: existingOrg.id,
@@ -203,7 +203,7 @@ describe("WorkspaceOwnerProvisioningService", () => {
         relations: { rbacRole: true },
       })
       expect(organizationMembership.rbacRole?.key).toBe("org_member")
-      const projectMembership = await userMembershipRepository.findOneOrFail({
+      const projectMembership = await roleGrantRepository.findOneOrFail({
         where: { userId: existingUser.id, resourceId: project.id, resourceType: "project" },
         relations: { rbacRole: true },
       })
@@ -253,8 +253,8 @@ describe("WorkspaceOwnerProvisioningService", () => {
       })
       await projectRepository.save(project)
 
-      await userMembershipRepository.save(
-        userMembershipFactory.build({
+      await roleGrantRepository.save(
+        roleGrantFactory.build({
           userId: existingUser.id,
           resourceId: project.id,
           resourceType: "project",
@@ -275,8 +275,8 @@ describe("WorkspaceOwnerProvisioningService", () => {
       await userRepository.save(existingUser)
       const existingOrg = organizationFactory.build({ name: "Test Org" })
       await organizationRepository.save(existingOrg)
-      await userMembershipRepository.save(
-        userMembershipFactory.build({
+      await roleGrantRepository.save(
+        roleGrantFactory.build({
           userId: existingUser.id,
           resourceId: existingOrg.id,
           resourceType: "organization",

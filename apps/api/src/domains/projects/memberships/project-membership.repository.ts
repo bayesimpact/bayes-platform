@@ -8,7 +8,7 @@ import {
   type MembershipRowGroup,
   resourceIdOf,
 } from "@/domains/memberships/membership-roles"
-import { UserMembership } from "@/domains/memberships/user-membership.entity"
+import { RoleGrant } from "@/domains/memberships/role-grant.entity"
 import { Project } from "@/domains/projects/project.entity"
 import type { RoleScopeType } from "@/domains/rbac/rbac.constants"
 import { requireRoleId } from "@/domains/rbac/resolve-role-id"
@@ -21,7 +21,7 @@ const MEMBERSHIP_RELATIONS = { user: true, rbacRole: true } as const
 /**
  * Repository for project memberships.
  *
- * Reads and writes the unified `user_membership` table with `resourceType = 'project'`. A person
+ * Reads and writes the unified `role_grant` table with `resourceType = 'project'`. A person
  * holds one row per role on a project; reads group them into one model per person.
  */
 @Injectable()
@@ -29,7 +29,7 @@ export class ProjectMembershipRepository {
   constructor(private readonly transactionService: TransactionService) {}
 
   async findAllByProject(projectId: string): Promise<ProjectMembershipModel[]> {
-    const rows = await this.userMembershipRepo().find({
+    const rows = await this.roleGrantRepo().find({
       where: {
         resourceType: PROJECT_RESOURCE_TYPE,
         resourceId: projectId,
@@ -42,7 +42,7 @@ export class ProjectMembershipRepository {
   }
 
   async findAllByUser(userId: string): Promise<ProjectMembershipModel[]> {
-    const rows = await this.userMembershipRepo().find({
+    const rows = await this.roleGrantRepo().find({
       where: { userId, resourceType: PROJECT_RESOURCE_TYPE },
       relations: MEMBERSHIP_RELATIONS,
     })
@@ -52,7 +52,7 @@ export class ProjectMembershipRepository {
   async findAllByProjectIds(projectIds: string[]): Promise<ProjectMembershipModel[]> {
     if (projectIds.length === 0) return []
 
-    const rows = await this.userMembershipRepo().find({
+    const rows = await this.roleGrantRepo().find({
       where: {
         resourceType: PROJECT_RESOURCE_TYPE,
         resourceId: In(projectIds),
@@ -70,7 +70,7 @@ export class ProjectMembershipRepository {
     userId: string
     projectId: string
   }): Promise<ProjectMembershipModel | null> {
-    const rows = await this.userMembershipRepo().find({
+    const rows = await this.roleGrantRepo().find({
       where: { userId, resourceType: PROJECT_RESOURCE_TYPE, resourceId: projectId },
       relations: MEMBERSHIP_RELATIONS,
     })
@@ -93,7 +93,7 @@ export class ProjectMembershipRepository {
   }): Promise<ProjectMembershipModel[]> {
     if (userIds.length === 0) return []
 
-    const rows = await this.userMembershipRepo().find({
+    const rows = await this.roleGrantRepo().find({
       where: {
         userId: In(userIds),
         resourceType: PROJECT_RESOURCE_TYPE,
@@ -113,7 +113,7 @@ export class ProjectMembershipRepository {
     userId: string
     organizationId: string
   }): Promise<ProjectMembershipModel | null> {
-    const row = await this.userMembershipRepo()
+    const row = await this.roleGrantRepo()
       .createQueryBuilder("membership")
       .innerJoin(Project, "project", "project.id = membership.resource_id")
       .where("membership.userId = :userId", { userId })
@@ -134,7 +134,7 @@ export class ProjectMembershipRepository {
     projectId: string
     roleKeys: string[]
   }): Promise<string[]> {
-    const rows = await this.userMembershipRepo().find({
+    const rows = await this.roleGrantRepo().find({
       where: {
         resourceType: PROJECT_RESOURCE_TYPE,
         resourceId: projectId,
@@ -156,7 +156,7 @@ export class ProjectMembershipRepository {
     roleKey: string
   }): Promise<void> {
     const roleId = await requireRoleId(this.transactionService.getManager(), roleKey)
-    await this.userMembershipRepo()
+    await this.roleGrantRepo()
       .createQueryBuilder()
       .insert()
       .values({ userId, resourceType: PROJECT_RESOURCE_TYPE, resourceId: projectId, roleId })
@@ -184,14 +184,14 @@ export class ProjectMembershipRepository {
     const toRoleId = await requireRoleId(manager, toRoleKey)
     const where = { userId, resourceType: PROJECT_RESOURCE_TYPE, resourceId: projectId }
 
-    const holdsTarget = await this.userMembershipRepo().exists({
+    const holdsTarget = await this.roleGrantRepo().exists({
       where: { ...where, roleId: toRoleId },
     })
     if (holdsTarget) {
-      await this.userMembershipRepo().delete({ ...where, roleId: fromRoleId })
+      await this.roleGrantRepo().delete({ ...where, roleId: fromRoleId })
       return
     }
-    await this.userMembershipRepo().update({ ...where, roleId: fromRoleId }, { roleId: toRoleId })
+    await this.roleGrantRepo().update({ ...where, roleId: fromRoleId }, { roleId: toRoleId })
   }
 
   /** Takes the role from the person on the project. Does nothing when they do not hold it. */
@@ -205,7 +205,7 @@ export class ProjectMembershipRepository {
     roleKey: string
   }): Promise<void> {
     const roleId = await requireRoleId(this.transactionService.getManager(), roleKey)
-    await this.userMembershipRepo().delete({
+    await this.roleGrantRepo().delete({
       userId,
       resourceType: PROJECT_RESOURCE_TYPE,
       resourceId: projectId,
@@ -214,7 +214,7 @@ export class ProjectMembershipRepository {
   }
 
   async countHolders({ projectId, roleKey }: { projectId: string; roleKey: string }) {
-    return this.userMembershipRepo().count({
+    return this.roleGrantRepo().count({
       where: {
         resourceType: PROJECT_RESOURCE_TYPE,
         resourceId: projectId,
@@ -240,7 +240,7 @@ export class ProjectMembershipRepository {
 
   /** Removes every role the person holds on the project. */
   async deleteAllForUser({ userId, projectId }: { userId: string; projectId: string }) {
-    await this.userMembershipRepo().delete({
+    await this.roleGrantRepo().delete({
       userId,
       resourceType: PROJECT_RESOURCE_TYPE,
       resourceId: projectId,
@@ -259,7 +259,7 @@ export class ProjectMembershipRepository {
     projectId: string
   }): Promise<void> {
     await this.transactionService.getManager().query(
-      `DELETE FROM user_membership AS membership
+      `DELETE FROM role_grant AS membership
        USING review_campaign
        WHERE membership.user_id = $1
          AND membership.resource_type = 'review_campaign'
@@ -301,7 +301,7 @@ export class ProjectMembershipRepository {
               role.name AS "roleName",
               role.scope_type AS "roleScopeType"
        FROM review_campaign
-       LEFT JOIN user_membership AS membership
+       LEFT JOIN role_grant AS membership
          ON membership.resource_type = 'review_campaign'
          AND membership.resource_id = review_campaign.id
          AND membership.user_id = $1
@@ -339,14 +339,14 @@ export class ProjectMembershipRepository {
   }
 
   async softDeleteAllByProject(projectId: string): Promise<void> {
-    await this.userMembershipRepo().softDelete({
+    await this.roleGrantRepo().softDelete({
       resourceType: PROJECT_RESOURCE_TYPE,
       resourceId: projectId,
     })
   }
 
-  private userMembershipRepo(): Repository<UserMembership> {
-    return this.transactionService.getManager().getRepository(UserMembership)
+  private roleGrantRepo(): Repository<RoleGrant> {
+    return this.transactionService.getManager().getRepository(RoleGrant)
   }
 
   private projectRepo(): Repository<Project> {

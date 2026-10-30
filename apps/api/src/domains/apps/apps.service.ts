@@ -205,7 +205,7 @@ export class AppsService {
         appSlug: app.slug,
         installationId,
       })
-      await this.usersService.attachServiceUserMemberships({
+      await this.usersService.attachServiceRoleGrants({
         userId: serviceUser.id,
         organizationId: project.organizationId,
         projectId: project.id,

@@ -24,7 +24,7 @@ function affectedRows(result: unknown): number {
 }
 
 /**
- * Persistence of the global memberships (`user_membership` rows with
+ * Persistence of the global memberships (`role_grant` rows with
  * resource_type = 'global', one per user and platform role).
  *
  * Participates in the ambient transaction via TransactionService.getManager().
@@ -36,13 +36,13 @@ export class PlatformRoleRepository {
   /** Returns true when a membership was created, false when it already existed. */
   async grantGlobalRole(userId: string, roleKey: PlatformRoleKey): Promise<boolean> {
     const result: unknown = await this.transactionService.getManager().query(
-      `INSERT INTO "user_membership" ("user_id", "resource_type", "resource_id", "role_id")
+      `INSERT INTO "role_grant" ("user_id", "resource_type", "resource_id", "role_id")
        SELECT $1, 'global', NULL, role.id
        FROM "role" AS role
        WHERE role.key = $2
          AND NOT EXISTS (
            SELECT 1
-           FROM "user_membership" AS membership
+           FROM "role_grant" AS membership
            WHERE membership.user_id = $1
              AND membership.resource_type = 'global'
              AND membership.role_id = role.id
@@ -61,7 +61,7 @@ export class PlatformRoleRepository {
    */
   async revokeGlobalRole(userId: string, roleKey: PlatformRoleKey): Promise<boolean> {
     const result: unknown = await this.transactionService.getManager().query(
-      `DELETE FROM "user_membership" AS membership
+      `DELETE FROM "role_grant" AS membership
        USING "role" AS role
        WHERE role.id = membership.role_id
          AND role.key = $2
@@ -77,7 +77,7 @@ export class PlatformRoleRepository {
   async countGlobalRoleHolders(roleKey: PlatformRoleKey): Promise<number> {
     const rows: { holderCount: number }[] = await this.transactionService.getManager().query(
       `SELECT COUNT(*)::int AS "holderCount"
-       FROM "user_membership" AS membership
+       FROM "role_grant" AS membership
        INNER JOIN "role" AS role ON role.id = membership.role_id
        WHERE role.key = $1
          AND membership.resource_type = 'global'
@@ -96,7 +96,7 @@ export class PlatformRoleRepository {
     const rows: { userId: string; roleKey: string; roleName: string }[] =
       await this.transactionService.getManager().query(
         `SELECT membership.user_id AS "userId", role.key AS "roleKey", role.name AS "roleName"
-         FROM "user_membership" AS membership
+         FROM "role_grant" AS membership
          INNER JOIN "role" AS role ON role.id = membership.role_id
          WHERE membership.user_id = ANY($1::uuid[])
            AND membership.resource_type = 'global'
@@ -116,7 +116,7 @@ export class PlatformRoleRepository {
   async listGlobalRoleKeys(userId: string): Promise<string[]> {
     const rows: { roleKey: string }[] = await this.transactionService.getManager().query(
       `SELECT role.key AS "roleKey"
-       FROM "user_membership" AS membership
+       FROM "role_grant" AS membership
        INNER JOIN "role" AS role ON role.id = membership.role_id
        WHERE membership.user_id = $1
          AND membership.resource_type = 'global'

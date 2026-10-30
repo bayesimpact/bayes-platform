@@ -39,7 +39,7 @@ describe("PlatformRoleRepository", () => {
     expect(await repository.grantGlobalRole(admin.id, PLATFORM_SUPERADMIN_ROLE)).toBe(true)
     expect(await repository.grantGlobalRole(admin.id, PLATFORM_SUPERADMIN_ROLE)).toBe(false)
 
-    const memberships = await setup.getAllRepositories().userMembershipRepository.find({
+    const memberships = await setup.getAllRepositories().roleGrantRepository.find({
       where: { userId: admin.id, resourceType: "global" },
     })
     expect(memberships).toHaveLength(1)

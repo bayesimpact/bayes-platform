@@ -5,19 +5,19 @@ import type { User } from "@/domains/users/user.entity"
 
 /**
  * What `ProjectContextResolver` puts on the request for the caller: who they are on the project
- * and the roles they hold there. No row id or dates: a person can hold several `user_membership`
+ * and the roles they hold there. No row id or dates: a person can hold several `role_grant`
  * rows on one project (one per role), and nothing reads them here.
  */
 export type ProjectMembershipContextModel = {
   userId: string
   projectId: string
-  /** Every role the person holds on the project, one `user_membership` row each. */
+  /** Every role the person holds on the project, one `role_grant` row each. */
   roles: MembershipRole[]
 }
 
 /**
  * Domain model for a person's membership in a project: every role they hold on it, one
- * `user_membership` row each.
+ * `role_grant` row each.
  *
  * This is a plain object — no TypeORM decorators. The person and the project identify it; each
  * role carries the id of its row. The `project`

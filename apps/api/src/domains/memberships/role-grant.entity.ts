@@ -13,7 +13,7 @@ import {
 import { Role } from "@/domains/rbac/role.entity"
 import { User } from "@/domains/users/user.entity"
 
-export type UserMembershipResourceType =
+export type RoleGrantResourceType =
   | "organization"
   | "project"
   | "agent"
@@ -21,7 +21,9 @@ export type UserMembershipResourceType =
   | "global"
 
 /**
- * Unified membership table: one row per role a person holds on a resource (ADR 0032).
+ * One role a person holds on a resource, or a global role with no resource (ADR 0032). A
+ * member of a resource is the set of their grants on it, with no row of its own. This table was
+ * named `user_membership` until #1147.
  *
  * Unique-index strategy:
  *  - One row per (userId, resourceType, resourceId, roleId) on organizations, projects, agents
@@ -29,23 +31,22 @@ export type UserMembershipResourceType =
  *  - One row per (userId, roleId) for global assignments, whose resource id is NULL.
  *
  * NOTE: We deliberately do NOT extend Base4AllEntity here to avoid a PK constraint name
- * collision.  The historical "user_membership" table (later renamed to "organization_membership"
+ * collision.  An older, historical "user_membership" table (renamed to "organization_membership"
  * by migration 1774269635228) left its auto-generated PK constraint
- * `PK_79d3d7350ae33ad6fe1743df86c` in the database.  TypeORM would re-compute the same name
- * for this new entity because the hash is derived from the table + column names.  By using an
- * explicit `primaryKeyConstraintName` here we get a distinct, stable name.
+ * `PK_79d3d7350ae33ad6fe1743df86c` in the database.  An explicit `primaryKeyConstraintName`
+ * keeps the name of this table's PK distinct and stable.
  */
-@Entity("user_membership")
-@Index("UQ_user_membership_role", ["userId", "resourceType", "resourceId", "roleId"], {
+@Entity("role_grant")
+@Index("UQ_role_grant_role", ["userId", "resourceType", "resourceId", "roleId"], {
   unique: true,
   where: `"resource_type" <> 'global'`,
 })
-@Index("UQ_user_membership_global", ["userId", "roleId"], {
+@Index("UQ_role_grant_global", ["userId", "roleId"], {
   unique: true,
   where: `"resource_type" = 'global'`,
 })
-export class UserMembership {
-  @PrimaryGeneratedColumn("uuid", { primaryKeyConstraintName: "PK_user_membership_id" })
+export class RoleGrant {
+  @PrimaryGeneratedColumn("uuid", { primaryKeyConstraintName: "PK_role_grant_id" })
   id!: string
 
   @CreateDateColumn({ name: "created_at" })
@@ -61,7 +62,7 @@ export class UserMembership {
   userId!: string
 
   @Column({ type: "varchar", name: "resource_type" })
-  resourceType!: UserMembershipResourceType
+  resourceType!: RoleGrantResourceType
 
   @Column({ type: "uuid", name: "resource_id", nullable: true })
   resourceId!: string | null
@@ -79,7 +80,7 @@ export class UserMembership {
 }
 
 /** Resource id for scoped memberships; global rows have no resource. */
-export function getMembershipResourceId(membership: UserMembership): string {
+export function getMembershipResourceId(membership: RoleGrant): string {
   if (membership.resourceId === null) {
     throw new Error(
       `Membership ${membership.id} with resource_type=${membership.resourceType} is missing resource_id`,

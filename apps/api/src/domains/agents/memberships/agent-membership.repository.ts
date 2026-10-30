@@ -8,7 +8,7 @@ import {
   type MembershipRowGroup,
   resourceIdOf,
 } from "@/domains/memberships/membership-roles"
-import { UserMembership } from "@/domains/memberships/user-membership.entity"
+import { RoleGrant } from "@/domains/memberships/role-grant.entity"
 import { requireRoleId } from "@/domains/rbac/resolve-role-id"
 import { HUMAN_USER_TYPE_FILTER } from "@/domains/users/service-user.helpers"
 import type { AgentMembershipModel } from "./agent-membership.model"
@@ -19,7 +19,7 @@ const MEMBERSHIP_RELATIONS = { user: true, rbacRole: true } as const
 /**
  * Repository for agent memberships.
  *
- * Reads and writes the unified `user_membership` table with `resourceType = 'agent'`. A person
+ * Reads and writes the unified `role_grant` table with `resourceType = 'agent'`. A person
  * holds one row per role on an agent; reads group them into one model per person.
  */
 @Injectable()
@@ -27,7 +27,7 @@ export class AgentMembershipRepository {
   constructor(private readonly transactionService: TransactionService) {}
 
   async findAllByAgent(agentId: string): Promise<AgentMembershipModel[]> {
-    const rows = await this.userMembershipRepo().find({
+    const rows = await this.roleGrantRepo().find({
       where: {
         resourceType: AGENT_RESOURCE_TYPE,
         resourceId: agentId,
@@ -40,7 +40,7 @@ export class AgentMembershipRepository {
   }
 
   async findAllByUser(userId: string): Promise<AgentMembershipModel[]> {
-    const rows = await this.userMembershipRepo().find({
+    const rows = await this.roleGrantRepo().find({
       where: { userId, resourceType: AGENT_RESOURCE_TYPE },
       relations: MEMBERSHIP_RELATIONS,
     })
@@ -50,7 +50,7 @@ export class AgentMembershipRepository {
   async findAllByAgentIds(agentIds: string[]): Promise<AgentMembershipModel[]> {
     if (agentIds.length === 0) return []
 
-    const rows = await this.userMembershipRepo().find({
+    const rows = await this.roleGrantRepo().find({
       where: {
         resourceType: AGENT_RESOURCE_TYPE,
         resourceId: In(agentIds),
@@ -81,7 +81,7 @@ export class AgentMembershipRepository {
   }): Promise<AgentMembershipModel[]> {
     if (agentIds.length === 0) return []
 
-    const rows = await this.userMembershipRepo().find({
+    const rows = await this.roleGrantRepo().find({
       where: { userId, resourceType: AGENT_RESOURCE_TYPE, resourceId: In(agentIds) },
       relations: MEMBERSHIP_RELATIONS,
     })
@@ -97,7 +97,7 @@ export class AgentMembershipRepository {
   }): Promise<AgentMembershipModel[]> {
     if (userIds.length === 0) return []
 
-    const rows = await this.userMembershipRepo().find({
+    const rows = await this.roleGrantRepo().find({
       where: { userId: In(userIds), resourceType: AGENT_RESOURCE_TYPE, resourceId: agentId },
       relations: MEMBERSHIP_RELATIONS,
     })
@@ -115,7 +115,7 @@ export class AgentMembershipRepository {
     roleKey: string
   }): Promise<void> {
     const roleId = await requireRoleId(this.transactionService.getManager(), roleKey)
-    await this.userMembershipRepo()
+    await this.roleGrantRepo()
       .createQueryBuilder()
       .insert()
       .values({ userId, resourceType: AGENT_RESOURCE_TYPE, resourceId: agentId, roleId })
@@ -143,14 +143,14 @@ export class AgentMembershipRepository {
     const toRoleId = await requireRoleId(manager, toRoleKey)
     const where = { userId, resourceType: AGENT_RESOURCE_TYPE, resourceId: agentId }
 
-    const holdsTarget = await this.userMembershipRepo().exists({
+    const holdsTarget = await this.roleGrantRepo().exists({
       where: { ...where, roleId: toRoleId },
     })
     if (holdsTarget) {
-      await this.userMembershipRepo().delete({ ...where, roleId: fromRoleId })
+      await this.roleGrantRepo().delete({ ...where, roleId: fromRoleId })
       return
     }
-    await this.userMembershipRepo().update({ ...where, roleId: fromRoleId }, { roleId: toRoleId })
+    await this.roleGrantRepo().update({ ...where, roleId: fromRoleId }, { roleId: toRoleId })
   }
 
   /** Takes the role from the person on the agent. Does nothing when they do not hold it. */
@@ -164,7 +164,7 @@ export class AgentMembershipRepository {
     roleKey: string
   }): Promise<void> {
     const roleId = await requireRoleId(this.transactionService.getManager(), roleKey)
-    await this.userMembershipRepo().delete({
+    await this.roleGrantRepo().delete({
       userId,
       resourceType: AGENT_RESOURCE_TYPE,
       resourceId: agentId,
@@ -173,7 +173,7 @@ export class AgentMembershipRepository {
   }
 
   async countHolders({ agentId, roleKey }: { agentId: string; roleKey: string }) {
-    return this.userMembershipRepo().count({
+    return this.roleGrantRepo().count({
       where: { resourceType: AGENT_RESOURCE_TYPE, resourceId: agentId, rbacRole: { key: roleKey } },
     })
   }
@@ -206,7 +206,7 @@ export class AgentMembershipRepository {
     if (agentIds.length === 0) return
 
     await this.transactionService.getManager().query(
-      `DELETE FROM user_membership AS membership
+      `DELETE FROM role_grant AS membership
        WHERE membership.user_id = $1
          AND membership.resource_type = $2
          AND membership.resource_id = ANY($3)
@@ -219,14 +219,14 @@ export class AgentMembershipRepository {
   }
 
   async softDeleteAllByAgent(agentId: string): Promise<void> {
-    await this.userMembershipRepo().softDelete({
+    await this.roleGrantRepo().softDelete({
       resourceType: AGENT_RESOURCE_TYPE,
       resourceId: agentId,
     })
   }
 
-  private userMembershipRepo(): Repository<UserMembership> {
-    return this.transactionService.getManager().getRepository(UserMembership)
+  private roleGrantRepo(): Repository<RoleGrant> {
+    return this.transactionService.getManager().getRepository(RoleGrant)
   }
 
   private agentRepo(): Repository<Agent> {

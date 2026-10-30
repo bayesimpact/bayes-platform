@@ -4,7 +4,7 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
-import { UserMembership } from "@/domains/memberships/user-membership.entity"
+import { RoleGrant } from "@/domains/memberships/role-grant.entity"
 import {
   organizationMembershipFactory,
   saveOrgMembership,
@@ -146,14 +146,14 @@ describe("OrganizationMembershipsService", () => {
   describe("upsertOrganizationAdminMembership", () => {
     it("creates an admin organization membership when none exists", async () => {
       const { user, organization } = await createOrganizationWithOwner(repositories)
-      await repositories.userMembershipRepository.delete({ userId: user.id })
+      await repositories.roleGrantRepository.delete({ userId: user.id })
 
       await service.upsertOrganizationAdminMembership({
         userId: user.id,
         organizationId: organization.id,
       })
 
-      const membership = await repositories.userMembershipRepository.findOne({
+      const membership = await repositories.roleGrantRepository.findOne({
         where: {
           userId: user.id,
           resourceId: organization.id,
@@ -178,7 +178,7 @@ describe("OrganizationMembershipsService", () => {
         organizationId: organization.id,
       })
 
-      const membership = await repositories.userMembershipRepository.findOneOrFail({
+      const membership = await repositories.roleGrantRepository.findOneOrFail({
         where: {
           userId: user.id,
           resourceId: organization.id,
@@ -201,7 +201,7 @@ describe("OrganizationMembershipsService", () => {
         organizationId: organization.id,
       })
 
-      const membership = await repositories.userMembershipRepository.findOneOrFail({
+      const membership = await repositories.roleGrantRepository.findOneOrFail({
         where: {
           userId: user.id,
           resourceId: organization.id,
@@ -214,16 +214,16 @@ describe("OrganizationMembershipsService", () => {
   })
 
   describe("createOrganizationOwnerMembership", () => {
-    it("writes owner membership to user_membership", async () => {
+    it("writes owner membership to role_grant", async () => {
       const { user, organization } = await createOrganizationWithOwner(repositories)
-      await repositories.userMembershipRepository.delete({ userId: user.id })
+      await repositories.roleGrantRepository.delete({ userId: user.id })
 
       await service.createOrganizationOwnerMembership({
         userId: user.id,
         organizationId: organization.id,
       })
 
-      const userMembership = await setup.dataSource.getRepository(UserMembership).findOneOrFail({
+      const roleGrant = await setup.dataSource.getRepository(RoleGrant).findOneOrFail({
         where: {
           userId: user.id,
           resourceId: organization.id,
@@ -231,25 +231,25 @@ describe("OrganizationMembershipsService", () => {
         },
         relations: { rbacRole: true },
       })
-      expect(userMembership.rbacRole?.key).toBe("org_owner")
+      expect(roleGrant.rbacRole?.key).toBe("org_owner")
       const orgOwnerRole = await repositories.roleRepository.findOneOrFail({
         where: { key: ORGANIZATION_ROLES.owner },
       })
-      expect(userMembership.roleId).toBe(orgOwnerRole.id)
+      expect(roleGrant.roleId).toBe(orgOwnerRole.id)
     })
   })
 
   describe("upsertOrganizationMemberMembership", () => {
     it("creates a member organization membership with role_id", async () => {
       const { user, organization } = await createOrganizationWithOwner(repositories)
-      await repositories.userMembershipRepository.delete({ userId: user.id })
+      await repositories.roleGrantRepository.delete({ userId: user.id })
 
       await service.upsertOrganizationMemberMembership({
         userId: user.id,
         organizationId: organization.id,
       })
 
-      const membership = await repositories.userMembershipRepository.findOneOrFail({
+      const membership = await repositories.roleGrantRepository.findOneOrFail({
         where: {
           userId: user.id,
           resourceId: organization.id,

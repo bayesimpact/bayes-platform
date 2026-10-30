@@ -130,7 +130,7 @@ describe("Project membership - deleteOne", () => {
       memberUserId = coOwner.id
 
       expectResponse(await subject(), 200)
-      const coOwnerRows = await repositories.userMembershipRepository.find({
+      const coOwnerRows = await repositories.roleGrantRepository.find({
         where: { userId: coOwner.id, resourceType: "project", resourceId: project.id },
       })
       expect(coOwnerRows).toEqual([])
@@ -147,7 +147,7 @@ describe("Project membership - deleteOne", () => {
     expect(response.body).toEqual({ data: { success: true } })
 
     // Verify the membership is actually deleted from the database
-    const deletedMembership = await repositories.userMembershipRepository.findOne({
+    const deletedMembership = await repositories.roleGrantRepository.findOne({
       where: { id: membershipId },
     })
     expect(deletedMembership).toBeNull()
@@ -247,7 +247,7 @@ describe("Project membership - deleteOne", () => {
       })
 
     const findCampaignRows = (userId: string, campaignId: string) =>
-      repositories.userMembershipRepository.find({
+      repositories.roleGrantRepository.find({
         where: { userId, resourceType: "review_campaign", resourceId: campaignId },
       })
 
