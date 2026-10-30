@@ -111,7 +111,7 @@ Remove the backup: `rm .trivyignore.yaml.bak`
 ### 8. Commit
 
 ```bash
-git add package-lock.json .trivyignore.yaml apps/api/package.json apps/web/package.json
+git add package-lock.json .trivyignore.yaml apps/api/package.json apps/web/package.json apps/desk/package.json packages/desk-contracts/package.json
 ```
 
 Use commit message: `chore(deps): monthly dependency update`

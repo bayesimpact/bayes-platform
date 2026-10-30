@@ -12,6 +12,7 @@ jobs:
       help-only: ${{ steps.filter.outputs.help-only }}
       api-tests: ${{ steps.filter.outputs.api-tests }}
       web-tests: ${{ steps.filter.outputs.web-tests }}
+      desk-tests: ${{ steps.filter.outputs.desk-tests }}
       pdf-converter-tests: ${{ steps.filter.outputs.pdf-converter-tests }}
     steps:
       - name: Checkout code
@@ -46,6 +47,13 @@ jobs:
             echo "web-tests=true" >> "$GITHUB_OUTPUT"
           else
             echo "web-tests=false" >> "$GITHUB_OUTPUT"
+          fi
+          # The Desk's tests, translation checks and build run when the Desk,
+          # its contracts or the dependencies changed.
+          if echo "$CHANGED" | grep -qE '^(apps/desk/|packages/desk-contracts/|package\.json$|package-lock\.json$)'; then
+            echo "desk-tests=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "desk-tests=false" >> "$GITHUB_OUTPUT"
           fi
           # The PDF converter tests (Go, with SeaweedFS for the S3 store) run
           # when the service, the SeaweedFS keys or this workflow changed.
@@ -141,6 +149,45 @@ jobs:
       - name: Run web tests
         if: needs.changes.outputs.web-tests == 'true'
         run: npm run test --workspace=@caseai-connect/web
+
+  desk-tests:
+    needs: changes
+    runs-on: ubuntu-latest
+    steps:
+      - name: Skip, nothing the Desk checks exercise changed
+        if: needs.changes.outputs.desk-tests == 'false'
+        run: echo "Skipping the Desk checks, no change under apps/desk, packages/desk-contracts, package.json or package-lock.json"
+
+      - name: Checkout code
+        if: needs.changes.outputs.desk-tests == 'true'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      # After the checkout: the npm cache key is read from package-lock.json.
+      - name: Use Node.js
+        if: needs.changes.outputs.desk-tests == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          cache: npm
+
+      - name: Install dependencies
+        if: needs.changes.outputs.desk-tests == 'true'
+        run: npm ci
+
+      # The typecheck, Biome and check:boundaries run in ci-checks, through turbo.
+      - name: Check the translation catalogs
+        if: needs.changes.outputs.desk-tests == 'true'
+        run: npm run i18n:check --workspace=@caseai-connect/desk
+
+      - name: Run Desk tests
+        if: needs.changes.outputs.desk-tests == 'true'
+        run: npm run test --workspace=@caseai-connect/desk
+
+      - name: Build the Desk
+        if: needs.changes.outputs.desk-tests == 'true'
+        run: npm run build --workspace=@caseai-connect/desk
 
   pdf-converter-tests:
     needs: changes

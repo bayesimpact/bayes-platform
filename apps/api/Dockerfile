@@ -99,6 +99,33 @@ COPY ./packages ./packages
 RUN cd apps/web && npm run build
 
 #
+# 🗂️ Desk build (only used by the app-runtime target)
+#
+# Builds apps/desk for its `/app/` base (vite.config.ts): the API serves the
+# result at /app, ahead of the web front. As for the web front, no VITE_* value
+# is baked in: the Desk reads the configuration the API injects into its
+# index.html. Only the Desk and its contracts are installed.
+#
+FROM node:24.21.0-trixie-slim AS desk-build
+
+WORKDIR /app
+COPY package.json package-lock.json ./
+COPY apps/desk/package.json ./apps/desk/
+COPY packages/desk-contracts/package.json ./packages/desk-contracts/
+COPY packages/typescript-config/package.json ./packages/typescript-config/
+
+RUN npm ci \
+    --workspace=@caseai-connect/desk \
+    --workspace=@caseai-connect/desk-contracts \
+    --include-workspace-root
+
+COPY apps/desk ./apps/desk
+COPY packages/desk-contracts ./packages/desk-contracts
+COPY packages/typescript-config ./packages/typescript-config
+
+RUN cd apps/desk && npm run build
+
+#
 # 🚀 Runtime Base (shared)
 #
 FROM node:24.21.0-trixie-slim AS runtime-base
@@ -134,16 +161,18 @@ FROM runtime-base AS api-runtime
 CMD ["node", "--enable-source-maps", "/app/apps/api/dist/main.js"]
 
 #
-# 🚀 App Runtime: API + web front in one image
+# 🚀 App Runtime: API + web front + Desk in one image
 #
-# Same process as api-runtime, plus the built web front served at /. The API
-# keeps /api and /public. WEB_APP_DIST_DIR switches the serving on; the API
-# image stays API-only.
+# Same process as api-runtime, plus the built web front served at / and the
+# built Desk at /app. The API keeps /api and /public. WEB_APP_DIST_DIR and
+# DESK_APP_DIST_DIR switch the serving on; the API image stays API-only.
 #
 FROM api-runtime AS app-runtime
 
 COPY --from=web-build /app/apps/web/dist /app/apps/web/dist
 ENV WEB_APP_DIST_DIR=/app/apps/web/dist
+COPY --from=desk-build /app/apps/desk/dist /app/apps/desk/dist
+ENV DESK_APP_DIST_DIR=/app/apps/desk/dist
 
 #
 # 🚀 CPU Workers Runtime (no Docling)
