@@ -54,7 +54,7 @@ The `project.member.*` permissions are not inherited either: an organization rol
 
 The `resource_library.*` permissions are not inherited either: an organization role does not open a project's resource libraries.
 
-The `*.ui.read` permissions open one user interface of the project each and are not inherited from the organization. They are exposed on `ProjectDto.permissions`.
+The `*.ui.read` permissions open one user interface of the project each and are not inherited from the organization. They are exposed on `ProjectDto.permissions`. No project role holds `tester.ui.read` or `reviewer.ui.read`: only a review campaign role gives them (see Review campaign roles).
 
 The `csv_extraction_run.*` permissions are not inherited either: an organization role does not open a project's CSV extraction runs. Every project role holds the four live run permissions, while the `csv_extraction_run.playground.*` ones stay with owners and admins.
 
@@ -217,11 +217,11 @@ People who joined a campaign before these roles existed keep the `project_member
 
 The `review_campaign.*` keys apply to the campaign. The organization passes none of them down, and the project passes down only `review_campaign.report.read` (`RESOURCE_TYPE_PERMISSIONS_MAP.review_campaign`), which project owners and admins hold (see Project roles).
 
-A campaign role also gives the keys in `PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN` on the campaign's project: `project.read`, `agent.conversation.session.read`, `agent.conversation.session.create` and `project.agent_message_feedback.create`. Testers hold all four, reviewers only `project.read`. This is the only grant that goes from a child resource up to its parent, and it holds only while the campaign is in one of the role's statuses in `REVIEW_CAMPAIGN_STATUSES_GIVING_PROJECT_PERMISSIONS`: active for a tester, active or closed for a reviewer. A draft campaign gives nothing. No other RBAC rule looks at the campaign status. The rule applies to `PermissionService.has`, `listResourceIds("project.read")` and `listResourcePermissions("project.read")`, so the project shows in the participant's project list. The live session routes check these keys on the project, so a tester reaches every agent of the project, as a project member could, until the session keys move to agent scope. The role's `review_campaign.*` keys never apply to the project.
+A campaign role also gives the keys in `PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN` on the campaign's project: `project.read`, `tester.ui.read`, `reviewer.ui.read`, `agent.conversation.session.read`, `agent.conversation.session.create` and `project.agent_message_feedback.create`. Testers hold all of them but `reviewer.ui.read`, reviewers only `project.read` and `reviewer.ui.read`. The web app opens the tester and reviewer apps from the two `*.ui.read` keys on `ProjectDto.permissions`. This is the only grant that goes from a child resource up to its parent, and it holds only while the campaign is in one of the role's statuses in `REVIEW_CAMPAIGN_STATUSES_GIVING_PROJECT_PERMISSIONS`: active for a tester, active or closed for a reviewer. A draft campaign gives nothing. No other RBAC rule looks at the campaign status. The rule applies to `PermissionService.has`, `listResourceIds("project.read")` and `listResourcePermissions("project.read")`, so the project shows in the participant's project list. The live session routes check these keys on the project, so a tester reaches every agent of the project, as a project member could, until the session keys move to agent scope. The role's `review_campaign.*` keys never apply to the project.
 
 The tester, reviewer and report routes check these keys with `@CheckPermission(..., "review_campaign")`, on the campaign of the URL or, for the routes under a session, on the session's campaign. No route reads the legacy `role` column any more. The campaign status stays out of these checks: `TesterService` and `ReviewerService` refuse with a 403 an action the status does not allow. Testing, giving feedback, the survey and reviewing need an active campaign. The tester context (shared with the reviewer landing page) and the reviewer's reading of sessions need it active or closed. The report has no status rule: participants only exist once a campaign is active, and project owners and admins see it on a draft too.
 
-The last four rows apply to the campaign's project, and only while the campaign is in the status shown.
+The last six rows apply to the campaign's project, and only while the campaign is in the status shown.
 
 | Permission | `review_campaign_tester` | `review_campaign_reviewer` |
 |---|---|---|
@@ -239,6 +239,8 @@ The last four rows apply to the campaign's project, and only while the campaign 
 | `review_campaign.reviewer_review.update` — change your review | — | ✅ |
 | `review_campaign.report.read` — see the campaign's report | — | ✅ |
 | `project.read` — see the campaign's project, and find it in your project list | ✅ while active | ✅ while active or closed |
+| `tester.ui.read` — open the project's tester app | ✅ while active | — |
+| `reviewer.ui.read` — open the project's reviewer app | — | ✅ while active or closed |
 | `agent.conversation.session.read` — see your live conversations with the project's agents | ✅ while active | — |
 | `agent.conversation.session.create` — start a live conversation with one of the project's agents, attach a file | ✅ while active | — |
 | `project.agent_message_feedback.create` — leave feedback on an agent's message | ✅ while active | — |

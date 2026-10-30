@@ -1,5 +1,10 @@
 import { randomUUID } from "node:crypto"
-import { DESK_UI_READ_PERMISSION, ProjectsRoutes } from "@caseai-connect/api-contracts"
+import {
+  DESK_UI_READ_PERMISSION,
+  ProjectsRoutes,
+  REVIEWER_UI_READ_PERMISSION,
+  TESTER_UI_READ_PERMISSION,
+} from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import {
@@ -101,8 +106,11 @@ describe("Projects - getAllMine", () => {
     expect(response.body.data.map((listedProject) => listedProject.id)).toEqual([project.id])
     const [listedProject] = response.body.data
     expect([...(listedProject?.permissions ?? [])].sort()).toEqual(
-      [...PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN].sort(),
+      PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN.filter(
+        (permission) => permission !== REVIEWER_UI_READ_PERMISSION,
+      ).sort(),
     )
+    expect(listedProject?.permissions).toContain(TESTER_UI_READ_PERMISSION)
     expect(listedProject?.permissions).not.toContain(DESK_UI_READ_PERMISSION)
   })
 
@@ -131,7 +139,9 @@ describe("Projects - getAllMine", () => {
 
     expectResponse(response, 200)
     expect(response.body.data.map((listedProject) => listedProject.id)).toEqual([project.id])
-    expect(response.body.data[0]?.permissions).toEqual([PROJECT_READ_PERMISSION])
+    expect([...(response.body.data[0]?.permissions ?? [])].sort()).toEqual(
+      [PROJECT_READ_PERMISSION, REVIEWER_UI_READ_PERMISSION].sort(),
+    )
   })
 
   it("lists nothing for a tester of a soft-deleted campaign", async () => {

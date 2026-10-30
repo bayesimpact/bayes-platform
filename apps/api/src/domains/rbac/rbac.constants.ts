@@ -127,7 +127,9 @@ import {
   REVIEW_CAMPAIGN_TESTER_SURVEY_CREATE_PERMISSION,
   REVIEW_CAMPAIGN_TESTER_SURVEY_READ_PERMISSION,
   REVIEW_CAMPAIGN_TESTER_SURVEY_UPDATE_PERMISSION,
+  REVIEWER_UI_READ_PERMISSION,
   STUDIO_UI_READ_PERMISSION,
+  TESTER_UI_READ_PERMISSION,
   TRACE_READ_PERMISSION,
   USER_READ_PERMISSION,
 } from "@caseai-connect/api-contracts"
@@ -173,6 +175,8 @@ export {
   BACKOFFICE_CONVERSATION_REVIEWER_UPDATE_PERMISSION,
   BACKOFFICE_USER_READ_PERMISSION,
   DESK_UI_READ_PERMISSION,
+  REVIEWER_UI_READ_PERMISSION,
+  TESTER_UI_READ_PERMISSION,
   AGENT_CONVERSATION_SESSION_CREATE_PERMISSION,
   AGENT_CONVERSATION_SESSION_DELETE_PERMISSION,
   AGENT_CONVERSATION_SESSION_PLAYGROUND_CREATE_PERMISSION,
@@ -666,6 +670,7 @@ export const REVIEW_CAMPAIGN_ROLE_PERMISSIONS = {
     REVIEW_CAMPAIGN_TESTER_SURVEY_CREATE_PERMISSION,
     REVIEW_CAMPAIGN_TESTER_SURVEY_UPDATE_PERMISSION,
     PROJECT_READ_PERMISSION,
+    TESTER_UI_READ_PERMISSION,
     AGENT_CONVERSATION_SESSION_READ_PERMISSION,
     AGENT_CONVERSATION_SESSION_CREATE_PERMISSION,
     PROJECT_AGENT_MESSAGE_FEEDBACK_CREATE_PERMISSION,
@@ -677,18 +682,21 @@ export const REVIEW_CAMPAIGN_ROLE_PERMISSIONS = {
     REVIEW_CAMPAIGN_REVIEWER_REVIEW_UPDATE_PERMISSION,
     REVIEW_CAMPAIGN_REPORT_READ_PERMISSION,
     PROJECT_READ_PERMISSION,
+    REVIEWER_UI_READ_PERMISSION,
   ],
 } as const satisfies Record<string, readonly string[]>
 
 /**
  * Project permissions a review campaign role gives on the campaign's project, without a project
- * role: both roles see the project, and a tester can chat with its agents. The live session routes
+ * role: both roles see the project and open their app on it, and a tester can chat with its agents. The live session routes
  * check these keys on the project, so this reaches every agent of the project, as a project member
  * could, until the session keys move to the agent. Every non-`review_campaign.*` key of
  * REVIEW_CAMPAIGN_ROLE_PERMISSIONS must be listed here (rbac.constants.spec.ts checks it).
  */
 export const PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN = [
   PROJECT_READ_PERMISSION,
+  TESTER_UI_READ_PERMISSION,
+  REVIEWER_UI_READ_PERMISSION,
   AGENT_CONVERSATION_SESSION_READ_PERMISSION,
   AGENT_CONVERSATION_SESSION_CREATE_PERMISSION,
   PROJECT_AGENT_MESSAGE_FEEDBACK_CREATE_PERMISSION,
@@ -850,6 +858,8 @@ export const PERMISSION_DESCRIPTIONS: Record<string, string> = {
   [DESK_UI_READ_PERMISSION]: "Open a project's desk app",
   [STUDIO_UI_READ_PERMISSION]: "Open a project's studio app",
   [EVALUATION_UI_READ_PERMISSION]: "Open a project's evaluation app",
+  [TESTER_UI_READ_PERMISSION]: "Open a project's tester app",
+  [REVIEWER_UI_READ_PERMISSION]: "Open a project's reviewer app",
   [DOCUMENT_READ_PERMISSION]: "See a document",
   [DOCUMENT_CREATE_PERMISSION]: "Create documents in a project",
   [DOCUMENT_UPDATE_PERMISSION]: "Update a document",
