@@ -1,7 +1,7 @@
 import { useLingui } from "@lingui/react/macro"
 import { useSuspenseQuery } from "@tanstack/react-query"
 import { Suspense, useState } from "react"
-import { appConfig, platformHomePath } from "@/app/config"
+import { appConfig, displayedVersion, platformHomePath } from "@/app/config"
 import { activeLocaleOf, chooseLocale, LOCALES } from "@/app/i18n"
 import { signOut } from "@/lib/auth/session"
 import { meQueryOptions } from "../api/queries"
@@ -33,6 +33,7 @@ function LoadedUserMenu() {
         locales={LOCALES}
         homeUrl={platformHomePath}
         helpCenterUrl={appConfig.helpCenterUrl ?? null}
+        version={displayedVersion(appConfig) ?? null}
         onLocaleChange={(locale) => void chooseLocale(locale)}
         onEditName={() => setIsEditingName(true)}
         onSignOut={() => void signOut()}

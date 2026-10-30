@@ -7,7 +7,13 @@ import { UserMenu } from "./UserMenu"
 
 const { user } = buildMe()
 
-const renderMenu = ({ helpCenterUrl = null }: { helpCenterUrl?: string | null } = {}) => {
+const renderMenu = ({
+  helpCenterUrl = null,
+  version = null,
+}: {
+  helpCenterUrl?: string | null
+  version?: string | null
+} = {}) => {
   const handlers = { onLocaleChange: vi.fn(), onEditName: vi.fn(), onSignOut: vi.fn() }
   renderWithI18n(
     <UserMenu
@@ -16,6 +22,7 @@ const renderMenu = ({ helpCenterUrl = null }: { helpCenterUrl?: string | null } 
       locales={["en", "fr"]}
       homeUrl="/onboarding"
       helpCenterUrl={helpCenterUrl}
+      version={version}
       {...handlers}
     />,
   )
@@ -77,6 +84,27 @@ describe("UserMenu", () => {
     await screen.findByRole("menuitem", { name: "Sign out" })
 
     expect(screen.queryByRole("menuitem", { name: /Help center/ })).not.toBeInTheDocument()
+  })
+
+  it("shows the version the install runs", async () => {
+    renderMenu({ version: "26.10.7" })
+
+    await userEvent.click(
+      screen.getByRole("button", { name: `${user.name}, menu of ${user.email}` }),
+    )
+
+    expect(await screen.findByText("Version 26.10.7")).toBeInTheDocument()
+  })
+
+  it("shows no version when it is unknown", async () => {
+    renderMenu()
+
+    await userEvent.click(
+      screen.getByRole("button", { name: `${user.name}, menu of ${user.email}` }),
+    )
+    await screen.findByRole("menuitem", { name: "Sign out" })
+
+    expect(screen.queryByText(/^Version /)).not.toBeInTheDocument()
   })
 
   it("signs out", async () => {

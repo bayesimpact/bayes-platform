@@ -24,6 +24,8 @@ export type UserMenuProps = {
   homeUrl: string
   /** The install's help center, opened in a new tab; `null` when the install has none. */
   helpCenterUrl: string | null
+  /** The version the install runs, shown at the bottom; `null` when it is unknown, as in local dev. */
+  version: string | null
   onLocaleChange: (locale: Locale) => void
   onEditName: () => void
   onSignOut: () => void
@@ -41,6 +43,7 @@ export function UserMenu({
   locales,
   homeUrl,
   helpCenterUrl,
+  version,
   onLocaleChange,
   onEditName,
   onSignOut,
@@ -106,6 +109,15 @@ export function UserMenu({
           <LogOutIcon aria-hidden />
           <Trans>Sign out</Trans>
         </DropdownMenuItem>
+        {version ? (
+          <DropdownMenuGroup>
+            <DropdownMenuLabel className="font-normal">
+              <Trans comment="The version of the platform the install runs: a release such as 26.10.7, or a short commit hash">
+                Version {version}
+              </Trans>
+            </DropdownMenuLabel>
+          </DropdownMenuGroup>
+        ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
   )
