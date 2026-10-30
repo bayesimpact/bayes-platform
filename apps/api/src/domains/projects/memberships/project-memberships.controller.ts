@@ -49,11 +49,11 @@ export class ProjectMembershipsController {
   ): Promise<typeof ProjectMembershipRoutes.getAll.response> {
     const { project } = request
 
-    const { memberships, roleGrantsByRoleId } =
-      await this.projectMembershipsService.listProjectMembershipsWithRoleGrants(project.id)
+    const { memberships, rolesById } =
+      await this.projectMembershipsService.listProjectMembershipsWithRoles(project.id)
 
     return {
-      data: memberships.map((membership) => toProjectMembershipDto(membership, roleGrantsByRoleId)),
+      data: memberships.map((membership) => toProjectMembershipDto(membership, rolesById)),
     }
   }
 
@@ -63,7 +63,7 @@ export class ProjectMembershipsController {
   async getMemberRoles(
     @Req() request: EndpointRequestWithProjectMembership,
   ): Promise<typeof ProjectMembershipRoutes.getMemberRoles.response> {
-    const { membership, roleGrantsByRoleId, workspace, agents, campaigns } =
+    const { membership, rolesById, workspace, agents, campaigns } =
       await this.projectMembershipsService.getMemberRoles({
         memberUserId: request.memberProjectMembership.userId,
         projectId: request.project.id,
@@ -75,7 +75,7 @@ export class ProjectMembershipsController {
     })
     return {
       data: {
-        member: toProjectMembershipDto(membership, roleGrantsByRoleId),
+        member: toProjectMembershipDto(membership, rolesById),
         workspace: toResourceDto(workspace),
         agents: agents.map(toResourceDto),
         campaigns: campaigns.map(toResourceDto),

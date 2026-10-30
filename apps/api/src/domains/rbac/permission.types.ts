@@ -12,7 +12,8 @@ export type PermissionResource = {
   id: string
 }
 
-export type RoleGrant = {
+/** A catalog role with its permission keys, held by no one in particular. */
+export type ResolvedRole = {
   key: string
   name: string
   permissions: string[]

@@ -559,20 +559,20 @@ describe("PermissionService", () => {
       where: { key: ORGANIZATION_ROLES.member },
     })
 
-    const grants = await service.listRoleGrants([ownerRole.id, memberRole.id])
+    const rolesById = await service.listRolesById([ownerRole.id, memberRole.id])
 
-    expect(grants.get(ownerRole.id)?.key).toBe(ORGANIZATION_ROLES.owner)
-    expect(new Set(grants.get(ownerRole.id)?.permissions)).toEqual(
+    expect(rolesById.get(ownerRole.id)?.key).toBe(ORGANIZATION_ROLES.owner)
+    expect(new Set(rolesById.get(ownerRole.id)?.permissions)).toEqual(
       new Set(ORGANIZATION_ROLE_PERMISSIONS[ORGANIZATION_ROLES.owner]),
     )
-    expect(grants.get(memberRole.id)?.key).toBe(ORGANIZATION_ROLES.member)
-    expect(new Set(grants.get(memberRole.id)?.permissions)).toEqual(
+    expect(rolesById.get(memberRole.id)?.key).toBe(ORGANIZATION_ROLES.member)
+    expect(new Set(rolesById.get(memberRole.id)?.permissions)).toEqual(
       new Set(ORGANIZATION_ROLE_PERMISSIONS[ORGANIZATION_ROLES.member]),
     )
   })
 
-  it("returns an empty map when listing grants for no role ids", async () => {
-    await expect(service.listRoleGrants([])).resolves.toEqual(new Map())
+  it("returns an empty map when listing no role ids", async () => {
+    await expect(service.listRolesById([])).resolves.toEqual(new Map())
   })
 
   it("returns the official catalog roles in display order", async () => {

@@ -44,10 +44,8 @@ export class ProjectsService {
     })
 
     // the membership carries the RBAC roles it holds: ask RBAC what they grant
-    const roleGrantsByRoleId = await this.permissionService.listRoleGrants(
-      listRoleIds([membership]),
-    )
-    const permissions = unionRolePermissions(membership.roles, roleGrantsByRoleId)
+    const rolesById = await this.permissionService.listRolesById(listRoleIds([membership]))
+    const permissions = unionRolePermissions(membership.roles, rolesById)
     return new ProjectModel(
       { ...project, featureFlags: [], agentSessionCategories: [] },
       permissions,

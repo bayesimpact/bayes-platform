@@ -1,6 +1,6 @@
 import type { MembershipRole } from "@/domains/memberships/membership-roles"
 import type { Project } from "@/domains/projects/project.entity"
-import type { RoleGrant } from "@/domains/rbac/permission.types"
+import type { ResolvedRole } from "@/domains/rbac/permission.types"
 import type { User } from "@/domains/users/user.entity"
 
 /**
@@ -48,7 +48,7 @@ export type MemberResourceRoles = {
 /** A member's roles on the project, its agents and its review campaigns. */
 export type MemberRoles = {
   membership: ProjectMembershipModel
-  roleGrantsByRoleId: Map<string, RoleGrant>
+  rolesById: Map<string, ResolvedRole>
   workspace: MemberResourceRoles
   agents: MemberResourceRoles[]
   campaigns: MemberResourceRoles[]

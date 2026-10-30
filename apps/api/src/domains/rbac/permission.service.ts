@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common"
 import { InjectDataSource } from "@nestjs/typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DataSource } from "typeorm"
-import type { PermissionResource, PermissionResourceType, RoleGrant } from "./permission.types"
+import type { PermissionResource, PermissionResourceType, ResolvedRole } from "./permission.types"
 import {
   AGENT_CONVERSATION_REVIEWER_ROLE,
   BACKOFFICE_USER_READ_PERMISSION,
@@ -23,7 +23,7 @@ type ResourcePermissionRow = { resourceId: string; permissionKey: string }
 type ResourceIdRow = { resourceId: string }
 type ChildResourceRow = { resourceId: string; parentResourceId: string }
 type UserIdRow = { userId: string }
-type RoleGrantRow = {
+type ResolvedRoleRow = {
   roleId: string
   roleKey: string
   roleName: string
@@ -35,7 +35,7 @@ type CatalogRoleRow = {
   scopeType: RoleScopeType
   permissionKey: string | null
 }
-type GlobalRoleGrantRow = {
+type GlobalRoleRow = {
   roleKey: string
   roleName: string
   permissionKey: string | null
@@ -85,8 +85,8 @@ export class PermissionService {
    * Global roles held by the user (platform_staff / platform_superadmin),
    * each with the permission keys granted by that role.
    */
-  async listGlobalRolesForUser(userId: string): Promise<RoleGrant[]> {
-    const rows: GlobalRoleGrantRow[] = await this.dataSource.query(
+  async listGlobalRolesForUser(userId: string): Promise<ResolvedRole[]> {
+    const rows: GlobalRoleRow[] = await this.dataSource.query(
       `SELECT role.key AS "roleKey",
               role.name AS "roleName",
               role_permission.permission_key AS "permissionKey"
@@ -101,20 +101,20 @@ export class PermissionService {
       [userId],
     )
 
-    return this.groupGlobalRoleGrants(rows)
+    return this.groupGlobalRoles(rows)
   }
 
   /**
-   * Catalog grants for the given role ids: key, display name, and permission keys.
+   * Catalog roles for the given role ids: key, display name, and permission keys.
    * Missing / unknown ids are omitted from the map.
    */
-  async listRoleGrants(roleIds: string[]): Promise<Map<string, RoleGrant>> {
+  async listRolesById(roleIds: string[]): Promise<Map<string, ResolvedRole>> {
     const uniqueRoleIds = [...new Set(roleIds.filter((roleId) => roleId.length > 0))]
     if (uniqueRoleIds.length === 0) {
       return new Map()
     }
 
-    const rows: RoleGrantRow[] = await this.dataSource.query(
+    const rows: ResolvedRoleRow[] = await this.dataSource.query(
       `SELECT role.id AS "roleId",
               role.key AS "roleKey",
               role.name AS "roleName",
@@ -126,7 +126,7 @@ export class PermissionService {
       [uniqueRoleIds],
     )
 
-    return this.groupRoleGrantsByRoleId(rows)
+    return this.groupRolesById(rows)
   }
 
   /**
@@ -150,12 +150,12 @@ export class PermissionService {
       [catalogRoleKeys],
     )
 
-    const grantsByKey = new Map<
+    const rolesByKey = new Map<
       string,
       { key: string; name: string; scopeType: RoleScopeType; permissions: string[] }
     >()
     for (const row of rows) {
-      const existing = grantsByKey.get(row.roleKey) ?? {
+      const existing = rolesByKey.get(row.roleKey) ?? {
         key: row.roleKey,
         name: row.roleName,
         scopeType: row.scopeType,
@@ -164,11 +164,11 @@ export class PermissionService {
       if (row.permissionKey) {
         existing.permissions.push(row.permissionKey)
       }
-      grantsByKey.set(row.roleKey, existing)
+      rolesByKey.set(row.roleKey, existing)
     }
 
     const catalogRoles = catalogRoleKeys.flatMap((roleKey) => {
-      const role = grantsByKey.get(roleKey)
+      const role = rolesByKey.get(roleKey)
       return role ? [role] : []
     })
 
@@ -694,10 +694,10 @@ export class PermissionService {
     )
   }
 
-  private groupRoleGrantsByRoleId(rows: RoleGrantRow[]): Map<string, RoleGrant> {
-    const grantsByRoleId = new Map<string, RoleGrant>()
+  private groupRolesById(rows: ResolvedRoleRow[]): Map<string, ResolvedRole> {
+    const rolesById = new Map<string, ResolvedRole>()
     for (const row of rows) {
-      const existing = grantsByRoleId.get(row.roleId) ?? {
+      const existing = rolesById.get(row.roleId) ?? {
         key: row.roleKey,
         name: row.roleName,
         permissions: [],
@@ -705,16 +705,16 @@ export class PermissionService {
       if (row.permissionKey) {
         existing.permissions.push(row.permissionKey)
       }
-      grantsByRoleId.set(row.roleId, existing)
+      rolesById.set(row.roleId, existing)
     }
 
-    return grantsByRoleId
+    return rolesById
   }
 
-  private groupGlobalRoleGrants(rows: GlobalRoleGrantRow[]): RoleGrant[] {
-    const grantsByKey = new Map<string, RoleGrant>()
+  private groupGlobalRoles(rows: GlobalRoleRow[]): ResolvedRole[] {
+    const rolesByKey = new Map<string, ResolvedRole>()
     for (const row of rows) {
-      const existing = grantsByKey.get(row.roleKey) ?? {
+      const existing = rolesByKey.get(row.roleKey) ?? {
         key: row.roleKey,
         name: row.roleName,
         permissions: [],
@@ -722,10 +722,10 @@ export class PermissionService {
       if (row.permissionKey) {
         existing.permissions.push(row.permissionKey)
       }
-      grantsByKey.set(row.roleKey, existing)
+      rolesByKey.set(row.roleKey, existing)
     }
 
-    return [...grantsByKey.values()]
+    return [...rolesByKey.values()]
   }
 
   /**

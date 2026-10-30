@@ -31,16 +31,15 @@ export class ProjectMembershipRoleController {
     @Req() request: EndpointRequestWithProject,
     @Body() { payload }: typeof ProjectMembershipRoutes.addRoles.request,
   ): Promise<typeof ProjectMembershipRoutes.addRoles.response> {
-    const { memberships, roleGrantsByRoleId } =
-      await this.projectMembershipsService.addRolesToMembers({
-        callerUserId: request.user.id,
-        memberUserIds: payload.userIds,
-        projectId: request.project.id,
-        roleKeys: payload.roleKeys,
-      })
+    const { memberships, rolesById } = await this.projectMembershipsService.addRolesToMembers({
+      callerUserId: request.user.id,
+      memberUserIds: payload.userIds,
+      projectId: request.project.id,
+      roleKeys: payload.roleKeys,
+    })
 
     return {
-      data: memberships.map((membership) => toProjectMembershipDto(membership, roleGrantsByRoleId)),
+      data: memberships.map((membership) => toProjectMembershipDto(membership, rolesById)),
     }
   }
 
@@ -52,14 +51,13 @@ export class ProjectMembershipRoleController {
     @Req() request: EndpointRequestWithProjectMembership,
     @Param("roleKey") roleKey: string,
   ): Promise<typeof ProjectMembershipRoutes.removeRole.response> {
-    const { membership, roleGrantsByRoleId } =
-      await this.projectMembershipsService.removeRoleFromMember({
-        callerUserId: request.user.id,
-        memberUserId: request.memberProjectMembership.userId,
-        projectId: request.project.id,
-        roleKey,
-      })
+    const { membership, rolesById } = await this.projectMembershipsService.removeRoleFromMember({
+      callerUserId: request.user.id,
+      memberUserId: request.memberProjectMembership.userId,
+      projectId: request.project.id,
+      roleKey,
+    })
 
-    return { data: toProjectMembershipDto(membership, roleGrantsByRoleId) }
+    return { data: toProjectMembershipDto(membership, rolesById) }
   }
 }
