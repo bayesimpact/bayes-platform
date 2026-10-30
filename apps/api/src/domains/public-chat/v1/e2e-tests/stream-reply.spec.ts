@@ -19,7 +19,7 @@ import { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.p
 import { createEmbedConfigWithSession } from "../../public-chat.factory"
 import { PublicChatModule } from "../../public-chat.module"
 
-describe("PublicChat - streamReply and streamMessages", () => {
+describe("PublicChat - streamReply", () => {
   let app: INestApplication<App>
   let repositories: AllRepositories
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
@@ -57,7 +57,7 @@ describe("PublicChat - streamReply and streamMessages", () => {
     return context
   }
 
-  /** The stream the widget calls: a POST with the message in the body. */
+  /** The message travels in the body, never in the URL. */
   const rawSubject = (body: unknown) =>
     request(app.getHttpServer())
       .post(PublicChatRoutes.streamReply.getPath({ embedToken, sessionId }))
@@ -66,14 +66,6 @@ describe("PublicChat - streamReply and streamMessages", () => {
       .set("X-Session-Token", sessionToken)
 
   const subject = (content: string) => rawSubject({ payload: { content } })
-
-  /** The deprecated stream, still served to integrators: a GET with the message in `?q=`. */
-  const getSubject = (content: string) =>
-    request(app.getHttpServer())
-      .get(`/public/v1/agents/${embedToken}/sessions/${sessionId}/messages/stream`)
-      .query({ q: JSON.stringify({ payload: { content } }) })
-      .set("Connection", "close")
-      .set("X-Session-Token", sessionToken)
 
   const streamedText = (text: string) =>
     parseSseDataEvents<StreamEventPayload>(text)
@@ -96,12 +88,17 @@ describe("PublicChat - streamReply and streamMessages", () => {
     expect(userMessages.map((message) => message.content)).toEqual(["Hello"])
   })
 
-  it("still streams the response on the deprecated GET with the message in the URL", async () => {
+  it("no longer reads a message sent in the URL of the GET route removed in 1.3", async () => {
     await createContext()
 
-    const response = await getSubject("Hello")
-    expect(response.status).toBe(200)
-    expect(streamedText(response.text)).toBe("Hello, I'm the stream default mock value!")
+    const response = await request(app.getHttpServer())
+      .get(`/public/v1/agents/${embedToken}/sessions/${sessionId}/messages/stream`)
+      .query({ q: JSON.stringify({ payload: { content: "Hello" } }) })
+      .set("Connection", "close")
+      .set("X-Session-Token", sessionToken)
+
+    expect(response.status).toBe(404)
+    expect(await repositories.agentMessageRepository.count()).toBe(0)
   })
 
   it("answers a body without a payload object with one error event inside the stream", async () => {

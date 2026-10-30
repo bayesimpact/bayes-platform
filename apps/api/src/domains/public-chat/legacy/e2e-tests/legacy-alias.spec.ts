@@ -66,12 +66,20 @@ describe("PublicChat - unprefixed pre-versioning paths", () => {
     const routeKeys = Object.keys(PublicChatLegacyRoutes).sort()
 
     expect(routeKeys).toEqual(["createSession", "getConfig", "getSession", "streamMessages"])
-    for (const key of routeKeys as (keyof typeof PublicChatLegacyRoutes)[]) {
+    for (const key of ["createSession", "getConfig", "getSession"] as const) {
       expect(PublicChatLegacyRoutes[key].method).toBe(PublicChatRoutes[key].method)
       expect(PublicChatLegacyRoutes[key].path).toBe(
         PublicChatRoutes[key].path.replace(versionedBase, unprefixedBase),
       )
     }
+  })
+
+  it("keeps the GET stream that v1 replaced with a POST in 1.3", () => {
+    expect(PublicChatLegacyRoutes.streamMessages).toMatchObject({
+      method: "get",
+      path: `${unprefixedBase}/sessions/:sessionId/messages/stream`,
+    })
+    expect(PublicChatRoutes).not.toHaveProperty("streamMessages")
   })
 
   it("serves the config without the banner, which arrived with v1", async () => {

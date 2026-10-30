@@ -91,10 +91,6 @@ describe("PublicChat - contract v1", () => {
         method: "get",
         path: `${publicBase}/sessions/:sessionId/mcp-app-html`,
       })
-      expect(PublicChatRoutes.streamMessages).toMatchObject({
-        method: "get",
-        path: `${publicBase}/sessions/:sessionId/messages/stream`,
-      })
       expect(PublicChatRoutes.streamReply).toMatchObject({
         method: "post",
         path: `${publicBase}/sessions/:sessionId/stream`,
@@ -105,13 +101,32 @@ describe("PublicChat - contract v1", () => {
       expect(PublicChatLegacyRoutes).not.toHaveProperty("streamReply")
     })
 
-    it("does not accept POST on the stream path", async () => {
+    it("serves no stream on the messages/stream path that 1.3 removed", async () => {
       await createContext()
-      const response = await request(app.getHttpServer())
-        .post(PublicChatRoutes.streamMessages.getPath(pathParams()))
+      const removedPath = `/${PUBLIC_PATH_PREFIX}/${PUBLIC_API_MAJOR}/agents/${embedToken}/sessions/${sessionId}/messages/stream`
+      const query = { q: JSON.stringify({ payload: { content: "Hello" } }) }
+      const getResponse = await request(app.getHttpServer())
+        .get(removedPath)
+        .query(query)
+        .set("Connection", "close")
+        .set("X-Session-Token", sessionToken)
+      const postResponse = await request(app.getHttpServer())
+        .post(removedPath)
         .set("Connection", "close")
         .set("X-Session-Token", sessionToken)
         .send({ payload: { content: "Hello" } })
+      expect(getResponse.status).toBe(404)
+      expect(postResponse.status).toBe(404)
+      expect(await repositories.agentMessageRepository.count()).toBe(0)
+    })
+
+    it("does not accept GET on the stream path", async () => {
+      await createContext()
+      const response = await request(app.getHttpServer())
+        .get(PublicChatRoutes.streamReply.getPath(pathParams()))
+        .query({ q: JSON.stringify({ payload: { content: "Hello" } }) })
+        .set("Connection", "close")
+        .set("X-Session-Token", sessionToken)
       expect(response.status).toBe(404)
     })
   })
@@ -208,13 +223,6 @@ describe("PublicChat - contract v1", () => {
   })
 
   describe("server-sent events", () => {
-    const stream = (query: string) =>
-      request(app.getHttpServer())
-        .get(PublicChatRoutes.streamMessages.getPath(pathParams()))
-        .query({ q: query })
-        .set("Connection", "close")
-        .set("X-Session-Token", sessionToken)
-
     const streamReply = (body: unknown) =>
       request(app.getHttpServer())
         .post(PublicChatRoutes.streamReply.getPath(pathParams()))
@@ -222,16 +230,9 @@ describe("PublicChat - contract v1", () => {
         .set("Connection", "close")
         .set("X-Session-Token", sessionToken)
 
-    const sendHello = {
-      "GET ?q=": () => stream(JSON.stringify({ payload: { content: "Hello" } })),
-      "POST body": () => streamReply({ payload: { content: "Hello" } }),
-    }
-
-    it.each(
-      Object.entries(sendHello),
-    )("frames each event as id + data, start then chunks then end (%s)", async (_name, send) => {
+    it("frames each event as id + data, start then chunks then end", async () => {
       await createContext()
-      const response = await send()
+      const response = await streamReply({ payload: { content: "Hello" } })
       expect(response.status).toBe(200)
       expect(response.headers["content-type"]).toMatch(/^text\/event-stream/)
       expect(response.text.startsWith("\n")).toBe(true)
@@ -265,28 +266,7 @@ describe("PublicChat - contract v1", () => {
       expect(chunks.every((event) => event.messageId === startMessageId)).toBe(true)
     })
 
-    it("rejects an invalid q payload as one error event inside the stream, not as a JSON error", async () => {
-      await createContext()
-      const response = await stream("not-json")
-      expect(response.status).toBe(200)
-      expect(response.headers["content-type"]).toMatch(/^text\/event-stream/)
-      expect(response.text).not.toContain("event:")
-      expect(parseDataEvents(response.text)).toEqual([
-        { type: "error", messageId: "", error: "Invalid query format" },
-      ])
-    })
-
-    it("rejects an empty message as one error event inside the stream", async () => {
-      await createContext()
-      const response = await stream(JSON.stringify({ payload: { content: "   " } }))
-      expect(response.status).toBe(200)
-      expect(response.text).not.toContain("event:")
-      expect(parseDataEvents(response.text)).toEqual([
-        { type: "error", messageId: "", error: "User content must not be empty" },
-      ])
-    })
-
-    it("rejects an invalid POST body as one error event inside the stream, not as a JSON error", async () => {
+    it("rejects an invalid body as one error event inside the stream, not as a JSON error", async () => {
       await createContext()
       const response = await streamReply({ payload: null })
       expect(response.status).toBe(200)
@@ -297,7 +277,7 @@ describe("PublicChat - contract v1", () => {
       ])
     })
 
-    it("rejects an empty message in the POST body as one error event inside the stream", async () => {
+    it("rejects an empty message as one error event inside the stream", async () => {
       await createContext()
       const response = await streamReply({ payload: { content: "   " } })
       expect(response.status).toBe(200)

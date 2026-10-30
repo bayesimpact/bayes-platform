@@ -84,7 +84,6 @@ que la conversation précédente a expiré.
 | `GET` | `/public/v1/agents/{embedToken}/sessions/{sessionId}` | Lire une session et ses messages |
 | `GET` | `/public/v1/agents/{embedToken}/sessions/{sessionId}/mcp-app-html` | Lire le HTML des cartes MCP App |
 | `POST` | `/public/v1/agents/{embedToken}/sessions/{sessionId}/stream` | Envoyer un message et recevoir la réponse en flux |
-| `GET` | `/public/v1/agents/{embedToken}/sessions/{sessionId}/messages/stream` | Déprécié : la même chose, avec le message dans l'URL |
 
 ### Lire la configuration de l'agent
 
@@ -306,25 +305,6 @@ Statut : `200` avec `Content-Type: text/event-stream`. Erreurs avant le début d
 Après le dernier événement, relisez la session pour obtenir la réponse enregistrée et ses
 `toolCalls`. Le flux ne transporte que du texte.
 
-### Envoyer un message dans l'URL (déprécié)
-
-```
-GET /public/v1/agents/{embedToken}/sessions/{sessionId}/messages/stream?q={encodedPayload}
-X-Session-Token: {sessionToken}
-Accept: text/event-stream
-```
-
-Déprécié depuis la 1.3. Utilisez la route `POST` ci-dessus. Cette route reste servie sur
-la v1 et renvoie le même flux. La charge utile voyage encodée dans le paramètre de requête
-`q` :
-
-```js
-const q = encodeURIComponent(JSON.stringify({ payload: { content: "What is your return policy?" } }))
-```
-
-Un message dans l'URL peut dépasser la limite d'URL d'un proxy, et les journaux d'accès
-gardent son texte. `POST` sur ce chemin renvoie `404`.
-
 ## Événements envoyés par le serveur
 
 ### Format sur le réseau
@@ -385,8 +365,7 @@ data: {"type":"error","messageId":"","error":"User content must not be empty"}
 
 | `error` | Cause |
 |---|---|
-| `Invalid request body` | Le corps `POST` n'a pas d'objet `payload`, ou `payload.content` n'est pas une chaîne |
-| `Invalid query format` | `q` n'est pas du JSON valide (route `GET` dépréciée) |
+| `Invalid request body` | Le corps n'a pas d'objet `payload`, ou `payload.content` n'est pas une chaîne |
 | `User content must not be empty` | `payload.content` est absent ou vide |
 | `Agent not found` | L'agent a été supprimé |
 | `Internal server error` | Défaut du serveur. Réessayez plus tard |
@@ -424,7 +403,7 @@ Les réponses d'erreur sont en JSON :
 | `413` | `request entity too large` | Corps de plus de 500 ko | Raccourcissez le corps. Cette réponse n'a pas de champ `error` |
 | `500` | `Internal server error` | Défaut du serveur | Réessayez plus tard |
 
-Les routes de flux signalent les erreurs de charge utile dans le flux, voir
+La route de flux signale les erreurs sur le corps dans le flux, voir
 [Erreurs au niveau du flux](#erreurs-au-niveau-du-flux).
 
 ## CORS
@@ -444,8 +423,6 @@ liste.
 ## Limites et durées
 
 - Les corps de requête JSON sont limités à 500 ko (`413` ci-dessus).
-- Le flux `GET` déprécié transporte le message dans l'URL. Gardez le paramètre `q` encodé
-  sous 8 ko, ou utilisez le flux `POST`.
 - Une réponse par requête de flux. Attendez `end` avant d'envoyer le message suivant.
 - Aucune limite de débit n'est appliquée aujourd'hui. Utilisez l'API raisonnablement. Une
   limite serait annoncée dans le [journal des modifications](/fr/public-chat-api-changelog)

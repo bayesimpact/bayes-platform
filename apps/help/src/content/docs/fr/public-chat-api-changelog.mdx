@@ -37,24 +37,24 @@ de dépréciation. Voir la
 
 ## 1.3 (2026-10-30)
 
-### Ajouté
+### Modifié
 
 - [Envoyer un message et recevoir la réponse en flux](/fr/public-chat-api#envoyer-un-message-et-recevoir-la-réponse-en-flux)
-  avec `POST /public/v1/agents/{embedToken}/sessions/{sessionId}/stream`. Le message voyage
-  dans le corps JSON. Il n'atteint donc plus les limites d'URL ni les journaux d'accès. La
-  réponse est le même flux.
-- L'erreur de flux `Invalid request body`, pour un corps `POST` sans objet `payload`.
+  passe par `POST /public/v1/agents/{embedToken}/sessions/{sessionId}/stream`. Le message
+  voyage dans le corps JSON. Il n'atteint donc plus les limites d'URL ni les journaux
+  d'accès. La réponse est le même flux.
+- Un corps sans objet `payload` termine le flux avec l'erreur `Invalid request body`.
 
-### Déprécié
+### Supprimé
 
-- `GET .../sessions/{sessionId}/messages/stream?q=...`, qui envoie le message dans l'URL.
-  Cette route reste servie sur la v1 et renvoie le même flux.
+- `GET /public/v1/agents/{embedToken}/sessions/{sessionId}/messages/stream?q=...`. Cette
+  route répond désormais `404`, et l'erreur de flux `Invalid query format` disparaît avec
+  elle.
 
 ### Migration
 
-- Aucune obligatoire. Pour migrer, envoyez `{ "payload": { "content": "..." } }` en corps
-  JSON à la route `POST` au lieu du paramètre `q`. Ajoutez l'en-tête
-  `Content-Type: application/json`.
+- Envoyez `{ "payload": { "content": "..." } }` en corps JSON à la route `POST` au lieu du
+  paramètre `q`. Ajoutez l'en-tête `Content-Type: application/json`.
 
 ## 1.2 (2026-10-29)
 

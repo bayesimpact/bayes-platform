@@ -25,7 +25,8 @@ export const PUBLIC_PATH_PREFIX = "public"
  * `docs/public-api-contract.md`. Routes live under `/public/v1/...`. The
  * unprefixed paths (`/public/agents/...`) predate versioning and stay served
  * (`PublicChatLegacyRoutes`) until the last integrator moves to v1. They carry the
- * routes below with their pre-versioning config shape; v1 additions do not reach them.
+ * routes below with their pre-versioning config shape, plus their GET stream; v1
+ * additions do not reach them.
  */
 function buildPublicChatRoutes<ConfigDto>(agentBasePath: string) {
   const sessionBasePath = `${agentBasePath}/sessions/:sessionId`
@@ -46,23 +47,6 @@ function buildPublicChatRoutes<ConfigDto>(agentBasePath: string) {
     getSession: defineRoute<ResponseData<PublicAgentSessionDto>>({
       method: "get",
       path: sessionBasePath,
-    }),
-
-    /**
-     * Server-sent events. The request payload travels URL-encoded in the `q` query
-     * parameter (`?q=<encodeURIComponent(JSON.stringify({ payload: { content } }))>`) so
-     * the route stays reachable with GET. Each `data:` line of the response is one
-     * JSON-encoded `PublicStreamEventPayload`; the `ResponseData` wrapper does not apply.
-     * On v1, failures reach the client as a `{ type: "error" }` event on a 200 response.
-     * Deprecated on v1 since 1.3 in favour of `streamReply`, which takes the message in the
-     * body; still served, and the only stream of the unprefixed paths.
-     */
-    streamMessages: defineRoute<
-      ResponseData<PublicStreamEventPayload>,
-      RequestPayload<PublicChatStreamRequestDto>
-    >({
-      method: "get",
-      path: `${sessionBasePath}/messages/stream`,
     }),
   }
 }
@@ -85,11 +69,13 @@ export const PublicChatRoutes = {
   }),
 
   /**
-   * Same server-sent events as `streamMessages`, with the payload in the JSON body instead
-   * of the URL: a long message cannot exceed a proxy's URL limit, and access logs never
-   * hold its text. Answers 200. The path is not under `messages/` so that no
-   * `POST .../messages/:messageId` route can ever catch it. Added in 1.3, so the unprefixed
-   * paths do not carry it.
+   * Server-sent events. The payload travels in the JSON body, never in the URL: a long
+   * message cannot exceed a proxy's URL limit, and access logs never hold its text. Each
+   * `data:` line of the response is one JSON-encoded `PublicStreamEventPayload`; the
+   * `ResponseData` wrapper does not apply. Failures reach the client as a
+   * `{ type: "error" }` event on a 200 response. The path is not under `messages/` so that
+   * no `POST .../messages/:messageId` route can ever catch it. Replaced the GET
+   * `messages/stream?q=` route of v1 in 1.3.
    */
   streamReply: defineRoute<
     ResponseData<PublicStreamEventPayload>,
@@ -100,11 +86,28 @@ export const PublicChatRoutes = {
   }),
 }
 
+const legacyAgentBasePath = `${PUBLIC_PATH_PREFIX}/agents/:embedToken`
+
 /**
  * Unprefixed paths that predate versioning: `/public/agents/:embedToken/...`. Frozen on the
  * shape they served then, so no MCP App HTML route and no `bannerText` in the config, and a
  * stream failure stays a bare `event: error` frame. Deleted once the last integrator moves.
  */
-export const PublicChatLegacyRoutes = buildPublicChatRoutes<LegacyEmbedPublicConfigDto>(
-  `${PUBLIC_PATH_PREFIX}/agents/:embedToken`,
-)
+export const PublicChatLegacyRoutes = {
+  ...buildPublicChatRoutes<LegacyEmbedPublicConfigDto>(legacyAgentBasePath),
+
+  /**
+   * Server-sent events. The request payload travels URL-encoded in the `q` query
+   * parameter (`?q=<encodeURIComponent(JSON.stringify({ payload: { content } }))>`) so
+   * the route stays reachable with GET. Each `data:` line of the response is one
+   * JSON-encoded `PublicStreamEventPayload`; the `ResponseData` wrapper does not apply.
+   * v1 removed this route in 1.3 for `streamReply`; only the unprefixed paths keep it.
+   */
+  streamMessages: defineRoute<
+    ResponseData<PublicStreamEventPayload>,
+    RequestPayload<PublicChatStreamRequestDto>
+  >({
+    method: "get",
+    path: `${legacyAgentBasePath}/sessions/:sessionId/messages/stream`,
+  }),
+}

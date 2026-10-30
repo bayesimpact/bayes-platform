@@ -91,17 +91,14 @@ describe("PublicChat - routes in AppModule's order", () => {
     ])
   })
 
-  it("still reaches the deprecated GET stream with the message in `q`", async () => {
+  it("serves no GET stream with the message in the URL", async () => {
     const response = await request(app.getHttpServer())
-      .get(PublicChatRoutes.streamMessages.getPath(pathParams()))
-      .query({ q: JSON.stringify({ payload: { content: " " } }) })
+      .get(`/public/v1/agents/${embedToken}/sessions/${sessionId}/messages/stream`)
+      .query({ q: JSON.stringify({ payload: { content: "Hello" } }) })
       .set("Connection", "close")
       .set("X-Session-Token", sessionToken)
 
-    expect(response.status).toBe(200)
-    expect(parseSseDataEvents<PublicStreamEventPayload>(response.text)).toEqual([
-      { type: "error", messageId: "", error: "User content must not be empty" },
-    ])
+    expect(response.status).toBe(404)
   })
 
   it("still creates a session on the other public POST route", async () => {

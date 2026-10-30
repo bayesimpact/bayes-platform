@@ -36,25 +36,23 @@ clients and come with a deprecation period. See the
 
 ## 1.3 (2026-10-30)
 
-### Added
+### Changed
 
 - [Send a message and stream the reply](/en/public-chat-api#send-a-message-and-stream-the-reply)
-  with `POST /public/v1/agents/{embedToken}/sessions/{sessionId}/stream`. The message
-  travels in the JSON body, so it no longer reaches URL limits or access logs. The response
-  is the same stream.
-- The stream-level error `Invalid request body`, for a `POST` body without a `payload`
-  object.
+  is now `POST /public/v1/agents/{embedToken}/sessions/{sessionId}/stream`. The message
+  travels in the JSON body, so it no longer reaches URL limits or access logs. The
+  response is the same stream.
+- A body without a `payload` object ends the stream with the error `Invalid request body`.
 
-### Deprecated
+### Removed
 
-- `GET .../sessions/{sessionId}/messages/stream?q=...`, which sends the message in the URL.
-  It stays served on v1 and returns the same stream.
+- `GET /public/v1/agents/{embedToken}/sessions/{sessionId}/messages/stream?q=...`. It now
+  answers `404`, and the stream error `Invalid query format` is gone with it.
 
 ### Migration
 
-- None required. To move, send `{ "payload": { "content": "..." } }` as a JSON body to the
-  `POST` route instead of the `q` parameter. Add the `Content-Type: application/json`
-  header.
+- Send `{ "payload": { "content": "..." } }` as a JSON body to the `POST` route instead of
+  the `q` parameter. Add the `Content-Type: application/json` header.
 
 ## 1.2 (2026-10-29)
 

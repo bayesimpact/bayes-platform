@@ -11,7 +11,6 @@ import {
   HttpStatus,
   Logger,
   Post,
-  Query,
   Req,
   RequestMethod,
   Sse,
@@ -83,16 +82,6 @@ export class PublicChatV1Controller extends PublicChatController {
     return { data: toMcpAppHtmlDtos(htmlByKey) }
   }
 
-  /** Deprecated since 1.3 in favour of `streamReply`, which keeps the message out of the URL. */
-  @UseGuards(PublicSessionTokenGuard)
-  @Sse(PublicChatRoutes.streamMessages.path, { method: RequestMethod.GET })
-  streamMessages(
-    @Req() request: PublicChatSessionRequest,
-    @Query("q") query: string,
-  ): Observable<MessageEvent> {
-    return this.buildStream(request.publicSession, () => parseStreamQuery(query))
-  }
-
   @UseGuards(PublicSessionTokenGuard)
   @Sse(PublicChatRoutes.streamReply.path, { method: RequestMethod.POST })
   @HttpCode(HttpStatus.OK)
@@ -100,7 +89,7 @@ export class PublicChatV1Controller extends PublicChatController {
     @Req() request: PublicChatSessionRequest,
     @Body() body: unknown,
   ): Observable<MessageEvent> {
-    return this.buildStream(request.publicSession, () => parseStreamBody(body))
+    return this.buildStream(request.publicSession, body)
   }
 
   /**
@@ -111,10 +100,7 @@ export class PublicChatV1Controller extends PublicChatController {
    * contract. The generation layer emits its own error event before throwing, which is
    * not doubled here.
    */
-  private buildStream(
-    publicSession: PublicAgentSession,
-    readUserContent: () => string,
-  ): Observable<StreamEvent> {
+  private buildStream(publicSession: PublicAgentSession, body: unknown): Observable<StreamEvent> {
     return new Observable<StreamEvent>((subscriber) => {
       let messageId = ""
       let lastEventType: StreamEventPayload["type"] | undefined
@@ -135,7 +121,7 @@ export class PublicChatV1Controller extends PublicChatController {
 
       let userContent: string
       try {
-        userContent = readUserContent()
+        userContent = parseStreamBody(body)
       } catch (error) {
         fail(error)
         return
@@ -164,33 +150,18 @@ function toStreamEvent(payload: StreamEventPayload): StreamEvent {
   return { data: JSON.stringify(payload) } as StreamEvent
 }
 
-function parseStreamQuery(query: string): string {
-  let parsedQuery: typeof PublicChatRoutes.streamMessages.request
-  try {
-    parsedQuery = JSON.parse(query) as typeof PublicChatRoutes.streamMessages.request
-  } catch {
-    throw new BadRequestException("Invalid query format")
-  }
-  return requireUserContent(parsedQuery)
-}
-
 /** The body is untyped on the wire: anything but `{ payload: { content: string } }` is refused. */
 function parseStreamBody(body: unknown): string {
   const payload = (body as { payload?: unknown } | null)?.payload
   if (typeof payload !== "object" || payload === null) {
     throw new BadRequestException("Invalid request body")
   }
-  const content = (payload as { content?: unknown }).content
-  if (content !== undefined && typeof content !== "string") {
+  const content = (payload as { content?: unknown }).content ?? ""
+  if (typeof content !== "string") {
     throw new BadRequestException("Invalid request body")
   }
-  return requireUserContent(body as typeof PublicChatRoutes.streamReply.request)
-}
-
-function requireUserContent(request: typeof PublicChatRoutes.streamMessages.request): string {
-  const userContent = request.payload?.content
-  if (!userContent?.trim()) {
+  if (!content.trim()) {
     throw new BadRequestException("User content must not be empty")
   }
-  return userContent
+  return content
 }

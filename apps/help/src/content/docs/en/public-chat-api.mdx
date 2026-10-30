@@ -80,7 +80,6 @@ a new one. On `410`, you can tell the user that the previous conversation expire
 | `GET` | `/public/v1/agents/{embedToken}/sessions/{sessionId}` | Read a session and its messages |
 | `GET` | `/public/v1/agents/{embedToken}/sessions/{sessionId}/mcp-app-html` | Read the HTML of MCP App cards |
 | `POST` | `/public/v1/agents/{embedToken}/sessions/{sessionId}/stream` | Send a message and stream the reply |
-| `GET` | `/public/v1/agents/{embedToken}/sessions/{sessionId}/messages/stream` | Deprecated: the same, with the message in the URL |
 
 ### Get the agent configuration
 
@@ -301,24 +300,6 @@ Status: `200` with `Content-Type: text/event-stream`. Errors before the stream s
 After the final event, read the session again to get the persisted reply and its
 `toolCalls`. The stream carries text only.
 
-### Send a message in the URL (deprecated)
-
-```
-GET /public/v1/agents/{embedToken}/sessions/{sessionId}/messages/stream?q={encodedPayload}
-X-Session-Token: {sessionToken}
-Accept: text/event-stream
-```
-
-Deprecated since 1.3. Use the `POST` route above. This route stays served on v1 and returns
-the same stream. The payload travels URL-encoded in the `q` query parameter:
-
-```js
-const q = encodeURIComponent(JSON.stringify({ payload: { content: "What is your return policy?" } }))
-```
-
-A message in the URL can exceed the URL limit of a proxy, and access logs keep its text.
-`POST` on this path returns `404`.
-
 ## Server-sent events
 
 ### Wire format
@@ -378,8 +359,7 @@ data: {"type":"error","messageId":"","error":"User content must not be empty"}
 
 | `error` | Cause |
 |---|---|
-| `Invalid request body` | The `POST` body has no `payload` object, or `payload.content` is not a string |
-| `Invalid query format` | `q` is not valid JSON (deprecated `GET` route) |
+| `Invalid request body` | The body has no `payload` object, or `payload.content` is not a string |
 | `User content must not be empty` | `payload.content` is missing or blank |
 | `Agent not found` | The agent was deleted |
 | `Internal server error` | Server fault. Retry later |
@@ -416,7 +396,7 @@ Error responses are JSON:
 | `413` | `request entity too large` | Body over 500 kB | Shorten the body. This response has no `error` field |
 | `500` | `Internal server error` | Server fault | Retry later |
 
-The stream routes report payload errors inside the stream, see
+The stream route reports body errors inside the stream, see
 [Stream-level errors](#stream-level-errors).
 
 ## CORS
@@ -435,8 +415,6 @@ calls send no `Origin` header and are not filtered by the list.
 ## Limits and lifetimes
 
 - JSON request bodies are limited to 500 kB (`413` above).
-- The deprecated `GET` stream carries the message in the URL. Keep the encoded `q`
-  parameter under 8 kB, or use the `POST` stream.
 - One reply per stream request. Wait for `end` before you send the next message.
 - No rate limit is enforced today. Use the API fairly. A limit would be announced on the
   [changelog](/en/public-chat-api-changelog) as a minor change, with `429` responses.
