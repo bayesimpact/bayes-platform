@@ -1,6 +1,7 @@
 import {
   AgentMemoryMode,
   DocumentsRagMode,
+  EmbeddingModel,
   type outputJsonSchemaSchema,
 } from "@caseai-connect/api-contracts"
 import { faker } from "@faker-js/faker"
@@ -61,6 +62,7 @@ export const agentSettingsFactory = AgentSettingsFactory.define(({ params, trans
     instructions: params.instructions ?? faker.lorem.paragraph(),
     documentsRagMode: params.documentsRagMode ?? DocumentsRagMode.None,
     documentTagIds: params.documentTagIds ?? [],
+    embeddingModel: params.embeddingModel ?? EmbeddingModel.GeminiEmbedding001,
     resourceLibraryIds: params.resourceLibraryIds ?? [],
     fillFormEnabled: params.fillFormEnabled ?? false,
     priorityCallsEnabled: params.priorityCallsEnabled ?? false,

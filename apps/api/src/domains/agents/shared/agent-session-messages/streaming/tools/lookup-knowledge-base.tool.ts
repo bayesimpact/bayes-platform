@@ -1,4 +1,4 @@
-import { ToolName } from "@caseai-connect/api-contracts"
+import { type EmbeddingModel, ToolName } from "@caseai-connect/api-contracts"
 import { tool } from "ai"
 import { z } from "zod"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
@@ -81,6 +81,8 @@ export type LookupKnowledgeBaseExecution = {
     documentTagIds: string[]
     returnedChunkCount: number
     topK: number
+    /** The model that embedded the query, read from the chunks: unknown when none came back. */
+    embeddingModel?: string
   }
 }
 
@@ -96,6 +98,7 @@ export function buildLookupKnowledgeBaseToolExecutionLog(
       returnedChunkCount: execution.result.returnedChunkCount,
       chunkIds: execution.result.chunkIds,
       documentIds: execution.result.documentIds,
+      embeddingModel: execution.result.embeddingModel,
     },
   }
 }
@@ -104,6 +107,7 @@ export function lookupKnowledgeBaseTool({
   connectScope,
   documentTagIds = [],
   retrievalService,
+  embeddingModel,
   retrievedChunksRegistry,
   citeInline = false,
   onExecute,
@@ -111,6 +115,8 @@ export function lookupKnowledgeBaseTool({
   connectScope: RequiredConnectScope
   documentTagIds?: string[]
   retrievalService: DocumentChunkRetrievalService
+  /** The agent's retrieval model; undefined means the platform default. */
+  embeddingModel?: EmbeddingModel
   retrievedChunksRegistry?: RetrievedChunksRegistry
   /** Adds the inline citation rule to the description (sources reporting on). */
   citeInline?: boolean
@@ -134,6 +140,7 @@ export function lookupKnowledgeBaseTool({
         query: input.query,
         topK: DEFAULT_TOP_K,
         documentTagIds,
+        embeddingModel,
       })
       const modelVisibleChunks = retrievedChunks.map((chunk) => ({
         id: retrievedChunksRegistry?.register(chunk) ?? chunk.chunkId,
@@ -150,6 +157,7 @@ export function lookupKnowledgeBaseTool({
             documentTagIds,
             returnedChunkCount: retrievedChunks.length,
             topK: DEFAULT_TOP_K,
+            embeddingModel: retrievedChunks[0]?.modelName,
           },
         }),
       )

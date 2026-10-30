@@ -22,7 +22,6 @@ import { McpServersTab } from "../agent-settings/components/tabs/McpServersTab"
 import { ModelTab } from "../agent-settings/components/tabs/ModelTab"
 import { OrchestrationTab } from "../agent-settings/components/tabs/OrchestrationTab"
 import { OutputTab } from "../agent-settings/components/tabs/OutputTab"
-import { ResourceLibrariesTab } from "../agent-settings/components/tabs/ResourceLibrariesTab"
 import { SessionCategoriesTab } from "../agent-settings/components/tabs/SessionCategoriesTab"
 import { SourcesTab } from "../agent-settings/components/tabs/SourcesTab"
 import { ToolsTab } from "../agent-settings/components/tabs/ToolsTab"
@@ -37,7 +36,6 @@ export const agentEditorTabKeys = [
   "model",
   "output",
   "sources",
-  "resourceLibraries",
   "tools",
   "categories",
   "orchestration",
@@ -47,10 +45,12 @@ export const agentEditorTabKeys = [
 export type TabKey = (typeof agentEditorTabKeys)[number]
 
 type DirtyHandler = (dirty: boolean) => void
+/** Switches tab, asking first when the current one has unsaved changes. */
+type OpenTab = (tab: TabKey) => void
 type TabConfig = {
   value: TabKey
   label: string
-  render: (onDirtyChange: DirtyHandler) => ReactNode
+  render: (onDirtyChange: DirtyHandler, openTab: OpenTab) => ReactNode
 }
 
 /**
@@ -93,27 +93,28 @@ export function AgentEditor({
       {
         value: "model",
         label: t("agentSettings:tabs.model"),
-        render: (onDirtyChange) => (
-          <ModelTab agentSettings={agentSettings} onDirtyChange={onDirtyChange} />
+        render: (onDirtyChange, openTab) => (
+          <ModelTab
+            agentSettings={agentSettings}
+            onDirtyChange={onDirtyChange}
+            onOpenSourcesTab={isConversation ? () => openTab("sources") : undefined}
+          />
         ),
       },
     ]
 
-    // For conversation agents, we show the sources, resource libraries, and categories tabs
+    // For conversation agents, we show the sources (documents and resource libraries) and
+    // categories tabs
     if (isConversation) {
       list.push({
         value: "sources",
         label: t("agentSettings:tabs.sources"),
-        render: (onDirtyChange) => (
-          <SourcesTab agentSettings={agentSettings} onDirtyChange={onDirtyChange} />
-        ),
-      })
-
-      list.push({
-        value: "resourceLibraries",
-        label: t("agentSettings:tabs.resourceLibraries"),
-        render: (onDirtyChange) => (
-          <ResourceLibrariesTab agentSettings={agentSettings} onDirtyChange={onDirtyChange} />
+        render: (onDirtyChange, openTab) => (
+          <SourcesTab
+            agentSettings={agentSettings}
+            onDirtyChange={onDirtyChange}
+            onOpenModelTab={() => openTab("model")}
+          />
         ),
       })
 
@@ -263,7 +264,7 @@ export function AgentEditor({
           value={activeTab.value}
           className="mt-4"
         >
-          {activeTab.render(handleDirtyChange)}
+          {activeTab.render(handleDirtyChange, requestTabChange)}
         </TabsContent>
       </Tabs>
 

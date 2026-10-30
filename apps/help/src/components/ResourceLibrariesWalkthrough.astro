@@ -33,11 +33,11 @@ const STRINGS = {
     url: "URL", uploadedFile: "Uploaded file", dragUpload: "Drag or upload a file", fileName: "quickstart.pdf", cancel: "Cancel",
     charsTitle: "17 / 200 characters", charsDesc: "33 / 2000 characters", charsHints: "0 / 1000 characters",
     colTitle: "Title", colDesc: "Description", colLink: "Link", resLink: "quickstart.pdf",
-    tabGeneral: "General", tabModel: "Model", tabOutput: "Output", tabSources: "Sources", tabResources: "Resources",
+    tabGeneral: "General", tabModel: "Model", tabSources: "Sources",
     tabCategories: "Conversation categories", tabEmbed: "Embed",
     rlFieldLabel: "Resource libraries", manage: "Manage libraries",
     agentTabDesc: "The assistant can surface resources from the selected libraries when a user's request matches a resource's title or description.",
-    addLibrary: "Add library", update: "Update",
+    addLibrary: "Add library",
     userMsg: "How do I get started?", aiMsg: "Sure! Here's a resource that should help you get going:",
     prev: "Prev", next: "Next", step: "Step",
     steps: [
@@ -49,7 +49,7 @@ const STRINGS = {
       "Click Add to create a resource.",
       "Fill Title, Description, Matching hints and a URL or file, then click Create.",
       "Preview, Edit or Delete a resource from the ⋯ menu. Add as many as you like.",
-      "Attach the library to an agent: open the Resources tab → Add library, then Update.",
+      "Attach the library to an agent: in its Sources tab, under Resource libraries, click Add library, then Save.",
       "When a message matches, the assistant surfaces the resource as a card.",
     ],
   },
@@ -73,11 +73,11 @@ const STRINGS = {
     url: "URL", uploadedFile: "Fichier téléversé", dragUpload: "Glissez ou téléversez un fichier", fileName: "guide-demarrage.pdf", cancel: "Annuler",
     charsTitle: "17 / 200 caractères", charsDesc: "36 / 2000 caractères", charsHints: "0 / 1000 caractères",
     colTitle: "Titre", colDesc: "Description", colLink: "Lien", resLink: "guide-demarrage.pdf",
-    tabGeneral: "Général", tabModel: "Modèle", tabOutput: "Sortie", tabSources: "Sources", tabResources: "Resources",
+    tabGeneral: "Général", tabModel: "Modèle", tabSources: "Sources",
     tabCategories: "Catégories de conversation", tabEmbed: "Intégration",
     rlFieldLabel: "Bibliothèques de ressources", manage: "Gérer les bibliothèques",
     agentTabDesc: "L'assistant peut proposer des ressources des bibliothèques sélectionnées lorsqu'une demande de l'utilisateur correspond au titre ou à la description d'une ressource.",
-    addLibrary: "Add library", update: "Mettre à jour",
+    addLibrary: "Add library",
     userMsg: "Comment je commence ?", aiMsg: "Bien sûr ! Voici une ressource qui devrait vous aider à démarrer :",
     prev: "Précédent", next: "Suivant", step: "Étape",
     steps: [
@@ -89,7 +89,7 @@ const STRINGS = {
       "Cliquez sur Ajouter pour créer une ressource.",
       "Remplissez Titre, Description, Indices de correspondance et une URL ou un fichier, puis cliquez sur Créer.",
       "Prévisualisez, modifiez ou supprimez une ressource depuis le menu ⋯. Ajoutez-en autant que vous voulez.",
-      "Rattachez la bibliothèque à un agent : onglet Resources → Add library, puis Mettre à jour.",
+      "Rattachez la bibliothèque à un agent : dans son onglet Sources, sous Bibliothèques de ressources, cliquez sur Add library, puis Enregistrez.",
       "Quand un message correspond, l'assistant propose la ressource sous forme de carte.",
     ],
   },
@@ -281,12 +281,12 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
           </div>
         </div>
 
-        <!-- agent editor, Resources tab -->
+        <!-- agent editor, Sources tab (its resource libraries section) -->
         <div class="page" data-page="agentEditor">
           <div class="page-head plain"><span><span class="ttl small">{s.agent1}</span></span></div>
           <div class="tabs">
-            <span class="tab">{s.tabGeneral}</span><span class="tab">{s.tabModel}</span><span class="tab">{s.tabOutput}</span>
-            <span class="tab">{s.tabSources}</span><span class="tab on">{s.tabResources}</span>
+            <span class="tab">{s.tabGeneral}</span><span class="tab">{s.tabModel}</span>
+            <span class="tab on">{s.tabSources}</span>
             <span class="tab">{s.tabCategories}</span><span class="tab">{s.tabEmbed}</span>
           </div>
           <div class="formcard">
@@ -296,7 +296,7 @@ const labels = { prev: s.prev, next: s.next, step: s.step }
               <span class="tag" id="obsTag">{s.libName} <svg viewBox="0 0 24 24" class="tagx"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></span>
               <span class="btn outline sm" id="btnAddLibrary"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg> {s.addLibrary}</span>
             </div>
-            <div class="row" style="justify-content:flex-end; margin-top:1.1rem"><span class="btn">{s.update}</span></div>
+            <div class="row" style="justify-content:flex-end; margin-top:1.1rem"><span class="btn">{s.save}</span></div>
           </div>
         </div>
 

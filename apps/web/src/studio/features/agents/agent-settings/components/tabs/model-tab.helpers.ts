@@ -39,6 +39,7 @@ export function buildModelTabDefaultValues(
     model: agentSettings.model,
     providerOptions: agentSettings.providerOptions,
     priorityCallsEnabled: agentSettings.priorityCallsEnabled,
+    embeddingModel: agentSettings.embeddingModel,
   }
 }
 

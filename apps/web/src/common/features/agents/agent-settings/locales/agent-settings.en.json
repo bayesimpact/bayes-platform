@@ -14,6 +14,7 @@
       "fillFormEnabled": "Form filling",
       "priorityCallsEnabled": "Priority calls",
       "promptVariables": "Prompt variables",
+      "embeddingModel": "Embedding model",
       "schemaBuilder": {
         "advancedMode": "Advanced mode",
         "visualMode": "Visual editor",
@@ -70,6 +71,7 @@
         "greeting": "Optional greeting the agent sends first when a new conversation starts",
         "documentsRagMode": "Select document usage",
         "model": "Select model",
+        "embeddingModel": "Select embedding model",
         "outputJsonSchema": "{\n \"type\": \"object\", \"properties\": {\n    \"field\": { \"type\": \"string\", \"description\": \"blablabla\" }\n  },\n  \"required\": [\"field\"]\n}",
         "temperature": "Enter temperature 0.0 - 2.0",
         "thinkingLevel": "Select thinking level"
@@ -100,7 +102,6 @@
       "model": "Model",
       "output": "Output",
       "sources": "Sources",
-      "resourceLibraries": "Resource libraries",
       "tools": "Tools",
       "categories": "Conversation categories",
       "orchestration": "Orchestration",
@@ -227,9 +228,19 @@
     "source_other": "{{count}} sources",
     "source_zero": "No sources",
     "model": {
+      "generation": {
+        "title": "Answer generation",
+        "description": "The model that writes the agent's answers."
+      },
       "priorityCalls": {
         "title": "Priority calls",
         "description": "Lower and more stable response time, at a higher cost per call."
+      },
+      "embeddingModel": {
+        "title": "Document search",
+        "description": "The model that finds the passages of the project's documents that match each question.",
+        "help": "A model appears once the project finished embedding its documents with it.",
+        "chooseDocuments": "Choose the documents searched"
       }
     },
     "tools": {
@@ -259,6 +270,13 @@
       "embedConfigUpdateError": "Failed to update embed config",
       "subAgentsUpdated": "Sub-agents updated successfully",
       "subAgentsUpdateError": "Failed to update sub-agents"
+    },
+    "sources": {
+      "documents": {
+        "title": "Documents",
+        "description": "The project's documents the agent searches to answer.",
+        "embeddingModel": "Embedding model: {{model}}"
+      }
     }
   }
 }

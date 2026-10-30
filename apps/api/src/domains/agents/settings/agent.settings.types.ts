@@ -35,6 +35,7 @@ export type AgentSettingsCreateFields = Pick<
       | "deletedTemperature"
       | "memoryMode"
       | "variables"
+      | "embeddingModel"
     >
   >
 
@@ -52,5 +53,6 @@ export type AgentSettingsUpdateFields = Partial<
     | "providerOptions"
     | "memoryMode"
     | "variables"
+    | "embeddingModel"
   >
 >

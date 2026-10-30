@@ -14,6 +14,7 @@
       "fillFormEnabled": "Remplissage de formulaire",
       "priorityCallsEnabled": "Appels prioritaires",
       "promptVariables": "Variables de prompt",
+      "embeddingModel": "Modèle d'embedding",
       "schemaBuilder": {
         "advancedMode": "Mode avancé",
         "visualMode": "Éditeur visuel",
@@ -70,6 +71,7 @@
         "greeting": "Message d'accueil facultatif envoyé par l'agent au début d'une nouvelle conversation",
         "documentsRagMode": "Sélectionnez l'usage des documents",
         "model": "Sélectionnez le modèle",
+        "embeddingModel": "Sélectionnez le modèle d'embedding",
         "outputJsonSchema": "{\n \"type\": \"object\", \"properties\": {\n    \"field\": { \"type\": \"string\", \"description\": \"blablabla\" }\n  },\n  \"required\": [\"field\"]\n}",
         "temperature": "Entrez la température 0.0 - 2.0",
         "thinkingLevel": "Choisissez le niveau de réflexion"
@@ -100,7 +102,6 @@
       "model": "Modèle",
       "output": "Sortie",
       "sources": "Sources",
-      "resourceLibraries": "Bibliothèques de ressources",
       "tools": "Outils",
       "categories": "Catégories de conversation",
       "orchestration": "Orchestration",
@@ -227,9 +228,19 @@
     "source_other": "{{count}} sources",
     "source_zero": "Aucune source",
     "model": {
+      "generation": {
+        "title": "Génération des réponses",
+        "description": "Le modèle qui rédige les réponses de l'agent."
+      },
       "priorityCalls": {
         "title": "Appels prioritaires",
         "description": "Temps de réponse plus bas et plus stable, pour un coût par appel plus élevé."
+      },
+      "embeddingModel": {
+        "title": "Recherche dans les documents",
+        "description": "Le modèle qui trouve, dans les documents du projet, les passages liés à chaque question.",
+        "help": "Un modèle apparaît une fois les documents du projet vectorisés avec lui.",
+        "chooseDocuments": "Choisir les documents consultés"
       }
     },
     "tools": {
@@ -259,6 +270,13 @@
       "embedConfigUpdateError": "La mise à jour de la configuration d'intégration a échoué",
       "subAgentsUpdated": "Sous-agents mis à jour avec succès",
       "subAgentsUpdateError": "La mise à jour des sous-agents a échoué"
+    },
+    "sources": {
+      "documents": {
+        "title": "Documents",
+        "description": "Les documents du projet dans lesquels l'agent cherche pour répondre.",
+        "embeddingModel": "Modèle d'embedding : {{model}}"
+      }
     }
   }
 }

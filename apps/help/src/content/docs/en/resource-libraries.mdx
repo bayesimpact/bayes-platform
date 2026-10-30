@@ -4,7 +4,7 @@ highlight: libraries
 description: Create libraries of links and files your agents can surface to users during a conversation, and attach them to an agent.
 category: guides-sources
 order: 3
-updated: 2026-07-22
+updated: 2026-10-30
 ---
 
 import ResourceLibrariesWalkthrough from "@/components/ResourceLibrariesWalkthrough.astro"
@@ -87,13 +87,13 @@ expand the full text in a popover. Build as many specialized libraries as you ne
 
 A library only does something once an agent uses it.
 
-1. Open the agent's editor and go to the **Resources** tab (this tab holds the
-   agent's resource libraries).
+1. Open the agent's editor and go to the **Sources** tab. Its **Resource
+   libraries** section, below **Documents**, holds the agent's resource libraries.
 2. Click **Add library** and pick a library. Attached libraries appear as tags —
    use the **✕** on a tag to detach one.
-3. Click **Update** to save the agent.
+3. Click **Save** to save the tab.
 
-The **Manage libraries** link on this tab opens the manager in a new tab, so you
+The **Manage libraries** link of this section opens the manager in a new tab, so you
 can add or edit resources without leaving the agent editor.
 
 ### 6. What the user sees
@@ -111,7 +111,7 @@ the resource as a card with its title and description, linking to the URL or fil
 ## Troubleshooting
 
 - **An agent isn't surfacing a resource** — confirm the library is attached on the
-  agent's **Resources** tab, that the agent was **Updated** afterwards, and that
+  agent's **Sources** tab, that the tab was **Saved** afterwards, and that
   the title/description or matching hints match how users phrase the request.
 - **Can't save a resource** — a URL must be a valid `https://` address, an uploaded
   file must be within 25 MB, the title is required, and each field must stay within

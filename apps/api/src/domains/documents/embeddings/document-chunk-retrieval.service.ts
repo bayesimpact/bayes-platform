@@ -1,42 +1,63 @@
-import { createVertex } from "@ai-sdk/google-vertex"
+import type { EmbeddingModel } from "@caseai-connect/api-contracts"
 import { Injectable, Logger } from "@nestjs/common"
 import { InjectDataSource } from "@nestjs/typeorm"
-import { embed } from "ai"
+import { trace } from "@opentelemetry/api"
 import { toSql } from "pgvector"
 import type { DataSource, SelectQueryBuilder } from "typeorm"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { DEFAULT_TOP_K } from "@/domains/agents/shared/agent-session-messages/streaming/tools/lookup-knowledge-base.tool"
 import type { RetrievedDocumentChunk } from "./document-chunk.types"
-import { resolveEmbeddingModelNames, resolveVertexConfig } from "./document-embeddings.config"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { EmbedderService } from "./embedders/embedder.service"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { ProjectEmbeddingModelsService } from "./project-embedding-models/project-embedding-models.service"
 
 @Injectable()
 export class DocumentChunkRetrievalService {
   private readonly logger = new Logger(DocumentChunkRetrievalService.name)
 
-  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
+  constructor(
+    @InjectDataSource() private readonly dataSource: DataSource,
+    private readonly projectEmbeddingModelsService: ProjectEmbeddingModelsService,
+    private readonly embedderService: EmbedderService,
+  ) {}
 
   async retrieveTopChunks({
     connectScope,
     query,
     topK = DEFAULT_TOP_K,
     documentTagIds = [],
+    embeddingModel,
   }: {
     connectScope: RequiredConnectScope
     query: string
     topK?: number
     documentTagIds?: string[]
+    /** The agent's model. Undefined means the project's default. */
+    embeddingModel?: EmbeddingModel
   }): Promise<RetrievedDocumentChunk[]> {
     const retrievalQueryText = this.buildRetrievalQueryText({
       query,
     })
-    const modelName = this.resolvePrimaryModelName()
-    if (!modelName) {
+    // The project's ready models, its default first: the only ones with every chunk embedded.
+    const completedModels =
+      await this.projectEmbeddingModelsService.listCompletedModelNames(connectScope)
+    const requestedModel = embeddingModel ?? completedModels[0]
+    const embedded = await this.embedQueryWithAvailableModel({
+      connectScope,
+      query: retrievalQueryText,
+      requestedModel,
+      completedModels,
+    })
+    if (!embedded) {
+      this.reportMissingEmbeddings({ connectScope, requestedModel })
       return []
     }
+    const { modelName, embedding } = embedded
+    this.recordEmbeddingModelOnSpan({ requestedModel, modelName })
 
     const normalizedTopK = this.normalizeTopK(topK)
     const normalizedDocumentTagIds = this.normalizeDocumentTagIds(documentTagIds)
-    const embedding = await this.embedQuery({ query: retrievalQueryText, modelName })
 
     const results = await this.fetchChunksByEmbedding({
       connectScope,
@@ -53,8 +74,82 @@ export class DocumentChunkRetrievalService {
     return results
   }
 
-  private resolvePrimaryModelName(): string | undefined {
-    return resolveEmbeddingModelNames()[0]
+  /**
+   * Shows in the trace which model embedded the query. The AI SDK runs the lookup tool inside an
+   * `ai.toolCall` span, so Phoenix lists these next to the tool's input and output.
+   */
+  private recordEmbeddingModelOnSpan({
+    requestedModel,
+    modelName,
+  }: {
+    requestedModel: string | undefined
+    modelName: string
+  }): void {
+    const activeSpan = trace.getActiveSpan()
+    activeSpan?.setAttribute("ai.telemetry.metadata.embeddingModel", modelName)
+    if (requestedModel && requestedModel !== modelName) {
+      activeSpan?.setAttribute("ai.telemetry.metadata.embeddingFallbackFrom", requestedModel)
+    }
+  }
+
+  /**
+   * Every project has a ready model, so no usable one means the project lost them or every
+   * embedder failed: the answer would come from nothing, so it shows in the logs and the trace.
+   */
+  private reportMissingEmbeddings({
+    connectScope,
+    requestedModel,
+  }: {
+    connectScope: RequiredConnectScope
+    requestedModel: string | undefined
+  }): void {
+    this.logger.warn(
+      `No usable embedding model (requested ${requestedModel ?? "none"}) for project ${connectScope.projectId}: retrieval returns no passage`,
+    )
+    trace.getActiveSpan()?.setAttribute("ai.telemetry.metadata.embeddingModelMissing", true)
+  }
+
+  /**
+   * Embeds the query with the agent's model when the project finished embedding with it, and
+   * otherwise with the next ready model of the project. An embedder failure (down, timeout) moves
+   * to the next model with a warning rather than failing the chat turn: the answer is a little
+   * less relevant, not absent.
+   */
+  private async embedQueryWithAvailableModel({
+    connectScope,
+    query,
+    requestedModel,
+    completedModels,
+  }: {
+    connectScope: RequiredConnectScope
+    query: string
+    requestedModel: string | undefined
+    completedModels: string[]
+  }): Promise<{ modelName: string; embedding: number[] } | undefined> {
+    if (requestedModel && !completedModels.includes(requestedModel)) {
+      this.logger.warn(
+        `Project ${connectScope.projectId} has not finished embedding with ${requestedModel}, trying its other models`,
+      )
+    }
+    const candidateModels = [
+      ...new Set([
+        ...(requestedModel && completedModels.includes(requestedModel) ? [requestedModel] : []),
+        ...completedModels,
+      ]),
+    ]
+    for (const modelName of candidateModels) {
+      try {
+        const embedding = await this.embedderService.embedQuery({ modelName, text: query })
+        return { modelName, embedding }
+      } catch (error) {
+        this.logger.warn(
+          `Query embedding with ${modelName} failed for project ${connectScope.projectId}, trying the next model: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        )
+      }
+    }
+    return undefined
   }
 
   private normalizeTopK(topK: number): number {
@@ -232,22 +327,5 @@ export class DocumentChunkRetrievalService {
 
   private buildRetrievalQueryText({ query }: { query: string }): string {
     return query.trim()
-  }
-
-  private async embedQuery({
-    query,
-    modelName,
-  }: {
-    query: string
-    modelName: string
-  }): Promise<number[]> {
-    const { project, location } = resolveVertexConfig()
-    const vertexProvider = createVertex({ project, location })
-    const embeddingModel = vertexProvider.textEmbeddingModel(modelName)
-    const { embedding } = await embed({
-      model: embeddingModel,
-      value: query,
-    })
-    return embedding
   }
 }
