@@ -1,4 +1,10 @@
-import { PublicChatRoutes, type PublicStreamEventPayload } from "@caseai-connect/api-contracts"
+import {
+  PUBLIC_PATH_PREFIX,
+  type PublicChatV1,
+  PublicChatV1Routes,
+  type PublicChatV2,
+  PublicChatV2Routes,
+} from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import {
   type DynamicModule,
@@ -20,7 +26,7 @@ import {
 } from "@/common/test/test-database"
 import { TransactionModule } from "@/common/transaction/transaction.module"
 import { configureGlobalPrefix } from "@/config/api-prefix"
-import { createEmbedConfigWithSession } from "../../public-chat.factory"
+import { createEmbedConfigWithSession } from "../public-chat.factory"
 
 /**
  * AppModule's imports in its order, read from its metadata so this list never drifts. The
@@ -39,7 +45,7 @@ function appModuleImports(): Array<Type<unknown> | DynamicModule> {
  * The public routes as the API serves them: every module in AppModule's order, the global
  * prefix and the validation pipe of `main.ts`. A route registered earlier can catch a later
  * one with the same method (a `POST .../:id` catches `POST .../stream`), which a test that
- * loads one module never sees.
+ * loads one module never sees. Covers every served major.
  */
 describe("PublicChat - routes in AppModule's order", () => {
   let app: INestApplication<App>
@@ -75,39 +81,70 @@ describe("PublicChat - routes in AppModule's order", () => {
   })
 
   const pathParams = () => ({ embedToken, sessionId })
+  const emptyMessageError = {
+    type: "error",
+    messageId: "",
+    error: "User content must not be empty",
+  }
 
-  it("reaches the POST stream with the message in the body", async () => {
-    // An empty message proves the stream handler answered: only it frames an error as an event.
+  // An empty message proves the stream handler answered: only it frames an error as an event.
+  it("reaches the v2 POST stream with the message in the body", async () => {
     const response = await request(app.getHttpServer())
-      .post(PublicChatRoutes.streamReply.getPath(pathParams()))
+      .post(PublicChatV2Routes.streamReply.getPath(pathParams()))
       .send({ payload: { content: " " } })
       .set("Connection", "close")
       .set("X-Session-Token", sessionToken)
 
     expect(response.status).toBe(200)
     expect(response.headers["content-type"]).toMatch(/^text\/event-stream/)
-    expect(parseSseDataEvents<PublicStreamEventPayload>(response.text)).toEqual([
-      { type: "error", messageId: "", error: "User content must not be empty" },
+    expect(parseSseDataEvents<PublicChatV2.PublicStreamEventPayload>(response.text)).toEqual([
+      emptyMessageError,
     ])
   })
 
-  it("serves no GET stream with the message in the URL", async () => {
+  it("reaches the v1 GET stream with the message in `q`", async () => {
     const response = await request(app.getHttpServer())
-      .get(`/public/v1/agents/${embedToken}/sessions/${sessionId}/messages/stream`)
+      .get(PublicChatV1Routes.streamMessages.getPath(pathParams()))
+      .query({ q: JSON.stringify({ payload: { content: " " } }) })
+      .set("Connection", "close")
+      .set("X-Session-Token", sessionToken)
+
+    expect(response.status).toBe(200)
+    expect(parseSseDataEvents<PublicChatV1.PublicStreamEventPayload>(response.text)).toEqual([
+      emptyMessageError,
+    ])
+  })
+
+  it("creates a session on the other public POST route of each major", async () => {
+    for (const route of [PublicChatV1Routes.createSession, PublicChatV2Routes.createSession]) {
+      const response = await request(app.getHttpServer())
+        .post(route.getPath({ embedToken }))
+        .send({ payload: {} })
+        .set("Connection", "close")
+
+      expect(response.status).toBe(201)
+      expect(response.body.data.sessionId).toEqual(expect.any(String))
+    }
+  })
+
+  it("serves nothing on the unprefixed paths that predated versioning", async () => {
+    const unprefixedBase = `/${PUBLIC_PATH_PREFIX}/agents/${embedToken}`
+    const configResponse = await request(app.getHttpServer())
+      .get(`${unprefixedBase}/config`)
+      .set("Connection", "close")
+    const createSessionResponse = await request(app.getHttpServer())
+      .post(`${unprefixedBase}/sessions`)
+      .send({ payload: {} })
+      .set("Connection", "close")
+    const streamResponse = await request(app.getHttpServer())
+      .get(`${unprefixedBase}/sessions/${sessionId}/messages/stream`)
       .query({ q: JSON.stringify({ payload: { content: "Hello" } }) })
       .set("Connection", "close")
       .set("X-Session-Token", sessionToken)
 
-    expect(response.status).toBe(404)
-  })
-
-  it("still creates a session on the other public POST route", async () => {
-    const response = await request(app.getHttpServer())
-      .post(PublicChatRoutes.createSession.getPath({ embedToken }))
-      .send({ payload: {} })
-      .set("Connection", "close")
-
-    expect(response.status).toBe(201)
-    expect(response.body.data.sessionId).toEqual(expect.any(String))
+    expect(configResponse.status).toBe(404)
+    expect(createSessionResponse.status).toBe(404)
+    expect(streamResponse.status).toBe(404)
+    expect(await repositories.publicAgentSessionRepository.count()).toBe(1)
   })
 })

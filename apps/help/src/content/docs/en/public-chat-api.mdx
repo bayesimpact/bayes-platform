@@ -1,11 +1,11 @@
 ---
 title: Public chat API reference
 highlight: API
-description: Build your own chat client on a public agent. Routes, headers, server-sent events, error codes and limits of the public chat API, version 1.
+description: Build your own chat client on a public agent. Routes, headers, server-sent events, error codes and limits of the public chat API, version 2.
 category: developers
 order: 1
 updated: 2026-10-30
-apiVersion: "1.3"
+apiVersion: "2.0"
 ---
 
 import PublicApiBaseUrl from "@/components/PublicApiBaseUrl.astro"
@@ -34,11 +34,13 @@ This API is a versioned contract. Read the
 
 <PublicApiBaseUrl lang="en" />
 
-All routes of version 1 start with `/public/v1/agents/{embedToken}`.
+All routes of version 2 start with `/public/v2/agents/{embedToken}`.
 
 ## Version
 
-This page documents version **1.3**. The major version is in the path (`v1`). Minor versions
+This page documents version **2.0**. The major version is in the path (`v2`). Version 1
+(`/public/v1/...`) is deprecated and stops on 2027-05-31. The
+[changelog](/en/public-chat-api-changelog#20-2026-10-30) lists the migration steps. Minor versions
 add fields or routes and never change existing ones. The
 [changelog](/en/public-chat-api-changelog) lists every version. Your client must ignore
 unknown fields and unknown event types. This keeps it compatible with future minor versions.
@@ -75,22 +77,22 @@ a new one. On `410`, you can tell the user that the previous conversation expire
 
 | Method | Path | Purpose |
 |---|---|---|
-| `GET` | `/public/v1/agents/{embedToken}/config` | Read the agent's public configuration |
-| `POST` | `/public/v1/agents/{embedToken}/sessions` | Create a session |
-| `GET` | `/public/v1/agents/{embedToken}/sessions/{sessionId}` | Read a session and its messages |
-| `GET` | `/public/v1/agents/{embedToken}/sessions/{sessionId}/mcp-app-html` | Read the HTML of MCP App cards |
-| `POST` | `/public/v1/agents/{embedToken}/sessions/{sessionId}/stream` | Send a message and stream the reply |
+| `GET` | `/public/v2/agents/{embedToken}/config` | Read the agent's public configuration |
+| `POST` | `/public/v2/agents/{embedToken}/sessions` | Create a session |
+| `GET` | `/public/v2/agents/{embedToken}/sessions/{sessionId}` | Read a session and its messages |
+| `GET` | `/public/v2/agents/{embedToken}/sessions/{sessionId}/mcp-app-html` | Read the HTML of MCP App cards |
+| `POST` | `/public/v2/agents/{embedToken}/sessions/{sessionId}/stream` | Send a message and stream the reply |
 
 ### Get the agent configuration
 
 ```
-GET /public/v1/agents/{embedToken}/config
+GET /public/v2/agents/{embedToken}/config
 ```
 
 Returns the branding of the agent. Use it to render your own header.
 
 ```bash
-curl "$API_BASE/public/v1/agents/$EMBED_TOKEN/config"
+curl "$API_BASE/public/v2/agents/$EMBED_TOKEN/config"
 ```
 
 ```json
@@ -118,14 +120,14 @@ Status: `200`. Errors: `401`, `403`.
 ### Create a session
 
 ```
-POST /public/v1/agents/{embedToken}/sessions
+POST /public/v2/agents/{embedToken}/sessions
 ```
 
 Creates a conversation and returns its token. Call it once per visitor, then store
 `sessionId` and `sessionToken`.
 
 ```bash
-curl -X POST "$API_BASE/public/v1/agents/$EMBED_TOKEN/sessions" \
+curl -X POST "$API_BASE/public/v2/agents/$EMBED_TOKEN/sessions" \
   -H "Content-Type: application/json" \
   -d '{ "payload": { "externalVisitorId": "visitor-42" } }'
 ```
@@ -175,7 +177,7 @@ When the agent has a greeting message, the session starts with that message as i
 ### Get a session
 
 ```
-GET /public/v1/agents/{embedToken}/sessions/{sessionId}
+GET /public/v2/agents/{embedToken}/sessions/{sessionId}
 X-Session-Token: {sessionToken}
 ```
 
@@ -242,7 +244,7 @@ Status: `200`. Errors: `401`, `403`, `410`.
 ### Get MCP App card HTML
 
 ```
-GET /public/v1/agents/{embedToken}/sessions/{sessionId}/mcp-app-html
+GET /public/v2/agents/{embedToken}/sessions/{sessionId}/mcp-app-html
 X-Session-Token: {sessionToken}
 ```
 
@@ -270,7 +272,7 @@ Status: `200`. Errors: `401`, `403`, `410`.
 ### Send a message and stream the reply
 
 ```
-POST /public/v1/agents/{embedToken}/sessions/{sessionId}/stream
+POST /public/v2/agents/{embedToken}/sessions/{sessionId}/stream
 X-Session-Token: {sessionToken}
 Content-Type: application/json
 Accept: text/event-stream
@@ -284,7 +286,7 @@ Sends the visitor's message and returns the reply as
 | `payload.content` | string, required | The visitor's message. Must not be empty |
 
 ```bash
-curl -N -X POST "$API_BASE/public/v1/agents/$EMBED_TOKEN/sessions/$SESSION_ID/stream" \
+curl -N -X POST "$API_BASE/public/v2/agents/$EMBED_TOKEN/sessions/$SESSION_ID/stream" \
   -H "X-Session-Token: $SESSION_TOKEN" \
   -H "Content-Type: application/json" \
   -H "Accept: text/event-stream" \
@@ -440,7 +442,7 @@ async function api(path, init = {}) {
 // 1. Create or restore a session
 let session = JSON.parse(localStorage.getItem("chat-session") ?? "null")
 if (!session) {
-  const response = await api(`/public/v1/agents/${EMBED_TOKEN}/sessions`, {
+  const response = await api(`/public/v2/agents/${EMBED_TOKEN}/sessions`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ payload: {} }),
@@ -449,7 +451,7 @@ if (!session) {
   localStorage.setItem("chat-session", JSON.stringify(session))
 }
 
-const sessionPath = `/public/v1/agents/${EMBED_TOKEN}/sessions/${session.sessionId}`
+const sessionPath = `/public/v2/agents/${EMBED_TOKEN}/sessions/${session.sessionId}`
 const sessionHeaders = { "X-Session-Token": session.sessionToken }
 
 // 2. Send a message and stream the reply

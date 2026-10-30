@@ -3,8 +3,8 @@
  *
  * Fails the PR when contract files or the public documentation change without the
  * `public-contract-approved` label set by a maintainer who is not the PR author, when
- * the contract sources change without a `PUBLIC_API_VERSION` bump, or when the
- * documentation does not carry the current version.
+ * the contract sources of a major change without a bump of that major's version
+ * constant, or when the documentation does not carry the version of the newest major.
  *
  * Inputs (env): BASE_SHA, HEAD_SHA (the pull request head; default: working tree),
  * BASE_REF (base branch name, so the diff follows the current tip), PR_LABELS
@@ -26,13 +26,27 @@ const LABEL = "public-contract-approved"
 const MAINTAINERS = ["jdoucy", "alexisjamet", "did", "OlivierDoucy"]
 const RULE = "docs/public-api-contract.md"
 
-const VERSION_FILE = "packages/api-contracts/src/public-chat/public-chat.version.ts"
-const VERSION_PATTERN = /PUBLIC_API_VERSION\s*=\s*"(\d+\.\d+)"/
+const CONTRACTS_DIR = "packages/api-contracts/src/public-chat"
 
-/** Any change here needs the label. A new major (`v2/`) needs its own entry here and in CODEOWNERS. */
+/**
+ * One entry per served major, oldest first. Each bumps its own version constant. The help
+ * pages document the newest major, the last entry.
+ */
+const MAJORS = [1, 2].map((major) => ({
+  constant: `PUBLIC_API_V${major}_VERSION`,
+  versionFile: `${CONTRACTS_DIR}/v${major}/public-chat-v${major}.version.ts`,
+  paths: [`${CONTRACTS_DIR}/v${major}/`],
+}))
+const DOCUMENTED_MAJOR = MAJORS.at(-1)
+
+/** Shared by every major (path prefix, helper types): a change here is a change to each. */
+const SHARED_VERSION_PATHS = [`${CONTRACTS_DIR}/public-chat.`]
+
+/** Any change here needs the label. A new major (`v3/`) needs its own entry here and in CODEOWNERS. */
 const LABEL_PATHS = [
   "packages/api-contracts/src/public-chat/",
   "apps/api/src/domains/public-chat/v1/",
+  "apps/api/src/domains/public-chat/v2/",
   "apps/api/src/domains/public-chat/guards/",
   "apps/api/src/config/cors.ts",
   "apps/help/src/content/docs/en/public-chat-api",
@@ -40,9 +54,6 @@ const LABEL_PATHS = [
   "docs/public-api-contract.md",
   "docs/public-chat-api.md",
 ]
-
-/** A change here is a contract change: it also needs a version bump and a changelog entry. */
-const VERSION_PATHS = ["packages/api-contracts/src/public-chat/"]
 
 const DOC_PAGES = [
   "public-chat-api",
@@ -78,20 +89,22 @@ const touches = (prefixes) =>
   changedFiles.filter((file) => prefixes.some((prefix) => file.startsWith(prefix)))
 
 const labelPathsTouched = touches(LABEL_PATHS)
-const versionPathsTouched = touches(VERSION_PATHS)
 
-const headVersion = existsSync(VERSION_FILE)
-  ? readVersion(readFileSync(VERSION_FILE, "utf8"))
-  : null
-const baseVersion = readVersion(gitShowOrNull(`${diffBase}:${VERSION_FILE}`))
-// Version bump is judged on the PR head, not the merge commit. A bump that
-// already landed on the base must not satisfy a pull request that did not bump.
-const prHeadVersion = process.env.HEAD_SHA
-  ? readVersion(gitShowOrNull(`${headSha}:${VERSION_FILE}`))
-  : headVersion
-if (!headVersion) failures.push(`${VERSION_FILE} does not define PUBLIC_API_VERSION.`)
+for (const major of MAJORS) {
+  major.headVersion = existsSync(major.versionFile)
+    ? readVersion(readFileSync(major.versionFile, "utf8"), major.constant)
+    : null
+  major.baseVersion = readVersion(gitShowOrNull(`${diffBase}:${major.versionFile}`), major.constant)
+  // Version bump is judged on the PR head, not the merge commit. A bump that
+  // already landed on the base must not satisfy a pull request that did not bump.
+  major.prHeadVersion = process.env.HEAD_SHA
+    ? readVersion(gitShowOrNull(`${headSha}:${major.versionFile}`), major.constant)
+    : major.headVersion
+  if (!major.headVersion) failures.push(`${major.versionFile} does not define ${major.constant}.`)
+}
+const headVersion = DOCUMENTED_MAJOR.headVersion
 
-// Always on: the published documentation must carry the code version.
+// Always on: the published documentation must carry the version of the newest major.
 for (const page of DOC_PAGES) {
   if (!existsSync(page)) {
     failures.push(`${page} is missing. The public documentation is part of the contract.`)
@@ -100,7 +113,7 @@ for (const page of DOC_PAGES) {
   const docVersion = readFrontmatterVersion(readFileSync(page, "utf8"))
   if (docVersion !== headVersion) {
     failures.push(
-      `${page}: apiVersion is ${docVersion ?? "missing"}, PUBLIC_API_VERSION is ${headVersion}.`,
+      `${page}: apiVersion is ${docVersion ?? "missing"}, ${DOCUMENTED_MAJOR.constant} is ${headVersion}.`,
     )
   }
 }
@@ -112,7 +125,10 @@ if (labelPathsTouched.length === 0) {
     `Public contract files changed:\n${labelPathsTouched.map((file) => `- ${file}`).join("\n")}`,
   )
   checkLabel()
-  if (versionPathsTouched.length > 0) checkVersionBump()
+  for (const major of MAJORS) {
+    const majorPathsTouched = touches([...major.paths, ...SHARED_VERSION_PATHS])
+    if (majorPathsTouched.length > 0) checkVersionBump(major, majorPathsTouched)
+  }
 }
 
 report()
@@ -166,16 +182,17 @@ function checkLabel() {
   }
 }
 
-function checkVersionBump() {
+function checkVersionBump(major, majorPathsTouched) {
+  const { constant, versionFile, baseVersion, prHeadVersion } = major
   notes.push(
-    `Contract sources changed:\n${versionPathsTouched.map((file) => `- ${file}`).join("\n")}`,
+    `Contract sources of ${constant} changed:\n${majorPathsTouched.map((file) => `- ${file}`).join("\n")}`,
   )
   if (prHeadVersion && prHeadVersion === baseVersion) {
     failures.push(
-      `The contract sources changed but PUBLIC_API_VERSION is still ${prHeadVersion}. Bump it in ${VERSION_FILE}.`,
+      `The contract sources changed but ${constant} is still ${prHeadVersion}. Bump it in ${versionFile}.`,
     )
   } else {
-    notes.push(`PUBLIC_API_VERSION: ${baseVersion ?? "none"} -> ${prHeadVersion}.`)
+    notes.push(`${constant}: ${baseVersion ?? "none"} -> ${prHeadVersion}.`)
   }
   for (const page of CHANGELOG_PAGES) {
     const source = readRevisionFile(headSha, page)
@@ -237,8 +254,9 @@ function gitShowOrNull(ref) {
   }
 }
 
-function readVersion(source) {
-  return source?.match(VERSION_PATTERN)?.[1] ?? null
+function readVersion(source, constant) {
+  const pattern = new RegExp(`${constant}\\s*=\\s*"(\\d+\\.\\d+)"`)
+  return source?.match(pattern)?.[1] ?? null
 }
 
 function readFrontmatterVersion(source) {

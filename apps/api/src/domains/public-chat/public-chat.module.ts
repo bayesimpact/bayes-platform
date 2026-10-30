@@ -16,6 +16,7 @@ import { PublicAgentSessionCategory } from "./public-agent-sessions/public-agent
 import { PublicAgentSessionsService } from "./public-agent-sessions/public-agent-sessions.service"
 import { PublicChatService } from "./public-chat.service"
 import { PublicChatV1Controller } from "./v1/public-chat-v1.controller"
+import { PublicChatV2Controller } from "./v2/public-chat-v2.controller"
 
 @Module({
   imports: [
@@ -39,7 +40,7 @@ import { PublicChatV1Controller } from "./v1/public-chat-v1.controller"
     PublicAgentSessionRepository,
     PublicChatService,
   ],
-  controllers: [PublicChatV1Controller],
+  controllers: [PublicChatV1Controller, PublicChatV2Controller],
   exports: [AgentEmbedConfigsService, PublicAgentSessionRepository, PublicChatService],
 })
 export class PublicChatModule {}

@@ -1,5 +1,6 @@
-import type { RequestPayload, ResponseData } from "../generic"
-import { defineRoute } from "../helpers"
+import type { RequestPayload, ResponseData } from "../../generic"
+import { defineRoute } from "../../helpers"
+import { PUBLIC_PATH_PREFIX } from "../public-chat.prefix"
 import type {
   CreatePublicSessionRequestDto,
   CreatePublicSessionResponseDto,
@@ -8,28 +9,20 @@ import type {
   PublicChatStreamRequestDto,
   PublicMcpAppHtmlDto,
   PublicStreamEventPayload,
-} from "./public-chat.dto"
-import { PUBLIC_API_MAJOR } from "./public-chat.version"
+} from "./public-chat-v2.dto"
+import { PUBLIC_API_V2_MAJOR } from "./public-chat-v2.version"
+
+const agentBasePath = `${PUBLIC_PATH_PREFIX}/${PUBLIC_API_V2_MAJOR}/agents/:embedToken`
+const sessionBasePath = `${agentBasePath}/sessions/:sessionId`
 
 /**
- * Namespace for endpoints callable from arbitrary host pages (embed widget).
- * The API selects its open CORS policy on this prefix (ADR 0015), and their
- * security is enforced by EmbedTokenGuard, not by CORS. Renaming it breaks
- * deployed embed snippets.
+ * Public chat API v2: `/public/v2/agents/:embedToken/...`, a versioned contract with
+ * external integrators (`docs/public-api-contract.md`). New integrations use these paths.
  */
-export const PUBLIC_PATH_PREFIX = "public"
-
-const v1AgentBasePath = `${PUBLIC_PATH_PREFIX}/${PUBLIC_API_MAJOR}/agents/:embedToken`
-const v1SessionBasePath = `${v1AgentBasePath}/sessions/:sessionId`
-
-/**
- * The public chat API is a versioned contract with external integrators:
- * `docs/public-api-contract.md`. Routes live under `/public/v1/agents/:embedToken/...`.
- */
-export const PublicChatRoutes = {
+export const PublicChatV2Routes = {
   getConfig: defineRoute<ResponseData<EmbedPublicConfigDto>>({
     method: "get",
-    path: `${v1AgentBasePath}/config`,
+    path: `${agentBasePath}/config`,
   }),
 
   createSession: defineRoute<
@@ -37,12 +30,12 @@ export const PublicChatRoutes = {
     RequestPayload<CreatePublicSessionRequestDto>
   >({
     method: "post",
-    path: `${v1AgentBasePath}/sessions`,
+    path: `${agentBasePath}/sessions`,
   }),
 
   getSession: defineRoute<ResponseData<PublicAgentSessionDto>>({
     method: "get",
-    path: v1SessionBasePath,
+    path: sessionBasePath,
   }),
 
   /**
@@ -52,7 +45,7 @@ export const PublicChatRoutes = {
    */
   getMcpAppHtml: defineRoute<ResponseData<PublicMcpAppHtmlDto[]>>({
     method: "get",
-    path: `${v1SessionBasePath}/mcp-app-html`,
+    path: `${sessionBasePath}/mcp-app-html`,
   }),
 
   /**
@@ -61,14 +54,13 @@ export const PublicChatRoutes = {
    * `data:` line of the response is one JSON-encoded `PublicStreamEventPayload`; the
    * `ResponseData` wrapper does not apply. Failures reach the client as a
    * `{ type: "error" }` event on a 200 response. The path is not under `messages/` so that
-   * no `POST .../messages/:messageId` route can ever catch it. Replaced the GET
-   * `messages/stream?q=` route of v1 in 1.3.
+   * no `POST .../messages/:messageId` route can ever catch it.
    */
   streamReply: defineRoute<
     ResponseData<PublicStreamEventPayload>,
     RequestPayload<PublicChatStreamRequestDto>
   >({
     method: "post",
-    path: `${v1SessionBasePath}/stream`,
+    path: `${sessionBasePath}/stream`,
   }),
 }

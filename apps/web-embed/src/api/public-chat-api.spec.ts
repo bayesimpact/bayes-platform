@@ -1,8 +1,8 @@
-import type { PublicStreamEventPayload } from "@caseai-connect/api-contracts"
+import type { PublicChatV2 } from "@caseai-connect/api-contracts"
 import { afterEach, describe, expect, it, vi } from "vitest"
 import { ApiError, streamReply } from "./public-chat-api"
 
-const sseResponse = (events: PublicStreamEventPayload[]) => {
+const sseResponse = (events: PublicChatV2.PublicStreamEventPayload[]) => {
   const text = events
     .map((event, index) => `id: ${index + 1}\ndata: ${JSON.stringify(event)}\n\n`)
     .join("")
@@ -12,8 +12,8 @@ const sseResponse = (events: PublicStreamEventPayload[]) => {
   })
 }
 
-const collect = async (stream: AsyncGenerator<PublicStreamEventPayload>) => {
-  const events: PublicStreamEventPayload[] = []
+const collect = async (stream: AsyncGenerator<PublicChatV2.PublicStreamEventPayload>) => {
+  const events: PublicChatV2.PublicStreamEventPayload[] = []
   for await (const event of stream) events.push(event)
   return events
 }
@@ -32,7 +32,7 @@ describe("streamReply", () => {
 
     expect(fetchMock).toHaveBeenCalledTimes(1)
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit]
-    expect(url).toMatch(/\/public\/v1\/agents\/embed-token\/sessions\/session-id\/stream$/)
+    expect(url).toMatch(/\/public\/v2\/agents\/embed-token\/sessions\/session-id\/stream$/)
     expect(url).not.toContain("?")
     expect(url).not.toContain(encodeURIComponent(message))
     expect(init.method).toBe("POST")
@@ -45,7 +45,7 @@ describe("streamReply", () => {
   })
 
   it("yields each data event of the stream in order", async () => {
-    const events: PublicStreamEventPayload[] = [
+    const events: PublicChatV2.PublicStreamEventPayload[] = [
       { type: "start", messageId: "message-1" },
       { type: "chunk", content: "Hello", messageId: "message-1" },
       { type: "end", messageId: "message-1", fullContent: "Hello" },

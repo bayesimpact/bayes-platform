@@ -242,48 +242,4 @@ describe("PublicChat - Auth", () => {
       expect(response.body.data).toEqual([])
     })
   })
-
-  // ──────────────────────────────────────────────────
-  // POST /public/v1/agents/:embedToken/sessions/:sessionId/stream
-  // ──────────────────────────────────────────────────
-  describe("streamReply", () => {
-    const streamPath = () => `/public/v1/agents/${embedToken}/sessions/${sessionId}/stream`
-    const subject = () =>
-      request(app.getHttpServer())
-        .post(streamPath())
-        .send({ payload: { content: "Hello" } })
-        .set("Connection", "close")
-        .set("X-Session-Token", sessionToken ?? "")
-
-    it("returns 401 when embedToken does not exist", async () => {
-      await createContext()
-      embedToken = randomUUID()
-      const response = await subject()
-      expect(response.status).toBe(401)
-    })
-
-    it("returns 401 when X-Session-Token header is missing", async () => {
-      await createContext()
-      const response = await request(app.getHttpServer())
-        .post(streamPath())
-        .send({ payload: { content: "Hello" } })
-        .set("Connection", "close")
-      expect(response.status).toBe(401)
-    })
-
-    it("returns 401 when session token is invalid", async () => {
-      await createContext()
-      sessionToken = "wrong-token"
-      const response = await subject()
-      expect(response.status).toBe(401)
-    })
-
-    it("returns 410 SESSION_EXPIRED when the retention purge emptied the session", async () => {
-      const { session } = await createContext()
-      await repositories.publicAgentSessionRepository.update(session.id, { purgedAt: new Date() })
-      const response = await subject()
-      expect(response.status).toBe(410)
-      expect(response.body.code).toBe("SESSION_EXPIRED")
-    })
-  })
 })

@@ -25,7 +25,7 @@ const docs = defineCollection({
     // Optional publication metadata.
     updated: z.coerce.date().optional(),
     // Version of the public API a reference page documents (`major.minor`). The
-    // `public-contract` CI check keeps it equal to `PUBLIC_API_VERSION` in api-contracts.
+    // `public-contract` CI check keeps it equal to the newest major's `PUBLIC_API_V<n>_VERSION`.
     apiVersion: z
       .string()
       .regex(/^\d+\.\d+$/)

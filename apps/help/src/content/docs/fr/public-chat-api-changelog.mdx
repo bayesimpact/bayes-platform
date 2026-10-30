@@ -5,11 +5,11 @@ description: Chaque version de l'API de chat publique, avec la date, les changem
 category: developers
 order: 3
 updated: 2026-10-30
-apiVersion: "1.3"
+apiVersion: "2.0"
 ---
 
 Cette page liste chaque version de l'API de chat publique. La version courante est la
-**1.3**. Les versions mineures ajoutent des éléments et gardent les clients existants
+**2.0**. Les versions mineures ajoutent des éléments et gardent les clients existants
 fonctionnels. Les versions majeures peuvent casser des clients et viennent avec une période
 de dépréciation. Voir la
 [politique de versions et de dépréciation](/fr/public-chat-api-versioning).
@@ -35,26 +35,35 @@ de dépréciation. Voir la
   - ... (obligatoire pour une version majeure)
 */}
 
-## 1.3 (2026-10-30)
+## 2.0 (2026-10-30)
 
 ### Modifié
 
+- Toutes les routes passent sous `/public/v2/agents/{embedToken}/`. Les requêtes, les
+  réponses et les erreurs gardent la forme de la 1.2, sauf le flux ci-dessous.
 - [Envoyer un message et recevoir la réponse en flux](/fr/public-chat-api#envoyer-un-message-et-recevoir-la-réponse-en-flux)
-  passe par `POST /public/v1/agents/{embedToken}/sessions/{sessionId}/stream`. Le message
+  passe par `POST /public/v2/agents/{embedToken}/sessions/{sessionId}/stream`. Le message
   voyage dans le corps JSON. Il n'atteint donc plus les limites d'URL ni les journaux
   d'accès. La réponse est le même flux.
 - Un corps sans objet `payload` termine le flux avec l'erreur `Invalid request body`.
 
 ### Supprimé
 
-- `GET /public/v1/agents/{embedToken}/sessions/{sessionId}/messages/stream?q=...`. Cette
-  route répond désormais `404`, et l'erreur de flux `Invalid query format` disparaît avec
-  elle.
+- La route `GET .../messages/stream?q=...` et son erreur de flux `Invalid query format`.
+  La v2 ne les sert pas.
+
+### Déprécié
+
+- La version 1 (`/public/v1/...`). Elle répond comme en 1.2 jusqu'au **2027-05-31**. Après
+  cette date, ses chemins répondent `404`.
 
 ### Migration
 
-- Envoyez `{ "payload": { "content": "..." } }` en corps JSON à la route `POST` au lieu du
-  paramètre `q`. Ajoutez l'en-tête `Content-Type: application/json`.
+- Remplacez `/public/v1/` par `/public/v2/` dans chaque URL. Les identifiants et les jetons
+  de session créés sur la v1 restent valables sur la v2.
+- Envoyez le message à `POST .../sessions/{sessionId}/stream` en corps JSON,
+  `{ "payload": { "content": "..." } }`, avec l'en-tête `Content-Type: application/json`,
+  au lieu du paramètre `q` de la route `GET`.
 
 ## 1.2 (2026-10-29)
 

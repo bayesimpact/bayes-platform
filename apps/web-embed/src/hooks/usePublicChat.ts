@@ -1,7 +1,7 @@
 import type {
   AgentSessionMcpAppHtmlDto,
   AgentSessionMessageDto,
-  PublicSessionMessageDto,
+  PublicChatV2,
 } from "@caseai-connect/api-contracts"
 import { useCallback, useEffect, useRef, useState } from "react"
 import {
@@ -52,13 +52,13 @@ function toDisplayMessage(msg: {
   content: string
   status?: string
   createdAt?: number
-  toolCalls?: PublicSessionMessageDto["toolCalls"]
-}): PublicSessionMessageDto {
+  toolCalls?: PublicChatV2.PublicSessionMessageDto["toolCalls"]
+}): PublicChatV2.PublicSessionMessageDto {
   return {
     id: msg.id,
     role: msg.role,
     content: msg.content,
-    status: msg.status as PublicSessionMessageDto["status"],
+    status: msg.status as PublicChatV2.PublicSessionMessageDto["status"],
     createdAt: msg.createdAt ?? Date.now(),
     toolCalls: msg.toolCalls,
   }
@@ -146,7 +146,11 @@ export function usePublicChat(embedToken: string): UsePublicChatResult {
    * already shown; only the placeholders give way to their text.
    */
   const loadMcpAppHtml = useCallback(
-    async (session: StoredSession, thread: PublicSessionMessageDto[], nonce: number) => {
+    async (
+      session: StoredSession,
+      thread: PublicChatV2.PublicSessionMessageDto[],
+      nonce: number,
+    ) => {
       if (!hasMcpAppPointer(thread)) return
       setMcpAppHtml((prev) => ({ ...prev, isLoading: true }))
       try {

@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto"
-import { PublicChatRoutes, type StreamEventPayload } from "@caseai-connect/api-contracts"
+import type { StreamEventPayload } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
 import request from "supertest"
@@ -19,7 +19,7 @@ import { AISDKMockProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mock.p
 import { createEmbedConfigWithSession } from "../../public-chat.factory"
 import { PublicChatModule } from "../../public-chat.module"
 
-describe("PublicChat - streamReply", () => {
+describe("PublicChat - streamMessages", () => {
   let app: INestApplication<App>
   let repositories: AllRepositories
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
@@ -57,76 +57,27 @@ describe("PublicChat - streamReply", () => {
     return context
   }
 
-  /** The message travels in the body, never in the URL. */
-  const rawSubject = (body: unknown) =>
+  const subject = (content: string) =>
     request(app.getHttpServer())
-      .post(PublicChatRoutes.streamReply.getPath({ embedToken, sessionId }))
-      .send(body as object)
+      .get(`/public/v1/agents/${embedToken}/sessions/${sessionId}/messages/stream`)
+      .query({ q: JSON.stringify({ payload: { content } }) })
       .set("Connection", "close")
       .set("X-Session-Token", sessionToken)
-
-  const subject = (content: string) => rawSubject({ payload: { content } })
-
-  const streamedText = (text: string) =>
-    parseSseDataEvents<StreamEventPayload>(text)
-      .filter((event) => event.type === "chunk")
-      .map((event) => event.content)
-      .join("")
 
   it("should stream the response", async () => {
     await createContext()
 
     const response = await subject("Hello")
     expect(response.status).toBe(200)
-    expect(response.headers["content-type"]).toMatch(/^text\/event-stream/)
-    expect(streamedText(response.text)).toBe("Hello, I'm the stream default mock value!")
 
-    const userMessages = await repositories.agentMessageRepository.findBy({
-      sessionId,
-      role: "user",
-    })
-    expect(userMessages.map((message) => message.content)).toEqual(["Hello"])
-  })
+    const events = parseSseDataEvents<StreamEventPayload>(response.text)
+    expect(events.length).toBeGreaterThan(0)
 
-  it("no longer reads a message sent in the URL of the GET route removed in 1.3", async () => {
-    await createContext()
-
-    const response = await request(app.getHttpServer())
-      .get(`/public/v1/agents/${embedToken}/sessions/${sessionId}/messages/stream`)
-      .query({ q: JSON.stringify({ payload: { content: "Hello" } }) })
-      .set("Connection", "close")
-      .set("X-Session-Token", sessionToken)
-
-    expect(response.status).toBe(404)
-    expect(await repositories.agentMessageRepository.count()).toBe(0)
-  })
-
-  it("answers a body without a payload object with one error event inside the stream", async () => {
-    await createContext()
-
-    for (const body of [{}, { payload: null }, { payload: { content: 42 } }]) {
-      const response = await rawSubject(body)
-      expect(response.status).toBe(200)
-      expect(parseSseDataEvents<StreamEventPayload>(response.text)).toEqual([
-        { type: "error", messageId: "", error: "Invalid request body" },
-      ])
-    }
-    expect(await repositories.agentMessageRepository.count()).toBe(0)
-  })
-
-  it("does not read a message sent in the URL of the POST", async () => {
-    await createContext()
-
-    const response = await request(app.getHttpServer())
-      .post(PublicChatRoutes.streamReply.getPath({ embedToken, sessionId }))
-      .query({ q: JSON.stringify({ payload: { content: "Hello" } }) })
-      .set("Connection", "close")
-      .set("X-Session-Token", sessionToken)
-
-    expect(parseSseDataEvents<StreamEventPayload>(response.text)).toEqual([
-      { type: "error", messageId: "", error: "Invalid request body" },
-    ])
-    expect(await repositories.agentMessageRepository.count()).toBe(0)
+    const fulltextStream = events
+      .filter((event) => event.type === "chunk")
+      .map((event) => event.content)
+      .join("")
+    expect(fulltextStream).toBe("Hello, I'm the stream default mock value!")
   })
 
   it("persists the classified title and categories on the PUBLIC session (#616)", async () => {
