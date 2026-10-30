@@ -12,6 +12,7 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import type { Agent } from "@/domains/agents/agent.entity"
+import { ConversationAgentSessionsModule } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.module"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import type { Organization } from "@/domains/organizations/organization.entity"
 import { createOrganizationWithAgentSession } from "@/domains/organizations/organization.factory"
@@ -35,7 +36,9 @@ describe("AgentSessionMessagesRoutes.stream", () => {
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
-      additionalImports: [StreamingModule],
+      // In AppModule's order: the messages routes register first, so a stream path they also
+      // match (`POST .../messages/:messageId`) would never reach the stream.
+      additionalImports: [ConversationAgentSessionsModule, StreamingModule],
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()

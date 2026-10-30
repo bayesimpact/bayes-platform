@@ -17,7 +17,8 @@ import {
 } from "./conversations.dto"
 
 const conversationPath = `${AGENT_PATH}/conversation-agent-sessions/live/:agentSessionId`
-const messagesPath = `${AGENT_PATH}/agent-sessions/live/:agentSessionId/messages`
+const sessionPath = `${AGENT_PATH}/agent-sessions/live/:agentSessionId`
+const messagesPath = `${sessionPath}/messages`
 
 /** A person's live conversations with a conversation agent. */
 export const DeskConversationsRoutes = {
@@ -75,7 +76,7 @@ export const DeskConversationsRoutes = {
   /** Sends a message and streams the replies, as server-sent events. */
   streamReply: defineStreamRoute({
     method: "post",
-    path: `${messagesPath}/stream`,
+    path: `${sessionPath}/stream`,
     params: conversationParamsSchema,
     body: replyInputSchema,
     event: replyStreamEventSchema,

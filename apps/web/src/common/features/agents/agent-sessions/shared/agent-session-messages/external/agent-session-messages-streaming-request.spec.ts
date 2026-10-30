@@ -47,7 +47,7 @@ describe("buildStreamRequest", () => {
     const { url } = buildStreamRequest({ ...params, content: "Hello" })
 
     expect(new URL(url).pathname).toBe(
-      "/organizations/org-1/projects/project-1/agents/agent-1/agent-sessions/live/session-1/messages/stream",
+      "/organizations/org-1/projects/project-1/agents/agent-1/agent-sessions/live/session-1/stream",
     )
   })
 
@@ -55,7 +55,7 @@ describe("buildStreamRequest", () => {
     const { url } = buildStreamRequest({ ...params, type: "playground", content: "Hello" })
 
     expect(new URL(url).pathname).toBe(
-      "/organizations/org-1/projects/project-1/agents/agent-1/agent-sessions/playground/session-1/messages/stream",
+      "/organizations/org-1/projects/project-1/agents/agent-1/agent-sessions/playground/session-1/stream",
     )
   })
 })

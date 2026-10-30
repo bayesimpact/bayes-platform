@@ -117,7 +117,7 @@ When a user opens the playground:
 
 The playground chat uses a **streaming endpoint** for LLM responses:
 
-- **Route**: `POST .../agent-sessions/{live,playground,review_campaign_tester}/:agentSessionId/messages/stream`, with the message in the body (`{ payload: { content } }`), never in the URL
+- **Route**: `POST .../agent-sessions/{live,playground,review_campaign_tester}/:agentSessionId/stream`, with the message in the body (`{ payload: { content } }`), never in the URL
 - **Controller**: `agentSessionStreamingController.streamPlayground`
   - Decorated with `@Sse()` for Server-Sent Events
   - Protected by `JwtAuthGuard` and `UserGuard`
