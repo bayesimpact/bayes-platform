@@ -7,6 +7,10 @@
     "storybook-ui": {
       "type": "http",
       "url": "http://localhost:6008/mcp"
+    },
+    "storybook-desk": {
+      "type": "http",
+      "url": "http://localhost:6009/mcp"
     }
   }
 }

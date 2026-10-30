@@ -9,6 +9,7 @@ export function generateMasterPrompt({
   toolNames,
   handoff,
   contextSections,
+  hasChatInterfacePrompt,
 }: {
   agent: Agent
   agentSettings: AgentSettings
@@ -18,6 +19,8 @@ export function generateMasterPrompt({
   handoff?: { parentAgentName: string }
   /** Sections built from the conversation's state (sub-agent outcomes, known facts). */
   contextSections?: string[]
+  /** Whether the project explains the chat interface to its agents (its `chat-interface-prompt` flag). */
+  hasChatInterfacePrompt?: boolean
 }): string {
   switch (agent.type) {
     case "conversation":
@@ -28,6 +31,7 @@ export function generateMasterPrompt({
         toolDescriptions,
         handoff,
         contextSections,
+        hasChatInterfacePrompt,
       })
     default:
       throw new Error(`Unsupported agent type: ${agent.type}`)

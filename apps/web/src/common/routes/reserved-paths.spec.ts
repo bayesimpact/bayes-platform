@@ -7,7 +7,6 @@ import {
   BackofficeRoutes,
   BackofficeUserRoutes,
 } from "@/backoffice/routes/helpers"
-import { DeskRoutes } from "@/desk/routes/helpers"
 import { EvalRoutes } from "@/eval/routes/helpers"
 import { ReviewerRoutes } from "@/reviewer/routes/helpers"
 import { StudioRoutes } from "@/studio/routes/helpers"
@@ -29,7 +28,6 @@ const clientPaths: string[] = [
     BackofficeAgentRoutes,
     BackofficeProjectRoutes,
     BackofficePermissionsRoutes,
-    DeskRoutes,
     EvalRoutes,
     ReviewerRoutes,
     StudioRoutes,

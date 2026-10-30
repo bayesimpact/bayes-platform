@@ -25,12 +25,9 @@ import { ADS } from "@/common/store/async-data-status"
 import { useAppSelector } from "@/common/store/hooks"
 import { buildSince } from "@/common/utils/build-date"
 import { toAppHref } from "@/config/runtime-config"
-import type { DeskRoutes } from "@/desk/routes/helpers"
 import type { StudioRoutes } from "@/studio/routes/helpers"
 
-type BuildPath =
-  | (typeof StudioRoutes)["agentSession"]["build"]
-  | (typeof DeskRoutes)["agentSession"]["build"]
+type BuildPath = (typeof StudioRoutes)["agentSession"]["build"]
 export function BreadcrumbAgentSession({
   organizationId,
   buildPath,
@@ -79,9 +76,7 @@ function WithData({
   organizationId: string
   currentSession: ConversationAgentSession
   sessions: ConversationAgentSession[]
-  buildPath:
-    | (typeof StudioRoutes)["agentSession"]["build"]
-    | (typeof DeskRoutes)["agentSession"]["build"]
+  buildPath: (typeof StudioRoutes)["agentSession"]["build"]
 }) {
   const projectId = useAppSelector(selectCurrentProjectId)
   const currentSessionName = buildSince(currentSession.createdAt)

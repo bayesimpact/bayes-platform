@@ -7,7 +7,7 @@ import { Test } from "@nestjs/testing"
 import request from "supertest"
 import { configureGlobalPrefix } from "@/config/api-prefix"
 import { registerWebApp } from "./web-app.middleware"
-import { getWebAppSettings } from "./web-app-config"
+import { getDeskAppSettings, getWebAppSettings } from "./web-app-config"
 
 @Controller("ping")
 class PrivatePingController {
@@ -38,14 +38,31 @@ function buildDist(): string {
   return distDir
 }
 
-async function createApp(distDir: string | null): Promise<NestExpressApplication> {
+function buildDeskDist(): string {
+  const distDir = mkdtempSync(join(tmpdir(), "desk-app-dist-"))
+  mkdirSync(join(distDir, "assets"))
+  mkdirSync(join(distDir, "theme"))
+  writeFileSync(
+    join(distDir, "index.html"),
+    "<html><head><title>Desk</title></head><body>desk entry</body></html>",
+  )
+  writeFileSync(join(distDir, "assets", "index-def456.js"), "console.log(2)")
+  writeFileSync(join(distDir, "theme", "theme.css"), ":root {}")
+  return distDir
+}
+
+async function createApp(
+  distDir: string | null,
+  deskDistDir: string | null = null,
+): Promise<NestExpressApplication> {
   const settings = distDir ? getWebAppSettings({ WEB_APP_DIST_DIR: distDir }) : null
+  const deskSettings = deskDistDir ? getDeskAppSettings({ DESK_APP_DIST_DIR: deskDistDir }) : null
   const module = await Test.createTestingModule({
     controllers: [PrivatePingController, PublicPingController],
   }).compile()
   const app = module.createNestApplication<NestExpressApplication>()
   configureGlobalPrefix(app)
-  registerWebApp(app, settings)
+  registerWebApp(app, settings, deskSettings)
   await app.init()
   return app
 }
@@ -145,6 +162,63 @@ describe("registerWebApp", () => {
     expect((await request(app.getHttpServer()).post("/studio").send({})).status).toBe(404)
     const json = await request(app.getHttpServer()).get("/studio").accept("application/json")
     expect(json.status).toBe(404)
+  })
+})
+
+describe("registerWebApp with the Desk", () => {
+  const previousEnv = { ...process.env }
+  let app: NestExpressApplication
+
+  beforeAll(async () => {
+    process.env.WEB_OIDC_CLIENT_ID = "spa-client"
+    process.env.WEB_HELP_CENTER_URL = "https://help.example.org"
+    app = await createApp(buildDist(), buildDeskDist())
+  })
+
+  afterAll(async () => {
+    process.env = previousEnv
+    await app.close()
+  })
+
+  it("serves the Desk's entry page, with the injected configuration, for its pages", async () => {
+    for (const path of ["/app/", "/app/o/1/p/2/a/3/as/4"]) {
+      const response = await request(app.getHttpServer()).get(path).accept("text/html")
+      expect(response.status).toBe(200)
+      expect(response.text).toContain("desk entry")
+      expect(response.text).toContain('"oidcClientId":"spa-client"')
+      expect(response.text).toContain('"helpCenterUrl":"https://help.example.org"')
+      expect(response.headers["cache-control"]).toBe("no-store")
+      expect(response.headers["permissions-policy"]).toBe("microphone=(self)")
+    }
+  })
+
+  it("redirects /app to the Desk's base, with its query", async () => {
+    const response = await request(app.getHttpServer()).get("/app?login_hint=a").accept("text/html")
+    expect(response.status).toBe(301)
+    expect(response.headers.location).toBe("/app/?login_hint=a")
+  })
+
+  it("serves the Desk's files, its hashed assets as immutable", async () => {
+    const asset = await request(app.getHttpServer()).get("/app/assets/index-def456.js")
+    expect(asset.status).toBe(200)
+    expect(asset.headers["cache-control"]).toBe("public, max-age=31536000, immutable")
+    const theme = await request(app.getHttpServer()).get("/app/theme/theme.css")
+    expect(theme.status).toBe(200)
+    expect(theme.headers["cache-control"]).toBe("public, max-age=300")
+  })
+
+  it("answers a missing asset with a 404, never with an entry page", async () => {
+    const response = await request(app.getHttpServer())
+      .get("/app/assets/old-chunk.js")
+      .accept("*/*")
+    expect(response.status).toBe(404)
+    expect(response.text).not.toContain("entry")
+  })
+
+  it("keeps the web front everywhere else", async () => {
+    const response = await request(app.getHttpServer()).get("/application").accept("text/html")
+    expect(response.text).toContain("<title>AgentStudio</title>")
+    expect((await request(app.getHttpServer()).get("/assets/index-abc123.js")).status).toBe(200)
   })
 })
 

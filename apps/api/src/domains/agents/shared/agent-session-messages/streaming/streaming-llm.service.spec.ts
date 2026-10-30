@@ -301,6 +301,41 @@ describe("StreamingLLMService", () => {
     expect(fulltextStream).toBe(`Hello, I'm the stream default mock value!`)
   })
 
+  describe("buildLLMRequest - the chat interface section of the prompt", () => {
+    const systemPromptOf = async (agentSessionScope: AgentSessionScope) => {
+      const buildLLMConfig = jest.fn().mockReturnValue({} as LLMConfig)
+      await agentLlmRequestService.buildLLMRequest({
+        agentSessionScope,
+        onToolExecute: () => undefined,
+        getProviderForModel: jest.fn().mockReturnValue({} as LLMProvider),
+        buildLLMConfig,
+      })
+      return String(buildLLMConfig.mock.calls[0]?.[0]?.systemPrompt)
+    }
+
+    it("explains the chat interface to the agent when its project has the flag", async () => {
+      const { connectScope, project, agent, agentSettings, session } =
+        await createContextWithSession()
+      await addFeature({
+        featureFlagRepository: repositories.featureFlagRepository,
+        projectId: project.id,
+        featureFlagKey: "chat-interface-prompt",
+      })
+
+      const systemPrompt = await systemPromptOf({ connectScope, session, agent, agentSettings })
+
+      expect(systemPrompt).toContain("## The chat interface")
+    })
+
+    it("leaves it out of the prompt without the flag", async () => {
+      const { connectScope, agent, agentSettings, session } = await createContextWithSession()
+
+      const systemPrompt = await systemPromptOf({ connectScope, session, agent, agentSettings })
+
+      expect(systemPrompt).not.toContain("## The chat interface")
+    })
+  })
+
   describe("buildLLMRequest - with a pdf document - Gemma/MedGemma image-only models", () => {
     afterEach(() => {
       jest.restoreAllMocks()

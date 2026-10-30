@@ -16,7 +16,6 @@ import { useNavigate } from "react-router-dom"
 import type { Organization } from "@/common/features/organizations/organizations.models"
 import { RouteNames } from "@/common/routes/helpers"
 import { publicAssetUrl } from "@/config/runtime-config"
-import type { DeskRoutes } from "@/desk/routes/helpers"
 import { isStudioInterface, type StudioRoutes } from "@/studio/routes/helpers"
 import { NavUserMenuItems, type UserMenuDialog, UserMenuDialogs } from "./nav/NavUserMenuItems"
 import { SidebarBreadcrumb } from "./SidebarBreadcrumb"
@@ -37,7 +36,7 @@ export function SidebarLayout({
   sidebarContentChildren?: React.ReactNode
   sidebarFooterChildren?: React.ReactNode
   hideIcon?: boolean
-  routes?: typeof StudioRoutes | typeof DeskRoutes
+  routes?: typeof StudioRoutes
   defaultOpen?: boolean
 }) {
   const [openDialog, setOpenDialog] = useState<UserMenuDialog | null>(null)

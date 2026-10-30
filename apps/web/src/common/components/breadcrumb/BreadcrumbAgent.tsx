@@ -17,7 +17,6 @@ import { useValue } from "@/common/hooks/use-value"
 import { ADS } from "@/common/store/async-data-status"
 import { useAppSelector } from "@/common/store/hooks"
 import { toAppHref } from "@/config/runtime-config"
-import type { DeskRoutes } from "@/desk/routes/helpers"
 import type { StudioRoutes } from "@/studio/routes/helpers"
 
 export function BreadcrumbAgent({
@@ -25,7 +24,7 @@ export function BreadcrumbAgent({
   buildPath,
 }: {
   organizationId: string
-  buildPath: (typeof StudioRoutes)["agent"]["build"] | (typeof DeskRoutes)["agent"]["build"]
+  buildPath: (typeof StudioRoutes)["agent"]["build"]
 }) {
   const agents = useValue(selectAgentsData)
   const agent = useAppSelector(selectCurrentAgentData)
@@ -87,7 +86,7 @@ function CurrentAgentButton({
 }: {
   agent: Agent
   organizationId: string
-  buildPath: (typeof StudioRoutes)["agent"]["build"] | (typeof DeskRoutes)["agent"]["build"]
+  buildPath: (typeof StudioRoutes)["agent"]["build"]
 }) {
   const currentAgentPath = buildPath({
     organizationId,

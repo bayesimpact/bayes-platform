@@ -1,0 +1,12 @@
+language js
+
+// A component reads with useSuspenseQuery, from a query its loader started. useQuery is the
+// exception the conventions allow, which a `// useQuery:` comment in the same function justifies.
+`useQuery($options)` as $call where {
+  $call <: within or {
+    `function $name($params) { $body }`,
+    `($params) => { $body }`
+  } as $function ,
+  $function <: not r"(?s).*// useQuery: .*",
+  register_diagnostic(span=$call, message="Read with useSuspenseQuery, from a query the route's loader starts. useQuery is an exception (a conditional query, optional data, live search): justify it in a `// useQuery: <why>` comment just above.", severity="error")
+}

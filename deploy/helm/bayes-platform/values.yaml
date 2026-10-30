@@ -370,7 +370,9 @@ phoenix:
 # Runtime configuration of the web front, handed to the browser by the API as
 # window.__CONFIG__ (apps/api/src/common/web-app). The API fills the OIDC
 # authority and audience from its own OIDC_* settings, and the API URL is /api
-# on the page origin. WEB_AGENT_EMBED_URL and WEB_HELP_CENTER_URL come from
+# on the page origin. The Desk, served at /app, gets the same configuration and
+# signs in with the same client: register <origin>/app/auth/callback (sign-in)
+# and <origin>/app/ (sign-out) with the identity provider. WEB_AGENT_EMBED_URL and WEB_HELP_CENTER_URL come from
 # `urls`. WEB_OIDC_CLIENT_ID is the SPA public client: always required.
 web:
   env:
@@ -382,7 +384,10 @@ web:
     WEB_HELP_AGENT_EMBED_HINT: ""
   # Where the image keeps the built front (WEB_APP_DIST_DIR of the app image).
   distDir: /app/apps/web/dist
-  # Tenant theme, mounted over dist/theme of the image: the accent color
+  # Where it keeps the built Desk, served at /app (DESK_APP_DIST_DIR).
+  deskDistDir: /app/apps/desk/dist
+  # Tenant theme, mounted over dist/theme of the image, the web front's and
+  # the Desk's: the accent color
   # (theme.css, `--primary`), the logo of the sidebar and onboarding, the
   # favicon. Disabled, the image's files apply (a dev default color, a
   # placeholder logo). Enabled, give all three.
