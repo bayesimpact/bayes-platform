@@ -4,7 +4,7 @@ highlight: conversation
 description: Create a conversation agent that chats with users, grounded in your workspace's documents and resource libraries.
 category: guides-agents
 order: 1
-updated: 2026-07-22
+updated: 2026-10-30
 ---
 
 import AddConversationAgentWalkthrough from "@/components/AddConversationAgentWalkthrough.astro"
@@ -21,8 +21,8 @@ workspace overview (or the **+** next to **Agents** in the left sidebar).
 ## How the editor works
 
 Once created, the agent opens in an editor with tabs — for a conversation agent:
-**General**, **Model**, **Sources**, **Resource libraries**, and (when they're
-available) **Conversation categories**, [**Orchestration**](/en/agent-orchestration) and [**Embed**](/en/agent-embed).
+**General**, **Model**, **Sources** (documents and resource libraries), and (when
+they're available) **Conversation categories**, [**Orchestration**](/en/agent-orchestration) and [**Embed**](/en/agent-embed).
 **Each tab is its own form and saves on its own** — click **Save** on a tab to keep
 its changes; the editor warns you before you leave a tab with unsaved changes.
 
@@ -68,22 +68,25 @@ peak hours. Priority calls cost about 1.8x the standard token price. The toggle 
 appears when the option is enabled for your workspace; contact the Bayes team to
 request it.
 
-### 6. Sources
+### 6. Sources: documents
 
-Open the **Sources** tab and set the **Answer source**:
+Open the **Sources** tab. Its first section, **Documents**, sets what the agent
+searches to answer. Choose the **Answer source**:
 
 - **Answer from model knowledge only** — no documents consulted.
 - **Search across all documents** — every document in the workspace.
 - **Search by document tags** — only documents with the **Document Tags** you pick.
 
-**Save**. See [Documents](/en/documents) to upload and tag documents first.
+See [Documents](/en/documents) to upload and tag documents first.
 
-### 7. Resource libraries
+### 7. Sources: resource libraries
 
-Open the **Resource libraries** tab to attach the **libraries** the agent can
-surface during a conversation. Click **Add library**, pick one, and it appears as a
-tag. Use **Manage libraries** to open the library manager. **Save**. See
-[Resource libraries](/en/resource-libraries) to create them first.
+Still in the **Sources** tab, the **Resource libraries** section attaches the
+**libraries** the agent can surface during a conversation. Click **Add library**,
+pick one, and it appears as a tag. Use **Manage libraries** to open the library
+manager. Click **Save** once for the whole tab: it keeps the documents and the
+libraries together. See [Resource libraries](/en/resource-libraries) to create them
+first.
 
 ### 8. Conversation categories
 

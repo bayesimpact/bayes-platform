@@ -4,7 +4,7 @@ highlight: Bibliothèques
 description: Créez des bibliothèques de liens et de fichiers que vos agents peuvent proposer aux utilisateurs pendant une conversation, et rattachez-les à un agent.
 category: guides-sources
 order: 3
-updated: 2026-07-22
+updated: 2026-10-30
 ---
 
 import ResourceLibrariesWalkthrough from "@/components/ResourceLibrariesWalkthrough.astro"
@@ -95,14 +95,15 @@ bibliothèques spécialisées que nécessaire.
 
 Une bibliothèque ne sert que lorsqu'un agent l'utilise.
 
-1. Ouvrez l'éditeur de l'agent et allez dans l'onglet **Resources** (cet onglet
-   contient les bibliothèques de ressources de l'agent).
+1. Ouvrez l'éditeur de l'agent et allez dans l'onglet **Sources**. Sa section
+   **Bibliothèques de ressources**, sous **Documents**, contient les bibliothèques
+   de ressources de l'agent.
 2. Cliquez sur **Add library** et choisissez une bibliothèque. Les bibliothèques
    rattachées apparaissent sous forme d'étiquettes — utilisez le **✕** d'une
    étiquette pour la détacher.
-3. Cliquez sur **Mettre à jour** pour enregistrer l'agent.
+3. Cliquez sur **Enregistrer** pour enregistrer l'onglet.
 
-Le lien **Gérer les bibliothèques** de cet onglet ouvre le gestionnaire dans un
+Le lien **Gérer les bibliothèques** de cette section ouvre le gestionnaire dans un
 nouvel onglet, pour ajouter ou modifier des ressources sans quitter l'éditeur.
 
 ### 6. Ce que voit l'utilisateur
@@ -122,8 +123,8 @@ pointant vers l'URL ou le fichier.
 ## Dépannage
 
 - **Un agent ne propose pas une ressource** — vérifiez que la bibliothèque est
-  rattachée dans l'onglet **Resources** de l'agent, que l'agent a bien été
-  **Mis à jour** ensuite, et que le titre/la description ou les indices de
+  rattachée dans l'onglet **Sources** de l'agent, que l'onglet a bien été
+  **Enregistré** ensuite, et que le titre/la description ou les indices de
   correspondance reflètent la formulation des utilisateurs.
 - **Impossible d'enregistrer une ressource** — une URL doit être une adresse
   `https://` valide, un fichier téléversé doit respecter 25 Mo, le titre est
