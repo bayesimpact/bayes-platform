@@ -190,7 +190,8 @@ services:
       dev.worktree.service: init
 
   # Copies the source database into connect_wt_<name> and creates an empty test database.
-  # Does nothing when they exist.
+  # Does nothing when they exist, except drop a test database that lacks a migration of the
+  # branch, so that migrate builds it again (see README.md).
   db:
     image: pgvector/pgvector:pg17
     restart: "no"
