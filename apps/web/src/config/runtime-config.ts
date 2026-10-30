@@ -37,11 +37,6 @@ export type RuntimeConfig = {
    * `{"organization":"org_123"}` for an Auth0 organization.
    */
   oidcAuthorizationParams?: string
-  defaultConversationAgentPrompt?: string
-  defaultFormAgentPrompt?: string
-  defaultFormAgentSchema?: string
-  defaultExtractionAgentPrompt?: string
-  defaultExtractionAgentSchema?: string
   /** Deployed image tag (`26.10.7`, `main-1234-abc1234`), set by the deployment. */
   appVersion?: string
   /** Commit the image was built from. */
@@ -73,11 +68,6 @@ function readBuildTimeConfig(): RuntimeConfig {
     oidcAudience: env.VITE_OIDC_AUDIENCE,
     oidcScope: env.VITE_OIDC_SCOPE,
     oidcAuthorizationParams: env.VITE_OIDC_AUTHORIZATION_PARAMS,
-    defaultConversationAgentPrompt: env.VITE_DEFAULT_CONVERSATION_AGENT_PROMPT,
-    defaultFormAgentPrompt: env.VITE_DEFAULT_FORM_AGENT_PROMPT,
-    defaultFormAgentSchema: env.VITE_DEFAULT_FORM_AGENT_SCHEMA,
-    defaultExtractionAgentPrompt: env.VITE_DEFAULT_EXTRACTION_AGENT_PROMPT,
-    defaultExtractionAgentSchema: env.VITE_DEFAULT_EXTRACTION_AGENT_SCHEMA,
     appVersion: env.VITE_APP_VERSION,
     gitSha: env.VITE_GIT_SHA,
   }
