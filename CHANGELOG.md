@@ -13,6 +13,16 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Fixed
 
+### Security
+
+## [26.10.10] - 2026-10-31
+
+### Added
+
+### Changed
+
+### Fixed
+
 - Documents: PDFs that contain images now embed again instead of failing during text recognition.
 
 ### Security
