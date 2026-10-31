@@ -40,7 +40,7 @@ import { FeatureFlag } from "@/domains/feature-flags/feature-flag.entity"
 import { Invitation } from "@/domains/invitations/invitation.entity"
 import { AgentMcpServer } from "@/domains/mcp-servers/agent-mcp-server.entity"
 import { McpServer } from "@/domains/mcp-servers/mcp-server.entity"
-import { UserMembership } from "@/domains/memberships/user-membership.entity"
+import { RoleGrant } from "@/domains/memberships/role-grant.entity"
 import { OAuthAuthorizationCode } from "@/domains/oauth/oauth-authorization-code.entity"
 import { OAuthClient } from "@/domains/oauth/oauth-client.entity"
 import { OAuthGrant } from "@/domains/oauth/oauth-grant.entity"
@@ -108,7 +108,7 @@ export const ALL_ENTITIES = [
   OAuthGrant,
   OAuthRefreshToken,
   Organization,
-  UserMembership,
+  RoleGrant,
   Project,
   AgentEmbedConfig,
   PublicAgentSession,

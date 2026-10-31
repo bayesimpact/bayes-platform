@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto"
 import { Factory } from "fishery"
 import type { AllRepositories } from "@/common/test/test-transaction-manager"
-import { saveUserMembershipRows } from "@/domains/memberships/user-membership.factory"
+import { saveRoleGrantRows } from "@/domains/memberships/role-grant.factory"
 import { AGENT_ROLES } from "@/domains/rbac/rbac.constants"
 import type { User } from "@/domains/users/user.entity"
 import { userFactory } from "@/domains/users/user.factory"
@@ -47,7 +47,7 @@ export const agentMembershipFactory = AgentMembershipFactory.define(
 )
 
 /**
- * Saves an agent membership to `user_membership`, one row per role key.
+ * Saves an agent membership to `role_grant`, one row per role key.
  */
 export const saveAgentMembership = async ({
   repositories,
@@ -56,7 +56,7 @@ export const saveAgentMembership = async ({
   repositories: AllRepositories
   membership: AgentMembershipFixture
 }) => {
-  await saveUserMembershipRows({
+  await saveRoleGrantRows({
     repositories,
     id: membership.id,
     userId: membership.userId,

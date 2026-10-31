@@ -16,7 +16,7 @@ import {
 } from "@/domains/memberships/membership-roles"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { PermissionService } from "@/domains/rbac/permission.service"
-import type { RoleGrant } from "@/domains/rbac/permission.types"
+import type { ResolvedRole } from "@/domains/rbac/permission.types"
 import {
   AGENT_CONVERSATION_REVIEWER_ROLE,
   AGENT_ROLES,
@@ -53,13 +53,13 @@ export class ProjectMembershipsService {
   }
 
   /** Every member of the project, with the permissions each of their roles grants. */
-  async listProjectMembershipsWithRoleGrants(projectId: string): Promise<{
+  async listProjectMembershipsWithRoles(projectId: string): Promise<{
     memberships: ProjectMembershipModel[]
-    roleGrantsByRoleId: Map<string, RoleGrant>
+    rolesById: Map<string, ResolvedRole>
   }> {
     const memberships = await this.projectMembershipRepository.findAllByProject(projectId)
-    const roleGrantsByRoleId = await this.permissionService.listRoleGrants(listRoleIds(memberships))
-    return { memberships, roleGrantsByRoleId }
+    const rolesById = await this.permissionService.listRolesById(listRoleIds(memberships))
+    return { memberships, rolesById }
   }
 
   async listMembershipsForUser(userId: string): Promise<ProjectMembershipModel[]> {
@@ -120,17 +120,16 @@ export class ProjectMembershipsService {
     const agentRoles = agentEntries.map(({ membership: agentMembership }) =>
       agentMembership ? agentMembership.roles : [],
     )
-    const roleGrantsByRoleId = await this.permissionService.listRoleGrants([
+    const rolesById = await this.permissionService.listRolesById([
       ...listRoleIds([membership]),
       ...listRoleIds(agentRoles.map((roles) => ({ roles }))),
       ...listRoleIds(campaignEntries),
     ])
-    const permissionsOf = (roles: MembershipRole[]) =>
-      unionRolePermissions(roles, roleGrantsByRoleId)
+    const permissionsOf = (roles: MembershipRole[]) => unionRolePermissions(roles, rolesById)
 
     return {
       membership,
-      roleGrantsByRoleId,
+      rolesById,
       workspace: {
         kind: "project",
         resourceId: projectId,
@@ -344,7 +343,7 @@ export class ProjectMembershipsService {
     roleKeys: string[]
   }): Promise<{
     memberships: ProjectMembershipModel[]
-    roleGrantsByRoleId: Map<string, RoleGrant>
+    rolesById: Map<string, ResolvedRole>
   }> {
     await this.assertAssignable(roleKeys)
     if (memberUserIds.includes(callerUserId)) {
@@ -370,8 +369,8 @@ export class ProjectMembershipsService {
       return this.findMembers({ userIds: memberUserIds, projectId })
     })
 
-    const roleGrantsByRoleId = await this.permissionService.listRoleGrants(listRoleIds(memberships))
-    return { memberships, roleGrantsByRoleId }
+    const rolesById = await this.permissionService.listRolesById(listRoleIds(memberships))
+    return { memberships, rolesById }
   }
 
   /**
@@ -390,7 +389,7 @@ export class ProjectMembershipsService {
     memberUserId: string
     projectId: string
     roleKey: string
-  }): Promise<{ membership: ProjectMembershipModel; roleGrantsByRoleId: Map<string, RoleGrant> }> {
+  }): Promise<{ membership: ProjectMembershipModel; rolesById: Map<string, ResolvedRole> }> {
     if (memberUserId === callerUserId) {
       throw new ForbiddenException("Cannot change your own role")
     }
@@ -432,10 +431,8 @@ export class ProjectMembershipsService {
       return updated
     })
 
-    const roleGrantsByRoleId = await this.permissionService.listRoleGrants(
-      listRoleIds([membership]),
-    )
-    return { membership, roleGrantsByRoleId }
+    const rolesById = await this.permissionService.listRolesById(listRoleIds([membership]))
+    return { membership, rolesById }
   }
 
   /** The members among the users, or a 404 when one of them is not a member of the project. */

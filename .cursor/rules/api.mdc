@@ -524,7 +524,7 @@ findByIds(connectScope: RequiredConnectScope, ids: string[]): Promise<DocumentTa
 **Rule**: When writing tests, you MUST always use fishery factory functions to create test data instead of manually constructing objects or using `new` constructors.
 
 **Requirements**:
-- Use factory functions (e.g., `userFactory`, `organizationFactory`, `projectFactory`, `userMembershipFactory`) to create test entities
+- Use factory functions (e.g., `userFactory`, `organizationFactory`, `projectFactory`, `roleGrantFactory`) to create test entities
 - Never manually create entities using `new EntityName()` or object literals
 - Use factory methods like `.owner()`, `.admin()`, `.member()` when available for role-specific factories
 - Use `.transient()` to pass required relationships (e.g., `projectFactory.transient({ organization })`)
@@ -548,13 +548,13 @@ user.email = "test@example.com"
 const user = userFactory.build({ email: "test@example.com" })
 
 // ❌ Wrong - Manual membership creation
-const membership = new UserMembership()
+const membership = new RoleGrant()
 membership.role = "owner"
 membership.userId = user.id
 membership.organizationId = org.id
 
 // ✅ Correct - Using factory with transient params
-const membership = userMembershipFactory
+const membership = roleGrantFactory
   .owner()
   .transient({ user, organization })
   .build()
@@ -575,7 +575,7 @@ const project = projectFactory.transient({ organization: org }).build()
 - `userFactory` - For creating User entities
 - `organizationFactory` - For creating Organization entities
 - `projectFactory` - For creating Project entities (requires organization transient)
-- `userMembershipFactory` - For creating UserMembership entities (requires user and organization transients, has `.owner()`, `.admin()`, `.member()` methods)
+- `roleGrantFactory` - For creating RoleGrant entities (requires user and organization transients, has `.owner()`, `.admin()`, `.member()` methods)
 - `agentFactory` - For creating agent entities
 - `agentSessionFactory` - For creating agentSession entities
 - Additional factories may exist for other entities
@@ -606,14 +606,14 @@ const project = projectFactory.transient({ organization: org }).build()
 ```typescript
 // ✅ Correct - Using helper with mainRepositories
 let mainRepositories: {
-  membershipRepository: Repository<UserMembership>
+  membershipRepository: Repository<RoleGrant>
   organizationRepository: Repository<Organization>
   userRepository: Repository<User>
 }
 
 beforeEach(async () => {
   await setup.startTransaction()
-  membershipRepository = setup.getRepository(UserMembership)
+  membershipRepository = setup.getRepository(RoleGrant)
   organizationRepository = setup.getRepository(Organization)
   userRepository = setup.getRepository(User)
   mainRepositories = {
@@ -637,7 +637,7 @@ it("should return membership when user is a member", async () => {
   const savedUser = await userRepository.save(user)
   const organization = organizationFactory.build({ name: "Test Org" })
   const savedOrganization = await organizationRepository.save(organization)
-  const membership = userMembershipFactory
+  const membership = roleGrantFactory
     .transient({ user: savedUser, organization: savedOrganization })
     .build()
   await membershipRepository.save(membership)
@@ -658,7 +658,7 @@ Access is one permission string, granted on roles, checked on the route, and use
 - Production learns a grant from a data migration inserting `role_permission` rows (pattern: `src/migrations/1790269217250-analytics-read-permissions.ts`). `migration:generate` cannot emit it.
 - Protect the route with `@CheckPermission(permission)` or `@CheckPermission(permission, "organization" | "project" | "agent")` and `CheckPermissionGuard` after `JwtAuthGuard` and `UserGuard`. Keep the context resolver that puts the resource id on the request.
 - A service that lists resources calls `PermissionService.listResourceIds(userId, permission)` or `listResourcePermissions(userId, permission)`, then loads those ids through its custom repository.
-- Feature services do not query `user_membership` or `role_permission`, and do not compare `membership.role` against a list of allowed roles. Every access check goes through `@CheckPermission` on the route or through `PermissionService`. Do not write a per-domain policy class or a guard that evaluates one.
+- Feature services do not query `role_grant` or `role_permission`, and do not compare `membership.role` against a list of allowed roles. Every access check goes through `@CheckPermission` on the route or through `PermissionService`. Do not write a per-domain policy class or a guard that evaluates one.
 
 **If unsure which role should hold a permission, ASK THE USER before implementing.**
 

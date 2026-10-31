@@ -4,7 +4,7 @@ import { InjectDataSource } from "@nestjs/typeorm"
 import { DataSource } from "typeorm"
 import { AUTH_ERRORS } from "@/common/errors/auth-errors"
 import { groupMembershipRows } from "@/domains/memberships/membership-roles"
-import { UserMembership } from "@/domains/memberships/user-membership.entity"
+import { RoleGrant } from "@/domains/memberships/role-grant.entity"
 import type { OrganizationMembershipContextModel } from "@/domains/organizations/memberships/organization-membership.model"
 import type { ContextResolver, ResolvableRequest } from "../context-resolver.interface"
 import type { EndpointRequestWithOrganizationMembership } from "../request.interface"
@@ -24,7 +24,7 @@ export class OrganizationContextResolver implements ContextResolver {
       throw new BadRequestException(AUTH_ERRORS.NO_ORGANIZATION_ID)
     }
 
-    const userMembershipRows = await this.dataSource.getRepository(UserMembership).find({
+    const roleGrantRows = await this.dataSource.getRepository(RoleGrant).find({
       where: {
         userId: request.user.id,
         resourceId: organizationId,
@@ -34,7 +34,7 @@ export class OrganizationContextResolver implements ContextResolver {
     })
     // One row per role the caller holds on the organization (ADR 0032). Being a member means
     // holding at least one; the request carries the roles, read from the rows' `role_id`.
-    const [group] = groupMembershipRows(userMembershipRows)
+    const [group] = groupMembershipRows(roleGrantRows)
     if (!group) {
       throw new UnauthorizedException(AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     }

@@ -409,7 +409,7 @@ describe("Agent Settings - Auth", () => {
     }
 
     const removeAgentMemberships = async () => {
-      await repositories.userMembershipRepository.delete({ resourceType: "agent" })
+      await repositories.roleGrantRepository.delete({ resourceType: "agent" })
     }
 
     const pathParams = () => removeNullish({ organizationId, projectId, agentId })

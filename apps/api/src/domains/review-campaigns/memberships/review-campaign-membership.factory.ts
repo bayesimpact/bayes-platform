@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto"
 import { Factory } from "fishery"
 import type { RequiredScopeTransientParams } from "@/common/entities/connect-required-fields"
 import type { AllRepositories } from "@/common/test/test-transaction-manager"
-import { saveUserMembershipRows } from "@/domains/memberships/user-membership.factory"
+import { saveRoleGrantRows } from "@/domains/memberships/role-grant.factory"
 import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
 import type { Organization } from "@/domains/organizations/organization.entity"
 import type { Project } from "@/domains/projects/project.entity"
@@ -63,7 +63,7 @@ export const reviewCampaignMembershipFactory = ReviewCampaignMembershipFactory.d
 )
 
 /**
- * Saves a review-campaign membership to `user_membership`, one row per role key. Requires the RBAC
+ * Saves a review-campaign membership to `role_grant`, one row per role key. Requires the RBAC
  * catalog (`ensureRbacCatalog`), so a spec never depends on which spec seeded the database first.
  */
 export const saveReviewCampaignMembership = async ({
@@ -73,7 +73,7 @@ export const saveReviewCampaignMembership = async ({
   repositories: AllRepositories
   membership: ReviewCampaignMembershipFixture
 }) => {
-  await saveUserMembershipRows({
+  await saveRoleGrantRows({
     repositories,
     id: membership.id,
     userId: membership.userId,

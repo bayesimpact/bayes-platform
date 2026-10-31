@@ -60,7 +60,7 @@ describe("AgentMembershipsService", () => {
 
       expect(membership.roles.map((role) => role.key)).toEqual(["agent_owner"])
 
-      const savedMembership = await repositories.userMembershipRepository.findOneOrFail({
+      const savedMembership = await repositories.roleGrantRepository.findOneOrFail({
         where: { id: membership.roles[0]?.membershipId },
       })
       const agentOwnerRole = await repositories.roleRepository.findOneOrFail({
@@ -84,7 +84,7 @@ describe("AgentMembershipsService", () => {
         agentId: agent.id,
       })
 
-      const remaining = await repositories.userMembershipRepository.findOne({
+      const remaining = await repositories.roleGrantRepository.findOne({
         where: { id: membership.id },
       })
       expect(remaining).toBeNull()
@@ -101,7 +101,7 @@ describe("AgentMembershipsService", () => {
         agentId: agent.id,
       })
 
-      const projectMembership = await repositories.userMembershipRepository.findOne({
+      const projectMembership = await repositories.roleGrantRepository.findOne({
         where: {
           resourceType: "project",
           resourceId: project.id,
@@ -130,7 +130,7 @@ describe("AgentMembershipsService", () => {
         agentId: agent.id,
       })
 
-      const orgMembership = await repositories.userMembershipRepository.findOne({
+      const orgMembership = await repositories.roleGrantRepository.findOne({
         where: {
           resourceType: "organization",
           resourceId: organization.id,
@@ -143,7 +143,7 @@ describe("AgentMembershipsService", () => {
 
     it("throws when attempting to remove yourself", async () => {
       const { agent, user } = await createOrganizationWithAgent(repositories)
-      const ownerMembership = await repositories.userMembershipRepository.findOneOrFail({
+      const ownerMembership = await repositories.roleGrantRepository.findOneOrFail({
         where: {
           resourceType: "agent",
           resourceId: agent.id,
@@ -219,7 +219,7 @@ describe("AgentMembershipsService", () => {
         projectId: project.id,
       })
 
-      const memberships = await repositories.userMembershipRepository.find({
+      const memberships = await repositories.roleGrantRepository.find({
         where: { userId: demotedUser.id, resourceType: "agent" },
         relations: { rbacRole: true },
       })

@@ -33,7 +33,7 @@ import { FeatureFlag } from "@/domains/feature-flags/feature-flag.entity"
 import { Invitation } from "@/domains/invitations/invitation.entity"
 import { AgentMcpServer } from "@/domains/mcp-servers/agent-mcp-server.entity"
 import { McpServer } from "@/domains/mcp-servers/mcp-server.entity"
-import { UserMembership } from "@/domains/memberships/user-membership.entity"
+import { RoleGrant } from "@/domains/memberships/role-grant.entity"
 import { OAuthClient } from "@/domains/oauth/oauth-client.entity"
 import { OAuthGrant } from "@/domains/oauth/oauth-grant.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
@@ -103,7 +103,7 @@ export type AllRepositories = {
   termsDocumentRepository: Repository<TermsDocument>
   testerCampaignSurveyRepository: Repository<TesterCampaignSurvey>
   testerSessionFeedbackRepository: Repository<TesterSessionFeedback>
-  userMembershipRepository: Repository<UserMembership>
+  roleGrantRepository: Repository<RoleGrant>
   userRepository: Repository<User>
 }
 
@@ -165,7 +165,7 @@ export function buildAllRepositories(
     termsDocumentRepository: getRepository(TermsDocument),
     testerCampaignSurveyRepository: getRepository(TesterCampaignSurvey),
     testerSessionFeedbackRepository: getRepository(TesterSessionFeedback),
-    userMembershipRepository: getRepository(UserMembership),
+    roleGrantRepository: getRepository(RoleGrant),
     userRepository: getRepository(User),
   }
 }

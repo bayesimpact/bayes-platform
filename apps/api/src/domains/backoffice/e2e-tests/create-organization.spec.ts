@@ -80,7 +80,7 @@ describe("Backoffice - createOrganization", () => {
     const user = await createAuthorizedUser()
     const response = await subject("Sample Organization")
     expectResponse(response, 201)
-    const membership = await repositories.userMembershipRepository.findOne({
+    const membership = await repositories.roleGrantRepository.findOne({
       where: {
         userId: user.id,
         resourceId: response.body.data.id,

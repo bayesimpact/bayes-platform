@@ -11,7 +11,7 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
-import { userMembershipFactory } from "@/domains/memberships/user-membership.factory"
+import { roleGrantFactory } from "@/domains/memberships/role-grant.factory"
 import {
   createOrganizationWithOwner,
   createOrganizationWithProject,
@@ -137,8 +137,8 @@ describe("Projects - Auth", () => {
       const memberRole = await repositories.roleRepository.findOneOrFail({
         where: { key: ORGANIZATION_ROLES.member },
       })
-      await repositories.userMembershipRepository.save(
-        userMembershipFactory.build({
+      await repositories.roleGrantRepository.save(
+        roleGrantFactory.build({
           userId: user.id,
           resourceType: "organization",
           resourceId: otherOrganization.id,

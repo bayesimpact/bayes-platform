@@ -4,7 +4,7 @@ import { ALL_ENTITIES } from "@/common/all-entities"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
-import { UserMembership } from "@/domains/memberships/user-membership.entity"
+import { RoleGrant } from "@/domains/memberships/role-grant.entity"
 import { ReviewCampaign } from "./review-campaign.entity"
 
 @Injectable()
@@ -17,7 +17,7 @@ export class ReviewCampaignRepository {
     const { entities, raw } = await this.repo()
       .createQueryBuilder("campaign")
       .leftJoin(
-        UserMembership,
+        RoleGrant,
         "membership",
         "membership.resource_type = 'review_campaign' AND membership.resource_id = campaign.id",
       )

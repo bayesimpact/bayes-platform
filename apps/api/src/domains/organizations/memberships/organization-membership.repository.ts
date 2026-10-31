@@ -7,7 +7,7 @@ import {
   type MembershipRowGroup,
   resourceIdOf,
 } from "@/domains/memberships/membership-roles"
-import { UserMembership } from "@/domains/memberships/user-membership.entity"
+import { RoleGrant } from "@/domains/memberships/role-grant.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { ORGANIZATION_ROLES } from "@/domains/rbac/rbac.constants"
 import { requireRoleId } from "@/domains/rbac/resolve-role-id"
@@ -21,7 +21,7 @@ const MEMBERSHIP_RELATIONS = { user: true, rbacRole: true } as const
 /**
  * Repository for organization memberships.
  *
- * Reads and writes the unified `user_membership` table with `resourceType = 'organization'`. A
+ * Reads and writes the unified `role_grant` table with `resourceType = 'organization'`. A
  * person holds one row per role on an organization; reads group them into one model per person.
  */
 @Injectable()
@@ -35,7 +35,7 @@ export class OrganizationMembershipRepository {
     userId: string
     organizationId: string
   }): Promise<OrganizationMembershipModel | null> {
-    const rows = await this.userMembershipRepo().find({
+    const rows = await this.roleGrantRepo().find({
       where: { userId, resourceType: ORGANIZATION_RESOURCE_TYPE, resourceId: organizationId },
       relations: MEMBERSHIP_RELATIONS,
     })
@@ -51,7 +51,7 @@ export class OrganizationMembershipRepository {
   }
 
   async findAllByUser(userId: string): Promise<OrganizationMembershipModel[]> {
-    const rows = await this.userMembershipRepo().find({
+    const rows = await this.roleGrantRepo().find({
       where: { userId, resourceType: ORGANIZATION_RESOURCE_TYPE },
       relations: MEMBERSHIP_RELATIONS,
     })
@@ -62,7 +62,7 @@ export class OrganizationMembershipRepository {
   }
 
   async findAllByOrganization(organizationId: string): Promise<OrganizationMembershipModel[]> {
-    const rows = await this.userMembershipRepo()
+    const rows = await this.roleGrantRepo()
       .createQueryBuilder("membership")
       .innerJoinAndSelect("membership.user", "user")
       .leftJoinAndSelect("membership.rbacRole", "rbacRole")
@@ -85,7 +85,7 @@ export class OrganizationMembershipRepository {
   ): Promise<OrganizationMembershipModel[]> {
     if (organizationIds.length === 0) return []
 
-    const rows = await this.userMembershipRepo().find({
+    const rows = await this.roleGrantRepo().find({
       where: {
         resourceType: ORGANIZATION_RESOURCE_TYPE,
         resourceId: In(organizationIds),
@@ -103,7 +103,7 @@ export class OrganizationMembershipRepository {
     userId: string
     organizationName: string
   }): Promise<OrganizationMembershipModel | null> {
-    const row = await this.userMembershipRepo()
+    const row = await this.roleGrantRepo()
       .createQueryBuilder("membership")
       .innerJoin("membership.rbacRole", "rbacRole")
       .innerJoin(Organization, "organization", "organization.id = membership.resource_id")
@@ -130,7 +130,7 @@ export class OrganizationMembershipRepository {
     roleKey: string
   }): Promise<void> {
     const roleId = await requireRoleId(this.transactionService.getManager(), roleKey)
-    await this.userMembershipRepo()
+    await this.roleGrantRepo()
       .createQueryBuilder()
       .insert()
       .values({
@@ -163,14 +163,14 @@ export class OrganizationMembershipRepository {
     const toRoleId = await requireRoleId(manager, toRoleKey)
     const where = { userId, resourceType: ORGANIZATION_RESOURCE_TYPE, resourceId: organizationId }
 
-    const holdsTarget = await this.userMembershipRepo().exists({
+    const holdsTarget = await this.roleGrantRepo().exists({
       where: { ...where, roleId: toRoleId },
     })
     if (holdsTarget) {
-      await this.userMembershipRepo().delete({ ...where, roleId: fromRoleId })
+      await this.roleGrantRepo().delete({ ...where, roleId: fromRoleId })
       return
     }
-    await this.userMembershipRepo().update({ ...where, roleId: fromRoleId }, { roleId: toRoleId })
+    await this.roleGrantRepo().update({ ...where, roleId: fromRoleId }, { roleId: toRoleId })
   }
 
   async createMembership({
@@ -193,8 +193,8 @@ export class OrganizationMembershipRepository {
     return memberships.map((membership) => membership.organization)
   }
 
-  private userMembershipRepo(): Repository<UserMembership> {
-    return this.transactionService.getManager().getRepository(UserMembership)
+  private roleGrantRepo(): Repository<RoleGrant> {
+    return this.transactionService.getManager().getRepository(RoleGrant)
   }
 
   private organizationRepo(): Repository<Organization> {

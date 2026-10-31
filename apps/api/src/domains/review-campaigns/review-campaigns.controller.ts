@@ -171,13 +171,13 @@ function toReviewCampaignMembershipDtos(
 ): ReviewCampaignMembershipDto[] {
   const membershipsByUserId = new Map<string, ReviewCampaignMembershipModel[]>()
   for (const membership of memberships) {
-    const userMemberships = membershipsByUserId.get(membership.userId)
-    if (userMemberships) userMemberships.push(membership)
+    const roleGrants = membershipsByUserId.get(membership.userId)
+    if (roleGrants) roleGrants.push(membership)
     else membershipsByUserId.set(membership.userId, [membership])
   }
 
-  return [...membershipsByUserId.values()].flatMap((userMemberships) => {
-    const [first] = userMemberships
+  return [...membershipsByUserId.values()].flatMap((roleGrants) => {
+    const [first] = roleGrants
     if (!first) return []
     return [
       {
@@ -185,7 +185,7 @@ function toReviewCampaignMembershipDtos(
         userId: first.userId,
         userEmail: first.user?.email ?? "",
         userHasSignedIn: first.user ? first.user.authSubject !== null : false,
-        roles: userMemberships.map((membership) => toMembershipRoleDto(membership.membershipRole)),
+        roles: roleGrants.map((membership) => toMembershipRoleDto(membership.membershipRole)),
       },
     ]
   })

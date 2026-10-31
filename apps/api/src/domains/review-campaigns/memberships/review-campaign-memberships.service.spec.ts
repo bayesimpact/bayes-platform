@@ -7,7 +7,7 @@ import {
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { MembershipsModule } from "@/domains/memberships/memberships.module"
-import { UserMembership } from "@/domains/memberships/user-membership.entity"
+import { RoleGrant } from "@/domains/memberships/role-grant.entity"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { reviewCampaignFactory } from "../review-campaign.factory"
 import { ReviewCampaignMembershipRepository } from "./review-campaign-membership.repository"
@@ -54,7 +54,7 @@ describe("ReviewCampaignMembershipsService", () => {
   }
 
   describe("acceptCampaignMembership", () => {
-    it("creates a unified user_membership row for a new membership", async () => {
+    it("creates a unified role_grant row for a new membership", async () => {
       const { organization, project, user } = await createOrganizationWithProject(repositories)
       const campaign = await saveActiveCampaign(organization, project)
 
@@ -66,7 +66,7 @@ describe("ReviewCampaignMembershipsService", () => {
         projectId: project.id,
       })
 
-      const unified = await repositories.userMembershipRepository.findOne({
+      const unified = await repositories.roleGrantRepository.findOne({
         where: {
           userId: user.id,
           resourceId: campaign.id,
@@ -97,7 +97,7 @@ describe("ReviewCampaignMembershipsService", () => {
         projectId: project.id,
       })
 
-      const unified = await setup.dataSource.getRepository(UserMembership).find({
+      const unified = await setup.dataSource.getRepository(RoleGrant).find({
         where: {
           userId: user.id,
           resourceId: campaign.id,
@@ -110,7 +110,7 @@ describe("ReviewCampaignMembershipsService", () => {
   })
 
   describe("removeCampaignMembership", () => {
-    it("deletes only the targeted role from user_membership", async () => {
+    it("deletes only the targeted role from role_grant", async () => {
       const { organization, project, user } = await createOrganizationWithProject(repositories)
       const campaign = await saveActiveCampaign(organization, project)
 
@@ -143,7 +143,7 @@ describe("ReviewCampaignMembershipsService", () => {
         role: "tester",
       })
 
-      const remainingUnified = await setup.dataSource.getRepository(UserMembership).find({
+      const remainingUnified = await setup.dataSource.getRepository(RoleGrant).find({
         where: {
           userId: user.id,
           resourceId: campaign.id,

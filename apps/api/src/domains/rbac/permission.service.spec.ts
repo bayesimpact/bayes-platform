@@ -8,7 +8,7 @@ import {
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { grantConversationReview } from "@/domains/agents/conversation-reviewers/agent-conversation-reviewer.factory"
 import { addUserToAgent } from "@/domains/agents/memberships/agent-membership.factory"
-import { userMembershipFactory } from "@/domains/memberships/user-membership.factory"
+import { roleGrantFactory } from "@/domains/memberships/role-grant.factory"
 import {
   createOrganizationWithAgent,
   createOrganizationWithOwner,
@@ -106,7 +106,7 @@ describe("PermissionService", () => {
     const repositories = setup.getAllRepositories()
     const leftoverRole = await repositories.roleRepository.findOne({ where: { key } })
     if (leftoverRole) {
-      await repositories.userMembershipRepository.delete({ roleId: leftoverRole.id })
+      await repositories.roleGrantRepository.delete({ roleId: leftoverRole.id })
       await repositories.roleRepository.delete({ id: leftoverRole.id })
     }
 
@@ -124,8 +124,8 @@ describe("PermissionService", () => {
 
   const addOrgMembershipWithRole = async (userId: string, organizationId: string, role: Role) => {
     const repositories = setup.getAllRepositories()
-    await repositories.userMembershipRepository.save(
-      userMembershipFactory.build({
+    await repositories.roleGrantRepository.save(
+      roleGrantFactory.build({
         userId,
         resourceType: "organization",
         resourceId: organizationId,
@@ -205,8 +205,8 @@ describe("PermissionService", () => {
       const adminRole = await repositories.roleRepository.findOneOrFail({
         where: { key: PROJECT_ROLES.admin },
       })
-      await repositories.userMembershipRepository.save(
-        userMembershipFactory.build({
+      await repositories.roleGrantRepository.save(
+        roleGrantFactory.build({
           userId: user.id,
           resourceType: "project",
           resourceId: project.id,
@@ -525,8 +525,8 @@ describe("PermissionService", () => {
     const superadminRole = await repositories.roleRepository.findOneOrFail({
       where: { key: PLATFORM_SUPERADMIN_ROLE },
     })
-    await repositories.userMembershipRepository.save(
-      userMembershipFactory.build({
+    await repositories.roleGrantRepository.save(
+      roleGrantFactory.build({
         userId: user.id,
         resourceType: "global",
         resourceId: null,
@@ -559,20 +559,20 @@ describe("PermissionService", () => {
       where: { key: ORGANIZATION_ROLES.member },
     })
 
-    const grants = await service.listRoleGrants([ownerRole.id, memberRole.id])
+    const rolesById = await service.listRolesById([ownerRole.id, memberRole.id])
 
-    expect(grants.get(ownerRole.id)?.key).toBe(ORGANIZATION_ROLES.owner)
-    expect(new Set(grants.get(ownerRole.id)?.permissions)).toEqual(
+    expect(rolesById.get(ownerRole.id)?.key).toBe(ORGANIZATION_ROLES.owner)
+    expect(new Set(rolesById.get(ownerRole.id)?.permissions)).toEqual(
       new Set(ORGANIZATION_ROLE_PERMISSIONS[ORGANIZATION_ROLES.owner]),
     )
-    expect(grants.get(memberRole.id)?.key).toBe(ORGANIZATION_ROLES.member)
-    expect(new Set(grants.get(memberRole.id)?.permissions)).toEqual(
+    expect(rolesById.get(memberRole.id)?.key).toBe(ORGANIZATION_ROLES.member)
+    expect(new Set(rolesById.get(memberRole.id)?.permissions)).toEqual(
       new Set(ORGANIZATION_ROLE_PERMISSIONS[ORGANIZATION_ROLES.member]),
     )
   })
 
-  it("returns an empty map when listing grants for no role ids", async () => {
-    await expect(service.listRoleGrants([])).resolves.toEqual(new Map())
+  it("returns an empty map when listing no role ids", async () => {
+    await expect(service.listRolesById([])).resolves.toEqual(new Map())
   })
 
   it("returns the official catalog roles in display order", async () => {
@@ -602,8 +602,8 @@ describe("PermissionService", () => {
 
     const adminUser = userFactory.build()
     await repositories.userRepository.save(adminUser)
-    await repositories.userMembershipRepository.save(
-      userMembershipFactory.build({
+    await repositories.roleGrantRepository.save(
+      roleGrantFactory.build({
         userId: adminUser.id,
         resourceType: "organization",
         resourceId: organization.id,
@@ -632,8 +632,8 @@ describe("PermissionService", () => {
     const platformSuperadminRole = await repositories.roleRepository.findOneOrFail({
       where: { key: PLATFORM_SUPERADMIN_ROLE },
     })
-    await repositories.userMembershipRepository.save(
-      userMembershipFactory.build({
+    await repositories.roleGrantRepository.save(
+      roleGrantFactory.build({
         userId: superadmin.id,
         resourceType: "global",
         resourceId: null,
@@ -674,8 +674,8 @@ describe("PermissionService", () => {
     const { organization } = await createOrganizationWithOwner(repositories)
     const memberUser = userFactory.build()
     await repositories.userRepository.save(memberUser)
-    await repositories.userMembershipRepository.save(
-      userMembershipFactory.build({
+    await repositories.roleGrantRepository.save(
+      roleGrantFactory.build({
         userId: memberUser.id,
         resourceType: "organization",
         resourceId: organization.id,
@@ -702,8 +702,8 @@ describe("PermissionService", () => {
     const platformSuperadminRole = await repositories.roleRepository.findOneOrFail({
       where: { key: PLATFORM_SUPERADMIN_ROLE },
     })
-    await repositories.userMembershipRepository.save(
-      userMembershipFactory.build({
+    await repositories.roleGrantRepository.save(
+      roleGrantFactory.build({
         userId: user.id,
         resourceType: "global",
         resourceId: null,
@@ -721,8 +721,8 @@ describe("PermissionService", () => {
     const platformStaffRole = await repositories.roleRepository.findOneOrFail({
       where: { key: PLATFORM_STAFF_ROLE },
     })
-    await repositories.userMembershipRepository.save(
-      userMembershipFactory.build({
+    await repositories.roleGrantRepository.save(
+      roleGrantFactory.build({
         userId: user.id,
         resourceType: "global",
         resourceId: null,
@@ -748,8 +748,8 @@ describe("PermissionService", () => {
     const platformStaffRole = await repositories.roleRepository.findOneOrFail({
       where: { key: PLATFORM_STAFF_ROLE },
     })
-    await repositories.userMembershipRepository.save(
-      userMembershipFactory.build({
+    await repositories.roleGrantRepository.save(
+      roleGrantFactory.build({
         userId: user.id,
         resourceType: "global",
         resourceId: null,
@@ -772,8 +772,8 @@ describe("PermissionService", () => {
     const platformStaffRole = await repositories.roleRepository.findOneOrFail({
       where: { key: PLATFORM_STAFF_ROLE },
     })
-    await repositories.userMembershipRepository.save(
-      userMembershipFactory.build({
+    await repositories.roleGrantRepository.save(
+      roleGrantFactory.build({
         userId: user.id,
         resourceType: "global",
         resourceId: null,
@@ -797,14 +797,14 @@ describe("PermissionService", () => {
     const platformSuperadminRole = await repositories.roleRepository.findOneOrFail({
       where: { key: PLATFORM_SUPERADMIN_ROLE },
     })
-    await repositories.userMembershipRepository.save([
-      userMembershipFactory.build({
+    await repositories.roleGrantRepository.save([
+      roleGrantFactory.build({
         userId: staff.id,
         resourceType: "global",
         resourceId: null,
         roleId: platformStaffRole.id,
       }),
-      userMembershipFactory.build({
+      roleGrantFactory.build({
         userId: superadmin.id,
         resourceType: "global",
         resourceId: null,
@@ -825,8 +825,8 @@ describe("PermissionService", () => {
     const platformSuperadminRole = await repositories.roleRepository.findOneOrFail({
       where: { key: PLATFORM_SUPERADMIN_ROLE },
     })
-    await repositories.userMembershipRepository.save(
-      userMembershipFactory.build({
+    await repositories.roleGrantRepository.save(
+      roleGrantFactory.build({
         userId: user.id,
         resourceType: "global",
         resourceId: null,
@@ -872,8 +872,8 @@ describe("PermissionService", () => {
       const platformSuperadminRole = await repositories.roleRepository.findOneOrFail({
         where: { key: PLATFORM_SUPERADMIN_ROLE },
       })
-      await repositories.userMembershipRepository.save(
-        userMembershipFactory.build({
+      await repositories.roleGrantRepository.save(
+        roleGrantFactory.build({
           userId: superadmin.id,
           resourceType: "global",
           resourceId: null,
@@ -894,8 +894,8 @@ describe("PermissionService", () => {
       const memberRole = await repositories.roleRepository.findOneOrFail({
         where: { key: ORGANIZATION_ROLES.member },
       })
-      await repositories.userMembershipRepository.save(
-        userMembershipFactory.build({
+      await repositories.roleGrantRepository.save(
+        roleGrantFactory.build({
           userId: fellowMember.id,
           resourceType: "organization",
           resourceId: organization.id,
@@ -924,8 +924,8 @@ describe("PermissionService", () => {
       const memberRole = await repositories.roleRepository.findOneOrFail({
         where: { key: ORGANIZATION_ROLES.member },
       })
-      await repositories.userMembershipRepository.save(
-        userMembershipFactory.build({
+      await repositories.roleGrantRepository.save(
+        roleGrantFactory.build({
           userId: serviceUser.id,
           resourceType: "organization",
           resourceId: organization.id,
@@ -952,8 +952,8 @@ describe("PermissionService", () => {
       const memberRole = await repositories.roleRepository.findOneOrFail({
         where: { key: ORGANIZATION_ROLES.member },
       })
-      await repositories.userMembershipRepository.save(
-        userMembershipFactory.build({
+      await repositories.roleGrantRepository.save(
+        roleGrantFactory.build({
           userId: memberUser.id,
           resourceType: "organization",
           resourceId: organization.id,
@@ -990,8 +990,8 @@ describe("PermissionService", () => {
       const platformSuperadminRole = await repositories.roleRepository.findOneOrFail({
         where: { key: PLATFORM_SUPERADMIN_ROLE },
       })
-      await repositories.userMembershipRepository.save(
-        userMembershipFactory.build({
+      await repositories.roleGrantRepository.save(
+        roleGrantFactory.build({
           userId: superadmin.id,
           resourceType: "global",
           resourceId: null,
@@ -1028,8 +1028,8 @@ describe("PermissionService", () => {
       const memberRole = await repositories.roleRepository.findOneOrFail({
         where: { key: ORGANIZATION_ROLES.member },
       })
-      await repositories.userMembershipRepository.save(
-        userMembershipFactory.build({
+      await repositories.roleGrantRepository.save(
+        roleGrantFactory.build({
           userId: memberUser.id,
           resourceType: "organization",
           resourceId: organization.id,
@@ -1127,14 +1127,14 @@ describe("PermissionService", () => {
 
         const user = userFactory.build()
         await repositories.userRepository.save(user)
-        await repositories.userMembershipRepository.save([
-          userMembershipFactory.build({
+        await repositories.roleGrantRepository.save([
+          roleGrantFactory.build({
             userId: user.id,
             resourceType: "organization",
             resourceId: organizationA.id,
             roleId: orgRole.id,
           }),
-          userMembershipFactory.build({
+          roleGrantFactory.build({
             userId: user.id,
             resourceType: "project",
             resourceId: projectB.id,
@@ -1151,7 +1151,7 @@ describe("PermissionService", () => {
           where: { key: "test_org_agent_reader_ids" },
         })
         if (testRole) {
-          await repositories.userMembershipRepository.delete({ roleId: testRole.id })
+          await repositories.roleGrantRepository.delete({ roleId: testRole.id })
           await repositories.roleRepository.delete({ id: testRole.id })
         }
       }
@@ -1263,8 +1263,8 @@ describe("PermissionService", () => {
       })
       const projectUser = userFactory.build()
       await repositories.userRepository.save(projectUser)
-      await repositories.userMembershipRepository.save(
-        userMembershipFactory.build({
+      await repositories.roleGrantRepository.save(
+        roleGrantFactory.build({
           userId: projectUser.id,
           resourceType: "project",
           resourceId: project.id,
@@ -1317,8 +1317,8 @@ describe("PermissionService", () => {
       const projectOwnerRole = await repositories.roleRepository.findOneOrFail({
         where: { key: PROJECT_ROLES.owner },
       })
-      await repositories.userMembershipRepository.save(
-        userMembershipFactory.build({
+      await repositories.roleGrantRepository.save(
+        roleGrantFactory.build({
           userId: user.id,
           resourceType: "project",
           resourceId: project.id,
@@ -1358,8 +1358,8 @@ describe("PermissionService", () => {
 
         const projectUser = userFactory.build()
         await repositories.userRepository.save(projectUser)
-        await repositories.userMembershipRepository.save(
-          userMembershipFactory.build({
+        await repositories.roleGrantRepository.save(
+          roleGrantFactory.build({
             userId: projectUser.id,
             resourceType: "project",
             resourceId: project.id,
@@ -1378,7 +1378,7 @@ describe("PermissionService", () => {
           where: { key: "test_project_reader" },
         })
         if (testRole) {
-          await repositories.userMembershipRepository.delete({ roleId: testRole.id })
+          await repositories.roleGrantRepository.delete({ roleId: testRole.id })
           await repositories.roleRepository.delete({ id: testRole.id })
         }
       }
@@ -1439,8 +1439,8 @@ describe("PermissionService", () => {
       const projectOwnerRole = await repositories.roleRepository.findOneOrFail({
         where: { key: PROJECT_ROLES.owner },
       })
-      await repositories.userMembershipRepository.save(
-        userMembershipFactory.build({
+      await repositories.roleGrantRepository.save(
+        roleGrantFactory.build({
           userId: user.id,
           resourceType: "project",
           resourceId: ownedProject.id,
@@ -1470,8 +1470,8 @@ describe("PermissionService", () => {
       })
       const projectUser = userFactory.build()
       await repositories.userRepository.save(projectUser)
-      await repositories.userMembershipRepository.save(
-        userMembershipFactory.build({
+      await repositories.roleGrantRepository.save(
+        roleGrantFactory.build({
           userId: projectUser.id,
           resourceType: "project",
           resourceId: project.id,
@@ -1543,8 +1543,8 @@ describe("PermissionService", () => {
       })
       const projectUser = userFactory.build()
       await repositories.userRepository.save(projectUser)
-      await repositories.userMembershipRepository.save(
-        userMembershipFactory.build({
+      await repositories.roleGrantRepository.save(
+        roleGrantFactory.build({
           userId: projectUser.id,
           resourceType: "project",
           resourceId: project.id,
@@ -1579,8 +1579,8 @@ describe("PermissionService", () => {
       })
       const projectUser = userFactory.build()
       await repositories.userRepository.save(projectUser)
-      await repositories.userMembershipRepository.save(
-        userMembershipFactory.build({
+      await repositories.roleGrantRepository.save(
+        roleGrantFactory.build({
           userId: projectUser.id,
           resourceType: "project",
           resourceId: project.id,
@@ -1655,14 +1655,14 @@ describe("PermissionService", () => {
 
         const user = userFactory.build()
         await repositories.userRepository.save(user)
-        await repositories.userMembershipRepository.save([
-          userMembershipFactory.build({
+        await repositories.roleGrantRepository.save([
+          roleGrantFactory.build({
             userId: user.id,
             resourceType: "organization",
             resourceId: organizationA.id,
             roleId: orgRole.id,
           }),
-          userMembershipFactory.build({
+          roleGrantFactory.build({
             userId: user.id,
             resourceType: "project",
             resourceId: projectB.id,
@@ -1692,7 +1692,7 @@ describe("PermissionService", () => {
           where: { key: "test_org_agent_reader_perms" },
         })
         if (testRole) {
-          await repositories.userMembershipRepository.delete({ roleId: testRole.id })
+          await repositories.roleGrantRepository.delete({ roleId: testRole.id })
           await repositories.roleRepository.delete({ id: testRole.id })
         }
       }
@@ -1729,8 +1729,8 @@ describe("PermissionService", () => {
       })
       const adminUser = userFactory.build()
       await repositories.userRepository.save(adminUser)
-      await repositories.userMembershipRepository.save(
-        userMembershipFactory.build({
+      await repositories.roleGrantRepository.save(
+        roleGrantFactory.build({
           userId: adminUser.id,
           resourceType: "organization",
           resourceId: organization.id,
@@ -1770,8 +1770,8 @@ describe("PermissionService", () => {
       })
       const projectUser = userFactory.build()
       await repositories.userRepository.save(projectUser)
-      await repositories.userMembershipRepository.save(
-        userMembershipFactory.build({
+      await repositories.roleGrantRepository.save(
+        roleGrantFactory.build({
           userId: projectUser.id,
           resourceType: "project",
           resourceId: project.id,
@@ -1799,14 +1799,14 @@ describe("PermissionService", () => {
       const ownerUser = userFactory.build()
       const adminUser = userFactory.build()
       await repositories.userRepository.save([ownerUser, adminUser])
-      await repositories.userMembershipRepository.save([
-        userMembershipFactory.build({
+      await repositories.roleGrantRepository.save([
+        roleGrantFactory.build({
           userId: ownerUser.id,
           resourceType: "project",
           resourceId: project.id,
           roleId: projectOwnerRole.id,
         }),
-        userMembershipFactory.build({
+        roleGrantFactory.build({
           userId: adminUser.id,
           resourceType: "project",
           resourceId: project.id,
@@ -1841,8 +1841,8 @@ describe("PermissionService", () => {
       })
       const memberUser = userFactory.build()
       await repositories.userRepository.save(memberUser)
-      await repositories.userMembershipRepository.save(
-        userMembershipFactory.build({
+      await repositories.roleGrantRepository.save(
+        roleGrantFactory.build({
           userId: memberUser.id,
           resourceType: "project",
           resourceId: project.id,
@@ -1896,8 +1896,8 @@ describe("PermissionService", () => {
       })
       const memberUser = userFactory.build()
       await repositories.userRepository.save(memberUser)
-      await repositories.userMembershipRepository.save(
-        userMembershipFactory.build({
+      await repositories.roleGrantRepository.save(
+        roleGrantFactory.build({
           userId: memberUser.id,
           resourceType: "organization",
           resourceId: organization.id,
@@ -1919,8 +1919,8 @@ describe("PermissionService", () => {
       const memberRole = await repositories.roleRepository.findOneOrFail({
         where: { key: ORGANIZATION_ROLES.member },
       })
-      await repositories.userMembershipRepository.save(
-        userMembershipFactory.build({
+      await repositories.roleGrantRepository.save(
+        roleGrantFactory.build({
           userId: user.id,
           resourceType: "organization",
           resourceId: organizationB.id,
@@ -1959,8 +1959,8 @@ describe("PermissionService", () => {
       })
       const projectUser = userFactory.build()
       await repositories.userRepository.save(projectUser)
-      await repositories.userMembershipRepository.save(
-        userMembershipFactory.build({
+      await repositories.roleGrantRepository.save(
+        roleGrantFactory.build({
           userId: projectUser.id,
           resourceType: "project",
           resourceId: project.id,
@@ -2001,8 +2001,8 @@ describe("PermissionService", () => {
 
         const orgUser = userFactory.build()
         await repositories.userRepository.save(orgUser)
-        await repositories.userMembershipRepository.save(
-          userMembershipFactory.build({
+        await repositories.roleGrantRepository.save(
+          roleGrantFactory.build({
             userId: orgUser.id,
             resourceType: "organization",
             resourceId: organization.id,
@@ -2031,7 +2031,7 @@ describe("PermissionService", () => {
           where: { key: "test_org_agent_reader" },
         })
         if (testRole) {
-          await repositories.userMembershipRepository.delete({ roleId: testRole.id })
+          await repositories.roleGrantRepository.delete({ roleId: testRole.id })
           await repositories.roleRepository.delete({ id: testRole.id })
         }
       }
@@ -2050,8 +2050,8 @@ describe("PermissionService", () => {
       })
       const projectUser = userFactory.build()
       await repositories.userRepository.save(projectUser)
-      await repositories.userMembershipRepository.save(
-        userMembershipFactory.build({
+      await repositories.roleGrantRepository.save(
+        roleGrantFactory.build({
           userId: projectUser.id,
           resourceType: "project",
           resourceId: project.id,
@@ -2100,8 +2100,8 @@ describe("PermissionService", () => {
       })
       const projectUser = userFactory.build()
       await repositories.userRepository.save(projectUser)
-      await repositories.userMembershipRepository.save(
-        userMembershipFactory.build({
+      await repositories.roleGrantRepository.save(
+        roleGrantFactory.build({
           userId: projectUser.id,
           resourceType: "project",
           resourceId: project.id,
@@ -2117,7 +2117,7 @@ describe("PermissionService", () => {
     it("ignores soft-deleted memberships", async () => {
       const repositories = setup.getAllRepositories()
       const { organization, user } = await createOrganizationWithOwner(repositories)
-      await repositories.userMembershipRepository.update(
+      await repositories.roleGrantRepository.update(
         { userId: user.id, resourceType: "organization", resourceId: organization.id },
         { deletedAt: new Date() },
       )
@@ -2164,8 +2164,8 @@ describe("PermissionService", () => {
 
         const orgUser = userFactory.build()
         await repositories.userRepository.save(orgUser)
-        await repositories.userMembershipRepository.save(
-          userMembershipFactory.build({
+        await repositories.roleGrantRepository.save(
+          roleGrantFactory.build({
             userId: orgUser.id,
             resourceType: "organization",
             resourceId: organization.id,
@@ -2181,7 +2181,7 @@ describe("PermissionService", () => {
           where: { key: "test_org_project_updater" },
         })
         if (testRole) {
-          await repositories.userMembershipRepository.delete({ roleId: testRole.id })
+          await repositories.roleGrantRepository.delete({ roleId: testRole.id })
           await repositories.roleRepository.delete({ id: testRole.id })
         }
       }

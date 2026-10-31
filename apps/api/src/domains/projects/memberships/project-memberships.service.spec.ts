@@ -7,7 +7,7 @@ import {
 import { grantConversationReview } from "@/domains/agents/conversation-reviewers/agent-conversation-reviewer.factory"
 import { addUserToAgent } from "@/domains/agents/memberships/agent-membership.factory"
 import { AgentMembershipsService } from "@/domains/agents/memberships/agent-memberships.service"
-import { userMembershipFactory } from "@/domains/memberships/user-membership.factory"
+import { roleGrantFactory } from "@/domains/memberships/role-grant.factory"
 import {
   createOrganizationWithAgent,
   createOrganizationWithOwner,
@@ -63,7 +63,7 @@ describe("ProjectMembershipsService", () => {
       expect(membership.roles.map((role) => role.key)).toEqual(["project_owner"])
 
       // the RBAC role backing the membership is resolved at write time
-      const savedMembership = await repositories.userMembershipRepository.findOneOrFail({
+      const savedMembership = await repositories.roleGrantRepository.findOneOrFail({
         where: { id: membership.roles[0]?.membershipId },
       })
       const projectOwnerRole = await repositories.roleRepository.findOneOrFail({
@@ -148,7 +148,7 @@ describe("ProjectMembershipsService", () => {
       })
 
       expect(result).toBeNull()
-      const updatedMembership = await repositories.userMembershipRepository.findOneOrFail({
+      const updatedMembership = await repositories.roleGrantRepository.findOneOrFail({
         where: {
           userId: invitedUser.id,
           resourceType: "project",
@@ -197,7 +197,7 @@ describe("ProjectMembershipsService", () => {
         projectId: project.id,
       })
 
-      const deletedMembership = await repositories.userMembershipRepository.findOne({
+      const deletedMembership = await repositories.roleGrantRepository.findOne({
         where: { id: membership.id },
       })
       const deletedUser = await repositories.userRepository.findOne({
@@ -220,8 +220,8 @@ describe("ProjectMembershipsService", () => {
       roleKey: string
     }) => {
       const role = await repositories.roleRepository.findOneOrFail({ where: { key: roleKey } })
-      return repositories.userMembershipRepository.save(
-        userMembershipFactory.build({
+      return repositories.roleGrantRepository.save(
+        roleGrantFactory.build({
           userId,
           resourceType: "project",
           resourceId: projectId,
@@ -309,7 +309,7 @@ describe("ProjectMembershipsService", () => {
         projectId: project.id,
       })
 
-      const remainingRows = await repositories.userMembershipRepository.find({
+      const remainingRows = await repositories.roleGrantRepository.find({
         where: { userId: member.id },
         relations: { rbacRole: true },
       })

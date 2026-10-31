@@ -12,7 +12,7 @@ export type AgentMembershipFixture = {
   id: string
   userId: string
   agentId: string
-  /** One `user_membership` row per role key. */
+  /** One `role_grant` row per role key. */
   roleKeys: AgentRoleKey[]
   createdAt: Date
   updatedAt: Date

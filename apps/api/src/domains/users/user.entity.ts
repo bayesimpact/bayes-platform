@@ -1,7 +1,7 @@
 import { Column, Entity, OneToMany } from "typeorm"
 import { Base4AllEntity } from "@/common/entities/base4all.entity"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
-import { UserMembership } from "@/domains/memberships/user-membership.entity"
+import { RoleGrant } from "@/domains/memberships/role-grant.entity"
 import { ReviewerSessionReview } from "@/domains/review-campaigns/reviewer-session-reviews/reviewer-session-review.entity"
 import { TesterCampaignSurvey } from "@/domains/review-campaigns/tester-campaign-surveys/tester-campaign-survey.entity"
 import { AgentMessageFeedback } from "../agents/shared/agent-session-messages/feedback/agent-message-feedback.entity"
@@ -30,10 +30,10 @@ export class User extends Base4AllEntity {
   pictureUrl!: string | null
 
   @OneToMany(
-    () => UserMembership,
+    () => RoleGrant,
     (membership) => membership.user,
   )
-  userMemberships!: UserMembership[]
+  roleGrants!: RoleGrant[]
 
   @OneToMany(
     () => ConversationAgentSession,

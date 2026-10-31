@@ -1,12 +1,12 @@
 import type { AllRepositories } from "@/common/test/test-all-repositories"
-import type { UserMembershipResourceType } from "@/domains/memberships/user-membership.entity"
+import type { RoleGrantResourceType } from "@/domains/memberships/role-grant.entity"
 import type { ReviewCampaignRoleKey } from "@/domains/review-campaigns/memberships/review-campaign-membership.types"
 
 /**
  * The person's rows on a resource, read from `role_id`: the oldest row and every role key they
  * hold, or only the rows holding `roleKey` when given. Null without a row.
  */
-export async function findUserMembershipRow({
+export async function findRoleGrantRow({
   repositories,
   userId,
   resourceType,
@@ -15,11 +15,11 @@ export async function findUserMembershipRow({
 }: {
   repositories: AllRepositories
   userId: string
-  resourceType: UserMembershipResourceType
+  resourceType: RoleGrantResourceType
   resourceId: string
   roleKey?: string
 }) {
-  const rows = await repositories.userMembershipRepository.find({
+  const rows = await repositories.roleGrantRepository.find({
     where: { userId, resourceType, resourceId },
     relations: { rbacRole: true },
     order: { createdAt: "ASC" },
@@ -36,7 +36,7 @@ export async function findOrganizationMembershipRow(
   repositories: AllRepositories,
   params: { userId: string; organizationId: string },
 ) {
-  return findUserMembershipRow({
+  return findRoleGrantRow({
     repositories,
     userId: params.userId,
     resourceType: "organization",
@@ -48,7 +48,7 @@ export async function findProjectMembershipRow(
   repositories: AllRepositories,
   params: { userId: string; projectId: string },
 ) {
-  return findUserMembershipRow({
+  return findRoleGrantRow({
     repositories,
     userId: params.userId,
     resourceType: "project",
@@ -60,7 +60,7 @@ export async function findAgentMembershipRow(
   repositories: AllRepositories,
   params: { userId: string; agentId: string },
 ) {
-  return findUserMembershipRow({
+  return findRoleGrantRow({
     repositories,
     userId: params.userId,
     resourceType: "agent",
@@ -72,7 +72,7 @@ export async function findReviewCampaignMembershipRow(
   repositories: AllRepositories,
   params: { userId: string; campaignId: string; roleKey?: ReviewCampaignRoleKey },
 ) {
-  return findUserMembershipRow({
+  return findRoleGrantRow({
     repositories,
     userId: params.userId,
     resourceType: "review_campaign",

@@ -130,7 +130,7 @@ describe("Organizations - createOrganization", () => {
     const response = await subject({ payload: { name: "Owned Org" } })
 
     expectResponse(response, 201)
-    const membership = await repositories.userMembershipRepository.findOne({
+    const membership = await repositories.roleGrantRepository.findOne({
       where: {
         userId: user.id,
         resourceId: response.body.data.id,

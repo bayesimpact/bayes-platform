@@ -3,16 +3,16 @@ import type { Repository } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
 import { resolveOrganizationRoleId } from "@/domains/rbac/resolve-organization-role-id"
-import { UserMembership } from "./user-membership.entity"
+import { RoleGrant } from "./role-grant.entity"
 
 /**
- * Persistence layer for the unified `user_membership` table, for the writes that span several
+ * Persistence layer for the unified `role_grant` table, for the writes that span several
  * resource types. Each domain reads and writes its own resource type through its own repository.
  *
  * Participates in the ambient transaction via TransactionService.getManager().
  */
 @Injectable()
-export class UserMembershipRepository {
+export class RoleGrantRepository {
   constructor(private readonly transactionService: TransactionService) {}
 
   /** Org `org_member` plus a project row holding the installation's custom role. */
@@ -44,7 +44,7 @@ export class UserMembershipRepository {
     })
   }
 
-  private repo(): Repository<UserMembership> {
-    return this.transactionService.getManager().getRepository(UserMembership)
+  private repo(): Repository<RoleGrant> {
+    return this.transactionService.getManager().getRepository(RoleGrant)
   }
 }

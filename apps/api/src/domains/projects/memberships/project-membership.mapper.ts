@@ -1,11 +1,11 @@
 import type { ProjectMembershipDto } from "@caseai-connect/api-contracts"
 import { toMembershipRoleDto, unionRolePermissions } from "@/domains/memberships/membership-roles"
-import type { RoleGrant } from "@/domains/rbac/permission.types"
+import type { ResolvedRole } from "@/domains/rbac/permission.types"
 import type { ProjectMembershipModel } from "./project-membership.model"
 
 export function toProjectMembershipDto(
   model: ProjectMembershipModel,
-  roleGrantsByRoleId: ReadonlyMap<string, RoleGrant>,
+  rolesById: ReadonlyMap<string, ResolvedRole>,
 ): ProjectMembershipDto {
   return {
     projectId: model.projectId,
@@ -15,6 +15,6 @@ export function toProjectMembershipDto(
     userHasSignedIn: model.user.authSubject !== null,
     createdAt: model.createdAt.getTime(),
     roles: model.roles.map(toMembershipRoleDto),
-    permissions: unionRolePermissions(model.roles, roleGrantsByRoleId),
+    permissions: unionRolePermissions(model.roles, rolesById),
   }
 }

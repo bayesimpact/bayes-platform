@@ -219,8 +219,8 @@ WITH
   del_tester_campaign_survey AS (
     DELETE FROM "tester_campaign_survey"
   ),
-  del_user_membership AS (
-    DELETE FROM "user_membership"
+  del_role_grant AS (
+    DELETE FROM "role_grant"
   )
 SELECT 1;`)
       // Legacy membership tables are kept in production for now; test DBs may still
