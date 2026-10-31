@@ -3,7 +3,7 @@ import type { StreamEventPayload } from "@caseai-connect/api-contracts"
 /**
  * Parsing and dispatch of the chat SSE frames, kept apart from the reader so it can be tested
  * without the OIDC client the transport pulls in (same reason as
- * `agent-session-messages-streaming-url.ts`).
+ * `agent-session-messages-streaming-request.ts`).
  *
  * Handlers are typed on `StreamEventPayload`, the wire shape, rather than on the `MessageEvent`
  * intersection the server builds its frames from: the client only ever sees the payload.

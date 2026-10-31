@@ -108,7 +108,7 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
 
   const subject = (content: string) =>
     request(app.getHttpServer())
-      .get(
+      .post(
         AgentSessionMessagesRoutes.live.stream.getPath({
           organizationId,
           projectId,
@@ -116,7 +116,7 @@ describe("AgentSessionMessagesRoutes.stream - handoff", () => {
           agentSessionId,
         }),
       )
-      .query({ q: JSON.stringify({ payload: { content } }) })
+      .send({ payload: { content } })
       .set("Connection", "close")
       .set("Authorization", "Bearer token")
 

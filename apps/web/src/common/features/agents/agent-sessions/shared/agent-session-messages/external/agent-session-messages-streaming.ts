@@ -6,7 +6,7 @@ import {
   type StreamContext,
   type StreamEventHandler,
 } from "./agent-session-messages-streaming-events"
-import { buildStreamUrl } from "./agent-session-messages-streaming-url"
+import { buildStreamRequest } from "./agent-session-messages-streaming-request"
 
 export type { StreamEventHandler }
 
@@ -49,7 +49,7 @@ export async function streamChatResponse({
 
     const baseURL = runtimeConfig.apiUrl
 
-    const url = buildStreamUrl({
+    const { url, body } = buildStreamRequest({
       baseURL,
       type,
       organizationId,
@@ -62,8 +62,13 @@ export async function streamChatResponse({
     })
 
     const response = await fetch(url, {
-      method: "GET",
-      headers: { Authorization: `Bearer ${token}`, Accept: "text/event-stream" },
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "text/event-stream",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
       signal,
     })
 

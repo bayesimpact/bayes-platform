@@ -113,6 +113,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Security
 
 - Dependencies: server libraries and Docker images are updated to patch known vulnerabilities.
+- Conversations: long messages now always get a reply, and their text no longer reaches server access logs.
 
 ## [26.10.4] - 2026-10-18
 

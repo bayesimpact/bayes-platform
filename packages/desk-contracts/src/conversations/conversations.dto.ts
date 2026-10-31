@@ -98,28 +98,11 @@ export const conversationMessageOutputSchema = z.object({
 
 export type ConversationMessageOutputDto = z.output<typeof conversationMessageOutputSchema>
 
-/** What the reply stream reads from its `q` parameter: the message, as JSON. */
+/** What the reply stream reads from its body: the message. */
 export const replyInputSchema = z.strictObject({
-  payload: z.strictObject({
-    content: z.string().trim().min(1),
-    /** A file uploaded through the presign route of the conversation. */
-    attachmentDocumentId: z.uuid().optional(),
-  }),
-})
-
-/** The one query parameter of the reply stream: the input, encoded as JSON. */
-export const replyStreamQuerySchema = z.strictObject({
-  q: z.codec(z.string(), replyInputSchema, {
-    decode: (text, context) => {
-      try {
-        return JSON.parse(text)
-      } catch {
-        context.issues.push({ code: "invalid_format", format: "json", input: text })
-        return z.NEVER
-      }
-    },
-    encode: (input) => JSON.stringify(input),
-  }),
+  content: z.string().trim().min(1),
+  /** A file uploaded through the presign route of the conversation. */
+  attachmentDocumentId: z.uuid().optional(),
 })
 
 /**

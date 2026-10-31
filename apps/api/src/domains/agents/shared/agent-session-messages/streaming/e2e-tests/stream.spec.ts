@@ -12,6 +12,7 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import type { Agent } from "@/domains/agents/agent.entity"
+import { ConversationAgentSessionsModule } from "@/domains/agents/conversation-agent-sessions/conversation-agent-sessions.module"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import type { Organization } from "@/domains/organizations/organization.entity"
 import { createOrganizationWithAgentSession } from "@/domains/organizations/organization.factory"
@@ -35,7 +36,9 @@ describe("AgentSessionMessagesRoutes.stream", () => {
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
-      additionalImports: [StreamingModule],
+      // In AppModule's order: the messages routes register first, so a stream path they also
+      // match (`POST .../messages/:messageId`) would never reach the stream.
+      additionalImports: [ConversationAgentSessionsModule, StreamingModule],
       applyOverrides: (moduleBuilder) => setupUserGuardForTesting(moduleBuilder, () => authSubject),
     })
     repositories = setup.getAllRepositories()
@@ -75,24 +78,26 @@ describe("AgentSessionMessagesRoutes.stream", () => {
     return { organization, project, agent, agentSettings, session: agentSession }
   }
 
-  /** The stream is a GET: its payload travels JSON-encoded in `?q=`. */
-  const rawSubject = (query: string) => {
-    const path = AgentSessionMessagesRoutes[agentSessionType].stream.getPath({
+  /** The stream is a POST: its payload travels in the body. */
+  const streamPath = () =>
+    AgentSessionMessagesRoutes[agentSessionType].stream.getPath({
       organizationId,
       projectId,
       agentId,
       agentSessionId,
     })
+
+  const rawSubject = (body: object) => {
     const req = request(app.getHttpServer())
-      .get(path)
-      .query({ q: query })
+      .post(streamPath())
+      .send(body)
       .set("Connection", "close")
     if (accessToken) req.set("Authorization", `Bearer ${accessToken}`)
     return req
   }
 
   const subject = (content: string, agentSettingsRevision?: number) =>
-    rawSubject(JSON.stringify({ payload: { content, agentSettingsRevision } }))
+    rawSubject({ payload: { content, agentSettingsRevision } })
 
   const seedRevision = async ({
     organization,
@@ -163,6 +168,20 @@ describe("AgentSessionMessagesRoutes.stream", () => {
     const response = await subject("Hello")
 
     expect(response.status).toBe(401)
+  })
+
+  it("does not read a message sent in the URL", async () => {
+    // A message in the URL can exceed a proxy's limit and is copied to every access log.
+    await createContext()
+
+    const response = await request(app.getHttpServer())
+      .get(streamPath())
+      .query({ q: JSON.stringify({ payload: { content: "Hello" } }) })
+      .set("Connection", "close")
+      .set("Authorization", `Bearer ${accessToken}`)
+
+    expect(response.status).toBe(404)
+    expect(await repositories.agentMessageRepository.count()).toBe(0)
   })
 
   describe("settings version selection", () => {
@@ -272,21 +291,21 @@ describe("AgentSessionMessagesRoutes.stream", () => {
       // surface as a driver error.
       await createContext({ sessionType: "playground" })
 
-      const response = await rawSubject(
-        JSON.stringify({ payload: { content: "Hello", agentSettingsRevision: "2" } }),
-      )
+      const response = await rawSubject({
+        payload: { content: "Hello", agentSettingsRevision: "2" },
+      })
 
       expect(response.text).toContain("event: error")
       expect(errorData(response.text)).toContain("integer")
     })
 
-    it("rejects a query whose payload is not an object", async () => {
+    it("rejects a body whose payload is not an object", async () => {
       await createContext({ sessionType: "playground" })
 
-      const response = await rawSubject(JSON.stringify({ payload: null }))
+      const response = await rawSubject({ payload: null })
 
       expect(response.text).toContain("event: error")
-      expect(errorData(response.text)).toContain("Invalid query format")
+      expect(errorData(response.text)).toContain("Invalid request body")
     })
 
     it("keeps running the published revision on a live session with no revision", async () => {

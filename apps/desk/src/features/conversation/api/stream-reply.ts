@@ -104,7 +104,7 @@ export async function streamReply(
     }
     const response = await apiStreamResponse(DeskConversationsRoutes.streamReply, {
       params: conversation,
-      query: { q: { payload: { content: outgoing.content, attachmentDocumentId } } },
+      body: { content: outgoing.content, attachmentDocumentId },
       signal: controller.signal,
     })
     if (!response.body) throw new Error("The reply stream has no body")

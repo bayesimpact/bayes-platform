@@ -4,14 +4,15 @@ import {
 } from "@caseai-connect/api-contracts"
 
 /**
- * The stream is a GET, so its payload travels JSON-encoded in `?q=`. Each session type has its own
- * stream route, so `type` must be the session's own.
+ * The stream is a POST: the URL holds ids only and the message travels in the body, so a long
+ * message never hits a proxy's URL limit and never lands in an access log. Each session type has
+ * its own stream route, so `type` must be the session's own.
  *
  * The conditional spread on `agentSettingsRevision` keeps the object honest for anything reading
  * it here; it makes no difference on the wire, since `JSON.stringify` drops `undefined` values
  * either way and the API cannot tell an omitted field from one explicitly set to `undefined`.
  */
-export function buildStreamUrl({
+export function buildStreamRequest({
   baseURL,
   type,
   organizationId,
@@ -31,7 +32,7 @@ export function buildStreamUrl({
   content: string
   attachmentDocumentId?: string
   agentSettingsRevision?: number
-}): string {
+}): { url: string; body: typeof AgentSessionMessagesRoutes.live.stream.request } {
   const body = {
     payload: {
       content,
@@ -45,5 +46,5 @@ export function buildStreamUrl({
     agentId,
     agentSessionId,
   })
-  return `${baseURL}${path}?q=${encodeURIComponent(JSON.stringify(body))}`
+  return { url: `${baseURL}${path}`, body }
 }

@@ -12,12 +12,13 @@ import {
   messageParamsSchema,
   presignAttachmentInputSchema,
   presignAttachmentOutputSchema,
+  replyInputSchema,
   replyStreamEventSchema,
-  replyStreamQuerySchema,
 } from "./conversations.dto"
 
 const conversationPath = `${AGENT_PATH}/conversation-agent-sessions/live/:agentSessionId`
-const messagesPath = `${AGENT_PATH}/agent-sessions/live/:agentSessionId/messages`
+const sessionPath = `${AGENT_PATH}/agent-sessions/live/:agentSessionId`
+const messagesPath = `${sessionPath}/messages`
 
 /** A person's live conversations with a conversation agent. */
 export const DeskConversationsRoutes = {
@@ -74,10 +75,10 @@ export const DeskConversationsRoutes = {
   }),
   /** Sends a message and streams the replies, as server-sent events. */
   streamReply: defineStreamRoute({
-    method: "get",
-    path: `${messagesPath}/stream`,
+    method: "post",
+    path: `${sessionPath}/stream`,
     params: conversationParamsSchema,
-    query: replyStreamQuerySchema,
+    body: replyInputSchema,
     event: replyStreamEventSchema,
   }),
 }

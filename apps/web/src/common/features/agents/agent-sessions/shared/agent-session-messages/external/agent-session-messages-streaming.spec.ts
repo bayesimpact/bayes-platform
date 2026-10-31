@@ -123,12 +123,21 @@ describe("streamChatResponse", () => {
     expect(handlers.onError).not.toHaveBeenCalled()
   })
 
-  it("carries the chosen settings revision in the query", async () => {
+  it("posts the message and the chosen settings revision in the body, not the URL", async () => {
     respondWith('data: {"type":"end","messageId":"persisted-1","fullContent":""}\n\n')
 
-    await streamChatResponse({ ...params, agentSettingsRevision: 3, handlers: buildHandlers() })
+    await streamChatResponse({
+      ...params,
+      content: "A private message",
+      agentSettingsRevision: 3,
+      handlers: buildHandlers(),
+    })
 
-    const url = vi.mocked(fetch).mock.calls[0]?.[0]
-    expect(decodeURIComponent(String(url))).toContain('"agentSettingsRevision":3')
+    const [url, init] = vi.mocked(fetch).mock.calls[0] ?? []
+    expect(init?.method).toBe("POST")
+    expect(JSON.parse(String(init?.body))).toEqual({
+      payload: { content: "A private message", agentSettingsRevision: 3 },
+    })
+    expect(String(url)).not.toContain("private")
   })
 })
