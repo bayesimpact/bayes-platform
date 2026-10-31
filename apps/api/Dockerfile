@@ -227,13 +227,29 @@ COPY apps/api/bin /app/apps/api/bin
 # Warning: this test is only run if the environment variable WORKER_DOCLING_SELF_TEST_ENABLED is set to true
 COPY apps/api/test/fixtures/sample.pdf /app/apps/api/bin/sample.pdf
 
+# The workers run as the node user (uid 1000, see the chart), not as root.
+# The Hugging Face models go to a cache that user reads, instead of root's home.
+ENV HF_HOME=/opt/docling-cache/huggingface
+
 # Pre-warm: downloads the Docling models into the image. Depends on the
-# chunker script and the fixture only.
+# chunker script and the fixture only. The second run forces OCR: RapidOCR
+# loads its models on the first page it OCRs and downloads them into its own
+# package folder, so a PDF with a text layer never fetches them. Both folders
+# then go to the node user, so a model this pre-warm missed can still be
+# downloaded at run time.
 RUN chmod +x /app/apps/api/bin/document_chunker || true \
+  && mkdir -p "$HF_HOME" \
   && /opt/docling-venv/bin/python /app/apps/api/bin/document_chunker.py \
     --doc-path /app/apps/api/bin/sample.pdf \
     --output-json /tmp/docling-prewarm.json \
-    --max-nodes 1
+    --max-nodes 1 \
+  && /opt/docling-venv/bin/python /app/apps/api/bin/document_chunker.py \
+    --doc-path /app/apps/api/bin/sample.pdf \
+    --output-json /tmp/docling-prewarm-ocr.json \
+    --max-nodes 1 \
+    --force-full-page-ocr \
+  && chown -R node:node /opt/docling-cache \
+    "$(/opt/docling-venv/bin/python -c 'import pathlib, rapidocr; print(pathlib.Path(rapidocr.__file__).parent / "models")')"
 
 #
 # 🚀 GPU Workers Runtime (Docling enabled)
