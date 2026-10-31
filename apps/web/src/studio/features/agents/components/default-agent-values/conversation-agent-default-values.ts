@@ -1,9 +1,5 @@
-import { runtimeConfig } from "@/config/runtime-config"
-
 export const conversationAgentDefaultValues = {
-  prompt:
-    runtimeConfig.defaultConversationAgentPrompt ??
-    `## Purpose
+  prompt: `## Purpose
 Your purpose is to assist users by answering their questions and helping them accomplish their goals.
 
 ## Behavioural Rules
