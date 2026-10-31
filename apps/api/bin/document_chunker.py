@@ -93,11 +93,14 @@ def _pdf_has_no_usable_text_layer(doc_path: Path) -> bool:
 
     Reuses docling's own PDF backend for the check instead of a second parse
     with pypdf (~160ms/file vs ~800ms/file, and pypdf is slowest exactly on
-    the vector-path files this needs to catch). Uses DoclingParseDocumentBackend,
-    which is also DocumentConverter's own default PDF backend as of docling
-    2.91.0 (DoclingParseV4DocumentBackend is a deprecated alias kept only to
-    warn callers back onto this one), so the classifier's notion of "text
-    cells" matches what conversion will see.
+    the vector-path files this needs to catch). Uses docling-parse, which is
+    also DocumentConverter's own default PDF backend, so the classifier's
+    notion of "text cells" matches what conversion will see.
+
+    Docling 2.14x replaced that backend with ThreadedDoclingParseDocumentBackend
+    (DoclingParseDocumentBackend stays as a deprecated alias), whose pages are
+    only reachable through iter_pages(): load_page() raises. Older releases
+    have load_page() and no iter_pages(), so both are supported.
 
     Returns False on any classification error so conversion falls back to the
     default pipeline.
@@ -107,16 +110,24 @@ def _pdf_has_no_usable_text_layer(doc_path: Path) -> bool:
     scanned/vector pages can stay above the threshold and keep the fast path,
     leaving the scanned pages empty.
     """
-    from docling.backend.docling_parse_backend import DoclingParseDocumentBackend
     from docling.datamodel.base_models import InputFormat
     from docling.datamodel.document import InputDocument
+
+    try:
+        from docling.backend.docling_parse_backend import (
+            ThreadedDoclingParseDocumentBackend as pdf_backend_class,
+        )
+    except ImportError:
+        from docling.backend.docling_parse_backend import (
+            DoclingParseDocumentBackend as pdf_backend_class,
+        )
 
     backend = None
     try:
         input_document = InputDocument(
             path_or_stream=doc_path,
             format=InputFormat.PDF,
-            backend=DoclingParseDocumentBackend,
+            backend=pdf_backend_class,
             filename=doc_path.name,
         )
         if not input_document.valid:
@@ -126,13 +137,17 @@ def _pdf_has_no_usable_text_layer(doc_path: Path) -> bool:
         if page_count == 0:
             return False
 
+        if hasattr(backend, "iter_pages"):
+            page_backends = backend.iter_pages()
+        else:
+            page_backends = (backend.load_page(page_index) for page_index in range(page_count))
+
         # Once the running total reaches the threshold for the whole document,
         # the average cannot drop back below it — stop early (page 1 for most
         # native-text PDFs).
         native_chars_needed = TEXT_CHARS_PER_PAGE_THRESHOLD * page_count
         native_chars = 0
-        for page_index in range(page_count):
-            page_backend = backend.load_page(page_index)
+        for page_backend in page_backends:
             native_chars += sum(len(cell.text) for cell in page_backend.get_text_cells())
             page_backend.unload()
             if native_chars >= native_chars_needed:
@@ -169,16 +184,21 @@ def _build_force_ocr_pdf_converter() -> Any:
     )
 
 
-def _create_docling_reader(docling_reader_class: Any, doc_path: Path) -> tuple[Any, bool]:
+def _create_docling_reader(
+    docling_reader_class: Any, doc_path: Path, force_full_page_ocr: bool = False
+) -> tuple[Any, bool]:
     """
     Create the DoclingReader for a document, forcing full-page OCR only for
-    PDFs classified as having no usable native text layer. Every other
-    document keeps docling's default (faster) extraction path.
+    PDFs classified as having no usable native text layer, or for every PDF
+    when force_full_page_ocr is set. Every other document keeps docling's
+    default (faster) extraction path.
 
     Returns:
         A (reader, forced_full_page_ocr) tuple.
     """
-    if doc_path.suffix.lower() == ".pdf" and _pdf_has_no_usable_text_layer(doc_path):
+    if doc_path.suffix.lower() == ".pdf" and (
+        force_full_page_ocr or _pdf_has_no_usable_text_layer(doc_path)
+    ):
         return (
             docling_reader_class(export_type="json", doc_converter=_build_force_ocr_pdf_converter()),
             True,
@@ -366,6 +386,14 @@ def parse_arguments() -> argparse.Namespace:
         help=(
             "Maximum number of tokens per chunk for HybridChunker. "
             "Defaults to the tokenizer's built-in limit (256 for the default tokenizer)."
+        ),
+    )
+    parser.add_argument(
+        "--force-full-page-ocr",
+        action="store_true",
+        help=(
+            "OCR every page of a PDF, whatever its text layer. The image build uses it "
+            "to download the OCR models, which a PDF with a text layer never loads."
         ),
     )
     return parser.parse_args()
@@ -620,7 +648,7 @@ def main() -> int:
                 text_node_class,
             ) = _import_docling_components()
             docling_reader, forced_full_page_ocr = _create_docling_reader(
-                docling_reader_class, doc_path
+                docling_reader_class, doc_path, arguments.force_full_page_ocr
             )
             chunker = (
                 hybrid_chunker_class(max_tokens=arguments.max_tokens)
