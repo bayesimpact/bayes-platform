@@ -264,9 +264,11 @@ export function buildTurnClassificationSchema({
     }
   }
   if (announcedHandoffToolNames.length > 0) {
+    // A nullable enum is an anyOf with a null branch: the Google provider
+    // turns it into { type, enum, nullable }. Writing type: ["string", "null"]
+    // next to an enum becomes anyOf + enum, which Vertex rejects.
     properties.announcedHandoffTo = {
-      type: ["string", "null"],
-      enum: [...announcedHandoffToolNames, null],
+      anyOf: [{ type: "string", enum: announcedHandoffToolNames }, { type: "null" }],
       description:
         "The sub-agent tool whose hand-over the reply announces (it tells the user it transfers them, passes them on, or lets that sub-agent take over) while no tool ran. null when the reply announces no hand-over.",
     }
