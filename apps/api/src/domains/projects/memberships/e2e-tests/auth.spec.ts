@@ -250,7 +250,7 @@ describe("Project Memberships - Auth", () => {
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
 
       expect(
-        await repositories.userMembershipRepository.findOne({ where: { id: membership.id } }),
+        await repositories.roleGrantRepository.findOne({ where: { id: membership.id } }),
       ).not.toBeNull()
     })
     it("allows the owner to remove a membership", async () => {
@@ -353,8 +353,8 @@ describe("Project Memberships - Auth", () => {
       const adminRole = await repositories.roleRepository.findOneOrFail({
         where: { key: "project_admin" },
       })
-      await repositories.userMembershipRepository.save(
-        repositories.userMembershipRepository.create({
+      await repositories.roleGrantRepository.save(
+        repositories.roleGrantRepository.create({
           userId: target.id,
           resourceType: "project",
           resourceId: project.id,

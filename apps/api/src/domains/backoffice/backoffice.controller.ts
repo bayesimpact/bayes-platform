@@ -241,7 +241,7 @@ export class BackofficeController {
         result.projectMemberships,
         result.agentMemberships,
         result.reviewCampaignMemberships,
-        result.roleGrantsByRoleId,
+        result.rolesById,
       ),
     }
   }

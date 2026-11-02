@@ -75,7 +75,7 @@ describe("Project membership - removeRole", () => {
   }
 
   const roleKeysOf = async (userId: string) => {
-    const rows = await repositories.userMembershipRepository.find({
+    const rows = await repositories.roleGrantRepository.find({
       where: { userId, resourceType: "project", resourceId: projectId },
       relations: { rbacRole: true },
     })
@@ -83,7 +83,7 @@ describe("Project membership - removeRole", () => {
   }
 
   const agentRoleKeysOf = async (userId: string) => {
-    const rows = await repositories.userMembershipRepository.find({
+    const rows = await repositories.roleGrantRepository.find({
       where: { userId, resourceType: "agent" },
       relations: { rbacRole: true },
     })
@@ -99,8 +99,8 @@ describe("Project membership - removeRole", () => {
 
   const giveRole = async (userId: string, roleKey: string) => {
     const role = await repositories.roleRepository.findOneOrFail({ where: { key: roleKey } })
-    await repositories.userMembershipRepository.save(
-      repositories.userMembershipRepository.create({
+    await repositories.roleGrantRepository.save(
+      repositories.roleGrantRepository.create({
         userId,
         resourceType: "project",
         resourceId: projectId,

@@ -7,11 +7,11 @@ Source of truth in code:
 
 This document mirrors those files. Whenever a role or a role/permission grant changes, update the matching table here in the same PR (see `.cursor/rules/permission-matrix.mdc` and the `check-permission-matrix` Claude skill).
 
-A person can hold several roles on one organization, project, agent or review campaign: each role is its own `user_membership` row, and what the person can do there is the union of those roles ([ADR 0032](adr/0032-several-roles-per-resource.md)). Redundant combinations, such as `project_owner` with `project_admin`, are allowed. The role is `role_id`; the legacy `role` column is no longer read or written.
+A person can hold several roles on one organization, project, agent or review campaign: each role is its own `role_grant` row, and what the person can do there is the union of those roles ([ADR 0032](adr/0032-several-roles-per-resource.md)). Redundant combinations, such as `project_owner` with `project_admin`, are allowed. The role is `role_id`; the legacy `role` column is no longer read or written.
 
 ## Global roles
 
-Global roles are stored as `user_membership` rows with `resource_type = 'global'`. `platform_staff` is renamed from `org_creator` and seeded by email domain (`SeedPlatformStaffByEmailDomain` / `ORGANIZATION_CREATOR_EMAIL_DOMAIN`). `platform_superadmin` is seeded from `BACKOFFICE_AUTHORIZED_EMAILS` by `SeedPlatformSuperadminByEmails`. The app itself never reads those env vars for authorization. `platform_staff` holds global `backoffice.project.read`. It does not hold `backoffice.user.read`, so the backoffice project page lists only the members it can read as users through `listUserIds`, and counts the others. `backoffice.app.manage` is superadmin-only: it manages the app manifests and their OAuth clients. `backoffice.maintenance_job.run` is superadmin-only: it lists and runs the one-off maintenance jobs of the backoffice. `backoffice.conversation_reviewer.update` lets the backoffice grant or revoke `agent_conversation_reviewer` on an agent (see Agent roles). `platform_org_creator` only opens the backoffice and creates organizations, as their owner. `backoffice.global_role.update` is superadmin-only: it grants or revokes the global roles of a user from the backoffice user page, and the last superadmin cannot lose that role.
+Global roles are stored as `role_grant` rows with `resource_type = 'global'`. `platform_staff` is renamed from `org_creator` and seeded by email domain (`SeedPlatformStaffByEmailDomain` / `ORGANIZATION_CREATOR_EMAIL_DOMAIN`). `platform_superadmin` is seeded from `BACKOFFICE_AUTHORIZED_EMAILS` by `SeedPlatformSuperadminByEmails`. The app itself never reads those env vars for authorization. `platform_staff` holds global `backoffice.project.read`. It does not hold `backoffice.user.read`, so the backoffice project page lists only the members it can read as users through `listUserIds`, and counts the others. `backoffice.app.manage` is superadmin-only: it manages the app manifests and their OAuth clients. `backoffice.maintenance_job.run` is superadmin-only: it lists and runs the one-off maintenance jobs of the backoffice. `backoffice.conversation_reviewer.update` lets the backoffice grant or revoke `agent_conversation_reviewer` on an agent (see Agent roles). `platform_org_creator` only opens the backoffice and creates organizations, as their owner. `backoffice.global_role.update` is superadmin-only: it grants or revokes the global roles of a user from the backoffice user page, and the last superadmin cannot lose that role.
 
 | Permission | `platform_staff` | `platform_superadmin` | `platform_org_creator` |
 |---|---|---|---|
@@ -31,7 +31,7 @@ Global roles are stored as `user_membership` rows with `resource_type = 'global'
 
 ## Organization roles
 
-Scoped to one organization via `user_membership` (`resource_type = 'organization'`). Org roles deliberately do not grant `project.read`: project visibility comes from project memberships, and from a review campaign role on one of the project's campaigns (see Review campaign roles). They do grant `backoffice.project.read` / `backoffice.agent.read` so org admins see those resources in the backoffice via inheritance. They do **not** grant `backoffice.project.update`: feature-flag writes stay on project memberships.
+Scoped to one organization via `role_grant` (`resource_type = 'organization'`). Org roles deliberately do not grant `project.read`: project visibility comes from project memberships, and from a review campaign role on one of the project's campaigns (see Review campaign roles). They do grant `backoffice.project.read` / `backoffice.agent.read` so org admins see those resources in the backoffice via inheritance. They do **not** grant `backoffice.project.update`: feature-flag writes stay on project memberships.
 
 | Permission | `org_owner` | `org_admin` | `org_member` |
 |---|---|---|---|
@@ -46,7 +46,7 @@ Scoped to one organization via `user_membership` (`resource_type = 'organization
 
 ## Project roles
 
-Scoped to one project via `user_membership` (`resource_type = 'project'`).
+Scoped to one project via `role_grant` (`resource_type = 'project'`).
 
 The evaluation permissions are never inherited from the organization: an organization role does not open a project's evaluation app, its datasets or its runs.
 
@@ -169,7 +169,7 @@ The `project.review_campaign.*` permissions are not inherited either: an organiz
 
 ## Agent roles
 
-Scoped to one agent via `user_membership` (`resource_type = 'agent'`).
+Scoped to one agent via `role_grant` (`resource_type = 'agent'`).
 
 `agent_conversation_reviewer` is a row of its own on the agent, next to the person's owner, admin or member row if they have one. Its two permissions are checked with `@CheckPermission(AGENT_CONVERSATION_REVIEW_PERMISSION, "agent")` to read a conversation from its session id, and `@CheckPermission(AGENT_CONVERSATION_REVIEW_CATEGORY_READ_PERMISSION, "agent")` to list the agent's sessions grouped by category, and no parent passes either down. Nobody holds it by default, superadmins included; a holder of `backoffice.conversation_reviewer.update` grants it person by person from the backoffice agent page. The studio leaves it alone: the agent's member list, member removals and the project removal cascade only touch `agent_owner`, `agent_admin` and `agent_member`, and a reviewer grant does not make its holder visible through `user.read`.
 
@@ -209,7 +209,7 @@ The same goes for `agent.settings.draft.update`, `agent.settings.draft.publish`,
 
 ## Review campaign roles
 
-Scoped to one review campaign via `user_membership` (`resource_type = 'review_campaign'`, `resource_id` = the campaign's id). Each row holds `review_campaign_tester` or `review_campaign_reviewer` in `role_id`. A person can hold both roles on one campaign: each one is its own row, revoked on its own.
+Scoped to one review campaign via `role_grant` (`resource_type = 'review_campaign'`, `resource_id` = the campaign's id). Each row holds `review_campaign_tester` or `review_campaign_reviewer` in `role_id`. A person can hold both roles on one campaign: each one is its own row, revoked on its own.
 
 Accepting an invitation to a campaign gives `review_campaign_tester` or `review_campaign_reviewer` on that campaign, plus `org_member` on the organization, since every organization-scoped route needs an organization row. It gives no project role. A campaign row without `role_id` gives nothing and is not read, so a new invitation to the same campaign adds a row with the role. Removing someone from a project also deletes their tester and reviewer roles on that project's campaigns. Since a participant stays `org_member`, provisioning one as a workspace owner later reports `granted_without_organization_admin` (preview: `would_grant_without_organization_admin`), and staff promote them on the organization by hand.
 

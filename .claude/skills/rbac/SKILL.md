@@ -5,7 +5,7 @@ description: Protect an API endpoint with a permission and load the caller's aut
 
 # RBAC
 
-Permissions are declared once, granted on roles in the catalog, checked on the route, and used to list what the caller can see. Do not query `user_membership` or `role_permission` from a feature service.
+Permissions are declared once, granted on roles in the catalog, checked on the route, and used to list what the caller can see. Do not query `role_grant` or `role_permission` from a feature service.
 
 This skill explains how to use the model. It does not replace:
 

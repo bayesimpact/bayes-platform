@@ -1,5 +1,5 @@
 /**
- * A person can hold several roles on one resource, one `user_membership` row each, and their
+ * A person can hold several roles on one resource, one `role_grant` row each, and their
  * permissions on it are the union of those roles (ADR 0032).
  *
  * `review_campaign` holds the tester and reviewer roles of one campaign. Its id is the campaign's
@@ -12,7 +12,8 @@ export type PermissionResource = {
   id: string
 }
 
-export type RoleGrant = {
+/** A catalog role with its permission keys, held by no one in particular. */
+export type ResolvedRole = {
   key: string
   name: string
   permissions: string[]

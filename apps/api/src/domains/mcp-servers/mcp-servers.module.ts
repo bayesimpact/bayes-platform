@@ -8,7 +8,6 @@ import { ProjectContextResolver } from "@/common/context/resolvers/project-conte
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { Agent } from "@/domains/agents/agent.entity"
 import { AuthModule } from "@/domains/auth/auth.module"
-import { MembershipsModule } from "@/domains/memberships/memberships.module"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
 import { Project } from "@/domains/projects/project.entity"
 import { RbacModule } from "@/domains/rbac/rbac.module"
@@ -26,7 +25,7 @@ import { McpOauthService } from "./oauth/mcp-oauth.service"
   imports: [
     TypeOrmModule.forFeature([McpServer, AgentMcpServer, Project, Agent]),
     ConfigModule,
-    MembershipsModule,
+
     OrganizationsModule,
     UsersModule,
     AuthModule,

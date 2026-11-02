@@ -10,7 +10,7 @@ export type OrganizationMembershipFixture = {
   id: string
   userId: string
   organizationId: string
-  /** One `user_membership` row per role key. */
+  /** One `role_grant` row per role key. */
   roleKeys: OrganizationRoleKey[]
   createdAt: Date
   updatedAt: Date

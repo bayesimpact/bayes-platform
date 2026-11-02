@@ -8,6 +8,7 @@ import { PlatformRoleService } from "./platform-role.service"
 import { RbacService } from "./rbac.service"
 import { Role } from "./role.entity"
 import { RoleRepository } from "./role.repository"
+import { RoleGrantRepository } from "./role-grant.repository"
 import { RolePermission } from "./role-permission.entity"
 
 @Module({
@@ -19,6 +20,7 @@ import { RolePermission } from "./role-permission.entity"
     PlatformRoleRepository,
     PlatformRoleService,
     RoleRepository,
+    RoleGrantRepository,
   ],
   exports: [
     RbacService,
@@ -26,6 +28,7 @@ import { RolePermission } from "./role-permission.entity"
     CheckPermissionGuard,
     PlatformRoleService,
     RoleRepository,
+    RoleGrantRepository,
   ],
 })
 export class RbacModule {}

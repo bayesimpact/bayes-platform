@@ -354,7 +354,7 @@ describe("Agent Sessions - Auth", () => {
 
       it("forbids a tester whose campaign row was deleted", async () => {
         const { membership } = await createCampaignParticipantContext()
-        await repositories.userMembershipRepository.delete({ id: membership.id })
+        await repositories.roleGrantRepository.delete({ id: membership.id })
 
         expectResponse(await subject(routeKey), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
       })

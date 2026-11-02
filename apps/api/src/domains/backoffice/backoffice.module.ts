@@ -7,7 +7,6 @@ import { AgentMembershipRepository } from "@/domains/agents/memberships/agent-me
 import { AgentMembershipsService } from "@/domains/agents/memberships/agent-memberships.service"
 import { AuthModule } from "@/domains/auth/auth.module"
 import { FeatureFlag } from "@/domains/feature-flags/feature-flag.entity"
-import { MembershipsModule } from "@/domains/memberships/memberships.module"
 import { OrganizationMembershipRepository } from "@/domains/organizations/memberships/organization-membership.repository"
 import { OrganizationMembershipsService } from "@/domains/organizations/memberships/organization-memberships.service"
 import { Organization } from "@/domains/organizations/organization.entity"
@@ -26,7 +25,7 @@ import { BackofficeService } from "./backoffice.service"
 @Module({
   imports: [
     TypeOrmModule.forFeature([Organization, Project, FeatureFlag, User, Agent]),
-    MembershipsModule,
+
     UsersModule,
     AuthModule,
     RbacModule,

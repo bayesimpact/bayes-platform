@@ -31,7 +31,7 @@ import {
   FILE_STORAGE_SERVICE,
   type IFileStorage,
 } from "@/domains/documents/storage/file-storage.interface"
-import type { MembershipRole } from "@/domains/memberships/membership-roles"
+import type { MembershipRole } from "@/domains/rbac/membership-roles"
 import { PROJECT_ROLES } from "@/domains/rbac/rbac.constants"
 import { telemetryTraceUrl } from "@/external/llm/telemetry"
 import type { BaseAgentSessionType } from "../base-agent-sessions/base-agent-sessions.types"

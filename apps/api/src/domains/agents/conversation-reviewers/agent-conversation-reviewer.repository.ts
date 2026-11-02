@@ -24,7 +24,7 @@ function affectedRows(result: unknown): number {
 }
 
 /**
- * Grants of the `agent_conversation_reviewer` role: `user_membership` rows on the agent, next to
+ * Grants of the `agent_conversation_reviewer` role: `role_grant` rows on the agent, next to
  * the person's owner, admin or member row there if any. The unique index on (user, resource
  * type, resource id, role) keeps one grant per person and agent.
  *
@@ -38,7 +38,7 @@ export class AgentConversationReviewerRepository {
   async listAgentIdsForUser(userId: string): Promise<string[]> {
     const rows: { agentId: string }[] = await this.transactionService.getManager().query(
       `SELECT membership.resource_id AS "agentId"
-       FROM "user_membership" AS membership
+       FROM "role_grant" AS membership
        INNER JOIN "role" AS role ON role.id = membership.role_id
        WHERE membership.user_id = $1
          AND membership.resource_type = $2
@@ -56,7 +56,7 @@ export class AgentConversationReviewerRepository {
               "user".email AS "email",
               "user".name AS "name",
               membership.created_at AS "grantedAt"
-       FROM "user_membership" AS membership
+       FROM "role_grant" AS membership
        INNER JOIN "role" AS role ON role.id = membership.role_id
        INNER JOIN "user" ON "user".id = membership.user_id
        WHERE membership.resource_type = $1
@@ -71,7 +71,7 @@ export class AgentConversationReviewerRepository {
   /** Returns true when the role was granted, false when the user already had it. */
   async grant({ userId, agentId }: { userId: string; agentId: string }): Promise<boolean> {
     const result: unknown = await this.transactionService.getManager().query(
-      `INSERT INTO "user_membership" ("user_id", "resource_type", "resource_id", "role_id")
+      `INSERT INTO "role_grant" ("user_id", "resource_type", "resource_id", "role_id")
        SELECT $1, $2, $3, role.id
        FROM "role" AS role
        WHERE role.key = $4
@@ -88,7 +88,7 @@ export class AgentConversationReviewerRepository {
    */
   async revoke({ userId, agentId }: { userId: string; agentId: string }): Promise<boolean> {
     const result: unknown = await this.transactionService.getManager().query(
-      `DELETE FROM "user_membership" AS membership
+      `DELETE FROM "role_grant" AS membership
        USING "role" AS role
        WHERE role.id = membership.role_id
          AND role.key = $4

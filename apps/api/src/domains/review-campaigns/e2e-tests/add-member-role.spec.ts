@@ -84,7 +84,7 @@ describe("ReviewCampaigns - addMemberRole", () => {
     })
 
   const roleKeysOf = async (userId: string) => {
-    const rows = await repositories.userMembershipRepository.find({
+    const rows = await repositories.roleGrantRepository.find({
       where: { userId, resourceType: "review_campaign", resourceId: reviewCampaignId },
       relations: { rbacRole: true },
     })

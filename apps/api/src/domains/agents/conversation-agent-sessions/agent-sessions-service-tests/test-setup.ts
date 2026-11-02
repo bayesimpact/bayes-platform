@@ -12,11 +12,11 @@ import { AgentSessionCategory } from "@/domains/agents/session-categories/agent-
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
 import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
 import { AgentSubAgent } from "@/domains/agents/sub-agents/agent-sub-agent.entity"
-import { UserMembership } from "@/domains/memberships/user-membership.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { organizationFactory } from "@/domains/organizations/organization.factory"
 import { Project } from "@/domains/projects/project.entity"
 import { projectFactory } from "@/domains/projects/project.factory"
+import { RoleGrant } from "@/domains/rbac/role-grant.entity"
 import { User } from "@/domains/users/user.entity"
 import { userFactory } from "@/domains/users/user.factory"
 import { sdk } from "@/external/llm/open-telemetry-init"
@@ -43,7 +43,7 @@ export function agentSessionControllerTestSetup() {
   let userRepository: Repository<User>
   let organizationRepository: Repository<Organization>
   let projectRepository: Repository<Project>
-  let userMembershipRepository: Repository<UserMembership>
+  let roleGrantRepository: Repository<RoleGrant>
   let repositories: AllRepositories
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
 
@@ -74,7 +74,7 @@ export function agentSessionControllerTestSetup() {
     featureFlagRepository = setup.getAllRepositories().featureFlagRepository
     organizationRepository = setup.getRepository(Organization)
     projectRepository = setup.getRepository(Project)
-    userMembershipRepository = setup.getRepository(UserMembership)
+    roleGrantRepository = setup.getRepository(RoleGrant)
     repositories = setup.getAllRepositories()
   })
 
@@ -137,7 +137,7 @@ export function agentSessionControllerTestSetup() {
       conversationAgentSessionCategoryRepository,
       featureFlagRepository,
       agentMessageRepository,
-      userMembershipRepository,
+      roleGrantRepository,
       repositories,
       organizationRepository,
       projectRepository,

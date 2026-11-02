@@ -6,7 +6,6 @@ import {
 } from "@/common/test/test-database"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
-import { MembershipsModule } from "@/domains/memberships/memberships.module"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { RbacModule } from "@/domains/rbac/rbac.module"
 import { ensureRbacCatalog } from "../../../test/rbac-test.helpers"
@@ -24,7 +23,7 @@ describe("ReviewCampaignRepository", () => {
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
-      additionalImports: [MembershipsModule, RbacModule],
+      additionalImports: [RbacModule],
       providers: [ReviewCampaignRepository],
     })
     await ensureRbacCatalog(setup.module)

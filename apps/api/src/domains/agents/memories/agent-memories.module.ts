@@ -7,7 +7,6 @@ import { ProjectMembershipContextResolver } from "@/common/context/resolvers/pro
 import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { Agent } from "@/domains/agents/agent.entity"
 import { AuthModule } from "@/domains/auth/auth.module"
-import { MembershipsModule } from "@/domains/memberships/memberships.module"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { ProjectMembershipRepository } from "@/domains/projects/memberships/project-membership.repository"
 import { Project } from "@/domains/projects/project.entity"
@@ -21,7 +20,7 @@ import { AgentMemoriesStoreModule } from "./agent-memories-store.module"
     TypeOrmModule.forFeature([Agent, Project, Organization]),
     AgentMemoriesStoreModule,
     AuthModule,
-    MembershipsModule,
+
     RbacModule,
     UsersModule,
   ],

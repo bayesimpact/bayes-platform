@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common"
 import { InjectDataSource } from "@nestjs/typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DataSource } from "typeorm"
-import type { PermissionResource, PermissionResourceType, RoleGrant } from "./permission.types"
+import type { PermissionResource, PermissionResourceType, ResolvedRole } from "./permission.types"
 import {
   AGENT_CONVERSATION_REVIEWER_ROLE,
   BACKOFFICE_USER_READ_PERMISSION,
@@ -23,7 +23,7 @@ type ResourcePermissionRow = { resourceId: string; permissionKey: string }
 type ResourceIdRow = { resourceId: string }
 type ChildResourceRow = { resourceId: string; parentResourceId: string }
 type UserIdRow = { userId: string }
-type RoleGrantRow = {
+type ResolvedRoleRow = {
   roleId: string
   roleKey: string
   roleName: string
@@ -35,7 +35,7 @@ type CatalogRoleRow = {
   scopeType: RoleScopeType
   permissionKey: string | null
 }
-type GlobalRoleGrantRow = {
+type GlobalRoleRow = {
   roleKey: string
   roleName: string
   permissionKey: string | null
@@ -55,7 +55,7 @@ export class PermissionService {
   async listGlobalPermissions(userId: string): Promise<string[]> {
     const rows: PermissionRow[] = await this.dataSource.query(
       `SELECT DISTINCT role_permission.permission_key AS "permissionKey"
-       FROM user_membership membership
+       FROM role_grant membership
        INNER JOIN role_permission ON role_permission.role_id = membership.role_id
        WHERE membership.user_id = $1
          AND membership.resource_type = 'global'
@@ -85,12 +85,12 @@ export class PermissionService {
    * Global roles held by the user (platform_staff / platform_superadmin),
    * each with the permission keys granted by that role.
    */
-  async listGlobalRolesForUser(userId: string): Promise<RoleGrant[]> {
-    const rows: GlobalRoleGrantRow[] = await this.dataSource.query(
+  async listGlobalRolesForUser(userId: string): Promise<ResolvedRole[]> {
+    const rows: GlobalRoleRow[] = await this.dataSource.query(
       `SELECT role.key AS "roleKey",
               role.name AS "roleName",
               role_permission.permission_key AS "permissionKey"
-       FROM user_membership membership
+       FROM role_grant membership
        INNER JOIN role ON role.id = membership.role_id
        LEFT JOIN role_permission ON role_permission.role_id = role.id
        WHERE membership.user_id = $1
@@ -101,20 +101,20 @@ export class PermissionService {
       [userId],
     )
 
-    return this.groupGlobalRoleGrants(rows)
+    return this.groupGlobalRoles(rows)
   }
 
   /**
-   * Catalog grants for the given role ids: key, display name, and permission keys.
+   * Catalog roles for the given role ids: key, display name, and permission keys.
    * Missing / unknown ids are omitted from the map.
    */
-  async listRoleGrants(roleIds: string[]): Promise<Map<string, RoleGrant>> {
+  async listRolesById(roleIds: string[]): Promise<Map<string, ResolvedRole>> {
     const uniqueRoleIds = [...new Set(roleIds.filter((roleId) => roleId.length > 0))]
     if (uniqueRoleIds.length === 0) {
       return new Map()
     }
 
-    const rows: RoleGrantRow[] = await this.dataSource.query(
+    const rows: ResolvedRoleRow[] = await this.dataSource.query(
       `SELECT role.id AS "roleId",
               role.key AS "roleKey",
               role.name AS "roleName",
@@ -126,7 +126,7 @@ export class PermissionService {
       [uniqueRoleIds],
     )
 
-    return this.groupRoleGrantsByRoleId(rows)
+    return this.groupRolesById(rows)
   }
 
   /**
@@ -150,12 +150,12 @@ export class PermissionService {
       [catalogRoleKeys],
     )
 
-    const grantsByKey = new Map<
+    const rolesByKey = new Map<
       string,
       { key: string; name: string; scopeType: RoleScopeType; permissions: string[] }
     >()
     for (const row of rows) {
-      const existing = grantsByKey.get(row.roleKey) ?? {
+      const existing = rolesByKey.get(row.roleKey) ?? {
         key: row.roleKey,
         name: row.roleName,
         scopeType: row.scopeType,
@@ -164,11 +164,11 @@ export class PermissionService {
       if (row.permissionKey) {
         existing.permissions.push(row.permissionKey)
       }
-      grantsByKey.set(row.roleKey, existing)
+      rolesByKey.set(row.roleKey, existing)
     }
 
     const catalogRoles = catalogRoleKeys.flatMap((roleKey) => {
-      const role = grantsByKey.get(roleKey)
+      const role = rolesByKey.get(roleKey)
       return role ? [role] : []
     })
 
@@ -383,7 +383,7 @@ export class PermissionService {
   ): Promise<string[]> {
     const rows: PermissionRow[] = await this.dataSource.query(
       `SELECT DISTINCT role_permission.permission_key AS "permissionKey"
-       FROM user_membership membership
+       FROM role_grant membership
        INNER JOIN role_permission ON role_permission.role_id = membership.role_id
        WHERE membership.user_id = $1
          AND membership.resource_type = $2
@@ -408,7 +408,7 @@ export class PermissionService {
     const rows: ResourcePermissionRow[] = await this.dataSource.query(
       `SELECT DISTINCT review_campaign.project_id AS "resourceId",
               role_permission.permission_key AS "permissionKey"
-       FROM user_membership membership
+       FROM role_grant membership
        INNER JOIN role ON role.id = membership.role_id
        INNER JOIN role_permission ON role_permission.role_id = membership.role_id
        INNER JOIN review_campaign ON review_campaign.id = membership.resource_id
@@ -443,7 +443,7 @@ export class PermissionService {
     const rows: ResourcePermissionRow[] = await this.dataSource.query(
       `SELECT membership.resource_id AS "resourceId",
               role_permission.permission_key AS "permissionKey"
-       FROM user_membership membership
+       FROM role_grant membership
        INNER JOIN role_permission ON role_permission.role_id = membership.role_id
        WHERE membership.user_id = $1
          AND membership.resource_type = $2
@@ -468,7 +468,7 @@ export class PermissionService {
     const rows: ResourcePermissionRow[] = await this.dataSource.query(
       `SELECT membership.resource_id AS "resourceId",
               role_permission.permission_key AS "permissionKey"
-       FROM user_membership membership
+       FROM role_grant membership
        INNER JOIN role_permission ON role_permission.role_id = membership.role_id
        WHERE membership.user_id = $1
          AND membership.resource_type = $2
@@ -476,7 +476,7 @@ export class PermissionService {
          AND membership.deleted_at IS NULL
          AND EXISTS (
            SELECT 1
-           FROM user_membership gate_membership
+           FROM role_grant gate_membership
            INNER JOIN role_permission required_permission
              ON required_permission.role_id = gate_membership.role_id
            WHERE gate_membership.user_id = membership.user_id
@@ -498,7 +498,7 @@ export class PermissionService {
   ): Promise<string[]> {
     const rows: ResourceIdRow[] = await this.dataSource.query(
       `SELECT DISTINCT membership.resource_id AS "resourceId"
-       FROM user_membership membership
+       FROM role_grant membership
        INNER JOIN role_permission ON role_permission.role_id = membership.role_id
        WHERE membership.user_id = $1
          AND membership.resource_type = $2
@@ -541,10 +541,10 @@ export class PermissionService {
 
     const rows: UserIdRow[] = await this.dataSource.query(
       `SELECT DISTINCT other_membership.user_id AS "userId"
-       FROM user_membership my_membership
+       FROM role_grant my_membership
        INNER JOIN role_permission ON role_permission.role_id = my_membership.role_id
          AND role_permission.permission_key = $2
-       INNER JOIN user_membership other_membership
+       INNER JOIN role_grant other_membership
          ON other_membership.resource_type = my_membership.resource_type
          AND other_membership.resource_id = my_membership.resource_id
          AND other_membership.deleted_at IS NULL
@@ -566,7 +566,7 @@ export class PermissionService {
   async hasGlobal(userId: string, permission: string): Promise<boolean> {
     const matches: { allowed: number }[] = await this.dataSource.query(
       `SELECT 1 AS allowed
-       FROM user_membership membership
+       FROM role_grant membership
        INNER JOIN role_permission ON role_permission.role_id = membership.role_id
        WHERE membership.user_id = $1
          AND membership.resource_type = 'global'
@@ -648,7 +648,7 @@ export class PermissionService {
   ): Promise<boolean> {
     const matches: { allowed: number }[] = await this.dataSource.query(
       `SELECT 1 AS allowed
-       FROM user_membership membership
+       FROM role_grant membership
        INNER JOIN role_permission ON role_permission.role_id = membership.role_id
        WHERE membership.user_id = $1
          AND membership.resource_type = $2
@@ -694,10 +694,10 @@ export class PermissionService {
     )
   }
 
-  private groupRoleGrantsByRoleId(rows: RoleGrantRow[]): Map<string, RoleGrant> {
-    const grantsByRoleId = new Map<string, RoleGrant>()
+  private groupRolesById(rows: ResolvedRoleRow[]): Map<string, ResolvedRole> {
+    const rolesById = new Map<string, ResolvedRole>()
     for (const row of rows) {
-      const existing = grantsByRoleId.get(row.roleId) ?? {
+      const existing = rolesById.get(row.roleId) ?? {
         key: row.roleKey,
         name: row.roleName,
         permissions: [],
@@ -705,16 +705,16 @@ export class PermissionService {
       if (row.permissionKey) {
         existing.permissions.push(row.permissionKey)
       }
-      grantsByRoleId.set(row.roleId, existing)
+      rolesById.set(row.roleId, existing)
     }
 
-    return grantsByRoleId
+    return rolesById
   }
 
-  private groupGlobalRoleGrants(rows: GlobalRoleGrantRow[]): RoleGrant[] {
-    const grantsByKey = new Map<string, RoleGrant>()
+  private groupGlobalRoles(rows: GlobalRoleRow[]): ResolvedRole[] {
+    const rolesByKey = new Map<string, ResolvedRole>()
     for (const row of rows) {
-      const existing = grantsByKey.get(row.roleKey) ?? {
+      const existing = rolesByKey.get(row.roleKey) ?? {
         key: row.roleKey,
         name: row.roleName,
         permissions: [],
@@ -722,10 +722,10 @@ export class PermissionService {
       if (row.permissionKey) {
         existing.permissions.push(row.permissionKey)
       }
-      grantsByKey.set(row.roleKey, existing)
+      rolesByKey.set(row.roleKey, existing)
     }
 
-    return [...grantsByKey.values()]
+    return [...rolesByKey.values()]
   }
 
   /**
