@@ -24,7 +24,7 @@ function affectedRows(result: unknown): number {
 }
 
 /**
- * Persistence of the global memberships (`role_grant` rows with
+ * Persistence of the global role grants (`role_grant` rows with
  * resource_type = 'global', one per user and platform role).
  *
  * Participates in the ambient transaction via TransactionService.getManager().
@@ -55,8 +55,8 @@ export class PlatformRoleRepository {
   }
 
   /**
-   * Returns true when a membership was revoked, false when there was none.
-   * Hard delete: the unique index on (user, role) for global memberships
+   * Returns true when a grant was revoked, false when there was none.
+   * Hard delete: the unique index on (user, role) for global grants
    * ignores deleted_at, so a soft-deleted row would block a later grant.
    */
   async revokeGlobalRole(userId: string, roleKey: PlatformRoleKey): Promise<boolean> {

@@ -733,7 +733,7 @@ describe("PermissionService", () => {
     await expect(service.hasGlobal(user.id, ORGANIZATION_CREATE_PERMISSION)).resolves.toBe(false)
   })
 
-  it("denies organization.create without any global membership", async () => {
+  it("denies organization.create without any global role", async () => {
     const repositories = setup.getAllRepositories()
     const user = userFactory.build({ email: "outsider@example.com" })
     await repositories.userRepository.save(user)
