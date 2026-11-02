@@ -119,7 +119,7 @@ describe("AgentsService", () => {
         userId: user.id,
       })
 
-      const memberships = await repositories.userMembershipRepository.find({
+      const memberships = await repositories.roleGrantRepository.find({
         where: { resourceType: "agent", resourceId: agent.id },
         relations: { rbacRole: true },
       })
@@ -462,12 +462,12 @@ describe("AgentsService", () => {
 
       await service.deleteAgent(agent)
 
-      const activeMemberships = await repositories.userMembershipRepository.find({
+      const activeMemberships = await repositories.roleGrantRepository.find({
         where: { resourceType: "agent", resourceId: agent.id },
       })
       expect(activeMemberships).toHaveLength(0)
 
-      const softDeletedMemberships = await repositories.userMembershipRepository.find({
+      const softDeletedMemberships = await repositories.roleGrantRepository.find({
         where: { resourceType: "agent", resourceId: agent.id },
         withDeleted: true,
       })

@@ -6,21 +6,20 @@ import {
 } from "@/common/test/test-database"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
-import { PROJECT_ROLES, REVIEW_CAMPAIGN_ROLES } from "@/domains/rbac/rbac.constants"
-import { RbacModule } from "@/domains/rbac/rbac.module"
 import { userFactory } from "@/domains/users/user.factory"
 import { ensureRbacCatalog } from "../../../test/rbac-test.helpers"
-import { MembershipsModule } from "./memberships.module"
-import type { UserMembershipResourceType } from "./user-membership.entity"
-import { userMembershipFactory } from "./user-membership.factory"
+import { PROJECT_ROLES, REVIEW_CAMPAIGN_ROLES } from "./rbac.constants"
+import { RbacModule } from "./rbac.module"
+import type { RoleGrantResourceType } from "./role-grant.entity"
+import { roleGrantFactory } from "./role-grant.factory"
 
-describe("user_membership", () => {
+describe("role_grant", () => {
   let repositories: AllRepositories
   let setup: Awaited<ReturnType<typeof setupE2eTestDatabase>>
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
-      additionalImports: [MembershipsModule, OrganizationsModule, RbacModule],
+      additionalImports: [OrganizationsModule, RbacModule],
     })
     repositories = setup.getAllRepositories()
     await ensureRbacCatalog(setup.module)
@@ -39,12 +38,12 @@ describe("user_membership", () => {
 
   const insertRow = async (params: {
     userId: string
-    resourceType: UserMembershipResourceType
+    resourceType: RoleGrantResourceType
     resourceId: string | null
     roleKey: string
   }) =>
-    repositories.userMembershipRepository.save(
-      userMembershipFactory.build({
+    repositories.roleGrantRepository.save(
+      roleGrantFactory.build({
         userId: params.userId,
         resourceType: params.resourceType,
         resourceId: params.resourceId,
@@ -66,7 +65,7 @@ describe("user_membership", () => {
         })
       }
 
-      const rows = await repositories.userMembershipRepository.find({
+      const rows = await repositories.roleGrantRepository.find({
         where: { userId: member.id, resourceType: "project", resourceId: project.id },
         relations: { rbacRole: true },
       })
@@ -86,7 +85,7 @@ describe("user_membership", () => {
       }
       await insertRow(row)
 
-      await expect(insertRow(row)).rejects.toThrow(/UQ_user_membership_role/)
+      await expect(insertRow(row)).rejects.toThrow(/UQ_role_grant_role/)
     })
 
     it("lets two people hold the same role, and one person the same role on two projects", async () => {
@@ -115,7 +114,7 @@ describe("user_membership", () => {
       })
 
       await expect(
-        repositories.userMembershipRepository.count({ where: { resourceType: "project" } }),
+        repositories.roleGrantRepository.count({ where: { resourceType: "project" } }),
       ).resolves.toBeGreaterThanOrEqual(3)
     })
 
@@ -143,7 +142,7 @@ describe("user_membership", () => {
           resourceId: campaignId,
           roleKey: REVIEW_CAMPAIGN_ROLES.tester,
         }),
-      ).rejects.toThrow(/UQ_user_membership_role/)
+      ).rejects.toThrow(/UQ_role_grant_role/)
     })
   })
 })

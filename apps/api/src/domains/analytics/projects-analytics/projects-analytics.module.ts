@@ -7,7 +7,6 @@ import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { ConversationAgentSession } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.entity"
 import { AgentMessage } from "@/domains/agents/shared/agent-session-messages/agent-message.entity"
 import { AuthModule } from "@/domains/auth/auth.module"
-import { MembershipsModule } from "@/domains/memberships/memberships.module"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { ProjectMembershipRepository } from "@/domains/projects/memberships/project-membership.repository"
 import { Project } from "@/domains/projects/project.entity"
@@ -27,7 +26,7 @@ import { ProjectsAnalyticsService } from "./projects-analytics.service"
       Organization,
     ]),
     AuthModule,
-    MembershipsModule,
+
     RbacModule,
     UsersModule,
   ],

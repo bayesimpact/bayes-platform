@@ -116,7 +116,7 @@ describe("Agent Memberships - conversation reviewers", () => {
     })
 
   const roleKeysOn = async (userId: string, agentId: string) => {
-    const rows = await repositories.userMembershipRepository.find({
+    const rows = await repositories.roleGrantRepository.find({
       where: { userId, resourceType: "agent", resourceId: agentId },
       relations: { rbacRole: true },
     })

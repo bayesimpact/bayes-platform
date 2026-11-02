@@ -74,7 +74,7 @@ describe("Project membership - getAssignableRoles", () => {
   }
 
   const _roleKeysOf = async (userId: string) => {
-    const rows = await repositories.userMembershipRepository.find({
+    const rows = await repositories.roleGrantRepository.find({
       where: { userId, resourceType: "project", resourceId: projectId },
       relations: { rbacRole: true },
     })
@@ -82,7 +82,7 @@ describe("Project membership - getAssignableRoles", () => {
   }
 
   const _agentRoleKeysOf = async (userId: string) => {
-    const rows = await repositories.userMembershipRepository.find({
+    const rows = await repositories.roleGrantRepository.find({
       where: { userId, resourceType: "agent" },
       relations: { rbacRole: true },
     })

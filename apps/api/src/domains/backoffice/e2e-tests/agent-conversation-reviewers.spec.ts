@@ -85,7 +85,7 @@ describe("Backoffice - agent conversation reviewers", () => {
     request({ route: BackofficeRoutes.getAgent, pathParams: { agentId }, token: "token" })
 
   const reviewerRows = (agent: Agent, user: User) =>
-    repositories.userMembershipRepository.findBy({
+    repositories.roleGrantRepository.findBy({
       resourceType: "agent",
       resourceId: agent.id,
       userId: user.id,
