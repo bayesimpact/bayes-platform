@@ -43,11 +43,20 @@
       "agent_settings_draft_update": {
         "name": "Edit agent drafts",
         "description": "Change the draft settings of the agents you own or administer in the selected projects (model, instructions). Publishing stays in the studio."
+      },
+      "evaluation_conversation_dataset_update": {
+        "name": "Edit evaluation datasets",
+        "description": "Create evaluation datasets in the selected projects, and read and add their questions and expected answers."
+      },
+      "evaluation_conversation_run_create": {
+        "name": "Run evaluations",
+        "description": "Evaluate agents against a dataset and read the answers and scores. Each run calls language models for every question of the dataset."
       }
     },
     "resource": {
       "project": "Projects",
-      "agent": "Agents"
+      "agent": "Agents",
+      "evaluation": "Evaluations"
     },
     "appPermission": {
       "document_read": {
@@ -135,7 +144,9 @@
       "update": "Edit",
       "delete": "Delete",
       "conversation_session_external_create": "External chats",
-      "settings_draft_update": "Edit drafts"
+      "settings_draft_update": "Edit drafts",
+      "conversation_dataset_update": "Edit datasets",
+      "conversation_run_create": "Run"
     }
   }
 }

@@ -1,5 +1,8 @@
 import { randomUUID } from "node:crypto"
-import { EvaluationConversationDatasetsRoutes } from "@caseai-connect/api-contracts"
+import {
+  EVALUATION_CONVERSATION_DATASET_RECORD_MAX_LENGTH,
+  EvaluationConversationDatasetsRoutes,
+} from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import type { Repository } from "typeorm"
@@ -150,6 +153,27 @@ describe("EvaluationConversationDatasets - createRecords", () => {
         records: [
           { input: "Question 1", expectedOutput: "Answer 1" },
           { input: "Question 2", expectedOutput: "   " },
+        ],
+      },
+    })
+
+    expectResponse(res, 422)
+
+    const records = await recordRepository.find()
+    expect(records).toHaveLength(0)
+  })
+
+  it("should reject and persist nothing when any input is too long", async () => {
+    await createContext()
+
+    const res = await subject({
+      payload: {
+        records: [
+          { input: "Question 1", expectedOutput: "Answer 1" },
+          {
+            input: "a".repeat(EVALUATION_CONVERSATION_DATASET_RECORD_MAX_LENGTH + 1),
+            expectedOutput: "Answer 2",
+          },
         ],
       },
     })

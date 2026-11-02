@@ -43,11 +43,20 @@
       "agent_settings_draft_update": {
         "name": "Modifier les brouillons d'agents",
         "description": "Changer les réglages en brouillon des agents que vous possédez ou administrez dans les projets sélectionnés (modèle, instructions). La publication reste dans le studio."
+      },
+      "evaluation_conversation_dataset_update": {
+        "name": "Modifier les datasets d'évaluation",
+        "description": "Créer des datasets d'évaluation dans les projets sélectionnés, puis lire et ajouter leurs questions et réponses attendues."
+      },
+      "evaluation_conversation_run_create": {
+        "name": "Lancer des évaluations",
+        "description": "Évaluer des agents sur un dataset et lire les réponses et les scores. Chaque évaluation appelle des modèles de langage pour chaque question du dataset."
       }
     },
     "resource": {
       "project": "Projets",
-      "agent": "Agents"
+      "agent": "Agents",
+      "evaluation": "Évaluations"
     },
     "appPermission": {
       "document_read": {
@@ -135,7 +144,9 @@
       "update": "Modifier",
       "delete": "Supprimer",
       "conversation_session_external_create": "Discussions externes",
-      "settings_draft_update": "Modifier les brouillons"
+      "settings_draft_update": "Modifier les brouillons",
+      "conversation_dataset_update": "Modifier les datasets",
+      "conversation_run_create": "Lancer"
     }
   }
 }

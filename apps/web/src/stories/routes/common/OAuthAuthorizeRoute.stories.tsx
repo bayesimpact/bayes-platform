@@ -1,4 +1,7 @@
-import { APP_GRANTABLE_PERMISSIONS } from "@caseai-connect/api-contracts"
+import {
+  APP_GRANTABLE_PERMISSIONS,
+  OAUTH_GRANTABLE_PERMISSIONS,
+} from "@caseai-connect/api-contracts"
 import { faker } from "@faker-js/faker"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { Provider } from "react-redux"
@@ -34,6 +37,7 @@ const projects = [
     name: "Support",
     organizationId: firstOrganizationId,
     organizationName: "Acme",
+    availablePermissions: [...OAUTH_GRANTABLE_PERMISSIONS],
   }),
   oauthConsentProjectFactory.build({
     name: "Pricing",
@@ -107,6 +111,7 @@ function buildPage(args: StoryArgs) {
       ? { name: "Helpful Assistant", redirectHost: "app.example.com", verified: true }
       : { name: "Helpful Assistant", redirectHost: "127.0.0.1", verified: false },
     projects: args.withProjects ? (args.singleWorkspace ? projects.slice(0, 1) : projects) : [],
+    grantablePermissions: [...OAUTH_GRANTABLE_PERMISSIONS],
   })
 }
 
