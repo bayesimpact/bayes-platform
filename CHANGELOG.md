@@ -9,6 +9,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 
+- MCP: AI assistants can build evaluation datasets, evaluate agent drafts and read the scores, with the access a person grants.
+
 ### Changed
 
 ### Fixed

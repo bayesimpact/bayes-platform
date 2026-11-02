@@ -1,6 +1,6 @@
 # MCP endpoint
 
-The platform serves an MCP server at `/api/mcp`, for MCP clients (Claude, IDEs, agent frameworks) that create agents. Decisions: [ADR 0027](adr/0027-platform-mcp-endpoint.md) for the endpoint, [ADR 0028](adr/0028-oauth-authorization-server.md) for its authorization server.
+The platform serves an MCP server at `/api/mcp`, for MCP clients (Claude, IDEs, agent frameworks) that create, change and evaluate agents. Decisions: [ADR 0027](adr/0027-platform-mcp-endpoint.md) for the endpoint, [ADR 0028](adr/0028-oauth-authorization-server.md) for its authorization server.
 
 ## Connect a client
 
@@ -21,8 +21,17 @@ Access tokens last 15 minutes, refresh tokens 7 days. The person sees and revoke
 | `list_projects` | `project.read` granted | Lists the granted projects the person can still see, and whether agents can be created in each. |
 | `create_agent` | `agent.create` granted on the project, and held by the person | Creates an agent with the web app's defaults and publishes its first version. Returns a studio link. |
 | `list_agents` | `project.read` granted on the project | Lists the agents of the project the person is a member of, with their model, whether they are published, and whether `update_agent` can change them and `duplicate_agent` can copy them. An agent that was never published, such as a fresh copy, is listed only to people who can see or edit its draft. |
-| `update_agent` | `agent.settings.draft.update` granted on the project, and the person owns or administers the agent | Changes the model, instructions, language or greeting in the agent's draft. Nothing is published: the person publishes the draft in the studio. |
+| `update_agent` | `agent.settings.draft.update` granted on the project, and the person owns or administers the agent | Changes the model, instructions or greeting in the agent's draft. Nothing is published: the person publishes the draft in the studio. |
 | `duplicate_agent` | `agent.create` granted on the project and held by the person, who also owns or administers the agent (`agent.duplicate`) | Copies the agent into a new agent of the project under a new name: its published settings, MCP servers, sub-agents, documents, resource libraries and conversation categories. Conversations, analytics, members and embed settings stay with the original. The copy is a draft that nothing uses until the person publishes it in the studio. |
+| `get_agent` | `project.read` granted on the project, and the person can see the agent | Returns the agent with the model, instructions and greeting of its published version, of its draft when the person can see drafts, and its versions. |
+| `list_evaluation_datasets` | `evaluation.conversation.dataset.update` granted on the project, and `evaluation.conversation.dataset.read` held | Lists the conversation evaluation datasets of the project, with their number of records. |
+| `create_evaluation_dataset` | `evaluation.conversation.dataset.update` granted on the project, and `evaluation.conversation.dataset.create` held | Creates an empty dataset. |
+| `add_dataset_records` | `evaluation.conversation.dataset.update` granted and held on the project | Adds up to 100 records (a user message and its expected answer) to a dataset. |
+| `list_dataset_records` | `evaluation.conversation.dataset.update` granted on the project, and `evaluation.conversation.dataset.read` held | Lists the records of a dataset, page by page. |
+| `run_evaluation` | `evaluation.conversation.run.create` granted on the project, `evaluation.conversation.run.create` and `.update` held, and the person can see the agent (and its draft to evaluate it) | Creates a run and starts it. It evaluates the latest published version, a given revision, or the draft: nothing is published. Each run calls language models for every record. |
+| `list_evaluation_runs` | `evaluation.conversation.run.create` granted on the project, and `evaluation.conversation.run.read` held | Lists the runs of the project, or of one agent, newest first. |
+| `get_evaluation_run` | `evaluation.conversation.run.create` granted on the project, and `evaluation.conversation.run.read` held | Returns a run with its status, the agent version it evaluated and its summary (graded records, errors, average score). |
+| `list_evaluation_run_records` | `evaluation.conversation.run.create` granted on the project, and `evaluation.conversation.run.read` held | Lists each record of a run with the agent's answer, its score from 1 to 5, or its error. |
 
 A right needs both: the person holds it on the project now, and granted it to the client.
 

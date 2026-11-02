@@ -9,11 +9,20 @@ import { isLoopbackHostname } from "../apps/loopback-redirect"
  *   an agent the person owns or administers (RBAC `agent.duplicate` on the agent).
  * - agent.settings.draft.update: each agent (RBAC `agent.settings.draft.update`,
  *   held as owner or admin of the agent). Publishing stays in the studio.
+ * - evaluation.conversation.dataset.update: the project (RBAC
+ *   `evaluation.conversation.dataset.update`). It also lets the client create a
+ *   dataset and read datasets (RBAC `...dataset.create` and `...dataset.read`).
+ * - evaluation.conversation.run.create: the project (RBAC
+ *   `evaluation.conversation.run.create`). It also lets the client start the run
+ *   and read its results (RBAC `...run.update` and `...run.read`). Each run calls
+ *   language models for every record of the dataset.
  */
 export const OAUTH_GRANTABLE_PERMISSIONS = [
   "project.read",
   "agent.create",
   "agent.settings.draft.update",
+  "evaluation.conversation.dataset.update",
+  "evaluation.conversation.run.create",
 ] as const
 export type OAuthGrantablePermission = (typeof OAUTH_GRANTABLE_PERMISSIONS)[number]
 
