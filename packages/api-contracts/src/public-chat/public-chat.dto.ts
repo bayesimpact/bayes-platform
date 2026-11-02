@@ -27,6 +27,18 @@ export type EmbedPublicConfigDto = {
   bannerText: string | null
 }
 
+/**
+ * Config served on the unprefixed paths (`/public/agents/...`), which predate versioning.
+ * Snippets deployed against them never received `bannerText`, so it is not added there.
+ * Retired with those paths once the last integrator moves to v1.
+ */
+export type LegacyEmbedPublicConfigDto = {
+  agentName: string
+  title: string | null
+  logoUrl: string | null
+  primaryColor: string | null
+}
+
 /** Name of a tool the agent ran: a built-in tool or any MCP tool name. */
 export type PublicToolName = ToolName | (string & {})
 

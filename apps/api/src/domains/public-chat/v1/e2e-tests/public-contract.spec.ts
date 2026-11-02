@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto"
 import {
   PUBLIC_API_MAJOR,
   PUBLIC_PATH_PREFIX,
+  PublicChatLegacyRoutes,
   PublicChatRoutes,
   type PublicStreamEventPayload,
 } from "@caseai-connect/api-contracts"
@@ -100,25 +101,8 @@ describe("PublicChat - contract v1", () => {
       })
     })
 
-    it("serves nothing on the unprefixed paths that 1.3 removed", async () => {
-      await createContext()
-      const unprefixedBase = `/${PUBLIC_PATH_PREFIX}/agents/${embedToken}`
-      const configResponse = await request(app.getHttpServer())
-        .get(`${unprefixedBase}/config`)
-        .set("Connection", "close")
-      const createSessionResponse = await request(app.getHttpServer())
-        .post(`${unprefixedBase}/sessions`)
-        .set("Connection", "close")
-        .send({ payload: {} })
-      const streamResponse = await request(app.getHttpServer())
-        .get(`${unprefixedBase}/sessions/${sessionId}/messages/stream`)
-        .query({ q: JSON.stringify({ payload: { content: "Hello" } }) })
-        .set("Connection", "close")
-        .set("X-Session-Token", sessionToken)
-      expect(configResponse.status).toBe(404)
-      expect(createSessionResponse.status).toBe(404)
-      expect(streamResponse.status).toBe(404)
-      expect(await repositories.publicAgentSessionRepository.count()).toBe(1)
+    it("does not serve the POST stream on the unprefixed paths", () => {
+      expect(PublicChatLegacyRoutes).not.toHaveProperty("streamReply")
     })
 
     it("does not accept POST on the stream path", async () => {
@@ -338,15 +322,17 @@ describe("PublicChat - contract v1", () => {
       expect(response.headers["access-control-allow-headers"]).toBe("content-type,x-session-token")
     })
 
-    it("reflects the caller origin on public routes", async () => {
+    it("reflects the caller origin on public routes, v1 and legacy", async () => {
       await createContext()
-      const response = await request(app.getHttpServer())
-        .get(PublicChatRoutes.getConfig.getPath(pathParams()))
-        .set("Connection", "close")
-        .set("Origin", hostOrigin)
-      expect(response.status).toBe(200)
-      expect(response.headers["access-control-allow-origin"]).toBe(hostOrigin)
-      expect(response.headers["access-control-allow-credentials"]).toBeUndefined()
+      for (const route of [PublicChatRoutes.getConfig, PublicChatLegacyRoutes.getConfig]) {
+        const response = await request(app.getHttpServer())
+          .get(route.getPath(pathParams()))
+          .set("Connection", "close")
+          .set("Origin", hostOrigin)
+        expect(response.status).toBe(200)
+        expect(response.headers["access-control-allow-origin"]).toBe(hostOrigin)
+        expect(response.headers["access-control-allow-credentials"]).toBeUndefined()
+      }
     })
 
     it("answers the preflight with the requested headers allowed", async () => {
