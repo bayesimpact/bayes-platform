@@ -1,6 +1,7 @@
 import { OnWorkerEvent, Processor, WorkerHost } from "@nestjs/bullmq"
 import { Inject, Logger } from "@nestjs/common"
 import type { Job } from "bullmq"
+import { describeFailedJob } from "@/common/logger/describe-failed-job"
 import type {
   MaintenanceJob,
   MaintenanceJobPayload,
@@ -34,9 +35,6 @@ export class MaintenanceJobsWorker extends WorkerHost {
 
   @OnWorkerEvent("failed")
   onFailed(job: Job | undefined, error: Error): void {
-    this.logger.error(
-      `Maintenance job failed: ${job?.name ?? "unknown"} (${job?.id ?? "unknown"})`,
-      error.stack,
-    )
+    this.logger.error(`Maintenance job failed: ${describeFailedJob(job, error)}`, error.stack)
   }
 }

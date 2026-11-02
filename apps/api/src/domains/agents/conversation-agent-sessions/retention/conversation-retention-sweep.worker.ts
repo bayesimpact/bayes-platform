@@ -1,6 +1,7 @@
 import { OnWorkerEvent, Processor, WorkerHost } from "@nestjs/bullmq"
 import { Logger } from "@nestjs/common"
 import type { Job } from "bullmq"
+import { describeFailedJob } from "@/common/logger/describe-failed-job"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentMemoriesService } from "@/domains/agents/memories/agent-memories.service"
 import { CONVERSATION_RETENTION_SWEEP_QUEUE_NAME } from "./conversation-retention.constants"
@@ -35,9 +36,6 @@ export class ConversationRetentionSweepWorker extends WorkerHost {
 
   @OnWorkerEvent("failed")
   onFailed(job: Job | undefined, error: Error): void {
-    this.logger.error(
-      `Job failed: ${job?.name ?? "unknown"} (${job?.id ?? "unknown"})`,
-      error.stack,
-    )
+    this.logger.error(`Job failed: ${describeFailedJob(job, error)}`, error.stack)
   }
 }

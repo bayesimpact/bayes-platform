@@ -1,6 +1,7 @@
 import { OnWorkerEvent, Processor, WorkerHost } from "@nestjs/bullmq"
 import { Logger } from "@nestjs/common"
 import type { Job } from "bullmq"
+import { describeFailedJob } from "@/common/logger/describe-failed-job"
 import { PROJECT_EMBEDDING_REEMBED_QUEUE_NAME } from "./project-embedding-reembed.constants"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectEmbeddingReembedService } from "./project-embedding-reembed.service"
@@ -34,9 +35,6 @@ export class ProjectEmbeddingReembedWorker extends WorkerHost {
 
   @OnWorkerEvent("failed")
   onFailed(job: Job<ReembedProjectChunksJobPayload> | undefined, error: Error): void {
-    this.logger.error(
-      `Job failed: ${job?.name ?? "unknown"} (${job?.id ?? "unknown"})`,
-      error.stack,
-    )
+    this.logger.error(`Job failed: ${describeFailedJob(job, error)}`, error.stack)
   }
 }

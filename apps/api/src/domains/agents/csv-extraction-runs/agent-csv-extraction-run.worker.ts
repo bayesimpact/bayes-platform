@@ -1,6 +1,7 @@
 import { OnWorkerEvent, Processor, WorkerHost } from "@nestjs/bullmq"
 import { Logger } from "@nestjs/common"
 import type { Job } from "bullmq"
+import { describeFailedJob } from "@/common/logger/describe-failed-job"
 import {
   AGENT_CSV_EXTRACTION_RUN_CONCURRENCY,
   AGENT_CSV_EXTRACTION_RUN_QUEUE_NAME,
@@ -39,10 +40,7 @@ export class AgentCsvExtractionRunWorker extends WorkerHost {
     job: Job<ProcessAgentCsvExtractionRunRecordJobPayload> | undefined,
     error: Error,
   ): Promise<void> {
-    this.logger.error(
-      `Job failed: ${job?.name ?? "unknown"} (${job?.id ?? "unknown"})`,
-      error.stack,
-    )
+    this.logger.error(`Job failed: ${describeFailedJob(job, error)}`, error.stack)
     if (job) {
       await this.processorService.markRecordFailed(job.data, error)
     }
