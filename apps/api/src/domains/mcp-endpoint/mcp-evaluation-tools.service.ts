@@ -184,8 +184,11 @@ export class McpEvaluationToolsService {
         records: input.records,
       })
       await this.trackActivity(caller, connectScope, "evaluationConversationDataset.createRecords")
-      const recordCounts = await this.datasetsService.countRecordsByDatasetId({ connectScope })
-      return { id: dataset.id, name: dataset.name, recordCount: recordCounts[dataset.id] ?? 0 }
+      const recordCount = await this.datasetsService.countRecords({
+        connectScope,
+        datasetId: dataset.id,
+      })
+      return { id: dataset.id, name: dataset.name, recordCount }
     })
   }
 

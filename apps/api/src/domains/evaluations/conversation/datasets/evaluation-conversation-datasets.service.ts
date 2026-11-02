@@ -7,6 +7,8 @@ import type { RequiredConnectScope } from "@/common/entities/connect-required-fi
 import { EvaluationConversationRunsService } from "../runs/evaluation-conversation-runs.service"
 import { EvaluationConversationDataset } from "./evaluation-conversation-dataset.entity"
 import { EvaluationConversationDatasetRecord } from "./records/evaluation-conversation-dataset-record.entity"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { EvaluationConversationDatasetRecordRepository } from "./records/evaluation-conversation-dataset-record.repository"
 
 @Injectable()
 export class EvaluationConversationDatasetsService {
@@ -19,6 +21,7 @@ export class EvaluationConversationDatasetsService {
     @InjectRepository(EvaluationConversationDatasetRecord)
     evaluationConversationDatasetRecordRepository: Repository<EvaluationConversationDatasetRecord>,
     private readonly evaluationConversationRunsService: EvaluationConversationRunsService,
+    private readonly recordRepository: EvaluationConversationDatasetRecordRepository,
   ) {
     this.datasetConnectRepository = new ConnectRepository(
       evaluationConversationDatasetRepository,
@@ -59,6 +62,17 @@ export class EvaluationConversationDatasetsService {
       .getRawMany<{ datasetId: string; count: string }>()
 
     return Object.fromEntries(rows.map((row) => [row.datasetId, Number(row.count)]))
+  }
+
+  /** Counts the records of one dataset. */
+  async countRecords({
+    connectScope,
+    datasetId,
+  }: {
+    connectScope: RequiredConnectScope
+    datasetId: string
+  }): Promise<number> {
+    return this.recordRepository.countByDataset(connectScope, datasetId)
   }
 
   async listDatasetRecordsPaginated({
