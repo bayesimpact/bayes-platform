@@ -195,6 +195,7 @@ describe("buildTools", () => {
         deletedTemperature: testAgentSettings.deletedTemperature,
         providerOptions: testAgentSettings.providerOptions,
         documentsRagMode: DocumentsRagMode.None,
+        embeddingModel: testAgentSettings.embeddingModel,
         revision: 1,
       }),
     )

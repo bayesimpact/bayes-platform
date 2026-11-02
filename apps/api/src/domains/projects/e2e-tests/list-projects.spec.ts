@@ -176,6 +176,8 @@ describe("Projects - listProjects", () => {
       [
         DOCUMENT_SOURCE_READ_PERMISSION,
         DOCUMENT_SOURCE_UPDATE_PERMISSION,
+        "document.read",
+        "document.update",
         "desk.ui.read",
         "studio.ui.read",
         "evaluation.ui.read",

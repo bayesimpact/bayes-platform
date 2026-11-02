@@ -1,4 +1,4 @@
-import type { AgentModel } from "@caseai-connect/api-contracts"
+import type { AgentModel, EmbeddingModel } from "@caseai-connect/api-contracts"
 import { Injectable, NotFoundException, UnprocessableEntityException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import { In, type Repository } from "typeorm"
@@ -8,6 +8,8 @@ import {
   extractAgentSettingsUpdateFields,
   requiresUpdateAgentSettings,
 } from "@/domains/agents/settings/agent.settings.functions"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { ProjectEmbeddingModelsService } from "@/domains/documents/embeddings/project-embedding-models/project-embedding-models.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentTagsService } from "@/domains/documents/tags/document-tags.service"
 import type { DocumentTagsUpdateFields } from "@/domains/documents/tags/document-tags.types"
@@ -54,6 +56,8 @@ export class AgentSettingsService {
     private readonly agentModelsService: AgentModelsService,
 
     private readonly projectRepository: ProjectRepository,
+
+    private readonly projectEmbeddingModelsService: ProjectEmbeddingModelsService,
   ) {
     this.agentConnectRepository = new ConnectRepository(agentRepository, "agents")
     this.agentSettingsConnectRepository = new ConnectRepository(
@@ -437,6 +441,13 @@ export class AgentSettingsService {
       outputJsonSchema: nextOutputJsonSchema,
     })
 
+    if (agentSettingsFieldsToUpdate.embeddingModel !== undefined) {
+      await this.validateEmbeddingModel({
+        connectScope,
+        embeddingModel: agentSettingsFieldsToUpdate.embeddingModel,
+      })
+    }
+
     if (needsTags) {
       const currentTags = agent.documentTags ?? []
       agent.documentTags = await this.resolveDocumentTags({
@@ -496,6 +507,28 @@ export class AgentSettingsService {
     if (type === "extraction" && !outputJsonSchema) {
       throw new UnprocessableEntityException("Extraction agent requires outputJsonSchema")
     }
+  }
+
+  /** A model is only selectable once the project enabled it and finished embedding with it. */
+  async validateEmbeddingModel({
+    connectScope,
+    embeddingModel,
+  }: {
+    connectScope: RequiredConnectScope
+    embeddingModel: AgentSettings["embeddingModel"]
+  }): Promise<void> {
+    const completedModelNames =
+      await this.projectEmbeddingModelsService.listCompletedModelNames(connectScope)
+    if (!completedModelNames.includes(embeddingModel)) {
+      throw new UnprocessableEntityException(
+        `Embedding model ${embeddingModel} is not ready for this project yet`,
+      )
+    }
+  }
+
+  /** The model a new agent searches with when its creator picks none. */
+  async resolveDefaultEmbeddingModel(connectScope: RequiredConnectScope): Promise<EmbeddingModel> {
+    return this.projectEmbeddingModelsService.resolveDefaultModelName(connectScope)
   }
 
   validateFillFormAgent({
