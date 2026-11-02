@@ -15,6 +15,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Security
 
+- Embedded agents: visitor messages no longer appear in URLs or server access logs.
+
 ## [26.10.10] - 2026-10-31
 
 ### Added
@@ -48,7 +50,6 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Security
 
-- Embedded agents: visitor messages no longer appear in URLs or server access logs.
 - Embedded agents: in tag mode, an agent now searches only the documents that carry its tags.
 
 ## [26.10.8] - 2026-10-29
