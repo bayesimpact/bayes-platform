@@ -1,10 +1,10 @@
 import type { DataSource, Repository } from "typeorm"
 import type { TransactionService } from "@/common/transaction/transaction.service"
-import { hasRole, type MembershipRole } from "@/domains/memberships/membership-roles"
 import type { OrganizationMembershipsService } from "@/domains/organizations/memberships/organization-memberships.service"
 import { Organization } from "@/domains/organizations/organization.entity"
 import type { ProjectMembershipsService } from "@/domains/projects/memberships/project-memberships.service"
 import { Project } from "@/domains/projects/project.entity"
+import { hasRole, type MembershipRole } from "@/domains/rbac/membership-roles"
 import { ORGANIZATION_ROLES } from "@/domains/rbac/rbac.constants"
 import { User } from "@/domains/users/user.entity"
 

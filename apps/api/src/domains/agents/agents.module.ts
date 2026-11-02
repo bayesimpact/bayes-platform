@@ -12,7 +12,6 @@ import { DocumentsModule } from "@/domains/documents/documents.module"
 import { StorageModule } from "@/domains/documents/storage/storage.module"
 import { DocumentTagsModule } from "@/domains/documents/tags/document-tags.module"
 import { McpServersModule } from "@/domains/mcp-servers/mcp-servers.module"
-import { MembershipsModule } from "@/domains/memberships/memberships.module"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
 import { Project } from "@/domains/projects/project.entity"
 import { RbacModule } from "@/domains/rbac/rbac.module"
@@ -56,7 +55,7 @@ import { AgentSubAgentsService } from "./sub-agents/agent-sub-agents.service"
     forwardRef(() => AgentSettingsModule),
     RbacModule,
     LlmModule,
-    MembershipsModule,
+
     OrganizationsModule,
     forwardRef(() => ProjectsModule),
     UsersModule,

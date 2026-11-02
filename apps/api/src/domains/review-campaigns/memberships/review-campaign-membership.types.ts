@@ -13,7 +13,7 @@ export type ReviewCampaignMembershipFixture = {
   campaignId: string
   organizationId: string
   projectId: string
-  /** One `user_membership` row per role key. */
+  /** One `role_grant` row per role key. */
   roleKeys: ReviewCampaignRoleKey[]
   createdAt: Date
   updatedAt: Date

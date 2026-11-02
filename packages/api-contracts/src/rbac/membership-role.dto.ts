@@ -2,7 +2,7 @@
 export type RoleScopeTypeDto = "organization" | "project" | "agent" | "review_campaign" | "global"
 
 /**
- * One role a person holds on a resource, read from `user_membership.role_id`. A person can hold
+ * One role a person holds on a resource, read from `role_grant.role_id`. A person can hold
  * several roles on one resource, one membership row each.
  */
 export type MembershipRoleDto = {

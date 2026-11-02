@@ -8,16 +8,16 @@ import { AgentConversationReviewersService } from "@/domains/agents/conversation
 import type { AgentMembershipModel } from "@/domains/agents/memberships/agent-membership.model"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentMembershipsService } from "@/domains/agents/memberships/agent-memberships.service"
-import { listRoleIds } from "@/domains/memberships/membership-roles"
 import type { OrganizationMembershipModel } from "@/domains/organizations/memberships/organization-membership.model"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { OrganizationMembershipsService } from "@/domains/organizations/memberships/organization-memberships.service"
 import type { ProjectMembershipModel } from "@/domains/projects/memberships/project-membership.model"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectMembershipsService } from "@/domains/projects/memberships/project-memberships.service"
+import { listRoleIds } from "@/domains/rbac/membership-roles"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { PermissionService, type ResourceIdsScope } from "@/domains/rbac/permission.service"
-import type { RoleGrant } from "@/domains/rbac/permission.types"
+import type { ResolvedRole } from "@/domains/rbac/permission.types"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { PlatformRoleService } from "@/domains/rbac/platform-role.service"
 import {
@@ -601,12 +601,12 @@ export class BackofficeService {
     targetUserId: string
   }): Promise<{
     user: User
-    globalRoles: RoleGrant[]
+    globalRoles: ResolvedRole[]
     organizationMemberships: OrganizationMembershipModel[]
     projectMemberships: ProjectMembershipModel[]
     agentMemberships: AgentMembershipModel[]
     reviewCampaignMemberships: ReviewCampaignMembershipModel[]
-    roleGrantsByRoleId: Map<string, RoleGrant>
+    rolesById: Map<string, ResolvedRole>
   } | null> {
     const visibleUsers = await this.findVisibleUserIds(requestingUserId)
     if (visibleUsers.scope === "ids" && !visibleUsers.ids.includes(targetUserId)) {
@@ -642,7 +642,7 @@ export class BackofficeService {
       ...listRoleIds([...organizationMemberships, ...projectMemberships, ...agentMemberships]),
       ...reviewCampaignMemberships.map((membership) => membership.membershipRole.roleId),
     ]
-    const roleGrantsByRoleId = await this.permissionService.listRoleGrants(membershipRoleIds)
+    const rolesById = await this.permissionService.listRolesById(membershipRoleIds)
 
     return {
       user,
@@ -651,7 +651,7 @@ export class BackofficeService {
       projectMemberships,
       agentMemberships,
       reviewCampaignMemberships,
-      roleGrantsByRoleId,
+      rolesById,
     }
   }
 

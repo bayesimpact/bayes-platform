@@ -75,9 +75,9 @@ export class UserRepository {
   async deleteIfUnusedPlaceholder({ userId }: { userId: string }): Promise<void> {
     const user = await this.repo().findOne({
       where: { id: userId, authSubject: IsNull() },
-      relations: { userMemberships: true },
+      relations: { roleGrants: true },
     })
-    if (!user || user.userMemberships.length > 0) return
+    if (!user || user.roleGrants.length > 0) return
     const pendingInvitations: unknown[] = await this.transactionService
       .getManager()
       .query(
