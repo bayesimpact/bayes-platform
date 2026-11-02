@@ -5,21 +5,14 @@ import { NestInstrumentation } from "@opentelemetry/instrumentation-nestjs-core"
 import { PgInstrumentation } from "@opentelemetry/instrumentation-pg"
 import { PeriodicExportingMetricReader } from "@opentelemetry/sdk-metrics"
 import { NodeSDK } from "@opentelemetry/sdk-node"
-import {
-  BatchSpanProcessor,
-  ConsoleSpanExporter,
-  type SpanProcessor,
-} from "@opentelemetry/sdk-trace-base"
-import { UrlRedactingSpanProcessor } from "./url-redacting-span-processor"
+import { BatchSpanProcessor, ConsoleSpanExporter } from "@opentelemetry/sdk-trace-base"
 
 const isTest = process.env.NODE_ENV === "test"
 // The exporters read the endpoint (the OpenTelemetry gateway of the cluster)
 // from OTEL_EXPORTER_OTLP_ENDPOINT; without it, nothing is exported.
 const isOtlpExportEnabled = !isTest && !!process.env.OTEL_EXPORTER_OTLP_ENDPOINT
 
-// First, so no exporter ever sees a request URL with a credential or a visitor's message.
-const spanProcessors: SpanProcessor[] = [new UrlRedactingSpanProcessor()]
-if (isOtlpExportEnabled) spanProcessors.push(new BatchSpanProcessor(new OTLPTraceExporter()))
+const spanProcessors = isOtlpExportEnabled ? [new BatchSpanProcessor(new OTLPTraceExporter())] : []
 
 if (process.env.OTEL_CONSOLE_EXPORT === "true") {
   spanProcessors.push(new BatchSpanProcessor(new ConsoleSpanExporter()))

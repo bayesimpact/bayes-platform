@@ -1,6 +1,5 @@
 /**
- * Redaction of what the API writes to its logs and traces. No imports on purpose:
- * `open-telemetry-init.ts` loads this file before NestJS and the instrumented modules.
+ * Redaction of what the API writes to its logs: the request logger and the exception filter.
  */
 
 /**
