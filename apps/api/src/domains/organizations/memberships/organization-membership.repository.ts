@@ -2,12 +2,12 @@ import { Injectable } from "@nestjs/common"
 import { In, type Repository } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
+import { Organization } from "@/domains/organizations/organization.entity"
 import {
   groupMembershipRows,
   type MembershipRowGroup,
   resourceIdOf,
-} from "@/domains/memberships/membership-roles"
-import { Organization } from "@/domains/organizations/organization.entity"
+} from "@/domains/rbac/membership-roles"
 import { ORGANIZATION_ROLES } from "@/domains/rbac/rbac.constants"
 import { requireRoleId } from "@/domains/rbac/resolve-role-id"
 import { RoleGrant } from "@/domains/rbac/role-grant.entity"

@@ -7,7 +7,7 @@ import {
   groupMembershipRows,
   type MembershipRowGroup,
   resourceIdOf,
-} from "@/domains/memberships/membership-roles"
+} from "@/domains/rbac/membership-roles"
 import { requireRoleId } from "@/domains/rbac/resolve-role-id"
 import { RoleGrant } from "@/domains/rbac/role-grant.entity"
 import { HUMAN_USER_TYPE_FILTER } from "@/domains/users/service-user.helpers"

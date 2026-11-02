@@ -1,5 +1,5 @@
-import type { MembershipRole } from "@/domains/memberships/membership-roles"
 import type { Organization } from "@/domains/organizations/organization.entity"
+import type { MembershipRole } from "@/domains/rbac/membership-roles"
 import type { User } from "@/domains/users/user.entity"
 
 /**

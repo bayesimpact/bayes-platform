@@ -17,9 +17,9 @@ import { ResourceContextGuard } from "@/common/context/resource-context.guard"
 import { ZodValidationPipe } from "@/common/zod-validation-pipe"
 import { TrackActivity } from "@/domains/activities/track-activity.decorator"
 import { JwtAuthGuard } from "@/domains/auth/jwt-auth.guard"
-import { toMembershipRoleDto } from "@/domains/memberships/membership-roles"
 import { CheckPermission } from "@/domains/rbac/check-permission.decorator"
 import { CheckPermissionGuard } from "@/domains/rbac/check-permission.guard"
+import { toMembershipRoleDto } from "@/domains/rbac/membership-roles"
 import {
   PROJECT_REVIEW_CAMPAIGN_CREATE_PERMISSION,
   PROJECT_REVIEW_CAMPAIGN_DELETE_PERMISSION,

@@ -1,4 +1,4 @@
-import type { MembershipRole } from "@/domains/memberships/membership-roles"
+import type { MembershipRole } from "@/domains/rbac/membership-roles"
 import type { User } from "@/domains/users/user.entity"
 import type { ReviewCampaign } from "../review-campaign.entity"
 import type { ReviewCampaignMembershipRole } from "../review-campaigns.types"

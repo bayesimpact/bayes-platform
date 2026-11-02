@@ -3589,15 +3589,6 @@
   },
   {
     "type": "dependency",
-    "from": "src/domains/memberships/membership-roles.ts",
-    "to": "src/domains/rbac/role-grant.entity.ts",
-    "rule": {
-      "severity": "error",
-      "name": "no-cross-domain-entity-import"
-    }
-  },
-  {
-    "type": "dependency",
     "from": "src/domains/projects/memberships/project-membership.repository.ts",
     "to": "src/domains/rbac/role-grant.entity.ts",
     "rule": {

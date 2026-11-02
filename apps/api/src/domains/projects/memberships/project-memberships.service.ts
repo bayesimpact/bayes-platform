@@ -8,7 +8,7 @@ import {
 import { TransactionService } from "@/common/transaction/transaction.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentMembershipsService } from "@/domains/agents/memberships/agent-memberships.service"
-import { hasRole, listRoleIds, type MembershipRole } from "@/domains/memberships/membership-roles"
+import { hasRole, listRoleIds, type MembershipRole } from "@/domains/rbac/membership-roles"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { PermissionService } from "@/domains/rbac/permission.service"
 import type { ResolvedRole } from "@/domains/rbac/permission.types"

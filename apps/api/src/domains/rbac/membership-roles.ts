@@ -1,6 +1,6 @@
 import type { MembershipRoleDto } from "@caseai-connect/api-contracts"
-import { CATALOG_ROLE_KEYS, type RoleScopeType } from "@/domains/rbac/rbac.constants"
-import type { RoleGrant } from "@/domains/rbac/role-grant.entity"
+import { CATALOG_ROLE_KEYS, type RoleScopeType } from "./rbac.constants"
+import type { RoleGrant } from "./role-grant.entity"
 
 /** One role a person holds on a resource: a `role_grant` row and the catalog role it holds. */
 export type MembershipRole = {

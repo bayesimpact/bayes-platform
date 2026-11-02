@@ -1,5 +1,5 @@
-import type { MembershipRole } from "@/domains/memberships/membership-roles"
 import type { Project } from "@/domains/projects/project.entity"
+import type { MembershipRole } from "@/domains/rbac/membership-roles"
 import type { ResolvedRole } from "@/domains/rbac/permission.types"
 import type { User } from "@/domains/users/user.entity"
 

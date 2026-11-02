@@ -8,13 +8,13 @@ import { AgentConversationReviewersService } from "@/domains/agents/conversation
 import type { AgentMembershipModel } from "@/domains/agents/memberships/agent-membership.model"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentMembershipsService } from "@/domains/agents/memberships/agent-memberships.service"
-import { listRoleIds } from "@/domains/memberships/membership-roles"
 import type { OrganizationMembershipModel } from "@/domains/organizations/memberships/organization-membership.model"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { OrganizationMembershipsService } from "@/domains/organizations/memberships/organization-memberships.service"
 import type { ProjectMembershipModel } from "@/domains/projects/memberships/project-membership.model"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectMembershipsService } from "@/domains/projects/memberships/project-memberships.service"
+import { listRoleIds } from "@/domains/rbac/membership-roles"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { PermissionService, type ResourceIdsScope } from "@/domains/rbac/permission.service"
 import type { ResolvedRole } from "@/domains/rbac/permission.types"
