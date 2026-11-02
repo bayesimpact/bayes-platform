@@ -1,7 +1,8 @@
 import { Injectable, NotFoundException } from "@nestjs/common"
-import { listRoleIds, unionRolePermissions } from "@/domains/memberships/membership-roles"
+import { listRoleIds } from "@/domains/memberships/membership-roles"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { PermissionService } from "@/domains/rbac/permission.service"
+import { unionRolePermissions } from "@/domains/rbac/union-role-permissions"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { UsersService } from "@/domains/users/users.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI

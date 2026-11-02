@@ -5,7 +5,6 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
-import { MembershipsModule } from "@/domains/memberships/memberships.module"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { ProjectRepository } from "@/domains/projects/project.repository"
 import { PermissionService } from "@/domains/rbac/permission.service"
@@ -40,7 +39,7 @@ describe("AppsService", () => {
         UserRepository,
         AppAccessTokenService,
       ],
-      additionalImports: [RbacModule, MembershipsModule],
+      additionalImports: [RbacModule],
     })
     await ensureRbacCatalog(setup.module)
   })

@@ -7,13 +7,13 @@ import {
 import { grantConversationReview } from "@/domains/agents/conversation-reviewers/agent-conversation-reviewer.factory"
 import { addUserToAgent } from "@/domains/agents/memberships/agent-membership.factory"
 import { AgentMembershipsService } from "@/domains/agents/memberships/agent-memberships.service"
-import { roleGrantFactory } from "@/domains/memberships/role-grant.factory"
 import {
   createOrganizationWithAgent,
   createOrganizationWithOwner,
   createOrganizationWithProject,
 } from "@/domains/organizations/organization.factory"
 import { AGENT_CONVERSATION_REVIEWER_ROLE, PROJECT_ROLES } from "@/domains/rbac/rbac.constants"
+import { roleGrantFactory } from "@/domains/rbac/role-grant.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import { USER_TYPE_SERVICE } from "@/domains/users/user.types"
 import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"

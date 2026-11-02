@@ -1,5 +1,5 @@
 import type { AllRepositories } from "@/common/test/test-all-repositories"
-import type { RoleGrantResourceType } from "@/domains/memberships/role-grant.entity"
+import type { RoleGrantResourceType } from "@/domains/rbac/role-grant.entity"
 import type { ReviewCampaignRoleKey } from "@/domains/review-campaigns/memberships/review-campaign-membership.types"
 
 /**

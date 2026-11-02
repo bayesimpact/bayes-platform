@@ -4,9 +4,10 @@ import type { RequiredConnectScope } from "@/common/entities/connect-required-fi
 import type { LLMFeatures } from "@/common/interfaces/llm-provider.interface"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
-import { listRoleIds, unionRolePermissions } from "@/domains/memberships/membership-roles"
+import { listRoleIds } from "@/domains/memberships/membership-roles"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { PermissionService } from "@/domains/rbac/permission.service"
+import { unionRolePermissions } from "@/domains/rbac/union-role-permissions"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DocumentTagsService } from "../documents/tags/document-tags.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI

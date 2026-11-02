@@ -7,10 +7,10 @@ import {
   type MembershipRowGroup,
   resourceIdOf,
 } from "@/domains/memberships/membership-roles"
-import { RoleGrant } from "@/domains/memberships/role-grant.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
 import { ORGANIZATION_ROLES } from "@/domains/rbac/rbac.constants"
 import { requireRoleId } from "@/domains/rbac/resolve-role-id"
+import { RoleGrant } from "@/domains/rbac/role-grant.entity"
 import { HUMAN_USER_TYPE_FILTER } from "@/domains/users/service-user.helpers"
 import { USER_TYPE_HUMAN } from "@/domains/users/user.types"
 import type { OrganizationMembershipModel } from "./organization-membership.model"

@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common"
 import type { Repository } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
-import { resolveOrganizationRoleId } from "@/domains/rbac/resolve-organization-role-id"
+import { resolveOrganizationRoleId } from "./resolve-organization-role-id"
 import { RoleGrant } from "./role-grant.entity"
 
 /**

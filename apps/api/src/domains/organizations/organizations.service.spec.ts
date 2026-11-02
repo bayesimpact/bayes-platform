@@ -4,7 +4,7 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
-import { RoleGrant } from "@/domains/memberships/role-grant.entity"
+import { RoleGrant } from "@/domains/rbac/role-grant.entity"
 import { User } from "@/domains/users/user.entity"
 import { userFactory } from "@/domains/users/user.factory"
 import { ensureRbacCatalog } from "../../../test/rbac-test.helpers"

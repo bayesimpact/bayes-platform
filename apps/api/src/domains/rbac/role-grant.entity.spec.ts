@@ -6,11 +6,10 @@ import {
 } from "@/common/test/test-database"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
-import { PROJECT_ROLES, REVIEW_CAMPAIGN_ROLES } from "@/domains/rbac/rbac.constants"
-import { RbacModule } from "@/domains/rbac/rbac.module"
 import { userFactory } from "@/domains/users/user.factory"
 import { ensureRbacCatalog } from "../../../test/rbac-test.helpers"
-import { MembershipsModule } from "./memberships.module"
+import { PROJECT_ROLES, REVIEW_CAMPAIGN_ROLES } from "./rbac.constants"
+import { RbacModule } from "./rbac.module"
 import type { RoleGrantResourceType } from "./role-grant.entity"
 import { roleGrantFactory } from "./role-grant.factory"
 
@@ -20,7 +19,7 @@ describe("role_grant", () => {
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
-      additionalImports: [MembershipsModule, OrganizationsModule, RbacModule],
+      additionalImports: [OrganizationsModule, RbacModule],
     })
     repositories = setup.getAllRepositories()
     await ensureRbacCatalog(setup.module)

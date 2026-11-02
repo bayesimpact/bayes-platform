@@ -4,13 +4,12 @@ import {
   teardownTestDatabase,
 } from "@/common/test/test-transaction-manager"
 import { TransactionService } from "@/common/transaction/transaction.service"
-import { MembershipsModule } from "@/domains/memberships/memberships.module"
-import { roleGrantFactory } from "@/domains/memberships/role-grant.factory"
 import { OrganizationMembershipsService } from "@/domains/organizations/memberships/organization-memberships.service"
 import { organizationFactory } from "@/domains/organizations/organization.factory"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
 import { ProjectMembershipsService } from "@/domains/projects/memberships/project-memberships.service"
 import { ProjectsModule } from "@/domains/projects/projects.module"
+import { roleGrantFactory } from "@/domains/rbac/role-grant.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { WorkspaceOwnerProvisioningService } from "./workspace-owner-provisioning.service"
@@ -36,7 +35,7 @@ describe("WorkspaceOwnerProvisioningService", () => {
 
   beforeAll(async () => {
     setup = await setupTransactionalTestDatabase({
-      additionalImports: [OrganizationsModule, MembershipsModule, ProjectsModule],
+      additionalImports: [OrganizationsModule, ProjectsModule],
     })
     const repositories = setup.getAllRepositories()
     userRepository = repositories.userRepository

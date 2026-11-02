@@ -1,6 +1,6 @@
 import type { MembershipRoleDto } from "@caseai-connect/api-contracts"
 import { CATALOG_ROLE_KEYS, type RoleScopeType } from "@/domains/rbac/rbac.constants"
-import type { RoleGrant } from "./role-grant.entity"
+import type { RoleGrant } from "@/domains/rbac/role-grant.entity"
 
 /** One role a person holds on a resource: a `role_grant` row and the catalog role it holds. */
 export type MembershipRole = {
@@ -115,18 +115,4 @@ export function toMembershipRoleDto(role: MembershipRole): MembershipRoleDto {
     name: role.name,
     scopeType: role.scopeType,
   }
-}
-
-/** The union of the permissions the roles grant, sorted. */
-export function unionRolePermissions(
-  roles: MembershipRole[],
-  permissionsByRoleId: ReadonlyMap<string, { permissions: string[] }>,
-): string[] {
-  const permissions = new Set<string>()
-  for (const role of roles) {
-    for (const permission of permissionsByRoleId.get(role.roleId)?.permissions ?? []) {
-      permissions.add(permission)
-    }
-  }
-  return [...permissions].sort()
 }

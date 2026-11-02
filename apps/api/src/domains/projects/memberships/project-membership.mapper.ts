@@ -1,6 +1,7 @@
 import type { ProjectMembershipDto } from "@caseai-connect/api-contracts"
-import { toMembershipRoleDto, unionRolePermissions } from "@/domains/memberships/membership-roles"
+import { toMembershipRoleDto } from "@/domains/memberships/membership-roles"
 import type { ResolvedRole } from "@/domains/rbac/permission.types"
+import { unionRolePermissions } from "@/domains/rbac/union-role-permissions"
 import type { ProjectMembershipModel } from "./project-membership.model"
 
 export function toProjectMembershipDto(

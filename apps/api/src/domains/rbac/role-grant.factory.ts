@@ -3,8 +3,8 @@ import { Factory } from "fishery"
 import { In } from "typeorm"
 import type { AllRepositories } from "@/common/test/test-transaction-manager"
 import type { Organization } from "@/domains/organizations/organization.entity"
-import type { Role } from "@/domains/rbac/role.entity"
 import type { User } from "@/domains/users/user.entity"
+import type { Role } from "./role.entity"
 import type { RoleGrant, RoleGrantResourceType } from "./role-grant.entity"
 
 type RoleGrantTransientParams = {

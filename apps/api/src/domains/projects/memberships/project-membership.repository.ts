@@ -8,10 +8,10 @@ import {
   type MembershipRowGroup,
   resourceIdOf,
 } from "@/domains/memberships/membership-roles"
-import { RoleGrant } from "@/domains/memberships/role-grant.entity"
 import { Project } from "@/domains/projects/project.entity"
 import type { RoleScopeType } from "@/domains/rbac/rbac.constants"
 import { requireRoleId } from "@/domains/rbac/resolve-role-id"
+import { RoleGrant } from "@/domains/rbac/role-grant.entity"
 import { HUMAN_USER_TYPE_FILTER } from "@/domains/users/service-user.helpers"
 import type { ProjectMembershipModel } from "./project-membership.model"
 

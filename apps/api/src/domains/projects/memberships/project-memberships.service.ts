@@ -8,12 +8,7 @@ import {
 import { TransactionService } from "@/common/transaction/transaction.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentMembershipsService } from "@/domains/agents/memberships/agent-memberships.service"
-import {
-  hasRole,
-  listRoleIds,
-  type MembershipRole,
-  unionRolePermissions,
-} from "@/domains/memberships/membership-roles"
+import { hasRole, listRoleIds, type MembershipRole } from "@/domains/memberships/membership-roles"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { PermissionService } from "@/domains/rbac/permission.service"
 import type { ResolvedRole } from "@/domains/rbac/permission.types"
@@ -22,6 +17,7 @@ import {
   AGENT_ROLES,
   PROJECT_ROLES,
 } from "@/domains/rbac/rbac.constants"
+import { unionRolePermissions } from "@/domains/rbac/union-role-permissions"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { UserRepository } from "@/domains/users/user.repository"
 import type {

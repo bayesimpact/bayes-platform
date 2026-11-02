@@ -10,8 +10,8 @@ import {
   type Relation,
   UpdateDateColumn,
 } from "typeorm"
-import { Role } from "@/domains/rbac/role.entity"
 import { User } from "@/domains/users/user.entity"
+import { Role } from "./role.entity"
 
 export type RoleGrantResourceType =
   | "organization"

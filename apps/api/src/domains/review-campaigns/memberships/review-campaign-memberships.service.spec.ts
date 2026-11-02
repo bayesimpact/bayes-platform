@@ -6,9 +6,8 @@ import {
 } from "@/common/test/test-database"
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { agentSettingsFactory } from "@/domains/agents/settings/agent.settings.factory"
-import { MembershipsModule } from "@/domains/memberships/memberships.module"
-import { RoleGrant } from "@/domains/memberships/role-grant.entity"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import { RoleGrant } from "@/domains/rbac/role-grant.entity"
 import { reviewCampaignFactory } from "../review-campaign.factory"
 import { ReviewCampaignMembershipRepository } from "./review-campaign-membership.repository"
 import { ReviewCampaignMembershipsService } from "./review-campaign-memberships.service"
@@ -20,7 +19,7 @@ describe("ReviewCampaignMembershipsService", () => {
 
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
-      additionalImports: [MembershipsModule],
+      additionalImports: [],
       providers: [ReviewCampaignMembershipRepository, ReviewCampaignMembershipsService],
     })
     service = setup.module.get(ReviewCampaignMembershipsService)

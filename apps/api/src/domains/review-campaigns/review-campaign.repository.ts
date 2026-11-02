@@ -4,7 +4,7 @@ import { ALL_ENTITIES } from "@/common/all-entities"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
-import { RoleGrant } from "@/domains/memberships/role-grant.entity"
+import { RoleGrant } from "@/domains/rbac/role-grant.entity"
 import { ReviewCampaign } from "./review-campaign.entity"
 
 @Injectable()

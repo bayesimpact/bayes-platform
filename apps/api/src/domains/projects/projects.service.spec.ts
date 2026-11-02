@@ -6,13 +6,13 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { DocumentTag } from "@/domains/documents/tags/document-tag.entity"
-import { roleGrantFactory } from "@/domains/memberships/role-grant.factory"
 import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
 import {
   createOrganizationWithOwner,
   createOrganizationWithProject,
 } from "@/domains/organizations/organization.factory"
 import { PROJECT_ROLES } from "@/domains/rbac/rbac.constants"
+import { roleGrantFactory } from "@/domains/rbac/role-grant.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import { ensureRbacCatalog } from "../../../test/rbac-test.helpers"
 import { addUserToProject } from "./memberships/project-membership.factory"

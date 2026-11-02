@@ -4,9 +4,9 @@ import type { Repository } from "typeorm"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { DataSource } from "typeorm"
 import { groupMembershipRows } from "@/domains/memberships/membership-roles"
-import { RoleGrant } from "@/domains/memberships/role-grant.entity"
 import type { ProjectMembershipContextModel } from "@/domains/projects/memberships/project-membership.model"
 import { Project } from "@/domains/projects/project.entity"
+import { RoleGrant } from "@/domains/rbac/role-grant.entity"
 import type { ContextResolver, ResolvableRequest } from "../context-resolver.interface"
 import type { EndpointRequestWithProject } from "../request.interface"
 

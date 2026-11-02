@@ -4,7 +4,6 @@ import {
   setupE2eTestDatabase,
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
-import { RoleGrant } from "@/domains/memberships/role-grant.entity"
 import {
   organizationMembershipFactory,
   saveOrgMembership,
@@ -17,6 +16,7 @@ import {
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
 import { ORGANIZATION_ROLES } from "@/domains/rbac/rbac.constants"
 import { RbacModule } from "@/domains/rbac/rbac.module"
+import { RoleGrant } from "@/domains/rbac/role-grant.entity"
 import { userFactory } from "@/domains/users/user.factory"
 import { USER_TYPE_SERVICE } from "@/domains/users/user.types"
 import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"

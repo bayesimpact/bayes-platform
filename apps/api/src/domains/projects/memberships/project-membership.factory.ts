@@ -1,7 +1,6 @@
 import { randomUUID } from "node:crypto"
 import { Factory } from "fishery"
 import type { AllRepositories } from "@/common/test/test-transaction-manager"
-import { saveRoleGrantRows } from "@/domains/memberships/role-grant.factory"
 import {
   organizationMembershipFactory,
   saveOrgMembership,
@@ -9,6 +8,7 @@ import {
 import type { OrganizationMembershipFixture } from "@/domains/organizations/memberships/organization-membership.types"
 import type { Organization } from "@/domains/organizations/organization.entity"
 import { PROJECT_ROLES } from "@/domains/rbac/rbac.constants"
+import { saveRoleGrantRows } from "@/domains/rbac/role-grant.factory"
 import type { User } from "@/domains/users/user.entity"
 import { userFactory } from "@/domains/users/user.factory"
 import type { Project } from "../project.entity"

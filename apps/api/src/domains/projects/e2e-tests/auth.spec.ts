@@ -11,13 +11,13 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { removeNullish } from "@/common/utils/remove-nullish"
-import { roleGrantFactory } from "@/domains/memberships/role-grant.factory"
 import {
   createOrganizationWithOwner,
   createOrganizationWithProject,
 } from "@/domains/organizations/organization.factory"
 import type { ProjectRoleKey } from "@/domains/projects/memberships/project-membership.types"
 import { ORGANIZATION_ROLES } from "@/domains/rbac/rbac.constants"
+import { roleGrantFactory } from "@/domains/rbac/role-grant.factory"
 import { mockForeignAuthSubject, setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"

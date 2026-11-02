@@ -8,7 +8,6 @@ import {
 import { agentFactory } from "@/domains/agents/agent.factory"
 import { grantConversationReview } from "@/domains/agents/conversation-reviewers/agent-conversation-reviewer.factory"
 import { addUserToAgent } from "@/domains/agents/memberships/agent-membership.factory"
-import { roleGrantFactory } from "@/domains/memberships/role-grant.factory"
 import {
   createOrganizationWithAgent,
   createOrganizationWithOwner,
@@ -67,6 +66,7 @@ import {
 import { RbacModule } from "@/domains/rbac/rbac.module"
 import { RbacService } from "@/domains/rbac/rbac.service"
 import { Role } from "@/domains/rbac/role.entity"
+import { roleGrantFactory } from "@/domains/rbac/role-grant.factory"
 import { RolePermission } from "@/domains/rbac/role-permission.entity"
 import {
   reviewCampaignMembershipFactory,

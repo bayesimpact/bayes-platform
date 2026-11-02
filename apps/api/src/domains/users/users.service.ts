@@ -3,7 +3,7 @@ import { AUTH_ERRORS } from "@/common/errors/auth-errors"
 import { getOidcEmailLinkingPolicy, type OidcEmailLinkingPolicy } from "@/domains/auth/oidc-config"
 import { normalizeOidcName, type OidcUserInfo } from "@/domains/auth/oidc-userinfo.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { RoleGrantRepository } from "@/domains/memberships/role-grant.repository"
+import { RoleGrantRepository } from "@/domains/rbac/role-grant.repository"
 import {
   buildServiceUserAuthSubject,
   buildServiceUserEmail,
