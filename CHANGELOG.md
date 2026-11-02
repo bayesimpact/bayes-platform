@@ -13,6 +13,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Fixed
 
+- Document import errors: a failed document now shows why it failed, in one readable line.
+
 ### Security
 
 ## [26.10.10] - 2026-10-31
