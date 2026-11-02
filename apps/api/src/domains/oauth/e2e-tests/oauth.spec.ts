@@ -185,6 +185,13 @@ describe("OAuth authorization server", () => {
 
   describe("consent page", () => {
     it("describes an unverified dcr client and the projects to grant", async () => {
+      const ALL_GRANTABLE_PERMISSIONS = [
+        "project.read",
+        "agent.create",
+        "agent.settings.draft.update",
+        "evaluation.conversation.dataset.update",
+        "evaluation.conversation.run.create",
+      ]
       const { organization, project } = await createContext()
       const clientId = await registerTestClient(baseUrl)
 
@@ -209,10 +216,10 @@ describe("OAuth authorization server", () => {
             name: project.name,
             organizationId: organization.id,
             organizationName: organization.name,
-            availablePermissions: ["project.read", "agent.create", "agent.settings.draft.update"],
+            availablePermissions: ALL_GRANTABLE_PERMISSIONS,
           },
         ],
-        grantablePermissions: ["project.read", "agent.create", "agent.settings.draft.update"],
+        grantablePermissions: ALL_GRANTABLE_PERMISSIONS,
       })
     })
 

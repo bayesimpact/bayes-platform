@@ -25,6 +25,7 @@ import { PermissionService } from "@/domains/rbac/permission.service"
 import {
   AGENT_CREATE_PERMISSION,
   AGENT_DUPLICATE_PERMISSION,
+  AGENT_READ_PERMISSION,
   AGENT_SETTINGS_DRAFT_READ_PERMISSION,
   AGENT_SETTINGS_DRAFT_UPDATE_PERMISSION,
   PROJECT_READ_PERMISSION,
@@ -78,6 +79,38 @@ export type McpAgentSettingsFields = Pick<
 
 /** The draft revision the change went into: the published version does not change. */
 export type McpUpdatedAgent = McpAgent & { draftRevision: number }
+
+/** A stored version of an agent's settings, as the agents domain returns it. */
+type AgentSettingsRecord = Awaited<ReturnType<AgentSettingsService["getById"]>>
+
+/** What a version of an agent says and runs on. */
+export type McpAgentVersion = {
+  revision: number
+  model: string
+  instructions: string
+  greetingMessage: string | null
+}
+
+export type McpAgentRevision = {
+  revision: number
+  isDraft: boolean
+  name: string | null
+  updatedAt: string
+}
+
+/**
+ * An agent with the settings a client needs before changing or evaluating it: the published
+ * version, the draft when the person can see it, and the versions a run can pin.
+ */
+export type McpAgentDetails = McpAgent & {
+  publishedVersion: McpAgentVersion | null
+  draft: McpAgentVersion | null
+  revisions: McpAgentRevision[]
+}
+
+/** Same answer for a missing agent, one outside the grant and one the caller cannot see. */
+export const AGENT_NOT_READABLE_ERROR =
+  "Agent not found, or you are not allowed to see it. Call list_agents to see the agents you can use."
 
 export type McpResult<Value> = { ok: true; value: Value } | { ok: false; error: string }
 
@@ -267,6 +300,58 @@ export class McpAgentToolsService {
   }
 
   /**
+   * One agent of a granted project, with its published version, its draft when the person can
+   * see drafts, and its versions, so a client reads what it changes and picks what a run pins.
+   */
+  async getAgent(caller: McpCaller, agentId: string): Promise<McpResult<McpAgentDetails>> {
+    const agent = await this.agentRepository.findSummaryWithScopeById(agentId)
+    const canRead =
+      agent !== null &&
+      caller.permissions.includes(PROJECT_READ_PERMISSION) &&
+      caller.projectIds.includes(agent.projectId) &&
+      (await this.permissionService.has(caller.userId, AGENT_READ_PERMISSION, {
+        type: "agent",
+        id: agentId,
+      }))
+    if (!agent || !canRead) return { ok: false, error: AGENT_NOT_READABLE_ERROR }
+
+    const connectScope = { organizationId: agent.organizationId, projectId: agent.projectId }
+    const seesDraft = await this.canSeeDraft(caller.userId, agentId)
+    const revisions = await this.agentSettingsService.getAll({
+      connectScope,
+      agentId,
+      ...(seesDraft ? { includesDraft: true as const } : {}),
+    })
+    const published = revisions.find((settings) => !settings.isDraft)
+    const draft = revisions.find((settings) => settings.isDraft)
+    const shown = published ?? draft
+    if (!shown) return { ok: false, error: AGENT_NOT_READABLE_ERROR }
+
+    const target = { ...connectScope, agentId }
+    return {
+      ok: true,
+      value: {
+        id: agentId,
+        name: agent.name,
+        type: agent.type,
+        model: shown.model,
+        published: published !== undefined,
+        canUpdate: await this.canUpdateAgent(caller, target),
+        canDuplicate: await this.canDuplicateAgent(caller, target),
+        studioUrl: buildStudioAgentUrl(target),
+        publishedVersion: published ? toAgentVersion(published) : null,
+        draft: draft ? toAgentVersion(draft) : null,
+        revisions: revisions.map((settings) => ({
+          revision: settings.revision,
+          isDraft: settings.isDraft,
+          name: settings.revisionName ?? null,
+          updatedAt: settings.updatedAt.toISOString(),
+        })),
+      },
+    }
+  }
+
+  /**
    * Changes the draft settings of an agent, like editing in the studio. The
    * draft goes on top of an existing one, or starts from the published
    * version. Nothing is published: that stays a decision made in the studio.
@@ -410,7 +495,7 @@ export class McpAgentToolsService {
    * Whether the person can see the agent's draft settings over HTTP: they read the settings
    * history, or they edit the draft as owner or admin of the agent.
    */
-  private async canSeeDraft(userId: string, agentId: string): Promise<boolean> {
+  async canSeeDraft(userId: string, agentId: string): Promise<boolean> {
     const agent = { type: "agent" as const, id: agentId }
     return (
       (await this.permissionService.has(userId, AGENT_SETTINGS_DRAFT_READ_PERMISSION, agent)) ||
@@ -445,6 +530,15 @@ export class McpAgentToolsService {
       type: "project",
       id: projectId,
     })
+  }
+}
+
+function toAgentVersion(settings: AgentSettingsRecord): McpAgentVersion {
+  return {
+    revision: settings.revision,
+    model: settings.model,
+    instructions: settings.instructions,
+    greetingMessage: settings.greetingMessage ?? null,
   }
 }
 

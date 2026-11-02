@@ -3,6 +3,7 @@ import {
   BotIcon,
   FilePlusIcon,
   FileTextIcon,
+  FlaskConicalIcon,
   FolderIcon,
   FolderPlusIcon,
   LayoutGridIcon,
@@ -34,9 +35,16 @@ const PERMISSION_ICONS: Record<AppGrantablePermission, typeof FileTextIcon> = {
   "agent.conversation.session.external.create": MessagesSquareIcon,
 }
 
+/** Icons of the resources that only MCP clients are granted, keyed by the group's read permission. */
+const MCP_RESOURCE_ICONS: Record<string, typeof FileTextIcon> = {
+  "evaluation.read": FlaskConicalIcon,
+}
+
 /** The icon of a permission, for an `ItemMedia variant="icon"` to frame. */
 export function AppPermissionIcon({ permission }: { permission: string }) {
-  const Icon = isAppGrantablePermission(permission) ? PERMISSION_ICONS[permission] : FileTextIcon
+  const Icon = isAppGrantablePermission(permission)
+    ? PERMISSION_ICONS[permission]
+    : (MCP_RESOURCE_ICONS[permission] ?? FileTextIcon)
   return <Icon aria-hidden />
 }
 

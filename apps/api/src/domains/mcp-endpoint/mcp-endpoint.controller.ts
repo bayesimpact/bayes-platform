@@ -24,6 +24,8 @@ import { buildAgentCreationMcpServer } from "./agent-creation-mcp-server"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { McpAgentToolsService, type McpCaller } from "./mcp-agent-tools.service"
 import { MCP_ENDPOINT_PATH } from "./mcp-endpoint.urls"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { McpEvaluationToolsService } from "./mcp-evaluation-tools.service"
 import { McpUnauthorizedFilter } from "./mcp-unauthorized.filter"
 
 type McpCallerAuthInfo = AuthInfo & { extra: { caller: McpCaller } }
@@ -43,7 +45,10 @@ export class McpEndpointController implements OnModuleDestroy {
   private readonly mcpHandler
   private readonly nodeHandler
 
-  constructor(private readonly toolsService: McpAgentToolsService) {
+  constructor(
+    private readonly toolsService: McpAgentToolsService,
+    private readonly evaluationToolsService: McpEvaluationToolsService,
+  ) {
     const onerror = (error: Error) => this.logger.warn(`MCP request failed: ${error.message}`)
     this.mcpHandler = createMcpHandler((context) => this.buildServer(context), { onerror })
     this.nodeHandler = toNodeHandler(this.mcpHandler, { onerror })
@@ -78,6 +83,10 @@ export class McpEndpointController implements OnModuleDestroy {
       // The guard runs before the handler, so this only happens on a wiring mistake.
       throw new Error("MCP request reached the server without a grant")
     }
-    return buildAgentCreationMcpServer({ caller, toolsService: this.toolsService })
+    return buildAgentCreationMcpServer({
+      caller,
+      toolsService: this.toolsService,
+      evaluationToolsService: this.evaluationToolsService,
+    })
   }
 }

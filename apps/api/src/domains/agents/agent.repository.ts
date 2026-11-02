@@ -110,6 +110,16 @@ export class AgentRepository {
     return agent ? { organizationId: agent.organizationId, projectId: agent.projectId } : null
   }
 
+  /** The agent's name, type, organization and project, or null. */
+  async findSummaryWithScopeById(
+    agentId: string,
+  ): Promise<(AgentSummary & { organizationId: string; projectId: string }) | null> {
+    return this.repo().findOne({
+      where: { id: agentId },
+      select: { id: true, name: true, type: true, organizationId: true, projectId: true },
+    })
+  }
+
   async findIdsByProject(projectId: string): Promise<string[]> {
     const agents = await this.repo().find({
       where: { projectId },
