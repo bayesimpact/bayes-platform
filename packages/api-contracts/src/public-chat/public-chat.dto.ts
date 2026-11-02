@@ -1,5 +1,5 @@
 /**
- * Public chat API contract v1: the DTOs served under `/public/v1/...`.
+ * Public chat API contract: the DTOs served under `PUBLIC_PATH_PREFIX`.
  *
  * This file is self-contained on purpose. The public copies below restate the
  * shared shapes they mirror, and `PublicContractPins` fails `typecheck` when a
@@ -13,10 +13,10 @@ import type {
   AgentSessionToolCallDto,
   StreamEventPayload,
   ToolName,
-} from "../../agents/shared/agent-session-messages/agent-session-messages.dto"
-import type { TimeType } from "../../generic"
-import type { Assert, Equals } from "../../internal/type-equality"
-import type { PUBLIC_API_V1_MAJOR } from "./public-chat-v1.version"
+} from "../agents/shared/agent-session-messages/agent-session-messages.dto"
+import type { TimeType } from "../generic"
+import type { Assert, Equals } from "../internal/type-equality"
+import type { PUBLIC_API_MAJOR } from "./public-chat.version"
 
 /** Returned by the public config route: branding only, no secrets. */
 export type EmbedPublicConfigDto = {
@@ -89,7 +89,10 @@ export type CreatePublicSessionResponseDto = {
   sessionToken: string
 }
 
-/** Payload of the stream route, sent URL-encoded in the `q` query parameter. */
+/**
+ * Payload of the stream routes: the JSON body of `streamReply`, or URL-encoded in the `q`
+ * query parameter of the deprecated `streamMessages`.
+ */
 export type PublicChatStreamRequestDto = {
   content: string
 }
@@ -111,5 +114,5 @@ export type PublicContractPins = [
   Assert<Equals<PublicToolCallDto, AgentSessionToolCallDto>>,
   Assert<Equals<PublicMcpAppHtmlDto, AgentSessionMcpAppHtmlDto>>,
   Assert<Equals<PublicStreamEventPayload, StreamEventPayload>>,
-  Assert<Equals<typeof PUBLIC_API_V1_MAJOR, "v1">>,
+  Assert<Equals<typeof PUBLIC_API_MAJOR, "v1">>,
 ]

@@ -1,17 +1,21 @@
-import type { PublicChatV2 } from "@caseai-connect/api-contracts"
-import { PublicChatV2Routes } from "@caseai-connect/api-contracts"
+import type {
+  CreatePublicSessionResponseDto,
+  EmbedPublicConfigDto,
+  PublicAgentSessionDto,
+  PublicMcpAppHtmlDto,
+  PublicStreamEventPayload,
+} from "@caseai-connect/api-contracts"
+import { PublicChatRoutes } from "@caseai-connect/api-contracts"
 import { apiUrl as routeUrl } from "./api-base"
 
-/** Reference client of the public chat API v2 (`docs/public-api-contract.md`). */
+/** Reference client of the public chat API v1 (`docs/public-api-contract.md`). */
 
 // ─── Public embed config ───────────────────────────────────────────────────
 
-export async function getEmbedConfig(
-  embedToken: string,
-): Promise<PublicChatV2.EmbedPublicConfigDto> {
-  const response = await fetch(routeUrl(PublicChatV2Routes.getConfig.getPath({ embedToken })))
+export async function getEmbedConfig(embedToken: string): Promise<EmbedPublicConfigDto> {
+  const response = await fetch(routeUrl(PublicChatRoutes.getConfig.getPath({ embedToken })))
   if (!response.ok) throw new ApiError(response.status, "Failed to load embed config")
-  const json = (await response.json()) as { data: PublicChatV2.EmbedPublicConfigDto }
+  const json = (await response.json()) as { data: EmbedPublicConfigDto }
   return json.data
 }
 
@@ -22,14 +26,14 @@ export async function createSession(
   externalVisitorId?: string,
   /** Values of the {{variables}} the agent's instructions declare (API 1.1). */
   variables?: Record<string, string>,
-): Promise<PublicChatV2.CreatePublicSessionResponseDto> {
-  const response = await fetch(routeUrl(PublicChatV2Routes.createSession.getPath({ embedToken })), {
+): Promise<CreatePublicSessionResponseDto> {
+  const response = await fetch(routeUrl(PublicChatRoutes.createSession.getPath({ embedToken })), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ payload: { externalVisitorId, variables } }),
   })
   if (!response.ok) throw new ApiError(response.status, "Failed to create session")
-  const json = (await response.json()) as { data: PublicChatV2.CreatePublicSessionResponseDto }
+  const json = (await response.json()) as { data: CreatePublicSessionResponseDto }
   return json.data
 }
 
@@ -37,13 +41,13 @@ export async function getSession(
   embedToken: string,
   sessionId: string,
   sessionToken: string,
-): Promise<PublicChatV2.PublicAgentSessionDto> {
+): Promise<PublicAgentSessionDto> {
   const response = await fetch(
-    routeUrl(PublicChatV2Routes.getSession.getPath({ embedToken, sessionId })),
+    routeUrl(PublicChatRoutes.getSession.getPath({ embedToken, sessionId })),
     { headers: { "X-Session-Token": sessionToken } },
   )
   if (!response.ok) throw new ApiError(response.status, "Failed to load session")
-  const json = (await response.json()) as { data: PublicChatV2.PublicAgentSessionDto }
+  const json = (await response.json()) as { data: PublicAgentSessionDto }
   return json.data
 }
 
@@ -55,13 +59,13 @@ export async function getMcpAppHtml(
   embedToken: string,
   sessionId: string,
   sessionToken: string,
-): Promise<PublicChatV2.PublicMcpAppHtmlDto[]> {
+): Promise<PublicMcpAppHtmlDto[]> {
   const response = await fetch(
-    routeUrl(PublicChatV2Routes.getMcpAppHtml.getPath({ embedToken, sessionId })),
+    routeUrl(PublicChatRoutes.getMcpAppHtml.getPath({ embedToken, sessionId })),
     { headers: { "X-Session-Token": sessionToken } },
   )
   if (!response.ok) throw new ApiError(response.status, "Failed to load MCP App cards")
-  const json = (await response.json()) as { data: PublicChatV2.PublicMcpAppHtmlDto[] }
+  const json = (await response.json()) as { data: PublicMcpAppHtmlDto[] }
   return json.data
 }
 
@@ -72,19 +76,19 @@ export async function getMcpAppHtml(
  * We use fetch instead of EventSource because EventSource does not support
  * custom request headers and we need X-Session-Token.
  *
- * Yields parsed PublicChatV2.PublicStreamEventPayload objects as they arrive.
+ * Yields parsed PublicStreamEventPayload objects as they arrive.
  */
 export async function* streamReply(
   embedToken: string,
   sessionId: string,
   sessionToken: string,
   content: string,
-): AsyncGenerator<PublicChatV2.PublicStreamEventPayload, void, unknown> {
-  // The message travels in the body (API 2.0): never in the URL, where proxies cap its length
+): AsyncGenerator<PublicStreamEventPayload, void, unknown> {
+  // The message travels in the body (API 1.3): never in the URL, where proxies cap its length
   // and access logs keep its text.
-  const body: typeof PublicChatV2Routes.streamReply.request = { payload: { content } }
+  const body: typeof PublicChatRoutes.streamReply.request = { payload: { content } }
   const response = await fetch(
-    routeUrl(PublicChatV2Routes.streamReply.getPath({ embedToken, sessionId })),
+    routeUrl(PublicChatRoutes.streamReply.getPath({ embedToken, sessionId })),
     {
       method: "POST",
       headers: {
@@ -117,7 +121,7 @@ export async function* streamReply(
         const raw = line.slice("data: ".length).trim()
         if (!raw || raw === "[DONE]") continue
         try {
-          yield JSON.parse(raw) as PublicChatV2.PublicStreamEventPayload
+          yield JSON.parse(raw) as PublicStreamEventPayload
         } catch {
           // Ignore malformed lines
         }

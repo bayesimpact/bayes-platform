@@ -1,4 +1,9 @@
-import type { PublicChatV1 } from "@caseai-connect/api-contracts"
+import type {
+  CreatePublicSessionResponseDto,
+  EmbedPublicConfigDto,
+  PublicAgentSessionDto,
+  PublicSessionMessageDto,
+} from "@caseai-connect/api-contracts"
 import type { AgentEmbedConfig } from "../agent-embed-configs/agent-embed-config.entity"
 import type { PublicAgentSession } from "../public-agent-sessions/public-agent-session.entity"
 
@@ -10,17 +15,15 @@ import type { PublicAgentSession } from "../public-agent-sessions/public-agent-s
 /** The message fields the public transcript exposes (structural, so no cross-domain entity import). */
 type PublicMessageSource = {
   id: string
-  role: PublicChatV1.PublicSessionMessageDto["role"]
+  role: PublicSessionMessageDto["role"]
   content: string
-  status: NonNullable<PublicChatV1.PublicSessionMessageDto["status"]> | null
+  status: NonNullable<PublicSessionMessageDto["status"]> | null
   createdAt: Date
-  toolCalls: NonNullable<PublicChatV1.PublicSessionMessageDto["toolCalls"]> | null
+  toolCalls: NonNullable<PublicSessionMessageDto["toolCalls"]> | null
 }
 
 /** Branding only, no secrets: what an anonymous host page may learn about the agent. */
-export function toEmbedPublicConfigDto(
-  embedConfig: AgentEmbedConfig,
-): PublicChatV1.EmbedPublicConfigDto {
+export function toEmbedPublicConfigDto(embedConfig: AgentEmbedConfig): EmbedPublicConfigDto {
   return {
     agentName: embedConfig.agent.name,
     title: embedConfig.title,
@@ -33,14 +36,14 @@ export function toEmbedPublicConfigDto(
 export function toCreatePublicSessionResponseDto(
   session: PublicAgentSession,
   sessionToken: string,
-): PublicChatV1.CreatePublicSessionResponseDto {
+): CreatePublicSessionResponseDto {
   return { sessionId: session.id, sessionToken }
 }
 
 export function toPublicAgentSessionDto(
   session: PublicAgentSession,
   messages: PublicMessageSource[],
-): PublicChatV1.PublicAgentSessionDto {
+): PublicAgentSessionDto {
   return {
     id: session.id,
     agentId: session.agentId,
@@ -49,9 +52,7 @@ export function toPublicAgentSessionDto(
   }
 }
 
-function toPublicSessionMessageDto(
-  message: PublicMessageSource,
-): PublicChatV1.PublicSessionMessageDto {
+function toPublicSessionMessageDto(message: PublicMessageSource): PublicSessionMessageDto {
   return {
     id: message.id,
     role: message.role,

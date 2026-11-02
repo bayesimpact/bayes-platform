@@ -1,16 +1,19 @@
 import type { StreamEvent, StreamEventPayload } from "@caseai-connect/api-contracts"
-import { PublicChatV1Routes } from "@caseai-connect/api-contracts"
+import { PublicChatRoutes } from "@caseai-connect/api-contracts"
 import type { MessageEvent } from "@nestjs/common"
 import {
   BadRequestException,
   Body,
   Controller,
   Get,
+  HttpCode,
   HttpException,
+  HttpStatus,
   Logger,
   Post,
   Query,
   Req,
+  RequestMethod,
   Sse,
   UseGuards,
 } from "@nestjs/common"
@@ -29,25 +32,27 @@ import {
 
 /**
  * Public chat API v1 at `/public/v1/agents/:embedToken/...`, a versioned contract with
- * external integrators (`docs/public-api-contract.md`). Deprecated since v2 and served until
- * the stop date published on the help site. Frozen: new work goes to `v2/`, which shares
- * nothing with this folder but the injected service.
+ * external integrators (`docs/public-api-contract.md`).
+ *
+ * Before adding a `v2/` folder, follow "Shipping a new major version" in
+ * `docs/public-api-contract.md`: the DTOs and route definitions must be split per major in
+ * `api-contracts` first, or the new mappers will silently change what v1 serves.
  */
 @UseGuards(EmbedTokenGuard)
 @Controller()
 export class PublicChatV1Controller extends PublicChatController {
   private readonly logger = new Logger(PublicChatV1Controller.name)
 
-  @Get(PublicChatV1Routes.getConfig.path)
-  getConfig(@Req() request: PublicChatRequest): typeof PublicChatV1Routes.getConfig.response {
+  @Get(PublicChatRoutes.getConfig.path)
+  getConfig(@Req() request: PublicChatRequest): typeof PublicChatRoutes.getConfig.response {
     return { data: toEmbedPublicConfigDto(request.embedConfig) }
   }
 
-  @Post(PublicChatV1Routes.createSession.path)
+  @Post(PublicChatRoutes.createSession.path)
   async createSession(
     @Req() request: PublicChatRequest,
-    @Body() body: typeof PublicChatV1Routes.createSession.request,
-  ): Promise<typeof PublicChatV1Routes.createSession.response> {
+    @Body() body: typeof PublicChatRoutes.createSession.request,
+  ): Promise<typeof PublicChatRoutes.createSession.response> {
     const { session, sessionToken } = await this.publicChatService.createSession(
       request.embedConfig,
       body.payload?.externalVisitorId,
@@ -57,30 +62,41 @@ export class PublicChatV1Controller extends PublicChatController {
   }
 
   @UseGuards(PublicSessionTokenGuard)
-  @Get(PublicChatV1Routes.getSession.path)
+  @Get(PublicChatRoutes.getSession.path)
   async getSession(
     @Req() request: PublicChatSessionRequest,
-  ): Promise<typeof PublicChatV1Routes.getSession.response> {
+  ): Promise<typeof PublicChatRoutes.getSession.response> {
     const { session, messages } = await this.publicChatService.getSession(request.publicSession)
     return { data: toPublicAgentSessionDto(session, messages) }
   }
 
   @UseGuards(PublicSessionTokenGuard)
-  @Get(PublicChatV1Routes.getMcpAppHtml.path)
+  @Get(PublicChatRoutes.getMcpAppHtml.path)
   async getMcpAppHtml(
     @Req() request: PublicChatSessionRequest,
-  ): Promise<typeof PublicChatV1Routes.getMcpAppHtml.response> {
+  ): Promise<typeof PublicChatRoutes.getMcpAppHtml.response> {
     const htmlByKey = await this.publicChatService.getMcpAppHtml(request.publicSession)
     return { data: toMcpAppHtmlDtos(htmlByKey) }
   }
 
+  /** Deprecated since 1.3 in favour of `streamReply`, which keeps the message out of the URL. */
   @UseGuards(PublicSessionTokenGuard)
-  @Sse(PublicChatV1Routes.streamMessages.path, { method: 0 /* GET */ })
+  @Sse(PublicChatRoutes.streamMessages.path, { method: RequestMethod.GET })
   streamMessages(
     @Req() request: PublicChatSessionRequest,
     @Query("q") query: string,
   ): Observable<MessageEvent> {
-    return this.buildStream(request.publicSession, query)
+    return this.buildStream(request.publicSession, () => parseStreamQuery(query))
+  }
+
+  @UseGuards(PublicSessionTokenGuard)
+  @Sse(PublicChatRoutes.streamReply.path, { method: RequestMethod.POST })
+  @HttpCode(HttpStatus.OK)
+  streamReply(
+    @Req() request: PublicChatSessionRequest,
+    @Body() body: unknown,
+  ): Observable<MessageEvent> {
+    return this.buildStream(request.publicSession, () => parseStreamBody(body))
   }
 
   /**
@@ -91,7 +107,10 @@ export class PublicChatV1Controller extends PublicChatController {
    * contract. The generation layer emits its own error event before throwing, which is
    * not doubled here.
    */
-  private buildStream(publicSession: PublicAgentSession, query: string): Observable<StreamEvent> {
+  private buildStream(
+    publicSession: PublicAgentSession,
+    readUserContent: () => string,
+  ): Observable<StreamEvent> {
     return new Observable<StreamEvent>((subscriber) => {
       let messageId = ""
       let lastEventType: StreamEventPayload["type"] | undefined
@@ -112,7 +131,7 @@ export class PublicChatV1Controller extends PublicChatController {
 
       let userContent: string
       try {
-        userContent = parseStreamQuery(query)
+        userContent = readUserContent()
       } catch (error) {
         fail(error)
         return
@@ -142,13 +161,30 @@ function toStreamEvent(payload: StreamEventPayload): StreamEvent {
 }
 
 function parseStreamQuery(query: string): string {
-  let parsedQuery: typeof PublicChatV1Routes.streamMessages.request
+  let parsedQuery: typeof PublicChatRoutes.streamMessages.request
   try {
-    parsedQuery = JSON.parse(query) as typeof PublicChatV1Routes.streamMessages.request
+    parsedQuery = JSON.parse(query) as typeof PublicChatRoutes.streamMessages.request
   } catch {
     throw new BadRequestException("Invalid query format")
   }
-  const userContent = parsedQuery.payload?.content
+  return requireUserContent(parsedQuery)
+}
+
+/** The body is untyped on the wire: anything but `{ payload: { content: string } }` is refused. */
+function parseStreamBody(body: unknown): string {
+  const payload = (body as { payload?: unknown } | null)?.payload
+  if (typeof payload !== "object" || payload === null) {
+    throw new BadRequestException("Invalid request body")
+  }
+  const content = (payload as { content?: unknown }).content
+  if (content !== undefined && typeof content !== "string") {
+    throw new BadRequestException("Invalid request body")
+  }
+  return requireUserContent(body as typeof PublicChatRoutes.streamReply.request)
+}
+
+function requireUserContent(request: typeof PublicChatRoutes.streamMessages.request): string {
+  const userContent = request.payload?.content
   if (!userContent?.trim()) {
     throw new BadRequestException("User content must not be empty")
   }

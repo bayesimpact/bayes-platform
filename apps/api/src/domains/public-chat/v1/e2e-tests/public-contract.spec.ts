@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto"
-import type { PublicChatV1 } from "@caseai-connect/api-contracts"
 import {
-  PUBLIC_API_V1_MAJOR,
+  PUBLIC_API_MAJOR,
   PUBLIC_PATH_PREFIX,
-  PublicChatV1Routes,
+  PublicChatRoutes,
+  type PublicStreamEventPayload,
 } from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
@@ -36,7 +36,7 @@ describe("PublicChat - contract v1", () => {
   let sessionId: string
   let sessionToken: string
 
-  const publicBase = `/${PUBLIC_PATH_PREFIX}/${PUBLIC_API_V1_MAJOR}/agents/:embedToken`
+  const publicBase = `/${PUBLIC_PATH_PREFIX}/${PUBLIC_API_MAJOR}/agents/:embedToken`
   const hostOrigin = "https://host-page.example"
 
   beforeAll(async () => {
@@ -68,39 +68,63 @@ describe("PublicChat - contract v1", () => {
 
   const pathParams = () => ({ embedToken, sessionId })
 
-  const parseDataEvents = (text: string) =>
-    parseSseDataEvents<PublicChatV1.PublicStreamEventPayload>(text)
+  const parseDataEvents = (text: string) => parseSseDataEvents<PublicStreamEventPayload>(text)
 
   describe("routes", () => {
     it("declares the v1 paths and methods", () => {
       expect(PUBLIC_PATH_PREFIX).toBe("public")
-      expect(PUBLIC_API_V1_MAJOR).toBe("v1")
-      expect(PublicChatV1Routes.getConfig).toMatchObject({
+      expect(PUBLIC_API_MAJOR).toBe("v1")
+      expect(PublicChatRoutes.getConfig).toMatchObject({
         method: "get",
         path: `${publicBase}/config`,
       })
-      expect(PublicChatV1Routes.createSession).toMatchObject({
+      expect(PublicChatRoutes.createSession).toMatchObject({
         method: "post",
         path: `${publicBase}/sessions`,
       })
-      expect(PublicChatV1Routes.getSession).toMatchObject({
+      expect(PublicChatRoutes.getSession).toMatchObject({
         method: "get",
         path: `${publicBase}/sessions/:sessionId`,
       })
-      expect(PublicChatV1Routes.getMcpAppHtml).toMatchObject({
+      expect(PublicChatRoutes.getMcpAppHtml).toMatchObject({
         method: "get",
         path: `${publicBase}/sessions/:sessionId/mcp-app-html`,
       })
-      expect(PublicChatV1Routes.streamMessages).toMatchObject({
+      expect(PublicChatRoutes.streamMessages).toMatchObject({
         method: "get",
         path: `${publicBase}/sessions/:sessionId/messages/stream`,
       })
+      expect(PublicChatRoutes.streamReply).toMatchObject({
+        method: "post",
+        path: `${publicBase}/sessions/:sessionId/stream`,
+      })
+    })
+
+    it("serves nothing on the unprefixed paths that 1.3 removed", async () => {
+      await createContext()
+      const unprefixedBase = `/${PUBLIC_PATH_PREFIX}/agents/${embedToken}`
+      const configResponse = await request(app.getHttpServer())
+        .get(`${unprefixedBase}/config`)
+        .set("Connection", "close")
+      const createSessionResponse = await request(app.getHttpServer())
+        .post(`${unprefixedBase}/sessions`)
+        .set("Connection", "close")
+        .send({ payload: {} })
+      const streamResponse = await request(app.getHttpServer())
+        .get(`${unprefixedBase}/sessions/${sessionId}/messages/stream`)
+        .query({ q: JSON.stringify({ payload: { content: "Hello" } }) })
+        .set("Connection", "close")
+        .set("X-Session-Token", sessionToken)
+      expect(configResponse.status).toBe(404)
+      expect(createSessionResponse.status).toBe(404)
+      expect(streamResponse.status).toBe(404)
+      expect(await repositories.publicAgentSessionRepository.count()).toBe(1)
     })
 
     it("does not accept POST on the stream path", async () => {
       await createContext()
       const response = await request(app.getHttpServer())
-        .post(PublicChatV1Routes.streamMessages.getPath(pathParams()))
+        .post(PublicChatRoutes.streamMessages.getPath(pathParams()))
         .set("Connection", "close")
         .set("X-Session-Token", sessionToken)
         .send({ payload: { content: "Hello" } })
@@ -121,7 +145,7 @@ describe("PublicChat - contract v1", () => {
 
     it("401 Invalid embed token", async () => {
       const response = await request(app.getHttpServer())
-        .get(PublicChatV1Routes.getConfig.getPath({ embedToken: randomUUID() }))
+        .get(PublicChatRoutes.getConfig.getPath({ embedToken: randomUUID() }))
         .set("Connection", "close")
       expectError(response, 401, "Invalid embed token", "Unauthorized")
     })
@@ -133,7 +157,7 @@ describe("PublicChat - contract v1", () => {
         .build({ isEnabled: false })
       await repositories.agentEmbedConfigRepository.save(disabledConfig)
       const response = await request(app.getHttpServer())
-        .get(PublicChatV1Routes.getConfig.getPath({ embedToken: disabledConfig.embedToken }))
+        .get(PublicChatRoutes.getConfig.getPath({ embedToken: disabledConfig.embedToken }))
         .set("Connection", "close")
       expectError(response, 403, "Embed access is disabled for this agent", "Forbidden")
     })
@@ -145,7 +169,7 @@ describe("PublicChat - contract v1", () => {
         .build({ isEnabled: true, allowedOrigins: ["https://allowed.example"] })
       await repositories.agentEmbedConfigRepository.save(restrictedConfig)
       const response = await request(app.getHttpServer())
-        .get(PublicChatV1Routes.getConfig.getPath({ embedToken: restrictedConfig.embedToken }))
+        .get(PublicChatRoutes.getConfig.getPath({ embedToken: restrictedConfig.embedToken }))
         .set("Connection", "close")
         .set("Origin", hostOrigin)
       expectError(response, 403, "Origin not allowed", "Forbidden")
@@ -154,7 +178,7 @@ describe("PublicChat - contract v1", () => {
     it("401 Missing session token", async () => {
       await createContext()
       const response = await request(app.getHttpServer())
-        .get(PublicChatV1Routes.getSession.getPath(pathParams()))
+        .get(PublicChatRoutes.getSession.getPath(pathParams()))
         .set("Connection", "close")
       expectError(response, 401, "Missing session token", "Unauthorized")
     })
@@ -162,7 +186,7 @@ describe("PublicChat - contract v1", () => {
     it("401 Invalid session token", async () => {
       await createContext()
       const response = await request(app.getHttpServer())
-        .get(PublicChatV1Routes.getSession.getPath(pathParams()))
+        .get(PublicChatRoutes.getSession.getPath(pathParams()))
         .set("Connection", "close")
         .set("X-Session-Token", "wrong-token")
       expectError(response, 401, "Invalid session token", "Unauthorized")
@@ -176,9 +200,7 @@ describe("PublicChat - contract v1", () => {
         .build({ isEnabled: true })
       await repositories.agentEmbedConfigRepository.save(otherConfig)
       const response = await request(app.getHttpServer())
-        .get(
-          PublicChatV1Routes.getSession.getPath({ embedToken: otherConfig.embedToken, sessionId }),
-        )
+        .get(PublicChatRoutes.getSession.getPath({ embedToken: otherConfig.embedToken, sessionId }))
         .set("Connection", "close")
         .set("X-Session-Token", sessionToken)
       expectError(response, 401, "Session does not belong to this agent", "Unauthorized")
@@ -188,7 +210,7 @@ describe("PublicChat - contract v1", () => {
       await createContext()
       await repositories.publicAgentSessionRepository.update(sessionId, { purgedAt: new Date() })
       const response = await request(app.getHttpServer())
-        .get(PublicChatV1Routes.getSession.getPath(pathParams()))
+        .get(PublicChatRoutes.getSession.getPath(pathParams()))
         .set("Connection", "close")
         .set("X-Session-Token", sessionToken)
       expect(response.status).toBe(410)
@@ -204,14 +226,28 @@ describe("PublicChat - contract v1", () => {
   describe("server-sent events", () => {
     const stream = (query: string) =>
       request(app.getHttpServer())
-        .get(PublicChatV1Routes.streamMessages.getPath(pathParams()))
+        .get(PublicChatRoutes.streamMessages.getPath(pathParams()))
         .query({ q: query })
         .set("Connection", "close")
         .set("X-Session-Token", sessionToken)
 
-    it("frames each event as id + data, start then chunks then end", async () => {
+    const streamReply = (body: unknown) =>
+      request(app.getHttpServer())
+        .post(PublicChatRoutes.streamReply.getPath(pathParams()))
+        .send(body as object)
+        .set("Connection", "close")
+        .set("X-Session-Token", sessionToken)
+
+    const sendHello = {
+      "GET ?q=": () => stream(JSON.stringify({ payload: { content: "Hello" } })),
+      "POST body": () => streamReply({ payload: { content: "Hello" } }),
+    }
+
+    it.each(
+      Object.entries(sendHello),
+    )("frames each event as id + data, start then chunks then end (%s)", async (_name, send) => {
       await createContext()
-      const response = await stream(JSON.stringify({ payload: { content: "Hello" } }))
+      const response = await send()
       expect(response.status).toBe(200)
       expect(response.headers["content-type"]).toMatch(/^text\/event-stream/)
       expect(response.text.startsWith("\n")).toBe(true)
@@ -235,7 +271,7 @@ describe("PublicChat - contract v1", () => {
       const endEvent = events.at(-1)
       const startEvent = events[0]
       const chunks = events.filter(
-        (event): event is Extract<PublicChatV1.PublicStreamEventPayload, { type: "chunk" }> =>
+        (event): event is Extract<PublicStreamEventPayload, { type: "chunk" }> =>
           event.type === "chunk",
       )
       expect(endEvent?.type === "end" && endEvent.fullContent).toBe(
@@ -265,13 +301,47 @@ describe("PublicChat - contract v1", () => {
         { type: "error", messageId: "", error: "User content must not be empty" },
       ])
     })
+
+    it("rejects an invalid POST body as one error event inside the stream, not as a JSON error", async () => {
+      await createContext()
+      const response = await streamReply({ payload: null })
+      expect(response.status).toBe(200)
+      expect(response.headers["content-type"]).toMatch(/^text\/event-stream/)
+      expect(response.text).not.toContain("event:")
+      expect(parseDataEvents(response.text)).toEqual([
+        { type: "error", messageId: "", error: "Invalid request body" },
+      ])
+    })
+
+    it("rejects an empty message in the POST body as one error event inside the stream", async () => {
+      await createContext()
+      const response = await streamReply({ payload: { content: "   " } })
+      expect(response.status).toBe(200)
+      expect(parseDataEvents(response.text)).toEqual([
+        { type: "error", messageId: "", error: "User content must not be empty" },
+      ])
+    })
   })
 
   describe("CORS", () => {
+    it("answers the preflight of the POST stream with a JSON body", async () => {
+      await createContext()
+      const response = await request(app.getHttpServer())
+        .options(PublicChatRoutes.streamReply.getPath(pathParams()))
+        .set("Connection", "close")
+        .set("Origin", hostOrigin)
+        .set("Access-Control-Request-Method", "POST")
+        .set("Access-Control-Request-Headers", "content-type,x-session-token")
+      expect(response.status).toBe(204)
+      expect(response.headers["access-control-allow-origin"]).toBe(hostOrigin)
+      expect(response.headers["access-control-allow-methods"]).toContain("POST")
+      expect(response.headers["access-control-allow-headers"]).toBe("content-type,x-session-token")
+    })
+
     it("reflects the caller origin on public routes", async () => {
       await createContext()
       const response = await request(app.getHttpServer())
-        .get(PublicChatV1Routes.getConfig.getPath(pathParams()))
+        .get(PublicChatRoutes.getConfig.getPath(pathParams()))
         .set("Connection", "close")
         .set("Origin", hostOrigin)
       expect(response.status).toBe(200)
@@ -282,7 +352,7 @@ describe("PublicChat - contract v1", () => {
     it("answers the preflight with the requested headers allowed", async () => {
       await createContext()
       const response = await request(app.getHttpServer())
-        .options(PublicChatV1Routes.getSession.getPath(pathParams()))
+        .options(PublicChatRoutes.getSession.getPath(pathParams()))
         .set("Connection", "close")
         .set("Origin", hostOrigin)
         .set("Access-Control-Request-Method", "GET")

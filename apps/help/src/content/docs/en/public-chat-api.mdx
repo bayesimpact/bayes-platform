@@ -1,11 +1,11 @@
 ---
 title: Public chat API reference
 highlight: API
-description: Build your own chat client on a public agent. Routes, headers, server-sent events, error codes and limits of the public chat API, version 2.
+description: Build your own chat client on a public agent. Routes, headers, server-sent events, error codes and limits of the public chat API, version 1.
 category: developers
 order: 1
 updated: 2026-10-30
-apiVersion: "2.0"
+apiVersion: "1.3"
 ---
 
 import PublicApiBaseUrl from "@/components/PublicApiBaseUrl.astro"
@@ -34,13 +34,11 @@ This API is a versioned contract. Read the
 
 <PublicApiBaseUrl lang="en" />
 
-All routes of version 2 start with `/public/v2/agents/{embedToken}`.
+All routes of version 1 start with `/public/v1/agents/{embedToken}`.
 
 ## Version
 
-This page documents version **2.0**. The major version is in the path (`v2`). Version 1
-(`/public/v1/...`) is deprecated and stops on 2027-05-31. The
-[changelog](/en/public-chat-api-changelog#20-2026-10-30) lists the migration steps. Minor versions
+This page documents version **1.3**. The major version is in the path (`v1`). Minor versions
 add fields or routes and never change existing ones. The
 [changelog](/en/public-chat-api-changelog) lists every version. Your client must ignore
 unknown fields and unknown event types. This keeps it compatible with future minor versions.
@@ -77,22 +75,23 @@ a new one. On `410`, you can tell the user that the previous conversation expire
 
 | Method | Path | Purpose |
 |---|---|---|
-| `GET` | `/public/v2/agents/{embedToken}/config` | Read the agent's public configuration |
-| `POST` | `/public/v2/agents/{embedToken}/sessions` | Create a session |
-| `GET` | `/public/v2/agents/{embedToken}/sessions/{sessionId}` | Read a session and its messages |
-| `GET` | `/public/v2/agents/{embedToken}/sessions/{sessionId}/mcp-app-html` | Read the HTML of MCP App cards |
-| `POST` | `/public/v2/agents/{embedToken}/sessions/{sessionId}/stream` | Send a message and stream the reply |
+| `GET` | `/public/v1/agents/{embedToken}/config` | Read the agent's public configuration |
+| `POST` | `/public/v1/agents/{embedToken}/sessions` | Create a session |
+| `GET` | `/public/v1/agents/{embedToken}/sessions/{sessionId}` | Read a session and its messages |
+| `GET` | `/public/v1/agents/{embedToken}/sessions/{sessionId}/mcp-app-html` | Read the HTML of MCP App cards |
+| `POST` | `/public/v1/agents/{embedToken}/sessions/{sessionId}/stream` | Send a message and stream the reply |
+| `GET` | `/public/v1/agents/{embedToken}/sessions/{sessionId}/messages/stream` | Deprecated: the same, with the message in the URL |
 
 ### Get the agent configuration
 
 ```
-GET /public/v2/agents/{embedToken}/config
+GET /public/v1/agents/{embedToken}/config
 ```
 
 Returns the branding of the agent. Use it to render your own header.
 
 ```bash
-curl "$API_BASE/public/v2/agents/$EMBED_TOKEN/config"
+curl "$API_BASE/public/v1/agents/$EMBED_TOKEN/config"
 ```
 
 ```json
@@ -120,14 +119,14 @@ Status: `200`. Errors: `401`, `403`.
 ### Create a session
 
 ```
-POST /public/v2/agents/{embedToken}/sessions
+POST /public/v1/agents/{embedToken}/sessions
 ```
 
 Creates a conversation and returns its token. Call it once per visitor, then store
 `sessionId` and `sessionToken`.
 
 ```bash
-curl -X POST "$API_BASE/public/v2/agents/$EMBED_TOKEN/sessions" \
+curl -X POST "$API_BASE/public/v1/agents/$EMBED_TOKEN/sessions" \
   -H "Content-Type: application/json" \
   -d '{ "payload": { "externalVisitorId": "visitor-42" } }'
 ```
@@ -177,7 +176,7 @@ When the agent has a greeting message, the session starts with that message as i
 ### Get a session
 
 ```
-GET /public/v2/agents/{embedToken}/sessions/{sessionId}
+GET /public/v1/agents/{embedToken}/sessions/{sessionId}
 X-Session-Token: {sessionToken}
 ```
 
@@ -244,7 +243,7 @@ Status: `200`. Errors: `401`, `403`, `410`.
 ### Get MCP App card HTML
 
 ```
-GET /public/v2/agents/{embedToken}/sessions/{sessionId}/mcp-app-html
+GET /public/v1/agents/{embedToken}/sessions/{sessionId}/mcp-app-html
 X-Session-Token: {sessionToken}
 ```
 
@@ -272,7 +271,7 @@ Status: `200`. Errors: `401`, `403`, `410`.
 ### Send a message and stream the reply
 
 ```
-POST /public/v2/agents/{embedToken}/sessions/{sessionId}/stream
+POST /public/v1/agents/{embedToken}/sessions/{sessionId}/stream
 X-Session-Token: {sessionToken}
 Content-Type: application/json
 Accept: text/event-stream
@@ -286,7 +285,7 @@ Sends the visitor's message and returns the reply as
 | `payload.content` | string, required | The visitor's message. Must not be empty |
 
 ```bash
-curl -N -X POST "$API_BASE/public/v2/agents/$EMBED_TOKEN/sessions/$SESSION_ID/stream" \
+curl -N -X POST "$API_BASE/public/v1/agents/$EMBED_TOKEN/sessions/$SESSION_ID/stream" \
   -H "X-Session-Token: $SESSION_TOKEN" \
   -H "Content-Type: application/json" \
   -H "Accept: text/event-stream" \
@@ -301,6 +300,24 @@ Status: `200` with `Content-Type: text/event-stream`. Errors before the stream s
 
 After the final event, read the session again to get the persisted reply and its
 `toolCalls`. The stream carries text only.
+
+### Send a message in the URL (deprecated)
+
+```
+GET /public/v1/agents/{embedToken}/sessions/{sessionId}/messages/stream?q={encodedPayload}
+X-Session-Token: {sessionToken}
+Accept: text/event-stream
+```
+
+Deprecated since 1.3. Use the `POST` route above. This route stays served on v1 and returns
+the same stream. The payload travels URL-encoded in the `q` query parameter:
+
+```js
+const q = encodeURIComponent(JSON.stringify({ payload: { content: "What is your return policy?" } }))
+```
+
+A message in the URL can exceed the URL limit of a proxy, and access logs keep its text.
+`POST` on this path returns `404`.
 
 ## Server-sent events
 
@@ -361,7 +378,8 @@ data: {"type":"error","messageId":"","error":"User content must not be empty"}
 
 | `error` | Cause |
 |---|---|
-| `Invalid request body` | The body has no `payload` object, or `payload.content` is not a string |
+| `Invalid request body` | The `POST` body has no `payload` object, or `payload.content` is not a string |
+| `Invalid query format` | `q` is not valid JSON (deprecated `GET` route) |
 | `User content must not be empty` | `payload.content` is missing or blank |
 | `Agent not found` | The agent was deleted |
 | `Internal server error` | Server fault. Retry later |
@@ -398,7 +416,7 @@ Error responses are JSON:
 | `413` | `request entity too large` | Body over 500 kB | Shorten the body. This response has no `error` field |
 | `500` | `Internal server error` | Server fault | Retry later |
 
-The stream route reports body errors inside the stream, see
+The stream routes report payload errors inside the stream, see
 [Stream-level errors](#stream-level-errors).
 
 ## CORS
@@ -417,6 +435,8 @@ calls send no `Origin` header and are not filtered by the list.
 ## Limits and lifetimes
 
 - JSON request bodies are limited to 500 kB (`413` above).
+- The deprecated `GET` stream carries the message in the URL. Keep the encoded `q`
+  parameter under 8 kB, or use the `POST` stream.
 - One reply per stream request. Wait for `end` before you send the next message.
 - No rate limit is enforced today. Use the API fairly. A limit would be announced on the
   [changelog](/en/public-chat-api-changelog) as a minor change, with `429` responses.
@@ -442,7 +462,7 @@ async function api(path, init = {}) {
 // 1. Create or restore a session
 let session = JSON.parse(localStorage.getItem("chat-session") ?? "null")
 if (!session) {
-  const response = await api(`/public/v2/agents/${EMBED_TOKEN}/sessions`, {
+  const response = await api(`/public/v1/agents/${EMBED_TOKEN}/sessions`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ payload: {} }),
@@ -451,7 +471,7 @@ if (!session) {
   localStorage.setItem("chat-session", JSON.stringify(session))
 }
 
-const sessionPath = `/public/v2/agents/${EMBED_TOKEN}/sessions/${session.sessionId}`
+const sessionPath = `/public/v1/agents/${EMBED_TOKEN}/sessions/${session.sessionId}`
 const sessionHeaders = { "X-Session-Token": session.sessionToken }
 
 // 2. Send a message and stream the reply
