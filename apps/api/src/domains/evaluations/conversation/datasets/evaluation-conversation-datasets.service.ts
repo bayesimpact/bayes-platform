@@ -1,3 +1,4 @@
+import { EVALUATION_CONVERSATION_DATASET_RECORD_MAX_LENGTH } from "@caseai-connect/api-contracts"
 import { Injectable, NotFoundException, UnprocessableEntityException } from "@nestjs/common"
 import { InjectRepository } from "@nestjs/typeorm"
 import type { Repository } from "typeorm"
@@ -184,12 +185,7 @@ export class EvaluationConversationDatasetsService {
     datasetId: string
     fields: { input: string; expectedOutput: string }
   }): Promise<EvaluationConversationDatasetRecord> {
-    if (!input.trim()) {
-      throw new UnprocessableEntityException("Record input is required")
-    }
-    if (!expectedOutput.trim()) {
-      throw new UnprocessableEntityException("Record expected output is required")
-    }
+    assertValidRecordFields({ input, expectedOutput })
 
     const dataset = await this.datasetConnectRepository.getOneById(connectScope, datasetId)
     if (!dataset) {
@@ -216,12 +212,7 @@ export class EvaluationConversationDatasetsService {
       throw new UnprocessableEntityException("At least one record is required")
     }
     for (const record of records) {
-      if (!record.input.trim()) {
-        throw new UnprocessableEntityException("Record input is required")
-      }
-      if (!record.expectedOutput.trim()) {
-        throw new UnprocessableEntityException("Record expected output is required")
-      }
+      assertValidRecordFields(record)
     }
 
     const dataset = await this.datasetConnectRepository.getOneById(connectScope, datasetId)
@@ -250,12 +241,7 @@ export class EvaluationConversationDatasetsService {
     recordId: string
     fields: { input: string; expectedOutput: string }
   }): Promise<EvaluationConversationDatasetRecord> {
-    if (!input.trim()) {
-      throw new UnprocessableEntityException("Record input is required")
-    }
-    if (!expectedOutput.trim()) {
-      throw new UnprocessableEntityException("Record expected output is required")
-    }
+    assertValidRecordFields({ input, expectedOutput })
 
     const [record] = await this.recordConnectRepository.find(connectScope, {
       where: { id: recordId, evaluationConversationDatasetId: datasetId },
@@ -289,5 +275,30 @@ export class EvaluationConversationDatasetsService {
     if (deletedCount === 0) {
       throw new NotFoundException(`Evaluation dataset record with id ${recordId} not found`)
     }
+  }
+}
+
+/** A record needs an input and an expected output, each within the maximum length. */
+function assertValidRecordFields({
+  input,
+  expectedOutput,
+}: {
+  input: string
+  expectedOutput: string
+}): void {
+  if (!input.trim()) {
+    throw new UnprocessableEntityException("Record input is required")
+  }
+  if (!expectedOutput.trim()) {
+    throw new UnprocessableEntityException("Record expected output is required")
+  }
+  const max = EVALUATION_CONVERSATION_DATASET_RECORD_MAX_LENGTH
+  if (input.length > max) {
+    throw new UnprocessableEntityException(`Record input must be at most ${max} characters`)
+  }
+  if (expectedOutput.length > max) {
+    throw new UnprocessableEntityException(
+      `Record expected output must be at most ${max} characters`,
+    )
   }
 }

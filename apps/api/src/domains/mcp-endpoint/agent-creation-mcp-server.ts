@@ -3,6 +3,7 @@ import {
   agentTypeSchema,
   duplicateAgentSchema,
   EVALUATION_CONVERSATION_DATASET_NAME_MIN_LENGTH,
+  EVALUATION_CONVERSATION_DATASET_RECORD_MAX_LENGTH,
   EVALUATION_CONVERSATION_RUN_JUDGE_INSTRUCTIONS_MAX_LENGTH,
   outputJsonSchemaSchema,
 } from "@caseai-connect/api-contracts"
@@ -173,12 +174,22 @@ const pageInput = {
 }
 
 const recordInput = z.object({
-  input: z.string().trim().min(1).describe("The user's message sent to the agent."),
+  input: z
+    .string()
+    .trim()
+    .min(1)
+    .max(EVALUATION_CONVERSATION_DATASET_RECORD_MAX_LENGTH)
+    .describe(
+      `The user's message sent to the agent, ${EVALUATION_CONVERSATION_DATASET_RECORD_MAX_LENGTH} characters at most.`,
+    ),
   expectedOutput: z
     .string()
     .trim()
     .min(1)
-    .describe("The reference answer the judge compares the agent's answer with."),
+    .max(EVALUATION_CONVERSATION_DATASET_RECORD_MAX_LENGTH)
+    .describe(
+      `The reference answer the judge compares the agent's answer with, ${EVALUATION_CONVERSATION_DATASET_RECORD_MAX_LENGTH} characters at most.`,
+    ),
 })
 
 const runEvaluationInputSchema = z.object({
@@ -464,16 +475,17 @@ export function buildAgentCreationMcpServer({
     {
       title: "List evaluation runs",
       description:
-        "Lists the conversation evaluation runs of a project, newest first, with their status, the agent version they evaluated and their average score.",
+        "Lists the conversation evaluation runs of a project, newest first, page by page, with their status, the agent version they evaluated and their average score.",
       inputSchema: z.object({
         projectId: projectIdInput,
         agentId: z.uuid().optional().describe("Only the runs of this agent."),
+        ...pageInput,
       }),
-      outputSchema: z.looseObject({ runs: z.array(runSchema) }),
+      outputSchema: pageSchema(runSchema),
       annotations: { readOnlyHint: true, openWorldHint: false },
     },
     async (input) =>
-      toolResult(await evaluationToolsService.listRuns(caller, input), (runs) => ({ runs })),
+      toolResult(await evaluationToolsService.listRuns(caller, input), (page) => page),
   )
 
   server.registerTool(

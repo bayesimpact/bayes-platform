@@ -21,8 +21,6 @@ import { ProjectRepository } from "@/domains/projects/project.repository"
 import { PermissionService } from "@/domains/rbac/permission.service"
 import {
   AGENT_READ_PERMISSION,
-  AGENT_SETTINGS_DRAFT_READ_PERMISSION,
-  AGENT_SETTINGS_DRAFT_UPDATE_PERMISSION,
   EVALUATION_CONVERSATION_DATASET_CREATE_PERMISSION,
   EVALUATION_CONVERSATION_DATASET_READ_PERMISSION,
   EVALUATION_CONVERSATION_DATASET_UPDATE_PERMISSION,
@@ -30,7 +28,8 @@ import {
   EVALUATION_CONVERSATION_RUN_READ_PERMISSION,
   EVALUATION_CONVERSATION_RUN_UPDATE_PERMISSION,
 } from "@/domains/rbac/rbac.constants"
-import type { McpCaller, McpResult } from "./mcp-agent-tools.service"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { McpAgentToolsService, type McpCaller, type McpResult } from "./mcp-agent-tools.service"
 
 /** A stored version of an agent's settings, as the agents domain returns it. */
 type AgentSettings = Awaited<ReturnType<AgentSettingsService["getById"]>>
@@ -121,6 +120,7 @@ export class McpEvaluationToolsService {
     private readonly datasetsService: EvaluationConversationDatasetsService,
     private readonly runsService: EvaluationConversationRunsService,
     private readonly activitiesService: ActivitiesService,
+    private readonly agentToolsService: McpAgentToolsService,
   ) {}
 
   async listDatasets(
@@ -281,19 +281,27 @@ export class McpEvaluationToolsService {
 
   async listRuns(
     caller: McpCaller,
-    input: { projectId: string; agentId?: string },
-  ): Promise<McpResult<McpEvaluationRun[]>> {
+    input: { projectId: string; agentId?: string; page: number; limit: number },
+  ): Promise<McpResult<McpPage<McpEvaluationRun>>> {
     const connectScope = await this.resolveScope(caller, input.projectId, MCP_RUN_PERMISSION, [
       EVALUATION_CONVERSATION_RUN_READ_PERMISSION,
     ])
     if (!connectScope) return { ok: false, error: EVALUATION_PROJECT_NOT_FOUND_ERROR }
 
-    const runs = await this.runsService.listRuns({ connectScope })
+    const { runs, total } = await this.runsService.listRunsPaginated({
+      connectScope,
+      agentId: input.agentId,
+      page: input.page,
+      limit: input.limit,
+    })
     return {
       ok: true,
-      value: runs
-        .filter((run) => input.agentId === undefined || run.agentId === input.agentId)
-        .map((run) => toMcpRun(run, connectScope)),
+      value: {
+        items: runs.map((run) => toMcpRun(run, connectScope)),
+        total,
+        page: input.page,
+        limit: input.limit,
+      },
     }
   }
 
@@ -393,18 +401,7 @@ export class McpEvaluationToolsService {
           : await this.agentSettingsService.get({ connectScope, agentId, revision: agentRevision })
     if (!settings || settings.isArchived) return null
     if (!settings.isDraft) return settings
-    const seesDraft =
-      (await this.permissionService.has(
-        caller.userId,
-        AGENT_SETTINGS_DRAFT_READ_PERMISSION,
-        agent,
-      )) ||
-      (await this.permissionService.has(
-        caller.userId,
-        AGENT_SETTINGS_DRAFT_UPDATE_PERMISSION,
-        agent,
-      ))
-    return seesDraft ? settings : null
+    return (await this.agentToolsService.canSeeDraft(caller.userId, agentId)) ? settings : null
   }
 
   private async findDraft(

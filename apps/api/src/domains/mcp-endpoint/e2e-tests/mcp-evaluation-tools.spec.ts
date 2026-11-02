@@ -1,4 +1,8 @@
-import { AgentModel, type OAuthGrantablePermission } from "@caseai-connect/api-contracts"
+import {
+  AgentModel,
+  EVALUATION_CONVERSATION_DATASET_RECORD_MAX_LENGTH,
+  type OAuthGrantablePermission,
+} from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import { Client, StreamableHTTPClientTransport } from "@modelcontextprotocol/client"
 import type { INestApplication } from "@nestjs/common"
@@ -12,6 +16,7 @@ import {
 } from "@/common/test/test-database"
 import { configureGlobalPrefix } from "@/config/api-prefix"
 import { EvaluationConversationDataset } from "@/domains/evaluations/conversation/datasets/evaluation-conversation-dataset.entity"
+import { EvaluationConversationDatasetRecord } from "@/domains/evaluations/conversation/datasets/records/evaluation-conversation-dataset-record.entity"
 import { createDatasetWithRecords } from "@/domains/evaluations/conversation/runs/e2e-tests/conversation-dataset.helpers"
 import { EvaluationConversationRun } from "@/domains/evaluations/conversation/runs/evaluation-conversation-run.entity"
 import { EVALUATION_CONVERSATION_RUN_BATCH_SERVICE } from "@/domains/evaluations/conversation/runs/evaluation-conversation-run-batch.interface"
@@ -242,6 +247,30 @@ describe("MCP endpoint - evaluation tools", () => {
       await client.close()
     })
 
+    it("refuses a record longer than the maximum", async () => {
+      const { project } = await createContext()
+      const client = await connect([project.id])
+      const created = await call(client, "create_evaluation_dataset", {
+        projectId: project.id,
+        name: "Support questions",
+      })
+
+      const { isError } = await call(client, "add_dataset_records", {
+        projectId: project.id,
+        datasetId: created.output.dataset.id,
+        records: [
+          {
+            input: "a".repeat(EVALUATION_CONVERSATION_DATASET_RECORD_MAX_LENGTH + 1),
+            expectedOutput: "Answer",
+          },
+        ],
+      })
+
+      expect(isError).toBe(true)
+      expect(await setup.getRepository(EvaluationConversationDatasetRecord).count()).toBe(0)
+      await client.close()
+    })
+
     it("refuses without the dataset grant", async () => {
       const { project } = await createContext()
       const client = await connect(
@@ -347,7 +376,7 @@ describe("MCP endpoint - evaluation tools", () => {
         expect.objectContaining({ evaluationConversationRunId: runId, recordLimit: null }),
       )
       expect(fetched.output.run).toMatchObject({ id: runId, agentRevision: 2 })
-      expect(listed.output.runs).toEqual([expect.objectContaining({ id: runId })])
+      expect(listed.output).toMatchObject({ items: [{ id: runId }], total: 1, page: 0, limit: 50 })
       expect(records.output).toMatchObject({ items: [], total: 0 })
       expect(agent.output.agent).toMatchObject({
         publishedVersion: { revision: 1 },
@@ -361,6 +390,41 @@ describe("MCP endpoint - evaluation tools", () => {
         userId: user.id,
         projectId: project.id,
       })
+      await client.close()
+    })
+
+    it("lists the runs of one agent page by page, newest first", async () => {
+      const { project } = await createContext()
+      const client = await connect([project.id])
+      const agentId = await createAgentWithDraft(client, project.id)
+      const otherAgentId = await createAgentWithDraft(client, project.id)
+      const datasetId = await createDataset(client, project.id)
+      const run = async (evaluatedAgentId: string) =>
+        (
+          await call(client, "run_evaluation", {
+            projectId: project.id,
+            agentId: evaluatedAgentId,
+            datasetId,
+          })
+        ).output.run.id as string
+      const oldestRunId = await run(agentId)
+      await run(otherAgentId)
+      const newestRunId = await run(agentId)
+
+      const first = await call(client, "list_evaluation_runs", {
+        projectId: project.id,
+        agentId,
+        limit: 1,
+      })
+      const second = await call(client, "list_evaluation_runs", {
+        projectId: project.id,
+        agentId,
+        page: 1,
+        limit: 1,
+      })
+
+      expect(first.output).toMatchObject({ items: [{ id: newestRunId }], total: 2, page: 0 })
+      expect(second.output).toMatchObject({ items: [{ id: oldestRunId }], total: 2, page: 1 })
       await client.close()
     })
 

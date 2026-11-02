@@ -304,18 +304,18 @@ export class McpAgentToolsService {
    * see drafts, and its versions, so a client reads what it changes and picks what a run pins.
    */
   async getAgent(caller: McpCaller, agentId: string): Promise<McpResult<McpAgentDetails>> {
-    const scope = await this.agentRepository.findScopeById(agentId)
+    const agent = await this.agentRepository.findSummaryWithScopeById(agentId)
     const canRead =
-      scope !== null &&
+      agent !== null &&
       caller.permissions.includes(PROJECT_READ_PERMISSION) &&
-      caller.projectIds.includes(scope.projectId) &&
+      caller.projectIds.includes(agent.projectId) &&
       (await this.permissionService.has(caller.userId, AGENT_READ_PERMISSION, {
         type: "agent",
         id: agentId,
       }))
-    if (!scope || !canRead) return { ok: false, error: AGENT_NOT_READABLE_ERROR }
+    if (!agent || !canRead) return { ok: false, error: AGENT_NOT_READABLE_ERROR }
 
-    const connectScope = scope
+    const connectScope = { organizationId: agent.organizationId, projectId: agent.projectId }
     const seesDraft = await this.canSeeDraft(caller.userId, agentId)
     const revisions = await this.agentSettingsService.getAll({
       connectScope,
@@ -327,10 +327,6 @@ export class McpAgentToolsService {
     const shown = published ?? draft
     if (!shown) return { ok: false, error: AGENT_NOT_READABLE_ERROR }
 
-    const agent = (await this.agentRepository.findSummariesByProject(scope.projectId)).find(
-      (summary) => summary.id === agentId,
-    )
-    if (!agent) return { ok: false, error: AGENT_NOT_READABLE_ERROR }
     const target = { ...connectScope, agentId }
     return {
       ok: true,
@@ -499,7 +495,7 @@ export class McpAgentToolsService {
    * Whether the person can see the agent's draft settings over HTTP: they read the settings
    * history, or they edit the draft as owner or admin of the agent.
    */
-  private async canSeeDraft(userId: string, agentId: string): Promise<boolean> {
+  async canSeeDraft(userId: string, agentId: string): Promise<boolean> {
     const agent = { type: "agent" as const, id: agentId }
     return (
       (await this.permissionService.has(userId, AGENT_SETTINGS_DRAFT_READ_PERMISSION, agent)) ||
