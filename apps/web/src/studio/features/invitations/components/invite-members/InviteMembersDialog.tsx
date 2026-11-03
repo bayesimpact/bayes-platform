@@ -19,8 +19,9 @@ import {
 import { Label } from "@caseai-connect/ui/shad/label"
 import { RadioGroup, RadioGroupItem } from "@caseai-connect/ui/shad/radio-group"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { useForm, useWatch } from "react-hook-form"
+import { useTranslation } from "react-i18next"
 import { z } from "zod"
 import type { RoleOption } from "@/studio/features/project-memberships/components/member-detail/member-detail.models"
 import { useRoleLabel } from "@/studio/features/project-memberships/components/members-table/role-label"
@@ -34,20 +35,7 @@ import {
   type InviteMembersValues,
   STICKY_FOOTER_CLASS,
   WORKSPACE_ADMIN_ROLE_KEY,
-  WORKSPACE_ROLE_DESCRIPTIONS,
 } from "./invite-members.models"
-
-// Phase A: the schema moves to api-contracts with the endpoint.
-const inviteMembersSchema = z.object({
-  emails: z.array(z.email()).min(1, "Add at least one email."),
-  workspaceRoleKey: z.string().min(1),
-  agentIds: z.array(z.string()),
-})
-
-function inviteLabel(count: number) {
-  if (count === 0) return "Invite"
-  return count === 1 ? "Invite 1 person" : `Invite ${count} people`
-}
 
 /**
  * Invites people to the workspace and, in the same invitation, to some of its agents. The manager
@@ -77,6 +65,17 @@ export function InviteMembersDialog({
   onSubmit: (values: InviteMembersValues) => Promise<void>
   error?: string | null
 }) {
+  const { t } = useTranslation()
+  // The form picks role keys: the thunk maps them to the contract's `createProjectInvitationsSchema`.
+  const inviteMembersSchema = useMemo(
+    () =>
+      z.object({
+        emails: z.array(z.email()).min(1, t("invitations:inviteDialog.emailsRequired")),
+        workspaceRoleKey: z.string().min(1),
+        agentIds: z.array(z.string()),
+      }),
+    [t],
+  )
   const form = useForm<InviteMembersValues>({
     resolver: zodResolver(inviteMembersSchema),
     defaultValues: {
@@ -147,10 +146,8 @@ export function InviteMembersDialog({
         ) : (
           <>
             <DialogHeader>
-              <DialogTitle>Invite people to {workspaceName}</DialogTitle>
-              <DialogDescription>
-                Pick what they get. Each person receives one invitation and accepts it once.
-              </DialogDescription>
+              <DialogTitle>{t("invitations:inviteDialog.title", { workspaceName })}</DialogTitle>
+              <DialogDescription>{t("invitations:inviteDialog.description")}</DialogDescription>
             </DialogHeader>
 
             <Form {...form}>
@@ -160,7 +157,9 @@ export function InviteMembersDialog({
                   name="emails"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel htmlFor="invite-emails">Emails</FormLabel>
+                      <FormLabel htmlFor="invite-emails">
+                        {t("invitations:inviteDialog.emailsLabel")}
+                      </FormLabel>
                       <InviteEmailsField
                         emails={field.value}
                         onChange={field.onChange}
@@ -176,7 +175,7 @@ export function InviteMembersDialog({
                   name="workspaceRoleKey"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Role on the workspace</FormLabel>
+                      <FormLabel>{t("invitations:inviteDialog.workspaceRoleLabel")}</FormLabel>
                       <FormControl>
                         <RadioGroup
                           value={field.value}
@@ -199,9 +198,11 @@ export function InviteMembersDialog({
                     name="agentIds"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Agents</FormLabel>
+                        <FormLabel>{t("invitations:inviteDialog.agentsLabel")}</FormLabel>
                         {agents.length === 0 ? (
-                          <FormDescription>This workspace has no agent yet.</FormDescription>
+                          <FormDescription>
+                            {t("invitations:inviteDialog.noAgents")}
+                          </FormDescription>
                         ) : (
                           <InviteAgentsField
                             agents={agents}
@@ -217,9 +218,13 @@ export function InviteMembersDialog({
 
                 <DialogFooter className={STICKY_FOOTER_CLASS}>
                   <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
-                    Cancel
+                    {t("actions:cancel")}
                   </Button>
-                  <Button type="submit">{inviteLabel(inviteeCount)}</Button>
+                  <Button type="submit">
+                    {inviteeCount === 0
+                      ? t("actions:invite")
+                      : t("invitations:inviteDialog.inviteCount", { count: inviteeCount })}
+                  </Button>
                 </DialogFooter>
               </form>
             </Form>
@@ -231,6 +236,7 @@ export function InviteMembersDialog({
 }
 
 function WorkspaceRoleOption({ role }: { role: RoleOption }) {
+  const { t } = useTranslation()
   const roleLabel = useRoleLabel()
   const id = `invite-workspace-role-${role.key}`
   return (
@@ -242,7 +248,7 @@ function WorkspaceRoleOption({ role }: { role: RoleOption }) {
       <span className="flex flex-col gap-1">
         <span className="font-medium">{roleLabel(role)}</span>
         <span className="text-xs text-muted-foreground">
-          {WORKSPACE_ROLE_DESCRIPTIONS[role.key]}
+          {t(`invitations:inviteDialog.roleDescriptions.${role.key}`, { defaultValue: "" })}
         </span>
       </span>
     </Label>

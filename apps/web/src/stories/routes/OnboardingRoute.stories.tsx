@@ -1,3 +1,4 @@
+import { faker } from "@faker-js/faker"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { userFactory } from "@/common/features/me/me.factory"
 import type { User } from "@/common/features/me/me.models"
@@ -65,7 +66,16 @@ function buildData(args: StoryArgs) {
 
   const invitations = withPendingInvitations
     ? [
-        pendingInvitationFactory.build({ targetType: "project" }),
+        // One workspace invitation gives a role and several agents, accepted at once.
+        pendingInvitationFactory.build({
+          targetType: "project",
+          role: "member",
+          agents: ["Helpful Assistant", "Scheduling Bot", "Intake Form Agent"].map((name) => ({
+            id: faker.string.uuid(),
+            name,
+          })),
+        }),
+        pendingInvitationFactory.build({ targetType: "project", role: "admin" }),
         pendingInvitationFactory.build({ targetType: "agent" }),
       ]
     : []

@@ -78,6 +78,7 @@ export const Default: Story = {
             baseSeeds,
             seed.studio.projectMemberships([...memberships, ...neverSignedInMembers]),
             seed.studio.assignableRoles(SAMPLE_ASSIGNABLE_ROLES),
+            seed.studio.inviteeAccess(),
             seed.studio.projectPendingInvitations(
               withPendingInvitations
                 ? pendingInvitationFactory.buildList(2, {
@@ -109,7 +110,7 @@ export const WithMembers: Story = {
   decorators: [
     buildDecorator<StoryArgs>(
       ({ withMemberships, withNeverSignedInMembers, withPendingInvitations, ...args }) => {
-        const { baseSeeds, project, user } = buildStudioData(args)
+        const { baseSeeds, project, agents, user } = buildStudioData(args)
         const memberships = withMemberships
           ? [
               projectMembershipFactory.transient({ project, role: "owner" }).build(viewer(user)),
@@ -129,13 +130,24 @@ export const WithMembers: Story = {
             baseSeeds,
             seed.studio.projectMemberships([...memberships, ...neverSignedInMembers]),
             seed.studio.assignableRoles(SAMPLE_ASSIGNABLE_ROLES),
+            seed.studio.inviteeAccess(),
             seed.studio.projectPendingInvitations(
               withPendingInvitations
-                ? pendingInvitationFactory.buildList(2, {
-                    projectId: project.id,
-                    targetId: project.id,
-                    projectName: project.name,
-                  })
+                ? [
+                    pendingInvitationFactory.build({
+                      projectId: project.id,
+                      targetId: project.id,
+                      projectName: project.name,
+                      role: "member",
+                      agents: agents.map((agent) => ({ id: agent.id, name: agent.name })),
+                    }),
+                    pendingInvitationFactory.build({
+                      projectId: project.id,
+                      targetId: project.id,
+                      projectName: project.name,
+                      role: "admin",
+                    }),
+                  ]
                 : [],
             ),
           ),
@@ -171,6 +183,7 @@ export const WithCachedAgentSessions: Story = {
               projectMembershipFactory.transient({ project, role: "owner" }).build(viewer(user)),
             ]),
             seed.studio.assignableRoles(SAMPLE_ASSIGNABLE_ROLES),
+            seed.studio.inviteeAccess(),
           ),
         }
       },

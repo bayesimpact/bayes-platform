@@ -9,6 +9,7 @@ import {
 } from "@caseai-connect/ui/shad/item"
 import { SearchIcon } from "lucide-react"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 import type { InviteAgent } from "./invite-members.models"
 
 /** Above this many agents, a search box narrows the list. */
@@ -24,6 +25,7 @@ export function InviteAgentsField({
   value: string[]
   onChange: (agentIds: string[]) => void
 }) {
+  const { t } = useTranslation()
   const [search, setSearch] = useState("")
   const picked = new Set(value)
   const query = search.trim().toLowerCase()
@@ -43,7 +45,7 @@ export function InviteAgentsField({
           </InputGroupAddon>
           <InputGroupInput
             type="search"
-            placeholder="Search"
+            placeholder={t("actions:search")}
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
@@ -73,7 +75,9 @@ export function InviteAgentsField({
           )
         })}
         {visibleAgents.length === 0 && (
-          <p className="px-4 py-3 text-sm text-muted-foreground">No match.</p>
+          <p className="px-4 py-3 text-sm text-muted-foreground">
+            {t("invitations:inviteDialog.noMatch")}
+          </p>
         )}
       </ItemGroup>
     </div>

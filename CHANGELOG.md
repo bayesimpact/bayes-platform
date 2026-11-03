@@ -9,6 +9,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 
+- Invitations: one invitation gives a workspace role and several agents, accepted once.
 - MCP: AI assistants can build evaluation datasets, evaluate agent drafts and read the scores, with the access a person grants.
 
 ### Changed

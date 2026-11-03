@@ -53,7 +53,7 @@ function PendingInvitationRow({ invitation }: { invitation: PendingInvitation })
 
   const description =
     invitation.targetType === "project"
-      ? `${invitation.organizationName} · ${t("me:invitations:roleLabel")}: ${invitation.role}`
+      ? invitation.organizationName
       : `${invitation.organizationName} · ${invitation.projectName} · ${t("me:invitations:roleLabel")}: ${invitation.role}`
 
   return (
@@ -62,6 +62,9 @@ function PendingInvitationRow({ invitation }: { invitation: PendingInvitation })
       <GridCard.Body>
         <GridCard.Title>{invitation.targetName}</GridCard.Title>
         <GridCard.Description>{description}</GridCard.Description>
+        {invitation.targetType === "project" && (
+          <WorkspaceInvitationAccess invitation={invitation} />
+        )}
         <div className="flex gap-2">
           <Button onClick={() => dispatch(acceptInvitation({ invitationId: invitation.id }))}>
             {t("actions:accept")} <CheckCircleIcon />
@@ -75,5 +78,46 @@ function PendingInvitationRow({ invitation }: { invitation: PendingInvitation })
         </div>
       </GridCard.Body>
     </GridCard>
+  )
+}
+
+/** Above this many agents, the card shows the first ones and a count of the others. */
+const VISIBLE_AGENT_COUNT = 6
+
+/** Everything a workspace invitation gives, accepted at once: the role, then the agents. */
+function WorkspaceInvitationAccess({ invitation }: { invitation: PendingInvitation }) {
+  const { t } = useTranslation()
+  const role = t(`projectMembership:roleNames.project_${invitation.role}`, {
+    defaultValue: invitation.role,
+  })
+  const visibleAgents = invitation.agents.slice(0, VISIBLE_AGENT_COUNT)
+  const hiddenAgents = invitation.agents.slice(VISIBLE_AGENT_COUNT)
+  return (
+    <div className="flex flex-col gap-2 text-sm">
+      <p>{t("me:invitations:joinAs", { role: role.toLowerCase() })}</p>
+      {invitation.role === "admin" ? (
+        <p className="text-muted-foreground">{t("me:invitations:everyAgent")}</p>
+      ) : (
+        invitation.agents.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1">
+            <span className="mr-1 text-muted-foreground">{t("me:invitations:agentsLabel")}</span>
+            {visibleAgents.map((agent) => (
+              <Badge key={agent.id} variant="outline">
+                {agent.name}
+              </Badge>
+            ))}
+            {hiddenAgents.length > 0 && (
+              <Badge
+                variant="outline"
+                title={hiddenAgents.map((agent) => agent.name).join(", ")}
+                className="text-muted-foreground"
+              >
+                +{hiddenAgents.length}
+              </Badge>
+            )}
+          </div>
+        )
+      )}
+    </div>
   )
 }

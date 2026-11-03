@@ -3,6 +3,7 @@ import { Button } from "@caseai-connect/ui/shad/button"
 import { Input } from "@caseai-connect/ui/shad/input"
 import { XIcon } from "lucide-react"
 import { type KeyboardEvent, useState } from "react"
+import { useTranslation } from "react-i18next"
 import { z } from "zod"
 
 /** The addresses of a typed or pasted text ("a@x.org, b@x.org"), lowercased. */
@@ -26,16 +27,18 @@ export function InviteEmailsField({
   /** The valid emails typed and not added yet, so the dialog counts them before they become chips. */
   onDraftChange: (draftEmails: string[]) => void
 }) {
+  const { t } = useTranslation()
   const [inputEmail, setInputEmail] = useState("")
   const [inputError, setInputError] = useState<string | undefined>()
 
-  const addEmails = () => {
+  // Reads the text from the field itself: a key handler must not see the text of a past render.
+  const addEmails = (text: string) => {
     // Pasting a list adds every address of it.
-    const candidates = splitEmails(inputEmail)
+    const candidates = splitEmails(text)
     if (candidates.length === 0) return
     const invalid = candidates.find((candidate) => !isEmail(candidate))
     if (invalid) {
-      setInputError(`"${invalid}" is not a valid email.`)
+      setInputError(t("invitations:inviteDialog.invalidEmail", { email: invalid }))
       return
     }
     onChange([...new Set([...emails, ...candidates])])
@@ -47,7 +50,7 @@ export function InviteEmailsField({
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter" || event.key === ",") {
       event.preventDefault()
-      addEmails()
+      addEmails(event.currentTarget.value)
     }
   }
 
@@ -58,7 +61,7 @@ export function InviteEmailsField({
           id="invite-emails"
           type="text"
           inputMode="email"
-          placeholder="name@example.org, another@example.org"
+          placeholder={t("invitations:inviteDialog.emailsPlaceholder")}
           value={inputEmail}
           onChange={(event) => {
             setInputEmail(event.target.value)
@@ -66,11 +69,11 @@ export function InviteEmailsField({
             onDraftChange(splitEmails(event.target.value).filter(isEmail))
           }}
           onKeyDown={handleKeyDown}
-          onBlur={addEmails}
+          onBlur={(event) => addEmails(event.currentTarget.value)}
           aria-invalid={inputError ? "true" : "false"}
         />
-        <Button type="button" variant="outline" onClick={addEmails}>
-          Add
+        <Button type="button" variant="outline" onClick={() => addEmails(inputEmail)}>
+          {t("actions:add")}
         </Button>
       </div>
       {inputError && <p className="text-sm text-destructive">{inputError}</p>}
@@ -82,7 +85,7 @@ export function InviteEmailsField({
               {email}
               <button
                 type="button"
-                aria-label={`Remove ${email}`}
+                aria-label={t("invitations:inviteDialog.removeEmail", { email })}
                 className="rounded-sm p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
                 onClick={() => onChange(emails.filter((candidate) => candidate !== email))}
               >

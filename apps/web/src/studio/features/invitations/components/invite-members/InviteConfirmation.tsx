@@ -4,6 +4,7 @@ import { Button } from "@caseai-connect/ui/shad/button"
 import { DialogFooter, DialogHeader, DialogTitle } from "@caseai-connect/ui/shad/dialog"
 import { CircleAlertIcon, TriangleAlertIcon, UserCheckIcon } from "lucide-react"
 import type { ReactNode } from "react"
+import { useTranslation } from "react-i18next"
 import type { RoleOption } from "@/studio/features/project-memberships/components/member-detail/member-detail.models"
 import { useRoleLabel } from "@/studio/features/project-memberships/components/members-table/role-label"
 import {
@@ -40,6 +41,9 @@ export function InviteConfirmation({
   onBack: () => void
   onConfirm: () => void
 }) {
+  const { t, i18n } = useTranslation()
+  const joinNames = (names: string[]) =>
+    new Intl.ListFormat(i18n.language, { type: "conjunction" }).format(names)
   const roleLabel = useRoleLabel()
   const labelOf = (roleKey: string) => {
     const role = workspaceRoles.find((candidate) => candidate.key === roleKey)
@@ -53,41 +57,62 @@ export function InviteConfirmation({
   const nameOf = (agentId: string) => agents.find((agent) => agent.id === agentId)?.name ?? agentId
   const directPeople = knownPeople.flatMap(({ email, outcome }) =>
     outcome.kind === "addAgents"
-      ? [{ email, line: `Added to ${joinNames(outcome.agentIds.map(nameOf))}` }]
+      ? [
+          {
+            email,
+            line: t("invitations:confirmation.addedTo", {
+              agents: joinNames(outcome.agentIds.map(nameOf)),
+            }),
+          },
+        ]
       : [],
   )
   const unchangedPeople = knownPeople.flatMap(({ email, access, outcome }) => {
     if (outcome.kind !== "unchanged") return []
-    const current = describeAccess({ access, agents, roleLabel: labelOf(access.workspaceRoleKey) })
+    const current = describeAccess(access)
     return [
       {
         email,
         line:
           outcome.reason === "noPromotion"
-            ? `${current}. Promote them from their member page.`
+            ? t("invitations:confirmation.promoteHint", { access: current })
             : current,
       },
     ]
   })
+  /**
+   * What a person already in the workspace holds there, as a short sentence: "Member, on Helpful
+   * Assistant and Scheduling Bot". An admin reaches every agent, so their role says it all.
+   */
+  function describeAccess(access: InviteeAccess): string {
+    const role = labelOf(access.workspaceRoleKey)
+    if (access.workspaceRoleKey === WORKSPACE_ADMIN_ROLE_KEY) return role
+    const agentNames = agents
+      .filter((agent) => access.agentIds.includes(agent.id))
+      .map((agent) => agent.name)
+    return agentNames.length === 0
+      ? t("invitations:confirmation.accessOnNoAgent", { role })
+      : t("invitations:confirmation.accessOnAgents", { role, agents: joinNames(agentNames) })
+  }
   const isAdmin = values.workspaceRoleKey === WORKSPACE_ADMIN_ROLE_KEY
   const pickedAgents = agents.filter((agent) => values.agentIds.includes(agent.id))
   const agentsLine = isAdmin
-    ? "Every agent"
+    ? t("invitations:confirmation.everyAgent")
     : pickedAgents.length === 0
-      ? "No agent"
+      ? t("invitations:confirmation.noAgent")
       : pickedAgents.map((agent) => agent.name).join(", ")
 
   return (
     <>
       <DialogHeader>
-        <DialogTitle>Confirm the invitation to {workspaceName}</DialogTitle>
+        <DialogTitle>{t("invitations:confirmation.title", { workspaceName })}</DialogTitle>
       </DialogHeader>
 
       <div className="flex flex-col gap-4">
         <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 rounded-md bg-muted/50 px-3 py-2 text-sm">
-          <dt className="text-muted-foreground">Role</dt>
+          <dt className="text-muted-foreground">{t("invitations:confirmation.role")}</dt>
           <dd className="font-medium">{labelOf(values.workspaceRoleKey)}</dd>
-          <dt className="text-muted-foreground">Agents</dt>
+          <dt className="text-muted-foreground">{t("invitations:confirmation.agents")}</dt>
           <dd>{agentsLine}</dd>
         </dl>
 
@@ -107,12 +132,8 @@ export function InviteConfirmation({
         {directPeople.length > 0 && (
           <PeopleBlock
             icon={<UserCheckIcon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />}
-            title={
-              directPeople.length === 1
-                ? "1 person gets access right away"
-                : `${directPeople.length} people get access right away`
-            }
-            hint="Already in the workspace, so there is no invitation to accept."
+            title={t("invitations:confirmation.directTitle", { count: directPeople.length })}
+            hint={t("invitations:confirmation.directHint")}
             people={directPeople}
           />
         )}
@@ -123,12 +144,8 @@ export function InviteConfirmation({
             icon={
               <TriangleAlertIcon className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400" />
             }
-            title={
-              unchangedPeople.length === 1
-                ? "1 person keeps their access as it is"
-                : `${unchangedPeople.length} people keep their access as it is`
-            }
-            hint="The invitation changes nothing for them."
+            title={t("invitations:confirmation.unchangedTitle", { count: unchangedPeople.length })}
+            hint={t("invitations:confirmation.unchangedHint")}
             people={unchangedPeople}
           />
         )}
@@ -143,10 +160,10 @@ export function InviteConfirmation({
 
       <DialogFooter className={STICKY_FOOTER_CLASS}>
         <Button type="button" variant="outline" onClick={onBack} disabled={isConfirming}>
-          Back
+          {t("actions:back")}
         </Button>
         <Button type="button" onClick={onConfirm} disabled={isConfirming}>
-          Confirm
+          {t("actions:confirm")}
         </Button>
       </DialogFooter>
     </>
@@ -184,32 +201,4 @@ function PeopleBlock({
       </div>
     </section>
   )
-}
-
-/** "A", "A and B", "A, B and C". */
-function joinNames(names: string[]): string {
-  if (names.length <= 1) return names.join("")
-  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`
-}
-
-/**
- * What a person already in the workspace holds there, as a short sentence: "Membre, on Helpful
- * Assistant and Scheduling Bot". An admin reaches every agent, so their role says it all.
- */
-function describeAccess({
-  access,
-  agents,
-  roleLabel,
-}: {
-  access: InviteeAccess
-  agents: InviteAgent[]
-  roleLabel: string
-}): string {
-  if (access.workspaceRoleKey === WORKSPACE_ADMIN_ROLE_KEY) return roleLabel
-  const agentNames = agents
-    .filter((agent) => access.agentIds.includes(agent.id))
-    .map((agent) => agent.name)
-  return agentNames.length === 0
-    ? `${roleLabel}, on no agent`
-    : `${roleLabel}, on ${joinNames(agentNames)}`
 }

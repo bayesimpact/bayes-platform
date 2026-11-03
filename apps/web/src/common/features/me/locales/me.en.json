@@ -27,7 +27,10 @@
       "projectBadge": "Project",
       "agentBadge": "Agent",
       "reviewCampaignBadge": "Review campaign",
-      "roleLabel": "Role"
+      "roleLabel": "Role",
+      "joinAs": "You join as {{role}}",
+      "agentsLabel": "Agents",
+      "everyAgent": "Every agent"
     },
     "notifications": {
       "invitationAnswerError": "Failed to answer the invitation",

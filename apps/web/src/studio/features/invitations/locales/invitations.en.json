@@ -9,11 +9,57 @@
       "description": "Invited {{invitedAt}}",
       "revoke": "Delete invitation",
       "copyLink": "Copy invitation link",
-      "linkCopied": "Invitation link copied"
+      "linkCopied": "Invitation link copied",
+      "everyAgent": "Every agent",
+      "moreAgents": "+{{count}}",
+      "fromWorkspace": "Workspace invitation, as {{role}}",
+      "otherAgents_one": "Also gives {{count}} other agent",
+      "otherAgents_other": "Also gives {{count}} other agents",
+      "removeAgent": "Remove this agent from the invitation"
     },
     "deleteDialog": {
       "title": "Delete invitation?",
       "description": "{{email}} will no longer be able to accept this invitation."
+    },
+    "inviteDialog": {
+      "title": "Invite people to {{workspaceName}}",
+      "description": "Pick what they get. Each person receives one invitation and accepts it once.",
+      "emailsLabel": "Emails",
+      "emailsPlaceholder": "name@example.org, another@example.org",
+      "emailsRequired": "Add at least one email.",
+      "invalidEmail": "\"{{email}}\" is not a valid email.",
+      "removeEmail": "Remove {{email}}",
+      "workspaceRoleLabel": "Role on the workspace",
+      "roleDescriptions": {
+        "project_admin": "Manages the workspace, its members and every agent.",
+        "project_member": "Uses only the agents picked for them."
+      },
+      "agentsLabel": "Agents",
+      "noAgents": "This workspace has no agent yet.",
+      "noMatch": "No match.",
+      "inviteCount_one": "Invite {{count}} person",
+      "inviteCount_other": "Invite {{count}} people"
+    },
+    "confirmation": {
+      "title": "Confirm the invitation to {{workspaceName}}",
+      "role": "Role",
+      "agents": "Agents",
+      "everyAgent": "Every agent",
+      "noAgent": "No agent",
+      "addedTo": "Added to {{agents}}",
+      "directTitle_one": "{{count}} person gets access right away",
+      "directTitle_other": "{{count}} people get access right away",
+      "directHint": "Already in the workspace, so there is no invitation to accept.",
+      "unchangedTitle_one": "{{count}} person keeps their access as it is",
+      "unchangedTitle_other": "{{count}} people keep their access as it is",
+      "unchangedHint": "The invitation changes nothing for them.",
+      "promoteHint": "{{access}}. Promote them from their member page.",
+      "accessOnAgents": "{{role}}, on {{agents}}",
+      "accessOnNoAgent": "{{role}}, on no agent"
+    },
+    "removeAgentDialog": {
+      "title": "Remove this agent from the invitation?",
+      "description": "{{email}} will no longer get {{agentName}}. The rest of the invitation stays."
     }
   }
 }

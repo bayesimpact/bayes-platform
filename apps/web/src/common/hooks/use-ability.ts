@@ -103,6 +103,12 @@ export function useAbility() {
     [hasAgentPermission],
   )
 
+  const canInviteAgentMembers = useCallback(
+    ({ agentId }: { agentId: string | null }) =>
+      hasAgentPermission({ agentId, permission: "agent.member.invite" }),
+    [hasAgentPermission],
+  )
+
   const canRemoveAgentMembers = useCallback(
     ({ agentId }: { agentId: string | null }) =>
       hasAgentPermission({ agentId, permission: "agent.member.delete" }),
@@ -166,6 +172,7 @@ export function useAbility() {
         canRemoveProjectMembers,
         canUpdateCampaignMembers,
         canUpdateAgentMembers,
+        canInviteAgentMembers,
         canRemoveAgentMembers,
       },
     }),
@@ -185,6 +192,7 @@ export function useAbility() {
       canRemoveProjectMembers,
       canUpdateCampaignMembers,
       canUpdateAgentMembers,
+      canInviteAgentMembers,
       canRemoveAgentMembers,
     ],
   )

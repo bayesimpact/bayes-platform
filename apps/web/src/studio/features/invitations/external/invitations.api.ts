@@ -11,17 +11,30 @@ import type { PendingInvitation, PendingInvitations } from "../invitations.model
 import type { IInvitationsSpi, ScopedInvitationTarget } from "../invitations.spi"
 
 export default {
-  createMany: async ({ emails, role, ...target }) => {
+  createMany: async ({ emails, role, agentIds, ...target }) => {
     const axios = getAxiosInstance()
     const { routes, pathParams } = adminRoutesFor(target)
     const response = await axios.post<typeof routes.createMany.response>(
       routes.createMany.getPath(pathParams),
-      { payload: { emails, role } },
+      { payload: { emails, role, agentIds } },
     )
     return {
       invitations: toPendingInvitations(response.data.data),
       emailSent: response.data.data.emailSent,
+      grantedEmails: response.data.data.grantedEmails,
     }
+  },
+  listInviteeAccess: async ({ organizationId, projectId }) => {
+    const axios = getAxiosInstance()
+    const response = await axios.get<typeof ProjectInvitationsRoutes.getInviteeAccess.response>(
+      ProjectInvitationsRoutes.getInviteeAccess.getPath({ organizationId, projectId }),
+    )
+    return Object.fromEntries(
+      response.data.data.members.map((member) => [
+        member.email,
+        { workspaceRoleKey: member.workspaceRoleKey, agentIds: member.agentIds },
+      ]),
+    )
   },
   listForTarget: async (target) => {
     const axios = getAxiosInstance()
@@ -94,6 +107,7 @@ const toPendingInvitation = (dto: InvitationDto): PendingInvitation => ({
   organizationName: dto.organizationName,
   projectName: dto.projectName,
   targetName: dto.targetName,
+  agents: dto.agents,
 })
 
 const toPendingInvitations = (dto: ListInvitationsResponseDto): PendingInvitations =>
