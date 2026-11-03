@@ -93,7 +93,7 @@ export function InviteConfirmation({
                     ? "1 person is already in the workspace"
                     : `${knownPeople.length} people are already in the workspace`}
                 </h3>
-                <p className="text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   The invitation leaves {knownPeople.length === 1 ? "them" : "these people"} as they
                   are. Change their access from their member page.
                 </p>
