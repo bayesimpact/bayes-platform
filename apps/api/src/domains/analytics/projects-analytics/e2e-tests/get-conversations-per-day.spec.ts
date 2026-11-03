@@ -40,8 +40,9 @@ describe("Projects Analytics - getConversationsPerDay", () => {
   const day3Start = new Date("2026-01-03T00:00:00.000Z")
   const day3End = new Date(day3Start.getTime() + 24 * 60 * 60 * 1000 - 1)
 
+  // Sessions without a user message are empty sessions, not conversations.
   const expectedDays = [
-    { date: day1Start.toISOString().slice(0, 10), value: 2 },
+    { date: day1Start.toISOString().slice(0, 10), value: 1 },
     { date: day2Start.toISOString().slice(0, 10), value: 1 },
     { date: day3Start.toISOString().slice(0, 10), value: 0 },
   ]
@@ -169,8 +170,8 @@ describe("Projects Analytics - getConversationsPerDay", () => {
     const response = await subject()
     expectResponse(response, 200)
     expect(response.body.data).toEqual([
-      { date: day1Start.toISOString().slice(0, 10), value: 2 },
-      { date: day2Start.toISOString().slice(0, 10), value: 2 },
+      { date: day1Start.toISOString().slice(0, 10), value: 1 },
+      { date: day2Start.toISOString().slice(0, 10), value: 1 },
       { date: day3Start.toISOString().slice(0, 10), value: 0 },
     ])
   })

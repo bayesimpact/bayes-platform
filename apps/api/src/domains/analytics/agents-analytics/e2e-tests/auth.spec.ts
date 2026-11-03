@@ -140,11 +140,20 @@ describe("Agents Analytics - Auth", () => {
       query: analyticsDateRangeQuery,
     })
 
+  const subjectEmptySessions = async () =>
+    request({
+      route: AgentAnalyticsRoutes.getEmptySessionsPerDay,
+      pathParams: removeNullish({ organizationId, projectId, agentId }),
+      token: accessToken ?? undefined,
+      query: analyticsDateRangeQuery,
+    })
+
   it("requires an authentication token", async () => {
     accessToken = null
     expectResponse(await subjectConversations(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
     expectResponse(await subjectAvg(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
     expectResponse(await subjectByCategoryPerDay(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    expectResponse(await subjectEmptySessions(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
   })
 
   it("requires a valid organization ID", async () => {
@@ -152,6 +161,7 @@ describe("Agents Analytics - Auth", () => {
     expectResponse(await subjectConversations(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
     expectResponse(await subjectAvg(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
     expectResponse(await subjectByCategoryPerDay(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
+    expectResponse(await subjectEmptySessions(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
   })
 
   it("requires the user to be a member of the organization", async () => {
@@ -160,6 +170,7 @@ describe("Agents Analytics - Auth", () => {
     expectResponse(await subjectConversations(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     expectResponse(await subjectAvg(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     expectResponse(await subjectByCategoryPerDay(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
+    expectResponse(await subjectEmptySessions(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
   })
 
   it("allows agent owners who are only project members", async () => {
@@ -175,6 +186,7 @@ describe("Agents Analytics - Auth", () => {
     expectResponse(await subjectConversations(), 200)
     expectResponse(await subjectAvg(), 200)
     expectResponse(await subjectByCategoryPerDay(), 200)
+    expectResponse(await subjectEmptySessions(), 200)
   })
 
   it("allows agent owners who are project owners", async () => {
@@ -182,6 +194,7 @@ describe("Agents Analytics - Auth", () => {
     expectResponse(await subjectConversations(), 200)
     expectResponse(await subjectAvg(), 200)
     expectResponse(await subjectByCategoryPerDay(), 200)
+    expectResponse(await subjectEmptySessions(), 200)
   })
 
   it("does not allow project owners without agent membership", async () => {
@@ -189,6 +202,7 @@ describe("Agents Analytics - Auth", () => {
     expectResponse(await subjectConversations(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     expectResponse(await subjectAvg(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     expectResponse(await subjectByCategoryPerDay(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    expectResponse(await subjectEmptySessions(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
   })
 
   it("allows project admins who are only agent admins", async () => {
@@ -196,6 +210,7 @@ describe("Agents Analytics - Auth", () => {
     expectResponse(await subjectConversations(), 200)
     expectResponse(await subjectAvg(), 200)
     expectResponse(await subjectByCategoryPerDay(), 200)
+    expectResponse(await subjectEmptySessions(), 200)
   })
 
   it("does not allow project members who are only agent members", async () => {
@@ -203,6 +218,7 @@ describe("Agents Analytics - Auth", () => {
     expectResponse(await subjectConversations(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     expectResponse(await subjectAvg(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     expectResponse(await subjectByCategoryPerDay(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    expectResponse(await subjectEmptySessions(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
   })
 
   it("requires an existing project ID", async () => {
@@ -221,6 +237,7 @@ describe("Agents Analytics - Auth", () => {
     expectResponse(await subjectConversations(), 404)
     expectResponse(await subjectAvg(), 404)
     expectResponse(await subjectByCategoryPerDay(), 404)
+    expectResponse(await subjectEmptySessions(), 404)
   })
 
   it("requires an existing agent ID for the project", async () => {
@@ -229,5 +246,6 @@ describe("Agents Analytics - Auth", () => {
     expectResponse(await subjectConversations(), 404)
     expectResponse(await subjectAvg(), 404)
     expectResponse(await subjectByCategoryPerDay(), 404)
+    expectResponse(await subjectEmptySessions(), 404)
   })
 })

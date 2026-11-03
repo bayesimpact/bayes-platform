@@ -77,6 +77,26 @@ export class ProjectsAnalyticsController {
     return { data: toAnalyticsDailyPointDto(avgUserQuestionsPerSessionPerDay) }
   }
 
+  @Get(Routes.getEmptySessionsPerDay.path)
+  @CheckPermission(PROJECT_ANALYTICS_READ_PERMISSION, "project")
+  async getEmptySessionsPerDay(
+    @Req() request: EndpointRequestWithProject,
+    @Query("startAt", ParseIntPipe) startAt: number,
+    @Query("endAt", ParseIntPipe) endAt: number,
+    @Query("agentId", new ParseUUIDPipe({ optional: true })) agentId?: string,
+  ): Promise<typeof Routes.getEmptySessionsPerDay.response> {
+    await this.assertCanFilterByAgent(request, agentId)
+    const emptySessionsPerDay: AnalyticsDailyPoint[] =
+      await this.projectsAnalyticsService.getEmptySessionsPerDay({
+        connectScope: getRequiredConnectScope(request),
+        agentId,
+        startAt,
+        endAt,
+      })
+
+    return { data: toAnalyticsDailyPointDto(emptySessionsPerDay) }
+  }
+
   /**
    * Filtering on one agent shows that agent's figures, so it takes the same
    * permission as the agent's own analytics. The project-wide total does not.

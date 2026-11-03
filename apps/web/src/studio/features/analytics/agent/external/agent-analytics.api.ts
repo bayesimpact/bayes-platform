@@ -63,6 +63,18 @@ export default {
     )
     return toAnalyticsCategoryDailyPoints(response.data.data)
   },
+  getEmptySessionsPerDay: async ({ organizationId, projectId, agentId, startAt, endAt }) => {
+    const axios = getAxiosInstance()
+    const response = await axios.get<typeof AgentAnalyticsRoutes.getEmptySessionsPerDay.response>(
+      AgentAnalyticsRoutes.getEmptySessionsPerDay.getPath({
+        organizationId,
+        projectId,
+        agentId,
+      }),
+      dateRangeQueryParams(startAt, endAt),
+    )
+    return toAnalyticsDailyPoints(response.data.data)
+  },
 } satisfies IAgentAnalyticsSpi
 
 function dateRangeQueryParams(startAt: number, endAt: number) {

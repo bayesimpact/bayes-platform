@@ -13,6 +13,12 @@ export const AnalyticsRoutes = {
     method: "get",
     path: "organizations/:organizationId/projects/:projectId/analytics/avg-user-questions-per-session-per-day",
   }),
+
+  /** Sessions opened without any user message, left out of the conversations. */
+  getEmptySessionsPerDay: defineRoute<ResponseData<AnalyticsDailyPointDto[]>>({
+    method: "get",
+    path: "organizations/:organizationId/projects/:projectId/analytics/empty-sessions-per-day",
+  }),
 }
 
 /** Per-agent conversation metrics; query: `startAt`, `endAt` — Unix ms. */
@@ -30,5 +36,11 @@ export const AgentAnalyticsRoutes = {
   getConversationsByCategoryPerDay: defineRoute<ResponseData<AnalyticsCategoryDailyPointDto[]>>({
     method: "get",
     path: "organizations/:organizationId/projects/:projectId/agents/:agentId/analytics/conversations-by-category-per-day",
+  }),
+
+  /** Sessions opened without any user message, left out of the conversations. */
+  getEmptySessionsPerDay: defineRoute<ResponseData<AnalyticsDailyPointDto[]>>({
+    method: "get",
+    path: "organizations/:organizationId/projects/:projectId/agents/:agentId/analytics/empty-sessions-per-day",
   }),
 }
