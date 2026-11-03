@@ -3,6 +3,7 @@ import type { InvitationDto } from "@caseai-connect/api-contracts"
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   Logger,
   NotFoundException,
@@ -12,6 +13,9 @@ import { MailerService } from "@/common/mailer/mailer.service"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { TransactionService } from "@/common/transaction/transaction.service"
 import { getAppPublicUrl } from "@/config/app-public-url"
+// biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
+import { PermissionService } from "@/domains/rbac/permission.service"
+import { AGENT_MEMBER_INVITE_PERMISSION, PROJECT_ROLES } from "@/domains/rbac/rbac.constants"
 import type { ReviewCampaignMembershipRole } from "@/domains/review-campaigns/review-campaigns.types"
 import { isServiceIdentity } from "@/domains/users/service-user.helpers"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -24,7 +28,11 @@ import { toInvitationDto } from "./invitation.mapper"
 import { InvitationRepository } from "./invitation.repository"
 import type { InvitationTargetType } from "./invitation.types"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
-import { InvitationAccessService, type InvitationAccessTarget } from "./invitation-access.service"
+import {
+  InvitationAccessService,
+  type InvitationAccessTarget,
+  type WorkspaceAccess,
+} from "./invitation-access.service"
 import { buildInvitationEmail, buildInvitationLink } from "./invitation-email"
 
 /** The target of an invitation, built by the controllers from the resource of the route. */
@@ -37,7 +45,7 @@ export type InvitationTarget = {
   status?: string
 }
 
-/** Role stored on project and agent invitations, which carry no role choice. */
+/** Role stored on agent invitations, and on project invitations sent without a role. */
 const DEFAULT_ROLE_BY_TARGET_TYPE = { project: "admin", agent: "member" } as const
 
 /**
@@ -58,6 +66,7 @@ export class InvitationsService {
     private readonly usersService: UsersService,
     private readonly userRepository: UserRepository,
     private readonly mailerService: MailerService,
+    private readonly permissionService: PermissionService,
   ) {}
 
   private readonly logger = new Logger(InvitationsService.name)
@@ -67,18 +76,31 @@ export class InvitationsService {
    * already invited. When SMTP is configured, emails each new invitation with
    * its link after the invitations are saved. `emailSent` is true only when
    * every new invitation was emailed.
+   *
+   * On a project, a member invitation also gives the agents picked. People already in the
+   * workspace get no invitation: they get the agents they miss right away (`grantedEmails`), and
+   * are never promoted to admin.
    */
   async createMany(params: {
     target: InvitationTarget
     emails: string[]
     role?: string
-    inviter: { name: string | null; email: string }
-  }): Promise<{ invitations: Invitation[]; emailSent: boolean }> {
+    agentIds?: string[]
+    inviter: { userId: string; name: string | null; email: string }
+  }): Promise<{ invitations: Invitation[]; emailSent: boolean; grantedEmails: string[] }> {
     const role = this.resolveRole(params.target, params.role)
+    const agentIds =
+      params.target.targetType === "project" && role === "member" ? (params.agentIds ?? []) : []
+    await this.assertCanInviteToAgents({
+      projectId: params.target.projectId,
+      agentIds,
+      inviterUserId: params.inviter.userId,
+    })
     const emails = [
       ...new Set(params.emails.map((email) => email.trim().toLowerCase()).filter(Boolean)),
     ]
 
+    const grantedEmails: string[] = []
     const invitations = await this.transactionService.run(async () => {
       const invitations: Invitation[] = []
       for (const email of emails) {
@@ -86,17 +108,37 @@ export class InvitationsService {
         if (isServiceIdentity({ email, user: existingUser })) continue
 
         const user = existingUser ?? (await this.usersService.findOrCreateByEmail({ email }))
-        const accessTarget = toAccessTarget(params.target, role)
-        if (
-          await this.invitationAccessService.hasAccess({ target: accessTarget, userId: user.id })
-        ) {
-          continue
+        if (params.target.targetType === "project") {
+          const access = await this.invitationAccessService.findWorkspaceAccess({
+            userId: user.id,
+            projectId: params.target.targetId,
+            agentIds,
+          })
+          if (access) {
+            const missingAgentIds = missingAgentIdsOf(access, role, agentIds)
+            if (missingAgentIds.length > 0) {
+              await this.invitationAccessService.grantAgents({
+                userId: user.id,
+                agentIds: missingAgentIds,
+              })
+              grantedEmails.push(email)
+            }
+            continue
+          }
+        } else {
+          const accessTarget = toAccessTarget(params.target, role, agentIds)
+          if (
+            await this.invitationAccessService.hasAccess({ target: accessTarget, userId: user.id })
+          ) {
+            continue
+          }
         }
         const pendingInvitation = await this.invitationRepository.findPendingForUserAndTarget({
           userId: user.id,
           targetType: params.target.targetType,
           targetId: params.target.targetId,
-          role,
+          // One pending invitation per person to a workspace, whatever it gives.
+          role: params.target.targetType === "project" ? undefined : role,
         })
         if (pendingInvitation) continue
 
@@ -109,6 +151,7 @@ export class InvitationsService {
             userId: user.id,
             invitedEmail: email,
             role,
+            agentIds,
             invitationToken: randomUUID(),
           }),
         )
@@ -117,7 +160,45 @@ export class InvitationsService {
     })
 
     const emailSent = await this.emailInvitations(invitations, params.inviter)
-    return { invitations, emailSent }
+    return { invitations, emailSent, grantedEmails }
+  }
+
+  /** What each person already in the workspace holds on it and on its agents. */
+  async listInviteeAccess(projectId: string): Promise<WorkspaceAccess[]> {
+    const agentIds = await this.invitationRepository.findLiveAgentIdsOfProject({ projectId })
+    return this.invitationAccessService.listWorkspaceAccess({ projectId, agentIds })
+  }
+
+  /**
+   * Each agent must be a live agent of the project, and the inviter must be allowed to invite
+   * members to it.
+   */
+  private async assertCanInviteToAgents(params: {
+    projectId: string
+    agentIds: string[]
+    inviterUserId: string
+  }): Promise<void> {
+    if (params.agentIds.length === 0) return
+    const liveAgentIds = await this.invitationRepository.findLiveAgentIdsOfProject({
+      projectId: params.projectId,
+      agentIds: params.agentIds,
+    })
+    // Missing, deleted and another workspace's agent share one answer.
+    if (params.agentIds.some((agentId) => !liveAgentIds.includes(agentId))) {
+      throw new NotFoundException("Agent not found")
+    }
+    for (const agentId of params.agentIds) {
+      const canInvite = await this.permissionService.has(
+        params.inviterUserId,
+        AGENT_MEMBER_INVITE_PERMISSION,
+        { type: "agent", id: agentId },
+      )
+      if (!canInvite) {
+        throw new ForbiddenException(
+          `Missing ${AGENT_MEMBER_INVITE_PERMISSION} on agent ${agentId}`,
+        )
+      }
+    }
   }
 
   /** A failed email never fails the invitation: the admin can still copy its link. */
@@ -161,7 +242,11 @@ export class InvitationsService {
     return allSent
   }
 
+  /** On an agent, also the workspace invitations that give it. */
   async listForTarget(target: InvitationTarget): Promise<Invitation[]> {
+    if (target.targetType === "agent") {
+      return this.invitationRepository.listPendingForAgent(target.targetId)
+    }
     return this.invitationRepository.listPendingForTarget({
       targetType: target.targetType,
       targetId: target.targetId,
@@ -177,15 +262,32 @@ export class InvitationsService {
     return invitations.filter((invitation) => detailsById.get(invitation.id)?.targetExists)
   }
 
-  /** An invitation that is not pending, or belongs to another target, answers 404. */
+  /**
+   * An invitation that is not pending, or belongs to another target, answers 404. On an agent, a
+   * workspace invitation that gives it loses only this agent: the person is still invited to the
+   * workspace and its other agents.
+   */
   async revokeOne(params: { invitationId: string; target: InvitationTarget }): Promise<void> {
-    const invitation = await this.invitationRepository.findPendingByIdForTarget({
-      invitationId: params.invitationId,
-      targetType: params.target.targetType,
-      targetId: params.target.targetId,
-    })
+    const invitation =
+      params.target.targetType === "agent"
+        ? await this.invitationRepository.findPendingByIdForAgent({
+            invitationId: params.invitationId,
+            agentId: params.target.targetId,
+          })
+        : await this.invitationRepository.findPendingByIdForTarget({
+            invitationId: params.invitationId,
+            targetType: params.target.targetType,
+            targetId: params.target.targetId,
+          })
     if (!invitation) {
       throw new NotFoundException(`Pending invitation ${params.invitationId} not found`)
+    }
+    if (invitation.targetType !== params.target.targetType) {
+      await this.invitationRepository.removeAgent({
+        invitationId: invitation.id,
+        agentId: params.target.targetId,
+      })
+      return
     }
     await this.transactionService.run(async () => {
       await this.invitationRepository.updateStatus({
@@ -224,6 +326,8 @@ export class InvitationsService {
           organizationId: invitation.organizationId,
           projectId: invitation.projectId,
           role: invitation.role,
+          // The agents deleted since the invitation are left out.
+          agentIds: details.agents.map((agent) => agent.id),
         },
         userId: params.userId,
       })
@@ -272,6 +376,13 @@ export class InvitationsService {
   }
 
   private resolveRole(target: InvitationTarget, role: string | undefined): string {
+    if (target.targetType === "project") {
+      if (role === undefined) return DEFAULT_ROLE_BY_TARGET_TYPE.project
+      if (role !== "admin" && role !== "member") {
+        throw new BadRequestException(`Invalid workspace role: ${role}`)
+      }
+      return role
+    }
     if (target.targetType !== "review_campaign") {
       return DEFAULT_ROLE_BY_TARGET_TYPE[target.targetType]
     }
@@ -290,14 +401,32 @@ export class InvitationsService {
   }
 }
 
-function toAccessTarget(target: InvitationTarget, role: string): InvitationAccessTarget {
+function toAccessTarget(
+  target: InvitationTarget,
+  role: string,
+  agentIds: string[],
+): InvitationAccessTarget {
   return {
     targetType: target.targetType,
     targetId: target.targetId,
     organizationId: target.organizationId,
     projectId: target.projectId,
     role,
+    agentIds,
   }
+}
+
+/**
+ * The agents a person already in the workspace misses. An admin already is admin of every agent,
+ * and a member invited as admin is not promoted: neither gets anything.
+ */
+function missingAgentIdsOf(
+  access: Pick<WorkspaceAccess, "workspaceRoleKey" | "agentIds">,
+  role: string,
+  agentIds: string[],
+): string[] {
+  if (access.workspaceRoleKey !== PROJECT_ROLES.member || role !== "member") return []
+  return agentIds.filter((agentId) => !access.agentIds.includes(agentId))
 }
 
 function isReviewCampaignMembershipRole(value: string): value is ReviewCampaignMembershipRole {

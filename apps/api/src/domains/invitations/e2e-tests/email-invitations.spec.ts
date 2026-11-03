@@ -110,7 +110,7 @@ describe("Invitations - email", () => {
     })
 
     expectResponse(again, 201)
-    expect(again.body.data).toEqual({ invitations: [], emailSent: false })
+    expect(again.body.data).toEqual({ invitations: [], emailSent: false, grantedEmails: [] })
     expect(sentMessages).toEqual([])
   })
 

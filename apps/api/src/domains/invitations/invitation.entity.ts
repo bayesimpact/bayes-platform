@@ -32,8 +32,16 @@ export class Invitation extends Base4AllEntity {
   @Column({ type: "varchar" })
   status!: InvitationStatus
 
+  /** `admin` or `member` on a workspace, `member` on an agent, `tester` or `reviewer` on a campaign. */
   @Column({ type: "varchar" })
   role!: string
+
+  /**
+   * The agents a workspace invitation for a member also gives, each with its member role. Empty
+   * for other invitations.
+   */
+  @Column({ type: "uuid", name: "agent_ids", array: true, default: () => "'{}'" })
+  agentIds!: string[]
 
   @Column({ type: "timestamp", name: "invited_at" })
   invitedAt!: Date
