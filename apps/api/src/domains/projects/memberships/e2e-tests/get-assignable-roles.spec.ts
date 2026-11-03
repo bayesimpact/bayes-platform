@@ -100,7 +100,11 @@ describe("Project membership - getAssignableRoles", () => {
 
     expectResponse(response, 200)
     const { project, agent, review_campaign } = response.body.data
-    expect(project.map((role) => role.key)).toEqual(["project_admin", "project_member"])
+    expect(project.map((role) => role.key)).toEqual([
+      "project_admin",
+      "project_member",
+      "project_evaluator",
+    ])
     expect(project[0]?.name).toBe("Project Admin")
     // Owner roles are set at creation, and the conversation reviewer role is a backoffice grant.
     expect(agent.map((role) => role.key)).toEqual(["agent_admin", "agent_member"])

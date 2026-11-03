@@ -1,6 +1,9 @@
 import type { AllRepositories } from "@/common/test/test-transaction-manager"
 import { agentMessageFactory } from "@/domains/agents/shared/agent-session-messages/agent-messages.factory"
-import { createOrganizationWithAgentSession } from "@/domains/organizations/organization.factory"
+import {
+  createOrganizationWithAgentSession,
+  OWNER_EVALUATOR_PROJECT_MEMBERSHIP,
+} from "@/domains/organizations/organization.factory"
 
 type ConversationParams = NonNullable<
   Parameters<typeof createOrganizationWithAgentSession>[0]["params"]
@@ -9,6 +12,7 @@ type ConversationParams = NonNullable<
 /**
  * A two-exchange billing conversation in a new organization: the last answer depends on the plan
  * the first message gave. Each message is a second after the one before, so the order is stable.
+ * The caller owns the project and evaluates, unless `params.projectMembership` says otherwise.
  */
 export async function createConversationWithAnswers(
   repositories: AllRepositories,
@@ -17,7 +21,7 @@ export async function createConversationWithAnswers(
   const data = await createOrganizationWithAgentSession({
     repositories,
     agentType: "conversation",
-    params,
+    params: { projectMembership: OWNER_EVALUATOR_PROJECT_MEMBERSHIP, ...params },
   })
   const { organization, project, agentSession, agentSettings } = data
   const startedAt = Date.now()

@@ -85,7 +85,6 @@ const meta = {
   },
   args: {
     ...studioStoryArgs,
-    featureFlags: [...studioStoryArgs.featureFlags, "evaluation"],
     withRecords: false,
     withRuns: false,
   },

@@ -50,6 +50,8 @@ Scoped to one project via `role_grant` (`resource_type = 'project'`).
 
 The evaluation permissions are never inherited from the organization: an organization role does not open a project's evaluation app, its datasets or its runs.
 
+The evaluation permissions are held by `project_evaluator` only: `project_owner` and `project_admin` do not open the evaluation app, its datasets or its runs. `project_evaluator` is a row of its own on the project, next to the person's owner, admin or member row. A holder of `project.member.update` gives it to a member, or takes it away, from the project's members page. It also lists the project's agents with their drafts and settings history, which the evaluation app runs. It replaces the `evaluation` feature flag: migration `1793727501000-project-evaluator-role` gave it to the owners and admins of every project that had the flag on.
+
 The `project.member.*` permissions are not inherited either: an organization role does not let anyone see a project's members, invite to a project, change a member's role or remove a member.
 
 The `resource_library.*` permissions are not inherited either: an organization role does not open a project's resource libraries.
@@ -74,98 +76,98 @@ The `project.app_installation.*` permissions are not inherited either: project o
 
 The `project.review_campaign.*` permissions are not inherited either: an organization role does not open a project's review campaigns. Managing them, inviting testers and reviewers and removing them stays with project owners and admins. `review_campaign.report.read` is granted on project owners and admins and passes down to every campaign of the project (see Review campaign roles).
 
-| Permission | `project_owner` | `project_admin` | `project_member` |
-|---|---|---|---|
-| `project.read` | ✅ | ✅ | ✅ |
-| `project.update` | ✅ | ✅ | — |
-| `project.delete` | ✅ | ✅ | — |
-| `desk.ui.read` — open the project's desk app | ✅ | ✅ | ✅ |
-| `studio.ui.read` — open the project's studio app | ✅ | ✅ | — |
-| `evaluation.ui.read` — open the project's evaluation app | ✅ | ✅ | — |
-| `project.analytics.read` — see the project's conversation analytics | ✅ | ✅ | — |
-| `project.member.read` — see the project's members, their roles and the agents each one can reach | ✅ | ✅ | — |
-| `project.member.invite` — invite people to the project, see and revoke pending invitations | ✅ | ✅ | — |
-| `project.member.update` — change another member's role between admin and member | ✅ | ✅ | — |
-| `project.member.delete` — remove a member from the project | ✅ | ✅ | — |
-| `agent.create` | ✅ | ✅ | — |
-| `agent.read` | ✅ | ✅ | — |
-| `agent.draft.read` — list the project's agents with their draft settings | ✅ | ✅ | — |
-| `agent.settings.draft.read` — see the revision history of an agent's settings, drafts included | ✅ | ✅ | — |
-| `document.read` | ✅ | ✅ | — |
-| `document.create` | ✅ | ✅ | — |
-| `document.update` | ✅ | ✅ | — |
-| `document.delete` | ✅ | ✅ | — |
-| `document_source.read` | ✅ | ✅ | — |
-| `document_source.create` | ✅ | ✅ | — |
-| `document_source.update` | ✅ | ✅ | — |
-| `document_source.delete` | ✅ | ✅ | — |
-| `document_tag.read` — see document tags in the project | ✅ | ✅ | — |
-| `document_tag.create` — create a document tag | ✅ | ✅ | — |
-| `document_tag.update` — update a document tag | ✅ | ✅ | — |
-| `document_tag.delete` — delete a document tag | ✅ | ✅ | — |
-| `evaluation.extraction.dataset.read` — see the project's evaluation extraction datasets and their files | ✅ | ✅ | — |
-| `evaluation.extraction.dataset.create` — create evaluation extraction datasets and upload their files | ✅ | ✅ | — |
-| `evaluation.extraction.dataset.update` — update an evaluation extraction dataset | ✅ | ✅ | — |
-| `evaluation.extraction.dataset.delete` — delete an evaluation extraction dataset or one of its files | ✅ | ✅ | — |
-| `evaluation.extraction.run.read` — see the project's evaluation extraction runs and their results | ✅ | ✅ | — |
-| `evaluation.extraction.run.create` — create an evaluation extraction run | ✅ | ✅ | — |
-| `evaluation.extraction.run.update` — execute, retry or cancel an evaluation extraction run | ✅ | ✅ | — |
-| `evaluation.extraction.run.delete` — delete an evaluation extraction run | ✅ | ✅ | — |
-| `evaluation.conversation.dataset.read` — see the project's evaluation conversation datasets and their records | ✅ | ✅ | — |
-| `evaluation.conversation.dataset.create` — create an evaluation conversation dataset | ✅ | ✅ | — |
-| `evaluation.conversation.dataset.update` — rename an evaluation conversation dataset or edit its records | ✅ | ✅ | — |
-| `evaluation.conversation.dataset.delete` — delete an evaluation conversation dataset | ✅ | ✅ | — |
-| `evaluation.conversation.run.read` — see the project's evaluation conversation runs and their results | ✅ | ✅ | — |
-| `evaluation.conversation.run.create` — create an evaluation conversation run | ✅ | ✅ | — |
-| `evaluation.conversation.run.update` — execute, retry or cancel an evaluation conversation run | ✅ | ✅ | — |
-| `evaluation.conversation.run.delete` — delete an evaluation conversation run | ✅ | ✅ | — |
-| `resource_library.read` — see the project's resource libraries | ✅ | ✅ | — |
-| `resource_library.create` — create a resource library, or upload a file for one of its resources | ✅ | ✅ | — |
-| `resource_library.update` — rename a resource library, or add, edit and remove its resources | ✅ | ✅ | — |
-| `resource_library.delete` — delete a resource library | ✅ | ✅ | — |
-| `csv_extraction_run.read` — see the agents' live CSV extraction runs and their results | ✅ | ✅ | ✅ |
-| `csv_extraction_run.create` — create a live CSV extraction run | ✅ | ✅ | ✅ |
-| `csv_extraction_run.update` — execute, retry or cancel a live CSV extraction run | ✅ | ✅ | ✅ |
-| `csv_extraction_run.delete` — delete a live CSV extraction run | ✅ | ✅ | ✅ |
-| `csv_extraction_run.playground.read` — see the agents' playground CSV extraction runs and their results | ✅ | ✅ | — |
-| `csv_extraction_run.playground.create` — create a playground CSV extraction run | ✅ | ✅ | — |
-| `csv_extraction_run.playground.update` — execute, retry or cancel a playground CSV extraction run | ✅ | ✅ | — |
-| `csv_extraction_run.playground.delete` — delete a playground CSV extraction run | ✅ | ✅ | — |
-| `agent.conversation.session.read` — see your live conversations with the project's agents, and their sub-sessions | ✅ | ✅ | ✅ |
-| `agent.conversation.session.create` — start a live conversation with an agent | ✅ | ✅ | ✅ |
-| `agent.conversation.session.delete` — delete one of your live conversations | ✅ | ✅ | ✅ |
-| `agent.conversation.session.playground.read` — see your playground conversations with the project's agents, and their sub-sessions | ✅ | ✅ | — |
-| `agent.conversation.session.playground.create` — start a playground conversation with an agent | ✅ | ✅ | — |
-| `agent.conversation.session.playground.delete` — delete one of your playground conversations | ✅ | ✅ | — |
-| `agent.extraction.session.read` — see your live extraction runs with the project's agents, and the documents you uploaded for them | ✅ | ✅ | ✅ |
-| `agent.extraction.session.create` — upload a document and run a live extraction with an agent | ✅ | ✅ | ✅ |
-| `agent.extraction.session.delete` — delete one of your live extraction runs | ✅ | ✅ | ✅ |
-| `agent.extraction.session.playground.read` — see your playground extraction runs with the project's agents, and the documents you uploaded for them | ✅ | ✅ | — |
-| `agent.extraction.session.playground.create` — upload a document and run a playground extraction with an agent | ✅ | ✅ | — |
-| `agent.extraction.session.playground.delete` — delete one of your playground extraction runs | ✅ | ✅ | — |
-| `project.agent_session_category.create` — create a conversation category in the project, optionally assigned to every conversational agent | ✅ | ✅ | — |
-| `project.agent_session_category.delete` — delete a conversation category from the project | ✅ | ✅ | — |
-| `project.agent_message_feedback.read` — see the feedback people left on an agent's messages | ✅ | ✅ | — |
-| `project.agent_message_feedback.create` — leave feedback on an agent's message | ✅ | ✅ | ✅ |
-| `project.mcp_server.read` — see the project's MCP servers | ✅ | ✅ | ✅ |
-| `project.mcp_server.create` — add an MCP server to the project | ✅ | ✅ | — |
-| `project.mcp_server.update` — turn an MCP server on or off for an agent, or connect it through OAuth | ✅ | ✅ | — |
-| `project.mcp_server.delete` — delete an MCP server from the project | ✅ | ✅ | — |
-| `project.app_installation.read` — see the apps installed on the project | ✅ | ✅ | — |
-| `project.app_installation.revoke` — revoke an app installed on the project | ✅ | ✅ | — |
-| `project.app_installation.create` — install an app on the project | ✅ | ✅ | — |
-| `agent.conversation.session.external.create` — open conversations with the project's agents for people outside the platform | ✅ | ✅ | — |
-| `project.review_campaign.read` — see the project's review campaigns | ✅ | ✅ | — |
-| `project.review_campaign.create` — create a review campaign | ✅ | ✅ | — |
-| `project.review_campaign.update` — update a review campaign | ✅ | ✅ | — |
-| `project.review_campaign.delete` — delete a review campaign | ✅ | ✅ | — |
-| `project.review_campaign.member.delete` — remove a tester or a reviewer from a review campaign | ✅ | ✅ | — |
-| `project.review_campaign.member.invite` — invite testers and reviewers to a review campaign, see and revoke pending invitations | ✅ | ✅ | — |
-| `review_campaign.report.read` — see the report of the project's review campaigns (passed down to each campaign) | ✅ | ✅ | — |
-| `user.read` — see the project's members | ✅ | ✅ | — |
-| `backoffice.project.read` — see the project in the backoffice | ✅ | ✅ | — |
-| `backoffice.project.update` — mutate the project from the backoffice (e.g. feature flags) | ✅ | ✅ | — |
-| `backoffice.agent.read` — see the project's agents in the backoffice | ✅ | ✅ | — |
+| Permission | `project_owner` | `project_admin` | `project_member` | `project_evaluator` |
+|---|---|---|---|---|
+| `project.read` | ✅ | ✅ | ✅ | ✅ |
+| `project.update` | ✅ | ✅ | — | — |
+| `project.delete` | ✅ | ✅ | — | — |
+| `desk.ui.read` — open the project's desk app | ✅ | ✅ | ✅ | — |
+| `studio.ui.read` — open the project's studio app | ✅ | ✅ | — | — |
+| `evaluation.ui.read` — open the project's evaluation app | — | — | — | ✅ |
+| `project.analytics.read` — see the project's conversation analytics | ✅ | ✅ | — | — |
+| `project.member.read` — see the project's members, their roles and the agents each one can reach | ✅ | ✅ | — | — |
+| `project.member.invite` — invite people to the project, see and revoke pending invitations | ✅ | ✅ | — | — |
+| `project.member.update` — change another member's role between admin and member | ✅ | ✅ | — | — |
+| `project.member.delete` — remove a member from the project | ✅ | ✅ | — | — |
+| `agent.create` | ✅ | ✅ | — | — |
+| `agent.read` | ✅ | ✅ | — | ✅ |
+| `agent.draft.read` — list the project's agents with their draft settings | ✅ | ✅ | — | ✅ |
+| `agent.settings.draft.read` — see the revision history of an agent's settings, drafts included | ✅ | ✅ | — | ✅ |
+| `document.read` | ✅ | ✅ | — | — |
+| `document.create` | ✅ | ✅ | — | — |
+| `document.update` | ✅ | ✅ | — | — |
+| `document.delete` | ✅ | ✅ | — | — |
+| `document_source.read` | ✅ | ✅ | — | — |
+| `document_source.create` | ✅ | ✅ | — | — |
+| `document_source.update` | ✅ | ✅ | — | — |
+| `document_source.delete` | ✅ | ✅ | — | — |
+| `document_tag.read` — see document tags in the project | ✅ | ✅ | — | — |
+| `document_tag.create` — create a document tag | ✅ | ✅ | — | — |
+| `document_tag.update` — update a document tag | ✅ | ✅ | — | — |
+| `document_tag.delete` — delete a document tag | ✅ | ✅ | — | — |
+| `evaluation.extraction.dataset.read` — see the project's evaluation extraction datasets and their files | — | — | — | ✅ |
+| `evaluation.extraction.dataset.create` — create evaluation extraction datasets and upload their files | — | — | — | ✅ |
+| `evaluation.extraction.dataset.update` — update an evaluation extraction dataset | — | — | — | ✅ |
+| `evaluation.extraction.dataset.delete` — delete an evaluation extraction dataset or one of its files | — | — | — | ✅ |
+| `evaluation.extraction.run.read` — see the project's evaluation extraction runs and their results | — | — | — | ✅ |
+| `evaluation.extraction.run.create` — create an evaluation extraction run | — | — | — | ✅ |
+| `evaluation.extraction.run.update` — execute, retry or cancel an evaluation extraction run | — | — | — | ✅ |
+| `evaluation.extraction.run.delete` — delete an evaluation extraction run | — | — | — | ✅ |
+| `evaluation.conversation.dataset.read` — see the project's evaluation conversation datasets and their records | — | — | — | ✅ |
+| `evaluation.conversation.dataset.create` — create an evaluation conversation dataset | — | — | — | ✅ |
+| `evaluation.conversation.dataset.update` — rename an evaluation conversation dataset or edit its records | — | — | — | ✅ |
+| `evaluation.conversation.dataset.delete` — delete an evaluation conversation dataset | — | — | — | ✅ |
+| `evaluation.conversation.run.read` — see the project's evaluation conversation runs and their results | — | — | — | ✅ |
+| `evaluation.conversation.run.create` — create an evaluation conversation run | — | — | — | ✅ |
+| `evaluation.conversation.run.update` — execute, retry or cancel an evaluation conversation run | — | — | — | ✅ |
+| `evaluation.conversation.run.delete` — delete an evaluation conversation run | — | — | — | ✅ |
+| `resource_library.read` — see the project's resource libraries | ✅ | ✅ | — | — |
+| `resource_library.create` — create a resource library, or upload a file for one of its resources | ✅ | ✅ | — | — |
+| `resource_library.update` — rename a resource library, or add, edit and remove its resources | ✅ | ✅ | — | — |
+| `resource_library.delete` — delete a resource library | ✅ | ✅ | — | — |
+| `csv_extraction_run.read` — see the agents' live CSV extraction runs and their results | ✅ | ✅ | ✅ | — |
+| `csv_extraction_run.create` — create a live CSV extraction run | ✅ | ✅ | ✅ | — |
+| `csv_extraction_run.update` — execute, retry or cancel a live CSV extraction run | ✅ | ✅ | ✅ | — |
+| `csv_extraction_run.delete` — delete a live CSV extraction run | ✅ | ✅ | ✅ | — |
+| `csv_extraction_run.playground.read` — see the agents' playground CSV extraction runs and their results | ✅ | ✅ | — | — |
+| `csv_extraction_run.playground.create` — create a playground CSV extraction run | ✅ | ✅ | — | — |
+| `csv_extraction_run.playground.update` — execute, retry or cancel a playground CSV extraction run | ✅ | ✅ | — | — |
+| `csv_extraction_run.playground.delete` — delete a playground CSV extraction run | ✅ | ✅ | — | — |
+| `agent.conversation.session.read` — see your live conversations with the project's agents, and their sub-sessions | ✅ | ✅ | ✅ | — |
+| `agent.conversation.session.create` — start a live conversation with an agent | ✅ | ✅ | ✅ | — |
+| `agent.conversation.session.delete` — delete one of your live conversations | ✅ | ✅ | ✅ | — |
+| `agent.conversation.session.playground.read` — see your playground conversations with the project's agents, and their sub-sessions | ✅ | ✅ | — | — |
+| `agent.conversation.session.playground.create` — start a playground conversation with an agent | ✅ | ✅ | — | — |
+| `agent.conversation.session.playground.delete` — delete one of your playground conversations | ✅ | ✅ | — | — |
+| `agent.extraction.session.read` — see your live extraction runs with the project's agents, and the documents you uploaded for them | ✅ | ✅ | ✅ | — |
+| `agent.extraction.session.create` — upload a document and run a live extraction with an agent | ✅ | ✅ | ✅ | — |
+| `agent.extraction.session.delete` — delete one of your live extraction runs | ✅ | ✅ | ✅ | — |
+| `agent.extraction.session.playground.read` — see your playground extraction runs with the project's agents, and the documents you uploaded for them | ✅ | ✅ | — | — |
+| `agent.extraction.session.playground.create` — upload a document and run a playground extraction with an agent | ✅ | ✅ | — | — |
+| `agent.extraction.session.playground.delete` — delete one of your playground extraction runs | ✅ | ✅ | — | — |
+| `project.agent_session_category.create` — create a conversation category in the project, optionally assigned to every conversational agent | ✅ | ✅ | — | — |
+| `project.agent_session_category.delete` — delete a conversation category from the project | ✅ | ✅ | — | — |
+| `project.agent_message_feedback.read` — see the feedback people left on an agent's messages | ✅ | ✅ | — | — |
+| `project.agent_message_feedback.create` — leave feedback on an agent's message | ✅ | ✅ | ✅ | — |
+| `project.mcp_server.read` — see the project's MCP servers | ✅ | ✅ | ✅ | — |
+| `project.mcp_server.create` — add an MCP server to the project | ✅ | ✅ | — | — |
+| `project.mcp_server.update` — turn an MCP server on or off for an agent, or connect it through OAuth | ✅ | ✅ | — | — |
+| `project.mcp_server.delete` — delete an MCP server from the project | ✅ | ✅ | — | — |
+| `project.app_installation.read` — see the apps installed on the project | ✅ | ✅ | — | — |
+| `project.app_installation.revoke` — revoke an app installed on the project | ✅ | ✅ | — | — |
+| `project.app_installation.create` — install an app on the project | ✅ | ✅ | — | — |
+| `agent.conversation.session.external.create` — open conversations with the project's agents for people outside the platform | ✅ | ✅ | — | — |
+| `project.review_campaign.read` — see the project's review campaigns | ✅ | ✅ | — | — |
+| `project.review_campaign.create` — create a review campaign | ✅ | ✅ | — | — |
+| `project.review_campaign.update` — update a review campaign | ✅ | ✅ | — | — |
+| `project.review_campaign.delete` — delete a review campaign | ✅ | ✅ | — | — |
+| `project.review_campaign.member.delete` — remove a tester or a reviewer from a review campaign | ✅ | ✅ | — | — |
+| `project.review_campaign.member.invite` — invite testers and reviewers to a review campaign, see and revoke pending invitations | ✅ | ✅ | — | — |
+| `review_campaign.report.read` — see the report of the project's review campaigns (passed down to each campaign) | ✅ | ✅ | — | — |
+| `user.read` — see the project's members | ✅ | ✅ | — | — |
+| `backoffice.project.read` — see the project in the backoffice | ✅ | ✅ | — | — |
+| `backoffice.project.update` — mutate the project from the backoffice (e.g. feature flags) | ✅ | ✅ | — | — |
+| `backoffice.agent.read` — see the project's agents in the backoffice | ✅ | ✅ | — | — |
 
 ## Agent roles
 

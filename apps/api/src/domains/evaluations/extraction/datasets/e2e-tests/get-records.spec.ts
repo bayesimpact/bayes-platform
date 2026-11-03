@@ -9,7 +9,10 @@ import {
   teardownTestDatabase,
 } from "@/common/test/test-transaction-manager"
 import { removeNullish } from "@/common/utils/remove-nullish"
-import { createOrganizationWithDocument } from "@/domains/organizations/organization.factory"
+import {
+  createOrganizationWithDocument,
+  OWNER_EVALUATOR_PROJECT_MEMBERSHIP,
+} from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../../test/request"
@@ -62,7 +65,9 @@ describe("EvaluationExtractionDatasets - getRecords", () => {
   })
 
   const createContext = async () => {
-    const { user, organization, project } = await createOrganizationWithDocument(repositories)
+    const { user, organization, project } = await createOrganizationWithDocument(repositories, {
+      projectMembership: OWNER_EVALUATOR_PROJECT_MEMBERSHIP,
+    })
     organizationId = organization.id
     projectId = project.id
     authSubject = user.authSubject!

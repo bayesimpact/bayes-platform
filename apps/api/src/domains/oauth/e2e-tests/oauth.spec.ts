@@ -72,14 +72,15 @@ describe("OAuth authorization server", () => {
 
   const createContext = async ({
     organizationRoleKey = "org_owner",
-    projectRoleKey = "project_owner",
+    // An owner who evaluates holds every grantable permission.
+    projectRoleKeys = ["project_owner", "project_evaluator"],
   }: {
     organizationRoleKey?: OrganizationRoleKey
-    projectRoleKey?: ProjectRoleKey
+    projectRoleKeys?: ProjectRoleKey[]
   } = {}) => {
     const { user, organization, project } = await createOrganizationWithProject(repositories, {
       organizationMembership: { roleKeys: [organizationRoleKey] },
-      projectMembership: { roleKeys: [projectRoleKey] },
+      projectMembership: { roleKeys: projectRoleKeys },
     })
     authSubject = user.authSubject!
     return { user, organization, project }
@@ -224,7 +225,10 @@ describe("OAuth authorization server", () => {
     })
 
     it("offers a project member only what they hold", async () => {
-      await createContext({ organizationRoleKey: "org_member", projectRoleKey: "project_member" })
+      await createContext({
+        organizationRoleKey: "org_member",
+        projectRoleKeys: ["project_member"],
+      })
       const clientId = await registerTestClient(baseUrl)
 
       const response = await getConsent(

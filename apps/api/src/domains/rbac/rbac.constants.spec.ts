@@ -77,6 +77,7 @@ import {
   PROJECT_APP_INSTALLATION_REVOKE_PERMISSION,
   PROJECT_CREATE_PERMISSION,
   PROJECT_DELETE_PERMISSION,
+  PROJECT_EVALUATOR_ROLE,
   PROJECT_MCP_SERVER_CREATE_PERMISSION,
   PROJECT_MCP_SERVER_DELETE_PERMISSION,
   PROJECT_MCP_SERVER_READ_PERMISSION,
@@ -198,10 +199,11 @@ describe("agent draft and sub-agent permissions", () => {
       .filter(([_roleKey, permissions]) => permissions.includes(permission))
       .map(([roleKey]) => roleKey)
 
-  it("grants agent drafts to project owners and admins only", () => {
+  it("grants agent drafts to project owners, admins and evaluators only", () => {
     expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, AGENT_DRAFT_READ_PERMISSION)).toEqual([
       "project_owner",
       "project_admin",
+      PROJECT_EVALUATOR_ROLE,
     ])
     expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, AGENT_DRAFT_READ_PERMISSION)).toEqual([])
   })
@@ -263,10 +265,11 @@ describe("agent settings permissions", () => {
     AGENT_SETTINGS_ARCHIVE_PERMISSION,
   ]
 
-  it("grants the settings history to project owners and admins only", () => {
+  it("grants the settings history to project owners, admins and evaluators only", () => {
     expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, AGENT_SETTINGS_DRAFT_READ_PERMISSION)).toEqual([
       "project_owner",
       "project_admin",
+      PROJECT_EVALUATOR_ROLE,
     ])
     expect(
       rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, AGENT_SETTINGS_DRAFT_READ_PERMISSION),
@@ -346,11 +349,8 @@ describe("evaluation extraction dataset permissions", () => {
 
   it.each(
     evaluationExtractionDatasetPermissions,
-  )("grants %s to project owners and admins only", (permission) => {
-    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
-      "project_owner",
-      "project_admin",
-    ])
+  )("grants %s to project evaluators only", (permission) => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([PROJECT_EVALUATOR_ROLE])
     expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
     expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
   })
@@ -377,13 +377,16 @@ describe("user interface permissions", () => {
     ])
   })
 
-  it.each([
-    STUDIO_UI_READ_PERMISSION,
-    EVALUATION_UI_READ_PERMISSION,
-  ])("grants %s to project owners and admins only", (permission) => {
-    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
+  it("grants studio.ui.read to project owners and admins only", () => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, STUDIO_UI_READ_PERMISSION)).toEqual([
       "project_owner",
       "project_admin",
+    ])
+  })
+
+  it("grants evaluation.ui.read to project evaluators only", () => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, EVALUATION_UI_READ_PERMISSION)).toEqual([
+      PROJECT_EVALUATOR_ROLE,
     ])
   })
 
@@ -414,11 +417,8 @@ describe("evaluation extraction run permissions", () => {
 
   it.each(
     evaluationExtractionRunPermissions,
-  )("grants %s to project owners and admins only", (permission) => {
-    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
-      "project_owner",
-      "project_admin",
-    ])
+  )("grants %s to project evaluators only", (permission) => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([PROJECT_EVALUATOR_ROLE])
     expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
     expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
   })
@@ -446,11 +446,8 @@ describe("evaluation conversation dataset permissions", () => {
 
   it.each(
     evaluationConversationDatasetPermissions,
-  )("grants %s to project owners and admins only", (permission) => {
-    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
-      "project_owner",
-      "project_admin",
-    ])
+  )("grants %s to project evaluators only", (permission) => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([PROJECT_EVALUATOR_ROLE])
     expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
     expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
   })
@@ -478,11 +475,8 @@ describe("evaluation conversation run permissions", () => {
 
   it.each(
     evaluationConversationRunPermissions,
-  )("grants %s to project owners and admins only", (permission) => {
-    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([
-      "project_owner",
-      "project_admin",
-    ])
+  )("grants %s to project evaluators only", (permission) => {
+    expect(rolesHolding(PROJECT_ROLE_PERMISSIONS, permission)).toEqual([PROJECT_EVALUATOR_ROLE])
     expect(rolesHolding(ORGANIZATION_ROLE_PERMISSIONS, permission)).toEqual([])
     expect(rolesHolding(AGENT_ROLE_PERMISSIONS, permission)).toEqual([])
   })
@@ -992,7 +986,9 @@ describe("review campaign role permissions", () => {
     }
     for (const [roleKey, permissions] of Object.entries(PROJECT_ROLE_PERMISSIONS)) {
       expect(permissions.filter(isCampaignKey)).toEqual(
-        roleKey === "project_member" ? [] : [REVIEW_CAMPAIGN_REPORT_READ_PERMISSION],
+        roleKey === "project_member" || roleKey === PROJECT_EVALUATOR_ROLE
+          ? []
+          : [REVIEW_CAMPAIGN_REPORT_READ_PERMISSION],
       )
     }
   })
