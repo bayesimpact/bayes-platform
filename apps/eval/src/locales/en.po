@@ -1,0 +1,121 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2026-11-03 15:47+0100\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: en\n"
+
+#: src/components/shared/RouteErrorState.tsx
+msgid "A new version of the app is available"
+msgstr "A new version of the app is available"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Account already exists"
+msgstr "Account already exists"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "An account already exists for your email address, and this platform does not link a new sign-in to an existing account."
+msgstr "An account already exists for your email address, and this platform does not link a new sign-in to an existing account."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "An account is waiting for your email address, but your identity provider has not verified it yet."
+msgstr "An account is waiting for your email address, but your identity provider has not verified it yet."
+
+#: src/components/shared/NotFoundState.tsx
+msgid "Back to the app"
+msgstr "Back to the app"
+
+#: src/components/shared/RouteErrorState.tsx
+msgid "Check your connection, then try again."
+msgstr "Check your connection, then try again."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Contact your administrator."
+msgstr "Contact your administrator."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Each new sign-in ended at once, so the app stopped starting new ones."
+msgstr "Each new sign-in ended at once, so the app stopped starting new ones."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Email address missing"
+msgstr "Email address missing"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "If it keeps happening, contact your administrator with the message below."
+msgstr "If it keeps happening, contact your administrator with the message below."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Open the verification email your identity provider sent you, and check your spam folder. Click the link it contains, then try again."
+msgstr "Open the verification email your identity provider sent you, and check your spam folder. Click the link it contains, then try again."
+
+#: src/components/shared/NotFoundState.tsx
+msgid "Page not found"
+msgstr "Page not found"
+
+#: src/components/shared/RouteErrorState.tsx
+msgid "Reload"
+msgstr "Reload"
+
+#: src/components/shared/RouteErrorState.tsx
+msgid "Reload the page to keep going."
+msgstr "Reload the page to keep going."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Sign out"
+msgstr "Sign out"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Sign-in expired"
+msgstr "Sign-in expired"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Sign-in failed"
+msgstr "Sign-in failed"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "The app needs it to find your invitations. Contact your administrator."
+msgstr "The app needs it to find your invitations. Contact your administrator."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "The sign-in keeps failing"
+msgstr "The sign-in keeps failing"
+
+#: src/components/shared/RouteErrorState.tsx
+msgid "This page could not load"
+msgstr "This page could not load"
+
+#: src/components/shared/NotFoundState.tsx
+msgid "This page does not exist, or you cannot open it."
+msgstr "This page does not exist, or you cannot open it."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "This sign-in started too long ago, or another tab started a new one, and this tab can no longer complete it."
+msgstr "This sign-in started too long ago, or another tab started a new one, and this tab can no longer complete it."
+
+#: src/components/shared/RouteErrorState.tsx
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Try again"
+msgstr "Try again"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Try again in a moment. If this page comes back, sign out, then sign in again."
+msgstr "Try again in a moment. If this page comes back, sign out, then sign in again."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Try again to sign in. If this page comes back, close the other tabs of the app."
+msgstr "Try again to sign in. If this page comes back, close the other tabs of the app."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Verify your email"
+msgstr "Verify your email"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Your identity provider did not share your email address with the app."
+msgstr "Your identity provider did not share your email address with the app."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Your identity provider refused the sign-in."
+msgstr "Your identity provider refused the sign-in."
