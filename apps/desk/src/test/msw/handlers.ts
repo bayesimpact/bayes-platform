@@ -187,8 +187,8 @@ function conversationHandlers(world: DeskWorld) {
       const messages = world.messages[params.agentSessionId]
       return messages ?? apiError(404)
     }),
-    mockStreamRoute(DeskConversationsRoutes.streamReply, ({ params, query }) => {
-      const { content, attachmentDocumentId } = query.q.payload
+    mockStreamRoute(DeskConversationsRoutes.streamReply, ({ params, payload }) => {
+      const { content, attachmentDocumentId } = payload
       const reply = buildConversationMessage({
         content:
           `Here is what I found about "${content}". ` +

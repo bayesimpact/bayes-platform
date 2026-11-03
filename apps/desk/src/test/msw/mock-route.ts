@@ -15,7 +15,7 @@ type MockParams<TRoute extends MockedRoute> = z.output<TRoute["schemas"]["params
 type MockQuery<TRoute extends MockedRoute> = z.output<TRoute["schemas"]["query"]>
 
 /** The `payload` of the body, as the API's validation pipe outputs it, or `undefined` without one. */
-type MockPayload<TRoute extends AnySchemaRoute> =
+type MockPayload<TRoute extends MockedRoute> =
   z.output<TRoute["schemas"]["body"]> extends { payload: infer TPayload } ? TPayload : undefined
 
 /** The `data` the route answers, before its response schema parses it. */
@@ -81,6 +81,22 @@ function parseQuery<TSchema extends z.ZodObject>(
 /** A request the contract refuses, as the API's validation pipe answers it: a 400. */
 const invalidRequest = (error: z.ZodError) => apiError(400, z.prettifyError(error))
 
+/** The body, decoded by the route's schema: `{ payload }` when the route reads one, `{}` otherwise. */
+async function parseBody<TRoute extends MockedRoute>(
+  route: TRoute,
+  request: Request,
+): Promise<z.ZodSafeParseResult<{ payload?: unknown }>> {
+  const hasBody = "payload" in route.schemas.body.shape
+  return route.schemas.body.safeParse(hasBody ? await request.clone().json() : {})
+}
+
+/** The `payload` of a parsed body, or `undefined` for a route that reads none. */
+function payloadOf<TRoute extends MockedRoute>(body: { payload?: unknown }): MockPayload<TRoute> {
+  // Safe: the body schema outputs `{ payload }` when the route reads a body, and `{}` otherwise,
+  // which MockPayload<TRoute> names in each case: the payload, or undefined.
+  return ("payload" in body ? body.payload : undefined) as MockPayload<TRoute>
+}
+
 /**
  * An MSW handler for a route of the contracts: its method and path come from the route, its
  * params, query and body are decoded by the route's schemas (a 400 when they refuse them, as the
@@ -94,7 +110,6 @@ export function mockRoute<TRoute extends AnySchemaRoute>(
   options?: RequestHandlerOptions,
 ) {
   const routeName = `${route.method.toUpperCase()} ${route.path}`
-  const hasBody = "payload" in route.schemas.body.shape
   return http[route.method](
     pathOf(route),
     async ({ params, request }) => {
@@ -102,15 +117,13 @@ export function mockRoute<TRoute extends AnySchemaRoute>(
       if (!parsedParams.success) return invalidRequest(parsedParams.error)
       const parsedQuery = parseQuery<TRoute["schemas"]["query"]>(route.schemas.query, request)
       if (!parsedQuery.success) return invalidRequest(parsedQuery.error)
-      const body = route.schemas.body.safeParse(hasBody ? await request.clone().json() : {})
+      const body = await parseBody(route, request)
       if (!body.success) return invalidRequest(body.error)
 
       const answer = await resolver({
         params: parsedParams.data,
         query: parsedQuery.data,
-        // Safe: the body schema outputs `{ payload }` when the route reads a body, and `{}`
-        // otherwise, which MockPayload<TRoute> names in each case: the payload, or undefined.
-        payload: ("payload" in body.data ? body.data.payload : undefined) as MockPayload<TRoute>,
+        payload: payloadOf<TRoute>(body.data),
         request,
       })
       if (answer instanceof Response) return answer
@@ -135,6 +148,7 @@ export type MockStreamFrame<TRoute extends AnyStreamRoute> =
 export type MockStreamResolver<TRoute extends AnyStreamRoute> = (request: {
   params: MockParams<TRoute>
   query: MockQuery<TRoute>
+  payload: MockPayload<TRoute>
   request: Request
 }) => MaybePromise<MockStreamFrame<TRoute>[] | Response>
 
@@ -162,9 +176,10 @@ function streamOf(frames: string[]): ReadableStream<Uint8Array> {
 }
 
 /**
- * An MSW handler for a stream route of the contracts: its params and query are decoded by the
- * route's schemas, and each event the resolver returns is parsed by the event schema, then sent
- * as a server-sent event. A list that ends without an `end` event is a stream that closes early.
+ * An MSW handler for a stream route of the contracts: its method comes from the route, its params,
+ * query and body are decoded by the route's schemas, and each event the resolver returns is parsed
+ * by the event schema, then sent as a server-sent event. It answers 200 whatever the method, as
+ * the API's streams do. A list that ends without an `end` event is a stream that closes early.
  */
 export function mockStreamRoute<TRoute extends AnyStreamRoute>(
   route: TRoute,
@@ -172,16 +187,19 @@ export function mockStreamRoute<TRoute extends AnyStreamRoute>(
   resolver: NoInfer<MockStreamResolver<TRoute>>,
   options?: RequestHandlerOptions,
 ) {
-  return http.get(
+  return http[route.method](
     pathOf(route),
     async ({ params, request }) => {
       const parsedParams = parseParams<TRoute["schemas"]["params"]>(route.schemas.params, params)
       if (!parsedParams.success) return invalidRequest(parsedParams.error)
       const parsedQuery = parseQuery<TRoute["schemas"]["query"]>(route.schemas.query, request)
       if (!parsedQuery.success) return invalidRequest(parsedQuery.error)
+      const body = await parseBody(route, request)
+      if (!body.success) return invalidRequest(body.error)
       const answer = await resolver({
         params: parsedParams.data,
         query: parsedQuery.data,
+        payload: payloadOf<TRoute>(body.data),
         request,
       })
       if (answer instanceof Response) return answer

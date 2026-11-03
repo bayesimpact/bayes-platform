@@ -121,14 +121,14 @@ describe("Agent Session Messages - stream - Auth", () => {
     agentSessionId = agentSession.id
   }
 
-  /** The stream is a GET: its payload travels JSON-encoded in `?q=`. */
+  /** The stream is a POST: its payload travels in the body. */
   const subject = (type: BaseAgentSessionTypeDto) => {
     const path = AgentSessionMessagesRoutes[type].stream.getPath(
       removeNullish({ organizationId, projectId, agentId, agentSessionId }),
     )
     const req = request(app.getHttpServer())
-      .get(path)
-      .query({ q: JSON.stringify({ payload: { content: "Hello" } }) })
+      .post(path)
+      .send({ payload: { content: "Hello" } })
       .set("Connection", "close")
     if (accessToken) req.set("Authorization", `Bearer ${accessToken}`)
     return req
