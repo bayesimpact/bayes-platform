@@ -99,10 +99,11 @@ export function InviteConfirmation({
                 </p>
               </div>
               <ul className="flex flex-col gap-2">
+                {/* Two lines per person: the email, then their access as a short sentence. */}
                 {knownPeople.map(({ email, access }) => (
-                  <li key={email} className="flex flex-wrap justify-between gap-x-3">
+                  <li key={email} className="flex flex-col">
                     <span className="break-all">{email}</span>
-                    <span className="text-muted-foreground">
+                    <span className="text-xs text-muted-foreground">
                       {describeAccess({
                         access,
                         agents,
@@ -136,7 +137,10 @@ export function InviteConfirmation({
   )
 }
 
-/** What a person already in the workspace holds there: their role, and their agents. */
+/**
+ * What a person already in the workspace holds there, as a short sentence: "Membre, on Helpful
+ * Assistant and Scheduling Bot". An admin reaches every agent, so their role says it all.
+ */
 function describeAccess({
   access,
   agents,
@@ -147,6 +151,11 @@ function describeAccess({
   roleLabel: string
 }): string {
   if (access.workspaceRoleKey === WORKSPACE_ADMIN_ROLE_KEY) return roleLabel
-  const heldAgents = agents.filter((agent) => access.agentIds.includes(agent.id))
-  return [roleLabel, ...heldAgents.map((agent) => agent.name)].join(" · ")
+  const agentNames = agents
+    .filter((agent) => access.agentIds.includes(agent.id))
+    .map((agent) => agent.name)
+  if (agentNames.length === 0) return `${roleLabel}, on no agent`
+  const lastName = agentNames.pop()
+  const list = agentNames.length > 0 ? `${agentNames.join(", ")} and ${lastName}` : lastName
+  return `${roleLabel}, on ${list}`
 }
