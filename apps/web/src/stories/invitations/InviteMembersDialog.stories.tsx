@@ -130,7 +130,7 @@ export const AlreadyMember: Story = {
   },
 }
 
-/** A workspace with many agents: a search box narrows the list, which scrolls. */
+/** A workspace with many agents: a search box narrows the list. The dialog scrolls, the footer stays. */
 export const ManyAgents: Story = {
   args: {
     agents: manyAgents,

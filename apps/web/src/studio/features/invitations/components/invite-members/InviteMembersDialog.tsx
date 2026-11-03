@@ -244,7 +244,8 @@ export function InviteMembersDialog({
               </p>
             )}
 
-            <DialogFooter>
+            {/* Kept in view while the dialog scrolls, over the dialog's bottom padding. */}
+            <DialogFooter className="sticky -bottom-6 -mx-6 -mb-6 rounded-b-lg border-t bg-background px-6 py-4">
               <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
                 Cancel
               </Button>

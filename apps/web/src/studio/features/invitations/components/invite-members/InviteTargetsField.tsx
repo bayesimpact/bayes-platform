@@ -77,7 +77,7 @@ export function InviteTargetsField({
           />
         </InputGroup>
       )}
-      <ItemGroup className="max-h-64 gap-1 overflow-y-auto">
+      <ItemGroup className="gap-1">
         {visibleTargets.map((target) => {
           const id = `${idPrefix}-${target.id}`
           const roleKey = picked.get(target.id)
