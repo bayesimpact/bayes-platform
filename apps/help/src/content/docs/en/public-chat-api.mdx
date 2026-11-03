@@ -79,7 +79,7 @@ a new one. On `410`, you can tell the user that the previous conversation expire
 | `POST` | `/public/v1/agents/{embedToken}/sessions` | Create a session |
 | `GET` | `/public/v1/agents/{embedToken}/sessions/{sessionId}` | Read a session and its messages |
 | `GET` | `/public/v1/agents/{embedToken}/sessions/{sessionId}/mcp-app-html` | Read the HTML of MCP App cards |
-| `POST` | `/public/v1/agents/{embedToken}/sessions/{sessionId}/stream` | Send a message and stream the reply |
+| `POST` | `/public/v1/agents/{embedToken}/sessions/{sessionId}/messages/stream` | Send a message and stream the reply |
 | `GET` | `/public/v1/agents/{embedToken}/sessions/{sessionId}/messages/stream` | Deprecated: the same, with the message in the URL |
 
 ### Get the agent configuration
@@ -271,7 +271,7 @@ Status: `200`. Errors: `401`, `403`, `410`.
 ### Send a message and stream the reply
 
 ```
-POST /public/v1/agents/{embedToken}/sessions/{sessionId}/stream
+POST /public/v1/agents/{embedToken}/sessions/{sessionId}/messages/stream
 X-Session-Token: {sessionToken}
 Content-Type: application/json
 Accept: text/event-stream

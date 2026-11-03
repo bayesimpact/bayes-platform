@@ -85,18 +85,18 @@ export const PublicChatRoutes = {
   }),
 
   /**
-   * Same server-sent events as `streamMessages`, with the payload in the JSON body instead
-   * of the URL: a long message cannot exceed a proxy's URL limit, and access logs never
-   * hold its text. Answers 200. The path is not under `messages/` so that no
-   * `POST .../messages/:messageId` route can ever catch it. Added in 1.3, so the unprefixed
-   * paths do not carry it.
+   * Same path and server-sent events as `streamMessages`, with POST and the payload in the
+   * JSON body instead of the URL: a long message cannot exceed a proxy's URL limit, and
+   * access logs never hold its text. Answers 200. A `POST .../messages/:messageId` route
+   * registered before it would catch it, so the public API must not add one. Added in 1.3,
+   * so the unprefixed paths do not carry it.
    */
   streamReply: defineRoute<
     ResponseData<PublicStreamEventPayload>,
     RequestPayload<PublicChatStreamRequestDto>
   >({
     method: "post",
-    path: `${v1AgentBasePath}/sessions/:sessionId/stream`,
+    path: `${v1AgentBasePath}/sessions/:sessionId/messages/stream`,
   }),
 }
 

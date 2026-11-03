@@ -97,7 +97,7 @@ describe("PublicChat - contract v1", () => {
       })
       expect(PublicChatRoutes.streamReply).toMatchObject({
         method: "post",
-        path: `${publicBase}/sessions/:sessionId/stream`,
+        path: `${publicBase}/sessions/:sessionId/messages/stream`,
       })
     })
 
@@ -105,10 +105,10 @@ describe("PublicChat - contract v1", () => {
       expect(PublicChatLegacyRoutes).not.toHaveProperty("streamReply")
     })
 
-    it("does not accept POST on the stream path", async () => {
+    it("does not accept POST on the unprefixed stream path", async () => {
       await createContext()
       const response = await request(app.getHttpServer())
-        .post(PublicChatRoutes.streamMessages.getPath(pathParams()))
+        .post(PublicChatLegacyRoutes.streamMessages.getPath(pathParams()))
         .set("Connection", "close")
         .set("X-Session-Token", sessionToken)
         .send({ payload: { content: "Hello" } })

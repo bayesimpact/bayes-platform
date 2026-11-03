@@ -83,7 +83,7 @@ que la conversation précédente a expiré.
 | `POST` | `/public/v1/agents/{embedToken}/sessions` | Créer une session |
 | `GET` | `/public/v1/agents/{embedToken}/sessions/{sessionId}` | Lire une session et ses messages |
 | `GET` | `/public/v1/agents/{embedToken}/sessions/{sessionId}/mcp-app-html` | Lire le HTML des cartes MCP App |
-| `POST` | `/public/v1/agents/{embedToken}/sessions/{sessionId}/stream` | Envoyer un message et recevoir la réponse en flux |
+| `POST` | `/public/v1/agents/{embedToken}/sessions/{sessionId}/messages/stream` | Envoyer un message et recevoir la réponse en flux |
 | `GET` | `/public/v1/agents/{embedToken}/sessions/{sessionId}/messages/stream` | Déprécié : la même chose, avec le message dans l'URL |
 
 ### Lire la configuration de l'agent
@@ -274,7 +274,7 @@ Statut : `200`. Erreurs : `401`, `403`, `410`.
 ### Envoyer un message et recevoir la réponse en flux
 
 ```
-POST /public/v1/agents/{embedToken}/sessions/{sessionId}/stream
+POST /public/v1/agents/{embedToken}/sessions/{sessionId}/messages/stream
 X-Session-Token: {sessionToken}
 Content-Type: application/json
 Accept: text/event-stream

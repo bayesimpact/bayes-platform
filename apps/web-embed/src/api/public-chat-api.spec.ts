@@ -32,7 +32,9 @@ describe("streamReply", () => {
 
     expect(fetchMock).toHaveBeenCalledTimes(1)
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit]
-    expect(url).toMatch(/\/public\/v1\/agents\/embed-token\/sessions\/session-id\/stream$/)
+    expect(url).toMatch(
+      /\/public\/v1\/agents\/embed-token\/sessions\/session-id\/messages\/stream$/,
+    )
     expect(url).not.toContain("?")
     expect(url).not.toContain(encodeURIComponent(message))
     expect(init.method).toBe("POST")

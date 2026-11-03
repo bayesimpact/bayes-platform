@@ -39,7 +39,7 @@ clients and come with a deprecation period. See the
 ### Added
 
 - [Send a message and stream the reply](/en/public-chat-api#send-a-message-and-stream-the-reply)
-  with `POST /public/v1/agents/{embedToken}/sessions/{sessionId}/stream`. The message
+  with `POST /public/v1/agents/{embedToken}/sessions/{sessionId}/messages/stream`. The message
   travels in the JSON body, so it no longer reaches URL limits or access logs. The response
   is the same stream.
 - The stream-level error `Invalid request body`, for a `POST` body without a `payload`

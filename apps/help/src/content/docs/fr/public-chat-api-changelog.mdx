@@ -40,7 +40,7 @@ de dépréciation. Voir la
 ### Ajouté
 
 - [Envoyer un message et recevoir la réponse en flux](/fr/public-chat-api#envoyer-un-message-et-recevoir-la-réponse-en-flux)
-  avec `POST /public/v1/agents/{embedToken}/sessions/{sessionId}/stream`. Le message voyage
+  avec `POST /public/v1/agents/{embedToken}/sessions/{sessionId}/messages/stream`. Le message voyage
   dans le corps JSON. Il n'atteint donc plus les limites d'URL ni les journaux d'accès. La
   réponse est le même flux.
 - L'erreur de flux `Invalid request body`, pour un corps `POST` sans objet `payload`.

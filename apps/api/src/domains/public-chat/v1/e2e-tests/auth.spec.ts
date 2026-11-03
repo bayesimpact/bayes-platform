@@ -244,10 +244,10 @@ describe("PublicChat - Auth", () => {
   })
 
   // ──────────────────────────────────────────────────
-  // POST /public/v1/agents/:embedToken/sessions/:sessionId/stream
+  // POST /public/v1/agents/:embedToken/sessions/:sessionId/messages/stream
   // ──────────────────────────────────────────────────
   describe("streamReply", () => {
-    const streamPath = () => `/public/v1/agents/${embedToken}/sessions/${sessionId}/stream`
+    const streamPath = () => `/public/v1/agents/${embedToken}/sessions/${sessionId}/messages/stream`
     const subject = () =>
       request(app.getHttpServer())
         .post(streamPath())
