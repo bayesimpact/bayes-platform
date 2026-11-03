@@ -117,7 +117,7 @@ When a user opens the playground:
 
 The playground chat uses a **streaming endpoint** for LLM responses:
 
-- **Route**: `GET /agent-sessions/:sessionId/stream?q=<userMessage>`
+- **Route**: `POST .../agent-sessions/{live,playground,review_campaign_tester}/:agentSessionId/stream`, with the message in the body (`{ payload: { content } }`), never in the URL
 - **Controller**: `agentSessionStreamingController.streamPlayground`
   - Decorated with `@Sse()` for Server-Sent Events
   - Protected by `JwtAuthGuard` and `UserGuard`
@@ -521,7 +521,7 @@ export async function streamChatResponse(
 **Implementation Details**:
 
 1. **Request Setup**:
-   - Constructs URL: `/agent-sessions/:sessionId/stream?q=<encodedMessage>`
+   - Sends a `POST` to the session type's stream path, with the message as the JSON body
    - Adds `Authorization: Bearer <token>` header
    - Sets `Accept: "text/event-stream"`
 

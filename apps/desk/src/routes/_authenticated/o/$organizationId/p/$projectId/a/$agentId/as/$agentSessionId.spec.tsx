@@ -149,6 +149,35 @@ describe("a conversation", () => {
     )
   })
 
+  it("sends the message in the body of the stream, never in its URL", async () => {
+    // A message in the URL can exceed a proxy's limit and is copied to every access log.
+    const world = serveDeskWorld()
+    const sent: { search: string; content: string }[] = []
+    const replyId = crypto.randomUUID()
+    server.use(
+      mockStreamRoute(
+        DeskConversationsRoutes.streamReply,
+        ({ request, payload }) => {
+          sent.push({ search: new URL(request.url).search, content: payload.content })
+          return [
+            { event: { type: "start", messageId: replyId } },
+            { event: { type: "end", messageId: replyId, fullContent: "Noted." } },
+          ]
+        },
+        { once: true },
+      ),
+    )
+    renderApp(conversationUrlOf(world))
+
+    await writeMessage(
+      await screen.findByRole("textbox", { name: "Message to Helpful Assistant" }),
+      "A private message",
+      { send: true },
+    )
+
+    await waitFor(() => expect(sent).toEqual([{ search: "", content: "A private message" }]))
+  })
+
   it("shows the code the person wrote between backticks as chips", async () => {
     const world = serveDeskWorld()
     renderApp(conversationUrlOf(world))
