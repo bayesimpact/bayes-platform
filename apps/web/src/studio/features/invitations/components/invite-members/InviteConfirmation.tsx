@@ -1,9 +1,8 @@
-import { Alert, AlertDescription } from "@caseai-connect/ui/shad/alert"
+import { Alert, AlertDescription, AlertTitle } from "@caseai-connect/ui/shad/alert"
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
 import { DialogFooter, DialogHeader, DialogTitle } from "@caseai-connect/ui/shad/dialog"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/ui/shad/tooltip"
-import { CircleAlertIcon, InfoIcon } from "lucide-react"
+import { CircleAlertIcon, TriangleAlertIcon } from "lucide-react"
 import type { RoleOption } from "@/studio/features/project-memberships/components/member-detail/member-detail.models"
 import { useRoleLabel } from "@/studio/features/project-memberships/components/members-table/role-label"
 import {
@@ -44,7 +43,11 @@ export function InviteConfirmation({
     const role = workspaceRoles.find((candidate) => candidate.key === roleKey)
     return role ? roleLabel(role) : roleKey
   }
-  const hasKnownPeople = values.emails.some((email) => existingAccess[email])
+  const newEmails = values.emails.filter((email) => !existingAccess[email])
+  const knownPeople = values.emails.flatMap((email) => {
+    const access = existingAccess[email]
+    return access ? [{ email, access }] : []
+  })
   const isAdmin = values.workspaceRoleKey === WORKSPACE_ADMIN_ROLE_KEY
   const pickedAgents = agents.filter((agent) => values.agentIds.includes(agent.id))
   const agentsLine = isAdmin
@@ -67,46 +70,45 @@ export function InviteConfirmation({
           <dd>{agentsLine}</dd>
         </dl>
 
-        {/* Every invitee as a chip, to keep a long list short. A person already in the workspace
-            gets a marked chip, with what they hold on hover. */}
-        <div className="flex flex-col gap-2">
+        {/* Newcomers as chips. People already in the workspace go apart, in a warning: the
+            invitation changes less, or nothing, for them. */}
+        {newEmails.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
-            {values.emails.map((email) => {
-              const access = existingAccess[email]
-              if (!access) {
-                return (
-                  <Badge key={email} variant="outline">
-                    {email}
-                  </Badge>
-                )
-              }
-              return (
-                <Tooltip key={email}>
-                  <TooltipTrigger asChild>
-                    <Badge variant="secondary" tabIndex={0} className="cursor-default">
-                      <InfoIcon />
-                      {email}
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    {describeExistingAccess({
-                      access,
-                      values,
-                      pickedAgents,
-                      roleLabel: labelOf(access.workspaceRoleKey),
-                    })}
-                  </TooltipContent>
-                </Tooltip>
-              )
-            })}
+            {newEmails.map((email) => (
+              <Badge key={email} variant="outline">
+                {email}
+              </Badge>
+            ))}
           </div>
-          {hasKnownPeople && (
-            <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <InfoIcon className="size-3.5" />
-              Already in the workspace. Hover to see what they hold.
-            </p>
-          )}
-        </div>
+        )}
+
+        {knownPeople.length > 0 && (
+          <Alert variant="warning">
+            <TriangleAlertIcon />
+            <AlertTitle>
+              {knownPeople.length === 1
+                ? "1 person is already in the workspace"
+                : `${knownPeople.length} people are already in the workspace`}
+            </AlertTitle>
+            <AlertDescription>
+              <ul className="flex w-full flex-col gap-1">
+                {knownPeople.map(({ email, access }) => (
+                  <li key={email} className="flex flex-wrap justify-between gap-x-3">
+                    <span className="break-all font-medium">{email}</span>
+                    <span>
+                      {describeExistingAccess({
+                        access,
+                        values,
+                        pickedAgents,
+                        roleLabel: labelOf(access.workspaceRoleKey),
+                      })}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </AlertDescription>
+          </Alert>
+        )}
 
         {error && (
           <Alert variant="destructive">
@@ -150,7 +152,7 @@ function describeExistingAccess({
     (access.workspaceRoleKey === values.workspaceRoleKey &&
       heldAgents.length === pickedAgents.length)
 
-  if (addsNothing) return `Already ${roleLabel}, with this access. Nothing changes for them.`
-  if (heldAgents.length === 0) return `Already ${roleLabel}.`
-  return `Already ${roleLabel}, on ${heldAgents.map((agent) => agent.name).join(", ")}.`
+  if (addsNothing) return "Already has this access"
+  if (heldAgents.length === 0) return `Already ${roleLabel}`
+  return `Already ${roleLabel} · ${heldAgents.map((agent) => agent.name).join(", ")}`
 }

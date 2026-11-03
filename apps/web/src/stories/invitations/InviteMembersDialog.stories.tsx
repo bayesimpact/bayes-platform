@@ -157,8 +157,8 @@ export const ConfirmSends: Story = {
 }
 
 /**
- * Some invitees are already in the workspace: their chip is marked, and its hover says what they
- * hold among what is picked, or that the invitation adds nothing for them.
+ * Some invitees are already in the workspace: a warning lists them apart from the newcomers, with
+ * what they hold among what is picked, or that the invitation adds nothing for them.
  */
 export const ConfirmWithExistingMembers: Story = {
   args: {
@@ -174,19 +174,6 @@ export const ConfirmWithExistingMembers: Story = {
     },
   },
   play: async ({ canvasElement }) => review(canvasElement),
-}
-
-/** Hovering a marked chip: what that person already holds. */
-export const ConfirmExistingMemberHover: Story = {
-  args: ConfirmWithExistingMembers.args,
-  play: async ({ canvasElement }) => {
-    const page = body(canvasElement)
-    await review(canvasElement)
-    await userEvent.hover(page.getByText("cruz@example.org"))
-    await expect(
-      (await page.findAllByText("Already Membre, on Helpful Assistant.")).length,
-    ).toBeGreaterThan(0)
-  },
 }
 
 /** The API refused the invitation: the confirmation screen stays, with the reason. */
