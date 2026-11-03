@@ -13,6 +13,8 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Changed
 
+- Analytics: conversations count only sessions with a question, and sessions opened without one are shown apart.
+
 ### Fixed
 
 - Document import errors: a failed document now shows why it failed, in one readable line.

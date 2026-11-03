@@ -1,4 +1,5 @@
 import type { TimeType } from "@caseai-connect/api-contracts"
+import type { ConnectEntityBase } from "@/common/entities/connect-entity"
 import type { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 import { Agent } from "@/domains/agents/agent.entity"
@@ -30,6 +31,7 @@ const PUBLIC_SESSION_ALIAS = "publicAgentSession"
 const PUBLIC_SESSION_CATEGORY_ALIAS = "publicSessionCategory"
 const CATEGORY_ALIAS = "publicCategory"
 const AGENT_ALIAS = "publicSessionAgent"
+const USER_MESSAGE_ALIAS = "publicSessionUserMessage"
 
 /**
  * PUBLIC (embed) sessions' contribution to the conversations-by-category
@@ -39,12 +41,15 @@ const AGENT_ALIAS = "publicSessionAgent"
  */
 export async function getPublicSessionCategoryRows({
   publicAgentSessionConnectRepository,
+  messageEntity,
   connectScope,
   agentId,
   startAt,
   endAt,
 }: {
   publicAgentSessionConnectRepository: ConnectRepository<PublicAgentSession>
+  /** The agent message entity: a session without a user message is not counted. */
+  messageEntity: new () => ConnectEntityBase
   connectScope: RequiredConnectScope
   agentId?: string
   startAt: TimeType
@@ -130,6 +135,19 @@ export async function getPublicSessionCategoryRows({
           `${getQualifiedColumnSql(PUBLIC_SESSION_CATEGORY_ALIAS, "public_agent_session_id")} = ${sessionIdCol}`,
         )
         .getQuery()})`,
+    )
+    // A session without a user message is not a conversation (#1165).
+    .andWhere(
+      `EXISTS (${publicAgentSessionConnectRepository
+        .newQueryBuilderWithConnectScope(connectScope)
+        .subQuery()
+        .select("1")
+        .from(messageEntity, USER_MESSAGE_ALIAS)
+        .where(
+          `${getQualifiedColumnSql(USER_MESSAGE_ALIAS, "session_id")} = ${sessionIdCol} AND ${getQualifiedColumnSql(USER_MESSAGE_ALIAS, "role")} = :userRole`,
+        )
+        .getQuery()})`,
+      { userRole: "user" },
     )
     .groupBy(dayExpr)
     .addGroupBy(sessionAgentIdCol)

@@ -12,6 +12,7 @@ import { removeNullish } from "@/common/utils/remove-nullish"
 import { conversationAgentSessionFactory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session.factory"
 import { ConversationAgentSessionCategory } from "@/domains/agents/conversation-agent-sessions/conversation-agent-session-category.entity"
 import { AgentSessionCategory } from "@/domains/agents/session-categories/agent-session-category.entity"
+import { agentMessageFactory } from "@/domains/agents/shared/agent-session-messages/agent-messages.factory"
 import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../test/rbac-test.helpers"
@@ -58,9 +59,10 @@ describe("Agents Analytics - getConversationsByCategoryPerDay", () => {
   })
 
   const createContext = async () => {
-    const { organization, project, user, agent } = await createOrganizationWithAgent(repositories, {
-      user: { authSubject },
-    })
+    const { organization, project, user, agent, agentSettings } = await createOrganizationWithAgent(
+      repositories,
+      { user: { authSubject } },
+    )
     organizationId = organization.id
     projectId = project.id
     agentId = agent.id
@@ -81,10 +83,24 @@ describe("Agents Analytics - getConversationsByCategoryPerDay", () => {
         createdAt: new Date(day2Start.getTime() + 2 * 60 * 60 * 1000),
         updatedAt: new Date(),
       })
+    // No user message: an empty session is not a conversation, so it is not uncategorized either.
+    const day2EmptySession = conversationAgentSessionFactory
+      .transient({ organization, project, agent, user })
+      .build({
+        createdAt: new Date(day2Start.getTime() + 3 * 60 * 60 * 1000),
+        updatedAt: new Date(),
+      })
     await repositories.conversationAgentSessionRepository.save([
       day1CategorySession,
       day2UncategorizedSession,
+      day2EmptySession,
     ])
+    await repositories.agentMessageRepository.save(
+      agentMessageFactory
+        .user()
+        .transient({ organization, project, session: day2UncategorizedSession, agentSettings })
+        .build({ createdAt: new Date(day2Start.getTime() + 2 * 60 * 60 * 1000 + 60 * 1000) }),
+    )
 
     await setup.getRepository(ConversationAgentSessionCategory).save([
       {

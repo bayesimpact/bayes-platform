@@ -116,7 +116,16 @@ describe("AgentsAnalyticsService", () => {
       startAt: day1Start.getTime(),
       endAt: day1End.getTime(),
     })
-    expect(alphaConversations).toEqual([{ date: day1Start.toISOString().slice(0, 10), value: 2 }])
+    // sessionAlpha2 has no user message: it is an empty session, not a conversation.
+    expect(alphaConversations).toEqual([{ date: day1Start.toISOString().slice(0, 10), value: 1 }])
+
+    const alphaEmptySessions = await service.getEmptySessionsPerDay({
+      connectScope,
+      agentId: agentAlpha.id,
+      startAt: day1Start.getTime(),
+      endAt: day1End.getTime(),
+    })
+    expect(alphaEmptySessions).toEqual([{ date: day1Start.toISOString().slice(0, 10), value: 1 }])
 
     const betaConversations = await service.getConversationsPerDay({
       connectScope,
@@ -132,7 +141,7 @@ describe("AgentsAnalyticsService", () => {
       startAt: day1Start.getTime(),
       endAt: day1End.getTime(),
     })
-    expect(alphaAverages).toEqual([{ date: day1Start.toISOString().slice(0, 10), value: 1 }])
+    expect(alphaAverages).toEqual([{ date: day1Start.toISOString().slice(0, 10), value: 2 }])
 
     const betaAverages = await service.getAvgUserQuestionsPerSessionPerDay({
       connectScope,
@@ -211,6 +220,8 @@ describe("AgentsAnalyticsService", () => {
     const { organization, project, user } = await createOrganizationWithProject(repositories)
     const agent = agentFactory.transient({ organization, project }).build({ name: "Support Agent" })
     await repositories.agentRepository.save(agent)
+    const agentSettings = agentSettingsFactory.transient({ organization, project, agent }).build()
+    await repositories.agentSettingsRepository.save(agentSettings)
 
     const billingCategory = await setup
       .getRepository(AgentSessionCategory)
@@ -222,10 +233,21 @@ describe("AgentsAnalyticsService", () => {
     const uncategorizedSession = conversationAgentSessionFactory
       .transient({ organization, project, agent, user })
       .build({ createdAt: hours(2).after(day2Start), updatedAt: new Date() })
+    // No user message: an empty session is not a conversation, so it is not uncategorized either.
+    const emptySession = conversationAgentSessionFactory
+      .transient({ organization, project, agent, user })
+      .build({ createdAt: hours(3).after(day2Start), updatedAt: new Date() })
     await repositories.conversationAgentSessionRepository.save([
       categorizedSession,
       uncategorizedSession,
+      emptySession,
     ])
+    await repositories.agentMessageRepository.save(
+      agentMessageFactory
+        .user()
+        .transient({ organization, project, session: uncategorizedSession, agentSettings })
+        .build({ createdAt: minutes(5).after(hours(2).after(day2Start)) }),
+    )
 
     await setup.getRepository(ConversationAgentSessionCategory).save([
       {
@@ -329,9 +351,16 @@ describe("AgentsAnalyticsService", () => {
       endAt: endOfUtcDay(day2Start).getTime(),
     }
 
+    // embedSessionDay2 has no user message: an embed opened without a question.
     const conversations = await service.getConversationsPerDay(params)
     expect(conversations).toEqual([
       { date: day1Key, value: 3 },
+      { date: day2Key, value: 0 },
+    ])
+
+    const emptySessions = await service.getEmptySessionsPerDay(params)
+    expect(emptySessions).toEqual([
+      { date: day1Key, value: 0 },
       { date: day2Key, value: 1 },
     ])
 
