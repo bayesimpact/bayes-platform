@@ -47,6 +47,8 @@ import { documentsMiddleware } from "../features/documents/documents.middleware"
 import { documentsSlice } from "../features/documents/documents.slice"
 import { mcpServersMiddleware } from "../features/mcp-servers/mcp-servers.middleware"
 import { mcpServersSlice } from "../features/mcp-servers/mcp-servers.slice"
+import { projectEmbeddingModelsMiddleware } from "../features/project-embedding-models/project-embedding-models.middleware"
+import { projectEmbeddingModelsSlice } from "../features/project-embedding-models/project-embedding-models.slice"
 import { studioProjectsMiddleware } from "../features/projects/projects.middleware"
 import { resourceLibrariesMiddleware } from "../features/resource-libraries/resource-libraries.middleware"
 import { resourceLibrariesSlice } from "../features/resource-libraries/resource-libraries.slice"
@@ -77,6 +79,7 @@ const studioMiddlewareList = [
   extractionAgentSessionsMiddleware,
   mcpServersMiddleware,
   projectAnalyticsMiddleware,
+  projectEmbeddingModelsMiddleware,
   projectMembershipsMiddleware,
   resourceLibrariesMiddleware,
   reviewCampaignsMiddleware,
@@ -108,6 +111,7 @@ export const studioSliceList = [
   extractionAgentSessionsSlice,
   mcpServersSlice,
   projectAnalyticsSlice,
+  projectEmbeddingModelsSlice,
   projectMembershipsSlice,
   projectsSlice,
   resourceLibrariesSlice,

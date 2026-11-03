@@ -1,12 +1,12 @@
 import type { TestingModule } from "@nestjs/testing"
 import type { AllRepositories } from "@/common/test/test-transaction-manager"
-import { userMembershipFactory } from "@/domains/memberships/user-membership.factory"
 import {
   PLATFORM_ORG_CREATOR_ROLE,
   PLATFORM_STAFF_ROLE,
   PLATFORM_SUPERADMIN_ROLE,
 } from "@/domains/rbac/rbac.constants"
 import { RbacService } from "@/domains/rbac/rbac.service"
+import { roleGrantFactory } from "@/domains/rbac/role-grant.factory"
 import type { User } from "@/domains/users/user.entity"
 
 let rbacCatalogReady = false
@@ -38,8 +38,8 @@ async function assignGlobalRoleToUser({
     where: { key: roleKey },
   })
 
-  await repositories.userMembershipRepository.save(
-    userMembershipFactory.build({
+  await repositories.roleGrantRepository.save(
+    roleGrantFactory.build({
       userId: user.id,
       resourceType: "global",
       resourceId: null,

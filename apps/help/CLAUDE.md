@@ -207,7 +207,7 @@ down, mirroring the platform (`SidebarContent` is `flex-1`). Implement with
 `.grp-label.stack { margin-top: auto }`. The active nav item uses
 `bg-sidebar-accent`.
 
-## Agent editor reference (verified 2026-07-13 — RE-VERIFY before reuse)
+## Agent editor reference (verified 2026-10-30 — RE-VERIFY before reuse)
 
 Source of truth: `AgentCreator.tsx` (dialog) + `AgentEditor.tsx` (tab order &
 conditions) + each `Agent*Tab.tsx`.
@@ -218,18 +218,19 @@ conditions) + each `Agent*Tab.tsx`.
 - **Editor = tabs; each tab is its own form with its own `Save` button
   (`actions:save`)** — EXCEPT the **Embed** tab, which saves with **`Update`**
   (`actions:update`). Leaving a tab with unsaved changes prompts a confirm dialog.
-- **Conversation** tabs: General, Model, Sources, Resource libraries, then
+- **Conversation** tabs: General, Model, Sources, Tools, then
   **Conversation categories** (only if the project has categories), **Orchestration**
   (flag `agent-orchestration`), **Embed** (flag `agent-embed`).
 - **Extraction / Form** (non-conversation): General, Model, **Output** (labeled
-  **Form** for form agents). No Sources / Resource libraries / Categories /
+  **Form** for form agents). No Sources / Tools / Categories /
   Orchestration / Embed.
 - **General** fields: Name, Locale, **Greeting** (conversation & form only),
   **Instructions** (`agent:props.instructions` — NOT "Default Prompt", renamed). ·
-  **Model:** Model, Temperature. · **Sources:** Answer source (`documentsRagMode`:
-  model-only / all documents / by tags) + Document Tags. · **Resource libraries:**
-  label `resourceLibrary:agentTab.label`, **Add library** (hardcoded EN), **Manage
-  libraries**.
+  **Model:** Model, Temperature. · **Sources** (one form, one **Save**): a
+  **Documents** section (Answer source `documentsRagMode`: model-only / all documents
+  / by tags + Document Tags), then a **Resource libraries** section (label
+  `resourceLibrary:agentTab.label`, **Add library** (hardcoded EN), **Manage
+  libraries**).
 
 ---
 
@@ -457,8 +458,8 @@ not, a step or label is missing.
 
 - **Terminology: always "workspace" / "espace de travail"**, never "project" /
   "projet".
-- **Keep platform-hardcoded English labels as-is** even in FR (e.g. the agent
-  editor **Resources** tab, **Add library** / its **Search libraries…** /
+- **Keep platform-hardcoded English labels as-is** even in FR (e.g. **Add library**
+  / its **Search libraries…** /
   **No libraries found**). Flag these in the text when useful.
 - **Neutral sample data** — no vertical inferred (see root CLAUDE.md). Use generic
   names (`handbook.pdf`, `example.com`, "Getting started"), not the doc's own
@@ -531,8 +532,6 @@ tags (button) `tags` · single tag `tag` · external link `external-link` · che
 
 ## Known hardcoded-English labels in the product (keep them as-is)
 
-- Agent editor tab is literally **Resources** (not "Resource libraries") —
-  `apps/web/.../BaseAgentForm.tsx`.
 - Resource library picker: **Add library**, **Search libraries…**, **No libraries
   found** — `apps/web/.../ResourceLibraryPicker.tsx`.
 

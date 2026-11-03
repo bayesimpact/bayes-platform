@@ -4,7 +4,7 @@ highlight: conversationnel
 description: Créez un agent conversationnel qui discute avec les utilisateurs, en s'appuyant sur les documents et les bibliothèques de ressources de votre espace de travail.
 category: guides-agents
 order: 1
-updated: 2026-07-22
+updated: 2026-10-30
 ---
 
 import AddConversationAgentWalkthrough from "@/components/AddConversationAgentWalkthrough.astro"
@@ -22,8 +22,8 @@ latérale gauche). **Conversation** est le type par défaut.
 ## Comment fonctionne l'éditeur
 
 Une fois créé, l'agent s'ouvre dans un éditeur à onglets — pour un agent
-conversationnel : **Général**, **Modèle**, **Sources**, **Bibliothèques de
-ressources**, et (quand ils sont disponibles) **Catégories de conversation**,
+conversationnel : **Général**, **Modèle**, **Sources** (documents et
+bibliothèques de ressources), et (quand ils sont disponibles) **Catégories de conversation**,
 [**Orchestration**](/fr/agent-orchestration) et [**Intégration**](/fr/agent-embed). **Chaque onglet est un formulaire à part et
 s'enregistre séparément** — cliquez sur **Enregistrer** sur un onglet pour conserver
 ses modifications ; l'éditeur vous avertit avant de quitter un onglet non enregistré.
@@ -72,25 +72,27 @@ prioritaires coûtent environ 1,8x le prix standard des tokens. L'interrupteur
 n'apparaît que si l'option est activée pour votre espace de travail ; contactez
 l'équipe Bayes pour en faire la demande.
 
-### 6. Sources
+### 6. Sources : documents
 
-Ouvrez l'onglet **Sources** et définissez la **Source de réponse** :
+Ouvrez l'onglet **Sources**. Sa première section, **Documents**, définit ce que
+l'agent consulte pour répondre. Choisissez la **Source de réponse** :
 
 - **Répondre sans consulter de documents** — aucun document consulté.
 - **Rechercher dans tous les documents** — tous les documents de l'espace de travail.
 - **Recherche dans les documents étiquetés** — uniquement les documents portant les
   **Étiquettes de document** choisies.
 
-**Enregistrez**. Voir [Documents](/fr/documents) pour téléverser et étiqueter au
-préalable.
+Voir [Documents](/fr/documents) pour téléverser et étiqueter au préalable.
 
-### 7. Bibliothèques de ressources
+### 7. Sources : bibliothèques de ressources
 
-Ouvrez l'onglet **Bibliothèques de ressources** pour rattacher les **bibliothèques**
-que l'agent peut proposer. Cliquez sur **Add library**, choisissez-en une, et elle
-apparaît sous forme d'étiquette. Utilisez **Gérer les bibliothèques** pour ouvrir le
-gestionnaire. **Enregistrez**. Voir [Bibliothèques de ressources](/fr/resource-libraries)
-pour les créer au préalable.
+Toujours dans l'onglet **Sources**, la section **Bibliothèques de ressources**
+rattache les **bibliothèques** que l'agent peut proposer. Cliquez sur **Add library**,
+choisissez-en une, et elle apparaît sous forme d'étiquette. Utilisez **Gérer les
+bibliothèques** pour ouvrir le gestionnaire. Cliquez une seule fois sur
+**Enregistrer** pour tout l'onglet : documents et bibliothèques sont enregistrés
+ensemble. Voir [Bibliothèques de ressources](/fr/resource-libraries) pour les créer
+au préalable.
 
 ### 8. Catégories de conversation
 

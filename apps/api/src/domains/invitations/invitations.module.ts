@@ -9,7 +9,6 @@ import { MailerModule } from "@/common/mailer/mailer.module"
 import { Agent } from "@/domains/agents/agent.entity"
 import { AgentsModule } from "@/domains/agents/agents.module"
 import { AuthModule } from "@/domains/auth/auth.module"
-import { MembershipsModule } from "@/domains/memberships/memberships.module"
 import { OrganizationsModule } from "@/domains/organizations/organizations.module"
 import { Project } from "@/domains/projects/project.entity"
 import { ProjectsModule } from "@/domains/projects/projects.module"
@@ -32,7 +31,7 @@ import { ReviewCampaignInvitationsController } from "./review-campaign-invitatio
     // Project, Agent and ReviewCampaign are read by the context resolvers of the routes.
     TypeOrmModule.forFeature([Invitation, Project, Agent, ReviewCampaign]),
     MailerModule,
-    MembershipsModule,
+
     UsersModule,
     AuthModule,
     RbacModule,

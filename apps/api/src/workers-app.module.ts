@@ -19,6 +19,8 @@ import { DOCUMENT_EMBEDDINGS_QUEUE_NAME } from "./domains/documents/embeddings/d
 import { DOCUMENT_EMBEDDINGS_STUCK_SWEEP_QUEUE_NAME } from "./domains/documents/embeddings/document-embeddings-stuck.constants"
 import { DocumentEmbeddingsStuckSweepWorkersModule } from "./domains/documents/embeddings/document-embeddings-stuck-sweep-workers.module"
 import { DocumentEmbeddingsWorkersModule } from "./domains/documents/embeddings/document-embeddings-workers.module"
+import { PROJECT_EMBEDDING_REEMBED_QUEUE_NAME } from "./domains/documents/embeddings/project-embedding-models/project-embedding-reembed.constants"
+import { ProjectEmbeddingReembedWorkersModule } from "./domains/documents/embeddings/project-embedding-models/project-embedding-reembed-workers.module"
 import { PDF_EXPORTS_SWEEP_QUEUE_NAME } from "./domains/documents/pdf-exports/pdf-exports.constants"
 import { PdfExportsSweepWorkersModule } from "./domains/documents/pdf-exports/pdf-exports-sweep-workers.module"
 import { StorageModule } from "./domains/documents/storage/storage.module"
@@ -69,6 +71,10 @@ export const WORKER_MODULE_REGISTRY: { module: Type<unknown>; queues: string[] }
   {
     module: DocumentEmbeddingsStuckSweepWorkersModule,
     queues: [DOCUMENT_EMBEDDINGS_STUCK_SWEEP_QUEUE_NAME],
+  },
+  {
+    module: ProjectEmbeddingReembedWorkersModule,
+    queues: [PROJECT_EMBEDDING_REEMBED_QUEUE_NAME],
   },
   {
     module: ConversationRetentionSweepWorkersModule,

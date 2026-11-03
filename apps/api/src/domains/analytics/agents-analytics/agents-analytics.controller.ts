@@ -62,6 +62,24 @@ export class AgentsAnalyticsController {
     return { data: toAnalyticsDailyPointDto(avgUserQuestionsPerSessionPerDay) }
   }
 
+  @Get(Routes.getEmptySessionsPerDay.path)
+  @CheckPermission(AGENT_ANALYTICS_READ_PERMISSION, "agent")
+  async getEmptySessionsPerDay(
+    @Req() request: EndpointRequestWithAgent,
+    @Query("startAt", ParseIntPipe) startAt: number,
+    @Query("endAt", ParseIntPipe) endAt: number,
+  ): Promise<typeof Routes.getEmptySessionsPerDay.response> {
+    const emptySessionsPerDay: AnalyticsDailyPoint[] =
+      await this.agentsAnalyticsService.getEmptySessionsPerDay({
+        connectScope: getRequiredConnectScope(request),
+        agentId: request.agent.id,
+        startAt,
+        endAt,
+      })
+
+    return { data: toAnalyticsDailyPointDto(emptySessionsPerDay) }
+  }
+
   @Get(Routes.getConversationsByCategoryPerDay.path)
   @CheckPermission(AGENT_ANALYTICS_READ_PERMISSION, "agent")
   async getConversationsByCategoryPerDay(

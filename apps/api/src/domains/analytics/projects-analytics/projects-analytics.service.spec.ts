@@ -156,9 +156,22 @@ describe("ProjectsAnalyticsService", () => {
       endAt: day3End.getTime(),
     })
 
+    // session2Day1 has no user message: it is an empty session, not a conversation.
     expect(conversations).toEqual([
-      { date: day1Start.toISOString().slice(0, 10), value: 2 },
+      { date: day1Start.toISOString().slice(0, 10), value: 1 },
       { date: day2Start.toISOString().slice(0, 10), value: 2 },
+      { date: day3Start.toISOString().slice(0, 10), value: 0 },
+    ])
+
+    const emptySessions = await service.getEmptySessionsPerDay({
+      connectScope,
+      startAt: day1Start.getTime(),
+      endAt: day3End.getTime(),
+    })
+
+    expect(emptySessions).toEqual([
+      { date: day1Start.toISOString().slice(0, 10), value: 1 },
+      { date: day2Start.toISOString().slice(0, 10), value: 0 },
       { date: day3Start.toISOString().slice(0, 10), value: 0 },
     ])
 
@@ -169,7 +182,7 @@ describe("ProjectsAnalyticsService", () => {
     })
 
     expect(averages).toEqual([
-      { date: day1Start.toISOString().slice(0, 10), value: 1 },
+      { date: day1Start.toISOString().slice(0, 10), value: 2 },
       { date: day2Start.toISOString().slice(0, 10), value: 3 },
       { date: day3Start.toISOString().slice(0, 10), value: 0 },
     ])
@@ -182,7 +195,7 @@ describe("ProjectsAnalyticsService", () => {
     })
 
     expect(filteredConversations).toEqual([
-      { date: day1Start.toISOString().slice(0, 10), value: 2 },
+      { date: day1Start.toISOString().slice(0, 10), value: 1 },
       { date: day2Start.toISOString().slice(0, 10), value: 1 },
       { date: day3Start.toISOString().slice(0, 10), value: 0 },
     ])
@@ -195,7 +208,7 @@ describe("ProjectsAnalyticsService", () => {
     })
 
     expect(filteredAverages).toEqual([
-      { date: day1Start.toISOString().slice(0, 10), value: 1 },
+      { date: day1Start.toISOString().slice(0, 10), value: 2 },
       { date: day2Start.toISOString().slice(0, 10), value: 4 },
       { date: day3Start.toISOString().slice(0, 10), value: 0 },
     ])
@@ -377,9 +390,16 @@ describe("ProjectsAnalyticsService", () => {
       endAt: endOfUtcDay(day2Start).getTime(),
     }
 
+    // embedSessionDay2 has no user message: an embed opened without a question.
     const conversations = await service.getConversationsPerDay(params)
     expect(conversations).toEqual([
       { date: day1Key, value: 3 },
+      { date: day2Key, value: 0 },
+    ])
+
+    const emptySessions = await service.getEmptySessionsPerDay(params)
+    expect(emptySessions).toEqual([
+      { date: day1Key, value: 0 },
       { date: day2Key, value: 1 },
     ])
 

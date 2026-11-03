@@ -22,6 +22,19 @@ export class EvaluationConversationDatasetRecordRepository {
     return this.connectRepo().createAndSave(connectScope, fields)
   }
 
+  /** Number of records of one dataset, in a single COUNT query. */
+  countByDataset(connectScope: RequiredConnectScope, datasetId: string): Promise<number> {
+    return this.connectRepo()
+      .newQueryBuilderWithConnectScope(connectScope)
+      .andWhere(
+        "evaluationConversationDatasetRecord.evaluationConversationDatasetId = :datasetId",
+        {
+          datasetId,
+        },
+      )
+      .getCount()
+  }
+
   private connectRepo(): ConnectRepository<EvaluationConversationDatasetRecord> {
     return new ConnectRepository(this.repo(), "evaluationConversationDatasetRecord")
   }

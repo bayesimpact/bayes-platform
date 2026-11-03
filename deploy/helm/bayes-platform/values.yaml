@@ -52,6 +52,9 @@ serviceAccount:
 #   SMTP_USER, SMTP_PASSWORD     optional, SMTP credentials for the invitation emails
 #   VLLM_<MODEL>_URL, VLLM_<MODEL>_APIKEY
 #                                one pair per self-hosted model
+#   EMBEDDER_<MODEL>_URL, EMBEDDER_<MODEL>_API_KEY
+#                                one pair per self-hosted embedding model (an OpenAI
+#                                embeddings server, e.g. EMBEDDER_BGE_M3_URL)
 #   DATABASE_PASSWORD            only with externalDatabase (bundled Postgres generates its own)
 #   BULLMQ_REDIS_URL             only with externalRedis
 secrets:
@@ -249,6 +252,8 @@ cpuWorkers:
     - extraction-agent-session-queue
     - conversation-retention-sweep
     - pdf-exports-sweep
+    # Re-embeds a project when an admin enables a self-hosted embedding model.
+    - project-embedding-reembed
     - maintenance-jobs
   # Without GPU workers, the CPU pool also takes the document embeddings
   # (Docling disabled: text extraction without OCR).

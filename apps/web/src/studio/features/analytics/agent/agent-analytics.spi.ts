@@ -14,4 +14,5 @@ export interface IAgentAnalyticsSpi {
   getConversationsByCategoryPerDay(
     params: AgentAnalyticsParams,
   ): Promise<AnalyticsCategoryDailyPoint[]>
+  getEmptySessionsPerDay(params: AgentAnalyticsParams): Promise<AnalyticsDailyPoint[]>
 }

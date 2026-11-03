@@ -1,6 +1,7 @@
 import { OnWorkerEvent, Processor, WorkerHost } from "@nestjs/bullmq"
 import { Logger } from "@nestjs/common"
 import type { Job } from "bullmq"
+import { describeFailedJob } from "@/common/logger/describe-failed-job"
 import { EXTRACTION_AGENT_SESSION_QUEUE_NAME } from "./extraction-agent-session.constants"
 import type { ExecuteExtractionAgentSessionJobPayload } from "./extraction-agent-session.types"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -30,9 +31,6 @@ export class ExtractionAgentSessionExecuteWorker extends WorkerHost {
 
   @OnWorkerEvent("failed")
   onFailed(job: Job<ExecuteExtractionAgentSessionJobPayload> | undefined, error: Error): void {
-    this.logger.error(
-      `Job failed: ${job?.name ?? "unknown"} (${job?.id ?? "unknown"})`,
-      error.stack,
-    )
+    this.logger.error(`Job failed: ${describeFailedJob(job, error)}`, error.stack)
   }
 }

@@ -81,6 +81,31 @@ jobs:
       - name: Run checks
         run: make ci-checks
 
+  # New changelog entries go under [Unreleased]. The check reads the merge of
+  # the PR into the current base (github.sha) against that base (its first
+  # parent): a branch cut before a release adds its entry under [Unreleased],
+  # and git merges it under the released version with no conflict.
+  changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check the changelog sections
+        run: |
+          node --test .github/scripts/changelog-check.test.mjs
+          node .github/scripts/changelog-check.mjs
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+
   tests:
     needs: changes
     runs-on: ${{ needs.changes.outputs.api-tests == 'true' && 'self-hosted' || 'ubuntu-latest' }}

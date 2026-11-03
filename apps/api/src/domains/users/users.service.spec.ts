@@ -9,7 +9,6 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import type { OidcUserInfo } from "@/domains/auth/oidc-userinfo.service"
-import { MembershipsModule } from "@/domains/memberships/memberships.module"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { ORGANIZATION_ROLES } from "@/domains/rbac/rbac.constants"
 import { RbacModule } from "@/domains/rbac/rbac.module"
@@ -34,7 +33,7 @@ describe("UsersService", () => {
   beforeAll(async () => {
     setup = await setupE2eTestDatabase({
       providers: [UsersService, UserRepository],
-      additionalImports: [RbacModule, MembershipsModule],
+      additionalImports: [RbacModule],
     })
     await ensureRbacCatalog(setup.module)
   })
@@ -313,7 +312,7 @@ describe("UsersService", () => {
     })
   })
 
-  describe("attachServiceUserMemberships", () => {
+  describe("attachServiceRoleGrants", () => {
     it("attaches org_member and a project member membership with the custom role", async () => {
       const { organization, project } = await createOrganizationWithProject(repositories)
       const installationId = randomUUID()
@@ -329,7 +328,7 @@ describe("UsersService", () => {
         }),
       )
 
-      await service.attachServiceUserMemberships({
+      await service.attachServiceRoleGrants({
         userId: serviceUser.id,
         organizationId: organization.id,
         projectId: project.id,
@@ -358,7 +357,7 @@ describe("UsersService", () => {
       const { organization, project, user } = await createOrganizationWithProject(repositories)
 
       await expect(
-        service.attachServiceUserMemberships({
+        service.attachServiceRoleGrants({
           userId: user.id,
           organizationId: organization.id,
           projectId: project.id,

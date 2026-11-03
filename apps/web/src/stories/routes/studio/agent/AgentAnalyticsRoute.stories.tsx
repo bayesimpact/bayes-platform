@@ -25,17 +25,37 @@ import { studioRoutes } from "@/studio/routes/StudioRoutes"
 type StoryArgs = StudioStoryArgs & {
   withAnalytics?: boolean
   withCategories?: boolean
+  withMostlyEmptySessions?: boolean
 }
 
 const DATES = ["2026-05-09", "2026-05-10", "2026-05-11", "2026-05-12", "2026-05-13", "2026-05-14"]
 
-function buildAnalytics(agent: Agent) {
+/** A few empty sessions, or an integration that opens a session on every page load. */
+function buildEmptySessionsPerDay(
+  conversationsPerDay: ReturnType<typeof analyticsDailyPointFactory.build>[],
+  withMostlyEmptySessions: boolean,
+) {
+  return conversationsPerDay.map((point, dayIndex) =>
+    analyticsDailyPointFactory.build({
+      date: point.date,
+      value: withMostlyEmptySessions ? point.value * 40 : dayIndex % 2,
+    }),
+  )
+}
+
+function buildAnalytics(agent: Agent, withMostlyEmptySessions: boolean) {
   const conversationsByCategoryPerDay = buildStoryCategoryPoints({ agents: [agent], dates: DATES })
   const conversationsPerDay = buildStoryConversationsPerDay(conversationsByCategoryPerDay, DATES)
   const avgUserQuestionsPerSessionPerDay = DATES.map((date) =>
     analyticsDailyPointFactory.build({ date }),
   )
-  return { conversationsPerDay, avgUserQuestionsPerSessionPerDay, conversationsByCategoryPerDay }
+  const emptySessionsPerDay = buildEmptySessionsPerDay(conversationsPerDay, withMostlyEmptySessions)
+  return {
+    conversationsPerDay,
+    avgUserQuestionsPerSessionPerDay,
+    conversationsByCategoryPerDay,
+    emptySessionsPerDay,
+  }
 }
 
 function buildMockAgentAnalyticsService(
@@ -43,6 +63,7 @@ function buildMockAgentAnalyticsService(
     conversationsPerDay: ReturnType<typeof analyticsDailyPointFactory.build>[]
     avgUserQuestionsPerSessionPerDay: ReturnType<typeof analyticsDailyPointFactory.build>[]
     conversationsByCategoryPerDay: ReturnType<typeof analyticsCategoryDailyPointFactory.build>[]
+    emptySessionsPerDay: ReturnType<typeof analyticsDailyPointFactory.build>[]
   }> = {},
 ): IAgentAnalyticsSpi {
   return {
@@ -55,6 +76,9 @@ function buildMockAgentAnalyticsService(
     async getConversationsByCategoryPerDay() {
       return overrides.conversationsByCategoryPerDay ?? []
     },
+    async getEmptySessionsPerDay() {
+      return overrides.emptySessionsPerDay ?? []
+    },
   }
 }
 
@@ -66,6 +90,7 @@ const meta = {
     withAgents: { control: undefined },
     withAnalytics: { control: "boolean" },
     withCategories: { control: "boolean" },
+    withMostlyEmptySessions: { control: "boolean" },
   },
   args: {
     ...studioStoryArgs,
@@ -73,6 +98,7 @@ const meta = {
     featureFlags: [...studioStoryArgs.featureFlags, "project-analytics"],
     withAnalytics: false,
     withCategories: false,
+    withMostlyEmptySessions: false,
   },
   render: render({
     routes: studioRoutes,
@@ -85,41 +111,44 @@ type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
   decorators: [
-    buildDecorator<StoryArgs>(({ withAnalytics, withCategories, ...args }) => {
-      const { baseSeeds, project, agents } = buildStudioData(args)
-      const [firstAgent, ...restAgents] = agents
-      const currentAgent = agentFactory
-        .transient({ project })
-        .build({ ...firstAgent, type: "conversation" })
-      const currentAgentSettings = agentSettingsFactory.transient({ agent: currentAgent }).build({
-        revision: currentAgent.currentRevision?.number ?? 1,
-        hasCategories: withCategories,
-      })
+    buildDecorator<StoryArgs>(
+      ({ withAnalytics, withCategories, withMostlyEmptySessions, ...args }) => {
+        const { baseSeeds, project, agents } = buildStudioData(args)
+        const [firstAgent, ...restAgents] = agents
+        const currentAgent = agentFactory
+          .transient({ project })
+          .build({ ...firstAgent, type: "conversation" })
+        const currentAgentSettings = agentSettingsFactory.transient({ agent: currentAgent }).build({
+          revision: currentAgent.currentRevision?.number ?? 1,
+          hasCategories: withCategories,
+        })
 
-      const analytics = withAnalytics
-        ? buildAnalytics(currentAgent)
-        : {
-            conversationsPerDay: [],
-            avgUserQuestionsPerSessionPerDay: [],
-            conversationsByCategoryPerDay: [],
-          }
+        const analytics = withAnalytics
+          ? buildAnalytics(currentAgent, withMostlyEmptySessions ?? false)
+          : {
+              conversationsPerDay: [],
+              avgUserQuestionsPerSessionPerDay: [],
+              conversationsByCategoryPerDay: [],
+              emptySessionsPerDay: [],
+            }
 
-      return {
-        state: mergeSeeds(
-          baseSeeds,
-          seed.agents([...restAgents, currentAgent], { currentId: currentAgent.id }),
-          seed.conversationAgentSessions({ [currentAgent.id]: [] }),
-          seed.studio.agentHistory({
-            agentId: currentAgent.id,
-            versions: [currentAgentSettings],
-          }),
-          seed.studio.agentAnalytics(analytics),
-        ),
-        services: {
-          agentAnalytics: buildMockAgentAnalyticsService(analytics),
-        },
-      }
-    }),
+        return {
+          state: mergeSeeds(
+            baseSeeds,
+            seed.agents([...restAgents, currentAgent], { currentId: currentAgent.id }),
+            seed.conversationAgentSessions({ [currentAgent.id]: [] }),
+            seed.studio.agentHistory({
+              agentId: currentAgent.id,
+              versions: [currentAgentSettings],
+            }),
+            seed.studio.agentAnalytics(analytics),
+          ),
+          services: {
+            agentAnalytics: buildMockAgentAnalyticsService(analytics),
+          },
+        }
+      },
+    ),
   ],
 }
 
@@ -135,50 +164,59 @@ export const WithData: Story = {
   },
 
   decorators: [
-    buildDecorator<StoryArgs>(({ withAnalytics, withCategories, ...args }) => {
-      const { baseSeeds, project, agents } = buildStudioData(args)
-      const [firstAgent, ...restAgents] = agents
-      const currentAgent = agentFactory
-        .transient({
-          project,
+    buildDecorator<StoryArgs>(
+      ({ withAnalytics, withCategories, withMostlyEmptySessions, ...args }) => {
+        const { baseSeeds, project, agents } = buildStudioData(args)
+        const [firstAgent, ...restAgents] = agents
+        const currentAgent = agentFactory
+          .transient({
+            project,
+          })
+          .build({
+            ...firstAgent,
+            type: "conversation",
+          })
+        const currentAgentSettings = agentSettingsFactory.transient({ agent: currentAgent }).build({
+          revision: currentAgent.currentRevision?.number ?? 1,
+          hasCategories: withCategories,
         })
-        .build({
-          ...firstAgent,
-          type: "conversation",
-        })
-      const currentAgentSettings = agentSettingsFactory.transient({ agent: currentAgent }).build({
-        revision: currentAgent.currentRevision?.number ?? 1,
-        hasCategories: withCategories,
-      })
 
-      const analytics = withAnalytics
-        ? buildAnalytics(currentAgent)
-        : {
-            conversationsPerDay: [],
-            avgUserQuestionsPerSessionPerDay: [],
-            conversationsByCategoryPerDay: [],
-          }
+        const analytics = withAnalytics
+          ? buildAnalytics(currentAgent, withMostlyEmptySessions ?? false)
+          : {
+              conversationsPerDay: [],
+              avgUserQuestionsPerSessionPerDay: [],
+              conversationsByCategoryPerDay: [],
+              emptySessionsPerDay: [],
+            }
 
-      return {
-        state: mergeSeeds(
-          baseSeeds,
-          seed.agents([...restAgents, currentAgent], {
-            currentId: currentAgent.id,
-          }),
-          seed.conversationAgentSessions({
-            [currentAgent.id]: [],
-          }),
-          seed.studio.agentHistory({
-            agentId: currentAgent.id,
-            versions: [currentAgentSettings],
-          }),
-          seed.studio.agentAnalytics(analytics),
-        ),
+        return {
+          state: mergeSeeds(
+            baseSeeds,
+            seed.agents([...restAgents, currentAgent], {
+              currentId: currentAgent.id,
+            }),
+            seed.conversationAgentSessions({
+              [currentAgent.id]: [],
+            }),
+            seed.studio.agentHistory({
+              agentId: currentAgent.id,
+              versions: [currentAgentSettings],
+            }),
+            seed.studio.agentAnalytics(analytics),
+          ),
 
-        services: {
-          agentAnalytics: buildMockAgentAnalyticsService(analytics),
-        },
-      }
-    }),
+          services: {
+            agentAnalytics: buildMockAgentAnalyticsService(analytics),
+          },
+        }
+      },
+    ),
   ],
+}
+
+/** An integration opens a session on every page load: the page warns about it. */
+export const WithMostlyEmptySessions: Story = {
+  ...WithData,
+  args: { ...WithData.args, withMostlyEmptySessions: true },
 }

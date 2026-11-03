@@ -11,6 +11,7 @@ export const loadAgentAnalytics = createAsyncThunk<
     conversationsPerDay: AnalyticsDailyPoint[]
     avgUserQuestionsPerSessionPerDay: AnalyticsDailyPoint[]
     conversationsByCategoryPerDay: AnalyticsCategoryDailyPoint[]
+    emptySessionsPerDay: AnalyticsDailyPoint[]
   },
   { startAt: number; endAt: number },
   ThunkConfig
@@ -20,29 +21,45 @@ export const loadAgentAnalytics = createAsyncThunk<
   const organizationId = getCurrentId({ state, name: "organizationId" })
   const projectId = getCurrentId({ state, name: "projectId" })
   const agentId = getCurrentId({ state, name: "agentId" })
-  const [conversationsPerDay, avgUserQuestionsPerSessionPerDay, conversationsByCategoryPerDay] =
-    await Promise.all([
-      services.agentAnalytics.getConversationsPerDay({
-        organizationId,
-        projectId,
-        agentId,
-        startAt,
-        endAt,
-      }),
-      services.agentAnalytics.getAvgUserQuestionsPerSessionPerDay({
-        organizationId,
-        projectId,
-        agentId,
-        startAt,
-        endAt,
-      }),
-      services.agentAnalytics.getConversationsByCategoryPerDay({
-        organizationId,
-        projectId,
-        agentId,
-        startAt,
-        endAt,
-      }),
-    ])
-  return { conversationsPerDay, avgUserQuestionsPerSessionPerDay, conversationsByCategoryPerDay }
+  const [
+    conversationsPerDay,
+    avgUserQuestionsPerSessionPerDay,
+    conversationsByCategoryPerDay,
+    emptySessionsPerDay,
+  ] = await Promise.all([
+    services.agentAnalytics.getConversationsPerDay({
+      organizationId,
+      projectId,
+      agentId,
+      startAt,
+      endAt,
+    }),
+    services.agentAnalytics.getAvgUserQuestionsPerSessionPerDay({
+      organizationId,
+      projectId,
+      agentId,
+      startAt,
+      endAt,
+    }),
+    services.agentAnalytics.getConversationsByCategoryPerDay({
+      organizationId,
+      projectId,
+      agentId,
+      startAt,
+      endAt,
+    }),
+    services.agentAnalytics.getEmptySessionsPerDay({
+      organizationId,
+      projectId,
+      agentId,
+      startAt,
+      endAt,
+    }),
+  ])
+  return {
+    conversationsPerDay,
+    avgUserQuestionsPerSessionPerDay,
+    conversationsByCategoryPerDay,
+    emptySessionsPerDay,
+  }
 })

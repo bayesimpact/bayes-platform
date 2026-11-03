@@ -303,7 +303,7 @@ describe("AgentDuplicationService", () => {
     expect(
       await repositories.agentEmbedConfigRepository.count({ where: { agentId: agent.id } }),
     ).toBe(0)
-    const memberships = await repositories.userMembershipRepository.find({
+    const memberships = await repositories.roleGrantRepository.find({
       where: { resourceType: "agent", resourceId: agent.id },
     })
     expect(memberships.map((membership) => membership.userId)).toEqual([source.user.id])
@@ -322,7 +322,7 @@ describe("AgentDuplicationService", () => {
 
     const { agent } = await duplicate(source)
 
-    const memberships = await repositories.userMembershipRepository.find({
+    const memberships = await repositories.roleGrantRepository.find({
       where: { resourceType: "agent", resourceId: agent.id },
       relations: { rbacRole: true },
     })
@@ -364,7 +364,7 @@ describe("AgentDuplicationService", () => {
       categories: await repositories.agentSessionCategoryRepository.count(),
       mcpServers: await repositories.agentMcpServerRepository.count(),
       subAgents: await repositories.agentSubAgentRepository.count(),
-      memberships: await repositories.userMembershipRepository.count({
+      memberships: await repositories.roleGrantRepository.count({
         where: { resourceType: "agent" },
       }),
     })

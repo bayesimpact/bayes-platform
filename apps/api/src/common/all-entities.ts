@@ -24,6 +24,7 @@ import { Document } from "@/domains/documents/document.entity"
 import { DocumentChunk } from "@/domains/documents/embeddings/document-chunk.entity"
 import { DocumentChunkEmbedding } from "@/domains/documents/embeddings/document-chunk-embedding.entity"
 import { DocumentParentChunk } from "@/domains/documents/embeddings/document-parent-chunk.entity"
+import { ProjectEmbeddingModel } from "@/domains/documents/embeddings/project-embedding-models/project-embedding-model.entity"
 import { DocumentSource } from "@/domains/documents/sources/document-source.entity"
 import { DocumentTag } from "@/domains/documents/tags/document-tag.entity"
 import { EvaluationConversationDataset } from "@/domains/evaluations/conversation/datasets/evaluation-conversation-dataset.entity"
@@ -39,7 +40,6 @@ import { FeatureFlag } from "@/domains/feature-flags/feature-flag.entity"
 import { Invitation } from "@/domains/invitations/invitation.entity"
 import { AgentMcpServer } from "@/domains/mcp-servers/agent-mcp-server.entity"
 import { McpServer } from "@/domains/mcp-servers/mcp-server.entity"
-import { UserMembership } from "@/domains/memberships/user-membership.entity"
 import { OAuthAuthorizationCode } from "@/domains/oauth/oauth-authorization-code.entity"
 import { OAuthClient } from "@/domains/oauth/oauth-client.entity"
 import { OAuthGrant } from "@/domains/oauth/oauth-grant.entity"
@@ -50,6 +50,7 @@ import { AgentEmbedConfig } from "@/domains/public-chat/agent-embed-configs/agen
 import { PublicAgentSession } from "@/domains/public-chat/public-agent-sessions/public-agent-session.entity"
 import { PublicAgentSessionCategory } from "@/domains/public-chat/public-agent-sessions/public-agent-session-category.entity"
 import { Role } from "@/domains/rbac/role.entity"
+import { RoleGrant } from "@/domains/rbac/role-grant.entity"
 import { RolePermission } from "@/domains/rbac/role-permission.entity"
 import { ResourceLibrary } from "@/domains/resource-libraries/resource-library.entity"
 import { ReviewCampaign } from "@/domains/review-campaigns/review-campaign.entity"
@@ -87,6 +88,7 @@ export const ALL_ENTITIES = [
   DocumentChunk,
   DocumentChunkEmbedding,
   DocumentParentChunk,
+  ProjectEmbeddingModel,
   DocumentTag,
   EvaluationConversationDataset,
   EvaluationConversationDatasetRecord,
@@ -106,7 +108,7 @@ export const ALL_ENTITIES = [
   OAuthGrant,
   OAuthRefreshToken,
   Organization,
-  UserMembership,
+  RoleGrant,
   Project,
   AgentEmbedConfig,
   PublicAgentSession,

@@ -37,6 +37,8 @@ const ALL_PERMISSIONS: OAuthGrantablePermission[] = [
   "project.read",
   "agent.create",
   "agent.settings.draft.update",
+  "evaluation.conversation.dataset.update",
+  "evaluation.conversation.run.create",
 ]
 
 describe("MCP endpoint", () => {
@@ -164,10 +166,19 @@ describe("MCP endpoint", () => {
       const { tools } = await client.listTools()
 
       expect(tools.map((tool) => tool.name).sort()).toEqual([
+        "add_dataset_records",
         "create_agent",
+        "create_evaluation_dataset",
         "duplicate_agent",
+        "get_agent",
+        "get_evaluation_run",
         "list_agents",
+        "list_dataset_records",
+        "list_evaluation_datasets",
+        "list_evaluation_run_records",
+        "list_evaluation_runs",
         "list_projects",
+        "run_evaluation",
         "update_agent",
       ])
       await client.close()

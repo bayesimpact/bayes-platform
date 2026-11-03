@@ -88,7 +88,7 @@ describe("Agent Memberships - addRole and removeRole", () => {
     })
 
   const roleKeysOn = async (userId: string) => {
-    const rows = await repositories.userMembershipRepository.find({
+    const rows = await repositories.roleGrantRepository.find({
       where: { userId, resourceType: "agent", resourceId: agentId },
       relations: { rbacRole: true },
     })

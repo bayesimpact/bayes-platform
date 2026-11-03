@@ -18,6 +18,7 @@ import { AgentSubAgent } from "@/domains/agents/sub-agents/agent-sub-agent.entit
 import { AppInstallation } from "@/domains/apps/app-installation.entity"
 import { AppManifest } from "@/domains/apps/app-manifest.entity"
 import { Document } from "@/domains/documents/document.entity"
+import { ProjectEmbeddingModel } from "@/domains/documents/embeddings/project-embedding-models/project-embedding-model.entity"
 import { DocumentSource } from "@/domains/documents/sources/document-source.entity"
 import { EvaluationConversationDataset } from "@/domains/evaluations/conversation/datasets/evaluation-conversation-dataset.entity"
 import { EvaluationConversationDatasetRecord } from "@/domains/evaluations/conversation/datasets/records/evaluation-conversation-dataset-record.entity"
@@ -32,7 +33,6 @@ import { FeatureFlag } from "@/domains/feature-flags/feature-flag.entity"
 import { Invitation } from "@/domains/invitations/invitation.entity"
 import { AgentMcpServer } from "@/domains/mcp-servers/agent-mcp-server.entity"
 import { McpServer } from "@/domains/mcp-servers/mcp-server.entity"
-import { UserMembership } from "@/domains/memberships/user-membership.entity"
 import { OAuthClient } from "@/domains/oauth/oauth-client.entity"
 import { OAuthGrant } from "@/domains/oauth/oauth-grant.entity"
 import { Organization } from "@/domains/organizations/organization.entity"
@@ -41,6 +41,7 @@ import { AgentEmbedConfig } from "@/domains/public-chat/agent-embed-configs/agen
 import { PublicAgentSession } from "@/domains/public-chat/public-agent-sessions/public-agent-session.entity"
 import { PublicAgentSessionCategory } from "@/domains/public-chat/public-agent-sessions/public-agent-session-category.entity"
 import { Role } from "@/domains/rbac/role.entity"
+import { RoleGrant } from "@/domains/rbac/role-grant.entity"
 import { ResourceLibrary } from "@/domains/resource-libraries/resource-library.entity"
 import { ReviewCampaign } from "@/domains/review-campaigns/review-campaign.entity"
 import { ReviewerSessionReview } from "@/domains/review-campaigns/reviewer-session-reviews/reviewer-session-review.entity"
@@ -73,6 +74,7 @@ export type AllRepositories = {
   appManifestRepository: Repository<AppManifest>
   documentRepository: Repository<Document>
   documentSourceRepository: Repository<DocumentSource>
+  projectEmbeddingModelRepository: Repository<ProjectEmbeddingModel>
   evaluationConversationDatasetRecordRepository: Repository<EvaluationConversationDatasetRecord>
   evaluationConversationDatasetRepository: Repository<EvaluationConversationDataset>
   evaluationConversationRunRecordRepository: Repository<EvaluationConversationRunRecord>
@@ -101,7 +103,7 @@ export type AllRepositories = {
   termsDocumentRepository: Repository<TermsDocument>
   testerCampaignSurveyRepository: Repository<TesterCampaignSurvey>
   testerSessionFeedbackRepository: Repository<TesterSessionFeedback>
-  userMembershipRepository: Repository<UserMembership>
+  roleGrantRepository: Repository<RoleGrant>
   userRepository: Repository<User>
 }
 
@@ -130,6 +132,7 @@ export function buildAllRepositories(
     appManifestRepository: getRepository(AppManifest),
     documentRepository: getRepository(Document),
     documentSourceRepository: getRepository(DocumentSource),
+    projectEmbeddingModelRepository: getRepository(ProjectEmbeddingModel),
     evaluationConversationDatasetRecordRepository: getRepository(
       EvaluationConversationDatasetRecord,
     ),
@@ -162,7 +165,7 @@ export function buildAllRepositories(
     termsDocumentRepository: getRepository(TermsDocument),
     testerCampaignSurveyRepository: getRepository(TesterCampaignSurvey),
     testerSessionFeedbackRepository: getRepository(TesterSessionFeedback),
-    userMembershipRepository: getRepository(UserMembership),
+    roleGrantRepository: getRepository(RoleGrant),
     userRepository: getRepository(User),
   }
 }

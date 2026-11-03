@@ -70,6 +70,7 @@ import type { DocumentTag } from "@/studio/features/document-tags/document-tags.
 import type { Document } from "@/studio/features/documents/documents.models"
 import type { PendingInvitations } from "@/studio/features/invitations/invitations.models"
 import type { McpServer } from "@/studio/features/mcp-servers/mcp-servers.models"
+import type { ProjectEmbeddingModel } from "@/studio/features/project-embedding-models/project-embedding-models.models"
 import type {
   AssignableRoles,
   MemberRoles,
@@ -363,6 +364,10 @@ export const seed = {
       return { mcpServers: { data: ads.fulfilled(mcpServers) } }
     },
 
+    projectEmbeddingModels(projectEmbeddingModels: ProjectEmbeddingModel[]): StoryPreloadedState {
+      return { projectEmbeddingModels: { data: ads.fulfilled(projectEmbeddingModels) } }
+    },
+
     resourceLibraries(resourceLibraries: ResourceLibrary[]): StoryPreloadedState {
       return { resourceLibraries: { data: ads.fulfilled(resourceLibraries) } }
     },
@@ -370,11 +375,13 @@ export const seed = {
     projectAnalytics(value: {
       conversationsPerDay: AnalyticsDailyPoint[]
       avgUserQuestionsPerSessionPerDay: AnalyticsDailyPoint[]
+      emptySessionsPerDay: AnalyticsDailyPoint[]
     }): StoryPreloadedState {
       return {
         projectAnalytics: {
           conversationsPerDay: ads.fulfilled(value.conversationsPerDay),
           avgUserQuestionsPerSessionPerDay: ads.fulfilled(value.avgUserQuestionsPerSessionPerDay),
+          emptySessionsPerDay: ads.fulfilled(value.emptySessionsPerDay),
         },
       }
     },
@@ -383,12 +390,14 @@ export const seed = {
       conversationsPerDay: AnalyticsDailyPoint[]
       avgUserQuestionsPerSessionPerDay: AnalyticsDailyPoint[]
       conversationsByCategoryPerDay: AnalyticsCategoryDailyPoint[]
+      emptySessionsPerDay: AnalyticsDailyPoint[]
     }): StoryPreloadedState {
       return {
         agentAnalytics: {
           conversationsPerDay: ads.fulfilled(value.conversationsPerDay),
           avgUserQuestionsPerSessionPerDay: ads.fulfilled(value.avgUserQuestionsPerSessionPerDay),
           conversationsByCategoryPerDay: ads.fulfilled(value.conversationsByCategoryPerDay),
+          emptySessionsPerDay: ads.fulfilled(value.emptySessionsPerDay),
         },
       }
     },

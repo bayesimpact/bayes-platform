@@ -19,6 +19,14 @@
       "title": "Avg. user questions per session",
       "description": "Average user messages per session per day",
       "metricLabel": "Per day"
+    },
+    "emptySessions": {
+      "note_one": "{{emptyCount}} session opened without a question is not counted ({{share}} of {{sessionCount}} sessions).",
+      "note_other": "{{emptyCount}} sessions opened without a question are not counted ({{share}} of {{sessionCount}} sessions).",
+      "warning": {
+        "title": "Most sessions have no question",
+        "description": "{{emptyCount}} of {{sessionCount}} sessions ({{share}}) were opened without a user message. They are not counted as conversations. This often happens when an integration creates the session when the page loads, not on the first message."
+      }
     }
   }
 }

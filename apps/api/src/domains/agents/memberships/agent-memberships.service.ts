@@ -9,9 +9,9 @@ import { TransactionService } from "@/common/transaction/transaction.service"
 import type { AgentSummary } from "@/domains/agents/agent.repository"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { AgentRepository } from "@/domains/agents/agent.repository"
-import { hasRole } from "@/domains/memberships/membership-roles"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { ProjectMembershipRepository } from "@/domains/projects/memberships/project-membership.repository"
+import { hasRole } from "@/domains/rbac/membership-roles"
 import { AGENT_ROLES, PROJECT_ROLES } from "@/domains/rbac/rbac.constants"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
 import { UserRepository } from "@/domains/users/user.repository"

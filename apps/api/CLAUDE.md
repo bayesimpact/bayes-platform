@@ -294,7 +294,7 @@ const membership = organizationMembershipFactory
 const project = projectFactory.transient({ organization: org }).build()
 ```
 
-**Available factories**: `userFactory`, `organizationFactory`, `projectFactory`, `userMembershipFactory`, `agentFactory`, `agentSessionFactory`
+**Available factories**: `userFactory`, `organizationFactory`, `projectFactory`, `roleGrantFactory`, `agentFactory`, `agentSessionFactory`
 
 ### Use Organization Factory Helpers
 
@@ -376,7 +376,7 @@ A new capability touches all of these in one change:
 5. Protect the route with `@CheckPermission(permission)` for a global check, or `@CheckPermission(permission, "organization" | "project" | "agent" | "review_campaign")` for a scoped one, with `CheckPermissionGuard` after `JwtAuthGuard` and `UserGuard`. Keep the context resolver or domain guard that puts the resource id on the request. The permission guard only answers whether the permission holds. A key in `PROJECT_PERMISSIONS_FROM_REVIEW_CAMPAIGN` checked on `"project"` also lets that project's campaign testers or reviewers in, so pick a narrower key when they must stay out.
 6. A service that lists resources calls `PermissionService.listResourceIds(userId, permission)` or `listResourcePermissions(userId, permission)`, then loads those ids through its custom repository. Pass the key you mean: `backoffice.organization.read` is never rewritten to `organization.read`.
 
-Feature services do not query `user_membership` or `role_permission`, and do not compare `membership.role` against a list of allowed roles. Every access check goes through `@CheckPermission` on the route or through `PermissionService`. Do not write a per-domain policy class or a guard that evaluates one.
+Feature services do not query `role_grant` or `role_permission`, and do not compare `membership.role` against a list of allowed roles. Every access check goes through `@CheckPermission` on the route or through `PermissionService`. Do not write a per-domain policy class or a guard that evaluates one.
 
 **If unsure which role should hold a permission, ASK THE USER before implementing.**
 

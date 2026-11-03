@@ -1,4 +1,9 @@
-import { AgentModel, AgentsRoutes, DocumentsRagMode } from "@caseai-connect/api-contracts"
+import {
+  AgentModel,
+  AgentsRoutes,
+  DocumentsRagMode,
+  EmbeddingModel,
+} from "@caseai-connect/api-contracts"
 import { afterAll } from "@jest/globals"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
@@ -12,6 +17,7 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { AgentSettings } from "@/domains/agents/settings/agent-settings.entity"
+import { projectEmbeddingModelFactory } from "@/domains/documents/embeddings/project-embedding-models/project-embedding-model.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
@@ -102,6 +108,25 @@ describe("Agents - createOne", () => {
   })
   const storedOptionsOf = async (agentId: string) =>
     (await setup.getRepository(AgentSettings).findOneByOrFail({ agentId })).providerOptions
+
+  it("gives a new agent its project's default embedding model", async () => {
+    const { organization, project } = await createContext()
+    await repositories.projectEmbeddingModelRepository.save([
+      projectEmbeddingModelFactory
+        .completed()
+        .transient({ organization, project })
+        .build({ modelName: EmbeddingModel.GeminiEmbedding001 }),
+      projectEmbeddingModelFactory.default().transient({ organization, project }).build(),
+    ])
+
+    const response = await subject(vertex3AgentPayload())
+
+    expectResponse(response, 201)
+    const agentSettings = await setup
+      .getRepository(AgentSettings)
+      .findOneByOrFail({ agentId: response.body.data.id })
+    expect(agentSettings.embeddingModel).toBe(EmbeddingModel.BgeM3)
+  })
 
   it("stores the model's default options when the agent sets none", async () => {
     await createContext()

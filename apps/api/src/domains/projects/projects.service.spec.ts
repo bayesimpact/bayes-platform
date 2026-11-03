@@ -6,13 +6,13 @@ import {
   teardownE2eTestDatabase,
 } from "@/common/test/test-database"
 import { DocumentTag } from "@/domains/documents/tags/document-tag.entity"
-import { userMembershipFactory } from "@/domains/memberships/user-membership.factory"
 import { addUserToOrganization } from "@/domains/organizations/memberships/organization-membership.factory"
 import {
   createOrganizationWithOwner,
   createOrganizationWithProject,
 } from "@/domains/organizations/organization.factory"
 import { PROJECT_ROLES } from "@/domains/rbac/rbac.constants"
+import { roleGrantFactory } from "@/domains/rbac/role-grant.factory"
 import { userFactory } from "@/domains/users/user.factory"
 import { ensureRbacCatalog } from "../../../test/rbac-test.helpers"
 import { addUserToProject } from "./memberships/project-membership.factory"
@@ -155,8 +155,8 @@ describe("ProjectsService", () => {
       const projectMemberRole = await repositories.roleRepository.findOneOrFail({
         where: { key: PROJECT_ROLES.member },
       })
-      await repositories.userMembershipRepository.save(
-        userMembershipFactory.build({
+      await repositories.roleGrantRepository.save(
+        roleGrantFactory.build({
           userId: memberUser.id,
           resourceType: "project",
           resourceId: project.id,
@@ -206,12 +206,12 @@ describe("ProjectsService", () => {
 
       await service.deleteProject(project.id)
 
-      const activeMemberships = await repositories.userMembershipRepository.find({
+      const activeMemberships = await repositories.roleGrantRepository.find({
         where: { resourceType: "project", resourceId: project.id },
       })
       expect(activeMemberships).toHaveLength(0)
 
-      const softDeletedMemberships = await repositories.userMembershipRepository.find({
+      const softDeletedMemberships = await repositories.roleGrantRepository.find({
         where: { resourceType: "project", resourceId: project.id },
         withDeleted: true,
       })
@@ -227,10 +227,10 @@ describe("ProjectsService", () => {
       await service.deleteProject(project.id)
 
       for (const userId of [owner.id, member.id]) {
-        const activeMembership = await repositories.userMembershipRepository.findOne({
+        const activeMembership = await repositories.roleGrantRepository.findOne({
           where: { userId, resourceType: "project", resourceId: project.id },
         })
-        const softDeletedMembership = await repositories.userMembershipRepository.findOne({
+        const softDeletedMembership = await repositories.roleGrantRepository.findOne({
           where: { userId, resourceType: "project", resourceId: project.id },
           withDeleted: true,
         })

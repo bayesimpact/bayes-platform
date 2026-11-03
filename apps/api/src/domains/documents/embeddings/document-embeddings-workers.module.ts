@@ -2,6 +2,8 @@ import { BullModule } from "@nestjs/bullmq"
 import { Module } from "@nestjs/common"
 import { TypeOrmModule } from "@nestjs/typeorm"
 import { ALL_ENTITIES } from "@/common/all-entities"
+import { EmbeddersModule } from "@/domains/documents/embeddings/embedders/embedders.module"
+import { ProjectEmbeddingModelsModule } from "@/domains/documents/embeddings/project-embedding-models/project-embedding-models.module"
 import { DocumentsService } from "../documents.service"
 import { PdfPagesModule } from "../pdf-pages/pdf-pages.module"
 import { DocumentSourceRepository } from "../sources/document-source.repository"
@@ -27,6 +29,8 @@ import { QueueMetricsService } from "./queue-metrics.service"
     StorageModule,
     PdfPagesModule,
     DocumentEmbeddingsBatchModule,
+    EmbeddersModule,
+    ProjectEmbeddingModelsModule,
   ],
   providers: [
     DocumentEmbeddingsWorker,
