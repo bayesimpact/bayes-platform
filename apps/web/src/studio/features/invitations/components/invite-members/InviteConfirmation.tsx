@@ -98,7 +98,7 @@ export function InviteConfirmation({
                   are. Change their access from their member page.
                 </p>
               </div>
-              <ul className="flex flex-col gap-1">
+              <ul className="flex flex-col gap-2">
                 {knownPeople.map(({ email, access }) => (
                   <li key={email} className="flex flex-wrap justify-between gap-x-3">
                     <span className="break-all">{email}</span>
