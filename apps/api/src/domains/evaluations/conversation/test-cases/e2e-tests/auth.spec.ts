@@ -63,12 +63,12 @@ describe("EvaluationConversationTestCases - Auth", () => {
     await app.close()
   })
 
-  const createContextForRole = async (role: ProjectRoleKey) => {
+  const createContextForRole = async (...roleKeys: ProjectRoleKey[]) => {
     const { user, organization, project, lastAnswer } = await createConversationWithAnswers(
       repositories,
       {
         user: { authSubject, email: mockOidcEmailForSub(authSubject) },
-        projectMembership: { roleKeys: [role] },
+        projectMembership: { roleKeys },
       },
     )
     organizationId = organization.id
@@ -128,12 +128,12 @@ describe("EvaluationConversationTestCases - Auth", () => {
       expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
     })
     it("requires a valid project ID", async () => {
-      await createContextForRole("project_owner")
+      await createContextForRole("project_owner", "project_evaluator")
       projectId = null
       expectResponse(await subject(), 404)
     })
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("project_owner")
+      await createContextForRole("project_owner", "project_evaluator")
       authSubject = mockForeignAuthSubject()
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
@@ -141,8 +141,15 @@ describe("EvaluationConversationTestCases - Auth", () => {
       await createContextForRole("project_member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
-    it.each<ProjectRoleKey>(["project_admin", "project_owner"])("allows a %s", async (role) => {
-      await createContextForRole(role)
+    it("doesn't allow a project admin who is not an evaluator", async () => {
+      await createContextForRole("project_admin")
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it.each<ProjectRoleKey>([
+      "project_member",
+      "project_owner",
+    ])("allows a %s who is an evaluator", async (role) => {
+      await createContextForRole(role, "project_evaluator")
       expectResponse(await subject(), 201)
     })
   })

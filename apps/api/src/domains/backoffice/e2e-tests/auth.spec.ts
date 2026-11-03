@@ -276,7 +276,7 @@ describe("Backoffice - Auth", () => {
         route: BackofficeRoutes.addFeatureFlag,
         pathParams: { projectId },
         token: accessToken ?? undefined,
-        request: { payload: { featureFlagKey: "evaluation" } },
+        request: { payload: { featureFlagKey: "sources-tool" } },
       })
 
     it("requires an authentication token", async () => {
@@ -296,7 +296,7 @@ describe("Backoffice - Auth", () => {
     const subject = async (projectId: string) =>
       request({
         route: BackofficeRoutes.removeFeatureFlag,
-        pathParams: { projectId, featureFlagKey: "evaluation" },
+        pathParams: { projectId, featureFlagKey: "sources-tool" },
         token: accessToken ?? undefined,
       })
 

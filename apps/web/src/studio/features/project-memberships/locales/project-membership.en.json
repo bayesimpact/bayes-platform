@@ -40,6 +40,7 @@
       "project_owner": "Owner",
       "project_admin": "Admin",
       "project_member": "Member",
+      "project_evaluator": "Evaluator",
       "agent_owner": "Owner",
       "agent_admin": "Admin",
       "agent_member": "Member",

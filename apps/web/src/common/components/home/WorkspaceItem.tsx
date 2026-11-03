@@ -22,7 +22,6 @@ import { GridCard } from "@/common/components/grid/Grid"
 import type { OrganizationWithProjects } from "@/common/features/organizations/organizations.selectors"
 import type { MyProject } from "@/common/features/projects/projects.models"
 import { useAbility } from "@/common/hooks/use-ability"
-import { useFeatureFlags } from "@/common/hooks/use-feature-flags"
 import { DeskRoutes } from "@/common/routes/desk-routes"
 import { toAppHref } from "@/config/runtime-config"
 import { EvalRoutes } from "@/eval/routes/helpers"
@@ -122,7 +121,6 @@ function useAvailableApps({
 }): AppData[] {
   const { t } = useTranslation()
   const { abilities } = useAbility()
-  const { hasFeature } = useFeatureFlags(project)
 
   const apps: AppData[] = []
 
@@ -132,7 +130,7 @@ function useAvailableApps({
   if (abilities.canAccessStudio({ projectId: project.id }))
     apps.push(getAppData({ app: "studio", organizationId, projectId: project.id, t }))
 
-  if (hasFeature("evaluation") && abilities.canAccessEvaluation({ projectId: project.id }))
+  if (abilities.canAccessEvaluation({ projectId: project.id }))
     apps.push(getAppData({ app: "eval", organizationId, projectId: project.id, t }))
 
   if (abilities.canAccessTester({ projectId: project.id }))

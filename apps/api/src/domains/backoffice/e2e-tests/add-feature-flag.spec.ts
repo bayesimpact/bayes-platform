@@ -65,11 +65,11 @@ describe("Backoffice - feature flag lifecycle", () => {
       route: BackofficeRoutes.addFeatureFlag,
       pathParams: { projectId: project.id },
       token: "token",
-      request: { payload: { featureFlagKey: "evaluation" } },
+      request: { payload: { featureFlagKey: "sources-tool" } },
     })
     expectResponse(response, 201)
     const flag = await repositories.featureFlagRepository.findOne({
-      where: { projectId: project.id, featureFlagKey: "evaluation" },
+      where: { projectId: project.id, featureFlagKey: "sources-tool" },
     })
     expect(flag).not.toBeNull()
     expect(flag?.enabled).toBe(true)
@@ -81,17 +81,17 @@ describe("Backoffice - feature flag lifecycle", () => {
       route: BackofficeRoutes.addFeatureFlag,
       pathParams: { projectId: project.id },
       token: "token",
-      request: { payload: { featureFlagKey: "evaluation" } },
+      request: { payload: { featureFlagKey: "sources-tool" } },
     })
     const response = await request({
       route: BackofficeRoutes.addFeatureFlag,
       pathParams: { projectId: project.id },
       token: "token",
-      request: { payload: { featureFlagKey: "evaluation" } },
+      request: { payload: { featureFlagKey: "sources-tool" } },
     })
     expectResponse(response, 201)
     const flags = await repositories.featureFlagRepository.find({
-      where: { projectId: project.id, featureFlagKey: "evaluation" },
+      where: { projectId: project.id, featureFlagKey: "sources-tool" },
     })
     expect(flags.length).toBe(1)
   })
@@ -101,18 +101,18 @@ describe("Backoffice - feature flag lifecycle", () => {
     await repositories.featureFlagRepository.save(
       repositories.featureFlagRepository.create({
         projectId: project.id,
-        featureFlagKey: "evaluation",
+        featureFlagKey: "sources-tool",
         enabled: true,
       }),
     )
     const response = await request({
       route: BackofficeRoutes.removeFeatureFlag,
-      pathParams: { projectId: project.id, featureFlagKey: "evaluation" },
+      pathParams: { projectId: project.id, featureFlagKey: "sources-tool" },
       token: "token",
     })
     expectResponse(response, 200)
     const flag = await repositories.featureFlagRepository.findOne({
-      where: { projectId: project.id, featureFlagKey: "evaluation" },
+      where: { projectId: project.id, featureFlagKey: "sources-tool" },
     })
     expect(flag).toBeNull()
   })
@@ -134,7 +134,7 @@ describe("Backoffice - feature flag lifecycle", () => {
       route: BackofficeRoutes.addFeatureFlag,
       pathParams: { projectId: otherProject.id },
       token: "token",
-      request: { payload: { featureFlagKey: "evaluation" } },
+      request: { payload: { featureFlagKey: "sources-tool" } },
     })
     expectResponse(response, 403)
   })
@@ -160,7 +160,7 @@ describe("Backoffice - feature flag lifecycle", () => {
       route: BackofficeRoutes.addFeatureFlag,
       pathParams: { projectId: randomUUID() },
       token: "token",
-      request: { payload: { featureFlagKey: "evaluation" } },
+      request: { payload: { featureFlagKey: "sources-tool" } },
     })
     expectResponse(response, 404)
   })
@@ -170,7 +170,7 @@ describe("Backoffice - feature flag lifecycle", () => {
     await repositories.featureFlagRepository.save(
       repositories.featureFlagRepository.create({
         projectId: project.id,
-        featureFlagKey: "evaluation",
+        featureFlagKey: "sources-tool",
         enabled: true,
       }),
     )
@@ -183,6 +183,6 @@ describe("Backoffice - feature flag lifecycle", () => {
     const returnedProject = response.body.data.projects.find(
       (proj: { id: string }) => proj.id === project.id,
     )
-    expect(returnedProject?.featureFlags).toContain("evaluation")
+    expect(returnedProject?.featureFlags).toContain("sources-tool")
   })
 })

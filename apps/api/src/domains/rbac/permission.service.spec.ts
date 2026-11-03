@@ -52,6 +52,7 @@ import {
   PLATFORM_STAFF_ROLE,
   PLATFORM_SUPERADMIN_ROLE,
   PROJECT_CREATE_PERMISSION,
+  PROJECT_EVALUATOR_ROLE,
   PROJECT_READ_PERMISSION,
   PROJECT_ROLE_PERMISSIONS,
   PROJECT_ROLES,
@@ -2233,7 +2234,7 @@ describe("RbacService", () => {
     await service.seedProjectRolesAndPermissions()
     await service.seedProjectRolesAndPermissions()
 
-    const projectRoleKeys = Object.values(PROJECT_ROLES)
+    const projectRoleKeys = [...Object.values(PROJECT_ROLES), PROJECT_EVALUATOR_ROLE]
     const roles = await setup.getRepository(Role).find({ where: { key: In(projectRoleKeys) } })
     expect(roles.map((role) => role.key).sort()).toEqual([...projectRoleKeys].sort())
     expect(roles.every((role) => role.scopeType === "project")).toBe(true)

@@ -8,7 +8,10 @@ import {
   teardownTestDatabase,
 } from "@/common/test/test-transaction-manager"
 import { removeNullish } from "@/common/utils/remove-nullish"
-import { createOrganizationWithAgent } from "@/domains/organizations/organization.factory"
+import {
+  createOrganizationWithAgent,
+  OWNER_EVALUATOR_PROJECT_MEMBERSHIP,
+} from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../../test/request"
@@ -56,6 +59,7 @@ describe("EvaluationExtractionRuns - getAll", () => {
     const { user, organization, project, agent, agentSettings } = await createOrganizationWithAgent(
       repositories,
       {
+        projectMembership: OWNER_EVALUATOR_PROJECT_MEMBERSHIP,
         agent: { type: "extraction" },
         agentSettings: {
           outputJsonSchema: { type: "object" },

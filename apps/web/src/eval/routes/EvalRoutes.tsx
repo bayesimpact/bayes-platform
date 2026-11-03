@@ -1,4 +1,3 @@
-import { RestrictedFeature } from "@/common/components/RestrictedFeature"
 import { OrganizationRoute } from "@/common/routes/OrganizationRoute"
 import { ProjectRoute } from "@/common/routes/ProjectRoute"
 import { Dashboard } from "../components/Dashboard"
@@ -24,9 +23,7 @@ export const evalRoutes = {
         <OrganizationRoute>
           <ProjectRoute>
             <EvalLayout>
-              <RestrictedFeature feature="evaluation" returnNull={false}>
-                <Dashboard />
-              </RestrictedFeature>
+              <Dashboard />
             </EvalLayout>
           </ProjectRoute>
         </OrganizationRoute>

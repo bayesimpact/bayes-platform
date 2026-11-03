@@ -97,7 +97,7 @@ describe("MCP endpoint - evaluation tools", () => {
   const createContext = async () => {
     const { user, organization, project } = await createOrganizationWithProject(repositories, {
       organizationMembership: { roleKeys: ["org_owner"] },
-      projectMembership: { roleKeys: ["project_owner"] },
+      projectMembership: { roleKeys: ["project_owner", "project_evaluator"] },
     })
     authSubject = user.authSubject!
     return { user, organization, project }
@@ -294,6 +294,21 @@ describe("MCP endpoint - evaluation tools", () => {
         organizationMembership: { roleKeys: ["org_member"] },
         projectMembership: { roleKeys: ["project_member"] },
       })
+      authSubject = user.authSubject!
+      const client = await connect([project.id])
+
+      const { isError, text } = await call(client, "create_evaluation_dataset", {
+        projectId: project.id,
+        name: "Support questions",
+      })
+
+      expect(isError).toBe(true)
+      expect(text).toBe(EVALUATION_PROJECT_NOT_FOUND_ERROR)
+      await client.close()
+    })
+
+    it("refuses a project owner who is not an evaluator, even with the grant", async () => {
+      const { user, project } = await createOrganizationWithProject(repositories)
       authSubject = user.authSubject!
       const client = await connect([project.id])
 
