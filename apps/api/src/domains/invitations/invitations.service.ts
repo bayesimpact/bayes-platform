@@ -229,6 +229,13 @@ export class InvitationsService {
             targetType: invitation.targetType,
             targetName: details?.targetName ?? "",
             organizationName: details?.organizationName ?? "",
+            workspaceAccess:
+              invitation.targetType === "project"
+                ? {
+                    role: invitation.role,
+                    agentNames: (details?.agents ?? []).map((agent) => agent.name),
+                  }
+                : undefined,
           }),
         )
       } catch (error) {

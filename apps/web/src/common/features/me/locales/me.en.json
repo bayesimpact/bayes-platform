@@ -24,11 +24,10 @@
     "invitations": {
       "title": "Pending invitations",
       "description": "Accept an invitation to get access.",
-      "projectBadge": "Project",
+      "projectBadge": "Workspace",
       "agentBadge": "Agent",
       "reviewCampaignBadge": "Review campaign",
       "roleLabel": "Role",
-      "joinAs": "You join as {{role}}",
       "agentsLabel": "Agents",
       "everyAgent": "Every agent"
     },

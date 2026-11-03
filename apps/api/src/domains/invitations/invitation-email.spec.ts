@@ -40,4 +40,30 @@ describe("buildInvitationEmail", () => {
     expect(email.html).toContain("&lt;b&gt;Agent&lt;/b&gt;")
     expect(email.html).not.toContain("<b>Agent</b>")
   })
+
+  it("says what a workspace invitation gives, with one button for both languages", () => {
+    const email = buildInvitationEmail({
+      ...params,
+      targetType: "project",
+      targetName: "Demo project",
+      workspaceAccess: { role: "member", agentNames: ["Helpful Assistant", "Scheduling Bot"] },
+    })
+
+    expect(email.text).toContain("You join as a member, with Helpful Assistant and Scheduling Bot.")
+    expect(email.text).toContain(
+      "Vous rejoignez en tant que membre, avec Helpful Assistant et Scheduling Bot.",
+    )
+    expect(email.html.match(/<a /g)).toHaveLength(1)
+  })
+
+  it("gives an admin every agent", () => {
+    const email = buildInvitationEmail({
+      ...params,
+      targetType: "project",
+      workspaceAccess: { role: "admin", agentNames: [] },
+    })
+
+    expect(email.text).toContain("You join as an admin, with every agent.")
+    expect(email.text).toContain("Vous rejoignez en tant qu'administrateur, avec tous les agents.")
+  })
 })

@@ -18,6 +18,11 @@ export type InvitationEmailParams = {
   targetType: InvitationTargetType
   targetName: string
   organizationName: string
+  /**
+   * What a workspace invitation gives: its role (`admin` or `member`) and the names of its agents.
+   * Left out for other invitations.
+   */
+  workspaceAccess?: { role: string; agentNames: string[] }
 }
 
 type Language = "en" | "fr"
@@ -31,51 +36,80 @@ const TARGET_LABELS: Record<Language, Record<InvitationTargetType, string>> = {
   },
 }
 
+/** "You join as a member, with A and B." An admin gets every agent, so no list. */
+function describeWorkspaceAccess(
+  language: Language,
+  access: NonNullable<InvitationEmailParams["workspaceAccess"]>,
+): string {
+  const isAdmin = access.role === "admin"
+  const agents = new Intl.ListFormat(language, { type: "conjunction" }).format(access.agentNames)
+  if (language === "en") {
+    if (isAdmin) return "You join as an admin, with every agent."
+    return access.agentNames.length === 0
+      ? "You join as a member."
+      : `You join as a member, with ${agents}.`
+  }
+  if (isAdmin) return "Vous rejoignez en tant qu'administrateur, avec tous les agents."
+  return access.agentNames.length === 0
+    ? "Vous rejoignez en tant que membre."
+    : `Vous rejoignez en tant que membre, avec ${agents}.`
+}
+
 /**
  * The invitation email, in English then French: the platform does not know the
- * language of someone who never signed in.
+ * language of someone who never signed in. One button below both, since both
+ * open the same link.
  */
 export function buildInvitationEmail(params: InvitationEmailParams): MailMessage {
   const paragraphs = (language: Language) => {
     const target = `${TARGET_LABELS[language][params.targetType]} ${params.targetName}`
     const organization = params.organizationName ? ` (${params.organizationName})` : ""
+    const access = params.workspaceAccess
+      ? describeWorkspaceAccess(language, params.workspaceAccess)
+      : null
     return language === "en"
       ? {
           intro: `${params.inviterName} invited you to join ${target}${organization}.`,
-          action: "Open the link below, then sign in, or sign up, and accept the invitation:",
-          button: "Open the invitation",
+          access,
+          action: "Open the invitation below, then sign in, or sign up, and accept it.",
           reminder: `Use exactly this email address: ${params.to}. With another address, you will not see the invitation.`,
         }
       : {
           intro: `${params.inviterName} vous invite à rejoindre ${target}${organization}.`,
+          access,
           action:
-            "Ouvrez le lien ci-dessous, puis connectez-vous, ou inscrivez-vous, et acceptez l'invitation :",
-          button: "Ouvrir l'invitation",
+            "Ouvrez l'invitation ci-dessous, puis connectez-vous, ou inscrivez-vous, et acceptez-la.",
           reminder: `Utilisez exactement cette adresse email : ${params.to}. Avec une autre adresse, vous ne verrez pas l'invitation.`,
         }
   }
-  const english = paragraphs("en")
-  const french = paragraphs("fr")
+  const sections = [paragraphs("en"), paragraphs("fr")]
+  const button = "Open the invitation · Ouvrir l'invitation"
 
-  const text = [english, french]
-    .map((language) =>
-      [language.intro, language.action, params.link, language.reminder].join("\n\n"),
-    )
-    .join("\n\n---\n\n")
+  const text = [
+    ...sections.map((section) =>
+      [section.intro, section.access, section.action, section.reminder]
+        .filter(Boolean)
+        .join("\n\n"),
+    ),
+    params.link,
+  ].join("\n\n---\n\n")
 
-  const htmlSection = (language: ReturnType<typeof paragraphs>) =>
+  const htmlSection = (section: ReturnType<typeof paragraphs>) =>
     [
-      `<p>${escapeHtml(language.intro)}</p>`,
-      `<p>${escapeHtml(language.action)}</p>`,
-      `<p><a href="${escapeHtml(params.link)}" style="display:inline-block;padding:10px 16px;border-radius:6px;background:#111827;color:#ffffff;text-decoration:none">${escapeHtml(language.button)}</a></p>`,
-      `<p style="color:#6b7280">${escapeHtml(language.reminder)}</p>`,
-    ].join("\n")
+      `<p>${escapeHtml(section.intro)}</p>`,
+      section.access ? `<p>${escapeHtml(section.access)}</p>` : "",
+      `<p>${escapeHtml(section.action)}</p>`,
+      `<p style="color:#6b7280">${escapeHtml(section.reminder)}</p>`,
+    ]
+      .filter(Boolean)
+      .join("\n")
 
   const html = [
     `<div style="font-family:sans-serif;font-size:15px;line-height:1.5;color:#111827">`,
-    htmlSection(english),
-    `<hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0">`,
-    htmlSection(french),
+    sections
+      .map(htmlSection)
+      .join(`\n<hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0">\n`),
+    `<p style="margin-top:24px"><a href="${escapeHtml(params.link)}" style="display:inline-block;padding:10px 16px;border-radius:6px;background:#111827;color:#ffffff;text-decoration:none">${escapeHtml(button)}</a></p>`,
     `</div>`,
   ].join("\n")
 
