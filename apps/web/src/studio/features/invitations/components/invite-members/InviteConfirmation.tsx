@@ -44,6 +44,11 @@ export function InviteConfirmation({
     const role = workspaceRoles.find((candidate) => candidate.key === roleKey)
     return role ? roleLabel(role) : roleKey
   }
+  const newEmails = values.emails.filter((email) => !existingAccess[email])
+  const knownPeople = values.emails.flatMap((email) => {
+    const access = existingAccess[email]
+    return access ? [{ email, access }] : []
+  })
   const isAdmin = values.workspaceRoleKey === WORKSPACE_ADMIN_ROLE_KEY
   const pickedAgents = agents.filter((agent) => values.agentIds.includes(agent.id))
   const agentsLine = isAdmin
@@ -66,15 +71,27 @@ export function InviteConfirmation({
           <dd>{agentsLine}</dd>
         </dl>
 
-        <ItemGroup className="gap-1">
-          {values.emails.map((email) => {
-            const access = existingAccess[email]
-            return (
-              <Item key={email} variant="outline" size="sm" className="py-2">
-                <ItemContent>
-                  <ItemTitle className="break-all font-normal">{email}</ItemTitle>
-                </ItemContent>
-                {access && (
+        {/* Newcomers as chips, to keep a long list short; only people already in the
+            workspace take a line, to say what they hold. */}
+        {newEmails.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {newEmails.map((email) => (
+              <Badge key={email} variant="outline">
+                {email}
+              </Badge>
+            ))}
+          </div>
+        )}
+
+        {knownPeople.length > 0 && (
+          <section className="flex flex-col gap-1">
+            <h3 className="text-xs font-medium text-muted-foreground">Already in the workspace</h3>
+            <ItemGroup>
+              {knownPeople.map(({ email, access }) => (
+                <Item key={email} size="sm" className="gap-2 px-0 py-1">
+                  <ItemContent>
+                    <ItemTitle className="break-all font-normal">{email}</ItemTitle>
+                  </ItemContent>
                   <ItemActions>
                     <ExistingAccessNote
                       access={access}
@@ -83,11 +100,11 @@ export function InviteConfirmation({
                       roleLabel={labelOf(access.workspaceRoleKey)}
                     />
                   </ItemActions>
-                )}
-              </Item>
-            )
-          })}
-        </ItemGroup>
+                </Item>
+              ))}
+            </ItemGroup>
+          </section>
+        )}
 
         {error && (
           <Alert variant="destructive">
