@@ -1,11 +1,11 @@
 /**
- * Redaction of what the API writes to its logs: the request logger and the exception filter.
+ * Redaction of the request URL that the exception filter writes to the logs.
  */
 
 /**
- * Fields that carry credentials (OAuth codes, verifiers and tokens, client
- * secrets) or a visitor's message (`q`, the payload of the public chat v1 GET
- * stream). Their values never reach the logs, even at debug level.
+ * Query parameters that carry credentials (OAuth codes, verifiers and tokens,
+ * client secrets) or a visitor's message (`q`, the payload of the public chat
+ * v1 GET stream). Their values never reach the logs.
  */
 const REDACTED_FIELDS = new Set([
   "access_token",
@@ -17,17 +17,6 @@ const REDACTED_FIELDS = new Set([
   "refresh_token",
   "token",
 ])
-
-export function redactCredentials(value: unknown): unknown {
-  if (Array.isArray(value)) return value.map(redactCredentials)
-  if (value === null || typeof value !== "object") return value
-  return Object.fromEntries(
-    Object.entries(value).map(([key, fieldValue]) => [
-      key,
-      REDACTED_FIELDS.has(key) ? "[redacted]" : redactCredentials(fieldValue),
-    ]),
-  )
-}
 
 /** `url` with the value of every redacted field of its query string replaced. */
 export function redactUrl(url: string): string {
