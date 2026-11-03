@@ -30,7 +30,9 @@ describe("buildInvitationEmail", () => {
       "Alex Martin vous invite à rejoindre l'agent Helpful Assistant (Example Org).",
     )
     expect(email.text).toContain(params.link)
-    expect(email.text).toContain("Use exactly this email address: invited@example.com.")
+    expect(email.text).toContain(
+      "Sign in with invited@example.com · Connectez-vous avec invited@example.com",
+    )
     expect(email.html).toContain(`href="${params.link}"`)
   })
 
@@ -49,9 +51,11 @@ describe("buildInvitationEmail", () => {
       workspaceAccess: { role: "member", agentNames: ["Helpful Assistant", "Scheduling Bot"] },
     })
 
-    expect(email.text).toContain("You join as a member, with Helpful Assistant and Scheduling Bot.")
     expect(email.text).toContain(
-      "Vous rejoignez en tant que membre, avec Helpful Assistant et Scheduling Bot.",
+      "Alex Martin invited you to join the workspace Demo project (Example Org) as a member, with Helpful Assistant and Scheduling Bot.",
+    )
+    expect(email.text).toContain(
+      "Alex Martin vous invite à rejoindre l'espace de travail Demo project (Example Org) en tant que membre, avec Helpful Assistant et Scheduling Bot.",
     )
     expect(email.html.match(/<a /g)).toHaveLength(1)
   })
@@ -63,7 +67,7 @@ describe("buildInvitationEmail", () => {
       workspaceAccess: { role: "admin", agentNames: [] },
     })
 
-    expect(email.text).toContain("You join as an admin, with every agent.")
-    expect(email.text).toContain("Vous rejoignez en tant qu'administrateur, avec tous les agents.")
+    expect(email.text).toContain("(Example Org) as an admin, with every agent.")
+    expect(email.text).toContain("(Example Org) en tant qu'administrateur, avec tous les agents.")
   })
 })

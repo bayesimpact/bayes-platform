@@ -89,7 +89,7 @@ describe("Invitations - email", () => {
     expect(message?.to).toBe("first+team@example.com")
     expect(message?.subject).toContain(project.name)
     expect(message?.text).toContain(
-      `Alex Martin invited you to join the workspace ${project.name} (${organization.name}).`,
+      `Alex Martin invited you to join the workspace ${project.name} (${organization.name}) as an admin, with every agent.`,
     )
     expect(message?.text).toContain(
       "https://platform.example.org/?login_hint=first%2Bteam%40example.com",
