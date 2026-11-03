@@ -51,7 +51,8 @@
         "description": "Collez un enregistrement par ligne au format CSV : l'entrée et le résultat attendu séparés par une virgule. Vous pouvez ainsi coller directement depuis un tableur.",
         "placeholder": "entrée,résultat attendu\nautre entrée,autre résultat attendu",
         "parsedCount": "{{count}} enregistrements prêts à être ajoutés",
-        "invalidRows": "Résultat attendu manquant à la (aux) ligne(s) : {{lines}}"
+        "invalidRows": "Résultat attendu manquant à la (aux) ligne(s) : {{lines}}",
+        "tooLongRows": "Plus de {{count}} caractères à la (aux) ligne(s) : {{lines}}"
       },
       "update": {
         "button": "Modifier l'enregistrement",
@@ -77,7 +78,9 @@
     "validation": {
       "minNameLength": "Le nom doit contenir au moins 3 caractères",
       "inputRequired": "L'entrée est requise",
-      "expectedOutputRequired": "Le résultat attendu est requis"
+      "expectedOutputRequired": "Le résultat attendu est requis",
+      "inputTooLong": "L'entrée doit contenir au plus {{count}} caractères",
+      "expectedOutputTooLong": "Le résultat attendu doit contenir au plus {{count}} caractères"
     },
     "notifications": {
       "created": "{{name}} créé avec succès",

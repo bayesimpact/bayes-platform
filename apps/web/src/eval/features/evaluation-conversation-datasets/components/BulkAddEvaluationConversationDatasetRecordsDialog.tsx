@@ -1,3 +1,4 @@
+import { EVALUATION_CONVERSATION_DATASET_RECORD_MAX_LENGTH } from "@caseai-connect/api-contracts"
 import { Button } from "@caseai-connect/ui/shad/button"
 import {
   Dialog,
@@ -16,17 +17,18 @@ import { useAppDispatch } from "@/common/store/hooks"
 import { evaluationConversationDatasetsActions } from "../evaluation-conversation-datasets.slice"
 
 type ParsedRecord = { input: string; expectedOutput: string }
-type ParseResult = { records: ParsedRecord[]; invalidLines: number[] }
+type ParseResult = { records: ParsedRecord[]; invalidLines: number[]; tooLongLines: number[] }
 
 /**
  * Parses pasted CSV rows: one record per line, input and expected output separated by a comma. The
  * split is on the first comma only, so the expected output may itself contain commas. Blank lines
- * are skipped; a line whose input or expected output is empty is reported as invalid by its 1-based
- * line number.
+ * are skipped; a line whose input or expected output is empty is reported as invalid, and one whose
+ * input or expected output is over the maximum length as too long, by its 1-based line number.
  */
 function parseBulkRecords(raw: string): ParseResult {
   const records: ParsedRecord[] = []
   const invalidLines: number[] = []
+  const tooLongLines: number[] = []
   raw.split("\n").forEach((line, lineIndex) => {
     if (line.trim() === "") return
     const separatorIndex = line.indexOf(",")
@@ -38,9 +40,16 @@ function parseBulkRecords(raw: string): ParseResult {
       invalidLines.push(lineIndex + 1)
       return
     }
+    if (
+      input.length > EVALUATION_CONVERSATION_DATASET_RECORD_MAX_LENGTH ||
+      expectedOutput.length > EVALUATION_CONVERSATION_DATASET_RECORD_MAX_LENGTH
+    ) {
+      tooLongLines.push(lineIndex + 1)
+      return
+    }
     records.push({ input, expectedOutput })
   })
-  return { records, invalidLines }
+  return { records, invalidLines, tooLongLines }
 }
 
 export function BulkAddEvaluationConversationDatasetRecordsDialog({
@@ -53,8 +62,8 @@ export function BulkAddEvaluationConversationDatasetRecordsDialog({
   const [open, setOpen] = useState(false)
   const [text, setText] = useState("")
 
-  const { records, invalidLines } = useMemo(() => parseBulkRecords(text), [text])
-  const canSubmit = records.length > 0 && invalidLines.length === 0
+  const { records, invalidLines, tooLongLines } = useMemo(() => parseBulkRecords(text), [text])
+  const canSubmit = records.length > 0 && invalidLines.length === 0 && tooLongLines.length === 0
 
   const handleSubmit = async () => {
     if (!canSubmit) return
@@ -96,13 +105,22 @@ export function BulkAddEvaluationConversationDatasetRecordsDialog({
             value={text}
             onChange={(event) => setText(event.target.value)}
           />
-          {invalidLines.length > 0 ? (
+          {invalidLines.length > 0 && (
             <p className="text-sm text-destructive">
               {t("evaluationConversationDataset:record.bulk.invalidRows", {
                 lines: invalidLines.join(", "),
               })}
             </p>
-          ) : (
+          )}
+          {tooLongLines.length > 0 && (
+            <p className="text-sm text-destructive">
+              {t("evaluationConversationDataset:record.bulk.tooLongRows", {
+                count: EVALUATION_CONVERSATION_DATASET_RECORD_MAX_LENGTH,
+                lines: tooLongLines.join(", "),
+              })}
+            </p>
+          )}
+          {invalidLines.length === 0 && tooLongLines.length === 0 && (
             <p className="text-sm text-muted-foreground">
               {t("evaluationConversationDataset:record.bulk.parsedCount", {
                 count: records.length,

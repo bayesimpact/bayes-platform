@@ -52,7 +52,7 @@ type Part<TName extends string, TSchema extends z.ZodType> = Record<
   : { [Key in TName]: z.output<TSchema> }
 
 /** The body, which the caller passes only when the route reads one, as its schema takes it. */
-type BodyPart<TRoute extends AnySchemaRoute> =
+type BodyPart<TRoute extends AnySchemaRoute | AnyStreamRoute> =
   z.input<TRoute["schemas"]["body"]> extends { payload: infer TPayload }
     ? { body: TPayload }
     : { body?: never }
@@ -99,7 +99,8 @@ export async function apiRequest<TRoute extends AnySchemaRoute>(
 }
 
 type ApiStreamOptions<TRoute extends AnyStreamRoute> = Part<"params", TRoute["schemas"]["params"]> &
-  Part<"query", TRoute["schemas"]["query"]> & { signal?: AbortSignal }
+  Part<"query", TRoute["schemas"]["query"]> &
+  BodyPart<TRoute> & { signal?: AbortSignal }
 
 /**
  * Opens a Desk stream on this origin's `/api`, with the bearer token, and returns the response

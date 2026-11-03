@@ -7,6 +7,7 @@ interface State {
   conversationsPerDay: AsyncData<AnalyticsDailyPoint[]>
   avgUserQuestionsPerSessionPerDay: AsyncData<AnalyticsDailyPoint[]>
   conversationsByCategoryPerDay: AsyncData<AnalyticsCategoryDailyPoint[]>
+  emptySessionsPerDay: AsyncData<AnalyticsDailyPoint[]>
 }
 
 const emptySeries: AsyncData<AnalyticsDailyPoint[]> = {
@@ -19,6 +20,7 @@ const initialState: State = {
   conversationsPerDay: { ...emptySeries },
   avgUserQuestionsPerSessionPerDay: { ...emptySeries },
   conversationsByCategoryPerDay: { ...emptySeries },
+  emptySessionsPerDay: { ...emptySeries },
 }
 
 const slice = createSlice({
@@ -39,9 +41,13 @@ const slice = createSlice({
         if (!ADS.isFulfilled(state.conversationsByCategoryPerDay)) {
           state.conversationsByCategoryPerDay.status = ADS.Loading
         }
+        if (!ADS.isFulfilled(state.emptySessionsPerDay)) {
+          state.emptySessionsPerDay.status = ADS.Loading
+        }
         state.conversationsPerDay.error = null
         state.avgUserQuestionsPerSessionPerDay.error = null
         state.conversationsByCategoryPerDay.error = null
+        state.emptySessionsPerDay.error = null
       })
       .addCase(loadAgentAnalytics.fulfilled, (state, action) => {
         state.conversationsPerDay = {
@@ -59,6 +65,11 @@ const slice = createSlice({
           error: null,
           value: action.payload.conversationsByCategoryPerDay,
         }
+        state.emptySessionsPerDay = {
+          status: ADS.Fulfilled,
+          error: null,
+          value: action.payload.emptySessionsPerDay,
+        }
       })
       .addCase(loadAgentAnalytics.rejected, (state, action) => {
         const message = action.error.message || "Failed to load agent analytics"
@@ -73,6 +84,11 @@ const slice = createSlice({
           value: null,
         }
         state.conversationsByCategoryPerDay = {
+          status: ADS.Error,
+          error: message,
+          value: null,
+        }
+        state.emptySessionsPerDay = {
           status: ADS.Error,
           error: message,
           value: null,

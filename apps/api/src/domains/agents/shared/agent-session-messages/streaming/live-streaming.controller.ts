@@ -1,6 +1,15 @@
 import { AgentSessionMessagesRoutes } from "@caseai-connect/api-contracts"
 import type { MessageEvent } from "@nestjs/common"
-import { Controller, Query, Req, Sse, UseGuards } from "@nestjs/common"
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Req,
+  RequestMethod,
+  Sse,
+  UseGuards,
+} from "@nestjs/common"
 import type { Observable } from "rxjs"
 import type { EndpointRequestWithAgentSession } from "@/common/context/request.interface"
 import { RequireContext } from "@/common/context/require-context.decorator"
@@ -25,12 +34,13 @@ const Routes = AgentSessionMessagesRoutes.live
 export class LiveStreamingController extends StreamingController {
   protected readonly type = "live"
 
-  @Sse(Routes.stream.path, { method: 0 /* GET */ })
+  @Sse(Routes.stream.path, { method: RequestMethod.POST })
+  @HttpCode(HttpStatus.OK)
   @CheckPermission(AGENT_CONVERSATION_SESSION_CREATE_PERMISSION, "project")
   stream(
     @Req() request: EndpointRequestWithAgentSession<ConversationAgentSession>,
-    @Query("q") query: string,
+    @Body() body: typeof Routes.stream.request,
   ): Observable<MessageEvent> {
-    return this.handleStream(request, query)
+    return this.handleStream(request, body)
   }
 }

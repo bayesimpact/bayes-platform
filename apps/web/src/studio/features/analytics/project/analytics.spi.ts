@@ -13,4 +13,5 @@ export interface IProjectAnalyticsSpi {
   getAvgUserQuestionsPerSessionPerDay(
     params: ProjectAnalyticsParams,
   ): Promise<AnalyticsDailyPoint[]>
+  getEmptySessionsPerDay(params: ProjectAnalyticsParams): Promise<AnalyticsDailyPoint[]>
 }

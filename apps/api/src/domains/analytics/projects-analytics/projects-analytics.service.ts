@@ -87,6 +87,31 @@ export class ProjectsAnalyticsService {
     }))
   }
 
+  async getEmptySessionsPerDay({
+    connectScope,
+    agentId,
+    startAt,
+    endAt,
+  }: {
+    connectScope: RequiredConnectScope
+    agentId?: string
+    startAt: TimeType
+    endAt: TimeType
+  }): Promise<AnalyticsDailyPoint[]> {
+    const dayKeys = getUtcDayKeys(startAt, endAt)
+    const totalsByDay = await this.getAllSessionsDailyTotals({
+      connectScope,
+      agentId,
+      startAt,
+      endAt,
+    })
+
+    return dayKeys.map((day) => ({
+      date: day,
+      value: totalsByDay.get(day)?.emptySessions ?? 0,
+    }))
+  }
+
   private getAllSessionsDailyTotals(params: {
     connectScope: RequiredConnectScope
     agentId?: string

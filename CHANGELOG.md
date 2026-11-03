@@ -9,13 +9,20 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 
+- MCP: AI assistants can build evaluation datasets, evaluate agent drafts and read the scores, with the access a person grants.
+
 ### Changed
 
+- Analytics: conversations count only sessions with a question, and sessions opened without one are shown apart.
+
 ### Fixed
+
+- Document import errors: a failed document now shows why it failed, in one readable line.
 
 ### Security
 
 - Embedded agents: visitor messages no longer appear in URLs or server access logs.
+- Conversations: long messages now always get a reply, and their text no longer reaches server access logs.
 
 ## [26.10.10] - 2026-10-31
 

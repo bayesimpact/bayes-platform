@@ -14,22 +14,38 @@ import { studioRoutes } from "@/studio/routes/StudioRoutes"
 
 type StoryArgs = StudioStoryArgs & {
   withAnalytics?: boolean
+  withMostlyEmptySessions?: boolean
 }
 
 const DATES = ["2026-05-09", "2026-05-10", "2026-05-11", "2026-05-12", "2026-05-13", "2026-05-14"]
 
-function buildAnalytics() {
+/** A few empty sessions, or an integration that opens a session on every page load. */
+function buildEmptySessionsPerDay(
+  conversationsPerDay: ReturnType<typeof analyticsDailyPointFactory.build>[],
+  withMostlyEmptySessions: boolean,
+) {
+  return conversationsPerDay.map((point, dayIndex) =>
+    analyticsDailyPointFactory.build({
+      date: point.date,
+      value: withMostlyEmptySessions ? point.value * 40 : dayIndex % 2,
+    }),
+  )
+}
+
+function buildAnalytics(withMostlyEmptySessions: boolean) {
   const conversationsPerDay = DATES.map((date) => analyticsDailyPointFactory.build({ date }))
   const avgUserQuestionsPerSessionPerDay = DATES.map((date) =>
     analyticsDailyPointFactory.build({ date }),
   )
-  return { conversationsPerDay, avgUserQuestionsPerSessionPerDay }
+  const emptySessionsPerDay = buildEmptySessionsPerDay(conversationsPerDay, withMostlyEmptySessions)
+  return { conversationsPerDay, avgUserQuestionsPerSessionPerDay, emptySessionsPerDay }
 }
 
 function buildMockProjectAnalyticsService(
   overrides: Partial<{
     conversationsPerDay: ReturnType<typeof analyticsDailyPointFactory.build>[]
     avgUserQuestionsPerSessionPerDay: ReturnType<typeof analyticsDailyPointFactory.build>[]
+    emptySessionsPerDay: ReturnType<typeof analyticsDailyPointFactory.build>[]
   }> = {},
 ): IProjectAnalyticsSpi {
   return {
@@ -38,6 +54,9 @@ function buildMockProjectAnalyticsService(
     },
     async getAvgUserQuestionsPerSessionPerDay() {
       return overrides.avgUserQuestionsPerSessionPerDay ?? []
+    },
+    async getEmptySessionsPerDay() {
+      return overrides.emptySessionsPerDay ?? []
     },
   }
 }
@@ -48,11 +67,13 @@ const meta = {
   argTypes: {
     ...studioStoryArgTypes,
     withAnalytics: { control: "boolean" },
+    withMostlyEmptySessions: { control: "boolean" },
   },
   args: {
     ...studioStoryArgs,
     featureFlags: [...studioStoryArgs.featureFlags, "project-analytics"],
     withAnalytics: false,
+    withMostlyEmptySessions: false,
   },
   render: render({
     routes: studioRoutes,
@@ -65,13 +86,14 @@ type Story = StoryObj<typeof meta>
 
 export const Default: Story = {
   decorators: [
-    buildDecorator<StoryArgs>(({ withAnalytics, ...args }) => {
+    buildDecorator<StoryArgs>(({ withAnalytics, withMostlyEmptySessions, ...args }) => {
       const { baseSeeds } = buildStudioData(args)
       const analytics = withAnalytics
-        ? buildAnalytics()
+        ? buildAnalytics(withMostlyEmptySessions ?? false)
         : {
             conversationsPerDay: [],
             avgUserQuestionsPerSessionPerDay: [],
+            emptySessionsPerDay: [],
           }
       return {
         state: mergeSeeds(baseSeeds, seed.studio.projectAnalytics(analytics)),
@@ -94,13 +116,14 @@ export const WithData: Story = {
   },
 
   decorators: [
-    buildDecorator<StoryArgs>(({ withAnalytics, ...args }) => {
+    buildDecorator<StoryArgs>(({ withAnalytics, withMostlyEmptySessions, ...args }) => {
       const { baseSeeds } = buildStudioData(args)
       const analytics = withAnalytics
-        ? buildAnalytics()
+        ? buildAnalytics(withMostlyEmptySessions ?? false)
         : {
             conversationsPerDay: [],
             avgUserQuestionsPerSessionPerDay: [],
+            emptySessionsPerDay: [],
           }
       return {
         state: mergeSeeds(baseSeeds, seed.studio.projectAnalytics(analytics)),
@@ -111,4 +134,10 @@ export const WithData: Story = {
       }
     }),
   ],
+}
+
+/** An integration opens a session on every page load: the page warns about it. */
+export const WithMostlyEmptySessions: Story = {
+  ...WithData,
+  args: { ...WithData.args, withMostlyEmptySessions: true },
 }

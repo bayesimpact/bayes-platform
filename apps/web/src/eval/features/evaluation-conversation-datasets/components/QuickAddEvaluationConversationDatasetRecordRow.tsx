@@ -1,3 +1,4 @@
+import { EVALUATION_CONVERSATION_DATASET_RECORD_MAX_LENGTH } from "@caseai-connect/api-contracts"
 import { Button } from "@caseai-connect/ui/shad/button"
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@caseai-connect/ui/shad/form"
 import { Input } from "@caseai-connect/ui/shad/input"
@@ -26,10 +27,24 @@ export function QuickAddEvaluationConversationDatasetRecordRow({
   const schema = useMemo(
     () =>
       z.object({
-        input: z.string().min(1, t("evaluationConversationDataset:validation.inputRequired")),
+        input: z
+          .string()
+          .min(1, t("evaluationConversationDataset:validation.inputRequired"))
+          .max(
+            EVALUATION_CONVERSATION_DATASET_RECORD_MAX_LENGTH,
+            t("evaluationConversationDataset:validation.inputTooLong", {
+              count: EVALUATION_CONVERSATION_DATASET_RECORD_MAX_LENGTH,
+            }),
+          ),
         expectedOutput: z
           .string()
-          .min(1, t("evaluationConversationDataset:validation.expectedOutputRequired")),
+          .min(1, t("evaluationConversationDataset:validation.expectedOutputRequired"))
+          .max(
+            EVALUATION_CONVERSATION_DATASET_RECORD_MAX_LENGTH,
+            t("evaluationConversationDataset:validation.expectedOutputTooLong", {
+              count: EVALUATION_CONVERSATION_DATASET_RECORD_MAX_LENGTH,
+            }),
+          ),
       }),
     [t],
   )

@@ -1,6 +1,7 @@
 import { OnWorkerEvent, Processor, WorkerHost } from "@nestjs/bullmq"
 import { Logger } from "@nestjs/common"
 import type { Job } from "bullmq"
+import { describeFailedJob } from "@/common/logger/describe-failed-job"
 import { EVALUATION_CONVERSATION_RUN_EXECUTE_QUEUE_NAME } from "./evaluation-conversation-run.constants"
 import type { ExecuteEvaluationConversationRunJobPayload } from "./evaluation-conversation-run.types"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -30,9 +31,6 @@ export class EvaluationConversationRunExecuteWorker extends WorkerHost {
 
   @OnWorkerEvent("failed")
   onFailed(job: Job<ExecuteEvaluationConversationRunJobPayload> | undefined, error: Error): void {
-    this.logger.error(
-      `Job failed: ${job?.name ?? "unknown"} (${job?.id ?? "unknown"})`,
-      error.stack,
-    )
+    this.logger.error(`Job failed: ${describeFailedJob(job, error)}`, error.stack)
   }
 }

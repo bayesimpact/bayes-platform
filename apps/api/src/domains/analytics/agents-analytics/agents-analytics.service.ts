@@ -35,6 +35,7 @@ export class AgentsAnalyticsService {
   private readonly sessionCategoryAlias = "sessionCategory"
   private readonly categoryAlias = "category"
   private readonly agentAlias = "agent"
+  private readonly userMessageAlias = "userMessage"
 
   constructor(
     @InjectRepository(ConversationAgentSession)
@@ -99,6 +100,31 @@ export class AgentsAnalyticsService {
     return dayKeys.map((day) => ({
       date: day,
       value: getAvgUserQuestionsPerSession(totalsByDay.get(day)),
+    }))
+  }
+
+  async getEmptySessionsPerDay({
+    connectScope,
+    agentId,
+    startAt,
+    endAt,
+  }: {
+    connectScope: RequiredConnectScope
+    agentId: string
+    startAt: TimeType
+    endAt: TimeType
+  }): Promise<AnalyticsDailyPoint[]> {
+    const dayKeys = getUtcDayKeys(startAt, endAt)
+    const totalsByDay = await this.getAllSessionsDailyTotals({
+      connectScope,
+      agentId,
+      startAt,
+      endAt,
+    })
+
+    return dayKeys.map((day) => ({
+      date: day,
+      value: totalsByDay.get(day)?.emptySessions ?? 0,
     }))
   }
 
@@ -207,6 +233,19 @@ export class AgentsAnalyticsService {
           )
           .getQuery()})`,
       )
+      // A session without a user message is not a conversation (#1165).
+      .andWhere(
+        `EXISTS (${this.conversationAgentSessionConnectRepository
+          .newQueryBuilderWithConnectScope(connectScope)
+          .subQuery()
+          .select("1")
+          .from(AgentMessage, this.userMessageAlias)
+          .where(
+            `${getQualifiedColumnSql(this.userMessageAlias, "session_id")} = ${sessionIdCol} AND ${getQualifiedColumnSql(this.userMessageAlias, "role")} = :userRole`,
+          )
+          .getQuery()})`,
+        { userRole: "user" },
+      )
       .groupBy(dayExpr)
       .addGroupBy(sessionAgentIdCol)
       .addGroupBy(agentNameCol)
@@ -222,6 +261,7 @@ export class AgentsAnalyticsService {
     // with the conversation rows per (date, category).
     const publicRows = await getPublicSessionCategoryRows({
       publicAgentSessionConnectRepository: this.publicAgentSessionConnectRepository,
+      messageEntity: AgentMessage,
       connectScope,
       agentId,
       startAt,

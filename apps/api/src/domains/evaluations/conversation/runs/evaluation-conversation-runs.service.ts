@@ -198,6 +198,34 @@ export class EvaluationConversationRunsService {
     return runs
   }
 
+  /** One page of the project's runs, newest first, with their pinned settings, optionally of one agent. */
+  async listRunsPaginated({
+    connectScope,
+    agentId,
+    page,
+    limit,
+  }: {
+    connectScope: RequiredConnectScope
+    agentId?: string
+    page: number
+    limit: number
+  }): Promise<{ runs: EvaluationConversationRun[]; total: number }> {
+    const alias = "evaluationConversationRun"
+
+    const query = this.runConnectRepository
+      .newQueryBuilderWithConnectScope(connectScope)
+      .leftJoinAndSelect(`${alias}.agentSettings`, "agentSettings")
+      .orderBy(`${alias}.createdAt`, "DESC")
+      .addOrderBy(`${alias}.id`, "DESC")
+      .skip(page * limit)
+      .take(limit)
+    if (agentId !== undefined) query.andWhere(`${alias}.agentId = :agentId`, { agentId })
+
+    const [runs, total] = await query.getManyAndCount()
+
+    return { runs, total }
+  }
+
   async getRunRecordsPaginated({
     connectScope,
     runId,
