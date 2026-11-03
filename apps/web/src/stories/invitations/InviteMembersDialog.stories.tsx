@@ -61,18 +61,18 @@ async function review(canvasElement: HTMLElement) {
   await expect(await page.findByText("Confirm the invitation")).toBeInTheDocument()
 }
 
-const usersWithAgents = {
+const membersWithAgents = {
   emails: ["avery@example.org", "jordan@example.org"],
   workspaceRoleKey: "project_member",
   agentIds: ["agent-1", "agent-2"],
 }
 
-/** Just opened: user of the workspace by default, no agent picked. */
+/** Just opened: member of the workspace by default, no agent picked. */
 export const Empty: Story = {}
 
-/** The case of the issue: two newcomers, users of the workspace and of two of its agents. */
-export const UsersWithAgents: Story = {
-  args: { defaultValues: usersWithAgents },
+/** The case of the issue: two newcomers, members of the workspace and of two of its agents. */
+export const MembersWithAgents: Story = {
+  args: { defaultValues: membersWithAgents },
 }
 
 /** Admin of the workspace: admin of every agent, so there is no agent to pick. */
@@ -120,7 +120,7 @@ export const SubmitWithoutEmail: Story = {
 
 /** The confirmation screen: who is invited, their role, their agents. Nothing is sent yet. */
 export const Confirm: Story = {
-  args: { defaultValues: usersWithAgents },
+  args: { defaultValues: membersWithAgents },
   play: async ({ canvasElement, args }) => {
     await review(canvasElement)
     await expect(args.onSubmit).not.toHaveBeenCalled()
@@ -135,7 +135,7 @@ export const ConfirmWorkspaceAdmin: Story = {
 
 /** Back returns to the picking screen with every choice kept. */
 export const BackKeepsChoices: Story = {
-  args: { defaultValues: usersWithAgents },
+  args: { defaultValues: membersWithAgents },
   play: async ({ canvasElement }) => {
     const page = body(canvasElement)
     await review(canvasElement)
@@ -147,19 +147,19 @@ export const BackKeepsChoices: Story = {
 
 /** Confirm sends the invitation once, with the member role implied on each agent. */
 export const ConfirmSends: Story = {
-  args: { defaultValues: usersWithAgents },
+  args: { defaultValues: membersWithAgents },
   play: async ({ canvasElement, args }) => {
     const page = body(canvasElement)
     await review(canvasElement)
     await userEvent.click(page.getByRole("button", { name: "Confirm" }))
-    await expect(args.onSubmit).toHaveBeenCalledWith(usersWithAgents)
+    await expect(args.onSubmit).toHaveBeenCalledWith(membersWithAgents)
   },
 }
 
 /** The API refused the invitation: the confirmation screen stays, with the reason. */
 export const SubmitError: Story = {
   args: {
-    defaultValues: usersWithAgents,
+    defaultValues: membersWithAgents,
     error: "Scheduling Bot was deleted in the meantime. Go back and pick the agents again.",
   },
   play: async ({ canvasElement }) => review(canvasElement),

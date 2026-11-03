@@ -39,7 +39,7 @@
     "roleNames": {
       "project_owner": "Owner",
       "project_admin": "Admin",
-      "project_member": "User",
+      "project_member": "Member",
       "agent_owner": "Owner",
       "agent_admin": "Admin",
       "agent_member": "Member",
