@@ -50,7 +50,15 @@ const meta = {
   title: "invitations/InviteMembersDialog",
   component: InviteMembersDialog,
   parameters: { layout: "fullscreen" },
+  argTypes: {
+    variant: {
+      control: "inline-radio",
+      options: ["footerSummary", "stickyHeader"],
+      description: "Layout under review: the summary in the sticky footer, or a sticky header.",
+    },
+  },
   args: {
+    variant: "footerSummary",
     open: true,
     onOpenChange: fn(),
     workspaceName: "Demo project",
@@ -139,6 +147,30 @@ export const ManyAgents: Story = {
       agents: [{ targetId: "agent-4", roleKey: "agent_member" }],
     },
   },
+}
+
+/** The same busy selection for both variants, on a workspace with many agents. */
+const variantArgs = {
+  agents: manyAgents,
+  defaultValues: {
+    emails: ["avery@example.org", "jordan@example.org"],
+    workspaceRoleKey: "project_member",
+    agents: [
+      { targetId: "agent-1", roleKey: "agent_member" },
+      { targetId: "agent-4", roleKey: "agent_admin" },
+    ],
+    campaigns: [{ targetId: "campaign-1", roleKey: "review_campaign_tester" }],
+  },
+}
+
+/** Variant A: the summary stays in view in the footer, the header scrolls away. */
+export const VariantFooterSummary: Story = {
+  args: { ...variantArgs, variant: "footerSummary" },
+}
+
+/** Variant B: the header and its close button stay in view, the summary sits above the footer. */
+export const VariantStickyHeader: Story = {
+  args: { ...variantArgs, variant: "stickyHeader" },
 }
 
 /** A workspace without agents yet. */

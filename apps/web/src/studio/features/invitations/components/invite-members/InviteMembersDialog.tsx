@@ -7,6 +7,7 @@ import {
 } from "@caseai-connect/ui/shad/collapsible"
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -24,8 +25,9 @@ import {
 } from "@caseai-connect/ui/shad/form"
 import { Label } from "@caseai-connect/ui/shad/label"
 import { RadioGroup, RadioGroupItem } from "@caseai-connect/ui/shad/radio-group"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@caseai-connect/ui/shad/tooltip"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { ChevronRightIcon, InfoIcon } from "lucide-react"
+import { ChevronRightIcon, InfoIcon, XIcon } from "lucide-react"
 import { useForm, useWatch } from "react-hook-form"
 import { z } from "zod"
 import type { RoleOption } from "@/studio/features/project-memberships/components/member-detail/member-detail.models"
@@ -68,6 +70,7 @@ export function InviteMembersDialog({
   onOpenMember,
   onSubmit,
   error,
+  variant = "footerSummary",
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -81,6 +84,11 @@ export function InviteMembersDialog({
   onOpenMember: (email: string) => void
   onSubmit: (values: InviteMembersValues) => Promise<void>
   error?: string | null
+  /**
+   * Layout under review, one to keep: the header kept in view with the summary in the body, or
+   * the summary kept in view in the footer.
+   */
+  variant?: "stickyHeader" | "footerSummary"
 }) {
   const form = useForm<InviteMembersValues>({
     resolver: zodResolver(inviteMembersSchema),
@@ -96,6 +104,14 @@ export function InviteMembersDialog({
   const isWorkspaceAdmin = values.workspaceRoleKey === WORKSPACE_ADMIN_ROLE_KEY
   const existing = new Set(existingMemberEmails)
   const inviteeCount = values.emails.filter((email) => !existing.has(email)).length
+  const summary = useInviteSummary({
+    inviteeCount,
+    values,
+    roles,
+    agents,
+    campaigns,
+    isWorkspaceAdmin,
+  })
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) form.reset()
@@ -113,13 +129,35 @@ export function InviteMembersDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
-        <DialogHeader>
-          <DialogTitle>Invite people to {workspaceName}</DialogTitle>
-          <DialogDescription>
-            Pick what they get. Each person receives one invitation and accepts it once.
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent
+        className="max-h-[90vh] overflow-y-auto sm:max-w-xl"
+        showCloseButton={variant !== "stickyHeader"}
+      >
+        {variant === "stickyHeader" ? (
+          // Kept in view over the dialog's top padding, with the close button that would
+          // otherwise scroll away.
+          <DialogHeader className="sticky -top-6 z-10 -mx-6 -mt-6 flex-row items-start gap-4 border-b bg-background px-6 pt-6 pb-4">
+            <div className="flex min-w-0 flex-1 flex-col gap-2">
+              <DialogTitle>Invite people to {workspaceName}</DialogTitle>
+              <DialogDescription>
+                Pick what they get. Each person receives one invitation and accepts it once.
+              </DialogDescription>
+            </div>
+            <DialogClose asChild>
+              <Button type="button" variant="ghost" size="icon" className="-mt-2 -mr-2 size-8">
+                <XIcon />
+                <span className="sr-only">Close</span>
+              </Button>
+            </DialogClose>
+          </DialogHeader>
+        ) : (
+          <DialogHeader>
+            <DialogTitle>Invite people to {workspaceName}</DialogTitle>
+            <DialogDescription>
+              Pick what they get. Each person receives one invitation and accepts it once.
+            </DialogDescription>
+          </DialogHeader>
+        )}
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleValid)} className="flex flex-col gap-6">
@@ -229,14 +267,11 @@ export function InviteMembersDialog({
               />
             )}
 
-            <InviteSummary
-              inviteeCount={inviteeCount}
-              values={values}
-              roles={roles}
-              agents={agents}
-              campaigns={campaigns}
-              isWorkspaceAdmin={isWorkspaceAdmin}
-            />
+            {variant === "stickyHeader" && summary && (
+              <p className="rounded-md bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
+                {summary.sentence}
+              </p>
+            )}
 
             {error && (
               <p role="alert" className="text-sm text-destructive">
@@ -245,7 +280,17 @@ export function InviteMembersDialog({
             )}
 
             {/* Kept in view while the dialog scrolls, over the dialog's bottom padding. */}
-            <DialogFooter className="sticky -bottom-6 -mx-6 -mb-6 rounded-b-lg border-t bg-background px-6 py-4">
+            <DialogFooter className="sticky -bottom-6 z-10 -mx-6 -mb-6 rounded-b-lg border-t bg-background px-6 py-4 sm:items-center">
+              {variant === "footerSummary" && summary && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <p className="min-w-0 flex-1 truncate text-sm text-muted-foreground">
+                      {summary.short}
+                    </p>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-80">{summary.sentence}</TooltipContent>
+                </Tooltip>
+              )}
               <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
                 Cancel
               </Button>
@@ -279,8 +324,11 @@ function WorkspaceRoleOption({ role }: { role: RoleOption }) {
   )
 }
 
-/** What each invitee gets, in one sentence, so the manager checks it before sending. */
-function InviteSummary({
+/**
+ * What each invitee gets, so the manager checks it before sending: a full sentence, and a short
+ * line for the footer. Null while nobody is to be invited.
+ */
+function useInviteSummary({
   inviteeCount,
   values,
   roles,
@@ -294,7 +342,7 @@ function InviteSummary({
   agents: InviteTarget[]
   campaigns: InviteTarget[]
   isWorkspaceAdmin: boolean
-}) {
+}): { sentence: string; short: string } | null {
   const roleLabel = useRoleLabel()
   if (inviteeCount === 0) return null
 
@@ -318,10 +366,20 @@ function InviteSummary({
     ),
   ]
 
-  return (
-    <p className="rounded-md bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
-      {inviteeCount === 1 ? "The invitee" : `Each of the ${inviteeCount} invitees`} will be{" "}
-      {grants.join(", ")}.
-    </p>
-  )
+  const agentCount = isWorkspaceAdmin ? 0 : values.agents.length
+  const campaignCount = values.campaigns.length
+  const workspaceRole = roles.workspace.find((role) => role.key === values.workspaceRoleKey)
+
+  return {
+    sentence: `${inviteeCount === 1 ? "The invitee" : `Each of the ${inviteeCount} invitees`} will be ${grants.join(", ")}.`,
+    short: [
+      inviteeCount === 1 ? "1 person" : `${inviteeCount} people`,
+      workspaceRole ? roleLabel(workspaceRole) : values.workspaceRoleKey,
+      ...(isWorkspaceAdmin ? ["every agent"] : []),
+      ...(agentCount > 0 ? [agentCount === 1 ? "1 agent" : `${agentCount} agents`] : []),
+      ...(campaignCount > 0
+        ? [campaignCount === 1 ? "1 campaign" : `${campaignCount} campaigns`]
+        : []),
+    ].join(" · "),
+  }
 }
