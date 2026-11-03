@@ -22,6 +22,11 @@ export enum AgentModel {
   MistralSmall31_24B = "mistralai/Mistral-Small-3.1-24B-Instruct-2503",
   MistralSmall32_24B = "mistralai/Mistral-Small-3.2-24B-Instruct-2506",
   Qwen38_27B = "Qwen/Qwen3.8-27B",
+  ClaudeSonnet55 = "claude-sonnet-5-5",
+  ClaudeHaiku55 = "claude-haiku-5-5",
+  ClaudeOpus5 = "claude-opus-5",
+  Gpt54 = "gpt-5.4",
+  Gpt54Mini = "gpt-5.4-mini",
   _Mock = "mock-language-model-v3",
 }
 
@@ -32,6 +37,8 @@ export enum AgentProvider {
   Mistral = "MISTRAL",
   Vertex3 = "VERTEX-3",
   Qwen = "QWEN",
+  Anthropic = "ANTHROPIC",
+  OpenAI = "OPENAI",
   _Mock = "MOCK",
 }
 export const AgentModelToAgentProvider = {
@@ -49,6 +56,11 @@ export const AgentModelToAgentProvider = {
   [AgentModel.MistralSmall31_24B]: AgentProvider.Mistral,
   [AgentModel.MistralSmall32_24B]: AgentProvider.Mistral,
   [AgentModel.Qwen38_27B]: AgentProvider.Qwen,
+  [AgentModel.ClaudeSonnet55]: AgentProvider.Anthropic,
+  [AgentModel.ClaudeHaiku55]: AgentProvider.Anthropic,
+  [AgentModel.ClaudeOpus5]: AgentProvider.Anthropic,
+  [AgentModel.Gpt54]: AgentProvider.OpenAI,
+  [AgentModel.Gpt54Mini]: AgentProvider.OpenAI,
   [AgentModel._Mock]: AgentProvider._Mock,
 } as const satisfies Record<AgentModel, AgentProvider>
 

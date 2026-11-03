@@ -92,6 +92,62 @@ const temperatureOnlyOptionsDefaultingTo = (temperature: number) => ({
   defaultOptions: { temperature },
 })
 
+/** The options of a Claude 5.x model: an effort only, Claude rejects a temperature. */
+const claudeOptions = {
+  optionsSchema: {
+    $schema: JSON_SCHEMA_DRAFT,
+    type: "object",
+    properties: {
+      providerOptions: {
+        type: "object",
+        properties: {
+          anthropic: {
+            type: "object",
+            properties: {
+              effort: { type: "string", enum: ["low", "medium", "high"] },
+            },
+            required: ["effort"],
+            additionalProperties: false,
+          },
+        },
+        required: ["anthropic"],
+        additionalProperties: false,
+      },
+    },
+    required: ["providerOptions"],
+    additionalProperties: false,
+  },
+  defaultOptions: { providerOptions: { anthropic: { effort: "medium" } } },
+}
+
+/** The options of an OpenAI model: a reasoning effort only. */
+const openAIOptions = {
+  optionsSchema: {
+    $schema: JSON_SCHEMA_DRAFT,
+    type: "object",
+    properties: {
+      providerOptions: {
+        type: "object",
+        properties: {
+          openai: {
+            type: "object",
+            properties: {
+              reasoningEffort: { type: "string", enum: ["none", "low", "medium", "high"] },
+            },
+            required: ["reasoningEffort"],
+            additionalProperties: false,
+          },
+        },
+        required: ["openai"],
+        additionalProperties: false,
+      },
+    },
+    required: ["providerOptions"],
+    additionalProperties: false,
+  },
+  defaultOptions: { providerOptions: { openai: { reasoningEffort: "low" } } },
+}
+
 /** The options of a Gemini 3.x model: a thinking level, and a temperature for the oldest ones. */
 function vertex3Options({
   temperature,
@@ -244,6 +300,20 @@ const CATALOG: Omit<AgentModelEntry, "isAvailable">[] = [
     servedOutsideEu: false,
     ...temperatureOnlyOptionsDefaultingTo(0.7),
   },
+  ...[AgentModel.ClaudeSonnet55, AgentModel.ClaudeHaiku55, AgentModel.ClaudeOpus5].map((model) => ({
+    model,
+    provider: AgentProvider.Anthropic,
+    deprecation: null,
+    servedOutsideEu: false,
+    ...claudeOptions,
+  })),
+  ...[AgentModel.Gpt54, AgentModel.Gpt54Mini].map((model) => ({
+    model,
+    provider: AgentProvider.OpenAI,
+    deprecation: null,
+    servedOutsideEu: true,
+    ...openAIOptions,
+  })),
 ]
 
 /** Models past their deprecation date: the API no longer offers them. */

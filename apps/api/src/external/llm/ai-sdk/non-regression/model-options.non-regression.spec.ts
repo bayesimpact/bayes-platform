@@ -2,6 +2,7 @@ import { type AgentModel, AgentProvider } from "@caseai-connect/api-contracts"
 import type { LLMServiceTier } from "@/common/interfaces/llm-provider.interface"
 import type { AISDKLLMProviderBase } from "@/external/llm/ai-sdk/ai-sdk-llm-provider-base"
 import {
+  anthropicMessages,
   type CapturedRequest,
   callContext,
   collect,
@@ -17,9 +18,11 @@ import {
   readOption,
   withOption,
 } from "@/external/llm/ai-sdk/non-regression/non-regression.harness"
+import { AISDKAnthropicProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-anthropic.provider"
 import { AISDKGemmaProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-gemma.provider"
 import { AISDKMedGemmaProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-med-gemma.provider"
 import { AISDKMistralProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-mistral.provider"
+import { AISDKOpenAIProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-openai.provider"
 import { AISDKQwenProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-qwen.provider"
 import { AISDKVertexProvider } from "@/external/llm/ai-sdk/providers/ai-sdk-vertex.provider"
 import { AISDKVertex3Provider } from "@/external/llm/ai-sdk/providers/ai-sdk-vertex3.provider"
@@ -32,6 +35,7 @@ jest.mock("google-auth-library", () => ({
 
 process.env.GOOGLE_VERTEX_PROJECT = "test-project"
 process.env.GOOGLE_VERTEX_LOCATION = "europe-west1"
+process.env.OPENAI_API_KEY = "test-api-key"
 for (const key of [
   "GEMMA4_26B",
   "GEMMA4_31B",
@@ -61,6 +65,19 @@ const GEMINI_LOCATIONS: OptionLocations = {
 /** The OpenAI chat and Open Responses APIs (vLLM): settings at the top of the body. */
 const OPENAI_LOCATIONS: OptionLocations = {
   temperature: (request) => request.body.temperature,
+}
+
+/** The Anthropic Messages API (Claude on Vertex): the effort under `output_config`. */
+const ANTHROPIC_LOCATIONS: OptionLocations = {
+  temperature: (request) => request.body.temperature,
+  "providerOptions.anthropic.effort": (request) =>
+    readOption(request.body, ["output_config", "effort"]),
+}
+
+/** OpenAI's Responses API: the reasoning effort under `reasoning`. */
+const OPENAI_RESPONSES_LOCATIONS: OptionLocations = {
+  "providerOptions.openai.reasoningEffort": (request) =>
+    readOption(request.body, ["reasoning", "effort"]),
 }
 
 type Call = "generateText" | "streamChatResponse"
@@ -129,6 +146,24 @@ const PROVIDERS: ProviderUnderTest[] = [
     responseFor: {
       // Plain text through the Open Responses API, the streamed chat through
       // OpenAI's Responses API (not the chat completions of the other vLLM models).
+      generateText: () => openResponses.text("Hello"),
+      streamChatResponse: () => openAiResponses.streamedText(["Hel", "lo"]),
+    },
+  },
+  {
+    provider: AgentProvider.Anthropic,
+    instance: new AISDKAnthropicProvider(),
+    locations: ANTHROPIC_LOCATIONS,
+    responseFor: {
+      generateText: () => anthropicMessages.text("Hello"),
+      streamChatResponse: () => anthropicMessages.streamedText(["Hel", "lo"]),
+    },
+  },
+  {
+    provider: AgentProvider.OpenAI,
+    instance: new AISDKOpenAIProvider(),
+    locations: OPENAI_RESPONSES_LOCATIONS,
+    responseFor: {
       generateText: () => openResponses.text("Hello"),
       streamChatResponse: () => openAiResponses.streamedText(["Hel", "lo"]),
     },

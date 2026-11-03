@@ -66,8 +66,10 @@ describe("agent model catalog (as the API sends it)", () => {
     expect(findAgentModelEntry(catalog, catalog.defaults.judge)?.deprecation).toBeNull()
   })
 
-  it("reports no model as served outside the EU", () => {
-    expect(catalog.models.filter((entry) => entry.servedOutsideEu)).toEqual([])
+  it("reports only the OpenAI models as served outside the EU", () => {
+    expect(
+      catalog.models.filter((entry) => entry.servedOutsideEu).map((entry) => entry.model),
+    ).toEqual([AgentModel.Gpt54, AgentModel.Gpt54Mini])
   })
 })
 
@@ -221,6 +223,13 @@ describe("buildAgentModelOptions", () => {
     [AgentProvider.Gemma, AgentModel.Gemma4_26B, AgentModel.Gemma4_31B],
     [AgentProvider.Mistral, AgentModel.MistralSmall32_24B],
     [AgentProvider.Qwen, AgentModel.Qwen38_27B],
+    [
+      AgentProvider.Anthropic,
+      AgentModel.ClaudeSonnet55,
+      AgentModel.ClaudeHaiku55,
+      AgentModel.ClaudeOpus5,
+    ],
+    [AgentProvider.OpenAI, AgentModel.Gpt54, AgentModel.Gpt54Mini],
   ])("adds only the %s models once the API says they are available", (provider, ...models) => {
     const options = buildAgentModelOptions(
       agentModelsCatalogFactory.transient({ flaggedProviders: [provider] }).build(),
@@ -282,6 +291,16 @@ describe("describeModelOptionFields", () => {
     expect(fieldsOf(model)).toEqual({
       thinkingLevel: { path: thinkingLevelPath, levels: ["low", "medium", "high"] },
     })
+  })
+
+  it.each([
+    AgentModel.ClaudeSonnet55,
+    AgentModel.ClaudeHaiku55,
+    AgentModel.ClaudeOpus5,
+    AgentModel.Gpt54,
+    AgentModel.Gpt54Mini,
+  ])("offers no field for %s, which runs on its default effort", (model) => {
+    expect(fieldsOf(model)).toEqual({})
   })
 
   it("offers nothing for a model that left the catalog", () => {
