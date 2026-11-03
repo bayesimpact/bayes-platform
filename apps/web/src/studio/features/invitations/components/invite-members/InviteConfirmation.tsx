@@ -83,7 +83,7 @@ export function InviteConfirmation({
         )}
 
         {knownPeople.length > 0 && (
-          <section className="flex gap-3 text-sm">
+          <section className="flex gap-3 rounded-xl border p-4 text-sm">
             {/* The theme has no warning color: the amber of the design system's warning variants. */}
             <TriangleAlertIcon className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400" />
             <div className="flex min-w-0 flex-1 flex-col gap-3">
