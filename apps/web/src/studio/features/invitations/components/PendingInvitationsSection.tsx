@@ -1,4 +1,3 @@
-import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
 import { CheckIcon, LinkIcon, Trash2Icon } from "lucide-react"
 import { useState } from "react"
@@ -8,9 +7,6 @@ import { ConfirmDialog } from "@/common/components/ConfirmDialog"
 import { useCopyToClipboard } from "@/common/hooks/use-copy-to-clipboard"
 import { buildSince } from "@/common/utils/build-date"
 import type { PendingInvitation, PendingInvitations } from "../invitations.models"
-
-/** Above this many agents, a card shows the first ones and a count of the others. */
-const VISIBLE_AGENT_COUNT = 2
 
 /** The agent whose page lists the invitations, if any. */
 type CurrentAgent = { id: string; name: string }
@@ -83,43 +79,40 @@ function PendingInvitationCard({
   }
 
   return (
-    <div className="flex items-start gap-3 rounded-xl border bg-white p-4">
-      <div className="min-w-0 flex-1">
-        <p className="break-all text-sm font-medium">{label}</p>
-        <p className="mt-1 text-xs text-muted-foreground">
-          {t("invitations:pendingItem.description", {
-            invitedAt: buildSince(invitation.invitedAt),
-          })}
-        </p>
-        {invitation.targetType === "project" &&
-          (currentAgent ? (
-            <WorkspaceInvitationHint invitation={invitation} currentAgent={currentAgent} />
-          ) : (
-            <WorkspaceInvitationAccess invitation={invitation} />
-          ))}
+    <div className="flex flex-col gap-3 rounded-xl border bg-white p-4">
+      <div className="flex items-start gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="break-all text-sm font-medium">{label}</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {t("invitations:pendingItem.description", {
+              invitedAt: buildSince(invitation.invitedAt),
+            })}
+          </p>
+        </div>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="size-8 shrink-0 text-muted-foreground"
+          aria-label={t("invitations:pendingItem.copyLink")}
+          title={t("invitations:pendingItem.copyLink")}
+          onClick={() => copy(buildInvitationLink(invitation.invitedEmail))}
+        >
+          {isCopied ? <CheckIcon className="size-4" /> : <LinkIcon className="size-4" />}
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="size-8 shrink-0 text-muted-foreground hover:text-destructive"
+          aria-label={revokeLabel}
+          title={revokeLabel}
+          onClick={() => setOpen(true)}
+        >
+          <Trash2Icon className="size-4" />
+        </Button>
       </div>
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        className="size-8 shrink-0 text-muted-foreground"
-        aria-label={t("invitations:pendingItem.copyLink")}
-        title={t("invitations:pendingItem.copyLink")}
-        onClick={() => copy(buildInvitationLink(invitation.invitedEmail))}
-      >
-        {isCopied ? <CheckIcon className="size-4" /> : <LinkIcon className="size-4" />}
-      </Button>
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        className="size-8 shrink-0 text-muted-foreground hover:text-destructive"
-        aria-label={revokeLabel}
-        title={revokeLabel}
-        onClick={() => setOpen(true)}
-      >
-        <Trash2Icon className="size-4" />
-      </Button>
+      <InvitationSummary invitation={invitation} />
       <ConfirmDialog
         open={open}
         title={
@@ -143,66 +136,31 @@ function PendingInvitationCard({
   )
 }
 
-/** What a workspace invitation gives: its role, then its agents, or every agent for an admin. */
-function WorkspaceInvitationAccess({ invitation }: { invitation: PendingInvitation }) {
+/**
+ * What the invitation gives, as the manager confirmed it: the role, then the agents of a
+ * workspace invitation, or every agent for an admin.
+ */
+function InvitationSummary({ invitation }: { invitation: PendingInvitation }) {
   const { t } = useTranslation()
-  const visibleAgents = invitation.agents.slice(0, VISIBLE_AGENT_COUNT)
-  const hiddenAgents = invitation.agents.slice(VISIBLE_AGENT_COUNT)
-  return (
-    <div className="mt-2 flex flex-wrap items-center gap-1">
-      <Badge variant="secondary">
-        {t(`projectMembership:roleNames.project_${invitation.role}`, {
-          defaultValue: invitation.role,
-        })}
-      </Badge>
-      {invitation.role === "admin" ? (
-        <span className="text-xs text-muted-foreground">
-          {t("invitations:pendingItem.everyAgent")}
-        </span>
-      ) : (
-        <>
-          {visibleAgents.map((agent) => (
-            <Badge key={agent.id} variant="outline" className="max-w-40">
-              <span className="truncate">{agent.name}</span>
-            </Badge>
-          ))}
-          {hiddenAgents.length > 0 && (
-            <Badge
-              variant="outline"
-              title={hiddenAgents.map((agent) => agent.name).join(", ")}
-              className="text-muted-foreground"
-            >
-              {t("invitations:pendingItem.moreAgents", { count: hiddenAgents.length })}
-            </Badge>
-          )}
-        </>
-      )}
-    </div>
-  )
-}
-
-/** On an agent's page: the invitation comes from the workspace, and may give other agents. */
-function WorkspaceInvitationHint({
-  invitation,
-  currentAgent,
-}: {
-  invitation: PendingInvitation
-  currentAgent: CurrentAgent
-}) {
-  const { t } = useTranslation()
-  const otherAgentCount = invitation.agents.filter((agent) => agent.id !== currentAgent.id).length
-  const role = t(`projectMembership:roleNames.project_${invitation.role}`, {
+  const role = t(`projectMembership:roleNames.${invitation.targetType}_${invitation.role}`, {
     defaultValue: invitation.role,
   })
+  const agents =
+    invitation.targetType !== "project"
+      ? ""
+      : invitation.role === "admin"
+        ? t("invitations:confirmation.everyAgent")
+        : invitation.agents.map((agent) => agent.name).join(", ")
   return (
-    <p className="mt-1 text-xs text-muted-foreground">
-      {t("invitations:pendingItem.fromWorkspace", { role: role.toLowerCase() })}
-      {otherAgentCount > 0 && (
+    <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 rounded-md bg-muted/50 px-3 py-2 text-sm">
+      <dt className="text-muted-foreground">{t("invitations:confirmation.role")}</dt>
+      <dd className="font-medium">{role}</dd>
+      {agents && (
         <>
-          <br />
-          {t("invitations:pendingItem.otherAgents", { count: otherAgentCount })}
+          <dt className="text-muted-foreground">{t("invitations:confirmation.agents")}</dt>
+          <dd>{agents}</dd>
         </>
       )}
-    </p>
+    </dl>
   )
 }

@@ -10,11 +10,6 @@
       "revoke": "Delete invitation",
       "copyLink": "Copy invitation link",
       "linkCopied": "Invitation link copied",
-      "everyAgent": "Every agent",
-      "moreAgents": "+{{count}}",
-      "fromWorkspace": "Workspace invitation, as {{role}}",
-      "otherAgents_one": "Also gives {{count}} other agent",
-      "otherAgents_other": "Also gives {{count}} other agents",
       "removeAgent": "Remove this agent from the invitation"
     },
     "deleteDialog": {

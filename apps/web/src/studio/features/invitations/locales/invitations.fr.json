@@ -10,11 +10,6 @@
       "revoke": "Supprimer l'invitation",
       "copyLink": "Copier le lien d'invitation",
       "linkCopied": "Lien d'invitation copié",
-      "everyAgent": "Tous les agents",
-      "moreAgents": "+{{count}}",
-      "fromWorkspace": "Invitation à l'espace de travail, en tant que {{role}}",
-      "otherAgents_one": "Donne aussi {{count}} autre agent",
-      "otherAgents_other": "Donne aussi {{count}} autres agents",
       "removeAgent": "Retirer cet agent de l'invitation"
     },
     "deleteDialog": {
