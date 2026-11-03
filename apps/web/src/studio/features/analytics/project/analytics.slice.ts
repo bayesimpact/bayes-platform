@@ -6,6 +6,7 @@ import { loadProjectAnalytics } from "./analytics.thunks"
 interface State {
   conversationsPerDay: AsyncData<AnalyticsDailyPoint[]>
   avgUserQuestionsPerSessionPerDay: AsyncData<AnalyticsDailyPoint[]>
+  emptySessionsPerDay: AsyncData<AnalyticsDailyPoint[]>
 }
 
 const emptySeries: AsyncData<AnalyticsDailyPoint[]> = {
@@ -17,6 +18,7 @@ const emptySeries: AsyncData<AnalyticsDailyPoint[]> = {
 const initialState: State = {
   conversationsPerDay: { ...emptySeries },
   avgUserQuestionsPerSessionPerDay: { ...emptySeries },
+  emptySessionsPerDay: { ...emptySeries },
 }
 
 const slice = createSlice({
@@ -34,8 +36,12 @@ const slice = createSlice({
         if (!ADS.isFulfilled(state.avgUserQuestionsPerSessionPerDay)) {
           state.avgUserQuestionsPerSessionPerDay.status = ADS.Loading
         }
+        if (!ADS.isFulfilled(state.emptySessionsPerDay)) {
+          state.emptySessionsPerDay.status = ADS.Loading
+        }
         state.conversationsPerDay.error = null
         state.avgUserQuestionsPerSessionPerDay.error = null
+        state.emptySessionsPerDay.error = null
       })
       .addCase(loadProjectAnalytics.fulfilled, (state, action) => {
         state.conversationsPerDay = {
@@ -48,6 +54,11 @@ const slice = createSlice({
           error: null,
           value: action.payload.avgUserQuestionsPerSessionPerDay,
         }
+        state.emptySessionsPerDay = {
+          status: ADS.Fulfilled,
+          error: null,
+          value: action.payload.emptySessionsPerDay,
+        }
       })
       .addCase(loadProjectAnalytics.rejected, (state, action) => {
         const message = action.error.message || "Failed to load analytics"
@@ -57,6 +68,11 @@ const slice = createSlice({
           value: null,
         }
         state.avgUserQuestionsPerSessionPerDay = {
+          status: ADS.Error,
+          error: message,
+          value: null,
+        }
+        state.emptySessionsPerDay = {
           status: ADS.Error,
           error: message,
           value: null,

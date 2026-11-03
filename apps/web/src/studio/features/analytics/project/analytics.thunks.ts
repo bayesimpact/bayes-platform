@@ -10,6 +10,7 @@ export const loadProjectAnalytics = createAsyncThunk<
   {
     conversationsPerDay: AnalyticsDailyPoint[]
     avgUserQuestionsPerSessionPerDay: AnalyticsDailyPoint[]
+    emptySessionsPerDay: AnalyticsDailyPoint[]
   },
   { startAt: number; endAt: number; agentId?: string },
   ThunkConfig
@@ -20,22 +21,30 @@ export const loadProjectAnalytics = createAsyncThunk<
     hasFeatureOrThrow({ state, feature: "project-analytics" })
     const organizationId = getCurrentId({ state, name: "organizationId" })
     const projectId = getCurrentId({ state, name: "projectId" })
-    const [conversationsPerDay, avgUserQuestionsPerSessionPerDay] = await Promise.all([
-      services.projectAnalytics.getConversationsPerDay({
-        organizationId,
-        projectId,
-        startAt,
-        endAt,
-        agentId,
-      }),
-      services.projectAnalytics.getAvgUserQuestionsPerSessionPerDay({
-        organizationId,
-        projectId,
-        startAt,
-        endAt,
-        agentId,
-      }),
-    ])
-    return { conversationsPerDay, avgUserQuestionsPerSessionPerDay }
+    const [conversationsPerDay, avgUserQuestionsPerSessionPerDay, emptySessionsPerDay] =
+      await Promise.all([
+        services.projectAnalytics.getConversationsPerDay({
+          organizationId,
+          projectId,
+          startAt,
+          endAt,
+          agentId,
+        }),
+        services.projectAnalytics.getAvgUserQuestionsPerSessionPerDay({
+          organizationId,
+          projectId,
+          startAt,
+          endAt,
+          agentId,
+        }),
+        services.projectAnalytics.getEmptySessionsPerDay({
+          organizationId,
+          projectId,
+          startAt,
+          endAt,
+          agentId,
+        }),
+      ])
+    return { conversationsPerDay, avgUserQuestionsPerSessionPerDay, emptySessionsPerDay }
   },
 )

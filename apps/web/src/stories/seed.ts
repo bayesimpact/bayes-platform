@@ -375,11 +375,13 @@ export const seed = {
     projectAnalytics(value: {
       conversationsPerDay: AnalyticsDailyPoint[]
       avgUserQuestionsPerSessionPerDay: AnalyticsDailyPoint[]
+      emptySessionsPerDay: AnalyticsDailyPoint[]
     }): StoryPreloadedState {
       return {
         projectAnalytics: {
           conversationsPerDay: ads.fulfilled(value.conversationsPerDay),
           avgUserQuestionsPerSessionPerDay: ads.fulfilled(value.avgUserQuestionsPerSessionPerDay),
+          emptySessionsPerDay: ads.fulfilled(value.emptySessionsPerDay),
         },
       }
     },
@@ -388,12 +390,14 @@ export const seed = {
       conversationsPerDay: AnalyticsDailyPoint[]
       avgUserQuestionsPerSessionPerDay: AnalyticsDailyPoint[]
       conversationsByCategoryPerDay: AnalyticsCategoryDailyPoint[]
+      emptySessionsPerDay: AnalyticsDailyPoint[]
     }): StoryPreloadedState {
       return {
         agentAnalytics: {
           conversationsPerDay: ads.fulfilled(value.conversationsPerDay),
           avgUserQuestionsPerSessionPerDay: ads.fulfilled(value.avgUserQuestionsPerSessionPerDay),
           conversationsByCategoryPerDay: ads.fulfilled(value.conversationsByCategoryPerDay),
+          emptySessionsPerDay: ads.fulfilled(value.emptySessionsPerDay),
         },
       }
     },

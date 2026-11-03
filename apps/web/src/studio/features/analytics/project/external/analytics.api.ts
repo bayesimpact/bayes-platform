@@ -28,6 +28,14 @@ export default {
     )
     return toAnalyticsDailyPoints(response.data.data)
   },
+  getEmptySessionsPerDay: async ({ organizationId, projectId, startAt, endAt, agentId }) => {
+    const axios = getAxiosInstance()
+    const response = await axios.get<typeof AnalyticsRoutes.getEmptySessionsPerDay.response>(
+      AnalyticsRoutes.getEmptySessionsPerDay.getPath({ organizationId, projectId }),
+      dateRangeQueryParams(startAt, endAt, agentId),
+    )
+    return toAnalyticsDailyPoints(response.data.data)
+  },
 } satisfies IProjectAnalyticsSpi
 
 function dateRangeQueryParams(startAt: number, endAt: number, agentId?: string) {

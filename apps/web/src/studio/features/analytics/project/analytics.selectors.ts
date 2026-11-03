@@ -9,3 +9,7 @@ export const selectAnalyticsConversationsPerDay = (
 export const selectAnalyticsAvgUserQuestionsPerSessionPerDay = (
   state: RootState,
 ): AsyncData<AnalyticsDailyPoint[]> => state.projectAnalytics.avgUserQuestionsPerSessionPerDay
+
+export const selectAnalyticsEmptySessionsPerDay = (
+  state: RootState,
+): AsyncData<AnalyticsDailyPoint[]> => state.projectAnalytics.emptySessionsPerDay

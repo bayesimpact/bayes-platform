@@ -8,7 +8,10 @@ import {
 } from "@/domains/analytics/shared/analytics-conversation-metrics.helpers"
 
 export type SessionDailyTotals = {
+  /** Sessions with at least one user message: the conversations. */
   sessions: number
+  /** Sessions opened without any user message, such as an embed opened on page load. */
+  emptySessions: number
   userMessages: number
 }
 
@@ -21,7 +24,10 @@ type DailyTotalsParams = {
   endAt: TimeType
 }
 
-/** Sessions started and user messages sent in them, per UTC day of the session start. */
+/**
+ * Sessions started, split by whether they hold a user message, and user messages sent in them,
+ * per UTC day of the session start.
+ */
 async function getSessionDailyTotals<Session extends ConnectEntityBase>({
   sessionConnectRepository,
   sessionAlias,
@@ -51,7 +57,14 @@ async function getSessionDailyTotals<Session extends ConnectEntityBase>({
       { userRole: "user" },
     )
     .select(dayExpr, "date")
-    .addSelect(`COUNT(DISTINCT ${sessionIdCol})::int`, "sessions")
+    .addSelect(
+      `COUNT(DISTINCT CASE WHEN ${messageIdCol} IS NOT NULL THEN ${sessionIdCol} END)::int`,
+      "sessions",
+    )
+    .addSelect(
+      `COUNT(DISTINCT CASE WHEN ${messageIdCol} IS NULL THEN ${sessionIdCol} END)::int`,
+      "emptySessions",
+    )
     .addSelect(`COUNT(${messageIdCol})::int`, "userMessages")
     .andWhere(`${createdAtCol} BETWEEN :startAt AND :endAt`, {
       startAt: new Date(startAt),
@@ -65,13 +78,18 @@ async function getSessionDailyTotals<Session extends ConnectEntityBase>({
   const rows = await queryBuilder.getRawMany<{
     date: string
     sessions: string
+    emptySessions: string
     userMessages: string
   }>()
 
   return new Map(
     rows.map((row) => [
       row.date,
-      { sessions: Number(row.sessions), userMessages: Number(row.userMessages) },
+      {
+        sessions: Number(row.sessions),
+        emptySessions: Number(row.emptySessions),
+        userMessages: Number(row.userMessages),
+      },
     ]),
   )
 }
@@ -124,6 +142,7 @@ function mergeSessionDailyTotals(
       existing
         ? {
             sessions: existing.sessions + totals.sessions,
+            emptySessions: existing.emptySessions + totals.emptySessions,
             userMessages: existing.userMessages + totals.userMessages,
           }
         : totals,

@@ -34,8 +34,9 @@ describe("Agents Analytics - getAvgUserQuestionsPerSessionPerDay", () => {
   const day3Start = new Date("2026-01-03T00:00:00.000Z")
   const day3End = new Date(day3Start.getTime() + 24 * 60 * 60 * 1000 - 1)
 
+  // Empty sessions are left out of the mean: only sessions with a user message count.
   const expectedDays = [
-    { date: day1Start.toISOString().slice(0, 10), value: 1 },
+    { date: day1Start.toISOString().slice(0, 10), value: 2 },
     { date: day2Start.toISOString().slice(0, 10), value: 4 },
     { date: day3Start.toISOString().slice(0, 10), value: 0 },
   ]

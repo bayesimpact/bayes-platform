@@ -97,16 +97,26 @@ describe("Projects Analytics - Auth", () => {
       query: analyticsDateRangeQuery,
     })
 
+  const subjectEmptySessions = async () =>
+    request({
+      route: AnalyticsRoutes.getEmptySessionsPerDay,
+      pathParams: removeNullish({ organizationId, projectId }),
+      token: accessToken ?? undefined,
+      query: analyticsDateRangeQuery,
+    })
+
   it("requires an authentication token", async () => {
     accessToken = null
     expectResponse(await subjectConversations(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
     expectResponse(await subjectAvg(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    expectResponse(await subjectEmptySessions(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
   })
 
   it("requires a valid organization ID", async () => {
     organizationId = null
     expectResponse(await subjectConversations(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
     expectResponse(await subjectAvg(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
+    expectResponse(await subjectEmptySessions(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
   })
 
   it("requires the user to be a member of the organization", async () => {
@@ -114,24 +124,28 @@ describe("Projects Analytics - Auth", () => {
     authSubject = mockForeignAuthSubject()
     expectResponse(await subjectConversations(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     expectResponse(await subjectAvg(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
+    expectResponse(await subjectEmptySessions(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
   })
 
   it("allows admins to list analytics for a project", async () => {
     await createContextForRole("project_admin")
     expectResponse(await subjectConversations(), 200)
     expectResponse(await subjectAvg(), 200)
+    expectResponse(await subjectEmptySessions(), 200)
   })
 
   it("allows owners to list analytics for a project", async () => {
     await createContextForRole("project_owner")
     expectResponse(await subjectConversations(), 200)
     expectResponse(await subjectAvg(), 200)
+    expectResponse(await subjectEmptySessions(), 200)
   })
 
   it("doesn't allow members to list analytics for a project", async () => {
     await createContextForRole("project_member")
     expectResponse(await subjectConversations(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     expectResponse(await subjectAvg(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    expectResponse(await subjectEmptySessions(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
   })
 
   it("requires an existing project ID", async () => {
@@ -139,6 +153,7 @@ describe("Projects Analytics - Auth", () => {
     projectId = randomUUID()
     expectResponse(await subjectConversations(), 404)
     expectResponse(await subjectAvg(), 404)
+    expectResponse(await subjectEmptySessions(), 404)
   })
 
   describe("filtering on one agent", () => {
