@@ -1,7 +1,7 @@
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
 import { Input } from "@caseai-connect/ui/shad/input"
-import { TriangleAlertIcon, XIcon } from "lucide-react"
+import { XIcon } from "lucide-react"
 import { type KeyboardEvent, useState } from "react"
 import { z } from "zod"
 
@@ -15,28 +15,19 @@ function splitEmails(text: string): string[] {
 
 const isEmail = (candidate: string) => z.email().safeParse(candidate).success
 
-/**
- * The emails to invite, as removable chips. An email of someone already in the workspace is
- * flagged: the dialog sends them nothing, their roles change from their member page.
- */
+/** The emails to invite, as removable chips. */
 export function InviteEmailsField({
   emails,
   onChange,
-  existingMemberEmails,
-  onOpenMember,
   onDraftChange,
 }: {
   emails: string[]
   onChange: (emails: string[]) => void
-  existingMemberEmails: string[]
-  onOpenMember: (email: string) => void
   /** The valid emails typed and not added yet, so the dialog counts them before they become chips. */
   onDraftChange: (draftEmails: string[]) => void
 }) {
   const [inputEmail, setInputEmail] = useState("")
   const [inputError, setInputError] = useState<string | undefined>()
-  const existing = new Set(existingMemberEmails)
-  const existingInList = emails.filter((email) => existing.has(email))
 
   const addEmails = () => {
     // Pasting a list adds every address of it.
@@ -87,14 +78,7 @@ export function InviteEmailsField({
       {emails.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {emails.map((email) => (
-            <Badge
-              key={email}
-              variant={existing.has(email) ? "secondary" : "outline"}
-              className="gap-1 pr-1"
-            >
-              {existing.has(email) && (
-                <TriangleAlertIcon className="size-3 text-muted-foreground" />
-              )}
+            <Badge key={email} variant="outline" className="gap-1 pr-1">
               {email}
               <button
                 type="button"
@@ -105,24 +89,6 @@ export function InviteEmailsField({
                 <XIcon className="size-3" />
               </button>
             </Badge>
-          ))}
-        </div>
-      )}
-
-      {existingInList.length > 0 && (
-        <div className="flex flex-col gap-1 text-sm text-muted-foreground">
-          {existingInList.map((email) => (
-            <p key={email}>
-              {email} is already in this workspace and will not be invited.{" "}
-              <Button
-                type="button"
-                variant="link"
-                className="h-auto p-0"
-                onClick={() => onOpenMember(email)}
-              >
-                Change their roles
-              </Button>
-            </p>
           ))}
         </div>
       )}

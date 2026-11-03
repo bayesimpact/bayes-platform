@@ -1,35 +1,30 @@
-import type { RoleOption } from "@/studio/features/project-memberships/components/member-detail/member-detail.models"
-
-/** An agent or a review campaign of the workspace that an invitation can give a role on. */
-export type InviteTarget = {
+/** An agent of the workspace that an invitation can give access to. */
+export type InviteAgent = {
   id: string
   name: string
-  /** A short qualifier next to the name: the agent's type, the campaign's status. */
+  /** A short qualifier next to the name: the agent's type. */
   detail?: string
-  /** False when the inviter lacks the invite permission on this target: it shows, disabled. */
-  canInvite: boolean
 }
 
-/** A role picked on one target. */
-export type InviteTargetRole = {
-  targetId: string
-  roleKey: string
-}
-
-/** What the invite dialog sends: who is invited, and what they get on accepting, once. */
+/**
+ * What the invite dialog sends: who is invited, and what they get on accepting, once. Each agent
+ * picked gives its member role: the dialog offers no other role on agents.
+ */
 export type InviteMembersValues = {
   emails: string[]
   workspaceRoleKey: string
-  agents: InviteTargetRole[]
-  campaigns: InviteTargetRole[]
-}
-
-/** The roles each kind of target offers in the dialog. */
-export type InviteRoleCatalog = {
-  workspace: RoleOption[]
-  agent: RoleOption[]
-  campaign: RoleOption[]
+  agentIds: string[]
 }
 
 /** The workspace role whose holders are admins of every agent, so the dialog picks no agent. */
 export const WORKSPACE_ADMIN_ROLE_KEY = "project_admin"
+
+/** What each workspace role gives, under its name in both screens of the dialog. */
+export const WORKSPACE_ROLE_DESCRIPTIONS: Record<string, string> = {
+  project_admin: "Manages the workspace, its members and every agent.",
+  project_member: "Uses only the agents picked for them.",
+}
+
+/** The footer of both screens, kept in view while the dialog scrolls, over its bottom padding. */
+export const STICKY_FOOTER_CLASS =
+  "sticky -bottom-6 -mx-6 -mb-6 rounded-b-lg border-t bg-background px-6 py-4"

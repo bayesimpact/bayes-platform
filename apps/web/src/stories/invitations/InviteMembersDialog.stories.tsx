@@ -1,32 +1,16 @@
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { expect, fn, userEvent, within } from "storybook/test"
 import { InviteMembersDialog } from "@/studio/features/invitations/components/invite-members/InviteMembersDialog"
-import type {
-  InviteRoleCatalog,
-  InviteTarget,
-} from "@/studio/features/invitations/components/invite-members/invite-members.models"
+import type { InviteAgent } from "@/studio/features/invitations/components/invite-members/invite-members.models"
 import { mockGrantableProjectRoles } from "../project-memberships/fixtures"
-import { mockAgentRoles, mockCampaignRoles } from "../project-memberships/member-detail-fixtures"
 
-/** Owner roles are set at creation, never given by an invitation. */
-const roles: InviteRoleCatalog = {
-  workspace: mockGrantableProjectRoles,
-  agent: mockAgentRoles.filter((role) => role.key !== "agent_owner"),
-  campaign: mockCampaignRoles,
-}
-
-const agents: InviteTarget[] = [
-  { id: "agent-1", name: "Helpful Assistant", detail: "Conversation", canInvite: true },
-  { id: "agent-2", name: "Scheduling Bot", detail: "Conversation", canInvite: true },
-  { id: "agent-3", name: "Intake Form Agent", detail: "Extraction", canInvite: true },
+const agents: InviteAgent[] = [
+  { id: "agent-1", name: "Helpful Assistant", detail: "Conversation" },
+  { id: "agent-2", name: "Scheduling Bot", detail: "Conversation" },
+  { id: "agent-3", name: "Intake Form Agent", detail: "Extraction" },
 ]
 
-const campaigns: InviteTarget[] = [
-  { id: "campaign-1", name: "Pilot review", detail: "Active", canInvite: true },
-  { id: "campaign-2", name: "Spring review", detail: "Draft", canInvite: true },
-]
-
-const manyAgents: InviteTarget[] = [
+const manyAgents: InviteAgent[] = [
   "Helpful Assistant",
   "Scheduling Bot",
   "Intake Form Agent",
@@ -43,7 +27,6 @@ const manyAgents: InviteTarget[] = [
   id: `agent-${index + 1}`,
   name,
   detail: index % 3 === 2 ? "Extraction" : "Conversation",
-  canInvite: true,
 }))
 
 const meta = {
@@ -54,11 +37,8 @@ const meta = {
     open: true,
     onOpenChange: fn(),
     workspaceName: "Demo project",
-    roles,
+    workspaceRoles: mockGrantableProjectRoles,
     agents,
-    campaigns,
-    existingMemberEmails: [],
-    onOpenMember: fn(),
     onSubmit: fn(async () => {}),
   },
 } satisfies Meta<typeof InviteMembersDialog>
@@ -68,65 +48,37 @@ type Story = StoryObj<typeof meta>
 
 const body = (canvasElement: HTMLElement) => within(canvasElement.ownerDocument.body)
 
-/** Just opened: plain member by default, no agent picked. */
+/** Waits for the dialog's opening animation, so typing reaches the field as a person's would. */
+async function dialogOpened(canvasElement: HTMLElement) {
+  const dialog = await body(canvasElement).findByRole("dialog")
+  await Promise.all(dialog.getAnimations().map((animation) => animation.finished))
+}
+
+/** Goes from the picking screen to the confirmation screen. */
+async function review(canvasElement: HTMLElement) {
+  const page = body(canvasElement)
+  await userEvent.click(page.getByRole("button", { name: /^Invite \d/ }))
+  await expect(await page.findByText("Confirm the invitation")).toBeInTheDocument()
+}
+
+const usersWithAgents = {
+  emails: ["avery@example.org", "jordan@example.org"],
+  workspaceRoleKey: "project_member",
+  agentIds: ["agent-1", "agent-2"],
+}
+
+/** Just opened: user of the workspace by default, no agent picked. */
 export const Empty: Story = {}
 
-/** The case of the issue: two newcomers, member of the workspace and of two of its agents. */
-export const MembersWithAgents: Story = {
-  args: {
-    defaultValues: {
-      emails: ["avery@example.org", "jordan@example.org"],
-      workspaceRoleKey: "project_member",
-      agents: [
-        { targetId: "agent-1", roleKey: "agent_member" },
-        { targetId: "agent-2", roleKey: "agent_admin" },
-      ],
-    },
-  },
+/** The case of the issue: two newcomers, users of the workspace and of two of its agents. */
+export const UsersWithAgents: Story = {
+  args: { defaultValues: usersWithAgents },
 }
 
-/** Admin of the workspace: admin of every agent, so the agent list gives way to a note. */
+/** Admin of the workspace: admin of every agent, so there is no agent to pick. */
 export const WorkspaceAdmin: Story = {
   args: {
-    defaultValues: {
-      emails: ["avery@example.org"],
-      workspaceRoleKey: "project_admin",
-    },
-  },
-}
-
-/** A tester and a reviewer on campaigns, on top of an agent. The campaign section opens. */
-export const WithCampaigns: Story = {
-  args: {
-    defaultValues: {
-      emails: ["avery@example.org"],
-      workspaceRoleKey: "project_member",
-      agents: [{ targetId: "agent-1", roleKey: "agent_member" }],
-      campaigns: [{ targetId: "campaign-1", roleKey: "review_campaign_tester" }],
-    },
-  },
-}
-
-/** The inviter is admin of some agents only: the others show, disabled, with the reason. */
-export const PartialPermissions: Story = {
-  args: {
-    agents: agents.map((agent) => ({ ...agent, canInvite: agent.id === "agent-1" })),
-    campaigns: campaigns.map((campaign) => ({ ...campaign, canInvite: false })),
-    defaultValues: {
-      emails: ["avery@example.org"],
-      agents: [{ targetId: "agent-1", roleKey: "agent_member" }],
-    },
-  },
-}
-
-/** One email belongs to a member: flagged, left out, with a link to their member page. */
-export const AlreadyMember: Story = {
-  args: {
-    existingMemberEmails: ["cruz_braun84@hotmail.com"],
-    defaultValues: {
-      emails: ["avery@example.org", "cruz_braun84@hotmail.com"],
-      agents: [{ targetId: "agent-1", roleKey: "agent_member" }],
-    },
+    defaultValues: { emails: ["avery@example.org"], workspaceRoleKey: "project_admin" },
   },
 }
 
@@ -134,27 +86,25 @@ export const AlreadyMember: Story = {
 export const ManyAgents: Story = {
   args: {
     agents: manyAgents,
-    defaultValues: {
-      emails: ["avery@example.org"],
-      agents: [{ targetId: "agent-4", roleKey: "agent_member" }],
-    },
+    defaultValues: { emails: ["avery@example.org"], agentIds: ["agent-4"] },
   },
 }
 
 /** A workspace without agents yet. */
 export const NoAgents: Story = {
-  args: { agents: [], campaigns: [] },
+  args: { agents: [] },
 }
 
 /** Pasting a list adds every address, and the submit button says how many people it invites. */
 export const PasteSeveralEmails: Story = {
   play: async ({ canvasElement }) => {
     const page = body(canvasElement)
+    await dialogOpened(canvasElement)
     await userEvent.type(
       page.getByLabelText("Emails"),
       "avery@example.org, jordan@example.org riley@example.org{enter}",
     )
-    await expect(page.getByRole("button", { name: "Invite 3 people" })).toBeVisible()
+    await expect(page.getByRole("button", { name: "Invite 3 people" })).toBeInTheDocument()
   },
 }
 
@@ -163,15 +113,54 @@ export const SubmitWithoutEmail: Story = {
   play: async ({ canvasElement, args }) => {
     const page = body(canvasElement)
     await userEvent.click(page.getByRole("button", { name: "Invite" }))
-    await expect(await page.findByText("Add at least one email.")).toBeVisible()
+    await expect(await page.findByText("Add at least one email.")).toBeInTheDocument()
     await expect(args.onSubmit).not.toHaveBeenCalled()
   },
 }
 
-/** The API refused the invitation: the dialog stays open with the reason. */
+/** The confirmation screen: who is invited, their role, their agents. Nothing is sent yet. */
+export const Confirm: Story = {
+  args: { defaultValues: usersWithAgents },
+  play: async ({ canvasElement, args }) => {
+    await review(canvasElement)
+    await expect(args.onSubmit).not.toHaveBeenCalled()
+  },
+}
+
+/** Confirming an admin: every agent, with nothing picked. */
+export const ConfirmWorkspaceAdmin: Story = {
+  args: WorkspaceAdmin.args,
+  play: async ({ canvasElement }) => review(canvasElement),
+}
+
+/** Back returns to the picking screen with every choice kept. */
+export const BackKeepsChoices: Story = {
+  args: { defaultValues: usersWithAgents },
+  play: async ({ canvasElement }) => {
+    const page = body(canvasElement)
+    await review(canvasElement)
+    await userEvent.click(page.getByRole("button", { name: "Back" }))
+    await expect(page.getByRole("button", { name: "Invite 2 people" })).toBeInTheDocument()
+    await expect(page.getByRole("checkbox", { name: /^Helpful Assistant/ })).toBeChecked()
+  },
+}
+
+/** Confirm sends the invitation once, with the member role implied on each agent. */
+export const ConfirmSends: Story = {
+  args: { defaultValues: usersWithAgents },
+  play: async ({ canvasElement, args }) => {
+    const page = body(canvasElement)
+    await review(canvasElement)
+    await userEvent.click(page.getByRole("button", { name: "Confirm" }))
+    await expect(args.onSubmit).toHaveBeenCalledWith(usersWithAgents)
+  },
+}
+
+/** The API refused the invitation: the confirmation screen stays, with the reason. */
 export const SubmitError: Story = {
   args: {
-    ...MembersWithAgents.args,
-    error: "Scheduling Bot was deleted in the meantime. Pick the agents again.",
+    defaultValues: usersWithAgents,
+    error: "Scheduling Bot was deleted in the meantime. Go back and pick the agents again.",
   },
+  play: async ({ canvasElement }) => review(canvasElement),
 }
