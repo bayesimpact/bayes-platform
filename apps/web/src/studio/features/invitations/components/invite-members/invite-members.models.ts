@@ -16,6 +16,12 @@ export type InviteMembersValues = {
   agentIds: string[]
 }
 
+/** What a person already in the workspace holds there, shown on the confirmation screen. */
+export type InviteeAccess = {
+  workspaceRoleKey: string
+  agentIds: string[]
+}
+
 /** The workspace role whose holders are admins of every agent, so the dialog picks no agent. */
 export const WORKSPACE_ADMIN_ROLE_KEY = "project_admin"
 

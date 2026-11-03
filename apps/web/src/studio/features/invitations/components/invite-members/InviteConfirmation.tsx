@@ -1,37 +1,29 @@
 import { Alert, AlertDescription } from "@caseai-connect/ui/shad/alert"
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
-import {
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@caseai-connect/ui/shad/dialog"
-import {
-  Item,
-  ItemContent,
-  ItemDescription,
-  ItemGroup,
-  ItemTitle,
-} from "@caseai-connect/ui/shad/item"
+import { DialogFooter, DialogHeader, DialogTitle } from "@caseai-connect/ui/shad/dialog"
+import { Item, ItemActions, ItemContent, ItemGroup, ItemTitle } from "@caseai-connect/ui/shad/item"
 import { CircleAlertIcon } from "lucide-react"
-import type { ReactNode } from "react"
 import type { RoleOption } from "@/studio/features/project-memberships/components/member-detail/member-detail.models"
 import { useRoleLabel } from "@/studio/features/project-memberships/components/members-table/role-label"
 import {
   type InviteAgent,
+  type InviteeAccess,
   type InviteMembersValues,
   STICKY_FOOTER_CLASS,
   WORKSPACE_ADMIN_ROLE_KEY,
-  WORKSPACE_ROLE_DESCRIPTIONS,
 } from "./invite-members.models"
 
-/** The second screen of the invite dialog: what is about to be sent, to confirm or go back. */
+/**
+ * The second screen of the invite dialog: what each person gets, and what some already have, to
+ * confirm or go back.
+ */
 export function InviteConfirmation({
   values,
   workspaceName,
   workspaceRoles,
   agents,
+  existingAccess,
   error,
   isConfirming,
   onBack,
@@ -41,71 +33,61 @@ export function InviteConfirmation({
   workspaceName: string
   workspaceRoles: RoleOption[]
   agents: InviteAgent[]
+  existingAccess: Record<string, InviteeAccess>
   error?: string | null
   isConfirming: boolean
   onBack: () => void
   onConfirm: () => void
 }) {
   const roleLabel = useRoleLabel()
-  const workspaceRole = workspaceRoles.find((role) => role.key === values.workspaceRoleKey)
+  const labelOf = (roleKey: string) => {
+    const role = workspaceRoles.find((candidate) => candidate.key === roleKey)
+    return role ? roleLabel(role) : roleKey
+  }
+  const isAdmin = values.workspaceRoleKey === WORKSPACE_ADMIN_ROLE_KEY
   const pickedAgents = agents.filter((agent) => values.agentIds.includes(agent.id))
-  const count = values.emails.length
+  const agentsLine = isAdmin
+    ? "Every agent"
+    : pickedAgents.length === 0
+      ? "No agent"
+      : pickedAgents.map((agent) => agent.name).join(", ")
 
   return (
     <>
       <DialogHeader>
-        <DialogTitle>Confirm the invitation</DialogTitle>
-        <DialogDescription>
-          {count === 1 ? "This person" : `These ${count} people`} will get access to {workspaceName}{" "}
-          once they accept.
-        </DialogDescription>
+        <DialogTitle>Confirm the invitation to {workspaceName}</DialogTitle>
       </DialogHeader>
 
-      <div className="flex flex-col gap-6">
-        <Section title={count === 1 ? "1 person" : `${count} people`}>
-          <div className="flex flex-wrap gap-1.5">
-            {values.emails.map((email) => (
-              <Badge key={email} variant="outline">
-                {email}
-              </Badge>
-            ))}
-          </div>
-        </Section>
+      <div className="flex flex-col gap-4">
+        <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 rounded-md bg-muted/50 px-3 py-2 text-sm">
+          <dt className="text-muted-foreground">Role</dt>
+          <dd className="font-medium">{labelOf(values.workspaceRoleKey)}</dd>
+          <dt className="text-muted-foreground">Agents</dt>
+          <dd>{agentsLine}</dd>
+        </dl>
 
-        <Section title="Role on the workspace">
-          <p className="text-sm">
-            <span className="font-medium">
-              {workspaceRole ? roleLabel(workspaceRole) : values.workspaceRoleKey}
-            </span>
-            <span className="text-muted-foreground">
-              {" · "}
-              {WORKSPACE_ROLE_DESCRIPTIONS[values.workspaceRoleKey]}
-            </span>
-          </p>
-        </Section>
-
-        <Section title="Agents">
-          {values.workspaceRoleKey === WORKSPACE_ADMIN_ROLE_KEY ? (
-            <p className="text-sm text-muted-foreground">
-              Every agent of the workspace, including the agents created later.
-            </p>
-          ) : pickedAgents.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No agent.</p>
-          ) : (
-            <ItemGroup className="gap-1">
-              {pickedAgents.map((agent) => (
-                <Item key={agent.id} variant="muted" size="sm" className="py-2">
-                  <ItemContent className="flex-row items-baseline gap-2">
-                    <ItemTitle>{agent.name}</ItemTitle>
-                    {agent.detail && (
-                      <ItemDescription className="text-xs">{agent.detail}</ItemDescription>
-                    )}
-                  </ItemContent>
-                </Item>
-              ))}
-            </ItemGroup>
-          )}
-        </Section>
+        <ItemGroup className="gap-1">
+          {values.emails.map((email) => {
+            const access = existingAccess[email]
+            return (
+              <Item key={email} variant="outline" size="sm" className="py-2">
+                <ItemContent>
+                  <ItemTitle className="break-all font-normal">{email}</ItemTitle>
+                </ItemContent>
+                {access && (
+                  <ItemActions>
+                    <ExistingAccessNote
+                      access={access}
+                      values={values}
+                      pickedAgents={pickedAgents}
+                      roleLabel={labelOf(access.workspaceRoleKey)}
+                    />
+                  </ItemActions>
+                )}
+              </Item>
+            )
+          })}
+        </ItemGroup>
 
         {error && (
           <Alert variant="destructive">
@@ -127,11 +109,33 @@ export function InviteConfirmation({
   )
 }
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
+/**
+ * What a person already in the workspace holds among what is picked: their role, and the picked
+ * agents they already reach. When the invitation adds nothing, it says so.
+ */
+function ExistingAccessNote({
+  access,
+  values,
+  pickedAgents,
+  roleLabel,
+}: {
+  access: InviteeAccess
+  values: InviteMembersValues
+  pickedAgents: InviteAgent[]
+  roleLabel: string
+}) {
+  const isAlreadyAdmin = access.workspaceRoleKey === WORKSPACE_ADMIN_ROLE_KEY
+  const heldAgents = pickedAgents.filter((agent) => access.agentIds.includes(agent.id))
+  const addsNothing =
+    isAlreadyAdmin ||
+    (access.workspaceRoleKey === values.workspaceRoleKey &&
+      heldAgents.length === pickedAgents.length)
+
+  if (addsNothing) return <Badge variant="secondary">Already has this access</Badge>
   return (
-    <section className="flex flex-col gap-2">
-      <h3 className="text-sm font-medium">{title}</h3>
-      {children}
-    </section>
+    <span className="text-right text-xs text-muted-foreground">
+      Already {roleLabel}
+      {heldAgents.length > 0 && ` · ${heldAgents.map((agent) => agent.name).join(", ")}`}
+    </span>
   )
 }

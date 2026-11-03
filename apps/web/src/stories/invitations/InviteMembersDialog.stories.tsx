@@ -58,7 +58,7 @@ async function dialogOpened(canvasElement: HTMLElement) {
 async function review(canvasElement: HTMLElement) {
   const page = body(canvasElement)
   await userEvent.click(page.getByRole("button", { name: /^Invite \d/ }))
-  await expect(await page.findByText("Confirm the invitation")).toBeInTheDocument()
+  await expect(await page.findByText(/^Confirm the invitation/)).toBeInTheDocument()
 }
 
 const membersWithAgents = {
@@ -154,6 +154,26 @@ export const ConfirmSends: Story = {
     await userEvent.click(page.getByRole("button", { name: "Confirm" }))
     await expect(args.onSubmit).toHaveBeenCalledWith(membersWithAgents)
   },
+}
+
+/**
+ * Some invitees are already in the workspace: each line says what they hold among what is picked,
+ * or that the invitation adds nothing for them.
+ */
+export const ConfirmWithExistingMembers: Story = {
+  args: {
+    defaultValues: {
+      emails: ["avery@example.org", "cruz@example.org", "sam@example.org", "riley@example.org"],
+      workspaceRoleKey: "project_member",
+      agentIds: ["agent-1", "agent-2"],
+    },
+    existingAccess: {
+      "cruz@example.org": { workspaceRoleKey: "project_member", agentIds: ["agent-1"] },
+      "sam@example.org": { workspaceRoleKey: "project_member", agentIds: ["agent-1", "agent-2"] },
+      "riley@example.org": { workspaceRoleKey: "project_admin", agentIds: [] },
+    },
+  },
+  play: async ({ canvasElement }) => review(canvasElement),
 }
 
 /** The API refused the invitation: the confirmation screen stays, with the reason. */

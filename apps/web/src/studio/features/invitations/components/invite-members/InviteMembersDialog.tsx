@@ -29,6 +29,7 @@ import { InviteConfirmation } from "./InviteConfirmation"
 import { InviteEmailsField } from "./InviteEmailsField"
 import {
   type InviteAgent,
+  type InviteeAccess,
   type InviteMembersValues,
   STICKY_FOOTER_CLASS,
   WORKSPACE_ADMIN_ROLE_KEY,
@@ -58,6 +59,7 @@ export function InviteMembersDialog({
   workspaceName,
   workspaceRoles,
   agents,
+  existingAccess = {},
   defaultValues,
   onSubmit,
   error,
@@ -68,6 +70,8 @@ export function InviteMembersDialog({
   /** The workspace roles an invitation can give: owner is set at creation, never offered. */
   workspaceRoles: RoleOption[]
   agents: InviteAgent[]
+  /** What people already in the workspace hold, by email, for the confirmation screen. */
+  existingAccess?: Record<string, InviteeAccess>
   defaultValues?: Partial<InviteMembersValues>
   onSubmit: (values: InviteMembersValues) => Promise<void>
   error?: string | null
@@ -125,6 +129,7 @@ export function InviteMembersDialog({
             workspaceName={workspaceName}
             workspaceRoles={workspaceRoles}
             agents={agents}
+            existingAccess={existingAccess}
             error={error}
             isConfirming={isConfirming}
             onBack={() => setPending(null)}
