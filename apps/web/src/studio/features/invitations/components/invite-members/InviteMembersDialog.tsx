@@ -26,6 +26,7 @@ import { Label } from "@caseai-connect/ui/shad/label"
 import { RadioGroup, RadioGroupItem } from "@caseai-connect/ui/shad/radio-group"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { ChevronRightIcon, InfoIcon } from "lucide-react"
+import { useState } from "react"
 import { useForm, useWatch } from "react-hook-form"
 import { z } from "zod"
 import type { RoleOption } from "@/studio/features/project-memberships/components/member-detail/member-detail.models"
@@ -95,10 +96,17 @@ export function InviteMembersDialog({
   const values = useWatch({ control: form.control }) as InviteMembersValues
   const isWorkspaceAdmin = values.workspaceRoleKey === WORKSPACE_ADMIN_ROLE_KEY
   const existing = new Set(existingMemberEmails)
-  const inviteeCount = values.emails.filter((email) => !existing.has(email)).length
+  // Counts the email being typed too, so the button follows the field without waiting for Enter.
+  const [draftEmails, setDraftEmails] = useState<string[]>([])
+  const inviteeCount = new Set(
+    [...values.emails, ...draftEmails].filter((email) => !existing.has(email)),
+  ).size
 
   const handleOpenChange = (nextOpen: boolean) => {
-    if (!nextOpen) form.reset()
+    if (!nextOpen) {
+      form.reset()
+      setDraftEmails([])
+    }
     onOpenChange(nextOpen)
   }
 
@@ -134,6 +142,7 @@ export function InviteMembersDialog({
                     onChange={field.onChange}
                     existingMemberEmails={existingMemberEmails}
                     onOpenMember={onOpenMember}
+                    onDraftChange={setDraftEmails}
                   />
                   <FormMessage />
                 </FormItem>
@@ -241,7 +250,11 @@ export function InviteMembersDialog({
                 Cancel
               </Button>
               <Button type="submit" disabled={form.formState.isSubmitting}>
-                {inviteeCount > 1 ? `Invite ${inviteeCount} people` : "Invite"}
+                {inviteeCount === 0
+                  ? "Invite"
+                  : inviteeCount === 1
+                    ? "Invite 1 person"
+                    : `Invite ${inviteeCount} people`}
               </Button>
             </DialogFooter>
           </form>

@@ -5,6 +5,16 @@ import { TriangleAlertIcon, XIcon } from "lucide-react"
 import { type KeyboardEvent, useState } from "react"
 import { z } from "zod"
 
+/** The addresses of a typed or pasted text ("a@x.org, b@x.org"), lowercased. */
+function splitEmails(text: string): string[] {
+  return text
+    .split(/[\s,;]+/)
+    .map((candidate) => candidate.trim().toLowerCase())
+    .filter(Boolean)
+}
+
+const isEmail = (candidate: string) => z.email().safeParse(candidate).success
+
 /**
  * The emails to invite, as removable chips. An email of someone already in the workspace is
  * flagged: the dialog sends them nothing, their roles change from their member page.
@@ -14,11 +24,14 @@ export function InviteEmailsField({
   onChange,
   existingMemberEmails,
   onOpenMember,
+  onDraftChange,
 }: {
   emails: string[]
   onChange: (emails: string[]) => void
   existingMemberEmails: string[]
   onOpenMember: (email: string) => void
+  /** The valid emails typed and not added yet, so the dialog counts them before they become chips. */
+  onDraftChange: (draftEmails: string[]) => void
 }) {
   const [inputEmail, setInputEmail] = useState("")
   const [inputError, setInputError] = useState<string | undefined>()
@@ -26,19 +39,17 @@ export function InviteEmailsField({
   const existingInList = emails.filter((email) => existing.has(email))
 
   const addEmails = () => {
-    // Pasting a list ("a@x.org, b@x.org") adds every address of it.
-    const candidates = inputEmail
-      .split(/[\s,;]+/)
-      .map((candidate) => candidate.trim().toLowerCase())
-      .filter(Boolean)
+    // Pasting a list adds every address of it.
+    const candidates = splitEmails(inputEmail)
     if (candidates.length === 0) return
-    const invalid = candidates.find((candidate) => !z.email().safeParse(candidate).success)
+    const invalid = candidates.find((candidate) => !isEmail(candidate))
     if (invalid) {
       setInputError(`"${invalid}" is not a valid email.`)
       return
     }
     onChange([...new Set([...emails, ...candidates])])
     setInputEmail("")
+    onDraftChange([])
     setInputError(undefined)
   }
 
@@ -61,6 +72,7 @@ export function InviteEmailsField({
           onChange={(event) => {
             setInputEmail(event.target.value)
             setInputError(undefined)
+            onDraftChange(splitEmails(event.target.value).filter(isEmail))
           }}
           onKeyDown={handleKeyDown}
           onBlur={addEmails}
