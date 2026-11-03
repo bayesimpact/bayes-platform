@@ -9,11 +9,6 @@ function featureFlag<Key extends string>(flag: {
 
 export const FeatureFlags = [
   featureFlag({
-    key: "evaluation",
-    description:
-      "Evaluate the performance of your agents with a set of pre-defined evaluation tasks",
-  }),
-  featureFlag({
     key: "sources-tool",
     description: "Access and utilize the sources tool.",
   }),

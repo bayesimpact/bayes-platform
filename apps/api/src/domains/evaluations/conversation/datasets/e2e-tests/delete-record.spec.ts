@@ -13,6 +13,7 @@ import { removeNullish } from "@/common/utils/remove-nullish"
 import {
   createOrganizationWithAgent,
   createOrganizationWithProject,
+  OWNER_EVALUATOR_PROJECT_MEMBERSHIP,
 } from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../../test/rbac-test.helpers"
@@ -68,7 +69,9 @@ describe("EvaluationConversationDatasets - deleteRecord", () => {
   })
 
   const createContext = async () => {
-    const { user, organization, project } = await createOrganizationWithProject(repositories)
+    const { user, organization, project } = await createOrganizationWithProject(repositories, {
+      projectMembership: OWNER_EVALUATOR_PROJECT_MEMBERSHIP,
+    })
     organizationId = organization.id
     projectId = project.id
     authSubject = user.authSubject!
@@ -125,7 +128,7 @@ describe("EvaluationConversationDatasets - deleteRecord", () => {
   it("keeps existing run records alive with a detached dataset record link", async () => {
     const { user, organization, project, agent, agentSettings } = await createOrganizationWithAgent(
       repositories,
-      { agent: { type: "conversation" } },
+      { projectMembership: OWNER_EVALUATOR_PROJECT_MEMBERSHIP, agent: { type: "conversation" } },
     )
     organizationId = organization.id
     projectId = project.id
