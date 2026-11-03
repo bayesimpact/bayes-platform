@@ -22,6 +22,31 @@ export type InviteeAccess = {
   agentIds: string[]
 }
 
+/**
+ * What the invitation does for a person already in the workspace. They accepted once already, so
+ * what is missing is given right away, with no invitation. A promotion to admin is never a side
+ * effect: it is done from their member page.
+ */
+export type ExistingInviteeOutcome =
+  | { kind: "addAgents"; agentIds: string[] }
+  | { kind: "unchanged"; reason: "hasAccess" | "noPromotion" }
+
+export function existingInviteeOutcome(
+  access: InviteeAccess,
+  values: InviteMembersValues,
+): ExistingInviteeOutcome {
+  if (access.workspaceRoleKey === WORKSPACE_ADMIN_ROLE_KEY) {
+    return { kind: "unchanged", reason: "hasAccess" }
+  }
+  if (values.workspaceRoleKey === WORKSPACE_ADMIN_ROLE_KEY) {
+    return { kind: "unchanged", reason: "noPromotion" }
+  }
+  const agentIds = values.agentIds.filter((agentId) => !access.agentIds.includes(agentId))
+  return agentIds.length > 0
+    ? { kind: "addAgents", agentIds }
+    : { kind: "unchanged", reason: "hasAccess" }
+}
+
 /** The workspace role whose holders are admins of every agent, so the dialog picks no agent. */
 export const WORKSPACE_ADMIN_ROLE_KEY = "project_admin"
 

@@ -2,10 +2,12 @@ import { Alert, AlertDescription } from "@caseai-connect/ui/shad/alert"
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
 import { DialogFooter, DialogHeader, DialogTitle } from "@caseai-connect/ui/shad/dialog"
-import { CircleAlertIcon, TriangleAlertIcon } from "lucide-react"
+import { CircleAlertIcon, TriangleAlertIcon, UserCheckIcon } from "lucide-react"
+import type { ReactNode } from "react"
 import type { RoleOption } from "@/studio/features/project-memberships/components/member-detail/member-detail.models"
 import { useRoleLabel } from "@/studio/features/project-memberships/components/members-table/role-label"
 import {
+  existingInviteeOutcome,
   type InviteAgent,
   type InviteeAccess,
   type InviteMembersValues,
@@ -46,7 +48,26 @@ export function InviteConfirmation({
   const newEmails = values.emails.filter((email) => !existingAccess[email])
   const knownPeople = values.emails.flatMap((email) => {
     const access = existingAccess[email]
-    return access ? [{ email, access }] : []
+    return access ? [{ email, access, outcome: existingInviteeOutcome(access, values) }] : []
+  })
+  const nameOf = (agentId: string) => agents.find((agent) => agent.id === agentId)?.name ?? agentId
+  const directPeople = knownPeople.flatMap(({ email, outcome }) =>
+    outcome.kind === "addAgents"
+      ? [{ email, line: `Added to ${joinNames(outcome.agentIds.map(nameOf))}` }]
+      : [],
+  )
+  const unchangedPeople = knownPeople.flatMap(({ email, access, outcome }) => {
+    if (outcome.kind !== "unchanged") return []
+    const current = describeAccess({ access, agents, roleLabel: labelOf(access.workspaceRoleKey) })
+    return [
+      {
+        email,
+        line:
+          outcome.reason === "noPromotion"
+            ? `${current}. Promote them from their member page.`
+            : current,
+      },
+    ]
   })
   const isAdmin = values.workspaceRoleKey === WORKSPACE_ADMIN_ROLE_KEY
   const pickedAgents = agents.filter((agent) => values.agentIds.includes(agent.id))
@@ -70,8 +91,9 @@ export function InviteConfirmation({
           <dd>{agentsLine}</dd>
         </dl>
 
-        {/* Newcomers as chips. People already in the workspace go apart: the invitation leaves
-            them as they are. */}
+        {/* Newcomers as chips: they get an invitation to accept. People already in the
+            workspace go apart, in two groups: those who get access right away, and those for
+            whom nothing changes. */}
         {newEmails.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {newEmails.map((email) => (
@@ -82,39 +104,33 @@ export function InviteConfirmation({
           </div>
         )}
 
-        {knownPeople.length > 0 && (
-          <section className="flex gap-3 rounded-xl border p-4 text-sm">
-            {/* The theme has no warning color: the amber of the design system's warning variants. */}
-            <TriangleAlertIcon className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400" />
-            <div className="flex min-w-0 flex-1 flex-col gap-3">
-              <div className="flex flex-col gap-1">
-                <h3 className="font-medium">
-                  {knownPeople.length === 1
-                    ? "1 person is already in the workspace"
-                    : `${knownPeople.length} people are already in the workspace`}
-                </h3>
-                <p className="text-xs text-muted-foreground">
-                  The invitation leaves {knownPeople.length === 1 ? "them" : "these people"} as they
-                  are. Change their access from their member page.
-                </p>
-              </div>
-              <ul className="flex flex-col gap-2">
-                {/* Two lines per person: the email, then their access as a short sentence. */}
-                {knownPeople.map(({ email, access }) => (
-                  <li key={email} className="flex flex-col">
-                    <span className="break-all">{email}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {describeAccess({
-                        access,
-                        agents,
-                        roleLabel: labelOf(access.workspaceRoleKey),
-                      })}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </section>
+        {directPeople.length > 0 && (
+          <PeopleBlock
+            icon={<UserCheckIcon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />}
+            title={
+              directPeople.length === 1
+                ? "1 person gets access right away"
+                : `${directPeople.length} people get access right away`
+            }
+            hint="Already in the workspace, so there is no invitation to accept."
+            people={directPeople}
+          />
+        )}
+
+        {unchangedPeople.length > 0 && (
+          <PeopleBlock
+            // The theme has no warning color: the amber of the design system's warning variants.
+            icon={
+              <TriangleAlertIcon className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+            }
+            title={
+              unchangedPeople.length === 1
+                ? "1 person keeps their access as it is"
+                : `${unchangedPeople.length} people keep their access as it is`
+            }
+            hint="The invitation changes nothing for them."
+            people={unchangedPeople}
+          />
         )}
 
         {error && (
@@ -137,6 +153,45 @@ export function InviteConfirmation({
   )
 }
 
+/** A group of people already in the workspace: an icon, a title, a hint, two lines per person. */
+function PeopleBlock({
+  icon,
+  title,
+  hint,
+  people,
+}: {
+  icon: ReactNode
+  title: string
+  hint: string
+  people: { email: string; line: string }[]
+}) {
+  return (
+    <section className="flex gap-3 rounded-xl border p-4 text-sm">
+      {icon}
+      <div className="flex min-w-0 flex-1 flex-col gap-3">
+        <div className="flex flex-col gap-1">
+          <h3 className="font-medium">{title}</h3>
+          <p className="text-xs text-muted-foreground">{hint}</p>
+        </div>
+        <ul className="flex flex-col gap-2">
+          {people.map(({ email, line }) => (
+            <li key={email} className="flex flex-col">
+              <span className="break-all">{email}</span>
+              <span className="text-xs text-muted-foreground">{line}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )
+}
+
+/** "A", "A and B", "A, B and C". */
+function joinNames(names: string[]): string {
+  if (names.length <= 1) return names.join("")
+  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`
+}
+
 /**
  * What a person already in the workspace holds there, as a short sentence: "Membre, on Helpful
  * Assistant and Scheduling Bot". An admin reaches every agent, so their role says it all.
@@ -154,8 +209,7 @@ function describeAccess({
   const agentNames = agents
     .filter((agent) => access.agentIds.includes(agent.id))
     .map((agent) => agent.name)
-  if (agentNames.length === 0) return `${roleLabel}, on no agent`
-  const lastName = agentNames.pop()
-  const list = agentNames.length > 0 ? `${agentNames.join(", ")} and ${lastName}` : lastName
-  return `${roleLabel}, on ${list}`
+  return agentNames.length === 0
+    ? `${roleLabel}, on no agent`
+    : `${roleLabel}, on ${joinNames(agentNames)}`
 }

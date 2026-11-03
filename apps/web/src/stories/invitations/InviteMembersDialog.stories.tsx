@@ -157,8 +157,8 @@ export const ConfirmSends: Story = {
 }
 
 /**
- * Some invitees are already in the workspace: a warning lists them apart from the newcomers, with
- * what they hold. The invitation leaves them as they are.
+ * Some invitees are already in the workspace. Cruz misses an agent and gets it right away. Sam and
+ * Riley already hold everything: a warning says nothing changes for them.
  */
 export const ConfirmWithExistingMembers: Story = {
   args: {
@@ -176,19 +176,33 @@ export const ConfirmWithExistingMembers: Story = {
   play: async ({ canvasElement }) => review(canvasElement),
 }
 
-/** Confirm invites the newcomers only: people already in the workspace are left out. */
-export const ConfirmSkipsExistingMembers: Story = {
+/** Confirm sends the newcomers and the people who get access right away, not the others. */
+export const ConfirmSendsWhoGetsSomething: Story = {
   args: ConfirmWithExistingMembers.args,
   play: async ({ canvasElement, args }) => {
     const page = body(canvasElement)
     await review(canvasElement)
     await userEvent.click(page.getByRole("button", { name: "Confirm" }))
     await expect(args.onSubmit).toHaveBeenCalledWith({
-      emails: ["avery@example.org"],
+      emails: ["avery@example.org", "cruz@example.org"],
       workspaceRoleKey: "project_member",
       agentIds: ["agent-1", "agent-2"],
     })
   },
+}
+
+/** A member invited as admin is not promoted: that is done from their member page. */
+export const ConfirmMemberInvitedAsAdmin: Story = {
+  args: {
+    defaultValues: {
+      emails: ["avery@example.org", "cruz@example.org"],
+      workspaceRoleKey: "project_admin",
+    },
+    existingAccess: {
+      "cruz@example.org": { workspaceRoleKey: "project_member", agentIds: ["agent-1"] },
+    },
+  },
+  play: async ({ canvasElement }) => review(canvasElement),
 }
 
 /** The API refused the invitation: the confirmation screen stays, with the reason. */
