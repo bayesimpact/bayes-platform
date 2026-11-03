@@ -158,7 +158,7 @@ export const ConfirmSends: Story = {
 
 /**
  * Some invitees are already in the workspace: a warning lists them apart from the newcomers, with
- * what they hold among what is picked, or that the invitation adds nothing for them.
+ * what they hold. The invitation leaves them as they are.
  */
 export const ConfirmWithExistingMembers: Story = {
   args: {
@@ -174,6 +174,21 @@ export const ConfirmWithExistingMembers: Story = {
     },
   },
   play: async ({ canvasElement }) => review(canvasElement),
+}
+
+/** Confirm invites the newcomers only: people already in the workspace are left out. */
+export const ConfirmSkipsExistingMembers: Story = {
+  args: ConfirmWithExistingMembers.args,
+  play: async ({ canvasElement, args }) => {
+    const page = body(canvasElement)
+    await review(canvasElement)
+    await userEvent.click(page.getByRole("button", { name: "Confirm" }))
+    await expect(args.onSubmit).toHaveBeenCalledWith({
+      emails: ["avery@example.org"],
+      workspaceRoleKey: "project_member",
+      agentIds: ["agent-1", "agent-2"],
+    })
+  },
 }
 
 /** The API refused the invitation: the confirmation screen stays, with the reason. */

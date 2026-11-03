@@ -114,7 +114,11 @@ export function InviteMembersDialog({
     if (!pending) return
     setIsConfirming(true)
     try {
-      await onSubmit(pending)
+      // People already in the workspace are left as they are: only newcomers are invited.
+      await onSubmit({
+        ...pending,
+        emails: pending.emails.filter((email) => !existingAccess[email]),
+      })
     } finally {
       setIsConfirming(false)
     }

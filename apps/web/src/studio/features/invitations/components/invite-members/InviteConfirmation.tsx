@@ -1,4 +1,4 @@
-import { Alert, AlertDescription, AlertTitle } from "@caseai-connect/ui/shad/alert"
+import { Alert, AlertDescription } from "@caseai-connect/ui/shad/alert"
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
 import { DialogFooter, DialogHeader, DialogTitle } from "@caseai-connect/ui/shad/dialog"
@@ -70,8 +70,8 @@ export function InviteConfirmation({
           <dd>{agentsLine}</dd>
         </dl>
 
-        {/* Newcomers as chips. People already in the workspace go apart, in a warning: the
-            invitation changes less, or nothing, for them. */}
+        {/* Newcomers as chips. People already in the workspace go apart: the invitation leaves
+            them as they are. */}
         {newEmails.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {newEmails.map((email) => (
@@ -83,31 +83,37 @@ export function InviteConfirmation({
         )}
 
         {knownPeople.length > 0 && (
-          <Alert variant="warning">
-            <TriangleAlertIcon />
-            <AlertTitle>
-              {knownPeople.length === 1
-                ? "1 person is already in the workspace"
-                : `${knownPeople.length} people are already in the workspace`}
-            </AlertTitle>
-            <AlertDescription>
-              <ul className="flex w-full flex-col gap-1">
+          <section className="flex gap-3 text-sm">
+            {/* The theme has no warning color: the amber of the design system's warning variants. */}
+            <TriangleAlertIcon className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400" />
+            <div className="flex min-w-0 flex-1 flex-col gap-3">
+              <div className="flex flex-col gap-1">
+                <h3 className="font-medium">
+                  {knownPeople.length === 1
+                    ? "1 person is already in the workspace"
+                    : `${knownPeople.length} people are already in the workspace`}
+                </h3>
+                <p className="text-muted-foreground">
+                  The invitation leaves {knownPeople.length === 1 ? "them" : "these people"} as they
+                  are. Change their access from their member page.
+                </p>
+              </div>
+              <ul className="flex flex-col gap-1">
                 {knownPeople.map(({ email, access }) => (
                   <li key={email} className="flex flex-wrap justify-between gap-x-3">
-                    <span className="break-all font-medium">{email}</span>
-                    <span>
-                      {describeExistingAccess({
+                    <span className="break-all">{email}</span>
+                    <span className="text-muted-foreground">
+                      {describeAccess({
                         access,
-                        values,
-                        pickedAgents,
+                        agents,
                         roleLabel: labelOf(access.workspaceRoleKey),
                       })}
                     </span>
                   </li>
                 ))}
               </ul>
-            </AlertDescription>
-          </Alert>
+            </div>
+          </section>
         )}
 
         {error && (
@@ -130,29 +136,17 @@ export function InviteConfirmation({
   )
 }
 
-/**
- * What a person already in the workspace holds among what is picked: their role, and the picked
- * agents they already reach. When the invitation adds nothing, it says so.
- */
-function describeExistingAccess({
+/** What a person already in the workspace holds there: their role, and their agents. */
+function describeAccess({
   access,
-  values,
-  pickedAgents,
+  agents,
   roleLabel,
 }: {
   access: InviteeAccess
-  values: InviteMembersValues
-  pickedAgents: InviteAgent[]
+  agents: InviteAgent[]
   roleLabel: string
 }): string {
-  const isAlreadyAdmin = access.workspaceRoleKey === WORKSPACE_ADMIN_ROLE_KEY
-  const heldAgents = pickedAgents.filter((agent) => access.agentIds.includes(agent.id))
-  const addsNothing =
-    isAlreadyAdmin ||
-    (access.workspaceRoleKey === values.workspaceRoleKey &&
-      heldAgents.length === pickedAgents.length)
-
-  if (addsNothing) return "Already has this access"
-  if (heldAgents.length === 0) return `Already ${roleLabel}`
-  return `Already ${roleLabel} · ${heldAgents.map((agent) => agent.name).join(", ")}`
+  if (access.workspaceRoleKey === WORKSPACE_ADMIN_ROLE_KEY) return roleLabel
+  const heldAgents = agents.filter((agent) => access.agentIds.includes(agent.id))
+  return [roleLabel, ...heldAgents.map((agent) => agent.name)].join(" · ")
 }
