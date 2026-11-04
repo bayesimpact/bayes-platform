@@ -15,7 +15,7 @@ function LocaleAndCache() {
   return <p>{`Locale ${i18n.locale}, ${isRetrying ? "retrying" : "not retrying"}`}</p>
 }
 
-const { Home, PageNotFound } = composeStories(generalStories)
+const { Home, NoEvaluationAccess, PageNotFound } = composeStories(generalStories)
 
 describe("the stories of the app", () => {
   it("Home opens the blank home page", async () => {
@@ -24,6 +24,14 @@ describe("the stories of the app", () => {
 
     expect(await screen.findByRole("main")).toBeInTheDocument()
     expect(screen.queryByText("Page not found")).not.toBeInTheDocument()
+  })
+
+  it("NoEvaluationAccess says why the app is closed, and shows no page", async () => {
+    await NoEvaluationAccess.load()
+    render(<NoEvaluationAccess />)
+
+    expect(await screen.findByText("You cannot evaluate agents yet")).toBeInTheDocument()
+    expect(screen.queryByRole("main")).not.toBeInTheDocument()
   })
 
   it("PageNotFound says so", async () => {

@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router"
 import { RouteErrorState } from "@/components/shared/RouteErrorState"
 import { loadMe } from "@/features/account"
+import { EvaluationAccessGate, loadEvaluationProjects } from "@/features/projects"
 import {
   claimAutomaticSignIn,
   hasSession,
@@ -10,8 +11,9 @@ import {
 } from "@/lib/auth/session"
 
 /**
- * Every page of the app but the sign-in callback: a session, the signed-in person (`GET me`), then
- * the page. A sign-in the API refuses shows here, before any page.
+ * Every page of the app but the sign-in callback: a session, the signed-in person (`GET me`), at
+ * least one project they can evaluate, then the page. A sign-in the API refuses shows here, and so
+ * does a person without the evaluator role, before any page.
  */
 export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async ({ location }) => {
@@ -24,8 +26,16 @@ export const Route = createFileRoute("/_authenticated")({
     await new Promise<never>(() => {})
   },
   loader: async ({ context }) => {
-    await loadMe(context.queryClient)
+    await Promise.all([loadMe(context.queryClient), loadEvaluationProjects(context.queryClient)])
   },
   errorComponent: RouteErrorState,
-  component: Outlet,
+  component: AuthenticatedLayout,
 })
+
+function AuthenticatedLayout() {
+  return (
+    <EvaluationAccessGate>
+      <Outlet />
+    </EvaluationAccessGate>
+  )
+}

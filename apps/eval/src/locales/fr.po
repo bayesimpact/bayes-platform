@@ -43,6 +43,10 @@ msgstr "Chaque nouvelle connexion s'est arrêtée aussitôt : l'application a ce
 msgid "Email address missing"
 msgstr "Adresse email manquante"
 
+#: src/features/projects/components/NoEvaluationAccessPage.tsx
+msgid "Evaluation opens to the evaluators of a project. Ask a project admin to give you the Evaluator role from the members page."
+msgstr "L'évaluation est réservée aux évaluateurs d'un projet. Demandez à un administrateur du projet de vous donner le rôle Évaluateur depuis la page des membres."
+
 #: src/components/shared/SignInProblemPage.tsx
 msgid "If it keeps happening, contact your administrator with the message below."
 msgstr "Si cela se reproduit, contactez votre administrateur avec le message ci-dessous."
@@ -64,6 +68,7 @@ msgid "Reload the page to keep going."
 msgstr "Rechargez la page pour continuer."
 
 #: src/components/shared/SignInProblemPage.tsx
+#: src/features/projects/components/NoEvaluationAccessPage.tsx
 msgid "Sign out"
 msgstr "Se déconnecter"
 
@@ -111,6 +116,10 @@ msgstr "Réessayez de vous connecter. Si cette page revient, fermez les autres o
 #: src/components/shared/SignInProblemPage.tsx
 msgid "Verify your email"
 msgstr "Vérifiez votre email"
+
+#: src/features/projects/components/NoEvaluationAccessPage.tsx
+msgid "You cannot evaluate agents yet"
+msgstr "Vous ne pouvez pas encore évaluer d'agents"
 
 #: src/components/shared/SignInProblemPage.tsx
 msgid "Your identity provider did not share your email address with the app."

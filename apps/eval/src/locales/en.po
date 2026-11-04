@@ -43,6 +43,10 @@ msgstr "Each new sign-in ended at once, so the app stopped starting new ones."
 msgid "Email address missing"
 msgstr "Email address missing"
 
+#: src/features/projects/components/NoEvaluationAccessPage.tsx
+msgid "Evaluation opens to the evaluators of a project. Ask a project admin to give you the Evaluator role from the members page."
+msgstr "Evaluation opens to the evaluators of a project. Ask a project admin to give you the Evaluator role from the members page."
+
 #: src/components/shared/SignInProblemPage.tsx
 msgid "If it keeps happening, contact your administrator with the message below."
 msgstr "If it keeps happening, contact your administrator with the message below."
@@ -64,6 +68,7 @@ msgid "Reload the page to keep going."
 msgstr "Reload the page to keep going."
 
 #: src/components/shared/SignInProblemPage.tsx
+#: src/features/projects/components/NoEvaluationAccessPage.tsx
 msgid "Sign out"
 msgstr "Sign out"
 
@@ -111,6 +116,10 @@ msgstr "Try again to sign in. If this page comes back, close the other tabs of t
 #: src/components/shared/SignInProblemPage.tsx
 msgid "Verify your email"
 msgstr "Verify your email"
+
+#: src/features/projects/components/NoEvaluationAccessPage.tsx
+msgid "You cannot evaluate agents yet"
+msgstr "You cannot evaluate agents yet"
 
 #: src/components/shared/SignInProblemPage.tsx
 msgid "Your identity provider did not share your email address with the app."

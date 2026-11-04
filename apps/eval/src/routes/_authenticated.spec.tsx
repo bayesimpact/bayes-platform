@@ -2,6 +2,7 @@ import { EvalAccountRoutes } from "@caseai-connect/eval-contracts"
 import { screen } from "@testing-library/react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { claimAutomaticSignIn } from "@/lib/auth/session"
+import { noEvaluationAccessHandlers } from "@/test/msw/handlers"
 import { apiError, mockRoute } from "@/test/msw/mock-route"
 import { server } from "@/test/msw/server"
 import { renderApp } from "@/test/render-app"
@@ -77,5 +78,22 @@ describe("a session the browser does not keep", () => {
 
     expect(await screen.findByText("The sign-in keeps failing")).toBeInTheDocument()
     expect(signIn).not.toHaveBeenCalled()
+  })
+})
+
+describe("the access to the app", () => {
+  it("opens to the evaluator of a project", async () => {
+    renderApp("/eval/")
+
+    expect(await screen.findByRole("main")).toBeInTheDocument()
+    expect(screen.queryByText("You cannot evaluate agents yet")).not.toBeInTheDocument()
+  })
+
+  it("stays closed to a person who evaluates no project, and says why", async () => {
+    server.use(...noEvaluationAccessHandlers())
+    renderApp("/eval/")
+
+    expect(await screen.findByText("You cannot evaluate agents yet")).toBeInTheDocument()
+    expect(screen.queryByRole("main")).not.toBeInTheDocument()
   })
 })

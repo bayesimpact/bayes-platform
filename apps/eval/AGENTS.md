@@ -18,6 +18,11 @@ file holds what is specific to Evaluation. It uses the same library versions as 
   sign-out). Its storage prefix (`eval.oidc.`) and refresh lock are its own.
 - The layout of every signed-in page (`src/routes/_authenticated.tsx`) waits for `GET me`
   (`features/account`), so a sign-in the API refuses shows before any page.
+- Access: the app opens to a person who holds `evaluation.ui.read` on at least one project, which
+  the `project_evaluator` role grants (ADR 0019: the app checks the permission, never the role's
+  name). The same layout loads `GET projects/mine`, and `EvaluationAccessGate`
+  (`features/projects`) shows `NoEvaluationAccessPage` to anyone else. A page of a project checks
+  the same permission on that project; the API refuses its routes without it.
 - Configuration: the API will inject `window.__CONFIG__` when it serves the app; in dev, the
   `VITE_*` values of `apps/eval/.env` stand in (see `.env-example`).
 
