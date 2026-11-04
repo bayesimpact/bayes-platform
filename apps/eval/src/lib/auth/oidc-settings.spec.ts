@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { buildOidcSettings, DEFAULT_OIDC_SCOPE } from "./oidc-settings"
+import { buildOidcSettings, DEFAULT_OIDC_SCOPE, sessionStorageKey } from "./oidc-settings"
 
 const memoryStorage = (): Storage => {
   const values = new Map<string, string>()
@@ -45,14 +45,18 @@ describe("buildOidcSettings", () => {
     expect(settings.extraQueryParams).toBeUndefined()
   })
 
-  it("keeps its session under a prefix of its own, apart from apps/web's", async () => {
+  it("keeps its session under the key apps/web uses, and its sign-in state apart", async () => {
     const storage = memoryStorage()
     const settings = buildOidcSettings(config, appUrl, storage)
 
-    await settings.userStore?.set("user:key", "value")
+    await settings.userStore?.set("user:https://idp.example.org/realms/acme:platform-web", "user")
+    await settings.stateStore?.set("state-id", "state")
 
-    expect(storage.getItem("eval.oidc.user:key")).toBe("value")
-    expect(storage.getItem("oidc.user:key")).toBeNull()
+    expect(storage.getItem(sessionStorageKey(settings))).toBe("user")
+    expect(storage.getItem("oidc.user:https://idp.example.org/realms/acme:platform-web")).toBe(
+      "user",
+    )
+    expect(storage.getItem("eval.oidc.state-id")).toBe("state")
   })
 
   it("sends the audience, the authorization parameters and a custom scope when configured", () => {

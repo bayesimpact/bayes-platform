@@ -15,7 +15,10 @@ file holds what is specific to Evaluation. It uses the same library versions as 
   fields it reads; the API does not import it.
 - Sign-in: `src/lib/auth/`, the only code that knows `oidc-client-ts`, used through
   `lib/auth/session.ts`. It comes back to `<origin>/eval/auth/callback` (`<origin>/eval/` after
-  sign-out). Its storage prefix (`eval.oidc.`) and refresh lock are its own.
+  sign-out). It shares one session with every app of the origin (apps/web, the Desk): the user
+  under `oidc.user:<authority>:<client>`, refreshed under the Web Lock `oidc-token-refresh`, and a
+  sign-out or an account switch in another app ends this app's session too. Only the state of a
+  sign-in it started stays its own, under `eval.oidc.`.
 - The layout of every signed-in page (`src/routes/_authenticated.tsx`) waits for `GET me`
   (`features/account`), so a sign-in the API refuses shows before any page.
 - Access: the app opens to a person who holds `evaluation.ui.read` on at least one project, which
@@ -46,7 +49,7 @@ and `http://<name>-eval-storybook.connect.localhost:8800`.
 
 ## Where things are
 
-- The home: `src/routes/_authenticated/index.tsx`, a blank page for now.
+- The home: `src/routes/_authenticated/index.tsx`, a greeting for now.
 - The API client: `src/lib/api-client.ts`. The query client's retry rules:
   `src/app/query-client.ts`.
 - The mocked API: `src/test/msw/handlers.ts`, written with `mockRoute`
