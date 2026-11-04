@@ -339,14 +339,19 @@ edits the conversation's query.
   helpers, and their specs), wired to the Desk's configuration. From then on it is Desk code, which
   changes with the Desk and never in step with `apps/web`. It uses the identity provider and client
   of the install with redirect URIs of its own (`<origin>/app/auth/callback` after sign-in,
-  `<origin>/app/` after sign-out) and a token storage of its own, so the two copies can drift
-  without ever sharing or rotating the same refresh token. A person signs in to each app; the
-  identity provider's session usually makes the second sign-in silent. A pathless `_authenticated`
-  route checks the session in `beforeLoad` and starts sign-in with the return path in the state when
-  there is none, and the callback route completes it and opens that path. Refreshes rotate the
-  refresh token, so a Web Lock serializes them across the Desk's tabs, as in `apps/web`. Sign-out
-  clears the QueryClient and invalidates the router, and so does a session that ends in another
-  Desk tab or on a failed refresh.
+  `<origin>/app/` after sign-out). Every app of an origin shares one session: the stored user sits
+  under the key `apps/web` uses (`oidc.user:<authority>:<client>`), so a person signed in to one
+  app is signed in to the others, with the same account. Only the state of a sign-in in progress
+  stays per app (`desk.oidc.`), since the provider sends the person back to the app that started
+  it. A pathless `_authenticated` route checks the session in `beforeLoad` and starts sign-in with
+  the return path in the state when there is none, and the callback route completes it and opens
+  that path. Refreshes rotate the refresh token, which every app now holds: one Web Lock name,
+  `oidc-token-refresh`, serializes the refreshes of every app and tab of the origin, and an app
+  that waited for it reads the token the other one stored. Sign-out clears the QueryClient and
+  invalidates the router, and so does a failed refresh, or another app or tab that signs out or
+  switches account (the `storage` event of the shared key, compared by `sub`). `apps/web` reloads
+  its page on the same event. The two copies of the sign-in module can drift in everything but the
+  storage key and the lock name, which their specs pin.
 * **Home, invitations, access and terms.** `/app` shows the caller's pending agent invitations, to
   accept or decline, and the projects where they hold `desk.ui.read`. In phase 1, `/app` opens the
   agent the person used last, or the first one; it shows a page of its own only when there is no
@@ -757,9 +762,8 @@ part of it invalidates.
 
 * The Desk depends on no other app's code. Its sign-in, components, tokens, theme files,
   contracts and translations are its own, and a change in Studio cannot break it.
-* A person signs in to the Desk and to Studio separately, and every install registers the Desk's
-  redirect URIs with its identity provider. The identity provider's session usually makes the
-  second sign-in silent.
+* A person signs in once for the Desk and Studio, which share one session on the origin (section
+  2.9), and every install registers the Desk's redirect URIs with its identity provider.
 * Some code exists twice while `apps/web` lives on, on purpose: components, sign-in, and the logic
   of the screens being rebuilt. The Desk's version follows this ADR, and the old screens leave with
   `apps/web/src/desk` at the cutover.
