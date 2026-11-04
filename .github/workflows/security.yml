@@ -5,6 +5,11 @@ on:
     branches:
       - main
 
+# A newer push to the same pull request supersedes the scan of the older one.
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   gitleaks:
     name: gitleaks
@@ -20,13 +25,21 @@ jobs:
 
   trivy:
     name: trivy
-    runs-on:
-      labels: ubuntu-latest-m
+    # A standard runner: free on a public repository, where the 8-core one is billed. The GPU
+    # workers image is close to 10 GB uncompressed, so the job frees the preinstalled toolchains
+    # first, as publish-images.yml does for the same image.
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
+
+      - name: Free disk space on the runner
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          sudo docker image prune -af
+          df -h /
 
       - name: Build images
         run: make docker-build
