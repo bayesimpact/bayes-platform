@@ -22,6 +22,7 @@ import { createOrganization } from "@/common/features/organizations/organization
 import { NoAccessRoute } from "@/common/routes/NoAccessRoute"
 import { ADS } from "@/common/store/async-data-status"
 import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
+import { LogOutButton } from "../auth/LogOutButton"
 import { FullPageCenterLayout } from "../layouts/FullPageCenterLayout"
 
 export function OrganizationCreator() {
@@ -54,7 +55,10 @@ export function OrganizationCreator() {
     return <NoAccessRoute />
   }
   return (
-    <FullPageCenterLayout className="min-h-screen">
+    <FullPageCenterLayout className="relative min-h-screen">
+      <div className="absolute top-4 right-4">
+        <LogOutButton />
+      </div>
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>{t("title")}</CardTitle>
