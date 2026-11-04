@@ -52,6 +52,11 @@
       "unchangedTitle_other": "{{count}} people keep their access as it is",
       "unchangedHint": "The invitation changes nothing for them.",
       "promoteHint": "{{access}}. Promote them from their member page.",
+      "updatedTitle_one": "{{count}} pending invitation gives more access",
+      "updatedTitle_other": "{{count}} pending invitations give more access",
+      "updatedHint": "Already invited: their invitation is completed and sent to them again.",
+      "alsoGives": "Also gives {{agents}}",
+      "alreadyInvited": "Already invited: {{access}}",
       "accessOnAgents": "{{role}}, on {{agents}}",
       "accessOnNoAgent": "{{role}}, on no agent"
     },

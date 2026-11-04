@@ -142,7 +142,19 @@ export class InvitationsService {
           // One pending invitation per person to a workspace, whatever it gives.
           role: params.target.targetType === "project" ? undefined : role,
         })
-        if (pendingInvitation) continue
+        if (pendingInvitation) {
+          // A pending member invitation also gives the agents it missed, and is emailed again.
+          const missingAgentIds = missingAgentIdsOfPending(pendingInvitation, role, agentIds)
+          if (missingAgentIds.length > 0) {
+            invitations.push(
+              await this.invitationRepository.addAgents({
+                invitationId: pendingInvitation.id,
+                agentIds: missingAgentIds,
+              }),
+            )
+          }
+          continue
+        }
 
         invitations.push(
           await this.invitationRepository.createPending({
@@ -438,6 +450,21 @@ function missingAgentIdsOf(
 ): string[] {
   if (access.workspaceRoleKey !== PROJECT_ROLES.member || role !== "member") return []
   return agentIds.filter((agentId) => !access.agentIds.includes(agentId))
+}
+
+/**
+ * The agents a pending workspace invitation misses. Only a member invitation, invited again as a
+ * member, gets more: an admin invitation already gives every agent, and a member invitation is
+ * not turned into an admin one.
+ */
+function missingAgentIdsOfPending(
+  pendingInvitation: Pick<Invitation, "targetType" | "role" | "agentIds">,
+  role: string,
+  agentIds: string[],
+): string[] {
+  if (pendingInvitation.targetType !== "project") return []
+  if (pendingInvitation.role !== "member" || role !== "member") return []
+  return agentIds.filter((agentId) => !pendingInvitation.agentIds.includes(agentId))
 }
 
 function isReviewCampaignMembershipRole(value: string): value is ReviewCampaignMembershipRole {

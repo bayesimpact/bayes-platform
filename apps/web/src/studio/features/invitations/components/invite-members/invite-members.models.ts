@@ -16,39 +16,69 @@ export type InviteMembersValues = {
   agentIds: string[]
 }
 
-/** What a person already in the workspace holds there, shown on the confirmation screen. */
+/**
+ * What a person already in the workspace holds there, or what their pending invitation to it
+ * gives, shown on the confirmation screen.
+ */
 export type InviteeAccess = {
   workspaceRoleKey: string
   agentIds: string[]
+  /** True for a pending invitation: the person is not in the workspace yet. */
+  invited?: boolean
 }
 
 /**
  * What the invitation does for a person already in the workspace. They accepted once already, so
  * what is missing is given right away, with no invitation. A promotion to admin is never a side
- * effect: it is done from their member page.
+ * effect: it is done from their member page. For a person already invited, the agents missing
+ * are added to their pending invitation, which is emailed again.
  */
 export type ExistingInviteeOutcome =
   | { kind: "addAgents"; agentIds: string[] }
-  | { kind: "unchanged"; reason: "hasAccess" | "noPromotion" }
+  | { kind: "addToInvitation"; agentIds: string[] }
+  | { kind: "unchanged"; reason: "hasAccess" | "noPromotion" | "alreadyInvited" }
 
 export function existingInviteeOutcome(
   access: InviteeAccess,
   values: InviteMembersValues,
 ): ExistingInviteeOutcome {
-  if (access.workspaceRoleKey === WORKSPACE_ADMIN_ROLE_KEY) {
+  if (access.invited) {
+    const agentIds = missingAgentIds(access, values)
+    return access.workspaceRoleKey === WORKSPACE_MEMBER_ROLE_KEY &&
+      values.workspaceRoleKey === WORKSPACE_MEMBER_ROLE_KEY &&
+      agentIds.length > 0
+      ? { kind: "addToInvitation", agentIds }
+      : { kind: "unchanged", reason: "alreadyInvited" }
+  }
+  if (access.workspaceRoleKey !== WORKSPACE_MEMBER_ROLE_KEY) {
     return { kind: "unchanged", reason: "hasAccess" }
   }
   if (values.workspaceRoleKey === WORKSPACE_ADMIN_ROLE_KEY) {
     return { kind: "unchanged", reason: "noPromotion" }
   }
-  const agentIds = values.agentIds.filter((agentId) => !access.agentIds.includes(agentId))
+  const agentIds = missingAgentIds(access, values)
   return agentIds.length > 0
     ? { kind: "addAgents", agentIds }
     : { kind: "unchanged", reason: "hasAccess" }
 }
 
+/** Whether the outcome changes anything, so the person is sent with the invitation. */
+export function changesAccess(outcome: ExistingInviteeOutcome): boolean {
+  return outcome.kind !== "unchanged"
+}
+
+function missingAgentIds(access: InviteeAccess, values: InviteMembersValues): string[] {
+  return values.agentIds.filter((agentId) => !access.agentIds.includes(agentId))
+}
+
 /** The workspace role whose holders are admins of every agent, so the dialog picks no agent. */
 export const WORKSPACE_ADMIN_ROLE_KEY = "project_admin"
+
+/**
+ * The only workspace role an invitation can add agents to: owners and admins are admins of every
+ * agent.
+ */
+export const WORKSPACE_MEMBER_ROLE_KEY = "project_member"
 
 /** The footer of both screens, kept in view while the dialog scrolls, over its bottom padding. */
 export const STICKY_FOOTER_CLASS =

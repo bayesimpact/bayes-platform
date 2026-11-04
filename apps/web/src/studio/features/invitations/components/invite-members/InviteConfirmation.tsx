@@ -2,7 +2,7 @@ import { Alert, AlertDescription } from "@caseai-connect/ui/shad/alert"
 import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
 import { DialogFooter, DialogHeader, DialogTitle } from "@caseai-connect/ui/shad/dialog"
-import { CircleAlertIcon, TriangleAlertIcon, UserCheckIcon } from "lucide-react"
+import { CircleAlertIcon, MailPlusIcon, TriangleAlertIcon, UserCheckIcon } from "lucide-react"
 import type { ReactNode } from "react"
 import { useTranslation } from "react-i18next"
 import type { RoleOption } from "@/studio/features/project-memberships/components/member-detail/member-detail.models"
@@ -14,6 +14,7 @@ import {
   type InviteMembersValues,
   STICKY_FOOTER_CLASS,
   WORKSPACE_ADMIN_ROLE_KEY,
+  WORKSPACE_MEMBER_ROLE_KEY,
 } from "./invite-members.models"
 
 /**
@@ -46,8 +47,9 @@ export function InviteConfirmation({
     new Intl.ListFormat(i18n.language, { type: "conjunction" }).format(names)
   const roleLabel = useRoleLabel()
   const labelOf = (roleKey: string) => {
+    // The owner is never offered, so not in `workspaceRoles`, but a person may hold it.
     const role = workspaceRoles.find((candidate) => candidate.key === roleKey)
-    return role ? roleLabel(role) : roleKey
+    return roleLabel(role ?? { key: roleKey, name: roleKey })
   }
   const newEmails = values.emails.filter((email) => !existingAccess[email])
   const knownPeople = values.emails.flatMap((email) => {
@@ -67,18 +69,27 @@ export function InviteConfirmation({
         ]
       : [],
   )
+  const updatedInvitations = knownPeople.flatMap(({ email, outcome }) =>
+    outcome.kind === "addToInvitation"
+      ? [
+          {
+            email,
+            line: t("invitations:confirmation.alsoGives", {
+              agents: joinNames(outcome.agentIds.map(nameOf)),
+            }),
+          },
+        ]
+      : [],
+  )
   const unchangedPeople = knownPeople.flatMap(({ email, access, outcome }) => {
     if (outcome.kind !== "unchanged") return []
     const current = describeAccess(access)
-    return [
-      {
-        email,
-        line:
-          outcome.reason === "noPromotion"
-            ? t("invitations:confirmation.promoteHint", { access: current })
-            : current,
-      },
-    ]
+    const lineByReason = {
+      hasAccess: current,
+      noPromotion: t("invitations:confirmation.promoteHint", { access: current }),
+      alreadyInvited: t("invitations:confirmation.alreadyInvited", { access: current }),
+    }
+    return [{ email, line: lineByReason[outcome.reason] }]
   })
   /**
    * What a person already in the workspace holds there, as a short sentence: "Member, on Helpful
@@ -86,7 +97,7 @@ export function InviteConfirmation({
    */
   function describeAccess(access: InviteeAccess): string {
     const role = labelOf(access.workspaceRoleKey)
-    if (access.workspaceRoleKey === WORKSPACE_ADMIN_ROLE_KEY) return role
+    if (access.workspaceRoleKey !== WORKSPACE_MEMBER_ROLE_KEY) return role
     const agentNames = agents
       .filter((agent) => access.agentIds.includes(agent.id))
       .map((agent) => agent.name)
@@ -94,6 +105,9 @@ export function InviteConfirmation({
       ? t("invitations:confirmation.accessOnNoAgent", { role })
       : t("invitations:confirmation.accessOnAgents", { role, agents: joinNames(agentNames) })
   }
+  // Nothing to send when the invitation changes nothing for anyone.
+  const hasChanges =
+    knownPeople.length < values.emails.length || unchangedPeople.length < knownPeople.length
   const isAdmin = values.workspaceRoleKey === WORKSPACE_ADMIN_ROLE_KEY
   const pickedAgents = agents.filter((agent) => values.agentIds.includes(agent.id))
   const agentsLine = isAdmin
@@ -110,8 +124,9 @@ export function InviteConfirmation({
 
       <div className="flex flex-col gap-4">
         {/* Newcomers first, then what their invitation gives them. People already in the
-            workspace go apart, in two groups: those who get access right away, and those for
-            whom nothing changes. */}
+            workspace or already invited go apart, in three groups: those who get access right
+            away, those whose pending invitation gives more, and those for whom nothing
+            changes. */}
         {newEmails.length > 0 && (
           <section className="flex flex-col gap-3">
             <div className="flex flex-wrap gap-1.5">
@@ -144,6 +159,17 @@ export function InviteConfirmation({
           />
         )}
 
+        {updatedInvitations.length > 0 && (
+          <PeopleBlock
+            icon={<MailPlusIcon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />}
+            title={t("invitations:confirmation.updatedTitle", {
+              count: updatedInvitations.length,
+            })}
+            hint={t("invitations:confirmation.updatedHint")}
+            people={updatedInvitations}
+          />
+        )}
+
         {unchangedPeople.length > 0 && (
           <PeopleBlock
             // The theme has no warning color: the amber of the design system's warning variants.
@@ -168,7 +194,7 @@ export function InviteConfirmation({
         <Button type="button" variant="outline" onClick={onBack} disabled={isConfirming}>
           {t("actions:back")}
         </Button>
-        <Button type="button" onClick={onConfirm} disabled={isConfirming}>
+        <Button type="button" onClick={onConfirm} disabled={isConfirming || !hasChanges}>
           {t("actions:confirm")}
         </Button>
       </DialogFooter>

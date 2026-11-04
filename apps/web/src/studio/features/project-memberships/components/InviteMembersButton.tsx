@@ -8,17 +8,21 @@ import { useValue } from "@/common/hooks/use-value"
 import { useAppDispatch } from "@/common/store/hooks"
 import { InviteMembersDialog } from "@/studio/features/invitations/components/invite-members/InviteMembersDialog"
 import {
+  type InviteeAccess,
   type InviteMembersValues,
   WORKSPACE_ADMIN_ROLE_KEY,
+  WORKSPACE_MEMBER_ROLE_KEY,
 } from "@/studio/features/invitations/components/invite-members/invite-members.models"
+import type { PendingInvitations } from "@/studio/features/invitations/invitations.models"
 import { createInvitations } from "@/studio/features/invitations/invitations.thunks"
 import {
   selectAssignableRoles,
   selectInviteeAccess,
+  selectProjectPendingInvitations,
 } from "@/studio/features/project-memberships/project-memberships.selectors"
 
 /** The workspace roles an invitation gives: owner is set when the workspace is created. */
-const INVITABLE_WORKSPACE_ROLE_KEYS = [WORKSPACE_ADMIN_ROLE_KEY, "project_member"]
+const INVITABLE_WORKSPACE_ROLE_KEYS = [WORKSPACE_ADMIN_ROLE_KEY, WORKSPACE_MEMBER_ROLE_KEY]
 
 /** Opens the invite dialog of the workspace, and sends what the manager confirms. */
 export function InviteMembersButton({
@@ -45,7 +49,11 @@ export function InviteMembersButton({
       name: agent.name,
       detail: t(`projectMembership:memberDetail.details.${agent.type}`, { defaultValue: "" }),
     }))
-  const existingAccess = useValue(selectInviteeAccess)
+  // People with a pending invitation count too: the API completes it rather than sending another.
+  const existingAccess = {
+    ...accessOfPendingInvitations(useValue(selectProjectPendingInvitations)),
+    ...useValue(selectInviteeAccess),
+  }
 
   const handleOpenChange = (nextOpen: boolean) => {
     setOpen(nextOpen)
@@ -87,5 +95,22 @@ export function InviteMembersButton({
         error={error}
       />
     </>
+  )
+}
+
+/** What each pending workspace invitation gives, by email, as the invite dialog reads it. */
+function accessOfPendingInvitations(
+  invitations: PendingInvitations,
+): Record<string, InviteeAccess> {
+  return Object.fromEntries(
+    invitations.map((invitation) => [
+      invitation.invitedEmail,
+      {
+        workspaceRoleKey:
+          invitation.role === "admin" ? WORKSPACE_ADMIN_ROLE_KEY : WORKSPACE_MEMBER_ROLE_KEY,
+        agentIds: invitation.agents.map((agent) => agent.id),
+        invited: true,
+      },
+    ]),
   )
 }

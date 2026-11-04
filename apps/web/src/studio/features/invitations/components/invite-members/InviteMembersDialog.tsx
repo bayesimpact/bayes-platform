@@ -29,6 +29,7 @@ import { InviteAgentsField } from "./InviteAgentsField"
 import { InviteConfirmation } from "./InviteConfirmation"
 import { InviteEmailsField } from "./InviteEmailsField"
 import {
+  changesAccess,
   existingInviteeOutcome,
   type InviteAgent,
   type InviteeAccess,
@@ -114,13 +115,14 @@ export function InviteMembersDialog({
     if (!pending) return
     setIsConfirming(true)
     try {
-      // Newcomers are invited; people already in the workspace get what they miss right away.
-      // Those for whom nothing changes are left out.
+      // Newcomers are invited; people already in the workspace get what they miss right away,
+      // and pending invitations get the agents they miss. Those for whom nothing changes are
+      // left out.
       await onSubmit({
         ...pending,
         emails: pending.emails.filter((email) => {
           const access = existingAccess[email]
-          return !access || existingInviteeOutcome(access, pending).kind === "addAgents"
+          return !access || changesAccess(existingInviteeOutcome(access, pending))
         }),
       })
     } finally {

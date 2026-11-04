@@ -205,6 +205,64 @@ export const ConfirmMemberInvitedAsAdmin: Story = {
   play: async ({ canvasElement }) => review(canvasElement),
 }
 
+/**
+ * Some invitees already have a pending invitation. Morgan's misses an agent: it is completed and
+ * sent again. Casey's already gives everything, and Drew's makes an admin: nothing changes.
+ */
+export const ConfirmWithPendingInvitations: Story = {
+  args: {
+    defaultValues: {
+      emails: ["avery@example.org", "morgan@example.org", "casey@example.org", "drew@example.org"],
+      workspaceRoleKey: "project_member",
+      agentIds: ["agent-1", "agent-2"],
+    },
+    existingAccess: {
+      "morgan@example.org": {
+        workspaceRoleKey: "project_member",
+        agentIds: ["agent-1"],
+        invited: true,
+      },
+      "casey@example.org": {
+        workspaceRoleKey: "project_member",
+        agentIds: ["agent-1", "agent-2"],
+        invited: true,
+      },
+      "drew@example.org": { workspaceRoleKey: "project_admin", agentIds: [], invited: true },
+    },
+  },
+  play: async ({ canvasElement, args }) => {
+    const page = body(canvasElement)
+    await review(canvasElement)
+    await expect(page.getByText("Also gives Scheduling Bot")).toBeInTheDocument()
+    await userEvent.click(page.getByRole("button", { name: "Confirm" }))
+    await expect(args.onSubmit).toHaveBeenCalledWith({
+      emails: ["avery@example.org", "morgan@example.org"],
+      workspaceRoleKey: "project_member",
+      agentIds: ["agent-1", "agent-2"],
+    })
+  },
+}
+
+/** The owner is admin of every agent: nothing changes, and their role reads "Owner". */
+export const ConfirmOwner: Story = {
+  args: {
+    defaultValues: {
+      emails: ["owner@example.org"],
+      workspaceRoleKey: "project_member",
+      agentIds: ["agent-1"],
+    },
+    existingAccess: {
+      "owner@example.org": { workspaceRoleKey: "project_owner", agentIds: ["agent-1"] },
+    },
+  },
+  play: async ({ canvasElement }) => {
+    const page = body(canvasElement)
+    await review(canvasElement)
+    await expect(page.getByText("Owner")).toBeInTheDocument()
+    await expect(page.getByRole("button", { name: "Confirm" })).toBeDisabled()
+  },
+}
+
 /** The API refused the invitation: the confirmation screen stays, with the reason. */
 export const SubmitError: Story = {
   args: {

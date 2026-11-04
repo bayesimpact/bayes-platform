@@ -108,6 +108,17 @@ export class InvitationRepository {
       ])
   }
 
+  /** Adds agents to a workspace invitation, keeping the ones it already gives. */
+  async addAgents(params: { invitationId: string; agentIds: string[] }): Promise<Invitation> {
+    await this.transactionService.getManager().query(
+      `UPDATE invitation
+      SET agent_ids = ARRAY(SELECT DISTINCT unnest(agent_ids || $2::uuid[]))
+      WHERE id = $1`,
+      [params.invitationId, params.agentIds],
+    )
+    return this.repo().findOneOrFail({ where: { id: params.invitationId } })
+  }
+
   /** The agents of the project that are not deleted, among the ones given, or all of them. */
   async findLiveAgentIdsOfProject(params: {
     projectId: string

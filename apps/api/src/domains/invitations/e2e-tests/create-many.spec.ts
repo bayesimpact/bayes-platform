@@ -444,6 +444,55 @@ describe("Invitations - createMany", () => {
       )
     })
 
+    it("adds the agents a pending member invitation misses to it", async () => {
+      const { project, firstAgent, secondAgent } = await createContext()
+      await inviteToWorkspace(project, {
+        emails: ["newcomer@example.com"],
+        role: "member",
+        agentIds: [firstAgent.id],
+      })
+
+      const response = await inviteToWorkspace(project, {
+        emails: ["newcomer@example.com"],
+        role: "member",
+        agentIds: [firstAgent.id, secondAgent.id],
+      })
+
+      expectResponse(response, 201)
+      expect(response.body.data.invitations).toEqual([
+        expect.objectContaining({
+          invitedEmail: "newcomer@example.com",
+          agents: [
+            { id: firstAgent.id, name: "Helpful Assistant" },
+            { id: secondAgent.id, name: "Scheduling Bot" },
+          ],
+        }),
+      ])
+      expect(
+        await repositories.invitationRepository.count({
+          where: { invitedEmail: "newcomer@example.com" },
+        }),
+      ).toBe(1)
+    })
+
+    it("leaves a pending admin invitation as it is", async () => {
+      const { project, firstAgent } = await createContext()
+      await inviteToWorkspace(project, { emails: ["newcomer@example.com"], role: "admin" })
+
+      const response = await inviteToWorkspace(project, {
+        emails: ["newcomer@example.com"],
+        role: "member",
+        agentIds: [firstAgent.id],
+      })
+
+      expectResponse(response, 201)
+      expect(response.body.data.invitations).toEqual([])
+      const invitation = await repositories.invitationRepository.findOneByOrFail({
+        invitedEmail: "newcomer@example.com",
+      })
+      expect(invitation).toEqual(expect.objectContaining({ role: "admin", agentIds: [] }))
+    })
+
     it("leaves an admin of the workspace as they are", async () => {
       const { project, secondAgent } = await createContext()
       const { user: admin } = await addUserToProject({

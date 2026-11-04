@@ -78,4 +78,24 @@ describe("Invitations - getInviteeAccess", () => {
     )
     expect(response.body.data.members).toHaveLength(2)
   })
+
+  it("does not count a conversation reviewer grant as access to the agent", async () => {
+    const { project, firstAgent } = await createWorkspaceWithTwoAgents(repositories, authSubject)
+    const { user: member } = await addUserToProject({ repositories, project })
+    await addUserToAgent({
+      repositories,
+      agent: firstAgent,
+      user: member,
+      membership: { roleKeys: ["agent_conversation_reviewer"] },
+    })
+
+    const response = await subject(project)
+
+    expectResponse(response, 200)
+    expect(response.body.data.members).toEqual(
+      expect.arrayContaining([
+        { email: member.email, workspaceRoleKey: "project_member", agentIds: [] },
+      ]),
+    )
+  })
 })

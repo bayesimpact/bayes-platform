@@ -52,6 +52,11 @@
       "unchangedTitle_other": "{{count}} personnes gardent leur accès tel quel",
       "unchangedHint": "L'invitation ne change rien pour elles.",
       "promoteHint": "{{access}}. Promouvez-la depuis sa page de membre.",
+      "updatedTitle_one": "{{count}} invitation en attente donne plus d'accès",
+      "updatedTitle_other": "{{count}} invitations en attente donnent plus d'accès",
+      "updatedHint": "Déjà invitées : leur invitation est complétée et leur est renvoyée.",
+      "alsoGives": "Donne aussi {{agents}}",
+      "alreadyInvited": "Déjà invitée : {{access}}",
       "accessOnAgents": "{{role}}, sur {{agents}}",
       "accessOnNoAgent": "{{role}}, sur aucun agent"
     },
