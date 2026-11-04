@@ -8,6 +8,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [Unreleased]
 
 ### Added
+- Embedded public chat shows the document sources used in an answer.
 
 - Invitations: one invitation gives a workspace role and several agents, accepted once.
 - MCP: AI assistants can build evaluation datasets, evaluate agent drafts and read the scores, with the access a person grants.
@@ -297,6 +298,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ## [26.09.1] - 2026-09-02
 
 ### Added
+- Embedded public chat shows matching resources from the agent's libraries as cards.
 
 ### Changed
 
