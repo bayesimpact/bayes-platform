@@ -1,5 +1,5 @@
-import { ErrorResponse, type User, UserManager } from "oidc-client-ts"
-import { getOidcSettings } from "@/config/oidc.config"
+import { ErrorResponse, User, UserManager } from "oidc-client-ts"
+import { getOidcSettings, sessionStorageKey } from "@/config/oidc.config"
 import { getAppPathname, getAppUrl } from "@/config/runtime-config"
 
 /**
@@ -44,10 +44,12 @@ export async function getAccessToken(): Promise<string> {
  * refresh token rotation, two refreshes in parallel send the same refresh
  * token twice: the second one fails with invalid_grant, and some providers
  * then revoke the whole token family. `tokenRefreshPromise` shares one
- * refresh between the callers of this tab, the Web Lock between the tabs.
+ * refresh between the callers of this tab, the Web Lock between every app and
+ * tab of the origin, which share the refresh token.
  */
 let tokenRefreshPromise: Promise<string> | null = null
 
+/** The lock of every app of the platform on this origin: the Desk refreshes under this name too. */
 const REFRESH_LOCK_NAME = "oidc-token-refresh"
 
 function refreshSession(): Promise<string> {
@@ -66,8 +68,8 @@ async function withRefreshLock(task: () => Promise<string>): Promise<string> {
 
 async function refreshUnderLock(): Promise<string> {
   const userManager = getUserManager()
-  // Another tab may have refreshed while this one waited for the lock: the
-  // shared storage then holds a fresh token. Raising the event keeps the
+  // Another app or tab may have refreshed while this one waited for the lock:
+  // the shared storage then holds a fresh token. Raising the event keeps the
   // React state of this tab in sync.
   const user = await userManager.getUser(true)
   if (!user) throw new AuthenticationRequiredError("No session. The user needs to sign in.")
@@ -203,5 +205,30 @@ export async function logout(): Promise<void> {
   } catch {
     await userManager.removeUser()
     window.location.assign(getAppUrl())
+  }
+}
+
+/**
+ * Every app and tab of the origin shares the stored user. Another one that
+ * signs out removes it, and one that signs in, or switches to another account,
+ * replaces it: this page reloads under the session as it now is, so none of its
+ * state belongs to the previous account. A refresh keeps the same account, and
+ * changes nothing here.
+ */
+export function followSharedSession(): void {
+  const sessionKey = sessionStorageKey(getUserManager().settings)
+  window.addEventListener("storage", (event) => {
+    if (event.key !== sessionKey) return
+    if (accountOf(event.oldValue) !== accountOf(event.newValue)) window.location.reload()
+  })
+}
+
+/** The account (`sub`) of a stored user, or null when there is none or it cannot be read. */
+function accountOf(storedUser: string | null): string | null {
+  if (storedUser === null) return null
+  try {
+    return User.fromStorageString(storedUser).profile.sub ?? null
+  } catch {
+    return null
   }
 }

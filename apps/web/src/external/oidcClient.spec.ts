@@ -5,7 +5,11 @@ const userManagerMock = vi.hoisted(() => ({
   getUser: vi.fn(),
   signinSilent: vi.fn(),
   signinRedirect: vi.fn(),
-  settings: { accessTokenExpiringNotificationTimeInSeconds: 60 },
+  settings: {
+    accessTokenExpiringNotificationTimeInSeconds: 60,
+    authority: "https://idp.example.org",
+    client_id: "platform-web",
+  },
   events: { addAccessTokenExpiring: vi.fn() },
 }))
 
@@ -15,10 +19,14 @@ vi.mock("oidc-client-ts", async (importOriginal) => ({
     return userManagerMock
   }),
 }))
-vi.mock("@/config/oidc.config", () => ({ getOidcSettings: () => ({}) }))
+vi.mock("@/config/oidc.config", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/config/oidc.config")>()),
+  getOidcSettings: () => ({}),
+}))
 
 const {
   AuthenticationRequiredError,
+  followSharedSession,
   getAccessToken,
   getUserManager,
   login,
@@ -66,7 +74,7 @@ describe("getAccessToken", () => {
     expect(userManagerMock.signinSilent).not.toHaveBeenCalled()
   })
 
-  it("refreshes under a lock shared by all tabs", async () => {
+  it("refreshes under the lock every app of the origin shares, the Desk's included", async () => {
     const request = vi.fn((_name: string, task: () => Promise<string>) => task())
     vi.stubGlobal("navigator", { locks: { request } })
     userManagerMock.getUser.mockResolvedValue(expiredUser)
@@ -208,5 +216,55 @@ describe("page kept by the tab when the sign-in state is lost", () => {
     stubTab("/")
     await login()
     expect(takeTabReturnTo()).toBeNull()
+  })
+})
+
+describe("the session shared with the other apps of the origin", () => {
+  type StorageListener = (event: {
+    key: string | null
+    oldValue: string | null
+    newValue: string | null
+  }) => void
+  const sessionKey = "oidc.user:https://idp.example.org:platform-web"
+  const storedUser = (sub: string) =>
+    JSON.stringify({ access_token: "a", token_type: "Bearer", profile: { sub } })
+
+  const followFromThisPage = () => {
+    const listeners: StorageListener[] = []
+    const reload = vi.fn()
+    vi.stubGlobal("window", {
+      location: { reload },
+      addEventListener: (type: string, listener: StorageListener) => {
+        if (type === "storage") listeners.push(listener)
+      },
+    })
+    followSharedSession()
+    const change = (key: string, oldValue: string | null, newValue: string | null) => {
+      for (const listener of listeners) listener({ key, oldValue, newValue })
+    }
+    return { change, reload }
+  }
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it("reloads the page when another app signs out, signs in or switches account", () => {
+    const { change, reload } = followFromThisPage()
+
+    change(sessionKey, storedUser("first"), null)
+    change(sessionKey, null, storedUser("first"))
+    change(sessionKey, storedUser("first"), storedUser("second"))
+
+    expect(reload).toHaveBeenCalledTimes(3)
+  })
+
+  it("keeps the page when another app refreshes the same account's token", () => {
+    const { change, reload } = followFromThisPage()
+
+    change(sessionKey, storedUser("first"), storedUser("first"))
+    change("desk.oidc.user:https://idp.example.org:platform-web", "x", null)
+
+    expect(reload).not.toHaveBeenCalled()
   })
 })

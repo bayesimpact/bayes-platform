@@ -1,11 +1,17 @@
-import { ErrorResponse, type User, UserManager } from "oidc-client-ts"
+import { ErrorResponse, User, UserManager } from "oidc-client-ts"
 import { appBasePath, appConfig } from "@/app/config"
-import { buildOidcSettings, OIDC_STORE_PREFIX } from "./oidc-settings"
+import {
+  adoptDeskSession,
+  buildOidcSettings,
+  DESK_STORE_PREFIX,
+  sessionStorageKey,
+} from "./oidc-settings"
 
 /**
  * The Desk's sign-in on the install's identity provider: one OIDC client, which signs the person
  * in and out, completes the provider's return, renews the token before it expires, refreshes it
- * once under a lock shared by the tabs, and follows the sign-out of another tab.
+ * once under a lock shared by every app and tab of the origin, and follows the sign-out or the
+ * account switch of another app or tab: every app of the platform shares one session.
  */
 
 /** The Desk's root URL on this origin, with its trailing slash: `https://host/app/`. */
@@ -19,9 +25,11 @@ let userManagerInstance: UserManager | null = null
 function getUserManager(): UserManager {
   if (!userManagerInstance) {
     if (appConfig.mode !== "api") throw new Error("The mock mode has no sign-in")
-    userManagerInstance = new UserManager(buildOidcSettings(appConfig, getAppUrl()))
+    const settings = buildOidcSettings(appConfig, getAppUrl())
+    adoptDeskSession(settings)
+    userManagerInstance = new UserManager(settings)
     userManagerInstance.events.addAccessTokenExpiring(renewBeforeExpiry)
-    watchOtherTabs(userManagerInstance)
+    watchSharedSession(userManagerInstance)
   }
   return userManagerInstance
 }
@@ -58,13 +66,14 @@ export async function getAccessToken({ forceRefresh = false } = {}): Promise<str
  * Every refresh goes through here, the background renewal included. With refresh token rotation,
  * two refreshes in parallel send the same refresh token twice: the second one fails with
  * invalid_grant, and some providers then revoke the whole token family. `tokenRefresh` shares
- * one refresh between the callers of this tab, the Web Lock between the Desk's tabs. A forced
- * refresh never joins a plain one, which may keep the stored token the API just refused: it runs
- * after it instead.
+ * one refresh between the callers of this tab, the Web Lock between every app and tab of the
+ * origin, which share the refresh token. A forced refresh never joins a plain one, which may keep
+ * the stored token the API just refused: it runs after it instead.
  */
 let tokenRefresh: { promise: Promise<string>; isForced: boolean } | null = null
 
-const REFRESH_LOCK_NAME = "desk-oidc-token-refresh"
+/** The lock of every app of the platform on this origin: apps/web refreshes under this name too. */
+const REFRESH_LOCK_NAME = "oidc-token-refresh"
 
 function refreshSession({ forceRefresh }: { forceRefresh: boolean }): Promise<string> {
   if (tokenRefresh && (tokenRefresh.isForced || !forceRefresh)) return tokenRefresh.promise
@@ -87,8 +96,8 @@ async function withRefreshLock(task: () => Promise<string>): Promise<string> {
 
 async function refreshUnderLock({ forceRefresh }: { forceRefresh: boolean }): Promise<string> {
   const userManager = getUserManager()
-  // Another tab may have refreshed while this one waited for the lock: the shared storage then
-  // holds a fresh token.
+  // Another app or tab may have refreshed while this one waited for the lock: the shared storage
+  // then holds a fresh token.
   const user = await userManager.getUser(true)
   if (!user) throw new AuthenticationRequiredError("No session. The person needs to sign in.")
   const renewalMargin = userManager.settings.accessTokenExpiringNotificationTimeInSeconds
@@ -188,7 +197,7 @@ function safeReturnTo(returnTo: unknown): string | null {
  * The OIDC state can be lost (a cleared storage, a sign-in started in another tab), and the page
  * to return to with it. This tab keeps a copy in its session storage, which only this tab changes.
  */
-const TAB_RETURN_TO_KEY = `${OIDC_STORE_PREFIX}signin-return-to`
+const TAB_RETURN_TO_KEY = `${DESK_STORE_PREFIX}signin-return-to`
 
 function keepTabReturnTo(returnTo: string | null): void {
   try {
@@ -212,7 +221,10 @@ export function takeTabReturnTo(): string | null {
 
 const sessionEndedListeners = new Set<() => void>()
 
-/** Calls `listener` when the session ends: sign-out, a failed refresh or another tab's sign-out. */
+/**
+ * Calls `listener` when the session ends: sign-out, a failed refresh, or another app or tab that
+ * signs out or switches to another account, which ends the session of the previous one.
+ */
 export function onSessionEnded(listener: () => void): () => void {
   sessionEndedListeners.add(listener)
   return () => sessionEndedListeners.delete(listener)
@@ -228,12 +240,27 @@ export async function endSession(): Promise<void> {
   notifySessionEnded()
 }
 
-/** Another Desk tab that signs out, or loses its session, removes the stored user: so does this one. */
-function watchOtherTabs(userManager: UserManager): void {
-  const userKey = `${OIDC_STORE_PREFIX}user:${userManager.settings.authority}:${userManager.settings.client_id}`
+/**
+ * Every app and tab of the origin shares the stored user. Another one that signs out removes it,
+ * and one that signs in with another account replaces it: this page then follows. A refresh keeps
+ * the same account, and changes nothing here.
+ */
+function watchSharedSession(userManager: UserManager): void {
+  const sessionKey = sessionStorageKey(userManager.settings)
   window.addEventListener("storage", (event) => {
-    if (event.key === userKey && event.newValue === null) notifySessionEnded()
+    if (event.key !== sessionKey) return
+    if (accountOf(event.oldValue) !== accountOf(event.newValue)) notifySessionEnded()
   })
+}
+
+/** The account (`sub`) of a stored user, or null when there is none or it cannot be read. */
+function accountOf(storedUser: string | null): string | null {
+  if (storedUser === null) return null
+  try {
+    return User.fromStorageString(storedUser).profile.sub ?? null
+  } catch {
+    return null
+  }
 }
 
 /**
@@ -251,7 +278,7 @@ function untilThePageLeaves(): Promise<never> {
 /**
  * Ends the session at the provider when it supports RP-initiated logout (`end_session_endpoint`),
  * otherwise only in the Desk, then returns to the Desk's home. The page leaves at once, so it
- * neither clears its data nor reloads its pages: another tab learns of it from the storage.
+ * neither clears its data nor reloads its pages: another app or tab learns of it from the storage.
  */
 export async function signOut(): Promise<void> {
   isSigningOut = true
