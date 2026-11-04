@@ -69,6 +69,7 @@ export class ProjectInvitationsController {
       role: body.payload.role,
       agentIds: body.payload.agentIds,
       inviter: { userId: request.user.id, name: request.user.name, email: request.user.email },
+      language: body.payload.language,
     })
     return {
       data: {

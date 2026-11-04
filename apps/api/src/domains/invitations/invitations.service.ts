@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto"
-import type { InvitationDto } from "@caseai-connect/api-contracts"
+import type { InvitationDto, InvitationEmailLanguageDto } from "@caseai-connect/api-contracts"
 import {
   BadRequestException,
   ConflictException,
@@ -87,6 +87,8 @@ export class InvitationsService {
     role?: string
     agentIds?: string[]
     inviter: { userId: string; name: string | null; email: string }
+    /** The inviter's language: the emails are written in it. */
+    language?: InvitationEmailLanguageDto
   }): Promise<{ invitations: Invitation[]; emailSent: boolean; grantedEmails: string[] }> {
     const role = this.resolveRole(params.target, params.role)
     const agentIds =
@@ -159,7 +161,7 @@ export class InvitationsService {
       return invitations
     })
 
-    const emailSent = await this.emailInvitations(invitations, params.inviter)
+    const emailSent = await this.emailInvitations(invitations, params.inviter, params.language)
     return { invitations, emailSent, grantedEmails }
   }
 
@@ -205,6 +207,7 @@ export class InvitationsService {
   private async emailInvitations(
     invitations: Invitation[],
     inviter: { name: string | null; email: string },
+    language?: InvitationEmailLanguageDto,
   ): Promise<boolean> {
     if (invitations.length === 0 || !this.mailerService.isEnabled()) return false
     const appUrl = getAppPublicUrl()
@@ -236,6 +239,7 @@ export class InvitationsService {
                     agentNames: (details?.agents ?? []).map((agent) => agent.name),
                   }
                 : undefined,
+            language,
           }),
         )
       } catch (error) {

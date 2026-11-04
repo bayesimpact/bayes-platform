@@ -1,11 +1,13 @@
 import {
   AgentInvitationsRoutes,
   type InvitationDto,
+  type InvitationEmailLanguageDto,
   type ListInvitationsResponseDto,
   MyInvitationsRoutes,
   ProjectInvitationsRoutes,
   ReviewCampaignInvitationsRoutes,
 } from "@caseai-connect/api-contracts"
+import i18n from "i18next"
 import { getAxiosInstance } from "@/external/axios"
 import type { PendingInvitation, PendingInvitations } from "../invitations.models"
 import type { IInvitationsSpi, ScopedInvitationTarget } from "../invitations.spi"
@@ -16,7 +18,8 @@ export default {
     const { routes, pathParams } = adminRoutesFor(target)
     const response = await axios.post<typeof routes.createMany.response>(
       routes.createMany.getPath(pathParams),
-      { payload: { emails, role, agentIds } },
+      // The email is written in the inviter's language: the invitee's is not known yet.
+      { payload: { emails, role, agentIds, language: emailLanguage() } },
     )
     return {
       invitations: toPendingInvitations(response.data.data),
@@ -112,3 +115,7 @@ const toPendingInvitation = (dto: InvitationDto): PendingInvitation => ({
 
 const toPendingInvitations = (dto: ListInvitationsResponseDto): PendingInvitations =>
   dto.invitations.map(toPendingInvitation)
+
+function emailLanguage(): InvitationEmailLanguageDto {
+  return i18n.resolvedLanguage === "fr" ? "fr" : "en"
+}

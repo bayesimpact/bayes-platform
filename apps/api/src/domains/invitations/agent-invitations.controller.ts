@@ -41,6 +41,7 @@ export class AgentInvitationsController {
       target: agentInvitationTarget(request.agent),
       emails: body.payload.emails ?? [],
       inviter: { userId: request.user.id, name: request.user.name, email: request.user.email },
+      language: body.payload.language,
     })
     return {
       data: {

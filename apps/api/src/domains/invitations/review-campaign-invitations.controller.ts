@@ -42,6 +42,7 @@ export class ReviewCampaignInvitationsController {
       emails: body.payload.emails ?? [],
       role: body.payload.role,
       inviter: { userId: request.user.id, name: request.user.name, email: request.user.email },
+      language: body.payload.language,
     })
     return {
       data: {

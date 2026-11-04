@@ -14,6 +14,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Changed
 
+- Invitation emails: written in the inviter's language, English or French, instead of both.
 - Analytics: conversations count only sessions with a question, and sessions opened without one are shown apart.
 
 ### Fixed

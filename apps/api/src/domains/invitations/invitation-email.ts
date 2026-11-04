@@ -1,3 +1,7 @@
+import {
+  INVITATION_EMAIL_LANGUAGES,
+  type InvitationEmailLanguageDto,
+} from "@caseai-connect/api-contracts"
 import type { MailMessage } from "@/common/mailer/mailer.service"
 import type { InvitationTargetType } from "./invitation.types"
 
@@ -23,9 +27,11 @@ export type InvitationEmailParams = {
    * Left out for other invitations.
    */
   workspaceAccess?: { role: string; agentNames: string[] }
+  /** The inviter's language. English when left out. */
+  language?: InvitationEmailLanguageDto
 }
 
-type Language = "en" | "fr"
+type Language = InvitationEmailLanguageDto
 
 const TARGET_LABELS: Record<Language, Record<InvitationTargetType, string>> = {
   en: { project: "the workspace", agent: "the agent", review_campaign: "the review campaign" },
@@ -53,39 +59,44 @@ function describeWorkspaceAccess(
     : ` en tant que membre, avec ${agents}`
 }
 
+const LABELS: Record<Language, { subject: string; button: string; signIn: string }> = {
+  en: { subject: "Invitation:", button: "Open the invitation", signIn: "Sign in with" },
+  fr: { subject: "Invitation :", button: "Ouvrir l'invitation", signIn: "Connectez-vous avec" },
+}
+
 /**
- * The invitation email: one sentence in English, the same in French (the platform does not know
- * the language of someone who never signed in), then one button and one line about the address,
- * shared by both.
+ * The invitation email, in the inviter's language: the platform does not know the language of
+ * someone who never signed in. One sentence, one button and one line about the address.
  */
 export function buildInvitationEmail(params: InvitationEmailParams): MailMessage {
-  const invitation = (language: Language) => {
-    const target = `${TARGET_LABELS[language][params.targetType]} ${params.targetName}`
-    const organization = params.organizationName ? ` (${params.organizationName})` : ""
-    const access = params.workspaceAccess
-      ? describeWorkspaceAccess(language, params.workspaceAccess)
-      : ""
-    return language === "en"
+  // The agent and review campaign routes do not validate the body: an unknown language is English.
+  const language =
+    INVITATION_EMAIL_LANGUAGES.find((supported) => supported === params.language) ?? "en"
+  const labels = LABELS[language]
+  const target = `${TARGET_LABELS[language][params.targetType]} ${params.targetName}`
+  const organization = params.organizationName ? ` (${params.organizationName})` : ""
+  const access = params.workspaceAccess
+    ? describeWorkspaceAccess(language, params.workspaceAccess)
+    : ""
+  const sentence =
+    language === "en"
       ? `${params.inviterName} invited you to join ${target}${organization}${access}.`
       : `${params.inviterName} vous invite à rejoindre ${target}${organization}${access}.`
-  }
-  const sentences = [invitation("en"), invitation("fr")]
-  const button = "Open the invitation · Ouvrir l'invitation"
-  const reminder = `Sign in with ${params.to} · Connectez-vous avec ${params.to}`
+  const reminder = `${labels.signIn} ${params.to}`
 
-  const text = [...sentences, params.link, reminder].join("\n\n")
+  const text = [sentence, params.link, reminder].join("\n\n")
 
   const html = [
     `<div style="font-family:sans-serif;font-size:15px;line-height:1.5;color:#111827">`,
-    ...sentences.map((sentence) => `<p>${escapeHtml(sentence)}</p>`),
-    `<p style="margin-top:24px"><a href="${escapeHtml(params.link)}" style="display:inline-block;padding:10px 16px;border-radius:6px;background:#111827;color:#ffffff;text-decoration:none">${escapeHtml(button)}</a></p>`,
+    `<p>${escapeHtml(sentence)}</p>`,
+    `<p style="margin-top:24px"><a href="${escapeHtml(params.link)}" style="display:inline-block;padding:10px 16px;border-radius:6px;background:#111827;color:#ffffff;text-decoration:none">${escapeHtml(labels.button)}</a></p>`,
     `<p style="color:#6b7280;font-size:13px">${escapeHtml(reminder)}</p>`,
     `</div>`,
   ].join("\n")
 
   return {
     to: params.to,
-    subject: `Invitation: ${params.targetName} · Invitation : ${params.targetName}`,
+    subject: `${labels.subject} ${params.targetName}`,
     text,
     html,
   }

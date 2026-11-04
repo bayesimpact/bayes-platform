@@ -37,8 +37,14 @@ export type InvitationAgentDto = {
   name: string
 }
 
+/** The languages an invitation email can be written in. */
+export const INVITATION_EMAIL_LANGUAGES = ["en", "fr"] as const
+export type InvitationEmailLanguageDto = (typeof INVITATION_EMAIL_LANGUAGES)[number]
+
 export type CreateInvitationsRequestDto = {
   emails: string[]
+  /** The inviter's language: the email is written in it. English when left out. */
+  language?: InvitationEmailLanguageDto
 }
 
 /** The role a workspace invitation gives: owner is set when the workspace is created. */
@@ -59,6 +65,7 @@ export const createProjectInvitationsSchema = z.object({
     .max(MAX_AGENTS_PER_INVITATION)
     .refine((agentIds) => new Set(agentIds).size === agentIds.length, "Agent ids must be unique")
     .optional(),
+  language: z.enum(INVITATION_EMAIL_LANGUAGES).optional(),
 })
 export type CreateProjectInvitationsRequestDto = z.infer<typeof createProjectInvitationsSchema>
 
