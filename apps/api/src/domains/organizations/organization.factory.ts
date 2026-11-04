@@ -120,6 +120,14 @@ export async function createOrganizationWithProject(
   return { ...data, projectMembership, project }
 }
 
+/**
+ * Project roles of an owner who also evaluates: `project_owner` grants no evaluation permission,
+ * `project_evaluator` does.
+ */
+export const OWNER_EVALUATOR_PROJECT_MEMBERSHIP: Partial<ProjectMembershipFixture> = {
+  roleKeys: ["project_owner", "project_evaluator"],
+}
+
 type AgentParams = ProjectParams & {
   agent?: Partial<Agent>
   agentMembership?: Partial<AgentMembershipFixture>

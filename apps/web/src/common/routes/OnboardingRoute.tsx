@@ -4,6 +4,7 @@ import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@caseai-co
 import { LayoutGridIcon, PencilIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
+import { LogOutButton } from "@/common/components/auth/LogOutButton"
 import { Grid, GridContent, GridHeader } from "@/common/components/grid/Grid"
 import { EditOrganizationDialog } from "@/common/components/organization/EditOrganizationDialog"
 import { OrganizationCreator } from "@/common/components/organization/OrganizationCreator"
@@ -113,7 +114,12 @@ function Main({
                 {t("organization:list:title", { name: user.name })}
               </div>
             }
-            action={<SearchWorkspacesInput />}
+            action={
+              <div className="flex items-center gap-2">
+                <SearchWorkspacesInput />
+                <LogOutButton />
+              </div>
+            }
           />
         </Wrap>
 

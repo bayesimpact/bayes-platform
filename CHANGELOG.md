@@ -11,17 +11,24 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 - Invitations: one invitation gives a workspace role and several agents, accepted once.
 - MCP: AI assistants can build evaluation datasets, evaluate agent drafts and read the scores, with the access a person grants.
+- Workspace selection: a log out button is now on the page that lists your workspaces.
 
 ### Changed
 
 - Invitation emails: written in the inviter's language, English or French, instead of both.
+- Sign-in: Studio and the Desk now share one session, so signing in, switching account or signing out applies to both.
 - Analytics: conversations count only sessions with a question, and sessions opened without one are shown apart.
+- Evaluation: access now comes from an Evaluator role that workspace admins give to members.
 
 ### Fixed
 
 - Document import errors: a failed document now shows why it failed, in one readable line.
 
 ### Security
+
+- Embedded agents: visitor messages no longer appear in URLs.
+- Conversations: long messages now always get a reply, and their text no longer reaches server access logs.
+- Server logs: messages people write and sign-in codes stay out of the logs, even with detailed logging turned on.
 
 ## [26.10.10] - 2026-10-31
 

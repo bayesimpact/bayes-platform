@@ -124,7 +124,6 @@ const meta = {
   },
   args: {
     ...studioStoryArgs,
-    featureFlags: [...studioStoryArgs.featureFlags, "evaluation"],
     withAgents: true,
     runStatus: "completed",
     withRecords: true,

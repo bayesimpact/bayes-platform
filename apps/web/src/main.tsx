@@ -7,7 +7,11 @@ import App from "./App.tsx"
 import { RouteNames } from "./common/routes/helpers.ts"
 import { store } from "./common/store/index.ts"
 import { getAppPathname } from "./config/runtime-config.ts"
-import { getUserManager, rememberSigninReturnTo } from "./external/oidcClient.ts"
+import {
+  followSharedSession,
+  getUserManager,
+  rememberSigninReturnTo,
+} from "./external/oidcClient.ts"
 import "./i18n"
 import "./index.css"
 
@@ -21,6 +25,9 @@ function completeSignin(user: User | undefined): void {
   url.searchParams.delete("iss")
   window.history.replaceState(window.history.state, "", url.toString())
 }
+
+// The other apps of the origin (the Desk) share this session: sign-out and account switches follow.
+followSharedSession()
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

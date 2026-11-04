@@ -107,40 +107,55 @@ export function defineSchemaRoute<
   }
 }
 
+export type StreamRouteMethod = "get" | "post"
+
 /** A route that answers with server-sent events, each checked against the `event` schema. */
 export type StreamRoute<
+  TMethod extends StreamRouteMethod,
   TParams extends ObjectSchema,
   TQuery extends ObjectSchema,
+  TBody extends ObjectSchema | undefined,
   TEvent extends z.ZodType,
 > = {
   path: string
   getPath: (params?: Record<string, string>) => string
-  method: "get"
-  schemas: { params: TParams; query: TQuery; body: EmptySchema; event: TEvent }
+  method: TMethod
+  schemas: { params: TParams; query: TQuery; body: BodyEnvelope<TBody>; event: TEvent }
 }
 
 /** Any route declared with `defineStreamRoute`. */
-export type AnyStreamRoute = StreamRoute<ObjectSchema, ObjectSchema, z.ZodType>
+export type AnyStreamRoute = StreamRoute<
+  StreamRouteMethod,
+  ObjectSchema,
+  ObjectSchema,
+  ObjectSchema | undefined,
+  z.ZodType
+>
 
 /**
  * Declares a route of the API that streams server-sent events, with the schemas of its params,
- * its query and each of its events.
+ * its query, its body and each of its events. What a person writes goes in the body of a POST,
+ * never in the query: a URL has a length limit at proxies, and access logs keep it.
  */
 export function defineStreamRoute<
+  TMethod extends StreamRouteMethod,
   TPath extends string,
   TEvent extends z.ZodType,
   TParams extends ObjectSchema = EmptySchema,
   TQuery extends ObjectSchema = EmptySchema,
+  TBody extends ObjectSchema | undefined = undefined,
 >(
   definition: {
-    method: "get"
+    method: TMethod
     path: TPath
     params?: TParams
     query?: TQuery
+    body?: TBody
     event: TEvent
   } & ParamsMatchPath<TPath, TParams>,
-): StreamRoute<TParams, TQuery, TEvent> {
+): StreamRoute<TMethod, TParams, TQuery, TBody, TEvent> {
   const path = definition.path.startsWith("/") ? definition.path : `/${definition.path}`
+  const body = definition.body ? z.strictObject({ payload: definition.body }) : emptySchema
   return {
     path,
     getPath: (params) => (params ? interpolatePath(path, params) : path),
@@ -149,7 +164,9 @@ export function defineStreamRoute<
       // Safe: TParams and TQuery default to EmptySchema, the schema used when the part is absent.
       params: (definition.params ?? emptySchema) as TParams,
       query: (definition.query ?? emptySchema) as TQuery,
-      body: emptySchema,
+      // Safe: `body` is the envelope of `definition.body` when present and `emptySchema` otherwise,
+      // which is what BodyEnvelope<TBody> names in each case.
+      body: body as BodyEnvelope<TBody>,
       event: definition.event,
     },
   }

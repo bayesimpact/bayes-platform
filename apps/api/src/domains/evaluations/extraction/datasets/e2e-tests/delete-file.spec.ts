@@ -12,7 +12,10 @@ import {
 import { removeNullish } from "@/common/utils/remove-nullish"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { FILE_STORAGE_SERVICE } from "@/domains/documents/storage/file-storage.interface"
-import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
+import {
+  createOrganizationWithProject,
+  OWNER_EVALUATOR_PROJECT_MEMBERSHIP,
+} from "@/domains/organizations/organization.factory"
 import { setupUserGuardForTesting } from "../../../../../../test/e2e.helpers"
 import { ensureRbacCatalog } from "../../../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../../../test/request"
@@ -74,7 +77,9 @@ describe("EvaluationExtractionDatasets - deleteFile", () => {
   })
 
   const createContext = async () => {
-    const { user, organization, project } = await createOrganizationWithProject(repositories)
+    const { user, organization, project } = await createOrganizationWithProject(repositories, {
+      projectMembership: OWNER_EVALUATOR_PROJECT_MEMBERSHIP,
+    })
     organizationId = organization.id
     projectId = project.id
     authSubject = user.authSubject!
