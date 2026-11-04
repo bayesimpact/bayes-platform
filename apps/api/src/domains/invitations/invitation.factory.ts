@@ -40,6 +40,7 @@ export const invitationFactory = InvitationFactory.define(({ params, transientPa
     invitationToken: params.invitationToken || randomUUID(),
     status: params.status || "pending",
     role: params.role || target.role,
+    agentIds: params.agentIds ?? [],
     invitedAt: params.invitedAt || now,
     acceptedAt: params.acceptedAt ?? null,
   } satisfies Invitation

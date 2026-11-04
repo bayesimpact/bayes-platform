@@ -5,6 +5,7 @@ import type { CreatedInvitations, PendingInvitations } from "./invitations.model
 import type {
   CreateInvitationsParams,
   InvitationTarget,
+  InviteeAccessByEmail,
   ScopedInvitationTarget,
 } from "./invitations.spi"
 
@@ -24,8 +25,25 @@ export const createInvitations = createAsyncThunk<
   ThunkConfig
 >(
   "invitations/createMany",
-  async ({ emails, role, ...target }, { extra: { services }, getState }) =>
-    await services.invitations.createMany({ ...scopeTarget(getState(), target), emails, role }),
+  async ({ emails, role, agentIds, ...target }, { extra: { services }, getState }) =>
+    await services.invitations.createMany({
+      ...scopeTarget(getState(), target),
+      emails,
+      role,
+      agentIds,
+    }),
+)
+
+/** What each person already in the current workspace holds, for the invite dialog. */
+export const listInviteeAccess = createAsyncThunk<InviteeAccessByEmail, void, ThunkConfig>(
+  "invitations/listInviteeAccess",
+  async (_, { extra: { services }, getState }) => {
+    const state = getState()
+    return await services.invitations.listInviteeAccess({
+      organizationId: getCurrentId({ state, name: "organizationId" }),
+      projectId: getCurrentId({ state, name: "projectId" }),
+    })
+  },
 )
 
 export const listInvitationsForTarget = createAsyncThunk<

@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto"
-import { MyInvitationsRoutes } from "@caseai-connect/api-contracts"
+import { MyInvitationsRoutes, ProjectInvitationsRoutes } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import type { App } from "supertest/types"
 import { AUTH_ERRORS } from "@/common/errors/auth-errors"
@@ -70,7 +70,13 @@ describe("Invitations - Auth", () => {
       route: routes.createMany,
       pathParams,
       token,
-      request: { payload: { emails: ["invited@example.com"], role: "tester" } },
+      // Only a review campaign invitation takes a role it cannot do without.
+      request: {
+        payload: {
+          emails: ["invited@example.com"],
+          ...("reviewCampaign" in target ? { role: "tester" } : {}),
+        } as { emails: string[]; role: "tester" },
+      },
     })
     const deleteOne = await request({
       route: routes.deleteOne,
@@ -138,6 +144,35 @@ describe("Invitations - Auth", () => {
     it("allows the project owner", async () => {
       const { target, invitationId } = await createContextForRole("project_owner")
       expectAllowed(await callAdminRoutes(target, invitationId))
+    })
+  })
+
+  describe("invitee access of a workspace", () => {
+    const callInviteeAccess = async (role: ProjectRoleKey) => {
+      const { project } = await createOrganizationWithProject(repositories, {
+        user: { authSubject },
+        projectMembership: { roleKeys: [role] },
+      })
+      return request({
+        route: ProjectInvitationsRoutes.getInviteeAccess,
+        pathParams: { organizationId: project.organizationId, projectId: project.id },
+        token: accessToken ?? undefined,
+      })
+    }
+
+    it("requires an authentication token", async () => {
+      accessToken = null
+      expectResponse(await callInviteeAccess("project_owner"), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
+    })
+    it("doesn't allow a project member", async () => {
+      expectResponse(
+        await callInviteeAccess("project_member"),
+        403,
+        AUTH_ERRORS.UNAUTHORIZED_RESOURCE,
+      )
+    })
+    it("allows a project admin", async () => {
+      expectResponse(await callInviteeAccess("project_admin"), 200)
     })
   })
 

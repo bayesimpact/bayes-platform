@@ -1,19 +1,6 @@
 {
   "projectMembership": {
     "members": "Members",
-    "props": {
-      "validation": {
-        "emailDuplicate": "Email already added",
-        "emailInvalid": "Invalid email address"
-      }
-    },
-    "create": {
-      "button": "Invite admins",
-      "title": "Invite admins",
-      "description": "Enter the email addresses of the people who should manage this workspace. They accept the invitation after signing in.",
-      "label": "Email address",
-      "placeholder": "Enter email address"
-    },
     "pendingInvitations": {
       "title": "Pending invitations",
       "description": "People invited to this project who have not answered yet."
@@ -34,7 +21,9 @@
       "rolesAdded_one": "Roles added to {{count}} member",
       "rolesAdded_other": "Roles added to {{count}} members",
       "membersRemoved_one": "{{count}} member removed",
-      "membersRemoved_other": "{{count}} members removed"
+      "membersRemoved_other": "{{count}} members removed",
+      "agentsGiven_one": "{{count}} person already in the workspace got their agents",
+      "agentsGiven_other": "{{count}} people already in the workspace got their agents"
     },
     "roleNames": {
       "project_owner": "Owner",

@@ -107,7 +107,7 @@ export type { ApiRoute } from "./helpers"
 // Helpers
 export { defineRoute } from "./helpers"
 // Member grants
-export type * from "./invitations/invitations.dto"
+export * from "./invitations/invitations.dto"
 export {
   AgentInvitationsRoutes,
   MyInvitationsRoutes,

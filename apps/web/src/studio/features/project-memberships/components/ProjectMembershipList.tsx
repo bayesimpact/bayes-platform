@@ -9,7 +9,7 @@ import { useValue } from "@/common/hooks/use-value"
 import { useAppDispatch } from "@/common/store/hooks"
 import { PendingInvitationsSection } from "@/studio/features/invitations/components/PendingInvitationsSection"
 import { revokeInvitation } from "@/studio/features/invitations/invitations.thunks"
-import { MembersCreator } from "@/studio/features/project-memberships/components/MembersCreator"
+import { InviteMembersButton } from "@/studio/features/project-memberships/components/InviteMembersButton"
 import { MembersTable } from "@/studio/features/project-memberships/components/members-table/MembersTable"
 import {
   selectAssignableRoles,
@@ -72,7 +72,7 @@ export function ProjectMembershipList() {
         onBack={() => navigate(projectRoute)}
         title={t("projectMembership:list.title", { projectName: project.name })}
         description={t("projectMembership:list.description")}
-        action={<MembersCreator projectId={project.id} />}
+        action={<InviteMembersButton projectId={project.id} workspaceName={project.name} />}
       />
       <div className="flex flex-col gap-6 bg-white p-6">
         <MembersTable
