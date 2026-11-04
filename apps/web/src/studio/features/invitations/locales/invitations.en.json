@@ -37,6 +37,8 @@
     },
     "confirmation": {
       "title": "Confirm the invitation to {{workspaceName}}",
+      "invitedGet_one": "This person will get an invitation. Once they accept it, they will have:",
+      "invitedGet_other": "These {{count}} people will get an invitation. Once they accept it, they will have:",
       "role": "Role",
       "workspaceRole": "Workspace role",
       "agents": "Agent access",

@@ -37,6 +37,8 @@
     },
     "confirmation": {
       "title": "Confirmer l'invitation dans {{workspaceName}}",
+      "invitedGet_one": "Cette personne recevra une invitation. Une fois l'invitation acceptée, elle aura :",
+      "invitedGet_other": "Ces {{count}} personnes recevront une invitation. Une fois l'invitation acceptée, elles auront :",
       "role": "Rôle",
       "workspaceRole": "Rôle dans l'espace de travail",
       "agents": "Accès aux agents",

@@ -109,24 +109,30 @@ export function InviteConfirmation({
       </DialogHeader>
 
       <div className="flex flex-col gap-4">
-        <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 rounded-md bg-muted/50 px-3 py-2 text-sm">
-          <dt className="text-muted-foreground">{t("invitations:confirmation.workspaceRole")}</dt>
-          <dd className="font-medium">{labelOf(values.workspaceRoleKey)}</dd>
-          <dt className="text-muted-foreground">{t("invitations:confirmation.agents")}</dt>
-          <dd>{agentsLine}</dd>
-        </dl>
-
-        {/* Newcomers as chips: they get an invitation to accept. People already in the
+        {/* Newcomers first, then what their invitation gives them. People already in the
             workspace go apart, in two groups: those who get access right away, and those for
             whom nothing changes. */}
         {newEmails.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
-            {newEmails.map((email) => (
-              <Badge key={email} variant="outline">
-                {email}
-              </Badge>
-            ))}
-          </div>
+          <section className="flex flex-col gap-3">
+            <div className="flex flex-wrap gap-1.5">
+              {newEmails.map((email) => (
+                <Badge key={email} variant="outline">
+                  {email}
+                </Badge>
+              ))}
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {t("invitations:confirmation.invitedGet", { count: newEmails.length })}
+            </p>
+            <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 rounded-md bg-muted/50 px-3 py-2 text-sm">
+              <dt className="text-muted-foreground">
+                {t("invitations:confirmation.workspaceRole")}
+              </dt>
+              <dd className="font-medium">{labelOf(values.workspaceRoleKey)}</dd>
+              <dt className="text-muted-foreground">{t("invitations:confirmation.agents")}</dt>
+              <dd>{agentsLine}</dd>
+            </dl>
+          </section>
         )}
 
         {directPeople.length > 0 && (
