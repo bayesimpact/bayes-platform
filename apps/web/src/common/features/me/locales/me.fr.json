@@ -28,7 +28,8 @@
       "agentBadge": "Agent",
       "reviewCampaignBadge": "Campagne de revue",
       "roleLabel": "Rôle",
-      "agentsLabel": "Agents",
+      "workspaceRoleLabel": "Rôle dans l'espace de travail",
+      "agentsLabel": "Accès aux agents",
       "everyAgent": "Tous les agents"
     },
     "notifications": {

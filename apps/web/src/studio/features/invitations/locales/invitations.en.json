@@ -24,12 +24,12 @@
       "emailsRequired": "Add at least one email.",
       "invalidEmail": "\"{{email}}\" is not a valid email.",
       "removeEmail": "Remove {{email}}",
-      "workspaceRoleLabel": "Role on the workspace",
+      "workspaceRoleLabel": "Workspace role",
       "roleDescriptions": {
         "project_admin": "Manages the workspace, its members and every agent.",
         "project_member": "Uses only the agents picked for them."
       },
-      "agentsLabel": "Agents",
+      "agentsLabel": "Agent access",
       "noAgents": "This workspace has no agent yet.",
       "noMatch": "No match.",
       "inviteCount_one": "Invite {{count}} person",
@@ -38,7 +38,8 @@
     "confirmation": {
       "title": "Confirm the invitation to {{workspaceName}}",
       "role": "Role",
-      "agents": "Agents",
+      "workspaceRole": "Workspace role",
+      "agents": "Agent access",
       "everyAgent": "Every agent",
       "noAgent": "No agent",
       "addedTo": "Added to {{agents}}",

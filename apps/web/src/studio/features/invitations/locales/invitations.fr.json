@@ -29,7 +29,7 @@
         "project_admin": "Gère l'espace de travail, ses membres et tous les agents.",
         "project_member": "Utilise seulement les agents choisis pour lui."
       },
-      "agentsLabel": "Agents",
+      "agentsLabel": "Accès aux agents",
       "noAgents": "Cet espace de travail n'a pas encore d'agent.",
       "noMatch": "Aucun résultat.",
       "inviteCount_one": "Inviter {{count}} personne",
@@ -38,7 +38,8 @@
     "confirmation": {
       "title": "Confirmer l'invitation dans {{workspaceName}}",
       "role": "Rôle",
-      "agents": "Agents",
+      "workspaceRole": "Rôle dans l'espace de travail",
+      "agents": "Accès aux agents",
       "everyAgent": "Tous les agents",
       "noAgent": "Aucun agent",
       "addedTo": "Ajouté à {{agents}}",

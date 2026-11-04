@@ -28,7 +28,8 @@
       "agentBadge": "Agent",
       "reviewCampaignBadge": "Review campaign",
       "roleLabel": "Role",
-      "agentsLabel": "Agents",
+      "workspaceRoleLabel": "Workspace role",
+      "agentsLabel": "Agent access",
       "everyAgent": "Every agent"
     },
     "notifications": {

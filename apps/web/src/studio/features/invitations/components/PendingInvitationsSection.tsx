@@ -153,7 +153,11 @@ function InvitationSummary({ invitation }: { invitation: PendingInvitation }) {
         : invitation.agents.map((agent) => agent.name).join(", ")
   return (
     <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 rounded-md bg-muted/50 px-3 py-2 text-sm">
-      <dt className="text-muted-foreground">{t("invitations:confirmation.role")}</dt>
+      <dt className="text-muted-foreground">
+        {invitation.targetType === "project"
+          ? t("invitations:confirmation.workspaceRole")
+          : t("invitations:confirmation.role")}
+      </dt>
       <dd className="font-medium">{role}</dd>
       {agents && (
         <>
