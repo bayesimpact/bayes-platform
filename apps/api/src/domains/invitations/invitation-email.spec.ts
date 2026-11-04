@@ -56,7 +56,20 @@ describe("buildInvitationEmail", () => {
     expect(email.html).not.toContain("<b>Agent</b>")
   })
 
-  it("says what a workspace invitation gives, with one button", () => {
+  it("puts the inviter's name in bold, with capital letters", () => {
+    const email = buildInvitationEmail({ ...params, inviterName: "jean-pierre martin" })
+
+    expect(email.text).toContain("Jean-Pierre Martin invited you")
+    expect(email.html).toContain("<strong>Jean-Pierre Martin</strong> invited you")
+  })
+
+  it("leaves an inviter's email as it is", () => {
+    const email = buildInvitationEmail({ ...params, inviterName: "alex@example.com" })
+
+    expect(email.text).toContain("alex@example.com invited you")
+  })
+
+  it("lists the agents of a workspace invitation in their own sentence, in bold", () => {
     const workspaceParams = {
       ...params,
       targetType: "project" as const,
@@ -68,12 +81,26 @@ describe("buildInvitationEmail", () => {
     const french = buildInvitationEmail({ ...workspaceParams, language: "fr" })
 
     expect(english.text).toContain(
-      "Alex Martin invited you to join the workspace Demo project (Example Org) as a member, with Helpful Assistant and Scheduling Bot.",
+      "Alex Martin invited you to join the workspace Demo project (Example Org) as a member.\n\nYou will have access to these agents: Helpful Assistant and Scheduling Bot.",
+    )
+    expect(english.html).toContain(
+      "<p>You will have access to these agents: <strong>Helpful Assistant</strong> and <strong>Scheduling Bot</strong>.</p>",
     )
     expect(french.text).toContain(
-      "Alex Martin vous invite à rejoindre l'espace de travail Demo project (Example Org) en tant que membre, avec Helpful Assistant et Scheduling Bot.",
+      "Alex Martin vous invite à rejoindre l'espace de travail Demo project (Example Org) en tant que membre.\n\nVous aurez accès à ces agents : Helpful Assistant et Scheduling Bot.",
     )
     expect(english.html.match(/<a /g)).toHaveLength(1)
+  })
+
+  it("adds no agents sentence for a member without agents", () => {
+    const email = buildInvitationEmail({
+      ...params,
+      targetType: "project",
+      workspaceAccess: { role: "member", agentNames: [] },
+    })
+
+    expect(email.text).toContain("(Example Org) as a member.")
+    expect(email.text).not.toContain("access to")
   })
 
   it("gives an admin every agent", () => {
@@ -84,10 +111,10 @@ describe("buildInvitationEmail", () => {
     }
 
     expect(buildInvitationEmail(adminParams).text).toContain(
-      "(Example Org) as an admin, with every agent.",
+      "(Example Org) as an admin.\n\nYou will have access to every agent.",
     )
     expect(buildInvitationEmail({ ...adminParams, language: "fr" }).text).toContain(
-      "(Example Org) en tant qu'administrateur, avec tous les agents.",
+      "(Example Org) en tant qu'administrateur.\n\nVous aurez accès à tous les agents.",
     )
   })
 })

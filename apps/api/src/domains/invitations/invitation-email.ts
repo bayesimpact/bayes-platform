@@ -42,21 +42,49 @@ const TARGET_LABELS: Record<Language, Record<InvitationTargetType, string>> = {
   },
 }
 
-/** " as a member, with A and B": what a workspace invitation gives. An admin gets every agent. */
-function describeWorkspaceAccess(
+/** A piece of the email text: plain, or in bold in the HTML version. */
+type Segment = string | { strong: string }
+
+/** "Alex Martin": each word of the name starts with a capital letter. An email is left as it is. */
+function capitalizeName(name: string): string {
+  if (name.includes("@")) return name
+  return name.replace(
+    /(^|[\s-])(\p{L})/gu,
+    (_, separator, letter) => separator + letter.toUpperCase(),
+  )
+}
+
+/** " as a member": the role a workspace invitation gives. */
+function describeWorkspaceRole(language: Language, role: string): string {
+  const isAdmin = role === "admin"
+  if (language === "en") return isAdmin ? " as an admin" : " as a member"
+  return isAdmin ? " en tant qu'administrateur" : " en tant que membre"
+}
+
+/**
+ * "You will have access to these agents: A and B.", each name in bold. An admin gets every agent.
+ * Nothing for a member without agents.
+ */
+function describeAgentAccess(
   language: Language,
   access: NonNullable<InvitationEmailParams["workspaceAccess"]>,
-): string {
-  const isAdmin = access.role === "admin"
-  const agents = new Intl.ListFormat(language, { type: "conjunction" }).format(access.agentNames)
-  if (language === "en") {
-    if (isAdmin) return " as an admin, with every agent"
-    return access.agentNames.length === 0 ? " as a member" : ` as a member, with ${agents}`
+): Segment[] {
+  if (access.role === "admin") {
+    return [
+      language === "en"
+        ? "You will have access to every agent."
+        : "Vous aurez accès à tous les agents.",
+    ]
   }
-  if (isAdmin) return " en tant qu'administrateur, avec tous les agents"
-  return access.agentNames.length === 0
-    ? " en tant que membre"
-    : ` en tant que membre, avec ${agents}`
+  if (access.agentNames.length === 0) return []
+  const names = new Intl.ListFormat(language, { type: "conjunction" })
+    .formatToParts(access.agentNames)
+    .map((part): Segment => (part.type === "element" ? { strong: part.value } : part.value))
+  const intro =
+    language === "en"
+      ? "You will have access to these agents: "
+      : "Vous aurez accès à ces agents : "
+  return [intro, ...names, "."]
 }
 
 const LABELS: Record<Language, { subject: string; button: string; signIn: string }> = {
@@ -66,7 +94,8 @@ const LABELS: Record<Language, { subject: string; button: string; signIn: string
 
 /**
  * The invitation email, in the inviter's language: the platform does not know the language of
- * someone who never signed in. One sentence, one button and one line about the address.
+ * someone who never signed in. Who invites to what, the agents it gives, one button and one line
+ * about the address.
  */
 export function buildInvitationEmail(params: InvitationEmailParams): MailMessage {
   // The agent and review campaign routes do not validate the body: an unknown language is English.
@@ -75,20 +104,24 @@ export function buildInvitationEmail(params: InvitationEmailParams): MailMessage
   const labels = LABELS[language]
   const target = `${TARGET_LABELS[language][params.targetType]} ${params.targetName}`
   const organization = params.organizationName ? ` (${params.organizationName})` : ""
-  const access = params.workspaceAccess
-    ? describeWorkspaceAccess(language, params.workspaceAccess)
+  const role = params.workspaceAccess
+    ? describeWorkspaceRole(language, params.workspaceAccess.role)
     : ""
-  const sentence =
+  const invitation: Segment[] = [
+    { strong: capitalizeName(params.inviterName) },
     language === "en"
-      ? `${params.inviterName} invited you to join ${target}${organization}${access}.`
-      : `${params.inviterName} vous invite à rejoindre ${target}${organization}${access}.`
+      ? ` invited you to join ${target}${organization}${role}.`
+      : ` vous invite à rejoindre ${target}${organization}${role}.`,
+  ]
+  const agents = params.workspaceAccess ? describeAgentAccess(language, params.workspaceAccess) : []
+  const paragraphs = agents.length > 0 ? [invitation, agents] : [invitation]
   const reminder = `${labels.signIn} ${params.to}`
 
-  const text = [sentence, params.link, reminder].join("\n\n")
+  const text = [...paragraphs.map(toText), params.link, reminder].join("\n\n")
 
   const html = [
     `<div style="font-family:sans-serif;font-size:15px;line-height:1.5;color:#111827">`,
-    `<p>${escapeHtml(sentence)}</p>`,
+    ...paragraphs.map((paragraph) => `<p>${toHtml(paragraph)}</p>`),
     `<p style="margin-top:24px"><a href="${escapeHtml(params.link)}" style="display:inline-block;padding:10px 16px;border-radius:6px;background:#111827;color:#ffffff;text-decoration:none">${escapeHtml(labels.button)}</a></p>`,
     `<p style="color:#6b7280;font-size:13px">${escapeHtml(reminder)}</p>`,
     `</div>`,
@@ -100,6 +133,22 @@ export function buildInvitationEmail(params: InvitationEmailParams): MailMessage
     text,
     html,
   }
+}
+
+function toText(segments: Segment[]): string {
+  return segments
+    .map((segment) => (typeof segment === "string" ? segment : segment.strong))
+    .join("")
+}
+
+function toHtml(segments: Segment[]): string {
+  return segments
+    .map((segment) =>
+      typeof segment === "string"
+        ? escapeHtml(segment)
+        : `<strong>${escapeHtml(segment.strong)}</strong>`,
+    )
+    .join("")
 }
 
 function escapeHtml(value: string): string {

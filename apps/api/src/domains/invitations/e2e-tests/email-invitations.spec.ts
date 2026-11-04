@@ -89,7 +89,7 @@ describe("Invitations - email", () => {
     expect(message?.to).toBe("first+team@example.com")
     expect(message?.subject).toContain(project.name)
     expect(message?.text).toContain(
-      `Alex Martin invited you to join the workspace ${project.name} (${organization.name}) as an admin, with every agent.`,
+      `Alex Martin invited you to join the workspace ${project.name} (${organization.name}) as an admin.`,
     )
     expect(message?.text).toContain(
       "https://platform.example.org/?login_hint=first%2Bteam%40example.com",
@@ -103,8 +103,9 @@ describe("Invitations - email", () => {
     const [message] = sentMessages
     expect(message?.subject).toBe(`Invitation : ${project.name}`)
     expect(message?.text).toContain(
-      `Alex Martin vous invite à rejoindre l'espace de travail ${project.name} (${organization.name}) en tant qu'administrateur, avec tous les agents.`,
+      `Alex Martin vous invite à rejoindre l'espace de travail ${project.name} (${organization.name}) en tant qu'administrateur.`,
     )
+    expect(message?.text).toContain("Vous aurez accès à tous les agents.")
     expect(message?.text).not.toContain("invited you")
   })
 
