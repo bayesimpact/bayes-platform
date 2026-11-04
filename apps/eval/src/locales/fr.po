@@ -47,6 +47,10 @@ msgstr "Adresse email manquante"
 msgid "Evaluation opens to the evaluators of a project. Ask a project admin to give you the Evaluator role from the members page."
 msgstr "L'évaluation est réservée aux évaluateurs d'un projet. Demandez à un administrateur du projet de vous donner le rôle Évaluateur depuis la page des membres."
 
+#: src/routes/_authenticated/index.tsx
+msgid "Hello world!"
+msgstr "Bonjour tout le monde !"
+
 #: src/components/shared/SignInProblemPage.tsx
 msgid "If it keeps happening, contact your administrator with the message below."
 msgstr "Si cela se reproduit, contactez votre administrateur avec le message ci-dessous."

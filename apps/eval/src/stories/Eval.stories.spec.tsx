@@ -18,11 +18,11 @@ function LocaleAndCache() {
 const { Home, NoEvaluationAccess, PageNotFound } = composeStories(generalStories)
 
 describe("the stories of the app", () => {
-  it("Home opens the blank home page", async () => {
+  it("Home opens the home page", async () => {
     await Home.load()
     render(<Home />)
 
-    expect(await screen.findByRole("main")).toBeInTheDocument()
+    expect(await screen.findByRole("heading", { name: "Hello world!" })).toBeInTheDocument()
     expect(screen.queryByText("Page not found")).not.toBeInTheDocument()
   })
 
