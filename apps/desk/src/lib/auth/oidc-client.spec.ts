@@ -23,9 +23,10 @@ vi.mock("oidc-client-ts", async (importOriginal) => ({
   }),
 }))
 vi.mock("@/app/config", () => ({ appConfig: { mode: "api" }, appBasePath: "/app/" }))
-vi.mock("./oidc-settings", () => ({
-  buildOidcSettings: () => ({}),
-  OIDC_STORE_PREFIX: "desk.oidc.",
+vi.mock("./oidc-settings", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("./oidc-settings")>()),
+  buildOidcSettings: () => ({ authority: "https://idp.example.org", client_id: "platform-web" }),
+  adoptDeskSession: () => {},
 }))
 
 const {
@@ -43,7 +44,11 @@ const {
 const expiredUser = { expired: true, expires_in: -5, access_token: "old", refresh_token: "r" }
 const freshUser = { expired: false, expires_in: 3600, access_token: "fresh" }
 
-type StorageListener = (event: { key: string; newValue: string | null }) => void
+type StorageListener = (event: {
+  key: string
+  oldValue: string | null
+  newValue: string | null
+}) => void
 const storageListeners: StorageListener[] = []
 
 /** The browser globals the client reads, with a session storage of this tab. */
@@ -120,13 +125,13 @@ describe("getAccessToken", () => {
     expect(userManagerMock.signinSilent).not.toHaveBeenCalled()
   })
 
-  it("refreshes under a lock of the Desk's own, apart from apps/web's", async () => {
+  it("refreshes under the lock every app of the origin shares, apps/web's included", async () => {
     const request = vi.fn((_name: string, task: () => Promise<string>) => task())
     vi.stubGlobal("navigator", { locks: { request } })
     userManagerMock.getUser.mockResolvedValue(expiredUser)
     userManagerMock.signinSilent.mockResolvedValue({ access_token: "refreshed" })
     await expect(getAccessToken()).resolves.toBe("refreshed")
-    expect(request).toHaveBeenCalledWith("desk-oidc-token-refresh", expect.any(Function))
+    expect(request).toHaveBeenCalledWith("oidc-token-refresh", expect.any(Function))
   })
 
   it("ends the session when the provider refuses the refresh token", async () => {
@@ -234,7 +239,14 @@ describe("signing in and coming back", () => {
 })
 
 describe("the end of a session", () => {
-  it("is reported when the session is forgotten and when another tab removes it", async () => {
+  const sessionKey = "oidc.user:https://idp.example.org:platform-web"
+  const storedUser = (sub: string) =>
+    JSON.stringify({ access_token: "a", token_type: "Bearer", profile: { sub } })
+  const changeSharedSession = (key: string, oldValue: string | null, newValue: string | null) => {
+    for (const storageListener of storageListeners) storageListener({ key, oldValue, newValue })
+  }
+
+  it("is reported when the session is forgotten", async () => {
     userManagerMock.getUser.mockResolvedValue(freshUser)
     await hasSession()
     const listener = vi.fn()
@@ -243,15 +255,31 @@ describe("the end of a session", () => {
     await endSession()
     expect(userManagerMock.removeUser).toHaveBeenCalled()
     expect(listener).toHaveBeenCalledTimes(1)
+    unsubscribe()
+  })
 
-    for (const storageListener of storageListeners) {
-      storageListener({
-        key: "desk.oidc.user:https://idp.example.org:platform-web",
-        newValue: null,
-      })
-      storageListener({ key: "oidc.user:https://idp.example.org:platform-web", newValue: null })
-    }
+  it("is reported when another app or tab signs out or switches account", async () => {
+    userManagerMock.getUser.mockResolvedValue(freshUser)
+    await hasSession()
+    const listener = vi.fn()
+    const unsubscribe = onSessionEnded(listener)
+
+    changeSharedSession(sessionKey, storedUser("first"), null)
+    expect(listener).toHaveBeenCalledTimes(1)
+    changeSharedSession(sessionKey, storedUser("first"), storedUser("second"))
     expect(listener).toHaveBeenCalledTimes(2)
+    unsubscribe()
+  })
+
+  it("is not reported for a refresh of the same account, or another key", async () => {
+    userManagerMock.getUser.mockResolvedValue(freshUser)
+    await hasSession()
+    const listener = vi.fn()
+    const unsubscribe = onSessionEnded(listener)
+
+    changeSharedSession(sessionKey, storedUser("first"), storedUser("first"))
+    changeSharedSession("desk.oidc.user:https://idp.example.org:platform-web", "x", null)
+    expect(listener).not.toHaveBeenCalled()
     unsubscribe()
   })
 })

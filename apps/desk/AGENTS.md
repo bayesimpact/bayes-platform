@@ -23,8 +23,10 @@ holds what is specific to the Desk.
   `features/agents`), and the person's invitations every minute.
 - Sign-in: `src/lib/auth/`, the only code that knows `oidc-client-ts`, used through
   `lib/auth/session.ts`. It signs in with the install's client and comes back to
-  `<origin>/app/auth/callback` (`<origin>/app/` after sign-out). Its storage prefix (`desk.oidc.`)
-  and refresh lock are its own, apart from apps/web's.
+  `<origin>/app/auth/callback` (`<origin>/app/` after sign-out). Its session is the one every app
+  of the origin shares: the stored user under apps/web's key (`oidc.user:`), refreshed under the
+  same Web Lock (`oidc-token-refresh`), and followed when another app signs out or switches
+  account. Only the state of its own sign-ins stays under `desk.oidc.`.
 - Sign-in problems never loop. A 401 whose message the API uses to refuse a person raises a
   `SignInRefusedError`, shown as a page that says why. An automatic sign-in starts at most once
   every 30 seconds (`SignInLoopError` beyond), and a callback whose OIDC state was lost retries
