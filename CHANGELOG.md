@@ -24,6 +24,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Security
 
+- Embedded agents: visitor messages no longer appear in URLs.
 - Conversations: long messages now always get a reply, and their text no longer reaches server access logs.
 - Server logs: messages people write and sign-in codes stay out of the logs, even with detailed logging turned on.
 
