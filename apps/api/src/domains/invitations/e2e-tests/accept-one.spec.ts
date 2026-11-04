@@ -40,6 +40,7 @@ import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
 import { expectResponse, type Requester, testRequester } from "../../../../test/request"
 import { invitationFactory } from "../invitation.factory"
 import { InvitationsModule } from "../invitations.module"
+import { createWorkspaceWithTwoAgents } from "./workspace-invitation.helpers"
 
 describe("Invitations - acceptOne", () => {
   let app: INestApplication<App>
@@ -388,5 +389,66 @@ describe("Invitations - acceptOne", () => {
     expect(
       await findProjectMembershipRow(repositories, { userId: newcomer.id, projectId: project.id }),
     ).not.toBeNull()
+  })
+
+  describe("workspace invitation for a member", () => {
+    it("makes the person a member of the workspace and of each agent, in one go", async () => {
+      const { organization, project, firstAgent, secondAgent } = await createWorkspaceWithTwoAgents(
+        repositories,
+        ownerSubject,
+      )
+      const invitee = await createInvitee()
+      const invitation = await repositories.invitationRepository.save(
+        invitationFactory
+          .transient({ user: invitee, project })
+          .build({ role: "member", agentIds: [firstAgent.id, secondAgent.id] }),
+      )
+
+      expectResponse(await subject(invitation.id), 201)
+
+      const projectRow = await findProjectMembershipRow(repositories, {
+        userId: invitee.id,
+        projectId: project.id,
+      })
+      expect(projectRow?.roleKeys).toEqual(["project_member"])
+      const organizationRow = await findOrganizationMembershipRow(repositories, {
+        userId: invitee.id,
+        organizationId: organization.id,
+      })
+      expect(organizationRow?.roleKeys).toEqual(["org_member"])
+      for (const agent of [firstAgent, secondAgent]) {
+        const agentRow = await findAgentMembershipRow(repositories, {
+          userId: invitee.id,
+          agentId: agent.id,
+        })
+        expect(agentRow?.roleKeys).toEqual(["agent_member"])
+      }
+      expect(
+        (await repositories.invitationRepository.findOneByOrFail({ id: invitation.id })).status,
+      ).toBe("accepted")
+    })
+
+    it("leaves out an agent deleted since the invitation", async () => {
+      const { project, firstAgent, secondAgent } = await createWorkspaceWithTwoAgents(
+        repositories,
+        ownerSubject,
+      )
+      const invitee = await createInvitee()
+      const invitation = await repositories.invitationRepository.save(
+        invitationFactory
+          .transient({ user: invitee, project })
+          .build({ role: "member", agentIds: [firstAgent.id, secondAgent.id] }),
+      )
+      await repositories.agentRepository.softDelete({ id: secondAgent.id })
+
+      expectResponse(await subject(invitation.id), 201)
+
+      expect(
+        await findAgentMembershipRow(repositories, { userId: invitee.id, agentId: firstAgent.id }),
+      ).not.toBeNull()
+      expect(
+        await findAgentMembershipRow(repositories, { userId: invitee.id, agentId: secondAgent.id }),
+      ).toBeNull()
+    })
   })
 })

@@ -13,9 +13,13 @@ import {
   type OrganizationWithProjects,
   selectOrganizationsWithProjectsData,
 } from "@/common/features/organizations/organizations.selectors"
-import { useAppSelector } from "@/common/store/hooks"
+import { useAppDispatch, useAppSelector } from "@/common/store/hooks"
 import { publicAssetUrl } from "@/config/runtime-config"
 import type { PendingInvitations } from "@/studio/features/invitations/invitations.models"
+import {
+  acceptInvitation,
+  declineInvitation,
+} from "@/studio/features/invitations/invitations.thunks"
 import { ProjectCreatorButton } from "@/studio/features/projects/components/ProjectCreator"
 import { PendingInvitationList } from "../components/home/PendingInvitationList"
 import {
@@ -90,6 +94,7 @@ function Main({
   invitations: PendingInvitations
 }) {
   const { t } = useTranslation()
+  const dispatch = useAppDispatch()
 
   return (
     <SearchWorkspaces organizations={organizations}>
@@ -120,7 +125,11 @@ function Main({
 
         {invitations.length > 0 && (
           <Wrap className="mb-0 md:mb-0">
-            <PendingInvitationList invitations={invitations} />
+            <PendingInvitationList
+              invitations={invitations}
+              onAccept={(invitationId) => dispatch(acceptInvitation({ invitationId }))}
+              onDecline={(invitationId) => dispatch(declineInvitation({ invitationId }))}
+            />
           </Wrap>
         )}
 

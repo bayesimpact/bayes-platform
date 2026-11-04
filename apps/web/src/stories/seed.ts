@@ -69,6 +69,7 @@ import type { DocumentSource } from "@/studio/features/document-sources/document
 import type { DocumentTag } from "@/studio/features/document-tags/document-tags.models"
 import type { Document } from "@/studio/features/documents/documents.models"
 import type { PendingInvitations } from "@/studio/features/invitations/invitations.models"
+import type { InviteeAccessByEmail } from "@/studio/features/invitations/invitations.spi"
 import type { McpServer } from "@/studio/features/mcp-servers/mcp-servers.models"
 import type { ProjectEmbeddingModel } from "@/studio/features/project-embedding-models/project-embedding-models.models"
 import type {
@@ -431,6 +432,10 @@ export const seed = {
     },
     projectPendingInvitations(invitations: PendingInvitations): StoryPreloadedState {
       return { projectMemberships: { pendingInvitations: ads.fulfilled(invitations) } }
+    },
+
+    inviteeAccess(access: InviteeAccessByEmail = {}): StoryPreloadedState {
+      return { projectMemberships: { inviteeAccess: ads.fulfilled(access) } }
     },
 
     projectMemberRoles(memberRoles: MemberRoles): StoryPreloadedState {

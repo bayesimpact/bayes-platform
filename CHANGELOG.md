@@ -9,11 +9,13 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 
+- Invitations: one invitation gives a workspace role and several agents, accepted once.
 - MCP: AI assistants can build evaluation datasets, evaluate agent drafts and read the scores, with the access a person grants.
 - Workspace selection: a log out button is now on the page that lists your workspaces.
 
 ### Changed
 
+- Invitation emails: written in the inviter's language, English or French, instead of both.
 - Sign-in: Studio and the Desk now share one session, so signing in, switching account or signing out applies to both.
 - Analytics: conversations count only sessions with a question, and sessions opened without one are shown apart.
 - Evaluation: access now comes from an Evaluator role that workspace admins give to members.
