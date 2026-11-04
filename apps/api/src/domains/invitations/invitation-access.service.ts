@@ -55,15 +55,14 @@ export class InvitationAccessService {
       projectId: params.projectId,
     })
     if (!membership) return null
-    const heldAgentIds: string[] = []
-    for (const agentId of params.agentIds) {
-      if (
-        await this.agentMembershipsService.findAgentMembership({ agentId, userId: params.userId })
-      ) {
-        heldAgentIds.push(agentId)
-      }
+    const agentMemberships = await this.agentMembershipsService.listUserAgentMemberships({
+      userId: params.userId,
+      agentIds: params.agentIds,
+    })
+    return {
+      workspaceRoleKey: highestWorkspaceRoleKey(membership),
+      agentIds: agentMemberships.map((agentMembership) => agentMembership.agentId),
     }
-    return { workspaceRoleKey: highestWorkspaceRoleKey(membership), agentIds: heldAgentIds }
   }
 
   /** What each person in the workspace holds, among the agents given. */

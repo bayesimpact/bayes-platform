@@ -69,6 +69,21 @@ export class AgentMembershipsService {
     return membership ? toMemberView(membership) : null
   }
 
+  /** The user's member roles (owner, admin, member) on the agents given, in one query. */
+  async listUserAgentMemberships({
+    userId,
+    agentIds,
+  }: {
+    userId: string
+    agentIds: string[]
+  }): Promise<AgentMembershipModel[]> {
+    const memberships = await this.agentMembershipRepository.findByUserAndAgents({
+      userId,
+      agentIds,
+    })
+    return memberships.flatMap((membership) => toMemberView(membership) ?? [])
+  }
+
   async listProjectMemberAgents({
     projectId,
     userId,
