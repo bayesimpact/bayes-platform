@@ -109,3 +109,9 @@ export function displayedVersion({
  * to `/`, so the tests run the app under its real path.
  */
 export const appBasePath = "/eval/"
+
+/**
+ * The platform's home, on the app's origin: the page of apps/web that lists the person's apps,
+ * where a person who cannot open this app goes back to.
+ */
+export const platformHomePath = "/onboarding"

@@ -95,5 +95,9 @@ describe("the access to the app", () => {
 
     expect(await screen.findByText("You cannot evaluate agents yet")).toBeInTheDocument()
     expect(screen.queryByRole("main")).not.toBeInTheDocument()
+    expect(screen.getByRole("link", { name: "Back to home" })).toHaveAttribute(
+      "href",
+      "/onboarding",
+    )
   })
 })
