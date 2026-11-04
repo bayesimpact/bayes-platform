@@ -190,7 +190,6 @@ export const SingleWithStudioAccess: Story = {
     organizationMembershipRole: "member",
     projectMembershipRole: "admin",
     agentMembershipRole: "owner",
-    featureFlags: ["evaluation"],
     organizationCount: 1,
     projectsPerOrganization: 1,
     withReviewCampaignMembershipsAsTester: true,

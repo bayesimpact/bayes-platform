@@ -14,6 +14,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 ### Changed
 
 - Analytics: conversations count only sessions with a question, and sessions opened without one are shown apart.
+- Evaluation: access now comes from an Evaluator role that workspace admins give to members.
 
 ### Fixed
 

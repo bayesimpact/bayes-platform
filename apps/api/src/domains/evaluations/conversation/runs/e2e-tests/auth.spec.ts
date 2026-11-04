@@ -61,11 +61,11 @@ describe("EvaluationConversationRuns - Auth", () => {
     await app.close()
   })
 
-  const createContextForRole = async (role: ProjectRoleKey = "project_owner") => {
+  const createContextForRole = async (...roleKeys: ProjectRoleKey[]) => {
     const { user, organization, project, agent, agentSettings } = await createOrganizationWithAgent(
       repositories,
       {
-        projectMembership: { roleKeys: [role] },
+        projectMembership: { roleKeys },
         agent: { type: "conversation" },
       },
     )
@@ -139,12 +139,12 @@ describe("EvaluationConversationRuns - Auth", () => {
       expectResponse(await subject(payload), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
     })
     it("requires a valid project ID", async () => {
-      await createContextForRole("project_owner")
+      await createContextForRole("project_owner", "project_evaluator")
       projectId = null
       expectResponse(await subject(payload), 404)
     })
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("project_owner")
+      await createContextForRole("project_owner", "project_evaluator")
       authSubject = "another-oidc-subject"
       expectResponse(await subject(payload), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
@@ -152,8 +152,12 @@ describe("EvaluationConversationRuns - Auth", () => {
       await createContextForRole("project_member")
       expectResponse(await subject(payload), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
+    it("doesn't allow a project admin who is not an evaluator to create an evaluation run", async () => {
+      await createContextForRole("project_admin")
+      expectResponse(await subject(payload), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
     it("doesn't allow an organization admin without a project role to create an evaluation run", async () => {
-      const { organization } = await createContextForRole("project_owner")
+      const { organization } = await createContextForRole("project_owner", "project_evaluator")
       await switchToOrganizationAdminWithoutProjectRole(organization)
       expectResponse(await subject(payload), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
@@ -176,12 +180,12 @@ describe("EvaluationConversationRuns - Auth", () => {
       expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
     })
     it("requires a valid project ID", async () => {
-      await createContextForRole("project_owner")
+      await createContextForRole("project_owner", "project_evaluator")
       projectId = null
       expectResponse(await subject(), 404)
     })
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("project_owner")
+      await createContextForRole("project_owner", "project_evaluator")
       authSubject = "another-oidc-subject"
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
@@ -189,13 +193,17 @@ describe("EvaluationConversationRuns - Auth", () => {
       await createContextForRole("project_member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
+    it("doesn't allow a project admin who is not an evaluator to list evaluation runs", async () => {
+      await createContextForRole("project_admin")
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
     it("doesn't allow an organization admin without a project role to list evaluation runs", async () => {
-      const { organization } = await createContextForRole("project_owner")
+      const { organization } = await createContextForRole("project_owner", "project_evaluator")
       await switchToOrganizationAdminWithoutProjectRole(organization)
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
-    it("allows a project admin to list evaluation runs", async () => {
-      await createContextForRole("project_admin")
+    it("allows an evaluator to list evaluation runs", async () => {
+      await createContextForRole("project_member", "project_evaluator")
       expectResponse(await subject(), 200)
     })
   })
@@ -217,12 +225,12 @@ describe("EvaluationConversationRuns - Auth", () => {
       expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
     })
     it("requires a valid project ID", async () => {
-      await createContextForRole("project_owner")
+      await createContextForRole("project_owner", "project_evaluator")
       projectId = null
       expectResponse(await subject(), 404)
     })
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("project_owner")
+      await createContextForRole("project_owner", "project_evaluator")
       authSubject = "another-oidc-subject"
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
@@ -230,8 +238,12 @@ describe("EvaluationConversationRuns - Auth", () => {
       await createContextForRole("project_member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
-    it("allows a project admin to get an evaluation run", async () => {
+    it("doesn't allow a project admin who is not an evaluator to get an evaluation run", async () => {
       await createContextForRole("project_admin")
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("allows an evaluator to get an evaluation run", async () => {
+      await createContextForRole("project_member", "project_evaluator")
       expectResponse(await subject(), 200)
     })
   })
@@ -253,17 +265,21 @@ describe("EvaluationConversationRuns - Auth", () => {
       expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
     })
     it("requires a valid project ID", async () => {
-      await createContextForRole("project_owner")
+      await createContextForRole("project_owner", "project_evaluator")
       projectId = null
       expectResponse(await subject(), 404)
     })
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("project_owner")
+      await createContextForRole("project_owner", "project_evaluator")
       authSubject = "another-oidc-subject"
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to execute an evaluation run", async () => {
       await createContextForRole("project_member")
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("doesn't allow a project admin who is not an evaluator to execute an evaluation run", async () => {
+      await createContextForRole("project_admin")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
   })
@@ -285,17 +301,21 @@ describe("EvaluationConversationRuns - Auth", () => {
       expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
     })
     it("requires a valid project ID", async () => {
-      await createContextForRole("project_owner")
+      await createContextForRole("project_owner", "project_evaluator")
       projectId = null
       expectResponse(await subject(), 404)
     })
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("project_owner")
+      await createContextForRole("project_owner", "project_evaluator")
       authSubject = "another-oidc-subject"
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to retry an evaluation run", async () => {
       await createContextForRole("project_member")
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("doesn't allow a project admin who is not an evaluator to retry an evaluation run", async () => {
+      await createContextForRole("project_admin")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
   })
@@ -317,17 +337,21 @@ describe("EvaluationConversationRuns - Auth", () => {
       expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
     })
     it("requires a valid project ID", async () => {
-      await createContextForRole("project_owner")
+      await createContextForRole("project_owner", "project_evaluator")
       projectId = null
       expectResponse(await subject(), 404)
     })
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("project_owner")
+      await createContextForRole("project_owner", "project_evaluator")
       authSubject = "another-oidc-subject"
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to cancel an evaluation run", async () => {
       await createContextForRole("project_member")
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("doesn't allow a project admin who is not an evaluator to cancel an evaluation run", async () => {
+      await createContextForRole("project_admin")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
   })
@@ -347,7 +371,7 @@ describe("EvaluationConversationRuns - Auth", () => {
       expectResponse(await subject(), 401, AUTH_ERRORS.NO_ACCESS_TOKEN)
     })
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("project_owner")
+      await createContextForRole("project_owner", "project_evaluator")
       authSubject = "another-oidc-subject"
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
@@ -370,17 +394,21 @@ describe("EvaluationConversationRuns - Auth", () => {
       expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
     })
     it("requires a valid project ID", async () => {
-      await createContextForRole("project_owner")
+      await createContextForRole("project_owner", "project_evaluator")
       projectId = null
       expectResponse(await subject(), 404)
     })
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("project_owner")
+      await createContextForRole("project_owner", "project_evaluator")
       authSubject = "another-oidc-subject"
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
     it("doesn't allow a simple member to get evaluation run records", async () => {
       await createContextForRole("project_member")
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
+    it("doesn't allow a project admin who is not an evaluator to get evaluation run records", async () => {
+      await createContextForRole("project_admin")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
   })
@@ -402,12 +430,12 @@ describe("EvaluationConversationRuns - Auth", () => {
       expectResponse(await subject(), 400, AUTH_ERRORS.NO_ORGANIZATION_ID)
     })
     it("requires a valid project ID", async () => {
-      await createContextForRole("project_owner")
+      await createContextForRole("project_owner", "project_evaluator")
       projectId = null
       expectResponse(await subject(), 404)
     })
     it("requires the user to be a member of the organization", async () => {
-      await createContextForRole("project_owner")
+      await createContextForRole("project_owner", "project_evaluator")
       authSubject = "another-oidc-subject"
       expectResponse(await subject(), 401, AUTH_ERRORS.NOT_MEMBER_OF_ORG)
     })
@@ -415,13 +443,17 @@ describe("EvaluationConversationRuns - Auth", () => {
       await createContextForRole("project_member")
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
+    it("doesn't allow a project admin who is not an evaluator to delete an evaluation run", async () => {
+      await createContextForRole("project_admin")
+      expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
+    })
     it("doesn't allow an organization admin without a project role to delete an evaluation run", async () => {
-      const { organization } = await createContextForRole("project_owner")
+      const { organization } = await createContextForRole("project_owner", "project_evaluator")
       await switchToOrganizationAdminWithoutProjectRole(organization)
       expectResponse(await subject(), 403, AUTH_ERRORS.UNAUTHORIZED_RESOURCE)
     })
-    it("allows a project admin to delete an evaluation run", async () => {
-      await createContextForRole("project_admin")
+    it("allows an evaluator to delete an evaluation run", async () => {
+      await createContextForRole("project_member", "project_evaluator")
       expectResponse(await subject(), 200)
     })
   })

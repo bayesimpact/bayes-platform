@@ -264,7 +264,7 @@ describe("ProjectsService", () => {
 
       const result = await service.hasFeature({
         connectScope: { organizationId: organization.id, projectId: project.id },
-        feature: "evaluation",
+        feature: "sources-tool",
       })
 
       expect(result).toBe(false)

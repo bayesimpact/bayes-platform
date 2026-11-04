@@ -4,10 +4,7 @@ import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router-dom"
 import type { Agent } from "@/common/features/agents/agents.models"
 import { selectCanReviewConversationsOfAgent } from "@/common/features/me/me.selectors"
-import { selectCurrentProjectData } from "@/common/features/projects/projects.selectors"
 import { useAbility } from "@/common/hooks/use-ability"
-import { useFeatureFlags } from "@/common/hooks/use-feature-flags"
-import { useValue } from "@/common/hooks/use-value"
 import { DeskRoutes } from "@/common/routes/desk-routes"
 import { useAppSelector } from "@/common/store/hooks"
 import { EvalRoutes } from "@/eval/routes/helpers"
@@ -100,9 +97,8 @@ function NavEvaluation({
   projectId: string
 }) {
   const { t } = useTranslation()
-  const project = useValue(selectCurrentProjectData)
-  const { hasFeature } = useFeatureFlags(project)
-  if (!hasFeature("evaluation")) return null
+  const { abilities } = useAbility()
+  if (!abilities.canAccessEvaluation({ projectId })) return null
   const extractionPath = EvalRoutes.extraction.build({ organizationId, projectId })
   return (
     <Button variant="secondary" asChild>

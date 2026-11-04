@@ -64,13 +64,15 @@ describe("Agent Settings - Auth", () => {
     await app.close()
   })
 
-  const agentRoleForProjectRole: Record<ProjectRoleKey, AgentRoleKey> = {
+  type TestedProjectRoleKey = Exclude<ProjectRoleKey, "project_evaluator">
+
+  const agentRoleForProjectRole: Record<TestedProjectRoleKey, AgentRoleKey> = {
     project_owner: "agent_owner",
     project_admin: "agent_admin",
     project_member: "agent_member",
   }
 
-  const createContextForRole = async (role: ProjectRoleKey = "project_owner") => {
+  const createContextForRole = async (role: TestedProjectRoleKey = "project_owner") => {
     const { organization, project, agent } = await createOrganizationWithAgent(repositories, {
       user: { authSubject },
       organizationMembership: { roleKeys: ["org_member"] },
