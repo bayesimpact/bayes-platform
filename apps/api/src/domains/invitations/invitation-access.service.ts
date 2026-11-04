@@ -98,26 +98,15 @@ export class InvitationAccessService {
   }
 
   /**
-   * Whether the user already holds what the invitation would give. A project
-   * invitation for an admin makes an admin, so a person holding only `project_member`
-   * (who joined through an agent) can still be invited from the legacy flow, and becomes
-   * admin on accepting. For a member, any role on the project counts. On an agent, only a member role counts: a conversation reviewer
-   * grant alone does not.
+   * Whether the user already holds what an agent or campaign invitation would give. On an agent,
+   * only a member role counts: a conversation reviewer grant alone does not. A workspace
+   * invitation goes through `findWorkspaceAccess`, which also tells which agents are missing.
    */
   async hasAccess(params: { target: InvitationAccessTarget; userId: string }): Promise<boolean> {
     const { target, userId } = params
     switch (target.targetType) {
-      case "project": {
-        const membership = await this.projectMembershipsService.findProjectMembership({
-          userId,
-          projectId: target.targetId,
-        })
-        if (target.role === "member") return Boolean(membership)
-        return Boolean(
-          membership &&
-            (hasRole(membership, PROJECT_ROLES.admin) || hasRole(membership, PROJECT_ROLES.owner)),
-        )
-      }
+      case "project":
+        throw new Error("A workspace invitation checks access with findWorkspaceAccess")
       case "agent":
         return Boolean(
           await this.agentMembershipsService.findAgentMembership({
