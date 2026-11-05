@@ -3,6 +3,7 @@ import {
   createAppManifestSchema,
   groupAppGrantablePermissions,
 } from "@caseai-connect/api-contracts"
+import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
 import { Checkbox } from "@caseai-connect/ui/shad/checkbox"
 import {
@@ -28,7 +29,7 @@ import { Textarea } from "@caseai-connect/ui/shad/textarea"
 import { cn } from "@caseai-connect/ui/utils"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { type ColumnDef, getCoreRowModel, useReactTable } from "@tanstack/react-table"
-import { PencilIcon, PlusIcon, Trash2Icon } from "lucide-react"
+import { CheckIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react"
 import { useMemo, useState } from "react"
 import { useForm } from "react-hook-form"
 import type { z } from "zod"
@@ -116,6 +117,28 @@ function WithData() {
             </div>
           </div>
         ),
+      },
+      {
+        accessorKey: "listedInCatalog",
+        header: () => "Apps catalog",
+        meta: { cellClassName: "align-top" } satisfies DataTableColumnMeta,
+        cell: ({ row }) => {
+          if (!row.original.listedInCatalog) {
+            return <span className="text-sm text-muted-foreground">Not listed</span>
+          }
+          return (
+            <div className="flex flex-col items-start gap-1">
+              <Badge variant="secondary">
+                <CheckIcon />
+                Listed
+              </Badge>
+              {/* Listed without an app URL, the card shows the instructions and no link. */}
+              {!row.original.appUrl && (
+                <span className="text-xs text-muted-foreground">No app URL</span>
+              )}
+            </div>
+          )
+        },
       },
       {
         accessorKey: "grantablePermissions",
