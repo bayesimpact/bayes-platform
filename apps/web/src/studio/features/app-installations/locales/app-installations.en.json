@@ -16,6 +16,15 @@
     "notifications": {
       "revoked": "App revoked",
       "revokeError": "Could not revoke the app"
+    },
+    "permissions": {
+      "button_one": "{{count}} permission",
+      "button_other": "{{count}} permissions",
+      "title": "Permissions of {{name}}",
+      "description": {
+        "requested": "What {{name}} asks for when someone connects it. The person who connects it chooses what to grant.",
+        "granted": "What {{name}} can do on this project."
+      }
     }
   }
 }

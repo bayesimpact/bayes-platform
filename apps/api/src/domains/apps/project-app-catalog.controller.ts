@@ -46,6 +46,7 @@ function toAppCatalogEntryDto(entry: AppCatalogEntry): AppCatalogEntryDto {
     logoUrl: entry.logoUrl,
     appUrl: entry.appUrl,
     installInstructions: entry.installInstructions,
+    grantablePermissions: entry.grantablePermissions as AppCatalogEntryDto["grantablePermissions"],
     installed: entry.installed,
   }
 }

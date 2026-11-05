@@ -4,6 +4,7 @@ import { CheckIcon, ExternalLinkIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { GridCard } from "@/common/components/grid/Grid"
 import { AppLogo } from "@/studio/features/app-installations/components/AppInstallationItem"
+import { AppPermissionsButton } from "@/studio/features/app-installations/components/AppPermissionsButton"
 import type { AppCatalogEntry } from "../app-catalog.models"
 
 /** Without `canInstall`, the card leaves out the link to the app: installing it would fail. */
@@ -15,6 +16,7 @@ export function AppCatalogItem({
   canInstall: boolean
 }) {
   const { t } = useTranslation()
+  const appLink = !entry.installed && canInstall ? entry.appUrl : null
 
   return (
     <GridCard className="justify-start">
@@ -39,13 +41,24 @@ export function AppCatalogItem({
             {entry.installInstructions}
           </p>
         )}
-        {!entry.installed && canInstall && entry.appUrl && (
-          <Button variant="outline" size="sm" className="mt-4 self-start" asChild>
-            <a href={entry.appUrl} target="_blank" rel="noopener noreferrer">
-              {t("appCatalog:openApp")}
-              <ExternalLinkIcon />
-            </a>
-          </Button>
+        {(appLink || entry.grantablePermissions.length > 0) && (
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            {entry.grantablePermissions.length > 0 && (
+              <AppPermissionsButton
+                appName={entry.name}
+                permissions={entry.grantablePermissions}
+                kind="requested"
+              />
+            )}
+            {appLink && (
+              <Button variant="outline" size="sm" asChild>
+                <a href={appLink} target="_blank" rel="noopener noreferrer">
+                  {t("appCatalog:openApp")}
+                  <ExternalLinkIcon />
+                </a>
+              </Button>
+            )}
+          </div>
         )}
       </GridCard.Body>
     </GridCard>

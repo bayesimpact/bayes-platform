@@ -179,6 +179,8 @@ export type AppCatalogEntryDto = {
   logoUrl: string | null
   appUrl: string | null
   installInstructions: string | null
+  /** What the app may ask for when someone installs it. */
+  grantablePermissions: AppGrantablePermission[]
   /** An active installation of the app exists on the project. */
   installed: boolean
 }

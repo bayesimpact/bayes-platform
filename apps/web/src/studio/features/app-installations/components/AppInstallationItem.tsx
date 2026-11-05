@@ -1,4 +1,3 @@
-import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -6,6 +5,7 @@ import { ConfirmDialog } from "@/common/components/ConfirmDialog"
 import { GridCard } from "@/common/components/grid/Grid"
 import { buildDate } from "@/common/utils/build-date"
 import type { AppInstallation } from "../app-installations.models"
+import { AppPermissionsButton } from "./AppPermissionsButton"
 
 /** Without `onRevoke`, the caller cannot revoke and the card shows no button. */
 export function AppInstallationItem({
@@ -38,36 +38,24 @@ export function AppInstallationItem({
               {appInstallation.description}
             </GridCard.Description>
           )}
-          <div className="mt-4 flex flex-wrap gap-1.5">
+          <div className="mt-4 flex flex-wrap items-center gap-2">
             {appInstallation.permissions.length === 0 ? (
               <span className="text-sm text-muted-foreground">
                 {t("appInstallations:noPermissions")}
               </span>
             ) : (
-              appInstallation.permissions.map((permission) => (
-                <Badge
-                  key={permission}
-                  variant="secondary"
-                  title={permission}
-                  className="h-auto max-w-full whitespace-normal rounded-md text-left"
-                >
-                  {t(`oauthConsent:appPermission.${permission.replaceAll(".", "_")}.name`, {
-                    defaultValue: permission,
-                  })}
-                </Badge>
-              ))
+              <AppPermissionsButton
+                appName={appInstallation.appName}
+                permissions={appInstallation.permissions}
+                kind="granted"
+              />
+            )}
+            {onRevoke && (
+              <Button variant="outline" size="sm" onClick={() => setIsConfirmingRevoke(true)}>
+                {t("appInstallations:revoke.action")}
+              </Button>
             )}
           </div>
-          {onRevoke && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-4"
-              onClick={() => setIsConfirmingRevoke(true)}
-            >
-              {t("appInstallations:revoke.action")}
-            </Button>
-          )}
         </GridCard.Body>
       </GridCard>
 

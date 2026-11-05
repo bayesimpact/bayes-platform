@@ -4,6 +4,7 @@ import {
   PROJECT_APP_INSTALLATION_REVOKE_PERMISSION,
 } from "@caseai-connect/api-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
+import { userEvent, within } from "storybook/test"
 import type { Project } from "@/common/features/projects/projects.models"
 import { buildDecorator, render } from "@/stories/decorators"
 import {
@@ -66,6 +67,7 @@ function buildEntries(project: Project, withInstalledApp: boolean): AppCatalogEn
       description: "Answers questions from the project's documents in a chat window.",
       appUrl: "https://assistant.example.com",
       installInstructions: "Open the app, sign in with your account and pick this project.",
+      grantablePermissions: ["project.read", "document.read", "document_tag.read", "agent.read"],
       installed: withInstalledApp,
     }),
     appCatalogEntryFactory.transient({ project }).build({
@@ -74,12 +76,20 @@ function buildEntries(project: Project, withInstalledApp: boolean): AppCatalogEn
       appUrl: null,
       installInstructions:
         "Access to this app is not open yet. Ask the Bayes team to set it up for you.",
+      grantablePermissions: [
+        "document.read",
+        "document.create",
+        "document.update",
+        "document_source.read",
+        "document_source.create",
+      ],
     }),
     appCatalogEntryFactory.transient({ project }).build({
       name: "Support Inbox",
       description: null,
       appUrl: null,
       installInstructions: null,
+      grantablePermissions: [],
     }),
   ]
 }
@@ -108,6 +118,13 @@ function studioState({ withApps, withInstalledApp, canInstall, ...args }: StoryA
   }
 }
 
+/** Opens the permissions of the first app, the way someone clicks its button. */
+const openFirstPermissions = async (canvasElement: HTMLElement) => {
+  const canvas = within(canvasElement)
+  const [button] = await canvas.findAllByRole("button", { name: /permissions?$/ })
+  if (button) await userEvent.click(button)
+}
+
 export const NotInstalled: Story = {
   decorators: [buildDecorator<StoryArgs>((args) => studioState(args))],
 }
@@ -130,4 +147,11 @@ export const MemberWithoutInstallRights: Story = {
 export const FlagOff: Story = {
   args: { featureFlags: studioStoryArgs.featureFlags },
   decorators: [buildDecorator<StoryArgs>((args) => studioState(args))],
+}
+
+export const PermissionsDialog: Story = {
+  decorators: [buildDecorator<StoryArgs>((args) => studioState(args))],
+  play: async ({ canvasElement }) => {
+    await openFirstPermissions(canvasElement)
+  },
 }

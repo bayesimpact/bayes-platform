@@ -20,5 +20,6 @@ const toAppCatalogEntry = (dto: AppCatalogEntryDto): AppCatalogEntry => ({
   logoUrl: dto.logoUrl,
   appUrl: dto.appUrl,
   installInstructions: dto.installInstructions,
+  grantablePermissions: dto.grantablePermissions,
   installed: dto.installed,
 })

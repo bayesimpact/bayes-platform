@@ -27,6 +27,11 @@ export const appCatalogEntryFactory = AppCatalogEntryFactory.define(
         params.installInstructions !== undefined
           ? params.installInstructions
           : faker.lorem.sentence(),
+      grantablePermissions: params.grantablePermissions ?? [
+        "document.read",
+        "document.create",
+        "project.read",
+      ],
       installed: params.installed ?? false,
     }
   },

@@ -136,6 +136,7 @@ describe("Apps - project app catalog", () => {
       listedInCatalog: true,
       appUrl: "https://crawler.example.com",
       installInstructions: "Ask the Bayes team to open your access.",
+      grantablePermissions: ["document.read", "project.read"],
     })
     const assistant = await saveManifest({ name: "Helpful Assistant", listedInCatalog: true })
     const revoked = await saveManifest({ name: "Messaging Channel", listedInCatalog: true })
@@ -166,6 +167,7 @@ describe("Apps - project app catalog", () => {
         logoUrl: null,
         appUrl: "https://crawler.example.com",
         installInstructions: "Ask the Bayes team to open your access.",
+        grantablePermissions: ["document.read", "project.read"],
         installed: true,
       },
     ])

@@ -3,6 +3,7 @@ import {
   PROJECT_APP_INSTALLATION_REVOKE_PERMISSION,
 } from "@caseai-connect/api-contracts"
 import type { Meta, StoryObj } from "@storybook/react-vite"
+import { userEvent, within } from "storybook/test"
 import { buildDecorator, render } from "@/stories/decorators"
 import {
   buildStudioData,
@@ -96,6 +97,13 @@ function studioState({ withApps, canRevoke, withCatalogFlag, ...args }: StoryArg
   }
 }
 
+/** Opens the permissions of the first app, the way someone clicks its button. */
+const openFirstPermissions = async (canvasElement: HTMLElement) => {
+  const canvas = within(canvasElement)
+  const [button] = await canvas.findAllByRole("button", { name: /permissions?$/ })
+  if (button) await userEvent.click(button)
+}
+
 export const Empty: Story = {
   decorators: [buildDecorator<StoryArgs>((args) => studioState(args))],
 }
@@ -108,4 +116,12 @@ export const WithApps: Story = {
 export const WithCatalogButton: Story = {
   args: { withApps: true, withCatalogFlag: true },
   decorators: [buildDecorator<StoryArgs>((args) => studioState(args))],
+}
+
+export const PermissionsDialog: Story = {
+  args: { withApps: true },
+  decorators: [buildDecorator<StoryArgs>((args) => studioState(args))],
+  play: async ({ canvasElement }) => {
+    await openFirstPermissions(canvasElement)
+  },
 }
