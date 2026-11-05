@@ -52,6 +52,9 @@ export class AppsController {
       logoUrl: body.payload.logoUrl ?? null,
       grantablePermissions: body.payload.grantablePermissions,
       allowedRedirectUris: body.payload.allowedRedirectUris ?? [],
+      appUrl: body.payload.appUrl ?? null,
+      listedInCatalog: body.payload.listedInCatalog ?? false,
+      installInstructions: body.payload.installInstructions ?? null,
     })
     return { data: toAppManifestDto(manifest) }
   }
@@ -91,6 +94,9 @@ function toAppManifestDto(manifest: AppManifestRecord): AppManifestDto {
     logoUrl: manifest.logoUrl,
     grantablePermissions: manifest.grantablePermissions as AppManifestDto["grantablePermissions"],
     allowedRedirectUris: manifest.allowedRedirectUris,
+    appUrl: manifest.appUrl,
+    listedInCatalog: manifest.listedInCatalog,
+    installInstructions: manifest.installInstructions,
     createdAt: manifest.createdAt.getTime(),
   }
 }

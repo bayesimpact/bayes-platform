@@ -23,6 +23,7 @@ import type { IAgentMessageFeedbackSpi } from "@/studio/features/agent-message-f
 import type { IAgentSubAgentsSpi } from "@/studio/features/agent-sub-agents/agent-sub-agents.spi"
 import type { IAgentAnalyticsSpi } from "@/studio/features/analytics/agent/agent-analytics.spi"
 import type { IProjectAnalyticsSpi } from "@/studio/features/analytics/project/analytics.spi"
+import type { IAppCatalogSpi } from "@/studio/features/app-catalog/app-catalog.spi"
 import type { IAppInstallationsSpi } from "@/studio/features/app-installations/app-installations.spi"
 import type { IConversationReviewSpi } from "@/studio/features/conversation-review/conversation-review.spi"
 import type { IDocumentSourcesSpi } from "@/studio/features/document-sources/document-sources.spi"
@@ -61,6 +62,7 @@ export type Services = {
   evaluationExtractionRuns: IEvaluationExtractionRunsSpi
   extractionAgentSessions: IExtractionAgentSessionsSpi
   mcpServers: IMcpServersSpi
+  appCatalog: IAppCatalogSpi
   appInstallations: IAppInstallationsSpi
   me: IMeSpi
   oauthConsent: IOAuthConsentSpi

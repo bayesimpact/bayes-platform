@@ -16,6 +16,10 @@
     "notifications": {
       "revoked": "App révoquée",
       "revokeError": "Impossible de révoquer l'app"
+    },
+    "permissions": {
+      "menuItem_one": "Voir la permission",
+      "menuItem_other": "Voir les {{count}} permissions"
     }
   }
 }

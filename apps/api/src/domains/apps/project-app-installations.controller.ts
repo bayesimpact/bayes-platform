@@ -67,6 +67,7 @@ function toAppInstallationSummaryDto(
     appName: installation.appName,
     description: installation.description,
     logoUrl: installation.logoUrl,
+    appUrl: installation.appUrl,
     permissions: installation.permissions,
     createdAt: installation.createdAt.getTime(),
   }
