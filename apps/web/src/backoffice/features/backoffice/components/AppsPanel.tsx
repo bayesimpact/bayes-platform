@@ -122,7 +122,7 @@ function WithData() {
       {
         accessorKey: "listedInCatalog",
         header: () => "Apps catalog",
-        meta: { cellClassName: "align-top" } satisfies DataTableColumnMeta,
+        meta: { cellClassName: "align-middle" } satisfies DataTableColumnMeta,
         cell: ({ row }) => {
           if (!row.original.listedInCatalog) {
             return <span className="text-sm text-muted-foreground">Not listed</span>
