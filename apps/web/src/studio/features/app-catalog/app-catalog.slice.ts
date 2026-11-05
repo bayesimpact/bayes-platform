@@ -16,7 +16,8 @@ const slice = createSlice({
   initialState,
   reducers: {
     mount: () => {},
-    unmount: () => {},
+    // Leaving the page or switching project drops the entries: their `installed` marks belong to one project.
+    unmount: () => initialState,
     reset: () => initialState,
   },
   extraReducers: (builder) => {

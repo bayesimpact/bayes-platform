@@ -15,13 +15,18 @@ import { AppPermissionsDialog } from "@/common/features/oauth-consent/components
 import { buildDate } from "@/common/utils/build-date"
 import type { AppInstallation } from "../app-installations.models"
 
-/** Without `onRevoke`, the caller cannot revoke and the card menu has no revoke item. */
+/**
+ * Without `onRevoke`, the caller cannot revoke and the card menu has no revoke item.
+ * `showAppUrl` follows the apps-catalog flag: without it, the card has no link to the app.
+ */
 export function AppInstallationItem({
   appInstallation,
   onRevoke,
+  showAppUrl = false,
 }: {
   appInstallation: AppInstallation
   onRevoke?: (appInstallationId: string) => void
+  showAppUrl?: boolean
 }) {
   const { t } = useTranslation()
   const [isConfirmingRevoke, setIsConfirmingRevoke] = useState(false)
@@ -48,7 +53,7 @@ export function AppInstallationItem({
               {appInstallation.description}
             </GridCard.Description>
           )}
-          {appInstallation.appUrl && (
+          {showAppUrl && appInstallation.appUrl && (
             <Button variant="outline" size="sm" className="mt-4 self-start" asChild>
               <a href={appInstallation.appUrl} target="_blank" rel="noopener noreferrer">
                 {t("appCatalog:openApp")}

@@ -12,7 +12,10 @@ import { Grid, GridCard, GridContent, GridHeader } from "@/common/components/gri
 import type { AppInstallation } from "../app-installations.models"
 import { AppInstallationItem } from "./AppInstallationItem"
 
-/** Without `onBrowseCatalog`, the header shows no button to the apps catalog. */
+/**
+ * Without `onBrowseCatalog`, the apps catalog is off for the project: the header has no button to
+ * it, and the cards have no link to their app.
+ */
 export function AppInstallationsList({
   appInstallations,
   onBack,
@@ -60,6 +63,7 @@ export function AppInstallationsList({
               key={appInstallation.id}
               appInstallation={appInstallation}
               onRevoke={onRevoke}
+              showAppUrl={!!onBrowseCatalog}
             />
           ))
         )}
