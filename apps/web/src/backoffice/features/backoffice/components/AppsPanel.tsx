@@ -107,7 +107,8 @@ function WithData() {
       {
         accessorKey: "name",
         header: () => "App",
-        meta: { cellClassName: "align-top" } satisfies DataTableColumnMeta,
+        // The permissions column takes the free width: without a minimum, the name gets squeezed.
+        meta: { className: "min-w-72", cellClassName: "align-top" } satisfies DataTableColumnMeta,
         cell: ({ row }) => (
           <div className="flex items-center gap-3">
             <AppLogo src={row.original.logoUrl} />
