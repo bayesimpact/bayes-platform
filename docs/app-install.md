@@ -18,6 +18,13 @@ API paths below include the private API prefix `/api`.
 1. Create the manifest in the back-office, with its grantable permissions and redirect URIs (exact `https` URLs; loopback `http` is always accepted for local development).
 2. Create the client secret: `POST /api/backoffice/apps/:appManifestId/oauth-client/secret` returns `{ clientId, clientSecret }`. The secret is shown once and stored hashed. Calling it again replaces the secret, and the previous one stops working at once.
 3. Configure the app with the issuer `{API}/api/oauth`. Its metadata is at `{API}/.well-known/oauth-authorization-server/api/oauth`.
+4. To show the app in the studio's apps catalog, set its app URL (where installation starts, `https` or loopback `http`), its install instructions, and turn on "Listed in the apps catalog".
+
+## Apps catalog
+
+Behind the `apps-catalog` feature flag, the studio lists the manifests that are listed in the catalog, from a button on "Connected apps". `GET /api/organizations/:organizationId/projects/:projectId/app-catalog` returns them for any project member (`project.read`), each with whether it is installed on the project, and answers 403 when the project lacks the flag.
+
+Each card shows the app's install instructions and links to its app URL. The install still starts from the app: the studio does not open `/oauth/authorize` itself. A person without `project.app_installation.create` sees the catalog without the links and is told to ask a project owner or admin. For an app whose login is not open to everyone yet, leave its app URL empty and say in the instructions who to ask.
 
 ## Install flow
 
@@ -92,5 +99,6 @@ Apps used to install through a flow of their own ([ADR 0024](adr/0024-conversati
 | --- | --- |
 | Contracts | `packages/api-contracts/src/oauth/`, `packages/api-contracts/src/apps/` |
 | Authorization server | `apps/api/src/domains/oauth/` |
-| Installations, service users, apps API guard | `apps/api/src/domains/apps/` |
+| Installations, service users, apps API guard, apps catalog | `apps/api/src/domains/apps/` |
+| Studio apps catalog | `apps/web/src/studio/features/app-catalog/` |
 | E2E | `apps/api/src/domains/oauth/e2e-tests/app-install.spec.ts` |

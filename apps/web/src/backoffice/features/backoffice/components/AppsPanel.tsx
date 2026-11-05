@@ -23,6 +23,7 @@ import {
   FormMessage,
 } from "@caseai-connect/ui/shad/form"
 import { Input } from "@caseai-connect/ui/shad/input"
+import { Switch } from "@caseai-connect/ui/shad/switch"
 import { Textarea } from "@caseai-connect/ui/shad/textarea"
 import { cn } from "@caseai-connect/ui/utils"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -58,6 +59,9 @@ const emptyFormValues: ManifestFormValues = {
   logoUrl: "",
   grantablePermissions: [],
   allowedRedirectUris: [],
+  appUrl: "",
+  listedInCatalog: false,
+  installInstructions: "",
 }
 
 export function AppsPanel() {
@@ -230,6 +234,9 @@ function AppManifestFormDialog({
           logoUrl: manifest.logoUrl ?? "",
           grantablePermissions: manifest.grantablePermissions,
           allowedRedirectUris: manifest.allowedRedirectUris,
+          appUrl: manifest.appUrl ?? "",
+          listedInCatalog: manifest.listedInCatalog,
+          installInstructions: manifest.installInstructions ?? "",
         }
       : emptyFormValues,
   })
@@ -358,6 +365,66 @@ function AppManifestFormDialog({
                       Exact match (scheme, host, path). One URL per line. HTTPS only. Loopback URLs
                       (localhost, *.localhost, 127.0.0.1) work for local installs without being
                       listed; register staging and production callbacks here.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="appUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>App URL</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="https://app.example.com"
+                        value={field.value ?? ""}
+                        onChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Where installation starts: the studio's apps catalog links to it. HTTPS only,
+                      or a loopback URL for local development.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="listedInCatalog"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between gap-4 rounded-md border p-3">
+                    <div className="flex flex-col gap-1">
+                      <FormLabel>Listed in the apps catalog</FormLabel>
+                      <FormDescription>
+                        Shown to the projects that have the apps-catalog feature flag.
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch checked={field.value ?? false} onCheckedChange={field.onChange} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="installInstructions"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Install instructions</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Open the app and sign in, or ask the Bayes team for access."
+                        rows={3}
+                        value={field.value ?? ""}
+                        onChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Shown on the app's catalog card. Say here when people have to ask the Bayes
+                      team first.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

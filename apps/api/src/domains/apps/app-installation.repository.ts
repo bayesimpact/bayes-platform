@@ -61,6 +61,14 @@ export class AppInstallationRepository {
     return installation ? this.toRecord(installation) : null
   }
 
+  async listActiveManifestIdsByProjectId(projectId: string): Promise<string[]> {
+    const installations = await this.repo().find({
+      select: { appManifestId: true },
+      where: { projectId, status: APP_INSTALLATION_STATUS_ACTIVE },
+    })
+    return installations.map((installation) => installation.appManifestId)
+  }
+
   async listActiveByProjectId(projectId: string): Promise<ListedAppInstallation[]> {
     const installations = await this.repo().find({
       where: { projectId, status: APP_INSTALLATION_STATUS_ACTIVE },

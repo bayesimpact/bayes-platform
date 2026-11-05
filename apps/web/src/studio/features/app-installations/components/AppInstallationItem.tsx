@@ -90,7 +90,7 @@ export function AppInstallationItem({
   )
 }
 
-function AppLogo({ appName, logoUrl }: { appName: string; logoUrl: string | null }) {
+export function AppLogo({ appName, logoUrl }: { appName: string; logoUrl: string | null }) {
   if (logoUrl) {
     return (
       <img

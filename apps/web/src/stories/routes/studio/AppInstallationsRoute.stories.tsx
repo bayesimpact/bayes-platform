@@ -20,6 +20,7 @@ import { studioRoutes } from "@/studio/routes/StudioRoutes"
 type StoryArgs = StudioStoryArgs & {
   withApps?: boolean
   canRevoke?: boolean
+  withCatalogFlag?: boolean
 }
 
 function buildMockAppInstallationsService(
@@ -41,11 +42,13 @@ const meta = {
     ...studioStoryArgTypes,
     withApps: { control: "boolean" },
     canRevoke: { control: "boolean" },
+    withCatalogFlag: { control: "boolean" },
   },
   args: {
     ...studioStoryArgs,
     withApps: false,
     canRevoke: true,
+    withCatalogFlag: false,
   },
   render: render({ routes: studioRoutes, path: StudioRoutes.appInstallations.path }),
 } satisfies Meta<StoryArgs>
@@ -53,10 +56,14 @@ const meta = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-function studioState({ withApps, canRevoke, ...args }: StoryArgs) {
-  const { baseSeeds, project } = buildStudioData(args)
+function studioState({ withApps, canRevoke, withCatalogFlag, ...args }: StoryArgs) {
+  const featureFlags = withCatalogFlag
+    ? [...(args.featureFlags ?? []), "apps-catalog" as const]
+    : args.featureFlags
+  const { baseSeeds, project } = buildStudioData({ ...args, featureFlags })
   const readableProject = {
     ...project,
+    featureFlags: featureFlags ?? project.featureFlags,
     permissions: canRevoke
       ? [PROJECT_APP_INSTALLATION_READ_PERMISSION, PROJECT_APP_INSTALLATION_REVOKE_PERMISSION]
       : [PROJECT_APP_INSTALLATION_READ_PERMISSION],
@@ -95,5 +102,10 @@ export const Empty: Story = {
 
 export const WithApps: Story = {
   args: { withApps: true },
+  decorators: [buildDecorator<StoryArgs>((args) => studioState(args))],
+}
+
+export const WithCatalogButton: Story = {
+  args: { withApps: true, withCatalogFlag: true },
   decorators: [buildDecorator<StoryArgs>((args) => studioState(args))],
 }
