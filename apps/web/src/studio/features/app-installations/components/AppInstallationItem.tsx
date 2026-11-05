@@ -3,19 +3,20 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@caseai-connect/ui/shad/dropdown-menu"
 import { cn } from "@caseai-connect/ui/utils"
-import { EllipsisVerticalIcon, UnplugIcon } from "lucide-react"
+import { EllipsisVerticalIcon, ShieldCheckIcon, UnplugIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { ConfirmDialog } from "@/common/components/ConfirmDialog"
 import { GridCard } from "@/common/components/grid/Grid"
 import { buildDate } from "@/common/utils/build-date"
 import type { AppInstallation } from "../app-installations.models"
-import { AppPermissionsButton } from "./AppPermissionsButton"
+import { AppPermissionsDialog } from "./AppPermissionsButton"
 
-/** Without `onRevoke`, the caller cannot revoke and the card shows no menu. */
+/** Without `onRevoke`, the caller cannot revoke and the card menu has no revoke item. */
 export function AppInstallationItem({
   appInstallation,
   onRevoke,
@@ -25,12 +26,15 @@ export function AppInstallationItem({
 }) {
   const { t } = useTranslation()
   const [isConfirmingRevoke, setIsConfirmingRevoke] = useState(false)
+  const [isShowingPermissions, setIsShowingPermissions] = useState(false)
+  const hasPermissions = appInstallation.permissions.length > 0
+  const hasMenu = hasPermissions || !!onRevoke
 
   return (
     <>
       <GridCard className="justify-start">
         <GridCard.Body>
-          <div className={cn("flex items-center gap-3", onRevoke && "pr-8")}>
+          <div className={cn("flex items-center gap-3", hasMenu && "pr-8")}>
             <AppLogo appName={appInstallation.appName} logoUrl={appInstallation.logoUrl} />
             <div className="flex min-w-0 flex-col">
               <GridCard.Title className="truncate">{appInstallation.appName}</GridCard.Title>
@@ -46,21 +50,13 @@ export function AppInstallationItem({
               {appInstallation.description}
             </GridCard.Description>
           )}
-          <div className="mt-4">
-            {appInstallation.permissions.length === 0 ? (
-              <span className="text-sm text-muted-foreground">
-                {t("appInstallations:noPermissions")}
-              </span>
-            ) : (
-              <AppPermissionsButton
-                appName={appInstallation.appName}
-                permissions={appInstallation.permissions}
-                kind="granted"
-              />
-            )}
-          </div>
+          {!hasPermissions && (
+            <span className="mt-4 text-sm text-muted-foreground">
+              {t("appInstallations:noPermissions")}
+            </span>
+          )}
         </GridCard.Body>
-        {onRevoke && (
+        {hasMenu && (
           <GridCard.TopAction>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -74,18 +70,39 @@ export function AppInstallationItem({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  variant="destructive"
-                  onSelect={() => setIsConfirmingRevoke(true)}
-                >
-                  <UnplugIcon className="size-4" />
-                  {t("appInstallations:revoke.action")}
-                </DropdownMenuItem>
+                {hasPermissions && (
+                  <DropdownMenuItem onSelect={() => setIsShowingPermissions(true)}>
+                    <ShieldCheckIcon className="size-4" />
+                    {t("appInstallations:permissions.menuItem", {
+                      count: appInstallation.permissions.length,
+                    })}
+                  </DropdownMenuItem>
+                )}
+                {hasPermissions && onRevoke && <DropdownMenuSeparator />}
+                {onRevoke && (
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onSelect={() => setIsConfirmingRevoke(true)}
+                  >
+                    <UnplugIcon className="size-4" />
+                    {t("appInstallations:revoke.action")}
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </GridCard.TopAction>
         )}
       </GridCard>
+
+      {hasPermissions && (
+        <AppPermissionsDialog
+          appName={appInstallation.appName}
+          permissions={appInstallation.permissions}
+          kind="granted"
+          open={isShowingPermissions}
+          onOpenChange={setIsShowingPermissions}
+        />
+      )}
 
       {onRevoke && (
         <ConfirmDialog

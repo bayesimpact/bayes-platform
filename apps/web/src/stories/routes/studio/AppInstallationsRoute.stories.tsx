@@ -97,11 +97,16 @@ function studioState({ withApps, canRevoke, withCatalogFlag, ...args }: StoryArg
   }
 }
 
-/** Opens the permissions of the first app, the way someone clicks its button. */
-const openFirstPermissions = async (canvasElement: HTMLElement) => {
+/**
+ * Opens the menu of the first app. The menu opens on pointerdown, which a simulated click does
+ * not send, so it opens from the keyboard, with its first item focused.
+ */
+const openFirstMenu = async (canvasElement: HTMLElement) => {
   const canvas = within(canvasElement)
-  const [button] = await canvas.findAllByRole("button", { name: /permissions?$/ })
-  if (button) await userEvent.click(button)
+  const [menuButton] = await canvas.findAllByRole("button", { name: /^(More|Plus)$/ })
+  if (!menuButton) return
+  menuButton.focus()
+  await userEvent.keyboard("{Enter}")
 }
 
 export const Empty: Story = {
@@ -122,19 +127,25 @@ export const PermissionsDialog: Story = {
   args: { withApps: true },
   decorators: [buildDecorator<StoryArgs>((args) => studioState(args))],
   play: async ({ canvasElement }) => {
-    await openFirstPermissions(canvasElement)
+    await openFirstMenu(canvasElement)
+    // The permissions item comes first in the menu, so it holds the focus.
+    await userEvent.keyboard("{Enter}")
   },
 }
 
-export const RevokeMenu: Story = {
+export const ActionsMenu: Story = {
   args: { withApps: true },
   decorators: [buildDecorator<StoryArgs>((args) => studioState(args))],
   play: async ({ canvasElement }) => {
-    const canvas = within(canvasElement)
-    const [menuButton] = await canvas.findAllByRole("button", { name: /^(More|Plus)$/ })
-    // The menu opens on pointerdown, which a simulated click does not send: open it from the keyboard.
-    if (!menuButton) return
-    menuButton.focus()
-    await userEvent.keyboard("{Enter}")
+    await openFirstMenu(canvasElement)
+  },
+}
+
+/** Who cannot revoke still opens the menu, to see the permissions. */
+export const ActionsMenuWithoutRevokeRights: Story = {
+  args: { withApps: true, canRevoke: false },
+  decorators: [buildDecorator<StoryArgs>((args) => studioState(args))],
+  play: async ({ canvasElement }) => {
+    await openFirstMenu(canvasElement)
   },
 }

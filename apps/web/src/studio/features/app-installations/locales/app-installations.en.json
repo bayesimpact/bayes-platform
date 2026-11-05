@@ -20,6 +20,8 @@
     "permissions": {
       "button_one": "{{count}} permission",
       "button_other": "{{count}} permissions",
+      "menuItem_one": "View the permission",
+      "menuItem_other": "View the {{count}} permissions",
       "title": "Permissions of {{name}}",
       "description": {
         "requested": "What {{name}} asks for when someone connects it. The person who connects it chooses what to grant.",
