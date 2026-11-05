@@ -11,9 +11,9 @@ import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { ConfirmDialog } from "@/common/components/ConfirmDialog"
 import { GridCard } from "@/common/components/grid/Grid"
+import { AppPermissionsDialog } from "@/common/features/oauth-consent/components/AppPermissionsDialog"
 import { buildDate } from "@/common/utils/build-date"
 import type { AppInstallation } from "../app-installations.models"
-import { AppPermissionsDialog } from "./AppPermissionsButton"
 
 /** Without `onRevoke`, the caller cannot revoke and the card menu has no revoke item. */
 export function AppInstallationItem({

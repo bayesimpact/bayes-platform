@@ -3,8 +3,8 @@ import { Button } from "@caseai-connect/ui/shad/button"
 import { CheckIcon, ExternalLinkIcon } from "lucide-react"
 import { useTranslation } from "react-i18next"
 import { GridCard } from "@/common/components/grid/Grid"
+import { AppPermissionsButton } from "@/common/features/oauth-consent/components/AppPermissionsDialog"
 import { AppLogo } from "@/studio/features/app-installations/components/AppInstallationItem"
-import { AppPermissionsButton } from "@/studio/features/app-installations/components/AppPermissionsButton"
 import type { AppCatalogEntry } from "../app-catalog.models"
 
 /** Without `canInstall`, the card leaves out the link to the app: installing it would fail. */

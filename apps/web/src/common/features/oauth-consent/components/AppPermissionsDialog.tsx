@@ -18,7 +18,7 @@ import {
 import { ShieldCheckIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
-import { AppPermissionIcon } from "@/common/features/oauth-consent/components/AppPermissionIcon"
+import { AppPermissionIcon } from "./AppPermissionIcon"
 
 type AppPermissionsProps = {
   appName: string
@@ -36,7 +36,7 @@ export function AppPermissionsButton(props: AppPermissionsProps) {
     <>
       <Button variant="outline" size="sm" className="self-start" onClick={() => setIsOpen(true)}>
         <ShieldCheckIcon />
-        {t("appInstallations:permissions.button", { count: props.permissions.length })}
+        {t("oauthConsent:appPermissionsDialog.button", { count: props.permissions.length })}
       </Button>
       <AppPermissionsDialog {...props} open={isOpen} onOpenChange={setIsOpen} />
     </>
@@ -58,9 +58,11 @@ export function AppPermissionsDialog({
       {/* Only the list scrolls: the title and the close button stay in view. */}
       <DialogContent className="flex max-h-[85vh] flex-col gap-0 p-0">
         <DialogHeader className="border-b p-6 pr-12">
-          <DialogTitle>{t("appInstallations:permissions.title", { name: appName })}</DialogTitle>
+          <DialogTitle>
+            {t("oauthConsent:appPermissionsDialog.title", { name: appName })}
+          </DialogTitle>
           <DialogDescription>
-            {t(`appInstallations:permissions.description.${kind}`, { name: appName })}
+            {t(`oauthConsent:appPermissionsDialog.description.${kind}`, { name: appName })}
           </DialogDescription>
         </DialogHeader>
         <ItemGroup className="min-h-0 flex-1 gap-5 overflow-y-auto p-6">

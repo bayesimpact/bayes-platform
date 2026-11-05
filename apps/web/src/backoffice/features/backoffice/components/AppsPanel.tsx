@@ -33,6 +33,7 @@ import { useMemo, useState } from "react"
 import { useForm } from "react-hook-form"
 import type { z } from "zod"
 import { DataTable, type DataTableColumnMeta } from "@/common/components/data-table/DataTable"
+import { AppPermissionsButton } from "@/common/features/oauth-consent/components/AppPermissionsDialog"
 import { useMount } from "@/common/hooks/use-mount"
 import { useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
@@ -122,21 +123,15 @@ function WithData() {
         // Takes the remaining width, so the actions stay at the right edge.
         meta: { className: "w-full", cellClassName: "align-top" } satisfies DataTableColumnMeta,
         cell: ({ row }) => {
-          const groups = groupAppGrantablePermissions(row.original.grantablePermissions)
-          if (groups.length === 0) {
+          if (row.original.grantablePermissions.length === 0) {
             return <span className="text-sm text-muted-foreground">None</span>
           }
           return (
-            <div className="flex flex-col gap-1 whitespace-normal">
-              {groups.map((group) => (
-                <p key={group.resourceType} className="text-sm">
-                  <span className="text-muted-foreground">{group.label}: </span>
-                  {group.permissions
-                    .map((permission) => appGrantablePermissionActionLabel(permission))
-                    .join(", ")}
-                </p>
-              ))}
-            </div>
+            <AppPermissionsButton
+              appName={row.original.name}
+              permissions={row.original.grantablePermissions}
+              kind="requested"
+            />
           )
         },
       },
