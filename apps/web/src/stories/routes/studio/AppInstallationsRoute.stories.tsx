@@ -74,15 +74,18 @@ function studioState({ withApps, canRevoke, withCatalogFlag, ...args }: StoryArg
         appInstallationFactory.transient({ project: readableProject }).build({
           appName: "Helpful Assistant",
           logoUrl: "https://placehold.co/52x52/png",
+          appUrl: "https://assistant.example.com",
           permissions: ["document.read", "document.create", "document_tag.read"],
         }),
         appInstallationFactory.transient({ project: readableProject }).build({
           appName: "Site Crawler",
           description: null,
+          appUrl: null,
           permissions: ["agent.read", "agent.conversation.session.external.create"],
         }),
         appInstallationFactory.transient({ project: readableProject }).build({
           appName: "Pricing Sync",
+          appUrl: "https://pricing.example.com",
           permissions: [],
         }),
       ]

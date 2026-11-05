@@ -25,6 +25,7 @@ export type ListedAppInstallation = {
   appName: string
   description: string | null
   logoUrl: string | null
+  appUrl: string | null
   customRoleId: string | null
   createdAt: Date
 }
@@ -34,6 +35,8 @@ export type ActiveAppInstallationSummary = {
   appName: string
   description: string | null
   logoUrl: string | null
+  /** Where the app is used, from its manifest. */
+  appUrl: string | null
   permissions: string[]
   createdAt: Date
 }
@@ -80,6 +83,7 @@ export class AppInstallationRepository {
       appName: installation.appManifest?.name ?? "App",
       description: installation.appManifest?.description ?? null,
       logoUrl: installation.appManifest?.logoUrl ?? null,
+      appUrl: installation.appManifest?.appUrl ?? null,
       customRoleId: installation.customRoleId,
       createdAt: installation.createdAt,
     }))

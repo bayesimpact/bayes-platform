@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "@caseai-connect/ui/shad/dropdown-menu"
 import { cn } from "@caseai-connect/ui/utils"
-import { EllipsisVerticalIcon, ShieldCheckIcon, UnplugIcon } from "lucide-react"
+import { EllipsisVerticalIcon, ExternalLinkIcon, ShieldCheckIcon, UnplugIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { ConfirmDialog } from "@/common/components/ConfirmDialog"
@@ -54,6 +54,14 @@ export function AppInstallationItem({
             <span className="mt-4 text-sm text-muted-foreground">
               {t("appInstallations:noPermissions")}
             </span>
+          )}
+          {appInstallation.appUrl && (
+            <Button variant="outline" size="sm" className="mt-4 self-start" asChild>
+              <a href={appInstallation.appUrl} target="_blank" rel="noopener noreferrer">
+                {t("appCatalog:openApp")}
+                <ExternalLinkIcon />
+              </a>
+            </Button>
           )}
         </GridCard.Body>
         {hasMenu && (

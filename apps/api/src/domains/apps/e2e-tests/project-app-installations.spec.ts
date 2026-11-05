@@ -89,9 +89,13 @@ describe("Apps - project app installations", () => {
 
   const installApp = async (
     targetProjectId: string,
-    params: { name: string; status?: typeof APP_INSTALLATION_STATUS_REVOKED },
+    params: {
+      name: string
+      appUrl?: string | null
+      status?: typeof APP_INSTALLATION_STATUS_REVOKED
+    },
   ) => {
-    const manifest = appManifestFactory.build({ name: params.name })
+    const manifest = appManifestFactory.build({ name: params.name, appUrl: params.appUrl ?? null })
     await repositories.appManifestRepository.save(manifest)
     const installation = appInstallationFactory.build({
       appManifestId: manifest.id,
@@ -174,14 +178,27 @@ describe("Apps - project app installations", () => {
       { id: first.id },
       { createdAt: new Date(Date.now() - 60_000) },
     )
-    const second = await installApp(project.id, { name: "Site Crawler" })
+    const second = await installApp(project.id, {
+      name: "Site Crawler",
+      appUrl: "https://crawler.example.com",
+    })
 
     const response = await subject()
 
     expectResponse(response, 200)
     expect(response.body.data).toEqual([
-      expect.objectContaining({ id: second.id, appName: "Site Crawler", permissions: [] }),
-      expect.objectContaining({ id: first.id, appName: "Helpful Assistant", permissions: [] }),
+      expect.objectContaining({
+        id: second.id,
+        appName: "Site Crawler",
+        appUrl: "https://crawler.example.com",
+        permissions: [],
+      }),
+      expect.objectContaining({
+        id: first.id,
+        appName: "Helpful Assistant",
+        appUrl: null,
+        permissions: [],
+      }),
     ])
   })
 

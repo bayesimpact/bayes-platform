@@ -368,6 +368,7 @@ function toActiveInstallationSummary(
     appName: installation.appName,
     description: installation.description,
     logoUrl: installation.logoUrl,
+    appUrl: installation.appUrl,
     permissions: installation.customRoleId
       ? (permissionsByRoleId.get(installation.customRoleId) ?? [])
       : [],

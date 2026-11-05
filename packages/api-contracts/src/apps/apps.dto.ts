@@ -190,6 +190,8 @@ export type AppInstallationSummaryDto = {
   appName: string
   description: string | null
   logoUrl: string | null
+  /** Where the app is used, from its manifest. */
+  appUrl: string | null
   permissions: string[]
   createdAt: TimeType
 }
