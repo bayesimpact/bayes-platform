@@ -24,6 +24,7 @@ import {
   FormMessage,
 } from "@caseai-connect/ui/shad/form"
 import { Input } from "@caseai-connect/ui/shad/input"
+import { Label } from "@caseai-connect/ui/shad/label"
 import { Switch } from "@caseai-connect/ui/shad/switch"
 import { Textarea } from "@caseai-connect/ui/shad/textarea"
 import { cn } from "@caseai-connect/ui/utils"
@@ -513,33 +514,59 @@ function DeleteAppManifestDialog({
   onClose: () => void
 }) {
   const dispatch = useAppDispatch()
+  const [typedSlug, setTypedSlug] = useState("")
+  const [isDeleting, setIsDeleting] = useState(false)
+  // Typing the slug, not just clicking, avoids deleting the wrong app of a long list.
+  const isSlugConfirmed = typedSlug.trim() === manifest.slug
 
-  const onConfirm = async () => {
+  const onConfirm = async (event: React.FormEvent) => {
+    event.preventDefault()
+    if (!isSlugConfirmed) return
+    setIsDeleting(true)
     try {
       await dispatch(backofficeActions.deleteAppManifest(manifest.id)).unwrap()
       onClose()
     } catch {
       // The middleware shows the error notification; keep the dialog open for a retry.
+      setIsDeleting(false)
     }
   }
 
   return (
     <Dialog open onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogContent className="sm:max-w-sm">
-        <DialogHeader>
-          <DialogTitle>Delete {manifest.name}?</DialogTitle>
-          <DialogDescription>
-            This cannot be undone. Delete is refused while the app still has active installations.
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button type="button" variant="destructive" onClick={onConfirm}>
-            Delete
-          </Button>
-        </DialogFooter>
+      <DialogContent className="sm:max-w-md">
+        <form onSubmit={onConfirm} className="flex flex-col gap-4">
+          <DialogHeader>
+            <DialogTitle>Delete {manifest.name}?</DialogTitle>
+            <DialogDescription>
+              This cannot be undone. Delete is refused while the app still has active installations.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="delete-app-slug">
+              <span>
+                Type <code className="rounded bg-muted px-1 font-mono">{manifest.slug}</code> to
+                confirm
+              </span>
+            </Label>
+            <Input
+              id="delete-app-slug"
+              value={typedSlug}
+              onChange={(event) => setTypedSlug(event.target.value)}
+              autoComplete="off"
+              spellCheck={false}
+              autoFocus
+            />
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose} disabled={isDeleting}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="destructive" disabled={!isSlugConfirmed || isDeleting}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   )
