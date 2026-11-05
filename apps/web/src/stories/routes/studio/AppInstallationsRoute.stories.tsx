@@ -97,11 +97,11 @@ function studioState({ withApps, canRevoke, withCatalogFlag, ...args }: StoryArg
   }
 }
 
-/** Opens the permissions of the first app, the way someone clicks its link. */
+/** Opens the permissions of the first app, the way someone clicks its button. */
 const openFirstPermissions = async (canvasElement: HTMLElement) => {
   const canvas = within(canvasElement)
-  const [link] = await canvas.findAllByRole("button", { name: /permissions?$/ })
-  if (link) await userEvent.click(link)
+  const [button] = await canvas.findAllByRole("button", { name: /permissions?$/ })
+  if (button) await userEvent.click(button)
 }
 
 export const Empty: Story = {
@@ -123,5 +123,18 @@ export const PermissionsDialog: Story = {
   decorators: [buildDecorator<StoryArgs>((args) => studioState(args))],
   play: async ({ canvasElement }) => {
     await openFirstPermissions(canvasElement)
+  },
+}
+
+export const RevokeMenu: Story = {
+  args: { withApps: true },
+  decorators: [buildDecorator<StoryArgs>((args) => studioState(args))],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement)
+    const [menuButton] = await canvas.findAllByRole("button", { name: /^(More|Plus)$/ })
+    // The menu opens on pointerdown, which a simulated click does not send: open it from the keyboard.
+    if (!menuButton) return
+    menuButton.focus()
+    await userEvent.keyboard("{Enter}")
   },
 }

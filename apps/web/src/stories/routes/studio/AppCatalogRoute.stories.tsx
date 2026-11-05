@@ -118,11 +118,11 @@ function studioState({ withApps, withInstalledApp, canInstall, ...args }: StoryA
   }
 }
 
-/** Opens the permissions of the first app, the way someone clicks its link. */
+/** Opens the permissions of the first app, the way someone clicks its button. */
 const openFirstPermissions = async (canvasElement: HTMLElement) => {
   const canvas = within(canvasElement)
-  const [link] = await canvas.findAllByRole("button", { name: /permissions?$/ })
-  if (link) await userEvent.click(link)
+  const [button] = await canvas.findAllByRole("button", { name: /permissions?$/ })
+  if (button) await userEvent.click(button)
 }
 
 export const NotInstalled: Story = {

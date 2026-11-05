@@ -1,13 +1,21 @@
 import { Button } from "@caseai-connect/ui/shad/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@caseai-connect/ui/shad/dropdown-menu"
+import { cn } from "@caseai-connect/ui/utils"
+import { EllipsisVerticalIcon, UnplugIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { ConfirmDialog } from "@/common/components/ConfirmDialog"
 import { GridCard } from "@/common/components/grid/Grid"
 import { buildDate } from "@/common/utils/build-date"
 import type { AppInstallation } from "../app-installations.models"
-import { AppPermissionsLink } from "./AppPermissionsLink"
+import { AppPermissionsButton } from "./AppPermissionsButton"
 
-/** Without `onRevoke`, the caller cannot revoke and the card shows no button. */
+/** Without `onRevoke`, the caller cannot revoke and the card shows no menu. */
 export function AppInstallationItem({
   appInstallation,
   onRevoke,
@@ -22,7 +30,7 @@ export function AppInstallationItem({
     <>
       <GridCard className="justify-start">
         <GridCard.Body>
-          <div className="flex items-center gap-3">
+          <div className={cn("flex items-center gap-3", onRevoke && "pr-8")}>
             <AppLogo appName={appInstallation.appName} logoUrl={appInstallation.logoUrl} />
             <div className="flex min-w-0 flex-col">
               <GridCard.Title className="truncate">{appInstallation.appName}</GridCard.Title>
@@ -44,24 +52,39 @@ export function AppInstallationItem({
                 {t("appInstallations:noPermissions")}
               </span>
             ) : (
-              <AppPermissionsLink
+              <AppPermissionsButton
                 appName={appInstallation.appName}
                 permissions={appInstallation.permissions}
                 kind="granted"
               />
             )}
           </div>
-          {onRevoke && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-4 self-start"
-              onClick={() => setIsConfirmingRevoke(true)}
-            >
-              {t("appInstallations:revoke.action")}
-            </Button>
-          )}
         </GridCard.Body>
+        {onRevoke && (
+          <GridCard.TopAction>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-8"
+                  aria-label={t("actions:more")}
+                >
+                  <EllipsisVerticalIcon className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  variant="destructive"
+                  onSelect={() => setIsConfirmingRevoke(true)}
+                >
+                  <UnplugIcon className="size-4" />
+                  {t("appInstallations:revoke.action")}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </GridCard.TopAction>
+        )}
       </GridCard>
 
       {onRevoke && (

@@ -18,8 +18,8 @@
       "revokeError": "Could not revoke the app"
     },
     "permissions": {
-      "link_one": "View the permission",
-      "link_other": "View the {{count}} permissions",
+      "button_one": "{{count}} permission",
+      "button_other": "{{count}} permissions",
       "title": "Permissions of {{name}}",
       "description": {
         "requested": "What {{name}} asks for when someone connects it. The person who connects it chooses what to grant.",

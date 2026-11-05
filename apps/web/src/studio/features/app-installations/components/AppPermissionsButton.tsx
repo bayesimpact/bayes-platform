@@ -15,15 +15,16 @@ import {
   ItemMedia,
   ItemTitle,
 } from "@caseai-connect/ui/shad/item"
+import { ShieldCheckIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AppPermissionIcon } from "@/common/features/oauth-consent/components/AppPermissionIcon"
 
 /**
- * A link that opens the list of an app's permissions. `requested` lists what the app may
+ * A small button that opens the list of an app's permissions. `requested` lists what the app may
  * ask for at install (catalog), `granted` what an installation holds.
  */
-export function AppPermissionsLink({
+export function AppPermissionsButton({
   appName,
   permissions,
   kind,
@@ -37,25 +38,21 @@ export function AppPermissionsLink({
 
   return (
     <>
-      {/* A button styled as a link: it opens a dialog, it goes to no page. */}
-      <Button
-        variant="link"
-        size="sm"
-        className="h-auto self-start p-0 font-normal underline"
-        onClick={() => setIsOpen(true)}
-      >
-        {t("appInstallations:permissions.link", { count: permissions.length })}
+      <Button variant="outline" size="sm" className="self-start" onClick={() => setIsOpen(true)}>
+        <ShieldCheckIcon />
+        {t("appInstallations:permissions.button", { count: permissions.length })}
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
+        {/* Only the list scrolls: the title and the close button stay in view. */}
+        <DialogContent className="flex max-h-[85vh] flex-col gap-0 p-0">
+          <DialogHeader className="border-b p-6 pr-12">
             <DialogTitle>{t("appInstallations:permissions.title", { name: appName })}</DialogTitle>
             <DialogDescription>
               {t(`appInstallations:permissions.description.${kind}`, { name: appName })}
             </DialogDescription>
           </DialogHeader>
-          <ItemGroup className="gap-5">
+          <ItemGroup className="min-h-0 flex-1 gap-5 overflow-y-auto p-6">
             {groupByResource(permissions).map((group) => (
               <div key={group.resource} className="flex flex-col gap-2">
                 <h3 className="text-sm font-medium text-muted-foreground">
@@ -88,7 +85,7 @@ export function AppPermissionsLink({
               </div>
             ))}
           </ItemGroup>
-          <DialogFooter>
+          <DialogFooter className="border-t px-6 py-4">
             <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
               {t("actions:close")}
             </Button>
