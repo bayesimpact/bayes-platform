@@ -6,7 +6,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@caseai-connect/ui/shad/dropdown-menu"
-import { cn } from "@caseai-connect/ui/utils"
 import { EllipsisVerticalIcon, ExternalLinkIcon, ShieldCheckIcon, UnplugIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -28,13 +27,12 @@ export function AppInstallationItem({
   const [isConfirmingRevoke, setIsConfirmingRevoke] = useState(false)
   const [isShowingPermissions, setIsShowingPermissions] = useState(false)
   const hasPermissions = appInstallation.permissions.length > 0
-  const hasMenu = hasPermissions || !!onRevoke
 
   return (
     <>
       <GridCard className="justify-start">
         <GridCard.Body>
-          <div className={cn("flex items-center gap-3", hasMenu && "pr-8")}>
+          <div className="flex items-center gap-3 pr-8">
             <AppLogo appName={appInstallation.appName} logoUrl={appInstallation.logoUrl} />
             <div className="flex min-w-0 flex-col">
               <GridCard.Title className="truncate">{appInstallation.appName}</GridCard.Title>
@@ -50,11 +48,6 @@ export function AppInstallationItem({
               {appInstallation.description}
             </GridCard.Description>
           )}
-          {!hasPermissions && (
-            <span className="mt-4 text-sm text-muted-foreground">
-              {t("appInstallations:noPermissions")}
-            </span>
-          )}
           {appInstallation.appUrl && (
             <Button variant="outline" size="sm" className="mt-4 self-start" asChild>
               <a href={appInstallation.appUrl} target="_blank" rel="noopener noreferrer">
@@ -64,42 +57,39 @@ export function AppInstallationItem({
             </Button>
           )}
         </GridCard.Body>
-        {hasMenu && (
-          <GridCard.TopAction>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="size-8"
-                  aria-label={t("actions:more")}
-                >
-                  <EllipsisVerticalIcon className="size-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {hasPermissions && (
-                  <DropdownMenuItem onSelect={() => setIsShowingPermissions(true)}>
-                    <ShieldCheckIcon className="size-4" />
-                    {t("appInstallations:permissions.menuItem", {
+        <GridCard.TopAction>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="size-8" aria-label={t("actions:more")}>
+                <EllipsisVerticalIcon className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {/* Without permissions, the item says so and opens nothing. */}
+              <DropdownMenuItem
+                disabled={!hasPermissions}
+                onSelect={() => setIsShowingPermissions(true)}
+              >
+                <ShieldCheckIcon className="size-4" />
+                {hasPermissions
+                  ? t("appInstallations:permissions.menuItem", {
                       count: appInstallation.permissions.length,
-                    })}
-                  </DropdownMenuItem>
-                )}
-                {hasPermissions && onRevoke && <DropdownMenuSeparator />}
-                {onRevoke && (
-                  <DropdownMenuItem
-                    variant="destructive"
-                    onSelect={() => setIsConfirmingRevoke(true)}
-                  >
-                    <UnplugIcon className="size-4" />
-                    {t("appInstallations:revoke.action")}
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </GridCard.TopAction>
-        )}
+                    })
+                  : t("appInstallations:noPermissions")}
+              </DropdownMenuItem>
+              {onRevoke && <DropdownMenuSeparator />}
+              {onRevoke && (
+                <DropdownMenuItem
+                  variant="destructive"
+                  onSelect={() => setIsConfirmingRevoke(true)}
+                >
+                  <UnplugIcon className="size-4" />
+                  {t("appInstallations:revoke.action")}
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </GridCard.TopAction>
       </GridCard>
 
       {hasPermissions && (
