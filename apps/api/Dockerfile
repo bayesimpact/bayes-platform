@@ -8,7 +8,7 @@
 #
 # 📦 Dependencies of the API (dev + prod), from the manifests only
 #
-FROM node:24.22.2-trixie-slim AS api-deps
+FROM node:24.21.0-trixie-slim AS api-deps
 
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends libc6 && rm -rf /var/lib/apt/lists/*
@@ -34,7 +34,7 @@ RUN npm ci \
 # which leaves extraneous packages (dev-only dependencies of other workspaces)
 # lingering in node_modules.
 #
-FROM node:24.22.2-trixie-slim AS api-prod-deps
+FROM node:24.21.0-trixie-slim AS api-prod-deps
 
 WORKDIR /app
 COPY package.json package-lock.json ./
@@ -78,7 +78,7 @@ RUN cd packages/api-contracts && npm run build
 # is baked in: the API injects the runtime configuration into index.html from
 # its own environment, so one image serves every tenant.
 #
-FROM node:24.22.2-trixie-slim AS web-build
+FROM node:24.21.0-trixie-slim AS web-build
 
 WORKDIR /app
 COPY package.json package-lock.json ./
@@ -106,7 +106,7 @@ RUN cd apps/web && npm run build
 # is baked in: the Desk reads the configuration the API injects into its
 # index.html. Only the Desk and its contracts are installed.
 #
-FROM node:24.22.2-trixie-slim AS desk-build
+FROM node:24.21.0-trixie-slim AS desk-build
 
 WORKDIR /app
 COPY package.json package-lock.json ./
@@ -128,10 +128,11 @@ RUN cd apps/desk && npm run build
 #
 # 🚀 Runtime Base (shared)
 #
-FROM node:24.22.2-trixie-slim AS runtime-base
+FROM node:24.21.0-trixie-slim AS runtime-base
 
 WORKDIR /app
-RUN apt-get update && apt-get install -y --no-install-recommends libc6 && rm -rf /var/lib/apt/lists/*
+# Listing an installed package upgrades it to the security release (apt: CVE-2026-109518).
+RUN apt-get update && apt-get install -y --no-install-recommends libc6 apt && rm -rf /var/lib/apt/lists/*
 
 # The runtime only calls `node`. The package managers bundled in the Node image
 # carry their own dependencies (and CVEs), so drop them.
@@ -191,11 +192,11 @@ CMD ["node", "--enable-source-maps", "/app/apps/api/dist/workers-main.js"]
 # Nothing here depends on the application code, so these layers (several GB)
 # survive every commit and only rebuild when a requirements file changes.
 #
-FROM node:24.22.2-trixie-slim AS docling-base
+FROM node:24.21.0-trixie-slim AS docling-base
 
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
-  libc6 \
+  libc6 apt \
   python3 python3-pip python3-venv \
   libxcb1 libgl1 libglib2.0-0 \
   && rm -rf /var/lib/apt/lists/*
