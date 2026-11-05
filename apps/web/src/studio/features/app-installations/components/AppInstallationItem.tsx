@@ -5,7 +5,7 @@ import { ConfirmDialog } from "@/common/components/ConfirmDialog"
 import { GridCard } from "@/common/components/grid/Grid"
 import { buildDate } from "@/common/utils/build-date"
 import type { AppInstallation } from "../app-installations.models"
-import { AppPermissionsButton } from "./AppPermissionsButton"
+import { AppPermissionsLink } from "./AppPermissionsLink"
 
 /** Without `onRevoke`, the caller cannot revoke and the card shows no button. */
 export function AppInstallationItem({
@@ -38,24 +38,29 @@ export function AppInstallationItem({
               {appInstallation.description}
             </GridCard.Description>
           )}
-          <div className="mt-4 flex flex-wrap items-center gap-2">
+          <div className="mt-4">
             {appInstallation.permissions.length === 0 ? (
               <span className="text-sm text-muted-foreground">
                 {t("appInstallations:noPermissions")}
               </span>
             ) : (
-              <AppPermissionsButton
+              <AppPermissionsLink
                 appName={appInstallation.appName}
                 permissions={appInstallation.permissions}
                 kind="granted"
               />
             )}
-            {onRevoke && (
-              <Button variant="outline" size="sm" onClick={() => setIsConfirmingRevoke(true)}>
-                {t("appInstallations:revoke.action")}
-              </Button>
-            )}
           </div>
+          {onRevoke && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-4 self-start"
+              onClick={() => setIsConfirmingRevoke(true)}
+            >
+              {t("appInstallations:revoke.action")}
+            </Button>
+          )}
         </GridCard.Body>
       </GridCard>
 

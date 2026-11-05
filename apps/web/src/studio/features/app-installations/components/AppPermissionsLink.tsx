@@ -15,16 +15,15 @@ import {
   ItemMedia,
   ItemTitle,
 } from "@caseai-connect/ui/shad/item"
-import { ShieldCheckIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { AppPermissionIcon } from "@/common/features/oauth-consent/components/AppPermissionIcon"
 
 /**
- * A small button that opens the list of an app's permissions. `requested` lists what the app may
+ * A link that opens the list of an app's permissions. `requested` lists what the app may
  * ask for at install (catalog), `granted` what an installation holds.
  */
-export function AppPermissionsButton({
+export function AppPermissionsLink({
   appName,
   permissions,
   kind,
@@ -38,9 +37,14 @@ export function AppPermissionsButton({
 
   return (
     <>
-      <Button variant="outline" size="sm" className="self-start" onClick={() => setIsOpen(true)}>
-        <ShieldCheckIcon />
-        {t("appInstallations:permissions.button", { count: permissions.length })}
+      {/* A button styled as a link: it opens a dialog, it goes to no page. */}
+      <Button
+        variant="link"
+        size="sm"
+        className="h-auto self-start p-0 font-normal underline"
+        onClick={() => setIsOpen(true)}
+      >
+        {t("appInstallations:permissions.link", { count: permissions.length })}
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
