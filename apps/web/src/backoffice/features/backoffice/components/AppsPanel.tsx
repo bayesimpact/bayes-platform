@@ -128,16 +128,10 @@ function WithData() {
             return <span className="text-sm text-muted-foreground">Not listed</span>
           }
           return (
-            <div className="flex flex-col items-start gap-1">
-              <Badge variant="secondary">
-                <CheckIcon />
-                Listed
-              </Badge>
-              {/* Listed without an app URL, the card shows the instructions and no link. */}
-              {!row.original.appUrl && (
-                <span className="text-xs text-muted-foreground">No app URL</span>
-              )}
-            </div>
+            <Badge variant="secondary">
+              <CheckIcon />
+              Listed
+            </Badge>
           )
         },
       },
