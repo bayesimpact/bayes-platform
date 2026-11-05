@@ -7,7 +7,10 @@ import { AppPermissionsButton } from "@/common/features/oauth-consent/components
 import { AppLogo } from "@/studio/features/app-installations/components/AppInstallationItem"
 import type { AppCatalogEntry } from "../app-catalog.models"
 
-/** Without `canInstall`, the card leaves out the link to the app: installing it would fail. */
+/**
+ * Without `canInstall`, the card leaves out the link to an app not installed yet: installing it
+ * would fail. An installed app keeps its link, as on its Connected apps card.
+ */
 export function AppCatalogItem({
   entry,
   canInstall,
@@ -16,7 +19,7 @@ export function AppCatalogItem({
   canInstall: boolean
 }) {
   const { t } = useTranslation()
-  const appLink = !entry.installed && canInstall ? entry.appUrl : null
+  const appLink = entry.installed || canInstall ? entry.appUrl : null
 
   return (
     <GridCard className="justify-start">
