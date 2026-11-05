@@ -79,6 +79,11 @@ export const FeatureFlags = [
     description:
       "(beta) Choose the models that embed the project's documents (Vertex, bge-m3...) and the one each agent searches with.",
   }),
+  featureFlag({
+    key: "apps-catalog",
+    description:
+      "Browse the apps that can be connected to the project, from the Connected apps page.",
+  }),
 ] as const
 export type FeatureFlagKey = (typeof FeatureFlags)[number]["key"]
 export type FeatureFlagsDto = FeatureFlagKey[]

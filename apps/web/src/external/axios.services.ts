@@ -22,6 +22,7 @@ import agentMessageFeedback from "@/studio/features/agent-message-feedback/exter
 import agentSubAgents from "@/studio/features/agent-sub-agents/external/agent-sub-agents.api"
 import agentAnalytics from "@/studio/features/analytics/agent/external/agent-analytics.api"
 import projectAnalytics from "@/studio/features/analytics/project/external/analytics.api"
+import appCatalog from "@/studio/features/app-catalog/external/app-catalog.api"
 import appInstallations from "@/studio/features/app-installations/external/app-installations.api"
 import conversationReview from "@/studio/features/conversation-review/external/conversation-review.api"
 import documentSources from "@/studio/features/document-sources/external/document-sources.api"
@@ -60,6 +61,7 @@ export const services = {
   evaluationExtractionRuns,
   extractionAgentSessions,
   mcpServers,
+  appCatalog,
   appInstallations,
   me,
   oauthConsent,

@@ -52,6 +52,8 @@ export type InstalledApp = {
   reconnected: boolean
 }
 
+export type AppCatalogEntry = AppManifestRecord & { installed: boolean }
+
 export type AppPrincipal = {
   user: NonNullable<Awaited<ReturnType<UsersService["findById"]>>>
   projectId: string
@@ -229,6 +231,20 @@ export class AppsService {
     })
   }
 
+  /** The apps listed in the catalog, each marked when the project has it installed. */
+  async listAppCatalog(projectId: string): Promise<AppCatalogEntry[]> {
+    const [manifests, installedManifestIds] = await Promise.all([
+      this.appManifestRepository.findListedInCatalog(),
+      this.appInstallationRepository.listActiveManifestIdsByProjectId(projectId),
+    ])
+    const installed = new Set(installedManifestIds)
+    return manifests.map((manifest) => ({ ...manifest, installed: installed.has(manifest.id) }))
+  }
+
+  isAppsCatalogEnabled(projectId: string): Promise<boolean> {
+    return this.projectRepository.isFeatureEnabled({ projectId, feature: "apps-catalog" })
+  }
+
   async listActiveInstallations(projectId: string): Promise<ActiveAppInstallationSummary[]> {
     const [project] = await this.projectRepository.findPickerProjectsByIds([projectId])
     if (!project) throw new NotFoundException(`Project ${projectId} not found`)
@@ -352,6 +368,7 @@ function toActiveInstallationSummary(
     appName: installation.appName,
     description: installation.description,
     logoUrl: installation.logoUrl,
+    appUrl: installation.appUrl,
     permissions: installation.customRoleId
       ? (permissionsByRoleId.get(installation.customRoleId) ?? [])
       : [],

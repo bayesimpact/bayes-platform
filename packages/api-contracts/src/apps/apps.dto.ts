@@ -13,6 +13,12 @@ export type AppManifestDto = {
   logoUrl: string | null
   grantablePermissions: AppGrantablePermission[]
   allowedRedirectUris: string[]
+  /** Where installation starts: the flow is app-initiated (ADR 0029). */
+  appUrl: string | null
+  /** Shown in the studio's apps catalog when the project has the apps-catalog flag. */
+  listedInCatalog: boolean
+  /** How to install the app, shown on its catalog card. */
+  installInstructions: string | null
   createdAt: TimeType
 }
 
@@ -63,6 +69,9 @@ const installRedirectUriSchema = z
     }
   }, "Must be an https URL, or a loopback http(s) URL (localhost, *.localhost, 127.0.0.1)")
 
+/** Same rule as the redirect URIs: https, or http on a loopback host for local development. */
+const appUrlSchema = installRedirectUriSchema
+
 /** How many redirect URIs an app may allow. */
 export const MAX_ALLOWED_REDIRECT_URIS = 20
 
@@ -87,6 +96,21 @@ export const createAppManifestSchema = z
       .transform((value) => (value === "" || value === undefined ? null : value)),
     grantablePermissions: z.array(grantablePermissionSchema),
     allowedRedirectUris: allowedRedirectUrisSchema.optional().transform((value) => value ?? []),
+    appUrl: z
+      .union([appUrlSchema, z.literal(""), z.null()])
+      .optional()
+      .transform((value) => (value === "" || value === undefined ? null : value)),
+    listedInCatalog: z
+      .boolean()
+      .optional()
+      .transform((value) => value ?? false),
+    installInstructions: z
+      .string()
+      .trim()
+      .max(1000)
+      .nullable()
+      .optional()
+      .transform((value) => emptyToNull(value)),
   })
   .strict()
 
@@ -98,6 +122,9 @@ export type CreateAppManifestRequestDto = {
   grantablePermissions: AppGrantablePermission[]
   /** Omitted on create → empty allowlist (loopback install still works). */
   allowedRedirectUris?: string[]
+  appUrl?: string | null
+  listedInCatalog?: boolean
+  installInstructions?: string | null
 }
 
 export const updateAppManifestSchema = z
@@ -117,6 +144,18 @@ export const updateAppManifestSchema = z
       .transform((value) => (value === undefined ? undefined : value === "" ? null : value)),
     grantablePermissions: z.array(grantablePermissionSchema).optional(),
     allowedRedirectUris: allowedRedirectUrisSchema.optional(),
+    appUrl: z
+      .union([appUrlSchema, z.literal(""), z.null()])
+      .optional()
+      .transform((value) => (value === undefined ? undefined : value === "" ? null : value)),
+    listedInCatalog: z.boolean().optional(),
+    installInstructions: z
+      .string()
+      .trim()
+      .max(1000)
+      .nullable()
+      .optional()
+      .transform((value) => (value === undefined ? undefined : emptyToNull(value))),
   })
   .strict()
 
@@ -127,6 +166,23 @@ export type UpdateAppManifestRequestDto = {
   logoUrl?: string | null
   grantablePermissions?: AppGrantablePermission[]
   allowedRedirectUris?: string[]
+  appUrl?: string | null
+  listedInCatalog?: boolean
+  installInstructions?: string | null
+}
+
+/** An app of the studio's catalog, as a project sees it. */
+export type AppCatalogEntryDto = {
+  id: string
+  name: string
+  description: string | null
+  logoUrl: string | null
+  appUrl: string | null
+  installInstructions: string | null
+  /** What the app may ask for when someone installs it. */
+  grantablePermissions: AppGrantablePermission[]
+  /** An active installation of the app exists on the project. */
+  installed: boolean
 }
 
 export type AppInstallationSummaryDto = {
@@ -134,6 +190,8 @@ export type AppInstallationSummaryDto = {
   appName: string
   description: string | null
   logoUrl: string | null
+  /** Where the app is used, from its manifest. */
+  appUrl: string | null
   permissions: string[]
   createdAt: TimeType
 }

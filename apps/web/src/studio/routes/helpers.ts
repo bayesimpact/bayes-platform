@@ -12,6 +12,7 @@ const externalSources = project.extend("/external")
 const document = documents.extend("/:documentId")
 const mcpServers = project.extend("/mcp-servers")
 const appInstallations = project.extend("/apps")
+const appCatalog = appInstallations.extend("/catalog")
 const resourceLibraries = project.extend("/resource-libraries")
 const resourceLibraryNew = resourceLibraries.extend("/new")
 const resourceLibrary = resourceLibraries.extend("/:resourceLibraryId")
@@ -45,6 +46,7 @@ export const StudioRoutes = {
   agentEdit,
   agentMemberships,
   agentSession,
+  appCatalog,
   appInstallations,
   document,
   documents,

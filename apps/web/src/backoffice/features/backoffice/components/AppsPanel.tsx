@@ -3,6 +3,7 @@ import {
   createAppManifestSchema,
   groupAppGrantablePermissions,
 } from "@caseai-connect/api-contracts"
+import { Badge } from "@caseai-connect/ui/shad/badge"
 import { Button } from "@caseai-connect/ui/shad/button"
 import { Checkbox } from "@caseai-connect/ui/shad/checkbox"
 import {
@@ -23,15 +24,18 @@ import {
   FormMessage,
 } from "@caseai-connect/ui/shad/form"
 import { Input } from "@caseai-connect/ui/shad/input"
+import { Label } from "@caseai-connect/ui/shad/label"
+import { Switch } from "@caseai-connect/ui/shad/switch"
 import { Textarea } from "@caseai-connect/ui/shad/textarea"
 import { cn } from "@caseai-connect/ui/utils"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { type ColumnDef, getCoreRowModel, useReactTable } from "@tanstack/react-table"
-import { PencilIcon, PlusIcon, Trash2Icon } from "lucide-react"
+import { CheckIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react"
 import { useMemo, useState } from "react"
 import { useForm } from "react-hook-form"
 import type { z } from "zod"
 import { DataTable, type DataTableColumnMeta } from "@/common/components/data-table/DataTable"
+import { AppPermissionsButton } from "@/common/features/oauth-consent/components/AppPermissionsDialog"
 import { useMount } from "@/common/hooks/use-mount"
 import { useValue } from "@/common/hooks/use-value"
 import { AsyncRoute } from "@/common/routes/AsyncRoute"
@@ -58,6 +62,9 @@ const emptyFormValues: ManifestFormValues = {
   logoUrl: "",
   grantablePermissions: [],
   allowedRedirectUris: [],
+  appUrl: "",
+  listedInCatalog: false,
+  installInstructions: "",
 }
 
 export function AppsPanel() {
@@ -101,7 +108,8 @@ function WithData() {
       {
         accessorKey: "name",
         header: () => "App",
-        meta: { cellClassName: "align-top" } satisfies DataTableColumnMeta,
+        // The permissions column takes the free width: without a minimum, the name gets squeezed.
+        meta: { className: "min-w-72", cellClassName: "align-top" } satisfies DataTableColumnMeta,
         cell: ({ row }) => (
           <div className="flex items-center gap-3">
             <AppLogo src={row.original.logoUrl} />
@@ -113,26 +121,36 @@ function WithData() {
         ),
       },
       {
+        accessorKey: "listedInCatalog",
+        header: () => "Apps catalog",
+        meta: { cellClassName: "align-middle" } satisfies DataTableColumnMeta,
+        cell: ({ row }) => {
+          if (!row.original.listedInCatalog) {
+            return <span className="text-sm text-muted-foreground">Not listed</span>
+          }
+          return (
+            <Badge variant="secondary">
+              <CheckIcon />
+              Listed
+            </Badge>
+          )
+        },
+      },
+      {
         accessorKey: "grantablePermissions",
         header: () => "Grantable permissions",
         // Takes the remaining width, so the actions stay at the right edge.
         meta: { className: "w-full", cellClassName: "align-top" } satisfies DataTableColumnMeta,
         cell: ({ row }) => {
-          const groups = groupAppGrantablePermissions(row.original.grantablePermissions)
-          if (groups.length === 0) {
+          if (row.original.grantablePermissions.length === 0) {
             return <span className="text-sm text-muted-foreground">None</span>
           }
           return (
-            <div className="flex flex-col gap-1 whitespace-normal">
-              {groups.map((group) => (
-                <p key={group.resourceType} className="text-sm">
-                  <span className="text-muted-foreground">{group.label}: </span>
-                  {group.permissions
-                    .map((permission) => appGrantablePermissionActionLabel(permission))
-                    .join(", ")}
-                </p>
-              ))}
-            </div>
+            <AppPermissionsButton
+              appName={row.original.name}
+              permissions={row.original.grantablePermissions}
+              kind="requested"
+            />
           )
         },
       },
@@ -230,6 +248,9 @@ function AppManifestFormDialog({
           logoUrl: manifest.logoUrl ?? "",
           grantablePermissions: manifest.grantablePermissions,
           allowedRedirectUris: manifest.allowedRedirectUris,
+          appUrl: manifest.appUrl ?? "",
+          listedInCatalog: manifest.listedInCatalog,
+          installInstructions: manifest.installInstructions ?? "",
         }
       : emptyFormValues,
   })
@@ -365,6 +386,66 @@ function AppManifestFormDialog({
               />
               <FormField
                 control={form.control}
+                name="appUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>App URL</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="https://app.example.com"
+                        value={field.value ?? ""}
+                        onChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Where installation starts: the studio's apps catalog links to it. HTTPS only,
+                      or a loopback URL for local development.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="listedInCatalog"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between gap-4 rounded-md border p-3">
+                    <div className="flex flex-col gap-1">
+                      <FormLabel>Listed in the apps catalog</FormLabel>
+                      <FormDescription>
+                        Shown to the projects that have the apps-catalog feature flag.
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch checked={field.value ?? false} onCheckedChange={field.onChange} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="installInstructions"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Install instructions</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Open the app and sign in, or ask the Bayes team for access."
+                        rows={3}
+                        value={field.value ?? ""}
+                        onChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Shown on the app's catalog card. Say here when people have to ask the Bayes
+                      team first.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
                 name="grantablePermissions"
                 render={({ field }) => (
                   <FormItem>
@@ -433,33 +514,59 @@ function DeleteAppManifestDialog({
   onClose: () => void
 }) {
   const dispatch = useAppDispatch()
+  const [typedSlug, setTypedSlug] = useState("")
+  const [isDeleting, setIsDeleting] = useState(false)
+  // Typing the slug, not just clicking, avoids deleting the wrong app of a long list.
+  const isSlugConfirmed = typedSlug.trim() === manifest.slug
 
-  const onConfirm = async () => {
+  const onConfirm = async (event: React.FormEvent) => {
+    event.preventDefault()
+    if (!isSlugConfirmed) return
+    setIsDeleting(true)
     try {
       await dispatch(backofficeActions.deleteAppManifest(manifest.id)).unwrap()
       onClose()
     } catch {
       // The middleware shows the error notification; keep the dialog open for a retry.
+      setIsDeleting(false)
     }
   }
 
   return (
     <Dialog open onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogContent className="sm:max-w-sm">
-        <DialogHeader>
-          <DialogTitle>Delete {manifest.name}?</DialogTitle>
-          <DialogDescription>
-            This cannot be undone. Delete is refused while the app still has active installations.
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button type="button" variant="destructive" onClick={onConfirm}>
-            Delete
-          </Button>
-        </DialogFooter>
+      <DialogContent className="sm:max-w-md">
+        <form onSubmit={onConfirm} className="flex flex-col gap-4">
+          <DialogHeader>
+            <DialogTitle>Delete {manifest.name}?</DialogTitle>
+            <DialogDescription>
+              This cannot be undone. Delete is refused while the app still has active installations.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="delete-app-slug">
+              <span>
+                Type <code className="rounded bg-muted px-1 font-mono">{manifest.slug}</code> to
+                confirm
+              </span>
+            </Label>
+            <Input
+              id="delete-app-slug"
+              value={typedSlug}
+              onChange={(event) => setTypedSlug(event.target.value)}
+              autoComplete="off"
+              spellCheck={false}
+              autoFocus
+            />
+          </div>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose} disabled={isDeleting}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="destructive" disabled={!isSlugConfirmed || isDeleting}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   )

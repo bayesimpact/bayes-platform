@@ -59,6 +59,7 @@ import type {
   AnalyticsCategoryDailyPoint,
   AnalyticsDailyPoint,
 } from "@/studio/features/analytics/project/analytics.models"
+import type { AppCatalogEntry } from "@/studio/features/app-catalog/app-catalog.models"
 import type { AppInstallation } from "@/studio/features/app-installations/app-installations.models"
 import type {
   ConversationReview,
@@ -359,6 +360,9 @@ export const seed = {
 
     appInstallations(appInstallations: AppInstallation[]): StoryPreloadedState {
       return { appInstallations: { data: ads.fulfilled(appInstallations) } }
+    },
+    appCatalog(entries: AppCatalogEntry[]): StoryPreloadedState {
+      return { appCatalog: { data: ads.fulfilled(entries) } }
     },
 
     mcpServers(mcpServers: McpServer[]): StoryPreloadedState {

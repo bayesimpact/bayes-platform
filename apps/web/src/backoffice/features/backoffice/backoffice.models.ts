@@ -527,6 +527,9 @@ export type AppManifest = {
   logoUrl: string | null
   grantablePermissions: AppGrantablePermission[]
   allowedRedirectUris: string[]
+  appUrl: string | null
+  listedInCatalog: boolean
+  installInstructions: string | null
   createdAt: TimeType
 }
 
@@ -537,6 +540,9 @@ export type CreateAppManifestInput = {
   logoUrl: string | null
   grantablePermissions: AppGrantablePermission[]
   allowedRedirectUris?: string[]
+  appUrl?: string | null
+  listedInCatalog?: boolean
+  installInstructions?: string | null
 }
 
 export type UpdateAppManifestInput = Partial<CreateAppManifestInput>
@@ -563,6 +569,9 @@ export const toAppManifest = (dto: AppManifestDto): AppManifest => ({
   logoUrl: dto.logoUrl,
   grantablePermissions: dto.grantablePermissions,
   allowedRedirectUris: dto.allowedRedirectUris,
+  appUrl: dto.appUrl,
+  listedInCatalog: dto.listedInCatalog,
+  installInstructions: dto.installInstructions,
   createdAt: dto.createdAt,
 })
 

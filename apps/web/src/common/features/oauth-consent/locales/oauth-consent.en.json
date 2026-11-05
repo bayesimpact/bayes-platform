@@ -147,6 +147,15 @@
       "settings_draft_update": "Edit drafts",
       "conversation_dataset_update": "Edit datasets",
       "conversation_run_create": "Run"
+    },
+    "appPermissionsDialog": {
+      "button_one": "{{count}} permission",
+      "button_other": "{{count}} permissions",
+      "title": "Permissions of {{name}}",
+      "description": {
+        "requested": "What {{name}} asks for when someone connects it. The person who connects it chooses what to grant.",
+        "granted": "What {{name}} can do on this project."
+      }
     }
   }
 }

@@ -29,6 +29,7 @@ import { AgentAnalyticsRoute } from "./AgentAnalyticsRoute"
 import { AgentConversationReviewRoute } from "./AgentConversationReviewRoute"
 import { AgentEditorRoute } from "./AgentEditorRoute"
 import { AgentMembershipsRoute } from "./AgentMembershipsRoute"
+import { AppCatalogRoute } from "./AppCatalogRoute"
 import { AppInstallationsRoute } from "./AppInstallationsRoute"
 import { ProjectDocumentsRoute } from "./DocumentsRoute"
 import { ExternalSourcesRoute } from "./ExternalSourcesRoute"
@@ -94,6 +95,14 @@ export const studioRoutes = {
         {
           path: StudioRoutes.appInstallations.path,
           element: <AppInstallationsRoute />,
+        },
+        {
+          path: StudioRoutes.appCatalog.path,
+          element: (
+            <RestrictedFeature feature="apps-catalog" returnNull={false}>
+              <AppCatalogRoute />
+            </RestrictedFeature>
+          ),
         },
         {
           path: StudioRoutes.resourceLibraries.path,

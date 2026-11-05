@@ -45,7 +45,11 @@ export type * from "./analytics/analytics.dto"
 export { AgentAnalyticsRoutes, AnalyticsRoutes } from "./analytics/analytics.routes"
 // Apps
 export * from "./apps/apps.dto"
-export { AppsRoutes, ProjectAppInstallationsRoutes } from "./apps/apps.routes"
+export {
+  AppsRoutes,
+  ProjectAppCatalogRoutes,
+  ProjectAppInstallationsRoutes,
+} from "./apps/apps.routes"
 export { AppsV1Routes } from "./apps/apps-v1.routes"
 export * from "./apps/conversations/apps-conversations.dto"
 export {

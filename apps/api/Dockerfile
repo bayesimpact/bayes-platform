@@ -131,7 +131,8 @@ RUN cd apps/desk && npm run build
 FROM node:24.21.0-trixie-slim AS runtime-base
 
 WORKDIR /app
-RUN apt-get update && apt-get install -y --no-install-recommends libc6 && rm -rf /var/lib/apt/lists/*
+# Listing an installed package upgrades it to the security release (apt: CVE-2026-109518).
+RUN apt-get update && apt-get install -y --no-install-recommends libc6 apt && rm -rf /var/lib/apt/lists/*
 
 # The runtime only calls `node`. The package managers bundled in the Node image
 # carry their own dependencies (and CVEs), so drop them.
@@ -195,7 +196,7 @@ FROM node:24.21.0-trixie-slim AS docling-base
 
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
-  libc6 \
+  libc6 apt \
   python3 python3-pip python3-venv \
   libxcb1 libgl1 libglib2.0-0 \
   && rm -rf /var/lib/apt/lists/*

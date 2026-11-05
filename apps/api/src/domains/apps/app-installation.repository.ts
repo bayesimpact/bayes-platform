@@ -25,6 +25,7 @@ export type ListedAppInstallation = {
   appName: string
   description: string | null
   logoUrl: string | null
+  appUrl: string | null
   customRoleId: string | null
   createdAt: Date
 }
@@ -34,6 +35,8 @@ export type ActiveAppInstallationSummary = {
   appName: string
   description: string | null
   logoUrl: string | null
+  /** Where the app is used, from its manifest. */
+  appUrl: string | null
   permissions: string[]
   createdAt: Date
 }
@@ -61,6 +64,14 @@ export class AppInstallationRepository {
     return installation ? this.toRecord(installation) : null
   }
 
+  async listActiveManifestIdsByProjectId(projectId: string): Promise<string[]> {
+    const installations = await this.repo().find({
+      select: { appManifestId: true },
+      where: { projectId, status: APP_INSTALLATION_STATUS_ACTIVE },
+    })
+    return installations.map((installation) => installation.appManifestId)
+  }
+
   async listActiveByProjectId(projectId: string): Promise<ListedAppInstallation[]> {
     const installations = await this.repo().find({
       where: { projectId, status: APP_INSTALLATION_STATUS_ACTIVE },
@@ -72,6 +83,7 @@ export class AppInstallationRepository {
       appName: installation.appManifest?.name ?? "App",
       description: installation.appManifest?.description ?? null,
       logoUrl: installation.appManifest?.logoUrl ?? null,
+      appUrl: installation.appManifest?.appUrl ?? null,
       customRoleId: installation.customRoleId,
       createdAt: installation.createdAt,
     }))
