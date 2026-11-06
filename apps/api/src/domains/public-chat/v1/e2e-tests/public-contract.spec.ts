@@ -207,6 +207,50 @@ describe("PublicChat - contract v1", () => {
     })
   })
 
+  describe("session messages", () => {
+    it("serves follow-up questions as a suggestFollowUpQuestions tool call (1.4)", async () => {
+      const { embedConfig, agentSettings } = await createContext()
+      await repositories.agentMessageRepository.save({
+        id: randomUUID(),
+        sessionId,
+        organizationId: embedConfig.organizationId,
+        projectId: embedConfig.projectId,
+        agentSettingsId: agentSettings.id,
+        role: "assistant" as const,
+        content: "A subscription renews each month.",
+        status: "completed" as const,
+        startedAt: new Date("2026-01-01T10:00:01Z"),
+        completedAt: new Date("2026-01-01T10:00:02Z"),
+        toolCalls: [
+          {
+            id: "call-1",
+            name: "suggestFollowUpQuestions",
+            arguments: { questions: ["How do I cancel?", "Can I change my plan?"] },
+          },
+        ],
+        documentId: null,
+        attachmentDocumentId: null,
+        createdAt: new Date("2026-01-01T10:00:01Z"),
+        updatedAt: new Date("2026-01-01T10:00:02Z"),
+        deletedAt: null,
+      })
+
+      const response = await request(app.getHttpServer())
+        .get(PublicChatRoutes.getSession.getPath(pathParams()))
+        .set("Connection", "close")
+        .set("X-Session-Token", sessionToken)
+
+      expect(response.status).toBe(200)
+      expect(response.body.data.messages[0].toolCalls).toEqual([
+        {
+          id: "call-1",
+          name: "suggestFollowUpQuestions",
+          arguments: { questions: ["How do I cancel?", "Can I change my plan?"] },
+        },
+      ])
+    })
+  })
+
   describe("server-sent events", () => {
     const stream = (query: string) =>
       request(app.getHttpServer())

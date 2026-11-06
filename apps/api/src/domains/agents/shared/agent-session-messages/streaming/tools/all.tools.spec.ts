@@ -393,6 +393,136 @@ describe("Tools execution", () => {
     expect(agentCalls[0]?.prompt).not.toContain("link:")
   })
 
+  it("ToolName.SuggestFollowUpQuestions - stores the questions without a second generation", async () => {
+    const { connectScope, agent, agentSettings, session } = await createContextWithSession()
+    const followUpSettings = {
+      ...agentSettings,
+      followUpSuggestionsEnabled: true,
+      followUpSuggestionsInstructions: "Only when the answer has a difficult term.",
+      followUpSuggestionsMax: 2,
+    }
+    mockProvider.addTextWithToolCallTurn(
+      agent.id,
+      "A deductible is the part you pay.",
+      ToolName.SuggestFollowUpQuestions,
+      { questions: ["How much is my deductible?", "When do I pay it?", "Third one?"] },
+    )
+    mockProvider.addObjectTurn(agent.id, { suggestedTitle: null })
+
+    const { fulltextStream } = await aggregateStream(
+      service.streamAgentResponse({
+        agentSessionScope: { agent, agentSettings: followUpSettings, session, connectScope },
+        userContent: "What is a deductible?",
+        notifyClient: () => undefined,
+      }),
+    )
+
+    const agentCalls = mockProvider.getCalls().filter((call) => call.agentId === agent.id)
+    // The answer and the classification only: no follow-up generation.
+    expect(agentCalls).toHaveLength(2)
+    expect(agentCalls[0]?.prompt).toContain("at most 2 short follow-up questions")
+    expect(agentCalls[0]?.prompt).toContain("Only when the answer has a difficult term.")
+    expect(fulltextStream).toBe("A deductible is the part you pay.")
+    // The agent suggested questions itself: the classifier is not asked again.
+    expect(agentCalls[1]?.responseFormatSchema).not.toContain("followUpQuestions")
+    const toolMessages = await findToolMessages(session.id, ToolName.SuggestFollowUpQuestions)
+    expect(toolMessages).toHaveLength(1)
+    expect(toolMessages[0]?.toolCalls?.[0]?.arguments).toEqual({
+      questions: ["How much is my deductible?", "When do I pay it?"],
+    })
+  })
+
+  it("ToolName.SuggestFollowUpQuestions - the classifier writes the questions when the agent did not", async () => {
+    const { connectScope, agent, agentSettings, session } = await createContextWithSession()
+    const followUpSettings = {
+      ...agentSettings,
+      followUpSuggestionsEnabled: true,
+      followUpSuggestionsInstructions: "Only when the answer has a difficult term.",
+      followUpSuggestionsMax: 2,
+    }
+    // A small model answers without calling the tool.
+    mockProvider.addTextTurn(agent.id, "A deductible is the part you pay.")
+    mockProvider.addObjectTurn(agent.id, {
+      suggestedTitle: null,
+      followUpQuestions: ["How much is my deductible?", " ", "When do I pay it?", "Third one?"],
+    })
+
+    await aggregateStream(
+      service.streamAgentResponse({
+        agentSessionScope: { agent, agentSettings: followUpSettings, session, connectScope },
+        userContent: "What is a deductible?",
+        notifyClient: () => undefined,
+      }),
+    )
+
+    const agentCalls = mockProvider.getCalls().filter((call) => call.agentId === agent.id)
+    // The answer and the classification only: the fallback adds no LLM call.
+    expect(agentCalls).toHaveLength(2)
+    expect(agentCalls[1]?.responseFormatSchema).toContain('"followUpQuestions"')
+    expect(agentCalls[1]?.responseFormatSchema).toContain('"maxItems":2')
+    expect(agentCalls[1]?.prompt).toContain("Only when the answer has a difficult term.")
+    const toolMessages = await findToolMessages(session.id, ToolName.SuggestFollowUpQuestions)
+    expect(toolMessages).toHaveLength(1)
+    expect(toolMessages[0]?.toolCalls?.[0]?.arguments).toEqual({
+      questions: ["How much is my deductible?", "When do I pay it?"],
+      detectedByClassifier: true,
+    })
+  })
+
+  it("ToolName.SuggestFollowUpQuestions - the classifier is not asked when the setting is off", async () => {
+    const { connectScope, agent, agentSettings, session } = await createContextWithSession()
+    mockProvider.addTextTurn(agent.id, "Answer.")
+    mockProvider.addObjectTurn(agent.id, { suggestedTitle: null })
+
+    await aggregateStream(
+      service.streamAgentResponse({
+        agentSessionScope: { agent, agentSettings, session, connectScope },
+        userContent: "Hello",
+        notifyClient: () => undefined,
+      }),
+    )
+
+    const agentCalls = mockProvider.getCalls().filter((call) => call.agentId === agent.id)
+    expect(agentCalls[1]?.responseFormatSchema).not.toContain("followUpQuestions")
+    expect(await findToolMessages(session.id, ToolName.SuggestFollowUpQuestions)).toHaveLength(0)
+  })
+
+  it("ToolName.SuggestFollowUpQuestions - built only when enabled, and never for a relay sub-agent", async () => {
+    const { connectScope, agent, agentSettings, session } = await createContextWithSession()
+    const toolsService = setup.module.get<ToolsService>(ToolsService)
+    const buildToolNames = async ({
+      followUpSuggestionsEnabled,
+      includeSubAgentTools,
+    }: {
+      followUpSuggestionsEnabled: boolean
+      includeSubAgentTools: boolean
+    }) => {
+      const { tools } = await toolsService.buildTools({
+        agentSessionScope: {
+          agent,
+          agentSettings: { ...agentSettings, followUpSuggestionsEnabled },
+          session,
+          connectScope,
+        },
+        onExecute: () => undefined,
+        getProviderForModel: jest.fn().mockReturnValue({} as LLMProvider),
+        buildLLMConfig: jest.fn().mockReturnValue({} as LLMConfig),
+        includeSubAgentTools,
+      })
+      return Object.keys(tools ?? {})
+    }
+
+    expect(
+      await buildToolNames({ followUpSuggestionsEnabled: false, includeSubAgentTools: true }),
+    ).not.toContain(ToolName.SuggestFollowUpQuestions)
+    expect(
+      await buildToolNames({ followUpSuggestionsEnabled: true, includeSubAgentTools: true }),
+    ).toContain(ToolName.SuggestFollowUpQuestions)
+    expect(
+      await buildToolNames({ followUpSuggestionsEnabled: true, includeSubAgentTools: false }),
+    ).not.toContain(ToolName.SuggestFollowUpQuestions)
+  })
+
   const fillFormOutputJsonSchema = {
     type: "object",
     properties: { fullName: { type: "string" }, city: { type: "string" } },

@@ -15,6 +15,9 @@
       "priorityCallsEnabled": "Appels prioritaires",
       "promptVariables": "Variables de prompt",
       "embeddingModel": "Modèle d'embedding",
+      "followUpSuggestionsEnabled": "Questions de relance",
+      "followUpSuggestionsInstructions": "Instructions des questions de relance",
+      "followUpSuggestionsMax": "Nombre maximum de questions de relance",
       "schemaBuilder": {
         "advancedMode": "Mode avancé",
         "visualMode": "Éditeur visuel",
@@ -249,6 +252,14 @@
         "title": "Remplissage de formulaire",
         "description": "Permet à l'agent de remplir un formulaire structuré à partir des réponses de l'utilisateur pendant la conversation.",
         "schemaDescription": "Définissez les champs du formulaire que l'agent doit remplir. L'ordre des champs est l'ordre dans lequel l'agent pose ses questions."
+      },
+      "followUpSuggestions": {
+        "title": "Suggérer des questions de relance",
+        "description": "Après une réponse, l'agent peut suggérer des questions courtes. L'utilisateur clique sur une question pour continuer la conversation.",
+        "instructions": "Instructions",
+        "instructionsDescription": "Facultatif. Dites à l'agent quand et comment écrire les questions.",
+        "instructionsPlaceholder": "Par exemple : seulement quand la réponse contient un mot difficile.",
+        "max": "Maximum par réponse"
       },
       "memory": {
         "title": "Mémoire",

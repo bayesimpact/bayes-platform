@@ -4,6 +4,7 @@ import { userEvent, within } from "storybook/test"
 import { conversationUrlOf } from "@/test/desk-urls"
 import {
   buildEmptyHistoryWorld,
+  buildFollowUpQuestionsWorld,
   buildLongConversationWorld,
   buildQuotedMessageWorld,
 } from "@/test/factories/desk-world.factory"
@@ -39,6 +40,37 @@ export const QuotedMessage: Story = {
 export const LongConversation: Story = {
   parameters: desk({
     world: buildLongConversationWorld,
+    url: (world) => conversationUrlOf(world),
+  }),
+}
+
+const followUpQuestions = [
+  "What does renew mean?",
+  "How do I cancel my plan?",
+  "Can I change my plan later?",
+  "Do I get a refund if I cancel in the middle of the month, and how long does it take to reach my account?",
+]
+
+/** The last reply suggests one question the person can send with a click. */
+export const OneFollowUpQuestion: Story = {
+  parameters: desk({
+    world: () => buildFollowUpQuestionsWorld({ questions: followUpQuestions.slice(0, 1) }),
+    url: (world) => conversationUrlOf(world),
+  }),
+}
+
+/** The last reply suggests the most questions an agent allows, four. */
+export const MostFollowUpQuestions: Story = {
+  parameters: desk({
+    world: () => buildFollowUpQuestionsWorld({ questions: followUpQuestions }),
+    url: (world) => conversationUrlOf(world),
+  }),
+}
+
+/** The person sent a suggested question: the questions of the earlier reply are gone. */
+export const FollowUpQuestionAnswered: Story = {
+  parameters: desk({
+    world: () => buildFollowUpQuestionsWorld({ questions: followUpQuestions, answered: true }),
     url: (world) => conversationUrlOf(world),
   }),
 }

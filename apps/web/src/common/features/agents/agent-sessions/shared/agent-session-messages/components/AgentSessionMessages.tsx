@@ -50,6 +50,7 @@ import { AttachDocument } from "@/studio/features/documents/components/AttachDoc
 import { selectStreaming } from "../agent-session-messages.selectors"
 import { sendMessage } from "../agent-session-messages.thunks"
 import { findFailedLastTurn } from "./failed-last-turn"
+import { followUpReplyIndex } from "./follow-up-questions"
 
 type AgentSession = ConversationAgentSession
 
@@ -136,6 +137,12 @@ export function AgentSessionMessages({
           )
       : undefined
 
+  // A suggested follow-up question is sent like a typed message.
+  const handleFollowUpSelect = (question: string) => {
+    if (isStreaming) return
+    void dispatch(sendMessage({ content: question, onFillFormToolEvent, agentSession: session }))
+  }
+
   const desktopHeightClasses = "h-[85dvh] md:h-[calc(100dvh-11rem)] xl:h-[calc(100dvh-17rem)]"
   return (
     <div className={cn("flex flex-1 flex-col min-h-0", desktopHeightClasses)}>
@@ -150,6 +157,7 @@ export function AgentSessionMessages({
                     renderMessageFooter={renderMessageFooter}
                     resendReplyIndex={failedTurn?.replyIndex}
                     onResendLast={handleResendLast}
+                    onFollowUpSelect={isStreaming ? undefined : handleFollowUpSelect}
                   />
                 </ChatDraftContext.Provider>
               </FormResultProvider>
@@ -175,13 +183,17 @@ function Messages({
   renderMessageFooter,
   resendReplyIndex,
   onResendLast,
+  onFollowUpSelect,
 }: {
   messages: AgentSessionMessageType[]
   renderMessageFooter?: (message: AgentSessionMessageType) => React.ReactNode
   /** Index of the failed reply that renders the Retry affordance. */
   resendReplyIndex?: number
   onResendLast?: () => void
+  /** Sends a follow-up question suggested by the last reply. */
+  onFollowUpSelect?: (question: string) => void
 }) {
+  const followUpIndex = followUpReplyIndex(messages)
   return (
     <MessageScroller className="flex-1">
       <MessageScrollerViewport className="p-6">
@@ -197,6 +209,7 @@ function Messages({
                 message={message}
                 renderMessageFooter={renderMessageFooter}
                 onResend={index === resendReplyIndex ? onResendLast : undefined}
+                onFollowUpSelect={index === followUpIndex ? onFollowUpSelect : undefined}
               />
             </MessageScrollerItem>
           ))}

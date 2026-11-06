@@ -8,7 +8,13 @@ describe("ToolSteps", () => {
   it("names the platform's tools, and any other one as a generic step", () => {
     renderWithI18n(
       <ToolSteps
-        toolNames={[TOOL_NAMES.saveMemory, "constructor", TOOL_NAMES.sources, "toString"]}
+        toolNames={[
+          TOOL_NAMES.saveMemory,
+          "constructor",
+          TOOL_NAMES.sources,
+          TOOL_NAMES.suggestFollowUpQuestions,
+          "toString",
+        ]}
         isWriting
         hasText={false}
       />,
@@ -18,5 +24,6 @@ describe("ToolSteps", () => {
     // The names an object holds through its prototype are tools like any other.
     expect(screen.getAllByText("Using a tool")).toHaveLength(2)
     expect(screen.queryByText("sources")).not.toBeInTheDocument()
+    expect(screen.queryByText("suggestFollowUpQuestions")).not.toBeInTheDocument()
   })
 })

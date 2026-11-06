@@ -4,9 +4,12 @@ import {
   buildStreamingMessage,
   emptyConversation,
   failedMcpAppCardConversation,
+  followUpQuestionsAfterNewMessageConversation,
   loadingMcpAppCardConversation,
   longConversation,
   markdownConversation,
+  maxFollowUpQuestionsConversation,
+  oneFollowUpQuestionConversation,
   resourceCardsConversation,
   resourceCardsOnlyConversation,
   shortConversation,
@@ -117,6 +120,34 @@ export const ErrorState: Story = {
       { id: "user-err", role: "user", content: "This will fail.", status: "completed" },
       buildErrorMessage(),
     ],
+  },
+}
+
+export const FollowUpQuestionsNone: Story = {
+  name: "Follow-up questions — none",
+  args: {
+    messages: shortConversation,
+  },
+}
+
+export const FollowUpQuestionsOne: Story = {
+  name: "Follow-up questions — one",
+  args: {
+    messages: oneFollowUpQuestionConversation,
+  },
+}
+
+export const FollowUpQuestionsMax: Story = {
+  name: "Follow-up questions — maximum",
+  args: {
+    messages: maxFollowUpQuestionsConversation,
+  },
+}
+
+export const FollowUpQuestionsHiddenAfterNewMessage: Story = {
+  name: "Follow-up questions — hidden after a new message",
+  args: {
+    messages: followUpQuestionsAfterNewMessageConversation,
   },
 }
 

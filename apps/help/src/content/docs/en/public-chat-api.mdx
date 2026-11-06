@@ -4,8 +4,8 @@ highlight: API
 description: Build your own chat client on a public agent. Routes, headers, server-sent events, error codes and limits of the public chat API, version 1.
 category: developers
 order: 1
-updated: 2026-10-30
-apiVersion: "1.3"
+updated: 2026-11-06
+apiVersion: "1.4"
 ---
 
 import PublicApiBaseUrl from "@/components/PublicApiBaseUrl.astro"
@@ -38,7 +38,7 @@ All routes of version 1 start with `/public/v1/agents/{embedToken}`.
 
 ## Version
 
-This page documents version **1.3**. The major version is in the path (`v1`). Minor versions
+This page documents version **1.4**. The major version is in the path (`v1`). Minor versions
 add fields or routes and never change existing ones. The
 [changelog](/en/public-chat-api-changelog) lists every version. Your client must ignore
 unknown fields and unknown event types. This keeps it compatible with future minor versions.
@@ -237,6 +237,12 @@ the status settles. The reference widget reads it every 2 seconds. A reply that 
 progress for 5 minutes becomes `aborted`.
 
 The `mcpApp` pointer never carries HTML here. Read it with the next route.
+
+When the agent suggests follow-up questions, the reply has a `toolCalls[]` entry named
+`suggestFollowUpQuestions`. Its `arguments.questions` is a list of short questions the user
+could send next, written in the conversation's language. Show them as buttons under the last
+reply, and send the text of a question as the next message when the user clicks it. Hide
+them once a new message is sent. A reply that suggests nothing has no such entry.
 
 Status: `200`. Errors: `401`, `403`, `410`.
 

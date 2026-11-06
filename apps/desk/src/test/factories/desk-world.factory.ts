@@ -422,6 +422,37 @@ export function buildQuotedMessageWorld(): DeskWorld {
 }
 
 /**
+ * The last reply of the first conversation suggests these questions. With `answered`, the person
+ * then sent the first one and the agent replied, which hides them.
+ */
+export function buildFollowUpQuestionsWorld({
+  questions,
+  answered = false,
+}: {
+  questions: string[]
+  answered?: boolean
+}): DeskWorld {
+  const world = buildDeskWorld()
+  const [assistant] = world.agents
+  const [firstConversation] = world.conversations[assistant?.id ?? ""] ?? []
+  const messages = world.messages[firstConversation?.id ?? ""]
+  const reply = messages?.at(-1)
+  if (!messages || !reply) return world
+  reply.toolCalls = [
+    ...(reply.toolCalls ?? []),
+    buildToolCall({ name: TOOL_NAMES.suggestFollowUpQuestions, arguments: { questions } }),
+  ]
+  const [firstQuestion] = questions
+  if (answered && firstQuestion) {
+    messages.push(
+      buildConversationMessage({ role: "user", content: firstQuestion }),
+      buildConversationMessage({ content: "The Pro plan renews on the same day each month." }),
+    )
+  }
+  return world
+}
+
+/**
  * The main case, with a long conversation at the top of the history: five exchanges whose replies
  * use headings, nested lists, tables, a quote, code and a checklist, and whose messages annotate
  * passages of the reply before.
