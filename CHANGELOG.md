@@ -9,6 +9,16 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Security
+
+## [26.11.0] - 2026-11-06
+
+### Added
+
 - Apps: an app can tag a document source when it creates it, so agents can target its documents by tag.
 - Follow-up questions: an agent can suggest short questions under its answers, which users send with one click.
 - Invitations: one invitation gives a workspace role and several agents, accepted once.
