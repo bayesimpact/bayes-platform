@@ -25,7 +25,7 @@ This repository keeps what an environment is made of, since it changes with the 
 - [init.sh](init.sh): installs the dependencies in those volumes when `package-lock.json` changed,
   then builds what the dev servers need.
 - [db-init.sh](db-init.sh): copies the main checkout's database into `connect_wt_<name>` and
-  creates an empty `connect_wt_<name>__test`.
+  creates an empty `connect_wt_<name>__test` (see [The test database](#the-test-database)).
 - [`infra/database`](../database): the shared stack (Postgres, Redis, Traefik, Phoenix,
   Mailpit), and [`infra/oidc-picker`](../oidc-picker): the sign-in configuration of an environment.
 
@@ -79,5 +79,18 @@ forward that same port: forwarding 443 needs root on most laptops.
 Some internet boxes and DNS resolvers drop public answers that point to 127.0.0.1, a protection
 against DNS rebinding: the names then do not resolve at all, while `dig @8.8.8.8` resolves them.
 Name the hosts you use in `/etc/hosts` (`127.0.0.1 <name>.connect.example.org` and its
-`<name>-<service>` hosts: it takes no wildcard), or use a resolver that keeps such answers. Commands you run on the host in a worktree (tests, typecheck, `migration:run`) use
-the environment's databases and Redis, never the main checkout's.
+`<name>-<service>` hosts: it takes no wildcard), or use a resolver that keeps such answers.
+
+## The test database
+
+Commands you run on the host in a worktree (tests, typecheck, `migration:run`) use the
+environment's databases and Redis, never the main checkout's. The API's tests use
+`connect_wt_<name>__test`, which holds no data worth keeping.
+
+At every `up`, the `migrate` service runs the branch's migrations on it, after the copy. The
+tests then build the tables of newer entities with TypeORM's `synchronize`, which records no
+migration. Once the branch brings a migration that this database has not run, for example after a
+merge of main, replaying it would fail on a table that `synchronize` already made, and the API
+would never start. So `db-init.sh` drops the test database when its `migrations` table lacks one
+of the branch's migration files, and `migrate` builds it again from the first migration, in a few
+seconds. Tests that run on the host at that moment lose their connection.
