@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common"
-import { In, type Repository } from "typeorm"
+import { In, IsNull, type Repository } from "typeorm"
 import { ConnectRepository } from "@/common/entities/connect-repository"
 import type { RequiredConnectScope } from "@/common/entities/connect-required-fields"
 // biome-ignore lint/style/useImportType: Required at runtime for NestJS DI
@@ -30,6 +30,14 @@ export class DocumentTagRepository {
     fields: CreateDocumentTagFields,
   ): Promise<DocumentTag> {
     return this.connectRepo().createAndSave(connectScope, fields)
+  }
+
+  findTopLevelByNames(connectScope: RequiredConnectScope, names: string[]): Promise<DocumentTag[]> {
+    if (names.length === 0) return Promise.resolve([])
+    return this.connectRepo().find(connectScope, {
+      where: { name: In(names), parentId: IsNull() },
+      order: { createdAt: "ASC" },
+    })
   }
 
   list(connectScope: RequiredConnectScope): Promise<DocumentTag[]> {
