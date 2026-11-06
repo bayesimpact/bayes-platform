@@ -61,11 +61,6 @@ const ENV_TO_CONFIG_KEY: Record<string, string> = {
   WEB_OIDC_CLIENT_ID: "oidcClientId",
   WEB_OIDC_AUDIENCE: "oidcAudience",
   WEB_OIDC_SCOPE: "oidcScope",
-  WEB_DEFAULT_CONVERSATION_AGENT_PROMPT: "defaultConversationAgentPrompt",
-  WEB_DEFAULT_FORM_AGENT_PROMPT: "defaultFormAgentPrompt",
-  WEB_DEFAULT_FORM_AGENT_SCHEMA: "defaultFormAgentSchema",
-  WEB_DEFAULT_EXTRACTION_AGENT_PROMPT: "defaultExtractionAgentPrompt",
-  WEB_DEFAULT_EXTRACTION_AGENT_SCHEMA: "defaultExtractionAgentSchema",
   // Set for the whole process, not for the web front only: the deployed image
   // tag (Helm) and the commit it was built from (image build argument).
   APP_VERSION: "appVersion",
