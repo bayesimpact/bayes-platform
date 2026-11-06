@@ -4,8 +4,8 @@ highlight: API
 description: Construisez votre propre client de chat sur un agent public. Routes, en-têtes, événements envoyés par le serveur, codes d'erreur et limites de l'API de chat publique, version 1.
 category: developers
 order: 1
-updated: 2026-10-30
-apiVersion: "1.3"
+updated: 2026-11-06
+apiVersion: "1.4"
 ---
 
 import PublicApiBaseUrl from "@/components/PublicApiBaseUrl.astro"
@@ -39,7 +39,7 @@ Toutes les routes de la version 1 commencent par `/public/v1/agents/{embedToken}
 
 ## Version
 
-Cette page documente la version **1.3**. La version majeure est dans le chemin (`v1`). Les
+Cette page documente la version **1.4**. La version majeure est dans le chemin (`v1`). Les
 versions mineures ajoutent des champs ou des routes et ne changent jamais l'existant. Le
 [journal des modifications](/fr/public-chat-api-changelog) liste chaque version. Votre
 client doit ignorer les champs et les types d'événements inconnus. Il reste ainsi
@@ -240,6 +240,13 @@ jusqu'à ce que le statut se fixe. Le widget de référence la relit toutes les 
 réponse sans progression pendant 5 minutes passe à `aborted`.
 
 Le pointeur `mcpApp` ne contient jamais de HTML ici. Lisez-le avec la route suivante.
+
+Quand l'agent suggère des questions de relance, la réponse a une entrée `toolCalls[]` nommée
+`suggestFollowUpQuestions`. Son `arguments.questions` est une liste de questions courtes que
+l'utilisateur pourrait envoyer ensuite, dans la langue de la conversation. Affichez-les comme
+des boutons sous la dernière réponse. Quand l'utilisateur clique sur une question, envoyez son
+texte comme message suivant. Masquez-les dès qu'un nouveau message part. Une réponse qui ne
+suggère rien n'a pas cette entrée.
 
 Statut : `200`. Erreurs : `401`, `403`, `410`.
 

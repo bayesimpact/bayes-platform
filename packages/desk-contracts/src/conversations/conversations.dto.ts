@@ -29,6 +29,7 @@ export const TOOL_NAMES = {
   forgetMemory: "forgetMemory",
   sources: "sources",
   recalculateConversationSessionMetadata: "recalculateConversationSessionMetadata",
+  suggestFollowUpQuestions: "suggestFollowUpQuestions",
 } as const
 
 export type ToolName = (typeof TOOL_NAMES)[keyof typeof TOOL_NAMES]
@@ -82,6 +83,18 @@ export const surfaceResourcesArgumentsSchema = z.object({
 })
 
 export type SurfaceResourcesArgumentsDto = z.output<typeof surfaceResourcesArgumentsSchema>
+
+/**
+ * The short questions a reply suggests the person could send next (the `suggestFollowUpQuestions`
+ * tool), shown as buttons under the last reply.
+ */
+export const suggestFollowUpQuestionsArgumentsSchema = z.object({
+  questions: z.array(z.string()),
+})
+
+export type SuggestFollowUpQuestionsArgumentsDto = z.output<
+  typeof suggestFollowUpQuestionsArgumentsSchema
+>
 
 /** One message of a conversation, oldest first. `tool` messages hold tool results. */
 export const conversationMessageOutputSchema = z.object({

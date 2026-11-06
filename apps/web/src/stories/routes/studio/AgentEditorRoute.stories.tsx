@@ -49,6 +49,8 @@ type StoryArgs = StudioStoryArgs & {
   withEmbeddingModels?: boolean
   /** The agent searches tagged documents and surfaces a resource library (Sources tab). */
   withSources?: boolean
+  /** The agent suggests follow-up questions, with instructions (Tools tab). */
+  withFollowUpQuestions?: boolean
 }
 
 /** Older revisions of the agent so the version history sheet has content to compare. */
@@ -151,6 +153,7 @@ const meta = {
     unpublished: { control: "boolean" },
     withEmbeddingModels: { control: "boolean" },
     withSources: { control: "boolean" },
+    withFollowUpQuestions: { control: "boolean" },
   },
   args: {
     ...studioStoryArgs,
@@ -163,6 +166,7 @@ const meta = {
     unpublished: false,
     withEmbeddingModels: false,
     withSources: false,
+    withFollowUpQuestions: false,
   },
   render: render({ routes: studioRoutes, path: StudioRoutes.agentEdit.path }),
 } satisfies Meta<StoryArgs>
@@ -181,6 +185,7 @@ export const ConversationAgent: Story = {
         unpublished,
         withEmbeddingModels,
         withSources,
+        withFollowUpQuestions,
         ...args
       }) => {
         const { baseSeeds, agents, project } = buildStudioData({ ...args, withAgents: true })
@@ -235,6 +240,11 @@ export const ConversationAgent: Story = {
             isDraft: !!withDraft,
             model: withDeprecatedModel ? AgentModel.Gemini25Flash : defaultAgentModels.agent,
             priorityCallsEnabled: !!withPriorityCalls,
+            followUpSuggestionsEnabled: !!withFollowUpQuestions,
+            followUpSuggestionsInstructions: withFollowUpQuestions
+              ? "Only when the answer contains a difficult term."
+              : null,
+            followUpSuggestionsMax: withFollowUpQuestions ? 3 : 2,
             documentsRagMode: withSources ? DocumentsRagMode.Tags : DocumentsRagMode.All,
             documentTagIds: documentTags.slice(0, 1).map((documentTag) => documentTag.id),
             resourceLibraryIds: resourceLibraries.map((resourceLibrary) => resourceLibrary.id),
@@ -308,6 +318,20 @@ export const ConversationAgentWithPriorityCalls: Story = {
     withPriorityCalls: true,
   },
   decorators: ConversationAgent.decorators,
+}
+
+/** The Tools tab with follow-up questions on: their maximum and the author's instructions. */
+export const ToolsTabWithFollowUpQuestions: Story = {
+  args: { withFollowUpQuestions: true },
+  decorators: ConversationAgent.decorators,
+  play: async ({ canvasElement }) => {
+    const toolsTab = await within(canvasElement).findByRole(
+      "tab",
+      { name: "Tools" },
+      { timeout: 10_000 },
+    )
+    await userEvent.click(toolsTab)
+  },
 }
 
 /**

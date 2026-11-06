@@ -1,3 +1,4 @@
+import { ToolName } from "@caseai-connect/api-contracts"
 import { Button } from "@caseai-connect/ui/shad/button"
 import type { Meta, StoryObj } from "@storybook/react-vite"
 import { CirclePlusIcon, MicIcon, PaperclipIcon } from "lucide-react"
@@ -17,6 +18,7 @@ import {
   ChatSubmit,
 } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/Chat"
 import { ChatDraftContext } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/context"
+import { followUpReplyIndex } from "@/common/features/agents/agent-sessions/shared/agent-session-messages/components/follow-up-questions"
 import { organizationFactory } from "@/common/features/organizations/organization.factory"
 import { projectFactory } from "@/common/features/projects/projects.factory"
 import { DotsBackground } from "@/studio/components/DotsBackground"
@@ -125,8 +127,14 @@ export const Default: Story = {
             <ChatHeader />
             <ChatContent>
               <ChatDraftContext.Provider value={(text) => composerRef.current?.insertText(text)}>
-                {messages.map((msg: AgentSessionMessage) => (
-                  <AgentSessionMessageComponent key={msg.id} message={msg} />
+                {messages.map((msg: AgentSessionMessage, index: number) => (
+                  <AgentSessionMessageComponent
+                    key={msg.id}
+                    message={msg}
+                    onFollowUpSelect={
+                      index === followUpReplyIndex(messages) ? handleSubmit : undefined
+                    }
+                  />
                 ))}
               </ChatDraftContext.Provider>
             </ChatContent>
@@ -311,6 +319,63 @@ export const FailedMcpAppCard: Story = {
           },
         ],
       }),
+    ],
+  },
+}
+
+const followUpQuestion = agentSessionMessageFactory.build({
+  role: "user",
+  content: "How does the subscription work?",
+})
+const buildFollowUpReply = (questions: string[]) =>
+  agentSessionMessageFactory.build({
+    role: "assistant",
+    content:
+      "A subscription renews on the same day each month. You can cancel it at any time from your account page.",
+    status: "completed",
+    toolCalls: questions.length
+      ? [
+          {
+            id: "call-follow-up",
+            name: ToolName.SuggestFollowUpQuestions,
+            arguments: { questions },
+          },
+        ]
+      : [],
+  })
+const maxFollowUpQuestions = [
+  "What does renew mean?",
+  "How do I cancel my subscription?",
+  "Can I change my plan later?",
+  "Do I get a refund if I cancel?",
+]
+
+/** The last reply suggests no follow-up question. */
+export const FollowUpQuestionsNone: Story = {
+  ...Default,
+  args: { messages: [followUpQuestion, buildFollowUpReply([])] },
+}
+
+/** The last reply suggests one question. A click sends it and hides the chips. */
+export const FollowUpQuestionsOne: Story = {
+  ...Default,
+  args: { messages: [followUpQuestion, buildFollowUpReply(["What does renew mean?"])] },
+}
+
+/** The last reply suggests the maximum number of questions (4). */
+export const FollowUpQuestionsMax: Story = {
+  ...Default,
+  args: { messages: [followUpQuestion, buildFollowUpReply(maxFollowUpQuestions)] },
+}
+
+/** The user sent a new message: the questions of the earlier reply are hidden. */
+export const FollowUpQuestionsHiddenAfterNewMessage: Story = {
+  ...Default,
+  args: {
+    messages: [
+      followUpQuestion,
+      buildFollowUpReply(maxFollowUpQuestions),
+      agentSessionMessageFactory.build({ role: "user", content: "What does renew mean?" }),
     ],
   },
 }

@@ -4,11 +4,11 @@ highlight: changelog
 description: Every version of the public chat API, with the date, the changes and the migration steps when a change is breaking.
 category: developers
 order: 3
-updated: 2026-10-30
-apiVersion: "1.3"
+updated: 2026-11-06
+apiVersion: "1.4"
 ---
 
-This page lists every version of the public chat API. The current version is **1.3**.
+This page lists every version of the public chat API. The current version is **1.4**.
 Minor versions add things and keep existing clients working. Major versions can break
 clients and come with a deprecation period. See the
 [versioning and deprecation policy](/en/public-chat-api-versioning).
@@ -33,6 +33,20 @@ clients and come with a deprecation period. See the
   ### Migration
   - ... (mandatory for a major version)
 */}
+
+## 1.4 (2026-11-06)
+
+### Added
+
+- Follow-up questions: when the agent suggests some, a reply of
+  [get a session](/en/public-chat-api#get-a-session) has a `toolCalls[]` entry named
+  `suggestFollowUpQuestions`, whose `arguments.questions` lists short questions the user can
+  send next.
+
+### Migration
+
+- None. Clients that ignore unknown tool names keep working. To show the questions, read
+  this entry on the last reply.
 
 ## 1.3 (2026-10-30)
 

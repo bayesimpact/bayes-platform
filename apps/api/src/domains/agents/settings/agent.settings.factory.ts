@@ -4,6 +4,7 @@ import {
   AgentModel,
   DocumentsRagMode,
   EmbeddingModel,
+  FOLLOW_UP_SUGGESTIONS_DEFAULT_MAX,
 } from "@caseai-connect/api-contracts"
 import { Factory } from "fishery"
 import type { RequiredScopeTransientParams } from "@/common/entities/connect-required-fields"
@@ -51,6 +52,9 @@ export const agentSettingsFactory = AgentSettingsFactory.define(
       priorityCallsEnabled: params.priorityCallsEnabled ?? false,
       providerOptions: params.providerOptions ?? {},
       memoryMode: params.memoryMode || AgentMemoryMode.Off,
+      followUpSuggestionsEnabled: params.followUpSuggestionsEnabled ?? false,
+      followUpSuggestionsInstructions: params.followUpSuggestionsInstructions ?? null,
+      followUpSuggestionsMax: params.followUpSuggestionsMax ?? FOLLOW_UP_SUGGESTIONS_DEFAULT_MAX,
       embeddingModel: params.embeddingModel ?? EmbeddingModel.GeminiEmbedding001,
       organizationId: transientParams.organization.id,
       projectId: transientParams.project.id,

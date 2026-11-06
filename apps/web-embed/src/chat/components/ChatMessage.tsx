@@ -6,6 +6,7 @@ import { AlertCircleIcon, CopyIcon } from "lucide-react"
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { cn } from "../lib/cn"
+import { FollowUpQuestions, findFollowUpQuestions } from "./FollowUpQuestions"
 import { ChatBotMessage, ChatUserMessage } from "./index"
 import { MarkdownWrapper } from "./MarkdownWrapper"
 import { McpAppPlaceholder, McpAppView } from "./McpAppView"
@@ -22,8 +23,11 @@ export function ChatMessage({
   message,
   mcpAppHtml = [],
   isMcpAppHtmlLoading = false,
+  onFollowUpSelect,
 }: {
   message: AgentSessionMessageDto
+  /** Sends a suggested follow-up question. Only passed to the last reply of the thread. */
+  onFollowUpSelect?: (question: string) => void
   /** Current HTML of the MCP App cards in the thread, loaded after the messages. */
   mcpAppHtml?: AgentSessionMcpAppHtmlDto[]
   /** The MCP servers have not answered yet: cards without HTML hold their place. */
@@ -118,6 +122,13 @@ export function ChatMessage({
                 isMcpAppHtmlLoading && <McpAppPlaceholder key={toolCall.id} className="mt-2" />
               ),
             )}
+
+          {!isStreaming && !isError && onFollowUpSelect && (
+            <FollowUpQuestions
+              questions={findFollowUpQuestions(message.toolCalls)}
+              onSelect={onFollowUpSelect}
+            />
+          )}
         </div>
       )
     }

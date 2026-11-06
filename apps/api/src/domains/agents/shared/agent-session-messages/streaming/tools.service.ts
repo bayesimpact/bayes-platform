@@ -58,6 +58,7 @@ import {
 } from "./tools/memory.tools"
 import { createRetrievedChunksRegistry } from "./tools/retrieved-chunks-registry"
 import type { SessionStateTarget } from "./tools/session-state-target"
+import { suggestFollowUpQuestionsTool } from "./tools/suggest-follow-up-questions.tool"
 import { surfaceResourcesTool } from "./tools/surface-resources.tool"
 import { createSurfacedResourcesRegistry } from "./tools/surfaced-resources-registry"
 import type { TurnClassificationContext } from "./tools/turn-classification"
@@ -69,7 +70,10 @@ import type { TurnClassificationContext } from "./tools/turn-classification"
  * (lookup_knowledge_base, fillForm, MCP, sub-agents) stay out of this list
  * because the model consumes their output.
  */
-const FIRE_AND_FORGET_TOOL_NAMES: string[] = [ToolName.SurfaceResources]
+const FIRE_AND_FORGET_TOOL_NAMES: string[] = [
+  ToolName.SurfaceResources,
+  ToolName.SuggestFollowUpQuestions,
+]
 
 /**
  * The tools exposed by an agent's enabled MCP servers
@@ -577,8 +581,18 @@ export class ToolsService {
     // sources) is computed after the turn, not by a tool in the loop (see
     // turn-classification.ts). Sub-agents and evaluation runs pass
     // includeSessionMetadataTools=false: no session of their own to title.
+    // Only the agent that speaks to the user suggests follow-up questions: a
+    // relay sub-agent (includeSubAgentTools=false) answers its parent, which
+    // never shows chips. The classifier writes them when the model did not.
+    const hasFollowUpQuestions = agentSettings.followUpSuggestionsEnabled && includeSubAgentTools
+    const followUpTurnState = { suggestedByTool: false }
+
     const turnClassification: TurnClassificationContext | undefined =
-      hasSourcesReporting || includeSessionMetadataTools || handoff || announcedHandoff
+      hasSourcesReporting ||
+      includeSessionMetadataTools ||
+      handoff ||
+      announcedHandoff ||
+      hasFollowUpQuestions
         ? {
             retrievedChunksRegistry: hasSourcesReporting ? retrievedChunksRegistry : undefined,
             sessionMetadata: includeSessionMetadataTools
@@ -604,6 +618,13 @@ export class ToolsService {
                   }
                 : undefined,
             announcedHandoff,
+            followUpQuestions: hasFollowUpQuestions
+              ? {
+                  maxQuestions: agentSettings.followUpSuggestionsMax,
+                  instructions: agentSettings.followUpSuggestionsInstructions,
+                  suggestedByTool: () => followUpTurnState.suggestedByTool,
+                }
+              : undefined,
             onExecute,
           }
         : undefined
@@ -637,6 +658,19 @@ export class ToolsService {
                 agent.resourceLibraries ?? [],
               ),
               onExecute,
+            }),
+          }
+        : {}),
+
+      // Follow-up question chips (see hasFollowUpQuestions above).
+      ...(hasFollowUpQuestions
+        ? {
+            [ToolName.SuggestFollowUpQuestions]: suggestFollowUpQuestionsTool({
+              followUpSuggestionsMax: agentSettings.followUpSuggestionsMax,
+              onExecute,
+              onSuggested: () => {
+                followUpTurnState.suggestedByTool = true
+              },
             }),
           }
         : {}),

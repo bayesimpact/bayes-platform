@@ -83,4 +83,7 @@ const toAgentSettings = (dto: AgentSettingsDto): AgentSettings => ({
   updatedAt: dto.updatedAt,
   usedProjectAgentSessionCategoryIds: dto.usedProjectAgentSessionCategoryIds,
   memoryMode: dto.memoryMode,
+  followUpSuggestionsEnabled: dto.followUpSuggestionsEnabled,
+  followUpSuggestionsInstructions: dto.followUpSuggestionsInstructions,
+  followUpSuggestionsMax: dto.followUpSuggestionsMax,
 })

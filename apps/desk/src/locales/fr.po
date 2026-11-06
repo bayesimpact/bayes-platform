@@ -999,6 +999,10 @@ msgstr "Arrêter la dictée"
 msgid "Stopped"
 msgstr "Arrêtée"
 
+#: src/features/conversation/components/FollowUpQuestions.tsx
+msgid "Suggested questions"
+msgstr "Questions suggérées"
+
 #: src/features/agents/components/AgentSwitcher.tsx
 msgid "Switch agent, current agent: {agentName}"
 msgstr "Changer d'agent, agent actuel : {agentName}"

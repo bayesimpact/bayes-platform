@@ -6,6 +6,7 @@ import { agentUrlOf, conversationOf, conversationUrlOf } from "@/test/desk-urls"
 import { buildConversationMessage } from "@/test/factories/agent-sessions.factory"
 import {
   buildDeskWorld,
+  buildFollowUpQuestionsWorld,
   buildQuotedMessageWorld,
   type DeskWorld,
 } from "@/test/factories/desk-world.factory"
@@ -147,6 +148,42 @@ describe("a conversation", () => {
     await waitFor(() =>
       expect(screen.getAllByRole("button", { name: "Copy the reply" })).toHaveLength(3),
     )
+  })
+
+  it("sends a question the last reply suggests with one click, which hides the questions", async () => {
+    const world = buildFollowUpQuestionsWorld({
+      questions: ["What does renew mean?", "How do I cancel my plan?"],
+    })
+    server.use(...worldHandlers(world))
+    renderApp(conversationUrlOf(world))
+
+    const questions = await screen.findByRole("list", { name: "Suggested questions" })
+    expect(within(questions).getAllByRole("button")).toHaveLength(2)
+    await userEvent.click(within(questions).getByRole("button", { name: "What does renew mean?" }))
+
+    // The buttons go away: the focus waits in the message box.
+    expect(screen.getByRole("textbox", { name: "Message to Helpful Assistant" })).toHaveFocus()
+    expect(
+      await screen.findByText(/Here is what I found about "What does renew mean\?"/),
+    ).toBeInTheDocument()
+    expect(savedMessagesOf(world).map((message) => message.content)).toContain(
+      "What does renew mean?",
+    )
+    expect(screen.queryByRole("list", { name: "Suggested questions" })).not.toBeInTheDocument()
+  })
+
+  it("shows the questions of the last reply only", async () => {
+    const world = buildFollowUpQuestionsWorld({
+      questions: ["What does renew mean?"],
+      answered: true,
+    })
+    server.use(...worldHandlers(world))
+    renderApp(conversationUrlOf(world))
+
+    expect(
+      await screen.findByText("The Pro plan renews on the same day each month."),
+    ).toBeInTheDocument()
+    expect(screen.queryByRole("list", { name: "Suggested questions" })).not.toBeInTheDocument()
   })
 
   it("sends the message in the body of the stream, never in its URL", async () => {

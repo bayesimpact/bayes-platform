@@ -15,6 +15,9 @@
       "priorityCallsEnabled": "Priority calls",
       "promptVariables": "Prompt variables",
       "embeddingModel": "Embedding model",
+      "followUpSuggestionsEnabled": "Follow-up questions",
+      "followUpSuggestionsInstructions": "Follow-up question instructions",
+      "followUpSuggestionsMax": "Most follow-up questions",
       "schemaBuilder": {
         "advancedMode": "Advanced mode",
         "visualMode": "Visual editor",
@@ -248,6 +251,14 @@
         "title": "Form filling",
         "description": "Let the agent fill a structured form from the user's answers during the conversation.",
         "schemaDescription": "Define the form fields the agent should fill. The field order is the order in which the agent asks its questions."
+      },
+      "followUpSuggestions": {
+        "title": "Suggest follow-up questions",
+        "description": "After an answer, the agent can suggest short questions that the user can click to continue the conversation.",
+        "instructions": "Instructions",
+        "instructionsDescription": "Optional. Tell the agent when and how to write the questions.",
+        "instructionsPlaceholder": "For example: only when the answer contains a difficult term.",
+        "max": "Maximum per answer"
       },
       "memory": {
         "title": "Memory",
