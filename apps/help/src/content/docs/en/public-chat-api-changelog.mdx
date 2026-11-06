@@ -4,11 +4,11 @@ highlight: changelog
 description: Every version of the public chat API, with the date, the changes and the migration steps when a change is breaking.
 category: developers
 order: 3
-updated: 2026-10-30
-apiVersion: "1.3"
+updated: 2026-11-06
+apiVersion: "1.4"
 ---
 
-This page lists every version of the public chat API. The current version is **1.3**.
+This page lists every version of the public chat API. The current version is **1.4**.
 Minor versions add things and keep existing clients working. Major versions can break
 clients and come with a deprecation period. See the
 [versioning and deprecation policy](/en/public-chat-api-versioning).
@@ -33,6 +33,18 @@ clients and come with a deprecation period. See the
   ### Migration
   - ... (mandatory for a major version)
 */}
+
+## 1.4 (2026-11-06)
+
+### Added
+
+- `csp` on [MCP App card HTML](/en/public-chat-api#get-mcp-app-card-html): the domains a card
+  declares in its MCP resource metadata, so a client can build the card's Content Security
+  Policy.
+
+### Migration
+
+- None. `csp` is optional, and a client that ignores it keeps working.
 
 ## 1.3 (2026-10-30)
 

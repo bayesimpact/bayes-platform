@@ -131,6 +131,7 @@ export function AgentSessionMessage({
                   <McpAppView
                     key={toolCall.id}
                     html={view.html}
+                    csp={view.csp}
                     toolInput={view.toolInput}
                     toolResult={view.toolResult}
                     onMessage={insertDraft ?? undefined}

@@ -30,6 +30,7 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 - Embedded agents: visitor messages no longer appear in URLs.
 - Conversations: long messages now always get a reply, and their text no longer reaches server access logs.
 - Server logs: messages people write and sign-in codes stay out of the logs, even with detailed logging turned on.
+- MCP App cards: each card now runs in its own isolated frame, limited to the domains it declares.
 
 ## [26.10.10] - 2026-10-31
 

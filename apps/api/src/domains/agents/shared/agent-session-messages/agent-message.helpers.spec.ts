@@ -13,8 +13,11 @@ const mcpServerId = "mcp-server-1"
 describe("toMcpAppHtmlDtos", () => {
   it("splits each cache key back into the server and uri the client matches on", () => {
     const htmlByKey = new Map([
-      [mcpAppHtmlCacheKey(mcpServerId, resourceUri), "<html>card</html>"],
-      [mcpAppHtmlCacheKey("mcp-server-2", "ui://other/app.html"), "<html>other</html>"],
+      [mcpAppHtmlCacheKey(mcpServerId, resourceUri), { html: "<html>card</html>" }],
+      [
+        mcpAppHtmlCacheKey("mcp-server-2", "ui://other/app.html"),
+        { html: "<html>other</html>", csp: { connectDomains: ["https://api.example.com"] } },
+      ],
     ])
 
     expect(toMcpAppHtmlDtos(htmlByKey)).toEqual([
@@ -23,6 +26,7 @@ describe("toMcpAppHtmlDtos", () => {
         mcpServerId: "mcp-server-2",
         resourceUri: "ui://other/app.html",
         html: "<html>other</html>",
+        csp: { connectDomains: ["https://api.example.com"] },
       },
     ])
   })
@@ -35,7 +39,7 @@ describe("toMcpAppHtmlDtos", () => {
 describe("applyLiveMcpAppHtml", () => {
   it("hydrates live HTML onto the persisted MCP App pointer", () => {
     const htmlByKey = new Map([
-      [mcpAppHtmlCacheKey(mcpServerId, resourceUri), "<html>new card</html>"],
+      [mcpAppHtmlCacheKey(mcpServerId, resourceUri), { html: "<html>new card</html>" }],
     ])
 
     expect(
@@ -105,7 +109,7 @@ describe("toDto", () => {
 
   it("maps a message to a DTO and hydrates live MCP App HTML", () => {
     const htmlByKey = new Map([
-      [mcpAppHtmlCacheKey(mcpServerId, resourceUri), "<html>live card</html>"],
+      [mcpAppHtmlCacheKey(mcpServerId, resourceUri), { html: "<html>live card</html>" }],
     ])
     const message = buildMessage({
       toolCalls: [

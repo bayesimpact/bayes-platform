@@ -63,7 +63,7 @@ describe("PublicChatService", () => {
   })
 
   it("reads the current HTML of the cards the session points at", async () => {
-    const htmlByKey = new Map([[mcpAppHtmlCacheKey(mcpServerId, resourceUri), html]])
+    const htmlByKey = new Map([[mcpAppHtmlCacheKey(mcpServerId, resourceUri), { html }]])
     const readLiveHtml = jest.fn().mockResolvedValue(htmlByKey)
     const service = buildService(readLiveHtml, [messageWithCard])
 
