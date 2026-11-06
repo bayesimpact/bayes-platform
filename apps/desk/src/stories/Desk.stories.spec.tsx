@@ -47,6 +47,18 @@ const PAGES = {
     Story: pageStories.LongConversation,
     loaded: () => screen.findByRole("heading", { name: "What the billing team should check" }),
   },
+  OneFollowUpQuestion: {
+    Story: pageStories.OneFollowUpQuestion,
+    loaded: () => screen.findByRole("button", { name: "What does renew mean?" }),
+  },
+  MostFollowUpQuestions: {
+    Story: pageStories.MostFollowUpQuestions,
+    loaded: () => screen.findByRole("button", { name: /Do I get a refund if I cancel/ }),
+  },
+  FollowUpQuestionAnswered: {
+    Story: pageStories.FollowUpQuestionAnswered,
+    loaded: () => screen.findByText("The Pro plan renews on the same day each month."),
+  },
   FirstConversation: {
     Story: pageStories.FirstConversation,
     loaded: () => screen.findByText("No conversations yet"),

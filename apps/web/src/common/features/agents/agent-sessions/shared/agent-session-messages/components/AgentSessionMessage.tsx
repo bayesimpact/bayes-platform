@@ -24,6 +24,8 @@ import { selectMcpAppHtml, selectStreamingToolSteps } from "../agent-session-mes
 import { Attachment } from "./Attachment"
 import { ConversationFormsSheet } from "./ConversationFormsSheet"
 import { ChatDraftContext } from "./context"
+import { FollowUpQuestions } from "./FollowUpQuestions"
+import { findFollowUpQuestions } from "./follow-up-questions"
 import { useConversationForms } from "./form-result-context"
 import { MarkdownWrapper } from "./MarkdownWrapper"
 import { McpAppPlaceholder, McpAppView } from "./McpAppView"
@@ -35,11 +37,14 @@ export function AgentSessionMessage({
   message,
   renderMessageFooter,
   onResend,
+  onFollowUpSelect,
 }: {
   message: AgentSessionMessageType
   renderMessageFooter?: (message: AgentSessionMessageType) => React.ReactNode
   /** Sends the turn that led to this reply again. Only offered on a failed last reply. */
   onResend?: () => void
+  /** Sends a suggested follow-up question. Only passed to the last reply of the thread. */
+  onFollowUpSelect?: (question: string) => void
 }) {
   const { t } = useTranslation()
   const conversationForms = useConversationForms()
@@ -145,6 +150,13 @@ export function AgentSessionMessage({
                 ),
               )}
 
+            {!isStreaming && !isError && !isInterrupted && onFollowUpSelect && (
+              <FollowUpQuestions
+                questions={findFollowUpQuestions(message.toolCalls)}
+                onSelect={onFollowUpSelect}
+              />
+            )}
+
             {!isStreaming && (
               <MessageFooter className="gap-0 px-1">
                 {/* Nothing was written to rate or copy; tools that ran before the interruption
@@ -238,6 +250,7 @@ const TOOL_ACTIVITY_KEY: Record<string, string> = {
   retrieveProjectDocumentChunks: "activity.lookupKnowledgeBase",
   [ToolName.Sources]: "activity.gatheringSources",
   [ToolName.SurfaceResources]: "activity.surfacingResources",
+  [ToolName.SuggestFollowUpQuestions]: "activity.suggestingQuestions",
   [ToolName.FillForm]: "activity.fillingForm",
   [ToolName.ConsolidateForm]: "activity.completingForm",
   [ToolName.ConcludeHandoff]: "activity.handingBack",
@@ -252,11 +265,20 @@ function toolStepLabel(t: TFunction, toolName: AgentSessionToolName): string {
   return t(`status:${activityLabelKey}`)
 }
 
-/** Distinct tools a completed message ran, preserving first-seen order for the timeline. */
+/**
+ * Distinct tools a completed message ran, preserving first-seen order for the timeline.
+ * The follow-up questions are left out: their chips under the reply already show them.
+ */
 function completedToolSteps(
   toolCalls: AgentSessionMessageType["toolCalls"],
 ): AgentSessionToolName[] {
-  return [...new Set((toolCalls ?? []).map((call) => call.name))]
+  return [
+    ...new Set(
+      (toolCalls ?? [])
+        .map((call) => call.name)
+        .filter((toolName) => toolName !== ToolName.SuggestFollowUpQuestions),
+    ),
+  ]
 }
 
 /**

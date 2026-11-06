@@ -152,6 +152,9 @@ describe("Agent Settings - getAllWithDraft", () => {
       documentsRagMode: DocumentsRagMode.None,
       fillFormEnabled: true,
       outputJsonSchema: { type: "object", properties: { title: { type: "string" } } },
+      followUpSuggestionsEnabled: true,
+      followUpSuggestionsInstructions: "Only when the answer has a difficult term.",
+      followUpSuggestionsMax: 3,
     })
     await repositories.agentSettingsRepository.save(revision2)
     const storedRevision2 = await repositories.agentSettingsRepository.findOneOrFail({
@@ -189,6 +192,9 @@ describe("Agent Settings - getAllWithDraft", () => {
       priorityCallsEnabled: false,
       providerOptions: {},
       memoryMode: AgentMemoryMode.Off,
+      followUpSuggestionsEnabled: true,
+      followUpSuggestionsInstructions: "Only when the answer has a difficult term.",
+      followUpSuggestionsMax: 3,
     })
   })
 

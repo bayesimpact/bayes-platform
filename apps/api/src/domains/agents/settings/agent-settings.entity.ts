@@ -87,4 +87,18 @@ export class AgentSettings extends ConnectEntityBase {
 
   @Column({ type: "varchar", name: "memory_mode", nullable: false, default: "off" })
   memoryMode!: AgentMemoryMode
+
+  @Column({
+    type: "boolean",
+    name: "follow_up_suggestions_enabled",
+    default: false,
+    nullable: false,
+  })
+  followUpSuggestionsEnabled!: boolean
+
+  @Column({ type: "text", name: "follow_up_suggestions_instructions", nullable: true })
+  followUpSuggestionsInstructions!: string | null
+
+  @Column({ type: "integer", name: "follow_up_suggestions_max", default: 2, nullable: false })
+  followUpSuggestionsMax!: number
 }

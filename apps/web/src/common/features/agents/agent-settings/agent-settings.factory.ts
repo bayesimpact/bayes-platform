@@ -2,6 +2,7 @@ import {
   AgentMemoryMode,
   DocumentsRagMode,
   EmbeddingModel,
+  FOLLOW_UP_SUGGESTIONS_DEFAULT_MAX,
   type outputJsonSchemaSchema,
 } from "@caseai-connect/api-contracts"
 import { faker } from "@faker-js/faker"
@@ -83,5 +84,8 @@ export const agentSettingsFactory = AgentSettingsFactory.define(({ params, trans
     usedProjectAgentSessionCategoryIds: params.usedProjectAgentSessionCategoryIds ?? [],
     mcpServers: params.mcpServers ?? [],
     memoryMode: params.memoryMode ?? AgentMemoryMode.Off,
+    followUpSuggestionsEnabled: params.followUpSuggestionsEnabled ?? false,
+    followUpSuggestionsInstructions: params.followUpSuggestionsInstructions ?? null,
+    followUpSuggestionsMax: params.followUpSuggestionsMax ?? FOLLOW_UP_SUGGESTIONS_DEFAULT_MAX,
   } satisfies AgentSettings
 })

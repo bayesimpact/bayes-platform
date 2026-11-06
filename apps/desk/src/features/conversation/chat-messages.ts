@@ -2,9 +2,11 @@ import {
   type ConversationMessageOutputDto,
   type ReplyStreamEventDto,
   type SourcesArgumentsDto,
+  type SuggestFollowUpQuestionsArgumentsDto,
   type SurfaceResourcesArgumentsDto,
   saveMemoryResultSchema,
   sourcesArgumentsSchema,
+  suggestFollowUpQuestionsArgumentsSchema,
   surfaceResourcesArgumentsSchema,
   TOOL_NAMES,
   type ToolName,
@@ -58,6 +60,8 @@ export type ChatMessage = {
   memoryIds: string[]
   /** The interactive cards of MCP Apps the reply shows, in the order of its tool calls. */
   mcpApps: ChatMcpApp[]
+  /** The questions the reply suggests the person could send next, known once it is persisted. */
+  followUpQuestions: SuggestFollowUpQuestionsArgumentsDto["questions"]
 }
 
 /** An MCP App a tool of the reply shows: where its HTML comes from, and the data it renders. */
@@ -117,6 +121,30 @@ function readSavedMemoryIds(toolCalls: ToolCall[]): string[] {
   })
 }
 
+/**
+ * The questions of the last `suggestFollowUpQuestions` call of a reply, without blank or repeated
+ * ones: each one is a button, keyed by its text.
+ */
+function readFollowUpQuestions(toolCalls: ToolCall[]): string[] {
+  const lastCall = readToolArguments(
+    toolCalls,
+    TOOL_NAMES.suggestFollowUpQuestions,
+    suggestFollowUpQuestionsArgumentsSchema,
+  ).at(-1)
+  const questions = (lastCall?.questions ?? []).filter((question) => question.trim() !== "")
+  return [...new Set(questions)]
+}
+
+/**
+ * The questions the person can send with one click: those of the last message, when it is a
+ * settled reply. A message sent after it, or a reply still on its way, hides them.
+ */
+export function lastReplyFollowUpQuestions(messages: ChatMessage[], isBusy: boolean): string[] {
+  const lastMessage = messages.at(-1)
+  if (isBusy || lastMessage?.role !== "assistant" || lastMessage.status !== "completed") return []
+  return lastMessage.followUpQuestions
+}
+
 /** The persisted messages as the conversation shows them. */
 export function toChatMessages(messages: ConversationMessageOutputDto[]): ChatMessage[] {
   return messages.flatMap((message): ChatMessage[] => {
@@ -144,6 +172,7 @@ export function toChatMessages(messages: ConversationMessageOutputDto[]): ChatMe
           : null,
         memoryIds: readSavedMemoryIds(toolCalls),
         mcpApps: readMcpApps(toolCalls),
+        followUpQuestions: readFollowUpQuestions(toolCalls),
       },
     ]
   })
@@ -180,6 +209,7 @@ function newMessage(id: string, role: ChatMessage["role"], now: number): ChatMes
     attachment: null,
     memoryIds: [],
     mcpApps: [],
+    followUpQuestions: [],
   }
 }
 

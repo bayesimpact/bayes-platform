@@ -28,6 +28,10 @@ export type ChatMessageViewProps = {
   citedPassages: CitedPassages
   /** The tasks of the replies, as the person left them, and their ticks. */
   taskChecks: TaskChecks
+  /** The questions to show as buttons under a reply: only the last reply has some. */
+  followUpQuestions: string[]
+  /** Sends a suggested question as the person's next message. */
+  onFollowUpQuestion: (question: string) => void
 }
 
 /** One message: the person's in a bubble on the right, the agent's on the left with its steps. */
@@ -41,6 +45,8 @@ export function ChatMessageView({
   onOpenResource,
   citedPassages,
   taskChecks,
+  followUpQuestions,
+  onFollowUpQuestion,
 }: ChatMessageViewProps) {
   const { t } = useLingui()
   if (message.role === "user") {
@@ -84,6 +90,8 @@ export function ChatMessageView({
       onAppMessage={onAppMessage}
       onOpenResource={onOpenResource}
       taskChecks={taskChecks}
+      followUpQuestions={followUpQuestions}
+      onFollowUpQuestion={onFollowUpQuestion}
     />
   )
 }
