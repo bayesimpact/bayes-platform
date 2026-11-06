@@ -9,12 +9,12 @@ This project uses [CalVer](https://calver.org/) (YY.MM.Micro) for product versio
 
 ### Added
 
-- Apps catalog: project owners and admins can browse the apps they can connect, from the Connected apps page.
 - Apps: an app can tag a document source when it creates it, so agents can target its documents by tag.
 - Follow-up questions: an agent can suggest short questions under its answers, which users send with one click.
 - Invitations: one invitation gives a workspace role and several agents, accepted once.
 - MCP: AI assistants can build evaluation datasets, evaluate agent drafts and read the scores, with the access a person grants.
 - Workspace selection: a log out button is now on the page that lists your workspaces.
+- (beta) Apps catalog: project owners and admins can browse the apps they can connect, from the Connected apps page.
 
 ### Changed
 
