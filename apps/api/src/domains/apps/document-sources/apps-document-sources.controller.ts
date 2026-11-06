@@ -95,14 +95,18 @@ export class AppsDocumentSourcesController {
       throw new BadRequestException("Invalid document source payload")
     }
 
-    const documentSource = await this.documentSourcesService.createOne(connectScope, {
-      name: parsed.data.name,
-      type: parsed.data.type ?? null,
-      externalId: parsed.data.external_id ?? null,
-      baseUrl: parsed.data.base_url ?? null,
-      config: parsed.data.config ?? null,
-      appInstallationId: request.appInstallationId,
-    })
+    const documentSource = await this.documentSourcesService.createOne(
+      connectScope,
+      {
+        name: parsed.data.name,
+        type: parsed.data.type ?? null,
+        externalId: parsed.data.external_id ?? null,
+        baseUrl: parsed.data.base_url ?? null,
+        config: parsed.data.config ?? null,
+        appInstallationId: request.appInstallationId,
+      },
+      parsed.data.tags,
+    )
     return { data: toDocumentSourceDto(documentSource) }
   }
 
