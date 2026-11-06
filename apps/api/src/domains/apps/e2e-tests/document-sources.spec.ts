@@ -5,6 +5,7 @@ import {
   DOCUMENT_SOURCE_DELETE_PERMISSION,
   DOCUMENT_SOURCE_READ_PERMISSION,
   DOCUMENT_SOURCE_UPDATE_PERMISSION,
+  PUBLIC_DOCUMENTS_TAG_NAME,
 } from "@caseai-connect/api-contracts"
 import type { INestApplication } from "@nestjs/common"
 import request from "supertest"
@@ -19,6 +20,8 @@ import {
 } from "@/common/test/test-database"
 import { ActivitiesModule } from "@/domains/activities/activities.module"
 import { createDocumentForProject } from "@/domains/documents/document.factory"
+import { DocumentTag } from "@/domains/documents/tags/document-tag.entity"
+import { documentTagFactory } from "@/domains/documents/tags/document-tag.factory"
 import { createOrganizationWithProject } from "@/domains/organizations/organization.factory"
 import { RbacModule } from "@/domains/rbac/rbac.module"
 import { ensureRbacCatalog } from "../../../../test/rbac-test.helpers"
@@ -193,6 +196,57 @@ describe("Apps - Document sources", () => {
       409,
       "A document source with this external id already exists",
     )
+  })
+
+  it("tags a new source by name with document_source.create alone", async () => {
+    const { organization, project, accessToken } = await installAndIssueToken([
+      DOCUMENT_SOURCE_CREATE_PERMISSION,
+    ])
+    const tagRepository = setup.dataSource.getRepository(DocumentTag)
+    const scope = { organization, project }
+    const productTag = await tagRepository.save(
+      documentTagFactory.transient(scope).build({ name: "Product" }),
+    )
+    const nestedSupportTag = await tagRepository.save(
+      documentTagFactory.transient(scope).build({ name: "Support", parentId: productTag.id }),
+    )
+
+    const created = await call({
+      method: "post",
+      path: AppsDocumentSourcesRoutes.createOne.getPath({ projectId: project.id }),
+      token: accessToken,
+      body: { name: "Site crawler", tags: ["Product", " Support ", "Product"] },
+    })
+    expectResponse(created, 201)
+
+    const saved = await repositories.documentSourceRepository.findOne({
+      where: { id: created.body.data.id },
+      relations: ["tags"],
+    })
+    const savedTags = saved?.tags ?? []
+    expect(savedTags.map((tag) => tag.name).sort()).toEqual(["Product", "Support"])
+    expect(savedTags.find((tag) => tag.name === "Product")?.id).toBe(productTag.id)
+    const supportTag = savedTags.find((tag) => tag.name === "Support")
+    expect(supportTag?.id).not.toBe(nestedSupportTag.id)
+    expect(supportTag?.parentId).toBeNull()
+    expect(await tagRepository.count({ where: { projectId: project.id } })).toBe(3)
+  })
+
+  it("refuses the reserved tag name and creates no source", async () => {
+    const { project, accessToken } = await installAndIssueToken(ALL_SOURCE_PERMISSIONS)
+    expectResponse(
+      await call({
+        method: "post",
+        path: AppsDocumentSourcesRoutes.createOne.getPath({ projectId: project.id }),
+        token: accessToken,
+        body: { name: "Site crawler", tags: [PUBLIC_DOCUMENTS_TAG_NAME] },
+      }),
+      400,
+      `Tag name "${PUBLIC_DOCUMENTS_TAG_NAME}" is reserved.`,
+    )
+    expect(
+      await repositories.documentSourceRepository.count({ where: { projectId: project.id } }),
+    ).toBe(0)
   })
 
   it("returns 409 when deleting a feed that still has documents", async () => {
