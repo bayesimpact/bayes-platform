@@ -1,0 +1,139 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2026-11-03 15:47+0100\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: fr\n"
+
+#: src/components/shared/RouteErrorState.tsx
+msgid "A new version of the app is available"
+msgstr "Une nouvelle version de l'application est disponible"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Account already exists"
+msgstr "Compte déjà existant"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "An account already exists for your email address, and this platform does not link a new sign-in to an existing account."
+msgstr "Un compte existe déjà pour votre adresse email, et cette plateforme ne relie pas une nouvelle connexion à un compte existant."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "An account is waiting for your email address, but your identity provider has not verified it yet."
+msgstr "Un compte attend votre adresse email, mais votre fournisseur d’identité ne l’a pas encore vérifiée."
+
+#. Opens the platform's home, which lists the person's apps
+#: src/features/projects/components/NoEvaluationAccessPage.tsx
+msgid "Back to home"
+msgstr "Retour à l'accueil"
+
+#: src/components/shared/NotFoundState.tsx
+msgid "Back to the app"
+msgstr "Retour à l'accueil"
+
+#: src/components/shared/RouteErrorState.tsx
+msgid "Check your connection, then try again."
+msgstr "Vérifiez votre connexion, puis réessayez."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Contact your administrator."
+msgstr "Contactez votre administrateur."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Each new sign-in ended at once, so the app stopped starting new ones."
+msgstr "Chaque nouvelle connexion s'est arrêtée aussitôt : l'application a cessé d'en lancer."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Email address missing"
+msgstr "Adresse email manquante"
+
+#: src/features/projects/components/NoEvaluationAccessPage.tsx
+msgid "Evaluation opens to the evaluators of a project. Ask a project admin to give you the Evaluator role from the members page."
+msgstr "L'évaluation est réservée aux évaluateurs d'un projet. Demandez à un administrateur du projet de vous donner le rôle Évaluateur depuis la page des membres."
+
+#: src/routes/_authenticated/index.tsx
+msgid "Hello world!"
+msgstr "Bonjour tout le monde !"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "If it keeps happening, contact your administrator with the message below."
+msgstr "Si cela se reproduit, contactez votre administrateur avec le message ci-dessous."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Open the verification email your identity provider sent you, and check your spam folder. Click the link it contains, then try again."
+msgstr "Ouvrez l’email de vérification envoyé par votre fournisseur d’identité, en regardant aussi dans vos spams. Cliquez sur le lien qu’il contient, puis réessayez."
+
+#: src/components/shared/NotFoundState.tsx
+msgid "Page not found"
+msgstr "Page introuvable"
+
+#: src/components/shared/RouteErrorState.tsx
+msgid "Reload"
+msgstr "Recharger"
+
+#: src/components/shared/RouteErrorState.tsx
+msgid "Reload the page to keep going."
+msgstr "Rechargez la page pour continuer."
+
+#: src/components/shared/SignInProblemPage.tsx
+#: src/features/projects/components/NoEvaluationAccessPage.tsx
+msgid "Sign out"
+msgstr "Se déconnecter"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Sign-in expired"
+msgstr "Connexion expirée"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Sign-in failed"
+msgstr "Connexion impossible"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "The app needs it to find your invitations. Contact your administrator."
+msgstr "L'application en a besoin pour trouver vos invitations. Contactez votre administrateur."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "The sign-in keeps failing"
+msgstr "La connexion échoue à chaque fois"
+
+#: src/components/shared/RouteErrorState.tsx
+msgid "This page could not load"
+msgstr "Cette page n’a pas pu se charger"
+
+#: src/components/shared/NotFoundState.tsx
+msgid "This page does not exist, or you cannot open it."
+msgstr "Cette page n’existe pas, ou vous ne pouvez pas l’ouvrir."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "This sign-in started too long ago, or another tab started a new one, and this tab can no longer complete it."
+msgstr "Cette connexion a commencé il y a trop longtemps, ou un autre onglet en a lancé une nouvelle, et cet onglet ne peut plus la terminer."
+
+#: src/components/shared/RouteErrorState.tsx
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Try again"
+msgstr "Réessayer"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Try again in a moment. If this page comes back, sign out, then sign in again."
+msgstr "Réessayez dans un instant. Si cette page revient, déconnectez-vous, puis reconnectez-vous."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Try again to sign in. If this page comes back, close the other tabs of the app."
+msgstr "Réessayez de vous connecter. Si cette page revient, fermez les autres onglets de l'application."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Verify your email"
+msgstr "Vérifiez votre email"
+
+#: src/features/projects/components/NoEvaluationAccessPage.tsx
+msgid "You cannot evaluate agents yet"
+msgstr "Vous ne pouvez pas encore évaluer d'agents"
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Your identity provider did not share your email address with the app."
+msgstr "Votre fournisseur d'identité n'a pas transmis votre adresse e-mail à l'application."
+
+#: src/components/shared/SignInProblemPage.tsx
+msgid "Your identity provider refused the sign-in."
+msgstr "Votre fournisseur d’identité a refusé la connexion."
